@@ -2,6 +2,7 @@ from datetime import timedelta
 from types import SimpleNamespace
 
 import pytest
+from fastapi import HTTPException
 from fastapi.testclient import TestClient
 from sqlalchemy import event
 from sqlalchemy.orm import sessionmaker
@@ -629,3 +630,222 @@ def test_default_admission_verification_and_replay(session, monkeypatch, configu
     session.expire_all()
     assert session.get(AccessAdmissionCounter, "automatic").used_slots == 1002
     assert len(notifications) == 2
+
+
+def signup_browser(session, monkeypatch) -> TestClient:
+    """A client whose signups create accounts in the test transaction."""
+    factory = sessionmaker(session.bind, expire_on_commit=False)
+    monkeypatch.setattr(web_module, "Session", factory)
+    monkeypatch.setattr(auth_module, "Session", factory)
+    monkeypatch.setenv("REALITY_AUTH_MODE", "enabled")
+    monkeypatch.setenv("REALITY_PUBLIC_SIGNUP_ENABLED", "true")
+    return TestClient(web_module.app)
+
+
+def registered(session, email: str) -> AppUser:
+    session.expire_all()
+    return session.query(AppUser).filter(AppUser.email == email).one()
+
+
+def test_signup_adopts_the_presentation_defaults_the_browser_states(
+    session, monkeypatch
+):
+    browser = signup_browser(session, monkeypatch)
+    try:
+        for language, locale, zone in (
+            ("de", "de-DE", "Europe/Berlin"),
+            ("nl", "nl-NL", "Europe/Amsterdam"),
+            ("es", "es-ES", "America/Bogota"),
+            ("en", "en-GB", "Australia/Sydney"),
+        ):
+            email = f"{language}-registrant@example.com"
+            created = browser.post(
+                "/api/auth/signup",
+                json={
+                    "email": email,
+                    "password": "a-long-operator-password",
+                    "accepted_terms": True,
+                    "language": language,
+                    "timezone": zone,
+                },
+            )
+            assert created.status_code == 201, created.text
+            account = registered(session, email)
+            assert (account.language, account.locale, account.timezone) == (
+                language,
+                locale,
+                zone,
+            )
+    finally:
+        browser.close()
+
+
+def test_signup_keeps_the_established_defaults_when_no_hint_is_usable(
+    session, monkeypatch
+):
+    browser = signup_browser(session, monkeypatch)
+    unusable = (
+        {},
+        {"language": None, "timezone": None},
+        {"language": "", "timezone": ""},
+        {"language": "fr", "timezone": "Mars/Olympus_Mons"},
+        {"language": "de-DE", "timezone": "../../etc/passwd"},
+        {"language": "EN", "timezone": "UTC+2"},
+    )
+    try:
+        for index, hint in enumerate(unusable):
+            email = f"fallback-{index}@example.com"
+            created = browser.post(
+                "/api/auth/signup",
+                json={
+                    "email": email,
+                    "password": "a-long-operator-password",
+                    "accepted_terms": True,
+                    **hint,
+                },
+            )
+            assert created.status_code == 201, f"{hint}: {created.text}"
+            account = registered(session, email)
+            assert (account.language, account.locale, account.timezone) == (
+                "en",
+                "en-GB",
+                "UTC",
+            ), hint
+    finally:
+        browser.close()
+
+
+def test_signup_pairs_the_locale_itself_and_never_takes_one_from_the_client(
+    session, monkeypatch
+):
+    browser = signup_browser(session, monkeypatch)
+    try:
+        created = browser.post(
+            "/api/auth/signup",
+            json={
+                "email": "locale-claim@example.com",
+                "password": "a-long-operator-password",
+                "accepted_terms": True,
+                "language": "de",
+                "locale": "en-GB",
+                "timezone": "Europe/Berlin",
+            },
+        )
+        assert created.status_code == 201, created.text
+        account = registered(session, "locale-claim@example.com")
+        assert (account.language, account.locale) == ("de", "de-DE")
+    finally:
+        browser.close()
+
+
+def test_signup_rejects_an_oversized_hint_before_an_account_exists(
+    session, monkeypatch
+):
+    browser = signup_browser(session, monkeypatch)
+    try:
+        refused = browser.post(
+            "/api/auth/signup",
+            json={
+                "email": "oversized@example.com",
+                "password": "a-long-operator-password",
+                "accepted_terms": True,
+                "timezone": "Europe/" + "B" * 500,
+            },
+        )
+        assert refused.status_code == 422
+        session.expire_all()
+        assert (
+            session.query(AppUser)
+            .filter(AppUser.email == "oversized@example.com")
+            .one_or_none()
+            is None
+        )
+    finally:
+        browser.close()
+
+
+def test_invitation_signup_adopts_the_presentation_defaults_too(session, monkeypatch):
+    factory = sessionmaker(session.bind, expire_on_commit=False)
+    monkeypatch.setattr(web_module, "Session", factory)
+    monkeypatch.setattr(auth_module, "Session", factory)
+    monkeypatch.setenv("REALITY_AUTH_MODE", "enabled")
+    monkeypatch.setenv("REALITY_PUBLIC_SIGNUP_ENABLED", "false")
+    tenant = create_tenant(session, "Invitation Preferences Company")
+    owner = AppUser(
+        id=uid("usr"),
+        email="preferences-owner@example.com",
+        password_hash="unused",
+        status="active",
+        email_verified_at=now(),
+    )
+    session.add(owner)
+    session.flush()
+    session.add(
+        TenantMembership(
+            id=uid("tmb"),
+            tenant_id=tenant.id,
+            user_id=owner.id,
+            role="owner",
+            status="active",
+        )
+    )
+    session.flush()
+    invitation = create_invitation(
+        session,
+        tenant.id,
+        Principal(owner.id),
+        "invited-registrant@example.com",
+    )
+    delivery = (
+        session.query(InvitationDelivery)
+        .filter(InvitationDelivery.invitation_id == invitation.id)
+        .one()
+    )
+    _, _, token = issue_delivery_token(session, tenant.id, delivery.id)
+    session.commit()
+
+    browser = TestClient(web_module.app)
+    try:
+        created = browser.post(
+            "/api/auth/invitations/signup",
+            json={
+                "token": token,
+                "email": "invited-registrant@example.com",
+                "password": "a-long-operator-password",
+                "accepted_terms": True,
+                "language": "de",
+                "timezone": "Europe/Berlin",
+            },
+        )
+        assert created.status_code == 201, created.text
+        account = registered(session, "invited-registrant@example.com")
+        assert (account.language, account.locale, account.timezone) == (
+            "de",
+            "de-DE",
+            "Europe/Berlin",
+        )
+    finally:
+        browser.close()
+
+
+def test_signup_and_profile_decide_preferences_from_one_vocabulary():
+    for language, locale in auth_module.SUPPORTED_LOCALES.items():
+        # What signup accepts as a default is exactly what a profile update accepts.
+        assert auth_module.presentation_defaults(language, "Europe/Berlin") == (
+            language,
+            locale,
+            "Europe/Berlin",
+        )
+        auth_module.validate_preferences(language, locale, "Europe/Berlin")
+    with pytest.raises(HTTPException):
+        auth_module.validate_preferences("fr", "fr-FR", "Europe/Paris")
+    # A malformed zone is an unknown zone on both paths, never an unhandled error.
+    for malformed in ("../../etc/passwd", "Mars/Olympus_Mons", ""):
+        with pytest.raises(HTTPException) as refused:
+            auth_module.validate_preferences("en", "en-GB", malformed)
+        assert refused.value.status_code == 422
+    assert auth_module.presentation_defaults("fr", "Europe/Paris") == (
+        "en",
+        "en-GB",
+        "Europe/Paris",
+    )

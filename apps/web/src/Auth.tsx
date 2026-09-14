@@ -16,6 +16,7 @@ import { EntryProgress } from "./components/EntryProgress";
 import { LogoMark } from "./components/LogoMark";
 import { LocalizationProvider, t, type Language } from "./localization";
 import { accountDestination, resolveEntry, rememberAccountDestination } from "./entryRouting";
+import { browserSignupPreferences } from "./signupPreferences";
 import "./auth.css";
 
 import "./access-capacity.css";
@@ -244,9 +245,11 @@ function Signup() {
     try {
       const email = String(data.get("email"));
       const token = sessionStorage.getItem("reality.invitationToken") || "";
+      // A new account starts in the time zone and language this browser already states.
+      const preferences = browserSignupPreferences(readLanguage());
       const result = token
-        ? await api.invitationSignup(token, email, String(data.get("password")))
-        : await api.signup(email, String(data.get("password")));
+        ? await api.invitationSignup(token, email, String(data.get("password")), preferences)
+        : await api.signup(email, String(data.get("password")), preferences);
       sessionStorage.setItem("reality.signupEmail", email);
       if (result.verification_code)
         sessionStorage.setItem("reality.localVerificationCode", result.verification_code);

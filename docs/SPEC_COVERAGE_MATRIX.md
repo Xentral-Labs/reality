@@ -1023,3 +1023,9 @@ Spec 185 owns the analytics service, agent tools, private report configuration a
 - `packages/reality-core/tests/test_access_application_deletion_api.py`: the preview and delete routes, platform-administration authorization, the refused confirmation and the unknown application (FR-011).
 - `apps/web/scripts/access-deletion.test.mjs`: the two-answer confirmation, the literal confirmation word shared with the company danger zone, address normalization and the withheld control for administrators (FR-001, FR-003).
 - `apps/web/scripts/access-deletion-browser.mjs`: the offered and withheld delete controls, the preview of what is lost, the gated confirm button, a server refusal that removes nothing, the confirmed payload, and the German dialog at 390px (FR-001–FR-004, FR-011–FR-013, SC-001, SC-004, SC-006).
+
+## Spec 194 — Signup Adopts the Browser's Presentation Defaults
+
+- `packages/reality-core/tests/test_user_access.py`: the stored zone, language and paired locale for public and invitation signup, the fallback for absent, empty, unknown, malformed and unsupported hints, the refused oversized hint that creates no account, the locale a client cannot claim, and the one vocabulary shared with profile validation (FR-001–FR-003, FR-005, DR-002).
+- `apps/web/scripts/signup-preferences.test.mjs`: the explicit page language, the browser's requested language, the omitted unsupported language, the stated zone and the omitted unusable or oversized zone (FR-004).
+- `apps/web/scripts/signup-preferences-browser.mjs`: a real browser in `America/Denver`, `Europe/Amsterdam` and `Asia/Tokyo` registering from the German entry page, from a Dutch browser and from an unsupported French one, with the sent request body carrying the zone and language and never a locale (FR-004, SC-001).

@@ -1,3 +1,5 @@
+import type { SignupPreferences } from "./signupPreferences";
+
 export type CompanyProfileManifest = {
   tenant_id: string;
   windows: { prior_start: string; current_start: string; end: string };
@@ -1150,15 +1152,29 @@ export const api = {
       }>;
     }>("/api/playground/exception-catalog"),
 
-  signup: (email: string, password: string) =>
+  signup: (email: string, password: string, preferences: SignupPreferences = {}) =>
     request<{ email: string; next: string; verification_code?: string }>("/api/auth/signup", {
       method: "POST",
-      body: JSON.stringify({ email, password, accepted_terms: true, playground: true }),
+      body: JSON.stringify({
+        email,
+        password,
+        accepted_terms: true,
+        playground: true,
+        ...preferences,
+      }),
     }),
-  invitationSignup: (token: string, email: string, password: string) =>
+  invitationSignup: (
+    token: string,
+    email: string,
+    password: string,
+    preferences: SignupPreferences = {},
+  ) =>
     request<{ email: string; next: string; verification_code?: string }>(
       "/api/auth/invitations/signup",
-      { method: "POST", body: JSON.stringify({ token, email, password, accepted_terms: true }) },
+      {
+        method: "POST",
+        body: JSON.stringify({ token, email, password, accepted_terms: true, ...preferences }),
+      },
     ),
   inspectInvitation: (token: string) =>
     request<{ status: string; company_name?: string; email?: string; expires_at?: string }>(
