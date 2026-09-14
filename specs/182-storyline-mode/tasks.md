@@ -133,3 +133,8 @@ implied by any task; migrations are not run on the owner's live environment.
 | SC-007 | T033, T038 | T034 |
 | SC-008 | T006, T033 | T009, T034 |
 | SC-009 | T043 | T044 |
+
+## Autoplay refresh regression (FR-013)
+
+- [x] T901 Add a Home-entry/delayed trial-refresh browser regression and observe failure.
+- [x] T902 Keep mounted children during successful background refresh; run browser, build, contract and spec checks.

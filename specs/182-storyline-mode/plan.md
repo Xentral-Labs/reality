@@ -354,3 +354,7 @@ Evidence goes to `quickstart.md`; no task is marked done on red.
 | Per-account `storyline_package` table | FR-018 stores imports per account and lets them outlive the practice company | Files only would lose the library on the next device; a tenant-scoped table would tie a storyline to one company, against spec 104's ownership model |
 | `fact.recorded_at` column | FR-005 filters Facts after a marker; Facts have business time only | Filtering by `observed_at` mixes business time with recording time and misses backdated Facts written in the chapter |
 | Recorder dependency on the tenant router | Web views never pass `run_read_tool`; the router dependency is the one place every tenant read passes | Instrumenting each page's fetch in the browser duplicates every endpoint and cannot be trusted after reload |
+
+## Autoplay refresh regression
+
+Restore FR-013 by retaining the mounted application while TrialEntry refreshes an existing successful read. Show the entry loader only before the first answer. Preserve error, eligibility, initial setup and explicit-confirmation handling. No schema, services or scheduler changes. Constitution check: PASS. Regression: start through Home with a delayed trial-entry fixture, navigate to Storyline, then assert a single autoplay activation prepares, confirms and advances; existing pause/error checks remain.

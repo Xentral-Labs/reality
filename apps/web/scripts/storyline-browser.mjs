@@ -15,6 +15,8 @@ page.setDefaultTimeout(12000);
 const base = process.env.UNIFIED_BASE_URL || "http://127.0.0.1:5177";
 const errors = [],
   writes = [];
+let enterThroughHome = false,
+  entryReads = 0;
 let language = "en",
   phase = "idle",
   started = false,
@@ -279,6 +281,18 @@ await page.route("**/api/**", async (route) => {
       timezone: "UTC",
       is_platform_admin: false,
     });
+  if (p === "/api/company-setup/playground") {
+    assert.equal(req.method(), "GET", "refresh must not create a company");
+    entryReads++;
+    await new Promise((resolve) => setTimeout(resolve, 250));
+    return reply({
+      requested: false,
+      archived: false,
+      enabled: true,
+      eligible: true,
+      receipt: null,
+    });
+  }
   if (p === "/api/v1/bootstrap")
     return reply({
       tenants: [
@@ -290,7 +304,7 @@ await page.route("**/api/**", async (route) => {
           ? [{ id: "story-2", name: "Order to close 2", company_kind: "sandbox", role: "owner" }]
           : []),
       ],
-      default_tenant_id: "plain",
+      default_tenant_id: enterThroughHome ? "story" : "plain",
     });
   if (p.endsWith("/application-reference")) return reply({ workspaces: [], commands: [] });
   if (p === "/api/storyline/library" && req.method() === "GET")
@@ -691,8 +705,12 @@ for (let waited = 0; profileSaves.length === 0 && waited < 100; waited += 1)
   await new Promise((resolve) => setTimeout(resolve, 100));
 assert.deepEqual(profileSaves, ["de"]);
 await page.locator("select[name='language']").waitFor();
-await page.goto(`${base}/app/storyline?tenant=story&chapter=order`);
+// Home entry keeps TrialEntry mounted while navigating into Storyline.
+enterThroughHome = true;
+await page.goto(`${base}/app`);
+await page.locator("a[href*='/app/storyline']").first().click();
 await page.locator("[data-storyline-chapter='order']", { hasText: "Auftrag anlegen" }).waitFor();
+const readsBeforeAutoplay = entryReads;
 assert.deepEqual(chapterCalls(writes.slice(timedFrom)), []);
 // Resumed at a fast pace, the run prepares, confirms and advances on its own, and it
 // pauses on the first chapter the fixture cannot prepare instead of retrying.
@@ -702,6 +720,8 @@ await page.locator("[data-storyline-chapter='reference'][aria-current='step']").
 await page
   .locator("[data-storyline-presentation='off'][data-storyline-presentation-note]")
   .waitFor();
+assert.ok(entryReads > readsBeforeAutoplay, "completed steps refresh trial entry");
+enterThroughHome = false;
 const timed = chapterCalls(writes.slice(timedFrom));
 assert.deepEqual(timed.slice(0, byHand.length), byHand);
 assert.deepEqual(timed.slice(byHand.length), [

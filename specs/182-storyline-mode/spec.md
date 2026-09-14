@@ -460,7 +460,9 @@ texts, import it and play it; the same three commands are proposed in order.
 - **FR-012**: A restart MUST create a fresh practice company with the seed under the existing
   quota rules and keep the previous company, as spec 104 defines.
 - **FR-013**: Presentation mode MUST advance chapters on a timer through the same services,
-  MUST pause on any interaction and MUST take the default branch.
+  MUST pause on any interaction and MUST take the default branch. Successful background
+  trial-entry refreshes after chapter actions MUST preserve the mounted player and its
+  active presentation state, including sessions that entered through Home.
 - **FR-014**: The shipped storyline Order to close MUST contain the fourteen default-path
   chapters and four branch alternatives named in the scope, with a backdated seed that provides
   opening stock, an overdue posted invoice under a 14-day term, a customer delivery hold and an

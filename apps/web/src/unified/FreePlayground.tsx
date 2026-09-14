@@ -66,7 +66,8 @@ function TrialEntryRequest({
       current = false;
     };
   }, [requested, attempt]);
-  if (state.loading) return <EntryProgress />;
+  // Background reads retain their previous answer and must not reset the active page.
+  if (state.loading && !state.data) return <EntryProgress />;
   if (state.error) return <ReadState error={state.error} retry={state.refresh} />;
   if (!requested) return children;
   if (!failure)
