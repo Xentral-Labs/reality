@@ -23,3 +23,7 @@ FR-016 review: the owner approved trying a real-product illustration in ERP Lite
 FR-017 review: owner approved a diagram alongside the real ERP screenshot treatment. The selected read-only query contains four completed weeks, with order counts 1, 8, 1, 1. The table is from the same result as the chart. No unresolved clarification or critical finding. Existing contracts and signup routes remain unchanged.
 
 FR-018 review: the owner requests a shorter page without losing understanding. Existing content is retained; only its initial reading order and optional depth change. No unresolved clarification, schema change or critical finding. Browser verification covers the interaction and height goal in addition to existing content tests.
+
+FR-019 review: user requests recovery after closing the signup tab. A navigation link with the recipient in the fragment preserves the existing code verification model. The code is never in the URL and opening the link performs no verification. No unresolved clarification or critical finding.
+
+FR-019 verification: 8 email tests, 156 Web contract tests, production build, four-language audit, spec policy and fresh/stale-tab browser checks at 1440px/390px passed. Browser proof covers fragment cleanup, plus-address preservation, stale-code/invitation clearing, explicit code submission, manual email fallback and resend. No schema or authentication/admission service changes. Review: same-recipient invitation state is retained; different-recipient context is cleared.

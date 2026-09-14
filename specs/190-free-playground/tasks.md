@@ -90,3 +90,6 @@
 ## Shorter How it works (FR-018)
 - [x] T976 Reorder the core story and introduce localized, accessible optional depth.
 - [x] T977 Verify retained content, responsive disclosures and at least 30% shorter initial page.
+
+## FR-019
+- [x] T019 Implement and verify verification-mail return links, fresh-tab recovery and resend controls.

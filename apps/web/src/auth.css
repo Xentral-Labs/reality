@@ -536,3 +536,17 @@
     gap: 2px;
   }
 }
+
+.auth-form > button.auth-resend {
+  background: transparent;
+  color: var(--text-muted);
+  box-shadow: none;
+  min-height: 44px;
+}
+
+.auth-verification,
+.auth-verification label,
+.auth-verification input {
+  min-width: 0;
+  width: 100%;
+}

@@ -2668,3 +2668,5 @@ Spec 190 FR-012: Packages ends after the hosted trial and self-hosted choices; t
 Spec 190 FR-015: Public pages share more readable heading spacing, responsive section rhythm and consistent free-trial CTA labels/colors. The platform trial note stays with the introduction; existing light/dark surfaces and route behavior are preserved.
 
 Spec 190 FR-018: How it works presents the core flow and worked delivery example first. Native disclosures retain vocabulary, finance, corrections, background and FAQ; all depth is keyboard-accessible and the existing entry anchor targets the compact process flow.
+
+Spec 190 FR-019: Verification mail links reopen the Product App with the recipient in a scrubbed URL fragment. The code remains mandatory; missing tab state permits email entry and the existing resend action. No verification occurs on navigation.

@@ -1156,6 +1156,11 @@ export const api = {
       method: "POST",
       body: JSON.stringify({ token }),
     }),
+  resendVerificationCode: (email: string) =>
+    request<{ ok: boolean }>("/api/auth/resend-code", {
+      method: "POST",
+      body: JSON.stringify({ email }),
+    }),
   verifyEmail: (email: string, code: string, invitationToken?: string) =>
     request<AuthUser>("/api/auth/verify-email", {
       method: "POST",
