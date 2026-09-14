@@ -13,6 +13,11 @@ type Preferences = { language: Language; locale: DisplayLocale; timezone: string
 
 const dictionaries: Record<Exclude<Language, "en">, Record<string, string>> = {
   de: {
+    "Preparing your company": "Deine Firma wird vorbereitet",
+    "Continue company setup": "Firmeneinrichtung fortsetzen",
+    "Your setup is saved. Continue with the same company.":
+      "Deine Einrichtung ist gespeichert. Du setzt mit derselben Firma fort.",
+
     "Loading your access": "Dein Zugang wird geladen",
     "Please wait. You will continue automatically.":
       "Bitte warte kurz. Es geht automatisch weiter.",
@@ -1760,6 +1765,11 @@ const dictionaries: Record<Exclude<Language, "en">, Record<string, string>> = {
     "Fully Reserved": "Vollständig reserviert",
   },
   nl: {
+    "Preparing your company": "Je bedrijf wordt voorbereid",
+    "Continue company setup": "Bedrijfsinrichting voortzetten",
+    "Your setup is saved. Continue with the same company.":
+      "Je inrichting is opgeslagen. Ga verder met hetzelfde bedrijf.",
+
     "Loading your access": "Je toegang wordt geladen",
     "Please wait. You will continue automatically.": "Even geduld. Je gaat automatisch verder.",
     "Loading your workspace": "Je werkruimte wordt geladen",
@@ -3199,6 +3209,11 @@ const dictionaries: Record<Exclude<Language, "en">, Record<string, string>> = {
     Customer: "Klant",
   },
   es: {
+    "Preparing your company": "Preparando tu empresa",
+    "Continue company setup": "Continuar la configuración",
+    "Your setup is saved. Continue with the same company.":
+      "Tu configuración está guardada. Continúa con la misma empresa.",
+
     "Loading your access": "Cargando tu acceso",
     "Please wait. You will continue automatically.":
       "Espera un momento. Continuarás automáticamente.",

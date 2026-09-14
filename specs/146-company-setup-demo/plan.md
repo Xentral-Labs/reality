@@ -127,3 +127,6 @@ Sandbox HTTP reads before implementation. Existing foreign-record and mutation
 boundary tests remain required. Constitution PASS; no unresolved clarification or
 critical finding. Verify focused regressions, full backend, lint/spec and actual
 read-only deployed demo investigation. Rollback restores the prior API/core images.
+
+## FR-031 implementation
+Update CompanySetup presentation with scoped Tailwind styles and localized status titles. Preserve exact saved request and automatic ready navigation. Constitution check PASS: no service or schema changes. Verify delayed recovery and creation, errors and retry identity using HTTP browser fixtures, then web contracts, localization, build, formatting and mobile/light/dark visual review.
