@@ -113,3 +113,6 @@ Only Product Web receives a public domain. API and PostgreSQL have private netwo
 | Constitution exception | Why needed | Simpler alternative rejected | Approval |
 |---|---|---|---|
 | None | — | — | — |
+
+## Repository split amendment
+Use explicit --only product|site|all and --dry-run modes in the existing Bash entrypoint. Resolve product root from script location and site root from REALITY_RAILWAY_SITE_ROOT. Upload each absolute root with --path-as-root. Preflight selected Dockerfiles and Git revision before authentication or deployment. No service, schema, domain or recurring-job changes. Constitution check PASS. Regression tests mock Railway/curl and verify routing, preflight failure and dry-run behavior before implementation.

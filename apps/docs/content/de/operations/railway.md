@@ -38,3 +38,32 @@ Nutze nur synthetische oder anonymisierte Daten, lass die Authentifizierung mit 
 Demo-Administratorpasswort aktiv, halte die öffentliche Registrierung geschlossen, solange kein
 E-Mail-Anbieter konfiguriert ist, und verbinde keine echten Shop-, E-Mail-, KI-, Zahlungs- oder
 Buchhaltungszugänge.
+
+## Getrennte Quellen für Produkt und Marketing
+
+`make railway-deploy` lädt nur die Produktdienste aus diesem Checkout hoch: API, Scheduler, Worker,
+MCP, Docs und zuletzt App. Die Marketing-Website wird separat aus einem privaten Checkout
+ausgerollt:
+
+```bash
+export REALITY_RAILWAY_SITE_ROOT=/absoluter/pfad/zum/marketing-checkout
+./scripts/deploy_railway_demo.sh --only site --dry-run
+./scripts/deploy_railway_demo.sh --only site
+```
+
+`--only all` rollt beide Checkouts koordiniert aus. `--dry-run` zeigt Dienst, Checkout, Commit und
+Dockerfile ohne Anmeldung oder Deployment. Alle gewählten Dockerfiles werden vor dem ersten Upload
+geprüft. Für Releases geprüfte, saubere Checkouts verwenden: Der Upload enthält auch nicht
+ignorierte lokale Änderungen.
+
+`REALITY_RAILWAY_PROJECT_ID` und die öffentlichen URLs müssen exportiert werden.
+`REALITY_RAILWAY_ENVIRONMENT` ist standardmäßig `production`. Produktprüfungen brauchen `APP_URL`,
+`DOCS_URL` und `MCP_URL`, die Website-Prüfung `SITE_URL`. Die ignorierte Datei aus
+`REALITY_RAILWAY_ENV_FILE` wird nur für `RAILWAY_TOKEN` gelesen; alternativ funktioniert die
+bestehende CLI-Anmeldung.
+
+Railway baut aus dem jeweiligen Checkout-Wurzelverzeichnis. `RAILWAY_DOCKERFILE_PATH` zeigt pro
+Dienst auf `apps/api/Dockerfile`, `apps/scheduler/Dockerfile`, `apps/worker/Dockerfile`,
+`apps/mcp/Dockerfile`, `apps/docs/Dockerfile`, `apps/web/Dockerfile` beziehungsweise
+`apps/site/Dockerfile.railway`. Eine lokale Git-Remote-Änderung konfiguriert Railway nicht. Dieser
+Ablauf nutzt weiterhin CLI-Uploads und aktiviert keine GitHub-Autodeployments.

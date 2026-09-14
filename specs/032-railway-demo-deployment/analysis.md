@@ -1,0 +1,2 @@
+
+Repository split review: provider website is absent from the product repository but present in the private repository. Existing script incorrectly uploads every service from the caller working directory. Explicit independent checkout roots preserve the existing CLI deployment mechanism and do not introduce GitHub autodeploy or publish private history. No unresolved clarification or critical finding.

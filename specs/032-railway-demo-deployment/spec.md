@@ -159,3 +159,11 @@ After the demonstration, the owner can disable public access and identify all te
 | FR-012 | US1 scenario 2; signup edge case | Hosted signup-disabled authentication test |
 | FR-013 | US2 scenario 2; background-process edge cases | Deployment-script contract plus live scheduler/worker status and sweep logs |
 | DR-001–DR-004 | All stories | Existing domain, service-boundary, and tenant test suites |
+
+## Repository split amendment
+
+- **FR-020**: Product deployments use the product checkout root for api, scheduler, worker, mcp, docs and app; the default never uploads the provider website.
+- **FR-021**: Site-only or combined deployment requires an explicit separate site checkout containing apps/site/Dockerfile.railway. Validate every selected checkout before any upload.
+- **FR-022**: A dry run prints each selected service, source checkout, commit and Dockerfile without authentication or side effects. Real deployment preserves ordering, background heartbeat checks and selected-surface health checks. Unrelated working directories must not change upload sources.
+
+Acceptance: default product mode excludes site; site mode excludes product services; combined mode rejects a missing site root before uploading; running outside the checkout still uploads the correct root.

@@ -86,3 +86,8 @@ description: "Requirement-traceable tasks for the temporary Railway demo deploym
 ## Implementation Strategy
 
 The MVP is US1: a secure hosted Product Web with private API/PostgreSQL and external smoke proof. US2 adds restart persistence evidence. US3 supplies cleanup safety now, while destructive removal remains deferred until the owner confirms the demonstration is over.
+
+## Repository split amendment
+- [x] T020 Verify root selection, deployment modes, preflight and dry runs with mocked external commands.
+- [x] T021 Implement explicit product/site upload roots and update deployment documentation.
+- [x] T022 Run regression tests and shell syntax/spec checks; inspect the actual source plan without deploying.
