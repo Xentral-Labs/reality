@@ -4,15 +4,23 @@ import {
   languageHref,
   setLanguageFallback,
 } from "../../shared/language";
-import { type FormEvent, type ReactNode, useEffect, useState } from "react";
-import { ArrowRight, Check, Clock3, LoaderCircle, LogOut, ShieldCheck } from "lucide-react";
-import { api, type AuthUser, type PlatformOverview } from "./api";
+import { type FormEvent, type ReactNode, useEffect, useRef, useState } from "react";
+import { ArrowRight, Check, Clock3, LoaderCircle, LogOut, ShieldCheck, Trash2 } from "lucide-react";
+import { api, type AuthUser, type DeletionPreview, type PlatformOverview } from "./api";
+import {
+  DELETE_CONFIRMATION_WORD,
+  deletionConfirmationValid,
+  deletionOffered,
+} from "./accessDeletion";
 import { EntryProgress } from "./components/EntryProgress";
 import { LogoMark } from "./components/LogoMark";
-import { LocalizationProvider, type Language } from "./localization";
+import { LocalizationProvider, t, type Language } from "./localization";
 import { accountDestination, resolveEntry, rememberAccountDestination } from "./entryRouting";
 import "./auth.css";
+
 import "./access-capacity.css";
+
+const message = (error: unknown) => (error instanceof Error ? error.message : String(error));
 
 const publicLocales = { en: "en-GB", de: "de-DE", nl: "nl-NL", es: "es-ES" } as const;
 
@@ -98,8 +106,20 @@ export function AuthGate({
       );
       return <AuthLoading />;
     }
-    if (path === "/admin" && user.is_platform_admin) return <PlatformAdmin user={user} />;
-    if (path === "/admin/access" && user.is_platform_admin) return <AccessAdmin user={user} />;
+    // Both platform pages were the only auth routes rendered outside the provider,
+    // so their translations never reached the DOM even though they exist.
+    if (path === "/admin" && user.is_platform_admin)
+      return (
+        <LocalizedAuth user={user}>
+          <PlatformAdmin user={user} />
+        </LocalizedAuth>
+      );
+    if (path === "/admin/access" && user.is_platform_admin)
+      return (
+        <LocalizedAuth user={user}>
+          <AccessAdmin user={user} />
+        </LocalizedAuth>
+      );
     if (["/signup", "/login", "/verify-email", "/access-pending"].includes(path)) {
       location.replace(localizedAccountDestination("/app"));
       return <AuthLoading />;
@@ -671,6 +691,7 @@ function Pending({ user, changed }: { user: AuthUser; changed: (user: AuthUser |
 
 function AccessAdmin({ user }: { user: AuthUser }) {
   const [rows, setRows] = useState<AuthUser[] | null>(null);
+  const [doomed, setDoomed] = useState<AuthUser | null>(null);
   const [capacity, setCapacity] = useState<{ used: number; limit: number | null } | null>(null);
   const load = () =>
     Promise.all([api.accessApplications().then(setRows), api.accessCapacity().then(setCapacity)]);
@@ -707,32 +728,184 @@ function AccessAdmin({ user }: { user: AuthUser }) {
               <small>{row.email}</small>
             </div>
             <em className={`status-${row.application?.status}`}>{row.application?.status}</em>
-            {row.application?.status === "pending" && (
-              <div>
+            <div>
+              {row.application?.status === "pending" && (
+                <>
+                  <button
+                    onClick={async () => {
+                      await api.reviewAccess(row.application!.id, "reject");
+                      load();
+                    }}
+                  >
+                    Reject
+                  </button>
+                  <button
+                    className="approve"
+                    onClick={async () => {
+                      await api.reviewAccess(row.application!.id, "approve");
+                      load();
+                    }}
+                  >
+                    <ShieldCheck size={16} />
+                    Approve
+                  </button>
+                </>
+              )}
+              {deletionOffered(row, user) && (
                 <button
-                  onClick={async () => {
-                    await api.reviewAccess(row.application!.id, "reject");
-                    load();
-                  }}
+                  className="delete-applicant"
+                  aria-label={`${t("Delete account")} ${row.email}`}
+                  onClick={() => setDoomed(row)}
                 >
-                  Reject
+                  <Trash2 size={16} />
+                  Delete
                 </button>
-                <button
-                  className="approve"
-                  onClick={async () => {
-                    await api.reviewAccess(row.application!.id, "approve");
-                    load();
-                  }}
-                >
-                  <ShieldCheck size={16} />
-                  Approve
-                </button>
-              </div>
-            )}
+              )}
+            </div>
           </article>
         ))}
       </div>
+      {doomed && (
+        <DeleteApplicantDialog
+          row={doomed}
+          close={() => setDoomed(null)}
+          deleted={() => {
+            setDoomed(null);
+            void load();
+          }}
+        />
+      )}
     </AdminShell>
+  );
+}
+
+function DeleteApplicantDialog({
+  row,
+  close,
+  deleted,
+}: {
+  row: AuthUser;
+  close: () => void;
+  deleted: () => void;
+}) {
+  const dialog = useRef<HTMLDialogElement>(null);
+  const [preview, setPreview] = useState<DeletionPreview | null>(null);
+  const [email, setEmail] = useState("");
+  const [word, setWord] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState("");
+  useEffect(() => {
+    const trigger = document.activeElement as HTMLElement | null;
+    const node = dialog.current!;
+    node.showModal();
+    return () => {
+      node.close();
+      trigger?.focus();
+    };
+  }, []);
+  useEffect(() => {
+    api
+      .accessDeletionPreview(row.application!.id)
+      .then(setPreview)
+      .catch((failure) => setError(message(failure)));
+  }, [row]);
+  // Both answers must be right, and nothing is offered before the preview names
+  // what this costs.
+  const valid = !!preview && deletionConfirmationValid(row.email, email, word);
+  return (
+    <dialog
+      ref={dialog}
+      className="applicant-delete-dialog"
+      aria-label={t("Delete account")}
+      onCancel={(event) => {
+        event.preventDefault();
+        if (!busy) close();
+      }}
+    >
+      <header>
+        <h2>Delete account</h2>
+        <p data-localization="original">{row.email}</p>
+      </header>
+      <p className="lead">
+        {t(
+          "This removes the account and every company only this person owns, with all records in them. It cannot be undone.",
+        )}
+      </p>
+      {preview ? (
+        <ul className="deletion-losses">
+          {preview.deleted_companies.map((company) => (
+            <li key={company.id}>
+              <strong data-localization="original">{company.name}</strong>
+              <span>
+                {company.record_count} {t("records")}
+              </span>
+            </li>
+          ))}
+          {!preview.deleted_companies.length && <li>{t("No company is affected.")}</li>}
+          {preview.kept_companies.length > 0 && (
+            <li className="kept">
+              {t("Companies another owner holds are kept:")}{" "}
+              <span data-localization="original">
+                {preview.kept_companies.map((company) => company.name).join(", ")}
+              </span>
+            </li>
+          )}
+        </ul>
+      ) : (
+        !error && <p className="lead">{t("Counting what this removes…")}</p>
+      )}
+      <form
+        onSubmit={async (event) => {
+          event.preventDefault();
+          if (!valid || busy) return;
+          setBusy(true);
+          setError("");
+          try {
+            await api.deleteAccessAccount(row.application!.id, email, word);
+            deleted();
+          } catch (failure) {
+            setError(message(failure));
+            setBusy(false);
+          }
+        }}
+      >
+        <label>
+          <span className="field-label">{t("E-mail address")}</span>
+          <span className="field-hint">{t("Type the address exactly as shown.")}</span>
+          <input
+            name="confirmation_email"
+            autoComplete="off"
+            spellCheck={false}
+            value={email}
+            onChange={(event) => setEmail(event.target.value)}
+          />
+        </label>
+        <label>
+          <span className="field-label">{t("Confirmation word")}</span>
+          <span className="field-hint">
+            {t("Type the word shown exactly.")}{" "}
+            <code data-localization="original">{DELETE_CONFIRMATION_WORD}</code>
+          </span>
+          <input
+            name="confirmation_word"
+            autoComplete="off"
+            spellCheck={false}
+            value={word}
+            onChange={(event) => setWord(event.target.value)}
+          />
+        </label>
+        {error && <p role="alert">{error}</p>}
+        <div className="dialog-actions">
+          <button type="button" onClick={close} disabled={busy}>
+            Cancel
+          </button>
+          <button type="submit" className="delete-applicant" disabled={!valid || busy}>
+            {busy ? <LoaderCircle size={16} className="spin" /> : <Trash2 size={16} />}
+            Delete permanently
+          </button>
+        </div>
+      </form>
+    </dialog>
   );
 }
 

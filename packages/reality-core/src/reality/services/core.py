@@ -854,12 +854,23 @@ def permanently_delete_tenant(
         raise InvalidOperation(
             "Tenant name and DELETE confirmation must match exactly."
         )
+    _purge_tenant_records(session, tenant.id)
+    session.delete(tenant)
+    session.commit()
+
+
+def _purge_tenant_records(session: OrmSession, tenant_id: str) -> None:
+    """Delete every tenant-scoped row of one tenant, leaving the tenant itself.
+
+    Private on purpose: the authority to reach it lives with the caller. The
+    company danger zone (spec 186) guards it with owner membership and two
+    confirmations; platform administration (spec 192) guards it with the
+    platform-admin role and two confirmations of its own.
+    """
     for table in reversed(Base.metadata.sorted_tables):
         if table.name == Tenant.__tablename__ or "tenant_id" not in table.c:
             continue
-        session.execute(delete(table).where(table.c.tenant_id == tenant.id))
-    session.delete(tenant)
-    session.commit()
+        session.execute(delete(table).where(table.c.tenant_id == tenant_id))
 
 
 def tenant_usage_summaries(

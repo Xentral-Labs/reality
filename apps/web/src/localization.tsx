@@ -15539,3 +15539,35 @@ Object.assign(dictionaries.es, {
   "Confirmation word": "Palabra de confirmación",
   "Type the word shown exactly.": "Escribe exactamente la palabra mostrada.",
 });
+// Spec 192: applicant account deletion in platform administration.
+Object.assign(dictionaries.de, {
+  "Delete account": "Konto löschen",
+  "This removes the account and every company only this person owns, with all records in them. It cannot be undone.":
+    "Dies entfernt das Konto und jedes Unternehmen, das nur diese Person besitzt, samt allen Datensätzen darin. Es kann nicht rückgängig gemacht werden.",
+  "Counting what this removes…": "Wird ermittelt, was dabei entfernt wird…",
+  "No company is affected.": "Kein Unternehmen ist betroffen.",
+  "Companies another owner holds are kept:":
+    "Unternehmen mit einem weiteren Inhaber bleiben bestehen:",
+  "E-mail address": "E-Mail-Adresse",
+  "Type the address exactly as shown.": "Gib die Adresse genau wie angezeigt ein.",
+});
+Object.assign(dictionaries.nl, {
+  "Delete account": "Account verwijderen",
+  "This removes the account and every company only this person owns, with all records in them. It cannot be undone.":
+    "Dit verwijdert het account en elk bedrijf dat alleen deze persoon bezit, met alle gegevens daarin. Dit kan niet ongedaan worden gemaakt.",
+  "Counting what this removes…": "Bezig te bepalen wat dit verwijdert…",
+  "No company is affected.": "Geen enkel bedrijf wordt geraakt.",
+  "Companies another owner holds are kept:": "Bedrijven met een andere eigenaar blijven bestaan:",
+  "E-mail address": "E-mailadres",
+  "Type the address exactly as shown.": "Typ het adres precies zoals weergegeven.",
+});
+Object.assign(dictionaries.es, {
+  "Delete account": "Eliminar cuenta",
+  "This removes the account and every company only this person owns, with all records in them. It cannot be undone.":
+    "Esto elimina la cuenta y todas las empresas que solo posee esta persona, con todos sus registros. No se puede deshacer.",
+  "Counting what this removes…": "Calculando lo que esto elimina…",
+  "No company is affected.": "Ninguna empresa se ve afectada.",
+  "Companies another owner holds are kept:": "Las empresas con otro propietario se conservan:",
+  "E-mail address": "Dirección de correo electrónico",
+  "Type the address exactly as shown.": "Escribe la dirección exactamente como se muestra.",
+});

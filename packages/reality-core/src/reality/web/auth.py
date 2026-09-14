@@ -34,7 +34,12 @@ from reality.services.access_admission import (
     automatic_access_limit,
     claim_automatic_access_slot,
 )
-from reality.services.core import RealityError
+from reality.services.account_deletion import (
+    account_deletion_preview,
+    application_account_id,
+    delete_account,
+)
+from reality.services.core import InvalidOperation, NotFound, RealityError
 from reality.services.memberships import (
     accept_invitation,
     inspect_invitation,
@@ -262,6 +267,11 @@ class ProfileBody(BaseModel):
 class ReviewBody(BaseModel):
     decision: str = Field(pattern=r"^(approve|reject)$")
     note: str = Field(default="", max_length=1000)
+
+
+class AccountDeleteBody(BaseModel):
+    confirmation_email: str = Field(max_length=320)
+    confirmation_word: str = Field(max_length=32)
 
 
 @router.post("/signup", status_code=status.HTTP_201_CREATED)
@@ -587,6 +597,43 @@ def review_application(
     except (OSError, RuntimeError, smtplib.SMTPException, httpx.HTTPError):
         log.exception("Could not send Reality access decision to %s", user.email)
     return user_payload(user, application)
+
+
+@admin_router.get("/access-applications/{application_id}/deletion-preview")
+def deletion_preview(
+    application_id: str, _: PlatformAdmin, session: DatabaseSession
+):
+    """Name what deleting this applicant would remove, before anything is removed."""
+    try:
+        return account_deletion_preview(
+            session, application_account_id(session, application_id)
+        )
+    except NotFound as error:
+        raise HTTPException(status_code=404, detail=str(error)) from error
+
+
+@admin_router.post("/access-applications/{application_id}/delete")
+def delete_application_account(
+    application_id: str,
+    body: AccountDeleteBody,
+    admin: PlatformAdmin,
+    session: DatabaseSession,
+):
+    """Remove the applicant, their sole-owned companies and every reference to them."""
+    try:
+        return delete_account(
+            session,
+            application_account_id(session, application_id),
+            confirmation_email=body.confirmation_email,
+            confirmation_word=body.confirmation_word,
+            actor_user_id=admin.id,
+        )
+    except NotFound as error:
+        raise HTTPException(status_code=404, detail=str(error)) from error
+    except InvalidOperation as error:
+        # Every guard runs before the first write, so the refused request has
+        # nothing to undo; the request-scoped session is discarded either way.
+        raise HTTPException(status_code=400, detail=str(error)) from error
 
 
 @admin_router.get("/overview")
