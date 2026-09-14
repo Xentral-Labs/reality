@@ -92,12 +92,12 @@ export function StorylineNarrator({
   const thread = useRef<HTMLDivElement>(null);
   // The composer holds the suggested line. Changing it is leaving the script.
   const suggested = chapter ? spokenLine(chapter.say, chapter.title) : "";
-  const [typed, setTyped] = useState(suggested);
-  const edited = typed.trim() !== suggested.trim();
+  const [typed, setTyped] = useState("");
+  const own = typed.trim().length > 0;
   const composing = phase === "idle" && isCurrent && missing.length === 0;
   useEffect(() => {
-    setTyped(suggested);
-  }, [suggested]);
+    setTyped("");
+  }, [chapter?.key]);
   useEffect(() => {
     list.current?.querySelector('[aria-current="step"]')?.scrollIntoView({ block: "nearest" });
   }, [chapter?.key]);
@@ -189,10 +189,6 @@ export function StorylineNarrator({
             {told.map((entry) =>
               entry.key === chapter.key ? (
                 <div key={entry.key} className="flex flex-col gap-2" data-storyline-turn="open">
-                  <Aside
-                    position={chapters.indexOf(entry) + 1}
-                    text={pickText(chapter.situation)}
-                  />
                   {phase !== "idle" && <p className={mine}>{suggested}</p>}
                   {error && (
                     <p
@@ -342,48 +338,64 @@ export function StorylineNarrator({
           >
             {composing && (
               <>
-                <label className="sr-only" htmlFor="storyline-say">
-                  {t("Your message")}
-                </label>
-                <textarea
-                  id="storyline-say"
-                  rows={2}
-                  spellCheck={false}
-                  value={typed}
-                  disabled={busy}
-                  onChange={(event) => setTyped(event.target.value)}
-                  data-storyline-say
-                  className="w-full resize-none rounded-lg border border-border-default bg-surface-muted px-3 py-2 text-[13.5px] text-fg-strong focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent"
-                />
-                <p className="text-[11.5px] text-fg-muted" data-storyline-say-hint={String(edited)}>
-                  {edited
-                    ? t("Your own words. Continue in the sandbox itself.")
-                    : t("Suggested by the storyline. You can change it.")}
-                </p>
+                {/* Somebody beside you, telling you what to ask. Take it and it
+                    goes up into the conversation as your own message. */}
+                <div
+                  className="flex flex-col gap-2 rounded-lg border border-dashed border-border-strong p-3"
+                  data-storyline-suggestion
+                >
+                  <p className="text-[11px] uppercase tracking-wider text-fg-muted">
+                    {t("You could say")}
+                  </p>
+                  <p className="text-[12.5px] text-fg-muted" data-storyline-situation>
+                    {pickText(chapter.situation)}
+                  </p>
+                  <div className="flex flex-wrap items-center justify-end gap-2">
+                    <p className={`${mine} self-stretch border-dashed opacity-80`}>{suggested}</p>
+                    <button
+                      type="button"
+                      className="br-btn br-btn-primary"
+                      data-storyline-action="prepare"
+                      disabled={busy}
+                      onClick={prepare}
+                    >
+                      {t("Use this")}
+                    </button>
+                  </div>
+                </div>
+                <div className="flex items-end gap-2">
+                  <label className="sr-only" htmlFor="storyline-say">
+                    {t("Your message")}
+                  </label>
+                  <textarea
+                    id="storyline-say"
+                    rows={1}
+                    spellCheck={false}
+                    value={typed}
+                    disabled={busy}
+                    placeholder={t("Write your own message")}
+                    onChange={(event) => setTyped(event.target.value)}
+                    data-storyline-say
+                    className="min-w-0 flex-1 resize-none rounded-lg border border-border-default bg-surface-muted px-3 py-2 text-[13.5px] text-fg-strong placeholder:text-fg-quiet focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent"
+                  />
+                  <button
+                    type="button"
+                    className="br-btn"
+                    data-storyline-action="own-words"
+                    disabled={!own}
+                    onClick={freePlay}
+                  >
+                    {t("Send")}
+                  </button>
+                </div>
+                {own && (
+                  <p className="text-[11.5px] text-fg-muted" data-storyline-say-hint="true">
+                    {t("Your own words. Continue in the sandbox itself.")}
+                  </p>
+                )}
               </>
             )}
             <div className="flex min-h-9 flex-wrap items-center gap-2">
-              {composing && !edited && (
-                <button
-                  type="button"
-                  className="br-btn br-btn-primary"
-                  data-storyline-action="prepare"
-                  disabled={busy}
-                  onClick={prepare}
-                >
-                  {t("Send")}
-                </button>
-              )}
-              {composing && edited && (
-                <button
-                  type="button"
-                  className="br-btn br-btn-primary"
-                  data-storyline-action="own-words"
-                  onClick={freePlay}
-                >
-                  {t("Work in the sandbox")}
-                </button>
-              )}
               {phase === "idle" && isCurrent && missing.length > 0 && (
                 <button
                   type="button"
@@ -544,18 +556,6 @@ function ChapterMenu({
         </ol>
       </nav>
     </details>
-  );
-}
-
-/** The colleague behind you. Deliberately not a bubble, so two voices stay two. */
-function Aside({ position, text }: { position: number; text: string }) {
-  return (
-    <p className="flex items-baseline gap-2 text-[12px] text-fg-muted" data-storyline-situation>
-      <span className="shrink-0 rounded border border-border-default px-1.5 font-mono text-[10px] text-fg-quiet">
-        {position}
-      </span>
-      <span>{text}</span>
-    </p>
   );
 }
 
