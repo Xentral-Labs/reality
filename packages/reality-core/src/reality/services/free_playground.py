@@ -23,10 +23,6 @@ DAILY_LIMIT = 20
 USAGE_EVENT = "playground.ai_dispatched"
 
 
-def enabled() -> bool:
-    return os.environ.get("REALITY_PLAYGROUND_ENABLED", "true").lower() in {"true", "1"}
-
-
 def request_entry(session: Session, user_id: str) -> None:
     """Record the explicit signup request; the caller owns the auth transaction."""
     session.add(
@@ -72,7 +68,7 @@ def entry_status(session: Session, user_id: str) -> dict:
             )
         ),
         "requested": requested,
-        "enabled": enabled(),
+        "enabled": True,
         "eligible": user.status == "active" and user.email_verified_at is not None,
         "receipt": receipt,
     }
@@ -84,8 +80,6 @@ def enter(session: Session, user_id: str, *, confirmed: bool = False) -> dict:
         raise InvalidOperation("Confirm creation of your demo company first.")
     if not state["eligible"]:
         raise InvalidOperation("A verified, active account is required.")
-    if not state["enabled"]:
-        raise InvalidOperation("The Playground is not enabled.")
     receipt = state["receipt"]
     if receipt:
         tenant = session.get(Tenant, receipt["tenant_id"])

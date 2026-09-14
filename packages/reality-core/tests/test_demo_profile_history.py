@@ -17,7 +17,6 @@ from reality.services import company_setup
 def test_history_has_twelve_weeks_distinct_currencies_and_linked_credit(
     session, scheduled_owner, monkeypatch
 ):
-    monkeypatch.setenv("REALITY_PLAYGROUND_ENABLED", "true")
     result = company_setup.create_company(
         session,
         scheduled_owner.id,

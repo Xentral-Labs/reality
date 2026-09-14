@@ -16,7 +16,6 @@ from __future__ import annotations
 import hashlib
 import json
 import logging
-import os
 from collections.abc import Iterator
 from contextlib import contextmanager
 from dataclasses import asdict
@@ -82,11 +81,6 @@ READ_RESULT_BYTE_BOUND = 16_384
 # ------------------------------------------------------------------ packages
 
 
-def _enabled() -> None:
-    if os.environ.get("REALITY_PLAYGROUND_ENABLED", "").lower() not in {"true", "1"}:
-        raise PlaygroundOperationDenied("Storyline is not enabled.")
-
-
 def imported_packages(session: Session, user_id: str) -> list[StorylinePackageRecord]:
     return list(
         session.scalars(
@@ -148,8 +142,7 @@ def library(session: Session, user_id: str) -> dict[str, Any]:
         result = validate_package(row.document)
         if result.ok:
             items.append(_library_item(session, result.package, "import", row, runs))
-    enabled = os.environ.get("REALITY_PLAYGROUND_ENABLED", "").lower() in {"true", "1"}
-    return {"items": items, "enabled": enabled}
+    return {"items": items, "enabled": True}
 
 
 def _library_item(session, package, origin, row, runs) -> dict[str, Any]:
@@ -437,7 +430,6 @@ def start(
     """Start a run for a package or resume the account's active run of that key."""
     from reality.services.playground import _check_capacity, _locked_owner
 
-    _enabled()
     if confirmed is not True:
         raise PlaygroundOperationDenied("Confirm starting the storyline first.")
     if not request_key or request_key != request_key.strip() or len(request_key) > 128:

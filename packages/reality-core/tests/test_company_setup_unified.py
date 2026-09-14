@@ -4,7 +4,6 @@ from reality.services import company_setup, demo_profile
 def test_unified_baseline_uses_current_domain_services(
     session, scheduled_owner, monkeypatch
 ):
-    monkeypatch.setenv("REALITY_PLAYGROUND_ENABLED", "true")
     seed = demo_profile.seed_profile
     errors = []
 
@@ -97,7 +96,6 @@ def test_sandbox_reports_readable_without_mutation_authority(
     from reality.services.core import InvalidOperation
     from reality.services.reference_workspace import require_ordinary_workspace
 
-    monkeypatch.setenv("REALITY_PLAYGROUND_ENABLED", "true")
     result = company_setup.create_company(
         session,
         scheduled_owner.id,

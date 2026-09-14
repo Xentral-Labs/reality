@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import hashlib
 import json
-import os
 from datetime import UTC, datetime
 
 from sqlalchemy import select
@@ -50,13 +49,12 @@ def options(session: Session, actor_id: str) -> dict:
     application = session.scalar(
         select(AccessApplication).where(AccessApplication.user_id == actor_id)
     )
-    practice = os.environ.get("REALITY_PLAYGROUND_ENABLED", "true").lower() in {"true", "1"}
     return {
         "actor_id": actor_id,
         "suggested_name": application.company_name if application else "",
         "environments": (["business"] if user.status == "active" else [])
-        + (["sandbox"] if practice else []),
-        "practice_enabled": practice,
+        + ["sandbox"],
+        "practice_enabled": True,
         "pending": user.status != "active",
     }
 
@@ -296,8 +294,6 @@ def initialize_profile(session: Session, run_id: str, actor_id: str) -> Playgrou
     run = require_playground_run(session, run_id, actor_id)
     if run.status in {"active", "archived"}:
         return run
-    if os.environ.get("REALITY_PLAYGROUND_ENABLED", "true").lower() not in {"true", "1"}:
-        raise PlaygroundOperationDenied("Playground is not enabled.")
     if run.preset_version != 1 or run.preset_key not in PRESETS.values():
         raise Conflict("Unsupported company profile version.")
     tenant = session.scalar(select(Tenant).where(Tenant.id == run.tenant_id))

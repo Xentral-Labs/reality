@@ -8,7 +8,6 @@ from reality.services import company_setup, core, demo_data, playground
 def test_execution_is_fresh_unexecuted_and_uses_real_confirmation(
     session, scheduled_owner, monkeypatch
 ):
-    monkeypatch.setenv("REALITY_PLAYGROUND_ENABLED", "true")
     actor = scheduled_owner.id
     baseline = company_setup.create_company(
         session,

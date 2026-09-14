@@ -109,7 +109,6 @@ pip install -e './packages/reality-core[dev]'
 
 docker compose up -d db
 export REALITY_DATABASE_URL='postgresql+psycopg://reality:local-only@localhost:54329/reality'
-export REALITY_PLAYGROUND_ENABLED=true
 cd packages/reality-core
 alembic upgrade head
 reality web

@@ -12,7 +12,6 @@ def test_connect_stopped_prerequisites_and_explicit_lifecycle(
 ):
     from reality.services import demo_data
 
-    monkeypatch.setenv("REALITY_PLAYGROUND_ENABLED", "true")
     result = company_setup.create_company(
         session,
         scheduled_owner.id,
@@ -100,7 +99,6 @@ def test_rates_disconnect_and_reconnect_preserve_source(
 ):
     from reality.services import demo_data
 
-    monkeypatch.setenv("REALITY_PLAYGROUND_ENABLED", "true")
     actor = scheduled_owner.id
     tenant = company_setup.create_company(
         session, actor, "rates", "Rates", "sandbox", "empty", confirmed=True
@@ -147,7 +145,6 @@ def test_connect_adds_the_discount_term_and_controls_manage_both_schedules(
     from reality.demo.international import DEMO_DATA_PAYMENT_TERM
     from reality.services import demo_data
 
-    monkeypatch.setenv("REALITY_PLAYGROUND_ENABLED", "true")
     actor = scheduled_owner.id
     tenant = company_setup.create_company(
         session, actor, "two-streams", "Two Streams", "sandbox", "empty", confirmed=True
@@ -250,7 +247,6 @@ def test_status_reports_order_to_cash_observations(
     """Feature 168 FR-023: the block exists with zeros before anything settled."""
     from reality.services import demo_data
 
-    monkeypatch.setenv("REALITY_PLAYGROUND_ENABLED", "true")
     actor = scheduled_owner.id
     tenant = company_setup.create_company(
         session, actor, "o2c-status", "Status", "sandbox", "empty", confirmed=True

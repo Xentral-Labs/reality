@@ -205,7 +205,6 @@ def test_built_images_deliver_demo_source_without_browser(
     from reality.services import company_setup, demo_data
 
     engine, factory, _tenant, actor = scheduled_database
-    monkeypatch.setenv("REALITY_PLAYGROUND_ENABLED", "true")
     with factory() as session:
         result = company_setup.create_company(
             session,

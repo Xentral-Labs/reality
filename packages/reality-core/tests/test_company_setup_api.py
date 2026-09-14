@@ -7,7 +7,6 @@ def test_setup_routes_pending_isolation_and_exact_destination(
     session, playground_http, monkeypatch
 ):
     client, _, user, _, login = playground_http
-    monkeypatch.setenv("REALITY_PLAYGROUND_ENABLED", "true")
     monkeypatch.setenv("REALITY_AUTH_MODE", "enabled")
     user.status = "pending_approval"
     session.flush()
@@ -76,7 +75,6 @@ def test_live_creation_api_connects_and_starts_without_extra_requests(
     from reality.services import demo_data
 
     client, _, user, _, login = playground_http
-    monkeypatch.setenv("REALITY_PLAYGROUND_ENABLED", "true")
     login(user)
     body = {
         "request_key": "live-api",

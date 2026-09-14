@@ -34,7 +34,6 @@ def test_profile_scope_refuses_cross_tenant_and_commit(
     from reality.services.core import create_item
     from reality.services.tenant_policy import PlaygroundOperationDenied, _profile_scope
 
-    monkeypatch.setenv("REALITY_PLAYGROUND_ENABLED", "true")
     result = company_setup.create_company(
         session, scheduled_owner.id, "scope", "Demo", "sandbox", "empty", confirmed=True
     )
@@ -57,7 +56,6 @@ def test_all_demo_connection_boundaries_refuse_foreign_scope(
     from reality.services import demo_data
     from reality.services.core import RealityError
 
-    monkeypatch.setenv("REALITY_PLAYGROUND_ENABLED", "true")
     actor = scheduled_owner.id
     operations = [
         lambda: demo_data.eligible(session, "foreign", actor),
@@ -110,7 +108,6 @@ def test_demo_rechecks_current_owner_and_profile(
     from reality.services import demo_data
     from reality.services.core import RealityError
 
-    monkeypatch.setenv("REALITY_PLAYGROUND_ENABLED", "true")
     actor = scheduled_owner.id
     result = company_setup.create_company(
         session,
@@ -159,7 +156,6 @@ def test_order_scope_cannot_post_money_and_settlement_scope_is_bounded(
         require_demo_intake,
     )
 
-    monkeypatch.setenv("REALITY_PLAYGROUND_ENABLED", "true")
     actor = scheduled_owner.id
     tenant = company_setup.create_company(
         session, actor, "money-scope", "Money", "sandbox", "empty", confirmed=True
@@ -232,7 +228,6 @@ def test_settlement_job_authorization_is_bound_to_its_schedule(
     from reality.jobs.registry import JobContext, JobError
     from reality.services import demo_data
 
-    monkeypatch.setenv("REALITY_PLAYGROUND_ENABLED", "true")
     actor = scheduled_owner.id
     tenant = company_setup.create_company(
         session, actor, "settle-auth", "Auth", "sandbox", "empty", confirmed=True

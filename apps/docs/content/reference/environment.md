@@ -57,3 +57,11 @@ browser builds, screenshots, public documentation or committed environment files
 
 The product provider's Site and Docs configuration is outside this installation contract. A future
 managed Reality infrastructure will publish its own configuration contract.
+
+## Storylines and Sandbox availability
+
+Storylines, the Playground and Sandbox creation are regular product capabilities. No environment
+switch is needed to enable them. Existing account access, ownership, confirmation and capacity
+limits still apply. Old Playground enablement settings have no effect after upgrading; they can be
+removed from deployment configuration. Demo Data sources retain their explicit start, pause and stop
+controls.

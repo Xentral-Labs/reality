@@ -586,3 +586,11 @@ Filled as implementation lands; rows without evidence are still open (see tasks.
 | FR-011, FR-012 (free play, preconditions, restart) | `services/storyline.py` (`prepare` refuses a chapter whose precondition no longer holds and names it, `trace(free=True)`, `delta(ordinal=…)`), `storyline/recorder.py`; `tests/test_storyline_runs.py` (free play recorded with its own marker and delta, blocked chapter names the missing finding, restart); web free play mode, "Free play" and "Back to the story", missing list with restart in `StorylinePage.tsx`, `StorylineNarrator.tsx`, `StorylineProtocol.tsx`; browser sections 7 and 8 in `apps/web/scripts/storyline-browser.mjs` |
 | FR-013, SC-003 (presentation) | `storylineState.ts` (`nextPresentationAction`, beats, pace), autoplay control in the step card (`StorylineNarrator.tsx`) and runner in `StorylinePage.tsx`; `apps/web/scripts/storyline-contract.test.mjs`; browser section 9 (timed run issues the same ordered chapter calls as by hand, any click pauses, language switch while paused changes texts and not the trace, an error pauses) |
 | FR-021, SC-009 (draft export) | `storyline/export.py`, `services/storyline.py:export_draft`, `GET /api/storyline/runs/{run_id}/draft`; `packages/reality-core/tests/test_storyline_export.py` (refs, chapter references, offsets, missing texts, unsupported in place, the filled draft imports and plays to the same events, HTTP); "Export as storyline draft" in the library, browser section 10 |
+
+## Availability policy supersession (spec 193)
+
+[Always Available Storylines and Playground](../193-always-available-playground/spec.md)
+supersedes the historical deployment-switch/disabled-entry policy in this feature.
+Storyline, Playground, Sandbox setup and requested free-trial entry are regular
+capabilities. Account admission, ownership, confirmation, quotas, archive state,
+source controls and idempotency remain authoritative.

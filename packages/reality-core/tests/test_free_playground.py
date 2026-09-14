@@ -33,12 +33,17 @@ def test_entry_requires_consent_verification_and_confirmation(session, scheduled
         free_playground.enter(session, user.id, confirmed=True)
 
 
+@pytest.mark.parametrize("retired_flag", [None, "false", "true", "", "invalid"])
 def test_entry_read_only_replay_preserves_live_pause(
-    session, scheduled_owner, monkeypatch
+    session, scheduled_owner, monkeypatch, retired_flag
 ):
     from reality.services import demo_data
 
-    monkeypatch.delenv("REALITY_PLAYGROUND_ENABLED", raising=False)
+    if retired_flag is None:
+        monkeypatch.delenv("REALITY_PLAYGROUND_ENABLED", raising=False)
+    else:
+        monkeypatch.setenv("REALITY_PLAYGROUND_ENABLED", retired_flag)
+    assert free_playground.entry_status(session, scheduled_owner.id)["enabled"] is True
     consent(session, scheduled_owner)
     before = session.scalar(select(func.count()).select_from(Tenant))
     assert free_playground.entry_status(session, scheduled_owner.id)["requested"]
@@ -69,18 +74,9 @@ def test_entry_read_only_replay_preserves_live_pause(
         free_playground.enter(session, scheduled_owner.id, confirmed=True)
 
 
-def test_explicit_playground_disable(session, scheduled_owner, monkeypatch):
-    consent(session, scheduled_owner)
-    monkeypatch.setenv("REALITY_PLAYGROUND_ENABLED", "false")
-    assert not free_playground.entry_status(session, scheduled_owner.id)["enabled"]
-    with pytest.raises(InvalidOperation):
-        free_playground.enter(session, scheduled_owner.id, confirmed=True)
-
-
 def test_allowance_shared_across_companies_and_utc_reset(
     session, scheduled_owner, monkeypatch
 ):
-    monkeypatch.setenv("REALITY_PLAYGROUND_ENABLED", "true")
     monkeypatch.setenv("ANTHROPIC_API_KEY", "fake-no-network")
     tenant = sandbox(session, scheduled_owner)
     other = sandbox(session, scheduled_owner)
@@ -108,7 +104,6 @@ def test_allowance_shared_across_companies_and_utc_reset(
 def test_no_managed_provider_or_business_has_no_allowance(
     session, scheduled_owner, business, monkeypatch
 ):
-    monkeypatch.setenv("REALITY_PLAYGROUND_ENABLED", "true")
     monkeypatch.delenv("ANTHROPIC_API_KEY", raising=False)
     tenant = sandbox(session, scheduled_owner)
     assert free_playground.allowance(session, tenant, scheduled_owner.id) is None
@@ -126,7 +121,6 @@ def test_exhaustion_never_calls_provider_or_stores_question(
     from reality.db.core import ChatMessage
     from reality.services.core import create_chat_session, send_chat_message
 
-    monkeypatch.setenv("REALITY_PLAYGROUND_ENABLED", "true")
     monkeypatch.setenv("ANTHROPIC_API_KEY", "fake-no-network")
     tenant = sandbox(session, scheduled_owner)
     conversation = create_chat_session(session, tenant)
@@ -156,7 +150,6 @@ def test_concurrent_final_slot_is_account_atomic(scheduled_database, monkeypatch
     from types import SimpleNamespace
 
     _, factory, _, actor = scheduled_database
-    monkeypatch.setenv("REALITY_PLAYGROUND_ENABLED", "true")
     monkeypatch.setenv("ANTHROPIC_API_KEY", "fake-no-network")
     with factory() as db:
         tenant = sandbox(db, SimpleNamespace(id=actor))
@@ -185,7 +178,6 @@ def test_own_provider_exempt_but_companion_still_uses_managed_allowance(
 ):
     from reality.db.core import AISettings
 
-    monkeypatch.setenv("REALITY_PLAYGROUND_ENABLED", "true")
     monkeypatch.setenv("ANTHROPIC_API_KEY", "fake-no-network")
     tenant = sandbox(session, scheduled_owner)
     session.add(
@@ -252,7 +244,6 @@ def test_dispatched_provider_failure_counts_once(session, scheduled_owner, monke
     from reality.agent import mcp_chat
     from reality.services.core import create_chat_session, send_chat_message
 
-    monkeypatch.setenv("REALITY_PLAYGROUND_ENABLED", "true")
     monkeypatch.setenv("ANTHROPIC_API_KEY", "fake-no-network")
     tenant = sandbox(session, scheduled_owner)
     conversation = create_chat_session(session, tenant)
