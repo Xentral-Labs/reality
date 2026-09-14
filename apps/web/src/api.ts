@@ -112,6 +112,20 @@ export type AuthUser = {
   };
 };
 export type AccessCapacity = { used: number; limit: number | null };
+export type DeletionPreview = {
+  user_id: string;
+  email: string;
+  is_platform_admin: boolean;
+  deleted_companies: Array<{
+    id: string;
+    name: string;
+    purpose: string;
+    record_count: number;
+  }>;
+  kept_companies: Array<{ id: string; name: string }>;
+  sandbox_count: number;
+  record_count: number;
+};
 export type PlatformOverview = {
   generated_at: string;
   deployment: {
@@ -1183,6 +1197,16 @@ export const api = {
     request<AuthUser>(`/api/admin/access-applications/${id}/review`, {
       method: "POST",
       body: JSON.stringify({ decision, note }),
+    }),
+  accessDeletionPreview: (id: string) =>
+    request<DeletionPreview>(`/api/admin/access-applications/${id}/deletion-preview`),
+  deleteAccessAccount: (id: string, confirmationEmail: string, confirmationWord: string) =>
+    request<DeletionPreview>(`/api/admin/access-applications/${id}/delete`, {
+      method: "POST",
+      body: JSON.stringify({
+        confirmation_email: confirmationEmail,
+        confirmation_word: confirmationWord,
+      }),
     }),
   bootstrap: () => request<Bootstrap>("/api/v1/bootstrap"),
   companyAccess: (tenant: string) =>

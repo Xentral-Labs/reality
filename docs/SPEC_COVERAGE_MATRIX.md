@@ -1014,3 +1014,10 @@ Spec 185 owns the analytics service, agent tools, private report configuration a
 - `apps/web/scripts/entry-progress-browser.mjs`: delayed session/signup/verification/bootstrap/policy/setup feedback, single verification navigation, failure retry and language continuity (Spec 190 FR-010).
 
 - `provider-site/scripts/site-contract.test.mjs` and `site-localization.test.mjs`: current free-only hosted offer, absent paid/capacity terms, unchanged signup and localized trial terms (Spec 190 FR-011).
+
+## Spec 192 — Applicant Account Deletion
+
+- `packages/reality-core/tests/test_account_deletion.py`: preview of owned and shared companies, the purge of the account with its sole-owned business and practice companies, case-insensitive address confirmation, the surviving shared company, both guards, the exact confirmations, the refusal that removes nothing, the tombstone without a user reference, and the schema-driven proof that no reference to the account remains (FR-002, FR-004–FR-010, SC-003).
+- `packages/reality-core/tests/test_access_application_deletion_api.py`: the preview and delete routes, platform-administration authorization, the refused confirmation and the unknown application (FR-011).
+- `apps/web/scripts/access-deletion.test.mjs`: the two-answer confirmation, the literal confirmation word shared with the company danger zone, address normalization and the withheld control for administrators (FR-001, FR-003).
+- `apps/web/scripts/access-deletion-browser.mjs`: the offered and withheld delete controls, the preview of what is lost, the gated confirm button, a server refusal that removes nothing, the confirmed payload, and the German dialog at 390px (FR-001–FR-004, FR-011–FR-013, SC-001, SC-004, SC-006).

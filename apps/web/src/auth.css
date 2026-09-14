@@ -344,6 +344,139 @@
   text-transform: capitalize;
   color: var(--text-muted);
 }
+.application-list .delete-applicant {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  border-color: var(--border-strong);
+  color: var(--text-muted);
+}
+.application-list .delete-applicant:hover {
+  border-color: #b42318;
+  color: #b42318;
+}
+.applicant-delete-dialog {
+  width: min(560px, 94vw);
+  max-height: 90dvh;
+  margin: auto;
+  padding: 26px;
+  overflow: auto;
+  border: 1px solid var(--border-default);
+  border-radius: 16px;
+  background: var(--surface);
+  color: var(--text-default);
+}
+.applicant-delete-dialog::backdrop {
+  background: rgb(0 0 0 / 30%);
+}
+.applicant-delete-dialog header {
+  /* `.admin-page header` is the page bar: 54px tall, flex, right-aligned. The
+     dialog lives inside that page, so it has to opt out explicitly. */
+  display: block;
+  height: auto;
+}
+.applicant-delete-dialog header h2 {
+  margin: 0;
+  font-size: 20px;
+}
+.applicant-delete-dialog header p {
+  margin: 6px 0 0;
+  font-weight: 600;
+  word-break: break-all;
+}
+.applicant-delete-dialog .lead {
+  margin: 18px 0 0;
+  color: var(--text-muted);
+  font-size: 14px;
+  line-height: 1.6;
+}
+.deletion-losses {
+  margin: 16px 0 0;
+  padding: 14px 16px;
+  list-style: none;
+  border: 1px solid var(--border-default);
+  border-radius: 11px;
+  font-size: 14px;
+}
+.deletion-losses li {
+  display: flex;
+  gap: 12px;
+  justify-content: space-between;
+  padding: 5px 0;
+}
+.deletion-losses li.kept {
+  display: block;
+  margin-top: 6px;
+  padding-top: 11px;
+  border-top: 1px solid var(--border-default);
+  color: var(--text-muted);
+}
+.deletion-losses span {
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+.applicant-delete-dialog form {
+  display: grid;
+  gap: 16px;
+  margin-top: 22px;
+}
+.applicant-delete-dialog label {
+  display: grid;
+  gap: 4px;
+  font-size: 14px;
+}
+.applicant-delete-dialog .field-label {
+  font-weight: 650;
+}
+.applicant-delete-dialog .field-hint {
+  color: var(--text-muted);
+}
+.applicant-delete-dialog code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-weight: 700;
+  color: var(--text-default);
+}
+.applicant-delete-dialog input {
+  height: 42px;
+  padding: 0 12px;
+  border: 1px solid var(--border-strong);
+  border-radius: 9px;
+  background: var(--surface);
+  color: var(--text-default);
+}
+.applicant-delete-dialog [role="alert"] {
+  margin: 0;
+  color: #b42318;
+  font-size: 14px;
+}
+.dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+.dialog-actions button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 42px;
+  padding: 0 18px;
+  border: 1px solid var(--border-strong);
+  border-radius: 9px;
+  background: var(--surface);
+  color: var(--text-default);
+  font-weight: 700;
+}
+.dialog-actions .delete-applicant {
+  border-color: #b42318;
+  background: #b42318;
+  color: #fff;
+}
+.dialog-actions .delete-applicant:disabled {
+  border-color: var(--border-strong);
+  background: var(--border-default);
+  color: var(--text-muted);
+  cursor: not-allowed;
+}
 .status-approved {
   color: #067647 !important;
 }
