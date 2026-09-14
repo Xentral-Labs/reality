@@ -704,7 +704,9 @@ function Player({
   }
   return (
     <div
-      className="grid gap-4 lg:grid-cols-[300px_minmax(0,1fr)] xl:grid-cols-[300px_minmax(0,1fr)_380px]"
+      /* The conversation is the widest column and runs the height of the screen;
+         the view and the protocol stack beside it, so neither stands half empty. */
+      className="grid gap-4 lg:h-[calc(100vh-8.5rem)] lg:min-h-[40rem] lg:grid-cols-[minmax(24rem,0.9fr)_minmax(0,1.25fr)]"
       data-storyline-page
       data-storyline-run={state.run_id}
     >
@@ -764,23 +766,25 @@ function Player({
           })
         }
       />
-      <StorylineStage
-        tenant={tenant}
-        view={chapter?.view || null}
-        label={chapter ? pickText(chapter.title) : ""}
-        newIds={newIds}
-        revision={revision}
-        selection={selection}
-        navigate={navigate}
-      />
-      <div className="lg:col-span-2 xl:col-span-1">
-        <StorylineProtocol
+      <div className="flex min-h-0 min-w-0 flex-col gap-4">
+        <StorylineStage
           tenant={tenant}
-          items={trace}
-          delta={delta}
-          loading={!detail}
+          view={chapter?.view || null}
+          label={chapter ? pickText(chapter.title) : ""}
+          newIds={newIds}
+          revision={revision}
+          selection={selection}
           navigate={navigate}
         />
+        <div className="min-h-0 shrink-0 overflow-y-auto">
+          <StorylineProtocol
+            tenant={tenant}
+            items={trace}
+            delta={delta}
+            loading={!detail}
+            navigate={navigate}
+          />
+        </div>
       </div>
     </div>
   );

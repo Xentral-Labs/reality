@@ -5,7 +5,7 @@ import type {
   StorylineStep,
   StorylineText,
 } from "../api";
-import { BookOpen, Infinity, Pause, Play } from "lucide-react";
+import { BookOpen, Infinity, List, Pause, Play } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { formatDateTime, t } from "../localization";
 import { compareFindings, phaseOf, pickText } from "./storylineState";
@@ -13,7 +13,7 @@ import { compareFindings, phaseOf, pickText } from "./storylineState";
 const panel = "rounded-xl border border-border-default bg-surface";
 const toolState: Record<string, string> = { on: "bg-accent-soft text-accent", off: "" };
 const toolButton =
-  "flex flex-col items-center gap-1 rounded-lg px-2 py-2 text-[11.5px] leading-none text-fg-default hover:bg-surface-muted disabled:opacity-50 disabled:hover:bg-transparent";
+  "grid size-8 place-items-center rounded-lg text-fg-muted hover:bg-surface-muted hover:text-fg-default disabled:opacity-40 disabled:hover:bg-transparent";
 /** What the person says sits on the right; what Reality answers on the left. */
 const mine =
   "max-w-[85%] self-end rounded-xl rounded-br-sm border border-accent/40 bg-accent-soft px-3 py-2 text-[13.5px] text-fg-strong";
@@ -112,20 +112,95 @@ export function StorylineNarrator({
   );
 
   return (
-    <div className="flex min-w-0 flex-col gap-3" data-storyline-narrator>
+    <div
+      className="flex min-h-0 min-w-0 flex-col gap-3 lg:h-full"
+      data-storyline-narrator
+      data-storyline-current-chapter={current?.key || undefined}
+    >
       {chapter && (
-        <section className={`${panel} flex flex-col overflow-hidden`} data-storyline-chapter-card>
-          <div className="flex items-baseline gap-2 border-b border-border-subtle px-4 py-2.5">
-            <p className="shrink-0 text-[11px] uppercase tracking-wider text-fg-muted">
-              {t("Step")} {position + 1} / {chapters.length}
-            </p>
-            <h2 className="truncate text-[13.5px] font-semibold text-fg-strong">
-              {pickText(chapter.title)}
-            </h2>
+        <section
+          className={`${panel} flex min-h-0 flex-1 flex-col overflow-hidden`}
+          data-storyline-chapter-card
+        >
+          {/* One header for where you are, the transport and the chapter list. */}
+          <div className="flex flex-col border-b border-border-subtle">
+            <div className="flex items-center gap-2 px-4 py-2">
+              <p className="shrink-0 text-[11px] uppercase tracking-wider text-fg-muted">
+                {t("Step")} {position + 1} / {chapters.length}
+              </p>
+              <h2 className="min-w-0 truncate text-[13.5px] font-semibold text-fg-strong">
+                {pickText(chapter.title)}
+              </h2>
+              <div className="ml-auto flex shrink-0 items-center gap-0.5">
+                <button
+                  type="button"
+                  className={`${toolButton} ${toolState[autoplay ? "on" : "off"]}`}
+                  data-storyline-action={autoplay ? "pause" : "present"}
+                  data-storyline-presentation={autoplay ? "playing" : "off"}
+                  data-storyline-presentation-note={autoplayNote ? "" : undefined}
+                  aria-pressed={autoplay}
+                  aria-label={autoplay ? t("Stop autoplay") : t("Play automatically")}
+                  disabled={!current}
+                  title={autoplay ? t("Stop autoplay") : t("Play automatically")}
+                  onClick={toggleAutoplay}
+                >
+                  {autoplay ? <Pause size={16} /> : <Play size={16} />}
+                </button>
+                <button
+                  type="button"
+                  className={toolButton}
+                  data-storyline-action="free-play"
+                  aria-label={t("Free play")}
+                  title={t("You are working in the sandbox itself.")}
+                  onClick={freePlay}
+                >
+                  <Infinity size={16} />
+                </button>
+                <button
+                  type="button"
+                  className={toolButton}
+                  data-storyline-action="library"
+                  aria-label={t("Library")}
+                  title={t("Other storylines")}
+                  onClick={library}
+                >
+                  <BookOpen size={16} />
+                </button>
+                <ChapterMenu chapters={chapters} open={chapter.key} select={select} list={list} />
+              </div>
+            </div>
+            {autoplay && autoplayPending && (
+              <div
+                className="flex flex-col gap-1 border-t border-border-subtle px-4 pt-1.5 pb-2"
+                data-storyline-autoplay-progress={autoplayPending.kind}
+              >
+                <div className="flex items-baseline justify-between gap-2 text-[11.5px]">
+                  <span className="text-fg-muted">{t("Up next")}</span>
+                  <span className="font-medium text-fg-strong">{upNext[autoplayPending.kind]}</span>
+                </div>
+                <div className="h-1 w-full overflow-hidden rounded-full bg-surface-sunken">
+                  <div
+                    key={autoplayPending.id}
+                    className="storyline-fill h-full w-full origin-left rounded-full bg-accent"
+                    style={{ animationDuration: `${autoplayPending.ms}ms` }}
+                  />
+                </div>
+              </div>
+            )}
+            {autoplay && !autoplayPending && (
+              <p className="border-t border-border-subtle px-4 py-1.5 text-[11.5px] text-fg-muted">
+                {t("Runs on its own. Any click stops it.")}
+              </p>
+            )}
+            {!autoplay && autoplayNote && (
+              <p className="border-t border-border-subtle px-4 py-1.5 text-[11.5px] text-fg-muted">
+                {autoplayNote}
+              </p>
+            )}
           </div>
           {/* The conversation scrolls inside a fixed height; the composer never moves. */}
           <div
-            className="flex h-[min(50vh,30rem)] flex-col gap-4 overflow-y-auto p-4"
+            className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto p-4"
             data-storyline-chapter-content
             ref={thread}
           >
@@ -395,91 +470,64 @@ export function StorylineNarrator({
           </div>
         </section>
       )}
-      {/* Transport controls: one box, same size buttons, the running state visible. */}
-      <div className={`${panel} flex flex-col`} data-storyline-toolbar>
-        <div className="grid grid-cols-3 gap-1 p-1.5">
-          <button
-            type="button"
-            className={`${toolButton} ${toolState[autoplay ? "on" : "off"]}`}
-            data-storyline-action={autoplay ? "pause" : "present"}
-            data-storyline-presentation={autoplay ? "playing" : "off"}
-            data-storyline-presentation-note={autoplayNote ? "" : undefined}
-            aria-pressed={autoplay}
-            disabled={!current}
-            title={autoplay ? t("Stop autoplay") : t("Play automatically")}
-            onClick={toggleAutoplay}
-          >
-            {autoplay ? <Pause size={17} /> : <Play size={17} />}
-            <span>{autoplay ? t("Stop") : t("Autoplay")}</span>
-          </button>
-          <button
-            type="button"
-            className={toolButton}
-            data-storyline-action="free-play"
-            title={t("You are working in the sandbox itself.")}
-            onClick={freePlay}
-          >
-            <Infinity size={17} />
-            <span>{t("Free play")}</span>
-          </button>
-          <button
-            type="button"
-            className={toolButton}
-            data-storyline-action="library"
-            title={t("Other storylines")}
-            onClick={library}
-          >
-            <BookOpen size={17} />
-            <span>{t("Library")}</span>
-          </button>
-        </div>
-        {autoplay && autoplayPending && (
-          <div
-            className="flex flex-col gap-1 border-t border-border-subtle px-2.5 pt-1.5 pb-2"
-            data-storyline-autoplay-progress={autoplayPending.kind}
-          >
-            <div className="flex items-baseline justify-between gap-2 text-[11.5px]">
-              <span className="text-fg-muted">{t("Up next")}</span>
-              <span className="font-medium text-fg-strong">{upNext[autoplayPending.kind]}</span>
-            </div>
-            <div className="h-1 w-full overflow-hidden rounded-full bg-surface-sunken">
-              <div
-                key={autoplayPending.id}
-                className="storyline-fill h-full w-full origin-left rounded-full bg-accent"
-                style={{ animationDuration: `${autoplayPending.ms}ms` }}
-              />
-            </div>
-          </div>
-        )}
-        {autoplay && !autoplayPending && (
-          <p className="border-t border-border-subtle px-2.5 py-1.5 text-[11.5px] text-fg-muted">
-            {t("Runs on its own. Any click stops it.")}
-          </p>
-        )}
-        {!autoplay && autoplayNote && (
-          <p className="border-t border-border-subtle px-2.5 py-1.5 text-[11.5px] text-fg-muted">
-            {autoplayNote}
-          </p>
-        )}
-      </div>
-      <nav aria-label={t("Steps")} className={`${panel} p-2`}>
-        {/* About five rows; the current chapter is rolled into view (owner review). */}
-        <ol ref={list} className="flex max-h-[13.25rem] flex-col gap-0.5 overflow-y-auto">
+    </div>
+  );
+}
+
+/** The chapter list, folded away. The conversation shows what already happened;
+ *  this is for jumping to a chapter that has not been played yet. */
+function ChapterMenu({
+  chapters,
+  open,
+  select,
+  list,
+}: {
+  chapters: StorylineChapterEntry[];
+  open: string;
+  select: (key: string) => void;
+  list: React.RefObject<HTMLOListElement | null>;
+}) {
+  const box = useRef<HTMLDetailsElement>(null);
+  useEffect(() => {
+    const dismiss = (event: PointerEvent) => {
+      if (box.current?.open && !box.current.contains(event.target as Node))
+        box.current.open = false;
+    };
+    document.addEventListener("pointerdown", dismiss);
+    return () => document.removeEventListener("pointerdown", dismiss);
+  }, []);
+  return (
+    <details ref={box} className="relative" data-storyline-chapters>
+      <summary
+        className={`${toolButton} cursor-pointer list-none`}
+        aria-label={t("Steps")}
+        title={t("Steps")}
+      >
+        <List size={16} />
+      </summary>
+      <nav
+        aria-label={t("Steps")}
+        className="absolute end-0 z-20 mt-1 w-[19rem] max-w-[80vw] rounded-xl border border-border-default bg-surface p-2 shadow-lg"
+      >
+        <ol ref={list} className="flex max-h-[19rem] flex-col gap-0.5 overflow-y-auto">
           {chapters.map((entry, index) => (
             <li key={entry.key}>
               <button
                 type="button"
                 data-storyline-chapter={entry.key}
                 data-status={entry.status}
-                aria-current={entry.key === chapter?.key ? "step" : undefined}
-                onClick={() => select(entry.key)}
+                aria-current={entry.key === open ? "step" : undefined}
+                onClick={() => {
+                  if (box.current) box.current.open = false;
+                  select(entry.key);
+                }}
                 className="grid w-full grid-cols-[22px_1fr_auto] items-center gap-2 rounded-md px-2 py-1.5 text-left text-[13px] text-fg-muted hover:bg-surface-muted aria-[current=step]:bg-accent-soft aria-[current=step]:font-medium aria-[current=step]:text-fg-strong"
               >
                 <span
                   data-done={entry.status === "done"}
                   className="grid size-5 place-items-center rounded-full border border-border-strong font-mono text-[11px] data-[done=true]:border-transparent data-[done=true]:bg-positive-text data-[done=true]:text-white"
                 >
-                  {entry.status === "done" ? "✓" : index + 1}
+                  {entry.status === "done" ? "\u2713" : index + 1}
                 </span>
                 <span className="truncate">{pickText(entry.title)}</span>
                 <span className="text-[11px] text-fg-quiet">
@@ -490,7 +538,7 @@ export function StorylineNarrator({
           ))}
         </ol>
       </nav>
-    </div>
+    </details>
   );
 }
 
