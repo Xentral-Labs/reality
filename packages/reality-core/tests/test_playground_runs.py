@@ -176,7 +176,7 @@ def test_start_needs_confirmation_and_enabled_feature(
 
     with pytest.raises(PlaygroundOperationDenied):
         start_run(session, learning_owner.id, "first")
-    monkeypatch.delenv("REALITY_PLAYGROUND_ENABLED")
+    monkeypatch.setenv("REALITY_PLAYGROUND_ENABLED", "false")
     with pytest.raises(PlaygroundOperationDenied):
         start_run(session, learning_owner.id, "first", confirmed=True)
     assert session.scalar(select(PlaygroundRun.id)) is None

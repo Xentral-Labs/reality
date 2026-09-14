@@ -58,7 +58,7 @@ export function RuleEvidence({
             !evidence.length
               ? "Search by an order reference, then choose the relevant value. Saving an example only documents your evidence."
               : !recommendation && !detail.gap.destination
-                ? "Example saved. Request a recommendation to check whether this information belongs in a Fact rule."
+                ? "Example saved. Request a recommendation to check whether this information belongs in an Additional fact rule."
                 : !detail.gap.destination
                   ? "Review the recommendation and its limitations, then confirm the interpretation you want."
                   : "Your examples remain linked to their original sources.",

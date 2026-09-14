@@ -30,17 +30,24 @@ def ask(
         key = os.environ.get("ANTHROPIC_API_KEY", "").strip()
         if not key:
             raise InvalidOperation("The managed assistant is not configured.")
+        from reality.services.free_playground import reserve_managed_question
+
+        reserve_managed_question(session, run.tenant_id, user_id, companion=True)
         try:
-            answer = asyncio.run(
-                reply_via_anthropic_tools(
-                    session=session,
-                    tenant_id=run.tenant_id,
-                    api_key=key,
-                    workspace_id=os.environ.get("ANTHROPIC_WORKSPACE_ID", "").strip(),
-                    history=history,
-                    message=message.strip(),
+            # Reservation committed; bind read-only authority to the new transaction.
+            with playground_chat_scope(session, user_id, run_id):
+                answer = asyncio.run(
+                    reply_via_anthropic_tools(
+                        session=session,
+                        tenant_id=run.tenant_id,
+                        api_key=key,
+                        workspace_id=os.environ.get(
+                            "ANTHROPIC_WORKSPACE_ID", ""
+                        ).strip(),
+                        history=history,
+                        message=message.strip(),
+                    )
                 )
-            )
         except Exception as error:
             raise InvalidOperation(
                 "The assistant could not answer. Please try again."

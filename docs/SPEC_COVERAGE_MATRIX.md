@@ -993,3 +993,23 @@ Spec 185 owns the analytics service, agent tools, private report configuration a
 - `packages/reality-core/tests/test_analytics_performance.py` — `specs/185-analytics-workspace/spec.md`, FR-006, FR-018 and SC-005.
 - `docs/features/analytics.md` — `specs/185-analytics-workspace/spec.md`, implemented Analytics, agent, privacy, observation, Web and persistence contract.
 
+
+## Spec 189 — Open Signup by Default
+
+- `packages/reality-core/tests/test_access_admission.py`: optional setting matrix, cumulative mode transitions, concurrent finite claims and generic deployment defaults (FR-001–004, DR-001).
+- `packages/reality-core/tests/test_user_access.py`: default and blank admission after verification, replay, existing manual/finite behavior and tenant access (FR-001–003, FR-005).
+- `packages/reality-core/tests/test_platform_admin_overview.py`: unlimited/invalid admission reporting (FR-004).
+- `provider-site/scripts/site-contract.test.mjs`: unlimited public entry copy (FR-004).
+
+## Spec 190 — Free Playground Trial
+
+- `packages/reality-core/tests/test_free_playground.py`: consent, read-only entry, canonical retry/pause/archive, explicit disable, cross-company allowance including subsequent ordinary companies, UTC reset, concurrent final slot, own-provider/companion boundary and provider refusal (FR-002–004, FR-007–008).
+- `packages/reality-core/tests/test_company_setup_api.py`: authenticated account entry and read-only consent status (FR-002–004).
+- `apps/web/scripts/free-playground.test.mjs`: task destinations, cleared filters, current-company successful results and browser preference identity (FR-005–006).
+- `provider-site/scripts/site-contract.test.mjs`: free-trial positioning without permanent-free or automatic-subscription promise (FR-001, FR-009).
+
+- `apps/web/scripts/free-playground-browser.mjs`: recoverable confirmed entry, actual rendered result/error/uninitialized gates, persistent dismissal, delivery detail, exhaustion draft and four mobile locales (Spec 190 FR-001–009).
+
+- `apps/web/scripts/entry-progress-browser.mjs`: delayed session/signup/verification/bootstrap/policy/setup feedback, single verification navigation, failure retry and language continuity (Spec 190 FR-010).
+
+- `provider-site/scripts/site-contract.test.mjs` and `site-localization.test.mjs`: current free-only hosted offer, absent paid/capacity terms, unchanged signup and localized trial terms (Spec 190 FR-011).

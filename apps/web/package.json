@@ -12,6 +12,7 @@
     "preview": "vite preview --host 0.0.0.0",
     "test:i18n": "node --test scripts/*.test.mjs",
     "test:contracts": "node --test scripts/*.test.mjs",
+    "test:free-playground-browser": "node scripts/free-playground-browser.mjs",
     "test:unified-browser": "node scripts/unified-app-browser.mjs && node scripts/unified-delivery-browser.mjs",
     "test:workspace-browser": "node scripts/unified-workspaces-browser.mjs",
     "test:orders-browser": "node scripts/unified-orders-browser.mjs",

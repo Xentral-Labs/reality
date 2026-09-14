@@ -249,3 +249,10 @@ def test_overview_is_served_to_the_environment_configured_administrator(
         assert payload["people"]["users"][0]["email"] == "platform@example.com"
     finally:
         browser.close()
+
+
+def test_overview_reports_unlimited_and_invalid_admission(session, monkeypatch):
+    monkeypatch.delenv("REALITY_AUTO_APPROVE_LIMIT", raising=False)
+    assert platform_overview(session)["deployment"]["automatic_access_limit"] is None
+    monkeypatch.setenv("REALITY_AUTO_APPROVE_LIMIT", "invalid")
+    assert platform_overview(session)["deployment"]["automatic_access_limit"] == 0

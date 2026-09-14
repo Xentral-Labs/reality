@@ -4,11 +4,19 @@
 
 ## User contract
 
-First and later company creation share an editable name, Empty/With demo data and ordinary/Sandbox meaning. Empty is default; demo means Sandbox. Previously entered access-application company name is a first-setup suggestion, never a tenant or a rename command. Current admission/membership restrictions remain authoritative; pending owners use their private Playground cockpit.
+Manual first and later company creation share an editable name, Empty/With demo data and ordinary/Sandbox meaning. Empty is default; demo means Sandbox. Previously entered access-application company name is a first-setup suggestion, never a tenant or a rename command. Current admission/membership restrictions remain authoritative; pending owners use their private Playground cockpit.
 
 The canonical international profile contains 16 items, 4 customers, 3 suppliers, 2 locations, ten distinct operational cases and 84 days of historical evidence in two comparable 42-day windows. Source-stated values, stable international names and actual ingestion timestamps remain distinct. Separate execution fixtures are fresh isolated tenants, never automatic confirmed actions or destructive resets.
 
 Demo Data is an optional synthetic integration, stopped on manual connection, with an average of 10/60/300 orders/hour (default 60); each scheduled delivery carries a Poisson-distributed number of orders (at most six) whose expectation follows a fixed UTC hour-of-day curve (`integrations.demo_data.HOURLY_DEMAND`, 0.7 to 1.3, daily mean 1), decided from the run seed and delivery time, so intake looks like real e-commerce demand: a quiet night, an evening peak and natural minute-to-minute noise. It uses the [implemented shared scheduler/worker](scheduled-jobs.md), normal lossless source intake and interpretation. No browser clock, second queue, provider credentials or automatic stock/reservation/shipment effects. Since [feature 168](../../specs/168-demo-order-to-cash/spec.md) a second schedule issues each order's invoice and records its customer payments through the shared [payment intake core](payment_matching.md); see the order-to-cash section below. Pause/stop retain evidence and resume without a missed-interval burst.
+
+## Free trial entry (Spec 190)
+
+Ordinary web signup explicitly requests a private demo company with live sample data. After email verification and admission, the empty Home entry calls the confirmed account service `free_playground.enter`. Historical accounts and invitations have no inferred request; existing company links are not redirected. The public offer says “Try for free”, with no initial expiration date and no permanent-free promise, no card and no automatic paid subscription.
+
+`GET /api/company-setup/playground` is read-only. The matching confirmed POST reuses the owner request key `free-playground:v1`, canonical international profile and existing live setup completion marker. Initialization failure retries the same receipt. Archive is not undone; replay never restarts a paused/stopped completed connection. An unset `REALITY_PLAYGROUND_ENABLED` enables practice creation; explicit false disables it. Existing admission/capacity rules remain authoritative. Compact storylines retain their existing opt-in policy.
+
+The three Home starter questions open existing attention, open customer commitments and receivables readers. A voluntary GitHub invitation follows an actually rendered result (delivery detail for the delivery question), never a click, failed read or uninitialized projection. Dismissal is an optional browser preference scoped to the account. No GitHub action or new tracking provider is automatic.
 
 ## Implementation entrypoints
 

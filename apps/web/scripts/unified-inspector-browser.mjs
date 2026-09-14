@@ -523,7 +523,7 @@ const tab = async (name) => {
     "Record graph": "Understand context",
     Facts: "Facts & origins",
     "Reality records": "Facts & origins",
-    "Fact rules": "Rules & insights",
+    "Additional fact rules": "Rules & insights",
     "Exception catalog": "Rules & insights",
     "Projections & views": "Rules & insights",
     "Commands & actions": "Actions & history",
@@ -932,7 +932,7 @@ try {
   assert.equal(await page.locator("[data-inline-activity] .erp-sort").count(), 0);
   assert.equal(await page.getByRole("dialog").count(), 0);
   await page.screenshot({ path: "/private/tmp/reality-138-browser/inline-history.png" });
-  await tab("Fact rules");
+  await tab("Additional fact rules");
   assert.equal(await page.getByText(/Catalog definitions:/).count(), 0);
   assert.equal(await page.getByRole("dialog").count(), 0);
   await page.screenshot({ path: "/private/tmp/reality-138-browser/rule-register.png" });

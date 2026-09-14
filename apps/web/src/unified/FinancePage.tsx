@@ -1,3 +1,4 @@
+import { useTrialResult } from "./FreePlayground";
 import { FinanceSettings } from "../finance/FinanceSettings";
 import { financeContext } from "./actionDiscovery";
 import { useContextActions } from "./ActionLauncher";
@@ -170,6 +171,17 @@ function FinanceRegister({
   const data = read.data?.view === view ? read.data : null;
   const awaitingCalculation =
     data?.view === "open-items" && data.metadata && !data.metadata.completed_at;
+  useTrialResult(
+    "invoices",
+    tenant,
+    !!data &&
+      view === "open-items" &&
+      flow === "receivable" &&
+      status === "outstanding" &&
+      !read.loading &&
+      !read.error &&
+      !awaitingCalculation,
+  );
   const explain = (id: string) => (
     <PreviewButton
       open={entry === id}

@@ -6258,6 +6258,7 @@ def send_chat_message(
     session_id: str,
     message: str,
     *,
+    actor_user_id: str | None = None,
     context_commitment_id: str | None = None,
     context_analytics: dict | None = None,
     language: str = "en",
@@ -6265,6 +6266,8 @@ def send_chat_message(
     timezone: str = "UTC",
 ) -> tuple[ChatMessage, ChatMessage]:
     _require_business_mutation(session, tenant_id, "send_chat_message")
+    if not message.strip():
+        raise InvalidOperation("Enter a question.")
     chat_session = _tenant_record(session, ChatSession, tenant_id, session_id)
     context_prefix = "\x1ereality.context.v1:"
     if message.startswith(context_prefix):
@@ -6351,6 +6354,10 @@ def send_chat_message(
         ]
         from reality.services.tenant_policy import PlaygroundOperationDenied
 
+        if not own_provider:
+            from reality.services.free_playground import reserve_managed_question
+
+            reserve_managed_question(session, tenant_id, actor_user_id)
         try:
             if own_provider and own_provider.provider == "openai_compatible":
                 provider_reply = reply_via_tools(

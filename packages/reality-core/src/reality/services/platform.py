@@ -34,6 +34,7 @@ from reality.db.core import (
     UserSession,
     now,
 )
+from reality.services.access_admission import automatic_access_limit
 
 USER_LIMIT = 100
 COMPANY_LIMIT = 100
@@ -152,9 +153,7 @@ def deployment_posture(session: OrmSession) -> dict:
         "migrations_current": bool(database_revision)
         and database_revision == expected_revision,
         "automatic_access_used": counter.used_slots if counter else 0,
-        "automatic_access_limit": int(
-            os.environ.get("REALITY_AUTO_APPROVE_LIMIT", "0") or 0
-        ),
+        "automatic_access_limit": automatic_access_limit(),
     }
 
 

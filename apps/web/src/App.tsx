@@ -1,3 +1,4 @@
+import { EntryProgress } from "./components/EntryProgress";
 import { lazy, Suspense } from "react";
 import { AuthGate } from "./Auth";
 import { LocalizationProvider, t } from "./localization";
@@ -11,13 +12,7 @@ export default function App() {
     <AuthGate>
       {(user, updateUser) => (
         <LocalizationProvider preferences={user}>
-          <Suspense
-            fallback={
-              <div role="status" className="p-8">
-                {t("Loading…")}
-              </div>
-            }
-          >
+          <Suspense fallback={<EntryProgress title="Loading your workspace" />}>
             <Entry user={user} updateUser={updateUser} />
           </Suspense>
         </LocalizationProvider>

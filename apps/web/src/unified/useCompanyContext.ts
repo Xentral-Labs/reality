@@ -46,10 +46,14 @@ export function useCompanyContext() {
   };
   return {
     bootstrap,
-    openCompany: (data: Bootstrap, id: string) => {
+    openCompany: (data: Bootstrap, id: string, home = false) => {
       if (!data.tenants.some((row) => row.id === id)) return;
       setBootstrap(data);
-      navigate({ ...companySelection(selection, id), route: "settings", settingsView: "company" });
+      navigate({
+        ...companySelection(selection, id),
+        route: home ? "home" : "settings",
+        settingsView: "company",
+      });
     },
     error,
     selection,

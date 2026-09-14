@@ -131,7 +131,7 @@ services or perform lesson actions. It expires on scope exit, including failure.
 
 Deployment configuration (not activated by this change):
 
-- `REALITY_PLAYGROUND_ENABLED`: off by default; `true` or `1` permits confirmed start.
+- `REALITY_PLAYGROUND_ENABLED`: confirmed Playground start is enabled when unset (Spec 190); explicit `false` disables it and `true` or `1` enables it. Storyline-specific entry retains its existing opt-in policy.
 - `REALITY_PLAYGROUND_DAILY_RUN_LIMIT`: 5 new retained run records per user/UTC day by default.
 - `REALITY_PLAYGROUND_RETAINED_RUN_LIMIT`: 20 retained runs per user by default.
 

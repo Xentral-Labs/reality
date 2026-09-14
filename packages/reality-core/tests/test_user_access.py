@@ -1,6 +1,7 @@
 from datetime import timedelta
 from types import SimpleNamespace
 
+import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy import event
 from sqlalchemy.orm import sessionmaker
@@ -577,3 +578,54 @@ def test_member_removal_preserves_global_session_and_other_company_access(
         )
     finally:
         browser.close()
+
+
+@pytest.mark.parametrize("configured", [None, "", "  "])
+def test_default_admission_verification_and_replay(session, monkeypatch, configured):
+    factory = sessionmaker(session.bind, expire_on_commit=False)
+    for module in (web_module, auth_module, api_module):
+        monkeypatch.setattr(module, "Session", factory)
+    monkeypatch.setenv("REALITY_AUTH_EXPOSE_CODES", "true")
+    monkeypatch.setenv("REALITY_AUTH_MODE", "enabled")
+    if configured is None:
+        monkeypatch.delenv("REALITY_AUTO_APPROVE_LIMIT", raising=False)
+    else:
+        monkeypatch.setenv("REALITY_AUTO_APPROVE_LIMIT", configured)
+    notifications = []
+    monkeypatch.setattr(
+        auth_module,
+        "send_access_decision_email",
+        lambda *args: notifications.append(args),
+    )
+    monkeypatch.setattr(
+        auth_module,
+        "send_access_request_notification",
+        lambda *_: pytest.fail("Open signup requested manual approval"),
+    )
+    session.add(AccessAdmissionCounter(id="automatic", used_slots=1000))
+    session.commit()
+    with TestClient(web_module.app) as browser:
+        for index in range(2):
+            email = f"open-{index}@example.com"
+            signup = browser.post(
+                "/api/auth/signup",
+                json={
+                    "email": email,
+                    "password": "a-long-operator-password",
+                    "accepted_terms": True,
+                },
+            )
+            assert signup.status_code == 201
+            challenge = {"email": email, "code": signup.json()["verification_code"]}
+            verified = browser.post("/api/auth/verify-email", json=challenge)
+            assert verified.status_code == 200
+            assert verified.json()["status"] == "active"
+            assert verified.json()["application"]["status"] == "approved"
+            assert (
+                browser.post("/api/auth/verify-email", json=challenge).status_code
+                == 400
+            )
+            browser.post("/api/auth/logout")
+    session.expire_all()
+    assert session.get(AccessAdmissionCounter, "automatic").used_slots == 1002
+    assert len(notifications) == 2

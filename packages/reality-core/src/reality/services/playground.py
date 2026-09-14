@@ -1308,7 +1308,7 @@ def _mutation_session(
     enforce intent, confirmation, quotas, unresolved outcomes and operation policy.
     Never bind to a caller's transaction or commit unrelated pending changes.
     """
-    if os.environ.get("REALITY_PLAYGROUND_ENABLED", "").lower() not in {"true", "1"}:
+    if os.environ.get("REALITY_PLAYGROUND_ENABLED", "true").lower() not in {"true", "1"}:
         raise PlaygroundOperationDenied("Playground is not enabled.")
     # A stable, namespaced signed bigint across workers. A hash collision only
     # serializes unrelated runs; it can never grant access or skip ownership.
@@ -1531,7 +1531,7 @@ def list_runs(
         "total": total,
         "limit": limit,
         "offset": offset,
-        "entry_enabled": os.environ.get("REALITY_PLAYGROUND_ENABLED", "").lower()
+        "entry_enabled": os.environ.get("REALITY_PLAYGROUND_ENABLED", "true").lower()
         in {"true", "1"},
         "chat_available": False,
         "presets": list(catalog.PRESETS),
@@ -1648,7 +1648,7 @@ def start_run(
     live_simulation: bool = False,
 ) -> PlaygroundRun:
     """Confirm one private run; retries resume its atomic seed, never duplicate it."""
-    if os.environ.get("REALITY_PLAYGROUND_ENABLED", "").lower() not in {"true", "1"}:
+    if os.environ.get("REALITY_PLAYGROUND_ENABLED", "true").lower() not in {"true", "1"}:
         raise PlaygroundOperationDenied("Playground is not enabled.")
     if confirmed is not True:
         raise PlaygroundOperationDenied("Confirm Playground creation first.")

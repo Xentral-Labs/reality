@@ -85,6 +85,17 @@ login remains available at `/login`. To provide an evaluator account later, conf
 a real transactional email provider, enable signup temporarily, approve the account,
 create its tenant membership, and disable signup again before the demo.
 
+## Optional open signup
+
+Spec 189 makes admission open after email verification when
+`REALITY_AUTO_APPROVE_LIMIT` is absent or blank. The explicit `0` above is an
+intentional restriction of this prepared-account profile, not the application
+default. For an open prospect trial, configure transactional email, enable public
+signup, and remove or blank that override. Apply the same value to the Site build.
+Existing pending accounts still require a separate approval. Authentication and
+email verification remain enabled. No live configuration changes are implied by
+this documentation.
+
 ## Release gate and health
 
 Configure this API pre-deploy command:

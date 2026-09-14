@@ -224,7 +224,7 @@ def test_run_entry_lists_only_owned_runs(session, playground_http, monkeypatch, 
     assert [row["id"] for row in body["runs"]] == [run.id]
     assert body["quotas"]["daily_remaining"] == 4
     assert body["quotas"]["retained_remaining"] == 19
-    assert body["entry_enabled"] is False
+    assert body["entry_enabled"] is True
     assert body["chat_available"] is False
     assert client.get(f"/api/playground/runs/{run.id}").status_code == 200
 
@@ -354,6 +354,7 @@ def test_run_start_flag_and_quota(playground_http, monkeypatch):
     client, _, user, _run, login = playground_http
     login(user)
     payload = {"request_key": "new", "confirmed": True}
+    monkeypatch.setenv("REALITY_PLAYGROUND_ENABLED", "false")
     assert client.post("/api/playground/runs", json=payload).status_code == 403
     monkeypatch.setenv("REALITY_PLAYGROUND_ENABLED", "true")
     monkeypatch.setenv("REALITY_PLAYGROUND_RETAINED_RUN_LIMIT", "1")

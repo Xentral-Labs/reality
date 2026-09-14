@@ -22,7 +22,7 @@ test("Inspector sections match their contents and default destinations", () => {
   );
   assert.deepEqual(
     inspectorTabs("rules").map((t) => t[1]),
-    ["Fact rules", "Exception rules"],
+    ["Additional fact rules", "Exception rules"],
   );
   assert.deepEqual(
     inspectorTabs("overview").map((t) => t[1]),

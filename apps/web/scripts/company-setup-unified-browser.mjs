@@ -51,6 +51,14 @@ await page.route("**/api/**", async (route) => {
       timezone: "UTC",
       is_platform_admin: false,
     });
+  if (path === "/api/company-setup/playground")
+    return reply({
+      requested: false,
+      enabled: true,
+      eligible: true,
+      archived: false,
+      receipt: null,
+    });
   if (path === "/api/company-setup/options")
     return reply({
       actor_id: "owner",
@@ -96,6 +104,20 @@ await page.route("**/api/**", async (route) => {
       },
       series: [],
     });
+  if (path === "/api/v1/companies" && req.method() === "GET")
+    return reply(
+      companies.map((company) => ({
+        ...company,
+        created_at: "2026-09-14T12:00:00Z",
+        archived_at: null,
+        state: "empty",
+        source_count: 0,
+        evidence_count: 0,
+        reality_count: 0,
+        configured_count: 0,
+        last_activity_at: null,
+      })),
+    );
   if (path === "/api/v1/companies" && req.method() === "POST") {
     if (mode === "reject") return reply({ detail: "Rejected name" }, 422);
     const company = {
@@ -199,7 +221,9 @@ try {
           path: `${out}/company-cards-${lang}-${theme}-${mobile}.png`,
           fullPage: true,
         });
-        await page.locator("main header button.br-btn-primary").click();
+        if ((await page.locator("main .register-actions").getAttribute("open")) === null)
+          await page.locator("main .register-actions summary").click();
+        await page.locator('main [data-page-action="menu"]').first().click();
         await page.locator("dialog #setup-company-name").waitFor();
         assert.equal(await page.locator("dialog #setup-company-name").inputValue(), "");
 
@@ -249,7 +273,9 @@ try {
           await page.locator('dialog [role="alert"]').waitFor();
           companies.push(newCompany);
           await page.reload();
-          await page.locator("main header button.br-btn-primary").click();
+          if ((await page.locator("main .register-actions").getAttribute("open")) === null)
+            await page.locator("main .register-actions summary").click();
+          await page.locator('main [data-page-action="menu"]').first().click();
         }
         await page.waitForURL(/tenant=live-company/);
         assert.equal(setupCount, before + 1);
@@ -261,6 +287,10 @@ try {
   console.log(
     "PASS: 16 unified live-company creation/recovery/open combinations; no separate connect/start requests.",
   );
+} catch (error) {
+  console.error(errors);
+  console.error(await page.locator("body").innerText());
+  throw error;
 } finally {
   await browser.close();
 }

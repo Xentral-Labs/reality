@@ -32,7 +32,7 @@ Compose-Installation setzt sie von Hand aus der `.env.example` der Release-Datei
 | `REALITY_ENV`, `REALITY_MCP_ENV`                                  | `production` macht fehlenden Master-Key und einen MCP-Origin ohne HTTPS zu harten Fehlern                 |
 | `REALITY_ARTIFACT_DIR`                                            | Verzeichnis des `file`-Artefaktspeichers in den Containern, hinterlegt im Volume `artifacts`              |
 | `REALITY_PLATFORM_ADMIN_EMAIL`, `REALITY_PLATFORM_ADMIN_PASSWORD` | Der erste Owner, bei jedem Start angelegt oder reaktiviert                                                |
-| `REALITY_AUTO_APPROVE_LIMIT`                                      | Automatische Freigabe von Registrierungen; `0` lässt jede Anfrage beim Owner offen                        |
+| `REALITY_AUTO_APPROVE_LIMIT`                                      | Nicht gesetzt/leer: unbegrenzt nach E-Mail-Bestätigung; `0`: manuell; positiv: Gesamtkontingent           |
 | `REALITY_COMMIT`                                                  | In das Image eingebrannter Commit; wird neben der Version angezeigt                                       |
 
 Optionale Gruppen, standardmäßig leer: transaktionale E-Mail (`REALITY_EMAIL_PROVIDER`,

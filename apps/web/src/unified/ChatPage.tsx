@@ -1,5 +1,5 @@
 import { AnalyticsReportProposal } from "./analytics/AnalyticsReportProposal";
-import { ChatComposer } from "./ChatComposer";
+import { AllowanceNotice, ChatComposer } from "./ChatComposer";
 import { History, SquarePen, Sparkles } from "lucide-react";
 const dockFrame = "reality-chat flex h-full min-h-0 min-w-0 flex-col";
 import {
@@ -126,10 +126,24 @@ export function ChatPage({
     window.addEventListener("reality:open-chat", receive);
     return () => window.removeEventListener("reality:open-chat", receive);
   }, [selection.tenant, sending, navigate]);
+  useEffect(() => {
+    if (!data?.allowance) return;
+    const delay = Math.max(1000, new Date(data.allowance.resets_at).getTime() - Date.now() + 1000);
+    const timer = window.setTimeout(refresh, Math.min(delay, 86401000));
+    return () => window.clearTimeout(timer);
+  }, [data?.allowance?.resets_at]);
   const sessionReady = !selection.session || data?.active_session_id === selection.session;
   const send = async () => {
     const text = question;
-    if (!text.trim() || sending || creatingSession.current || !sessionReady || loading) return;
+    if (
+      data?.allowance?.remaining === 0 ||
+      !text.trim() ||
+      sending ||
+      creatingSession.current ||
+      !sessionReady ||
+      loading
+    )
+      return;
     setSending(true);
     setFailure("");
     setEcho({ text, before: data?.messages.map((row) => row.id) || [] });
@@ -181,6 +195,7 @@ export function ChatPage({
       setEcho(null);
       setQuestion(text);
     } finally {
+      refresh();
       setSending(false);
     }
   };
@@ -450,6 +465,7 @@ export function ChatPage({
       )}
       {dock ? (
         <ChatComposer
+          allowance={data.allowance}
           key={data.active_session_id || "new"}
           id={composerId}
           value={question}
@@ -466,6 +482,7 @@ export function ChatPage({
             void send();
           }}
         >
+          <AllowanceNotice allowance={data.allowance} />
           <label className="mb-3 block text-sm text-fg-muted" htmlFor={composerId}>
             {t("Ask about your company")}
           </label>
@@ -484,7 +501,13 @@ export function ChatPage({
           <div className="mt-4 flex justify-end">
             <button
               className="br-btn br-btn-primary"
-              disabled={sending || startingChat || loading || !question.trim()}
+              disabled={
+                data.allowance?.remaining === 0 ||
+                sending ||
+                startingChat ||
+                loading ||
+                !question.trim()
+              }
             >
               {t("Send question")}
             </button>

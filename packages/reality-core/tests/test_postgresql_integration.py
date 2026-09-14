@@ -131,125 +131,135 @@ def test_reality_gap_replay_resumes_ten_thousand_sources_without_duplicates() ->
     timestamp = now()
     with Session() as session:
         tenant = create_tenant(session, f"Replay benchmark {uid('run')}")
-        gap = capture_gap(
-            session,
-            tenant.id,
-            question="Which benchmark records apply?",
-            intended_use="Verify resumable ERP-scale replay",
-            origin="web",
-            idempotency_key=uid("benchmark"),
-        )
-        decide_gap(
-            session,
-            tenant.id,
-            gap.id,
-            destination="fact",
-            rationale="Reviewed benchmark rule",
-            expected_revision=gap.revision,
-            actor_user_id=None,
-        )
-        rule = prepare_implementation(
-            session,
-            tenant.id,
-            gap.id,
-            {
-                "logical_name": "ERP replay benchmark",
-                "source_system": "benchmark",
-                "source_type": "order",
-                "conditions": [
-                    {
-                        "path": "eligible",
-                        "operator": "equals",
-                        "value_type": "boolean",
-                        "operand": True,
-                    }
-                ],
-                "output_mode": "constant",
-                "constant_value": True,
-                "predicate": "order.benchmark_eligible",
-                "subject_type": "commitment",
-                "subject_resolver": "source_document_commitments",
-                "value_type": "boolean",
-                "observed_at_mode": "source_received_at",
-            },
-            expected_revision=gap.revision,
-        )
-        for start in range(0, 10_000, 1_000):
+        try:
+            gap = capture_gap(
+                session,
+                tenant.id,
+                question="Which benchmark records apply?",
+                intended_use="Verify resumable ERP-scale replay",
+                origin="web",
+                idempotency_key=uid("benchmark"),
+            )
+            decide_gap(
+                session,
+                tenant.id,
+                gap.id,
+                destination="fact",
+                rationale="Reviewed benchmark rule",
+                expected_revision=gap.revision,
+                actor_user_id=None,
+            )
+            rule = prepare_implementation(
+                session,
+                tenant.id,
+                gap.id,
+                {
+                    "logical_name": "ERP replay benchmark",
+                    "source_system": "benchmark",
+                    "source_type": "order",
+                    "conditions": [
+                        {
+                            "path": "eligible",
+                            "operator": "equals",
+                            "value_type": "boolean",
+                            "operand": True,
+                        }
+                    ],
+                    "output_mode": "constant",
+                    "constant_value": True,
+                    "predicate": "order.benchmark_eligible",
+                    "subject_type": "commitment",
+                    "subject_resolver": "source_document_commitments",
+                    "value_type": "boolean",
+                    "observed_at_mode": "source_received_at",
+                },
+                expected_revision=gap.revision,
+            )
+            for start in range(0, 10_000, 1_000):
+                session.execute(
+                    insert(SourceRecord),
+                    [
+                        {
+                            "id": f"src_benchmark_{index:05d}",
+                            "tenant_id": tenant.id,
+                            "source_system": "benchmark",
+                            "source_type": "order",
+                            "external_id": f"benchmark-{index}",
+                            "payload": '{"eligible":false}',
+                            "payload_hash": f"{index:064x}",
+                            "version": 1,
+                            "received_at": timestamp,
+                        }
+                        for index in range(start, start + 1_000)
+                    ],
+                )
+            session.commit()
+
+            started = monotonic()
+            cursor = None
+            pages = 0
+            while True:
+                result = replay_rule(
+                    session, tenant.id, rule.id, limit=500, cursor=cursor
+                )
+                pages += 1
+                cursor = result["next_cursor"]
+                if result["complete"]:
+                    break
+            elapsed = monotonic() - started
+
+            assert pages == 20
+            assert result["cumulative"]["not_applicable"] == 10_000
+            assert elapsed < 60
+            assert (
+                session.scalar(
+                    select(func.count())
+                    .select_from(RuleInterpretationOutcome)
+                    .where(
+                        RuleInterpretationOutcome.tenant_id == tenant.id,
+                        RuleInterpretationOutcome.rule_id == rule.id,
+                    )
+                )
+                == 10_000
+            )
+
+            retry = replay_rule(session, tenant.id, rule.id, limit=500)
+            assert retry["cumulative"]["not_applicable"] == 10_000
+            assert (
+                session.scalar(
+                    select(func.count())
+                    .select_from(RuleInterpretationOutcome)
+                    .where(
+                        RuleInterpretationOutcome.tenant_id == tenant.id,
+                        RuleInterpretationOutcome.rule_id == rule.id,
+                    )
+                )
+                == 10_000
+            )
+        finally:
+            # A failed timing assertion must not leak committed benchmark data.
+            session.rollback()
             session.execute(
-                insert(SourceRecord),
-                [
-                    {
-                        "id": f"src_benchmark_{index:05d}",
-                        "tenant_id": tenant.id,
-                        "source_system": "benchmark",
-                        "source_type": "order",
-                        "external_id": f"benchmark-{index}",
-                        "payload": '{"eligible":false}',
-                        "payload_hash": f"{index:064x}",
-                        "version": 1,
-                        "received_at": timestamp,
-                    }
-                    for index in range(start, start + 1_000)
-                ],
-            )
-        session.commit()
-
-        started = monotonic()
-        cursor = None
-        pages = 0
-        while True:
-            result = replay_rule(session, tenant.id, rule.id, limit=500, cursor=cursor)
-            pages += 1
-            cursor = result["next_cursor"]
-            if result["complete"]:
-                break
-        elapsed = monotonic() - started
-
-        assert pages == 20
-        assert result["cumulative"]["not_applicable"] == 10_000
-        assert elapsed < 60
-        assert (
-            session.scalar(
-                select(func.count())
-                .select_from(RuleInterpretationOutcome)
-                .where(
-                    RuleInterpretationOutcome.tenant_id == tenant.id,
-                    RuleInterpretationOutcome.rule_id == rule.id,
+                delete(RuleInterpretationOutcome).where(
+                    RuleInterpretationOutcome.tenant_id == tenant.id
                 )
             )
-            == 10_000
-        )
-
-        retry = replay_rule(session, tenant.id, rule.id, limit=500)
-        assert retry["cumulative"]["not_applicable"] == 10_000
-        assert (
-            session.scalar(
-                select(func.count())
-                .select_from(RuleInterpretationOutcome)
-                .where(
-                    RuleInterpretationOutcome.tenant_id == tenant.id,
-                    RuleInterpretationOutcome.rule_id == rule.id,
+            session.execute(
+                delete(SourceRecord).where(SourceRecord.tenant_id == tenant.id)
+            )
+            session.execute(
+                delete(InterpretationRule).where(
+                    InterpretationRule.tenant_id == tenant.id
                 )
             )
-            == 10_000
-        )
-        session.execute(
-            delete(RuleInterpretationOutcome).where(
-                RuleInterpretationOutcome.tenant_id == tenant.id
+            session.execute(
+                delete(RealityGapEntry).where(RealityGapEntry.tenant_id == tenant.id)
             )
-        )
-        session.execute(delete(SourceRecord).where(SourceRecord.tenant_id == tenant.id))
-        session.execute(
-            delete(InterpretationRule).where(InterpretationRule.tenant_id == tenant.id)
-        )
-        session.execute(
-            delete(RealityGapEntry).where(RealityGapEntry.tenant_id == tenant.id)
-        )
-        session.execute(delete(RealityGap).where(RealityGap.tenant_id == tenant.id))
-        for model in (FinanceRoleDestination, FinanceState, SubledgerAccount):
-            session.execute(delete(model).where(model.tenant_id == tenant.id))
-        session.execute(delete(Tenant).where(Tenant.id == tenant.id))
-        session.commit()
+            session.execute(delete(RealityGap).where(RealityGap.tenant_id == tenant.id))
+            for model in (FinanceRoleDestination, FinanceState, SubledgerAccount):
+                session.execute(delete(model).where(model.tenant_id == tenant.id))
+            session.execute(delete(Tenant).where(Tenant.id == tenant.id))
+            session.commit()
 
 
 def test_all_migrations_on_disposable_postgresql(

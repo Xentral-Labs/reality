@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, type Dispatch, type SetStateAction } from "react";
 import { ArrowUp, Mic, Paperclip, Square } from "lucide-react";
-import { t } from "../localization";
+import type { ManagedAllowance } from "../api";
+import { formatDateTime, t } from "../localization";
 
 type Recognition = {
   lang: string;
@@ -26,6 +27,7 @@ export function ChatComposer({
   sending,
   active,
   send,
+  allowance,
 }: {
   id: string;
   value: string;
@@ -33,7 +35,9 @@ export function ChatComposer({
   sending: boolean;
   active: boolean;
   send: () => void;
+  allowance?: ManagedAllowance | null;
 }) {
+  const exhausted = allowance?.remaining === 0;
   const fileInput = useRef<HTMLInputElement>(null);
   const draftValue = useRef(value);
   draftValue.current = value;
@@ -102,6 +106,7 @@ export function ChatComposer({
   };
   return (
     <div className="shrink-0 px-4 pb-3 pt-2">
+      <AllowanceNotice allowance={allowance} />
       {tooLong && (
         <p role="alert" className="mb-2 text-xs text-critical-text">
           {t("Keep the message within 4,000 characters.")}
@@ -121,7 +126,7 @@ export function ChatComposer({
         className="reality-chat-composer"
         onSubmit={(event) => {
           event.preventDefault();
-          if (!reading && !sending && !tooLong && value.trim()) {
+          if (!exhausted && !reading && !sending && !tooLong && value.trim()) {
             stop();
             send();
           }
@@ -139,7 +144,7 @@ export function ChatComposer({
           onKeyDown={(event) => {
             if (event.key === "Enter" && !event.shiftKey && !event.nativeEvent.isComposing) {
               event.preventDefault();
-              if (!reading && !sending && !tooLong && value.trim()) {
+              if (!exhausted && !reading && !sending && !tooLong && value.trim()) {
                 stop();
                 send();
               }
@@ -209,7 +214,7 @@ export function ChatComposer({
               type="submit"
               className="reality-chat-send"
               aria-label={t("Send question")}
-              disabled={sending || reading || tooLong || !value.trim()}
+              disabled={exhausted || sending || reading || tooLong || !value.trim()}
             >
               <ArrowUp size={23} />
             </button>
@@ -219,6 +224,25 @@ export function ChatComposer({
       <p className="mt-3 px-2 text-center text-xs leading-5 text-fg-muted">
         {t("Reality can make mistakes. Check important information.")}
       </p>
+    </div>
+  );
+}
+
+export function AllowanceNotice({ allowance }: { allowance?: ManagedAllowance | null }) {
+  if (!allowance) return null;
+  return (
+    <div className="mb-2 text-xs text-fg-muted" role="status" data-ai-allowance>
+      <p>
+        {t("Free AI questions remaining")}: {allowance.remaining} / {allowance.limit} ·{" "}
+        {t("Resets at")} {formatDateTime(allowance.resets_at)}
+      </p>
+      {allowance.remaining === 0 && (
+        <p>
+          {t(
+            "Your daily AI allowance is used. Keep exploring the records or return after the reset.",
+          )}
+        </p>
+      )}
     </div>
   );
 }

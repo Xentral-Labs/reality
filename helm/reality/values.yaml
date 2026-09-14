@@ -110,7 +110,8 @@ auth:
   mode: enabled       # "disabled" switches OFF all authentication — never in a shared cluster
   cookieSecure: true  # the ALB terminates TLS, so cookies must be Secure
   exposeCodes: false  # true leaks invitation/login codes in API responses
-  autoApproveLimit: 0
+  # Empty: unlimited after email verification; 0: manual; positive: finite capacity.
+  autoApproveLimit: ""
 
 bootstrap:
   # Leave EMPTY unless you are seeding a throwaway tenant. A non-empty value

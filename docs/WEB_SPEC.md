@@ -7,7 +7,7 @@
 ## Accounts and access
 
 - The public site links to a self-hosted email/password signup. Passwords use Argon2id; verification codes and browser sessions are stored only as hashes.
-- A verified account atomically claims one of the deployment's automatic-admission slots when `REALITY_AUTO_APPROVE_LIMIT` is greater than zero. Accounts within that limit become active immediately; after the limit is exhausted they remain `pending_approval` until a platform administrator approves the application. Pending users cannot call business APIs or create companies. Platform administrators do not consume a slot, existing active users are counted during migration, and `0` disables automatic admission.
+- By default, verified accounts become active immediately without personal review (spec 189). Missing/blank `REALITY_AUTO_APPROVE_LIMIT` means unlimited automatic admission; `0` requires manual approval; a positive integer sets cumulative capacity. Explicit negative/invalid values require manual approval. Automatic admissions atomically increment the existing counter in unlimited and finite modes, so a later finite limit includes prior admissions. Administrators/invitations retain their existing exceptions. Existing pending/rejected accounts are not retrospectively approved. Account verification, tenant membership and company eligibility remain enforced.
 - Approved users create companies through the normal application service. Access is granted by explicit tenant membership and checked at the API boundary.
 - Active company owners can manage Members in company settings. Invitation links keep
   their secret in the URL fragment, scrub it immediately into session-scoped browser
@@ -2282,7 +2282,7 @@ See spec 151 FR-001–002.
 
 The four destinations are Context, Facts, Rules and Actions (German: Kontext, Fakten, Regeln, Aktionen). Context offers Timeline then Record graph. Facts is one paginated register with a type filter; a secondary, lazy Technical record overview retains raw grouped records. Facts offers All records followed by Calculated views; the latter are explicitly derived results, not newly stored facts. Rules offers Fact rules and Exception rules. Actions opens Event history before Action catalog. Old records links resolve to the unified register with their query and tenant preserved.
 
-Facts is an umbrella navigation term for recorded business information, not a change to the typed Fact model. The technical Fact family is labelled Additional facts in the type filter; sources, evidence and operational records retain their distinct identities and authority.
+Facts is an umbrella navigation term for recorded business information, not a change to the typed Fact model. The technical Fact family is labelled Additional facts in the type filter; sources, evidence and operational records retain their distinct identities and authority. The rules that create those records follow the same label: the first Rules tab is Additional fact rules (German Regeln für zusätzliche Fakten), and every UI sentence about such a rule says Additional fact rule, so the register and the rules that fill it use one name (spec 191). The rule type itself, its commands and its tool descriptions keep the technical name Fact rule.
 
 ## Consistent page introductions (spec 137 FR-009/010)
 
@@ -2381,7 +2381,7 @@ No browser calculation or stored document settlement state is added.
 
 ### Guided Fact-rule authoring (spec 159)
 
-Inspector → Rules → Fact rules retains the shared register and modal while restoring
+Inspector → Rules → Additional fact rules retains the shared register and modal while restoring
 structured source/subject mapping, recursive all/any conditions, typed output, allowed
 values and observation-time controls. Raw rule JSON is absent from the dialog. Editing an existing
 version preserves its logical name, scopes, line ID path and advanced configuration
@@ -2654,3 +2654,17 @@ essential-only processing and publication evidence (spec 188). Explicit presenta
 language travels through URLs rather than durable anonymous browser storage. Existing
 account preferences, authenticated sessions and shared application services remain
 authoritative and unchanged. Product/Docs processing is a separate review boundary.
+
+## Free trial prospect entry (190)
+
+[Spec 190](../specs/190-free-playground/spec.md) adds explicit ordinary-signup consent for an owner-private canonical demo. Verified admitted prospects enter Home without a company questionnaire. Retry uses the existing setup receipt; GET never creates. Three read-only tasks lead to existing operational evidence. Optional GitHub support follows a rendered result, and managed AI shows its account-wide 20-question UTC-day allowance. Public copy promises a free trial, no initial expiry, no card and no automatic paid subscription; it does not promise permanent free access. See [company setup](features/company-setup-demo.md) and [chat](features/chat.md).
+
+Spec 190 FR-010: Entry waits (session, workspace and trial preparation) show an immediate localized spinner and explanation. Signup/verification submissions stay busy through navigation; errors restore retry. Email verification performs one navigation and language survives the signup handoff. Operational read skeletons retain their existing behavior.
+
+Spec 190 FR-011 supersedes the paid Cloud presentation: the platform card advertises only the currently available free trial, its daily AI allowance and no initial fixed expiry. Monthly/founding prices, usage purchases and the capacity/waitlist banner are absent. Backend admission configuration remains authoritative.
+
+Spec 190 FR-012: Packages ends after the hosted trial and self-hosted choices; the agent-ecosystem architecture block and compatibility footnote are removed from that page.
+
+Spec 190 FR-015: Public pages share more readable heading spacing, responsive section rhythm and consistent free-trial CTA labels/colors. The platform trial note stays with the introduction; existing light/dark surfaces and route behavior are preserved.
+
+Spec 190 FR-018: How it works presents the core flow and worked delivery example first. Native disclosures retain vocabulary, finance, corrections, background and FAQ; all depth is keyboard-accessible and the existing entry anchor targets the compact process flow.

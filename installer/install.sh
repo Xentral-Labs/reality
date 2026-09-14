@@ -280,7 +280,8 @@ REALITY_MASTER_KEY=$(fernet_key)
 
 REALITY_PLATFORM_ADMIN_EMAIL=${owner_email}
 REALITY_PLATFORM_ADMIN_PASSWORD=${owner_password}
-REALITY_AUTO_APPROVE_LIMIT=0
+# Unset/blank: unlimited after email verification; 0: manual; positive: cumulative capacity.
+REALITY_AUTO_APPROVE_LIMIT=
 
 REALITY_EMAIL_PROVIDER=
 REALITY_EMAIL_FROM=

@@ -73,7 +73,8 @@ const introductions = {
   },
   rules: {
     title: "Reality Inspector",
-    description: "Review the rules used to interpret source data into business records.",
+    description:
+      "Review the rules that record additional facts from source data on the right business record.",
   },
   exceptions: {
     title: "Reality Inspector",

@@ -111,7 +111,7 @@ export type AuthUser = {
     reviewed_at: string | null;
   };
 };
-export type AccessCapacity = { used: number; limit: number };
+export type AccessCapacity = { used: number; limit: number | null };
 export type PlatformOverview = {
   generated_at: string;
   deployment: {
@@ -127,7 +127,7 @@ export type PlatformOverview = {
     expected_revision: string | null;
     migrations_current: boolean;
     automatic_access_used: number;
-    automatic_access_limit: number;
+    automatic_access_limit: number | null;
   };
   people: {
     total: number;
@@ -578,7 +578,14 @@ export type CopilotSuggestion = {
   message: string;
   disabled?: boolean;
 };
+export type ManagedAllowance = {
+  limit: number;
+  used: number;
+  remaining: number;
+  resets_at: string;
+};
 export type CopilotData = {
+  allowance?: ManagedAllowance | null;
   sessions: CopilotSession[];
   active_session_id: string | null;
   messages: CopilotMessage[];
@@ -1091,6 +1098,19 @@ export const api = {
       `/api/company-setup/requests/${encodeURIComponent(key)}/execution`,
       { method: "POST", body: JSON.stringify(body) },
     ),
+  playgroundEntry: () =>
+    request<{
+      requested: boolean;
+      archived: boolean;
+      enabled: boolean;
+      eligible: boolean;
+      receipt: CompanySetupResult | null;
+    }>("/api/company-setup/playground"),
+  enterPlayground: () =>
+    request<CompanySetupResult>("/api/company-setup/playground", {
+      method: "POST",
+      body: JSON.stringify({ confirmed: true }),
+    }),
   companySetupOptions: () => request<CompanySetupOptions>("/api/company-setup/options"),
   companySetupRequest: (key: string) =>
     request<CompanySetupResult>(`/api/company-setup/requests/${encodeURIComponent(key)}`),
@@ -1119,7 +1139,7 @@ export const api = {
   signup: (email: string, password: string) =>
     request<{ email: string; next: string; verification_code?: string }>("/api/auth/signup", {
       method: "POST",
-      body: JSON.stringify({ email, password, accepted_terms: true }),
+      body: JSON.stringify({ email, password, accepted_terms: true, playground: true }),
     }),
   invitationSignup: (token: string, email: string, password: string) =>
     request<{ email: string; next: string; verification_code?: string }>(

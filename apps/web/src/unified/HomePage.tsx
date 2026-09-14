@@ -1,3 +1,4 @@
+import { TrialTasks } from "./FreePlayground";
 import { dailyWork } from "./dailyWork";
 import { HomePulse } from "./HomePulse";
 import { AnalyticsPreview } from "./AnalyticsPage";
@@ -22,6 +23,7 @@ export function HomePage({
   const { data, loading, error, refresh } = useRead(() => api.dashboard(tenant), [tenant]);
   return (
     <div className="mx-auto max-w-[1500px] space-y-7">
+      <TrialTasks tenant={tenant} navigate={navigate} />
       <section className="rounded-xl border border-accent bg-surface p-7">
         <p className="mb-4 flex items-center gap-2 text-xs uppercase tracking-wide text-fg-muted">
           <Sparkles size={16} />

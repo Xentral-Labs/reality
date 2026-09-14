@@ -111,3 +111,11 @@ transient failure. The same feature added two public reads the copilot lacked,
 `finance_credits` (available customer or supplier credit) and `finance_payments` (recorded
 payments with allocated and unallocated amounts), so questions about overpayments and
 unmatched money are answered from records.
+
+## Free Playground managed allowance (Spec 190)
+
+Every new ordinary public signup records `account.trial_started`, independently of optional demo-company consent. Omitting the demo flag cannot bypass account policy. Managed AI for these accounts permits 20 dispatched questions per account per UTC day across conversations and all their companies, including subsequently created ordinary companies. Existing accounts using Playground companies share the same limit. Web calls charge the trusted authenticated account; internal calls without an actor charge the Playground owner. Existing non-trial business-account and own-provider behavior is unchanged. The legacy companion always uses managed credentials and shares the same allowance.
+
+`services/free_playground.py` locks the account, counts the current UTC day's `playground.ai_dispatched` security events and commits one reservation before provider work. One question covers the existing bounded tool loop. Validation/missing-provider refusals consume nothing; a dispatched provider failure counts because it may incur cost. No prompt or provider credential is stored in usage events. Retention must preserve current-day usage events.
+
+Copilot reads expose `allowance` (or null): limit, used, remaining and exact reset instant. All chat surfaces display it, preserve drafts at exhaustion and refresh after sends/refusals/reset. Non-AI exploration and the usual preview/confirmation boundaries remain usable. The free trial initially has no expiry date and makes no permanent-free commitment.

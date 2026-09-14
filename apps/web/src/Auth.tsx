@@ -5,8 +5,9 @@ import {
   setLanguageFallback,
 } from "../../shared/language";
 import { type FormEvent, type ReactNode, useEffect, useState } from "react";
-import { ArrowRight, Check, Clock3, LogOut, ShieldCheck } from "lucide-react";
+import { ArrowRight, Check, Clock3, LoaderCircle, LogOut, ShieldCheck } from "lucide-react";
 import { api, type AuthUser, type PlatformOverview } from "./api";
+import { EntryProgress } from "./components/EntryProgress";
 import { LogoMark } from "./components/LogoMark";
 import { LocalizationProvider, type Language } from "./localization";
 import { accountDestination, resolveEntry, rememberAccountDestination } from "./entryRouting";
@@ -127,7 +128,7 @@ export function AuthGate({
   if (path === "/verify-email")
     return (
       <LocalizedAuth>
-        <Verify complete={setUser} />
+        <Verify />
       </LocalizedAuth>
     );
   if (
@@ -161,9 +162,9 @@ function Brand() {
 }
 function AuthLoading() {
   return (
-    <div className="auth-loading">
-      <span />
-    </div>
+    <LocalizedAuth>
+      <EntryProgress />
+    </LocalizedAuth>
   );
 }
 
@@ -216,6 +217,7 @@ function Signup() {
   }, []);
   const submit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    if (busy) return;
     setBusy(true);
     setError("");
     const data = new FormData(event.currentTarget);
@@ -228,10 +230,12 @@ function Signup() {
       sessionStorage.setItem("reality.signupEmail", email);
       if (result.verification_code)
         sessionStorage.setItem("reality.localVerificationCode", result.verification_code);
-      location.href = "/verify-email";
+      location.href = languageHref(
+        new URL("/verify-email", location.origin).href,
+        readLanguage() ?? "en",
+      );
     } catch (reason) {
       setError((reason as Error).message);
-    } finally {
       setBusy(false);
     }
   };
@@ -239,7 +243,11 @@ function Signup() {
     <AuthShell
       eyebrow="Create account"
       title="Start with Reality"
-      detail="Create your account. We review every new workspace personally."
+      detail={
+        sessionStorage.getItem("reality.invitationToken")
+          ? "Create your account and verify your email to continue."
+          : "Try Reality for free with your own demo company. No credit card. No automatic paid subscription."
+      }
     >
       <form onSubmit={submit} className="auth-form">
         <label>
@@ -266,13 +274,27 @@ function Signup() {
           />
           <small>At least 10 characters.</small>
         </label>
+        {!sessionStorage.getItem("reality.invitationToken") && (
+          <p className="text-sm">
+            By continuing, you request a demo company with live sample data after email
+            verification.
+          </p>
+        )}
         {error && <div className="auth-error">{error}</div>}
         <label className="auth-check">
           <input type="checkbox" required />I agree to the Terms and Privacy Policy.
         </label>
-        <button disabled={busy}>
-          {busy ? "Creating account…" : "Continue"}
-          <ArrowRight size={17} />
+        <button disabled={busy} aria-busy={busy}>
+          <span role={busy ? "status" : undefined}>{busy ? "Creating account…" : "Continue"}</span>
+          {busy ? (
+            <LoaderCircle
+              size={17}
+              className="animate-spin motion-reduce:animate-none"
+              aria-hidden="true"
+            />
+          ) : (
+            <ArrowRight size={17} />
+          )}
         </button>
       </form>
       <p className="auth-alternative">
@@ -282,24 +304,28 @@ function Signup() {
   );
 }
 
-function Verify({ complete }: { complete: (user: AuthUser) => void }) {
+function Verify() {
   const [code, setCode] = useState(
     () => sessionStorage.getItem("reality.localVerificationCode") || "",
   );
   const [error, setError] = useState("");
+  const [busy, setBusy] = useState(false);
   const email = sessionStorage.getItem("reality.signupEmail") || "";
   const submit = async (event: FormEvent) => {
     event.preventDefault();
+    if (busy) return;
+    setBusy(true);
+    setError("");
     try {
       const token = sessionStorage.getItem("reality.invitationToken") || "";
       const user = await api.verifyEmail(email, code, token || undefined);
       rememberPreferences(user);
-      complete(user);
       location.href = token
         ? "/invitation"
         : localizedAccountDestination(user.status === "active" ? "/app" : "/access-pending");
     } catch (reason) {
       setError((reason as Error).message);
+      setBusy(false);
     }
   };
   return (
@@ -323,9 +349,19 @@ function Verify({ complete }: { complete: (user: AuthUser) => void }) {
           />
         </label>
         {error && <div className="auth-error">{error}</div>}
-        <button>
-          Verify email
-          <ArrowRight size={17} />
+        <button disabled={busy} aria-busy={busy}>
+          <span role={busy ? "status" : undefined}>
+            {busy ? "Verifying your email" : "Verify email"}
+          </span>
+          {busy ? (
+            <LoaderCircle
+              size={17}
+              className="animate-spin motion-reduce:animate-none"
+              aria-hidden="true"
+            />
+          ) : (
+            <ArrowRight size={17} />
+          )}
         </button>
       </form>
     </AuthShell>
@@ -569,7 +605,7 @@ function Pending({ user, changed }: { user: AuthUser; changed: (user: AuthUser |
 
 function AccessAdmin({ user }: { user: AuthUser }) {
   const [rows, setRows] = useState<AuthUser[] | null>(null);
-  const [capacity, setCapacity] = useState<{ used: number; limit: number } | null>(null);
+  const [capacity, setCapacity] = useState<{ used: number; limit: number | null } | null>(null);
   const load = () =>
     Promise.all([api.accessApplications().then(setRows), api.accessCapacity().then(setCapacity)]);
   useEffect(() => {
@@ -580,9 +616,11 @@ function AccessAdmin({ user }: { user: AuthUser }) {
       user={user}
       active="access"
       title="Access applications"
-      lead="The first verified accounts are admitted automatically. After that, applications wait for your decision."
+      lead="Admission follows your deployment settings. Review pending applications here."
     >
-      {capacity && capacity.limit > 0 && (
+      {capacity && capacity.limit === null && <p>No admission limit</p>}
+      {capacity && capacity.limit === 0 && <p>Manual approval required</p>}
+      {capacity && capacity.limit !== null && capacity.limit > 0 && (
         <div className="access-capacity">
           <strong>
             {capacity.used} of {capacity.limit}
@@ -743,7 +781,12 @@ function DeploymentPanel({ deployment }: { deployment: PlatformOverview["deploym
     },
     {
       label: "Automatic admission",
-      value: `${deployment.automatic_access_used} of ${deployment.automatic_access_limit} slots used`,
+      value:
+        deployment.automatic_access_limit === null
+          ? "No admission limit"
+          : deployment.automatic_access_limit === 0
+            ? "Manual approval required"
+            : `${deployment.automatic_access_used} of ${deployment.automatic_access_limit} slots used`,
       tone: "",
     },
   ];

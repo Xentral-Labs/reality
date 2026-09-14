@@ -312,7 +312,7 @@ export function FactRuleWizard({
                 <p className="mt-2 text-sm text-fg-muted">
                   {t(
                     [
-                      "A Fact rule remembers a property stated in your data, so your team can find it on the right business record.",
+                      "An Additional fact rule remembers a property stated in your data, so your team can find it on the right business record.",
                       "Find an order you know. Choose the field that contains the information you want to remember.",
                       "Describe when the rule applies and what it should remember. Start simple; add conditions only if you need them.",
                       "Test the saved version before activation. This preview does not change business data.",
@@ -458,7 +458,7 @@ export function FactRuleWizard({
                       <div className="space-y-3 rounded-lg bg-surface-muted p-4">
                         <p>
                           {t(
-                            "This outcome is not a Fact rule. Keep the reviewed result or prepare the existing implementation handoff.",
+                            "This outcome is not an Additional fact rule. Keep the reviewed result or prepare the existing implementation handoff.",
                           )}
                         </p>
                         <RuleChangeSummary body={{ destination: detail.gap.destination }} />

@@ -6,7 +6,7 @@ from typing import Literal
 from fastapi import APIRouter
 from pydantic import BaseModel, ConfigDict, Field, StrictBool
 
-from reality.services import company_setup
+from reality.services import company_setup, free_playground
 from reality.web.api import DatabaseSession
 from reality.web.playground import Actor, _respond
 
@@ -16,6 +16,8 @@ router = APIRouter(prefix="/api/company-setup", tags=["company-setup"])
 def is_account_setup_path(path: str, method: str) -> bool:
     if (method, path) in {
         ("GET", "/api/company-setup/options"),
+        ("GET", "/api/company-setup/playground"),
+        ("POST", "/api/company-setup/playground"),
         ("POST", "/api/company-setup"),
     }:
         return True
@@ -91,4 +93,16 @@ def execution(
         lambda: company_setup.create_execution(
             session, actor, request_key, **body.model_dump()
         )
+    )
+
+
+@router.get("/playground")
+def playground_status(actor: Actor, session: DatabaseSession):
+    return _respond(lambda: free_playground.entry_status(session, actor))
+
+
+@router.post("/playground", status_code=201)
+def enter_playground(body: Confirmation, actor: Actor, session: DatabaseSession):
+    return _respond(
+        lambda: free_playground.enter(session, actor, confirmed=body.confirmed)
     )

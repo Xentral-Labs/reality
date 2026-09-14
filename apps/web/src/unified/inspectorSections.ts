@@ -8,7 +8,7 @@ const labels: Record<string, string> = {
   overview: "Timeline",
   graph: "Record graph",
   facts: "All records",
-  rules: "Fact rules",
+  rules: "Additional fact rules",
   exceptions: "Exception rules",
   views: "Calculated views",
   history: "Event history",

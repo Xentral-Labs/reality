@@ -1,3 +1,5 @@
+import { EntryProgress } from "../components/EntryProgress";
+import { TrialEntry, TrialProvider, TrialPrompt } from "./FreePlayground";
 import { ActionDiscoveryProvider } from "./ActionLauncher";
 import { CommitmentsPage } from "./CommitmentsPage";
 import { DemoDataIntegration } from "../components/DemoDataIntegration";
@@ -47,6 +49,9 @@ export default function UnifiedApp({
   const [createdCompany, setCreatedCompany] = useState<string | null>(null);
   const context = useCompanyContext();
   const { bootstrap, error, selection, company, navigate, switchCompany } = context;
+  const entryWasHome = useRef(
+    !new URL(location.href).searchParams.has("tenant") && selection.route === "home",
+  );
   // The notice about a company someone just set up sits in the page flow, aligned with the
   // content, and leaves on its own: after a short while or as soon as the person moves on.
   useEffect(() => {
@@ -69,260 +74,282 @@ export default function UnifiedApp({
     setCreatedCompany(options?.announce === false ? null : id);
   };
   if (!bootstrap)
-    return <ReadState loading={!error} error={error} retry={() => location.reload()} />;
+    return error ? (
+      <ReadState error={error} retry={() => location.reload()} />
+    ) : (
+      <EntryProgress title="Loading your workspace" />
+    );
   if (!company)
     return (
-      <div className="mx-auto max-w-xl p-8">
-        <h1 className="text-2xl">
-          {t(bootstrap.tenants.length ? "Company unavailable" : "Create your first company")}
-        </h1>
-        <p className="my-4">
-          {t(
-            bootstrap.tenants.length
-              ? "Choose an authorized company or create another."
-              : "Your company brings orders, stock and finance together.",
-          )}
-        </p>
-        <div className="flex flex-wrap gap-3">
-          {bootstrap.tenants.map((row) => (
-            <button key={row.id} className="br-btn" onClick={() => switchCompany(row.id)}>
-              {row.name}
-            </button>
-          ))}
+      <TrialEntry
+        autoEnter={entryWasHome.current}
+        open={(data, id) => context.openCompany(data, id, true)}
+      >
+        <div className="mx-auto max-w-xl p-8">
+          <h1 className="text-2xl">
+            {t(bootstrap.tenants.length ? "Company unavailable" : "Create your first company")}
+          </h1>
+          <p className="my-4">
+            {t(
+              bootstrap.tenants.length
+                ? "Choose an authorized company or create another."
+                : "Your company brings orders, stock and finance together.",
+            )}
+          </p>
+          <div className="flex flex-wrap gap-3">
+            {bootstrap.tenants.map((row) => (
+              <button key={row.id} className="br-btn" onClick={() => switchCompany(row.id)}>
+                {row.name}
+              </button>
+            ))}
+          </div>
+          <div className="mt-6">
+            <CreateCompany openCompany={openCompany} />
+          </div>
         </div>
-        <div className="mt-6">
-          <CreateCompany openCompany={openCompany} />
-        </div>
-      </div>
+      </TrialEntry>
     );
   return (
-    <ActionDiscoveryProvider
-      key={company.id}
-      tenant={company.id}
-      owner={company.role === "owner"}
-      demo={!!(company.company_kind === "demo" || company.demo_data_state)}
-      navigate={navigate}
-      open={(tool) => {
-        navigate({ proposal: "" });
-        setActionTarget({});
-        setAction(tool);
-      }}
+    <TrialEntry
+      autoEnter={entryWasHome.current}
+      open={(data, id) => context.openCompany(data, id, true)}
     >
-      <Shell
-        user={user}
-        company={company}
-        companies={bootstrap.tenants}
-        selection={selection}
-        navigate={navigate}
-        switchCompany={(id) => {
-          setAction(null);
-          setActionTarget({});
-          switchCompany(id);
-        }}
-        openAction={(tool) => {
-          setActionTarget({});
-          setAction(tool);
-        }}
+      <TrialProvider
+        key={`${user.id}:${company.id}`}
+        user={user.id}
+        tenant={company.id}
+        enabled={company.purpose === "playground"}
       >
-        {createdCompany === company.id && (
-          <div
-            role="status"
-            data-company-created={company.id}
-            className="mb-4 flex items-center justify-between gap-3 rounded-xl border border-accent bg-accent-soft px-4 py-3 text-sm"
-          >
-            <p>
-              {t("Company created")}: <span data-localization="original">{company.name}</span>
-            </p>
-            <button className="br-btn" onClick={() => setCreatedCompany(null)}>
-              {t("Close")}
-            </button>
-          </div>
-        )}
-        <TableProvider user={user.id} selection={selection} navigate={navigate}>
-          <div key={`${user.id}:${company.id}`}>
-            {selection.route === "inspector" ? (
-              <RealityInspectorPage
-                selection={selection}
-                navigate={navigate}
-                owner={company.role === "owner" || user.is_platform_admin === true}
-                companyName={company.name}
-                user={user.id}
-                openAction={(tool) => {
-                  setActionTarget({});
-                  setAction(tool);
-                }}
-              />
-            ) : selection.route === "facts" ? (
-              <FactsPage selection={selection} navigate={navigate} />
-            ) : selection.route === "orders-deliveries" &&
-              selection.ordersView === "commitments" ? (
-              <CommitmentsPage
-                selection={selection}
-                navigate={navigate}
-                receive={(id) => {
-                  setActionTarget({ commitment: id });
-                  setAction("receipt");
-                }}
-              />
-            ) : selection.route === "orders-deliveries" ? (
-              <OrdersPage
-                create={(direction) => {
-                  setActionTarget({ direction });
-                  setAction("order_create");
-                }}
-                selection={selection}
-                navigate={navigate}
-                receive={(id) => {
-                  setActionTarget({ commitment: id });
-                  setAction("receipt");
-                }}
-              />
-            ) : selection.route === "settings" ? (
-              <SettingsPage
-                user={user}
-                updateUser={updateUser}
-                openCompany={openCompany}
-                companies={bootstrap.tenants}
-                switchCompany={(id) => {
-                  setAction(null);
-                  setActionTarget({});
-                  switchCompany(id);
-                }}
-                company={company}
-                selection={selection}
-                navigate={(changes) => {
-                  if (changes.tenant && changes.tenant !== company.id) {
-                    setAction(null);
-                    setActionTarget({});
-                  }
-                  navigate(changes);
-                }}
-              />
-            ) : selection.route === "home" ? (
-              <HomePage
-                user={user.id}
-                tenant={company.id}
-                companyName={company.name}
-                navigate={navigate}
-              />
-            ) : selection.route === "analytics" ? (
-              <AnalyticsPage selection={selection} navigate={navigate} />
-            ) : selection.route === "master-data" ? (
-              <MasterDataPage selection={selection} navigate={navigate} />
-            ) : selection.route === "demo-data" ? (
-              <>
-                <RegisterHeader title="Demo Data" />
-                <DemoDataIntegration tenantId={company.id} />
-              </>
-            ) : selection.route === "data-sources" ? (
-              <DataSourcesPage user={user.id} selection={selection} navigate={navigate} />
-            ) : selection.route === "finance" ? (
-              <FinancePage
-                canManage={company.role === "owner"}
-                canAcceptReduction={company.role === "owner"}
-                refund={(id) => {
-                  setActionTarget({ creditNote: id });
-                  setAction("customer_refund_post");
-                }}
-                credit={(id) => {
-                  setActionTarget({ invoice: id });
-                  setAction("sales_credit_record");
-                }}
-                reverse={(id) => {
-                  setActionTarget({ postingGroup: id });
-                  setAction("ledger_reverse");
-                }}
-                recordPayment={() => {
-                  setActionTarget({});
-                  setAction(
-                    selection.flow === "payable"
-                      ? "supplier_payment_post"
-                      : "customer_payment_post",
-                  );
-                }}
-                selection={selection}
-                navigate={navigate}
-                create={() => {
-                  setActionTarget({});
-                  setAction(
-                    selection.flow === "payable"
-                      ? "supplier_invoice_record"
-                      : "sales_invoice_record",
-                  );
-                }}
-              />
-            ) : selection.route === "warehouse" ? (
-              <WarehousePage
-                opening={() => {
-                  setActionTarget({});
-                  setAction("opening_stock");
-                }}
-                selection={selection}
-                navigate={navigate}
-                correct={(id) => {
-                  setActionTarget({ movement: id });
-                  setAction("movement_correct");
-                }}
-                release={(id) => {
-                  setActionTarget({ reservation: id });
-                  setAction("reservation_release");
-                }}
-              />
-            ) : selection.route === "attention" ? (
-              <AttentionPage selection={selection} navigate={navigate} />
-            ) : selection.route === "storyline" ? (
-              <StorylinePage
-                selection={selection}
-                navigate={navigate}
-                company={company}
-                openCompany={openCompany}
-              />
-            ) : selection.route === "work" ? (
-              <DeliveryWorkPage selection={selection} navigate={navigate} />
-            ) : selection.route === "copilot" ? (
-              <HomePage
-                user={user.id}
-                tenant={company.id}
-                companyName={company.name}
-                navigate={navigate}
-              />
-            ) : (
-              <DecisionsPage
-                tenant={company.id}
-                select={(proposal, master, imported) =>
-                  navigate(
-                    imported
-                      ? { proposal: "", importProposal: proposal, route: "data-sources" }
-                      : { proposal, route: master ? "master-data" : "decisions" },
-                  )
-                }
-              />
-            )}
-          </div>
-        </TableProvider>
-        {(action || (selection.proposal && selection.route !== "master-data")) && (
-          <ActionCard
-            key={`${company.id}:${selection.proposal}`}
-            tenant={company.id}
-            commitment={action ? actionTarget.commitment || "" : selection.commitment}
-            reservation={actionTarget.reservation}
-            postingGroup={actionTarget.postingGroup}
-            invoice={actionTarget.invoice}
-            creditNote={actionTarget.creditNote}
-            movement={actionTarget.movement}
-            direction={actionTarget.direction}
-            proposalId={selection.proposal}
-            tool={action || "reserve"}
-            close={() => {
+        <ActionDiscoveryProvider
+          key={company.id}
+          tenant={company.id}
+          owner={company.role === "owner"}
+          demo={!!(company.company_kind === "demo" || company.demo_data_state)}
+          navigate={navigate}
+          open={(tool) => {
+            navigate({ proposal: "" });
+            setActionTarget({});
+            setAction(tool);
+          }}
+        >
+          <Shell
+            user={user}
+            company={company}
+            companies={bootstrap.tenants}
+            selection={selection}
+            navigate={navigate}
+            switchCompany={(id) => {
               setAction(null);
               setActionTarget({});
-              navigate({ proposal: "" });
+              switchCompany(id);
             }}
-            prepared={(id) => navigate({ proposal: id })}
-            settled={() => window.dispatchEvent(new Event("reality:delivery-settled"))}
-          />
-        )}
-      </Shell>
-    </ActionDiscoveryProvider>
+            openAction={(tool) => {
+              setActionTarget({});
+              setAction(tool);
+            }}
+          >
+            {createdCompany === company.id && (
+              <div
+                role="status"
+                data-company-created={company.id}
+                className="mb-4 flex items-center justify-between gap-3 rounded-xl border border-accent bg-accent-soft px-4 py-3 text-sm"
+              >
+                <p>
+                  {t("Company created")}: <span data-localization="original">{company.name}</span>
+                </p>
+                <button className="br-btn" onClick={() => setCreatedCompany(null)}>
+                  {t("Close")}
+                </button>
+              </div>
+            )}
+            <TrialPrompt />
+            <TableProvider user={user.id} selection={selection} navigate={navigate}>
+              <div key={`${user.id}:${company.id}`}>
+                {selection.route === "inspector" ? (
+                  <RealityInspectorPage
+                    selection={selection}
+                    navigate={navigate}
+                    owner={company.role === "owner" || user.is_platform_admin === true}
+                    companyName={company.name}
+                    user={user.id}
+                    openAction={(tool) => {
+                      setActionTarget({});
+                      setAction(tool);
+                    }}
+                  />
+                ) : selection.route === "facts" ? (
+                  <FactsPage selection={selection} navigate={navigate} />
+                ) : selection.route === "orders-deliveries" &&
+                  selection.ordersView === "commitments" ? (
+                  <CommitmentsPage
+                    selection={selection}
+                    navigate={navigate}
+                    receive={(id) => {
+                      setActionTarget({ commitment: id });
+                      setAction("receipt");
+                    }}
+                  />
+                ) : selection.route === "orders-deliveries" ? (
+                  <OrdersPage
+                    create={(direction) => {
+                      setActionTarget({ direction });
+                      setAction("order_create");
+                    }}
+                    selection={selection}
+                    navigate={navigate}
+                    receive={(id) => {
+                      setActionTarget({ commitment: id });
+                      setAction("receipt");
+                    }}
+                  />
+                ) : selection.route === "settings" ? (
+                  <SettingsPage
+                    user={user}
+                    updateUser={updateUser}
+                    openCompany={openCompany}
+                    companies={bootstrap.tenants}
+                    switchCompany={(id) => {
+                      setAction(null);
+                      setActionTarget({});
+                      switchCompany(id);
+                    }}
+                    company={company}
+                    selection={selection}
+                    navigate={(changes) => {
+                      if (changes.tenant && changes.tenant !== company.id) {
+                        setAction(null);
+                        setActionTarget({});
+                      }
+                      navigate(changes);
+                    }}
+                  />
+                ) : selection.route === "home" ? (
+                  <HomePage
+                    user={user.id}
+                    tenant={company.id}
+                    companyName={company.name}
+                    navigate={navigate}
+                  />
+                ) : selection.route === "analytics" ? (
+                  <AnalyticsPage selection={selection} navigate={navigate} />
+                ) : selection.route === "master-data" ? (
+                  <MasterDataPage selection={selection} navigate={navigate} />
+                ) : selection.route === "demo-data" ? (
+                  <>
+                    <RegisterHeader title="Demo Data" />
+                    <DemoDataIntegration tenantId={company.id} />
+                  </>
+                ) : selection.route === "data-sources" ? (
+                  <DataSourcesPage user={user.id} selection={selection} navigate={navigate} />
+                ) : selection.route === "finance" ? (
+                  <FinancePage
+                    canManage={company.role === "owner"}
+                    canAcceptReduction={company.role === "owner"}
+                    refund={(id) => {
+                      setActionTarget({ creditNote: id });
+                      setAction("customer_refund_post");
+                    }}
+                    credit={(id) => {
+                      setActionTarget({ invoice: id });
+                      setAction("sales_credit_record");
+                    }}
+                    reverse={(id) => {
+                      setActionTarget({ postingGroup: id });
+                      setAction("ledger_reverse");
+                    }}
+                    recordPayment={() => {
+                      setActionTarget({});
+                      setAction(
+                        selection.flow === "payable"
+                          ? "supplier_payment_post"
+                          : "customer_payment_post",
+                      );
+                    }}
+                    selection={selection}
+                    navigate={navigate}
+                    create={() => {
+                      setActionTarget({});
+                      setAction(
+                        selection.flow === "payable"
+                          ? "supplier_invoice_record"
+                          : "sales_invoice_record",
+                      );
+                    }}
+                  />
+                ) : selection.route === "warehouse" ? (
+                  <WarehousePage
+                    opening={() => {
+                      setActionTarget({});
+                      setAction("opening_stock");
+                    }}
+                    selection={selection}
+                    navigate={navigate}
+                    correct={(id) => {
+                      setActionTarget({ movement: id });
+                      setAction("movement_correct");
+                    }}
+                    release={(id) => {
+                      setActionTarget({ reservation: id });
+                      setAction("reservation_release");
+                    }}
+                  />
+                ) : selection.route === "attention" ? (
+                  <AttentionPage selection={selection} navigate={navigate} />
+                ) : selection.route === "storyline" ? (
+                  <StorylinePage
+                    selection={selection}
+                    navigate={navigate}
+                    company={company}
+                    openCompany={openCompany}
+                  />
+                ) : selection.route === "work" ? (
+                  <DeliveryWorkPage selection={selection} navigate={navigate} />
+                ) : selection.route === "copilot" ? (
+                  <HomePage
+                    user={user.id}
+                    tenant={company.id}
+                    companyName={company.name}
+                    navigate={navigate}
+                  />
+                ) : (
+                  <DecisionsPage
+                    tenant={company.id}
+                    select={(proposal, master, imported) =>
+                      navigate(
+                        imported
+                          ? { proposal: "", importProposal: proposal, route: "data-sources" }
+                          : { proposal, route: master ? "master-data" : "decisions" },
+                      )
+                    }
+                  />
+                )}
+              </div>
+            </TableProvider>
+            {(action || (selection.proposal && selection.route !== "master-data")) && (
+              <ActionCard
+                key={`${company.id}:${selection.proposal}`}
+                tenant={company.id}
+                commitment={action ? actionTarget.commitment || "" : selection.commitment}
+                reservation={actionTarget.reservation}
+                postingGroup={actionTarget.postingGroup}
+                invoice={actionTarget.invoice}
+                creditNote={actionTarget.creditNote}
+                movement={actionTarget.movement}
+                direction={actionTarget.direction}
+                proposalId={selection.proposal}
+                tool={action || "reserve"}
+                close={() => {
+                  setAction(null);
+                  setActionTarget({});
+                  navigate({ proposal: "" });
+                }}
+                prepared={(id) => navigate({ proposal: id })}
+                settled={() => window.dispatchEvent(new Event("reality:delivery-settled"))}
+              />
+            )}
+          </Shell>
+        </ActionDiscoveryProvider>
+      </TrialProvider>
+    </TrialEntry>
   );
 }

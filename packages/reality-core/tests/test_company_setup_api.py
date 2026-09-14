@@ -103,3 +103,35 @@ def test_live_creation_api_connects_and_starts_without_extra_requests(
         demo_data.status(session, created.json()["tenant_id"], user.id)["state"]
         == "running"
     )
+
+
+def test_free_entry_requires_explicit_signup_consent_and_reads_do_not_create(
+    session, playground_http
+):
+    from sqlalchemy import func, select
+
+    from reality.db.core import Tenant
+    from reality.services.free_playground import request_entry
+
+    client, _, user, _, login = playground_http
+    login(user)
+    before = session.scalar(select(func.count()).select_from(Tenant))
+    state = client.get("/api/company-setup/playground")
+    assert state.status_code == 200
+    assert not state.json()["requested"]
+    assert (
+        client.post(
+            "/api/company-setup/playground", json={"confirmed": True}
+        ).status_code
+        == 422
+    )
+    request_entry(session, user.id)
+    session.flush()
+    assert client.get("/api/company-setup/playground").json()["requested"]
+    assert session.scalar(select(func.count()).select_from(Tenant)) == before
+    assert (
+        client.post(
+            "/api/company-setup/playground", json={"confirmed": False}
+        ).status_code
+        == 422
+    )

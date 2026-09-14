@@ -1,0 +1,264 @@
+// Synthetic HTTP fixtures prove presentation; PostgreSQL tests prove account/service effects.
+import assert from "node:assert/strict";
+import { mkdir } from "node:fs/promises";
+import { pathToFileURL } from "node:url";
+const { chromium } = await import(pathToFileURL(process.env.PLAYWRIGHT_MODULE));
+const browser = await chromium.launch({
+  headless: true,
+  executablePath: process.env.PLAYWRIGHT_EXECUTABLE,
+});
+const page = await browser.newPage({ viewport: { width: 1440, height: 1000 } });
+page.setDefaultTimeout(10000);
+const base = process.env.UNIFIED_APP_URL || "http://127.0.0.1:5190";
+const out = "/private/tmp/reality-190-browser";
+await mkdir(out, { recursive: true });
+let ready = false,
+  failSetup = true,
+  posts = 0,
+  language = "en",
+  attentionState = "uninitialized",
+  failAttention = false,
+  remaining = 1,
+  sent = 0;
+let archived = false,
+  entryReceiptStatus = null;
+const errors = [];
+page.on("pageerror", (error) => errors.push(error.message));
+const company = {
+  id: "trial_company",
+  name: "My demo company",
+  purpose: "playground",
+  role: "owner",
+  company_kind: "sandbox",
+  sandbox_run_id: "trial_run",
+};
+const pager = { number: 1, size: 50, total: 0, pages: 1, has_previous: false, has_next: false };
+const metadata = () => ({
+  projection: "test",
+  calculation_mode: "stored",
+  state: attentionState,
+  completed_at: attentionState === "uninitialized" ? null : "2026-09-14T12:00:00Z",
+  processed_event_sequence: 1,
+  target_event_sequence: 1,
+  projection_version: 1,
+  upstream_freshness: "unknown",
+  consistency: "completed_snapshot",
+});
+const delivery = {
+  id: "commitment_one",
+  tenant_id: company.id,
+  type: "customer_delivery",
+  document_id: null,
+  document_line_id: null,
+  party_id: "customer_one",
+  counterparty: "Northstar",
+  item_id: "item_one",
+  item: "Bicycle light",
+  location_id: "location_one",
+  location: "Main warehouse",
+  unit: "pcs",
+  promised: "10",
+  fulfilled: "4",
+  reserved: "2",
+  open: "6",
+  status: "open",
+  due_at: null,
+  blockers: [],
+};
+await page.route("**/api/**", async (route) => {
+  const request = route.request(),
+    url = new URL(request.url()),
+    path = url.pathname;
+  const reply = (value, status = 200) =>
+    route.fulfill({ status, contentType: "application/json", body: JSON.stringify(value) });
+  if (path === "/api/auth/me")
+    return reply({
+      id: "trial_user",
+      email: "trial@example.test",
+      display_name: "",
+      status: "active",
+      language,
+      locale: language === "de" ? "de-DE" : "en-GB",
+      timezone: "UTC",
+    });
+  if (path === "/api/v1/bootstrap")
+    return reply({ tenants: ready ? [company] : [], default_tenant_id: ready ? company.id : null });
+  if (path === "/api/company-setup/playground") {
+    if (request.method() === "GET")
+      return reply({
+        requested: true,
+        eligible: true,
+        enabled: true,
+        archived,
+        receipt: entryReceiptStatus ? { tenant_id: company.id, status: entryReceiptStatus } : null,
+      });
+    assert.equal(request.postDataJSON().confirmed, true);
+    posts++;
+    ready = !failSetup;
+    return reply({
+      tenant_id: company.id,
+      run_id: "trial_run",
+      name: company.name,
+      status: ready ? "ready" : "initialization_failed",
+      environment: "sandbox",
+      destination: ready ? `/app?tenant=${company.id}` : null,
+    });
+  }
+  if (path.endsWith("/application-reference"))
+    return reply({
+      workspaces: [{ actions: [{ command: "reserve" }, { command: "record_movement" }] }],
+    });
+  if (path.endsWith("/dashboard"))
+    return reply({
+      tenant: company,
+      totals: { open_deliveries: 1, open_commitments: 1, exceptions: 0, pending_decisions: 0 },
+      exceptions: [],
+      inventory: [],
+      facts: [],
+      capabilities: {},
+    });
+  if (path.endsWith("/copilot"))
+    return reply({
+      sessions: [{ id: "chat_one", title: "New conversation" }],
+      active_session_id: "chat_one",
+      messages: [],
+      proposals: [],
+      suggestions: [],
+      has_archived: false,
+      allowance: { limit: 20, used: 20 - remaining, remaining, resets_at: "2099-09-15T00:00:00Z" },
+    });
+  if (path.endsWith("/messages")) {
+    sent++;
+    remaining = 0;
+    return reply({ detail: "Daily allowance used" }, 422);
+  }
+  if (path.endsWith("/attention")) {
+    await new Promise((resolve) => setTimeout(resolve, 150));
+    return failAttention
+      ? reply({ detail: "Read unavailable" }, 503)
+      : reply({ items: [], page: pager, metadata: metadata() });
+  }
+  if (path.endsWith("/open-items"))
+    return reply({ items: [], page: pager, totals: [], metadata: metadata() });
+  if (path.endsWith("/delivery-work"))
+    return reply({ items: [delivery], page: { ...pager, total: 1 } });
+  if (path.endsWith("/delivery-work/commitment_one"))
+    return reply({
+      case: delivery,
+      inventory: {
+        item_id: "item_one",
+        location_id: "location_one",
+        unit: "pcs",
+        physical: "4",
+        reserved: "2",
+        available: "2",
+      },
+      links: [{ kind: "commitment", id: delivery.id, label: "Commitment" }],
+      history: { items: [], has_more: false, next_cursor: null },
+      observation: { observed_at: "2026-09-14T12:00:00Z", evidence_available: true },
+    });
+  if (path.endsWith("/change-proposals")) return reply({ items: [], page: pager });
+  return reply({ detail: `Unused fixture: ${path}` }, 404);
+});
+try {
+  await page.goto(`${base}/app`);
+  await page
+    .getByText("Your demo is not ready yet. Retry to continue with the same company.")
+    .waitFor();
+  assert.equal(ready, false);
+  failSetup = false;
+  await page.getByRole("button", { name: "Retry", exact: true }).click();
+  await page.locator("[data-trial-tasks]").waitFor();
+  assert.ok(posts >= 2);
+  assert.ok(!page.url().includes("settings"));
+  assert.equal(await page.locator("[data-trial-github]").count(), 0);
+  await page.getByRole("button", { name: "Which orders need attention?", exact: true }).focus();
+  await page.keyboard.press("Enter");
+  await page.getByText("Awaiting first calculation.").first().waitFor();
+  assert.equal(await page.locator("[data-trial-github]").count(), 0);
+  attentionState = "ready";
+  await page.getByRole("link", { name: "Home", exact: true }).click();
+  failAttention = true;
+  await page.getByRole("button", { name: "Which orders need attention?", exact: true }).click();
+  await page.locator('[data-work-list="exceptions"] [role="alert"]').waitFor();
+  assert.equal(await page.locator("[data-trial-github]").count(), 0);
+  failAttention = false;
+  await page.getByRole("button", { name: "Retry", exact: true }).first().click();
+  await page.locator("[data-trial-github]").waitFor();
+  await page.screenshot({ path: `${out}/first-result-desktop.png`, fullPage: true });
+  await page.getByRole("button", { name: "Keep exploring", exact: true }).click();
+  await page.reload();
+  assert.equal(await page.locator("[data-trial-github]").count(), 0);
+  await page.getByRole("link", { name: "Home", exact: true }).click();
+  await page.getByRole("button", { name: "Which invoices remain open?", exact: true }).click();
+  assert.ok(page.url().includes("finance_status=outstanding"));
+  await page.getByRole("link", { name: "Home", exact: true }).click();
+  await page
+    .getByRole("button", { name: "Why is this order not fully delivered?", exact: true })
+    .click();
+  await page.getByText("Northstar", { exact: true }).first().click();
+  await page.getByRole("button", { name: "Open commitment", exact: true }).click();
+  await page.getByRole("button", { name: "Back to commitments", exact: true }).waitFor();
+  const chat = page.locator("[data-global-chat]");
+  await chat.locator("textarea").fill("Keep this question after exhaustion");
+  await chat.locator('button[type="submit"]').click();
+  await chat
+    .getByText(
+      "Your daily AI allowance is used. Keep exploring the records or return after the reset.",
+    )
+    .waitFor();
+  assert.equal(await chat.locator("textarea").inputValue(), "Keep this question after exhaustion");
+  assert.equal(await chat.locator('button[type="submit"]').isDisabled(), true);
+  assert.equal(sent, 1);
+  for (const locale of ["en", "de", "nl", "es"]) {
+    language = locale;
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.goto(`${base}/app?tenant=${company.id}&lang=${locale}`);
+    await page.locator("[data-trial-tasks]").waitFor();
+    await page
+      .getByText(
+        {
+          en: "Try these three questions",
+          de: "Starte mit diesen drei Fragen",
+          nl: "Begin met deze drie vragen",
+          es: "Empieza con estas tres preguntas",
+        }[locale],
+        { exact: true },
+      )
+      .waitFor();
+    assert.equal(await page.locator("html").getAttribute("lang"), locale);
+    assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1));
+    await page.screenshot({ path: `${out}/${locale}-mobile.png`, fullPage: true });
+  }
+  language = "en";
+  ready = true;
+  failSetup = true;
+  entryReceiptStatus = "initialization_failed";
+  await page.goto(`${base}/app?lang=en`);
+  await page
+    .getByText("Your demo is not ready yet. Retry to continue with the same company.")
+    .waitFor();
+  failSetup = false;
+  await page.getByRole("button", { name: "Retry", exact: true }).click();
+  await page.locator("[data-trial-tasks]").waitFor();
+  const beforeArchive = posts;
+  archived = true;
+  ready = false;
+  entryReceiptStatus = "archived";
+  await page.goto(`${base}/app?lang=en`);
+  await page
+    .getByRole("heading", { name: "Create your first company", exact: true })
+    .first()
+    .waitFor();
+  assert.equal(posts, beforeArchive, "An archived receipt must not trigger another creation");
+  assert.deepEqual(errors, []);
+  console.log(
+    "PASS: recoverable trial entry, truthful result prompt, dismissal, starters, exhausted draft and four mobile locales",
+  );
+} catch (error) {
+  console.error(await page.locator("body").innerText());
+  await page.screenshot({ path: `${out}/failure.png`, fullPage: true });
+  throw error;
+} finally {
+  await browser.close();
+}

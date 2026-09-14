@@ -15,7 +15,7 @@ from argon2 import PasswordHasher
 from argon2.exceptions import VerifyMismatchError
 from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
 from pydantic import BaseModel, Field, field_validator
-from sqlalchemy import select, update
+from sqlalchemy import select
 from sqlalchemy.orm import Session as OrmSession
 
 from reality.db.core import (
@@ -29,6 +29,10 @@ from reality.db.core import (
     UserSession,
     now,
     uid,
+)
+from reality.services.access_admission import (
+    automatic_access_limit,
+    claim_automatic_access_slot,
 )
 from reality.services.core import RealityError
 from reality.services.memberships import (
@@ -67,37 +71,10 @@ def normalize_email(value: str) -> str:
     return value.strip().casefold()
 
 
-def automatic_access_limit() -> int:
-    try:
-        return max(0, int(os.environ.get("REALITY_AUTO_APPROVE_LIMIT", "0")))
-    except ValueError:
-        log.warning("Ignoring invalid REALITY_AUTO_APPROVE_LIMIT")
-        return 0
-
-
 def require_public_signup() -> None:
     """Reject account creation when a hosted environment uses prepared accounts."""
     if os.environ.get("REALITY_PUBLIC_SIGNUP_ENABLED", "true").lower() != "true":
         raise HTTPException(status_code=403, detail="Public signup is disabled.")
-
-
-def claim_automatic_access_slot(session: OrmSession) -> bool:
-    limit = automatic_access_limit()
-    if limit == 0:
-        return False
-    claimed = session.execute(
-        update(AccessAdmissionCounter)
-        .where(
-            AccessAdmissionCounter.id == "automatic",
-            AccessAdmissionCounter.used_slots < limit,
-        )
-        .values(
-            used_slots=AccessAdmissionCounter.used_slots + 1,
-            updated_at=now(),
-        )
-        .returning(AccessAdmissionCounter.used_slots)
-    ).scalar_one_or_none()
-    return claimed is not None
 
 
 def audit(
@@ -229,6 +206,7 @@ class SignupBody(BaseModel):
     email: str
     password: str = Field(min_length=10, max_length=256)
     accepted_terms: bool
+    playground: bool = False
 
     @field_validator("email")
     @classmethod
@@ -306,6 +284,12 @@ def signup(body: SignupBody, session: DatabaseSession):
     session.flush()
     code = issue_code(session, user)
     audit(session, "user.signed_up", user.id)
+    # Trial allowance is account policy, independent of optional demo creation consent.
+    audit(session, "account.trial_started", user.id)
+    if body.playground:
+        from reality.services.free_playground import request_entry
+
+        request_entry(session, user.id)
     session.commit()
     result = {"email": email, "next": "verify_email"}
     if os.environ.get("REALITY_AUTH_EXPOSE_CODES", "false").lower() == "true":
@@ -411,7 +395,7 @@ def verify_email(body: VerifyBody, response: Response, session: DatabaseSession)
             id=uid("apl"),
             user_id=user.id,
             status="approved" if automatically_approved else "pending",
-            review_note="Automatically approved within the early-access limit."
+            review_note="Automatically approved by the deployment admission policy."
             if automatically_approved
             else "",
             reviewed_at=now() if automatically_approved else None,

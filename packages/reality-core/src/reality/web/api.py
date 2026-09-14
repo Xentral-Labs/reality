@@ -6277,12 +6277,18 @@ def copilots_payload(
 @router.get("/copilot")
 def get_copilot(
     tenant_id: str,
+    request: Request,
     session: DatabaseSession,
     session_id: str | None = None,
     archived: bool = False,
 ):
     try:
-        return copilots_payload(session, tenant_id, session_id, archived=archived)
+        from reality.services.free_playground import allowance
+
+        payload = copilots_payload(session, tenant_id, session_id, archived=archived)
+        user = getattr(request.state, "user", None)
+        payload["allowance"] = allowance(session, tenant_id, user.id if user else None)
+        return payload
     except NotFound as error:
         raise api_error(error) from error
 
@@ -6385,6 +6391,7 @@ def post_copilot_message(
                 tenant_id,
                 session_id,
                 body.message.strip(),
+                actor_user_id=user.id if user else None,
                 context_commitment_id=body.context.id
                 if isinstance(body.context, CopilotContext)
                 else None,

@@ -13,6 +13,48 @@ type Preferences = { language: Language; locale: DisplayLocale; timezone: string
 
 const dictionaries: Record<Exclude<Language, "en">, Record<string, string>> = {
   de: {
+    "Loading your access": "Dein Zugang wird geladen",
+    "Please wait. You will continue automatically.":
+      "Bitte warte kurz. Es geht automatisch weiter.",
+    "Loading your workspace": "Dein Arbeitsbereich wird geladen",
+    "Verifying your email": "Deine E-Mail-Adresse wird bestätigt",
+
+    "Try for free": "Kostenlos testen",
+    "Your own demo company. No credit card. No automatic paid subscription.":
+      "Deine eigene Demo-Firma. Keine Kreditkarte. Kein automatisches kostenpflichtiges Abo.",
+    "Try the Playground for free with your own demo company. No credit card. No automatic paid subscription.":
+      "Teste den Playground kostenlos mit deiner eigenen Demo-Firma. Keine Kreditkarte. Kein automatisches kostenpflichtiges Abo.",
+    "Try Reality for free with your own demo company. No credit card. No automatic paid subscription.":
+      "Teste Reality kostenlos mit deiner eigenen Demo-Firma. Keine Kreditkarte. Kein automatisches kostenpflichtiges Abo.",
+    "By continuing, you request a demo company with live sample data after email verification.":
+      "Mit dem Fortfahren beauftragst du die Erstellung einer Demo-Firma mit laufenden Beispieldaten nach der E-Mail-Bestätigung.",
+    "Your demo is not ready yet. Retry to continue with the same company.":
+      "Deine Demo ist noch nicht bereit. Versuche es erneut, um mit derselben Firma fortzufahren.",
+    "Preparing your demo company": "Deine Demo-Firma wird vorbereitet",
+    "Orders, deliveries and invoices are being prepared for you to explore.":
+      "Aufträge, Lieferungen und Rechnungen werden zum Erkunden vorbereitet.",
+    "Try these three questions": "Starte mit diesen drei Fragen",
+    "Explore the records directly. These tasks use no AI questions.":
+      "Erkunde die Datensätze direkt. Diese Aufgaben verbrauchen keine KI-Fragen.",
+    "Which orders need attention?": "Welche Aufträge brauchen Aufmerksamkeit?",
+    "Why is this order not fully delivered?":
+      "Warum ist dieser Auftrag nicht vollständig geliefert?",
+    "Which invoices remain open?": "Welche Rechnungen sind noch offen?",
+    "Was that useful? Support Reality with a star on GitHub.":
+      "War das hilfreich? Unterstütze Reality mit einem Stern auf GitHub.",
+    "Star on GitHub": "Stern auf GitHub geben",
+    "Keep exploring": "Weiter erkunden",
+    "Free AI questions remaining": "Verbleibende kostenlose KI-Fragen",
+    "Resets at": "Wieder verfügbar ab",
+    "Your daily AI allowance is used. Keep exploring the records or return after the reset.":
+      "Dein tägliches KI-Kontingent ist aufgebraucht. Erkunde weiter die Datensätze oder stelle nach der Erneuerung weitere Fragen.",
+
+    "No admission limit": "Keine Zugangsbeschränkung",
+    "Manual approval required": "Manuelle Freigabe erforderlich",
+    "Create your account and verify your email to continue.":
+      "Erstelle dein Konto und bestätige deine E-Mail-Adresse, um fortzufahren.",
+    "Admission follows your deployment settings. Review pending applications here.":
+      "Der Zugang richtet sich nach deinen Deployment-Einstellungen. Prüfe hier ausstehende Anfragen.",
     "Reset filters": "Filter zurücksetzen",
     "No entries yet.": "Noch keine Einträge.",
     "No entries yet. Use the create action to add the first entry.":
@@ -248,8 +290,8 @@ const dictionaries: Record<Exclude<Language, "en">, Record<string, string>> = {
       "Erkunde die erfassten Informationen deiner Firma und verfolge ihre Herkunft.",
     "Explore how existing records are combined into calculated views.":
       "Sieh, wie berechnete Ansichten aus vorhandenen Datensätzen entstehen.",
-    "Review the rules used to interpret source data into business records.":
-      "Prüfe die Regeln, mit denen Quelldaten in Geschäftsdaten überführt werden.",
+    "Review the rules that record additional facts from source data on the right business record.":
+      "Prüfe die Regeln, die aus Quelldaten zusätzliche Fakten am richtigen Geschäftsdatensatz festhalten.",
     "Explore the conditions that identify issues requiring attention.":
       "Sieh, welche Bedingungen auf Abweichungen hinweisen.",
     "See what was recorded across your company, newest first.":
@@ -1718,6 +1760,46 @@ const dictionaries: Record<Exclude<Language, "en">, Record<string, string>> = {
     "Fully Reserved": "Vollständig reserviert",
   },
   nl: {
+    "Loading your access": "Je toegang wordt geladen",
+    "Please wait. You will continue automatically.": "Even geduld. Je gaat automatisch verder.",
+    "Loading your workspace": "Je werkruimte wordt geladen",
+    "Verifying your email": "Je e-mailadres wordt bevestigd",
+
+    "Try for free": "Gratis proberen",
+    "Your own demo company. No credit card. No automatic paid subscription.":
+      "Je eigen demobedrijf. Geen creditcard. Geen automatisch betaald abonnement.",
+    "Try the Playground for free with your own demo company. No credit card. No automatic paid subscription.":
+      "Probeer de Playground gratis met je eigen demobedrijf. Geen creditcard. Geen automatisch betaald abonnement.",
+    "Try Reality for free with your own demo company. No credit card. No automatic paid subscription.":
+      "Probeer Reality gratis met je eigen demobedrijf. Geen creditcard. Geen automatisch betaald abonnement.",
+    "By continuing, you request a demo company with live sample data after email verification.":
+      "Door verder te gaan vraag je na e-mailverificatie een demobedrijf met doorlopende voorbeeldgegevens aan.",
+    "Your demo is not ready yet. Retry to continue with the same company.":
+      "Je demo is nog niet klaar. Probeer opnieuw om met hetzelfde bedrijf verder te gaan.",
+    "Preparing your demo company": "Je demobedrijf wordt voorbereid",
+    "Orders, deliveries and invoices are being prepared for you to explore.":
+      "Orders, leveringen en facturen worden klaargezet om te verkennen.",
+    "Try these three questions": "Begin met deze drie vragen",
+    "Explore the records directly. These tasks use no AI questions.":
+      "Verken de gegevens direct. Deze taken gebruiken geen AI-vragen.",
+    "Which orders need attention?": "Welke orders vragen aandacht?",
+    "Why is this order not fully delivered?": "Waarom is deze order niet volledig geleverd?",
+    "Which invoices remain open?": "Welke facturen staan nog open?",
+    "Was that useful? Support Reality with a star on GitHub.":
+      "Was dit nuttig? Steun Reality met een ster op GitHub.",
+    "Star on GitHub": "Ster geven op GitHub",
+    "Keep exploring": "Verder verkennen",
+    "Free AI questions remaining": "Resterende gratis AI-vragen",
+    "Resets at": "Opnieuw beschikbaar op",
+    "Your daily AI allowance is used. Keep exploring the records or return after the reset.":
+      "Je dagelijkse AI-tegoed is opgebruikt. Verken de gegevens verder of kom terug na de vernieuwing.",
+
+    "No admission limit": "Geen toelatingslimiet",
+    "Manual approval required": "Handmatige goedkeuring vereist",
+    "Create your account and verify your email to continue.":
+      "Maak je account aan en bevestig je e-mailadres om door te gaan.",
+    "Admission follows your deployment settings. Review pending applications here.":
+      "Toegang volgt je implementatie-instellingen. Beoordeel hier openstaande aanvragen.",
     "Reset filters": "Filters wissen",
     "No entries yet.": "Nog geen items.",
     "No entries yet. Use the create action to add the first entry.":
@@ -1952,8 +2034,8 @@ const dictionaries: Record<Exclude<Language, "en">, Record<string, string>> = {
       "Verken de geregistreerde informatie van je bedrijf en volg deze naar de bronnen.",
     "Explore how existing records are combined into calculated views.":
       "Ontdek hoe bestaande records worden gecombineerd in berekende weergaven.",
-    "Review the rules used to interpret source data into business records.":
-      "Bekijk de regels waarmee brongegevens worden geïnterpreteerd als bedrijfsgegevens.",
+    "Review the rules that record additional facts from source data on the right business record.":
+      "Bekijk de regels die uit brondata aanvullende feiten bij het juiste bedrijfsrecord vastleggen.",
     "Explore the conditions that identify issues requiring attention.":
       "Bekijk welke voorwaarden afwijkingen signaleren.",
     "See what was recorded across your company, newest first.":
@@ -3117,6 +3199,48 @@ const dictionaries: Record<Exclude<Language, "en">, Record<string, string>> = {
     Customer: "Klant",
   },
   es: {
+    "Loading your access": "Cargando tu acceso",
+    "Please wait. You will continue automatically.":
+      "Espera un momento. Continuarás automáticamente.",
+    "Loading your workspace": "Cargando tu espacio de trabajo",
+    "Verifying your email": "Verificando tu correo electrónico",
+
+    "Try for free": "Probar gratis",
+    "Your own demo company. No credit card. No automatic paid subscription.":
+      "Tu propia empresa de demostración. Sin tarjeta de crédito. Sin suscripción de pago automática.",
+    "Try the Playground for free with your own demo company. No credit card. No automatic paid subscription.":
+      "Prueba gratis el Playground con tu propia empresa de demostración. Sin tarjeta de crédito. Sin suscripción de pago automática.",
+    "Try Reality for free with your own demo company. No credit card. No automatic paid subscription.":
+      "Prueba Reality gratis con tu propia empresa de demostración. Sin tarjeta de crédito. Sin suscripción de pago automática.",
+    "By continuing, you request a demo company with live sample data after email verification.":
+      "Al continuar, solicitas una empresa de demostración con datos de ejemplo continuos tras verificar tu correo.",
+    "Your demo is not ready yet. Retry to continue with the same company.":
+      "Tu demostración aún no está lista. Reintenta para continuar con la misma empresa.",
+    "Preparing your demo company": "Preparando tu empresa de demostración",
+    "Orders, deliveries and invoices are being prepared for you to explore.":
+      "Se están preparando pedidos, entregas y facturas para que los explores.",
+    "Try these three questions": "Empieza con estas tres preguntas",
+    "Explore the records directly. These tasks use no AI questions.":
+      "Explora los registros directamente. Estas tareas no consumen preguntas de IA.",
+    "Which orders need attention?": "¿Qué pedidos necesitan atención?",
+    "Why is this order not fully delivered?":
+      "¿Por qué este pedido no se ha entregado por completo?",
+    "Which invoices remain open?": "¿Qué facturas siguen pendientes?",
+    "Was that useful? Support Reality with a star on GitHub.":
+      "¿Te resultó útil? Apoya a Reality con una estrella en GitHub.",
+    "Star on GitHub": "Dar una estrella en GitHub",
+    "Keep exploring": "Seguir explorando",
+    "Free AI questions remaining": "Preguntas de IA gratuitas restantes",
+    "Resets at": "Se renueva el",
+    "Your daily AI allowance is used. Keep exploring the records or return after the reset.":
+      "Has agotado tu cupo diario de IA. Sigue explorando los registros o vuelve cuando se renueve.",
+
+    "No admission limit": "Sin límite de admisión",
+    "Manual approval required": "Se requiere aprobación manual",
+    "Create your account and verify your email to continue.":
+      "Crea tu cuenta y verifica tu correo electrónico para continuar.",
+    "Admission follows your deployment settings. Review pending applications here.":
+      "El acceso sigue la configuración de tu despliegue. Revisa aquí las solicitudes pendientes.",
     "Reset filters": "Restablecer filtros",
     "No entries yet.": "Todavía no hay registros.",
     "No entries yet. Use the create action to add the first entry.":
@@ -3350,8 +3474,8 @@ const dictionaries: Record<Exclude<Language, "en">, Record<string, string>> = {
       "Explora la información registrada de tu empresa y rastrea sus fuentes.",
     "Explore how existing records are combined into calculated views.":
       "Descubre cómo se combinan los registros existentes en vistas calculadas.",
-    "Review the rules used to interpret source data into business records.":
-      "Revisa las reglas que interpretan los datos de origen como registros empresariales.",
+    "Review the rules that record additional facts from source data on the right business record.":
+      "Revisa las reglas que registran hechos adicionales a partir de los datos de origen en el registro de negocio correcto.",
     "Explore the conditions that identify issues requiring attention.":
       "Consulta las condiciones que detectan incidencias que requieren atención.",
     "See what was recorded across your company, newest first.":
@@ -11238,7 +11362,7 @@ Object.assign(dictionaries.de, {
   "Supporting records and history": "Nachweise und Verlauf",
   "Execution history": "Ausführungsverlauf",
   "Fact predicates": "Fact-Prädikate",
-  "Fact rules": "Fact-Regeln",
+  "Additional fact rules": "Regeln für zusätzliche Fakten",
   "Inspect records, follow their origins and review the tools that build Reality.":
     "Prüfe Datensätze, verfolge ihre Herkunft und untersuche die Werkzeuge hinter Reality.",
   "Intended use": "Verwendungszweck",
@@ -11424,7 +11548,7 @@ Object.assign(dictionaries.nl, {
   "Supporting records and history": "Bewijs en geschiedenis",
   "Execution history": "Uitvoeringsgeschiedenis",
   "Fact predicates": "Feitpredicaten",
-  "Fact rules": "Feitregels",
+  "Additional fact rules": "Regels voor aanvullende feiten",
   "Inspect records, follow their origins and review the tools that build Reality.":
     "Inspecteer records, volg hun oorsprong en bekijk de hulpmiddelen achter Reality.",
   "Intended use": "Beoogd gebruik",
@@ -11610,7 +11734,7 @@ Object.assign(dictionaries.es, {
   "Supporting records and history": "Evidencia e historial",
   "Execution history": "Historial de ejecución",
   "Fact predicates": "Predicados de hechos",
-  "Fact rules": "Reglas de hechos",
+  "Additional fact rules": "Reglas de hechos adicionales",
   "Inspect records, follow their origins and review the tools that build Reality.":
     "Inspecciona registros, sigue su origen y revisa las herramientas de Reality.",
   "Intended use": "Uso previsto",
@@ -12513,7 +12637,7 @@ Object.assign(dictionaries.de, {
   Timeline: "Zeitverlauf",
   "Record graph": "Datensatzgraph",
   "All records": "Alle Datensätze",
-  "Fact rules": "Faktenregeln",
+  "Additional fact rules": "Regeln für zusätzliche Fakten",
   "Exception rules": "Ausnahmeregeln",
   "Calculated views": "Berechnete Sichten",
   "Event history": "Ereignisverlauf",
@@ -12529,7 +12653,7 @@ Object.assign(dictionaries.nl, {
   Timeline: "Tijdlijn",
   "Record graph": "Recordgrafiek",
   "All records": "Alle records",
-  "Fact rules": "Feitregels",
+  "Additional fact rules": "Regels voor aanvullende feiten",
   "Exception rules": "Uitzonderingsregels",
   "Calculated views": "Berekende weergaven",
   "Event history": "Gebeurtenisgeschiedenis",
@@ -12545,7 +12669,7 @@ Object.assign(dictionaries.es, {
   Timeline: "Cronología",
   "Record graph": "Grafo de registros",
   "All records": "Todos los registros",
-  "Fact rules": "Reglas de hechos",
+  "Additional fact rules": "Reglas de hechos adicionales",
   "Exception rules": "Reglas de excepciones",
   "Calculated views": "Vistas calculadas",
   "Event history": "Historial de eventos",
@@ -13925,8 +14049,8 @@ Object.assign(dictionaries.de, {
     "Sie gilt für künftig eingehende, passende Daten. Bestehende Datensätze wurden nicht nachträglich verarbeitet.",
   "This saves the reviewed setup step. It does not activate a rule or create Facts.":
     "Damit wird der geprüfte Einrichtungsschritt gespeichert. Es wird keine Regel aktiviert und es werden keine Fakten erzeugt.",
-  "A Fact rule remembers a property stated in your data, so your team can find it on the right business record.":
-    "Eine Faktenregel hält eine Eigenschaft aus deinen Daten fest. Dein Team findet sie anschließend am zugehörigen Geschäftsvorgang.",
+  "An Additional fact rule remembers a property stated in your data, so your team can find it on the right business record.":
+    "Eine Regel für zusätzliche Fakten merkt sich eine Eigenschaft aus deinen Daten, damit dein Team sie am richtigen Geschäftsdatensatz findet.",
   "Find an order you know. Choose the field that contains the information you want to remember.":
     "Suche einen Auftrag, den du kennst. Wähle das Feld mit der Information, die du festhalten möchtest.",
   "Describe when the rule applies and what it should remember. Start simple; add conditions only if you need them.":
@@ -13949,8 +14073,8 @@ Object.assign(dictionaries.de, {
     "Beschreibe, wofür dein Team diese Information braucht.",
   "For example: Help the warehouse follow the customer's delivery instructions.":
     "Zum Beispiel: Dem Lager helfen, die Lieferhinweise des Kunden zu beachten.",
-  "This outcome is not a Fact rule. Keep the reviewed result or prepare the existing implementation handoff.":
-    "Dieses Ergebnis ist keine Faktenregel. Behalte die geprüfte Einordnung bei oder bereite die Übergabe zur Umsetzung vor.",
+  "This outcome is not an Additional fact rule. Keep the reviewed result or prepare the existing implementation handoff.":
+    "Dieses Ergebnis ist keine Regel für zusätzliche Fakten. Behalte das geprüfte Ergebnis oder bereite die bestehende Übergabe an die Implementierung vor.",
   "The supporting example does not limit the test. Reality checks up to 100 matching sources already held by this company.":
     "Das ausgewählte Beispiel begrenzt den Test nicht. Reality prüft bis zu 100 passende Quellen, die für dieses Unternehmen bereits vorliegen.",
   "Test saved draft": "Gespeicherten Entwurf testen",
@@ -13977,8 +14101,8 @@ Object.assign(dictionaries.de, {
     "Quellfeld und Werttyp stammen aus deinem Beispiel. Die Regel muss sich auf eine bestehende Lieferverpflichtung oder Auftragsposition beziehen. Die Zuordnung von Positionen und weitere Optionen findest du unter Erweiterte Einstellungen.",
   "Search by an order reference, then choose the relevant value. Saving an example only documents your evidence.":
     "Suche nach einer Auftragsreferenz und wähle den passenden Wert. Mit dem Speichern dokumentierst du zunächst nur dein Beispiel.",
-  "Example saved. Request a recommendation to check whether this information belongs in a Fact rule.":
-    "Beispiel gespeichert. Fordere eine Empfehlung an, um zu prüfen, ob diese Information in eine Faktenregel gehört.",
+  "Example saved. Request a recommendation to check whether this information belongs in an Additional fact rule.":
+    "Beispiel gespeichert. Fordere eine Empfehlung an, um zu prüfen, ob diese Information in eine Regel für zusätzliche Fakten gehört.",
   "Review the recommendation and its limitations, then confirm the interpretation you want.":
     "Prüfe die Empfehlung und ihre Grenzen. Bestätige anschließend die gewünschte Einordnung.",
   "Your examples remain linked to their original sources.":
@@ -14023,8 +14147,8 @@ Object.assign(dictionaries.nl, {
     "De regel geldt voor toekomstige passende gegevens. Bestaande records zijn niet opnieuw verwerkt.",
   "This saves the reviewed setup step. It does not activate a rule or create Facts.":
     "Dit slaat de gecontroleerde instellingsstap op. Het activeert geen regel en maakt geen feiten aan.",
-  "A Fact rule remembers a property stated in your data, so your team can find it on the right business record.":
-    "Een feitenregel bewaart een eigenschap uit je gegevens, zodat je team deze bij het juiste bedrijfsrecord kan vinden.",
+  "An Additional fact rule remembers a property stated in your data, so your team can find it on the right business record.":
+    "Een regel voor aanvullende feiten onthoudt een eigenschap uit je data, zodat je team die bij het juiste bedrijfsrecord terugvindt.",
   "Find an order you know. Choose the field that contains the information you want to remember.":
     "Zoek een order die je kent. Kies het veld met de informatie die je wilt bewaren.",
   "Describe when the rule applies and what it should remember. Start simple; add conditions only if you need them.":
@@ -14046,8 +14170,8 @@ Object.assign(dictionaries.nl, {
     "Leg uit waarvoor je team deze informatie gaat gebruiken.",
   "For example: Help the warehouse follow the customer's delivery instructions.":
     "Bijvoorbeeld: Help het magazijn de leverinstructies van de klant te volgen.",
-  "This outcome is not a Fact rule. Keep the reviewed result or prepare the existing implementation handoff.":
-    "Deze uitkomst is geen feitenregel. Bewaar het beoordeelde resultaat of bereid de bestaande implementatieoverdracht voor.",
+  "This outcome is not an Additional fact rule. Keep the reviewed result or prepare the existing implementation handoff.":
+    "Deze uitkomst is geen regel voor aanvullende feiten. Behoud het beoordeelde resultaat of bereid de bestaande implementatieoverdracht voor.",
   "The supporting example does not limit the test. Reality checks up to 100 matching sources already held by this company.":
     "Het ondersteunende voorbeeld beperkt de test niet. Reality controleert maximaal 100 passende bronnen die dit bedrijf al heeft.",
   "Test saved draft": "Opgeslagen concept testen",
@@ -14074,8 +14198,8 @@ Object.assign(dictionaries.nl, {
     "Het bronveld en waardetype komen uit je voorbeeld. De regel moet verwijzen naar een bestaande leververplichting of orderregel. Regeltoewijzing en andere opties staan onder Geavanceerde instellingen.",
   "Search by an order reference, then choose the relevant value. Saving an example only documents your evidence.":
     "Zoek op een orderreferentie en kies de relevante waarde. Een voorbeeld opslaan documenteert alleen je bewijs.",
-  "Example saved. Request a recommendation to check whether this information belongs in a Fact rule.":
-    "Voorbeeld opgeslagen. Vraag een aanbeveling aan om te controleren of deze informatie in een feitenregel hoort.",
+  "Example saved. Request a recommendation to check whether this information belongs in an Additional fact rule.":
+    "Voorbeeld opgeslagen. Vraag een aanbeveling aan om te controleren of deze informatie in een regel voor aanvullende feiten hoort.",
   "Review the recommendation and its limitations, then confirm the interpretation you want.":
     "Bekijk de aanbeveling en beperkingen en bevestig vervolgens de gewenste interpretatie.",
   "Your examples remain linked to their original sources.":
@@ -14121,8 +14245,8 @@ Object.assign(dictionaries.es, {
     "Se aplicará a futuros datos coincidentes. Los registros existentes no se han reprocesado.",
   "This saves the reviewed setup step. It does not activate a rule or create Facts.":
     "Esto guarda el paso de configuración revisado. No activa ninguna regla ni crea hechos.",
-  "A Fact rule remembers a property stated in your data, so your team can find it on the right business record.":
-    "Una regla de hechos conserva una propiedad indicada en tus datos para que tu equipo la encuentre en el registro correspondiente.",
+  "An Additional fact rule remembers a property stated in your data, so your team can find it on the right business record.":
+    "Una regla de hechos adicionales recuerda una propiedad indicada en tus datos para que tu equipo la encuentre en el registro de negocio correcto.",
   "Find an order you know. Choose the field that contains the information you want to remember.":
     "Busca un pedido que conozcas. Elige el campo con la información que quieres conservar.",
   "Describe when the rule applies and what it should remember. Start simple; add conditions only if you need them.":
@@ -14145,8 +14269,8 @@ Object.assign(dictionaries.es, {
     "Explica para qué usará tu equipo esta información.",
   "For example: Help the warehouse follow the customer's delivery instructions.":
     "Por ejemplo: Ayudar al almacén a seguir las instrucciones de entrega del cliente.",
-  "This outcome is not a Fact rule. Keep the reviewed result or prepare the existing implementation handoff.":
-    "Este resultado no es una regla de hechos. Conserva el resultado revisado o prepara la entrega para su implementación.",
+  "This outcome is not an Additional fact rule. Keep the reviewed result or prepare the existing implementation handoff.":
+    "Este resultado no es una regla de hechos adicionales. Conserva el resultado revisado o prepara la entrega de implementación existente.",
   "The supporting example does not limit the test. Reality checks up to 100 matching sources already held by this company.":
     "El ejemplo de apoyo no limita la prueba. Reality comprueba hasta 100 fuentes coincidentes ya disponibles en esta empresa.",
   "Test saved draft": "Probar borrador guardado",
@@ -14173,8 +14297,8 @@ Object.assign(dictionaries.es, {
     "El campo de origen y el tipo de valor proceden de tu ejemplo. La regla debe vincularse a un compromiso de entrega o línea de pedido existente. La asignación de líneas y otras opciones están en Configuración avanzada.",
   "Search by an order reference, then choose the relevant value. Saving an example only documents your evidence.":
     "Busca por referencia de pedido y elige el valor pertinente. Guardar un ejemplo solo documenta la evidencia.",
-  "Example saved. Request a recommendation to check whether this information belongs in a Fact rule.":
-    "Ejemplo guardado. Solicita una recomendación para comprobar si esta información corresponde a una regla de hechos.",
+  "Example saved. Request a recommendation to check whether this information belongs in an Additional fact rule.":
+    "Ejemplo guardado. Solicita una recomendación para comprobar si esta información pertenece a una regla de hechos adicionales.",
   "Review the recommendation and its limitations, then confirm the interpretation you want.":
     "Revisa la recomendación y sus limitaciones y confirma la interpretación deseada.",
   "Your examples remain linked to their original sources.":
