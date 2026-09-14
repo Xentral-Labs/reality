@@ -12,6 +12,8 @@ From a customer order through reservation, dispatch and invoice to the settled p
 
 [Read the playbook](../agent-playbooks/order-to-cash-fulfilment)
 
+[Play it as a storyline: First round](../storylines/#storyline-first-round)
+
 [Play it as a storyline: Order to close](../storylines/#storyline-order-to-close)
 
 ### 1. Record the customer order

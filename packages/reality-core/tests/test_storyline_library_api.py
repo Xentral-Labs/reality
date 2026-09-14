@@ -39,8 +39,12 @@ def test_library_start_and_state_over_http(http):
     client, _actor = http
     library = client.get("/api/storyline/library")
     assert library.status_code == 200
-    assert [item["key"] for item in library.json()["items"]] == [KEY, "purchase-to-pay"]
-    assert library.json()["items"][0]["run"] is None
+    assert [item["key"] for item in library.json()["items"]] == [
+        "first-round",
+        KEY,
+        "purchase-to-pay",
+    ]
+    assert all(item["run"] is None for item in library.json()["items"])
 
     run = start(client)
     tenant_id = run["tenant_id"]
@@ -50,10 +54,9 @@ def test_library_start_and_state_over_http(http):
     assert body["current_chapter"] == "order"
     assert body["chapters"][0]["status"] == "current"
     assert body["chapters"][0]["title"]["de"] == "Auftrag anlegen"
-    assert (
-        client.get("/api/storyline/library").json()["items"][0]["run"]["tenant_id"]
-        == tenant_id
-    )
+    listed = client.get("/api/storyline/library").json()["items"]
+    started_item = next(item for item in listed if item["key"] == KEY)
+    assert started_item["run"]["tenant_id"] == tenant_id
 
     detail = client.get(f"/api/tenants/{tenant_id}/storyline/chapters/order").json()
     assert detail["can_run"] is True
@@ -214,6 +217,7 @@ def test_library_export_import_replace_and_delete(http, session):
     assert created.json()["key"] == "my-story" and created.json()["chapters"] == 18
     library = client.get("/api/storyline/library").json()["items"]
     assert [(i["key"], i["origin"]) for i in library] == [
+        ("first-round", "builtin"),
         (KEY, "builtin"),
         ("purchase-to-pay", "builtin"),
         ("my-story", "import"),
@@ -252,6 +256,7 @@ def test_library_export_import_replace_and_delete(http, session):
     assert client.delete(f"/api/storyline/library/{KEY}/{VERSION}").status_code == 405
     assert client.delete("/api/storyline/library/my-story/1").status_code == 204
     assert [i["key"] for i in client.get("/api/storyline/library").json()["items"]] == [
+        "first-round",
         KEY,
         "purchase-to-pay",
     ]

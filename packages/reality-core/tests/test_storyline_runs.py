@@ -395,15 +395,22 @@ def test_restart_archives_the_run_and_starts_a_fresh_company(session, owner):
 
 def test_library_lists_the_built_in_with_the_account_run(session, owner):
     before = storyline.library(session, owner.id)
-    assert [item["key"] for item in before["items"]] == [KEY, "purchase-to-pay"]
-    assert before["items"][0]["run"] is None
+    assert [item["key"] for item in before["items"]] == [
+        "first-round",
+        KEY,
+        "purchase-to-pay",
+    ]
+    assert all(item["run"] is None for item in before["items"])
     view = started(session, owner)
 
     after = storyline.library(session, owner.id)
+    played = next(item for item in after["items"] if item["key"] == KEY)
 
-    assert after["items"][0]["run"]["tenant_id"] == view["tenant_id"]
-    assert after["items"][0]["run"]["current_chapter"] == "order"
-    assert after["items"][0]["title"]["de"] == "Auftrag bis Abschluss"
+    assert played["run"]["tenant_id"] == view["tenant_id"]
+    assert played["run"]["current_chapter"] == "order"
+    assert played["title"]["de"] == "Auftrag bis Abschluss"
+    # Only the storyline that was started carries a run.
+    assert [item["key"] for item in after["items"] if item["run"]] == [KEY]
 
 
 def test_tool_reference_explains_commands_views_and_exceptions():

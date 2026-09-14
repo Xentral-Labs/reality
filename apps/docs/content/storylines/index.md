@@ -33,6 +33,25 @@ page by hand.
 
 - [Package schema (JSON Schema)](/storylines/storyline.schema.json)
 
+## First round {#storyline-first-round}
+
+Seven steps, about five minutes. One order, one finding that appears by itself and clears by itself,
+and a shipment the system refuses. The shortest way to see how Reality works.
+
+- [Download the package](/storylines/first-round.storyline.yaml) (`first-round` v1)
+
+### Steps
+
+| Step                        | Kind    | Command or reads                          | View                        | Findings expected               |
+| --------------------------- | ------- | ----------------------------------------- | --------------------------- | ------------------------------- |
+| 1. Create the order         | command | `order_create`                            | `view:orders`               | ▲ `outgoing_commitment_at_risk` |
+| 2. Explain the finding      | read    | `exception_explain`, `item_supply_demand` | `view:supply_demand`        |                                 |
+| 3. Receive a short delivery | command | `movement_create`                         | `view:movements`            |                                 |
+| 4. Reserve the stock        | command | `reserve`                                 | `view:reservations`         | ✓ `outgoing_commitment_at_risk` |
+| 5. Try to ship              | command | `movement_create`                         | `view:fulfillment_blockers` |                                 |
+| 6. Release the hold         | command | `party_delivery_hold_release`             | `view:fulfillment_blockers` |                                 |
+| 7. Ship the goods           | command | `movement_create`                         | `view:movements`            | ▲ `shipped_not_billed`          |
+
 ## Order to close {#storyline-order-to-close}
 
 One customer order, a short delivery, a blocked shipment, an overpayment and a month-end review.
