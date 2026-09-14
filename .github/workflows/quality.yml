@@ -22,8 +22,6 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - name: Validate privacy hosting configuration
-        run: python3 -m unittest discover -s infra/privacy-logging -p 'test_*.py' -v
       - name: Validate Spec Kit policy
         env:
           PR_BODY: ${{ github.event.pull_request.body || '' }}

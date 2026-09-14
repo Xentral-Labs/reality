@@ -39,6 +39,7 @@ installation than about the product.
 | `helm/reality/prerequisites/` | IAM policies, Vault policy and ClusterSecretStore for one account |
 | The operations sections of the old chart README | Account id, cluster, Vault path, SES identity, ECR lifecycle. The public [chart README](../helm/reality/README.md) keeps the values contract and generic install steps. |
 | `docs/privacy/releases/` | Provider deployment dossiers naming real roles and accounts |
+| `infra/privacy-logging/` | A CloudFormation ALB log bucket for one account |
 
 Historical specifications and decision records under `specs/` and `docs/` still describe
 work on that site. They refer to it by the path prefix `provider-site/`, which is not a
