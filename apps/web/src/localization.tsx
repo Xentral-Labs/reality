@@ -13,6 +13,10 @@ type Preferences = { language: Language; locale: DisplayLocale; timezone: string
 
 const dictionaries: Record<Exclude<Language, "en">, Record<string, string>> = {
   de: {
+    "Create a separate demo Sandbox for live simulation. Your existing company and Storyline stay unchanged.":
+      "Erstelle eine separate Demo-Sandbox für die Live-Simulation. Deine bestehende Firma und Storyline bleiben unverändert.",
+    "Create demo Sandbox": "Demo-Sandbox erstellen",
+
     "Preparing your company": "Deine Firma wird vorbereitet",
     "Continue company setup": "Firmeneinrichtung fortsetzen",
     "Your setup is saved. Continue with the same company.":
@@ -1771,6 +1775,10 @@ const dictionaries: Record<Exclude<Language, "en">, Record<string, string>> = {
     "Fully Reserved": "Vollständig reserviert",
   },
   nl: {
+    "Create a separate demo Sandbox for live simulation. Your existing company and Storyline stay unchanged.":
+      "Maak een aparte demo-Sandbox voor livesimulatie. Je bestaande bedrijf en Storyline blijven ongewijzigd.",
+    "Create demo Sandbox": "Demo-Sandbox maken",
+
     "Preparing your company": "Je bedrijf wordt voorbereid",
     "Continue company setup": "Bedrijfsinrichting voortzetten",
     "Your setup is saved. Continue with the same company.":
@@ -3221,6 +3229,10 @@ const dictionaries: Record<Exclude<Language, "en">, Record<string, string>> = {
     Customer: "Klant",
   },
   es: {
+    "Create a separate demo Sandbox for live simulation. Your existing company and Storyline stay unchanged.":
+      "Crea un Sandbox de demostración separado para la simulación en vivo. Tu empresa y Storyline actuales no cambian.",
+    "Create demo Sandbox": "Crear Sandbox de demostración",
+
     "Preparing your company": "Preparando tu empresa",
     "Continue company setup": "Continuar la configuración",
     "Your setup is saved. Continue with the same company.":

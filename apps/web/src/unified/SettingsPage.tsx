@@ -56,6 +56,9 @@ export function SettingsPage({
             companies={companies}
             switchCompany={switchCompany}
             openCompany={openCompany}
+            openSimulation={(id) =>
+              navigate({ tenant: id, route: "demo-data", page: 1, q: "", proposal: "" })
+            }
             manageCompany={(id, task) => setManagement({ id, view: task })}
           />
         )}

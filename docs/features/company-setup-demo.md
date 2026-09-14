@@ -76,3 +76,7 @@ lesson boundaries and existing write/credential policies remain unchanged.
 - The settlement authority (`tenant_policy._SETTLEMENT_OPERATIONS`) may post the stated invoice, record payments and allocate an unambiguously stated reference; it may not reduce, refund, write off or reserve. The order scope keeps its narrower set, so an order can never book money.
 
 Spec146 FR-031: company setup distinguishes busy preparation/opening from recoverable interruption. Busy states use one spinner/status and retain the company name without retry actions. First-company entry renders one centered heading/card; existing-company selection remains. Saved request identity and automatic ready navigation are unchanged.
+
+## Existing Sandbox simulation entry
+
+Owner Sandbox/demo cards link to the existing company-scoped Demo Data controls (FR-032). Opening the page performs no mutation. Backend eligibility remains authoritative. Unsupported practice companies offer a separate demo through normal confirmed setup; demo/live choices are initially selected only when setup options allow them. Saved requests override initial suggestions. Historical fixtures and Storyline companies are never reseeded or converted.

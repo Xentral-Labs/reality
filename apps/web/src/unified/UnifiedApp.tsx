@@ -241,7 +241,17 @@ export default function UnifiedApp({
                 ) : selection.route === "demo-data" ? (
                   <>
                     <RegisterHeader title="Demo Data" />
-                    <DemoDataIntegration tenantId={company.id} />
+                    <DemoDataIntegration
+                      tenantId={company.id}
+                      allowSeparateSandbox={
+                        company.role === "owner" &&
+                        !!(
+                          company.sandbox_run_id ||
+                          company.company_kind === "sandbox" ||
+                          company.company_kind === "demo"
+                        )
+                      }
+                    />
                   </>
                 ) : selection.route === "data-sources" ? (
                   <DataSourcesPage user={user.id} selection={selection} navigate={navigate} />

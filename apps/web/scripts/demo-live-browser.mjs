@@ -66,6 +66,8 @@ try {
               ],
               default_tenant_id: "demo",
             });
+          if (path === "/api/v1/companies") return reply([]);
+          if (path === "/api/playground/runs") return reply({ runs: [] });
           if (path.endsWith("/copilot"))
             return reply({
               sessions: [],
@@ -116,16 +118,22 @@ try {
             page: { number: 1, size: 25, total: 0, pages: 1, has_previous: false, has_next: false },
           });
         });
-        await page.goto(`${base}/app/demo-data?tenant=demo`);
+        await page.goto(`${base}/app/settings?tenant=demo&settings_view=company`);
+        await page.locator("[data-company-simulation=demo]").click();
+        await page.waitForURL(/\/app\/demo-data\?tenant=demo/);
         const panel = page.locator(".demo-data-integration");
         await panel.getByText("DEMO-1", { exact: true }).waitFor();
         const demoNavigation = page.locator('[data-navigation-item][href*="/demo-data"]');
         assert.equal(await demoNavigation.count(), 1);
         assert.equal(await demoNavigation.getAttribute("aria-current"), "page");
         assert.ok(
-          await demoNavigation.evaluate((el) =>
-            el.previousElementSibling?.getAttribute("href")?.includes("/settings"),
-          ),
+          await demoNavigation.evaluate((el) => {
+            const companies = el.parentElement?.querySelector("a[href*='/settings']");
+            return (
+              !!companies &&
+              !!(companies.compareDocumentPosition(el) & Node.DOCUMENT_POSITION_FOLLOWING)
+            );
+          }),
           "Demo Data follows Companies",
         );
         if (language === "en") {

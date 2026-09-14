@@ -130,3 +130,7 @@ read-only deployed demo investigation. Rollback restores the prior API/core imag
 
 ## FR-031 implementation
 Update CompanySetup presentation with scoped Tailwind styles and localized status titles. Preserve exact saved request and automatic ready navigation. Constitution check PASS: no service or schema changes. Verify delayed recovery and creation, errors and retry identity using HTTP browser fixtures, then web contracts, localization, build, formatting and mobile/light/dark visual review.
+
+## FR-032 implementation plan
+
+Reuse the Demo Data route from owner Sandbox cards; do not infer service eligibility from the card. The existing denied-status presentation offers normal CompanySetup for a separate demo, with an optional initial demo/live selection constrained by setup options. Preserve pending saved requests, explicit confirmation and all service scope checks. No schema, queue, business calculation or service changes. Constitution: PASS. Verify owner/member/ordinary cards, target tenant, read-only navigation, supported controls, unsupported recovery and cancel, default choices, saved-request recovery, localized/mobile layout.

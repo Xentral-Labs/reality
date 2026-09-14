@@ -5,12 +5,14 @@ import { t } from "../localization";
 export function CompanySetupForm({
   options,
   initialName,
+  initialDemoSimulation = false,
   busy,
   submit,
   cancel,
 }: {
   options: CompanySetupOptions;
   initialName: string;
+  initialDemoSimulation?: boolean;
   busy: boolean;
   submit: (choices: CompanySetupChoices) => Promise<void>;
   cancel?: () => void;
@@ -18,10 +20,12 @@ export function CompanySetupForm({
   const [name, setName] = useState(initialName);
   const nameInput = useRef<HTMLInputElement>(null);
   const [nameError, setNameError] = useState(false);
+  const suggestDemo =
+    initialDemoSimulation && options.practice_enabled && options.environments.includes("sandbox");
   const [choice, setChoice] = useState<"business" | "sandbox" | "demo">(
-    options.environments.includes("business") ? "business" : "sandbox",
+    suggestDemo ? "demo" : options.environments.includes("business") ? "business" : "sandbox",
   );
-  const [liveSimulation, setLiveSimulation] = useState(false);
+  const [liveSimulation, setLiveSimulation] = useState(suggestDemo);
   const choices = [
     {
       value: "business" as const,

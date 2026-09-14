@@ -37,11 +37,13 @@ export function CompanySettings({
   companies,
   switchCompany,
   manageCompany,
+  openSimulation,
   openCompany,
 }: {
   company: Tenant;
   companies: Tenant[];
   switchCompany: (id: string) => void;
+  openSimulation: (id: string) => void;
   manageCompany: (id: string, view: "access" | "agents" | "ai") => void;
   openCompany: (data: Bootstrap, id: string, options?: { announce?: boolean }) => void;
 }) {
@@ -126,6 +128,17 @@ export function CompanySettings({
                         {t("You own this company and manage its access.")}
                       </p>
                       <div className="flex flex-wrap gap-2">
+                        {(row.sandbox_run_id ||
+                          row.company_kind === "sandbox" ||
+                          row.company_kind === "demo") && (
+                          <button
+                            className="br-btn"
+                            data-company-simulation={row.id}
+                            onClick={() => openSimulation(row.id)}
+                          >
+                            {t("Live simulation")}
+                          </button>
+                        )}
                         <button className="br-btn" onClick={() => manageCompany(row.id, "access")}>
                           {t("Manage users")}
                         </button>
