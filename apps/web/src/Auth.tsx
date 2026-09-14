@@ -305,19 +305,54 @@ function Signup() {
 }
 
 function Verify() {
-  const [code, setCode] = useState(
-    () => sessionStorage.getItem("reality.localVerificationCode") || "",
+  const [email, setEmail] = useState(
+    () =>
+      new URLSearchParams(location.hash.slice(1)).get("email") ||
+      sessionStorage.getItem("reality.signupEmail") ||
+      "",
+  );
+  const [notice, setNotice] = useState("");
+  const [resending, setResending] = useState(false);
+  useEffect(() => {
+    if (new URLSearchParams(location.hash.slice(1)).has("email")) {
+      sessionStorage.removeItem("reality.localVerificationCode");
+      if (sessionStorage.getItem("reality.signupEmail") !== email) {
+        sessionStorage.removeItem("reality.invitationToken");
+      }
+      sessionStorage.setItem("reality.signupEmail", email);
+      history.replaceState(history.state, "", location.pathname + location.search);
+    }
+  }, [email]);
+  const [code, setCode] = useState(() =>
+    new URLSearchParams(location.hash.slice(1)).has("email")
+      ? ""
+      : sessionStorage.getItem("reality.localVerificationCode") || "",
   );
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
-  const email = sessionStorage.getItem("reality.signupEmail") || "";
+  const resend = async () => {
+    if (busy || resending || !email) return;
+    setResending(true);
+    setError("");
+    setNotice("");
+    try {
+      await api.resendVerificationCode(email);
+      setNotice("If this address needs verification, a new code has been sent.");
+    } catch (reason) {
+      setError((reason as Error).message);
+    } finally {
+      setResending(false);
+    }
+  };
   const submit = async (event: FormEvent) => {
     event.preventDefault();
-    if (busy) return;
+    if (busy || resending) return;
     setBusy(true);
     setError("");
+    setNotice("");
     try {
       const token = sessionStorage.getItem("reality.invitationToken") || "";
+      sessionStorage.setItem("reality.signupEmail", email);
       const user = await api.verifyEmail(email, code, token || undefined);
       rememberPreferences(user);
       location.href = token
@@ -332,13 +367,31 @@ function Verify() {
     <AuthShell
       eyebrow="Verify email"
       title="Check your inbox"
-      detail={`Enter the six-digit code sent to ${email}.`}
+      detail="Enter the six-digit code from your verification email."
     >
-      <form onSubmit={submit} className="auth-form">
+      <form onSubmit={submit} className="auth-form auth-verification">
+        <label>
+          Email
+          <input
+            type="email"
+            autoComplete="email"
+            value={email}
+            required
+            disabled={busy || resending}
+            onChange={(event) => {
+              setEmail(event.target.value);
+              sessionStorage.removeItem("reality.invitationToken");
+              setCode("");
+              setNotice("");
+            }}
+          />
+        </label>
         <label>
           Verification code
           <input
             className="auth-code"
+            autoComplete="one-time-code"
+            disabled={busy || resending}
             inputMode="numeric"
             maxLength={6}
             pattern="[0-9]{6}"
@@ -348,8 +401,13 @@ function Verify() {
             required
           />
         </label>
-        {error && <div className="auth-error">{error}</div>}
-        <button disabled={busy} aria-busy={busy}>
+        {notice && <p role="status">{notice}</p>}
+        {error && (
+          <div className="auth-error" role="alert">
+            {error}
+          </div>
+        )}
+        <button disabled={busy || resending} aria-busy={busy}>
           <span role={busy ? "status" : undefined}>
             {busy ? "Verifying your email" : "Verify email"}
           </span>
@@ -362,6 +420,14 @@ function Verify() {
           ) : (
             <ArrowRight size={17} />
           )}
+        </button>
+        <button
+          type="button"
+          className="auth-resend"
+          disabled={busy || resending || !email}
+          onClick={resend}
+        >
+          {resending ? "Sending code…" : "Send a new code"}
         </button>
       </form>
     </AuthShell>

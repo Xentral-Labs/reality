@@ -5,6 +5,7 @@ import logging
 import os
 import smtplib
 from email.message import EmailMessage
+from urllib.parse import urlencode
 
 import httpx
 
@@ -107,10 +108,16 @@ def send_email(*, recipient: str, subject: str, text: str, html_body: str) -> No
 
 def send_verification_email(email: str, code: str) -> None:
     safe_code = html.escape(code)
+    app_url = (os.environ.get("APP_URL") or "http://localhost:8080").rstrip("/")
+    return_url = f"{app_url}/verify-email#{urlencode({'email': email})}"
+    safe_url = html.escape(return_url, quote=True)
     send_email(
         recipient=email,
         subject=f"{code} is your Reality verification code",
-        text=f"Confirm your email\n\n{code}\n\nThis code expires in 10 minutes. Never share it.",
+        text=(
+            f"Confirm your email\n\n{code}\n\nThis code expires in 10 minutes. Never share it."
+            f"\n\nClosed the tab? Open Reality and enter your code: {return_url}"
+        ),
         html_body=f"""
         <div style="font-family:Inter,Arial,sans-serif;color:#111827;max-width:560px;margin:auto;padding:40px 24px">
           <div style="font-size:22px;font-weight:700">Reality</div>
@@ -118,6 +125,8 @@ def send_verification_email(email: str, code: str) -> None:
           <p style="color:#667085">Enter this verification code in Reality:</p>
           <div style="font-size:40px;font-weight:700;letter-spacing:8px;margin:28px 0">{safe_code}</div>
           <p style="color:#667085">This code expires in 10 minutes. Never share it.</p>
+          <a href="{safe_url}" style="display:inline-block;margin:16px 0;padding:13px 20px;border-radius:10px;background:#635bff;color:white;text-decoration:none;font-weight:600">Enter verification code</a>
+          <p style="color:#667085;font-size:14px">Closed the tab? This button reopens Reality. Enter the code above to confirm your email. If it has expired, request a new code there.</p>
         </div>""",
     )
 

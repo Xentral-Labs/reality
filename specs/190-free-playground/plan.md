@@ -78,3 +78,6 @@ Use read-only Explore, sales order lines grouped by week, order count, four comp
 
 ## Shorter How it works (FR-018)
 Reorder existing sections and use native details/summary for optional background, vocabulary, finance, corrections and FAQ. Keep the main example, uncertainty and proposal/confirmation explanation visible. No content or service semantics change. Constitution check PASS. Validate existing content contracts, build, localization, formatting and spec policy; compare collapsed page heights before/after, open disclosures with keyboard and verify content access, anchors and no overflow in four languages at desktop/mobile widths.
+
+## FR-019
+Add the configured-app return link to the existing mail renderer; restore the email fragment in Verify and provide editable email/resend controls. No schema or authentication-policy change. Constitution check PASS. Plan tests for plus-address encoding, no code in links, fresh-tab and stale-tab restoration, URL cleanup, explicit submission and resend behavior; run web contracts, i18n, build and scoped mail tests.

@@ -17,6 +17,12 @@ const dictionaries: Record<Exclude<Language, "en">, Record<string, string>> = {
     "Continue company setup": "Firmeneinrichtung fortsetzen",
     "Your setup is saved. Continue with the same company.":
       "Deine Einrichtung ist gespeichert. Du setzt mit derselben Firma fort.",
+    "Enter the six-digit code from your verification email.":
+      "Gib den sechsstelligen Code aus deiner Bestätigungs-E-Mail ein.",
+    "If this address needs verification, a new code has been sent.":
+      "Falls diese Adresse noch bestätigt werden muss, wurde ein neuer Code gesendet.",
+    "Sending code\u2026": "Code wird gesendet…",
+    "Send a new code": "Neuen Code senden",
 
     "Loading your access": "Dein Zugang wird geladen",
     "Please wait. You will continue automatically.":
@@ -1769,6 +1775,12 @@ const dictionaries: Record<Exclude<Language, "en">, Record<string, string>> = {
     "Continue company setup": "Bedrijfsinrichting voortzetten",
     "Your setup is saved. Continue with the same company.":
       "Je inrichting is opgeslagen. Ga verder met hetzelfde bedrijf.",
+    "Enter the six-digit code from your verification email.":
+      "Voer de zescijferige code uit je bevestigingsmail in.",
+    "If this address needs verification, a new code has been sent.":
+      "Als dit adres nog moet worden bevestigd, is er een nieuwe code verstuurd.",
+    "Sending code\u2026": "Code wordt verstuurd…",
+    "Send a new code": "Nieuwe code versturen",
 
     "Loading your access": "Je toegang wordt geladen",
     "Please wait. You will continue automatically.": "Even geduld. Je gaat automatisch verder.",
@@ -3213,6 +3225,12 @@ const dictionaries: Record<Exclude<Language, "en">, Record<string, string>> = {
     "Continue company setup": "Continuar la configuración",
     "Your setup is saved. Continue with the same company.":
       "Tu configuración está guardada. Continúa con la misma empresa.",
+    "Enter the six-digit code from your verification email.":
+      "Introduce el código de seis dígitos de tu correo de verificación.",
+    "If this address needs verification, a new code has been sent.":
+      "Si esta dirección necesita verificación, se ha enviado un nuevo código.",
+    "Sending code\u2026": "Enviando código…",
+    "Send a new code": "Enviar un código nuevo",
 
     "Loading your access": "Cargando tu acceso",
     "Please wait. You will continue automatically.":
