@@ -109,9 +109,7 @@ export function StorylineNarrator({
 
   // Everything played so far, the step in hand, and an upcoming chapter somebody
   // opened from the list. The selected turn is the one told in full.
-  const told = chapters.filter(
-    (entry) => entry.status === "done" || entry.status === "current" || entry.key === chapter?.key,
-  );
+  const told = chapters.filter((entry) => entry.status === "done" || entry.key === chapter?.key);
 
   return (
     <div
@@ -570,6 +568,7 @@ function PastTurn({
   select: (key: string) => void;
 }) {
   const refused = entry.step_status === "refused";
+  if (!entry.step_id) return null;
   return (
     <div className="flex flex-col gap-1.5 opacity-80" data-storyline-turn="past">
       <p className={mine}>{spokenLine(entry.say, entry.title)}</p>
