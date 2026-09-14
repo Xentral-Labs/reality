@@ -250,12 +250,27 @@ def _commitment_trace(
             else None
         )
     source_id = document.source_record_id if document else None
+    if source_id is None:
+        source = None
+    elif inputs is not None and row.id in inputs.terms:
+        source = inputs.sources.get(source_id)
+    else:
+        source = session.scalar(
+            select(SourceRecord).where(
+                SourceRecord.tenant_id == tenant_id, SourceRecord.id == source_id
+            )
+        )
     return {
         "commitment_id": row.id,
         "document_line_id": line.id if line else None,
         "document_id": document.id if document else None,
         "document_number": document.number if document else None,
+        "customer_reference": (document.customer_reference or None)
+        if document
+        else None,
         "source_record_id": source_id,
+        "source_system": source.source_system if source else None,
+        "source_external_id": source.external_id if source else None,
         "source_absent": source_id is None,
     }
 
