@@ -19,6 +19,8 @@ const mine =
   "max-w-[85%] self-end rounded-xl rounded-br-sm border border-accent/40 bg-accent-soft px-3 py-2 text-[13.5px] text-fg-strong";
 const theirs =
   "flex max-w-[92%] flex-col gap-1.5 self-start rounded-xl rounded-bl-sm bg-surface-muted px-3 py-2 text-[13.5px]";
+const exitButton =
+  "inline-flex items-center gap-1.5 rounded-lg border border-border-default px-2.5 py-1.5 text-[12.5px] text-fg-muted hover:border-border-strong hover:text-fg-default";
 const findingTone: Record<string, string> = {
   met: "bg-positive-bg text-positive-text",
   open: "bg-caution-bg text-caution-text",
@@ -145,26 +147,6 @@ export function StorylineNarrator({
                   onClick={toggleAutoplay}
                 >
                   {autoplay ? <Pause size={16} /> : <Play size={16} />}
-                </button>
-                <button
-                  type="button"
-                  className={toolButton}
-                  data-storyline-action="free-play"
-                  aria-label={t("Free play")}
-                  title={t("You are working in the sandbox itself.")}
-                  onClick={freePlay}
-                >
-                  <Infinity size={16} />
-                </button>
-                <button
-                  type="button"
-                  className={toolButton}
-                  data-storyline-action="library"
-                  aria-label={t("Library")}
-                  title={t("Other storylines")}
-                  onClick={library}
-                >
-                  <BookOpen size={16} />
                 </button>
                 <ChapterMenu chapters={chapters} open={chapter.key} select={select} list={list} />
               </div>
@@ -396,7 +378,7 @@ export function StorylineNarrator({
                 <button
                   type="button"
                   className="br-btn br-btn-primary"
-                  data-storyline-action="free-play"
+                  data-storyline-action="own-words"
                   onClick={freePlay}
                 >
                   {t("Work in the sandbox")}
@@ -466,6 +448,29 @@ export function StorylineNarrator({
                   {t("Start over in a new sandbox")}
                 </button>
               )}
+              {/* The ways out, named rather than hidden behind an icon. */}
+              <div className="ms-auto flex items-center gap-1">
+                <button
+                  type="button"
+                  className={exitButton}
+                  data-storyline-action="free-play"
+                  title={t("You are working in the sandbox itself.")}
+                  onClick={freePlay}
+                >
+                  <Infinity size={14} />
+                  {t("Free play")}
+                </button>
+                <button
+                  type="button"
+                  className={exitButton}
+                  data-storyline-action="library"
+                  title={t("Other storylines")}
+                  onClick={library}
+                >
+                  <BookOpen size={14} />
+                  {t("Library")}
+                </button>
+              </div>
             </div>
           </div>
         </section>
