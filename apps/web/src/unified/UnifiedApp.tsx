@@ -243,7 +243,7 @@ export default function UnifiedApp({
                     <RegisterHeader title="Demo Data" />
                     <DemoDataIntegration
                       tenantId={company.id}
-                      allowSeparateSandbox={
+                      showCompanyLink={
                         company.role === "owner" &&
                         !!(
                           company.sandbox_run_id ||

@@ -12,12 +12,10 @@ import { CompanySetupForm } from "./CompanySetupForm";
 
 export function CompanySetup({
   first = false,
-  initialDemoSimulation = false,
   close,
   created,
 }: {
   first?: boolean;
-  initialDemoSimulation?: boolean;
   close?: () => void;
   created?: (result: CompanySetupResult) => Promise<void>;
 }) {
@@ -180,7 +178,6 @@ export function CompanySetup({
         options && (
           <CompanySetupForm
             options={options}
-            initialDemoSimulation={initialDemoSimulation}
             initialName={first ? options.suggested_name : ""}
             busy={busy}
             submit={submit}
