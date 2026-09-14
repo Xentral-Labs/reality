@@ -117,3 +117,11 @@ Kollegen bleiben offen, bis du in `.env` einen E-Mail-Anbieter konfigurierst (si
 
 Um einen Agenten anzubinden, nutze die MCP-Adresse mit einem Token aus der App: siehe
 [Einen MCP-Client verbinden](/de/api-tools/connect-mcp).
+
+## Verfügbarkeit von Storylines und Sandboxes
+
+Storylines, der Playground und die Erstellung von Sandboxes sind reguläre Produktfunktionen. Dafür
+ist kein Umgebungsschalter erforderlich. Bestehende Zugangsrechte, Eigentümerschaft, Bestätigungen
+und Kapazitätsgrenzen gelten weiter. Alte Playground-Freischaltungen haben nach dem Update keine
+Wirkung mehr und können aus der Deployment-Konfiguration entfernt werden. Demo-Datenquellen behalten
+ihre ausdrücklichen Aktionen zum Starten, Pausieren und Stoppen.

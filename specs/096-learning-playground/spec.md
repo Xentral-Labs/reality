@@ -438,3 +438,11 @@ credit calculation is approved by this increment.
 | DR-002 | US2.2–3, US3.6 | Shortest links/typed records |
 | DR-003 | US1.3, US4.3 | Tenancy across all readers/writers |
 | DR-004 | US2.1–5 | Exact values and read-only observations |
+
+## Availability policy supersession (spec 193)
+
+[Always Available Storylines and Playground](../193-always-available-playground/spec.md)
+supersedes the historical deployment-switch/disabled-entry policy in this feature.
+Storyline, Playground, Sandbox setup and requested free-trial entry are regular
+capabilities. Account admission, ownership, confirmation, quotas, archive state,
+source controls and idempotency remain authoritative.

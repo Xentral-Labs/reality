@@ -1379,7 +1379,6 @@ def durable_playground(postgres_database, monkeypatch):
     from reality.db.core import AppUser, Base, now
     from reality.services.playground import start_run
 
-    monkeypatch.setenv("REALITY_PLAYGROUND_ENABLED", "true")
     engine = create_engine(postgres_database, pool_size=2, max_overflow=2)
     Base.metadata.create_all(engine)
     with Session(engine, expire_on_commit=False) as session:
@@ -1467,7 +1466,7 @@ def test_run_lock_does_not_grant_mutation_permission(durable_playground):
 
 
 @pytest.mark.parametrize(
-    "unavailable", ["flag", "owner", "account", "run", "tenant", "membership"]
+    "unavailable", ["owner", "account", "run", "tenant", "membership"]
 )
 def test_run_lock_checks_current_admission(
     durable_playground, monkeypatch, unavailable
@@ -1481,9 +1480,7 @@ def test_run_lock_checks_current_admission(
     engine, owner_id, run_id = durable_playground
     with Session(engine) as session:
         run = session.get(PlaygroundRun, run_id)
-        if unavailable == "flag":
-            monkeypatch.setenv("REALITY_PLAYGROUND_ENABLED", "false")
-        elif unavailable == "owner":
+        if unavailable == "owner":
             owner_id = "another-owner"
         elif unavailable == "account":
             session.get(AppUser, owner_id).status = "suspended"

@@ -124,3 +124,11 @@ Acceptance: on `/platform`, the hosted card offers free signup, the paid terms a
 ## Verification email return link — FR-019
 
 **FR-019**: Verification emails include an HTML action and plain-text link to the configured Product App verification page. A fresh tab restores the recipient from a URL fragment, clears that fragment after storing it in tab-local state, and still requires explicit code submission. Never embed the code in the URL or verify on GET. Missing tab context permits manual email entry. Expose the existing resend-code action for expired codes with generic feedback; preserve verification expiry, admission, demo consent and invitation behavior.
+
+## Availability policy supersession (spec 193)
+
+[Always Available Storylines and Playground](../193-always-available-playground/spec.md)
+supersedes the historical deployment-switch/disabled-entry policy in this feature.
+Storyline, Playground, Sandbox setup and requested free-trial entry are regular
+capabilities. Account admission, ownership, confirmation, quotas, archive state,
+source controls and idempotency remain authoritative.

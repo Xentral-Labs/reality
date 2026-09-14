@@ -38,7 +38,6 @@ def sandbox_business(session, scheduled_owner, monkeypatch):
         get_tenant,
     )
 
-    monkeypatch.setenv("REALITY_PLAYGROUND_ENABLED", "true")
     result = create_company(
         session,
         scheduled_owner.id,

@@ -134,7 +134,6 @@ def _practice_company(session, monkeypatch):
     from reality.db.core import AppUser, now, uid
     from reality.services import company_setup
 
-    monkeypatch.setenv("REALITY_PLAYGROUND_ENABLED", "true")
     owner = AppUser(
         id=uid("usr"),
         email=f"{uid('mail')}@example.test",

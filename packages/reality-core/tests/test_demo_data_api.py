@@ -9,7 +9,6 @@ def test_pending_integration_only_uses_owned_playground_routes(
     from reality.services import company_setup
 
     client, _, user, _, login = playground_http
-    monkeypatch.setenv("REALITY_PLAYGROUND_ENABLED", "true")
     monkeypatch.setenv("REALITY_AUTH_MODE", "enabled")
     user.status = "pending_approval"
     session.commit()

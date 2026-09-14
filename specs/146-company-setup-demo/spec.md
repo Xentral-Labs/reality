@@ -305,3 +305,11 @@ FR-032 correction: unsupported Sandboxes show an explicit unavailable message an
 FR-032 unavailable copy must explain the current compatibility boundary: live simulation supports empty/standard demo Sandbox setups; Storyline Sandboxes use a different data setup. Describe the general boundary without inferring a specific backend denial reason from every 403/404.
 
 FR-032 connection preview presentation: group exactly the server-provided missing references by kind with counts and keyboard-accessible expandable names. Keep the no-stock/no-history notice visible. Use a separated, responsive confirmation/cancel row; opening, inspecting and cancelling never connects or starts simulation.
+
+## Availability policy supersession (spec 193)
+
+[Always Available Storylines and Playground](../193-always-available-playground/spec.md)
+supersedes the historical deployment-switch/disabled-entry policy in this feature.
+Storyline, Playground, Sandbox setup and requested free-trial entry are regular
+capabilities. Account admission, ownership, confirmation, quotas, archive state,
+source controls and idempotency remain authoritative.

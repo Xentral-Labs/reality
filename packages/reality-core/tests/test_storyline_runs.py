@@ -28,7 +28,6 @@ KEY, VERSION = "order-to-close", 1
 
 @pytest.fixture
 def owner(session, monkeypatch):
-    monkeypatch.setenv("REALITY_PLAYGROUND_ENABLED", "true")
     recorder.clear_cache()
     user = AppUser(
         id=uid("usr"),
@@ -128,7 +127,7 @@ def test_start_seeds_a_practice_company_and_resumes_the_same_run(session, owner)
         )
 
 
-def test_start_needs_confirmation_the_feature_flag_and_a_known_package(
+def test_start_needs_confirmation_and_a_known_package(
     session, owner, monkeypatch
 ):
     with pytest.raises(PlaygroundOperationDenied):
@@ -141,11 +140,6 @@ def test_start_needs_confirmation_the_feature_flag_and_a_known_package(
             version=1,
             request_key="x",
             confirmed=True,
-        )
-    monkeypatch.setenv("REALITY_PLAYGROUND_ENABLED", "false")
-    with pytest.raises(PlaygroundOperationDenied):
-        storyline.start(
-            session, owner.id, key=KEY, version=VERSION, request_key="x", confirmed=True
         )
 
 

@@ -5,7 +5,6 @@ from reality.services import company_setup
 
 
 def test_canonical_profile_counts_and_cases(session, scheduled_owner, monkeypatch):
-    monkeypatch.setenv("REALITY_PLAYGROUND_ENABLED", "true")
     result = company_setup.create_company(
         session,
         scheduled_owner.id,
@@ -44,7 +43,6 @@ def test_operational_stock_and_source_lineage(session, scheduled_owner, monkeypa
     from reality.db.core import Document, DocumentLine, Reservation, SourceRecord
     from reality.services import core
 
-    monkeypatch.setenv("REALITY_PLAYGROUND_ENABLED", "true")
     result = company_setup.create_company(
         session,
         scheduled_owner.id,

@@ -98,7 +98,6 @@ def test_ten_worker_occurrences_create_orders_without_business_execution(
     from reality.db.scheduled_jobs import ScheduledJob
     from reality.services import company_setup, demo_data, scheduled_jobs
 
-    monkeypatch.setenv("REALITY_PLAYGROUND_ENABLED", "true")
     monkeypatch.setattr("reality.integrations.demo_data.burst_size", lambda *args: 1)
     if pending:
         scheduled_owner.status = "pending_approval"
@@ -242,7 +241,6 @@ def test_twenty_failed_imports_pause_and_retry_same_sources(
     from reality.db.scheduled_jobs import ScheduledJob
     from reality.services import company_setup, demo_data, scheduled_jobs
 
-    monkeypatch.setenv("REALITY_PLAYGROUND_ENABLED", "true")
     monkeypatch.setattr("reality.integrations.demo_data.burst_size", lambda *args: 1)
     actor = scheduled_owner.id
     setup = company_setup.create_company(
@@ -310,7 +308,6 @@ def test_unexpected_interpreter_failure_rolls_back_source_and_retries_same_deliv
     from reality.db.scheduled_jobs import ScheduledJob
     from reality.services import company_setup, demo_data, scheduled_jobs
 
-    monkeypatch.setenv("REALITY_PLAYGROUND_ENABLED", "true")
     monkeypatch.setattr("reality.integrations.demo_data.burst_size", lambda *args: 1)
     actor = scheduled_owner.id
     tenant = company_setup.create_company(
@@ -385,7 +382,6 @@ def _running_demo(session, monkeypatch, actor, slug):
     from reality.db.scheduled_jobs import ScheduledJob
     from reality.services import company_setup, demo_data
 
-    monkeypatch.setenv("REALITY_PLAYGROUND_ENABLED", "true")
     tenant = company_setup.create_company(
         session, actor, slug, "Varied Sandbox", "sandbox", "empty", confirmed=True
     )["tenant_id"]

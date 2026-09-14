@@ -281,7 +281,6 @@ def test_run_entry_hides_unready_references(session, playground_http, status):
 def test_confirmed_http_start_and_replay(session, playground_http, monkeypatch, status):
     client, old_tenant, user, old_run, login = playground_http
     monkeypatch.setenv("REALITY_AUTH_MODE", "enabled")
-    monkeypatch.setenv("REALITY_PLAYGROUND_ENABLED", "true")
     user.status = status
     old_run.status = "archived"
     old_run.archived_at = old_tenant.archived_at = now()
@@ -325,14 +324,12 @@ def test_run_start_rejects_unsafe_inputs(
     playground_http, monkeypatch, payload, expected
 ):
     client, _, user, _, login = playground_http
-    monkeypatch.setenv("REALITY_PLAYGROUND_ENABLED", "true")
     login(user)
     assert client.post("/api/playground/runs", json=payload).status_code == expected
 
 
 def test_scenario_switch_is_confirmed_and_replayable(playground_http, monkeypatch):
     client, _, user, run, login = playground_http
-    monkeypatch.setenv("REALITY_PLAYGROUND_ENABLED", "true")
     login(user)
     path = f"/api/playground/runs/{run.id}/restart"
     payload = {
@@ -350,13 +347,10 @@ def test_scenario_switch_is_confirmed_and_replayable(playground_http, monkeypatc
     assert repeated.json()["id"] == response.json()["id"]
 
 
-def test_run_start_flag_and_quota(playground_http, monkeypatch):
+def test_run_start_quota(playground_http, monkeypatch):
     client, _, user, _run, login = playground_http
     login(user)
     payload = {"request_key": "new", "confirmed": True}
-    monkeypatch.setenv("REALITY_PLAYGROUND_ENABLED", "false")
-    assert client.post("/api/playground/runs", json=payload).status_code == 403
-    monkeypatch.setenv("REALITY_PLAYGROUND_ENABLED", "true")
     monkeypatch.setenv("REALITY_PLAYGROUND_RETAINED_RUN_LIMIT", "1")
     response = client.post("/api/playground/runs", json=payload)
     assert response.status_code == 429, response.text
@@ -383,7 +377,6 @@ def test_step_http_prepare_confirm_reject_and_owner_boundary(
     session, playground_http, monkeypatch
 ):
     client, _tenant, user, run, login = playground_http
-    monkeypatch.setenv("REALITY_PLAYGROUND_ENABLED", "true")
     login(user)
     references = _http_step_references(session, run)
     payload = {
@@ -441,7 +434,6 @@ def test_http_financial_story_and_preview_boundaries(
     session, playground_http, monkeypatch
 ):
     client, tenant, user, old, login = playground_http
-    monkeypatch.setenv("REALITY_PLAYGROUND_ENABLED", "true")
     old.status = "archived"
     old.archived_at = tenant.archived_at = now()
     session.flush()
@@ -570,7 +562,6 @@ def test_step_http_requires_confirmation_and_rejection_has_no_effect(
     session, playground_http, monkeypatch
 ):
     client, _tenant, user, run, login = playground_http
-    monkeypatch.setenv("REALITY_PLAYGROUND_ENABLED", "true")
     login(user)
     references = _http_step_references(session, run)
     payload = {
@@ -654,7 +645,6 @@ def test_http_seed_failure_is_not_success_and_retries_same_run(
     run.archived_at = tenant.archived_at = now()
     session.flush()
     login(user)
-    monkeypatch.setenv("REALITY_PLAYGROUND_ENABLED", "true")
     seed = playground._seed_references
 
     def unavailable(*_args):

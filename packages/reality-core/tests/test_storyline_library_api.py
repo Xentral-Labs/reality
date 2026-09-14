@@ -11,7 +11,6 @@ KEY, VERSION = "order-to-close", 1
 
 @pytest.fixture
 def http(session, monkeypatch, company_setup_login):
-    monkeypatch.setenv("REALITY_PLAYGROUND_ENABLED", "true")
     recorder.clear_cache()
     client = client_for(session, monkeypatch)
     actor = company_setup_login(client)
@@ -35,10 +34,16 @@ def start(client: TestClient, request_key="http-1"):
     return body
 
 
-def test_library_start_and_state_over_http(http):
+@pytest.mark.parametrize("retired_flag", [None, "false", "true", "", "invalid"])
+def test_library_start_and_state_over_http(http, monkeypatch, retired_flag):
+    if retired_flag is None:
+        monkeypatch.delenv("REALITY_PLAYGROUND_ENABLED", raising=False)
+    else:
+        monkeypatch.setenv("REALITY_PLAYGROUND_ENABLED", retired_flag)
     client, _actor = http
     library = client.get("/api/storyline/library")
     assert library.status_code == 200
+    assert library.json()["enabled"] is True
     assert [item["key"] for item in library.json()["items"]] == [
         "first-round",
         KEY,
@@ -148,7 +153,6 @@ def test_a_chapter_is_prepared_confirmed_and_explained_over_http(http):
 def test_storyline_routes_are_private_to_the_owner_and_need_a_cookie(
     session, monkeypatch, company_setup_login, business
 ):
-    monkeypatch.setenv("REALITY_PLAYGROUND_ENABLED", "true")
     recorder.clear_cache()
     client = client_for(session, monkeypatch)
     assert client.get("/api/storyline/library").status_code == 401

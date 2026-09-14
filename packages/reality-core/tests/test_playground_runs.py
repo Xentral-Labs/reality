@@ -21,7 +21,6 @@ from reality.db.core import (
 
 @pytest.fixture
 def learning_owner(session, monkeypatch):
-    monkeypatch.setenv("REALITY_PLAYGROUND_ENABLED", "true")
     user = owner(session)
     session.commit()
     return user
@@ -168,18 +167,24 @@ def test_start_rejects_unavailable_accounts(session, learning_owner, status, ver
     assert session.scalar(select(PlaygroundRun.id)) is None
 
 
-def test_start_needs_confirmation_and_enabled_feature(
-    session, learning_owner, monkeypatch
+@pytest.mark.parametrize("retired_flag", [None, "false", "true", "", "invalid"])
+def test_start_needs_confirmation_without_deployment_switch(
+    session, learning_owner, monkeypatch, retired_flag
 ):
-    from reality.services.playground import start_run
+    from reality.services.playground import list_runs, start_run
     from reality.services.tenant_policy import PlaygroundOperationDenied
 
-    with pytest.raises(PlaygroundOperationDenied):
+    if retired_flag is None:
+        monkeypatch.delenv("REALITY_PLAYGROUND_ENABLED", raising=False)
+    else:
+        monkeypatch.setenv("REALITY_PLAYGROUND_ENABLED", retired_flag)
+    assert list_runs(session, learning_owner.id)["entry_enabled"] is True
+    with pytest.raises(PlaygroundOperationDenied, match="Confirm"):
         start_run(session, learning_owner.id, "first")
-    monkeypatch.setenv("REALITY_PLAYGROUND_ENABLED", "false")
-    with pytest.raises(PlaygroundOperationDenied):
-        start_run(session, learning_owner.id, "first", confirmed=True)
     assert session.scalar(select(PlaygroundRun.id)) is None
+    run = start_run(session, learning_owner.id, "first", confirmed=True)
+    assert run.status == "active"
+    assert start_run(session, learning_owner.id, "first", confirmed=True).id == run.id
 
 
 def test_start_retry_after_failed_seed_has_no_partial_data(
@@ -253,7 +258,6 @@ def test_concurrent_start_serializes_owner(postgres_database, monkeypatch, same_
     from reality.services.core import Conflict
     from reality.services.playground import start_run
 
-    monkeypatch.setenv("REALITY_PLAYGROUND_ENABLED", "true")
     engine = create_engine(postgres_database)
     Base.metadata.create_all(engine)
     factory = sessionmaker(engine, expire_on_commit=False)

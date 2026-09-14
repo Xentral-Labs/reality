@@ -60,3 +60,11 @@ eingecheckte Umgebungsdateien.
 Die Konfiguration von Site und Docs des Produktanbieters liegt außerhalb dieses
 Installationscontracts. Eine zukünftige verwaltete Reality-Infrastruktur veröffentlicht ihren
 eigenen Konfigurationscontract.
+
+## Verfügbarkeit von Storylines und Sandboxes
+
+Storylines, der Playground und die Erstellung von Sandboxes sind reguläre Produktfunktionen. Dafür
+ist kein Umgebungsschalter erforderlich. Bestehende Zugangsrechte, Eigentümerschaft, Bestätigungen
+und Kapazitätsgrenzen gelten weiter. Alte Playground-Freischaltungen haben nach dem Update keine
+Wirkung mehr und können aus der Deployment-Konfiguration entfernt werden. Demo-Datenquellen behalten
+ihre ausdrücklichen Aktionen zum Starten, Pausieren und Stoppen.

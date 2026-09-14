@@ -97,8 +97,9 @@ Follow [quickstart](../specs/147-scheduled-jobs/quickstart.md) in disposable Pos
 
 Spec 146 registers `demo.generate_orders` alongside invitation cleanup. Deploy matching
 API, scheduler and worker images and apply migration `0046_company_setup_demo` once
-through the release command. `REALITY_PLAYGROUND_ENABLED=true` enables creation of
-private practice companies; it does not activate their sources. Connect Demo Data in
+through the release command. Private practice companies and Storylines are regular
+capabilities under existing account policies (spec 193); their availability does not
+activate their sources. Connect Demo Data in
 an eligible Sandbox and explicitly Start it, or select Live simulation during canonical
 demo company creation to provision and start it automatically. Rates 10/60/300 per hour map to intervals
 360/60/12 seconds; the existing five-second polling loop is sufficient.
