@@ -13,6 +13,11 @@ type Preferences = { language: Language; locale: DisplayLocale; timezone: string
 
 const dictionaries: Record<Exclude<Language, "en">, Record<string, string>> = {
   de: {
+    "Live simulation is not available in this Sandbox.":
+      "Live-Simulation ist in dieser Sandbox nicht verfügbar.",
+    "Create an empty Sandbox under Companies → New company, then enable live simulation there. No historical demo data is needed.":
+      "Lege unter Unternehmen → Neues Unternehmen eine leere Sandbox an und aktiviere dort die Live-Simulation. Historische Demodaten sind dafür nicht nötig.",
+
     "Create a separate demo Sandbox for live simulation. Your existing company and Storyline stay unchanged.":
       "Erstelle eine separate Demo-Sandbox für die Live-Simulation. Deine bestehende Firma und Storyline bleiben unverändert.",
     "Create demo Sandbox": "Demo-Sandbox erstellen",
@@ -1775,6 +1780,11 @@ const dictionaries: Record<Exclude<Language, "en">, Record<string, string>> = {
     "Fully Reserved": "Vollständig reserviert",
   },
   nl: {
+    "Live simulation is not available in this Sandbox.":
+      "Livesimulatie is niet beschikbaar in deze Sandbox.",
+    "Create an empty Sandbox under Companies → New company, then enable live simulation there. No historical demo data is needed.":
+      "Maak via Bedrijven → Nieuw bedrijf een lege Sandbox en schakel daar livesimulatie in. Historische demogegevens zijn niet nodig.",
+
     "Create a separate demo Sandbox for live simulation. Your existing company and Storyline stay unchanged.":
       "Maak een aparte demo-Sandbox voor livesimulatie. Je bestaande bedrijf en Storyline blijven ongewijzigd.",
     "Create demo Sandbox": "Demo-Sandbox maken",
@@ -3229,6 +3239,11 @@ const dictionaries: Record<Exclude<Language, "en">, Record<string, string>> = {
     Customer: "Klant",
   },
   es: {
+    "Live simulation is not available in this Sandbox.":
+      "La simulación en vivo no está disponible en este Sandbox.",
+    "Create an empty Sandbox under Companies → New company, then enable live simulation there. No historical demo data is needed.":
+      "Crea un Sandbox vacío en Empresas → Nueva empresa y activa allí la simulación en vivo. No se necesitan datos históricos de demostración.",
+
     "Create a separate demo Sandbox for live simulation. Your existing company and Storyline stay unchanged.":
       "Crea un Sandbox de demostración separado para la simulación en vivo. Tu empresa y Storyline actuales no cambian.",
     "Create demo Sandbox": "Crear Sandbox de demostración",

@@ -1,4 +1,4 @@
-import { CompanySetup } from "./CompanySetup";
+import { FlaskConical } from "lucide-react";
 import { Inspector } from "../unified/Inspector";
 import { useEffect, useRef, useState } from "react";
 import {
@@ -38,7 +38,7 @@ const labels: Record<string, string> = {
 export function DemoDataIntegration(props: {
   tenantId: string;
   runId?: string;
-  allowSeparateSandbox?: boolean;
+  showCompanyLink?: boolean;
 }) {
   return <DemoDataIntegrationView key={`${props.tenantId}:${props.runId || ""}`} {...props} />;
 }
@@ -46,13 +46,12 @@ export function DemoDataIntegration(props: {
 function DemoDataIntegrationView({
   tenantId,
   runId,
-  allowSeparateSandbox = false,
+  showCompanyLink = false,
 }: {
   tenantId: string;
   runId?: string;
-  allowSeparateSandbox?: boolean;
+  showCompanyLink?: boolean;
 }) {
-  const [createSandbox, setCreateSandbox] = useState(false);
   const scope = runId
     ? `/api/playground/runs/${encodeURIComponent(runId)}/demo-data`
     : `/api/tenants/${encodeURIComponent(tenantId)}/demo-data`;
@@ -150,24 +149,45 @@ function DemoDataIntegrationView({
   };
   if (unavailable)
     return (
-      <section className="panel integration-section">
-        <h2>{t("Demo Data")}</h2>
-        <p>{t("Demo Data is available in compatible practice companies.")}</p>
-        {allowSeparateSandbox && (
-          <div className="mt-4 space-y-4">
-            <p>
-              {t(
-                "Create a separate demo Sandbox for live simulation. Your existing company and Storyline stay unchanged.",
-              )}
+      <section
+        data-simulation-unavailable
+        aria-labelledby={`simulation-unavailable-${tenantId}`}
+        className="max-w-3xl rounded-xl border border-border-default bg-surface p-6 sm:p-8"
+      >
+        <div className="flex flex-col gap-5 sm:flex-row sm:gap-6">
+          <span
+            className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-accent-soft text-accent"
+            aria-hidden="true"
+          >
+            <FlaskConical size={24} />
+          </span>
+          <div className="min-w-0 flex-1">
+            <h2
+              id={`simulation-unavailable-${tenantId}`}
+              className="text-xl font-semibold tracking-tight text-fg-strong"
+            >
+              {t("Live simulation")}
+            </h2>
+            <p className="mt-2 text-sm leading-6 text-fg-muted">
+              {t("Live simulation is not available in this Sandbox.")}
             </p>
-            <button className="br-btn" onClick={() => setCreateSandbox(true)}>
-              {t("Create demo Sandbox")}
-            </button>
+            {showCompanyLink && (
+              <>
+                <p className="mt-3 max-w-xl text-sm leading-6 text-fg-muted">
+                  {t(
+                    "Create an empty Sandbox under Companies → New company, then enable live simulation there. No historical demo data is needed.",
+                  )}
+                </p>
+                <a
+                  className="br-btn br-btn-primary mt-6"
+                  href={`/app/settings?tenant=${encodeURIComponent(tenantId)}&settings_view=company`}
+                >
+                  {t("Companies")}
+                </a>
+              </>
+            )}
           </div>
-        )}
-        {createSandbox && (
-          <CompanySetup initialDemoSimulation close={() => setCreateSandbox(false)} />
-        )}
+        </div>
       </section>
     );
   return (

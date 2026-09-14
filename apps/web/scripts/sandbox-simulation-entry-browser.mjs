@@ -101,42 +101,36 @@ try {
       assert.equal(writes.length, 0);
       await page.goto(`${base}/app/settings?tenant=ordinary&settings_view=company`);
       await page.locator("[data-company-simulation=story]").click();
-      const name = {
-        en: "Create demo Sandbox",
-        de: "Demo-Sandbox erstellen",
-        nl: "Demo-Sandbox maken",
-        es: "Crear Sandbox de demostración",
-      }[language];
-      await page.getByRole("button", { name, exact: true }).click();
-      const dialog = page.locator(".company-setup-dialog");
-      await dialog.locator("input[value=demo]").waitFor();
-      assert(await dialog.locator("input[value=demo]").isChecked());
-      assert(await dialog.locator("input[type=checkbox]").isChecked());
+      const unavailable = page.locator("[data-simulation-unavailable]");
+      await unavailable.waitFor();
+      const spacing = await unavailable.evaluate((node) => {
+        const heading = node.querySelector("h2");
+        return {
+          padding: parseFloat(getComputedStyle(node).paddingLeft),
+          heading: parseFloat(getComputedStyle(heading).fontSize),
+        };
+      });
+      assert.ok(spacing.padding >= 24 && spacing.heading >= 20, "padded card and clear heading");
+      await page.screenshot({
+        path: `/private/tmp/simulation-unavailable-${language}-${width}.png`,
+      });
+      assert.equal(await page.locator(".company-setup-dialog").count(), 0);
+      assert.equal(await unavailable.getByRole("button").count(), 0);
       assert.equal(writes.length, 0);
+      await unavailable.getByRole("link").click();
+      await page.waitForURL(/settings_view=company/);
+      await page.locator("[data-company-simulation=story]").waitFor();
       assert.equal(new URL(page.url()).searchParams.get("tenant"), "story");
-      assert(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
-      await page.screenshot({ path: `/private/tmp/simulation-entry-${language}-${width}.png` });
-      await dialog.locator("button.secondary-button").click();
-      await dialog.waitFor({ state: "detached" });
-      assert.equal(writes.length, 0);
-      if (language === "en" && width === 1440) {
-        await page.getByRole("button", { name, exact: true }).click();
-        await page.locator("#setup-company-name").fill("Separate demo");
-        await page.getByRole("button", { name: "Create company", exact: true }).click();
-        await page
-          .getByText("Creation could not be confirmed. Retry the same request to recover safely.")
-          .waitFor();
-        assert.equal(writes.length, 1);
-        assert.equal(writes[0].path, "/api/company-setup");
-        assert.equal(writes[0].body.environment, "sandbox");
-        assert.equal(writes[0].body.content, "international_demo");
-        assert.equal(writes[0].body.live_simulation, true);
-        assert.equal(writes[0].body.confirmed, true);
-      }
+      assert.equal(await page.locator(".company-setup-dialog").count(), 0);
+      assert.equal(
+        writes.length,
+        0,
+        "unsupported entry and Companies navigation do not create anything",
+      );
       assert.deepEqual(errors, []);
       await page.close();
       console.log(
-        `PASS ${language}/${width}: scoped owner entry, compatibility fallback, separate confirmed setup and cancel`,
+        `PASS ${language}/${width}: scoped owner entry, explicit unavailable state, Companies navigation without creation`,
       );
     }
 } finally {

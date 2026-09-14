@@ -134,3 +134,7 @@ Update CompanySetup presentation with scoped Tailwind styles and localized statu
 ## FR-032 implementation plan
 
 Reuse the Demo Data route from owner Sandbox cards; do not infer service eligibility from the card. The existing denied-status presentation offers normal CompanySetup for a separate demo, with an optional initial demo/live selection constrained by setup options. Preserve pending saved requests, explicit confirmation and all service scope checks. No schema, queue, business calculation or service changes. Constitution: PASS. Verify owner/member/ordinary cards, target tenant, read-only navigation, supported controls, unsupported recovery and cancel, default choices, saved-request recovery, localized/mobile layout.
+
+FR-032 visual refinement: replace legacy panel classes with shared surface/spacing/typography tokens and a decorative simulation icon. Keep existing localized copy and action. Constitution PASS; no service or flow change. Add visual spacing assertions and snapshots to the existing entry browser proof.
+
+Owner correction: remove the inline separate-demo setup shortcut and its now-unused initial-choice props. Unsupported state explains the limitation and links to Companies. No expansion of Storyline eligibility; normal empty Sandboxes remain supported by existing services. Test no inline modal or write, navigation to Companies, padding and mobile layout.

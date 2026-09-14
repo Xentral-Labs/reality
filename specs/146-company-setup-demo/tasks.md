@@ -143,3 +143,6 @@ FR-022 → T050; unified-app/local-stack integration → T045–049. Final evide
 - [x] T932 Add card-entry and unsupported-company browser regressions.
 - [x] T933 Reuse simulation controls and confirmed demo setup with localized fallback.
 - [x] T934 Verify build, contracts, browser coverage, language and spec checks; create PR.
+
+- [x] T935 Polish the unavailable simulation card and replace inline creation with Companies navigation; verify heading/padding, desktop/mobile snapshots, read-only handoff and local gates.
+- [ ] T936 Verify the PR pipeline before merge/deployment.

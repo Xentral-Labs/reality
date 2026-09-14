@@ -80,3 +80,5 @@ Spec146 FR-031: company setup distinguishes busy preparation/opening from recove
 ## Existing Sandbox simulation entry
 
 Owner Sandbox/demo cards link to the existing company-scoped Demo Data controls (FR-032). Opening the page performs no mutation. Backend eligibility remains authoritative. Unsupported practice companies offer a separate demo through normal confirmed setup; demo/live choices are initially selected only when setup options allow them. Saved requests override initial suggestions. Historical fixtures and Storyline companies are never reseeded or converted.
+
+FR-032 correction: unsupported simulation entry links to Companies instead of opening an inline demo creation dialog. The hint suggests an empty Sandbox; historical demo data is not required for subsequent simulation. Eligible existing Sandboxes continue to use the existing preview/connect/start controls.
