@@ -57796,6 +57796,153 @@
   ],
   "storylines": [
     {
+      "key": "first-round",
+      "version": 1,
+      "process": "order_to_cash",
+      "title": {
+        "en": "First round",
+        "de": "Erste Runde",
+        "nl": "Eerste ronde",
+        "es": "Primera vuelta",
+        "missing": false
+      },
+      "summary": {
+        "en": "Seven steps, about five minutes. One order, one finding that appears by itself and clears by itself, and a shipment the system refuses. The shortest way to see how Reality works.",
+        "de": "Sieben Schritte, etwa fünf Minuten. Ein Auftrag, eine Abweichung, die von selbst kommt und von selbst geht, und ein Versand, den das System verweigert. Der kürzeste Weg zu sehen, wie Reality arbeitet.",
+        "nl": "Zeven stappen, ongeveer vijf minuten. Eén order, één bevinding die vanzelf komt en vanzelf sluit, en een verzending die het systeem weigert. De kortste weg om te zien hoe Reality werkt.",
+        "es": "Siete pasos, unos cinco minutos. Un pedido, un hallazgo que aparece solo y se cierra solo, y un envío que el sistema rechaza. El camino más corto para ver cómo trabaja Reality.",
+        "missing": false
+      },
+      "chapters": [
+        {
+          "key": "order",
+          "title": {
+            "en": "Create the order",
+            "de": "Auftrag anlegen",
+            "nl": "Order aanmaken",
+            "es": "Crear el pedido",
+            "missing": false
+          },
+          "kind": "command",
+          "tools": ["order_create"],
+          "view": "view:orders",
+          "expect": {
+            "raised": ["outgoing_commitment_at_risk"],
+            "cleared": []
+          },
+          "default_path": true
+        },
+        {
+          "key": "explain",
+          "title": {
+            "en": "Explain the finding",
+            "de": "Abweichung erklären lassen",
+            "nl": "De bevinding laten verklaren",
+            "es": "Explicar el hallazgo",
+            "missing": false
+          },
+          "kind": "read",
+          "tools": ["exception_explain", "item_supply_demand"],
+          "view": "view:supply_demand",
+          "expect": {
+            "raised": [],
+            "cleared": []
+          },
+          "default_path": true
+        },
+        {
+          "key": "receipt",
+          "title": {
+            "en": "Receive a short delivery",
+            "de": "Zu kleine Lieferung einbuchen",
+            "nl": "Te kleine levering inboeken",
+            "es": "Recibir una entrega incompleta",
+            "missing": false
+          },
+          "kind": "command",
+          "tools": ["movement_create"],
+          "view": "view:movements",
+          "expect": {
+            "raised": [],
+            "cleared": []
+          },
+          "default_path": true
+        },
+        {
+          "key": "reserve",
+          "title": {
+            "en": "Reserve the stock",
+            "de": "Bestand reservieren",
+            "nl": "Voorraad reserveren",
+            "es": "Reservar la existencia",
+            "missing": false
+          },
+          "kind": "command",
+          "tools": ["reserve"],
+          "view": "view:reservations",
+          "expect": {
+            "raised": [],
+            "cleared": ["outgoing_commitment_at_risk"]
+          },
+          "default_path": true
+        },
+        {
+          "key": "dispatch",
+          "title": {
+            "en": "Try to ship",
+            "de": "Versand versuchen",
+            "nl": "Proberen te verzenden",
+            "es": "Intentar el envío",
+            "missing": false
+          },
+          "kind": "command",
+          "tools": ["movement_create"],
+          "view": "view:fulfillment_blockers",
+          "expect": {
+            "raised": [],
+            "cleared": []
+          },
+          "default_path": true
+        },
+        {
+          "key": "release-hold",
+          "title": {
+            "en": "Release the hold",
+            "de": "Sperre aufheben",
+            "nl": "Blokkade opheffen",
+            "es": "Levantar el bloqueo",
+            "missing": false
+          },
+          "kind": "command",
+          "tools": ["party_delivery_hold_release"],
+          "view": "view:fulfillment_blockers",
+          "expect": {
+            "raised": [],
+            "cleared": []
+          },
+          "default_path": true
+        },
+        {
+          "key": "ship",
+          "title": {
+            "en": "Ship the goods",
+            "de": "Ware versenden",
+            "nl": "Goederen verzenden",
+            "es": "Enviar la mercancía",
+            "missing": false
+          },
+          "kind": "command",
+          "tools": ["movement_create"],
+          "view": "view:movements",
+          "expect": {
+            "raised": ["shipped_not_billed"],
+            "cleared": []
+          },
+          "default_path": true
+        }
+      ]
+    },
+    {
       "key": "order-to-close",
       "version": 1,
       "process": "order_to_cash",

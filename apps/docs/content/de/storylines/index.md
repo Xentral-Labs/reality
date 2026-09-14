@@ -37,6 +37,26 @@ Hand bearbeiten.
 
 - [Paketschema (JSON Schema)](/storylines/storyline.schema.json)
 
+## Erste Runde {#storyline-first-round}
+
+Sieben Schritte, etwa fünf Minuten. Ein Auftrag, eine Abweichung, die von selbst kommt und von
+selbst geht, und ein Versand, den das System verweigert. Der kürzeste Weg zu sehen, wie Reality
+arbeitet.
+
+- [Paket herunterladen](/storylines/first-round.storyline.yaml) (`first-round` v1)
+
+### Schritte
+
+| Schritt                          | Art    | Befehl oder Lesungen                      | Ansicht                     | Erwartete Abweichungen          |
+| -------------------------------- | ------ | ----------------------------------------- | --------------------------- | ------------------------------- |
+| 1. Auftrag anlegen               | Befehl | `order_create`                            | `view:orders`               | ▲ `outgoing_commitment_at_risk` |
+| 2. Abweichung erklären lassen    | Lesung | `exception_explain`, `item_supply_demand` | `view:supply_demand`        |                                 |
+| 3. Zu kleine Lieferung einbuchen | Befehl | `movement_create`                         | `view:movements`            |                                 |
+| 4. Bestand reservieren           | Befehl | `reserve`                                 | `view:reservations`         | ✓ `outgoing_commitment_at_risk` |
+| 5. Versand versuchen             | Befehl | `movement_create`                         | `view:fulfillment_blockers` |                                 |
+| 6. Sperre aufheben               | Befehl | `party_delivery_hold_release`             | `view:fulfillment_blockers` |                                 |
+| 7. Ware versenden                | Befehl | `movement_create`                         | `view:movements`            | ▲ `shipped_not_billed`          |
+
 ## Auftrag bis Abschluss {#storyline-order-to-close}
 
 Ein Kundenauftrag, eine zu kleine Lieferung, ein gesperrter Versand, eine Überzahlung und ein

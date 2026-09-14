@@ -12,6 +12,8 @@ Vom Kundenauftrag über Reservierung, Versand und Rechnung bis zur ausgeglichene
 
 [Playbook lesen](../agent-playbooks/order-to-cash-fulfilment)
 
+[Als Storyline spielen: Erste Runde](../storylines/#storyline-first-round)
+
 [Als Storyline spielen: Auftrag bis Abschluss](../storylines/#storyline-order-to-close)
 
 ### 1. Kundenauftrag erfassen
