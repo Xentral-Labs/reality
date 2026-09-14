@@ -63,6 +63,22 @@ try {
           });
         if (path === "/api/tenants/story/demo-data")
           return reply({ detail: "Demo Data requires a ready compatible practice company." }, 403);
+        if (path === "/api/tenants/supported/demo-data/preview")
+          return reply({
+            fingerprint: "fixture-preview",
+            add: {
+              items: [
+                { key: "bottle", name: "Summit Bottle" },
+                { key: "lantern", name: "Trail Lantern" },
+              ],
+              parties: Array.from({ length: 21 }, (_, i) => ({
+                key: `party-${i}`,
+                name: `Demo customer ${i + 1}`,
+              })),
+              locations: [{ key: "A", name: "Rotterdam Warehouse" }],
+              payment_terms: [{ key: "term", name: "14 days net, 2 % within 7 days" }],
+            },
+          });
         if (path === "/api/tenants/supported/demo-data")
           return reply({ state: "not_connected", rate: 60 });
         if (path === "/api/company-setup/options")
@@ -99,10 +115,48 @@ try {
       await page.locator(".demo-data-integration .secondary-button").first().waitFor();
       assert.equal(new URL(page.url()).searchParams.get("tenant"), "supported");
       assert.equal(writes.length, 0);
+      await page.locator(".demo-data-integration .secondary-button").first().click();
+      const preview = page.locator("[data-demo-connection-preview]");
+      await preview.waitFor();
+      assert.equal(await preview.locator("details").count(), 4);
+      const parties = preview.locator("[data-demo-reference-group=parties]");
+      assert.match(await parties.locator("summary").innerText(), /21/);
+      assert.equal(await parties.getAttribute("open"), null);
+      await parties.locator("summary").focus();
+      await page.keyboard.press("Enter");
+      assert.notEqual(await parties.getAttribute("open"), null);
+      assert.equal(await parties.locator("li").count(), 21);
+      await parties.locator("summary").click();
+      assert.equal(writes.length, 0);
+      assert(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
+      await page.screenshot({
+        path: `/private/tmp/demo-connection-preview-${language}-${width}.png`,
+      });
+      await preview.locator("button").last().click();
+      await preview.waitFor({ state: "detached" });
+      assert.equal(writes.length, 0);
+      if (language === "en" && width === 1440) {
+        await page.locator(".demo-data-integration .secondary-button").first().click();
+        await preview.locator("button").first().click();
+        await page.getByRole("alert").waitFor();
+        assert.equal(writes.length, 1);
+        assert.equal(writes[0].path, "/api/tenants/supported/demo-data/connect");
+        assert.equal(writes[0].body.preview_fingerprint, "fixture-preview");
+        assert.equal(writes[0].body.confirmed, true);
+        assert.ok(writes[0].body.request_key);
+        writes.length = 0;
+      }
+
       await page.goto(`${base}/app/settings?tenant=ordinary&settings_view=company`);
       await page.locator("[data-company-simulation=story]").click();
       const unavailable = page.locator("[data-simulation-unavailable]");
       await unavailable.waitFor();
+      if (language === "en")
+        await unavailable
+          .getByText(
+            "Live simulation supports empty and standard demo Sandbox setups. Storyline Sandboxes use a different data setup that is not yet supported.",
+          )
+          .waitFor();
       const spacing = await unavailable.evaluate((node) => {
         const heading = node.querySelector("h2");
         return {

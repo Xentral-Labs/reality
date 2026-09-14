@@ -1,4 +1,4 @@
-import { FlaskConical } from "lucide-react";
+import { ChevronDown, FlaskConical } from "lucide-react";
 import { Inspector } from "../unified/Inspector";
 import { useEffect, useRef, useState } from "react";
 import {
@@ -8,7 +8,7 @@ import {
   type DemoDataPreview,
   type DemoImportPage,
 } from "../api";
-import { t, formatDateTime } from "../localization";
+import { t, formatDateTime, formatNumber } from "../localization";
 import { financeLink, needsAttention, orderToCashRows } from "./demoDataSummary";
 
 type Change = {
@@ -171,6 +171,11 @@ function DemoDataIntegrationView({
             <p className="mt-2 text-sm leading-6 text-fg-muted">
               {t("Live simulation is not available in this Sandbox.")}
             </p>
+            <p className="mt-3 max-w-xl text-sm leading-6 text-fg-muted">
+              {t(
+                "Live simulation supports empty and standard demo Sandbox setups. Storyline Sandboxes use a different data setup that is not yet supported.",
+              )}
+            </p>
             {showCompanyLink && (
               <>
                 <p className="mt-3 max-w-xl text-sm leading-6 text-fg-muted">
@@ -247,52 +252,96 @@ function DemoDataIntegrationView({
       )}
       {state?.state === "not_connected" ? (
         <>
-          <button
-            className="secondary-button"
-            disabled={busy}
-            onClick={() => void act(async () => setPreview(await api.demoDataPreview(scope)))}
-          >
-            {t("Review demo connection")}
-          </button>
+          {!preview && (
+            <button
+              className="secondary-button"
+              disabled={busy}
+              onClick={() => void act(async () => setPreview(await api.demoDataPreview(scope)))}
+            >
+              {t("Review demo connection")}
+            </button>
+          )}
           {preview && (
-            <div>
-              <p>
+            <section
+              data-demo-connection-preview
+              className="mt-5 max-w-3xl rounded-xl border border-border-default bg-surface p-5 sm:p-6"
+            >
+              <h3 className="text-base font-semibold text-fg-strong">
+                {t("Review demo connection")}
+              </h3>
+              <p className="mt-2 text-sm leading-6 text-fg-muted">
                 {t(
                   "Only the following missing references will be added. No stock or history is created.",
                 )}
               </p>
-              <ul data-localization="original">
-                {Object.entries(preview.add).flatMap(([kind, rows]) =>
-                  rows.map((row) => <li key={`${kind}:${row.key}`}>{row.name}</li>),
-                )}
-              </ul>
-              <button
-                className="primary-button"
-                disabled={busy}
-                onClick={() =>
-                  void act(async () => {
-                    const key = sessionStorage.getItem(`${storage}.connect`) || crypto.randomUUID();
-                    sessionStorage.setItem(`${storage}.connect`, key);
-                    await api.demoDataConnect(scope, {
-                      request_key: key,
-                      preview_fingerprint: preview.fingerprint,
-                      confirmed: true,
-                    });
-                    sessionStorage.removeItem(`${storage}.connect`);
-                    setPreview(undefined);
-                  })
-                }
-              >
-                {t("Confirm connection")}
-              </button>
-              <button
-                className="secondary-button"
-                disabled={busy}
-                onClick={() => setPreview(undefined)}
-              >
-                {t("Cancel")}
-              </button>
-            </div>
+              <div className="mt-5 grid gap-3 sm:grid-cols-2">
+                {Object.entries(preview.add).map(([kind, rows]) => (
+                  <details
+                    key={kind}
+                    data-demo-reference-group={kind}
+                    className="group min-w-0 self-start rounded-lg border border-border-default bg-surface"
+                  >
+                    <summary className="flex cursor-pointer list-none items-center gap-3 rounded-lg p-4 text-sm font-medium text-fg-strong focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent">
+                      <span className="min-w-0 flex-1">
+                        {t(
+                          (
+                            {
+                              items: "Items",
+                              parties: "Business partners",
+                              locations: "Locations",
+                              payment_terms: "Payment terms",
+                            } as Record<string, string>
+                          )[kind] || kind,
+                        )}
+                      </span>
+                      <span className="rounded-md bg-surface-muted px-2 py-0.5 tabular-nums text-fg-muted">
+                        {formatNumber(rows.length, 0)}
+                      </span>
+                      <ChevronDown
+                        size={16}
+                        className="shrink-0 text-fg-muted group-open:rotate-180"
+                        aria-hidden="true"
+                      />
+                    </summary>
+                    <ul
+                      className="max-h-52 space-y-2 overflow-y-auto border-t border-border-default p-4 text-sm text-fg-muted"
+                      data-localization="original"
+                    >
+                      {rows.map((row) => (
+                        <li key={row.key} className="break-words">
+                          {row.name}
+                        </li>
+                      ))}
+                    </ul>
+                  </details>
+                ))}
+              </div>
+              <div className="mt-6 flex flex-wrap items-center gap-3 border-t border-border-default pt-5">
+                <button
+                  className="br-btn br-btn-primary"
+                  disabled={busy}
+                  onClick={() =>
+                    void act(async () => {
+                      const key =
+                        sessionStorage.getItem(`${storage}.connect`) || crypto.randomUUID();
+                      sessionStorage.setItem(`${storage}.connect`, key);
+                      await api.demoDataConnect(scope, {
+                        request_key: key,
+                        preview_fingerprint: preview.fingerprint,
+                        confirmed: true,
+                      });
+                      sessionStorage.removeItem(`${storage}.connect`);
+                      setPreview(undefined);
+                    })
+                  }
+                >
+                  {t("Confirm connection")}
+                </button>
+                <button className="br-btn" disabled={busy} onClick={() => setPreview(undefined)}>
+                  {t("Cancel")}
+                </button>
+              </div>
+            </section>
           )}
         </>
       ) : (
