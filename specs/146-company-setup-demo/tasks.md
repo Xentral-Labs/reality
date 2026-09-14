@@ -137,3 +137,9 @@ FR-022 → T050; unified-app/local-stack integration → T045–049. Final evide
 ## FR-031
 - [x] T031 Refine setup states, typography and status indicators without changing creation semantics.
 - [x] T032 Verify delayed setup, same-request retry and responsive localized rendering.
+
+## FR-032
+
+- [x] T932 Add card-entry and unsupported-company browser regressions.
+- [x] T933 Reuse simulation controls and confirmed demo setup with localized fallback.
+- [x] T934 Verify build, contracts, browser coverage, language and spec checks; create PR.

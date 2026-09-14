@@ -1,3 +1,4 @@
+import { CompanySetup } from "./CompanySetup";
 import { Inspector } from "../unified/Inspector";
 import { useEffect, useRef, useState } from "react";
 import {
@@ -34,11 +35,24 @@ const labels: Record<string, string> = {
   not_connected: "Not connected",
 };
 
-export function DemoDataIntegration(props: { tenantId: string; runId?: string }) {
+export function DemoDataIntegration(props: {
+  tenantId: string;
+  runId?: string;
+  allowSeparateSandbox?: boolean;
+}) {
   return <DemoDataIntegrationView key={`${props.tenantId}:${props.runId || ""}`} {...props} />;
 }
 
-function DemoDataIntegrationView({ tenantId, runId }: { tenantId: string; runId?: string }) {
+function DemoDataIntegrationView({
+  tenantId,
+  runId,
+  allowSeparateSandbox = false,
+}: {
+  tenantId: string;
+  runId?: string;
+  allowSeparateSandbox?: boolean;
+}) {
+  const [createSandbox, setCreateSandbox] = useState(false);
   const scope = runId
     ? `/api/playground/runs/${encodeURIComponent(runId)}/demo-data`
     : `/api/tenants/${encodeURIComponent(tenantId)}/demo-data`;
@@ -139,6 +153,21 @@ function DemoDataIntegrationView({ tenantId, runId }: { tenantId: string; runId?
       <section className="panel integration-section">
         <h2>{t("Demo Data")}</h2>
         <p>{t("Demo Data is available in compatible practice companies.")}</p>
+        {allowSeparateSandbox && (
+          <div className="mt-4 space-y-4">
+            <p>
+              {t(
+                "Create a separate demo Sandbox for live simulation. Your existing company and Storyline stay unchanged.",
+              )}
+            </p>
+            <button className="br-btn" onClick={() => setCreateSandbox(true)}>
+              {t("Create demo Sandbox")}
+            </button>
+          </div>
+        )}
+        {createSandbox && (
+          <CompanySetup initialDemoSimulation close={() => setCreateSandbox(false)} />
+        )}
       </section>
     );
   return (

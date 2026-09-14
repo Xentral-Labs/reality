@@ -293,3 +293,7 @@ existing `test_attention_reads.py` and `test_unified_operations_api.py`.
 ## Setup progress presentation — FR-031
 
 **FR-031**: First-company and dialog setup distinguish loading, creation, opening and recoverable failure visually. Busy states show a visible reduced-motion-aware spinner, one status message and the requested company name when known; no retry action or start-choice instructions appear while busy. Idle interrupted requests retain explicit same-request retry, and ready receipts retain automatic navigation. Use shared theme tokens, responsive spacing and en/de/nl/es translations. No API, consent, request identity or company-creation behavior changes.
+
+## Retrospective simulation entry — FR-032
+
+**FR-032**: Owner cards for existing Sandbox/demo companies expose Live simulation, opening the existing company-scoped Demo Data page without mutation or replaying historical fixtures. Existing preview, explicit connection/start controls, rate, pause and resume remain authoritative. Unsupported practice companies, including Storyline companies, explain the limitation and offer a separate Demo Sandbox through normal confirmed company setup with demo/live choices initially selected when allowed. Existing companies remain unchanged. Ordinary company/member cards do not expose the action; server eligibility and admission remain authoritative. All new copy supports en/de/nl/es and mobile.
