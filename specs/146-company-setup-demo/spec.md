@@ -289,3 +289,7 @@ all existing mutation restrictions remain unchanged. The previous ordinary-only
 read guard caused the observed Sandbox error instead of showing existing findings.
 Regression evidence: `test_company_setup_unified.py`, `test_playground_api.py`,
 existing `test_attention_reads.py` and `test_unified_operations_api.py`.
+
+## Setup progress presentation — FR-031
+
+**FR-031**: First-company and dialog setup distinguish loading, creation, opening and recoverable failure visually. Busy states show a visible reduced-motion-aware spinner, one status message and the requested company name when known; no retry action or start-choice instructions appear while busy. Idle interrupted requests retain explicit same-request retry, and ready receipts retain automatic navigation. Use shared theme tokens, responsive spacing and en/de/nl/es translations. No API, consent, request identity or company-creation behavior changes.

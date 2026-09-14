@@ -85,28 +85,32 @@ export default function UnifiedApp({
         autoEnter={entryWasHome.current}
         open={(data, id) => context.openCompany(data, id, true)}
       >
-        <div className="mx-auto max-w-xl p-8">
-          <h1 className="text-2xl">
-            {t(bootstrap.tenants.length ? "Company unavailable" : "Create your first company")}
-          </h1>
-          <p className="my-4">
-            {t(
-              bootstrap.tenants.length
-                ? "Choose an authorized company or create another."
-                : "Your company brings orders, stock and finance together.",
-            )}
-          </p>
-          <div className="flex flex-wrap gap-3">
-            {bootstrap.tenants.map((row) => (
-              <button key={row.id} className="br-btn" onClick={() => switchCompany(row.id)}>
-                {row.name}
-              </button>
-            ))}
+        {bootstrap.tenants.length === 0 ? (
+          <CreateCompany openCompany={openCompany} />
+        ) : (
+          <div className="mx-auto max-w-xl p-8">
+            <h1 className="text-2xl">
+              {t(bootstrap.tenants.length ? "Company unavailable" : "Create your first company")}
+            </h1>
+            <p className="my-4">
+              {t(
+                bootstrap.tenants.length
+                  ? "Choose an authorized company or create another."
+                  : "Your company brings orders, stock and finance together.",
+              )}
+            </p>
+            <div className="flex flex-wrap gap-3">
+              {bootstrap.tenants.map((row) => (
+                <button key={row.id} className="br-btn" onClick={() => switchCompany(row.id)}>
+                  {row.name}
+                </button>
+              ))}
+            </div>
+            <div className="mt-6">
+              <CreateCompany openCompany={openCompany} />
+            </div>
           </div>
-          <div className="mt-6">
-            <CreateCompany openCompany={openCompany} />
-          </div>
-        </div>
+        )}
       </TrialEntry>
     );
   return (

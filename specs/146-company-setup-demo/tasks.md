@@ -133,3 +133,7 @@ FR-022 → T050; unified-app/local-stack integration → T045–049. Final evide
 - [x] T059 [FR-029] Move Demo Data to its own Company navigation destination; verify route, conditional menu, isolated integration view, mobile/localized layout and local web deployment.
 
 - [x] T060 [FR-030] Reproduce Sandbox Exceptions failure, replace the two inappropriate read guards, verify focused/full/backend and real local demo reads, and update local matching core images.
+
+## FR-031
+- [x] T031 Refine setup states, typography and status indicators without changing creation semantics.
+- [x] T032 Verify delayed setup, same-request retry and responsive localized rendering.

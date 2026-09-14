@@ -1,3 +1,4 @@
+import { Building2, LoaderCircle } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import {
   api,
@@ -103,27 +104,55 @@ export function CompanySetup({
     void open();
   }, [result, options, busy]);
   const body = (
-    <section className="onboarding-card" aria-labelledby="company-setup-title" aria-busy={busy}>
+    <section
+      className="onboarding-card company-setup-card"
+      aria-labelledby="company-setup-title"
+      aria-busy={busy}
+    >
+      <div className="company-setup-symbol" aria-hidden="true">
+        {busy ? (
+          <LoaderCircle className="animate-spin motion-reduce:animate-none" />
+        ) : (
+          <Building2 />
+        )}
+      </div>
+      <p className="company-setup-brand">Reality</p>
       <h1 id="company-setup-title">
         {t(
           result?.status === "ready"
             ? "Company created"
-            : first
-              ? "Create your first company"
-              : "Create company",
+            : busy
+              ? pending
+                ? "Preparing your company"
+                : "Loading your workspace"
+              : pending
+                ? "Continue company setup"
+                : first
+                  ? "Create your first company"
+                  : "Create company",
         )}
       </h1>
-      {result?.status !== "ready" && (
-        <p>
-          {t(
-            first
-              ? "Your access request has not created a company. Choose how this company should start."
-              : "Choose how this company should start.",
+      {!busy && !pending && result?.status !== "ready" && (
+        <p className="company-setup-description">{t("Choose how this company should start.")}</p>
+      )}
+      {busy && (
+        <div role="status" aria-live="polite" className="company-setup-progress">
+          {(pending?.name || result?.name) && (
+            <p className="company-setup-name" data-localization="original">
+              {pending?.name || result?.name}
+            </p>
           )}
-        </p>
+          <p>
+            {t(
+              result?.status === "ready"
+                ? "Company created. Opening your company…"
+                : "Please wait. You will continue automatically.",
+            )}
+          </p>
+        </div>
       )}
       {error && <p role="alert">{error}</p>}
-      {result?.status === "ready" ? (
+      {busy ? null : result?.status === "ready" ? (
         <div role="status">
           <p>
             <span data-localization="original">{result.name}</span> — {t("Ready")}
@@ -136,13 +165,11 @@ export function CompanySetup({
           )}
         </div>
       ) : pending ? (
-        <div aria-live="polite">
-          <p data-localization="original">{pending.name}</p>
-          <p>
-            {t(
-              "Keep this request while setup is pending. Retrying will not create another company.",
-            )}
+        <div aria-live="polite" className="company-setup-recovery">
+          <p className="company-setup-name" data-localization="original">
+            {pending.name}
           </p>
+          <p>{t("Your setup is saved. Continue with the same company.")}</p>
           <button className="primary-button" disabled={busy} onClick={() => void submit(pending)}>
             {t("Retry company setup")}
           </button>
@@ -158,7 +185,6 @@ export function CompanySetup({
           />
         )
       )}
-      {busy && <p role="status">{t("Loading…")}</p>}
     </section>
   );
   return first ? (

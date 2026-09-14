@@ -117,3 +117,7 @@ and a readable finding detail in a strictly read-only transaction. API/MCP are
 healthy, scheduler/worker running, all with zero restarts; the port8080 health
 proxy responds successfully. No frontend change was required. Evidence: local
 `/tmp/reality-attention-full.log` and `/tmp/reality-attention-focused.log`.
+
+## FR-031 verification
+
+156 web contracts pass; build, four-language audit (1823 strings), formatting, spec policy and whitespace checks pass. `apps/web/scripts/company-setup-progress-browser.mjs` verifies delayed recovery, loading without retry, visible spinner, failed-request recovery and identical retry payload in all four languages at 1440/390 px, light/dark appearances. German desktop/mobile screenshots visually inspected. No real company is created by these fixtures. The empty entry no longer wraps the setup view in a duplicate heading or constrained container.

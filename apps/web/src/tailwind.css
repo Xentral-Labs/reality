@@ -3342,3 +3342,34 @@ textarea.br-control.rule-draft-editor {
     min-width: 44px;
   }
 }
+
+.company-setup-card {
+  @apply gap-4 text-fg-default;
+}
+.company-setup-symbol {
+  @apply flex size-14 items-center justify-center rounded-2xl bg-accent-soft text-accent;
+}
+.company-setup-symbol svg {
+  @apply size-7;
+}
+.company-setup-brand {
+  @apply text-sm font-semibold text-fg-muted;
+}
+.company-setup-card h1 {
+  @apply m-0 text-2xl font-semibold leading-tight tracking-tight text-fg-strong sm:text-3xl;
+}
+.company-setup-description,
+.company-setup-progress,
+.company-setup-recovery {
+  @apply w-full space-y-4 text-sm leading-relaxed text-fg-muted;
+}
+.company-setup-name {
+  @apply rounded-xl border border-border-default bg-surface-sunken px-4 py-3 font-medium text-fg-strong;
+  overflow-wrap: anywhere;
+}
+.company-setup-card > [role="alert"] {
+  @apply w-full rounded-xl border border-border-default bg-surface-sunken p-4 text-left text-sm leading-relaxed;
+}
+.company-setup-card .primary-button {
+  @apply min-h-11 mt-2;
+}
