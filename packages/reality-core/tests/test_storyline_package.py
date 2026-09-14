@@ -241,6 +241,32 @@ def test_drafts_are_refused_until_edited():
     assert set(codes(result)) == {"draft", "missing_text"}
 
 
+def test_a_spoken_line_is_optional_and_carries_every_language_when_present():
+    document = minimal()
+    document["chapters"][0]["say"] = {"en": "Create the order"}
+
+    imported = pkg.validate_package(document)
+    builtin = pkg.validate_package(document, builtin=True)
+
+    assert imported.ok, [(i.path, i.code) for i in imported.errors]
+    assert imported.package.chapters[0].say.en == "Create the order"
+    # A built-in must translate what it ships, the spoken line included.
+    assert ("chapters[0].say", "missing_language") in [
+        (i.path, i.code) for i in builtin.errors
+    ]
+    # Without the field the chapter is still valid and nothing is demanded of it.
+    del document["chapters"][0]["say"]
+    without = pkg.validate_package(document, builtin=True)
+    assert without.package.chapters[0].say is None
+    assert not any(i.path.endswith(".say") for i in without.errors)
+
+
+def test_every_built_in_ships_a_spoken_line_for_every_chapter():
+    for result in pkg.builtin_packages():
+        for index, chapter in enumerate(result.package.chapters):
+            assert chapter.say is not None, (result.package.key, index, chapter.key)
+
+
 def test_every_built_in_package_validates_as_a_built_in():
     results = pkg.builtin_packages()
 

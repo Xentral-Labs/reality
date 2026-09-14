@@ -2727,6 +2727,11 @@ export type StorylineChapterEntry = {
   refused: { code: string; detail: string; phase?: string } | null;
   marker: { sequence: number; at: string } | null;
   title: StorylineText;
+  /** The spoken line, the setup and the explanation, so the conversation can
+   *  render every played turn without fetching each chapter again. */
+  say: StorylineText | null;
+  situation: StorylineText;
+  explain: StorylineText;
   view: string | null;
   command: string | null;
   branches: StorylineBranch[];
@@ -2748,6 +2753,7 @@ export type StorylineChapter = {
   kind: "command" | "read" | "unsupported";
   title: StorylineText;
   situation: StorylineText;
+  say: StorylineText | null;
   explain: StorylineText;
   view: string | null;
   command: string | null;

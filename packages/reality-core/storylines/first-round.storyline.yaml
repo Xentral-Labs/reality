@@ -93,6 +93,11 @@ chapters:
       de: Die Nordlicht Handels GmbH bestellt 12 Thermo-Becher Fjord zu 24,50 €. Am Lager liegen 8. Leg den Auftrag an und schau, was Reality daraus macht.
       nl: Nordlicht Handels GmbH bestelt 12 Fjord-thermobekers à 24,50 €. Er liggen er 8 op voorraad. Maak de order aan en kijk wat Reality ervan maakt.
       es: Nordlicht Handels GmbH pide 12 tazas térmicas Fjord a 24,50 €. Hay 8 en existencia. Crea el pedido y observa qué hace Reality con él.
+    say:
+      en: Create an order for Nordlicht, 12 Fjord thermo mugs at 24.50 €, delivery in five days.
+      de: Leg einen Auftrag für Nordlicht an, 12 Fjord Thermo-Becher zu 24,50 €, Lieferung in fünf Tagen.
+      nl: Maak een order voor Nordlicht aan, 12 Fjord-thermobekers à 24,50 €, levering over vijf dagen.
+      es: Crea un pedido para Nordlicht, 12 tazas térmicas Fjord a 24,50 €, entrega en cinco días.
     explain:
       en: One command, several events. The order and its commitment are separate records because they can be revised separately. The finding "customer commitment at risk" was not written by the command. A rule compared the promised quantity with what is on hand and raised it. Nobody typed a status anywhere.
       de: Ein Befehl, mehrere Ereignisse. Auftrag und Verpflichtung sind getrennte Datensätze, weil sie getrennt geändert werden können. Die Abweichung „Kundenverpflichtung gefährdet“ hat der Befehl nicht geschrieben. Eine Regel hat die zugesagte Menge mit dem Bestand verglichen und sie gehoben. Niemand hat irgendwo einen Status gesetzt.
@@ -135,6 +140,11 @@ chapters:
       de: Reality hat eine Abweichung gehoben, ohne dass jemand darum gebeten hat. Lass sie dir erklären und sieh dir bei der Gelegenheit Bedarf und Deckung für den Becher an. In diesem Schritt wird nichts geschrieben.
       nl: Reality meldde een bevinding zonder dat iemand erom vroeg. Laat haar zichzelf verklaren en bekijk meteen vraag en dekking voor de beker. In deze stap wordt niets geschreven.
       es: Reality levantó un hallazgo sin que nadie lo pidiera. Pide que se explique y mira de paso la oferta y la demanda de la taza. En este paso no se escribe nada.
+    say:
+      en: Why is that order at risk? I have 8 on hand.
+      de: Warum ist der Auftrag gefährdet? Ich habe doch 8 Stück am Lager.
+      nl: Waarom is die order in gevaar? Er liggen er toch 8.
+      es: ¿Por qué está en riesgo ese pedido? Tengo 8 en existencia.
     explain:
       en: The explanation names the rule, the evidence it read and what would clear the finding. There is no status field behind it. The finding exists exactly as long as the rule keeps finding it, and not one moment longer. Reads are recorded too, which is why this step appears in the protocol although it changed nothing.
       de: Die Erklärung nennt die Regel, die gelesene Evidenz und was die Abweichung schließen würde. Dahinter steckt kein Statusfeld. Die Abweichung existiert genau so lange, wie die Regel sie findet, und keinen Moment länger. Auch Lesungen werden aufgezeichnet, deshalb steht dieser Schritt im Protokoll, obwohl er nichts verändert hat.
@@ -163,6 +173,11 @@ chapters:
       de: Baltic Supply liefert gegen Bestellung BE-0107. Auf dem Lieferschein stehen 20 Becher, im Karton sind 16. Buche ein, was wirklich da ist, nicht was auf dem Papier steht.
       nl: Baltic Supply levert op bestelling BE-0107. Op de pakbon staan 20 bekers, in de doos zitten er 16. Boek in wat er echt is, niet wat op papier staat.
       es: Baltic Supply entrega contra el pedido de compra BE-0107. El albarán dice 20 tazas, la caja tiene 16. Registra lo que realmente hay, no lo que dice el papel.
+    say:
+      en: Baltic delivered. The note says 20, the box holds 16. Book the 16.
+      de: Baltic hat geliefert. Auf dem Lieferschein stehen 20, im Karton sind 16. Buch die 16 ein.
+      nl: Baltic heeft geleverd. Op de pakbon staan er 20, in de doos 16. Boek de 16 in.
+      es: Baltic entregó. El albarán dice 20, la caja tiene 16. Registra las 16.
     explain:
       en: The difference is not booked away. The supplier commitment stays open with 4 pieces, because a promise is not kept by writing that it was. There are 24 mugs on hand now, twice what the customer ordered, and the finding from step 1 still stands. Stock is not cover until something holds it for this order.
       de: Die Differenz wird nicht weggebucht. Die Lieferantenverpflichtung bleibt mit 4 Stück offen, denn eine Zusage wird nicht dadurch erfüllt, dass man sie als erfüllt hinschreibt. Am Lager liegen jetzt 24 Becher, doppelt so viele wie bestellt, und die Abweichung aus Schritt 1 steht weiter. Bestand ist keine Deckung, solange ihn nichts für diesen Auftrag festhält.
@@ -192,6 +207,11 @@ chapters:
       de: Jetzt liegen 24 Becher am Lager. Reserviere sie für den Nordlicht-Auftrag.
       nl: Er liggen nu 24 bekers op voorraad. Reserveer ze voor de order van Nordlicht.
       es: Ahora hay 24 tazas en existencia. Resérvalas para el pedido de Nordlicht.
+    say:
+      en: Reserve the stock for the Nordlicht order.
+      de: Reservier den Bestand für den Nordlicht-Auftrag.
+      nl: Reserveer de voorraad voor de order van Nordlicht.
+      es: Reserva la existencia para el pedido de Nordlicht.
     explain:
       en: The reservation covers the whole promise, so the rule that raised "customer commitment at risk" now finds nothing unreserved and the finding clears. Nobody closed it. The same rule that raised it took it back. This is the one thing worth taking away from the whole story.
       de: Die Reservierung deckt die ganze Zusage, also findet die Regel hinter „Kundenverpflichtung gefährdet“ nichts Unreserviertes mehr, und die Abweichung schließt sich. Niemand hat sie geschlossen. Dieselbe Regel, die sie gehoben hat, nimmt sie zurück. Das ist die eine Sache, die von der ganzen Geschichte hängen bleiben sollte.
@@ -219,6 +239,11 @@ chapters:
       de: Die Ware ist reserviert und reichlich vorhanden. Erfasse den Versand von 12 Bechern an Nordlicht. Erwartung, es geht durch. Schau, was passiert.
       nl: De goederen zijn gereserveerd en er is meer dan genoeg. Leg de verzending van 12 bekers aan Nordlicht vast. Verwachting, het gaat door. Kijk wat er gebeurt.
       es: La mercancía está reservada y hay de sobra. Registra el envío de 12 tazas a Nordlicht. Expectativa, pasa. Observa qué ocurre.
+    say:
+      en: Ship the 12 mugs to Nordlicht.
+      de: Schick die 12 Becher an Nordlicht raus.
+      nl: Verstuur de 12 bekers naar Nordlicht.
+      es: Envía las 12 tazas a Nordlicht.
     explain:
       en: Refused, not aborted. The preparation itself was declined because the customer carries a delivery hold that somebody placed during a credit check. No shipment exists and nothing was written, not even a half-finished record to clean up later. The protocol shows the refused call, and the blockers view names the hold and who set it.
       de: Abgelehnt, nicht abgebrochen. Schon die Vorbereitung wurde verweigert, weil der Kunde eine Liefersperre trägt, gesetzt während einer Bonitätsprüfung. Es gibt keinen Versand, und nichts wurde geschrieben, auch kein halbfertiger Datensatz, den später jemand aufräumen müsste. Das Protokoll zeigt den abgelehnten Aufruf, die Blocker-Ansicht nennt die Sperre und wer sie gesetzt hat.
@@ -245,6 +270,11 @@ chapters:
       de: Die Bonitätsprüfung ist sauber ausgegangen. Hebe die Liefersperre für Nordlicht auf.
       nl: De kredietcontrole is schoon teruggekomen. Hef de leverblokkade voor Nordlicht op.
       es: La comprobación de solvencia salió limpia. Levanta el bloqueo de entrega de Nordlicht.
+    say:
+      en: The credit check is clean. Release the delivery hold on Nordlicht.
+      de: Die Bonitätsprüfung ist sauber. Heb die Liefersperre für Nordlicht auf.
+      nl: De kredietcontrole is schoon. Hef de leverblokkade voor Nordlicht op.
+      es: La comprobación de solvencia salió limpia. Levanta el bloqueo de entrega de Nordlicht.
     explain:
       en: A release is its own event on the same hold record, not a deletion. Who set the hold, who lifted it and when stays readable forever. Reality never lifted it on its own and never will. A rule may raise a finding, a decision belongs to a person, and the decision is on the record.
       de: Eine Aufhebung ist ein eigenes Ereignis am selben Sperrdatensatz, keine Löschung. Wer die Sperre gesetzt hat, wer sie aufgehoben hat und wann, bleibt für immer lesbar. Reality hat sie nie von allein aufgehoben und wird es nie tun. Eine Regel darf eine Abweichung heben, eine Entscheidung gehört einem Menschen, und die Entscheidung steht in der Akte.
@@ -270,6 +300,11 @@ chapters:
       de: Erfasse jetzt den Versand von 12 Bechern an Nordlicht erneut. Derselbe Befehl, dieselbe Eingabe, einen Schritt später.
       nl: Leg nu de verzending van 12 bekers aan Nordlicht opnieuw vast. Dezelfde opdracht, dezelfde invoer, één stap later.
       es: Ahora registra de nuevo el envío de 12 tazas a Nordlicht. El mismo comando, la misma entrada, un paso después.
+    say:
+      en: Then try again and ship the 12 mugs.
+      de: Dann versuch es nochmal und schick die 12 Becher raus.
+      nl: Probeer het dan opnieuw en verstuur de 12 bekers.
+      es: Entonces inténtalo otra vez y envía las 12 tazas.
     explain:
       en: The same command that was refused a step ago now succeeds. The movement fulfils the customer commitment, the reservation is consumed, and a new finding appears at once, "shipped, not billed". Reality knows that goods left the building and no invoice exists for them. That is where the storyline Order to close picks the story up, with the invoice, an overpayment the customer sends and a month-end review.
       de: Derselbe Befehl, der einen Schritt zuvor abgelehnt wurde, geht jetzt durch. Die Bewegung erfüllt die Kundenverpflichtung, die Reservierung wird verbraucht, und sofort erscheint eine neue Abweichung, „geliefert, nicht fakturiert“. Reality weiß, dass Ware das Haus verlassen hat und keine Rechnung dazu existiert. Genau hier nimmt die Storyline „Auftrag bis Abschluss“ den Faden auf, mit der Rechnung, einer Überzahlung des Kunden und einem Monatsrückblick.

@@ -856,6 +856,13 @@ def state(session: Session, user_id: str, tenant_id: str) -> dict[str, Any]:
             {
                 **entry,
                 "title": chapter.title.model_dump(exclude_none=True),
+                # The conversation view renders past turns from the list itself,
+                # so the spoken line and its explanation travel with every entry.
+                "say": chapter.say.model_dump(exclude_none=True)
+                if chapter.say
+                else None,
+                "situation": chapter.situation.model_dump(exclude_none=True),
+                "explain": chapter.explain.model_dump(exclude_none=True),
                 "view": chapter.view,
                 "command": chapter.command,
                 "branches": [
@@ -983,6 +990,7 @@ def _chapter_view(chapter: Chapter) -> dict[str, Any]:
         "title": chapter.title.model_dump(exclude_none=True),
         "situation": chapter.situation.model_dump(exclude_none=True),
         "explain": chapter.explain.model_dump(exclude_none=True),
+        "say": chapter.say.model_dump(exclude_none=True) if chapter.say else None,
         "view": chapter.view,
         "command": chapter.command,
         "input": chapter.input,

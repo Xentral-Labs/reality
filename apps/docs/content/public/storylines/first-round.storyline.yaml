@@ -110,6 +110,15 @@ chapters:
       es:
         Nordlicht Handels GmbH pide 12 tazas térmicas Fjord a 24,50 €. Hay 8 en existencia. Crea el
         pedido y observa qué hace Reality con él.
+    say:
+      en: Create an order for Nordlicht, 12 Fjord thermo mugs at 24.50 €, delivery in five days.
+      de:
+        Leg einen Auftrag für Nordlicht an, 12 Fjord Thermo-Becher zu 24,50 €, Lieferung in fünf
+        Tagen.
+      nl:
+        Maak een order voor Nordlicht aan, 12 Fjord-thermobekers à 24,50 €, levering over vijf
+        dagen.
+      es: Crea un pedido para Nordlicht, 12 tazas térmicas Fjord a 24,50 €, entrega en cinco días.
     explain:
       en:
         One command, several events. The order and its commitment are separate records because they
@@ -177,6 +186,11 @@ chapters:
       es:
         Reality levantó un hallazgo sin que nadie lo pidiera. Pide que se explique y mira de paso la
         oferta y la demanda de la taza. En este paso no se escribe nada.
+    say:
+      en: Why is that order at risk? I have 8 on hand.
+      de: Warum ist der Auftrag gefährdet? Ich habe doch 8 Stück am Lager.
+      nl: Waarom is die order in gevaar? Er liggen er toch 8.
+      es: ¿Por qué está en riesgo ese pedido? Tengo 8 en existencia.
     explain:
       en:
         The explanation names the rule, the evidence it read and what would clear the finding. There
@@ -229,6 +243,11 @@ chapters:
       es:
         Baltic Supply entrega contra el pedido de compra BE-0107. El albarán dice 20 tazas, la caja
         tiene 16. Registra lo que realmente hay, no lo que dice el papel.
+    say:
+      en: Baltic delivered. The note says 20, the box holds 16. Book the 16.
+      de: Baltic hat geliefert. Auf dem Lieferschein stehen 20, im Karton sind 16. Buch die 16 ein.
+      nl: Baltic heeft geleverd. Op de pakbon staan er 20, in de doos 16. Boek de 16 in.
+      es: Baltic entregó. El albarán dice 20, la caja tiene 16. Registra las 16.
     explain:
       en:
         The difference is not booked away. The supplier commitment stays open with 4 pieces, because
@@ -274,6 +293,11 @@ chapters:
       de: Jetzt liegen 24 Becher am Lager. Reserviere sie für den Nordlicht-Auftrag.
       nl: Er liggen nu 24 bekers op voorraad. Reserveer ze voor de order van Nordlicht.
       es: Ahora hay 24 tazas en existencia. Resérvalas para el pedido de Nordlicht.
+    say:
+      en: Reserve the stock for the Nordlicht order.
+      de: Reservier den Bestand für den Nordlicht-Auftrag.
+      nl: Reserveer de voorraad voor de order van Nordlicht.
+      es: Reserva la existencia para el pedido de Nordlicht.
     explain:
       en:
         The reservation covers the whole promise, so the rule that raised "customer commitment at
@@ -323,6 +347,11 @@ chapters:
       es:
         La mercancía está reservada y hay de sobra. Registra el envío de 12 tazas a Nordlicht.
         Expectativa, pasa. Observa qué ocurre.
+    say:
+      en: Ship the 12 mugs to Nordlicht.
+      de: Schick die 12 Becher an Nordlicht raus.
+      nl: Verstuur de 12 bekers naar Nordlicht.
+      es: Envía las 12 tazas a Nordlicht.
     explain:
       en:
         Refused, not aborted. The preparation itself was declined because the customer carries a
@@ -366,6 +395,11 @@ chapters:
       en: The credit check came back clean. Release the delivery hold on Nordlicht.
       de: Die Bonitätsprüfung ist sauber ausgegangen. Hebe die Liefersperre für Nordlicht auf.
       nl: De kredietcontrole is schoon teruggekomen. Hef de leverblokkade voor Nordlicht op.
+      es: La comprobación de solvencia salió limpia. Levanta el bloqueo de entrega de Nordlicht.
+    say:
+      en: The credit check is clean. Release the delivery hold on Nordlicht.
+      de: Die Bonitätsprüfung ist sauber. Heb die Liefersperre für Nordlicht auf.
+      nl: De kredietcontrole is schoon. Hef de leverblokkade voor Nordlicht op.
       es: La comprobación de solvencia salió limpia. Levanta el bloqueo de entrega de Nordlicht.
     explain:
       en:
@@ -416,6 +450,11 @@ chapters:
       es:
         Ahora registra de nuevo el envío de 12 tazas a Nordlicht. El mismo comando, la misma
         entrada, un paso después.
+    say:
+      en: Then try again and ship the 12 mugs.
+      de: Dann versuch es nochmal und schick die 12 Becher raus.
+      nl: Probeer het dan opnieuw en verstuur de 12 bekers.
+      es: Entonces inténtalo otra vez y envía las 12 tazas.
     explain:
       en:
         The same command that was refused a step ago now succeeds. The movement fulfils the customer
