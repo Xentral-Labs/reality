@@ -15607,3 +15607,19 @@ Object.assign(dictionaries.es, {
     "Tus propias palabras. Entonces sigues trabajando en el sandbox.",
   "Work in the sandbox": "Trabajar en el sandbox",
 });
+// Spec 182: the suggestion sits below the conversation and is taken over from there.
+Object.assign(dictionaries.de, {
+  "You could say": "Das könntest du jetzt sagen",
+  "Use this": "Übernehmen",
+  "Write your own message": "Oder schreib selbst etwas…",
+});
+Object.assign(dictionaries.nl, {
+  "You could say": "Dit zou je nu kunnen zeggen",
+  "Use this": "Overnemen",
+  "Write your own message": "Of schrijf zelf iets…",
+});
+Object.assign(dictionaries.es, {
+  "You could say": "Ahora podrías decir",
+  "Use this": "Usar esto",
+  "Write your own message": "O escribe tú algo…",
+});
