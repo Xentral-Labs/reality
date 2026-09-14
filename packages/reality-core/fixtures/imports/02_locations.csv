@@ -1,0 +1,3 @@
+name,location_type,allows_stock
+Demo Warehouse,warehouse,true
+Returns Area,returns,true

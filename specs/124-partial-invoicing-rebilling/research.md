@@ -1,0 +1,4 @@
+# Research
+Independent read-only research confirmed no schema constraint prevents partial invoices. The two any-billing-evidence guards are the restriction. Existing invoice lines directly reference order lines and reversals link complete original posting groups.
+Decision: count matching invoice quantities, including unposted evidence, until every attached original posting group has a reversal. Credit notes/payment changes do not alter billed quantity. Partial reversal of a multi-group invoice does not release it. Preserve actual excess received evidence while clamping new available capacity to zero.
+Decision: keep billing snapshots separate from immutable creation so old receipts remain verifiable. Reuse existing Inspector evidence_lines response and shared tenant lock; canonical invoice entry enforces availability, while generic evidence recording remains lossless and serializes its effects without inventing source constraints.

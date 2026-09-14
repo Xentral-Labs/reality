@@ -1,0 +1,46 @@
+{{- if .Values.web.enabled }}
+{{/*
+  The web image is nginx + the built SPA. API_UPSTREAM is its one genuine
+  runtime knob (NGINX_ENVSUBST_FILTER allows only API_UPSTREAM and
+  NGINX_LOCAL_RESOLVERS), and nginx keeps it in a variable with a 10s resolver
+  TTL, so an api-only redeploy needs no web restart.
+
+  The value must be a FULLY QUALIFIED name. nginx resolves `$api_upstream`
+  itself via the `resolver` directive, which performs no ndots search-path
+  expansion — a short Service name would simply fail to resolve.
+*/}}
+{{- $c := mustMergeOverwrite (dict "image" (dict "tagPrefix" "web-") "secrets" false) (deepCopy .Values.web) }}
+{{- $_ := set $c "env" (dict "API_UPSTREAM" (printf "%s:%v" (include "reality.componentHost" (list . "api")) .Values.api.port)) }}
+{{- $_ := set $c "probes" (dict
+      "readinessProbe" (dict "httpGet" (dict "path" "/" "port" "http") "periodSeconds" 10 "timeoutSeconds" 3 "failureThreshold" 3)
+      "livenessProbe"  (dict "httpGet" (dict "path" "/" "port" "http") "periodSeconds" 30 "timeoutSeconds" 3 "failureThreshold" 3)) }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "reality.fullname" . }}-web
+  labels:
+    {{- include "reality.labels" . | nindent 4 }}
+    app.kubernetes.io/component: web
+spec:
+  replicas: {{ .Values.web.replicaCount }}
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  selector:
+    matchLabels:
+      {{- include "reality.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: web
+  template:
+    metadata:
+      labels:
+        {{- include "reality.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: web
+      {{- with .Values.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+    spec:
+      {{- include "reality.podSpec" (list . "web" $c) | nindent 6 }}
+{{- end }}

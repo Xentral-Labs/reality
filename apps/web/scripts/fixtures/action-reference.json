@@ -1,0 +1,801 @@
+{
+  "commands": [
+    {
+      "name": "Change Private Analytics Report",
+      "service": "change_report",
+      "mode": "mutation",
+      "adapters": ["Web", "MCP", "Chat"],
+      "effect": "Save, rename, duplicate or delete the authenticated user's private analytical definition with revision and retry protection."
+    },
+    {
+      "name": "List Targets",
+      "service": "list_targets",
+      "mode": "read",
+      "adapters": ["CLI", "Web", "MCP", "Chat"],
+      "effect": "Maintain and explain explicit external destinations without changing financial evidence."
+    },
+    {
+      "name": "List Target References",
+      "service": "list_target_references",
+      "mode": "read",
+      "adapters": ["CLI", "Web", "MCP", "Chat"],
+      "effect": "Maintain and explain explicit external destinations without changing financial evidence."
+    },
+    {
+      "name": "List Mappings",
+      "service": "list_mappings",
+      "mode": "read",
+      "adapters": ["CLI", "Web", "MCP", "Chat"],
+      "effect": "Maintain and explain explicit external destinations without changing financial evidence."
+    },
+    {
+      "name": "Mapping History",
+      "service": "mapping_history",
+      "mode": "read",
+      "adapters": ["CLI", "Web", "MCP", "Chat"],
+      "effect": "Maintain and explain explicit external destinations without changing financial evidence."
+    },
+    {
+      "name": "Preview Document",
+      "service": "preview_document",
+      "mode": "read",
+      "adapters": ["CLI", "Web", "MCP", "Chat"],
+      "effect": "Maintain and explain explicit external destinations without changing financial evidence."
+    },
+    {
+      "name": "Maintain Target Configuration",
+      "service": "maintain_target_configuration",
+      "mode": "mutation",
+      "adapters": ["CLI", "Web", "MCP", "Chat"],
+      "effect": "Maintain and explain explicit external destinations without changing financial evidence."
+    },
+    {
+      "name": "Read source code mappings",
+      "service": "list_source_mappings",
+      "mode": "read",
+      "adapters": ["CLI", "Web", "MCP", "Chat"],
+      "effect": "Resolve explicit source codes with reviewed immutable classification revisions; never change received evidence or postings."
+    },
+    {
+      "name": "Read source mapping history",
+      "service": "source_mapping_history",
+      "mode": "read",
+      "adapters": ["CLI", "Web", "MCP", "Chat"],
+      "effect": "Resolve explicit source codes with reviewed immutable classification revisions; never change received evidence or postings."
+    },
+    {
+      "name": "Set source code mapping",
+      "service": "set_source_mapping",
+      "mode": "mutation",
+      "adapters": ["CLI", "Web", "MCP", "Chat"],
+      "effect": "Resolve explicit source codes with reviewed immutable classification revisions; never change received evidence or postings."
+    },
+    {
+      "name": "Read received financial detail",
+      "service": "component_context",
+      "mode": "read",
+      "adapters": ["CLI", "Web", "MCP", "Chat"],
+      "effect": "Separate received values from owner-confirmed internal classification and exact cost-center shares; preserve postings."
+    },
+    {
+      "name": "Read component assignment history",
+      "service": "component_history",
+      "mode": "read",
+      "adapters": ["CLI", "Web", "MCP", "Chat"],
+      "effect": "Separate received values from owner-confirmed internal classification and exact cost-center shares; preserve postings."
+    },
+    {
+      "name": "Assign received financial component",
+      "service": "assign_component",
+      "mode": "mutation",
+      "adapters": ["CLI", "Web", "MCP", "Chat"],
+      "effect": "Separate received values from owner-confirmed internal classification and exact cost-center shares; preserve postings."
+    },
+    {
+      "name": "Read finance references",
+      "service": "list_references",
+      "mode": "read",
+      "adapters": ["CLI", "Web", "MCP", "Chat"],
+      "effect": "Read or maintain defined internal references with immutable reasoned decisions and owner confirmation for changes."
+    },
+    {
+      "name": "Read reference history",
+      "service": "reference_history",
+      "mode": "read",
+      "adapters": ["CLI", "Web", "MCP", "Chat"],
+      "effect": "Read or maintain defined internal references with immutable reasoned decisions and owner confirmation for changes."
+    },
+    {
+      "name": "Maintain finance reference",
+      "service": "maintain_reference",
+      "mode": "mutation",
+      "adapters": ["CLI", "Web", "MCP", "Chat"],
+      "effect": "Read or maintain defined internal references with immutable reasoned decisions and owner confirmation for changes."
+    },
+    {
+      "name": "Initialize operational accounts",
+      "service": "initialize_accounts",
+      "mode": "mutation",
+      "adapters": ["CLI", "Web", "MCP", "Chat"],
+      "effect": "Uses shared tenant-scoped operational account configuration with explicit owner confirmation for changes."
+    },
+    {
+      "name": "Create operational account",
+      "service": "create_account",
+      "mode": "mutation",
+      "adapters": ["CLI", "Web", "MCP", "Chat"],
+      "effect": "Uses shared tenant-scoped operational account configuration with explicit owner confirmation for changes."
+    },
+    {
+      "name": "Update operational account",
+      "service": "update_account",
+      "mode": "mutation",
+      "adapters": ["CLI", "Web", "MCP", "Chat"],
+      "effect": "Uses shared tenant-scoped operational account configuration with explicit owner confirmation for changes."
+    },
+    {
+      "name": "Set operational account default",
+      "service": "set_default_account",
+      "mode": "mutation",
+      "adapters": ["CLI", "Web", "MCP", "Chat"],
+      "effect": "Uses shared tenant-scoped operational account configuration with explicit owner confirmation for changes."
+    },
+    {
+      "name": "Read operational transaction matrix",
+      "service": "transaction_matrix",
+      "mode": "read",
+      "adapters": ["CLI", "Web", "MCP", "Chat"],
+      "effect": "Describes configured defaults and fixed operation roles; no posting or authorization."
+    },
+    {
+      "name": "Read operational accounts",
+      "service": "list_accounts",
+      "mode": "read",
+      "adapters": ["CLI", "Web", "MCP", "Chat"],
+      "effect": "Uses shared tenant-scoped operational account configuration with explicit owner confirmation for changes."
+    },
+    {
+      "name": "Observe fact",
+      "service": "observe_fact",
+      "mode": "mutation",
+      "adapters": ["Web", "MCP", "Chat"],
+      "effect": "Appends one idempotent source-supported observation about an existing tenant-scoped subject after confirmation without copying typed operational state."
+    },
+    {
+      "name": "Create manual sales or purchase order",
+      "service": "create_manual_order",
+      "mode": "mutation",
+      "adapters": ["Web", "MCP", "Chat"],
+      "effect": "Atomically records lossless manual Source evidence, typed order Evidence, and the derived outgoing or incoming Commitments without storing operational status on the Document."
+    },
+    {
+      "name": "Install mock connector shell",
+      "service": "install_connector_shell",
+      "mode": "mutation",
+      "adapters": ["CLI", "Web", "API", "MCP", "Chat"],
+      "effect": "Creates one named source instance with only explicitly selected source and target type declarations, without credentials, synchronization, or vendor API calls."
+    },
+    {
+      "name": "Define source system",
+      "service": "create_source_system",
+      "related_services": ["set_source_system_active"],
+      "mode": "mutation",
+      "adapters": ["CLI", "Web", "API", "MCP", "Chat"],
+      "effect": "Defines one tenant-specific external origin without pretending that a connector or credentials already exist."
+    },
+    {
+      "name": "Define source capability",
+      "service": "create_source_capability",
+      "related_services": ["set_source_capability_active"],
+      "mode": "mutation",
+      "adapters": ["CLI", "Web", "API", "MCP", "Chat"],
+      "effect": "Declares which upstream type a source may provide and the operational target it is intended to produce."
+    },
+    {
+      "name": "Ingest arbitrary source",
+      "service": "enqueue_source",
+      "related_services": ["process_import_job", "retry_import_job"],
+      "mode": "mutation",
+      "adapters": ["CLI", "Web", "API", "MCP", "Chat"],
+      "effect": "Stores any JSON object losslessly and idempotently, then queues a registered interpreter or marks the job unmapped."
+    },
+    {
+      "name": "Correct manual document evidence",
+      "service": "correct_manual_document",
+      "related_services": ["manual_document_line_snapshot", "correct_manual_document_lines"],
+      "mode": "mutation",
+      "adapters": ["Web", "API", "MCP", "Chat"],
+      "effect": "Corrects typed internal header or complete line evidence snapshots while protecting economic fields after Reality records have been derived."
+    },
+    {
+      "name": "Record corrected document source",
+      "service": "record_corrected_document_source",
+      "mode": "mutation",
+      "adapters": ["Web", "API", "MCP", "Chat"],
+      "effect": "Appends a lossless immutable version to the original source stream and queues normal interpretation."
+    },
+    {
+      "name": "Create party",
+      "service": "create_party",
+      "related_services": ["create_parties"],
+      "mode": "mutation",
+      "adapters": ["CLI", "Web", "API", "MCP", "Chat"],
+      "effect": "Creates a tenant-scoped party, optional immutable source evidence, and its operational roles."
+    },
+    {
+      "name": "Update party",
+      "service": "update_party",
+      "related_services": ["update_parties"],
+      "mode": "mutation",
+      "adapters": ["CLI", "Web", "API", "MCP", "Chat"],
+      "effect": "Changes operational party fields and roles; changed external identity creates new source evidence and every effective change emits an exact before/after audit diff."
+    },
+    {
+      "name": "Create item",
+      "service": "create_item",
+      "related_services": ["create_items"],
+      "mode": "mutation",
+      "adapters": ["CLI", "Web", "API", "MCP", "Chat"],
+      "effect": "Creates an operational item identity with inventory and purchasing behavior."
+    },
+    {
+      "name": "Update item",
+      "service": "update_item",
+      "related_services": ["update_items"],
+      "mode": "mutation",
+      "adapters": ["CLI", "Web", "API", "MCP", "Chat"],
+      "effect": "Updates operational item fields while preserving external evidence versions and emitting an exact before/after audit diff."
+    },
+    {
+      "name": "Create location",
+      "service": "create_location",
+      "related_services": ["create_locations"],
+      "mode": "mutation",
+      "adapters": ["CLI", "Web", "API", "MCP", "Chat"],
+      "effect": "Creates a stock-capable or logical location and validates its parent."
+    },
+    {
+      "name": "Update location",
+      "service": "update_location",
+      "related_services": ["update_locations"],
+      "mode": "mutation",
+      "adapters": ["CLI", "Web", "API", "MCP", "Chat"],
+      "effect": "Updates location behavior, rejects hierarchy cycles, and emits an exact before/after audit diff."
+    },
+    {
+      "name": "Create handling unit",
+      "service": "create_handling_unit",
+      "mode": "mutation",
+      "adapters": ["CLI", "Web", "API", "MCP", "Chat"],
+      "effect": "Records an optional tenant-scoped pallet identity with an optional NVE/SSCC and immutable source evidence."
+    },
+    {
+      "name": "Create lot",
+      "service": "create_lot",
+      "mode": "mutation",
+      "adapters": ["CLI", "Web", "API", "MCP", "Chat"],
+      "effect": "Creates a tenant-scoped batch identity for a lot- or serial-tracked item without storing a stock balance."
+    },
+    {
+      "name": "State lot expiry",
+      "service": "state_lot_expiry",
+      "mode": "mutation",
+      "adapters": ["CLI", "Web", "API", "MCP", "Chat"],
+      "effect": "Records the best-before date somebody read off the goods; refuses a different date, because a received value is not adjusted."
+    },
+    {
+      "name": "Correct lot expiry",
+      "service": "correct_lot_expiry",
+      "mode": "mutation",
+      "adapters": ["CLI", "Web", "API", "MCP", "Chat"],
+      "effect": "Records that a stated best-before was read wrong and what it says instead, against a confirmed current value and a stated reason."
+    },
+    {
+      "name": "Read expired lots",
+      "service": "expired_lots",
+      "mode": "query",
+      "adapters": ["Web", "API", "MCP", "Chat"],
+      "effect": "Lists lots whose stated best-before has passed, oldest first; a lot with no stated date is absent in both directions."
+    },
+    {
+      "name": "Create serial unit",
+      "service": "create_serial_unit",
+      "mode": "mutation",
+      "adapters": ["CLI", "Web", "API", "MCP", "Chat"],
+      "effect": "Creates the identity of one serialized unit, optionally linked to its lot, without storing its location or status."
+    },
+    {
+      "name": "Change master-data lifecycle",
+      "service": "set_master_data_active",
+      "mode": "mutation",
+      "adapters": ["CLI", "Web", "API", "MCP", "Chat"],
+      "effect": "Activates or deactivates master data without deleting historical relationships."
+    },
+    {
+      "name": "Create payment term",
+      "service": "create_payment_term",
+      "related_services": ["update_payment_term"],
+      "mode": "mutation",
+      "adapters": ["CLI", "Web", "API", "MCP", "Chat"],
+      "effect": "Creates a reusable payment condition identified by an opaque ID."
+    },
+    {
+      "name": "Create price list",
+      "service": "create_price_list",
+      "related_services": ["update_price_list"],
+      "mode": "mutation",
+      "adapters": ["CLI", "Web", "API", "MCP", "Chat"],
+      "effect": "Creates a sales or purchase list and enforces one active default per direction and currency."
+    },
+    {
+      "name": "Add price tier",
+      "service": "create_price_list_entry",
+      "mode": "mutation",
+      "adapters": ["CLI", "Web", "API", "MCP", "Chat"],
+      "effect": "Adds an item price selected from an inclusive minimum quantity."
+    },
+    {
+      "name": "Assign party price list",
+      "service": "assign_party_price_list",
+      "mode": "mutation",
+      "adapters": ["CLI", "Web", "API", "MCP", "Chat"],
+      "effect": "Gives a customer or supplier a directly prioritized price list."
+    },
+    {
+      "name": "Create and assign pricing group",
+      "service": "create_party_group",
+      "related_services": [
+        "update_party_group",
+        "add_party_group_member",
+        "assign_group_price_list"
+      ],
+      "mode": "mutation",
+      "adapters": ["CLI", "Web", "API", "MCP", "Chat"],
+      "effect": "Builds reusable customer or supplier group pricing without copying prices onto parties."
+    },
+    {
+      "name": "Reserve stock",
+      "service": "reserve",
+      "mode": "mutation",
+      "adapters": ["CLI", "Web", "API", "MCP", "Chat"],
+      "effect": "Allocates available stock to one commitment, optionally by pallet, lot, or exact serial unit, and reports any shortage."
+    },
+    {
+      "name": "Release reservation",
+      "service": "release_reservation",
+      "mode": "mutation",
+      "adapters": ["CLI", "Web", "API", "MCP", "Chat"],
+      "effect": "Gives reserved stock back to whatever needs it next, without touching the promise that held it."
+    },
+    {
+      "name": "Record movement",
+      "service": "record_movement",
+      "mode": "mutation",
+      "adapters": ["CLI", "Web", "API", "scenario", "MCP", "Chat"],
+      "effect": "Records an immutable physical event with the same optional pallet, lot, and serial identity used by reservations."
+    },
+    {
+      "name": "Correct movement",
+      "service": "correct_movement",
+      "related_services": ["movement_correction_snapshot", "preview_movement_correction"],
+      "mode": "mutation",
+      "adapters": ["CLI", "Web", "API", "Chat", "MCP"],
+      "effect": "Preserves an immutable original, appends one exact correction and optional replacement, and derives the auditable net physical effect."
+    },
+    {
+      "name": "Reverse ledger posting group",
+      "service": "reverse_ledger_posting_group",
+      "related_services": ["ledger_reversal_snapshot", "preview_ledger_reversal"],
+      "mode": "mutation",
+      "adapters": ["CLI", "Web", "API", "Chat", "MCP"],
+      "effect": "Preserves one complete immutable posting group, appends its exact inverse, and derives corrected settlement and financial views."
+    },
+    {
+      "name": "Revise commitment",
+      "service": "revise_commitment",
+      "mode": "mutation",
+      "adapters": ["Web", "MCP", "Chat"],
+      "effect": "Records that a counterparty now states a different date, a different quantity, or both for a promise, without erasing what it replaces."
+    },
+    {
+      "name": "Hold commitment",
+      "service": "hold_commitment",
+      "related_services": ["release_commitment_hold"],
+      "mode": "mutation",
+      "adapters": ["CLI", "Web", "API", "MCP", "Chat"],
+      "effect": "Prevents execution without changing or deleting the underlying obligation."
+    },
+    {
+      "name": "Hold document commitments",
+      "service": "hold_document_commitments",
+      "related_services": ["release_document_holds"],
+      "mode": "mutation",
+      "adapters": ["CLI", "Web", "API", "MCP", "Chat"],
+      "effect": "Places individual holds on the open commitments evidenced by a document."
+    },
+    {
+      "name": "Set party delivery hold",
+      "service": "hold_party_delivery",
+      "related_services": ["release_party_delivery_hold"],
+      "mode": "mutation",
+      "adapters": ["CLI", "Web", "API", "MCP", "Chat"],
+      "effect": "Blocks customer shipment execution while orders and reservations remain possible."
+    },
+    {
+      "name": "Post customer payment",
+      "service": "post_customer_payment",
+      "mode": "mutation",
+      "adapters": ["CLI", "Web", "MCP", "Chat"],
+      "effect": "Records payment evidence, posts balanced ledger entries, and allocates the payment to an invoice."
+    },
+    {
+      "name": "Announce customer return",
+      "service": "announce_customer_return",
+      "related_services": ["announceable_quantity", "returnable_quantity"],
+      "mode": "mutation",
+      "adapters": ["Web", "API", "MCP", "Chat"],
+      "effect": "Records that a customer says goods are coming back, bounded by what the delivery can still return."
+    },
+    {
+      "name": "Withdraw return announcement",
+      "service": "withdraw_return_announcement",
+      "mode": "mutation",
+      "adapters": ["Web", "API", "MCP", "Chat"],
+      "effect": "Records that the customer is not sending the goods back after all, keeping what they announced."
+    },
+    {
+      "name": "Read announced returns",
+      "service": "return_announcements",
+      "related_services": ["announcement_outstanding", "arrived_against_announcement"],
+      "mode": "query",
+      "adapters": ["Web", "API", "MCP", "Chat"],
+      "effect": "Lists the returns customers have announced, in the order they said so, with what is still expected."
+    },
+    {
+      "name": "Preview payment run",
+      "service": "preview_payment_run",
+      "related_services": ["payable_supplier_invoices", "duplicate_supplier_invoices"],
+      "mode": "query",
+      "adapters": ["Web", "MCP", "Chat"],
+      "effect": "Shows which supplier invoices are worth paying now, what each supplier is owed, and what was withheld, without paying anything."
+    },
+    {
+      "name": "Execute payment run",
+      "service": "execute_payment_run",
+      "related_services": ["post_supplier_payment", "record_supplier_payment"],
+      "mode": "mutation",
+      "adapters": ["Web", "MCP", "Chat"],
+      "effect": "Pays the supplier invoices and amounts somebody confirmed, in one transaction, and records that they were one decision."
+    },
+    {
+      "name": "Preview stale promise closure",
+      "service": "preview_stale_promise_closure",
+      "mode": "query",
+      "adapters": ["Web", "MCP", "Chat"],
+      "effect": "Shows how many stale promises match, what would be released, and a bounded sample, without changing anything."
+    },
+    {
+      "name": "Close stale promises",
+      "service": "close_stale_promises",
+      "related_services": ["cancel_commitment"],
+      "mode": "mutation",
+      "adapters": ["Web", "MCP", "Chat"],
+      "effect": "Closes the promises somebody previewed and counted, releasing their reservations and recording the reason once."
+    },
+    {
+      "name": "Record manual document",
+      "service": "create_manual_document_with_lines",
+      "mode": "mutation",
+      "adapters": ["Web", "API", "MCP", "Chat"],
+      "effect": "Records normalized document evidence and its lines without booking anything or creating a promise."
+    },
+    {
+      "name": "Post sales invoice",
+      "service": "post_sales_invoice",
+      "mode": "mutation",
+      "adapters": ["Web", "MCP", "Chat"],
+      "effect": "Books a recorded sales invoice, so what the customer owes becomes visible to settlement and the queue."
+    },
+    {
+      "name": "Post supplier invoice",
+      "service": "post_supplier_invoice",
+      "mode": "mutation",
+      "adapters": ["Web", "MCP", "Chat"],
+      "effect": "Books a recorded supplier invoice, so what the company owes becomes visible to settlement and the queue."
+    },
+    {
+      "name": "Record return credit",
+      "service": "record_sales_credit",
+      "mode": "mutation",
+      "adapters": ["Web", "API", "MCP", "Chat"],
+      "effect": "Records a stated invoice-linked customer credit with explicit optional netting, or legacy return credit through an order line; no refund or stock movement."
+    },
+    {
+      "name": "Record supplier invoice",
+      "service": "record_supplier_invoice",
+      "mode": "mutation",
+      "adapters": ["Web", "API", "MCP", "Chat"],
+      "effect": "Records stated supplier invoice evidence linked to a purchase order line and posts its payable atomically."
+    },
+    {
+      "name": "Record sales invoice",
+      "service": "record_sales_invoice",
+      "mode": "mutation",
+      "adapters": ["Web", "API", "MCP", "Chat"],
+      "effect": "Records a stated invoice against one order line and posts its receivable atomically."
+    },
+    {
+      "name": "Post credit note",
+      "service": "post_sales_credit_note",
+      "mode": "mutation",
+      "adapters": ["Web", "MCP", "Chat"],
+      "effect": "Posts a credit note as the exact reverse of a sales invoice, leaving the customer owed what it states."
+    },
+    {
+      "name": "Net credit note against invoice",
+      "service": "allocate_credit_note",
+      "mode": "mutation",
+      "adapters": ["Web", "MCP", "Chat"],
+      "effect": "Settles a posted credit note against an invoice the same customer still owes."
+    },
+    {
+      "name": "Post customer refund",
+      "service": "post_customer_refund",
+      "related_services": ["record_customer_refund"],
+      "mode": "mutation",
+      "adapters": ["Web", "MCP", "Chat"],
+      "effect": "Returns money to a credited customer and settles the credit note it repays."
+    },
+    {
+      "name": "Post supplier credit note",
+      "service": "post_supplier_credit_note",
+      "mode": "mutation",
+      "adapters": ["Web", "MCP", "Chat"],
+      "effect": "Books a credit a supplier sent as the exact reverse of its invoice, leaving the supplier owing what it states."
+    },
+    {
+      "name": "Net supplier credit against invoice",
+      "service": "allocate_supplier_credit_note",
+      "mode": "mutation",
+      "adapters": ["Web", "MCP", "Chat"],
+      "effect": "Settles a booked supplier credit against an invoice the company still owes that supplier."
+    },
+    {
+      "name": "Post supplier refund",
+      "service": "post_supplier_refund",
+      "related_services": ["record_supplier_refund"],
+      "mode": "mutation",
+      "adapters": ["Web", "MCP", "Chat"],
+      "effect": "Takes money back from a supplier and settles the credit note it repays."
+    },
+    {
+      "name": "Post supplier payment",
+      "service": "post_supplier_payment",
+      "mode": "mutation",
+      "adapters": ["CLI", "Web", "MCP", "Chat"],
+      "effect": "Records an outgoing payment and explicitly settles a supplier invoice entry."
+    },
+    {
+      "name": "Invite company member",
+      "service": "create_invitation",
+      "mode": "mutation",
+      "adapters": ["Web", "API", "MCP", "Chat"],
+      "effect": "Creates an owner-authorized company invitation and atomically queues its first delivery."
+    },
+    {
+      "name": "Resend company invitation",
+      "service": "resend_invitation",
+      "mode": "mutation",
+      "adapters": ["Web", "API", "MCP", "Chat"],
+      "effect": "Invalidates older delivery generations and queues a fresh invitation delivery after owner reauthorization."
+    },
+    {
+      "name": "Revoke company invitation",
+      "service": "revoke_invitation",
+      "mode": "mutation",
+      "adapters": ["Web", "API", "MCP", "Chat"],
+      "effect": "Revokes a pending invitation after owner reauthorization."
+    },
+    {
+      "name": "Remove company member",
+      "service": "remove_member",
+      "mode": "mutation",
+      "adapters": ["Web", "API", "MCP", "Chat"],
+      "effect": "Archives a non-owner company membership after owner reauthorization."
+    },
+    {
+      "name": "Read settlement reduction context",
+      "service": "adjustment_context",
+      "mode": "read",
+      "adapters": ["CLI", "Web", "MCP", "Chat"],
+      "effect": "Reads the remaining claim and permitted noncash counterpart."
+    },
+    {
+      "name": "Accept settlement reduction",
+      "service": "accept_adjustment",
+      "mode": "mutation",
+      "adapters": ["CLI", "Web", "MCP", "Chat"],
+      "effect": "Creates a separately evidenced noncash reduction only with explicit owner confirmation."
+    },
+    {
+      "name": "Read payment and credit context",
+      "service": "settlement_context",
+      "mode": "read",
+      "adapters": ["CLI", "Web", "MCP", "Chat"],
+      "effect": "Reads the selected invoice or available credit and matching invoice choices."
+    },
+    {
+      "name": "Record payment or use existing credit",
+      "service": "apply_settlement",
+      "mode": "mutation",
+      "adapters": ["CLI", "Web", "MCP", "Chat"],
+      "effect": "Atomically records stated cash, explicit allocation and optional reduction, or consumes existing credit after owner confirmation."
+    },
+    {
+      "name": "Read opening position context",
+      "service": "opening_context",
+      "mode": "read",
+      "adapters": ["CLI", "Web", "MCP", "Chat"],
+      "effect": "Reads permitted opening counterpart, tenant parties and confirmation revision."
+    },
+    {
+      "name": "Import opening positions",
+      "service": "import_opening",
+      "mode": "mutation",
+      "adapters": ["CLI", "Web", "MCP", "Chat"],
+      "effect": "Records stated residual customer/supplier positions against a neutral counterpart after owner confirmation, without cash or turnover."
+    },
+    {
+      "name": "Record shipment notice",
+      "service": "record_shipment_notice",
+      "mode": "mutation",
+      "adapters": ["CLI", "Web", "API", "MCP", "Chat"],
+      "effect": "Records a stated consignment and package without moving stock."
+    },
+    {
+      "name": "Dispatch or receive shipment package",
+      "service": "record_packaged_execution",
+      "related_services": ["record_movement"],
+      "mode": "mutation",
+      "adapters": ["CLI", "Web", "API", "MCP", "Chat"],
+      "effect": "Atomically records one physical package and its exact existing Movement effects."
+    },
+    {
+      "name": "Record shipment event",
+      "service": "record_shipment_event",
+      "mode": "mutation",
+      "adapters": ["CLI", "Web", "API", "MCP", "Chat"],
+      "effect": "Appends one attributed logistics observation without changing stock."
+    },
+    {
+      "name": "Supersede shipment event",
+      "service": "supersede_shipment_event",
+      "mode": "mutation",
+      "adapters": ["CLI", "Web", "API", "MCP", "Chat"],
+      "effect": "Appends a reasoned correction or retraction without deleting the original event."
+    }
+  ],
+  "workspaces": [
+    {
+      "key": "all",
+      "actions": [
+        {
+          "key": "create_manual_order",
+          "label": "Create manual sales or purchase order",
+          "command": "create_manual_order",
+          "target_route": "documents",
+          "confirmation": "summary",
+          "prerequisites": ["company_party", "counterparty", "location", "item"],
+          "result_kind": "document"
+        },
+        {
+          "key": "observe_fact",
+          "label": "Observe source-supported fact",
+          "command": "observe_fact",
+          "target_route": "facts",
+          "confirmation": "summary",
+          "prerequisites": ["source_record", "subject"],
+          "result_kind": "fact"
+        },
+        {
+          "key": "post_customer_payment",
+          "label": "Post customer payment",
+          "command": "post_customer_payment",
+          "target_route": "payments",
+          "confirmation": "summary",
+          "prerequisites": ["customer_invoice"],
+          "result_kind": "ledger_entry"
+        },
+        {
+          "key": "post_supplier_payment",
+          "label": "Post supplier payment",
+          "command": "post_supplier_payment",
+          "target_route": "payments",
+          "confirmation": "summary",
+          "prerequisites": ["supplier_invoice"],
+          "result_kind": "ledger_entry"
+        },
+        {
+          "key": "reserve_stock",
+          "label": "Reserve stock",
+          "command": "reserve",
+          "target_route": "reservations",
+          "confirmation": "summary",
+          "prerequisites": ["commitment"],
+          "result_kind": "reservation"
+        },
+        {
+          "key": "record_movement",
+          "label": "Record movement",
+          "command": "record_movement",
+          "target_route": "movements",
+          "confirmation": "summary",
+          "prerequisites": ["item", "location"],
+          "result_kind": "movement"
+        },
+        {
+          "key": "correct_movement",
+          "label": "Correct movement",
+          "command": "correct_movement",
+          "target_route": "movements",
+          "confirmation": "server_preview",
+          "prerequisites": ["movement"],
+          "result_kind": "movement"
+        },
+        {
+          "key": "hold_commitment",
+          "label": "Hold or release commitment",
+          "command": "hold_commitment",
+          "target_route": "commitments",
+          "confirmation": "summary",
+          "prerequisites": ["commitment"],
+          "result_kind": "commitment"
+        },
+        {
+          "key": "hold_document_commitments",
+          "label": "Hold or release document commitments",
+          "command": "hold_document_commitments",
+          "target_route": "documents",
+          "confirmation": "summary",
+          "prerequisites": ["document"],
+          "result_kind": "document"
+        },
+        {
+          "key": "party_delivery_hold",
+          "label": "Set or release party delivery hold",
+          "command": "hold_party_delivery",
+          "target_route": "parties",
+          "confirmation": "summary",
+          "prerequisites": ["party"],
+          "result_kind": "party"
+        },
+        {
+          "key": "create_handling_unit",
+          "label": "Create handling unit",
+          "command": "create_handling_unit",
+          "target_route": "movements",
+          "confirmation": "summary",
+          "prerequisites": []
+        },
+        {
+          "key": "create_lot",
+          "label": "Create lot",
+          "command": "create_lot",
+          "target_route": "movements",
+          "confirmation": "summary",
+          "prerequisites": ["item"]
+        },
+        {
+          "key": "create_serial_unit",
+          "label": "Create serial unit",
+          "command": "create_serial_unit",
+          "target_route": "movements",
+          "confirmation": "summary",
+          "prerequisites": ["item"]
+        }
+      ],
+      "views": []
+    }
+  ],
+  "projections": []
+}

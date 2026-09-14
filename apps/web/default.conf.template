@@ -1,0 +1,21 @@
+server {
+  # ALB owns request logging; retain only operational errors here.
+  access_log off;
+  error_log /dev/stderr warn;
+  listen 80;
+  root /usr/share/nginx/html;
+  index index.html;
+
+  # Authentication and product browser routes are owned by this React SPA.
+  location /assets/ { try_files $uri =404; }
+
+  # Only transport boundaries are proxied to Python. API_UPSTREAM defaults to
+  # the Compose service and can use a provider-private DNS name at runtime.
+  # The active container resolver is injected from /etc/resolv.conf. Keeping
+  # the upstream in an Nginx variable makes it re-resolve after API redeployments.
+  resolver ${NGINX_LOCAL_RESOLVERS} valid=10s ipv6=on;
+  set $api_upstream ${API_UPSTREAM};
+  location /api/ { proxy_pass http://$api_upstream; }
+  location /healthz { proxy_pass http://$api_upstream; }
+  location / { try_files $uri $uri/ /index.html; }
+}

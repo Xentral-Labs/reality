@@ -1,0 +1,2 @@
+# Data model
+No schema change. For each tenant-scoped order line, derive quantity invoiced from linked matching invoice lines. Gather each invoice's original posting groups and reversal IDs. Unposted or partially reversed invoice evidence counts; fully reversed invoice evidence does not. Remaining=max(ordered-invoiced,0), never a stored authority. Return invoice/line/source/group links to explain the observation. Review stores the state for comparison, separately from immutable creation receipts.

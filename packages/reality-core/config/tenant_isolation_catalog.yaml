@@ -1,0 +1,825 @@
+version: 1
+discovery:
+  modules:
+    - reality.services.core
+    - reality.services.artifacts
+    - reality.services.file_interpreters
+    - reality.services.projections
+    - reality.services.projection_jobs
+    - reality.services.memberships
+    - reality.services.notifications
+    - reality.services.scheduled_jobs
+    - reality.services.playground
+explicit_operations:
+  - reality.services.analytics.execution:query
+  - reality.services.analytics.contributors:contributors
+  - reality.services.analytics.exports:export_csv
+  - reality.services.analytics.reports:list_reports
+  - reality.services.analytics.reports:get_report
+  - reality.services.analytics.reports:change_report
+  - reality.services.analytics.proposals:preview
+  - reality.services.read_contracts:read_metadata
+  - reality.services.read_contracts:discovery_page
+  - reality.services.read_contracts:finance_balances
+  - reality.services.read_contracts:location_inventory_rows
+  - reality.services.read_contracts:operational_page
+  - reality.services.scheduled_jobs:tenant_catalog
+  - reality.services.core:create_tenant
+  - reality.services.core:find_tenant
+  - reality.services.core:tenant_usage_summaries
+  - reality.services.core:tenants
+  - reality.services.memberships:accept_invitation
+  - reality.services.memberships:inspect_invitation
+  - reality.services.notifications:enqueue_invitation_delivery
+  - reality.services.playground:start_run
+  - reality.services.playground:list_runs
+  - reality.services.playground:read_run
+  - reality.services.playground:prepare_step
+  - reality.services.playground:read_step
+  - reality.services.playground:confirm_step
+  - reality.services.playground:reject_step
+families:
+  - key: diagnostic_reads
+    description: Direct MCP diagnostics derive only the selected tenant's retained records.
+    classification: boundary
+    reason: Shared read services validate tenant scope and reject foreign references without business or cache writes.
+    authority: 145/FR-006, 145/FR-007, 145/FR-008, 145/DR-002
+    operations: &diagnostic_read_operations
+      - reality.services.read_contracts:read_metadata
+      - reality.services.read_contracts:discovery_page
+      - reality.services.read_contracts:finance_balances
+      - reality.services.read_contracts:location_inventory_rows
+      - reality.services.read_contracts:operational_page
+      - reality.services.core:business_discovery_statement
+      - reality.services.projections:derive_projection_rows
+    evidence:
+      - id: tests/test_mcp_read_contract.py::test_diagnostic_services_exclude_foreign_reality
+        assertion: boundary
+        operations: *diagnostic_read_operations
+  - key: playground_prepare
+    description: Prepare, explicitly confirm or reject one owned opening-stock action.
+    classification: boundary
+    reason: Server-resolved ownership, pinned serialization, exact preview/action authorization and common proposal lifecycle; no arbitrary tenant target.
+    authority: 096/FR-003, 096/FR-004, 096/FR-009
+    operations: &playground_prepare_operations
+      - reality.services.playground:prepare_step
+      - reality.services.playground:confirm_step
+      - reality.services.playground:reject_step
+    evidence:
+      - id: tests/test_playground_steps.py::test_step_decisions_owner_boundary
+        assertion: boundary
+        operations: *playground_prepare_operations
+  - key: playground_reads
+    description: Account-owned run history and setup status require current private ownership.
+    classification: boundary
+    reason: Account-scoped listing resolves only owned sandbox tenants with active owner membership; no arbitrary tenant target or administrator override.
+    authority: 096/FR-001, 096/FR-003, 096/FR-011
+    operations: &playground_read_operations
+      - reality.services.playground:list_runs
+      - reality.services.playground:read_run
+      - reality.services.playground:read_step
+    evidence:
+      - id: tests/test_playground_api.py::test_run_entry_has_no_admin_override
+        assertion: boundary
+        operations:
+          - reality.services.playground:list_runs
+          - reality.services.playground:read_run
+      - id: tests/test_playground_steps.py::test_step_read_owner_boundary
+        assertion: boundary
+        operations:
+          - reality.services.playground:read_step
+  - key: playground_start
+    description: Verified account-owned initialization creates only a fresh private sandbox.
+    classification: boundary
+    reason: No existing tenant may be supplied; verified account ownership, confirmation and quotas govern a newly allocated tenant.
+    authority: 096/FR-001, 096/FR-002, 096/FR-003, 096/FR-011
+    operations: &playground_start_operations
+      - reality.services.playground:start_run
+    evidence:
+      - id: tests/test_playground_runs.py::test_start_conflicts_and_owner_scoped_keys
+        assertion: boundary
+        operations: *playground_start_operations
+  - key: record_reads
+    description: Tenant-owned detail and explanation lookups are non-disclosing.
+    classification: record_read
+    authority: 003/FR-010, 003/FR-012, 019/FR-004, 025/FR-010, 041/DR-003
+    operations: &record_read_operations
+      - reality.services.artifacts:get_artifact
+      - reality.services.core:active_commitment_hold
+      - reality.services.core:active_party_delivery_hold
+      - reality.services.core:document_detail
+      - reality.services.core:historical_pricing_explanation
+      - reality.services.core:manual_document_line_snapshot
+      - reality.services.core:master_data_update_snapshot
+      - reality.services.core:movement_correction_snapshot
+      - reality.services.core:preview_movement_correction
+      - reality.services.core:preview_master_data_updates
+      - reality.services.core:ledger_reversal_snapshot
+      - reality.services.core:preview_ledger_reversal
+      - reality.services.core:explain_commitment
+      - reality.services.core:item_detail
+      - reality.services.core:location_detail
+      - reality.services.core:name
+      - reality.services.core:party_detail
+      - reality.services.core:payment_term_by_code
+      - reality.services.memberships:require_owner
+      - reality.services.memberships:inspect_invitation
+      - reality.services.core:require_not_held
+      - reality.services.core:resolve_price
+      - reality.services.shipments:shipment_explain
+      - reality.services.projections:explain_order_projection
+      - reality.services.projections:materialized_resolve_price
+    evidence:
+      - id: tests/tenant_isolation/test_families.py::test_record_reads_are_non_disclosing
+        assertion: record_read
+        operations: *record_read_operations
+  - key: collections
+    description: Tenant-owned registers, searches, and timelines exclude foreign rows.
+    classification: collection
+    authority: 003/FR-010, 003/FR-012, 019/FR-005, 040/FR-002, 040/DR-003
+    operations: &collection_operations
+      - reality.services.core:account_statement
+      - reality.services.core:active_settlement_allocations
+      - reality.services.core:aging_register
+      - reality.services.core:business_events
+      - reality.services.core:chat_messages
+      - reality.services.core:chat_sessions
+      - reality.services.core:chat_suggestions
+      - reality.services.core:change_proposals
+      - reality.services.core:commitment_control_accounts
+      - reality.services.core:commitment_rows
+      - reality.services.core:commitments
+      - reality.services.core:connector_shells
+      - reality.services.core:decision_maker_names
+      - reality.services.core:document_rows
+      - reality.services.core:discover_business_records
+      - reality.services.core:announceable_quantity
+      - reality.services.core:announcement_outstanding
+      - reality.services.core:arrived_against_announcement
+      - reality.services.core:duplicate_supplier_invoices
+      - reality.services.core:expired_lots
+      - reality.services.core:return_announcements
+      - reality.services.core:returnable_quantity
+      - reality.services.core:financial_open_items
+      - reality.services.core:payable_supplier_invoices
+      - reality.services.core:preview_payment_run
+      - reality.services.core:preview_stale_promise_closure
+      - reality.services.core:handling_units
+      - reality.services.core:hold_register
+      - reality.services.core:import_jobs
+      - reality.services.core:integration_registry
+      - reality.services.core:interpretation_coverage
+      - reality.services.core:inventory_rows
+      - reality.services.core:issues
+      - reality.services.core:items
+      - reality.services.core:journal_rows
+      - reality.services.core:locations
+      - reality.services.core:lots
+      - reality.services.core:movement_register
+      - reality.services.core:operational_exceptions
+      - reality.services.core:parties
+      - reality.services.core:party_groups
+      - reality.services.core:payment_rows
+      - reality.services.core:payment_terms
+      - reality.services.core:price_list_entries
+      - reality.services.core:price_lists
+      - reality.services.core:reservation_register
+      - reality.services.core:serial_units
+      - reality.services.core:settlement_register
+      - reality.services.core:source_capabilities
+      - reality.services.core:source_records
+      - reality.services.core:source_systems
+      - reality.services.core:system_control_registers
+      - reality.services.core:timeline
+      - reality.services.core:timeline_activity
+      - reality.services.core:warehouse_identity_registers
+      - reality.services.memberships:access_summary
+      - reality.services.projections:projection_rows
+      - reality.services.shipments:shipments_list
+    evidence:
+      - id: tests/tenant_isolation/test_families.py::test_collections_exclude_foreign_records
+        assertion: collection
+        operations: *collection_operations
+  - key: aggregates
+    description: Tenant-owned quantities, balances, and counts exclude foreign values.
+    classification: aggregate
+    authority: 003/FR-010, 003/FR-012, 019/FR-005
+    operations: &aggregate_operations
+      - reality.services.core:account_balance
+      - reality.services.core:active_reserved
+      - reality.services.core:activity_signal
+      - reality.services.core:change_proposal_count
+      - reality.services.core:chat_session_count
+      - reality.services.core:fulfilled_quantity
+      - reality.services.core:movement_quantity
+      - reality.services.core:movement_quantity_resolving
+      - reality.services.core:open_invoice_amount
+      - reality.services.core:open_invoice_amounts
+      - reality.services.core:settlement_positions
+      - reality.services.core:commitment_due_at
+      - reality.services.core:commitment_quantity
+      - reality.services.core:commitment_revisions
+      - reality.services.core:commitment_terms
+      - reality.services.core:open_quantity
+      - reality.services.core:validate_commitment_movement_quantity
+      - reality.services.core:returned_quantity
+      - reality.services.core:supplier_returned_quantity
+      - reality.services.core:uncredited_return_quantity
+      - reality.services.core:reserved_by_identity
+      - reality.services.core:stock_at
+      - reality.services.core:stock_by_identity
+    evidence:
+      - id: tests/tenant_isolation/test_families.py::test_aggregates_exclude_foreign_values
+        assertion: aggregate
+        operations: *aggregate_operations
+  - key: mutations_and_relationships
+    description: Tenant-owned mutations reject foreign relationships atomically.
+    classification: mutation_relationship
+    authority: 003/FR-010, 003/FR-012, 019/FR-006, 038/DR-004, 040/DR-003, 041/DR-003
+    operations: &mutation_operations
+      - reality.services.artifacts:stage_artifact
+      - reality.services.core:add_chat_assistant_message
+      - reality.services.core:add_party_group_member
+      - reality.services.core:archive_chat_session
+      - reality.services.core:allocate_credit_note
+      - reality.services.core:allocate_supplier_credit_note
+      - reality.services.core:allocate_settlement
+      - reality.services.core:assign_group_price_list
+      - reality.services.core:assign_party_price_list
+      - reality.services.core:cancel_commitment
+      - reality.services.core:revise_commitment
+      - reality.services.core:close_stale_promises
+      - reality.services.core:announce_customer_return
+      - reality.services.core:execute_payment_run
+      - reality.services.core:withdraw_return_announcement
+      - reality.services.core:correct_manual_document
+      - reality.services.core:correct_manual_document_lines
+      - reality.services.core:correct_movement
+      - reality.services.core:reverse_ledger_posting_group
+      - reality.services.core:create_chat_session
+      - reality.services.core:create_commitment
+      - reality.services.core:create_document
+      - reality.services.core:create_handling_unit
+      - reality.services.core:create_item
+      - reality.services.core:create_items
+      - reality.services.core:create_location
+      - reality.services.core:create_locations
+      - reality.services.core:create_lot
+      - reality.services.core:correct_lot_expiry
+      - reality.services.core:state_lot_expiry
+      - reality.services.core:create_manual_document_with_lines
+      - reality.services.core:create_manual_order
+      - reality.services.core:create_master_source_record
+      - reality.services.core:create_party
+      - reality.services.core:create_parties
+      - reality.services.core:create_party_group
+      - reality.services.core:create_payment_term
+      - reality.services.core:create_price_list
+      - reality.services.core:create_price_list_entry
+      - reality.services.core:create_serial_unit
+      - reality.services.core:create_source_capability
+      - reality.services.core:create_source_system
+      - reality.services.core:delete_chat_session
+      - reality.services.core:emit_business_event
+      - reality.services.core:enqueue_shopify_order
+      - reality.services.core:enqueue_source
+      - reality.services.core:hold_commitment
+      - reality.services.core:hold_document_commitments
+      - reality.services.core:hold_party_delivery
+      - reality.services.core:ingest_shopify_order
+      - reality.services.core:install_connector_shell
+      - reality.services.core:post_customer_payment
+      - reality.services.core:post_ledger
+      - reality.services.core:post_customer_refund
+      - reality.services.core:post_sales_credit_note
+      - reality.services.core:post_sales_invoice
+      - reality.services.core:post_supplier_credit_note
+      - reality.services.core:record_sales_invoice
+      - reality.services.core:record_supplier_invoice
+      - reality.services.core:record_sales_credit
+      - reality.services.core:post_supplier_invoice
+      - reality.services.core:post_supplier_payment
+      - reality.services.core:post_supplier_refund
+      - reality.services.core:process_import_job
+      - reality.services.core:process_pending_import_jobs
+      - reality.services.core:process_shopify_import_job
+      - reality.services.core:record_corrected_document_source
+      - reality.services.core:record_customer_payment
+      - reality.services.core:record_customer_refund
+      - reality.services.core:observe_fact
+      - reality.services.core:record_movement
+      - reality.services.core:record_supplier_payment
+      - reality.services.core:record_supplier_refund
+      - reality.services.core:release_commitment_hold
+      - reality.services.core:release_document_holds
+      - reality.services.core:release_party_delivery_hold
+      - reality.services.core:release_reservation
+      - reality.services.core:reserve
+      - reality.services.core:restore_chat_session
+      - reality.services.core:retry_import_job
+      - reality.services.core:send_chat_message
+      - reality.services.core:set_master_data_active
+      - reality.services.core:set_source_capability_active
+      - reality.services.core:set_source_system_active
+      - reality.services.core:store_source_record
+      - reality.services.core:update_item
+      - reality.services.core:update_items
+      - reality.services.core:update_location
+      - reality.services.core:update_locations
+      - reality.services.core:update_master_source_reference
+      - reality.services.core:update_party
+      - reality.services.core:update_parties
+      - reality.services.core:update_party_group
+      - reality.services.core:update_payment_term
+      - reality.services.core:update_price_list
+      - reality.services.memberships:accept_invitation
+      - reality.services.memberships:create_invitation
+      - reality.services.memberships:remove_member
+      - reality.services.memberships:resend_invitation
+      - reality.services.memberships:revoke_invitation
+      - reality.services.notifications:enqueue_invitation_delivery
+      - reality.services.notifications:issue_delivery_token
+      - reality.services.file_interpreters:interpret_artifact
+      - reality.services.projections:refresh_operational_projections
+      - reality.services.projections:refresh_projection
+      - reality.services.shipments:record_packaged_execution
+      - reality.services.shipments:record_shipment_event
+      - reality.services.shipments:record_shipment_notice
+      - reality.services.shipments:supersede_shipment_event
+    evidence:
+      - id: tests/tenant_isolation/test_families.py::test_cross_tenant_mutations_are_atomic
+        assertion: mutation_relationship
+        operations: *mutation_operations
+  - key: application_boundaries
+    description: Registered projections and tools preserve tenant context at shared boundaries.
+    classification: boundary
+    authority: 003/FR-010, 019/FR-007, 038/DR-003, 041/DR-003, 059/DR-003
+    reason: Registries expose shared services indirectly rather than as public service callables.
+    operations: &boundary_operations
+      - projection:commitment_register
+      - projection:document_register
+      - projection:exceptions
+      - projection:fulfillment_blockers
+      - projection:fulfillment_queue
+      - projection:inventory
+      - projection:item_supply_demand
+      - projection:journal
+      - projection:open_financial_items
+      - projection:payments
+      - projection:price_resolution
+      - projection:tenant_usage
+      - projection:timeline
+      - tool:commitments
+      - tool:business_discover
+      - tool:capability_describe
+      - tool:commitment_hold
+      - tool:commitment_revise
+      - tool:commitment_hold_release
+      - tool:connector_install
+      - tool:credit_note_allocate
+      - tool:stale_closure
+      - tool:payment_run
+      - tool:lot_expiry_state
+      - tool:lot_expiry_correct
+      - tool:return_announce
+      - tool:return_announcement_withdraw
+      - tool:credit_note_post
+      - tool:document_create
+      - tool:sales_invoice_post
+      - tool:supplier_invoice_post
+      - tool:customer_payment_post
+      - tool:sales_invoice_record
+      - tool:supplier_invoice_record
+      - tool:sales_credit_record
+      - tool:customer_refund_post
+      - tool:demo_seed
+      - tool:exception_explain
+      - tool:stale_closure_preview
+      - tool:payment_run_preview
+      - tool:expired_lots
+      - tool:return_announcements
+      - tool:exceptions
+      - tool:finance_balances
+      - tool:fact_observe
+      - tool:reality_gap_create
+      - tool:reality_gap_decide
+      - tool:reality_gap_entry_add
+      - tool:reality_gap_get
+      - tool:reality_gap_implementation_prepare
+      - tool:reality_gap_recommend
+      - tool:reality_gap_rule_activate
+      - tool:reality_gap_rule_disable
+      - tool:reality_gap_rule_replay
+      - tool:reality_gap_simulate
+      - tool:reality_gaps
+      - tool:fulfillment_blockers
+      - tool:fulfillment_queue
+      - tool:inventory
+      - tool:interpretation_coverage
+      - tool:proposals_awaiting_approval
+      - tool:proposal_execution_status
+      - tool:document_correct
+      - tool:document_hold
+      - tool:document_hold_release
+      - tool:document_lines_correct
+      - tool:document_source_correct
+      - tool:group_price_list_assign
+      - tool:handling_unit_create
+      - tool:invitation_resend
+      - tool:invitation_revoke
+      - tool:item_create
+      - tool:item_update
+      - tool:item_supply_demand
+      - tool:lot_create
+      - tool:master_data_lifecycle
+      - tool:ledger_reverse
+      - tool:movement_correct
+      - tool:movement_create
+      - tool:member_invite
+      - tool:member_remove
+      - tool:normal_month
+      - tool:order_explain
+      - tool:shipment_explain
+      - tool:shipments_list
+      - tool:shipment_dispatch
+      - tool:shipment_event_record
+      - tool:shipment_event_supersede
+      - tool:shipment_notice_record
+      - tool:shipment_receive
+      - tool:order_create
+      - tool:party_create
+      - tool:party_update
+      - tool:party_delivery_hold
+      - tool:party_delivery_hold_release
+      - tool:party_group_create
+      - tool:party_group_member_add
+      - tool:party_group_update
+      - tool:party_price_list_assign
+      - tool:payment_term_create
+      - tool:payment_term_update
+      - tool:price_list_create
+      - tool:price_list_update
+      - tool:price_tier_create
+      - tool:reserve
+      - tool:reservation_release
+      - tool:serial_unit_create
+      - tool:location_create
+      - tool:location_update
+      - tool:source_ingest
+      - tool:source_record_ingest
+      - tool:source_capability_create
+      - tool:source_capability_lifecycle
+      - tool:source_system_create
+      - tool:source_system_lifecycle
+      - tool:supplier_credit_note_allocate
+      - tool:supplier_credit_note_post
+      - tool:supplier_payment_post
+      - tool:supplier_refund_post
+    evidence:
+      - id: tests/tenant_isolation/test_families.py::test_registered_boundaries_are_tenant_scoped
+        assertion: boundary
+        operations: *boundary_operations
+  - key: tenant_administration
+    description: Explicit platform tenant lifecycle operations are governed administration.
+    classification: global_admin
+    authority: 003/FR-001, 003/FR-002, 003/FR-003
+    reason: Tenant discovery and lifecycle management require platform-level authority.
+    operations: &admin_operations
+      - reality.services.core:archive_tenant
+      - reality.services.core:create_tenant
+      - reality.services.core:find_tenant
+      - reality.services.core:get_tenant
+      - reality.services.core:permanently_delete_tenant
+      - reality.services.core:restore_tenant
+      - reality.services.core:tenant_usage_summaries
+      - reality.services.core:tenants
+    evidence:
+      - id: tests/tenant_isolation/test_families.py::test_global_tenant_administration_is_explicit
+        assertion: global_admin
+        operations: *admin_operations
+  - key: scheduled_job_controls
+    description: Owner-authorized schedule controls and paginated inspection never cross tenant scope.
+    classification: boundary
+    reason: Operator adapters pass explicit tenant and actor; services revalidate current owner authority and restrict all record lookups.
+    authority: 147/FR-010, 147/DR-002, 147/DR-003
+    operations: &scheduled_controls
+      - reality.services.scheduled_jobs:create_schedule
+      - reality.services.scheduled_jobs:preview_schedule
+      - reality.services.scheduled_jobs:control_schedule
+      - reality.services.scheduled_jobs:cancel_queued_run
+      - reality.services.scheduled_jobs:create_manual_run
+      - reality.services.scheduled_jobs:get_run
+      - reality.services.scheduled_jobs:list_runs
+      - reality.services.scheduled_jobs:list_schedules
+    evidence:
+      - id: tests/test_scheduled_jobs.py::test_all_operator_boundaries_reject_foreign_scope
+        assertion: boundary
+        operations: *scheduled_controls
+  - key: scheduled_job_execution
+    description: Background execution uses scoped schedule/run identity, claim fencing and fresh authorization.
+    classification: boundary
+    reason: Internal process services receive an explicit tenant from the catalog and never load foreign schedule or run records.
+    authority: 147/FR-006, 147/DR-002
+    operations: &scheduled_execution
+      - reality.services.scheduled_jobs:materialize_due
+      - reality.services.scheduled_jobs:claim_next
+      - reality.services.scheduled_jobs:execute_claim
+      - reality.services.scheduled_jobs:record_failure
+      - reality.services.scheduled_jobs:has_due_schedule
+    evidence:
+      - id: tests/test_scheduled_jobs.py::test_execution_boundaries_reject_foreign_records
+        assertion: boundary
+        operations: *scheduled_execution
+  - key: scheduled_cleanup
+    description: Retention cleanup deletes at most 100 terminal invitations in one explicit tenant.
+    classification: boundary
+    reason: Internal handler first authorizes the actor; the shared retention service requires explicit tenant scope.
+    authority: 147/FR-011, 147/DR-002
+    operations: &scheduled_cleanup_operations
+      - reality.services.notifications:cleanup_terminal_invitations
+    evidence:
+      - id: tests/test_scheduled_invitation_cleanup.py::test_cleanup_batch_scope_and_retention
+        assertion: boundary
+        operations: *scheduled_cleanup_operations
+  - key: scheduled_tenant_discovery
+    description: Background processes discover only bounded tenant identifiers.
+    classification: global_admin
+    reason: Internal scheduler/worker infrastructure enumerates tenant metadata without business records; each subsequent operation is explicitly tenant-scoped.
+    authority: 147/DR-002
+    operations: &scheduled_discovery
+      - reality.services.scheduled_jobs:tenant_catalog
+    evidence:
+      - id: tests/test_scheduled_jobs.py::test_catalog_discovers_only_bounded_identifiers
+        assertion: global_admin
+        operations: *scheduled_discovery
+
+  - key: demo_data_connection
+    description: Synthetic connection controls require a verified current private Sandbox owner.
+    classification: boundary
+    reason: All lookups use the resolved tenant and current run ownership; ordinary and execution tenants are refused.
+    authority: 146/FR-020, 146/DR-001
+    operations: &demo_data_operations
+      - reality.services.demo_data:eligible
+      - reality.services.demo_data:preview
+      - reality.services.demo_data:connect
+      - reality.services.demo_data:control
+      - reality.services.demo_data:status
+      - reality.services.demo_data:imports
+      - reality.services.demo_data:read_import
+      - reality.services.demo_data:retry_import
+      - reality.services.demo_data:intake_scope
+      - reality.services.demo_data:settlement_scope
+      - reality.services.demo_data:settlement_work
+      - reality.services.demo_data:order_to_cash
+    evidence:
+      - id: tests/test_demo_data_security.py::test_all_demo_connection_boundaries_refuse_foreign_scope
+        assertion: boundary
+        operations: *demo_data_operations
+  - key: payment_intake
+    description: Shared invoice and payment interpretation resolves stated references within one tenant and party only.
+    classification: boundary
+    reason: Every lookup filters on the resolved tenant and the payer party; a matching number in another tenant or party never resolves, and candidates are read-time observations.
+    authority: 168/FR-010, 168/FR-011, 168/FR-012, 168/FR-014, 168/DR-004
+    operations: &payment_intake_operations
+      - reality.services.payment_intake:interpret_sales_invoice
+      - reality.services.payment_intake:interpret_customer_payment
+      - reality.services.payment_intake:resolve_references
+      - reality.services.payment_intake:payment_candidates
+      - reality.services.payment_intake:unallocated_amount
+    evidence:
+      - id: tests/test_payment_intake.py::test_unposted_wrong_party_wrong_currency_and_customer_number_never_allocate
+        assertion: boundary
+        operations: *payment_intake_operations
+      - id: tests/test_payment_intake.py::test_candidates_have_reasons_and_write_nothing
+        assertion: boundary
+        operations: *payment_intake_operations
+  - key: demo_bound_import
+    description: Transaction-bound synthetic interpretation never loads a foreign job or source.
+    classification: boundary
+    reason: Explicit tenant scope is checked before source or interpreter access.
+    authority: 146/FR-018, 146/DR-001
+    operations: &demo_bound_operations
+      - reality.services.core:process_import_job_bound
+    evidence:
+      - id: tests/test_demo_data_security.py::test_bound_import_refuses_foreign_job
+        assertion: boundary
+        operations: *demo_bound_operations
+
+  - key: finance_accounts
+    description: Tenant-scoped operational account configuration and serialized eligibility.
+    classification: boundary
+    reason: All lookups constrain tenant identity; composite account links and shared confirmation protect mutations.
+    authority: 148/FR-021, 148/FR-025, 148/DR-003
+    operations: &finance_account_operations
+      - reality.services.finance.accounts:create_account
+      - reality.services.finance.accounts:initialize_accounts
+      - reality.services.finance.accounts:transaction_matrix
+      - reality.services.finance.accounts:list_accounts
+      - reality.services.finance.accounts:lock_finance
+      - reality.services.finance.accounts:resolve_account
+      - reality.services.finance.accounts:set_default_account
+      - reality.services.finance.accounts:update_account
+      - tool:finance.account.create
+      - tool:finance.account.initialize
+      - tool:finance.account.set_default
+      - tool:finance.account.update
+      - tool:finance.matrix.read
+      - tool:finance.accounts.list
+    evidence:
+      - id: tests/finance/test_accounts.py::test_account_role_tenant_and_code_validation
+        assertion: boundary
+        operations: *finance_account_operations
+
+  - key: settlement_adjustments
+    description: Explicit evidenced reductions share tenant-owned invoice, account and source identities.
+    classification: boundary
+    reason: Shared context and confirmation reject foreign references before effects.
+    authority: 148/FR-037, 148/FR-038, 148/FR-042
+    operations: &settlement_adjustment_operations
+      - reality.services.finance.settlement:adjustment_context
+      - reality.services.finance.settlement:preview_adjustment
+      - reality.services.finance.settlement:accept_adjustment
+      - tool:finance.adjustment.context
+      - tool:finance.adjustment.accept
+    evidence:
+      - id: tests/finance/test_adjustments.py::test_adjustment_tenant_boundary
+        assertion: boundary
+        operations: *settlement_adjustment_operations
+
+  - key: agent_credit_reads
+    description: Agent reads of available credit, recorded payments and party balances derive tenant-owned amounts only.
+    classification: boundary
+    reason: All three reads run the shared tenant-scoped finance services; a foreign tenant's payments, credits or balances never appear.
+    authority: 169/FR-005, 169/FR-006, 170/FR-008
+    operations: &agent_credit_read_operations
+      - tool:finance.credits.list
+      - tool:finance.payments.list
+      - tool:finance.party_balances.list
+    evidence:
+      - id: tests/finance/test_credit_reads.py::test_credit_reads_are_tenant_scoped
+        assertion: boundary
+        operations:
+          - tool:finance.credits.list
+          - tool:finance.payments.list
+      - id: tests/finance/test_party_balances.py::test_tool_matches_view_and_is_tenant_scoped
+        assertion: boundary
+        operations:
+          - tool:finance.party_balances.list
+  - key: guided_settlement
+    description: Actual money and credit consumption retain tenant-owned evidence and account identity.
+    classification: boundary
+    reason: Shared preview and confirmation reject foreign references before cash or allocations.
+    authority: 148/FR-035, 148/FR-039, 148/FR-042
+    operations: &guided_settlement_operations
+      - reality.services.finance.settlement_flows:settlement_context
+      - reality.services.finance.settlement_flows:preview_settlement
+      - reality.services.finance.settlement_flows:apply_settlement
+      - tool:finance.settlement.context
+      - tool:finance.settlement.apply
+    evidence:
+      - id: tests/finance/test_settlement_flows.py::test_settlement_tenant_boundary
+        assertion: boundary
+        operations: *guided_settlement_operations
+
+  - key: opening_positions
+    description: Opening source coverage and evidence preserve tenant-owned party, account and document identity.
+    classification: boundary
+    reason: Preview and confirmation refuse foreign references before any opening effects.
+    authority: 148/FR-044, 148/FR-045, 148/FR-048
+    operations: &opening_position_operations
+      - reality.services.finance.opening:opening_context
+      - reality.services.finance.opening:preview_opening
+      - reality.services.finance.opening:import_opening
+      - reality.services.finance.opening:check_opening_coverage
+      - tool:finance.opening.context
+      - tool:finance.opening.import
+    evidence:
+      - id: tests/finance/test_opening.py::test_stale_owner_and_tenant_boundaries
+        assertion: boundary
+        operations: *opening_position_operations
+
+  - key: finance_references
+    description: Tenant-owned internal reference catalog and immutable decision history.
+    classification: boundary
+    reason: Every read, eligibility check and confirmed change constrains tenant identity.
+    authority: 148/FR-008, 148/FR-010, 148/FR-021, 148/FR-030, 148/FR-031
+    operations: &finance_reference_operations
+      - reality.services.finance.references:list_references
+      - reality.services.finance.references:reference_history
+      - reality.services.finance.references:resolve_reference
+      - reality.services.finance.references:preview_reference
+      - reality.services.finance.references:maintain_reference
+      - tool:finance.references.list
+      - tool:finance.references.history
+      - tool:finance.reference.create
+      - tool:finance.reference.update
+    evidence:
+      - id: tests/finance/test_references.py::test_reference_tenant_kind_validation_and_paging
+        assertion: boundary
+        operations: *finance_reference_operations
+
+  - key: finance_components
+    description: Received financial detail and immutable internal component attribution.
+    classification: boundary
+    reason: Evidence and all linked references are tenant scoped and kinds are validated before effects.
+    authority: 148/FR-006, 148/FR-007, 148/FR-008, 148/FR-010, 148/FR-021
+    operations: &finance_component_operations
+      - reality.services.finance.components:component_context
+      - reality.services.finance.components:component_history
+      - reality.services.finance.components:preview_assignment
+      - reality.services.finance.components:assign_component
+      - tool:finance.components.context
+      - tool:finance.component.history
+      - tool:finance.component.assign
+    evidence:
+      - id: tests/finance/test_components.py::test_invalid_parts_kind_scope_and_stale_references
+        assertion: boundary
+        operations: *finance_component_operations
+
+  - key: source_classification_mappings
+    description: Exact tenant-owned source classification with immutable revisions.
+    classification: boundary
+    reason: Same-tenant source/reference keys, kind-aware links and finance locking protect all decisions.
+    authority: 148/FR-030, 148/FR-033, 148/FR-034
+    operations: &source_classification_operations
+      - reality.services.finance.source_mappings:list_source_mappings
+      - reality.services.finance.source_mappings:source_mapping_history
+      - reality.services.finance.source_mappings:preview_source_mapping
+      - reality.services.finance.source_mappings:set_source_mapping
+      - reality.services.finance.source_mappings:resolve_source_codes
+      - tool:finance.source_mappings.list
+      - tool:finance.source_mappings.history
+      - tool:finance.source_mapping.set
+    evidence:
+      - id: tests/finance/test_source_mappings.py::test_source_mapping_tenant_and_kind_boundaries
+        assertion: boundary
+        operations: *source_classification_operations
+
+  - key: finance_target_configuration
+    description: Finance-specific external catalogs and exact mapping revision decisions.
+    classification: boundary
+    reason: Tenant and target composite keys, kind checks, owner confirmation and finance serialization protect configuration and preview.
+    authority: 148/FR-009, 148/FR-021, 148/FR-027, 148/FR-032, 148/FR-033, 148/FR-034
+    operations: &finance_target_operations
+      - reality.services.finance.target_mappings:list_targets
+      - reality.services.finance.target_mappings:list_target_references
+      - reality.services.finance.target_mappings:list_mappings
+      - reality.services.finance.target_mappings:mapping_history
+      - reality.services.finance.target_mappings:preview_change
+      - reality.services.finance.target_mappings:maintain_target_configuration
+      - reality.services.finance.target_mappings:preview_document
+      - tool:finance.targets.list
+      - tool:finance.target_references.list
+      - tool:finance.target_mappings.list
+      - tool:finance.target_mappings.history
+      - tool:finance.target_mappings.preview
+      - tool:finance.target.create
+      - tool:finance.target.update
+      - tool:finance.target_reference.create
+      - tool:finance.target_reference.update
+      - tool:finance.target_mapping.set
+    evidence:
+      - id: tests/finance/test_target_mappings.py::test_target_boundaries_and_overlap
+        assertion: boundary
+        operations: *finance_target_operations
+  - key: background_projection_maintenance
+    description: Internal cache maintenance and snapshot reads preserve one explicit tenant.
+    classification: boundary
+    reason: Scoped queue identity, cache rows, event targets and checkpoint expressions never select another company's business records or impersonate an owner.
+    authority: 179/FR-004, 179/FR-005, 179/FR-006
+    operations: &background_projection_operations
+      - reality.services.projections:rebuild_projections
+      - reality.services.projections:projection_snapshot
+      - reality.services.projections:projection_state_expressions
+      - reality.services.projections:relevant_event_target
+      - reality.services.scheduled_jobs:enqueue_projection_run
+      - reality.services.projection_jobs:enqueue_due_projections
+    evidence:
+      - id: tests/test_projection_jobs.py::test_projection_services_keep_other_tenant_untouched
+        assertion: boundary
+        operations: *background_projection_operations
+
+  - key: analytics
+    description: Structured analytics and private report definitions preserve company and owner scope.
+    classification: boundary
+    reason: Compiler-owned tenant predicates, owned read transactions, trusted membership and explicit author confirmation.
+    authority: 185/FR-006, 185/FR-013, 185/DR-003
+    operations: &analytics_operations
+      - reality.services.analytics.execution:query
+      - reality.services.analytics.contributors:contributors
+      - reality.services.analytics.exports:export_csv
+      - reality.services.analytics.reports:list_reports
+      - reality.services.analytics.reports:get_report
+      - reality.services.analytics.reports:change_report
+      - reality.services.analytics.proposals:preview
+      - tool:analytics.catalog
+      - tool:analytics.query
+      - tool:analytics.contributors
+      - tool:analytics.export
+      - tool:analytics.reports.list
+      - tool:analytics.reports.get
+      - tool:analytics.reports.change
+    evidence:
+      - id: tests/test_analytics_adapters.py::test_analytics_tenant_and_private_owner_boundaries
+        assertion: boundary
+        operations: *analytics_operations

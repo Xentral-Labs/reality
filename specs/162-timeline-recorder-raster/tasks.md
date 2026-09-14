@@ -1,0 +1,29 @@
+# Tasks
+
+- [x] T001 [FR-001–009] Record the reported problem and the chosen stage-0 scope, review the constitution check and the existing spec 138 FR-026 contract.
+- [x] T002 [FR-001, FR-003, FR-004] Write the layout tests first (interval choice, columns, stacks, widening, ticks, paper to now, time anchoring, zoom levels) and the pure layout module that makes them pass.
+- [x] T003 [FR-001–009] Render the recorder from the layout: lane-coloured dots, interval header, strip wording, lane tokens in both themes, localization in four languages, selection/edges/hints/prepend on the new coordinates, lane traces, faint stitches, now mark, refresh, zoom buttons, hover card.
+- [x] T004 [FR-005, SC-001–003] Run contracts, the Inspector browser suite, build, i18n audit, Prettier and spec policy; update the Web contract and coverage matrix; record verification in review.md.
+- [x] T005 [US2] [FR-010] Add failing pulse grouping, exact membership and bounded intensity tests in `apps/web/scripts/flight-recorder-layout.test.mjs`.
+- [x] T006 [US1] [FR-010, FR-012] Add a failing rendering contract for aggregate pulses and default edge suppression in `apps/web/scripts/flight-recorder-pulse.test.mjs`.
+- [x] T007 [US1] [US2] [US3] [FR-010–012] Implement pulse layout and pulse-to-record drill-down in `apps/web/src/unified/flightRecorderLayout.ts` and `apps/web/src/unified/FlightRecorder.tsx`, including localization and accessible labels.
+- [x] T008 [US1–US5] [FR-001–012] Run focused tests, frontend contracts, build, localization audit, formatting and spec checks; update `docs/WEB_SPEC.md`, `docs/SPEC_COVERAGE_MATRIX.md` and `specs/162-timeline-recorder-raster/review.md` with evidence.
+- [x] T009 [US6] [FR-013, FR-015] Add failing deterministic radial-layout and Timeline-mount contracts in `apps/web/scripts/connection-constellation.test.mjs`.
+- [x] T010 [US6] [FR-013–015] Implement the opt-in radial constellation in `apps/web/src/unified/connectionConstellationLayout.ts`, `apps/web/src/unified/ObjectGraph.tsx` and `apps/web/src/unified/FlightRecorder.tsx`.
+- [x] T011 [US6] [SC-006–007] Run focused and complete frontend gates, visually verify live desktop drill-down, and update `docs/WEB_SPEC.md`, `docs/SPEC_COVERAGE_MATRIX.md` and this feature review.
+- [x] T012 [US2] [FR-011] Replace the below-recorder pulse member list with a bounded, paginated orbit of directly clickable member bubbles and verify the live interaction.
+- [x] T013 [US2, US6] [FR-011, FR-013] Make orbit members readable compact cards, preload on deliberate hover, move selection context into the constellation header and bring the opened graph into view.
+- [x] T014 [US7] [FR-016–018] Add failing rendering contracts for separate hover-preview and pinned state, responsive side-by-side panes and suppression of duplicate recorder edges.
+- [x] T015 [US7] [FR-016–018] Implement and live-verify the responsive split, reversible preview, click pinning and stable right-hand graph using the existing Inspector read.
+- [x] T016 [US7] [FR-016, FR-018] Add regression contracts for viewport-bounded orbit cards and unique linked-record nodes.
+- [x] T017 [US7] [FR-016, FR-018] Clamp the orbit to the visible recorder pane, deduplicate constellation targets, and deploy the repaired split to the preserved local stack.
+- [x] T018 [US7] [FR-016] Add a failing rendering contract for equal-height pane-local headers and aligned control rows.
+- [x] T019 [US7] [FR-016] Move the Timeline and constellation headers into their panes, align their controls, and deploy the verified layout.
+- [x] T020 [US7] [FR-016] Add failing layout and rendering tests for balanced work-area height and compact constellation controls.
+- [x] T021 [US7] [FR-011, FR-016, FR-018] Replace the orbit with a closable record cluster, expand the active recorder lanes, simplify constellation controls, and deploy the balanced board.
+- [x] T022 [US6, US7] [FR-011, FR-013, FR-015, FR-017] Add failing contracts for a pane-local pulse record list and directed Source/Evidence-to-Reality trace without hover-driven graph loading.
+- [x] T023 [US6, US7] [FR-011, FR-013–018] Remove the orbit/constellation presentation, implement the pulse inspector and directed relationship trace, and deploy the verified redesign.
+- [x] T024 [US6, US7] [FR-011, FR-013, FR-016] Add failing contracts for a full-width stacked Timeline and semantic ERP record table.
+- [x] T025 [US6, US7] [FR-011, FR-013–018] Remove the split composition, keep the recorder compact, implement the stacked record table and verify the drill-down.
+- [x] T026 [US1] [FR-010] Add a failing regression assertion for readable aggregate lane spacing.
+- [x] T027 [US1] [FR-010] Increase the compact lane floor, verify the frontend gates and update the open PR.

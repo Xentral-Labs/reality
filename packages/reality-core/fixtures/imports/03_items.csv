@@ -1,0 +1,4 @@
+sku,name,unit,item_type,tracking_type,purchase_unit,conversion_factor,lead_time_days
+BIKE-LIGHT,Bike Light,pcs,stocked,none,pcs,1,5
+BIKE-BELL,Bike Bell,pcs,stocked,none,box,10,7
+ASSEMBLY,Assembly Service,hour,service,none,hour,1,0

@@ -1,0 +1,27 @@
+.access-capacity {
+  position: relative;
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  width: min(420px, 100%);
+  margin-top: 24px;
+  padding-bottom: 12px;
+  border-bottom: 4px solid var(--border-default);
+  overflow: hidden;
+}
+
+.access-capacity strong {
+  font-size: 18px;
+}
+.access-capacity span {
+  color: var(--text-muted);
+  font-size: 13px;
+}
+.access-capacity i {
+  position: absolute;
+  bottom: -4px;
+  left: 0;
+  height: 4px;
+  border-radius: 4px;
+  background: #635bff;
+}

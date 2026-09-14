@@ -1,0 +1,9 @@
+/* Keep the shared controls legible under legacy unlayered form styles. */
+.analytics-explorer .br-control {
+  background-color: var(--surface);
+  color: var(--text-strong);
+}
+.analytics-explorer select.br-control {
+  appearance: none;
+  padding-right: 3rem;
+}

@@ -1,0 +1,63 @@
+version: 1
+title: Business Events
+events:
+  - {type: shipment.notice_recorded, producer: record_shipment_notice, subject: shipment, invalidates: [Timeline, Operational Exceptions, Tenant usage]}
+  - {type: shipment.event_recorded, producer: record_shipment_event, subject: shipment_event, invalidates: [Timeline, Operational Exceptions, Tenant usage]}
+  - {type: shipment.event_superseded, producer: supersede_shipment_event, subject: shipment_event, invalidates: [Timeline, Operational Exceptions, Tenant usage]}
+  - {type: finance.target_configuration_changed, producer: maintain_target_configuration, subject: accounting_target, invalidates: [Tenant usage]}
+  - {type: finance.source_mapping_changed, producer: set_source_mapping, subject: source_classification_mapping_revision, invalidates: [Tenant usage]}
+  - {type: finance.component_assigned, producer: assign_component, subject: financial_component, invalidates: [Timeline, Tenant usage]}
+  - {type: finance.reference_changed, producer: maintain_reference, subject: finance_reference, invalidates: [Tenant usage]}
+  - {type: finance.account_changed, producer: update_account, subject: subledger_account, invalidates: [Journal, Tenant usage]}
+  - {type: credit.recorded, producer: record_sales_credit, subject: document, invalidates: [Open financial items, Timeline, Tenant usage]}
+  - {type: invoice.recorded, producer: record_sales_invoice, subject: document, invalidates: [Open financial items, Timeline, Tenant usage]}
+  - {type: order.recorded, producer: create_manual_order, subject: document, invalidates: [Document register, Commitment register, Timeline, Tenant usage]}
+  - {type: source_record.stored, producer: create_master_source_record, subject: source_record, invalidates: [Timeline, Operational Exceptions, Tenant usage]}
+  - {type: commitment.fulfilled, producer: record_movement, subject: commitment, invalidates: [Inventory, Operational Exceptions, Commitment register, Document register, Timeline, Fulfillment queue, Fulfillment blockers, Item supply and demand, Tenant usage]}
+  - {type: reservation.consumed, producer: record_movement, subject: reservation, invalidates: [Inventory, Operational Exceptions, Commitment register, Timeline, Fulfillment queue, Fulfillment blockers, Item supply and demand, Tenant usage]}
+  - {type: fact.observed, producer: observe_fact, subject: fact, invalidates: [Timeline, Inventory, Commitment register, Fulfillment queue, Fulfillment blockers, Item supply and demand, Operational Exceptions, Tenant usage]}
+  - {type: source_record.received, producer: enqueue_source, subject: source_record, invalidates: [Timeline, Operational Exceptions, Tenant usage]}
+  - {type: source_record.unmapped, producer: enqueue_source, subject: source_record, invalidates: [Operational Exceptions, Timeline, Tenant usage]}
+  - {type: source_record.interpreted, producer: process_import_job, subject: source_record, invalidates: [Operational Exceptions, Document register, Timeline, Fulfillment queue, Fulfillment blockers, Tenant usage]}
+  - {type: party.created, producer: create_party, subject: party, invalidates: [Document register, Commitment register, Fulfillment queue, Payments, Timeline, Operational Exceptions, Tenant usage]}
+  - {type: party.updated, producer: update_party, subject: party, invalidates: [Document register, Commitment register, Open financial items, Fulfillment queue, Payments, Timeline, Operational Exceptions, Tenant usage]}
+  - {type: party.delivery_hold_placed, producer: hold_party_delivery, subject: party, invalidates: [Operational Exceptions, Commitment register, Fulfillment queue, Fulfillment blockers, Item supply and demand, Tenant usage]}
+  - {type: party.delivery_hold_released, producer: release_party_delivery_hold, subject: party, invalidates: [Operational Exceptions, Commitment register, Fulfillment queue, Fulfillment blockers, Item supply and demand, Tenant usage]}
+  - {type: item.created, producer: create_item, subject: item, invalidates: [Inventory, Item supply and demand, Timeline, Operational Exceptions, Tenant usage]}
+  - {type: item.updated, producer: update_item, subject: item, invalidates: [Inventory, Commitment register, Price resolution, Fulfillment queue, Fulfillment blockers, Item supply and demand, Timeline, Operational Exceptions, Tenant usage]}
+  - {type: location.created, producer: create_location, subject: location, invalidates: [Inventory, Timeline, Item supply and demand, Tenant usage]}
+  - {type: location.updated, producer: update_location, subject: location, invalidates: [Inventory, Commitment register, Timeline, Item supply and demand, Operational Exceptions, Tenant usage]}
+  - {type: master_data.lifecycle_changed, producer: set_master_data_active, subject: master_data, invalidates: [Inventory, Price resolution, Tenant usage]}
+  - {type: payment_term.updated, producer: update_payment_term, subject: payment_term, invalidates: [Open financial items, Document register, Tenant usage]}
+  - {type: payment_term.created, producer: create_payment_term, subject: payment_term, invalidates: [Tenant usage]}
+  - {type: price_list.updated, producer: update_price_list, subject: price_list, invalidates: [Price resolution, Tenant usage]}
+  - {type: price_list.created, producer: create_price_list, subject: price_list, invalidates: [Price resolution, Tenant usage]}
+  - {type: price_list_entry.created, producer: create_price_list_entry, subject: price_list_entry, invalidates: [Price resolution, Tenant usage]}
+  - {type: party_price_list.assigned, producer: assign_party_price_list, subject: party_price_list, invalidates: [Price resolution, Tenant usage]}
+  - {type: party_group.updated, producer: update_party_group, subject: party_group, invalidates: [Price resolution, Tenant usage]}
+  - {type: party_group.created, producer: create_party_group, subject: party_group, invalidates: [Price resolution, Tenant usage]}
+  - {type: party_group_member.added, producer: add_party_group_member, subject: party_group_member, invalidates: [Price resolution, Tenant usage]}
+  - {type: party_group_price_list.assigned, producer: assign_group_price_list, subject: party_group_price_list, invalidates: [Price resolution, Tenant usage]}
+  - {type: document.recorded, producer: create_document, subject: document, invalidates: [Document register, Timeline, Open financial items, Operational Exceptions, Fulfillment queue, Fulfillment blockers, Tenant usage]}
+  - {type: document.corrected, producer: correct_manual_document, subject: document, invalidates: [Document register, Timeline, Open financial items, Payments, Operational Exceptions, Fulfillment queue, Fulfillment blockers, Tenant usage]}
+  - {type: commitment.created, producer: create_commitment, subject: commitment, invalidates: [Inventory, Operational Exceptions, Commitment register, Document register, Timeline, Fulfillment queue, Fulfillment blockers, Item supply and demand, Tenant usage]}
+  - {type: commitment.cancelled, producer: cancel_commitment, subject: commitment, invalidates: [Inventory, Operational Exceptions, Commitment register, Timeline, Fulfillment queue, Fulfillment blockers, Item supply and demand, Document register, Tenant usage]}
+  - {type: commitment.revised, producer: revise_commitment, subject: commitment, invalidates: [Operational Exceptions, Commitment register, Timeline, Fulfillment queue, Fulfillment blockers, Inventory, Item supply and demand, Tenant usage]}
+  - {type: promises.closed, producer: close_stale_promises, subject: tenant, invalidates: [Inventory, Operational Exceptions, Commitment register, Timeline, Fulfillment queue, Fulfillment blockers, Item supply and demand, Tenant usage]}
+  - {type: payments.run, producer: execute_payment_run, subject: tenant, invalidates: [Open financial items, Payments, Journal, Timeline, Operational Exceptions, Tenant usage]}
+  - {type: return.announced, producer: announce_customer_return, subject: return_announcement, invalidates: [Operational Exceptions, Timeline, Tenant usage]}
+  - {type: return.announcement_withdrawn, producer: withdraw_return_announcement, subject: return_announcement, invalidates: [Operational Exceptions, Timeline, Tenant usage]}
+  - {type: commitment.held, producer: hold_commitment, subject: commitment, invalidates: [Operational Exceptions, Commitment register, Timeline, Fulfillment queue, Fulfillment blockers, Item supply and demand, Tenant usage]}
+  - {type: commitment.hold_released, producer: release_commitment_hold, subject: commitment, invalidates: [Operational Exceptions, Commitment register, Timeline, Fulfillment queue, Fulfillment blockers, Item supply and demand, Tenant usage]}
+  - {type: reservation.created, producer: reserve, subject: reservation, invalidates: [Inventory, Operational Exceptions, Commitment register, Timeline, Fulfillment queue, Fulfillment blockers, Item supply and demand, Tenant usage]}
+  - {type: reservation.released, producer: release_reservation, subject: reservation, invalidates: [Inventory, Operational Exceptions, Commitment register, Timeline, Fulfillment queue, Fulfillment blockers, Item supply and demand, Tenant usage]}
+  - {type: handling_unit.created, producer: create_handling_unit, subject: handling_unit, invalidates: [Timeline, Tenant usage]}
+  - {type: lot.created, producer: create_lot, subject: lot, invalidates: [Timeline, Tenant usage]}
+  - {type: lot.expiry_stated, producer: state_lot_expiry, subject: lot, invalidates: [Operational Exceptions, Timeline, Tenant usage]}
+  - {type: lot.expiry_corrected, producer: correct_lot_expiry, subject: lot, invalidates: [Operational Exceptions, Timeline, Tenant usage]}
+  - {type: serial_unit.created, producer: create_serial_unit, subject: serial_unit, invalidates: [Timeline, Tenant usage]}
+  - {type: movement.recorded, producer: record_movement, subject: movement, invalidates: [Inventory, Operational Exceptions, Commitment register, Timeline, Fulfillment queue, Fulfillment blockers, Item supply and demand, Tenant usage]}
+  - {type: movement.corrected, producer: correct_movement, subject: movement, invalidates: [Inventory, Operational Exceptions, Commitment register, Timeline, Fulfillment queue, Fulfillment blockers, Item supply and demand, Tenant usage]}
+  - {type: ledger.posted, producer: post_ledger, subject: posting_group, invalidates: [Open financial items, Payments, Journal, Timeline, Operational Exceptions, Tenant usage]}
+  - {type: ledger.reversed, producer: reverse_ledger_posting_group, subject: posting_group, invalidates: [Open financial items, Payments, Journal, Operational Exceptions, Timeline, Tenant usage]}
+  - {type: settlement.allocated, producer: allocate_settlement, subject: settlement_allocation, invalidates: [Open financial items, Payments, Timeline, Operational Exceptions, Tenant usage]}

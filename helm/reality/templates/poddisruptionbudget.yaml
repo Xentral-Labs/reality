@@ -1,0 +1,24 @@
+{{/*
+  Karpenter's only untainted NodePool is SPOT-only, so nodes are reclaimed
+  routinely and consolidation runs every minute. Without a PDB a consolidation
+  pass can take the last replica of a component down.
+*/}}
+{{- range $name := list "api" "mcp" "web" }}
+{{- $component := index $.Values $name }}
+{{- if and $component.enabled $component.podDisruptionBudget $component.podDisruptionBudget.enabled }}
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: {{ include "reality.fullname" $ }}-{{ $name }}
+  labels:
+    {{- include "reality.labels" $ | nindent 4 }}
+    app.kubernetes.io/component: {{ $name }}
+spec:
+  minAvailable: {{ $component.podDisruptionBudget.minAvailable }}
+  selector:
+    matchLabels:
+      {{- include "reality.selectorLabels" $ | nindent 6 }}
+      app.kubernetes.io/component: {{ $name }}
+{{- end }}
+{{- end }}

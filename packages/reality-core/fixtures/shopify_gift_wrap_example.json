@@ -1,0 +1,27 @@
+{
+  "id": 9900101,
+  "order_number": 11001,
+  "name": "#11001",
+  "created_at": "2026-09-04T12:00:00Z",
+  "currency": "EUR",
+  "total_price": "49.00",
+  "customer": {
+    "name": "Müller GmbH"
+  },
+  "line_items": [
+    {
+      "id": 99001011,
+      "sku": "BIKE-LIGHT",
+      "name": "Bike Light",
+      "quantity": 1,
+      "price": "49.00"
+    }
+  ],
+  "metafields": {
+    "fulfillment": {
+      "gift_wrap": true,
+      "gift_message": "Alles Gute zum Geburtstag!"
+    }
+  },
+  "tags": "web-test,gift"
+}

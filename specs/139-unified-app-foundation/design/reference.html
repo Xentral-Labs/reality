@@ -1,0 +1,444 @@
+<!-- Design exploration with synthetic examples only. Spec impact: none; this does not change product behavior or call application services. -->
+<style>
+#reality-workbench{--rw-bg:light-dark(#f3f5f9,#151922);--rw-surface:light-dark(#fff,#202633);--rw-text:light-dark(#202b3c,#eff2f8);--rw-muted:light-dark(#627086,#abb7cb);--rw-border:light-dark(#dde3ed,#394253);--rw-indigo:light-dark(#5147d6,#b7b0ff);--rw-tint:light-dark(#eeedff,#312f50);--rw-green:light-dark(#147151,#81d8b2);--rw-green-bg:light-dark(#edf8f2,#213c33);--rw-amber:light-dark(#8a5705,#efc875);--rw-amber-bg:light-dark(#fff6e5,#403520);font-family:Inter,ui-sans-serif,system-ui,sans-serif;color:var(--rw-text);background:var(--rw-bg);color-scheme:light dark;border:1px solid var(--rw-border);border-radius:14px;container-type:inline-size;overflow:hidden}
+#reality-workbench *{box-sizing:border-box}
+#reality-workbench button{font:inherit;color:inherit;cursor:pointer;background:var(--rw-surface);border:1px solid var(--rw-border);border-radius:8px;padding:10px 13px;min-height:44px;max-width:100%;text-align:left}
+#reality-workbench button:hover{border-color:var(--rw-indigo)}
+#reality-workbench button:focus-visible{outline:2px solid var(--rw-indigo);outline-offset:3px}
+#reality-workbench button[aria-pressed=true]{background:var(--rw-tint);color:var(--rw-indigo);border-color:var(--rw-indigo)}
+#reality-workbench h1,#reality-workbench h2,#reality-workbench h3,#reality-workbench p{margin:0}
+#reality-workbench h1,#reality-workbench h2,#reality-workbench h3,#reality-workbench strong{font-weight:500}
+#reality-workbench h1{font-size:27px;line-height:1.25;letter-spacing:-.035em}
+#reality-workbench h2{font-size:20px;line-height:1.35;letter-spacing:-.02em}
+#reality-workbench h3{font-size:16px;line-height:1.4}
+#reality-workbench p{line-height:1.6}
+#reality-workbench .rw-muted,#reality-workbench small{color:var(--rw-muted)}
+#reality-workbench small{font-size:12px;line-height:1.5}
+#reality-workbench .rw-top{display:flex;align-items:center;flex-wrap:wrap;gap:18px;padding:17px 24px;background:var(--rw-surface);border-bottom:1px solid var(--rw-border)}
+#reality-workbench .rw-brand{display:flex;align-items:center;gap:10px;font-size:21px;letter-spacing:-.04em;font-weight:500}
+#reality-workbench .rw-mark{display:grid;place-items:center;width:30px;height:30px;background:var(--rw-indigo);color:light-dark(#fff,#1a1834);border-radius:9px}
+#reality-workbench .rw-nav{display:flex;gap:7px}
+#reality-workbench .rw-nav button{border-color:transparent}
+#reality-workbench .rw-company{margin-left:auto;display:flex;align-items:center;flex-wrap:wrap;gap:12px}
+#reality-workbench .rw-badge{display:inline-block;border-radius:5px;background:var(--rw-tint);color:var(--rw-indigo);padding:4px 8px;font-size:12px}
+#reality-workbench .rw-workspace{display:grid;grid-template-columns:210px minmax(0,1fr) 300px;align-items:stretch}
+#reality-workbench .rw-queue{background:var(--rw-surface);padding:22px 14px;border-right:1px solid var(--rw-border)}
+#reality-workbench .rw-section-label{display:flex;align-items:center;gap:8px;font-weight:500;margin-bottom:6px}
+#reality-workbench .rw-step{display:inline-grid;place-items:center;width:22px;height:22px;border-radius:50%;background:var(--rw-bg);border:1px solid var(--rw-border);font-size:12px;color:var(--rw-muted);flex-shrink:0}
+#reality-workbench .rw-queue-title{padding:0 7px 18px}
+#reality-workbench .rw-list{display:grid;gap:10px}
+#reality-workbench .rw-case{display:grid;gap:8px;width:100%;padding:14px 12px}
+#reality-workbench .rw-case strong{color:var(--rw-text)}
+#reality-workbench .rw-case[aria-pressed=true]{border-left:3px solid var(--rw-indigo)}
+#reality-workbench .rw-case-label{display:flex;align-items:center;justify-content:space-between;gap:5px;font-size:12px}
+#reality-workbench .rw-detail{padding:22px;min-width:0}
+#reality-workbench .rw-case-header{margin:22px 0}
+#reality-workbench .rw-case-header h1{margin:6px 0 10px}
+#reality-workbench .rw-chip{display:inline-block;padding:5px 9px;border-radius:6px;background:var(--rw-amber-bg);color:var(--rw-amber);font-size:12px}
+#reality-workbench .rw-chip.rw-done{background:var(--rw-green-bg);color:var(--rw-green)}
+#reality-workbench .rw-panel{padding:20px;background:var(--rw-surface);border:1px solid var(--rw-border);border-radius:11px;margin-top:16px}
+#reality-workbench .rw-quantity{display:flex;align-items:baseline;gap:8px;margin:12px 0 7px;flex-wrap:wrap}
+#reality-workbench .rw-quantity strong{font-size:30px;letter-spacing:-.04em;font-variant-numeric:tabular-nums}
+#reality-workbench .rw-segments{display:flex;gap:4px;height:12px;margin:18px 0 10px}
+#reality-workbench .rw-segments span{flex:1;min-width:0;background:var(--rw-border);border-radius:3px}
+#reality-workbench .rw-segments .rw-fulfilled{background:var(--rw-green)}
+#reality-workbench .rw-segments .rw-held{background:var(--rw-indigo)}
+#reality-workbench .rw-legend{display:flex;gap:12px;flex-wrap:wrap;font-size:12px;color:var(--rw-muted)}
+#reality-workbench .rw-metrics{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-top:18px}
+#reality-workbench .rw-metrics button{display:grid;gap:7px;padding:12px 9px}
+#reality-workbench .rw-metrics strong{font-size:20px;font-variant-numeric:tabular-nums}
+#reality-workbench .rw-metrics small{font-size:11px}
+#reality-workbench .rw-hint{margin-top:12px;font-size:12px;color:var(--rw-muted)}
+#reality-workbench .rw-timeline{list-style:none;padding:0;margin:18px 0 0}
+#reality-workbench .rw-timeline li{display:grid;grid-template-columns:26px minmax(0,1fr);gap:10px;padding-bottom:20px;position:relative}
+#reality-workbench .rw-timeline li:not(:last-child):before{content:'';position:absolute;left:12px;top:26px;bottom:0;width:1px;background:var(--rw-border)}
+#reality-workbench .rw-timeline li:last-child{padding-bottom:0}
+#reality-workbench .rw-dot{display:grid;place-items:center;border-radius:50%;width:26px;height:26px;background:var(--rw-green-bg);color:var(--rw-green);font-size:12px}
+#reality-workbench .rw-dot.rw-open{background:var(--rw-amber-bg);color:var(--rw-amber)}
+#reality-workbench .rw-event{display:grid;gap:4px}
+#reality-workbench .rw-assistant{background:var(--rw-surface);border-left:1px solid var(--rw-border);padding:22px 18px;min-width:0}
+#reality-workbench .rw-ai-heading{display:flex;align-items:center;gap:9px;margin:22px 0 14px}
+#reality-workbench .rw-spark{display:grid;place-items:center;width:32px;height:32px;color:var(--rw-indigo);background:var(--rw-tint);border-radius:9px}
+#reality-workbench .rw-context{padding:10px 12px;background:var(--rw-bg);border-radius:7px;margin-bottom:18px;font-size:12px;color:var(--rw-muted)}
+#reality-workbench .rw-answer{padding:17px;background:var(--rw-tint);border-radius:10px}
+#reality-workbench .rw-answer h3{margin-bottom:10px}
+#reality-workbench .rw-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:16px}
+#reality-workbench .rw-actions.rw-stack{display:grid}
+#reality-workbench .rw-primary{background:var(--rw-indigo);color:light-dark(#fff,#1a1834);border-color:var(--rw-indigo)}
+#reality-workbench .rw-link{border:0;background:transparent;color:var(--rw-indigo);padding:6px 0;text-decoration:underline;text-underline-offset:4px}
+#reality-workbench .rw-review{border:1px solid var(--rw-indigo);border-radius:10px;padding:16px;margin-top:16px}
+#reality-workbench .rw-review h3{margin:7px 0 12px}
+#reality-workbench .rw-facts{margin:12px 0 0;display:grid;gap:0}
+#reality-workbench .rw-facts>div{display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;border-bottom:1px solid var(--rw-border);padding:10px 0}
+#reality-workbench .rw-facts dt{color:var(--rw-muted)}
+#reality-workbench .rw-facts dd{margin:0;overflow-wrap:anywhere}
+#reality-workbench .rw-trace{border-color:var(--rw-indigo);border-left-width:3px}
+#reality-workbench .rw-trace-header{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px}
+#reality-workbench .rw-trace-chain{display:flex;gap:7px;align-items:center;flex-wrap:wrap;color:var(--rw-muted);font-size:12px;margin:14px 0}
+#reality-workbench .rw-trace-chain span{padding:6px 9px;background:var(--rw-bg);border-radius:5px}
+#reality-workbench details{margin-top:16px}
+#reality-workbench summary{cursor:pointer;color:var(--rw-indigo);padding:8px 0}
+#reality-workbench pre{white-space:pre-wrap;overflow-wrap:anywhere;background:var(--rw-bg);color:var(--rw-text);padding:14px;border-radius:8px;font-size:12px}
+#reality-workbench .rw-footer{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;padding:13px 24px;background:var(--rw-surface);border-top:1px solid var(--rw-border);color:var(--rw-muted);font-size:12px}
+#reality-workbench .rw-overview{padding:28px;max-width:1040px;margin:auto}
+#reality-workbench .rw-overview h1{margin:6px 0 12px}
+#reality-workbench .rw-overview-stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin:22px 0}
+#reality-workbench .rw-stat{padding:18px;background:var(--rw-surface);border:1px solid var(--rw-border);border-radius:10px;display:grid;gap:8px}
+#reality-workbench .rw-stat strong{font-size:24px}
+#reality-workbench .rw-overview-row{display:flex;gap:18px;justify-content:space-between;align-items:center;width:100%;margin-top:12px;padding:18px}
+#reality-workbench .rw-overview-row>span{display:grid;gap:6px}
+@container(max-width:1050px){#reality-workbench .rw-workspace{grid-template-columns:minmax(0,1fr) 285px}#reality-workbench .rw-queue{grid-column:1/-1;border-right:0;border-bottom:1px solid var(--rw-border);padding:16px 20px}#reality-workbench .rw-queue-title{padding:0 0 12px}#reality-workbench .rw-list{grid-template-columns:repeat(3,minmax(0,1fr))}#reality-workbench .rw-company{margin-left:0}#reality-workbench .rw-detail{padding:20px}}
+@container(max-width:640px){#reality-workbench .rw-workspace{grid-template-columns:minmax(0,1fr)}#reality-workbench .rw-list{grid-template-columns:1fr}#reality-workbench .rw-case{grid-template-columns:1fr auto;gap:6px 10px}#reality-workbench .rw-case-label{grid-column:1/-1}#reality-workbench .rw-case .rw-muted{grid-column:1/-1}#reality-workbench .rw-assistant{border-left:0;border-top:1px solid var(--rw-border);padding:20px}#reality-workbench .rw-top{padding:15px;gap:10px}#reality-workbench .rw-brand{margin-right:auto}#reality-workbench .rw-company{width:100%;justify-content:space-between}#reality-workbench .rw-panel{padding:15px}#reality-workbench .rw-detail{padding:20px 15px}#reality-workbench .rw-overview{padding:20px 15px}#reality-workbench .rw-overview-stats{grid-template-columns:1fr}#reality-workbench .rw-overview-row{align-items:flex-start;flex-direction:column}}
+</style>
+<style>
+#reality-workbench .rw-shell{display:grid;grid-template-columns:205px minmax(0,1fr);align-items:stretch}
+#reality-workbench .rw-sidebar{background:var(--rw-surface);border-right:1px solid var(--rw-border);padding:20px 12px;display:flex;flex-direction:column;gap:23px}
+#reality-workbench .rw-sidebar nav{display:grid;gap:3px}
+#reality-workbench .rw-sidebar .rw-nav-label{font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:var(--rw-muted);padding:0 12px;margin-bottom:6px}
+#reality-workbench .rw-sidebar button{display:flex;gap:11px;align-items:center;width:100%;border-color:transparent;background:transparent;padding:9px 12px;font-size:13px}
+#reality-workbench .rw-sidebar button[aria-pressed=true]{background:var(--rw-tint);color:var(--rw-indigo);border-color:transparent}
+#reality-workbench .rw-nav-icon{display:inline-grid;place-items:center;width:19px;flex-shrink:0;color:var(--rw-muted)}
+#reality-workbench .rw-nav-icon svg{width:17px;height:17px;stroke:currentColor;stroke-width:1.6;fill:none;stroke-linecap:round;stroke-linejoin:round}
+#reality-workbench .rw-sidebar-bottom{margin-top:auto;padding-top:20px;border-top:1px solid var(--rw-border)}
+#reality-workbench .rw-app-main{container-type:inline-size;min-width:0}
+#reality-workbench .rw-top .rw-company{font-size:13px}
+#reality-workbench .rw-mobile-menu{display:none}
+#reality-workbench .rw-page{padding:27px;min-width:0}
+#reality-workbench .rw-page-heading{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap;margin-bottom:24px}
+#reality-workbench .rw-page-heading h1{margin:7px 0 10px}
+#reality-workbench .rw-page-heading p{color:var(--rw-muted);max-width:660px}
+#reality-workbench .rw-page-heading .rw-actions{margin:0}
+#reality-workbench .rw-eyebrow{font-size:11px;letter-spacing:.08em;color:var(--rw-muted)}
+#reality-workbench .rw-two-up{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px;align-items:start}
+#reality-workbench .rw-two-up>.rw-panel{margin-top:0}
+#reality-workbench .rw-page .rw-overview-stats{margin-top:0}
+#reality-workbench .rw-table-frame{background:var(--rw-surface);border:1px solid var(--rw-border);border-radius:11px;overflow:hidden;margin-top:18px}
+#reality-workbench .rw-table-scroll{overflow-x:auto}
+#reality-workbench table{border-collapse:collapse;width:100%;font-size:13px}
+#reality-workbench th,#reality-workbench td{padding:14px 16px;text-align:left;border-bottom:1px solid var(--rw-border);white-space:nowrap}
+#reality-workbench th{font-size:11px;font-weight:500;color:var(--rw-muted);background:var(--rw-bg)}
+#reality-workbench tr:last-child td{border-bottom:0}
+#reality-workbench td.rw-number{text-align:right;font-variant-numeric:tabular-nums}
+#reality-workbench td button{min-height:36px;padding:5px 8px}
+#reality-workbench .rw-tabs{display:flex;gap:7px;flex-wrap:wrap;margin:0 0 20px}
+#reality-workbench .rw-tabs button{font-size:13px;padding:8px 12px}
+#reality-workbench .rw-empty{padding:28px;text-align:center;background:var(--rw-surface);border:1px solid var(--rw-border);border-radius:11px}
+#reality-workbench .rw-empty h2{margin-bottom:8px}
+#reality-workbench .rw-empty .rw-actions{justify-content:center}
+#reality-workbench .rw-banner{padding:13px 20px;background:var(--rw-amber-bg);color:var(--rw-amber);display:flex;gap:12px;justify-content:space-between;align-items:center;flex-wrap:wrap;font-size:13px}
+#reality-workbench .rw-banner button{min-height:34px;padding:6px 10px}
+#reality-workbench .rw-chat{max-width:830px;margin:auto}
+#reality-workbench .rw-chat-history{display:grid;gap:18px;margin:25px 0}
+#reality-workbench .rw-message{padding:20px;background:var(--rw-surface);border:1px solid var(--rw-border);border-radius:12px}
+#reality-workbench .rw-message.rw-user-message{background:var(--rw-tint);margin-left:12%}
+#reality-workbench .rw-message>small{display:block;margin-bottom:10px}
+#reality-workbench .rw-composer{padding:15px;background:var(--rw-surface);border:1px solid var(--rw-indigo);border-radius:12px;margin-top:20px}
+#reality-workbench label{display:block;color:var(--rw-muted);font-size:12px;margin-bottom:8px}
+#reality-workbench textarea,#reality-workbench input,#reality-workbench select{font:inherit;font-size:16px;color:var(--rw-text);background:var(--rw-surface);border:1px solid var(--rw-border);padding:11px 12px;border-radius:8px;width:100%;max-width:100%}
+#reality-workbench textarea{resize:vertical;min-height:80px}
+#reality-workbench .rw-composer .rw-actions{justify-content:space-between;align-items:center}
+#reality-workbench .rw-suggestions{display:flex;flex-wrap:wrap;gap:8px;margin-top:16px}
+#reality-workbench .rw-suggestions button{font-size:12px}
+#reality-workbench .rw-form-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px;margin:20px 0}
+#reality-workbench .rw-connected{display:flex;justify-content:space-between;gap:18px;align-items:center;padding:18px 0;border-bottom:1px solid var(--rw-border)}
+#reality-workbench .rw-connected:last-child{border-bottom:0}
+#reality-workbench .rw-connected>div{display:grid;gap:6px}
+#reality-workbench .rw-value{font-variant-numeric:tabular-nums}
+#reality-workbench .rw-summary-link{display:block;width:100%;margin-top:12px}
+#reality-workbench .rw-success{padding:12px;background:var(--rw-green-bg);color:var(--rw-green);border-radius:8px;margin-top:15px}
+#reality-workbench .rw-home-brief{padding:23px;background:var(--rw-surface);border:1px solid var(--rw-indigo);border-radius:12px;margin-bottom:22px}
+#reality-workbench .rw-home-brief h2{margin:12px 0 8px}
+#reality-workbench .rw-page .rw-overview-row{font-size:13px}
+@container(max-width:900px){#reality-workbench>.rw-shell{grid-template-columns:1fr}#reality-workbench>.rw-shell>.rw-sidebar{display:none;border-right:0;border-bottom:1px solid var(--rw-border)}#reality-workbench.rw-menu-open>.rw-shell>.rw-sidebar{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}#reality-workbench .rw-mobile-menu{display:block}#reality-workbench .rw-sidebar-bottom{margin:0;padding:0;border:0}}
+@container(max-width:640px){#reality-workbench .rw-page{padding:20px 15px}#reality-workbench .rw-two-up,#reality-workbench .rw-form-grid{grid-template-columns:1fr}#reality-workbench .rw-message.rw-user-message{margin-left:4%}#reality-workbench .rw-connected{align-items:flex-start;flex-direction:column}#reality-workbench .rw-page-heading .rw-actions{width:100%}}
+</style>
+<style>
+#reality-workbench .rw-analytics-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin-bottom:22px}
+#reality-workbench .rw-kpi{display:grid;gap:12px;padding:20px;background:var(--rw-surface);border:1px solid var(--rw-border);border-radius:11px}
+#reality-workbench .rw-kpi strong{font-size:30px;letter-spacing:-.04em;font-variant-numeric:tabular-nums}
+#reality-workbench .rw-kpi small{white-space:normal}
+#reality-workbench .rw-chart-panel{background:var(--rw-surface);border:1px solid var(--rw-border);border-radius:12px;overflow:hidden;margin-bottom:22px}
+#reality-workbench .rw-chart-header{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:15px;padding:20px;border-bottom:1px solid var(--rw-border)}
+#reality-workbench .rw-chart-header .rw-tabs{margin:0}
+#reality-workbench .rw-chart-layout{display:grid;grid-template-columns:minmax(0,1fr) 235px}
+#reality-workbench .rw-chart-body{padding:16px;min-width:0}
+#reality-workbench .rw-chart-note{padding:22px;background:var(--rw-tint)}
+#reality-workbench .rw-chart-note h3{margin:12px 0}
+#reality-workbench .rw-chart-legend{display:flex;gap:16px;flex-wrap:wrap;margin:0 0 8px;font-size:12px;color:var(--rw-muted)}
+#reality-workbench .rw-chart-legend span{display:flex;gap:6px;align-items:center}
+#reality-workbench .rw-chart-legend i{width:8px;height:8px;border-radius:50%;background:var(--rw-indigo)}
+#reality-workbench .rw-chart-legend .rw-ship{background:var(--rw-green)}
+#reality-workbench .rw-chart-legend .rw-backlog{background:var(--rw-amber)}
+#reality-workbench .rw-flow-chart{display:block;width:100%;height:235px}
+#reality-workbench .rw-flow-chart text{font-family:inherit;fill:var(--rw-muted);font-size:11px}
+#reality-workbench .rw-chart-readout{font-size:12px;color:var(--rw-muted);min-height:20px;margin:8px 0 0}
+#reality-workbench .rw-mini-chart .rw-chart-layout{grid-template-columns:minmax(0,1fr)}
+#reality-workbench .rw-mini-chart .rw-flow-chart{height:130px}
+#reality-workbench .rw-master-detail{border-color:var(--rw-indigo)}
+@container(max-width:1000px){#reality-workbench .rw-analytics-grid{grid-template-columns:repeat(2,minmax(0,1fr))}#reality-workbench .rw-chart-layout{grid-template-columns:minmax(0,1fr)} }
+@container(max-width:450px){#reality-workbench .rw-analytics-grid{grid-template-columns:1fr}}
+</style>
+<div id="reality-workbench">
+<header class="rw-top"><button class="rw-mobile-menu" data-action="toggle-menu" aria-expanded="false" aria-controls="rw-sidebar">Menu</button><div class="rw-brand"><span class="rw-mark">r</span> reality</div><span class="rw-muted" id="rw-environment">Northstar Commerce</span><div class="rw-company"><span class="rw-badge">Interactive concept · Sample data</span><button data-view="chat">✦ Ask Reality</button></div></header>
+<div class="rw-shell"><aside class="rw-sidebar" id="rw-sidebar" aria-label="Application navigation"></aside><div class="rw-app-main"><div id="rw-mode"></div><div id="rw-canvas" aria-live="polite"></div></div></div>
+<footer class="rw-footer"><span>Demo only · No connection to your company</span><span>Source → Evidence → Reality</span></footer>
+</div>
+<script>
+(() => {
+const root=document.getElementById('reality-workbench');
+const canvas=root.querySelector('#rw-canvas');
+const state={view:'overview',selected:'delivery',phase:'suggestion',proposal:'none',reserved:false,trace:null,section:'',sandbox:false,messages:[],notice:'',company:'Northstar Commerce',menu:false};
+const environments={company:{reserved:false,phase:'suggestion',proposal:'none',messages:[]},sandbox:{reserved:false,phase:'suggestion',proposal:'none',messages:[]}};
+state.period=30;state.metric=null;state.master=null;
+const escapeHTML=value=>String(value).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const cases={
+ delivery:{type:'Delivery',name:'Müller',ref:'Order #1042',item:'Table lamp · 10 ordered',title:'6 lamps still to deliver',status:'4 lamps need a reservation'},
+ payment:{type:'Payment',name:'Schneider',ref:'Invoice #2086',item:'Invoice €1,200 · €800 allocated',title:'€400 still outstanding',status:'Partially paid'},
+ receipt:{type:'Incoming goods',name:'Weber',ref:'Purchase order #3071',item:'Desk lamp · 20 expected',title:'8 lamps still to arrive',status:'Partial receipt'}
+};
+const action=(id,label,kind='')=>`<button data-action="${id}" class="${kind}">${label}</button>`;
+const facts=rows=>`<dl class="rw-facts">${rows.map(([k,v])=>`<div><dt>${k}</dt><dd>${v}</dd></div>`).join('')}</dl>`;
+const status=id=>id==='delivery'&&state.reserved?'6 lamps reserved · Shipment open':cases[id].status;
+function queue(){return `<aside class="rw-queue" aria-label="Your work"><div class="rw-queue-title"><div class="rw-section-label"><span class="rw-step">1</span> Your work</div><small>Choose a business case</small></div><div class="rw-list">${Object.entries(cases).map(([id,c])=>`<button class="rw-case" data-case="${id}" aria-pressed="${id===state.selected}"><span class="rw-case-label"><span>${c.type}</span><span>${id===state.selected?'→':''}</span></span><strong>${c.name}</strong><small>${c.ref}</small><small class="rw-muted">${status(id)}</small></button>`).join('')}</div></aside>`;}
+function timeline(){
+const rows=state.selected==='delivery'?[
+ ['Order received','10 lamps promised to Müller.',true],
+ ['Partial shipment recorded','4 lamps have left the warehouse.',true],
+ ['Stock reserved',state.reserved?'6 open lamps reserved: 2 earlier + 4 just now.':'2 of the 6 open lamps have a reservation.',true],
+ [state.reserved?'Awaiting shipment':'Allocation to decide',state.reserved?'All 6 are reserved. They still need to be shipped.':'4 lamps are still unreserved. No shortage is implied.',false]
+]:state.selected==='payment'?[
+ ['Invoice recorded','Source invoice states €1,200.',true],['Payment allocated','€800 has been allocated to this invoice.',true],['Balance still open','€400 remains. No due date is shown in this example.',false]
+]:[['Supplier order received','20 desk lamps expected from Weber.',true],['Goods received','12 desk lamps recorded at Main warehouse.',true],['Remaining receipt','8 lamps are still expected. No arrival date is known here.',false]];
+return `<section class="rw-panel"><h3>What happened</h3><ol class="rw-timeline">${rows.map(([title,body,done])=>`<li><span class="rw-dot ${done?'':'rw-open'}">${done?'✓':'○'}</span><div class="rw-event"><strong>${title}</strong><small>${body}</small></div></li>`).join('')}</ol></section>`;
+}
+function position(){
+const delivery=state.selected==='delivery', payment=state.selected==='payment';
+const rows=delivery?[[4,'Shipped','shipped'],[state.reserved?6:2,'Reserved','reserved'],[state.reserved?0:4,'Unreserved','unreserved']]:payment?[['€1,200','Invoice','invoice'],['€800','Allocated','allocated'],['€400','Open','open']]:[[20,'Expected','expected'],[12,'Received','received'],[8,'Open','open']];
+const bars=delivery?Array.from({length:10},(_,i)=>i<4?'rw-fulfilled':i<(state.reserved?10:6)?'rw-held':''):Array.from({length:payment?3:5},(_,i)=>i<(payment?2:3)?'rw-fulfilled':'');
+return `<section class="rw-panel"><h3>${delivery?'Delivery position':payment?'Payment position':'Receipt position'}</h3><div class="rw-quantity"><strong>${delivery?'6':payment?'€400':'8'}</strong><span class="rw-muted">${delivery?'lamps still to deliver':payment?'remaining balance':'lamps still expected'}</span></div><div class="rw-segments" role="img" aria-label="${rows.map(r=>r[0]+' '+r[1]).join(', ')}">${bars.map(cl=>`<span class="${cl}"></span>`).join('')}</div><div class="rw-legend"><span>${delivery?'10 ordered in total':payment?'€800 allocated of €1,200 invoiced':'12 received of 20 expected'}</span></div><div class="rw-metrics">${rows.map(([v,label,key])=>`<button data-trace="${key}" aria-expanded="${state.trace===key}"><strong>${v}</strong><span>${label}</span><small>See records ↗</small></button>`).join('')}</div><p class="rw-hint">Click a number to see what it is based on.</p></section>`;
+}
+function trace(){
+if(!state.trace)return '';
+let title,rows,payload,link;
+if(state.selected==='delivery'){
+ const mapping={shipped:['4 lamps shipped',[['Movement · mov_b3d9','Shipment · 4 lamps'],['Fulfillment link','Commitment · cmt_a8f2']]],reserved:[`${state.reserved?6:2} lamps reserved`,[['Reservation · rsv_e7c1','Active · 2 lamps'],...(state.reserved?[['Reservation · rsv_f9a4','Active · 4 lamps']]:[]),['Each reservation links to','Commitment · cmt_a8f2']]],unreserved:[`${state.reserved?0:4} lamps unreserved`,[['Commitment quantity','10 lamps'],['Fulfilled quantity','4 lamps'],['Open quantity','10 − 4 = 6 lamps'],['Active reservations',`${state.reserved?6:2} lamps`],['Open minus reserved',state.reserved?'6 − 6 = 0 lamps':'6 − 2 = 4 lamps']]],stock:[`${state.reserved?4:8} table lamps currently free`,[['Opening stock · mov_a1c5','14 lamps'],['Shipment · mov_b3d9','−4 lamps'],['On hand from movements','10 lamps'],['Active reservations',`${state.reserved?6:2} lamps`],['Free stock',state.reserved?'10 − 6 = 4 lamps':'10 − 2 = 8 lamps']]]};
+ [title,rows]=mapping[state.trace]||mapping.reserved;
+ payload={id:'external-order-7841',order_number:'1042',lines:[{sku:'LAMP-01',quantity:'10'}]};
+ link=state.trace==='stock'?'Stock is derived from Movements and active Reservations. The order source below explains the linked demand.':'Reservation → Commitment → Order line → Source';
+}else if(state.selected==='payment'){
+ title='€400 remains on this invoice';rows=[['Invoice posting','€1,200 receivable'],['Payment allocation · alloc_c4b2','€800 allocated'],['Outstanding observation','€1,200 − €800 = €400']];payload={id:'external-invoice-992',invoice_number:'2086',currency:'EUR',total:'1200.00'};link='Allocation → Open item → Ledger entry → Invoice → Source';
+}else{
+ title='8 lamps still expected';rows=[['Purchase commitment · cmt_d8e3','20 lamps'],['Receipt · mov_f6c1','12 lamps fulfilled'],['Open observation','20 − 12 = 8 lamps']];payload={id:'external-purchase-381',order_number:'3071',lines:[{sku:'DESK-01',quantity:'20'}]};link='Receipt fulfillment → Commitment → Purchase order line → Source';
+}
+return `<section class="rw-panel rw-trace" aria-label="Underlying records"><div class="rw-trace-header"><div><small>UNDERLYING RECORDS</small><h3>${title}</h3></div>${action('close-trace','Close')}</div>${facts(rows)}<div class="rw-trace-chain"><span>Reality</span>←<span>Evidence</span>←<span>Source</span></div><small>${link}</small><details><summary>View original source payload</summary><pre>${JSON.stringify(payload,null,2)}</pre><small>Synthetic payload · Version 1 · Display IDs abbreviated</small></details></section>`;
+}
+function assistant(){
+const c=cases[state.selected];let body;
+if(state.selected==='delivery'){
+ if(state.reserved){body=`<div class="rw-answer"><h3>✓ Reservation recorded in demo</h3><p>The other 4 lamps are now reserved for Müller.</p><p style="margin-top:10px">All 6 open lamps have stock assigned. Nothing has shipped yet.</p></div>${facts([['Reserved','2 → 6 lamps'],['Free warehouse stock','8 → 4 lamps'],['Still to ship','6 lamps']])}<div class="rw-actions rw-stack">${action('show-result','See the new reservation','rw-primary')}</div>`;
+ }else if(state.phase==='preview'){
+ body=`<p>Ready for your review.</p><div class="rw-review"><small>ACTION PREVIEW</small><h3>Reserve 4 table lamps</h3>${facts([['For','Müller · Order #1042'],['Warehouse','Main warehouse'],['Reserved for this delivery','2 → 6 lamps'],['Free stock','8 → 4 lamps']])}<p class="rw-hint">Creates one Reservation. No shipment or payment is recorded.</p><div class="rw-actions rw-stack">${action('confirm','Confirm reservation in demo','rw-primary')}${action('cancel','Cancel')}</div></div>`;
+ }else{
+ body=`<div class="rw-answer"><h3>${state.phase==='explain'?'Why are 4 still unreserved?':'You can reserve the other 4.'}</h3><p>${state.phase==='explain'?'6 lamps remain to deliver. Only 2 have an active reservation, leaving 4 unreserved. The records do not say why they were left unreserved.':'There are 8 free table lamps at Main warehouse. This delivery needs 4 more reserved.'}</p></div><div class="rw-actions rw-stack">${action('prepare','Prepare reservation for 4 →','rw-primary')}${action('explain','Explain the situation')}${action('show-stock','Show the stock calculation','rw-link')}</div><p class="rw-hint">You review the exact change before confirming it.</p>`;
+ }
+}else{
+ const payment=state.selected==='payment';
+ body=`<div class="rw-answer"><h3>${payment?'€800 is already allocated.':'The first 12 lamps are recorded.'}</h3><p>${payment?'The invoice states €1,200. With €800 allocated, €400 remains outstanding.':'The supplier promised 20 lamps. A receipt of 12 leaves 8 still expected.'}</p>${state.phase==='explain'?`<p style="margin-top:10px">${payment?'There is no due date in this example, so this balance is not labelled overdue.':'The records shown contain no expected arrival date for the remaining 8 lamps.'}</p>`:''}</div><div class="rw-actions rw-stack">${action('show-records',payment?'Show invoice and allocation':'Show promise and receipt','rw-primary')}${action('explain',payment?'Is this payment overdue?':'When will the rest arrive?')}</div><p class="rw-hint">Read-only example · Answers stay within the available evidence.</p>`;
+}
+return `<aside class="rw-assistant" aria-label="Contextual Reality assistant"><div class="rw-section-label"><span class="rw-step">3</span> Reality helps</div><small>Understand and prepare the next step</small><div class="rw-ai-heading"><span class="rw-spark">✦</span><strong>Ask Reality</strong></div><div class="rw-context">In context: ${c.name} · ${c.ref}</div>${body}</aside>`;
+}
+const pageHeader=(eyebrow,title,subtitle,actions='')=>`<header class="rw-page-heading"><div><span class="rw-eyebrow">${eyebrow}</span><h1>${title}</h1><p>${subtitle}</p></div>${actions?`<div class="rw-actions">${actions}</div>`:''}</header>`;
+const viewButton=(id,label,kind='')=>`<button data-view="${id}" class="${kind}">${label}</button>`;
+const caseButton=(id,label,kind='')=>`<button data-case="${id}" class="${kind}">${label}</button>`;
+const tabs=(entries,active)=>`<nav class="rw-tabs" aria-label="Page sections">${entries.map(([id,label])=>`<button data-section="${id}" aria-pressed="${id===active}">${label}</button>`).join('')}</nav>`;
+const table=(headers,rows)=>`<div class="rw-table-frame"><div class="rw-table-scroll"><table><thead><tr>${headers.map(h=>`<th scope="col">${h}</th>`).join('')}</tr></thead><tbody>${rows.map(row=>`<tr>${row.map(cell=>`<td>${cell}</td>`).join('')}</tr>`).join('')}</tbody></table></div></div>`;
+const stat=(label,value,note)=>`<div class="rw-stat"><small>${label}</small><strong>${value}</strong><small>${note}</small></div>`;
+function navIcon(name){
+ const paths={analytics:'M3 3v18h18 M7 16l4-6 4 3 5-8',master:'M3 5h7v6H3Z M14 5h7v6h-7Z M3 15h7v6H3Z M14 15h7v6h-7Z',home:'M3 10 12 3l9 7v10H3Z M9 20v-7h6v7',chat:'M4 4h16v12H9l-5 4Z',work:'M4 7h16v13H4Z M8 7V4h8v3 M4 12h16',exceptions:'m12 3 10 18H2Z M12 9v5 M12 17v1',decisions:'M5 3h14v18H5Z M8 12l3 3 5-6',orders:'M4 3h16v18H4Z M8 8h8 M8 12h8 M8 16h5',warehouse:'m3 8 9-5 9 5v13H3Z M7 21V11h10v10 M7 15h10',finance:'M3 6h18v14H3Z M3 10h18 M15 15h3',facts:'M5 4h14v16H5Z M8 8h8 M8 12h8 M8 16h4',data:'M3 5h18v5H3Z M3 14h18v5H3Z M7 7v1 M7 16v1',settings:'M12 3v3 M12 18v3 M3 12h3 M18 12h3 M6 6l2 2 M16 16l2 2 M6 18l2-2 M16 8l2-2 M16 12a4 4 0 1 0-8 0 4 4 0 0 0 8 0',playground:'M8 3h8 M9 3v7L3 21h18l-6-11V3 M7 15h10'};
+ return `<span class="rw-nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="${paths[name]||paths.work}"/></svg></span>`;
+}
+function sidebar(){
+ const groups=[['Daily work',[['overview','Home','home'],['analytics','Analytics','analytics'],['chat','Ask Reality','chat'],['work','Your work','work'],['exceptions','Exceptions','exceptions'],['decisions','Decisions','decisions']]],['Workspaces',[['orders','Orders & deliveries','orders'],['warehouse','Warehouse','warehouse'],['finance','Finance','finance'],['facts','Facts','facts']]],['Company',[['master','Master data','master'],['data','Data & sources','data'],['settings','Settings','settings']]]];
+ root.querySelector('#rw-sidebar').innerHTML=groups.map(([label,links])=>`<nav aria-label="${label}"><span class="rw-nav-label">${label}</span>${links.map(([id,text,icon])=>`<button data-view="${id}" aria-pressed="${id===state.view}">${navIcon(icon)}<span>${text}</span>${id==='decisions'&&state.proposal==='pending'&&!state.reserved?'<span class="rw-badge">1</span>':''}</button>`).join('')}</nav>`).join('')+`<div class="rw-sidebar-bottom"><button data-view="playground" aria-pressed="${state.view==='playground'}">${navIcon('playground')}Playground</button><small style="display:block;padding:8px 12px">Learn with an isolated practice company</small></div>`;
+ root.classList.toggle('rw-menu-open',state.menu);
+ root.querySelector('[data-action="toggle-menu"]').setAttribute('aria-expanded',String(state.menu));
+ root.querySelector('#rw-environment').textContent=state.sandbox?'Practice company':state.company;
+ root.querySelector('#rw-mode').innerHTML=state.sandbox?`<div class="rw-banner"><span>Practice company · Separate sample records</span>${action('leave-sandbox','Return to company')}</div>`:'';
+}
+function analyticsMetrics(){return `<div class="rw-analytics-grid">${[['coverage','Stock assigned',`${state.reserved?100:33}%`,`${state.reserved?6:2} of 6 open lamps reserved`],['demand','Unreserved demand',`${state.reserved?0:4} lamps`,'Stock available · Not a shortage'],['money','Outstanding balance','€400','€1,200 invoiced · €800 allocated'],['automation','Action candidates',state.reserved?'0':'1',state.reserved?'Reservation completed':'One reviewable reservation']].map(([id,label,value,note])=>`<button class="rw-kpi" data-metric="${id}"><small>${label.toUpperCase()}</small><strong>${value}</strong><small>${note}</small><small>Explain metric ↗</small></button>`).join('')}</div>`;}
+function historyData(){
+ let backlog=0;
+ return Array.from({length:30},(_,i)=>{
+  const date=new Date(Date.UTC(2026,7,9+i)),day=date.getUTCDay();
+  let received=day===0?7:day===6?5:[0,9,8,11,7,6][day];
+  let shipped=(day===0||day===6)?0:Math.min(backlog+received,day===1?24:16);
+  if(i===26){received=6;shipped=backlog+received;}
+  if(i===27){received=0;shipped=0;}
+  if(i===28){received=10;shipped=0;}
+  if(i===29){received=0;shipped=4;}
+  backlog+=received-shipped;
+  return {date:date.toISOString().slice(0,10),label:date.toLocaleDateString('en-GB',{day:'2-digit',month:'short',timeZone:'UTC'}),weekend:day===0||day===6,received,shipped,backlog};
+ });
+}
+function flowPanel(compact=false){return `<section class="rw-chart-panel ${compact?'rw-mini-chart':''}"><div class="rw-chart-header"><div><small>SYNTHETIC HISTORY · ${compact?7:state.period} DAYS</small><h2>Order intake & shipments</h2></div>${compact?viewButton('analytics','Open Analytics →'):`<div class="rw-tabs">${[7,14,30].map(days=>`<button data-period="${days}" aria-pressed="${state.period===days}">${days}D</button>`).join('')}</div>`}</div><div class="rw-chart-layout"><div class="rw-chart-body"><div class="rw-chart-legend"><span><i></i>Ordered</span><span><i class="rw-ship"></i>Shipped</span><span><i class="rw-backlog"></i>Open backlog</span></div><svg class="rw-flow-chart" data-days="${compact?7:state.period}" data-compact="${compact}" role="img" aria-label="Synthetic daily ordered and shipped lamp quantities, with remaining backlog"></svg><p class="rw-chart-readout">${compact?'The sample ends with 6 lamps still to deliver.':'Weekend bands mark Saturday and Sunday. Select a day to inspect its quantities.'}</p></div>${compact?'':`<aside class="rw-chart-note"><small>✦ OBSERVED PATTERN</small><h3>Orders continue over weekends.</h3><p>Shipments resume on working days and reduce the accumulated backlog.</p><div class="rw-actions">${caseButton('delivery','Open the current delivery →')}</div><p class="rw-hint">Illustrative historical series; the final 10 ordered and 4 shipped lamps correspond to Müller’s case.</p></aside>`}</div></section>`;}
+function paintCharts(){
+ root.querySelectorAll('.rw-flow-chart').forEach(svg=>{
+  const rows=historyData().slice(-Number(svg.dataset.days));
+  const width=Math.max(200,svg.getBoundingClientRect().width),height=svg.dataset.compact==='true'?130:235;
+  const left=42,right=15,top=20,bottom=38,max=Math.max(...rows.flatMap(r=>[r.received,r.shipped,r.backlog]),1),ceiling=Math.ceil(max/5)*5;
+  const x=i=>left+i*(width-left-right)/(rows.length-1),y=v=>height-bottom-v*(height-top-bottom)/ceiling;
+  const ticks=width<450?3:5;
+  svg.setAttribute('viewBox',`0 0 ${width} ${height}`);
+  svg.innerHTML=`<title>Ordered, shipped and open lamps per calendar day</title>${rows.map((r,i)=>r.weekend?`<rect x="${Math.max(left,x(i)-(width-left-right)/(rows.length-1)/2)}" y="${top}" width="${Math.min((width-left-right)/(rows.length-1),width-right-Math.max(left,x(i)-(width-left-right)/(rows.length-1)/2))}" height="${height-top-bottom}" fill="var(--rw-bg)"/>`:'').join('')}${[0,ceiling/2,ceiling].map(v=>`<line x1="${left}" x2="${width-right}" y1="${y(v)}" y2="${y(v)}" stroke="var(--rw-border)" stroke-dasharray="3 5"/><text x="${left-8}" y="${y(v)+4}" text-anchor="end">${v}</text>`).join('')}<text x="${left}" y="12">Lamps</text>${Array.from({length:ticks},(_,j)=>{const i=Math.round(j*(rows.length-1)/(ticks-1));return `<text x="${x(i)}" y="${height-16}" text-anchor="${j===0?'start':j===ticks-1?'end':'middle'}">${rows[i].label}</text>`;}).join('')}${[['received','--rw-indigo'],['shipped','--rw-green'],['backlog','--rw-amber']].map(([key,color])=>`<polyline points="${rows.map((r,i)=>`${x(i)},${y(r[key])}`).join(' ')}" fill="none" stroke="var(${color})" stroke-width="2" stroke-linejoin="round"/>`).join('')}${rows.map((r,i)=>`<rect data-chart-date="${r.date}" x="${Math.max(left,x(i)-Math.max(4,(width-left-right)/(rows.length-1)/2))}" y="${top}" width="${Math.max(8,(width-left-right)/(rows.length-1))}" height="${height-top-bottom}" fill="transparent"><title>${r.label}: ${r.received} ordered, ${r.shipped} shipped, ${r.backlog} open</title></rect>`).join('')}`;
+ });
+}
+function analyticsPage(){
+ const explanations={coverage:['Stock assigned to open demand',`${state.reserved?6:2} reserved ÷ 6 remaining lamps = ${state.reserved?100:33}% (rounded). This measures stock assignment, not complete shipping eligibility.`,'delivery:reserved'],demand:['Demand without a reservation',`6 open lamps − ${state.reserved?6:2} reserved = ${state.reserved?0:4} unreserved. The warehouse has ${state.reserved?4:8} free lamps.`,'delivery:unreserved'],money:['Outstanding invoice balance','The source states €1,200. An allocation of €800 leaves €400 open. No due date was provided.','payment:open'],automation:['Reviewable action candidates',state.reserved?'The sample reservation has been completed. No further action candidate is modeled.':'One bounded action is available: reserve 4 lamps for Müller. This is a candidate count, not an automation success rate.','delivery:stock']};
+ const selected=state.metric?explanations[state.metric]:null;
+ return `<main class="rw-page">${pageHeader('ANALYTICS','See how the business is running.','Current positions, operational trends and the records behind every number.',viewButton('chat','✦ Ask about your business'))}<p class="rw-hint" style="margin-bottom:16px">CURRENT SAMPLE COMPANY · Metrics reflect the same cases and confirmed actions as Home.</p>${analyticsMetrics()}${selected?`<section class="rw-panel rw-trace" style="margin-bottom:22px"><h2>${selected[0]}</h2><p style="margin-top:12px">${selected[1]}</p><div class="rw-actions"><button data-inspect="${selected[2]}" class="rw-primary">Open supporting records →</button>${action('close-metric','Close explanation')}</div></section>`:''}${flowPanel()}<section class="rw-panel"><h2>From insight to action</h2><p style="margin-top:10px">${state.reserved?'The allocation gap is resolved. The six lamps still need to ship.':'Available stock can cover Müller’s four unreserved lamps.'}</p><div class="rw-actions">${caseButton('delivery','Review Müller’s delivery →','rw-primary')}${viewButton('decisions','View prepared decisions')}</div></section></main>`;
+}
+function masterDataPage(){
+ const selected=state.section||'items';let body;
+ const open=(id,label)=>`<button data-master="${id}">${label}</button>`;
+ if(selected==='items')body=table(['Item','SKU','Unit',''],[['Table lamp','LAMP-01','Piece',open('table-lamp','Open item →')],['Desk lamp','DESK-01','Piece',open('desk-lamp','Open item →')]]);
+ else if(selected==='partners')body=table(['Business partner','Role',''],[['Müller','Customer',open('muller','Open customer →')],['Schneider','Customer',open('schneider','Open customer →')],['Weber','Supplier',open('weber','Open supplier →')]]);
+ else if(selected==='locations')body=table(['Location','Type',''],[['Main warehouse','Warehouse',open('warehouse','Open location →')]]);
+ else body=`<section class="rw-empty"><h2>${selected==='terms'?'No payment terms in this sample':'No price lists in this sample'}</h2><p class="rw-muted">${selected==='terms'?'Agreed payment conditions would be maintained here. The sample invoice has no supplied due date.':'Source-provided price lists would be maintained here. This example does not calculate or invent selling prices.'}</p></section>`;
+ const records={
+  'table-lamp':['Table lamp',[['Item ID','itm_a1f8'],['SKU','LAMP-01'],['Unit','Piece']],viewButton('warehouse','View stock →')+caseButton('delivery','Open Müller’s delivery →')],
+  'desk-lamp':['Desk lamp',[['Item ID','itm_b6c3'],['SKU','DESK-01'],['Unit','Piece']],viewButton('warehouse','View stock →')+caseButton('receipt','Open Weber’s receipt →')],
+  muller:['Müller',[['Party ID','pty_a8d4'],['Role','Customer']],caseButton('delivery','Open delivery →')],
+  schneider:['Schneider',[['Party ID','pty_c2f7'],['Role','Customer']],caseButton('payment','Open balance →')],
+  weber:['Weber',[['Party ID','pty_e5b1'],['Role','Supplier']],caseButton('receipt','Open supplier receipt →')],
+  warehouse:['Main warehouse',[['Location ID','loc_b7d2'],['Type','Warehouse']],viewButton('warehouse','View inventory →')]
+ };
+ const record=records[state.master];
+ return `<main class="rw-page">${pageHeader('COMPANY','Master data','Items, customers, suppliers and locations have a clear home here.')}<nav class="rw-tabs" aria-label="Master data registers">${[['items','Items'],['partners','Customers & suppliers'],['locations','Locations'],['terms','Payment terms'],['prices','Price lists']].map(([id,label])=>`<button data-section="${id}" aria-pressed="${selected===id}">${label}</button>`).join('')}</nav>${body}${record?`<section class="rw-panel rw-master-detail"><div class="rw-trace-header"><h2>${record[0]}</h2>${action('close-master','Close')}</div>${facts(record[1])}<div class="rw-actions">${record[2]}</div><p class="rw-hint">Read-only sample record · In the product, shared maintenance services would handle changes here.</p></section>`:''}</main>`;
+}
+function dashboard(){
+ return `<main class="rw-page">${pageHeader('COMPANY OVERVIEW','Your business, in focus.','Monday, 7 September · A clear view of what is open.',viewButton('chat','✦ Ask about your business','rw-primary'))}${analyticsMetrics()}${flowPanel(true)}<section class="rw-home-brief"><small>✦ REALITY BRIEFING · SCRIPTED DEMO</small><h2>${state.reserved?'Stock is assigned. Shipment is next.':'Müller’s delivery needs a reservation.'}</h2><p>${state.reserved?'All 6 remaining table lamps are reserved. Schneider still has €400 open, and 8 desk lamps are still expected from Weber.':'4 open lamps are unreserved and 8 are available at Main warehouse. Schneider has €400 open, and 8 desk lamps are still expected from Weber.'}</p><div class="rw-actions">${caseButton('delivery','Review delivery →','rw-primary')}${viewButton('chat','Discuss with Reality')}</div></section><div class="rw-overview-stats">${stat('Still to deliver','6 lamps',`${state.reserved?6:2} reserved · Müller`)}${stat('Still to collect','€400','Schneider · Partially paid')}${stat('Still to receive','8 lamps','Weber · Partial receipt')}</div><div class="rw-two-up"><section class="rw-panel"><h2>Your open work</h2>${Object.entries(cases).map(([id,c])=>`<button class="rw-overview-row" data-case="${id}"><span><strong>${c.type} · ${c.name}</strong><small>${status(id)}</small></span><span>→</span></button>`).join('')}</section><section class="rw-panel"><h2>Decisions & control</h2>${facts([['Pending confirmations',state.proposal==='pending'&&!state.reserved?'1 reservation':'None'],['Unreserved sales demand',state.reserved?'0 lamps':'4 lamps'],['Invoice balance','€400 · Due date unknown']])}<div class="rw-actions">${viewButton('decisions','Review decisions')}${viewButton('exceptions','View exceptions')}</div></section></div></main>`;
+}
+function ordersPage(){
+ const selected=state.section||'sales';
+ return `<main class="rw-page">${pageHeader('ORDER OPERATIONS','Orders & deliveries','Compare commitments and fulfillment. Open a case to understand or act.',viewButton('chat','✦ Ask about orders'))}${tabs([['sales','Customer orders'],['purchases','Supplier orders']],selected)}${selected==='sales'?table(['Order / customer','Promised','Shipped','Open','Reserved',''],[[`<strong>#1042 · Müller</strong><br><small>Table lamp</small>`,'10 lamps','4 lamps','6 lamps',`${state.reserved?6:2} lamps`,caseButton('delivery','Open delivery →')]]):table(['Purchase order / supplier','Expected','Received','Open',''],[[`<strong>#3071 · Weber</strong><br><small>Desk lamp</small>`,'20 lamps','12 lamps','8 lamps',caseButton('receipt','Open receipt →')]])}<p class="rw-hint">Quantities are derived from Commitments, fulfillment records and active Reservations.</p></main>`;
+}
+function warehousePage(){
+ const selected=state.section||'stock';let body;
+ if(selected==='stock')body=table(['Item / location','On hand','Reserved','Free',''],[[`<strong>Table lamp</strong><br><small>Main warehouse · LAMP-01</small>`,'10',state.reserved?'6':'2',state.reserved?'4':'8','<button data-inspect="delivery:stock">Explain stock ↗</button>'],[`<strong>Desk lamp</strong><br><small>Main warehouse · DESK-01</small>`,'12','0','12',caseButton('receipt','View receipt →')]]);
+ else if(selected==='reservations')body=table(['Reservation','Item','Quantity','Commitment',''],[['rsv_e7c1','Table lamp','2','cmt_a8f2',caseButton('delivery','Open delivery →')],...(state.reserved?[['rsv_f9a4','Table lamp','4','cmt_a8f2',caseButton('delivery','Open delivery →')]]:[])]);
+ else body=table(['Movement','Item','Change','Location',''],[['Opening stock · mov_a1c5','Table lamp','+14','Main warehouse','<button data-inspect="delivery:stock">Inspect balance ↗</button>'],['Shipment · mov_b3d9','Table lamp','−4','Main warehouse','<button data-inspect="delivery:shipped">Inspect shipment ↗</button>'],['Receipt · mov_f6c1','Desk lamp','+12','Main warehouse',caseButton('receipt','Open receipt →')]]);
+ return `<main class="rw-page">${pageHeader('WAREHOUSE OPERATIONS','Stock you can explain.','On-hand quantities come from movements; free stock also accounts for active reservations.',viewButton('chat','✦ Ask about stock'))}${tabs([['stock','Stock'],['reservations','Reservations'],['movements','Movements']],selected)}${body}</main>`;
+}
+function financePage(){
+ const selected=state.section||'items';let body;
+ if(selected==='items')body=table(['Invoice / customer','Recorded amount','Allocated','Open',''],[['#2086 · Schneider','€1,200','€800','€400',caseButton('payment','Review balance →')]]);
+ else if(selected==='payments')body=table(['Payment','Received','Allocated to','Allocation',''],[['pay_h7e2 · Schneider','€800','Invoice #2086','€800',caseButton('payment','Inspect allocation →')]]);
+ else body=table(['Posting group','Account','Debit','Credit'],[['Invoice #2086','Receivables','€1,200','—'],['Invoice #2086','Invoice clearing','—','€1,200'],['Payment · pay_h7e2','Bank','€800','—'],['Payment · pay_h7e2','Receivables','—','€800'],['Control total','Balanced','€2,000','€2,000']]);
+ return `<main class="rw-page">${pageHeader('FINANCE CONTROL','Open money, clear evidence.','Review an invoice balance, its payment allocation and the underlying postings.',viewButton('chat','✦ Ask about money'))}<div class="rw-overview-stats">${stat('Invoice amount','€1,200','Recorded from source')}${stat('Allocated payment','€800','One allocation')}${stat('Outstanding','€400','Due date not provided')}</div>${tabs([['items','Open items'],['payments','Payments'],['journal','Journal']],selected)}${body}<p class="rw-hint">The remaining balance is derived. The received invoice amount is preserved as stated.</p></main>`;
+}
+function exceptionsPage(){return `<main class="rw-page">${pageHeader('DAILY CONTROL','Exceptions','Investigate a specific condition with a visible route to its supporting records.')}${state.reserved?`<section class="rw-empty"><h2>No unreserved demand in this sample</h2><p class="rw-muted">The reservation resolved the allocation gap. Six lamps still need shipment.</p><div class="rw-actions">${caseButton('delivery','Review the delivery')}</div></section>`:`<section class="rw-panel"><span class="rw-chip">Allocation needed</span><h2 style="margin-top:12px">4 lamps have no reservation</h2><p style="margin-top:10px">Müller has 6 lamps left to receive. Only 2 are reserved. Available stock is 8, so this condition does not establish a shortage.</p><div class="rw-actions">${caseButton('delivery','Resolve in the case →','rw-primary')}<button data-inspect="delivery:unreserved">Show the calculation</button></div></section>`}</main>`;}
+function decisionsPage(){
+ const pending=state.proposal==='pending'&&!state.reserved;
+ return `<main class="rw-page">${pageHeader('HUMAN CONTROL','Decisions','Changes prepared by Reality wait here for your explicit confirmation.')}<section class="rw-panel">${pending?`<span class="rw-chip">Awaiting confirmation</span><h2 style="margin-top:12px">Reserve 4 table lamps for Müller</h2>${facts([['Commitment','cmt_a8f2 · Order #1042'],['Location','Main warehouse'],['Reserved quantity','2 → 6'],['Free stock','8 → 4']])}<div class="rw-actions">${action('confirm-global','Confirm reservation in demo','rw-primary')}${action('cancel-global','Reject proposal')}${caseButton('delivery','Open the business case')}</div>`:state.reserved?`<span class="rw-chip rw-done">Confirmed in demo</span><h2 style="margin-top:12px">4 additional lamps reserved</h2><p style="margin-top:10px">Reservation rsv_f9a4 links to commitment cmt_a8f2. No shipment was recorded.</p><div class="rw-actions"><button data-inspect="delivery:reserved">Inspect the result →</button></div>`:`<h2>No pending confirmations</h2><p style="margin-top:10px">Prepare a reservation in the delivery case or ask Reality to prepare one. The exact proposal will appear here.</p><div class="rw-actions">${caseButton('delivery','Open Müller’s delivery','rw-primary')}${viewButton('chat','Ask Reality')}</div>`}</section>${state.notice?`<div class="rw-success" role="status">${escapeHTML(state.notice)}</div>`:''}</main>`;
+}
+function factsPage(){return `<main class="rw-page">${pageHeader('BUSINESS UNDERSTANDING','Facts','Source-backed observations, with the business context kept close.')}<section class="rw-panel"><h2>What the sample sources state</h2>${table(['Statement','Evidence',''],[['Müller ordered 10 table lamps','Order #1042 · Line 1','<button data-inspect="delivery:unreserved">Trace statement ↗</button>'],['Schneider’s invoice total is €1,200','Invoice #2086','<button data-inspect="payment:invoice">Trace statement ↗</button>'],['Weber is to supply 20 desk lamps','Purchase order #3071 · Line 1','<button data-inspect="receipt:expected">Trace statement ↗</button>']])}</section><p class="rw-hint">Current stock, open deliveries and outstanding balances remain derived observations in their workspaces.</p></main>`;}
+function dataPage(){
+ const selected=state.section||'sources';let body;
+ if(selected==='sources')body=`<section class="rw-panel"><h2>Sample source library</h2><p class="rw-muted">These fixtures illustrate imported evidence. No vendor connection is running.</p>${[['Customer order','external-order-7841','delivery:unreserved'],['Customer invoice','external-invoice-992','payment:invoice'],['Supplier order','external-purchase-381','receipt:expected']].map(([label,id,target])=>`<div class="rw-connected"><div><strong>${label}</strong><small>${id} · Version 1 · Synthetic fixture</small></div><button data-inspect="${target}">View evidence & source ↗</button></div>`).join('')}</section>`;
+ else if(selected==='evidence')body=table(['Document','Evidence type','Recorded value',''],[['#1042','Customer order','10 table lamps',caseButton('delivery','Open context →')],['#2086','Customer invoice','€1,200',caseButton('payment','Open context →')],['#3071','Supplier order','20 desk lamps',caseButton('receipt','Open context →')]]);
+ else body=`${table(['Record','Type','Relationship',''],[['cmt_a8f2','Commitment','Order #1042 · Line 1','<button data-inspect="delivery:unreserved">Inspect ↗</button>'],['rsv_e7c1','Reservation','Commitment cmt_a8f2','<button data-inspect="delivery:reserved">Inspect ↗</button>'],...(state.reserved?[['rsv_f9a4','Reservation','Commitment cmt_a8f2','<button data-inspect="delivery:reserved">Inspect ↗</button>']]:[]),['mov_b3d9','Movement','Shipment fulfillment','<button data-inspect="delivery:shipped">Inspect ↗</button>'],['alloc_c4b2','Allocation','Invoice open item','<button data-inspect="payment:allocated">Inspect ↗</button>']])}<p class="rw-hint">Technical records stay linked to the same business cases. Display IDs are abbreviated.</p>`;
+ return `<main class="rw-page">${pageHeader('COMPANY DATA','Data & sources','Original inputs, normalized evidence and technical traceability. Maintain items and partners under Master data.')}${tabs([['sources','Sources & imports'],['evidence','Evidence'],['explorer','Reality Explorer']],selected)}${body}</main>`;
+}
+function settingsPage(){
+ const selected=state.section||'general';let body;
+ if(selected==='general'&&state.sandbox)body=`<section class="rw-panel"><h2>Practice company</h2><p>This isolated sample is active. Company preferences are edited in the company environment.</p><div class="rw-actions">${action('leave-sandbox','Return to company')}</div></section>`;
+ else if(selected==='general')body=`<form id="rw-company-form" class="rw-panel"><h2>Company preferences</h2><div class="rw-form-grid"><div><label for="rw-company-name">Company name</label><input id="rw-company-name" name="company" maxlength="80" value="${escapeHTML(state.company)}" required></div><div><label for="rw-company-zone">Display timezone</label><select id="rw-company-zone" disabled><option>Europe/Rome · Demo</option></select></div></div><button type="submit" class="rw-primary">Save in this preview</button><p class="rw-hint">Presentation-only change. All preview changes reset when the file is reloaded.</p></form>`;
+ else if(selected==='members')body=`${table(['Member','Role','Access'],[['Alex Morgan','Owner',state.sandbox?'Practice company':escapeHTML(state.company)],['Sam Taylor','Operations',state.sandbox?'Practice company':escapeHTML(state.company)]])}<p class="rw-hint">Illustrative membership view. Invitations and access changes are unavailable in this offline preview.</p>`;
+ else body=`<section class="rw-panel"><h2>Agent access and actions</h2>${facts([['Assistant','Scripted interaction demo'],['Connected AI provider','None'],['Read-only questions','Immediate'],['Business changes','Preview → Confirm → Verify'],['External execution','Not connected']])}<div class="rw-actions">${viewButton('chat','Try the sample chat','rw-primary')}${viewButton('decisions','View confirmations')}</div></section>`;
+ return `<main class="rw-page">${pageHeader('COMPANY','Settings','Company preferences, members and agent access live here.')}${tabs([['general','General'],['members','Members'],['agents','Agents & access']],selected)}${body}${state.notice?`<div class="rw-success" role="status">${escapeHTML(state.notice)}</div>`:''}</main>`;
+}
+function playgroundPage(){return `<main class="rw-page">${pageHeader('LEARNING','Same product. Room to practice.','Learn a business flow in a separate practice company, with the same navigation and explainable records.')}<section class="rw-panel"><span class="rw-badge">Guided example</span><h2 style="margin-top:14px">From open delivery to reserved stock</h2><p style="margin-top:10px">Follow Müller’s order, understand the remaining quantity and confirm a reservation. The company example stays unchanged.</p><ol class="rw-timeline"><li><span class="rw-dot">1</span><div class="rw-event"><strong>Understand the position</strong><small>10 ordered · 4 shipped · 2 reserved</small></div></li><li><span class="rw-dot">2</span><div class="rw-event"><strong>Review Reality’s proposal</strong><small>Reserve the remaining 4 lamps</small></div></li><li><span class="rw-dot">3</span><div class="rw-event"><strong>Inspect what changed</strong><small>New Reservation → Commitment → Evidence</small></div></li></ol><div class="rw-actions">${action('enter-sandbox',state.sandbox?'Continue practice':'Enter practice company →','rw-primary')}</div></section></main>`;}
+function chatReply(question){
+ const q=question.toLocaleLowerCase();
+ if(/reserv|allocate stock|bestand zuweisen/.test(q)){
+  if(state.reserved)return `<p>The remaining 4 lamps are already reserved for Müller. All 6 open lamps are reserved; shipment is still outstanding.</p><div class="rw-actions"><button data-inspect="delivery:reserved">Inspect the reservation</button></div>`;
+  if(/^(?:please\s+)?(?:prepare|reserve|reservier|bereite)|^(?:can you|kannst du)\s+(?:reserve|prepare|reservier)/.test(q)){
+   const quantity=q.match(/\b\d+\b/);
+   if(quantity&&quantity[0]!=='4')return '<p>This scripted example supports a reservation of exactly 4 table lamps for Müller. No proposal was prepared for the requested quantity.</p>';
+   state.proposal='pending';state.phase='preview';
+   return '<p>I prepared the sample proposal to reserve 4 table lamps for Müller. Review the exact change in the proposal below. No stock has moved.</p>';
+  }
+  return `<p>2 lamps are reserved against Müller’s commitment. There are 6 lamps still to deliver, leaving 4 unreserved.</p><div class="rw-actions"><button data-inspect="delivery:reserved">Inspect the reservation</button></div>`;
+ }
+ if(/invoice|payment|paid|money|€|400|schneider|zahlung|rechnung|geld/.test(q))return `<p>The source invoice states €1,200. €800 has been allocated, leaving €400 outstanding. The sample contains no due date, so I cannot establish whether it is overdue.</p><div class="rw-actions">${caseButton('payment','Open Schneider’s balance →')}</div>`;
+ if(/weber|incoming|receipt|supplier|arriv|wareneingang|lieferant|ankomm/.test(q))return `<p>Weber promised 20 desk lamps. A receipt of 12 is recorded, leaving 8 still expected. No arrival date is available in this example.</p><div class="rw-actions">${caseButton('receipt','Open Weber’s receipt →')}</div>`;
+ if(/stock|warehouse|inventory|bestand|lager/.test(q))return `<p>Main warehouse holds 10 table lamps: ${state.reserved?6:2} reserved and ${state.reserved?4:8} free. It also holds 12 desk lamps with no active reservations.</p><div class="rw-actions">${viewButton('warehouse','Open warehouse →')}<button data-inspect="delivery:stock">Explain the calculation</button></div>`;
+ if(/müller|muller|delivery|deliver|lamp|liefer|lampe/.test(q))return `<p>Müller ordered 10 table lamps and 4 have shipped. Of the 6 remaining, ${state.reserved?'all 6 are reserved. Shipment is the next open step.':'2 are reserved and 4 are unreserved. The sample has enough free stock to reserve those 4.'}</p><div class="rw-actions">${caseButton('delivery','Open Müller’s delivery →')}</div>`;
+ if(/attention|open|next|today|offen|heute|überblick|aufmerksam|tun/.test(q))return `<p>${state.reserved?'Müller’s 6 open lamps are reserved and awaiting shipment.':'Müller’s delivery has 4 unreserved lamps, with stock available.'} Schneider has €400 outstanding. Weber has 8 desk lamps still to deliver.</p><div class="rw-actions">${caseButton('delivery','Müller’s delivery')}${caseButton('payment','Schneider’s balance')}${caseButton('receipt','Weber’s receipt')}</div>`;
+ return '<p>This offline preview uses scripted replies. Try a question about Müller’s delivery, Schneider’s invoice, Weber’s receipt or warehouse stock. A business change must be reviewed with the confirmation button.</p>';
+}
+function chatPage(){
+ const proposal=state.proposal==='pending'&&!state.reserved?`<section class="rw-review"><small>PENDING PROPOSAL · NO CHANGE EXECUTED</small><h3>Reserve 4 lamps for Müller</h3>${facts([['Item / warehouse','Table lamp / Main warehouse'],['Reserved for Order #1042','2 → 6 lamps'],['Free stock','8 → 4 lamps']])}<div class="rw-actions">${action('confirm-global','Confirm reservation in demo','rw-primary')}${action('cancel-global','Reject proposal')}${viewButton('decisions','Open decisions')}</div></section>`:'';
+ return `<main class="rw-page"><div class="rw-chat">${pageHeader('ASK REALITY','One conversation across your business.','Ask across orders, stock and money. Open the supporting case from any answer.')}<span class="rw-badge">Offline preview · Scripted replies · No AI provider connected</span><div class="rw-suggestions"><button data-question="What needs attention today?">What needs attention?</button><button data-question="Reserve 4 lamps for Müller">Prepare Müller’s reservation</button><button data-question="Why is €400 open for Schneider?">Explain the €400 balance</button></div><div class="rw-chat-history">${state.messages.length?state.messages.map(m=>`<article class="rw-message rw-user-message"><small>You</small><p>${escapeHTML(m.question)}</p></article><article class="rw-message"><small>✦ Reality · Sample snapshot when asked</small>${m.answer}</article>`).join(''):'<section class="rw-message"><small>✦ Reality</small><h2>What would you like to understand or do?</h2><p style="margin-top:12px">I can connect the open delivery, available stock and unpaid invoice in this sample company.</p></section>'}</div>${proposal}${state.notice?`<div class="rw-success" role="status">${escapeHTML(state.notice)}</div>`:''}<form id="rw-chat-form" class="rw-composer"><label for="rw-chat-question">Ask about the sample company</label><textarea id="rw-chat-question" name="question" rows="2" maxlength="1000" placeholder="What is still open for Müller?" required></textarea><div class="rw-actions"><small>Enter a question or choose an example above</small><button type="submit" class="rw-primary">Send question ↑</button></div></form></div></main>`;
+}
+function switchEnvironment(sandbox){
+ environments[state.sandbox?'sandbox':'company']={reserved:state.reserved,phase:state.phase,proposal:state.proposal,messages:state.messages};
+ Object.assign(state,environments[sandbox?'sandbox':'company']);
+ state.sandbox=sandbox;state.trace=null;state.section='';state.notice='';state.selected='delivery';state.view=sandbox?'work':'overview';state.menu=false;
+}
+function confirmProposal(){
+ if(state.proposal!=='pending'||state.reserved)return;
+ state.reserved=true;state.proposal='confirmed';state.phase='done';
+ state.notice='Confirmed in this demo: reservation rsv_f9a4 created for 4 lamps. No shipment recorded.';
+}
+function render(){
+ sidebar();
+ root.querySelectorAll('[data-view]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.view===state.view)));
+ const pages={overview:dashboard,analytics:analyticsPage,master:masterDataPage,chat:chatPage,orders:ordersPage,warehouse:warehousePage,finance:financePage,exceptions:exceptionsPage,decisions:decisionsPage,facts:factsPage,data:dataPage,settings:settingsPage,playground:playgroundPage};
+ if(pages[state.view]){canvas.innerHTML=pages[state.view]();paintCharts();return;}
+ const c=cases[state.selected];
+ canvas.innerHTML=`<div class="rw-workspace">${queue()}<main class="rw-detail"><div class="rw-section-label"><span class="rw-step">2</span> The selected case</div><small>Position, history and supporting records</small><header class="rw-case-header"><small>${c.type.toUpperCase()} · ${c.name} · ${c.ref}</small><h1>${c.title}</h1><span class="rw-chip ${state.selected==='delivery'&&state.reserved?'rw-done':''}">${status(state.selected)}</span><div class="rw-actions"><button data-master="${state.selected==='delivery'?'muller':state.selected==='payment'?'schneider':'weber'}">Open business partner ↗</button>${state.selected!=='payment'?`<button data-master="${state.selected==='delivery'?'table-lamp':'desk-lamp'}">Open item ↗</button>`:''}</div></header>${position()}${trace()}${timeline()}</main>${assistant()}</div>`;
+}
+root.addEventListener('click',e=>{
+ const day=e.target.closest('[data-chart-date]');
+ if(day){const row=historyData().find(r=>r.date===day.dataset.chartDate),panel=day.closest('.rw-chart-body');if(row&&panel)panel.querySelector('.rw-chart-readout').textContent=`${row.label}: ${row.received} ordered · ${row.shipped} shipped · ${row.backlog} still open`;return;}
+ const b=e.target.closest('button');if(!b||!root.contains(b))return;
+ if(b.dataset.period){state.period=Number(b.dataset.period);render();return;}
+ if(b.dataset.metric){state.metric=b.dataset.metric;state.view='analytics';state.section='';render();return;}
+ if(b.dataset.master){state.master=b.dataset.master;state.view='master';state.section=['muller','schneider','weber'].includes(state.master)?'partners':state.master==='warehouse'?'locations':'items';render();return;}
+ if(b.dataset.view){state.view=b.dataset.view;state.section='';state.master=null;state.notice='';state.menu=false;render();return;}
+ if(b.dataset.section){state.section=b.dataset.section;state.master=null;state.notice='';render();return;}
+ if(b.dataset.case){state.selected=b.dataset.case;state.view='work';state.phase=state.proposal==='pending'&&state.selected==='delivery'?'preview':'suggestion';state.trace=null;state.notice='';state.menu=false;render();return;}
+ if(b.dataset.inspect){const [selected,traceKey]=b.dataset.inspect.split(':');state.selected=selected;state.trace=traceKey;state.view='work';state.phase=state.proposal==='pending'&&selected==='delivery'?'preview':'suggestion';state.menu=false;render();return;}
+ if(b.dataset.question){const question=b.dataset.question;state.messages.push({question,answer:chatReply(question)});state.notice='';render();return;}
+ if(b.dataset.trace){state.trace=state.trace===b.dataset.trace?null:b.dataset.trace;render();return;}
+ const id=b.dataset.action;
+ if(id==='close-metric')state.metric=null;
+ if(id==='close-master')state.master=null;
+ if(id==='close-trace')state.trace=null;
+ if(id==='toggle-menu'){state.menu=!state.menu;render();return;}
+ if(id==='enter-sandbox'){if(!state.sandbox)switchEnvironment(true);else state.view='work';render();return;}
+ if(id==='leave-sandbox'){switchEnvironment(false);render();return;}
+ if(id==='prepare'&&state.selected==='delivery'&&!state.reserved){state.phase='preview';state.proposal='pending';}
+ if(id==='cancel'||id==='cancel-global'){state.phase='suggestion';if(state.proposal==='pending')state.proposal='rejected';state.notice='Proposal rejected in this demo. No stock changed.';}
+ if(id==='confirm'&&state.selected==='delivery'&&state.phase==='preview'){confirmProposal();state.trace='reserved';}
+ if(id==='confirm-global')confirmProposal();
+ if(id==='explain')state.phase='explain';
+ if(id==='show-stock')state.trace='stock';
+ if(id==='show-result')state.trace='reserved';
+ if(id==='show-records')state.trace='open';
+ render();
+});
+root.addEventListener('submit',e=>{
+ if(e.target.id==='rw-chat-form'){
+  e.preventDefault();const question=root.querySelector('#rw-chat-question').value.trim();if(!question)return;
+  state.messages.push({question,answer:chatReply(question)});state.notice='';render();
+ }else if(e.target.id==='rw-company-form'){
+  e.preventDefault();const value=root.querySelector('#rw-company-name').value.trim();if(!value)return;
+  state.company=value.slice(0,80);state.notice='Company name updated in this preview.';render();
+ }
+});
+render();
+if(typeof ResizeObserver!=='undefined')new ResizeObserver(()=>paintCharts()).observe(canvas);
+})();
+</script>

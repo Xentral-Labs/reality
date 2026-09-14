@@ -1,0 +1,44 @@
+{
+  "date": "2026-09-09",
+  "origin": "http://localhost:8080",
+  "company": "Local live-demo company",
+  "method": "Native sidebar clicks, ResourceTiming for primary data response, two animation frames after response. Frames approximate a rendering opportunity, not DOM-stable completion. Developer tools closed during clicks; live intake continues.",
+  "after": [
+    {
+      "view": "Orders & deliveries",
+      "api_ms": 191,
+      "click_to_response_ms": 204,
+      "click_to_frame_ms": 1261
+    },
+    {
+      "view": "Finance",
+      "api_ms": 152,
+      "click_to_response_ms": 159,
+      "click_to_frame_ms": 508
+    },
+    {
+      "view": "Exceptions",
+      "api_ms": 549,
+      "click_to_response_ms": 556,
+      "click_to_frame_ms": 679
+    },
+    {
+      "view": "Orders & deliveries",
+      "api_ms": 82,
+      "click_to_response_ms": 87,
+      "click_to_frame_ms": 1068
+    },
+    {
+      "view": "Finance",
+      "api_ms": 51,
+      "click_to_response_ms": 61,
+      "click_to_frame_ms": 397
+    },
+    {
+      "view": "Exceptions",
+      "api_ms": 404,
+      "click_to_response_ms": 407,
+      "click_to_frame_ms": 524
+    }
+  ]
+}

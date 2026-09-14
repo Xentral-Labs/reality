@@ -1,0 +1,3 @@
+# Action contract
+
+Existing prepare/review/detail/confirm/reconcile transport accepts canonical `movement_correct` with movement_id, reason and optional replacement. Common stored review metadata includes intent/token, correction preview, affected pools and references; correction rendering does not expect a delivery case. Existing expected_revision/preview_fingerprint remain canonical handler inputs. Unknown outcome is never retried automatically. Receipt retains correction_id/original_movement_id/compensating_movement_id/replacement_movement_id/replayed. Authentication and practice rules are unchanged.

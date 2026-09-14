@@ -1,0 +1,720 @@
+{
+  "version": 1,
+  "categories": [
+    {
+      "key": "sales-purchasing",
+      "label": "Sales & Purchasing",
+      "groups": [
+        {
+          "key": "orders",
+          "label": "Orders and commitments"
+        },
+        {
+          "key": "holds",
+          "label": "Delivery holds"
+        },
+        {
+          "key": "returns",
+          "label": "Return announcements"
+        }
+      ]
+    },
+    {
+      "key": "warehouse",
+      "label": "Warehouse",
+      "groups": [
+        {
+          "key": "reservations",
+          "label": "Reservations"
+        },
+        {
+          "key": "movements",
+          "label": "Movements"
+        },
+        {
+          "key": "tracking",
+          "label": "Tracking and expiry"
+        }
+      ]
+    },
+    {
+      "key": "finance",
+      "label": "Finance",
+      "groups": [
+        {
+          "key": "customer-invoices",
+          "label": "Customer invoices and credits"
+        },
+        {
+          "key": "supplier-invoices",
+          "label": "Supplier invoices and credits"
+        },
+        {
+          "key": "payments",
+          "label": "Payments and refunds"
+        },
+        {
+          "key": "journal",
+          "label": "Journal"
+        },
+        {
+          "key": "accounts",
+          "label": "Operational accounts"
+        }
+      ]
+    },
+    {
+      "key": "master-data",
+      "label": "Master data",
+      "groups": [
+        {
+          "key": "references",
+          "label": "Parties, items and locations"
+        },
+        {
+          "key": "terms",
+          "label": "Commercial terms"
+        }
+      ]
+    },
+    {
+      "key": "sources-evidence",
+      "label": "Sources & Evidence",
+      "groups": [
+        {
+          "key": "intake",
+          "label": "Integrations and intake"
+        },
+        {
+          "key": "documents",
+          "label": "Documents"
+        }
+      ]
+    },
+    {
+      "key": "facts",
+      "label": "Facts",
+      "groups": [
+        {
+          "key": "observations",
+          "label": "Observations"
+        }
+      ]
+    },
+    {
+      "key": "company",
+      "label": "Company",
+      "groups": [
+        {
+          "key": "members",
+          "label": "Members and access"
+        }
+      ]
+    },
+    {
+      "key": "analytics",
+      "label": "Analytics",
+      "groups": [
+        {
+          "key": "reports",
+          "label": "Reports"
+        }
+      ]
+    }
+  ],
+  "command_groups": {
+    "expired_lots": "tracking",
+    "return_announcements": "returns",
+    "preview_payment_run": "payments",
+    "preview_stale_promise_closure": "orders",
+    "adjustment_context": "payments",
+    "accept_adjustment": "payments",
+    "apply_settlement": "payments",
+    "settlement_context": "payments",
+    "initialize_accounts": "accounts",
+    "create_account": "accounts",
+    "update_account": "accounts",
+    "set_default_account": "accounts",
+    "list_accounts": "accounts",
+    "observe_fact": "observations",
+    "create_manual_order": "orders",
+    "install_connector_shell": "intake",
+    "create_source_system": "intake",
+    "create_source_capability": "intake",
+    "enqueue_source": "intake",
+    "correct_manual_document": "documents",
+    "record_corrected_document_source": "documents",
+    "create_party": "references",
+    "update_party": "references",
+    "create_item": "references",
+    "update_item": "references",
+    "create_location": "references",
+    "update_location": "references",
+    "create_handling_unit": "tracking",
+    "create_lot": "tracking",
+    "state_lot_expiry": "tracking",
+    "correct_lot_expiry": "tracking",
+    "create_serial_unit": "tracking",
+    "set_master_data_active": "references",
+    "create_payment_term": "terms",
+    "create_price_list": "terms",
+    "create_price_list_entry": "terms",
+    "assign_party_price_list": "terms",
+    "create_party_group": "terms",
+    "reserve": "reservations",
+    "release_reservation": "reservations",
+    "record_movement": "movements",
+    "record_shipment_notice": "tracking",
+    "record_packaged_execution": "movements",
+    "record_shipment_event": "tracking",
+    "supersede_shipment_event": "tracking",
+    "correct_movement": "movements",
+    "reverse_ledger_posting_group": "journal",
+    "revise_commitment": "orders",
+    "hold_commitment": "holds",
+    "hold_document_commitments": "holds",
+    "hold_party_delivery": "holds",
+    "post_customer_payment": "payments",
+    "announce_customer_return": "returns",
+    "withdraw_return_announcement": "returns",
+    "execute_payment_run": "payments",
+    "close_stale_promises": "orders",
+    "create_manual_document_with_lines": "documents",
+    "post_sales_invoice": "customer-invoices",
+    "post_supplier_invoice": "supplier-invoices",
+    "record_sales_credit": "customer-invoices",
+    "record_supplier_invoice": "supplier-invoices",
+    "record_sales_invoice": "customer-invoices",
+    "post_sales_credit_note": "customer-invoices",
+    "allocate_credit_note": "customer-invoices",
+    "post_customer_refund": "payments",
+    "post_supplier_credit_note": "supplier-invoices",
+    "allocate_supplier_credit_note": "supplier-invoices",
+    "post_supplier_refund": "payments",
+    "post_supplier_payment": "payments",
+    "create_invitation": "members",
+    "resend_invitation": "members",
+    "revoke_invitation": "members",
+    "remove_member": "members",
+    "opening_context": "payments",
+    "import_opening": "payments",
+    "list_references": "accounts",
+    "reference_history": "accounts",
+    "maintain_reference": "accounts",
+    "component_context": "accounts",
+    "component_history": "accounts",
+    "assign_component": "accounts",
+    "transaction_matrix": "accounts",
+    "list_source_mappings": "accounts",
+    "source_mapping_history": "accounts",
+    "set_source_mapping": "accounts",
+    "list_targets": "accounts",
+    "list_target_references": "accounts",
+    "list_mappings": "accounts",
+    "mapping_history": "accounts",
+    "preview_document": "accounts",
+    "maintain_target_configuration": "accounts",
+    "change_report": "reports"
+  },
+  "entries": [
+    {
+      "key": "order_create",
+      "label": "New order",
+      "command": "create_manual_order",
+      "form": "order_create",
+      "placements": [
+        "global",
+        "sales.orders",
+        "purchasing.orders"
+      ]
+    },
+    {
+      "key": "reserve",
+      "label": "Reserve stock",
+      "command": "reserve",
+      "form": "reserve",
+      "placements": [
+        "global",
+        "warehouse.reservations",
+        "commitment.customer"
+      ]
+    },
+    {
+      "key": "reservation_release",
+      "label": "Release reservation",
+      "command": "release_reservation",
+      "form": "reservation_release",
+      "placements": [
+        "global",
+        "warehouse.reservations",
+        "record.reservation.active"
+      ]
+    },
+    {
+      "key": "opening_stock",
+      "label": "Record opening stock",
+      "command": "record_movement",
+      "form": "opening_stock",
+      "placements": [
+        "global",
+        "warehouse.movements"
+      ]
+    },
+    {
+      "key": "receipt",
+      "label": "Receive goods",
+      "command": "record_movement",
+      "form": "receipt",
+      "placements": [
+        "global",
+        "warehouse.movements",
+        "commitment.supplier"
+      ]
+    },
+    {
+      "key": "movement_create",
+      "label": "Record shipment",
+      "command": "record_movement",
+      "form": "movement_create",
+      "placements": [
+        "global",
+        "warehouse.movements",
+        "commitment.customer"
+      ]
+    },
+    {
+      "key": "shipment_notice_record",
+      "label": "Record shipment notice",
+      "command": "record_shipment_notice",
+      "form": "shipment_notice_record",
+      "placements": [
+        "global",
+        "sales.orders",
+        "purchasing.orders"
+      ]
+    },
+    {
+      "key": "shipment_dispatch",
+      "label": "Dispatch package",
+      "command": "record_packaged_execution",
+      "form": "shipment_dispatch",
+      "placements": [
+        "global",
+        "sales.orders",
+        "warehouse.movements"
+      ]
+    },
+    {
+      "key": "shipment_receive",
+      "label": "Receive package",
+      "command": "record_packaged_execution",
+      "form": "shipment_receive",
+      "placements": [
+        "global",
+        "purchasing.orders",
+        "warehouse.movements"
+      ]
+    },
+    {
+      "key": "shipment_event_record",
+      "label": "Record tracking event",
+      "command": "record_shipment_event",
+      "form": "shipment_event_record",
+      "placements": [
+        "global",
+        "warehouse.tracking"
+      ]
+    },
+    {
+      "key": "shipment_event_supersede",
+      "label": "Correct tracking event",
+      "command": "supersede_shipment_event",
+      "form": "shipment_event_supersede",
+      "placements": [
+        "global",
+        "warehouse.tracking"
+      ]
+    },
+    {
+      "key": "movement_correct",
+      "label": "Correct movement",
+      "command": "correct_movement",
+      "form": "movement_correct",
+      "placements": [
+        "global",
+        "warehouse.movements",
+        "record.movement.correctable"
+      ]
+    },
+    {
+      "key": "commitment_hold",
+      "label": "Place delivery hold",
+      "command": "hold_commitment",
+      "form": "commitment_hold",
+      "placements": [
+        "global",
+        "commitment.customer"
+      ]
+    },
+    {
+      "key": "commitment_hold_release",
+      "label": "Release delivery hold",
+      "command": "release_commitment_hold",
+      "form": "commitment_hold_release",
+      "placements": [
+        "global",
+        "commitment.customer"
+      ]
+    },
+    {
+      "key": "party_delivery_hold",
+      "label": "Place customer delivery hold",
+      "command": "hold_party_delivery",
+      "form": "party_delivery_hold",
+      "placements": [
+        "global",
+        "commitment.customer",
+        "record.customer"
+      ]
+    },
+    {
+      "key": "party_delivery_hold_release",
+      "label": "Release customer delivery hold",
+      "command": "release_party_delivery_hold",
+      "form": "party_delivery_hold_release",
+      "placements": [
+        "global",
+        "commitment.customer",
+        "record.customer"
+      ]
+    },
+    {
+      "key": "sales_invoice_record",
+      "label": "New customer invoice",
+      "command": "record_sales_invoice",
+      "form": "sales_invoice_record",
+      "placements": [
+        "global",
+        "finance.open-items.receivable"
+      ]
+    },
+    {
+      "key": "supplier_invoice_record",
+      "label": "New supplier invoice",
+      "command": "record_supplier_invoice",
+      "form": "supplier_invoice_record",
+      "placements": [
+        "global",
+        "finance.open-items.payable"
+      ]
+    },
+    {
+      "key": "customer_payment_post",
+      "label": "Record customer payment",
+      "command": "post_customer_payment",
+      "form": "customer_payment_post",
+      "placements": [
+        "global",
+        "finance.open-items.receivable",
+        "finance.open-items.customer-balance",
+        "finance.payments.receivable",
+        "finance.payments.customer-credit",
+        "finance.payments.customer-balance"
+      ]
+    },
+    {
+      "key": "supplier_payment_post",
+      "label": "Record supplier payment",
+      "command": "post_supplier_payment",
+      "form": "supplier_payment_post",
+      "placements": [
+        "global",
+        "finance.open-items.payable",
+        "finance.open-items.supplier-balance",
+        "finance.payments.payable",
+        "finance.payments.supplier-balance"
+      ]
+    },
+    {
+      "key": "sales_credit_record",
+      "label": "New credit note",
+      "command": "record_sales_credit",
+      "form": "sales_credit_record",
+      "placements": [
+        "global",
+        "finance.open-items.receivable",
+        "finance.open-items.customer-credit",
+        "finance.open-items.customer-balance",
+        "record.customer-invoice"
+      ]
+    },
+    {
+      "key": "customer_refund_post",
+      "label": "Record refund",
+      "command": "post_customer_refund",
+      "form": "customer_refund_post",
+      "placements": [
+        "global",
+        "finance.open-items.customer-credit",
+        "finance.open-items.customer-balance",
+        "record.customer-credit"
+      ]
+    },
+    {
+      "key": "ledger_reverse",
+      "label": "Reverse posting",
+      "command": "reverse_ledger_posting_group",
+      "form": "ledger_reverse",
+      "placements": [
+        "global",
+        "finance.journal",
+        "record.posting-group"
+      ]
+    },
+    {
+      "key": "navigate_customers",
+      "label": "Manage customers",
+      "group": "references",
+      "destination": {
+        "route": "master-data",
+        "family": "customer"
+      },
+      "placements": [
+        "global"
+      ],
+      "commands": [
+        "create_party",
+        "update_party",
+        "set_master_data_active"
+      ]
+    },
+    {
+      "key": "navigate_suppliers",
+      "label": "Manage suppliers",
+      "group": "references",
+      "destination": {
+        "route": "master-data",
+        "family": "supplier"
+      },
+      "placements": [
+        "global"
+      ],
+      "commands": [
+        "create_party",
+        "update_party",
+        "set_master_data_active"
+      ]
+    },
+    {
+      "key": "navigate_items",
+      "label": "Manage items",
+      "group": "references",
+      "destination": {
+        "route": "master-data",
+        "family": "item"
+      },
+      "placements": [
+        "global"
+      ],
+      "commands": [
+        "create_item",
+        "update_item",
+        "set_master_data_active"
+      ]
+    },
+    {
+      "key": "navigate_locations",
+      "label": "Manage locations",
+      "group": "references",
+      "destination": {
+        "route": "master-data",
+        "family": "location"
+      },
+      "placements": [
+        "global"
+      ],
+      "commands": [
+        "create_location",
+        "update_location",
+        "set_master_data_active"
+      ]
+    },
+    {
+      "key": "navigate_sources",
+      "label": "Manage integrations",
+      "group": "intake",
+      "destination": {
+        "route": "data-sources",
+        "dataView": "systems"
+      },
+      "placements": [
+        "global"
+      ],
+      "commands": [
+        "install_connector_shell",
+        "create_source_system",
+        "create_source_capability"
+      ]
+    },
+    {
+      "key": "navigate_companies",
+      "label": "Manage companies",
+      "group": "members",
+      "destination": {
+        "route": "settings",
+        "settingsView": "company"
+      },
+      "placements": [
+        "global"
+      ]
+    },
+    {
+      "key": "navigate_members",
+      "label": "Manage members",
+      "group": "members",
+      "destination": {
+        "route": "settings",
+        "settingsView": "access"
+      },
+      "placements": [
+        "global"
+      ],
+      "access": "owner",
+      "commands": [
+        "create_invitation",
+        "resend_invitation",
+        "revoke_invitation",
+        "remove_member"
+      ]
+    },
+    {
+      "key": "navigate_accounts",
+      "label": "Manage operational accounts",
+      "group": "accounts",
+      "destination": {
+        "route": "finance",
+        "financeView": "settings"
+      },
+      "placements": [
+        "global"
+      ],
+      "access": "owner",
+      "commands": [
+        "initialize_accounts",
+        "create_account",
+        "update_account",
+        "set_default_account",
+        "list_accounts",
+        "transaction_matrix",
+        "list_targets",
+        "list_target_references",
+        "list_mappings",
+        "mapping_history",
+        "preview_document",
+        "maintain_target_configuration"
+      ]
+    },
+    {
+      "key": "navigate_demo",
+      "label": "Manage Demo Data",
+      "group": "intake",
+      "destination": {
+        "route": "demo-data"
+      },
+      "placements": [
+        "global"
+      ],
+      "access": "demo"
+    },
+    {
+      "key": "navigate_reductions",
+      "label": "Manage settlement reductions",
+      "group": "payments",
+      "commands": [
+        "adjustment_context",
+        "accept_adjustment",
+        "settlement_context",
+        "apply_settlement"
+      ],
+      "destination": {
+        "route": "finance",
+        "financeView": "open-items"
+      },
+      "placements": [
+        "global"
+      ],
+      "access": "owner"
+    },
+    {
+      "key": "navigate_opening_positions",
+      "label": "Import opening positions",
+      "group": "payments",
+      "commands": [
+        "opening_context",
+        "import_opening"
+      ],
+      "destination": {
+        "route": "finance",
+        "financeView": "open-items"
+      },
+      "placements": [
+        "global"
+      ],
+      "access": "owner"
+    },
+    {
+      "key": "navigate_finance_references",
+      "label": "Manage finance references",
+      "group": "accounts",
+      "destination": {
+        "route": "finance",
+        "financeView": "settings",
+        "financeSettings": "cost-centers"
+      },
+      "placements": [
+        "global"
+      ],
+      "access": "owner",
+      "commands": [
+        "list_references",
+        "reference_history",
+        "maintain_reference",
+        "list_source_mappings",
+        "source_mapping_history",
+        "set_source_mapping"
+      ]
+    },
+    {
+      "key": "navigate_financial_detail",
+      "label": "Inspect financial detail",
+      "group": "accounts",
+      "destination": {
+        "route": "finance",
+        "financeView": "open-items"
+      },
+      "placements": [
+        "global"
+      ],
+      "commands": [
+        "component_context",
+        "component_history",
+        "assign_component"
+      ]
+    },
+    {
+      "key": "analytics-reports",
+      "label": "Reports",
+      "group": "reports",
+      "commands": [
+        "change_report"
+      ],
+      "placements": [
+        "global"
+      ],
+      "destination": {
+        "route": "analytics",
+        "analyticsView": "explore"
+      }
+    }
+  ]
+}

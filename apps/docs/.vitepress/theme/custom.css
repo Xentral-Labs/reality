@@ -1,0 +1,189 @@
+:root {
+  --vp-c-brand-1: #6755f5;
+  --vp-c-brand-2: #5745df;
+  --vp-c-brand-3: #4938c5;
+  --vp-c-brand-soft: rgba(103, 85, 245, 0.12);
+  --vp-font-family-base:
+    Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --vp-layout-max-width: 1500px;
+}
+
+:root:not(.dark) {
+  --vp-c-bg: #fbfcff;
+  --vp-c-bg-alt: #f5f6fb;
+  --vp-c-text-1: #161928;
+  --vp-c-text-2: #5f667a;
+}
+
+:root.dark {
+  --vp-c-brand-1: #a99cff;
+  --vp-c-brand-2: #8e7fff;
+  --vp-c-brand-3: #7665f5;
+  --vp-c-brand-soft: rgba(169, 156, 255, 0.16);
+}
+
+.vpi-languages {
+  --icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' stroke='currentColor' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' viewBox='0 0 24 24'%3E%3Ccircle cx='12' cy='12' r='10'/%3E%3Cpath d='M2 12h20M12 2a15.3 15.3 0 0 1 0 20M12 2a15.3 15.3 0 0 0 0 20'/%3E%3C/svg%3E");
+}
+
+.VPNavBarTitle .logo {
+  width: 30px;
+  height: 30px;
+}
+
+.VPHomeHero .name,
+.VPHomeHero .text {
+  letter-spacing: -0.04em;
+}
+
+.VPHomeHero .name {
+  background: linear-gradient(120deg, #6755f5, #8e67ff);
+  -webkit-background-clip: text;
+  background-clip: text;
+}
+
+.VPFeature {
+  border-color: var(--vp-c-divider) !important;
+  box-shadow: 0 12px 30px rgba(27, 31, 55, 0.05);
+}
+
+.dark .VPFeature {
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.22);
+}
+
+.erp-brand-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin: 20px 0 22px;
+}
+
+.erp-brand-row span {
+  min-width: 150px;
+  min-height: 58px;
+  padding: 10px 18px;
+  border: 1px solid var(--vp-c-divider);
+  border-radius: 12px;
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  background: var(--vp-c-bg-soft);
+  color: var(--vp-c-text-1);
+  font-weight: 700;
+  box-shadow: 0 8px 24px rgba(27, 31, 55, 0.05);
+}
+
+.erp-brand-row img {
+  width: 30px;
+  height: 30px;
+  object-fit: contain;
+}
+
+.erp-brand-row span[aria-label="Xentral"] img {
+  width: 88px;
+}
+
+.erp-brand-row span[aria-label="Xentral"] {
+  font-size: 0;
+}
+
+.dark .erp-brand-row span {
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18);
+}
+
+@media (max-width: 520px) {
+  .erp-brand-row span {
+    flex: 1 1 100%;
+  }
+}
+
+.custom-block.current,
+.custom-block.normative,
+.custom-block.example,
+.custom-block.planned {
+  border-left: 3px solid var(--vp-c-brand-1);
+  border-radius: 8px;
+  padding: 16px 18px;
+  background: var(--vp-c-brand-soft);
+}
+
+.custom-block.normative {
+  border-color: #27a566;
+  background: rgba(39, 165, 102, 0.1);
+}
+
+.custom-block.example {
+  border-color: #db8b22;
+  background: rgba(219, 139, 34, 0.1);
+}
+
+.custom-block.planned {
+  border-color: #8a93a8;
+  background: rgba(138, 147, 168, 0.11);
+}
+
+:focus-visible:not(.VPLocalSearchBox .search-input) {
+  outline: 3px solid #6755f5 !important;
+  outline-offset: 3px;
+}
+
+@media (max-width: 420px) {
+  .VPDoc {
+    padding-left: 18px !important;
+    padding-right: 18px !important;
+  }
+
+  /* Match code blocks to the narrower document padding at this breakpoint. */
+  .vp-doc div[class*="language-"] {
+    margin-left: 0;
+    margin-right: 0;
+  }
+
+  .vp-doc table {
+    display: block;
+    max-width: 100%;
+    overflow-x: auto;
+  }
+
+  pre,
+  code {
+    overflow-wrap: anywhere;
+  }
+}
+
+/* A top-level sidebar link without children is wrapped by VitePress into a title-less group and
+   set like a child entry. Give it the weight of a section title so it lines up with the others. */
+.VPSidebarItem.level-0:not(:has(> .item .text)) > .items > .VPSidebarItem.level-1 > .item .text {
+  font-weight: 700;
+  color: var(--vp-c-text-1);
+}
+
+.VPSidebarItem.level-0:not(:has(> .item .text))
+  > .items
+  > .VPSidebarItem.level-1.is-active
+  > .item
+  .text {
+  color: var(--vp-c-brand-1);
+}
+
+/* Show the primary destinations on tablets; the menu keeps every link reachable. */
+@media (min-width: 768px) and (max-width: 1279px) {
+  .VPNav .VPNavBarMenu {
+    display: flex;
+  }
+  .VPNav .VPNavBarMenu > a:nth-of-type(n + 4) {
+    display: none;
+  }
+  .VPNavBarSearch .DocSearch-Button-Keys {
+    display: none;
+  }
+  .VPNav .VPNavBarExtra {
+    margin-right: 0;
+  }
+  .VPNav .VPNavBarHamburger {
+    display: flex;
+  }
+  .VPNav .VPNavScreen {
+    display: block;
+  }
+}

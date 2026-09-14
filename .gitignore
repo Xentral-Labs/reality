@@ -1,0 +1,22 @@
+.venv/
+__pycache__/
+.pytest_cache/
+.ruff_cache/
+node_modules/
+apps/web/dist/
+apps/web/*.tsbuildinfo
+apps/web/vite.config.js
+apps/web/vite.config.d.ts
+apps/docs/.vitepress/cache/
+apps/docs/.vitepress/dist/
+.coverage
+.env
+.reality/
+.reality-secret.key
+data/*.db
+*.pyc
+.DS_Store
+
+# Local development links in isolated worktrees.
+.venv
+node_modules

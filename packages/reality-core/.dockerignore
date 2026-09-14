@@ -1,0 +1,6 @@
+.venv
+.pytest_cache
+.ruff_cache
+tests
+data
+node_modules

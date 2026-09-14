@@ -1,0 +1,12 @@
+{
+  "private": true,
+  "license": "MIT",
+  "scripts": {
+    "build:css": "tailwindcss -i src/reality/web/styles/tailwind.css -o src/reality/web/static/tailwind.css --minify",
+    "watch:css": "tailwindcss -i src/reality/web/styles/tailwind.css -o src/reality/web/static/tailwind.css --watch"
+  },
+  "devDependencies": {
+    "@tailwindcss/cli": "^4.1.12",
+    "tailwindcss": "^4.1.12"
+  }
+}

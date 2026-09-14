@@ -1,0 +1,1059 @@
+# yaml-language-server: $schema=https://docs.runreality.ai/storylines/storyline.schema.json
+#
+# Order to close, version 1 (spec 182, research R8). Fourteen chapters on the default
+# path and four branch alternatives. Every chapter runs an ordinary command or an
+# ordinary read; identities are symbolic and dates are relative to the run start.
+
+storyline: 1
+key: order-to-close
+version: 1
+title:
+  en: Order to close
+  de: Auftrag bis Abschluss
+  nl: Van order tot afsluiting
+  es: Del pedido al cierre
+summary:
+  en:
+    One customer order, a short delivery, a blocked shipment, an overpayment and a month-end review.
+    Play it step by step and read what each step recorded.
+  de:
+    Ein Kundenauftrag, eine zu kleine Lieferung, ein gesperrter Versand, eine Überzahlung und ein
+    Monatsrückblick. Schritt für Schritt spielen und lesen, was jeder Schritt aufgezeichnet hat.
+  nl:
+    Eén klantorder, een te kleine levering, een geblokkeerde verzending, een te hoge betaling en een
+    maandafsluiting. Speel stap voor stap en lees wat elke stap heeft vastgelegd.
+  es:
+    Un pedido de cliente, una entrega incompleta, un envío bloqueado, un pago en exceso y una
+    revisión de fin de mes. Juégalo paso a paso y lee lo que registró cada paso.
+author:
+  name: Reality team
+process: order_to_cash
+
+seed:
+  parties:
+    nordlicht:
+      role: customer
+      name: Nordlicht Handels GmbH
+      payment_term: $ref.terms.net14
+    baltic:
+      role: supplier
+      name: Baltic Supply
+  items:
+    fjord:
+      sku: IT-FJORD
+      name: Fjord Thermo-Becher
+      unit: pcs
+      price: "24.50"
+      currency: EUR
+  locations:
+    hamburg:
+      name: Hamburg
+  terms:
+    net14:
+      code: NET14
+      name: 14 Tage netto
+      days: 14
+  history:
+    - command: movement_create
+      at: -60d
+      as: opening
+      input:
+        movement_type: opening_stock
+        item_id: $ref.items.fjord
+        quantity: "8"
+        to_location_id: $ref.locations.hamburg
+        occurred_at: -60d
+    - command: document_create
+      at: -56d
+      as: overdue_invoice
+      input:
+        document_type: sales_invoice
+        number: RE-0389
+        party_id: $ref.parties.nordlicht
+        gross_amount: "1180.00"
+        document_date: -56d
+        payment_term_code: $ref.terms.net14
+        lines:
+          - item_id: $ref.items.fjord
+            quantity: "40"
+            unit: pcs
+            unit_price: "29.50"
+            gross_amount: "1180.00"
+    - command: sales_invoice_post
+      at: -56d
+      input:
+        document_id: $seed.overdue_invoice.output.document_id
+        effective_at: -56d
+    - command: party_delivery_hold
+      as: hold
+      input:
+        party_id: $ref.parties.nordlicht
+        reason_code: credit_check
+        note: RE-0389 overdue
+    - command: order_create
+      at: -14d
+      as: purchase_order
+      input:
+        direction: purchase
+        number: BE-0107
+        company_party_id: $company.party
+        counterparty_id: $ref.parties.baltic
+        location_id: $ref.locations.hamburg
+        gross_amount: "206.00"
+        document_date: -14d
+        requested_delivery_at: -7d
+        lines:
+          - item_id: $ref.items.fjord
+            quantity: "20"
+            unit: pcs
+            unit_price: "10.30"
+            gross_amount: "206.00"
+            promised_at: -7d
+
+chapters:
+  - key: order
+    title:
+      en: Create the order
+      de: Auftrag anlegen
+      nl: Order aanmaken
+      es: Crear el pedido
+    situation:
+      en:
+        Nordlicht Handels GmbH orders 12 Fjord thermo mugs at 24.50 €. There are 8 on hand. Create
+        the order and watch what Reality makes of it.
+      de:
+        Die Nordlicht Handels GmbH bestellt 12 Thermo-Becher Fjord zu 24,50 €. Am Lager liegen 8.
+        Leg den Auftrag an und schau, was Reality daraus macht.
+      nl:
+        Nordlicht Handels GmbH bestelt 12 Fjord-thermobekers à 24,50 €. Er liggen er 8 op voorraad.
+        Maak de order aan en kijk wat Reality ervan maakt.
+      es:
+        Nordlicht Handels GmbH pide 12 tazas térmicas Fjord a 24,50 €. Hay 8 en existencia. Crea el
+        pedido y observa qué hace Reality con él.
+    explain:
+      en:
+        One command, several events. The order and its commitment are separate records because they
+        can be revised separately. The finding "customer commitment at risk" was not written by the
+        command. A rule compared the promised quantity with what is on hand and raised it.
+      de:
+        Ein Befehl, mehrere Ereignisse. Auftrag und Verpflichtung sind getrennte Datensätze, weil
+        sie getrennt geändert werden können. Die Abweichung „Kundenverpflichtung gefährdet“ hat der
+        Befehl nicht geschrieben. Eine Regel hat die zugesagte Menge mit dem Bestand verglichen und
+        sie gehoben.
+      nl:
+        Eén opdracht, meerdere gebeurtenissen. Order en verplichting zijn aparte records omdat ze
+        apart gewijzigd kunnen worden. De bevinding "klantverplichting in gevaar" is niet door de
+        opdracht geschreven. Een regel vergeleek de toegezegde hoeveelheid met de voorraad en meldde
+        haar.
+      es:
+        Un comando, varios eventos. El pedido y su compromiso son registros distintos porque se
+        revisan por separado. El hallazgo "compromiso con el cliente en riesgo" no lo escribió el
+        comando. Una regla comparó la cantidad prometida con la existencia y lo levantó.
+    view: view:orders
+    command: order_create
+    input:
+      direction: sales
+      number: AT-0041
+      company_party_id: $company.party
+      counterparty_id: $ref.parties.nordlicht
+      location_id: $ref.locations.hamburg
+      gross_amount: "294.00"
+      document_date: 0d
+      requested_delivery_at: +5d
+      payment_term_code: $ref.terms.net14
+      lines:
+        - item_id: $ref.items.fjord
+          quantity: "12"
+          unit: pcs
+          unit_price: "24.50"
+          gross_amount: "294.00"
+          promised_at: +5d
+    primary:
+      record_type: commitment
+      from: output.commitment_ids[0]
+    expect:
+      raised: [outgoing_commitment_at_risk]
+    next: reference
+
+  - key: reference
+    title:
+      en: Note the customer reference
+      de: Kundenreferenz festhalten
+      nl: Klantreferentie vastleggen
+      es: Anotar la referencia del cliente
+    situation:
+      en:
+        The customer's e-mail names their purchase order PO-2026-118. Record that reference as a
+        Fact on the order document.
+      de:
+        In der E-Mail des Kunden steht seine Bestellnummer PO-2026-118. Halte diese Referenz als
+        Fakt am Auftragsbeleg fest.
+      nl:
+        In de e-mail van de klant staat zijn bestelnummer PO-2026-118. Leg die referentie vast als
+        Feit op het orderdocument.
+      es:
+        El correo del cliente nombra su orden de compra PO-2026-118. Registra esa referencia como
+        Hecho en el documento del pedido.
+    explain:
+      en:
+        A Fact is something Reality holds to be true about a record, with a source and a time. It is
+        not a field on the document. It has a predicate from the Fact catalog and it can be read by
+        anyone who asks about the order later.
+      de:
+        Ein Fakt ist etwas, das Reality über einen Datensatz für wahr hält, mit Quelle und
+        Zeitpunkt. Er ist kein Feld am Beleg. Er trägt ein Prädikat aus dem Faktenkatalog, und wer
+        später nach dem Auftrag fragt, findet ihn.
+      nl:
+        Een Feit is iets wat Reality over een record voor waar houdt, met bron en tijdstip. Het is
+        geen veld op het document. Het draagt een predicaat uit de Feitencatalogus en wie later naar
+        de order vraagt, vindt het.
+      es:
+        Un Hecho es algo que Reality considera verdadero sobre un registro, con fuente y momento. No
+        es un campo del documento. Lleva un predicado del catálogo de Hechos y quien pregunte por el
+        pedido más tarde lo encontrará.
+    view: view:documents
+    command: fact_observe
+    input:
+      source_record_id: $chapter.order.output.source_record_id
+      subject_type: document
+      subject_id: $chapter.order.output.document_id
+      predicate: order.customer_reference
+      value: PO-2026-118
+      observed_at: 0d
+      idempotency_key: storyline-order-customer-reference
+    primary:
+      record_type: document
+      from: output.document_id
+    expect:
+      facts: [order.customer_reference]
+    next: receipt
+
+  - key: receipt
+    title:
+      en: Receive a short delivery
+      de: Zu kleine Lieferung einbuchen
+      nl: Te kleine levering inboeken
+      es: Recibir una entrega incompleta
+    situation:
+      en:
+        Baltic Supply delivers against purchase order BE-0107. The delivery note says 20 mugs, the
+        box holds 16. Book what is really there, not what the paper says.
+      de:
+        Baltic Supply liefert gegen Bestellung BE-0107. Auf dem Lieferschein stehen 20 Becher, im
+        Karton sind 16. Buche ein, was wirklich da ist, nicht was auf dem Papier steht.
+      nl:
+        Baltic Supply levert op bestelling BE-0107. Op de pakbon staan 20 bekers, in de doos zitten
+        er 16. Boek in wat er echt is, niet wat op papier staat.
+      es:
+        Baltic Supply entrega contra el pedido de compra BE-0107. El albarán dice 20 tazas, la caja
+        tiene 16. Registra lo que realmente hay, no lo que dice el papel.
+    explain:
+      en:
+        The difference is not booked away. The supplier commitment stays open with 4 pieces, and
+        because its promised date has passed, the finding "overdue incoming supplier commitment"
+        stays as well. The customer risk from chapter 1 also stays, because nothing has been
+        reserved yet.
+      de:
+        Die Differenz wird nicht weggebucht. Die Lieferantenverpflichtung bleibt mit 4 Stück offen,
+        und weil ihr zugesagter Termin vorbei ist, bleibt auch die Abweichung „überfällige
+        eingehende Lieferantenverpflichtung“. Das Kundenrisiko aus Kapitel 1 bleibt ebenfalls, weil
+        noch nichts reserviert ist.
+      nl:
+        Het verschil wordt niet weggeboekt. De leveranciersverplichting blijft met 4 stuks open en
+        omdat de toegezegde datum voorbij is, blijft ook de bevinding "achterstallige inkomende
+        leveranciersverplichting". Het klantrisico uit hoofdstuk 1 blijft ook, want er is nog niets
+        gereserveerd.
+      es:
+        La diferencia no se borra. El compromiso del proveedor sigue abierto con 4 piezas y, como su
+        fecha prometida ya pasó, sigue también el hallazgo "compromiso entrante del proveedor
+        vencido". El riesgo del cliente del capítulo 1 sigue igualmente, porque aún no se ha
+        reservado nada.
+    view: view:movements
+    command: movement_create
+    input:
+      movement_type: receipt
+      item_id: $ref.items.fjord
+      quantity: "16"
+      to_location_id: $ref.locations.hamburg
+      commitment_id: $seed.purchase_order.output.commitment_ids[0]
+    primary:
+      record_type: movement
+      from: output.records[0].id
+    next: reserve
+
+  - key: reserve
+    title:
+      en: Reserve the stock
+      de: Bestand reservieren
+      nl: Voorraad reserveren
+      es: Reservar la existencia
+    situation:
+      en: There are 24 mugs on hand now. Reserve them for the Nordlicht order.
+      de: Jetzt liegen 24 Becher am Lager. Reserviere sie für den Nordlicht-Auftrag.
+      nl: Er liggen nu 24 bekers op voorraad. Reserveer ze voor de order van Nordlicht.
+      es: Ahora hay 24 tazas en existencia. Resérvalas para el pedido de Nordlicht.
+    explain:
+      en:
+        The reservation covers the whole promise, so the rule that raised "customer commitment at
+        risk" now finds nothing unreserved and the finding clears. Nobody closed it. The same rule
+        that raised it took it back.
+      de:
+        Die Reservierung deckt die ganze Zusage, also findet die Regel hinter „Kundenverpflichtung
+        gefährdet“ nichts Unreserviertes mehr, und die Abweichung schließt sich. Niemand hat sie
+        geschlossen. Dieselbe Regel, die sie gehoben hat, nimmt sie zurück.
+      nl:
+        De reservering dekt de hele toezegging, dus de regel achter "klantverplichting in gevaar"
+        vindt niets ongereserveerds meer en de bevinding sluit. Niemand heeft haar gesloten.
+        Dezelfde regel die haar meldde, neemt haar terug.
+      es:
+        La reserva cubre toda la promesa, así que la regla que levantó "compromiso con el cliente en
+        riesgo" ya no encuentra nada sin reservar y el hallazgo se cierra. Nadie lo cerró. La misma
+        regla que lo levantó lo retira.
+    view: view:reservations
+    command: reserve
+    input:
+      commitment_id: $chapter.order.output.commitment_ids[0]
+    primary:
+      record_type: reservation
+      from: output.reservation_id
+    expect:
+      cleared: [outgoing_commitment_at_risk]
+    next: dispatch
+
+  - key: dispatch
+    title:
+      en: Try to ship
+      de: Versand versuchen
+      nl: Proberen te verzenden
+      es: Intentar el envío
+    situation:
+      en:
+        The goods are reserved. Record the shipment of 12 mugs to Nordlicht. Expectation, it goes
+        through. Watch what happens.
+      de:
+        Die Ware ist reserviert. Erfasse den Versand von 12 Bechern an Nordlicht. Erwartung, es geht
+        durch. Schau, was passiert.
+      nl:
+        De goederen zijn gereserveerd. Leg de verzending van 12 bekers aan Nordlicht vast.
+        Verwachting, het gaat door. Kijk wat er gebeurt.
+      es:
+        La mercancía está reservada. Registra el envío de 12 tazas a Nordlicht. Expectativa, pasa.
+        Observa qué ocurre.
+    explain:
+      en:
+        Refused, not aborted. The preparation itself was declined because the customer carries a
+        delivery hold, placed weeks ago when invoice RE-0389 became overdue. No shipment exists and
+        nothing was written. The protocol shows the refused call, and the blockers view names the
+        hold.
+      de:
+        Abgelehnt, nicht abgebrochen. Schon die Vorbereitung wurde verweigert, weil der Kunde eine
+        Liefersperre trägt, gesetzt vor Wochen, als Rechnung RE-0389 überfällig wurde. Es gibt
+        keinen Versand, und nichts wurde geschrieben. Das Protokoll zeigt den abgelehnten Aufruf,
+        die Blocker-Ansicht nennt die Sperre.
+      nl:
+        Geweigerd, niet afgebroken. Al de voorbereiding werd geweigerd omdat de klant een
+        leverblokkade draagt, weken geleden gezet toen factuur RE-0389 achterstallig werd. Er
+        bestaat geen verzending en er is niets geschreven. Het protocol toont de geweigerde aanroep,
+        het blokkadeoverzicht noemt de blokkade.
+      es:
+        Rechazado, no abortado. La propia preparación fue denegada porque el cliente tiene un
+        bloqueo de entrega, puesto hace semanas cuando la factura RE-0389 venció. No existe ningún
+        envío y no se escribió nada. El protocolo muestra la llamada rechazada y la vista de
+        bloqueos nombra el bloqueo.
+    view: view:fulfillment_blockers
+    command: movement_create
+    input:
+      movement_type: shipment
+      item_id: $ref.items.fjord
+      quantity: "12"
+      from_location_id: $ref.locations.hamburg
+      commitment_id: $chapter.order.output.commitment_ids[0]
+    branches:
+      - key: explain
+        default: true
+        label:
+          en: Understand the hold first
+          de: Erst die Sperre verstehen
+          nl: Eerst de blokkade begrijpen
+          es: Entender primero el bloqueo
+        next: explain-hold
+      - key: call
+        label:
+          en: Look at the customer's balance
+          de: Den Saldo des Kunden ansehen
+          nl: Het saldo van de klant bekijken
+          es: Ver el saldo del cliente
+        next: call-customer
+
+  - key: explain-hold
+    title:
+      en: Explain the hold
+      de: Sperre erklären
+      nl: Blokkade verklaren
+      es: Explicar el bloqueo
+    situation:
+      en:
+        The hold comes from invoice RE-0389 over 1,180.00 €, due six weeks ago. Ask Reality to
+        explain the overdue receivable and read the customer's balance. Nothing is written in this
+        chapter.
+      de:
+        Die Sperre kommt von Rechnung RE-0389 über 1.180,00 €, fällig seit sechs Wochen. Lass dir
+        die überfällige Forderung erklären und lies den Saldo des Kunden. In diesem Kapitel wird
+        nichts geschrieben.
+      nl:
+        De blokkade komt van factuur RE-0389 van 1.180,00 €, zes weken geleden vervallen. Laat
+        Reality de achterstallige vordering verklaren en lees het saldo van de klant. In dit
+        hoofdstuk wordt niets geschreven.
+      es:
+        El bloqueo viene de la factura RE-0389 por 1.180,00 €, vencida hace seis semanas. Pide a
+        Reality que explique la cuenta por cobrar vencida y lee el saldo del cliente. En este
+        capítulo no se escribe nada.
+    explain:
+      en:
+        Reads are traced too. The explanation names the rule, the evidence and what clears the
+        finding. The hold itself is a record a person placed. Reality does not lift it when money
+        arrives, someone has to, and you will, two chapters from here.
+      de:
+        Auch Lesungen werden protokolliert. Die Erklärung nennt die Regel, die Evidenz und was die
+        Abweichung schließt. Die Sperre selbst ist ein Datensatz, den ein Mensch gesetzt hat.
+        Reality hebt sie nicht auf, wenn Geld kommt, das muss jemand tun, und das wirst du in zwei
+        Kapiteln.
+      nl:
+        Ook leesacties worden vastgelegd. De verklaring noemt de regel, het bewijs en wat de
+        bevinding sluit. De blokkade zelf is een record dat een mens heeft gezet. Reality heft haar
+        niet op als er geld komt, dat moet iemand doen, en dat doe jij over twee hoofdstukken.
+      es:
+        Las lecturas también se registran. La explicación nombra la regla, la evidencia y lo que
+        cierra el hallazgo. El bloqueo en sí es un registro que puso una persona. Reality no lo
+        levanta cuando llega el dinero, alguien debe hacerlo, y lo harás dentro de dos capítulos.
+    view: view:open_items
+    kind: read
+    reads:
+      - tool: exception_explain
+        input:
+          exception_id: $exception.overdue_receivable.$seed.overdue_invoice.output.document_id
+      - tool: finance.party_balances.list
+        input:
+          side: customer
+    requires:
+      findings_present: [overdue_receivable]
+    next: overpayment
+
+  - key: call-customer
+    title:
+      en: Look at the balance
+      de: Saldo ansehen
+      nl: Saldo bekijken
+      es: Ver el saldo
+    situation:
+      en:
+        Before you call the customer, read their balance and their open commitments. Nothing is
+        written in this chapter.
+      de:
+        Bevor du den Kunden anrufst, lies seinen Saldo und seine offenen Verpflichtungen. In diesem
+        Kapitel wird nichts geschrieben.
+      nl:
+        Voordat je de klant belt, lees je zijn saldo en zijn openstaande verplichtingen. In dit
+        hoofdstuk wordt niets geschreven.
+      es:
+        Antes de llamar al cliente, lee su saldo y sus compromisos abiertos. En este capítulo no se
+        escribe nada.
+    explain:
+      en:
+        The balance list is a live read over postings and allocations. It shows 1,180.00 € overdue
+        and no credit. The commitments read shows the order waiting behind the hold. Two reads, two
+        trace entries, no change.
+      de:
+        Die Saldenliste ist eine Live-Lesung über Buchungen und Zuordnungen. Sie zeigt 1.180,00 €
+        überfällig und kein Guthaben. Die Verpflichtungen zeigen den Auftrag, der hinter der Sperre
+        wartet. Zwei Lesungen, zwei Protokolleinträge, keine Änderung.
+      nl:
+        De saldilijst is een live leesactie over boekingen en toewijzingen. Ze toont 1.180,00 €
+        achterstallig en geen tegoed. De verplichtingen tonen de order die achter de blokkade wacht.
+        Twee leesacties, twee protocolregels, geen wijziging.
+      es:
+        La lista de saldos es una lectura en vivo sobre asientos y asignaciones. Muestra 1.180,00 €
+        vencidos y ningún crédito. La lectura de compromisos muestra el pedido esperando tras el
+        bloqueo. Dos lecturas, dos entradas en el protocolo, ningún cambio.
+    view: view:commitments
+    kind: read
+    reads:
+      - tool: finance.party_balances.list
+        input:
+          side: customer
+      - tool: commitments
+    next: overpayment
+
+  - key: overpayment
+    title:
+      en: Record an overpayment
+      de: Überzahlung erfassen
+      nl: Te hoge betaling vastleggen
+      es: Registrar un pago en exceso
+    situation:
+      en:
+        Two days later Nordlicht transfers 1,300.00 € with the reference RE-0389. The invoice is
+        1,180.00 €. Record the payment as it came, allocating 1,180.00 € to the invoice.
+      de:
+        Zwei Tage später überweist Nordlicht 1.300,00 € mit Verwendungszweck RE-0389. Die Rechnung
+        lautet auf 1.180,00 €. Erfasse die Zahlung, wie sie gekommen ist, und ordne 1.180,00 € der
+        Rechnung zu.
+      nl:
+        Twee dagen later maakt Nordlicht 1.300,00 € over met kenmerk RE-0389. De factuur is 1.180,00
+        €. Leg de betaling vast zoals ze kwam en wijs 1.180,00 € toe aan de factuur.
+      es:
+        Dos días después Nordlicht transfiere 1.300,00 € con la referencia RE-0389. La factura es de
+        1.180,00 €. Registra el pago tal como llegó, asignando 1.180,00 € a la factura.
+    explain:
+      en:
+        The payment is neutral, the rules make the story. The invoice is settled and "overdue
+        receivable" clears. The 120.00 € that no invoice claimed stay on the payment as available
+        credit, and a rule raises "unmatched financial event" for exactly that amount. Nothing was
+        rounded or recomputed. The hold is still there.
+      de:
+        Die Zahlung ist neutral, die Regeln machen die Geschichte. Die Rechnung ist ausgeglichen,
+        „überfällige Forderung“ schließt sich. Die 120,00 €, die keine Rechnung beansprucht, bleiben
+        als verfügbares Guthaben am Zahlungseingang, und eine Regel hebt „nicht zugeordneter
+        Geldeingang“ über genau diesen Betrag. Nichts wurde gerundet oder nachgerechnet. Die Sperre
+        ist noch da.
+      nl:
+        De betaling is neutraal, de regels maken het verhaal. De factuur is vereffend en
+        "achterstallige vordering" sluit. De 120,00 € die geen factuur opeiste, blijven als
+        beschikbaar tegoed op de betaling staan en een regel meldt "niet-toegewezen geldbeweging"
+        voor precies dat bedrag. Niets is afgerond of herberekend. De blokkade is er nog.
+      es:
+        El pago es neutral, las reglas hacen la historia. La factura queda liquidada y "cuenta por
+        cobrar vencida" se cierra. Los 120,00 € que ninguna factura reclamó quedan en el pago como
+        crédito disponible y una regla levanta "movimiento financiero sin asignar" por exactamente
+        ese importe. Nada se redondeó ni se recalculó. El bloqueo sigue ahí.
+    view: view:payments
+    context:
+      settlement:
+        tool: finance.settlement.context
+        input:
+          document_id: $seed.overdue_invoice.output.document_id
+    command: finance.settlement.apply
+    input:
+      expected_revision: $context.settlement.revision
+      document_id: $seed.overdue_invoice.output.document_id
+      mode: payment
+      amount: "1300.00"
+      allocation_amount: "1180.00"
+      reference: Ueberweisung RE-0389
+      effective_at: 0d
+    primary:
+      record_type: document
+      from: output.document_id
+    expect:
+      raised: [unmatched_financial_event]
+      cleared: [overdue_receivable]
+    next: release-hold
+
+  - key: release-hold
+    title:
+      en: Release the hold
+      de: Sperre aufheben
+      nl: Blokkade opheffen
+      es: Levantar el bloqueo
+    situation:
+      en: The invoice is paid. Release the delivery hold on Nordlicht.
+      de: Die Rechnung ist bezahlt. Hebe die Liefersperre für Nordlicht auf.
+      nl: De factuur is betaald. Hef de leverblokkade voor Nordlicht op.
+      es: La factura está pagada. Levanta el bloqueo de entrega de Nordlicht.
+    explain:
+      en:
+        A release is its own event on the same hold record, not a deletion. The blockers view no
+        longer names the customer. The credit and the unmatched finding from the last chapter are
+        untouched, they belong to the payment, not to the hold.
+      de:
+        Eine Aufhebung ist ein eigenes Ereignis am selben Sperrdatensatz, keine Löschung. Die
+        Blocker-Ansicht nennt den Kunden nicht mehr. Guthaben und die offene Abweichung aus dem
+        letzten Kapitel bleiben unberührt, sie gehören zur Zahlung, nicht zur Sperre.
+      nl:
+        Een opheffing is een eigen gebeurtenis op hetzelfde blokkaderecord, geen verwijdering. Het
+        blokkadeoverzicht noemt de klant niet meer. Het tegoed en de open bevinding uit het vorige
+        hoofdstuk blijven onaangeroerd, ze horen bij de betaling, niet bij de blokkade.
+      es:
+        Un levantamiento es un evento propio sobre el mismo registro de bloqueo, no un borrado. La
+        vista de bloqueos ya no nombra al cliente. El crédito y el hallazgo abierto del capítulo
+        anterior quedan intactos, pertenecen al pago, no al bloqueo.
+    view: view:fulfillment_blockers
+    command: party_delivery_hold_release
+    input:
+      party_id: $ref.parties.nordlicht
+    primary:
+      record_type: party_hold
+      from: output.records[0].id
+    next: ship
+
+  - key: ship
+    title:
+      en: Ship the goods
+      de: Ware versenden
+      nl: Goederen verzenden
+      es: Enviar la mercancía
+    situation:
+      en: Now record the shipment of 12 mugs to Nordlicht again.
+      de: Erfasse jetzt den Versand von 12 Bechern an Nordlicht erneut.
+      nl: Leg nu de verzending van 12 bekers aan Nordlicht opnieuw vast.
+      es: Ahora registra de nuevo el envío de 12 tazas a Nordlicht.
+    explain:
+      en:
+        The same command that was refused two chapters ago now succeeds. The movement fulfils the
+        customer commitment, the reservation is consumed, and a new finding appears at once,
+        "shipped, not billed". Reality knows that goods left and no invoice exists for them.
+      de:
+        Derselbe Befehl, der vor zwei Kapiteln abgelehnt wurde, geht jetzt durch. Die Bewegung
+        erfüllt die Kundenverpflichtung, die Reservierung wird verbraucht, und sofort erscheint eine
+        neue Abweichung, „geliefert, nicht fakturiert“. Reality weiß, dass Ware das Haus verlassen
+        hat und keine Rechnung dazu existiert.
+      nl:
+        Dezelfde opdracht die twee hoofdstukken geleden werd geweigerd, slaagt nu. De beweging
+        vervult de klantverplichting, de reservering wordt verbruikt en meteen verschijnt een nieuwe
+        bevinding, "verzonden, niet gefactureerd". Reality weet dat goederen het pand hebben
+        verlaten zonder factuur.
+      es:
+        El mismo comando que fue rechazado hace dos capítulos ahora tiene éxito. El movimiento
+        cumple el compromiso con el cliente, la reserva se consume y aparece de inmediato un nuevo
+        hallazgo, "enviado, no facturado". Reality sabe que salió mercancía y no existe factura para
+        ella.
+    view: view:movements
+    command: movement_create
+    input:
+      movement_type: shipment
+      item_id: $ref.items.fjord
+      quantity: "12"
+      from_location_id: $ref.locations.hamburg
+      commitment_id: $chapter.order.output.commitment_ids[0]
+    primary:
+      record_type: movement
+      from: output.records[0].id
+    expect:
+      raised: [shipped_not_billed]
+    next: bill
+
+  - key: bill
+    title:
+      en: Bill the order
+      de: Auftrag fakturieren
+      nl: Order factureren
+      es: Facturar el pedido
+    situation:
+      en: Issue invoice RE-0041 for the 12 mugs you shipped, 294.00 € as stated on the order.
+      de: Stelle Rechnung RE-0041 für die 12 versendeten Becher, 294,00 € wie im Auftrag angegeben.
+      nl: Maak factuur RE-0041 voor de 12 verzonden bekers, 294,00 € zoals op de order staat.
+      es: Emite la factura RE-0041 por las 12 tazas enviadas, 294,00 € tal como consta en el pedido.
+    explain:
+      en:
+        The invoice records the stated amount, it does not compute one. "Shipped, not billed" clears
+        because the rule now finds an invoice line for the shipped order line. A new receivable is
+        open, and the customer still has 120.00 € of credit. What should happen with it?
+      de:
+        Die Rechnung übernimmt den genannten Betrag, sie rechnet keinen aus. „Geliefert, nicht
+        fakturiert“ schließt sich, weil die Regel jetzt eine Rechnungszeile zur versendeten
+        Auftragszeile findet. Eine neue Forderung ist offen, und der Kunde hat noch 120,00 €
+        Guthaben. Was soll damit geschehen?
+      nl:
+        De factuur neemt het genoemde bedrag over, ze berekent er geen. "Verzonden, niet
+        gefactureerd" sluit omdat de regel nu een factuurregel bij de verzonden orderregel vindt.
+        Een nieuwe vordering staat open en de klant heeft nog 120,00 € tegoed. Wat moet daarmee
+        gebeuren?
+      es:
+        La factura registra el importe indicado, no calcula uno. "Enviado, no facturado" se cierra
+        porque la regla ahora encuentra una línea de factura para la línea de pedido enviada. Hay
+        una nueva cuenta por cobrar abierta y el cliente aún tiene 120,00 € de crédito. ¿Qué debe
+        pasar con él?
+    view: view:open_items
+    command: sales_invoice_record
+    input:
+      order_line_id: $chapter.order.output.document_line_ids[0]
+      quantity: "12"
+      gross_amount: "294.00"
+      number: RE-0041
+      effective_at: 0d
+    primary:
+      record_type: document
+      from: output.records[document].id
+    expect:
+      cleared: [shipped_not_billed]
+    branches:
+      - key: allocate
+        default: true
+        label:
+          en: Use the credit for this invoice
+          de: Guthaben mit dieser Rechnung verrechnen
+          nl: Tegoed met deze factuur verrekenen
+          es: Aplicar el crédito a esta factura
+        next: allocate-credit
+      - key: refund
+        label:
+          en: Refund the 120.00 €
+          de: Die 120,00 € zurückerstatten
+          nl: De 120,00 € terugbetalen
+          es: Reembolsar los 120,00 €
+        next: refund-credit
+      - key: keep
+        label:
+          en: Leave the credit for now
+          de: Guthaben vorerst stehen lassen
+          nl: Tegoed voorlopig laten staan
+          es: Dejar el crédito por ahora
+        next: keep-credit
+
+  - key: allocate-credit
+    title:
+      en: Allocate the credit
+      de: Guthaben verrechnen
+      nl: Tegoed verrekenen
+      es: Aplicar el crédito
+    situation:
+      en: Use the 120.00 € the customer overpaid against the new invoice RE-0041.
+      de: Verrechne die 120,00 €, die der Kunde zu viel gezahlt hat, mit der neuen Rechnung RE-0041.
+      nl: Verreken de 120,00 € die de klant te veel betaalde met de nieuwe factuur RE-0041.
+      es: Aplica los 120,00 € que el cliente pagó de más a la nueva factura RE-0041.
+    explain:
+      en:
+        An allocation moves nothing in the bank. It links existing credit to an open claim. The
+        invoice now owes 174.00 €, the credit is used up, and "unmatched financial event" clears
+        because the payment is fully allocated.
+      de:
+        Eine Verrechnung bewegt kein Geld auf der Bank. Sie verknüpft vorhandenes Guthaben mit einer
+        offenen Forderung. Die Rechnung ist jetzt noch mit 174,00 € offen, das Guthaben ist
+        verbraucht, und „nicht zugeordneter Geldeingang“ schließt sich, weil die Zahlung vollständig
+        zugeordnet ist.
+      nl:
+        Een verrekening verplaatst geen geld bij de bank. Ze koppelt bestaand tegoed aan een open
+        vordering. De factuur staat nu nog voor 174,00 € open, het tegoed is opgebruikt en
+        "niet-toegewezen geldbeweging" sluit omdat de betaling volledig is toegewezen.
+      es:
+        Una aplicación no mueve dinero en el banco. Vincula crédito existente a una deuda abierta.
+        La factura ahora debe 174,00 €, el crédito se agota y "movimiento financiero sin asignar" se
+        cierra porque el pago queda totalmente asignado.
+    view: view:open_items
+    context:
+      credits:
+        tool: finance.credits.list
+        input:
+          side: customer
+      credit:
+        tool: finance.settlement.context
+        input:
+          document_id: $context.credits.items[0].document_id
+    command: finance.settlement.apply
+    input:
+      expected_revision: $context.credit.revision
+      document_id: $context.credits.items[0].document_id
+      mode: allocate_credit
+      amount: "120.00"
+      invoice_id: $chapter.bill.output.records[document].id
+    primary:
+      record_type: document
+      from: output.invoice_id
+    expect:
+      cleared: [unmatched_financial_event]
+    next: supply-check
+
+  - key: refund-credit
+    title:
+      en: Refund the credit
+      de: Guthaben erstatten
+      nl: Tegoed terugbetalen
+      es: Reembolsar el crédito
+    situation:
+      en: Pay the 120.00 € back to Nordlicht and record the refund.
+      de: Zahle die 120,00 € an Nordlicht zurück und erfasse die Erstattung.
+      nl: Betaal de 120,00 € terug aan Nordlicht en leg de terugbetaling vast.
+      es: Devuelve los 120,00 € a Nordlicht y registra el reembolso.
+    explain:
+      en:
+        A refund is an outgoing payment against the credit. Reality records that it happened, it
+        does not instruct a bank. The credit is used up, so the finding on the incoming payment
+        clears. Watch the other side, the outgoing money is allocated to no invoice, so the same
+        rule raises a new finding on the refund. Reality does not hide money that no document
+        explains, in either direction.
+      de:
+        Eine Erstattung ist eine ausgehende Zahlung gegen das Guthaben. Reality hält fest, dass sie
+        stattgefunden hat, sie weist keine Bank an. Das Guthaben ist verbraucht, die Abweichung am
+        Zahlungseingang schließt sich. Schau auf die andere Seite, das ausgehende Geld ist keiner
+        Rechnung zugeordnet, also hebt dieselbe Regel eine neue Abweichung an der Erstattung.
+        Reality versteckt in keiner Richtung Geld, das kein Beleg erklärt.
+      nl:
+        Een terugbetaling is een uitgaande betaling tegen het tegoed. Reality legt vast dat ze
+        plaatsvond, ze geeft geen bank opdracht. Het tegoed is opgebruikt, dus de bevinding op de
+        inkomende betaling sluit. Kijk naar de andere kant, het uitgaande geld is aan geen factuur
+        toegewezen, dus dezelfde regel meldt een nieuwe bevinding op de terugbetaling. Reality
+        verbergt in geen enkele richting geld dat geen document verklaart.
+      es:
+        Un reembolso es un pago saliente contra el crédito. Reality registra que ocurrió, no da
+        órdenes a un banco. El crédito se agota, así que el hallazgo sobre el pago entrante se
+        cierra. Mira el otro lado, el dinero saliente no está asignado a ninguna factura, así que la
+        misma regla levanta un nuevo hallazgo sobre el reembolso. Reality no oculta dinero que
+        ningún documento explique, en ninguna dirección.
+    view: view:payments
+    context:
+      credits:
+        tool: finance.credits.list
+        input:
+          side: customer
+      credit:
+        tool: finance.settlement.context
+        input:
+          document_id: $context.credits.items[0].document_id
+    command: finance.settlement.apply
+    input:
+      expected_revision: $context.credit.revision
+      document_id: $context.credits.items[0].document_id
+      mode: refund_credit
+      amount: "120.00"
+      reference: Rueckerstattung RE-0389
+      effective_at: 0d
+    primary:
+      record_type: document
+      from: output.document_id
+    expect:
+      raised: [unmatched_financial_event]
+      cleared: [unmatched_financial_event]
+    next: supply-check
+
+  - key: keep-credit
+    title:
+      en: Keep the credit
+      de: Guthaben stehen lassen
+      nl: Tegoed laten staan
+      es: Mantener el crédito
+    situation:
+      en: Leave the 120.00 € as credit for the next invoice and read the credit list.
+      de: Lass die 120,00 € als Guthaben für die nächste Rechnung stehen und lies die Guthabenliste.
+      nl: Laat de 120,00 € als tegoed voor de volgende factuur staan en lees de tegoedlijst.
+      es: Deja los 120,00 € como crédito para la próxima factura y lee la lista de créditos.
+    explain:
+      en:
+        Nothing is written. The credit stays available and the unmatched finding stays open, which
+        is right, it reminds the company that money is waiting for a decision.
+      de:
+        Es wird nichts geschrieben. Das Guthaben bleibt verfügbar, und die offene Abweichung bleibt
+        bestehen, zu Recht, sie erinnert daran, dass Geld auf eine Entscheidung wartet.
+      nl:
+        Er wordt niets geschreven. Het tegoed blijft beschikbaar en de open bevinding blijft staan,
+        terecht, ze herinnert eraan dat er geld op een beslissing wacht.
+      es:
+        No se escribe nada. El crédito sigue disponible y el hallazgo abierto permanece, con razón,
+        recuerda que hay dinero esperando una decisión.
+    view: view:payments
+    kind: read
+    reads:
+      - tool: finance.credits.list
+        input:
+          side: customer
+    next: supply-check
+
+  - key: supply-check
+    title:
+      en: Check the stock
+      de: Bestand prüfen
+      nl: Voorraad controleren
+      es: Revisar la existencia
+    situation:
+      en:
+        After the shipment 12 mugs remain and Baltic still owes 4. Read the stock and the open
+        commitments before you decide whether to reorder.
+      de:
+        Nach dem Versand liegen noch 12 Becher, und Baltic schuldet noch 4. Lies Bestand und offene
+        Verpflichtungen, bevor du über eine Nachbestellung entscheidest.
+      nl:
+        Na de verzending liggen er nog 12 bekers en Baltic is er nog 4 schuldig. Lees de voorraad en
+        de open verplichtingen voordat je over nabestellen beslist.
+      es:
+        Tras el envío quedan 12 tazas y Baltic aún debe 4. Lee la existencia y los compromisos
+        abiertos antes de decidir si reordenar.
+    explain:
+      en:
+        Stock is derived from movements, never stored as a number someone typed. The open supplier
+        commitment is the 4 pieces from the short delivery. Reality has no reorder point, so the
+        decision is yours.
+      de:
+        Bestand wird aus Bewegungen abgeleitet, nie als getippte Zahl gespeichert. Die offene
+        Lieferantenverpflichtung sind die 4 Stück aus der zu kleinen Lieferung. Reality kennt keinen
+        Meldebestand, die Entscheidung liegt bei dir.
+      nl:
+        Voorraad wordt afgeleid uit bewegingen, nooit opgeslagen als een getypt getal. De open
+        leveranciersverplichting zijn de 4 stuks uit de te kleine levering. Reality kent geen
+        bestelpunt, de beslissing is aan jou.
+      es:
+        La existencia se deriva de los movimientos, nunca se guarda como un número tecleado. El
+        compromiso abierto del proveedor son las 4 piezas de la entrega incompleta. Reality no tiene
+        punto de pedido, la decisión es tuya.
+    view: view:inventory
+    kind: read
+    reads:
+      - tool: inventory
+      - tool: commitments
+    branches:
+      - key: forty
+        default: true
+        label:
+          en: Reorder 40
+          de: 40 nachbestellen
+          nl: 40 nabestellen
+          es: Reordenar 40
+        next: reorder-40
+      - key: twenty
+        label:
+          en: Reorder 20
+          de: 20 nachbestellen
+          nl: 20 nabestellen
+          es: Reordenar 20
+        next: reorder-20
+      - key: wait
+        label:
+          en: Wait for Baltic's 4
+          de: Auf die 4 von Baltic warten
+          nl: Wachten op de 4 van Baltic
+          es: Esperar las 4 de Baltic
+        next: month-end
+
+  - key: reorder-40
+    title:
+      en: Reorder 40
+      de: 40 nachbestellen
+      nl: 40 nabestellen
+      es: Reordenar 40
+    situation:
+      en: Order 40 mugs from Baltic Supply for delivery in ten days.
+      de: Bestelle 40 Becher bei Baltic Supply zur Lieferung in zehn Tagen.
+      nl: Bestel 40 bekers bij Baltic Supply voor levering over tien dagen.
+      es: Pide 40 tazas a Baltic Supply para entrega en diez días.
+    explain:
+      en:
+        A purchase order raises the expected incoming quantity, not the stock. That is why it is its
+        own record. The supplier commitment from the short delivery stays open beside the new one.
+      de:
+        Eine Bestellung erhöht den erwarteten Zugang, nicht den Bestand. Deshalb ist sie ein eigener
+        Datensatz. Die Lieferantenverpflichtung aus der zu kleinen Lieferung bleibt neben der neuen
+        offen.
+      nl:
+        Een bestelling verhoogt de verwachte inkomst, niet de voorraad. Daarom is het een eigen
+        record. De leveranciersverplichting uit de te kleine levering blijft naast de nieuwe open.
+      es:
+        Un pedido de compra aumenta la cantidad entrante esperada, no la existencia. Por eso es un
+        registro propio. El compromiso del proveedor de la entrega incompleta sigue abierto junto al
+        nuevo.
+    view: view:orders
+    command: order_create
+    input:
+      direction: purchase
+      number: BE-0112
+      company_party_id: $company.party
+      counterparty_id: $ref.parties.baltic
+      location_id: $ref.locations.hamburg
+      gross_amount: "412.00"
+      document_date: 0d
+      requested_delivery_at: +10d
+      lines:
+        - item_id: $ref.items.fjord
+          quantity: "40"
+          unit: pcs
+          unit_price: "10.30"
+          gross_amount: "412.00"
+          promised_at: +10d
+    primary:
+      record_type: commitment
+      from: output.commitment_ids[0]
+    next: month-end
+
+  - key: reorder-20
+    title:
+      en: Reorder 20
+      de: 20 nachbestellen
+      nl: 20 nabestellen
+      es: Reordenar 20
+    situation:
+      en: Order 20 mugs from Baltic Supply for delivery in ten days.
+      de: Bestelle 20 Becher bei Baltic Supply zur Lieferung in zehn Tagen.
+      nl: Bestel 20 bekers bij Baltic Supply voor levering over tien dagen.
+      es: Pide 20 tazas a Baltic Supply para entrega en diez días.
+    explain:
+      en:
+        The smaller order records the same kind of commitment with a smaller quantity. Nothing else
+        differs, which is the point, the model does not care how brave you were.
+      de:
+        Die kleinere Bestellung erzeugt dieselbe Art Verpflichtung mit kleinerer Menge. Sonst
+        unterscheidet sich nichts, und genau darum geht es, dem Modell ist egal, wie mutig du warst.
+      nl:
+        De kleinere bestelling legt dezelfde soort verplichting vast met een kleinere hoeveelheid.
+        Verder verschilt er niets, en dat is het punt, het model maakt het niet uit hoe dapper je
+        was.
+      es:
+        El pedido más pequeño registra el mismo tipo de compromiso con menor cantidad. Nada más
+        difiere, y ese es el punto, al modelo no le importa cuán valiente fuiste.
+    view: view:orders
+    command: order_create
+    input:
+      direction: purchase
+      number: BE-0112
+      company_party_id: $company.party
+      counterparty_id: $ref.parties.baltic
+      location_id: $ref.locations.hamburg
+      gross_amount: "206.00"
+      document_date: 0d
+      requested_delivery_at: +10d
+      lines:
+        - item_id: $ref.items.fjord
+          quantity: "20"
+          unit: pcs
+          unit_price: "10.30"
+          gross_amount: "206.00"
+          promised_at: +10d
+    primary:
+      record_type: commitment
+      from: output.commitment_ids[0]
+    next: month-end
+
+  - key: month-end
+    title:
+      en: Month-end review
+      de: Monatsrückblick
+      nl: Maandoverzicht
+      es: Revisión de fin de mes
+    situation:
+      en:
+        The month is over. Read what is still open, the findings, the customer balances and the
+        commitments. Nothing is written in this chapter.
+      de:
+        Der Monat ist vorbei. Lies, was noch offen ist, die Abweichungen, die Kundensalden und die
+        Verpflichtungen. In diesem Kapitel wird nichts geschrieben.
+      nl:
+        De maand is voorbij. Lees wat nog open staat, de bevindingen, de klantsaldi en de
+        verplichtingen. In dit hoofdstuk wordt niets geschreven.
+      es:
+        El mes ha terminado. Lee lo que sigue abierto, los hallazgos, los saldos de clientes y los
+        compromisos. En este capítulo no se escribe nada.
+    explain:
+      en:
+        A review deletes nothing. Every finding that is still open names what clears it. The 4
+        pieces Baltic owes, and the credit if you kept it, are what a period close would carry into
+        October. Everything you read here can be traced back to the order in chapter 1 through the
+        Context Graph.
+      de:
+        Ein Rückblick löscht nichts. Jede noch offene Abweichung nennt, was sie schließt. Die 4
+        Stück, die Baltic schuldet, und das Guthaben, falls du es stehen gelassen hast, sind das,
+        was ein Periodenabschluss in den Oktober tragen würde. Alles, was du hier liest, führt über
+        den Context Graph zurück bis zum Auftrag in Kapitel 1.
+      nl:
+        Een overzicht verwijdert niets. Elke nog open bevinding noemt wat haar sluit. De 4 stuks die
+        Baltic schuldig is, en het tegoed als je het liet staan, zijn wat een periodeafsluiting naar
+        oktober zou meenemen. Alles wat je hier leest, voert via de Context Graph terug naar de
+        order in hoofdstuk 1.
+      es:
+        Una revisión no borra nada. Cada hallazgo aún abierto nombra lo que lo cierra. Las 4 piezas
+        que debe Baltic, y el crédito si lo dejaste, son lo que un cierre de periodo llevaría a
+        octubre. Todo lo que lees aquí se remonta al pedido del capítulo 1 a través del Context
+        Graph.
+    view: view:activity
+    kind: read
+    reads:
+      - tool: exceptions
+      - tool: finance.party_balances.list
+        input:
+          side: customer
+      - tool: commitments

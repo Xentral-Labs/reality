@@ -1,0 +1,38 @@
+{{- range $name := list "api" "mcp" "web" "docs" }}
+{{- $component := index $.Values $name }}
+{{- if $component.enabled }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "reality.fullname" $ }}-{{ $name }}
+  labels:
+    {{- include "reality.labels" $ | nindent 4 }}
+    app.kubernetes.io/component: {{ $name }}
+  {{- if $component.healthcheckPath }}
+  annotations:
+    {{/*
+      Target-group scoped ALB annotations belong on the SERVICE, where they win
+      over the Ingress and apply to this target group only.
+
+      This is load-bearing for mcp: the controller's default health check is
+      GET / expecting 200, and mcp's `/` IS the streamable-HTTP protocol
+      endpoint, which answers 401 without a bearer token. Left at the default
+      every mcp target is marked unhealthy and the host returns 503 forever.
+      /healthz is a static route outside the transport and outside auth.
+    */}}
+    alb.ingress.kubernetes.io/healthcheck-path: {{ $component.healthcheckPath | quote }}
+    alb.ingress.kubernetes.io/success-codes: "200"
+  {{- end }}
+spec:
+  type: ClusterIP
+  ports:
+    - name: http
+      port: {{ $component.port }}
+      targetPort: http
+      protocol: TCP
+  selector:
+    {{- include "reality.selectorLabels" $ | nindent 4 }}
+    app.kubernetes.io/component: {{ $name }}
+{{- end }}
+{{- end }}

@@ -1,0 +1,105 @@
+from test_playground_api import playground_http as _playground_http
+
+playground_http = _playground_http
+
+
+def test_setup_routes_pending_isolation_and_exact_destination(
+    session, playground_http, monkeypatch
+):
+    client, _, user, _, login = playground_http
+    monkeypatch.setenv("REALITY_PLAYGROUND_ENABLED", "true")
+    monkeypatch.setenv("REALITY_AUTH_MODE", "enabled")
+    user.status = "pending_approval"
+    session.flush()
+    login(user)
+    options = client.get("/api/company-setup/options")
+    assert options.status_code == 200, options.text
+    assert options.json()["environments"] == ["sandbox"]
+    assert client.get("/api/v1/bootstrap").status_code == 403
+    body = {
+        "request_key": "http-setup",
+        "name": "My Practice",
+        "environment": "sandbox",
+        "content": "empty",
+        "confirmed": True,
+    }
+    result = client.post("/api/company-setup", json=body)
+    assert result.status_code == 201, result.text
+    created = result.json()
+    assert created["destination"] == f"/playground/runs/{created['run_id']}"
+    assert (
+        client.get("/api/company-setup/requests/http-setup").json()["tenant_id"]
+        == created["tenant_id"]
+    )
+    assert (
+        client.post(
+            "/api/company-setup", json={**body, "environment": "business"}
+        ).status_code
+        == 409
+    )
+    assert (
+        client.post(
+            "/api/company-setup",
+            json={**body, "request_key": "denied", "environment": "business"},
+        ).status_code
+        == 403
+    )
+    assert client.get("/api/company-setup/requests/unknown").status_code == 404
+    assert client.get("/api/company-setup/arbitrary").status_code == 403
+
+
+def test_options_prefill_is_application_metadata_without_company_creation(
+    session, playground_http
+):
+    from sqlalchemy import func, select
+
+    from reality.db.core import AccessApplication, Tenant, uid
+
+    client, _tenant, user, _run, login = playground_http
+    session.add(
+        AccessApplication(
+            id=uid("app"), user_id=user.id, company_name="Northstar Request"
+        )
+    )
+    session.flush()
+    login(user)
+    before = session.scalar(select(func.count()).select_from(Tenant))
+    result = client.get("/api/company-setup/options")
+    assert result.status_code == 200
+    assert result.json()["suggested_name"] == "Northstar Request"
+    assert session.scalar(select(func.count()).select_from(Tenant)) == before
+
+
+def test_live_creation_api_connects_and_starts_without_extra_requests(
+    session, playground_http, monkeypatch
+):
+    from reality.services import demo_data
+
+    client, _, user, _, login = playground_http
+    monkeypatch.setenv("REALITY_PLAYGROUND_ENABLED", "true")
+    login(user)
+    body = {
+        "request_key": "live-api",
+        "name": "Live API",
+        "environment": "sandbox",
+        "content": "international_demo",
+        "live_simulation": True,
+        "confirmed": True,
+    }
+    assert (
+        client.post(
+            "/api/company-setup", json={**body, "live_simulation": "true"}
+        ).status_code
+        == 422
+    )
+    assert (
+        client.post("/api/company-setup", json={**body, "content": "empty"}).status_code
+        == 422
+    )
+    created = client.post("/api/company-setup", json=body)
+    assert created.status_code == 201, created.text
+    assert created.json()["status"] == "ready"
+    assert (
+        demo_data.status(session, created.json()["tenant_id"], user.id)["state"]
+        == "running"
+    )

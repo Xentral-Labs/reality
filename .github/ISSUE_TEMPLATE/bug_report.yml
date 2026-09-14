@@ -1,0 +1,45 @@
+name: Bug report
+description: Something behaves differently from what the documentation or specification says.
+labels: ["bug"]
+body:
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened
+      description: What you did, what you expected, what you saw instead.
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Version and commit
+      description: From `GET /api/v1/system/status` or `./reality.sh status`. "dev" for a source checkout.
+      placeholder: "0.1.0 / aa76f93"
+    validations:
+      required: true
+  - type: dropdown
+    id: install
+    attributes:
+      label: How Reality runs
+      options:
+        - One-line setup (reality.sh)
+        - Docker Compose by hand
+        - Kubernetes with Helm
+        - Railway
+        - Source checkout (make dev)
+        - Reality Cloud
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      description: The shortest path that shows the problem. Demo company data is welcome; never paste real business data or credentials.
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs or screenshots
+      description: "`./reality.sh logs` output around the failure, with secrets removed."
+      render: text

@@ -1,0 +1,9 @@
+# Replace the fallback owner with domain-specific teams as the project grows.
+* @benediktsauter
+
+# Changes to governing specifications require an explicit owner review.
+/.specify/ @benediktsauter
+/AGENTS.md @benediktsauter
+/docs/ @benediktsauter
+/specs/ @benediktsauter
+/packages/reality-core/migrations/ @benediktsauter

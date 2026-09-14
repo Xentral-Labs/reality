@@ -1,0 +1,15 @@
+# Tasks
+- [x] T014 [FR-013] Add shared business history projection tests; implement exact business-area filtering/counts/context, business-first history and inspector presentation; verify backend and frontend/browser gates.
+- [x] T013 [FR-002] [FR-003] Clarify count overview and move explanations into accessible info disclosures; verify regressions and web/browser gates.
+- [x] T012 [FR-012] Remove redundant inventory captions/footer, audit other registers, verify regression and frontend build.
+- [x] T011 [FR-011] Add shared-search/toggle regressions, normalize four central search toolbars, verify web/browser/spec gates.
+- [x] T010 [FR-010] Add row-action regression, unify central register controls and columns, verify browser/web/spec gates and deploy web.
+- [x] T009 [FR-009] Add Documents register contract and browser regression; implement existing-API search, pagination and Inspector/Back; verify web gates and deploy web only.
+- [x] T008 [FR-008] Add state regression, unify empty/loading/error presentation and hide zero-result pagination; verify and deploy web.
+- [x] T007 [FR-007] Add browser presentation regression; unify selectors, table styles and catalog heading placement; verify and deploy web.
+- [x] T006 [FR-006] Add browser control-height regression, compact only central filters, verify web/browser and deploy web.
+- [x] T001 Review approved FR-001–005, plan and Constitution. No clarifications or critical findings.
+- [x] T002 Add shared timeline regression tests for FR-001–003 before implementation.
+- [x] T003 Extend shared read service/API and client types for FR-001–003.
+- [x] T004 Build BusinessHistory split pane and existing Inspector traversal; integrate timeline selection for FR-004–005.
+- [x] T005 Verify backend/frontend/browser, themes and mobile, update WEB_SPEC and record results; deploy locally. API healthy; evidence in quickstart.md.

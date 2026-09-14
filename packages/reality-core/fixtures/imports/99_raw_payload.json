@@ -1,0 +1,12 @@
+{
+  "origin": "legacy-planning-export",
+  "generated_at": "2026-09-01T06:00:00Z",
+  "planning_notes": [
+    {"team": "warehouse", "note": "Use overflow area if aisle A is full"},
+    {"team": "purchasing", "note": "Supplier confirmation still pending"}
+  ],
+  "vendor_specific_metadata": {
+    "format_version": "demo-1",
+    "opaque_flag": true
+  }
+}

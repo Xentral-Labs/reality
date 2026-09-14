@@ -1,0 +1,2 @@
+# Data model
+No schema changes. SourceArtifact stores bytes/hash; immutable SourceRecord payload includes file descriptor, selected columns/defaults and original received mapped values. Item refers to source; item.created BusinessEvent binds each opaque item ID to source and proposal. ChangeProposal retains exact review/receipt. Existing legacy ImportJob uses existing item/source links for completed replay.

@@ -1,0 +1,42 @@
+{{- if .Values.migrations.enabled }}
+{{/*
+  Pre-install / pre-upgrade hook: the schema is current before any new pod rolls.
+
+  `alembic upgrade head` runs from WORKDIR /app/packages/reality-core, where the
+  api image places alembic.ini and migrations/. migrations/env.py imports
+  reality.db.core, which resolves REALITY_DATABASE_URL at import — so a missing
+  URL fails this Job loudly rather than falling back to alembic.ini's local DSN.
+
+  env.py uses NullPool, so the Job takes exactly one connection.
+*/}}
+{{- $c := mustMergeOverwrite (dict "image" (dict "tagPrefix" "api-") "secrets" true) (deepCopy .Values.migrations) }}
+{{- $_ := set $c "command" (list "alembic" "upgrade" "head") }}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ include "reality.fullname" . }}-migrate
+  labels:
+    {{- include "reality.labels" . | nindent 4 }}
+    app.kubernetes.io/component: migrate
+  annotations:
+    helm.sh/hook: pre-install,pre-upgrade
+    helm.sh/hook-weight: "0"
+    helm.sh/hook-delete-policy: before-hook-creation,hook-succeeded
+    {{- if .Values.externalSecret.enabled }}
+    # ArgoCD renders hooks as sync waves; the ExternalSecret must materialise
+    # its Secret before this Job's pod can mount it.
+    argocd.argoproj.io/hook: PreSync
+    argocd.argoproj.io/sync-wave: "0"
+    {{- end }}
+spec:
+  backoffLimit: {{ .Values.migrations.backoffLimit }}
+  activeDeadlineSeconds: {{ .Values.migrations.activeDeadlineSeconds }}
+  template:
+    metadata:
+      labels:
+        {{- include "reality.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: migrate
+    spec:
+      restartPolicy: Never
+      {{- include "reality.podSpec" (list . "migrate" $c) | nindent 6 }}
+{{- end }}

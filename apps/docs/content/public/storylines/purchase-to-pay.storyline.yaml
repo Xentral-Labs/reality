@@ -1,0 +1,1114 @@
+# yaml-language-server: $schema=https://docs.runreality.ai/storylines/storyline.schema.json
+#
+# Purchase to pay, version 1 (spec 182, hand-played against the services on 2026-09-13).
+# Fourteen steps on the default path and five on the credit alternative. The mirror of
+# Order to close: the supplier delivers short, bills the full quantity at a higher price,
+# sends the invoice twice, and offers a discount that expires. Every step runs an ordinary
+# command or an ordinary read; identities are symbolic and dates are relative to the run start.
+
+storyline: 1
+key: purchase-to-pay
+version: 1
+title:
+  en: Purchase to pay
+  de: Einkauf bis Zahlung
+  nl: Van inkoop tot betaling
+  es: De la compra al pago
+summary:
+  en:
+    One purchase order, a short delivery, an invoice that bills more than arrived at a price nobody
+    agreed, the same invoice a second time, and a discount with a deadline. Play it step by step and
+    watch the rules raise and clear their findings.
+  de:
+    Eine Bestellung, eine zu kleine Lieferung, eine Rechnung über mehr als angekommen ist zu einem
+    Preis, den niemand vereinbart hat, dieselbe Rechnung ein zweites Mal und ein Skonto mit Frist.
+    Schritt für Schritt spielen und zusehen, wie Regeln ihre Abweichungen heben und schließen.
+  nl:
+    Eén inkooporder, een te kleine levering, een factuur voor meer dan er aankwam tegen een prijs
+    die niemand afsprak, dezelfde factuur nog een keer en een korting met een deadline. Speel stap
+    voor stap en kijk hoe regels hun bevindingen melden en sluiten.
+  es:
+    Un pedido de compra, una entrega incompleta, una factura por más de lo que llegó a un precio que
+    nadie acordó, la misma factura por segunda vez y un descuento con fecha límite. Juégalo paso a
+    paso y mira cómo las reglas levantan y cierran sus hallazgos.
+author:
+  name: Reality team
+process: procure_to_pay
+
+seed:
+  parties:
+    baltic:
+      role: supplier
+      name: Baltic Supply
+      payment_term: $ref.terms.sk2
+    nordlicht:
+      role: customer
+      name: Nordlicht Handels GmbH
+  items:
+    fjord:
+      sku: IT-FJORD
+      name: Fjord Thermo-Becher
+      unit: pcs
+      price: "24.50"
+      currency: EUR
+  locations:
+    hamburg:
+      name: Hamburg
+  terms:
+    sk2:
+      code: SK2N14
+      name: 14 Tage netto, 2 % Skonto innerhalb 7 Tagen
+      days: 14
+      discount_percent: "2"
+      discount_days: 7
+  history:
+    - command: movement_create
+      at: -60d
+      as: opening
+      input:
+        movement_type: opening_stock
+        item_id: $ref.items.fjord
+        quantity: "8"
+        to_location_id: $ref.locations.hamburg
+        occurred_at: -60d
+
+chapters:
+  - key: order
+    title:
+      en: Place the purchase order
+      de: Bestellung anlegen
+      nl: Inkooporder plaatsen
+      es: Crear el pedido de compra
+    situation:
+      en:
+        Eight mugs are left and the season starts. Order 40 Fjord thermo mugs from Baltic Supply at
+        10.30 € each, promised in five days. The supplier's terms are 14 days net with 2 % discount
+        inside 7 days.
+      de:
+        Acht Becher sind noch da, die Saison beginnt. Bestelle 40 Fjord Thermo-Becher bei Baltic
+        Supply zu 10,30 € das Stück, zugesagt in fünf Tagen. Die Bedingung des Lieferanten ist 14
+        Tage netto, 2 % Skonto innerhalb 7 Tagen.
+      nl:
+        Er zijn nog acht bekers en het seizoen begint. Bestel 40 Fjord thermobekers bij Baltic
+        Supply voor 10,30 € per stuk, toegezegd binnen vijf dagen. De voorwaarden van de leverancier
+        zijn 14 dagen netto met 2 % korting binnen 7 dagen.
+      es:
+        Quedan ocho tazas y empieza la temporada. Pide 40 tazas térmicas Fjord a Baltic Supply a
+        10,30 € cada una, prometidas en cinco días. Las condiciones del proveedor son 14 días netos
+        con 2 % de descuento dentro de 7 días.
+    explain:
+      en:
+        A purchase order is a promise the supplier made, recorded as an incoming commitment beside
+        the order document. It raises expectation, not stock. Nothing is on hand until goods move,
+        and no money is owed until an invoice is booked. The payment term travels with the order
+        because the discount later is measured against it.
+      de:
+        Eine Bestellung ist ein Versprechen des Lieferanten, festgehalten als eingehende
+        Verpflichtung neben dem Bestellbeleg. Sie hebt die Erwartung, nicht den Bestand. Nichts
+        liegt am Lager, bis Ware sich bewegt, und nichts wird geschuldet, bis eine Rechnung gebucht
+        ist. Die Zahlungsbedingung reist mit der Bestellung, weil das Skonto später an ihr gemessen
+        wird.
+      nl:
+        Een inkooporder is een belofte van de leverancier, vastgelegd als inkomende verplichting
+        naast het orderdocument. Hij verhoogt de verwachting, niet de voorraad. Er ligt niets op
+        voorraad tot goederen bewegen, en er wordt niets verschuldigd tot een factuur is geboekt. De
+        betalingsvoorwaarde reist met de order mee, omdat de korting later daaraan wordt gemeten.
+      es:
+        Un pedido de compra es una promesa del proveedor, registrada como compromiso entrante junto
+        al documento del pedido. Eleva la expectativa, no la existencia. Nada está en el almacén
+        hasta que la mercancía se mueve, y nada se debe hasta que se contabiliza una factura. La
+        condición de pago viaja con el pedido porque el descuento se mide después contra ella.
+    view: view:orders
+    command: order_create
+    input:
+      direction: purchase
+      number: BE-0201
+      company_party_id: $company.party
+      counterparty_id: $ref.parties.baltic
+      location_id: $ref.locations.hamburg
+      gross_amount: "412.00"
+      document_date: 0d
+      requested_delivery_at: +5d
+      payment_term_code: $ref.terms.sk2
+      lines:
+        - item_id: $ref.items.fjord
+          quantity: "40"
+          unit: pcs
+          unit_price: "10.30"
+          gross_amount: "412.00"
+          promised_at: +5d
+    primary:
+      record_type: commitment
+      from: output.commitment_ids[0]
+    next: notice
+
+  - key: notice
+    title:
+      en: Record the shipping notice
+      de: Lieferavis erfassen
+      nl: Verzendbericht vastleggen
+      es: Registrar el aviso de envío
+    situation:
+      en:
+        Baltic Supply mails a shipping notice. DHL Freight, tracking JJD0099 4471 0388, one pallet.
+        Record the notice as the supplier reported it.
+      de:
+        Baltic Supply schickt ein Lieferavis. DHL Freight, Sendungsnummer JJD0099 4471 0388, eine
+        Palette. Erfasse das Avis so, wie der Lieferant es gemeldet hat.
+      nl:
+        Baltic Supply stuurt een verzendbericht. DHL Freight, tracking JJD0099 4471 0388, één
+        pallet. Leg het bericht vast zoals de leverancier het meldde.
+      es:
+        Baltic Supply envía un aviso de envío. DHL Freight, seguimiento JJD0099 4471 0388, un palé.
+        Registra el aviso tal como lo comunicó el proveedor.
+    explain:
+      en:
+        The notice is a shipment with one package and one event, attributed to the supplier as the
+        reporter. It changes no stock and no commitment. It is a claim about a truck, kept apart
+        from what the warehouse will count when the truck arrives.
+      de:
+        Das Avis ist eine Sendung mit einem Packstück und einem Ereignis, dem Lieferanten als Melder
+        zugeschrieben. Es ändert keinen Bestand und keine Verpflichtung. Es ist eine Aussage über
+        einen Lkw, getrennt von dem, was das Lager zählt, wenn der Lkw ankommt.
+      nl:
+        Het bericht is een zending met één pakket en één gebeurtenis, toegeschreven aan de
+        leverancier als melder. Het wijzigt geen voorraad en geen verplichting. Het is een bewering
+        over een vrachtwagen, gescheiden van wat het magazijn telt als de vrachtwagen aankomt.
+      es:
+        El aviso es un envío con un bulto y un evento, atribuido al proveedor como informante. No
+        cambia ninguna existencia ni ningún compromiso. Es una afirmación sobre un camión, separada
+        de lo que el almacén contará cuando el camión llegue.
+    view: view:commitments
+    command: shipment_notice_record
+    input:
+      direction: inbound
+      purpose: supplier_delivery
+      counterparty_id: $ref.parties.baltic
+      carrier: DHL Freight
+      tracking_number: JJD0099 4471 0388
+      reporter_type: counterparty
+      occurred_at: 0d
+    next: receipt
+
+  - key: receipt
+    title:
+      en: Receive what arrived
+      de: Wareneingang buchen
+      nl: Ontvangst boeken
+      es: Registrar la recepción
+    situation:
+      en:
+        The pallet arrives. The warehouse counts 30 mugs, not 40. Book the receipt of 30 against the
+        purchase order.
+      de:
+        Die Palette kommt an. Das Lager zählt 30 Becher, nicht 40. Buche den Wareneingang von 30
+        gegen die Bestellung.
+      nl:
+        De pallet komt aan. Het magazijn telt 30 bekers, geen 40. Boek de ontvangst van 30 tegen de
+        inkooporder.
+      es:
+        Llega el palé. El almacén cuenta 30 tazas, no 40. Registra la recepción de 30 contra el
+        pedido de compra.
+    explain:
+      en:
+        A receipt is a movement into the location, tied to the supplier's commitment so the promise
+        is fulfilled by 30 and stays open for 10. Stock is 38 now, derived from movements, not typed
+        anywhere. No finding is raised yet. The promise date is still ahead and a short delivery is
+        not yet a late one.
+      de:
+        Ein Wareneingang ist eine Bewegung in den Lagerort, an die Verpflichtung des Lieferanten
+        gebunden, so dass das Versprechen zu 30 erfüllt ist und für 10 offen bleibt. Der Bestand ist
+        jetzt 38, abgeleitet aus Bewegungen, nirgends eingetippt. Noch wird keine Abweichung
+        gehoben. Der zugesagte Termin liegt vor uns, und eine zu kleine Lieferung ist noch keine
+        verspätete.
+      nl:
+        Een ontvangst is een beweging naar de locatie, gekoppeld aan de verplichting van de
+        leverancier, zodat de belofte voor 30 is vervuld en voor 10 open blijft. De voorraad is nu
+        38, afgeleid uit bewegingen, nergens ingetypt. Er wordt nog geen bevinding gemeld. De
+        toegezegde datum ligt nog voor ons en een te kleine levering is nog geen te late.
+      es:
+        Una recepción es un movimiento hacia la ubicación, ligado al compromiso del proveedor, de
+        modo que la promesa se cumple en 30 y sigue abierta en 10. La existencia es ahora 38,
+        derivada de movimientos, no tecleada en ningún sitio. Todavía no se levanta ningún hallazgo.
+        La fecha prometida aún está por delante y una entrega incompleta todavía no es una entrega
+        tardía.
+    view: view:movements
+    command: movement_create
+    input:
+      movement_type: receipt
+      item_id: $ref.items.fjord
+      quantity: "30"
+      to_location_id: $ref.locations.hamburg
+      commitment_id: $chapter.order.output.commitment_ids[0]
+      occurred_at: 0d
+    primary:
+      record_type: movement
+      from: output.records[movement].id
+    next: invoice
+
+  - key: invoice
+    title:
+      en: Record the supplier invoice
+      de: Eingangsrechnung erfassen
+      nl: Inkoopfactuur vastleggen
+      es: Registrar la factura del proveedor
+    situation:
+      en:
+        Two days later the invoice R-7781 arrives. 40 mugs at 10.90 €, 436.00 €. Not 30, and not
+        10.30 €. Record it exactly as printed, line against the order line.
+      de:
+        Zwei Tage später kommt die Rechnung R-7781. 40 Becher zu 10,90 €, 436,00 €. Nicht 30, und
+        nicht 10,30 €. Erfasse sie genau wie gedruckt, Position gegen Bestellposition.
+      nl:
+        Twee dagen later komt factuur R-7781. 40 bekers voor 10,90 €, 436,00 €. Geen 30, en geen
+        10,30 €. Leg hem precies zo vast als gedrukt, regel tegen orderregel.
+      es:
+        Dos días después llega la factura R-7781. 40 tazas a 10,90 €, 436,00 €. Ni 30, ni 10,30 €.
+        Regístrala exactamente como está impresa, línea contra línea del pedido.
+    explain:
+      en:
+        Reality records the invoice as evidence and writes nothing else. Two rules read it against
+        the order line it names. "Billed and not received" compares 40 billed with 30 received and
+        reports the 10. "Invoice price differs" compares 10.90 with the agreed 10.30 and reports
+        0.60 per piece. Neither rule recalculated anything; both figures were stated by somebody, so
+        both stand and the difference is the finding.
+      de:
+        Reality erfasst die Rechnung als Evidenz und schreibt sonst nichts. Zwei Regeln lesen sie
+        gegen die Bestellposition, die sie nennt. „Berechnet, nicht erhalten“ vergleicht 40
+        berechnet mit 30 erhalten und meldet die 10. „Rechnungspreis weicht ab“ vergleicht 10,90 mit
+        den vereinbarten 10,30 und meldet 0,60 je Stück. Keine Regel hat etwas nachgerechnet. Beide
+        Zahlen hat jemand genannt, also bleiben beide stehen, und die Differenz ist die Abweichung.
+      nl:
+        Reality legt de factuur vast als bewijs en schrijft verder niets. Twee regels lezen hem
+        tegen de orderregel die hij noemt. "Gefactureerd en niet ontvangen" vergelijkt 40
+        gefactureerd met 30 ontvangen en meldt de 10. "Factuurprijs wijkt af" vergelijkt 10,90 met
+        de afgesproken 10,30 en meldt 0,60 per stuk. Geen van beide regels rekende iets na; beide
+        getallen zijn door iemand genoemd, dus beide blijven staan en het verschil is de bevinding.
+      es:
+        Reality registra la factura como evidencia y no escribe nada más. Dos reglas la leen contra
+        la línea del pedido que nombra. "Facturado y no recibido" compara 40 facturados con 30
+        recibidos e informa de los 10. "El precio de la factura difiere" compara 10,90 con los 10,30
+        acordados e informa de 0,60 por pieza. Ninguna regla recalculó nada; ambas cifras las
+        declaró alguien, así que ambas se mantienen y la diferencia es el hallazgo.
+    view: view:documents
+    command: document_create
+    input:
+      document_type: supplier_invoice
+      number: R-7781
+      party_id: $ref.parties.baltic
+      gross_amount: "436.00"
+      document_date: 0d
+      payment_term_code: $ref.terms.sk2
+      lines:
+        - item_id: $ref.items.fjord
+          quantity: "40"
+          unit: pcs
+          unit_price: "10.90"
+          gross_amount: "436.00"
+          billed_document_line_id: $chapter.order.output.document_line_ids[0]
+    primary:
+      record_type: document
+      from: output.document_id
+    expect:
+      raised: [billed_not_received, invoice_price_differs]
+    next: post
+
+  - key: post
+    title:
+      en: Book the invoice
+      de: Rechnung buchen
+      nl: Factuur boeken
+      es: Contabilizar la factura
+    situation:
+      en:
+        The invoice is real even if it is wrong. Book it, so the company's books show what it owes
+        and the payment terms start to run.
+      de:
+        Die Rechnung ist echt, auch wenn sie falsch ist. Buche sie, damit die Bücher zeigen, was die
+        Firma schuldet, und die Zahlungsfrist zu laufen beginnt.
+      nl:
+        De factuur is echt, ook al is hij fout. Boek hem, zodat de boeken tonen wat het bedrijf
+        verschuldigd is en de betalingstermijn gaat lopen.
+      es:
+        La factura es real aunque sea incorrecta. Contabilízala, para que los libros muestren lo que
+        la empresa debe y empiecen a correr las condiciones de pago.
+    explain:
+      en:
+        Booking writes two ledger entries in one posting group, a payable of 436.00 € and its
+        counterpart. The open item appears with its due date from the term. A third rule wakes up.
+        "Early payment discount available" reads the term, places the deadline seven days out and
+        names the 2 %. It never says what the discount is worth, because that would be a division
+        producing money nobody agreed.
+      de:
+        Das Buchen schreibt zwei Journaleinträge in einer Buchungsgruppe, eine Verbindlichkeit über
+        436,00 € und ihr Gegenkonto. Der offene Posten erscheint mit dem Fälligkeitsdatum aus der
+        Bedingung. Eine dritte Regel wacht auf. „Skonto verfügbar“ liest die Bedingung, legt die
+        Frist sieben Tage voraus und nennt die 2 %. Sie sagt nie, was das Skonto wert ist, denn das
+        wäre eine Division, die Geld erzeugt, das niemand vereinbart hat.
+      nl:
+        Boeken schrijft twee journaalposten in één boekingsgroep, een schuld van 436,00 € en haar
+        tegenpost. De open post verschijnt met de vervaldatum uit de voorwaarde. Een derde regel
+        wordt wakker. "Betalingskorting beschikbaar" leest de voorwaarde, legt de deadline zeven
+        dagen vooruit en noemt de 2 %. Zij zegt nooit wat de korting waard is, want dat zou een
+        deling zijn die geld oplevert dat niemand afsprak.
+      es:
+        Contabilizar escribe dos asientos en un grupo de contabilización, una cuenta por pagar de
+        436,00 € y su contrapartida. La partida abierta aparece con su vencimiento según la
+        condición. Una tercera regla despierta. "Descuento por pronto pago disponible" lee la
+        condición, sitúa el plazo a siete días y nombra el 2 %. Nunca dice cuánto vale el descuento,
+        porque eso sería una división que produce dinero que nadie acordó.
+    view: view:open_items
+    command: supplier_invoice_post
+    input:
+      document_id: $chapter.invoice.output.document_id
+      effective_at: 0d
+    primary:
+      record_type: ledger_entry
+      from: output.records[ledger_entry].id
+    expect:
+      raised: [purchase_discount_available]
+    next: accounts
+
+  - key: accounts
+    title:
+      en: Set up the reduction accounts
+      de: Konten für Abzüge einrichten
+      nl: Rekeningen voor aftrek inrichten
+      es: Configurar las cuentas de deducción
+    situation:
+      en:
+        The practice company has never taken a discount. Before it can, it needs an account for
+        accepted supplier reductions. Initialize the finance accounts now, so the discount later has
+        somewhere to go.
+      de:
+        Die Übungsfirma hat noch nie Skonto gezogen. Bevor sie es kann, braucht sie ein Konto für
+        akzeptierte Lieferantenabzüge. Initialisiere die Finanzkonten jetzt, damit das Skonto später
+        ein Ziel hat.
+      nl:
+        Het oefenbedrijf heeft nog nooit korting genomen. Voor het dat kan, heeft het een rekening
+        nodig voor geaccepteerde leveranciersaftrek. Initialiseer nu de financiële rekeningen, zodat
+        de korting straks ergens heen kan.
+      es:
+        La empresa de práctica nunca ha tomado un descuento. Antes de poder hacerlo, necesita una
+        cuenta para deducciones de proveedor aceptadas. Inicializa ahora las cuentas financieras,
+        para que el descuento tenga después adónde ir.
+    explain:
+      en:
+        Reality refuses a reduction without an account to carry it, so the accounts are created
+        first, each with its role. Nothing about the invoice changed. The step is here because the
+        story would otherwise fail at the discount, and a refusal you can see is better than one you
+        meet by surprise.
+      de:
+        Reality verweigert einen Abzug ohne Konto, das ihn trägt, also werden die Konten zuerst
+        angelegt, jedes mit seiner Rolle. An der Rechnung hat sich nichts geändert. Der Schritt
+        steht hier, weil die Storyline sonst beim Skonto scheitern würde, und eine Ablehnung, die
+        man kommen sieht, ist besser als eine, die einen überrascht.
+      nl:
+        Reality weigert een aftrek zonder rekening die hem draagt, dus worden de rekeningen eerst
+        aangemaakt, elk met haar rol. Aan de factuur veranderde niets. De stap staat hier omdat de
+        Storyline anders bij de korting zou stranden, en een weigering die je ziet aankomen is beter
+        dan een die je verrast.
+      es:
+        Reality rechaza una deducción sin una cuenta que la soporte, así que primero se crean las
+        cuentas, cada una con su rol. Nada cambió en la factura. El paso está aquí porque, si no, la
+        Storyline fallaría en el descuento, y un rechazo que ves venir es mejor que uno que te
+        sorprende.
+    view: view:journal
+    context:
+      accounts:
+        tool: finance.accounts.list
+        input: {}
+    command: finance.account.initialize
+    input:
+      expected_revision: $context.accounts.revision
+    next: review
+
+  - key: review
+    title:
+      en: Read the three findings
+      de: Die drei Abweichungen lesen
+      nl: De drie bevindingen lezen
+      es: Leer los tres hallazgos
+    situation:
+      en:
+        Before anyone calls the supplier, read what Reality says about the invoice. Open the
+        explanation of the price difference and the list of everything that stands.
+      de:
+        Bevor jemand den Lieferanten anruft, lies, was Reality zur Rechnung sagt. Öffne die
+        Erklärung der Preisabweichung und die Liste von allem, was steht.
+      nl:
+        Voordat iemand de leverancier belt, lees wat Reality over de factuur zegt. Open de uitleg
+        van het prijsverschil en de lijst van alles wat staat.
+      es:
+        Antes de que alguien llame al proveedor, lee lo que Reality dice de la factura. Abre la
+        explicación de la diferencia de precio y la lista de todo lo que está en pie.
+    explain:
+      en:
+        Reading writes nothing. The explanation names the two prices as recorded, the order line
+        they came from and how the finding ends, by correcting the invoice or agreeing the new price
+        on the order. That is the whole three-way match, done by rules on evidence, without a
+        matching module and without a status field.
+      de:
+        Lesen schreibt nichts. Die Erklärung nennt die beiden Preise wie erfasst, die
+        Bestellposition, aus der sie stammen, und wie die Abweichung endet, durch Korrektur der
+        Rechnung oder Vereinbarung des neuen Preises an der Bestellung. Das ist der ganze
+        Dreiwegeabgleich, von Regeln auf Evidenz gemacht, ohne Abgleichmodul und ohne Statusfeld.
+      nl:
+        Lezen schrijft niets. De uitleg noemt de twee prijzen zoals vastgelegd, de orderregel waar
+        ze vandaan komen en hoe de bevinding eindigt, door de factuur te corrigeren of de nieuwe
+        prijs op de order af te spreken. Dat is de hele driewegcontrole, door regels op bewijs
+        gedaan, zonder matchingmodule en zonder statusveld.
+      es:
+        Leer no escribe nada. La explicación nombra los dos precios tal como se registraron, la
+        línea del pedido de la que proceden y cómo termina el hallazgo, corrigiendo la factura o
+        acordando el nuevo precio en el pedido. Eso es toda la conciliación a tres bandas, hecha por
+        reglas sobre evidencia, sin módulo de conciliación y sin campo de estado.
+    view: view:open_items
+    kind: read
+    reads:
+      - tool: exception_explain
+        input:
+          exception_id: $exception.invoice_price_differs.$chapter.invoice.output.document_line_ids[0]
+      - tool: exceptions
+        input: {}
+    next: copy
+
+  - key: copy
+    title:
+      en: The invoice arrives a second time
+      de: Die Rechnung kommt ein zweites Mal
+      nl: De factuur komt een tweede keer
+      es: La factura llega por segunda vez
+    situation:
+      en:
+        A week later the post brings R-7781 again, this time as a reminder copy. A colleague records
+        it as a new invoice before anyone notices the number. Do what they did.
+      de:
+        Eine Woche später bringt die Post R-7781 noch einmal, diesmal als Erinnerungskopie. Eine
+        Kollegin erfasst sie als neue Rechnung, bevor jemand auf die Nummer schaut. Tu, was sie
+        getan hat.
+      nl:
+        Een week later brengt de post R-7781 opnieuw, dit keer als herinneringskopie. Een collega
+        legt hem vast als nieuwe factuur voordat iemand naar het nummer kijkt. Doe wat zij deed.
+      es:
+        Una semana después el correo trae de nuevo R-7781, esta vez como copia recordatoria. Una
+        compañera la registra como factura nueva antes de que nadie mire el número. Haz lo que hizo
+        ella.
+    explain:
+      en:
+        Reality refuses nothing at the door. The copy is recorded as a document like any other, and
+        a rule groups supplier invoices by supplier and number and reports every document after the
+        first. "Duplicate supplier invoice" names the original it collides with. Refusing at entry
+        would have hidden the mistake; recording and reporting keeps it visible.
+      de:
+        Reality verweigert an der Tür nichts. Die Kopie wird als Beleg erfasst wie jeder andere, und
+        eine Regel gruppiert Eingangsrechnungen nach Lieferant und Nummer und meldet jeden Beleg
+        nach dem ersten. „Doppelte Eingangsrechnung“ nennt das Original, mit dem sie kollidiert. Ein
+        Verweigern beim Erfassen hätte den Fehler versteckt. Erfassen und melden hält ihn sichtbar.
+      nl:
+        Reality weigert niets aan de deur. De kopie wordt vastgelegd als een document als elk ander,
+        en een regel groepeert inkoopfacturen op leverancier en nummer en meldt elk document na het
+        eerste. "Dubbele inkoopfactuur" noemt het origineel waarmee hij botst. Weigeren bij invoer
+        had de fout verborgen; vastleggen en melden houdt hem zichtbaar.
+      es:
+        Reality no rechaza nada en la puerta. La copia se registra como un documento cualquiera, y
+        una regla agrupa las facturas de proveedor por proveedor y número e informa de cada
+        documento después del primero. "Factura de proveedor duplicada" nombra el original con el
+        que choca. Rechazar en la entrada habría ocultado el error; registrar e informar lo mantiene
+        visible.
+    view: view:documents
+    command: document_create
+    input:
+      document_type: supplier_invoice
+      number: R-7781
+      party_id: $ref.parties.baltic
+      gross_amount: "436.00"
+      document_date: 0d
+      payment_term_code: $ref.terms.sk2
+      lines:
+        - item_id: $ref.items.fjord
+          quantity: "40"
+          unit: pcs
+          unit_price: "10.90"
+          gross_amount: "436.00"
+    primary:
+      record_type: document
+      from: output.document_id
+    expect:
+      raised: [duplicate_supplier_invoice]
+    next: copy-posted
+
+  - key: copy-posted
+    title:
+      en: The copy gets booked too
+      de: Auch die Kopie wird gebucht
+      nl: Ook de kopie wordt geboekt
+      es: La copia también se contabiliza
+    situation:
+      en:
+        Nobody read the finding before the afternoon posting run. The copy is booked like the
+        original. Book it.
+      de:
+        Niemand hat die Abweichung vor dem Buchungslauf am Nachmittag gelesen. Die Kopie wird
+        gebucht wie das Original. Buche sie.
+      nl:
+        Niemand las de bevinding voor de boekingsronde van de middag. De kopie wordt geboekt als het
+        origineel. Boek hem.
+      es:
+        Nadie leyó el hallazgo antes de la contabilización de la tarde. La copia se contabiliza como
+        el original. Contabilízala.
+    explain:
+      en:
+        The books now owe Baltic Supply 872.00 € for one delivery, and a second "discount available"
+        stands beside the first. Nothing is wrong with the ledger as a record. It says truthfully
+        that two postings were made. A payment run would refuse to pay the duplicate, because it
+        asks the same grouping question the rule asks. The fix is not to edit anything but to
+        reverse the posting made in error.
+      de:
+        Die Bücher schulden Baltic Supply jetzt 872,00 € für eine Lieferung, und ein zweites „Skonto
+        verfügbar“ steht neben dem ersten. Am Journal als Aufzeichnung ist nichts falsch. Es sagt
+        wahrheitsgemäß, dass zwei Buchungen gemacht wurden. Ein Zahllauf würde das Duplikat nicht
+        zahlen, weil er dieselbe Gruppierungsfrage stellt wie die Regel. Die Lösung ist nicht, etwas
+        zu ändern, sondern die irrtümliche Buchung zu stornieren.
+      nl:
+        De boeken zijn Baltic Supply nu 872,00 € verschuldigd voor één levering, en een tweede
+        "korting beschikbaar" staat naast de eerste. Aan het journaal als vastlegging is niets mis.
+        Het zegt naar waarheid dat twee boekingen zijn gedaan. Een betaalrun zou het duplicaat
+        weigeren, omdat hij dezelfde groeperingsvraag stelt als de regel. De oplossing is niets te
+        bewerken, maar de foutieve boeking terug te draaien.
+      es:
+        Los libros deben ahora 872,00 € a Baltic Supply por una sola entrega, y un segundo
+        "descuento disponible" está junto al primero. Nada está mal en el libro mayor como registro.
+        Dice con verdad que se hicieron dos contabilizaciones. Una orden de pago se negaría a pagar
+        el duplicado, porque hace la misma pregunta de agrupación que la regla. La solución no es
+        editar nada, sino revertir la contabilización hecha por error.
+    view: view:open_items
+    command: supplier_invoice_post
+    input:
+      document_id: $chapter.copy.output.document_id
+      effective_at: 0d
+    primary:
+      record_type: ledger_entry
+      from: output.records[ledger_entry].id
+    expect:
+      raised: [purchase_discount_available]
+    next: reverse
+
+  - key: reverse
+    title:
+      en: Reverse the wrong posting
+      de: Die falsche Buchung stornieren
+      nl: De verkeerde boeking terugdraaien
+      es: Revertir la contabilización errónea
+    situation:
+      en:
+        Reverse the posting group of the copy with a reason. Then decide how to handle the ten mugs
+        that were billed and never came.
+      de:
+        Storniere die Buchungsgruppe der Kopie mit einem Grund. Entscheide dann, wie es mit den zehn
+        Bechern weitergeht, die berechnet wurden und nie kamen.
+      nl:
+        Draai de boekingsgroep van de kopie terug met een reden. Beslis dan hoe je omgaat met de
+        tien bekers die gefactureerd zijn en nooit kwamen.
+      es:
+        Revierte el grupo de contabilización de la copia con un motivo. Después decide qué hacer con
+        las diez tazas que se facturaron y nunca llegaron.
+    explain:
+      en:
+        The reversal is a new posting group that mirrors the old one and a relation that names both,
+        with the reason and who did it. The original entries are untouched. Once the copy is
+        reversed the duplicate rule no longer counts it and its discount entry goes with it. Two
+        findings cleared, nothing deleted.
+      de:
+        Die Stornierung ist eine neue Buchungsgruppe, die die alte spiegelt, und eine Beziehung, die
+        beide nennt, mit Grund und Urheber. Die ursprünglichen Einträge bleiben unberührt. Sobald
+        die Kopie storniert ist, zählt die Duplikatregel sie nicht mehr, und ihr Skonto-Eintrag geht
+        mit. Zwei Abweichungen geschlossen, nichts gelöscht.
+      nl:
+        De terugdraaiing is een nieuwe boekingsgroep die de oude spiegelt en een relatie die beide
+        noemt, met de reden en wie het deed. De oorspronkelijke posten blijven onaangeroerd. Zodra
+        de kopie is teruggedraaid, telt de duplicaatregel hem niet meer mee en gaat zijn
+        kortingsvermelding mee. Twee bevindingen gesloten, niets verwijderd.
+      es:
+        La reversión es un nuevo grupo de contabilización que refleja el antiguo y una relación que
+        nombra a ambos, con el motivo y quién lo hizo. Los asientos originales quedan intactos. Una
+        vez revertida la copia, la regla de duplicados ya no la cuenta y su entrada de descuento se
+        va con ella. Dos hallazgos cerrados, nada borrado.
+    view: view:journal
+    command: ledger_reverse
+    input:
+      posting_group_id: $chapter.copy-posted.output.posting_group_id
+      reason: Reminder copy of R-7781 was booked a second time
+    expect:
+      cleared: [duplicate_supplier_invoice, purchase_discount_available]
+    branches:
+      - key: wait
+        label:
+          en: Wait for the missing ten. Baltic Supply says they ship tomorrow.
+          de: Auf die fehlenden zehn warten. Baltic Supply sagt, sie gehen morgen raus.
+          nl: Wachten op de ontbrekende tien. Baltic Supply zegt dat ze morgen verzenden.
+          es: Esperar las diez que faltan. Baltic Supply dice que las envía mañana.
+        next: rest-receipt
+        default: true
+      - key: credit
+        label:
+          en: Ask for a credit note for the ten and pay less.
+          de: Eine Gutschrift für die zehn verlangen und weniger zahlen.
+          nl: Een creditnota voor de tien vragen en minder betalen.
+          es: Pedir una nota de crédito por las diez y pagar menos.
+        next: credit-note
+
+  - key: rest-receipt
+    title:
+      en: The missing ten arrive
+      de: Die fehlenden zehn kommen an
+      nl: De ontbrekende tien komen aan
+      es: Llegan las diez que faltaban
+    situation:
+      en:
+        A parcel with ten mugs arrives the next day. Book the receipt against the same purchase
+        order.
+      de:
+        Am nächsten Tag kommt ein Paket mit zehn Bechern. Buche den Wareneingang gegen dieselbe
+        Bestellung.
+      nl:
+        De volgende dag komt een pakket met tien bekers. Boek de ontvangst tegen dezelfde
+        inkooporder.
+      es:
+        Al día siguiente llega un paquete con diez tazas. Registra la recepción contra el mismo
+        pedido de compra.
+    explain:
+      en:
+        The supplier commitment is fulfilled at 40 and closes by itself. "Billed and not received"
+        compared 40 billed with 30 received; now it finds 40 against 40 and clears. The rule that
+        raised it took it back. The price difference stays, because nothing about the price changed.
+      de:
+        Die Verpflichtung des Lieferanten ist mit 40 erfüllt und schließt sich von selbst.
+        „Berechnet, nicht erhalten“ verglich 40 berechnet mit 30 erhalten. Jetzt findet die Regel 40
+        gegen 40 und schließt sich. Dieselbe Regel, die sie gehoben hat, nimmt sie zurück. Die
+        Preisabweichung bleibt, denn am Preis hat sich nichts geändert.
+      nl:
+        De verplichting van de leverancier is met 40 vervuld en sluit vanzelf. "Gefactureerd en niet
+        ontvangen" vergeleek 40 gefactureerd met 30 ontvangen; nu vindt zij 40 tegen 40 en sluit. De
+        regel die haar meldde, neemt haar terug. Het prijsverschil blijft, omdat aan de prijs niets
+        veranderde.
+      es:
+        El compromiso del proveedor se cumple con 40 y se cierra solo. "Facturado y no recibido"
+        comparaba 40 facturados con 30 recibidos; ahora encuentra 40 contra 40 y se cierra. La regla
+        que lo levantó lo retira. La diferencia de precio se queda, porque nada cambió en el precio.
+    view: view:movements
+    command: movement_create
+    input:
+      movement_type: receipt
+      item_id: $ref.items.fjord
+      quantity: "10"
+      to_location_id: $ref.locations.hamburg
+      commitment_id: $chapter.order.output.commitment_ids[0]
+      occurred_at: +1d
+    primary:
+      record_type: movement
+      from: output.records[movement].id
+    expect:
+      cleared: [billed_not_received]
+    next: pay-full
+
+  - key: pay-full
+    title:
+      en: Pay inside the discount window
+      de: Innerhalb der Skontofrist zahlen
+      nl: Binnen de kortingstermijn betalen
+      es: Pagar dentro del plazo de descuento
+    situation:
+      en:
+        Day six of seven. Pay 427.28 €, which is 436.00 € less the 2 % the terms allow, and
+        reference the invoice.
+      de:
+        Tag sechs von sieben. Zahle 427,28 €, also 436,00 € abzüglich der 2 %, die die Bedingung
+        erlaubt, mit Bezug auf die Rechnung.
+      nl:
+        Dag zes van zeven. Betaal 427,28 €, dat is 436,00 € min de 2 % die de voorwaarden toestaan,
+        met verwijzing naar de factuur.
+      es:
+        Día seis de siete. Paga 427,28 €, es decir, 436,00 € menos el 2 % que permiten las
+        condiciones, con referencia a la factura.
+    explain:
+      en:
+        The payment is posted and allocated to the invoice, and the open item drops to 8.72 €.
+        Reality does not assume the remainder is a discount. It could be a short payment. "Discount
+        available" therefore still stands, because the invoice is not settled, and the payment alone
+        cannot say why.
+      de:
+        Die Zahlung wird gebucht und der Rechnung zugeordnet, der offene Posten sinkt auf 8,72 €.
+        Reality nimmt nicht an, dass der Rest ein Skonto ist. Es könnte eine Minderzahlung sein.
+        „Skonto verfügbar“ steht deshalb noch, weil die Rechnung nicht ausgeglichen ist, und die
+        Zahlung allein nicht sagen kann, warum.
+      nl:
+        De betaling wordt geboekt en aan de factuur toegewezen, en de open post daalt naar 8,72 €.
+        Reality neemt niet aan dat de rest een korting is. Het kan een te lage betaling zijn.
+        "Korting beschikbaar" staat daarom nog, omdat de factuur niet is vereffend en de betaling
+        alleen niet kan zeggen waarom.
+      es:
+        El pago se contabiliza y se asigna a la factura, y la partida abierta baja a 8,72 €. Reality
+        no supone que el resto sea un descuento. Podría ser un pago incompleto. Por eso "Descuento
+        disponible" sigue en pie, porque la factura no está saldada y el pago por sí solo no puede
+        decir por qué.
+    view: view:payments
+    command: supplier_payment_post
+    input:
+      invoice_id: $chapter.invoice.output.document_id
+      amount: "427.28"
+      payment_number: UEB-2026-091
+      effective_at: 0d
+    primary:
+      record_type: ledger_entry
+      from: output.records[ledger_entry].id
+    next: discount-full
+
+  - key: discount-full
+    title:
+      en: Take the discount, on the record
+      de: Das Skonto ziehen, mit Nachweis
+      nl: De korting nemen, met bewijs
+      es: Tomar el descuento, con constancia
+    situation:
+      en:
+        Accept the 8.72 € remainder as an early payment discount, naming the term that entitles the
+        company to it.
+      de:
+        Akzeptiere den Rest von 8,72 € als Skonto und nenne die Bedingung, die die Firma dazu
+        berechtigt.
+      nl:
+        Accepteer de rest van 8,72 € als betalingskorting en noem de voorwaarde die het bedrijf
+        daartoe het recht geeft.
+      es:
+        Acepta el resto de 8,72 € como descuento por pronto pago, nombrando la condición que da
+        derecho a la empresa.
+    explain:
+      en:
+        The reduction is its own posting, on the reduction account you set up earlier, with the
+        reason category, the agreement and the revision it was accepted against. The invoice is
+        settled and "discount available" clears. Had the deadline passed instead, the finding would
+        also have disappeared, silently, and only the payment would tell whether the discount was
+        taken or lost.
+      de:
+        Der Abzug ist eine eigene Buchung auf dem Abzugskonto, das du vorhin eingerichtet hast, mit
+        Kategorie, Vereinbarung und der Revision, gegen die er akzeptiert wurde. Die Rechnung ist
+        ausgeglichen, „Skonto verfügbar“ schließt sich. Wäre stattdessen die Frist verstrichen, wäre
+        die Abweichung auch verschwunden, still, und nur die Zahlung würde verraten, ob das Skonto
+        gezogen oder verloren wurde.
+      nl:
+        De aftrek is een eigen boeking, op de aftrekrekening die je eerder inrichtte, met de
+        redencategorie, de afspraak en de revisie waartegen hij werd geaccepteerd. De factuur is
+        vereffend en "korting beschikbaar" sluit. Was in plaats daarvan de deadline verstreken, dan
+        was de bevinding ook verdwenen, stil, en alleen de betaling zou vertellen of de korting
+        genomen of verloren was.
+      es:
+        La deducción es su propia contabilización, en la cuenta de deducciones que configuraste
+        antes, con la categoría del motivo, el acuerdo y la revisión contra la que se aceptó. La
+        factura queda saldada y "descuento disponible" se cierra. Si en cambio hubiera pasado el
+        plazo, el hallazgo también habría desaparecido, en silencio, y solo el pago diría si el
+        descuento se tomó o se perdió.
+    view: view:open_items
+    context:
+      adjustment:
+        tool: finance.adjustment.context
+        input:
+          invoice_id: $chapter.invoice.output.document_id
+    command: finance.adjustment.accept
+    input:
+      expected_revision: $context.adjustment.revision
+      invoice_id: $chapter.invoice.output.document_id
+      amount: "8.72"
+      reason_category: early_payment_discount
+      reason: 2 % early payment discount, paid on day six of seven
+      agreement: Payment term SK2N14 of Baltic Supply
+    primary:
+      record_type: document
+      from: output.document_id
+    expect:
+      cleared: [purchase_discount_available]
+    next: month-end
+
+  - key: month-end
+    title:
+      en: Month-end review
+      de: Monatsrückblick
+      nl: Maandafsluiting
+      es: Revisión de fin de mes
+    situation:
+      en: The month closes. Read what still stands in the practice company.
+      de: Der Monat schließt. Lies, was in der Übungsfirma noch steht.
+      nl: De maand sluit. Lees wat er in het oefenbedrijf nog staat.
+      es: Cierra el mes. Lee lo que sigue en pie en la empresa de práctica.
+    explain:
+      en:
+        One finding remains, the price difference on the invoice line, and it should. Nobody
+        corrected the invoice and nobody agreed 10.90 € on the order, so Reality keeps the dispute
+        visible until the evidence changes. Every other finding of this storyline was raised by a
+        rule and cleared by the same rule when the world changed. If you took the credit branch,
+        "billed and not received" also stands, because a credit note changes what is owed, not what
+        was billed against the order line.
+      de:
+        Eine Abweichung bleibt, die Preisabweichung an der Rechnungsposition, und das soll so sein.
+        Niemand hat die Rechnung korrigiert und niemand hat 10,90 € an der Bestellung vereinbart,
+        also hält Reality den Streit sichtbar, bis sich die Evidenz ändert. Jede andere Abweichung
+        dieser Storyline hat eine Regel gehoben und dieselbe Regel geschlossen, als sich die Welt
+        geändert hat. Wenn du den Gutschrift-Abzweig genommen hast, steht auch „Berechnet, nicht
+        erhalten“ noch, denn eine Gutschrift ändert, was geschuldet ist, nicht, was gegen die
+        Bestellposition berechnet wurde.
+      nl:
+        Eén bevinding blijft, het prijsverschil op de factuurregel, en dat hoort zo. Niemand
+        corrigeerde de factuur en niemand sprak 10,90 € op de order af, dus houdt Reality het
+        geschil zichtbaar tot het bewijs verandert. Elke andere bevinding van deze Storyline werd
+        door een regel gemeld en door dezelfde regel gesloten toen de wereld veranderde. Nam je de
+        creditnota-aftakking, dan staat ook "gefactureerd en niet ontvangen" nog, omdat een
+        creditnota verandert wat verschuldigd is, niet wat tegen de orderregel is gefactureerd.
+      es:
+        Queda un hallazgo, la diferencia de precio en la línea de la factura, y así debe ser. Nadie
+        corrigió la factura y nadie acordó 10,90 € en el pedido, así que Reality mantiene la disputa
+        visible hasta que la evidencia cambie. Todos los demás hallazgos de esta Storyline los
+        levantó una regla y los cerró la misma regla cuando el mundo cambió. Si tomaste la rama de
+        la nota de crédito, "facturado y no recibido" también sigue en pie, porque una nota de
+        crédito cambia lo que se debe, no lo que se facturó contra la línea del pedido.
+    view: view:open_items
+    kind: read
+    reads:
+      - tool: exceptions
+        input: {}
+
+  - key: credit-note
+    title:
+      en: Record the supplier's credit note
+      de: Die Gutschrift des Lieferanten erfassen
+      nl: De creditnota van de leverancier vastleggen
+      es: Registrar la nota de crédito del proveedor
+    situation:
+      en:
+        Baltic Supply admits the short delivery and sends credit note G-7781 over ten mugs at 10.90
+        €, 109.00 €. Record it against the same order line.
+      de:
+        Baltic Supply räumt die Minderlieferung ein und schickt die Gutschrift G-7781 über zehn
+        Becher zu 10,90 €, 109,00 €. Erfasse sie gegen dieselbe Bestellposition.
+      nl:
+        Baltic Supply erkent de te kleine levering en stuurt creditnota G-7781 voor tien bekers van
+        10,90 €, 109,00 €. Leg hem vast tegen dezelfde orderregel.
+      es:
+        Baltic Supply admite la entrega incompleta y envía la nota de crédito G-7781 por diez tazas
+        a 10,90 €, 109,00 €. Regístrala contra la misma línea del pedido.
+    explain:
+      en:
+        A credit note is a document of its own, evidence that the supplier owes the company
+        something. Recording it writes no money yet. The price rule ignores it, because a credit is
+        not a bill and cannot be compared with an agreed price.
+      de:
+        Eine Gutschrift ist ein eigener Beleg, Evidenz dafür, dass der Lieferant der Firma etwas
+        schuldet. Das Erfassen schreibt noch kein Geld. Die Preisregel ignoriert sie, denn eine
+        Gutschrift ist keine Rechnung und lässt sich mit keinem vereinbarten Preis vergleichen.
+      nl:
+        Een creditnota is een eigen document, bewijs dat de leverancier het bedrijf iets
+        verschuldigd is. Vastleggen schrijft nog geen geld. De prijsregel negeert hem, omdat een
+        creditnota geen factuur is en niet met een afgesproken prijs kan worden vergeleken.
+      es:
+        Una nota de crédito es un documento propio, evidencia de que el proveedor le debe algo a la
+        empresa. Registrarla no escribe dinero todavía. La regla de precios la ignora, porque un
+        crédito no es una factura y no puede compararse con un precio acordado.
+    view: view:documents
+    command: document_create
+    input:
+      document_type: supplier_credit_note
+      number: G-7781
+      party_id: $ref.parties.baltic
+      gross_amount: "109.00"
+      document_date: +1d
+      lines:
+        - item_id: $ref.items.fjord
+          quantity: "10"
+          unit: pcs
+          unit_price: "10.90"
+          gross_amount: "109.00"
+          billed_document_line_id: $chapter.order.output.document_line_ids[0]
+    primary:
+      record_type: document
+      from: output.document_id
+    next: credit-post
+
+  - key: credit-post
+    title:
+      en: Book the credit note
+      de: Die Gutschrift buchen
+      nl: De creditnota boeken
+      es: Contabilizar la nota de crédito
+    situation:
+      en: Book the credit note so the books stop overstating what the company owes.
+      de: Buche die Gutschrift, damit die Bücher nicht länger zu viel Schuld zeigen.
+      nl: Boek de creditnota zodat de boeken niet langer te veel schuld tonen.
+      es:
+        Contabiliza la nota de crédito para que los libros dejen de exagerar lo que debe la empresa.
+    explain:
+      en:
+        The credit posts as the reverse of an invoice and immediately raises "supplier credit not
+        claimed". The claim exists from the moment the credit is booked. The company's money is
+        sitting with the supplier and nobody has netted or reclaimed it yet.
+      de:
+        Die Gutschrift bucht sich als Umkehrung einer Rechnung und hebt sofort
+        „Lieferantengutschrift nicht eingefordert“. Der Anspruch besteht ab dem Moment der Buchung.
+        Das Geld der Firma liegt beim Lieferanten, und niemand hat es bisher verrechnet oder
+        zurückgeholt.
+      nl:
+        De creditnota boekt als het omgekeerde van een factuur en meldt meteen "leverancierskrediet
+        niet opgeëist". De aanspraak bestaat vanaf het moment van boeken. Het geld van het bedrijf
+        ligt bij de leverancier en niemand heeft het nog verrekend of teruggevraagd.
+      es:
+        El crédito se contabiliza como el inverso de una factura y levanta de inmediato "crédito de
+        proveedor no reclamado". El derecho existe desde el momento en que se contabiliza el
+        crédito. El dinero de la empresa está con el proveedor y nadie lo ha compensado ni reclamado
+        todavía.
+    view: view:open_items
+    command: supplier_credit_note_post
+    input:
+      credit_note_id: $chapter.credit-note.output.document_id
+      effective_at: +1d
+    primary:
+      record_type: ledger_entry
+      from: output.records[ledger_entry].id
+    expect:
+      raised: [supplier_credit_unclaimed]
+    next: credit-allocate
+
+  - key: credit-allocate
+    title:
+      en: Net the credit against the invoice
+      de: Die Gutschrift mit der Rechnung verrechnen
+      nl: Het krediet met de factuur verrekenen
+      es: Compensar el crédito con la factura
+    situation:
+      en: Allocate the 109.00 € credit to invoice R-7781. The open item should drop to 327.00 €.
+      de:
+        Ordne die 109,00 € Gutschrift der Rechnung R-7781 zu. Der offene Posten soll auf 327,00 €
+        sinken.
+      nl:
+        Wijs het krediet van 109,00 € toe aan factuur R-7781. De open post moet dalen naar 327,00 €.
+      es:
+        Asigna el crédito de 109,00 € a la factura R-7781. La partida abierta debe bajar a 327,00 €.
+    explain:
+      en:
+        The allocation is one explicit link between the two control entries, nothing more. "Supplier
+        credit not claimed" clears. "Billed and not received" does not, and that is correct. The
+        order line was billed for 40 and 30 arrived; a credit changes what is owed, not what was
+        billed. Only goods or a corrected invoice would end that one.
+      de:
+        Die Zuordnung ist eine ausdrückliche Verknüpfung zwischen den beiden Kontoeinträgen, mehr
+        nicht. „Lieferantengutschrift nicht eingefordert“ schließt sich. „Berechnet, nicht erhalten“
+        nicht, und das ist richtig. Die Bestellposition wurde mit 40 berechnet und 30 kamen an. Eine
+        Gutschrift ändert, was geschuldet ist, nicht, was berechnet wurde. Nur Ware oder eine
+        korrigierte Rechnung würden diese Abweichung beenden.
+      nl:
+        De toewijzing is één expliciete koppeling tussen de twee rekeningposten, meer niet.
+        "Leverancierskrediet niet opgeëist" sluit. "Gefactureerd en niet ontvangen" niet, en dat
+        klopt. De orderregel is voor 40 gefactureerd en 30 kwamen aan; een creditnota verandert wat
+        verschuldigd is, niet wat gefactureerd is. Alleen goederen of een gecorrigeerde factuur
+        zouden die beëindigen.
+      es:
+        La asignación es un enlace explícito entre los dos asientos de control, nada más. "Crédito
+        de proveedor no reclamado" se cierra. "Facturado y no recibido" no, y es correcto. La línea
+        del pedido se facturó por 40 y llegaron 30; un crédito cambia lo que se debe, no lo que se
+        facturó. Solo la mercancía o una factura corregida terminarían con ese.
+    view: view:open_items
+    command: supplier_credit_note_allocate
+    input:
+      credit_note_id: $chapter.credit-note.output.document_id
+      invoice_id: $chapter.invoice.output.document_id
+      amount: "109.00"
+    expect:
+      cleared: [supplier_credit_unclaimed]
+    next: pay-net
+
+  - key: pay-net
+    title:
+      en: Pay the net amount inside the window
+      de: Den Nettobetrag innerhalb der Frist zahlen
+      nl: Het nettobedrag binnen de termijn betalen
+      es: Pagar el importe neto dentro del plazo
+    situation:
+      en: Day six of seven. Pay 320.46 €, which is 327.00 € less 2 %, and reference the invoice.
+      de:
+        Tag sechs von sieben. Zahle 320,46 €, also 327,00 € abzüglich 2 %, mit Bezug auf die
+        Rechnung.
+      nl:
+        Dag zes van zeven. Betaal 320,46 €, dat is 327,00 € min 2 %, met verwijzing naar de factuur.
+      es:
+        Día seis de siete. Paga 320,46 €, es decir, 327,00 € menos el 2 %, con referencia a la
+        factura.
+    explain:
+      en:
+        The payment is allocated and 6.54 € stay open. As on the other path, Reality does not guess
+        that the remainder is a discount. The finding stands until somebody says so on the record.
+      de:
+        Die Zahlung wird zugeordnet, 6,54 € bleiben offen. Wie auf dem anderen Pfad rät Reality
+        nicht, dass der Rest ein Skonto ist. Die Abweichung steht, bis jemand es mit Nachweis sagt.
+      nl:
+        De betaling wordt toegewezen en 6,54 € blijft open. Zoals op het andere pad raadt Reality
+        niet dat de rest een korting is. De bevinding staat tot iemand het met bewijs zegt.
+      es:
+        El pago se asigna y quedan abiertos 6,54 €. Como en el otro camino, Reality no adivina que
+        el resto sea un descuento. El hallazgo se mantiene hasta que alguien lo diga con constancia.
+    view: view:payments
+    command: supplier_payment_post
+    input:
+      invoice_id: $chapter.invoice.output.document_id
+      amount: "320.46"
+      payment_number: UEB-2026-091
+      effective_at: 0d
+    primary:
+      record_type: ledger_entry
+      from: output.records[ledger_entry].id
+    next: discount-net
+
+  - key: discount-net
+    title:
+      en: Take the discount, on the record
+      de: Das Skonto ziehen, mit Nachweis
+      nl: De korting nemen, met bewijs
+      es: Tomar el descuento, con constancia
+    situation:
+      en: Accept the 6.54 € remainder as an early payment discount, naming the term.
+      de: Akzeptiere den Rest von 6,54 € als Skonto und nenne die Bedingung.
+      nl: Accepteer de rest van 6,54 € als betalingskorting en noem de voorwaarde.
+      es: Acepta el resto de 6,54 € como descuento por pronto pago, nombrando la condición.
+    explain:
+      en:
+        The reduction posts on the reduction account with its reason and agreement, the invoice is
+        settled, and "discount available" clears. Money left the company only once, and every
+        reduction of the debt has its own record saying why.
+      de:
+        Der Abzug bucht sich auf das Abzugskonto mit Grund und Vereinbarung, die Rechnung ist
+        ausgeglichen, „Skonto verfügbar“ schließt sich. Geld hat die Firma nur einmal verlassen, und
+        jede Minderung der Schuld hat ihren eigenen Datensatz, der sagt, warum.
+      nl:
+        De aftrek boekt op de aftrekrekening met reden en afspraak, de factuur is vereffend en
+        "korting beschikbaar" sluit. Geld verliet het bedrijf maar één keer, en elke vermindering
+        van de schuld heeft haar eigen record dat zegt waarom.
+      es:
+        La deducción se contabiliza en la cuenta de deducciones con su motivo y acuerdo, la factura
+        queda saldada y "descuento disponible" se cierra. El dinero salió de la empresa una sola
+        vez, y cada reducción de la deuda tiene su propio registro que dice por qué.
+    view: view:open_items
+    context:
+      adjustment:
+        tool: finance.adjustment.context
+        input:
+          invoice_id: $chapter.invoice.output.document_id
+    command: finance.adjustment.accept
+    input:
+      expected_revision: $context.adjustment.revision
+      invoice_id: $chapter.invoice.output.document_id
+      amount: "6.54"
+      reason_category: early_payment_discount
+      reason: 2 % early payment discount, paid on day six of seven
+      agreement: Payment term SK2N14 of Baltic Supply
+    primary:
+      record_type: document
+      from: output.document_id
+    expect:
+      cleared: [purchase_discount_available]
+    next: month-end

@@ -1,0 +1,54 @@
+# Installer gates (spec 187 FR-003, FR-016): shellcheck, the dry-run proofs,
+# and the end-to-end run against images built from this commit.
+
+name: Installer
+
+on:
+  pull_request:
+    paths:
+      - "installer/**"
+      - "apps/*/Dockerfile"
+      - "packages/reality-core/migrations/**"
+      - "packages/reality-core/pyproject.toml"
+      - ".github/workflows/installer.yml"
+  push:
+    branches: [main]
+    paths:
+      - "installer/**"
+      - "apps/*/Dockerfile"
+      - "packages/reality-core/migrations/**"
+      - ".github/workflows/installer.yml"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: installer-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  script:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: shellcheck
+        run: |
+          sudo apt-get update -q && sudo apt-get install -y -q shellcheck
+          shellcheck -s sh installer/install.sh installer/tests/e2e.sh
+      - name: Dry-run proofs
+        run: |
+          python -m pip install -q pytest cryptography pyyaml
+          python -m pytest -q installer/tests
+          python -m unittest scripts.test_publish_workflow
+
+  end-to-end:
+    needs: [script]
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v6
+      - name: Install, verify ports and health, sign in, back up, restore, upgrade
+        run: sh installer/tests/e2e.sh

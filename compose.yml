@@ -1,0 +1,238 @@
+services:
+  db:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 2s
+      timeout: 3s
+      retries: 15
+    ports:
+      - "127.0.0.1:54329:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  object-storage:
+    image: minio/minio:RELEASE.2025-07-23T15-54-02Z
+    command: ["server", "/data", "--console-address", ":9001"]
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
+    ports:
+      - "127.0.0.1:9000:9000"
+      - "127.0.0.1:9001:9001"
+    volumes:
+      - object_storage_data:/data
+    healthcheck:
+      test: ["CMD", "mc", "ready", "local"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+
+  object-storage-init:
+    image: minio/mc:RELEASE.2025-07-21T05-28-08Z
+    depends_on:
+      object-storage:
+        condition: service_healthy
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - >-
+        mc alias set local http://object-storage:9000 ${MINIO_ROOT_USER} ${MINIO_ROOT_PASSWORD} &&
+        mc mb --ignore-existing local/${REALITY_S3_BUCKET} &&
+        mc anonymous set none local/${REALITY_S3_BUCKET}
+
+  migrate:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    environment:
+      REALITY_DATABASE_URL: ${REALITY_DATABASE_URL}
+    command: ["alembic", "upgrade", "head"]
+    depends_on:
+      db:
+        condition: service_healthy
+
+  api:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    environment:
+      REALITY_DATABASE_URL: ${REALITY_DATABASE_URL}
+      REALITY_SCHEDULER_HEALTH_URL: ${REALITY_SCHEDULER_HEALTH_URL-http://scheduler:8081/healthz}
+      REALITY_WORKER_HEALTH_URL: ${REALITY_WORKER_HEALTH_URL-http://worker:8081/healthz}
+      REALITY_ARTIFACT_STORAGE: s3
+      REALITY_S3_ENDPOINT_URL: http://object-storage:9000
+      REALITY_S3_BUCKET: ${REALITY_S3_BUCKET}
+      REALITY_S3_REGION: ${REALITY_S3_REGION}
+      AWS_ACCESS_KEY_ID: ${MINIO_ROOT_USER}
+      AWS_SECRET_ACCESS_KEY: ${MINIO_ROOT_PASSWORD}
+      API_URL: ${API_URL:-}
+      APP_URL: ${APP_URL:-}
+      MCP_URL: ${MCP_URL:-}
+      REALITY_DB_POOL_SIZE: ${REALITY_BACKEND_DB_POOL_SIZE:-10}
+      REALITY_DB_MAX_OVERFLOW: ${REALITY_BACKEND_DB_MAX_OVERFLOW:-5}
+      REALITY_DB_POOL_TIMEOUT: ${REALITY_DB_POOL_TIMEOUT:-5}
+      REALITY_BOOTSTRAP_TENANT_NAME: ${REALITY_BOOTSTRAP_TENANT_NAME}
+      REALITY_AUTH_MODE: ${REALITY_AUTH_MODE:-enabled}
+      REALITY_PLAYGROUND_ENABLED: ${REALITY_PLAYGROUND_ENABLED:-false}
+      REALITY_PLAYGROUND_DAILY_RUN_LIMIT: ${REALITY_PLAYGROUND_DAILY_RUN_LIMIT:-5}
+      REALITY_PLAYGROUND_RETAINED_RUN_LIMIT: ${REALITY_PLAYGROUND_RETAINED_RUN_LIMIT:-20}
+      REALITY_COOKIE_SECURE: ${REALITY_COOKIE_SECURE:-false}
+      REALITY_AUTH_EXPOSE_CODES: ${REALITY_AUTH_EXPOSE_CODES:-false}
+      REALITY_PLATFORM_ADMIN_EMAIL: ${REALITY_PLATFORM_ADMIN_EMAIL:-}
+      REALITY_PLATFORM_ADMIN_PASSWORD: ${REALITY_PLATFORM_ADMIN_PASSWORD:-}
+      REALITY_EMAIL_PROVIDER: ${REALITY_EMAIL_PROVIDER:-}
+      RESEND_API_KEY: ${RESEND_API_KEY:-}
+      REALITY_SMTP_HOST: ${REALITY_SMTP_HOST:-}
+      REALITY_SMTP_PORT: ${REALITY_SMTP_PORT:-587}
+      REALITY_SMTP_TLS: ${REALITY_SMTP_TLS:-true}
+      REALITY_SMTP_USERNAME: ${REALITY_SMTP_USERNAME:-}
+      REALITY_SMTP_PASSWORD: ${REALITY_SMTP_PASSWORD:-}
+      REALITY_EMAIL_FROM: ${REALITY_EMAIL_FROM:-Reality <onboarding@resend.dev>}
+      REALITY_ACCESS_NOTIFICATION_EMAIL: ${REALITY_ACCESS_NOTIFICATION_EMAIL:-}
+      REALITY_AUTO_APPROVE_LIMIT: ${REALITY_AUTO_APPROVE_LIMIT:-0}
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+      ANTHROPIC_WORKSPACE_ID: ${ANTHROPIC_WORKSPACE_ID:-}
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+      object-storage-init:
+        condition: service_completed_successfully
+    ports:
+      - "${API_PORT:-8000}:8000"
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "python",
+          "-c",
+          "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/healthz')",
+        ]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
+  scheduler:
+    profiles: [background]
+    build:
+      context: .
+      dockerfile: apps/scheduler/Dockerfile
+    environment:
+      REALITY_DATABASE_URL: ${REALITY_DATABASE_URL}
+      REALITY_BACKGROUND_HEALTH_PORT: "8081"
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    stop_grace_period: 35s
+
+  worker:
+    profiles: [background]
+    build:
+      context: .
+      dockerfile: apps/worker/Dockerfile
+    environment:
+      REALITY_DATABASE_URL: ${REALITY_DATABASE_URL}
+      REALITY_BACKGROUND_HEALTH_PORT: "8081"
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    stop_grace_period: 35s
+
+  invitation-worker:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    command: ["/bin/sh", "-c", "while true; do reality invitation-worker-once; sleep 5; done"]
+    environment:
+      REALITY_DATABASE_URL: ${REALITY_DATABASE_URL}
+      APP_URL: ${APP_URL:-http://localhost:8080}
+      REALITY_EMAIL_PROVIDER: ${REALITY_EMAIL_PROVIDER:-}
+      RESEND_API_KEY: ${RESEND_API_KEY:-}
+      REALITY_SMTP_HOST: ${REALITY_SMTP_HOST:-}
+      REALITY_SMTP_PORT: ${REALITY_SMTP_PORT:-587}
+      REALITY_SMTP_TLS: ${REALITY_SMTP_TLS:-true}
+      REALITY_SMTP_USERNAME: ${REALITY_SMTP_USERNAME:-}
+      REALITY_SMTP_PASSWORD: ${REALITY_SMTP_PASSWORD:-}
+      REALITY_EMAIL_FROM: ${REALITY_EMAIL_FROM:-Reality <onboarding@resend.dev>}
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+
+  mcp:
+    build:
+      context: .
+      dockerfile: apps/mcp/Dockerfile
+    command:
+      [
+        "uvicorn",
+        "reality.mcp.app:app",
+        "--host",
+        "${MCP_BIND_HOST:-0.0.0.0}",
+        "--port",
+        "${MCP_BIND_PORT:-8001}",
+      ]
+    environment:
+      REALITY_DATABASE_URL: ${REALITY_DATABASE_URL}
+      REALITY_ARTIFACT_STORAGE: s3
+      REALITY_S3_ENDPOINT_URL: http://object-storage:9000
+      REALITY_S3_BUCKET: ${REALITY_S3_BUCKET}
+      REALITY_S3_REGION: ${REALITY_S3_REGION}
+      AWS_ACCESS_KEY_ID: ${MINIO_ROOT_USER}
+      AWS_SECRET_ACCESS_KEY: ${MINIO_ROOT_PASSWORD}
+      MCP_URL: ${MCP_URL:-http://localhost:8001/}
+      MCP_BIND_HOST: ${MCP_BIND_HOST:-0.0.0.0}
+      MCP_BIND_PORT: ${MCP_BIND_PORT:-8001}
+      REALITY_DB_POOL_SIZE: ${REALITY_MCP_DB_POOL_SIZE:-5}
+      REALITY_DB_MAX_OVERFLOW: ${REALITY_MCP_DB_MAX_OVERFLOW:-2}
+      REALITY_DB_POOL_TIMEOUT: ${REALITY_DB_POOL_TIMEOUT:-5}
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+      object-storage-init:
+        condition: service_completed_successfully
+    ports:
+      - "${MCP_PORT:-8001}:${MCP_BIND_PORT:-8001}"
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "python",
+          "-c",
+          "import os, urllib.request; urllib.request.urlopen('http://127.0.0.1:' + os.environ['MCP_BIND_PORT'] + '/readyz')",
+        ]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
+  web:
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+      args:
+        SITE_URL: ${SITE_URL:-http://localhost:8082}
+        DOCS_URL: ${DOCS_URL:-http://localhost:8083}
+    depends_on:
+      api:
+        condition: service_healthy
+    ports:
+      - "${APP_PORT:-8080}:80"
+
+  docs:
+    build:
+      context: .
+      dockerfile: apps/docs/Dockerfile
+      args:
+        APP_URL: ${APP_URL:-http://localhost:8080}
+        SITE_URL: ${SITE_URL:-http://localhost:8082}
+        DOCS_URL: ${DOCS_URL:-http://localhost:8083}
+        ANALYTICS_SCRIPT_URL: ${ANALYTICS_SCRIPT_URL:-}
+        ANALYTICS_WEBSITE_ID: ${ANALYTICS_WEBSITE_ID:-}
+    ports:
+      - "${DOCS_PORT:-8083}:80"
+
+volumes:
+  postgres_data:
+  object_storage_data:

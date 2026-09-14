@@ -1,0 +1,63 @@
+{{- if .Values.ingress.enabled }}
+{{/*
+  ONE public host for the app.
+
+  The SPA calls the API with relative paths and a host-only session cookie, so
+  the app host must serve both. `/api/` and `/healthz` are NOT routed here — the
+  web pod's own nginx proxies them to the api Service, which keeps the browser
+  strictly same-origin and means the API needs no public listener of its own.
+
+  A path rule for /api/ pointing at the api Service would also work, but the
+  nginx hop is already built into the image and re-resolves the upstream every
+  10s, so it survives an api redeploy without an Ingress change.
+*/}}
+{{- $fullName := include "reality.fullname" . }}
+{{- $hosts := list }}
+{{- if .Values.web.enabled }}{{ $hosts = append $hosts (dict "host" .Values.urls.app "service" (printf "%s-web" $fullName) "port" .Values.web.port) }}{{ end }}
+{{- if .Values.docs.enabled }}{{ $hosts = append $hosts (dict "host" .Values.urls.docs "service" (printf "%s-docs" $fullName) "port" .Values.docs.port) }}{{ end }}
+{{- if and .Values.mcp.enabled .Values.mcp.ingress.enabled }}{{ $hosts = append $hosts (dict "host" .Values.urls.mcp "service" (printf "%s-mcp" $fullName) "port" .Values.mcp.port) }}{{ end }}
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ $fullName }}
+  labels:
+    {{- include "reality.labels" . | nindent 4 }}
+  annotations:
+    {{- toYaml .Values.ingress.annotations | nindent 4 }}
+    {{- if .Values.ingress.blockOpenApi }}
+    # Opt-in belt-and-braces. Not needed while the web pod's nginx is the only
+    # route to the API, because it proxies just /api/ and /healthz — /docs,
+    # /redoc and /openapi.json fall through to the SPA. Relevant only if a path
+    # rule or a dedicated API host is added; FastAPI's docs routes are
+    # unauthenticated because the auth middleware only guards /api/.
+    alb.ingress.kubernetes.io/actions.block-openapi: >-
+      {"type":"fixed-response","fixedResponseConfig":{"contentType":"text/plain","statusCode":"404","messageBody":"Not Found"}}
+    {{- end }}
+spec:
+  ingressClassName: {{ .Values.ingress.className }}
+  rules:
+    {{- range $hosts }}
+    {{- $host := regexReplaceAll "^https?://" .host "" | trimSuffix "/" }}
+    - host: {{ required "urls.app / urls.docs / urls.mcp must be set for every enabled component with an Ingress" $host | quote }}
+      http:
+        paths:
+          {{- if and $.Values.ingress.blockOpenApi (eq .service (printf "%s-web" $fullName)) }}
+          {{- range $path := list "/openapi.json" "/docs" "/redoc" }}
+          - path: {{ $path }}
+            pathType: Prefix
+            backend:
+              service:
+                name: block-openapi
+                port:
+                  name: use-annotation
+          {{- end }}
+          {{- end }}
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ .service }}
+                port:
+                  number: {{ .port }}
+    {{- end }}
+{{- end }}

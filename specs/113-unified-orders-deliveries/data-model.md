@@ -1,0 +1,2 @@
+# Data Model
+No schema changes. Existing Commitment, CommitmentRevision, Movement/MovementCorrection, Item, Party, Document and DocumentLine remain authoritative. Add response type/customer-or-supplier party identity; all quantities and dates reuse effective expressions. Exact document filter follows the shortest held link. View state contains section, direction, open/all, order ID and selected Inspector ID only; it is not a business record.

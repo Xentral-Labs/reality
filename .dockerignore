@@ -1,0 +1,17 @@
+.git
+.venv
+__pycache__
+.pytest_cache
+.ruff_cache
+.coverage
+.env*
+packages/reality-core/data
+packages/reality-core/tests
+docs
+packages/reality-core/scenarios
+apps/web/node_modules
+apps/web/dist
+apps/docs/node_modules
+apps/docs/.vitepress/cache
+apps/docs/.vitepress/dist
+*.pyc

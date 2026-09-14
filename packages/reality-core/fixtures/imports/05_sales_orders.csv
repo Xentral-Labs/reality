@@ -1,0 +1,4 @@
+order_id,order_number,line_id,party_accounting_code,sku,name,quantity,unit_price,currency,location,ordered_at,requested_delivery_at,customer_reference
+ORDER-1001,SO-1001,1,CUST-1000,BIKE-LIGHT,Bike Light,12,49.00,EUR,Demo Warehouse,2026-09-01T09:00:00Z,2026-09-04T12:00:00Z,PO-MUELLER-77
+ORDER-1001,SO-1001,2,CUST-1000,BIKE-BELL,Bike Bell,12,9.90,EUR,Demo Warehouse,2026-09-01T09:00:00Z,2026-09-04T12:00:00Z,PO-MUELLER-77
+ORDER-1002,SO-1002,1,CUST-1000,BIKE-LIGHT,Bike Light,35,49.00,EUR,Demo Warehouse,2026-09-02T10:30:00Z,2026-09-03T12:00:00Z,PO-MUELLER-78

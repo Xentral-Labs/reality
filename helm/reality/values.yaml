@@ -1,0 +1,460 @@
+# Default values for the reality chart.
+#
+# These defaults do NOT render on their own, on purpose: `urls.*` and
+# `externalSecret.path` are empty and both are `required`, so `helm template`
+# with bare defaults fails with a message naming the missing value rather than
+# producing a broken release. Always supply an environment overlay — see
+# values-testing.yaml.
+
+nameOverride: ""
+fullnameOverride: ""
+
+# ---------------------------------------------------------------------------
+# Images
+# ---------------------------------------------------------------------------
+# A single repository with IMMUTABLE tags (verified present in the account), so
+# all five images share it and
+# are separated by a per-component tag prefix: api-<sha>, mcp-<sha>, web-<sha>,
+# ... Set `image.tag` once (ArgoCD patches it to the git SHA) and every
+# component resolves its own image. Give a component its own `image.repository`
+# if you later split them into separate ECR repos.
+#
+# WATCH THE LIFECYCLE POLICY: that unit keeps only the last 100 images, and its
+# protective rule matches only the tag prefixes develop/master/staging/v — so
+# `api-<sha>` tags are unprotected. Once 100 images accumulate, an older tag
+# still pinned by an ArgoCD Application is expired and its pods go
+# ImagePullBackOff on the next reschedule. Add the component prefixes to that
+# rule, or keep releases well under the limit.
+image:
+  # REQUIRED. One repository holding every component, addressed as
+  # <repository>:<component>-<tag> (api-, mcp-, web-, docs-, scheduler-, worker-).
+  # That is the layout a single ECR/registry repository gives you, for example
+  #   <account-id>.dkr.ecr.<region>.amazonaws.com/<repository>
+  # The images published to GHCR by publish.yml use one repository PER component
+  # (ghcr.io/xentral-labs/reality-api and so on), which is a different shape: to
+  # deploy those, set <component>.image.repository per component and clear the
+  # prefix with <component>.image.tagPrefix: "". The installer does this for you.
+  repository: ""
+  tag: ""            # defaults to .Chart.AppVersion; ArgoCD overrides with the git SHA
+  pullPolicy: IfNotPresent
+
+imagePullSecrets: []
+
+# ---------------------------------------------------------------------------
+# Public URLs
+# ---------------------------------------------------------------------------
+# IMPORTANT — the SPA forces a SINGLE public host for the app.
+# apps/web/src/api.ts issues every request with a RELATIVE path and
+# `credentials: "include"`, and the session cookie is set with no `domain`
+# attribute (host-only, SameSite=lax). There is no configurable API base URL in
+# the bundle. So `urls.app` must be one host that serves both the SPA and
+# `/api/`; a split app.* + api.* layout needs a frontend code change, not a
+# values edit.
+#
+# The web container's nginx proxies /api/ and /healthz to `API_UPSTREAM`, which
+# this chart points at the api Service — so the API needs no Ingress of its own.
+urls:
+  app: ""            # e.g. https://app.runreality.ai  (SPA + /api/, one host)
+  api: ""            # read by the backend but unused; defaults to urls.app
+  site: ""           # optional: link target for the provider's marketing site
+  docs: ""           # e.g. https://docs.runreality.ai
+  mcp: ""            # e.g. https://mcp.runreality.ai/  — MUST keep the trailing slash
+
+# ---------------------------------------------------------------------------
+# Database
+# ---------------------------------------------------------------------------
+# REALITY_DATABASE_URL is a SECRET (it carries the password) and arrives from
+# Vault, not from here. It is resolved at module import, so a missing or
+# non-PostgreSQL URL crashes every Python workload before it serves anything.
+#
+# Only these three names are read by the application. The REALITY_BACKEND_DB_*
+# and REALITY_MCP_DB_* names in .env.example are Compose-only indirection.
+#
+# Max connections per replica = poolSize + maxOverflow. Budget against the
+# database's max_connections across (api replicas + mcp replicas + worker + 1
+# for the migration job).
+#
+# poolTimeout is raised well above the repo's 5s default on purpose: several GET
+# handlers refresh projections synchronously and the Copilot chat can hold a
+# connection for ~270s, so a 5s timeout turns a read burst into 500s and flips
+# pods NotReady.
+database:
+  poolSize: 10
+  maxOverflow: 5
+  poolTimeout: 30
+
+# ---------------------------------------------------------------------------
+# Object storage
+# ---------------------------------------------------------------------------
+# LATENT DEPENDENCY. `stage_artifact` is the only writer of artifact rows and it
+# has no caller — there is no upload route, CLI command or MCP tool that reaches
+# it — so nothing exercises S3 today. This is wired so it works the moment an
+# ingest route lands; it is not a prerequisite for a green deploy.
+#
+# backend: "s3" keeps the code off the container filesystem. `scratchDir` points
+# the artifact staging path at the writable emptyDir mounted below, because even
+# in s3 mode the upload path streams to local disk first.
+storage:
+  backend: s3
+  bucket: ""         # e.g. my-org-reality-artifacts
+  region: eu-central-1
+  scratchDir: /tmp/reality-artifacts
+  # Sized for metadata + the Fernet-key fallback path only, NOT for
+  # REALITY_MAX_UPLOAD_BYTES (10 GiB). Raise it when a real upload route exists.
+  scratchSizeLimit: 1Gi
+
+# ---------------------------------------------------------------------------
+# Auth
+# ---------------------------------------------------------------------------
+auth:
+  mode: enabled       # "disabled" switches OFF all authentication — never in a shared cluster
+  cookieSecure: true  # the ALB terminates TLS, so cookies must be Secure
+  exposeCodes: false  # true leaks invitation/login codes in API responses
+  autoApproveLimit: 0
+
+bootstrap:
+  # Leave EMPTY unless you are seeding a throwaway tenant. A non-empty value
+  # makes the API's lifespan hit the database on every cold start, so the pod
+  # cannot boot while the database is unreachable.
+  tenantName: ""
+  # Platform-admin bootstrap runs in the API lifespan and is NOT advisory-locked,
+  # while AppUser.email is unique — so two replicas starting cold at the same
+  # time can crash on IntegrityError. Set platformAdmin.enabled=true only for a
+  # first, single-replica rollout, then turn it off. Credentials come from Vault.
+  platformAdmin:
+    enabled: false
+
+# ---------------------------------------------------------------------------
+# Email
+# ---------------------------------------------------------------------------
+# provider: "log" suppresses delivery (safe default), "resend" uses RESEND_API_KEY
+# from Vault, "smtp" speaks STARTTLS on :587 — which is exactly the AWS SES SMTP
+# interface, and SES is already verified for runreality.ai in this account.
+email:
+  provider: log
+  from: "Reality <reality@runreality.ai>"
+  accessNotification: ""
+  smtp:
+    host: email-smtp.eu-central-1.amazonaws.com
+    port: 587
+    tls: true
+
+# ---------------------------------------------------------------------------
+# Secrets — External Secrets Operator, backed by Vault
+# ---------------------------------------------------------------------------
+# ESO (chart 2.10.0) is installed in this cluster; the Vault Agent Injector that
+# agent-os relies on is NOT (create_vault_injector_deployment = false), so the
+# agent-os annotation convention would render and silently do nothing, leaving
+# REALITY_DATABASE_URL unset and every pod in CrashLoopBackOff.
+#
+# NOTE: ESO 1.0+ removed external-secrets.io/v1beta1. This chart emits v1.
+secrets:
+  # Use an out-of-band Secret instead of the ExternalSecret below.
+  existingSecret: ""
+  extraSecretRefs: []
+  extraConfigMapRefs: []
+
+externalSecret:
+  enabled: true
+  # Name of the ClusterSecretStore (or SecretStore) that points at Vault.
+  # Created once per cluster, outside this chart — see the chart README.
+  secretStoreRef:
+    name: vault-kv
+    kind: ClusterSecretStore
+  # Path inside the KV v2 mount, WITHOUT the `kv/data/` prefix — ESO's vault
+  # provider adds `data/` itself when version=v2.
+  # Mirrors the agent-os convention: kv/internal/<cluster>/templates/<release>.
+  path: ""
+  refreshInterval: 1h
+  # Keys pulled from that path into the Secret. `REALITY_DATABASE_URL` and
+  # `REALITY_MASTER_KEY` are all a green deploy needs.
+  #
+  # Feature keys are appended AUTOMATICALLY by the template, so do not list them
+  # here: enabling email.provider=resend adds RESEND_API_KEY, provider=smtp adds
+  # REALITY_SMTP_USERNAME/_PASSWORD, bootstrap.platformAdmin.enabled adds
+  # REALITY_PLATFORM_ADMIN_EMAIL/_PASSWORD, and copilot.managedKey adds
+  # ANTHROPIC_API_KEY.
+  #
+  # Every resolved key must ALREADY exist at the Vault path. ESO's v1 API has no
+  # per-key optional flag and one missing property fails the entire sync, so all
+  # keys stop resolving — write the value into Vault before flipping the toggle.
+  keys:
+    - REALITY_DATABASE_URL
+    - REALITY_MASTER_KEY
+
+# ---------------------------------------------------------------------------
+# Copilot (Anthropic)
+# ---------------------------------------------------------------------------
+# The key is read lazily per chat message, so without it the Copilot degrades to
+# a deterministic keyword responder rather than failing — nothing crashes.
+# Setting managedKey=true makes the chart pull ANTHROPIC_API_KEY from Vault.
+copilot:
+  managedKey: false
+  # Send ANTHROPIC_WORKSPACE_ID alongside the key.
+  #
+  # Required when the key is an ORGANISATION-level key, which Anthropic rejects
+  # with 400 invalid_request_error: "This API key is not scoped to a workspace,
+  # so this request must include the anthropic-workspace-id header with the ID
+  # of the workspace to use." A key created inside a workspace is already scoped
+  # and needs none of this -- leave it false in that case.
+  #
+  # (Previously named `workspaceScoped`, which read as "the key is scoped" when
+  # it means precisely the opposite.)
+  sendWorkspaceId: false
+
+# ---------------------------------------------------------------------------
+# ServiceAccount / IRSA
+# ---------------------------------------------------------------------------
+serviceAccount:
+  create: true
+  name: ""
+  # IRSA role for S3 access. boto3 is built with no explicit credentials, so the
+  # default chain picks this up. Never set AWS_ACCESS_KEY_ID in extraEnv — env
+  # credentials outrank web identity and would shadow the role.
+  annotations: {}
+  #  eks.amazonaws.com/role-arn: arn:aws:iam::<account-id>:role/<reality-irsa-role>
+  automountToken: false
+
+# ---------------------------------------------------------------------------
+# Pod-level defaults
+# ---------------------------------------------------------------------------
+# The only managed nodegroup is tainted CriticalAddonsOnly, so every workload
+# here schedules on Karpenter's `default-node-pool-1` — untainted, amd64, SPOT
+# t3/t3a. Spot means pods are interrupted routinely: keep replicas >= 2 and a
+# PodDisruptionBudget on the request-serving components.
+nodeSelector: {}
+tolerations: []
+affinity: {}
+terminationGracePeriodSeconds: 30
+
+podSecurityContext:
+  runAsNonRoot: true
+  runAsUser: 1001
+  runAsGroup: 1001
+  fsGroup: 1001
+  seccompProfile:
+    type: RuntimeDefault
+
+securityContext:
+  allowPrivilegeEscalation: false
+  readOnlyRootFilesystem: false
+  capabilities:
+    drop: ["ALL"]
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 256Mi
+  limits:
+    cpu: 500m
+    memory: 512Mi
+
+extraEnv: {}
+
+podAnnotations: {}
+
+# ---------------------------------------------------------------------------
+# Components
+# ---------------------------------------------------------------------------
+api:
+  # Not an ALB target: the web pod's nginx proxies /api/, so no Ingress rule
+  # points here and no target-group health check is needed.
+  enabled: true
+  replicaCount: 2
+  port: 8000
+  resources:
+    requests: { cpu: 250m, memory: 512Mi }
+    limits:   { cpu: "1",  memory: 1Gi }
+  autoscaling:
+    enabled: false
+    minReplicas: 2
+    maxReplicas: 6
+    targetCPUUtilizationPercentage: 75
+  podDisruptionBudget:
+    enabled: true
+    minAvailable: 1
+
+mcp:
+  enabled: true
+  replicaCount: 2
+  # MUST NOT be left unset. The ALB controller's default target-group check is
+  # GET / expecting 200, and mcp's `/` is the protocol endpoint, which answers
+  # 401 unauthenticated — every target would be permanently unhealthy.
+  healthcheckPath: /healthz
+  # MCP_BIND_HOST / MCP_BIND_PORT are INERT in the shipped image: the Dockerfile
+  # CMD hardcodes --host 0.0.0.0 --port 8001 and FastMCP's host/port only affect
+  # its own .run() helper, which this app never calls. To move the port you must
+  # override the container command, not the env var. Keep 8001.
+  port: 8001
+  resources:
+    requests: { cpu: 100m, memory: 256Mi }
+    limits:   { cpu: 500m, memory: 512Mi }
+  # MCP's DNS-rebinding protection pins allowed_hosts to the exact netloc of
+  # MCP_URL, so its Ingress must pass the original Host header through unchanged
+  # or every protocol request returns 421. Health probes are exempt.
+  ingress:
+    enabled: false
+  podDisruptionBudget:
+    enabled: true
+    minAvailable: 1
+
+web:
+  healthcheckPath: /
+  enabled: true
+  replicaCount: 2
+  port: 80
+  # Static nginx image: the official entrypoint needs to write a rendered config
+  # and its worker cache, and binds :80. Overridden to run as root (nginx drops
+  # to the `nginx` user for workers itself) because the base image is
+  # nginx:1.27-alpine, not the unprivileged variant.
+  podSecurityContext:
+    seccompProfile:
+      type: RuntimeDefault
+  securityContext:
+    allowPrivilegeEscalation: false
+    readOnlyRootFilesystem: false
+    capabilities:
+      drop: ["ALL"]
+      add: ["CHOWN", "SETUID", "SETGID", "NET_BIND_SERVICE", "DAC_OVERRIDE"]
+  resources:
+    requests: { cpu: 50m, memory: 64Mi }
+    limits:   { cpu: 200m, memory: 128Mi }
+  podDisruptionBudget:
+    enabled: true
+    minAvailable: 1
+
+docs:
+  healthcheckPath: /healthz
+  enabled: false      # documentation site — optional for a testing deployment
+  replicaCount: 1
+  port: 80
+  # Same nginx constraint as `web`: stock nginx:1.27-alpine binds :80 and needs
+  # to write its worker cache, so it starts as root and drops to the `nginx`
+  # user for workers itself.
+  podSecurityContext:
+    seccompProfile:
+      type: RuntimeDefault
+  securityContext:
+    allowPrivilegeEscalation: false
+    readOnlyRootFilesystem: false
+    capabilities:
+      drop: ["ALL"]
+      add: ["CHOWN", "SETUID", "SETGID", "NET_BIND_SERVICE", "DAC_OVERRIDE"]
+  resources:
+    requests: { cpu: 50m, memory: 64Mi }
+    limits:   { cpu: 200m, memory: 128Mi }
+
+# ---------------------------------------------------------------------------
+# Background job runners
+# ---------------------------------------------------------------------------
+# `port` is the health port only (REALITY_BACKGROUND_HEALTH_PORT). Neither
+# runner takes inbound traffic, so neither gets a Service or an Ingress rule.
+#
+# terminationGracePeriodSeconds mirrors compose's stop_grace_period: 35s, so a
+# sweep in flight finishes instead of being SIGKILLed mid-transaction.
+scheduler:
+  enabled: true
+  replicaCount: 1
+  port: 8081
+  terminationGracePeriodSeconds: 35
+  resources:
+    requests: { cpu: 100m, memory: 256Mi }
+    limits:   { cpu: 500m, memory: 512Mi }
+
+worker:
+  enabled: true
+  replicaCount: 1
+  port: 8081
+  terminationGracePeriodSeconds: 35
+  resources:
+    requests: { cpu: 100m, memory: 256Mi }
+    limits:   { cpu: 500m, memory: 512Mi }
+
+# ---------------------------------------------------------------------------
+# Invitation worker
+# ---------------------------------------------------------------------------
+# Runs the delivery loop WITHOUT the `reality` CLI on purpose. The Typer root
+# callback is `@app.callback() def boot(): init_db()`, so `reality
+# invitation-worker-once` runs `alembic upgrade head` before EVERY tick — at a
+# 5s interval that is ~17k unlocked migration attempts a day racing the release
+# migration Job. The command below imports the service functions directly and
+# never touches alembic.
+#
+# Delivery is at-least-once and row-locked with FOR UPDATE SKIP LOCKED, so extra
+# replicas cannot double-send — but each tick delivers exactly one email, so
+# scaling out buys throughput at no correctness cost. Keep it at 1 unless the
+# invitation queue actually backs up.
+invitationWorker:
+  enabled: true
+  replicaCount: 1
+  intervalSeconds: 5
+  resources:
+    requests: { cpu: 50m, memory: 128Mi }
+    limits:   { cpu: 200m, memory: 256Mi }
+
+# ---------------------------------------------------------------------------
+# Migrations
+# ---------------------------------------------------------------------------
+# Runs as a pre-install/pre-upgrade Helm hook so the schema is current before
+# any new pod rolls. Alembic takes no advisory lock, so this must be the only
+# thing migrating: hence the worker command above avoids the CLI.
+#
+# Several revisions are NOT rolling-safe (0008 rewrites every timestamp column
+# with a full-table ACCESS EXCLUSIVE lock; 0009/0011 backfill then tighten;
+# 0036 drops a unique constraint). Expect brief write unavailability on those.
+migrations:
+  enabled: true
+  # Deliberately NOT the chart's ServiceAccount. This Job is a pre-install hook,
+  # and Helm applies hooks before the manifest that creates that SA — see the
+  # comment in templates/_workload.tpl. Migrations need only Postgres, so the
+  # namespace `default` SA is enough and carries no ordering dependency.
+  serviceAccountName: default
+  backoffLimit: 1
+  activeDeadlineSeconds: 900
+  resources:
+    requests: { cpu: 100m, memory: 256Mi }
+    limits:   { cpu: 500m, memory: 512Mi }
+
+# ---------------------------------------------------------------------------
+# Ingress (AWS Load Balancer Controller)
+# ---------------------------------------------------------------------------
+# `alb` is the cluster's default IngressClass. ACM is auto-discovered from the
+# host name against the runreality.ai + *.runreality.ai certificate.
+#
+# If external-dns runs in upsert-only mode with no domainFilter, scope its write
+# permission with IAM: permit route53:ChangeResourceRecordSets only on your own
+# hosted zone. Records for these hosts are then created automatically; note that
+# upsert-only also means they are left behind when the release is removed.
+#
+# `group.name: reality` gives Reality its OWN ALB. Do not point it at a shared
+# ALB group: listen-ports / ssl-redirect / load-balancer-attributes are
+# LoadBalancer-scoped, so joining an existing group shared with other workloads
+# would
+# add an HTTP:80 listener to it and retime every other member.
+ingress:
+  enabled: true
+  className: alb
+  annotations:
+    alb.ingress.kubernetes.io/scheme: internet-facing
+    alb.ingress.kubernetes.io/group.name: reality
+    alb.ingress.kubernetes.io/listen-ports: '[{"HTTPS":443},{"HTTP":80}]'
+    alb.ingress.kubernetes.io/ssl-redirect: "443"
+    alb.ingress.kubernetes.io/target-type: ip
+    alb.ingress.kubernetes.io/backend-protocol: HTTP
+    # The Copilot chat can run for ~270s; the ALB's 60s default would cut it off.
+    alb.ingress.kubernetes.io/load-balancer-attributes: idle_timeout.timeout_seconds=300
+  # Adds ALB fixed-response 404s for /openapi.json, /docs and /redoc.
+  #
+  # OFF by default because it is not needed in the shipped layout: the web pod's
+  # nginx proxies ONLY `/api/` and `/healthz` to the API, so those three paths
+  # fall through to the SPA's index.html and the API's anonymous OpenAPI surface
+  # is not reachable through the app host at all. Verified by request.
+  #
+  # Turn it ON if you change that — add an Ingress path rule that sends `/` or
+  # `/docs` straight to the api Service, or expose the api Service on its own
+  # host. FastAPI's /docs, /redoc and /openapi.json are unauthenticated (the
+  # auth middleware only guards paths under /api/), so a direct route would
+  # publish the full OpenAPI schema of a multi-tenant ERP.
+  #
+  # Note each rule consumes one of the shared ALB's finite listener rules.
+  blockOpenApi: false

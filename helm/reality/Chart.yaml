@@ -1,0 +1,6 @@
+apiVersion: v2
+name: reality
+description: Reality — multi-tenant ERP reality layer (API, MCP, SPA, docs)
+type: application
+version: 0.1.0
+appVersion: "0.0.1"

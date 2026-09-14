@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Security vulnerability
+    url: https://github.com/Xentral-Labs/reality/security/advisories/new
+    about: Report privately. Please do not open a public issue for security problems.
+  - name: Installation and operations guide
+    url: https://docs.runreality.ai/operations/
+    about: One-line setup, Docker Compose, Kubernetes and Railway, upgrade and backup.

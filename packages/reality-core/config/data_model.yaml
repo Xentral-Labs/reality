@@ -1,0 +1,1056 @@
+version: 1
+title: Reality Data Model
+description: Machine-readable catalog for documentation, validation, and future generators.
+sections:
+  - name: Foundation
+    description: Tenant boundary and immutable upstream evidence.
+    tables: [tenant, source_system, source_capability, source_artifact, source_stream, source_record, import_job, interpretation_outcome, interpretation_record_reference]
+  - name: Master Data
+    description: Operational identities and settings needed for joins and decisions.
+    tables: [accounting_target, accounting_target_reference, finance_target_mapping_revision, source_classification_mapping_revision, finance_reference, party, party_role, party_hold, payment_term, item, location, price_list, price_list_entry, party_price_list, party_group, party_group_member, party_group_price_list]
+  - name: Evidence
+    description: Normalized business documents that connect source evidence to reality.
+    tables: [financial_component, document, document_line, opening_scope, opening_item_detail]
+  - name: Reality
+    description: Obligations, allocations, physical events, financial events, and observations.
+    tables: [component_assignment_revision, component_assignment_part, subledger_account, finance_role_destination, finance_state, commitment, commitment_hold, reservation, handling_unit, lot, serial_unit, movement, ledger_entry, ledger_reversal, settlement_allocation, fact, business_event]
+  - name: Interaction
+    description: Auditable Change Proposals, approvals, executions, and chat history.
+    tables: [secret, secret_audit_event, ai_settings, mcp_access_token, action, chat_session, chat_message, playground_run, playground_step, storyline_trace_entry, storyline_package]
+  - name: Modeling Workflow
+    description: Tenant-scoped missing-information investigation and safe declarative Fact interpretation.
+    tables: [reality_gap, reality_gap_entry, interpretation_rule, rule_interpretation_outcome]
+  - name: Accounts and Access
+    description: Human identity, platform approval, company membership, sessions, and security audit.
+    tables: [app_user, email_verification_code, user_session, access_application, access_admission_counter, tenant_membership, company_invitation, invitation_delivery, security_audit_event]
+  - name: Projections
+    description: Disposable tenant-scoped read models rebuilt from Business Events and authoritative Reality.
+    tables: [projection_row, projection_checkpoint]
+
+common_columns:
+  id: Opaque technical identity. Human-readable numbers are never used as identity.
+  tenant_id: Tenant boundary enforced by every repository query.
+  source_record_id: Link to the immutable upstream source payload that supports this record.
+  created_at: UTC timestamp when the record was created.
+  updated_at: UTC timestamp when the record was last updated.
+  payload: Lossless JSON payload retained for traceability and fields that are not operationally typed.
+
+tables:
+  accounting_target:
+    description: Finance-only external configuration; no financial amount authority.
+    columns:
+      id: {}
+      tenant_id: {}
+      namespace: {}
+      name: {}
+      state: {}
+      revision: {}
+      created_at: {}
+      updated_at: {}
+  accounting_target_reference:
+    description: Finance-only external configuration; no financial amount authority.
+    columns:
+      id: {}
+      tenant_id: {}
+      target_id: {}
+      kind: {}
+      code: {}
+      name: {}
+      state: {}
+      revision: {}
+      created_at: {}
+      updated_at: {}
+  finance_target_mapping_revision:
+    description: Finance-only external configuration; no financial amount authority.
+    columns:
+      id: {}
+      tenant_id: {}
+      target_id: {}
+      mapping_kind: {}
+      local_account_id: {}
+      transaction_kind: {}
+      case_reference_id: {}
+      group_mode: {}
+      group_reference_id: {}
+      external_account_id: {}
+      external_tax_code_id: {}
+      case_kind: {}
+      group_kind: {}
+      account_kind: {}
+      tax_kind: {}
+      revision: {}
+      replaces_id: {}
+      state: {}
+      is_current: {}
+      configuration_snapshot: {}
+      reason: {}
+      actor_id: {}
+      action_id: {}
+      created_at: {}
+  playground_run:
+    description: Private learning-run orchestration metadata; never operational truth.
+    columns:
+      id: {}
+      tenant_id: {}
+      owner_user_id: {description: Account that owns this private experiment.}
+      sandbox_kind: {description: Temporary experiment or persistent practice company; constrains restart lifecycle.}
+      preset_key: {description: Versioned synthetic reference dataset name.}
+      preset_version: {description: Positive dataset version.}
+      lesson_key: {description: Guided lesson name.}
+      lesson_version: {description: Positive lesson version.}
+      client_request_key: {description: Owner-scoped creation retry identity.}
+      status: {description: Initializing, active, initialization_failed or archived.}
+      initialization_progress: {description: Bounded seed reconciliation references; not business state.}
+      initialization_error_code: {description: Sanitized setup failure code, never credentials.}
+      created_at: {}
+      ready_at: {description: UTC time the reference dataset became ready.}
+      archived_at: {description: UTC time this run became read-only.}
+      storyline_key: {description: Storyline package this run plays, when it is a Storyline run.}
+      storyline_version: {description: Package version the run started with; kept when the library receives a newer one.}
+      storyline_state: {description: Bounded chosen branches; the current chapter is derived from the steps.}
+  playground_step:
+    description: Same-tenant proposal link and historical learning observations.
+    columns:
+      id: {}
+      tenant_id: {}
+      run_id: {description: Same-tenant learning run.}
+      sequence: {description: Positive step position within the run.}
+      request_key: {description: Run-scoped preparation retry identity.}
+      proposal_id: {description: Same-tenant ChangeProposal; sole execution-state authority. Null for a Storyline read chapter.}
+      lesson_step_key: {description: Optional versioned guided-step identity; the chapter key of a Storyline step.}
+      before_observation: {description: Bounded historical observation captured on execution, not preview.}
+      receipt_observation: {description: Bounded verified historical explanation, not current business truth.}
+      created_at: {}
+      observed_at: {description: UTC receipt verification time.}
+      marker_sequence: {description: Storyline marker; the chapter's delta is every business event after this sequence.}
+      marker_at: {description: Storyline marker; the chapter's delta is every Fact recorded after this instant.}
+  storyline_trace_entry:
+    description: One recorded call of a Storyline run; an explanation aid, bounded per entry and per run, never a business record.
+    columns:
+      id: {}
+      tenant_id: {}
+      run_id: {description: Same-tenant Storyline run.}
+      step_id: {description: Same-tenant chapter step; null in free play.}
+      ordinal: {description: Position within the run's trace.}
+      kind: {description: view, read, propose, confirm, reject or error.}
+      name: {description: Tool name or route template.}
+      access: {description: read, propose or confirm.}
+      actor: {description: person, copilot, mcp or storyline.}
+      proposal_id: {description: The ChangeProposal a propose, confirm or reject entry refers to.}
+      marker_sequence: {description: Marker captured before a free-play confirmation.}
+      marker_at: {description: Marker instant captured before a free-play confirmation.}
+      before_exceptions: {description: Bounded list of finding ids open before a free-play confirmation.}
+      input: {description: Bounded call input, truncated with a flag beyond the entry bound.}
+      result: {description: Bounded call result or error text.}
+      duration_ms: {description: Wall-clock duration of the call.}
+      recorded_at: {}
+  storyline_package:
+    description: An imported Storyline package owned by an account; never joined by business reads.
+    columns:
+      id: {}
+      owner_user_id: {description: Account that imported the package.}
+      key: {description: Package key.}
+      version: {description: Positive package version.}
+      title: {description: English title for lists.}
+      author: {description: Free-text author from the package.}
+      checksum: {description: SHA-256 of the stored document.}
+      document: {description: The package as received, bounded.}
+      validation: {description: Validation result recorded at import.}
+      imported_at: {}
+      replaced_at: {description: Set when a same key and version import replaced this row.}
+  app_user:
+    description: Platform human identity, kept separate from tenant-scoped business data.
+    columns:
+      id: {}
+      email: {description: Normalized unique sign-in address.}
+      password_hash: {description: Argon2 password hash; plaintext is never retained.}
+      display_name: {description: Name shown in the application.}
+      status: {description: Account lifecycle such as email_unverified, pending_approval, active, or rejected.}
+      language: {description: UI language preference; English is the default and translation fallback.}
+      locale: {description: Locale used to format dates, quantities, and money in the UI.}
+      timezone: {description: IANA display timezone; business timestamps remain UTC internally.}
+      is_platform_admin: {description: Whether the user may review platform access applications.}
+      email_verified_at: {description: UTC email confirmation time.}
+      last_login_at: {description: UTC time of the latest successful sign-in.}
+      created_at: {}
+      updated_at: {}
+  email_verification_code:
+    description: Short-lived one-time email verification challenge.
+    columns:
+      id: {}
+      user_id: {description: User receiving the challenge.}
+      code_hash: {description: One-way digest; the clear verification code is not stored.}
+      expires_at: {description: UTC expiry time.}
+      attempts: {description: Failed verification attempts.}
+      consumed_at: {description: UTC time of successful use.}
+      created_at: {}
+  user_session:
+    description: Revocable HttpOnly browser session with only a token hash stored server-side.
+    columns:
+      id: {}
+      user_id: {description: Authenticated user.}
+      token_hash: {description: One-way digest of the browser cookie token.}
+      expires_at: {description: UTC expiry time.}
+      last_seen_at: {description: UTC time of latest authenticated use.}
+      revoked_at: {description: UTC revocation time, when signed out.}
+      created_at: {}
+  access_application:
+    description: Owner-reviewed application for access to the Reality platform.
+    columns:
+      id: {}
+      user_id: {description: Applicant user.}
+      company_name: {description: Applicant company.}
+      company_website: {description: Optional company website.}
+      orders_per_day: {description: Self-reported operating volume band.}
+      role_title: {description: Applicant role.}
+      status: {description: Pending, approved, or rejected review state.}
+      review_note: {description: Internal platform-owner review note.}
+      requested_at: {description: UTC application time.}
+      reviewed_at: {description: UTC review time.}
+      reviewed_by_user_id: {description: Platform administrator who made the decision.}
+  access_admission_counter:
+    description: Platform-wide serialized counter used to enforce automatic admission capacity across application instances.
+    columns:
+      id: {description: Stable singleton counter identity.}
+      used_slots: {description: Number of automatic admission slots already consumed.}
+      updated_at: {description: UTC timestamp of the latest counter update.}
+  tenant_membership:
+    description: Explicit user access to one tenant; the tenant boundary is checked on every request.
+    columns:
+      id: {}
+      tenant_id: {}
+      user_id: {description: Member user.}
+      role: {description: Company role, initially owner.}
+      status: {description: Membership lifecycle, initially active.}
+      created_at: {}
+  company_invitation:
+    description: Tenant-scoped administrative evidence that a normalized email may explicitly accept company membership.
+    columns:
+      id: {}
+      tenant_id: {}
+      normalized_email: {description: Trimmed case-insensitive matching value; never an identity or pre-acceptance account link.}
+      status: {description: Pending, accepted, revoked, or expired lifecycle.}
+      token_hash: {description: Non-recoverable digest of the current invitation secret.}
+      token_generation: {description: Monotone generation that invalidates older delivery links.}
+      expires_at: {description: UTC deadline for the current generation.}
+      invited_by_user_id: {description: Active owner who created the invitation.}
+      accepted_by_user_id: {description: Matching account recorded only after explicit acceptance.}
+      accepted_at: {description: UTC acceptance time.}
+      revoked_at: {description: UTC revocation time.}
+      terminal_at: {description: UTC retention anchor for accepted, revoked, or expired state.}
+      created_at: {}
+      updated_at: {}
+  invitation_delivery:
+    description: Tenant-scoped retryable notification intent without a clear token or rendered message body.
+    columns:
+      id: {}
+      tenant_id: {}
+      invitation_id: {description: Direct scoped link to the invitation being delivered.}
+      generation: {description: Invitation generation this intent may issue.}
+      template_key: {description: Stable invitation template selector.}
+      locale: {description: Requested locale with an English fallback.}
+      status: {description: Pending, processing, retry, delivered, or failed lifecycle.}
+      attempt_count: {description: Number of delivery attempts.}
+      next_attempt_at: {description: Earliest UTC time at which a worker may claim the intent.}
+      claimed_at: {description: UTC start of the current worker lease.}
+      attempted_at: {description: UTC time of the latest provider attempt.}
+      delivered_at: {description: UTC confirmed delivery time.}
+      provider_message_id: {description: Optional bounded non-secret provider result.}
+      last_error_code: {description: Optional sanitized provider error category.}
+      created_at: {}
+  security_audit_event:
+    description: Immutable account and access audit entry outside the business event journal.
+    columns:
+      id: {}
+      user_id: {description: Subject user, when applicable.}
+      actor_user_id: {description: Acting platform administrator or user.}
+      tenant_id: {description: Company scope for tenant access events; null for global account events.}
+      subject_type: {description: Stable type of invitation, delivery, or membership subject.}
+      subject_id: {description: Opaque subject identity.}
+      outcome: {description: Stable redacted transition outcome.}
+      event_type: {description: Stable security event name.}
+      detail: {description: JSON detail without credentials or secrets.}
+      occurred_at: {description: UTC event time.}
+  source_artifact:
+    description: Immutable tenant-scoped original file retained for streamed source ingestion.
+    columns:
+      id: {type: string, description: Opaque artifact identity.}
+      tenant_id: {type: string, description: Owning tenant.}
+      filename: {type: string, description: Original client filename.}
+      content_type: {type: string, description: Reported media type.}
+      byte_size: {type: integer, description: Exact number of stored bytes.}
+      sha256: {type: string, description: SHA-256 digest of the original bytes.}
+      storage_key: {type: string, description: Internal content-addressed storage locator.}
+      status: {type: string, description: Staged or attached lifecycle state.}
+      created_at: {type: datetime, description: UTC receipt time.}
+      attached_at: {type: datetime, nullable: true, description: UTC time linked to SourceRecord evidence.}
+  tenant:
+    description: Top-level isolation boundary for all business data.
+    columns:
+      id: {description: Opaque tenant identity.}
+      name: {description: Human-readable tenant name.}
+      purpose: {description: Immutable business or playground boundary; existing tenants default to business.}
+      created_at: {}
+      archived_at: {description: UTC timestamp that hides the tenant from normal workspace selection while preserving all tenant data.}
+  source_system:
+    description: Tenant-defined identity of an external origin; it does not imply a configured connector.
+    columns:
+      id: {}
+      tenant_id: {}
+      code: {description: Stable machine-readable origin code, unique inside the tenant.}
+      name: {description: Human-readable source-system name.}
+      description: {description: Optional operational explanation of this origin.}
+      is_active: {description: Whether the origin remains available for new configuration and operations.}
+      created_at: {}
+      updated_at: {}
+  source_capability:
+    description: Declares an upstream object type a source system may provide and its intended operational meaning.
+    columns:
+      id: {}
+      tenant_id: {}
+      source_system_id: {description: Opaque reference to the configured source system.}
+      source_type: {description: Object or event type used by the upstream system.}
+      target_type: {description: Intended operational meaning, such as sales_order, item, party, or payment.}
+      is_active: {description: Whether this declared source/target combination is currently enabled.}
+      created_at: {}
+      updated_at: {}
+  source_record:
+    description: Immutable version of a payload received from an external system.
+    columns:
+      id: {}
+      tenant_id: {}
+      source_system: {description: Stable identifier of the originating system, such as shopify or crm.}
+      source_type: {description: Upstream object or event type.}
+      external_id: {description: Identity assigned by the source system; unique only in its source context.}
+      payload: {}
+      payload_hash: {description: SHA-256 of canonical JSON used only for semantic duplicate detection.}
+      source_artifact_id: {description: Optional opaque link to the immutable original uploaded file.}
+      version: {description: Arrival sequence within one tenant-scoped source identity.}
+      source_version_at: {description: Upstream version timestamp used to reject stale or conflicting deliveries when supplied.}
+      supersedes_source_record_id: {description: Previous current immutable source version replaced by this version.}
+      received_at: {description: UTC timestamp when this source version was received.}
+  source_stream:
+    description: Stable tenant-scoped external identity whose pointer selects the current immutable SourceRecord.
+    columns:
+      id: {}
+      tenant_id: {}
+      source_system: {description: Stable identifier of the originating system.}
+      source_type: {description: Upstream object or event type.}
+      external_id: {description: Identity assigned by the source system inside this stream.}
+      current_source_record_id: {description: Current accepted SourceRecord; stale and conflicting versions never replace it.}
+  import_job:
+    description: Retryable interpretation request created atomically with its immutable SourceRecord.
+    columns:
+      id: {}
+      tenant_id: {}
+      source_record_id: {}
+      status: {description: Processing lifecycle state such as pending, processing, completed, or failed.}
+      attempts: {description: Number of interpretation attempts made for this source version.}
+      input: {description: Lossless JSON application context required to interpret the source through shared services.}
+      error: {description: Last business-readable interpretation error; empty after success.}
+      next_attempt_at: {description: UTC timestamp after which a failed job may be retried.}
+      created_at: {}
+      completed_at: {description: UTC timestamp of successful or intentionally skipped completion.}
+  interpretation_outcome:
+    description: Immutable terminal result of one source interpretation attempt; operational audit, not business Reality.
+    columns:
+      id: {}
+      tenant_id: {}
+      source_record_id: {}
+      import_job_id: {description: Opaque link to the mutable queue state whose attempt completed.}
+      attempt: {description: Zero for intake-only dispositions; otherwise the executed attempt number.}
+      classification: {description: Interpreted, needs_review, unsupported, stale, conflict, or failed.}
+      interpreter_name: {description: Stable interpreter identity used for this attempt.}
+      interpreter_version: {description: Version of the interpretation contract.}
+      reason_code: {description: Controlled machine-readable reason without source payload content.}
+      summary: {description: Bounded safe explanation without payloads, credentials, or stack traces.}
+      completed_at: {}
+  interpretation_record_reference:
+    description: Controlled type and opaque identity produced or recognized by one successful interpretation.
+    columns:
+      id: {}
+      tenant_id: {}
+      outcome_id: {description: Opaque link to the owning interpreted outcome.}
+      record_type: {description: Controlled produced-record family.}
+      record_id: {description: Opaque target identity; never a human document number.}
+  party:
+    description: Operational person or organization identity used in business relationships.
+    columns:
+      id: {}
+      tenant_id: {}
+      type: {description: Legacy primary classification; detailed capabilities belong in party_role.}
+      name: {description: Operational display name.}
+      payload: {}
+      is_active: {description: Whether the party may be used for new operations; history remains linked when inactive.}
+      source_record_id: {}
+      accounting_code: {description: External or internal code used to join accounting records.}
+      payment_term_id: {description: Default payment term used for new transactions with this party.}
+      default_currency: {description: ISO currency used by default for new party transactions.}
+      credit_limit: {description: Credit threshold used for customer exposure decisions.}
+      tax_identifier: {description: Tax registration identifier required for fiscal joins and output.}
+  party_role:
+    description: A capability a party performs, without duplicating the party identity.
+    columns:
+      id: {}
+      tenant_id: {}
+      party_id: {description: Party that performs the role.}
+      role: {description: Operational role such as customer, supplier, or company.}
+      default_location_id: {description: Default operational location associated with this role.}
+  party_hold:
+    description: Time-bounded operational restriction applying to a party, including delivery holds.
+    columns:
+      id: {}
+      tenant_id: {}
+      party_id: {description: Party whose operation is restricted.}
+      hold_type: {description: Scope of the restriction, such as delivery.}
+      reason_code: {description: Stable machine-readable reason for the restriction.}
+      note: {description: Optional human explanation.}
+      created_by: {description: Actor that placed the hold.}
+      created_at: {}
+      released_at: {description: UTC release timestamp; empty means the hold is active.}
+  payment_term:
+    description: Tenant-scoped payment condition used to calculate financial due dates.
+    columns:
+      id: {}
+      tenant_id: {}
+      code: {description: Stable human-facing lookup code such as NET_30; never used as technical identity.}
+      name: {description: Human-readable payment-term name.}
+      due_days: {description: Calendar days added to the relevant document date to calculate the due date.}
+      is_active: {description: Whether the term may be assigned to new transactions.}
+      source_record_id: {}
+  item:
+    description: Operational product or service identity used in quantities, stock, and commitments.
+    columns:
+      id: {}
+      tenant_id: {}
+      sku: {description: Human-facing stock keeping code used for lookup, never as technical identity.}
+      name: {description: Operational display name.}
+      unit: {description: Base quantity unit used by inventory and commitments.}
+      is_active: {description: Whether the item may be used for new operations.}
+      source_record_id: {}
+      item_type: {description: Operational behavior class, for example stocked or service.}
+      tracking_type: {description: Traceability mode such as none, batch, or serial.}
+      default_location_id: {description: Preferred location for item operations.}
+      purchase_unit: {description: Unit normally used for purchasing.}
+      conversion_factor: {description: Multiplier converting one purchase unit into base units.}
+      lead_time_days: {description: Expected procurement lead time in calendar days.}
+  location:
+    description: Physical or logical place relevant to stock and movement.
+    columns:
+      id: {}
+      tenant_id: {}
+      name: {description: Operational display name.}
+      type: {description: Location class such as warehouse or bin.}
+      is_active: {description: Whether the location may be used for new operations.}
+      parent_location_id: {description: Immediate parent in the location hierarchy.}
+      source_record_id: {}
+      allows_stock: {description: Whether physical stock may be held at this location.}
+  price_list:
+    description: Versioned sales or purchase price collection with one currency and validity window.
+    columns:
+      id: {}
+      tenant_id: {}
+      code: {description: Stable lookup code; never used as technical identity.}
+      name: {description: Human-readable list name.}
+      direction: {description: Commercial direction, sales or purchase.}
+      currency: {description: ISO currency shared by all entries in the list.}
+      valid_from: {description: UTC start of list validity; empty means unbounded.}
+      valid_until: {description: Exclusive UTC end of list validity; empty means unbounded.}
+      is_default: {description: Whether this is the fallback list for its direction and currency.}
+      is_active: {description: Whether the list participates in new price resolution.}
+      source_record_id: {}
+  price_list_entry:
+    description: Item price tier selected by unit, quantity, and validity.
+    columns:
+      id: {}
+      tenant_id: {}
+      price_list_id: {description: Parent price list.}
+      item_id: {description: Item being priced.}
+      min_quantity: {description: Inclusive minimum quantity for this tier.}
+      unit_price: {description: Monetary price per stated unit before separate discounts.}
+      unit: {description: Quantity unit to which the price applies.}
+      valid_from: {description: UTC start of entry validity; empty inherits no lower bound.}
+      valid_until: {description: Exclusive UTC end of entry validity.}
+      source_record_id: {}
+  party_price_list:
+    description: Direct customer or supplier assignment that takes precedence in price resolution.
+    columns:
+      id: {}
+      tenant_id: {}
+      party_id: {description: Customer or supplier receiving the assigned list.}
+      price_list_id: {description: Assigned price list.}
+      priority: {description: Lower number is evaluated first among direct assignments.}
+      valid_from: {description: UTC assignment start; empty means unbounded.}
+      valid_until: {description: Exclusive UTC assignment end.}
+  party_group:
+    description: Reusable party classification used for shared commercial conditions.
+    columns:
+      id: {}
+      tenant_id: {}
+      code: {description: Stable group lookup code.}
+      name: {description: Human-readable group name.}
+      group_type: {description: Operational purpose of the group, initially pricing.}
+      is_active: {description: Whether the group participates in new resolution.}
+      source_record_id: {}
+  party_group_member:
+    description: Time-bounded membership of one party in one commercial group.
+    columns:
+      id: {}
+      tenant_id: {}
+      party_group_id: {description: Group containing the party.}
+      party_id: {description: Party belonging to the group.}
+      valid_from: {description: UTC membership start.}
+      valid_until: {description: Exclusive UTC membership end.}
+  party_group_price_list:
+    description: Price-list assignment shared by members of a party group.
+    columns:
+      id: {}
+      tenant_id: {}
+      party_group_id: {description: Group receiving the price list.}
+      price_list_id: {description: Assigned price list.}
+      priority: {description: Lower number is evaluated first among group assignments.}
+      valid_from: {description: UTC assignment start.}
+      valid_until: {description: Exclusive UTC assignment end.}
+  document:
+    description: Normalized business evidence; fulfillment state is derived from Reality records.
+    columns:
+      id: {}
+      tenant_id: {}
+      source_record_id: {}
+      type: {description: Evidence type such as sales_order, invoice, or payment.}
+      number: {description: Human-readable document number, never used as identity.}
+      party_id: {description: Primary counterparty represented by the document.}
+      currency: {description: ISO currency of monetary amounts.}
+      gross_amount: {description: Gross monetary total represented by the document.}
+      status: {description: Evidence lifecycle state only; never delivery, reservation, or fulfillment state.}
+      document_date: {description: Date printed or assigned by the source document.}
+      ordered_at: {description: UTC order timestamp supplied by the source.}
+      requested_delivery_at: {description: Requested delivery timestamp for planning.}
+      customer_reference: {description: Reference supplied by the customer for operational lookup.}
+      sales_channel: {description: Channel through which the order or document originated.}
+      payment_term_id: {description: Payment term agreed for this transaction.}
+      ship_to_party_id: {description: Party identity representing the delivery recipient.}
+  document_line:
+    description: Normalized line-level evidence linked to its parent document.
+    columns:
+      id: {}
+      tenant_id: {}
+      document_id: {description: Parent evidence document.}
+      source_line_id: {description: Line identity assigned by the upstream source.}
+      item_id: {description: Resolved operational item, when available.}
+      sku: {description: SKU captured on the evidence even when no item is resolved.}
+      description: {description: Source-facing line description.}
+      quantity: {description: Quantity stated by the evidence.}
+      unit_price: {description: Price per stated unit.}
+      gross_amount: {description: Gross monetary amount of the line.}
+      promised_at: {description: Original promised date text retained from the evidence.}
+      payload: {}
+      unit: {description: Quantity unit stated for this line.}
+      requested_at: {description: Typed UTC timestamp for the requested line date.}
+      line_type: {description: Operational line class such as item, service, or text.}
+      price_list_entry_id: {description: Price tier that explains the agreed unit price, when system-resolved.}
+  commitment:
+    description: An obligation between parties that Reality must fulfill or settle.
+    columns:
+      id: {}
+      tenant_id: {}
+      type: {description: Obligation type such as customer_delivery or supplier_delivery.}
+      from_party_id: {description: Party expected to provide value.}
+      to_party_id: {description: Party expected to receive value.}
+      item_id: {description: Item involved in a quantity commitment.}
+      location_id: {description: Operational location relevant to fulfillment.}
+      quantity: {description: Outstanding or agreed quantity in the item base unit.}
+      amount: {description: Monetary value of a financial commitment.}
+      currency: {description: ISO currency of the commitment amount.}
+      due_at: {description: UTC timestamp by which the commitment is due.}
+      status: {description: Commitment lifecycle state derived independently from document status.}
+      document_id: {description: Shortest applicable link to document-level evidence.}
+      document_line_id: {description: Shortest applicable link to line-level evidence.}
+      created_at: {}
+      cancelled_at: {description: UTC cancellation timestamp; empty means not cancelled.}
+      priority: {description: Operational priority used for sequencing decisions.}
+  commitment_hold:
+    description: Time-bounded execution hold on one commitment.
+    columns:
+      id: {}
+      tenant_id: {}
+      commitment_id: {description: Commitment prevented from execution.}
+      reason_code: {description: Stable machine-readable hold reason.}
+      note: {description: Optional human explanation.}
+      created_by: {description: Actor that placed the hold.}
+      created_at: {}
+      released_at: {description: UTC release timestamp; empty means the hold is active.}
+  reservation:
+    description: Quantity allocated to a commitment at a location.
+    columns:
+      id: {}
+      tenant_id: {}
+      commitment_id: {description: Commitment receiving the allocation.}
+      item_id: {description: Allocated item.}
+      location_id: {description: Location from which stock is allocated.}
+      quantity: {description: Reserved quantity in the item base unit.}
+      status: {description: Allocation lifecycle state.}
+      reserved_at: {description: UTC timestamp when allocation occurred.}
+      handling_unit_id: {description: Optional pallet from which this quantity is reserved.}
+      lot_id: {description: Optional exact lot from which this quantity is reserved.}
+      serial_unit_id: {description: Optional exact serial unit reserved; its quantity is always one.}
+  movement:
+    description: Immutable physical quantity event between locations or system boundaries.
+    columns:
+      id: {}
+      tenant_id: {}
+      type: {description: Physical event type such as receipt, shipment, or transfer.}
+      item_id: {description: Item whose physical quantity changed.}
+      from_location_id: {description: Origin location; empty for inbound system-boundary events.}
+      to_location_id: {description: Destination location; empty for outbound system-boundary events.}
+      quantity: {description: Physical quantity moved in the item base unit.}
+      occurred_at: {description: UTC timestamp when the physical event occurred.}
+      commitment_id: {description: Commitment fulfilled by this movement, when applicable.}
+      source_record_id: {}
+      handling_unit_id: {description: Optional physical pallet carrying this moved quantity.}
+      lot_id: {description: Optional lot identity physically moved with this quantity.}
+      serial_unit_id: {description: Optional exact serialized unit; the movement quantity is one.}
+  handling_unit:
+    description: Optional physical pallet identity used to group item movements without becoming inventory itself.
+    columns:
+      id: {}
+      tenant_id: {}
+      nve: {description: Optional NVE/SSCC printed on the pallet; unique within the tenant when present.}
+      source_record_id: {description: Optional immutable external evidence from which the pallet identity originated.}
+      created_at: {description: UTC timestamp when the pallet identity was recorded.}
+  lot:
+    description: Tenant-scoped lot identity for a tracked item; physical availability remains derived from movements.
+    columns:
+      id: {}
+      tenant_id: {}
+      item_id: {description: Item tracked by this lot.}
+      lot_number: {description: Human-readable lot or batch number, unique per tenant and item.}
+      source_record_id: {}
+      created_at: {}
+  serial_unit:
+    description: Tenant-scoped identity of one serialized physical unit.
+    columns:
+      id: {}
+      tenant_id: {}
+      item_id: {description: Serialized item represented by this unit.}
+      serial_number: {description: Human-readable serial number, unique per tenant and item.}
+      lot_id: {description: Optional lot to which this serial unit belongs.}
+      source_record_id: {}
+      created_at: {}
+  subledger_account:
+    description: Managed operational account identity and immutable role.
+    columns:
+      id: {}
+      tenant_id: {}
+      code: {description: Tenant-unique human reference, never identity.}
+      name: {description: Account display name.}
+      role: {description: Fixed operational role, not inferred from code.}
+      state: {description: Active or blocked for new normal posting.}
+      revision: {description: Audited reference revision.}
+  finance_role_destination:
+    description: One configured default per tenant and operational role.
+    columns:
+      id: {}
+      tenant_id: {}
+      role: {description: Fixed operational role.}
+      account_id: {description: Same-tenant compatible account.}
+  finance_state:
+    description: Transaction coordination revision, not a financial balance.
+    columns:
+      id: {}
+      tenant_id: {}
+      revision: {description: Finance mutation revision for stale confirmation detection.}
+  ledger_entry:
+    description: Immutable financial posting used to derive balances and open items.
+    columns:
+      id: {}
+      tenant_id: {}
+      posting_group_id: {description: Identity grouping balanced entries from one posting event.}
+      account_id: {description: Required tenant-scoped account identity; operational role is read from the account.}
+      party_id: {description: Counterparty subledger identity, when applicable.}
+      amount: {description: Monetary posting amount.}
+      currency: {description: ISO currency of the amount.}
+      debit_credit: {description: Posting side, debit or credit.}
+      effective_at: {description: UTC timestamp at which the posting takes economic effect.}
+      document_id: {description: Evidence document supporting the posting.}
+      source_record_id: {}
+  ledger_reversal:
+    description: Tenant-scoped correction evidence linking one immutable original posting group to its exact inverse group.
+    columns:
+      id: {}
+      tenant_id: {}
+      original_posting_group_id: {description: Opaque identity of the complete posting group being reversed; unique per tenant.}
+      reversing_posting_group_id: {description: Opaque identity of the appended exact inverse posting group; unique per tenant.}
+      reason: {description: Required human explanation for the correction.}
+      reversed_at: {description: UTC timestamp when the reversal was recorded.}
+      actor_context: {description: Auditable JSON context for the actor; excluded from semantic retry identity.}
+      request_fingerprint: {description: Canonical semantic retry identity for the tenant, original group, and reason.}
+  settlement_allocation:
+    description: Explicit allocation of a payment ledger entry to an invoice ledger entry.
+    columns:
+      id: {}
+      tenant_id: {}
+      payment_ledger_entry_id: {description: Payment-side ledger entry being allocated.}
+      invoice_ledger_entry_id: {description: Invoice-side ledger entry being settled.}
+      amount: {description: Monetary amount allocated between the two entries.}
+      currency: {description: ISO currency of the allocation.}
+      allocated_at: {description: UTC timestamp when the allocation was made.}
+  fact:
+    description: Source-supported observation about a subject without widening its table schema.
+    columns:
+      id: {}
+      tenant_id: {}
+      subject_type: {description: Type of entity described by the observation.}
+      subject_id: {description: Opaque identity of the described entity.}
+      predicate: {description: Stable machine-readable name of the observed property.}
+      value: {description: JSON value of the observation.}
+      observed_at: {description: UTC timestamp when the fact was observed.}
+      recorded_at: {description: UTC timestamp when Reality wrote the fact down; a Storyline chapter reads Facts recorded after its marker.}
+      source_record_id: {description: Direct immutable SourceRecord supporting the observation; required for all new writes.}
+      request_fingerprint: {description: Tenant-scoped semantic retry identity; nullable only for legacy Facts.}
+      interpretation_rule_id: {description: Exact optional tenant rule version that produced this immutable Fact.}
+  business_event:
+    description: Immutable transactional outbox event announcing a committed business change.
+    columns:
+      id: {}
+      tenant_id: {}
+      sequence: {description: Monotone tenant-local processing position; ordering aid, never business identity.}
+      event_type: {description: Version-independent semantic event name such as reservation.created.}
+      schema_version: {description: Version of the event payload contract.}
+      subject_type: {description: Type of the primary affected business object.}
+      subject_id: {description: Opaque identity of the primary affected object.}
+      occurred_at: {description: UTC time at which the business change occurred.}
+      recorded_at: {description: UTC time at which the outbox event was stored.}
+      payload: {description: Lossless JSON event payload containing stable business values and references.}
+      source_record_id: {}
+      action_id: {description: Physical foreign key to the approved Change Proposal that caused the event, when applicable.}
+      causation_id: {description: Immediate preceding business event that caused this event.}
+      correlation_id: {description: Opaque identifier connecting events in one business process.}
+  projection_row:
+    description: Generic disposable row of a named materialized read model; it is never authoritative for commands.
+    columns:
+      id: {}
+      tenant_id: {}
+      projection_name: {description: Stable name of the materialized read model.}
+      projection_version: {description: Builder schema version used to create the JSON payload.}
+      record_key: {description: Stable key of one result inside the named projection.}
+      payload: {description: Derived JSON result that may be deleted and rebuilt from authoritative Reality.}
+      source_event_sequence: {description: Latest tenant-local BusinessEvent sequence incorporated into this row.}
+      updated_at: {description: UTC timestamp of the last materialization.}
+  projection_checkpoint:
+    description: Tenant-local progress and health marker for one named materialized projection.
+    columns:
+      id: {}
+      tenant_id: {}
+      projection_name: {description: Stable name of the materialized read model.}
+      projection_version: {description: Builder schema version expected by the current application.}
+      last_event_sequence: {description: Latest relevant BusinessEvent sequence incorporated by this tenant-scoped projection.}
+      status: {description: Projection build state, currently ready or failed.}
+      error: {description: Last build error; empty for a healthy projection.}
+      updated_at: {description: UTC timestamp of the latest build attempt.}
+  action:
+    display_name: change_proposal
+    description: Physical persistence for an auditable ChangeProposal prepared by a human or agent and executed only after approval.
+    columns:
+      id: {}
+      tenant_id: {}
+      type: {description: Application tool that the ChangeProposal would execute.}
+      actor_type: {description: Kind of actor preparing the proposal, such as human or agent.}
+      status: {description: ChangeProposal lifecycle state including proposed, rejected, or executed after approval.}
+      input: {description: Lossless JSON proposal input.}
+      output: {description: Lossless JSON execution result, empty before execution.}
+      created_at: {}
+  ai_settings:
+    description: Tenant-scoped Copilot provider configuration; managed mode uses deployment configuration while external modes reference a tenant secret.
+    columns:
+      tenant_id: {description: Tenant whose Copilot uses this configuration.}
+      provider: {description: Tenant-selected managed, Anthropic, or OpenAI-compatible provider mode.}
+      model: {description: Provider model identifier used for externally configured Copilot requests.}
+      base_url: {description: Provider endpoint used by OpenAI-compatible Copilot requests.}
+      api_key_secret_id: {description: Opaque reference to the active tenant-scoped provider credential in the secret vault.}
+      encrypted_api_key: {description: Legacy encrypted provider credential retained only for lazy migration into the generic vault.}
+      updated_at: {description: UTC timestamp of the latest configuration change.}
+  secret:
+    description: Tenant-scoped envelope-encrypted credential metadata and ciphertext; clear values are never returned by repositories or APIs.
+    columns:
+      id: {}
+      tenant_id: {}
+      purpose: {description: Stable consumer purpose such as an AI provider or future source connector credential.}
+      provider: {description: Optional external service family associated with the credential.}
+      label: {description: Human-readable non-secret label for operators.}
+      ciphertext: {description: AES-GCM encrypted secret value encoded for persistence.}
+      nonce: {description: Unique AES-GCM nonce used for this encrypted value.}
+      encrypted_data_key: {description: Per-secret data key wrapped by the externally supplied master key.}
+      key_version: {description: Envelope-encryption format and wrapping-key version.}
+      fingerprint: {description: Non-secret masked suffix used to recognize the configured credential.}
+      status: {description: Credential lifecycle state such as active, rotated, or revoked.}
+      created_at: {}
+      updated_at: {}
+      last_used_at: {description: UTC timestamp of the latest successful vault resolution.}
+      rotated_at: {description: UTC timestamp when this credential was superseded by a replacement.}
+      revoked_at: {description: UTC timestamp after which the credential can no longer be resolved.}
+  secret_audit_event:
+    description: Metadata-only audit trail for secret creation, use, rotation, and revocation; it never contains secret values.
+    columns:
+      id: {}
+      tenant_id: {}
+      secret_id: {description: Opaque identity of the affected vault entry.}
+      event_type: {description: Vault lifecycle event such as created, used, rotated, or revoked.}
+      occurred_at: {description: UTC timestamp when the vault event occurred.}
+  mcp_access_token:
+    description: Revocable tenant-scoped credential for external MCP clients; only a one-way hash is retained.
+    columns:
+      id: {}
+      tenant_id: {}
+      name: {description: Human-readable label identifying the client or purpose of the credential.}
+      token_prefix: {description: Non-secret prefix used to identify the credential without exposing it.}
+      token_hash: {description: One-way hash used to authenticate the bearer token; the plaintext token is never stored.}
+      allowed_tools: {description: JSON allowlist of published MCP tool names; an asterisk grants all current and future tools.}
+      created_at: {}
+      last_used_at: {description: UTC timestamp of the most recent successful authentication, when any.}
+      revoked_at: {description: UTC timestamp after which the credential can no longer authenticate, when revoked.}
+  chat_session:
+    description: Tenant-scoped conversation container for operational assistance.
+    columns:
+      id: {}
+      tenant_id: {}
+      title: {description: Human-readable conversation title.}
+      created_at: {}
+      updated_at: {}
+  chat_message:
+    description: One immutable conversational message within a chat session.
+    columns:
+      id: {}
+      tenant_id: {}
+      session_id: {description: Parent chat session.}
+      role: {description: Message author role, such as user or assistant.}
+      content: {description: Message text.}
+      created_at: {}
+  reality_gap:
+    description: Tenant-scoped missing business question and current modeling-work lifecycle.
+    columns:
+      id: {}
+      tenant_id: {}
+      question: {description: Business-language question Reality cannot yet answer.}
+      intended_use: {description: Decision, display, filter, or action needing the answer.}
+      origin: {description: Chat, MCP, or Web capture surface.}
+      origin_reference: {description: Optional opaque conversation or record context.}
+      status: {description: Current gap workflow state.}
+      destination: {description: Reviewed model destination when decided.}
+      revision: {description: Monotone stale-write guard.}
+      request_fingerprint: {description: Tenant-scoped capture idempotency identity.}
+      created_by_user_id: {description: Optional requesting user.}
+      created_at: {}
+      updated_at: {}
+  reality_gap_entry:
+    description: Append-only guided answer, evidence, recommendation, decision, or implementation receipt.
+    columns:
+      id: {}
+      tenant_id: {}
+      gap_id: {description: Owning RealityGap.}
+      entry_type: {description: Closed investigation or decision entry type.}
+      payload: {description: Bounded canonical JSON content, never a copied full source payload.}
+      actor_type: {description: Human, agent, or system author class.}
+      actor_user_id: {description: Optional human author.}
+      created_at: {}
+  interpretation_rule:
+    description: Immutable version of one safe tenant-specific SourceRecord-to-Fact mapping.
+    columns:
+      id: {}
+      tenant_id: {}
+      gap_id: {description: Originating approved RealityGap.}
+      logical_name: {description: Stable tenant-local rule family name.}
+      version: {description: Positive immutable version.}
+      status: {description: Draft, active, or disabled.}
+      source_system: {}
+      source_type: {}
+      value_path: {description: Restricted non-executable source path.}
+      predicate: {description: Tenant-local Fact predicate.}
+      subject_type: {}
+      subject_resolver: {}
+      value_type: {}
+      allowed_values: {}
+      value_mapping: {}
+      normalization: {}
+      observed_at_mode: {}
+      observed_at_path: {}
+      created_by_user_id: {}
+      created_at: {}
+      activated_at: {}
+      disabled_at: {}
+  rule_interpretation_outcome:
+    description: Durable per-source result of evaluating one interpretation rule version.
+    columns:
+      id: {}
+      tenant_id: {}
+      rule_id: {}
+      source_record_id: {}
+      status: {}
+      fact_id: {}
+      detail: {description: Bounded diagnostic without a copied source payload.}
+      evaluated_at: {}
+
+  opening_scope:
+    description: Immutable source snapshot coverage for one party, direction and currency;
+      prevents duplicate residual authority.
+    columns:
+      id:
+        description: Opaque coverage identity.
+      tenant_id:
+        description: Owning tenant.
+      source_namespace:
+        description: Original source namespace.
+      snapshot_key:
+        description: Stable source snapshot reference.
+      cutover_date:
+        description: Stated last included date.
+      coverage_kind:
+        description: Individual residual items or summary, never overlapping.
+      party_id:
+        description: Existing customer or supplier.
+      direction:
+        description: Customer or supplier debt or credit.
+      currency:
+        description: Stated balance currency.
+      created_at:
+        description: UTC recording timestamp.
+  opening_item_detail:
+    description: Original residual item identity and optional stated due date; amount
+      is held by Document and LedgerEntry.
+    columns:
+      id:
+        description: Opaque residual item identity.
+      tenant_id:
+        description: Owning tenant.
+      scope_id:
+        description: Shortest link to opening source coverage.
+      document_id:
+        description: Normalized opening evidence and its immutable source.
+      external_item_key:
+        description: Stable item identity within the original snapshot scope.
+      original_due_date:
+        description: Explicit source due date; absent means unknown.
+
+  finance_reference:
+    description: Defined internal classification identity with audited changes; no monetary authority.
+    columns:
+      id:
+        description: Opaque stable reference identity.
+      tenant_id:
+        description: Owning tenant.
+      kind:
+        description: Immutable cost center, case code or coding group kind.
+      code:
+        description: Immutable code unique within tenant and kind.
+      name:
+        description: Current owner-defined display name.
+      state:
+        description: Active or blocked for new assignments.
+      revision:
+        description: Monotonic accepted change revision.
+
+  financial_component:
+    description: Immutable normalized received financial values linked to exactly one evidence owner.
+    columns:
+      id:
+        description: Opaque component identity.
+      tenant_id:
+        description: Owning tenant.
+      document_id:
+        description: Document owner only when there are no lines.
+      document_line_id:
+        description: Shortest line evidence link; mutually exclusive with document owner.
+      stated_net:
+        description: Received net or unknown.
+      stated_tax:
+        description: Received tax or unknown; never calculated.
+      stated_gross:
+        description: Received gross from typed evidence.
+      stated_base:
+        description: Explicit other received attribution basis or unknown.
+      currency:
+        description: Evidence currency.
+
+  component_assignment_revision:
+    description: Immutable internal attribution decision separate from evidence.
+    columns:
+      id:
+        description: Opaque revision identity.
+      tenant_id:
+        description: Owning tenant.
+      component_id:
+        description: Received component identity.
+      revision:
+        description: Explicit monotonic revision number.
+      basis:
+        description: Selected net, gross or base.
+      case_reference_id:
+        description: Optional defined case identity.
+      case_kind:
+        description: Constant kind for database reference validation.
+      group_reference_id:
+        description: Optional defined coding group.
+      group_kind:
+        description: Constant kind for database reference validation.
+      actor_id:
+        description: Authenticated confirming owner.
+      action_id:
+        description: Confirmed action and replay receipt.
+      reason:
+        description: Explicit internal attribution reason.
+      reference_snapshot:
+        description: Immutable reference labels for this revision, without financial authority.
+      created_at:
+        description: UTC decision timestamp.
+
+  component_assignment_part:
+    description: Exact cost-center share of one immutable assignment revision.
+    columns:
+      id:
+        description: Opaque share identity.
+      tenant_id:
+        description: Owning tenant.
+      assignment_revision_id:
+        description: Shortest assignment revision link.
+      cost_center_reference_id:
+        description: Defined cost center.
+      reference_kind:
+        description: Constant cost-center kind for database validation.
+      amount:
+        description: Explicit positive share in the component currency.
+
+  source_classification_mapping_revision:
+    description: Exact source-code translation with reasoned historical decisions; no monetary authority.
+    columns:
+      is_current:
+        description: Explicitly selected current mapping head; prior decision state remains unchanged.
+      id:
+        description: Id of the explicit source classification revision.
+      tenant_id:
+        description: Tenant id of the explicit source classification revision.
+      source_system_id:
+        description: Source system id of the explicit source classification revision.
+      namespace:
+        description: Namespace of the explicit source classification revision.
+      field_kind:
+        description: Field kind of the explicit source classification revision.
+      source_code:
+        description: Source code of the explicit source classification revision.
+      reference_id:
+        description: Reference id of the explicit source classification revision.
+      revision:
+        description: Revision of the explicit source classification revision.
+      replaces_id:
+        description: Replaces id of the explicit source classification revision.
+      state:
+        description: State of the explicit source classification revision.
+      reference_snapshot:
+        description: Reference snapshot of the explicit source classification revision.
+      reason:
+        description: Reason of the explicit source classification revision.
+      actor_id:
+        description: Actor id of the explicit source classification revision.
+      action_id:
+        description: Action id of the explicit source classification revision.
+      created_at:
+        description: Created at of the explicit source classification revision.

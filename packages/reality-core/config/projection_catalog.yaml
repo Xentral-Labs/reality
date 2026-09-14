@@ -1,0 +1,104 @@
+version: 1
+title: Materialized Projections
+projections:
+  - name: Fulfillment queue
+    service: projection_rows
+    materialized_as: fulfillment_queue
+    consumers: [MCP, Copilot, Operations]
+    reads: [business_event, document, source_record, party, item, commitment, commitment_hold, party_hold, reservation, movement]
+    calculation: Groups open customer-delivery commitments by their shortest order/evidence link and derives ship readiness from active reservations and execution holds.
+    outputs: [order_key, source_system, external_order_id, party, due_at, priority, ship_ready, blocking_reasons, lines]
+  - name: Fulfillment blockers
+    service: projection_rows
+    materialized_as: fulfillment_blockers
+    consumers: [MCP, Copilot, Operational Exceptions]
+    reads: [business_event, document, item, commitment, commitment_hold, party_hold, reservation, movement]
+    calculation: Emits one rebuildable blocker row per open commitment and reason, including reservation shortages and active order or party delivery holds.
+    outputs: [blocker_id, blocker_type, order_key, commitment_id, item_id, shortage_quantity, due_at]
+  - name: Item supply and demand
+    service: projection_rows
+    materialized_as: item_supply_demand
+    consumers: [MCP, Copilot, Inventory]
+    reads: [business_event, item, commitment, reservation, movement]
+    calculation: Materializes physical, allocated, incoming, open-demand, uncovered-demand and affected-order quantities per item.
+    outputs: [item_id, sku, physical, reserved, available, incoming, open_customer_demand, uncovered_demand, projected, blocked_order_count]
+  - name: Tenant usage
+    service: projection_rows
+    related_services: [tenant_usage_summaries]
+    materialized_as: tenant_usage
+    consumers: [Tenant management]
+    reads: [tenant, source_system, party, item, location, source_record, document, commitment, reservation, movement, ledger_entry, business_event]
+    calculation: Uses a fixed number of tenant-scoped aggregate queries to classify the workspace as empty, configured, or in use and derives the latest timestamp across source, operational, financial, event, Change Proposal, and chat activity without loading business rows or querying once per tenant.
+    outputs: [state, source_count, evidence_count, reality_count, configured_count, last_activity_at]
+  - name: Inventory
+    service: projection_rows
+    related_services: [inventory_rows]
+    materialized_as: inventory
+    consumers: [Home, Inventory, Chat, CLI]
+    reads: [item, location, movement, reservation, commitment]
+    calculation: Physical movement balance minus active reservations; incoming commitments are added for projected stock.
+    outputs: [physical, reserved, available, incoming, projected]
+  - name: Operational Exceptions
+    service: projection_rows
+    related_services: [operational_exceptions]
+    materialized_as: exceptions
+    consumers: [Home, Exceptions]
+    reads: [commitment, commitment_hold, party_hold, movement, reservation]
+    calculation: Finds operational exceptions such as shortages, overdue obligations, and active execution restrictions.
+    outputs: [severity, title, context, object_link]
+  - name: Commitment register
+    service: projection_rows
+    related_services: [commitment_rows]
+    materialized_as: commitment_register
+    consumers: [Commitments]
+    reads: [commitment, reservation, movement, party, item, location]
+    calculation: Combines obligations with allocated and physically fulfilled quantities without storing fulfillment status on documents.
+    outputs: [commitment, reserved, fulfilled, open_quantity, counterparty]
+  - name: Document register
+    service: projection_rows
+    related_services: [document_rows]
+    materialized_as: document_register
+    consumers: [Documents]
+    reads: [document, document_line, commitment, source_record]
+    calculation: Presents evidence and counts its shortest links into operational Reality.
+    outputs: [document, line_count, commitment_count, source]
+  - name: Open financial items
+    service: projection_rows
+    related_services: [financial_open_items]
+    materialized_as: open_financial_items
+    consumers: [Open Items, Home]
+    reads: [ledger_entry, settlement_allocation, document, party]
+    calculation: Invoice-side ledger amount minus explicit payment allocations; document status is not used as payment truth.
+    outputs: [invoice, party, original_amount, allocated_amount, open_amount]
+  - name: Payments
+    service: projection_rows
+    related_services: [payment_rows]
+    materialized_as: payments
+    consumers: [Payments]
+    reads: [ledger_entry, settlement_allocation, document, party]
+    calculation: Groups payment postings with their explicit invoice allocations.
+    outputs: [payment, party, amount, allocations]
+  - name: Journal
+    service: projection_rows
+    related_services: [journal_rows]
+    materialized_as: journal
+    consumers: [Journal]
+    reads: [ledger_entry]
+    calculation: Orders immutable ledger postings by effective time and posting group.
+    outputs: [posting_group, account, party, debit_credit, amount, currency]
+  - name: Timeline
+    service: projection_rows
+    related_services: [timeline]
+    materialized_as: timeline
+    consumers: [Timeline]
+    reads: [source_record, document, commitment, reservation, movement, shipment, shipment_package, shipment_event, ledger_entry, action]
+    calculation: Normalizes important evidence and reality timestamps into one chronological operational history.
+    outputs: [occurred_at, record_type, title, detail, object_link]
+  - name: Price resolution
+    service: materialized_resolve_price
+    related_services: [resolve_price]
+    materialized_as: price_resolution
+    consumers: [Pricing, API, CLI]
+    reads: [price_list, price_list_entry, party_price_list, party_group, party_group_member, party_group_price_list]
+    calculation: Direct party lists precede group lists and the default list; the highest valid minimum-quantity tier wins. Each parameterized question is calculated live from the current canonical pricing rules; no stored result or unrelated projection refresh is used.
+    outputs: [unit_price, currency, unit, price_list_id, price_list_entry_id, source]

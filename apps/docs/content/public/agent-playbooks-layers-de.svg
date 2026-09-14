@@ -1,0 +1,130 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1320 860" width="1320" height="860" role="img" font-family="ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, sans-serif" font-size="13" fill="currentColor">
+<title>Die Schicht darüber: Sachbearbeiter, deine Workflows, Agenten</title>
+<rect x="20.0" y="14" width="311.0" height="54" rx="8" fill="rgba(120,120,120,0.10)" stroke="currentColor" stroke-opacity="0.35"/>
+<text x="175.5" y="36" text-anchor="middle" font-weight="600" font-size="14">Shop / Marktplatz</text>
+<text x="175.5" y="55" text-anchor="middle" font-size="11" fill-opacity="0.8">Aufträge rein, Verfügbarkeit zurück</text>
+<rect x="343.0" y="14" width="311.0" height="54" rx="8" fill="rgba(120,120,120,0.10)" stroke="currentColor" stroke-opacity="0.35"/>
+<text x="498.5" y="36" text-anchor="middle" font-weight="600" font-size="14">Bank / Zahlungsanbieter</text>
+<text x="498.5" y="55" text-anchor="middle" font-size="11" fill-opacity="0.8">Kontoauszüge, Auszahlungen</text>
+<rect x="666.0" y="14" width="311.0" height="54" rx="8" fill="rgba(120,120,120,0.10)" stroke="currentColor" stroke-opacity="0.35"/>
+<text x="821.5" y="36" text-anchor="middle" font-weight="600" font-size="14">Lieferant</text>
+<text x="821.5" y="55" text-anchor="middle" font-size="11" fill-opacity="0.8">Ware und Lieferschein an der Rampe</text>
+<rect x="989.0" y="14" width="311.0" height="54" rx="8" fill="rgba(120,120,120,0.10)" stroke="currentColor" stroke-opacity="0.35"/>
+<text x="1144.5" y="36" text-anchor="middle" font-weight="600" font-size="14">Kunde</text>
+<text x="1144.5" y="55" text-anchor="middle" font-size="11" fill-opacity="0.8">Retourenpaket, E-Mail, Anruf</text>
+<path d="M 175.5 68 L 175.5 86 L 60 86" fill="none" stroke="#159a5c" stroke-width="3" stroke-dasharray="6 5"/>
+<path d="M 498.5 68 L 498.5 98 L 60 98" fill="none" stroke="#159a5c" stroke-width="3" stroke-dasharray="6 5"/>
+<line x1="60" y1="86" x2="60" y2="590" stroke="#159a5c" stroke-width="3" stroke-dasharray="6 5"/>
+<polygon points="52,586 68,586 60,602" fill="#159a5c"/>
+<rect x="6" y="296" width="116" height="62" rx="6" fill="#e6f4ec" stroke="#159a5c"/>
+<text x="64" y="313" text-anchor="middle" font-size="11.5" font-weight="600" fill="#1d1d21">Aufträge und</text>
+<text x="64" y="328" text-anchor="middle" font-size="11.5" font-weight="600" fill="#1d1d21">Zahlungen</text>
+<text x="64" y="343" text-anchor="middle" font-size="10.5" font-weight="400" fill="#1d1d21">kommen von selbst</text>
+<line x1="821.5" y1="68" x2="821.5" y2="146" stroke="#6e6e78" stroke-width="2.5"/>
+<polygon points="814.5,134 828.5,134 821.5,148" fill="#6e6e78"/>
+<line x1="1144.5" y1="68" x2="1144.5" y2="146" stroke="#6e6e78" stroke-width="2.5"/>
+<polygon points="1137.5,134 1151.5,134 1144.5,148" fill="#6e6e78"/>
+<path d="M 1170 604 L 1170 574 L 1260 574 L 1260 108 L 291.0 108 L 291.0 72" fill="none" stroke="#e67e22" stroke-width="2.5"/>
+<polygon points="284.0,84 298.0,84 291.0,70" fill="#e67e22"/>
+<rect x="1084.0" y="260" width="212" height="96" rx="6" fill="#fdeedd" stroke="#e67e22"/>
+<text x="1190.0" y="277" text-anchor="middle" font-size="11.5" font-weight="600" fill="#1d1d21">Verfügbarkeit melden</text>
+<text x="1190.0" y="292" text-anchor="middle" font-size="10.5" font-weight="400" fill="#1d1d21">ein Workflow liest Bestand und</text>
+<text x="1190.0" y="307" text-anchor="middle" font-size="10.5" font-weight="400" fill="#1d1d21">Bedarf und sendet an den Shop;</text>
+<text x="1190.0" y="322" text-anchor="middle" font-size="10.5" font-weight="400" fill="#1d1d21">Reality sendet nichts selbst</text>
+<rect x="611.5" y="84" width="200" height="40" rx="6" fill="#ececef" stroke="#6e6e78"/>
+<text x="619.5" y="101" font-size="11.5" font-weight="600" fill="#1d1d21">Lieferung + Lieferschein</text>
+<text x="619.5" y="116" font-size="10.5" font-weight="400" fill="#1d1d21">→ Wareneingang buchen</text>
+<rect x="902.5" y="84" width="232" height="56" rx="6" fill="#ececef" stroke="#6e6e78"/>
+<text x="910.5" y="101" font-size="11.5" font-weight="600" fill="#1d1d21">Retourenpaket · E-Mail · Anruf</text>
+<text x="910.5" y="116" font-size="10.5" font-weight="400" fill="#1d1d21">→ Inbox: buchen, ankündigen,</text>
+<text x="910.5" y="131" font-size="10.5" font-weight="400" fill="#1d1d21">sperren, gutschreiben, fragen</text>
+<rect x="130" y="150" width="940" height="330" rx="10" fill="rgba(99,102,241,0.08)" stroke="#6366f1" stroke-width="1.5"/>
+<text x="600.0" y="174" text-anchor="middle" font-weight="700" font-size="15">Die Schicht darüber, außerhalb von Reality: Sachbearbeiter, deine Workflows, dein Agent</text>
+<text x="600.0" y="194" text-anchor="middle" font-size="10.5" fill-opacity="0.8">Reality liefert die Leitplanken: Vorschlag, Vorschau, Ablehnung, Entscheidung. Was ohne Rückfrage läuft, legst du im Agenten fest; bei Zweifel und Neuem entscheidet ein Mensch.</text>
+<rect x="144.0" y="210" width="143.7" height="256" rx="8" fill="rgba(255,255,255,0.35)" stroke="rgba(99,102,241,0.6)"/>
+<text x="215.8" y="232" text-anchor="middle" font-weight="600" font-size="12">Vertrieb &amp; Versand</text>
+<text x="153.0" y="256" font-size="11">• Bestand reservieren</text>
+<text x="153.0" y="280" font-size="11">• Warenausgang buchen</text>
+<text x="153.0" y="304" font-size="11">• Liefertermin ändern</text>
+<text x="153.0" y="328" font-size="11">• Liefersperre</text>
+<text x="153.0" y="352" font-size="11">• Verfügbarkeit melden</text>
+<rect x="297.7" y="210" width="143.7" height="256" rx="8" fill="rgba(255,255,255,0.35)" stroke="rgba(99,102,241,0.6)"/>
+<text x="369.5" y="232" text-anchor="middle" font-weight="600" font-size="12">Forderungen</text>
+<text x="306.7" y="256" font-size="11">• Rechnungen buchen</text>
+<text x="306.7" y="280" font-size="11">• Zahlungen zuordnen</text>
+<text x="306.7" y="304" font-size="11">• Differenzen klären</text>
+<text x="306.7" y="328" font-size="11">• Guthaben, Erstattung</text>
+<text x="306.7" y="352" font-size="11">• Gutschriften</text>
+<rect x="451.3" y="210" width="143.7" height="256" rx="8" fill="rgba(255,255,255,0.35)" stroke="rgba(99,102,241,0.6)"/>
+<text x="523.2" y="232" text-anchor="middle" font-weight="600" font-size="12">Einkauf</text>
+<text x="460.3" y="256" font-size="11">• Bestellungen</text>
+<text x="460.3" y="280" font-size="11">• Wareneingang buchen</text>
+<text x="460.3" y="304" font-size="11">• Rechnungsprüfung</text>
+<text x="460.3" y="328" font-size="11">• Zahllauf</text>
+<rect x="605.0" y="210" width="143.7" height="256" rx="8" fill="rgba(255,255,255,0.35)" stroke="rgba(99,102,241,0.6)"/>
+<text x="676.8" y="232" text-anchor="middle" font-weight="600" font-size="12">Retouren</text>
+<text x="614.0" y="256" font-size="11">• ankündigen</text>
+<text x="614.0" y="280" font-size="11">• Retoure buchen</text>
+<text x="614.0" y="304" font-size="11">• einlagern / ausbuchen</text>
+<text x="614.0" y="328" font-size="11">• Gutschrift, Gebühr</text>
+<rect x="758.7" y="210" width="143.7" height="256" rx="8" fill="rgba(255,255,255,0.35)" stroke="rgba(99,102,241,0.6)"/>
+<text x="830.5" y="232" text-anchor="middle" font-weight="600" font-size="12">Kundenservice-Inbox</text>
+<text x="767.7" y="256" font-size="11">• Mails und Anrufe lesen</text>
+<text x="767.7" y="280" font-size="11">• Retoure ankündigen</text>
+<text x="767.7" y="304" font-size="11">• Sperre, Gutschrift</text>
+<text x="767.7" y="328" font-size="11">• offene Fragen festhalten</text>
+<rect x="912.3" y="210" width="143.7" height="256" rx="8" fill="rgba(255,255,255,0.35)" stroke="rgba(99,102,241,0.6)"/>
+<text x="984.2" y="232" text-anchor="middle" font-weight="600" font-size="12">Stammdaten &amp; Quellen</text>
+<text x="921.3" y="256" font-size="11">• Artikel, Partner,</text>
+<text x="921.3" y="280" font-size="11">   Preise, Bedingungen</text>
+<text x="921.3" y="304" font-size="11">• Einheiten zuordnen</text>
+<text x="921.3" y="328" font-size="11">• Quellen registrieren</text>
+<text x="921.3" y="352" font-size="11">• Importe reparieren</text>
+<line x1="420" y1="486" x2="420" y2="598" stroke="currentColor" stroke-opacity="0.7" stroke-width="2"/>
+<polygon points="413,498 427,498 420,484" fill="currentColor" fill-opacity="0.7"/>
+<rect x="428" y="531.0" width="47" height="20" rx="4" fill="rgba(120,120,120,0.12)"/>
+<text x="434" y="546.0" font-size="11.5">lesen</text>
+<line x1="560" y1="486" x2="560" y2="598" stroke="currentColor" stroke-opacity="0.7" stroke-width="2"/>
+<polygon points="553,586 567,586 560,600" fill="currentColor" fill-opacity="0.7"/>
+<rect x="568" y="531.0" width="89" height="20" rx="4" fill="rgba(120,120,120,0.12)"/>
+<text x="574" y="546.0" font-size="11.5">vorschlagen</text>
+<line x1="700" y1="486" x2="700" y2="598" stroke="currentColor" stroke-opacity="0.7" stroke-width="2"/>
+<polygon points="693,586 707,586 700,600" fill="currentColor" fill-opacity="0.7"/>
+<rect x="708" y="531.0" width="89" height="20" rx="4" fill="rgba(120,120,120,0.12)"/>
+<text x="714" y="546.0" font-size="11.5">entscheiden</text>
+<line x1="840" y1="486" x2="840" y2="598" stroke="currentColor" stroke-opacity="0.7" stroke-width="2"/>
+<polygon points="833,498 847,498 840,484" fill="currentColor" fill-opacity="0.7"/>
+<rect x="848" y="531.0" width="54" height="20" rx="4" fill="rgba(120,120,120,0.12)"/>
+<text x="854" y="546.0" font-size="11.5">prüfen</text>
+<rect x="20" y="604" width="1280" height="200" rx="10" fill="rgba(16,150,90,0.07)" stroke="#159a5c" stroke-width="1.5"/>
+<text x="660.0" y="630" text-anchor="middle" font-weight="700" font-size="15">Reality: erfasst, leitet ab, meldet</text>
+<rect x="34.0" y="646" width="242.4" height="144" rx="8" fill="rgba(255,255,255,0.35)" stroke="rgba(16,150,90,0.6)"/>
+<text x="155.2" y="668" text-anchor="middle" font-weight="600" font-size="12.5">Belege</text>
+<text x="155.2" y="690" text-anchor="middle" font-size="11.5" fill-opacity="0.85">Aufträge, Rechnungen,</text>
+<text x="155.2" y="707" text-anchor="middle" font-size="11.5" fill-opacity="0.85">Gutschriften, Zahlungen</text>
+<rect x="286.4" y="646" width="242.4" height="144" rx="8" fill="rgba(255,255,255,0.35)" stroke="rgba(16,150,90,0.6)"/>
+<text x="407.6" y="668" text-anchor="middle" font-weight="600" font-size="12.5">Verpflichtungen &amp; Bewegungen</text>
+<text x="407.6" y="690" text-anchor="middle" font-size="11.5" fill-opacity="0.85">Liefertermine, Reservierungen,</text>
+<text x="407.6" y="707" text-anchor="middle" font-size="11.5" fill-opacity="0.85">Wareneingänge, Warenausgänge,</text>
+<text x="407.6" y="724" text-anchor="middle" font-size="11.5" fill-opacity="0.85">Retouren</text>
+<rect x="538.8" y="646" width="242.4" height="144" rx="8" fill="rgba(255,255,255,0.35)" stroke="rgba(16,150,90,0.6)"/>
+<text x="660.0" y="668" text-anchor="middle" font-weight="600" font-size="12.5">Offene Posten &amp; Guthaben</text>
+<text x="660.0" y="690" text-anchor="middle" font-size="11.5" fill-opacity="0.85">Zahlungseingang in drei Stufen:</text>
+<text x="660.0" y="707" text-anchor="middle" font-size="11.5" fill-opacity="0.85">erfassen, zuordnen, vorschlagen</text>
+<rect x="791.2" y="646" width="242.4" height="144" rx="8" fill="rgba(255,255,255,0.35)" stroke="rgba(16,150,90,0.6)"/>
+<text x="912.4" y="668" text-anchor="middle" font-weight="600" font-size="12.5">Abweichungen</text>
+<text x="912.4" y="690" text-anchor="middle" font-size="11.5" fill-opacity="0.85">versandt nicht abgerechnet,</text>
+<text x="912.4" y="707" text-anchor="middle" font-size="11.5" fill-opacity="0.85">unzugeordnete Zahlung, stille</text>
+<text x="912.4" y="724" text-anchor="middle" font-size="11.5" fill-opacity="0.85">Quelle …</text>
+<rect x="1043.6" y="646" width="242.4" height="144" rx="8" fill="rgba(255,255,255,0.35)" stroke="rgba(16,150,90,0.6)"/>
+<text x="1164.8" y="668" text-anchor="middle" font-weight="600" font-size="12.5">Lesezugriffe</text>
+<text x="1164.8" y="690" text-anchor="middle" font-size="11.5" fill-opacity="0.85">Versandwarteschlange,</text>
+<text x="1164.8" y="707" text-anchor="middle" font-size="11.5" fill-opacity="0.85">Verfügbarkeit und Bedarf,</text>
+<text x="1164.8" y="724" text-anchor="middle" font-size="11.5" fill-opacity="0.85">Auftrag erklären, Salden</text>
+<line x1="24" y1="830" x2="58" y2="830" stroke="#159a5c" stroke-width="3" stroke-dasharray="6 5"/>
+<text x="66" y="834" font-size="11.5">grün: kommt von selbst in Reality an</text>
+<line x1="308.4" y1="830" x2="342.4" y2="830" stroke="#6e6e78" stroke-width="3"/>
+<text x="350.4" y="834" font-size="11.5">grau: erreicht die Schicht darüber, die es bucht</text>
+<line x1="672.0" y1="830" x2="706.0" y2="830" stroke="#e67e22" stroke-width="3"/>
+<text x="714.0" y="834" font-size="11.5">orange: die Schicht meldet nach außen; Reality sendet nichts</text>
+</svg>

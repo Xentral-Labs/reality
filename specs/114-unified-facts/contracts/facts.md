@@ -1,0 +1,4 @@
+# Contracts
+GET `/api/tenants/{tenant}/facts`: q, subject_type, subject_id, source_record_id, page(default1), size(default50,cap100). Same filtered count and stable observed_at DESC,id DESC page; clamp beyond-last requests. Existing item/source/rule fields retained. Add source_version per item and subject_types(max100), subject_types_has_more for tenant choices.
+GET shared Inspector fact: recorded observation meaning, original value, exact supported subject/source links; existing technical metadata retained. No-source origin is unknown, not inferred manual.
+`/app/facts` URL: q/page, fact_subject_type, fact_subject, fact_source, entry, fact_target(fact|source_record). Company switch clears all exact scopes and inspection. Data & sources source-row link sets fact_source only. No new write endpoint.

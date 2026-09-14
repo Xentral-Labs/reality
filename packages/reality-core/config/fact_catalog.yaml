@@ -1,0 +1,37 @@
+version: 1
+title: Stable Fact Predicates
+# Each predicate is one kind of source-supported observation about an existing record. A
+# predicate names the subject types it may describe and the value contract the observation
+# must satisfy. Nothing here mirrors typed operational state: quantities, dates that Reality
+# operates on, allocations, movements and postings keep their own records.
+fact_predicates:
+  - predicate: order.shipping_priority
+    description: Shipping priority explicitly stated by the order source.
+    subject_types: [commitment]
+    value_type: enum
+    allowed_values: [standard, express]
+  - predicate: order.delivery_instruction
+    description: Delivery instruction the customer stated for this promise, such as a time window or an entrance, exactly as the source words it.
+    subject_types: [commitment]
+    value_type: string
+  - predicate: order.customer_reference
+    description: The customer's own order or purchase reference as stated on the order; a searchable attribute, never identity.
+    subject_types: [document]
+    value_type: string
+  - predicate: invoice.payment_promise_date
+    description: Calendar day by which the customer or supplier stated the invoice would be paid; a promise, not a settlement.
+    subject_types: [document]
+    value_type: date
+  - predicate: invoice_line.dispute_reason
+    description: Reason the counterparty stated for disputing one invoice line; the dispute is observed, any credit is a later decision.
+    subject_types: [document_line]
+    value_type: string
+  - predicate: lot.quality_release
+    description: Quality decision an inspection report stated for a lot.
+    subject_types: [lot]
+    value_type: enum
+    allowed_values: [released, blocked]
+  - predicate: movement.damage_report
+    description: Damage the counterparty reported on a delivered or received quantity, as the source words it; no return is implied.
+    subject_types: [movement]
+    value_type: string

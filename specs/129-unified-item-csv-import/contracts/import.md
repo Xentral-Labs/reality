@@ -1,0 +1,5 @@
+# Contract
+POST /api/tenants/{tenant}/item-imports/artifacts accepts raw text/csv with filename query and <=2MiB body. Response contains artifact ID/hash/filename, columns/row count and suggested mappings, never storage path.
+POST /item-imports/preview accepts artifact_id, source_system, mapping {sku,name,unit?}, default_unit. Returns validated normalized rows or row-specific error; no item writes.
+POST /item-imports/prepare adds request_id; invokes existing reviewed item_create. GET /delivery-actions/{proposal}, existing proposal confirmation with review_token and confirmed=true, and /reconcile provide lifecycle. GET /item-imports/artifacts/{id}/download provides scoped attachment bytes. Existing source/item Inspector remains authoritative.
+UI query import_proposal identifies the review/result within Data & sources and clears on company switch. Preparation lost-response recovery repeats only identical request identity (no business mutation); confirmation recovery reads exact proposal and reconciles a proven receipt, never executes it again automatically.

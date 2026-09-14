@@ -1,0 +1,59 @@
+{{- if .Values.invitationWorker.enabled }}
+{{/*
+  Deliberately does NOT use the `reality` CLI.
+
+  packages/reality-core/src/reality/cli/app.py has `@app.callback() def boot():
+  init_db()`, and init_db() is `alembic upgrade head`. A Typer root callback runs
+  before EVERY subcommand, so `reality invitation-worker-once` migrates the
+  database on every tick — roughly 17,000 unlocked `alembic upgrade head` calls
+  a day at a 5s interval, racing the release migration Job. Alembic takes no
+  advisory lock, so a tick landing mid-release can half-apply a revision.
+
+  Importing the two service functions directly bypasses the callback entirely
+  and needs no change to the application package.
+
+  deliver_next_invitation() claims work with FOR UPDATE SKIP LOCKED, so replicas
+  cannot double-send. Delivery is at-least-once: the send happens inside the
+  open transaction, so a crash between send and commit re-sends — and each
+  attempt rotates the invitation token, invalidating the previously mailed link.
+*/}}
+{{- $c := mustMergeOverwrite (dict "image" (dict "tagPrefix" "api-") "secrets" true) (deepCopy .Values.invitationWorker) }}
+{{- $_ := set $c "command" (list "python" "-u" "-c" (printf `
+import time
+from reality.db.core import Session
+from reality.services.notifications import deliver_next_invitation
+from reality.web.email import send_company_invitation_email
+
+while True:
+    try:
+        with Session() as session:
+            deliver_next_invitation(session, send_company_invitation_email)
+    except Exception as error:  # keep the loop alive across transient failures
+        print(f"invitation-worker: {type(error).__name__}: {error}", flush=True)
+    time.sleep(%v)
+` .Values.invitationWorker.intervalSeconds)) }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "reality.fullname" . }}-invitation-worker
+  labels:
+    {{- include "reality.labels" . | nindent 4 }}
+    app.kubernetes.io/component: invitation-worker
+spec:
+  replicas: {{ .Values.invitationWorker.replicaCount }}
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      {{- include "reality.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: invitation-worker
+  template:
+    metadata:
+      labels:
+        {{- include "reality.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: invitation-worker
+      annotations:
+        checksum/secret-keys: {{ include "reality.secretChecksum" . }}
+    spec:
+      {{- include "reality.podSpec" (list . "invitation-worker" $c) | nindent 6 }}
+{{- end }}

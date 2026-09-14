@@ -1,0 +1,2 @@
+# Data model
+No schema change. Existing nullable typed DocumentLine.billed_document_line_id accepts credit_note→sales_invoice line in addition to legacy order targets. Invoice still points to order. Matching invoice-linked credit lines explain capacity; all attached original groups must be reversed to release it. An immutable credit.recorded BusinessEvent contains reviewed creation/receipt and historical record snapshots for recovery. No financial state is stored on documents.

@@ -1,0 +1,83 @@
+[
+  {
+    "cycle": 1,
+    "view": "Exceptions",
+    "ms": 389,
+    "sql_queries": 1498,
+    "sql_ms": 153,
+    "rows": 50,
+    "total": 257
+  },
+  {
+    "cycle": 1,
+    "view": "Orders & deliveries",
+    "ms": 31,
+    "sql_queries": 2,
+    "sql_ms": 21,
+    "rows": 50,
+    "total": 230
+  },
+  {
+    "cycle": 1,
+    "view": "Finance",
+    "ms": 66,
+    "sql_queries": 281,
+    "sql_ms": 27,
+    "rows": 24,
+    "total": 24
+  },
+  {
+    "cycle": 2,
+    "view": "Exceptions",
+    "ms": 362,
+    "sql_queries": 1498,
+    "sql_ms": 126,
+    "rows": 50,
+    "total": 257
+  },
+  {
+    "cycle": 2,
+    "view": "Orders & deliveries",
+    "ms": 27,
+    "sql_queries": 2,
+    "sql_ms": 20,
+    "rows": 50,
+    "total": 230
+  },
+  {
+    "cycle": 2,
+    "view": "Finance",
+    "ms": 4,
+    "sql_queries": 10,
+    "sql_ms": 2,
+    "rows": 24,
+    "total": 24
+  },
+  {
+    "cycle": 3,
+    "view": "Exceptions",
+    "ms": 318,
+    "sql_queries": 1498,
+    "sql_ms": 124,
+    "rows": 50,
+    "total": 257
+  },
+  {
+    "cycle": 3,
+    "view": "Orders & deliveries",
+    "ms": 23,
+    "sql_queries": 2,
+    "sql_ms": 21,
+    "rows": 50,
+    "total": 230
+  },
+  {
+    "cycle": 3,
+    "view": "Finance",
+    "ms": 4,
+    "sql_queries": 10,
+    "sql_ms": 2,
+    "rows": 24,
+    "total": 24
+  }
+]

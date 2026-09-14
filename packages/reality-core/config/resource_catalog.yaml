@@ -1,0 +1,713 @@
+version: 1
+title: Business Resources
+principle: >-
+  An ERP consultant thinks in business objects, the lists that show them, the postings that change
+  them and the exceptions that need clearing. This catalog groups the executable vocabulary of the
+  other catalogs along those objects and names them the way an ERP professional would. It adds no
+  behavior; every key it mentions must exist in the command, workspace, projection or exception
+  catalog, or in the MCP registry, and the documentation generator fails when one does not.
+
+# Tables that almost every command touches carry no information about which business object a
+# command belongs to and are ignored when membership is derived from `reads` and `writes`.
+generic_tables:
+  [tenant, business_event, source_record, source_stream, action, finance_state, security_audit_event, import_job]
+
+resources:
+  - key: analytics
+    label: {en: "Analytics report", de: "Auswertung"}
+    subtitle: {en: "Composable questions and private definitions", de: "Flexible Fragen und private Auswertungen"}
+    description:
+      en: "Read-time observations over retained evidence and operational services, with scoped contributors and private saved definitions."
+      de: "Auswertungen über vorhandene Belege und operative Dienste mit nachvollziehbaren Datensätzen und privaten gespeicherten Einstellungen."
+    synonyms: [analytics, report, Auswertung, Bericht]
+    tables: [analytics_report]
+    match: "analytics"
+    views: []
+    projections: []
+    exceptions: []
+
+  - key: party
+    label:
+      en: "Business partner"
+      de: "Geschäftspartner"
+    subtitle:
+      en: "Customers, suppliers and your own company"
+      de: "Kunden, Lieferanten und das eigene Unternehmen"
+    description:
+      en: >-
+        One record per company or person you trade with. Roles such as customer or supplier are
+        stated on the partner, not by keeping two address books. Delivery holds and pricing groups
+        attach here.
+      de: >-
+        Ein Datensatz je Unternehmen oder Person, mit der du Geschäfte machst. Rollen wie Kunde
+        oder Lieferant stehen am Geschäftspartner, es gibt keine zwei Adressbücher. Liefersperren
+        und Preisgruppen hängen hier.
+    synonyms: [customer, supplier, debtor, creditor, Kunde, Lieferant, Debitor, Kreditor, Adresse]
+    tables: [party, party_role, party_group, party_group_member, party_hold]
+    match: "party|member_add"
+    views: [parties]
+    projections: []
+    exceptions: [credit_limit_exceeded, party_hold_unreleased]
+
+  - key: item
+    label:
+      en: "Item"
+      de: "Artikel"
+    subtitle:
+      en: "What you buy, stock and sell, and how much of it there is"
+      de: "Was du kaufst, lagerst und verkaufst, und wie viel davon da ist"
+    description:
+      en: >-
+        The operational identity of a product with its unit. Stock is never stored on the item; it
+        is derived from movements and reservations at read time, which is why the stock lists live
+        here.
+      de: >-
+        Die operative Identität eines Produkts mit seiner Einheit. Bestand wird nie am Artikel
+        gespeichert, sondern beim Lesen aus Bewegungen und Reservierungen abgeleitet. Deshalb
+        stehen die Bestandslisten hier.
+    synonyms: [product, SKU, stock, inventory, Produkt, Bestand, Lagerbestand, Verfügbarkeit]
+    tables: [item]
+    match: "^(create|update)_item$|item_(create|update)|units_not_comparable|inventory|supply_demand"
+    views: [items, inventory, supply_demand]
+    projections: [inventory, item_supply_demand]
+    exceptions: [units_not_comparable, reservation_exceeds_stock]
+
+  - key: location
+    label:
+      en: "Warehouse location"
+      de: "Lagerort"
+    subtitle:
+      en: "Warehouses, zones and logical places stock can be"
+      de: "Lager, Zonen und logische Orte, an denen Bestand liegen kann"
+    description:
+      en: >-
+        A physical or logical place. Only stock-capable locations can hold goods; a hierarchy is
+        expressed through the parent location.
+      de: >-
+        Ein physischer oder logischer Ort. Nur lagerfähige Orte können Ware halten; eine Hierarchie
+        entsteht über den übergeordneten Lagerort.
+    synonyms: [warehouse, bin, zone, Lager, Lagerplatz]
+    tables: [location]
+    match: "location"
+    views: [locations, inventory]
+    projections: [inventory]
+    exceptions: []
+
+  - key: terms
+    label:
+      en: "Prices and payment terms"
+      de: "Preise und Zahlungsbedingungen"
+    subtitle:
+      en: "Price lists, tiers, pricing groups and payment terms"
+      de: "Preislisten, Staffeln, Preisgruppen und Zahlungsbedingungen"
+    description:
+      en: >-
+        The commercial conditions an order or invoice is judged against. Price resolution shows
+        which list applies to which partner; payment terms drive due dates and early payment
+        discounts.
+      de: >-
+        Die kaufmännischen Konditionen, an denen Auftrag und Rechnung gemessen werden. Die
+        Preisfindung zeigt, welche Liste für welchen Geschäftspartner gilt; Zahlungsbedingungen
+        bestimmen Fälligkeit und Skonto.
+    synonyms: [price list, discount, tier, condition, Preisliste, Staffelpreis, Kondition, Skonto, Zahlungsziel]
+    tables: [payment_term, price_list, price_list_entry, party_price_list, party_group_price_list]
+    match: "price|payment_term|party_group"
+    views: [commercial_terms]
+    projections: [price_resolution]
+    exceptions: [invoice_price_differs, sold_below_purchase_price]
+
+  - key: order
+    label:
+      en: "Order"
+      de: "Auftrag"
+    subtitle:
+      en: "Sales orders, purchase orders, reservations and holds"
+      de: "Kundenaufträge, Bestellungen, Reservierungen und Sperren"
+    description:
+      en: >-
+        A promise to deliver or to receive: Reality calls it a commitment. The order document is
+        evidence; open quantity, ship readiness and delays are derived from the commitment, its
+        reservations and the movements that fulfil it.
+      de: >-
+        Ein Versprechen zu liefern oder zu erhalten: Reality nennt es Verpflichtung. Der
+        Auftragsbeleg ist der Nachweis; offene Menge, Versandfähigkeit und Verzug werden aus der
+        Verpflichtung, ihren Reservierungen und den erfüllenden Bewegungen abgeleitet.
+    synonyms: [sales order, purchase order, commitment, reservation, backlog, Kundenauftrag, Bestellung, Verpflichtung, Lieferverpflichtung, Reservierung, Rückstand, Liefersperre]
+    tables: [commitment, commitment_hold, commitment_revision, reservation]
+    match: "commitment|reserv|order|promise|stale|fulfillment|hold"
+    views: [orders, commitments, reservations, fulfillment_blockers, warehouse_queue]
+    projections: [fulfillment_queue, fulfillment_blockers, commitment_register]
+    exceptions:
+      [overdue_outgoing_customer_commitment, outgoing_commitment_at_risk, order_stalled, overdue_incoming_supplier_commitment, reservation_exceeds_stock, commitment_hold_unreleased, party_hold_unreleased]
+
+  - key: delivery
+    label:
+      en: "Delivery and goods receipt"
+      de: "Lieferung und Wareneingang"
+    subtitle:
+      en: "Stock movements, shipments, packages and tracking"
+      de: "Lagerbewegungen, Sendungen, Packstücke und Tracking"
+    description:
+      en: >-
+        Every physical change of stock is an append-only movement; corrections add a compensating
+        movement instead of editing. A shipment is the consignment that carries movements to or
+        from a counterparty, with carrier observations attached.
+      de: >-
+        Jede physische Bestandsänderung ist eine unveränderliche Lagerbewegung; Korrekturen
+        ergänzen eine Gegenbuchung statt zu editieren. Eine Sendung ist die Lieferung, die
+        Bewegungen zu einem Geschäftspartner oder von ihm trägt, mit Beobachtungen des Spediteurs.
+    synonyms: [goods receipt, goods issue, shipment, movement, transfer, adjustment, Warenausgang, Lagerbewegung, Umlagerung, Bestandsanpassung, Sendung, Packstück, Tracking]
+    tables: [movement, movement_correction, shipment, shipment_package, shipment_event, shipment_event_supersession]
+    match: "movement|shipment|dispatch|receive"
+    views: [movements, warehouse_queue]
+    projections: []
+    exceptions: [unexplained_movement, return_unresolved]
+
+  - key: lot
+    label:
+      en: "Lot, serial number and pallet"
+      de: "Charge, Seriennummer und Palette"
+    subtitle:
+      en: "Identities below the item, and their best-before dates"
+      de: "Identitäten unterhalb des Artikels und ihre Mindesthaltbarkeit"
+    description:
+      en: >-
+        A lot or serial unit identifies a subset of an item; a handling unit identifies a pallet
+        by its NVE/SSCC. Best-before dates are stated by someone who read them, never computed.
+      de: >-
+        Charge und Seriennummer identifizieren eine Teilmenge eines Artikels; eine Ladeeinheit
+        identifiziert eine Palette über ihre NVE/SSCC. Mindesthaltbarkeit wird von jemandem
+        angegeben, der sie gelesen hat, nie berechnet.
+    synonyms: [batch, serial, handling unit, NVE, SSCC, best before, MHD, Charge, Ladeeinheit]
+    tables: [lot, serial_unit, handling_unit]
+    match: "lot|serial|handling_unit|expir"
+    views: []
+    projections: []
+    exceptions: [stock_expired]
+
+  - key: invoice
+    label:
+      en: "Invoice and credit note"
+      de: "Rechnung und Gutschrift"
+    subtitle:
+      en: "Sales and supplier invoices, credit notes and what is still open"
+      de: "Ausgangs- und Eingangsrechnungen, Gutschriften und offene Posten"
+    description:
+      en: >-
+        Recording an invoice stores the evidence; booking it posts the ledger entries. Open items
+        compare what was billed with what was paid or credited, per partner and currency.
+      de: >-
+        Erfassen einer Rechnung speichert den Beleg; Buchen erzeugt die Journalbuchungen. Offene
+        Posten vergleichen Fakturiertes mit Bezahltem oder Gutgeschriebenem, je Geschäftspartner
+        und Währung.
+    synonyms: [receivable, payable, open item, credit note, billing, Ausgangsrechnung, Eingangsrechnung, Forderung, Verbindlichkeit, Offene Posten, Rechnungsprüfung, Gutschrift]
+    tables: []
+    match: "invoice|credit_note|sales_credit|credit(s)?$|billed|receipt_unbilled|receivable|payable|discount|open_items|open_financial|party_balances"
+    views: [open_items, documents]
+    projections: [open_financial_items]
+    exceptions:
+      [shipped_not_billed, billed_not_received, receipt_unbilled, invoice_price_differs, sales_invoice_unposted, supplier_invoice_unposted, credit_note_unposted, credit_note_unsettled, supplier_credit_unposted, supplier_credit_unclaimed, duplicate_supplier_invoice, overdue_receivable, overdue_payable, purchase_discount_available]
+
+  - key: payment
+    label:
+      en: "Payment and settlement"
+      de: "Zahlung und Ausgleich"
+    subtitle:
+      en: "Incoming and outgoing payments, allocation, short payments and refunds"
+      de: "Zahlungseingänge und -ausgänge, Zuordnung, Minderzahlungen und Erstattungen"
+    description:
+      en: >-
+        A payment is evidence with a balanced posting behind it. Allocating it to invoices or
+        credits is the settlement; a short payment is accepted as an agreed deduction or left open.
+        Payment runs pay suppliers in bulk.
+      de: >-
+        Eine Zahlung ist ein Beleg mit einer ausgeglichenen Buchung dahinter. Die Zuordnung zu
+        Rechnungen oder Gutschriften ist der Ausgleich; eine Minderzahlung wird als vereinbarter
+        Abzug akzeptiert oder bleibt offen. Zahlläufe bezahlen Lieferanten gesammelt.
+    synonyms: [payment receipt, allocation, matching, short payment, refund, payment run, Zahlungseingang, zuordnen, Minderzahlung, Abzug, Skontoabzug, Erstattung, Zahllauf, Saldo]
+    tables: [settlement_allocation]
+    match: "payment(?!_term)|refund|settlement|adjustment|balances|unmatched_financial"
+    views: [payments]
+    projections: [payments]
+    exceptions: [unmatched_financial_event, credit_note_unsettled]
+
+  - key: accounting
+    label:
+      en: "Ledger and accounts"
+      de: "Buchhaltung und Konten"
+    subtitle:
+      en: "Journal, operational accounts, opening balances and the export configuration"
+      de: "Journal, operative Konten, Eröffnungsbuchungen und die Export-Konfiguration"
+    description:
+      en: >-
+        The balanced journal every posting lands in, the operational accounts it uses, and the
+        configuration that maps postings to an external accounting system. Reversals add an inverse
+        posting group; nothing is deleted.
+      de: >-
+        Das ausgeglichene Journal, in dem jede Buchung landet, die operativen Konten, die es nutzt,
+        und die Konfiguration, die Buchungen einem externen Buchhaltungssystem zuordnet. Stornos
+        ergänzen eine Gegenbuchung; nichts wird gelöscht.
+    synonyms: [journal, GL, chart of accounts, reversal, opening balance, export, DATEV, Journal, Kontenrahmen, Storno, Eröffnungsbilanz, Sachkonto]
+    tables: [ledger_entry, ledger_reversal, subledger_account, finance_role_destination, accounting_target, accounting_target_reference, finance_target_mapping_revision, source_classification_mapping_revision, financial_component, component_assignment_revision, component_assignment_part, finance_reference, opening_scope, opening_item_detail]
+    match: "ledger|account|target|mapping|reference|component|opening|matrix"
+    views: [journal]
+    projections: [journal]
+    exceptions: [unmatched_financial_event]
+
+  - key: return
+    label:
+      en: "Return"
+      de: "Retoure"
+    subtitle:
+      en: "Customer returns, supplier returns and the credits they lead to"
+      de: "Kundenretouren, Lieferantenretouren und die Gutschriften daraus"
+    description:
+      en: >-
+        A return is announced, arrives as a goods receipt, is decided on, and ends in a credit or
+        refund. Each step is its own record, so a return that stalls between two steps is visible.
+      de: >-
+        Eine Retoure wird angekündigt, kommt als Retourenwareneingang an, wird entschieden und
+        endet in Gutschrift oder Erstattung. Jeder Schritt ist ein eigener Datensatz, deshalb ist
+        eine Retoure sichtbar, die zwischen zwei Schritten hängt.
+    synonyms: [RMA, return announcement, restocking fee, Retourenankündigung, Retourenwareneingang, Lieferantenretoure, Wiedereinlagerungsgebühr]
+    tables: [return_announcement]
+    match: "return"
+    views: []
+    projections: []
+    exceptions: [return_unresolved, announced_return_not_arrived, returned_not_credited, credited_not_returned, supplier_return_not_credited, supplier_credit_not_returned]
+
+  - key: source
+    label:
+      en: "Document and source system"
+      de: "Beleg und Quellsystem"
+    subtitle:
+      en: "Connected systems, imports, manual documents and stated facts"
+      de: "Angebundene Systeme, Importe, manuelle Belege und Facts"
+    description:
+      en: >-
+        Everything Reality knows arrives as an immutable source record from a system, a file or a
+        person. Documents are the normalized evidence; a fact is one stated observation about an
+        existing record. Interpretation failures and silent sources surface as exceptions.
+      de: >-
+        Alles, was Reality weiß, kommt als unveränderlicher Quelldatensatz aus einem System, einer
+        Datei oder von einer Person. Belege sind der normalisierte Nachweis; ein Fact ist eine
+        einzelne Aussage über einen bestehenden Datensatz. Fehlgeschlagene Interpretationen und
+        verstummte Quellen erscheinen als Klärfälle.
+    synonyms: [ERP, shop, import, connector, interface, evidence, Schnittstelle, Import, Beleg, Nachweis, Quelle]
+    tables: [source_system, source_capability, document, document_line, fact]
+    match: "source|connector|document|fact|interpretation|ingest"
+    views: [documents, sources_imports]
+    projections: [document_register]
+    exceptions: [silent_source, source_interpretation_failure]
+
+  - key: company
+    label:
+      en: "Company and users"
+      de: "Unternehmen und Benutzer"
+    subtitle:
+      en: "Members, invitations and what a company already uses"
+      de: "Mitglieder, Einladungen und was ein Unternehmen bereits nutzt"
+    description:
+      en: >-
+        Who may work in a company and how far its data has been set up. Every business record is
+        scoped to one company; another company's records behave as not found.
+      de: >-
+        Wer in einem Unternehmen arbeiten darf und wie weit dessen Daten eingerichtet sind. Jeder
+        Geschäftsdatensatz gehört zu genau einem Unternehmen; fremde Datensätze verhalten sich wie
+        nicht vorhanden.
+    synonyms: [tenant, member, invitation, access, Mandant, Mitglied, Einladung, Zugang]
+    tables: [company_invitation, invitation_delivery, tenant_membership]
+    match: "invitation|member|tenant"
+    views: []
+    projections: [tenant_usage]
+    exceptions: []
+
+  - key: governance
+    label:
+      en: "Approvals, exceptions and open questions"
+      de: "Freigaben, Klärfälle und offene Fragen"
+    subtitle:
+      en: "What agents proposed, what needs attention, and what the records cannot answer"
+      de: "Was Agenten vorgeschlagen haben, was Aufmerksamkeit braucht und was die Daten nicht beantworten"
+    description:
+      en: >-
+        An agent never changes business state directly: it proposes, a person approves, and the
+        proposal executes through the same command a clerk would use. Exceptions are the derived
+        attention queue; missing information collects questions the records cannot answer yet.
+      de: >-
+        Ein Agent ändert nie direkt den Geschäftszustand: Er schlägt vor, ein Mensch gibt frei, und
+        der Vorschlag läuft über dieselbe Geschäftsaktion, die auch ein Sachbearbeiter nutzt.
+        Klärfälle sind die abgeleitete Abweichungsliste; fehlende Informationen sammeln Fragen,
+        die die Daten noch nicht beantworten.
+    synonyms: [proposal, approval, exception, attention, missing information, Vorschlag, Freigabe, Abweichung, Klärfall, Timeline, Verlauf]
+    tables: []
+    match: "proposal|reality_gap|capability_describe|business_records_discover|^exception|activity|timeline"
+    views: [activity]
+    projections: [exceptions, timeline]
+    exceptions: []
+
+# Business processes as a consultant walks them: each step names the object, the action, the
+# list to check afterwards and the exceptions it can leave behind. The playbooks carry the
+# full narrative; these steps are the index into the executable vocabulary.
+processes:
+  - key: order_to_cash
+    label:
+      en: "Order to cash"
+      de: "Order-to-Cash"
+    playbook: order-to-cash-fulfilment
+    summary:
+      en: From a customer order through reservation, dispatch and invoice to the settled payment.
+      de: Vom Kundenauftrag über Reservierung, Versand und Rechnung bis zur ausgeglichenen Zahlung.
+    steps:
+      - title: { en: Record the customer order, de: Kundenauftrag erfassen }
+        resource: order
+        actions: [create_manual_order]
+        lists: [orders, commitments]
+        exceptions: [order_stalled]
+      - title: { en: Reserve stock for the promise, de: Bestand für die Verpflichtung reservieren }
+        resource: order
+        actions: [reserve, release_reservation]
+        lists: [supply_demand, reservations]
+        exceptions: [outgoing_commitment_at_risk, reservation_exceeds_stock]
+      - title: { en: Hold or revise when the customer or credit requires it, de: Sperren oder ändern, wenn Kunde oder Kredit es verlangen }
+        resource: order
+        actions: [hold_commitment, hold_party_delivery, revise_commitment]
+        lists: [fulfillment_blockers]
+        exceptions: [commitment_hold_unreleased, party_hold_unreleased, credit_limit_exceeded]
+      - title: { en: Dispatch the goods and follow the carrier, de: Ware versenden und den Spediteur verfolgen }
+        resource: delivery
+        actions: [record_packaged_execution, record_shipment_notice, record_shipment_event]
+        tools: [shipment_explain]
+        lists: [warehouse_queue, movements]
+        exceptions: [overdue_outgoing_customer_commitment]
+      - title: { en: Bill what shipped, de: Geliefertes fakturieren }
+        resource: invoice
+        actions: [record_sales_invoice, post_sales_invoice]
+        lists: [open_items]
+        exceptions: [shipped_not_billed, sales_invoice_unposted]
+      - title: { en: Record the payment and allocate it, de: Zahlungseingang erfassen und zuordnen }
+        resource: payment
+        actions: [post_customer_payment, apply_settlement, accept_adjustment]
+        tools: [finance_settlement_context, finance_party_balances]
+        lists: [payments, open_items]
+        exceptions: [overdue_receivable, unmatched_financial_event]
+      - title: { en: Close promises that will never ship, de: Verpflichtungen schließen, die nie geliefert werden }
+        resource: order
+        actions: [preview_stale_promise_closure, close_stale_promises]
+        lists: [commitments]
+        exceptions: [order_stalled]
+
+  - key: procure_to_pay
+    label:
+      en: "Procure to pay"
+      de: "Purchase-to-Pay"
+    playbook: purchasing-and-replenishment
+    summary:
+      en: From the replenishment need through purchase order, goods receipt and invoice check to the payment run.
+      de: Vom Bedarf über Bestellung, Wareneingang und Rechnungsprüfung bis zum Zahllauf.
+    steps:
+      - title: { en: Find what to buy, de: Bedarf ermitteln }
+        resource: item
+        tools: [item_supply_demand, fulfillment_blockers]
+        lists: [supply_demand, fulfillment_blockers]
+        exceptions: [outgoing_commitment_at_risk]
+      - title: { en: Place the purchase order, de: Bestellung anlegen }
+        resource: order
+        actions: [create_manual_order]
+        lists: [commitments]
+        exceptions: [overdue_incoming_supplier_commitment]
+      - title: { en: Receive the goods, de: Wareneingang buchen }
+        resource: delivery
+        actions: [record_packaged_execution, record_movement, create_lot, state_lot_expiry]
+        lists: [movements, inventory]
+        exceptions: [unexplained_movement, stock_expired]
+      - title: { en: Record and book the supplier invoice, de: Eingangsrechnung erfassen und buchen }
+        resource: invoice
+        actions: [record_supplier_invoice, post_supplier_invoice]
+        lists: [open_items]
+        exceptions: [receipt_unbilled, supplier_invoice_unposted, duplicate_supplier_invoice]
+      - title: { en: Check the invoice against order and receipt, de: Rechnungsprüfung gegen Bestellung und Wareneingang }
+        resource: invoice
+        tools: [exceptions_list, exception_explain]
+        lists: [open_items]
+        exceptions: [billed_not_received, invoice_price_differs]
+      - title: { en: Pay suppliers with a payment run, de: Lieferanten per Zahllauf bezahlen }
+        resource: payment
+        actions: [preview_payment_run, execute_payment_run, post_supplier_payment]
+        lists: [payments]
+        exceptions: [overdue_payable, purchase_discount_available]
+      - title: { en: Handle supplier credits and returns to the supplier, de: Lieferantengutschriften und Lieferantenretouren }
+        resource: return
+        actions: [post_supplier_credit_note, allocate_supplier_credit_note, post_supplier_refund]
+        lists: [open_items]
+        exceptions: [supplier_return_not_credited, supplier_credit_not_returned, supplier_credit_unclaimed]
+
+  - key: returns
+    label:
+      en: "Customer returns"
+      de: "Kundenretouren"
+    playbook: returns
+    summary:
+      en: From the announcement through the goods receipt and the decision to credit note or refund.
+      de: Von der Ankündigung über den Retourenwareneingang und die Entscheidung bis zu Gutschrift oder Erstattung.
+    steps:
+      - title: { en: The customer announces a return, de: Der Kunde kündigt eine Retoure an }
+        resource: return
+        actions: [announce_customer_return, withdraw_return_announcement, return_announcements]
+        lists: []
+        exceptions: [announced_return_not_arrived]
+      - title: { en: The goods arrive, de: Die Ware kommt an }
+        resource: delivery
+        actions: [record_packaged_execution, record_movement]
+        lists: [movements, inventory]
+        exceptions: [return_unresolved]
+      - title: { en: Credit the customer, keep a fee where agreed, de: Gutschrift erteilen, vereinbarte Gebühr einbehalten }
+        resource: invoice
+        actions: [record_sales_credit, post_sales_credit_note, create_manual_document_with_lines]
+        lists: [open_items]
+        exceptions: [returned_not_credited, credited_not_returned, credit_note_unposted]
+      - title: { en: Net the credit or refund the money, de: Gutschrift verrechnen oder erstatten }
+        resource: payment
+        actions: [allocate_credit_note, post_customer_refund]
+        tools: [finance_credits]
+        lists: [payments, open_items]
+        exceptions: [credit_note_unsettled]
+
+  - key: master_data
+    label:
+      en: "Master data and sources"
+      de: "Stammdaten und Quellen"
+    playbook: master-data-and-sources
+    summary:
+      en: Set up partners, items, locations, prices and terms, connect the systems that deliver them, and keep them current.
+      de: Geschäftspartner, Artikel, Lagerorte, Preise und Konditionen anlegen, die liefernden Systeme anbinden und aktuell halten.
+    steps:
+      - title: { en: Create partners, items and locations, de: Geschäftspartner, Artikel und Lagerorte anlegen }
+        resource: party
+        actions: [create_party, create_item, create_location, set_master_data_active]
+        lists: [parties, items, locations]
+        exceptions: [units_not_comparable]
+      - title: { en: Keep them current, de: Aktuell halten }
+        resource: item
+        actions: [update_party, update_item, update_location]
+        lists: [parties, items, locations]
+        exceptions: []
+      - title: { en: Prices, tiers, groups and payment terms, de: Preise, Staffeln, Gruppen und Zahlungsbedingungen }
+        resource: terms
+        actions: [create_price_list, create_price_list_entry, assign_party_price_list, create_party_group, create_payment_term]
+        lists: [commercial_terms]
+        exceptions: [invoice_price_differs, sold_below_purchase_price]
+      - title: { en: Register a source and what it may deliver, de: Quelle registrieren und festlegen, was sie liefern darf }
+        resource: source
+        actions: [create_source_system, create_source_capability, install_connector_shell, enqueue_source]
+        lists: [sources_imports, documents]
+        exceptions: [silent_source, source_interpretation_failure]
+      - title: { en: State a fact the records are missing, de: Einen fehlenden Sachverhalt als Fact erfassen }
+        resource: source
+        actions: [observe_fact]
+        tools: [reality_gaps, reality_gap_create_propose]
+        lists: [documents]
+        exceptions: []
+
+  - key: finance_setup
+    label:
+      en: "Finance set-up and period work"
+      de: "Finanzeinrichtung und Periodenarbeit"
+    playbook: receivables-and-payments
+    summary:
+      en: Accounts, opening balances, the mapping to the external accounting system and reversals.
+      de: Konten, Eröffnungsbuchungen, die Zuordnung zum externen Buchhaltungssystem und Stornos.
+    steps:
+      - title: { en: Set up operational accounts, de: Operative Konten einrichten }
+        resource: accounting
+        actions: [initialize_accounts, create_account, update_account, set_default_account]
+        lists: [journal]
+        exceptions: []
+      - title: { en: Import opening positions, de: Eröffnungsposten importieren }
+        resource: accounting
+        actions: [opening_context, import_opening]
+        lists: [open_items, journal]
+        exceptions: []
+      - title: { en: Map postings to the external accounting system, de: Buchungen dem externen Buchhaltungssystem zuordnen }
+        resource: accounting
+        actions: [maintain_target_configuration, maintain_reference, set_source_mapping, assign_component]
+        lists: [journal]
+        exceptions: []
+      - title: { en: Reverse a wrong posting, de: Eine falsche Buchung stornieren }
+        resource: accounting
+        actions: [reverse_ledger_posting_group, correct_movement]
+        lists: [journal, movements]
+        exceptions: [unmatched_financial_event]
+
+# German labels for the executable vocabulary, in the words an ERP professional uses. English
+# labels come from the other catalogs. A key without an entry falls back to the English label.
+labels:
+  de:
+    commands:
+      change_report: Private Auswertung ändern
+      list_targets: Buchhaltungsziele anzeigen
+      list_target_references: Zielreferenzen anzeigen
+      list_mappings: Kontenzuordnungen anzeigen
+      mapping_history: Verlauf der Kontenzuordnung
+      preview_document: Belegzuordnung vorschauen
+      maintain_target_configuration: Buchhaltungsziel pflegen
+      list_source_mappings: Quellcode-Zuordnungen anzeigen
+      source_mapping_history: Verlauf der Quellcode-Zuordnung
+      set_source_mapping: Quellcode zuordnen
+      component_context: Empfangene Finanzdetails anzeigen
+      component_history: Verlauf der Komponentenzuordnung
+      assign_component: Finanzkomponente zuordnen
+      list_references: Finanzreferenzen anzeigen
+      reference_history: Verlauf der Finanzreferenz
+      maintain_reference: Finanzreferenz pflegen
+      initialize_accounts: Operative Konten anlegen
+      create_account: Operatives Konto anlegen
+      update_account: Operatives Konto ändern
+      set_default_account: Standardkonto festlegen
+      transaction_matrix: Buchungsmatrix anzeigen
+      list_accounts: Operative Konten anzeigen
+      observe_fact: Fact erfassen
+      create_manual_order: Kundenauftrag oder Bestellung anlegen
+      install_connector_shell: Connector einrichten
+      create_source_system: Quellsystem anlegen
+      create_source_capability: Quellfähigkeit festlegen
+      enqueue_source: Quelldaten importieren
+      correct_manual_document: Manuellen Beleg korrigieren
+      record_corrected_document_source: Korrigierten Quellbeleg erfassen
+      create_party: Geschäftspartner anlegen
+      update_party: Geschäftspartner ändern
+      create_item: Artikel anlegen
+      update_item: Artikel ändern
+      create_location: Lagerort anlegen
+      update_location: Lagerort ändern
+      create_handling_unit: Palette anlegen
+      create_lot: Charge anlegen
+      state_lot_expiry: Mindesthaltbarkeit angeben
+      correct_lot_expiry: Mindesthaltbarkeit korrigieren
+      expired_lots: Abgelaufene Chargen anzeigen
+      create_serial_unit: Seriennummer anlegen
+      set_master_data_active: Stammdatensatz aktivieren oder deaktivieren
+      create_payment_term: Zahlungsbedingung anlegen
+      create_price_list: Preisliste anlegen
+      create_price_list_entry: Staffelpreis anlegen
+      assign_party_price_list: Preisliste zuweisen
+      create_party_group: Preisgruppe anlegen und zuweisen
+      reserve: Bestand reservieren
+      release_reservation: Reservierung aufheben
+      record_movement: Lagerbewegung buchen
+      correct_movement: Lagerbewegung korrigieren
+      reverse_ledger_posting_group: Buchung stornieren
+      revise_commitment: Verpflichtung ändern
+      hold_commitment: Verpflichtung sperren oder freigeben
+      hold_document_commitments: Beleg sperren oder freigeben
+      hold_party_delivery: Liefersperre setzen oder aufheben
+      post_customer_payment: Zahlungseingang buchen
+      announce_customer_return: Retoure ankündigen
+      withdraw_return_announcement: Retourenankündigung zurückziehen
+      return_announcements: Angekündigte Retouren anzeigen
+      preview_payment_run: Zahllauf vorschauen
+      execute_payment_run: Zahllauf ausführen
+      preview_stale_promise_closure: Schließen alter Verpflichtungen vorschauen
+      close_stale_promises: Alte Verpflichtungen schließen
+      create_manual_document_with_lines: Manuellen Beleg erfassen
+      post_sales_invoice: Ausgangsrechnung buchen
+      post_supplier_invoice: Eingangsrechnung buchen
+      record_sales_credit: Retourengutschrift erfassen
+      record_supplier_invoice: Eingangsrechnung erfassen
+      record_sales_invoice: Ausgangsrechnung erfassen
+      post_sales_credit_note: Gutschrift buchen
+      allocate_credit_note: Gutschrift mit Rechnung verrechnen
+      post_customer_refund: Kundenerstattung buchen
+      post_supplier_credit_note: Lieferantengutschrift buchen
+      allocate_supplier_credit_note: Lieferantengutschrift mit Rechnung verrechnen
+      post_supplier_refund: Lieferantenerstattung buchen
+      post_supplier_payment: Zahlungsausgang buchen
+      create_invitation: Mitglied einladen
+      resend_invitation: Einladung erneut senden
+      revoke_invitation: Einladung zurückziehen
+      remove_member: Mitglied entfernen
+      adjustment_context: Kontext für Abzug anzeigen
+      accept_adjustment: Abzug akzeptieren
+      settlement_context: Kontext für Zahlung und Gutschrift anzeigen
+      apply_settlement: Zahlung zuordnen oder Guthaben verwenden
+      opening_context: Kontext der Eröffnungsposten anzeigen
+      import_opening: Eröffnungsposten importieren
+      record_shipment_notice: Sendungsavis erfassen
+      record_packaged_execution: Packstück versenden oder Wareneingang buchen
+      record_shipment_event: Sendungsereignis erfassen
+      supersede_shipment_event: Sendungsereignis korrigieren
+    views:
+      commitments: Verpflichtungen
+      inventory: Bestand
+      open_items: Offene Posten
+      documents: Belege
+      reservations: Reservierungen
+      movements: Lagerbewegungen
+      locations: Lagerorte
+      payments: Zahlungen
+      journal: Journal
+      parties: Geschäftspartner
+      items: Artikel
+      commercial_terms: Konditionen
+      sources_imports: Quellen & Importe
+      activity: Verlauf
+      orders: Aufträge
+      warehouse_queue: Lagerarbeitsvorrat
+      fulfillment_blockers: Lieferhindernisse
+      supply_demand: Zulauf & Bedarf
+    projections:
+      fulfillment_queue: Versandvorrat
+      fulfillment_blockers: Lieferhindernisse
+      item_supply_demand: Zulauf und Bedarf je Artikel
+      tenant_usage: Nutzung des Unternehmens
+      inventory: Bestand
+      exceptions: Abweichungen
+      commitment_register: Verpflichtungsregister
+      document_register: Belegregister
+      open_financial_items: Offene Posten
+      payments: Zahlungen
+      journal: Journal
+      timeline: Verlauf
+      price_resolution: Preisfindung
+    exceptions:
+      overdue_outgoing_customer_commitment: Lieferverzug an Kunden
+      outgoing_commitment_at_risk: Lieferverpflichtung gefährdet
+      order_stalled: Auftrag hängt
+      overdue_incoming_supplier_commitment: Lieferverzug des Lieferanten
+      shipped_not_billed: Geliefert, nicht fakturiert
+      billed_not_received: Fakturiert, nicht geliefert
+      invoice_price_differs: Rechnungspreis weicht von der Vereinbarung ab
+      sold_below_purchase_price: Unter Einkaufspreis verkauft
+      returned_not_credited: Retourniert, nicht gutgeschrieben
+      credited_not_returned: Gutgeschrieben, nicht retourniert
+      supplier_return_not_credited: Lieferantenretoure nicht gutgeschrieben
+      supplier_credit_not_returned: Lieferant hat mehr gutgeschrieben als zurückging
+      return_unresolved: Retoure nicht bearbeitet
+      receipt_unbilled: Wareneingang ohne Rechnung
+      units_not_comparable: Einheiten nicht vergleichbar
+      reservation_exceeds_stock: Reservierung übersteigt Bestand
+      silent_source: Quelle verstummt
+      source_interpretation_failure: Quelle nicht interpretierbar
+      unexplained_movement: Unerklärte Lagerbewegung
+      sales_invoice_unposted: Ausgangsrechnung nicht gebucht
+      supplier_invoice_unposted: Eingangsrechnung nicht gebucht
+      credit_note_unposted: Gutschrift nicht gebucht
+      credit_note_unsettled: Gutschrift nicht ausgeglichen
+      supplier_credit_unposted: Lieferantengutschrift nicht gebucht
+      supplier_credit_unclaimed: Lieferantengutschrift nicht eingefordert
+      overdue_receivable: Überfällige Forderung
+      credit_limit_exceeded: Kreditlimit überschritten
+      overdue_payable: Überfällige Verbindlichkeit
+      purchase_discount_available: Skonto noch möglich
+      duplicate_supplier_invoice: Doppelte Eingangsrechnung
+      unmatched_financial_event: Nicht zugeordneter Finanzvorgang
+      announced_return_not_arrived: Angekündigte Retoure nicht eingetroffen
+      commitment_hold_unreleased: Sperre der Verpflichtung nicht aufgehoben
+      party_hold_unreleased: Liefersperre nicht aufgehoben
+      stock_expired: Abgelaufener Bestand
+    workspaces:
+      company: Unternehmensübersicht
+      operations: Auftragsbearbeitung
+      warehouse: Lager
+      finance: Finanzen
+      data: Datenpflege

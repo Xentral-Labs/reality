@@ -1,0 +1,681 @@
+{
+  "$defs": {
+    "Author": {
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "maxLength": 200,
+          "minLength": 1,
+          "title": "Name",
+          "type": "string"
+        },
+        "contact": {
+          "anyOf": [
+            {
+              "maxLength": 200,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Contact"
+        }
+      },
+      "required": ["name"],
+      "title": "Author",
+      "type": "object"
+    },
+    "Branch": {
+      "additionalProperties": false,
+      "properties": {
+        "key": {
+          "pattern": "^[a-z0-9][a-z0-9-]{1,78}$",
+          "title": "Key",
+          "type": "string"
+        },
+        "label": {
+          "$ref": "#/$defs/Text"
+        },
+        "next": {
+          "pattern": "^[a-z0-9][a-z0-9-]{1,78}$",
+          "title": "Next",
+          "type": "string"
+        },
+        "default": {
+          "type": "boolean",
+          "default": false,
+          "title": "Default"
+        }
+      },
+      "required": ["key", "label", "next"],
+      "title": "Branch",
+      "type": "object"
+    },
+    "Chapter": {
+      "additionalProperties": false,
+      "properties": {
+        "key": {
+          "pattern": "^[a-z0-9][a-z0-9-]{1,78}$",
+          "title": "Key",
+          "type": "string"
+        },
+        "title": {
+          "$ref": "#/$defs/Text"
+        },
+        "situation": {
+          "$ref": "#/$defs/Text"
+        },
+        "explain": {
+          "$ref": "#/$defs/Text"
+        },
+        "view": {
+          "anyOf": [
+            {
+              "maxLength": 80,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "View"
+        },
+        "kind": {
+          "default": "command",
+          "enum": ["command", "read", "unsupported"],
+          "title": "Kind",
+          "type": "string"
+        },
+        "command": {
+          "anyOf": [
+            {
+              "maxLength": 120,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Command"
+        },
+        "input": {
+          "additionalProperties": true,
+          "title": "Input",
+          "type": "object"
+        },
+        "context": {
+          "additionalProperties": {
+            "$ref": "#/$defs/ContextRead"
+          },
+          "title": "Context",
+          "type": "object"
+        },
+        "reads": {
+          "items": {
+            "$ref": "#/$defs/Read"
+          },
+          "maxItems": 8,
+          "title": "Reads",
+          "type": "array"
+        },
+        "requires": {
+          "$ref": "#/$defs/Requires"
+        },
+        "primary": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Primary"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "expect": {
+          "$ref": "#/$defs/Expect"
+        },
+        "next": {
+          "anyOf": [
+            {
+              "pattern": "^[a-z0-9][a-z0-9-]{1,78}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Next"
+        },
+        "branches": {
+          "items": {
+            "$ref": "#/$defs/Branch"
+          },
+          "maxItems": 4,
+          "title": "Branches",
+          "type": "array"
+        },
+        "reason": {
+          "anyOf": [
+            {
+              "maxLength": 400,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Reason"
+        }
+      },
+      "required": ["key", "title", "situation", "explain"],
+      "title": "Chapter",
+      "type": "object"
+    },
+    "ContextRead": {
+      "additionalProperties": false,
+      "description": "A read the service performs at preparation; its result feeds the input.",
+      "properties": {
+        "tool": {
+          "maxLength": 120,
+          "minLength": 1,
+          "title": "Tool",
+          "type": "string"
+        },
+        "input": {
+          "additionalProperties": true,
+          "title": "Input",
+          "type": "object"
+        },
+        "field": {
+          "anyOf": [
+            {
+              "maxLength": 200,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Field"
+        }
+      },
+      "required": ["tool"],
+      "title": "ContextRead",
+      "type": "object"
+    },
+    "Expect": {
+      "additionalProperties": false,
+      "properties": {
+        "raised": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Raised",
+          "type": "array"
+        },
+        "cleared": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Cleared",
+          "type": "array"
+        },
+        "facts": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Facts",
+          "type": "array"
+        }
+      },
+      "title": "Expect",
+      "type": "object"
+    },
+    "HistoryEntry": {
+      "additionalProperties": false,
+      "properties": {
+        "command": {
+          "maxLength": 120,
+          "minLength": 1,
+          "title": "Command",
+          "type": "string"
+        },
+        "at": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "At"
+        },
+        "input": {
+          "additionalProperties": true,
+          "title": "Input",
+          "type": "object"
+        },
+        "as": {
+          "anyOf": [
+            {
+              "maxLength": 40,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "As"
+        }
+      },
+      "required": ["command"],
+      "title": "HistoryEntry",
+      "type": "object"
+    },
+    "Primary": {
+      "additionalProperties": false,
+      "properties": {
+        "record_type": {
+          "maxLength": 40,
+          "minLength": 1,
+          "title": "Record Type",
+          "type": "string"
+        },
+        "from": {
+          "maxLength": 200,
+          "minLength": 1,
+          "title": "From",
+          "type": "string"
+        }
+      },
+      "required": ["record_type", "from"],
+      "title": "Primary",
+      "type": "object"
+    },
+    "Read": {
+      "additionalProperties": false,
+      "properties": {
+        "tool": {
+          "maxLength": 120,
+          "minLength": 1,
+          "title": "Tool",
+          "type": "string"
+        },
+        "input": {
+          "additionalProperties": true,
+          "title": "Input",
+          "type": "object"
+        }
+      },
+      "required": ["tool"],
+      "title": "Read",
+      "type": "object"
+    },
+    "Requires": {
+      "additionalProperties": false,
+      "description": "What must hold before a chapter runs, beyond its references resolving.",
+      "properties": {
+        "findings_present": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Findings Present",
+          "type": "array"
+        },
+        "findings_absent": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Findings Absent",
+          "type": "array"
+        }
+      },
+      "title": "Requires",
+      "type": "object"
+    },
+    "Seed": {
+      "additionalProperties": false,
+      "properties": {
+        "parties": {
+          "additionalProperties": {
+            "$ref": "#/$defs/SeedParty"
+          },
+          "minProperties": 1,
+          "title": "Parties",
+          "type": "object"
+        },
+        "items": {
+          "additionalProperties": {
+            "$ref": "#/$defs/SeedItem"
+          },
+          "minProperties": 1,
+          "title": "Items",
+          "type": "object"
+        },
+        "locations": {
+          "additionalProperties": {
+            "$ref": "#/$defs/SeedLocation"
+          },
+          "minProperties": 1,
+          "title": "Locations",
+          "type": "object"
+        },
+        "terms": {
+          "additionalProperties": {
+            "$ref": "#/$defs/SeedTerm"
+          },
+          "title": "Terms",
+          "type": "object"
+        },
+        "history": {
+          "items": {
+            "$ref": "#/$defs/HistoryEntry"
+          },
+          "maxItems": 40,
+          "title": "History",
+          "type": "array"
+        }
+      },
+      "required": ["parties", "items", "locations"],
+      "title": "Seed",
+      "type": "object"
+    },
+    "SeedItem": {
+      "additionalProperties": false,
+      "properties": {
+        "sku": {
+          "maxLength": 80,
+          "minLength": 1,
+          "title": "Sku",
+          "type": "string"
+        },
+        "name": {
+          "maxLength": 200,
+          "minLength": 1,
+          "title": "Name",
+          "type": "string"
+        },
+        "unit": {
+          "default": "pcs",
+          "maxLength": 20,
+          "title": "Unit",
+          "type": "string"
+        },
+        "price": {
+          "anyOf": [
+            {
+              "maxLength": 32,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Price"
+        },
+        "currency": {
+          "default": "EUR",
+          "maxLength": 3,
+          "minLength": 3,
+          "title": "Currency",
+          "type": "string"
+        }
+      },
+      "required": ["sku", "name"],
+      "title": "SeedItem",
+      "type": "object"
+    },
+    "SeedLocation": {
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "maxLength": 200,
+          "minLength": 1,
+          "title": "Name",
+          "type": "string"
+        }
+      },
+      "required": ["name"],
+      "title": "SeedLocation",
+      "type": "object"
+    },
+    "SeedParty": {
+      "additionalProperties": false,
+      "properties": {
+        "role": {
+          "enum": ["customer", "supplier"],
+          "title": "Role",
+          "type": "string"
+        },
+        "name": {
+          "maxLength": 200,
+          "minLength": 1,
+          "title": "Name",
+          "type": "string"
+        },
+        "payment_term": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Payment Term"
+        }
+      },
+      "required": ["role", "name"],
+      "title": "SeedParty",
+      "type": "object"
+    },
+    "SeedTerm": {
+      "additionalProperties": false,
+      "properties": {
+        "code": {
+          "maxLength": 40,
+          "minLength": 1,
+          "title": "Code",
+          "type": "string"
+        },
+        "name": {
+          "anyOf": [
+            {
+              "maxLength": 200,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Name"
+        },
+        "days": {
+          "maximum": 365,
+          "minimum": 0,
+          "title": "Days",
+          "type": "integer"
+        },
+        "discount_percent": {
+          "anyOf": [
+            {
+              "maxLength": 16,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Discount Percent"
+        },
+        "discount_days": {
+          "anyOf": [
+            {
+              "maximum": 365,
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Discount Days"
+        }
+      },
+      "required": ["code", "days"],
+      "title": "SeedTerm",
+      "type": "object"
+    },
+    "Text": {
+      "additionalProperties": false,
+      "description": "A text in the UI languages. ``en`` is required unless the text is a draft gap.",
+      "properties": {
+        "en": {
+          "anyOf": [
+            {
+              "maxLength": 4000,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "En"
+        },
+        "de": {
+          "anyOf": [
+            {
+              "maxLength": 4000,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "De"
+        },
+        "nl": {
+          "anyOf": [
+            {
+              "maxLength": 4000,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Nl"
+        },
+        "es": {
+          "anyOf": [
+            {
+              "maxLength": 4000,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Es"
+        },
+        "missing": {
+          "default": false,
+          "title": "Missing",
+          "type": "boolean"
+        }
+      },
+      "title": "Text",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "storyline": {
+      "const": 1,
+      "title": "Storyline",
+      "type": "integer"
+    },
+    "key": {
+      "pattern": "^[a-z0-9][a-z0-9-]{1,78}$",
+      "title": "Key",
+      "type": "string"
+    },
+    "version": {
+      "minimum": 1,
+      "title": "Version",
+      "type": "integer"
+    },
+    "title": {
+      "$ref": "#/$defs/Text"
+    },
+    "summary": {
+      "$ref": "#/$defs/Text"
+    },
+    "author": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/Author"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "process": {
+      "anyOf": [
+        {
+          "pattern": "^[a-z][a-z0-9_]{0,60}$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Process"
+    },
+    "seed": {
+      "$ref": "#/$defs/Seed"
+    },
+    "chapters": {
+      "items": {
+        "$ref": "#/$defs/Chapter"
+      },
+      "maxItems": 60,
+      "minItems": 1,
+      "title": "Chapters",
+      "type": "array"
+    },
+    "draft": {
+      "default": false,
+      "title": "Draft",
+      "type": "boolean"
+    }
+  },
+  "required": ["storyline", "key", "version", "title", "summary", "seed", "chapters"],
+  "title": "Reality storyline package",
+  "type": "object",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://docs.runreality.ai/storylines/storyline.schema.json"
+}

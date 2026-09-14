@@ -1,0 +1,176 @@
+name: Deploy
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths-ignore:
+      - '**/*.md'
+      - 'specs/**'
+      - 'docs/**'
+
+concurrency:
+  group: deploy
+  cancel-in-progress: false
+
+jobs:
+  meta:
+    runs-on: ubuntu-latest
+    outputs:
+      tag: ${{ steps.meta.outputs.tag }}
+      build_date: ${{ steps.meta.outputs.build_date }}
+      configured: ${{ steps.gate.outputs.configured }}
+      environment: ${{ steps.gate.outputs.environment }}
+    steps:
+      - id: meta
+        shell: bash
+        run: |
+          echo "tag=${GITHUB_SHA::7}" >> "$GITHUB_OUTPUT"
+          echo "build_date=$(date -u '+%Y-%m-%d %H:%M UTC')" >> "$GITHUB_OUTPUT"
+      - id: gate
+        shell: bash
+        env:
+          ROLE: ${{ secrets.AWS_DEPLOY_ROLE_ARN }}
+          # Names the deployment this repository's main branch feeds, e.g.
+          # `testing`. It becomes the suffix of the dispatch event type, so the
+          # receiving repository can route one environment's images to one
+          # Application without this workflow knowing anything about either.
+          DEPLOY_ENVIRONMENT: ${{ vars.DEPLOY_ENVIRONMENT }}
+        run: |
+          set -euo pipefail
+          if [ -z "$ROLE" ]; then
+            echo "configured=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::AWS_DEPLOY_ROLE_ARN is not set; skipping the deploy build."
+            exit 0
+          fi
+          if [ -z "$DEPLOY_ENVIRONMENT" ]; then
+            echo "::error::AWS_DEPLOY_ROLE_ARN is set but the DEPLOY_ENVIRONMENT variable is not. Set it to the environment this branch deploys (for example: testing)."
+            exit 1
+          fi
+          # Becomes part of an event type, so keep it to a plain slug.
+          if ! printf '%s' "$DEPLOY_ENVIRONMENT" | grep -qE '^[a-z0-9][a-z0-9-]{0,30}$'; then
+            echo "::error::DEPLOY_ENVIRONMENT '$DEPLOY_ENVIRONMENT' must be lowercase letters, digits and hyphens."
+            exit 1
+          fi
+          echo "configured=true" >> "$GITHUB_OUTPUT"
+          echo "environment=$DEPLOY_ENVIRONMENT" >> "$GITHUB_OUTPUT"
+
+  build:
+    needs: meta
+    if: needs.meta.outputs.configured == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - component: api
+            dockerfile: apps/api/Dockerfile
+          - component: mcp
+            dockerfile: apps/mcp/Dockerfile
+          - component: web
+            dockerfile: apps/web/Dockerfile
+          - component: docs
+            dockerfile: apps/docs/Dockerfile
+          - component: scheduler
+            dockerfile: apps/scheduler/Dockerfile
+          - component: worker
+            dockerfile: apps/worker/Dockerfile
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: docker/setup-buildx-action@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v6
+        with:
+          role-to-assume: ${{ secrets.AWS_DEPLOY_ROLE_ARN }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        id: ecr
+        uses: aws-actions/amazon-ecr-login@v2
+        with:
+          registries: ${{ secrets.AWS_ACCOUNT_ID }}
+
+      - name: Skip if this tag is already present
+        id: exists
+        shell: bash
+        run: |
+          if aws ecr describe-images \
+              --registry-id "${{ secrets.AWS_ACCOUNT_ID }}" \
+              --repository-name "${{ secrets.ECR_REPOSITORY }}" \
+              --image-ids imageTag="${{ matrix.component }}-${{ needs.meta.outputs.tag }}" \
+              --region "${{ secrets.AWS_REGION }}" >/dev/null 2>&1; then
+            echo "::notice::${{ matrix.component }}-${{ needs.meta.outputs.tag }} already present; skipping push."
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Build and push
+        if: steps.exists.outputs.exists != 'true'
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ${{ matrix.dockerfile }}
+          platforms: linux/amd64
+          push: true
+          provenance: false
+          cache-from: type=gha,scope=${{ matrix.component }}
+          cache-to: type=gha,mode=max,scope=${{ matrix.component }}
+          build-args: |
+            APP_URL=${{ vars.APP_URL }}
+            SITE_URL=${{ vars.SITE_URL }}
+            DOCS_URL=${{ vars.DOCS_URL }}
+          tags: ${{ steps.ecr.outputs.registry }}/${{ secrets.ECR_REPOSITORY }}:${{ matrix.component }}-${{ needs.meta.outputs.tag }}
+
+  notify:
+    needs: [meta, build]
+    if: needs.meta.outputs.configured == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Mint a GitHub App installation token
+        id: app-token
+        uses: actions/create-github-app-token@v2
+        with:
+          app-id: ${{ secrets.DEPLOY_APP_ID }}
+          private-key: ${{ secrets.DEPLOY_APP_PRIVATE_KEY }}
+          owner: ${{ github.repository_owner }}
+          repositories: ${{ secrets.DEPLOY_TARGET_REPO }}
+
+      - name: Signal the new tag
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+          TARGET: ${{ secrets.DEPLOY_TARGET_REPO }}
+          TAG: ${{ needs.meta.outputs.tag }}
+          ENVIRONMENT: ${{ needs.meta.outputs.environment }}
+        run: |
+          set -euo pipefail
+          # The event type is qualified by environment -- reality-image-published-testing,
+          # reality-image-published-production -- so one receiving repository can route
+          # each environment to its own Argo CD Application. The environment is repeated
+          # in the payload so a receiver can log it without re-parsing the type.
+          gh api "repos/${{ github.repository_owner }}/${TARGET}/dispatches" \
+            -f "event_type=reality-image-published-${ENVIRONMENT}" \
+            -F "client_payload[tag]=${TAG}" \
+            -F "client_payload[environment]=${ENVIRONMENT}" \
+            -F "client_payload[commit]=${GITHUB_SHA}" \
+            -F "client_payload[repository]=${{ github.repository }}"
+
+      - name: Summary
+        shell: bash
+        run: |
+          {
+            echo "### Deploy"
+            echo
+            echo "| | |"
+            echo "|---|---|"
+            echo "| Tag | \`${{ needs.meta.outputs.tag }}\` |"
+            echo "| Built | ${{ needs.meta.outputs.build_date }} |"
+            echo "| Signalled | \`reality-image-published-${{ needs.meta.outputs.environment }}\` dispatched |"
+          } >> "$GITHUB_STEP_SUMMARY"

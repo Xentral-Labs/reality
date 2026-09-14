@@ -1,0 +1,177 @@
+"""Thin Reports routes over the shared analytics tools and definition services."""
+
+from fastapi import APIRouter, HTTPException, Request
+from pydantic import ValidationError
+
+from reality.domain.analytics import AnalyticsQuery, ContributorQuery, ReportChange
+from reality.services.analytics.execution import AnalyticsError
+from reality.services.analytics.reports import change_report
+from reality.services.core import InvalidOperation, NotFound
+from reality.services.memberships import Principal
+from reality.tools.analytics import ExportRequest, caller
+from reality.tools.application import run_read_tool
+from reality.web.auth import DatabaseSession
+
+router = APIRouter(prefix="/analytics")
+
+
+def principal(request):
+    user = getattr(request.state, "user", None)
+    return Principal(user.id) if user is not None else None
+
+
+def read(session, tenant_id, name, values, request):
+    try:
+        with caller(principal(request)):
+            return run_read_tool(session, tenant_id, name, values)
+    except NotFound as error:
+        raise HTTPException(404, str(error)) from error
+    except (AnalyticsError, InvalidOperation, ValidationError) as error:
+        raise HTTPException(
+            422,
+            {
+                "code": getattr(error, "code", "invalid_definition"),
+                "message": str(error),
+            },
+        ) from error
+
+
+async def cancellable_read(session, tenant_id, name, values, request):
+    import asyncio
+    from contextlib import suppress
+    from threading import Event
+
+    from starlette.concurrency import run_in_threadpool
+
+    from reality.services.analytics.budget import CANCELLED
+
+    cancelled = Event()
+
+    async def watch_disconnect():
+        while True:
+            if await request.is_disconnected():
+                cancelled.set()
+                return
+            await asyncio.sleep(0.1)
+
+    def worker():
+        token = CANCELLED.set(cancelled)
+        try:
+            return read(session, tenant_id, name, values, request)
+        finally:
+            CANCELLED.reset(token)
+
+    watcher = asyncio.create_task(watch_disconnect())
+    try:
+        return await run_in_threadpool(worker)
+    finally:
+        watcher.cancel()
+        with suppress(asyncio.CancelledError):
+            await watcher
+
+
+@router.get("/catalog")
+def get_catalog(
+    tenant_id: str,
+    request: Request,
+    session: DatabaseSession,
+    dataset: str | None = None,
+):
+    return read(session, tenant_id, "analytics.catalog", {"dataset": dataset}, request)
+
+
+@router.post("/query")
+async def post_query(
+    tenant_id: str, body: AnalyticsQuery, request: Request, session: DatabaseSession
+):
+    return await cancellable_read(
+        session, tenant_id, "analytics.query", body.model_dump(mode="json"), request
+    )
+
+
+@router.post("/query/contributors")
+async def post_contributors(
+    tenant_id: str, body: ContributorQuery, request: Request, session: DatabaseSession
+):
+    return await cancellable_read(
+        session,
+        tenant_id,
+        "analytics.contributors",
+        body.model_dump(mode="json"),
+        request,
+    )
+
+
+@router.post("/export")
+async def post_export(
+    tenant_id: str, body: ExportRequest, request: Request, session: DatabaseSession
+):
+    return await cancellable_read(
+        session, tenant_id, "analytics.export", body.model_dump(mode="json"), request
+    )
+
+
+@router.get("/reports")
+def get_reports(
+    tenant_id: str,
+    request: Request,
+    session: DatabaseSession,
+    query: str = "",
+    limit: int = 50,
+    cursor: str | None = None,
+):
+    return read(
+        session,
+        tenant_id,
+        "analytics.reports.list",
+        {"query": query, "limit": limit, "cursor": cursor},
+        request,
+    )
+
+
+@router.get("/reports/{report_id}")
+def get_saved(
+    tenant_id: str, report_id: str, request: Request, session: DatabaseSession
+):
+    return read(
+        session, tenant_id, "analytics.reports.get", {"report_id": report_id}, request
+    )
+
+
+@router.post("/reports/changes")
+def post_change(
+    tenant_id: str, body: ReportChange, request: Request, session: DatabaseSession
+):
+    try:
+        result = change_report(
+            session, tenant_id, principal(request), body.model_dump(mode="json")
+        )
+        session.commit()
+        return result
+    except NotFound as error:
+        session.rollback()
+        raise HTTPException(404, str(error)) from error
+    except (AnalyticsError, InvalidOperation) as error:
+        session.rollback()
+        raise HTTPException(
+            409
+            if getattr(error, "code", "")
+            in {"revision_conflict", "idempotency_conflict"}
+            else 422,
+            {
+                "code": getattr(error, "code", "invalid_definition"),
+                "message": str(error),
+            },
+        ) from error
+
+
+@router.get("/reports/proposals/{proposal_id}")
+def get_report_proposal(
+    tenant_id: str, proposal_id: str, request: Request, session: DatabaseSession
+):
+    from reality.services.analytics.proposals import preview
+
+    try:
+        return preview(session, tenant_id, principal(request), proposal_id)
+    except (NotFound, AnalyticsError) as error:
+        raise HTTPException(404, "Report proposal not found.") from error

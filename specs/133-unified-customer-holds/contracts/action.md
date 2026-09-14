@@ -1,0 +1,4 @@
+# Contracts
+GET /api/tenants/{tenant}/customer-holds/{party_id}: ordinary-company read, customer-role validation; returns party, holds, reasons. No mutation.
+Existing delivery-actions/prepare accepts party_delivery_hold {party_id,reason_code,note?} or party_delivery_hold_release {party_id}, with persistent request_id. New reviewed fields are bounded; no created_by or action_id accepted from client intent. Existing review, detail, approve (review_token+confirmed) and reconcile routes apply.
+Review state: party identity/name/type/roles/active flag and all active delivery hold snapshots. Effect: hold count placed/released; no affected delivery or inventory quantity invented. Detail exposes canonical party_hold records receipt, verification, customer/event links and current active hold observation. No-op review rejected. General raw tool semantics remain compatible.

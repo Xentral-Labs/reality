@@ -1,0 +1,92 @@
+{
+  "date": "2026-09-09",
+  "environment": "Local live-demo company on port 8080",
+  "columns": [
+    "click_label",
+    "resource",
+    "api_ms",
+    "click_response_ms",
+    "click_two_frames_ms"
+  ],
+  "after": [
+    [
+      "Finance",
+      "open-items",
+      374,
+      380,
+      410
+    ],
+    [
+      "Payments",
+      "payments",
+      37,
+      42,
+      74
+    ],
+    [
+      "Journal",
+      "journal",
+      38,
+      42,
+      77
+    ],
+    [
+      "Orders & deliveries",
+      "delivery-work",
+      155,
+      164,
+      219
+    ],
+    [
+      "Finance",
+      "journal",
+      117,
+      123,
+      147
+    ],
+    [
+      "Payments",
+      "payments",
+      46,
+      53,
+      72
+    ],
+    [
+      "Journal",
+      "journal",
+      46,
+      50,
+      76
+    ],
+    [
+      "Orders & deliveries",
+      "delivery-work",
+      83,
+      89,
+      118
+    ]
+  ],
+  "baseline": [
+    [
+      "Payments",
+      "payments",
+      4190,
+      4205,
+      4270
+    ],
+    [
+      "Journal",
+      "journal",
+      52,
+      53,
+      689
+    ],
+    [
+      "Orders & deliveries",
+      "delivery-work",
+      110,
+      114,
+      1091
+    ]
+  ]
+}

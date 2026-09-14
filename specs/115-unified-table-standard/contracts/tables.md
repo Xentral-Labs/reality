@@ -1,0 +1,3 @@
+# Table contract
+Existing register reads gain optional sort and direction, preserving default ordering. Invalid keys/directions return422. Size remains API1–100; UI25/50/100. SQL applies ordering before offset and limit. Existing counts/controls and metadata shapes remain compatible.
+Header sorting only advertises supported SQL columns. A filter control focuses existing global/typed server filters. Key/actions remain visible; widths are bounded and optional columns/density persist per user/variant. Explicit details action remains keyboard accessible. Original content is never translated or executed. Row click ignores nested controls.

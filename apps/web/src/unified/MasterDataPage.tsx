@@ -1,0 +1,416 @@
+import { RegisterWorkbench, RegisterHeader, RegisterToolbar } from "./RegisterWorkbench";
+import { PageActionBar } from "./PageActionBar";
+import { CustomerHoldCard } from "./CustomerHoldCard";
+import { useRegisterQuery } from "./TableContext";
+import { RegisterTable } from "./RegisterTable";
+import { Fragment, useState } from "react";
+import { Search, Users, Package, MapPin } from "lucide-react";
+import { workspaceApi, type ReferenceDetail, type ReferenceFamily } from "../api";
+import { t } from "../localization";
+import { useRead } from "./useCompanyContext";
+import { ReadState } from "./ReadState";
+import { Inspector } from "./Inspector";
+import { PreviewButton, TablePreview } from "./InlinePreview";
+import {
+  MasterDataCard,
+  RecordSummary,
+  referenceFields,
+  savedReferenceDraft,
+} from "./MasterDataCard";
+import type { Selection } from "./routing";
+
+const families = {
+  customer: "Customers",
+  supplier: "Suppliers",
+  item: "Items",
+  location: "Locations",
+};
+const createLabels: Record<ReferenceFamily, string> = {
+  customer: "New customer",
+  supplier: "New supplier",
+  item: "New item",
+  location: "New location",
+};
+export function MasterDataPage({
+  selection,
+  navigate,
+}: {
+  selection: Selection;
+  navigate: (changes: Partial<Selection>) => void;
+}) {
+  const [holdCustomer, setHoldCustomer] = useState("");
+  const { tenant, family, q, page, active, record, proposal } = selection;
+  const table = useRegisterQuery();
+  const read = useRead(
+    () => workspaceApi.references(tenant, family, q, page, active, table),
+    [tenant, family, q, page, active, table.size, table.sort, table.sort_direction],
+  );
+  const detailRead = useRead(
+    () => (record ? workspaceApi.reference(tenant, family, record) : Promise.resolve(null)),
+    [tenant, family, record],
+  );
+  const [editor, setEditor] = useState<"create" | ReferenceDetail | null>(null);
+  const [target, setTarget] = useState<{ kind: string; id: string } | null>(null);
+  const detail = detailRead.data;
+  const draft = savedReferenceDraft(tenant);
+  return (
+    <RegisterWorkbench>
+      {holdCustomer && (
+        <CustomerHoldCard
+          key={holdCustomer}
+          tenant={tenant}
+          party={holdCustomer}
+          close={() => setHoldCustomer("")}
+          prepared={(id) => {
+            setHoldCustomer("");
+            navigate({ route: "decisions", proposal: id });
+          }}
+          settled={() => window.dispatchEvent(new Event("reality:delivery-settled"))}
+        />
+      )}
+      <RegisterHeader title="Master data">
+        <div className="register-tabs">
+          {(Object.entries(families) as [ReferenceFamily, string][]).map(([key, label]) => {
+            const Icon = key === "item" ? Package : key === "location" ? MapPin : Users;
+            return (
+              <button
+                key={key}
+                className="flex items-center gap-3 rounded-xl border border-border-default bg-surface p-4 text-left aria-pressed:border-accent aria-pressed:bg-accent-soft aria-pressed:text-accent"
+                aria-pressed={family === key}
+                onClick={() => navigate({ family: key, record: "", q: "", page: 1, proposal: "" })}
+              >
+                <Icon size={20} />
+                {t(label)}
+              </button>
+            );
+          })}
+        </div>
+      </RegisterHeader>
+
+      {draft && !editor && !proposal && (
+        <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg bg-accent-soft p-4">
+          <p>{t("A prepared request is saved. Check it before starting another change.")}</p>
+          <button className="br-btn" onClick={() => setEditor("create")}>
+            {t("Resume request")}
+          </button>
+        </div>
+      )}
+      <div className="space-y-5">
+        <section className="register-surface">
+          <RegisterToolbar
+            count={read.data?.page.total}
+            search={
+              <label className="relative min-w-0 basis-full sm:flex-1">
+                <span className="sr-only">{t("Search master data")}</span>
+                <Search size={16} className="absolute left-3 top-3 text-fg-muted" />
+                <input
+                  className="br-control w-full"
+                  style={{ paddingInlineStart: "2.25rem" }}
+                  value={q}
+                  placeholder={t("Search by name, SKU or ID")}
+                  onChange={(event) => navigate({ q: event.target.value, page: 1 })}
+                />
+              </label>
+            }
+            filters={
+              <>
+                <button
+                  className="br-btn"
+                  aria-pressed={active}
+                  onClick={() => navigate({ active: !active, page: 1 })}
+                >
+                  {t("Include inactive")}
+                </button>
+              </>
+            }
+          />
+          <PageActionBar
+            actions={[
+              { key: "create", label: createLabels[family], onClick: () => setEditor("create") },
+            ]}
+          />
+          {!read.data ? (
+            <ReadState loading={read.loading} error={read.error} retry={read.refresh} rows={8} />
+          ) : (
+            <>
+              <RegisterTable
+                busy={read.loading}
+                empty={{ hint: t("Adjust your search or create the first record.") }}
+                footer={
+                  <div className="mt-5 flex items-center gap-3">
+                    <button
+                      className="br-btn"
+                      disabled={!read.data.page.has_previous}
+                      onClick={() => navigate({ page: read.data!.page.number - 1 })}
+                    >
+                      {t("Previous")}
+                    </button>
+                    <span>
+                      {read.data.page.number} / {read.data.page.pages}
+                    </span>
+                    <button
+                      className="br-btn"
+                      disabled={!read.data.page.has_next}
+                      onClick={() => navigate({ page: read.data!.page.number + 1 })}
+                    >
+                      {t("Next")}
+                    </button>
+                  </div>
+                }
+              >
+                <thead>
+                  <tr>
+                    {(family === "item"
+                      ? ["Name", "SKU", "Unit", "Status", "Actions"]
+                      : ["Name", "Record ID", "Status", "Actions"]
+                    ).map((label) => (
+                      <th key={label}>{t(label)}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {read.data.items.map((row) => (
+                    <Fragment key={row.id}>
+                      <tr data-master-row>
+                        <td data-original-content>{row.name}</td>
+                        {family === "item" ? (
+                          <>
+                            <td data-original-content>{row.sku || "—"}</td>
+                            <td data-original-content>{row.unit || "—"}</td>
+                          </>
+                        ) : (
+                          <td data-original-content>{row.id}</td>
+                        )}
+                        <td>{t(row.is_active ? "Active" : "Inactive")}</td>
+                        <td>
+                          <PreviewButton
+                            open={record === row.id}
+                            controls={`master-preview-${row.id}`}
+                            label={row.name}
+                            toggle={() => navigate({ record: record === row.id ? "" : row.id })}
+                          />
+                        </td>
+                      </tr>
+                      <TablePreview
+                        id={`master-preview-${row.id}`}
+                        open={record === row.id}
+                        columns={family === "item" ? 5 : 4}
+                      >
+                        {!detail ? (
+                          <ReadState
+                            loading={detailRead.loading}
+                            error={detailRead.error}
+                            retry={detailRead.refresh}
+                          />
+                        ) : (
+                          <div className="max-w-3xl">
+                            <h2 className="text-xl font-semibold text-fg-strong">{detail.name}</h2>
+                            <p className="mt-2 text-sm text-fg-muted">
+                              {t(detail.is_active ? "Active" : "Inactive")}
+                            </p>
+                            <div className="mt-4">
+                              <RecordSummary
+                                record={Object.fromEntries(
+                                  referenceFields(family)
+                                    .filter((field) => field.key !== "name")
+                                    .map((field) => [field.key, detail[field.key]]),
+                                )}
+                              />
+                            </div>
+                            <div className="mt-5 flex flex-wrap gap-2">
+                              <button
+                                className="br-btn br-btn-primary"
+                                onClick={() => setEditor(detail)}
+                              >
+                                {t("Edit details")}
+                              </button>
+                              {family === "item" && (
+                                <button
+                                  className="br-btn"
+                                  onClick={() =>
+                                    navigate({
+                                      route: "warehouse",
+                                      warehouseView: "stock",
+                                      item: detail.id,
+                                      entry: "",
+                                      state: "",
+                                      q: "",
+                                      page: 1,
+                                    })
+                                  }
+                                >
+                                  {t("Open warehouse")}
+                                </button>
+                              )}
+                              <button
+                                className="br-btn"
+                                onClick={() =>
+                                  setTarget({
+                                    kind:
+                                      family === "customer" || family === "supplier"
+                                        ? "party"
+                                        : family,
+                                    id: detail.id,
+                                  })
+                                }
+                              >
+                                {t("Open full explanation")}
+                              </button>
+                            </div>
+                          </div>
+                        )}
+                      </TablePreview>
+                    </Fragment>
+                  ))}
+                </tbody>
+              </RegisterTable>
+            </>
+          )}
+        </section>
+        <section className={record ? "hidden" : "register-empty-guidance"}>
+          {record && (
+            <button className="br-btn mb-4" onClick={() => navigate({ record: "" })}>
+              {t("Close")}
+            </button>
+          )}
+          {record ? (
+            !detail ? (
+              <ReadState
+                loading={detailRead.loading}
+                error={detailRead.error}
+                retry={detailRead.refresh}
+              />
+            ) : (
+              <>
+                <p className="text-xs uppercase tracking-wide text-accent">{t(families[family])}</p>
+                <h2 className="mt-3 break-words text-2xl font-semibold text-fg-strong">
+                  {detail.name}
+                </h2>
+                <p className="mt-2 text-sm text-fg-muted">
+                  {t(detail.is_active ? "Active" : "Inactive")}
+                </p>
+                {detail.sku && (
+                  <p className="mt-4 break-words">
+                    {detail.sku} · {detail.unit}
+                  </p>
+                )}
+                <div className="mt-5 flex flex-wrap gap-3">
+                  {family === "customer" && (
+                    <button className="br-btn" onClick={() => setHoldCustomer(detail.id)}>
+                      {t("Customer delivery holds")}
+                    </button>
+                  )}
+                  <button className="br-btn br-btn-primary" onClick={() => setEditor(detail)}>
+                    {t("Edit details")}
+                  </button>
+                  <button
+                    className="br-btn"
+                    onClick={() =>
+                      setTarget({
+                        kind: family === "customer" || family === "supplier" ? "party" : family,
+                        id: detail.id,
+                      })
+                    }
+                  >
+                    {t("Inspect")}
+                  </button>
+                </div>
+                {family === "item" && (
+                  <button
+                    className="br-btn mt-4"
+                    onClick={() =>
+                      navigate({
+                        route: "warehouse",
+                        warehouseView: "stock",
+                        item: detail.id,
+                        entry: "",
+                        state: "",
+                        q: "",
+                        page: 1,
+                      })
+                    }
+                  >
+                    {t("Open warehouse")}
+                  </button>
+                )}
+                <div className="mt-6 border-t border-border-default pt-5">
+                  <h3 className="font-semibold">{t("Details")}</h3>
+                  <RecordSummary
+                    record={Object.fromEntries(
+                      referenceFields(family)
+                        .filter((field) => field.key !== "name")
+                        .map((field) => [field.key, detail[field.key]]),
+                    )}
+                  />
+                </div>
+                <div className="mt-6 border-t border-border-default pt-5">
+                  <h3 className="font-semibold">{t("Provenance")}</h3>
+                  {detail.source_record_id ? (
+                    <button
+                      className="br-btn mt-3"
+                      onClick={() =>
+                        setTarget({ kind: "source_record", id: detail.source_record_id! })
+                      }
+                    >
+                      {t("Original source")}
+                    </button>
+                  ) : (
+                    <p className="mt-2 text-sm text-fg-muted">
+                      {t("No original source is linked to this record.")}
+                    </p>
+                  )}
+                  <p className="mt-4 break-all font-mono text-xs text-fg-muted">{detail.id}</p>
+                </div>
+                <details className="mt-5">
+                  <summary className="cursor-pointer text-sm">{t("All recorded details")}</summary>
+                  <pre className="mt-3 overflow-auto whitespace-pre-wrap break-all text-xs">
+                    {JSON.stringify(detail, null, 2)}
+                  </pre>
+                </details>
+              </>
+            )
+          ) : (
+            <details>
+              <summary>{t("Start with a record")}</summary>
+              <p className="mt-3 text-sm leading-relaxed text-fg-muted">
+                {t(
+                  "Choose a customer, supplier, item or location to see its details and prepare a change.",
+                )}
+              </p>
+              <div className="mt-6 rounded-lg bg-accent-soft p-4 text-sm">
+                <p className="font-semibold">{t("Also available in chat")}</p>
+                <p className="mt-2 text-fg-muted">
+                  {t(
+                    "Ask Reality to prepare a change. You review the same fields before confirming.",
+                  )}
+                </p>
+                <button className="br-btn mt-4" onClick={() => navigate({ route: "copilot" })}>
+                  {t("Ask Reality")}
+                </button>
+              </div>
+            </details>
+          )}
+        </section>
+      </div>
+      {(editor || proposal) && (
+        <MasterDataCard
+          key={`${tenant}:${proposal || (typeof editor === "object" && editor ? editor.id : "new")}`}
+          tenant={tenant}
+          family={draft?.family || family}
+          detail={typeof editor === "object" && editor ? editor : undefined}
+          proposalId={proposal}
+          close={() => {
+            setEditor(null);
+            navigate({ proposal: "" });
+          }}
+          prepared={(id) => {
+            setEditor(null);
+            navigate({ proposal: id });
+          }}
+          settled={() => window.dispatchEvent(new Event("reality:delivery-settled"))}
+        />
+      )}
+      {target && <Inspector tenant={tenant} target={target} close={() => setTarget(null)} />}
+    </RegisterWorkbench>
+  );
+}

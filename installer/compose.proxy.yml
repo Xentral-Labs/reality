@@ -1,0 +1,25 @@
+# Domain mode: Caddy terminates TLS for the App and for MCP on its subdomain
+# (spec 187 FR-011, FR-012). Ports 80 and 443 are the only published ports.
+services:
+  proxy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    environment:
+      REALITY_DOMAIN: ${REALITY_DOMAIN}
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      web:
+        condition: service_started
+      mcp:
+        condition: service_started
+
+volumes:
+  caddy_data:
+  caddy_config:

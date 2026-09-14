@@ -1,0 +1,46 @@
+{{- if .Values.mcp.enabled }}
+{{- $c := mustMergeOverwrite (dict "image" (dict "tagPrefix" "mcp-") "secrets" true) (deepCopy .Values.mcp) }}
+{{/*
+  /readyz validates the tool registry and runs SELECT 1, so it is the correct
+  readiness gate. /healthz is a static route with no I/O — the right liveness
+  probe, because a database outage must not restart the container.
+  Both sit outside the MCP transport, so the DNS-rebinding host check that
+  guards POST / does not apply to them.
+*/}}
+{{- $_ := set $c "probes" (dict
+      "startupProbe"   (dict "httpGet" (dict "path" "/healthz" "port" "http") "initialDelaySeconds" 5 "periodSeconds" 5 "timeoutSeconds" 5 "failureThreshold" 30)
+      "readinessProbe" (dict "httpGet" (dict "path" "/readyz" "port" "http") "periodSeconds" 10 "timeoutSeconds" 5 "failureThreshold" 3)
+      "livenessProbe"  (dict "httpGet" (dict "path" "/healthz" "port" "http") "periodSeconds" 30 "timeoutSeconds" 5 "failureThreshold" 5)) }}
+{{- $_ := set $c "volumes" (list (dict "name" "scratch" "emptyDir" (dict "sizeLimit" .Values.storage.scratchSizeLimit))) }}
+{{- $_ := set $c "volumeMounts" (list (dict "name" "scratch" "mountPath" .Values.storage.scratchDir)) }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "reality.fullname" . }}-mcp
+  labels:
+    {{- include "reality.labels" . | nindent 4 }}
+    app.kubernetes.io/component: mcp
+spec:
+  replicas: {{ .Values.mcp.replicaCount }}
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  selector:
+    matchLabels:
+      {{- include "reality.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: mcp
+  template:
+    metadata:
+      labels:
+        {{- include "reality.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: mcp
+      annotations:
+        checksum/secret-keys: {{ include "reality.secretChecksum" . }}
+        {{- with .Values.podAnnotations }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+    spec:
+      {{- include "reality.podSpec" (list . "mcp" $c) | nindent 6 }}
+{{- end }}

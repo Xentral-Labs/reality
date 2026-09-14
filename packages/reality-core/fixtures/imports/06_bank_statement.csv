@@ -1,0 +1,3 @@
+payment_number,party_accounting_code,direction,amount,currency,effective_at
+BANK-IN-1001,CUST-1000,incoming,500.00,EUR,2026-09-05T08:15:00Z
+BANK-OUT-1001,SUP-1000,outgoing,250.00,EUR,2026-09-05T11:30:00Z

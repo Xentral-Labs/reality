@@ -1,0 +1,8 @@
+# Two hostnames, one certificate authority. Caddy issues and renews both.
+{$REALITY_DOMAIN} {
+	reverse_proxy web:80
+}
+
+mcp.{$REALITY_DOMAIN} {
+	reverse_proxy mcp:8001
+}

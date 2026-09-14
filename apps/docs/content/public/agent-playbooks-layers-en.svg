@@ -1,0 +1,129 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1320 860" width="1320" height="860" role="img" font-family="ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, sans-serif" font-size="13" fill="currentColor">
+<title>The layer above: clerks, your workflows, agents</title>
+<rect x="20.0" y="14" width="311.0" height="54" rx="8" fill="rgba(120,120,120,0.10)" stroke="currentColor" stroke-opacity="0.35"/>
+<text x="175.5" y="36" text-anchor="middle" font-weight="600" font-size="14">Shop / marketplace</text>
+<text x="175.5" y="55" text-anchor="middle" font-size="11" fill-opacity="0.8">orders out, availability back</text>
+<rect x="343.0" y="14" width="311.0" height="54" rx="8" fill="rgba(120,120,120,0.10)" stroke="currentColor" stroke-opacity="0.35"/>
+<text x="498.5" y="36" text-anchor="middle" font-weight="600" font-size="14">Bank / payment provider</text>
+<text x="498.5" y="55" text-anchor="middle" font-size="11" fill-opacity="0.8">statements, payouts</text>
+<rect x="666.0" y="14" width="311.0" height="54" rx="8" fill="rgba(120,120,120,0.10)" stroke="currentColor" stroke-opacity="0.35"/>
+<text x="821.5" y="36" text-anchor="middle" font-weight="600" font-size="14">Supplier</text>
+<text x="821.5" y="55" text-anchor="middle" font-size="11" fill-opacity="0.8">goods and delivery note at the ramp</text>
+<rect x="989.0" y="14" width="311.0" height="54" rx="8" fill="rgba(120,120,120,0.10)" stroke="currentColor" stroke-opacity="0.35"/>
+<text x="1144.5" y="36" text-anchor="middle" font-weight="600" font-size="14">Customer</text>
+<text x="1144.5" y="55" text-anchor="middle" font-size="11" fill-opacity="0.8">return parcel, mail, phone call</text>
+<path d="M 175.5 68 L 175.5 86 L 60 86" fill="none" stroke="#159a5c" stroke-width="3" stroke-dasharray="6 5"/>
+<path d="M 498.5 68 L 498.5 98 L 60 98" fill="none" stroke="#159a5c" stroke-width="3" stroke-dasharray="6 5"/>
+<line x1="60" y1="86" x2="60" y2="590" stroke="#159a5c" stroke-width="3" stroke-dasharray="6 5"/>
+<polygon points="52,586 68,586 60,602" fill="#159a5c"/>
+<rect x="6" y="296" width="116" height="62" rx="6" fill="#e6f4ec" stroke="#159a5c"/>
+<text x="64" y="313" text-anchor="middle" font-size="11.5" font-weight="600" fill="#1d1d21">Orders and</text>
+<text x="64" y="328" text-anchor="middle" font-size="11.5" font-weight="600" fill="#1d1d21">payments</text>
+<text x="64" y="343" text-anchor="middle" font-size="10.5" font-weight="400" fill="#1d1d21">arrive by themselves</text>
+<line x1="821.5" y1="68" x2="821.5" y2="146" stroke="#6e6e78" stroke-width="2.5"/>
+<polygon points="814.5,134 828.5,134 821.5,148" fill="#6e6e78"/>
+<line x1="1144.5" y1="68" x2="1144.5" y2="146" stroke="#6e6e78" stroke-width="2.5"/>
+<polygon points="1137.5,134 1151.5,134 1144.5,148" fill="#6e6e78"/>
+<path d="M 1170 604 L 1170 574 L 1260 574 L 1260 108 L 291.0 108 L 291.0 72" fill="none" stroke="#e67e22" stroke-width="2.5"/>
+<polygon points="284.0,84 298.0,84 291.0,70" fill="#e67e22"/>
+<rect x="1084.0" y="260" width="212" height="96" rx="6" fill="#fdeedd" stroke="#e67e22"/>
+<text x="1190.0" y="277" text-anchor="middle" font-size="11.5" font-weight="600" fill="#1d1d21">Report availability</text>
+<text x="1190.0" y="292" text-anchor="middle" font-size="10.5" font-weight="400" fill="#1d1d21">a workflow reads stock and</text>
+<text x="1190.0" y="307" text-anchor="middle" font-size="10.5" font-weight="400" fill="#1d1d21">demand and sends it to the</text>
+<text x="1190.0" y="322" text-anchor="middle" font-size="10.5" font-weight="400" fill="#1d1d21">shop; Reality sends nothing</text>
+<text x="1190.0" y="337" text-anchor="middle" font-size="10.5" font-weight="400" fill="#1d1d21">itself</text>
+<rect x="611.5" y="84" width="200" height="40" rx="6" fill="#ececef" stroke="#6e6e78"/>
+<text x="619.5" y="101" font-size="11.5" font-weight="600" fill="#1d1d21">Delivery + delivery note</text>
+<text x="619.5" y="116" font-size="10.5" font-weight="400" fill="#1d1d21">→ book goods receipt</text>
+<rect x="902.5" y="84" width="232" height="56" rx="6" fill="#ececef" stroke="#6e6e78"/>
+<text x="910.5" y="101" font-size="11.5" font-weight="600" fill="#1d1d21">Return parcel · mail · call</text>
+<text x="910.5" y="116" font-size="10.5" font-weight="400" fill="#1d1d21">→ inbox: book, announce,</text>
+<text x="910.5" y="131" font-size="10.5" font-weight="400" fill="#1d1d21">hold, credit, ask</text>
+<rect x="130" y="150" width="940" height="330" rx="10" fill="rgba(99,102,241,0.08)" stroke="#6366f1" stroke-width="1.5"/>
+<text x="600.0" y="174" text-anchor="middle" font-weight="700" font-size="15">The layer above, outside Reality: clerks, your workflows, your agent</text>
+<text x="600.0" y="194" text-anchor="middle" font-size="10.5" fill-opacity="0.8">Reality provides the guardrails: proposal, preview, refusal, decision. What runs without asking is set in your agent; a person decides in doubt and on anything new.</text>
+<rect x="144.0" y="210" width="143.7" height="256" rx="8" fill="rgba(255,255,255,0.35)" stroke="rgba(99,102,241,0.6)"/>
+<text x="215.8" y="232" text-anchor="middle" font-weight="600" font-size="12">Sales &amp; fulfilment</text>
+<text x="153.0" y="256" font-size="11">• reserve stock</text>
+<text x="153.0" y="280" font-size="11">• book goods issue</text>
+<text x="153.0" y="304" font-size="11">• revise the promise</text>
+<text x="153.0" y="328" font-size="11">• delivery hold</text>
+<text x="153.0" y="352" font-size="11">• report availability</text>
+<rect x="297.7" y="210" width="143.7" height="256" rx="8" fill="rgba(255,255,255,0.35)" stroke="rgba(99,102,241,0.6)"/>
+<text x="369.5" y="232" text-anchor="middle" font-weight="600" font-size="12">Receivables</text>
+<text x="306.7" y="256" font-size="11">• book invoices</text>
+<text x="306.7" y="280" font-size="11">• match payments</text>
+<text x="306.7" y="304" font-size="11">• decide differences</text>
+<text x="306.7" y="328" font-size="11">• credit, refund</text>
+<text x="306.7" y="352" font-size="11">• credit notes</text>
+<rect x="451.3" y="210" width="143.7" height="256" rx="8" fill="rgba(255,255,255,0.35)" stroke="rgba(99,102,241,0.6)"/>
+<text x="523.2" y="232" text-anchor="middle" font-weight="600" font-size="12">Purchasing</text>
+<text x="460.3" y="256" font-size="11">• purchase orders</text>
+<text x="460.3" y="280" font-size="11">• book goods receipts</text>
+<text x="460.3" y="304" font-size="11">• invoice check</text>
+<text x="460.3" y="328" font-size="11">• payment run</text>
+<rect x="605.0" y="210" width="143.7" height="256" rx="8" fill="rgba(255,255,255,0.35)" stroke="rgba(99,102,241,0.6)"/>
+<text x="676.8" y="232" text-anchor="middle" font-weight="600" font-size="12">Returns</text>
+<text x="614.0" y="256" font-size="11">• announce</text>
+<text x="614.0" y="280" font-size="11">• book the return</text>
+<text x="614.0" y="304" font-size="11">• restock / write off</text>
+<text x="614.0" y="328" font-size="11">• credit note, fee</text>
+<rect x="758.7" y="210" width="143.7" height="256" rx="8" fill="rgba(255,255,255,0.35)" stroke="rgba(99,102,241,0.6)"/>
+<text x="830.5" y="232" text-anchor="middle" font-weight="600" font-size="12">Customer service inbox</text>
+<text x="767.7" y="256" font-size="11">• read mail and calls</text>
+<text x="767.7" y="280" font-size="11">• announce a return</text>
+<text x="767.7" y="304" font-size="11">• hold, credit</text>
+<text x="767.7" y="328" font-size="11">• capture open questions</text>
+<rect x="912.3" y="210" width="143.7" height="256" rx="8" fill="rgba(255,255,255,0.35)" stroke="rgba(99,102,241,0.6)"/>
+<text x="984.2" y="232" text-anchor="middle" font-weight="600" font-size="12">Master data &amp; sources</text>
+<text x="921.3" y="256" font-size="11">• items, partners,</text>
+<text x="921.3" y="280" font-size="11">   prices, terms</text>
+<text x="921.3" y="304" font-size="11">• unit relations</text>
+<text x="921.3" y="328" font-size="11">• register sources</text>
+<text x="921.3" y="352" font-size="11">• fix failed imports</text>
+<line x1="420" y1="486" x2="420" y2="598" stroke="currentColor" stroke-opacity="0.7" stroke-width="2"/>
+<polygon points="413,498 427,498 420,484" fill="currentColor" fill-opacity="0.7"/>
+<rect x="428" y="531.0" width="40" height="20" rx="4" fill="rgba(120,120,120,0.12)"/>
+<text x="434" y="546.0" font-size="11.5">read</text>
+<line x1="560" y1="486" x2="560" y2="598" stroke="currentColor" stroke-opacity="0.7" stroke-width="2"/>
+<polygon points="553,586 567,586 560,600" fill="currentColor" fill-opacity="0.7"/>
+<rect x="568" y="531.0" width="61" height="20" rx="4" fill="rgba(120,120,120,0.12)"/>
+<text x="574" y="546.0" font-size="11.5">propose</text>
+<line x1="700" y1="486" x2="700" y2="598" stroke="currentColor" stroke-opacity="0.7" stroke-width="2"/>
+<polygon points="693,586 707,586 700,600" fill="currentColor" fill-opacity="0.7"/>
+<rect x="708" y="531.0" width="54" height="20" rx="4" fill="rgba(120,120,120,0.12)"/>
+<text x="714" y="546.0" font-size="11.5">decide</text>
+<line x1="840" y1="486" x2="840" y2="598" stroke="currentColor" stroke-opacity="0.7" stroke-width="2"/>
+<polygon points="833,498 847,498 840,484" fill="currentColor" fill-opacity="0.7"/>
+<rect x="848" y="531.0" width="54" height="20" rx="4" fill="rgba(120,120,120,0.12)"/>
+<text x="854" y="546.0" font-size="11.5">verify</text>
+<rect x="20" y="604" width="1280" height="200" rx="10" fill="rgba(16,150,90,0.07)" stroke="#159a5c" stroke-width="1.5"/>
+<text x="660.0" y="630" text-anchor="middle" font-weight="700" font-size="15">Reality: records, derives, reports</text>
+<rect x="34.0" y="646" width="242.4" height="144" rx="8" fill="rgba(255,255,255,0.35)" stroke="rgba(16,150,90,0.6)"/>
+<text x="155.2" y="668" text-anchor="middle" font-weight="600" font-size="12.5">Documents</text>
+<text x="155.2" y="690" text-anchor="middle" font-size="11.5" fill-opacity="0.85">orders, invoices, credit notes,</text>
+<text x="155.2" y="707" text-anchor="middle" font-size="11.5" fill-opacity="0.85">payments</text>
+<rect x="286.4" y="646" width="242.4" height="144" rx="8" fill="rgba(255,255,255,0.35)" stroke="rgba(16,150,90,0.6)"/>
+<text x="407.6" y="668" text-anchor="middle" font-weight="600" font-size="12.5">Promises &amp; movements</text>
+<text x="407.6" y="690" text-anchor="middle" font-size="11.5" fill-opacity="0.85">delivery promises, reservations,</text>
+<text x="407.6" y="707" text-anchor="middle" font-size="11.5" fill-opacity="0.85">receipts, issues, returns</text>
+<rect x="538.8" y="646" width="242.4" height="144" rx="8" fill="rgba(255,255,255,0.35)" stroke="rgba(16,150,90,0.6)"/>
+<text x="660.0" y="668" text-anchor="middle" font-weight="600" font-size="12.5">Open items &amp; credit</text>
+<text x="660.0" y="690" text-anchor="middle" font-size="11.5" fill-opacity="0.85">payment intake in three tiers:</text>
+<text x="660.0" y="707" text-anchor="middle" font-size="11.5" fill-opacity="0.85">record, allocate, propose</text>
+<rect x="791.2" y="646" width="242.4" height="144" rx="8" fill="rgba(255,255,255,0.35)" stroke="rgba(16,150,90,0.6)"/>
+<text x="912.4" y="668" text-anchor="middle" font-weight="600" font-size="12.5">Exceptions</text>
+<text x="912.4" y="690" text-anchor="middle" font-size="11.5" fill-opacity="0.85">shipped not billed, unmatched</text>
+<text x="912.4" y="707" text-anchor="middle" font-size="11.5" fill-opacity="0.85">payment, silent source …</text>
+<rect x="1043.6" y="646" width="242.4" height="144" rx="8" fill="rgba(255,255,255,0.35)" stroke="rgba(16,150,90,0.6)"/>
+<text x="1164.8" y="668" text-anchor="middle" font-weight="600" font-size="12.5">Reads</text>
+<text x="1164.8" y="690" text-anchor="middle" font-size="11.5" fill-opacity="0.85">fulfilment queue, availability</text>
+<text x="1164.8" y="707" text-anchor="middle" font-size="11.5" fill-opacity="0.85">and demand, order explain,</text>
+<text x="1164.8" y="724" text-anchor="middle" font-size="11.5" fill-opacity="0.85">balances</text>
+<line x1="24" y1="830" x2="58" y2="830" stroke="#159a5c" stroke-width="3" stroke-dasharray="6 5"/>
+<text x="66" y="834" font-size="11.5">green: arrives in Reality by itself</text>
+<line x1="301.79999999999995" y1="830" x2="335.79999999999995" y2="830" stroke="#6e6e78" stroke-width="3"/>
+<text x="343.79999999999995" y="834" font-size="11.5">grey: reaches the layer above, which books it</text>
+<line x1="645.5999999999999" y1="830" x2="679.5999999999999" y2="830" stroke="#e67e22" stroke-width="3"/>
+<text x="687.5999999999999" y="834" font-size="11.5">orange: the layer reports outward; Reality sends nothing</text>
+</svg>

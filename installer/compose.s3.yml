@@ -1,0 +1,68 @@
+# Optional object storage: MinIO instead of the file artifact store (spec 187 FR-009).
+# Add ":compose.s3.yml" to COMPOSE_FILE in .env and set the MINIO_* values.
+services:
+  object-storage:
+    image: minio/minio:RELEASE.2025-07-23T15-54-02Z
+    restart: unless-stopped
+    command: ["server", "/data"]
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
+    volumes:
+      - object_storage_data:/data
+    healthcheck:
+      test: ["CMD", "mc", "ready", "local"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+
+  object-storage-init:
+    image: minio/mc:RELEASE.2025-07-21T05-28-08Z
+    depends_on:
+      object-storage:
+        condition: service_healthy
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - >-
+        mc alias set local http://object-storage:9000 ${MINIO_ROOT_USER} ${MINIO_ROOT_PASSWORD} &&
+        mc mb --ignore-existing local/${REALITY_S3_BUCKET:-reality-artifacts} &&
+        mc anonymous set none local/${REALITY_S3_BUCKET:-reality-artifacts}
+
+  api:
+    environment:
+      REALITY_ARTIFACT_STORAGE: s3
+      REALITY_S3_ENDPOINT_URL: http://object-storage:9000
+      REALITY_S3_BUCKET: ${REALITY_S3_BUCKET:-reality-artifacts}
+      REALITY_S3_REGION: ${REALITY_S3_REGION:-eu-central-1}
+      AWS_ACCESS_KEY_ID: ${MINIO_ROOT_USER}
+      AWS_SECRET_ACCESS_KEY: ${MINIO_ROOT_PASSWORD}
+    depends_on:
+      object-storage-init:
+        condition: service_completed_successfully
+
+  worker:
+    environment:
+      REALITY_ARTIFACT_STORAGE: s3
+      REALITY_S3_ENDPOINT_URL: http://object-storage:9000
+      REALITY_S3_BUCKET: ${REALITY_S3_BUCKET:-reality-artifacts}
+      REALITY_S3_REGION: ${REALITY_S3_REGION:-eu-central-1}
+      AWS_ACCESS_KEY_ID: ${MINIO_ROOT_USER}
+      AWS_SECRET_ACCESS_KEY: ${MINIO_ROOT_PASSWORD}
+    depends_on:
+      object-storage-init:
+        condition: service_completed_successfully
+
+  mcp:
+    environment:
+      REALITY_ARTIFACT_STORAGE: s3
+      REALITY_S3_ENDPOINT_URL: http://object-storage:9000
+      REALITY_S3_BUCKET: ${REALITY_S3_BUCKET:-reality-artifacts}
+      REALITY_S3_REGION: ${REALITY_S3_REGION:-eu-central-1}
+      AWS_ACCESS_KEY_ID: ${MINIO_ROOT_USER}
+      AWS_SECRET_ACCESS_KEY: ${MINIO_ROOT_PASSWORD}
+    depends_on:
+      object-storage-init:
+        condition: service_completed_successfully
+
+volumes:
+  object_storage_data:

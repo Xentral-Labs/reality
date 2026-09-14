@@ -1,0 +1,3 @@
+# Contracts
+Existing single-position and multi-position invoice inputs and receipts remain unchanged. Positive quantity is now bounded by remaining billable quantity instead of absence of prior invoice evidence. Stated amounts remain independent.
+Order document Inspector evidence_lines optionally adds billing {ordered,invoiced,remaining,can_invoice,evidence:[invoice/line/source/group/reversal references]}. Invoice review state adds billing snapshots and projected remaining quantity outside creation. Reversal effects optionally add billing availability before/after for linked order positions. Historical reviews without these fields remain readable; changed pending reviews require fresh confirmation.

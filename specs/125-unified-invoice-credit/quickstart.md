@@ -1,0 +1,14 @@
+# Validation
+In isolated data invoice multiple positions; create partial credit without a return, first with zero netting then explicit partial netting. Verify invoice open/credit open, no stock/cash movement and shortest invoice links. Repeat on a paid invoice. Verify capacity across two invoices, reversal, legacy ambiguity, invalid/stale/concurrent/foreign input and exact recovery. Run complete core/web gates and intercepted browser flows. Shared preview checks only read/select data; never prepare/confirm financial test actions there.
+
+## Verification
+- Initial proof: 7 new behavioral tests failed against the previous entry behavior; invalid-input tests already rejected unsupported entry. The later Inspector traversal proof also failed before links were added (`reality-125-red.log`, `reality-125-inspector-red.log`).
+- Final isolated credit suite: 21 passed, covering typed credit→invoice→order Inspector traversal. Application catalog focused suite passed, and HTTP event count was updated for credit.recorded.
+- Complete backend: **1,654 passed, 7 existing skips** (`/private/tmp/reality-125-backend-final.log`). The earlier interrupted run is not counted as passing; it exposed the stale HTTP event-count assertion and was replaced after final Inspector work.
+- Frontend: build, 131 contract tests, i18n tests, all 1,664 UI translation keys across four languages and formatting passed. Intercepted credit browser proof includes direct seeded invoice-row entry, multiple positions, independent values, explicit netting, Finance/Actions/Chat/Decisions, edit/reject/reload/recovery and 16 localized responsive screenshots. Adjacent invoice/payment/reversal browser journeys passed.
+- German desktop/mobile credit reviews and the actual shared empty form were visually inspected. Screenshots: `/private/tmp/reality-125-browser/` and `/private/tmp/reality-125-shared-form.png`.
+- Shared API on 8007 and UI on 5177 retain the same user and five tenants as 8080. The selected tenant has zero customer invoices; the actual empty selector was verified. No business test mutations were made in shared data.
+- Ruff, spec policy and git diff whitespace checks passed. No schema migration, deployment, merge or retirement.
+
+## Final review
+FR-001–005 complete. Financial credit remains separate from stock/returns/refunds; only explicit netting changes the selected invoice's outstanding amount. All typed links stay tenant scoped; capacity is derived and ambiguous legacy invoice attribution blocks entry. Source/header/line amounts are preserved independently. Canonical services own posting and settlement, shared confirmation checks reviewed state, and immutable exact proof survives later reversal. Existing legacy return-credit inputs remain compatible. Supplier credit, refund entry and repeated amount-only price adjustments remain outside this increment.

@@ -1,0 +1,3 @@
+# Action interface
+
+Existing delivery-actions endpoints additionally accept reservation_release with {reservation_id}, and movement_create with movement_type receipt, commitment_id, item_id, to_location_id, quantity and supported tracking references. Internal metadata remains forbidden. Review effect is received or released; case context identifies the supplier/customer and exact location. Release review state includes the exact reservation. Confirm/review/detail/reconcile retain the existing token and proposal-ID contracts. Existing customer reserve/shipment remain supported. Canonical Chat/CLI tool names and argument schemas do not change.

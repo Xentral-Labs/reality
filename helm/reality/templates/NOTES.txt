@@ -1,0 +1,31 @@
+Reality {{ .Chart.AppVersion }} released as {{ .Release.Name }} in {{ .Release.Namespace }}.
+
+Components:
+{{- if .Values.api.enabled }}
+  api                 {{ include "reality.fullname" . }}-api:{{ .Values.api.port }}
+{{- end }}
+{{- if .Values.mcp.enabled }}
+  mcp                 {{ include "reality.fullname" . }}-mcp:{{ .Values.mcp.port }}
+{{- end }}
+{{- if .Values.web.enabled }}
+  web (SPA + /api/)   {{ .Values.urls.app }}
+{{- end }}
+{{- if .Values.docs.enabled }}
+  docs                {{ .Values.urls.docs }}
+{{- end }}
+{{- if .Values.invitationWorker.enabled }}
+  invitation-worker   1 email per {{ .Values.invitationWorker.intervalSeconds }}s tick
+{{- end }}
+
+Secrets come from {{ if .Values.secrets.existingSecret }}the pre-existing Secret
+{{ .Values.secrets.existingSecret }}{{ else if .Values.externalSecret.enabled }}Vault at
+kv/data/{{ .Values.externalSecret.path }} via the {{ .Values.externalSecret.secretStoreRef.kind }}
+"{{ .Values.externalSecret.secretStoreRef.name }}"{{ else }}NOWHERE — no secret source is
+configured, so every Python pod will CrashLoopBackOff on a missing
+REALITY_DATABASE_URL{{ end }}.
+
+Check the rollout:
+  kubectl -n {{ .Release.Namespace }} rollout status deploy/{{ include "reality.fullname" . }}-api
+{{- if .Values.externalSecret.enabled }}
+  kubectl -n {{ .Release.Namespace }} get externalsecret {{ include "reality.fullname" . }}-secrets
+{{- end }}

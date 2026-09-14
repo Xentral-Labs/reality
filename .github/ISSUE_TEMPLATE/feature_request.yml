@@ -1,0 +1,34 @@
+name: Feature request
+description: Something a person or an agent cannot do with Reality today.
+labels: ["enhancement"]
+body:
+  - type: textarea
+    id: cannot
+    attributes:
+      label: What cannot be done today
+      description: Describe the situation and who is stuck. Reality specifies features from what people cannot do, not from solutions.
+    validations:
+      required: true
+  - type: textarea
+    id: today
+    attributes:
+      label: How you work around it now
+  - type: textarea
+    id: outcome
+    attributes:
+      label: What a good outcome looks like
+      description: The observable result, for example "an owner can copy an invitation link when no email provider is configured".
+    validations:
+      required: true
+  - type: dropdown
+    id: surface
+    attributes:
+      label: Where it belongs
+      multiple: true
+      options:
+        - Web app
+        - API
+        - MCP / agents
+        - CLI
+        - Installer / operations
+        - Documentation

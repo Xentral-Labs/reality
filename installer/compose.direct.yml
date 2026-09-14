@@ -1,0 +1,8 @@
+# Direct mode: the App on one host port, MCP on loopback only (spec 187 FR-010).
+services:
+  web:
+    ports:
+      - "${REALITY_BIND:-0.0.0.0}:${REALITY_PORT:-8080}:80"
+  mcp:
+    ports:
+      - "127.0.0.1:${REALITY_MCP_PORT:-8001}:8001"

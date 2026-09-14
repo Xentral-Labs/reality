@@ -1,0 +1,2 @@
+# Data Model
+No persistence changes. Existing AuthUser owns account language/locale/timezone/display_name. Existing owner membership and AI configuration remain company-scoped. Local `reality.theme` owns browser appearance. View state is personal/access/ai; save attempt contains only four profile fields in component memory. No business entity, derived authority, secret storage or duplicate foreign key.

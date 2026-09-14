@@ -1,0 +1,47 @@
+{{- if .Values.api.enabled }}
+{{- $c := mustMergeOverwrite (dict "image" (dict "tagPrefix" "api-") "secrets" true) (deepCopy .Values.api) }}
+{{- $_ := set $c "probes" (dict
+      "startupProbe"   (dict "httpGet" (dict "path" "/healthz" "port" "http") "initialDelaySeconds" 5 "periodSeconds" 5 "timeoutSeconds" 5 "failureThreshold" 30)
+      "readinessProbe" (dict "httpGet" (dict "path" "/healthz" "port" "http") "periodSeconds" 10 "timeoutSeconds" 5 "failureThreshold" 3)
+      "livenessProbe"  (dict "tcpSocket" (dict "port" "http") "periodSeconds" 30 "timeoutSeconds" 5 "failureThreshold" 5)) }}
+{{- $_ := set $c "volumes" (list (dict "name" "scratch" "emptyDir" (dict "sizeLimit" .Values.storage.scratchSizeLimit))) }}
+{{- $_ := set $c "volumeMounts" (list (dict "name" "scratch" "mountPath" .Values.storage.scratchDir)) }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "reality.fullname" . }}-api
+  labels:
+    {{- include "reality.labels" . | nindent 4 }}
+    app.kubernetes.io/component: api
+spec:
+  {{/*
+    A replica floor is always emitted. Omitting `replicas` under HPA is the
+    usual advice, but the API server then defaults the Deployment to 1 — and
+    with a minAvailable:1 PDB that window has disruptionsAllowed=0, which blocks
+    node drains and Karpenter consolidation until the HPA catches up. Sending
+    minReplicas is idempotent, so Helm never fights the autoscaler either.
+  */}}
+  replicas: {{ if .Values.api.autoscaling.enabled }}{{ .Values.api.autoscaling.minReplicas }}{{ else }}{{ .Values.api.replicaCount }}{{ end }}
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  selector:
+    matchLabels:
+      {{- include "reality.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: api
+  template:
+    metadata:
+      labels:
+        {{- include "reality.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: api
+      annotations:
+        # Roll the pods when the Vault-backed Secret's contents change.
+        checksum/secret-keys: {{ include "reality.secretChecksum" . }}
+        {{- with .Values.podAnnotations }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+    spec:
+      {{- include "reality.podSpec" (list . "api" $c) | nindent 6 }}
+{{- end }}

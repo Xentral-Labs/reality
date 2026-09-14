@@ -1,0 +1,11 @@
+# Final review and verification
+
+Spec157 FR-001–005 and spec138 FR-028 match the owner-approved corrections. Reference is always visible as numbered lane 01, with two earlier-reference rows per column. Relationship paths appear only for selected direct neighbors with visible endpoints; off-screen hints retain navigation. Numeric presentation parts are additive to existing Inspector values and use shared locale formatters in modal, context and object graph views. No stored data, business calculations or schema changes. The additional document-line currency lookup is tenant-scoped.
+
+Regression evidence: the new graph and presentation helper tests failed before implementation. Final complete backend run: **1,964 passed, 9 skipped** (191.31 seconds). Two previous exact API expectations were updated to include the new additive metadata; the final complete run is green. Isolated web: **54 passed**; integrated local web: **56 passed**. Formatting, translation audit, TypeScript/production build, Ruff, spec policy and diff checks passed.
+
+Native Chrome verification on port8080: INV-credit-origin displays `10 pcs · €120.00`, `agreed €12.00/pcs` and localized debit/credit amounts. Graph default has no relationship lines and Reference is numbered 01 with no collapse button. Selecting a visible document reports four direct connections and shows three local lines plus one off-screen hint. Following that hint navigates to its reference; clearing selection removes paths. Older history increased from 100 to 200 events; Latest events restores the current end. The earlier browser concurrency interruption was resolved by acquiring fresh UI state before this final pass.
+
+A transaction with PostgreSQL READ ONLY verified both screenshot invoices and Maple Retail against the rebuilt image: original strings remain unchanged, quantities and currencies are explicit parts, and historical unit prices retain four-digit display precision. Matching local API/MCP/scheduler/worker/invitation-worker/web containers were rebuilt and restarted with the root environment file. API/MCP healthy, frontend HTTP200 on port8080; no migrations or data reset.
+
+Hosted CI remains blocked before jobs start by failed account payments or the spending limit. Confirmed annotation on run34375435792. T012 remains open; no billing settings were changed.

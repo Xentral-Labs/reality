@@ -1,0 +1,43 @@
+version: 1
+title: Workspace Views and Actions
+views:
+  - {key: commitments, label: Commitments, route: commitments, kind: authoritative_register, description: Obligations and their derived execution position}
+  - {key: inventory, label: Inventory, route: inventory, kind: materialized_projection, projection: inventory, description: Physical, reserved, available, incoming and projected stock}
+  - {key: open_items, label: Open items, route: open-items, kind: materialized_projection, projection: open_financial_items, description: Financial items with their authoritative open amount}
+  - {key: documents, label: Documents, route: documents, kind: authoritative_register, description: Normalized Evidence and its links into Reality}
+  - {key: reservations, label: Reservations, route: reservations, kind: authoritative_register, description: Active stock allocations linked to Commitments}
+  - {key: movements, label: Movements, route: movements, kind: authoritative_register, description: Append-only physical inventory journal}
+  - {key: locations, label: Locations, route: locations, kind: authoritative_register, description: Stock-capable and logical locations}
+  - {key: payments, label: Payments, route: payments, kind: authoritative_register, description: Payment postings and allocations}
+  - {key: journal, label: Journal, route: journal, kind: authoritative_register, description: Immutable balanced ledger entries}
+  - {key: parties, label: Parties, route: parties, kind: authoritative_register, description: Customers, suppliers and company identities}
+  - {key: items, label: Items, route: items, kind: authoritative_register, description: Operational item identities}
+  - {key: commercial_terms, label: Commercial terms, route: commercial, kind: authoritative_register, description: Payment and pricing references}
+  - {key: sources_imports, label: Sources & imports, route: integrations, kind: authoritative_register, description: Source definitions and immutable intake}
+  - {key: activity, label: Activity, route: timeline, kind: authoritative_register, description: Cross-functional operational and financial event history}
+  - {key: orders, label: Orders, route: orders, kind: materialized_projection, projection: fulfillment_queue, description: Customer orders with readiness, due dates and execution blockers}
+  - {key: warehouse_queue, label: Warehouse Queue, route: warehouse-queue, kind: materialized_projection, projection: fulfillment_queue, description: Orders prioritized for warehouse execution and shipment readiness}
+  - {key: fulfillment_blockers, label: Fulfillment blockers, route: fulfillment-blockers, kind: materialized_projection, projection: fulfillment_blockers, description: Commitment shortages and active execution holds blocking fulfillment}
+  - {key: supply_demand, label: Supply & demand, route: supply-demand, kind: materialized_projection, projection: item_supply_demand, description: Item-level physical stock, incoming supply and uncovered customer demand}
+actions:
+  - {key: create_manual_order, label: Create manual sales or purchase order, command: create_manual_order, target_route: documents, confirmation: summary, prerequisites: [company_party, counterparty, location, item], result_kind: document}
+  - {key: observe_fact, label: Observe source-supported fact, command: observe_fact, target_route: facts, confirmation: summary, prerequisites: [source_record, subject], result_kind: fact}
+  - {key: post_customer_payment, label: Post customer payment, command: post_customer_payment, target_route: payments, confirmation: summary, prerequisites: [customer_invoice], result_kind: ledger_entry}
+  - {key: post_supplier_payment, label: Post supplier payment, command: post_supplier_payment, target_route: payments, confirmation: summary, prerequisites: [supplier_invoice], result_kind: ledger_entry}
+  - {key: reserve_stock, label: Reserve stock, command: reserve, target_route: reservations, confirmation: summary, prerequisites: [commitment], result_kind: reservation}
+  - {key: record_movement, label: Record movement, command: record_movement, target_route: movements, confirmation: summary, prerequisites: [item, location], result_kind: movement}
+  - {key: correct_movement, label: Correct movement, command: correct_movement, target_route: movements, confirmation: server_preview, prerequisites: [movement], result_kind: movement}
+  - {key: hold_commitment, label: Hold or release commitment, command: hold_commitment, target_route: commitments, confirmation: summary, prerequisites: [commitment], result_kind: commitment}
+  - {key: hold_document_commitments, label: Hold or release document commitments, command: hold_document_commitments, target_route: documents, confirmation: summary, prerequisites: [document], result_kind: document}
+  - {key: party_delivery_hold, label: Set or release party delivery hold, command: hold_party_delivery, target_route: parties, confirmation: summary, prerequisites: [party], result_kind: party}
+  - {key: create_handling_unit, label: Create handling unit, command: create_handling_unit, target_route: movements, confirmation: summary, prerequisites: []}
+  - {key: create_lot, label: Create lot, command: create_lot, target_route: movements, confirmation: summary, prerequisites: [item]}
+  - {key: create_serial_unit, label: Create serial unit, command: create_serial_unit, target_route: movements, confirmation: summary, prerequisites: [item]}
+workspaces:
+  - {key: company, label: Company Overview, views: [commitments, inventory, open_items, documents, activity], actions: [observe_fact]}
+  - {key: operations, label: Order Operations, views: [orders, commitments, reservations, inventory, fulfillment_blockers, supply_demand, documents], actions: [create_manual_order, reserve_stock, hold_commitment, hold_document_commitments, party_delivery_hold]}
+  - {key: warehouse, label: Warehouse Operations, views: [inventory, warehouse_queue, reservations, movements, fulfillment_blockers, supply_demand, commitments, locations], actions: [record_movement, reserve_stock, hold_commitment, correct_movement, create_handling_unit, create_lot, create_serial_unit]}
+  - {key: finance, label: Finance Control, views: [open_items, payments, journal, documents, parties], actions: [post_customer_payment, post_supplier_payment]}
+  # Data Management is a reference workspace: its whole surface is the point, so it
+  # lists every View and Action directly instead of hiding some behind a launcher.
+  - {key: data, label: Data Management, complete_navigation: true, views: [parties, items, locations, documents, commercial_terms], actions: []}

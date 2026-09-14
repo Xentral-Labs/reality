@@ -1,0 +1,214 @@
+version: 1
+# Every nullable foreign key on the four records the operational exception queue
+# reasons about. The set is discovered from the mapper, so a migration adding a
+# nullable reference fails the build until somebody says what it is for.
+#
+# `load_bearing` means at least one class reasons from it. `trace_only` means
+# every class that reads it only names it in the evidence it reports.
+#
+# For a load-bearing reference, every class the source shows reading it is listed
+# with how it reads it. Discovery proves which classes read a reference; only a
+# person can say whether a read is a conclusion, because a conclusion and a
+# mention are the same attribute access:
+#
+#   reports_absence   the class concludes from the reference being missing, so a
+#                     missing one reports work that was actually done. Cries wolf.
+#   requires_presence the class starts from the reference, so a missing one means
+#                     it never looks at the record. Goes blind, which is worse.
+#   traces_only       the class puts the reference in its evidence and concludes
+#                     nothing from it. Absence costs nothing.
+#
+# None of these references is required, and none should become required: each of
+# these records legitimately exists without its link. The gates protect the paths
+# — that every writer and every surface *can* set one — not the rows.
+records:
+  DocumentLine:
+    billed_document_line_id:
+      classification: load_bearing
+      meaning: Which order line this invoice or credit-note line bills. Added by spec 076.
+      consumers:
+        shipped_not_billed: reports_absence
+        receipt_unbilled: reports_absence
+        returned_not_credited: reports_absence
+        supplier_return_not_credited: reports_absence
+        credited_not_returned: requires_presence
+        supplier_credit_not_returned: requires_presence
+        billed_not_received: requires_presence
+        invoice_price_differs: requires_presence
+        units_not_comparable: requires_presence
+    item_id:
+      classification: trace_only
+      meaning: The catalogued item a line concerns, absent for a freight or service line.
+      reason: >-
+        Read to compare units and prices and to name the item in an entry, never to conclude
+        that something is wrong. A line with no item is a charge, and the classes that would
+        care skip it explicitly rather than inferring anything from the absence.
+    price_list_entry_id:
+      classification: trace_only
+      meaning: The price list entry a line's price came from, absent when the price was stated freely.
+      reason: >-
+        Named in the evidence of the margin class so an operator can see which agreement priced
+        the line. Nothing concludes from its absence: a freely stated price is ordinary, and the
+        comparison uses the standing purchase price rather than this reference.
+  Movement:
+    shipment_package_id:
+      classification: trace_only
+      meaning: The physical Package that carried this exact movement quantity, absent when no Package was recorded.
+      reason: >-
+        The link explains Package contents and enforces shipment-purpose compatibility. No
+        operational exception concludes from its absence because legacy and untracked movements
+        remain valid and are never backfilled into guessed Shipments.
+    resolves_movement_id:
+      classification: load_bearing
+      meaning: Which return this movement settles. Added by spec 082.
+      consumers:
+        return_unresolved: reports_absence
+    return_announcement_id:
+      classification: load_bearing
+      meaning: Which announced customer return these goods fulfil. Added by spec 099.
+      consumers:
+        announced_return_not_arrived: reports_absence
+    commitment_id:
+      classification: trace_only
+      meaning: The promise a movement executes, absent for stock movements answering to nobody.
+      reason: >-
+        The unexplained-movement class reports a movement with neither a commitment nor a source
+        record, so it does conclude from absence — but from the pair, and a movement with neither
+        is unexplained by definition rather than by a link somebody forgot. Every other class
+        reads it to trace what a movement belonged to.
+    from_location_id:
+      classification: trace_only
+      meaning: Where stock left, absent for a receipt or an opening balance.
+      reason: >-
+        Its absence is what makes a movement inbound, so it is part of the movement vocabulary
+        rather than a reference anybody can forget. Nothing derives a condition from it.
+    to_location_id:
+      classification: trace_only
+      meaning: Where stock arrived, absent for a shipment.
+      reason: >-
+        The mirror of the field above, and the same argument: absence is the direction of the
+        movement, not a missing link.
+    handling_unit_id:
+      classification: trace_only
+      meaning: The pallet or handling unit the goods moved on, absent when they moved loose.
+      reason: >-
+        Read to keep tracked identities consistent when a movement is corrected. No class
+        concludes anything from goods having moved loose.
+    lot_id:
+      classification: trace_only
+      meaning: The batch these goods belong to, absent for an untracked item.
+      reason: >-
+        Absence follows from the item's tracking type, which the write path enforces. A class
+        reading it as a missing link would be reading the item's configuration.
+    serial_unit_id:
+      classification: trace_only
+      meaning: The individual serial-tracked unit, absent for anything not serial tracked.
+      reason: Same as the batch above; absence is the item's tracking type, not an omission.
+    source_record_id:
+      classification: trace_only
+      meaning: The immutable statement this movement came from, absent when a person recorded it.
+      reason: >-
+        Every class names it so an operator can reach the evidence. The only class that reasons
+        from its absence, unexplained_movement, requires the commitment to be absent too, and a
+        movement with neither is unexplained rather than under-referenced.
+  Commitment:
+    document_line_id:
+      classification: load_bearing
+      meaning: Which order line raised this promise. Part of the order baseline.
+      consumers:
+        shipped_not_billed: requires_presence
+        receipt_unbilled: requires_presence
+        returned_not_credited: requires_presence
+        credited_not_returned: requires_presence
+        supplier_return_not_credited: requires_presence
+        supplier_credit_not_returned: requires_presence
+        billed_not_received: requires_presence
+        units_not_comparable: requires_presence
+        overdue_outgoing_customer_commitment: traces_only
+        outgoing_commitment_at_risk: traces_only
+        order_stalled: traces_only
+        overdue_incoming_supplier_commitment: traces_only
+        sold_below_purchase_price: traces_only
+        invoice_price_differs: traces_only
+        commitment_hold_unreleased: traces_only
+        party_hold_unreleased: traces_only
+    document_id:
+      classification: trace_only
+      meaning: The order a promise belongs to, absent for a promise raised without one.
+      reason: >-
+        Every order-line class reaches the order through the line rather than through this
+        field, so nothing depends on it. It is read to name the order in an entry.
+    from_party_id:
+      classification: trace_only
+      meaning: Who is to deliver, absent only for a promise recorded without a counterparty.
+      reason: >-
+        Read to decide which side of the business a promise is on and to name the party. The
+        commitment type already says the direction, so no class infers anything from absence.
+    to_party_id:
+      classification: trace_only
+      meaning: Who is to receive.
+      reason: The mirror of the field above, and the same argument.
+    item_id:
+      classification: trace_only
+      meaning: What is promised.
+      reason: >-
+        Read to match a movement to its promise and to name the item. A promise with no item
+        cannot be executed at all, so absence is not a condition any class reports.
+    location_id:
+      classification: trace_only
+      meaning: Where the goods are promised from or to.
+      reason: Read for reservations and to name the location; no class concludes from absence.
+  ReturnAnnouncement:
+    source_record_id:
+      classification: trace_only
+      meaning: The statement an announcement came from, absent when a person recorded it.
+      reason: >-
+        Named in the entry so an operator can reach the customer's own words. The class judges
+        the announcement's dates and quantities, never where it came from.
+
+# Places that build one of these records without passing a load-bearing
+# reference. Each needs a reason somebody can disagree with, and a stale entry
+# fails the build, because a stale exemption hides the next real one.
+writers_that_do_not_set_a_reference:
+  - module: services/core.py
+    function: correct_movement
+    record: Movement
+    reference: resolves_movement_id
+    reason: >-
+      The compensating movement of a correction. It reverses a movement rather than settling a
+      return, so naming one would claim a resolution that did not happen.
+  - module: services/core.py
+    function: correct_movement
+    record: Movement
+    reference: return_announcement_id
+    reason: >-
+      The same compensating movement. A correction fulfils no announcement; the movement it
+      reverses may have, and reversing it is what stops that counting.
+  - module: services/core.py
+    function: _shopify_interpretation
+    record: DocumentLine
+    reference: billed_document_line_id
+    reason: >-
+      Shopify order ingestion builds sales-order lines. An order line is what a billing line
+      points *at*, so it can never carry the reference itself.
+  - module: services/file_interpreters.py
+    function: interpret_artifact
+    record: DocumentLine
+    reference: billed_document_line_id
+    reason: >-
+      File-based order ingestion, and the same argument: these are order lines, not billing
+      lines.
+
+# Adapters that carry a reference by forwarding whatever they are given, without
+# naming it in a schema. Allowed for a human adapter and never for MCP: an agent
+# knows only what a schema names, so a field a schema omits will never be sent.
+adapters_that_forward_without_naming:
+  - service: create_manual_document_with_lines
+    adapter: Chat
+    reference: billed_document_line_id
+    reason: >-
+      The chat tool forwards the line objects it is given without naming their fields, so a
+      caller who knows the field can already use it. The agent behind chat learns the field
+      exists from the shared input glossary, which is checked separately and has no exemption.
+      An MCP schema may never be exempted this way: an agent reading a schema can only send
+      what the schema names.

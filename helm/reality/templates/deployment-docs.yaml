@@ -1,0 +1,33 @@
+{{- if .Values.docs.enabled }}
+{{/*
+  Fully static nginx image. Its nginx.conf is copied to conf.d/ rather than
+  templates/, so there is NO envsubst and NO runtime configuration at all:
+  APP_URL / SITE_URL / DOCS_URL / ANALYTICS_*
+  are baked in as Docker build ARGs. Changing any of them requires a rebuild
+  and a new immutable tag, not a values edit.
+*/}}
+{{- $c := mustMergeOverwrite (dict "image" (dict "tagPrefix" "docs-") "secrets" false) (deepCopy .Values.docs) }}
+{{- $_ := set $c "probes" (dict
+      "readinessProbe" (dict "httpGet" (dict "path" "/healthz" "port" "http") "periodSeconds" 10 "timeoutSeconds" 3 "failureThreshold" 3)
+      "livenessProbe"  (dict "httpGet" (dict "path" "/healthz" "port" "http") "periodSeconds" 30 "timeoutSeconds" 3 "failureThreshold" 3)) }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "reality.fullname" . }}-docs
+  labels:
+    {{- include "reality.labels" . | nindent 4 }}
+    app.kubernetes.io/component: docs
+spec:
+  replicas: {{ .Values.docs.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "reality.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: docs
+  template:
+    metadata:
+      labels:
+        {{- include "reality.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: docs
+    spec:
+      {{- include "reality.podSpec" (list . "docs" $c) | nindent 6 }}
+{{- end }}

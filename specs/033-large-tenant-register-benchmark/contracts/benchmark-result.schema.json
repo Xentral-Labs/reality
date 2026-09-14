@@ -1,0 +1,205 @@
+{
+  "$defs": {
+    "CaseResult": {
+      "properties": {
+        "case_id": {
+          "title": "Case Id",
+          "type": "string"
+        },
+        "register_family": {
+          "title": "Register Family",
+          "type": "string"
+        },
+        "duration_ms": {
+          "minimum": 0,
+          "title": "Duration Ms",
+          "type": "number"
+        },
+        "outcome": {
+          "enum": [
+            "passed",
+            "failed"
+          ],
+          "title": "Outcome",
+          "type": "string"
+        },
+        "requirements": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Requirements",
+          "type": "array"
+        },
+        "observations": {
+          "additionalProperties": true,
+          "title": "Observations",
+          "type": "object"
+        },
+        "query_evidence": {
+          "items": {
+            "additionalProperties": true,
+            "type": "object"
+          },
+          "title": "Query Evidence",
+          "type": "array"
+        }
+      },
+      "required": [
+        "case_id",
+        "register_family",
+        "duration_ms",
+        "outcome",
+        "requirements",
+        "observations",
+        "query_evidence"
+      ],
+      "title": "CaseResult",
+      "type": "object"
+    },
+    "DatasetResult": {
+      "properties": {
+        "definition_version": {
+          "title": "Definition Version",
+          "type": "string"
+        },
+        "profile": {
+          "enum": [
+            "reduced",
+            "full"
+          ],
+          "title": "Profile",
+          "type": "string"
+        },
+        "seed": {
+          "title": "Seed",
+          "type": "integer"
+        },
+        "business_date": {
+          "title": "Business Date",
+          "type": "string"
+        },
+        "tenant_id": {
+          "title": "Tenant Id",
+          "type": "string"
+        },
+        "control_tenant_id": {
+          "title": "Control Tenant Id",
+          "type": "string"
+        },
+        "cardinalities": {
+          "additionalProperties": {
+            "type": "integer"
+          },
+          "title": "Cardinalities",
+          "type": "object"
+        }
+      },
+      "required": [
+        "definition_version",
+        "profile",
+        "seed",
+        "business_date",
+        "tenant_id",
+        "control_tenant_id",
+        "cardinalities"
+      ],
+      "title": "DatasetResult",
+      "type": "object"
+    },
+    "EnvironmentResult": {
+      "properties": {
+        "python": {
+          "title": "Python",
+          "type": "string"
+        },
+        "platform": {
+          "title": "Platform",
+          "type": "string"
+        },
+        "postgresql": {
+          "title": "Postgresql",
+          "type": "string"
+        },
+        "working_tree_digest": {
+          "maxLength": 64,
+          "minLength": 64,
+          "title": "Working Tree Digest",
+          "type": "string"
+        }
+      },
+      "required": [
+        "python",
+        "platform",
+        "postgresql",
+        "working_tree_digest"
+      ],
+      "title": "EnvironmentResult",
+      "type": "object"
+    }
+  },
+  "properties": {
+    "result_version": {
+      "const": "1",
+      "title": "Result Version",
+      "type": "string"
+    },
+    "created_at": {
+      "format": "date-time",
+      "title": "Created At",
+      "type": "string"
+    },
+    "git_revision": {
+      "minLength": 7,
+      "title": "Git Revision",
+      "type": "string"
+    },
+    "schema_revision": {
+      "minLength": 1,
+      "title": "Schema Revision",
+      "type": "string"
+    },
+    "environment": {
+      "$ref": "#/$defs/EnvironmentResult"
+    },
+    "dataset": {
+      "$ref": "#/$defs/DatasetResult"
+    },
+    "cases": {
+      "items": {
+        "$ref": "#/$defs/CaseResult"
+      },
+      "minItems": 9,
+      "title": "Cases",
+      "type": "array"
+    },
+    "outcome": {
+      "enum": [
+        "passed",
+        "failed"
+      ],
+      "title": "Outcome",
+      "type": "string"
+    },
+    "limitations": {
+      "items": {
+        "type": "string"
+      },
+      "minItems": 1,
+      "title": "Limitations",
+      "type": "array"
+    }
+  },
+  "required": [
+    "result_version",
+    "created_at",
+    "git_revision",
+    "schema_revision",
+    "environment",
+    "dataset",
+    "cases",
+    "outcome",
+    "limitations"
+  ],
+  "title": "Large-Tenant Register Benchmark Result",
+  "type": "object"
+}

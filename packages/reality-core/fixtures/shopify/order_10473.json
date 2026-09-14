@@ -1,0 +1,16 @@
+{
+  "id": 5837291038,
+  "order_number": 10473,
+  "name": "#10473",
+  "created_at": "2026-09-02T09:15:00Z",
+  "currency": "EUR",
+  "total_price": "1470.00",
+  "customer": {"id": 17001, "first_name": "Max", "last_name": "Müller", "email": "demo@example.invalid"},
+  "shipping_address": {"company": "Müller GmbH", "city": "Augsburg", "country_code": "DE"},
+  "tags": "demo,priority",
+  "note_attributes": [{"name": "requested_delivery", "value": "2026-09-03"}],
+  "line_items": [
+    {"id": 817263, "sku": "BIKE-LIGHT", "name": "Bike Light", "quantity": 30, "price": "49.00", "vendor": "Acme"}
+  ],
+  "_fixture_note": "Intentionally contains source-specific fields. Store losslessly; map only operationally required semantics."
+}

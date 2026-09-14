@@ -1,0 +1,45 @@
+# Optional, self-hosted reader analytics for the public surfaces.
+#
+# It is deliberately a separate stack: it holds no business data, has its own database,
+# and must never be a dependency of a Reality runtime.
+#
+#   make analytics        start it
+#   make analytics-down   stop it and keep the collected data
+#
+# First run: open http://localhost:8084, sign in with admin / umami, change that password,
+# add a website for the Docs origin, then copy its website id into ANALYTICS_WEBSITE_ID.
+services:
+  umami-db:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_DB: umami
+      POSTGRES_USER: ${UMAMI_DB_USER:-umami}
+      POSTGRES_PASSWORD: ${UMAMI_DB_PASSWORD:?set UMAMI_DB_PASSWORD}
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${UMAMI_DB_USER:-umami} -d umami"]
+      interval: 2s
+      timeout: 3s
+      retries: 15
+    volumes:
+      - umami_data:/var/lib/postgresql/data
+
+  umami:
+    image: ghcr.io/umami-software/umami:postgresql-v2.16
+    environment:
+      DATABASE_TYPE: postgresql
+      DATABASE_URL: postgresql://${UMAMI_DB_USER:-umami}:${UMAMI_DB_PASSWORD}@umami-db:5432/umami
+      APP_SECRET: ${UMAMI_APP_SECRET:?set UMAMI_APP_SECRET}
+      DISABLE_TELEMETRY: "1"
+    depends_on:
+      umami-db:
+        condition: service_healthy
+    ports:
+      - "${UMAMI_PORT:-8084}:3000"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q --spider http://localhost:3000/api/heartbeat || exit 1"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+volumes:
+  umami_data:

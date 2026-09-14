@@ -1,0 +1,177 @@
+# Reality self-hosted stack (spec 187).
+#
+# Installed and maintained by install.sh; the commands live in README.md.
+# Images come from the publish workflow and are pinned by REALITY_VERSION in
+# .env. This base file publishes no host port: compose.direct.yml or
+# compose.proxy.yml (selected through COMPOSE_FILE in .env) adds the one
+# public entry point. compose.s3.yml swaps the artifact store for MinIO.
+
+x-python-environment: &python-environment
+  REALITY_DATABASE_URL: postgresql+psycopg://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
+  REALITY_MASTER_KEY: ${REALITY_MASTER_KEY}
+  REALITY_ARTIFACT_STORAGE: ${REALITY_ARTIFACT_STORAGE:-file}
+  REALITY_ARTIFACT_DIR: /app/packages/reality-core/data/artifacts
+
+services:
+  db:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  migrate:
+    image: ${REALITY_IMAGE_REGISTRY:-ghcr.io/xentral-labs}/reality-api:${REALITY_VERSION}
+    command: ["alembic", "upgrade", "head"]
+    environment:
+      <<: *python-environment
+      REALITY_ENV: production
+    depends_on:
+      db:
+        condition: service_healthy
+
+  api:
+    image: ${REALITY_IMAGE_REGISTRY:-ghcr.io/xentral-labs}/reality-api:${REALITY_VERSION}
+    restart: unless-stopped
+    environment:
+      <<: *python-environment
+      REALITY_ENV: production
+      APP_URL: ${APP_URL}
+      API_URL: ${APP_URL}
+      MCP_URL: ${MCP_URL}
+      REALITY_SCHEDULER_HEALTH_URL: http://scheduler:8081/healthz
+      REALITY_WORKER_HEALTH_URL: http://worker:8081/healthz
+      REALITY_AUTH_MODE: enabled
+      REALITY_COOKIE_SECURE: ${REALITY_COOKIE_SECURE}
+      REALITY_BOOTSTRAP_TENANT_NAME: ""
+      REALITY_PLATFORM_ADMIN_EMAIL: ${REALITY_PLATFORM_ADMIN_EMAIL}
+      REALITY_PLATFORM_ADMIN_PASSWORD: ${REALITY_PLATFORM_ADMIN_PASSWORD}
+      REALITY_AUTO_APPROVE_LIMIT: ${REALITY_AUTO_APPROVE_LIMIT:-0}
+      REALITY_EMAIL_PROVIDER: ${REALITY_EMAIL_PROVIDER:-}
+      REALITY_EMAIL_FROM: ${REALITY_EMAIL_FROM:-}
+      RESEND_API_KEY: ${RESEND_API_KEY:-}
+      REALITY_SMTP_HOST: ${REALITY_SMTP_HOST:-}
+      REALITY_SMTP_PORT: ${REALITY_SMTP_PORT:-587}
+      REALITY_SMTP_TLS: ${REALITY_SMTP_TLS:-true}
+      REALITY_SMTP_USERNAME: ${REALITY_SMTP_USERNAME:-}
+      REALITY_SMTP_PASSWORD: ${REALITY_SMTP_PASSWORD:-}
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+      ANTHROPIC_WORKSPACE_ID: ${ANTHROPIC_WORKSPACE_ID:-}
+    volumes:
+      - artifacts:/app/packages/reality-core/data/artifacts
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "python",
+          "-c",
+          "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/healthz')",
+        ]
+      interval: 5s
+      timeout: 3s
+      retries: 24
+
+  web:
+    image: ${REALITY_IMAGE_REGISTRY:-ghcr.io/xentral-labs}/reality-web:${REALITY_VERSION}
+    restart: unless-stopped
+    environment:
+      API_UPSTREAM: api:8000
+    depends_on:
+      api:
+        condition: service_healthy
+    healthcheck:
+      # Readiness includes Nginx startup and the route used by the published App.
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1/healthz"]
+      interval: 5s
+      timeout: 3s
+      retries: 24
+
+  invitation-worker:
+    image: ${REALITY_IMAGE_REGISTRY:-ghcr.io/xentral-labs}/reality-api:${REALITY_VERSION}
+    restart: unless-stopped
+    command: ["/bin/sh", "-c", "while true; do reality invitation-worker-once; sleep 5; done"]
+    environment:
+      <<: *python-environment
+      REALITY_ENV: production
+      APP_URL: ${APP_URL}
+      REALITY_EMAIL_PROVIDER: ${REALITY_EMAIL_PROVIDER:-}
+      REALITY_EMAIL_FROM: ${REALITY_EMAIL_FROM:-}
+      RESEND_API_KEY: ${RESEND_API_KEY:-}
+      REALITY_SMTP_HOST: ${REALITY_SMTP_HOST:-}
+      REALITY_SMTP_PORT: ${REALITY_SMTP_PORT:-587}
+      REALITY_SMTP_TLS: ${REALITY_SMTP_TLS:-true}
+      REALITY_SMTP_USERNAME: ${REALITY_SMTP_USERNAME:-}
+      REALITY_SMTP_PASSWORD: ${REALITY_SMTP_PASSWORD:-}
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+
+  scheduler:
+    image: ${REALITY_IMAGE_REGISTRY:-ghcr.io/xentral-labs}/reality-scheduler:${REALITY_VERSION}
+    restart: unless-stopped
+    environment:
+      <<: *python-environment
+      REALITY_ENV: production
+      REALITY_BACKGROUND_HEALTH_PORT: "8081"
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    stop_grace_period: 35s
+
+  worker:
+    image: ${REALITY_IMAGE_REGISTRY:-ghcr.io/xentral-labs}/reality-worker:${REALITY_VERSION}
+    restart: unless-stopped
+    environment:
+      <<: *python-environment
+      REALITY_ENV: production
+      REALITY_BACKGROUND_HEALTH_PORT: "8081"
+    volumes:
+      # Queued imports interpret uploaded files, so the worker sees the same store.
+      - artifacts:/app/packages/reality-core/data/artifacts
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    stop_grace_period: 35s
+
+  mcp:
+    image: ${REALITY_IMAGE_REGISTRY:-ghcr.io/xentral-labs}/reality-mcp:${REALITY_VERSION}
+    restart: unless-stopped
+    environment:
+      <<: *python-environment
+      # MCP_URL must be HTTPS when REALITY_ENV is production; install.sh sets
+      # REALITY_MCP_ENV=production only together with a domain.
+      REALITY_ENV: ${REALITY_MCP_ENV:-}
+      MCP_URL: ${MCP_URL}
+      MCP_BIND_HOST: 0.0.0.0
+      MCP_BIND_PORT: "8001"
+    volumes:
+      - artifacts:/app/packages/reality-core/data/artifacts
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "python",
+          "-c",
+          "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8001/readyz')",
+        ]
+      interval: 5s
+      timeout: 3s
+      retries: 24
+
+volumes:
+  postgres_data:
+  artifacts:

@@ -1,0 +1,3 @@
+# Invoice input contract
+Existing sales_invoice_record/supplier_invoice_record accept legacy order_line_id, quantity, gross_amount, number, optional effective_at; or lines [{order_line_id, quantity, gross_amount}], independent header gross_amount, number, optional effective_at. Shapes are mutually exclusive. Lines must be nonempty, distinct and from one tenant-scoped order of the matching direction.
+Receipt preserves records ordering: source_record, document, N document_line, two ledger_entry. Existing single-line receipts remain five records. Preview and explicit confirmation use the common action API. Unsupported practice batch intent fails through existing policy rather than weakening its reviewed authority.

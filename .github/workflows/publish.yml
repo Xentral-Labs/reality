@@ -1,0 +1,150 @@
+# Public images and installer assets for self-hosting (spec 187).
+#
+# Every push to main publishes the five runtime images to GHCR as
+# sha-<short> and edge. Every v* tag publishes <version> and latest and
+# attaches the installer assets to the GitHub Release, with the version
+# substituted into install.sh so a downloaded script installs the release it
+# came from. Site and Docs are provider-operated and are not published here.
+# The team's ECR testing deployment (deploy-testing.yml) is unaffected.
+
+name: Publish
+
+on:
+  push:
+    branches: [main]
+    tags: ["v*"]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: publish-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  images:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - component: api
+            dockerfile: apps/api/Dockerfile
+          - component: mcp
+            dockerfile: apps/mcp/Dockerfile
+          - component: web
+            dockerfile: apps/web/Dockerfile
+          - component: scheduler
+            dockerfile: apps/scheduler/Dockerfile
+          - component: worker
+            dockerfile: apps/worker/Dockerfile
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: docker/setup-qemu-action@v3
+
+      - uses: docker/setup-buildx-action@v4
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      # Release tags: 0.1.0 and latest. Main: sha-a204c14 and edge. The
+      # installer pins REALITY_VERSION to any of these.
+      - name: Image names and tags
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: |
+            ghcr.io/xentral-labs/reality-${{ matrix.component }}
+          tags: |
+            type=semver,pattern={{version}}
+            type=raw,value=latest,enable=${{ startsWith(github.ref, 'refs/tags/v') }}
+            type=sha,prefix=sha-
+            type=raw,value=edge,enable={{is_default_branch}}
+          labels: |
+            org.opencontainers.image.title=Reality ${{ matrix.component }}
+            org.opencontainers.image.licenses=MIT
+
+      - name: Version for the image
+        id: version
+        shell: bash
+        run: |
+          if [[ "$GITHUB_REF" == refs/tags/v* ]]; then
+            echo "version=${GITHUB_REF#refs/tags/v}" >> "$GITHUB_OUTPUT"
+          else
+            echo "version=sha-${GITHUB_SHA::7}" >> "$GITHUB_OUTPUT"
+          fi
+
+      # All Dockerfiles build from the repository root. arm64 covers Hetzner
+      # CAX hosts and Apple Silicon; amd64 covers everything else.
+      - name: Build and push
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ${{ matrix.dockerfile }}
+          platforms: linux/amd64,linux/arm64
+          push: true
+          provenance: false
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          build-args: |
+            REALITY_VERSION=${{ steps.version.outputs.version }}
+            REALITY_COMMIT=${{ github.sha }}
+          cache-from: type=gha,scope=publish-${{ matrix.component }}
+          cache-to: type=gha,scope=publish-${{ matrix.component }},mode=max
+
+  release:
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: [images]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Prepare installer assets
+        shell: bash
+        run: |
+          version="${GITHUB_REF#refs/tags/v}"
+          mkdir -p dist
+          sed "s/__REALITY_INSTALLER_VERSION__/${version}/" installer/install.sh > dist/install.sh
+          grep -q "INSTALLER_VERSION=\"${version}\"" dist/install.sh
+          cp installer/compose.yml installer/compose.direct.yml installer/compose.proxy.yml \
+             installer/compose.s3.yml installer/Caddyfile installer/README.md dist/
+          # GitHub renames dot-files among release assets, so ship the example without the dot.
+          cp installer/.env.example dist/env.example
+          ls -l dist
+
+      - name: Create the GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          generate_release_notes: true
+          body: |
+            ## Install or upgrade
+
+            ```bash
+            curl -fsSL https://get.runreality.ai | sh              # new installation
+            ./reality/reality.sh upgrade                          # existing installation
+            ```
+
+            Requires Docker with the Compose v2 plugin. The installer generates every secret and
+            prints the first owner's sign-in once. Guide: https://docs.runreality.ai/operations/installation
+            (Docker Compose, Kubernetes and Railway: https://docs.runreality.ai/operations/).
+            The files attached below are what the installer downloads for this release.
+
+          files: |
+            dist/install.sh
+            dist/compose.yml
+            dist/compose.direct.yml
+            dist/compose.proxy.yml
+            dist/compose.s3.yml
+            dist/Caddyfile
+            dist/README.md
+            dist/env.example

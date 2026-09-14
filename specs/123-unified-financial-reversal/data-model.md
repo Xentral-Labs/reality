@@ -1,0 +1,2 @@
+# Data model
+No schema change. Existing LedgerReversal links original and inverse posting groups. Original LedgerEntries and SettlementAllocations remain present. Active allocation and invoice/payment amounts derive from both sides' reversal state. Existing BusinessEvent records attributed immutable reversal snapshots; ChangeProposal holds review and canonical receipt. Optional action_id is service/event attribution, not a new table field.

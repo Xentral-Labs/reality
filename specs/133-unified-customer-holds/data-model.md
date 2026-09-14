@@ -1,0 +1,2 @@
+# Existing data
+PartyHold → Party is the shortest true link; CommitmentHold → Commitment remains independent. ChangeProposal action identity attributes BusinessEvent. No schema change. Placement/release events add exact PartyHold snapshot fields (ID, party, hold type, reason, note, creator, creation time) and release time. Historic verification compares these immutable fields and released_at when applicable; active customer hold state is a separate observation. A fresh hold after release does not alter earlier receipt proof.

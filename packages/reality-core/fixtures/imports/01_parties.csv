@@ -1,0 +1,4 @@
+name,party_type,roles,accounting_code,default_currency,credit_limit,tax_identifier
+Reality Demo GmbH,company,company,COMP-1000,EUR,0,DE999000001
+Müller Demo GmbH,customer,customer,CUST-1000,EUR,25000,DE999000002
+Komponenten AG,supplier,supplier,SUP-1000,EUR,0,DE999000003

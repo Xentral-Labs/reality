@@ -1,0 +1,3492 @@
+version: 1
+title: Application Commands
+principle: CLI, Web, API, and Chat are adapters. Shared application services are the business entry points.
+
+# Shared input glossary used by the generated developer reference. Keep a parameter
+# untyped until it is operationally relevant; once exposed here, explain its business
+# meaning rather than merely repeating its data type.
+parameter_descriptions:
+  principal: Trusted authenticated user context supplied by the server, never by model arguments.
+  arguments: Strict versioned request object; nested fields are declared by the MCP input schema.
+  type: Closed kind of the record where one is stated, such as a party's primary role or a location's type; the roles list, not this field, decides what a party may do.
+  promised_at: UTC instant by which the line's quantity is promised; it becomes the due time of the derived Commitment.
+  line_type: Closed kind of a document line, such as goods or a charge, taken from the source statement.
+  price_list_entry_id: Opaque identity of the price tier the line price came from, when a list price was applied; provenance, not a recalculation.
+  invoice_line_id: Opaque identity of the invoice line this credit line refers back to.
+  carrier: Carrier name stated for a physical package; it is descriptive and not an internal identity.
+  commit: Internal transaction-control flag used when a service participates in a larger atomic operation.
+  purpose: Closed business purpose that determines the shipment's counterparty role and compatible Movement type.
+  reporter_type: Closed attribution for who stated a shipment observation, such as company, counterparty, or carrier.
+  tracking_number: Carrier-assigned package reference used for operational lookup; it is not internal identity.
+  movements: Exact existing Movement command inputs to record atomically as the physical contents of one Package.
+  shipment_id: Opaque identity of the tenant-scoped physical consignment.
+  event_type: Closed logistics observation kind stated for a Shipment or Package.
+  location_text: Optional location text exactly as reported with a logistics observation.
+  external_event_id: Optional source-assigned event identity used to make repeated intake idempotent.
+  event_id: Opaque identity of the immutable ShipmentEvent being corrected.
+  replacement_event_id: Optional opaque identity of another ShipmentEvent that replaces the corrected observation.
+  target_id: Opaque same-tenant external accounting destination identity.
+  command: Explicit owner-confirmed Finance target configuration operation.
+  source_query: Literal search for registered source systems available to classify received codes.
+  mapping_id: Opaque Finance mapping revision identity; history follows its exact owning scope.
+  item: Received component and current internal assignment at its actual evidence scope.
+  component_id: Opaque normalized financial component identity.
+  reference_query: Literal search for active same-tenant classification references.
+  kind: Explicit internal or target reference kind; no inferred tax or country meaning.
+  offset: Number of matching rows to skip for bounded pagination.
+  reference_id: Opaque same-tenant managed reference identity.
+  arguments: Typed reviewed reference change intent, including expected revision and reason.
+  query: Optional invoice-number search within matching same-party credit targets.
+  values: Validated mode-specific settlement intent from the shared typed tool contract.
+  actor_id: Authenticated confirming user identity supplied by the execution boundary, never caller impersonation.
+  agreement: Stated supplier entitlement or agreement authorizing the reduction.
+  reason_category: Explicit accepted discount, agreed deduction or small remainder category.
+  source_effect_id: Stable effect reference within the original evidence, consumed at most once.
+  account_id: Opaque same-tenant operational account identity.
+  role: Fixed operational account role.
+  state: Active or blocked eligibility for new account postings.
+  allocation_amount: Explicit stated amount to offset against the selected invoice; zero leaves the credit unsettled.
+  order_line_id: Opaque sales-order line identity linked by invoice billing evidence.
+  billed_document_line_id: Opaque identity of the billed order line, or selected invoice line for an invoice-linked credit; the shortest typed evidence relationship.
+  action_id: Optional opaque Change Proposal identity linking an emitted Business Event to its confirmed action.
+  at: UTC instant at which the projection or rule should be evaluated.
+  auto: Whether to run the demo without interactive prompts.
+  accounting_code: Accounting reference used when postings or exports need a stable account mapping.
+  allows_stock: Whether physical inventory may be held at this location.
+  amount: Monetary amount of the payment or financial observation.
+  as_of: UTC instant the derivation is evaluated at; the current instant when absent.
+  expires_at: The best-before date somebody read off the goods or the delivery note, as a calendar day; never computed from a shelf life, and never adjusted once stated.
+  lot_id: Opaque identity of the batch whose best-before date is being stated.
+  expected_expires_at: The best-before date the caller believes is stated now, or absent to say none is; a correction is refused unless it still matches, so it cannot be made by somebody who has not looked.
+  actor_context: Optional free-form note about who acted and on whose behalf, recorded with the audit rather than interpreted.
+  actor_context: Optional authenticated actor metadata retained with the correction audit when available.
+  capability_id: Opaque identity of the source capability to change.
+  code: Short tenant-scoped business code used to find the record operationally.
+  commitment_id: Opaque identity of the obligation being reserved, held, or executed.
+  company_party_id: Opaque identity of the tenant's company Party in an order flow.
+  connector_code: Template code identifying the connector shell to install.
+  context: Optional structured metadata retained with the operation for traceability.
+  context_json: Optional JSON object retained as structured context with the source record.
+  counterparty_id: Opaque identity of the customer or supplier Party in an order flow.
+  conversion_factor: Quantity of base units represented by one purchase unit.
+  created_by: Actor or adapter that initiated the operation.
+  credit_limit: Optional monetary exposure limit used by operational credit checks.
+  currency: ISO 4217 currency code for monetary values.
+  customer_reference: Reference supplied by the customer for matching and communication.
+  default_currency: ISO 4217 currency used when an operation provides no explicit currency.
+  default_location_id: Opaque identity of the item's preferred operational stock location.
+  description: Human-readable explanation of the record or rule.
+  direction: Business flow direction, such as sales or purchase, incoming or outgoing.
+  document_date: Business date printed on or asserted by the evidence document.
+  document_id: Opaque identity of the evidence document to inspect or correct.
+  document_type: Evidence kind, such as sales order, purchase order, or invoice.
+  due_days: Number of calendar days from the document date until payment is due.
+  effective_at: UTC instant from which the observation or rule takes effect.
+  email: Normalized email address of the person invited to the company.
+  external_id: Identifier assigned by the named external source system; never internal identity.
+  gross_amount: Total the source states for the document; recorded as received and never calculated.
+  resolves_movement_id: Opaque identity of the return this movement settles; absent means it settles none.
+  credit_note_id: Opaque identity of the credit note being posted, netted or refunded.
+  due_at: The date the counterparty now states the promise is due on; optional if a quantity is stated.
+  due_before: Promises due strictly before this instant are considered; nothing later matches.
+  expected_count: The number the caller saw in the preview; a closure is refused unless it still matches.
+  refund_number: Caller-supplied number for the refund document; one is generated when absent.
+  idempotency_key: Caller-stable retry identity for one intended operation; reuse with different content is rejected.
+  expected_revision: Canonical revision of the Evidence snapshot on which a correction is based.
+  file: Path to the JSON file whose payload should be ingested losslessly.
+  from_location_id: Opaque identity of the location from which physical stock leaves.
+  handling_unit_id: Optional pallet or handling-unit identity, for example an NVE/SSCC-labelled pallet.
+  host: Network interface on which the local web server should listen.
+  invoice_id: Opaque identity of the invoice evidence associated with a payment or allocation.
+  invitation_id: Opaque identity of the company invitation to resend or revoke.
+  is_active: Whether the record remains selectable for new operational work.
+  is_default: Whether this rule is the fallback for its direction and currency.
+  item_id: Opaque identity of the operational item reference.
+  item_type: Operational classification such as product, service, or charge.
+  job_id: Opaque identity of the queued source-processing job.
+  lead_time_days: Expected calendar days required before supply becomes available.
+  limit: Maximum number of records or jobs processed by this invocation.
+  location_id: Opaque identity of the operational or physical location.
+  location_type: Operational location classification, such as warehouse or logical location.
+  locale: Preferred supported language for invitation delivery, with the documented fallback when absent or unsupported.
+  lot_id: Exact batch or lot identity to reserve or move.
+  lot_number: Human-readable batch number supplied by production or an external system.
+  lines: Complete intended normalized DocumentLine Evidence snapshot for an atomic manual correction.
+  min_quantity: Inclusive quantity threshold from which a price tier applies.
+  membership_id: Opaque identity of the company membership to remove.
+  model: Target master-data model whose lifecycle is being changed.
+  movement_id: Opaque identity of the immutable physical Movement being inspected or corrected.
+  movement_type: Physical event kind — opening_stock, receipt, shipment, transfer, adjustment, return (goods back from a customer), or supplier_return (goods back to a supplier).
+  name: Human-readable display name; it is not used as internal identity.
+  name_or_id: Tenant name or opaque tenant identity used to select a workspace.
+  note: Optional operational explanation retained with the record.
+  observed_at: UTC instant at which a source-supported Fact was observed.
+  number: Human-facing document or transaction number; it is not internal identity.
+  nve: Optional Nummer der Versandeinheit / SSCC printed on a pallet or handling unit.
+  occurred_at: UTC instant at which the physical or business event occurred.
+  ordered_at: UTC instant at which an order was placed in its source context.
+  parent_location_id: Optional opaque identity of the containing location in the location hierarchy.
+  party_group_id: Opaque identity of a pricing or operational party group.
+  party_id: Opaque identity of the customer, supplier, or other operational party.
+  party_type: Operational party classification used by repeated rules and filtering.
+  payload: Lossless JSON object received from or prepared for an external context.
+  payment_number: Human-facing payment reference used for matching and investigation.
+  payments: The invoices a payment run pays and the amount stated against each; every amount is received, never derived from a discount rate.
+  announced_at: The instant the customer said the goods were coming back; the current instant when absent.
+  announcement: The announced customer return being measured.
+  announcement_id: Opaque identity of the announced customer return.
+  expected_by: The day the customer says the goods will go back; absent means they did not say.
+  status: Lifecycle state to filter by, such as open, fulfilled, or withdrawn.
+  reference: The number the returning parcel will carry, as the customer or the company stated it; never generated.
+  return_announcement_id: Opaque identity of the announced return these goods fulfil; absent means they were not announced.
+  shipment_package_id: Opaque identity of the physical shipment package that carried this exact movement quantity; absent means no package was recorded.
+  pay_by: The day the payment run is being made for; invoices due on or before it are proposed, as is any invoice whose early-payment window is still open.
+  expected_total: The sum of money the caller confirmed; a run is refused unless the stated amounts still add up to it.
+  discount_days: Days from the invoice date within which an early-payment discount applies; stated together with the rate or not at all.
+  discount_percent: Early-payment discount rate the term grants, above zero and below 100; stated together with the days or not at all.
+  payment_term_code: Tenant-scoped code of the payment condition to apply.
+  payment_term_id: Opaque identity of the payment condition whose lifecycle is changed.
+  price_list_id: Opaque identity of the sales or purchase price list.
+  priority: Ordering used when more than one eligible rule could apply.
+  principal: Authenticated human actor whose current company role is reauthorized when the command executes.
+  projection_name: Stable name of the materialized read model to read or rebuild.
+  predicate: Stable reviewed name of the observed property.
+  preview_fingerprint: Canonical semantic identity of the server preview being confirmed.
+  posting_group_id: Opaque identity shared by the balanced LedgerEntries in one posting group.
+  refresh: Compatibility argument for stored reads; must be false. Use the explicit maintenance service to rebuild a projection.
+  replacement: Optional complete intended Movement that replaces the compensated original.
+  port: TCP port on which the local web server should listen.
+  purchase_unit: Unit in which the item is normally purchased from suppliers.
+  quantity: Decimal quantity expressed in the item's relevant unit.
+  raw: Whether to print the original lossless source payload instead of a summary.
+  note: Free-text record of what the counterparty said, kept with the statement.
+  reason: Human-readable explanation for a hold, correction, or lifecycle change.
+  reservation_id: Opaque identity of the reservation being given back.
+  records: Several master-data records stated together, each with the same fields the single-record command takes.
+  stated_at: When the counterparty stated the new date, defaulting to now.
+  reason_code: Stable machine-readable reason used for filtering and automation.
+  record_id: Opaque identity of the master-data record whose lifecycle is being changed.
+  requested_delivery_at: UTC instant by which the customer or operation requests delivery.
+  roles: Operational roles assigned to a party, for example customer or supplier.
+  role: Repeatable operational role assigned to a party, for example customer or supplier.
+  sales_channel: Operational sales-channel reference used for repeated routing or pricing decisions.
+  serial_number: Human-readable unique serial identifier carried by one physical unit.
+  serial_unit_id: Exact serial-unit identity to reserve or move; serialized quantities are always one.
+  ship_to_party_id: Opaque identity of the party receiving the physical delivery.
+  sku: Human-facing stock-keeping code used to find an item; internal joins use item_id.
+  source_payload: Lossless external JSON evidence from which typed operational fields were selected.
+  source_id: Opaque identity of the immutable source record to inspect.
+  source_record_id: Opaque identity of the immutable source record supporting this typed record.
+  subject_id: Opaque identity of the existing Reality record described by an observation.
+  subject_type: Cataloged Reality record type described by an observation.
+  source_artifact_id: Optional opaque identity of the immutable streamed file supporting this source record.
+  source_system: Tenant-scoped code naming the external origin of a record.
+  source_system_id: Opaque identity of the registered external source instance.
+  source_type: Upstream record kind as named by its source, before operational interpretation.
+  source_types: Explicit set of upstream record kinds enabled for the connector shell.
+  source_version_at: Upstream version timestamp used to order immutable source versions.
+  system_code: Unique tenant-scoped code for one external source instance.
+  system_name: Human-readable name of the external source instance.
+  tenant: Optional opaque tenant identity; otherwise the currently selected workspace is used.
+  target_type: Operational Reality type the source capability is intended to produce.
+  tax_identifier: External tax or VAT identifier retained when operational matching requires it.
+  to_location_id: Opaque identity of the location into which physical stock arrives.
+  tracking_type: Inventory identity policy; untracked, lot, or serial.
+  unit: Unit of measure in which the quantity is expressed.
+  unit_price: Decimal monetary amount for one unit before quantity multiplication.
+  valid_from: Inclusive UTC instant from which a rule or price may be selected.
+  valid_until: Optional inclusive UTC instant after which a rule or price is no longer selected.
+  value: Scalar observation value validated and canonicalized by its predicate contract.
+
+commands:
+  - name: Change Private Analytics Report
+    service: change_report
+    mode: mutation
+    adapters: [Web, MCP, Chat]
+    reads: [tenant, app_user, tenant_membership, analytics_report]
+    writes: [analytics_report]
+    effect: Save, rename, duplicate or delete the authenticated user's private analytical definition with revision and retry protection.
+  - name: List Targets
+    service: list_targets
+    mode: read
+    adapters:
+    - CLI
+    - Web
+    - MCP
+    - Chat
+    reads:
+    - tenant
+    - accounting_target
+    - accounting_target_reference
+    - finance_target_mapping_revision
+    - finance_reference
+    - finance_state
+    - document
+    - document_line
+    - ledger_entry
+    writes: []
+    effect: Maintain and explain explicit external destinations without changing financial
+      evidence.
+  - name: List Target References
+    service: list_target_references
+    mode: read
+    adapters:
+    - CLI
+    - Web
+    - MCP
+    - Chat
+    reads:
+    - tenant
+    - accounting_target
+    - accounting_target_reference
+    - finance_target_mapping_revision
+    - finance_reference
+    - finance_state
+    - document
+    - document_line
+    - ledger_entry
+    writes: []
+    effect: Maintain and explain explicit external destinations without changing financial
+      evidence.
+  - name: List Mappings
+    service: list_mappings
+    mode: read
+    adapters:
+    - CLI
+    - Web
+    - MCP
+    - Chat
+    reads:
+    - tenant
+    - accounting_target
+    - accounting_target_reference
+    - finance_target_mapping_revision
+    - finance_reference
+    - finance_state
+    - document
+    - document_line
+    - ledger_entry
+    writes: []
+    effect: Maintain and explain explicit external destinations without changing financial
+      evidence.
+  - name: Mapping History
+    service: mapping_history
+    mode: read
+    adapters:
+    - CLI
+    - Web
+    - MCP
+    - Chat
+    reads:
+    - tenant
+    - accounting_target
+    - accounting_target_reference
+    - finance_target_mapping_revision
+    - finance_reference
+    - finance_state
+    - document
+    - document_line
+    - ledger_entry
+    writes: []
+    effect: Maintain and explain explicit external destinations without changing financial
+      evidence.
+  - name: Preview Document
+    service: preview_document
+    mode: read
+    adapters:
+    - CLI
+    - Web
+    - MCP
+    - Chat
+    reads:
+    - tenant
+    - accounting_target
+    - accounting_target_reference
+    - finance_target_mapping_revision
+    - finance_reference
+    - finance_state
+    - document
+    - document_line
+    - ledger_entry
+    - action
+    - financial_component
+    - component_assignment_revision
+    - component_assignment_part
+    - source_record
+    - source_system
+    - source_classification_mapping_revision
+    writes: []
+    effect: Maintain and explain explicit external destinations without changing financial
+      evidence.
+  - name: Maintain Target Configuration
+    service: maintain_target_configuration
+    mode: mutation
+    adapters:
+    - CLI
+    - Web
+    - MCP
+    - Chat
+    reads:
+    - tenant
+    - accounting_target
+    - accounting_target_reference
+    - finance_target_mapping_revision
+    - finance_reference
+    - finance_state
+    - document
+    - document_line
+    - ledger_entry
+    writes:
+    - accounting_target
+    - accounting_target_reference
+    - finance_target_mapping_revision
+    - finance_state
+    - business_event
+    effect: Maintain and explain explicit external destinations without changing financial
+      evidence.
+  - name: Read source code mappings
+    service: list_source_mappings
+    mode: read
+    adapters:
+    - CLI
+    - Web
+    - MCP
+    - Chat
+    reads:
+    - tenant
+    - source_system
+    - finance_reference
+    - finance_state
+    - source_classification_mapping_revision
+    writes: []
+    effect: Resolve explicit source codes with reviewed immutable classification revisions;
+      never change received evidence or postings.
+  - name: Read source mapping history
+    service: source_mapping_history
+    mode: read
+    adapters:
+    - CLI
+    - Web
+    - MCP
+    - Chat
+    reads:
+    - tenant
+    - source_system
+    - finance_reference
+    - finance_state
+    - source_classification_mapping_revision
+    writes: []
+    effect: Resolve explicit source codes with reviewed immutable classification revisions;
+      never change received evidence or postings.
+  - name: Set source code mapping
+    service: set_source_mapping
+    mode: mutation
+    adapters:
+    - CLI
+    - Web
+    - MCP
+    - Chat
+    reads:
+    - tenant
+    - source_system
+    - finance_reference
+    - finance_state
+    - source_classification_mapping_revision
+    writes:
+    - source_classification_mapping_revision
+    - finance_state
+    - business_event
+    effect: Resolve explicit source codes with reviewed immutable classification revisions;
+      never change received evidence or postings.
+  - name: Read received financial detail
+    service: component_context
+    mode: read
+    adapters:
+    - CLI
+    - Web
+    - MCP
+    - Chat
+    reads:
+    - document
+    - document_line
+    - source_record
+    - financial_component
+    - component_assignment_revision
+    - component_assignment_part
+    - finance_reference
+    - finance_state
+    writes: []
+    effect: Separate received values from owner-confirmed internal classification and
+      exact cost-center shares; preserve postings.
+  - name: Read component assignment history
+    service: component_history
+    mode: read
+    adapters:
+    - CLI
+    - Web
+    - MCP
+    - Chat
+    reads:
+    - document
+    - document_line
+    - source_record
+    - financial_component
+    - component_assignment_revision
+    - component_assignment_part
+    - finance_reference
+    - finance_state
+    writes: []
+    effect: Separate received values from owner-confirmed internal classification and
+      exact cost-center shares; preserve postings.
+  - name: Assign received financial component
+    service: assign_component
+    mode: mutation
+    adapters:
+    - CLI
+    - Web
+    - MCP
+    - Chat
+    reads:
+    - document
+    - document_line
+    - source_record
+    - financial_component
+    - component_assignment_revision
+    - component_assignment_part
+    - finance_reference
+    - finance_state
+    writes:
+    - financial_component
+    - component_assignment_revision
+    - component_assignment_part
+    - finance_state
+    - business_event
+    effect: Separate received values from owner-confirmed internal classification and
+      exact cost-center shares; preserve postings.
+  - name: Read finance references
+    service: list_references
+    mode: read
+    adapters:
+    - CLI
+    - Web
+    - MCP
+    - Chat
+    reads:
+    - tenant
+    - finance_reference
+    - finance_state
+    - business_event
+    writes: []
+    effect: Read or maintain defined internal references with immutable reasoned decisions
+      and owner confirmation for changes.
+  - name: Read reference history
+    service: reference_history
+    mode: read
+    adapters:
+    - CLI
+    - Web
+    - MCP
+    - Chat
+    reads:
+    - tenant
+    - finance_reference
+    - finance_state
+    - business_event
+    writes: []
+    effect: Read or maintain defined internal references with immutable reasoned decisions
+      and owner confirmation for changes.
+  - name: Maintain finance reference
+    service: maintain_reference
+    mode: mutation
+    adapters:
+    - CLI
+    - Web
+    - MCP
+    - Chat
+    reads:
+    - tenant
+    - finance_reference
+    - finance_state
+    - business_event
+    writes:
+    - finance_reference
+    - finance_state
+    - business_event
+    effect: Read or maintain defined internal references with immutable reasoned decisions
+      and owner confirmation for changes.
+  - name: Initialize operational accounts
+    service: initialize_accounts
+    mode: mutation
+    adapters: [CLI, Web, MCP, Chat]
+    reads: [tenant, subledger_account, finance_role_destination, finance_state]
+    writes: [subledger_account, finance_role_destination, finance_state, business_event]
+    effect: Uses shared tenant-scoped operational account configuration with explicit owner confirmation for changes.
+  - name: Create operational account
+    service: create_account
+    mode: mutation
+    adapters: [CLI, Web, MCP, Chat]
+    reads: [tenant, subledger_account, finance_role_destination, finance_state]
+    writes: [subledger_account, finance_role_destination, finance_state, business_event]
+    effect: Uses shared tenant-scoped operational account configuration with explicit owner confirmation for changes.
+  - name: Update operational account
+    service: update_account
+    mode: mutation
+    adapters: [CLI, Web, MCP, Chat]
+    reads: [tenant, subledger_account, finance_role_destination, finance_state]
+    writes: [subledger_account, finance_role_destination, finance_state, business_event]
+    effect: Uses shared tenant-scoped operational account configuration with explicit owner confirmation for changes.
+  - name: Set operational account default
+    service: set_default_account
+    mode: mutation
+    adapters: [CLI, Web, MCP, Chat]
+    reads: [tenant, subledger_account, finance_role_destination, finance_state]
+    writes: [subledger_account, finance_role_destination, finance_state, business_event]
+    effect: Uses shared tenant-scoped operational account configuration with explicit owner confirmation for changes.
+  - name: Read operational transaction matrix
+    service: transaction_matrix
+    mode: read
+    adapters: [CLI, Web, MCP, Chat]
+    reads: [tenant, subledger_account, finance_role_destination, finance_state]
+    writes: []
+    effect: Describes configured defaults and fixed operation roles; no posting or authorization.
+  - name: Read operational accounts
+    service: list_accounts
+    mode: read
+    adapters: [CLI, Web, MCP, Chat]
+    reads: [tenant, subledger_account, finance_role_destination, finance_state]
+    writes: []
+    effect: Uses shared tenant-scoped operational account configuration with explicit owner confirmation for changes.
+  - name: Observe fact
+    service: observe_fact
+    mode: mutation
+    adapters: [Web, MCP, Chat]
+    reads: [tenant, source_record, commitment]
+    writes: [fact, business_event]
+    effect: Appends one idempotent source-supported observation about an existing tenant-scoped subject after confirmation without copying typed operational state.
+  - name: Create manual sales or purchase order
+    service: create_manual_order
+    mode: mutation
+    adapters: [Web, MCP, Chat]
+    reads: [tenant, party, item, location, payment_term]
+    writes: [source_stream, source_record, document, document_line, commitment, business_event]
+    effect: Atomically records lossless manual Source evidence, typed order Evidence, and the derived outgoing or incoming Commitments without storing operational status on the Document.
+  - name: Install mock connector shell
+    service: install_connector_shell
+    mode: mutation
+    adapters: [CLI, Web, API, MCP, Chat]
+    reads: [tenant, source_system]
+    writes: [source_system, source_capability]
+    effect: Creates one named source instance with only explicitly selected source and target type declarations, without credentials, synchronization, or vendor API calls.
+  - name: Define source system
+    service: create_source_system
+    related_services: [set_source_system_active]
+    mode: mutation
+    adapters: [CLI, Web, API, MCP, Chat]
+    reads: [tenant, source_system]
+    writes: [source_system]
+    effect: Defines one tenant-specific external origin without pretending that a connector or credentials already exist.
+  - name: Define source capability
+    service: create_source_capability
+    related_services: [set_source_capability_active]
+    mode: mutation
+    adapters: [CLI, Web, API, MCP, Chat]
+    reads: [tenant, source_system, source_capability]
+    writes: [source_capability]
+    effect: Declares which upstream type a source may provide and the operational target it is intended to produce.
+  - name: Ingest arbitrary source
+    service: enqueue_source
+    related_services: [process_import_job, retry_import_job]
+    mode: mutation
+    adapters: [CLI, Web, API, MCP, Chat]
+    reads: [tenant, source_stream, source_record, import_job]
+    writes: [source_stream, source_record, import_job, business_event]
+    effect: Stores any JSON object losslessly and idempotently, then queues a registered interpreter or marks the job unmapped.
+  - name: Correct manual document evidence
+    service: correct_manual_document
+    related_services: [manual_document_line_snapshot, correct_manual_document_lines]
+    mode: mutation
+    adapters: [Web, API, MCP, Chat]
+    reads: [tenant, document, document_line, commitment, ledger_entry, party, item, payment_term]
+    writes: [document, document_line, business_event]
+    effect: Corrects typed internal header or complete line evidence snapshots while protecting economic fields after Reality records have been derived.
+  - name: Record corrected document source
+    service: record_corrected_document_source
+    mode: mutation
+    adapters: [Web, API, MCP, Chat]
+    reads: [tenant, document, source_record, import_job]
+    writes: [source_stream, source_record, import_job, business_event]
+    effect: Appends a lossless immutable version to the original source stream and queues normal interpretation.
+  - name: Create party
+    service: create_party
+    related_services: [create_parties]
+    mode: mutation
+    adapters: [CLI, Web, API, MCP, Chat]
+    reads: [tenant, source_record, party]
+    writes: [source_record, party, party_role]
+    effect: Creates a tenant-scoped party, optional immutable source evidence, and its operational roles.
+  - name: Update party
+    service: update_party
+    related_services: [update_parties]
+    mode: mutation
+    adapters: [CLI, Web, API, MCP, Chat]
+    reads: [party, party_role, source_record]
+    writes: [source_record, party, party_role, business_event]
+    effect: Changes operational party fields and roles; changed external identity creates new source evidence and every effective change emits an exact before/after audit diff.
+  - name: Create item
+    service: create_item
+    related_services: [create_items]
+    mode: mutation
+    adapters: [CLI, Web, API, MCP, Chat]
+    reads: [tenant, location]
+    writes: [source_record, item]
+    effect: Creates an operational item identity with inventory and purchasing behavior.
+  - name: Update item
+    service: update_item
+    related_services: [update_items]
+    mode: mutation
+    adapters: [CLI, Web, API, MCP, Chat]
+    reads: [item, location, source_record]
+    writes: [source_record, item, business_event]
+    effect: Updates operational item fields while preserving external evidence versions and emitting an exact before/after audit diff.
+  - name: Create location
+    service: create_location
+    related_services: [create_locations]
+    mode: mutation
+    adapters: [CLI, Web, API, MCP, Chat]
+    reads: [tenant, location]
+    writes: [source_record, location]
+    effect: Creates a stock-capable or logical location and validates its parent.
+  - name: Update location
+    service: update_location
+    related_services: [update_locations]
+    mode: mutation
+    adapters: [CLI, Web, API, MCP, Chat]
+    reads: [location, source_record]
+    writes: [source_record, location, business_event]
+    effect: Updates location behavior, rejects hierarchy cycles, and emits an exact before/after audit diff.
+  - name: Create handling unit
+    service: create_handling_unit
+    mode: mutation
+    adapters: [CLI, Web, API, MCP, Chat]
+    reads: [tenant, source_record, handling_unit]
+    writes: [handling_unit, business_event]
+    effect: Records an optional tenant-scoped pallet identity with an optional NVE/SSCC and immutable source evidence.
+  - name: Create lot
+    service: create_lot
+    mode: mutation
+    adapters: [CLI, Web, API, MCP, Chat]
+    reads: [tenant, item, source_record, lot]
+    writes: [lot, business_event]
+    effect: Creates a tenant-scoped batch identity for a lot- or serial-tracked item without storing a stock balance.
+  - name: State lot expiry
+    service: state_lot_expiry
+    mode: mutation
+    adapters: [CLI, Web, API, MCP, Chat]
+    reads: [lot]
+    writes: [lot, business_event]
+    effect: Records the best-before date somebody read off the goods; refuses a different date, because a received value is not adjusted.
+  - name: Correct lot expiry
+    service: correct_lot_expiry
+    mode: mutation
+    adapters: [CLI, Web, API, MCP, Chat]
+    reads: [lot]
+    writes: [lot, business_event]
+    effect: Records that a stated best-before was read wrong and what it says instead, against a confirmed current value and a stated reason.
+  - name: Read expired lots
+    service: expired_lots
+    mode: query
+    adapters: [Web, API, MCP, Chat]
+    reads: [lot]
+    writes: []
+    effect: Lists lots whose stated best-before has passed, oldest first; a lot with no stated date is absent in both directions.
+  - name: Create serial unit
+    service: create_serial_unit
+    mode: mutation
+    adapters: [CLI, Web, API, MCP, Chat]
+    reads: [tenant, item, lot, source_record, serial_unit]
+    writes: [serial_unit, business_event]
+    effect: Creates the identity of one serialized unit, optionally linked to its lot, without storing its location or status.
+  - name: Change master-data lifecycle
+    service: set_master_data_active
+    mode: mutation
+    adapters: [CLI, Web, API, MCP, Chat]
+    reads: [party, item, location, payment_term]
+    writes: [party, item, location, payment_term]
+    effect: Activates or deactivates master data without deleting historical relationships.
+  - name: Create payment term
+    service: create_payment_term
+    related_services: [update_payment_term]
+    mode: mutation
+    adapters: [CLI, Web, API, MCP, Chat]
+    reads: [tenant, payment_term]
+    writes: [source_record, payment_term]
+    effect: Creates a reusable payment condition identified by an opaque ID.
+  - name: Create price list
+    service: create_price_list
+    related_services: [update_price_list]
+    mode: mutation
+    adapters: [CLI, Web, API, MCP, Chat]
+    reads: [tenant, price_list]
+    writes: [source_record, price_list]
+    effect: Creates a sales or purchase list and enforces one active default per direction and currency.
+  - name: Add price tier
+    service: create_price_list_entry
+    mode: mutation
+    adapters: [CLI, Web, API, MCP, Chat]
+    reads: [price_list, item]
+    writes: [price_list_entry]
+    effect: Adds an item price selected from an inclusive minimum quantity.
+  - name: Assign party price list
+    service: assign_party_price_list
+    mode: mutation
+    adapters: [CLI, Web, API, MCP, Chat]
+    reads: [party, price_list]
+    writes: [party_price_list]
+    effect: Gives a customer or supplier a directly prioritized price list.
+  - name: Create and assign pricing group
+    service: create_party_group
+    related_services: [update_party_group, add_party_group_member, assign_group_price_list]
+    mode: mutation
+    adapters: [CLI, Web, API, MCP, Chat]
+    reads: [party, price_list, party_group]
+    writes: [party_group, party_group_member, party_group_price_list]
+    effect: Builds reusable customer or supplier group pricing without copying prices onto parties.
+  - name: Reserve stock
+    service: reserve
+    mode: mutation
+    adapters: [CLI, Web, API, MCP, Chat]
+    confirmation: required for Chat
+    reads: [commitment, movement, reservation, item, location, handling_unit, lot, serial_unit]
+    writes: [reservation]
+    effect: Allocates available stock to one commitment, optionally by pallet, lot, or exact serial unit, and reports any shortage.
+  - name: Release reservation
+    service: release_reservation
+    mode: mutation
+    adapters: [CLI, Web, API, MCP, Chat]
+    reads: [reservation, commitment]
+    writes: [reservation, business_event]
+    effect: Gives reserved stock back to whatever needs it next, without touching the promise that held it.
+  - name: Record movement
+    service: record_movement
+    mode: mutation
+    adapters: [CLI, Web, API, scenario, MCP, Chat]
+    reads: [item, location, commitment, handling_unit, lot, serial_unit]
+    writes: [movement, reservation, commitment, action, business_event]
+    effect: Records an immutable physical event with the same optional pallet, lot, and serial identity used by reservations.
+  - name: Correct movement
+    service: correct_movement
+    related_services: [movement_correction_snapshot, preview_movement_correction]
+    mode: mutation
+    adapters: [CLI, Web, API, Chat, MCP]
+    confirmation: required
+    reads: [movement, movement_correction, item, location, commitment, handling_unit, lot, serial_unit, source_record]
+    writes: [movement, movement_correction, commitment, business_event]
+    effect: Preserves an immutable original, appends one exact correction and optional replacement, and derives the auditable net physical effect.
+  - name: Reverse ledger posting group
+    service: reverse_ledger_posting_group
+    related_services: [ledger_reversal_snapshot, preview_ledger_reversal]
+    mode: mutation
+    adapters: [CLI, Web, API, Chat, MCP]
+    confirmation: required
+    reads: [ledger_entry, ledger_reversal, settlement_allocation, document, source_record]
+    writes: [ledger_entry, ledger_reversal, business_event]
+    effect: Preserves one complete immutable posting group, appends its exact inverse, and derives corrected settlement and financial views.
+  - name: Revise commitment
+    service: revise_commitment
+    mode: mutation
+    adapters: [Web, MCP, Chat]
+    reads: [tenant, commitment, source_record]
+    writes: [commitment_revision, business_event]
+    effect: Records that a counterparty now states a different date, a different quantity, or both for a promise, without erasing what it replaces.
+  - name: Hold commitment
+    service: hold_commitment
+    related_services: [release_commitment_hold]
+    mode: mutation
+    adapters: [CLI, Web, API, MCP, Chat]
+    reads: [commitment, commitment_hold]
+    writes: [commitment_hold]
+    effect: Prevents execution without changing or deleting the underlying obligation.
+  - name: Hold document commitments
+    service: hold_document_commitments
+    related_services: [release_document_holds]
+    mode: mutation
+    adapters: [CLI, Web, API, MCP, Chat]
+    reads: [document, commitment, commitment_hold]
+    writes: [commitment_hold]
+    effect: Places individual holds on the open commitments evidenced by a document.
+  - name: Set party delivery hold
+    service: hold_party_delivery
+    related_services: [release_party_delivery_hold]
+    mode: mutation
+    adapters: [CLI, Web, API, MCP, Chat]
+    reads: [party, party_hold]
+    writes: [party_hold]
+    effect: Blocks customer shipment execution while orders and reservations remain possible.
+  - name: Post customer payment
+    service: post_customer_payment
+    mode: mutation
+    adapters: [CLI, Web, MCP, Chat]
+    reads: [document, ledger_entry, settlement_allocation]
+    writes: [source_record, document, ledger_entry, settlement_allocation]
+    effect: Records payment evidence, posts balanced ledger entries, and allocates the payment to an invoice.
+  - name: Announce customer return
+    service: announce_customer_return
+    related_services: [announceable_quantity, returnable_quantity]
+    mode: mutation
+    adapters: [Web, API, MCP, Chat]
+    reads: [commitment, movement, return_announcement]
+    writes: [return_announcement, business_event]
+    effect: Records that a customer says goods are coming back, bounded by what the delivery can still return.
+  - name: Withdraw return announcement
+    service: withdraw_return_announcement
+    mode: mutation
+    adapters: [Web, API, MCP, Chat]
+    reads: [return_announcement]
+    writes: [return_announcement, business_event]
+    effect: Records that the customer is not sending the goods back after all, keeping what they announced.
+  - name: Read announced returns
+    service: return_announcements
+    related_services: [announcement_outstanding, arrived_against_announcement]
+    mode: query
+    adapters: [Web, API, MCP, Chat]
+    reads: [commitment, movement, return_announcement]
+    writes: []
+    effect: Lists the returns customers have announced, in the order they said so, with what is still expected.
+  - name: Preview payment run
+    service: preview_payment_run
+    related_services: [payable_supplier_invoices, duplicate_supplier_invoices]
+    mode: query
+    adapters: [Web, MCP, Chat]
+    reads: [document, ledger_entry, settlement_allocation, party, payment_term]
+    writes: []
+    effect: Shows which supplier invoices are worth paying now, what each supplier is owed, and what was withheld, without paying anything.
+  - name: Execute payment run
+    service: execute_payment_run
+    related_services: [post_supplier_payment, record_supplier_payment]
+    mode: mutation
+    adapters: [Web, MCP, Chat]
+    reads: [document, ledger_entry, settlement_allocation, party, payment_term]
+    writes: [source_record, document, ledger_entry, settlement_allocation, business_event]
+    effect: Pays the supplier invoices and amounts somebody confirmed, in one transaction, and records that they were one decision.
+  - name: Preview stale promise closure
+    service: preview_stale_promise_closure
+    mode: query
+    adapters: [Web, MCP, Chat]
+    reads: [commitment, movement, reservation, commitment_hold, party_hold]
+    writes: []
+    effect: Shows how many stale promises match, what would be released, and a bounded sample, without changing anything.
+  - name: Close stale promises
+    service: close_stale_promises
+    related_services: [cancel_commitment]
+    mode: mutation
+    adapters: [Web, MCP, Chat]
+    reads: [commitment, movement, reservation, commitment_hold, party_hold]
+    writes: [commitment, reservation, business_event]
+    effect: Closes the promises somebody previewed and counted, releasing their reservations and recording the reason once.
+  - name: Record manual document
+    service: create_manual_document_with_lines
+    mode: mutation
+    adapters: [Web, API, MCP, Chat]
+    reads: [tenant, party, item, price_list, document_line]
+    writes: [document, document_line]
+    effect: Records normalized document evidence and its lines without booking anything or creating a promise.
+  - name: Post sales invoice
+    service: post_sales_invoice
+    mode: mutation
+    adapters: [Web, MCP, Chat]
+    reads: [document, ledger_entry]
+    writes: [ledger_entry]
+    effect: Books a recorded sales invoice, so what the customer owes becomes visible to settlement and the queue.
+  - name: Post supplier invoice
+    service: post_supplier_invoice
+    mode: mutation
+    adapters: [Web, MCP, Chat]
+    reads: [document, ledger_entry]
+    writes: [ledger_entry]
+    effect: Books a recorded supplier invoice, so what the company owes becomes visible to settlement and the queue.
+  - name: Record return credit
+    service: record_sales_credit
+    mode: mutation
+    adapters: [Web, API, MCP, Chat]
+    reads: [document, document_line, commitment, movement, ledger_entry, ledger_reversal, settlement_allocation]
+    writes: [source_record, document, document_line, ledger_entry, settlement_allocation, business_event]
+    effect: Records a stated invoice-linked customer credit with explicit optional netting, or legacy return credit through an order line; no refund or stock movement.
+  - name: Record supplier invoice
+    service: record_supplier_invoice
+    mode: mutation
+    adapters: [Web, API, MCP, Chat]
+    reads: [document, document_line]
+    writes: [source_record, document, document_line, ledger_entry, business_event]
+    effect: Records stated supplier invoice evidence linked to a purchase order line and posts its payable atomically.
+  - name: Record sales invoice
+    service: record_sales_invoice
+    mode: mutation
+    adapters: [Web, API, MCP, Chat]
+    reads: [document, document_line]
+    writes: [source_record, document, document_line, ledger_entry]
+    effect: Records a stated invoice against one order line and posts its receivable atomically.
+  - name: Post credit note
+    service: post_sales_credit_note
+    mode: mutation
+    adapters: [Web, MCP, Chat]
+    reads: [document, ledger_entry]
+    writes: [ledger_entry]
+    effect: Posts a credit note as the exact reverse of a sales invoice, leaving the customer owed what it states.
+  - name: Net credit note against invoice
+    service: allocate_credit_note
+    mode: mutation
+    adapters: [Web, MCP, Chat]
+    reads: [document, ledger_entry, settlement_allocation]
+    writes: [settlement_allocation]
+    effect: Settles a posted credit note against an invoice the same customer still owes.
+  - name: Post customer refund
+    service: post_customer_refund
+    related_services: [record_customer_refund]
+    mode: mutation
+    adapters: [Web, MCP, Chat]
+    reads: [document, ledger_entry, settlement_allocation]
+    writes: [source_record, document, ledger_entry, settlement_allocation]
+    effect: Returns money to a credited customer and settles the credit note it repays.
+  - name: Post supplier credit note
+    service: post_supplier_credit_note
+    mode: mutation
+    adapters: [Web, MCP, Chat]
+    reads: [document, ledger_entry]
+    writes: [ledger_entry]
+    effect: Books a credit a supplier sent as the exact reverse of its invoice, leaving the supplier owing what it states.
+  - name: Net supplier credit against invoice
+    service: allocate_supplier_credit_note
+    mode: mutation
+    adapters: [Web, MCP, Chat]
+    reads: [document, ledger_entry, settlement_allocation]
+    writes: [settlement_allocation]
+    effect: Settles a booked supplier credit against an invoice the company still owes that supplier.
+  - name: Post supplier refund
+    service: post_supplier_refund
+    related_services: [record_supplier_refund]
+    mode: mutation
+    adapters: [Web, MCP, Chat]
+    reads: [document, ledger_entry, settlement_allocation]
+    writes: [source_record, document, ledger_entry, settlement_allocation]
+    effect: Takes money back from a supplier and settles the credit note it repays.
+  - name: Post supplier payment
+    service: post_supplier_payment
+    mode: mutation
+    adapters: [CLI, Web, MCP, Chat]
+    reads: [document, ledger_entry, settlement_allocation]
+    writes: [source_record, document, ledger_entry, settlement_allocation]
+    effect: Records an outgoing payment and explicitly settles a supplier invoice entry.
+  - name: Invite company member
+    service: create_invitation
+    mode: mutation
+    adapters: [Web, API, MCP, Chat]
+    confirmation: required
+    reads: [tenant, tenant_membership, company_invitation]
+    writes: [company_invitation, invitation_delivery, security_audit_event]
+    effect: Creates an owner-authorized company invitation and atomically queues its first delivery.
+  - name: Resend company invitation
+    service: resend_invitation
+    mode: mutation
+    adapters: [Web, API, MCP, Chat]
+    confirmation: required
+    reads: [tenant_membership, company_invitation, invitation_delivery]
+    writes: [company_invitation, invitation_delivery, security_audit_event]
+    effect: Invalidates older delivery generations and queues a fresh invitation delivery after owner reauthorization.
+  - name: Revoke company invitation
+    service: revoke_invitation
+    mode: mutation
+    adapters: [Web, API, MCP, Chat]
+    confirmation: required
+    reads: [tenant_membership, company_invitation]
+    writes: [company_invitation, security_audit_event]
+    effect: Revokes a pending invitation after owner reauthorization.
+  - name: Remove company member
+    service: remove_member
+    mode: mutation
+    adapters: [Web, API, MCP, Chat]
+    confirmation: required
+    reads: [tenant_membership]
+    writes: [tenant_membership, security_audit_event]
+    effect: Archives a non-owner company membership after owner reauthorization.
+
+  - name: Read settlement reduction context
+    service: adjustment_context
+    mode: read
+    adapters: [CLI, Web, MCP, Chat]
+    reads: [document, ledger_entry, settlement_allocation, subledger_account, finance_state]
+    writes: []
+    effect: Reads the remaining claim and permitted noncash counterpart.
+  - name: Accept settlement reduction
+    service: accept_adjustment
+    mode: mutation
+    adapters: [CLI, Web, MCP, Chat]
+    reads: [document, ledger_entry, settlement_allocation, subledger_account, finance_state]
+    writes: [source_record, document, ledger_entry, settlement_allocation, action]
+    effect: Creates a separately evidenced noncash reduction only with explicit owner confirmation.
+
+  - name: Read payment and credit context
+    service: settlement_context
+    mode: read
+    adapters: [CLI, Web, MCP, Chat]
+    reads: [document, ledger_entry, settlement_allocation, subledger_account, finance_state]
+    writes: []
+    effect: Reads the selected invoice or available credit and matching invoice choices.
+  - name: Record payment or use existing credit
+    service: apply_settlement
+    mode: mutation
+    adapters: [CLI, Web, MCP, Chat]
+    reads: [document, ledger_entry, settlement_allocation, subledger_account, finance_state]
+    writes: [source_record, document, ledger_entry, settlement_allocation, action]
+    effect: Atomically records stated cash, explicit allocation and optional reduction, or consumes existing credit after owner confirmation.
+
+  - name: Read opening position context
+    service: opening_context
+    mode: read
+    adapters:
+    - CLI
+    - Web
+    - MCP
+    - Chat
+    reads:
+    - party
+    - subledger_account
+    - finance_state
+    writes: []
+    effect: Reads permitted opening counterpart, tenant parties and confirmation revision.
+  - name: Import opening positions
+    service: import_opening
+    mode: mutation
+    adapters:
+    - CLI
+    - Web
+    - MCP
+    - Chat
+    reads:
+    - party
+    - subledger_account
+    - finance_state
+    - opening_scope
+    - opening_item_detail
+    - document
+    - ledger_entry
+    writes:
+    - source_record
+    - document
+    - opening_scope
+    - opening_item_detail
+    - ledger_entry
+    - action
+    effect: Records stated residual customer/supplier positions against a neutral counterpart
+      after owner confirmation, without cash or turnover.
+
+  - name: Record shipment notice
+    service: record_shipment_notice
+    mode: mutation
+    adapters: [CLI, Web, API, MCP, Chat]
+    confirmation: required
+    reads: [party, party_role, source_record]
+    writes: [shipment, shipment_package, shipment_event, business_event]
+    effect: Records a stated consignment and package without moving stock.
+  - name: Dispatch or receive shipment package
+    service: record_packaged_execution
+    related_services: [record_movement]
+    mode: mutation
+    adapters: [CLI, Web, API, MCP, Chat]
+    confirmation: required
+    reads: [party, party_role, commitment, return_announcement, item, location, reservation, movement]
+    writes: [shipment, shipment_package, shipment_event, movement, reservation, business_event]
+    effect: Atomically records one physical package and its exact existing Movement effects.
+  - name: Record shipment event
+    service: record_shipment_event
+    mode: mutation
+    adapters: [CLI, Web, API, MCP, Chat]
+    confirmation: required
+    reads: [shipment, shipment_package, source_record]
+    writes: [shipment_event, business_event]
+    effect: Appends one attributed logistics observation without changing stock.
+  - name: Supersede shipment event
+    service: supersede_shipment_event
+    mode: mutation
+    adapters: [CLI, Web, API, MCP, Chat]
+    confirmation: required
+    reads: [shipment_event, source_record]
+    writes: [shipment_event_supersession, business_event]
+    effect: Appends a reasoned correction or retraction without deleting the original event.
+
+capability_guidance:
+  analytics_catalog:
+    kind: read
+    application_tool: analytics.catalog
+    purpose: Discover available analytical perspectives, fields, measures and starter definitions.
+    use_when:
+    - Answer an explicit question about retained company records or the current user's saved analysis.
+    do_not_use_when:
+    - Infer complete upstream history, combine currencies, run arbitrary SQL, or impersonate a report owner.
+    required_context:
+    - Authorized tenant; private reports additionally require trusted authenticated user context outside
+      arguments.
+    data_basis:
+    - document
+    - document_line
+    - commitment
+    - movement
+    - ledger_entry
+    - analytics_report
+    limitations:
+    - Descriptive retained history only; unknown values stay unknown; no business/projection writes. Transport
+      telemetry may persist outside the analytics transaction.
+    freshness: Each query, contributor page and export is a fresh read-only repeatable-read observation;
+      report reads return current configuration.
+    empty_result: No matching retained records or private definitions, not proof of upstream absence.
+    refusal_behavior: Invalid grammar, scope, unsupported combinations and resource bounds are refused without
+      partial success.
+    confirmation: none
+    side_effects: none
+    verification:
+      role: independent
+      proves:
+      - The returned observations follow the executed structured definition.
+      does_not_prove:
+      - Complete upstream records, future fulfilment or currency conversion.
+    unknown_when:
+    - Required dates, units, amounts or original source history are absent.
+    next_steps:
+    - Use analytics_contributors to inspect evidence or open the returned definition in Reports.
+    examples:
+      use:
+      - scenario: Find customers ordering one resolved product in ISO week 7.
+        reason: Product, customer and order date are cataloged evidence fields.
+      do_not_use:
+      - scenario: Calculate profit from arbitrary source JSON.
+        reason: No such agreed metric or raw-expression interface is provided.
+  analytics_query:
+    kind: read
+    application_tool: analytics.query
+    purpose: Execute an allowlisted analytical definition over scoped evidence and operational observations.
+    use_when:
+    - Answer an explicit question about retained company records or the current user's saved analysis.
+    do_not_use_when:
+    - Infer complete upstream history, combine currencies, run arbitrary SQL, or impersonate a report owner.
+    required_context:
+    - Authorized tenant; private reports additionally require trusted authenticated user context outside
+      arguments.
+    data_basis:
+    - document
+    - document_line
+    - commitment
+    - movement
+    - ledger_entry
+    - analytics_report
+    limitations:
+    - Descriptive retained history only; unknown values stay unknown; no business/projection writes. Transport
+      telemetry may persist outside the analytics transaction.
+    freshness: Each query, contributor page and export is a fresh read-only repeatable-read observation;
+      report reads return current configuration.
+    empty_result: No matching retained records or private definitions, not proof of upstream absence.
+    refusal_behavior: Invalid grammar, scope, unsupported combinations and resource bounds are refused without
+      partial success.
+    confirmation: none
+    side_effects: none
+    verification:
+      role: independent
+      proves:
+      - The returned observations follow the executed structured definition.
+      does_not_prove:
+      - Complete upstream records, future fulfilment or currency conversion.
+    unknown_when:
+    - Required dates, units, amounts or original source history are absent.
+    next_steps:
+    - Use analytics_contributors to inspect evidence or open the returned definition in Reports.
+    examples:
+      use:
+      - scenario: Find customers ordering one resolved product in ISO week 7.
+        reason: Product, customer and order date are cataloged evidence fields.
+      do_not_use:
+      - scenario: Calculate profit from arbitrary source JSON.
+        reason: No such agreed metric or raw-expression interface is provided.
+  analytics_contributors:
+    kind: read
+    application_tool: analytics.contributors
+    purpose: Explain one selected analytical value at its exact counted identity grain.
+    use_when:
+    - Answer an explicit question about retained company records or the current user's saved analysis.
+    do_not_use_when:
+    - Infer complete upstream history, combine currencies, run arbitrary SQL, or impersonate a report owner.
+    required_context:
+    - Authorized tenant; private reports additionally require trusted authenticated user context outside
+      arguments.
+    data_basis:
+    - document
+    - document_line
+    - commitment
+    - movement
+    - ledger_entry
+    - analytics_report
+    limitations:
+    - Descriptive retained history only; unknown values stay unknown; no business/projection writes. Transport
+      telemetry may persist outside the analytics transaction.
+    freshness: Each query, contributor page and export is a fresh read-only repeatable-read observation;
+      report reads return current configuration.
+    empty_result: No matching retained records or private definitions, not proof of upstream absence.
+    refusal_behavior: Invalid grammar, scope, unsupported combinations and resource bounds are refused without
+      partial success.
+    confirmation: none
+    side_effects: none
+    verification:
+      role: independent
+      proves:
+      - The returned observations follow the executed structured definition.
+      does_not_prove:
+      - Complete upstream records, future fulfilment or currency conversion.
+    unknown_when:
+    - Required dates, units, amounts or original source history are absent.
+    next_steps:
+    - Use analytics_contributors to inspect evidence or open the returned definition in Reports.
+    examples:
+      use:
+      - scenario: Find customers ordering one resolved product in ISO week 7.
+        reason: Product, customer and order date are cataloged evidence fields.
+      do_not_use:
+      - scenario: Calculate profit from arbitrary source JSON.
+        reason: No such agreed metric or raw-expression interface is provided.
+  analytics_export:
+    kind: read
+    application_tool: analytics.export
+    purpose: Export a complete bounded analytical result from a fresh observation.
+    use_when:
+    - Answer an explicit question about retained company records or the current user's saved analysis.
+    do_not_use_when:
+    - Infer complete upstream history, combine currencies, run arbitrary SQL, or impersonate a report owner.
+    required_context:
+    - Authorized tenant; private reports additionally require trusted authenticated user context outside
+      arguments.
+    data_basis:
+    - document
+    - document_line
+    - commitment
+    - movement
+    - ledger_entry
+    - analytics_report
+    limitations:
+    - Descriptive retained history only; unknown values stay unknown; no business/projection writes. Transport
+      telemetry may persist outside the analytics transaction.
+    freshness: Each query, contributor page and export is a fresh read-only repeatable-read observation;
+      report reads return current configuration.
+    empty_result: No matching retained records or private definitions, not proof of upstream absence.
+    refusal_behavior: Invalid grammar, scope, unsupported combinations and resource bounds are refused without
+      partial success.
+    confirmation: none
+    side_effects: none
+    verification:
+      role: independent
+      proves:
+      - The returned observations follow the executed structured definition.
+      does_not_prove:
+      - Complete upstream records, future fulfilment or currency conversion.
+    unknown_when:
+    - Required dates, units, amounts or original source history are absent.
+    next_steps:
+    - Use analytics_contributors to inspect evidence or open the returned definition in Reports.
+    examples:
+      use:
+      - scenario: Find customers ordering one resolved product in ISO week 7.
+        reason: Product, customer and order date are cataloged evidence fields.
+      do_not_use:
+      - scenario: Calculate profit from arbitrary source JSON.
+        reason: No such agreed metric or raw-expression interface is provided.
+  analytics_reports_list:
+    kind: read
+    application_tool: analytics.reports.list
+    purpose: List the authenticated user's private report definitions in this company.
+    use_when:
+    - Answer an explicit question about retained company records or the current user's saved analysis.
+    do_not_use_when:
+    - Infer complete upstream history, combine currencies, run arbitrary SQL, or impersonate a report owner.
+    required_context:
+    - Authorized tenant; private reports additionally require trusted authenticated user context outside
+      arguments.
+    data_basis:
+    - document
+    - document_line
+    - commitment
+    - movement
+    - ledger_entry
+    - analytics_report
+    limitations:
+    - Descriptive retained history only; unknown values stay unknown; no business/projection writes. Transport
+      telemetry may persist outside the analytics transaction.
+    freshness: Each query, contributor page and export is a fresh read-only repeatable-read observation;
+      report reads return current configuration.
+    empty_result: No matching retained records or private definitions, not proof of upstream absence.
+    refusal_behavior: Invalid grammar, scope, unsupported combinations and resource bounds are refused without
+      partial success.
+    confirmation: none
+    side_effects: none
+    verification:
+      role: independent
+      proves:
+      - The returned observations follow the executed structured definition.
+      does_not_prove:
+      - Complete upstream records, future fulfilment or currency conversion.
+    unknown_when:
+    - Required dates, units, amounts or original source history are absent.
+    next_steps:
+    - Use analytics_contributors to inspect evidence or open the returned definition in Reports.
+    examples:
+      use:
+      - scenario: Find customers ordering one resolved product in ISO week 7.
+        reason: Product, customer and order date are cataloged evidence fields.
+      do_not_use:
+      - scenario: Calculate profit from arbitrary source JSON.
+        reason: No such agreed metric or raw-expression interface is provided.
+  analytics_report_get:
+    kind: read
+    application_tool: analytics.reports.get
+    purpose: Read a private report definition owned by the authenticated user.
+    use_when:
+    - Answer an explicit question about retained company records or the current user's saved analysis.
+    do_not_use_when:
+    - Infer complete upstream history, combine currencies, run arbitrary SQL, or impersonate a report owner.
+    required_context:
+    - Authorized tenant; private reports additionally require trusted authenticated user context outside
+      arguments.
+    data_basis:
+    - document
+    - document_line
+    - commitment
+    - movement
+    - ledger_entry
+    - analytics_report
+    limitations:
+    - Descriptive retained history only; unknown values stay unknown; no business/projection writes. Transport
+      telemetry may persist outside the analytics transaction.
+    freshness: Each query, contributor page and export is a fresh read-only repeatable-read observation;
+      report reads return current configuration.
+    empty_result: No matching retained records or private definitions, not proof of upstream absence.
+    refusal_behavior: Invalid grammar, scope, unsupported combinations and resource bounds are refused without
+      partial success.
+    confirmation: none
+    side_effects: none
+    verification:
+      role: independent
+      proves:
+      - The returned observations follow the executed structured definition.
+      does_not_prove:
+      - Complete upstream records, future fulfilment or currency conversion.
+    unknown_when:
+    - Required dates, units, amounts or original source history are absent.
+    next_steps:
+    - Use analytics_contributors to inspect evidence or open the returned definition in Reports.
+    examples:
+      use:
+      - scenario: Find customers ordering one resolved product in ISO week 7.
+        reason: Product, customer and order date are cataloged evidence fields.
+      do_not_use:
+      - scenario: Calculate profit from arbitrary source JSON.
+        reason: No such agreed metric or raw-expression interface is provided.
+  finance_targets:
+    kind: read
+    application_tool: finance.targets.list
+    purpose: Read Finance-only target configuration and explicit mapping resolution.
+    use_when:
+    - Configure or inspect an explicitly selected external accounting destination.
+    do_not_use_when:
+    - Determine tax treatment, change local financial amounts, or claim a remote posting.
+    required_context:
+    - Tenant and the selected target; mutations also need current finance revision and
+      reason.
+    data_basis:
+    - accounting_target
+    - accounting_target_reference
+    - finance_target_mapping_revision
+    limitations:
+    - Mapping resolution does not establish export readiness or external posting.
+    freshness: Current committed reference configuration and immutable decisions.
+    empty_result: No configured destination or exact matching rule exists.
+    refusal_behavior: Unknown or foreign tenants are unavailable.
+    confirmation: none
+    side_effects: none
+    verification:
+      role: independent
+      proves:
+      - Defined internal references.
+      does_not_prove:
+      - Financial posting or available credit.
+    unknown_when:
+    - A concurrent configuration change invalidates the preview revision.
+    next_steps:
+    - Prepare a specific reference change for owner confirmation.
+    examples:
+      use:
+      - scenario: Map a declared invoice case to an allowed external account.
+        reason: The owner supplied an explicit target destination.
+      do_not_use:
+      - scenario: Choose a tax treatment from a customer country.
+        reason: The case must already be explicitly declared.
+    preconditions:
+    - Same-tenant target/references; owner confirmation for configuration changes.
+  finance_target_references:
+    kind: read
+    application_tool: finance.target_references.list
+    purpose: Read Finance-only target configuration and explicit mapping resolution.
+    use_when:
+    - Configure or inspect an explicitly selected external accounting destination.
+    do_not_use_when:
+    - Determine tax treatment, change local financial amounts, or claim a remote posting.
+    required_context:
+    - Tenant and the selected target; mutations also need current finance revision and
+      reason.
+    data_basis:
+    - accounting_target
+    - accounting_target_reference
+    - finance_target_mapping_revision
+    limitations:
+    - Mapping resolution does not establish export readiness or external posting.
+    freshness: Current committed reference configuration and immutable decisions.
+    empty_result: No configured destination or exact matching rule exists.
+    refusal_behavior: Unknown or foreign tenants are unavailable.
+    confirmation: none
+    side_effects: none
+    verification:
+      role: independent
+      proves:
+      - Defined internal references.
+      does_not_prove:
+      - Financial posting or available credit.
+    unknown_when:
+    - A concurrent configuration change invalidates the preview revision.
+    next_steps:
+    - Prepare a specific reference change for owner confirmation.
+    examples:
+      use:
+      - scenario: Map a declared invoice case to an allowed external account.
+        reason: The owner supplied an explicit target destination.
+      do_not_use:
+      - scenario: Choose a tax treatment from a customer country.
+        reason: The case must already be explicitly declared.
+    preconditions:
+    - Same-tenant target/references; owner confirmation for configuration changes.
+  finance_target_mappings:
+    kind: read
+    application_tool: finance.target_mappings.list
+    purpose: Read Finance-only target configuration and explicit mapping resolution.
+    use_when:
+    - Configure or inspect an explicitly selected external accounting destination.
+    do_not_use_when:
+    - Determine tax treatment, change local financial amounts, or claim a remote posting.
+    required_context:
+    - Tenant and the selected target; mutations also need current finance revision and
+      reason.
+    data_basis:
+    - accounting_target
+    - accounting_target_reference
+    - finance_target_mapping_revision
+    limitations:
+    - Mapping resolution does not establish export readiness or external posting.
+    freshness: Current committed reference configuration and immutable decisions.
+    empty_result: No configured destination or exact matching rule exists.
+    refusal_behavior: Unknown or foreign tenants are unavailable.
+    confirmation: none
+    side_effects: none
+    verification:
+      role: independent
+      proves:
+      - Defined internal references.
+      does_not_prove:
+      - Financial posting or available credit.
+    unknown_when:
+    - A concurrent configuration change invalidates the preview revision.
+    next_steps:
+    - Prepare a specific reference change for owner confirmation.
+    examples:
+      use:
+      - scenario: Map a declared invoice case to an allowed external account.
+        reason: The owner supplied an explicit target destination.
+      do_not_use:
+      - scenario: Choose a tax treatment from a customer country.
+        reason: The case must already be explicitly declared.
+    preconditions:
+    - Same-tenant target/references; owner confirmation for configuration changes.
+  finance_target_mapping_history:
+    kind: read
+    application_tool: finance.target_mappings.history
+    purpose: Read Finance-only target configuration and explicit mapping resolution.
+    use_when:
+    - Configure or inspect an explicitly selected external accounting destination.
+    do_not_use_when:
+    - Determine tax treatment, change local financial amounts, or claim a remote posting.
+    required_context:
+    - Tenant and the selected target; mutations also need current finance revision and
+      reason.
+    data_basis:
+    - accounting_target
+    - accounting_target_reference
+    - finance_target_mapping_revision
+    limitations:
+    - Mapping resolution does not establish export readiness or external posting.
+    freshness: Current committed reference configuration and immutable decisions.
+    empty_result: No configured destination or exact matching rule exists.
+    refusal_behavior: Unknown or foreign tenants are unavailable.
+    confirmation: none
+    side_effects: none
+    verification:
+      role: independent
+      proves:
+      - Defined internal references.
+      does_not_prove:
+      - Financial posting or available credit.
+    unknown_when:
+    - A concurrent configuration change invalidates the preview revision.
+    next_steps:
+    - Prepare a specific reference change for owner confirmation.
+    examples:
+      use:
+      - scenario: Map a declared invoice case to an allowed external account.
+        reason: The owner supplied an explicit target destination.
+      do_not_use:
+      - scenario: Choose a tax treatment from a customer country.
+        reason: The case must already be explicitly declared.
+    preconditions:
+    - Same-tenant target/references; owner confirmation for configuration changes.
+  finance_target_mapping_preview:
+    kind: read
+    application_tool: finance.target_mappings.preview
+    purpose: Read Finance-only target configuration and explicit mapping resolution.
+    use_when:
+    - Configure or inspect an explicitly selected external accounting destination.
+    do_not_use_when:
+    - Determine tax treatment, change local financial amounts, or claim a remote posting.
+    required_context:
+    - Tenant and the selected target; mutations also need current finance revision and
+      reason.
+    data_basis:
+    - accounting_target
+    - accounting_target_reference
+    - finance_target_mapping_revision
+    limitations:
+    - Mapping resolution does not establish export readiness or external posting.
+    freshness: Current committed reference configuration and immutable decisions.
+    empty_result: No configured destination or exact matching rule exists.
+    refusal_behavior: Unknown or foreign tenants are unavailable.
+    confirmation: none
+    side_effects: none
+    verification:
+      role: independent
+      proves:
+      - Defined internal references.
+      does_not_prove:
+      - Financial posting or available credit.
+    unknown_when:
+    - A concurrent configuration change invalidates the preview revision.
+    next_steps:
+    - Prepare a specific reference change for owner confirmation.
+    examples:
+      use:
+      - scenario: Map a declared invoice case to an allowed external account.
+        reason: The owner supplied an explicit target destination.
+      do_not_use:
+      - scenario: Choose a tax treatment from a customer country.
+        reason: The case must already be explicitly declared.
+    preconditions:
+    - Same-tenant target/references; owner confirmation for configuration changes.
+  finance_target_create_propose:
+    application_tool: finance.target.create
+    purpose: Review Finance-only target configuration.
+    use_when:
+    - Configure or inspect an explicitly selected external accounting destination.
+    do_not_use_when:
+    - Determine tax treatment, change local financial amounts, or claim a remote posting.
+    required_context:
+    - Tenant and the selected target; mutations also need current finance revision and
+      reason.
+    preconditions:
+    - Same-tenant target/references; owner confirmation for configuration changes.
+    confirmation: required
+    idempotency:
+      mode: supported
+      guidance: Reuse the proposal ID after a lost response; changed input needs a new
+        preview.
+    refusals:
+    - code: invalid_target_configuration
+      description: Stale review, overlapping scope, blocked or foreign reference, invalid
+        kind or missing reason.
+    events:
+    - finance.target_configuration_changed
+    verification_reads:
+    - name: finance.target_mappings.list
+      proves: Current rules; mapping history preserves reviewed revisions.
+    examples:
+      use:
+      - scenario: Map a declared invoice case to an allowed external account.
+        reason: The owner supplied an explicit target destination.
+      do_not_use:
+      - scenario: Choose a tax treatment from a customer country.
+        reason: The case must already be explicitly declared.
+    postcondition:
+      kind: reference
+      meaning: The reviewed Finance configuration is stored with auditable history.
+    data_basis:
+    - accounting_target
+    - accounting_target_reference
+    - finance_target_mapping_revision
+    limitations:
+    - Mapping resolution does not establish export readiness or external posting.
+    empty_result: No configured destination or exact matching rule exists.
+  finance_target_update_propose:
+    application_tool: finance.target.update
+    purpose: Review Finance-only target configuration.
+    use_when:
+    - Configure or inspect an explicitly selected external accounting destination.
+    do_not_use_when:
+    - Determine tax treatment, change local financial amounts, or claim a remote posting.
+    required_context:
+    - Tenant and the selected target; mutations also need current finance revision and
+      reason.
+    preconditions:
+    - Same-tenant target/references; owner confirmation for configuration changes.
+    confirmation: required
+    idempotency:
+      mode: supported
+      guidance: Reuse the proposal ID after a lost response; changed input needs a new
+        preview.
+    refusals:
+    - code: invalid_target_configuration
+      description: Stale review, overlapping scope, blocked or foreign reference, invalid
+        kind or missing reason.
+    events:
+    - finance.target_configuration_changed
+    verification_reads:
+    - name: finance.target_mappings.list
+      proves: Current rules; mapping history preserves reviewed revisions.
+    examples:
+      use:
+      - scenario: Map a declared invoice case to an allowed external account.
+        reason: The owner supplied an explicit target destination.
+      do_not_use:
+      - scenario: Choose a tax treatment from a customer country.
+        reason: The case must already be explicitly declared.
+    postcondition:
+      kind: reference
+      meaning: The reviewed Finance configuration is stored with auditable history.
+    data_basis:
+    - accounting_target
+    - accounting_target_reference
+    - finance_target_mapping_revision
+    limitations:
+    - Mapping resolution does not establish export readiness or external posting.
+    empty_result: No configured destination or exact matching rule exists.
+  finance_target_reference_create_propose:
+    application_tool: finance.target_reference.create
+    purpose: Review Finance-only target configuration.
+    use_when:
+    - Configure or inspect an explicitly selected external accounting destination.
+    do_not_use_when:
+    - Determine tax treatment, change local financial amounts, or claim a remote posting.
+    required_context:
+    - Tenant and the selected target; mutations also need current finance revision and
+      reason.
+    preconditions:
+    - Same-tenant target/references; owner confirmation for configuration changes.
+    confirmation: required
+    idempotency:
+      mode: supported
+      guidance: Reuse the proposal ID after a lost response; changed input needs a new
+        preview.
+    refusals:
+    - code: invalid_target_configuration
+      description: Stale review, overlapping scope, blocked or foreign reference, invalid
+        kind or missing reason.
+    events:
+    - finance.target_configuration_changed
+    verification_reads:
+    - name: finance.target_mappings.list
+      proves: Current rules; mapping history preserves reviewed revisions.
+    examples:
+      use:
+      - scenario: Map a declared invoice case to an allowed external account.
+        reason: The owner supplied an explicit target destination.
+      do_not_use:
+      - scenario: Choose a tax treatment from a customer country.
+        reason: The case must already be explicitly declared.
+    postcondition:
+      kind: reference
+      meaning: The reviewed Finance configuration is stored with auditable history.
+    data_basis:
+    - accounting_target
+    - accounting_target_reference
+    - finance_target_mapping_revision
+    limitations:
+    - Mapping resolution does not establish export readiness or external posting.
+    empty_result: No configured destination or exact matching rule exists.
+  finance_target_reference_update_propose:
+    application_tool: finance.target_reference.update
+    purpose: Review Finance-only target configuration.
+    use_when:
+    - Configure or inspect an explicitly selected external accounting destination.
+    do_not_use_when:
+    - Determine tax treatment, change local financial amounts, or claim a remote posting.
+    required_context:
+    - Tenant and the selected target; mutations also need current finance revision and
+      reason.
+    preconditions:
+    - Same-tenant target/references; owner confirmation for configuration changes.
+    confirmation: required
+    idempotency:
+      mode: supported
+      guidance: Reuse the proposal ID after a lost response; changed input needs a new
+        preview.
+    refusals:
+    - code: invalid_target_configuration
+      description: Stale review, overlapping scope, blocked or foreign reference, invalid
+        kind or missing reason.
+    events:
+    - finance.target_configuration_changed
+    verification_reads:
+    - name: finance.target_mappings.list
+      proves: Current rules; mapping history preserves reviewed revisions.
+    examples:
+      use:
+      - scenario: Map a declared invoice case to an allowed external account.
+        reason: The owner supplied an explicit target destination.
+      do_not_use:
+      - scenario: Choose a tax treatment from a customer country.
+        reason: The case must already be explicitly declared.
+    postcondition:
+      kind: reference
+      meaning: The reviewed Finance configuration is stored with auditable history.
+    data_basis:
+    - accounting_target
+    - accounting_target_reference
+    - finance_target_mapping_revision
+    limitations:
+    - Mapping resolution does not establish export readiness or external posting.
+    empty_result: No configured destination or exact matching rule exists.
+  finance_target_mapping_set_propose:
+    application_tool: finance.target_mapping.set
+    purpose: Review Finance-only target configuration.
+    use_when:
+    - Configure or inspect an explicitly selected external accounting destination.
+    do_not_use_when:
+    - Determine tax treatment, change local financial amounts, or claim a remote posting.
+    required_context:
+    - Tenant and the selected target; mutations also need current finance revision and
+      reason.
+    preconditions:
+    - Same-tenant target/references; owner confirmation for configuration changes.
+    confirmation: required
+    idempotency:
+      mode: supported
+      guidance: Reuse the proposal ID after a lost response; changed input needs a new
+        preview.
+    refusals:
+    - code: invalid_target_configuration
+      description: Stale review, overlapping scope, blocked or foreign reference, invalid
+        kind or missing reason.
+    events:
+    - finance.target_configuration_changed
+    verification_reads:
+    - name: finance.target_mappings.list
+      proves: Current rules; mapping history preserves reviewed revisions.
+    examples:
+      use:
+      - scenario: Map a declared invoice case to an allowed external account.
+        reason: The owner supplied an explicit target destination.
+      do_not_use:
+      - scenario: Choose a tax treatment from a customer country.
+        reason: The case must already be explicitly declared.
+    postcondition:
+      kind: reference
+      meaning: The reviewed Finance configuration is stored with auditable history.
+    data_basis:
+    - accounting_target
+    - accounting_target_reference
+    - finance_target_mapping_revision
+    limitations:
+    - Mapping resolution does not establish export readiness or external posting.
+    empty_result: No configured destination or exact matching rule exists.
+  finance_source_mapping_propose:
+    application_tool: finance.source_mapping.set
+    purpose: Read or propose exact source-code classification with separate source and
+      internal provenance.
+    use_when:
+    - Create a defined cost center, case code or coding group.
+    do_not_use_when:
+    - Record money or determine tax treatment.
+    required_context:
+    - tenant, current finance revision, exact reference fields and reason
+    preconditions:
+    - Owner confirmation and valid same-tenant reference kind.
+    confirmation: required
+    idempotency:
+      mode: supported
+      guidance: Reuse the proposal ID after a lost response; changed input needs a new
+        preview.
+    refusals:
+    - code: invalid_reference
+      description: Stale revision, duplicate code, invalid kind/state, foreign identity
+        or missing reason.
+    events:
+    - finance.reference_changed
+    verification_reads:
+    - name: finance.references.history
+      proves: Immutable before/after decision and confirming action.
+    examples:
+      use:
+      - scenario: Define a warehouse cost center.
+        reason: The company explicitly defines permitted classification.
+      do_not_use:
+      - scenario: Settle a debt.
+        reason: Reference setup does not move money.
+    postcondition:
+      kind: reference
+      meaning: The exact reviewed reference state exists and its history is retained.
+    data_basis:
+    - source_system
+    - finance_reference
+    - source_classification_mapping_revision
+    - finance_state
+    limitations:
+    - No tax inference, ledger mutation, internal override or external accounting handoff.
+    empty_result: No exact source mapping exists; classification remains unresolved.
+  finance_source_mapping_history:
+    kind: read
+    application_tool: finance.source_mappings.history
+    purpose: Read or propose exact source-code classification with separate source and
+      internal provenance.
+    use_when:
+    - Inspect an existing reference and its reasoned changes.
+    do_not_use_when:
+    - Prove balances or external posting.
+    required_context:
+    - tenant and reference ID
+    data_basis:
+    - source_system
+    - finance_reference
+    - source_classification_mapping_revision
+    - finance_state
+    limitations:
+    - No tax inference, ledger mutation, internal override or external accounting handoff.
+    freshness: Current committed reference configuration and immutable decisions.
+    empty_result: No exact source mapping exists; classification remains unresolved.
+    refusal_behavior: Unknown or foreign tenants are unavailable.
+    confirmation: none
+    side_effects: none
+    verification:
+      role: independent
+      proves:
+      - Reference identity and history.
+      does_not_prove:
+      - Financial posting or available credit.
+    unknown_when:
+    - A concurrent configuration change invalidates the preview revision.
+    next_steps:
+    - Prepare a specific reference change for owner confirmation.
+    examples:
+      use:
+      - scenario: Find a cost center.
+        reason: Only defined active references can be assigned.
+      do_not_use:
+      - scenario: Determine customer debt.
+        reason: Use open items.
+  finance_source_mappings:
+    kind: read
+    application_tool: finance.source_mappings.list
+    purpose: Read or propose exact source-code classification with separate source and
+      internal provenance.
+    use_when:
+    - Find permitted internal classification references.
+    do_not_use_when:
+    - Prove balances or external posting.
+    required_context:
+    - tenant
+    data_basis:
+    - source_system
+    - finance_reference
+    - source_classification_mapping_revision
+    - finance_state
+    limitations:
+    - No tax inference, ledger mutation, internal override or external accounting handoff.
+    freshness: Current committed reference configuration and immutable decisions.
+    empty_result: No exact source mapping exists; classification remains unresolved.
+    refusal_behavior: Unknown or foreign tenants are unavailable.
+    confirmation: none
+    side_effects: none
+    verification:
+      role: independent
+      proves:
+      - Defined internal references.
+      does_not_prove:
+      - Financial posting or available credit.
+    unknown_when:
+    - A concurrent configuration change invalidates the preview revision.
+    next_steps:
+    - Prepare a specific reference change for owner confirmation.
+    examples:
+      use:
+      - scenario: Find a cost center.
+        reason: Only defined active references can be assigned.
+      do_not_use:
+      - scenario: Determine customer debt.
+        reason: Use open items.
+  finance_opening_context:
+    kind: read
+    application_tool: finance.opening.context
+    purpose: Read permitted opening account, active parties and current review revision.
+    use_when:
+    - Prepare an opening residual import from the previous system.
+    do_not_use_when:
+    - Infer historic balances or reconstruct missing due dates.
+    required_context:
+    - Tenant identity and optional party search.
+    data_basis:
+    - party
+    - subledger_account
+    - finance_state
+    limitations:
+    - Read-only context does not establish opening coverage.
+    freshness: Current committed finance state.
+    empty_result: Configure the neutral opening counterpart and customer/supplier parties
+      first.
+    refusal_behavior: Foreign tenant references are unavailable.
+    confirmation: none
+    side_effects: none
+    verification:
+      role: independent
+      proves:
+      - Current account configuration and bounded active party choices.
+      does_not_prove:
+      - Correctness or completeness of an external snapshot.
+    unknown_when:
+    - A concurrent configuration change invalidates the preview revision.
+    next_steps:
+    - Prepare finance_opening_propose with stated residuals, stable item references
+      and current revision.
+    examples:
+      use:
+      - scenario: Find parties and accounts before carrying outstanding positions.
+        reason: References must already exist in this tenant.
+      do_not_use:
+      - scenario: Determine historic turnover.
+        reason: Opening positions represent only stated residual balances.
+  finance_opening_propose:
+    application_tool: finance.opening.import
+    purpose: Prepare explicit customer/supplier opening residuals with stable source
+      coverage.
+    use_when:
+    - Migrate outstanding debt or credit from an external system.
+    do_not_use_when:
+    - Record an actual payment or create new turnover.
+    required_context:
+    - "Tenant, source namespace, snapshot, cutover, coverage kind, reason and 1\u2013\
+      100 stated rows with current revision."
+    preconditions:
+    - Active compatible accounts and parties, no overlapping coverage, explicit owner
+      confirmation.
+    confirmation: required
+    idempotency:
+      mode: supported
+      guidance: Reuse the proposal ID after a lost response; changed input needs a new
+        preview.
+    refusals:
+    - code: invalid_opening
+      description: Duplicate or overlapping scope, stale revision, foreign reference,
+        incompatible party or account, invalid amount/date.
+    events:
+    - document.recorded
+    - ledger.posted
+    verification_reads:
+    - name: finance.opening.context
+      proves: Current finance revision and account setup; inspect receipt document and
+        ledger identities for balances.
+    examples:
+      use:
+      - scenario: Carry a customer invoice with original total 1000 and stated residual
+          600.
+        reason: Only 600 becomes an open position; 1000 remains optional source evidence.
+      do_not_use:
+      - scenario: Import a summary and all its constituent invoices.
+        reason: Overlapping coverage would duplicate balances and is refused.
+    postcondition:
+      kind: reference
+      meaning: Confirmed receipt identifies each immutable opening source, evidence
+        item and balanced posting group.
+  finance_credits:
+    kind: read
+    application_tool: finance.credits.list
+    purpose: Read available customer or supplier credit, that is payments and credit notes
+      with an original, used and still available amount.
+    use_when:
+    - Answer who holds credit from overpayments or credit notes, and how much.
+    - Find an original credit before allocating it to an invoice or recording a refund.
+    do_not_use_when:
+    - Read open receivables or payables; use finance_balances or the open items.
+    - Decide that a credit belongs to a particular invoice.
+    required_context:
+    - tenant; side customer or supplier
+    data_basis:
+    - document
+    - ledger_entry
+    - settlement_allocation
+    limitations:
+    - A read records no allocation or refund; available amounts are read-time derivations.
+    freshness: Current committed finance state.
+    empty_result: No unused credit exists for the side; it does not mean nothing was paid.
+    refusal_behavior: Unknown side or status is unavailable.
+    confirmation: none
+    side_effects: none
+    verification:
+      role: independent
+      proves:
+      - Which original payments and credit notes still carry available credit and how much.
+      does_not_prove:
+      - Which invoice a credit should settle, or that a refund was sent.
+    unknown_when:
+    - A concurrent allocation changes the available amount between read and proposal.
+    next_steps:
+    - Read finance_settlement_context for the chosen credit, then prepare finance_settlement_propose.
+    examples:
+      use:
+      - scenario: Which customers paid too much and how much is still available?
+        reason: Available credit is derived from original payments and credit notes minus
+          their active allocations, never from invoice balances.
+      do_not_use:
+      - scenario: Tell me the open receivables per customer.
+        reason: Receivables are open items; credit is unused money or credit notes.
+  finance_party_balances:
+    kind: read
+    application_tool: finance.party_balances.list
+    purpose: Read where each customer or supplier stands, one row per party and currency,
+      with open amount, of which overdue, available credit and the balance of the two.
+    use_when:
+    - Answer who owes the most, who is overdue, or who holds credit, per party rather than per document.
+    - Read a party's position before a call, a delivery hold decision or a payment run.
+    do_not_use_when:
+    - Decide that a party's credit may be netted against an invoice; that is a confirmed settlement.
+    - Judge creditworthiness or predict payment; a balance is a position, not a forecast.
+    - Add amounts across currencies; rows are per currency and nothing is converted.
+    required_context:
+    - tenant; side customer or supplier
+    data_basis:
+    - document
+    - ledger_entry
+    - settlement_allocation
+    - payment_term
+    limitations:
+    - Sums the open items register and the credit register at read time; it derives no new amount.
+    - Overdue follows the aging register's due-date rule at the read's instant.
+    freshness: Current committed finance state at the read's instant.
+    empty_result: No party of that side has anything open or any credit; it does not mean nothing was ever invoiced.
+    refusal_behavior: Unknown side or sort key is unavailable.
+    confirmation: none
+    side_effects: none
+    verification:
+      role: independent
+      proves:
+      - The open, overdue and credit sums of each party's documents at the read's instant, and the documents behind them through the open items and credit reads.
+      does_not_prove:
+      - That a customer will pay, that a credit belongs to a particular invoice, or a party's total across currencies.
+    unknown_when:
+    - A payment or allocation is recorded between the read and a proposal built on it.
+    next_steps:
+    - Read the party's open items or finance_credits for the documents, then prepare finance_settlement_propose or a hold.
+    examples:
+      use:
+      - scenario: Which customers hold credit, and how much per customer?
+        reason: The balances read sums each party's available credit; the credit read lists it per document.
+      - scenario: Which suppliers do we owe, and how much of it is overdue?
+        reason: The supplier side sums open payables and the overdue share per supplier from the aging register.
+      do_not_use:
+      - scenario: Net Müller's credit against their oldest invoice.
+        reason: Using credit is a confirmed settlement through finance_settlement_propose, not a read.
+      - scenario: What is the group total across EUR and USD?
+        reason: Rows are per currency and Reality never converts.
+  finance_payments:
+    kind: read
+    application_tool: finance.payments.list
+    purpose: Read recorded incoming and outgoing payments with their allocated and unallocated
+      amounts, optionally only those with money left to allocate.
+    use_when:
+    - Answer which payments are not, or not fully, allocated to an invoice.
+    - Find a payment by number or party before reading its settlement context.
+    do_not_use_when:
+    - Record or allocate a payment; that is finance_settlement_propose.
+    - Read invoice open amounts; use the open items or finance_balances.
+    required_context:
+    - tenant; optional direction incoming or outgoing
+    data_basis:
+    - document
+    - ledger_entry
+    - settlement_allocation
+    limitations:
+    - Allocated and unallocated amounts are read-time derivations; reversed payments are marked.
+    freshness: Current committed finance state.
+    empty_result: No payment matches the filter; it does not mean money never arrived.
+    refusal_behavior: Unknown direction is unavailable.
+    confirmation: none
+    side_effects: none
+    verification:
+      role: independent
+      proves:
+      - Which recorded payments carry an unallocated remainder and how much.
+      does_not_prove:
+      - Why a payment is unallocated or which invoice it belongs to.
+    unknown_when:
+    - A concurrent allocation changes the unallocated amount between read and proposal.
+    next_steps:
+    - Read finance_settlement_context for a payment with candidates, then prepare finance_settlement_propose.
+    examples:
+      use:
+      - scenario: Show payments from the bank that nobody could match yet.
+        reason: Unallocated remainders are the payments a person still has to decide on.
+      do_not_use:
+      - scenario: Allocate this payment to invoice 4711.
+        reason: Allocation is a proposal through finance_settlement_propose.
+  finance_settlement_context:
+    kind: read
+    application_tool: finance.settlement.context
+    purpose: Read invoice/payment-credit context and matching invoice choices; for an
+      unallocated customer payment each choice carries the reasons it is a candidate.
+    use_when:
+    - Prepare actual payment, credit allocation or refund.
+    do_not_use_when:
+    - Determine tax or calculate a discount.
+    required_context:
+    - tenant and original document ID
+    data_basis:
+    - document
+    - ledger_entry
+    - settlement_allocation
+    - subledger_account
+    - finance_state
+    limitations:
+    - A read records no cash, allocation or reduction.
+    freshness: Current committed finance state.
+    empty_result: An original invoice or available-credit document identity is required.
+    refusal_behavior: Unknown, foreign, unsupported or reversed credit origins are unavailable.
+    confirmation: none
+    side_effects: none
+    verification:
+      role: independent
+      proves:
+      - Current selected invoice claim or original credit availability and matching
+        invoice choices, with read-time candidate reasons for unallocated payments.
+      does_not_prove:
+      - Bank execution, unrecorded cash, that a candidate is the right invoice, or
+        authorization to accept a reduction.
+    unknown_when:
+    - A concurrent configuration change invalidates the preview revision.
+    next_steps:
+    - Prepare finance_settlement_propose using stated amounts and the current revision.
+    examples:
+      use:
+      - scenario: Find an original overpayment and matching invoices.
+        reason: Credit remains on its original payment and is consumed through explicit
+          allocations.
+      do_not_use:
+      - scenario: Send a bank refund.
+        reason: These tools record actual money only.
+  finance_settlement_propose:
+    application_tool: finance.settlement.apply
+    purpose: Prepare actual payment with explicit allocation/reduction, or consume existing
+      credit.
+    use_when:
+    - Record actual money or allocate an existing available credit.
+    do_not_use_when:
+    - Initiate a bank transfer or infer a discount.
+    required_context:
+    - tenant, original document, mode, stated amounts and current revision; reference
+      and effective time for actual cash
+    preconditions:
+    - Active compatible accounts, available claim/credit, current revision and explicit
+      owner confirmation.
+    confirmation: required
+    idempotency:
+      mode: supported
+      guidance: Reuse the proposal ID after a lost response; changed input needs a new
+        preview.
+    refusals:
+    - code: invalid_settlement
+      description: Stale revision, duplicate source effect, invalid or excessive amount,
+        incompatible account/party/currency or missing supplier agreement.
+    events:
+    - document.recorded
+    - ledger.posted
+    - settlement.allocated
+    verification_reads:
+    - name: finance.settlement.context
+      proves: Current remaining invoice claim or available credit.
+    examples:
+      use:
+      - scenario: Record 980 paid, allocate 980 and explicitly accept a stated 20 discount
+          against 1000 open.
+        reason: Cash, invoice allocation and accepted reduction remain separate evidence.
+      do_not_use:
+      - scenario: Record another payment when an existing overpayment is available.
+        reason: Allocate the existing credit without creating new cash.
+    postcondition:
+      kind: reference
+      meaning: The confirmed receipt links recorded cash, reduction and allocation evidence.
+  finance_adjustment_context:
+    kind: read
+    application_tool: finance.adjustment.context
+    purpose: Read the remaining claim and reduction account configuration.
+    use_when:
+    - Prepare a separately accepted settlement reduction.
+    do_not_use_when:
+    - Determine tax or calculate a discount.
+    required_context:
+    - tenant and invoice ID
+    data_basis:
+    - document
+    - ledger_entry
+    - settlement_allocation
+    - subledger_account
+    - finance_state
+    limitations:
+    - Read-time context does not accept a reduction.
+    freshness: Current committed finance state.
+    empty_result: An invoice identity is required.
+    refusal_behavior: Unknown or foreign invoices are unavailable.
+    confirmation: none
+    side_effects: none
+    verification:
+      role: independent
+      proves:
+      - The current permitted accounts and defaults.
+      does_not_prove:
+      - Financial posting or available credit.
+    unknown_when:
+    - A concurrent configuration change invalidates the preview revision.
+    next_steps:
+    - Prepare finance_adjustment_propose with the stated amount and current revision.
+    examples:
+      use:
+      - scenario: Find the receivable default.
+        reason: Configuration owns the destination.
+      do_not_use:
+      - scenario: Determine customer debt.
+        reason: Use open items.
+  finance_adjustment_propose:
+    application_tool: finance.adjustment.accept
+    purpose: Prepare an explicit noncash customer or supplier settlement reduction.
+    use_when:
+    - Accept a stated agreed reduction of an open invoice.
+    do_not_use_when:
+    - Record actual cash or calculate a discount or tax.
+    required_context:
+    - tenant, invoice ID, stated amount, reason, revision and supplier agreement where
+      applicable
+    preconditions:
+    - Active compatible accounts, remaining claim and explicit owner confirmation.
+    confirmation: required
+    idempotency:
+      mode: supported
+      guidance: Reuse the proposal ID after a lost response; changed input needs a new
+        preview.
+    refusals:
+    - code: invalid_reduction
+      description: Missing agreement, stale preview, duplicate evidence, unsupported
+        account or amount.
+    events:
+    - document.recorded
+    - ledger.posted
+    - settlement.allocated
+    verification_reads:
+    - name: finance.adjustment.context
+      proves: Remaining invoice claim.
+    examples:
+      use:
+      - scenario: Accept a stated discount of 20 after payment of 980.
+        reason: Noncash reduction remains separate from actual money.
+      do_not_use:
+      - scenario: The customer pays less without agreement.
+        reason: Keep the remaining claim open.
+    postcondition:
+      kind: reference
+      meaning: The immutable adjustment evidence, balanced postings and allocation exist.
+  finance_components:
+    kind: read
+    application_tool: finance.components.context
+    purpose: Read received component values and internal attribution history.
+    use_when:
+    - Inspect received detail separately from explicit internal attribution.
+    do_not_use_when:
+    - Prove balances or external posting.
+    required_context:
+    - tenant and document identity
+    data_basis:
+    - document
+    - document_line
+    - source_record
+    - financial_component
+    - component_assignment_revision
+    - component_assignment_part
+    limitations:
+    - Configuration is not money or external accounting.
+    freshness: Current committed reference configuration and immutable decisions.
+    empty_result: No component or assignment history exists.
+    refusal_behavior: Unknown or foreign tenants are unavailable.
+    confirmation: none
+    side_effects: none
+    verification:
+      role: independent
+      proves:
+      - Received component amounts and explicit assignment revisions.
+      does_not_prove:
+      - Financial posting or available credit.
+    unknown_when:
+    - A concurrent configuration change invalidates the preview revision.
+    next_steps:
+    - Prepare explicit shares against an available received basis.
+    examples:
+      use:
+      - scenario: Inspect the unassigned remainder of a purchase invoice line.
+        reason: The shared service compares explicit shares with the received basis.
+      do_not_use:
+      - scenario: Determine customer debt.
+        reason: Use open items.
+  finance_component_history:
+    kind: read
+    application_tool: finance.component.history
+    purpose: Read received component values and internal attribution history.
+    use_when:
+    - Inspect received detail separately from explicit internal attribution.
+    do_not_use_when:
+    - Prove balances or external posting.
+    required_context:
+    - tenant and component identity
+    data_basis:
+    - document
+    - document_line
+    - source_record
+    - financial_component
+    - component_assignment_revision
+    - component_assignment_part
+    limitations:
+    - Configuration is not money or external accounting.
+    freshness: Current committed reference configuration and immutable decisions.
+    empty_result: No component or assignment history exists.
+    refusal_behavior: Unknown or foreign tenants are unavailable.
+    confirmation: none
+    side_effects: none
+    verification:
+      role: independent
+      proves:
+      - Received component amounts and explicit assignment revisions.
+      does_not_prove:
+      - Financial posting or available credit.
+    unknown_when:
+    - A concurrent configuration change invalidates the preview revision.
+    next_steps:
+    - Prepare explicit shares against an available received basis.
+    examples:
+      use:
+      - scenario: Inspect the unassigned remainder of a purchase invoice line.
+        reason: The shared service compares explicit shares with the received basis.
+      do_not_use:
+      - scenario: Determine customer debt.
+        reason: Use open items.
+  finance_component_assign_propose:
+    application_tool: finance.component.assign
+    purpose: Prepare explicit classification and cost-center shares for a received component.
+    use_when:
+    - Assign or replace internal attribution on an invoice/credit component.
+    do_not_use_when:
+    - Record money or determine tax treatment.
+    required_context:
+    - tenant, document/line, evidence hash, finance revision, received basis, explicit
+      shares and reason
+    preconditions:
+    - Owner confirmation, unchanged evidence and active same-kind references.
+    confirmation: required
+    idempotency:
+      mode: supported
+      guidance: Reuse the proposal ID after a lost response; changed input needs a new
+        preview.
+    refusals:
+    - code: invalid_assignment
+      description: Unknown basis, excess shares, foreign/wrong-kind/blocked references
+        or stale evidence/revision.
+    events:
+    - finance.component_assigned
+    verification_reads:
+    - name: finance.component.history
+      proves: Immutable received-component assignment revision and exact shares.
+    examples:
+      use:
+      - scenario: Assign net 1000 as 600 warehouse and 400 sales.
+        reason: Both shares are explicit and supported by the received net amount.
+      do_not_use:
+      - scenario: Settle a debt.
+        reason: Reference setup does not move money.
+    postcondition:
+      kind: reference
+      meaning: An immutable internal assignment exists; financial postings and source
+        amounts are unchanged.
+  finance_references:
+    kind: read
+    application_tool: finance.references.list
+    purpose: Read defined internal cost centers, case codes and coding groups.
+    use_when:
+    - Find permitted internal classification references.
+    do_not_use_when:
+    - Prove balances or external posting.
+    required_context:
+    - tenant
+    data_basis:
+    - finance_reference
+    - finance_state
+    limitations:
+    - Configuration is not money or external accounting.
+    freshness: Current committed reference configuration and immutable decisions.
+    empty_result: No matching references.
+    refusal_behavior: Unknown or foreign tenants are unavailable.
+    confirmation: none
+    side_effects: none
+    verification:
+      role: independent
+      proves:
+      - Defined internal references.
+      does_not_prove:
+      - Financial posting or available credit.
+    unknown_when:
+    - A concurrent configuration change invalidates the preview revision.
+    next_steps:
+    - Prepare a specific reference change for owner confirmation.
+    examples:
+      use:
+      - scenario: Find a cost center.
+        reason: Only defined active references can be assigned.
+      do_not_use:
+      - scenario: Determine customer debt.
+        reason: Use open items.
+  finance_reference_history:
+    kind: read
+    application_tool: finance.references.history
+    purpose: Read immutable reference decision history.
+    use_when:
+    - Inspect an existing reference and its reasoned changes.
+    do_not_use_when:
+    - Prove balances or external posting.
+    required_context:
+    - tenant and reference ID
+    data_basis:
+    - finance_reference
+    - business_event
+    limitations:
+    - Configuration is not money or external accounting.
+    freshness: Current committed reference configuration and immutable decisions.
+    empty_result: No reference changes.
+    refusal_behavior: Unknown or foreign tenants are unavailable.
+    confirmation: none
+    side_effects: none
+    verification:
+      role: independent
+      proves:
+      - Reference identity and history.
+      does_not_prove:
+      - Financial posting or available credit.
+    unknown_when:
+    - A concurrent configuration change invalidates the preview revision.
+    next_steps:
+    - Prepare a specific reference change for owner confirmation.
+    examples:
+      use:
+      - scenario: Find a cost center.
+        reason: Only defined active references can be assigned.
+      do_not_use:
+      - scenario: Determine customer debt.
+        reason: Use open items.
+  finance_reference_create_propose:
+    application_tool: finance.reference.create
+    purpose: Prepare a reasoned reference catalog change for owner confirmation.
+    use_when:
+    - Create a defined cost center, case code or coding group.
+    do_not_use_when:
+    - Record money or determine tax treatment.
+    required_context:
+    - tenant, current finance revision, exact reference fields and reason
+    preconditions:
+    - Owner confirmation and valid same-tenant reference kind.
+    confirmation: required
+    idempotency:
+      mode: supported
+      guidance: Reuse the proposal ID after a lost response; changed input needs a new
+        preview.
+    refusals:
+    - code: invalid_reference
+      description: Stale revision, duplicate code, invalid kind/state, foreign identity
+        or missing reason.
+    events:
+    - finance.reference_changed
+    verification_reads:
+    - name: finance.references.history
+      proves: Immutable before/after decision and confirming action.
+    examples:
+      use:
+      - scenario: Define a warehouse cost center.
+        reason: The company explicitly defines permitted classification.
+      do_not_use:
+      - scenario: Settle a debt.
+        reason: Reference setup does not move money.
+    postcondition:
+      kind: reference
+      meaning: The exact reviewed reference state exists and its history is retained.
+  finance_reference_update_propose:
+    application_tool: finance.reference.update
+    purpose: Prepare a reasoned reference catalog change for owner confirmation.
+    use_when:
+    - Rename, block or reactivate an existing internal reference.
+    do_not_use_when:
+    - Record money or determine tax treatment.
+    required_context:
+    - tenant, current finance revision, exact reference fields and reason
+    preconditions:
+    - Owner confirmation and valid same-tenant reference kind.
+    confirmation: required
+    idempotency:
+      mode: supported
+      guidance: Reuse the proposal ID after a lost response; changed input needs a new
+        preview.
+    refusals:
+    - code: invalid_reference
+      description: Stale revision, duplicate code, invalid kind/state, foreign identity
+        or missing reason.
+    events:
+    - finance.reference_changed
+    verification_reads:
+    - name: finance.references.history
+      proves: Immutable before/after decision and confirming action.
+    examples:
+      use:
+      - scenario: Block an obsolete cost center.
+        reason: Retain past attribution while preventing new use.
+      do_not_use:
+      - scenario: Settle a debt.
+        reason: Reference setup does not move money.
+    postcondition:
+      kind: reference
+      meaning: The exact reviewed reference state exists and its history is retained.
+  finance_matrix:
+    kind: read
+    application_tool: finance.matrix.read
+    purpose: Read fixed operational directions, received amount bases and configured
+      default accounts.
+    use_when:
+    - Find permitted destinations before configuring an account.
+    do_not_use_when:
+    - Prove balances or external posting.
+    required_context:
+    - tenant
+    data_basis:
+    - subledger_account
+    - finance_role_destination
+    - finance_state
+    limitations:
+    - Configured defaults do not prove transaction readiness or external tax coding.
+    freshness: Current committed account configuration.
+    empty_result: All fourteen operations remain visible with missing defaults.
+    refusal_behavior: Unknown or foreign tenants are unavailable.
+    confirmation: none
+    side_effects: none
+    verification:
+      role: independent
+      proves:
+      - The fixed matrix and current tenant defaults.
+      does_not_prove:
+      - Financial posting or available credit.
+    unknown_when:
+    - A concurrent configuration change invalidates the preview revision.
+    next_steps:
+    - Prepare a specific owner-confirmed account change.
+    examples:
+      use:
+      - scenario: Find the receivable default.
+        reason: Configuration owns the destination.
+      do_not_use:
+      - scenario: Determine customer debt.
+        reason: Use open items.
+  finance_accounts:
+    kind: read
+    application_tool: finance.accounts.list
+    purpose: Read permitted operational accounts, role defaults and the current finance
+      revision.
+    use_when:
+    - Find permitted destinations before configuring an account.
+    do_not_use_when:
+    - Prove balances or external posting.
+    required_context:
+    - tenant
+    data_basis:
+    - subledger_account
+    - finance_role_destination
+    - finance_state
+    limitations:
+    - Configuration is not money or external accounting.
+    freshness: Current committed account configuration.
+    empty_result: No operational accounts are initialized.
+    refusal_behavior: Unknown or foreign tenants are unavailable.
+    confirmation: none
+    side_effects: none
+    verification:
+      role: independent
+      proves:
+      - The current permitted accounts and defaults.
+      does_not_prove:
+      - Financial posting or available credit.
+    unknown_when:
+    - A concurrent configuration change invalidates the preview revision.
+    next_steps:
+    - Prepare a specific owner-confirmed account change.
+    examples:
+      use:
+      - scenario: Find the receivable default.
+        reason: Configuration owns the destination.
+      do_not_use:
+      - scenario: Determine customer debt.
+        reason: Use open items.
+  finance_initialize_accounts_propose:
+    application_tool: finance.account.initialize
+    purpose: Prepare an owner-confirmed operational account configuration change.
+    use_when:
+    - Configure an allowed account or default.
+    do_not_use_when:
+    - Record money or determine tax treatment.
+    required_context:
+    - tenant, current finance revision and exact account fields
+    preconditions:
+    - Owner confirmation, valid same-tenant role and account.
+    confirmation: required
+    idempotency:
+      mode: supported
+      guidance: Reuse the proposal ID after a lost response; changed input needs a new
+        preview.
+    refusals:
+    - {code: invalid_account_configuration, description: "Stale revision, duplicate code, wrong role or foreign account."}
+    events:
+    - finance.account_changed
+    verification_reads:
+    - name: timeline
+      proves: The account change event and identity.
+    examples:
+      use:
+      - scenario: Choose a cash default.
+        reason: Owner reviews the exact change.
+      do_not_use:
+      - scenario: Settle a debt.
+        reason: Account setup does not move money.
+    postcondition:
+      kind: reference
+      meaning: The selected account configuration exists.
+  finance_create_account_propose:
+    application_tool: finance.account.create
+    purpose: Prepare an owner-confirmed operational account configuration change.
+    use_when:
+    - Configure an allowed account or default.
+    do_not_use_when:
+    - Record money or determine tax treatment.
+    required_context:
+    - tenant, current finance revision and exact account fields
+    preconditions:
+    - Owner confirmation, valid same-tenant role and account.
+    confirmation: required
+    idempotency:
+      mode: supported
+      guidance: Reuse the proposal ID after a lost response; changed input needs a new
+        preview.
+    refusals:
+    - {code: invalid_account_configuration, description: "Stale revision, duplicate code, wrong role or foreign account."}
+    events:
+    - finance.account_changed
+    verification_reads:
+    - name: timeline
+      proves: The account change event and identity.
+    examples:
+      use:
+      - scenario: Choose a cash default.
+        reason: Owner reviews the exact change.
+      do_not_use:
+      - scenario: Settle a debt.
+        reason: Account setup does not move money.
+    postcondition:
+      kind: reference
+      meaning: The selected account configuration exists.
+  finance_update_account_propose:
+    application_tool: finance.account.update
+    purpose: Prepare an owner-confirmed operational account configuration change.
+    use_when:
+    - Configure an allowed account or default.
+    do_not_use_when:
+    - Record money or determine tax treatment.
+    required_context:
+    - tenant, current finance revision and exact account fields
+    preconditions:
+    - Owner confirmation, valid same-tenant role and account.
+    confirmation: required
+    idempotency:
+      mode: supported
+      guidance: Reuse the proposal ID after a lost response; changed input needs a new
+        preview.
+    refusals:
+    - {code: invalid_account_configuration, description: "Stale revision, duplicate code, wrong role or foreign account."}
+    events:
+    - finance.account_changed
+    verification_reads:
+    - name: timeline
+      proves: The account change event and identity.
+    examples:
+      use:
+      - scenario: Choose a cash default.
+        reason: Owner reviews the exact change.
+      do_not_use:
+      - scenario: Settle a debt.
+        reason: Account setup does not move money.
+    postcondition:
+      kind: reference
+      meaning: The selected account configuration exists.
+  finance_set_default_account_propose:
+    application_tool: finance.account.set_default
+    purpose: Prepare an owner-confirmed operational account configuration change.
+    use_when:
+    - Configure an allowed account or default.
+    do_not_use_when:
+    - Record money or determine tax treatment.
+    required_context:
+    - tenant, current finance revision and exact account fields
+    preconditions:
+    - Owner confirmation, valid same-tenant role and account.
+    confirmation: required
+    idempotency:
+      mode: supported
+      guidance: Reuse the proposal ID after a lost response; changed input needs a new
+        preview.
+    refusals:
+    - {code: invalid_account_configuration, description: "Stale revision, duplicate code, wrong role or foreign account."}
+    events:
+    - finance.account_changed
+    verification_reads:
+    - name: timeline
+      proves: The account change event and identity.
+    examples:
+      use:
+      - scenario: Choose a cash default.
+        reason: Owner reviews the exact change.
+      do_not_use:
+      - scenario: Settle a debt.
+        reason: Account setup does not move money.
+    postcondition:
+      kind: reference
+      meaning: The selected account configuration exists.
+  proposal_approve_and_execute:
+    kind: confirm
+    purpose: Apply one exact prepared mutation after explicit human approval through a single-use Reality execution boundary.
+    use_when: [An accountable human has reviewed and approved the exact pending proposal preview.]
+    do_not_use_when:
+      - Approval is inferred from model output, credentials, connection, or prior similar decisions.
+      - The proposal is executing, rejected, unknown, foreign, or no longer matches the intended action.
+    required_context: [change_proposal]
+    preconditions: [The proposal belongs to the selected tenant, remains proposed, and approved is explicitly true.]
+    confirmation: explicit_human
+    principal_semantics: The authenticated MCP client asserts that an accountable human approved the exact preview; operations that require a Reality user principal are refused unless the confirming adapter supplies that authenticated principal.
+    idempotency: {mode: single_use_replay, guidance: An executed replay returns the stored receipt without executing again; never retry an executing proposal blindly.}
+    retry_behavior: Retry only after a transport failure by reading proposal_execution_status; an executed result is replay-safe and an executing result requires reconciliation.
+    unknown_behavior: Executing means the effect may be in progress or committed without a delivered response; reconcile by proposal ID and do not execute again.
+    refusals:
+      - {code: approval_required, description: approved=true was not supplied after explicit human approval.}
+      - {code: execution_unknown, description: The proposal is already executing and cannot be safely retried.}
+      - {code: proposal_settled, description: The proposal was rejected or otherwise cannot be confirmed.}
+      - {code: proposal_not_found, description: No proposal is visible in the selected tenant.}
+    events: [reservation.created]
+    receipt:
+      fields: [proposal_id, capability, reservation_id, commitment_id, requested, applied, shortage, event_id]
+      limitations: A receipt proves neither that authoritative state still matches nor that fulfilment or the customer outcome occurred.
+    verification_reads:
+      - {name: proposal_execution_status, proves: Correlated execution evidence and current Reservation/Commitment values match the stored receipt.}
+      - {name: business_records_discover, proves: Named operational records remain visible with current tenant-scoped values.}
+    examples:
+      use: [{scenario: An accountable operator approves the exact pending reservation proposal., reason: Explicit human approval permits the single-use confirmation boundary.}]
+      do_not_use: [{scenario: An agent believes a similar proposal would usually be approved., reason: Learned behavior and model output are not confirmation authority.}]
+  proposal_execution_status:
+    kind: read
+    application_tool: proposal_execution_status
+    purpose: Reconcile one confirmation lifecycle and validate its stored receipt against authoritative Reality records.
+    use_when: [A confirmation response was lost, execution is indeterminate, or an exact effect needs verification.]
+    do_not_use_when: [A caller wants to approve, retry, or infer downstream fulfilment from a reservation.]
+    required_context: [change_proposal]
+    data_basis: [change_proposal, reservation, commitment, business_event]
+    limitations: [Verification covers the correlated execution and operational allocation only, not fulfilment or customer outcome.]
+    freshness: Reflects committed proposal, Reservation, Commitment, and BusinessEvent state at read time.
+    empty_result: An unknown or foreign proposal is not found.
+    refusal_behavior: Tenant scope is enforced and no existence is disclosed across tenants.
+    confirmation: none
+    side_effects: none
+    verification:
+      role: independent
+      proves: [The receipt matches the proposal and correlated committed operational records.]
+      does_not_prove: [Goods moved, fulfilment completed, or the intended customer outcome occurred.]
+    unknown_when: [The proposal is executing, a correlated event is absent, or receipt and Reality values disagree.]
+    next_steps: [Do not reconfirm an executing proposal; inspect the named records and escalate unresolved evidence.]
+    examples:
+      use: [{scenario: Reconcile a reservation confirmation after the client lost its response., reason: The proposal ID is the stable reconciliation key.}]
+      do_not_use: [{scenario: Prove that the customer received the goods., reason: Reservation verification does not prove physical Movement or delivery.}]
+  reality_gaps:
+    kind: read
+    application_tool: reality_gaps
+    purpose: List tenant-scoped missing-information investigations and their current workflow state.
+    use_when: [An operator or agent needs the queue of reported information gaps.]
+    do_not_use_when: [A caller wants to infer that an unreported gap does not exist.]
+    required_context: [tenant]
+    data_basis: [reality_gap]
+    limitations: [The queue contains reported investigations, not an automatic proof of completeness.]
+    freshness: Reflects committed Reality Gap state at read time.
+    empty_result: No matching gap has been reported in the selected tenant.
+    refusal_behavior: Tenant scope is enforced and no existence is disclosed across tenants.
+    confirmation: none
+    side_effects: none
+    verification: {role: context, proves: [Reported gaps and their current state.], does_not_prove: [That all missing information has been discovered.]}
+    unknown_when: [A business need has not yet been reported or classified.]
+    next_steps: [Capture a new gap when an operator encounters missing information.]
+    examples:
+      use: [{scenario: Review unresolved Shopify information needs., reason: The queue is the shared investigation inbox.}]
+      do_not_use: [{scenario: Certify that the tenant model is complete., reason: Absence from the queue is not completeness evidence.}]
+  reality_gap_get:
+    kind: read
+    application_tool: reality_gap_get
+    purpose: Inspect one missing-information investigation with its evidence, decision, rule, and outcomes.
+    use_when: [An operator or agent needs the traceable detail behind one reported gap.]
+    do_not_use_when: [A caller lacks the opaque gap identity or wants to mutate the investigation.]
+    required_context: [reality_gap]
+    data_basis: [reality_gap, reality_gap_entry, interpretation_rule, rule_interpretation_outcome]
+    limitations: [The detail records the investigation and implementation evidence; it does not prove external business truth beyond linked sources.]
+    freshness: Reflects committed investigation, rule, and outcome state at read time.
+    empty_result: An unknown or foreign gap is not found.
+    refusal_behavior: Tenant scope is enforced and no existence is disclosed across tenants.
+    confirmation: none
+    side_effects: none
+    verification: {role: context, proves: [The recorded investigation history and linked implementation state.], does_not_prove: [Unrecorded external facts.]}
+    unknown_when: [Evidence is incomplete or no decision has been accepted.]
+    next_steps: [Add source-grounded evidence, request a recommendation, or simulate an accepted Fact rule.]
+    examples:
+      use: [{scenario: Explain why a Shopify field became a Fact rule., reason: Detail preserves the evidence and decision chain.}]
+      do_not_use: [{scenario: Change a rule without confirmation., reason: This capability is read-only.}]
+  reality_gap_simulate:
+    kind: read
+    application_tool: reality_gap_simulate
+    purpose: Preview deterministic matches and normalized Fact values for a draft or accepted interpretation rule without writing Reality.
+    use_when: [An operator needs to validate a SourceRecord-to-Fact rule before activation.]
+    do_not_use_when: [The intended change creates typed Evidence, operational Reality, projections, or exceptions.]
+    required_context: [reality_gap, source_record]
+    data_basis: [reality_gap, interpretation_rule, source_record]
+    limitations: [Simulation uses the closed V1 rule grammar and does not create Facts or outcomes.]
+    freshness: Evaluates committed SourceRecords and the supplied or stored rule at read time.
+    empty_result: No in-scope SourceRecord matches the rule.
+    refusal_behavior: Invalid paths, predicates, types, normalizers, values, or cross-tenant identities are rejected.
+    confirmation: none
+    side_effects: none
+    verification: {role: context, proves: [Which current source versions would match and what values would be normalized.], does_not_prove: [Future matches or business correctness.]}
+    unknown_when: [The source field is absent, invalid for the declared type, or outside the closed grammar.]
+    next_steps: [Review samples and activate only an accepted Fact rule with explicit confirmation.]
+    examples:
+      use: [{scenario: Preview a Shopify shipping-priority Fact rule., reason: Samples expose matches and normalized values without mutation.}]
+      do_not_use: [{scenario: Preview a reservation policy., reason: V1 self-service rules may only derive Facts from SourceRecords.}]
+  fact_observe_propose:
+    application_tool: fact_observe
+    purpose: Record one reviewed, source-supported observation without replacing a typed business transition.
+    use_when: [An immutable SourceRecord explicitly supports an approved Fact predicate about an existing subject.]
+    do_not_use_when:
+      - The statement is only model output, an unsupported inference, or an organizational policy.
+      - A Commitment, Reservation, Movement, or LedgerEntry already represents the business meaning.
+    required_context: [source_record, commitment]
+    preconditions: [Source and subject exist in the selected tenant and the predicate accepts the subject and value.]
+    confirmation: required
+    idempotency: {mode: required, guidance: Reuse one caller-stable key only for the identical observation; changed content needs a new key.}
+    refusals:
+      - {code: unsupported_predicate, description: The Fact predicate is not registered for the subject or value.}
+      - {code: missing_source, description: The immutable supporting SourceRecord does not exist in the selected tenant.}
+    events: [fact.observed]
+    verification_reads:
+      - {name: timeline, proves: The Fact observation event and opaque identity appear in tenant history.}
+    examples:
+      use:
+        - {scenario: A Shopify source explicitly states express shipping for an existing commitment., reason: The contextual observation has immutable source evidence.}
+        - {scenario: A customer email explicitly states an approved delivery preference., reason: The statement is contextual evidence rather than a physical event.}
+      do_not_use:
+        - {scenario: An agent predicts that an order will ship tomorrow., reason: Model inference without source evidence is not a Fact.}
+  order_create_propose:
+    application_tool: order_create
+    purpose: Record a manual order as Source and Document Evidence with derived Commitments.
+    use_when: [A human supplies a complete manual order whose parties, items, locations, quantities, and prices are known.]
+    do_not_use_when:
+      - The source only reports stock allocation, physical execution, or payment.
+      - An existing order needs correction rather than a new source identity.
+    required_context: [party, item, location, payment_term]
+    preconditions: [All referenced master data belongs to the selected tenant and lines form a complete intended order.]
+    confirmation: required
+    idempotency: {mode: unsafe_retry, guidance: Reconcile Source and Document registers before retrying an unknown outcome.}
+    refusals:
+      - {code: invalid_order_context, description: Required party, item, location, or payment context is absent or invalid.}
+      - {code: duplicate_source_identity, description: The proposed source identity conflicts with existing evidence.}
+    events: [source_record.stored, document.recorded, commitment.created]
+    verification_reads:
+      - {name: document_register, proves: Document Evidence links to its immutable source.}
+      - {name: commitment_register, proves: Promised quantities exist as Commitments rather than document status.}
+    examples:
+      use:
+        - {scenario: A sales colleague enters a complete customer order manually., reason: A new order needs Source, Evidence, and outgoing Commitments.}
+        - {scenario: A buyer records a complete supplier purchase order manually., reason: A new purchase creates incoming Commitments from evidence.}
+      do_not_use:
+        - {scenario: Warehouse staff report that an existing order left the building., reason: Physical execution requires a Movement.}
+  reservation_propose:
+    application_tool: reserve
+    purpose: Allocate currently available stock to an existing outgoing Commitment.
+    use_when: [An existing outgoing Commitment needs bounded stock allocation before fulfillment.]
+    do_not_use_when: [Goods have already physically moved., A source expresses only a preference or future promise.]
+    required_context: [commitment, item, location, movement, reservation]
+    preconditions: [The commitment is open and matching stock identity is available in the selected tenant.]
+    confirmation: required
+    idempotency: {mode: unsafe_retry, guidance: Re-read Commitment register and Inventory before retrying an unknown outcome.}
+    refusals:
+      - {code: insufficient_stock, description: The requested allocation exceeds matching available stock.}
+      - {code: commitment_closed, description: The commitment no longer accepts allocation.}
+    events: [reservation.created]
+    verification_reads:
+      - {name: inventory, proves: Reserved quantity increases and available quantity decreases.}
+      - {name: commitment_register, proves: Allocation links to the intended Commitment.}
+    examples:
+      use:
+        - {scenario: Allocate five available units to an existing customer commitment., reason: Reservation is the shortest representation of allocation.}
+        - {scenario: Allocate an exact lot before picking., reason: Stock stays physically in place while becoming reserved.}
+      do_not_use:
+        - {scenario: Record that five units were shipped., reason: A completed physical event requires a Movement.}
+  movement_create_propose:
+    application_tool: movement_create
+    purpose: Record an immutable physical receipt, transfer, shipment, return, or adjustment.
+    use_when: [A physical stock event occurred with known item, quantity, time, and applicable locations.]
+    do_not_use_when:
+      - The source expresses only a promise, planned allocation, preference, or prediction.
+      - An existing Movement is wrong and requires a compensating correction.
+    required_context: [item, location, commitment, reservation]
+    preconditions: [Item and locations belong to the selected tenant and the movement type has a valid physical direction.]
+    confirmation: required
+    idempotency: {mode: unsafe_retry, guidance: Re-read Inventory and Timeline before retrying an unknown physical write.}
+    refusals:
+      - {code: invalid_physical_direction, description: Movement type and source or destination locations are inconsistent.}
+      - {code: invalid_tracking_identity, description: Tracking identity does not satisfy item rules.}
+    events: [movement.recorded, reservation.consumed, reservation.created, commitment.fulfilled]
+    verification_reads:
+      - {name: inventory, proves: Physical stock reflects the immutable Movement.}
+      - {name: commitment_register, proves: Fulfillment derives from Movements linked to the Commitment.}
+      - {name: timeline, proves: The physical event is visible with its opaque identity.}
+    examples:
+      use:
+        - {scenario: Record goods received into a warehouse after arrival., reason: A receipt is an actual physical Movement.}
+        - {scenario: Record a completed shipment against an outgoing commitment., reason: Fulfillment derives from the linked Movement.}
+      do_not_use:
+        - {scenario: A customer asks for delivery next week., reason: A promise is not evidence that goods moved physically.}
+  interpretation_coverage:
+    kind: read
+    application_tool: interpretation_coverage
+    purpose: Explain whether immutable sources were interpreted and which opaque Reality identities each attempt produced.
+    use_when: [A source-processing outcome, retry history, or produced-record identity is needed.]
+    do_not_use_when: [Current business state or proof that a produced record remains operationally valid is required.]
+    required_context: [source_record]
+    data_basis: [source_record, import_job, interpretation_outcome, interpretation_record_reference]
+    limitations: [An interpretation outcome is processing audit and does not replace the produced Reality records.]
+    freshness: Reflects committed source and attempt outcomes at read time; pending work remains explicitly pending.
+    empty_result: No matching tenant source exists; an old source without outcomes is labeled not_recorded.
+    refusal_behavior: A foreign or unknown source identity behaves as not found.
+    confirmation: none
+    side_effects: none
+    verification:
+      role: context
+      proves: [A named attempt classification and its recorded produced identities exist.]
+      does_not_prove: [The produced business state is still current or that a later effect succeeded.]
+    unknown_when: [The source is pending, processing, not_recorded, or its produced identities have not been re-read.]
+    next_steps: [Read the produced opaque identities through their authoritative register or explanation capability.]
+    examples:
+      use: [{scenario: Explain why a Shopify source failed once and succeeded on retry., reason: Attempt history is the subject.}]
+      do_not_use: [{scenario: Prove that an order is ready to ship., reason: Read order and inventory state instead.}]
+  business_records_discover:
+    kind: read
+    application_tool: business_discover
+    purpose: Find bounded tenant-owned business records and their opaque identities before a precise read or proposal.
+    use_when: [The correct opaque record identity is not yet known.]
+    do_not_use_when: [A selected record needs complete explanation or an effect needs verification.]
+    required_context: [tenant]
+    data_basis: [party, item, location, document, commitment, movement, reservation]
+    limitations: [Page mode traverses matching retained records with a scope-bound cursor; live changes are not a snapshot. Legacy results remain bounded summaries. Neither mode supplies full evidence.]
+    freshness: Reads current tenant records without business or projection writes and returns observation metadata in page mode; authentication telemetry may persist and upstream freshness is unknown.
+    empty_result: No matching records were found in the selected tenant; absence is not proof that the business object never existed.
+    refusal_behavior: Unknown families are refused and foreign records are never returned.
+    confirmation: none
+    side_effects: none
+    verification:
+      role: discovery
+      proves: [A returned opaque identity currently belongs to the selected tenant and family.]
+      does_not_prove: [Completeness, operational readiness, or the outcome of a mutation.]
+    unknown_when: [Search terms are incomplete, results hit the bound, or the relevant family is unknown.]
+    next_steps: [Use the returned opaque identity with the narrow explanation or register read.]
+    examples:
+      use: [{scenario: Find the opaque sales-order identity before calling order_explain., reason: Discovery supplies identity only.}]
+      do_not_use: [{scenario: Confirm that reserved stock changed after approval., reason: Inventory is the authoritative verification read.}]
+  order_explain:
+    kind: read
+    application_tool: order_explain
+    purpose: Trace one selected order through immutable source, Document Evidence, Commitments, reservations, movements, and derived fulfillment.
+    use_when: [One known order needs an explainable Source-to-Reality trace.]
+    do_not_use_when: [The order identity is unknown or aggregate inventory across orders is required.]
+    required_context: [document]
+    data_basis: [source_record, document, document_line, commitment, reservation, movement]
+    limitations: [Includes retained open and closed orders but cannot reconstruct an arbitrary past state or establish unrelated stock or payment completeness.]
+    freshness: Reads retained tenant evidence directly without cache writes or commits and returns observation metadata; authentication telemetry may persist and upstream freshness is unknown.
+    empty_result: A missing tenant-owned order is not found rather than represented as an empty explanation.
+    refusal_behavior: Ambiguous, unknown, or foreign order references are refused without disclosure.
+    confirmation: none
+    side_effects: none
+    verification:
+      role: independent
+      proves: [The selected order trace exposes the current linked Evidence and Reality used for fulfillment.]
+      does_not_prove: [Provider delivery, customer receipt, or payment unless corresponding Reality records are present.]
+    unknown_when: [The expected linked record is absent, ambiguous, or a relevant external system has not been reconciled.]
+    next_steps: [Read inventory for stock consequences and exceptions for explicit attention signals.]
+    examples:
+      use: [{scenario: Verify that a shipment Movement is linked to the intended order Commitment., reason: The order trace exposes the shortest links.}]
+      do_not_use: [{scenario: Search for an order using a vague customer phrase., reason: Discover its opaque identity first.}]
+  commitments_list:
+    kind: read
+    application_tool: commitments
+    purpose: Read current customer and supplier obligations and their derived fulfillment state.
+    use_when: [Promises, due quantities, allocation context, or fulfillment progress must be inspected.]
+    do_not_use_when: [Physical stock across commitments or source-processing success is the question.]
+    required_context: [commitment]
+    data_basis: [commitment_register]
+    limitations: [A Commitment is a promise; it does not by itself prove allocation, physical movement, or payment.]
+    freshness: Page mode derives current tenant records without cache writes or commits and returns local event sequence and projection version; upstream freshness is unknown. Legacy mode reads the last completed stored snapshot without refreshing or committing it. Authentication telemetry may persist.
+    empty_result: No projected commitments are visible; this does not prove source ingestion is complete.
+    refusal_behavior: Only tenant-scoped projection rows are returned.
+    confirmation: none
+    side_effects: none
+    verification:
+      role: independent
+      proves: [A Commitment and its derived fulfillment values are present in the returned projection version.]
+      does_not_prove: [Physical stock availability or external delivery confirmation.]
+    unknown_when: [The projection is stale, the expected commitment is absent, or source interpretation is incomplete.]
+    next_steps: [Read inventory for allocation and stock; use order_explain for source linkage.]
+    examples:
+      use: [{scenario: Re-read an order Commitment after recording a linked shipment., reason: Fulfillment derives from linked Movements.}]
+      do_not_use: [{scenario: Prove warehouse stock exists., reason: Inventory derives the physical and reserved quantities.}]
+  shipments_list:
+    kind: read
+    application_tool: shipments_list
+    purpose: List real physical consignments and packages separately from delivery commitments.
+    use_when: [Physical dispatch, receipt, carrier, tracking, or externally reported delivery must be inspected.]
+    do_not_use_when: [The question is only what was promised or currently remains open.]
+    required_context: [shipment]
+    data_basis: [shipment, shipment_package, shipment_event, movement]
+    limitations: [Dispatch and carrier delivery are distinct observations; absent tracking or events prove nothing.]
+    freshness: Reads current tenant Reality directly without cache writes; upstream carrier freshness is unknown.
+    empty_result: No matching physical shipment is recorded; open delivery Commitments may still exist.
+    refusal_behavior: Unknown filters are refused and only tenant-scoped records are returned.
+    confirmation: none
+    side_effects: none
+    verification:
+      role: independent
+      proves: [Returned consignments, packages and observations exist in current tenant Reality.]
+      does_not_prove: [A promise, stock quantity, or external delivery beyond the linked evidence.]
+    unknown_when: [The carrier has not reported, source intake is incomplete, or physical execution was not packaged.]
+    next_steps: [Use shipment_explain for exact contents and evidence; use commitments_list for promises.]
+    examples:
+      use: [{scenario: Find the package carrying tracking number TRACK-123., reason: Tracking search belongs to physical Shipments.}]
+      do_not_use: [{scenario: List orders still awaiting shipment., reason: That is a Commitment fulfillment question.}]
+  shipment_explain:
+    kind: read
+    application_tool: shipment_explain
+    purpose: Explain one physical Shipment through Packages, current events, effective Movements, and sources.
+    use_when: [One known Shipment needs exact contents, tracking history, and proof boundaries.]
+    do_not_use_when: [The Shipment identity is unknown or only aggregate promise fulfillment is required.]
+    required_context: [shipment]
+    data_basis: [shipment, shipment_package, shipment_event, shipment_event_supersession, movement, movement_correction, source_record]
+    limitations: [It distinguishes warehouse and external observations and cannot invent absent carrier evidence.]
+    freshness: Reads committed tenant Reality directly; external-system freshness remains unknown.
+    empty_result: Unknown or foreign Shipment identity is not found.
+    refusal_behavior: Unknown and foreign identities are refused without disclosure.
+    confirmation: none
+    side_effects: none
+    verification:
+      role: independent
+      proves: [The selected Shipment trace and its current derived observations.]
+      does_not_prove: [That dispatch means delivery or a carrier event means warehouse receipt.]
+    unknown_when: [Relevant source, Package, Movement, or carrier evidence has not been recorded.]
+    next_steps: [Read commitments for promise context and inventory for current stock.]
+    examples:
+      use: [{scenario: Explain what moved under a selected tracking package., reason: The trace links Package to effective Movements.}]
+      do_not_use: [{scenario: Treat delivered as warehouse received., reason: Those observations have different authorities.}]
+  inventory_read:
+    kind: read
+    application_tool: inventory
+    purpose: Read physical, reserved, and available stock with explicit item aggregation or item/location scope; page mode supports item_id and location_id filters.
+    use_when: [A stock, allocation, or availability consequence must be inspected.]
+    do_not_use_when: [A customer promise, source interpretation, or external delivery event is the question.]
+    required_context: [item, location]
+    data_basis: [inventory]
+    limitations: [Inventory derives from Movements and Reservations and does not prove a promise or external receipt.]
+    freshness: Page mode derives current tenant records without cache writes or commits and returns local event sequence and projection version; upstream freshness is unknown. Legacy mode reads the last completed stored snapshot without refreshing or committing it. Authentication telemetry may persist.
+    empty_result: No projected stock rows are visible; zero stock and missing projection context must not be conflated.
+    refusal_behavior: Only tenant-scoped projection rows are returned.
+    confirmation: none
+    side_effects: none
+    verification:
+      role: independent
+      proves: [Returned physical, reserved, and available quantities derive from committed Movements and Reservations.]
+      does_not_prove: [That goods were promised, delivered externally, or paid.]
+    unknown_when: [The projection is stale, the expected item/location row is absent, or an effect outcome is unreconciled.]
+    next_steps: [Read commitments for promise context and order_explain for the shortest order trace.]
+    examples:
+      use: [{scenario: Verify reserved quantity after an approved Reservation., reason: Inventory exposes the allocation consequence.}]
+      do_not_use: [{scenario: Claim that reserved goods physically shipped., reason: A Movement and its order trace are required.}]
+  exceptions_list:
+    kind: read
+    application_tool: exceptions
+    purpose: List currently derived tenant conditions that require operational attention.
+    use_when: [An agent needs a bounded queue of known operational blockers or inconsistencies.]
+    do_not_use_when: [A complete health audit or proof that no unknown problem exists is required.]
+    required_context: [tenant]
+    data_basis: [operational_exception]
+    limitations: [Exceptions cover only registered derivations; an empty list is not proof of complete correctness.]
+    freshness: Derived from the committed inputs read by the exception service at request time.
+    empty_result: No registered exception currently derives; unmodeled or unobserved problems may still exist.
+    refusal_behavior: Only tenant-owned derived conditions are returned.
+    confirmation: none
+    side_effects: none
+    verification:
+      role: context
+      proves: [A returned registered condition currently derives from named Reality inputs.]
+      does_not_prove: [That all operations are healthy when the list is empty or that an effect succeeded.]
+    unknown_when: [The relevant condition has no registered derivation, its inputs are stale, or external state is unavailable.]
+    next_steps: [Explain the specific exception and inspect its named Reality records before proposing action.]
+    examples:
+      use: [{scenario: Ask what known operational condition needs attention now., reason: The register is an attention projection.}]
+      do_not_use: [{scenario: Certify that the whole company has no problems because the list is empty., reason: Coverage is intentionally bounded.}]
+  fulfillment_queue:
+    kind: read
+    application_tool: fulfillment_queue
+    purpose: Read the derived open-order work queue with readiness, shortages, holds, and source identity.
+    use_when: [Fulfillment work must be prioritized or readiness compared across orders.]
+    do_not_use_when: [One blocker needs causal detail or one order needs its full trace.]
+    required_context: [tenant]
+    data_basis: [fulfillment_queue]
+    limitations: [This derived work view does not prove shipment, external delivery, or payment.]
+    freshness: Page mode derives current tenant records without cache writes or commits and returns local event sequence and projection version; upstream freshness is unknown. Legacy mode reads the last completed stored snapshot without refreshing or committing it. Authentication telemetry may persist.
+    empty_result: No orders are projected into the queue; ingestion may still be incomplete.
+    refusal_behavior: Only tenant-scoped queue rows are returned.
+    confirmation: none
+    side_effects: none
+    verification: {role: context, proves: [Returned orders have the displayed derived fulfillment state.], does_not_prove: [A ready order shipped or an absent order never existed.]}
+    unknown_when: [The projection is stale, an expected order is absent, or a source remains uninterpreted.]
+    next_steps: [Read fulfillment blockers or explain one selected order.]
+    examples: {use: [{scenario: Prioritize ready versus held orders., reason: This is the bounded work view.}], do_not_use: [{scenario: Assert carrier delivery., reason: External delivery needs separate evidence.}]}
+  fulfillment_blockers:
+    kind: read
+    application_tool: fulfillment_blockers
+    purpose: Read registered order and item conditions that currently block fulfillment.
+    use_when: [An order is not ready and its derived blocker and affected Reality records are needed.]
+    do_not_use_when: [A complete order trace or proof that every possible blocker is modeled is required.]
+    required_context: [tenant]
+    data_basis: [fulfillment_blockers]
+    limitations: [Only registered blocker derivations appear; absence does not prove complete health.]
+    freshness: Page mode derives current tenant records without cache writes or commits and returns local event sequence and projection version; upstream freshness is unknown. Legacy mode reads the last completed stored snapshot without refreshing or committing it. Authentication telemetry may persist.
+    empty_result: No registered blocker derives; unobserved or unmodeled causes may remain.
+    refusal_behavior: Only tenant-scoped blocker rows are returned.
+    confirmation: none
+    side_effects: none
+    verification: {role: context, proves: [A registered blocker derives for the returned records.], does_not_prove: [External root cause, complete health, or successful recovery.]}
+    unknown_when: [The projection is stale or required upstream evidence is absent.]
+    next_steps: [Explain the order and read inventory or item supply and demand.]
+    examples: {use: [{scenario: Inspect why an order is not ready., reason: The blocker projection supplies registered causes.}], do_not_use: [{scenario: Certify all orders healthy from an empty list., reason: Unmodeled causes are outside the view.}]}
+  item_supply_demand:
+    kind: read
+    application_tool: item_supply_demand
+    purpose: Read derived stock, incoming supply, demand, shortages, and affected orders by item.
+    use_when: [Item-level supply pressure or demand contributing to shortages must be assessed.]
+    do_not_use_when: [Exact location stock or external supplier delivery must be proven.]
+    required_context: [tenant]
+    data_basis: [item_supply_demand]
+    limitations: [The aggregate does not prove future supplier performance or external receipt.]
+    freshness: Page mode derives current tenant records without cache writes or commits and returns local event sequence and projection version; upstream freshness is unknown. Legacy mode reads the last completed stored snapshot without refreshing or committing it. Authentication telemetry may persist.
+    empty_result: No item rows are projected; source interpretation may still be incomplete.
+    refusal_behavior: Only tenant-scoped item rows are returned.
+    confirmation: none
+    side_effects: none
+    verification: {role: context, proves: [Displayed supply, demand, and shortage derive for each returned item.], does_not_prove: [Expected incoming goods will arrive or an order was externally delivered.]}
+    unknown_when: [The projection is stale or expected commitments are absent.]
+    next_steps: [Read inventory for locations and commitments or order explanation for promises.]
+    examples: {use: [{scenario: Find items contributing to shortages., reason: The view combines typed supply and demand.}], do_not_use: [{scenario: Confirm supplier goods arrived., reason: A receiving Movement is required.}]}
+  return_announcements:
+    kind: read
+    application_tool: return_announcements
+    purpose: List the returns customers have announced, in the order they said so, with what each is still waiting for.
+    use_when: [The receiving desk needs to know what parcels are expected, or somebody is chasing a return a customer promised.]
+    do_not_use_when: [Goods have already arrived and what to do with them is the question; that is the return itself.]
+    required_context: [none]
+    data_basis: [return_announcement, commitment, movement]
+    limitations: [An announcement is not supply. Nothing here makes the goods available, because goods a customer has promised to send are not goods anybody can sell.]
+    freshness: Derived from committed tenant Reality at request time.
+    empty_result: A company nobody has announced a return to reports an empty list rather than failing.
+    refusal_behavior: An unknown commitment is refused; announcements of another tenant are never returned.
+    confirmation: none
+    side_effects: none
+    verification: {role: context, proves: [What a customer said they would send back, and how much of it has arrived.], does_not_prove: [That the parcel exists or was ever posted.]}
+    unknown_when: [Goods came back without having been announced, which is ordinary and leaves nothing here to see.]
+    next_steps: [Record the returning goods against the announcement they fulfil, or withdraw it if the customer changed their mind.]
+    examples: {use: [{scenario: See which parcels the desk should expect., reason: An announcement is what makes an arrival a confirmation rather than a puzzle.}], do_not_use: [{scenario: Decide what to do with returned stock., reason: That starts when the goods arrive and is a movement.}]}
+  expired_lots:
+    kind: read
+    application_tool: expired_lots
+    purpose: List the batches whose stated best-before date has passed, oldest first.
+    use_when: [Somebody is deciding what to write off, send back, or stop shipping, or is checking what expired stock the company still holds.]
+    do_not_use_when: [The question is what is about to expire; nothing states a horizon, so nothing here answers it.]
+    required_context: [none]
+    data_basis: [lot]
+    limitations: [Only a lot with a stated best-before is listed. A lot with no date says nothing in either direction, because an item with no shelf life and a label nobody read are indistinguishable. This lists lots, not quantities; what is still held is in the operational exception entry.]
+    freshness: Derived from committed tenant Reality at request time.
+    empty_result: A company whose lots state no date reports an empty list rather than failing.
+    refusal_behavior: Lots of another tenant are never listed.
+    confirmation: none
+    side_effects: none
+    verification: {role: context, proves: [The listed batches carry a stated best-before that has passed.], does_not_prove: [That any stock of them is still held, or that it is unsellable in law.]}
+    unknown_when: [Nobody recorded the date, which is silence rather than a negative.]
+    next_steps: [Read the expired stock entries in the operational exception queue for what is still held, then write it off or send it back.]
+    examples: {use: [{scenario: Find batches past their date before a stock count., reason: The date is stated on the lot and compared with today.}], do_not_use: [{scenario: Find batches expiring within thirty days., reason: No horizon is stated anywhere, and Reality does not invent one.}]}
+  payment_run_preview:
+    kind: read
+    application_tool: payment_run_preview
+    purpose: Show which supplier invoices are worth paying now, what each supplier is owed, what the run totals per currency, and what was withheld.
+    use_when: [Somebody is deciding what should go out on a payment day, or is checking which invoices can still be paid for less.]
+    do_not_use_when: [One invoice is in question, or the amounts have already been confirmed and the run is ready to execute.]
+    required_context: [pay_by]
+    data_basis: [document, ledger_entry, settlement_allocation, party, payment_term]
+    limitations: [It names an early-payment rate and the day the window closes and never states what the discount is worth, because a rate applied to a gross amount is money nobody agreed to. Amounts are what the ledger holds open, not what to pay.]
+    freshness: Derived from committed tenant Reality at request time.
+    empty_result: A day nothing is due before, with no discount window open, reports a count of zero rather than failing.
+    refusal_behavior: A missing day is refused; invoices of another tenant are never proposed.
+    confirmation: none
+    side_effects: none
+    verification: {role: context, proves: [The proposed invoices currently have those amounts open under those terms.], does_not_prove: [That any of them should be paid, or that the company has the cash.]}
+    unknown_when: [An invoice nobody has posted yet does not appear, because nothing is open on it.]
+    next_steps: [State an amount per invoice and confirm the total to execute the run, or narrow the day and preview again.]
+    examples: {use: [{scenario: Decide what goes out on Friday., reason: The proposal and its totals are what a run is confirmed against.}], do_not_use: [{scenario: Work out what a 2% discount is worth., reason: Reality never states an amount nobody agreed to.}]}
+  stale_closure_preview:
+    kind: read
+    application_tool: stale_closure_preview
+    purpose: Show how many promises an import left behind a closure would close, and a sample of them, without changing anything.
+    use_when: [An imported history has filled the queue with promises nobody is going to keep and somebody is deciding what to close.]
+    do_not_use_when: [A single promise is in question, or the criteria have not been decided by a person.]
+    required_context: [direction, due_before]
+    data_basis: [commitment, movement, reservation]
+    limitations: [The sample is bounded for recognition and is not the whole set; the count is what a closure confirms.]
+    freshness: Derived from committed tenant Reality at request time.
+    empty_result: Criteria matching nothing report a count of zero rather than failing.
+    refusal_behavior: An unknown direction or a missing date is refused; cross-tenant promises are never counted.
+    confirmation: none
+    side_effects: none
+    verification: {role: context, proves: [The counted promises currently match the stated criteria.], does_not_prove: [That any of them is genuinely abandoned rather than late.]}
+    unknown_when: [Movements are recorded outside Reality, so a promise may look untouched and not be.]
+    next_steps: [Confirm the count with a reason to close them, or narrow the date and preview again.]
+    examples: {use: [{scenario: Decide what an imported history left behind., reason: The count and sample are what a closure is confirmed against.}], do_not_use: [{scenario: Judge whether one late order is abandoned., reason: A single promise is read through its own explanation.}]}
+  exception_explain:
+    kind: read
+    application_tool: exception_explain
+    purpose: Explain one selected current exception through the Reality context from which it derives.
+    use_when: [A known exception identity needs its current derivation and affected records.]
+    do_not_use_when: [Exceptions must first be discovered or historical conditions are requested.]
+    required_context: [exception_id]
+    data_basis: [operational_exception]
+    limitations: [The explanation covers a registered derivation, not every external root cause.]
+    freshness: Derived from committed tenant Reality at request time.
+    empty_result: Unknown, foreign, or no-longer-current exceptions are refused as not found.
+    refusal_behavior: Unknown and cross-tenant identities are refused without disclosure.
+    confirmation: none
+    side_effects: none
+    verification: {role: context, proves: [The selected exception currently derives from returned Reality.], does_not_prove: [External cause, remediation, or historical persistence.]}
+    unknown_when: [External state is absent or the exception changes between reads.]
+    next_steps: [Inspect named Reality reads before proposing a governed correction.]
+    examples: {use: [{scenario: Inspect records behind a listed exception., reason: Its identity enables bounded explanation.}], do_not_use: [{scenario: Search all exceptions without an ID., reason: List exceptions first.}]}
+  proposals_awaiting_approval:
+    kind: read
+    application_tool: proposals_awaiting_approval
+    purpose: List tenant change proposals that still await explicit human approval.
+    use_when: [The current governed review queue is needed before approval or rejection.]
+    do_not_use_when: [Executed Reality, rejected history, or proof of an effect is required.]
+    required_context: [tenant]
+    data_basis: [change_proposal]
+    limitations: [A proposal is intent and preview, not authority, execution, or resulting Reality.]
+    freshness: Reflects committed proposal status at request time and may change concurrently.
+    empty_result: No proposal currently has proposed status; completed and rejected proposals are outside this list.
+    refusal_behavior: Only tenant-owned pending proposals are returned.
+    confirmation: none
+    side_effects: none
+    verification: {role: context, proves: [Returned proposals await approval with the displayed arguments.], does_not_prove: [Correctness, authority, execution, or verified outcome.]}
+    unknown_when: [Proposal status or underlying context changes concurrently.]
+    next_steps: [Re-read Reality and use explicit confirmation only when justified.]
+    examples: {use: [{scenario: Present exact changes requiring review., reason: This is the governed intent queue.}], do_not_use: [{scenario: Claim stock changed from a proposal., reason: Proposal state is not execution.}]}
+  finance_balances:
+    kind: read
+    application_tool: finance_balances
+    purpose: Read receivable and payable positions derived from tenant LedgerEntries.
+    use_when: [Current ledger-derived receivables and payables separated by represented currency are needed.]
+    do_not_use_when: [Bank settlement, reconciliation, invoice evidence, or cash availability must be proven.]
+    required_context: [tenant]
+    data_basis: [ledger_entry]
+    limitations: [Each currency is separate with no conversion or cross-currency total. These balances are not net revenue or profit and do not prove settlement or accounting completeness.]
+    freshness: Derived from current tenant LedgerEntries without business writes or commits and returned with observation metadata; authentication telemetry may persist and upstream freshness is unknown.
+    empty_result: No balance derives from visible LedgerEntries; missing external postings may remain.
+    refusal_behavior: Only tenant-scoped ledger balances are returned.
+    confirmation: none
+    side_effects: none
+    verification: {role: independent, proves: [Returned positions derive from current tenant LedgerEntries.], does_not_prove: [Bank settlement, provider reconciliation, or unrecorded finance events.]}
+    unknown_when: [Expected postings are absent or an external finance system is unreconciled.]
+    next_steps: [Inspect journal and payment evidence through bounded reads.]
+    examples: {use: [{scenario: Verify a recorded payment reduced receivables., reason: The balance derives from LedgerEntries.}], do_not_use: [{scenario: Assert cash settled at the bank., reason: Settlement requires external evidence.}]}
+
+# Executable parity contract. Keys are canonical service names above. A command is
+# either eligible with all public agent tools that cover its service family, or is
+# explicitly excluded with a durable reason. The catalog validator rejects drift.
+# Mutating services a surface can reach that are deliberately not commands. Each
+# says why, because the alternative — an operation nobody declared and nobody
+# noticed — is what spec 091 found and this list exists to prevent. A stale entry
+# fails the build: an exemption outliving the operation it excused would hide the
+# next real one.
+reachable_mutations_that_are_not_commands:
+  add_chat_assistant_message: Chat transcript handling. The business command is whatever the assistant then proposes, which is catalogued on its own.
+  create_chat_session: Opening a conversation is not an operation on the business.
+  delete_chat_session: Removing a conversation changes no business record.
+  restore_chat_session: Restoring a conversation changes no business record.
+  send_chat_message: Sending a message is transport; anything it causes is a proposal a person confirms.
+  process_pending_import_jobs: The worker step that drains the queue. Enqueuing a source is the command; running the queue is the runtime doing what it was told.
+
+agent_command_coverage:
+  change_report: {classification: eligible, tools: [analytics_report_change_propose]}
+  record_shipment_notice: {classification: eligible, tools: [shipment_notice_record_propose]}
+  record_packaged_execution: {classification: eligible, tools: [shipment_dispatch_propose, shipment_receive_propose]}
+  record_shipment_event: {classification: eligible, tools: [shipment_event_record_propose]}
+  supersede_shipment_event: {classification: eligible, tools: [shipment_event_supersede_propose]}
+  list_targets:
+    classification: eligible
+    tools:
+    - finance_targets
+  list_target_references:
+    classification: eligible
+    tools:
+    - finance_target_references
+  list_mappings:
+    classification: eligible
+    tools:
+    - finance_target_mappings
+  mapping_history:
+    classification: eligible
+    tools:
+    - finance_target_mapping_history
+  preview_document:
+    classification: eligible
+    tools:
+    - finance_target_mapping_preview
+  maintain_target_configuration:
+    classification: eligible
+    tools:
+    - finance_target_create_propose
+    - finance_target_update_propose
+    - finance_target_reference_create_propose
+    - finance_target_reference_update_propose
+    - finance_target_mapping_set_propose
+  set_source_mapping: {classification: eligible, tools: [finance_source_mapping_propose]}
+  source_mapping_history: {classification: eligible, tools: [finance_source_mapping_history]}
+  list_source_mappings: {classification: eligible, tools: [finance_source_mappings]}
+  component_context: {classification: eligible, tools: [finance_components]}
+  component_history: {classification: eligible, tools: [finance_component_history]}
+  assign_component: {classification: eligible, tools: [finance_component_assign_propose]}
+  list_references: {classification: eligible, tools: [finance_references]}
+  reference_history: {classification: eligible, tools: [finance_reference_history]}
+  maintain_reference: {classification: eligible, tools: [finance_reference_create_propose, finance_reference_update_propose]}
+  opening_context: {classification: eligible, tools: [finance_opening_context]}
+  import_opening: {classification: eligible, tools: [finance_opening_propose]}
+  adjustment_context: {classification: eligible, tools: [finance_adjustment_context]}
+  settlement_context: {classification: eligible, tools: [finance_settlement_context]}
+  apply_settlement: {classification: eligible, tools: [finance_settlement_propose]}
+  accept_adjustment: {classification: eligible, tools: [finance_adjustment_propose]}
+  transaction_matrix: {classification: eligible, tools: [finance_matrix]}
+  list_accounts: {classification: eligible, tools: [finance_accounts]}
+  set_default_account: {classification: eligible, tools: [finance_set_default_account_propose]}
+  update_account: {classification: eligible, tools: [finance_update_account_propose]}
+  create_account: {classification: eligible, tools: [finance_create_account_propose]}
+  initialize_accounts: {classification: eligible, tools: [finance_initialize_accounts_propose]}
+  observe_fact: {classification: eligible, tools: [fact_observe_propose]}
+  create_manual_order: {classification: eligible, tools: [order_create_propose]}
+  install_connector_shell: {classification: eligible, tools: [connector_install_propose]}
+  create_source_system: {classification: eligible, tools: [source_system_create_propose, source_system_lifecycle_propose]}
+  create_source_capability: {classification: eligible, tools: [source_capability_create_propose, source_capability_lifecycle_propose]}
+  enqueue_source: {classification: eligible, tools: [source_ingest_propose, source_record_ingest_propose]}
+  correct_manual_document: {classification: eligible, tools: [document_correct_propose, document_lines_correct_propose]}
+  record_corrected_document_source: {classification: eligible, tools: [document_source_correct_propose]}
+  create_party: {classification: eligible, tools: [party_create_propose]}
+  update_party: {classification: eligible, tools: [party_update_propose]}
+  create_item: {classification: eligible, tools: [item_create_propose]}
+  update_item: {classification: eligible, tools: [item_update_propose]}
+  create_location: {classification: eligible, tools: [location_create_propose]}
+  update_location: {classification: eligible, tools: [location_update_propose]}
+  create_handling_unit: {classification: eligible, tools: [handling_unit_create_propose]}
+  create_lot: {classification: eligible, tools: [lot_create_propose]}
+  state_lot_expiry: {classification: eligible, tools: [lot_expiry_state_propose]}
+  correct_lot_expiry: {classification: eligible, tools: [lot_expiry_correct_propose]}
+  expired_lots: {classification: eligible, tools: [expired_lots]}
+  create_serial_unit: {classification: eligible, tools: [serial_unit_create_propose]}
+  set_master_data_active: {classification: eligible, tools: [master_data_lifecycle_propose]}
+  create_payment_term: {classification: eligible, tools: [payment_term_create_propose, payment_term_update_propose]}
+  create_price_list: {classification: eligible, tools: [price_list_create_propose, price_list_update_propose]}
+  create_price_list_entry: {classification: eligible, tools: [price_tier_create_propose]}
+  assign_party_price_list: {classification: eligible, tools: [party_price_list_assign_propose]}
+  create_party_group: {classification: eligible, tools: [party_group_create_propose, party_group_update_propose, party_group_member_add_propose, group_price_list_assign_propose]}
+  reserve: {classification: eligible, tools: [reservation_propose]}
+  release_reservation: {classification: eligible, tools: [reservation_release_propose]}
+  record_movement: {classification: eligible, tools: [movement_create_propose]}
+  correct_movement: {classification: eligible, tools: [movement_correction_propose]}
+  reverse_ledger_posting_group: {classification: eligible, tools: [ledger_reversal_propose]}
+  revise_commitment: {classification: eligible, tools: [commitment_revise_propose]}
+  hold_commitment: {classification: eligible, tools: [commitment_hold_propose, commitment_hold_release_propose]}
+  hold_document_commitments: {classification: eligible, tools: [document_hold_propose, document_hold_release_propose]}
+  hold_party_delivery: {classification: eligible, tools: [party_delivery_hold_propose, party_delivery_hold_release_propose]}
+  post_customer_payment: {classification: eligible, tools: [customer_payment_post_propose]}
+  create_manual_document_with_lines: {classification: eligible, tools: [document_create_propose]}
+  post_sales_invoice: {classification: eligible, tools: [sales_invoice_post_propose]}
+  post_supplier_invoice: {classification: eligible, tools: [supplier_invoice_post_propose]}
+  record_sales_invoice: {classification: eligible, tools: [sales_invoice_record_propose]}
+  record_supplier_invoice: {classification: eligible, tools: [supplier_invoice_record_propose]}
+  record_sales_credit: {classification: eligible, tools: [sales_credit_record_propose]}
+  post_sales_credit_note: {classification: eligible, tools: [credit_note_post_propose]}
+  preview_stale_promise_closure: {classification: eligible, tools: [stale_closure_preview]}
+  preview_payment_run: {classification: eligible, tools: [payment_run_preview]}
+  announce_customer_return: {classification: eligible, tools: [return_announce_propose]}
+  withdraw_return_announcement: {classification: eligible, tools: [return_announcement_withdraw_propose]}
+  return_announcements: {classification: eligible, tools: [return_announcements]}
+  execute_payment_run: {classification: eligible, tools: [payment_run_propose]}
+  close_stale_promises: {classification: eligible, tools: [stale_closure_propose]}
+  allocate_credit_note: {classification: eligible, tools: [credit_note_allocate_propose]}
+  post_customer_refund: {classification: eligible, tools: [customer_refund_post_propose]}
+  post_supplier_credit_note: {classification: eligible, tools: [supplier_credit_note_post_propose]}
+  allocate_supplier_credit_note: {classification: eligible, tools: [supplier_credit_note_allocate_propose]}
+  post_supplier_refund: {classification: eligible, tools: [supplier_refund_post_propose]}
+  post_supplier_payment: {classification: eligible, tools: [supplier_payment_post_propose]}
+  create_invitation: {classification: eligible, tools: [member_invite_propose]}
+  resend_invitation: {classification: eligible, tools: [invitation_resend_propose]}
+  revoke_invitation: {classification: eligible, tools: [invitation_revoke_propose]}
+  remove_member: {classification: eligible, tools: [member_remove_propose]}
+
+agent_additional_commands: {}
+
+agent_excluded_operation_classes:
+  - platform-global tenant administration
+  - permanent tenant data deletion
+  - authentication and secret management
+  - projection rebuild and internal maintenance
+  - demo and scenario mutation
+  - raw Business Event emission
+  - generic ORM, SQL, table, or persistence access
