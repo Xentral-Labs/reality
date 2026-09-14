@@ -28,6 +28,10 @@ const deltaQueries = [],
 page.on("pageerror", (e) => errors.push(e.message));
 
 const text = (en, de) => ({ en, de, nl: `${en} (nl)`, es: `${en} (es)` });
+const openChapters = async () => {
+  if (!(await page.locator("[data-storyline-chapters][open]").count()))
+    await page.locator("[data-storyline-chapters] > summary").click();
+};
 const chapters = () => [
   {
     key: "order",
@@ -582,8 +586,12 @@ await page.locator("[data-storyline-page]").waitFor();
 assert.match(page.url(), /tenant=story/);
 
 // 2. Chapter 1: prepare shows a preview and nothing else happened.
-await page.locator("[data-storyline-chapter='order'][aria-current='step']").waitFor();
+await page.locator("[data-storyline-current-chapter='order']").waitFor();
 assert.equal(await page.locator("[data-storyline-chapter]").count(), 3);
+// The list is folded away in the header; opened, it still marks the current chapter.
+await openChapters();
+await page.locator("[data-storyline-chapter='order'][aria-current='step']").waitFor();
+await page.keyboard.press("Escape");
 await page.locator("[data-storyline-action='prepare']").click();
 await page.locator("[data-storyline-preview]").waitFor();
 assert.deepEqual(
@@ -624,13 +632,14 @@ await page.waitForURL(/\/app\/inspector/);
 await page.goBack();
 await page.locator("[data-storyline-page]").waitFor();
 await page.locator("[data-storyline-action='next']").click();
-await page.locator("[data-storyline-chapter='reference'][aria-current='step']").waitFor();
+await page.locator("[data-storyline-current-chapter='reference']").waitFor();
 
 // 5b. A reload resumes at the current chapter; an earlier chapter is read-only, and a
 // finding of its delta opens the Exceptions page (FR-008, FR-009).
 await page.goto(`${base}/app/storyline?tenant=story`);
-await page.locator("[data-storyline-chapter='reference'][aria-current='step']").waitFor();
+await page.locator("[data-storyline-current-chapter='reference']").waitFor();
 assert.equal(await page.locator("[data-storyline-action='prepare']").count(), 1);
+await openChapters();
 await page.locator("[data-storyline-chapter='order']").click();
 await page.locator("[data-storyline-explain]").waitFor();
 assert.equal(await page.locator("[data-storyline-action='prepare']").count(), 0);
@@ -658,7 +667,7 @@ await page
   .waitFor();
 assert.ok(deltaQueries.includes("?ordinal=8"), `delta queries: ${deltaQueries.join(" ")}`);
 await page.locator("[data-storyline-action='back-to-story']").click();
-await page.locator("[data-storyline-chapter='reference'][aria-current='step']").waitFor();
+await page.locator("[data-storyline-current-chapter='reference']").waitFor();
 assert.doesNotMatch(page.url(), /chapter=free/);
 
 // 8. A chapter whose precondition no longer holds names what is missing and offers a
@@ -670,7 +679,7 @@ assert.match(await page.locator("[data-storyline-missing]").innerText(), /overdu
 assert.equal(await page.locator("[data-storyline-action='prepare']").count(), 0);
 await page.locator("[data-storyline-actions] [data-storyline-action='restart']").click();
 await page.waitForURL(/tenant=story-2/);
-await page.locator("[data-storyline-chapter='reference'][aria-current='step']").waitFor();
+await page.locator("[data-storyline-current-chapter='reference']").waitFor();
 assert.ok(writes.includes("/api/tenants/story/storyline/restart"));
 
 // 9. Presentation mode (FR-013, SC-003): the timed run issues the same ordered chapter
@@ -686,13 +695,14 @@ assert.deepEqual(byHand, [
 phase = "idle";
 const timedFrom = writes.length;
 await page.goto(`${base}/app/storyline?tenant=story`);
-await page.locator("[data-storyline-chapter='order'][aria-current='step']").waitFor();
+await page.locator("[data-storyline-current-chapter='order']").waitFor();
 await page.evaluate(() => sessionStorage.setItem("storyline.pace", "60000"));
 await page.locator("[data-storyline-action='present']").click();
 await page.locator("[data-storyline-presentation='playing']").waitFor();
 // The bar says what comes next and fills over the wait.
 await page.locator("[data-storyline-autoplay-progress='prepare'] .storyline-fill").waitFor();
 // A click anywhere outside the autoplay control switches it off before anything was called.
+await openChapters();
 await page.locator("[data-storyline-chapter='review']").click();
 await page.locator("[data-storyline-presentation='off']").waitFor();
 assert.deepEqual(chapterCalls(writes.slice(timedFrom)), []);
@@ -709,14 +719,16 @@ await page.locator("select[name='language']").waitFor();
 enterThroughHome = true;
 await page.goto(`${base}/app`);
 await page.locator("a[href*='/app/storyline']").first().click();
+await openChapters();
 await page.locator("[data-storyline-chapter='order']", { hasText: "Auftrag anlegen" }).waitFor();
+await page.keyboard.press("Escape");
 const readsBeforeAutoplay = entryReads;
 assert.deepEqual(chapterCalls(writes.slice(timedFrom)), []);
 // Resumed at a fast pace, the run prepares, confirms and advances on its own, and it
 // pauses on the first chapter the fixture cannot prepare instead of retrying.
 await page.evaluate(() => sessionStorage.setItem("storyline.pace", "150"));
 await page.locator("[data-storyline-action='present']").click();
-await page.locator("[data-storyline-chapter='reference'][aria-current='step']").waitFor();
+await page.locator("[data-storyline-current-chapter='reference']").waitFor();
 await page
   .locator("[data-storyline-presentation='off'][data-storyline-presentation-note]")
   .waitFor();
@@ -738,7 +750,7 @@ await page
   .locator("[data-storyline-library] [data-storyline-start-over='order-to-close']")
   .waitFor({ state: "attached" });
 await page.locator("[data-storyline-action='back-to-story']").click();
-await page.locator("[data-storyline-chapter='reference'][aria-current='step']").waitFor();
+await page.locator("[data-storyline-current-chapter='reference']").waitFor();
 await page.goto(`${base}/app/storyline?tenant=plain`);
 await page.locator("[data-storyline-library]").waitFor();
 await page.setViewportSize({ width: 1440, height: 1000 });
