@@ -11,3 +11,7 @@ Final scope follows the owner correction: no inline creation, no historical-data
 Reason-copy review: owner asks why this Sandbox is unavailable. Existing eligibility permits company-empty/international-demo profiles; Storyline uses a distinct preset. A general compatibility explanation is accurate without inventing a reason code for every access denial. No unresolved clarification or critical finding.
 
 Reason-copy verification: production build, four-language audit, spec/format checks and eight desktop/mobile browser cases passed. Mobile text layout was visually inspected. Navigation remains read-only; service eligibility is unchanged.
+
+Connection preview review: user screenshot identifies ungrouped master data and touching actions. Scope is presentation of the server preview, not source generation. Existing authorization and fingerprints remain unchanged. No critical findings.
+
+Grouped-preview verification: production build, 161 Web contract tests, language audit and eight localized desktop/mobile browser cases pass. Browser assertions cover exact group counts/names, keyboard expansion, cancellation without writes and explicit unchanged connection fingerprint/request payload. Mobile preview visually reviewed.

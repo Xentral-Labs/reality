@@ -140,3 +140,5 @@ FR-032 visual refinement: replace legacy panel classes with shared surface/spaci
 Owner correction: remove the inline separate-demo setup shortcut and its now-unused initial-choice props. Unsupported state explains the limitation and links to Companies. No expansion of Storyline eligibility; normal empty Sandboxes remain supported by existing services. Test no inline modal or write, navigation to Companies, padding and mobile layout.
 
 Unavailable-reason refinement: add localized compatibility explanation to the existing card, retaining route, layout and backend behavior. Constitution PASS; no new service or schema. Verify exact reason text in the existing browser fixture, build, language audit and formatting.
+
+Connection-preview refinement: group preview.add records in native details using existing localized kind labels and shared tokens. Do not change payload, fingerprint or connection/start semantics. Constitution PASS. Browser proof covers grouped counts, expandable names, cancellation without writes and explicit confirmed connection payload.

@@ -148,3 +148,5 @@ FR-022 → T050; unified-app/local-stack integration → T045–049. Final evide
 - [ ] T936 Verify the PR pipeline before merge/deployment.
 
 - [x] T937 Explain the unsupported Sandbox data setup; verify localized copy and existing navigation.
+
+- [x] T938 Group and format connection preview; verify exact references, disclosure access, responsive layout and confirmation boundary.
