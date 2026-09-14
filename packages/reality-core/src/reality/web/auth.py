@@ -207,11 +207,43 @@ def user_payload(user: AppUser, application: AccessApplication | None = None) ->
     }
 
 
+# One display locale belongs to each supported language. Signup pairs them itself so a
+# client can state what the browser knows without choosing what an account may hold.
+SUPPORTED_LOCALES = {"en": "en-GB", "de": "de-DE", "nl": "nl-NL", "es": "es-ES"}
+
+
+def known_timezone(timezone: str) -> bool:
+    """A malformed key is unknown, not an error the caller has to handle."""
+    try:
+        ZoneInfo(timezone)
+    except (ZoneInfoNotFoundError, ValueError):
+        return False
+    return True
+
+
+def presentation_defaults(
+    language: str | None, timezone: str | None
+) -> tuple[str, str, str]:
+    """Resolve the initial presentation preference from the browser's own hint.
+
+    The hint is unverified presentation, never identity: an absent, unsupported or
+    unresolvable value falls back instead of failing a registration.
+    """
+    accepted = language if language in SUPPORTED_LOCALES else "en"
+    zone = "UTC"
+    if timezone and known_timezone(timezone):
+        zone = timezone
+    return accepted, SUPPORTED_LOCALES[accepted], zone
+
+
 class SignupBody(BaseModel):
     email: str
     password: str = Field(min_length=10, max_length=256)
     accepted_terms: bool
     playground: bool = False
+    # What the browser already knows about its reader, not an answered question.
+    language: str | None = Field(default=None, max_length=16)
+    timezone: str | None = Field(default=None, max_length=64)
 
     @field_validator("email")
     @classmethod
@@ -287,8 +319,14 @@ def signup(body: SignupBody, session: DatabaseSession):
         raise HTTPException(
             status_code=409, detail="An account already exists for this email."
         )
+    language, locale, timezone = presentation_defaults(body.language, body.timezone)
     user = AppUser(
-        id=uid("usr"), email=email, password_hash=password_hasher.hash(body.password)
+        id=uid("usr"),
+        email=email,
+        password_hash=password_hasher.hash(body.password),
+        language=language,
+        locale=locale,
+        timezone=timezone,
     )
     session.add(user)
     session.flush()
@@ -328,10 +366,14 @@ def invitation_signup(body: InvitationSignupBody, session: DatabaseSession):
     existing = session.scalar(select(AppUser).where(AppUser.email == email))
     if existing:
         return {"email": email, "next": "sign_in"}
+    language, locale, timezone = presentation_defaults(body.language, body.timezone)
     user = AppUser(
         id=uid("usr"),
         email=email,
         password_hash=password_hasher.hash(body.password),
+        language=language,
+        locale=locale,
+        timezone=timezone,
     )
     session.add(user)
     session.flush()
@@ -490,14 +532,12 @@ def me(user: CurrentUser, session: DatabaseSession):
 
 
 def validate_preferences(language: str, locale: str, timezone: str) -> None:
-    if language not in {"en", "de", "nl", "es"}:
+    if language not in SUPPORTED_LOCALES:
         raise HTTPException(status_code=422, detail="Unsupported language.")
-    if locale not in {"en-GB", "de-DE", "nl-NL", "es-ES"}:
+    if locale not in SUPPORTED_LOCALES.values():
         raise HTTPException(status_code=422, detail="Unsupported locale.")
-    try:
-        ZoneInfo(timezone)
-    except ZoneInfoNotFoundError as error:
-        raise HTTPException(status_code=422, detail="Unknown timezone.") from error
+    if not known_timezone(timezone):
+        raise HTTPException(status_code=422, detail="Unknown timezone.")
 
 
 @router.put("/application")
