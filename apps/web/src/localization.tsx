@@ -13,6 +13,8 @@ type Preferences = { language: Language; locale: DisplayLocale; timezone: string
 
 const dictionaries: Record<Exclude<Language, "en">, Record<string, string>> = {
   de: {
+    "Live simulation supports empty and standard demo Sandbox setups. Storyline Sandboxes use a different data setup that is not yet supported.":
+      "Die Live-Simulation unterstützt leere und Standard-Demo-Sandboxes. Storyline-Sandboxes verwenden einen anderen Datenaufbau, der noch nicht unterstützt wird.",
     "Live simulation is not available in this Sandbox.":
       "Live-Simulation ist in dieser Sandbox nicht verfügbar.",
     "Create an empty Sandbox under Companies → New company, then enable live simulation there. No historical demo data is needed.":
@@ -1780,6 +1782,8 @@ const dictionaries: Record<Exclude<Language, "en">, Record<string, string>> = {
     "Fully Reserved": "Vollständig reserviert",
   },
   nl: {
+    "Live simulation supports empty and standard demo Sandbox setups. Storyline Sandboxes use a different data setup that is not yet supported.":
+      "Livesimulatie ondersteunt lege en standaard demo-Sandboxes. Storyline-Sandboxes gebruiken een andere gegevensstructuur die nog niet wordt ondersteund.",
     "Live simulation is not available in this Sandbox.":
       "Livesimulatie is niet beschikbaar in deze Sandbox.",
     "Create an empty Sandbox under Companies → New company, then enable live simulation there. No historical demo data is needed.":
@@ -3239,6 +3243,8 @@ const dictionaries: Record<Exclude<Language, "en">, Record<string, string>> = {
     Customer: "Klant",
   },
   es: {
+    "Live simulation supports empty and standard demo Sandbox setups. Storyline Sandboxes use a different data setup that is not yet supported.":
+      "La simulación en vivo admite Sandboxes vacíos y de demostración estándar. Los Sandboxes de Storyline usan una estructura de datos diferente que aún no se admite.",
     "Live simulation is not available in this Sandbox.":
       "La simulación en vivo no está disponible en este Sandbox.",
     "Create an empty Sandbox under Companies → New company, then enable live simulation there. No historical demo data is needed.":

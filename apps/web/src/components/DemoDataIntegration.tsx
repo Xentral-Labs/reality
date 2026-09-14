@@ -171,6 +171,11 @@ function DemoDataIntegrationView({
             <p className="mt-2 text-sm leading-6 text-fg-muted">
               {t("Live simulation is not available in this Sandbox.")}
             </p>
+            <p className="mt-3 max-w-xl text-sm leading-6 text-fg-muted">
+              {t(
+                "Live simulation supports empty and standard demo Sandbox setups. Storyline Sandboxes use a different data setup that is not yet supported.",
+              )}
+            </p>
             {showCompanyLink && (
               <>
                 <p className="mt-3 max-w-xl text-sm leading-6 text-fg-muted">

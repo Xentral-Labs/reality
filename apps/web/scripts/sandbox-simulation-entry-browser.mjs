@@ -103,6 +103,12 @@ try {
       await page.locator("[data-company-simulation=story]").click();
       const unavailable = page.locator("[data-simulation-unavailable]");
       await unavailable.waitFor();
+      if (language === "en")
+        await unavailable
+          .getByText(
+            "Live simulation supports empty and standard demo Sandbox setups. Storyline Sandboxes use a different data setup that is not yet supported.",
+          )
+          .waitFor();
       const spacing = await unavailable.evaluate((node) => {
         const heading = node.querySelector("h2");
         return {

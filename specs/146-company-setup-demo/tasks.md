@@ -146,3 +146,5 @@ FR-022 → T050; unified-app/local-stack integration → T045–049. Final evide
 
 - [x] T935 Polish the unavailable simulation card and replace inline creation with Companies navigation; verify heading/padding, desktop/mobile snapshots, read-only handoff and local gates.
 - [ ] T936 Verify the PR pipeline before merge/deployment.
+
+- [x] T937 Explain the unsupported Sandbox data setup; verify localized copy and existing navigation.

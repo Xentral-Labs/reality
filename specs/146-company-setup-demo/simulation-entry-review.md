@@ -7,3 +7,7 @@ Local verification passed: production build; 156 Web contract tests; four-langua
 Visual follow-up review: screenshot confirms legacy panel classes leave content flush against its border and heading without hierarchy. Scope is shared styling only; no unresolved product decisions or critical findings.
 
 Final scope follows the owner correction: no inline creation, no historical-data suggestion and no change to existing backend compatibility restrictions. The unavailable card has explicit copy, a Companies link and shared spacing/heading/button tokens. Supported existing Sandboxes retain current connect/start controls. Removed obsolete initial-demo choice props. Local build, 156 contract tests, language audit, spec policy and eight localized desktop/mobile browser cases pass. No deployment before green CI and merge.
+
+Reason-copy review: owner asks why this Sandbox is unavailable. Existing eligibility permits company-empty/international-demo profiles; Storyline uses a distinct preset. A general compatibility explanation is accurate without inventing a reason code for every access denial. No unresolved clarification or critical finding.
+
+Reason-copy verification: production build, four-language audit, spec/format checks and eight desktop/mobile browser cases passed. Mobile text layout was visually inspected. Navigation remains read-only; service eligibility is unchanged.

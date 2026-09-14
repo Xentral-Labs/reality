@@ -301,3 +301,5 @@ existing `test_attention_reads.py` and `test_unified_operations_api.py`.
 FR-032 presentation refinement: the unavailable simulation state uses a padded, width-constrained shared surface with a clear heading, readable supporting copy and one primary creation action. Mobile, theme and existing dialog behavior remain intact.
 
 FR-032 correction: unsupported Sandboxes show an explicit unavailable message and link to Companies, where normal New company can create an empty Sandbox. Do not embed another creation dialog or suggest historical data. Supported existing Sandboxes keep the existing connection controls and receive only new simulated activity after start. This supersedes the separate-demo creation shortcut above.
+
+FR-032 unavailable copy must explain the current compatibility boundary: live simulation supports empty/standard demo Sandbox setups; Storyline Sandboxes use a different data setup. Describe the general boundary without inferring a specific backend denial reason from every 403/404.
