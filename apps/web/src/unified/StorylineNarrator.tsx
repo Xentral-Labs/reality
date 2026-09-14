@@ -3,9 +3,10 @@ import type {
   StorylineChapterEntry,
   StorylineDelta,
   StorylineStep,
+  StorylineText,
 } from "../api";
 import { BookOpen, Infinity, Pause, Play } from "lucide-react";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { formatDateTime, t } from "../localization";
 import { compareFindings, phaseOf, pickText } from "./storylineState";
 
@@ -13,6 +14,15 @@ const panel = "rounded-xl border border-border-default bg-surface";
 const toolState: Record<string, string> = { on: "bg-accent-soft text-accent", off: "" };
 const toolButton =
   "flex flex-col items-center gap-1 rounded-lg px-2 py-2 text-[11.5px] leading-none text-fg-default hover:bg-surface-muted disabled:opacity-50 disabled:hover:bg-transparent";
+/** What the person says sits on the right; what Reality answers on the left. */
+const mine =
+  "max-w-[85%] self-end rounded-xl rounded-br-sm border border-accent/40 bg-accent-soft px-3 py-2 text-[13.5px] text-fg-strong";
+const theirs =
+  "flex max-w-[92%] flex-col gap-1.5 self-start rounded-xl rounded-bl-sm bg-surface-muted px-3 py-2 text-[13.5px]";
+const findingTone: Record<string, string> = {
+  met: "bg-positive-bg text-positive-text",
+  open: "bg-caution-bg text-caution-text",
+};
 
 export function StorylineNarrator({
   chapters,
@@ -77,171 +87,226 @@ export function StorylineNarrator({
   const expectations = chapter ? compareFindings(chapter.expect, delta?.exceptions || null) : null;
   const missing = detail?.preconditions.filter((check) => !check.holds) || [];
   const list = useRef<HTMLOListElement>(null);
+  const thread = useRef<HTMLDivElement>(null);
+  // The composer holds the suggested line. Changing it is leaving the script.
+  const suggested = chapter ? spokenLine(chapter.say, chapter.title) : "";
+  const [typed, setTyped] = useState(suggested);
+  const edited = typed.trim() !== suggested.trim();
+  const composing = phase === "idle" && isCurrent && missing.length === 0;
+  useEffect(() => {
+    setTyped(suggested);
+  }, [suggested]);
   useEffect(() => {
     list.current?.querySelector('[aria-current="step"]')?.scrollIntoView({ block: "nearest" });
   }, [chapter?.key]);
+  // A conversation is read from the bottom: the newest turn is the one in hand.
+  useEffect(() => {
+    const node = thread.current;
+    if (node) node.scrollTop = node.scrollHeight;
+  }, [chapter?.key, phase]);
+
+  // Everything played so far, the step in hand, and an upcoming chapter somebody
+  // opened from the list. The selected turn is the one told in full.
+  const told = chapters.filter(
+    (entry) => entry.status === "done" || entry.status === "current" || entry.key === chapter?.key,
+  );
+
   return (
     <div className="flex min-w-0 flex-col gap-3" data-storyline-narrator>
       {chapter && (
         <section className={`${panel} flex flex-col overflow-hidden`} data-storyline-chapter-card>
-          {/* The content scrolls inside a fixed height; the actions below never move. */}
-          <div
-            className="flex h-[min(50vh,30rem)] flex-col gap-3 overflow-y-auto p-4"
-            data-storyline-chapter-content
-          >
-            <p className="text-[11px] uppercase tracking-wider text-fg-muted">
+          <div className="flex items-baseline gap-2 border-b border-border-subtle px-4 py-2.5">
+            <p className="shrink-0 text-[11px] uppercase tracking-wider text-fg-muted">
               {t("Step")} {position + 1} / {chapters.length}
             </p>
-            <h2 className="text-base font-semibold text-fg-strong">{pickText(chapter.title)}</h2>
-            <p className="text-sm" data-storyline-situation>
-              {pickText(chapter.situation)}
-            </p>
-            {error && (
-              <p
-                role="alert"
-                className="rounded-md bg-critical-bg px-3 py-2 text-sm text-critical-text"
-              >
-                {error}
-              </p>
-            )}
-            {phase === "idle" && isCurrent && missing.length > 0 && (
-              <div
-                className="rounded-md bg-caution-bg px-3 py-2 text-sm text-caution-text"
-                data-storyline-missing
-              >
-                <p>{t("This step cannot run yet. Missing:")}</p>
-                <ul className="mt-1 list-disc pl-5">
-                  {missing.map((check) => (
-                    <li key={check.kind + check.name} data-localization="original">
-                      {check.kind === "reference" ? check.name : `${check.kind}: ${check.name}`}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
-            {phase === "idle" && !isCurrent && (
-              <p className="text-sm text-fg-muted">
-                {position >= 0 && current && position > chapters.indexOf(current)
-                  ? t("This step comes later in the storyline.")
-                  : t("This step has not been played.")}
-              </p>
-            )}
-            {phase === "preview" && step && (
-              <div
-                className="flex flex-col gap-2 rounded-lg border border-dashed border-accent bg-accent-soft p-3"
-                data-storyline-preview
-              >
-                <p className="text-[11px] uppercase tracking-wider text-accent">
-                  {t("Preview · nothing has happened yet")}
-                </p>
-                <dl
-                  className="grid grid-cols-[max-content_minmax(0,1fr)] gap-x-3 gap-y-1 text-[13px]"
-                  data-storyline-arguments
-                >
-                  {Object.entries(step.arguments || {})
-                    .filter(([key]) => !key.startsWith("_"))
-                    .map(([key, value]) => (
-                      <div key={key} className="contents">
-                        <dt className="text-fg-muted" data-localization="original">
-                          {key}
-                        </dt>
-                        <dd
-                          className="min-w-0 truncate font-mono text-[12px] text-fg-strong"
-                          data-localization="original"
-                        >
-                          <ArgumentValue value={value} />
-                        </dd>
-                      </div>
-                    ))}
-                </dl>
-              </div>
-            )}
-            {phase === "unresolved" && step?.error && (
-              <div className="rounded-md bg-caution-bg px-3 py-2 text-sm text-caution-text">
-                <p>
-                  {t(
-                    "The outcome of this step is unknown. Inspect the proposal before continuing.",
-                  )}
-                </p>
-                <p className="mt-1 font-mono text-[12px]" data-localization="original">
-                  {step.error.detail}
-                </p>
-              </div>
-            )}
-            {(phase === "done" || phase === "refused") && (
-              <>
-                {phase === "refused" && step?.refused && (
-                  <div
-                    className="rounded-md border-l-2 border-critical bg-critical-bg px-3 py-2 text-sm"
-                    data-storyline-refused
-                  >
-                    <p className="font-medium text-critical-text">{t("Refused by the system")}</p>
-                    <p className="mt-1 text-fg-default" data-localization="original">
-                      {step.refused.detail}
+            <h2 className="truncate text-[13.5px] font-semibold text-fg-strong">
+              {pickText(chapter.title)}
+            </h2>
+          </div>
+          {/* The conversation scrolls inside a fixed height; the composer never moves. */}
+          <div
+            className="flex h-[min(50vh,30rem)] flex-col gap-4 overflow-y-auto p-4"
+            data-storyline-chapter-content
+            ref={thread}
+          >
+            {told.map((entry) =>
+              entry.key === chapter.key ? (
+                <div key={entry.key} className="flex flex-col gap-2" data-storyline-turn="open">
+                  <Aside
+                    position={chapters.indexOf(entry) + 1}
+                    text={pickText(chapter.situation)}
+                  />
+                  {phase !== "idle" && <p className={mine}>{suggested}</p>}
+                  {error && (
+                    <p
+                      role="alert"
+                      className="rounded-md bg-critical-bg px-3 py-2 text-sm text-critical-text"
+                    >
+                      {error}
                     </p>
-                  </div>
-                )}
-                <div className="border-l-2 border-positive-text pl-3 text-[13.5px]">
-                  <p className="mb-1 text-[11px] uppercase tracking-wider text-fg-muted">
-                    {t("What happened")}
-                  </p>
-                  <p data-storyline-explain>{pickText(chapter.explain)}</p>
-                </div>
-                {expectations &&
-                  (expectations.raised.length > 0 || expectations.cleared.length > 0) && (
-                    <ul className="flex flex-col gap-1 text-[12.5px]" data-storyline-expectations>
-                      {expectations.raised.map((item) => (
-                        <li key={`r-${item.id}`} className="flex items-center gap-2">
-                          <span className={item.met ? "text-positive-text" : "text-caution-text"}>
-                            {item.met ? "✓" : "?"}
-                          </span>
-                          <span>{t("Expected to be raised")}:</span>
-                          <code className="text-[11.5px]">{item.id}</code>
-                        </li>
-                      ))}
-                      {expectations.cleared.map((item) => (
-                        <li key={`c-${item.id}`} className="flex items-center gap-2">
-                          <span className={item.met ? "text-positive-text" : "text-caution-text"}>
-                            {item.met ? "✓" : "?"}
-                          </span>
-                          <span>{t("Expected to be cleared")}:</span>
-                          <code className="text-[11.5px]">{item.id}</code>
-                        </li>
-                      ))}
-                    </ul>
                   )}
-                {chapter.branches.length > 0 && (
-                  <div className="grid gap-1.5" data-storyline-branches>
-                    <p className="text-[11px] uppercase tracking-wider text-fg-muted">
-                      {t("How does it continue?")}
+                  {phase === "idle" && isCurrent && missing.length > 0 && (
+                    <div
+                      className="rounded-md bg-caution-bg px-3 py-2 text-sm text-caution-text"
+                      data-storyline-missing
+                    >
+                      <p>{t("This step cannot run yet. Missing:")}</p>
+                      <ul className="mt-1 list-disc pl-5">
+                        {missing.map((check) => (
+                          <li key={check.kind + check.name} data-localization="original">
+                            {check.kind === "reference"
+                              ? check.name
+                              : `${check.kind}: ${check.name}`}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                  {phase === "idle" && !isCurrent && (
+                    <p className="text-sm text-fg-muted">
+                      {position >= 0 && current && position > chapters.indexOf(current)
+                        ? t("This step comes later in the storyline.")
+                        : t("This step has not been played.")}
                     </p>
-                    {chapter.branches.map((branch) => (
-                      <button
-                        key={branch.key}
-                        type="button"
-                        data-storyline-branch={branch.key}
-                        aria-pressed={
-                          (chosenBranch || defaultBranch(chapter.branches)) === branch.key
-                        }
-                        disabled={busy}
-                        onClick={() => chooseBranch(branch.key)}
-                        className="rounded-lg border border-border-default px-3 py-2 text-left text-[13px] hover:border-accent aria-pressed:border-accent aria-pressed:bg-accent-soft"
+                  )}
+                  {phase === "preview" && step && (
+                    <div
+                      className="flex max-w-[92%] flex-col gap-2 self-start rounded-xl rounded-bl-sm border border-dashed border-accent bg-accent-soft p-3"
+                      data-storyline-preview
+                    >
+                      <p className="text-[11px] uppercase tracking-wider text-accent">
+                        {t("Preview · nothing has happened yet")}
+                      </p>
+                      <dl
+                        className="grid grid-cols-[max-content_minmax(0,1fr)] gap-x-3 gap-y-1 text-[13px]"
+                        data-storyline-arguments
                       >
-                        {pickText(branch.label)}
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </>
+                        {Object.entries(step.arguments || {})
+                          .filter(([key]) => !key.startsWith("_"))
+                          .map(([key, value]) => (
+                            <div key={key} className="contents">
+                              <dt className="text-fg-muted" data-localization="original">
+                                {key}
+                              </dt>
+                              <dd
+                                className="min-w-0 truncate font-mono text-[12px] text-fg-strong"
+                                data-localization="original"
+                              >
+                                <ArgumentValue value={value} />
+                              </dd>
+                            </div>
+                          ))}
+                      </dl>
+                    </div>
+                  )}
+                  {phase === "unresolved" && step?.error && (
+                    <div className="rounded-md bg-caution-bg px-3 py-2 text-sm text-caution-text">
+                      <p>
+                        {t(
+                          "The outcome of this step is unknown. Inspect the proposal before continuing.",
+                        )}
+                      </p>
+                      <p className="mt-1 font-mono text-[12px]" data-localization="original">
+                        {step.error.detail}
+                      </p>
+                    </div>
+                  )}
+                  {(phase === "done" || phase === "refused") && (
+                    <>
+                      <div
+                        className={
+                          phase === "refused"
+                            ? `${theirs} bg-critical-bg text-critical-text`
+                            : theirs
+                        }
+                        data-storyline-refused={phase === "refused" ? "" : undefined}
+                      >
+                        <p className="font-medium">
+                          {phase === "refused" ? t("Refused by the system") : t("Recorded")}
+                        </p>
+                        {phase === "refused" && step?.refused && (
+                          <p data-localization="original">{step.refused.detail}</p>
+                        )}
+                        {expectations &&
+                          (expectations.raised.length > 0 || expectations.cleared.length > 0) && (
+                            <ul
+                              className="flex flex-wrap gap-1.5 text-[12px]"
+                              data-storyline-expectations
+                            >
+                              {expectations.raised.map((item) => (
+                                <Finding key={`r-${item.id}`} id={item.id} met={item.met} raised />
+                              ))}
+                              {expectations.cleared.map((item) => (
+                                <Finding key={`c-${item.id}`} id={item.id} met={item.met} />
+                              ))}
+                            </ul>
+                          )}
+                      </div>
+                      <Why text={pickText(chapter.explain)} open />
+                      {chapter.branches.length > 0 && (
+                        <div className="grid gap-1.5" data-storyline-branches>
+                          <p className="text-[11px] uppercase tracking-wider text-fg-muted">
+                            {t("How does it continue?")}
+                          </p>
+                          {chapter.branches.map((branch) => (
+                            <button
+                              key={branch.key}
+                              type="button"
+                              data-storyline-branch={branch.key}
+                              aria-pressed={
+                                (chosenBranch || defaultBranch(chapter.branches)) === branch.key
+                              }
+                              disabled={busy}
+                              onClick={() => chooseBranch(branch.key)}
+                              className="rounded-lg border border-border-default px-3 py-2 text-left text-[13px] hover:border-accent aria-pressed:border-accent aria-pressed:bg-accent-soft"
+                            >
+                              {pickText(branch.label)}
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                    </>
+                  )}
+                </div>
+              ) : (
+                <PastTurn
+                  key={entry.key}
+                  entry={entry}
+                  position={chapters.indexOf(entry) + 1}
+                  select={select}
+                />
+              ),
             )}
           </div>
-          {/* The action panel: one place for the next move, whatever the step shows above. */}
+          {/* The composer: the line to send, and whatever the step asks for next. */}
           <div
             className="flex flex-col gap-2 border-t border-border-subtle bg-surface-sunken/60 px-4 py-3"
             data-storyline-actions
           >
+            {composing && (
+              <>
+                <label className="sr-only" htmlFor="storyline-say">
+                  {t("Your message")}
+                </label>
+                <textarea
+                  id="storyline-say"
+                  rows={2}
+                  spellCheck={false}
+                  value={typed}
+                  disabled={busy}
+                  onChange={(event) => setTyped(event.target.value)}
+                  data-storyline-say
+                  className="w-full resize-none rounded-lg border border-border-default bg-surface-muted px-3 py-2 text-[13.5px] text-fg-strong focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent"
+                />
+                <p className="text-[11.5px] text-fg-muted" data-storyline-say-hint={String(edited)}>
+                  {edited
+                    ? t("Your own words. Continue in the sandbox itself.")
+                    : t("Suggested by the storyline. You can change it.")}
+                </p>
+              </>
+            )}
             <div className="flex min-h-9 flex-wrap items-center gap-2">
-              {phase === "idle" && isCurrent && missing.length === 0 && (
+              {composing && !edited && (
                 <button
                   type="button"
                   className="br-btn br-btn-primary"
@@ -249,7 +314,17 @@ export function StorylineNarrator({
                   disabled={busy}
                   onClick={prepare}
                 >
-                  {chapter.kind === "read" ? t("Read") : t("Prepare this step")}
+                  {t("Send")}
+                </button>
+              )}
+              {composing && edited && (
+                <button
+                  type="button"
+                  className="br-btn br-btn-primary"
+                  data-storyline-action="free-play"
+                  onClick={freePlay}
+                >
+                  {t("Work in the sandbox")}
                 </button>
               )}
               {phase === "idle" && isCurrent && missing.length > 0 && (
@@ -417,6 +492,86 @@ export function StorylineNarrator({
       </nav>
     </div>
   );
+}
+
+/** The colleague behind you. Deliberately not a bubble, so two voices stay two. */
+function Aside({ position, text }: { position: number; text: string }) {
+  return (
+    <p className="flex items-baseline gap-2 text-[12px] text-fg-muted" data-storyline-situation>
+      <span className="shrink-0 rounded border border-border-default px-1.5 font-mono text-[10px] text-fg-quiet">
+        {position}
+      </span>
+      <span>{text}</span>
+    </p>
+  );
+}
+
+/** A turn that already happened: what was said, how it ended, why on request. */
+function PastTurn({
+  entry,
+  position,
+  select,
+}: {
+  entry: StorylineChapterEntry;
+  position: number;
+  select: (key: string) => void;
+}) {
+  const refused = entry.step_status === "refused";
+  return (
+    <div className="flex flex-col gap-1.5 opacity-80" data-storyline-turn="past">
+      <p className={mine}>{spokenLine(entry.say, entry.title)}</p>
+      <div className={refused ? `${theirs} bg-critical-bg text-critical-text` : theirs}>
+        <button
+          type="button"
+          onClick={() => select(entry.key)}
+          data-storyline-turn-open={entry.key}
+          className="text-left font-medium hover:underline"
+        >
+          {refused ? t("Refused by the system") : t("Recorded")}
+        </button>
+      </div>
+      <Why text={pickText(entry.explain)} position={position} />
+    </div>
+  );
+}
+
+/** The explanation. Long enough that a conversation keeps it one click away. */
+function Why({ text, open, position }: { text: string; open?: boolean; position?: number }) {
+  if (!text) return null;
+  return (
+    <details
+      open={open}
+      className="max-w-[92%] self-start rounded-xl border border-border-subtle px-3 py-2"
+      data-storyline-why={position ? String(position) : undefined}
+    >
+      <summary className="cursor-pointer text-[11px] uppercase tracking-wider text-fg-muted">
+        {t("What happened")}
+      </summary>
+      <p className="mt-1 text-[13px]" data-storyline-explain>
+        {text}
+      </p>
+    </details>
+  );
+}
+
+function Finding({ id, met, raised }: { id: string; met: boolean; raised?: boolean }) {
+  return (
+    <li
+      className={`inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 ${findingTone[met ? "met" : "open"]}`}
+    >
+      {/* The tick answers one question: did what the chapter announced happen? */}
+      <span aria-hidden="true">{met ? "✓" : "?"}</span>
+      <span className="sr-only">
+        {raised ? t("Expected to be raised") : t("Expected to be cleared")}
+      </span>
+      <code className="text-[11px]">{id}</code>
+    </li>
+  );
+}
+
+/** What the person says. Without a `say` line the chapter title has to do. */
+function spokenLine(say: StorylineText | null | undefined, title: StorylineText): string {
+  return pickText(say) || pickText(title);
 }
 
 function defaultBranch(branches: Array<{ key: string; default: boolean }>): string | null {

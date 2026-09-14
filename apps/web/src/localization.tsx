@@ -15577,3 +15577,33 @@ Object.assign(dictionaries.es, {
   "E-mail address": "Dirección de correo electrónico",
   "Type the address exactly as shown.": "Escribe la dirección exactamente como se muestra.",
 });
+// Spec 182: the storyline narrator reads as a conversation.
+Object.assign(dictionaries.de, {
+  Send: "Senden",
+  Recorded: "Erledigt",
+  "Your message": "Deine Nachricht",
+  "Suggested by the storyline. You can change it.":
+    "Von der Storyline vorgeschlagen. Ändern ist erlaubt.",
+  "Your own words. Continue in the sandbox itself.":
+    "Eigene Worte. Dann arbeitest du direkt in der Sandbox weiter.",
+  "Work in the sandbox": "In der Sandbox arbeiten",
+});
+Object.assign(dictionaries.nl, {
+  Send: "Versturen",
+  Recorded: "Vastgelegd",
+  "Your message": "Jouw bericht",
+  "Suggested by the storyline. You can change it.":
+    "Voorgesteld door de storyline. Je mag het wijzigen.",
+  "Your own words. Continue in the sandbox itself.":
+    "Eigen woorden. Dan werk je verder in de sandbox zelf.",
+  "Work in the sandbox": "In de sandbox werken",
+});
+Object.assign(dictionaries.es, {
+  Send: "Enviar",
+  Recorded: "Registrado",
+  "Your message": "Tu mensaje",
+  "Suggested by the storyline. You can change it.": "Sugerido por la storyline. Puedes cambiarlo.",
+  "Your own words. Continue in the sandbox itself.":
+    "Tus propias palabras. Entonces sigues trabajando en el sandbox.",
+  "Work in the sandbox": "Trabajar en el sandbox",
+});

@@ -70,6 +70,17 @@
         "explain": {
           "$ref": "#/$defs/Text"
         },
+        "say": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Text"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
         "view": {
           "anyOf": [
             {

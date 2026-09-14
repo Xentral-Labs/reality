@@ -130,6 +130,15 @@ chapters:
       es:
         Nordlicht Handels GmbH pide 12 tazas térmicas Fjord a 24,50 €. Hay 8 en existencia. Crea el
         pedido y observa qué hace Reality con él.
+    say:
+      en: Create an order for Nordlicht, 12 Fjord thermo mugs at 24.50 €, delivery in five days.
+      de:
+        Leg einen Auftrag für Nordlicht an, 12 Fjord Thermo-Becher zu 24,50 €, Lieferung in fünf
+        Tagen.
+      nl:
+        Maak een order voor Nordlicht aan, 12 Fjord-thermobekers à 24,50 €, levering over vijf
+        dagen.
+      es: Crea un pedido para Nordlicht, 12 tazas térmicas Fjord a 24,50 €, entrega en cinco días.
     explain:
       en:
         One command, several events. The order and its commitment are separate records because they
@@ -194,6 +203,11 @@ chapters:
       es:
         El correo del cliente nombra su orden de compra PO-2026-118. Registra esa referencia como
         Hecho en el documento del pedido.
+    say:
+      en: The customer's e-mail names PO-2026-118. Record that on the order document.
+      de: In der Kunden-E-Mail steht die Bestellnummer PO-2026-118. Halt die am Auftragsbeleg fest.
+      nl: In de e-mail van de klant staat PO-2026-118. Leg dat vast op het orderdocument.
+      es: El correo del cliente indica PO-2026-118. Regístralo en el documento del pedido.
     explain:
       en:
         A Fact is something Reality holds to be true about a record, with a source and a time. It is
@@ -247,6 +261,13 @@ chapters:
       es:
         Baltic Supply entrega contra el pedido de compra BE-0107. El albarán dice 20 tazas, la caja
         tiene 16. Registra lo que realmente hay, no lo que dice el papel.
+    say:
+      en: Baltic delivers against BE-0107. The note says 20, the box holds 16. Book the 16.
+      de:
+        Baltic liefert gegen BE-0107. Auf dem Lieferschein stehen 20, im Karton sind 16. Buch die 16
+        ein.
+      nl: Baltic levert op BE-0107. Op de pakbon staan er 20, in de doos 16. Boek de 16 in.
+      es: Baltic entrega contra BE-0107. El albarán dice 20, la caja tiene 16. Registra las 16.
     explain:
       en:
         The difference is not booked away. The supplier commitment stays open with 4 pieces, and
@@ -292,6 +313,11 @@ chapters:
       de: Jetzt liegen 24 Becher am Lager. Reserviere sie für den Nordlicht-Auftrag.
       nl: Er liggen nu 24 bekers op voorraad. Reserveer ze voor de order van Nordlicht.
       es: Ahora hay 24 tazas en existencia. Resérvalas para el pedido de Nordlicht.
+    say:
+      en: Reserve the stock for the Nordlicht order.
+      de: Reservier den Bestand für den Nordlicht-Auftrag.
+      nl: Reserveer de voorraad voor de order van Nordlicht.
+      es: Reserva la existencia para el pedido de Nordlicht.
     explain:
       en:
         The reservation covers the whole promise, so the rule that raised "customer commitment at
@@ -339,6 +365,11 @@ chapters:
       es:
         La mercancía está reservada. Registra el envío de 12 tazas a Nordlicht. Expectativa, pasa.
         Observa qué ocurre.
+    say:
+      en: Ship the 12 mugs to Nordlicht.
+      de: Schick die 12 Becher an Nordlicht raus.
+      nl: Verstuur de 12 bekers naar Nordlicht.
+      es: Envía las 12 tazas a Nordlicht.
     explain:
       en:
         Refused, not aborted. The preparation itself was declined because the customer carries a
@@ -408,6 +439,19 @@ chapters:
         El bloqueo viene de la factura RE-0389 por 1.180,00 €, vencida hace seis semanas. Pide a
         Reality que explique la cuenta por cobrar vencida y lee el saldo del cliente. En este
         capítulo no se escribe nada.
+    say:
+      en:
+        Why was the shipment refused? Explain the overdue receivable and show me Nordlicht's
+        balance.
+      de:
+        Warum wird der Versand verweigert? Erklär mir die überfällige Forderung und zeig mir den
+        Saldo von Nordlicht.
+      nl:
+        Waarom is de verzending geweigerd? Verklaar de achterstallige vordering en toon me het saldo
+        van Nordlicht.
+      es:
+        ¿Por qué se rechazó el envío? Explica la cuenta por cobrar vencida y muéstrame el saldo de
+        Nordlicht.
     explain:
       en:
         Reads are traced too. The explanation names the rule, the evidence and what clears the
@@ -458,6 +502,11 @@ chapters:
       es:
         Antes de llamar al cliente, lee su saldo y sus compromisos abiertos. En este capítulo no se
         escribe nada.
+    say:
+      en: Before I call — show me Nordlicht's balance and every open commitment.
+      de: Bevor ich anrufe — zeig mir den Saldo von Nordlicht und alle offenen Verpflichtungen.
+      nl: Voor ik bel — toon me het saldo van Nordlicht en alle open verplichtingen.
+      es: Antes de llamar — muéstrame el saldo de Nordlicht y todos los compromisos abiertos.
     explain:
       en:
         The balance list is a live read over postings and allocations. It shows 1,180.00 € overdue
@@ -504,6 +553,19 @@ chapters:
       es:
         Dos días después Nordlicht transfiere 1.300,00 € con la referencia RE-0389. La factura es de
         1.180,00 €. Registra el pago tal como llegó, asignando 1.180,00 € a la factura.
+    say:
+      en:
+        Nordlicht transferred 1,300.00 € referencing RE-0389. Record the payment as it came and
+        allocate 1,180.00 € to the invoice.
+      de:
+        Nordlicht hat 1.300,00 € mit Referenz RE-0389 überwiesen. Buch die Zahlung so, wie sie kam,
+        und verrechne 1.180,00 € mit der Rechnung.
+      nl:
+        Nordlicht heeft 1.300,00 € overgemaakt met referentie RE-0389. Boek de betaling zoals ze
+        kwam en wijs 1.180,00 € toe aan de factuur.
+      es:
+        Nordlicht transfirió 1.300,00 € con la referencia RE-0389. Registra el pago tal como llegó y
+        asigna 1.180,00 € a la factura.
     explain:
       en:
         The payment is neutral, the rules make the story. The invoice is settled and "overdue
@@ -560,6 +622,11 @@ chapters:
       de: Die Rechnung ist bezahlt. Hebe die Liefersperre für Nordlicht auf.
       nl: De factuur is betaald. Hef de leverblokkade voor Nordlicht op.
       es: La factura está pagada. Levanta el bloqueo de entrega de Nordlicht.
+    say:
+      en: The invoice is paid. Release the delivery hold on Nordlicht.
+      de: Die Rechnung ist bezahlt. Heb die Liefersperre für Nordlicht auf.
+      nl: De factuur is betaald. Hef de leverblokkade voor Nordlicht op.
+      es: La factura está pagada. Levanta el bloqueo de entrega de Nordlicht.
     explain:
       en:
         A release is its own event on the same hold record, not a deletion. The blockers view no
@@ -597,6 +664,11 @@ chapters:
       de: Erfasse jetzt den Versand von 12 Bechern an Nordlicht erneut.
       nl: Leg nu de verzending van 12 bekers aan Nordlicht opnieuw vast.
       es: Ahora registra de nuevo el envío de 12 tazas a Nordlicht.
+    say:
+      en: Then try again and ship the 12 mugs.
+      de: Dann versuch es nochmal und schick die 12 Becher raus.
+      nl: Probeer het dan opnieuw en verstuur de 12 bekers.
+      es: Entonces inténtalo otra vez y envía las 12 tazas.
     explain:
       en:
         The same command that was refused two chapters ago now succeeds. The movement fulfils the
@@ -643,6 +715,11 @@ chapters:
       de: Stelle Rechnung RE-0041 für die 12 versendeten Becher, 294,00 € wie im Auftrag angegeben.
       nl: Maak factuur RE-0041 voor de 12 verzonden bekers, 294,00 € zoals op de order staat.
       es: Emite la factura RE-0041 por las 12 tazas enviadas, 294,00 € tal como consta en el pedido.
+    say:
+      en: Issue invoice RE-0041 for the 12 mugs shipped, 294.00 €.
+      de: Stell Rechnung RE-0041 über die 12 versendeten Becher, 294,00 €.
+      nl: Maak factuur RE-0041 voor de 12 verzonden bekers, 294,00 €.
+      es: Emite la factura RE-0041 por las 12 tazas enviadas, 294,00 €.
     explain:
       en:
         The invoice records the stated amount, it does not compute one. "Shipped, not billed" clears
@@ -711,6 +788,11 @@ chapters:
       de: Verrechne die 120,00 €, die der Kunde zu viel gezahlt hat, mit der neuen Rechnung RE-0041.
       nl: Verreken de 120,00 € die de klant te veel betaalde met de nieuwe factuur RE-0041.
       es: Aplica los 120,00 € que el cliente pagó de más a la nueva factura RE-0041.
+    say:
+      en: Use the 120.00 € credit against the new invoice RE-0041.
+      de: Verrechne die 120,00 € Guthaben mit der neuen Rechnung RE-0041.
+      nl: Verreken het tegoed van 120,00 € met de nieuwe factuur RE-0041.
+      es: Aplica el crédito de 120,00 € a la nueva factura RE-0041.
     explain:
       en:
         An allocation moves nothing in the bank. It links existing credit to an open claim. The
@@ -762,6 +844,11 @@ chapters:
     situation:
       en: Pay the 120.00 € back to Nordlicht and record the refund.
       de: Zahle die 120,00 € an Nordlicht zurück und erfasse die Erstattung.
+      nl: Betaal de 120,00 € terug aan Nordlicht en leg de terugbetaling vast.
+      es: Devuelve los 120,00 € a Nordlicht y registra el reembolso.
+    say:
+      en: Pay the 120.00 € back to Nordlicht and record the refund.
+      de: Zahl Nordlicht die 120,00 € zurück und erfasse die Erstattung.
       nl: Betaal de 120,00 € terug aan Nordlicht en leg de terugbetaling vast.
       es: Devuelve los 120,00 € a Nordlicht y registra el reembolso.
     explain:
@@ -826,6 +913,11 @@ chapters:
       de: Lass die 120,00 € als Guthaben für die nächste Rechnung stehen und lies die Guthabenliste.
       nl: Laat de 120,00 € als tegoed voor de volgende factuur staan en lees de tegoedlijst.
       es: Deja los 120,00 € como crédito para la próxima factura y lee la lista de créditos.
+    say:
+      en: Leave the 120.00 € as credit and show me the credit list.
+      de: Lass die 120,00 € als Guthaben stehen und zeig mir die Guthabenliste.
+      nl: Laat de 120,00 € als tegoed staan en toon me de tegoedenlijst.
+      es: Deja los 120,00 € como crédito y muéstrame la lista de créditos.
     explain:
       en:
         Nothing is written. The credit stays available and the unmatched finding stays open, which
@@ -866,6 +958,12 @@ chapters:
       es:
         Tras el envío quedan 12 tazas y Baltic aún debe 4. Lee la existencia y los compromisos
         abiertos antes de decidir si reordenar.
+    say:
+      en: How does stock look, and what is still open? Show me both before I reorder.
+      de:
+        Wie sieht der Bestand aus, und was ist noch offen? Zeig mir beides, bevor ich nachbestelle.
+      nl: Hoe staat de voorraad ervoor en wat staat nog open? Toon me beide voor ik bijbestel.
+      es: ¿Cómo está la existencia y qué sigue abierto? Muéstrame ambas antes de volver a pedir.
     explain:
       en:
         Stock is derived from movements, never stored as a number someone typed. The open supplier
@@ -923,6 +1021,11 @@ chapters:
       de: Bestelle 40 Becher bei Baltic Supply zur Lieferung in zehn Tagen.
       nl: Bestel 40 bekers bij Baltic Supply voor levering over tien dagen.
       es: Pide 40 tazas a Baltic Supply para entrega en diez días.
+    say:
+      en: Order 40 mugs from Baltic Supply, delivery in ten days.
+      de: Bestell 40 Becher bei Baltic Supply, Lieferung in zehn Tagen.
+      nl: Bestel 40 bekers bij Baltic Supply, levering over tien dagen.
+      es: Pide 40 tazas a Baltic Supply, entrega en diez días.
     explain:
       en:
         A purchase order raises the expected incoming quantity, not the stock. That is why it is its
@@ -972,6 +1075,11 @@ chapters:
       de: Bestelle 20 Becher bei Baltic Supply zur Lieferung in zehn Tagen.
       nl: Bestel 20 bekers bij Baltic Supply voor levering over tien dagen.
       es: Pide 20 tazas a Baltic Supply para entrega en diez días.
+    say:
+      en: Order 20 mugs from Baltic Supply, delivery in ten days.
+      de: Bestell 20 Becher bei Baltic Supply, Lieferung in zehn Tagen.
+      nl: Bestel 20 bekers bij Baltic Supply, levering over tien dagen.
+      es: Pide 20 tazas a Baltic Supply, entrega en diez días.
     explain:
       en:
         The smaller order records the same kind of commitment with a smaller quantity. Nothing else
@@ -1028,6 +1136,14 @@ chapters:
       es:
         El mes ha terminado. Lee lo que sigue abierto, los hallazgos, los saldos de clientes y los
         compromisos. En este capítulo no se escribe nada.
+    say:
+      en: The month is over. Show me what is still open — findings, customer balances, commitments.
+      de:
+        Der Monat ist rum. Zeig mir, was noch offen ist — Abweichungen, Kundensalden,
+        Verpflichtungen.
+      nl: De maand is om. Toon me wat nog openstaat — bevindingen, klantsaldi, verplichtingen.
+      es:
+        El mes terminó. Muéstrame lo que sigue abierto — hallazgos, saldos de clientes, compromisos.
     explain:
       en:
         A review deletes nothing. Every finding that is still open names what clears it. The 4

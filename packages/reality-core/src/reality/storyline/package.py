@@ -196,6 +196,9 @@ class Chapter(_Strict):
     title: Text
     situation: Text
     explain: Text
+    # What the person would say to do this step, in their own voice. Optional;
+    # the conversation view falls back to the chapter title without it.
+    say: Text | None = None
     view: str | None = Field(default=None, max_length=80)
     kind: Literal["command", "read", "unsupported"] = "command"
     command: str | None = Field(default=None, max_length=120)
@@ -267,6 +270,8 @@ class StorylinePackage(_Strict):
             yield f"{where}.title", chapter.title
             yield f"{where}.situation", chapter.situation
             yield f"{where}.explain", chapter.explain
+            if chapter.say is not None:
+                yield f"{where}.say", chapter.say
             for b, branch in enumerate(chapter.branches):
                 yield f"{where}.branches[{b}].label", branch.label
 
