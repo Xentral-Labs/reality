@@ -254,6 +254,7 @@ def _commitment_trace(
         "commitment_id": row.id,
         "document_line_id": line.id if line else None,
         "document_id": document.id if document else None,
+        "document_number": document.number if document else None,
         "source_record_id": source_id,
         "source_absent": source_id is None,
     }
