@@ -2882,7 +2882,11 @@ def test_lag_classes_expose_full_entry_shape(session, business):
         "commitment_id",
         "document_line_id",
         "document_id",
+        "document_number",
+        "customer_reference",
         "source_record_id",
+        "source_system",
+        "source_external_id",
         # A presence flag the commitment classes already carry, not a business
         # field: it says whether a source exists, never what it said.
         "source_absent",

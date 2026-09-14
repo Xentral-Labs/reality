@@ -20,6 +20,7 @@ from reality.db.core import (
     Item,
     Movement,
     Reservation,
+    SourceRecord,
 )
 from reality.services.core import _effective_commitment_value, _movement_quantities
 
@@ -33,6 +34,7 @@ class _ExceptionInputs:
     last_movements: dict[tuple[str | None, str], datetime]
     reserved: dict[str, Decimal]
     documents: dict[str, Document]
+    sources: dict[str, SourceRecord]
     lines: dict[str, DocumentLine]
     items: dict[str, Item]
     billing: dict[str, list[DocumentLine]]
@@ -81,6 +83,15 @@ def _load(session: Session, tenant_id: str) -> _ExceptionInputs:
             select(Document).where(Document.tenant_id == tenant_id)
         )
     }
+    sources = {
+        row.id: row
+        for row in session.scalars(
+            select(SourceRecord)
+            .join(Document, Document.source_record_id == SourceRecord.id)
+            .where(Document.tenant_id == tenant_id)
+            .distinct()
+        )
+    }
     lines = {
         row.id: row
         for row in session.scalars(
@@ -119,6 +130,7 @@ def _load(session: Session, tenant_id: str) -> _ExceptionInputs:
             )
         },
         documents=documents,
+        sources=sources,
         lines=lines,
         items={
             row.id: row

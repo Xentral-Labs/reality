@@ -1138,6 +1138,24 @@ def test_same_titled_exceptions_show_their_distinct_source_orders(session, busin
             "shopify · ORDER-101",
             "shopify · ORDER-202",
         ]
+        from reality.services.exceptions import operational_exceptions
+
+        traces = {
+            row.record_id: row.trace
+            for row in operational_exceptions(session, business.tenant.id)
+        }
+        assert [
+            (
+                trace["document_number"],
+                trace["source_system"],
+                trace["source_external_id"],
+                trace["customer_reference"],
+            )
+            for trace in (traces[commitment.id] for commitment in commitments)
+        ] == [
+            ("ORDER-101", "shopify", "ORDER-101", None),
+            ("ORDER-202", "shopify", "ORDER-202", None),
+        ]
     finally:
         app.dependency_overrides.clear()
 
