@@ -2044,23 +2044,31 @@ textarea {
   text-align: left;
 }
 
-/* Reference-style global chat: messages are a document, composer is one surface. */
-.reality-chat .reality-chat-message,
+/* Distinct conversation turns, with quiet author metadata for assistive readers. */
+.reality-chat-message {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  font-size: 14px;
+  line-height: 1.75;
+  color: var(--color-fg-strong);
+}
+.reality-chat-message[data-chat-role="user"] {
+  width: fit-content;
+  max-width: 85%;
+  margin-inline-start: auto;
+  padding: 12px 18px;
+  border-radius: 22px;
+  background: var(--color-surface-muted);
+}
+.reality-chat-message[data-chat-role="assistant"] {
+  width: 100%;
+  padding: 4px 0;
+  background: transparent;
+}
 .reality-chat .reality-chat-empty {
   border: 0;
-  border-radius: 0;
   background: transparent;
-  margin: 0;
   padding: 8px 0 16px;
-  font-size: 14px;
-  line-height: 1.7;
-}
-.reality-chat .reality-chat-meta {
-  font-size: 11px;
-  opacity: 0.7;
-}
-.reality-chat .reality-chat-meta time {
-  display: none;
 }
 .reality-chat table {
   width: 100%;

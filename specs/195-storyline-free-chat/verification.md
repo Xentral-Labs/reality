@@ -141,3 +141,15 @@ cleanup, focus/voice/attachment regressions and computed animation checks for no
 and reduced motion. Screenshot reviewed. Web build passed (168 tests, four-language
 audit 1853/1853, TypeScript/Vite); spec and diff checks passed. Local 8080 serves
 `index-DVzMXZjN.js`. No backend or generated catalog changes.
+
+## Conversation turn styling (2026-09-15)
+
+Removed the CSS flattening of both roles. User turns now fit their content in neutral
+right-aligned bubbles (maximum 85%); assistant turns remain unboxed and left-aligned.
+Reading width is bounded and turns have more spacing. Author/time metadata remains
+accessible without visual clutter, and evidence remains attached to its reply.
+Shared composer browser passed role geometry/background assertions, immediate echo,
+status/focus/attachment/voice behavior and light/dark mobile/desktop overflow checks.
+Reviewed the pending-conversation screenshot. Web build passed (168 tests, four-language
+audit, TypeScript/Vite); spec, formatting and diff checks passed. Local 8080 serves
+`index-BvZk2txK.js`. No backend or generated catalog change.

@@ -81,3 +81,10 @@ Replace the faint pulsing icon with a shared ChatPage status panel: accent-soft
 background and border, solid accent icon tile, rotating white LoaderCircle, strong
 label. Use role=status and hide the decorative icon; motion-reduce disables rotation.
 Reuse sending state. Constitution Check: PASS; presentation only.
+
+## Conversation presentation
+Shared ChatPage renders role-specific attributes and neutral user bubbles on the
+right; assistant responses are unboxed on the left. Remove the CSS override that
+currently flattens both roles. Limit reading width, increase turn spacing and hide
+visual author/time metadata with accessible text. Keep Markdown and evidence inside
+their existing replies. Constitution Check: PASS; presentation only.

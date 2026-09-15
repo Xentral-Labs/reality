@@ -209,6 +209,20 @@ try {
   assert.ok((await pending.textContent()).includes("Question with retained failure"));
   assert.ok((await pending.textContent()).startsWith("You"));
   assert.equal(await input.inputValue(), "");
+  const userTurn = pending;
+  const assistantTurn = dock.locator('[data-chat-role="assistant"]').first();
+  const userBox = await userTurn.boundingBox();
+  const assistantBox = await assistantTurn.boundingBox();
+  assert.ok(userBox.x > assistantBox.x, "user bubbles are right aligned");
+  assert.ok(userBox.width < assistantBox.width, "user bubbles fit their content");
+  assert.notEqual(
+    await userTurn.evaluate((node) => getComputedStyle(node).backgroundColor),
+    "rgba(0, 0, 0, 0)",
+  );
+  assert.equal(
+    await assistantTurn.evaluate((node) => getComputedStyle(node).backgroundColor),
+    "rgba(0, 0, 0, 0)",
+  );
   await dock.getByRole("status").filter({ hasText: "Reality is working…" }).waitFor();
   const indicator = dock.locator("[data-chat-working] svg");
   assert.notEqual(await indicator.evaluate((node) => getComputedStyle(node).animationName), "none");

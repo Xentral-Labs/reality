@@ -36,3 +36,6 @@ as one coherent increment because free chat must carry truthful evidence.
 
 - [x] T015 [FR-010] Strengthen chat pending status, localize and verify pending/settled
   lifecycle and reduced motion; update web preview and PR.
+
+- [x] T016 [FR-011] Restyle chat turns, add geometry/theme browser checks, verify
+  build/browser and update preview/PR.
