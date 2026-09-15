@@ -57,3 +57,13 @@ platform admin permission is authoritative. No constitutional/schema exception.
 | FR-001–004, FR-006 | Service tests for lifetime/reset/replay/concurrency/auth/audit |
 | FR-003–006 | Authenticated API tests and browser usage confirmation/history |
 | FR-005 | Web tests/build/i18n and responsive browser |
+
+## Simplified usage reset (2026-09-15)
+FR-007: Own-account Usage shows consumption, the scheduled reset and one Reset usage
+button only when self-extension is eligible, with “You can reset your usage to keep chatting.”
+The explicit button click confirms the existing +20 grant; no preview dialog, count of
+remaining extensions, recipient form, mode selection or history is shown. The backend
+lifetime limit, actual consumption and attribution remain intact. This supersedes the
+Settings presentation in FR-005; admin grants/history remain available through existing
+authenticated APIs. After success show refreshed availability and concise feedback;
+a failed retry preserves its request identity. No hidden automatic grants.

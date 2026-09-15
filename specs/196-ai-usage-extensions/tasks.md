@@ -6,3 +6,5 @@
 - [x] T004 [US2] Add Settings Usage controls/history, API types and translations in apps/web/src/.
 - [x] T005 [US1] Browser verification, full required checks, docs and local preview.
 - [ ] T006 Publish the verified changes to existing PR 15 after explicit push approval.
+
+- [x] T007 [FR-007] Simplify Usage reset, update browser regression first, verify eligibility/retry/locales/build and local preview.

@@ -34,3 +34,16 @@ Local API and web preview updated; no live self extensions consumed. Final UI as
 `index-DDAADpXz.js`. The implementation is committed locally. Updating PR 15 is pending explicit user
 approval: automatic review rejected the push despite verification of the existing
 repository/branch, citing lack of explicit approval for this payload transfer.
+
+## Simplified reset (FR-007, 2026-09-15)
+Own-account Usage now offers one explicit Reset usage button when eligible.
+Removed recipient/mode/admin controls, preview, lifetime count and history from
+this presentation. Existing API authorization, account limit, immutable audit and
+retry identity are unchanged. Total daily consumption includes granted allowance.
+
+170 web tests, TypeScript/Vite, four-language audit, spec policy and diff checks
+passed. Synthetic browser checks passed explicit click/no automatic POST, failed
+retry identity, success/refreshed availability, exhausted lifetime, admin visibility
+and four mobile locales. Reviewed mobile screenshots; no real grants consumed.
+Local 8080 updated. Review: no remaining issue; adapter-only, no backend/schema change.
+GitHub publication still awaits previously requested explicit approval.
