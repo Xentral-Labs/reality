@@ -94,6 +94,9 @@ input while preventing edits/submission.
   counts, exact reset time and a Settings usage link. Settings exposes the same current
   allowance through existing authorized reads. No invented plan/upgrade destination.
   Only exhaustion appears at the composer, preserving disabled sending.
+- **FR-013**: Free Play occupies the viewport below the app header. Long chat
+  histories scroll only within the message list; app navigation, chat headers and
+  composer retain their positions, including at scroll boundaries and short screens.
 - **DR-001**: Source → Evidence → Reality, shared services, admission and tenant scope
   remain authoritative. No adapter business writes or new schema.
 
@@ -118,6 +121,7 @@ None. The owner explicitly requested the independent entry and removal from each
 |---|---|
 | FR-001–002, FR-005 | Storyline/contextual and independent browser interactions and layouts |
 | FR-003–004, DR-001 | PostgreSQL exact evidence, proposal lifecycle, scope and retention tests |
+| FR-013 | Long-history browser scroll geometry and viewport checks |
 | FR-012 | Free Playground browser allowance disclosure and exhaustion checks |
 | FR-011 | Shared chat browser role geometry/background, echo and responsive theme checks |
 | FR-010 | Shared composer browser pending/settled status and reduced-motion checks |

@@ -316,6 +316,15 @@ await page.route("**/api/**", async (route) => {
       return reply(independentSession);
     }
     if (p.endsWith("/copilot/sessions/independent-chat/messages") && req.method() === "POST") {
+      if (!independentMessages.length)
+        independentMessages.push(
+          ...Array.from({ length: 24 }, (_, index) => ({
+            id: `history-${index}`,
+            role: "user",
+            content: `Earlier Sandbox question ${index}. `.repeat(8),
+            created_at: "2026-09-15T09:00:00Z",
+          })),
+        );
       independentMessages.push(
         {
           id: "independent-question",
@@ -697,6 +706,67 @@ await page.route("**/api/**", async (route) => {
 
 // 1. A company without a run shows the library; import refuses a bad file with every
 // error, accepts a good one, and removes it again; download is a plain link.
+async function assertContainedScroll() {
+  for (const [width, height] of [
+    [1440, 900],
+    [390, 640],
+    [1440, 500],
+  ]) {
+    await page.setViewportSize({ width, height });
+    const list = page.locator("[data-independent-free-play] [data-chat-messages]");
+    const header = page.locator("[data-independent-free-play] > header");
+    const input = page.locator("[data-independent-free-play] textarea");
+    await list.evaluate((node) => {
+      node.scrollTop = 0;
+    });
+    const headerBefore = await header.boundingBox();
+    const inputBefore = await input.boundingBox();
+    assert.ok(inputBefore.y + inputBefore.height <= height, "composer stays in viewport");
+    assert.equal(
+      await page.evaluate(() => document.documentElement.scrollHeight > innerHeight),
+      false,
+    );
+    const box = await list.boundingBox();
+    await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+    await page.mouse.wheel(0, 700);
+    await page.waitForFunction(
+      () =>
+        document.querySelector("[data-independent-free-play] [data-chat-messages]").scrollTop > 0,
+    );
+    assert.equal((await header.boundingBox()).y, headerBefore.y);
+    assert.equal((await input.boundingBox()).y, inputBefore.y);
+    assert.equal(await page.evaluate(() => scrollY), 0);
+    await list.evaluate((node) => {
+      node.scrollTop = node.scrollHeight;
+    });
+    await page.mouse.wheel(0, 1200);
+    assert.equal(await page.evaluate(() => scrollY), 0);
+  }
+}
+if (process.env.FREE_PLAY_SCROLL_ONLY === "1") {
+  independentCreated = true;
+  independentSession = { id: "independent-chat", title: "Independent chat" };
+  independentMessages.push(
+    ...Array.from({ length: 24 }, (_, index) => ({
+      id: `scroll-${index}`,
+      role: "user",
+      content: "Earlier Sandbox question. ".repeat(20),
+      created_at: "2026-09-15T09:00:00Z",
+    })),
+  );
+  await page.goto(`${base}/app/free-play?tenant=independent&play=chat`);
+  await page.locator("[data-independent-free-play] textarea").waitFor();
+  await assertContainedScroll();
+  await page.reload();
+  await page.locator("[data-independent-free-play] textarea").waitFor();
+  assert.equal(await page.evaluate(() => scrollY), 0);
+  assert.deepEqual(errors, []);
+  await browser.close();
+  console.log(
+    "PASS: long-history scroll remains within Free Play at desktop, mobile and short heights; header/composer geometry, document boundaries and reload stay stable.",
+  );
+  process.exit(0);
+}
 await page.goto(`${base}/app/storyline?tenant=plain`);
 await page.locator("[data-storyline-library]").waitFor();
 assert.match(
@@ -956,6 +1026,8 @@ await page.locator("[data-independent-free-play] textarea").press("Enter");
 await page
   .locator('[data-independent-free-play] [data-chat-evidence="independent-answer"]')
   .waitFor();
+await assertContainedScroll();
+await page.setViewportSize({ width: 1280, height: 900 });
 const writesBeforeReopen = writes.length;
 await page.reload();
 await page.locator("[data-independent-free-play] textarea").waitFor();

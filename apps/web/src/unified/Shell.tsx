@@ -194,7 +194,11 @@ export function Shell({
     <RegisterHeaderTarget.Provider value={registerHeader}>
       <PageActionTarget.Provider value={pageActions}>
         <PageCountTarget.Provider value={pageCount}>
-          <div ref={shellRef} className="app-shell min-h-screen bg-bg text-fg-default">
+          <div
+            ref={shellRef}
+            data-contained-chat={selection.route === "free-play" || undefined}
+            className="app-shell min-h-screen bg-bg text-fg-default"
+          >
             <header
               ref={headerRef}
               data-shell-header
@@ -278,7 +282,7 @@ export function Shell({
                 </div>
               </HeaderControls>
             </header>
-            <div className={`lg:grid ${dockOpen ? dockGrid : wideGrid}`}>
+            <div data-shell-body className={`lg:grid ${dockOpen ? dockGrid : wideGrid}`}>
               {open && (
                 <button
                   className="fixed inset-0 z-30 bg-black/30 lg:hidden"

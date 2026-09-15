@@ -180,3 +180,19 @@ exhaustion behavior. Storyline/company browser passed outer-header portal placem
 absence from inner header/composer, chat, reload and tenant isolation. Spec, formatting
 and diff checks passed. Local 8080 serves `index-DdUm5kt_.js`. No backend/schema or
 generated catalog changes.
+
+## Free Play scroll containment (2026-09-15)
+
+Bound shell/body/main and the company-scoped content wrapper to the available viewport.
+Removed the card's competing viewport/minimum height. Chat articles now position their
+screen-reader metadata locally so absolute author labels cannot inflate document height.
+
+The new integration assertions first exposed an unbounded content wrapper, then the
+metadata overflow. Both were fixed. A dedicated browser path runs those same scroll
+assertions with 24 long turns at 1440×900, 390×640 and 1440×500: message scrollTop changes
+while header/composer positions and window scrollY remain stable; scroll boundaries
+and reload stay contained. Final focused run passed. Computed document/body/viewport
+heights matched in all three sizes; screenshots reviewed. Final web build, language
+audit, spec policy, formatting and diff checks passed. An intermediate audit mistook
+an inline class expression for text; extracting the class constant resolved it.
+Other routes retain their scrolling; no backend/catalog change. Updated local 8080.

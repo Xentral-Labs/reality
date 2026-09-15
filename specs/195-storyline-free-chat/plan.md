@@ -100,3 +100,13 @@ for keyboard, Escape and outside-click dismissal. Render it in the Free Play hea
 via a portal target; other chat uses its own header. Settings usage reads existing
 copilot allowance and displays used/remaining/reset only. No plan API exists: do not
 invent tariffs or upgrade links. Constitution Check: PASS, read-only existing services.
+
+## Free Play scroll containment
+Constrain only Free Play shell/body/main to the available dynamic viewport height.
+The card flexes within main rather than adding a fixed viewport height and minimum
+height. Existing message list owns scrolling with overscroll containment; navigation
+keeps its independent overflow. Constitution Check: PASS; layout only.
+
+The company-scoped UnifiedApp wrapper also needs min-height:0 and flex sizing.
+Each chat article establishes positioning for its screen-reader-only author metadata;
+otherwise absolute metadata contributes to document overflow outside the scrollport.
