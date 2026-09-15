@@ -5,7 +5,7 @@ import { t } from "../localization";
 import type { Selection } from "./routing";
 import { useRead } from "./useCompanyContext";
 import { ReadState } from "./ReadState";
-import { followSetup, setupProgress } from "./setupProgress";
+import { followSetup, setupProgress, setupSteps, type SetupStep } from "./setupProgress";
 import {
   promptKey,
   resultCompletesTask,
@@ -85,6 +85,7 @@ function TrialEntryRequest({
   const [finished, setFinished] = useState(false);
   const [attempt, setAttempt] = useState(0);
   const [start, setStart] = useState<Start | "">("");
+  const [steps, setSteps] = useState<SetupStep[] | null>(null);
   const requested =
     autoEnter &&
     !finished &&
@@ -102,11 +103,13 @@ function TrialEntryRequest({
       // Feature 199: the company is committed first and seeded by the worker, so the
       // answer is followed to ready instead of being expected to arrive ready.
       .then(async (created) => {
+        setSteps(setupSteps(created));
         const result =
           setupProgress(created) === "waiting"
             ? await followSetup(
                 async () => (await api.playgroundEntry()).receipt,
                 () => current,
+                { observe: (receipt) => current && setSteps(setupSteps(receipt)) },
               )
             : created;
         if (!current) return;
@@ -141,7 +144,7 @@ function TrialEntryRequest({
     start === "empty"
       ? "Your empty company is being created for you."
       : "Orders, deliveries and invoices are being prepared for you to explore.";
-  if (!failure) return <EntryProgress title={preparing} detail={detail} />;
+  if (!failure) return <EntryProgress title={preparing} detail={detail} steps={steps} />;
   return (
     <section className="mx-auto max-w-xl space-y-4 p-8" aria-live="polite">
       <h1 className="text-2xl font-semibold">{t(preparing)}</h1>

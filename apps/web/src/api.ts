@@ -63,6 +63,8 @@ export type CompanySetupResult = {
   destination: string | null;
   error_code: string | null;
   profile: { key: string; version: number } | null;
+  /** Feature 201: whether a worker has this company's preparation queued or in hand. */
+  preparation?: "queued" | "preparing" | null;
 };
 
 export type TableQuery = { size?: number; sort?: string; sort_direction?: "asc" | "desc" };

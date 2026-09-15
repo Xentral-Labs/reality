@@ -27,6 +27,7 @@ let usageGrants = [],
 let archived = false,
   entryReceiptStatus = null,
   startContent = null,
+  preparation = null,
   seedDelay = 50;
 const errors = [];
 page.on("pageerror", (error) => errors.push(error.message));
@@ -136,7 +137,9 @@ await page.route("**/api/**", async (route) => {
         eligible: true,
         enabled: true,
         archived,
-        receipt: entryReceiptStatus ? { tenant_id: company.id, status: entryReceiptStatus } : null,
+        receipt: entryReceiptStatus
+          ? { tenant_id: company.id, status: entryReceiptStatus, preparation }
+          : null,
       });
     assert.equal(request.postDataJSON().confirmed, true);
     startContent = request.postDataJSON().content;
@@ -145,9 +148,12 @@ await page.route("**/api/**", async (route) => {
     // Feature 199: creation answers with the committed company; the worker seeds it
     // and the screen follows the receipt from here.
     entryReceiptStatus = "initializing";
+    preparation = "queued";
+    setTimeout(() => (preparation = "preparing"), Math.round(seedDelay / 2));
     setTimeout(() => {
       ready = !failSetup;
       entryReceiptStatus = ready ? "ready" : "initialization_failed";
+      preparation = null;
     }, seedDelay);
     return reply({
       tenant_id: company.id,
@@ -156,6 +162,7 @@ await page.route("**/api/**", async (route) => {
       status: "initializing",
       environment: "sandbox",
       destination: null,
+      preparation,
     });
   }
   if (path.endsWith("/application-reference"))
@@ -298,6 +305,19 @@ try {
   await page.getByText("Preparing your demo company", { exact: true }).waitFor();
   assert.equal(await page.getByRole("alert").count(), 0);
   assert.equal(ready, false, "the company is still being seeded");
+  // Feature 201: three steps from real state, and the middle one only claims work
+  // once a worker actually holds it.
+  const steps = page.locator("[data-setup-steps]");
+  await steps.waitFor();
+  assert.equal(await steps.locator("[data-setup-step]").count(), 3);
+  assert.equal(
+    await steps.locator('[data-setup-step="created"]').getAttribute("data-state"),
+    "done",
+  );
+  await steps.getByText("Waiting to start", { exact: true }).waitFor();
+  await steps.getByText("Preparing orders, deliveries and invoices", { exact: true }).waitFor();
+  assert.equal(await steps.locator('[data-setup-step="data"][data-state="current"]').count(), 1);
+  await page.screenshot({ path: `${out}/setup-steps.png`, fullPage: true });
   await page.locator("[data-trial-tasks]").waitFor({ timeout: 20000 });
   assert.equal(posts, 2, "following the receipt must not create a second company");
   seedDelay = 50;

@@ -75,6 +75,13 @@ is the playground run's own owner rather than `require_company_owner`, because a
 verified account pending admission may create a Sandbox. `create_manual_run` authorizes
 by job type, so a manually enqueued run and the same job on a timer share one rule.
 
+A worker sweep discovers only the tenants that hold a claimable run — pending, retrying,
+or running past its lease — through `due_tenants`, which uses the same predicate
+`claim_next` claims by (feature 201). An idle installation therefore costs one query per
+sweep instead of one per tenant, which is why the worker polls every second and a new
+company is picked up almost at once. The scheduler keeps the full tenant catalog,
+because it materializes schedules that no run represents yet.
+
 ## Timing and controls
 
 - Intervals are whole seconds from 5 to 2,147,483,647 (the stored integer bound). Cron has five numeric UTC fields: minute, hour, day of month, month, weekday. Allow `*`, comma lists, inclusive ranges and positive steps; reject names, macros, seconds/year and extensions. Sunday is 0 or 7. Restricted day-of-month and weekday use OR semantics.

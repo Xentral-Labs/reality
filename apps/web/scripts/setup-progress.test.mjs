@@ -1,6 +1,11 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { followSetup, setupProgress } from "../src/unified/setupProgress.ts";
+import {
+  followSetup,
+  setupProgress,
+  setupStage,
+  setupSteps,
+} from "../src/unified/setupProgress.ts";
 
 const receipt = (status) => ({
   tenant_id: "ten_1",
@@ -76,4 +81,90 @@ test("following gives up after its bound instead of polling forever", async () =
   );
   assert.equal(reads, 4);
   assert.equal(setupProgress(result), "waiting");
+});
+
+test("the steps are taken from real state, never estimated", () => {
+  // Feature 201: nothing here may claim work is happening before a worker has it.
+  assert.equal(setupSteps(null), null);
+  assert.equal(setupSteps(receipt("initialization_failed")), null);
+
+  const queued = setupSteps({ ...receipt("initializing"), preparation: "queued" });
+  assert.deepEqual(
+    queued.map((step) => [step.key, step.state]),
+    [
+      ["created", "done"],
+      ["data", "waiting"],
+      ["ready", "waiting"],
+    ],
+  );
+  assert.equal(queued[1].label, "Waiting to start");
+
+  const preparing = setupSteps({ ...receipt("initializing"), preparation: "preparing" });
+  assert.deepEqual(
+    preparing.map((step) => [step.key, step.state]),
+    [
+      ["created", "done"],
+      ["data", "current"],
+      ["ready", "waiting"],
+    ],
+  );
+  assert.equal(preparing[1].label, "Preparing orders, deliveries and invoices");
+
+  const done = setupSteps(receipt("ready"));
+  assert.deepEqual(
+    done.map((step) => step.state),
+    ["done", "done", "done"],
+  );
+  assert.equal(
+    done.filter((step) => step.state === "current").length,
+    0,
+    "a finished setup has no current step",
+  );
+  for (const steps of [queued, preparing]) {
+    assert.equal(steps.filter((step) => step.state === "current").length <= 1, true);
+  }
+});
+
+test("a receipt that reports no preparation still shows its steps", () => {
+  // The inline path (an empty company, or a retry) reports nothing to wait for.
+  const stage = setupSteps(receipt("initializing"));
+  assert.deepEqual(
+    stage.map((step) => step.state),
+    ["done", "waiting", "waiting"],
+  );
+});
+
+test("the first read happens immediately, without waiting out an interval", async () => {
+  let reads = 0;
+  const started = Date.now();
+  const result = await followSetup(
+    async () => {
+      reads++;
+      return receipt("ready");
+    },
+    () => true,
+    { delay: 5000 },
+  );
+  assert.equal(result.status, "ready");
+  assert.equal(reads, 1);
+  assert.ok(Date.now() - started < 1000, "a ready company must not wait for a poll");
+});
+
+test("each read is observed, so the screen can follow the stage", async () => {
+  const answers = [
+    { ...receipt("initializing"), preparation: "queued" },
+    { ...receipt("initializing"), preparation: "preparing" },
+    receipt("ready"),
+  ];
+  let reads = 0;
+  const seen = [];
+  await followSetup(
+    async () => answers[reads++],
+    () => true,
+    {
+      delay: 0,
+      observe: (value) => seen.push(setupStage(value)),
+    },
+  );
+  assert.deepEqual(seen, ["queued", "preparing", "ready"]);
 });

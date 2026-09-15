@@ -117,7 +117,32 @@ def _result(
         "profile": run.initialization_progress.get("profile")
         if ready and run
         else None,
+        "preparation": None if ready else _preparation(session, tenant_id),
     }
+
+
+def _preparation(session: Session, tenant_id: str) -> str | None:
+    """Whether anyone is seeding this company right now (feature 201).
+
+    The worker commits its claim before the seeding process starts, so `preparing`
+    is observable to a reader; everything else is `queued` or nothing at all.
+    """
+    from reality.db.scheduled_jobs import ScheduledJobRun
+    from reality.services.scheduled_jobs import SETUP_JOB_TYPE
+
+    status = session.scalar(
+        select(ScheduledJobRun.status)
+        .where(
+            ScheduledJobRun.tenant_id == tenant_id,
+            ScheduledJobRun.job_type == SETUP_JOB_TYPE,
+            ScheduledJobRun.status.in_(("pending", "retry", "running")),
+        )
+        .order_by(ScheduledJobRun.created_at.desc())
+        .limit(1)
+    )
+    if status is None:
+        return None
+    return "preparing" if status == "running" else "queued"
 
 
 def read_request(session: Session, actor_id: str, request_key: str) -> dict:

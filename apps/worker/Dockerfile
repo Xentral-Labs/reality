@@ -26,4 +26,4 @@ COPY packages/reality-core/alembic.ini ./
 
 RUN pip install --no-cache-dir .
 
-CMD ["reality-worker", "work", "--poll-seconds", "5"]
+CMD ["reality-worker", "work", "--poll-seconds", "1"]
