@@ -45,12 +45,14 @@ export function ChatPage({
   onInitialDraftUsed,
   renderMessageEvidence,
   controlsTarget,
+  newSessionTarget,
   sessionsTarget,
   sessionsOpen,
   toggleSessions,
   onSessionSelected,
 }: {
   controlsTarget?: HTMLElement | null;
+  newSessionTarget?: HTMLElement | null;
   sessionsTarget?: HTMLElement | null;
   sessionsOpen?: boolean;
   toggleSessions?: () => void;
@@ -359,19 +361,7 @@ export function ChatPage({
                 <ChevronLeft size={18} />
                 {t("Back to chats")}
               </button>
-            ) : (
-              <button
-                className="br-btn mb-3 w-full justify-start gap-2"
-                disabled={sending || startingChat}
-                onClick={() => {
-                  onSessionSelected?.();
-                  void startConversation();
-                }}
-              >
-                <SquarePen size={18} />
-                {t("New conversation")}
-              </button>
-            )}
+            ) : null}
             <div className="min-h-0 flex-1 space-y-1 overflow-y-auto overscroll-contain">
               {!data.sessions.length && (
                 <p className="text-sm text-fg-muted">
@@ -441,6 +431,24 @@ export function ChatPage({
             )}
           </div>,
           sessionsTarget,
+        )}
+      {newSessionTarget &&
+        createPortal(
+          <button
+            className="reality-chat-icon"
+            data-new-chat-action
+            aria-label={t("New chat")}
+            title={t("New chat")}
+            disabled={sending || startingChat}
+            onClick={() => {
+              setShowArchived(false);
+              onSessionSelected?.();
+              void startConversation();
+            }}
+          >
+            <SquarePen size={18} />
+          </button>,
+          newSessionTarget,
         )}
       {!dock && (
         <div className="flex justify-end">
