@@ -71,3 +71,8 @@ as one coherent increment because free chat must carry truthful evidence.
 - [x] T027 [FR-021] Fix tenant navigation inheritance, provide stale-session recovery, verify routing/build and preview.
 
 - [x] T028 [FR-022] Recover missing sessions automatically; test no-click/no-write URL replacement and preserved real failures.
+
+- [x] T029 [FR-023] Add and observe failing desktop/mobile session geometry assertions
+  in apps/web/scripts/unified-chat-composer-browser.mjs; adjust only responsive
+  row spacing/padding in apps/web/src/unified/ChatPage.tsx; run browser, contracts,
+  build, formatting and spec policy; review and record evidence in verification.md.

@@ -342,6 +342,25 @@ try {
   await chatPage.locator("[data-chat-starters] button").first().waitFor();
   assert.equal(await chatPage.locator("[data-chat-starters] button").count(), 3);
   await page.screenshot({ path: "/private/tmp/reality-202-chat-page.png" });
+  // FR-023: compact persistent history; retain the larger drawer targets.
+  for (const width of [1440, 390]) {
+    await page.setViewportSize({ width, height: 900 });
+    if (width < 1280)
+      await chatPage.getByRole("button", { name: "Conversation history", exact: true }).click();
+    const first = await page.locator('[data-chat-session="chat_a"]').boundingBox();
+    const second = await page.locator('[data-chat-session="chat_b"]').boundingBox();
+    assert.ok(first && second);
+    assert.equal(first.height, width >= 1280 ? 36 : 40, "session button height");
+    assert.equal(second.y - first.y, width >= 1280 ? 36 : 44, "session row spacing");
+    await page.screenshot({ path: `/private/tmp/reality-session-spacing-${width}.png` });
+    if (width < 1280)
+      await page
+        .locator("[data-free-play-sessions]")
+        .getByRole("button", { name: "Close", exact: true })
+        .click();
+  }
+  await page.setViewportSize({ width: 1440, height: 900 });
+
   await page.locator('[data-chat-session-menu="chat_a"] summary').click();
   await page.getByRole("button", { name: "Delete chat", exact: true }).click();
   const removalDialog = page.getByRole("dialog", { name: "Delete chat", exact: true });
