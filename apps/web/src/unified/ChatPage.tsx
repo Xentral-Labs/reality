@@ -1,3 +1,5 @@
+import { createPortal } from "react-dom";
+import { ChatUsage } from "./ChatUsage";
 import { AnalyticsReportProposal } from "./analytics/AnalyticsReportProposal";
 import { AllowanceNotice, ChatComposer } from "./ChatComposer";
 import { History, LoaderCircle, SquarePen, Sparkles } from "lucide-react";
@@ -29,7 +31,9 @@ export function ChatPage({
   initialDraft = "",
   onInitialDraftUsed,
   renderMessageEvidence,
+  usageTarget,
 }: {
+  usageTarget?: HTMLElement | null;
   selection: Selection;
   compact?: boolean;
   dock?: boolean;
@@ -222,6 +226,13 @@ export function ChatPage({
   const frame = dock ? dockFrame : compact ? compactFrame : fullFrame;
   return (
     <div className={frame}>
+      {usageTarget &&
+        createPortal(<ChatUsage allowance={data.allowance} navigate={navigate} />, usageTarget)}
+      {!dock && !usageTarget && (
+        <div className="flex justify-end">
+          <ChatUsage allowance={data.allowance} navigate={navigate} />
+        </div>
+      )}
       {dock && (
         <header className="flex h-16 shrink-0 items-center justify-between gap-2 border-b border-border-default px-4">
           <div className="flex min-w-0 items-center gap-2">
@@ -232,6 +243,7 @@ export function ChatPage({
             </span>
           </div>
           <div className="flex shrink-0 items-center gap-1">
+            {!usageTarget && <ChatUsage allowance={data.allowance} navigate={navigate} />}
             <button
               className="reality-chat-icon"
               aria-label={t("Conversation history")}

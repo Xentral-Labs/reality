@@ -75,3 +75,8 @@ background, pending echo and mobile/light/dark overflow. No critical findings.
 ## Allowance review
 Owner requested less visual clutter. Count stays visible; exact reset information is
 keyboard/touch accessible. Exhaustion remains explicit. No critical findings.
+
+## Header usage review
+Owner approved moving usage into the header and adding settings usage. Preserve
+exhaustion at input; test header disclosure, settings read, and absence near composer.
+No schema/backend changes or critical findings.

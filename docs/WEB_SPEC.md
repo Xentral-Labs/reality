@@ -2707,6 +2707,8 @@ responses with bounded reading width and distinct spacing. Author/time metadata 
 accessible without visible labels. Pending echoes share user styling; per-reply
 evidence stays underneath the associated answer.
 
-AI allowance uses a compact count disclosure while requests remain. Exact reset date
-and time are available on opening the details with keyboard or pointer. Exhaustion
-shows the explanation and reset time directly and preserves send restrictions.
+AI allowance lives in the chat header (the outer header for Free Play). Its Usage
+popover exposes used/remaining counts, reset time and a link to Settings → Usage.
+The settings view uses the existing authorized allowance read; no unreported tariff
+or upgrade link is shown. Only exhaustion appears next to the composer, with reset
+time and send restrictions preserved.

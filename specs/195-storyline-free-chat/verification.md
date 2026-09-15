@@ -163,3 +163,20 @@ pointer collapse, hidden reset before expansion, visible reset after exhaustion 
 retained draft/disabled sending. Web build passed (168 tests, four-language audit,
 TypeScript/Vite), as did spec and diff checks. Updated local 8080 preview. No backend
 or catalog changes.
+
+## Header usage and settings (2026-09-15)
+
+Usage now sits in the shared chat header, or the outer Free Play header through a
+portal target. Native popover details show actual used/remaining/reset information
+and link to Settings → Usage. That read-only view uses the existing authorized
+copilot allowance and handles absent allowance explicitly. Personal settings links
+to Usage. No unreported plan or nonexistent upgrade target. Only exhaustion remains
+near the composer, preserving reset explanation and disabled send.
+
+Web build passed (168 existing tests, four-language audit, TypeScript/Vite). Added
+usage routing regression passed with all 8 tests in its file. Free Playground browser
+passed header placement, keyboard opening/Escape, usage settings navigation and
+exhaustion behavior. Storyline/company browser passed outer-header portal placement,
+absence from inner header/composer, chat, reload and tenant isolation. Spec, formatting
+and diff checks passed. Local 8080 serves `index-DdUm5kt_.js`. No backend/schema or
+generated catalog changes.

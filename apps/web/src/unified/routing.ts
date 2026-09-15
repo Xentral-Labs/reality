@@ -34,7 +34,7 @@ export type Selection = {
   deliveryType: "customer_delivery" | "supplier_delivery";
   deliveryStatus: "open" | "all";
   order: string;
-  settingsView: "personal" | "company" | "access" | "ai" | "agents";
+  settingsView: "personal" | "company" | "access" | "ai" | "agents" | "usage";
   tenant: string;
   commitment: string;
   proposal: string;
@@ -143,7 +143,7 @@ export function readSelection(url: URL): Selection {
         : "customer_delivery",
     deliveryStatus: url.searchParams.get("delivery_status") === "all" ? "all" : "open",
     order: url.searchParams.get("order") || "",
-    settingsView: ["personal", "company", "access", "ai", "agents"].includes(
+    settingsView: ["personal", "company", "access", "ai", "agents", "usage"].includes(
       url.searchParams.get("settings_view") || "",
     )
       ? (url.searchParams.get("settings_view") as Selection["settingsView"])

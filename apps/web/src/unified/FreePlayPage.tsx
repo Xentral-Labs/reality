@@ -19,6 +19,7 @@ export function FreePlayPage({
   openCompany: (data: Bootstrap, id: string, options?: { announce?: boolean }) => void;
 }) {
   const { data, loading, error, refresh } = useRead(() => storylineApi.freePlayEntry(), []);
+  const [usageTarget, setUsageTarget] = useState<HTMLDivElement | null>(null);
   const [picked, setPicked] = useState(selection.tenant);
   const [busy, setBusy] = useState(false);
   const [failure, setFailure] = useState("");
@@ -64,7 +65,8 @@ export function FreePlayPage({
             </p>
           )}
         </div>
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap items-center gap-2">
+          {chatting && <div ref={setUsageTarget} />}
           {chatting && (
             <button
               className="br-btn"
@@ -100,6 +102,7 @@ export function FreePlayPage({
             </p>
           )}
           <ChatPage
+            usageTarget={usageTarget}
             key={selection.tenant}
             selection={{ ...selection, commitment: "" }}
             navigate={navigate}

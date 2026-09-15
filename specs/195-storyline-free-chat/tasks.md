@@ -42,3 +42,6 @@ as one coherent increment because free chat must carry truthful evidence.
 
 - [x] T017 [FR-012] Compact allowance disclosure, preserve exhaustion, verify browser
   and web build, update preview/PR.
+
+- [x] T018 [FR-012] Move allowance into header popover, add settings usage view,
+  preserve exhaustion, verify browser/build and update local preview/PR.

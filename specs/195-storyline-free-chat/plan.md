@@ -93,3 +93,10 @@ their existing replies. Constitution Check: PASS; presentation only.
 Use a native details/summary count pill in shared AllowanceNotice, with an Info icon
 and exact localized reset time inside. Exhaustion stays expanded with existing
 explanation and send restriction. Constitution Check: PASS; existing data only.
+
+## Header usage and settings
+Move positive allowance out of the composer. Shared ChatUsage uses a native popover
+for keyboard, Escape and outside-click dismissal. Render it in the Free Play header
+via a portal target; other chat uses its own header. Settings usage reads existing
+copilot allowance and displays used/remaining/reset only. No plan API exists: do not
+invent tariffs or upgrade links. Constitution Check: PASS, read-only existing services.
