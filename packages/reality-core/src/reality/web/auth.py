@@ -631,6 +631,9 @@ def review_application(
     ) = body.note.strip(), now(), admin.id
     user.status = "active" if body.decision == "approve" else "rejected"
     audit(session, f"access.{application.status}", user.id, admin.id)
+    from reality.telemetry.metrics import access_review
+
+    access_review(application.status)
     session.commit()
     try:
         send_access_decision_email(user.email, body.decision == "approve")

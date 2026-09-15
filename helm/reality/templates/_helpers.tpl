@@ -110,6 +110,22 @@ Deliberate choices:
 - name: REALITY_ENV
   value: "production"
 {{/*
+  service.version. Wired to the image tag so a metric or span identifies the
+  build that produced it -- the same tag CI bumps in the Argo Application.
+*/}}
+- name: REALITY_IMAGE_TAG
+  value: {{ .Values.image.tag | default .Chart.AppVersion | quote }}
+{{- if and .Values.telemetry.enabled .Values.telemetry.endpoint }}
+{{/*
+  The presence of OTEL_EXPORTER_OTLP_ENDPOINT is the single switch the
+  application keys off: unset means no providers, no instrumentation, no cost.
+*/}}
+- name: OTEL_EXPORTER_OTLP_ENDPOINT
+  value: {{ .Values.telemetry.endpoint | quote }}
+- name: OTEL_METRIC_EXPORT_INTERVAL
+  value: {{ .Values.telemetry.metricExportIntervalMs | quote }}
+{{- end }}
+{{/*
   REALITY_SETTINGS_KEY is NOT an alias of REALITY_MASTER_KEY in both directions.
   security/secrets.py accepts it as a fallback FOR the master key, but
   agent/settings.py:_fernet() reads ONLY this name — and when it is unset it

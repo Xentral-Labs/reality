@@ -50,6 +50,19 @@ async def app_lifespan(_app: FastAPI):
     yield
 
 
+from reality import telemetry as _telemetry
+
+
+def _engine_for_telemetry():
+    from reality.db.core import engine
+
+    return engine
+
+
+# Configured before the app object exists so the providers are in place when the
+# instrumentors attach below. Inert unless OTEL_EXPORTER_OTLP_ENDPOINT is set.
+_telemetry.configure("reality-api")
+
 app = FastAPI(
     title="Reality API",
     description="Tenant-scoped application API for Reality.",
@@ -178,6 +191,18 @@ app.include_router(storyline_account_router)
 app.include_router(storyline_tenant_router)
 app.include_router(company_setup_router)
 app.include_router(demo_data_router)
+
+_telemetry.instrument_fastapi(app)
+_telemetry.instrument_httpx()
+_telemetry.instrument_engine(_engine_for_telemetry())
+
+# Account state gauges live in the api only: every replica would report the same
+# numbers, and the runners have no reason to query the accounts table.
+if _telemetry.enabled():
+    from reality.db.core import Session as _Session
+    from reality.telemetry.metrics import observe_accounts as _observe_accounts
+
+    _observe_accounts(_Session)
 
 
 @app.get("/healthz", include_in_schema=False)

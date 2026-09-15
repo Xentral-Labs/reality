@@ -6574,6 +6574,7 @@ def send_chat_message(
         )
     else:
         reply = "V0 local agent: ask about inventory or fulfillment risk."
+    _record_copilot_turn(own_provider, managed_key, reply)
     assistant_message = ChatMessage(
         id=uid("msg"),
         tenant_id=tenant_id,
@@ -13411,3 +13412,26 @@ def ensure_demo(session: OrmSession, tenant: Tenant) -> None:
         ]
     )
     session.commit()
+
+
+def _record_copilot_turn(own_provider, managed_key, reply: str) -> None:
+    """Separate a real model answer from the deterministic fallback.
+
+    Both return HTTP 200, so no amount of request-level instrumentation can
+    tell them apart. `outcome=fallback` with a configured provider is the
+    signal that the Copilot is degraded -- the state the deployment sat in
+    while the managed key was missing and the UI looked perfectly healthy.
+    """
+    try:
+        from reality.telemetry.metrics import copilot_turn
+
+        if own_provider:
+            provider = "tenant"
+        elif managed_key:
+            provider = "managed"
+        else:
+            provider = "none"
+        outcome = "fallback" if reply.startswith("V0 local agent") else "model"
+        copilot_turn(provider, outcome)
+    except Exception:  # noqa: BLE001
+        pass

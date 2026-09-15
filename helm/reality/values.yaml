@@ -184,6 +184,24 @@ externalSecret:
     - REALITY_MASTER_KEY
 
 # ---------------------------------------------------------------------------
+# Telemetry (OpenTelemetry)
+# ---------------------------------------------------------------------------
+# Off by default, and off is a real state: with no endpoint the application
+# installs no providers and no instrumentation at all, so a cluster without a
+# collector carries none of the cost.
+#
+# `endpoint` is the OTLP/HTTP address of a collector. Each process reports its
+# own service.name (reality-api, reality-mcp, reality-scheduler,
+# reality-worker), and service.version is the image tag, so every datapoint
+# points at the exact build CI produced.
+telemetry:
+  enabled: false
+  endpoint: ""      # e.g. http://alloy.monitoring.svc.cluster.local:4318
+  # Seconds between metric exports. The SDK default is 60s; lower costs more
+  # series churn for little benefit at this traffic level.
+  metricExportIntervalMs: 60000
+
+# ---------------------------------------------------------------------------
 # Copilot (Anthropic)
 # ---------------------------------------------------------------------------
 # The key is read lazily per chat message, so without it the Copilot degrades to

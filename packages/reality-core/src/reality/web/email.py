@@ -54,7 +54,7 @@ def _provider() -> str:
     return "log"
 
 
-def send_email(*, recipient: str, subject: str, text: str, html_body: str) -> None:
+def _dispatch_email(*, recipient: str, subject: str, text: str, html_body: str) -> None:
     provider = _provider()
     sender = os.environ.get("REALITY_EMAIL_FROM", "Reality <onboarding@resend.dev>")
     text, html_body = _with_legal_footer(text, html_body)
@@ -106,6 +106,33 @@ def send_email(*, recipient: str, subject: str, text: str, html_body: str) -> No
     raise RuntimeError(f"Unsupported REALITY_EMAIL_PROVIDER: {provider}")
 
 
+def send_email(
+    *, recipient: str, subject: str, text: str, html_body: str, kind: str = "unknown"
+) -> None:
+    """Dispatch an email and record the outcome.
+
+    `kind` is a bounded enumeration supplied by the caller (verification,
+    invitation, access_decision) -- never the recipient, which would put an
+    email address into a metric label and both explode cardinality and store
+    personal data in Prometheus.
+
+    "suppressed" is reported distinctly from "sent": with REALITY_EMAIL_PROVIDER
+    unset or `log`, delivery silently does nothing, and a dashboard that counted
+    that as success would look healthy while no mail left the building.
+    """
+    provider = _provider()
+    from reality.telemetry.metrics import email_sent
+
+    try:
+        _dispatch_email(
+            recipient=recipient, subject=subject, text=text, html_body=html_body
+        )
+    except Exception:
+        email_sent(provider, "error", kind)
+        raise
+    email_sent(provider, "suppressed" if provider == "log" else "sent", kind)
+
+
 def send_verification_email(email: str, code: str) -> None:
     safe_code = html.escape(code)
     app_url = (os.environ.get("APP_URL") or "http://localhost:8080").rstrip("/")
@@ -128,6 +155,7 @@ def send_verification_email(email: str, code: str) -> None:
           <a href="{safe_url}" style="display:inline-block;margin:16px 0;padding:13px 20px;border-radius:10px;background:#635bff;color:white;text-decoration:none;font-weight:600">Enter verification code</a>
           <p style="color:#667085;font-size:14px">Closed the tab? This button reopens Reality. Enter the code above to confirm your email. If it has expired, request a new code there.</p>
         </div>""",
+            kind="verification",
     )
 
 
@@ -148,7 +176,8 @@ def send_access_decision_email(email: str, approved: bool) -> None:
               <p style="color:#667085">Your Reality account has been approved.</p>
               <a href="{safe_url}" style="display:inline-block;margin-top:20px;padding:13px 20px;border-radius:10px;background:#635bff;color:white;text-decoration:none;font-weight:600">Open Reality</a>
             </div>""",
-        )
+                kind="access_decision",
+    )
     else:
         send_email(
             recipient=email,
@@ -230,4 +259,5 @@ def send_company_invitation_email(
           <a href="{safe_url}" style="display:inline-block;margin-top:20px;padding:13px 20px;border-radius:10px;background:#635bff;color:white;text-decoration:none;font-weight:600">Open invitation</a>
           <p style="color:#667085;margin-top:28px">If you did not expect this invitation, report it to <a href="mailto:{_SUPPORT_EMAIL}" style="color:#475467">{_SUPPORT_EMAIL}</a>.</p>
         </div>""",
+            kind="invitation",
     )

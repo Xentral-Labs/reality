@@ -55,6 +55,9 @@ class ProcessLoop:
         self.stop = Event()
 
     def sweep(self, engine: Engine, *, max_runs: int, max_seconds: float) -> dict:
+        import time
+
+        _sweep_started = time.perf_counter()
         from sqlalchemy.orm import Session
 
         from reality.jobs.runner import execute_process
@@ -169,6 +172,7 @@ class ProcessLoop:
                 break
         if monotonic() >= deadline or processed >= max_runs:
             counts["budget_exhausted"] = True
+        _record_sweep(self.role, counts, time.perf_counter() - _sweep_started)
         return counts
 
     def run(
@@ -239,3 +243,17 @@ class ProcessLoop:
                 engine.dispose()
             for sig, handler in previous.items():
                 signal.signal(sig, handler)
+
+
+def _record_sweep(role: str, counts: dict, seconds: float) -> None:
+    """Publish the sweep counters the runner already computes.
+
+    Wrapped because a metrics fault must never abort a sweep: the job system is
+    the thing doing the work, telemetry only describes it.
+    """
+    try:
+        from reality.telemetry.metrics import job_sweep
+
+        job_sweep(role, counts, seconds)
+    except Exception:  # noqa: BLE001
+        pass
