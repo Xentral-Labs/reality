@@ -5,6 +5,7 @@ import { t } from "../localization";
 import type { Selection } from "./routing";
 import { useRead } from "./useCompanyContext";
 import { ReadState } from "./ReadState";
+import { followSetup, setupProgress } from "./setupProgress";
 import {
   promptKey,
   resultCompletesTask,
@@ -98,8 +99,18 @@ function TrialEntryRequest({
     setFailure("");
     api
       .enterPlayground(start)
-      .then(async (result) => {
-        if (result.status !== "ready")
+      // Feature 199: the company is committed first and seeded by the worker, so the
+      // answer is followed to ready instead of being expected to arrive ready.
+      .then(async (created) => {
+        const result =
+          setupProgress(created) === "waiting"
+            ? await followSetup(
+                async () => (await api.playgroundEntry()).receipt,
+                () => current,
+              )
+            : created;
+        if (!current) return;
+        if (!result || setupProgress(result) !== "ready")
           throw new Error(
             t(
               start === "empty"

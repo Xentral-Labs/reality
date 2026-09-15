@@ -55,6 +55,7 @@ def _context(
 
 
 DEMO_JOB_TYPES = frozenset({"demo.generate_orders", "demo.settle_orders"})
+SETUP_JOB_TYPE = "company_setup.initialize"
 
 
 def _owner(
@@ -66,6 +67,13 @@ def _owner(
         from reality.services.demo_data import eligible
 
         eligible(session, tenant_id, actor_id)
+        return
+    if job_type == SETUP_JOB_TYPE:
+        # A verified account pending admission may create a Sandbox, so company
+        # setup authorizes by the run's own owner (feature 199).
+        from reality.jobs.handlers.company_setup import require_setup_owner
+
+        require_setup_owner(session, tenant_id, actor_id)
         return
     require_company_owner(session, _context(tenant_id, actor_id))
 
@@ -361,7 +369,9 @@ def create_manual_run(
     *,
     request_id: str,
 ) -> ScheduledJobRun:
-    _owner(session, tenant_id, actor_id)
+    # The job type decides the ownership rule, exactly as it does for a schedule; a
+    # manual run must not be authorized differently from the same job on a timer.
+    _owner(session, tenant_id, actor_id, job_type)
     _key(request_id)
     envelope = _validated(session, tenant_id, actor_id, job_type, config)
     fingerprint = _fingerprint(

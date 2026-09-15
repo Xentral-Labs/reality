@@ -1,4 +1,5 @@
 import pytest
+from conftest import seed_company
 from sqlalchemy import func, select
 
 from reality.db.core import Item, PlaygroundRun, Tenant
@@ -118,8 +119,13 @@ def test_failed_seed_rolls_back_all_evidence_and_explicit_retry_reuses_tenant(
         "international_demo",
         confirmed=True,
     )
-    assert result["status"] == "initialization_failed" and result["destination"] is None
+    assert result["status"] == "initializing" and result["destination"] is None
     tenant = result["tenant_id"]
+    assert seed_company(session, tenant) == "succeeded"
+    assert (
+        company_setup.read_request(session, scheduled_owner.id, "retry")["status"]
+        == "initialization_failed"
+    )
     for model in (Party, Item, SourceRecord):
         assert (
             session.scalar(
@@ -282,7 +288,11 @@ def test_live_creation_provisions_and_starts_once(
         live_simulation=True,
         confirmed=True,
     )
-    assert result["status"] == "ready"
+    assert result["status"] == "initializing"
+    assert seed_company(session, result["tenant_id"]) == "succeeded"
+    assert (
+        company_setup.read_request(session, actor, "live-create")["status"] == "ready"
+    )
     state = demo_data.status(session, result["tenant_id"], actor)
     assert state["state"] == "running" and state["rate"] == 60
     assert state["generated"] == 0
@@ -344,7 +354,12 @@ def test_live_creation_failure_is_retryable_without_partial_connection(
         live_simulation=True,
         confirmed=True,
     )
-    assert result["status"] == "initialization_failed" and result["destination"] is None
+    assert result["status"] == "initializing" and result["destination"] is None
+    assert seed_company(session, result["tenant_id"]) == "succeeded"
+    assert (
+        company_setup.read_request(session, actor, "live-retry")["status"]
+        == "initialization_failed"
+    )
     assert (
         demo_data.status(session, result["tenant_id"], actor)["state"]
         == "not_connected"

@@ -1,6 +1,7 @@
 import json
 
 import pytest
+from conftest import seed_company
 from sqlalchemy import event, select
 
 from reality.db.core import SourceRecord
@@ -113,6 +114,9 @@ def test_ten_worker_occurrences_create_orders_without_business_execution(
         confirmed=True,
     )
     tenant = setup["tenant_id"]
+    # Feature 199: a company with profile content is seeded by the worker, so the
+    # baseline this test compares against is taken after that work has run.
+    seed_company(session, tenant)
     baseline_counts = {
         model: session.scalar(
             select(func.count()).select_from(model).where(model.tenant_id == tenant)

@@ -1,4 +1,5 @@
 import pytest
+from conftest import seed_company
 from sqlalchemy import func, select
 
 from reality.db.core import ChangeProposal, PlaygroundRun
@@ -18,6 +19,8 @@ def test_execution_is_fresh_unexecuted_and_uses_real_confirmation(
         "international_demo",
         confirmed=True,
     )
+    assert baseline["status"] == "initializing"
+    assert seed_company(session, baseline["tenant_id"]) == "succeeded"
     execution = company_setup.create_execution(
         session, actor, "analysis", "execution", "Reservation practice", confirmed=True
     )

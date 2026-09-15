@@ -1058,3 +1058,11 @@ Spec 185 owns the analytics service, agent tools, private report configuration a
   after an empty start; `apps/web/scripts/free-playground-browser.mjs` proves the two
   cards, that nothing is created before a choice, and four languages on a narrow
   viewport.
+
+- Spec 199: `packages/reality-core/tests/test_company_setup_initialization.py` proves the
+  deferred receipt, the single enqueued initialization, the handler's effect and its
+  no-op re-run, refusal at enqueue and at claim, the in-request retry and the immediate
+  empty company; `apps/web/scripts/setup-progress.test.mjs` proves the followed receipt,
+  its bound and its retry of failed reads; `product-boundary.test.mjs` proves the stated
+  proxy timeouts; `free-playground-browser.mjs` proves a slow seed keeps showing progress
+  and opens the company without creating a second one.

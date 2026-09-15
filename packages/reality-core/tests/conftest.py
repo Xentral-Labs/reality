@@ -230,3 +230,22 @@ def company_setup_login(session):
         return actor
 
     return login
+
+
+def seed_company(session, tenant_id: str) -> str:
+    """Run the queued company initialization the worker would run (feature 199).
+
+    Company setup commits the company and leaves its profile to the shared worker, so
+    a test that wants a seeded company asks for that work here instead of waiting.
+    """
+    from reality.services import scheduled_jobs as jobs
+
+    run = jobs.claim_next(session, tenant_id)
+    if run is None:
+        return "none"
+    return jobs.execute_claim(session, tenant_id, run.id, run.claim_token)
+
+
+@pytest.fixture
+def seeded(session):
+    return lambda tenant_id: seed_company(session, tenant_id)

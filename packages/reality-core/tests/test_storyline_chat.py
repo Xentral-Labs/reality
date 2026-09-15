@@ -1,6 +1,7 @@
 """Spec 195: real chat replies retain exact, owner-scoped call evidence."""
 
 import pytest
+from conftest import seed_company
 from sqlalchemy import delete, func, select
 
 from reality.db.core import ChatMessage, StorylineTraceEntry
@@ -219,7 +220,10 @@ def test_standalone_free_play_is_confirmed_idempotent_and_has_no_story(http, ses
     created = client.post(path, json={"confirmed": True})
     assert created.status_code == 200, created.text
     result = created.json()
-    assert result["status"] == "ready" and result["environment"] == "sandbox"
+    # Feature 199: the request answers with the committed company; the worker seeds it.
+    assert result["status"] == "initializing" and result["environment"] == "sandbox"
+    assert seed_company(session, result["tenant_id"]) == "succeeded"
+    assert client.get(path).json()["status"] == "ready"
     run = session.get(PlaygroundRun, result["run_id"])
     assert run.storyline_key is None and run.storyline_version is None
     assert (
@@ -244,6 +248,7 @@ def test_standalone_free_play_records_real_chat_and_preserves_archive(
     client, actor = http
     result = client.post("/api/storyline/free-play", json={"confirmed": True}).json()
     tenant = result["tenant_id"]
+    assert seed_company(session, tenant) == "succeeded"
     chat = core.create_chat_session(session, tenant)
     monkeypatch.setenv("ANTHROPIC_API_KEY", "test-no-network")
 

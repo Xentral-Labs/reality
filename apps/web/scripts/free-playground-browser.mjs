@@ -26,7 +26,8 @@ let usageGrants = [],
   adminUsage = false;
 let archived = false,
   entryReceiptStatus = null,
-  startContent = null;
+  startContent = null,
+  seedDelay = 50;
 const errors = [];
 page.on("pageerror", (error) => errors.push(error.message));
 const company = {
@@ -141,14 +142,20 @@ await page.route("**/api/**", async (route) => {
     startContent = request.postDataJSON().content;
     assert.ok(["international_demo", "empty"].includes(startContent));
     posts++;
-    ready = !failSetup;
+    // Feature 199: creation answers with the committed company; the worker seeds it
+    // and the screen follows the receipt from here.
+    entryReceiptStatus = "initializing";
+    setTimeout(() => {
+      ready = !failSetup;
+      entryReceiptStatus = ready ? "ready" : "initialization_failed";
+    }, seedDelay);
     return reply({
       tenant_id: company.id,
       run_id: "trial_run",
       name: company.name,
-      status: ready ? "ready" : "initialization_failed",
+      status: "initializing",
       environment: "sandbox",
-      destination: ready ? `/app?tenant=${company.id}` : null,
+      destination: null,
     });
   }
   if (path.endsWith("/application-reference"))
@@ -281,6 +288,22 @@ try {
     .waitFor();
   assert.equal(startContent, "empty");
   assert.equal(posts, 1, "Exactly one creation follows one chosen start");
+  // Feature 199: a seed that outlives the request keeps showing progress, not an error,
+  // and the company opens as soon as its receipt reports ready.
+  seedDelay = 4000;
+  failSetup = false;
+  entryReceiptStatus = null;
+  await page.goto(`${base}/app`);
+  await page.locator('[data-start="international_demo"]').click();
+  await page.getByText("Preparing your demo company", { exact: true }).waitFor();
+  assert.equal(await page.getByRole("alert").count(), 0);
+  assert.equal(ready, false, "the company is still being seeded");
+  await page.locator("[data-trial-tasks]").waitFor({ timeout: 20000 });
+  assert.equal(posts, 2, "following the receipt must not create a second company");
+  seedDelay = 50;
+  ready = false;
+  failSetup = true;
+  entryReceiptStatus = null;
   await page.goto(`${base}/app`);
   await page.locator('[data-start="international_demo"]').click();
   await page
@@ -291,7 +314,7 @@ try {
   failSetup = false;
   await page.getByRole("button", { name: "Retry", exact: true }).click();
   await page.locator("[data-trial-tasks]").waitFor();
-  assert.ok(posts >= 2);
+  assert.ok(posts >= 4);
   assert.ok(!page.url().includes("settings"));
   assert.equal(await page.locator("[data-trial-github]").count(), 0);
   await page.getByRole("button", { name: "Which orders need attention?", exact: true }).focus();
@@ -392,7 +415,7 @@ try {
   assert.equal(posts, beforeArchive, "An archived receipt must not trigger another creation");
   assert.deepEqual(errors, []);
   console.log(
-    "PASS: two offered starts before any creation, recoverable trial entry, truthful result prompt, dismissal, starters, exhausted draft and four mobile locales",
+    "PASS: two offered starts before any creation, a followed setup receipt, recoverable trial entry, truthful result prompt, dismissal, starters, exhausted draft and four mobile locales",
   );
 } catch (error) {
   console.error(await page.locator("body").innerText());
