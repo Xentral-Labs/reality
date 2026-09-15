@@ -632,6 +632,12 @@ def review_application(
     user.status = "active" if body.decision == "approve" else "rejected"
     audit(session, f"access.{application.status}", user.id, admin.id)
     session.commit()
+
+    # After the commit, not before: a failed commit would otherwise leave a
+    # phantom approval in the counter that no row backs.
+    from reality.telemetry.metrics import access_review
+
+    access_review(application.status)
     try:
         send_access_decision_email(user.email, body.decision == "approve")
     except (OSError, RuntimeError, smtplib.SMTPException, httpx.HTTPError):

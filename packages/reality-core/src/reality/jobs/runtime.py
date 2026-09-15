@@ -55,14 +55,32 @@ class ProcessLoop:
         self.stop = Event()
 
     def sweep(self, engine: Engine, *, max_runs: int, max_seconds: float) -> dict:
+        """Run one sweep, recording its duration even when it raises.
+
+        The timing lives here rather than inline at the return: a sweep that
+        fails part-way is exactly the one worth seeing, and recording only on
+        the success path would drop it.
+        """
+        # Budget validation is a programming error, not a sweep outcome, so it
+        # is checked before the timer starts rather than recorded as a sweep.
+        maximum = 100 if self.role == "scheduler" else 10
+        if not 1 <= max_runs <= maximum or not 0 < max_seconds <= 25:
+            raise JobError("invalid_budget")
+
+        started = monotonic()
+        counts: dict = {}
+        try:
+            counts = self._sweep(engine, max_runs=max_runs, max_seconds=max_seconds)
+            return counts
+        finally:
+            _record_sweep(self.role, counts, monotonic() - started)
+
+    def _sweep(self, engine: Engine, *, max_runs: int, max_seconds: float) -> dict:
         from sqlalchemy.orm import Session
 
         from reality.jobs.runner import execute_process
         from reality.services import scheduled_jobs as jobs
 
-        maximum = 100 if self.role == "scheduler" else 10
-        if not 1 <= max_runs <= maximum or not 0 < max_seconds <= 25:
-            raise JobError("invalid_budget")
         counts = {
             "materialized": 0,
             "deferred": 0,
@@ -201,6 +219,12 @@ class ProcessLoop:
                 health_server = HealthServer(self.role, int(port))
                 health_server.__enter__()
             engine = database(scheduler=self.role == "scheduler")
+            # The runners build their own engine, separate from the web one, so
+            # they need instrumenting here or their pool is invisible -- and
+            # they are the heaviest sustained DB users in the deployment.
+            from reality import telemetry
+
+            telemetry.instrument_engine(engine)
             while not self.stop.is_set():
                 try:
                     summary = self.sweep(
@@ -239,3 +263,17 @@ class ProcessLoop:
                 engine.dispose()
             for sig, handler in previous.items():
                 signal.signal(sig, handler)
+
+
+def _record_sweep(role: str, counts: dict, seconds: float) -> None:
+    """Publish the sweep counters the runner already computes.
+
+    Wrapped because a metrics fault must never abort a sweep: the job system is
+    the thing doing the work, telemetry only describes it.
+    """
+    try:
+        from reality.telemetry.metrics import job_sweep
+
+        job_sweep(role, counts, seconds)
+    except Exception:
+        logging.getLogger(__name__).debug("sweep metric failed", exc_info=True)

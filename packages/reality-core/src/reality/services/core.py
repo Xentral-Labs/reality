@@ -2,7 +2,9 @@ from __future__ import annotations
 
 import hashlib
 import json
+import logging
 import os
+import time
 from collections.abc import Callable, Iterable
 from dataclasses import dataclass
 from datetime import UTC, date, datetime, timedelta
@@ -6335,6 +6337,8 @@ def send_chat_message(
     on_event: Callable[[dict[str, Any]], None] | None = None,
 ) -> tuple[ChatMessage, ChatMessage]:
     _require_business_mutation(session, tenant_id, "send_chat_message")
+    turn_outcome = "fallback"
+    turn_started = time.perf_counter()
     if not message.strip():
         raise InvalidOperation("Enter a question.")
     chat_session = _tenant_record(session, ChatSession, tenant_id, session_id)
@@ -6466,20 +6470,26 @@ def send_chat_message(
                     **({"on_event": on_event} if on_event else {}),
                 )
             reply = asyncio.run(provider_reply)
+            # An empty reply falls through to the deterministic keyword chain
+            # below, so it is a fallback turn however it was produced.
+            turn_outcome = "model" if reply else "fallback"
         # A policy refusal is not an outage: say which company kind is closed
         # and why (feature 169). Provider, transport, protocol and tool failures
         # degrade to a safe user-visible response; no exception escapes here.
         except PlaygroundOperationDenied as error:
             reply = f"The Copilot is not available for this company: {error}"
+            turn_outcome = "denied"
         except Exception as error:  # noqa: BLE001
             reply = (
                 "The managed Copilot could not answer right now. "
                 f"Please try again later ({type(error).__name__})."
             )
+            turn_outcome = "provider_error"
     else:
         reply = ""
     if context_commitment_id and not own_provider and not managed_key:
         reply = "No AI provider is connected. You can still inspect the delivery and use its actions."
+        turn_outcome = "no_provider"
     normalized = original_message.lower()
     parts = original_message.split()
     if reply:
@@ -6574,6 +6584,11 @@ def send_chat_message(
         )
     else:
         reply = "V0 local agent: ask about inventory or fulfillment risk."
+    # Set where the reply is produced, not sniffed from its text: the string
+    # is user-facing copy and a copy edit would silently flip the metric.
+    _record_copilot_turn(
+        own_provider, managed_key, turn_outcome, time.perf_counter() - turn_started
+    )
     assistant_message = ChatMessage(
         id=uid("msg"),
         tenant_id=tenant_id,
@@ -13411,3 +13426,28 @@ def ensure_demo(session: OrmSession, tenant: Tenant) -> None:
         ]
     )
     session.commit()
+
+
+def _record_copilot_turn(
+    own_provider, managed_key, outcome: str, seconds: float | None = None
+) -> None:
+    """Separate a real model answer from the deterministic fallback.
+
+    Both return HTTP 200, so no amount of request-level instrumentation can
+    tell them apart. `outcome=fallback` with a configured provider is the
+    signal that the Copilot is degraded -- the state the deployment sat in
+    while the managed key was missing and the UI looked perfectly healthy.
+    """
+    try:
+        from reality.telemetry.metrics import copilot_turn
+
+        if own_provider:
+            provider = "tenant"
+        elif managed_key:
+            provider = "managed"
+        else:
+            provider = "none"
+        copilot_turn(provider, outcome, seconds)
+    except Exception:
+        # A metric must never break a chat turn.
+        logging.getLogger(__name__).debug("copilot metric failed", exc_info=True)

@@ -46,4 +46,16 @@ def create_mcp_app(
     return server.streamable_http_app()
 
 
-app = create_mcp_app()
+from reality import telemetry as _telemetry
+
+
+def _mcp_engine():
+    from reality.db.core import engine
+
+    return engine
+
+
+_telemetry.configure("reality-mcp")
+app = _telemetry.instrument_asgi(create_mcp_app())
+_telemetry.instrument_httpx()
+_telemetry.instrument_engine(_mcp_engine())

@@ -110,6 +110,50 @@ Deliberate choices:
 - name: REALITY_ENV
   value: "production"
 {{/*
+  service.version. Wired to the image tag so a metric or span identifies the
+  build that produced it -- the same tag CI bumps in the Argo Application.
+*/}}
+- name: REALITY_IMAGE_TAG
+  value: {{ .Values.image.tag | default .Chart.AppVersion | quote }}
+{{- if and .Values.telemetry.enabled .Values.telemetry.endpoint }}
+{{/*
+  The presence of OTEL_EXPORTER_OTLP_ENDPOINT is the single switch the
+  application keys off: unset means no providers, no instrumentation, no cost.
+*/}}
+- name: OTEL_EXPORTER_OTLP_ENDPOINT
+  value: {{ .Values.telemetry.endpoint | quote }}
+- name: OTEL_METRIC_EXPORT_INTERVAL
+  value: {{ .Values.telemetry.metricExportIntervalMs | quote }}
+{{/*
+  Export timeout, in SECONDS.
+
+  This is deliberately OTEL_EXPORTER_OTLP_TIMEOUT and not
+  OTEL_METRIC_EXPORT_TIMEOUT. The latter reads naturally but does not bound
+  anything: PeriodicExportingMetricReader passes it to export() as
+  timeout_millis, and the OTLP/HTTP exporter ignores that argument entirely --
+  it recomputes its deadline from self._timeout, which comes only from
+  OTEL_EXPORTER_OTLP_METRICS_TIMEOUT / OTEL_EXPORTER_OTLP_TIMEOUT (default 10s,
+  with 6 retries). Without this, a collector that blackholes SYNs adds ~10s to
+  every pod termination, against a 30s grace period.
+*/}}
+- name: OTEL_EXPORTER_OTLP_TIMEOUT
+  value: "3"
+{{/*
+  service.instance.id / k8s.node.name. Set explicitly: left to itself the SDK
+  invents a random UUID per process, so every restart on spot capacity would
+  mint a whole new set of series. The node name lets a latency spike be
+  correlated with a spot reclaim.
+*/}}
+- name: REALITY_POD_NAME
+  valueFrom:
+    fieldRef:
+      fieldPath: metadata.name
+- name: REALITY_NODE_NAME
+  valueFrom:
+    fieldRef:
+      fieldPath: spec.nodeName
+{{- end }}
+{{/*
   REALITY_SETTINGS_KEY is NOT an alias of REALITY_MASTER_KEY in both directions.
   security/secrets.py accepts it as a fallback FOR the master key, but
   agent/settings.py:_fernet() reads ONLY this name — and when it is unset it

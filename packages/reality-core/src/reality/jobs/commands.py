@@ -67,7 +67,12 @@ def process(
 ) -> None:
     from sqlalchemy.exc import SQLAlchemyError
 
+    from reality import telemetry
     from reality.jobs.runtime import ProcessLoop
+
+    # Each runner reports under its own service name so the scheduler and the
+    # worker are separable in Grafana; they fail for different reasons.
+    telemetry.configure(f"reality-{role}")
 
     logging.basicConfig(level=logging.INFO, format="%(message)s")
     try:
