@@ -2920,6 +2920,15 @@ export type StorylineRun = {
 };
 
 export const storylineApi = {
+  freePlayEntry: () =>
+    request<{ available: false } | ({ available: true } & CompanySetupResult)>(
+      "/api/storyline/free-play",
+    ),
+  startFreePlay: () =>
+    request<{ available: true } & CompanySetupResult>("/api/storyline/free-play", {
+      method: "POST",
+      body: JSON.stringify({ confirmed: true }),
+    }),
   chatEvidence: (tenant: string, messageId: string) =>
     request<{ available: boolean; items: StorylineTraceItem[]; has_more: boolean }>(
       `/api/tenants/${tenant}/storyline/chat/${encodeURIComponent(messageId)}`,

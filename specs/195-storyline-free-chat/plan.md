@@ -1,65 +1,66 @@
-# Implementation Plan
-
-Python 3.12+, PostgreSQL, SQLAlchemy, FastAPI and existing React/TypeScript.
+# Implementation Plan: Independent Free Play
 
 ## Constitution Check
-| Principle | Result | Evidence |
-|---|---|---|
-| Source → Evidence → Reality | PASS | Reuse existing tool recorder and deltas |
-| Reality operational authority | PASS | No generated authority or document statuses |
-| Proven schema | PASS | Existing bounded trace JSON stores a reply-to-call association |
-| Tenant/shared services | PASS | Existing chat service and owner-scoped Storyline read |
-| Test traceability | PASS | Tests first for exact attribution and handoff |
-| Explainability | PASS | Real per-call evidence and proposal-linked decisions |
-| Received values | PASS | No new calculations or copied source authorities |
-| Simplicity | PASS | Reuse ChatPage, composer and StorylineProtocol |
+PASS: Source → Evidence → Reality remains in shared services. Company creation uses
+canonical setup/admission/profile rules. No new schema, derived business authority,
+automatic confirmation, lesson permission expansion or scheduling mechanism.
 
-## Design
-Decorate the shared send_chat_message service with a request-local ContextVar collector.
-Record IDs emitted by recorder.record for this invocation; persist one internal
-chat.reply association in the existing trace with the assistant message ID and bounded
-call IDs. It is explanation metadata, hidden from the normal call list. No prompt,
-credential, alternate business fact or duplicate conversation is stored there.
-A read-only storyline chat-evidence endpoint validates run owner and same-tenant
-assistant message, finds the association and reads exact call IDs plus later calls
-linked to their proposal IDs. Pruned/missing associations report unavailable.
-Existing deltaAt remains the confirmed-effect reader. No timestamp attribution.
+## Entry and lifecycle
+`GET /api/storyline/free-play` reads the owner's existing company-setup receipt.
+`POST` requires a strict confirmation flag and delegates to `create_company` using
+`standalone-free-play:v1`, name Free Play, sandbox/international_demo and no live
+simulation. Existing setup locking, fingerprint, initialization retry, capacity and
+archive rules apply. A receipt for an ordinary company is refused. The run has no
+Storyline identity or chapters; it is not included in the Storyline library.
 
-ChatPage gains optional initial draft and per-message rendering slot. Storyline passes
-own words into local Player draft state and mounts ChatPage keyed by tenant/run in
-Free Play; reads do not auto-send. A lazy What happened disclosure uses the new read
-and existing protocol/delta renderer. Proposal review continues through ordinary pages.
-Free-play global protocol keeps its existing polling; chat evidence refreshes on
-shared settlement events and opening the disclosure. Drafts stay out of URLs/storage.
+## Evidence
+The recorder recognizes existing Storylines plus the designated independent practice
+run. The evidence reader validates owned tenant/run; chapter/mutation APIs keep the
+strict Storyline reader. Exact request-local call IDs are associated with each saved
+assistant message in bounded existing trace JSON. Proposal IDs link later decisions.
+Internal association rows stay out of call lists. Missing/pruned evidence is explicit;
+trace failure never retries a saved reply. Existing marker deltas disclose their
+later-activity scope. No time-range attribution or new schema.
 
-## Paths and dependency order
-Recorder and core service → storyline evidence service → thin HTTP adapter → API
-client and reusable ChatPage → Storyline integration and localized evidence component.
+## UI
+A separate `/app/free-play` route, navigation entry and exploration-library card use
+`FreePlayPage`. Both SPA and direct-entry routers recognize the route. Entry reads
+never create a company; the first explicit Create Sandbox and start action does.
+The chooser defaults to the current company from shared bootstrap. Opening a company
+clears stale conversation/context selection. A ready dedicated receipt offers reopening
+without redirecting. Reload of an opened chat resumes that company; archive offers the
+existing Companies restoration path. Failures remain retryable.
 
-## Tests and verification
-Focused PostgreSQL recorder/service/API tests for distinct concurrent scopes, exact
-reply/decision association, missing/pruned evidence, foreign message/tenant and
-unchanged confirmation. Frontend contracts plus browser tests of explicit draft
-handoff, real send, persistent history, evidence disclosure and responsive layouts.
-Full backend suite, lint, spec policy, web tests/audit/build and docs generation/build.
+Use normal ChatPage, composer, allowance, provider and confirmation destinations.
+Per-message What happened reuses the evidence/protocol renderer. Existing contextual
+Storyline chat is labeled Sandbox chat and retains own-word draft handoff. Remove
+Free Play actions from every Storyline card. New strings cover all four languages.
+Post-send focus survives busy refreshes/remounts and respects deliberate focus elsewhere.
 
-## Rollout and rollback
-No migration. Additive read endpoint; existing chats continue unchanged. Revert UI and
-decorator to roll back; historical association rows are inert within existing retention.
-No deployment included. Risk: mistaken association; mitigate by IDs and scope reset,
-never elapsed-time windows. Trace failure must not cause a successful chat to be resent.
+## Planned verification and dependency order
+Service/recorder and API tests precede implementation, then route/UI integration and
+browser proofs. PostgreSQL tests cover confirmed/idempotent setup, no story identity,
+archive preservation, collision refusal, exact evidence, proposal confirmation and
+owner/tenant boundaries. Browser tests cover the separate entry, no card actions,
+explicit creation, tenant switch, direct URL/reload, chat and localized responsive
+layouts. Full backend suite, web tests/build/audit, lint/spec and docs/catalog checks.
+Record final evidence in verification.md; do not mark completion while a check is red.
 
-## Focus correction
-Track pending focus restoration in ChatPage across composer/session remounts.
-After sending/loading settle, focus the active input only if focus remains in its
-form or on the document body. No domain/API changes; Constitution PASS. Tests first:
-Enter failure/retry, Send success, first-session Free Play, deliberate focus elsewhere.
-The shared composer stays read-only instead of disabled during send/refresh,
-preserving focus through follow-up loading cycles while preventing draft edits.
+## Rollback and scope
+No migration. Reverting the UI/entry leaves the existing practice company and records
+intact; bounded trace metadata remains inert. Do not delete or merge Sandbox data.
+Local localhost preview only; production deployment is separate. No open clarification.
 
-## Direct library entry
-Reuse Library.open with an optional destination chapter and the existing run.
-Expose a secondary Free Play button beside Continue/Open only when a run exists.
-Reset chat/context selection for that destination. Tests cover absence before start,
-correct tenant/free route, no writes and return to the existing chapter. No API or
-schema changes; Constitution and requirement/task review PASS.
+## Company selection amendment
+The owner requested current or selected existing company instead of forced creation.
+Use shared Bootstrap tenants, preset selection.tenant, label Sandbox/company meaning,
+and open without a POST. A route-local `play=chat` flag preserves an explicitly opened
+chat on reload; company switching clears stale sessions. The chooser remains reachable
+from the chat header. A new Sandbox still uses the existing confirmed setup service.
+Do not redirect from the chooser based on the dedicated receipt.
+No backend/schema change is needed. Existing evidence eligibility stays unchanged;
+HTTP 404 evidence reads render the existing unavailable message, not an invented trace.
+Planned browser proofs: current default, ordinary company and Storyline Sandbox opening
+without writes, switching and reload isolation, real-data notice, separate creation,
+chooser availability even after dedicated creation, and unavailable evidence.
+Constitution review: PASS, no schema, admission, confirmation or lesson changes.

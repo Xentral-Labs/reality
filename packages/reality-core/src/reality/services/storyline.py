@@ -701,6 +701,51 @@ def _refresh_projections(session: Session, tenant_id: str) -> None:
 # ----------------------------------------------------------------- run state
 
 
+def free_play_entry(session: Session, user_id: str) -> dict[str, Any]:
+    """Read the independent Sandbox receipt without creating or restarting it."""
+    from reality.services.company_setup import read_request
+
+    try:
+        result = read_request(session, user_id, recorder.FREE_PLAY_REQUEST_KEY)
+        if result["environment"] != "sandbox":
+            raise Conflict("The Free Play request key belongs to another company.")
+        return {"available": True, **result}
+    except NotFound:
+        return {"available": False}
+
+
+def start_free_play(
+    session: Session, user_id: str, *, confirmed: bool = False
+) -> dict[str, Any]:
+    """Create/resume the independent practice Sandbox through canonical setup."""
+    from reality.services.company_setup import create_company
+
+    result = create_company(
+        session,
+        user_id,
+        recorder.FREE_PLAY_REQUEST_KEY,
+        "Free Play",
+        "sandbox",
+        "international_demo",
+        confirmed=confirmed,
+    )
+    recorder.clear_cache(result["tenant_id"])
+    return {"available": True, **result}
+
+
+def _evidence_run(session: Session, user_id: str, tenant_id: str) -> PlaygroundRun:
+    run = session.scalar(
+        select(PlaygroundRun).where(
+            PlaygroundRun.tenant_id == tenant_id,
+            PlaygroundRun.owner_user_id == user_id,
+            recorder.evidence_run_condition(),
+        )
+    )
+    if run is None:
+        raise NotFound("No recorded Sandbox found.")
+    return run
+
+
 def _run_for_tenant(session: Session, user_id: str, tenant_id: str) -> PlaygroundRun:
     run = session.scalar(
         select(PlaygroundRun).where(
@@ -1536,7 +1581,7 @@ def trace(
     free: bool = False,
 ) -> dict[str, Any]:
     """The run's trace; ``free`` keeps only calls made outside any chapter (FR-011)."""
-    run = _run_for_tenant(session, user_id, tenant_id)
+    run = _evidence_run(session, user_id, tenant_id)
     page = recorder.read_trace(
         session,
         tenant_id,
@@ -1560,7 +1605,7 @@ def chat_evidence(
 
     from reality.db.core import ChatMessage, StorylineTraceEntry
 
-    run = _run_for_tenant(session, user_id, tenant_id)
+    run = _evidence_run(session, user_id, tenant_id)
     message = session.scalar(
         select(ChatMessage).where(
             ChatMessage.id == message_id,
@@ -1636,7 +1681,7 @@ def delta(
     from reality.db.core import StorylineTraceEntry
     from reality.storyline.delta import read_delta
 
-    run = _run_for_tenant(session, user_id, tenant_id)
+    run = _evidence_run(session, user_id, tenant_id)
     before: list[str] = []
     primary: tuple[str, str] | None = None
     if ordinal is not None:

@@ -167,3 +167,19 @@ test("storyline state helpers derive the phase from the latest step only", async
   assert.equal(rowIsNew({ id: "com_1", other: 3 }, new Set(["com_1"])), true);
   assert.equal(rowIsNew({ id: "com_2" }, new Set(["com_1"])), false);
 });
+
+test("Free Play keeps an opened company on reload and resets chat when switching companies", async () => {
+  const { readSelection, selectionUrl, companySelection } =
+    await import("../src/unified/routing.ts");
+  const opened = readSelection(
+    new URL("https://example.test/app/free-play?tenant=company&play=chat&session=conversation"),
+  );
+  const reopened = readSelection(new URL(selectionUrl(opened), "https://example.test"));
+  assert.equal(reopened.freePlayChat, true);
+  assert.equal(reopened.tenant, "company");
+  assert.equal(reopened.session, "conversation");
+  const switched = companySelection(opened, "other");
+  assert.equal(switched.freePlayChat, false);
+  assert.equal(switched.session, "");
+  assert.equal(selectionUrl(switched), "/app/free-play?tenant=other");
+});

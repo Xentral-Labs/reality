@@ -53,3 +53,56 @@ to the existing chapter. The complete 32-layout regression also passed.
 `make web-build` (167 tests, translation audit, TypeScript/Vite), spec policy and
 diff checks passed. No backend change or migration. The new frontend asset was
 verified on localhost:8080 with a healthy API.
+
+## Independent Free Play (FR-007–009)
+- Full PostgreSQL run: 2,518 passed, 9 skipped, two initial failures in 507.82s.
+  The spec-policy failure was a missing traceability section during spec revision;
+  it was corrected. The existing 10,000-source benchmark exceeded its 60-second
+  threshold under concurrent browser/build/test load. Both gates passed the isolated
+  rerun: 2 passed in 13.02s, benchmark call 12.03s. No threshold was relaxed.
+- Final focused chat/lifecycle suite: 8 passed, including the final ordinary-company
+  collision guard, confirmed/idempotent creation, no story identity and archive.
+- `make web-build`: 167 tests, 1,849/1,849 strings in each language, TypeScript and Vite.
+- Final browser run: 48 en/de/nl/es light/dark mobile/desktop layouts; separate entry,
+  no card buttons, confirmed creation, direct URL/reload, independent chat/session
+  creation and retained history without Storyline messages. Existing scripted and
+  contextual-chat flows, focus and evidence regressions also passed.
+- Visually reviewed the exploration library and German standalone mobile light and
+  desktop dark. Inputs remain usable and no horizontal overflow occurs.
+- Lint, spec policy and diff checks passed. Public documentation now distinguishes
+  contextual Sandbox chat from independent Free Play; generated-doc checks accompany it.
+- Local API and frontend were updated on port 8080. Health, direct entry asset and
+  authenticated entry route were verified. Existing data/configuration were retained;
+  no local user Sandbox was created automatically and no production deploy occurred.
+
+Browser transports remain fixtures; backend provider transport remains stubbed while
+real tools run in disposable PostgreSQL. The final collision test was run in the
+focused suite after the full suite had collected tests.
+
+## Existing-company chooser amendment (2026-09-15)
+
+The owner requested the current company, another accessible company, or creation of a
+Sandbox. The chooser now uses shared bootstrap and presets the current company. It
+never redirects based on a dedicated receipt. The explicitly opened company's URL
+retains `play=chat`; changing company resets session/context. Ordinary companies are
+labeled as working with real data. Existing proposal confirmation remains unchanged.
+A 404 evidence read displays the existing unavailable-evidence message; no trace or
+Sandbox run is fabricated for ordinary companies.
+
+- Browser regression first failed on the missing company selector, then passed.
+- Full Storyline browser passed, including existing-company selection without writes,
+  dedicated Sandbox creation/reload, contextual chat/focus and 48 localized layouts.
+- Supplemental company browser passed with an ordinary-company saved reply and 404
+  evidence, current default, story/company switching, no cross-company history,
+  read-only reopening and 390/1440 chooser screenshots. Both screenshots reviewed.
+- Web build passed: 167 existing tests, four-language audit (1855/1855), TypeScript
+  and Vite. An additional routing/reset regression passed with all 7 tests in its file.
+- Lint, spec policy, docs build (4 generator tests, 67 docs tests) and generated
+  catalog consistency passed.
+- Backend is unchanged by this chooser amendment; the full-suite and focused
+  PostgreSQL results above remain applicable.
+- Local 8080 preview updated, health returned ok, direct Free Play served
+  `index-xye8PTIa.js`. No production deployment.
+
+Final review: shared company access and company selection remain authoritative.
+No new schema, business logic, automatic mutation, data conversion or trace scope.

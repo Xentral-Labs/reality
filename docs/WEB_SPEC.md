@@ -2682,3 +2682,11 @@ decisions linked by proposal ID. No timestamp-based attribution. Missing/pruned
 evidence is explicit. The existing marker delta is labeled as changes since the
 call and may include later Sandbox activity; it is not exclusive causal attribution.
 Chapter progress remains unchanged and Back to the storyline remains available.
+
+Spec 195: independent `/app/free-play` is separate from guided Storylines. One library
+entry and one navigation entry offer the current or another accessible company, or
+creation of a sample-data Sandbox. The selected company is labeled and opening it
+is read-only. A real-data notice distinguishes ordinary companies; all changes keep
+normal confirmation. Reload preserves the opened company. What happened explicitly
+reports unavailable evidence outside eligible recorded Sandboxes. Individual story
+cards have no Free Play buttons. Contextual story chat remains Sandbox chat.

@@ -16,6 +16,7 @@ const current = new Set([
   "warehouse",
   "attention",
   "storyline",
+  "free-play",
 ]);
 const aliases: Record<string, [string, Record<string, string>]> = {
   home: ["", {}],

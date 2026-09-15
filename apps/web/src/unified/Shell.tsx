@@ -79,7 +79,7 @@ export function Shell({
     return () => window.removeEventListener("reality:open-chat", show);
   }, []);
   // Storyline has its own protocol column; the chat dock stays closed there.
-  const dockOpen = chatOpen && selection.route !== "storyline";
+  const dockOpen = chatOpen && selection.route !== "storyline" && selection.route !== "free-play";
   const [activityTenant, setActivityTenant] = useState<string | null>(null);
   useEffect(() => setActivityTenant(null), [company.id]);
   const [registerHeader, setRegisterHeader] = useState<HTMLDivElement | null>(null);
@@ -556,6 +556,30 @@ export function Shell({
                   >
                     <BookOpen size={17} />
                     {t("Storyline")}
+                  </a>
+                  <a
+                    className={`flex items-center gap-2 rounded-md px-3 py-2 text-[13px] leading-5 ${selection.route === "free-play" ? activeNavigation : "hover:bg-surface-muted"}`}
+                    href={selectionUrl({
+                      ...selection,
+                      route: "free-play",
+                      freePlayChat: false,
+                      session: "",
+                      commitment: "",
+                    })}
+                    aria-current={selection.route === "free-play" ? "page" : undefined}
+                    onClick={(event) => {
+                      event.preventDefault();
+                      navigate({
+                        route: "free-play",
+                        freePlayChat: false,
+                        session: "",
+                        commitment: "",
+                      });
+                      setOpen(false);
+                    }}
+                  >
+                    <BookOpen size={17} />
+                    {t("Free play")}
                   </a>
                   {(company.company_kind === "demo" || company.demo_data_state) && (
                     <a

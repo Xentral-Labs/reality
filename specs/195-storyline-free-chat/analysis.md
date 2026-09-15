@@ -35,3 +35,20 @@ FR-007 review: direct entry uses the existing run and shared company-opening flo
 clears stale session/context selection and dispatches only reads. Visibility depends
 on a run existing, so completed runs are supported and unstarted cards retain Start.
 Existing translations and wrapping button layout are reused; no unresolved finding.
+
+## Independent Free Play review (FR-007–009)
+The standalone run is a normal canonical practice Sandbox with null Storyline
+identity. The immutable owner request key provides idempotent entry using existing
+setup services and admission/capacity rules. GET is read-only; POST confirms creation.
+An ordinary-company receipt collision is refused. Archive is never undone.
+Only the designated practice run joins existing Storylines in trace eligibility;
+chapter APIs remain strict. Evidence keeps tenant/owner/call/proposal scope.
+The dedicated route is registered for both SPA navigation and direct entry/reload.
+Library cards no longer repeat Free Play. Independent and contextual histories are
+separate in browser fixtures and real service tests. No critical finding remains.
+
+## Company selection review
+Scope follows the owner's current-company/other-company/new-Sandbox request. Shared
+bootstrap is the selection authority; server tenant access remains authoritative.
+No fake PlaygroundRun is attached to ordinary companies. Trace absence is explicit.
+No critical findings; existing context/reset routing is reused.

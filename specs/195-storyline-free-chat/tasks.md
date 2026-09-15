@@ -19,3 +19,11 @@ as one coherent increment because free chat must carry truthful evidence.
 - [x] T009 Restore post-send focus (FR-006), verify browser/web gates, update PR and 8080.
 
 - [x] T010 Add/test direct library Free Play entry (FR-007); web/browser gates, PR and 8080.
+
+- [x] T011 FR-008/009: standalone entry/evidence service regressions, implement shared
+  setup and explicit trace eligibility, add independent UI and remove card actions;
+  verify full gates, update PR scope and localhost preview. Supersedes T010's UI.
+
+- [x] T012 [US1] [FR-008, FR-004] Add failing browser proofs for existing-company
+  selection, default, read-only opening, reload and unavailable evidence; implement
+  chooser and route state, localize, verify web/browser and update preview/PR.

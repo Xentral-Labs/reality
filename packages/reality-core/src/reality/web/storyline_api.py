@@ -104,6 +104,23 @@ def _engine(session):
 # ---------------------------------------------------------------- account
 
 
+class StartFreePlay(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    confirmed: StrictBool = False
+
+
+@account_router.get("/free-play")
+def free_play_entry(session: DatabaseSession, actor: Actor):
+    return _respond(lambda: storyline.free_play_entry(session, actor))
+
+
+@account_router.post("/free-play")
+def start_free_play(payload: StartFreePlay, session: DatabaseSession, actor: Actor):
+    return _respond(
+        lambda: storyline.start_free_play(session, actor, confirmed=payload.confirmed)
+    )
+
+
 @account_router.get("/library")
 def library(session: DatabaseSession, actor: Actor):
     return _respond(lambda: storyline.library(session, actor))

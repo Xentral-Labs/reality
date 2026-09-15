@@ -468,7 +468,7 @@ export function StorylineNarrator({
                   onClick={() => freePlay()}
                 >
                   <Infinity size={14} />
-                  {t("Free play")}
+                  {t("Sandbox chat")}
                 </button>
                 <button
                   type="button"

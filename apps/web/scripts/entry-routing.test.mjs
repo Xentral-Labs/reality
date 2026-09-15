@@ -4,7 +4,12 @@ import { resolveEntry, safeAccountReturn } from "../src/entryRouting.ts";
 
 const entry = (path) => resolveEntry(new URL(path, "https://app.example"));
 test("current routes stay current and unknown routes are explicit", () => {
-  for (const path of ["/app", "/app/warehouse?tenant=t1", "/app/inspector?inspector_view=graph"])
+  for (const path of [
+    "/app",
+    "/app/warehouse?tenant=t1",
+    "/app/inspector?inspector_view=graph",
+    "/app/free-play?tenant=t1",
+  ])
     assert.equal(entry(path).kind, "app");
   assert.equal(entry("/app/not-real").kind, "missing");
   assert.equal(entry("/app/work/foreign").kind, "missing");

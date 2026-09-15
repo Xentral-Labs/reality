@@ -25,7 +25,7 @@ from decimal import Decimal
 from functools import wraps
 from typing import Any
 
-from sqlalchemy import delete, func, select
+from sqlalchemy import and_, delete, func, or_, select
 from sqlalchemy.orm import Session
 
 from reality.db.core import BusinessEvent, PlaygroundRun, StorylineTraceEntry, now, uid
@@ -151,6 +151,20 @@ def clear_cache(tenant_id: str | None = None) -> None:
         _run_cache.pop(tenant_id, None)
 
 
+FREE_PLAY_REQUEST_KEY = "standalone-free-play:v1"
+
+
+def evidence_run_condition():
+    """Storylines and the designated independent practice Sandbox, never lessons."""
+    return or_(
+        PlaygroundRun.storyline_key.is_not(None),
+        and_(
+            PlaygroundRun.client_request_key == FREE_PLAY_REQUEST_KEY,
+            PlaygroundRun.sandbox_kind == "practice",
+        ),
+    )
+
+
 def storyline_run_id(session: Session, tenant_id: str) -> str | None:
     """The active storyline run of a tenant, or None. Cached briefly per process."""
     cached = _run_cache.get(tenant_id)
@@ -160,7 +174,7 @@ def storyline_run_id(session: Session, tenant_id: str) -> str | None:
         run_id = session.scalar(
             select(PlaygroundRun.id).where(
                 PlaygroundRun.tenant_id == tenant_id,
-                PlaygroundRun.storyline_key.is_not(None),
+                evidence_run_condition(),
                 PlaygroundRun.status == "active",
             )
         )

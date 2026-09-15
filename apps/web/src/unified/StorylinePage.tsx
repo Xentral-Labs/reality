@@ -124,7 +124,7 @@ function Library({
       .catch((failure) => setError(failure instanceof Error ? failure.message : String(failure)));
   }, []);
   useEffect(load, [load]);
-  const open = async (key: string, work: () => Promise<StorylineRun>, chapter = "") => {
+  const open = async (key: string, work: () => Promise<StorylineRun>) => {
     setBusy(key);
     setError(null);
     try {
@@ -134,8 +134,7 @@ function Library({
       navigate({
         route: "storyline",
         tenant: run.tenant_id,
-        storylineChapter: chapter,
-        ...(chapter === FREE_PLAY ? { session: "", commitment: "" } : {}),
+        storylineChapter: "",
       });
     } catch (failure) {
       setError(failure instanceof Error ? failure.message : String(failure));
@@ -190,12 +189,8 @@ function Library({
     <section className="mx-auto flex max-w-4xl flex-col gap-5" data-storyline-library>
       <header className="flex flex-wrap items-end justify-between gap-3">
         <div className="max-w-2xl">
-          <h2 className="text-lg font-semibold text-fg-strong">{t("Storylines")}</h2>
-          <p className="mt-1 text-sm text-fg-muted">
-            {t(
-              "Guided business flows. Each one plays in a sandbox of its own, step by step, with the calls and the recorded changes beside it. Nothing here touches a real company.",
-            )}
-          </p>
+          <h2 className="text-lg font-semibold text-fg-strong">{t("Explore Reality")}</h2>
+          <p className="mt-1 text-sm text-fg-muted">{t("Choose a storyline or Free Play.")}</p>
         </div>
         <div className="flex flex-wrap gap-2">
           {backToStory && (
@@ -282,6 +277,27 @@ function Library({
           </p>
         </form>
       )}
+      <section
+        className={`${panel} flex flex-wrap items-center justify-between gap-4 p-4`}
+        data-free-play-entry
+      >
+        <div>
+          <h3 className="font-semibold">{t("Free play")}</h3>
+          <p className="mt-1 text-sm text-fg-muted">
+            {t("Choose an existing company or create a Sandbox with sample data.")}
+          </p>
+        </div>
+        <button
+          type="button"
+          className="br-btn br-btn-primary"
+          onClick={() =>
+            navigate({ route: "free-play", freePlayChat: false, session: "", commitment: "" })
+          }
+        >
+          {t("Free play")}
+        </button>
+      </section>
+      <h3 className="text-lg font-semibold">{t("Storylines")}</h3>
       <div className="grid gap-4 md:grid-cols-2">
         {items.map((item) => (
           <StorylineCard
@@ -289,19 +305,6 @@ function Library({
             item={item}
             busy={busy !== null}
             start={() => void start(item)}
-            freePlay={() => {
-              if (item.run)
-                void open(
-                  item.key,
-                  async () => ({
-                    ...item.run!,
-                    key: item.key,
-                    version: item.version,
-                    error: null,
-                  }),
-                  FREE_PLAY,
-                );
-            }}
             startOver={() => void startOver(item)}
             remove={() => void remove(item)}
           />
@@ -317,14 +320,12 @@ function StorylineCard({
   busy,
   start,
   startOver,
-  freePlay,
   remove,
 }: {
   item: StorylineLibraryItem;
   busy: boolean;
   start: () => void;
   startOver: () => void;
-  freePlay: () => void;
   remove: () => void;
 }) {
   const run = item.run;
@@ -425,17 +426,6 @@ function StorylineCard({
           >
             {run ? (finished ? t("Open") : t("Continue")) : t("Start")}
           </button>
-          {run && (
-            <button
-              type="button"
-              className="br-btn"
-              data-storyline-free={item.key}
-              disabled={busy}
-              onClick={freePlay}
-            >
-              {t("Free play")}
-            </button>
-          )}
         </div>
       </div>
     </article>
@@ -692,7 +682,7 @@ function Player({
         <section className="flex h-[min(850px,85dvh)] min-h-[32rem] min-w-0 flex-col overflow-hidden rounded-xl border border-border-default bg-surface lg:h-auto lg:min-h-0">
           <header className="shrink-0 border-b border-border-default p-3">
             <div className="flex flex-wrap items-center justify-between gap-2">
-              <h2 className="font-semibold">{t("Free play")}</h2>
+              <h2 className="font-semibold">{t("Sandbox chat")}</h2>
               <div className="flex flex-wrap gap-2">
                 <button
                   type="button"

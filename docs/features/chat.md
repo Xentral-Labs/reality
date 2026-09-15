@@ -130,3 +130,14 @@ decisions linked by proposal ID. No timestamp-based attribution. Missing/pruned
 evidence is explicit. The existing marker delta is labeled as changes since the
 call and may include later Sandbox activity; it is not exclusive causal attribution.
 Chapter progress remains unchanged and Back to the storyline remains available.
+
+Free Play is an independent `/app/free-play` entry. Choose any accessible company,
+with the current company preselected, or create a dedicated practice Sandbox with
+static canonical sample data. Opening the entry or an existing company only reads;
+explicit creation uses company setup and its stable receipt. No Storyline is created.
+The exploration library and navigation expose one Free Play entry; individual story
+cards do not. Contextual chat in a story is labeled Sandbox chat. Both use the same
+agent and confirmation. Recorded What happened evidence is available in eligible
+Storyline/Free Play Sandboxes; other companies explicitly show unavailable evidence.
+Existing company data is used directly, with a real-data notice for business companies.
+Reload retains the chosen company. Archived Free Play is never auto-restored.
