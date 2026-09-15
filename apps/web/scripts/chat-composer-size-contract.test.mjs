@@ -8,8 +8,10 @@ const composer = fs.readFileSync(path.join(root, "src", "unified", "ChatComposer
 const styles = fs.readFileSync(path.join(root, "src", "tailwind.css"), "utf8");
 
 test("the composer starts compact and grows with its content", () => {
-  assert.match(styles, /\.reality-chat-composer textarea \{[\s\S]*min-height: 44px/u);
+  assert.match(styles, /\.reality-chat-composer textarea \{[\s\S]*min-height: 58px/u);
   assert.match(styles, /\.reality-chat-composer textarea \{[\s\S]*max-height: 200px/u);
   assert.match(styles, /\.reality-chat-composer textarea \{[\s\S]*resize: none/u);
   assert.match(composer, /Math\.min\(node\.scrollHeight, 200\)/u);
+  assert.match(composer, /className="reality-chat-composer relative"/u);
+  assert.match(composer, /className="absolute inset-x-2 bottom-2 flex items-end justify-between"/u);
 });
