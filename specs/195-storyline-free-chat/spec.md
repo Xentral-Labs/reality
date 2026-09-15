@@ -89,9 +89,11 @@ input while preventing edits/submission.
   labels do not clutter turns; accessible authorship and per-reply evidence remain.
   Pending user messages share the same style. Long content remains contained in both
   themes and on mobile.
-- **FR-012**: Available AI allowance appears as a compact count disclosure. The exact
-  localized reset date/time is shown on opening details, including keyboard/touch use.
-  Exhaustion keeps its explanation and reset time visible and sending disabled.
+- **FR-012**: Available AI allowance appears in the chat header, and in the outer
+  Free Play header when embedded there. A compact Usage button opens consumed/remaining
+  counts, exact reset time and a Settings usage link. Settings exposes the same current
+  allowance through existing authorized reads. No invented plan/upgrade destination.
+  Only exhaustion appears at the composer, preserving disabled sending.
 - **DR-001**: Source → Evidence → Reality, shared services, admission and tenant scope
   remain authoritative. No adapter business writes or new schema.
 

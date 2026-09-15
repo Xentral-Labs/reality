@@ -1,3 +1,4 @@
+import { UsageSettings } from "./ChatUsage";
 import { RegisterHeader } from "./RegisterWorkbench";
 import { AISettings } from "./AISettings";
 import { CompanySettings } from "./CompanySettings";
@@ -43,13 +44,24 @@ export function SettingsPage({
   const managedCompany = target ? companies.find((row) => row.id === target.id) : undefined;
   return (
     <div className="mx-auto max-w-6xl space-y-7">
-      <RegisterHeader title={view === "personal" ? "Profile & preferences" : "Companies"} />
+      <RegisterHeader
+        title={
+          view === "usage" ? "Usage" : view === "personal" ? "Profile & preferences" : "Companies"
+        }
+      />
       <section
         data-settings-view={view}
         className="min-w-0 rounded-xl border border-border-default bg-surface p-5 sm:p-7"
       >
-        {view === "personal" ? (
-          <PersonalPreferences user={user} updateUser={updateUser} />
+        {view === "usage" ? (
+          <UsageSettings tenant={company.id} />
+        ) : view === "personal" ? (
+          <>
+            <button className="br-btn mb-5" onClick={() => navigate({ settingsView: "usage" })}>
+              {t("Usage")}
+            </button>
+            <PersonalPreferences user={user} updateUser={updateUser} />
+          </>
         ) : (
           <CompanySettings
             company={company}

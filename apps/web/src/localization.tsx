@@ -13,6 +13,14 @@ type Preferences = { language: Language; locale: DisplayLocale; timezone: string
 
 const dictionaries: Record<Exclude<Language, "en">, Record<string, string>> = {
   de: {
+    Usage: "Nutzung",
+    "Included AI questions": "Enthaltene KI-Anfragen",
+    "{used} of {limit} used": "{used} von {limit} genutzt",
+    "{remaining} left": "{remaining} übrig",
+    "View usage": "Nutzung ansehen",
+    "No included AI allowance is active for this company.":
+      "Für diese Firma ist kein enthaltenes KI-Kontingent aktiv.",
+
     "{remaining} of {limit} AI questions left": "Noch {remaining} von {limit} KI-Anfragen",
     "Reality is working…": "Reality arbeitet …",
     "Back to selection": "Zurück zur Auswahl",
@@ -1814,6 +1822,14 @@ const dictionaries: Record<Exclude<Language, "en">, Record<string, string>> = {
     "Fully Reserved": "Vollständig reserviert",
   },
   nl: {
+    Usage: "Gebruik",
+    "Included AI questions": "Inbegrepen AI-vragen",
+    "{used} of {limit} used": "{used} van {limit} gebruikt",
+    "{remaining} left": "{remaining} over",
+    "View usage": "Gebruik bekijken",
+    "No included AI allowance is active for this company.":
+      "Er is geen inbegrepen AI-tegoed actief voor dit bedrijf.",
+
     "{remaining} of {limit} AI questions left": "Nog {remaining} van {limit} AI-vragen",
     "Reality is working…": "Reality is bezig…",
     "Back to selection": "Terug naar de selectie",
@@ -3306,6 +3322,14 @@ const dictionaries: Record<Exclude<Language, "en">, Record<string, string>> = {
     Customer: "Klant",
   },
   es: {
+    Usage: "Uso",
+    "Included AI questions": "Consultas de IA incluidas",
+    "{used} of {limit} used": "{used} de {limit} usadas",
+    "{remaining} left": "{remaining} disponibles",
+    "View usage": "Ver uso",
+    "No included AI allowance is active for this company.":
+      "No hay una cuota de IA incluida activa para esta empresa.",
+
     "{remaining} of {limit} AI questions left": "Quedan {remaining} de {limit} consultas de IA",
     "Reality is working…": "Reality está trabajando…",
     "Back to selection": "Volver a la selección",

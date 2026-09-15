@@ -184,3 +184,15 @@ test("Free Play keeps an opened company on reload and resets chat when switching
   assert.equal(switched.session, "");
   assert.equal(selectionUrl(switched), "/app/free-play?tenant=other");
 });
+
+test("Usage settings survives direct navigation and reload", async () => {
+  const { readSelection, selectionUrl } = await import("../src/unified/routing.ts");
+  const selected = readSelection(
+    new URL("https://example.test/app/settings?tenant=company&settings_view=usage"),
+  );
+  assert.equal(selected.settingsView, "usage");
+  assert.equal(
+    readSelection(new URL(selectionUrl(selected), "https://example.test")).settingsView,
+    "usage",
+  );
+});

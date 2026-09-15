@@ -336,6 +336,7 @@ await page.route("**/api/**", async (route) => {
       return reply({
         sessions: independentSession ? [independentSession] : [],
         active_session_id: independentSession?.id || null,
+        allowance: { limit: 20, used: 2, remaining: 18, resets_at: "2099-09-15T00:00:00Z" },
         messages: independentMessages,
         proposals: [],
         suggestions: [],
@@ -943,6 +944,12 @@ await page.locator("[data-free-play-start]").click();
 await page.waitForURL(/tenant=independent/);
 await page.locator("[data-independent-free-play] textarea").waitFor();
 assert.deepEqual(writes.slice(beforeIndependent), ["/api/storyline/free-play"]);
+await page.locator("[data-independent-free-play] > header [data-chat-usage]").waitFor();
+assert.equal(
+  await page.locator("[data-independent-free-play] .reality-chat header [data-chat-usage]").count(),
+  0,
+);
+assert.equal(await page.locator("[data-independent-free-play] [data-ai-allowance]").count(), 0);
 assert.equal(await page.locator("[data-storyline-current-chapter]").count(), 0);
 await page.locator("[data-independent-free-play] textarea").fill("Show this Free Play Sandbox.");
 await page.locator("[data-independent-free-play] textarea").press("Enter");
