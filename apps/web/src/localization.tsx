@@ -6011,6 +6011,10 @@ Object.assign(dictionaries.de, {
     "Frage nach Bestand, Commitments, Zahlungen oder operativen Risiken.",
   "Delete chat": "Chat löschen",
   "Delete this empty chat permanently?": "Diesen leeren Chat endgültig löschen?",
+  "This empty chat has no messages. It will be permanently deleted and cannot be restored.":
+    "Dieser leere Chat enthält keine Nachrichten. Er wird endgültig gelöscht und kann nicht wiederhergestellt werden.",
+  "This chat will move to Archived chats. You can restore it later.":
+    "Dieser Chat wird in die archivierten Chats verschoben. Du kannst ihn später wiederherstellen.",
   "Delete conversation": "Chat löschen",
   "Delete this chat?": "Diesen Chat löschen?",
   "and its complete conversation history.": "und seinen vollständigen Verlauf.",
@@ -6921,6 +6925,10 @@ Object.assign(dictionaries.nl, {
   DELETE: "VERWIJDEREN",
   "Delete chat": "Chat verwijderen",
   "Delete this empty chat permanently?": "Deze lege chat permanent verwijderen?",
+  "This empty chat has no messages. It will be permanently deleted and cannot be restored.":
+    "Deze lege chat bevat geen berichten. Hij wordt permanent verwijderd en kan niet worden hersteld.",
+  "This chat will move to Archived chats. You can restore it later.":
+    "Deze chat wordt verplaatst naar gearchiveerde chats. Je kunt hem later herstellen.",
   "Delete company permanently": "Bedrijf permanent verwijderen",
   "Delete conversation": "Gesprek verwijderen",
   "Delete permanently": "Permanent verwijderen",
@@ -7850,6 +7858,10 @@ Object.assign(dictionaries.es, {
   DELETE: "ELIMINAR",
   "Delete chat": "Eliminar chat",
   "Delete this empty chat permanently?": "¿Eliminar permanentemente este chat vacío?",
+  "This empty chat has no messages. It will be permanently deleted and cannot be restored.":
+    "Este chat vacío no contiene mensajes. Se eliminará permanentemente y no se podrá restaurar.",
+  "This chat will move to Archived chats. You can restore it later.":
+    "Este chat se moverá a los chats archivados. Puedes restaurarlo más tarde.",
   "Delete company permanently": "Eliminar empresa permanentemente",
   "Delete conversation": "Eliminar conversación",
   "Delete permanently": "Eliminar permanentemente",

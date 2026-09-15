@@ -18,6 +18,8 @@ const compactHistoryClass = "reality-chat-icon free-play-mobile-control";
 const activeSessionClass = "bg-accent-soft font-medium text-accent";
 const inactiveSessionClass = "text-fg-default hover:bg-surface-muted";
 const dockFrame = "reality-chat flex h-full min-h-0 min-w-0 flex-col";
+const criticalButtonClass = "br-btn br-btn-critical";
+const primaryButtonClass = "br-btn br-btn-primary";
 import {
   analyticsHash,
   readAnalyticsHandoff,
@@ -35,6 +37,8 @@ import { t, formatDateTime } from "../localization";
 import { useRead } from "./useCompanyContext";
 import { ReadState } from "./ReadState";
 import type { Selection } from "./routing";
+
+type RemovableSession = { id: string; title: string; message_count: number };
 
 export function ChatPage({
   selection,
@@ -71,6 +75,7 @@ export function ChatPage({
   const [historyOpen, setHistoryOpen] = useState(false);
   const [showArchived, setShowArchived] = useState(false);
   const [changingSession, setChangingSession] = useState(false);
+  const [removalSession, setRemovalSession] = useState<RemovableSession | null>(null);
   const { data, loading, error, code, refresh } = useRead(async () => {
     try {
       return await api.copilot(selection.tenant, selection.session, showArchived);
@@ -294,17 +299,12 @@ export function ChatPage({
     onSessionSelected?.();
     navigate({ session });
   };
-  const removeSession = async (row: { id: string; title: string; message_count: number }) => {
-    if (
-      !window.confirm(
-        t(row.message_count === 0 ? "Delete this empty chat permanently?" : "Archive this chat?"),
-      )
-    )
-      return;
+  const removeSession = async (row: RemovableSession) => {
     setChangingSession(true);
     setFailure("");
     try {
       await api.deleteCopilotSession(selection.tenant, row.id);
+      setRemovalSession(null);
       if (selection.session === row.id || data.active_session_id === row.id)
         navigate({ session: "" }, { replace: true });
       refresh();
@@ -412,7 +412,7 @@ export function ChatPage({
                           data-chat-session-delete={row.message_count === 0 ? row.id : undefined}
                           data-chat-session-archive={row.message_count === 0 ? undefined : row.id}
                           disabled={sending || startingChat || changingSession}
-                          onClick={() => void removeSession(row)}
+                          onClick={() => setRemovalSession(row)}
                         >
                           {row.message_count === 0 ? <Trash2 size={17} /> : <Archive size={17} />}
                           {t(row.message_count === 0 ? "Delete chat" : "Archive chat")}
@@ -808,6 +808,69 @@ export function ChatPage({
           </div>
         </form>
       )}
+      {removalSession && (
+        <ChatRemovalDialog
+          row={removalSession}
+          busy={changingSession}
+          close={() => setRemovalSession(null)}
+          confirm={() => void removeSession(removalSession)}
+        />
+      )}
     </div>
+  );
+}
+
+function ChatRemovalDialog({
+  row,
+  busy,
+  close,
+  confirm,
+}: {
+  row: RemovableSession;
+  busy: boolean;
+  close: () => void;
+  confirm: () => void;
+}) {
+  const dialog = useRef<HTMLDialogElement>(null);
+  const titleId = useId();
+  const empty = row.message_count === 0;
+  const title = empty ? t("Delete chat") : t("Archive chat");
+  const description = empty
+    ? t("This empty chat has no messages. It will be permanently deleted and cannot be restored.")
+    : t("This chat will move to Archived chats. You can restore it later.");
+  const confirmClass = empty ? criticalButtonClass : primaryButtonClass;
+  useEffect(() => {
+    const trigger = document.activeElement as HTMLElement | null;
+    const node = dialog.current;
+    node?.showModal();
+    return () => {
+      node?.close();
+      trigger?.focus();
+    };
+  }, []);
+  return (
+    <dialog
+      ref={dialog}
+      aria-labelledby={titleId}
+      data-chat-removal-dialog
+      className="m-auto w-[min(440px,calc(100vw-2rem))] rounded-2xl border border-border-default bg-surface p-6 text-fg-default shadow-xl backdrop:bg-black/40"
+      onCancel={(event) => {
+        event.preventDefault();
+        if (!busy) close();
+      }}
+    >
+      <h2 id={titleId} className="text-lg font-semibold text-fg-strong">
+        {title}
+      </h2>
+      <p className="mt-3 text-sm leading-6 text-fg-muted">{description}</p>
+      <div className="mt-6 flex justify-end gap-3">
+        <button type="button" className="br-btn" disabled={busy} onClick={close}>
+          {t("Cancel")}
+        </button>
+        <button type="button" className={confirmClass} disabled={busy} onClick={confirm}>
+          {title}
+        </button>
+      </div>
+    </dialog>
   );
 }

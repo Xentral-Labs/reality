@@ -53,7 +53,7 @@ apps/web/src/                     # presentation only
 - `packages/reality-core/src/reality/web/api.py`: projection field; existing DELETE delegates.
 - `packages/reality-core/tests/test_master_data_api.py`: business-story and tenant proofs.
 - `apps/web/src/api.ts`: typed server projection.
-- `apps/web/src/unified/ChatPage.tsx`: delete/archive labels and confirmations.
+- `apps/web/src/unified/ChatPage.tsx`: delete/archive labels and accessible in-product confirmation dialog.
 - `apps/web/src/localization.tsx`: translated destructive wording.
 - `apps/web/scripts/chat-archive-contract.test.mjs`: presentation contract.
 
@@ -70,6 +70,8 @@ derive whether conversational history exists. No source, evidence, or Reality ro
 tenant-scoped query, deletes the session only when empty, and otherwise applies `archived_at`.
 The existing DELETE route remains transport-only. Copilot list payloads carry `message_count`; Web
 uses that field only to describe the action, while the service rechecks at mutation time.
+The confirmation uses a native HTML dialog styled with shared Reality surface, border, button, and
+text primitives; browser-native confirmation UI is not used.
 
 ### Data and migration impact
 

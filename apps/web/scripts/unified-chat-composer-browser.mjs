@@ -4,7 +4,9 @@ import { mkdir } from "node:fs/promises";
 import { pathToFileURL } from "node:url";
 if (!process.env.PLAYWRIGHT_MODULE)
   throw new Error("Set PLAYWRIGHT_MODULE; browser acceptance must not be silently skipped.");
-const { chromium } = await import(pathToFileURL(process.env.PLAYWRIGHT_MODULE));
+const playwrightModule = await import(pathToFileURL(process.env.PLAYWRIGHT_MODULE));
+const chromium = playwrightModule.chromium ?? playwrightModule.default?.chromium;
+if (!chromium) throw new Error("The configured Playwright module does not expose Chromium.");
 const browser = await chromium.launch({
   headless: true,
   executablePath: process.env.PLAYWRIGHT_EXECUTABLE || undefined,
@@ -76,8 +78,8 @@ await page.route("**/api/**", async (route) => {
   if (url.pathname.endsWith("/copilot"))
     return respond({
       sessions: [
-        { id: "chat_a", title: "Stock review" },
-        { id: "chat_b", title: "Earlier conversation" },
+        { id: "chat_a", title: "Stock review", message_count: 0 },
+        { id: "chat_b", title: "Earlier conversation", message_count: 2 },
       ],
       active_session_id: url.searchParams.get("session_id") || "chat_a",
       messages: fresh
@@ -337,6 +339,28 @@ try {
   await chatPage.locator("[data-chat-starters] button").first().waitFor();
   assert.equal(await chatPage.locator("[data-chat-starters] button").count(), 3);
   await page.screenshot({ path: "/private/tmp/reality-202-chat-page.png" });
+  await page.locator('[data-chat-session-menu="chat_a"] summary').click();
+  await page.getByRole("button", { name: "Delete chat", exact: true }).click();
+  const removalDialog = page.getByRole("dialog", { name: "Delete chat", exact: true });
+  await removalDialog.waitFor();
+  await removalDialog
+    .getByText(
+      "This empty chat has no messages. It will be permanently deleted and cannot be restored.",
+      { exact: true },
+    )
+    .waitFor();
+  await mkdir("/private/tmp/reality-205-dialog", { recursive: true });
+  for (const width of [390, 1440]) {
+    await page.setViewportSize({ width, height: 900 });
+    const box = await removalDialog.boundingBox();
+    assert.ok(box && box.x >= 0 && box.x + box.width <= width);
+    await page.screenshot({
+      animations: "disabled",
+      path: `/private/tmp/reality-205-dialog/${width}.png`,
+    });
+  }
+  await removalDialog.getByRole("button", { name: "Cancel", exact: true }).click();
+  assert.equal(await removalDialog.count(), 0);
   await chatPage.locator("[data-chat-starters] button").first().click();
   assert.equal(await chatPage.locator("textarea").inputValue(), firstQuestion);
   assert.deepEqual(errors, []);

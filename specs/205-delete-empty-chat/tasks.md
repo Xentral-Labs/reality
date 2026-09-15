@@ -34,6 +34,10 @@ description: "Requirement-traceable empty Chat Session removal tasks"
 - [x] T014 [P] [US2] [FR-004] Add complete translations in `apps/web/src/localization.tsx`
 - [x] T015 [US2] Run the US2 independent acceptance proof from `specs/205-delete-empty-chat/quickstart.md`
 - [x] T016 [US1] [US2] [FR-003] [FR-007] Classify the new tenant-scoped aggregate and mutation in `packages/reality-core/config/tenant_isolation_catalog.yaml` and update its completeness proof
+- [x] T017 [US2] [FR-004] Add a failing contract that rejects browser-native confirmation and requires an accessible in-product dialog in `apps/web/scripts/chat-archive-contract.test.mjs`
+- [x] T018 [US2] [FR-004] Replace `window.confirm` with the Reality-styled delete/archive dialog in `apps/web/src/unified/ChatPage.tsx`
+- [x] T019 [US2] [FR-004] Add localized dialog explanations in `apps/web/src/localization.tsx`
+- [x] T020 [US2] [FR-004] Run Web contracts, translation audit, production build, and affected visual review
 
 ## Final Phase: Cross-Cutting Review
 
@@ -68,7 +72,7 @@ callers. Then deliver US2 so the Web UI describes the server-owned consequence b
 | FR-001      | T004         | T008–T009              | Verified |
 | FR-002      | T004         | T008–T009              | Verified |
 | FR-003      | T006         | T011–T012              | Verified |
-| FR-004      | T007         | T013–T014              | Verified |
+| FR-004      | T007, T017   | T013–T014, T018–T020   | Verified |
 | FR-005      | T004         | T008                   | Verified |
 | FR-006      | T005         | T008                   | Verified |
 | FR-007      | T005         | T008                   | Verified |

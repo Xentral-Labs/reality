@@ -70,9 +70,9 @@ confirmations say delete for the empty session and archive for the non-empty ses
 **Acceptance Scenarios**:
 
 1. **Given** an empty session, **When** its options are opened, **Then** the action is labelled
-   `Delete chat` and confirmation describes permanent removal.
+   `Delete chat` and an in-product confirmation dialog describes permanent removal.
 2. **Given** a session containing messages, **When** its options are opened, **Then** the action
-   remains `Archive chat` and its confirmation describes reversible archiving.
+   remains `Archive chat` and an in-product confirmation dialog describes reversible archiving.
 
 ### Edge Cases
 
@@ -93,7 +93,8 @@ confirmations say delete for the empty session and archive for the non-empty ses
 - **FR-003**: The conversation list MUST identify whether each session is empty using server-owned
   session state rather than title or browser inference.
 - **FR-004**: The empty-session action and confirmation MUST communicate permanent deletion; the
-  non-empty-session action and confirmation MUST communicate reversible archiving.
+  non-empty-session action and confirmation MUST communicate reversible archiving. Confirmation
+  MUST use an accessible Reality-styled in-product dialog, not a browser-native confirmation box.
 - **FR-005**: Permanent empty-session deletion MUST leave no restorable or archived Chat Session.
 - **FR-006**: Removal MUST NOT mutate Change Proposals or any business Reality record.
 - **FR-007**: Unknown and cross-tenant removal MUST behave as not found.
