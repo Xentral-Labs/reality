@@ -47,3 +47,9 @@ retry identity, success/refreshed availability, exhausted lifetime, admin visibi
 and four mobile locales. Reviewed mobile screenshots; no real grants consumed.
 Local 8080 updated. Review: no remaining issue; adapter-only, no backend/schema change.
 GitHub publication still awaits previously requested explicit approval.
+
+## Publication
+The user explicitly requested PR publication. Published the local implementation
+commits to Xentral-Labs/reality PR 15 and updated its title/description for standalone
+company Chat and simplified auditable usage resets. Earlier approval-block notes
+above are historical; publication is no longer pending.
