@@ -48,6 +48,7 @@ export function ChatComposer({
 }) {
   const exhausted = allowance?.remaining === 0;
   const fileInput = useRef<HTMLInputElement>(null);
+  const textarea = useRef<HTMLTextAreaElement>(null);
   const draftValue = useRef(value);
   draftValue.current = value;
   const tooLong = Array.from(value).length > 4000;
@@ -56,6 +57,12 @@ export function ChatComposer({
   const [listening, setListening] = useState(false);
   const [reading, setReading] = useState(false);
   const [notice, setNotice] = useState("");
+  useEffect(() => {
+    const node = textarea.current;
+    if (!node) return;
+    node.style.height = "auto";
+    node.style.height = `${Math.min(node.scrollHeight, 200)}px`;
+  }, [value]);
   const stop = () => {
     recognition.current?.stop();
   };
@@ -145,6 +152,7 @@ export function ChatComposer({
           {t("Ask about your company")}
         </label>
         <textarea
+          ref={textarea}
           id={id}
           value={value}
           readOnly={sending}
