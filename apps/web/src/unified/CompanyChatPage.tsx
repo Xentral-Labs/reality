@@ -38,7 +38,6 @@ export function CompanyChatPage({
     };
   }, [sessionsOpen]);
   const [controlsTarget, setControlsTarget] = useState<HTMLDivElement | null>(null);
-  const [usageTarget, setUsageTarget] = useState<HTMLDivElement | null>(null);
   const isSandbox =
     company.company_kind === "sandbox" ||
     company.purpose === "playground" ||
@@ -72,7 +71,6 @@ export function CompanyChatPage({
           ref={setSessionsTarget}
           className="min-h-0 flex-1 overflow-y-auto overscroll-contain"
         />
-        <div className="shrink-0 pt-3" ref={setUsageTarget} />
       </aside>
       <section
         className="flex h-full min-h-0 min-w-0 w-full flex-col overflow-hidden bg-surface"
@@ -90,7 +88,6 @@ export function CompanyChatPage({
           </p>
         )}
         <ChatPage
-          usageTarget={usageTarget}
           controlsTarget={controlsTarget}
           sessionsTarget={sessionsTarget}
           sessionsOpen={sessionsOpen}

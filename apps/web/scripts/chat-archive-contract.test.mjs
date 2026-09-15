@@ -5,6 +5,11 @@ import test from "node:test";
 
 const root = path.resolve(import.meta.dirname, "..");
 const chat = fs.readFileSync(path.join(root, "src", "unified", "ChatPage.tsx"), "utf8");
+const composer = fs.readFileSync(path.join(root, "src", "unified", "ChatComposer.tsx"), "utf8");
+const companyChat = fs.readFileSync(
+  path.join(root, "src", "unified", "CompanyChatPage.tsx"),
+  "utf8",
+);
 
 test("the unified conversation list preserves archive and restore controls", () => {
   assert.match(chat, /api\.deleteCopilotSession\(selection\.tenant, row\.id\)/u);
@@ -24,4 +29,10 @@ test("archived conversations use the retained archive read and remain read-only"
   assert.match(chat, /onClick=\{\(\) => selectSession\(row\.id\)\}/u);
   assert.match(chat, /showArchived \? \([\s\S]*Archived — read only/u);
   assert.match(chat, /Back to chats/u);
+});
+
+test("usage sits with the composer disclaimer instead of conversation navigation", () => {
+  assert.match(composer, /disclaimerAction/u);
+  assert.match(chat, /disclaimerAction=\{<ChatUsage/u);
+  assert.doesNotMatch(companyChat, /usageTarget/u);
 });

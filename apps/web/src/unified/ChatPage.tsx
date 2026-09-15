@@ -44,14 +44,12 @@ export function ChatPage({
   initialDraft = "",
   onInitialDraftUsed,
   renderMessageEvidence,
-  usageTarget,
   controlsTarget,
   sessionsTarget,
   sessionsOpen,
   toggleSessions,
   onSessionSelected,
 }: {
-  usageTarget?: HTMLElement | null;
   controlsTarget?: HTMLElement | null;
   sessionsTarget?: HTMLElement | null;
   sessionsOpen?: boolean;
@@ -323,7 +321,7 @@ export function ChatPage({
   };
   const chatControls = (
     <div className="flex shrink-0 items-center gap-1">
-      {!usageTarget && <ChatUsage allowance={data.allowance} navigate={navigate} />}
+      {!sessionsTarget && <ChatUsage allowance={data.allowance} navigate={navigate} />}
       <button
         className={sessionsTarget ? compactHistoryClass : "reality-chat-icon"}
         aria-label={t("Conversation history")}
@@ -444,9 +442,7 @@ export function ChatPage({
           </div>,
           sessionsTarget,
         )}
-      {usageTarget &&
-        createPortal(<ChatUsage allowance={data.allowance} navigate={navigate} />, usageTarget)}
-      {!dock && !usageTarget && (
+      {!dock && (
         <div className="flex justify-end">
           <ChatUsage allowance={data.allowance} navigate={navigate} />
         </div>
@@ -755,6 +751,7 @@ export function ChatPage({
           sending={sending || startingChat || loading}
           active={active}
           send={() => void send()}
+          disclaimerAction={<ChatUsage allowance={data.allowance} navigate={navigate} />}
         />
       ) : (
         <form
