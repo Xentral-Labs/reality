@@ -198,3 +198,9 @@ FR-021: Every navigation changing company clears prior company-scoped selections
 including chat session, unless the destination explicitly supplies a new selection.
 Opening/restarting Storylines must not retain a previous-company session. Failed
 chat links offer a read-only return to the company conversation list.
+
+FR-022: Missing selected ChatSession (404) automatically clears only the session
+selection using history replacement and loads the current company conversation
+list without an error box or user click. No records are created or deleted. Other
+errors remain visible; stale reads from previous selections must not trigger recovery.
+This supersedes FR-021 manual recovery for missing sessions.

@@ -904,10 +904,28 @@ if (process.env.FREE_PLAY_COMPANY_ONLY === "1") {
     });
   });
   await page.goto(`${base}/app/chat?tenant=plain&session=missing`);
-  await page.getByRole("button", { name: "Back to chats", exact: true }).click();
+
   await page.locator("[data-independent-free-play] textarea").waitFor();
   assert.equal(new URL(page.url()).searchParams.has("session"), false);
 
+  assert.equal(await page.getByText("ChatSession not found.", { exact: true }).count(), 0);
+  await page.reload();
+  await page.locator("[data-independent-free-play] textarea").waitFor();
+  await page.route("**/api/tenants/plain/copilot?*", async (route) => {
+    if (new URL(route.request().url()).searchParams.get("session_id") !== "unavailable")
+      return route.fallback();
+    return route.fulfill({
+      status: 503,
+      contentType: "application/json",
+      body: JSON.stringify({ detail: "Temporarily unavailable" }),
+    });
+  });
+  await page.goto(`${base}/app/chat?tenant=plain&session=unavailable`);
+  await page
+    .locator("#main-content")
+    .getByText("Temporarily unavailable", { exact: true })
+    .waitFor();
+  assert.equal(new URL(page.url()).searchParams.get("session"), "unavailable");
   await assertMainCompanyFreePlay();
   assert.deepEqual(errors, []);
   await browser.close();

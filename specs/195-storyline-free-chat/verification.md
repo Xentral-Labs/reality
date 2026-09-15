@@ -297,3 +297,12 @@ The routing regression failed before implementation and passes afterwards; all 1
 web contract tests passed. Browser proved invalid-session recovery, cleared URL and
 company context isolation. Formatting, four-language audit, TypeScript/Vite, spec
 policy and diff checks passed. Local 8080 updated. No server or data change.
+
+## Automatic missing-session recovery (FR-022)
+The specific selected ChatSession 404 is classified with its selection identity.
+Generation-guarded reads and an effect replace the invalid URL selection and load
+the current company's chat without showing an error or requiring a click. Other
+failures keep the existing visible error and retry controls. No mutation is added.
+171 contract tests, formatting, localization audit, TypeScript/Vite, spec policy
+and diff checks passed. Browser checks prove no-click recovery, cleared URL, reload
+and preserved 503 errors, followed by company isolation checks. Local 8080 updated.

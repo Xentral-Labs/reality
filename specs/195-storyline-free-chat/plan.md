@@ -151,3 +151,8 @@ FR-021: Centralize navigation merge in routing.ts using companySelection on tena
 changes; use it in useCompanyContext. Add Back to chats on failed selected-session
 reads. Tests first: tenant transition clears session, same-company retains, explicit
 destination overrides. No backend/schema changes; Constitution PASS.
+
+FR-022: Classify the specific missing ChatSession response in ChatPage, let useRead
+generation guards discard obsolete errors, and navigate with replace from an effect.
+Show loading during recovery. Verify browser automatic/no-write recovery, URL removal,
+reload and non-404 failure preservation, plus web checks. Constitution PASS.

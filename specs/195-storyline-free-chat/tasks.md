@@ -69,3 +69,5 @@ as one coherent increment because free chat must carry truthful evidence.
 - [x] T026 [FR-020] Update learning introduction in four languages and verify build/localization/preview.
 
 - [x] T027 [FR-021] Fix tenant navigation inheritance, provide stale-session recovery, verify routing/build and preview.
+
+- [x] T028 [FR-022] Recover missing sessions automatically; test no-click/no-write URL replacement and preserved real failures.
