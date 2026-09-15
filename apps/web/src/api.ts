@@ -2920,6 +2920,10 @@ export type StorylineRun = {
 };
 
 export const storylineApi = {
+  chatEvidence: (tenant: string, messageId: string) =>
+    request<{ available: boolean; items: StorylineTraceItem[]; has_more: boolean }>(
+      `/api/tenants/${tenant}/storyline/chat/${encodeURIComponent(messageId)}`,
+    ),
   library: () =>
     request<{ items: StorylineLibraryItem[]; enabled: boolean }>("/api/storyline/library"),
   start: (key: string, version: number, requestKey: string) =>

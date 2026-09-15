@@ -1029,3 +1029,8 @@ Spec 185 owns the analytics service, agent tools, private report configuration a
 - `packages/reality-core/tests/test_user_access.py`: the stored zone, language and paired locale for public and invitation signup, the fallback for absent, empty, unknown, malformed and unsupported hints, the refused oversized hint that creates no account, the locale a client cannot claim, and the one vocabulary shared with profile validation (FR-001–FR-003, FR-005, DR-002).
 - `apps/web/scripts/signup-preferences.test.mjs`: the explicit page language, the browser's requested language, the omitted unsupported language, the stated zone and the omitted unusable or oversized zone (FR-004).
 - `apps/web/scripts/signup-preferences-browser.mjs`: a real browser in `America/Denver`, `Europe/Amsterdam` and `Asia/Tokyo` registering from the German entry page, from a Dutch browser and from an unsupported French one, with the sent request body carrying the zone and language and never a locale (FR-004, SC-001).
+
+## Spec 195 — Storyline Free Play Chat
+
+- `packages/reality-core/tests/test_storyline_chat.py`: exact reply/call association, proposal decisions, context isolation, retention and owner/tenant/message boundaries (FR-003–004, DR-001).
+- `apps/web/scripts/storyline-browser.mjs`: own words, explicit send, reply evidence, reload and localized responsive layouts (FR-001–005).

@@ -186,19 +186,26 @@ export function StorylineProtocol({
   loading: boolean;
   navigate: (changes: Partial<Selection>) => void;
   /** Free play lists the calls outside the story and lets one be picked (FR-011). */
-  mode?: "chapter" | "free";
+  mode?: "chapter" | "free" | "chat";
   onPick?: (item: StorylineTraceItem) => void;
   picked?: number | null;
 }) {
   const open = (recordType: string, recordId: string) =>
     navigate(recordRoute(recordType, recordId));
-  const heading = mode === "free" ? t("Calls outside the storyline") : t("Calls in this step");
+  const heading =
+    mode === "chat"
+      ? t("Calls for this reply")
+      : mode === "free"
+        ? t("Calls outside the storyline")
+        : t("Calls in this step");
   const emptyText =
-    mode === "free"
-      ? t("Nothing has been done outside the storyline yet.")
-      : t("Nothing has been called for this step yet.");
+    mode === "chat"
+      ? t("No tool calls were recorded for this reply.")
+      : mode === "free"
+        ? t("Nothing has been done outside the storyline yet.")
+        : t("Nothing has been called for this step yet.");
   const deltaEmptyText =
-    mode === "free"
+    mode !== "chapter"
       ? t("Pick a confirmed call to see what it added.")
       : t("Once you confirm, the events, facts, records and findings of this step appear here.");
   const valueOf = (value: unknown) =>
@@ -234,11 +241,13 @@ export function StorylineProtocol({
       </section>
       <section
         className="flex flex-col gap-2 border-t border-border-subtle p-3"
-        aria-label={t("What was added")}
+        aria-label={t(mode === "chat" ? "Changes since this call" : "What was added")}
         data-storyline-delta
       >
         <div className="flex items-baseline justify-between">
-          <h3 className="text-[13px] font-semibold text-fg-strong">{t("What was added")}</h3>
+          <h3 className="text-[13px] font-semibold text-fg-strong">
+            {t(mode === "chat" ? "Changes since this call" : "What was added")}
+          </h3>
           {delta && (
             <span className="font-mono text-[11px] text-fg-quiet">
               #{delta.range.after_sequence + 1} … #{delta.range.latest_sequence}

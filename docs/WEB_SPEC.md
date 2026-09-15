@@ -2671,3 +2671,14 @@ Spec 190 FR-015: Public pages share more readable heading spacing, responsive se
 Spec 190 FR-018: How it works presents the core flow and worked delivery example first. Native disclosures retain vocabulary, finance, corrections, background and FAQ; all depth is keyboard-accessible and the existing entry anchor targets the compact process flow.
 
 Spec 190 FR-019: Verification mail links reopen the Product App with the recipient in a scrubbed URL fragment. The code remains mandatory; missing tab state permits email entry and the existing resend action. No verification occurs on navigation.
+
+## Storyline Free Play chat (spec 195)
+
+Free Play embeds the normal company chat and composer, including provider, allowance,
+voice input and ordinary proposal review/confirmation. Own words entered in the
+scripted narrator arrive as an editable draft; switching modes never sends.
+What happened on each assistant reply lazily reads exact recorded calls and later
+decisions linked by proposal ID. No timestamp-based attribution. Missing/pruned
+evidence is explicit. The existing marker delta is labeled as changes since the
+call and may include later Sandbox activity; it is not exclusive causal attribution.
+Chapter progress remains unchanged and Back to the storyline remains available.

@@ -1552,6 +1552,76 @@ def trace(
     return page
 
 
+def chat_evidence(
+    session: Session, user_id: str, tenant_id: str, message_id: str
+) -> dict[str, Any]:
+    """Recorded calls for one reply and later decisions on the same proposals."""
+    from sqlalchemy import or_
+
+    from reality.db.core import ChatMessage, StorylineTraceEntry
+
+    run = _run_for_tenant(session, user_id, tenant_id)
+    message = session.scalar(
+        select(ChatMessage).where(
+            ChatMessage.id == message_id,
+            ChatMessage.tenant_id == tenant_id,
+            ChatMessage.role == "assistant",
+        )
+    )
+    if message is None:
+        raise NotFound("Chat message not found.")
+    base = (
+        StorylineTraceEntry.tenant_id == tenant_id,
+        StorylineTraceEntry.run_id == run.id,
+    )
+    association = session.scalar(
+        select(StorylineTraceEntry)
+        .where(
+            *base,
+            StorylineTraceEntry.name == "chat.reply",
+            StorylineTraceEntry.input["message_id"].as_string() == message_id,
+        )
+        .order_by(StorylineTraceEntry.ordinal.desc())
+        .limit(1)
+    )
+    if association is None:
+        return {"available": False, "items": [], "has_more": False}
+    saved = association.result or {}
+    ids = saved.get("trace_ids", [])[:128]
+    direct = list(
+        session.scalars(
+            select(StorylineTraceEntry).where(
+                *base,
+                StorylineTraceEntry.id.in_(ids),
+                StorylineTraceEntry.name != "chat.reply",
+            )
+        )
+    )
+    proposals = {row.proposal_id for row in direct if row.proposal_id}
+    rows = list(
+        session.scalars(
+            select(StorylineTraceEntry)
+            .where(
+                *base,
+                StorylineTraceEntry.name != "chat.reply",
+                or_(
+                    StorylineTraceEntry.id.in_(ids),
+                    StorylineTraceEntry.proposal_id.in_(proposals),
+                ),
+            )
+            .order_by(StorylineTraceEntry.ordinal)
+            .limit(501)
+        )
+    )
+    return {
+        "available": True,
+        "items": [{**recorder.entry_view(row), "chapter": None} for row in rows[:500]],
+        "has_more": bool(
+            saved.get("has_more") or len(direct) != len(ids) or len(rows) > 500
+        ),
+    }
+
+
 def delta(
     session: Session,
     user_id: str,

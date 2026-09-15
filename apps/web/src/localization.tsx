@@ -13,6 +13,16 @@ type Preferences = { language: Language; locale: DisplayLocale; timezone: string
 
 const dictionaries: Record<Exclude<Language, "en">, Record<string, string>> = {
   de: {
+    "Calls for this reply": "Aufrufe zu dieser Antwort",
+    "No tool calls were recorded for this reply.":
+      "Für diese Antwort wurden keine Tool-Aufrufe aufgezeichnet.",
+    "Recorded evidence is unavailable for this reply.":
+      "Für diese Antwort sind keine aufgezeichneten Nachweise verfügbar.",
+    "Some recorded calls are not included in this view.":
+      "Ein Teil der aufgezeichneten Aufrufe ist in dieser Ansicht nicht enthalten.",
+    "Changes since this call": "Änderungen seit diesem Aufruf",
+    "Changes since this call can include later activity in this Sandbox.":
+      "Änderungen seit diesem Aufruf können spätere Aktivitäten in dieser Sandbox enthalten.",
     "Live simulation supports empty and standard demo Sandbox setups. Storyline Sandboxes use a different data setup that is not yet supported.":
       "Die Live-Simulation unterstützt leere und Standard-Demo-Sandboxes. Storyline-Sandboxes verwenden einen anderen Datenaufbau, der noch nicht unterstützt wird.",
     "Live simulation is not available in this Sandbox.":
@@ -1782,6 +1792,16 @@ const dictionaries: Record<Exclude<Language, "en">, Record<string, string>> = {
     "Fully Reserved": "Vollständig reserviert",
   },
   nl: {
+    "Calls for this reply": "Aanroepen voor dit antwoord",
+    "No tool calls were recorded for this reply.":
+      "Er zijn geen toolaanroepen voor dit antwoord vastgelegd.",
+    "Recorded evidence is unavailable for this reply.":
+      "Voor dit antwoord zijn geen vastgelegde gegevens beschikbaar.",
+    "Some recorded calls are not included in this view.":
+      "Sommige vastgelegde aanroepen zijn niet opgenomen in deze weergave.",
+    "Changes since this call": "Wijzigingen sinds deze aanroep",
+    "Changes since this call can include later activity in this Sandbox.":
+      "Wijzigingen sinds deze aanroep kunnen latere activiteiten in deze Sandbox bevatten.",
     "Live simulation supports empty and standard demo Sandbox setups. Storyline Sandboxes use a different data setup that is not yet supported.":
       "Livesimulatie ondersteunt lege en standaard demo-Sandboxes. Storyline-Sandboxes gebruiken een andere gegevensstructuur die nog niet wordt ondersteund.",
     "Live simulation is not available in this Sandbox.":
@@ -3243,6 +3263,16 @@ const dictionaries: Record<Exclude<Language, "en">, Record<string, string>> = {
     Customer: "Klant",
   },
   es: {
+    "Calls for this reply": "Llamadas de esta respuesta",
+    "No tool calls were recorded for this reply.":
+      "No se registraron llamadas a herramientas para esta respuesta.",
+    "Recorded evidence is unavailable for this reply.":
+      "No hay evidencia registrada disponible para esta respuesta.",
+    "Some recorded calls are not included in this view.":
+      "Algunas llamadas registradas no se incluyen en esta vista.",
+    "Changes since this call": "Cambios desde esta llamada",
+    "Changes since this call can include later activity in this Sandbox.":
+      "Los cambios desde esta llamada pueden incluir actividad posterior en este Sandbox.",
     "Live simulation supports empty and standard demo Sandbox setups. Storyline Sandboxes use a different data setup that is not yet supported.":
       "La simulación en vivo admite Sandboxes vacíos y de demostración estándar. Los Sandboxes de Storyline usan una estructura de datos diferente que aún no se admite.",
     "Live simulation is not available in this Sandbox.":
