@@ -111,3 +111,5 @@ no critical issue, schema change or unresolved clarification.
 Existing /app/chat alias must be replaced by the canonical route, and free-play must
 become a compatibility alias. Tests cover both plus mobile and sidebar selection.
 All requirements covered; no critical findings or unresolved questions.
+
+FR-019 review: User requests redundant header removal and spacing correction. Existing usage access retained outside conversation; no unresolved or critical finding.

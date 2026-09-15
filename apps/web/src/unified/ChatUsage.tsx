@@ -55,6 +55,11 @@ export function ChatUsage({
           if (panel.current) {
             panel.current.style.left = `${Math.max(8, Math.min(rect.right - 288, innerWidth - 296))}px`;
             panel.current.style.top = `${rect.bottom + 8}px`;
+            requestAnimationFrame(() => {
+              if (panel.current) {
+                panel.current.style.top = `${Math.max(8, Math.min(rect.bottom + 8, innerHeight - panel.current.offsetHeight - 8))}px`;
+              }
+            });
           }
         }}
       >

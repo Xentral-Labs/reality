@@ -268,3 +268,17 @@ mobile and short viewports, including session selection and composer recovery.
 Reviewed desktop/mobile screenshots. Local 8080 serves index-DBAITsw3.js.
 Review found no remaining issue for this adapter-only change; no backend/schema/catalog
 changes. GitHub publication still awaits the previously requested explicit approval.
+
+## Chat spacing (FR-019, 2026-09-15)
+Removed page gutters, column gap and inner Chat title/desktop toolbar. Usage is
+in the session footer; its popover is clamped within the viewport. Mobile keeps
+the history control. The standalone empty greeting centers in the message area.
+
+170 web tests passed; formatting, four-language audit, TypeScript/Vite, spec policy
+and diff checks passed. The make wrapper was blocked by the host Xcode license;
+its exact npm verification commands and spec checker were run directly instead.
+Browser checks passed desktop/mobile/short-height scrolling, composer bounds,
+empty-state centering, zero outer padding, zero desktop toolbar height and Usage
+popover visibility within the viewport. Reviewed the desktop empty screenshot.
+Synthetic new-session fixture reuses an ID, so the empty-state proof reloads its
+cleared message data. Local 8080 updated. Review: no remaining issue.

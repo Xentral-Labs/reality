@@ -183,3 +183,6 @@ legacy links resolve to Chat, and Storyline has no Chat/Free Play tile.
 | FR-006 | Shared composer failure/button/Enter focus and deliberate alternate-focus tests |
 | FR-007–008 | Library/standalone browser entry, direct routing, explicit creation/reopen tests |
 | FR-008–009, DR-001 | Confirmed setup, no story identity, collision/archive and owned evidence tests |
+
+## Chat spacing (2026-09-15)
+FR-019: Standalone Chat removes the redundant inner Chat heading and desktop toolbar. Usage remains available in the session sidebar. Mobile retains a compact history opener. Remove outer page gutters/gap; center the empty conversation greeting in the available message area, preserving bounded scroll and composer.

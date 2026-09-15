@@ -3383,7 +3383,7 @@ textarea.br-control.rule-draft-editor {
   @apply min-h-11 mt-2;
 }
 
-/* Free Play scrolls its conversation, not the document or shared navigation. */
+/* Standalone Chat scrolls its conversation independently of navigation. */
 .app-shell[data-contained-chat] {
   height: 100dvh;
   min-height: 0;
@@ -3394,6 +3394,7 @@ textarea.br-control.rule-draft-editor {
   min-height: 0;
 }
 .app-shell[data-contained-chat] #main-content {
+  padding: 0;
   display: flex;
   height: 100%;
   min-height: 0;

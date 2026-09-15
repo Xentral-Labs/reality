@@ -63,3 +63,5 @@ as one coherent increment because free chat must carry truthful evidence.
 
 - [x] T024 [FR-018] Promote standalone Chat navigation/route, remove Storyline entry,
   verify routing, active state/order, global company isolation, browser/build and preview.
+
+- [x] T025 [FR-019] Remove redundant Chat chrome, tighten spacing, center empty state; verify responsive browser, build and preview.
