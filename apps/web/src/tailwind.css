@@ -3407,3 +3407,70 @@ textarea.br-control.rule-draft-editor {
     display: none;
   }
 }
+
+/* The desktop rail uses the same links as expanded and mobile navigation. */
+@media (min-width: 1024px) {
+  .app-shell[data-navigation-collapsed="true"] {
+    --shell-navigation-width: 60px;
+  }
+  .app-shell[data-navigation-collapsed="true"] .shell-navigation {
+    gap: 8px;
+  }
+  .app-shell[data-navigation-collapsed="true"] [data-navigation-item] {
+    position: relative;
+    min-height: 36px;
+    justify-content: center;
+    padding: 8px;
+  }
+  .app-shell[data-navigation-collapsed="true"] [data-navigation-item] > svg {
+    flex-shrink: 0;
+  }
+  .app-shell[data-navigation-collapsed="true"]
+    :is(
+      [data-navigation-label],
+      .shell-navigation nav > p,
+      .shell-navigation-heading > p,
+      [data-profile-label],
+      [data-profile-chevron]
+    ) {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+    border: 0;
+  }
+  .app-shell[data-navigation-collapsed="true"] [data-profile-menu] > button {
+    justify-content: center;
+    padding-inline: 0;
+  }
+}
+
+@media (min-width: 1024px) and (pointer: coarse) {
+  .app-shell[data-navigation-collapsed="true"] [data-navigation-item] {
+    min-height: 44px;
+  }
+}
+
+.sidebar-tooltip {
+  position: fixed;
+  z-index: 100;
+  transform: translateY(-50%);
+  max-width: min(280px, calc(100vw - 80px));
+  border-radius: 10px;
+  background: #18181b;
+  color: #fff;
+  padding: 8px 12px;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 20px;
+  box-shadow: 0 6px 18px rgb(0 0 0 / 18%);
+}
+@media (min-width: 1024px) {
+  .app-shell[data-navigation-collapsed="true"] .shell-navigation-heading {
+    justify-content: center;
+  }
+}

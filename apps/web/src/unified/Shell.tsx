@@ -1,3 +1,4 @@
+import { SidebarTooltip } from "./SidebarTooltip";
 import { HeaderControls } from "./HeaderControls";
 import { isPurchasing } from "./pageIntroduction";
 import { PageActionTarget, PageCountTarget } from "./PageHeading";
@@ -8,9 +9,9 @@ import { RegisterHeaderTarget } from "./RegisterWorkbench";
 import { inspectorSections, inspectorSection, inspectorTabs } from "./inspectorSections";
 const dockPanel =
   "fixed inset-x-0 bottom-0 top-[60px] z-20 flex min-w-0 flex-col border-l border-border-default bg-surface lg:sticky lg:top-[60px] lg:h-[calc(100dvh-60px)]";
-const wideGrid = "lg:grid-cols-[200px_minmax(0,1fr)]";
+const wideGrid = "lg:grid-cols-[var(--shell-navigation-width,200px)_minmax(0,1fr)]";
 const dockGrid =
-  "lg:grid-cols-[200px_minmax(0,1fr)_360px] xl:grid-cols-[200px_minmax(0,1fr)_400px] 2xl:grid-cols-[200px_minmax(0,1fr)_440px]";
+  "lg:grid-cols-[var(--shell-navigation-width,200px)_minmax(0,1fr)_360px] xl:grid-cols-[var(--shell-navigation-width,200px)_minmax(0,1fr)_400px] 2xl:grid-cols-[var(--shell-navigation-width,200px)_minmax(0,1fr)_440px]";
 import { CompanySwitcher } from "./CompanySwitcher";
 import { ChatPage } from "./ChatPage";
 import { ActivityDrawer } from "./ActivityDrawer";
@@ -29,6 +30,7 @@ import {
   House,
   History,
   Menu,
+  PanelLeft,
   MessageSquare,
   Settings,
   Database,
@@ -83,7 +85,24 @@ export function Shell({
   const [activityTenant, setActivityTenant] = useState<string | null>(null);
   useEffect(() => setActivityTenant(null), [company.id]);
   const [registerHeader, setRegisterHeader] = useState<HTMLDivElement | null>(null);
+  const navigationRef = useRef<HTMLElement>(null);
   const [open, setOpen] = useState(false);
+  const [navigationCollapsed, setNavigationCollapsed] = useState(() => {
+    try {
+      return localStorage.getItem("reality.navigation.collapsed") === "true";
+    } catch {
+      return false;
+    }
+  });
+  const toggleNavigation = () => {
+    const collapsed = !navigationCollapsed;
+    setNavigationCollapsed(collapsed);
+    try {
+      localStorage.setItem("reality.navigation.collapsed", String(collapsed));
+    } catch {
+      // The current view remains usable when browser storage is unavailable.
+    }
+  };
   const [dark, setDark] = useState(resolveTheme(readThemePreference()) === "dark");
   useEffect(() => {
     const changed = () => {
@@ -202,6 +221,7 @@ export function Shell({
         <PageCountTarget.Provider value={pageCount}>
           <div
             ref={shellRef}
+            data-navigation-collapsed={navigationCollapsed}
             data-contained-chat={selection.route === "chat" || undefined}
             className="app-shell min-h-screen bg-bg text-fg-default"
           >
@@ -298,6 +318,8 @@ export function Shell({
               )}
               <aside
                 data-primary-navigation
+                ref={navigationRef}
+                id="primary-navigation"
                 className={`shell-navigation ${open ? "flex" : "hidden"} fixed inset-y-0 left-0 z-40 w-60 flex-col gap-4 overflow-y-auto border-r border-border-default bg-surface px-2 py-3 lg:sticky lg:top-[60px] lg:z-20 lg:flex lg:h-[calc(100dvh-60px)] lg:w-auto`}
               >
                 <button
@@ -308,13 +330,31 @@ export function Shell({
                   <X size={18} />
                 </button>
                 <nav aria-label={t("Daily work")}>
-                  <p className="mb-1.5 px-3 text-[10px] uppercase tracking-wider text-fg-muted">
-                    {t("Daily work")}
-                  </p>
+                  <div className="shell-navigation-heading mb-1.5 flex items-center justify-between">
+                    <p className="px-3 text-[10px] uppercase tracking-wider text-fg-muted">
+                      {t("Daily work")}
+                    </p>
+                    <button
+                      type="button"
+                      data-navigation-toggle
+                      className="hidden size-8 shrink-0 items-center justify-center rounded-md text-fg-muted hover:bg-surface-muted hover:text-fg-strong focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent lg:flex"
+                      aria-label={t(navigationCollapsed ? "Expand sidebar" : "Collapse sidebar")}
+                      data-sidebar-tooltip={t(
+                        navigationCollapsed ? "Expand sidebar" : "Collapse sidebar",
+                      )}
+                      aria-expanded={!navigationCollapsed}
+                      aria-controls="primary-navigation"
+                      onClick={toggleNavigation}
+                    >
+                      <PanelLeft size={18} />
+                    </button>
+                  </div>
                   <div className="space-y-0.5">
                     {destinations.map(({ label, target, Icon, active }) => (
                       <a
                         data-navigation-item
+                        aria-label={t(label)}
+                        data-sidebar-tooltip={t(label)}
                         key={label}
                         href={selectionUrl({ ...selection, ...target })}
                         aria-current={active ? "page" : undefined}
@@ -326,7 +366,7 @@ export function Shell({
                         className={`flex items-center gap-2 rounded-md px-3 py-2 text-[13px] leading-5 ${active ? activeNavigation : "hover:bg-surface-muted"}`}
                       >
                         <Icon size={17} />
-                        {t(label)}
+                        <span data-navigation-label>{t(label)}</span>
                       </a>
                     ))}
                   </div>
@@ -355,6 +395,8 @@ export function Shell({
                       <a
                         key={String(purchasing)}
                         data-navigation-item
+                        aria-label={t(purchasing ? "Purchasing" : "Sales")}
+                        data-sidebar-tooltip={t(purchasing ? "Purchasing" : "Sales")}
                         className={`flex items-center gap-2 rounded-md px-3 py-2 text-[13px] leading-5 ${selected ? activeNavigation : "hover:bg-surface-muted"}`}
                         href={selectionUrl({ ...selection, ...destination })}
                         aria-current={selected ? "page" : undefined}
@@ -365,12 +407,14 @@ export function Shell({
                         }}
                       >
                         <PackageCheck size={17} />
-                        {t(purchasing ? "Purchasing" : "Sales")}
+                        <span data-navigation-label>{t(purchasing ? "Purchasing" : "Sales")}</span>
                       </a>
                     );
                   })}
                   <a
                     data-navigation-item
+                    aria-label={t("Warehouse")}
+                    data-sidebar-tooltip={t("Warehouse")}
                     className={`flex items-center gap-2 rounded-md px-3 py-2 text-[13px] leading-5 ${selection.route === "warehouse" ? activeNavigation : "hover:bg-surface-muted"}`}
                     href={selectionUrl({
                       ...selection,
@@ -393,10 +437,12 @@ export function Shell({
                     }}
                   >
                     <Boxes size={17} />
-                    {t("Warehouse")}
+                    <span data-navigation-label>{t("Warehouse")}</span>
                   </a>
                   <a
                     data-navigation-item
+                    aria-label={t("Finance")}
+                    data-sidebar-tooltip={t("Finance")}
                     className={`flex items-center gap-2 rounded-md px-3 py-2 text-[13px] leading-5 ${selection.route === "finance" ? activeNavigation : "hover:bg-surface-muted"}`}
                     href={selectionUrl({
                       ...selection,
@@ -414,7 +460,7 @@ export function Shell({
                     }}
                   >
                     <Wallet size={17} />
-                    {t("Finance")}
+                    <span data-navigation-label>{t("Finance")}</span>
                   </a>
                 </nav>
                 <nav aria-labelledby="analytics-navigation-label">
@@ -427,6 +473,8 @@ export function Shell({
                   </p>
                   <a
                     data-navigation-item
+                    aria-label={t("Reports")}
+                    data-sidebar-tooltip={t("Reports")}
                     href={selectionUrl({ ...selection, route: "analytics" })}
                     className={`flex items-center gap-2 rounded-md px-3 py-2 text-[13px] leading-5 ${selection.route === "analytics" ? activeNavigation : "hover:bg-surface-muted"}`}
                     aria-current={selection.route === "analytics" ? "page" : undefined}
@@ -437,7 +485,7 @@ export function Shell({
                     }}
                   >
                     <ChartNoAxesCombined size={17} />
-                    {t("Reports")}
+                    <span data-navigation-label>{t("Reports")}</span>
                   </a>
                 </nav>
                 <nav aria-labelledby="inspector-navigation-label">
@@ -452,6 +500,8 @@ export function Shell({
                     <a
                       key={section.label}
                       data-navigation-item
+                      aria-label={t(section.label)}
+                      data-sidebar-tooltip={t(section.label)}
                       href={selectionUrl({
                         ...selection,
                         route: "inspector",
@@ -479,7 +529,7 @@ export function Shell({
                       }}
                     >
                       <FileSearch size={17} className="shrink-0" />
-                      {t(section.label)}
+                      <span data-navigation-label>{t(section.label)}</span>
                     </a>
                   ))}
                 </nav>
@@ -489,6 +539,8 @@ export function Shell({
                   </p>
                   <a
                     data-navigation-item
+                    aria-label={t("Master data")}
+                    data-sidebar-tooltip={t("Master data")}
                     className={`flex items-center gap-2 rounded-md px-3 py-2 text-[13px] leading-5 ${selection.route === "master-data" ? activeNavigation : "hover:bg-surface-muted"}`}
                     href={selectionUrl({ ...selection, route: "master-data" })}
                     aria-current={selection.route === "master-data" ? "page" : undefined}
@@ -499,10 +551,12 @@ export function Shell({
                     }}
                   >
                     <LayoutGrid size={17} />
-                    {t("Master data")}
+                    <span data-navigation-label>{t("Master data")}</span>
                   </a>
                   <a
                     data-navigation-item
+                    aria-label={t("Integrations")}
+                    data-sidebar-tooltip={t("Integrations")}
                     className={`flex items-center gap-2 rounded-md px-3 py-2 text-[13px] leading-5 ${selection.route === "data-sources" ? activeNavigation : "hover:bg-surface-muted"}`}
                     href={selectionUrl({
                       ...selection,
@@ -520,10 +574,12 @@ export function Shell({
                     }}
                   >
                     <Database size={17} />
-                    {t("Integrations")}
+                    <span data-navigation-label>{t("Integrations")}</span>
                   </a>
                   <a
                     data-navigation-item
+                    aria-label={t("Companies")}
+                    data-sidebar-tooltip={t("Companies")}
                     className={`flex items-center gap-2 rounded-md px-3 py-2 text-[13px] leading-5 ${selection.route === "settings" && selection.settingsView !== "personal" ? activeNavigation : "hover:bg-surface-muted"}`}
                     href={selectionUrl({
                       ...selection,
@@ -551,10 +607,12 @@ export function Shell({
                     }}
                   >
                     <Settings size={17} />
-                    {t("Companies")}
+                    <span data-navigation-label>{t("Companies")}</span>
                   </a>
                   <a
                     data-navigation-item
+                    aria-label={t("Storyline")}
+                    data-sidebar-tooltip={t("Storyline")}
                     className={`flex items-center gap-2 rounded-md px-3 py-2 text-[13px] leading-5 ${selection.route === "storyline" ? activeNavigation : "hover:bg-surface-muted"}`}
                     href={selectionUrl({
                       ...selection,
@@ -577,11 +635,13 @@ export function Shell({
                     }}
                   >
                     <BookOpen size={17} />
-                    {t("Storyline")}
+                    <span data-navigation-label>{t("Storyline")}</span>
                   </a>
                   {(company.company_kind === "demo" || company.demo_data_state) && (
                     <a
                       data-navigation-item
+                      aria-label={t("Demo Data")}
+                      data-sidebar-tooltip={t("Demo Data")}
                       className={`flex items-center gap-2 rounded-md px-3 py-2 text-[13px] leading-5 ${selection.route === "demo-data" ? activeNavigation : "hover:bg-surface-muted"}`}
                       href={selectionUrl({ ...selection, route: "demo-data", page: 1, q: "" })}
                       aria-current={selection.route === "demo-data" ? "page" : undefined}
@@ -592,7 +652,7 @@ export function Shell({
                       }}
                     >
                       <Database size={17} />
-                      {t("Demo Data")}
+                      <span data-navigation-label>{t("Demo Data")}</span>
                     </a>
                   )}
                 </nav>
@@ -603,6 +663,7 @@ export function Shell({
                   closeNavigation={() => setOpen(false)}
                 />
               </aside>
+              <SidebarTooltip navigation={navigationRef} />
               <main id="main-content" className="min-w-0 px-4 py-5 lg:px-5 lg:py-6">
                 <div className="page-view-tabs" data-page-tabs>
                   <div className="page-view-tabs-target" ref={setRegisterHeader} />
