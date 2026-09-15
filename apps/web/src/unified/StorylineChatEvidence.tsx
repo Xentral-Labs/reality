@@ -43,7 +43,9 @@ function Evidence({ tenant, messageId, navigate }: Props) {
   if (!data.available)
     return (
       <p className="mt-2 text-sm text-fg-muted">
-        {t("Recorded evidence is unavailable for this reply.")}
+        {t(
+          "Reality did not record which calls produced this reply. The reply itself draws on this company's current data.",
+        )}
       </p>
     );
   return (

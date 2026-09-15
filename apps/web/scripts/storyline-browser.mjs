@@ -868,7 +868,10 @@ async function assertMainCompanyFreePlay() {
   await page.locator("[data-free-play-real-data]").waitFor();
   await page.locator('[data-chat-evidence="plain-answer"] summary').click();
   await page
-    .getByText("Recorded evidence is unavailable for this reply.", { exact: true })
+    .getByText(
+      "Reality did not record which calls produced this reply. The reply itself draws on this company's current data.",
+      { exact: true },
+    )
     .waitFor();
   await switchMain("independent");
   await page.locator('[data-chat-session="independent-chat"]').click();

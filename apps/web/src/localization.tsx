@@ -50,8 +50,8 @@ const dictionaries: Record<Exclude<Language, "en">, Record<string, string>> = {
     "Calls for this reply": "Aufrufe zu dieser Antwort",
     "No tool calls were recorded for this reply.":
       "Für diese Antwort wurden keine Tool-Aufrufe aufgezeichnet.",
-    "Recorded evidence is unavailable for this reply.":
-      "Für diese Antwort sind keine aufgezeichneten Nachweise verfügbar.",
+    "Reality did not record which calls produced this reply. The reply itself draws on this company's current data.":
+      "Reality hat nicht aufgezeichnet, welche Aufrufe zu dieser Antwort geführt haben. Die Antwort selbst beruht auf den aktuellen Daten dieses Unternehmens.",
     "Some recorded calls are not included in this view.":
       "Ein Teil der aufgezeichneten Aufrufe ist in dieser Ansicht nicht enthalten.",
     "Changes since this call": "Änderungen seit diesem Aufruf",
@@ -1889,8 +1889,8 @@ const dictionaries: Record<Exclude<Language, "en">, Record<string, string>> = {
     "Calls for this reply": "Aanroepen voor dit antwoord",
     "No tool calls were recorded for this reply.":
       "Er zijn geen toolaanroepen voor dit antwoord vastgelegd.",
-    "Recorded evidence is unavailable for this reply.":
-      "Voor dit antwoord zijn geen vastgelegde gegevens beschikbaar.",
+    "Reality did not record which calls produced this reply. The reply itself draws on this company's current data.":
+      "Reality heeft niet vastgelegd welke aanroepen tot dit antwoord hebben geleid. Het antwoord zelf is gebaseerd op de actuele gegevens van dit bedrijf.",
     "Some recorded calls are not included in this view.":
       "Sommige vastgelegde aanroepen zijn niet opgenomen in deze weergave.",
     "Changes since this call": "Wijzigingen sinds deze aanroep",
@@ -3419,8 +3419,8 @@ const dictionaries: Record<Exclude<Language, "en">, Record<string, string>> = {
     "Calls for this reply": "Llamadas de esta respuesta",
     "No tool calls were recorded for this reply.":
       "No se registraron llamadas a herramientas para esta respuesta.",
-    "Recorded evidence is unavailable for this reply.":
-      "No hay evidencia registrada disponible para esta respuesta.",
+    "Reality did not record which calls produced this reply. The reply itself draws on this company's current data.":
+      "Reality no registró qué llamadas produjeron esta respuesta. La respuesta se basa en los datos actuales de esta empresa.",
     "Some recorded calls are not included in this view.":
       "Algunas llamadas registradas no se incluyen en esta vista.",
     "Changes since this call": "Cambios desde esta llamada",
