@@ -38,6 +38,7 @@ export function CompanyChatPage({
     };
   }, [sessionsOpen]);
   const [controlsTarget, setControlsTarget] = useState<HTMLDivElement | null>(null);
+  const [newSessionTarget, setNewSessionTarget] = useState<HTMLDivElement | null>(null);
   const isSandbox =
     company.company_kind === "sandbox" ||
     company.purpose === "playground" ||
@@ -58,14 +59,17 @@ export function CompanyChatPage({
       >
         <div className="mb-3 flex items-center justify-between gap-2">
           <h2 className="text-sm font-semibold">{t("Conversation history")}</h2>
-          <button
-            ref={closeSessions}
-            className="reality-chat-icon free-play-mobile-control"
-            aria-label={t("Close")}
-            onClick={() => setSessionsOpen(false)}
-          >
-            <X size={18} />
-          </button>
+          <div className="flex items-center gap-1">
+            <div ref={setNewSessionTarget} />
+            <button
+              ref={closeSessions}
+              className="reality-chat-icon free-play-mobile-control"
+              aria-label={t("Close")}
+              onClick={() => setSessionsOpen(false)}
+            >
+              <X size={18} />
+            </button>
+          </div>
         </div>
         <div
           ref={setSessionsTarget}
@@ -89,6 +93,7 @@ export function CompanyChatPage({
         )}
         <ChatPage
           controlsTarget={controlsTarget}
+          newSessionTarget={newSessionTarget}
           sessionsTarget={sessionsTarget}
           sessionsOpen={sessionsOpen}
           toggleSessions={() => setSessionsOpen((open) => !open)}

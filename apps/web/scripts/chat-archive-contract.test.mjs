@@ -36,3 +36,9 @@ test("usage sits with the composer disclaimer instead of conversation navigation
   assert.match(chat, /disclaimerAction=\{<ChatUsage inline/u);
   assert.doesNotMatch(companyChat, /usageTarget/u);
 });
+
+test("new chat is a compact action in the conversation-history header", () => {
+  assert.match(companyChat, /newSessionTarget/u);
+  assert.match(chat, /data-new-chat-action/u);
+  assert.match(chat, /aria-label=\{t\("New chat"\)\}/u);
+});
