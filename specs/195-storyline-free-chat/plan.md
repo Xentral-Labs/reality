@@ -146,3 +146,8 @@ FR-019: Adapter/CSS only; reuse usage portal in session footer, keep mobile cont
 
 FR-020: Copy-only StorylinePage and localization changes; no schema/service change.
 Constitution PASS. Verify formatting, localization audit, TypeScript/Vite and spec policy.
+
+FR-021: Centralize navigation merge in routing.ts using companySelection on tenant
+changes; use it in useCompanyContext. Add Back to chats on failed selected-session
+reads. Tests first: tenant transition clears session, same-company retains, explicit
+destination overrides. No backend/schema changes; Constitution PASS.

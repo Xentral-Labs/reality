@@ -200,3 +200,19 @@ test("Usage settings survives direct navigation and reload", async () => {
     "usage",
   );
 });
+
+test("navigation to a Storyline company clears the previous chat session", async () => {
+  const { readSelection, navigationSelection } = await load("unified/routing.ts");
+  const previous = readSelection(
+    new URL("https://example.test/app/chat?tenant=old&session=old-chat"),
+  );
+  assert.equal(
+    navigationSelection(previous, { route: "storyline", tenant: "sandbox" }).session,
+    "",
+  );
+  assert.equal(navigationSelection(previous, { route: "storyline" }).session, "old-chat");
+  assert.equal(
+    navigationSelection(previous, { tenant: "new", session: "new-chat" }).session,
+    "new-chat",
+  );
+});

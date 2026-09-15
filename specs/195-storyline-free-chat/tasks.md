@@ -67,3 +67,5 @@ as one coherent increment because free chat must carry truthful evidence.
 - [x] T025 [FR-019] Remove redundant Chat chrome, tighten spacing, center empty state; verify responsive browser, build and preview.
 
 - [x] T026 [FR-020] Update learning introduction in four languages and verify build/localization/preview.
+
+- [x] T027 [FR-021] Fix tenant navigation inheritance, provide stale-session recovery, verify routing/build and preview.

@@ -1,7 +1,13 @@
 import { tableIdentity } from "./TableContext";
 import { useEffect, useState } from "react";
 import { api, type Bootstrap } from "../api";
-import { companySelection, readSelection, selectionUrl, type Selection } from "./routing";
+import {
+  companySelection,
+  navigationSelection,
+  readSelection,
+  selectionUrl,
+  type Selection,
+} from "./routing";
 
 export function useCompanyContext() {
   const [selection, setSelection] = useState(() => readSelection(new URL(location.href)));
@@ -33,7 +39,7 @@ export function useCompanyContext() {
     return () => removeEventListener("popstate", update);
   }, []);
   const navigate = (changes: Partial<Selection>, options?: { replace?: boolean }) => {
-    const next = { ...selection, ...changes };
+    const next = navigationSelection(selection, changes);
     if (tableIdentity(next) !== tableIdentity(selection)) {
       next.tableSort = "";
       next.tableScope = "";

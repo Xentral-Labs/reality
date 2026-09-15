@@ -894,6 +894,20 @@ async function assertMainCompanyFreePlay() {
   );
 }
 if (process.env.FREE_PLAY_COMPANY_ONLY === "1") {
+  await page.route("**/api/tenants/plain/copilot?*", async (route) => {
+    if (new URL(route.request().url()).searchParams.get("session_id") !== "missing")
+      return route.fallback();
+    return route.fulfill({
+      status: 404,
+      contentType: "application/json",
+      body: JSON.stringify({ detail: "ChatSession not found." }),
+    });
+  });
+  await page.goto(`${base}/app/chat?tenant=plain&session=missing`);
+  await page.getByRole("button", { name: "Back to chats", exact: true }).click();
+  await page.locator("[data-independent-free-play] textarea").waitFor();
+  assert.equal(new URL(page.url()).searchParams.has("session"), false);
+
   await assertMainCompanyFreePlay();
   assert.deepEqual(errors, []);
   await browser.close();

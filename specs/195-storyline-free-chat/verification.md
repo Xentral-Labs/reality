@@ -288,3 +288,12 @@ Updated Storyline library heading, explanation and learning-path label in Englis
 German, Dutch and Spanish. Formatting, four-language audit, TypeScript/Vite build,
 spec policy and diff checks passed. Local 8080 updated. Copy-only review confirms
 existing story controls and Sandbox behavior are unchanged.
+
+## Cross-company session recovery (FR-021)
+Navigation now applies companySelection before merging destination fields when the
+tenant changes. This fixes Storyline start/restart inheriting a previous-company
+chat ID. Failed selected-session reads offer Back to chats without creating records.
+The routing regression failed before implementation and passes afterwards; all 171
+web contract tests passed. Browser proved invalid-session recovery, cleared URL and
+company context isolation. Formatting, four-language audit, TypeScript/Vite, spec
+policy and diff checks passed. Local 8080 updated. No server or data change.

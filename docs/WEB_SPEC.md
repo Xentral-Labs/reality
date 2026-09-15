@@ -2766,3 +2766,7 @@ Spec 195 FR-019: Standalone Chat uses the full content area without outer page
 gutters or an inter-column gap. There is no inner Chat title or desktop toolbar.
 Usage is in the session sidebar; mobile retains its history opener. The empty
 conversation greeting is vertically centered in its available message area.
+
+Spec 195 FR-021: All cross-company navigation clears prior company-scoped context
+before applying explicit destination values. This includes Storyline sandbox entry.
+An invalid selected chat offers Back to chats for read-only recovery.

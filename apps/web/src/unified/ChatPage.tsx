@@ -241,7 +241,17 @@ export function ChatPage({
       setSending(false);
     }
   };
-  if (!data || !sessionReady) return <ReadState loading={loading} error={error} retry={refresh} />;
+  if (!data || !sessionReady)
+    return (
+      <div>
+        <ReadState loading={loading} error={error} retry={refresh} />
+        {error && selection.session && (
+          <button className="br-btn m-4" onClick={() => navigate({ session: "" })}>
+            {t("Back to chats")}
+          </button>
+        )}
+      </div>
+    );
   const selectSession = (session: string) => {
     pendingSend.current = null;
     setQuestion("");

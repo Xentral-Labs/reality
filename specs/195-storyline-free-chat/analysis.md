@@ -115,3 +115,7 @@ All requirements covered; no critical findings or unresolved questions.
 FR-019 review: User requests redundant header removal and spacing correction. Existing usage access retained outside conversation; no unresolved or critical finding.
 
 FR-020: User accepted the proposed learning copy. No unresolved clarification or critical finding. Existing Sandbox semantics are preserved.
+
+FR-021: Confirmed Storyline start/restart passes new tenant without clearing session,
+while navigate previously merged old fields. Tenant security correctly rejects it.
+Central navigation reset fixes all such callers; no critical unresolved finding.

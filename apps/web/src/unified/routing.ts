@@ -396,3 +396,11 @@ export function companySelection(selection: Selection, tenant: string): Selectio
     storylineChapter: "",
   };
 }
+
+export function navigationSelection(selection: Selection, changes: Partial<Selection>): Selection {
+  const base =
+    changes.tenant && changes.tenant !== selection.tenant
+      ? companySelection(selection, changes.tenant)
+      : selection;
+  return { ...base, ...changes };
+}
