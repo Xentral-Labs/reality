@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from datetime import datetime, timedelta
+from decimal import Decimal
 
 from sqlalchemy.orm import Session
 
@@ -13,9 +14,12 @@ from reality.demo.international import (
     ITEMS,
     LOCATIONS,
     ORDER_CUSTOMERS,
+    PURCHASES,
+    SETTLEMENT,
     SUPPLIER_ITEMS,
     SUPPLIERS,
     WEEKLY_CUSTOMERS,
+    WEEKLY_SETTLEMENT,
 )
 from reality.services import core
 
@@ -271,24 +275,78 @@ def seed_profile(
             if index == 10:
                 core.cancel_commitment(session, tenant, commitment, _commit=False)
         movement("wrong-location", "P08", "8", location="B")
-        for index, item in enumerate(("P11", "P15", "P16"), 1):
+        # Feature 204: ordered, received, invoiced and paid in every combination, so a
+        # person can follow one purchase all the way to the money.
+        for index, (key, item, ordered, received, invoiced, paid) in enumerate(
+            PURCHASES, 1
+        ):
             due = (
                 anchor + timedelta(days=-3 if index == 1 else 5) if index != 3 else None
             )
-            cases[f"S{index:02}"], _ = order(
+            ref, order_lines = order(
                 f"PO-{index:03}",
                 item,
                 counterparty=SUPPLIER_ITEMS[item],
+                quantity=ordered,
                 purchase=True,
                 due=due,
+                date=anchor - timedelta(days=20),
             )
-            if index == 1:
+            cases[key] = ref
+            if received != "0":
                 movement(
-                    "partial-purchase",
+                    f"purchase-receipt-{key}",
                     item,
-                    "2",
-                    commitment=cases["S01"]["commitment_id"],
+                    received,
+                    commitment=ref["commitment_id"],
+                    date=anchor - timedelta(days=12),
                 )
+            if invoiced is None:
+                continue
+            invoice_date = anchor - timedelta(days=10)
+            invoice_lines = [
+                {**order_lines[0], "billed_document_line_id": ref["line_id"]}
+            ]
+            src = source(
+                "supplier_invoice",
+                f"SINV-{key}",
+                {
+                    "date": invoice_date.isoformat(),
+                    "lines": invoice_lines,
+                    "currency": "EUR",
+                    "gross_amount": invoiced,
+                    "amount_basis": "gross",
+                    "tax_amount": "0",
+                    "discount_amount": "0",
+                },
+            )
+            supplier_invoice, _ = core.create_manual_document_with_lines(
+                session,
+                tenant,
+                "supplier_invoice",
+                f"SINV-{key}",
+                parties[SUPPLIER_ITEMS[item]],
+                invoice_lines,
+                invoiced,
+                document_date=invoice_date.date().isoformat(),
+                source_record_id=src.id,
+                _commit=False,
+            )
+            core.post_supplier_invoice(
+                session, tenant, supplier_invoice.id, effective_at=invoice_date, _commit=False
+            )
+            cases[key] = {**ref, "supplier_invoice_id": supplier_invoice.id}
+            if paid is None:
+                continue
+            core.post_supplier_payment(
+                session,
+                tenant,
+                supplier_invoice.id,
+                paid,
+                payment_number=f"SPAY-{key}",
+                effective_at=anchor - timedelta(days=5),
+                _commit=False,
+            )
         history = list(HISTORY)
         history += [
             (f"week-{week:02}", "P14", 84 - week * 7, "1", "12", "12", "EUR")
@@ -395,6 +453,25 @@ def seed_profile(
                     "credit_id": credit.id,
                     "return_movement_id": returned.id,
                 }
+            # Feature 204: the invoice is settled last, so a credit note has already
+            # reduced what is open and the payment states what was really received.
+            settlement = (
+                WEEKLY_SETTLEMENT[int(key.removeprefix("week-"))]
+                if key.startswith("week-")
+                else SETTLEMENT[key]
+            )
+            if settlement != "open":
+                outstanding = core.open_invoice_amount(session, tenant, invoice.id)
+                paid = outstanding if settlement == "paid" else outstanding / 2
+                core.post_customer_payment(
+                    session,
+                    tenant,
+                    invoice.id,
+                    paid.quantize(Decimal("0.01")),
+                    payment_number=f"PAY-{key}",
+                    effective_at=min(date + timedelta(days=10), anchor),
+                    _commit=False,
+                )
         original = movement("correction-original", "P16", "3")
         corrected = core.correct_movement(
             session,
