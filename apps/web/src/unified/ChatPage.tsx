@@ -11,6 +11,7 @@ import {
   MoreHorizontal,
   SquarePen,
   Sparkles,
+  Trash2,
 } from "lucide-react";
 const emptyMessageClass = "flex flex-col justify-center";
 const compactHistoryClass = "reality-chat-icon free-play-mobile-control";
@@ -293,8 +294,13 @@ export function ChatPage({
     onSessionSelected?.();
     navigate({ session });
   };
-  const archiveSession = async (row: { id: string; title: string }) => {
-    if (!window.confirm(t("Archive this chat?"))) return;
+  const removeSession = async (row: { id: string; title: string; message_count: number }) => {
+    if (
+      !window.confirm(
+        t(row.message_count === 0 ? "Delete this empty chat permanently?" : "Archive this chat?"),
+      )
+    )
+      return;
     setChangingSession(true);
     setFailure("");
     try {
@@ -403,12 +409,13 @@ export function ChatPage({
                       <div className="absolute right-0 z-20 mt-1 min-w-40 rounded-lg border border-border-default bg-surface p-1 shadow-lg">
                         <button
                           className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-left text-sm hover:bg-surface-muted"
-                          data-chat-session-archive={row.id}
+                          data-chat-session-delete={row.message_count === 0 ? row.id : undefined}
+                          data-chat-session-archive={row.message_count === 0 ? undefined : row.id}
                           disabled={sending || startingChat || changingSession}
-                          onClick={() => void archiveSession(row)}
+                          onClick={() => void removeSession(row)}
                         >
-                          <Archive size={17} />
-                          {t("Archive chat")}
+                          {row.message_count === 0 ? <Trash2 size={17} /> : <Archive size={17} />}
+                          {t(row.message_count === 0 ? "Delete chat" : "Archive chat")}
                         </button>
                       </div>
                     </details>

@@ -3,12 +3,10 @@ from decimal import Decimal
 
 import pytest
 from fastapi.testclient import TestClient
-from sqlalchemy import select
-from sqlalchemy.orm import sessionmaker
-
 from reality.db.core import (
     AppUser,
     ChatMessage,
+    ChatSession,
     CompanyInvitation,
     Document,
     DocumentLine,
@@ -50,6 +48,8 @@ from reality.tools.application import (
 from reality.web import api as api_module
 from reality.web import app as web_module
 from reality.web import auth as auth_module
+from sqlalchemy import select
+from sqlalchemy.orm import sessionmaker
 
 app = web_module.app
 
@@ -171,6 +171,8 @@ def test_copilot_archive_retains_messages_and_decisions_are_tenant_wide(session)
                 select(ChatMessage.id).where(ChatMessage.session_id == session_id)
             )
         )
+        projected = client.get(f"/api/tenants/{tenant.id}/copilot").json()
+        assert projected["sessions"][0]["message_count"] == len(message_ids)
 
         archived = client.delete(
             f"/api/tenants/{tenant.id}/copilot/sessions/{session_id}"
@@ -206,6 +208,55 @@ def test_copilot_archive_retains_messages_and_decisions_are_tenant_wide(session)
             client.get(f"/api/tenants/{tenant.id}/copilot").json()["sessions"][0]["id"]
             == session_id
         )
+    finally:
+        app.dependency_overrides.clear()
+
+
+def test_copilot_removal_permanently_deletes_only_empty_tenant_session(session):
+    tenant = create_tenant(session, "Empty chat company")
+    other = create_tenant(session, "Other empty chat company")
+    proposal = propose_tool(session, tenant.id, "demo_seed", {})
+    client = api_client(session)
+    try:
+        created = client.post(f"/api/tenants/{tenant.id}/copilot/sessions")
+        session_id = created.json()["id"]
+        projected = client.get(f"/api/tenants/{tenant.id}/copilot").json()
+
+        assert projected["sessions"][0]["message_count"] == 0
+        assert (
+            client.delete(
+                f"/api/tenants/{other.id}/copilot/sessions/{session_id}"
+            ).status_code
+            == 404
+        )
+
+        removed = client.delete(
+            f"/api/tenants/{tenant.id}/copilot/sessions/{session_id}"
+        )
+
+        assert removed.status_code == 204
+        assert session.get(ChatSession, session_id) is None
+        assert (
+            client.delete(
+                f"/api/tenants/{tenant.id}/copilot/sessions/{session_id}"
+            ).status_code
+            == 404
+        )
+        assert client.get(f"/api/tenants/{tenant.id}/copilot").json()["sessions"] == []
+        assert (
+            client.get(
+                f"/api/tenants/{tenant.id}/copilot", params={"archived": True}
+            ).json()["sessions"]
+            == []
+        )
+        assert (
+            client.post(
+                f"/api/tenants/{tenant.id}/copilot/sessions/{session_id}/restore"
+            ).status_code
+            == 404
+        )
+        session.refresh(proposal)
+        assert proposal.status == "proposed"
     finally:
         app.dependency_overrides.clear()
 
