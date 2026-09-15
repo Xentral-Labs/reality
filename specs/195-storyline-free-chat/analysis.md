@@ -30,3 +30,8 @@ FR-006 follow-up review: pending focus belongs to an explicit send, survives a
 composer remount, waits for loading to settle and does not steal focus from another
 control. Read-only inputs preserve focus across later refreshes. No domain, API,
 schema or confirmation changes; browser regressions and web gates pass.
+
+FR-007 review: direct entry uses the existing run and shared company-opening flow,
+clears stale session/context selection and dispatches only reads. Visibility depends
+on a run existing, so completed runs are supported and unstarted cards retain Start.
+Existing translations and wrapping button layout are reused; no unresolved finding.

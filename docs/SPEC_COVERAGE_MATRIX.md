@@ -1038,3 +1038,6 @@ Spec 185 owns the analytics service, agent tools, private report configuration a
 - Spec 195 FR-006: `apps/web/scripts/unified-chat-composer-browser.mjs` proves focus
   after failed Enter and successful button send without stealing another control's
   focus; `storyline-browser.mjs` covers the first-session Free Play remount.
+
+- Spec 195 FR-007: `apps/web/scripts/storyline-browser.mjs` verifies direct library
+  Free Play entry into the existing tenant without writes and return to the story.

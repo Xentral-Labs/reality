@@ -45,3 +45,11 @@ tests, locale audit, TypeScript/build), spec policy and diff checks passed.
 No backend behavior changed, so the recorded full backend result remains applicable.
 The built frontend was copied to the local 8080 preview; the served asset hash and
 health endpoint were verified. No production deployment.
+
+## Direct library entry (FR-007)
+`storyline-browser.mjs` passed with the new card action: absent before a run exists,
+opens the correct existing Sandbox directly at Free Play without writes, and returns
+to the existing chapter. The complete 32-layout regression also passed.
+`make web-build` (167 tests, translation audit, TypeScript/Vite), spec policy and
+diff checks passed. No backend change or migration. The new frontend asset was
+verified on localhost:8080 with a healthy API.

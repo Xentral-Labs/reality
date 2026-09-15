@@ -17,3 +17,5 @@ Independent test preparations can be batched; no agents needed. Deliver both sto
 as one coherent increment because free chat must carry truthful evidence.
 
 - [x] T009 Restore post-send focus (FR-006), verify browser/web gates, update PR and 8080.
+
+- [x] T010 Add/test direct library Free Play entry (FR-007); web/browser gates, PR and 8080.
