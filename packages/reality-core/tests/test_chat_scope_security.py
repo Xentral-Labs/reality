@@ -111,6 +111,8 @@ async def test_scope_policy_is_server_owned_for_both_providers(
     replies.append(text_reply(provider))
     await invoke(provider, message=attack)
     prompt = requests[0].get("system") or requests[0]["messages"][0]["content"]
+    if isinstance(prompt, list):
+        prompt = "\n".join(block["text"] for block in prompt)
     assert mcp_chat.SECURITY_POLICY in prompt
     assert "unrelated" in prompt
     assert "tool results" in " ".join(prompt.split())
@@ -171,6 +173,8 @@ async def test_hostile_tool_content_remains_data_with_fixed_authority(
     await invoke(provider, message="Check my stock")
     assert seen == [("tenant_authorized", ("read", "propose"))]
     prompt = requests[-1].get("system") or requests[-1]["messages"][0]["content"]
+    if isinstance(prompt, list):
+        prompt = "\n".join(block["text"] for block in prompt)
     assert attack not in prompt
     assert mcp_chat.SECURITY_POLICY in prompt
     assert attack in str(requests[-1]["messages"])
@@ -184,5 +188,7 @@ async def test_read_only_policy_is_shared(provider, harness, monkeypatch):
     replies.append(text_reply(provider))
     await invoke(provider, message="Create an order")
     prompt = requests[0].get("system") or requests[0]["messages"][0]["content"]
+    if isinstance(prompt, list):
+        prompt = "\n".join(block["text"] for block in prompt)
     assert "read-only" in prompt
     assert "Never propose" in prompt

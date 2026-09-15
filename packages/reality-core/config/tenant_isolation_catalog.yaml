@@ -108,6 +108,7 @@ families:
       - reality.services.core:active_commitment_hold
       - reality.services.core:active_party_delivery_hold
       - reality.services.core:document_detail
+      - reality.services.core:get_chat_session
       - reality.services.core:historical_pricing_explanation
       - reality.services.core:manual_document_line_snapshot
       - reality.services.core:master_data_update_snapshot

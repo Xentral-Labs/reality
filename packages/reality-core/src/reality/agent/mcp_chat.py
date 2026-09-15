@@ -1,16 +1,34 @@
 from __future__ import annotations
 
 import json
+import logging
+from time import perf_counter
 from typing import Any
 
 import httpx
 from sqlalchemy.orm import Session
 
+from reality.agent.streaming import ChatEventSink, streamed_message
 from reality.mcp.catalog import dispatch_tool, model_tool_schemas
 from reality.services.tenant_policy import (
     playground_chat_active,
     require_business_operation,
 )
+
+logger = logging.getLogger(__name__)
+
+
+def _compact(value: Any) -> str:
+    return json.dumps(value, default=str, separators=(",", ":"), ensure_ascii=False)
+
+
+def _timing(kind: str, started: float, **fields: Any) -> None:
+    logger.info(
+        "chat_%s %s",
+        kind,
+        _compact({"seconds": round(perf_counter() - started, 4), **fields}),
+    )
+
 
 SECURITY_POLICY = """
 Scope and trust boundary (server-owned instructions):
@@ -112,6 +130,7 @@ async def reply_via_tools(
     language: str = "en",
     locale: str = "en-GB",
     timezone: str = "UTC",
+    on_event: ChatEventSink | None = None,
 ) -> str:
     require_business_operation(session, tenant_id, "generic_provider_call")
     access = (
@@ -129,25 +148,42 @@ async def reply_via_tools(
         {"role": "user", "content": message},
     ]
     async with httpx.AsyncClient(timeout=45) as client:
-        for _ in range(6):
-            response = await client.post(
-                f"{base_url.rstrip('/')}/chat/completions",
-                headers={"Authorization": f"Bearer {api_key}"},
-                json={
-                    "model": model,
-                    "messages": messages,
-                    "tools": tools,
-                    "tool_choice": "auto",
-                },
+        for round_index in range(6):
+            if on_event:
+                on_event({"type": "reset"})
+            started = perf_counter()
+            payload = {
+                "model": model,
+                "messages": messages,
+                "tools": tools,
+                "tool_choice": "auto",
+            }
+            url = f"{base_url.rstrip('/')}/chat/completions"
+            headers = {"Authorization": f"Bearer {api_key}"}
+            if on_event:
+                assistant, usage = await streamed_message(
+                    client, url, headers, payload, "openai", on_event
+                )
+            else:
+                response = await client.post(url, headers=headers, json=payload)
+                response.raise_for_status()
+                data = response.json()
+                assistant = data["choices"][0]["message"]
+                usage = data.get("usage", {})
+            _timing(
+                "provider_round",
+                started,
+                provider="openai",
+                round=round_index + 1,
+                usage=usage,
             )
-            response.raise_for_status()
-            assistant = response.json()["choices"][0]["message"]
             messages.append(assistant)
             calls = assistant.get("tool_calls") or []
             if not calls:
                 return assistant.get("content") or "No answer was returned."
             for call in calls:
                 arguments = json.loads(call["function"].get("arguments") or "{}")
+                tool_started = perf_counter()
                 result = dispatch_tool(
                     session,
                     tenant_id,
@@ -155,11 +191,12 @@ async def reply_via_tools(
                     arguments,
                     allowed_access=access,
                 )
+                _timing("tool", tool_started, name=call["function"]["name"])
                 messages.append(
                     {
                         "role": "tool",
                         "tool_call_id": call["id"],
-                        "content": json.dumps(result, default=str),
+                        "content": _compact(result),
                     }
                 )
     return "The model exceeded the maximum number of tool steps."
@@ -187,6 +224,7 @@ async def reply_via_anthropic_tools(
     language: str = "en",
     locale: str = "en-GB",
     timezone: str = "UTC",
+    on_event: ChatEventSink | None = None,
 ) -> str:
     require_business_operation(session, tenant_id, "generic_provider_call")
     readonly = playground_chat_active(session, tenant_id)
@@ -196,8 +234,15 @@ async def reply_via_anthropic_tools(
         *_conversation_history(history),
         {"role": "user", "content": message},
     ]
+    tools = _anthropic_tool_schemas(access)
+    if tools:
+        tools[-1]["cache_control"] = {"type": "ephemeral"}
+    system = [{"type": "text", "text": prompt, "cache_control": {"type": "ephemeral"}}]
     async with httpx.AsyncClient(timeout=45) as client:
-        for _ in range(6):
+        for round_index in range(6):
+            if on_event:
+                on_event({"type": "reset"})
+            started = perf_counter()
             headers = {
                 "x-api-key": api_key,
                 "anthropic-version": "2023-06-01",
@@ -205,19 +250,31 @@ async def reply_via_anthropic_tools(
             }
             if workspace_id:
                 headers["anthropic-workspace-id"] = workspace_id
-            response = await client.post(
-                f"{ANTHROPIC_BASE_URL}/v1/messages",
-                headers=headers,
-                json={
-                    "model": ANTHROPIC_MODEL,
-                    "max_tokens": 2048,
-                    "system": prompt,
-                    "messages": messages,
-                    "tools": _anthropic_tool_schemas(access),
-                },
+            payload = {
+                "model": ANTHROPIC_MODEL,
+                "max_tokens": 2048,
+                "system": system,
+                "messages": messages,
+                "tools": tools,
+            }
+            url = f"{ANTHROPIC_BASE_URL}/v1/messages"
+            if on_event:
+                content, usage = await streamed_message(
+                    client, url, headers, payload, "anthropic", on_event
+                )
+            else:
+                response = await client.post(url, headers=headers, json=payload)
+                response.raise_for_status()
+                data = response.json()
+                content = data.get("content") or []
+                usage = data.get("usage", {})
+            _timing(
+                "provider_round",
+                started,
+                provider="anthropic",
+                round=round_index + 1,
+                usage=usage,
             )
-            response.raise_for_status()
-            content = response.json().get("content") or []
             messages.append({"role": "assistant", "content": content})
             calls = [block for block in content if block.get("type") == "tool_use"]
             if not calls:
@@ -229,6 +286,7 @@ async def reply_via_anthropic_tools(
                 return text or "No answer was returned."
             results = []
             for call in calls:
+                tool_started = perf_counter()
                 result = dispatch_tool(
                     session,
                     tenant_id,
@@ -236,11 +294,12 @@ async def reply_via_anthropic_tools(
                     call.get("input") or {},
                     allowed_access=access,
                 )
+                _timing("tool", tool_started, name=call["name"])
                 results.append(
                     {
                         "type": "tool_result",
                         "tool_use_id": call["id"],
-                        "content": json.dumps(result, default=str),
+                        "content": _compact(result),
                     }
                 )
             messages.append({"role": "user", "content": results})

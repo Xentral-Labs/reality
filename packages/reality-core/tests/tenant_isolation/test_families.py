@@ -25,6 +25,7 @@ from reality.services.core import (
     create_commitment,
     document_detail,
     financial_open_items,
+    get_chat_session,
     integration_registry,
     inventory_rows,
     item_detail,
@@ -79,6 +80,7 @@ def test_record_reads_are_non_disclosing(session, two_tenant_graph):
     for detail_service, foreign_id, unknown_id in (
         (party_detail, foreign.customer.id, "par_unknown"),
         (item_detail, foreign.item.id, "itm_unknown"),
+        (get_chat_session, foreign.chat_session.id, "cht_unknown"),
     ):
         with pytest.raises(NotFound) as foreign_detail_error:
             detail_service(session, local.tenant.id, foreign_id)

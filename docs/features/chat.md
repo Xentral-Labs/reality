@@ -149,3 +149,21 @@ Reload retains the chosen company. Archived Free Play is never auto-restored.
 
 Free Play has no separate sidebar item. Storyline stays selected during Free Play;
 its sidebar link returns to the selection containing the Free Play tile.
+
+## Incremental chat replies (spec 206)
+
+The ordinary Chat send can stream provisional text from the configured provider.
+Each tool round resets that provisional text; only complete provider tool calls
+reach the existing shared dispatch and proposal boundary. The completed persisted
+answer replaces provisional output immediately, before metadata refresh. A failed
+or disconnected response is never automatically replayed, and incomplete text is
+not a completed message. Work already dispatched may finish and remain recoverable
+through the ordinary conversation and proposal reads. Existing JSON clients remain
+supported. Security policy, tenant admission, allowance and presentation preferences
+are unchanged.
+
+Static Anthropic tool/system prefixes are eligible for provider caching. All allowed
+tools remain available, result serialization is lossless, and provider history reads
+are limited to the latest twelve turns. Timing logs contain round/tool durations and
+provider token/cache counts, never prompts, tool arguments or payloads. Inventory
+observations use batched tenant reads with unchanged quantities and evidence links.

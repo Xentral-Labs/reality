@@ -1087,3 +1087,9 @@ Spec 185 owns the analytics service, agent tools, private report configuration a
   their payables settled, partly settled and untouched, received quantities follow the
   goods receipts, two companies settle identically, and the profile authority gained
   settlement and nothing beyond it.
+
+- Spec 206: `packages/reality-core/tests/test_chat_latency.py` proves bounded history and
+  inventory query counts with tenant/value parity; `packages/reality-core/tests/test_chat_streaming.py`
+  proves complete provider frames, fragmented tool arguments, caching, redacted logs and HTTP
+  stream isolation. `apps/web/scripts/chat-stream.test.mjs` and `chat-stream-browser.mjs`
+  prove early text, reset, incomplete-stream failure and final reconciliation.

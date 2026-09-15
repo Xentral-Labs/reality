@@ -3,7 +3,7 @@ from __future__ import annotations
 import hashlib
 import json
 import os
-from collections.abc import Iterable
+from collections.abc import Callable, Iterable
 from dataclasses import dataclass
 from datetime import UTC, date, datetime, timedelta
 from decimal import Decimal
@@ -5718,36 +5718,51 @@ def release_party_delivery_hold(
 
 
 def inventory_rows(session: OrmSession, tenant_id: str) -> list[dict[str, Any]]:
-    rows = []
-    for item in session.scalars(
-        select(Item).where(Item.tenant_id == tenant_id).order_by(Item.name)
+    """Derive the same inventory observations with a fixed number of tenant reads."""
+    items = list(
+        session.scalars(
+            select(Item).where(Item.tenant_id == tenant_id).order_by(Item.name)
+        )
+    )
+    movements_by_item: dict[str, list[Movement]] = {}
+    for movement in session.scalars(
+        select(Movement)
+        .where(Movement.tenant_id == tenant_id)
+        .order_by(Movement.occurred_at.desc())
     ):
-        physical = stock_at(session, tenant_id, item.id)
-        reserved = active_reserved(session, tenant_id, item.id)
-        supplier_commitments = session.scalars(
+        movements_by_item.setdefault(movement.item_id, []).append(movement)
+    reserved_by_item = dict(
+        session.execute(
+            select(Reservation.item_id, func.sum(Reservation.quantity))
+            .where(Reservation.tenant_id == tenant_id, Reservation.status == "active")
+            .group_by(Reservation.item_id)
+        ).all()
+    )
+    suppliers = list(
+        session.scalars(
             select(Commitment).where(
                 Commitment.tenant_id == tenant_id,
-                Commitment.item_id == item.id,
                 Commitment.type == "supplier_delivery",
                 Commitment.status == "open",
             )
-        ).all()
-        incoming = sum(
-            (
-                open_quantity(session, tenant_id, commitment.id)
-                for commitment in supplier_commitments
-            ),
-            ZERO,
         )
-        movements = list(
-            session.scalars(
-                select(Movement)
-                .where(Movement.tenant_id == tenant_id, Movement.item_id == item.id)
-                .order_by(Movement.occurred_at.desc())
-            )
+    )
+    terms = commitment_terms(session, tenant_id, [row.id for row in suppliers])
+    incoming_by_item: dict[str, Decimal] = {}
+    for commitment in suppliers:
+        incoming_by_item[commitment.item_id] = (
+            incoming_by_item.get(commitment.item_id, ZERO) + terms[commitment.id].open
         )
+    rows = []
+    for item in items:
+        movements = movements_by_item.get(item.id, [])
         receipts = [movement for movement in movements if movement.to_location_id]
         issues = [movement for movement in movements if movement.from_location_id]
+        physical = sum((m.quantity for m in receipts), ZERO) - sum(
+            (m.quantity for m in issues), ZERO
+        )
+        reserved = decimal(reserved_by_item.get(item.id, ZERO))
+        incoming = incoming_by_item.get(item.id, ZERO)
         rows.append(
             {
                 "item": item,
@@ -6150,10 +6165,15 @@ def change_proposal_count(
     )
 
 
+def get_chat_session(session: OrmSession, tenant_id: str, session_id: str) -> ChatSession:
+    """Validate the conversation scope without loading its messages."""
+    return _tenant_record(session, ChatSession, tenant_id, session_id)
+
+
 def chat_messages(
     session: OrmSession, tenant_id: str, session_id: str
 ) -> list[ChatMessage]:
-    _tenant_record(session, ChatSession, tenant_id, session_id)
+    get_chat_session(session, tenant_id, session_id)
     return list(
         session.scalars(
             select(ChatMessage)
@@ -6312,6 +6332,7 @@ def send_chat_message(
     language: str = "en",
     locale: str = "en-GB",
     timezone: str = "UTC",
+    on_event: Callable[[dict[str, Any]], None] | None = None,
 ) -> tuple[ChatMessage, ChatMessage]:
     _require_business_mutation(session, tenant_id, "send_chat_message")
     if not message.strip():
@@ -6389,16 +6410,24 @@ def send_chat_message(
 
         from reality.agent.mcp_chat import reply_via_anthropic_tools, reply_via_tools
 
-        history = [
-            {"role": row.role, "content": row.content}
-            for row in session.scalars(
+        recent_messages = list(
+            session.scalars(
                 select(ChatMessage)
                 .where(
                     ChatMessage.tenant_id == tenant_id,
                     ChatMessage.session_id == session_id,
                 )
-                .order_by(ChatMessage.created_at)
+                .order_by(
+                    ChatMessage.created_at.desc(),
+                    case((ChatMessage.role == "assistant", 1), else_=0).desc(),
+                    ChatMessage.id.desc(),
+                )
+                .limit(12)
             )
+        )
+        history = [
+            {"role": row.role, "content": row.content}
+            for row in reversed(recent_messages)
         ]
         from reality.services.tenant_policy import PlaygroundOperationDenied
 
@@ -6419,6 +6448,7 @@ def send_chat_message(
                     language=language,
                     locale=locale,
                     timezone=timezone,
+                    **({"on_event": on_event} if on_event else {}),
                 )
             else:
                 provider_reply = reply_via_anthropic_tools(
@@ -6433,6 +6463,7 @@ def send_chat_message(
                     language=language,
                     locale=locale,
                     timezone=timezone,
+                    **({"on_event": on_event} if on_event else {}),
                 )
             reply = asyncio.run(provider_reply)
         # A policy refusal is not an outage: say which company kind is closed
