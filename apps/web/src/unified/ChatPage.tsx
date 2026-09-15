@@ -751,7 +751,7 @@ export function ChatPage({
           sending={sending || startingChat || loading}
           active={active}
           send={() => void send()}
-          disclaimerAction={<ChatUsage allowance={data.allowance} navigate={navigate} />}
+          disclaimerAction={<ChatUsage inline allowance={data.allowance} navigate={navigate} />}
         />
       ) : (
         <form
