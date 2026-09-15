@@ -1,4 +1,5 @@
 import { SidebarTooltip } from "./SidebarTooltip";
+import { LiveSimulationIndicator } from "./LiveSimulationIndicator";
 import { HeaderControls } from "./HeaderControls";
 import { isPurchasing } from "./pageIntroduction";
 import { PageActionTarget, PageCountTarget } from "./PageHeading";
@@ -275,7 +276,17 @@ export function Shell({
                   </div>
                 </div>
               </div>
-              <HeaderControls identity={`${selection.route}:${contentTitle}:${company.id}`}>
+              <HeaderControls
+                identity={`${selection.route}:${contentTitle}:${company.id}`}
+                indicator={
+                  <LiveSimulationIndicator
+                    key={company.id}
+                    company={company}
+                    selection={selection}
+                    navigate={navigate}
+                  />
+                }
+              >
                 <div className="shell-utilities flex shrink-0 items-center gap-2 sm:gap-3">
                   <button
                     className="br-btn"

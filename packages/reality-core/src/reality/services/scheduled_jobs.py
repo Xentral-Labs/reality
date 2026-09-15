@@ -25,7 +25,13 @@ from reality.jobs.registry import (
     get_definition,
     require_company_owner,
 )
-from reality.scheduling.timing import next_time, preview, validate_timing
+from reality.scheduling.timing import (
+    next_initial_time,
+    next_time,
+    preview,
+    validate_initial_offsets,
+    validate_timing,
+)
 
 UNFINISHED = ("pending", "running", "retry", "unresolved")
 QUEUE_LIMIT = 1000
@@ -191,6 +197,7 @@ def create_schedule(
     request_id: str,
     interval_seconds: int | None = None,
     cron_expression: str | None = None,
+    initial_offsets_seconds: tuple[int, ...] = (),
 ) -> ScheduledJob:
     _owner(session, tenant_id, actor_id, job_type)
     _key(request_id)
@@ -198,9 +205,12 @@ def create_schedule(
         validate_timing(
             interval_seconds=interval_seconds, cron_expression=cron_expression
         )
+        validate_initial_offsets(initial_offsets_seconds, interval_seconds)
     except ValueError as error:
         raise JobError("invalid_timing") from error
     envelope = _validated(session, tenant_id, actor_id, job_type, config)
+    if initial_offsets_seconds:
+        envelope["initial_offsets_seconds"] = list(initial_offsets_seconds)
     fingerprint = _fingerprint(
         {
             "actor": actor_id,
@@ -245,6 +255,27 @@ def preview_schedule(
     row = _schedule(session, tenant_id, schedule_id)
     if row is None:
         raise JobError("not_found")
+    offsets = row.configuration.get("initial_offsets_seconds")
+    if offsets:
+        at = now()
+        anchor = datetime.fromisoformat(
+            row.configuration.get("initial_started_at", at.isoformat())
+        )
+        earliest = max(at, row.next_run_at or at)
+        result = [
+            anchor + timedelta(seconds=offset)
+            for offset in offsets
+            if anchor + timedelta(seconds=offset) >= earliest
+        ][:5]
+        while len(result) < 5:
+            following, _ = next_initial_time(
+                result[-1] if result else at,
+                anchor,
+                offsets,
+                row.interval_seconds,
+            )
+            result.append(following)
+        return result
     return preview(
         now(),
         interval_seconds=row.interval_seconds,
@@ -287,6 +318,7 @@ def control_schedule(
         if changes:
             raise JobError("invalid_control")
         row.enabled = False
+        row.configuration = _without_initial_timing(row.configuration)
     elif action == "resume":
         if changes:
             raise JobError("invalid_control")
@@ -294,12 +326,22 @@ def control_schedule(
             raise JobError("unresolved_run")
         _authorize_run_or_schedule(session, row)
         row.enabled = True
-        if not unfinished:
-            row.next_run_at = next_time(
-                now(),
-                interval_seconds=row.interval_seconds,
-                cron_expression=row.cron_expression,
-            )
+        offsets = row.configuration.get("initial_offsets_seconds")
+        if offsets and "initial_started_at" not in row.configuration and not unfinished:
+            anchor = now()
+            row.configuration = {
+                **row.configuration,
+                "initial_started_at": anchor.isoformat(),
+            }
+            row.next_run_at = anchor + timedelta(seconds=offsets[0])
+        else:
+            row.configuration = _without_initial_timing(row.configuration)
+            if not unfinished:
+                row.next_run_at = next_time(
+                    now(),
+                    interval_seconds=row.interval_seconds,
+                    cron_expression=row.cron_expression,
+                )
     elif action == "update":
         if unfinished:
             raise JobError("unfinished_run")
@@ -341,6 +383,14 @@ def control_schedule(
     _audit(session, tenant_id, actor_id, row.id, action)
     session.flush()
     return row
+
+
+def _without_initial_timing(configuration: dict) -> dict:
+    return {
+        key: value
+        for key, value in configuration.items()
+        if key not in {"initial_offsets_seconds", "initial_started_at"}
+    }
 
 
 def _authorize_run_or_schedule(session: Session, row: ScheduledJob | ScheduledJobRun):
@@ -461,23 +511,37 @@ def materialize_due(
         if outcomes is not None:
             outcomes["failed"] += 1
         return 0
+    initial = row.configuration.get("initial_offsets_seconds")
+    run_configuration = _without_initial_timing(row.configuration)
+    if initial:
+        run_configuration = {**run_configuration, "initial_occurrence": True}
     run = ScheduledJobRun(
         id=f"run_{uuid4().hex}",
         tenant_id=tenant_id,
         schedule_id=row.id,
         actor_id=row.actor_id,
         job_type=row.job_type,
-        configuration=row.configuration,
+        configuration=run_configuration,
         schedule_revision=row.revision,
         scheduled_for=row.next_run_at,
     )
     session.add(run)
-    row.next_run_at = next_time(
-        now(),
-        interval_seconds=row.interval_seconds,
-        cron_expression=row.cron_expression,
-        previous=row.next_run_at,
-    )
+    if initial:
+        row.next_run_at, remaining = next_initial_time(
+            now(),
+            datetime.fromisoformat(row.configuration["initial_started_at"]),
+            initial,
+            row.interval_seconds,
+        )
+        if not remaining:
+            row.configuration = _without_initial_timing(row.configuration)
+    else:
+        row.next_run_at = next_time(
+            now(),
+            interval_seconds=row.interval_seconds,
+            cron_expression=row.cron_expression,
+            previous=row.next_run_at,
+        )
     session.flush()
     return 1
 

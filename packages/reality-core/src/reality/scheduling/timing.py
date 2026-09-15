@@ -2,6 +2,7 @@
 
 import re
 from datetime import UTC, datetime, timedelta
+from itertools import pairwise
 
 from croniter import croniter
 
@@ -64,3 +65,35 @@ def preview(at: datetime, **timing) -> list[datetime]:
         at = next_time(at, **timing)
         result.append(at)
     return result
+
+
+def validate_initial_offsets(
+    offsets: tuple[int, ...], interval_seconds: int | None
+) -> None:
+    """Bound the optional first-activation sequence; regular schedules are unchanged."""
+    if not offsets:
+        return
+    if (
+        interval_seconds is None
+        or len(offsets) > 10
+        or any(type(value) is not int or not 0 <= value <= 3600 for value in offsets)
+        or any(right - left < 5 for left, right in pairwise(offsets))
+    ):
+        raise ValueError(
+            "Initial offsets require an interval and at most ten ordered slots."
+        )
+
+
+def next_initial_time(
+    at: datetime, anchor: datetime, offsets: list[int], interval_seconds: int
+) -> tuple[datetime, bool]:
+    """Skip missed initial slots, then continue on the normal grid after the last."""
+    for offset in offsets:
+        candidate = anchor + timedelta(seconds=offset)
+        if candidate > at:
+            return candidate, True
+    return next_time(
+        at,
+        interval_seconds=interval_seconds,
+        previous=anchor + timedelta(seconds=offsets[-1]),
+    ), False

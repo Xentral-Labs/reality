@@ -1093,3 +1093,10 @@ Spec 185 owns the analytics service, agent tools, private report configuration a
   proves complete provider frames, fragmented tool arguments, caching, redacted logs and HTTP
   stream isolation. `apps/web/scripts/chat-stream.test.mjs` and `chat-stream-browser.mjs`
   prove early text, reset, incomplete-stream failure and final reconciliation.
+
+
+- Spec 207: `packages/reality-core/tests/test_scheduled_job_startup.py` covers bounded
+  initial timing, frozen inputs, controls and downtime; `packages/reality-core/tests/test_demo_data_startup.py`
+  covers normal source intake of the three initial orders, replay and return to stochastic
+  demand. `apps/web/scripts/live-simulation-header-browser.mjs` covers visibility,
+  current-company navigation, stale responses, responsive placement and reduced motion.

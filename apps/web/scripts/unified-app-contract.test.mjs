@@ -449,7 +449,7 @@ test("desktop shell header reserves the same chat column as the body", () => {
     shell,
     /data-page-tabs[\s\S]*ref=\{setRegisterHeader\}[\s\S]*page-introduction-actions[\s\S]*ref=\{setPageActions\}/,
   );
-  assert.match(shell, /<\/div>\s*<HeaderControls identity=/);
+  assert.match(shell, /<\/div>\s*<HeaderControls\s+identity=/);
   const css = source("../src/tailwind.css");
   assert.match(css, /--shell-chat-width:\s*360px/);
   assert.match(css, /\[data-shell-header\]\[data-chat-open="true"\]/);

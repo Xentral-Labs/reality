@@ -118,3 +118,21 @@ archive is respected. No profile, admission, lesson or scheduling contract chang
 The Free Play chooser also opens existing accessible companies without creating,
 seeding or converting them. Its default is the current company; ordinary company
 chat preserves normal proposal confirmation and access rules.
+
+## First live orders and header (spec 207)
+
+A fresh confirmed Demo Data Start makes three one-order occurrences due at activation,
+12 seconds and 24 seconds. These initial deliveries are deterministic even when normal
+random demand would be zero. Subsequent deliveries use the selected rate and existing
+hourly demand distribution. Initialization must finish first; scheduler/worker load can
+delay actual processing. Existing running schedules are not retroactively accelerated.
+Pause/stop and rate changes abandon remaining initial timing; ordinary resume does not
+re-arm it. Downtime coalesces missed slots without a burst. Intake, retry identities and
+source controls remain unchanged.
+
+The current company's header shows a compact, subtly pulsing Live simulation link only
+when the existing authorized status reader reports running without a derived error or
+throttle. It opens the existing Demo Data overview. It is absent for all other states,
+failed reads and unauthorized companies; company switches discard old responses. Visible
+shells refresh every five seconds with bounded cancellation. Reduced motion disables the
+pulse; narrow headers retain an accessible compact link outside the overflow menu.

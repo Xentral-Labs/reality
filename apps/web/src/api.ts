@@ -1136,7 +1136,8 @@ async function sendChatRequest(
 }
 
 export const api = {
-  demoDataStatus: (scope: string) => request<DemoDataStatus>(scope),
+  demoDataStatus: (scope: string, signal?: AbortSignal) =>
+    request<DemoDataStatus>(scope, { signal }),
   demoDataPreview: (scope: string) => request<DemoDataPreview>(`${scope}/preview`),
   demoDataImports: (scope: string, cursor = "", recent = false) =>
     request<DemoImportPage>(

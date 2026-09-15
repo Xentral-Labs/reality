@@ -452,6 +452,7 @@ def control(
             config,
             request_id=request_key,
             interval_seconds=RATES[selected_rate],
+            initial_offsets_seconds=(0, 12, 24) if action == "start" else (),
         )
         connection.current_schedule_id = schedule.id
         session.flush()

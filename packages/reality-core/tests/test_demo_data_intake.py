@@ -418,6 +418,18 @@ def test_one_delivery_carries_none_one_or_two_orders_with_stable_identities(
 
     actor = scheduled_owner.id
     tenant, schedule = _running_demo(session, monkeypatch, actor, "burst")
+    # A rate change ends the initial guaranteed deliveries; test ordinary demand.
+    status = demo_data.status(session, tenant, actor)
+    demo_data.control(
+        session,
+        tenant,
+        actor,
+        "set_rate",
+        status["revision"],
+        "normal-demand",
+        rate=60,
+        confirmed=True,
+    )
 
     monkeypatch.setattr(synthetic, "burst_size", lambda *args: 2)
     run_id, token = _tick(session, tenant, schedule)
