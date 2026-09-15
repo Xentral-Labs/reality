@@ -63,7 +63,7 @@ function TraceEntry({
   };
   return (
     <details
-      className="overflow-hidden bg-surface"
+      className="overflow-hidden rounded-lg border border-border-default bg-surface"
       data-storyline-call={item.kind}
       data-storyline-ordinal={item.ordinal}
       data-picked={picked ? "true" : undefined}
@@ -204,7 +204,11 @@ export function StorylineProtocol({
   const valueOf = (value: unknown) =>
     typeof value === "object" ? JSON.stringify(value) : String(value);
   return (
-    <div className={`${panel} flex min-w-0 flex-col`} data-storyline-protocol data-mode={mode}>
+    <div
+      className={`${panel} @container flex min-w-0 flex-col`}
+      data-storyline-protocol
+      data-mode={mode}
+    >
       <section className="flex flex-col gap-2 p-3" aria-label={heading}>
         <div className="flex items-baseline justify-between">
           <h3 className="text-[13px] font-semibold text-fg-strong">{heading}</h3>
@@ -215,7 +219,7 @@ export function StorylineProtocol({
         {items.length === 0 ? (
           <p className="text-[12.5px] text-fg-quiet">{loading ? t("Loading…") : emptyText}</p>
         ) : (
-          <div className="divide-y divide-border-subtle overflow-hidden rounded-lg border border-border-default">
+          <div className="grid gap-2 @[34rem]:grid-cols-2 @[34rem]:items-start">
             {items.map((item) => (
               <TraceEntry
                 key={item.id}
@@ -244,7 +248,7 @@ export function StorylineProtocol({
         {!delta ? (
           <p className="text-[12.5px] text-fg-quiet">{deltaEmptyText}</p>
         ) : (
-          <>
+          <div className="grid gap-2 @[34rem]:grid-cols-2 @[34rem]:items-start">
             <Group title={t("Events")} lane="var(--lane-events)" count={`+${delta.events.length}`}>
               {delta.events.map((event) => (
                 <Row
@@ -312,15 +316,17 @@ export function StorylineProtocol({
               ))}
             </Group>
             {delta.graph.nodes.length > 0 && (
-              <Group
-                title={t("Context Graph")}
-                lane="var(--lane-reference)"
-                count={`${delta.graph.nodes.length}`}
-              >
-                <Graph graph={delta.graph} open={open} />
-              </Group>
+              <div className="@[34rem]:col-span-2">
+                <Group
+                  title={t("Context Graph")}
+                  lane="var(--lane-reference)"
+                  count={`${delta.graph.nodes.length}`}
+                >
+                  <Graph graph={delta.graph} open={open} />
+                </Group>
+              </div>
             )}
-          </>
+          </div>
         )}
       </section>
       {delta && (
@@ -437,7 +443,7 @@ function Graph({
     <figure className="px-2 pt-1.5 pb-1" data-storyline-graph>
       <svg
         viewBox={`0 0 ${width} ${height}`}
-        className="block h-auto w-full"
+        className="mx-auto block h-auto w-full max-w-sm"
         role="img"
         aria-label={t("Context Graph")}
       >
