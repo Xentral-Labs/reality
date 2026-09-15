@@ -204,3 +204,16 @@ selection using history replacement and loads the current company conversation
 list without an error box or user click. No records are created or deleted. Other
 errors remain visible; stale reads from previous selections must not trigger recovery.
 This supersedes FR-021 manual recovery for missing sessions.
+
+## Compact desktop session rows (2026-09-15)
+
+**FR-023**: In the persistent desktop conversation sidebar (viewport at least
+1280 CSS pixels), session buttons are 36 pixels high and adjacent session rows
+start 36 pixels apart. At narrower widths the history drawer retains its current
+40-pixel buttons and 44-pixel row spacing. Session selection, truncation, keyboard
+focus and options/restore actions remain usable in both layouts.
+
+Acceptance: With two conversations, measure button height and row-start distance
+at 1440 and 390 pixels, then open and cancel the existing removal dialog. This is
+a presentation-only refinement of FR-015/FR-019, approved by the owner's request
+for a separate compact-session PR. No data, API or chat-stream behavior changes.

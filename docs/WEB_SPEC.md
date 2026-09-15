@@ -2822,3 +2822,7 @@ tools remain available, result serialization is lossless, and provider history r
 are limited to the latest twelve turns. Timing logs contain round/tool durations and
 provider token/cache counts, never prompts, tool arguments or payloads. Inventory
 observations use batched tenant reads with unchanged quantities and evidence links.
+
+Spec 195 FR-023: The persistent desktop Chat history uses 36-pixel session rows
+without inter-row gaps. Below 1280 CSS pixels the history drawer retains its
+40-pixel session buttons and 44-pixel row spacing. Selection and options stay shared.

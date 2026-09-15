@@ -394,7 +394,7 @@ export function ChatPage({
                 {t("Back to chats")}
               </button>
             ) : null}
-            <div className="min-h-0 flex-1 space-y-1 overflow-y-auto overscroll-contain">
+            <div className="min-h-0 flex-1 space-y-1 overflow-y-auto overscroll-contain xl:space-y-0">
               {!data.sessions.length && (
                 <p className="text-sm text-fg-muted">
                   {t(showArchived ? "No archived chats" : "No conversations yet.")}
@@ -405,7 +405,7 @@ export function ChatPage({
                   <button
                     data-chat-session={row.id}
                     aria-current={row.id === data.active_session_id ? "true" : undefined}
-                    className={`min-w-0 flex-1 truncate rounded-lg px-3 py-2.5 text-left text-sm ${row.id === data.active_session_id ? activeSessionClass : inactiveSessionClass}`}
+                    className={`min-w-0 flex-1 truncate rounded-lg px-3 py-2.5 text-left text-sm xl:py-2 ${row.id === data.active_session_id ? activeSessionClass : inactiveSessionClass}`}
                     title={row.title}
                     disabled={sending || startingChat || changingSession}
                     onClick={() => selectSession(row.id)}

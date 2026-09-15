@@ -306,3 +306,17 @@ failures keep the existing visible error and retry controls. No mutation is adde
 171 contract tests, formatting, localization audit, TypeScript/Vite, spec policy
 and diff checks passed. Browser checks prove no-click recovery, cleared URL, reload
 and preserved 503 errors, followed by company isolation checks. Local 8080 updated.
+
+## Compact session rows (FR-023, 2026-09-15)
+- Scope review: owner requested a separate PR for denser session rows. FR-023 maps
+  to T029 and measured browser geometry; no unresolved clarifications, uncovered
+  requirements or critical analysis findings. Constitution Check: PASS.
+- Test-first: the existing composer browser failed with button height 40 != 36
+  before the responsive class change. It now passes: desktop button/row pitch
+  36/36 px at 1440 px; mobile button/row pitch 40/44 px at 390 px.
+- Existing selection/options, removal-dialog cancellation and composer checks pass.
+  Desktop and mobile screenshots were visually reviewed.
+- All 191 frontend contracts, TypeScript/Vite build, formatting, spec policy and
+  diff whitespace checks pass. The existing bundle-size warning remains.
+- Final review: only desktop padding and inter-row spacing change. No backend,
+  schema, translations or executable catalog changes; their gates do not apply.

@@ -156,3 +156,15 @@ FR-022: Classify the specific missing ChatSession response in ChatPage, let useR
 generation guards discard obsolete errors, and navigate with replace from an effect.
 Show loading during recovery. Verify browser automatic/no-write recovery, URL removal,
 reload and non-404 failure preservation, plus web checks. Constitution PASS.
+
+## Compact desktop session rows
+FR-023: In `apps/web/src/unified/ChatPage.tsx`, use desktop-only vertical padding
+and remove inter-row spacing at the existing `xl` sidebar breakpoint. Retain the
+36-pixel options/restore controls and all mobile dimensions. No service, domain,
+API, schema or dependency changes; Constitution Check: PASS.
+Add geometry assertions to `apps/web/scripts/unified-chat-composer-browser.mjs`
+before implementation and observe the desktop mismatch. Run that browser flow,
+frontend contracts, build, formatting and spec policy. Backend/migration/catalog
+generation are not applicable to this class-only adjustment. Revert the two
+responsive classes to roll back. Review active selection, menu access and mobile
+drawer geometry before marking the task complete.
