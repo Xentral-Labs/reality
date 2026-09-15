@@ -121,7 +121,7 @@ export function ChatComposer({
     }
   };
   return (
-    <div className="shrink-0 px-4 pb-3 pt-2">
+    <div className="mx-auto w-full max-w-4xl shrink-0 px-4 pb-3 pt-2">
       <AllowanceNotice allowance={allowance} />
       {tooLong && (
         <p role="alert" className="mb-2 text-xs text-critical-text">

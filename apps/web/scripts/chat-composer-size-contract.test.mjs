@@ -15,3 +15,7 @@ test("the composer starts compact and grows with its content", () => {
   assert.match(composer, /className="reality-chat-composer relative"/u);
   assert.match(composer, /className="absolute inset-x-2 bottom-2 flex items-end justify-between"/u);
 });
+
+test("the composer stays on a readable centered measure", () => {
+  assert.match(composer, /mx-auto w-full max-w-4xl/u);
+});
