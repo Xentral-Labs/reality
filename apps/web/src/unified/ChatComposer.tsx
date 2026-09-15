@@ -138,7 +138,8 @@ export function ChatComposer({
         <textarea
           id={id}
           value={value}
-          disabled={sending}
+          readOnly={sending}
+          aria-busy={sending}
           placeholder={t("Put Reality to work…")}
           onChange={(event) => change(event.target.value)}
           onKeyDown={(event) => {

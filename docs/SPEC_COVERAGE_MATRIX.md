@@ -1034,3 +1034,7 @@ Spec 185 owns the analytics service, agent tools, private report configuration a
 
 - `packages/reality-core/tests/test_storyline_chat.py`: exact reply/call association, proposal decisions, context isolation, retention and owner/tenant/message boundaries (FR-003–004, DR-001).
 - `apps/web/scripts/storyline-browser.mjs`: own words, explicit send, reply evidence, reload and localized responsive layouts (FR-001–005).
+
+- Spec 195 FR-006: `apps/web/scripts/unified-chat-composer-browser.mjs` proves focus
+  after failed Enter and successful button send without stealing another control's
+  focus; `storyline-browser.mjs` covers the first-session Free Play remount.

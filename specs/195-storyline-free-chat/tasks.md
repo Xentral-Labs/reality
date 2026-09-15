@@ -15,3 +15,5 @@
 Dependencies: T001 → tests T002/T003 → T004 → T005 → T006 → T007 → T008.
 Independent test preparations can be batched; no agents needed. Deliver both stories
 as one coherent increment because free chat must carry truthful evidence.
+
+- [x] T009 Restore post-send focus (FR-006), verify browser/web gates, update PR and 8080.

@@ -79,3 +79,8 @@ None; the owner explicitly approved this scope.
 |---|---|
 | FR-001–002, FR-005 | Frontend contracts and browser interaction tests |
 | FR-003–004, DR-001 | Recorder/service/API attribution, isolation, proposal lifecycle and retention tests |
+
+## Follow-up: composer focus
+- **FR-006**: After an explicit send settles (success or failure), restore focus to
+  the active chat input. Do not focus on initial load or steal focus from another
+  control deliberately selected while waiting.

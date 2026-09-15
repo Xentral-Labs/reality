@@ -84,6 +84,7 @@ export function ChatPage({
   };
 
   const [sending, setSending] = useState(false);
+  const restoreComposerFocus = useRef(false);
   const [failure, setFailure] = useState("");
   /**
    * The question a person just sent, shown as their message until the reload carries it.
@@ -142,6 +143,16 @@ export function ChatPage({
     return () => window.clearTimeout(timer);
   }, [data?.allowance?.resets_at]);
   const sessionReady = !selection.session || data?.active_session_id === selection.session;
+  useEffect(() => {
+    if (!restoreComposerFocus.current || sending || startingChat || loading || !sessionReady)
+      return;
+    const input = document.getElementById(composerId) as HTMLTextAreaElement | null;
+    if (!input) return;
+    restoreComposerFocus.current = false;
+    const focused = document.activeElement;
+    if (active && (focused === document.body || input.form?.contains(focused)))
+      input.focus({ preventScroll: true });
+  }, [sending, startingChat, loading, sessionReady, active, composerId]);
   const send = async () => {
     const text = question;
     if (
@@ -153,6 +164,7 @@ export function ChatPage({
       loading
     )
       return;
+    restoreComposerFocus.current = true;
     setSending(true);
     setFailure("");
     setEcho({ text, before: data?.messages.map((row) => row.id) || [] });
