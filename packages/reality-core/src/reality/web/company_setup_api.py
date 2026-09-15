@@ -4,9 +4,9 @@ import re
 from typing import Literal
 
 from fastapi import APIRouter
-from pydantic import BaseModel, ConfigDict, Field, StrictBool
+from pydantic import BaseModel, ConfigDict, Field, StrictBool, StrictInt
 
-from reality.services import company_setup, free_playground
+from reality.services import ai_usage, company_setup, free_playground
 from reality.web.api import DatabaseSession
 from reality.web.playground import Actor, _respond
 
@@ -16,6 +16,8 @@ router = APIRouter(prefix="/api/company-setup", tags=["company-setup"])
 def is_account_setup_path(path: str, method: str) -> bool:
     if (method, path) in {
         ("GET", "/api/company-setup/options"),
+        ("GET", "/api/company-setup/ai-usage"),
+        ("POST", "/api/company-setup/ai-usage"),
         ("GET", "/api/company-setup/playground"),
         ("POST", "/api/company-setup/playground"),
         ("POST", "/api/company-setup"),
@@ -106,3 +108,32 @@ def enter_playground(body: Confirmation, actor: Actor, session: DatabaseSession)
     return _respond(
         lambda: free_playground.enter(session, actor, confirmed=body.confirmed)
     )
+
+
+class AllowanceGrant(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    tenant_id: str = Field(min_length=1)
+    request_key: str = Field(min_length=1, max_length=128)
+    confirmed: StrictBool = False
+    mode: Literal["self", "admin"] = "self"
+    questions: StrictInt = 20
+    reason: str = Field(default="", max_length=500)
+    recipient_email: str = Field(default="", max_length=320)
+
+
+@router.get("/ai-usage")
+def usage_status(
+    tenant_id: str, actor: Actor, session: DatabaseSession, recipient_email: str = ""
+):
+    return _respond(
+        lambda: ai_usage.status(
+            session, tenant_id, actor, recipient_email=recipient_email
+        )
+    )
+
+
+@router.post("/ai-usage")
+def grant_usage(body: AllowanceGrant, actor: Actor, session: DatabaseSession):
+    values = body.model_dump()
+    tenant_id = values.pop("tenant_id")
+    return _respond(lambda: ai_usage.grant(session, tenant_id, actor, **values))

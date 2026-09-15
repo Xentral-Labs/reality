@@ -20,6 +20,10 @@ let ready = false,
   failAttention = false,
   remaining = 1,
   sent = 0;
+let usageGrants = [],
+  grantRequests = [],
+  failGrant = true,
+  adminUsage = false;
 let archived = false,
   entryReceiptStatus = null;
 const errors = [];
@@ -74,6 +78,7 @@ await page.route("**/api/**", async (route) => {
   if (path === "/api/auth/me")
     return reply({
       id: "trial_user",
+      is_platform_admin: adminUsage,
       email: "trial@example.test",
       display_name: "",
       status: "active",
@@ -83,6 +88,45 @@ await page.route("**/api/**", async (route) => {
     });
   if (path === "/api/v1/bootstrap")
     return reply({ tenants: ready ? [company] : [], default_tenant_id: ready ? company.id : null });
+  if (path === "/api/company-setup/ai-usage") {
+    if (request.method() === "POST") {
+      const body = request.postDataJSON();
+      grantRequests.push(body);
+      assert.equal(body.confirmed, true);
+      if (failGrant) {
+        failGrant = false;
+        return reply({ detail: "Temporary grant failure" }, 503);
+      }
+      usageGrants.unshift({
+        id: String(usageGrants.length),
+        actor_user_id: "trial_user",
+        actor_name: "Trial User",
+        recipient_user_id: "trial_user",
+        occurred_at: "2026-09-15T12:00:00Z",
+        expires_at: "2099-09-15T00:00:00Z",
+        questions: body.questions,
+        mode: body.mode,
+        reason: body.reason || "Continued testing",
+      });
+      remaining += body.questions;
+    }
+    return reply({
+      allowance: {
+        limit: 20,
+        used: 20,
+        remaining,
+        base_remaining: 0,
+        bonus_questions: usageGrants.reduce((sum, row) => sum + row.questions, 0),
+        bonus_remaining: remaining,
+        resets_at: "2099-09-15T00:00:00Z",
+      },
+      recipient: { id: "trial_user", email: "trial@example.test", name: "Trial User" },
+      can_admin_grant: adminUsage,
+      self_extensions_remaining: 3 - usageGrants.filter((row) => row.mode === "self").length,
+      self_extension_questions: 20,
+      history: usageGrants,
+    });
+  }
   if (path === "/api/company-setup/playground") {
     if (request.method() === "GET")
       return reply({
@@ -161,6 +205,57 @@ await page.route("**/api/**", async (route) => {
   return reply({ detail: `Unused fixture: ${path}` }, 404);
 });
 try {
+  if (process.env.USAGE_ONLY === "1") {
+    ready = true;
+    failSetup = false;
+    remaining = 0;
+    await page.goto(`${base}/app/settings?tenant=${company.id}&settings_view=usage`);
+    const settings = page.locator("[data-usage-settings]");
+    await settings.getByRole("button", { name: "Get 20 more questions", exact: true }).click();
+    assert.equal(grantRequests.length, 0);
+    await settings.getByRole("button", { name: "Cancel", exact: true }).click();
+    assert.equal(grantRequests.length, 0);
+    await settings.getByRole("button", { name: "Get 20 more questions", exact: true }).click();
+    await settings.getByRole("button", { name: "Confirm", exact: true }).click();
+    await settings.getByRole("alert").getByText("Temporary grant failure").waitFor();
+    await settings.getByRole("button", { name: "Confirm", exact: true }).click();
+    await settings.locator("[data-usage-history]").getByText("Continued testing").waitFor();
+    assert.equal(grantRequests.length, 2);
+    assert.equal(grantRequests[0].request_key, grantRequests[1].request_key);
+    assert.equal(usageGrants.length, 1);
+    assert.equal(
+      await settings
+        .getByRole("button", { name: "Get 20 more questions", exact: true })
+        .isDisabled(),
+      true,
+    );
+    adminUsage = true;
+    await page.reload();
+    await settings.getByLabel("Extension type", { exact: true }).selectOption("admin");
+    await settings.getByLabel("Extra questions", { exact: true }).selectOption("100");
+    await settings.getByLabel("Reason", { exact: true }).fill("Acceptance testing");
+    await settings.getByRole("button", { name: "Review grant", exact: true }).click();
+    await settings.getByRole("button", { name: "Confirm", exact: true }).click();
+    await settings.locator("[data-usage-history]").getByText("Acceptance testing").waitFor();
+    assert.equal(usageGrants[0].questions, 100);
+    for (const lang of ["en", "de", "nl", "es"]) {
+      language = lang;
+      await page.setViewportSize({ width: 390, height: 844 });
+      await page.goto(`${base}/app/settings?tenant=${company.id}&settings_view=usage&lang=${lang}`);
+      await page.locator("[data-usage-history] article").first().waitFor();
+      assert.equal(
+        await page.evaluate(() => document.documentElement.scrollWidth > innerWidth),
+        false,
+      );
+      await page.screenshot({ path: `${out}/usage-${lang}.png`, fullPage: true });
+    }
+    assert.deepEqual(errors, []);
+    console.log(
+      "PASS: self/admin grant confirmation, cancel, retry identity, history and four mobile locales",
+    );
+    await browser.close();
+    process.exit(0);
+  }
   await page.goto(`${base}/app`);
   await page
     .getByText("Your demo is not ready yet. Retry to continue with the same company.")

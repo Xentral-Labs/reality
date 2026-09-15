@@ -1,7 +1,7 @@
 """Account-scoped trial entry and bounded managed AI dispatches."""
 
 import os
-from datetime import timedelta
+from datetime import datetime, timedelta
 
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
@@ -133,8 +133,12 @@ def _account(
     return (actor_user_id or run.owner_user_id) if run else None
 
 
-def _allowance(session: Session, account_id: str) -> dict:
-    instant = now()
+def _allowance(
+    session: Session, account_id: str, *, instant: datetime | None = None
+) -> dict:
+    from reality.services.ai_usage import grant_totals
+
+    instant = instant or now()
     start = instant.replace(hour=0, minute=0, second=0, microsecond=0)
     reset = start + timedelta(days=1)
     used = (
@@ -150,10 +154,16 @@ def _allowance(session: Session, account_id: str) -> dict:
         )
         or 0
     )
+    grants = grant_totals(session, account_id, instant)
     return {
+        **grants,
+        "base_remaining": max(0, DAILY_LIMIT - used),
+        "bonus_remaining": max(
+            0, grants["bonus_questions"] - max(0, used - DAILY_LIMIT)
+        ),
         "limit": DAILY_LIMIT,
         "used": used,
-        "remaining": max(0, DAILY_LIMIT - used),
+        "remaining": max(0, DAILY_LIMIT + grants["bonus_questions"] - used),
         "resets_at": reset.isoformat(),
     }
 
@@ -181,11 +191,12 @@ def reserve_managed_question(
     )
     if user is None:
         raise NotFound("Account not found.")
-    current = _allowance(session, account)
+    instant = now()
+    current = _allowance(session, account, instant=instant)
     if current["remaining"] == 0:
         session.rollback()
         raise InvalidOperation(
-            f"Your 20 free AI questions are used. Resets at {current['resets_at']}. You can keep exploring your company."
+            f"Your {DAILY_LIMIT + current['bonus_questions']} available AI questions are used. Resets at {current['resets_at']}. You can keep exploring your company."
         )
     session.add(
         SecurityAuditEvent(
@@ -193,7 +204,7 @@ def reserve_managed_question(
             user_id=account,
             tenant_id=tenant_id,
             event_type=USAGE_EVENT,
-            occurred_at=now(),
+            occurred_at=instant,
             detail='{"version":1}',
         )
     )

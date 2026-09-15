@@ -2730,3 +2730,16 @@ Other chat surfaces retain their existing header.
 At zero allowance, Free Play replaces the composer with a compact limit/reset status.
 Header Usage retains the detailed disclosure. A refreshed positive allowance restores
 the composer. Other chat surfaces retain their existing exhaustion presentation.
+
+## Auditable AI extensions (spec 196)
+
+Settings → Usage shows included daily usage, additional available questions and the
+account-wide extension history. Each managed-AI account may confirm three one-time
+self extensions of 20 questions, only after exhaustion. They do not renew each day
+or per company. Platform admins may grant 20/100 with a reason to themselves or an
+eligible member of the selected company. The recipient email lookup is admin-only.
+Every grant is confirmed, retry-idempotent and recorded with actor/recipient IDs,
+amount, reason, time, expiration and self/admin mode in the existing security audit.
+Consumption is never reset. Extra questions expire at the next UTC daily reset.
+The exhausted Free Play status links to Usage. Open chat allowance refreshes after
+a grant; a failed grant retains the confirmation/request identity for safe retry.

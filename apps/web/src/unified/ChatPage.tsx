@@ -62,6 +62,11 @@ export function ChatPage({
     () => api.copilot(selection.tenant, selection.session),
     [selection.tenant, selection.session],
   );
+  useEffect(() => {
+    const changed = () => refresh();
+    window.addEventListener("reality:ai-usage-changed", changed);
+    return () => window.removeEventListener("reality:ai-usage-changed", changed);
+  }, []);
   const { data: deliveryContext } = useRead(
     () =>
       selection.commitment
@@ -570,6 +575,12 @@ export function ChatPage({
           className="flex shrink-0 flex-wrap items-center justify-center gap-x-2 gap-y-1 border-t border-border-default px-4 py-4 text-sm text-fg-muted"
         >
           <span className="font-medium text-fg-default">{t("Daily limit reached")}</span>
+          <button
+            className="text-accent underline"
+            onClick={() => navigate({ route: "settings", settingsView: "usage" })}
+          >
+            {t("View usage")}
+          </button>
           <span>
             · {t("Resets at")} {formatDateTime(data.allowance.resets_at)}
           </span>
