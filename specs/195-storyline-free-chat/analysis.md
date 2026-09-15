@@ -57,3 +57,7 @@ No critical findings; existing context/reset routing is reused.
 Owner requested removal of the remaining footer Free Play shortcut and a clearer
 return to selection. Scope is a presentation/navigation correction to FR-007.
 Test absence, clear label and read-only return in the browser. No critical findings.
+
+## Sidebar correction review
+Owner wants Free Play only as a tile under Storyline. Test absent sidebar link,
+retained tile, Storyline active state and return to selection. No critical findings.

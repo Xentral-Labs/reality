@@ -23,7 +23,7 @@ trace failure never retries a saved reply. Existing marker deltas disclose their
 later-activity scope. No time-range attribution or new schema.
 
 ## UI
-A separate `/app/free-play` route, navigation entry and exploration-library card use
+A separate `/app/free-play` route and exploration-library card use
 `FreePlayPage`. Both SPA and direct-entry routers recognize the route. Entry reads
 never create a company; the first explicit Create Sandbox and start action does.
 The chooser defaults to the current company from shared bootstrap. Opening a company
@@ -70,3 +70,8 @@ Remove the contextual Sandbox chat shortcut from the narrator footer. Keep exist
 own-word draft handling and saved contextual URLs compatible. Use an ArrowLeft icon
 and full-size Back to selection button, primary after completion. Reuse the library
 callback; no API or data changes. Constitution Check: PASS.
+
+## Sidebar entry correction
+Remove the separate Free Play sidebar link. Retain the library tile and saved direct
+URLs. Treat both routes as Storyline navigation for highlighting; the Storyline link
+opens the library explicitly. Constitution Check: PASS; no API or data changes.

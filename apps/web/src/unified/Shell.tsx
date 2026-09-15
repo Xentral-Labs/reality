@@ -545,41 +545,33 @@ export function Shell({
                   </a>
                   <a
                     data-navigation-item
-                    className={`flex items-center gap-2 rounded-md px-3 py-2 text-[13px] leading-5 ${selection.route === "storyline" ? activeNavigation : "hover:bg-surface-muted"}`}
-                    href={selectionUrl({ ...selection, route: "storyline", page: 1, q: "" })}
-                    aria-current={selection.route === "storyline" ? "page" : undefined}
-                    onClick={(event) => {
-                      event.preventDefault();
-                      navigate({ route: "storyline", page: 1, q: "", proposal: "" });
-                      setOpen(false);
-                    }}
-                  >
-                    <BookOpen size={17} />
-                    {t("Storyline")}
-                  </a>
-                  <a
-                    className={`flex items-center gap-2 rounded-md px-3 py-2 text-[13px] leading-5 ${selection.route === "free-play" ? activeNavigation : "hover:bg-surface-muted"}`}
+                    className={`flex items-center gap-2 rounded-md px-3 py-2 text-[13px] leading-5 ${selection.route === "storyline" || selection.route === "free-play" ? activeNavigation : "hover:bg-surface-muted"}`}
                     href={selectionUrl({
                       ...selection,
-                      route: "free-play",
-                      freePlayChat: false,
-                      session: "",
-                      commitment: "",
+                      route: "storyline",
+                      storylineChapter: "library",
+                      page: 1,
+                      q: "",
                     })}
-                    aria-current={selection.route === "free-play" ? "page" : undefined}
+                    aria-current={
+                      selection.route === "storyline" || selection.route === "free-play"
+                        ? "page"
+                        : undefined
+                    }
                     onClick={(event) => {
                       event.preventDefault();
                       navigate({
-                        route: "free-play",
-                        freePlayChat: false,
-                        session: "",
-                        commitment: "",
+                        route: "storyline",
+                        storylineChapter: "library",
+                        page: 1,
+                        q: "",
+                        proposal: "",
                       });
                       setOpen(false);
                     }}
                   >
                     <BookOpen size={17} />
-                    {t("Free play")}
+                    {t("Storyline")}
                   </a>
                   {(company.company_kind === "demo" || company.demo_data_state) && (
                     <a

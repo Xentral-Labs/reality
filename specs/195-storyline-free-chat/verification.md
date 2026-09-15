@@ -118,3 +118,15 @@ the absent shortcut, clear label and read-only return assertions along with scri
 steps and company-choice coverage. Spec policy and diff check passed. No backend or
 generated catalog changes; their previous checks remain applicable. Local 8080 serves
 `index-3a5vEx_6.js`. Final review: presentation only, no data or permission changes.
+
+## Storyline-only sidebar entry (2026-09-15)
+
+Removed the separate Free Play sidebar item and retained the single library tile.
+Storyline remains highlighted on the Free Play route; its sidebar link opens the
+selection. Direct URLs and current-company chat remain unchanged. The browser first
+exposed an outdated expectation that sidebar navigation resumes a story immediately.
+Updated that proof to open selection and resume through the story card. Final browser
+run passed, including absent Free Play sidebar link, active Storyline, retained tile,
+read-only return and company choice. Web build passed (168 tests, four-language audit,
+TypeScript/Vite), as did spec policy, formatting, docs build and catalog consistency.
+Local 8080 serves `index-ByrIIKZD.js`. Final review: navigation only, no backend changes.

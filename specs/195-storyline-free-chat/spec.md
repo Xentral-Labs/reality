@@ -10,7 +10,8 @@ appear as an action repeated on each story. People need a real company agent in 
 selected company or persistent private Sandbox, with actual evidence where recorded.
 
 ## Scope
-One standalone Free Play entry in navigation and the exploration library, leading to
+One Free Play tile in the Storyline exploration library, with no separate sidebar
+entry, leading to
 `/app/free-play`. The entry defaults to the current company and lists accessible companies and Sandboxes.
 Opening one is read-only. Alternatively, explicit creation uses the canonical static
 international demo profile in a dedicated practice Sandbox. Chat URLs retain the selected
@@ -66,7 +67,9 @@ input while preventing edits/submission.
   show unavailable evidence; ordinary proposal review and record links remain available.
 - **FR-005**: Mobile/desktop, light/dark, en/de/nl/es, failure/retry and allowance remain usable.
 - **FR-006**: Restore post-send focus without stealing another control's focus.
-- **FR-007**: Free Play is removed from individual Storyline cards; guided story actions remain. The narrator footer has no Free Play/Sandbox chat
+- **FR-007**: Free Play has one tile in the Storyline selection and no separate sidebar link.
+  Storyline stays highlighted while using Free Play, and its sidebar link opens the
+  selection. Free Play is removed from individual Storyline cards; guided story actions remain. The narrator footer has no Free Play/Sandbox chat
   action and offers a full-size Back to selection button, visually primary after
   completion, returning to the exploration library without writes.
 - **FR-008**: One independent entry offers all companies in the shared bootstrap, defaults
