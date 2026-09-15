@@ -84,12 +84,15 @@ def test_route_attribute_is_the_template_not_the_resolved_path(monkeypatch):
 
     from fastapi import FastAPI
     from fastapi.testclient import TestClient
-    from opentelemetry import metrics
     from opentelemetry.sdk.metrics import MeterProvider
     from opentelemetry.sdk.metrics.export import InMemoryMetricReader
 
+    # A local provider passed explicitly, NOT set_meter_provider: the global
+    # can only be set once per process and silently no-ops afterwards, so a
+    # global here would make this test pass alone and fail under xdist
+    # depending on which test touched the provider first.
     reader = InMemoryMetricReader()
-    metrics.set_meter_provider(MeterProvider(metric_readers=[reader]))
+    provider = MeterProvider(metric_readers=[reader])
 
     app = FastAPI()
 
@@ -97,7 +100,11 @@ def test_route_attribute_is_the_template_not_the_resolved_path(monkeypatch):
     def _read(uid: str):
         return {"uid": uid}
 
-    telemetry.instrument_fastapi(app)
+    from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
+
+    FastAPIInstrumentor.instrument_app(
+        app, excluded_urls="healthz,readyz", meter_provider=provider
+    )
     client = TestClient(app)
     for uid in ("alice", "bob", "carol", "dave", "erin"):
         client.get(f"/u/{uid}?q=a+search+term")
@@ -114,3 +121,50 @@ def test_route_attribute_is_the_template_not_the_resolved_path(monkeypatch):
                     assert "a+search+term" not in str(dict(point.attributes))
 
     assert routes == {"/u/{uid}"}
+
+
+def test_seconds_histograms_do_not_use_millisecond_buckets(monkeypatch):
+    """The SDK's default boundaries are (0, 5, 10, 25, ... 10000) -- shaped for
+    MILLISECONDS. Every histogram here records seconds, so with the defaults a
+    0.4s and a 3.0s sweep land in the same bucket and no percentile exists.
+    This regression slipped through once on the HTTP histogram and again on the
+    sweep histogram, so it is asserted rather than trusted."""
+    monkeypatch.setenv("OTEL_EXPORTER_OTLP_ENDPOINT", "http://collector:4318")
+
+    from reality.telemetry import metrics as m
+
+    assert max(m.SECONDS_BUCKETS) <= 120, "seconds buckets must not be ms-shaped"
+    assert min(m.SECONDS_BUCKETS) < 0.1, "needs sub-100ms resolution"
+    # The Copilot runs to ~270s against a 300s ALB idle timeout, so its
+    # boundaries must resolve either side of that cliff.
+    assert max(m.COPILOT_BUCKETS) >= 300
+    assert 270 in m.COPILOT_BUCKETS
+
+
+def test_sweep_duration_separates_sub_second_from_multi_second(monkeypatch):
+    monkeypatch.setenv("OTEL_EXPORTER_OTLP_ENDPOINT", "http://collector:4318")
+
+    from opentelemetry.sdk.metrics import MeterProvider
+    from opentelemetry.sdk.metrics.export import InMemoryMetricReader
+
+    from reality.telemetry import metrics as m
+
+    reader = InMemoryMetricReader()
+    provider = MeterProvider(metric_readers=[reader])
+    monkeypatch.setattr(m, "_meter", provider.get_meter("reality"))
+    monkeypatch.setattr(m, "_instruments", {})
+
+    for seconds in (0.4, 1.2, 3.0):
+        m.record("reality.jobs.sweep_duration", "d", "s", seconds, role="worker")
+
+    populated = []
+    for resource_metric in reader.get_metrics_data().resource_metrics:
+        for scope_metric in resource_metric.scope_metrics:
+            for metric in scope_metric.metrics:
+                for point in metric.data.data_points:
+                    populated = [c for c in point.bucket_counts if c]
+
+    assert len(populated) >= 3, (
+        "0.4s, 1.2s and 3.0s must fall in distinct buckets; "
+        "all in one means the millisecond defaults are still in use"
+    )

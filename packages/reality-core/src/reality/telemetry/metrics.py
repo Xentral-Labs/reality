@@ -44,10 +44,29 @@ def _counter(name: str, description: str, unit: str = "1") -> Any:
     return _instruments[name]
 
 
-def _histogram(name: str, description: str, unit: str) -> Any:
+# The SDK's default histogram boundaries are (0, 5, 10, 25, ... 10000) --
+# shaped for MILLISECONDS. Every histogram here records SECONDS, so without
+# explicit boundaries everything under five seconds collapses into the first
+# bucket and no percentile can be computed. Boundaries are therefore mandatory,
+# not optional, and the helper below has no default for them on purpose.
+SECONDS_BUCKETS = (0.01, 0.05, 0.1, 0.25, 0.5, 1, 2.5, 5, 10, 25, 60)
+
+# The Copilot calls Anthropic and can run to ~270s against a 300s ALB idle
+# timeout, so its buckets must resolve either side of that cliff -- the
+# general-purpose set above tops out at 60s and would put every slow turn in
+# +Inf, which is exactly where the interesting ones live.
+COPILOT_BUCKETS = (0.5, 1, 2.5, 5, 10, 20, 30, 60, 120, 180, 240, 270, 300)
+
+
+def _histogram(
+    name: str, description: str, unit: str, boundaries: tuple[float, ...]
+) -> Any:
     if name not in _instruments:
         _instruments[name] = _get_meter().create_histogram(
-            name, description=description, unit=unit
+            name,
+            description=description,
+            unit=unit,
+            explicit_bucket_boundaries_advisory=list(boundaries),
         )
     return _instruments[name]
 
@@ -68,11 +87,19 @@ def count(name: str, description: str, **attributes: str) -> None:
         log.debug("metric %s failed", name, exc_info=True)
 
 
-def record(name: str, description: str, unit: str, value: float, **attributes: str) -> None:
+def record(
+    name: str,
+    description: str,
+    unit: str,
+    value: float,
+    *,
+    boundaries: tuple[float, ...] = SECONDS_BUCKETS,
+    **attributes: str,
+) -> None:
     if not _enabled():
         return
     try:
-        _histogram(name, description, unit).record(value, attributes)
+        _histogram(name, description, unit, boundaries).record(value, attributes)
     except Exception:
         log.debug("metric %s failed", name, exc_info=True)
 
@@ -196,8 +223,23 @@ def access_review(decision: str) -> None:
 # deterministic fallback, which is otherwise invisible -- the fallback returns
 # HTTP 200 and looks healthy while answering uselessly.
 
-def copilot_turn(provider: str, outcome: str) -> None:
+def copilot_turn(provider: str, outcome: str, seconds: float | None = None) -> None:
     count("reality.copilot.turns", "Copilot turns served", provider=provider, outcome=outcome)
+    if seconds is not None:
+        # The single most operationally important latency in the deployment:
+        # a Copilot turn can run to ~270s against a 300s ALB idle timeout, so
+        # this is the only signal that shows the margin shrinking before users
+        # start seeing 504s. The HTTP histogram cannot answer it -- its
+        # boundaries stop at 10s, so every slow turn lands in +Inf together.
+        record(
+            "reality.copilot.turn_duration",
+            "Time to produce one Copilot reply, against the 300s ALB timeout",
+            "s",
+            seconds,
+            boundaries=COPILOT_BUCKETS,
+            provider=provider,
+            outcome=outcome,
+        )
 
 
 def email_sent(provider: str, result: str, kind: str) -> None:

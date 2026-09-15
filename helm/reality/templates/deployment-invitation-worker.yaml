@@ -20,9 +20,15 @@
 {{- $c := mustMergeOverwrite (dict "image" (dict "tagPrefix" "api-") "secrets" true) (deepCopy .Values.invitationWorker) }}
 {{- $_ := set $c "command" (list "python" "-u" "-c" (printf `
 import time
+from reality import telemetry
 from reality.db.core import Session
 from reality.services.notifications import deliver_next_invitation
 from reality.web.email import send_company_invitation_email
+
+# commonEnv gives this pod the OTLP endpoint, so email_sent() believes
+# telemetry is on. Without configure() there is no MeterProvider behind it and
+# every datapoint from the highest-volume mail path is silently discarded.
+telemetry.configure("reality-invitation-worker")
 
 while True:
     try:

@@ -4,6 +4,7 @@ import hashlib
 import json
 import logging
 import os
+import time
 from collections.abc import Callable, Iterable
 from dataclasses import dataclass
 from datetime import UTC, date, datetime, timedelta
@@ -6337,6 +6338,7 @@ def send_chat_message(
 ) -> tuple[ChatMessage, ChatMessage]:
     _require_business_mutation(session, tenant_id, "send_chat_message")
     turn_outcome = "fallback"
+    turn_started = time.perf_counter()
     if not message.strip():
         raise InvalidOperation("Enter a question.")
     chat_session = _tenant_record(session, ChatSession, tenant_id, session_id)
@@ -6582,7 +6584,9 @@ def send_chat_message(
         reply = "V0 local agent: ask about inventory or fulfillment risk."
     # Set where the reply is produced, not sniffed from its text: the string
     # is user-facing copy and a copy edit would silently flip the metric.
-    _record_copilot_turn(own_provider, managed_key, turn_outcome)
+    _record_copilot_turn(
+        own_provider, managed_key, turn_outcome, time.perf_counter() - turn_started
+    )
     assistant_message = ChatMessage(
         id=uid("msg"),
         tenant_id=tenant_id,
@@ -13422,7 +13426,9 @@ def ensure_demo(session: OrmSession, tenant: Tenant) -> None:
     session.commit()
 
 
-def _record_copilot_turn(own_provider, managed_key, outcome: str) -> None:
+def _record_copilot_turn(
+    own_provider, managed_key, outcome: str, seconds: float | None = None
+) -> None:
     """Separate a real model answer from the deterministic fallback.
 
     Both return HTTP 200, so no amount of request-level instrumentation can
@@ -13439,7 +13445,7 @@ def _record_copilot_turn(own_provider, managed_key, outcome: str) -> None:
             provider = "managed"
         else:
             provider = "none"
-        copilot_turn(provider, outcome)
+        copilot_turn(provider, outcome, seconds)
     except Exception:
         # A metric must never break a chat turn.
         logging.getLogger(__name__).debug("copilot metric failed", exc_info=True)

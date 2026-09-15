@@ -55,17 +55,32 @@ class ProcessLoop:
         self.stop = Event()
 
     def sweep(self, engine: Engine, *, max_runs: int, max_seconds: float) -> dict:
-        import time
+        """Run one sweep, recording its duration even when it raises.
 
-        _sweep_started = time.perf_counter()
+        The timing lives here rather than inline at the return: a sweep that
+        fails part-way is exactly the one worth seeing, and recording only on
+        the success path would drop it.
+        """
+        # Budget validation is a programming error, not a sweep outcome, so it
+        # is checked before the timer starts rather than recorded as a sweep.
+        maximum = 100 if self.role == "scheduler" else 10
+        if not 1 <= max_runs <= maximum or not 0 < max_seconds <= 25:
+            raise JobError("invalid_budget")
+
+        started = monotonic()
+        counts: dict = {}
+        try:
+            counts = self._sweep(engine, max_runs=max_runs, max_seconds=max_seconds)
+            return counts
+        finally:
+            _record_sweep(self.role, counts, monotonic() - started)
+
+    def _sweep(self, engine: Engine, *, max_runs: int, max_seconds: float) -> dict:
         from sqlalchemy.orm import Session
 
         from reality.jobs.runner import execute_process
         from reality.services import scheduled_jobs as jobs
 
-        maximum = 100 if self.role == "scheduler" else 10
-        if not 1 <= max_runs <= maximum or not 0 < max_seconds <= 25:
-            raise JobError("invalid_budget")
         counts = {
             "materialized": 0,
             "deferred": 0,
@@ -172,7 +187,6 @@ class ProcessLoop:
                 break
         if monotonic() >= deadline or processed >= max_runs:
             counts["budget_exhausted"] = True
-        _record_sweep(self.role, counts, time.perf_counter() - _sweep_started)
         return counts
 
     def run(
