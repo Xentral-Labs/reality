@@ -5,7 +5,7 @@ import type {
   StorylineStep,
   StorylineText,
 } from "../api";
-import { BookOpen, Infinity, List, Pause, Play } from "lucide-react";
+import { ArrowLeft, List, Pause, Play } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { formatDateTime, t } from "../localization";
 import { compareFindings, phaseOf, pickText } from "./storylineState";
@@ -19,8 +19,6 @@ const mine =
   "max-w-[85%] self-end rounded-xl rounded-br-sm border border-accent/40 bg-accent-soft px-3 py-2 text-[13.5px] text-fg-strong";
 const theirs =
   "flex max-w-[92%] flex-col gap-1.5 self-start rounded-xl rounded-bl-sm bg-surface-muted px-3 py-2 text-[13.5px]";
-const exitButton =
-  "inline-flex items-center gap-1.5 rounded-lg border border-border-default px-2.5 py-1.5 text-[12.5px] text-fg-muted hover:border-border-strong hover:text-fg-default";
 const findingTone: Record<string, string> = {
   met: "bg-positive-bg text-positive-text",
   open: "bg-caution-bg text-caution-text",
@@ -462,23 +460,12 @@ export function StorylineNarrator({
               <div className="ms-auto flex items-center gap-1">
                 <button
                   type="button"
-                  className={exitButton}
-                  data-storyline-action="free-play"
-                  title={t("You are working in the sandbox itself.")}
-                  onClick={() => freePlay()}
-                >
-                  <Infinity size={14} />
-                  {t("Sandbox chat")}
-                </button>
-                <button
-                  type="button"
-                  className={exitButton}
+                  className={`br-btn ${(phase === "done" || phase === "refused") && !current ? "br-btn-primary" : ""}`}
                   data-storyline-action="library"
-                  title={t("Other storylines")}
                   onClick={library}
                 >
-                  <BookOpen size={14} />
-                  {t("Library")}
+                  <ArrowLeft size={18} />
+                  {t("Back to selection")}
                 </button>
               </div>
             </div>

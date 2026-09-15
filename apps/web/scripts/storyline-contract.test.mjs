@@ -113,7 +113,8 @@ test("free play is a page mode, never a server flag, and restart is offered wher
   );
   assert.match(narrator, /data-storyline-missing/);
   assert.match(narrator, /data-storyline-action="restart"/);
-  assert.match(narrator, /data-storyline-action="free-play"/);
+  assert.doesNotMatch(narrator, /data-storyline-action="free-play"/);
+  assert.match(narrator, /t\("Back to selection"\)/);
 });
 
 test("the entry routing knows the destination and keeps the old playground retired", async () => {

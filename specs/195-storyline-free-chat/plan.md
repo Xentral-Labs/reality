@@ -64,3 +64,9 @@ Planned browser proofs: current default, ordinary company and Storyline Sandbox 
 without writes, switching and reload isolation, real-data notice, separate creation,
 chooser availability even after dedicated creation, and unavailable evidence.
 Constitution review: PASS, no schema, admission, confirmation or lesson changes.
+
+## Narrator exit correction
+Remove the contextual Sandbox chat shortcut from the narrator footer. Keep existing
+own-word draft handling and saved contextual URLs compatible. Use an ArrowLeft icon
+and full-size Back to selection button, primary after completion. Reuse the library
+callback; no API or data changes. Constitution Check: PASS.

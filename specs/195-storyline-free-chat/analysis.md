@@ -52,3 +52,8 @@ Scope follows the owner's current-company/other-company/new-Sandbox request. Sha
 bootstrap is the selection authority; server tenant access remains authoritative.
 No fake PlaygroundRun is attached to ordinary companies. Trace absence is explicit.
 No critical findings; existing context/reset routing is reused.
+
+## Narrator exit review
+Owner requested removal of the remaining footer Free Play shortcut and a clearer
+return to selection. Scope is a presentation/navigation correction to FR-007.
+Test absence, clear label and read-only return in the browser. No critical findings.

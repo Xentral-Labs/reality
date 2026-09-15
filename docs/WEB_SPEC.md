@@ -2690,3 +2690,7 @@ is read-only. A real-data notice distinguishes ordinary companies; all changes k
 normal confirmation. Reload preserves the opened company. What happened explicitly
 reports unavailable evidence outside eligible recorded Sandboxes. Individual story
 cards have no Free Play buttons. Contextual story chat remains Sandbox chat.
+
+The Storyline narrator footer has no Free Play/Sandbox chat shortcut. A full-size
+Back to selection button returns to the exploration library, emphasized after
+completion. Existing contextual draft handoff remains compatible.

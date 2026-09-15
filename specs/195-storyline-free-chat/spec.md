@@ -66,7 +66,9 @@ input while preventing edits/submission.
   show unavailable evidence; ordinary proposal review and record links remain available.
 - **FR-005**: Mobile/desktop, light/dark, en/de/nl/es, failure/retry and allowance remain usable.
 - **FR-006**: Restore post-send focus without stealing another control's focus.
-- **FR-007**: Free Play is removed from individual Storyline cards; guided story actions remain.
+- **FR-007**: Free Play is removed from individual Storyline cards; guided story actions remain. The narrator footer has no Free Play/Sandbox chat
+  action and offers a full-size Back to selection button, visually primary after
+  completion, returning to the exploration library without writes.
 - **FR-008**: One independent entry offers all companies in the shared bootstrap, defaults
   to the current company, and opens the selected company read-only. Company identity and
   Sandbox/real-data meaning are visible. Switching clears stale chat context; reload
