@@ -2788,3 +2788,19 @@ open customer orders, stock shortages for open orders and overdue customer invoi
 Choosing one fills and focuses the composer for editing and explicit sending.
 Buttons are disabled while a draft exists or chat is busy; recorded/pending messages
 hide starters. Native buttons wrap at narrow widths and retain keyboard access.
+
+## Collapsible primary navigation (spec 203)
+
+At desktop widths, a sidebar toggle switches the primary navigation between its
+200px labeled layout and a 60px icon rail. Existing destinations retain localized
+names and application tooltips, active state and keyboard access. Profile remains available;
+the header keeps the company switcher beside the logo. Content expands into the
+released space and existing page/chat state stays mounted. The browser remembers
+the preference, with a safe expanded fallback if storage is unavailable. Below
+1024px, the existing labeled mobile drawer remains independent of this preference.
+
+The collapse control shares the Daily work heading row and uses a plain sidebar
+icon. Collapsed navigation, profile and toggle hints use dark, rounded application
+tooltips with white text, outside the scroll container. Hover and keyboard focus
+show the label; Escape, scrolling, blur and activation dismiss it. Native browser
+title tooltips are absent from these controls (spec 203 FR-005–006).

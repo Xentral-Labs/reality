@@ -13,6 +13,8 @@ type Preferences = { language: Language; locale: DisplayLocale; timezone: string
 
 const dictionaries: Record<Exclude<Language, "en">, Record<string, string>> = {
   de: {
+    "Collapse sidebar": "Seitenleiste einklappen",
+    "Expand sidebar": "Seitenleiste öffnen",
     "Which customer orders are still open?": "Welche Kundenaufträge sind noch offen?",
     "Which items have insufficient stock for open orders?":
       "Für welche offenen Aufträge reicht der Bestand nicht aus?",
@@ -1873,6 +1875,8 @@ const dictionaries: Record<Exclude<Language, "en">, Record<string, string>> = {
     "Fully Reserved": "Vollständig reserviert",
   },
   nl: {
+    "Collapse sidebar": "Zijbalk inklappen",
+    "Expand sidebar": "Zijbalk openen",
     "Which customer orders are still open?": "Welke klantorders staan nog open?",
     "Which items have insufficient stock for open orders?":
       "Voor welke open orders is er onvoldoende voorraad?",
@@ -3422,6 +3426,8 @@ const dictionaries: Record<Exclude<Language, "en">, Record<string, string>> = {
     Customer: "Klant",
   },
   es: {
+    "Collapse sidebar": "Contraer barra lateral",
+    "Expand sidebar": "Abrir barra lateral",
     "Which customer orders are still open?": "¿Qué pedidos de clientes siguen abiertos?",
     "Which items have insufficient stock for open orders?":
       "¿Para qué pedidos abiertos no hay suficientes existencias?",

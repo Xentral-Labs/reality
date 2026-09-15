@@ -71,6 +71,7 @@ export function ProfileMenu({
         ref={trigger}
         type="button"
         aria-label={t("Profile")}
+        data-sidebar-tooltip={t("Profile")}
         aria-haspopup="dialog"
         popoverTarget={id}
         className="flex w-full items-center gap-2 rounded-lg px-2 py-2 text-left hover:bg-surface-muted focus-visible:outline-accent"
@@ -85,13 +86,13 @@ export function ProfileMenu({
         <span className="grid size-8 shrink-0 place-items-center rounded-full bg-accent-soft text-accent">
           <UserRound size={17} />
         </span>
-        <span className="min-w-0 flex-1">
+        <span data-profile-label className="min-w-0 flex-1">
           <span className="block truncate text-[13px] font-semibold" data-localization="original">
             {user.display_name || user.email}
           </span>
           <span className="block text-xs text-fg-muted">{t("Profile")}</span>
         </span>
-        <ChevronUp size={15} className="shrink-0 text-fg-muted" />
+        <ChevronUp data-profile-chevron size={15} className="shrink-0 text-fg-muted" />
       </button>
       <div
         ref={panel}
