@@ -152,7 +152,8 @@ try {
   await page.waitForFunction(() => !!window.chatController);
   await page.evaluate(() => window.chatEmit({ type: "delta", text: "Early answer" }));
   await page.getByText("Early answer", { exact: true }).waitFor();
-  assert.equal(await page.locator("[data-chat-working]").count(), 0);
+  // The working indicator stays put while the stream runs, so tool rounds never make it blink.
+  assert.equal(await page.locator("[data-chat-working]").count(), 1);
   assert.equal(await page.evaluate(() => window.chatSends), 1);
   await page.evaluate(() => window.chatEmit({ type: "reset" }));
   await page.getByText("Early answer", { exact: true }).waitFor({ state: "hidden" });
@@ -167,6 +168,7 @@ try {
     window.chatController.close();
   });
   await page.waitForTimeout(250);
+  assert.equal(await page.locator("[data-chat-working]").count(), 0);
   assert.equal(await page.getByText("Final Grüße", { exact: true }).count(), 1);
   assert.equal(
     await page

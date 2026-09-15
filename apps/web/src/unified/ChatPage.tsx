@@ -746,22 +746,18 @@ export function ChatPage({
           ),
         )}
       </div>
-      {sending && !visibleReply?.text && (
+      {sending && (
         <div
           role="status"
           data-chat-working
-          className="mx-4 mb-3 flex shrink-0 items-center gap-3 rounded-xl border border-accent/30 bg-accent-soft px-4 py-3 text-sm font-semibold text-fg-strong"
+          className="mx-auto mb-2 flex w-full max-w-4xl shrink-0 items-center gap-2 px-4 text-sm text-fg-muted"
         >
-          <span
+          <LoaderCircle
             aria-hidden="true"
-            className="grid size-10 shrink-0 place-items-center rounded-xl bg-accent text-white"
-          >
-            <LoaderCircle
-              size={24}
-              strokeWidth={2.5}
-              className="animate-spin motion-reduce:animate-none"
-            />
-          </span>
+            size={16}
+            strokeWidth={2}
+            className="shrink-0 animate-spin text-accent motion-reduce:animate-none"
+          />
           {t("Reality is working…")}
         </div>
       )}
