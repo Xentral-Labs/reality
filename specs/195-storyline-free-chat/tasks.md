@@ -57,3 +57,6 @@ as one coherent increment because free chat must carry truthful evidence.
 
 - [x] T022 [FR-016] Refine Free Play frame, session action and exhausted state; verify
   browser/build/local preview and update PR.
+
+- [x] T023 [FR-017] Remove Free Play company/creation controls, update route and copy,
+  verify main-switcher isolation, direct entry, reload, responsive scroll and build.

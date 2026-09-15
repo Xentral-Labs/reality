@@ -101,3 +101,8 @@ left-side geometry and mobile dismissal. No critical findings.
 Scope accepted by user. UI-only changes preserve tenant reads, shared session creation,
 confirmation and allowance enforcement. Browser proof covers responsive layout and
 exhaustion/recovery; no unresolved clarification or critical finding.
+
+## FR-017 review
+User explicitly requested global company context only. Existing keyed tenant wrapper
+and companySelection clear chat state. Browser tests cover global switch and no writes;
+no critical issue, schema change or unresolved clarification.

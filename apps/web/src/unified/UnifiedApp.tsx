@@ -316,12 +316,7 @@ export default function UnifiedApp({
                 ) : selection.route === "attention" ? (
                   <AttentionPage selection={selection} navigate={navigate} />
                 ) : selection.route === "free-play" ? (
-                  <FreePlayPage
-                    bootstrap={bootstrap}
-                    selection={selection}
-                    navigate={navigate}
-                    openCompany={openCompany}
-                  />
+                  <FreePlayPage company={company} selection={selection} navigate={navigate} />
                 ) : selection.route === "storyline" ? (
                   <StorylinePage
                     selection={selection}

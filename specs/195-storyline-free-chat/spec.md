@@ -2,7 +2,7 @@
 
 **Branch**: `feat/storyline-free-chat` | **Created**: 2026-09-15
 **Language**: English
-**Status**: Owner requested a separate Free Play entry with existing-company selection or new Sandbox creation.
+**Status**: Owner requested direct Free Play in the globally selected company.
 
 ## Context and Intent
 Free Play is an alternative to a guided Storyline. It must not require a story or
@@ -137,12 +137,28 @@ Acceptance: Desktop and mobile retain contained scrolling; a new session is crea
 through the existing flow; zero allowance hides input/attachment/microphone/send and
 shows reset information; a refreshed positive allowance restores the composer.
 
+## Main company context refinement (2026-09-15)
+
+- **FR-017**: Free Play opens chat immediately in the globally selected company.
+  It has no separate company selector, chooser screen or Sandbox creation action.
+  The main company switcher remains authoritative and clears the previous session,
+  draft and evidence when switching while retaining the Free Play route. Legacy
+  `play=chat` links still open the selected company's chat. The library tile and page
+  introduction explain the current-company behavior. Existing Sandboxes and their
+  backend creation services remain available through normal company management.
+  This supersedes earlier chooser/creation UI and company-button requirements.
+
+Acceptance: Enter from library or direct URL without writes; switch companies only
+through the main switcher; observe the new context with no old draft/evidence; reload
+and mobile keep direct chat. No Free Play creation API call occurs.
+
 ## Requirement Traceability
 | Requirements | Verification |
 |---|---|
 | FR-001–002, FR-005 | Storyline/contextual and independent browser interactions and layouts |
 | FR-003–004, DR-001 | PostgreSQL exact evidence, proposal lifecycle, scope and retention tests |
 | FR-016 | Free Play browser navigation, exhaustion/recovery and responsive geometry |
+| FR-017 | Global-switcher browser flow, direct entry/reload and routing contracts |
 | FR-015 | Desktop session-list geometry, selection and mobile drawer checks |
 | FR-014 | Notebook/mobile toolbar height and control-presence browser checks |
 | FR-013 | Long-history browser scroll geometry and viewport checks |
