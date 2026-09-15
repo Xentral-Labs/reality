@@ -743,7 +743,8 @@ async function assertContainedScroll() {
       node.scrollTop = 0;
     });
     const headerBefore = await header.boundingBox();
-    assert.ok(headerBefore.height <= 56, "Free Play uses one compact toolbar");
+    assert.ok(headerBefore.height <= (width < 1280 ? 44 : 0), "Chat has no desktop toolbar");
+    assert.equal(await header.locator("h2, [data-chat-usage]").count(), 0);
     assert.equal(
       await page.locator("[data-independent-free-play] .reality-chat > header").count(),
       0,
@@ -958,6 +959,7 @@ if (process.env.FREE_PLAY_SCROLL_ONLY === "1") {
 
   await page.reload();
   await page.locator("[data-independent-free-play] textarea").waitFor();
+  independentMessages.length = 0;
   const createsBefore = independentSessionCreates;
   const newChat = page
     .locator("[data-free-play-sessions]")
@@ -972,6 +974,28 @@ if (process.env.FREE_PLAY_SCROLL_ONLY === "1") {
     newChat.click(),
   ]);
   assert.equal(independentSessionCreates, createsBefore + 1);
+  await page.reload();
+  const empty = page.locator("[data-independent-free-play] .reality-chat-empty");
+  await empty.waitFor();
+  const area = await page
+    .locator("[data-independent-free-play] [data-chat-messages]")
+    .boundingBox();
+  const greeting = await empty.boundingBox();
+  assert.ok(Math.abs(greeting.y + greeting.height / 2 - area.y - area.height / 2) < 3);
+  const main = await page.locator("#main-content").boundingBox();
+  const layout = await page.locator("[data-free-play-layout]").boundingBox();
+  assert.equal(main.x, layout.x);
+  assert.equal(main.y, layout.y);
+  await page.locator("[data-free-play-sessions] [data-chat-usage] button").first().click();
+  await page.getByRole("dialog", { name: "Usage", exact: true }).waitFor();
+  await page.waitForFunction(() => {
+    const dialog = document
+      .querySelector("[data-free-play-sessions] [role=dialog]")
+      .getBoundingClientRect();
+    return dialog.top >= 0 && dialog.bottom <= innerHeight;
+  });
+  await page.keyboard.press("Escape");
+  await page.screenshot({ path: "/private/tmp/chat-empty-desktop.png" });
   assert.equal(await page.evaluate(() => scrollY), 0);
   assert.deepEqual(errors, []);
   await browser.close();

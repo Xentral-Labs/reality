@@ -141,3 +141,5 @@ Promote canonical chat route, alias legacy free-play entry, rename page to Compa
 add Chat after Home and remove Storyline tile/copy. Preserve optional receipt evidence
 and shared chat service. Add routing/nav proofs and reuse company/scroll regressions.
 Constitution Check PASS; no API/schema change. User explicitly approved scope.
+
+FR-019: Adapter/CSS only; reuse usage portal in session footer, keep mobile controls, remove page padding and column gap, center standalone empty message area. Verify desktop/mobile scroll and empty state via browser, web build. Constitution PASS; no schema/services change.

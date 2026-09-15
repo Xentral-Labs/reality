@@ -44,7 +44,7 @@ export function CompanyChatPage({
     company.purpose === "playground" ||
     !!company.sandbox_run_id;
   return (
-    <div className="relative flex h-full min-h-0 w-full gap-4" data-free-play-layout>
+    <div className="relative flex h-full min-h-0 w-full" data-free-play-layout>
       {sessionsOpen && (
         <button
           className="absolute inset-0 z-10 bg-black/20 xl:hidden"
@@ -72,17 +72,16 @@ export function CompanyChatPage({
           ref={setSessionsTarget}
           className="min-h-0 flex-1 overflow-y-auto overscroll-contain"
         />
+        <div className="shrink-0 pt-3" ref={setUsageTarget} />
       </aside>
       <section
         className="flex h-full min-h-0 min-w-0 w-full flex-col overflow-hidden bg-surface"
         data-independent-free-play
       >
         <header
-          className="flex h-12 shrink-0 items-center gap-2 border-b border-border-default px-3"
+          className="flex h-10 shrink-0 items-center justify-end px-3 xl:h-0"
           data-free-play-toolbar
         >
-          <h2 className="text-sm font-medium">{t("Chat")}</h2>
-          <div className="ml-auto shrink-0" ref={setUsageTarget} />
           <div className="shrink-0" ref={setControlsTarget} />
         </header>
         {!isSandbox && (

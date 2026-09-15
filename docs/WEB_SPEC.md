@@ -2761,3 +2761,8 @@ company and session while dropping action-like query parameters. The sidebar ent
 uses a speech-bubble icon directly after Home. The library no longer offers Free Play
 or describes Chat as a Storyline mode. Global company context, chat history, usage,
 confirmed application tools and optional recorded evidence remain shared services.
+
+Spec 195 FR-019: Standalone Chat uses the full content area without outer page
+gutters or an inter-column gap. There is no inner Chat title or desktop toolbar.
+Usage is in the session sidebar; mobile retains its history opener. The empty
+conversation greeting is vertically centered in its available message area.

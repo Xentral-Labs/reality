@@ -3,6 +3,7 @@ import { ChatUsage } from "./ChatUsage";
 import { AnalyticsReportProposal } from "./analytics/AnalyticsReportProposal";
 import { AllowanceNotice, ChatComposer } from "./ChatComposer";
 import { History, LoaderCircle, SquarePen, Sparkles } from "lucide-react";
+const emptyMessageClass = "flex flex-col justify-center";
 const compactHistoryClass = "reality-chat-icon free-play-mobile-control";
 const activeSessionClass = "bg-accent-soft font-medium text-accent";
 const inactiveSessionClass = "text-fg-default hover:bg-surface-muted";
@@ -393,7 +394,7 @@ export function ChatPage({
       <div
         ref={messageList}
         data-chat-messages
-        className="min-h-0 w-full max-w-3xl flex-1 self-center space-y-7 overflow-y-auto overscroll-contain px-5 py-6"
+        className={`min-h-0 w-full max-w-3xl flex-1 self-center space-y-7 overflow-y-auto overscroll-contain px-5 py-6 ${sessionsTarget && !data.messages.length && !echo ? emptyMessageClass : ""}`}
         aria-live="polite"
       >
         {!data.messages.length && !echo && (
