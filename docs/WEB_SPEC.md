@@ -2831,3 +2831,13 @@ Spec 195 FR-024: Desktop Chat history is 288px wide. Archive/delete menu labels
 remain on one line. Fine-pointer hover devices reveal options on row hover,
 keyboard focus or while open; touch devices keep them visible. Row heights and
 the mobile drawer width remain unchanged.
+
+## Live simulation header (spec 207)
+
+An eligible owner's current company shows a top-right Live simulation link only after
+a fresh Demo Data read reports running without error/throttling. It opens that company's
+existing Demo Data overview. Paused, stopped, disconnected, absent, failed and unauthorized
+states show nothing. Five-second visible-page polling has an eight-second timeout and
+cancellation on company change; old-company responses cannot populate the header. The
+pulse is decorative and disabled under reduced motion. Narrow layouts keep the compact
+link beside the overflow trigger. This indicates simulation state, not worker readiness.

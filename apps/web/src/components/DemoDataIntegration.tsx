@@ -135,6 +135,7 @@ function DemoDataIntegrationView({
       await reading.current?.catch(() => {});
       if (!active.current) return;
       await operation();
+      window.dispatchEvent(new CustomEvent("reality:demo-data-changed", { detail: { tenantId } }));
       if (reload) await refresh();
     } catch (failure) {
       if (failure instanceof APIError && failure.status === 409) {

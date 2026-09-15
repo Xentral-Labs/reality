@@ -93,8 +93,17 @@ def generate(session, context, config):
             ScheduledJobRun.id == context.run_id,
         )
     )
-    planned = synthetic.plan(
-        schedule.id, context.run_id, config.seed, delivery.created_at, config.references
+    inputs = (
+        schedule.id,
+        context.run_id,
+        config.seed,
+        delivery.created_at,
+        config.references,
+    )
+    planned = (
+        [synthetic.produce(*inputs)]
+        if delivery.configuration.get("initial_occurrence")
+        else synthetic.plan(*inputs)
     )
     counts = {"generated": 0, "imported": 0, "failed": 0}
     references: list[RecordReference] = []

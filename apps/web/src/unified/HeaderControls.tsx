@@ -2,7 +2,15 @@ import { useEffect, useId, useRef, useState, type ReactNode } from "react";
 import { MoreHorizontal } from "lucide-react";
 import { t } from "../localization";
 
-export function HeaderControls({ children, identity }: { children: ReactNode; identity: string }) {
+export function HeaderControls({
+  children,
+  identity,
+  indicator,
+}: {
+  children: ReactNode;
+  identity: string;
+  indicator?: ReactNode;
+}) {
   const [open, setOpen] = useState(false);
   const root = useRef<HTMLDivElement>(null);
   const trigger = useRef<HTMLButtonElement>(null);
@@ -32,6 +40,7 @@ export function HeaderControls({ children, identity }: { children: ReactNode; id
   }, [open]);
   return (
     <div className="shell-controls" ref={root}>
+      {indicator}
       <button
         type="button"
         ref={trigger}

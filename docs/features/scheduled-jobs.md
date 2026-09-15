@@ -86,7 +86,7 @@ because it materializes schedules that no run represents yet.
 
 - Intervals are whole seconds from 5 to 2,147,483,647 (the stored integer bound). Cron has five numeric UTC fields: minute, hour, day of month, month, weekday. Allow `*`, comma lists, inclusive ranges and positive steps; reject names, macros, seconds/year and extensions. Sunday is 0 or 7. Restricted day-of-month and weekday use OR semantics.
 - Cron calculation uses a bounded library adapter; an expression with no occurrence within eight years fails. The preview uses the same calculation and returns the next five occurrences.
-- Creation is disabled. First activation or ordinary resume schedules strictly after now; first interval work is due after one interval.
+- Creation is disabled. Ordinary schedules activate/resume strictly after now; first interval work is due after one interval. Spec 207 adds an internal opt-in finite initial-offset sequence for interval schedules: first activation uses those offsets (including zero), then returns to the ordinary interval. Pause, ordinary resume and timing/configuration edits abandon remaining initial offsets. No existing schedule opts in implicitly.
 - Downtime coalesces missed occurrences to one run. For interval work, preserve the interval grid by calculating the first grid time after now; for cron, use the next occurrence after now. Never loop to create every missed run.
 - Only one unfinished run per schedule exists. Retry retains its original `scheduled_for` and inputs. Future schedule edits cannot rewrite it.
 - Pause prevents new claims, including retries. Already handed-off work can finish; controls do not roll it back. Resume first retries a frozen unfinished run, if any; an unresolved outcome requires reconciliation before resume.
@@ -167,3 +167,17 @@ Required schema: migration `0057_projection_jobs`. It preserves existing data an
 adds no table. Downgrade refuses while internal job history exists; code rollback
 should retain this additive schema. No process startup runs migrations. Validation
 and current implementation evidence: [spec 179 quickstart](../../specs/179-background-projections/quickstart.md).
+
+
+## Finite initial timing (spec 207)
+
+`create_schedule` may receive `initial_offsets_seconds`: at most ten nonnegative,
+ascending offsets within one hour, spaced at least five seconds apart, for interval
+schedules only. Demo Start selects `(0, 12, 24)`. The existing configuration envelope
+holds these offsets and the first activation anchor; no migration is required. The
+scheduler freezes an `initial_occurrence` marker into each initial run, allowing the
+demo handler to produce one order without controlling timing. Fresh dictionary values
+keep frozen run inputs independent of later schedule changes. Missed offsets coalesce;
+queue capacity and one-unfinished-run rules still apply. Other jobs and public scheduling
+command schemas retain their existing defaults. Tests: `test_scheduled_job_startup.py`
+and `test_demo_data_startup.py`.
