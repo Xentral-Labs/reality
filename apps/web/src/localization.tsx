@@ -33,6 +33,10 @@ const dictionaries: Record<Exclude<Language, "en">, Record<string, string>> = {
     "You are working with this company's real data. Changes require confirmation.":
       "Du arbeitest mit den echten Daten dieser Firma. Änderungen musst du bestätigen.",
 
+    "Playground – Get to know Reality": "Playground – Reality kennenlernen",
+    "Learn how Reality works, step by step: play through typical business flows and see what each action changes, using sample data in a Sandbox of your own.":
+      "Lerne Schritt für Schritt, wie Reality arbeitet: Spiele typische Geschäftsabläufe durch und sieh, was jede Aktion verändert – mit Beispieldaten in einer eigenen Sandbox.",
+    "Choose a learning path": "Wähle einen Lernpfad",
     "Explore Reality": "Reality entdecken",
     "Choose a storyline or Free Play.": "Wähle eine Storyline oder freies Spiel.",
     "Explore freely in your own Sandbox with sample data.":
@@ -1869,6 +1873,10 @@ const dictionaries: Record<Exclude<Language, "en">, Record<string, string>> = {
     "You are working with this company's real data. Changes require confirmation.":
       "Je werkt met de echte gegevens van dit bedrijf. Wijzigingen vereisen bevestiging.",
 
+    "Playground – Get to know Reality": "Playground – Leer Reality kennen",
+    "Learn how Reality works, step by step: play through typical business flows and see what each action changes, using sample data in a Sandbox of your own.":
+      "Leer stap voor stap hoe Reality werkt: doorloop typische bedrijfsprocessen en zie wat elke actie verandert, met voorbeeldgegevens in je eigen Sandbox.",
+    "Choose a learning path": "Kies een leerpad",
     "Explore Reality": "Ontdek Reality",
     "Choose a storyline or Free Play.": "Kies een verhaallijn of vrij spelen.",
     "Explore freely in your own Sandbox with sample data.":
@@ -3395,6 +3403,10 @@ const dictionaries: Record<Exclude<Language, "en">, Record<string, string>> = {
     "You are working with this company's real data. Changes require confirmation.":
       "Trabajas con los datos reales de esta empresa. Los cambios requieren confirmación.",
 
+    "Playground – Get to know Reality": "Playground – Conoce Reality",
+    "Learn how Reality works, step by step: play through typical business flows and see what each action changes, using sample data in a Sandbox of your own.":
+      "Aprende paso a paso cómo funciona Reality: recorre procesos empresariales habituales y descubre qué cambia con cada acción, con datos de ejemplo en tu propio Sandbox.",
+    "Choose a learning path": "Elige una ruta de aprendizaje",
     "Explore Reality": "Explora Reality",
     "Choose a storyline or Free Play.": "Elige una historia o juego libre.",
     "Explore freely in your own Sandbox with sample data.":

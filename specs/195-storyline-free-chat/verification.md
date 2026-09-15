@@ -282,3 +282,9 @@ empty-state centering, zero outer padding, zero desktop toolbar height and Usage
 popover visibility within the viewport. Reviewed the desktop empty screenshot.
 Synthetic new-session fixture reuses an ID, so the empty-state proof reloads its
 cleared message data. Local 8080 updated. Review: no remaining issue.
+
+## Learning introduction (FR-020, 2026-09-15)
+Updated Storyline library heading, explanation and learning-path label in English,
+German, Dutch and Spanish. Formatting, four-language audit, TypeScript/Vite build,
+spec policy and diff checks passed. Local 8080 updated. Copy-only review confirms
+existing story controls and Sandbox behavior are unchanged.

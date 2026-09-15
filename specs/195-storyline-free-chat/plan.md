@@ -143,3 +143,6 @@ and shared chat service. Add routing/nav proofs and reuse company/scroll regress
 Constitution Check PASS; no API/schema change. User explicitly approved scope.
 
 FR-019: Adapter/CSS only; reuse usage portal in session footer, keep mobile controls, remove page padding and column gap, center standalone empty message area. Verify desktop/mobile scroll and empty state via browser, web build. Constitution PASS; no schema/services change.
+
+FR-020: Copy-only StorylinePage and localization changes; no schema/service change.
+Constitution PASS. Verify formatting, localization audit, TypeScript/Vite and spec policy.
