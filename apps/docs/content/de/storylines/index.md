@@ -20,9 +20,14 @@ jeder stehst; eine Karte startet oder setzt fort. Beim Spielen erzählt die Schr
 Geschichte, die Mitte zeigt die Ansicht, die der Schritt nennt, in der App selbst, und das Protokoll
 rechts listet jeden Aufruf mit Eingabe, Ergebnis und Katalogeintrag, darunter, was der Schritt
 hinzugefügt hat. Klicke auf einen Aufruf, einen Datensatz oder eine Abweichung, und du landest auf
-der gewohnten Seite dazu. Im freien Spiel verlässt du die Storyline und arbeitest in der Sandbox;
-das Protokoll zeichnet weiter auf. Die Automatik spielt die Schritte für eine Vorführung nach Zeit
-und hält bei jedem Klick an.
+der gewohnten Seite dazu. Im Sandbox-Chat arbeitest du frei in der Sandbox der aktuellen Storyline;
+das Protokoll zeichnet weiter auf. **Freies Spiel** ist ein eigener Einstieg in Navigation und
+Bibliothek. Wähle deine aktuelle oder eine andere zugängliche Firma oder erstelle eine dauerhafte
+Sandbox mit Beispieldaten. Vorhandene Firmen verwenden ihre tatsächlichen Daten; Änderungen musst du
+bestätigen. Dafür brauchst du keine Storyline und keine vorgegebenen Schritte. Aufgezeichnete
+Antwortnachweise gibt es in Storyline- und Free-Play-Sandboxes; andernfalls wird auf fehlende
+Nachweise hingewiesen. Die Automatik spielt die Schritte für eine Vorführung nach Zeit und hält bei
+jedem Klick an.
 
 Baue eigene und gib sie weiter. Die Dateien unten sind die Pakete, die Reality mitliefert, einfaches
 YAML mit symbolischen Verweisen: Lade eines herunter, ändere Texte, Beträge oder Schritte und

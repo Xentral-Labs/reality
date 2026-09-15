@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { storylineApi, type StorylineTraceItem } from "../api";
+import { APIError, storylineApi, type StorylineTraceItem } from "../api";
 import { t } from "../localization";
 import type { Selection } from "./routing";
 import { useRead } from "./useCompanyContext";
@@ -26,7 +26,12 @@ export function StorylineChatEvidence(props: Props) {
 
 function Evidence({ tenant, messageId, navigate }: Props) {
   const { data, loading, error, refresh } = useRead(
-    () => storylineApi.chatEvidence(tenant, messageId),
+    () =>
+      storylineApi.chatEvidence(tenant, messageId).catch((error) => {
+        if (error instanceof APIError && error.status === 404)
+          return { available: false, items: [], has_more: false };
+        throw error;
+      }),
     [tenant, messageId],
   );
   const [picked, setPicked] = useState<StorylineTraceItem | null>(null);

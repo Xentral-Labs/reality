@@ -82,3 +82,12 @@ Spec146 FR-031: company setup distinguishes busy preparation/opening from recove
 Owner Sandbox/demo cards link to the existing company-scoped Demo Data controls (FR-032). Opening the page performs no mutation. Backend eligibility remains authoritative. Unsupported practice companies offer a separate demo through normal confirmed setup; demo/live choices are initially selected only when setup options allow them. Saved requests override initial suggestions. Historical fixtures and Storyline companies are never reseeded or converted.
 
 FR-032 correction: unsupported simulation entry links to Companies instead of opening an inline demo creation dialog. The hint suggests an empty Sandbox; historical demo data is not required for subsequent simulation. Eligible existing Sandboxes continue to use the existing preview/connect/start controls.
+
+Spec 195 independent Free Play uses the existing confirmed creation service with
+request key `standalone-free-play:v1`, `sandbox` / `international_demo`, and no live
+simulation. It has no Storyline identity. Reopen and retry preserve the same receipt;
+archive is respected. No profile, admission, lesson or scheduling contract changes.
+
+The Free Play chooser also opens existing accessible companies without creating,
+seeding or converting them. Its default is the current company; ordinary company
+chat preserves normal proposal confirmation and access rules.

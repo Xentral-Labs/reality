@@ -1041,3 +1041,8 @@ Spec 185 owns the analytics service, agent tools, private report configuration a
 
 - Spec 195 FR-007: `apps/web/scripts/storyline-browser.mjs` verifies direct library
   Free Play entry into the existing tenant without writes and return to the story.
+
+- Spec 195 FR-007–009: `test_storyline_chat.py` proves standalone confirmed/idempotent
+  setup, no Storyline identity, archive and owner-scoped recorded calls;
+  `storyline-browser.mjs` proves separate entry/creation/reopen, no card shortcuts,
+  no prescribed chapters and responsive localized standalone layouts.

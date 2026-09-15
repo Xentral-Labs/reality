@@ -23,6 +23,9 @@ let language = "en",
   imported = false,
   blocked = false,
   restarted = false;
+let independentCreated = false;
+let independentSession = null;
+const independentMessages = [];
 let chatSession = null;
 const chatMessages = [],
   chatSends = [],
@@ -265,6 +268,82 @@ await page.route("**/api/**", async (route) => {
   const reply = (body, status = 200) =>
     route.fulfill({ status, contentType: "application/json", body: JSON.stringify(body) });
   if (req.method() !== "GET") writes.push(p);
+  if (p === "/api/storyline/free-play") {
+    if (req.method() === "POST") {
+      assert.equal(req.postDataJSON().confirmed, true);
+      independentCreated = true;
+    }
+    return reply(
+      independentCreated
+        ? {
+            available: true,
+            tenant_id: "independent",
+            run_id: "independent-run",
+            name: "Free Play",
+            status: "ready",
+            environment: "sandbox",
+            error_code: null,
+            profile: null,
+          }
+        : { available: false },
+    );
+  }
+  if (p === "/api/tenants/plain/copilot")
+    return reply({
+      sessions: [{ id: "plain-chat", title: "Company chat" }],
+      active_session_id: "plain-chat",
+      messages: [
+        {
+          id: "plain-answer",
+          role: "assistant",
+          content: "Existing company answer.",
+          created_at: "2026-09-15T09:00:00Z",
+        },
+      ],
+      proposals: [],
+      suggestions: [],
+      has_archived: false,
+    });
+  if (p === "/api/tenants/plain/storyline/chat/plain-answer")
+    return route.fulfill({
+      status: 404,
+      contentType: "application/json",
+      body: JSON.stringify({ detail: "No recorded Sandbox found." }),
+    });
+  if (p.includes("/tenants/independent/")) {
+    if (p.endsWith("/copilot/sessions") && req.method() === "POST") {
+      independentSession = { id: "independent-chat", title: "Independent chat" };
+      return reply(independentSession);
+    }
+    if (p.endsWith("/copilot/sessions/independent-chat/messages") && req.method() === "POST") {
+      independentMessages.push(
+        {
+          id: "independent-question",
+          role: "user",
+          content: req.postDataJSON().message,
+          created_at: "2026-09-15T10:00:01Z",
+        },
+        {
+          id: "independent-answer",
+          role: "assistant",
+          content: "Independent Sandbox answer.",
+          created_at: "2026-09-15T10:00:02Z",
+        },
+      );
+      return reply({});
+    }
+    if (p.endsWith("/copilot"))
+      return reply({
+        sessions: independentSession ? [independentSession] : [],
+        active_session_id: independentSession?.id || null,
+        messages: independentMessages,
+        proposals: [],
+        suggestions: [],
+        has_archived: false,
+      });
+    if (p.endsWith("/storyline/chat/independent-answer"))
+      return reply({ available: true, items: [], has_more: false });
+  }
   if (p.endsWith("/copilot/sessions") && req.method() === "POST") {
     chatSession = {
       id: "free-chat",
@@ -359,6 +438,9 @@ await page.route("**/api/**", async (route) => {
     return reply({
       tenants: [
         { id: "plain", name: "Northstar Commerce", company_kind: "company" },
+        ...(independentCreated
+          ? [{ id: "independent", name: "Free Play", company_kind: "sandbox", role: "owner" }]
+          : []),
         ...(started
           ? [{ id: "story", name: "Order to close", company_kind: "sandbox", role: "owner" }]
           : []),
@@ -808,13 +890,86 @@ await page.waitForURL(/chapter=library/);
 await page
   .locator("[data-storyline-library] [data-storyline-start-over='order-to-close']")
   .waitFor({ state: "attached" });
-const beforeLibraryFree = writes.length;
-await page.locator("[data-storyline-free='order-to-close']").click();
-await page.waitForURL(/tenant=story.*chapter=free/);
-await page.locator("[data-storyline-free-play] textarea").waitFor();
-assert.equal(writes.length, beforeLibraryFree, "library Free Play only opens the existing run");
-await page.locator("[data-storyline-action='back-to-story']").click();
-await page.locator("[data-storyline-current-chapter='reference']").waitFor();
+assert.equal(await page.locator("[data-storyline-free]").count(), 0);
+const beforeIndependent = writes.length;
+await page.locator("[data-free-play-entry] button").click();
+await page.waitForURL(/\/app\/free-play/);
+await page.locator("[data-free-play-start]").waitFor();
+assert.equal(writes.length, beforeIndependent, "opening Free Play never creates a Sandbox");
+assert.equal(await page.locator("[data-free-play-company]").inputValue(), "story");
+assert.equal((await page.locator("[data-free-play-company] option").count()) >= 2, true);
+await page.locator("[data-free-play-company]").selectOption("plain");
+await page.locator("[data-free-play-real-data]").waitFor();
+await page.locator("[data-free-play-open]").click();
+await page.waitForURL(/tenant=plain/);
+await page.locator("[data-independent-free-play] textarea").waitFor();
+assert.equal(writes.length, beforeIndependent, "opening an existing company is read-only");
+await page
+  .locator('[data-independent-free-play] [data-chat-evidence="plain-answer"] summary')
+  .click();
+await page
+  .locator("[data-independent-free-play]")
+  .getByText("Recorded evidence is unavailable for this reply.", { exact: true })
+  .waitFor();
+await page.reload();
+await page.locator("[data-independent-free-play] textarea").waitFor();
+assert.match(page.url(), /tenant=plain/);
+await page.locator("[data-free-play-choose]").click();
+assert.equal(await page.locator("[data-free-play-company]").inputValue(), "plain");
+await page.locator("[data-free-play-company]").selectOption("story");
+await page.locator("[data-free-play-open]").click();
+await page.waitForURL(/tenant=story/);
+await page.locator("[data-independent-free-play] textarea").waitFor();
+assert.equal(writes.length, beforeIndependent, "opening a Storyline Sandbox does not advance it");
+await page.locator("[data-free-play-choose]").click();
+await page.locator("[data-free-play-start]").click();
+await page.waitForURL(/tenant=independent/);
+await page.locator("[data-independent-free-play] textarea").waitFor();
+assert.deepEqual(writes.slice(beforeIndependent), ["/api/storyline/free-play"]);
+assert.equal(await page.locator("[data-storyline-current-chapter]").count(), 0);
+await page.locator("[data-independent-free-play] textarea").fill("Show this Free Play Sandbox.");
+await page.locator("[data-independent-free-play] textarea").press("Enter");
+await page
+  .locator('[data-independent-free-play] [data-chat-evidence="independent-answer"]')
+  .waitFor();
+const writesBeforeReopen = writes.length;
+await page.reload();
+await page.locator("[data-independent-free-play] textarea").waitFor();
+await page
+  .locator("[data-independent-free-play]")
+  .getByText("Independent Sandbox answer.", { exact: true })
+  .waitFor();
+assert.equal(writes.length, writesBeforeReopen);
+await page.locator("[data-free-play-choose]").click();
+assert.equal(await page.locator("[data-free-play-company]").inputValue(), "independent");
+assert.equal(await page.locator("[data-free-play-start]").count(), 0);
+await page.locator("[data-free-play-company]").selectOption("plain");
+await page.locator("[data-free-play-open]").click();
+await page.waitForURL(/tenant=plain/);
+assert.equal(
+  await page
+    .locator('[data-independent-free-play] [data-chat-evidence="independent-answer"]')
+    .count(),
+  0,
+);
+assert.equal(writes.length, writesBeforeReopen);
+if (process.env.FREE_PLAY_COMPANY_ONLY === "1") {
+  await page.locator("[data-free-play-choose]").click();
+  for (const width of [1440, 390]) {
+    await page.setViewportSize({ width, height: 1000 });
+    await page.screenshot({ path: `/private/tmp/reality-182-browser/company-choice-${width}.png` });
+    assert.equal(
+      await page.evaluate(() => document.documentElement.scrollWidth > innerWidth),
+      false,
+    );
+  }
+  assert.deepEqual(errors, []);
+  await browser.close();
+  console.log(
+    "Free Play company choice passed: current default, existing company and Storyline Sandbox without writes, unavailable evidence, creation, reload and tenant history isolation.",
+  );
+  process.exit(0);
+}
 await page.goto(`${base}/app/storyline?tenant=plain`);
 await page.locator("[data-storyline-library]").waitFor();
 await page.setViewportSize({ width: 1440, height: 1000 });
@@ -916,8 +1071,34 @@ for (const lang of ["en", "de", "nl", "es"])
         animations: "disabled",
       });
     }
+for (const lang of ["en", "de", "nl", "es"])
+  for (const theme of ["light", "dark"])
+    for (const width of [390, 1440]) {
+      language = lang;
+      await page.setViewportSize({ width, height: width === 390 ? 844 : 1000 });
+      await page.goto(`${base}/app/free-play?tenant=independent&play=chat&lang=${lang}`);
+      await page.locator("[data-independent-free-play] textarea").waitFor();
+      assert.equal(
+        await page
+          .locator('[data-independent-free-play] [data-chat-evidence="answer-free"]')
+          .count(),
+        0,
+      );
+      await page
+        .locator('[data-independent-free-play] [data-chat-evidence="independent-answer"]')
+        .waitFor();
+      await page.evaluate(
+        (theme) => document.documentElement.setAttribute("data-theme", theme),
+        theme,
+      );
+      assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
+      await page.screenshot({
+        path: `/private/tmp/reality-182-browser/independent-${lang}-${theme}-${width}.png`,
+        animations: "disabled",
+      });
+    }
 assert.deepEqual(errors, []);
 console.log(
-  "Storyline browser passed: library import/download/remove, start, prepare/confirm through the storyline route, protocol, delta, stage marks, docs link, record link, next chapter, resume and read-only chapter, finding link, free play with its own delta, blocked chapter and restart, presentation run with the same calls as by hand, pause on click, language switch while paused, draft link, 32 localized layouts, chat draft/send/reload and per-reply evidence.",
+  "Storyline browser passed: library import/download/remove, start, prepare/confirm through the storyline route, protocol, delta, stage marks, docs link, record link, next chapter, resume and read-only chapter, finding link, free play with its own delta, blocked chapter and restart, presentation run with the same calls as by hand, pause on click, language switch while paused, draft link, 48 localized layouts, independent Free Play creation/chat/reopen with separate tenant history, contextual chat draft/send/reload and per-reply evidence.",
 );
 await browser.close();

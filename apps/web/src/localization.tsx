@@ -13,6 +13,25 @@ type Preferences = { language: Language; locale: DisplayLocale; timezone: string
 
 const dictionaries: Record<Exclude<Language, "en">, Record<string, string>> = {
   de: {
+    "Choose company": "Firma auswählen",
+    "Open company chat": "Chat in dieser Firma öffnen",
+    "Sandbox with sample data": "Sandbox mit Beispieldaten",
+    "Open Free Play Sandbox": "Free-Play-Sandbox öffnen",
+    "Choose an existing company or create a Sandbox with sample data.":
+      "Wähle eine vorhandene Firma oder erstelle eine Sandbox mit Beispieldaten.",
+    "You are working with this company's real data. Changes require confirmation.":
+      "Du arbeitest mit den echten Daten dieser Firma. Änderungen musst du bestätigen.",
+
+    "Explore Reality": "Reality entdecken",
+    "Choose a storyline or Free Play.": "Wähle eine Storyline oder freies Spiel.",
+    "Explore freely in your own Sandbox with sample data.":
+      "Probiere frei in deiner eigenen Sandbox mit Beispieldaten aus.",
+    "Create Sandbox and start": "Sandbox erstellen und starten",
+    "Sandbox setup is not ready. Try again.":
+      "Die Sandbox ist noch nicht bereit. Versuche es erneut.",
+    "This Sandbox is archived. Restore it under Companies.":
+      "Diese Sandbox ist archiviert. Stelle sie unter Unternehmen wieder her.",
+    "Sandbox chat": "Sandbox-Chat",
     "Calls for this reply": "Aufrufe zu dieser Antwort",
     "No tool calls were recorded for this reply.":
       "Für diese Antwort wurden keine Tool-Aufrufe aufgezeichnet.",
@@ -1792,6 +1811,24 @@ const dictionaries: Record<Exclude<Language, "en">, Record<string, string>> = {
     "Fully Reserved": "Vollständig reserviert",
   },
   nl: {
+    "Choose company": "Bedrijf kiezen",
+    "Open company chat": "Bedrijfschat openen",
+    "Sandbox with sample data": "Sandbox met voorbeeldgegevens",
+    "Open Free Play Sandbox": "Free Play Sandbox openen",
+    "Choose an existing company or create a Sandbox with sample data.":
+      "Kies een bestaand bedrijf of maak een Sandbox met voorbeeldgegevens.",
+    "You are working with this company's real data. Changes require confirmation.":
+      "Je werkt met de echte gegevens van dit bedrijf. Wijzigingen vereisen bevestiging.",
+
+    "Explore Reality": "Ontdek Reality",
+    "Choose a storyline or Free Play.": "Kies een verhaallijn of vrij spelen.",
+    "Explore freely in your own Sandbox with sample data.":
+      "Experimenteer vrij in je eigen Sandbox met voorbeeldgegevens.",
+    "Create Sandbox and start": "Sandbox maken en starten",
+    "Sandbox setup is not ready. Try again.": "De Sandbox is nog niet klaar. Probeer het opnieuw.",
+    "This Sandbox is archived. Restore it under Companies.":
+      "Deze Sandbox is gearchiveerd. Herstel deze onder Bedrijven.",
+    "Sandbox chat": "Sandbox-chat",
     "Calls for this reply": "Aanroepen voor dit antwoord",
     "No tool calls were recorded for this reply.":
       "Er zijn geen toolaanroepen voor dit antwoord vastgelegd.",
@@ -3263,6 +3300,24 @@ const dictionaries: Record<Exclude<Language, "en">, Record<string, string>> = {
     Customer: "Klant",
   },
   es: {
+    "Choose company": "Elegir empresa",
+    "Open company chat": "Abrir chat de la empresa",
+    "Sandbox with sample data": "Sandbox con datos de ejemplo",
+    "Open Free Play Sandbox": "Abrir Sandbox de juego libre",
+    "Choose an existing company or create a Sandbox with sample data.":
+      "Elige una empresa existente o crea una Sandbox con datos de ejemplo.",
+    "You are working with this company's real data. Changes require confirmation.":
+      "Trabajas con los datos reales de esta empresa. Los cambios requieren confirmación.",
+
+    "Explore Reality": "Explora Reality",
+    "Choose a storyline or Free Play.": "Elige una historia o juego libre.",
+    "Explore freely in your own Sandbox with sample data.":
+      "Explora libremente en tu propio Sandbox con datos de ejemplo.",
+    "Create Sandbox and start": "Crear Sandbox y empezar",
+    "Sandbox setup is not ready. Try again.": "El Sandbox aún no está listo. Inténtalo de nuevo.",
+    "This Sandbox is archived. Restore it under Companies.":
+      "Este Sandbox está archivado. Restáuralo en Empresas.",
+    "Sandbox chat": "Chat del Sandbox",
     "Calls for this reply": "Llamadas de esta respuesta",
     "No tool calls were recorded for this reply.":
       "No se registraron llamadas a herramientas para esta respuesta.",

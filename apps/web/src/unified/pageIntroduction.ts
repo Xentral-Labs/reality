@@ -148,6 +148,10 @@ const introductions = {
     title: "Demo Data",
     description: "Control synthetic data arrivals and review recent demo activity.",
   },
+  "free-play": {
+    title: "Free play",
+    description: "Choose an existing company or create a Sandbox with sample data.",
+  },
   storyline: {
     title: "Storyline",
     description: "Play a business flow step by step and read what each one recorded.",

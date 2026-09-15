@@ -1,3 +1,4 @@
+import { FreePlayPage } from "./FreePlayPage";
 import { EntryProgress } from "../components/EntryProgress";
 import { TrialEntry, TrialProvider, TrialPrompt } from "./FreePlayground";
 import { ActionDiscoveryProvider } from "./ActionLauncher";
@@ -309,6 +310,13 @@ export default function UnifiedApp({
                   />
                 ) : selection.route === "attention" ? (
                   <AttentionPage selection={selection} navigate={navigate} />
+                ) : selection.route === "free-play" ? (
+                  <FreePlayPage
+                    bootstrap={bootstrap}
+                    selection={selection}
+                    navigate={navigate}
+                    openCompany={openCompany}
+                  />
                 ) : selection.route === "storyline" ? (
                   <StorylinePage
                     selection={selection}

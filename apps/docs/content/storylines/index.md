@@ -17,9 +17,13 @@ Open **Storyline** in the navigation of the app. The library shows the storyline
 in each; a card starts or continues one. While playing, the step card on the left tells the story,
 the middle shows the view the step names in the app itself, and the protocol on the right lists
 every call with its input, result and catalog entry, and below it what the step added. Click any
-call, record or finding and you land on its ordinary page. Free play lets you leave the story and
-work in the sandbox; the protocol keeps recording. Autoplay runs the steps on a timer for a
-presentation and stops at any click.
+call, record or finding and you land on its ordinary page. Sandbox chat lets you work freely in the
+current story's Sandbox; the protocol keeps recording. **Free Play** is a separate navigation and
+library entry. Choose your current company, another accessible company, or create a persistent
+Sandbox with sample data. Existing companies use their actual data; changes require confirmation. It
+needs no Storyline or prescribed steps. Recorded reply evidence is available in Storyline and Free
+Play Sandboxes; elsewhere missing evidence is stated explicitly. Autoplay runs the steps on a timer
+for a presentation and stops at any click.
 
 Build your own and pass them around. The files below are the packages Reality ships, plain YAML with
 symbolic references: download one, change the texts, amounts or steps, and import it into your
