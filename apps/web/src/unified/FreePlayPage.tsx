@@ -53,7 +53,7 @@ export function FreePlayPage({
   };
   return (
     <section
-      className="mx-auto flex h-[calc(100dvh-8rem)] min-h-[32rem] max-w-5xl flex-col overflow-hidden rounded-xl border border-border-default bg-surface"
+      className="mx-auto flex h-full min-h-0 w-full max-w-5xl flex-col overflow-hidden rounded-xl border border-border-default bg-surface"
       data-independent-free-play
     >
       <header className="flex shrink-0 flex-wrap items-center justify-between gap-3 border-b border-border-default p-4">

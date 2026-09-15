@@ -2712,3 +2712,8 @@ popover exposes used/remaining counts, reset time and a link to Settings → Usa
 The settings view uses the existing authorized allowance read; no unreported tariff
 or upgrade link is shown. Only exhaustion appears next to the composer, with reset
 time and send restrictions preserved.
+
+Free Play uses a viewport-bounded shell and content area. Only the message history
+scrolls during chat; app/chat headers, navigation and composer remain in place. The
+chooser and navigation retain their own overflow for small screens. Other routes
+keep their existing document scrolling.

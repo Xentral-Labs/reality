@@ -30,6 +30,8 @@ import { StorylinePage } from "./StorylinePage";
 import { ReadState } from "./ReadState";
 import { useCompanyContext } from "./useCompanyContext";
 
+const freePlayContentClass = "flex min-h-0 flex-1 flex-col";
+
 export default function UnifiedApp({
   user,
   updateUser,
@@ -169,7 +171,10 @@ export default function UnifiedApp({
             )}
             <TrialPrompt />
             <TableProvider user={user.id} selection={selection} navigate={navigate}>
-              <div key={`${user.id}:${company.id}`}>
+              <div
+                key={`${user.id}:${company.id}`}
+                className={selection.route === "free-play" ? freePlayContentClass : undefined}
+              >
                 {selection.route === "inspector" ? (
                   <RealityInspectorPage
                     selection={selection}

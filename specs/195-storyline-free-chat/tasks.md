@@ -45,3 +45,6 @@ as one coherent increment because free chat must carry truthful evidence.
 
 - [x] T018 [FR-012] Move allowance into header popover, add settings usage view,
   preserve exhaustion, verify browser/build and update local preview/PR.
+
+- [x] T019 [FR-013] Bound Free Play viewport/flex layout, add long-history scroll
+  regression, verify build/browser and update preview/PR.

@@ -80,3 +80,9 @@ keyboard/touch accessible. Exhaustion remains explicit. No critical findings.
 Owner approved moving usage into the header and adding settings usage. Preserve
 exhaustion at input; test header disclosure, settings read, and absence near composer.
 No schema/backend changes or critical findings.
+
+## Scroll review
+Owner reports document/navigation movement while scrolling chat. Replace competing
+viewport/minimum heights with a bounded route-specific flex chain. Verify long message
+history, wheel scrolling, boundary containment and unchanged header/composer geometry.
+No critical findings.
