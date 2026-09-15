@@ -98,9 +98,14 @@ input while preventing edits/submission.
   histories scroll only within the message list; app navigation, chat headers and
   composer retain their positions, including at scroll boundaries and short screens.
 - **FR-014**: An opened Free Play chat has one compact toolbar instead of separate
-  company and conversation headers. Company selection, library return, usage, history
+  company and conversation headers. Company selection, usage, history
   and new conversation remain accessible. On notebook widths the toolbar is at most
   56px high; mobile avoids horizontal overflow and preserves contained scrolling.
+- **FR-015**: Free Play sessions appear as a company-scoped list to the left of the
+  chat on desktop, in the surrounding neutral area. Narrow screens use a dismissible
+  session drawer. Active selection is visible; choosing a session clears unsent context
+  consistently with existing selection and closes the drawer. No Storyline link or
+  session dropdown remains in the opened chat.
 - **DR-001**: Source → Evidence → Reality, shared services, admission and tenant scope
   remain authoritative. No adapter business writes or new schema.
 
@@ -125,6 +130,7 @@ None. The owner explicitly requested the independent entry and removal from each
 |---|---|
 | FR-001–002, FR-005 | Storyline/contextual and independent browser interactions and layouts |
 | FR-003–004, DR-001 | PostgreSQL exact evidence, proposal lifecycle, scope and retention tests |
+| FR-015 | Desktop session-list geometry, selection and mobile drawer checks |
 | FR-014 | Notebook/mobile toolbar height and control-presence browser checks |
 | FR-013 | Long-history browser scroll geometry and viewport checks |
 | FR-012 | Free Playground browser allowance disclosure and exhaustion checks |

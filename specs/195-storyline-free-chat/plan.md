@@ -116,3 +116,9 @@ Merge the Free Play and conversation headers into one 48px toolbar. The company 
 a truncated picker button; back-to-selection is an arrow. Portal shared history/new
 conversation controls into the toolbar beside Usage, retaining existing behavior.
 Other chats keep their existing header. Constitution Check: PASS; UI-only.
+
+## Free Play sessions sidebar
+Render existing ChatPage sessions into a left-side FreePlayPage portal target. Use
+the existing session selection/reset path. Desktop shows the list beside the card;
+mobile toggles a dismissible drawer. Suppress the old dropdown for this embedding.
+Remove the opened-chat Storyline return control. Constitution Check: PASS; no API changes.

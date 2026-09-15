@@ -3400,3 +3400,9 @@ textarea.br-control.rule-draft-editor {
   flex-direction: column;
   overflow: hidden;
 }
+
+@media (min-width: 80rem) {
+  .free-play-mobile-control {
+    display: none;
+  }
+}

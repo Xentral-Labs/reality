@@ -208,3 +208,18 @@ presence and history toggle operation, mobile overflow, contained long-history s
 and reload at 1440×900, 390×640 and 1440×500. Screenshots reviewed, including mobile.
 Web build, localization audit, spec and diff checks passed. Local 8080 serves
 `index-C9mr7rG8.js`. No backend or catalog changes.
+
+## Sessions beside the conversation (2026-09-15)
+
+Company-scoped sessions now render in a left column outside the chat card. Narrow
+screens use the history control to open a drawer. The active session is highlighted;
+selection closes the drawer, and Escape restores focus. The opened chat no longer
+has a Storyline link or an inline conversation selector. Other chat surfaces retain
+their existing selector.
+
+Focused browser checks passed session switching, active state, drawer dismissal,
+Escape/focus restoration, desktop control visibility, and contained scrolling at
+1440×900, 390×640 and 1440×500. Desktop screenshot reviewed; a custom icon display
+rule initially overrode responsive hiding and was corrected and regression checked.
+Web build, four-language audit, spec policy and diff checks passed. No backend,
+schema or catalog changes. Updated local 8080 and PR 15.

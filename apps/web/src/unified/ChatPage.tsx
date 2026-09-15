@@ -3,6 +3,9 @@ import { ChatUsage } from "./ChatUsage";
 import { AnalyticsReportProposal } from "./analytics/AnalyticsReportProposal";
 import { AllowanceNotice, ChatComposer } from "./ChatComposer";
 import { History, LoaderCircle, SquarePen, Sparkles } from "lucide-react";
+const compactHistoryClass = "reality-chat-icon free-play-mobile-control";
+const activeSessionClass = "bg-accent-soft font-medium text-accent";
+const inactiveSessionClass = "text-fg-default hover:bg-surface-muted";
 const dockFrame = "reality-chat flex h-full min-h-0 min-w-0 flex-col";
 import {
   analyticsHash,
@@ -33,9 +36,17 @@ export function ChatPage({
   renderMessageEvidence,
   usageTarget,
   controlsTarget,
+  sessionsTarget,
+  sessionsOpen,
+  toggleSessions,
+  onSessionSelected,
 }: {
   usageTarget?: HTMLElement | null;
   controlsTarget?: HTMLElement | null;
+  sessionsTarget?: HTMLElement | null;
+  sessionsOpen?: boolean;
+  toggleSessions?: () => void;
+  onSessionSelected?: () => void;
   selection: Selection;
   compact?: boolean;
   dock?: boolean;
@@ -225,14 +236,22 @@ export function ChatPage({
     }
   };
   if (!data || !sessionReady) return <ReadState loading={loading} error={error} retry={refresh} />;
+  const selectSession = (session: string) => {
+    pendingSend.current = null;
+    setQuestion("");
+    setFailure("");
+    setHistoryOpen(false);
+    onSessionSelected?.();
+    navigate({ session });
+  };
   const chatControls = (
     <div className="flex shrink-0 items-center gap-1">
       {!usageTarget && <ChatUsage allowance={data.allowance} navigate={navigate} />}
       <button
-        className="reality-chat-icon"
+        className={sessionsTarget ? compactHistoryClass : "reality-chat-icon"}
         aria-label={t("Conversation history")}
-        aria-expanded={historyOpen}
-        onClick={() => setHistoryOpen(!historyOpen)}
+        aria-expanded={sessionsTarget ? sessionsOpen : historyOpen}
+        onClick={() => (sessionsTarget ? toggleSessions?.() : setHistoryOpen(!historyOpen))}
       >
         <History size={20} />
       </button>
@@ -249,6 +268,28 @@ export function ChatPage({
   const frame = dock ? dockFrame : compact ? compactFrame : fullFrame;
   return (
     <div className={frame}>
+      {sessionsTarget &&
+        createPortal(
+          <div className="space-y-1" data-chat-session-list>
+            {!data.sessions.length && (
+              <p className="text-sm text-fg-muted">{t("No conversations yet.")}</p>
+            )}
+            {data.sessions.map((row) => (
+              <button
+                key={row.id}
+                data-chat-session={row.id}
+                aria-current={row.id === data.active_session_id ? "true" : undefined}
+                className={`block w-full truncate rounded-lg px-3 py-2.5 text-left text-sm ${row.id === data.active_session_id ? activeSessionClass : inactiveSessionClass}`}
+                title={row.title}
+                disabled={sending || startingChat}
+                onClick={() => selectSession(row.id)}
+              >
+                <span data-original-content>{row.title}</span>
+              </button>
+            ))}
+          </div>,
+          sessionsTarget,
+        )}
       {usageTarget &&
         createPortal(<ChatUsage allowance={data.allowance} navigate={navigate} />, usageTarget)}
       {!dock && !usageTarget && (
@@ -310,10 +351,10 @@ export function ChatPage({
             ` · ${deliveryContext.case.counterparty} · ${deliveryContext.case.item}`}
         </button>
       )}
-      {dock && historyOpen && !data.sessions.length && (
+      {!sessionsTarget && dock && historyOpen && !data.sessions.length && (
         <p className="px-4 py-3 text-sm text-fg-muted">{t("No conversations yet.")}</p>
       )}
-      {(!dock || historyOpen) && !!data.sessions.length && (
+      {!sessionsTarget && (!dock || historyOpen) && !!data.sessions.length && (
         <label className="flex items-center gap-3 p-3 text-sm">
           {t("Conversation")}
           <select
@@ -321,13 +362,7 @@ export function ChatPage({
             className="br-control min-w-0 max-w-sm flex-1"
             value={data.active_session_id || ""}
             disabled={sending || startingChat}
-            onChange={(event) => {
-              pendingSend.current = null;
-              setQuestion("");
-              setFailure("");
-              setHistoryOpen(false);
-              navigate({ session: event.target.value });
-            }}
+            onChange={(event) => selectSession(event.target.value)}
           >
             {data.sessions.map((row) => (
               <option key={row.id} value={row.id}>

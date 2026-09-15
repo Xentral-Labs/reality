@@ -343,10 +343,25 @@ await page.route("**/api/**", async (route) => {
     }
     if (p.endsWith("/copilot"))
       return reply({
-        sessions: independentSession ? [independentSession] : [],
-        active_session_id: independentSession?.id || null,
+        sessions: independentSession
+          ? [independentSession, { id: "older-chat", title: "Earlier conversation" }]
+          : [],
+        active_session_id:
+          u.searchParams.get("session_id") === "older-chat"
+            ? "older-chat"
+            : independentSession?.id || null,
         allowance: { limit: 20, used: 2, remaining: 18, resets_at: "2099-09-15T00:00:00Z" },
-        messages: independentMessages,
+        messages:
+          u.searchParams.get("session_id") === "older-chat"
+            ? [
+                {
+                  id: "older-answer",
+                  role: "assistant",
+                  content: "Earlier session content.",
+                  created_at: "2026-09-15T08:00:00Z",
+                },
+              ]
+            : independentMessages,
         proposals: [],
         suggestions: [],
         has_archived: false,
@@ -725,7 +740,28 @@ async function assertContainedScroll() {
       await page.locator("[data-independent-free-play] .reality-chat > header").count(),
       0,
     );
-    await header.getByRole("button", { name: "Conversation history", exact: true }).waitFor();
+    if (width < 1280)
+      await header.getByRole("button", { name: "Conversation history", exact: true }).waitFor();
+    else {
+      assert.equal(
+        await page
+          .locator("[data-free-play-toolbar]")
+          .getByRole("button", { name: "Conversation history", exact: true })
+          .isVisible(),
+        false,
+      );
+      const sessions = await page.locator("[data-free-play-sessions]").boundingBox();
+      const chat = await page.locator("[data-independent-free-play]").boundingBox();
+      assert.ok(sessions.x + sessions.width <= chat.x, "sessions are left of chat");
+    }
+    assert.equal(
+      await page.locator("[data-independent-free-play] select[aria-label='Conversation']").count(),
+      0,
+    );
+    assert.equal(
+      await header.getByRole("button", { name: "Back to selection", exact: true }).count(),
+      0,
+    );
     await header.getByRole("button", { name: "New conversation", exact: true }).waitFor();
     assert.equal(
       await page.evaluate(() => document.documentElement.scrollWidth > innerWidth),
@@ -768,13 +804,34 @@ if (process.env.FREE_PLAY_SCROLL_ONLY === "1") {
   );
   await page.goto(`${base}/app/free-play?tenant=independent&play=chat`);
   await page.locator("[data-independent-free-play] textarea").waitFor();
+  await page.setViewportSize({ width: 390, height: 640 });
   const historyToggle = page
     .locator("[data-free-play-toolbar]")
     .getByRole("button", { name: "Conversation history", exact: true });
   await historyToggle.click();
   assert.equal(await historyToggle.getAttribute("aria-expanded"), "true");
-  await historyToggle.click();
+  await page
+    .locator("[data-free-play-sessions]")
+    .getByRole("button", { name: "Close", exact: true })
+    .click();
   assert.equal(await historyToggle.getAttribute("aria-expanded"), "false");
+  await historyToggle.click();
+  await page.keyboard.press("Escape");
+  assert.equal(await historyToggle.getAttribute("aria-expanded"), "false");
+  assert.equal(await historyToggle.evaluate((el) => document.activeElement === el), true);
+  await historyToggle.click();
+  await page.locator("[data-chat-session='older-chat']").click();
+  await page
+    .locator("[data-independent-free-play]")
+    .getByText("Earlier session content.", { exact: true })
+    .waitFor();
+  assert.equal(await historyToggle.getAttribute("aria-expanded"), "false");
+  await historyToggle.click();
+  await page.locator("[data-chat-session='independent-chat']").click();
+  await page
+    .locator("[data-chat-session='independent-chat'][aria-current='true']")
+    .waitFor({ state: "attached" });
+
   await assertContainedScroll();
   await page.reload();
   await page.locator("[data-independent-free-play] textarea").waitFor();

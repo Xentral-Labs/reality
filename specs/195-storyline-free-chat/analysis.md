@@ -91,3 +91,8 @@ No critical findings.
 Owner requests substantially less height above chat. One toolbar removes duplicate
 headings, retains all controls and bounds notebook height. Test mobile overflow and
 existing scroll geometry. No critical findings.
+
+## Session placement review
+Owner requests sessions left of chat and no Storyline link in chat. Reuse existing
+sessions, tenant scoping, busy guards and selection semantics. Test active state,
+left-side geometry and mobile dismissal. No critical findings.
