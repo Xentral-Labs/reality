@@ -203,7 +203,7 @@ families:
   - key: aggregates
     description: Tenant-owned quantities, balances, and counts exclude foreign values.
     classification: aggregate
-    authority: 003/FR-010, 003/FR-012, 019/FR-005, 204/FR-003
+    authority: 003/FR-010, 003/FR-012, 019/FR-005, 205/FR-003
     operations: &aggregate_operations
       - reality.services.core:account_balance
       - reality.services.core:active_reserved
@@ -236,7 +236,7 @@ families:
   - key: mutations_and_relationships
     description: Tenant-owned mutations reject foreign relationships atomically.
     classification: mutation_relationship
-    authority: 003/FR-010, 003/FR-012, 019/FR-006, 038/DR-004, 040/DR-003, 041/DR-003, 204/FR-001, 204/FR-002, 204/FR-007
+    authority: 003/FR-010, 003/FR-012, 019/FR-006, 038/DR-004, 040/DR-003, 041/DR-003, 205/FR-001, 205/FR-002, 205/FR-007
     operations: &mutation_operations
       - reality.services.artifacts:stage_artifact
       - reality.services.core:add_chat_assistant_message
