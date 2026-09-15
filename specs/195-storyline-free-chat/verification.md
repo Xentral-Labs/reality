@@ -196,3 +196,15 @@ heights matched in all three sizes; screenshots reviewed. Final web build, langu
 audit, spec policy, formatting and diff checks passed. An intermediate audit mistook
 an inline class expression for text; extracting the class constant resolved it.
 Other routes retain their scrolling; no backend/catalog change. Updated local 8080.
+
+## Compact notebook toolbar (2026-09-15)
+
+Replaced the two Free Play headers with one 48px toolbar. The company picker truncates,
+return-to-selection uses an accessible arrow, and existing Usage/history/new-chat
+controls render in the same toolbar. Other chat headers remain unchanged. On desktop
+this recovers roughly 90px compared with the former company plus 64px chat headers.
+Browser checks passed maximum toolbar height, absence of a second header, control
+presence and history toggle operation, mobile overflow, contained long-history scroll
+and reload at 1440×900, 390×640 and 1440×500. Screenshots reviewed, including mobile.
+Web build, localization audit, spec and diff checks passed. Local 8080 serves
+`index-C9mr7rG8.js`. No backend or catalog changes.

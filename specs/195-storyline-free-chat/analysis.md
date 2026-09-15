@@ -86,3 +86,8 @@ Owner reports document/navigation movement while scrolling chat. Replace competi
 viewport/minimum heights with a bounded route-specific flex chain. Verify long message
 history, wheel scrolling, boundary containment and unchanged header/composer geometry.
 No critical findings.
+
+## Notebook toolbar review
+Owner requests substantially less height above chat. One toolbar removes duplicate
+headings, retains all controls and bounds notebook height. Test mobile overflow and
+existing scroll geometry. No critical findings.
