@@ -7,7 +7,16 @@ from datetime import datetime, timedelta
 from sqlalchemy.orm import Session
 
 from reality.db.core import PlaygroundRun
-from reality.demo.international import CUSTOMERS, HISTORY, ITEMS, LOCATIONS, SUPPLIERS
+from reality.demo.international import (
+    CUSTOMERS,
+    HISTORY,
+    ITEMS,
+    LOCATIONS,
+    ORDER_CUSTOMERS,
+    SUPPLIER_ITEMS,
+    SUPPLIERS,
+    WEEKLY_CUSTOMERS,
+)
 from reality.services import core
 
 
@@ -73,10 +82,20 @@ def seed_profile(
             {"synthetic": True, "profile_version": 1, **payload},
         )[0]
 
+    def buyer(key: str) -> str:
+        """The authored customer of a case key; one family compares one buyer."""
+        family, _, week = key.partition("-")
+        return (
+            WEEKLY_CUSTOMERS[int(week) % len(WEEKLY_CUSTOMERS)]
+            if family == "week"
+            else ORDER_CUSTOMERS[family]
+        )
+
     def order(
         key: str,
         item: str,
         *,
+        counterparty: str,
         quantity: str = "5",
         price: str = "10",
         gross: str = "50",
@@ -107,10 +126,10 @@ def seed_profile(
             "tax_amount": "0",
             "discount_amount": "0",
             "sales_channel": "demo_wholesale",
-            "external_customer_reference": "demo:C1",
+            "external_customer_reference": f"demo:{counterparty}",
         }
         src = source("purchase_order" if purchase else "sales_order", key, payload)
-        party = parties["S1" if purchase else "C1"]
+        party = parties[counterparty]
         doc, doc_lines = core.create_manual_document_with_lines(
             session,
             tenant,
@@ -194,7 +213,12 @@ def seed_profile(
         for index in (1, 2):
             key, item = f"E{index:02}", f"P{index:02}"
             cases[key], _ = order(
-                key, item, quantity="1", gross="10", due=anchor + timedelta(days=3)
+                key,
+                item,
+                counterparty=buyer(key),
+                quantity="1",
+                gross="10",
+                due=anchor + timedelta(days=3),
             )
             movement(f"opening-{item}", item, "1")
         core.hold_commitment(
@@ -211,7 +235,10 @@ def seed_profile(
         ):
             key, item = f"O{index:02}", f"P{index:02}"
             cases[key], _ = order(
-                key, item, due=anchor + timedelta(days=-2 if index in {4, 5, 8} else 3)
+                key,
+                item,
+                counterparty=buyer(key),
+                due=anchor + timedelta(days=-2 if index in {4, 5, 8} else 3),
             )
             if quantity != "0":
                 movement(f"opening-{item}", item, quantity)
@@ -249,7 +276,11 @@ def seed_profile(
                 anchor + timedelta(days=-3 if index == 1 else 5) if index != 3 else None
             )
             cases[f"S{index:02}"], _ = order(
-                f"PO-{index:03}", item, purchase=True, due=due
+                f"PO-{index:03}",
+                item,
+                counterparty=SUPPLIER_ITEMS[item],
+                purchase=True,
+                due=due,
             )
             if index == 1:
                 movement(
@@ -265,9 +296,11 @@ def seed_profile(
         ]
         for key, item, days, quantity, price, gross, currency in history:
             date = anchor - timedelta(days=days)
+            customer = buyer(key)
             ref, lines = order(
                 f"H-{key}",
                 item,
+                counterparty=customer,
                 quantity=quantity,
                 price=price,
                 gross=gross,
@@ -293,7 +326,7 @@ def seed_profile(
                 tenant,
                 "sales_invoice",
                 f"INV-{key}",
-                parties["C1"],
+                parties[customer],
                 invoice_lines,
                 gross,
                 currency=currency,
@@ -338,7 +371,7 @@ def seed_profile(
                     tenant,
                     "credit_note",
                     "CR-001",
-                    parties["C1"],
+                    parties[customer],
                     credit_lines,
                     "24",
                     document_date=credit_date.date().isoformat(),
@@ -418,7 +451,7 @@ def seed_profile(
     from reality.demo.profile_contract import ProfileManifest
 
     for model, expected in zip(
-        (Party, Item, Location), (2, 2, 1) if execution else (8, 16, 2), strict=True
+        (Party, Item, Location), (2, 2, 1) if execution else (24, 16, 2), strict=True
     ):
         if (
             session.scalar(

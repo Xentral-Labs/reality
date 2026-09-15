@@ -26,7 +26,7 @@ class ProfileManifest(BaseModel):
 
     @model_validator(mode="after")
     def validate_references(self):
-        expected = (2, 2, 1) if self.execution else (8, 16, 2)
+        expected = (2, 2, 1) if self.execution else (24, 16, 2)
         for references, count in zip(
             (self.parties, self.items, self.locations), expected, strict=True
         ):

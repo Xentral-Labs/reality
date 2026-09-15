@@ -22,7 +22,7 @@ def test_canonical_profile_counts_and_cases(session, scheduled_owner, monkeypatc
         company_setup.read_request(session, scheduled_owner.id, "canonical")["status"]
         == "ready"
     )
-    for model, count in [(Item, 16), (Party, 8), (Location, 2)]:
+    for model, count in [(Item, 16), (Party, 24), (Location, 2)]:
         assert (
             session.scalar(
                 select(func.count()).select_from(model).where(model.tenant_id == tenant)
@@ -103,3 +103,80 @@ def test_operational_stock_and_source_lineage(session, scheduled_owner, monkeypa
         session.get(Commitment, manifest["cases"]["O10"]["commitment_id"]).status
         == "cancelled"
     )
+
+
+def _demo_company(session, owner, key: str) -> str:
+    tenant = company_setup.create_company(
+        session,
+        owner.id,
+        key,
+        "Harbor Supply",
+        "sandbox",
+        "international_demo",
+        confirmed=True,
+    )["tenant_id"]
+    # The profile is seeded by the worker since feature 199.
+    assert seed_company(session, tenant) == "succeeded"
+    return tenant
+
+
+def _documents(session, tenant: str, document_type: str):
+    from reality.db.core import Document
+
+    names = {
+        party.id: party.name
+        for party in session.scalars(select(Party).where(Party.tenant_id == tenant))
+    }
+    return {
+        document.number: names[document.party_id]
+        for document in session.scalars(
+            select(Document).where(
+                Document.tenant_id == tenant, Document.type == document_type
+            )
+        )
+    }
+
+
+def test_orders_spread_over_the_customer_pool(session, scheduled_owner, monkeypatch):
+    """Feature 200: every order states its own buyer, a few regulars order more."""
+    from collections import Counter
+
+    monkeypatch.setenv("REALITY_PLAYGROUND_ENABLED", "true")
+    tenant = _demo_company(session, scheduled_owner, "spread")
+    orders = _documents(session, tenant, "sales_order")
+    assert len(orders) == 34
+    held = Counter(orders.values())
+    assert len(held) >= 18, held
+    assert max(held.values()) <= 5, held
+    assert sum(1 for count in held.values() if count > 2) <= 3, held
+    suppliers = _documents(session, tenant, "purchase_order")
+    assert len(set(suppliers.values())) == 3, suppliers
+
+
+def test_comparison_windows_and_money_state_one_buyer(
+    session, scheduled_owner, monkeypatch
+):
+    """Feature 200: a family compares one customer; its money follows the order."""
+    monkeypatch.setenv("REALITY_PLAYGROUND_ENABLED", "true")
+    tenant = _demo_company(session, scheduled_owner, "families")
+    orders = _documents(session, tenant, "sales_order")
+    for family in ("volume", "price", "decline", "outlier", "usd"):
+        assert orders[f"H-{family}-prior"] == orders[f"H-{family}-current"], family
+    invoices = _documents(session, tenant, "sales_invoice")
+    assert invoices
+    for number, buyer in invoices.items():
+        assert orders[f"H-{number.removeprefix('INV-')}"] == buyer, number
+    credits = _documents(session, tenant, "credit_note")
+    assert credits == {"CR-001": invoices["INV-credit-origin"]}
+
+
+def test_seeded_buyers_are_authored_not_drawn(session, scheduled_owner, monkeypatch):
+    """Feature 200: the same profile version seeds the same buyer everywhere."""
+    monkeypatch.setenv("REALITY_PLAYGROUND_ENABLED", "true")
+    first = _documents(
+        session, _demo_company(session, scheduled_owner, "a"), "sales_order"
+    )
+    second = _documents(
+        session, _demo_company(session, scheduled_owner, "b"), "sales_order"
+    )
+    assert first == second
