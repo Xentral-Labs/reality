@@ -320,3 +320,22 @@ and preserved 503 errors, followed by company isolation checks. Local 8080 updat
   diff whitespace checks pass. The existing bundle-size warning remains.
 - Final review: only desktop padding and inter-row spacing change. No backend,
   schema, translations or executable catalog changes; their gates do not apply.
+
+## Steady pending chat status (2026-09-15)
+
+The streaming work bound the status to `sending && !visibleReply?.text`, so the first
+streamed token hid it and the `reset` event that opens every tool round in
+`mcp_chat.py` brought it back: one tool call made it blink. It derives only from the
+pending send again, as FR-010 states. Because it is now on screen for the whole answer,
+the accent panel with its 40px icon tile became a quiet status line aligned to the
+composer's width, which is what FR-010 now asks for. Role, live region, reduced-motion
+rotation and removal on success or failure are unchanged.
+
+- `chat-stream-browser` asserts the indicator is present while text streams and gone
+  after the recorded answer arrives; it passed, including reset, stale reload and the
+  390px viewport.
+- `unified-chat-composer-browser` passed its status, reduced-motion and failure-cleanup
+  checks; its later session-history assertions belong to concurrent work in the shared
+  checkout and were not run against this change.
+- TypeScript build and the four-language audit (1878/1878) pass. No backend, schema or
+  catalog change.

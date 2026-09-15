@@ -67,10 +67,12 @@ input while preventing edits/submission.
   show unavailable evidence; ordinary proposal review and record links remain available.
 - **FR-005**: Mobile/desktop, light/dark, en/de/nl/es, failure/retry and allowance remain usable.
 - **FR-006**: Restore post-send focus without stealing another control's focus.
-- **FR-010**: While a chat request is pending, show a prominent status panel above
-  the composer with a high-contrast rotating indicator and Reality is working label.
-  Expose a polite live status, respect reduced motion, and remove it on success or
-  failure. Do not imply percentages or tool activity that the server has not reported.
+- **FR-010**: While a chat request is pending, show a status line above the composer
+  with a rotating indicator and Reality is working label, derived only from the pending
+  send so that streamed text and tool rounds never make it appear and disappear. Align
+  it with the composer and keep it quiet enough to sit under a streaming answer. Expose
+  a polite live status, respect reduced motion, and remove it on success or failure. Do
+  not imply percentages or tool activity that the server has not reported.
 - **FR-007**: Free Play has one tile in the Storyline selection and no separate sidebar link.
   Storyline stays highlighted while using Free Play, and its sidebar link opens the
   selection. Free Play is removed from individual Storyline cards; guided story actions remain. The narrator footer has no Free Play/Sandbox chat
