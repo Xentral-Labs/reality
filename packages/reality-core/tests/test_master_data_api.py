@@ -3,6 +3,9 @@ from decimal import Decimal
 
 import pytest
 from fastapi.testclient import TestClient
+from sqlalchemy import select
+from sqlalchemy.orm import sessionmaker
+
 from reality.db.core import (
     AppUser,
     ChatMessage,
@@ -48,8 +51,6 @@ from reality.tools.application import (
 from reality.web import api as api_module
 from reality.web import app as web_module
 from reality.web import auth as auth_module
-from sqlalchemy import select
-from sqlalchemy.orm import sessionmaker
 
 app = web_module.app
 
