@@ -108,6 +108,8 @@ const dictionaries: Record<Exclude<Language, "en">, Record<string, string>> = {
     "Keep exploring": "Weiter erkunden",
     "Free AI questions remaining": "Verbleibende kostenlose KI-Fragen",
     "Daily limit reached": "Tageslimit erreicht",
+    Chat: "Chat",
+    "Choose a storyline.": "Wähle eine Storyline.",
     "Chat freely with the company selected in the main navigation.":
       "Chatte frei mit der oben ausgewählten Firma.",
     "Total questions used today: {used}": "Heute insgesamt verwendete Fragen: {used}",
@@ -1935,6 +1937,8 @@ const dictionaries: Record<Exclude<Language, "en">, Record<string, string>> = {
     "Keep exploring": "Verder verkennen",
     "Free AI questions remaining": "Resterende gratis AI-vragen",
     "Daily limit reached": "Daglimiet bereikt",
+    Chat: "Chat",
+    "Choose a storyline.": "Kies een verhaallijn.",
     "Chat freely with the company selected in the main navigation.":
       "Chat vrij met het bedrijf dat in de hoofdnavigatie is geselecteerd.",
     "Total questions used today: {used}": "Totaal gebruikte vragen vandaag: {used}",
@@ -3457,6 +3461,8 @@ const dictionaries: Record<Exclude<Language, "en">, Record<string, string>> = {
     "Keep exploring": "Seguir explorando",
     "Free AI questions remaining": "Preguntas de IA gratuitas restantes",
     "Daily limit reached": "Límite diario alcanzado",
+    Chat: "Chat",
+    "Choose a storyline.": "Elige una historia.",
     "Chat freely with the company selected in the main navigation.":
       "Chatea con la empresa seleccionada en la navegación principal.",
     "Total questions used today: {used}": "Total de preguntas usadas hoy: {used}",

@@ -11,7 +11,7 @@ const openSessionsClass =
 const closedSessionsClass =
   "hidden w-60 shrink-0 flex-col border-r border-border-default p-3 xl:flex";
 
-export function FreePlayPage({
+export function CompanyChatPage({
   selection,
   company,
   navigate,
@@ -81,7 +81,7 @@ export function FreePlayPage({
           className="flex h-12 shrink-0 items-center gap-2 border-b border-border-default px-3"
           data-free-play-toolbar
         >
-          <h2 className="text-sm font-medium">{t("Free play")}</h2>
+          <h2 className="text-sm font-medium">{t("Chat")}</h2>
           <div className="ml-auto shrink-0" ref={setUsageTarget} />
           <div className="shrink-0" ref={setControlsTarget} />
         </header>

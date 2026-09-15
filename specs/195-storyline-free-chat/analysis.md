@@ -106,3 +106,8 @@ exhaustion/recovery; no unresolved clarification or critical finding.
 User explicitly requested global company context only. Existing keyed tenant wrapper
 and companySelection clear chat state. Browser tests cover global switch and no writes;
 no critical issue, schema change or unresolved clarification.
+
+## FR-018 review
+Existing /app/chat alias must be replaced by the canonical route, and free-play must
+become a compatibility alias. Tests cover both plus mobile and sidebar selection.
+All requirements covered; no critical findings or unresolved questions.

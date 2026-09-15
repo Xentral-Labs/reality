@@ -79,7 +79,7 @@ export function Shell({
     return () => window.removeEventListener("reality:open-chat", show);
   }, []);
   // Storyline has its own protocol column; the chat dock stays closed there.
-  const dockOpen = chatOpen && selection.route !== "storyline" && selection.route !== "free-play";
+  const dockOpen = chatOpen && selection.route !== "storyline" && selection.route !== "chat";
   const [activityTenant, setActivityTenant] = useState<string | null>(null);
   useEffect(() => setActivityTenant(null), [company.id]);
   const [registerHeader, setRegisterHeader] = useState<HTMLDivElement | null>(null);
@@ -105,6 +105,12 @@ export function Shell({
       target: { route: "home", proposal: "", page: 1, q: "" } as Partial<Selection>,
       Icon: House,
       active: selection.route === "home",
+    },
+    {
+      label: "Chat",
+      target: { route: "chat", commitment: "", proposal: "", page: 1, q: "" } as Partial<Selection>,
+      Icon: MessageSquare,
+      active: selection.route === "chat",
     },
     ...dailyWork.map((item, index) => ({
       label: item.label,
@@ -196,7 +202,7 @@ export function Shell({
         <PageCountTarget.Provider value={pageCount}>
           <div
             ref={shellRef}
-            data-contained-chat={selection.route === "free-play" || undefined}
+            data-contained-chat={selection.route === "chat" || undefined}
             className="app-shell min-h-screen bg-bg text-fg-default"
           >
             <header
@@ -549,7 +555,7 @@ export function Shell({
                   </a>
                   <a
                     data-navigation-item
-                    className={`flex items-center gap-2 rounded-md px-3 py-2 text-[13px] leading-5 ${selection.route === "storyline" || selection.route === "free-play" ? activeNavigation : "hover:bg-surface-muted"}`}
+                    className={`flex items-center gap-2 rounded-md px-3 py-2 text-[13px] leading-5 ${selection.route === "storyline" ? activeNavigation : "hover:bg-surface-muted"}`}
                     href={selectionUrl({
                       ...selection,
                       route: "storyline",
@@ -557,11 +563,7 @@ export function Shell({
                       page: 1,
                       q: "",
                     })}
-                    aria-current={
-                      selection.route === "storyline" || selection.route === "free-play"
-                        ? "page"
-                        : undefined
-                    }
+                    aria-current={selection.route === "storyline" ? "page" : undefined}
                     onClick={(event) => {
                       event.preventDefault();
                       navigate({

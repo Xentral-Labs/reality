@@ -152,12 +152,27 @@ Acceptance: Enter from library or direct URL without writes; switch companies on
 through the main switcher; observe the new context with no old draft/evidence; reload
 and mobile keep direct chat. No Free Play creation API call occurs.
 
+## Standalone Chat feature (2026-09-15)
+
+- **FR-018**: The former Free Play becomes the main Chat feature at `/app/chat`,
+  with its own speech-bubble navigation item immediately after Home. Storyline no
+  longer contains its entry tile or references it as a mode; Storyline is not active
+  while Chat is open. Existing `/app/free-play` links remain compatible and lead to
+  Chat with company/session context preserved. Chat retains global company scope,
+  history, confirmed tools, usage and available per-message evidence. This supersedes
+  prior requirements locating its entry inside Storyline.
+
+Acceptance: Chat is second in Daily Work; opens without Storyline setup/writes;
+main-company switching, reload, mobile navigation and contained scrolling work;
+legacy links resolve to Chat, and Storyline has no Chat/Free Play tile.
+
 ## Requirement Traceability
 | Requirements | Verification |
 |---|---|
 | FR-001–002, FR-005 | Storyline/contextual and independent browser interactions and layouts |
 | FR-003–004, DR-001 | PostgreSQL exact evidence, proposal lifecycle, scope and retention tests |
 | FR-016 | Free Play browser navigation, exhaustion/recovery and responsive geometry |
+| FR-018 | Canonical/legacy entry routing, nav order/active state and browser checks |
 | FR-017 | Global-switcher browser flow, direct entry/reload and routing contracts |
 | FR-015 | Desktop session-list geometry, selection and mobile drawer checks |
 | FR-014 | Notebook/mobile toolbar height and control-presence browser checks |

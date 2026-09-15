@@ -135,3 +135,9 @@ Remove chooser and creation reads/actions from FreePlayPage. Use the shared comp
 prop and existing companySelection reset; remove redundant freePlayChat flag. Update
 copy and browser/routing regressions first. No service/schema change. Constitution
 Check PASS. User approved this simpler scope; old Sandbox data remains intact.
+
+## FR-018
+Promote canonical chat route, alias legacy free-play entry, rename page to CompanyChatPage,
+add Chat after Home and remove Storyline tile/copy. Preserve optional receipt evidence
+and shared chat service. Add routing/nav proofs and reuse company/scroll regressions.
+Constitution Check PASS; no API/schema change. User explicitly approved scope.

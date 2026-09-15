@@ -8,7 +8,7 @@ test("current routes stay current and unknown routes are explicit", () => {
     "/app",
     "/app/warehouse?tenant=t1",
     "/app/inspector?inspector_view=graph",
-    "/app/free-play?tenant=t1",
+    "/app/chat?tenant=t1",
   ])
     assert.equal(entry(path).kind, "app");
   assert.equal(entry("/app/not-real").kind, "missing");
@@ -84,4 +84,17 @@ test("legacy aliases preserve validated language", () => {
     new URL(entry("/profile?lang=invalid").href, "https://app.example").searchParams.has("lang"),
     false,
   );
+});
+
+test("Chat is canonical and former Free Play links preserve company/session", () => {
+  const result = entry(
+    "/app/free-play?tenant=company&session=conversation&play=chat&confirmed=true",
+  );
+  assert.equal(result.kind, "redirect");
+  const url = new URL(result.href, "https://example.test");
+  assert.equal(url.pathname, "/app/chat");
+  assert.equal(url.searchParams.get("tenant"), "company");
+  assert.equal(url.searchParams.get("session"), "conversation");
+  assert.equal(url.searchParams.has("confirmed"), false);
+  assert.equal(entry(result.href).kind, "app");
 });

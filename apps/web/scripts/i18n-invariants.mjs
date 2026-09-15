@@ -42,6 +42,7 @@ export const invariantTerms = new Map([
 
 export const languageEquivalentTerms = {
   de: new Map([
+    ["Chat", "Accepted German term for a conversation"],
     ["Simulation", "Identical German noun used for the simulation workspace"],
     ["4 h 19 min", "Localized time abbreviation"],
     ["47 min", "Localized time abbreviation"],
@@ -66,6 +67,7 @@ export const languageEquivalentTerms = {
     ["Version", "Accepted German technical term"],
   ]),
   nl: new Map([
+    ["Chat", "Accepted Dutch term for a conversation"],
     ["Credit", "Dutch accounting term for the credit side"],
     ["AP", "Accounting acronym"],
     ["AR", "Accounting acronym"],
@@ -85,6 +87,7 @@ export const languageEquivalentTerms = {
     ["Type", "Accepted Dutch field term"],
   ]),
   es: new Map([
+    ["Chat", "Accepted Spanish term for a conversation"],
     ["4 h 19 min", "Localized time abbreviation"],
     ["47 min", "Localized time abbreviation"],
     ["AP", "Accounting acronym"],

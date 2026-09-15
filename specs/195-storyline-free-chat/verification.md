@@ -251,3 +251,20 @@ The existing long-history session/scroll checks passed desktop/mobile/short view
 169 web tests, TypeScript/Vite, localization audit, spec policy and diff checks passed.
 Reviewed desktop screenshot; local 8080 updated. Changes remain locally committed;
 GitHub publication awaits the explicit approval requested in the previous turn.
+
+## Standalone Chat feature (FR-018, 2026-09-15)
+
+Promoted the company conversation to Chat at /app/chat, directly after Home in
+primary navigation. Removed the Storyline library entry and its shared active state.
+Renamed the adapter to CompanyChatPage. Former /app/free-play and /chat links
+resolve to the canonical chat route with company/session context preserved.
+The global company remains authoritative; tools, confirmations and usage are unchanged.
+
+All 170 web tests, TypeScript/Vite build, four-language audit, spec policy and diff
+checks passed. Browser checks verified navigation order/active state, absence of the
+Storyline tile, global company switching with cleared draft/session/evidence, reload,
+no company creation writes and responsive layout. Long-history checks passed on desktop,
+mobile and short viewports, including session selection and composer recovery.
+Reviewed desktop/mobile screenshots. Local 8080 serves index-DBAITsw3.js.
+Review found no remaining issue for this adapter-only change; no backend/schema/catalog
+changes. GitHub publication still awaits the previously requested explicit approval.

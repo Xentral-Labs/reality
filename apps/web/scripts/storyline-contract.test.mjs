@@ -176,7 +176,7 @@ test("Free Play keeps an opened company on reload and resets chat when switching
     new URL("https://example.test/app/free-play?tenant=company&play=chat&session=conversation"),
   );
   const reopened = readSelection(new URL(selectionUrl(opened), "https://example.test"));
-  assert.equal(reopened.route, "free-play");
+  assert.equal(reopened.route, "chat");
   assert.equal(
     new URL(selectionUrl(reopened), "https://example.test").searchParams.has("play"),
     false,
@@ -184,9 +184,9 @@ test("Free Play keeps an opened company on reload and resets chat when switching
   assert.equal(reopened.tenant, "company");
   assert.equal(reopened.session, "conversation");
   const switched = companySelection(opened, "other");
-  assert.equal(switched.route, "free-play");
+  assert.equal(switched.route, "chat");
   assert.equal(switched.session, "");
-  assert.equal(selectionUrl(switched), "/app/free-play?tenant=other");
+  assert.equal(selectionUrl(switched), "/app/chat?tenant=other");
 });
 
 test("Usage settings survives direct navigation and reload", async () => {

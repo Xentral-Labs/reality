@@ -1,4 +1,4 @@
-import { FreePlayPage } from "./FreePlayPage";
+import { CompanyChatPage } from "./CompanyChatPage";
 import { EntryProgress } from "../components/EntryProgress";
 import { TrialEntry, TrialProvider, TrialPrompt } from "./FreePlayground";
 import { ActionDiscoveryProvider } from "./ActionLauncher";
@@ -30,7 +30,7 @@ import { StorylinePage } from "./StorylinePage";
 import { ReadState } from "./ReadState";
 import { useCompanyContext } from "./useCompanyContext";
 
-const freePlayContentClass = "flex min-h-0 flex-1 flex-col";
+const chatContentClass = "flex min-h-0 flex-1 flex-col";
 
 export default function UnifiedApp({
   user,
@@ -173,7 +173,7 @@ export default function UnifiedApp({
             <TableProvider user={user.id} selection={selection} navigate={navigate}>
               <div
                 key={`${user.id}:${company.id}`}
-                className={selection.route === "free-play" ? freePlayContentClass : undefined}
+                className={selection.route === "chat" ? chatContentClass : undefined}
               >
                 {selection.route === "inspector" ? (
                   <RealityInspectorPage
@@ -315,8 +315,8 @@ export default function UnifiedApp({
                   />
                 ) : selection.route === "attention" ? (
                   <AttentionPage selection={selection} navigate={navigate} />
-                ) : selection.route === "free-play" ? (
-                  <FreePlayPage company={company} selection={selection} navigate={navigate} />
+                ) : selection.route === "chat" ? (
+                  <CompanyChatPage company={company} selection={selection} navigate={navigate} />
                 ) : selection.route === "storyline" ? (
                   <StorylinePage
                     selection={selection}
