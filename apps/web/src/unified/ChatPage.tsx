@@ -32,8 +32,10 @@ export function ChatPage({
   onInitialDraftUsed,
   renderMessageEvidence,
   usageTarget,
+  controlsTarget,
 }: {
   usageTarget?: HTMLElement | null;
+  controlsTarget?: HTMLElement | null;
   selection: Selection;
   compact?: boolean;
   dock?: boolean;
@@ -223,6 +225,27 @@ export function ChatPage({
     }
   };
   if (!data || !sessionReady) return <ReadState loading={loading} error={error} retry={refresh} />;
+  const chatControls = (
+    <div className="flex shrink-0 items-center gap-1">
+      {!usageTarget && <ChatUsage allowance={data.allowance} navigate={navigate} />}
+      <button
+        className="reality-chat-icon"
+        aria-label={t("Conversation history")}
+        aria-expanded={historyOpen}
+        onClick={() => setHistoryOpen(!historyOpen)}
+      >
+        <History size={20} />
+      </button>
+      <button
+        className="reality-chat-icon"
+        aria-label={t("New conversation")}
+        disabled={sending || startingChat}
+        onClick={() => void startConversation()}
+      >
+        <SquarePen size={20} />
+      </button>
+    </div>
+  );
   const frame = dock ? dockFrame : compact ? compactFrame : fullFrame;
   return (
     <div className={frame}>
@@ -233,7 +256,8 @@ export function ChatPage({
           <ChatUsage allowance={data.allowance} navigate={navigate} />
         </div>
       )}
-      {dock && (
+      {controlsTarget && createPortal(chatControls, controlsTarget)}
+      {dock && !controlsTarget && (
         <header className="flex h-16 shrink-0 items-center justify-between gap-2 border-b border-border-default px-4">
           <div className="flex min-w-0 items-center gap-2">
             <Sparkles size={21} className="shrink-0 text-accent" />
@@ -242,25 +266,7 @@ export function ChatPage({
                 t("New chat")}
             </span>
           </div>
-          <div className="flex shrink-0 items-center gap-1">
-            {!usageTarget && <ChatUsage allowance={data.allowance} navigate={navigate} />}
-            <button
-              className="reality-chat-icon"
-              aria-label={t("Conversation history")}
-              aria-expanded={historyOpen}
-              onClick={() => setHistoryOpen(!historyOpen)}
-            >
-              <History size={20} />
-            </button>
-            <button
-              className="reality-chat-icon"
-              aria-label={t("New conversation")}
-              disabled={sending || startingChat}
-              onClick={() => void startConversation()}
-            >
-              <SquarePen size={20} />
-            </button>
-          </div>
+          {chatControls}
         </header>
       )}
       {!compact && (

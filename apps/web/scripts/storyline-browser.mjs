@@ -720,6 +720,17 @@ async function assertContainedScroll() {
       node.scrollTop = 0;
     });
     const headerBefore = await header.boundingBox();
+    assert.ok(headerBefore.height <= 56, "Free Play uses one compact toolbar");
+    assert.equal(
+      await page.locator("[data-independent-free-play] .reality-chat > header").count(),
+      0,
+    );
+    await header.getByRole("button", { name: "Conversation history", exact: true }).waitFor();
+    await header.getByRole("button", { name: "New conversation", exact: true }).waitFor();
+    assert.equal(
+      await page.evaluate(() => document.documentElement.scrollWidth > innerWidth),
+      false,
+    );
     const inputBefore = await input.boundingBox();
     assert.ok(inputBefore.y + inputBefore.height <= height, "composer stays in viewport");
     assert.equal(
@@ -741,6 +752,7 @@ async function assertContainedScroll() {
     });
     await page.mouse.wheel(0, 1200);
     assert.equal(await page.evaluate(() => scrollY), 0);
+    await page.screenshot({ path: `/private/tmp/compact-chat-${width}-${height}.png` });
   }
 }
 if (process.env.FREE_PLAY_SCROLL_ONLY === "1") {
@@ -756,6 +768,13 @@ if (process.env.FREE_PLAY_SCROLL_ONLY === "1") {
   );
   await page.goto(`${base}/app/free-play?tenant=independent&play=chat`);
   await page.locator("[data-independent-free-play] textarea").waitFor();
+  const historyToggle = page
+    .locator("[data-free-play-toolbar]")
+    .getByRole("button", { name: "Conversation history", exact: true });
+  await historyToggle.click();
+  assert.equal(await historyToggle.getAttribute("aria-expanded"), "true");
+  await historyToggle.click();
+  assert.equal(await historyToggle.getAttribute("aria-expanded"), "false");
   await assertContainedScroll();
   await page.reload();
   await page.locator("[data-independent-free-play] textarea").waitFor();

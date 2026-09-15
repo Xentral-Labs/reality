@@ -48,3 +48,6 @@ as one coherent increment because free chat must carry truthful evidence.
 
 - [x] T019 [FR-013] Bound Free Play viewport/flex layout, add long-history scroll
   regression, verify build/browser and update preview/PR.
+
+- [x] T020 [FR-014] Merge Free Play headers, verify toolbar size/control access and
+  scrolling on notebook/mobile, update local preview/PR.

@@ -1,3 +1,4 @@
+import { ArrowLeft, ChevronDown } from "lucide-react";
 import { useState } from "react";
 import { api, storylineApi, type Bootstrap } from "../api";
 import { t } from "../localization";
@@ -19,6 +20,7 @@ export function FreePlayPage({
   openCompany: (data: Bootstrap, id: string, options?: { announce?: boolean }) => void;
 }) {
   const { data, loading, error, refresh } = useRead(() => storylineApi.freePlayEntry(), []);
+  const [controlsTarget, setControlsTarget] = useState<HTMLDivElement | null>(null);
   const [usageTarget, setUsageTarget] = useState<HTMLDivElement | null>(null);
   const [picked, setPicked] = useState(selection.tenant);
   const [busy, setBusy] = useState(false);
@@ -56,29 +58,42 @@ export function FreePlayPage({
       className="mx-auto flex h-full min-h-0 w-full max-w-5xl flex-col overflow-hidden rounded-xl border border-border-default bg-surface"
       data-independent-free-play
     >
-      <header className="flex shrink-0 flex-wrap items-center justify-between gap-3 border-b border-border-default p-4">
-        <div>
+      {chatting ? (
+        <header
+          className="flex h-12 shrink-0 items-center gap-2 border-b border-border-default px-3"
+          data-free-play-toolbar
+        >
+          <button
+            className="reality-chat-icon shrink-0"
+            aria-label={t("Back to selection")}
+            title={t("Back to selection")}
+            onClick={() =>
+              navigate({ route: "storyline", storylineChapter: "library", freePlayChat: false })
+            }
+          >
+            <ArrowLeft size={18} />
+          </button>
+          <button
+            className="flex min-w-0 flex-1 items-center gap-1 text-left text-sm font-medium"
+            data-free-play-choose
+            aria-label={t("Choose company")}
+            title={`${current.name} · ${t(isSandbox(current) ? "Sandbox" : "Company")}`}
+            onClick={() => {
+              setPicked(selection.tenant);
+              navigate({ freePlayChat: false, session: "" });
+            }}
+          >
+            <span className="truncate" data-original-content>
+              {current.name}
+            </span>
+            <ChevronDown size={14} className="shrink-0 text-fg-muted" />
+          </button>
+          <div className="shrink-0" ref={setUsageTarget} />
+          <div className="shrink-0" ref={setControlsTarget} />
+        </header>
+      ) : (
+        <header className="flex shrink-0 items-center justify-between gap-3 border-b border-border-default p-4">
           <h2 className="font-semibold">{t("Free play")}</h2>
-          {chatting && (
-            <p className="mt-1 text-sm text-fg-muted">
-              {current.name} · {t(isSandbox(current) ? "Sandbox" : "Company")}
-            </p>
-          )}
-        </div>
-        <div className="flex flex-wrap items-center gap-2">
-          {chatting && <div ref={setUsageTarget} />}
-          {chatting && (
-            <button
-              className="br-btn"
-              data-free-play-choose
-              onClick={() => {
-                setPicked(selection.tenant);
-                navigate({ freePlayChat: false, session: "" });
-              }}
-            >
-              {t("Choose company")}
-            </button>
-          )}
           <button
             className="br-btn"
             onClick={() =>
@@ -87,8 +102,8 @@ export function FreePlayPage({
           >
             {t("Storylines")}
           </button>
-        </div>
-      </header>
+        </header>
+      )}
       {failure && (
         <p role="alert" className="p-4 text-sm text-critical-text">
           {failure}
@@ -103,6 +118,7 @@ export function FreePlayPage({
           )}
           <ChatPage
             usageTarget={usageTarget}
+            controlsTarget={controlsTarget}
             key={selection.tenant}
             selection={{ ...selection, commitment: "" }}
             navigate={navigate}

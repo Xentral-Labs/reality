@@ -110,3 +110,9 @@ keeps its independent overflow. Constitution Check: PASS; layout only.
 The company-scoped UnifiedApp wrapper also needs min-height:0 and flex sizing.
 Each chat article establishes positioning for its screen-reader-only author metadata;
 otherwise absolute metadata contributes to document overflow outside the scrollport.
+
+## Compact Free Play toolbar
+Merge the Free Play and conversation headers into one 48px toolbar. The company is
+a truncated picker button; back-to-selection is an arrow. Portal shared history/new
+conversation controls into the toolbar beside Usage, retaining existing behavior.
+Other chats keep their existing header. Constitution Check: PASS; UI-only.

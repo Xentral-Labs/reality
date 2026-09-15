@@ -2717,3 +2717,8 @@ Free Play uses a viewport-bounded shell and content area. Only the message histo
 scrolls during chat; app/chat headers, navigation and composer remain in place. The
 chooser and navigation retain their own overflow for small screens. Other routes
 keep their existing document scrolling.
+
+An opened Free Play chat combines company selection, usage, history, new conversation
+and return-to-selection in one 48px toolbar. It has no second conversation header.
+The company label truncates on narrow screens; controls retain accessible labels.
+Other chat surfaces retain their existing header.
