@@ -594,11 +594,42 @@ export type CopilotSuggestion = {
   message: string;
   disabled?: boolean;
 };
+export type UsageGrant = {
+  tenant_id: string;
+  request_key: string;
+  confirmed: boolean;
+  mode: "self" | "admin";
+  questions: number;
+  reason: string;
+  recipient_email: string;
+};
+export type UsageStatus = {
+  allowance: ManagedAllowance | null;
+  recipient: { id: string; email: string; name: string };
+  can_admin_grant: boolean;
+  self_extensions_remaining: number;
+  self_extension_questions: number;
+  history: Array<{
+    id: string;
+    actor_user_id: string;
+    actor_name: string;
+    recipient_user_id: string;
+    occurred_at: string;
+    expires_at: string;
+    questions: number;
+    mode: string;
+    reason: string;
+  }>;
+};
 export type ManagedAllowance = {
   limit: number;
   used: number;
   remaining: number;
   resets_at: string;
+  bonus_questions?: number;
+  bonus_remaining?: number;
+  base_remaining?: number;
+  self_extensions_remaining?: number;
 };
 export type CopilotData = {
   allowance?: ManagedAllowance | null;
@@ -1617,6 +1648,15 @@ export const api = {
     if (kind) params.set("kind", kind);
     return request<ExplorerData>(`/api/tenants/${tenant}/explorer?${params}`);
   },
+  usageStatus: (tenant: string, recipient = "") =>
+    request<UsageStatus>(
+      `/api/company-setup/ai-usage?${new URLSearchParams({ tenant_id: tenant, recipient_email: recipient })}`,
+    ),
+  grantUsage: (body: UsageGrant) =>
+    request<UsageStatus>("/api/company-setup/ai-usage", {
+      method: "POST",
+      body: JSON.stringify(body),
+    }),
   copilot: (tenant: string, sessionId = "", archived = false) =>
     request<CopilotData>(
       `/api/tenants/${tenant}/copilot?${new URLSearchParams({

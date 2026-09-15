@@ -1046,3 +1046,7 @@ Spec 185 owns the analytics service, agent tools, private report configuration a
   setup, no Storyline identity, archive and owner-scoped recorded calls;
   `storyline-browser.mjs` proves separate entry/creation/reopen, no card shortcuts,
   no prescribed chapters and responsive localized standalone layouts.
+
+- Spec 196: `packages/reality-core/tests/test_ai_usage.py` proves account-wide
+  lifetime cap, idempotent confirmation, actor/recipient attribution, tenant/admin
+  authorization, UTC expiration and concurrent grants.
