@@ -176,8 +176,8 @@ def send_access_decision_email(email: str, approved: bool) -> None:
               <p style="color:#667085">Your Reality account has been approved.</p>
               <a href="{safe_url}" style="display:inline-block;margin-top:20px;padding:13px 20px;border-radius:10px;background:#635bff;color:white;text-decoration:none;font-weight:600">Open Reality</a>
             </div>""",
-                kind="access_decision",
-    )
+            kind="access_decision",
+        )
     else:
         send_email(
             recipient=email,
@@ -189,6 +189,7 @@ def send_access_decision_email(email: str, approved: bool) -> None:
               <h1 style="font-size:28px;margin:40px 0 12px">Your access request</h1>
               <p style="color:#667085">We cannot activate your Reality account at this time.</p>
             </div>""",
+            kind="access_decision",
         )
 
 

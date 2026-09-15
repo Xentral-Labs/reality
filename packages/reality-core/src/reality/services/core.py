@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import logging
 import os
 from collections.abc import Callable, Iterable
 from dataclasses import dataclass
@@ -6335,6 +6336,7 @@ def send_chat_message(
     on_event: Callable[[dict[str, Any]], None] | None = None,
 ) -> tuple[ChatMessage, ChatMessage]:
     _require_business_mutation(session, tenant_id, "send_chat_message")
+    turn_outcome = "fallback"
     if not message.strip():
         raise InvalidOperation("Enter a question.")
     chat_session = _tenant_record(session, ChatSession, tenant_id, session_id)
@@ -6466,20 +6468,24 @@ def send_chat_message(
                     **({"on_event": on_event} if on_event else {}),
                 )
             reply = asyncio.run(provider_reply)
+            turn_outcome = "model"
         # A policy refusal is not an outage: say which company kind is closed
         # and why (feature 169). Provider, transport, protocol and tool failures
         # degrade to a safe user-visible response; no exception escapes here.
         except PlaygroundOperationDenied as error:
             reply = f"The Copilot is not available for this company: {error}"
+            turn_outcome = "denied"
         except Exception as error:  # noqa: BLE001
             reply = (
                 "The managed Copilot could not answer right now. "
                 f"Please try again later ({type(error).__name__})."
             )
+            turn_outcome = "provider_error"
     else:
         reply = ""
     if context_commitment_id and not own_provider and not managed_key:
         reply = "No AI provider is connected. You can still inspect the delivery and use its actions."
+        turn_outcome = "no_provider"
     normalized = original_message.lower()
     parts = original_message.split()
     if reply:
@@ -6574,7 +6580,9 @@ def send_chat_message(
         )
     else:
         reply = "V0 local agent: ask about inventory or fulfillment risk."
-    _record_copilot_turn(own_provider, managed_key, reply)
+    # Set where the reply is produced, not sniffed from its text: the string
+    # is user-facing copy and a copy edit would silently flip the metric.
+    _record_copilot_turn(own_provider, managed_key, turn_outcome)
     assistant_message = ChatMessage(
         id=uid("msg"),
         tenant_id=tenant_id,
@@ -13414,7 +13422,7 @@ def ensure_demo(session: OrmSession, tenant: Tenant) -> None:
     session.commit()
 
 
-def _record_copilot_turn(own_provider, managed_key, reply: str) -> None:
+def _record_copilot_turn(own_provider, managed_key, outcome: str) -> None:
     """Separate a real model answer from the deterministic fallback.
 
     Both return HTTP 200, so no amount of request-level instrumentation can
@@ -13431,7 +13439,7 @@ def _record_copilot_turn(own_provider, managed_key, reply: str) -> None:
             provider = "managed"
         else:
             provider = "none"
-        outcome = "fallback" if reply.startswith("V0 local agent") else "model"
         copilot_turn(provider, outcome)
-    except Exception:  # noqa: BLE001
-        pass
+    except Exception:
+        # A metric must never break a chat turn.
+        logging.getLogger(__name__).debug("copilot metric failed", exc_info=True)

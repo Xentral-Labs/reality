@@ -205,6 +205,12 @@ class ProcessLoop:
                 health_server = HealthServer(self.role, int(port))
                 health_server.__enter__()
             engine = database(scheduler=self.role == "scheduler")
+            # The runners build their own engine, separate from the web one, so
+            # they need instrumenting here or their pool is invisible -- and
+            # they are the heaviest sustained DB users in the deployment.
+            from reality import telemetry
+
+            telemetry.instrument_engine(engine)
             while not self.stop.is_set():
                 try:
                     summary = self.sweep(
@@ -255,5 +261,5 @@ def _record_sweep(role: str, counts: dict, seconds: float) -> None:
         from reality.telemetry.metrics import job_sweep
 
         job_sweep(role, counts, seconds)
-    except Exception:  # noqa: BLE001
-        pass
+    except Exception:
+        logging.getLogger(__name__).debug("sweep metric failed", exc_info=True)

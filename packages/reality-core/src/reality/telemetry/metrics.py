@@ -19,8 +19,6 @@ without a collector.
 from __future__ import annotations
 
 import logging
-import time
-from contextlib import contextmanager
 from typing import Any
 
 log = logging.getLogger(__name__)
@@ -66,7 +64,7 @@ def count(name: str, description: str, **attributes: str) -> None:
         return
     try:
         _counter(name, description).add(1, attributes)
-    except Exception:  # noqa: BLE001 - never let a metric break a request
+    except Exception:  # never let a metric break a request
         log.debug("metric %s failed", name, exc_info=True)
 
 
@@ -75,50 +73,38 @@ def record(name: str, description: str, unit: str, value: float, **attributes: s
         return
     try:
         _histogram(name, description, unit).record(value, attributes)
-    except Exception:  # noqa: BLE001
+    except Exception:
         log.debug("metric %s failed", name, exc_info=True)
 
 
-@contextmanager
-def duration(name: str, description: str, **attributes: str):
-    """Time a block and record it in seconds, tagging the outcome.
+_ACCOUNT_STATES = (
+    "email_unverified",
+    "pending_approval",
+    "active",
+    "rejected",
+    "suspended",
+)
 
-    The `outcome` attribute is set automatically, because a latency histogram
-    that mixes successes with fast failures reads as an improvement when things
-    break.
-    """
-    started = time.perf_counter()
-    outcome = "success"
+
+def _dedicated_session_factory(fallback: Any) -> Any:
+    """A tiny isolated pool for gauge reads, falling back to the shared one."""
     try:
-        yield
-    except Exception:
-        outcome = "error"
-        raise
-    finally:
-        record(
-            name,
-            description,
-            "s",
-            time.perf_counter() - started,
-            outcome=outcome,
-            **attributes,
+        from sqlalchemy.orm import sessionmaker
+
+        from reality.db.core import (
+            DATABASE_URL,
+            DatabasePoolSettings,
+            build_engine,
         )
 
-
-# ---------------------------------------------------------------------------
-# Accounts
-# ---------------------------------------------------------------------------
-# Deliberately NOT counters for signup/verify/login attempts. The FastAPI
-# instrumentation already emits request counts and status codes per route, so
-# `http.server.duration{http.route="/api/auth/login", http.response.status_code="401"}`
-# is the failed-login rate -- a second hand-maintained counter would only be a
-# source of disagreement.
-#
-# What HTTP metrics cannot express is STATE: how many accounts exist and where
-# they are stuck. That is the "signed up users" question, and it is a gauge
-# read from the database, not a counter accumulated from requests.
-
-_ACCOUNT_STATES = ("email_unverified", "pending_approval", "active", "rejected", "suspended")
+        settings = DatabasePoolSettings(pool_size=1, max_overflow=0, pool_timeout=2)
+        return sessionmaker(
+            bind=build_engine(DATABASE_URL, pool_settings=settings),
+            expire_on_commit=False,
+        )
+    except Exception:
+        log.debug("dedicated gauge pool unavailable; using shared pool", exc_info=True)
+        return fallback
 
 
 def observe_accounts(session_factory: Any) -> None:
@@ -137,13 +123,21 @@ def observe_accounts(session_factory: Any) -> None:
     from opentelemetry import metrics
     from opentelemetry.metrics import CallbackOptions, Observation
 
+    # These callbacks run on the metric-export thread. Reading them through the
+    # request pool means that when the pool saturates -- the exact incident
+    # reality.db.pool.* exists to diagnose -- the callback blocks for the full
+    # 30s pool_timeout, stalling the export and taking the pool gauges down
+    # with it. A dedicated single-connection engine with a 2s timeout keeps the
+    # observability alive through the failure it is meant to describe.
+    _gauge_session = _dedicated_session_factory(session_factory)
+
     def accounts(_options: CallbackOptions):
         try:
             from sqlalchemy import func, select
 
             from reality.db.core import AppUser
 
-            with session_factory() as session:
+            with _gauge_session() as session:
                 rows = session.execute(
                     select(AppUser.status, func.count()).group_by(AppUser.status)
                 ).all()
@@ -154,7 +148,8 @@ def observe_accounts(session_factory: Any) -> None:
                 Observation(seen.get(state, 0), {"status": state})
                 for state in set(_ACCOUNT_STATES) | set(seen)
             ]
-        except Exception:  # noqa: BLE001
+        except Exception:
+            log.debug("gauge collection failed", exc_info=True)
             return []
 
     def pending_applications(_options: CallbackOptions):
@@ -163,14 +158,15 @@ def observe_accounts(session_factory: Any) -> None:
 
             from reality.db.core import AccessApplication
 
-            with session_factory() as session:
+            with _gauge_session() as session:
                 total = session.scalar(
                     select(func.count())
                     .select_from(AccessApplication)
                     .where(AccessApplication.status == "pending")
                 )
             return [Observation(int(total or 0))]
-        except Exception:  # noqa: BLE001
+        except Exception:
+            log.debug("gauge collection failed", exc_info=True)
             return []
 
     meter = metrics.get_meter("reality")
@@ -203,24 +199,6 @@ def access_review(decision: str) -> None:
 def copilot_turn(provider: str, outcome: str) -> None:
     count("reality.copilot.turns", "Copilot turns served", provider=provider, outcome=outcome)
 
-
-def copilot_tokens(direction: str, tokens: int, provider: str) -> None:
-    if not _enabled() or tokens <= 0:
-        return
-    try:
-        _counter("reality.copilot.tokens", "Copilot tokens billed", "1").add(
-            tokens, {"direction": direction, "provider": provider}
-        )
-    except Exception:  # noqa: BLE001
-        log.debug("token metric failed", exc_info=True)
-
-
-# ---------------------------------------------------------------------------
-# Email
-# ---------------------------------------------------------------------------
-# Invitation delivery is at-least-once and every attempt rotates the token, so a
-# silent send failure invalidates the link already in someone's inbox. A failure
-# here is user-visible and otherwise undetectable.
 
 def email_sent(provider: str, result: str, kind: str) -> None:
     count("reality.emails", "Emails dispatched", provider=provider, result=result, kind=kind)
@@ -262,7 +240,7 @@ def job_sweep(role: str, counts: dict, seconds: float) -> None:
         )
         if counts.get("budget_exhausted"):
             count("reality.jobs.budget_exhausted", "Sweeps that hit their budget", role=role)
-    except Exception:  # noqa: BLE001
+    except Exception:
         log.debug("job sweep metrics failed", exc_info=True)
 
 
@@ -285,7 +263,9 @@ def observe_pool(engine: Any) -> None:
         def callback(_options: CallbackOptions):
             try:
                 return [Observation(fn(engine.pool))]
-            except Exception:  # noqa: BLE001 - a dead pool must not break collection
+            except Exception:
+                # A dead pool must not break collection.
+                log.debug("pool gauge failed", exc_info=True)
                 return []
         return callback
 

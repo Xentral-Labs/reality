@@ -56,6 +56,6 @@ def _mcp_engine():
 
 
 _telemetry.configure("reality-mcp")
-app = create_mcp_app()
+app = _telemetry.instrument_asgi(create_mcp_app())
 _telemetry.instrument_httpx()
 _telemetry.instrument_engine(_mcp_engine())

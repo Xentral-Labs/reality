@@ -197,7 +197,7 @@ externalSecret:
 telemetry:
   enabled: false
   endpoint: ""      # e.g. http://alloy.monitoring.svc.cluster.local:4318
-  # Seconds between metric exports. The SDK default is 60s; lower costs more
+  # Milliseconds between metric exports. The SDK default is 60s; lower costs more
   # series churn for little benefit at this traffic level.
   metricExportIntervalMs: 60000
 

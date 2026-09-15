@@ -198,11 +198,7 @@ _telemetry.instrument_engine(_engine_for_telemetry())
 
 # Account state gauges live in the api only: every replica would report the same
 # numbers, and the runners have no reason to query the accounts table.
-if _telemetry.enabled():
-    from reality.db.core import Session as _Session
-    from reality.telemetry.metrics import observe_accounts as _observe_accounts
-
-    _observe_accounts(_Session)
+_telemetry.instrument_accounts(Session)
 
 
 @app.get("/healthz", include_in_schema=False)

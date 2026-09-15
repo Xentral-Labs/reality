@@ -124,6 +124,29 @@ Deliberate choices:
   value: {{ .Values.telemetry.endpoint | quote }}
 - name: OTEL_METRIC_EXPORT_INTERVAL
   value: {{ .Values.telemetry.metricExportIntervalMs | quote }}
+{{/*
+  Short export timeouts. The default is 10s per attempt with retries, so a
+  wrong endpoint or a collector that blackholes SYNs adds ~30s of retry noise
+  to every pod shutdown and floods the logs with exporter errors.
+*/}}
+- name: OTEL_METRIC_EXPORT_TIMEOUT
+  value: "3000"
+- name: OTEL_BSP_EXPORT_TIMEOUT
+  value: "3000"
+{{/*
+  service.instance.id / k8s.node.name. Set explicitly: left to itself the SDK
+  invents a random UUID per process, so every restart on spot capacity would
+  mint a whole new set of series. The node name lets a latency spike be
+  correlated with a spot reclaim.
+*/}}
+- name: REALITY_POD_NAME
+  valueFrom:
+    fieldRef:
+      fieldPath: metadata.name
+- name: REALITY_NODE_NAME
+  valueFrom:
+    fieldRef:
+      fieldPath: spec.nodeName
 {{- end }}
 {{/*
   REALITY_SETTINGS_KEY is NOT an alias of REALITY_MASTER_KEY in both directions.
