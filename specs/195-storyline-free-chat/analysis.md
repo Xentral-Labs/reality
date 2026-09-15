@@ -66,3 +66,8 @@ retained tile, Storyline active state and return to selection. No critical findi
 Owner requested a more visible modern loading indicator. Existing pending lifecycle
 and browser tests cover success/failure. Add reduced-motion verification. No critical
 findings, backend claims or progress estimates.
+
+## Conversation presentation review
+Owner requested ChatGPT-like left/right visual differentiation. Shared CSS/tokens
+cover dock, Free Play and full chat. Verify bubble position/background, assistant
+background, pending echo and mobile/light/dark overflow. No critical findings.

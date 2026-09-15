@@ -2701,3 +2701,8 @@ its sidebar link returns to the selection containing the Free Play tile.
 Pending chat requests show a prominent accent status panel above the composer with
 a rotating indicator and Reality is working label. Reduced motion stops rotation;
 role=status announces the label. Success and failure remove the status.
+
+Chat turns use neutral right-aligned user bubbles and left-aligned unboxed assistant
+responses with bounded reading width and distinct spacing. Author/time metadata is
+accessible without visible labels. Pending echoes share user styling; per-reply
+evidence stays underneath the associated answer.

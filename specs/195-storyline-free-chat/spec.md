@@ -84,6 +84,11 @@ input while preventing edits/submission.
   respects archive. An existing dedicated Sandbox can be reopened from the selector.
 - **FR-009**: Trace eligibility adds only the designated standalone practice run to
   existing Storylines. Chapter APIs remain Storyline-only; temporary lesson boundaries hold.
+- **FR-011**: Chat uses right-aligned neutral user bubbles and left-aligned unboxed
+  assistant responses, clear turn spacing and bounded reading width. Visible role/time
+  labels do not clutter turns; accessible authorship and per-reply evidence remain.
+  Pending user messages share the same style. Long content remains contained in both
+  themes and on mobile.
 - **DR-001**: Source → Evidence → Reality, shared services, admission and tenant scope
   remain authoritative. No adapter business writes or new schema.
 
@@ -108,6 +113,7 @@ None. The owner explicitly requested the independent entry and removal from each
 |---|---|
 | FR-001–002, FR-005 | Storyline/contextual and independent browser interactions and layouts |
 | FR-003–004, DR-001 | PostgreSQL exact evidence, proposal lifecycle, scope and retention tests |
+| FR-011 | Shared chat browser role geometry/background, echo and responsive theme checks |
 | FR-010 | Shared composer browser pending/settled status and reduced-motion checks |
 | FR-006 | Shared composer failure/button/Enter focus and deliberate alternate-focus tests |
 | FR-007–008 | Library/standalone browser entry, direct routing, explicit creation/reopen tests |

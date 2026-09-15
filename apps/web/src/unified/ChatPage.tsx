@@ -9,10 +9,8 @@ import {
   type AnalyticsHandoff,
   messageContext,
 } from "./context";
-const assistantMessage = "mr-6 bg-surface";
 const compactFrame = "flex h-[min(720px,75dvh)] min-w-0 flex-col gap-4";
 const fullFrame = "mx-auto flex h-[calc(100dvh-152px)] min-h-[500px] max-w-5xl flex-col gap-4";
-const userMessage = "ml-6 bg-accent-soft";
 import { useEffect, useRef, useState, useId, type ReactNode } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
@@ -324,7 +322,7 @@ export function ChatPage({
       <div
         ref={messageList}
         data-chat-messages
-        className="min-h-0 flex-1 space-y-4 overflow-y-auto overscroll-contain px-5 py-4"
+        className="min-h-0 w-full max-w-3xl flex-1 self-center space-y-7 overflow-y-auto overscroll-contain px-5 py-6"
         aria-live="polite"
       >
         {!data.messages.length && !echo && (
@@ -345,9 +343,10 @@ export function ChatPage({
           <article
             key={message.id || "echo"}
             data-chat-pending={message.id ? undefined : ""}
-            className={`reality-chat-message overflow-hidden rounded-xl border border-border-default p-5 ${message.role === "user" ? userMessage : assistantMessage}`}
+            data-chat-role={message.role}
+            className="reality-chat-message"
           >
-            <p className="reality-chat-meta mb-2 text-xs text-fg-muted">
+            <p className="sr-only">
               {message.role === "user" ? t("You") : "Reality"}{" "}
               {message.created_at && (
                 <time className="ml-2">{formatDateTime(message.created_at)}</time>
