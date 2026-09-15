@@ -29,7 +29,7 @@ const admin = {
 let applicants = [
   {
     id: "usr_free5",
-    email: "benedikt.sauter+free5@xentral.com",
+    email: "first.applicant+free5@example.com",
     display_name: "",
     status: "active",
     is_platform_admin: false,
@@ -37,7 +37,7 @@ let applicants = [
   },
   {
     id: "usr_pending",
-    email: "benedikt.sauter+20260914@xentral.com",
+    email: "first.applicant+20260914@example.com",
     display_name: "",
     status: "pending_approval",
     is_platform_admin: false,
@@ -45,8 +45,8 @@ let applicants = [
   },
   {
     id: "usr_colleague",
-    email: "second-admin@xentral.com",
-    display_name: "Tobi",
+    email: "second-admin@example.com",
+    display_name: "Second Admin",
     status: "active",
     is_platform_admin: true,
     application: { id: "app_colleague", status: "approved" },
@@ -71,7 +71,7 @@ const row = (user) => ({
 
 const preview = {
   user_id: "usr_free5",
-  email: "benedikt.sauter+free5@xentral.com",
+  email: "first.applicant+free5@example.com",
   is_platform_admin: false,
   deleted_companies: [
     { id: "ten_sandbox", name: "Practice Company", purpose: "playground", record_count: 412 },
@@ -113,17 +113,17 @@ await open();
 // and for a colleague administrator.
 const deleteButton = (email) =>
   page.locator(`.application-list article:has(small:text-is("${email}")) .delete-applicant`);
-assert.equal(await deleteButton("benedikt.sauter+free5@xentral.com").count(), 1);
+assert.equal(await deleteButton("first.applicant+free5@example.com").count(), 1);
 assert.equal(await deleteButton("owner@reality.local").count(), 0, "own row offers deletion");
 assert.equal(
-  await deleteButton("second-admin@xentral.com").count(),
+  await deleteButton("second-admin@example.com").count(),
   0,
   "colleague administrator offers deletion",
 );
 await page.screenshot({ path: `${out}/list-en.png`, fullPage: true });
 
 // FR-002: the dialog names what is lost before anything can be confirmed.
-await deleteButton("benedikt.sauter+free5@xentral.com").click();
+await deleteButton("first.applicant+free5@example.com").click();
 const dialog = page.locator("dialog.applicant-delete-dialog");
 await dialog.waitFor({ state: "visible" });
 await page.waitForFunction(() => !!document.querySelector(".deletion-losses"));
@@ -138,15 +138,15 @@ const confirm = dialog.locator("button[type=submit]");
 const emailField = dialog.locator("input[name=confirmation_email]");
 const wordField = dialog.locator("input[name=confirmation_word]");
 assert.equal(await confirm.isDisabled(), true, "confirm enabled before any answer");
-await emailField.fill("benedikt.sauter+free5@xentral.com");
+await emailField.fill("first.applicant+free5@example.com");
 assert.equal(await confirm.isDisabled(), true, "confirm enabled without the word");
 await wordField.fill("delete");
 assert.equal(await confirm.isDisabled(), true, "lower-case word enabled the confirm");
 await wordField.fill("DELETE");
 assert.equal(await confirm.isDisabled(), false, "correct answers left the confirm disabled");
-await emailField.fill("someone.else@xentral.com");
+await emailField.fill("someone.else@example.com");
 assert.equal(await confirm.isDisabled(), true, "wrong address enabled the confirm");
-await emailField.fill("Benedikt.Sauter+Free5@Xentral.com");
+await emailField.fill("First.Applicant+Free5@Example.com");
 assert.equal(await confirm.isDisabled(), false, "a differently cased address was refused");
 
 // A server refusal is shown without removing the row.
@@ -165,12 +165,12 @@ await page.waitForFunction(() => !document.querySelector("dialog.applicant-delet
 });
 const sent = requests.find((entry) => entry.path.endsWith("/delete"));
 assert.deepEqual(sent.body, {
-  confirmation_email: "Benedikt.Sauter+Free5@Xentral.com",
+  confirmation_email: "First.Applicant+Free5@Example.com",
   confirmation_word: "DELETE",
 });
 assert.equal(sent.path, "/api/admin/access-applications/app_free5/delete");
 await page.waitForFunction(
-  () => !document.body.innerText.includes("benedikt.sauter+free5@xentral.com"),
+  () => !document.body.innerText.includes("first.applicant+free5@example.com"),
 );
 await page.screenshot({ path: `${out}/list-after-en.png`, fullPage: true });
 
@@ -178,7 +178,7 @@ await page.screenshot({ path: `${out}/list-after-en.png`, fullPage: true });
 language = "de";
 await page.setViewportSize({ width: 390, height: 900 });
 await open();
-await deleteButton("benedikt.sauter+20260914@xentral.com").click();
+await deleteButton("first.applicant+20260914@example.com").click();
 await dialog.waitFor({ state: "visible" });
 await page.waitForFunction(() => !!document.querySelector(".deletion-losses"));
 const german = await dialog.innerText();

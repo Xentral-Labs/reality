@@ -46,7 +46,7 @@ Final deployed-local check: delayed entry regression also passed directly agains
 
 ## Internal-repository PR integration
 
-Rebased onto `reality-internal` main at `27a606c`, preserving the merged public-site privacy and Railway legal changes. Additive conflicts in site translations and documentation were combined. Backend content is byte-for-byte unchanged from the fully verified trial commit. Rebased checks: 156 web contracts, 77 site contracts, web/site localization and production builds passed; spec policy covers all 80 changed files. Whitespace in newly added specs was normalized.
+Rebased onto main at `27a606c`, preserving the merged public-site privacy and Railway legal changes. Additive conflicts in site translations and documentation were combined. Backend content is byte-for-byte unchanged from the fully verified trial commit. Rebased checks: 156 web contracts, 77 site contracts, web/site localization and production builds passed; spec policy covers all 80 changed files. Whitespace in newly added specs was normalized.
 
 Both entry-progress and full free-playground browser suites passed against the rebased production build, including four mobile locales. Web formatting passed.
 
