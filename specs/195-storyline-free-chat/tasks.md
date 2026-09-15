@@ -51,3 +51,6 @@ as one coherent increment because free chat must carry truthful evidence.
 
 - [x] T020 [FR-014] Merge Free Play headers, verify toolbar size/control access and
   scrolling on notebook/mobile, update local preview/PR.
+
+- [x] T021 [FR-015] Add left session list/mobile drawer, remove chat Storyline link,
+  verify scoped selection/layout and update local preview/PR.
