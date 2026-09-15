@@ -2,7 +2,15 @@ import { createPortal } from "react-dom";
 import { ChatUsage } from "./ChatUsage";
 import { AnalyticsReportProposal } from "./analytics/AnalyticsReportProposal";
 import { AllowanceNotice, ChatComposer } from "./ChatComposer";
-import { History, LoaderCircle, SquarePen, Sparkles } from "lucide-react";
+import {
+  Archive,
+  ArchiveRestore,
+  ChevronLeft,
+  History,
+  LoaderCircle,
+  SquarePen,
+  Sparkles,
+} from "lucide-react";
 const emptyMessageClass = "flex flex-col justify-center";
 const compactHistoryClass = "reality-chat-icon free-play-mobile-control";
 const activeSessionClass = "bg-accent-soft font-medium text-accent";
@@ -59,9 +67,11 @@ export function ChatPage({
 }) {
   const composerId = useId();
   const [historyOpen, setHistoryOpen] = useState(false);
+  const [showArchived, setShowArchived] = useState(false);
+  const [changingSession, setChangingSession] = useState(false);
   const { data, loading, error, code, refresh } = useRead(async () => {
     try {
-      return await api.copilot(selection.tenant, selection.session);
+      return await api.copilot(selection.tenant, selection.session, showArchived);
     } catch (error) {
       if (
         selection.session &&
@@ -77,9 +87,9 @@ export function ChatPage({
       }
       throw error;
     }
-  }, [selection.tenant, selection.session]);
+  }, [selection.tenant, selection.session, showArchived]);
   const recoveringSession =
-    !!selection.session && code === `chat_session_missing:${selection.session}`;
+    !showArchived && !!selection.session && code === `chat_session_missing:${selection.session}`;
   useEffect(() => {
     if (recoveringSession && selection.session) navigate({ session: "" }, { replace: true });
   }, [recoveringSession, selection.session]);
@@ -183,7 +193,8 @@ export function ChatPage({
     const timer = window.setTimeout(refresh, Math.min(delay, 86401000));
     return () => window.clearTimeout(timer);
   }, [data?.allowance?.resets_at]);
-  const sessionReady = !selection.session || data?.active_session_id === selection.session;
+  const sessionReady =
+    showArchived || !selection.session || data?.active_session_id === selection.session;
   useEffect(() => {
     if (!restoreComposerFocus.current || sending || startingChat || loading || !sessionReady)
       return;
@@ -281,6 +292,34 @@ export function ChatPage({
     onSessionSelected?.();
     navigate({ session });
   };
+  const archiveSession = async (row: { id: string; title: string }) => {
+    if (!window.confirm(t("Archive this chat?"))) return;
+    setChangingSession(true);
+    setFailure("");
+    try {
+      await api.deleteCopilotSession(selection.tenant, row.id);
+      if (selection.session === row.id || data.active_session_id === row.id)
+        navigate({ session: "" }, { replace: true });
+      refresh();
+    } catch (error) {
+      setFailure((error as Error).message);
+    } finally {
+      setChangingSession(false);
+    }
+  };
+  const restoreSession = async (row: { id: string }) => {
+    setChangingSession(true);
+    setFailure("");
+    try {
+      await api.restoreCopilotSession(selection.tenant, row.id);
+      setShowArchived(false);
+      navigate({ session: row.id }, { replace: true });
+    } catch (error) {
+      setFailure((error as Error).message);
+    } finally {
+      setChangingSession(false);
+    }
+  };
   const chatControls = (
     <div className="flex shrink-0 items-center gap-1">
       {!usageTarget && <ChatUsage allowance={data.allowance} navigate={navigate} />}
@@ -310,33 +349,74 @@ export function ChatPage({
       {sessionsTarget &&
         createPortal(
           <div className="space-y-1" data-chat-session-list>
-            <button
-              className="br-btn mb-3 w-full justify-start gap-2"
-              disabled={sending || startingChat}
-              onClick={() => {
-                onSessionSelected?.();
-                void startConversation();
-              }}
-            >
-              <SquarePen size={18} />
-              {t("New conversation")}
-            </button>
+            {showArchived ? (
+              <button
+                className="br-btn mb-3 w-full justify-start gap-2"
+                onClick={() => {
+                  setShowArchived(false);
+                  navigate({ session: "" }, { replace: true });
+                }}
+              >
+                <ChevronLeft size={18} />
+                {t("Back to chats")}
+              </button>
+            ) : (
+              <button
+                className="br-btn mb-3 w-full justify-start gap-2"
+                disabled={sending || startingChat}
+                onClick={() => {
+                  onSessionSelected?.();
+                  void startConversation();
+                }}
+              >
+                <SquarePen size={18} />
+                {t("New conversation")}
+              </button>
+            )}
             {!data.sessions.length && (
-              <p className="text-sm text-fg-muted">{t("No conversations yet.")}</p>
+              <p className="text-sm text-fg-muted">
+                {t(showArchived ? "No archived chats" : "No conversations yet.")}
+              </p>
             )}
             {data.sessions.map((row) => (
-              <button
-                key={row.id}
-                data-chat-session={row.id}
-                aria-current={row.id === data.active_session_id ? "true" : undefined}
-                className={`block w-full truncate rounded-lg px-3 py-2.5 text-left text-sm ${row.id === data.active_session_id ? activeSessionClass : inactiveSessionClass}`}
-                title={row.title}
-                disabled={sending || startingChat}
-                onClick={() => selectSession(row.id)}
-              >
-                <span data-original-content>{row.title}</span>
-              </button>
+              <div key={row.id} className="group flex min-w-0 items-center gap-1">
+                <button
+                  data-chat-session={row.id}
+                  aria-current={row.id === data.active_session_id ? "true" : undefined}
+                  className={`min-w-0 flex-1 truncate rounded-lg px-3 py-2.5 text-left text-sm ${row.id === data.active_session_id ? activeSessionClass : inactiveSessionClass}`}
+                  title={row.title}
+                  disabled={sending || startingChat || changingSession}
+                  onClick={() => selectSession(row.id)}
+                >
+                  <span data-original-content>{row.title}</span>
+                </button>
+                <button
+                  className="reality-chat-icon shrink-0"
+                  data-chat-session-restore={showArchived ? row.id : undefined}
+                  data-chat-session-archive={showArchived ? undefined : row.id}
+                  aria-label={t(showArchived ? "Restore chat" : "Archive chat")}
+                  title={t(showArchived ? "Restore chat" : "Archive chat")}
+                  disabled={sending || startingChat || changingSession}
+                  onClick={() =>
+                    showArchived ? void restoreSession(row) : void archiveSession(row)
+                  }
+                >
+                  {showArchived ? <ArchiveRestore size={17} /> : <Archive size={17} />}
+                </button>
+              </div>
             ))}
+            {!showArchived && data.has_archived && (
+              <button
+                className="mt-3 flex w-full items-center gap-2 rounded-lg px-3 py-2.5 text-left text-sm text-fg-muted hover:bg-surface-muted"
+                onClick={() => {
+                  setShowArchived(true);
+                  navigate({ session: "" }, { replace: true });
+                }}
+              >
+                <Archive size={17} />
+                {t("Archived chats")}
+              </button>
+            )}
           </div>,
           sessionsTarget,
         )}
@@ -600,7 +680,11 @@ export function ChatPage({
           {failure}
         </p>
       )}
-      {dock && sessionsTarget && data.allowance?.remaining === 0 ? (
+      {showArchived ? (
+        <p className="shrink-0 border-t border-border-default px-4 py-3 text-sm text-fg-muted">
+          {t("Archived — read only")}
+        </p>
+      ) : dock && sessionsTarget && data.allowance?.remaining === 0 ? (
         <div
           role="status"
           data-free-play-limit
