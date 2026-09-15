@@ -84,3 +84,9 @@ None; the owner explicitly approved this scope.
 - **FR-006**: After an explicit send settles (success or failure), restore focus to
   the active chat input. Do not focus on initial load or steal focus from another
   control deliberately selected while waiting.
+
+## Direct library entry
+- **FR-007**: Each library card with an existing run exposes a visible Free Play
+  action, including completed runs. It opens that run's Sandbox chat directly,
+  clears stale conversation/context selection, and creates no run, message or
+  business mutation. Unstarted cards retain the existing Start flow.

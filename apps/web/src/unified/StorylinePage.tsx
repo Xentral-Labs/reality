@@ -124,14 +124,19 @@ function Library({
       .catch((failure) => setError(failure instanceof Error ? failure.message : String(failure)));
   }, []);
   useEffect(load, [load]);
-  const open = async (key: string, work: () => Promise<StorylineRun>) => {
+  const open = async (key: string, work: () => Promise<StorylineRun>, chapter = "") => {
     setBusy(key);
     setError(null);
     try {
       const run = await work();
       if (!run.tenant_id) throw new Error(t("The storyline sandbox could not be prepared."));
       openCompany(await api.bootstrap(), run.tenant_id, { announce: false });
-      navigate({ route: "storyline", tenant: run.tenant_id, storylineChapter: "" });
+      navigate({
+        route: "storyline",
+        tenant: run.tenant_id,
+        storylineChapter: chapter,
+        ...(chapter === FREE_PLAY ? { session: "", commitment: "" } : {}),
+      });
     } catch (failure) {
       setError(failure instanceof Error ? failure.message : String(failure));
     } finally {
@@ -284,6 +289,19 @@ function Library({
             item={item}
             busy={busy !== null}
             start={() => void start(item)}
+            freePlay={() => {
+              if (item.run)
+                void open(
+                  item.key,
+                  async () => ({
+                    ...item.run!,
+                    key: item.key,
+                    version: item.version,
+                    error: null,
+                  }),
+                  FREE_PLAY,
+                );
+            }}
             startOver={() => void startOver(item)}
             remove={() => void remove(item)}
           />
@@ -293,18 +311,20 @@ function Library({
   );
 }
 
-/** One storyline: what it is, where the person is in it, one primary action, the rest folded. */
+/** One storyline: progress, the primary story action and direct Sandbox entry. */
 function StorylineCard({
   item,
   busy,
   start,
   startOver,
+  freePlay,
   remove,
 }: {
   item: StorylineLibraryItem;
   busy: boolean;
   start: () => void;
   startOver: () => void;
+  freePlay: () => void;
   remove: () => void;
 }) {
   const run = item.run;
@@ -395,7 +415,7 @@ function StorylineCard({
         ) : (
           <p className="text-[12px] text-fg-muted">{t("Opens a sandbox of its own for you.")}</p>
         )}
-        <div>
+        <div className="flex flex-wrap gap-2">
           <button
             type="button"
             className="br-btn br-btn-primary"
@@ -405,6 +425,17 @@ function StorylineCard({
           >
             {run ? (finished ? t("Open") : t("Continue")) : t("Start")}
           </button>
+          {run && (
+            <button
+              type="button"
+              className="br-btn"
+              data-storyline-free={item.key}
+              disabled={busy}
+              onClick={freePlay}
+            >
+              {t("Free play")}
+            </button>
+          )}
         </div>
       </div>
     </article>

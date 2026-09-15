@@ -639,6 +639,7 @@ await page.locator("[data-storyline-item='my-story']").waitFor();
 await page.locator("[data-storyline-item='my-story'] [data-storyline-menu] > summary").click();
 await page.locator("[data-storyline-remove='my-story']").click();
 await page.locator("[data-storyline-item='my-story']").waitFor({ state: "detached" });
+assert.equal(await page.locator("[data-storyline-free='order-to-close']").count(), 0);
 await page.locator("[data-storyline-start='order-to-close']").click();
 await page.locator("[data-storyline-page]").waitFor();
 assert.match(page.url(), /tenant=story/);
@@ -807,6 +808,11 @@ await page.waitForURL(/chapter=library/);
 await page
   .locator("[data-storyline-library] [data-storyline-start-over='order-to-close']")
   .waitFor({ state: "attached" });
+const beforeLibraryFree = writes.length;
+await page.locator("[data-storyline-free='order-to-close']").click();
+await page.waitForURL(/tenant=story.*chapter=free/);
+await page.locator("[data-storyline-free-play] textarea").waitFor();
+assert.equal(writes.length, beforeLibraryFree, "library Free Play only opens the existing run");
 await page.locator("[data-storyline-action='back-to-story']").click();
 await page.locator("[data-storyline-current-chapter='reference']").waitFor();
 await page.goto(`${base}/app/storyline?tenant=plain`);

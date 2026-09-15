@@ -56,3 +56,10 @@ form or on the document body. No domain/API changes; Constitution PASS. Tests fi
 Enter failure/retry, Send success, first-session Free Play, deliberate focus elsewhere.
 The shared composer stays read-only instead of disabled during send/refresh,
 preserving focus through follow-up loading cycles while preventing draft edits.
+
+## Direct library entry
+Reuse Library.open with an optional destination chapter and the existing run.
+Expose a secondary Free Play button beside Continue/Open only when a run exists.
+Reset chat/context selection for that destination. Tests cover absence before start,
+correct tenant/free route, no writes and return to the existing chapter. No API or
+schema changes; Constitution and requirement/task review PASS.
