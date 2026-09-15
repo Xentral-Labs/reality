@@ -104,7 +104,7 @@ await page.route("**/api/**", async (route) => {
   if (url.pathname.endsWith("/copilot/sessions"))
     return respond({ id: "chat_a", title: "New conversation" });
   if (url.pathname.endsWith("/messages")) {
-    await new Promise((resolve) => setTimeout(resolve, 400));
+    await new Promise((resolve) => setTimeout(resolve, 2000));
     if (!sent.length && requests.filter((path) => path.endsWith("/messages")).length === 1)
       return respond({ detail: "Provider unavailable" }, 503);
     sent.push(request.postDataJSON().message);
@@ -209,12 +209,21 @@ try {
   assert.ok((await pending.textContent()).includes("Question with retained failure"));
   assert.ok((await pending.textContent()).startsWith("You"));
   assert.equal(await input.inputValue(), "");
-  await dock.getByRole("status").filter({ hasText: "Thinking…" }).waitFor();
+  await dock.getByRole("status").filter({ hasText: "Reality is working…" }).waitFor();
+  const indicator = dock.locator("[data-chat-working] svg");
+  assert.notEqual(await indicator.evaluate((node) => getComputedStyle(node).animationName), "none");
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  assert.equal(await indicator.evaluate((node) => getComputedStyle(node).animationName), "none");
+  await page.screenshot({ path: "/private/tmp/chat-working-preview.png" });
+  await page.emulateMedia({ reducedMotion: "no-preference" });
   await dock.getByRole("alert").filter({ hasText: "Provider unavailable" }).waitFor();
   // A failed send returns the draft to the field and withdraws the unsent message.
   assert.equal(await input.inputValue(), "Question with retained failure");
   assert.equal(await pending.count(), 0);
-  assert.equal(await dock.getByRole("status").filter({ hasText: "Thinking…" }).count(), 0);
+  assert.equal(
+    await dock.getByRole("status").filter({ hasText: "Reality is working…" }).count(),
+    0,
+  );
   await page.waitForFunction(
     () => document.activeElement === document.querySelector("[data-global-chat] textarea"),
   );
@@ -232,7 +241,10 @@ try {
     1,
   );
   assert.equal(await input.inputValue(), "");
-  assert.equal(await dock.getByRole("status").filter({ hasText: "Thinking…" }).count(), 0);
+  assert.equal(
+    await dock.getByRole("status").filter({ hasText: "Reality is working…" }).count(),
+    0,
+  );
   await page.waitForFunction(
     () => document.activeElement === document.querySelector("[data-global-chat] textarea"),
   );

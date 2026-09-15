@@ -2697,3 +2697,7 @@ completion. Existing contextual draft handoff remains compatible.
 
 Free Play has no separate sidebar item. Storyline stays selected during Free Play;
 its sidebar link returns to the selection containing the Free Play tile.
+
+Pending chat requests show a prominent accent status panel above the composer with
+a rotating indicator and Reality is working label. Reduced motion stops rotation;
+role=status announces the label. Success and failure remove the status.

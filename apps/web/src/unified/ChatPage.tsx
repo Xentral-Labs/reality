@@ -1,6 +1,6 @@
 import { AnalyticsReportProposal } from "./analytics/AnalyticsReportProposal";
 import { AllowanceNotice, ChatComposer } from "./ChatComposer";
-import { History, SquarePen, Sparkles } from "lucide-react";
+import { History, LoaderCircle, SquarePen, Sparkles } from "lucide-react";
 const dockFrame = "reality-chat flex h-full min-h-0 min-w-0 flex-col";
 import {
   analyticsHash,
@@ -475,10 +475,23 @@ export function ChatPage({
         )}
       </div>
       {sending && (
-        <p role="status" className="flex shrink-0 items-center gap-2 px-5 py-2 text-sm text-accent">
-          <Sparkles size={18} className="animate-pulse" />
-          {t("Thinking…")}
-        </p>
+        <div
+          role="status"
+          data-chat-working
+          className="mx-4 mb-3 flex shrink-0 items-center gap-3 rounded-xl border border-accent/30 bg-accent-soft px-4 py-3 text-sm font-semibold text-fg-strong"
+        >
+          <span
+            aria-hidden="true"
+            className="grid size-10 shrink-0 place-items-center rounded-xl bg-accent text-white"
+          >
+            <LoaderCircle
+              size={24}
+              strokeWidth={2.5}
+              className="animate-spin motion-reduce:animate-none"
+            />
+          </span>
+          {t("Reality is working…")}
+        </div>
       )}
       {dock && failure && (
         <p role="alert" className="px-4 text-sm text-critical-text">
