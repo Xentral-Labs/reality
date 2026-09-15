@@ -1080,3 +1080,10 @@ Spec 185 owns the analytics service, agent tools, private report configuration a
   reports queued, preparing and nothing; `apps/web/scripts/setup-progress.test.mjs`
   proves the immediate first read and that the steps are derived, never estimated;
   `free-playground-browser.mjs` proves the three steps follow the real state.
+
+- Spec 204: `packages/reality-core/tests/scenarios/test_international_demo.py` proves
+  the seeded sales invoices settle in three states with a receivable smaller than what
+  was invoiced, six purchase orders across three suppliers cover the whole chain with
+  their payables settled, partly settled and untouched, received quantities follow the
+  goods receipts, two companies settle identically, and the profile authority gained
+  settlement and nothing beyond it.

@@ -970,6 +970,7 @@ _PRACTICE_APP_OPERATIONS = frozenset(
         "record_customer_payment",
         "post_customer_payment",
         "record_supplier_payment",
+        "allocate_settlement",
         "post_supplier_payment",
         "record_sales_credit",
         "post_sales_credit_note",
@@ -1118,6 +1119,16 @@ _PROFILE_OPERATIONS = _SEED_OPERATIONS | frozenset(
         "post_ledger",
         "create_source_system",
         "create_source_capability",
+        # Feature 204: the profile also settles what it bills and buys, so a demo
+        # company shows money moving instead of an order book nobody ever paid.
+        # The supplier invoice is built the way the sales invoice already is, with
+        # `create_manual_document_with_lines` and its posting entry point.
+        "post_customer_payment",
+        "record_customer_payment",
+        "post_supplier_invoice",
+        "post_supplier_payment",
+        "record_supplier_payment",
+        "allocate_settlement",
     }
 )
 _INTAKE_OPERATIONS = frozenset(

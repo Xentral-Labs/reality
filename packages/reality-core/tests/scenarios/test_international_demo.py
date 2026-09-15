@@ -180,3 +180,124 @@ def test_seeded_buyers_are_authored_not_drawn(session, scheduled_owner, monkeypa
         session, _demo_company(session, scheduled_owner, "b"), "sales_order"
     )
     assert first == second
+
+
+def _open_amounts(session, tenant: str, document_type: str) -> dict:
+    """What each settleable document still owes, read the way Finance reads it."""
+    from decimal import Decimal
+
+    from reality.db.core import Document
+    from reality.services import core
+
+    return {
+        document.number: (
+            abs(core.open_invoice_amount(session, tenant, document.id)),
+            Decimal(document.gross_amount),
+        )
+        for document in session.scalars(
+            select(Document).where(
+                Document.tenant_id == tenant, Document.type == document_type
+            )
+        )
+    }
+
+
+def _states(amounts: dict) -> dict:
+    return {
+        number: "paid" if open_amount == 0 else "part" if open_amount < gross else "open"
+        for number, (open_amount, gross) in amounts.items()
+    }
+
+
+def test_seeded_invoices_are_settled_in_three_states(
+    session, scheduled_owner, monkeypatch
+):
+    """Feature 204: the company gets paid, so open items mean something."""
+    from collections import Counter
+    from decimal import Decimal
+
+    from reality.db.core import Document
+
+    tenant = _demo_company(session, scheduled_owner, "settled")
+    states = Counter(
+        _states(_open_amounts(session, tenant, "sales_invoice"))
+        .values()
+    )
+    assert states["paid"] >= 10, states
+    assert states["part"] >= 3, states
+    assert states["open"] >= 4, states
+    assert (
+        session.scalar(
+            select(func.count())
+            .select_from(Document)
+            .where(Document.tenant_id == tenant, Document.type == "customer_payment")
+        )
+        == states["paid"] + states["part"]
+    )
+    receivable = sum(
+        open_amount
+        for open_amount, _ in _open_amounts(session, tenant, "sales_invoice").values()
+    )
+    invoiced = sum(
+        gross
+        for _, gross in _open_amounts(session, tenant, "sales_invoice").values()
+    )
+    assert Decimal(0) < receivable < invoiced, (receivable, invoiced)
+
+
+def test_purchases_cover_the_whole_chain(session, scheduled_owner, monkeypatch):
+    """Feature 204: ordered, received, invoiced and paid in every combination."""
+    from decimal import Decimal
+
+    from reality.db.core import Commitment, PlaygroundRun
+    from reality.services import core
+
+    tenant = _demo_company(session, scheduled_owner, "purchases")
+    orders = _documents(session, tenant, "purchase_order")
+    assert len(orders) == 6, orders
+    assert len(set(orders.values())) == 3, "every supplier takes part"
+    payables = _states(_open_amounts(session, tenant, "supplier_invoice"))
+    assert sorted(payables.values()) == ["open", "paid", "part"], payables
+    run = session.scalar(
+        select(PlaygroundRun).where(PlaygroundRun.tenant_id == tenant)
+    )
+    received = {}
+    for key, case in run.initialization_progress["cases"].items():
+        if not key.startswith("S"):
+            continue
+        commitment = session.get(Commitment, case["commitment_id"])
+        received[key] = core.fulfilled_quantity(session, tenant, commitment.id)
+    assert received["S01"] == Decimal(2), received
+    assert received["S03"] == Decimal(0), received
+    assert sum(1 for value in received.values() if value == Decimal(5)) == 4, received
+
+
+def test_settlement_is_authored_not_drawn(session, scheduled_owner, monkeypatch):
+    """Feature 204: the same profile version settles the same way everywhere."""
+    first = _demo_company(session, scheduled_owner, "settle-a")
+    second = _demo_company(session, scheduled_owner, "settle-b")
+    for document_type in ("sales_invoice", "supplier_invoice"):
+        assert _states(_open_amounts(session, first, document_type)) == _states(
+            _open_amounts(session, second, document_type)
+        ), document_type
+
+
+def test_the_profile_may_settle_but_not_decide(session, scheduled_owner):
+    """Feature 204: the seed gained settlement, and nothing beyond it."""
+    from reality.services.tenant_policy import _PROFILE_OPERATIONS
+
+    assert {
+        "post_customer_payment",
+        "record_customer_payment",
+        "post_supplier_invoice",
+        "post_supplier_payment",
+        "record_supplier_payment",
+        "allocate_settlement",
+    } <= _PROFILE_OPERATIONS
+    for denied in (
+        "post_customer_refund",
+        "allocate_credit_note",
+        "archive_tenant",
+        "create_change_proposal",
+    ):
+        assert denied not in _PROFILE_OPERATIONS, denied

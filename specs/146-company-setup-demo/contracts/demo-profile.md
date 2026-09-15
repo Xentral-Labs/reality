@@ -25,7 +25,7 @@ Use stable synthetic external keys, opaque tenant-local database IDs and English
 | P15 | Meridian Fabric | m | Materials |
 | P16 | Alpine Wax Pellets | kg | Materials |
 
-Full ready baseline: exactly 16 items, 20 customers, 3 suppliers, 2 stock locations plus 1 company party. Seeded orders, invoices and credit notes state an authored buyer per case key (feature 200); a comparison family states one buyer in both windows. Catalog keys are fixture references, never database identity. Source categories remain payload/manifest fields; missing category-query support is disclosed.
+Full ready baseline: exactly 16 items, 20 customers, 3 suppliers, 2 stock locations plus 1 company party, with authored settlement on both sides (feature 204): customer payments in three states and six purchase orders from ordered to paid. Seeded orders, invoices and credit notes state an authored buyer per case key (feature 200); a comparison family states one buyer in both windows. Catalog keys are fixture references, never database identity. Source categories remain payload/manifest fields; missing category-query support is disclosed.
 
 ## Operational cases at the anchor
 

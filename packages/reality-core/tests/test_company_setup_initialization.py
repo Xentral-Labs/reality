@@ -60,7 +60,7 @@ def test_creation_answers_before_the_profile_is_seeded(session, scheduled_owner)
     assert session.get(PlaygroundRun, result["run_id"]).status == "active"
     receipt = company_setup.read_request(session, scheduled_owner.id, "deferred")
     assert receipt["status"] == "ready" and receipt["destination"]
-    assert _documents(session, tenant) == 62
+    assert _documents(session, tenant) == 89
 
 
 def test_repeated_request_queues_one_initialization(session, scheduled_owner):
@@ -133,9 +133,9 @@ def test_explicit_retry_completes_without_a_worker(session, scheduled_owner):
     )
     assert retried["status"] == "ready"
     assert retried["tenant_id"] == result["tenant_id"]
-    assert _documents(session, result["tenant_id"]) == 62
+    assert _documents(session, result["tenant_id"]) == 89
     assert _work(session, result["tenant_id"]) == "succeeded"
-    assert _documents(session, result["tenant_id"]) == 62
+    assert _documents(session, result["tenant_id"]) == 89
 
 
 def test_a_small_profile_is_still_ready_when_the_request_answers(

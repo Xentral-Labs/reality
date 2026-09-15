@@ -88,9 +88,39 @@ WEEKLY_CUSTOMERS = (
     "C3",
     "C16",
 )
-# The supplier that makes each purchased material, so the three purchase orders state
-# three suppliers instead of naming the first one three times.
+# The supplier that makes each purchased material, so the purchase orders state three
+# suppliers instead of naming the first one every time.
 SUPPLIER_ITEMS = {"P11": "S3", "P15": "S2", "P16": "S1"}
+# Feature 204: what happened to each seeded sales invoice. A demo company that bills
+# but never gets paid shows one undifferentiated receivable and no movement in Finance.
+SETTLEMENT = {
+    "volume-prior": "paid",
+    "volume-current": "paid",
+    "price-prior": "paid",
+    "price-current": "part",
+    "decline-prior": "paid",
+    "decline-current": "open",
+    "credit-origin": "part",
+    "outlier-prior": "paid",
+    "outlier-current": "open",
+    "zero-current": "open",
+    "usd-prior": "paid",
+    "usd-current": "paid",
+}
+# The weekly series settles from the oldest week forward, so the newest invoices are
+# the open ones — which is what an order book actually looks like.
+WEEKLY_SETTLEMENT = ("paid",) * 8 + ("part", "part", "open", "open")
+# Feature 204: the purchase orders and how far each one got, so the whole
+# purchase-to-pay chain is visible. Each states its case key, item, the quantity
+# ordered, the quantity that arrived, the invoiced amount and the amount paid.
+PURCHASES = (
+    ("S01", "P11", "5", "2", None, None),
+    ("S02", "P15", "5", "5", "50", "50"),
+    ("S03", "P16", "5", "0", None, None),
+    ("S04", "P15", "5", "5", "50", "20"),
+    ("S05", "P16", "5", "5", "50", None),
+    ("S06", "P11", "5", "5", None, None),
+)
 LOCATIONS = ("Rotterdam Warehouse", "Singapore Warehouse")
 MINIMAL_ITEMS = frozenset({"P01", "P02", "P11", "P12"})
 # Quantity, unit price and total are independently stated synthetic source inputs.
