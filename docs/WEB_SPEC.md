@@ -2684,7 +2684,7 @@ call and may include later Sandbox activity; it is not exclusive causal attribut
 Chapter progress remains unchanged and Back to the storyline remains available.
 
 Spec 195: independent `/app/free-play` is separate from guided Storylines. One library
-entry and one navigation entry offer the current or another accessible company, or
+tile offers the current or another accessible company, or
 creation of a sample-data Sandbox. The selected company is labeled and opening it
 is read-only. A real-data notice distinguishes ordinary companies; all changes keep
 normal confirmation. Reload preserves the opened company. What happened explicitly
@@ -2694,3 +2694,6 @@ cards have no Free Play buttons. Contextual story chat remains Sandbox chat.
 The Storyline narrator footer has no Free Play/Sandbox chat shortcut. A full-size
 Back to selection button returns to the exploration library, emphasized after
 completion. Existing contextual draft handoff remains compatible.
+
+Free Play has no separate sidebar item. Storyline stays selected during Free Play;
+its sidebar link returns to the selection containing the Free Play tile.

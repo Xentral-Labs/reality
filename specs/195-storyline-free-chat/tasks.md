@@ -30,3 +30,6 @@ as one coherent increment because free chat must carry truthful evidence.
 
 - [x] T013 [FR-007] Remove narrator Sandbox chat shortcut, label/style Back to
   selection, update contract/browser regression, verify web/browser/spec and preview.
+
+- [x] T014 [FR-007] Remove Free Play sidebar entry; retain tile, highlight Storyline
+  on Free Play, test selection navigation, verify and update local preview/PR.

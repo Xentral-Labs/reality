@@ -135,9 +135,13 @@ Free Play is an independent `/app/free-play` entry. Choose any accessible compan
 with the current company preselected, or create a dedicated practice Sandbox with
 static canonical sample data. Opening the entry or an existing company only reads;
 explicit creation uses company setup and its stable receipt. No Storyline is created.
-The exploration library and navigation expose one Free Play entry; individual story
+The Storyline exploration library exposes one Free Play tile with no separate
+sidebar entry; individual story
 cards do not. Contextual chat in a story is labeled Sandbox chat. Both use the same
 agent and confirmation. Recorded What happened evidence is available in eligible
 Storyline/Free Play Sandboxes; other companies explicitly show unavailable evidence.
 Existing company data is used directly, with a real-data notice for business companies.
 Reload retains the chosen company. Archived Free Play is never auto-restored.
+
+Free Play has no separate sidebar item. Storyline stays selected during Free Play;
+its sidebar link returns to the selection containing the Free Play tile.
