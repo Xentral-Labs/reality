@@ -168,3 +168,14 @@ frontend contracts, build, formatting and spec policy. Backend/migration/catalog
 generation are not applicable to this class-only adjustment. Revert the two
 responsive classes to roll back. Review active selection, menu access and mobile
 drawer geometry before marking the task complete.
+
+## Comfortable conversation navigation (FR-024)
+Widen both desktop sidebar states in CompanyChatPage.tsx to 288px. Add a scoped
+menu class in ChatPage.tsx and a hover/fine-pointer media rule in tailwind.css,
+using opacity to retain keyboard access and row geometry. Keep open menus visible.
+Use a 192px minimum menu width and nowrap labels with nonshrinking icons.
+Constitution Check: PASS across all principles; adapter styling only, no schema,
+service, tenant, source or authority changes. Rollback: revert these styles.
+Validation: extend unified-chat-composer-browser.mjs first, run browser geometry
+and interaction checks, frontend contracts/build, formatting, spec policy and diff
+review. Backend, migrations and catalogs are unaffected and their gates do not apply.

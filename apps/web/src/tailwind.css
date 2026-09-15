@@ -3474,3 +3474,15 @@ textarea.br-control.rule-draft-editor {
     justify-content: center;
   }
 }
+
+@media (hover: hover) and (pointer: fine) {
+  [data-chat-session-list] .chat-session-options {
+    opacity: 0;
+  }
+
+  [data-chat-session-list] .group:hover .chat-session-options,
+  [data-chat-session-list] .group:focus-within .chat-session-options,
+  [data-chat-session-list] .chat-session-options[open] {
+    opacity: 1;
+  }
+}

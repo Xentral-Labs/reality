@@ -350,6 +350,8 @@ try {
     const first = await page.locator('[data-chat-session="chat_a"]').boundingBox();
     const second = await page.locator('[data-chat-session="chat_b"]').boundingBox();
     assert.ok(first && second);
+    const sidebar = await page.locator("[data-free-play-sessions]").boundingBox();
+    assert.equal(sidebar.width, width >= 1280 ? 288 : 256, "history width");
     assert.equal(first.height, width >= 1280 ? 36 : 40, "session button height");
     assert.equal(second.y - first.y, width >= 1280 ? 36 : 44, "session row spacing");
     await page.screenshot({ path: `/private/tmp/reality-session-spacing-${width}.png` });
@@ -360,6 +362,42 @@ try {
         .click();
   }
   await page.setViewportSize({ width: 1440, height: 900 });
+
+  // FR-024: keyboard and hover reveal options without changing row geometry.
+  const menu = page.locator('[data-chat-session-menu="chat_b"]');
+  const opacity = () => menu.evaluate((el) => getComputedStyle(el).opacity);
+  await page.mouse.move(1000, 800);
+  assert.equal(await opacity(), "0");
+  await menu.locator("summary").focus();
+  assert.equal(await opacity(), "1");
+  await menu.locator("summary").evaluate((el) => el.blur());
+  await page.locator('[data-chat-session="chat_b"]').hover();
+  assert.equal(await opacity(), "1");
+  await menu.locator("summary").click();
+  await page.mouse.move(1000, 800);
+  await menu.locator("summary").evaluate((el) => el.blur());
+  assert.equal(await opacity(), "1", "open menu remains visible");
+  await menu.locator("summary").click();
+  const touch = await context.newCDPSession(page);
+  await touch.send("Emulation.setTouchEmulationEnabled", { enabled: true, maxTouchPoints: 1 });
+  await page.mouse.move(1000, 800);
+  await menu.locator("summary").evaluate((el) => el.blur());
+  assert.equal(await opacity(), "1", "touch options remain visible without hover");
+  await touch.send("Emulation.setTouchEmulationEnabled", { enabled: false });
+  await touch.detach();
+  await page.goto(`${base}/app/chat?tenant=tenant_a&lang=de`);
+  await menu.locator("summary").click();
+  const archive = menu.getByRole("button", { name: "Chat archivieren", exact: true });
+  await archive.waitFor();
+  const label = await archive.evaluate((el) => {
+    const range = document.createRange();
+    range.selectNode(el.lastChild);
+    return { lines: range.getClientRects().length, overflow: el.scrollWidth > el.clientWidth };
+  });
+  assert.equal(label.lines, 1);
+  assert.equal(label.overflow, false);
+  await page.screenshot({ path: "/private/tmp/reality-chat-history-room.png" });
+  await page.goto(`${base}/app/chat?tenant=tenant_a&lang=en`);
 
   await page.locator('[data-chat-session-menu="chat_a"] summary').click();
   await page.getByRole("button", { name: "Delete chat", exact: true }).click();

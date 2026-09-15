@@ -339,3 +339,31 @@ rotation and removal on success or failure are unchanged.
   checkout and were not run against this change.
 - TypeScript build and the four-language audit (1878/1878) pass. No backend, schema or
   catalog change.
+
+## Comfortable conversation navigation (FR-024, 2026-09-15)
+- Owner approved wider history, one-line action labels and contextual options.
+  Increment analysis: FR-024 maps to T030 and browser acceptance; no unresolved
+  clarification or critical finding; Constitution Check PASS. The prerequisite
+  helper resolved the active spec 207, so this review used the explicit spec 195
+  artifacts without changing active feature state.
+- Test-first browser failure: history width 240 != 288. After implementation, the
+  full composer browser passes desktop/mobile geometry, idle/hover/focus/open-menu
+  visibility, emulated touch visibility, actual German archive-label line count
+  and overflow, existing selection and confirmation-dialog cancellation.
+  Screenshot /private/tmp/reality-chat-history-room.png visually reviewed.
+- TypeScript/Vite build, changed-file Prettier, diff whitespace and spec policy pass.
+  Spec policy ran directly with python3 scripts/check_spec_policy.py because the
+  local make launcher requires Xcode license acceptance.
+- Frontend contracts: 190/191 pass. The existing shell-header layout regex at
+  apps/web/scripts/unified-app-contract.test.mjs:452 fails against concurrent
+  Shell.tsx/HeaderControls changes outside this increment. T030 remains unchecked
+  until the complete gate is green. No backend/schema/catalog change.
+- Final review: only sidebar widths, menu sizing and scoped option visibility were
+  changed for this increment. Concurrent working-tree edits were preserved.
+
+### Isolated PR verification
+On origin/main (1d549ae9) with only FR-024 applied, all 191 frontend contracts
+pass, including the previously affected header test. The complete composer browser
+passes against the isolated preview on port 5188. TypeScript/Vite build, i18n audit,
+changed-file Prettier, spec policy and diff whitespace checks pass. T030 is complete.
+The existing bundle-size warning is unchanged. No concurrent work is included.
