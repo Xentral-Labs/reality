@@ -322,6 +322,15 @@ def trace(
     )
 
 
+@tenant_router.get("/chat/{message_id}")
+def chat_evidence(
+    tenant_id: str, message_id: str, session: DatabaseSession, actor: TenantActor
+):
+    return _respond(
+        lambda: storyline.chat_evidence(session, actor, tenant_id, message_id)
+    )
+
+
 @tenant_router.get("/delta")
 def delta(
     tenant_id: str,

@@ -64,6 +64,7 @@ from reality.db.core import (
     uid,
 )
 from reality.integrations.catalog import connector_catalog, connector_shell
+from reality.storyline.recorder import wrap_chat
 
 ZERO = Decimal(0)
 HOLD_REASONS = {
@@ -6263,6 +6264,7 @@ def add_chat_assistant_message(
     return message
 
 
+@wrap_chat
 def send_chat_message(
     session: OrmSession,
     tenant_id: str,

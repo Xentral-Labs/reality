@@ -119,3 +119,14 @@ Every new ordinary public signup records `account.trial_started`, independently 
 `services/free_playground.py` locks the account, counts the current UTC day's `playground.ai_dispatched` security events and commits one reservation before provider work. One question covers the existing bounded tool loop. Validation/missing-provider refusals consume nothing; a dispatched provider failure counts because it may incur cost. No prompt or provider credential is stored in usage events. Retention must preserve current-day usage events.
 
 Copilot reads expose `allowance` (or null): limit, used, remaining and exact reset instant. All chat surfaces display it, preserve drafts at exhaustion and refresh after sends/refusals/reset. Non-AI exploration and the usual preview/confirmation boundaries remain usable. The free trial initially has no expiry date and makes no permanent-free commitment.
+
+## Storyline Free Play chat (spec 195)
+
+Free Play embeds the normal company chat and composer, including provider, allowance,
+voice input and ordinary proposal review/confirmation. Own words entered in the
+scripted narrator arrive as an editable draft; switching modes never sends.
+What happened on each assistant reply lazily reads exact recorded calls and later
+decisions linked by proposal ID. No timestamp-based attribution. Missing/pruned
+evidence is explicit. The existing marker delta is labeled as changes since the
+call and may include later Sandbox activity; it is not exclusive causal attribution.
+Chapter progress remains unchanged and Back to the storyline remains available.

@@ -1,0 +1,27 @@
+# Consistency and Implementation Review
+
+## Scope and traceability
+The approved request is real free-form chat inside the existing Storyline Sandbox,
+with actual tool evidence. FR-001/002/005 map to the browser handoff, explicit send,
+reload and 32 layout checks. FR-003/004 and DR-001 map to the PostgreSQL attribution,
+proposal lifecycle, failure, retention and ownership tests. No clarification remains.
+
+## Constitution and implementation review
+- Existing company chat/provider/tool services remain the only execution path.
+- Mutations remain proposals until ordinary explicit confirmation; no new write API.
+- Every evidence query scopes both tenant and owned run; message identity is checked.
+- Exact call IDs and proposal IDs provide attribution; no timestamp range is used.
+- Internal reply associations contain identifiers only and share existing bounded
+  trace retention. No migration, source mutation or derived business authority.
+- Missing evidence is explicit. Partial/truncated evidence says calls are not included
+  in this view, without claiming that every omitted call has been deleted.
+- Existing marker deltas include later Sandbox activity, so the chat labels and
+  explanation disclose this limit instead of claiming exclusive causal changes.
+- Trace association failure does not fail or repeat an already-persisted chat reply.
+- Existing draft clearing, history, provider failures, allowance and voice input are
+  reused. The run-keyed Player and tenant-keyed ChatPage isolate Sandbox drafts.
+- Export includes confirmed calls only; internal association rows cannot become
+  scripted chapters. Normal protocol reads also exclude internal association rows.
+
+No critical or high finding remains. The full completion verification
+is recorded in verification.md; human PR/merge review remains separate.

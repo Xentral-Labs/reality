@@ -22,6 +22,7 @@ from contextvars import ContextVar
 from dataclasses import dataclass
 from datetime import datetime
 from decimal import Decimal
+from functools import wraps
 from typing import Any
 
 from sqlalchemy import delete, func, select
@@ -75,6 +76,58 @@ def trace_scope(
         yield scope
     finally:
         _scope.reset(token)
+
+
+@dataclass
+class ChatCalls:
+    tenant_id: str
+    ids: list[str]
+
+
+_chat_calls: ContextVar[ChatCalls | None] = ContextVar(
+    "storyline_chat_calls", default=None
+)
+
+
+def current_chat_calls() -> ChatCalls | None:
+    return _chat_calls.get()
+
+
+@contextmanager
+def chat_call_scope(tenant_id: str) -> Iterator[ChatCalls]:
+    calls = ChatCalls(tenant_id, [])
+    token = _chat_calls.set(calls)
+    try:
+        yield calls
+    finally:
+        _chat_calls.reset(token)
+
+
+def wrap_chat(function: Callable[..., Any]) -> Callable[..., Any]:
+    """Associate a saved reply with exact calls; trace failure never retries chat."""
+
+    @wraps(function)
+    def send(session: Session, tenant_id: str, *args: Any, **kwargs: Any) -> Any:
+        target = _target(session, tenant_id)
+        if target is None:
+            return function(session, tenant_id, *args, **kwargs)
+        with (
+            chat_call_scope(tenant_id) as calls,
+            trace_scope(tenant_id, target.run_id, actor="chat") as scope,
+        ):
+            result = function(session, tenant_id, *args, **kwargs)
+            _safe_record(
+                session,
+                scope,
+                kind="read",
+                name="chat.reply",
+                input={"message_id": result[1].id},
+                result={"trace_ids": calls.ids[:128], "has_more": len(calls.ids) > 128},
+                commit=True,
+            )
+            return result
+
+    return send
 
 
 def current_scope() -> TraceScope | None:
@@ -242,6 +295,13 @@ def record(
     )
     session.add(entry)
     session.flush()
+    calls = current_chat_calls()
+    if (
+        calls is not None
+        and calls.tenant_id == target.tenant_id
+        and name != "chat.reply"
+    ):
+        calls.ids.append(entry.id)
     if ordinal > RUN_ENTRY_LIMIT:
         session.execute(
             delete(StorylineTraceEntry).where(
@@ -270,6 +330,7 @@ def read_trace(
             StorylineTraceEntry.tenant_id == tenant_id,
             StorylineTraceEntry.run_id == run_id,
             StorylineTraceEntry.ordinal > after_ordinal,
+            StorylineTraceEntry.name != "chat.reply",
         )
         .order_by(StorylineTraceEntry.ordinal)
         .limit(limit + 1)

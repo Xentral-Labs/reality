@@ -23,6 +23,10 @@ let language = "en",
   imported = false,
   blocked = false,
   restarted = false;
+let chatSession = null;
+const chatMessages = [],
+  chatSends = [],
+  evidenceReads = [];
 const deltaQueries = [],
   profileSaves = [];
 page.on("pageerror", (e) => errors.push(e.message));
@@ -261,11 +265,65 @@ await page.route("**/api/**", async (route) => {
   const reply = (body, status = 200) =>
     route.fulfill({ status, contentType: "application/json", body: JSON.stringify(body) });
   if (req.method() !== "GET") writes.push(p);
+  if (p.endsWith("/copilot/sessions") && req.method() === "POST") {
+    chatSession = {
+      id: "free-chat",
+      title: "Free Play",
+      archived: false,
+      created_at: "2026-09-15T10:00:00Z",
+    };
+    return reply(chatSession);
+  }
+  if (p.endsWith("/copilot/sessions/free-chat/messages") && req.method() === "POST") {
+    const body = req.postDataJSON();
+    chatSends.push(body);
+    chatMessages.push(
+      {
+        id: "question-free",
+        role: "user",
+        content: body.message,
+        created_at: "2026-09-15T10:00:01Z",
+      },
+      {
+        id: "answer-free",
+        role: "assistant",
+        content: "I checked the open findings in this Sandbox.",
+        created_at: "2026-09-15T10:00:02Z",
+      },
+    );
+    return reply({});
+  }
+  if (p.endsWith("/storyline/chat/answer-free")) {
+    evidenceReads.push(p);
+    return reply({
+      available: true,
+      has_more: false,
+      items: [
+        {
+          id: "trc-chat-read",
+          ordinal: 10,
+          step_id: null,
+          chapter: null,
+          kind: "read",
+          name: "exceptions",
+          access: "read",
+          actor: "chat",
+          proposal_id: null,
+          marker: null,
+          before_exceptions: null,
+          input: {},
+          result: { items: [] },
+          duration_ms: 4,
+          recorded_at: "2026-09-15T10:00:02Z",
+        },
+      ],
+    });
+  }
   if (p.endsWith("/copilot"))
     return reply({
-      sessions: [],
-      active_session_id: null,
-      messages: [],
+      sessions: chatSession ? [chatSession] : [],
+      active_session_id: chatSession?.id || null,
+      messages: chatMessages,
       proposals: [],
       suggestions: [],
       has_archived: false,
@@ -703,8 +761,8 @@ await page.locator("[data-storyline-presentation='playing']").waitFor();
 await page.locator("[data-storyline-autoplay-progress='prepare'] .storyline-fill").waitFor();
 // A click anywhere outside the autoplay control switches it off before anything was called.
 await openChapters();
-await page.locator("[data-storyline-chapter='review']").click();
 await page.locator("[data-storyline-presentation='off']").waitFor();
+await page.locator("[data-storyline-chapter='review']").click();
 assert.deepEqual(chapterCalls(writes.slice(timedFrom)), []);
 // The presenter switches the language while paused: texts change, the trace does not.
 await page.goto(`${base}/app/settings?tenant=story&settings_view=personal`);
@@ -791,8 +849,66 @@ for (const lang of ["en", "de", "nl", "es"])
         animations: "disabled",
       });
     }
+// Spec 195: handoff preserves the draft without sending; evidence is reply-specific.
+language = "en";
+phase = "idle";
+await page.setViewportSize({ width: 1440, height: 1000 });
+await page.goto(`${base}/app/storyline?tenant=story&chapter=order&lang=en`);
+await page.locator("[data-storyline-say]").fill("What is still open in this Sandbox?");
+const beforeDraft = writes.length;
+await page.locator("[data-storyline-action='own-words']").click();
+await page.waitForURL(/chapter=free/);
+const composer = page.locator("[data-storyline-free-play] textarea");
+await composer.waitFor();
+assert.equal(await composer.inputValue(), "What is still open in this Sandbox?");
+assert.equal(writes.length, beforeDraft, "handoff must not send or mutate");
+await composer.fill("Show the open findings, please.");
+await composer.press("Enter");
+await page.locator('[data-chat-evidence="answer-free"]').waitFor();
+assert.equal(chatSends.length, 1, "one explicit send creates one request");
+assert.equal(chatSends[0].message, "Show the open findings, please.");
+assert.equal(evidenceReads.length, 0, "evidence is loaded on demand");
+await page.locator('[data-chat-evidence="answer-free"] > summary').click();
+await page.locator('[data-chat-evidence="answer-free"] [data-storyline-call="read"]').waitFor();
+assert.equal(
+  await page.locator('[data-chat-evidence="answer-free"] [data-storyline-call]').count(),
+  1,
+);
+await page.reload();
+await page.locator('[data-chat-evidence="answer-free"]').waitFor();
+assert.equal(chatSends.length, 1, "reload does not resend");
+assert.equal(await composer.inputValue(), "");
+for (const lang of ["en", "de", "nl", "es"])
+  for (const theme of ["light", "dark"])
+    for (const width of [390, 1440]) {
+      language = lang;
+      await page.setViewportSize({ width, height: width === 390 ? 844 : 1000 });
+      await page.goto(
+        `${base}/app/storyline?tenant=story&chapter=free&session=free-chat&lang=${lang}`,
+      );
+      await composer.waitFor();
+      await page.locator('[data-chat-evidence="answer-free"] > summary').click();
+      await page
+        .locator('[data-chat-evidence="answer-free"] [data-storyline-call="read"]')
+        .waitFor();
+      await page.evaluate(
+        (theme) => document.documentElement.setAttribute("data-theme", theme),
+        theme,
+      );
+      const size = await page.evaluate(() => ({
+        inner: innerWidth,
+        scroll: document.documentElement.scrollWidth,
+      }));
+      assert.ok(size.scroll <= size.inner, `Free Play overflow ${lang}/${theme}/${width}`);
+      const box = await composer.boundingBox();
+      assert.ok(box && box.height > 20 && box.width > 150, "composer remains usable");
+      await page.screenshot({
+        path: `/private/tmp/reality-182-browser/free-chat-${lang}-${theme}-${width}.png`,
+        animations: "disabled",
+      });
+    }
 assert.deepEqual(errors, []);
 console.log(
-  "Storyline browser passed: library import/download/remove, start, prepare/confirm through the storyline route, protocol, delta, stage marks, docs link, record link, next chapter, resume and read-only chapter, finding link, free play with its own delta, blocked chapter and restart, presentation run with the same calls as by hand, pause on click, language switch while paused, draft link, 16 localized layouts.",
+  "Storyline browser passed: library import/download/remove, start, prepare/confirm through the storyline route, protocol, delta, stage marks, docs link, record link, next chapter, resume and read-only chapter, finding link, free play with its own delta, blocked chapter and restart, presentation run with the same calls as by hand, pause on click, language switch while paused, draft link, 32 localized layouts, chat draft/send/reload and per-reply evidence.",
 );
 await browser.close();

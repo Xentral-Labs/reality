@@ -62,7 +62,7 @@ export function StorylineNarrator({
   chooseBranch: (branch: string) => void;
   next: () => void;
   restart: () => void;
-  freePlay: () => void;
+  freePlay: (draft?: string) => void;
   /** Autoplay for a presentation (FR-013): the same calls, on a timer, until a click. */
   autoplay: boolean;
   autoplayNote: string | null;
@@ -381,7 +381,7 @@ export function StorylineNarrator({
                     className="br-btn"
                     data-storyline-action="own-words"
                     disabled={!own}
-                    onClick={freePlay}
+                    onClick={() => freePlay(typed)}
                   >
                     {t("Send")}
                   </button>
@@ -465,7 +465,7 @@ export function StorylineNarrator({
                   className={exitButton}
                   data-storyline-action="free-play"
                   title={t("You are working in the sandbox itself.")}
-                  onClick={freePlay}
+                  onClick={() => freePlay()}
                 >
                   <Infinity size={14} />
                   {t("Free play")}

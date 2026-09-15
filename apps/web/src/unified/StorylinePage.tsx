@@ -18,6 +18,8 @@ import { t } from "../localization";
 import type { Selection } from "./routing";
 import { ArrowLeft, MoreHorizontal, Upload } from "lucide-react";
 import { ReadState } from "./ReadState";
+import { ChatPage } from "./ChatPage";
+import { StorylineChatEvidence } from "./StorylineChatEvidence";
 import { StorylineNarrator } from "./StorylineNarrator";
 import { StorylineStage } from "./StorylineStage";
 import { StorylineProtocol } from "./StorylineProtocol";
@@ -425,6 +427,7 @@ function Player({
   openCompany: (data: Bootstrap, id: string, options?: { announce?: boolean }) => void;
 }) {
   const free = selection.storylineChapter === FREE_PLAY;
+  const [freeDraft, setFreeDraft] = useState("");
   const chapterKey =
     (selection.storylineChapter && state.chapters.some((c) => c.key === selection.storylineChapter)
       ? selection.storylineChapter
@@ -650,55 +653,70 @@ function Player({
     const waiting = state.chapters.find((entry) => entry.key === state.current_chapter);
     return (
       <div
-        className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_380px]"
+        className="grid gap-4 lg:h-[calc(100dvh-8.5rem)] lg:min-h-[40rem] lg:grid-cols-[minmax(0,1.25fr)_minmax(0,0.9fr)]"
         data-storyline-page
         data-storyline-run={state.run_id}
         data-storyline-free-play
       >
-        <section className="flex flex-col gap-3 rounded-xl border border-border-default bg-surface p-4">
-          <p className="text-[11px] uppercase tracking-wider text-fg-muted">{t("Free play")}</p>
-          <h2 className="text-base font-semibold text-fg-strong">
-            {t("You are working in the sandbox itself.")}
-          </h2>
-          <p className="text-sm">
-            {t(
-              "Every read, proposal and confirmation you make anywhere in this sandbox is still recorded here, with what it added.",
+        <section className="flex h-[min(850px,85dvh)] min-h-[32rem] min-w-0 flex-col overflow-hidden rounded-xl border border-border-default bg-surface lg:h-auto lg:min-h-0">
+          <header className="shrink-0 border-b border-border-default p-3">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <h2 className="font-semibold">{t("Free play")}</h2>
+              <div className="flex flex-wrap gap-2">
+                <button
+                  type="button"
+                  className="br-btn"
+                  data-storyline-action="back-to-story"
+                  onClick={backToStory}
+                >
+                  {t("Back to the storyline")}
+                </button>
+                <button
+                  type="button"
+                  className="br-btn"
+                  data-storyline-action="open-company"
+                  onClick={() => navigate({ route: "home" })}
+                >
+                  {t("Open the company")}
+                </button>
+              </div>
+            </div>
+            {waiting && (
+              <p className="mt-2 text-xs text-fg-muted">
+                {t("The storyline waits at step")} “{pickText(waiting.title)}”.
+              </p>
             )}
-          </p>
-          {waiting && (
-            <p className="text-sm text-fg-muted">
-              {t("The storyline waits at step")} “{pickText(waiting.title)}”.
-            </p>
-          )}
-          <div className="flex flex-wrap gap-2">
-            <button
-              type="button"
-              className="br-btn br-btn-primary"
-              data-storyline-action="back-to-story"
-              onClick={backToStory}
-            >
-              {t("Back to the storyline")}
-            </button>
-            <button
-              type="button"
-              className="br-btn"
-              data-storyline-action="open-company"
-              onClick={() => navigate({ route: "home" })}
-            >
-              {t("Open the company")}
-            </button>
-          </div>
+          </header>
+          <ChatPage
+            key={tenant}
+            selection={{ ...selection, commitment: "" }}
+            navigate={navigate}
+            dock
+            compact
+            initialDraft={freeDraft}
+            onInitialDraftUsed={() => setFreeDraft("")}
+            renderMessageEvidence={(messageId) => (
+              <StorylineChatEvidence
+                key={messageId}
+                tenant={tenant}
+                messageId={messageId}
+                navigate={navigate}
+              />
+            )}
+          />
         </section>
-        <StorylineProtocol
-          tenant={tenant}
-          items={freeTrace || []}
-          delta={freeDelta}
-          loading={freeTrace === null}
-          navigate={navigate}
-          mode="free"
-          onPick={setPicked}
-          picked={picked?.ordinal ?? null}
-        />
+        <div className="min-h-0 min-w-0 overflow-y-auto">
+          <StorylineProtocol
+            tenant={tenant}
+            items={freeTrace || []}
+            delta={freeDelta}
+            loading={freeTrace === null}
+            navigate={navigate}
+            mode="free"
+            onPick={setPicked}
+            picked={picked?.ordinal ?? null}
+          />
+        </div>
       </div>
     );
   }
@@ -743,7 +761,10 @@ function Player({
           })
         }
         next={() => state.current_chapter && navigate({ storylineChapter: state.current_chapter })}
-        freePlay={() => navigate({ storylineChapter: FREE_PLAY })}
+        freePlay={(draft = "") => {
+          setFreeDraft(draft);
+          navigate({ storylineChapter: FREE_PLAY });
+        }}
         autoplay={presentation === "playing"}
         autoplayPending={presentation === "playing" ? autoplayPending : null}
         library={() => navigate({ storylineChapter: LIBRARY })}
