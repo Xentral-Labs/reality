@@ -19,35 +19,78 @@ ITEMS = (
     ("P15", "Meridian Fabric", "m", "Materials"),
     ("P16", "Alpine Wax Pellets", "kg", "Materials"),
 )
+# The whole buyer pool. The profile seeds it and the ongoing Demo Data stream draws
+# from it, so the seeded order book and the arriving one name the same customers.
+# Order matters: earlier customers receive more synthetic demand than later ones.
 CUSTOMERS = (
     "Northstar Outdoor",
     "Maple Retail",
     "Solstice Living",
     "Pacific Outfitters",
+    "Brightwater Home",
+    "Juniper Trading Co.",
+    "Lakeside Provisions",
+    "Fjord Outfitters",
+    "Harlow Interiors",
+    "Tidewater Sports",
+    "Evergreen Studio",
+    "Copperline Goods",
+    "Granite Peak Gear",
+    "Willow & Finch",
+    "Northbridge Office Supply",
+    "Blue Heron Living",
+    "Marlow Home Goods",
+    "Silverbirch Design",
+    "Cascade Trail Company",
+    "Amber Coast Retail",
 )
 SUPPLIERS = ("Alpine Components", "Meridian Textiles", "Seabright Goods")
-# Ongoing Demo Data buyers: the profile customers first, then additional buyers.
-# Order matters: earlier customers receive more synthetic demand than later ones.
 DEMO_DATA_CUSTOMERS = tuple(
     (f"C{index}", name) for index, name in enumerate(CUSTOMERS, 1)
-) + (
-    ("C5", "Brightwater Home"),
-    ("C6", "Juniper Trading Co."),
-    ("C7", "Lakeside Provisions"),
-    ("C8", "Fjord Outfitters"),
-    ("C9", "Harlow Interiors"),
-    ("C10", "Tidewater Sports"),
-    ("C11", "Evergreen Studio"),
-    ("C12", "Copperline Goods"),
-    ("C13", "Granite Peak Gear"),
-    ("C14", "Willow & Finch"),
-    ("C15", "Northbridge Office Supply"),
-    ("C16", "Blue Heron Living"),
-    ("C17", "Marlow Home Goods"),
-    ("C18", "Silverbirch Design"),
-    ("C19", "Cascade Trail Company"),
-    ("C20", "Amber Coast Retail"),
 )
+# Feature 200: the buyer each seeded order states. Operational cases carry their own
+# key; a comparison family resolves once so its prior and current window compare the
+# same customer. Three regulars hold repeat business, every other buyer appears once.
+ORDER_CUSTOMERS = {
+    "O01": "C1",
+    "O02": "C2",
+    "O03": "C3",
+    "O04": "C1",
+    "O05": "C4",
+    "O06": "C5",
+    "O07": "C2",
+    "O08": "C6",
+    "O09": "C7",
+    "O10": "C8",
+    "E01": "C1",
+    "E02": "C1",
+    "volume": "C9",
+    "price": "C10",
+    "decline": "C11",
+    "credit": "C12",
+    "outlier": "C13",
+    "zero": "C14",
+    "usd": "C15",
+}
+# The twelve weekly history orders, oldest first: the regulars keep recurring through
+# the trend while the remaining buyers each appear once.
+WEEKLY_CUSTOMERS = (
+    "C1",
+    "C16",
+    "C2",
+    "C17",
+    "C3",
+    "C18",
+    "C1",
+    "C19",
+    "C2",
+    "C20",
+    "C3",
+    "C16",
+)
+# The supplier that makes each purchased material, so the three purchase orders state
+# three suppliers instead of naming the first one three times.
+SUPPLIER_ITEMS = {"P11": "S3", "P15": "S2", "P16": "S1"}
 LOCATIONS = ("Rotterdam Warehouse", "Singapore Warehouse")
 MINIMAL_ITEMS = frozenset({"P01", "P02", "P11", "P12"})
 # Quantity, unit price and total are independently stated synthetic source inputs.

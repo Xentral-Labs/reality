@@ -25,7 +25,7 @@ Use stable synthetic external keys, opaque tenant-local database IDs and English
 | P15 | Meridian Fabric | m | Materials |
 | P16 | Alpine Wax Pellets | kg | Materials |
 
-Full ready baseline: exactly 16 items, 4 customers, 3 suppliers, 2 stock locations plus 1 company party. Catalog keys are fixture references, never database identity. Source categories remain payload/manifest fields; missing category-query support is disclosed.
+Full ready baseline: exactly 16 items, 20 customers, 3 suppliers, 2 stock locations plus 1 company party. Seeded orders, invoices and credit notes state an authored buyer per case key (feature 200); a comparison family states one buyer in both windows. Catalog keys are fixture references, never database identity. Source categories remain payload/manifest fields; missing category-query support is disclosed.
 
 ## Operational cases at the anchor
 
@@ -66,7 +66,7 @@ Invoice/order amounts, discounts, tax statements and gross/net basis must be aut
 
 ## Minimal integration prerequisites
 
-For a truly empty Sandbox, connection preview offers only P01, P02, P11, P12, the demo customer pool (`DEMO_DATA_CUSTOMERS`: the four profile customers plus sixteen further buyers), Rotterdam Warehouse and the Harbor Supply company party needed for outgoing commitments, with lossless synthetic master sources. A populated Sandbox reuses existing pool customers and adds the missing ones on connection or Start. No supplier, history, stock, reservation, invoice or payment is added. An existing full canonical profile provides these compatible references. A populated incompatible or incomplete profile fails explicitly rather than silently repairing or remapping. Deterministic arrival vocabulary uses this subset; default missing costs/promotions remain missing.
+For a truly empty Sandbox, connection preview offers only P01, P02, P11, P12, the demo customer pool (`DEMO_DATA_CUSTOMERS`: the twenty profile customers), Rotterdam Warehouse and the Harbor Supply company party needed for outgoing commitments, with lossless synthetic master sources. A populated Sandbox reuses existing pool customers and adds the missing ones on connection or Start. No supplier, history, stock, reservation, invoice or payment is added. An existing full canonical profile provides these compatible references. A populated incompatible or incomplete profile fails explicitly rather than silently repairing or remapping. Deterministic arrival vocabulary uses this subset; default missing costs/promotions remain missing.
 
 Baseline source namespace is `demo_profile`; ongoing arrival namespace is `demo_data`, so historical baseline and current intake remain separable. Continuous source identity includes schedule+logical delivery IDs and actual business dates. Optional running source does not change the baseline manifest or execution fixture.
 

@@ -1066,3 +1066,9 @@ Spec 185 owns the analytics service, agent tools, private report configuration a
   its bound and its retry of failed reads; `product-boundary.test.mjs` proves the stated
   proxy timeouts; `free-playground-browser.mjs` proves a slow seed keeps showing progress
   and opens the company without creating a second one.
+
+- Spec 200: `packages/reality-core/tests/scenarios/test_international_demo.py` proves
+  the seeded order book spreads over the customer pool within its concentration bound,
+  keeps both windows of a comparison family on one buyer, states that buyer on the
+  invoice and the credit note, names three suppliers and stays authored rather than
+  drawn across companies.
