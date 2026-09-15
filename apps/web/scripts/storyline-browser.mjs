@@ -865,6 +865,9 @@ assert.equal(writes.length, beforeDraft, "handoff must not send or mutate");
 await composer.fill("Show the open findings, please.");
 await composer.press("Enter");
 await page.locator('[data-chat-evidence="answer-free"]').waitFor();
+await page.waitForFunction(
+  () => document.activeElement === document.querySelector("[data-storyline-free-play] textarea"),
+);
 assert.equal(chatSends.length, 1, "one explicit send creates one request");
 assert.equal(chatSends[0].message, "Show the open findings, please.");
 assert.equal(evidenceReads.length, 0, "evidence is loaded on demand");

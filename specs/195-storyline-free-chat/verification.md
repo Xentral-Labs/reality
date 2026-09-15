@@ -34,3 +34,14 @@ Temporary source-shape checks were replaced by behavioral browser assertions.
 
 Builds report existing bundle-size notices. No schema migration or deployment is
 included. Review conclusions are in analysis.md.
+
+## Focus correction (FR-006)
+The browser regression first failed waiting for input focus after a failed Enter
+send. The shared input now remains read-only while busy, and ChatPage restores
+focus after an explicit send settles, including session remounts. Deliberate focus
+on another control is preserved. Both `unified-chat-composer-browser.mjs` and the
+complete `storyline-browser.mjs` passed on the final code. `make web-build` (167
+tests, locale audit, TypeScript/build), spec policy and diff checks passed.
+No backend behavior changed, so the recorded full backend result remains applicable.
+The built frontend was copied to the local 8080 preview; the served asset hash and
+health endpoint were verified. No production deployment.

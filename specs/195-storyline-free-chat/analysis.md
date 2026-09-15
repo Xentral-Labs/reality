@@ -25,3 +25,8 @@ proposal lifecycle, failure, retention and ownership tests. No clarification rem
 
 No critical or high finding remains. The full completion verification
 is recorded in verification.md; human PR/merge review remains separate.
+
+FR-006 follow-up review: pending focus belongs to an explicit send, survives a
+composer remount, waits for loading to settle and does not steal focus from another
+control. Read-only inputs preserve focus across later refreshes. No domain, API,
+schema or confirmation changes; browser regressions and web gates pass.

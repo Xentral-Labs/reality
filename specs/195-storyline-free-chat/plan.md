@@ -48,3 +48,11 @@ No migration. Additive read endpoint; existing chats continue unchanged. Revert 
 decorator to roll back; historical association rows are inert within existing retention.
 No deployment included. Risk: mistaken association; mitigate by IDs and scope reset,
 never elapsed-time windows. Trace failure must not cause a successful chat to be resent.
+
+## Focus correction
+Track pending focus restoration in ChatPage across composer/session remounts.
+After sending/loading settle, focus the active input only if focus remains in its
+form or on the document body. No domain/API changes; Constitution PASS. Tests first:
+Enter failure/retry, Send success, first-session Free Play, deliberate focus elsewhere.
+The shared composer stays read-only instead of disabled during send/refresh,
+preserving focus through follow-up loading cycles while preventing draft edits.

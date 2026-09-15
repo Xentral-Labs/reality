@@ -117,7 +117,7 @@ await page.route("**/api/**", async (route) => {
     });
   return respond({ detail: `Unexpected fixture request: ${url.pathname}` }, 404);
 });
-const base = "http://localhost:5177";
+const base = process.env.UNIFIED_BASE_URL || "http://localhost:5177";
 await page.addInitScript(() => {
   window.SpeechRecognition = window.webkitSpeechRecognition = class {
     start() {
@@ -215,7 +215,10 @@ try {
   assert.equal(await input.inputValue(), "Question with retained failure");
   assert.equal(await pending.count(), 0);
   assert.equal(await dock.getByRole("status").filter({ hasText: "Thinking…" }).count(), 0);
-  await input.press("Enter");
+  await page.waitForFunction(
+    () => document.activeElement === document.querySelector("[data-global-chat] textarea"),
+  );
+  await dock.locator("button[type=submit]").click();
   await pending.waitFor();
   assert.equal(await input.inputValue(), "");
   await dock.getByText("Recorded answer 1.", { exact: true }).waitFor();
@@ -230,6 +233,17 @@ try {
   );
   assert.equal(await input.inputValue(), "");
   assert.equal(await dock.getByRole("status").filter({ hasText: "Thinking…" }).count(), 0);
+  await page.waitForFunction(
+    () => document.activeElement === document.querySelector("[data-global-chat] textarea"),
+  );
+  await input.fill("Keep my new focus");
+  await input.press("Enter");
+  await pending.waitFor();
+  await dock.getByRole("button", { name: "Conversation history", exact: true }).click();
+  const history = dock.getByRole("button", { name: "Conversation history", exact: true });
+  await history.focus();
+  await dock.getByText("Recorded answer 2.", { exact: true }).waitFor();
+  assert.equal(await history.evaluate((node) => node === document.activeElement), true);
   await mkdir("/private/tmp/reality-136-browser", { recursive: true });
   for (const width of [390, 1440])
     for (const theme of ["light", "dark"]) {
