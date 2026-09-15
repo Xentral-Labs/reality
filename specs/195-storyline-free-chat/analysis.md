@@ -119,3 +119,7 @@ FR-020: User accepted the proposed learning copy. No unresolved clarification or
 FR-021: Confirmed Storyline start/restart passes new tenant without clearing session,
 while navigate previously merged old fields. Tenant security correctly rejects it.
 Central navigation reset fixes all such callers; no critical unresolved finding.
+
+FR-022: Explicit user request accepts automatic recovery. Scope is the specific
+missing-session 404; authentication/server/company failures are not suppressed.
+No unresolved clarification or critical finding.

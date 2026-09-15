@@ -2770,3 +2770,7 @@ conversation greeting is vertically centered in its available message area.
 Spec 195 FR-021: All cross-company navigation clears prior company-scoped context
 before applying explicit destination values. This includes Storyline sandbox entry.
 An invalid selected chat offers Back to chats for read-only recovery.
+
+Spec 195 FR-022 supersedes manual missing-session recovery: a selected ChatSession
+404 automatically replaces the session URL and reloads the current-company chat.
+Other failure types remain visible; no records are created or deleted.

@@ -20,7 +20,7 @@ const fullFrame = "mx-auto flex h-[calc(100dvh-152px)] min-h-[500px] max-w-5xl f
 import { useEffect, useRef, useState, useId, type ReactNode } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
-import { api, referenceTools, deliveryApi } from "../api";
+import { APIError, api, referenceTools, deliveryApi } from "../api";
 import { t, formatDateTime } from "../localization";
 import { useRead } from "./useCompanyContext";
 import { ReadState } from "./ReadState";
@@ -55,14 +55,34 @@ export function ChatPage({
   initialDraft?: string;
   onInitialDraftUsed?: () => void;
   renderMessageEvidence?: (messageId: string) => ReactNode;
-  navigate: (changes: Partial<Selection>) => void;
+  navigate: (changes: Partial<Selection>, options?: { replace?: boolean }) => void;
 }) {
   const composerId = useId();
   const [historyOpen, setHistoryOpen] = useState(false);
-  const { data, loading, error, refresh } = useRead(
-    () => api.copilot(selection.tenant, selection.session),
-    [selection.tenant, selection.session],
-  );
+  const { data, loading, error, code, refresh } = useRead(async () => {
+    try {
+      return await api.copilot(selection.tenant, selection.session);
+    } catch (error) {
+      if (
+        selection.session &&
+        error instanceof APIError &&
+        error.status === 404 &&
+        error.message === "ChatSession not found."
+      ) {
+        throw new APIError(
+          error.message,
+          error.status,
+          `chat_session_missing:${selection.session}`,
+        );
+      }
+      throw error;
+    }
+  }, [selection.tenant, selection.session]);
+  const recoveringSession =
+    !!selection.session && code === `chat_session_missing:${selection.session}`;
+  useEffect(() => {
+    if (recoveringSession && selection.session) navigate({ session: "" }, { replace: true });
+  }, [recoveringSession, selection.session]);
   useEffect(() => {
     const changed = () => refresh();
     window.addEventListener("reality:ai-usage-changed", changed);
@@ -241,6 +261,7 @@ export function ChatPage({
       setSending(false);
     }
   };
+  if (recoveringSession) return <ReadState loading />;
   if (!data || !sessionReady)
     return (
       <div>
