@@ -1,4 +1,11 @@
-import { useEffect, useRef, useState, type Dispatch, type SetStateAction } from "react";
+import {
+  useEffect,
+  useRef,
+  useState,
+  type Dispatch,
+  type ReactNode,
+  type SetStateAction,
+} from "react";
 import { ArrowUp, Mic, Paperclip, Square } from "lucide-react";
 import type { ManagedAllowance } from "../api";
 import { formatDateTime, t } from "../localization";
@@ -28,6 +35,7 @@ export function ChatComposer({
   active,
   send,
   allowance,
+  disclaimerAction,
 }: {
   id: string;
   value: string;
@@ -36,6 +44,7 @@ export function ChatComposer({
   active: boolean;
   send: () => void;
   allowance?: ManagedAllowance | null;
+  disclaimerAction?: ReactNode;
 }) {
   const exhausted = allowance?.remaining === 0;
   const fileInput = useRef<HTMLInputElement>(null);
@@ -222,9 +231,10 @@ export function ChatComposer({
           </div>
         </div>
       </form>
-      <p className="mt-3 px-2 text-center text-xs leading-5 text-fg-muted">
-        {t("Reality can make mistakes. Check important information.")}
-      </p>
+      <div className="mt-3 flex flex-wrap items-center justify-center gap-2 px-2 text-center text-xs leading-5 text-fg-muted">
+        <span>{t("Reality can make mistakes. Check important information.")}</span>
+        {disclaimerAction}
+      </div>
     </div>
   );
 }
