@@ -219,3 +219,12 @@ Acceptance: With two conversations, measure button height and row-start distance
 at 1440 and 390 pixels, then open and cancel the existing removal dialog. This is
 a presentation-only refinement of FR-015/FR-019, approved by the owner's request
 for a separate compact-session PR. No data, API or chat-stream behavior changes.
+
+## Comfortable conversation navigation
+**FR-024**: Desktop conversation history is 288 CSS pixels wide. Archive/delete
+menu labels remain on one line. On devices with a fine pointer and hover, options
+are revealed by row hover, keyboard focus within the row, or an open menu. Touch
+devices retain visible options. Existing row heights and mobile drawer width remain.
+Acceptance: measure desktop width and unchanged row heights; verify hidden idle,
+hover, focus and open-menu visibility, single-line German archive label, and touch
+access. Scope approved by the owner on 2026-09-15.

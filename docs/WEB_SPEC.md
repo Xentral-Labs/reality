@@ -2826,3 +2826,8 @@ observations use batched tenant reads with unchanged quantities and evidence lin
 Spec 195 FR-023: The persistent desktop Chat history uses 36-pixel session rows
 without inter-row gaps. Below 1280 CSS pixels the history drawer retains its
 40-pixel session buttons and 44-pixel row spacing. Selection and options stay shared.
+
+Spec 195 FR-024: Desktop Chat history is 288px wide. Archive/delete menu labels
+remain on one line. Fine-pointer hover devices reveal options on row hover,
+keyboard focus or while open; touch devices keep them visible. Row heights and
+the mobile drawer width remain unchanged.

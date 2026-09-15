@@ -7,9 +7,9 @@ import { ChatPage } from "./ChatPage";
 import { StorylineChatEvidence } from "./StorylineChatEvidence";
 
 const openSessionsClass =
-  "absolute inset-y-0 left-0 z-20 flex w-64 flex-col rounded-xl border border-border-default bg-surface p-3 shadow-xl xl:static xl:z-auto xl:w-60 xl:shrink-0 xl:border-0 xl:bg-transparent xl:shadow-none";
+  "absolute inset-y-0 left-0 z-20 flex w-64 flex-col rounded-xl border border-border-default bg-surface p-3 shadow-xl xl:static xl:z-auto xl:w-72 xl:shrink-0 xl:border-0 xl:bg-transparent xl:shadow-none";
 const closedSessionsClass =
-  "hidden w-60 shrink-0 flex-col border-r border-border-default p-3 xl:flex";
+  "hidden w-72 shrink-0 flex-col border-r border-border-default p-3 xl:flex";
 
 export function CompanyChatPage({
   selection,

@@ -76,3 +76,8 @@ as one coherent increment because free chat must carry truthful evidence.
   in apps/web/scripts/unified-chat-composer-browser.mjs; adjust only responsive
   row spacing/padding in apps/web/src/unified/ChatPage.tsx; run browser, contracts,
   build, formatting and spec policy; review and record evidence in verification.md.
+
+- [x] T030 [FR-024] Extend apps/web/scripts/unified-chat-composer-browser.mjs with
+  sidebar geometry, option visibility and single-line menu checks before styling;
+  update CompanyChatPage.tsx, ChatPage.tsx and tailwind.css; run browser, frontend
+  contracts/build, formatting and spec checks; review and record verification.md.

@@ -424,7 +424,10 @@ export function ChatPage({
                       <ArchiveRestore size={17} />
                     </button>
                   ) : (
-                    <details className="relative shrink-0" data-chat-session-menu={row.id}>
+                    <details
+                      className="chat-session-options relative shrink-0"
+                      data-chat-session-menu={row.id}
+                    >
                       <summary
                         className="reality-chat-icon list-none cursor-pointer"
                         aria-label={t("More options")}
@@ -432,15 +435,19 @@ export function ChatPage({
                       >
                         <MoreHorizontal size={18} />
                       </summary>
-                      <div className="absolute right-0 z-20 mt-1 min-w-40 rounded-lg border border-border-default bg-surface p-1 shadow-lg">
+                      <div className="absolute right-0 z-20 mt-1 min-w-48 rounded-lg border border-border-default bg-surface p-1 shadow-lg">
                         <button
-                          className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-left text-sm hover:bg-surface-muted"
+                          className="flex w-full items-center gap-2 whitespace-nowrap rounded-md px-3 py-2 text-left text-sm hover:bg-surface-muted"
                           data-chat-session-delete={row.message_count === 0 ? row.id : undefined}
                           data-chat-session-archive={row.message_count === 0 ? undefined : row.id}
                           disabled={sending || startingChat || changingSession}
                           onClick={() => setRemovalSession(row)}
                         >
-                          {row.message_count === 0 ? <Trash2 size={17} /> : <Archive size={17} />}
+                          {row.message_count === 0 ? (
+                            <Trash2 size={17} className="shrink-0" />
+                          ) : (
+                            <Archive size={17} className="shrink-0" />
+                          )}
                           {t(row.message_count === 0 ? "Delete chat" : "Archive chat")}
                         </button>
                       </div>
