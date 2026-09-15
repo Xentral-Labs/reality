@@ -9,6 +9,9 @@ cd apps/web
 npm run test:contracts
 npm run i18n:audit
 npm run build
+PLAYWRIGHT_MODULE=/path/to/playwright-core/index.js \
+  PLAYWRIGHT_EXECUTABLE=/path/to/chrome \
+  npm run test:chat-composer-browser
 ```
 
 Expected: every command passes; an empty session disappears permanently while a session with a
@@ -30,4 +33,6 @@ message remains in the archive and restores with its message.
 - Frontend contract suite: 188 passed.
 - Translation audit: English, German, Dutch, and Spanish passed with no missing entries.
 - Production Web build: passed.
+- Browser acceptance: passed at 390 px and 1440 px; the accessible removal dialog remains inside
+  the viewport, explains the permanent delete consequence, and closes without mutation on cancel.
 - Schema/migration review: no schema, migration, backfill, source, evidence, or Reality change.
