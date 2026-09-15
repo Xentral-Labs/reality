@@ -1,3 +1,5 @@
+from conftest import seed_company
+
 from reality.services import company_setup, demo_profile
 
 
@@ -27,9 +29,12 @@ def test_unified_baseline_uses_current_domain_services(
         live_simulation=True,
         confirmed=True,
     )
+    assert result["status"] == "initializing"
+    assert seed_company(session, result["tenant_id"]) == "succeeded"
     assert not errors, "\n".join(errors)
-    assert result["status"] == "ready"
-    assert result["destination"].startswith("/app?")
+    ready = company_setup.read_request(session, scheduled_owner.id, "unified-profile")
+    assert ready["status"] == "ready"
+    assert ready["destination"].startswith("/app?")
 
     # Spec146 FR-030: the real demo must support the same exception investigation.
     from reality.services.attention_reads import attention_detail, attention_register

@@ -66,6 +66,15 @@ Every run has a stable ID across retries and frozen validated inputs. Claims hav
 
 For demo intake, derive upstream delivery identity from the subsystem's business run and scheduler run ID; reuse it on retry. SourceRecord → ImportJob intake occurs through the normal service with the supplied session. The producer never inserts operational rows directly. Later interpretation remains a separate processing outcome. If an existing intake entrypoint commits internally, adapt a shared transaction-bound service before registering it; do not weaken this contract.
 
+## Registered subsystems
+
+`projections.refresh`, `invitations.cleanup`, `demo.generate_orders`,
+`demo.settle_orders` and `company_setup.initialize`. The last one seeds a confirmed
+company profile outside the request that asked for it (feature 199); its ownership rule
+is the playground run's own owner rather than `require_company_owner`, because a
+verified account pending admission may create a Sandbox. `create_manual_run` authorizes
+by job type, so a manually enqueued run and the same job on a timer share one rule.
+
 ## Timing and controls
 
 - Intervals are whole seconds from 5 to 2,147,483,647 (the stored integer bound). Cron has five numeric UTC fields: minute, hour, day of month, month, weekday. Allow `*`, comma lists, inclusive ranges and positive steps; reject names, macros, seconds/year and extensions. Sunday is 0 or 7. Restricted day-of-month and weekday use OR semantics.

@@ -2,6 +2,7 @@ import json
 from datetime import datetime, timedelta
 from decimal import Decimal
 
+from conftest import seed_company
 from sqlalchemy import select
 
 from reality.db.core import (
@@ -26,8 +27,9 @@ def test_history_has_twelve_weeks_distinct_currencies_and_linked_credit(
         "international_demo",
         confirmed=True,
     )
-    assert result["status"] == "ready"
+    assert result["status"] == "initializing"
     tenant = result["tenant_id"]
+    assert seed_company(session, tenant) == "succeeded"
     manifest = session.get(PlaygroundRun, result["run_id"]).initialization_progress
     anchor = datetime.fromisoformat(manifest["anchor"])
     postings = list(

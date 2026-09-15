@@ -1643,8 +1643,13 @@ def start_run(
     company_name: str | None = None,
     confirmed: bool = False,
     live_simulation: bool = False,
+    initialize: bool = True,
 ) -> PlaygroundRun:
-    """Confirm one private run; retries resume its atomic seed, never duplicate it."""
+    """Confirm one private run; retries resume its atomic seed, never duplicate it.
+
+    With `initialize=False` the durable metadata is committed and the caller owns the
+    initialization, which is how company setup keeps the seed out of its request.
+    """
     if confirmed is not True:
         raise PlaygroundOperationDenied("Confirm Playground creation first.")
     if not request_key or request_key != request_key.strip() or len(request_key) > 128:
@@ -1698,7 +1703,9 @@ def start_run(
             tenant_name,
         ):
             raise Conflict("The request key belongs to a different Playground preset.")
-        return _initialize(session, existing.id, user_id)
+        return (
+            existing if not initialize else _initialize(session, existing.id, user_id)
+        )
     preset = catalog.find_preset(preset_key, preset_version)
     if preset is None:
         raise InvalidOperation("Unsupported Playground preset version.")
@@ -1764,7 +1771,7 @@ def start_run(
         ]
     )
     session.commit()
-    return _initialize(session, run.id, user_id)
+    return run if not initialize else _initialize(session, run.id, user_id)
 
 
 def restart_run(

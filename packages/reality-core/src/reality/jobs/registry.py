@@ -107,6 +107,7 @@ def register(definition: JobDefinition) -> None:
 def definitions() -> dict[str, JobDefinition]:
     global _INITIALIZED
     if not _INITIALIZED:
+        from reality.jobs.handlers.company_setup import INITIALIZE
         from reality.jobs.handlers.demo_data import DEMO, SETTLE
         from reality.jobs.handlers.invitations import CLEANUP
         from reality.jobs.handlers.projections import REFRESH
@@ -115,6 +116,7 @@ def definitions() -> dict[str, JobDefinition]:
         register(CLEANUP)
         register(DEMO)
         register(SETTLE)
+        register(INITIALIZE)
         _INITIALIZED = True
     return dict(_REGISTRY)
 

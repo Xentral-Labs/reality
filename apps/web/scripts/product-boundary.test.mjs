@@ -23,6 +23,16 @@ test("product container keeps the API private and runtime configurable", () => {
   assert.doesNotMatch(dockerfile, /api\.railway\.internal/u);
 });
 
+test("product proxy states its own API timeouts instead of inheriting them", () => {
+  // Feature 199: an implicit default is not a decision. Company setup no longer seeds
+  // a profile inside its request, so no API request needs more than this.
+  const nginx = fs.readFileSync(path.join(webRoot, "default.conf.template"), "utf8");
+
+  assert.match(nginx, /proxy_read_timeout \d+s;/u);
+  assert.match(nginx, /proxy_send_timeout \d+s;/u);
+  assert.match(nginx, /proxy_connect_timeout \d+s;/u);
+});
+
 test("product proxy re-resolves the private API after an API-only redeploy", () => {
   const nginx = fs.readFileSync(path.join(webRoot, "default.conf.template"), "utf8");
   const dockerfile = fs.readFileSync(path.join(webRoot, "Dockerfile"), "utf8");

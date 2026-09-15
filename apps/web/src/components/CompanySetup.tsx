@@ -9,6 +9,7 @@ import {
 } from "../api";
 import { t } from "../localization";
 import { CompanySetupForm } from "./CompanySetupForm";
+import { followSetup, setupProgress } from "../unified/setupProgress";
 
 export function CompanySetup({
   first = false,
@@ -30,6 +31,14 @@ export function CompanySetup({
   const [busy, setBusy] = useState(true);
   const [error, setError] = useState("");
   const attemptedOpen = useRef<string | undefined>(undefined);
+  const mounted = useRef(true);
+  useEffect(() => {
+    // Set on mount as well: a remount must not leave the screen marked as gone.
+    mounted.current = true;
+    return () => {
+      mounted.current = false;
+    };
+  }, []);
   const storageKey = (actor: string) => `reality.company-setup.${actor}`;
   useEffect(() => {
     let active = true;
@@ -71,11 +80,21 @@ export function CompanySetup({
     setBusy(true);
     setError("");
     try {
-      setResult(await api.companySetup(request));
+      // Feature 199: creation answers once the company exists; its profile is seeded
+      // by the worker, so the receipt is followed until it is ready or fails.
+      const created = await api.companySetup(request);
+      setResult(created);
+      if (setupProgress(created) === "waiting") {
+        const settled = await followSetup(
+          () => api.companySetupRequest(request.request_key),
+          () => mounted.current,
+        );
+        if (settled) setResult(settled);
+      }
     } catch {
       setError(t("Creation could not be confirmed. Retry the same request to recover safely."));
     } finally {
-      setBusy(false);
+      if (mounted.current) setBusy(false);
     }
   }
   async function open() {

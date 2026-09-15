@@ -1,3 +1,4 @@
+from conftest import seed_company
 from test_playground_api import playground_http as _playground_http
 
 playground_http = _playground_http
@@ -96,11 +97,15 @@ def test_live_creation_api_connects_and_starts_without_extra_requests(
     )
     created = client.post("/api/company-setup", json=body)
     assert created.status_code == 201, created.text
-    assert created.json()["status"] == "ready"
+    # Feature 199: the request answers before the profile is seeded; the worker seeds
+    # it and completes the live setup, and the receipt reports that.
+    assert created.json()["status"] == "initializing"
+    tenant = created.json()["tenant_id"]
+    assert seed_company(session, tenant) == "succeeded"
     assert (
-        demo_data.status(session, created.json()["tenant_id"], user.id)["state"]
-        == "running"
+        client.get("/api/company-setup/requests/live-api").json()["status"] == "ready"
     )
+    assert demo_data.status(session, tenant, user.id)["state"] == "running"
 
 
 def test_free_entry_requires_explicit_signup_consent_and_reads_do_not_create(

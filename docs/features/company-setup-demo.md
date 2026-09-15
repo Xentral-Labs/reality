@@ -75,6 +75,29 @@ lesson boundaries and existing write/credential policies remain unchanged.
 - `status` carries `order_to_cash`: invoices issued, payments received and allocated, invoices settled, open residuals, customer credit created, unmatched payments, failures, last and next settlement, computed from source records and read services. The integration panel shows the block with links into Payments, Open items and Journal.
 - The settlement authority (`tenant_policy._SETTLEMENT_OPERATIONS`) may post the stated invoice, record payments and allocate an unambiguously stated reference; it may not reduce, refund, write off or reserve. The order scope keeps its narrower set, so an order can never book money.
 
+## Initialization outside the request (feature 199)
+
+Creating a company with profile content commits the tenant, membership and run metadata
+and then enqueues `company_setup.initialize` (version 1, configuration `{run_id}`)
+through `services/scheduled_jobs.py::create_manual_run`, keyed `setup-initialize:{run id}`
+so a repeated request replays the queued run instead of adding a second. The request
+answers with the receipt, which reports `initializing`; the seed no longer travels with
+it. The measurement that justified this: one seeding request issued 6,447 SQL
+round-trips, 3.2 s against a loopback database and proportionally more over a network,
+which is what made `Failed to fetch` on the preparing screen intermittent.
+
+`jobs/handlers/company_setup.py::INITIALIZE` runs `initialize_profile` and
+`_finish_live_setup` in their transaction-bound form, so handler writes and run success
+commit together and an already active run is a no-op. Authorization resolves the
+playground run's own owner at enqueue and again at claim, because a verified account
+pending admission may create a Sandbox; `scheduled_jobs._owner` routes the job type,
+and `create_manual_run` now authorizes by job type exactly as a schedule does.
+
+A company that seeds no profile, a failed initialization and the explicit retry are all
+completed inside the request, so a company is recoverable where no worker is running.
+The preparing screens follow the receipt (`unified/setupProgress.ts`) every two seconds
+for at most three minutes and then offer the existing retry.
+
 Spec146 FR-031: company setup distinguishes busy preparation/opening from recoverable interruption. Busy states use one spinner/status and retain the company name without retry actions. First-company entry renders one centered heading/card; existing-company selection remains. Saved request identity and automatic ready navigation are unchanged.
 
 ## Existing Sandbox simulation entry

@@ -151,6 +151,7 @@ def create_company(
     *,
     confirmed: bool = False,
     live_simulation: bool = False,
+    _initialize_inline: bool = False,
 ) -> dict:
     if type(live_simulation) is not bool or (
         live_simulation
@@ -198,6 +199,16 @@ def create_company(
         ):
             raise Conflict("Request key belongs to different company choices.")
         if run.status in {"initializing", "initialization_failed"}:
+            # A repeated request replays the queued initialization, never a second one.
+            # A failed initialization, a company whose profile is small enough to seed
+            # in the request and an explicit retry are all recovered here instead.
+            if (
+                not _initialize_inline
+                and run.status == "initializing"
+                and run.preset_key == PRESETS["international_demo"]
+                and _queue_initialization(session, run, actor_id)
+            ):
+                return _result(session, actor_id, run.tenant_id, run)
             run = initialize_profile(session, run.id, actor_id)
         _finish_live_setup(session, run, actor_id)
         return _result(session, actor_id, run.tenant_id, run)
@@ -229,6 +240,10 @@ def create_company(
         return _result(session, actor_id, tenant.id)
     from reality.services.playground import start_run
 
+    # The international profile is committed first and seeded by the worker, so the
+    # request no longer carries thousands of statements (feature 199). An empty company
+    # and the small execution fixture stay immediate.
+    deferred = content == "international_demo" and not _initialize_inline
     run = start_run(
         session,
         actor_id,
@@ -239,12 +254,41 @@ def create_company(
         company_name=name,
         confirmed=True,
         live_simulation=live_simulation,
+        initialize=not deferred,
     )
+    if deferred:
+        if _queue_initialization(session, run, actor_id):
+            return _result(session, actor_id, run.tenant_id, run)
+        run = initialize_profile(session, run.id, actor_id)
     _finish_live_setup(session, run, actor_id)
     return _result(session, actor_id, run.tenant_id, run)
 
 
-def _finish_live_setup(session: Session, run: PlaygroundRun, actor_id: str) -> None:
+def _queue_initialization(session: Session, run: PlaygroundRun, actor_id: str) -> bool:
+    """Enqueue this run's initialization once; report whether the worker owns it."""
+    from reality.services import scheduled_jobs as jobs
+
+    try:
+        jobs.create_manual_run(
+            session,
+            run.tenant_id,
+            actor_id,
+            jobs.SETUP_JOB_TYPE,
+            {"run_id": run.id},
+            request_id=f"setup-initialize:{run.id}",
+        )
+    except jobs.JobError:
+        # A queue that refuses the run must not cost the person their company; the
+        # request initializes it itself, as it did before this feature.
+        session.rollback()
+        return False
+    session.commit()
+    return True
+
+
+def _finish_live_setup(
+    session: Session, run: PlaygroundRun, actor_id: str, *, _commit: bool = True
+) -> None:
     from reality.services import demo_data
     from reality.services.playground import _locked_owner
 
@@ -282,12 +326,18 @@ def _finish_live_setup(session: Session, run: PlaygroundRun, actor_id: str) -> N
             )
             run.initialization_progress = {**progress, "live_setup_complete": True}
             session.flush()
-        session.commit()
+        if _commit:
+            session.commit()
     except Exception:  # noqa: BLE001 - retain baseline and safe explicit retry after atomic rollback
-        session.rollback()
+        # The nested block already rolled its own writes back. A caller that owns the
+        # transaction keeps it; the receipt then reports the incomplete live setup.
+        if _commit:
+            session.rollback()
 
 
-def initialize_profile(session: Session, run_id: str, actor_id: str) -> PlaygroundRun:
+def initialize_profile(
+    session: Session, run_id: str, actor_id: str, *, _commit: bool = True
+) -> PlaygroundRun:
     from reality.services.playground import _locked_owner
 
     _locked_owner(session, actor_id)
@@ -348,7 +398,8 @@ def initialize_profile(session: Session, run_id: str, actor_id: str) -> Playgrou
             None,
             "seed_failed",
         )
-    session.commit()
+    if _commit:
+        session.commit()
     return run
 
 
@@ -384,6 +435,9 @@ def retry_request(
         intent["content"],
         confirmed=True,
         live_simulation=intent.get("live_simulation", False),
+        # An explicit retry completes the company in the request, so a person is never
+        # left waiting for a worker that is not running (feature 199).
+        _initialize_inline=True,
     )
 
 

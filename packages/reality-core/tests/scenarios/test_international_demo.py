@@ -1,3 +1,4 @@
+from conftest import seed_company
 from sqlalchemy import func, select
 
 from reality.db.core import Commitment, Item, Location, Party, PlaygroundRun
@@ -14,8 +15,13 @@ def test_canonical_profile_counts_and_cases(session, scheduled_owner, monkeypatc
         "international_demo",
         confirmed=True,
     )
-    assert result["status"] == "ready", result
+    assert result["status"] == "initializing", result
     tenant = result["tenant_id"]
+    assert seed_company(session, tenant) == "succeeded"
+    assert (
+        company_setup.read_request(session, scheduled_owner.id, "canonical")["status"]
+        == "ready"
+    )
     for model, count in [(Item, 16), (Party, 8), (Location, 2)]:
         assert (
             session.scalar(
@@ -53,6 +59,7 @@ def test_operational_stock_and_source_lineage(session, scheduled_owner, monkeypa
         confirmed=True,
     )
     tenant = result["tenant_id"]
+    seed_company(session, tenant)
     manifest = session.get(PlaygroundRun, result["run_id"]).initialization_progress
     for index, stock in enumerate((10, 10, 2, 2, 5, 7, 10, 0, 0, 10), 1):
         assert core.stock_at(

@@ -1,6 +1,7 @@
 from datetime import UTC, datetime, timedelta
 
 import pytest
+from conftest import seed_company
 from sqlalchemy import func, select
 
 from reality.db.core import PlaygroundRun, Tenant, now, uid
@@ -49,7 +50,12 @@ def test_entry_read_only_replay_preserves_live_pause(
     assert free_playground.entry_status(session, scheduled_owner.id)["requested"]
     assert session.scalar(select(func.count()).select_from(Tenant)) == before
     result = free_playground.enter(session, scheduled_owner.id, confirmed=True)
-    assert result["status"] == "ready"
+    assert result["status"] == "initializing"
+    assert seed_company(session, result["tenant_id"]) == "succeeded"
+    assert (
+        free_playground.entry_status(session, scheduled_owner.id)["receipt"]["status"]
+        == "ready"
+    )
     assert (
         session.get(PlaygroundRun, result["run_id"]).owner_user_id == scheduled_owner.id
     )
@@ -204,7 +210,12 @@ def test_failed_entry_retries_same_receipt(session, scheduled_owner, monkeypatch
 
     monkeypatch.setattr(demo_profile, "seed_profile", fail)
     failed = free_playground.enter(session, scheduled_owner.id, confirmed=True)
-    assert failed["status"] != "ready"
+    assert failed["status"] == "initializing"
+    assert seed_company(session, failed["tenant_id"]) == "succeeded"
+    assert (
+        free_playground.entry_status(session, scheduled_owner.id)["receipt"]["status"]
+        == "initialization_failed"
+    )
     monkeypatch.setattr(demo_profile, "seed_profile", original)
     ready = free_playground.enter(session, scheduled_owner.id, confirmed=True)
     assert ready["status"] == "ready"
