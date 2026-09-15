@@ -59,7 +59,8 @@ class PublishWorkflowTest(unittest.TestCase):
     def test_release_job_ships_the_installer_assets_with_the_version_substituted(self) -> None:
         release = self.jobs["release"]
         self.assertEqual(release["if"], "startsWith(github.ref, 'refs/tags/v')")
-        self.assertEqual(release["needs"], ["images"])
+        # `changes` gates whether a push is worth publishing at all.
+        self.assertEqual(release["needs"], ["changes", "images"])
         script = "\n".join(step.get("run", "") for step in release["steps"])
         self.assertIn("__REALITY_INSTALLER_VERSION__", script)
         shipped = INSTALL_SH.read_text(encoding="utf-8").split('ASSETS="', 1)[1].split('"', 1)[0].split()

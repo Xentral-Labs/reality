@@ -1,7 +1,8 @@
 # Public images and installer assets for self-hosting (spec 187).
 #
-# Every push to main publishes the five runtime images to GHCR as
-# sha-<short> and edge. Every v* tag publishes <version> and latest and
+# Every push to main that changes something shippable publishes the five
+# runtime images to GHCR as sha-<short> and edge. Every v* tag publishes
+# <version> and latest and
 # attaches the installer assets to the GitHub Release, with the version
 # substituted into install.sh so a downloaded script installs the release it
 # came from. Site and Docs are provider-operated and are not published here.
@@ -22,7 +23,45 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  # Whether this push is worth publishing.
+  #
+  # This is a job rather than a `paths-ignore` on the trigger above, because the
+  # trigger also carries tags: a tag push reports no changed files, so a path
+  # filter would evaluate as "nothing outside the ignore list changed" and skip
+  # the release entirely. Every uncertain case here resolves to publishing.
+  changes:
+    runs-on: ubuntu-latest
+    outputs:
+      publish: ${{ steps.decide.outputs.publish }}
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+      - id: decide
+        env:
+          BEFORE: ${{ github.event.before }}
+        run: |
+          set -euo pipefail
+          if [ "${GITHUB_REF#refs/tags/}" != "$GITHUB_REF" ]; then
+            echo "::notice::Tag push - publishing the release."
+            echo "publish=true" >> "$GITHUB_OUTPUT"; exit 0
+          fi
+          zero=0000000000000000000000000000000000000000
+          if [ -z "${BEFORE:-}" ] || [ "$BEFORE" = "$zero" ] || ! git cat-file -e "${BEFORE}^{commit}" 2>/dev/null; then
+            echo "::notice::No usable base commit - publishing."
+            echo "publish=true" >> "$GITHUB_OUTPUT"; exit 0
+          fi
+          if git diff --quiet "$BEFORE" "$GITHUB_SHA" -- . \
+               ':(exclude)*.md' ':(exclude)**/*.md' ':(exclude)specs' ':(exclude)docs'; then
+            echo "::notice::Documentation-only push - nothing to publish."
+            echo "publish=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "publish=true" >> "$GITHUB_OUTPUT"
+          fi
+
   images:
+    needs: changes
+    if: needs.changes.outputs.publish == 'true'
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -102,7 +141,7 @@ jobs:
 
   release:
     if: startsWith(github.ref, 'refs/tags/v')
-    needs: [images]
+    needs: [changes, images]
     runs-on: ubuntu-latest
     permissions:
       contents: write
