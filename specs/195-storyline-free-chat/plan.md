@@ -75,3 +75,9 @@ callback; no API or data changes. Constitution Check: PASS.
 Remove the separate Free Play sidebar link. Retain the library tile and saved direct
 URLs. Treat both routes as Storyline navigation for highlighting; the Storyline link
 opens the library explicitly. Constitution Check: PASS; no API or data changes.
+
+## Pending chat visibility
+Replace the faint pulsing icon with a shared ChatPage status panel: accent-soft
+background and border, solid accent icon tile, rotating white LoaderCircle, strong
+label. Use role=status and hide the decorative icon; motion-reduce disables rotation.
+Reuse sending state. Constitution Check: PASS; presentation only.

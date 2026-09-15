@@ -33,3 +33,6 @@ as one coherent increment because free chat must carry truthful evidence.
 
 - [x] T014 [FR-007] Remove Free Play sidebar entry; retain tile, highlight Storyline
   on Free Play, test selection navigation, verify and update local preview/PR.
+
+- [x] T015 [FR-010] Strengthen chat pending status, localize and verify pending/settled
+  lifecycle and reduced motion; update web preview and PR.

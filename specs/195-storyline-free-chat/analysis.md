@@ -61,3 +61,8 @@ Test absence, clear label and read-only return in the browser. No critical findi
 ## Sidebar correction review
 Owner wants Free Play only as a tile under Storyline. Test absent sidebar link,
 retained tile, Storyline active state and return to selection. No critical findings.
+
+## Pending status review
+Owner requested a more visible modern loading indicator. Existing pending lifecycle
+and browser tests cover success/failure. Add reduced-motion verification. No critical
+findings, backend claims or progress estimates.

@@ -130,3 +130,14 @@ run passed, including absent Free Play sidebar link, active Storyline, retained 
 read-only return and company choice. Web build passed (168 tests, four-language audit,
 TypeScript/Vite), as did spec policy, formatting, docs build and catalog consistency.
 Local 8080 serves `index-ByrIIKZD.js`. Final review: navigation only, no backend changes.
+
+## Prominent pending chat status (2026-09-15)
+
+Shared ChatPage now renders an accent status panel with a solid icon tile, rotating
+LoaderCircle and strong Reality is working label. It derives only from sending,
+exposes role=status and disables decorative rotation for reduced motion. No fabricated
+progress or tool claims. The composer browser passed immediate status, success/failure
+cleanup, focus/voice/attachment regressions and computed animation checks for normal
+and reduced motion. Screenshot reviewed. Web build passed (168 tests, four-language
+audit 1853/1853, TypeScript/Vite); spec and diff checks passed. Local 8080 serves
+`index-DVzMXZjN.js`. No backend or generated catalog changes.

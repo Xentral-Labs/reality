@@ -67,6 +67,10 @@ input while preventing edits/submission.
   show unavailable evidence; ordinary proposal review and record links remain available.
 - **FR-005**: Mobile/desktop, light/dark, en/de/nl/es, failure/retry and allowance remain usable.
 - **FR-006**: Restore post-send focus without stealing another control's focus.
+- **FR-010**: While a chat request is pending, show a prominent status panel above
+  the composer with a high-contrast rotating indicator and Reality is working label.
+  Expose a polite live status, respect reduced motion, and remove it on success or
+  failure. Do not imply percentages or tool activity that the server has not reported.
 - **FR-007**: Free Play has one tile in the Storyline selection and no separate sidebar link.
   Storyline stays highlighted while using Free Play, and its sidebar link opens the
   selection. Free Play is removed from individual Storyline cards; guided story actions remain. The narrator footer has no Free Play/Sandbox chat
@@ -104,6 +108,7 @@ None. The owner explicitly requested the independent entry and removal from each
 |---|---|
 | FR-001–002, FR-005 | Storyline/contextual and independent browser interactions and layouts |
 | FR-003–004, DR-001 | PostgreSQL exact evidence, proposal lifecycle, scope and retention tests |
+| FR-010 | Shared composer browser pending/settled status and reduced-motion checks |
 | FR-006 | Shared composer failure/button/Enter focus and deliberate alternate-focus tests |
 | FR-007–008 | Library/standalone browser entry, direct routing, explicit creation/reopen tests |
 | FR-008–009, DR-001 | Confirmed setup, no story identity, collision/archive and owned evidence tests |
