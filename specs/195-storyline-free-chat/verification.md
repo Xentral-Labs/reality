@@ -223,3 +223,17 @@ Escape/focus restoration, desktop control visibility, and contained scrolling at
 rule initially overrode responsive hiding and was corrected and regression checked.
 Web build, four-language audit, spec policy and diff checks passed. No backend,
 schema or catalog changes. Updated local 8080 and PR 15.
+
+## Free Play visual refinement (FR-016, 2026-09-15)
+
+Removed the outer chat card frame/width cap, widened and separated the session
+column, moved the labeled new-conversation action above sessions and outlined the
+company picker. Zero allowance now replaces the composer with a compact reset status.
+Normal chat surfaces and the authoritative allowance/session APIs remain unchanged.
+
+Web build passed: 169 contract tests, TypeScript/Vite and four-language audit.
+Focused browser passed responsive scrolling, drawer/session selection, labeled action
+placement and its session-creation POST, zero-allowance input removal, reset display
+and positive-allowance composer recovery. Reviewed desktop and mobile screenshots.
+Fixture assertions were adjusted to include hidden mobile drawer controls and await
+the session creation endpoint. Spec policy and diff checks passed; local 8080 updated.

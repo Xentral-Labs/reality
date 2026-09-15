@@ -122,3 +122,10 @@ Render existing ChatPage sessions into a left-side FreePlayPage portal target. U
 the existing session selection/reset path. Desktop shows the list beside the card;
 mobile toggles a dismissible drawer. Suppress the old dropdown for this embedding.
 Remove the opened-chat Storyline return control. Constitution Check: PASS; no API changes.
+
+## FR-016 refinement
+User approved the proposed visual refinement. Change adapters only: FreePlayPage
+frame/company control and ChatPage session action/zero-allowance presentation. Reuse
+existing session creation and authoritative allowance. No schema or domain changes;
+Constitution Check PASS. Test responsive geometry, session action placement and
+zero/positive allowance transition in the focused browser fixture before implementation.

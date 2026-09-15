@@ -107,6 +107,7 @@ const dictionaries: Record<Exclude<Language, "en">, Record<string, string>> = {
     "Star on GitHub": "Stern auf GitHub geben",
     "Keep exploring": "Weiter erkunden",
     "Free AI questions remaining": "Verbleibende kostenlose KI-Fragen",
+    "Daily limit reached": "Tageslimit erreicht",
     "Resets at": "Wieder verfügbar ab",
     "Your daily AI allowance is used. Keep exploring the records or return after the reset.":
       "Dein tägliches KI-Kontingent ist aufgebraucht. Erkunde weiter die Datensätze oder stelle nach der Erneuerung weitere Fragen.",
@@ -1913,6 +1914,7 @@ const dictionaries: Record<Exclude<Language, "en">, Record<string, string>> = {
     "Star on GitHub": "Ster geven op GitHub",
     "Keep exploring": "Verder verkennen",
     "Free AI questions remaining": "Resterende gratis AI-vragen",
+    "Daily limit reached": "Daglimiet bereikt",
     "Resets at": "Opnieuw beschikbaar op",
     "Your daily AI allowance is used. Keep exploring the records or return after the reset.":
       "Je dagelijkse AI-tegoed is opgebruikt. Verken de gegevens verder of kom terug na de vernieuwing.",
@@ -3415,6 +3417,7 @@ const dictionaries: Record<Exclude<Language, "en">, Record<string, string>> = {
     "Star on GitHub": "Dar una estrella en GitHub",
     "Keep exploring": "Seguir explorando",
     "Free AI questions remaining": "Preguntas de IA gratuitas restantes",
+    "Daily limit reached": "Límite diario alcanzado",
     "Resets at": "Se renueva el",
     "Your daily AI allowance is used. Keep exploring the records or return after the reset.":
       "Has agotado tu cupo diario de IA. Sigue explorando los registros o vuelve cuando se renueve.",

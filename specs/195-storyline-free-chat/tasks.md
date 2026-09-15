@@ -54,3 +54,6 @@ as one coherent increment because free chat must carry truthful evidence.
 
 - [x] T021 [FR-015] Add left session list/mobile drawer, remove chat Storyline link,
   verify scoped selection/layout and update local preview/PR.
+
+- [x] T022 [FR-016] Refine Free Play frame, session action and exhausted state; verify
+  browser/build/local preview and update PR.

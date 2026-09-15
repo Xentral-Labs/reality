@@ -125,11 +125,24 @@ Existing company setup and ordinary proposal review pages remain authoritative.
 ## Open Questions
 None. The owner explicitly requested the independent entry and removal from each card.
 
+## Layout refinement accepted 2026-09-15
+
+FR-016: Opened Free Play uses an unframed full-width conversation surface, a separated
+left session column with a labeled New conversation action above saved sessions, and
+an identifiable company-picker button. At zero allowance a compact status with the
+existing reset timestamp replaces the composer, while Usage remains in the header.
+No upgrade destination is invented. Other chat surfaces keep their behavior.
+
+Acceptance: Desktop and mobile retain contained scrolling; a new session is created
+through the existing flow; zero allowance hides input/attachment/microphone/send and
+shows reset information; a refreshed positive allowance restores the composer.
+
 ## Requirement Traceability
 | Requirements | Verification |
 |---|---|
 | FR-001–002, FR-005 | Storyline/contextual and independent browser interactions and layouts |
 | FR-003–004, DR-001 | PostgreSQL exact evidence, proposal lifecycle, scope and retention tests |
+| FR-016 | Free Play browser navigation, exhaustion/recovery and responsive geometry |
 | FR-015 | Desktop session-list geometry, selection and mobile drawer checks |
 | FR-014 | Notebook/mobile toolbar height and control-presence browser checks |
 | FR-013 | Long-history browser scroll geometry and viewport checks |
