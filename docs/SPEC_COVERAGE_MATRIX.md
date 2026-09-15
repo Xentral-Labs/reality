@@ -1072,3 +1072,11 @@ Spec 185 owns the analytics service, agent tools, private report configuration a
   keeps both windows of a comparison family on one buyer, states that buyer on the
   invoice and the credit note, names three suppliers and stays authored rather than
   drawn across companies.
+
+- Spec 201: `packages/reality-core/tests/test_worker_due_discovery.py` proves the worker
+  discovers only tenants with claimable work, includes an expired lease, excludes a run
+  whose attempt time has not come, pages within its bound, and that the sweep itself no
+  longer asks every tenant; `test_company_setup_initialization.py` proves the receipt
+  reports queued, preparing and nothing; `apps/web/scripts/setup-progress.test.mjs`
+  proves the immediate first read and that the steps are derived, never estimated;
+  `free-playground-browser.mjs` proves the three steps follow the real state.

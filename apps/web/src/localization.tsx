@@ -926,6 +926,10 @@ const dictionaries: Record<Exclude<Language, "en">, Record<string, string>> = {
     Updated: "Aktualisiert",
     Ready: "Bereit",
     "Company created": "Firma angelegt",
+    "Waiting to start": "Wartet auf den Start",
+    "Preparing orders, deliveries and invoices":
+      "Aufträge, Lieferungen und Rechnungen werden erzeugt",
+    "Ready to explore": "Bereit zum Erkunden",
     "Company created. Opening your company…": "Firma angelegt. Deine Firma wird geöffnet…",
     "Retry opening": "Öffnen erneut versuchen",
 
@@ -2778,6 +2782,9 @@ const dictionaries: Record<Exclude<Language, "en">, Record<string, string>> = {
     Updated: "Bijgewerkt",
     Ready: "Gereed",
     "Company created": "Bedrijf aangemaakt",
+    "Waiting to start": "Wacht op de start",
+    "Preparing orders, deliveries and invoices": "Orders, leveringen en facturen worden aangemaakt",
+    "Ready to explore": "Klaar om te verkennen",
     "Company created. Opening your company…": "Bedrijf aangemaakt. Je bedrijf wordt geopend…",
     "Retry opening": "Opnieuw openen",
 
@@ -4331,6 +4338,9 @@ const dictionaries: Record<Exclude<Language, "en">, Record<string, string>> = {
     Updated: "Actualizado",
     Ready: "Listo",
     "Company created": "Empresa creada",
+    "Waiting to start": "Esperando el inicio",
+    "Preparing orders, deliveries and invoices": "Se están creando pedidos, entregas y facturas",
+    "Ready to explore": "Listo para explorar",
     "Company created. Opening your company…": "Empresa creada. Abriendo tu empresa…",
     "Retry opening": "Reintentar abrir",
 

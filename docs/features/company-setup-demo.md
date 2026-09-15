@@ -95,8 +95,12 @@ and `create_manual_run` now authorizes by job type exactly as a schedule does.
 
 A company that seeds no profile, a failed initialization and the explicit retry are all
 completed inside the request, so a company is recoverable where no worker is running.
-The preparing screens follow the receipt (`unified/setupProgress.ts`) every two seconds
-for at most three minutes and then offer the existing retry.
+The preparing screens follow the receipt (`unified/setupProgress.ts`): the first read is
+immediate and the rest run every second, for at most three minutes, after which the
+existing retry is offered. The receipt reports `preparation` — `queued` while the seeding
+run waits, `preparing` once a worker has claimed it, `null` otherwise — and the screens
+render three steps from it (feature 201). Nothing about that display is estimated: the
+middle step only claims work is happening once a worker actually holds the run.
 
 Spec146 FR-031: company setup distinguishes busy preparation/opening from recoverable interruption. Busy states use one spinner/status and retain the company name without retry actions. First-company entry renders one centered heading/card; existing-company selection remains. Saved request identity and automatic ready navigation are unchanged.
 

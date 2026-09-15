@@ -14,6 +14,7 @@ from uuid import uuid4
 
 from sqlalchemy import and_, event, func, or_, select
 from sqlalchemy.orm import Session
+from sqlalchemy.sql.elements import ColumnElement
 
 from reality.db.core import SecurityAuditEvent, Tenant, now, uid
 from reality.db.scheduled_jobs import ScheduledJob, ScheduledJobRun
@@ -509,16 +510,7 @@ def claim_next(
     session: Session, tenant_id: str, *, outcomes: dict[str, int] | None = None
 ) -> ScheduledJobRun | None:
     """Claim one queued occurrence; never create a timed occurrence."""
-    eligible = or_(
-        and_(
-            ScheduledJobRun.status.in_(("pending", "retry")),
-            ScheduledJobRun.next_attempt_at <= now(),
-        ),
-        and_(
-            ScheduledJobRun.status == "running",
-            ScheduledJobRun.lease_expires_at <= now(),
-        ),
-    )
+    eligible = _claimable()
     candidates = session.execute(
         select(ScheduledJobRun.id, ScheduledJobRun.schedule_id)
         .where(
@@ -664,6 +656,39 @@ def tenant_catalog(session: Session, after: str = "", limit: int = 100) -> list[
     return list(
         session.scalars(
             select(Tenant.id).where(Tenant.id > after).order_by(Tenant.id).limit(limit)
+        )
+    )
+
+
+def _claimable() -> ColumnElement[bool]:
+    """Exactly what `claim_next` will take; discovery must not promise more."""
+    return or_(
+        and_(
+            ScheduledJobRun.status.in_(("pending", "retry")),
+            ScheduledJobRun.next_attempt_at <= now(),
+        ),
+        and_(
+            ScheduledJobRun.status == "running",
+            ScheduledJobRun.lease_expires_at <= now(),
+        ),
+    )
+
+
+def due_tenants(session: Session, after: str = "", limit: int = 100) -> list[str]:
+    """The tenants a worker has reason to visit (feature 201).
+
+    An idle installation costs one query instead of one per tenant, which is what
+    makes a short poll interval affordable.
+    """
+    if not 1 <= limit <= 100:
+        raise JobError("invalid_limit")
+    return list(
+        session.scalars(
+            select(ScheduledJobRun.tenant_id)
+            .where(ScheduledJobRun.tenant_id > after, _claimable())
+            .group_by(ScheduledJobRun.tenant_id)
+            .order_by(ScheduledJobRun.tenant_id)
+            .limit(limit)
         )
     )
 

@@ -9,7 +9,8 @@ import {
 } from "../api";
 import { t } from "../localization";
 import { CompanySetupForm } from "./CompanySetupForm";
-import { followSetup, setupProgress } from "../unified/setupProgress";
+import { SetupSteps } from "./EntryProgress";
+import { followSetup, setupProgress, setupSteps, type SetupStep } from "../unified/setupProgress";
 
 export function CompanySetup({
   first = false,
@@ -30,6 +31,7 @@ export function CompanySetup({
   const [result, setResult] = useState<CompanySetupResult>();
   const [busy, setBusy] = useState(true);
   const [error, setError] = useState("");
+  const [steps, setSteps] = useState<SetupStep[] | null>(null);
   const attemptedOpen = useRef<string | undefined>(undefined);
   const mounted = useRef(true);
   useEffect(() => {
@@ -84,10 +86,12 @@ export function CompanySetup({
       // by the worker, so the receipt is followed until it is ready or fails.
       const created = await api.companySetup(request);
       setResult(created);
+      setSteps(setupSteps(created));
       if (setupProgress(created) === "waiting") {
         const settled = await followSetup(
           () => api.companySetupRequest(request.request_key),
           () => mounted.current,
+          { observe: (receipt) => mounted.current && setSteps(setupSteps(receipt)) },
         );
         if (settled) setResult(settled);
       }
@@ -168,6 +172,7 @@ export function CompanySetup({
                 : "Please wait. You will continue automatically.",
             )}
           </p>
+          {steps && <SetupSteps steps={steps} />}
         </div>
       )}
       {error && <p role="alert">{error}</p>}

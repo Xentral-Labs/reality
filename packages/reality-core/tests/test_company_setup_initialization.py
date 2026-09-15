@@ -195,3 +195,28 @@ def test_setup_job_ownership_is_not_weaker_than_the_shared_rule(
     ]:
         with pytest.raises(jobs.JobError):
             _owner(session, tenant_id, actor, JOB_TYPE)
+
+
+def test_receipt_says_whether_anyone_is_preparing_the_company(
+    session, scheduled_owner
+):
+    """Feature 201: queued and being prepared are different answers."""
+    result = _create(session, scheduled_owner)
+    assert result["preparation"] == "queued"
+    read = company_setup.read_request(session, scheduled_owner.id, "deferred")
+    assert read["preparation"] == "queued"
+    run = jobs.claim_next(session, result["tenant_id"])
+    assert (
+        company_setup.read_request(session, scheduled_owner.id, "deferred")[
+            "preparation"
+        ]
+        == "preparing"
+    )
+    jobs.execute_claim(session, result["tenant_id"], run.id, run.claim_token)
+    finished = company_setup.read_request(session, scheduled_owner.id, "deferred")
+    assert finished["status"] == "ready" and finished["preparation"] is None
+
+
+def test_a_company_nobody_prepares_reports_no_preparation(session, scheduled_owner):
+    result = _create(session, scheduled_owner, key="empty", content="empty")
+    assert result["status"] == "ready" and result["preparation"] is None
