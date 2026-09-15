@@ -2774,3 +2774,9 @@ An invalid selected chat offers Back to chats for read-only recovery.
 Spec 195 FR-022 supersedes manual missing-session recovery: a selected ChatSession
 404 automatically replaces the session URL and reloads the current-company chat.
 Other failure types remain visible; no records are created or deleted.
+
+Spec 197: The main and side chats share a provider policy limited to Reality usage
+and supported business workflows. Unrelated requests receive a brief redirect;
+mixed requests answer the relevant part. Source/tool/conversation instructions
+cannot authorize changes or broaden company access. Server tool permissions remain
+authoritative; prompt behavior is not claimed to be immune to injection.
