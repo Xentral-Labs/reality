@@ -13,6 +13,55 @@ import {
   type StarterTask,
 } from "./trialJourney";
 
+/** Feature 198: the two starts a first entry chooses between, one click each. */
+const STARTS = [
+  [
+    "international_demo",
+    "Demo company with live orders",
+    "A finished company with products, warehouses and customers, and twelve weeks of order history. New orders keep arriving, so you can watch deliveries, invoices and payments move. You can pause that at any time.",
+    "Start with demo data",
+  ],
+  [
+    "empty",
+    "Empty company",
+    "Start with nothing and bring in your own data. You can add the demo data later, or leave the company empty.",
+    "Start empty",
+  ],
+] as const;
+type Start = (typeof STARTS)[number][0];
+
+function StartChoice({ choose }: { choose: (start: Start) => void }) {
+  return (
+    <main className="flex min-h-screen items-center justify-center bg-surface-sunken p-8">
+      <section className="w-full max-w-3xl space-y-5" data-entry-choice>
+        <p className="text-sm font-semibold text-fg-muted">Reality</p>
+        <h1 className="text-2xl font-semibold">{t("How would you like to start?")}</h1>
+        <p className="text-fg-muted">
+          {t("Both are your own company. You can create more at any time.")}
+        </p>
+        <div className="grid gap-4 md:grid-cols-2">
+          {STARTS.map(([start, title, detail, action]) => (
+            <article
+              key={start}
+              className="flex flex-col gap-3 rounded-xl border border-border-default bg-surface p-5"
+            >
+              <h2 className="text-lg font-semibold">{t(title)}</h2>
+              <p className="flex-1 text-sm text-fg-muted">{t(detail)}</p>
+              <button
+                className={`br-btn ${start === "empty" ? "" : "br-btn-primary"}`}
+                data-start={start}
+                onClick={() => choose(start)}
+              >
+                {t(action)}
+              </button>
+            </article>
+          ))}
+        </div>
+      </section>
+    </main>
+  );
+}
+
 export function TrialEntry(props: {
   autoEnter: boolean;
   open: (data: Bootstrap, id: string) => void;
@@ -34,6 +83,7 @@ function TrialEntryRequest({
   const [failure, setFailure] = useState("");
   const [finished, setFinished] = useState(false);
   const [attempt, setAttempt] = useState(0);
+  const [start, setStart] = useState<Start | "">("");
   const requested =
     autoEnter &&
     !finished &&
@@ -43,15 +93,19 @@ function TrialEntryRequest({
     state.data.enabled &&
     state.data.eligible;
   useEffect(() => {
-    if (!requested) return;
+    if (!requested || !start) return;
     let current = true;
     setFailure("");
     api
-      .enterPlayground()
+      .enterPlayground(start)
       .then(async (result) => {
         if (result.status !== "ready")
           throw new Error(
-            t("Your demo is not ready yet. Retry to continue with the same company."),
+            t(
+              start === "empty"
+                ? "Your company is not ready yet. Retry to continue with the same company."
+                : "Your demo is not ready yet. Retry to continue with the same company.",
+            ),
           );
         const data = await api.bootstrap();
         if (current) {
@@ -65,22 +119,22 @@ function TrialEntryRequest({
     return () => {
       current = false;
     };
-  }, [requested, attempt]);
+  }, [requested, start, attempt]);
   // Background reads retain their previous answer and must not reset the active page.
   if (state.loading && !state.data) return <EntryProgress />;
   if (state.error) return <ReadState error={state.error} retry={state.refresh} />;
   if (!requested) return children;
-  if (!failure)
-    return (
-      <EntryProgress
-        title="Preparing your demo company"
-        detail="Orders, deliveries and invoices are being prepared for you to explore."
-      />
-    );
+  if (!start) return <StartChoice choose={setStart} />;
+  const preparing = start === "empty" ? "Preparing your company" : "Preparing your demo company";
+  const detail =
+    start === "empty"
+      ? "Your empty company is being created for you."
+      : "Orders, deliveries and invoices are being prepared for you to explore.";
+  if (!failure) return <EntryProgress title={preparing} detail={detail} />;
   return (
     <section className="mx-auto max-w-xl space-y-4 p-8" aria-live="polite">
-      <h1 className="text-2xl font-semibold">{t("Preparing your demo company")}</h1>
-      <p>{t("Orders, deliveries and invoices are being prepared for you to explore.")}</p>
+      <h1 className="text-2xl font-semibold">{t(preparing)}</h1>
+      <p>{t(detail)}</p>
       <ReadState
         loading={!failure}
         error={failure}

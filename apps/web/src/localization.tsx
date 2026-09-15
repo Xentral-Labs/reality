@@ -97,6 +97,18 @@ const dictionaries: Record<Exclude<Language, "en">, Record<string, string>> = {
     "Your demo is not ready yet. Retry to continue with the same company.":
       "Deine Demo ist noch nicht bereit. Versuche es erneut, um mit derselben Firma fortzufahren.",
     "Preparing your demo company": "Deine Demo-Firma wird vorbereitet",
+    "Your company is not ready yet. Retry to continue with the same company.":
+      "Deine Firma ist noch nicht bereit. Starte den Versuch erneut, um mit derselben Firma weiterzumachen.",
+    "Demo company with live orders": "Demo-Firma mit laufenden Aufträgen",
+    "A finished company with products, warehouses and customers, and twelve weeks of order history. New orders keep arriving, so you can watch deliveries, invoices and payments move. You can pause that at any time.":
+      "Eine fertige Firma mit Artikeln, Lagern und Kunden und zwölf Wochen Auftragshistorie. Es laufen weiter neue Aufträge ein, damit du Lieferungen, Rechnungen und Zahlungen in Bewegung siehst. Du kannst das jederzeit pausieren.",
+    "Start with demo data": "Mit Demodaten starten",
+    "Start with nothing and bring in your own data. You can add the demo data later, or leave the company empty.":
+      "Starte bei null und bring deine eigenen Daten ein. Die Demodaten kannst du später dazuschalten oder die Firma leer lassen.",
+    "Start empty": "Leer starten",
+    "Both are your own company. You can create more at any time.":
+      "Beides ist deine eigene Firma. Du kannst jederzeit weitere anlegen.",
+    "Your empty company is being created for you.": "Deine leere Firma wird angelegt.",
     "Orders, deliveries and invoices are being prepared for you to explore.":
       "Aufträge, Lieferungen und Rechnungen werden zum Erkunden vorbereitet.",
     "Try these three questions": "Starte mit diesen drei Fragen",
@@ -1935,6 +1947,18 @@ const dictionaries: Record<Exclude<Language, "en">, Record<string, string>> = {
     "Your demo is not ready yet. Retry to continue with the same company.":
       "Je demo is nog niet klaar. Probeer opnieuw om met hetzelfde bedrijf verder te gaan.",
     "Preparing your demo company": "Je demobedrijf wordt voorbereid",
+    "Your company is not ready yet. Retry to continue with the same company.":
+      "Je bedrijf is nog niet klaar. Probeer het opnieuw om met hetzelfde bedrijf verder te gaan.",
+    "Demo company with live orders": "Demobedrijf met lopende orders",
+    "A finished company with products, warehouses and customers, and twelve weeks of order history. New orders keep arriving, so you can watch deliveries, invoices and payments move. You can pause that at any time.":
+      "Een compleet bedrijf met producten, magazijnen en klanten en twaalf weken ordergeschiedenis. Er blijven nieuwe orders binnenkomen, zodat je leveringen, facturen en betalingen in beweging ziet. Je kunt dat op elk moment pauzeren.",
+    "Start with demo data": "Met demogegevens beginnen",
+    "Start with nothing and bring in your own data. You can add the demo data later, or leave the company empty.":
+      "Begin met niets en breng je eigen gegevens in. De demogegevens kun je later toevoegen of je laat het bedrijf leeg.",
+    "Start empty": "Leeg beginnen",
+    "Both are your own company. You can create more at any time.":
+      "Beide zijn je eigen bedrijf. Je kunt er altijd meer aanmaken.",
+    "Your empty company is being created for you.": "Je lege bedrijf wordt aangemaakt.",
     "Orders, deliveries and invoices are being prepared for you to explore.":
       "Orders, leveringen en facturen worden klaargezet om te verkennen.",
     "Try these three questions": "Begin met deze drie vragen",
@@ -3466,6 +3490,18 @@ const dictionaries: Record<Exclude<Language, "en">, Record<string, string>> = {
     "Your demo is not ready yet. Retry to continue with the same company.":
       "Tu demostración aún no está lista. Reintenta para continuar con la misma empresa.",
     "Preparing your demo company": "Preparando tu empresa de demostración",
+    "Your company is not ready yet. Retry to continue with the same company.":
+      "Tu empresa aún no está lista. Reintenta para continuar con la misma empresa.",
+    "Demo company with live orders": "Empresa de demostración con pedidos en curso",
+    "A finished company with products, warehouses and customers, and twelve weeks of order history. New orders keep arriving, so you can watch deliveries, invoices and payments move. You can pause that at any time.":
+      "Una empresa completa con productos, almacenes y clientes y doce semanas de historial de pedidos. Siguen llegando pedidos nuevos, para que veas entregas, facturas y pagos en movimiento. Puedes pausarlo cuando quieras.",
+    "Start with demo data": "Empezar con datos de demostración",
+    "Start with nothing and bring in your own data. You can add the demo data later, or leave the company empty.":
+      "Empieza desde cero y aporta tus propios datos. Puedes añadir los datos de demostración más tarde o dejar la empresa vacía.",
+    "Start empty": "Empezar vacía",
+    "Both are your own company. You can create more at any time.":
+      "Ambas son tu propia empresa. Puedes crear más cuando quieras.",
+    "Your empty company is being created for you.": "Tu empresa vacía se está creando.",
     "Orders, deliveries and invoices are being prepared for you to explore.":
       "Se están preparando pedidos, entregas y facturas para que los explores.",
     "Try these three questions": "Empieza con estas tres preguntas",

@@ -1051,3 +1051,10 @@ Spec 185 owns the analytics service, agent tools, private report configuration a
 - Spec 196: `packages/reality-core/tests/test_ai_usage.py` proves account-wide
   lifetime cap, idempotent confirmation, actor/recipient attribution, tenant/admin
   authorization, UTC expiration and concurrent grants.
+
+- Spec 198: `packages/reality-core/tests/test_free_playground.py` and
+  `test_company_setup_api.py` prove both starts, the recorded receipt, replay, the
+  refused conflicting start, the closed adapter literal and a Demo Data connection
+  after an empty start; `apps/web/scripts/free-playground-browser.mjs` proves the two
+  cards, that nothing is created before a choice, and four languages on a narrow
+  viewport.

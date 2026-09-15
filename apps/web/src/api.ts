@@ -1153,10 +1153,10 @@ export const api = {
       eligible: boolean;
       receipt: CompanySetupResult | null;
     }>("/api/company-setup/playground"),
-  enterPlayground: () =>
+  enterPlayground: (content: "international_demo" | "empty") =>
     request<CompanySetupResult>("/api/company-setup/playground", {
       method: "POST",
-      body: JSON.stringify({ confirmed: true }),
+      body: JSON.stringify({ confirmed: true, content }),
     }),
   companySetupOptions: () => request<CompanySetupOptions>("/api/company-setup/options"),
   companySetupRequest: (key: string) =>
