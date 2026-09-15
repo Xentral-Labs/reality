@@ -9,9 +9,9 @@ description: "Requirement-traceable empty Chat Session removal tasks"
 
 ## Phase 1: Specification and Design Gates
 
-- [x] T001 Confirm requirements review and close clarification markers in `specs/204-delete-empty-chat/spec.md`
-- [x] T002 Confirm all Constitution Check rows are PASS in `specs/204-delete-empty-chat/plan.md`
-- [x] T003 Run `$speckit-analyze` and resolve all CRITICAL findings across `specs/204-delete-empty-chat/`
+- [x] T001 Confirm requirements review and close clarification markers in `specs/205-delete-empty-chat/spec.md`
+- [x] T002 Confirm all Constitution Check rows are PASS in `specs/205-delete-empty-chat/plan.md`
+- [x] T003 Run `$speckit-analyze` and resolve all CRITICAL findings across `specs/205-delete-empty-chat/`
 
 ## Phase 2: Failing Proof
 
@@ -24,7 +24,7 @@ description: "Requirement-traceable empty Chat Session removal tasks"
 
 - [x] T008 [US1] [FR-001] [FR-002] [FR-005] [FR-006] [FR-007] [DR-001] [DR-002] [DR-004] Implement tenant-scoped conditional removal in `packages/reality-core/src/reality/services/core.py`
 - [x] T009 [US1] [FR-001] [FR-002] [DR-002] Keep the existing removal transport delegated to the shared service in `packages/reality-core/src/reality/web/api.py`
-- [x] T010 [US1] Run the US1 independent acceptance proof from `specs/204-delete-empty-chat/quickstart.md`
+- [x] T010 [US1] Run the US1 independent acceptance proof from `specs/205-delete-empty-chat/quickstart.md`
 
 ## Phase 4: User Story 2 - Understand the consequence before confirming (P2)
 
@@ -32,7 +32,7 @@ description: "Requirement-traceable empty Chat Session removal tasks"
 - [x] T012 [P] [US2] [FR-003] Type `message_count` in `apps/web/src/api.ts`
 - [x] T013 [US2] [FR-004] Render `Delete chat` with permanent confirmation for empty sessions and preserve archive wording otherwise in `apps/web/src/unified/ChatPage.tsx`
 - [x] T014 [P] [US2] [FR-004] Add complete translations in `apps/web/src/localization.tsx`
-- [x] T015 [US2] Run the US2 independent acceptance proof from `specs/204-delete-empty-chat/quickstart.md`
+- [x] T015 [US2] Run the US2 independent acceptance proof from `specs/205-delete-empty-chat/quickstart.md`
 - [x] T016 [US1] [US2] [FR-003] [FR-007] Classify the new tenant-scoped aggregate and mutation in `packages/reality-core/config/tenant_isolation_catalog.yaml` and update its completeness proof
 
 ## Final Phase: Cross-Cutting Review
@@ -40,9 +40,9 @@ description: "Requirement-traceable empty Chat Session removal tasks"
 - [x] T900 [DR-003] Run the Spec Policy check and verify no source, evidence, Reality schema, or migration changed
 - [x] T901 Run focused backend PostgreSQL/API tests and required backend quality checks
 - [x] T902 Run Web contract tests, formatting, i18n audit, and production build
-- [x] T903 Confirm migration and data-backfill impact is none in `specs/204-delete-empty-chat/plan.md`
+- [x] T903 Confirm migration and data-backfill impact is none in `specs/205-delete-empty-chat/plan.md`
 - [x] T904 Review final diff against the Constitution and FR-001–FR-007/DR-001–DR-004
-- [x] T905 Update `specs/204-delete-empty-chat/tasks.md` only after every required check is green
+- [x] T905 Update `specs/205-delete-empty-chat/tasks.md` only after every required check is green
 
 ## Dependencies
 
