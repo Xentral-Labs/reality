@@ -12,6 +12,10 @@ test("the unified conversation list preserves archive and restore controls", () 
   assert.match(chat, /data-chat-session-archive/u);
   assert.match(chat, /data-chat-session-restore/u);
   assert.match(chat, /data\.has_archived/u);
+  assert.match(chat, /<MoreHorizontal/u);
+  assert.match(chat, /data-chat-session-menu/u);
+  assert.match(chat, /data-chat-archive-entry/u);
+  assert.match(chat, /border-t border-border-default/u);
 });
 
 test("archived conversations use the retained archive read and remain read-only", () => {

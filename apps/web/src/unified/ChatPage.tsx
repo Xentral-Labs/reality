@@ -8,6 +8,7 @@ import {
   ChevronLeft,
   History,
   LoaderCircle,
+  MoreHorizontal,
   SquarePen,
   Sparkles,
 } from "lucide-react";
@@ -348,7 +349,7 @@ export function ChatPage({
     <div className={frame}>
       {sessionsTarget &&
         createPortal(
-          <div className="space-y-1" data-chat-session-list>
+          <div className="flex h-full min-h-0 flex-col" data-chat-session-list>
             {showArchived ? (
               <button
                 className="br-btn mb-3 w-full justify-start gap-2"
@@ -373,41 +374,64 @@ export function ChatPage({
                 {t("New conversation")}
               </button>
             )}
-            {!data.sessions.length && (
-              <p className="text-sm text-fg-muted">
-                {t(showArchived ? "No archived chats" : "No conversations yet.")}
-              </p>
-            )}
-            {data.sessions.map((row) => (
-              <div key={row.id} className="group flex min-w-0 items-center gap-1">
-                <button
-                  data-chat-session={row.id}
-                  aria-current={row.id === data.active_session_id ? "true" : undefined}
-                  className={`min-w-0 flex-1 truncate rounded-lg px-3 py-2.5 text-left text-sm ${row.id === data.active_session_id ? activeSessionClass : inactiveSessionClass}`}
-                  title={row.title}
-                  disabled={sending || startingChat || changingSession}
-                  onClick={() => selectSession(row.id)}
-                >
-                  <span data-original-content>{row.title}</span>
-                </button>
-                <button
-                  className="reality-chat-icon shrink-0"
-                  data-chat-session-restore={showArchived ? row.id : undefined}
-                  data-chat-session-archive={showArchived ? undefined : row.id}
-                  aria-label={t(showArchived ? "Restore chat" : "Archive chat")}
-                  title={t(showArchived ? "Restore chat" : "Archive chat")}
-                  disabled={sending || startingChat || changingSession}
-                  onClick={() =>
-                    showArchived ? void restoreSession(row) : void archiveSession(row)
-                  }
-                >
-                  {showArchived ? <ArchiveRestore size={17} /> : <Archive size={17} />}
-                </button>
-              </div>
-            ))}
+            <div className="min-h-0 flex-1 space-y-1 overflow-y-auto overscroll-contain">
+              {!data.sessions.length && (
+                <p className="text-sm text-fg-muted">
+                  {t(showArchived ? "No archived chats" : "No conversations yet.")}
+                </p>
+              )}
+              {data.sessions.map((row) => (
+                <div key={row.id} className="group flex min-w-0 items-center gap-1">
+                  <button
+                    data-chat-session={row.id}
+                    aria-current={row.id === data.active_session_id ? "true" : undefined}
+                    className={`min-w-0 flex-1 truncate rounded-lg px-3 py-2.5 text-left text-sm ${row.id === data.active_session_id ? activeSessionClass : inactiveSessionClass}`}
+                    title={row.title}
+                    disabled={sending || startingChat || changingSession}
+                    onClick={() => selectSession(row.id)}
+                  >
+                    <span data-original-content>{row.title}</span>
+                  </button>
+                  {showArchived ? (
+                    <button
+                      className="reality-chat-icon shrink-0"
+                      data-chat-session-restore={row.id}
+                      aria-label={t("Restore chat")}
+                      title={t("Restore chat")}
+                      disabled={sending || startingChat || changingSession}
+                      onClick={() => void restoreSession(row)}
+                    >
+                      <ArchiveRestore size={17} />
+                    </button>
+                  ) : (
+                    <details className="relative shrink-0" data-chat-session-menu={row.id}>
+                      <summary
+                        className="reality-chat-icon list-none cursor-pointer"
+                        aria-label={t("More options")}
+                        title={t("More options")}
+                      >
+                        <MoreHorizontal size={18} />
+                      </summary>
+                      <div className="absolute right-0 z-20 mt-1 min-w-40 rounded-lg border border-border-default bg-surface p-1 shadow-lg">
+                        <button
+                          className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-left text-sm hover:bg-surface-muted"
+                          data-chat-session-archive={row.id}
+                          disabled={sending || startingChat || changingSession}
+                          onClick={() => void archiveSession(row)}
+                        >
+                          <Archive size={17} />
+                          {t("Archive chat")}
+                        </button>
+                      </div>
+                    </details>
+                  )}
+                </div>
+              ))}
+            </div>
             {!showArchived && data.has_archived && (
               <button
-                className="mt-3 flex w-full items-center gap-2 rounded-lg px-3 py-2.5 text-left text-sm text-fg-muted hover:bg-surface-muted"
+                className="mt-3 flex w-full shrink-0 items-center gap-2 border-t border-border-default px-3 pt-3 text-left text-sm text-fg-muted hover:text-fg-default"
+                data-chat-archive-entry
                 onClick={() => {
                   setShowArchived(true);
                   navigate({ session: "" }, { replace: true });
