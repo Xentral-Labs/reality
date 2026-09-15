@@ -139,7 +139,7 @@ export function ChatComposer({
         </p>
       )}
       <form
-        className="reality-chat-composer"
+        className="reality-chat-composer relative"
         onSubmit={(event) => {
           event.preventDefault();
           if (!exhausted && !reading && !sending && !tooLong && value.trim()) {
@@ -169,7 +169,7 @@ export function ChatComposer({
             }
           }}
         />
-        <div className="flex items-center justify-between px-3 pb-3">
+        <div className="absolute inset-x-2 bottom-2 flex items-end justify-between">
           <button
             type="button"
             className="reality-chat-icon"
