@@ -85,7 +85,17 @@ def configure(service_name: str) -> None:
         # http.server.request.duration keyed on http.route, in seconds, with
         # sub-second bucket boundaries -- rather than the legacy metric, which
         # is in milliseconds under non-standard attribute names.
-        os.environ.setdefault("OTEL_SEMCONV_STABILITY_OPT_IN", "http")
+        # Merged, not setdefault: the variable is a comma-separated list, so an
+        # operator opting into another signal (e.g. "database" for SQLAlchemy)
+        # would otherwise silently drop the http opt-in and hand back the
+        # legacy millisecond-valued metric under different attribute names.
+        opt_in = {
+            part.strip()
+            for part in os.environ.get("OTEL_SEMCONV_STABILITY_OPT_IN", "").split(",")
+            if part.strip()
+        }
+        opt_in.add("http")
+        os.environ["OTEL_SEMCONV_STABILITY_OPT_IN"] = ",".join(sorted(opt_in))
 
         from opentelemetry import metrics, trace
         from opentelemetry.exporter.otlp.proto.http.metric_exporter import (
@@ -126,11 +136,11 @@ def configure(service_name: str) -> None:
 
 
 def instrument_fastapi(app: Any) -> None:
-    """Traces from the instrumentor, plus a bounded per-route latency metric.
+    """Install the bundled FastAPI instrumentation.
 
-    /healthz and /readyz are excluded from both: probes fire every few seconds
-    on every replica and would otherwise dominate span volume and skew the
-    latency histograms without describing real traffic.
+    /healthz and /readyz are excluded: probes fire every few seconds on every
+    replica and would otherwise dominate the volume and skew the latency
+    histograms without describing any real traffic.
     """
     if not enabled():
         return
@@ -203,6 +213,12 @@ def instrument_asgi(app: Any) -> Any:
     The MCP app is server.streamable_http_app(), not FastAPI, so the FastAPI
     instrumentor does not apply -- without this the whole MCP surface reports
     no response times and no status codes.
+
+    Note the metrics carry NO http.route: raw ASGI middleware runs before
+    Starlette routing, so there is no route template to read. Duration and
+    status are per-service rather than per-endpoint here. That is acceptable
+    because streamable_http_app() is effectively a single endpoint, but do not
+    assume parity with the FastAPI instrumentation.
     """
     if not enabled():
         return app

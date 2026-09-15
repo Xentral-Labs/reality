@@ -1100,3 +1100,11 @@ Spec 185 owns the analytics service, agent tools, private report configuration a
   covers normal source intake of the three initial orders, replay and return to stochastic
   demand. `apps/web/scripts/live-simulation-header-browser.mjs` covers visibility,
   current-company navigation, stale responses, responsive placement and reduced motion.
+
+- Telemetry: `packages/reality-core/tests/test_telemetry.py` proves the instrumentation is
+  inert without an OTLP endpoint (no SDK import, no middleware, no providers), that the
+  resource carries an explicit `service.instance.id` from the pod name rather than a random
+  per-process UUID, that HTTP metrics key on the route TEMPLATE so many distinct ids collapse
+  to one series, that user-entered query strings never reach a metric attribute, and that
+  seconds-valued histograms carry seconds-shaped bucket boundaries rather than the SDK's
+  millisecond defaults.

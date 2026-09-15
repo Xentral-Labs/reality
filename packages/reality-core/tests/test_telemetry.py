@@ -80,7 +80,7 @@ def test_route_attribute_is_the_template_not_the_resolved_path(monkeypatch):
     """The cardinality guarantee, asserted rather than assumed: many distinct
     ids on one route must collapse to a single series."""
     monkeypatch.setenv("OTEL_EXPORTER_OTLP_ENDPOINT", "http://collector:4318")
-    os.environ.setdefault("OTEL_SEMCONV_STABILITY_OPT_IN", "http")
+    monkeypatch.setenv("OTEL_SEMCONV_STABILITY_OPT_IN", "http")
 
     from fastapi import FastAPI
     from fastapi.testclient import TestClient
@@ -168,3 +168,47 @@ def test_sweep_duration_separates_sub_second_from_multi_second(monkeypatch):
         "0.4s, 1.2s and 3.0s must fall in distinct buckets; "
         "all in one means the millisecond defaults are still in use"
     )
+
+
+def test_configure_opts_into_stable_http_semconv(monkeypatch):
+    """The single riskiest line in the change: without this opt-in the bundled
+    instrumentation emits the LEGACY metric -- milliseconds, under non-standard
+    attribute names and without http.route. Asserted through configure() rather
+    than by setting the variable in the test, so deleting the line fails."""
+    monkeypatch.setenv("OTEL_EXPORTER_OTLP_ENDPOINT", "http://collector:4318")
+    monkeypatch.delenv("OTEL_SEMCONV_STABILITY_OPT_IN", raising=False)
+    monkeypatch.setattr(telemetry, "_configured", False)
+
+    telemetry.configure("reality-test")
+
+    assert "http" in os.environ["OTEL_SEMCONV_STABILITY_OPT_IN"].split(",")
+
+
+def test_configure_preserves_other_semconv_opt_ins(monkeypatch):
+    """The variable is a comma-separated list. Overwriting it rather than
+    merging would silently drop an operator's own opt-in."""
+    monkeypatch.setenv("OTEL_EXPORTER_OTLP_ENDPOINT", "http://collector:4318")
+    monkeypatch.setenv("OTEL_SEMCONV_STABILITY_OPT_IN", "database")
+    monkeypatch.setattr(telemetry, "_configured", False)
+
+    telemetry.configure("reality-test")
+
+    modes = set(os.environ["OTEL_SEMCONV_STABILITY_OPT_IN"].split(","))
+    assert {"http", "database"} <= modes
+
+
+def test_traces_are_not_exported_without_an_explicit_opt_in(monkeypatch):
+    """No trace backend is deployed, and FastAPI spans carry the query string,
+    which on this API includes free-text search terms."""
+    monkeypatch.setenv("OTEL_EXPORTER_OTLP_ENDPOINT", "http://collector:4318")
+    monkeypatch.delenv("REALITY_OTEL_TRACES", raising=False)
+    monkeypatch.setattr(telemetry, "_configured", False)
+
+    telemetry.configure("reality-test")
+
+    from opentelemetry import trace
+
+    provider = trace.get_tracer_provider()
+    assert not isinstance(provider, __import__(
+        "opentelemetry.sdk.trace", fromlist=["TracerProvider"]
+    ).TracerProvider), "a real TracerProvider was installed with no backend to send to"

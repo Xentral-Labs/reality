@@ -6470,7 +6470,9 @@ def send_chat_message(
                     **({"on_event": on_event} if on_event else {}),
                 )
             reply = asyncio.run(provider_reply)
-            turn_outcome = "model"
+            # An empty reply falls through to the deterministic keyword chain
+            # below, so it is a fallback turn however it was produced.
+            turn_outcome = "model" if reply else "fallback"
         # A policy refusal is not an outage: say which company kind is closed
         # and why (feature 169). Provider, transport, protocol and tool failures
         # degrade to a safe user-visible response; no exception escapes here.

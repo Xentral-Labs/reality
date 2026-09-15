@@ -125,14 +125,19 @@ Deliberate choices:
 - name: OTEL_METRIC_EXPORT_INTERVAL
   value: {{ .Values.telemetry.metricExportIntervalMs | quote }}
 {{/*
-  Short export timeouts. The default is 10s per attempt with retries, so a
-  wrong endpoint or a collector that blackholes SYNs adds ~30s of retry noise
-  to every pod shutdown and floods the logs with exporter errors.
+  Export timeout, in SECONDS.
+
+  This is deliberately OTEL_EXPORTER_OTLP_TIMEOUT and not
+  OTEL_METRIC_EXPORT_TIMEOUT. The latter reads naturally but does not bound
+  anything: PeriodicExportingMetricReader passes it to export() as
+  timeout_millis, and the OTLP/HTTP exporter ignores that argument entirely --
+  it recomputes its deadline from self._timeout, which comes only from
+  OTEL_EXPORTER_OTLP_METRICS_TIMEOUT / OTEL_EXPORTER_OTLP_TIMEOUT (default 10s,
+  with 6 retries). Without this, a collector that blackholes SYNs adds ~10s to
+  every pod termination, against a 30s grace period.
 */}}
-- name: OTEL_METRIC_EXPORT_TIMEOUT
-  value: "3000"
-- name: OTEL_BSP_EXPORT_TIMEOUT
-  value: "3000"
+- name: OTEL_EXPORTER_OTLP_TIMEOUT
+  value: "3"
 {{/*
   service.instance.id / k8s.node.name. Set explicitly: left to itself the SDK
   invents a random UUID per process, so every restart on spot capacity would

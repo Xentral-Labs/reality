@@ -130,7 +130,10 @@ def _dedicated_session_factory(fallback: Any) -> Any:
             expire_on_commit=False,
         )
     except Exception:
-        log.debug("dedicated gauge pool unavailable; using shared pool", exc_info=True)
+        # Warning, not debug: falling back means the gauge callbacks go back to
+        # the request pool, which silently undoes the isolation and reinstates
+        # the 30s block during the pool saturation these gauges diagnose.
+        log.warning("dedicated gauge pool unavailable; using shared pool", exc_info=True)
         return fallback
 
 
