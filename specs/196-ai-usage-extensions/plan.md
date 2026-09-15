@@ -30,3 +30,10 @@ concurrent final slot. API tests use authenticated cookies. Browser confirms no 
 before confirmation, errors/retry and history. Run focused PostgreSQL suite, full
 pytest where feasible, web build/audit, spec policy and diff review. Existing audit
 rows remain intact on code rollback; no migration. Local Docker preview then PR.
+
+## FR-007 plan
+Adapter-only simplification in ChatUsage.tsx; retain shared grant API and account scope.
+Use the explicit Reset usage click as confirmation, preserve retry key until success.
+Render total daily allowance without exposing grant accounting. No schema/service change.
+Constitution: PASS. Verify browser eligibility, retry, success, exhausted lifetime, admin
+view and four locales, plus web build/spec policy.

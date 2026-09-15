@@ -113,7 +113,7 @@ await page.route("**/api/**", async (route) => {
     return reply({
       allowance: {
         limit: 20,
-        used: 20,
+        used: 20 + usageGrants.reduce((sum, row) => sum + row.questions, 0) - remaining,
         remaining,
         base_remaining: 0,
         bonus_questions: usageGrants.reduce((sum, row) => sum + row.questions, 0),
@@ -211,47 +211,44 @@ try {
     remaining = 0;
     await page.goto(`${base}/app/settings?tenant=${company.id}&settings_view=usage`);
     const settings = page.locator("[data-usage-settings]");
-    await settings.getByRole("button", { name: "Get 20 more questions", exact: true }).click();
+    const reset = settings.getByRole("button", { name: "Reset usage", exact: true });
+    await reset.waitFor();
     assert.equal(grantRequests.length, 0);
-    await settings.getByRole("button", { name: "Cancel", exact: true }).click();
-    assert.equal(grantRequests.length, 0);
-    await settings.getByRole("button", { name: "Get 20 more questions", exact: true }).click();
-    await settings.getByRole("button", { name: "Confirm", exact: true }).click();
+    await reset.click();
     await settings.getByRole("alert").getByText("Temporary grant failure").waitFor();
-    await settings.getByRole("button", { name: "Confirm", exact: true }).click();
-    await settings.locator("[data-usage-history]").getByText("Continued testing").waitFor();
+    await reset.click();
+    await settings.getByRole("status").waitFor();
     assert.equal(grantRequests.length, 2);
     assert.equal(grantRequests[0].request_key, grantRequests[1].request_key);
     assert.equal(usageGrants.length, 1);
-    assert.equal(
-      await settings
-        .getByRole("button", { name: "Get 20 more questions", exact: true })
-        .isDisabled(),
-      true,
-    );
-    adminUsage = true;
-    await page.reload();
-    await settings.getByLabel("Extension type", { exact: true }).selectOption("admin");
-    await settings.getByLabel("Extra questions", { exact: true }).selectOption("100");
-    await settings.getByLabel("Reason", { exact: true }).fill("Acceptance testing");
-    await settings.getByRole("button", { name: "Review grant", exact: true }).click();
-    await settings.getByRole("button", { name: "Confirm", exact: true }).click();
-    await settings.locator("[data-usage-history]").getByText("Acceptance testing").waitFor();
-    assert.equal(usageGrants[0].questions, 100);
+    assert.equal(await reset.count(), 0);
+    assert.equal(await settings.locator("[data-usage-history], input, select").count(), 0);
     for (const lang of ["en", "de", "nl", "es"]) {
       language = lang;
+      adminUsage = true;
+      remaining = 0;
       await page.setViewportSize({ width: 390, height: 844 });
       await page.goto(`${base}/app/settings?tenant=${company.id}&settings_view=usage&lang=${lang}`);
-      await page.locator("[data-usage-history] article").first().waitFor();
+      await settings.locator("[data-usage-reset]").waitFor();
+      assert.equal(await settings.locator("input, select, [data-usage-history]").count(), 0);
       assert.equal(
         await page.evaluate(() => document.documentElement.scrollWidth > innerWidth),
         false,
       );
       await page.screenshot({ path: `${out}/usage-${lang}.png`, fullPage: true });
     }
+    usageGrants = Array.from({ length: 3 }, (_, id) => ({
+      id: String(id),
+      questions: 20,
+      mode: "self",
+    }));
+    await page.reload();
+    await settings.locator("[data-usage-details]").waitFor();
+    assert.equal(await settings.locator("[data-usage-reset]").count(), 0);
+    assert.equal(grantRequests.length, 2);
     assert.deepEqual(errors, []);
     console.log(
-      "PASS: self/admin grant confirmation, cancel, retry identity, history and four mobile locales",
+      "PASS: simple usage reset, explicit click, retry identity, eligibility, hidden admin/history controls and four mobile locales",
     );
     await browser.close();
     process.exit(0);

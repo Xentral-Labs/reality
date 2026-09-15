@@ -108,6 +108,10 @@ const dictionaries: Record<Exclude<Language, "en">, Record<string, string>> = {
     "Keep exploring": "Weiter erkunden",
     "Free AI questions remaining": "Verbleibende kostenlose KI-Fragen",
     "Daily limit reached": "Tageslimit erreicht",
+    "Reset usage": "Nutzung zurücksetzen",
+    "You can reset your usage to keep chatting.":
+      "Du kannst deine Nutzung zurücksetzen und weiterchatten.",
+    "You can keep chatting now.": "Du kannst jetzt weiterchatten.",
     Chat: "Chat",
     "Choose a storyline.": "Wähle eine Storyline.",
     "Chat freely with the company selected in the main navigation.":
@@ -1937,6 +1941,10 @@ const dictionaries: Record<Exclude<Language, "en">, Record<string, string>> = {
     "Keep exploring": "Verder verkennen",
     "Free AI questions remaining": "Resterende gratis AI-vragen",
     "Daily limit reached": "Daglimiet bereikt",
+    "Reset usage": "Gebruik resetten",
+    "You can reset your usage to keep chatting.":
+      "Je kunt je gebruik resetten om verder te chatten.",
+    "You can keep chatting now.": "Je kunt nu verder chatten.",
     Chat: "Chat",
     "Choose a storyline.": "Kies een verhaallijn.",
     "Chat freely with the company selected in the main navigation.":
@@ -3461,6 +3469,10 @@ const dictionaries: Record<Exclude<Language, "en">, Record<string, string>> = {
     "Keep exploring": "Seguir explorando",
     "Free AI questions remaining": "Preguntas de IA gratuitas restantes",
     "Daily limit reached": "Límite diario alcanzado",
+    "Reset usage": "Restablecer uso",
+    "You can reset your usage to keep chatting.":
+      "Puedes restablecer tu uso para seguir chateando.",
+    "You can keep chatting now.": "Ya puedes seguir chateando.",
     Chat: "Chat",
     "Choose a storyline.": "Elige una historia.",
     "Chat freely with the company selected in the main navigation.":

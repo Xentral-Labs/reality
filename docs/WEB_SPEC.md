@@ -2732,16 +2732,18 @@ the composer. Other chat surfaces retain their existing exhaustion presentation.
 
 ## Auditable AI extensions (spec 196)
 
-Settings → Usage shows included daily usage, additional available questions and the
-account-wide extension history. Each managed-AI account may confirm three one-time
-self extensions of 20 questions, only after exhaustion. They do not renew each day
-or per company. Platform admins may grant 20/100 with a reason to themselves or an
-eligible member of the selected company. The recipient email lookup is admin-only.
-Every grant is confirmed, retry-idempotent and recorded with actor/recipient IDs,
-amount, reason, time, expiration and self/admin mode in the existing security audit.
-Consumption is never reset. Extra questions expire at the next UTC daily reset.
-The exhausted Free Play status links to Usage. Open chat allowance refreshes after
-a grant; a failed grant retains the confirmation/request identity for safe retry.
+Settings → Usage shows daily consumption, available questions and the scheduled
+reset. When eligible, one Reset usage button and a short invitation let the user
+continue chatting. Its explicit click confirms the self grant; no preview, lifetime
+counter, recipient lookup, mode selector or history is shown (spec 196 FR-007).
+Each managed-AI account has three lifetime self extensions of 20 questions, only
+after exhaustion. The server enforces this across companies and days. Admin grants
+and attributable history remain available through the authenticated APIs.
+Every grant is retry-idempotent and recorded with actor/recipient IDs, amount,
+reason, time, expiration and self/admin mode in the existing security audit.
+Consumption is never erased. Extra questions expire at the next UTC daily reset.
+Open chat allowance refreshes after a grant; failures retain the request identity.
+
 
 
 Spec 195 FR-017 supersedes the Free Play chooser and company-picker descriptions
