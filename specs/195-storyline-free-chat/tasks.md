@@ -60,3 +60,6 @@ as one coherent increment because free chat must carry truthful evidence.
 
 - [x] T023 [FR-017] Remove Free Play company/creation controls, update route and copy,
   verify main-switcher isolation, direct entry, reload, responsive scroll and build.
+
+- [x] T024 [FR-018] Promote standalone Chat navigation/route, remove Storyline entry,
+  verify routing, active state/order, global company isolation, browser/build and preview.

@@ -190,7 +190,7 @@ function Library({
       <header className="flex flex-wrap items-end justify-between gap-3">
         <div className="max-w-2xl">
           <h2 className="text-lg font-semibold text-fg-strong">{t("Explore Reality")}</h2>
-          <p className="mt-1 text-sm text-fg-muted">{t("Choose a storyline or Free Play.")}</p>
+          <p className="mt-1 text-sm text-fg-muted">{t("Choose a storyline.")}</p>
         </div>
         <div className="flex flex-wrap gap-2">
           {backToStory && (
@@ -277,24 +277,6 @@ function Library({
           </p>
         </form>
       )}
-      <section
-        className={`${panel} flex flex-wrap items-center justify-between gap-4 p-4`}
-        data-free-play-entry
-      >
-        <div>
-          <h3 className="font-semibold">{t("Free play")}</h3>
-          <p className="mt-1 text-sm text-fg-muted">
-            {t("Chat freely with the company selected in the main navigation.")}
-          </p>
-        </div>
-        <button
-          type="button"
-          className="br-btn br-btn-primary"
-          onClick={() => navigate({ route: "free-play", session: "", commitment: "" })}
-        >
-          {t("Free play")}
-        </button>
-      </section>
       <h3 className="text-lg font-semibold">{t("Storylines")}</h3>
       <div className="grid gap-4 md:grid-cols-2">
         {items.map((item) => (

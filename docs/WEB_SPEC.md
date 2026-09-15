@@ -2694,8 +2694,8 @@ The Storyline narrator footer has no Free Play/Sandbox chat shortcut. A full-siz
 Back to selection button returns to the exploration library, emphasized after
 completion. Existing contextual draft handoff remains compatible.
 
-Free Play has no separate sidebar item. Storyline stays selected during Free Play;
-its sidebar link returns to the selection containing the Free Play tile.
+The standalone Chat feature appears directly after Home in Daily Work. It has its
+own active navigation state. Storyline contains guided stories only.
 
 Pending chat requests show a prominent accent status panel above the composer with
 a rotating indicator and Reality is working label. Reduced motion stops rotation;
@@ -2751,3 +2751,11 @@ The global company switch retains the Free Play route and clears the prior chat
 session, draft and evidence. The library tile and page introduction explain this
 shared context. Existing Sandboxes remain available in the main company switcher;
 normal company creation and backend compatibility services remain unchanged.
+
+
+Spec 195 FR-018: Chat is a main product feature at `/app/chat`, independent of the
+Storyline library. Former `/app/free-play` bookmarks redirect to Chat, preserving
+company and session while dropping action-like query parameters. The sidebar entry
+uses a speech-bubble icon directly after Home. The library no longer offers Free Play
+or describes Chat as a Storyline mode. Global company context, chat history, usage,
+confirmed application tools and optional recorded evidence remain shared services.

@@ -16,7 +16,7 @@ const current = new Set([
   "warehouse",
   "attention",
   "storyline",
-  "free-play",
+  "chat",
 ]);
 const aliases: Record<string, [string, Record<string, string>]> = {
   home: ["", {}],
@@ -45,7 +45,8 @@ const aliases: Record<string, [string, Record<string, string>]> = {
   companies: ["settings", { settings_view: "company" }],
   profile: ["settings", { settings_view: "personal" }],
   "ai-settings": ["settings", { settings_view: "ai" }],
-  chat: ["copilot", {}],
+  chat: ["chat", {}],
+  "free-play": ["chat", {}],
 };
 export type Entry = { kind: "app" | "retired" | "missing" } | { kind: "redirect"; href: string };
 export function resolveEntry(url: URL): Entry {
@@ -65,6 +66,8 @@ export function resolveEntry(url: URL): Entry {
     const value = url.searchParams.get(key);
     if (value) params.set(key, value);
   }
+  if ((key === "free-play" || key === "chat") && url.searchParams.get("session"))
+    params.set("session", url.searchParams.get("session")!);
   const language = url.searchParams.get("lang");
   if (language && ["en", "de", "nl", "es"].includes(language)) params.set("lang", language);
   for (const [name, value] of Object.entries(alias[1])) params.set(name, value);

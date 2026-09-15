@@ -148,8 +148,8 @@ const introductions = {
     title: "Demo Data",
     description: "Control synthetic data arrivals and review recent demo activity.",
   },
-  "free-play": {
-    title: "Free play",
+  chat: {
+    title: "Chat",
     description: "Chat freely with the company selected in the main navigation.",
   },
   storyline: {

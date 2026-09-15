@@ -816,8 +816,25 @@ async function assertMainCompanyFreePlay() {
   independentSession ||= { id: "independent-chat", title: "Independent chat" };
   const before = writes.length;
   await page.goto(`${base}/app/storyline?tenant=story&chapter=library`);
-  await page.locator("[data-free-play-entry] button").click();
-  await page.waitForURL(/\/app\/free-play/);
+  await page.locator("[data-storyline-library]").waitFor();
+  assert.equal(await page.locator("[data-free-play-entry]").count(), 0);
+  const navigation = page.locator("a[data-navigation-item]");
+  assert.deepEqual(
+    (await navigation.allTextContents()).slice(0, 2).map((text) => text.trim()),
+    ["Home", "Chat"],
+  );
+  await page.getByRole("link", { name: "Chat", exact: true }).click();
+  await page.waitForURL(/\/app\/chat/);
+  assert.equal(
+    await page.getByRole("link", { name: "Chat", exact: true }).getAttribute("aria-current"),
+    "page",
+  );
+  assert.equal(
+    await page
+      .locator('a[data-navigation-item][href*="/app/storyline"]')
+      .getAttribute("aria-current"),
+    null,
+  );
   const input = page.locator("[data-independent-free-play] textarea");
   await input.waitFor();
   assert.match(page.url(), /tenant=story/);
@@ -841,7 +858,7 @@ async function assertMainCompanyFreePlay() {
     await page.locator(`[data-company-option="${id}"]`).click();
     await page.waitForURL(new RegExp(`tenant=${id}`));
     await input.waitFor();
-    assert.match(page.url(), /\/app\/free-play/);
+    assert.match(page.url(), /\/app\/chat/);
     assert.equal(new URL(page.url()).searchParams.has("session"), false);
     assert.equal(await input.inputValue(), "");
   };

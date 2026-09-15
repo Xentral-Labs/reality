@@ -15,7 +15,7 @@ export type Destination =
   | "warehouse"
   | "attention"
   | "storyline"
-  | "free-play";
+  | "chat";
 export type Selection = {
   route: Destination;
   storylineChapter?: string;
@@ -94,12 +94,14 @@ const routes = [
   "/app/attention",
   "/app/storyline",
   "/app/free-play",
+  "/app/chat",
 ];
 export function unifiedPath(path: string) {
   return routes.includes(path);
 }
 export function readSelection(url: URL): Selection {
-  const candidate = url.pathname.split("/")[2] || "home";
+  const path = url.pathname.split("/")[2] || "home";
+  const candidate = path === "free-play" ? "chat" : path;
   const page = Number(url.searchParams.get("page") || 1);
   return {
     inspectorView: [
@@ -162,7 +164,7 @@ export function readSelection(url: URL): Selection {
       "warehouse",
       "attention",
       "storyline",
-      "free-play",
+      "chat",
     ].includes(candidate)
       ? (candidate as Destination)
       : "home",
