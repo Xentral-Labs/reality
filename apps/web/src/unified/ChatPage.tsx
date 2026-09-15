@@ -435,6 +435,26 @@ export function ChatPage({
               {t("What would you like to understand or do?")}
             </h2>
             <p className="mt-3 text-fg-muted">{t("Ask about orders, stock and money.")}</p>
+            <div data-chat-starters className="mt-5 flex flex-col items-start gap-2">
+              {[
+                t("Which customer orders are still open?"),
+                t("Which items have insufficient stock for open orders?"),
+                t("Which customer invoices are overdue?"),
+              ].map((prompt) => (
+                <button
+                  key={prompt}
+                  type="button"
+                  className="min-h-11 max-w-full rounded-xl border border-border-default bg-surface px-4 py-2 text-left text-sm text-fg-strong transition-colors hover:border-accent hover:bg-accent-soft focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent disabled:cursor-default disabled:opacity-50"
+                  disabled={!!question || sending || startingChat || loading}
+                  onClick={() => {
+                    setQuestion(prompt);
+                    document.getElementById(composerId)?.focus();
+                  }}
+                >
+                  {prompt}
+                </button>
+              ))}
+            </div>
           </div>
         )}
         {[

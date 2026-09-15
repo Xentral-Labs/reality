@@ -28,6 +28,7 @@ const user = {
   timezone: "UTC",
   is_platform_admin: false,
 };
+let fresh = true;
 const sent = [];
 const requests = [];
 await page.route("**/api/**", async (route) => {
@@ -79,24 +80,31 @@ await page.route("**/api/**", async (route) => {
         { id: "chat_b", title: "Earlier conversation" },
       ],
       active_session_id: url.searchParams.get("session_id") || "chat_a",
-      messages: [
-        {
-          id: "answer",
-          role: "assistant",
-          created_at: "2026-09-08T10:00:00Z",
-          content:
-            "Here are the recorded quantities.\n\n| SKU | Product | Available |\n| --- | --- | ---: |\n| LAMP-01 | Desk lamp | 8 |\n| LAMP-02 | Reading lamp | 4 |\n\nOpen a delivery to review the next step.",
-        },
-        ...sent.flatMap((text, index) => [
-          { id: `sent_${index}`, role: "user", created_at: "2026-09-08T10:01:00Z", content: text },
-          {
-            id: `reply_${index}`,
-            role: "assistant",
-            created_at: "2026-09-08T10:01:05Z",
-            content: `Recorded answer ${index + 1}.`,
-          },
-        ]),
-      ],
+      messages: fresh
+        ? []
+        : [
+            {
+              id: "answer",
+              role: "assistant",
+              created_at: "2026-09-08T10:00:00Z",
+              content:
+                "Here are the recorded quantities.\n\n| SKU | Product | Available |\n| --- | --- | ---: |\n| LAMP-01 | Desk lamp | 8 |\n| LAMP-02 | Reading lamp | 4 |\n\nOpen a delivery to review the next step.",
+            },
+            ...sent.flatMap((text, index) => [
+              {
+                id: `sent_${index}`,
+                role: "user",
+                created_at: "2026-09-08T10:01:00Z",
+                content: text,
+              },
+              {
+                id: `reply_${index}`,
+                role: "assistant",
+                created_at: "2026-09-08T10:01:05Z",
+                content: `Recorded answer ${index + 1}.`,
+              },
+            ]),
+          ],
       proposals: [],
       suggestions: [],
       has_archived: false,
@@ -140,7 +148,46 @@ try {
   const dock = page.locator("[data-global-chat]");
   await dock.getByRole("button", { name: "Conversation history", exact: true }).waitFor();
   const input = dock.getByRole("textbox", { name: "Ask about your company", exact: true });
+  const starters = dock.locator("[data-chat-starters] button");
+  await starters.first().waitFor();
+  assert.equal(await starters.count(), 3);
+  await mkdir("/private/tmp/reality-201-browser", { recursive: true });
+  for (const width of [390, 1440]) {
+    await page.setViewportSize({ width, height: 900 });
+    assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
+  }
+  await page.screenshot({ path: "/private/tmp/reality-201-browser/desktop.png" });
+  const firstQuestion = "Which customer orders are still open?";
+  await starters.first().focus();
+  await starters.first().press("Enter");
+  assert.equal(await input.inputValue(), firstQuestion);
+  assert.ok(await input.evaluate((node) => node === document.activeElement));
+  assert.equal(requests.filter((path) => path.endsWith("/messages")).length, 0);
+  assert.equal(await starters.nth(1).isDisabled(), true);
+  await input.fill("");
+  await starters.nth(1).click();
+  assert.equal(await input.inputValue(), "Which items have insufficient stock for open orders?");
+  await input.fill("");
+  await starters.nth(2).click();
+  assert.equal(await input.inputValue(), "Which customer invoices are overdue?");
+  for (const [language, expected] of [
+    ["de", "Welche Kundenaufträge sind noch offen?"],
+    ["nl", "Welke klantorders staan nog open?"],
+    ["es", "¿Qué pedidos de clientes siguen abiertos?"],
+  ]) {
+    user.language = language;
+    await page.goto(`${base}/app?tenant=tenant_a&lang=${language}`);
+    await starters.first().waitFor();
+    assert.equal(await starters.first().textContent(), expected);
+    await starters.first().click();
+    assert.equal(await dock.locator("textarea").inputValue(), expected);
+    assert.equal(requests.filter((path) => path.endsWith("/messages")).length, 0);
+  }
+  user.language = "en";
+  fresh = false;
+  await page.goto(`${base}/app?tenant=tenant_a&lang=en`);
   await dock.locator("table").waitFor();
+  assert.equal(await starters.count(), 0);
   assert.equal(
     await dock
       .locator(".reality-chat-message")
@@ -284,6 +331,14 @@ try {
         path: `/private/tmp/reality-136-browser/${width}-${theme}.png`,
       });
     }
+  fresh = true;
+  await page.goto(`${base}/app/chat?tenant=tenant_a&lang=en`);
+  const chatPage = page.locator("[data-independent-free-play]");
+  await chatPage.locator("[data-chat-starters] button").first().waitFor();
+  assert.equal(await chatPage.locator("[data-chat-starters] button").count(), 3);
+  await page.screenshot({ path: "/private/tmp/reality-202-chat-page.png" });
+  await chatPage.locator("[data-chat-starters] button").first().click();
+  assert.equal(await chatPage.locator("textarea").inputValue(), firstQuestion);
   assert.deepEqual(errors, []);
   console.log(
     "PASS: reference chat header, text attachment, voice draft/teardown, keyboard, immediate echo and send-failure retention.",

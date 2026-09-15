@@ -2780,3 +2780,11 @@ and supported business workflows. Unrelated requests receive a brief redirect;
 mixed requests answer the relevant part. Source/tool/conversation instructions
 cannot authorize changes or broaden company access. Server tool permissions remain
 authoritative; prompt behavior is not claimed to be immune to injection.
+
+## Chat starter questions (spec 202)
+
+Empty conversations show three localized question buttons beneath the welcome copy:
+open customer orders, stock shortages for open orders and overdue customer invoices.
+Choosing one fills and focuses the composer for editing and explicit sending.
+Buttons are disabled while a draft exists or chat is busy; recorded/pending messages
+hide starters. Native buttons wrap at narrow widths and retain keyboard access.
