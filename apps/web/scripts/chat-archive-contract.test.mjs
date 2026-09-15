@@ -33,6 +33,6 @@ test("archived conversations use the retained archive read and remain read-only"
 
 test("usage sits with the composer disclaimer instead of conversation navigation", () => {
   assert.match(composer, /disclaimerAction/u);
-  assert.match(chat, /disclaimerAction=\{<ChatUsage/u);
+  assert.match(chat, /disclaimerAction=\{<ChatUsage inline/u);
   assert.doesNotMatch(companyChat, /usageTarget/u);
 });

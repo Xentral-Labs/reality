@@ -5,6 +5,11 @@ import { useRead } from "./useCompanyContext";
 import { ReadState } from "./ReadState";
 import type { Selection } from "./routing";
 
+const inlineUsageClass =
+  "whitespace-nowrap text-xs text-fg-muted underline-offset-2 hover:text-fg-strong hover:underline";
+const pillUsageClass =
+  "whitespace-nowrap rounded-full border border-border-default px-3 py-1.5 text-xs text-fg-muted hover:bg-surface-muted hover:text-fg-strong";
+
 function UsageDetails({ allowance }: { allowance: ManagedAllowance }) {
   const limit = allowance.limit + (allowance.bonus_questions ?? 0);
   return (
@@ -36,9 +41,11 @@ function UsageDetails({ allowance }: { allowance: ManagedAllowance }) {
 export function ChatUsage({
   allowance,
   navigate,
+  inline = false,
 }: {
   allowance?: ManagedAllowance | null;
   navigate: (changes: Partial<Selection>) => void;
+  inline?: boolean;
 }) {
   const id = useId();
   const panel = useRef<HTMLDivElement>(null);
@@ -49,7 +56,7 @@ export function ChatUsage({
         type="button"
         popoverTarget={id}
         aria-haspopup="dialog"
-        className="whitespace-nowrap rounded-full border border-border-default px-3 py-1.5 text-xs text-fg-muted hover:bg-surface-muted hover:text-fg-strong"
+        className={inline ? inlineUsageClass : pillUsageClass}
         onClick={(event) => {
           const rect = event.currentTarget.getBoundingClientRect();
           if (panel.current) {
@@ -63,7 +70,10 @@ export function ChatUsage({
           }
         }}
       >
-        {t("Usage")} · {t("{remaining} left").replace("{remaining}", String(allowance.remaining))}
+        {inline && "· "}
+        {t("Usage")}
+        {inline ? ": " : " · "}
+        {t("{remaining} left").replace("{remaining}", String(allowance.remaining))}
       </button>
       <div
         ref={panel}
