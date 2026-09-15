@@ -1,7 +1,7 @@
 # Implementation Plan: Chat response latency
 
 ## Summary and technical context
-Python 3.12+, SQLAlchemy 2/PostgreSQL, existing httpx providers and FastAPI; React/TypeScript fetch streaming. No new dependency, table, migration or provider. Latest main baseline f20a3336. User scope approved in conversation.
+Python 3.12+, SQLAlchemy 2/PostgreSQL, existing httpx providers and FastAPI; React/TypeScript fetch streaming. No new dependency, table, migration or provider. Initial latest-main baseline f20a3336; final branch rebased onto 2c1c4ddc and frontend checks repeated. User scope approved in conversation.
 
 ## Constitution Check
 | Principle | Before design | After design | Evidence |

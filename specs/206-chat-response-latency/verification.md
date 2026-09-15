@@ -1,7 +1,7 @@
 # Verification — chat response latency
 
 ## Base and scope
-Implementation worktree `/private/tmp/reality-chat-latency`, branch `perf/chat-response-latency`, from latest fetched `origin/main` (`f20a3336`). Origin was re-fetched during final review and remained the same. The owner's original dirty worktree was not changed. No schema migration or deployed service change.
+Implementation worktree `/private/tmp/reality-chat-latency`, branch `perf/chat-response-latency`, initially from `origin/main` (`f20a3336`), then rebased onto the latest fetched main `2c1c4ddc` (the chat removal dialog). Streaming/composer browser tests, all frontend contracts and the production build passed again after that rebase. The owner's original dirty worktree was not changed. No schema migration or deployed service change.
 
 ## Pre-implementation review
 The accepted scope has no unresolved questions. All Constitution checks pass; requirements cover tenant/source authority, confirmation, streaming failure and exact values. Analysis found no critical or high consistency/coverage gaps. Requirements map to tests/tasks in spec.md and tasks.md. No extensions/hooks are installed.
@@ -15,13 +15,16 @@ The accepted scope has no unresolved questions. All Constitution checks pass; re
 - API tests cover cross-tenant refusal and no full-history read in preflight. The preflight connection is released before the worker owns a new session. A disconnect test proves the original send completes once and closes its session.
 
 ## Local gate results
-- Focused final streaming/inventory tests: 14 passed; provider/security suites also exercised during development.
+- Final affected backend families: **86 passed** (tenant isolation, application catalog, streaming, inventory/history, Anthropic adapter and chat scope security). This includes every failure from the complete run plus the authenticated preflight regression.
 - Frontend contracts: 191 passed (includes streaming decoder tests).
 - Frontend formatting, en/de/nl/es localization audit and TypeScript/Vite production build: passed. Existing bundle-size warning remains.
 - Ruff from `packages/reality-core`: passed. An initial root-directory invocation inferred imports differently; it was corrected without unrelated lint edits.
 - Spec policy: passed.
 - Catalog regeneration: completed with Prettier; generated output is unchanged against HEAD.
-- Full backend suite: running; completion and any failures are recorded below before delivery.
+- Complete backend run (`pytest -n 2 --dist worksteal --durations=15 -q`): **2,583 passed, 10 failed, 9 skipped** in 833.89 seconds. Nine failures were the missing classification of the new `get_chat_session` operation; one was logging capture after migration logging configuration disabled an existing logger. Registered the tenant-scoped read, added foreign/unknown lookup evidence, updated the catalog operation count from 485 to 486, and isolated the logging test. The final 86-test rerun above passes all affected families. The full suite was not repeated a third time; its initial red result is retained here rather than represented as an all-green single run.
+- An earlier four-worker run had demo timeout failures and a 60-second integration bound exceeded under concurrent load; the stable two-worker run passed those cases (10,000-source replay: 33.73 seconds). A source-inspection failure from editing during that earlier run also did not recur.
+- Browser checks passed: dedicated streaming (desktop/mobile/error), existing composer, analytics, collapsible navigation and full Storyline matrix. Storyline fixtures now seed their independent conversation and use the current `/app/chat` route. The broader delivery browser stops before chat at the obsolete Home heading `Your business, in focus.`; the identical failure was reproduced against an untouched main snapshot at f20a3336. It is an existing browser-fixture limitation, not a passing check.
+- Authenticated preflight regression first failed because accessing expired ORM user attributes after rollback reopened a transaction. Copying caller/options before rollback fixes it; the final test asserts no transaction is retained at stream construction.
 - `make` itself is unavailable due to the host Xcode license state; the exact underlying commands were executed directly instead. No license or system configuration was changed.
 
 ## Real-provider measurements
@@ -42,3 +45,6 @@ Metadata-only measurements: measurements.json. Temporary raw probes/logs/screens
 
 ## Rollout
 Changes are prepared on the isolated branch. No model switch, schema update, provider tool search, or removal of allowed tools. JSON clients remain supported. Reverting the app/UI change restores prior delivery without affecting persisted conversations.
+
+## Final review
+Reviewed service quantity parity, tenant catalog registration, completed tool assembly, confirmation preservation, stream error/disconnect handling and saved-message reconciliation. No critical findings remain in the changed behavior. All failures attributable to this change have passing regression evidence; the unrelated Home browser fixture limitation is explicit above. No deployment or merge was performed.
