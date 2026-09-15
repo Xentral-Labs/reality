@@ -189,8 +189,14 @@ function Library({
     <section className="mx-auto flex max-w-4xl flex-col gap-5" data-storyline-library>
       <header className="flex flex-wrap items-end justify-between gap-3">
         <div className="max-w-2xl">
-          <h2 className="text-lg font-semibold text-fg-strong">{t("Explore Reality")}</h2>
-          <p className="mt-1 text-sm text-fg-muted">{t("Choose a storyline.")}</p>
+          <h2 className="text-lg font-semibold text-fg-strong">
+            {t("Playground – Get to know Reality")}
+          </h2>
+          <p className="mt-1 text-sm text-fg-muted">
+            {t(
+              "Learn how Reality works, step by step: play through typical business flows and see what each action changes, using sample data in a Sandbox of your own.",
+            )}
+          </p>
         </div>
         <div className="flex flex-wrap gap-2">
           {backToStory && (
@@ -277,7 +283,7 @@ function Library({
           </p>
         </form>
       )}
-      <h3 className="text-lg font-semibold">{t("Storylines")}</h3>
+      <h3 className="text-lg font-semibold">{t("Choose a learning path")}</h3>
       <div className="grid gap-4 md:grid-cols-2">
         {items.map((item) => (
           <StorylineCard

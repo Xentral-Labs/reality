@@ -186,3 +186,9 @@ legacy links resolve to Chat, and Storyline has no Chat/Free Play tile.
 
 ## Chat spacing (2026-09-15)
 FR-019: Standalone Chat removes the redundant inner Chat heading and desktop toolbar. Usage remains available in the session sidebar. Mobile retains a compact history opener. Remove outer page gutters/gap; center the empty conversation greeting in the available message area, preserving bounded scroll and composer.
+
+## Learning introduction (2026-09-15)
+FR-020: The Storyline library introduces itself as a Playground for learning how
+Reality works, explains guided business flows and observable changes with sample
+data in a dedicated Sandbox, and labels the selection as learning paths. Provide
+equivalent English, German, Dutch and Spanish copy. No flow or permission change.

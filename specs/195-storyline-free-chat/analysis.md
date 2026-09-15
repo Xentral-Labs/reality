@@ -113,3 +113,5 @@ become a compatibility alias. Tests cover both plus mobile and sidebar selection
 All requirements covered; no critical findings or unresolved questions.
 
 FR-019 review: User requests redundant header removal and spacing correction. Existing usage access retained outside conversation; no unresolved or critical finding.
+
+FR-020: User accepted the proposed learning copy. No unresolved clarification or critical finding. Existing Sandbox semantics are preserved.
