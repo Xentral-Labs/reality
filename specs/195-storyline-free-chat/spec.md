@@ -89,6 +89,9 @@ input while preventing edits/submission.
   labels do not clutter turns; accessible authorship and per-reply evidence remain.
   Pending user messages share the same style. Long content remains contained in both
   themes and on mobile.
+- **FR-012**: Available AI allowance appears as a compact count disclosure. The exact
+  localized reset date/time is shown on opening details, including keyboard/touch use.
+  Exhaustion keeps its explanation and reset time visible and sending disabled.
 - **DR-001**: Source → Evidence → Reality, shared services, admission and tenant scope
   remain authoritative. No adapter business writes or new schema.
 
@@ -113,6 +116,7 @@ None. The owner explicitly requested the independent entry and removal from each
 |---|---|
 | FR-001–002, FR-005 | Storyline/contextual and independent browser interactions and layouts |
 | FR-003–004, DR-001 | PostgreSQL exact evidence, proposal lifecycle, scope and retention tests |
+| FR-012 | Free Playground browser allowance disclosure and exhaustion checks |
 | FR-011 | Shared chat browser role geometry/background, echo and responsive theme checks |
 | FR-010 | Shared composer browser pending/settled status and reduced-motion checks |
 | FR-006 | Shared composer failure/button/Enter focus and deliberate alternate-focus tests |

@@ -2706,3 +2706,7 @@ Chat turns use neutral right-aligned user bubbles and left-aligned unboxed assis
 responses with bounded reading width and distinct spacing. Author/time metadata is
 accessible without visible labels. Pending echoes share user styling; per-reply
 evidence stays underneath the associated answer.
+
+AI allowance uses a compact count disclosure while requests remain. Exact reset date
+and time are available on opening the details with keyboard or pointer. Exhaustion
+shows the explanation and reset time directly and preserves send restrictions.

@@ -88,3 +88,8 @@ right; assistant responses are unboxed on the left. Remove the CSS override that
 currently flattens both roles. Limit reading width, increase turn spacing and hide
 visual author/time metadata with accessible text. Keep Markdown and evidence inside
 their existing replies. Constitution Check: PASS; presentation only.
+
+## Compact allowance
+Use a native details/summary count pill in shared AllowanceNotice, with an Info icon
+and exact localized reset time inside. Exhaustion stays expanded with existing
+explanation and send restriction. Constitution Check: PASS; existing data only.

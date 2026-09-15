@@ -153,3 +153,13 @@ status/focus/attachment/voice behavior and light/dark mobile/desktop overflow ch
 Reviewed the pending-conversation screenshot. Web build passed (168 tests, four-language
 audit, TypeScript/Vite); spec, formatting and diff checks passed. Local 8080 serves
 `index-BvZk2txK.js`. No backend or generated catalog change.
+
+## Compact allowance disclosure (2026-09-15)
+
+Available allowance is a compact count pill with an Info icon. A native disclosure
+reveals the exact localized reset time. Exhaustion keeps the existing explanation and
+reset time visible; send remains disabled. Browser checks passed keyboard expansion,
+pointer collapse, hidden reset before expansion, visible reset after exhaustion and
+retained draft/disabled sending. Web build passed (168 tests, four-language audit,
+TypeScript/Vite), as did spec and diff checks. Updated local 8080 preview. No backend
+or catalog changes.
