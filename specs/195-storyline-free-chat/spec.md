@@ -192,3 +192,9 @@ FR-020: The Storyline library introduces itself as a Playground for learning how
 Reality works, explains guided business flows and observable changes with sample
 data in a dedicated Sandbox, and labels the selection as learning paths. Provide
 equivalent English, German, Dutch and Spanish copy. No flow or permission change.
+
+## Cross-company navigation recovery
+FR-021: Every navigation changing company clears prior company-scoped selections,
+including chat session, unless the destination explicitly supplies a new selection.
+Opening/restarting Storylines must not retain a previous-company session. Failed
+chat links offer a read-only return to the company conversation list.
