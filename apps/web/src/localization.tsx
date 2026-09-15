@@ -13,6 +13,10 @@ type Preferences = { language: Language; locale: DisplayLocale; timezone: string
 
 const dictionaries: Record<Exclude<Language, "en">, Record<string, string>> = {
   de: {
+    "Which customer orders are still open?": "Welche Kundenaufträge sind noch offen?",
+    "Which items have insufficient stock for open orders?":
+      "Für welche offenen Aufträge reicht der Bestand nicht aus?",
+    "Which customer invoices are overdue?": "Welche Kundenrechnungen sind überfällig?",
     Usage: "Nutzung",
     "Included AI questions": "Enthaltene KI-Anfragen",
     "{used} of {limit} used": "{used} von {limit} genutzt",
@@ -1865,6 +1869,10 @@ const dictionaries: Record<Exclude<Language, "en">, Record<string, string>> = {
     "Fully Reserved": "Vollständig reserviert",
   },
   nl: {
+    "Which customer orders are still open?": "Welke klantorders staan nog open?",
+    "Which items have insufficient stock for open orders?":
+      "Voor welke open orders is er onvoldoende voorraad?",
+    "Which customer invoices are overdue?": "Welke klantfacturen zijn achterstallig?",
     Usage: "Gebruik",
     "Included AI questions": "Inbegrepen AI-vragen",
     "{used} of {limit} used": "{used} van {limit} gebruikt",
@@ -3407,6 +3415,10 @@ const dictionaries: Record<Exclude<Language, "en">, Record<string, string>> = {
     Customer: "Klant",
   },
   es: {
+    "Which customer orders are still open?": "¿Qué pedidos de clientes siguen abiertos?",
+    "Which items have insufficient stock for open orders?":
+      "¿Para qué pedidos abiertos no hay suficientes existencias?",
+    "Which customer invoices are overdue?": "¿Qué facturas de clientes están vencidas?",
     Usage: "Uso",
     "Included AI questions": "Consultas de IA incluidas",
     "{used} of {limit} used": "{used} de {limit} usadas",
