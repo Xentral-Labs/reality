@@ -284,15 +284,13 @@ function Library({
         <div>
           <h3 className="font-semibold">{t("Free play")}</h3>
           <p className="mt-1 text-sm text-fg-muted">
-            {t("Choose an existing company or create a Sandbox with sample data.")}
+            {t("Chat freely with the company selected in the main navigation.")}
           </p>
         </div>
         <button
           type="button"
           className="br-btn br-btn-primary"
-          onClick={() =>
-            navigate({ route: "free-play", freePlayChat: false, session: "", commitment: "" })
-          }
+          onClick={() => navigate({ route: "free-play", session: "", commitment: "" })}
         >
           {t("Free play")}
         </button>

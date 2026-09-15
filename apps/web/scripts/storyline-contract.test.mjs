@@ -176,11 +176,15 @@ test("Free Play keeps an opened company on reload and resets chat when switching
     new URL("https://example.test/app/free-play?tenant=company&play=chat&session=conversation"),
   );
   const reopened = readSelection(new URL(selectionUrl(opened), "https://example.test"));
-  assert.equal(reopened.freePlayChat, true);
+  assert.equal(reopened.route, "free-play");
+  assert.equal(
+    new URL(selectionUrl(reopened), "https://example.test").searchParams.has("play"),
+    false,
+  );
   assert.equal(reopened.tenant, "company");
   assert.equal(reopened.session, "conversation");
   const switched = companySelection(opened, "other");
-  assert.equal(switched.freePlayChat, false);
+  assert.equal(switched.route, "free-play");
   assert.equal(switched.session, "");
   assert.equal(selectionUrl(switched), "/app/free-play?tenant=other");
 });

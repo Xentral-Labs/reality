@@ -809,6 +809,81 @@ async function assertContainedScroll() {
     await page.screenshot({ path: `/private/tmp/compact-chat-${width}-${height}.png` });
   }
 }
+async function assertMainCompanyFreePlay() {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  independentCreated = true;
+  started = true;
+  independentSession ||= { id: "independent-chat", title: "Independent chat" };
+  const before = writes.length;
+  await page.goto(`${base}/app/storyline?tenant=story&chapter=library`);
+  await page.locator("[data-free-play-entry] button").click();
+  await page.waitForURL(/\/app\/free-play/);
+  const input = page.locator("[data-independent-free-play] textarea");
+  await input.waitFor();
+  assert.match(page.url(), /tenant=story/);
+  assert.equal(
+    await page
+      .locator(
+        "[data-free-play-company], [data-free-play-start], [data-free-play-choose], [data-free-play-open]",
+      )
+      .count(),
+    0,
+  );
+  assert.equal(
+    await page
+      .locator("[data-independent-free-play]")
+      .getByRole("button", { name: "Storylines", exact: true })
+      .count(),
+    0,
+  );
+  const switchMain = async (id) => {
+    await page.getByRole("button", { name: "Switch company", exact: true }).click();
+    await page.locator(`[data-company-option="${id}"]`).click();
+    await page.waitForURL(new RegExp(`tenant=${id}`));
+    await input.waitFor();
+    assert.match(page.url(), /\/app\/free-play/);
+    assert.equal(new URL(page.url()).searchParams.has("session"), false);
+    assert.equal(await input.inputValue(), "");
+  };
+  await input.fill("Unsent story draft");
+  await switchMain("plain");
+  await page.locator("[data-free-play-real-data]").waitFor();
+  await page.locator('[data-chat-evidence="plain-answer"] summary').click();
+  await page
+    .getByText("Recorded evidence is unavailable for this reply.", { exact: true })
+    .waitFor();
+  await switchMain("independent");
+  await page.locator('[data-chat-session="independent-chat"]').click();
+  await page.waitForURL(/session=independent-chat/);
+  await input.fill("Unsent sandbox draft");
+  await switchMain("plain");
+  assert.equal(await page.locator('[data-chat-session="independent-chat"]').count(), 0);
+  await page.reload();
+  await input.waitFor();
+  assert.match(page.url(), /tenant=plain/);
+  for (const width of [1440, 390]) {
+    await page.setViewportSize({ width, height: 844 });
+    assert.equal(
+      await page.evaluate(() => document.documentElement.scrollWidth > innerWidth),
+      false,
+    );
+    await page.screenshot({ path: `/private/tmp/free-play-main-company-${width}.png` });
+  }
+  assert.equal(
+    writes.length,
+    before,
+    "Free Play navigation and global company switching are read-only",
+  );
+}
+if (process.env.FREE_PLAY_COMPANY_ONLY === "1") {
+  await assertMainCompanyFreePlay();
+  assert.deepEqual(errors, []);
+  await browser.close();
+  console.log(
+    "PASS: direct Free Play entry, global company switch, cleared draft/session/evidence, reload and responsive layout without creation",
+  );
+  process.exit(0);
+}
 if (process.env.FREE_PLAY_SCROLL_ONLY === "1") {
   independentCreated = true;
   independentSession = { id: "independent-chat", title: "Independent chat" };
@@ -1092,101 +1167,7 @@ await page
   .locator("[data-storyline-library] [data-storyline-start-over='order-to-close']")
   .waitFor({ state: "attached" });
 assert.equal(await page.locator("[data-storyline-free]").count(), 0);
-const beforeIndependent = writes.length;
-await page.locator("[data-free-play-entry] button").click();
-await page.waitForURL(/\/app\/free-play/);
-await page.locator("[data-free-play-start]").waitFor();
-assert.equal(await page.locator('aside a[href*="/app/free-play"]').count(), 0);
-const storylineNavigation = page.locator('a[data-navigation-item][href*="/app/storyline"]');
-assert.equal(await storylineNavigation.getAttribute("aria-current"), "page");
-await storylineNavigation.click();
-await page.locator("[data-storyline-library]").waitFor();
-assert.equal(await page.locator("[data-free-play-entry]").count(), 1);
-await page.locator("[data-free-play-entry] button").click();
-await page.locator("[data-free-play-start]").waitFor();
-assert.equal(writes.length, beforeIndependent, "opening Free Play never creates a Sandbox");
-assert.equal(await page.locator("[data-free-play-company]").inputValue(), "story");
-assert.equal((await page.locator("[data-free-play-company] option").count()) >= 2, true);
-await page.locator("[data-free-play-company]").selectOption("plain");
-await page.locator("[data-free-play-real-data]").waitFor();
-await page.locator("[data-free-play-open]").click();
-await page.waitForURL(/tenant=plain/);
-await page.locator("[data-independent-free-play] textarea").waitFor();
-assert.equal(writes.length, beforeIndependent, "opening an existing company is read-only");
-await page
-  .locator('[data-independent-free-play] [data-chat-evidence="plain-answer"] summary')
-  .click();
-await page
-  .locator("[data-independent-free-play]")
-  .getByText("Recorded evidence is unavailable for this reply.", { exact: true })
-  .waitFor();
-await page.reload();
-await page.locator("[data-independent-free-play] textarea").waitFor();
-assert.match(page.url(), /tenant=plain/);
-await page.locator("[data-free-play-choose]").click();
-assert.equal(await page.locator("[data-free-play-company]").inputValue(), "plain");
-await page.locator("[data-free-play-company]").selectOption("story");
-await page.locator("[data-free-play-open]").click();
-await page.waitForURL(/tenant=story/);
-await page.locator("[data-independent-free-play] textarea").waitFor();
-assert.equal(writes.length, beforeIndependent, "opening a Storyline Sandbox does not advance it");
-await page.locator("[data-free-play-choose]").click();
-await page.locator("[data-free-play-start]").click();
-await page.waitForURL(/tenant=independent/);
-await page.locator("[data-independent-free-play] textarea").waitFor();
-assert.deepEqual(writes.slice(beforeIndependent), ["/api/storyline/free-play"]);
-await page.locator("[data-independent-free-play] > header [data-chat-usage]").waitFor();
-assert.equal(
-  await page.locator("[data-independent-free-play] .reality-chat header [data-chat-usage]").count(),
-  0,
-);
-assert.equal(await page.locator("[data-independent-free-play] [data-ai-allowance]").count(), 0);
-assert.equal(await page.locator("[data-storyline-current-chapter]").count(), 0);
-await page.locator("[data-independent-free-play] textarea").fill("Show this Free Play Sandbox.");
-await page.locator("[data-independent-free-play] textarea").press("Enter");
-await page
-  .locator('[data-independent-free-play] [data-chat-evidence="independent-answer"]')
-  .waitFor();
-await assertContainedScroll();
-await page.setViewportSize({ width: 1280, height: 900 });
-const writesBeforeReopen = writes.length;
-await page.reload();
-await page.locator("[data-independent-free-play] textarea").waitFor();
-await page
-  .locator("[data-independent-free-play]")
-  .getByText("Independent Sandbox answer.", { exact: true })
-  .waitFor();
-assert.equal(writes.length, writesBeforeReopen);
-await page.locator("[data-free-play-choose]").click();
-assert.equal(await page.locator("[data-free-play-company]").inputValue(), "independent");
-assert.equal(await page.locator("[data-free-play-start]").count(), 0);
-await page.locator("[data-free-play-company]").selectOption("plain");
-await page.locator("[data-free-play-open]").click();
-await page.waitForURL(/tenant=plain/);
-assert.equal(
-  await page
-    .locator('[data-independent-free-play] [data-chat-evidence="independent-answer"]')
-    .count(),
-  0,
-);
-assert.equal(writes.length, writesBeforeReopen);
-if (process.env.FREE_PLAY_COMPANY_ONLY === "1") {
-  await page.locator("[data-free-play-choose]").click();
-  for (const width of [1440, 390]) {
-    await page.setViewportSize({ width, height: 1000 });
-    await page.screenshot({ path: `/private/tmp/reality-182-browser/company-choice-${width}.png` });
-    assert.equal(
-      await page.evaluate(() => document.documentElement.scrollWidth > innerWidth),
-      false,
-    );
-  }
-  assert.deepEqual(errors, []);
-  await browser.close();
-  console.log(
-    "Free Play company choice passed: current default, existing company and Storyline Sandbox without writes, unavailable evidence, creation, reload and tenant history isolation.",
-  );
-  process.exit(0);
-}
+await assertMainCompanyFreePlay();
 await page.goto(`${base}/app/storyline?tenant=plain`);
 await page.locator("[data-storyline-library]").waitFor();
 await page.setViewportSize({ width: 1440, height: 1000 });

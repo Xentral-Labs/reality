@@ -2684,8 +2684,7 @@ call and may include later Sandbox activity; it is not exclusive causal attribut
 Chapter progress remains unchanged and Back to the storyline remains available.
 
 Spec 195: independent `/app/free-play` is separate from guided Storylines. One library
-tile offers the current or another accessible company, or
-creation of a sample-data Sandbox. The selected company is labeled and opening it
+tile opens chat directly in the company selected in the main navigation. Opening it
 is read-only. A real-data notice distinguishes ordinary companies; all changes keep
 normal confirmation. Reload preserves the opened company. What happened explicitly
 reports unavailable evidence outside eligible recorded Sandboxes. Individual story
@@ -2719,12 +2718,12 @@ chooser and navigation retain their own overflow for small screens. Other routes
 keep their existing document scrolling.
 
 An opened Free Play chat has an unframed full-width surface and a 48px toolbar
-with company selection and usage. The company picker has a visible button boundary.
+with the Free Play title and usage. Company selection lives only in the main navigation.
 New conversation is a labeled button above the saved sessions. Company-scoped conversations appear in a left column in the
 surrounding gray area, with the current conversation highlighted. Narrow screens
 use a history button and dismissible drawer; selection closes it. The opened chat
 has no Storyline link or inline conversation dropdown. It has no second conversation header.
-The company label truncates on narrow screens; controls retain accessible labels.
+Controls retain accessible labels on narrow screens.
 Other chat surfaces retain their existing header.
 
 At zero allowance, Free Play replaces the composer with a compact limit/reset status.
@@ -2743,3 +2742,12 @@ amount, reason, time, expiration and self/admin mode in the existing security au
 Consumption is never reset. Extra questions expire at the next UTC daily reset.
 The exhausted Free Play status links to Usage. Open chat allowance refreshes after
 a grant; a failed grant retains the confirmation/request identity for safe retry.
+
+
+Spec 195 FR-017 supersedes the Free Play chooser and company-picker descriptions
+above: Free Play opens directly in the company selected in the main navigation.
+There is no separate company switcher or Sandbox creation action inside Free Play.
+The global company switch retains the Free Play route and clears the prior chat
+session, draft and evidence. The library tile and page introduction explain this
+shared context. Existing Sandboxes remain available in the main company switcher;
+normal company creation and backend compatibility services remain unchanged.

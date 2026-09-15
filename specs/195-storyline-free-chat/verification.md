@@ -237,3 +237,17 @@ placement and its session-creation POST, zero-allowance input removal, reset dis
 and positive-allowance composer recovery. Reviewed desktop and mobile screenshots.
 Fixture assertions were adjusted to include hidden mobile drawer controls and await
 the session creation endpoint. Spec policy and diff checks passed; local 8080 updated.
+
+## Main company context only (FR-017, 2026-09-15)
+
+Free Play now opens directly using the shared company prop. Removed its chooser,
+company button, Sandbox creation/read actions and redundant play-state flag. Legacy
+play=chat URLs still work; companySelection clears session/draft/evidence and keeps
+the route. Updated library/page introduction in four languages. No backend changes.
+
+Browser checks passed direct library entry, global company switching, no writes,
+real-company evidence fallback, draft/session isolation, reload and responsive layout.
+The existing long-history session/scroll checks passed desktop/mobile/short viewports.
+169 web tests, TypeScript/Vite, localization audit, spec policy and diff checks passed.
+Reviewed desktop screenshot; local 8080 updated. Changes remain locally committed;
+GitHub publication awaits the explicit approval requested in the previous turn.

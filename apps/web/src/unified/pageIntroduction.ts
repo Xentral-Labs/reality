@@ -150,7 +150,7 @@ const introductions = {
   },
   "free-play": {
     title: "Free play",
-    description: "Choose an existing company or create a Sandbox with sample data.",
+    description: "Chat freely with the company selected in the main navigation.",
   },
   storyline: {
     title: "Storyline",

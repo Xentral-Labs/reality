@@ -19,7 +19,6 @@ export type Destination =
 export type Selection = {
   route: Destination;
   storylineChapter?: string;
-  freePlayChat?: boolean;
   inspectorView?: string;
   inspectorRecordKind?: string;
   tableSize: 25 | 50 | 100;
@@ -103,7 +102,6 @@ export function readSelection(url: URL): Selection {
   const candidate = url.pathname.split("/")[2] || "home";
   const page = Number(url.searchParams.get("page") || 1);
   return {
-    freePlayChat: url.searchParams.get("play") === "chat",
     inspectorView: [
       "overview",
       "facts",
@@ -352,7 +350,6 @@ export function selectionUrl(selection: Selection): string {
   }
   if (selection.route === "storyline" && selection.storylineChapter)
     query.set("chapter", selection.storylineChapter);
-  if (selection.route === "free-play" && selection.freePlayChat) query.set("play", "chat");
   if (selection.page > 1) query.set("page", String(selection.page));
   return `/app${selection.route === "home" ? "" : `/${selection.route}`}${query.size ? `?${query}` : ""}`;
 }
@@ -395,6 +392,5 @@ export function companySelection(selection: Selection, tenant: string): Selectio
     severity: "",
     exception: "",
     storylineChapter: "",
-    freePlayChat: false,
   };
 }

@@ -129,3 +129,9 @@ frame/company control and ChatPage session action/zero-allowance presentation. R
 existing session creation and authoritative allowance. No schema or domain changes;
 Constitution Check PASS. Test responsive geometry, session action placement and
 zero/positive allowance transition in the focused browser fixture before implementation.
+
+## FR-017
+Remove chooser and creation reads/actions from FreePlayPage. Use the shared company
+prop and existing companySelection reset; remove redundant freePlayChat flag. Update
+copy and browser/routing regressions first. No service/schema change. Constitution
+Check PASS. User approved this simpler scope; old Sandbox data remains intact.
