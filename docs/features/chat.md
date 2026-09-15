@@ -50,8 +50,12 @@ Facts.
 
 Removing a conversation from daily work archives it instead of deleting it. Archiving
 retains every message, can be reversed, and never changes a pending or decided Change
-Proposal. Tenant-wide proposals are reviewed in the Exceptions workspace under Pending
-approvals and Decision history; the empty Chat state does not display orphaned proposals.
+Proposal. A Chat Session with zero durable messages is the narrow exception: it contains no
+conversation history, so removal permanently deletes only that empty container rather than
+polluting the archive. The shared tenant-scoped service derives emptiness from Chat Messages;
+the browser never infers it from the default title. Tenant-wide proposals are reviewed in the
+Exceptions workspace under Pending approvals and Decision history; the empty Chat state does
+not display orphaned proposals.
 
 ## Demo library
 

@@ -570,6 +570,7 @@ export type CopilotSession = {
   created_at: string;
   updated_at: string;
   archived_at: string | null;
+  message_count: number;
 };
 export type CopilotMessage = {
   id: string;

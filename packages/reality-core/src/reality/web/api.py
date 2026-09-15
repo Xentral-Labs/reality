@@ -70,6 +70,7 @@ from reality.services.core import (
     assign_party_price_list,
     change_proposal_count,
     change_proposals,
+    chat_message_counts,
     chat_messages,
     chat_sessions,
     chat_suggestions,
@@ -6224,6 +6225,9 @@ def copilots_payload(
     archived: bool = False,
 ):
     conversations = chat_sessions(session, tenant_id, limit=50, archived=archived)
+    message_counts = chat_message_counts(
+        session, tenant_id, (row.id for row in conversations)
+    )
     active = next((row for row in conversations if row.id == session_id), None)
     if session_id and active is None:
         raise NotFound("ChatSession not found.")
@@ -6242,6 +6246,7 @@ def copilots_payload(
                 "created_at": row.created_at.isoformat(),
                 "updated_at": row.updated_at.isoformat(),
                 "archived_at": row.archived_at.isoformat() if row.archived_at else None,
+                "message_count": message_counts.get(row.id, 0),
             }
             for row in conversations
         ],

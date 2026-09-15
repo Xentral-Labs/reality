@@ -6010,6 +6010,7 @@ Object.assign(dictionaries.de, {
   "Ask about inventory, commitments, payments or operational risk.":
     "Frage nach Bestand, Commitments, Zahlungen oder operativen Risiken.",
   "Delete chat": "Chat löschen",
+  "Delete this empty chat permanently?": "Diesen leeren Chat endgültig löschen?",
   "Delete conversation": "Chat löschen",
   "Delete this chat?": "Diesen Chat löschen?",
   "and its complete conversation history.": "und seinen vollständigen Verlauf.",
@@ -6919,6 +6920,7 @@ Object.assign(dictionaries.nl, {
   Delete: "Verwijderen",
   DELETE: "VERWIJDEREN",
   "Delete chat": "Chat verwijderen",
+  "Delete this empty chat permanently?": "Deze lege chat permanent verwijderen?",
   "Delete company permanently": "Bedrijf permanent verwijderen",
   "Delete conversation": "Gesprek verwijderen",
   "Delete permanently": "Permanent verwijderen",
@@ -7847,6 +7849,7 @@ Object.assign(dictionaries.es, {
   Delete: "Eliminar",
   DELETE: "ELIMINAR",
   "Delete chat": "Eliminar chat",
+  "Delete this empty chat permanently?": "¿Eliminar permanentemente este chat vacío?",
   "Delete company permanently": "Eliminar empresa permanentemente",
   "Delete conversation": "Eliminar conversación",
   "Delete permanently": "Eliminar permanentemente",

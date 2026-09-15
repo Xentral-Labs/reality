@@ -23,6 +23,15 @@ test("the unified conversation list preserves archive and restore controls", () 
   assert.match(chat, /border-t border-border-default/u);
 });
 
+test("empty conversations delete while conversations with messages archive", () => {
+  assert.match(chat, /row\.message_count === 0/u);
+  assert.match(chat, /Delete this empty chat permanently\?/u);
+  assert.match(chat, /data-chat-session-delete=\{row\.message_count === 0/u);
+  assert.match(chat, /data-chat-session-archive=\{row\.message_count === 0/u);
+  assert.match(chat, /"Delete chat"/u);
+  assert.match(chat, /"Archive chat"/u);
+});
+
 test("archived conversations use the retained archive read and remain read-only", () => {
   assert.match(chat, /api\.copilot\([\s\S]*showArchived/u);
   assert.match(chat, /api\.copilot\(selection\.tenant, selection\.session, showArchived\)/u);

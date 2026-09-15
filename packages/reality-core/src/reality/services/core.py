@@ -6003,6 +6003,41 @@ def chat_session_count(session: OrmSession, tenant_id: str) -> int:
     )
 
 
+def chat_message_counts(
+    session: OrmSession, tenant_id: str, session_ids: Iterable[str]
+) -> dict[str, int]:
+    """Return tenant-scoped durable message counts without storing derived state."""
+    ids = tuple(session_ids)
+    if not ids:
+        return {}
+    rows = session.execute(
+        select(ChatMessage.session_id, func.count(ChatMessage.id))
+        .where(
+            ChatMessage.tenant_id == tenant_id,
+            ChatMessage.session_id.in_(ids),
+        )
+        .group_by(ChatMessage.session_id)
+    )
+    return {session_id: int(count) for session_id, count in rows}
+
+
+def remove_chat_session(session: OrmSession, tenant_id: str, session_id: str) -> None:
+    """Delete an empty session or retain a conversation by archiving it."""
+    _require_business_mutation(session, tenant_id, "archive_chat_session")
+    chat_session = session.scalar(
+        select(ChatSession)
+        .where(ChatSession.tenant_id == tenant_id, ChatSession.id == session_id)
+        .with_for_update()
+    )
+    if chat_session is None:
+        raise NotFound("ChatSession not found.")
+    if chat_message_counts(session, tenant_id, (session_id,)).get(session_id, 0):
+        chat_session.archived_at = chat_session.archived_at or now()
+    else:
+        session.delete(chat_session)
+    session.commit()
+
+
 def archive_chat_session(session: OrmSession, tenant_id: str, session_id: str) -> None:
     """Hide one tenant-scoped conversation without removing its audit context."""
     _require_business_mutation(session, tenant_id, "archive_chat_session")
@@ -6020,7 +6055,7 @@ def restore_chat_session(session: OrmSession, tenant_id: str, session_id: str) -
 
 
 # Transitional name for callers while DELETE retains its HTTP compatibility.
-delete_chat_session = archive_chat_session
+delete_chat_session = remove_chat_session
 
 
 def _change_proposal_conditions(
