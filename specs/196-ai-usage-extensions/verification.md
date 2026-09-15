@@ -31,4 +31,6 @@ Final source review confirms no schema changes, no provider-selection change, no
 consumption deletion and no non-admin target control. Grant values remain append-only
 security audit entries; calculations read those entries. All planned checks complete.
 Local API and web preview updated; no live self extensions consumed. Final UI asset:
-`index-DDAADpXz.js`. PR 15 carries the implementation and validation.
+`index-DDAADpXz.js`. The implementation is committed locally. Updating PR 15 is pending explicit user
+approval: automatic review rejected the push despite verification of the existing
+repository/branch, citing lack of explicit approval for this payload transfer.
