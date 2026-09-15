@@ -13,6 +13,7 @@ type Preferences = { language: Language; locale: DisplayLocale; timezone: string
 
 const dictionaries: Record<Exclude<Language, "en">, Record<string, string>> = {
   de: {
+    "{remaining} of {limit} AI questions left": "Noch {remaining} von {limit} KI-Anfragen",
     "Reality is working…": "Reality arbeitet …",
     "Back to selection": "Zurück zur Auswahl",
     "Choose company": "Firma auswählen",
@@ -1813,6 +1814,7 @@ const dictionaries: Record<Exclude<Language, "en">, Record<string, string>> = {
     "Fully Reserved": "Vollständig reserviert",
   },
   nl: {
+    "{remaining} of {limit} AI questions left": "Nog {remaining} van {limit} AI-vragen",
     "Reality is working…": "Reality is bezig…",
     "Back to selection": "Terug naar de selectie",
     "Choose company": "Bedrijf kiezen",
@@ -3304,6 +3306,7 @@ const dictionaries: Record<Exclude<Language, "en">, Record<string, string>> = {
     Customer: "Klant",
   },
   es: {
+    "{remaining} of {limit} AI questions left": "Quedan {remaining} de {limit} consultas de IA",
     "Reality is working…": "Reality está trabajando…",
     "Back to selection": "Volver a la selección",
     "Choose company": "Elegir empresa",

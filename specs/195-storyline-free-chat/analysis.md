@@ -71,3 +71,7 @@ findings, backend claims or progress estimates.
 Owner requested ChatGPT-like left/right visual differentiation. Shared CSS/tokens
 cover dock, Free Play and full chat. Verify bubble position/background, assistant
 background, pending echo and mobile/light/dark overflow. No critical findings.
+
+## Allowance review
+Owner requested less visual clutter. Count stays visible; exact reset information is
+keyboard/touch accessible. Exhaustion remains explicit. No critical findings.

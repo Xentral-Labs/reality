@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type Dispatch, type SetStateAction } from "react";
-import { ArrowUp, Mic, Paperclip, Square } from "lucide-react";
+import { ArrowUp, Info, Mic, Paperclip, Square } from "lucide-react";
 import type { ManagedAllowance } from "../api";
 import { formatDateTime, t } from "../localization";
 
@@ -231,18 +231,37 @@ export function ChatComposer({
 
 export function AllowanceNotice({ allowance }: { allowance?: ManagedAllowance | null }) {
   if (!allowance) return null;
+  const count = t("{remaining} of {limit} AI questions left")
+    .replace("{remaining}", String(allowance.remaining))
+    .replace("{limit}", String(allowance.limit));
+  const reset = (
+    <p className="mt-2">
+      {t("Resets at")} {formatDateTime(allowance.resets_at)}
+    </p>
+  );
   return (
-    <div className="mb-2 text-xs text-fg-muted" role="status" data-ai-allowance>
-      <p>
-        {t("Free AI questions remaining")}: {allowance.remaining} / {allowance.limit} ·{" "}
-        {t("Resets at")} {formatDateTime(allowance.resets_at)}
-      </p>
-      {allowance.remaining === 0 && (
-        <p>
-          {t(
-            "Your daily AI allowance is used. Keep exploring the records or return after the reset.",
-          )}
-        </p>
+    <div className="mb-3 text-xs text-fg-muted" data-ai-allowance>
+      {allowance.remaining === 0 ? (
+        <div
+          role="status"
+          className="rounded-xl border border-border-default bg-surface-muted px-3 py-2"
+        >
+          <p className="font-medium text-fg-strong">{count}</p>
+          <p className="mt-1">
+            {t(
+              "Your daily AI allowance is used. Keep exploring the records or return after the reset.",
+            )}
+          </p>
+          {reset}
+        </div>
+      ) : (
+        <details>
+          <summary className="inline-flex cursor-pointer list-none items-center gap-2 rounded-full bg-surface-muted px-3 py-1.5 hover:text-fg-strong focus-visible:outline-2 focus-visible:outline-accent [&::-webkit-details-marker]:hidden">
+            <span role="status">{count}</span>
+            <Info size={13} aria-hidden="true" />
+          </summary>
+          {reset}
+        </details>
       )}
     </div>
   );

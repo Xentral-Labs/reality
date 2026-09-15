@@ -200,6 +200,14 @@ try {
   await page.getByRole("button", { name: "Open commitment", exact: true }).click();
   await page.getByRole("button", { name: "Back to commitments", exact: true }).waitFor();
   const chat = page.locator("[data-global-chat]");
+  const allowance = chat.locator("[data-ai-allowance]");
+  const resetTime = allowance.getByText(/Resets at/);
+  assert.equal(await resetTime.isVisible(), false);
+  await allowance.locator("summary").focus();
+  await page.keyboard.press("Enter");
+  await resetTime.waitFor();
+  await allowance.locator("summary").click();
+  assert.equal(await resetTime.isVisible(), false);
   await chat.locator("textarea").fill("Keep this question after exhaustion");
   await chat.locator('button[type="submit"]').click();
   await chat
@@ -210,6 +218,7 @@ try {
   assert.equal(await chat.locator("textarea").inputValue(), "Keep this question after exhaustion");
   assert.equal(await chat.locator('button[type="submit"]').isDisabled(), true);
   assert.equal(sent, 1);
+  await allowance.getByText(/Resets at/).waitFor();
   for (const locale of ["en", "de", "nl", "es"]) {
     language = locale;
     await page.setViewportSize({ width: 390, height: 844 });

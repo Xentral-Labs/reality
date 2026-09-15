@@ -39,3 +39,6 @@ as one coherent increment because free chat must carry truthful evidence.
 
 - [x] T016 [FR-011] Restyle chat turns, add geometry/theme browser checks, verify
   build/browser and update preview/PR.
+
+- [x] T017 [FR-012] Compact allowance disclosure, preserve exhaustion, verify browser
+  and web build, update preview/PR.
