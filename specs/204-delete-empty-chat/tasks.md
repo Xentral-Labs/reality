@@ -33,6 +33,7 @@ description: "Requirement-traceable empty Chat Session removal tasks"
 - [x] T013 [US2] [FR-004] Render `Delete chat` with permanent confirmation for empty sessions and preserve archive wording otherwise in `apps/web/src/unified/ChatPage.tsx`
 - [x] T014 [P] [US2] [FR-004] Add complete translations in `apps/web/src/localization.tsx`
 - [x] T015 [US2] Run the US2 independent acceptance proof from `specs/204-delete-empty-chat/quickstart.md`
+- [x] T016 [US1] [US2] [FR-003] [FR-007] Classify the new tenant-scoped aggregate and mutation in `packages/reality-core/config/tenant_isolation_catalog.yaml` and update its completeness proof
 
 ## Final Phase: Cross-Cutting Review
 

@@ -26,6 +26,7 @@ message remains in the archive and restores with its message.
 ## Recorded verification
 
 - Backend API suite: 45 passed.
+- Combined application-catalog, tenant-isolation, and Chat API suite: 90 passed.
 - Frontend contract suite: 188 passed.
 - Translation audit: English, German, Dutch, and Spanish passed with no missing entries.
 - Production Web build: passed.
