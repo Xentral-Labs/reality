@@ -51,6 +51,12 @@ class Confirmation(BaseModel):
     confirmed: StrictBool = False
 
 
+class PlaygroundStart(Confirmation):
+    """Feature 198: the start a first entry chooses; the demo stays the default."""
+
+    content: Literal["international_demo", "empty"] = "international_demo"
+
+
 class ExecutionRequest(Confirmation):
     request_key: str = Field(min_length=1, max_length=128)
     name: str = Field(min_length=1, max_length=120)
@@ -104,9 +110,11 @@ def playground_status(actor: Actor, session: DatabaseSession):
 
 
 @router.post("/playground", status_code=201)
-def enter_playground(body: Confirmation, actor: Actor, session: DatabaseSession):
+def enter_playground(body: PlaygroundStart, actor: Actor, session: DatabaseSession):
     return _respond(
-        lambda: free_playground.enter(session, actor, confirmed=body.confirmed)
+        lambda: free_playground.enter(
+            session, actor, confirmed=body.confirmed, content=body.content
+        )
     )
 
 

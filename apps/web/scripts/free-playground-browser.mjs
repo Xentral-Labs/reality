@@ -25,7 +25,8 @@ let usageGrants = [],
   failGrant = true,
   adminUsage = false;
 let archived = false,
-  entryReceiptStatus = null;
+  entryReceiptStatus = null,
+  startContent = null;
 const errors = [];
 page.on("pageerror", (error) => errors.push(error.message));
 const company = {
@@ -137,6 +138,8 @@ await page.route("**/api/**", async (route) => {
         receipt: entryReceiptStatus ? { tenant_id: company.id, status: entryReceiptStatus } : null,
       });
     assert.equal(request.postDataJSON().confirmed, true);
+    startContent = request.postDataJSON().content;
+    assert.ok(["international_demo", "empty"].includes(startContent));
     posts++;
     ready = !failSetup;
     return reply({
@@ -253,10 +256,37 @@ try {
     await browser.close();
     process.exit(0);
   }
+  // Feature 198: the first entry offers two starts and creates nothing until one is chosen.
+  for (const locale of ["en", "de", "nl", "es"]) {
+    language = locale;
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.goto(`${base}/app?lang=${locale}`);
+    await page.locator("[data-entry-choice]").waitFor();
+    assert.equal(posts, 0, "No company may be created before a start is chosen");
+    assert.equal(await page.locator("[data-start]").count(), 2);
+    assert.equal(
+      await page.evaluate(() => document.documentElement.scrollWidth > innerWidth),
+      false,
+    );
+    await page.screenshot({ path: `${out}/start-choice-${locale}.png`, fullPage: true });
+  }
+  language = "en";
+  await page.setViewportSize({ width: 1440, height: 1000 });
   await page.goto(`${base}/app`);
+  await page.locator("[data-entry-choice]").waitFor();
+  await page.screenshot({ path: `${out}/start-choice-desktop.png`, fullPage: true });
+  await page.locator('[data-start="empty"]').click();
+  await page
+    .getByText("Your company is not ready yet. Retry to continue with the same company.")
+    .waitFor();
+  assert.equal(startContent, "empty");
+  assert.equal(posts, 1, "Exactly one creation follows one chosen start");
+  await page.goto(`${base}/app`);
+  await page.locator('[data-start="international_demo"]').click();
   await page
     .getByText("Your demo is not ready yet. Retry to continue with the same company.")
     .waitFor();
+  assert.equal(startContent, "international_demo");
   assert.equal(ready, false);
   failSetup = false;
   await page.getByRole("button", { name: "Retry", exact: true }).click();
@@ -343,6 +373,7 @@ try {
   failSetup = true;
   entryReceiptStatus = "initialization_failed";
   await page.goto(`${base}/app?lang=en`);
+  await page.locator('[data-start="international_demo"]').click();
   await page
     .getByText("Your demo is not ready yet. Retry to continue with the same company.")
     .waitFor();
@@ -361,7 +392,7 @@ try {
   assert.equal(posts, beforeArchive, "An archived receipt must not trigger another creation");
   assert.deepEqual(errors, []);
   console.log(
-    "PASS: recoverable trial entry, truthful result prompt, dismissal, starters, exhausted draft and four mobile locales",
+    "PASS: two offered starts before any creation, recoverable trial entry, truthful result prompt, dismissal, starters, exhausted draft and four mobile locales",
   );
 } catch (error) {
   console.error(await page.locator("body").innerText());

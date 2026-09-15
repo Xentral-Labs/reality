@@ -133,3 +133,34 @@ def test_free_entry_requires_explicit_signup_consent_and_reads_do_not_create(
         ).status_code
         == 422
     )
+
+
+def test_free_entry_accepts_only_the_two_offered_starts(session, playground_http):
+    """Feature 198: the chosen start is a closed set and the demo is the default."""
+    from reality.db.core import PlaygroundRun
+    from reality.services.free_playground import request_entry
+
+    client, _, user, _, login = playground_http
+    login(user)
+    request_entry(session, user.id)
+    session.flush()
+    assert (
+        client.post(
+            "/api/company-setup/playground",
+            json={"confirmed": True, "content": "storyline"},
+        ).status_code
+        == 422
+    )
+    created = client.post(
+        "/api/company-setup/playground", json={"confirmed": True, "content": "empty"}
+    )
+    assert created.status_code == 201, created.text
+    assert created.json()["status"] == "ready"
+    assert (
+        session.get(PlaygroundRun, created.json()["run_id"]).preset_key
+        == "company-empty"
+    )
+    assert (
+        client.get("/api/company-setup/playground").json()["receipt"]["tenant_id"]
+        == created.json()["tenant_id"]
+    )

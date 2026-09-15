@@ -22,6 +22,10 @@ REQUEST_KEY = "free-playground:v1"
 DAILY_LIMIT = 20
 USAGE_EVENT = "playground.ai_dispatched"
 
+# Feature 198: the two starts a first entry may choose between, with the company name
+# each one carries. The demo start also runs the live simulation.
+STARTS = {"international_demo": "My demo company", "empty": "My company"}
+
 
 def request_entry(session: Session, user_id: str) -> None:
     """Record the explicit signup request; the caller owns the auth transaction."""
@@ -74,10 +78,18 @@ def entry_status(session: Session, user_id: str) -> dict:
     }
 
 
-def enter(session: Session, user_id: str, *, confirmed: bool = False) -> dict:
+def enter(
+    session: Session,
+    user_id: str,
+    *,
+    confirmed: bool = False,
+    content: str = "international_demo",
+) -> dict:
     state = entry_status(session, user_id)
     if not confirmed or not state["requested"]:
         raise InvalidOperation("Confirm creation of your demo company first.")
+    if content not in STARTS:
+        raise InvalidOperation("Choose a demo company or an empty company.")
     if not state["eligible"]:
         raise InvalidOperation("A verified, active account is required.")
     receipt = state["receipt"]
@@ -93,11 +105,11 @@ def enter(session: Session, user_id: str, *, confirmed: bool = False) -> dict:
         session,
         user_id,
         REQUEST_KEY,
-        "My demo company",
+        STARTS[content],
         "sandbox",
-        "international_demo",
+        content,
         confirmed=True,
-        live_simulation=True,
+        live_simulation=content == "international_demo",
     )
 
 

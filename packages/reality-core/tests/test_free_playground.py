@@ -280,3 +280,70 @@ def test_trial_account_cannot_bypass_allowance_in_ordinary_company(
         free_playground.reserve_managed_question(
             session, business.tenant.id, scheduled_owner.id
         )
+
+
+def test_entry_creates_the_chosen_start(session, scheduled_owner):
+    """Feature 198: the account chooses between the demo and an empty company."""
+    consent(session, scheduled_owner)
+    result = free_playground.enter(
+        session, scheduled_owner.id, confirmed=True, content="empty"
+    )
+    assert result["status"] == "ready"
+    run = session.get(PlaygroundRun, result["run_id"])
+    assert run.preset_key == "company-empty"
+    assert session.get(Tenant, result["tenant_id"]).name == "My company"
+    status = free_playground.entry_status(session, scheduled_owner.id)
+    assert status["receipt"]["tenant_id"] == result["tenant_id"]
+    assert (
+        free_playground.enter(
+            session, scheduled_owner.id, confirmed=True, content="empty"
+        )["tenant_id"]
+        == result["tenant_id"]
+    )
+
+
+def test_entry_refuses_a_second_different_start(session, scheduled_owner):
+    """Feature 198: one account keeps one start; the other one is refused."""
+    from reality.services.core import Conflict
+
+    consent(session, scheduled_owner)
+    free_playground.enter(session, scheduled_owner.id, confirmed=True, content="empty")
+    with pytest.raises(Conflict):
+        free_playground.enter(
+            session, scheduled_owner.id, confirmed=True, content="international_demo"
+        )
+    with pytest.raises(InvalidOperation):
+        free_playground.enter(
+            session, scheduled_owner.id, confirmed=True, content="storyline"
+        )
+
+
+def test_empty_start_can_add_demo_data_afterwards(session, scheduled_owner):
+    """Feature 198 US3: an empty start does not foreclose the demo data."""
+    from reality.services import demo_data
+
+    consent(session, scheduled_owner)
+    result = free_playground.enter(
+        session, scheduled_owner.id, confirmed=True, content="empty"
+    )
+    tenant = result["tenant_id"]
+    proposed = demo_data.preview(session, tenant, scheduled_owner.id)
+    connection = demo_data.connect(
+        session,
+        tenant,
+        scheduled_owner.id,
+        "after-empty",
+        proposed["fingerprint"],
+        confirmed=True,
+    )
+    started = demo_data.control(
+        session,
+        tenant,
+        scheduled_owner.id,
+        "start",
+        connection["revision"],
+        "after-empty-start",
+        rate=60,
+        confirmed=True,
+    )
+    assert started["state"] == "running"
