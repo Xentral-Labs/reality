@@ -13,6 +13,7 @@ type Preferences = { language: Language; locale: DisplayLocale; timezone: string
 
 const dictionaries: Record<Exclude<Language, "en">, Record<string, string>> = {
   de: {
+    "Back to selection": "Zurück zur Auswahl",
     "Choose company": "Firma auswählen",
     "Open company chat": "Chat in dieser Firma öffnen",
     "Sandbox with sample data": "Sandbox mit Beispieldaten",
@@ -1811,6 +1812,7 @@ const dictionaries: Record<Exclude<Language, "en">, Record<string, string>> = {
     "Fully Reserved": "Vollständig reserviert",
   },
   nl: {
+    "Back to selection": "Terug naar de selectie",
     "Choose company": "Bedrijf kiezen",
     "Open company chat": "Bedrijfschat openen",
     "Sandbox with sample data": "Sandbox met voorbeeldgegevens",
@@ -3300,6 +3302,7 @@ const dictionaries: Record<Exclude<Language, "en">, Record<string, string>> = {
     Customer: "Klant",
   },
   es: {
+    "Back to selection": "Volver a la selección",
     "Choose company": "Elegir empresa",
     "Open company chat": "Abrir chat de la empresa",
     "Sandbox with sample data": "Sandbox con datos de ejemplo",

@@ -27,3 +27,6 @@ as one coherent increment because free chat must carry truthful evidence.
 - [x] T012 [US1] [FR-008, FR-004] Add failing browser proofs for existing-company
   selection, default, read-only opening, reload and unavailable evidence; implement
   chooser and route state, localize, verify web/browser and update preview/PR.
+
+- [x] T013 [FR-007] Remove narrator Sandbox chat shortcut, label/style Back to
+  selection, update contract/browser regression, verify web/browser/spec and preview.

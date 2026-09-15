@@ -794,7 +794,14 @@ await page.locator("[data-storyline-page]").waitFor();
 
 // 7. Free play: the calls made outside the story are listed, a confirmed one shows what
 // it added, and "Back to the story" returns to the current chapter (FR-011).
-await page.locator("[data-storyline-action='free-play']").click();
+assert.equal(await page.locator("[data-storyline-action='free-play']").count(), 0);
+const beforeSelection = writes.length;
+const returnToSelection = page.locator("[data-storyline-action='library']");
+assert.equal(await returnToSelection.innerText(), "Back to selection");
+await returnToSelection.click();
+await page.locator("[data-storyline-library]").waitFor();
+assert.equal(writes.length, beforeSelection, "returning to selection is read-only");
+await page.goto(`${base}/app/storyline?tenant=story&chapter=free`);
 await page.waitForURL(/chapter=free/);
 await page
   .locator("[data-storyline-protocol][data-mode='free'] [data-storyline-call='confirm']")

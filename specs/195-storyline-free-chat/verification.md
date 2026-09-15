@@ -106,3 +106,15 @@ Sandbox run is fabricated for ordinary companies.
 
 Final review: shared company access and company selection remain authoritative.
 No new schema, business logic, automatic mutation, data conversion or trace scope.
+
+## Narrator exit correction (2026-09-15)
+
+Removed the footer Sandbox chat shortcut. Back to selection uses the shared full-size
+button with ArrowLeft and is primary after completion. The existing library callback
+opens the exploration chooser without writes. Contextual saved URLs/drafts remain.
+The updated contract failed before implementation and passed afterward. Web build
+passed (168 tests, four-language audit 1853/1853, TypeScript/Vite). The browser passed
+the absent shortcut, clear label and read-only return assertions along with scripted
+steps and company-choice coverage. Spec policy and diff check passed. No backend or
+generated catalog changes; their previous checks remain applicable. Local 8080 serves
+`index-3a5vEx_6.js`. Final review: presentation only, no data or permission changes.
