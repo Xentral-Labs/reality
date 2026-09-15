@@ -255,14 +255,16 @@ export function ChatPage({
       >
         <History size={20} />
       </button>
-      <button
-        className="reality-chat-icon"
-        aria-label={t("New conversation")}
-        disabled={sending || startingChat}
-        onClick={() => void startConversation()}
-      >
-        <SquarePen size={20} />
-      </button>
+      {!sessionsTarget && (
+        <button
+          className="reality-chat-icon"
+          aria-label={t("New conversation")}
+          disabled={sending || startingChat}
+          onClick={() => void startConversation()}
+        >
+          <SquarePen size={20} />
+        </button>
+      )}
     </div>
   );
   const frame = dock ? dockFrame : compact ? compactFrame : fullFrame;
@@ -271,6 +273,17 @@ export function ChatPage({
       {sessionsTarget &&
         createPortal(
           <div className="space-y-1" data-chat-session-list>
+            <button
+              className="br-btn mb-3 w-full justify-start gap-2"
+              disabled={sending || startingChat}
+              onClick={() => {
+                onSessionSelected?.();
+                void startConversation();
+              }}
+            >
+              <SquarePen size={18} />
+              {t("New conversation")}
+            </button>
             {!data.sessions.length && (
               <p className="text-sm text-fg-muted">{t("No conversations yet.")}</p>
             )}
@@ -550,7 +563,18 @@ export function ChatPage({
           {failure}
         </p>
       )}
-      {dock ? (
+      {dock && sessionsTarget && data.allowance?.remaining === 0 ? (
+        <div
+          role="status"
+          data-free-play-limit
+          className="flex shrink-0 flex-wrap items-center justify-center gap-x-2 gap-y-1 border-t border-border-default px-4 py-4 text-sm text-fg-muted"
+        >
+          <span className="font-medium text-fg-default">{t("Daily limit reached")}</span>
+          <span>
+            · {t("Resets at")} {formatDateTime(data.allowance.resets_at)}
+          </span>
+        </div>
+      ) : dock ? (
         <ChatComposer
           allowance={data.allowance}
           key={data.active_session_id || "new"}

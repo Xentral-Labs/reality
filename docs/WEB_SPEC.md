@@ -2718,10 +2718,15 @@ scrolls during chat; app/chat headers, navigation and composer remain in place. 
 chooser and navigation retain their own overflow for small screens. Other routes
 keep their existing document scrolling.
 
-An opened Free Play chat combines company selection, usage and new conversation
-in one 48px toolbar. Company-scoped conversations appear in a left column in the
+An opened Free Play chat has an unframed full-width surface and a 48px toolbar
+with company selection and usage. The company picker has a visible button boundary.
+New conversation is a labeled button above the saved sessions. Company-scoped conversations appear in a left column in the
 surrounding gray area, with the current conversation highlighted. Narrow screens
 use a history button and dismissible drawer; selection closes it. The opened chat
 has no Storyline link or inline conversation dropdown. It has no second conversation header.
 The company label truncates on narrow screens; controls retain accessible labels.
 Other chat surfaces retain their existing header.
+
+At zero allowance, Free Play replaces the composer with a compact limit/reset status.
+Header Usage retains the detailed disclosure. A refreshed positive allowance restores
+the composer. Other chat surfaces retain their existing exhaustion presentation.

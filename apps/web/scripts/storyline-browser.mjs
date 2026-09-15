@@ -25,6 +25,8 @@ let language = "en",
   restarted = false;
 let independentCreated = false;
 let independentSession = null;
+let independentRemaining = 18;
+let independentSessionCreates = 0;
 const independentMessages = [];
 let chatSession = null;
 const chatMessages = [],
@@ -312,6 +314,7 @@ await page.route("**/api/**", async (route) => {
     });
   if (p.includes("/tenants/independent/")) {
     if (p.endsWith("/copilot/sessions") && req.method() === "POST") {
+      independentSessionCreates++;
       independentSession = { id: "independent-chat", title: "Independent chat" };
       return reply(independentSession);
     }
@@ -350,7 +353,12 @@ await page.route("**/api/**", async (route) => {
           u.searchParams.get("session_id") === "older-chat"
             ? "older-chat"
             : independentSession?.id || null,
-        allowance: { limit: 20, used: 2, remaining: 18, resets_at: "2099-09-15T00:00:00Z" },
+        allowance: {
+          limit: 20,
+          used: 20 - independentRemaining,
+          remaining: independentRemaining,
+          resets_at: "2099-09-15T00:00:00Z",
+        },
         messages:
           u.searchParams.get("session_id") === "older-chat"
             ? [
@@ -762,7 +770,17 @@ async function assertContainedScroll() {
       await header.getByRole("button", { name: "Back to selection", exact: true }).count(),
       0,
     );
-    await header.getByRole("button", { name: "New conversation", exact: true }).waitFor();
+    assert.equal(
+      await header.getByRole("button", { name: "New conversation", exact: true }).count(),
+      0,
+    );
+    assert.equal(
+      await page
+        .locator("[data-free-play-sessions]")
+        .getByRole("button", { name: "New conversation", exact: true, includeHidden: true })
+        .count(),
+      1,
+    );
     assert.equal(
       await page.evaluate(() => document.documentElement.scrollWidth > innerWidth),
       false,
@@ -833,8 +851,35 @@ if (process.env.FREE_PLAY_SCROLL_ONLY === "1") {
     .waitFor({ state: "attached" });
 
   await assertContainedScroll();
+  independentRemaining = 0;
+  await page.setViewportSize({ width: 390, height: 640 });
+  await page.reload();
+  const limit = page.locator("[data-free-play-limit]");
+  await limit.waitFor();
+  assert.match(await limit.innerText(), /2099/);
+  assert.equal(await page.locator("[data-independent-free-play] textarea").count(), 0);
+  assert.ok((await limit.boundingBox()).height < 90);
+  await page.screenshot({ path: "/private/tmp/free-play-exhausted-mobile.png" });
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.screenshot({ path: "/private/tmp/free-play-exhausted-desktop.png" });
+  independentRemaining = 18;
+
   await page.reload();
   await page.locator("[data-independent-free-play] textarea").waitFor();
+  const createsBefore = independentSessionCreates;
+  const newChat = page
+    .locator("[data-free-play-sessions]")
+    .getByRole("button", { name: "New conversation", exact: true });
+  await Promise.all([
+    page.waitForResponse(
+      (response) =>
+        response.url().endsWith("/copilot/sessions") &&
+        response.request().method() === "POST" &&
+        response.status() === 200,
+    ),
+    newChat.click(),
+  ]);
+  assert.equal(independentSessionCreates, createsBefore + 1);
   assert.equal(await page.evaluate(() => scrollY), 0);
   assert.deepEqual(errors, []);
   await browser.close();

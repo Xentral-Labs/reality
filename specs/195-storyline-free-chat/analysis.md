@@ -96,3 +96,8 @@ existing scroll geometry. No critical findings.
 Owner requests sessions left of chat and no Storyline link in chat. Reuse existing
 sessions, tenant scoping, busy guards and selection semantics. Test active state,
 left-side geometry and mobile dismissal. No critical findings.
+
+## FR-016 pre-implementation review
+Scope accepted by user. UI-only changes preserve tenant reads, shared session creation,
+confirmation and allowance enforcement. Browser proof covers responsive layout and
+exhaustion/recovery; no unresolved clarification or critical finding.

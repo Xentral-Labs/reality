@@ -9,8 +9,12 @@ import { ReadState } from "./ReadState";
 import { useRead } from "./useCompanyContext";
 
 const openSessionsClass =
-  "absolute inset-y-0 left-0 z-20 flex w-60 flex-col rounded-xl border border-border-default bg-surface p-3 shadow-xl xl:static xl:z-auto xl:w-52 xl:shrink-0 xl:border-0 xl:bg-transparent xl:shadow-none";
-const closedSessionsClass = "hidden w-52 shrink-0 flex-col p-3 xl:flex";
+  "absolute inset-y-0 left-0 z-20 flex w-64 flex-col rounded-xl border border-border-default bg-surface p-3 shadow-xl xl:static xl:z-auto xl:w-60 xl:shrink-0 xl:border-0 xl:bg-transparent xl:shadow-none";
+const openChatFrame = "flex h-full min-h-0 min-w-0 w-full flex-col overflow-hidden bg-surface";
+const chooserFrame =
+  "mx-auto flex h-full min-h-0 min-w-0 w-full max-w-5xl flex-col overflow-hidden rounded-xl border border-border-default bg-surface";
+const closedSessionsClass =
+  "hidden w-60 shrink-0 flex-col border-r border-border-default p-3 xl:flex";
 
 export function FreePlayPage({
   selection,
@@ -108,17 +112,14 @@ export function FreePlayPage({
           </aside>
         </>
       )}
-      <section
-        className="mx-auto flex h-full min-h-0 min-w-0 w-full max-w-5xl flex-col overflow-hidden rounded-xl border border-border-default bg-surface"
-        data-independent-free-play
-      >
+      <section className={chatting ? openChatFrame : chooserFrame} data-independent-free-play>
         {chatting ? (
           <header
             className="flex h-12 shrink-0 items-center gap-2 border-b border-border-default px-3"
             data-free-play-toolbar
           >
             <button
-              className="flex min-w-0 flex-1 items-center gap-1 text-left text-sm font-medium"
+              className="flex min-w-0 items-center gap-2 rounded-lg border border-border-default bg-surface px-3 py-1.5 text-left text-sm font-medium hover:bg-surface-muted"
               data-free-play-choose
               aria-label={t("Choose company")}
               title={`${current.name} · ${t(isSandbox(current) ? "Sandbox" : "Company")}`}
@@ -132,7 +133,7 @@ export function FreePlayPage({
               </span>
               <ChevronDown size={14} className="shrink-0 text-fg-muted" />
             </button>
-            <div className="shrink-0" ref={setUsageTarget} />
+            <div className="ml-auto shrink-0" ref={setUsageTarget} />
             <div className="shrink-0" ref={setControlsTarget} />
           </header>
         ) : (
