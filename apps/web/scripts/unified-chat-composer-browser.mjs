@@ -118,7 +118,10 @@ await page.route("**/api/**", async (route) => {
     if (!sent.length && requests.filter((path) => path.endsWith("/messages")).length === 1)
       return respond({ detail: "Provider unavailable" }, 503);
     sent.push(request.postDataJSON().message);
-    return respond({ id: `sent_${sent.length - 1}` });
+    return respond({
+      user: { id: `sent_${sent.length - 1}`, content: request.postDataJSON().message },
+      assistant: { id: `reply_${sent.length - 1}`, content: `Recorded answer ${sent.length}.` },
+    });
   }
   if (url.pathname.endsWith("/change-proposals"))
     return respond({

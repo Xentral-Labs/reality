@@ -1,0 +1,214 @@
+[
+  {
+    "kind": "provider",
+    "seconds": 1.4755755430087447,
+    "usage": {
+      "input_tokens": 329,
+      "cache_creation_input_tokens": 0,
+      "cache_read_input_tokens": 34037,
+      "cache_creation": {
+        "ephemeral_5m_input_tokens": 0,
+        "ephemeral_1h_input_tokens": 0
+      },
+      "output_tokens": 52,
+      "service_tier": "standard",
+      "inference_geo": "not_available"
+    }
+  },
+  {
+    "kind": "tool",
+    "name": "fulfillment_queue",
+    "seconds": 0.3327956669963896,
+    "sql_count": 27
+  },
+  {
+    "kind": "provider",
+    "seconds": 7.053382835933007,
+    "usage": {
+      "input_tokens": 9762,
+      "cache_creation_input_tokens": 0,
+      "cache_read_input_tokens": 34037,
+      "cache_creation": {
+        "ephemeral_5m_input_tokens": 0,
+        "ephemeral_1h_input_tokens": 0
+      },
+      "output_tokens": 538,
+      "service_tier": "standard",
+      "inference_geo": "not_available"
+    }
+  },
+  {
+    "kind": "answer",
+    "run": 1,
+    "question": "Which customer orders are still open?",
+    "session_id": "cht_757e650df3",
+    "seconds": 9.220097836921923,
+    "first_text": 1.3718192919623107,
+    "final_round_first_text": 3.2152025849791244,
+    "provider_seconds": 8.528958378941752,
+    "tool_seconds": 0.3327956669963896,
+    "sql_count": 43,
+    "sql_seconds": 0.19729574781376868,
+    "answer_chars": 1510,
+    "failed": false
+  },
+  {
+    "kind": "provider",
+    "seconds": 1.5212261260021478,
+    "usage": {
+      "input_tokens": 331,
+      "cache_creation_input_tokens": 0,
+      "cache_read_input_tokens": 34037,
+      "cache_creation": {
+        "ephemeral_5m_input_tokens": 0,
+        "ephemeral_1h_input_tokens": 0
+      },
+      "output_tokens": 52,
+      "service_tier": "standard",
+      "inference_geo": "not_available"
+    }
+  },
+  {
+    "kind": "tool",
+    "name": "item_supply_demand",
+    "seconds": 0.38856987503822893,
+    "sql_count": 27
+  },
+  {
+    "kind": "provider",
+    "seconds": 6.205502670025453,
+    "usage": {
+      "input_tokens": 5678,
+      "cache_creation_input_tokens": 0,
+      "cache_read_input_tokens": 34037,
+      "cache_creation": {
+        "ephemeral_5m_input_tokens": 0,
+        "ephemeral_1h_input_tokens": 0
+      },
+      "output_tokens": 551,
+      "service_tier": "standard",
+      "inference_geo": "not_available"
+    }
+  },
+  {
+    "kind": "answer",
+    "run": 2,
+    "question": "Which items have insufficient stock for open orders?",
+    "session_id": "cht_4db9b9294a",
+    "seconds": 8.235203295014799,
+    "first_text": 1.094605959020555,
+    "final_round_first_text": 3.01558596000541,
+    "provider_seconds": 7.726728796027601,
+    "tool_seconds": 0.38856987503822893,
+    "sql_count": 42,
+    "sql_seconds": 0.07784545363392681,
+    "answer_chars": 1338,
+    "failed": false
+  },
+  {
+    "kind": "provider",
+    "seconds": 1.4959965000161901,
+    "usage": {
+      "input_tokens": 329,
+      "cache_creation_input_tokens": 0,
+      "cache_read_input_tokens": 34037,
+      "cache_creation": {
+        "ephemeral_5m_input_tokens": 0,
+        "ephemeral_1h_input_tokens": 0
+      },
+      "output_tokens": 49,
+      "service_tier": "standard",
+      "inference_geo": "not_available"
+    }
+  },
+  {
+    "kind": "tool",
+    "name": "fulfillment_queue",
+    "seconds": 0.569946082890965,
+    "sql_count": 27
+  },
+  {
+    "kind": "provider",
+    "seconds": 13.880156423081644,
+    "usage": {
+      "input_tokens": 9759,
+      "cache_creation_input_tokens": 0,
+      "cache_read_input_tokens": 34037,
+      "cache_creation": {
+        "ephemeral_5m_input_tokens": 0,
+        "ephemeral_1h_input_tokens": 0
+      },
+      "output_tokens": 1142,
+      "service_tier": "standard",
+      "inference_geo": "not_available"
+    }
+  },
+  {
+    "kind": "answer",
+    "run": 3,
+    "question": "Which customer orders are still open?",
+    "session_id": "cht_b86e83435c",
+    "seconds": 16.169794966001064,
+    "first_text": 1.2160736670484766,
+    "final_round_first_text": 3.3634330850327387,
+    "provider_seconds": 15.376152923097834,
+    "tool_seconds": 0.569946082890965,
+    "sql_count": 42,
+    "sql_seconds": 0.3905721215996891,
+    "answer_chars": 2576,
+    "failed": false
+  },
+  {
+    "kind": "provider",
+    "seconds": 1.4543500839499757,
+    "usage": {
+      "input_tokens": 331,
+      "cache_creation_input_tokens": 0,
+      "cache_read_input_tokens": 34037,
+      "cache_creation": {
+        "ephemeral_5m_input_tokens": 0,
+        "ephemeral_1h_input_tokens": 0
+      },
+      "output_tokens": 52,
+      "service_tier": "standard",
+      "inference_geo": "not_available"
+    }
+  },
+  {
+    "kind": "tool",
+    "name": "item_supply_demand",
+    "seconds": 0.10582304198760539,
+    "sql_count": 27
+  },
+  {
+    "kind": "provider",
+    "seconds": 6.1816222940105945,
+    "usage": {
+      "input_tokens": 5678,
+      "cache_creation_input_tokens": 0,
+      "cache_read_input_tokens": 34037,
+      "cache_creation": {
+        "ephemeral_5m_input_tokens": 0,
+        "ephemeral_1h_input_tokens": 0
+      },
+      "output_tokens": 584,
+      "service_tier": "standard",
+      "inference_geo": "not_available"
+    }
+  },
+  {
+    "kind": "answer",
+    "run": 4,
+    "question": "Which items have insufficient stock for open orders?",
+    "session_id": "cht_b1183f8b1c",
+    "seconds": 7.907520919921808,
+    "first_text": 1.085837583988905,
+    "final_round_first_text": 2.6932190839434043,
+    "provider_seconds": 7.63597237796057,
+    "tool_seconds": 0.10582304198760539,
+    "sql_count": 43,
+    "sql_seconds": 0.11650678957812488,
+    "answer_chars": 1421,
+    "failed": false
+  }
+]

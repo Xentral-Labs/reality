@@ -342,7 +342,7 @@ await page.route("**/api/**", async (route) => {
           created_at: "2026-09-15T10:00:02Z",
         },
       );
-      return reply({});
+      return reply({ user: independentMessages.at(-2), assistant: independentMessages.at(-1) });
     }
     if (p.endsWith("/copilot"))
       return reply({
@@ -403,7 +403,7 @@ await page.route("**/api/**", async (route) => {
         created_at: "2026-09-15T10:00:02Z",
       },
     );
-    return reply({});
+    return reply({ user: chatMessages.at(-2), assistant: chatMessages.at(-1) });
   }
   if (p.endsWith("/storyline/chat/answer-free")) {
     evidenceReads.push(p);
@@ -1345,12 +1345,31 @@ for (const lang of ["en", "de", "nl", "es"])
         animations: "disabled",
       });
     }
+// This visual matrix needs its own saved conversation; the normal Storyline
+// chat above belongs to a different company and cannot supply this evidence.
+independentCreated = true;
+independentSession = { id: "independent-chat", title: "Independent chat" };
+if (!independentMessages.length)
+  independentMessages.push(
+    {
+      id: "independent-question",
+      role: "user",
+      content: "Explain stock",
+      created_at: "2026-09-15T10:00:01Z",
+    },
+    {
+      id: "independent-answer",
+      role: "assistant",
+      content: "Independent Sandbox answer.",
+      created_at: "2026-09-15T10:00:02Z",
+    },
+  );
 for (const lang of ["en", "de", "nl", "es"])
   for (const theme of ["light", "dark"])
     for (const width of [390, 1440]) {
       language = lang;
       await page.setViewportSize({ width, height: width === 390 ? 844 : 1000 });
-      await page.goto(`${base}/app/free-play?tenant=independent&play=chat&lang=${lang}`);
+      await page.goto(`${base}/app/chat?tenant=independent&session=independent-chat&lang=${lang}`);
       await page.locator("[data-independent-free-play] textarea").waitFor();
       assert.equal(
         await page

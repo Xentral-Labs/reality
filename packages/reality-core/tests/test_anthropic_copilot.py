@@ -85,11 +85,12 @@ async def test_anthropic_copilot_executes_canonical_tool_and_returns_text(
     assert requests[0][1]["anthropic-workspace-id"] == "wrk_123"
     assert requests[0][2]["model"] == "claude-haiku-4-5-20251001"
     assert requests[0][2]["tools"][0]["input_schema"]["type"] == "object"
-    assert "UI language: de" in requests[0][2]["system"]
-    assert "Locale and number format: de-DE" in requests[0][2]["system"]
-    assert "Display timezone: Europe/Berlin" in requests[0][2]["system"]
-    assert "date-only values" in requests[0][2]["system"]
-    assert "opaque IDs" in requests[0][2]["system"]
+    system = "\n".join(block["text"] for block in requests[0][2]["system"])
+    assert "UI language: de" in system
+    assert "Locale and number format: de-DE" in system
+    assert "Display timezone: Europe/Berlin" in system
+    assert "date-only values" in system
+    assert "opaque IDs" in system
     assert requests[1][2]["messages"][-2]["content"][0]["type"] == "tool_result"
 
 

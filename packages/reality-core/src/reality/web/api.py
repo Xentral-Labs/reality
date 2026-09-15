@@ -6385,11 +6385,55 @@ def post_copilot_message(
     body: CopilotMessageWrite,
     request: Request,
     session: DatabaseSession,
+    stream: bool = False,
 ):
     try:
         user: AppUser | None = getattr(request.state, "user", None)
         from reality.tools.analytics import caller
 
+        if stream:
+            from fastapi.responses import StreamingResponse
+
+            from reality.services.core import get_chat_session
+            from reality.services.tenant_policy import require_business_operation
+            from reality.web.chat_stream import chat_events
+
+            require_business_operation(session, tenant_id, "send_chat_message")
+            get_chat_session(session, tenant_id, session_id)
+            if not body.message.strip():
+                raise InvalidOperation("Enter a question.")
+            options = {
+                "actor_user_id": user.id if user else None,
+                "context_commitment_id": body.context.id
+                if isinstance(body.context, CopilotContext)
+                else None,
+                "context_analytics": body.context.definition.model_dump(mode="json")
+                if isinstance(body.context, CopilotAnalyticsContext)
+                else None,
+                "language": user.language if user else "en",
+                "locale": user.locale if user else "en-GB",
+                "timezone": user.timezone if user else "UTC",
+            }
+            principal = optional_request_principal(request)
+            # Preflight is read-only. Release its connection before the worker
+            # opens its own session, including while a slow provider is streaming.
+            session.rollback()
+            return StreamingResponse(
+                chat_events(
+                    Session,
+                    send_chat_message,
+                    tenant_id,
+                    session_id,
+                    body.message.strip(),
+                    principal=principal,
+                    options=options,
+                ),
+                media_type="application/x-ndjson",
+                headers={
+                    "Cache-Control": "no-cache, no-transform",
+                    "X-Accel-Buffering": "no",
+                },
+            )
         with caller(optional_request_principal(request)):
             user_message, assistant_message = send_chat_message(
                 session,

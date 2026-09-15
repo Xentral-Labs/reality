@@ -219,7 +219,7 @@ await page.route("**/api/**", async (route) => {
       { id: "question", role: "user", content: body.message },
       { id: "answer", role: "assistant", content: "The delivery action is ready for your review." },
     ];
-    return reply({});
+    return reply({ user: messages[0], assistant: messages[1] });
   }
   return reply({ detail: `Unexpected fixture request ${path}` }, 404);
 });

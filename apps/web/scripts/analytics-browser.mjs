@@ -60,7 +60,10 @@ await page.route("**/api/**", async (route) => {
   }
   if (path.endsWith("/messages")) {
     sentChatMessages.push({ path, body: request.postDataJSON() });
-    return reply({});
+    return reply({
+      user: { id: "analysis-question", content: request.postDataJSON().message },
+      assistant: { id: "analysis-answer", content: "Analysis received." },
+    });
   }
   if (path.endsWith("/copilot")) {
     const active = new URL(request.url()).searchParams.get("session_id") || "previous_chat";
@@ -361,7 +364,9 @@ try {
   assert.equal(await dock.getByText("Keep my previous discussion", { exact: true }).count(), 0);
   assert.equal(await composer.inputValue(), "");
   await composer.fill("Explain this analysis");
-  const messageResponse = page.waitForResponse((response) => response.url().endsWith("/messages"));
+  const messageResponse = page.waitForResponse((response) =>
+    new URL(response.url()).pathname.endsWith("/messages"),
+  );
   await composer.press("Enter");
   await messageResponse;
   assert.ok(sentChatMessages[0].path.includes("analysis_chat_1"));

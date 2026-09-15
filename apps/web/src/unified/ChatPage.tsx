@@ -1,3 +1,4 @@
+import type { ChatReply } from "../chatStream";
 import { createPortal } from "react-dom";
 import { ChatUsage } from "./ChatUsage";
 import { AnalyticsReportProposal } from "./analytics/AnalyticsReportProposal";
@@ -142,6 +143,19 @@ export function ChatPage({
   };
 
   const [sending, setSending] = useState(false);
+  const [liveReply, setLiveReply] = useState<{
+    session: string;
+    text: string;
+    result?: ChatReply;
+  } | null>(null);
+  const visibleReply = liveReply && liveReply.session === selection.session ? liveReply : null;
+  useEffect(() => {
+    if (
+      liveReply?.result &&
+      data?.messages.some((row) => row.id === liveReply.result?.assistant.id)
+    )
+      setLiveReply(null);
+  }, [data?.messages, liveReply]);
   const restoreComposerFocus = useRef(false);
   const [failure, setFailure] = useState("");
   /**
@@ -158,7 +172,7 @@ export function ChatPage({
   useEffect(() => {
     const list = messageList.current;
     if (list) list.scrollTop = list.scrollHeight;
-  }, [data?.messages.length, echo, sending]);
+  }, [data?.messages.length, echo, sending, visibleReply?.text]);
   const startConversation = async (analysis: AnalyticsHandoff | null = null) => {
     if (creatingSession.current) return;
     if (sending) {
@@ -259,19 +273,31 @@ export function ChatPage({
         before: data?.messages.map((row) => row.id) || [],
       };
       navigate({ session });
-      await api.sendCopilotMessage(
+      setLiveReply({ session, text: "" });
+      const result = await api.sendCopilotMessage(
         selection.tenant,
         session,
         text,
         selection.commitment,
         analyticsContext?.definition,
+        (event) => {
+          if (!alive.current) return;
+          if (event.type === "reset") setLiveReply({ session, text: "" });
+          else if (event.type === "delta")
+            setLiveReply((previous) => ({
+              session,
+              text: (previous?.session === session ? previous.text : "") + event.text,
+            }));
+        },
       );
       if (!alive.current) return;
       pendingSend.current = null;
+      setLiveReply({ session, text: result.assistant.content, result });
+      setEcho(null);
       if (session !== selection.session) navigate({ session });
-      else refresh();
     } catch (error) {
       setFailure((error as Error).message);
+      setLiveReply(null);
       setEcho(null);
       setQuestion(text);
     } finally {
@@ -540,10 +566,10 @@ export function ChatPage({
       <div
         ref={messageList}
         data-chat-messages
-        className={`min-h-0 w-full max-w-3xl flex-1 self-center space-y-7 overflow-y-auto overscroll-contain px-5 py-6 ${sessionsTarget && !data.messages.length && !echo ? emptyMessageClass : ""}`}
+        className={`min-h-0 w-full max-w-3xl flex-1 self-center space-y-7 overflow-y-auto overscroll-contain px-5 py-6 ${sessionsTarget && !data.messages.length && !echo && !visibleReply ? emptyMessageClass : ""}`}
         aria-live="polite"
       >
-        {!data.messages.length && !echo && (
+        {!data.messages.length && !echo && !visibleReply && (
           <div className="reality-chat-empty rounded-xl border border-border-default bg-surface p-6">
             <p className="mb-3 text-sm text-accent">{"Reality"}</p>
             <h2 className="text-xl font-semibold text-fg-strong">
@@ -574,12 +600,21 @@ export function ChatPage({
         )}
         {[
           ...data.messages,
+          ...(visibleReply?.result
+            ? [
+                { ...visibleReply.result.user, role: "user" as const, created_at: "" },
+                { ...visibleReply.result.assistant, role: "assistant" as const, created_at: "" },
+              ].filter((row) => !data.messages.some((saved) => saved.id === row.id))
+            : []),
           ...(echo && !recorded
             ? [{ id: "", role: "user" as const, content: echo.text, created_at: "" }]
             : []),
+          ...(visibleReply?.text && !visibleReply.result
+            ? [{ id: "", role: "assistant" as const, content: visibleReply.text, created_at: "" }]
+            : []),
         ].map((message) => (
           <article
-            key={message.id || "echo"}
+            key={message.id || `pending-${message.role}`}
             data-chat-pending={message.id ? undefined : ""}
             data-chat-role={message.role}
             className="reality-chat-message"
@@ -711,7 +746,7 @@ export function ChatPage({
           ),
         )}
       </div>
-      {sending && (
+      {sending && !visibleReply?.text && (
         <div
           role="status"
           data-chat-working

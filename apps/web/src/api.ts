@@ -1,3 +1,4 @@
+import { readChatStream, type ChatReply, type ChatStreamEvent } from "./chatStream";
 import type { SignupPreferences } from "./signupPreferences";
 
 export type CompanyProfileManifest = {
@@ -1108,6 +1109,32 @@ async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
   return response.json() as Promise<T>;
 }
 
+async function sendChatRequest(
+  path: string,
+  init: RequestInit,
+  onEvent?: (event: ChatStreamEvent) => void,
+): Promise<ChatReply> {
+  if (!onEvent) return request<ChatReply>(path, init);
+  const response = await fetch(`${path}?stream=true`, {
+    ...init,
+    credentials: "include",
+    headers: { Accept: "application/x-ndjson", "Content-Type": "application/json" },
+  });
+  if (!response.ok) {
+    const payload = await response.json().catch(() => null);
+    throw new APIError(
+      typeof payload?.detail === "string"
+        ? payload.detail
+        : payload?.detail?.message || `Reality API returned ${response.status}`,
+      response.status,
+      payload?.code || payload?.detail?.code,
+    );
+  }
+  // Older servers can still complete this explicitly sent request as JSON.
+  if (response.headers.get("content-type")?.includes("application/json")) return response.json();
+  return readChatStream(response, onEvent);
+}
+
 export const api = {
   demoDataStatus: (scope: string) => request<DemoDataStatus>(scope),
   demoDataPreview: (scope: string) => request<DemoDataPreview>(`${scope}/preview`),
@@ -1695,18 +1722,23 @@ export const api = {
     message: string,
     commitment?: string,
     analytics?: AnalyticsDefinition,
+    onEvent?: (event: ChatStreamEvent) => void,
   ) =>
-    request(`/api/tenants/${tenant}/copilot/sessions/${sessionId}/messages`, {
-      method: "POST",
-      body: JSON.stringify({
-        message,
-        ...(analytics
-          ? { context: { kind: "analytics", definition: analytics } }
-          : commitment
-            ? { context: { kind: "commitment", id: commitment } }
-            : {}),
-      }),
-    }),
+    sendChatRequest(
+      `/api/tenants/${tenant}/copilot/sessions/${sessionId}/messages`,
+      {
+        method: "POST",
+        body: JSON.stringify({
+          message,
+          ...(analytics
+            ? { context: { kind: "analytics", definition: analytics } }
+            : commitment
+              ? { context: { kind: "commitment", id: commitment } }
+              : {}),
+        }),
+      },
+      onEvent,
+    ),
   approveProposal: (tenant: string, proposalId: string, sessionId: string | null) =>
     request(`/api/tenants/${tenant}/change-proposals/${proposalId}/approve`, {
       method: "POST",
