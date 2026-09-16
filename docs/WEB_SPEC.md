@@ -950,6 +950,26 @@ links. The browser only renders that read model. When authoritative context or g
 does not exist, the Inspector omits it or says so honestly instead of inventing it.
 Human references remain display context and never replace opaque identity.
 
+### Record origin (spec 211)
+
+Every operational register, detail and card states where its record came from, through one
+`origin` contract the server supplies with the row: the source system's configured name,
+the external reference it arrived under, its version and receipt time. A record with no
+source states that it was created in the application and names the deciding user where one
+is recorded; an empty origin is never rendered. Registers whose records are predominantly
+imported show origin as a column; derived registers keep it available but hidden.
+
+Activating an origin opens the source record: its identity, import state, the terminal
+interpretation outcome or the honest `not_recorded` label, the retained payload behind its
+existing disclosure and bounded with an explicit truncation notice, and every record
+produced from the same source. Where the tenant has configured a base address on the source
+system and the connector declares a template for that source type, the origin also offers a
+link to the record in the system that owns it: `https` only, opened without an opener
+relationship, with the target host visible before activation. Where either is missing, the
+origin is still stated and the link is simply absent. Where a record's Facts reference more
+than one source system, the detail discloses all of them while the register row continues to
+name the creating source only.
+
 ## Documentation, data model and CLI console
 
 Every clickable workspace-navigation label must use the exact canonical title of

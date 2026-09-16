@@ -16,6 +16,7 @@ All business tables have `id`, `tenant_id`, `created_at`.
 | party | customer/supplier/company | type, name, source_record_id? |
 | item | product/service | sku, name, base_unit, source_record_id? |
 | location | warehouse/bin/virtual | type, name, parent_location_id?, external_refs_json |
+| source_system | one configured origin | code, name, description, connector_code?, base_url?, is_active |
 | source_stream | stable external identity head | source_system, source_type, external_id, current_source_record_id? |
 | source_record | immutable source truth | source_system, source_type, external_id, payload_hash, version, source_version_at?, supersedes_source_record_id?, received_at, payload_json |
 | import_job | retryable source interpretation | source_record_id, status, attempts, input, error, next_attempt_at?, completed_at? |

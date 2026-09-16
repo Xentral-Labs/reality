@@ -3363,6 +3363,7 @@ reachable_mutations_that_are_not_commands:
   restore_chat_session: Restoring a conversation changes no business record.
   send_chat_message: Sending a message is transport; anything it causes is a proposal a person confirms.
   process_pending_import_jobs: The worker step that drains the queue. Enqueuing a source is the command; running the queue is the runtime doing what it was told.
+  set_source_system_base_url: Records where a configured source system can be opened in a browser. Integration configuration, not something an operator asks the business to do; it changes no business record.
 
 agent_command_coverage:
   change_report: {classification: eligible, tools: [analytics_report_change_propose]}

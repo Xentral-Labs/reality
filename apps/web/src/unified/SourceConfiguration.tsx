@@ -38,6 +38,7 @@ export function SourceConfiguration({
   const [code, setCode] = useState("");
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
+  const [baseUrl, setBaseUrl] = useState<string | null>(null);
   const [page, setPage] = useState(1);
   const active = useRef(true),
     lock = useRef(false),
@@ -263,6 +264,46 @@ export function SourceConfiguration({
                 <p>
                   {t("Registry state")}: {t(system.is_active ? "Enabled" : "Disabled")}
                 </p>
+              </div>
+              <div className="space-y-2">
+                <label className="block text-sm" htmlFor="source-base-url">
+                  {t("Address of the source system")}
+                </label>
+                <p className="text-xs text-fg-muted">
+                  {t(
+                    "Where this system's records can be opened, for example https://acme.myshopify.com/admin. Configuration only: the address is never called and holds no credentials.",
+                  )}
+                </p>
+                <input
+                  id="source-base-url"
+                  data-source-base-url
+                  className="br-input w-full"
+                  type="url"
+                  inputMode="url"
+                  placeholder="https://"
+                  value={baseUrl ?? system.base_url ?? ""}
+                  onChange={(event) => setBaseUrl(event.target.value)}
+                />
+                <button
+                  className="br-btn"
+                  disabled={busy || baseUrl === null}
+                  onClick={async () => {
+                    setBusy(true);
+                    setError("");
+                    try {
+                      await api.setSourceSystemBaseUrl(tenant, system.id, baseUrl ?? "");
+                      setBaseUrl(null);
+                      setNotice(t("Address of the source system saved."));
+                      await load();
+                    } catch (e) {
+                      setError((e as Error).message);
+                    } finally {
+                      setBusy(false);
+                    }
+                  }}
+                >
+                  {t("Save address")}
+                </button>
               </div>
               <div className="flex flex-wrap gap-3">
                 <button

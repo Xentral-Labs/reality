@@ -451,6 +451,9 @@ def delivery_references(
     }
 
 
+MAX_SOURCE_PAYLOAD = 20_000
+
+
 def delivery_evidence(
     session: Session, tenant_id: str, kind: str, record_id: str
 ) -> dict[str, Any]:
@@ -518,8 +521,17 @@ def delivery_evidence(
                     )
                 )
     elif kind == "source_record":
+        from reality.db.core import InterpretationOutcome, SourceSystem
+        from reality.services.provenance import external_link
+
+        system = session.scalar(
+            select(SourceSystem).where(
+                SourceSystem.tenant_id == tenant_id,
+                SourceSystem.code == record.source_system,
+            )
+        )
         rows = [
-            value("Source system", record.source_system),
+            value("Source system", system.name if system else record.source_system),
             value("External reference", record.external_id),
             value("Source type", record.source_type),
             value("Version", record.version),
@@ -532,6 +544,32 @@ def delivery_evidence(
             )
         )
         rows.append(value("Import job", job.status if job else "No import job"))
+        # Terminal outcomes are appended per attempt; the latest is the current
+        # answer. A source without one is labeled, never given a fabricated result.
+        outcome = session.scalar(
+            select(InterpretationOutcome)
+            .where(
+                InterpretationOutcome.tenant_id == tenant_id,
+                InterpretationOutcome.source_record_id == record.id,
+            )
+            .order_by(InterpretationOutcome.attempt.desc())
+            .limit(1)
+        )
+        rows.append(
+            value("Interpretation", outcome.classification if outcome else "not_recorded")
+        )
+        if outcome and outcome.interpreter_name:
+            rows.append(
+                value(
+                    "Interpreter",
+                    f"{outcome.interpreter_name} {outcome.interpreter_version}".strip(),
+                )
+            )
+        if outcome and outcome.reason_code:
+            rows.append(value("Reason", outcome.reason_code))
+        link = external_link(system, record)
+        if link:
+            rows.append(value("Open in source system", link))
         for linked_model, linked_kind, title in (
             (Party, "party", "Linked parties"),
             (Item, "item", "Linked items"),
@@ -612,5 +650,15 @@ def delivery_evidence(
         "events": [],
         "sections": [{"title": "Recorded values", "rows": rows}, *linked_sections],
         "technical_rows": [value("Record ID", record.id)],
-        "source_payload": record.payload if kind == "source_record" else None,
+        # The retained payload is shown verbatim and bounded. Truncation is
+        # announced rather than silent, because a payload that looks complete and
+        # is not would be read as evidence of something the source never sent.
+        "source_payload": (
+            record.payload[:MAX_SOURCE_PAYLOAD] if kind == "source_record" else None
+        ),
+        "source_payload_truncated": (
+            len(record.payload) > MAX_SOURCE_PAYLOAD
+            if kind == "source_record"
+            else False
+        ),
     }
