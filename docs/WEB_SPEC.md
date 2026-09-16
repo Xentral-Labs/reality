@@ -16,7 +16,7 @@
   cannot invite, resend, revoke, remove members, or see owner-only controls.
 - Browser authentication uses an HttpOnly, SameSite session cookie. Production enables `Secure`; session tokens are never stored in browser storage.
 - A new account adopts the presentation the browser already states (spec 194). Signup and invitation signup accept an optional IANA time zone and UI language; the server pairs the accepted language with its display locale and never takes a locale from a client. An absent, unsupported or unresolvable hint keeps `UTC`, `en` and `en-GB` and never fails a registration. The hint is unverified presentation, never identity or authorization, and stays changeable in Settings. Existing accounts are unaffected.
-- Business timestamps remain UTC. Each user stores three independent presentation preferences: UI language (`en`, `de`, `nl`, `es`), locale/number format (`en-GB`, `de-DE`, `nl-NL`, `es-ES`) and an IANA display timezone. The React client formats every date, time, quantity and amount through one shared localization module. Inspector reads retain optional numeric presentation parts for composite quantities, money and unit prices; every Inspector surface uses the shared formatter, while original values, payloads and identifiers remain exact. English is the default and fallback; technical model identifiers remain stable; user-facing category labels may use localized business language.
+- Business timestamps remain UTC. Each user stores three independent presentation preferences: UI language (`en`, `de`, `nl`, `es`), locale/number format (`en-GB`, `de-DE`, `nl-NL`, `es-ES`) and an IANA display timezone. The React client formats every date, time, quantity and amount through one shared localization module. Inspector reads retain optional numeric presentation parts for composite quantities, money and unit prices; every Inspector surface uses the shared formatter, while original values, payloads and identifiers remain exact. English is the default and fallback; technical model identifiers remain stable. Model category labels use canonical English terms in every UI language (spec 208); general business objects and controls remain localized.
 - The initial platform administrator comes from deployment secrets and reviews applications at `/admin/access`.
 - Transactional account mail uses a provider boundary. Deployments may select
   Resend with `REALITY_EMAIL_PROVIDER=resend`, `RESEND_API_KEY`, and a verified
@@ -2273,8 +2273,8 @@ Home activity range defaults to 24 hours. Explicit 24-hour/7-day/30-day selectio
 ## Home category naming
 
 Daily work lists Home, Commitments, Exceptions and Decisions. Home cards repeat the
-last three labels with a localized open qualifier below each existing count. German
-uses localized obligations, deviations and decisions. Menu and cards share exact
+last three labels with a localized open qualifier below each existing count. All languages
+use Commitments, Exceptions and Decisions (spec 208 supersedes the localized labels of spec 151). Menu and cards share exact
 destinations, reset stale filters and preserve company context. Commitments retains
 the existing open customer-delivery scope; no new business count is introduced.
 See spec 151 FR-001–002.
@@ -2841,3 +2841,15 @@ states show nothing. Five-second visible-page polling has an eight-second timeou
 cancellation on company change; old-company responses cannot populate the header. The
 pulse is decorative and disabled under reduced motion. Narrow layouts keep the compact
 link beside the overflow trigger. This indicates simulation state, not worker readiness.
+
+## Canonical model vocabulary (spec 208)
+
+The current product serves technical operators learning the Reality model. Non-English
+navigation, Home categories, Inspector type selectors and related object links/search
+labels retain English model nouns: Facts, Commitments, Reservations, Movements,
+Exceptions, Decisions, Source Records, Documents, Document Lines, Ledger Entries
+and Business Events, including singular forms. Context Graph remains invariant.
+The Inspector Additional facts type is labeled Facts in non-English languages.
+General business objects (items, business partners, locations), control verbs and
+explanations remain localized. English copy, source payloads, formatting, routes,
+filters, permissions and operational semantics are unchanged.
