@@ -157,7 +157,7 @@ export function CatalogEntryDetails({
           <dl className="mt-2">
             {v && (
               <>
-                <Field label="Data source" value={v.projection || v.key} />
+                <Field label="Source" value={v.projection || v.key} />
                 <Field
                   label="Data basis"
                   value={v.projection ? t("Calculated projection") : t("Stored records")}

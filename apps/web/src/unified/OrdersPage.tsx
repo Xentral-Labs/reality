@@ -325,7 +325,7 @@ export function OrdersPage({
                           "Date",
                           "Recorded amount",
                           "Lines",
-                          "Origin",
+                          "Source",
                           "Actions",
                         ].map((label) => (
                           <th

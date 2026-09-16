@@ -52,3 +52,23 @@ for (const [language, catalog] of Object.entries(catalogs)) {
     );
   });
 }
+
+for (const [language, catalog] of Object.entries(catalogs)) {
+  test(`${language}: data sources and received records have distinct labels`, () => {
+    for (const key of ["Source", "Sources"]) {
+      assert.equal(catalog.get(key), key);
+      assert.ok(invariantTerms.has(key));
+    }
+    assert.ok(catalog.get("Original source").includes("Source Record"));
+    assert.ok(catalog.get("Show the original source").includes("Source Record"));
+  });
+}
+
+test("provenance columns use Source without renaming origin data", () => {
+  for (const file of ["OrdersPage", "MasterDataPage", "DataSourcesPage"]) {
+    const source = readFileSync(path.resolve(root, `../src/unified/${file}.tsx`), "utf8");
+    assert.doesNotMatch(source, /"Origin"/);
+    assert.match(source, /"Source"/);
+    assert.match(source, /origin/);
+  }
+});

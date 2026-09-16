@@ -316,7 +316,7 @@ export function DataSourcesPage({
                             "Import job",
                             "Details",
                           ]
-                        : ["Document / party", "Type", "Recorded amount", "Origin", "Details"]
+                        : ["Document / party", "Type", "Recorded amount", "Source", "Details"]
                       ).map((label) => (
                         <th key={label} className="pb-3 pr-4">
                           {t(label)}
