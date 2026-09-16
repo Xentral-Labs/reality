@@ -327,7 +327,7 @@ export function StorylineProtocol({
             {delta.graph.nodes.length > 0 && (
               <div className="@[34rem]:col-span-2">
                 <Group
-                  title={t("Context Graph")}
+                  title={t("Business Graph")}
                   lane="var(--lane-reference)"
                   count={`${delta.graph.nodes.length}`}
                 >
@@ -454,7 +454,7 @@ function Graph({
         viewBox={`0 0 ${width} ${height}`}
         className="mx-auto block h-auto w-full max-w-sm"
         role="img"
-        aria-label={t("Context Graph")}
+        aria-label={t("Business Graph")}
       >
         {graph.edges.map((edge, index) => {
           const from = positions.get(edge.from),
@@ -504,7 +504,7 @@ function Graph({
         })}
       </svg>
       <figcaption className="px-1 pb-1 text-[11px] text-fg-muted">
-        {t("Context Graph")} · {t("solid lines are new links")}
+        {t("Business Graph")} · {t("solid lines are new links")}
       </figcaption>
     </figure>
   );

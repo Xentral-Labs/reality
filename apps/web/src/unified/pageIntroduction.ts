@@ -89,7 +89,7 @@ const introductions = {
     description: "Explore available actions, their inputs and what they do.",
   },
   facts: {
-    title: "Facts",
+    title: "Business Facts",
     description: "Explore additional observations, their sources and the records they describe.",
   },
   deliveries: {
