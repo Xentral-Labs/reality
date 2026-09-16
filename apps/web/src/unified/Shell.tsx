@@ -21,6 +21,10 @@ import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from "re
 import {
   BookOpen,
   FileSearch,
+  FileText,
+  Waypoints,
+  Scale,
+  Zap,
   PackageCheck,
   Wallet,
   Boxes,
@@ -119,6 +123,7 @@ export function Shell({
     };
   }, []);
   const dailyIcons = [PackageCheck, TriangleAlert, CheckSquare];
+  const inspectorIcons = [Waypoints, FileText, Scale, Zap];
   const destinations = [
     {
       label: "Home",
@@ -197,7 +202,11 @@ export function Shell({
                       ? Database
                       : selection.route === "orders-deliveries"
                         ? PackageCheck
-                        : FileSearch;
+                        : selection.route === "inspector"
+                          ? inspectorIcons[
+                              inspectorSections.indexOf(inspectorSection(selection.inspectorView))
+                            ]
+                          : FileSearch;
   const [pageCount, setPageCount] = useState<HTMLSpanElement | null>(null);
   const [pageActions, setPageActions] = useState<HTMLDivElement | null>(null);
   const shellRef = useRef<HTMLDivElement>(null);
@@ -507,42 +516,45 @@ export function Shell({
                   >
                     Reality Inspector
                   </p>
-                  {inspectorSections.map((section) => (
-                    <a
-                      key={section.label}
-                      data-navigation-item
-                      aria-label={t(section.label)}
-                      data-sidebar-tooltip={t(section.label)}
-                      href={selectionUrl({
-                        ...selection,
-                        route: "inspector",
-                        inspectorView: section.tabs[0],
-                        q: "",
-                        page: 1,
-                      })}
-                      aria-current={
-                        selection.route === "inspector" &&
-                        inspectorSection(selection.inspectorView) === section
-                          ? "page"
-                          : undefined
-                      }
-                      className={`flex items-center gap-2 rounded-md px-3 py-2 text-[13px] leading-5 ${selection.route === "inspector" && inspectorSection(selection.inspectorView) === section ? activeNavigation : "hover:bg-surface-muted"}`}
-                      onClick={(event) => {
-                        event.preventDefault();
-                        navigate({
+                  {inspectorSections.map((section, index) => {
+                    const Icon = inspectorIcons[index];
+                    return (
+                      <a
+                        key={section.label}
+                        data-navigation-item
+                        aria-label={t(section.label)}
+                        data-sidebar-tooltip={t(section.label)}
+                        href={selectionUrl({
+                          ...selection,
                           route: "inspector",
                           inspectorView: section.tabs[0],
-                          entry: "",
                           q: "",
                           page: 1,
-                        });
-                        setOpen(false);
-                      }}
-                    >
-                      <FileSearch size={17} className="shrink-0" />
-                      <span data-navigation-label>{t(section.label)}</span>
-                    </a>
-                  ))}
+                        })}
+                        aria-current={
+                          selection.route === "inspector" &&
+                          inspectorSection(selection.inspectorView) === section
+                            ? "page"
+                            : undefined
+                        }
+                        className={`flex items-center gap-2 rounded-md px-3 py-2 text-[13px] leading-5 ${selection.route === "inspector" && inspectorSection(selection.inspectorView) === section ? activeNavigation : "hover:bg-surface-muted"}`}
+                        onClick={(event) => {
+                          event.preventDefault();
+                          navigate({
+                            route: "inspector",
+                            inspectorView: section.tabs[0],
+                            entry: "",
+                            q: "",
+                            page: 1,
+                          });
+                          setOpen(false);
+                        }}
+                      >
+                        <Icon size={17} className="shrink-0" />
+                        <span data-navigation-label>{t(section.label)}</span>
+                      </a>
+                    );
+                  })}
                 </nav>
                 <nav aria-label={t("Company")}>
                   <p className="mb-1.5 px-3 text-[10px] uppercase tracking-wider text-fg-muted">
