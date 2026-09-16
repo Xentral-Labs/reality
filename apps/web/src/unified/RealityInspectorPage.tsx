@@ -1,14 +1,16 @@
 import { languageHref, readLanguage } from "../../../shared/language";
 import { ActionDirectory } from "./ActionDirectory";
 import { CatalogEntryDetails } from "./CatalogEntryDetails";
+import { ReportCatalog } from "./ReportCatalog";
+import type { Report } from "./reportCatalogEntries";
 import { ProjectionDataDialog } from "./ProjectionDataDialog";
 import { RecordGraphPage } from "./RecordGraphPage";
-import { InspectorCatalog, InspectorDisclosure, InspectorCatalogHeading } from "./InspectorCatalog";
+import { InspectorCatalog, InspectorDisclosure } from "./InspectorCatalog";
 import { RegisterHeader } from "./RegisterWorkbench";
 import { inspectorTabs } from "./inspectorSections";
 import { FlightRecorder } from "./FlightRecorder";
 import { useState } from "react";
-import { api, type SpecializedProjectionRow } from "../api";
+import { api } from "../api";
 import { t } from "../localization";
 import { InspectorRecordsPage } from "./InspectorRecordsPage";
 import { TableProvider } from "./TableContext";
@@ -52,7 +54,6 @@ const catalogRoutes: Record<string, Partial<Selection>> = {
   facts: { route: "facts" },
   timeline: { route: "inspector", inspectorView: "history" },
 };
-const panel = "rounded-xl border border-border-default bg-surface p-4";
 export function RealityInspectorPage({
   selection,
   navigate,
@@ -82,7 +83,7 @@ export function RealityInspectorPage({
     () => (tab === "facts" && technicalOpen ? api.explorer(tenant, query) : Promise.resolve(null)),
     [tenant, tab, query, technicalOpen],
   );
-  const [projection, setProjection] = useState("");
+  const [report, setReport] = useState<Report | null>(null);
   const catalogLinks = (documentation: string, route?: string) => (
     <>
       <a
@@ -113,15 +114,6 @@ export function RealityInspectorPage({
     setRoot(target);
     navigate({ inspectorView: "graph" });
   };
-  const matches = (value: unknown) =>
-    JSON.stringify(value).toLowerCase().includes(query.toLowerCase());
-  const views = Array.from(
-    new Map(
-      (reference.data?.workspaces || [])
-        .flatMap((workspace) => workspace.views)
-        .map((view) => [view.key, view]),
-    ).values(),
-  );
   return (
     <div className="min-w-0 space-y-4" data-reality-inspector>
       {inspectorTabs(tab).length > 1 && (
@@ -134,7 +126,7 @@ export function RealityInspectorPage({
                 onClick={() => {
                   navigate({ inspectorView: key });
                   setQuery("");
-                  setProjection("");
+                  setReport(null);
                 }}
               >
                 {t(label)}
@@ -270,101 +262,44 @@ export function RealityInspectorPage({
             openAction={openAction}
           />
         ) : (
-          <InspectorCatalog
-            query={query}
-            onQuery={setQuery}
-            count={
-              (reference.data.projections || []).filter(matches).length +
-              views.filter(matches).length
-            }
-          >
-            {
-              <div
-                className="grid grid-cols-1 items-start gap-5 md:grid-cols-2"
-                data-projection-view-columns
-              >
-                <section className="min-w-0 space-y-3" aria-label={t("Projections")}>
-                  <InspectorCatalogHeading
-                    title="Projections"
-                    count={(reference.data.projections || []).filter(matches).length}
-                    explanation="A projection is a calculated overview, like an ERP stock report. Example: 100 units in stock minus 30 reserved gives 70 available. It uses existing records and does not create a new stock posting."
-                  />
-                  {(reference.data.projections || []).filter(matches).map((value) => (
-                    <InspectorDisclosure key={value.materialized_as}>
-                      <summary className="cursor-pointer font-medium" data-localization="original">
-                        {value.name}
-                      </summary>
-                      <CatalogEntryDetails
-                        tenant={tenant}
-                        kind="projection"
-                        actions={
-                          <>
-                            {value.materialized_as !== "price_resolution" && (
-                              <button
-                                className="br-btn br-btn-primary"
-                                onClick={() => setProjection(value.materialized_as)}
-                              >
-                                {t("Open view data")}
-                              </button>
-                            )}
-                            {catalogLinks(
-                              "projections",
-                              views.find((view) => view.projection === value.materialized_as)
-                                ?.route,
-                            )}
-                          </>
-                        }
-                        entry={value}
-                        usedBy={views
-                          .filter((view) => view.projection === value.materialized_as)
-                          .map((view) => view.label)}
-                      />
-                    </InspectorDisclosure>
-                  ))}
-                </section>
-                <section className="min-w-0 space-y-3" aria-label={t("Views")}>
-                  <InspectorCatalogHeading
-                    title="Views"
-                    count={views.filter(matches).length}
-                    explanation="A view is a screen or list you work with in the application, like an ERP stock list. It can show a calculated projection or stored records such as items. Several views can use the same projection."
-                  />
-                  {views.filter(matches).map((view) => (
-                    <InspectorDisclosure key={view.key}>
-                      <summary className="cursor-pointer" data-localization="original">
-                        {view.label}
-                      </summary>
-                      <CatalogEntryDetails
-                        tenant={tenant}
-                        kind="view"
-                        actions={
-                          <>
-                            <button
-                              className="br-btn br-btn-primary"
-                              onClick={() => setProjection(view.projection || `view:${view.key}`)}
-                            >
-                              {t("Open view data")}
-                            </button>
-                            {catalogLinks("workspaces", view.route)}
-                          </>
-                        }
-                        entry={view}
-                        projection={reference.data?.projections?.find(
-                          (projection) => projection.materialized_as === view.projection,
-                        )}
-                      />
-                    </InspectorDisclosure>
-                  ))}
-                </section>
-              </div>
-            }
-          </InspectorCatalog>
+          <ReportCatalog key={tenant} reference={reference.data} open={setReport} />
         ))}
-      {tab === "views" && projection && (
+      {tab === "views" && report && (
         <ProjectionDataDialog
-          key={`${tenant}:${projection}`}
+          key={`${tenant}:${report.target}`}
           tenant={tenant}
-          name={projection}
-          close={() => setProjection("")}
+          name={report.target}
+          title={report.title}
+          description={report.description}
+          dataAvailable={report.dataAvailable}
+          close={() => setReport(null)}
+          details={
+            <>
+              {report.projection && (
+                <CatalogEntryDetails
+                  tenant={tenant}
+                  kind="projection"
+                  entry={report.projection}
+                  usedBy={report.views.map((view) => view.label)}
+                  actions={catalogLinks("projections")}
+                />
+              )}
+              {report.views.map((view) => (
+                <div key={view.key}>
+                  <h3 className="font-medium" data-localization="original">
+                    {view.label}
+                  </h3>
+                  <CatalogEntryDetails
+                    tenant={tenant}
+                    kind="view"
+                    entry={view}
+                    projection={report.projection}
+                    actions={catalogLinks("workspaces", view.route)}
+                  />
+                </div>
+              ))}
+            </>
+          }
         />
       )}
       {tab === "history" && (

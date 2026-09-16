@@ -2119,8 +2119,8 @@ authoritative registers with application routes and activity. Catalog buttons ne
 redirect or open a side drawer. Register previews reuse existing scoped reads and label
 the first-response preview bound; commercial references retain their collection identity.
 
-Spec 138 FR-018 presents Projections/Views and Actions/Commands as matched two-column
-catalogs, stacked on narrow screens. Heading information controls open on hover, focus
+Spec 138 FR-018 originally presented Projections/Views and Actions/Commands as matched two-column
+catalogs, stacked on narrow screens. Spec 219 replaces the Projections/Views presentation with the report catalog below. Heading information controls open on hover, focus
 or touch and explain each concept with a plain ERP example; Escape dismisses help.
 FR-019 adds separate Documentation links using the configured docs origin and explicit
 Open in application navigation where an application destination is known. Documentation
@@ -2911,3 +2911,19 @@ are separate Inspector destinations, replacing the ambiguous Rules and Actions
 groups. Existing Inspector rule/history/action URLs remain usable; legacy exception
 rule links open the Exceptions rule tab. Rule-to-finding links select open exceptions.
 These presentation changes reuse existing services, permissions and action confirmation.
+
+
+### Report catalog experience (spec 219)
+
+Calculated views stays in Business Facts and presents a single list of reports with
+visible localized business names, summaries and workspace tags. Search combines with
+workspace filters. Entire rows are keyboard-accessible buttons opening the existing
+read-only data dialog with a matching title and summary. Entries sharing exactly the
+same projection target are combined; live registers remain separate from stored
+snapshots. Availability comes from the application-reference catalog; unknown entries
+retain the catalog description rather than disappearing. Price resolution offers
+input/calculation details only and never requests an unparameterized data snapshot.
+Report details contain the original technical definitions, code, documentation and
+known application links. Existing tenant scope, freshness/error/empty states, preview
+bounds, focus restoration and business logic remain unchanged. Copy is localized in
+English, German, Dutch and Spanish; mobile uses the same list without page overflow.

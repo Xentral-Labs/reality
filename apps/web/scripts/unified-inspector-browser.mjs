@@ -517,6 +517,158 @@ await page.route("**/api/**", async (route) => {
   }
   return reply({ detail: "Fixture not provided" }, 404);
 });
+if (process.env.REPORTS_ONLY === "1" || process.env.PROJECTION_ONLY === "1") {
+  const { parseCatalogs } = await import("./i18n-audit-lib.mjs");
+  const catalogs = parseCatalogs(new URL("../src/localization.tsx", import.meta.url).pathname);
+  const tr = (key) => (language === "en" ? key : catalogs[language].get(key) || key);
+  const base = process.env.UNIFIED_BASE_URL || "http://127.0.0.1:5177";
+  const readPaths = [];
+  page.on("request", (req) => {
+    if (req.url().includes("/api/")) readPaths.push(req.url());
+  });
+  await page.route("**/application-reference", async (route) => {
+    const makeProjection = (key) => ({
+      name: key,
+      materialized_as: key,
+      calculation: "Original calculation",
+      consumers: [],
+      outputs: [],
+      invalidated_by: [],
+    });
+    await route.fulfill({
+      contentType: "application/json",
+      body: JSON.stringify({
+        command_count: 0,
+        event_count: 0,
+        projection_count: 4,
+        fact_predicate_count: 0,
+        commands: [],
+        projections: [
+          "inventory",
+          "fulfillment_queue",
+          "open_financial_items",
+          "price_resolution",
+        ].map(makeProjection),
+        workspaces: [
+          {
+            key: "warehouse",
+            label: "Warehouse",
+            actions: [],
+            views: [
+              { key: "inventory", label: "Inventory", projection: "inventory", route: "inventory" },
+              { key: "orders", label: "Orders", projection: "fulfillment_queue", route: "orders" },
+              {
+                key: "warehouse_queue",
+                label: "Warehouse Queue",
+                projection: "fulfillment_queue",
+                route: "warehouse-queue",
+              },
+              { key: "items", label: "Items", route: "items", kind: "authoritative_register" },
+            ],
+          },
+        ],
+      }),
+    });
+  });
+  try {
+    await mkdir("/private/tmp/reality-219-browser", { recursive: true });
+    for (language of ["en", "de", "nl", "es"]) {
+      await page.setViewportSize({ width: 1440, height: 1000 });
+      await page.goto(`${base}/app/inspector?tenant=t1&inspector_view=views`);
+      const catalog = page.locator("[data-report-catalog]");
+      await catalog.waitFor();
+      const row = catalog.locator('[data-report="inventory"]');
+      await row.waitFor();
+      assert.equal(await catalog.locator("[data-report]").count(), 5);
+      await row.getByText(tr("Stock overview"), { exact: true }).waitFor();
+      await row
+        .getByText(tr("See physical, reserved, available and expected stock."), { exact: true })
+        .waitFor();
+      assert.equal(await catalog.locator("summary").count(), 0);
+      const filters = catalog.getByRole("group");
+      await filters.getByRole("button", { name: tr("Finance"), exact: true }).click();
+      assert.equal(await catalog.locator("[data-report]").count(), 1);
+      const search = catalog.getByRole("searchbox");
+      await search.fill("does-not-exist");
+      await catalog.getByText(tr("No matching reports"), { exact: true }).waitFor();
+      await search.fill("");
+      await filters.getByRole("button", { name: tr("All"), exact: true }).click();
+      await search.fill(tr("Stock overview"));
+      assert.equal(await catalog.locator("[data-report]").count(), 1);
+      await row.focus();
+      await page.keyboard.press("Enter");
+      const dialog = page.getByRole("dialog", { name: tr("Stock overview"), exact: true });
+      await dialog.waitFor();
+      await dialog.getByText("i1", { exact: true }).waitFor();
+      if (language === "en") {
+        for (const mode of ["pending", "failed", "uninitialized", "rows"]) {
+          projectionMode = mode;
+          await dialog.getByRole("button", { name: "Refresh", exact: true }).click();
+          await dialog
+            .locator(`[data-projection-freshness="${mode === "rows" ? "ready" : mode}"]`)
+            .waitFor();
+          if (mode === "uninitialized")
+            assert.equal(await dialog.getByText("No results", { exact: true }).count(), 0);
+          else await dialog.getByRole("cell", { name: "4", exact: true }).waitFor();
+        }
+      }
+
+      assert.ok(
+        readPaths.some((path) => path.includes("/tenants/t1/") && path.includes("inventory")),
+      );
+      assert.equal(await dialog.locator("[data-report-details]").getAttribute("open"), null);
+      await dialog.getByText(tr("Report details"), { exact: true }).click();
+      await dialog
+        .getByRole("button", { name: tr("View code"), exact: true })
+        .first()
+        .waitFor();
+      await dialog
+        .getByRole("link", { name: /Documentation|Dokumentation|Documentatie|Documentación/ })
+        .first()
+        .waitFor();
+      await page.keyboard.press("Escape");
+      await dialog.waitFor({ state: "detached" });
+      assert.equal(await row.evaluate((el) => el === document.activeElement), true);
+      assert.equal(await search.inputValue(), tr("Stock overview"));
+      await search.fill("");
+      await catalog.locator('[data-report="price_resolution"]').click();
+      await page.getByRole("dialog", { name: tr("Price determination"), exact: true }).waitFor();
+      assert.equal(
+        readPaths.some((path) => path.includes("projection-snapshots/price_resolution")),
+        false,
+      );
+      await page.keyboard.press("Escape");
+      await catalog.locator('[data-report="view:items"]').click();
+      await page.getByRole("dialog").getByText("Catalog item data", { exact: true }).waitFor();
+      await page.keyboard.press("Escape");
+      const hideChat = page.getByRole("button", { name: tr("Hide chat"), exact: true });
+      if (await hideChat.isVisible()) await hideChat.click();
+      await page.screenshot({ path: `/private/tmp/reality-219-browser/${language}-desktop.png` });
+      await page.setViewportSize({ width: 390, height: 844 });
+      await row.click();
+      await page.getByRole("dialog", { name: tr("Stock overview"), exact: true }).waitFor();
+      await page.screenshot({
+        path: `/private/tmp/reality-219-browser/${language}-report-mobile.png`,
+      });
+      await page.keyboard.press("Escape");
+      assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1));
+      await page.screenshot({ path: `/private/tmp/reality-219-browser/${language}-mobile.png` });
+      console.log(
+        `Report UX passed: ${language}, desktop/mobile, filters/search, keyboard/focus, stored/live readers and technical details`,
+      );
+    }
+    assert.deepEqual(errors, []);
+    assert.deepEqual(writes, []);
+  } catch (error) {
+    console.error(await page.locator("body").innerText());
+    console.error(errors);
+    throw error;
+  } finally {
+    await browser.close();
+  }
+  process.exit(0);
+}
+
 if (process.env.NAVIGATION_ONLY === "1") {
   const { parseCatalogs } = await import("./i18n-audit-lib.mjs");
   const catalogs = parseCatalogs(new URL("../src/localization.tsx", import.meta.url).pathname);
@@ -645,48 +797,7 @@ const tab = async (name) => {
     .getByRole("button", { name, exact: true })
     .click();
 };
-if (process.env.PROJECTION_ONLY === "1") {
-  try {
-    await page.goto("http://localhost:5177/app/inspector?tenant=t1&inspector_view=views");
-    const column = page.getByRole("region", { name: "Projections", exact: true });
-    const entry = column.locator(".inspector-disclosure").first();
-    await entry.locator("summary").waitFor();
-    assert.equal(await page.locator("[data-catalog-explanation]").count(), 0);
-    const search = page.getByRole("searchbox", { name: "Search inspector" });
-    await search.fill("shipped");
-    await column.locator("summary").first().waitFor();
-    await search.fill("");
-    await entry.locator("summary").focus();
-    await page.keyboard.press("Enter");
-    await entry.locator("[data-catalog-explanation]").waitFor();
-    await entry.getByRole("button", { name: "Open view data", exact: true }).click();
-    const dialog = page.getByRole("dialog", { name: "View data", exact: true });
-    await dialog.getByRole("cell", { name: "4", exact: true }).waitFor();
-    for (const mode of ["pending", "failed", "uninitialized", "rows"]) {
-      projectionMode = mode;
-      await dialog.getByRole("button", { name: "Refresh", exact: true }).click();
-      await dialog
-        .locator(`[data-projection-freshness="${mode === "rows" ? "ready" : mode}"]`)
-        .waitFor();
-      if (mode === "uninitialized")
-        assert.equal(await dialog.getByText("No results", { exact: true }).count(), 0);
-      else await dialog.getByRole("cell", { name: "4", exact: true }).waitFor();
-    }
-    await mkdir("/private/tmp/reality-179-browser", { recursive: true });
-    await page.screenshot({ path: "/private/tmp/reality-179-browser/projection-ready.png" });
-    await dialog.getByRole("button", { name: "Close", exact: true }).click();
-    await entry.locator("summary").first().click();
-    await entry.locator("[data-catalog-explanation]").waitFor({ state: "detached" });
-    assert.deepEqual(writes, []);
-    assert.deepEqual(errors, []);
-    console.log(
-      "PASS: lazy projection directory, metadata search, keyboard disclosure and read-only data.",
-    );
-  } finally {
-    await browser.close();
-  }
-  process.exit(0);
-}
+
 try {
   await mkdir("/private/tmp/reality-138-browser", { recursive: true });
   await page.goto("http://localhost:5177/app/inspector?tenant=t1&inspector_view=exceptions");

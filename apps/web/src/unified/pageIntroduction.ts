@@ -69,7 +69,7 @@ const introductions = {
   },
   views: {
     title: "Reality Inspector",
-    description: "Explore how existing records are combined into calculated views.",
+    description: "Find a report and open its data. Each description explains what it shows.",
   },
   rules: {
     title: "Reality Inspector",

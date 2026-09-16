@@ -16146,3 +16146,265 @@ Object.assign(dictionaries.es, {
   "Available actions": "Acciones disponibles",
   "Open exceptions": "Incidencias abiertas",
 });
+
+// Business-oriented report catalog presentation.
+Object.assign(dictionaries.de, {
+  "Dispatch readiness": "Versandbereitschaft",
+  "See open customer deliveries, due dates and what prevents shipment.":
+    "Zeigt offene Kundenlieferungen, Liefertermine und was den Versand verhindert.",
+  "Delivery blockers": "Lieferhindernisse",
+  "Find missing reservations and delivery holds affecting open commitments.":
+    "Zeigt fehlende Reservierungen und Liefersperren bei offenen Zusagen.",
+  "Stock and demand": "Bestand und Bedarf",
+  "Compare stock, expected receipts and uncovered customer demand by item.":
+    "Vergleicht Bestand, erwartete Zugänge und ungedeckten Kundenbedarf je Artikel.",
+  "Company activity overview": "Unternehmensaktivität",
+  "See recorded data volumes and the latest activity for this company.":
+    "Zeigt den Umfang erfasster Daten und die letzte Aktivität des Unternehmens.",
+  "Stock overview": "Bestandsübersicht",
+  "See physical, reserved, available and expected stock.":
+    "Zeigt vorhandene, reservierte, verfügbare und erwartete Bestände.",
+  "Operational issues": "Operative Probleme",
+  "Find shortages, overdue commitments and active delivery restrictions.":
+    "Zeigt Fehlbestände, überfällige Zusagen und aktive Liefersperren.",
+  "Delivery progress overview": "Übersicht zum Lieferfortschritt",
+  "Compare committed, reserved, fulfilled and outstanding quantities.":
+    "Vergleicht zugesagte, reservierte, erfüllte und noch offene Mengen.",
+  "Document overview": "Belegübersicht",
+  "See received documents and their links to operational records.":
+    "Zeigt erfasste Belege und ihre Verknüpfungen zu operativen Datensätzen.",
+  "Outstanding invoice amounts": "Offene Rechnungsbeträge",
+  "See invoice amounts, allocated payments and the remaining balance.":
+    "Zeigt Rechnungsbeträge, zugeordnete Zahlungen und den offenen Restbetrag.",
+  "Payment allocation overview": "Übersicht der Zahlungszuordnungen",
+  "See payment postings together with their invoice allocations.":
+    "Zeigt Zahlungsbuchungen mit ihren Zuordnungen zu Rechnungen.",
+  "Posting overview": "Buchungsübersicht",
+  "Review ledger postings by posting group, account and currency.":
+    "Zeigt Buchungen nach Buchungsgruppe, Konto und Währung.",
+  "Business activity timeline": "Zeitlicher Geschäftsverlauf",
+  "Follow when source data, documents and operational records were recorded.":
+    "Zeigt, wann Quelldaten, Belege und operative Datensätze erfasst wurden.",
+  "Price determination": "Preisermittlung",
+  "Understand how a price is selected for a business partner and item.":
+    "Erklärt, wie ein Preis für einen Geschäftspartner und Artikel ausgewählt wird.",
+  "Delivery commitments": "Lieferzusagen",
+  "Browse delivery commitments and their current execution position.":
+    "Zeigt Lieferzusagen und ihren aktuellen Erfüllungsstand.",
+  "Recorded documents": "Erfasste Belege",
+  "Browse recorded documents and their original references.":
+    "Zeigt erfasste Belege und ihre ursprünglichen Referenzen.",
+  "Stock reservations": "Bestandsreservierungen",
+  "See which stock is allocated to delivery commitments.":
+    "Zeigt, welche Bestände für Lieferzusagen reserviert sind.",
+  "Stock movement history": "Verlauf der Lagerbewegungen",
+  "Review recorded receipts, shipments and other stock movements.":
+    "Zeigt erfasste Wareneingänge, Warenausgänge und weitere Lagerbewegungen.",
+  "Warehouse locations": "Lagerplätze und Lagerorte",
+  "Browse physical and logical storage locations.": "Zeigt physische und logische Lagerorte.",
+  "Recorded payments": "Erfasste Zahlungen",
+  "Browse payment records and their allocation details.":
+    "Zeigt erfasste Zahlungen und Details zu ihrer Zuordnung.",
+  "Ledger posting register": "Hauptbuchbuchungen",
+  "Browse the recorded debit and credit entries in the ledger.":
+    "Zeigt die erfassten Soll- und Habenbuchungen im Hauptbuch.",
+  "Business partner register": "Geschäftspartnerverzeichnis",
+  "Browse customers, suppliers and company records.":
+    "Zeigt Kunden, Lieferanten und Unternehmensdatensätze.",
+  "Item register": "Artikelverzeichnis",
+  "Browse item records and their reference data.": "Zeigt Artikel und ihre Stammdaten.",
+  "Payment and pricing terms": "Zahlungs- und Preiskonditionen",
+  "Review payment terms, price lists and pricing groups.":
+    "Zeigt Zahlungsbedingungen, Preislisten und Preisgruppen.",
+  "Received source data": "Empfangene Quelldaten",
+  "Browse received source records and their import context.":
+    "Zeigt empfangene Quelldatensätze und ihren Importkontext.",
+  "Recorded business events": "Erfasste Geschäftsereignisse",
+  "Review operational and financial activities across the company.":
+    "Zeigt operative und finanzielle Aktivitäten im Unternehmen.",
+  "Search reports": "Bericht suchen",
+  "Open report": "Bericht öffnen",
+  "Report details": "Berichtsdetails",
+  "No matching reports": "Keine passenden Berichte",
+  "Try another search or workspace.": "Versuche einen anderen Suchbegriff oder Arbeitsbereich.",
+  "This report needs a business partner and an item. See the details for its inputs and calculation.":
+    "Dieser Bericht benötigt einen Geschäftspartner und einen Artikel. Die Details beschreiben die Eingaben und Berechnung.",
+});
+Object.assign(dictionaries.nl, {
+  "Dispatch readiness": "Verzendgereedheid",
+  "See open customer deliveries, due dates and what prevents shipment.":
+    "Toont open klantleveringen, leverdatums en wat verzending verhindert.",
+  "Delivery blockers": "Leveringsblokkades",
+  "Find missing reservations and delivery holds affecting open commitments.":
+    "Toont ontbrekende reserveringen en leveringsblokkades bij open toezeggingen.",
+  "Stock and demand": "Voorraad en behoefte",
+  "Compare stock, expected receipts and uncovered customer demand by item.":
+    "Vergelijkt voorraad, verwachte ontvangsten en ongedekte klantbehoefte per artikel.",
+  "Company activity overview": "Bedrijfsactiviteit",
+  "See recorded data volumes and the latest activity for this company.":
+    "Toont de hoeveelheid vastgelegde gegevens en de laatste bedrijfsactiviteit.",
+  "Stock overview": "Voorraadoverzicht",
+  "See physical, reserved, available and expected stock.":
+    "Toont aanwezige, gereserveerde, beschikbare en verwachte voorraad.",
+  "Operational issues": "Operationele problemen",
+  "Find shortages, overdue commitments and active delivery restrictions.":
+    "Toont tekorten, achterstallige toezeggingen en actieve leveringsbeperkingen.",
+  "Delivery progress overview": "Overzicht leveringsvoortgang",
+  "Compare committed, reserved, fulfilled and outstanding quantities.":
+    "Vergelijkt toegezegde, gereserveerde, geleverde en openstaande aantallen.",
+  "Document overview": "Documentoverzicht",
+  "See received documents and their links to operational records.":
+    "Toont vastgelegde documenten en hun koppelingen met operationele gegevens.",
+  "Outstanding invoice amounts": "Openstaande factuurbedragen",
+  "See invoice amounts, allocated payments and the remaining balance.":
+    "Toont factuurbedragen, toegewezen betalingen en het resterende saldo.",
+  "Payment allocation overview": "Overzicht betalingstoewijzingen",
+  "See payment postings together with their invoice allocations.":
+    "Toont betalingsboekingen met hun toewijzingen aan facturen.",
+  "Posting overview": "Boekingsoverzicht",
+  "Review ledger postings by posting group, account and currency.":
+    "Toont boekingen per boekingsgroep, rekening en valuta.",
+  "Business activity timeline": "Tijdlijn bedrijfsactiviteiten",
+  "Follow when source data, documents and operational records were recorded.":
+    "Toont wanneer brongegevens, documenten en operationele gegevens zijn vastgelegd.",
+  "Price determination": "Prijsbepaling",
+  "Understand how a price is selected for a business partner and item.":
+    "Legt uit hoe een prijs voor een zakenpartner en artikel wordt gekozen.",
+  "Delivery commitments": "Leveringstoezeggingen",
+  "Browse delivery commitments and their current execution position.":
+    "Toont leveringstoezeggingen en hun huidige uitvoeringsstatus.",
+  "Recorded documents": "Vastgelegde documenten",
+  "Browse recorded documents and their original references.":
+    "Toont vastgelegde documenten en hun oorspronkelijke referenties.",
+  "Stock reservations": "Voorraadreserveringen",
+  "See which stock is allocated to delivery commitments.":
+    "Toont welke voorraad voor leveringstoezeggingen is gereserveerd.",
+  "Stock movement history": "Historie van voorraadmutaties",
+  "Review recorded receipts, shipments and other stock movements.":
+    "Toont geregistreerde ontvangsten, verzendingen en andere voorraadmutaties.",
+  "Warehouse locations": "Magazijnlocaties",
+  "Browse physical and logical storage locations.": "Toont fysieke en logische opslaglocaties.",
+  "Recorded payments": "Geregistreerde betalingen",
+  "Browse payment records and their allocation details.":
+    "Toont geregistreerde betalingen en hun toewijzingsgegevens.",
+  "Ledger posting register": "Grootboekboekingen",
+  "Browse the recorded debit and credit entries in the ledger.":
+    "Toont vastgelegde debet- en creditboekingen in het grootboek.",
+  "Business partner register": "Zakenpartnerregister",
+  "Browse customers, suppliers and company records.":
+    "Toont klanten, leveranciers en bedrijfsgegevens.",
+  "Item register": "Artikelregister",
+  "Browse item records and their reference data.": "Toont artikelen en hun stamgegevens.",
+  "Payment and pricing terms": "Betalings- en prijsvoorwaarden",
+  "Review payment terms, price lists and pricing groups.":
+    "Toont betalingsvoorwaarden, prijslijsten en prijsgroepen.",
+  "Received source data": "Ontvangen brongegevens",
+  "Browse received source records and their import context.":
+    "Toont ontvangen bronrecords en hun importcontext.",
+  "Recorded business events": "Vastgelegde bedrijfsgebeurtenissen",
+  "Review operational and financial activities across the company.":
+    "Toont operationele en financiële activiteiten binnen het bedrijf.",
+  "Search reports": "Rapport zoeken",
+  "Open report": "Rapport openen",
+  "Report details": "Rapportdetails",
+  "No matching reports": "Geen overeenkomende rapporten",
+  "Try another search or workspace.": "Probeer een andere zoekterm of een ander werkgebied.",
+  "This report needs a business partner and an item. See the details for its inputs and calculation.":
+    "Dit rapport vereist een zakenpartner en een artikel. De details beschrijven de invoer en berekening.",
+});
+Object.assign(dictionaries.es, {
+  "Dispatch readiness": "Preparación de envíos",
+  "See open customer deliveries, due dates and what prevents shipment.":
+    "Muestra entregas pendientes, fechas previstas y qué impide el envío.",
+  "Delivery blockers": "Impedimentos de entrega",
+  "Find missing reservations and delivery holds affecting open commitments.":
+    "Muestra reservas pendientes y bloqueos que afectan a los compromisos abiertos.",
+  "Stock and demand": "Existencias y demanda",
+  "Compare stock, expected receipts and uncovered customer demand by item.":
+    "Compara existencias, entradas previstas y demanda de clientes sin cubrir por artículo.",
+  "Company activity overview": "Actividad de la empresa",
+  "See recorded data volumes and the latest activity for this company.":
+    "Muestra el volumen de datos registrados y la última actividad de la empresa.",
+  "Stock overview": "Resumen de existencias",
+  "See physical, reserved, available and expected stock.":
+    "Muestra existencias físicas, reservadas, disponibles y previstas.",
+  "Operational issues": "Incidencias operativas",
+  "Find shortages, overdue commitments and active delivery restrictions.":
+    "Muestra faltantes, compromisos vencidos y restricciones de entrega activas.",
+  "Delivery progress overview": "Resumen del avance de entregas",
+  "Compare committed, reserved, fulfilled and outstanding quantities.":
+    "Compara cantidades comprometidas, reservadas, entregadas y pendientes.",
+  "Document overview": "Resumen de documentos",
+  "See received documents and their links to operational records.":
+    "Muestra documentos registrados y sus vínculos con registros operativos.",
+  "Outstanding invoice amounts": "Importes pendientes de facturas",
+  "See invoice amounts, allocated payments and the remaining balance.":
+    "Muestra importes de facturas, pagos asignados y el saldo pendiente.",
+  "Payment allocation overview": "Resumen de asignación de pagos",
+  "See payment postings together with their invoice allocations.":
+    "Muestra asientos de pagos y sus asignaciones a facturas.",
+  "Posting overview": "Resumen de asientos",
+  "Review ledger postings by posting group, account and currency.":
+    "Muestra asientos por grupo contable, cuenta y moneda.",
+  "Business activity timeline": "Cronología de actividad empresarial",
+  "Follow when source data, documents and operational records were recorded.":
+    "Muestra cuándo se registraron datos de origen, documentos y registros operativos.",
+  "Price determination": "Determinación de precios",
+  "Understand how a price is selected for a business partner and item.":
+    "Explica cómo se selecciona un precio para un socio comercial y un artículo.",
+  "Delivery commitments": "Compromisos de entrega",
+  "Browse delivery commitments and their current execution position.":
+    "Muestra compromisos de entrega y su estado de ejecución actual.",
+  "Recorded documents": "Documentos registrados",
+  "Browse recorded documents and their original references.":
+    "Muestra documentos registrados y sus referencias originales.",
+  "Stock reservations": "Reservas de existencias",
+  "See which stock is allocated to delivery commitments.":
+    "Muestra qué existencias están reservadas para compromisos de entrega.",
+  "Stock movement history": "Historial de movimientos de almacén",
+  "Review recorded receipts, shipments and other stock movements.":
+    "Muestra entradas, salidas y otros movimientos de almacén registrados.",
+  "Warehouse locations": "Ubicaciones de almacén",
+  "Browse physical and logical storage locations.":
+    "Muestra ubicaciones de almacenamiento físicas y lógicas.",
+  "Recorded payments": "Pagos registrados",
+  "Browse payment records and their allocation details.":
+    "Muestra pagos registrados y detalles de su asignación.",
+  "Ledger posting register": "Asientos del libro mayor",
+  "Browse the recorded debit and credit entries in the ledger.":
+    "Muestra los asientos registrados en el debe y el haber del libro mayor.",
+  "Business partner register": "Registro de socios comerciales",
+  "Browse customers, suppliers and company records.":
+    "Muestra clientes, proveedores y registros de empresas.",
+  "Item register": "Registro de artículos",
+  "Browse item records and their reference data.": "Muestra artículos y sus datos maestros.",
+  "Payment and pricing terms": "Condiciones de pago y precios",
+  "Review payment terms, price lists and pricing groups.":
+    "Muestra condiciones de pago, listas de precios y grupos de precios.",
+  "Received source data": "Datos de origen recibidos",
+  "Browse received source records and their import context.":
+    "Muestra registros de origen recibidos y su contexto de importación.",
+  "Recorded business events": "Eventos empresariales registrados",
+  "Review operational and financial activities across the company.":
+    "Muestra actividades operativas y financieras de toda la empresa.",
+  "Search reports": "Buscar informes",
+  "Open report": "Abrir informe",
+  "Report details": "Detalles del informe",
+  "No matching reports": "No hay informes coincidentes",
+  "Try another search or workspace.": "Prueba otra búsqueda u otra área de trabajo.",
+  "This report needs a business partner and an item. See the details for its inputs and calculation.":
+    "Este informe requiere un socio comercial y un artículo. Los detalles describen los datos de entrada y el cálculo.",
+});
+
+Object.assign(dictionaries.de, {
+  "Find a report and open its data. Each description explains what it shows.":
+    "Finde einen Bericht und öffne seine Daten. Die Beschreibung erklärt, was er zeigt.",
+});
+Object.assign(dictionaries.nl, {
+  "Find a report and open its data. Each description explains what it shows.":
+    "Zoek een rapport en open de gegevens. De beschrijving legt uit wat het toont.",
+});
+Object.assign(dictionaries.es, {
+  "Find a report and open its data. Each description explains what it shows.":
+    "Busca un informe y abre sus datos. La descripción explica qué muestra.",
+});
