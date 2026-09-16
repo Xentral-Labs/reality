@@ -15,10 +15,6 @@ const types = {
   Reservations: "Reservations",
   Movement: "Movement",
   Movements: "Movements",
-  Exception: "Exception",
-  Exceptions: "Exceptions",
-  Decision: "Decision",
-  Decisions: "Decisions",
   "Source record": "Source Record",
   "Source records": "Source Records",
   Document: "Document",
@@ -45,9 +41,6 @@ for (const [language, catalog] of Object.entries(catalogs)) {
       ["Back to commitments", "Commitments"],
       ["View commitments", "Commitments"],
       ["Open commitment", "Commitment"],
-      ["Open in Exceptions", "Exceptions"],
-      ["Search exceptions", "Exceptions"],
-      ["Search decisions…", "Decisions"],
       ["Search reservations", "Reservations"],
       ["Select reservation", "Reservation"],
       ["Search movements", "Movements"],
@@ -55,7 +48,6 @@ for (const [language, catalog] of Object.entries(catalogs)) {
       ["Linked documents", "Documents"],
       ["Linked ledger entries", "Ledger Entries"],
       ["Linked movements", "Movements"],
-      ["Exception rules", "Exception"],
       ["Existing facts", "Facts"],
     ]) {
       assert.ok(catalog.get(source)?.includes(noun), source);
@@ -66,6 +58,38 @@ for (const [language, catalog] of Object.entries(catalogs)) {
     for (const source of ["Save", "Business partners", "Items", "Locations", "All records"]) {
       assert.ok(catalog.get(source), source);
       assert.notEqual(catalog.get(source), source, source);
+    }
+  });
+}
+
+const localizedObjects = {
+  de: ["Ausnahme", "Ausnahmen", "Entscheidung", "Entscheidungen"],
+  nl: ["Uitzondering", "Uitzonderingen", "Beslissing", "Beslissingen"],
+  es: ["Incidencia", "Incidencias", "Decisión", "Decisiones"],
+};
+for (const [language, expected] of Object.entries(localizedObjects)) {
+  test(`${language}: Exceptions and Decisions use localized business names`, () => {
+    const catalog = catalogs[language];
+    ["Exception", "Exceptions", "Decision", "Decisions"].forEach((key, i) => {
+      assert.equal(catalog.get(key), expected[i], key);
+      assert.equal(invariantTerms.has(key), false, `${key} is no longer invariant`);
+    });
+    for (const [key, noun] of [
+      ["Open in Exceptions", expected[1]],
+      ["Search exceptions", expected[1]],
+      ["Search decisions…", expected[3]],
+      ["Current exceptions", expected[1]],
+      ["Decision history", expected[2]],
+      ["Exception catalog", expected[0]],
+      ["Exception rules", expected[0]],
+    ]) {
+      // Compounds and inflected plural forms share their lexical stem.
+      const stem = noun.toLocaleLowerCase().replace(/e$/, "").replace(/ión$/, "ion");
+      const value = catalog.get(key)?.toLocaleLowerCase().replaceAll("ó", "o");
+      assert.ok(value?.includes(stem.replaceAll("ó", "o")), key);
+    }
+    for (const [key, value] of catalog) {
+      assert.doesNotMatch(value, /\b(?:Exceptions?|Decisions?)\b/, key);
     }
   });
 }

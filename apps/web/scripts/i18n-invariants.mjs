@@ -1,10 +1,6 @@
 export const invariantTerms = new Map([
   ["Fact", "Canonical Reality model label (spec 208)"],
   ["Facts", "Canonical Reality model label (spec 208)"],
-  ["Exception", "Canonical Reality model label (spec 208)"],
-  ["Exceptions", "Canonical Reality model label (spec 208)"],
-  ["Decision", "Canonical Reality model label (spec 208)"],
-  ["Decisions", "Canonical Reality model label (spec 208)"],
   ["Source Record", "Canonical Reality model label (spec 208)"],
   ["Source Records", "Canonical Reality model label (spec 208)"],
   ["Document", "Canonical Reality model label (spec 208)"],
