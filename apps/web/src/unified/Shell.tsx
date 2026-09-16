@@ -23,7 +23,6 @@ import {
   FileSearch,
   FileText,
   Waypoints,
-  Scale,
   Zap,
   PackageCheck,
   Wallet,
@@ -123,7 +122,7 @@ export function Shell({
     };
   }, []);
   const dailyIcons = [PackageCheck, TriangleAlert, CheckSquare];
-  const inspectorIcons = [Waypoints, FileText, Scale, Zap];
+  const inspectorIcons = [Waypoints, FileText, History, Zap];
   const destinations = [
     {
       label: "Home",

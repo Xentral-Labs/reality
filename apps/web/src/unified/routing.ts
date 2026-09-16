@@ -20,6 +20,7 @@ export type Selection = {
   route: Destination;
   storylineChapter?: string;
   inspectorView?: string;
+  attentionView?: "findings" | "rules";
   inspectorRecordKind?: string;
   tableSize: 25 | 50 | 100;
   tableSort: string;
@@ -101,9 +102,15 @@ export function unifiedPath(path: string) {
 }
 export function readSelection(url: URL): Selection {
   const path = url.pathname.split("/")[2] || "home";
-  const candidate = path === "free-play" ? "chat" : path;
+  const legacyExceptionRules =
+    path === "inspector" && url.searchParams.get("inspector_view") === "exceptions";
+  const candidate = legacyExceptionRules ? "attention" : path === "free-play" ? "chat" : path;
   const page = Number(url.searchParams.get("page") || 1);
   return {
+    attentionView:
+      legacyExceptionRules || url.searchParams.get("attention_view") === "rules"
+        ? "rules"
+        : "findings",
     inspectorView: [
       "overview",
       "facts",
@@ -271,6 +278,7 @@ export function readSelection(url: URL): Selection {
   };
 }
 export function selectionUrl(selection: Selection): string {
+  selection = normalizeInspectorSelection(selection);
   const query = new URLSearchParams();
   if (selection.route === "inspector")
     query.set("inspector_view", selection.inspectorView || "overview");
@@ -347,6 +355,7 @@ export function selectionUrl(selection: Selection): string {
       if (selection[key]) query.set(key, selection[key]);
   }
   if (selection.route === "attention") {
+    if (selection.attentionView === "rules") query.set("attention_view", "rules");
     if (selection.exception) query.set("exception", selection.exception);
     if (selection.severity) query.set("severity", selection.severity);
   }
@@ -402,5 +411,15 @@ export function navigationSelection(selection: Selection, changes: Partial<Selec
     changes.tenant && changes.tenant !== selection.tenant
       ? companySelection(selection, changes.tenant)
       : selection;
-  return { ...base, ...changes };
+  const next = { ...base, ...changes };
+  // Links to findings must leave the rule catalog, including links from rule previews.
+  if (changes.route === "attention" && changes.attentionView === undefined)
+    next.attentionView = "findings";
+  return normalizeInspectorSelection(next);
+}
+
+function normalizeInspectorSelection(selection: Selection): Selection {
+  return selection.route === "inspector" && selection.inspectorView === "exceptions"
+    ? { ...selection, route: "attention", attentionView: "rules" }
+    : selection;
 }

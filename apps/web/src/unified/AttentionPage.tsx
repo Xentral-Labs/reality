@@ -1,5 +1,6 @@
 import { useTrialResult } from "./FreePlayground";
-import ExceptionCatalog from "./ExceptionCatalog";
+import { ExceptionRulesRegister } from "./ExceptionRulesRegister";
+import { RegisterHeader } from "./RegisterWorkbench";
 import { useState } from "react";
 import { ArrowRight, TriangleAlert } from "lucide-react";
 import { operationsApi, type AttentionRow } from "../api";
@@ -17,7 +18,7 @@ const severities = [
   ["normal", "Normal"],
   ["low", "Low"],
 ] as const;
-export function AttentionPage({
+function OpenExceptions({
   selection,
   navigate,
 }: {
@@ -37,7 +38,6 @@ export function AttentionPage({
     () => (exception ? operationsApi.finding(tenant, exception) : Promise.resolve(null)),
     [tenant, exception],
   );
-  const [catalogOpen, setCatalogOpen] = useState(false);
   const [target, setTarget] = useState<{ kind: string; id: string } | null>(null);
   const selected = detail.data?.id === exception ? detail.data : null;
   const severityLabel = (value: string) =>
@@ -65,7 +65,11 @@ export function AttentionPage({
               </option>
             ))}
           </select>
-          <button type="button" className="br-btn shrink-0" onClick={() => setCatalogOpen(true)}>
+          <button
+            type="button"
+            className="br-btn shrink-0"
+            onClick={() => navigate({ attentionView: "rules", q: "", page: 1, exception: "" })}
+          >
             {t("View all possible findings")}
           </button>
         </div>
@@ -164,8 +168,45 @@ export function AttentionPage({
         <WorkFooter list={read} />
       </section>
 
-      {catalogOpen && <ExceptionCatalog onClose={() => setCatalogOpen(false)} />}
       {target && <Inspector tenant={tenant} target={target} close={() => setTarget(null)} />}
+    </div>
+  );
+}
+
+export function AttentionPage(props: {
+  selection: Selection;
+  navigate: (changes: Partial<Selection>) => void;
+}) {
+  const view = props.selection.attentionView || "findings";
+  return (
+    <div className="min-w-0 space-y-4" data-exceptions-workspace>
+      <RegisterHeader title="Exceptions">
+        <nav className="register-tabs" aria-label={t("Exceptions")}>
+          {(
+            [
+              ["findings", "Open exceptions"],
+              ["rules", "Exception rules"],
+            ] as const
+          ).map(([key, label]) => (
+            <button
+              key={key}
+              aria-pressed={view === key}
+              onClick={() => props.navigate({ attentionView: key, q: "", page: 1, exception: "" })}
+            >
+              {t(label)}
+            </button>
+          ))}
+        </nav>
+      </RegisterHeader>
+      {view === "rules" ? (
+        <ExceptionRulesRegister
+          key={props.selection.tenant}
+          tenant={props.selection.tenant}
+          navigate={props.navigate}
+        />
+      ) : (
+        <OpenExceptions {...props} />
+      )}
     </div>
   );
 }

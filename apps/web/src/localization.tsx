@@ -16129,3 +16129,20 @@ Object.assign(dictionaries.es, {
   Unchanged: "Sin cambios",
   "Events not yet included": "Eventos aún no incluidos",
 });
+
+// Navigation groups describe the content users can open.
+Object.assign(dictionaries.de, {
+  "Fact rules": "Fact-Regeln",
+  "Available actions": "Verfügbare Aktionen",
+  "Open exceptions": "Offene Ausnahmen",
+});
+Object.assign(dictionaries.nl, {
+  "Fact rules": "Fact-regels",
+  "Available actions": "Beschikbare acties",
+  "Open exceptions": "Openstaande uitzonderingen",
+});
+Object.assign(dictionaries.es, {
+  "Fact rules": "Reglas de Facts",
+  "Available actions": "Acciones disponibles",
+  "Open exceptions": "Incidencias abiertas",
+});

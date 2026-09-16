@@ -22,6 +22,7 @@ export const dailyWork = [
     total: "exceptions",
     selection: {
       route: "attention",
+      attentionView: "findings",
       exception: "",
       severity: "",
       proposal: "",

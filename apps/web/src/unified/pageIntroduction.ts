@@ -77,7 +77,7 @@ const introductions = {
       "Review the rules that record additional facts from source data on the right business record.",
   },
   exceptions: {
-    title: "Reality Inspector",
+    title: "Exception rules",
     description: "Explore the conditions that identify issues requiring attention.",
   },
   history: {
@@ -165,6 +165,9 @@ export function pageIntroduction(
   const { route } = selection;
   let key: keyof typeof introductions;
   switch (route) {
+    case "attention":
+      key = selection.attentionView === "rules" ? "exceptions" : "attention";
+      break;
     case "inspector": {
       const view = selection.inspectorView || "overview";
       key =
