@@ -16101,3 +16101,22 @@ Object.assign(dictionaries.es, {
   "Only the beginning of the original source is shown.":
     "Solo se muestra el principio de la fuente original.",
 });
+
+// Stored-result notice: what a Refresh actually did (spec 180, FR-009).
+Object.assign(dictionaries.de, {
+  "Updating…": "Wird aktualisiert…",
+  Unchanged: "Unverändert",
+  "Events not yet included": "Noch nicht berücksichtigte Ereignisse",
+});
+
+Object.assign(dictionaries.nl, {
+  "Updating…": "Wordt bijgewerkt…",
+  Unchanged: "Ongewijzigd",
+  "Events not yet included": "Nog niet meegenomen gebeurtenissen",
+});
+
+Object.assign(dictionaries.es, {
+  "Updating…": "Actualizando…",
+  Unchanged: "Sin cambios",
+  "Events not yet included": "Eventos aún no incluidos",
+});

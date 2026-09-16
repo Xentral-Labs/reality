@@ -328,7 +328,11 @@ function FinanceRegister({
         ) : (
           <>
             {data.view === "open-items" && (
-              <ProjectionFreshness metadata={data.metadata} refresh={read.refresh} />
+              <ProjectionFreshness
+                metadata={data.metadata}
+                refresh={read.refresh}
+                loading={read.loading}
+              />
             )}
             {data.view !== "payments" && data.totals.length > 0 && (
               <div data-finance-controls className="mb-6 grid gap-3 md:grid-cols-2">

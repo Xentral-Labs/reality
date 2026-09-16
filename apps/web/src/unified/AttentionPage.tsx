@@ -70,7 +70,7 @@ export function AttentionPage({
           </button>
         </div>
       </div>
-      <ProjectionFreshness metadata={read.metadata} refresh={read.refresh} />
+      <ProjectionFreshness metadata={read.metadata} refresh={read.refresh} loading={read.loading} />
       <section
         className="overflow-hidden rounded-xl border border-border-default bg-surface"
         aria-busy={read.loading}
