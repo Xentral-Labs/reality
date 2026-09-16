@@ -118,7 +118,11 @@ export function ProjectionDataDialog({
           {t("Close")}
         </button>
       </header>
-      <ProjectionFreshness metadata={read.data?.metadata} refresh={read.refresh} />
+      <ProjectionFreshness
+        metadata={read.data?.metadata}
+        refresh={read.refresh}
+        loading={read.loading}
+      />
       {!rows ? (
         <ReadState loading={read.loading} error={read.error} retry={read.refresh} />
       ) : !rows.length &&

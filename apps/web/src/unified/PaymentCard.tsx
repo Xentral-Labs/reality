@@ -263,7 +263,11 @@ export function PaymentCard({
                 ))}
               </select>
             </label>
-            <ProjectionFreshness metadata={invoices.data?.metadata} refresh={invoices.refresh} />
+            <ProjectionFreshness
+              metadata={invoices.data?.metadata}
+              refresh={invoices.refresh}
+              loading={invoices.loading}
+            />
             {(!invoices.data || invoices.error) && (
               <ReadState
                 loading={invoices.loading}

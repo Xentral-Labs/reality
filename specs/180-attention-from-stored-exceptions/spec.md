@@ -101,6 +101,11 @@ projection and compare the page.
    the update failed, without an internal error and without implying a business action failed.
 4. **Given** any state, **When** the reader presses Refresh, **Then** only a read happens; no
    refresh, enqueue, commit or cache write is caused by the page.
+5. **Given** a stored result, **When** the reader presses Refresh, **Then** the control reports
+   that it is reading and cannot be pressed again, and afterwards the notice states either that a
+   newer result arrived or that the stored one is unchanged.
+6. **Given** a stored generation behind the event stream, **When** the notice is shown, **Then**
+   it states how many events are not yet included.
 
 ---
 
@@ -169,6 +174,13 @@ the same stored generation as the Exceptions page and carry the same freshness l
 - **FR-006**: The Exception rules tab MUST take its counts and preview rows from the same stored
   read path and show the same freshness line.
 - **FR-007**: The new texts MUST exist in all four UI languages.
+- **FR-009**: The freshness notice MUST report what pressing Refresh did. While the read is in
+  flight the control MUST be unavailable and say so, and the notice MUST be marked busy. When it
+  completes, the notice MUST state whether a newer generation arrived or the stored result is
+  unchanged — the ordinary outcome, because Refresh reads and never advances the calculation
+  (US2 scenario 4), and a silent no-change reads as a broken control. Where the stored generation
+  is behind the event stream, the notice MUST state how far behind it is. The control MUST NOT be
+  renamed and no new endpoint may be introduced.
 - **FR-008**: Response shapes MUST stay compatible: existing fields keep their names; `metadata`
   is added.
 

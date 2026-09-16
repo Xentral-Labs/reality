@@ -1128,3 +1128,13 @@ and the one-time unambiguous `connector_code` backfill). Localized and responsiv
 evidence: `apps/web/scripts/record-provenance-browser.mjs` and
 `apps/web/scripts/provenance-labels.test.mjs`. Verification:
 [report](../specs/211-record-provenance/verification.md).
+
+## Refresh feedback on the stored-result notice (180, FR-009)
+
+[Spec 180](../specs/180-attention-from-stored-exceptions/spec.md) FR-009 makes the
+stored-result notice report what Refresh did: an unavailable control and a busy notice
+while the read is in flight, then either a newer generation or an explicit statement that
+the stored result is unchanged, plus the backlog where the generation is behind the event
+stream. Refresh still only reads. Browser evidence:
+`apps/web/scripts/projection-freshness-browser.mjs` (in-flight state, both outcomes, the
+backlog and all four languages).

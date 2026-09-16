@@ -77,7 +77,11 @@ export function ExceptionRulesRegister({
             {summary.error && (
               <ReadState loading={false} error={summary.error} retry={summary.refresh} />
             )}
-            <ProjectionFreshness metadata={summary.data?.metadata} refresh={summary.refresh} />
+            <ProjectionFreshness
+              metadata={summary.data?.metadata}
+              refresh={summary.refresh}
+              loading={summary.loading}
+            />
             <div className="register-table-inset">
               <RegisterTable
                 busy={summary.loading}

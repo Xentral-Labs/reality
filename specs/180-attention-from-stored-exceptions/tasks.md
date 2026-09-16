@@ -14,3 +14,7 @@ Feature 179 (#229) and PR #227 merged on 2026-09-12; implemented the same day.
 - [x] T008 Browser fixtures for the four states in the operations and inspector suites.
 - [x] T009 Measure register and summary on the local stack company; record before/after in the PR.
 - [x] T010 Ruff, targeted pytest modules, prettier, tsc, contract tests, spec policy check.
+
+## Phase 8: Refresh feedback (FR-009)
+- [x] T030 [FR-009] Assert the in-flight state, both outcomes, the backlog and four languages in `apps/web/scripts/projection-freshness-browser.mjs`; it fails against the notice as shipped, which exposes no busy state.
+- [x] T031 [FR-009] Report the outcome in `apps/web/src/unified/ProjectionFreshness.tsx`, pass the read's loading state from `AttentionPage.tsx`, `FinancePage.tsx`, `ExceptionRulesRegister.tsx`, `PaymentCard.tsx` and `ProjectionDataDialog.tsx`, and localize in `localization.tsx`.
