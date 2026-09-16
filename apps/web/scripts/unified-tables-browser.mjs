@@ -129,7 +129,7 @@ const go = async (extra = "") => {
 try {
   await mkdir("/private/tmp/reality-115-browser", { recursive: true });
   await go();
-  await page.locator("[data-shell-header] .register-heading").waitFor();
+  await page.locator("[data-shell-header] h1").waitFor();
   assert.equal(await page.locator(".register-workbench > .register-heading").count(), 0);
   await page.locator(".register-filter-row .erp-table-tools").waitFor();
   const toolbarGeometry = await page.evaluate(() => ({

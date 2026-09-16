@@ -2006,6 +2006,24 @@ textarea {
   min-width: 24px;
   width: 24px;
 }
+/* Outcome labels for registers with multiple distinct navigation actions. */
+.erp-register[data-action-presentation="labels"] .erp-actions-cell .br-btn {
+  flex: 0 0 auto;
+  width: auto;
+  height: 28px;
+  padding: 0 8px !important;
+  font-size: 13px;
+  white-space: nowrap;
+}
+.erp-register[data-action-presentation="labels"] .erp-actions-cell .erp-cell > div {
+  gap: 8px;
+}
+@media (max-width: 639px) {
+  .erp-register[data-action-presentation="labels"] .erp-table th:first-child,
+  .erp-register[data-action-presentation="labels"] .erp-table td:first-child {
+    position: static;
+  }
+}
 .erp-table .erp-actions-cell .erp-preview-action,
 .erp-table .erp-actions-cell .erp-preview-action:hover,
 .erp-table .erp-actions-cell .erp-preview-action:focus,

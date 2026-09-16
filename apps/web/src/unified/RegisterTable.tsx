@@ -174,6 +174,7 @@ export function RegisterTable({
   children,
   footer,
   actionWidth = 80,
+  actionPresentation = "icons",
   cursorView,
   busy,
   empty,
@@ -182,6 +183,7 @@ export function RegisterTable({
   cursorView?: { id: string; widths: number[] };
   footer?: ReactNode;
   actionWidth?: number;
+  actionPresentation?: "icons" | "labels";
   className?: string;
   /** A newer read is in flight; the rows already shown dim instead of collapsing. */
   busy?: boolean;
@@ -366,6 +368,7 @@ export function RegisterTable({
       className="erp-register"
       data-table-id={id}
       data-density={current.density}
+      data-action-presentation={actionPresentation}
       data-selectable={selectable}
     >
       {toolbar?.target ? createPortal(controls, toolbar.target) : controls}
@@ -619,7 +622,7 @@ export function RegisterTable({
                           title={text(cell.props.children)}
                         >
                           <div className="erp-cell" data-original-content={undefined}>
-                            {i === count - 1
+                            {i === count - 1 && actionPresentation === "icons"
                               ? actionContent(cell.props.children)
                               : cell.props.children}
                           </div>

@@ -119,14 +119,18 @@ try {
   const tableBox = await page.locator("[data-source-table-inset] .erp-register").boundingBox();
   assert.ok(tableBox.x - surfaceBox.x >= 16);
   await page.screenshot({ path: out + "/systems-register.png", fullPage: true });
-  await button("Received data").click();
+  await page
+    .locator(".register-tabs")
+    .getByRole("button", { name: "Received data", exact: true })
+    .click();
   await page.getByRole("textbox", { name: "Exact system code", exact: true }).waitFor();
-  await page.getByRole("button", { name: "Register source", exact: true }).waitFor();
-  await button("Documents").click();
+
+  await page.goto(base + "/app/data-sources?tenant=main&data_view=documents");
   await page.getByRole("textbox", { name: "Document type", exact: true }).waitFor();
   await page.screenshot({ path: out + "/documents-register.png", fullPage: true });
-  await button("Source systems").click();
+  await go();
 
+  await page.locator(".register-actions > summary").waitFor();
   if (await page.locator(".register-actions:not([open]) > summary").count())
     await page.locator(".register-actions > summary").click();
   await button("Register source").click();
@@ -144,7 +148,11 @@ try {
   await page.getByText("No declared data types.", { exact: true }).waitFor();
   assert.equal(writes[0].body.code, "catalog");
   await button("Close").click();
-  await button("Configure source").first().click();
+  await page
+    .locator("tbody")
+    .getByRole("button", { name: "Settings", exact: true })
+    .first()
+    .click();
   await page.getByText("Declared data types", { exact: true }).waitFor();
   await button("Disable source definition").click();
   assert.equal(writes.length, 1);
@@ -163,6 +171,7 @@ try {
     animations: "disabled",
   });
   await button("Close").click();
+  await page.locator(".register-actions > summary").waitFor();
   if (await page.locator(".register-actions:not([open]) > summary").count())
     await page.locator(".register-actions > summary").click();
   await button("Register source").click();
@@ -199,7 +208,11 @@ try {
     .waitFor();
   assert.equal(writes.length, n);
   await button("Close").click();
-  await button("Configure source").first().click();
+  await page
+    .locator("tbody")
+    .getByRole("button", { name: "Settings", exact: true })
+    .first()
+    .click();
   for (const lang of ["en", "de", "nl", "es"]) {
     language = lang;
     for (const width of [390, 1440]) {
@@ -228,7 +241,11 @@ try {
   language = "en";
   await page.setViewportSize({ width: 1440, height: 1000 });
   await go();
-  await button("Configure source").first().click();
+  await page
+    .locator("tbody")
+    .getByRole("button", { name: "Settings", exact: true })
+    .first()
+    .click();
   const panel = page.locator("[data-source-configuration]");
   await panel.getByRole("button", { name: "View received records", exact: true }).click();
   assert.equal(new URL(page.url()).searchParams.get("source_system"), "shopify");
@@ -241,13 +258,18 @@ try {
       interpreter_available: false,
     })),
   );
-  await button("Configure source").first().click();
+  await page
+    .locator("tbody")
+    .getByRole("button", { name: "Settings", exact: true })
+    .first()
+    .click();
   await page.waitForFunction(
     () => document.querySelectorAll("[data-source-configuration] article").length === 25,
   );
   await panel.getByRole("button", { name: "Next", exact: true }).click();
   assert.equal(await panel.locator("article").count(), 5);
   await button("Close").click();
+  await page.locator(".register-actions > summary").waitFor();
   if (await page.locator(".register-actions:not([open]) > summary").count())
     await page.locator(".register-actions > summary").click();
   await button("Register source").click();
@@ -270,7 +292,7 @@ try {
   await page.goto(base + "/app/data-sources?tenant=other");
   releaseWrite();
   mode = "ok";
-  await page.getByText("No matching records", { exact: true }).waitFor();
+  await page.getByRole("heading", { name: "No matching records", exact: true }).waitFor();
   assert.equal(await page.locator("[data-source-configuration]").count(), 0);
   await page.waitForTimeout(100);
   assert.equal(new URL(page.url()).searchParams.get("tenant"), "other");

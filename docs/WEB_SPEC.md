@@ -2889,3 +2889,7 @@ Spec 213: Projection freshness notices directly inside register surfaces have a 
 ## Localized exception and decision labels (spec 215)
 
 Spec 215 supersedes the spec208 canonical-English rule only for Exception(s) and Decision(s). German uses Ausnahme/Ausnahmen and Entscheidung/Entscheidungen; Dutch uses Uitzondering/Uitzonderingen and Beslissing/Beslissingen; Spanish uses Incidencia/Incidencias and Decisión/Decisiones. Apply these names consistently to navigation, Home, page and Inspector labels, searches, links, catalog/rule headings, queue/history, empty states and helper text. All other model nouns retain the prior policy. English copy, original source values, technical identifiers and routes remain unchanged.
+
+## Visible integration actions (spec 210)
+
+Registered sources visibly offer Settings and Received data; received source versions offer Open details and View observations. The shared table's labeled presentation preserves localized text without hover or external-link icons, with action columns wide enough for both controls in normal and compact density. Narrow screens retain table-local horizontal scrolling and release the sticky first column in these labeled tables so it cannot cover the actions. Existing source configuration, Inspector and exact-source Facts destinations, tenant context and read-only activation remain unchanged. Other registers retain their compact preview controls.

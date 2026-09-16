@@ -103,6 +103,19 @@ await page.route("**/api/**", async (route) => {
       },
     });
   }
+  if (path.endsWith("/integrations"))
+    return reply({
+      systems: [{ id: "sys1", code: "sample-shop", name: "Sample shop", is_active: true }],
+      capabilities: [],
+      recent_records: [],
+    });
+  if (path.endsWith("/facts"))
+    return reply({
+      items: [],
+      subject_types: [],
+      subject_types_has_more: false,
+      page: { number: 1, size: 50, total: 0, pages: 0 },
+    });
   if (path.includes("/inspector/"))
     return reply({
       title: "Original source evidence",
@@ -129,18 +142,57 @@ try {
   await page.goto(`${base}/app/data-sources?tenant=${tenant}`);
   await page
     .locator("[data-shell-header]")
-    .getByRole("heading", { name: "Integrations", exact: true })
+    .getByRole("heading", { name: /^Integrations/ })
     .waitFor();
-  assert.equal(await page.locator("[data-shell-header] .register-heading").count(), 1);
-  assert.equal(await page.locator("[data-shell-header] .register-tabs button").count(), 2);
-  await page.getByRole("button", { name: "View received records", exact: true }).click();
+
+  assert.equal(await page.locator(".register-tabs button").count(), 2);
+  async function assertVisibleActions(labels) {
+    const cell = page.locator("[data-source-row] .erp-actions-cell").first();
+    for (const label of labels) {
+      const button = cell.getByRole("button", { name: label, exact: true });
+      await button.waitFor();
+      await button.scrollIntoViewIfNeeded();
+      assert.ok(
+        await button.evaluate((element) => {
+          const box = element.getBoundingClientRect();
+          return element.contains(
+            document.elementFromPoint(box.x + box.width / 2, box.y + box.height / 2),
+          );
+        }),
+        `action is not covered: ${label}`,
+      );
+      assert.equal(await button.innerText(), label, `visible action: ${label}`);
+      assert.ok(
+        await button.evaluate((element) => {
+          const range = document.createRange();
+          range.selectNodeContents(element);
+          const text = range.getBoundingClientRect();
+          const bounds = element.getBoundingClientRect();
+          return (
+            parseFloat(getComputedStyle(element).fontSize) >= 12 &&
+            text.width > 20 &&
+            text.left >= bounds.left &&
+            text.right <= bounds.right
+          );
+        }),
+        `unclipped action: ${label}`,
+      );
+      assert.equal(await button.locator(".sr-only, .lucide-external-link").count(), 0);
+    }
+  }
+  await assertVisibleActions(["Settings", "Received data"]);
+  await page.locator("tbody").getByRole("button", { name: "Settings", exact: true }).click();
+  await page.getByRole("dialog", { name: "Source configuration", exact: true }).waitFor();
+  assert.equal(new URL(page.url()).searchParams.get("entry"), "sys1");
+  await page.keyboard.press("Escape");
+  await page.locator("tbody").getByRole("button", { name: "Received data", exact: true }).click();
   await page.locator("tbody tr").waitFor();
   assert.ok(page.url().includes("source_system=sample-shop"));
   async function assertFooter() {
     const register = page.locator(".erp-register");
     assert.equal(await register.locator(".erp-register-footer").count(), 1);
     assert.equal(await register.locator(".erp-register-footer select").count(), 1);
-    assert.equal(await register.locator(".erp-table-tools select").count(), 0);
+
     assert.equal(
       await register.evaluate(
         (el) =>
@@ -155,9 +207,16 @@ try {
     );
   }
   await assertFooter();
-  const inspect = page
+  await assertVisibleActions(["Open details", "View observations"]);
+  await page
     .locator("tbody")
-    .getByRole("button", { name: "Open received record", exact: true });
+    .getByRole("button", { name: "View observations", exact: true })
+    .click();
+  await page.waitForURL(/fact_source=src_2/);
+  assert.equal(new URL(page.url()).pathname, "/app/facts");
+  await page.goBack();
+  await assertVisibleActions(["Open details", "View observations"]);
+  const inspect = page.locator("tbody").getByRole("button", { name: "Open details", exact: true });
   await inspect.focus();
   await page.keyboard.press("Enter");
   await page.getByRole("dialog").waitFor();
@@ -197,13 +256,13 @@ try {
   await page.getByRole("button", { name: "Next", exact: true }).click();
   await page.waitForURL(/page=2/);
   await page.getByRole("textbox", { name: "Search data", exact: true }).fill("missing");
-  await page.getByText("No matching records", { exact: true }).waitFor();
+  await page.getByRole("heading", { name: "No matching records", exact: true }).waitFor();
   fail = true;
   await page.reload();
   await page.getByRole("alert").waitFor();
   fail = false;
   await page.getByRole("button", { name: "Retry", exact: true }).click();
-  await page.getByText("No matching records", { exact: true }).waitFor();
+  await page.getByRole("heading", { name: "No matching records", exact: true }).waitFor();
   await page.getByRole("button", { name: "Switch company", exact: true }).click();
   await page.locator('[data-company-option="other"]').click();
   for (const key of ["entry", "source_system", "source_record", "q"])
@@ -220,6 +279,34 @@ try {
             await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth),
             `${language}/${theme}/${width}/${view}`,
           );
+          if (view !== "documents") {
+            const labels = {
+              en: {
+                systems: ["Settings", "Received data"],
+                records: ["Open details", "View observations"],
+              },
+              de: {
+                systems: ["Einstellungen", "Empfangene Daten"],
+                records: ["Details öffnen", "Beobachtungen ansehen"],
+              },
+              nl: {
+                systems: ["Instellingen", "Ontvangen gegevens"],
+                records: ["Details openen", "Waarnemingen bekijken"],
+              },
+              es: {
+                systems: ["Configuración", "Datos recibidos"],
+                records: ["Abrir detalles", "Ver observaciones"],
+              },
+            }[language][view];
+            for (const density of ["compact", "normal"]) {
+              await page.locator(".erp-table-tools select").selectOption(density);
+              await assertVisibleActions(labels);
+            }
+            await page
+              .locator("[data-source-row] .erp-actions-cell button")
+              .last()
+              .scrollIntoViewIfNeeded();
+          }
           await page.screenshot({
             path: `${out}/${language}-${theme}-${width}-${view}.png`,
             fullPage: true,
@@ -231,6 +318,9 @@ try {
   console.log(
     "PASS: systems → source version → exact evidence, escaped original, Inspector reload/focus, paging, filters, retry, company reset, no writes and 48 localized screenshots.",
   );
+} catch (error) {
+  console.error({ url: page.url(), body: await page.locator("body").innerText(), errors });
+  throw error;
 } finally {
   await browser.close();
 }
