@@ -1,19 +1,58 @@
 from __future__ import annotations
 
 import inspect
+import json
+from collections.abc import Sequence
 from typing import Annotated, Any
 from urllib.parse import urlparse
 
 from mcp.server.auth.middleware.auth_context import get_access_token
 from mcp.server.auth.settings import AuthSettings
 from mcp.server.fastmcp import FastMCP
+from mcp.server.fastmcp.exceptions import ToolError
 from mcp.server.transport_security import TransportSecuritySettings
-from mcp.types import ToolAnnotations
+from mcp.types import ContentBlock, ToolAnnotations
 from pydantic import WithJsonSchema
 
 from reality.db.core import Session
 from reality.mcp.auth import DatabaseTokenVerifier
 from reality.mcp.catalog import MCPToolDefinition, dispatch_tool, tool_definitions
+from reality.services.core import (
+    Conflict,
+    InterpretationNeedsReview,
+    InvalidOperation,
+    NotFound,
+    RealityError,
+)
+
+ERROR_CODES: tuple[tuple[type[RealityError], str], ...] = (
+    (NotFound, "not_found"),
+    (Conflict, "conflict"),
+    (InterpretationNeedsReview, "needs_review"),
+    (InvalidOperation, "invalid_operation"),
+    (RealityError, "reality_error"),
+)
+
+
+def error_code(error: RealityError) -> str:
+    return next(code for kind, code in ERROR_CODES if isinstance(error, kind))
+
+
+def tool_error_payload(tool_name: str, error: RealityError) -> dict[str, str]:
+    return {"code": error_code(error), "message": str(error), "tool": tool_name}
+
+
+class RealityServer(FastMCP):
+    async def call_tool(
+        self, name: str, arguments: dict[str, Any]
+    ) -> Sequence[ContentBlock] | dict[str, Any]:
+        try:
+            return await super().call_tool(name, arguments)
+        except ToolError as error:
+            cause = error.__cause__
+            if isinstance(cause, RealityError):
+                raise ToolError(json.dumps(tool_error_payload(name, cause))) from cause
+            raise
 
 
 def _annotation(schema: dict[str, Any]) -> Any:
@@ -97,7 +136,7 @@ def build_server(
 ) -> FastMCP:
     endpoint_url = (public_url or f"http://{host}:{port}/").rstrip("/") + "/"
     parsed_url = urlparse(endpoint_url)
-    server = FastMCP(
+    server = RealityServer(
         "Reality",
         instructions=(
             "Inspect operational reality through shared application services. "
