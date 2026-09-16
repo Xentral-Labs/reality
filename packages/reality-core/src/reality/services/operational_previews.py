@@ -253,7 +253,7 @@ def _document(session: Session, tenant: str, record_id: str) -> list[Section]:
                 operational.append(
                     _row("Holds", " · ".join(b["reason"] for b in case["blockers"]))
                 )
-        section = _section("Operational Reality", operational)
+        section = _section("Delivery progress", operational)
         section["has_more"] = section["has_more"] or len(deliveries) > LIMIT
         sections.append(section)
     financial = _financial_open_items(session, tenant, document_ids={doc.id})
