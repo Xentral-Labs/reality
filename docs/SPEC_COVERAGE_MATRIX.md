@@ -1112,3 +1112,19 @@ Spec 185 owns the analytics service, agent tools, private report configuration a
 ## Operational quick previews (209)
 
 [Spec 209](../specs/209-operational-previews/spec.md) defines business-first inline summaries across Sales, Purchasing, Warehouse and Finance without schema changes. Service and adapter evidence: `packages/reality-core/tests/test_operational_previews.py` and `packages/reality-core/tests/test_reference_workspace.py` (master-data fields, names and unchanged revision identity); responsive/localized browser evidence: `apps/web/scripts/operational-previews-browser.mjs`. Verification: [report](../specs/209-operational-previews/verification.md).
+
+## Record provenance and source addressing (211)
+
+[Spec 211](../specs/211-record-provenance/spec.md) makes record origin visible across the
+workspace, extends the source-record inspection with the retained payload and its
+interpretation outcome, and adds an optional external address so a record can be opened in
+the system that owns it. Service and adapter evidence:
+`packages/reality-core/tests/test_provenance.py` (origin batched per page, the manual-origin
+fallback, the retained textual code join, address validation and template resolution, the
+bounded payload, interpretation outcomes, contributing systems, and that one installed
+instance belongs to exactly one connector shell);
+`packages/reality-core/tests/test_source_system_addressing_migration.py` (column roundtrip
+and the one-time unambiguous `connector_code` backfill). Localized and responsive browser
+evidence: `apps/web/scripts/record-provenance-browser.mjs` and
+`apps/web/scripts/provenance-labels.test.mjs`. Verification:
+[report](../specs/211-record-provenance/verification.md).

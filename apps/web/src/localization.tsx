@@ -16060,3 +16060,50 @@ Object.assign(dictionaries.es, {
 Object.assign(dictionaries.de, { "Delivery progress": "Lieferstatus" });
 Object.assign(dictionaries.nl, { "Delivery progress": "Leveringsvoortgang" });
 Object.assign(dictionaries.es, { "Delivery progress": "Estado de entrega" });
+// Record provenance and source addressing (spec 211).
+Object.assign(dictionaries.de, {
+  "Created here": "Hier erfasst",
+  "Show the original source": "Originalquelle anzeigen",
+  "A newer source version exists": "Es gibt eine neuere Quellversion",
+  "Open in source system": "Im Quellsystem öffnen",
+  "Several systems contributed to this record":
+    "Mehrere Systeme haben zu diesem Datensatz beigetragen",
+  "Address of the source system": "Adresse des Quellsystems",
+  "Where this system's records can be opened, for example https://acme.myshopify.com/admin. Configuration only: the address is never called and holds no credentials.":
+    "Wo die Datensätze dieses Systems geöffnet werden können, zum Beispiel https://acme.myshopify.com/admin. Nur Konfiguration: Die Adresse wird nie aufgerufen und enthält keine Zugangsdaten.",
+  "Address of the source system saved.": "Adresse des Quellsystems gespeichert.",
+  "Save address": "Adresse speichern",
+  "Only the beginning of the original source is shown.":
+    "Es wird nur der Anfang der Originalquelle angezeigt.",
+});
+
+Object.assign(dictionaries.nl, {
+  "Created here": "Hier vastgelegd",
+  "Show the original source": "Oorspronkelijke bron tonen",
+  "A newer source version exists": "Er bestaat een nieuwere bronversie",
+  "Open in source system": "Openen in bronsysteem",
+  "Several systems contributed to this record":
+    "Meerdere systemen hebben aan dit record bijgedragen",
+  "Address of the source system": "Adres van het bronsysteem",
+  "Where this system's records can be opened, for example https://acme.myshopify.com/admin. Configuration only: the address is never called and holds no credentials.":
+    "Waar de records van dit systeem geopend kunnen worden, bijvoorbeeld https://acme.myshopify.com/admin. Alleen configuratie: het adres wordt nooit aangeroepen en bevat geen inloggegevens.",
+  "Address of the source system saved.": "Adres van het bronsysteem opgeslagen.",
+  "Save address": "Adres opslaan",
+  "Only the beginning of the original source is shown.":
+    "Alleen het begin van de oorspronkelijke bron wordt getoond.",
+});
+
+Object.assign(dictionaries.es, {
+  "Created here": "Registrado aquí",
+  "Show the original source": "Mostrar la fuente original",
+  "A newer source version exists": "Existe una versión más reciente de la fuente",
+  "Open in source system": "Abrir en el sistema de origen",
+  "Several systems contributed to this record": "Varios sistemas han contribuido a este registro",
+  "Address of the source system": "Dirección del sistema de origen",
+  "Where this system's records can be opened, for example https://acme.myshopify.com/admin. Configuration only: the address is never called and holds no credentials.":
+    "Dónde se pueden abrir los registros de este sistema, por ejemplo https://acme.myshopify.com/admin. Solo configuración: la dirección nunca se llama y no contiene credenciales.",
+  "Address of the source system saved.": "Dirección del sistema de origen guardada.",
+  "Save address": "Guardar dirección",
+  "Only the beginning of the original source is shown.":
+    "Solo se muestra el principio de la fuente original.",
+});

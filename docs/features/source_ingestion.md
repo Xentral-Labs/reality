@@ -46,6 +46,17 @@ SourceRecord evidence. Interpreter availability is derived from the application
 registry, not edited by users. Credentials, endpoints, schedules, mappings, and
 connector state are intentionally out of scope until an actual adapter exists.
 
+A `SourceSystem` additionally records the connector shell it was installed from
+(`connector_code`) and an optional `base_url` (spec 211). The connector code is the only
+association between an instance and a catalog connector; the description-prefix test it
+replaced claimed one instance for several connectors whenever two catalog display names
+shared a prefix. The base address is where this system's own interface answers, for
+example `https://acme-de.myshopify.com/admin`. It stays inside the descriptive boundary
+above: it holds no credential, Reality never calls it, and it drives nothing but a link a
+person can follow. Vendor address templates live in `connector_catalog.yaml` under
+`deep_links`, keyed by source type, and may interpolate only `{external_id}`. A connector
+without a template, or a system without a base address, simply offers no link.
+
 `docs/connector_catalog.yaml` is the machine-readable catalog of mock connector
 shells. A user selects the exact capabilities needed and chooses a tenant-local
 instance code; installing `order` from `xentral_shop_de` must not implicitly

@@ -103,6 +103,14 @@ def reference_register(
         .limit(size)
     ).all()
     labels = _reference_labels(session, tenant_id, records)
+    from reality.services.provenance import record_origins
+
+    origins = record_origins(
+        session,
+        tenant_id,
+        records,
+        subject_type="party" if model is Party else family,
+    )
     return {
         "items": [
             {
@@ -112,6 +120,7 @@ def reference_register(
                 "sku": getattr(record, "sku", None),
                 "unit": getattr(record, "unit", None),
                 "is_active": record.is_active,
+                "origin": origins.get(record.id),
                 **labels[record.id],
             }
             for record in records
@@ -242,8 +251,15 @@ def reference_detail(
     }
 
     from reality.services.operational_previews import master_data_preview
+    from reality.services.provenance import contributing_systems, record_origin
 
     detail["preview_sections"] = master_data_preview(detail)
+    detail["origin"] = record_origin(
+        session, tenant_id, record, subject_type=core_family
+    )
+    detail["contributing_systems"] = contributing_systems(
+        session, tenant_id, core_family, record.id
+    )
     return detail
 
 

@@ -11169,6 +11169,7 @@ def install_connector_shell(
         code=instance_code,
         name=instance_name,
         description=f"{shell['name']} {shell['category']} source definition · no connection",
+        connector_code=shell["code"],
     )
     session.add(system)
     session.flush()
@@ -11192,11 +11193,13 @@ def connector_shells(session: OrmSession, tenant_id: str) -> list[dict[str, Any]
     return [
         {
             **shell,
+            # Grouped by the recorded connector only. The description prefix this
+            # once tested is ambiguous between connectors whose display names share
+            # a prefix, which listed one instance under two shells (spec 211).
             "instances": [
                 system
                 for system in systems
-                if system.code == shell["code"]
-                or system.description.startswith(f"{shell['name']} ")
+                if system.connector_code == shell["code"]
             ],
         }
         for shell in connector_catalog()["connectors"]
@@ -11233,6 +11236,28 @@ def set_source_system_active(
     require_business_operation(session, tenant_id, "source_system_update")
     system = _tenant_record(session, SourceSystem, tenant_id, source_system_id)
     system.is_active = is_active
+    system.updated_at = now()
+    session.commit()
+    return system
+
+
+def set_source_system_base_url(
+    session: OrmSession, tenant_id: str, source_system_id: str, base_url: str
+) -> SourceSystem:
+    """Configure where this instance's records can be opened, or clear it.
+
+    Configuration only: the address is never called and holds no credential, so
+    the integration registry stays descriptive.
+    """
+    from reality.services.provenance import validate_base_url
+    from reality.services.tenant_policy import require_business_operation
+
+    require_business_operation(session, tenant_id, "source_system_update")
+    system = _tenant_record(session, SourceSystem, tenant_id, source_system_id)
+    try:
+        system.base_url = validate_base_url(base_url) or None
+    except ValueError as error:
+        raise InvalidOperation(str(error)) from error
     system.updated_at = now()
     session.commit()
     return system

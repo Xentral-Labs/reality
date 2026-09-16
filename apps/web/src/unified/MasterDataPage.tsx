@@ -11,6 +11,7 @@ import { useRead } from "./useCompanyContext";
 import { ReadState } from "./ReadState";
 import { Inspector, InspectorContent } from "./Inspector";
 import { PreviewButton, TablePreview } from "./InlinePreview";
+import { ContributingSystems, SourceBadge } from "./SourceBadge";
 import {
   MasterDataCard,
   displayValue,
@@ -168,6 +169,7 @@ export function MasterDataPage({
                           "Unit",
                           "Item type",
                           "Default location",
+                          "Origin",
                           "Status",
                           "Actions",
                         ]
@@ -177,6 +179,7 @@ export function MasterDataPage({
                             "Type",
                             "Parent location",
                             "Allows physical stock",
+                            "Origin",
                             "Status",
                             "Actions",
                           ]
@@ -185,6 +188,7 @@ export function MasterDataPage({
                             "Accounting code",
                             "Payment term",
                             "Currency",
+                            "Origin",
                             "Status",
                             "Actions",
                           ]
@@ -222,6 +226,9 @@ export function MasterDataPage({
                             <td data-original-content>{row.default_currency || "—"}</td>
                           </>
                         )}
+                        <td>
+                          <SourceBadge origin={row.origin} inspect={setTarget} />
+                        </td>
                         <td>{t(row.is_active ? "Active" : "Inactive")}</td>
                         <td>
                           <PreviewButton
@@ -235,7 +242,7 @@ export function MasterDataPage({
                       <TablePreview
                         id={`master-preview-${row.id}`}
                         open={record === row.id}
-                        columns={family === "item" ? 7 : 6}
+                        columns={family === "item" ? 8 : 7}
                       >
                         {!detail ? (
                           <ReadState
@@ -245,6 +252,10 @@ export function MasterDataPage({
                           />
                         ) : (
                           <div className="w-full" data-master-preview>
+                            <div className="mb-4 text-sm">
+                              <SourceBadge origin={detail.origin} inspect={setTarget} />
+                              <ContributingSystems systems={detail.contributing_systems} />
+                            </div>
                             <InspectorContent
                               data={{
                                 title: detail.name,
