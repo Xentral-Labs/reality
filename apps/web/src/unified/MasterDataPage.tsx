@@ -359,128 +359,25 @@ export function MasterDataPage({
           )}
         </section>
         <section className={record ? "hidden" : "register-empty-guidance"}>
-          {record && (
-            <button className="br-btn mb-4" onClick={() => navigate({ record: "" })}>
-              {t("Close")}
-            </button>
-          )}
-          {record ? (
-            !detail ? (
-              <ReadState
-                loading={detailRead.loading}
-                error={detailRead.error}
-                retry={detailRead.refresh}
-              />
-            ) : (
-              <>
-                <p className="text-xs uppercase tracking-wide text-accent">{t(families[family])}</p>
-                <h2 className="mt-3 break-words text-2xl font-semibold text-fg-strong">
-                  {detail.name}
-                </h2>
-                <p className="mt-2 text-sm text-fg-muted">
-                  {t(detail.is_active ? "Active" : "Inactive")}
-                </p>
-                {detail.sku && (
-                  <p className="mt-4 break-words">
-                    {detail.sku} · {detail.unit}
-                  </p>
-                )}
-                <div className="mt-5 flex flex-wrap gap-3">
-                  {family === "customer" && (
-                    <button className="br-btn" onClick={() => setHoldCustomer(detail.id)}>
-                      {t("Customer delivery holds")}
-                    </button>
-                  )}
-                  <button className="br-btn br-btn-primary" onClick={() => setEditor(detail)}>
-                    {t("Edit details")}
-                  </button>
-                  <button
-                    className="br-btn"
-                    onClick={() =>
-                      setTarget({
-                        kind: family === "customer" || family === "supplier" ? "party" : family,
-                        id: detail.id,
-                      })
-                    }
-                  >
-                    {t("Inspect")}
-                  </button>
-                </div>
-                {family === "item" && (
-                  <button
-                    className="br-btn mt-4"
-                    onClick={() =>
-                      navigate({
-                        route: "warehouse",
-                        warehouseView: "stock",
-                        item: detail.id,
-                        entry: "",
-                        state: "",
-                        q: "",
-                        page: 1,
-                      })
-                    }
-                  >
-                    {t("Open warehouse")}
-                  </button>
-                )}
-                <div className="mt-6 border-t border-border-default pt-5">
-                  <h3 className="font-semibold">{t("Details")}</h3>
-                  <RecordSummary
-                    record={Object.fromEntries(
-                      referenceFields(family)
-                        .filter((field) => field.key !== "name")
-                        .map((field) => [field.key, detail[field.key]]),
-                    )}
-                  />
-                </div>
-                <div className="mt-6 border-t border-border-default pt-5">
-                  <h3 className="font-semibold">{t("Provenance")}</h3>
-                  {detail.source_record_id ? (
-                    <button
-                      className="br-btn mt-3"
-                      onClick={() =>
-                        setTarget({ kind: "source_record", id: detail.source_record_id! })
-                      }
-                    >
-                      {t("Original source")}
-                    </button>
-                  ) : (
-                    <p className="mt-2 text-sm text-fg-muted">
-                      {t("No original source is linked to this record.")}
-                    </p>
-                  )}
-                  <p className="mt-4 break-all font-mono text-xs text-fg-muted">{detail.id}</p>
-                </div>
-                <details className="mt-5">
-                  <summary className="cursor-pointer text-sm">{t("All recorded details")}</summary>
-                  <pre className="mt-3 overflow-auto whitespace-pre-wrap break-all text-xs">
-                    {JSON.stringify(detail, null, 2)}
-                  </pre>
-                </details>
-              </>
-            )
-          ) : (
-            <details>
-              <summary>{t("Start with a record")}</summary>
-              <p className="mt-3 text-sm leading-relaxed text-fg-muted">
+          <details>
+            <summary>{t("Start with a record")}</summary>
+            <p className="mt-3 text-sm leading-relaxed text-fg-muted">
+              {t(
+                "Choose a customer, supplier, item or location to see its details and prepare a change.",
+              )}
+            </p>
+            <div className="mt-6 rounded-lg bg-accent-soft p-4 text-sm">
+              <p className="font-semibold">{t("Also available in chat")}</p>
+              <p className="mt-2 text-fg-muted">
                 {t(
-                  "Choose a customer, supplier, item or location to see its details and prepare a change.",
+                  "Ask Reality to prepare a change. You review the same fields before confirming.",
                 )}
               </p>
-              <div className="mt-6 rounded-lg bg-accent-soft p-4 text-sm">
-                <p className="font-semibold">{t("Also available in chat")}</p>
-                <p className="mt-2 text-fg-muted">
-                  {t(
-                    "Ask Reality to prepare a change. You review the same fields before confirming.",
-                  )}
-                </p>
-                <button className="br-btn mt-4" onClick={() => navigate({ route: "copilot" })}>
-                  {t("Ask Reality")}
-                </button>
-              </div>
-            </details>
-          )}
+              <button className="br-btn mt-4" onClick={() => navigate({ route: "copilot" })}>
+                {t("Ask Reality")}
+              </button>
+            </div>
+          </details>
         </section>
       </div>
       {(editor || proposal) && (

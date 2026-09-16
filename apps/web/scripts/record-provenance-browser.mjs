@@ -267,6 +267,15 @@ try {
   const contributing = page.locator("[data-contributing-systems]");
   await contributing.waitFor();
   assert.match(await contributing.innerText(), /hubspot_main/);
+  // An open record offers each action exactly once in the DOM. A second copy of the
+  // detail panel used to sit in the guidance section, permanently display:none, so a
+  // role query could not see it and only a DOM count catches its return.
+  for (const label of ["Edit details", "Original source"])
+    assert.equal(
+      await page.locator(`button:text-is("${label}")`).count(),
+      1,
+      `${label} is present more than once in the DOM`,
+    );
   await page.screenshot({ path: `${out}/master-origin.png`, fullPage: true });
 
   // Narrow screens keep the statement and never scroll the page sideways.
