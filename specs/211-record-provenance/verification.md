@@ -24,5 +24,10 @@ PASS for all eight principles, re-reviewed against the implementation. No column
 - Address templates key on the vendor source type retained on the source record. Master data created with a source annotation records the target family (`party`) instead, so such records state their origin but resolve no link. This is specified behavior under FR-008 (nothing is guessed) and is covered by a test paired with a positive control.
 - Declared `deep_links` cover `shopify`, `stripe` and `hubspot` only. Every other connector deliberately ships without a template until its address shape is confirmed against the vendor; the three declared shapes were written from general knowledge and were not verified against a live tenant.
 
+## Live-stack check on real demo data (2026-09-16)
+The running local stack was pointed at this worktree and migration 0061 applied to `reality_test`. The backfill resolved every configured `demo_data` instance by code equality, as intended, and `record_origins` answered for real documents of a seeded company. That run found what fixtures could not: demo intake records an external reference of seventy characters (`sch_…:run_…`), against the eleven-character references the fixtures used.
+
+The effect is confined to surfaces outside a register table, because register cells already carry `white-space: nowrap`. In the master-data preview at 390px the untruncated reference made the preview scroll sideways by 273px. The badge now bounds its rendered width and keeps the exact reference in the title. The browser assertion measures that overflow directly; an earlier version compared the element with its own parent and passed either way, which is why it was replaced.
+
 ## Change isolation
 An isolated `211-record-provenance` worktree off `origin/main` carries only this feature. The unrelated uncommitted work in the user's main checkout was neither read into nor modified by this change.
