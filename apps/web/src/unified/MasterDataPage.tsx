@@ -169,7 +169,7 @@ export function MasterDataPage({
                           "Unit",
                           "Item type",
                           "Default location",
-                          "Origin",
+                          "Source",
                           "Status",
                           "Actions",
                         ]
@@ -179,7 +179,7 @@ export function MasterDataPage({
                             "Type",
                             "Parent location",
                             "Allows physical stock",
-                            "Origin",
+                            "Source",
                             "Status",
                             "Actions",
                           ]
@@ -188,7 +188,7 @@ export function MasterDataPage({
                             "Accounting code",
                             "Payment term",
                             "Currency",
-                            "Origin",
+                            "Source",
                             "Status",
                             "Actions",
                           ]
@@ -278,7 +278,7 @@ export function MasterDataPage({
                               />
                             )}
                             <details className="mt-4 text-sm">
-                              <summary>{t("Provenance")}</summary>
+                              <summary>{t("Source")}</summary>
                               <RecordSummary
                                 record={{
                                   id: detail.id,

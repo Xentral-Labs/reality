@@ -2897,3 +2897,7 @@ Registered sources visibly offer Settings and Received data; received source ver
 ## Business Inspector names (spec 216)
 
 The former Context Graph area is named Business Graph; the Facts navigation area is Business Facts. Both names are invariant product labels in every language. Use the same names in shared section/page titles, tooltips, standalone facts-page headings and Storyline graph headings/captions/accessibility labels. Fact/Facts remain data-type names in selectors, individual records and Storyline fact counts. Existing routes, tabs, filters and technical identifiers remain unchanged. This updates only the area/product naming portion of spec208; spec215 remains applicable.
+
+## Source labels (spec 217)
+
+Data-source columns use Source rather than Origin, in every language. Source/Sources are invariant product labels; direct metadata/settings use localized Source compounds. Source Record continues to name an individual received record; related inspection actions and payload details explicitly use that name. The provenance groups in master-data forms/details are labeled Source. Source-system names, external IDs, technical origin fields, geographical origins and software-source-code terms are not rewritten.

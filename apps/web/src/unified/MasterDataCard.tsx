@@ -21,7 +21,7 @@ type Option = { value: string; label: string };
 export type ReferenceField = {
   key: string;
   label: string;
-  group: "Identity" | "Commercial defaults" | "Inventory behaviour" | "Hierarchy" | "Provenance";
+  group: "Identity" | "Commercial defaults" | "Inventory behaviour" | "Hierarchy" | "Source";
   kind: "text" | "code" | "choice" | "roles" | "flag" | "record" | "decimal" | "count";
   required?: boolean;
   /** Tenant-scoped suggestion kind for codes and records. */
@@ -55,11 +55,11 @@ const provenance: ReferenceField[] = [
   {
     key: "source_system",
     label: "Source system",
-    group: "Provenance",
+    group: "Source",
     kind: "code",
     choices: "source-system-codes",
   },
-  { key: "external_id", label: "External ID", group: "Provenance", kind: "text" },
+  { key: "external_id", label: "External ID", group: "Source", kind: "text" },
 ];
 // Every operational field the shared create/update services accept, per family.
 // Lossless external evidence is deliberately absent; it is never edited here.
@@ -158,7 +158,7 @@ const groups: ReferenceField["group"][] = [
   "Commercial defaults",
   "Inventory behaviour",
   "Hierarchy",
-  "Provenance",
+  "Source",
 ];
 export const fieldLabels: Record<string, string> = {
   id: "Record ID",

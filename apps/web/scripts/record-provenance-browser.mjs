@@ -204,6 +204,8 @@ try {
     await page.goto(`${base}/app/orders-deliveries?tenant=orders&orders_view=customer-orders`);
     const origins = page.locator("[data-source-origin]");
     await origins.first().waitFor();
+    assert.equal(await page.locator('th[title="Source"]').count(), 1);
+    assert.equal((await page.locator('th[title="Source"]').innerText()).trim(), "Source");
     assert.equal(await origins.count(), 3, `${language}: every row states an origin`);
     assert.equal(
       await page.locator('[data-source-origin="application"]').count(),
