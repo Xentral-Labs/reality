@@ -13,6 +13,7 @@ type Preferences = { language: Language; locale: DisplayLocale; timezone: string
 
 const dictionaries: Record<Exclude<Language, "en">, Record<string, string>> = {
   de: {
+    "Open details": "Details öffnen",
     Exception: "Ausnahme",
     "Ledger entry": "Ledger Entry",
     "Business event": "Business Event",
@@ -1875,6 +1876,7 @@ const dictionaries: Record<Exclude<Language, "en">, Record<string, string>> = {
     "Fully Reserved": "Vollständig reserviert",
   },
   nl: {
+    "Open details": "Details openen",
     Commitment: "Commitment",
     Reservation: "Reservation",
     Reservations: "Reservations",
@@ -3434,6 +3436,7 @@ const dictionaries: Record<Exclude<Language, "en">, Record<string, string>> = {
     Customer: "Klant",
   },
   es: {
+    "Open details": "Abrir detalles",
     Commitment: "Commitment",
     Reservation: "Reservation",
     Reservations: "Reservations",

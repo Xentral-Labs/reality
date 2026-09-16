@@ -237,7 +237,8 @@ export function DataSourcesPage({
               <RegisterTable
                 busy={read.loading}
                 cursorView={{ id: "data-sources:systems", widths: [240, 180, 120, 140, 120] }}
-                actionWidth={120}
+                actionWidth={300}
+                actionPresentation="labels"
                 footer={
                   <div className="border-t border-border-default p-3 [&>div]:mt-0">
                     <RegisterPager page={data.page} change={(page) => navigate({ page })} />
@@ -274,7 +275,7 @@ export function DataSourcesPage({
                               navigate({ entry: row.id, importProposal: "" });
                             }}
                           >
-                            {t("Configure source")}
+                            {t("Settings")}
                           </button>
                           <button
                             className="br-btn"
@@ -289,7 +290,7 @@ export function DataSourcesPage({
                               })
                             }
                           >
-                            {t("View received records")}
+                            {t("Received data")}
                           </button>
                         </div>
                       </td>
@@ -301,6 +302,8 @@ export function DataSourcesPage({
               <div className="min-w-0">
                 <RegisterTable
                   busy={read.loading}
+                  actionPresentation={data.view === "records" ? "labels" : "icons"}
+                  actionWidth={data.view === "records" ? 320 : 80}
                   footer={<RegisterPager page={data.page} change={(page) => navigate({ page })} />}
                 >
                   <thead>
@@ -352,7 +355,7 @@ export function DataSourcesPage({
                                   className="br-btn"
                                   onClick={() => navigate({ entry: row.id })}
                                 >
-                                  {t("Open received record")}
+                                  {t("Open details")}
                                 </button>
                                 <button
                                   className="br-btn"
