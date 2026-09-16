@@ -2863,3 +2863,5 @@ Spec 209 master-data extension: Master data is a Workspace link after Finance, n
 ## ERP wording (spec 212)
 
 German, Dutch and Spanish operational controls use ordinary ERP vocabulary. Detail actions and overflow hints refer consistently to all record details. Master-data headings describe general data, commercial settings, inventory and purchasing. Recording remains distinct from completion; settlement remains distinct from cash payment; customer holds explicitly concern delivery. Document previews use a separate Delivery progress heading, leaving model-oriented Operational Reality and spec208 canonical nouns unchanged. Source values and numeric/date formatting are preserved.
+
+Spec 213: Projection freshness notices directly inside register surfaces have a 16px horizontal outer inset. Nested notices inherit their existing padded context, without a second margin. Preserve internal/vertical spacing, all freshness states and the refresh action on mobile and desktop.

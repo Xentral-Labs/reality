@@ -199,6 +199,60 @@ try {
       await page.getByText("INV-1", { exact: true }).waitFor();
     }
   }
+  const hideChat = page.getByRole("button", { name: "Hide chat", exact: true });
+  if (await hideChat.isVisible()) await hideChat.click();
+  // Shared notices align with register content, including wrapped mobile states.
+  for (const width of [1440, 390]) {
+    await page.setViewportSize({ width, height: 1000 });
+    for (projectionState of ["ready", "pending", "failed", "uninitialized"]) {
+      await page.locator("[data-projection-freshness] button").click();
+      const notice = page.locator(`[data-projection-freshness="${projectionState}"]`);
+      await notice.waitFor();
+      const dimensions = await notice.evaluate((node) => {
+        const card = node.closest(".register-surface");
+        const a = node.getBoundingClientRect(),
+          b = card.getBoundingClientRect();
+        const style = getComputedStyle(card);
+        return {
+          left: a.left - b.left - parseFloat(style.borderLeftWidth),
+          right: b.right - a.right - parseFloat(style.borderRightWidth),
+          overflow: node.scrollWidth > node.clientWidth,
+        };
+      });
+      assert.ok(Math.abs(dimensions.left - 16) < 1, JSON.stringify(dimensions));
+      assert.ok(Math.abs(dimensions.right - 16) < 1, JSON.stringify(dimensions));
+      assert.equal(dimensions.overflow, false);
+    }
+  }
+  // Already-padded and standalone contexts must not gain a second outer inset.
+  const margins = await page.locator("[data-projection-freshness]").evaluate((node) => {
+    const parent = node.parentNode,
+      next = node.nextSibling;
+    const wrapper = document.createElement("div");
+    wrapper.style.padding = "16px";
+    parent.insertBefore(wrapper, node);
+    wrapper.append(node);
+    const nested = getComputedStyle(node).marginLeft;
+    document.body.append(wrapper);
+    const standalone = getComputedStyle(node).marginLeft;
+    parent.insertBefore(node, next);
+    wrapper.remove();
+    return { nested, standalone };
+  });
+  assert.deepEqual(margins, { nested: "0px", standalone: "0px" });
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  projectionState = "ready";
+  await page.locator("[data-projection-freshness] button").click();
+  await page.locator('[data-projection-freshness="ready"]').waitFor();
+  if (process.env.NOTICE_SPACING_ONLY) {
+    assert.deepEqual(errors, []);
+    assert.equal(requests.filter((r) => r.method !== "GET").length, 0);
+    console.log(
+      "Notice spacing: desktop/mobile, four states, nested/standalone and refresh passed.",
+    );
+    await browser.close();
+    process.exit(0);
+  }
   const totals = await page.locator("[data-finance-controls]").innerText();
   assert.ok(totals.includes("EUR") && totals.includes("USD"));
   await page.getByRole("button", { name: "Next", exact: true }).click();
