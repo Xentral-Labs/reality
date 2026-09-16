@@ -253,7 +253,7 @@ def test_revised_held_order_keeps_requested_and_effective_due_dates(session, bus
         session, business.tenant.id, commitment.id, "manual_review", "Check destination"
     )
     result = operational_preview(session, business.tenant.id, "document", doc.id)
-    operational = next(s for s in result if s["title"] == "Operational Reality")
+    operational = next(s for s in result if s["title"] == "Delivery progress")
     assert operational["rows"][0]["display_parts"][0]["value"] == "3.0000"
     assert fields(result)["Due"]["value"].startswith("2026-09-22")
     assert fields(result)["Holds"]["value"] == "manual_review"

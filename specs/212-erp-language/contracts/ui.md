@@ -1,0 +1,2 @@
+# UI contract
+Keep lookup keys and action destinations stable except the document preview section title, which becomes `Delivery progress`. Translate that business heading independently of model-oriented Reality labels. The full detail action and overflow hint name the same destination. Original business names, units, source payloads, numbers and locale formatting are not rewritten. Canonical model nouns remain governed by spec208.

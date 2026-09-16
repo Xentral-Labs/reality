@@ -508,7 +508,7 @@ const dictionaries: Record<Exclude<Language, "en">, Record<string, string>> = {
     "Tracking observations": "Tracking-Beobachtungen",
     "No stock movement recorded": "Keine Warenbewegung erfasst",
     "Warehouse and carrier observations differ":
-      "Lager- und Frachtführerbeobachtungen weichen voneinander ab",
+      "Angaben aus dem Lager und vom Transportdienstleister weichen voneinander ab",
     "Search carrier, tracking number or shipment ID":
       "Frachtführer, Trackingnummer oder Sendungs-ID suchen",
     "Shipment ID": "Sendungs-ID",
@@ -759,15 +759,15 @@ const dictionaries: Record<Exclude<Language, "en">, Record<string, string>> = {
     "Conversion factor": "Umrechnungsfaktor",
     "Lead time (days)": "Lieferzeit (Tage)",
     "Parent location": "Übergeordneter Lagerort",
-    "Allows physical stock": "Erlaubt physischen Bestand",
+    "Allows physical stock": "Bestandsführung erlaubt",
     Stocked: "Lagerartikel",
     Service: "Dienstleistung",
     Charge: "Gebühr",
     "No tracking": "Keine Nachverfolgung",
     Serial: "Seriennummer",
-    Identity: "Identität",
-    "Commercial defaults": "Kaufmännische Vorgaben",
-    "Inventory behaviour": "Bestandsverhalten",
+    Identity: "Grunddaten",
+    "Commercial defaults": "Kaufmännische Einstellungen",
+    "Inventory behaviour": "Lager und Beschaffung",
     Hierarchy: "Hierarchie",
     "Reviewed revision": "Geprüfte Revision",
     "Choices could not be loaded.": "Auswahlwerte konnten nicht geladen werden.",
@@ -785,13 +785,13 @@ const dictionaries: Record<Exclude<Language, "en">, Record<string, string>> = {
     "Prepare a change, review it, then confirm. Nothing is recorded yet.":
       "Änderung vorbereiten, prüfen und bestätigen. Noch wird nichts erfasst.",
     "A prepared request is saved. Check it before starting another change.":
-      "Ein vorbereiteter Auftrag ist gespeichert. Prüfe ihn, bevor du eine weitere Änderung startest.",
-    "Check prepared request": "Vorbereiteten Auftrag prüfen",
+      "Eine vorbereitete Änderung ist gespeichert. Prüfe sie, bevor du eine weitere Änderung beginnst.",
+    "Check prepared request": "Vorbereitete Änderung prüfen",
     "Prepare change": "Änderung vorbereiten",
-    "Edit request": "Auftrag bearbeiten",
+    "Edit request": "Änderung bearbeiten",
     "The people, products and places behind your operations.":
       "Die Menschen, Produkte und Orte hinter deinen Abläufen.",
-    "Resume request": "Auftrag fortsetzen",
+    "Resume request": "Änderung fortsetzen",
     "Search master data": "Stammdaten durchsuchen",
     "Search by name, SKU or ID": "Nach Name, SKU oder ID suchen",
     "Include inactive": "Inaktive einbeziehen",
@@ -1095,7 +1095,7 @@ const dictionaries: Record<Exclude<Language, "en">, Record<string, string>> = {
     "Business data received": "Geschäftsdaten empfangen",
     "Business data processed": "Geschäftsdaten verarbeitet",
     "Business change recorded": "Geschäftliche Änderung erfasst",
-    "Business context": "Geschäftlicher Zusammenhang",
+    "Business context": "Zugehörige Geschäftsdaten",
     "Current recorded position": "Aktueller Stand",
     "Business area": "Geschäftsbereich",
     "Customer orders": "Kundenaufträge",
@@ -1624,7 +1624,7 @@ const dictionaries: Record<Exclude<Language, "en">, Record<string, string>> = {
     "30 days": "30 Tage",
     Now: "Jetzt",
     "Inventory control": "Bestandssteuerung",
-    Physical: "Physisch",
+    Physical: "Physischer Bestand",
     Reserved: "Reserviert",
     Available: "Verfügbar",
     Incoming: "Eingehend",
@@ -2373,7 +2373,8 @@ const dictionaries: Record<Exclude<Language, "en">, Record<string, string>> = {
     "Physical contents": "Fysieke inhoud",
     "Tracking observations": "Trackingwaarnemingen",
     "No stock movement recorded": "Geen voorraadbeweging vastgelegd",
-    "Warehouse and carrier observations differ": "Magazijn- en vervoerderswaarnemingen verschillen",
+    "Warehouse and carrier observations differ":
+      "De gegevens van het magazijn en de vervoerder komen niet overeen",
     "Search carrier, tracking number or shipment ID":
       "Zoek vervoerder, trackingnummer of zendings-ID",
     "Shipment ID": "Zendings-ID",
@@ -2624,15 +2625,15 @@ const dictionaries: Record<Exclude<Language, "en">, Record<string, string>> = {
     "Conversion factor": "Omrekeningsfactor",
     "Lead time (days)": "Levertijd (dagen)",
     "Parent location": "Bovenliggende locatie",
-    "Allows physical stock": "Staat fysieke voorraad toe",
+    "Allows physical stock": "Voorraad toegestaan",
     Stocked: "Voorraadartikel",
     Service: "Dienst",
     Charge: "Toeslag",
     "No tracking": "Geen tracering",
     Serial: "Serienummer",
-    Identity: "Identiteit",
-    "Commercial defaults": "Commerciële standaardwaarden",
-    "Inventory behaviour": "Voorraadgedrag",
+    Identity: "Basisgegevens",
+    "Commercial defaults": "Commerciële instellingen",
+    "Inventory behaviour": "Voorraad en inkoop",
     Hierarchy: "Hiërarchie",
     "Reviewed revision": "Beoordeelde revisie",
     "Choices could not be loaded.": "Keuzes konden niet worden geladen.",
@@ -2650,13 +2651,13 @@ const dictionaries: Record<Exclude<Language, "en">, Record<string, string>> = {
     "Prepare a change, review it, then confirm. Nothing is recorded yet.":
       "Bereid een wijziging voor, controleer en bevestig. Er wordt nog niets vastgelegd.",
     "A prepared request is saved. Check it before starting another change.":
-      "Er is een voorbereide opdracht opgeslagen. Controleer deze voordat je een nieuwe wijziging start.",
-    "Check prepared request": "Voorbereide opdracht controleren",
+      "Er is een voorbereide wijziging opgeslagen. Controleer deze voordat je een nieuwe wijziging start.",
+    "Check prepared request": "Voorbereide wijziging controleren",
     "Prepare change": "Wijziging voorbereiden",
-    "Edit request": "Opdracht bewerken",
+    "Edit request": "Wijziging bewerken",
     "The people, products and places behind your operations.":
       "De mensen, producten en locaties achter je activiteiten.",
-    "Resume request": "Opdracht hervatten",
+    "Resume request": "Wijziging hervatten",
     "Search master data": "Stamgegevens doorzoeken",
     "Search by name, SKU or ID": "Zoeken op naam, SKU of ID",
     "Include inactive": "Inactieve opnemen",
@@ -2962,7 +2963,7 @@ const dictionaries: Record<Exclude<Language, "en">, Record<string, string>> = {
     "Business data received": "Bedrijfsgegevens ontvangen",
     "Business data processed": "Bedrijfsgegevens verwerkt",
     "Business change recorded": "Bedrijfswijziging vastgelegd",
-    "Business context": "Bedrijfscontext",
+    "Business context": "Gerelateerde gegevens",
     "Current recorded position": "Huidige vastgelegde stand",
     "Business area": "Bedrijfsgebied",
     "All business areas": "Alle bedrijfsgebieden",
@@ -3402,7 +3403,7 @@ const dictionaries: Record<Exclude<Language, "en">, Record<string, string>> = {
     "Live activity": "Live-activiteit",
     "Events today": "Gebeurtenissen vandaag",
     "Orders processed": "Verwerkte orders",
-    Physical: "Fysiek",
+    Physical: "Fysieke voorraad",
     Reserved: "Gereserveerd",
     Available: "Beschikbaar",
     Incoming: "Inkomend",
@@ -3938,7 +3939,7 @@ const dictionaries: Record<Exclude<Language, "en">, Record<string, string>> = {
     "Tracking observations": "Observaciones de seguimiento",
     "No stock movement recorded": "No se registró ningún movimiento de existencias",
     "Warehouse and carrier observations differ":
-      "Las observaciones del almacén y del transportista difieren",
+      "Los datos del almacén y del transportista no coinciden",
     "Search carrier, tracking number or shipment ID":
       "Buscar transportista, número de seguimiento o ID de envío",
     "Shipment ID": "ID de envío",
@@ -4192,15 +4193,15 @@ const dictionaries: Record<Exclude<Language, "en">, Record<string, string>> = {
     "Conversion factor": "Factor de conversión",
     "Lead time (days)": "Plazo de entrega (días)",
     "Parent location": "Ubicación superior",
-    "Allows physical stock": "Permite stock físico",
+    "Allows physical stock": "Permite almacenar existencias",
     Stocked: "Almacenable",
     Service: "Servicio",
     Charge: "Cargo",
     "No tracking": "Sin seguimiento",
     Serial: "Número de serie",
-    Identity: "Identidad",
-    "Commercial defaults": "Valores comerciales predeterminados",
-    "Inventory behaviour": "Comportamiento de inventario",
+    Identity: "Datos generales",
+    "Commercial defaults": "Condiciones comerciales",
+    "Inventory behaviour": "Inventario y compras",
     Hierarchy: "Jerarquía",
     "Reviewed revision": "Revisión revisada",
     "Choices could not be loaded.": "No se pudieron cargar las opciones.",
@@ -4531,7 +4532,7 @@ const dictionaries: Record<Exclude<Language, "en">, Record<string, string>> = {
     "Business data received": "Datos comerciales recibidos",
     "Business data processed": "Datos comerciales procesados",
     "Business change recorded": "Cambio comercial registrado",
-    "Business context": "Contexto comercial",
+    "Business context": "Datos relacionados",
     "Current recorded position": "Situación registrada actual",
     "Business area": "Área de negocio",
     "All business areas": "Todas las áreas",
@@ -4971,7 +4972,7 @@ const dictionaries: Record<Exclude<Language, "en">, Record<string, string>> = {
     "Live activity": "Actividad en vivo",
     "Events today": "Eventos de hoy",
     "Orders processed": "Pedidos procesados",
-    Physical: "Físico",
+    Physical: "Existencias físicas",
     Reserved: "Reservado",
     Available: "Disponible",
     Incoming: "Entrante",
@@ -5659,7 +5660,7 @@ Object.assign(dictionaries.de, {
     "Gemeinsame Read Models aus dem Sandbox-Journal — keine Bestandsberechnung im Browser.",
   "Event sequence": "Event-Sequenz",
   "Inventory view": "Bestandsansicht",
-  Physical: "Physisch",
+  Physical: "Physischer Bestand",
   Available: "Verfügbar",
   "No inventory rows yet.": "Noch keine Bestandszeilen.",
   Exceptions: "Exceptions",
@@ -6743,7 +6744,7 @@ Object.assign(dictionaries.nl, {
   "All states": "Alle staten",
   "All stock states": "Alle voorraadstatus",
   "All tools": "Alle gereedschap",
-  Allocated: "Toegekend",
+  Allocated: "Toegewezen",
   "Allow all tools": "Laat alle gereedschap toe",
   "Allow physical stock at this location": "Laat fysieke voorraad toe op deze locatie",
   "Already have access? Sign in": "Heb je al toegang? Log in",
@@ -7186,7 +7187,7 @@ Object.assign(dictionaries.nl, {
   "Observe what matters": "Wat belangrijk is observeren",
   "Observed cash postings and their current allocation state.":
     "Gezette contante transacties en hun huidige status",
-  Occurred: "Gebeurd",
+  Occurred: "Tijdstip",
   "One exception. One explainable resolution.": "Eén uitzondering. Eén uitlegbare oplossing.",
   "One operational core for facts, decisions and accountable automation.":
     "Een operationeel kern voor feiten, beslissingen en verantwoorde automatisering.",
@@ -7414,7 +7415,7 @@ Object.assign(dictionaries.nl, {
   "Selected payloads flow from existing systems into Reality":
     "Geselecteerde payloads stromen van bestaande systemen naar Reality",
   Send: "Verstuur",
-  Settled: "Afgehandeld",
+  Settled: "Vereffend",
   "Shared application service": "Gedeelde applicatieservice",
   "shared application tools. Mutations still require the Reality approval boundary.":
     "Gedeelde applicatie-tools. Mutaties vereisen nog steeds de Reality-goedkeuringsgrens.",
@@ -8119,7 +8120,7 @@ Object.assign(dictionaries.es, {
   "Observe what matters": "Observar lo que es importante",
   "Observed cash postings and their current allocation state.":
     "Registrar las transacciones de efectivo y su estado actual de asignación.",
-  Occurred: "Ocurrió",
+  Occurred: "Fecha y hora",
   "One exception. One explainable resolution.": "Una excepción. Una solución explicable.",
   "One operational core for facts, decisions and accountable automation.":
     "Un núcleo operativo para hechos, decisiones y automatización responsable.",
@@ -8346,7 +8347,7 @@ Object.assign(dictionaries.es, {
   "Selected payloads flow from existing systems into Reality":
     "Las cargas seleccionadas fluyen de los sistemas existentes a Reality",
   Send: "Enviar",
-  Settled: "Resuelto",
+  Settled: "Liquidado",
   "Shared application service": "Servicio de aplicación compartido",
   "shared application tools. Mutations still require the Reality approval boundary.":
     "herramientas de aplicación compartidas. Las mutaciones aún requieren el límite de aprobación de Reality.",
@@ -11328,7 +11329,7 @@ Object.assign(dictionaries.es, { "Check status": "Comprobar estado" });
 Object.assign(dictionaries.de, {
   "Place customer delivery hold": "Kundenlieferungen sperren",
   "Release customer delivery hold": "Kundensperre freigeben",
-  "Customer delivery holds": "Kundensperren",
+  "Customer delivery holds": "Liefersperren für Kunden",
   "Pause shipments for this customer’s current and future deliveries.":
     "Stoppt Versandbuchungen für aktuelle und zukünftige Lieferungen dieses Kunden.",
   "Release this customer’s shipment hold. Individual delivery holds still apply.":
@@ -11361,7 +11362,7 @@ Object.assign(dictionaries.de, {
 Object.assign(dictionaries.nl, {
   "Place customer delivery hold": "Klantleveringen blokkeren",
   "Release customer delivery hold": "Klantblokkade vrijgeven",
-  "Customer delivery holds": "Klantblokkades",
+  "Customer delivery holds": "Leveringsblokkades voor klanten",
   "Pause shipments for this customer’s current and future deliveries.":
     "Blokkeert verzendingen voor huidige en toekomstige leveringen van deze klant.",
   "Release this customer’s shipment hold. Individual delivery holds still apply.":
@@ -11394,7 +11395,7 @@ Object.assign(dictionaries.nl, {
 Object.assign(dictionaries.es, {
   "Place customer delivery hold": "Bloquear entregas del cliente",
   "Release customer delivery hold": "Liberar bloqueo del cliente",
-  "Customer delivery holds": "Bloqueos del cliente",
+  "Customer delivery holds": "Bloqueos de entrega al cliente",
   "Pause shipments for this customer’s current and future deliveries.":
     "Bloquea los envíos de las entregas actuales y futuras de este cliente.",
   "Release this customer’s shipment hold. Individual delivery holds still apply.":
@@ -14062,17 +14063,17 @@ Object.assign(dictionaries.es, { "Context Graph": "Context Graph" });
 Object.assign(dictionaries.de, {
   Preview: "Vorschau",
   "Close preview": "Vorschau schließen",
-  "Open full explanation": "Vollständige Erklärung öffnen",
+  "Open full explanation": "Alle Details anzeigen",
 });
 Object.assign(dictionaries.nl, {
   Preview: "Voorbeeld",
   "Close preview": "Voorbeeld sluiten",
-  "Open full explanation": "Volledige uitleg openen",
+  "Open full explanation": "Alle details bekijken",
 });
 Object.assign(dictionaries.es, {
   Preview: "Vista previa",
   "Close preview": "Cerrar vista previa",
-  "Open full explanation": "Abrir explicación completa",
+  "Open full explanation": "Ver todos los detalles",
 });
 
 // Master data names its primary action after the family it creates (spec 165).
@@ -14846,7 +14847,7 @@ Object.assign(dictionaries.de, {
   Read: "Lesen",
   read: "lesen",
   Records: "Datensätze",
-  Recorded: "Aufgezeichnet",
+  Recorded: "Erfasst",
   "Refused by the system": "Vom System abgelehnt",
   Result: "Ergebnis",
   "solid lines are new links": "durchgezogene Linien sind neue Verknüpfungen",
@@ -15891,7 +15892,7 @@ Object.assign(dictionaries.es, {
 // Spec 182: the storyline narrator reads as a conversation.
 Object.assign(dictionaries.de, {
   Send: "Senden",
-  Recorded: "Erledigt",
+  Recorded: "Erfasst",
   "Your message": "Deine Nachricht",
   "Suggested by the storyline. You can change it.":
     "Von der Storyline vorgeschlagen. Ändern ist erlaubt.",
@@ -15949,7 +15950,7 @@ Object.assign(dictionaries.de, {
   "Committed / reserved / fulfilled / open": "Zugesagt / reserviert / erfüllt / offen",
   "No recorded details.": "Keine Angaben erfasst.",
   "More records are available in the full explanation.":
-    "Weitere Einträge findest du in der vollständigen Erklärung.",
+    "Weitere Einträge findest du unter „Alle Details anzeigen“.",
   "Recorded at": "Erfasst am",
   incoming: "Eingehend",
   outgoing: "Ausgehend",
@@ -15968,8 +15969,7 @@ Object.assign(dictionaries.nl, {
   "Debit / credit": "Debet / credit",
   "Committed / reserved / fulfilled / open": "Toegezegd / gereserveerd / uitgevoerd / open",
   "No recorded details.": "Geen gegevens vastgelegd.",
-  "More records are available in the full explanation.":
-    "Meer gegevens staan in de volledige uitleg.",
+  "More records are available in the full explanation.": "Bekijk alle details voor meer gegevens.",
   "Recorded at": "Vastgelegd op",
   incoming: "Inkomend",
   outgoing: "Uitgaand",
@@ -15989,7 +15989,7 @@ Object.assign(dictionaries.es, {
   "Committed / reserved / fulfilled / open": "Comprometido / reservado / cumplido / pendiente",
   "No recorded details.": "No hay detalles registrados.",
   "More records are available in the full explanation.":
-    "Hay más registros en la explicación completa.",
+    "Consulta todos los detalles para ver más registros.",
   "Recorded at": "Registrado el",
   incoming: "Entrante",
   outgoing: "Saliente",
@@ -16002,7 +16002,7 @@ Object.assign(dictionaries.de, {
   Holds: "Sperren",
   Packages: "Pakete",
   "Effective physical contents": "Erfasste Warenbewegungen",
-  "Current tracking observations": "Aktuelle Trackingmeldungen",
+  "Current tracking observations": "Aktuelle Sendungsmeldungen",
   Effective: "Buchungsdatum",
   "Financial Reality": "Finanzieller Stand",
   Committed: "Zugesagt",
@@ -16016,7 +16016,7 @@ Object.assign(dictionaries.nl, {
   Holds: "Blokkades",
   Packages: "Pakketten",
   "Effective physical contents": "Vastgelegde goederenbewegingen",
-  "Current tracking observations": "Actuele trackingmeldingen",
+  "Current tracking observations": "Actuele verzendmeldingen",
   Effective: "Boekingsdatum",
   "Financial Reality": "Financiële stand",
   Committed: "Toegezegd",
@@ -16029,8 +16029,8 @@ Object.assign(dictionaries.nl, {
 Object.assign(dictionaries.es, {
   Holds: "Bloqueos",
   Packages: "Paquetes",
-  "Effective physical contents": "Movimientos físicos registrados",
-  "Current tracking observations": "Observaciones actuales de seguimiento",
+  "Effective physical contents": "Movimientos de mercancías registrados",
+  "Current tracking observations": "Últimas actualizaciones del envío",
   Effective: "Fecha contable",
   "Financial Reality": "Situación financiera",
   Committed: "Comprometido",
@@ -16055,3 +16055,8 @@ Object.assign(dictionaries.es, {
   "Handed over": "Entregado al transportista",
   "Delivery exception": "Incidencia de entrega",
 });
+
+// Spec 212: delivery progress is a business heading, separate from Reality terminology.
+Object.assign(dictionaries.de, { "Delivery progress": "Lieferstatus" });
+Object.assign(dictionaries.nl, { "Delivery progress": "Leveringsvoortgang" });
+Object.assign(dictionaries.es, { "Delivery progress": "Estado de entrega" });

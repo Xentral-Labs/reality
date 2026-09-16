@@ -331,7 +331,7 @@ await page.route("**/api/**", async (route) => {
                   },
                 ],
               },
-              { title: "Current tracking observations", rows: [] },
+              { title: "Delivery progress", rows: [] },
             ],
           }
         : {}),
