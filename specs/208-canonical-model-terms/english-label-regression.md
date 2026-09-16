@@ -26,3 +26,7 @@ The browser confirms exact Commitments navigation in en/de/nl/es, including mobi
 legacy links and back/forward. No browser errors or writes. Reviewed the six-line
 resolver change: catalog initialization remains lazy and cached, with no business
 logic, authority or original-payload changes. Existing large-bundle advisory only.
+
+CI follow-up: the changed-file policy requires the numbered `spec.md` itself to
+change. Added the existing FR-003 acceptance regression there and verified with
+`python3 scripts/check_spec_policy.py --base-ref origin/main`, matching CI scope.
