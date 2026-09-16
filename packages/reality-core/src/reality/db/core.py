@@ -689,6 +689,13 @@ class SourceSystem(Base):
     code: Mapped[str] = mapped_column(String)
     name: Mapped[str] = mapped_column(String)
     description: Mapped[str] = mapped_column(Text, default="")
+    # The external system's own interface for this instance, so a record can be
+    # opened where it is owned. Configuration only: never a credential, never called.
+    base_url: Mapped[str | None] = mapped_column(Text, default=None)
+    # The catalog connector this instance was installed from. It is the only
+    # association between an instance and a connector; null means none is known,
+    # which is the state a hand-created system has.
+    connector_code: Mapped[str | None] = mapped_column(String, default=None)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
     created_at: Mapped[datetime] = mapped_column(UTCDateTime, default=now)
     updated_at: Mapped[datetime] = mapped_column(UTCDateTime, default=now)

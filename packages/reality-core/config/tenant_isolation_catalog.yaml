@@ -324,6 +324,7 @@ families:
       - reality.services.core:set_master_data_active
       - reality.services.core:set_source_capability_active
       - reality.services.core:set_source_system_active
+      - reality.services.core:set_source_system_base_url
       - reality.services.core:store_source_record
       - reality.services.core:update_item
       - reality.services.core:update_items

@@ -1,12 +1,14 @@
 import { useContextActions } from "./ActionLauncher";
 import { PageActionBar } from "./PageActionBar";
 import { isPurchasing } from "./pageIntroduction";
-import { Fragment, useLayoutEffect, useRef } from "react";
+import { Fragment, useLayoutEffect, useRef, useState } from "react";
 import { DeliveryCase } from "./DeliveryCase";
 import { RegisterWorkbench, RegisterHeader, RegisterToolbar } from "./RegisterWorkbench";
 import { useRegisterQuery } from "./TableContext";
 import { RegisterTable } from "./RegisterTable";
 import { api, deliveryApi, type DeliveryRow, type DocumentRow, type Page } from "../api";
+import { Inspector } from "./Inspector";
+import { SourceBadge } from "./SourceBadge";
 import { formatDateTime, formatMoney, formatNumber, formatQuantity, t } from "../localization";
 import { ReadState } from "./ReadState";
 import { InlineInspector, PreviewButton, TablePreview } from "./InlinePreview";
@@ -50,6 +52,7 @@ export function OrdersPage({
     onOpen: () => create?.(purchasing ? "purchase" : "sales"),
   });
   const table = useRegisterQuery();
+  const [target, setTarget] = useState<{ kind: string; id: string } | null>(null);
   const listScroll = useRef(0);
   const openCommitment = (id: string) => {
     listScroll.current = window.scrollY;
@@ -322,6 +325,7 @@ export function OrdersPage({
                           "Date",
                           "Recorded amount",
                           "Lines",
+                          "Origin",
                           "Actions",
                         ].map((label) => (
                           <th
@@ -339,9 +343,6 @@ export function OrdersPage({
                           <tr data-orders-row={row.id}>
                             <td className={cell}>
                               <p className="font-medium text-fg-strong">{row.number || row.id}</p>
-                              <p className="mt-1 text-fg-muted">
-                                {row.source?.system || t("No linked source")}
-                              </p>
                             </td>
                             <td className={cell}>{row.party || t("Unknown party")}</td>
                             <td className={cell}>{row.date || "—"}</td>
@@ -349,6 +350,9 @@ export function OrdersPage({
                               {formatMoney(row.gross_amount, row.currency)}
                             </td>
                             <td className={`${cell} text-right`}>{formatNumber(row.line_count)}</td>
+                            <td className={cell}>
+                              <SourceBadge origin={row.origin} inspect={setTarget} />
+                            </td>
                             <td className={cell}>
                               <PreviewButton
                                 open={entry === row.id}
@@ -361,7 +365,7 @@ export function OrdersPage({
                           <TablePreview
                             id={`order-preview-${row.id}`}
                             open={entry === row.id}
-                            columns={6}
+                            columns={7}
                           >
                             <InlineInspector
                               tenant={tenant}
@@ -406,6 +410,7 @@ export function OrdersPage({
           receive={receive}
         />
       )}
+      {target && <Inspector tenant={tenant} target={target} close={() => setTarget(null)} />}
     </>
   );
 }

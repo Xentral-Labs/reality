@@ -184,7 +184,7 @@ export function InspectorContent({
         </section>
       ))}
       {!compact && data.source_payload && (
-        <details className="mt-5">
+        <details className="mt-5" data-source-payload>
           <summary>{t("Original source")}</summary>
           <pre
             data-original-content
@@ -192,6 +192,11 @@ export function InspectorContent({
           >
             {data.source_payload}
           </pre>
+          {data.source_payload_truncated && (
+            <p className="mt-2 text-sm text-fg-muted" data-source-payload-truncated>
+              {t("Only the beginning of the original source is shown.")}
+            </p>
+          )}
         </details>
       )}
     </div>

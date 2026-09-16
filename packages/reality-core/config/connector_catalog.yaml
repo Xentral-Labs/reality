@@ -1,10 +1,16 @@
 version: 1
 title: Mock Connector Shells
 description: Common source definitions without credentials, transport, mapping, or vendor API calls.
+notes:
+  deep_links: >-
+    Optional relative address per source type, appended to the base address a tenant
+    configures on its own source system. The only placeholder is {external_id}. A
+    connector without a template simply offers no link; nothing is guessed. Templates
+    are added per connector once their address shape is confirmed against the vendor.
 connectors:
   - {code: demo_data, name: Demo Data, category: Synthetic, capabilities: {order: sales_order, invoice: sales_invoice, payment: payment}}
-  - {code: shopify, name: Shopify, category: Commerce, capabilities: {order: sales_order, product: item, customer: party, fulfillment: fulfillment, refund: sales_refund}}
-  - {code: stripe, name: Stripe, category: Payments, capabilities: {payment_intent: payment, charge: payment, refund: payment_refund, payout: payout}}
+  - {code: shopify, name: Shopify, category: Commerce, capabilities: {order: sales_order, product: item, customer: party, fulfillment: fulfillment, refund: sales_refund}, deep_links: {order: 'orders/{external_id}', product: 'products/{external_id}', customer: 'customers/{external_id}'}}
+  - {code: stripe, name: Stripe, category: Payments, capabilities: {payment_intent: payment, charge: payment, refund: payment_refund, payout: payout}, deep_links: {payment_intent: 'payments/{external_id}', charge: 'payments/{external_id}', refund: 'refunds/{external_id}', payout: 'payouts/{external_id}'}}
   - {code: shopify_payments, name: Shopify Payments, category: Payments, capabilities: {transaction: payment, payout: payout, dispute: payment_dispute}}
   - {code: odoo, name: Odoo, category: ERP, capabilities: {sale.order: sales_order, purchase.order: purchase_order, product.product: item, res.partner: party, account.move: financial_document}}
   - {code: xentral, name: Xentral, category: ERP, capabilities: {order: sales_order, purchase_order: purchase_order, article: item, contact: party, payment: payment}}
@@ -12,7 +18,7 @@ connectors:
   - {code: billbee, name: Billbee, category: Commerce, capabilities: {order: sales_order, article: item, customer: party, shipment: fulfillment, invoice: sales_invoice}}
   - {code: easybill, name: easybill, category: Invoicing, capabilities: {invoice: sales_invoice, customer: party, payment: payment}}
   - {code: salesforce, name: Salesforce, category: CRM, capabilities: {account: party, contact: party, opportunity: sales_opportunity}}
-  - {code: hubspot, name: HubSpot, category: CRM, capabilities: {company: party, contact: party, deal: sales_opportunity}}
+  - {code: hubspot, name: HubSpot, category: CRM, capabilities: {company: party, contact: party, deal: sales_opportunity}, deep_links: {company: 'record/0-2/{external_id}', contact: 'record/0-1/{external_id}', deal: 'record/0-3/{external_id}'}}
   - {code: dynamics365, name: Microsoft Dynamics 365, category: CRM, capabilities: {account: party, contact: party, salesorder: sales_order}}
   - {code: akeneo, name: Akeneo, category: PIM, capabilities: {product: item, product_model: item, family: item_classification}}
   - {code: pimcore, name: Pimcore, category: PIM, capabilities: {product: item, product_variant: item, category: item_classification}}

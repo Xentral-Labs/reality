@@ -158,6 +158,7 @@ from reality.services.core import (
     set_master_data_active,
     set_source_capability_active,
     set_source_system_active,
+    set_source_system_base_url,
     source_capabilities,
     source_records,
     source_systems,
@@ -1652,6 +1653,14 @@ def tenant_evidence_documents(
         if party_ids
         else {}
     )
+    from reality.services.provenance import record_origins
+
+    origins = record_origins(
+        session,
+        tenant_id,
+        [document for document, _, _, _ in rows],
+        subject_type="document",
+    )
     return {
         "items": [
             {
@@ -1672,6 +1681,7 @@ def tenant_evidence_documents(
                 }
                 if source
                 else None,
+                "origin": _origin_response(origins.get(document.id)),
                 "status": document.status,
             }
             for document, source, lines, commitments in rows
@@ -1973,6 +1983,8 @@ def tenant_integrations(tenant_id: str, session: DatabaseSession):
                 "name": system.name,
                 "description": system.description,
                 "is_active": system.is_active,
+                "base_url": system.base_url,
+                "connector_code": system.connector_code,
                 "record_count": registry["record_counts"].get(system.code, 0),
             }
             for system in registry["systems"]
@@ -2055,6 +2067,15 @@ def _iso_value(value):
     if value is None:
         return None
     return value.isoformat() if hasattr(value, "isoformat") else str(value)
+
+
+def _origin_response(origin: dict | None) -> dict | None:
+    """One transport shape for record origin, identical on every surface."""
+    if not origin:
+        return None
+    if origin["kind"] != "source":
+        return {key: value for key, value in origin.items()}
+    return {**origin, "received_at": _iso_value(origin["received_at"])}
 
 
 def _inventory_response(row):
@@ -2565,8 +2586,14 @@ class SourceSystemRead(SourceSystemWrite):
     id: str
     tenant_id: str
     is_active: bool
+    base_url: str | None = None
+    connector_code: str | None = None
     created_at: datetime
     updated_at: datetime
+
+
+class BaseUrlWrite(ApiModel):
+    base_url: str = ""
 
 
 class SourceCapabilityWrite(ApiModel):
@@ -2994,6 +3021,17 @@ def patch_source_system_active(
 ):
     try:
         return set_source_system_active(session, tenant_id, record_id, body.is_active)
+    except (NotFound, InvalidOperation) as error:
+        raise api_error(error) from error
+
+
+@router.patch("/source-systems/{record_id}/base-url", response_model=SourceSystemRead)
+def patch_source_system_base_url(
+    tenant_id: str, record_id: str, body: BaseUrlWrite, session: DatabaseSession
+):
+    """Configure where this system's records can be opened, or clear the address."""
+    try:
+        return set_source_system_base_url(session, tenant_id, record_id, body.base_url)
     except (NotFound, InvalidOperation) as error:
         raise api_error(error) from error
 

@@ -287,6 +287,7 @@ export type CommitmentRow = {
   document_id: string | null;
 };
 export type DocumentRow = {
+  origin?: import("./unified/SourceBadge").RecordOrigin | null;
   id: string;
   date: string | null;
   type: string;
@@ -502,6 +503,8 @@ export type SourceSystemRow = {
   name: string;
   description: string;
   is_active: boolean;
+  base_url?: string | null;
+  connector_code?: string | null;
   record_count: number;
 };
 export type ConnectorShell = {
@@ -796,6 +799,7 @@ export type InspectorData = {
   sections: { title: string; rows: InspectorRow[] }[];
   events: { type: string; occurred_at: string; subject_type: string; subject_id: string }[];
   source_payload: string | null;
+  source_payload_truncated?: boolean;
 };
 export type Page = {
   number: number;
@@ -1923,6 +1927,11 @@ export const api = {
       method: "PATCH",
       body: JSON.stringify({ is_active: isActive }),
     }),
+  setSourceSystemBaseUrl: (tenant: string, id: string, baseUrl: string) =>
+    request<SourceSystemRow>(`/api/tenants/${tenant}/source-systems/${id}/base-url`, {
+      method: "PATCH",
+      body: JSON.stringify({ base_url: baseUrl }),
+    }),
   setSourceCapabilityActive: (tenant: string, id: string, isActive: boolean) =>
     request<SourceCapabilityRow>(`/api/tenants/${tenant}/source-capabilities/${id}/active`, {
       method: "PATCH",
@@ -2165,6 +2174,7 @@ export type Insights = {
   coverage: string;
 };
 export type ReferenceRow = {
+  origin?: import("./unified/SourceBadge").RecordOrigin | null;
   accounting_code?: string;
   payment_term_code?: string;
   payment_term_name?: string;
@@ -2183,6 +2193,7 @@ export type ReferenceRow = {
 };
 export type ReferenceDetail = ReferenceRow & {
   preview_sections?: InspectorData["preview_sections"];
+  contributing_systems?: string[];
   expected_revision: string;
   source_record_id?: string;
   roles?: string[];

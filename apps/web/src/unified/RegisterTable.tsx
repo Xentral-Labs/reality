@@ -49,32 +49,32 @@ function text(value: ReactNode): string {
 type Profile = { widths: number[]; sorts: (string | null)[] };
 const profiles: Record<string, Profile> = {
   "master-data:customer": {
-    widths: [240, 130, 140, 90, 90, 80],
-    sorts: ["name", null, null, null, "status"],
+    widths: [240, 130, 140, 90, 180, 90, 80],
+    sorts: ["name", null, null, null, null, "status"],
   },
   "master-data:supplier": {
-    widths: [240, 130, 140, 90, 90, 80],
-    sorts: ["name", null, null, null, "status"],
+    widths: [240, 130, 140, 90, 180, 90, 80],
+    sorts: ["name", null, null, null, null, "status"],
   },
   "master-data:location": {
-    widths: [220, 120, 200, 120, 90, 80],
-    sorts: ["name", null, null, null, "status"],
+    widths: [220, 120, 200, 120, 180, 90, 80],
+    sorts: ["name", null, null, null, null, "status"],
   },
   "master-data:item": {
-    widths: [240, 120, 80, 100, 180, 90, 80],
-    sorts: ["name", null, null, null, null, "status"],
+    widths: [240, 120, 80, 100, 180, 180, 90, 80],
+    sorts: ["name", null, null, null, null, null, "status"],
   },
   "orders-deliveries:deliveries": {
     widths: [220, 220, 180, 130, 100, 100, 100, 100, 80],
     sorts: ["counterparty", "item", null, "due_at", null, null, "open", "status"],
   },
   "orders-deliveries:customer-orders": {
-    widths: [150, 220, 130, 130, 80, 80],
-    sorts: ["number", null, "date", "amount"],
+    widths: [150, 220, 130, 130, 80, 180, 80],
+    sorts: ["number", null, "date", "amount", null, null],
   },
   "orders-deliveries:supplier-orders": {
-    widths: [150, 220, 130, 130, 80, 80],
-    sorts: ["number", null, "date", "amount"],
+    widths: [150, 220, 130, 130, 80, 180, 80],
+    sorts: ["number", null, "date", "amount", null, null],
   },
   "warehouse:stock": {
     widths: [280, 100, 100, 100, 80],
