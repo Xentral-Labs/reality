@@ -2301,9 +2301,9 @@ See spec 151 FR-001–002.
 
 ## Inspector navigation (spec138 FR-029)
 
-The four destinations are Context, Facts, Rules and Actions (German: Kontext, Fakten, Regeln, Aktionen). Context offers Timeline then Record graph. Facts is one paginated register with a type filter; a secondary, lazy Technical record overview retains raw grouped records. Facts offers All records followed by Calculated views; the latter are explicitly derived results, not newly stored facts. Rules offers Fact rules and Exception rules. Actions opens Event history before Action catalog. Old records links resolve to the unified register with their query and tenant preserved.
+The four Inspector destinations are Business Graph, Business Facts, Event history and Available actions (spec 218). Business Graph offers Timeline then Record graph. Business Facts is one paginated register with a type filter; a secondary, lazy Technical record overview retains raw grouped records. Its tabs are All records, Calculated views and Fact rules; calculated views are explicitly derived results, not newly stored facts. Exception rules are a tab of Exceptions beside Open exceptions. Old records links resolve to the unified register with their query and tenant preserved.
 
-Facts is an umbrella navigation term for recorded business information, not a change to the typed Fact model. The technical Fact family is labelled Additional facts in the type filter; sources, evidence and operational records retain their distinct identities and authority. The rules that create those records follow the same label: the first Rules tab is Additional fact rules (German Regeln für zusätzliche Fakten), and every UI sentence about such a rule says Additional fact rule, so the register and the rules that fill it use one name (spec 191). The rule type itself, its commands and its tool descriptions keep the technical name Fact rule.
+Facts is an umbrella navigation term for recorded business information, not a change to the typed Fact model. The technical Fact family is labelled Additional facts in the type filter; sources, evidence and operational records retain their distinct identities and authority. The rules that create those records follow the same label: the Business Facts rule tab is Fact rules (German Fact-Regeln, spec 218), and every UI sentence about such a rule says Additional fact rule, so the register and the rules that fill it use one name (spec 191). The rule type itself, its commands and its tool descriptions keep the technical name Fact rule.
 
 ## Consistent page introductions (spec 137 FR-009/010)
 
@@ -2402,7 +2402,7 @@ No browser calculation or stored document settlement state is added.
 
 ### Guided Fact-rule authoring (spec 159)
 
-Inspector → Rules → Additional fact rules retains the shared register and modal while restoring
+Inspector → Business Facts → Fact rules retains the shared register and modal while restoring
 structured source/subject mapping, recursive all/any conditions, typed output, allowed
 values and observation-time controls. Raw rule JSON is absent from the dialog. Editing an existing
 version preserves its logical name, scopes, line ID path and advanced configuration
@@ -2901,3 +2901,13 @@ The former Context Graph area is named Business Graph; the Facts navigation area
 ## Source labels (spec 217)
 
 Data-source columns use Source rather than Origin, in every language. Source/Sources are invariant product labels; direct metadata/settings use localized Source compounds. Source Record continues to name an individual received record; related inspection actions and payload details explicitly use that name. The provenance groups in master-data forms/details are labeled Source. Source-system names, external IDs, technical origin fields, geographical origins and software-source-code terms are not rewritten.
+
+
+### Inspector navigation by purpose (spec 218)
+
+Business Facts contains All records, Calculated views and Fact rules. Exceptions
+contains Open exceptions and Exception rules. Event history and Available actions
+are separate Inspector destinations, replacing the ambiguous Rules and Actions
+groups. Existing Inspector rule/history/action URLs remain usable; legacy exception
+rule links open the Exceptions rule tab. Rule-to-finding links select open exceptions.
+These presentation changes reuse existing services, permissions and action confirmation.

@@ -183,7 +183,7 @@ export function ActionLauncher() {
             launch(
               {
                 key: "catalog",
-                label: "Action catalog",
+                label: "Available actions",
                 placements: [],
                 destination: { route: "inspector", inspectorView: "commands" },
               },
@@ -192,7 +192,7 @@ export function ActionLauncher() {
             )
           }
         >
-          {t("Action catalog")}
+          {t("Available actions")}
         </button>
       </div>
     </details>

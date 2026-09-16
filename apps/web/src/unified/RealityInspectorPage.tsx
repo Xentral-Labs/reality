@@ -15,7 +15,6 @@ import { TableProvider } from "./TableContext";
 import { type GraphTarget } from "./ObjectGraph";
 import { RulesWorkbench } from "./RulesWorkbench";
 import { ActivityDrawer } from "./ActivityDrawer";
-import { ExceptionRulesRegister } from "./ExceptionRulesRegister";
 import { useRead } from "./useCompanyContext";
 import { ReadState } from "./ReadState";
 import type { Selection } from "./routing";
@@ -125,23 +124,25 @@ export function RealityInspectorPage({
   );
   return (
     <div className="min-w-0 space-y-4" data-reality-inspector>
-      <RegisterHeader title="Reality Inspector" originalTitle>
-        <nav className="register-tabs" aria-label={t("Reality Inspector sections")}>
-          {inspectorTabs(tab).map(([key, label]) => (
-            <button
-              key={key}
-              aria-pressed={tab === key}
-              onClick={() => {
-                navigate({ inspectorView: key });
-                setQuery("");
-                setProjection("");
-              }}
-            >
-              {t(label)}
-            </button>
-          ))}
-        </nav>
-      </RegisterHeader>
+      {inspectorTabs(tab).length > 1 && (
+        <RegisterHeader title="Reality Inspector" originalTitle>
+          <nav className="register-tabs" aria-label={t("Reality Inspector sections")}>
+            {inspectorTabs(tab).map(([key, label]) => (
+              <button
+                key={key}
+                aria-pressed={tab === key}
+                onClick={() => {
+                  navigate({ inspectorView: key });
+                  setQuery("");
+                  setProjection("");
+                }}
+              >
+                {t(label)}
+              </button>
+            ))}
+          </nav>
+        </RegisterHeader>
+      )}
       {tab === "overview" && <FlightRecorder key={tenant} tenant={tenant} />}
       {tab === "facts" && (
         <TableProvider
@@ -254,7 +255,6 @@ export function RealityInspectorPage({
         <RecordGraphPage tenant={tenant} initialRoot={root} onRootChange={setRoot} />
       )}
       {tab === "rules" && <RulesWorkbench key={tenant} tenant={tenant} owner={owner} />}
-      {tab === "exceptions" && <ExceptionRulesRegister tenant={tenant} navigate={navigate} />}
       {(tab === "commands" || tab === "views") &&
         (!reference.data ? (
           <ReadState

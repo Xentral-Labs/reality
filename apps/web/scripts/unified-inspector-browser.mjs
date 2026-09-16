@@ -517,6 +517,113 @@ await page.route("**/api/**", async (route) => {
   }
   return reply({ detail: "Fixture not provided" }, 404);
 });
+if (process.env.NAVIGATION_ONLY === "1") {
+  const { parseCatalogs } = await import("./i18n-audit-lib.mjs");
+  const catalogs = parseCatalogs(new URL("../src/localization.tsx", import.meta.url).pathname);
+  const base = process.env.UNIFIED_BASE_URL || "http://localhost:5177";
+  const tr = (key) => (language === "en" ? key : catalogs[language].get(key) || key);
+  const tabs = () => page.locator("[data-page-tabs] .register-tabs");
+  const sidebar = () => page.getByRole("navigation", { name: "Reality Inspector", exact: true });
+  const heading = async (key) =>
+    page
+      .locator("[data-shell-header] h1")
+      .filter({ hasText: tr(key) })
+      .waitFor();
+  try {
+    await mkdir("/private/tmp/reality-218-browser", { recursive: true });
+    for (language of ["en", "de", "nl", "es"]) {
+      await page.setViewportSize({ width: 1440, height: 1000 });
+      await page.goto(`${base}/app/inspector?tenant=t1&inspector_view=rules`);
+      await heading("Fact rules");
+      await page.locator("[data-rules-register]").waitFor();
+      assert.deepEqual(
+        (await sidebar().getByRole("link").allTextContents()).map((x) => x.trim()),
+        ["Business Graph", "Business Facts", tr("Event history"), tr("Available actions")],
+      );
+      assert.equal(
+        await sidebar()
+          .getByRole("link", { name: "Business Facts", exact: true })
+          .getAttribute("aria-current"),
+        "page",
+      );
+      assert.deepEqual(
+        (await tabs().getByRole("button").allTextContents()).map((x) => x.trim()),
+        [tr("All records"), tr("Calculated views"), tr("Fact rules")],
+      );
+      for (const [key, selector] of [
+        ["Event history", "[data-inline-activity]"],
+        ["Available actions", "[data-action-directory]"],
+      ]) {
+        await sidebar()
+          .getByRole("link", { name: tr(key), exact: true })
+          .click();
+        await heading(key);
+        await page.locator(selector).waitFor();
+        assert.equal(await tabs().count(), 0);
+        assert.equal(
+          await sidebar()
+            .getByRole("link", { name: tr(key), exact: true })
+            .getAttribute("aria-current"),
+          "page",
+        );
+      }
+      await page.goto(`${base}/app/inspector?tenant=t1&inspector_view=exceptions`);
+      await heading("Exception rules");
+      await page.locator('[data-exception-class="shortage"]').waitFor();
+      assert.equal(
+        await page
+          .locator('[data-navigation-item][aria-current="page"]')
+          .getAttribute("aria-label"),
+        tr("Exceptions"),
+      );
+      await tabs()
+        .getByRole("button", { name: tr("Open exceptions"), exact: true })
+        .click();
+      await page.locator('[data-work-list="exceptions"]').waitFor();
+      await tabs()
+        .getByRole("button", { name: tr("Exception rules"), exact: true })
+        .click();
+      assert.equal(new URL(page.url()).searchParams.get("attention_view"), "rules");
+      await page.reload();
+      await heading("Exception rules");
+      await page.locator('[data-exception-class="shortage"]').waitFor();
+      await page.goBack();
+      await page.locator('[data-work-list="exceptions"]').waitFor();
+      await page.goForward();
+      await heading("Exception rules");
+      await page.locator('[data-exception-class="shortage"] button').first().click();
+      await page
+        .locator("#exception-preview-shortage")
+        .getByRole("button", { name: tr("Open in Exceptions"), exact: true })
+        .click();
+      await page.locator('[data-work-list="exceptions"]').waitFor();
+      assert.equal(new URL(page.url()).searchParams.get("attention_view"), null);
+      assert.equal(new URL(page.url()).searchParams.get("tenant"), "t1");
+      const hideChat = page.getByRole("button", { name: tr("Hide chat"), exact: true });
+      if (await hideChat.isVisible()) await hideChat.click();
+      await page.setViewportSize({ width: 390, height: 844 });
+      await tabs()
+        .getByRole("button", { name: tr("Exception rules"), exact: true })
+        .click();
+      await heading("Exception rules");
+      assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1));
+      await page.screenshot({ path: `/private/tmp/reality-218-browser/${language}-mobile.png` });
+      console.log(
+        `Navigation passed: ${language}, desktop/mobile, legacy links, reload/history, rules to findings`,
+      );
+    }
+    assert.deepEqual(errors, []);
+    assert.deepEqual(writes, []);
+  } catch (error) {
+    console.error(await page.locator("body").innerText());
+    console.error(errors);
+    throw error;
+  } finally {
+    await browser.close();
+  }
+  process.exit(0);
+}
+
 const tab = async (name) => {
   const groups = {
     Overview: "Understand context",
