@@ -32,6 +32,9 @@
 - [x] T016 [FR-013] Classify every new public function in `packages/reality-core/config/tenant_isolation_catalog.yaml` and bump the pinned count in `tests/test_application_catalog.py`; rebase before pushing, because a parallel branch adding functions conflicts on that number.
 - [x] T017 Update `docs/features/source_ingestion.md` (addressing is descriptive configuration, still no credentials or transport), `docs/DATA_MODEL.md`, `docs/WEB_SPEC.md` and `docs/SPEC_COVERAGE_MATRIX.md`; run every check listed in the plan and record the evidence in `specs/211-record-provenance/verification.md`.
 
+## Phase 8: Authorized Removal of the Unreachable Detail Panel
+- [x] T018 [FR-015] Assert in `apps/web/scripts/record-provenance-browser.mjs` that `Edit details` and `Original source` appear once in the document when a record is open (2 before, 1 after), then delete the unreachable `record` branch and its Close button in `apps/web/src/unified/MasterDataPage.tsx` and the two dictionary entries it alone referenced in `localization.tsx`.
+
 ## Dependencies and Strategy
 T001–T003 gate implementation; T002 gated T009 and is complete. T009a precedes T009. T004, T006, T008 and T014 precede their implementation. T005 precedes T007 and T013 because both consume the shared contract. T011 and T012 precede T013. T016 runs last and is rebased immediately before the pull request. US1 and US2 are independently shippable without US3; US4 is independently droppable.
 
@@ -52,3 +55,4 @@ T001–T003 gate implementation; T002 gated T009 and is complete. T009a precedes
 | FR-012 | T004 | T005 |
 | FR-013 | T004, T008 | T005, T009, T016 |
 | FR-014 | T011 | T013 |
+| FR-015 | T018 | T018 |

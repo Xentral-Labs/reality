@@ -798,9 +798,6 @@ const dictionaries: Record<Exclude<Language, "en">, Record<string, string>> = {
     "Adjust your search or create the first record.":
       "Passe die Suche an oder lege den ersten Datensatz an.",
     Provenance: "Herkunft",
-    "No original source is linked to this record.":
-      "Mit diesem Datensatz ist keine Originalquelle verknüpft.",
-    "All recorded details": "Alle erfassten Details",
     "Start with a record": "Wähle einen Datensatz",
     "Choose a customer, supplier, item or location to see its details and prepare a change.":
       "Wähle einen Kunden, Lieferanten, Artikel oder Ort, um Details zu sehen und eine Änderung vorzubereiten.",
@@ -2664,9 +2661,6 @@ const dictionaries: Record<Exclude<Language, "en">, Record<string, string>> = {
     "Adjust your search or create the first record.":
       "Pas je zoekopdracht aan of maak het eerste record aan.",
     Provenance: "Herkomst",
-    "No original source is linked to this record.":
-      "Er is geen oorspronkelijke bron aan dit record gekoppeld.",
-    "All recorded details": "Alle vastgelegde gegevens",
     "Start with a record": "Begin met een record",
     "Choose a customer, supplier, item or location to see its details and prepare a change.":
       "Kies een klant, leverancier, artikel of locatie om details te bekijken en een wijziging voor te bereiden.",
@@ -4232,9 +4226,6 @@ const dictionaries: Record<Exclude<Language, "en">, Record<string, string>> = {
     "Adjust your search or create the first record.":
       "Ajusta la búsqueda o crea el primer registro.",
     Provenance: "Procedencia",
-    "No original source is linked to this record.":
-      "Este registro no tiene una fuente original vinculada.",
-    "All recorded details": "Todos los datos registrados",
     "Start with a record": "Empieza con un registro",
     "Choose a customer, supplier, item or location to see its details and prepare a change.":
       "Elige un cliente, proveedor, artículo o ubicación para ver sus datos y preparar un cambio.",

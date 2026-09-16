@@ -2,7 +2,7 @@
 
 **Created**: 2026-09-16
 **Language**: English
-**Status**: Scope authorized by user request on 2026-09-16, including the explicit decision to place the external base address on `SourceSystem`.
+**Status**: Implemented. Scope authorized by user request on 2026-09-16, including the explicit decision to place the external base address on `SourceSystem`, the approval of FR-007 after the connector-association defect was demonstrated, and the instruction to remove the unreachable master-data detail panel this work uncovered (FR-015).
 
 ## Context and Intent
 
@@ -86,6 +86,7 @@ A source record superseded by a newer version shows the version the record was p
 - **FR-012**: Origin for a register page MUST be resolved in bounded lookups for the displayed page, without a per-row query, and list reads MUST NOT join import jobs or interpretation outcomes. The resolution MUST join the retained textual source system code within the tenant.
 - **FR-013**: All origin, payload, outcome and configuration reads and writes MUST be tenant-scoped, MUST go through shared application services, and MUST behave as not found across tenants.
 - **FR-014**: All new labels MUST be localized in English, German, Dutch and Spanish. German MUST use the established vocabulary: Quellsystem, Originalquelle, Herkunft.
+- **FR-015**: The master-data detail branch that cannot render MUST be removed rather than extended. Its section is hidden exactly when a record is selected, while its content renders only then, so every action it declares is unreachable; each of those actions is already offered by the row preview. Removal MUST keep the guidance branch and the section's conditional visibility, MUST NOT change any reachable behavior, and MUST be proven by an assertion that counts the affected controls in the document rather than in the accessibility tree, where a hidden duplicate is invisible.
 
 ## Success Criteria
 
@@ -95,6 +96,7 @@ A source record superseded by a newer version shows the version the record was p
 - **SC-004**: Adding origin to a register page issues a bounded, constant number of additional statements per page, independent of the number of rows.
 - **SC-005**: No stored business value, source payload, interpretation outcome or received amount changes as a result of this feature.
 - **SC-006**: Every configured source system is associated with at most one connector shell, and no instance is listed under a connector it was not installed from.
+- **SC-007**: Each master-data action is present exactly once in the document when a record is open.
 
 ## Assumptions and Dependencies
 
@@ -118,3 +120,4 @@ A source record superseded by a newer version shows the version the record was p
 | FR-012 | SC-004 | T004 | T005 |
 | FR-013 | Edge cases | T004, T008 | T005, T010 |
 | FR-014 | All user stories | T011 | T013 |
+| FR-015 | US1 3 | T018 | T018 |
