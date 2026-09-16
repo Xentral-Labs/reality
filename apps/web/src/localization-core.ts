@@ -41,7 +41,7 @@ export function isOriginalContent(element: Element | null): boolean {
   return Boolean(element?.closest('[data-localization="original"], code, pre, script, style'));
 }
 
-/** Catalog assignments finish at module initialization; first matching entry wins. */
+/** Preserve English source keys; otherwise the first translated alias wins. */
 export function createCanonicalSourceResolver(
   catalogs: Record<Exclude<SupportedLanguage, "en">, Record<string, string>>,
 ): (value: string) => string {
@@ -49,6 +49,10 @@ export function createCanonicalSourceResolver(
   return (value) => {
     if (!sources) {
       sources = new Map();
+      // A translated alias must not rename existing English UI copy.
+      for (const dictionary of Object.values(catalogs)) {
+        for (const source of Object.keys(dictionary)) sources.set(source, source);
+      }
       for (const dictionary of Object.values(catalogs)) {
         for (const [source, translated] of Object.entries(dictionary)) {
           if (!sources.has(translated)) sources.set(translated, source);

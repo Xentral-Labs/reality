@@ -58,7 +58,7 @@ test("public authentication keeps a supported landing-page language", async () =
   assert.equal(resolvePublicLanguage("", null), "en");
 });
 
-test("reverse lookup preserves every real catalog value and first-match collisions", async () => {
+test("reverse lookup preserves canonical English keys before translated aliases", async () => {
   const { parseCatalogs } = await import("./i18n-audit-lib.mjs");
   const { createCanonicalSourceResolver } = await loadCore();
   const catalogs = Object.fromEntries(
@@ -66,7 +66,9 @@ test("reverse lookup preserves every real catalog value and first-match collisio
       ([language, entries]) => [language, Object.fromEntries(entries)],
     ),
   );
+  const canonicalKeys = new Set(Object.values(catalogs).flatMap(Object.keys));
   const previous = (value) => {
+    if (canonicalKeys.has(value)) return value;
     for (const dictionary of Object.values(catalogs)) {
       const entry = Object.entries(dictionary).find(([, translated]) => translated === value);
       if (entry) return entry[0];
@@ -79,9 +81,11 @@ test("reverse lookup preserves every real catalog value and first-match collisio
     "  ",
     "untranslated-business-value-154",
     "__proto__",
+    ...canonicalKeys,
     ...Object.values(catalogs).flatMap(Object.values),
   ]);
   for (const value of values) assert.equal(resolve(value), previous(value), value);
+  assert.equal(resolve("Commitments"), "Commitments");
   const collision = createCanonicalSourceResolver({
     de: { First: "shared", Second: "shared", Blank: "" },
     nl: { Third: "shared" },
