@@ -29,11 +29,12 @@ const imported = {
   superseded: false,
   url: "https://acme-de.myshopify.com/admin/orders/1042",
 };
+const longReference = "sch_8c4c0c4048ea431cadb1c8ec89dba44f:run_5709cbb1888d46538a7a9957c4795d7e";
 const unaddressed = {
   ...imported,
   system_code: "retired_shop",
   system_name: "retired_shop",
-  external_id: "77",
+  external_id: longReference,
   source_record_id: "src2",
   superseded: true,
   url: null,
@@ -158,7 +159,7 @@ await page.route("**/api/**", async (route) => {
       source_system: "shopify_de",
       external_id: "1042",
       source_record_id: "src1",
-      origin: imported,
+      origin: { ...imported, external_id: longReference },
       contributing_systems: ["hubspot_main", "shopify_de"],
       preview_sections: [],
     });
@@ -239,6 +240,13 @@ try {
     1,
     "a superseded source version is disclosed",
   );
+  // Demo intake carries a seventy-character scheduler run identity as its external
+  // reference, so the exact value must stay reachable without being rendered in full.
+  assert.match(
+    await page.locator(`[data-source-reference="${longReference}"]`).first().getAttribute("title"),
+    new RegExp(longReference.slice(-12)),
+    "the exact reference stays available on hover",
+  );
   await page.screenshot({ path: `${out}/orders-origin.png`, fullPage: true });
 
   // Activating the origin opens the source record with its payload.
@@ -278,8 +286,20 @@ try {
     );
   await page.screenshot({ path: `${out}/master-origin.png`, fullPage: true });
 
-  // Narrow screens keep the statement and never scroll the page sideways.
+  // A long reference must not push the master-data preview sideways at phone width.
+  // Measured without the bounded width: the preview scrolls 587px inside 314px.
   await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto(`${base}/app/master-data?tenant=orders&family=customer`);
+  await page.locator('[aria-controls="master-preview-master1"]').click();
+  const preview = page.locator("[data-master-preview]").first();
+  await preview.waitFor();
+  const previewOverflow = await preview.evaluate((el) => el.scrollWidth - el.clientWidth);
+  assert.ok(
+    previewOverflow <= 0,
+    `the master-data preview scrolls sideways by ${previewOverflow}px`,
+  );
+
+  // Narrow screens keep the statement and never scroll the page sideways.
   await page.goto(`${base}/app/orders-deliveries?tenant=orders&orders_view=customer-orders`);
   await page.locator("[data-source-origin]").first().waitFor();
   assert.ok(await page.locator("[data-source-origin]").first().isVisible());

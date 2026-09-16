@@ -42,25 +42,32 @@ export function SourceBadge({
           : t("Created here")}
       </span>
     );
-  const label = `${origin.system_name} · ${origin.external_id || origin.source_record_id}`;
+  const reference = origin.external_id || origin.source_record_id;
+  // Real external references are not short: demo intake carries a scheduler run
+  // identity of seventy characters. Bound the rendered width and keep the exact
+  // value in the title, so a register row stays one line and nothing is lost.
+  const label = `${origin.system_name} · ${reference}`;
   return (
     <span
-      className="inline-flex flex-wrap items-center gap-x-2 gap-y-1"
+      className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1"
       data-source-origin="source"
       data-source-system={origin.system_code}
     >
       {inspect ? (
         <button
           type="button"
-          className="text-left underline decoration-dotted underline-offset-2 hover:text-fg-strong"
+          className="block max-w-full truncate text-left underline decoration-dotted underline-offset-2 hover:text-fg-strong"
           data-action-meaning="navigate"
+          data-source-reference={reference}
           onClick={() => inspect({ kind: "source_record", id: origin.source_record_id })}
-          title={t("Show the original source")}
+          title={`${t("Show the original source")} · ${label}`}
         >
           {label}
         </button>
       ) : (
-        <span>{label}</span>
+        <span className="block max-w-full truncate" title={label}>
+          {label}
+        </span>
       )}
       {origin.superseded && (
         <span className="text-fg-muted" data-source-superseded>
