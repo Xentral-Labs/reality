@@ -13,7 +13,7 @@ type Preferences = { language: Language; locale: DisplayLocale; timezone: string
 
 const dictionaries: Record<Exclude<Language, "en">, Record<string, string>> = {
   de: {
-    Exception: "Exception",
+    Exception: "Ausnahme",
     "Ledger entry": "Ledger Entry",
     "Business event": "Business Event",
     "Collapse sidebar": "Seitenleiste einklappen",
@@ -375,7 +375,7 @@ const dictionaries: Record<Exclude<Language, "en">, Record<string, string>> = {
     "Other received basis": "Andere empfangene Basis",
     "Inspect financial detail": "Finanzdetails untersuchen",
     "See open commitments, exceptions and decisions across your company.":
-      "Sieh offene Commitments, Exceptions und Decisions deiner Firma.",
+      "Sieh offene Commitments, Ausnahmen und Entscheidungen deiner Firma.",
     "Track outstanding deliveries to your customers.":
       "Verfolge ausstehende Lieferungen an deine Kunden.",
     "Track outstanding deliveries from your suppliers.":
@@ -700,7 +700,7 @@ const dictionaries: Record<Exclude<Language, "en">, Record<string, string>> = {
     "Search by item name or SKU": "Nach Artikelname oder SKU suchen",
     "Search by reference ID": "Nach Referenz-ID suchen",
     "Search causes or references": "Ursachen oder Referenzen suchen",
-    "Search exceptions": "Exceptions durchsuchen",
+    "Search exceptions": "Ausnahmen durchsuchen",
     "Search warehouse": "Lager durchsuchen",
     "See what needs a closer look.": "Sieh, was genauer geprüft werden muss.",
     Severity: "Priorität",
@@ -850,9 +850,9 @@ const dictionaries: Record<Exclude<Language, "en">, Record<string, string>> = {
     "Customer delivery": "Kundenlieferung",
     "Daily work": "Tägliche Arbeit",
     "Data & sources": "Daten & Quellen",
-    Decisions: "Decisions",
+    Decisions: "Entscheidungen",
     open: "offen",
-    "Decisions & control": "Decisions & Kontrolle",
+    "Decisions & control": "Entscheidungen & Kontrolle",
     "Discuss with Reality": "Mit Reality besprechen",
     Explain: "Erklären",
     "Inventory at this location": "Bestand an diesem Lagerort",
@@ -862,7 +862,7 @@ const dictionaries: Record<Exclude<Language, "en">, Record<string, string>> = {
     "No document evidence": "Keine Belegnachweise",
     "No open commitments": "Keine offenen Commitments",
     "No open deliveries": "Keine offenen Lieferungen",
-    "No pending decisions": "Keine ausstehenden Decisions",
+    "No pending decisions": "Keine ausstehenden Entscheidungen",
     "Older events": "Ältere Ereignisse",
     "One conversation across your business.": "Ein Gespräch für dein ganzes Unternehmen.",
     "Open a case to understand the position and its supporting records.":
@@ -870,8 +870,8 @@ const dictionaries: Record<Exclude<Language, "en">, Record<string, string>> = {
     "Open existing workspace": "Bestehenden Arbeitsbereich öffnen",
     "Open practice company": "Übungsunternehmen öffnen",
     "Original source": "Originalquelle",
-    "Pending decisions": "Ausstehende Decisions",
-    "Review decisions": "Decisions prüfen",
+    "Pending decisions": "Ausstehende Entscheidungen",
+    "Review decisions": "Entscheidungen prüfen",
     "Review commitments": "Commitments prüfen",
     "Review each proposed change before it is recorded.":
       "Prüfe jede vorgeschlagene Änderung, bevor sie erfasst wird.",
@@ -1143,7 +1143,7 @@ const dictionaries: Record<Exclude<Language, "en">, Record<string, string>> = {
       "Wie hängen Source, Evidence und Reality zusammen?",
     "More questions": "Weitere Fragen",
     "Show less": "Weniger anzeigen",
-    "All exceptions": "Alle Exceptions",
+    "All exceptions": "Alle Ausnahmen",
     You: "Du",
     "Ask about your sandbox": "Frage zu deiner Sandbox …",
     "Send question": "Frage senden",
@@ -1424,7 +1424,7 @@ const dictionaries: Record<Exclude<Language, "en">, Record<string, string>> = {
     Release: "Freigeben",
     "Ask Reality": "Reality fragen",
     Home: "Start",
-    Exceptions: "Exceptions",
+    Exceptions: "Ausnahmen",
     "Company-wide": "Unternehmensweit",
     "Order operations": "Auftragssteuerung",
     "Warehouse operations": "Lagersteuerung",
@@ -1847,11 +1847,11 @@ const dictionaries: Record<Exclude<Language, "en">, Record<string, string>> = {
       "Ausnahmen, Commitments und Bestand aus einer operativen Wahrheit steuern.",
     "Inspect reality": "Reality prüfen",
     "Open commitments": "Offene Commitments",
-    "Open exceptions": "Offene Exceptions",
+    "Open exceptions": "Offene Ausnahmen",
     "Stocked items": "Artikel mit Bestand",
     "Current positions": "Aktuelle Bestände",
     Traceability: "Nachvollziehbarkeit",
-    "Decision queue": "Decision-Warteschlange",
+    "Decision queue": "Entscheidungsübersicht",
     "What needs action": "Was eine Entscheidung benötigt",
     "Open work queue": "Arbeitsliste öffnen",
     "Reality Copilot": "Reality Copilot",
@@ -1879,11 +1879,11 @@ const dictionaries: Record<Exclude<Language, "en">, Record<string, string>> = {
     Reservation: "Reservation",
     Reservations: "Reservations",
     Movements: "Movements",
-    Exception: "Exception",
+    Exception: "Uitzondering",
     "Ledger entry": "Ledger Entry",
     "Business event": "Business Event",
-    "Open exceptions": "Open Exceptions",
-    "Decision queue": "Decision-wachtrij",
+    "Open exceptions": "Open uitzonderingen",
+    "Decision queue": "Beslissingswachtrij",
     "Document register": "Document-register",
     "Collapse sidebar": "Zijbalk inklappen",
     "Expand sidebar": "Zijbalk openen",
@@ -2239,7 +2239,7 @@ const dictionaries: Record<Exclude<Language, "en">, Record<string, string>> = {
     "Other received basis": "Andere ontvangen basis",
     "Inspect financial detail": "Financiële details inspecteren",
     "See open commitments, exceptions and decisions across your company.":
-      "Bekijk open Commitments, Exceptions en Decisions binnen je bedrijf.",
+      "Bekijk open Commitments, uitzonderingen en beslissingen binnen je bedrijf.",
     "Track outstanding deliveries to your customers.":
       "Volg openstaande leveringen aan je klanten.",
     "Track outstanding deliveries from your suppliers.":
@@ -2563,7 +2563,7 @@ const dictionaries: Record<Exclude<Language, "en">, Record<string, string>> = {
     "Search by item name or SKU": "Zoeken op artikelnaam of SKU",
     "Search by reference ID": "Zoeken op referentie-ID",
     "Search causes or references": "Oorzaken of referenties zoeken",
-    "Search exceptions": "Exceptions doorzoeken",
+    "Search exceptions": "Uitzonderingen doorzoeken",
     "Search warehouse": "Magazijn doorzoeken",
     "See what needs a closer look.": "Zie wat nader onderzoek nodig heeft.",
     Severity: "Prioriteit",
@@ -2714,10 +2714,10 @@ const dictionaries: Record<Exclude<Language, "en">, Record<string, string>> = {
     "Customer delivery": "Klantlevering",
     "Daily work": "Dagelijks werk",
     "Data & sources": "Gegevens en bronnen",
-    Decisions: "Decisions",
+    Decisions: "Beslissingen",
     open: "open",
     Commitments: "Commitments",
-    "Decisions & control": "Decisions en controle",
+    "Decisions & control": "Beslissingen en controle",
     "Discuss with Reality": "Bespreken met Reality",
     Explain: "Uitleggen",
     "Inventory at this location": "Voorraad op deze locatie",
@@ -2727,7 +2727,7 @@ const dictionaries: Record<Exclude<Language, "en">, Record<string, string>> = {
     "No document evidence": "Geen documentbewijs",
     "No open commitments": "Geen open Commitments",
     "No open deliveries": "Geen open leveringen",
-    "No pending decisions": "Geen open Decisions",
+    "No pending decisions": "Geen open beslissingen",
     "Older events": "Oudere gebeurtenissen",
     "One conversation across your business.": "Eén gesprek voor je hele bedrijf.",
     "Open a case to understand the position and its supporting records.":
@@ -2736,8 +2736,8 @@ const dictionaries: Record<Exclude<Language, "en">, Record<string, string>> = {
     "Open existing workspace": "Bestaande werkruimte openen",
     "Open practice company": "Oefenbedrijf openen",
     "Original source": "Oorspronkelijke bron",
-    "Pending decisions": "Open Decisions",
-    "Review decisions": "Decisions beoordelen",
+    "Pending decisions": "Open beslissingen",
+    "Review decisions": "Beslissingen beoordelen",
     "Review commitments": "Commitments beoordelen",
     "Review each proposed change before it is recorded.":
       "Beoordeel elke voorgestelde wijziging voordat deze wordt vastgelegd.",
@@ -3007,7 +3007,7 @@ const dictionaries: Record<Exclude<Language, "en">, Record<string, string>> = {
     "How do Source, Evidence and Reality connect?": "Hoe hangen Source, Evidence en Reality samen?",
     "More questions": "Meer vragen",
     "Show less": "Minder tonen",
-    "All exceptions": "Alle Exceptions",
+    "All exceptions": "Alle uitzonderingen",
     You: "Jij",
     "Ask about your sandbox": "Vraag over je sandbox…",
     "Send question": "Vraag versturen",
@@ -3048,7 +3048,7 @@ const dictionaries: Record<Exclude<Language, "en">, Record<string, string>> = {
     "Money positions are unavailable.": "Geldposities zijn niet beschikbaar.",
     "Movement recorded": "Movement vastgelegd",
     "No locations": "Geen locaties",
-    "No open exceptions.": "Geen open Exceptions.",
+    "No open exceptions.": "Geen open uitzonderingen.",
     "No open goods commitments.": "Geen open goederenverplichtingen.",
     "No Reality events yet.": "Nog geen Reality-gebeurtenissen.",
     "No recorded money position yet.": "Nog geen geboekte geldpositie.",
@@ -3343,7 +3343,7 @@ const dictionaries: Record<Exclude<Language, "en">, Record<string, string>> = {
     Release: "Vrijgeven",
     "Ask Reality": "Vraag Reality",
     Home: "Start",
-    Exceptions: "Exceptions",
+    Exceptions: "Uitzonderingen",
     Inventory: "Voorraad",
     Documents: "Documents",
     Activity: "Activiteit",
@@ -3438,11 +3438,11 @@ const dictionaries: Record<Exclude<Language, "en">, Record<string, string>> = {
     Reservation: "Reservation",
     Reservations: "Reservations",
     Movements: "Movements",
-    Exception: "Exception",
+    Exception: "Incidencia",
     "Ledger entry": "Ledger Entry",
     "Business event": "Business Event",
-    "Open exceptions": "Exceptions pendientes",
-    "Decision queue": "Cola de Decisions",
+    "Open exceptions": "Incidencias pendientes",
+    "Decision queue": "Cola de decisiones",
     "Document register": "Registro de Documents",
     "Collapse sidebar": "Contraer barra lateral",
     "Expand sidebar": "Abrir barra lateral",
@@ -3800,7 +3800,7 @@ const dictionaries: Record<Exclude<Language, "en">, Record<string, string>> = {
     "Other received basis": "Otra base recibida",
     "Inspect financial detail": "Inspeccionar detalle financiero",
     "See open commitments, exceptions and decisions across your company.":
-      "Consulta los Commitments, Exceptions y Decisions pendientes de tu empresa.",
+      "Consulta los Commitments, las incidencias y las decisiones pendientes de tu empresa.",
     "Track outstanding deliveries to your customers.":
       "Sigue las entregas pendientes a tus clientes.",
     "Track outstanding deliveries from your suppliers.":
@@ -4128,7 +4128,7 @@ const dictionaries: Record<Exclude<Language, "en">, Record<string, string>> = {
     "Search by item name or SKU": "Buscar por nombre de artículo o SKU",
     "Search by reference ID": "Buscar por ID de referencia",
     "Search causes or references": "Buscar causas o referencias",
-    "Search exceptions": "Buscar Exceptions",
+    "Search exceptions": "Buscar incidencias",
     "Search warehouse": "Buscar en almacén",
     "See what needs a closer look.": "Ve qué necesita una revisión más detallada.",
     Severity: "Prioridad",
@@ -4279,10 +4279,10 @@ const dictionaries: Record<Exclude<Language, "en">, Record<string, string>> = {
     "Customer delivery": "Entrega al cliente",
     "Daily work": "Trabajo diario",
     "Data & sources": "Datos y fuentes",
-    Decisions: "Decisions",
+    Decisions: "Decisiones",
     open: "pendientes",
     Commitments: "Commitments",
-    "Decisions & control": "Decisions y control",
+    "Decisions & control": "Decisiones y control",
     "Discuss with Reality": "Comentar con Reality",
     Explain: "Explicar",
     "Inventory at this location": "Existencias en esta ubicación",
@@ -4292,7 +4292,7 @@ const dictionaries: Record<Exclude<Language, "en">, Record<string, string>> = {
     "No document evidence": "Sin evidencia documental",
     "No open commitments": "Sin Commitments pendientes",
     "No open deliveries": "Sin entregas pendientes",
-    "No pending decisions": "Sin Decisions pendientes",
+    "No pending decisions": "Sin decisiones pendientes",
     "Older events": "Eventos anteriores",
     "One conversation across your business.": "Una conversación para toda tu empresa.",
     "Open a case to understand the position and its supporting records.":
@@ -4301,8 +4301,8 @@ const dictionaries: Record<Exclude<Language, "en">, Record<string, string>> = {
     "Open existing workspace": "Abrir área de trabajo existente",
     "Open practice company": "Abrir empresa de práctica",
     "Original source": "Fuente original",
-    "Pending decisions": "Decisions pendientes",
-    "Review decisions": "Revisar Decisions",
+    "Pending decisions": "Decisiones pendientes",
+    "Review decisions": "Revisar decisiones",
     "Review commitments": "Revisar Commitments",
     "Review each proposed change before it is recorded.":
       "Revisa cada cambio propuesto antes de registrarlo.",
@@ -4575,7 +4575,7 @@ const dictionaries: Record<Exclude<Language, "en">, Record<string, string>> = {
       "¿Cómo se relacionan Source, Evidence y Reality?",
     "More questions": "Más preguntas",
     "Show less": "Mostrar menos",
-    "All exceptions": "Todas las Exceptions",
+    "All exceptions": "Todas las incidencias",
     You: "Tú",
     "Ask about your sandbox": "Pregunta sobre tu entorno…",
     "Send question": "Enviar pregunta",
@@ -4616,11 +4616,11 @@ const dictionaries: Record<Exclude<Language, "en">, Record<string, string>> = {
     "Money positions are unavailable.": "Las posiciones monetarias no están disponibles.",
     "Movement recorded": "Movement registrado",
     "No locations": "Sin ubicaciones",
-    "No open exceptions.": "No hay Exceptions pendientes.",
+    "No open exceptions.": "No hay incidencias pendientes.",
     "No open goods commitments.": "No hay obligaciones de mercancía pendientes.",
     "No Reality events yet.": "Aún no hay eventos en Reality.",
     "No recorded money position yet.": "Aún no hay posiciones monetarias registradas.",
-    "Obligations and exceptions": "Obligaciones y excepciones",
+    "Obligations and exceptions": "Obligaciones y incidencias",
     "Obligations are unavailable. Refresh to retry.":
       "Las obligaciones no están disponibles. Actualiza para reintentar.",
     "Opening stock": "Existencias iniciales",
@@ -4909,7 +4909,7 @@ const dictionaries: Record<Exclude<Language, "en">, Record<string, string>> = {
     Release: "Liberar",
     "Ask Reality": "Preguntar a Reality",
     Home: "Inicio",
-    Exceptions: "Exceptions",
+    Exceptions: "Incidencias",
     Inventory: "Inventario",
     Documents: "Documents",
     Activity: "Actividad",
@@ -5654,8 +5654,8 @@ Object.assign(dictionaries.de, {
   Physical: "Physischer Bestand",
   Available: "Verfügbar",
   "No inventory rows yet.": "Noch keine Bestandszeilen.",
-  Exceptions: "Exceptions",
-  "No open exceptions.": "Keine offenen Exceptions.",
+  Exceptions: "Ausnahmen",
+  "No open exceptions.": "Keine offenen Ausnahmen.",
   "Reality journal": "Reality-Journal",
   "No Reality events yet.": "Noch keine Reality-Events.",
 });
@@ -5816,7 +5816,7 @@ Object.assign(dictionaries.es, {
   "Source only": "Solo origen",
   "Typed Evidence": "Evidence tipificada",
   "Typed Reality": "Reality tipificada",
-  "Projection or Exception": "Proyección o excepción",
+  "Projection or Exception": "Proyección o incidencia",
   "Accept classification": "Aceptar clasificación",
   "Prepare implementation": "Preparar implementación",
   "Simulate rule": "Simular regla",
@@ -5861,9 +5861,9 @@ Object.assign(dictionaries.de, {
     "Reality hat aktuell keine operativen Ausnahmen gefunden.",
   "Review derived operational risks. They disappear when Reality is corrected.":
     "Prüfe abgeleitete operative Risiken. Sie verschwinden, sobald die zugrunde liegende Reality korrigiert ist.",
-  "Search exceptions…": "Exceptions suchen…",
+  "Search exceptions…": "Ausnahmen suchen…",
   "All priorities": "Alle Prioritäten",
-  "No open exceptions": "Keine offenen Exceptions",
+  "No open exceptions": "Keine offenen Ausnahmen",
   "Nothing currently requires review.": "Aktuell ist keine Prüfung erforderlich.",
   "Operations / exceptions": "Operations / Ausnahmen",
   "Operations / commitments": "Operations / Commitments",
@@ -6007,11 +6007,11 @@ Object.assign(dictionaries.de, {
   "Archived conversations remain available here and can be restored.":
     "Archivierte Unterhaltungen bleiben hier verfügbar und können wiederhergestellt werden.",
   "Archiving…": "Wird archiviert…",
-  "Decision history": "Decision-Verlauf",
+  "Decision history": "Entscheidungsverlauf",
   "leaves the active list. Its complete history is retained and can be restored. Pending approvals remain in the decision queue.":
     "wird aus der aktiven Liste entfernt. Der vollständige Verlauf bleibt erhalten und kann wiederhergestellt werden. Offene Freigaben bleiben in der Entscheidungsübersicht.",
   "No archived chats": "Keine archivierten Chats",
-  "No decision history": "Noch kein Decision-Verlauf",
+  "No decision history": "Noch kein Entscheidungsverlauf",
   "No pending approvals": "Keine offenen Freigaben",
   "Nothing currently waits for approval.": "Derzeit wartet nichts auf Freigabe.",
   "Pending approvals": "Offene Freigaben",
@@ -6254,7 +6254,7 @@ Object.assign(dictionaries.de, {
   "Connect a system or upload CSV, JSON or another source file.":
     "Verbinde ein System oder lade eine CSV-, JSON- oder andere Quelldatei hoch.",
   "Current derived view": "Aktuelle abgeleitete Ansicht",
-  "Current exceptions": "Aktuelle Exceptions",
+  "Current exceptions": "Aktuelle Ausnahmen",
   "Explicit, source-supported observations currently retained by Reality. Facts never replace their immutable source.":
     "Explizite, durch Quellen belegte Beobachtungen, die Reality aktuell verwaltet. Fakten ersetzen niemals ihre unveränderliche Quelle.",
   "Facts appear when a source-backed observation is interpreted.":
@@ -6462,7 +6462,7 @@ Object.assign(dictionaries.de, {
   "Data stays in its systems. Reality retains only what operations need — losslessly and traceably.":
     "Daten verbleiben in ihren Systemen. Reality speichert nur das, was für die Abläufe benötigt wird – verlustfrei und nachvollziehbar.",
   DE: "DE",
-  Decision: "Decision",
+  Decision: "Entscheidung",
   Delegate: "Delegieren",
   "Delegate step by step": "Delegieren schrittweise",
   DELETE: "LÖSCHEN",
@@ -6527,7 +6527,7 @@ Object.assign(dictionaries.de, {
   "Open navigation": "Öffne die Navigation",
   "OPERATIONAL CORE": "OPERATIONAL CORE",
   "Operational Reality": "Betriebliche Realität",
-  "Operations / decision queue": "Operationen / Entscheidungs-Queue",
+  "Operations / decision queue": "Betrieb / Entscheidungsübersicht",
   "Operations / promise control": "Operationen / Versprechen-Kontrolle",
   "Orders, stock, payments and promises are observed together. Reality exposes contradictions, business impact and the source evidence behind every conclusion.":
     "Bestellungen, Lagerbestände, Zahlungen und Versprechen werden zusammen betrachtet. Die Realität deckt Widersprüche, Geschäftsauswirkungen und den zugrunde liegenden Beweis für jede Schlussfolgerung auf.",
@@ -6755,11 +6755,11 @@ Object.assign(dictionaries.nl, {
   "Archived conversations remain available here and can be restored.":
     "Gearchiveerde gesprekken blijven hier beschikbaar en kunnen worden hersteld.",
   "Archiving…": "Archiveren…",
-  "Decision history": "Decision-geschiedenis",
+  "Decision history": "Beslissingsgeschiedenis",
   "leaves the active list. Its complete history is retained and can be restored. Pending approvals remain in the decision queue.":
     "verdwijnt uit de actieve lijst. De volledige geschiedenis blijft behouden en kan worden hersteld. Openstaande goedkeuringen blijven in de beslissingswachtrij.",
   "No archived chats": "Geen gearchiveerde chats",
-  "No decision history": "Geen Decision-geschiedenis",
+  "No decision history": "Geen beslissingsgeschiedenis",
   "No pending approvals": "Geen openstaande goedkeuringen",
   "Nothing currently waits for approval.": "Op dit moment wacht niets op goedkeuring.",
   "Pending approvals": "Openstaande goedkeuringen",
@@ -6916,7 +6916,7 @@ Object.assign(dictionaries.nl, {
   "Currency…": "Valuta…",
   "Current company": "Huidig bedrijf",
   "Current derived view": "Huidige afgeleide weergave",
-  "Current exceptions": "Huidige Exceptions",
+  "Current exceptions": "Huidige uitzonderingen",
   "Current operating mode": "Huidige bedrijfsmodus",
   "Current workspace lifecycle.": "Huidige levenscyclus van de werkruimte.",
   "Custom source": "Aangepaste bron",
@@ -6929,7 +6929,7 @@ Object.assign(dictionaries.nl, {
     "Data blijft in zijn systemen. Reality behoudt alleen wat de operaties nodig hebben — zonder verlies en traceerbaar.",
   DE: "DE",
   Deactivate: "Deactiveer",
-  Decision: "Decision",
+  Decision: "Beslissing",
   Default: "Standaard",
   "Define which source types this workspace may receive.":
     "Definieer welke bronnen dit werkruimte kan ontvangen.",
@@ -7150,7 +7150,7 @@ Object.assign(dictionaries.nl, {
   "No linked records.": "Geen gerelateerde records",
   "No matching records": "Geen overeenkomende records",
   "No movements": "Geen Movements",
-  "No open exceptions": "Geen open Exceptions",
+  "No open exceptions": "Geen open uitzonderingen",
   "No open items match": "Geen openstaande items komen overeen",
   "No operational activity yet": "Geen operationele activiteit nog",
   "No payment events": "Geen betalingsgebeurtenissen",
@@ -7214,7 +7214,7 @@ Object.assign(dictionaries.nl, {
   "Operational Reality": "Operationele referentie",
   "Operational reference": "Operationele gegevens",
   Operations: "Operationele processen",
-  "Operations / decision queue": "Operationen / beslissingsrij",
+  "Operations / decision queue": "Bedrijfsvoering / beslissingswachtrij",
   "Operations / promise control": "Operationen / beloftebeheer",
   "Optional origin reference; the complete upstream record remains in its immutable payload.":
     "Optionele bronverwijzing; het volledige upstream-record blijft in zijn onveranderlijke payload.",
@@ -7371,7 +7371,7 @@ Object.assign(dictionaries.nl, {
     "Zoek naar een ID en volg Source → Evidence → Reality.",
   "Search currencies…": "Zoek naar valuta…",
   "Search document, party or source…": "Zoek naar document, partij of bron…",
-  "Search exceptions…": "Exceptions zoeken…",
+  "Search exceptions…": "Uitzonderingen zoeken…",
   "Search ID, order number, SKU, party or source reference…":
     "Zoek naar ID, bestelnummer, SKU, partij of bronverwijzing…",
   "Search IDs and inspect connected Reality, Evidence and Source records.":
@@ -7685,11 +7685,11 @@ Object.assign(dictionaries.es, {
   "Archived conversations remain available here and can be restored.":
     "Las conversaciones archivadas permanecen disponibles aquí y se pueden restaurar.",
   "Archiving…": "Archivando…",
-  "Decision history": "Historial de Decisions",
+  "Decision history": "Historial de decisiones",
   "leaves the active list. Its complete history is retained and can be restored. Pending approvals remain in the decision queue.":
     "sale de la lista activa. Su historial completo se conserva y se puede restaurar. Las aprobaciones pendientes permanecen en la cola de decisiones.",
   "No archived chats": "No hay chats archivados",
-  "No decision history": "No hay historial de Decisions",
+  "No decision history": "No hay historial de decisiones",
   "No pending approvals": "No hay aprobaciones pendientes",
   "Nothing currently waits for approval.": "Actualmente nada espera aprobación.",
   "Pending approvals": "Aprobaciones pendientes",
@@ -7849,7 +7849,7 @@ Object.assign(dictionaries.es, {
   "Currency…": "Moneda…",
   "Current company": "Empresa actual",
   "Current derived view": "Vista derivada actual",
-  "Current exceptions": "Exceptions actuales",
+  "Current exceptions": "Incidencias actuales",
   "Current operating mode": "Modo operativo actual",
   "Current workspace lifecycle.": "Ciclo de vida del espacio de trabajo actual.",
   "Custom source": "Fuente personalizada",
@@ -7862,7 +7862,7 @@ Object.assign(dictionaries.es, {
     "Los datos permanecen en sus sistemas. Reality retiene solo lo que las operaciones necesitan — de forma sin pérdida y rastreable.",
   DE: "DE",
   Deactivate: "Desactivar",
-  Decision: "Decision",
+  Decision: "Decisión",
   Default: "Predeterminado",
   "Define which source types this workspace may receive.":
     "Defina qué tipos de fuentes puede recibir este espacio de trabajo.",
@@ -8051,7 +8051,7 @@ Object.assign(dictionaries.es, {
     "Monitorizar las tareas de importación y las proyecciones reconstruibles utilizadas por el producto.",
   "Monitor operations": "Monitorizar las operaciones",
   "Monitor the operating machine, isolate exceptions and trace each change to its source.":
-    "Monitorizar la máquina de operación, aislar excepciones y rastrear cada cambio a su origen.",
+    "Monitorizar la máquina de operación, aislar incidencias y rastrear cada cambio a su origen.",
   "Move from observation to recommendations only when you trust the result.":
     "Mover de la observación a las recomendaciones solo cuando confíe en el resultado.",
   Nederlands: "Nederlands",
@@ -8083,7 +8083,7 @@ Object.assign(dictionaries.es, {
   "No linked records.": "No hay registros vinculados.",
   "No matching records": "No hay registros coincidentes",
   "No movements": "No hay Movements",
-  "No open exceptions": "No hay Exceptions pendientes",
+  "No open exceptions": "No hay incidencias pendientes",
   "No open items match": "No hay elementos abiertos que coincidan",
   "No operational activity yet": "No hay actividad operativa aún",
   "No payment events": "No hay eventos de pago",
@@ -8112,7 +8112,7 @@ Object.assign(dictionaries.es, {
   "Observed cash postings and their current allocation state.":
     "Registrar las transacciones de efectivo y su estado actual de asignación.",
   Occurred: "Fecha y hora",
-  "One exception. One explainable resolution.": "Una excepción. Una solución explicable.",
+  "One exception. One explainable resolution.": "Una incidencia. Una solución explicable.",
   "One operational core for facts, decisions and accountable automation.":
     "Un núcleo operativo para hechos, decisiones y automatización responsable.",
   "One operational core. Your systems remain in place.":
@@ -8276,13 +8276,13 @@ Object.assign(dictionaries.es, {
     "Reglas reutilizables para calcular las fechas de vencimiento de la factura.",
   "Review all": "Revisar todo",
   "Review business events, processing activity and exceptions over time.":
-    "Revisar eventos comerciales, actividad de procesamiento y excepciones a lo largo del tiempo.",
+    "Revisar eventos comerciales, actividad de procesamiento y incidencias a lo largo del tiempo.",
   "Review Business Events, processing history and exceptions.":
-    "Revisar historial de eventos comerciales, actividad de procesamiento y excepciones.",
+    "Revisar historial de eventos comerciales, actividad de procesamiento y incidencias.",
   "Review derived operational risks. They disappear when Reality is corrected.":
     "Revisar riesgos operativos derivados. Desaparecen cuando la Realidad se corrige.",
   "Review exceptions, commitments and current inventory.":
-    "Revisar excepciones, compromisos e inventario actual.",
+    "Revisar incidencias, compromisos e inventario actual.",
   "Review observed facts": "Revisar hechos observados",
   "Review pending": "Revisar pendiente",
   Revoke: "Revocar",
@@ -8303,7 +8303,7 @@ Object.assign(dictionaries.es, {
     "Busque cualquier ID y siga Source → Evidence → Reality.",
   "Search currencies…": "Busque monedas…",
   "Search document, party or source…": "Busque documento, parte o fuente…",
-  "Search exceptions…": "Buscar Exceptions…",
+  "Search exceptions…": "Buscar incidencias…",
   "Search ID, order number, SKU, party or source reference…":
     "Busque ID, número de pedido, SKU, referencia de parte o fuente…",
   "Search IDs and inspect connected Reality, Evidence and Source records.":
@@ -8410,7 +8410,7 @@ Object.assign(dictionaries.es, {
   "The first verified accounts are admitted automatically. After that, applications wait for your decision.":
     "Las primeras cuentas verificadas se admiten automáticamente. Después, las solicitudes esperan su decisión.",
   "The Operations Cockpit turns connected records into a daily control surface — exceptions first, evidence one step away, agent responsibility always visible.":
-    "El panel de control de operaciones convierte los registros conectados en una superficie de control diaria: primero las excepciones, la evidencia a un paso de distancia, la responsabilidad del agente siempre visible.",
+    "El panel de control de operaciones convierte los registros conectados en una superficie de control diaria: primero las incidencias, la evidencia a un paso de distancia, la responsabilidad del agente siempre visible.",
   "The physical journal starts with the first receipt or opening stock.":
     "El registro físico comienza con la primera recepción o inventario inicial.",
   "The selected upstream payload, retained losslessly and versioned.":
@@ -8426,7 +8426,7 @@ Object.assign(dictionaries.es, {
   "This removes the company and every Source, Evidence, Reality, journal, integration and conversation belonging to it.":
     "Esto elimina a la empresa y todos los Source, Evidence, Reality, diarios, integraciones y conversaciones que pertenecen a ella.",
   "Thousands of events become a small number of clear exceptions that need attention.":
-    "Miles de eventos se convierten en un pequeño número de excepciones claras que necesitan atención.",
+    "Miles de eventos se convierten en un pequeño número de incidencias claras que necesitan atención.",
   "Tied-up business": "Negocio bloqueado",
   Timezone: "Zona horaria",
   To: "Para",
@@ -8884,7 +8884,7 @@ Object.assign(dictionaries.de, {
     "Ein anderer Versuch oder eine Anfrage ist noch offen. Aktualisiere zuerst deine gespeicherten Versuche.",
   "Back to your account": "Zurück zu deinem Konto",
   "Create sandbox": "Sandbox anlegen",
-  "Exception catalog": "Exception-Katalog",
+  "Exception catalog": "Ausnahmekatalog",
   "Business history": "Geschäftsverlauf",
   "All history": "Gesamter Verlauf",
   "All record types": "Alle Datensatztypen",
@@ -8909,7 +8909,7 @@ Object.assign(dictionaries.de, {
   Retry: "Erneut versuchen",
   "Possible exception classes from the current Reality catalog, not active findings. Some need data or operations beyond this sandbox. Descriptions use the catalog's original language.":
     "Mögliche Ausnahmeklassen aus dem aktuellen Reality-Katalog, keine aktiven Fälle. Manche benötigen Daten oder Vorgänge außerhalb dieser Sandbox. Die Beschreibungen stehen in der Originalsprache des Katalogs.",
-  "Could not load the exception catalog.": "Der Ausnahmen-Katalog konnte nicht geladen werden.",
+  "Could not load the exception catalog.": "Der Ausnahmekatalog konnte nicht geladen werden.",
   "No matching exception classes.": "Keine passenden Ausnahmeklassen.",
   "Responsible area": "Zuständiger Bereich",
   "How it clears": "Wie sich der Fall auflösen lässt",
@@ -8996,7 +8996,7 @@ Object.assign(dictionaries.nl, {
     "Een andere proef of aanvraag vraagt aandacht. Vernieuw eerst je opgeslagen proeven.",
   "Back to your account": "Terug naar je account",
   "Create sandbox": "Sandbox aanmaken",
-  "Exception catalog": "Exception-catalogus",
+  "Exception catalog": "Uitzonderingencatalogus",
   "Business history": "Bedrijfsverloop",
   "All history": "Volledige geschiedenis",
   "All record types": "Alle recordtypen",
@@ -9099,7 +9099,7 @@ Object.assign(dictionaries.es, {
     "Hay otra prueba o solicitud pendiente. Actualiza tus pruebas guardadas antes de continuar.",
   "Back to your account": "Volver a tu cuenta",
   "Create sandbox": "Crear sandbox",
-  "Exception catalog": "Catálogo de Exceptions",
+  "Exception catalog": "Catálogo de incidencias",
   "Business history": "Historial del negocio",
   "All history": "Todo el historial",
   "All record types": "Todos los tipos de registro",
@@ -9124,8 +9124,8 @@ Object.assign(dictionaries.es, {
   Retry: "Reintentar",
   "Possible exception classes from the current Reality catalog, not active findings. Some need data or operations beyond this sandbox. Descriptions use the catalog's original language.":
     "Clases posibles del catálogo actual de Reality, no casos activos. Algunas necesitan datos u operaciones fuera de este sandbox. Las descripciones usan el idioma original del catálogo.",
-  "Could not load the exception catalog.": "No se pudo cargar el catálogo de excepciones.",
-  "No matching exception classes.": "No hay clases de excepción coincidentes.",
+  "Could not load the exception catalog.": "No se pudo cargar el catálogo de incidencias.",
+  "No matching exception classes.": "No hay clases de incidencia coincidentes.",
   "Responsible area": "Área responsable",
   "How it clears": "Cómo se resuelve",
   "Return to operations": "Volver a las operaciones",
@@ -9239,7 +9239,7 @@ Object.assign(dictionaries.de, {
   Outcome: "Ergebnis",
   Requested: "Angefordert",
   "Requested by": "Angefordert von",
-  "Search decisions…": "Decisions durchsuchen…",
+  "Search decisions…": "Entscheidungen durchsuchen…",
   "Show details": "Details anzeigen",
   "Show all records": "Alle Datensätze anzeigen",
   "Show fewer records": "Weniger Datensätze anzeigen",
@@ -9254,7 +9254,7 @@ Object.assign(dictionaries.nl, {
   Outcome: "Uitkomst",
   Requested: "Aangevraagd",
   "Requested by": "Aangevraagd door",
-  "Search decisions…": "Decisions zoeken…",
+  "Search decisions…": "Beslissingen zoeken…",
   "Show details": "Details tonen",
   "Show all records": "Alle records tonen",
   "Show fewer records": "Minder records tonen",
@@ -9269,7 +9269,7 @@ Object.assign(dictionaries.es, {
   Outcome: "Resultado",
   Requested: "Solicitado",
   "Requested by": "Solicitado por",
-  "Search decisions…": "Buscar Decisions…",
+  "Search decisions…": "Buscar decisiones…",
   "Show details": "Mostrar detalles",
   "Show all records": "Mostrar todos los registros",
   "Show fewer records": "Mostrar menos registros",
@@ -13007,7 +13007,7 @@ Object.assign(dictionaries.de, {
   "Record graph": "Datensatzgraph",
   "All records": "Alle Datensätze",
   "Additional fact rules": "Regeln für zusätzliche Facts",
-  "Exception rules": "Exception-Regeln",
+  "Exception rules": "Ausnahmeregeln",
   "Calculated views": "Berechnete Sichten",
   "Event history": "Ereignisverlauf",
   "Action catalog": "Aktionskatalog",
@@ -13023,7 +13023,7 @@ Object.assign(dictionaries.nl, {
   "Record graph": "Recordgrafiek",
   "All records": "Alle records",
   "Additional fact rules": "Regels voor aanvullende Facts",
-  "Exception rules": "Exception-regels",
+  "Exception rules": "Uitzonderingsregels",
   "Calculated views": "Berekende weergaven",
   "Event history": "Gebeurtenisgeschiedenis",
   "Action catalog": "Actiecatalogus",
@@ -13039,7 +13039,7 @@ Object.assign(dictionaries.es, {
   "Record graph": "Grafo de registros",
   "All records": "Todos los registros",
   "Additional fact rules": "Reglas de Facts adicionales",
-  "Exception rules": "Reglas de Exceptions",
+  "Exception rules": "Reglas de incidencias",
   "Calculated views": "Vistas calculadas",
   "Event history": "Historial de eventos",
   "Action catalog": "Catálogo de acciones",
@@ -14270,7 +14270,7 @@ Object.assign(dictionaries.de, {
   "Use Reality MCP in read-only mode. List open customer commitments and fulfillment blockers. Explain what is open and why, using the opaque record IDs and available evidence. Do not propose or execute a change yet.":
     "Verwende Reality MCP im Nur-Lese-Modus. Liste offene Kunden-Commitments und Fulfillment-Blocker auf. Erkläre anhand der opaken Datensatz-IDs und der verfügbaren Evidenz, was offen ist und warum. Schlage noch keine Änderung vor und führe keine aus.",
   "For commitment <opaque commitment ID>, use Reality MCP to prepare a reservation proposal for <quantity>. Do not approve or execute it. Return the proposal ID and explain the expected effect so a person can review it in Decisions.":
-    "Bereite für das Commitment <opake Commitment-ID> mit Reality MCP einen Reservierungsvorschlag über <Menge> vor. Bestätige ihn nicht und führe ihn nicht aus. Gib die Vorschlags-ID zurück und erkläre die erwartete Wirkung, damit eine Person ihn unter Decisions prüfen kann.",
+    "Bereite für das Commitment <opake Commitment-ID> mit Reality MCP einen Reservierungsvorschlag über <Menge> vor. Bestätige ihn nicht und führe ihn nicht aus. Gib die Vorschlags-ID zurück und erkläre die erwartete Wirkung, damit eine Person ihn unter Entscheidungen prüfen kann.",
   "Under the hood, an agent can use commitments_list or fulfillment_blockers to read, business_records_discover to resolve opaque records, and reservation_propose to prepare this example. Approval remains a separate human step.":
     "Im Hintergrund kann ein Agent commitments_list oder fulfillment_blockers zum Lesen, business_records_discover zum Auflösen opaker Datensätze und reservation_propose zum Vorbereiten dieses Beispiels verwenden. Die Bestätigung bleibt ein separater menschlicher Schritt.",
   "Possible future direction": "Mögliche zukünftige Richtung",
@@ -14293,7 +14293,7 @@ Object.assign(dictionaries.nl, {
   "Use Reality MCP in read-only mode. List open customer commitments and fulfillment blockers. Explain what is open and why, using the opaque record IDs and available evidence. Do not propose or execute a change yet.":
     "Gebruik Reality MCP in alleen-lezenmodus. Toon openstaande klantcommitments en fulfillmentblokkades. Leg met de opaque record-ID's en beschikbare bewijzen uit wat openstaat en waarom. Stel nog geen wijziging voor en voer niets uit.",
   "For commitment <opaque commitment ID>, use Reality MCP to prepare a reservation proposal for <quantity>. Do not approve or execute it. Return the proposal ID and explain the expected effect so a person can review it in Decisions.":
-    "Gebruik Reality MCP om voor commitment <opaque commitment-ID> een reserveringsvoorstel voor <hoeveelheid> voor te bereiden. Keur het niet goed en voer het niet uit. Geef de voorstel-ID en het verwachte effect terug, zodat een persoon het in Decisions kan beoordelen.",
+    "Gebruik Reality MCP om voor commitment <opaque commitment-ID> een reserveringsvoorstel voor <hoeveelheid> voor te bereiden. Keur het niet goed en voer het niet uit. Geef de voorstel-ID en het verwachte effect terug, zodat een persoon het in beslissingen kan beoordelen.",
   "Under the hood, an agent can use commitments_list or fulfillment_blockers to read, business_records_discover to resolve opaque records, and reservation_propose to prepare this example. Approval remains a separate human step.":
     "Een agent kan commitments_list of fulfillment_blockers gebruiken om te lezen, business_records_discover om opaque records te vinden en reservation_propose om dit voorbeeld voor te bereiden. Goedkeuring blijft een afzonderlijke menselijke stap.",
   "Possible future direction": "Mogelijke toekomstige richting",
@@ -14316,7 +14316,7 @@ Object.assign(dictionaries.es, {
   "Use Reality MCP in read-only mode. List open customer commitments and fulfillment blockers. Explain what is open and why, using the opaque record IDs and available evidence. Do not propose or execute a change yet.":
     "Usa Reality MCP en modo de solo lectura. Enumera los compromisos abiertos de clientes y los bloqueos de cumplimiento. Explica qué está pendiente y por qué usando los ID opacos y la evidencia disponible. No propongas ni ejecutes todavía ningún cambio.",
   "For commitment <opaque commitment ID>, use Reality MCP to prepare a reservation proposal for <quantity>. Do not approve or execute it. Return the proposal ID and explain the expected effect so a person can review it in Decisions.":
-    "Para el compromiso <ID opaco del compromiso>, usa Reality MCP para preparar una propuesta de reserva por <cantidad>. No la apruebes ni ejecutes. Devuelve el ID de la propuesta y explica el efecto esperado para que una persona pueda revisarla en Decisions.",
+    "Para el compromiso <ID opaco del compromiso>, usa Reality MCP para preparar una propuesta de reserva por <cantidad>. No la apruebes ni ejecutes. Devuelve el ID de la propuesta y explica el efecto esperado para que una persona pueda revisarla en decisiones.",
   "Under the hood, an agent can use commitments_list or fulfillment_blockers to read, business_records_discover to resolve opaque records, and reservation_propose to prepare this example. Approval remains a separate human step.":
     "Un agente puede usar commitments_list o fulfillment_blockers para leer, business_records_discover para resolver registros opacos y reservation_propose para preparar este ejemplo. La aprobación sigue siendo un paso humano separado.",
   "Possible future direction": "Posible dirección futura",
@@ -14692,20 +14692,20 @@ Object.assign(dictionaries.de, {
   "Finding type": "Art der Abweichung",
   "What it detects": "Was erkannt wird",
   "No open findings of this type right now.": "Aktuell keine offenen Klärfälle dieser Art.",
-  "Open in Exceptions": "In Exceptions öffnen",
+  "Open in Exceptions": "In Ausnahmen öffnen",
 });
 Object.assign(dictionaries.nl, {
   "Finding type": "Soort bevinding",
   "What it detects": "Wat wordt gesignaleerd",
   "No open findings of this type right now.":
     "Momenteel geen openstaande bevindingen van dit soort.",
-  "Open in Exceptions": "Openen in Exceptions",
+  "Open in Exceptions": "Openen in uitzonderingen",
 });
 Object.assign(dictionaries.es, {
   "Finding type": "Tipo de hallazgo",
   "What it detects": "Qué detecta",
   "No open findings of this type right now.": "Actualmente no hay hallazgos abiertos de este tipo.",
-  "Open in Exceptions": "Abrir en Exceptions",
+  "Open in Exceptions": "Abrir en incidencias",
 });
 Object.assign(dictionaries.de, {
   "Awaiting first calculation.": "Die erste Berechnung steht noch aus.",
