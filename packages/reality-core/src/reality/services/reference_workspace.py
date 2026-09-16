@@ -101,7 +101,8 @@ def reference_register(
         )
         .offset((page - 1) * size)
         .limit(size)
-    )
+    ).all()
+    labels = _reference_labels(session, tenant_id, records)
     return {
         "items": [
             {
@@ -111,6 +112,7 @@ def reference_register(
                 "sku": getattr(record, "sku", None),
                 "unit": getattr(record, "unit", None),
                 "is_active": record.is_active,
+                **labels[record.id],
             }
             for record in records
         ],
@@ -129,6 +131,64 @@ def reference_register(
             "include_inactive": include_inactive,
         },
     }
+
+
+def _reference_labels(
+    session: Session, tenant_id: str, records: list[Any]
+) -> dict[str, dict[str, Any]]:
+    """Resolve only the current page's business references, within the same tenant."""
+    location_ids = {
+        getattr(row, key, None)
+        for row in records
+        for key in ("default_location_id", "parent_location_id")
+    } - {None}
+    term_ids = {getattr(row, "payment_term_id", None) for row in records} - {None}
+    locations = (
+        {
+            row.id: row.name
+            for row in session.scalars(
+                select(Location).where(
+                    Location.tenant_id == tenant_id, Location.id.in_(location_ids)
+                )
+            )
+        }
+        if location_ids
+        else {}
+    )
+    terms = (
+        {
+            row.id: row
+            for row in session.scalars(
+                select(PaymentTerm).where(
+                    PaymentTerm.tenant_id == tenant_id, PaymentTerm.id.in_(term_ids)
+                )
+            )
+        }
+        if term_ids
+        else {}
+    )
+    result = {}
+    for row in records:
+        if isinstance(row, Party):
+            term = terms.get(row.payment_term_id)
+            result[row.id] = {
+                "accounting_code": row.accounting_code,
+                "default_currency": row.default_currency,
+                "payment_term_code": term.code if term else "",
+                "payment_term_name": term.name if term else "",
+            }
+        elif isinstance(row, Item):
+            result[row.id] = {
+                "item_type": row.item_type,
+                "default_location_name": locations.get(row.default_location_id),
+            }
+        else:
+            result[row.id] = {
+                "type": row.type,
+                "allows_stock": row.allows_stock,
+                "parent_location_name": locations.get(row.parent_location_id),
+            }
+    return result
 
 
 def _source_identity(
@@ -171,14 +231,20 @@ def reference_detail(
             if snapshot["payment_term_id"]
             else None
         ) or ""
-    return {
+    detail = {
         "id": record.id,
         "family": family,
         **snapshot,
         **codes,
+        **_reference_labels(session, tenant_id, [record])[record.id],
         "is_active": record.is_active,
         "expected_revision": _snapshot_revision(snapshot),
     }
+
+    from reality.services.operational_previews import master_data_preview
+
+    detail["preview_sections"] = master_data_preview(detail)
+    return detail
 
 
 def require_ordinary_workspace(session: Session, tenant_id: str) -> None:

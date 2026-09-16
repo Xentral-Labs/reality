@@ -15934,3 +15934,124 @@ Object.assign(dictionaries.es, {
   "Use this": "Usar esto",
   "Write your own message": "O escribe tú algo…",
 });
+
+// Spec 209: business quick previews.
+Object.assign(dictionaries.de, {
+  "Current item name": "Aktueller Artikelname",
+  "Requested delivery": "Gewünschte Lieferung",
+  "Ship to": "Lieferempfänger",
+  Fulfillment: "Erfüllung",
+  Settlement: "Ausgleich",
+  "Stock across all locations": "Bestand über alle Lagerorte",
+  "Available stock by location": "Verfügbarer Bestand je Lagerort",
+  "Allocated invoices": "Zugeordnete Rechnungen",
+  "Debit / credit": "Soll / Haben",
+  "Committed / reserved / fulfilled / open": "Zugesagt / reserviert / erfüllt / offen",
+  "No recorded details.": "Keine Angaben erfasst.",
+  "More records are available in the full explanation.":
+    "Weitere Einträge findest du in der vollständigen Erklärung.",
+  "Recorded at": "Erfasst am",
+  incoming: "Eingehend",
+  outgoing: "Ausgehend",
+  inbound: "Eingehend",
+  outbound: "Ausgehend",
+});
+Object.assign(dictionaries.nl, {
+  "Current item name": "Huidige artikelnaam",
+  "Requested delivery": "Gewenste levering",
+  "Ship to": "Ontvanger",
+  Fulfillment: "Uitvoering",
+  Settlement: "Vereffening",
+  "Stock across all locations": "Voorraad op alle locaties",
+  "Available stock by location": "Beschikbare voorraad per locatie",
+  "Allocated invoices": "Toegewezen facturen",
+  "Debit / credit": "Debet / credit",
+  "Committed / reserved / fulfilled / open": "Toegezegd / gereserveerd / uitgevoerd / open",
+  "No recorded details.": "Geen gegevens vastgelegd.",
+  "More records are available in the full explanation.":
+    "Meer gegevens staan in de volledige uitleg.",
+  "Recorded at": "Vastgelegd op",
+  incoming: "Inkomend",
+  outgoing: "Uitgaand",
+  inbound: "Inkomend",
+  outbound: "Uitgaand",
+});
+Object.assign(dictionaries.es, {
+  "Current item name": "Nombre actual del artículo",
+  "Requested delivery": "Entrega solicitada",
+  "Ship to": "Destinatario",
+  Fulfillment: "Cumplimiento",
+  Settlement: "Liquidación",
+  "Stock across all locations": "Existencias en todas las ubicaciones",
+  "Available stock by location": "Existencias disponibles por ubicación",
+  "Allocated invoices": "Facturas asignadas",
+  "Debit / credit": "Debe / haber",
+  "Committed / reserved / fulfilled / open": "Comprometido / reservado / cumplido / pendiente",
+  "No recorded details.": "No hay detalles registrados.",
+  "More records are available in the full explanation.":
+    "Hay más registros en la explicación completa.",
+  "Recorded at": "Registrado el",
+  incoming: "Entrante",
+  outgoing: "Saliente",
+  inbound: "Entrante",
+  outbound: "Saliente",
+});
+
+// Server-produced labels used by operational previews.
+Object.assign(dictionaries.de, {
+  Holds: "Sperren",
+  Packages: "Pakete",
+  "Effective physical contents": "Erfasste Warenbewegungen",
+  "Current tracking observations": "Aktuelle Trackingmeldungen",
+  Effective: "Buchungsdatum",
+  "Financial Reality": "Finanzieller Stand",
+  Committed: "Zugesagt",
+  Inbound: "Eingehend",
+  Outbound: "Ausgehend",
+  Delivered: "Zugestellt",
+  Announced: "Angekündigt",
+  "In transit": "Unterwegs",
+});
+Object.assign(dictionaries.nl, {
+  Holds: "Blokkades",
+  Packages: "Pakketten",
+  "Effective physical contents": "Vastgelegde goederenbewegingen",
+  "Current tracking observations": "Actuele trackingmeldingen",
+  Effective: "Boekingsdatum",
+  "Financial Reality": "Financiële stand",
+  Committed: "Toegezegd",
+  Inbound: "Inkomend",
+  Outbound: "Uitgaand",
+  Delivered: "Afgeleverd",
+  Announced: "Aangekondigd",
+  "In transit": "Onderweg",
+});
+Object.assign(dictionaries.es, {
+  Holds: "Bloqueos",
+  Packages: "Paquetes",
+  "Effective physical contents": "Movimientos físicos registrados",
+  "Current tracking observations": "Observaciones actuales de seguimiento",
+  Effective: "Fecha contable",
+  "Financial Reality": "Situación financiera",
+  Committed: "Comprometido",
+  Inbound: "Entrante",
+  Outbound: "Saliente",
+  Delivered: "Entregado",
+  Announced: "Anunciado",
+  "In transit": "En tránsito",
+});
+
+Object.assign(dictionaries.de, {
+  "Handed over": "Übergeben",
+  "Delivery exception": "Zustellproblem",
+});
+
+Object.assign(dictionaries.nl, {
+  "Handed over": "Overgedragen",
+  "Delivery exception": "Bezorgprobleem",
+});
+
+Object.assign(dictionaries.es, {
+  "Handed over": "Entregado al transportista",
+  "Delivery exception": "Incidencia de entrega",
+});

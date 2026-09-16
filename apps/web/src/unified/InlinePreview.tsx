@@ -91,7 +91,7 @@ export function TablePreview({
   return (
     <tr data-inline-preview>
       <td colSpan={columns} className="bg-surface-muted/60 p-0">
-        <div id={id} role="region" className="p-5 sm:p-6">
+        <div id={id} role="region" className="sticky left-0 max-w-[100cqw] p-5 sm:p-6">
           {children}
         </div>
       </td>
@@ -110,24 +110,27 @@ export function InlineInspector({
   openFull?: () => void;
   children?: ReactNode;
 }) {
-  const [full, setFull] = useState(false);
+  const [full, setFull] = useState<{ kind: string; id: string } | null>(null);
   const read = useRead(
-    () => api.inspector(tenant, target.kind, target.id),
+    () => api.inspector(tenant, target.kind, target.id, true),
     [tenant, target.kind, target.id],
   );
   const generated = useId();
   if (!read.data)
     return <ReadState loading={read.loading} error={read.error} retry={read.refresh} />;
   return (
-    <div data-inline-inspector={generated} className="w-full">
-      <InspectorContent data={read.data} selectedKind={target.kind} compact />
+    <div
+      data-inline-inspector={generated}
+      className="w-full max-w-[calc(100vw-5rem)] md:max-w-none"
+    >
+      <InspectorContent data={read.data} selectedKind={target.kind} follow={setFull} compact />
       <div className="mt-5 flex flex-wrap justify-end gap-2">
-        <button className="br-btn" onClick={openFull || (() => setFull(true))}>
+        <button className="br-btn" onClick={openFull || (() => setFull(target))}>
           {t("Open full explanation")}
         </button>
         {children}
       </div>
-      {full && <Inspector tenant={tenant} target={target} close={() => setFull(false)} />}
+      {full && <Inspector tenant={tenant} target={full} close={() => setFull(null)} />}
     </div>
   );
 }

@@ -1,6 +1,6 @@
 import { Fragment } from "react";
 import { shipmentApi, type Page, type ShipmentRow } from "../api";
-import { formatDateTime, formatQuantity, t } from "../localization";
+import { formatDateTime, t } from "../localization";
 import { InlineInspector, PreviewButton, TablePreview } from "./InlinePreview";
 import { ReadState } from "./ReadState";
 import { RegisterPager } from "./WarehousePage";
@@ -113,43 +113,12 @@ export function ShipmentsRegister({
                   tenant={selection.tenant}
                   target={{ kind: "shipment", id: row.id }}
                 >
-                  <div className="grid gap-4 md:grid-cols-2">
-                    <section>
-                      <h3 className="font-medium text-fg-strong">{t("Physical contents")}</h3>
-                      <p className="mt-2 text-sm text-fg-muted">
-                        {t("Promised")}: {row.quantities.promised ?? "—"} · {t("Dispatched")}:{" "}
-                        {row.quantities.dispatched ?? "—"} · {t("Received")}:{" "}
-                        {row.quantities.received ?? "—"}
-                      </p>
-                      {row.movements.length ? (
-                        row.movements.map((movement) => (
-                          <p key={movement.id} className="mt-2 text-sm">
-                            <span data-localization="original">{movement.item_id}</span>:{" "}
-                            {formatQuantity(movement.quantity)} · {t(movement.type)}
-                          </p>
-                        ))
-                      ) : (
-                        <p className="mt-2 text-sm text-fg-muted">
-                          {t("No stock movement recorded")}
-                        </p>
-                      )}
-                    </section>
-                    <section>
-                      <h3 className="font-medium text-fg-strong">{t("Tracking observations")}</h3>
-                      {row.events.map((event) => (
-                        <p key={event.id} className="mt-2 text-sm">
-                          {t(event.event_type)} · {t(event.reporter_type)}
-                          {event.occurred_at ? ` · ${formatDateTime(event.occurred_at)}` : ""}
-                        </p>
-                      ))}
-                      {(row.discrepancies.external_delivery_without_warehouse_receipt ||
-                        row.discrepancies.warehouse_receipt_without_external_delivery) && (
-                        <p className="mt-2 text-sm text-warning-text">
-                          {t("Warehouse and carrier observations differ")}
-                        </p>
-                      )}
-                    </section>
-                  </div>
+                  {(row.discrepancies.external_delivery_without_warehouse_receipt ||
+                    row.discrepancies.warehouse_receipt_without_external_delivery) && (
+                    <p className="text-sm text-warning-text">
+                      {t("Warehouse and carrier observations differ")}
+                    </p>
+                  )}
                 </InlineInspector>
               </TablePreview>
             </Fragment>

@@ -2853,3 +2853,9 @@ The Inspector Additional facts type is labeled Facts in non-English languages.
 General business objects (items, business partners, locations), control verbs and
 explanations remain localized. English copy, source payloads, formatting, routes,
 filters, permissions and operational semantics are unchanged.
+
+## Operational quick previews (spec 209)
+
+Inline Inspector reads explicitly request business preview sections for documents, delivery commitments, items, reservations, movements, shipments/packages, payments and journal entries. The full explanation retains correction/provenance detail. Documents show labeled parties, received totals and SKU plus historical line descriptions; a current item-name fallback is labeled. Existing services supply effective fulfillment, holds, scoped stock, settlement and allocation. Missing data stays unavailable; original business names remain untranslated. Lists show up to twenty rows per section with an overflow notice. Mobile preview content is bounded to the viewport within horizontally scrollable tables. Named links open the full Inspector; footer actions and keyboard disclosure remain shared. No new persistence or business rules are introduced.
+
+Spec 209 master-data extension: Master data is a Workspace link after Finance, no longer a Company link. Customer/supplier lists prioritize accounting code, payment term and currency; item lists expose item type and named default location; location lists show type, named parent and stock eligibility. Previews group the existing editable business fields and format monetary/quantity values through the shared Inspector presentation. Provenance and opaque identity remain in secondary details. Existing edit/revision confirmation, source inspection and customer-hold actions remain available. Related labels are resolved with tenant-scoped, page-bounded reads.

@@ -482,6 +482,22 @@ export function Shell({
                     <Wallet size={17} />
                     <span data-navigation-label>{t("Finance")}</span>
                   </a>
+                  <a
+                    data-navigation-item
+                    aria-label={t("Master data")}
+                    data-sidebar-tooltip={t("Master data")}
+                    className={`flex items-center gap-2 rounded-md px-3 py-2 text-[13px] leading-5 ${selection.route === "master-data" ? activeNavigation : "hover:bg-surface-muted"}`}
+                    href={selectionUrl({ ...selection, route: "master-data" })}
+                    aria-current={selection.route === "master-data" ? "page" : undefined}
+                    onClick={(event) => {
+                      event.preventDefault();
+                      navigate({ route: "master-data", proposal: "", page: 1, q: "" });
+                      setOpen(false);
+                    }}
+                  >
+                    <LayoutGrid size={17} />
+                    <span data-navigation-label>{t("Master data")}</span>
+                  </a>
                 </nav>
                 <nav aria-labelledby="analytics-navigation-label">
                   <p
@@ -560,22 +576,7 @@ export function Shell({
                   <p className="mb-1.5 px-3 text-[10px] uppercase tracking-wider text-fg-muted">
                     {t("Company")}
                   </p>
-                  <a
-                    data-navigation-item
-                    aria-label={t("Master data")}
-                    data-sidebar-tooltip={t("Master data")}
-                    className={`flex items-center gap-2 rounded-md px-3 py-2 text-[13px] leading-5 ${selection.route === "master-data" ? activeNavigation : "hover:bg-surface-muted"}`}
-                    href={selectionUrl({ ...selection, route: "master-data" })}
-                    aria-current={selection.route === "master-data" ? "page" : undefined}
-                    onClick={(event) => {
-                      event.preventDefault();
-                      navigate({ route: "master-data", proposal: "", page: 1, q: "" });
-                      setOpen(false);
-                    }}
-                  >
-                    <LayoutGrid size={17} />
-                    <span data-navigation-label>{t("Master data")}</span>
-                  </a>
+
                   <a
                     data-navigation-item
                     aria-label={t("Integrations")}

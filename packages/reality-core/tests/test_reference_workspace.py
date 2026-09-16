@@ -587,3 +587,63 @@ def test_full_field_creation_records_every_value(session, business):
         parent.id,
         False,
     )
+
+
+def test_business_preview_names_fields_and_preserves_revision(session, business):
+    from reality.services.core import (
+        _snapshot_revision,
+        create_payment_term,
+        master_data_update_snapshot,
+    )
+
+    tid = business.tenant.id
+    create_payment_term(session, tid, "NET209", "Thirty days", due_days=30)
+    party = create_party(
+        session,
+        tid,
+        "Preview customer",
+        "customer",
+        accounting_code="AR-209",
+        payment_term_code="NET209",
+        credit_limit="1250.50",
+        tax_identifier="VAT209",
+        roles=["customer", "supplier"],
+    )
+    listing = reference_register(session, tid, "customer", query="Preview customer")[
+        "items"
+    ][0]
+    assert listing["accounting_code"] == "AR-209"
+    assert listing["payment_term_code"] == "NET209"
+    assert listing["default_currency"] == "EUR"
+    detail = reference_detail(session, tid, "customer", party.id)
+    fields = {r["label"]: r for s in detail["preview_sections"] for r in s["rows"]}
+    assert fields["Credit limit"]["display_parts"][0]["value"] == "1250.5"
+    assert detail["expected_revision"] == _snapshot_revision(
+        master_data_update_snapshot(session, tid, "party", party.id)
+    )
+    assert detail["roles"] == ["customer", "supplier"]
+    item = create_item(
+        session, tid, "SKU209", "Named item", default_location_id=business.location.id
+    )
+    child = create_location(
+        session,
+        tid,
+        "Named bin",
+        parent_location_id=business.location.id,
+        allows_stock=False,
+    )
+    for family, record, key in [
+        ("item", item, "default_location_name"),
+        ("location", child, "parent_location_name"),
+    ]:
+        detail = reference_detail(session, tid, family, record.id)
+        assert detail[key] == business.location.name
+        listing = reference_register(session, tid, family, query=record.name)["items"][
+            0
+        ]
+        assert listing[key] == business.location.name
+        assert detail["preview_sections"]
+    foreign = create_tenant(session, "Foreign reference preview")
+    for family, record in [("customer", party), ("item", item), ("location", child)]:
+        with pytest.raises(NotFound):
+            reference_detail(session, foreign.id, family, record.id)

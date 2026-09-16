@@ -738,6 +738,9 @@ export type RealityGapSimulation = {
   }>;
 };
 export type InspectorRow = {
+  hint?: string;
+  original_label?: boolean;
+  translate_value?: boolean;
   display_parts?: import("./unified/inspectorPresentation").InspectorPart[];
   label: string;
   value: unknown;
@@ -765,6 +768,7 @@ export type BillingAvailability = {
   }[];
 };
 export type InspectorData = {
+  preview_sections?: { title: string; rows: InspectorRow[]; has_more?: boolean }[];
   title_parts?: import("./unified/inspectorPresentation").InspectorPart[];
   subtitle_parts?: import("./unified/inspectorPresentation").InspectorPart[];
   meaning_parts?: import("./unified/inspectorPresentation").InspectorPart[];
@@ -1750,9 +1754,9 @@ export const api = {
       method: "POST",
       body: JSON.stringify({ session_id: sessionId }),
     }),
-  inspector: (tenant: string, kind: string, id: string) =>
+  inspector: (tenant: string, kind: string, id: string, preview = false) =>
     request<InspectorData>(
-      `/api/tenants/${tenant}/inspector/${encodeURIComponent(kind)}/${encodeURIComponent(id)}`,
+      `/api/tenants/${tenant}/inspector/${encodeURIComponent(kind)}/${encodeURIComponent(id)}${preview ? `?${new URLSearchParams({ preview: "true" })}` : ""}`,
     ),
   parties: (tenant: string) => request<PartyRow[]>(`/api/tenants/${tenant}/parties`),
   createParty: (tenant: string, body: Record<string, unknown>) =>
@@ -2161,6 +2165,15 @@ export type Insights = {
   coverage: string;
 };
 export type ReferenceRow = {
+  accounting_code?: string;
+  payment_term_code?: string;
+  payment_term_name?: string;
+  default_currency?: string;
+  item_type?: string;
+  type?: string;
+  default_location_name?: string;
+  parent_location_name?: string;
+  allows_stock?: boolean;
   id: string;
   family: ReferenceFamily;
   name: string;
@@ -2169,6 +2182,7 @@ export type ReferenceRow = {
   is_active: boolean;
 };
 export type ReferenceDetail = ReferenceRow & {
+  preview_sections?: InspectorData["preview_sections"];
   expected_revision: string;
   source_record_id?: string;
   roles?: string[];

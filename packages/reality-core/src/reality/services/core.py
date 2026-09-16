@@ -10111,6 +10111,12 @@ def account_balance(
 
 
 def financial_open_items(session: OrmSession, tenant_id: str) -> list[dict[str, Any]]:
+    return _financial_open_items(session, tenant_id)
+
+
+def _financial_open_items(
+    session: OrmSession, tenant_id: str, *, document_ids: set[str] | None = None
+) -> list[dict[str, Any]]:
     get_tenant(session, tenant_id)
     rows = []
     documents = list(
@@ -10127,6 +10133,7 @@ def financial_open_items(session: OrmSession, tenant_id: str) -> list[dict[str, 
                     )
                 ),
             )
+            .where(Document.id.in_(document_ids) if document_ids is not None else True)
             .order_by(Document.document_date, Document.number)
         )
     )
@@ -10289,6 +10296,12 @@ def open_item_control_accounts(
 
 
 def payment_rows(session: OrmSession, tenant_id: str) -> list[dict[str, Any]]:
+    return _payment_rows(session, tenant_id)
+
+
+def _payment_rows(
+    session: OrmSession, tenant_id: str, *, cash_entry_ids: set[str] | None = None
+) -> list[dict[str, Any]]:
     """Every payment with what it settled, in six reads for the whole company.
 
     The per-payment form read the control entry, the reversal, every allocation of
@@ -10301,6 +10314,11 @@ def payment_rows(session: OrmSession, tenant_id: str) -> list[dict[str, Any]]:
         for cash in session.scalars(
             select(LedgerEntry)
             .where(LedgerEntry.tenant_id == tenant_id, LedgerEntry.account == "cash")
+            .where(
+                LedgerEntry.id.in_(cash_entry_ids)
+                if cash_entry_ids is not None
+                else True
+            )
             .order_by(LedgerEntry.effective_at.desc())
         )
         # Reversing cash entries carry correction evidence through LedgerReversal,

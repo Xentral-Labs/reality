@@ -9,10 +9,11 @@ import { workspaceApi, type ReferenceDetail, type ReferenceFamily } from "../api
 import { t } from "../localization";
 import { useRead } from "./useCompanyContext";
 import { ReadState } from "./ReadState";
-import { Inspector } from "./Inspector";
+import { Inspector, InspectorContent } from "./Inspector";
 import { PreviewButton, TablePreview } from "./InlinePreview";
 import {
   MasterDataCard,
+  displayValue,
   RecordSummary,
   referenceFields,
   savedReferenceDraft,
@@ -161,8 +162,32 @@ export function MasterDataPage({
                 <thead>
                   <tr>
                     {(family === "item"
-                      ? ["Name", "SKU", "Unit", "Status", "Actions"]
-                      : ["Name", "Record ID", "Status", "Actions"]
+                      ? [
+                          "Name",
+                          "SKU",
+                          "Unit",
+                          "Item type",
+                          "Default location",
+                          "Status",
+                          "Actions",
+                        ]
+                      : family === "location"
+                        ? [
+                            "Name",
+                            "Type",
+                            "Parent location",
+                            "Allows physical stock",
+                            "Status",
+                            "Actions",
+                          ]
+                        : [
+                            "Name",
+                            "Accounting code",
+                            "Payment term",
+                            "Currency",
+                            "Status",
+                            "Actions",
+                          ]
                     ).map((label) => (
                       <th key={label}>{t(label)}</th>
                     ))}
@@ -177,9 +202,25 @@ export function MasterDataPage({
                           <>
                             <td data-original-content>{row.sku || "—"}</td>
                             <td data-original-content>{row.unit || "—"}</td>
+                            <td>{displayValue("item_type", row.item_type)}</td>
+                            <td data-original-content>{row.default_location_name || "—"}</td>
+                          </>
+                        ) : family === "location" ? (
+                          <>
+                            <td>
+                              {t(row.type ? row.type[0].toUpperCase() + row.type.slice(1) : "—")}
+                            </td>
+                            <td data-original-content>{row.parent_location_name || "—"}</td>
+                            <td>
+                              {row.allows_stock == null ? "—" : t(row.allows_stock ? "Yes" : "No")}
+                            </td>
                           </>
                         ) : (
-                          <td data-original-content>{row.id}</td>
+                          <>
+                            <td data-original-content>{row.accounting_code || "—"}</td>
+                            <td data-original-content>{row.payment_term_code || "—"}</td>
+                            <td data-original-content>{row.default_currency || "—"}</td>
+                          </>
                         )}
                         <td>{t(row.is_active ? "Active" : "Inactive")}</td>
                         <td>
@@ -194,7 +235,7 @@ export function MasterDataPage({
                       <TablePreview
                         id={`master-preview-${row.id}`}
                         open={record === row.id}
-                        columns={family === "item" ? 5 : 4}
+                        columns={family === "item" ? 7 : 6}
                       >
                         {!detail ? (
                           <ReadState
@@ -203,12 +244,20 @@ export function MasterDataPage({
                             retry={detailRead.refresh}
                           />
                         ) : (
-                          <div className="max-w-3xl">
-                            <h2 className="text-xl font-semibold text-fg-strong">{detail.name}</h2>
-                            <p className="mt-2 text-sm text-fg-muted">
-                              {t(detail.is_active ? "Active" : "Inactive")}
-                            </p>
-                            <div className="mt-4">
+                          <div className="w-full" data-master-preview>
+                            <InspectorContent
+                              data={{
+                                title: detail.name,
+                                sections: detail.preview_sections || [],
+                                preview_sections: detail.preview_sections,
+                              }}
+                              selectedKind={
+                                family === "customer" || family === "supplier" ? "party" : family
+                              }
+                              follow={setTarget}
+                              compact
+                            />
+                            {!detail.preview_sections && (
                               <RecordSummary
                                 record={Object.fromEntries(
                                   referenceFields(family)
@@ -216,8 +265,39 @@ export function MasterDataPage({
                                     .map((field) => [field.key, detail[field.key]]),
                                 )}
                               />
-                            </div>
-                            <div className="mt-5 flex flex-wrap gap-2">
+                            )}
+                            <details className="mt-4 text-sm">
+                              <summary>{t("Provenance")}</summary>
+                              <RecordSummary
+                                record={{
+                                  id: detail.id,
+                                  source_system: detail.source_system,
+                                  external_id: detail.external_id,
+                                }}
+                              />
+                              {detail.source_record_id && (
+                                <button
+                                  className="br-btn mt-3"
+                                  onClick={() =>
+                                    setTarget({
+                                      kind: "source_record",
+                                      id: detail.source_record_id!,
+                                    })
+                                  }
+                                >
+                                  {t("Original source")}
+                                </button>
+                              )}
+                            </details>
+                            <div className="mt-5 flex flex-wrap justify-end gap-2">
+                              {family === "customer" && (
+                                <button
+                                  className="br-btn"
+                                  onClick={() => setHoldCustomer(detail.id)}
+                                >
+                                  {t("Customer delivery holds")}
+                                </button>
+                              )}
                               <button
                                 className="br-btn br-btn-primary"
                                 onClick={() => setEditor(detail)}
