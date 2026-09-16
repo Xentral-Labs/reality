@@ -37,6 +37,9 @@ As an operator, I retain localized controls, business vocabulary and formatting.
 **Acceptance Scenarios**:
 1. Given each non-English language, when viewing controls and general business categories, then existing translations remain.
 2. Given English, then existing copy remains unchanged, including Additional facts.
+   In particular, a catalog alias whose translated value is an existing English
+   source key must not rename that key: Commitments stays Commitments, rather
+   than becoming Business commitments during DOM reverse localization.
 3. Given original source data, then its content remains untouched.
 
 ### Edge Cases
@@ -64,3 +67,10 @@ The user approved this terminology and audience explicitly before implementation
 | FR-001 | US1 scenarios 1–2 | T003 | T004 |
 | FR-002 | US1 scenario 3 | T003 | T004 |
 | FR-003 | US2 scenarios 1–3 | T005 | T006 |
+
+## Regression verification
+
+FR-003 is also covered by the actual-catalog reverse-localization regression in
+`apps/web/scripts/localization-contract.test.mjs` and the four-language navigation
+scenario in `apps/web/scripts/unified-inspector-browser.mjs`. See
+[English label regression](english-label-regression.md) for the fix plan and evidence.
