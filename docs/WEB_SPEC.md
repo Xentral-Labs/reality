@@ -2893,3 +2893,7 @@ Spec 215 supersedes the spec208 canonical-English rule only for Exception(s) and
 ## Visible integration actions (spec 210)
 
 Registered sources visibly offer Settings and Received data; received source versions offer Open details and View observations. The shared table's labeled presentation preserves localized text without hover or external-link icons, with action columns wide enough for both controls in normal and compact density. Narrow screens retain table-local horizontal scrolling and release the sticky first column in these labeled tables so it cannot cover the actions. Existing source configuration, Inspector and exact-source Facts destinations, tenant context and read-only activation remain unchanged. Other registers retain their compact preview controls.
+
+## Business Inspector names (spec 216)
+
+The former Context Graph area is named Business Graph; the Facts navigation area is Business Facts. Both names are invariant product labels in every language. Use the same names in shared section/page titles, tooltips, standalone facts-page headings and Storyline graph headings/captions/accessibility labels. Fact/Facts remain data-type names in selectors, individual records and Storyline fact counts. Existing routes, tabs, filters and technical identifiers remain unchanged. This updates only the area/product naming portion of spec208; spec215 remains applicable.

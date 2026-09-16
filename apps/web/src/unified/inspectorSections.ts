@@ -1,6 +1,6 @@
 export const inspectorSections = [
-  { label: "Context Graph", tabs: ["overview", "graph"] },
-  { label: "Facts", tabs: ["facts", "views"] },
+  { label: "Business Graph", tabs: ["overview", "graph"] },
+  { label: "Business Facts", tabs: ["facts", "views"] },
   { label: "Rules", tabs: ["rules", "exceptions"] },
   { label: "Actions", tabs: ["history", "commands"] },
 ];

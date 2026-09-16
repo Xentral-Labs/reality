@@ -25,7 +25,8 @@ const types = {
   "Ledger entries": "Ledger Entries",
   "Business event": "Business Event",
   "Business events": "Business Events",
-  "Context Graph": "Context Graph",
+  "Business Graph": "Business Graph",
+  "Business Facts": "Business Facts",
 };
 
 for (const [language, catalog] of Object.entries(catalogs)) {

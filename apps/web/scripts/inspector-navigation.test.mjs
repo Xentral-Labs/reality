@@ -10,8 +10,8 @@ test("Inspector sections match their contents and default destinations", () => {
   assert.deepEqual(
     inspectorSections.map((s) => [s.label, s.tabs[0]]),
     [
-      ["Context Graph", "overview"],
-      ["Facts", "facts"],
+      ["Business Graph", "overview"],
+      ["Business Facts", "facts"],
       ["Rules", "rules"],
       ["Actions", "history"],
     ],
@@ -35,7 +35,7 @@ test("legacy records links share the single primary register", () => {
     ["facts", "All records"],
     ["views", "Calculated views"],
   ]);
-  assert.equal(inspectorSection("views").label, "Facts");
+  assert.equal(inspectorSection("views").label, "Business Facts");
   assert.equal(inspectorSection("commands").label, "Actions");
 });
 
@@ -46,7 +46,7 @@ test("legacy URLs retain tenant, search and record-type filters", async () => {
       "https://example.test/app/inspector?tenant=t%26one&inspector_view=records&q=00123&inspector_record_kind=document&page=3",
     ),
   );
-  assert.equal(inspectorSection(selection.inspectorView).label, "Facts");
+  assert.equal(inspectorSection(selection.inspectorView).label, "Business Facts");
   const url = new URL(selectionUrl(selection), "https://example.test");
   for (const [key, value] of [
     ["tenant", "t&one"],

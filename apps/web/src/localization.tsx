@@ -14050,10 +14050,19 @@ Object.assign(dictionaries.es, {
     "Las columnas son intervalos de registro de una semana.",
 });
 
-// The Context Graph is a product term and reads the same in every language.
-Object.assign(dictionaries.de, { "Context Graph": "Context Graph" });
-Object.assign(dictionaries.nl, { "Context Graph": "Context Graph" });
-Object.assign(dictionaries.es, { "Context Graph": "Context Graph" });
+// Business Graph is a product term and reads the same in every language.
+Object.assign(dictionaries.de, {
+  "Business Graph": "Business Graph",
+  "Business Facts": "Business Facts",
+});
+Object.assign(dictionaries.nl, {
+  "Business Graph": "Business Graph",
+  "Business Facts": "Business Facts",
+});
+Object.assign(dictionaries.es, {
+  "Business Graph": "Business Graph",
+  "Business Facts": "Business Facts",
+});
 Object.assign(dictionaries.de, {
   Preview: "Vorschau",
   "Close preview": "Vorschau schließen",

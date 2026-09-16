@@ -48,7 +48,7 @@ export function FactsPage({
   );
   return (
     <RegisterWorkbench>
-      {!embedded && <RegisterHeader title="Facts" />}
+      {!embedded && <RegisterHeader title="Business Facts" />}
       <section className="register-surface">
         <form
           className="register-facts-toolbar"
