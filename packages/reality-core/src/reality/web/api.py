@@ -6024,7 +6024,13 @@ def invoice_credit_context(tenant_id: str, invoice_id: str, session: DatabaseSes
 
 
 @router.get("/inspector/{kind}/{record_id}")
-def get_inspector(kind: str, record_id: str, tenant_id: str, session: DatabaseSession):
+def get_inspector(
+    kind: str,
+    record_id: str,
+    tenant_id: str,
+    session: DatabaseSession,
+    preview: bool = False,
+):
     try:
         if kind in {"document_line", "source_record", "business_event"}:
             from reality.services.delivery_reads import delivery_evidence
@@ -6212,6 +6218,12 @@ def get_inspector(kind: str, record_id: str, tenant_id: str, session: DatabaseSe
             "exception",
         }:
             raise NotFound("Inspector record type not found.")
+        if preview:
+            from reality.services.operational_previews import operational_preview
+
+            sections = operational_preview(session, tenant_id, kind, record_id)
+            if sections is not None:
+                payload["preview_sections"] = sections
         return complete_inspector(payload)
     except NotFound as error:
         raise api_error(error) from error

@@ -80,22 +80,28 @@ export function InspectorContent({
   follow,
   compact = false,
 }: {
-  data: InspectorData;
+  data: Pick<InspectorData, "title" | "sections"> & Partial<InspectorData>;
   selectedKind: string;
   follow?: (target: { kind: string; id: string }) => void;
   compact?: boolean;
 }) {
-  const sections = compact ? data.sections.slice(0, 3) : data.sections;
+  const sections = compact ? (data.preview_sections ?? data.sections.slice(0, 3)) : data.sections;
+  const businessPreview = compact && !!data.preview_sections;
   const title = inspectorValue(data.title, data.title_parts);
   const subtitle = inspectorValue(data.subtitle, data.subtitle_parts);
-  const meaning = inspectorValue(data.meaning, data.meaning_parts);
+  const meaning = data.meaning ? inspectorValue(data.meaning, data.meaning_parts) : "";
   const compactMeaningIsRedundant =
     compact && meaning.includes(title) && (subtitle === "—" || meaning.includes(subtitle));
   return (
     <div className={compact ? compactGrid : undefined}>
       {compact ? (
         <header className="flex min-w-0 flex-wrap items-baseline gap-x-2 gap-y-1 md:col-span-2">
-          <h2 className="text-lg font-semibold text-fg-strong">{title}</h2>
+          <h2
+            data-original-content={businessPreview ? "" : undefined}
+            className="text-lg font-semibold text-fg-strong"
+          >
+            {title}
+          </h2>
           {subtitle !== "—" && <span className="text-sm text-fg-muted">· {subtitle}</span>}
         </header>
       ) : (
@@ -107,12 +113,12 @@ export function InspectorContent({
         </p>
       )}
       {!compact && <p className="my-3">{subtitle}</p>}
-      {!compactMeaningIsRedundant && (
+      {meaning && !compactMeaningIsRedundant && (
         <p className={`text-fg-muted ${compact ? "md:col-span-2" : ""}`}>{meaning}</p>
       )}
       {[
         ...sections,
-        ...(compact ? [] : [{ title: "Technical details", rows: data.technical_rows }]),
+        ...(compact ? [] : [{ title: "Technical details", rows: data.technical_rows || [] }]),
       ].map((section) => (
         <section key={section.title} className={compact ? compactSection : "mt-6"}>
           <h3 className="mb-3 font-medium">{t(section.title)}</h3>
@@ -121,36 +127,60 @@ export function InspectorContent({
               key={index}
               className="flex justify-between gap-4 border-b border-border-default py-2 text-sm"
             >
-              <span>{t(row.label)}</span>
+              <span className="min-w-0 break-words">
+                <span data-original-content={row.original_label ? "" : undefined}>
+                  {row.original_label ? row.label : t(row.label)}
+                </span>
+                {row.hint && (
+                  <span className="mt-1 block text-xs text-fg-muted">{t(row.hint)}</span>
+                )}
+              </span>
               {row.link && follow ? (
                 <button
-                  data-original-content={selectedKind === "fact" ? "" : undefined}
-                  className="break-all text-accent underline"
+                  data-original-content={
+                    selectedKind === "fact" || (businessPreview && !row.translate_value)
+                      ? ""
+                      : undefined
+                  }
+                  className="max-w-[65%] shrink-0 break-words text-right text-accent underline"
                   onClick={() => follow(row.link!)}
                 >
-                  {inspectorValue(row.value, row.display_parts)}
+                  {row.translate_value
+                    ? t(String(row.value))
+                    : inspectorValue(row.value, row.display_parts)}
                 </button>
               ) : (
                 <span
                   data-original-content={
-                    selectedKind === "fact" &&
-                    [
-                      "Value",
-                      "Exact predicate",
-                      "Subject ID",
-                      "Fact ID",
-                      "Source record ID",
-                    ].includes(row.label)
+                    (businessPreview && !row.translate_value) ||
+                    (selectedKind === "fact" &&
+                      [
+                        "Value",
+                        "Exact predicate",
+                        "Subject ID",
+                        "Fact ID",
+                        "Source record ID",
+                      ].includes(row.label))
                       ? ""
                       : undefined
                   }
                   className="max-w-[65%] break-words text-right"
                 >
-                  {inspectorValue(row.value, row.display_parts)}
+                  {row.translate_value
+                    ? t(String(row.value))
+                    : inspectorValue(row.value, row.display_parts)}
                 </span>
               )}
             </div>
           ))}
+          {businessPreview && section.rows.length === 0 && (
+            <p className="text-sm text-fg-muted">{t("No recorded details.")}</p>
+          )}
+          {"has_more" in section && section.has_more === true && (
+            <p className="mt-3 text-sm text-fg-muted">
+              {t("More records are available in the full explanation.")}
+            </p>
+          )}
         </section>
       ))}
       {!compact && data.source_payload && (

@@ -48,9 +48,22 @@ function text(value: ReactNode): string {
 }
 type Profile = { widths: number[]; sorts: (string | null)[] };
 const profiles: Record<string, Profile> = {
-  "master-data:customer": { widths: [220, 100, 100, 80], sorts: ["name", "id", "status"] },
-  "master-data:supplier": { widths: [220, 100, 100, 80], sorts: ["name", "id", "status"] },
-  "master-data:location": { widths: [220, 100, 100, 80], sorts: ["name", "id", "status"] },
+  "master-data:customer": {
+    widths: [240, 130, 140, 90, 90, 80],
+    sorts: ["name", null, null, null, "status"],
+  },
+  "master-data:supplier": {
+    widths: [240, 130, 140, 90, 90, 80],
+    sorts: ["name", null, null, null, "status"],
+  },
+  "master-data:location": {
+    widths: [220, 120, 200, 120, 90, 80],
+    sorts: ["name", null, null, null, "status"],
+  },
+  "master-data:item": {
+    widths: [240, 120, 80, 100, 180, 90, 80],
+    sorts: ["name", null, null, null, null, "status"],
+  },
   "orders-deliveries:deliveries": {
     widths: [220, 220, 180, 130, 100, 100, 100, 100, 80],
     sorts: ["counterparty", "item", null, "due_at", null, null, "open", "status"],
@@ -358,6 +371,7 @@ export function RegisterTable({
       {toolbar?.target ? createPortal(controls, toolbar.target) : controls}
       <div
         ref={container}
+        style={{ containerType: "inline-size" }}
         className={reading(busy, "erp-table-scroll")}
         aria-busy={busy || undefined}
         role="region"

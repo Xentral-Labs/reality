@@ -1108,3 +1108,7 @@ Spec 185 owns the analytics service, agent tools, private report configuration a
   to one series, that user-entered query strings never reach a metric attribute, and that
   seconds-valued histograms carry seconds-shaped bucket boundaries rather than the SDK's
   millisecond defaults.
+
+## Operational quick previews (209)
+
+[Spec 209](../specs/209-operational-previews/spec.md) defines business-first inline summaries across Sales, Purchasing, Warehouse and Finance without schema changes. Service and adapter evidence: `packages/reality-core/tests/test_operational_previews.py` and `packages/reality-core/tests/test_reference_workspace.py` (master-data fields, names and unchanged revision identity); responsive/localized browser evidence: `apps/web/scripts/operational-previews-browser.mjs`. Verification: [report](../specs/209-operational-previews/verification.md).
