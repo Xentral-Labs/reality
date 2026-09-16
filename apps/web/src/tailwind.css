@@ -2462,6 +2462,10 @@ textarea {
   ) {
   padding-inline: 16px;
 }
+/* Inset the notice surface itself; nested contexts already provide their own padding. */
+.register-surface > [data-projection-freshness] {
+  margin-inline: 16px;
+}
 .register-surface > form.register-toolbar-form {
   padding-inline: 0;
 }
