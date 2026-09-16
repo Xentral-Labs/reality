@@ -687,6 +687,16 @@ if (process.env.NAVIGATION_ONLY === "1") {
       await page.setViewportSize({ width: 1440, height: 1000 });
       await page.goto(`${base}/app/inspector?tenant=t1&inspector_view=rules`);
       await heading("Fact rules");
+      await page.locator('[data-navigation-item][aria-label="Commitments"]').waitFor();
+      assert.equal(
+        await page.locator('[data-navigation-item][aria-label="Commitments"]').innerText(),
+        "Commitments",
+      );
+      assert.equal(
+        await page.getByRole("link", { name: "Business commitments", exact: true }).count(),
+        0,
+      );
+
       await page.locator("[data-rules-register]").waitFor();
       assert.deepEqual(
         (await sidebar().getByRole("link").allTextContents()).map((x) => x.trim()),
