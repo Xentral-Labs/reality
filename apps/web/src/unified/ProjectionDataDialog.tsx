@@ -1,4 +1,4 @@
-import { useEffect, useId, useRef } from "react";
+import { useEffect, useId, useRef, type ReactNode } from "react";
 import { api, operationsApi, type ProjectionSnapshot } from "../api";
 import { t } from "../localization";
 import { useRead } from "./useCompanyContext";
@@ -70,14 +70,25 @@ export function ProjectionDataDialog({
   tenant,
   name,
   close,
+  title,
+  description,
+  dataAvailable = true,
+  details,
 }: {
   tenant: string;
   name: string;
   close: () => void;
+  title?: string;
+  description?: string;
+  dataAvailable?: boolean;
+  details?: ReactNode;
 }) {
   const dialog = useRef<HTMLDialogElement>(null);
   const titleId = useId();
-  const read = useRead(() => readView(tenant, name), [tenant, name]);
+  const read = useRead(
+    () => (dataAvailable ? readView(tenant, name) : Promise.resolve(null)),
+    [tenant, name, dataAvailable],
+  );
   useEffect(() => {
     const trigger = document.activeElement as HTMLElement | null;
     const element = dialog.current!;
@@ -108,11 +119,15 @@ export function ProjectionDataDialog({
       <header className="mb-4 flex items-start justify-between gap-4">
         <div>
           <h2 id={titleId} className="text-lg font-semibold">
-            {t("View data")}
+            {t(title || "View data")}
           </h2>
-          <p className="mt-1 break-all text-sm text-fg-muted" data-localization="original">
-            {name.replace(/^view:/, "")}
-          </p>
+          {description ? (
+            <p className="mt-2 text-sm leading-relaxed text-fg-muted">{t(description)}</p>
+          ) : (
+            <p className="mt-1 break-all text-sm text-fg-muted" data-localization="original">
+              {name.replace(/^view:/, "")}
+            </p>
+          )}
         </div>
         <button className="br-btn" onClick={close}>
           {t("Close")}
@@ -123,7 +138,13 @@ export function ProjectionDataDialog({
         refresh={read.refresh}
         loading={read.loading}
       />
-      {!rows ? (
+      {!dataAvailable ? (
+        <p className="py-4 text-sm text-fg-muted">
+          {t(
+            "This report needs a business partner and an item. See the details for its inputs and calculation.",
+          )}
+        </p>
+      ) : !rows ? (
         <ReadState loading={read.loading} error={read.error} retry={read.refresh} />
       ) : !rows.length &&
         read.data?.metadata &&
@@ -170,6 +191,16 @@ export function ProjectionDataDialog({
             </pre>
           </details>
         </>
+      )}
+      {details && (
+        <details
+          className="mt-6 border-t border-border-default pt-4"
+          open={!dataAvailable}
+          data-report-details
+        >
+          <summary className="cursor-pointer font-medium">{t("Report details")}</summary>
+          <div className="mt-4 space-y-5">{details}</div>
+        </details>
       )}
     </dialog>
   );
