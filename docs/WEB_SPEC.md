@@ -2241,7 +2241,10 @@ settings remain in company navigation.
 
 Personal preferences are reached through the profile menu and rendered with a
 separate Profile & preferences header. They have no company tabs and do not
-highlight company navigation.
+highlight company navigation. Account preferences and appearance form the first
+card; the working company's AI usage follows in its own Usage card on the same
+page, with no extra navigation step. The dedicated Settings → Usage page stays
+reachable for the chat links that open it when the allowance runs out.
 
 Company navigation uses **Companies** and always opens the authorized company list
 with the active working company marked. Owner/member roles are explicit. Owner rows

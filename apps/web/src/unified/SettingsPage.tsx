@@ -56,12 +56,7 @@ export function SettingsPage({
         {view === "usage" ? (
           <UsageSettings tenant={company.id} />
         ) : view === "personal" ? (
-          <>
-            <button className="br-btn mb-5" onClick={() => navigate({ settingsView: "usage" })}>
-              {t("Usage")}
-            </button>
-            <PersonalPreferences user={user} updateUser={updateUser} />
-          </>
+          <PersonalPreferences user={user} updateUser={updateUser} />
         ) : (
           <CompanySettings
             company={company}
@@ -75,6 +70,15 @@ export function SettingsPage({
           />
         )}
       </section>
+      {view === "personal" && (
+        <section
+          data-settings-usage
+          className="min-w-0 rounded-xl border border-border-default bg-surface p-5 sm:p-7"
+        >
+          <h2 className="mb-4 text-sm font-medium text-fg-strong">{t("Usage")}</h2>
+          <UsageSettings tenant={company.id} />
+        </section>
+      )}
       {view !== "personal" && target && managedCompany && (
         <CompanyManagementDialog
           key={managedCompany.id + target.view}
