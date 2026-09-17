@@ -3260,7 +3260,8 @@ export type GraphNode = {
   backed_by: string;
   corrections: "replace" | "revise" | "compensate";
   coverage: string[];
-  properties: { key: string; label: string }[];
+  /** `kind` says what sort of value the column holds, so a filter can offer the right editor. */
+  properties: { key: string; label: string; kind: "text" | "number" | "boolean" | "time" }[];
   evidence: string | null;
   measures: GraphMeasure[];
   edges: GraphEdge[];

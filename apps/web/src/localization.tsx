@@ -17055,3 +17055,81 @@ Object.assign(dictionaries.es, {
   "A connection points one way.": "Una conexión apunta en un sentido.",
   "The first record of a path names its kind.": "El primer registro de un camino nombra su tipo.",
 });
+
+// The step stack. A question is read top to bottom as the steps that build it,
+// so the labels are the words of that sentence rather than names of controls:
+// Daten, Nur, Dann, Kennzahl, Aufteilen nach.
+Object.assign(dictionaries.de, {
+  Then: "Dann",
+  Only: "Nur",
+  "Only where…": "Nur wenn …",
+  Count: "Kennzahl",
+  "Biggest first": "Größte zuerst",
+  "Reach further…": "Weiter verbinden …",
+  "Add a filter": "Filter hinzufügen",
+  "Add…": "Hinzufügen …",
+  "Split by another field": "Nach einem weiteren Feld aufteilen",
+  "Remove this filter": "Diesen Filter entfernen",
+  "Remove this axis": "Diese Achse entfernen",
+  "Start a different question": "Andere Frage beginnen",
+  "Or start from the records": "Oder bei den Datensätzen beginnen",
+  "Open a question and take it apart step by step, or start from the records themselves.":
+    "Öffne eine Frage und nimm sie Schritt für Schritt auseinander – oder beginne bei den Datensätzen selbst.",
+  "Choose at least one number or one axis.": "Wähle mindestens eine Kennzahl oder eine Achse.",
+  "this year": "dieses Jahr",
+  "last year": "letztes Jahr",
+  "this month": "dieser Monat",
+  "last month": "letzter Monat",
+  "the last 30 days": "die letzten 30 Tage",
+  "Use this period": "Diesen Zeitraum verwenden",
+});
+
+Object.assign(dictionaries.nl, {
+  Then: "Daarna",
+  Only: "Alleen",
+  "Only where…": "Alleen waar …",
+  Count: "Kengetal",
+  "Biggest first": "Grootste eerst",
+  "Reach further…": "Verder verbinden …",
+  "Add a filter": "Filter toevoegen",
+  "Add…": "Toevoegen …",
+  "Split by another field": "Op nog een veld opsplitsen",
+  "Remove this filter": "Dit filter verwijderen",
+  "Remove this axis": "Deze as verwijderen",
+  "Start a different question": "Een andere vraag beginnen",
+  "Or start from the records": "Of begin bij de records",
+  "Open a question and take it apart step by step, or start from the records themselves.":
+    "Open een vraag en haal hem stap voor stap uit elkaar, of begin bij de records zelf.",
+  "Choose at least one number or one axis.": "Kies minstens één kengetal of één as.",
+  "this year": "dit jaar",
+  "last year": "vorig jaar",
+  "this month": "deze maand",
+  "last month": "vorige maand",
+  "the last 30 days": "de laatste 30 dagen",
+  "Use this period": "Deze periode gebruiken",
+});
+
+Object.assign(dictionaries.es, {
+  Then: "Luego",
+  Only: "Solo",
+  "Only where…": "Solo donde …",
+  Count: "Indicador",
+  "Biggest first": "Mayor primero",
+  "Reach further…": "Seguir más lejos …",
+  "Add a filter": "Añadir un filtro",
+  "Add…": "Añadir …",
+  "Split by another field": "Dividir por otro campo",
+  "Remove this filter": "Quitar este filtro",
+  "Remove this axis": "Quitar este eje",
+  "Start a different question": "Empezar otra pregunta",
+  "Or start from the records": "O empieza por los registros",
+  "Open a question and take it apart step by step, or start from the records themselves.":
+    "Abre una pregunta y desármala paso a paso, o empieza por los registros.",
+  "Choose at least one number or one axis.": "Elige al menos un indicador o un eje.",
+  "this year": "este año",
+  "last year": "el año pasado",
+  "this month": "este mes",
+  "last month": "el mes pasado",
+  "the last 30 days": "los últimos 30 días",
+  "Use this period": "Usar este periodo",
+});

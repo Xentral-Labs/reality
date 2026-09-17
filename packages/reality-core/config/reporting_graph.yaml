@@ -507,7 +507,7 @@ edges:
   # rules as every other edge — direction, multiplicity, nullability — plus
   # who may create one.
   belongs_to_campaign:
-    label: { en: "belongs to campaign", de: "gehört zu Kampagne" }
+    label: { en: "belongs to", de: "gehört zu" }
     from: order
     to: campaign
     fact:

@@ -264,6 +264,12 @@ late corrections and reversals; unsupported temporal coverage.
   backend is a compiler change rather than a migration of stored artifacts. A second
   engine remains unauthorised and is revisited only under the deferred measurement
   trigger recorded in `engine-comparison.md`.
+- **FR-015**: Present the typed query object as an ordered stack of steps that reads as a
+  sentence — start, reach, narrow, count, split, sort, bound — where each step offers only
+  what the declaration makes valid at that point, a hop states whether it fans out before
+  it is taken, a named period is one line to read and one line to remove, and removing a
+  step removes everything that pointed at the records it reached. Nobody has to know the
+  model's keys to ask a correct question, and no offered step can produce a refused one.
 
 ### Domain Requirements
 
@@ -354,6 +360,7 @@ owners.
 | FR-012 | US3.3 | T010/T014 parity and cutover |
 | FR-013 | US5.1–4 | T015 declaration-only extension proof |
 | FR-014 | non-goals | T016 deferred measurement trigger |
+| FR-015 | US1.1–2, US2.1 | T009 step stack: valid-only steps, fan-out marking, period and pruning contracts |
 | DR-001 | US4.3 | T005/T012 canonical evidence |
 | DR-002 | US1.3, US2.2 | T003/T005 amount and grain correctness |
 | DR-003 | US5, non-goals | T002/T014/T016 architecture review |

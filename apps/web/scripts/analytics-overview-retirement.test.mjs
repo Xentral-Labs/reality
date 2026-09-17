@@ -43,7 +43,7 @@ test("rendered analytics carries no retired overview", () => {
         if (name === "./analytics/AnalyticsExplorer")
           return { AnalyticsExplorer: () => "Explorer content" };
         if (name === "./analytics/ReportLibrary") return { ReportLibrary: () => "Saved reports" };
-        if (name === "./analytics/GraphExplorer") return { GraphExplorer: () => "Graph content" };
+        if (name === "./analytics/GraphSteps") return { GraphSteps: () => "Graph content" };
         if (name.startsWith(".")) return {};
         return require(name);
       },
