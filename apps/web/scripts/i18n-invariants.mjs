@@ -1,4 +1,5 @@
 export const invariantTerms = new Map([
+  ["Analytics", "Analytics workspace name (spec 221)"],
   ["Tools", "Inspector actions and calculated views workspace (spec 218)"],
   ["Source", "Data-source product label (spec 217)"],
   ["Sources", "Data-source product label (spec 217)"],

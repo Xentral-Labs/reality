@@ -97,9 +97,9 @@ def test_sandbox_reports_readable_without_mutation_authority(
     import pytest
     from sqlalchemy import event
 
-    from reality.services.company_insights import company_insights, insight_contributors
     from reality.services.core import InvalidOperation
     from reality.services.reference_workspace import require_ordinary_workspace
+    from reality.tools.application import run_read_tool
 
     result = company_setup.create_company(
         session,
@@ -116,13 +116,8 @@ def test_sandbox_reports_readable_without_mutation_authority(
 
     event.listen(session, "before_commit", deny_commit)
     try:
-        assert company_insights(session, result["tenant_id"])["position"]["open"] == 0
-        assert (
-            insight_contributors(session, result["tenant_id"], metric="open")["page"][
-                "total"
-            ]
-            == 0
-        )
+        catalog = run_read_tool(session, result["tenant_id"], "analytics.catalog", {})
+        assert catalog["datasets"]
     finally:
         event.remove(session, "before_commit", deny_commit)
     with pytest.raises(InvalidOperation):

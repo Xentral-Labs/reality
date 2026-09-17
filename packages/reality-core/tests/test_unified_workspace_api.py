@@ -18,14 +18,9 @@ def test_workspace_http_scopes_reads_and_requires_exact_confirmation(session, bu
     try:
         with TestClient(app) as client:
             base = f"/api/tenants/{business.tenant.id}"
-            assert client.get(f"{base}/analytics?days=7").status_code == 200
-            assert client.get(f"{base}/analytics?days=8").status_code == 422
-            assert (
-                client.get(
-                    f"{base}/analytics/contributors?metric=open&day=2026-01-01"
-                ).status_code
-                == 422
-            )
+            assert client.get(f"{base}/analytics?days=7").status_code == 404
+            # Composable contributors live at /analytics/query/contributors.
+            assert client.get(f"{base}/analytics/contributors").status_code == 404
             assert (
                 client.get(f"{base}/master-data?family=item&size=101").status_code
                 == 422

@@ -2155,24 +2155,6 @@ export const deliveryActions = {
 };
 
 export type ReferenceFamily = "customer" | "supplier" | "item" | "location";
-export type InsightMetric =
-  | "open"
-  | "fully_reserved"
-  | "needs_reservation"
-  | "overdue"
-  | "unknown_due"
-  | "created"
-  | "shipped";
-export type Insights = {
-  position: Record<
-    "open" | "fully_reserved" | "needs_reservation" | "overdue" | "unknown_due",
-    number
-  > & { coverage_percent: string | null };
-  series: { date: string; created: number; shipped: number }[];
-  window: { days: number; start: string; end: string; timezone: string };
-  observed_at: string;
-  coverage: string;
-};
 export type ReferenceRow = {
   origin?: import("./unified/SourceBadge").RecordOrigin | null;
   accounting_code?: string;
@@ -2219,12 +2201,6 @@ export const referenceTools = [
   "location_update",
 ];
 export const workspaceApi = {
-  insights: (tenant: string, days = 30) =>
-    request<Insights>(`/api/tenants/${tenant}/analytics?days=${days}`),
-  contributors: (tenant: string, metric: InsightMetric, days: number, day: string, page: number) =>
-    request<{ items: { id: string; kind: string; at: string; label?: string }[]; page: Page }>(
-      `/api/tenants/${tenant}/analytics/contributors?${new URLSearchParams({ metric, days: String(days), page: String(page), ...(day ? { day } : {}) })}`,
-    ),
   references: (
     tenant: string,
     family: ReferenceFamily,

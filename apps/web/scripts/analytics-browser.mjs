@@ -206,31 +206,52 @@ await page.route("**/api/**", async (route) => {
       technical_rows: [],
       source_payload: '{"quantity":"12.125"}',
     });
-  if (path.endsWith("/analytics"))
-    return reply({
-      position: {
-        open: 0,
-        fully_reserved: 0,
-        needs_reservation: 0,
-        overdue: 0,
-        unknown_due: 0,
-        coverage_percent: null,
-      },
-      series: [],
-      observed_at: "2026-09-13T08:00:00Z",
-    });
-  if (path.endsWith("/analytics/contributors"))
-    return reply({
-      items: [],
-      page: { number: 1, pages: 1, total: 0, has_previous: false, has_next: false },
-    });
   if (path.includes("/suggestions/")) return reply({ items: [], allow_custom: true });
   return reply({ detail: "Unavailable fixture endpoint" }, 404);
 });
 const out = "/private/tmp/reality-185-browser";
 await mkdir(out, { recursive: true });
 try {
-  await page.goto(`${base}/app/analytics?tenant=${tenant}&analytics_view=explore&lang=${language}`);
+  const retiredReads = [];
+  page.on("request", (request) => {
+    if (
+      request.method() === "GET" &&
+      /\/analytics(?:\/contributors)?$/.test(new URL(request.url()).pathname) &&
+      request.url().includes("/api/")
+    )
+      retiredReads.push(request.url());
+  });
+  for (const query of [
+    "",
+    "&analytics_view=overview&days=90&metric=shipped",
+    "&analytics_view=invalid",
+  ]) {
+    await page.goto(`${base}/app/analytics?tenant=${tenant}${query}`);
+    const tabs = page.getByRole("navigation", { name: "Analytics views" });
+    await tabs.getByRole("button", { name: "Explore", exact: true }).waitFor();
+    assert.deepEqual(await tabs.getByRole("button").allTextContents(), ["Explore", "My reports"]);
+    assert.equal(
+      await tabs.getByRole("button", { name: "Explore", exact: true }).getAttribute("aria-pressed"),
+      "true",
+    );
+    await page.getByRole("button", { name: "Run analysis", exact: true }).waitFor();
+  }
+  const analyticsLink = page.getByRole("link", { name: "Analytics", exact: true });
+  await analyticsLink.waitFor();
+  assert.equal(await page.locator("#analytics-navigation-label").count(), 0);
+  assert.equal(await analyticsLink.getAttribute("data-sidebar-tooltip"), "Analytics");
+  assert.equal(await analyticsLink.getAttribute("aria-current"), "page");
+  assert.deepEqual(
+    await page
+      .getByRole("navigation", { name: "Workspaces", exact: true })
+      .getByRole("link")
+      .allTextContents(),
+    ["Sales", "Purchasing", "Warehouse", "Finance", "Master data", "Analytics"],
+  );
+  await page.getByRole("button", { name: "Collapse sidebar", exact: true }).click();
+  await analyticsLink.focus();
+  assert.equal(await analyticsLink.getAttribute("aria-label"), "Analytics");
+  await page.getByRole("button", { name: "Expand sidebar", exact: true }).click();
   const activeView = page
     .getByRole("navigation", { name: "Analytics views" })
     .getByRole("button", { name: "Explore", exact: true });
@@ -408,8 +429,20 @@ try {
         exact: true,
       })
       .waitFor();
+    const link = page.getByRole("link", { name: "Analytics", exact: true });
+    assert.equal(await link.textContent(), "Analytics");
+    assert.equal(await link.getAttribute("data-sidebar-tooltip"), "Analytics");
+    assert.equal(
+      await link.evaluate((node) => node.closest("nav").querySelector("a:last-child") === node),
+      true,
+    );
   }
+  assert.equal(
+    await page.getByRole("link", { name: "Analytics", exact: true }).textContent(),
+    "Analytics",
+  );
   assert.deepEqual(errors, []);
+  assert.deepEqual(retiredReads, [], "No retired overview GET requests");
   console.log(
     "PASS: draft/results separation, errors, chart, contributors, private save/reopen, CSV, mobile and four languages",
   );

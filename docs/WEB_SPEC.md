@@ -1329,21 +1329,12 @@ Spec 143 removes the temporary migration switch and both obsolete browser interf
 
 ## Unified Analytics and Master Data (Spec 108)
 
-The opt-in shell adds `/app/analytics` and `/app/master-data`. Home links to the
-same delivery observations used by Analytics. Current position counts open
-customer-delivery commitments with positive remaining quantity, fully reserved
-commitments, uncovered commitments, overdue commitments and missing due dates.
-Reservation coverage is a share of commitments; it is unavailable when none are
-open. These current observations do not change when the chart period changes.
-
-The chart counts newly created customer-delivery commitments and effective
-positive shipment movements over 7, 30 or 90 UTC calendar days through the
-observation time. Corrected originals and compensating movements are excluded;
-replacement movements retain their own occurrence day. The two record families
-are not an order conversion funnel. Retained history does not establish complete
-external coverage. Each card and daily value has bounded, server-counted
-contributors linked to the delivery case or Inspector. No revenue, automation
-score, forecast or synthetic historical backlog is presented as an observation.
+The shell provides `/app/analytics` and `/app/master-data`. Spec 221 removes the
+legacy Analytics Overview, delivery metric cards, activity chart and contributor
+list, including their exclusive backend GET reads. Home retains Open analytics as
+a direct link to Explore. Default and legacy Overview URLs open Explore; obsolete
+days/metric/day parameters are no longer emitted. Explore and My reports, shared
+analytical tools, saved reports and underlying business records remain unchanged.
 
 Master data separates customers and suppliers by PartyRole, with item and
 location registers alongside them. Search and active/all filtering precede server
@@ -2002,9 +1993,10 @@ practice continuity and final retirement remain separate acceptance work.
 
 The unified header is 60px and sticky. Desktop primary navigation uses a 200px sidebar,
 36px rows and compact group spacing; it scrolls independently below the header.
-Analytics is a dedicated navigation section immediately above Company, with Reports as
-its first destination opening the existing analytics view. The section name stays Analytics
-in every language, while Reports is localized. The unified UI no longer exposes migration links to the old app or Playground (Spec 135 FR-008).
+Spec 221 places Analytics as the final Workspaces link after Master data, replacing
+the separate Analytics navigation group and its Reports link. The visible label,
+accessible name and collapsed tooltip stay Analytics in every language; the existing
+analytics route, company context, active state and mobile drawer behavior remain. The unified UI no longer exposes migration links to the old app or Playground (Spec 135 FR-008).
 
 Ask Reality is an initially open desktop right column, hidden initially on small screens.
 The header toggles it; hiding and workspace navigation preserve the mounted conversation
@@ -2663,7 +2655,7 @@ language switch of the profile re-renders the texts of a run without touching it
 
 ## Composable Analytics workspace (spec 185)
 
-Analytics retains the current Overview and adds Explore and My reports. Typed draft
+Analytics offers Explore (default) and My reports (spec 221 retires Overview). Typed draft
 settings, explicit execution, retained successful results, service-calculated totals,
 table/chart/pivot presentation and Inspector contributors use shared analytical tools.
 Private definitions and CSV are explicit actions. Existing chat supports removable,

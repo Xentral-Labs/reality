@@ -540,7 +540,7 @@ Final inventory: 13 capability baselines, 24 feature contracts, 50 catalog table
 
 | Test family                                                 | Spec  | Coverage                                                                  |
 | ----------------------------------------------------------- | ----- | ------------------------------------------------------------------------- |
-| `packages/reality-core/tests/test_company_insights.py`      | `140` | Defined current metrics, bounded contributors, UTC and corrected activity |
+| `packages/reality-core/tests/test_unified_workspace_api.py` | `221` | Legacy overview GET retirement; composable analytics retained |
 | `packages/reality-core/tests/test_reference_workspace.py`   | `140` | Reference roles, preservation, stale edits and canonical proposal replay  |
 | `packages/reality-core/tests/test_unified_workspace_api.py` | `140` | Scoped Analytics and Master data HTTP contracts                           |
 
@@ -805,7 +805,7 @@ Spec 144 FR-008: delivery_evidence source detail and DataSourcesPage navigation;
 | `packages/reality-core/tests/test_scheduled_worker_deployment.py`  | Specs 146, 147 | Company/source/scheduling service, adapter or migration regression                                       |
 | `packages/reality-core/tests/scenarios/test_international_demo.py` | Spec 146       | Canonical operations and source lineage                                                                  |
 
-Spec 146 FR-026–028: `test_company_setup_unified.py`, `test_playground_api.py`, `test_company_insights.py`, `test_demo_data_intake.py`, `test_demo_data_api.py`; browser acceptance `apps/web/scripts/demo-live-browser.mjs` and `company-setup-unified-browser.mjs` cover compact Sandbox labeling, real-time import snapshots, preserved choices and safe controls.
+Spec 146 FR-026–028: `test_company_setup_unified.py`, `test_playground_api.py`, `test_demo_data_intake.py`, `test_demo_data_api.py`; browser acceptance `apps/web/scripts/demo-live-browser.mjs` and `company-setup-unified-browser.mjs` cover compact Sandbox labeling, real-time import snapshots, preserved choices and safe controls.
 
 | `packages/reality-core/tests/test_home_readiness.py` | Spec 149 | Volatile health freshness, private probes and scoped Home readiness |
 | `docs/features/home-live-status.md` | Spec 149 | Home activity, volatile process readiness and portable deployment contract |

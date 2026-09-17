@@ -1,7 +1,6 @@
 import { TrialTasks } from "./FreePlayground";
 import { dailyWork } from "./dailyWork";
 import { HomePulse } from "./HomePulse";
-import { AnalyticsPreview } from "./AnalyticsPage";
 import { ArrowRight, Sparkles } from "lucide-react";
 import { api } from "../api";
 import { formatNumber, t } from "../localization";
@@ -76,7 +75,13 @@ export function HomePage({
       </div>
       <HomePulse key={`${user}:${tenant}`} user={user} tenant={tenant} companyName={companyName} />
       {!data && !loading && <ReadState error={error} retry={refresh} />}
-      <AnalyticsPreview tenant={tenant} navigate={navigate} />
+      <button
+        className="br-btn"
+        onClick={() => navigate({ route: "analytics", analyticsView: "explore", page: 1 })}
+      >
+        {t("Open analytics")}
+        <ArrowRight size={16} />
+      </button>
       <section className="rounded-xl border border-border-default bg-surface p-6">
         <h2 className="text-xl font-semibold text-fg-strong">{t("Decisions & control")}</h2>
         <p className="my-4 text-fg-muted">

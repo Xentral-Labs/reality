@@ -497,19 +497,10 @@ export function Shell({
                     <LayoutGrid size={17} />
                     <span data-navigation-label>{t("Master data")}</span>
                   </a>
-                </nav>
-                <nav aria-labelledby="analytics-navigation-label">
-                  <p
-                    id="analytics-navigation-label"
-                    data-localization="original"
-                    className="mb-1.5 px-3 text-[10px] uppercase tracking-wider text-fg-muted"
-                  >
-                    Analytics
-                  </p>
                   <a
                     data-navigation-item
-                    aria-label={t("Reports")}
-                    data-sidebar-tooltip={t("Reports")}
+                    aria-label={t("Analytics")}
+                    data-sidebar-tooltip={t("Analytics")}
                     href={selectionUrl({ ...selection, route: "analytics" })}
                     className={`flex items-center gap-2 rounded-md px-3 py-2 text-[13px] leading-5 ${selection.route === "analytics" ? activeNavigation : "hover:bg-surface-muted"}`}
                     aria-current={selection.route === "analytics" ? "page" : undefined}
@@ -520,7 +511,7 @@ export function Shell({
                     }}
                   >
                     <ChartNoAxesCombined size={17} />
-                    <span data-navigation-label>{t("Reports")}</span>
+                    <span data-navigation-label>{t("Analytics")}</span>
                   </a>
                 </nav>
                 <nav aria-labelledby="inspector-navigation-label">
