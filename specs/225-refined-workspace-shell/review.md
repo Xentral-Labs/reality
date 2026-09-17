@@ -92,3 +92,17 @@ simulation changes. Placement contracts failed before implementation and pass no
 Desktop and rail screenshots reviewed: aligned controls, truncated long names, compact
 context, visible search field and no redundant visible heading. Browser coverage
 confirms company switching, draft persistence, focus, mobile and coarse-pointer targets.
+
+## Unified tab header review
+FR-012/T024–T026 implement one header via existing shared portals. Multiple direct
+register tab controls select tab-header mode; pages without them keep their title.
+Tab controls retain their identity and accessible names; count is a separate adjacent
+portal, avoiding duplicate labels or additional read paths. The accessible heading
+and information disclosure remain. Actions sit outside the tab overflow container.
+Horizontal visibility adjustment observes the strip/count and changes only scrollLeft,
+never page position. Nested integration documents now mark Received data as parent.
+No action eligibility, routing, confirmation, data calculation or chat state changes.
+The initial header-placement contract failed before implementation. Route/count
+browser regressions cover tab changes, title-only transitions and nested documents.
+Desktop screenshot confirms the table begins directly below the single header;
+mobile uses a compact action icon and retains horizontally scrollable tab labels.

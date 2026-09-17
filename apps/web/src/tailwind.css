@@ -3437,7 +3437,7 @@ textarea.br-control.rule-draft-editor {
 .page-introduction-count {
   flex-shrink: 0;
 }
-.shell-page-heading [data-page-record-count] {
+.shell-workspace-header [data-page-record-count] {
   display: inline-flex;
   align-items: center;
   height: 18px;
@@ -3869,6 +3869,82 @@ textarea.br-control.rule-draft-editor {
 @media (pointer: coarse) {
   .shell-brand [data-navigation-toggle],
   .shell-company-block .shell-command-trigger {
+    min-width: 44px;
+    min-height: 44px;
+  }
+}
+
+/* Multi-view pages use their tabs as the single workspace header. */
+.shell-header-tabs {
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
+  margin: 0;
+  align-self: stretch;
+  align-items: center;
+}
+.shell-header-tabs[hidden] {
+  display: none;
+}
+.shell-header-tabs .register-tabs {
+  align-items: center;
+  gap: 16px;
+  scrollbar-width: thin;
+}
+.shell-header-tabs .register-tabs > :is(button, a) {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0 2px;
+  white-space: nowrap;
+}
+.shell-tab-count {
+  flex-shrink: 0;
+  margin-left: -12px;
+}
+.shell-tab-count:empty {
+  display: none;
+}
+.shell-page-heading-tabs {
+  flex: 0 0 auto;
+}
+.shell-workspace-header > .page-introduction-actions {
+  flex: 0 0 auto;
+  max-width: none;
+}
+.shell-workspace-header .register-actions > summary {
+  min-height: 32px;
+  padding: 5px 8px;
+  font-size: 12px;
+}
+.shell-workspace-header .shell-chat-toggle {
+  flex-shrink: 0;
+  width: 32px;
+  padding: 0;
+  justify-content: center;
+}
+.register-actions-compact-icon {
+  display: none;
+}
+@media (max-width: 767px) {
+  .shell-workspace-header {
+    gap: 4px;
+    padding-inline: 8px;
+  }
+  .shell-workspace-header .register-actions > summary > svg:not(.register-actions-compact-icon),
+  .shell-workspace-header .register-actions-label {
+    display: none;
+  }
+  .shell-workspace-header .register-actions-compact-icon {
+    display: block;
+  }
+  .shell-workspace-header .register-action-menu {
+    max-width: calc(100vw - 16px);
+  }
+}
+@media (pointer: coarse) {
+  .shell-workspace-header .register-actions > summary,
+  .shell-workspace-header .shell-chat-toggle {
     min-width: 44px;
     min-height: 44px;
   }

@@ -15,3 +15,8 @@ trigger or shell-owned activity overlay. Home retains its shared history drawer.
 FR-009 supersedes the bottom Actions placement: Search actions plus a platform
 shortcut hint lives in the company area and opens a centered palette. The lower
 utility area contains Profile only. The existing catalog and execution contract stay.
+
+FR-012 supersedes the title-plus-tabs arrangement: multiple tabs occupy the header
+in place of its visible title, with an adjacent selected-register count. Page actions
+and the labeled chat icon remain separate from the horizontal tab scroller. Pages
+without multiple tabs retain title/count and all pages retain their information button.

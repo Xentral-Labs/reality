@@ -436,11 +436,10 @@ test("every page action reaches the header through the one shared bar", () => {
 test("workspace header is separate from company and chat chrome", () => {
   const shell = source("../src/unified/Shell.tsx");
   const header = shell.match(/<header[\s\S]*?<\/header>/)?.[0] || "";
-  assert.doesNotMatch(
-    header,
-    /CompanySwitcher|ActionLauncher|LiveSimulationIndicator|page-introduction-actions/,
-  );
+  assert.doesNotMatch(header, /CompanySwitcher|ActionLauncher|LiveSimulationIndicator/);
   assert.match(header, /data-page-description-trigger/);
+  assert.match(header, /data-page-tabs/);
+  assert.match(header, /ref=\{setPageActions\}/);
   assert.match(shell, /data-dock-open=\{dockOpen\}/);
   assert.match(
     shell,

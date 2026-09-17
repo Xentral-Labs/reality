@@ -1,10 +1,25 @@
 import { PageRecordCount } from "./PageHeading";
 import { createPortal } from "react-dom";
 import { filterChips } from "./FilterChip";
-import { createContext, useContext, useEffect, useRef, useState, type ReactNode } from "react";
-import { ChevronDown, Search } from "lucide-react";
+import {
+  Children,
+  cloneElement,
+  isValidElement,
+  createContext,
+  useContext,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+  type ReactNode,
+} from "react";
+import { ChevronDown, MoreHorizontal, Search } from "lucide-react";
 import { t } from "../localization";
-export const RegisterHeaderTarget = createContext<HTMLDivElement | null>(null);
+export const RegisterHeaderTarget = createContext<{
+  target: HTMLDivElement | null;
+  setHasTabs: (value: boolean) => void;
+  setTabCount: (node: HTMLSpanElement | null) => void;
+} | null>(null);
 const ToolsContext = createContext<{
   target: HTMLDivElement | null;
   setTarget: (node: HTMLDivElement | null) => void;
@@ -25,8 +40,65 @@ export function RegisterHeader({
   children?: ReactNode;
   originalTitle?: boolean;
 }) {
-  const target = useContext(RegisterHeaderTarget);
-  return target && children ? createPortal(children, target) : null;
+  const layout = useContext(RegisterHeaderTarget);
+  const target = layout?.target;
+  const group = isValidElement<{ children?: ReactNode }>(children) ? children : null;
+  const tabs = Children.toArray(group?.props.children);
+  const multiple =
+    tabs.filter((tab) => isValidElement(tab) && (tab.type === "button" || tab.type === "a"))
+      .length > 1;
+  const activeKey = tabs.find(
+    (tab) =>
+      isValidElement<{ "aria-pressed"?: boolean; "aria-current"?: string }>(tab) &&
+      (tab.props["aria-pressed"] === true || tab.props["aria-current"] === "page"),
+  );
+  const selectedKey = isValidElement(activeKey) ? activeKey.key : null;
+  useLayoutEffect(() => {
+    if (!multiple) return;
+    const selected = target?.querySelector<HTMLElement>(
+      '[aria-pressed="true"], [aria-current="page"]',
+    );
+    const strip = selected?.closest<HTMLElement>(".register-tabs");
+    if (!selected || !strip) return;
+    const count = target?.querySelector<HTMLElement>(".shell-tab-count");
+    const keepVisible = () => {
+      const tab = selected.getBoundingClientRect();
+      const viewport = strip.getBoundingClientRect();
+      if (!viewport.width) return;
+      const right = count?.childElementCount ? count.getBoundingClientRect().right : tab.right;
+      if (tab.left < viewport.left) strip.scrollLeft += tab.left - viewport.left;
+      else if (right > viewport.right)
+        strip.scrollLeft += Math.min(tab.left - viewport.left, right - viewport.right);
+    };
+    keepVisible();
+    const observer = new ResizeObserver(keepVisible);
+    observer.observe(strip);
+    if (count) observer.observe(count);
+    return () => observer.disconnect();
+  }, [target, multiple, selectedKey]);
+  useLayoutEffect(() => {
+    if (!multiple || !layout) return;
+    layout.setHasTabs(true);
+    return () => layout.setHasTabs(false);
+  }, [multiple, layout?.setHasTabs]);
+  if (!target || !children) return null;
+  if (!multiple || !group || !layout) return createPortal(children, target);
+  const content = tabs.flatMap<ReactNode>((tab) => {
+    const active =
+      isValidElement<{ "aria-pressed"?: boolean; "aria-current"?: string }>(tab) &&
+      (tab.props["aria-pressed"] === true || tab.props["aria-current"] === "page");
+    return active
+      ? [
+          tab,
+          <span
+            key="active-count"
+            className="page-introduction-count shell-tab-count"
+            ref={layout.setTabCount}
+          />,
+        ]
+      : [tab];
+  });
+  return createPortal(cloneElement(group, { children: content }), target);
 }
 export function RegisterToolbar({
   search,
@@ -88,8 +160,9 @@ export function RegisterActions({ children }: { children: ReactNode }) {
       }}
     >
       <summary className="br-btn" aria-label={t("Table actions")}>
-        {t("More actions")}
+        <span className="register-actions-label">{t("More actions")}</span>
         <ChevronDown size={15} />
+        <MoreHorizontal size={16} className="register-actions-compact-icon" />
       </summary>
       <div className="register-action-menu">{children}</div>
     </details>

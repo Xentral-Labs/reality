@@ -11,6 +11,7 @@ page.setDefaultTimeout(10000);
 const errors = [];
 page.on("pageerror", (error) => errors.push(error.message));
 let total = 37;
+let language = "en";
 await page.route("**/api/**", (route) => {
   const url = new URL(route.request().url()),
     path = url.pathname;
@@ -21,7 +22,7 @@ await page.route("**/api/**", (route) => {
       id: "u",
       email: "u@example.test",
       status: "active",
-      language: "en",
+      language,
       locale: "en-GB",
       timezone: "UTC",
     });
@@ -79,6 +80,22 @@ try {
     await badge.waitFor();
     assert.equal((await badge.evaluate((el) => el.firstChild.textContent)).trim(), "37", path);
     assert.equal(await badge.count(), 1, path);
+    const header = page.locator("[data-shell-header]");
+    if (await header.locator(".register-tabs").count()) {
+      assert.equal(
+        await header.locator(".shell-tab-count [data-page-record-count]").count(),
+        1,
+        path,
+      );
+      assert.equal(
+        await header
+          .locator(".shell-tab-count")
+          .evaluate((node) => node.previousElementSibling?.getAttribute("aria-pressed")),
+        "true",
+        path,
+      );
+    }
+    assert.equal(await page.locator("main [data-page-tabs]").count(), 0, path);
     assert.equal((await page.locator("[data-shell-header]").boundingBox()).height, 48, path);
     assert.equal(
       await page.evaluate(() => document.documentElement.scrollWidth > innerWidth),
@@ -88,6 +105,13 @@ try {
     if (path.includes("supplier-orders"))
       await page.screenshot({ path: "/private/tmp/compact-purchasing.png" });
     assert.equal(await page.locator(".register-toolbar-block .register-count").count(), 0, path);
+    const actions = header.locator(".register-actions");
+    if (await actions.count()) {
+      await actions.locator("summary").click();
+      const menu = await actions.locator(".register-action-menu").boundingBox();
+      assert.ok(menu.x >= 0 && menu.x + menu.width <= page.viewportSize().width + 1, path);
+      await actions.locator("summary").press("Escape");
+    }
   }
   await page.goto(base + "/app/finance?finance_view=open-items");
   await badge.waitFor();
@@ -177,6 +201,21 @@ try {
   await page.goto(base + "/app/inspector?inspector_view=graph");
   await page.locator("[data-page-introduction]").waitFor();
   assert.equal(await badge.count(), 0);
+  language = "de";
+  for (const width of [1440, 390]) {
+    await page.setViewportSize({ width, height: 900 });
+    await page.goto(base + "/app/orders-deliveries?orders_view=customer-orders&tenant=t");
+    await badge.waitFor();
+    const actions = page.locator("[data-shell-header] .register-actions");
+    await actions.locator("summary").click();
+    const menu = await actions.locator(".register-action-menu").boundingBox();
+    assert.ok(menu.x >= 0 && menu.x + menu.width <= width + 1);
+    await page.screenshot({
+      path: `/private/tmp/reality-225-tabs-de-${width}.png`,
+      animations: "disabled",
+    });
+    await actions.locator("summary").press("Escape");
+  }
   assert.deepEqual(errors, []);
   console.log(
     `PASS ${paths.length} main registers, zero, tab changes, nested catalog, navigation and mobile title counts`,

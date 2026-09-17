@@ -125,3 +125,20 @@ transitions to capture the settled appearance. Artifacts are in
 - German desktop light and collapsed-rail screenshots visually reviewed; artifacts
   in `/private/tmp/reality-225-browser/` and `/private/tmp/reality-203-browser/`.
 - `git diff --check`: PASS. No backend behavior changed.
+
+## Unified tab header verification
+- `gmake web-build spec-check lint docs-catalog-check`: PASS; 235 tests, formatting,
+  all language audits, TypeScript, production build and generated-doc consistency.
+- Page-introduction browser: PASS, 46 desktop/mobile routes and three translations,
+  shared header placement, retained information and active tab styling, menu bounds
+  and Escape dismissal where actions exist.
+- Title-count browser: PASS, 18 registers, active-tab placement, zero/filtered/error
+  states, tab transitions, nested documents, title-only navigation and mobile counts.
+  Populated action menus verified across available registers; German sales menus
+  verified at 1440/390px, with screenshots reviewed for alignment and containment.
+- Refined shell browser: PASS, 32 localized layouts, company/draft isolation, palette,
+  keyboard and touch behavior.
+- Visual examples: `/private/tmp/reality-225-tabs-de-1440.png` and
+  `/private/tmp/reality-225-tabs-de-390.png`. No second tab/action row remains.
+- `git diff --check`: PASS. Existing large-chunk warning remains non-blocking; no
+  backend code or business calculations changed.

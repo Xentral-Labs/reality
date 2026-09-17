@@ -10,7 +10,15 @@ import { inspectorSections, inspectorSection, inspectorTabs } from "./inspectorS
 import { CompanySwitcher } from "./CompanySwitcher";
 import { ChatPage } from "./ChatPage";
 import { ActionLauncher, type DeliveryAction } from "./ActionLauncher";
-import { useEffect, useId, useLayoutEffect, useRef, useState, type ReactNode } from "react";
+import {
+  useEffect,
+  useId,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+  type ReactNode,
+} from "react";
 import {
   BookOpen,
   FileText,
@@ -174,6 +182,12 @@ export function Shell({
                 } as const
               )[selection.family]
             : introduction.title;
+  const [hasTabs, setHasTabs] = useState(false);
+  const [tabCount, setTabCount] = useState<HTMLSpanElement | null>(null);
+  const headerLayout = useMemo(
+    () => ({ target: registerHeader, setHasTabs, setTabCount }),
+    [registerHeader],
+  );
   const [pageCount, setPageCount] = useState<HTMLSpanElement | null>(null);
   const [pageActions, setPageActions] = useState<HTMLDivElement | null>(null);
   const shellRef = useRef<HTMLDivElement>(null);
@@ -211,9 +225,9 @@ export function Shell({
   }, []);
   const activeNavigation = "shell-navigation-active";
   return (
-    <RegisterHeaderTarget.Provider value={registerHeader}>
+    <RegisterHeaderTarget.Provider value={headerLayout}>
       <PageActionTarget.Provider value={pageActions}>
-        <PageCountTarget.Provider value={pageCount}>
+        <PageCountTarget.Provider value={hasTabs ? tabCount : pageCount}>
           <div
             ref={shellRef}
             data-navigation-collapsed={navigationCollapsed}
@@ -221,7 +235,12 @@ export function Shell({
             data-dock-open={dockOpen}
             className="app-shell min-h-screen bg-bg text-fg-default"
           >
-            <header ref={headerRef} data-shell-header className="shell-workspace-header">
+            <header
+              ref={headerRef}
+              data-shell-header
+              data-has-tabs={hasTabs}
+              className="shell-workspace-header"
+            >
               <button
                 type="button"
                 data-navigation-opener
@@ -234,8 +253,14 @@ export function Shell({
               >
                 <Menu size={18} />
               </button>
-              <div className="shell-page-heading" data-page-introduction>
-                <h1 title={t(contentTitle)}>
+              <div className="page-view-tabs shell-header-tabs" data-page-tabs hidden={!hasTabs}>
+                <div className="page-view-tabs-target" ref={setRegisterHeader} />
+              </div>
+              <div
+                className={`shell-page-heading ${hasTabs ? "shell-page-heading-tabs" : ""}`}
+                data-page-introduction
+              >
+                <h1 title={t(contentTitle)} className={hasTabs ? "sr-only" : undefined}>
                   <span className="shell-page-title">{t(contentTitle)}</span>
                   <span className="page-introduction-count" ref={setPageCount} />
                 </h1>
@@ -268,16 +293,17 @@ export function Shell({
                   {t(introduction.description)}
                 </div>
               </div>
+              <div className="page-introduction-actions" ref={setPageActions} />
               {selection.route !== "chat" && selection.route !== "storyline" && (
                 <button
                   className="shell-chat-toggle"
+                  title={t(dockOpen ? "Hide chat" : "Show chat")}
                   aria-label={t(dockOpen ? "Hide chat" : "Show chat")}
                   aria-expanded={dockOpen}
                   aria-controls="global-chat"
                   onClick={() => setChatOpen(!chatOpen)}
                 >
                   <MessageSquare size={16} />
-                  <span>{t("Ask Reality")}</span>
                 </button>
               )}
             </header>
@@ -621,10 +647,6 @@ export function Shell({
               </aside>
               <SidebarTooltip navigation={navigationRef} />
               <main id="main-content" className="min-w-0 px-4 py-5 lg:px-5 lg:py-6">
-                <div className="page-view-tabs" data-page-tabs>
-                  <div className="page-view-tabs-target" ref={setRegisterHeader} />
-                  <div className="page-introduction-actions" ref={setPageActions} />
-                </div>
                 {children}
               </main>
               <aside
