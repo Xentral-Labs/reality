@@ -267,9 +267,11 @@ late corrections and reversals; unsupported temporal coverage.
 - **FR-015**: Present the typed query object as an ordered stack of steps that reads as a
   sentence — start, reach, narrow, count, split, sort, bound — where each step offers only
   what the declaration makes valid at that point, a hop states whether it fans out before
-  it is taken, a named period is one line to read and one line to remove, and removing a
-  step removes everything that pointed at the records it reached. Nobody has to know the
-  model's keys to ask a correct question, and no offered step can produce a refused one.
+  it is taken, a named period is one line to read and one line to remove, sorting offers
+  every column the answer has in either direction, the row count offers both the sizes
+  people mean and any other, and removing a step removes everything that pointed at the
+  records it reached. Nobody has to know the model's keys to ask a correct question, and
+  no offered step can produce a refused one.
 
 ### Domain Requirements
 
