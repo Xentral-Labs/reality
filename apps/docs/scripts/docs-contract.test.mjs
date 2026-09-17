@@ -1066,3 +1066,53 @@ test("the closing summary connects shared records, tools and the limits of the j
       assert.ok(fs.readFileSync(path.join(root, name), "utf8").includes(slug));
   }
 });
+
+test("the docs dark ground matches the product rather than the VitePress default", () => {
+  // The light ground was matched to the product and the dark one was not, which left
+  // the docs on a neutral near-black beside an app and a site that both sit on a
+  // blue-tinted ground. Compare the hue and saturation, not the exact bytes: the
+  // product may retune its palette, and a copy of its literal values would not say
+  // what is being protected.
+  const theme = fs.readFileSync(path.join(docsRoot, ".vitepress/theme/custom.css"), "utf8");
+  const dark = theme.split(":root.dark {")[1].split("}")[0];
+  const app = fs.readFileSync(path.join(repositoryRoot, "apps/web/src/tailwind.css"), "utf8");
+  const appDark = app.split('[data-theme="dark"] {')[1].split("}")[0];
+  const value = (block, name) => block.match(new RegExp(`--${name}:\\s*(#[0-9a-f]{6})`, "i"))?.[1];
+  const hsl = (hex) => {
+    const [r, g, b] = [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16) / 255);
+    const max = Math.max(r, g, b),
+      min = Math.min(r, g, b),
+      l = (max + min) / 2;
+    if (max === min) return { hue: 0, saturation: 0, lightness: l * 100 };
+    const d = max - min;
+    const saturation = d / (l > 0.5 ? 2 - max - min : max + min);
+    const hue =
+      max === r
+        ? ((g - b) / d + (g < b ? 6 : 0)) * 60
+        : max === g
+          ? ((b - r) / d + 2) * 60
+          : ((r - g) / d + 4) * 60;
+    return { hue, saturation: saturation * 100, lightness: l * 100 };
+  };
+  for (const [docsToken, appToken] of [
+    ["vp-c-bg", "bg"],
+    ["vp-c-bg-alt", "surface"],
+    ["vp-c-bg-soft", "surface-muted"],
+    ["vp-c-text-1", "text-strong"],
+  ]) {
+    const here = value(dark, docsToken),
+      there = value(appDark, appToken);
+    assert.ok(here, `docs dark is missing --${docsToken}`);
+    assert.ok(there, `the app dark theme is missing --${appToken}`);
+    const a = hsl(here),
+      b = hsl(there);
+    assert.ok(
+      Math.abs(a.hue - b.hue) <= 20,
+      `--${docsToken} (${here}) is hue ${Math.round(a.hue)}; the app's --${appToken} (${there}) is ${Math.round(b.hue)}`,
+    );
+    assert.ok(
+      Math.abs(a.saturation - b.saturation) <= 20,
+      `--${docsToken} (${here}) is ${Math.round(a.saturation)}% saturated; the app's --${appToken} (${there}) is ${Math.round(b.saturation)}%`,
+    );
+  }
+});
