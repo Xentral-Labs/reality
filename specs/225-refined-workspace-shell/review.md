@@ -48,3 +48,14 @@ page selection, focus, paging, retry, stale responses and tenant isolation.
 The history route and localization of unrelated graph event history remain unchanged.
 German desktop screenshot confirms one Activities destination and only Actions/Profile
 in the utility area. No additional business rules, writes or dependencies.
+
+## Action translation regression review
+FR-007 restoration uses existing `t(entry.label)` calls. All five reported labels
+were absent from German, Dutch and Spanish dictionaries; canonical English fallback
+worked as designed. The source-only localization audit did not enumerate labels
+loaded from the backend discovery JSON. The new regression reads that executable
+catalog directly, covering categories, groups and entries in all three dictionaries.
+Observed the five missing keys in each language before adding translations. No
+business payloads, catalog definitions, APIs or action execution paths were changed.
+Browser search assertions cover translated package labels, excluding the permanent
+catalog shortcut from filtered action results. No unresolved review findings.

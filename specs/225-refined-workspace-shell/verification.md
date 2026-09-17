@@ -79,3 +79,12 @@ transitions to capture the settled appearance. Artifacts are in
   `/private/tmp/reality-225-browser/`.
 - `git diff --check`: PASS. Backend unchanged; no exclusive endpoint exists to remove.
   Full backend suite was not rerun for this frontend-only follow-up.
+
+## Action translation regression verification
+- New executable-catalog translation regression failed on exactly five missing keys
+  per non-English language before implementation; all three language tests now pass.
+- `gmake web-build spec-check lint docs-catalog-check`: PASS; 235 tests, four language
+  audits, formatting, TypeScript, production build and generated catalog consistency.
+- Refined shell browser: PASS, including all five German labels and translated
+  package search at 320/390/1024/1440px, plus the existing 32-layout matrix.
+- `git diff --check`: PASS. No backend changes or backend suite needed.

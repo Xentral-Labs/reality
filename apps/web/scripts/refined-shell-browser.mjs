@@ -237,6 +237,23 @@ try {
       await page.keyboard.press("Escape");
       await nav.locator("[data-action-launcher] > button").click();
       await bounded(page.locator("[data-action-menu]:popover-open"), width);
+      if (language === "de") {
+        const menu = page.locator("[data-action-menu]:popover-open");
+        for (const label of [
+          "Versandmeldung erfassen",
+          "Paket versenden",
+          "Paket empfangen",
+          "Tracking-Ereignis erfassen",
+          "Tracking-Ereignis korrigieren",
+        ])
+          assert.equal(await menu.getByRole("button", { name: label, exact: true }).count(), 1);
+        await menu.getByRole("searchbox").fill("Paket");
+        assert.deepEqual(await menu.locator("section button").allTextContents(), [
+          "Paket versenden",
+          "Paket empfangen",
+        ]);
+        await menu.getByRole("searchbox").fill("");
+      }
       await page.keyboard.press("Escape");
       if (width < 1024) await nav.locator("[data-navigation-close]").click();
       for (const theme of ["light", "dark"]) {
