@@ -135,7 +135,7 @@ await page.route("**/api/**", async (route) => {
 const drawer = () => page.getByRole("dialog", { name: "Activity", exact: true });
 const rows = () => drawer().locator("[data-activity-event]");
 const open = async () => {
-  await page.getByRole("button", { name: "Activity", exact: true }).click();
+  await page.getByRole("button", { name: "View all activity", exact: true }).click();
   await rows().first().waitFor();
 };
 const search = async (value) => {
@@ -149,11 +149,11 @@ const waitRows = async (count) => {
   );
 };
 try {
-  await page.goto(`${base}/app/facts?tenant=company`);
-  await page.getByRole("textbox", { name: "Search observations", exact: true }).waitFor();
+  await page.goto(`${base}/app?tenant=company`);
+  await page.getByRole("button", { name: "View all activity", exact: true }).waitFor();
   const originalUrl = page.url();
-  const workspaceSearch = page.getByRole("textbox", { name: "Search observations", exact: true });
-  await workspaceSearch.fill("unfinished input");
+  const workspaceControl = page.getByRole("button", { name: "7 days", exact: true });
+  await workspaceControl.click();
   await open();
   assert.equal(requests.at(-1).query.hours, "24");
   assert.equal(await rows().count(), 2);
@@ -222,10 +222,10 @@ try {
   await waitRows(2);
   await page.keyboard.press("Escape");
   assert.equal(page.url(), originalUrl);
-  assert.equal(await workspaceSearch.inputValue(), "unfinished input");
+  assert.equal(await workspaceControl.getAttribute("aria-pressed"), "true");
   assert.equal(
     await page
-      .getByRole("button", { name: "Activity", exact: true })
+      .getByRole("button", { name: "View all activity", exact: true })
       .evaluate((n) => n === document.activeElement),
     true,
   );
@@ -235,7 +235,7 @@ try {
   await open();
   await drawer().getByRole("button", { name: "Close", exact: true }).focus();
   await page.keyboard.press("Tab");
-  await workspaceSearch.evaluate((n) => n.focus());
+  await workspaceControl.evaluate((n) => n.focus());
   assert.equal(await drawer().evaluate((n) => n.contains(document.activeElement)), true);
   await drawer().getByRole("button", { name: "Close", exact: true }).click();
   await open();
@@ -243,7 +243,7 @@ try {
   await search("slow");
   while (!delayed) await new Promise((resolve) => setTimeout(resolve, 10));
   await page.evaluate(() => {
-    history.pushState({}, "", "/app/facts?tenant=other");
+    history.pushState({}, "", "/app?tenant=other");
     window.dispatchEvent(new PopStateEvent("popstate"));
   });
   await drawer().waitFor({ state: "hidden" });
@@ -253,17 +253,22 @@ try {
   await drawer().getByText("Other company only", { exact: true }).waitFor();
   assert.equal(await drawer().locator('[data-activity-event="stale"]').count(), 0);
   await page.keyboard.press("Escape");
-  await page.goto(`${base}/app/work?tenant=company`);
+  await page.goto(`${base}/app?tenant=company`);
   await open();
   await page.keyboard.press("Escape");
   await mkdir("/private/tmp/reality-134-browser", { recursive: true });
-  const names = { en: "Activity", de: "Aktivität", nl: "Activiteit", es: "Actividad" };
+  const names = {
+    en: "View all activity",
+    de: "Alle Aktivitäten anzeigen",
+    nl: "Alle activiteit bekijken",
+    es: "Ver toda la actividad",
+  };
   for (const lang of Object.keys(names))
     for (const theme of ["light", "dark"])
       for (const width of [390, 1440]) {
         language = lang;
         await page.setViewportSize({ width, height: width === 390 ? 844 : 1000 });
-        await page.goto(`${base}/app/facts?tenant=company`);
+        await page.goto(`${base}/app?tenant=company`);
         await page.getByRole("button", { name: names[lang], exact: true }).waitFor();
         await page.evaluate(
           (theme) => document.documentElement.setAttribute("data-theme", theme),

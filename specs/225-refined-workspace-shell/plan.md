@@ -61,3 +61,12 @@ storage keys remain; no business data is written by layout changes.
 Scroll-container menu clipping, desktop sticky alignment, mobile dismissal, rail
 company access, dynamic title/count portals, standalone Chat height and stale
 company overlays. Acceptance tests target these directly.
+
+## Activities consolidation follow-up
+Rename inspectorSections labels with all supported translations; remove only the
+Shell ActivityDrawer import, local state/effect, trigger and mounted instance. The
+timeline API, ActivityDrawer, HomePulse, ActivityGraph, FlightRecorder and projection
+inspection share this read path and remain. Constitution Check: PASS; no data, service
+or authorization changes. Add navigation and shell assertions before implementation;
+move shared drawer regression entry to Home. Run the existing required frontend gates
+and both shell/activity browsers. No critical analysis findings or unresolved scope.

@@ -16510,3 +16510,7 @@ Object.assign(dictionaries.es, {
 Object.assign(dictionaries.de, { "About this page": "Über diese Seite" });
 Object.assign(dictionaries.nl, { "About this page": "Over deze pagina" });
 Object.assign(dictionaries.es, { "About this page": "Acerca de esta página" });
+
+Object.assign(dictionaries.de, { Activities: "Aktivitäten" });
+Object.assign(dictionaries.nl, { Activities: "Activiteiten" });
+Object.assign(dictionaries.es, { Activities: "Actividades" });

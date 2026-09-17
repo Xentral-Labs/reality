@@ -842,7 +842,7 @@ if (process.env.NAVIGATION_ONLY === "1") {
       await page.locator("[data-rules-register]").waitFor();
       assert.deepEqual(
         (await sidebar().getByRole("link").allTextContents()).map((x) => x.trim()),
-        ["Business Graph", "Business Facts", tr("Event history"), "Tools"],
+        ["Business Graph", "Business Facts", tr("Activities"), "Tools"],
       );
       assert.equal(
         await sidebar()
@@ -855,7 +855,7 @@ if (process.env.NAVIGATION_ONLY === "1") {
         [tr("All records"), tr("Fact rules")],
       );
       for (const [key, selector] of [
-        ["Event history", "[data-inline-activity]"],
+        ["Activities", "[data-inline-activity]"],
         ["Tools", "[data-action-directory]"],
       ]) {
         await sidebar()

@@ -19,7 +19,7 @@ compact headers; relocate global utilities; refine shared shell typography and s
 The owner approved this concept with “ok mach in einem worktree”.
 
 ### Non-Goals
-No navigation taxonomy changes, report redesign, business rules, API changes,
+No further navigation taxonomy changes, report redesign, business rules, API changes,
 new data, migrations, chat behavior changes or simulated report content in the product.
 
 ## User Scenarios & Testing
@@ -36,12 +36,12 @@ An operator sees company context in the sidebar and a quiet title above their wo
    without permanently adding a subtitle row.
 
 ### User Story 2 - Reach global functions (Priority: P1)
-An operator finds Activity and Actions at the bottom of navigation and Appearance
+An operator finds Activities in the Inspector navigation, Actions at the bottom and Appearance
 inside the profile menu; company and simulation controls stay together.
 **Independent Test**: Open each relocated control with a keyboard.
 **Acceptance Scenarios**:
-1. Activity opens the current-company drawer and Actions opens the existing catalog
-   launcher without clipping at the sidebar edge; Escape restores launcher focus.
+1. Activities opens the existing current-company history page; no duplicate Activity
+   utility remains. Actions opens the existing catalog launcher without clipping at the sidebar edge; Escape restores launcher focus.
 2. Profile exposes the existing appearance toggle; themes persist as before.
 3. Company switching resets company-scoped context; the simulation link retains its
    eligibility, freshness, destination and reduced-motion behavior.
@@ -72,8 +72,11 @@ close on company change. Browser zoom follows the responsive layout.
 - **FR-002**: Use a 48px single-row page header with title, inline count, optional
   description disclosure and direct chat toggle; remove decorative page icon and
   permanent subtitle. Open side chat starts at the top of the workspace on desktop.
-- **FR-003**: Move Activity and Actions to sidebar utilities and Appearance to Profile;
+- **FR-003**: Keep Actions in sidebar utilities and Appearance in Profile;
   preserve catalog permissions, errors, action confirmation and keyboard dismissal.
+- **FR-008**: Rename the Inspector history destination and tab to Activities (German:
+  Aktivitäten), retaining history URLs. Remove the duplicate bottom Activity trigger
+  and its shell-only state/drawer. Preserve shared timeline services and other consumers.
 - **FR-004**: Place the existing live simulation indicator below company identity,
   retaining all data, polling and eligibility semantics.
 - **FR-005**: Preserve collapse persistence, draft/page state, company isolation,
@@ -113,3 +116,12 @@ All repository artifacts are written in English; UI translations remain localize
 | FR-005 | US3 | T002, T004, T005, T007 | Refined shell and navigation browsers |
 | FR-006 | US3 | T004, T007 | Layout matrix and screenshot review |
 | FR-007 | US3 | T004, T007 | Keyboard and localized layout matrix |
+
+## Follow-up scope review
+The owner requested the Activities rename and complete removal of the duplicate lower
+entry. There are no unresolved clarifications. Its backend and drawer component also
+serve the main history page, Home and graph inspection; they are not exclusive code.
+
+| Requirement | Story | Tasks | Verification |
+|---|---|---|---|
+| FR-008 | US2 | T010–T012 | Navigation contract, shell browser, shared drawer browser |

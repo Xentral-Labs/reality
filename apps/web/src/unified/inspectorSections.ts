@@ -1,7 +1,7 @@
 export const inspectorSections = [
   { label: "Business Graph", tabs: ["overview", "graph"] },
   { label: "Business Facts", tabs: ["facts", "rules"] },
-  { label: "Event history", tabs: ["history"] },
+  { label: "Activities", tabs: ["history"] },
   { label: "Tools", tabs: ["commands", "views"] },
 ];
 const labels: Record<string, string> = {
@@ -11,7 +11,7 @@ const labels: Record<string, string> = {
   rules: "Fact rules",
   exceptions: "Exception rules",
   views: "Calculated views",
-  history: "Event history",
+  history: "Activities",
   commands: "Actions",
 };
 export const inspectorSection = (view = "overview") =>
