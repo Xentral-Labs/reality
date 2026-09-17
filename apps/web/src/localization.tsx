@@ -16778,3 +16778,160 @@ Object.assign(dictionaries.es, {
   "Find what Reality can retrieve, explain or change, with its Web and MCP tools.":
     "Descubre qué puede consultar, explicar o modificar Reality con sus herramientas web y MCP.",
 });
+
+// The business graph. German uses the App's own ERP words: a Kennzahl is measured,
+// a Beziehung is followed, and a refusal says what cannot be added rather than
+// that something went wrong.
+Object.assign(dictionaries.de, {
+  "Business graph": "Geschäftsgraph",
+  "Build a question": "Frage zusammenstellen",
+  "Follow the connections your records already have. Every step says how many rows it reaches.":
+    "Folge den Verbindungen, die deine Datensätze schon haben. Jeder Schritt sagt, wie viele Zeilen er erreicht.",
+  "Start at": "Beginne bei",
+  Path: "Weg",
+  Follow: "Folge",
+  "Remove this step and everything after it": "Diesen Schritt und alles danach entfernen",
+  many: "viele",
+  one: "eine",
+  Measure: "Kennzahl",
+  "Nothing on this path is summed. It can still be listed and grouped.":
+    "Auf diesem Weg wird nichts summiert. Auflisten und gruppieren geht trotzdem.",
+  "never across": "nie über",
+  "Group by": "Gruppieren nach",
+  Ask: "Fragen",
+  "Asking…": "Frage läuft …",
+  "This question cannot be answered correctly": "Diese Frage lässt sich nicht richtig beantworten",
+  "Choose a measure and ask. Nothing is saved until you say so.":
+    "Wähle eine Kennzahl und frage. Gespeichert wird erst, wenn du es sagst.",
+  "No records match. That is not proof that none exist upstream.":
+    "Keine Datensätze passen. Das ist kein Beweis, dass es im Quellsystem keine gibt.",
+  model: "Modell",
+  statement: "Anweisung",
+});
+
+Object.assign(dictionaries.nl, {
+  "Business graph": "Bedrijfsgraaf",
+  "Build a question": "Stel een vraag samen",
+  "Follow the connections your records already have. Every step says how many rows it reaches.":
+    "Volg de verbindingen die je records al hebben. Elke stap zegt hoeveel rijen hij bereikt.",
+  "Start at": "Begin bij",
+  Path: "Pad",
+  Follow: "Volg",
+  "Remove this step and everything after it": "Deze stap en alles erna verwijderen",
+  many: "veel",
+  one: "één",
+  Measure: "Kengetal",
+  "Nothing on this path is summed. It can still be listed and grouped.":
+    "Op dit pad wordt niets opgeteld. Opsommen en groeperen kan wel.",
+  "never across": "nooit over",
+  "Group by": "Groeperen op",
+  Ask: "Vragen",
+  "Asking…": "Bezig met vragen …",
+  "This question cannot be answered correctly": "Deze vraag is niet correct te beantwoorden",
+  "Choose a measure and ask. Nothing is saved until you say so.":
+    "Kies een kengetal en vraag. Er wordt pas bewaard als je dat zegt.",
+  "No records match. That is not proof that none exist upstream.":
+    "Geen records passen. Dat bewijst niet dat ze in het bronsysteem ontbreken.",
+  model: "model",
+  statement: "instructie",
+});
+
+Object.assign(dictionaries.es, {
+  "Business graph": "Grafo de negocio",
+  "Build a question": "Compón una pregunta",
+  "Follow the connections your records already have. Every step says how many rows it reaches.":
+    "Sigue las conexiones que tus registros ya tienen. Cada paso dice cuántas filas alcanza.",
+  "Start at": "Empieza en",
+  Path: "Camino",
+  Follow: "Sigue",
+  "Remove this step and everything after it": "Quitar este paso y todo lo que sigue",
+  many: "muchas",
+  one: "una",
+  Measure: "Indicador",
+  "Nothing on this path is summed. It can still be listed and grouped.":
+    "En este camino no se suma nada. Aun así se puede listar y agrupar.",
+  "never across": "nunca a través de",
+  "Group by": "Agrupar por",
+  Ask: "Preguntar",
+  "Asking…": "Preguntando …",
+  "This question cannot be answered correctly": "Esta pregunta no se puede responder correctamente",
+  "Choose a measure and ask. Nothing is saved until you say so.":
+    "Elige un indicador y pregunta. No se guarda nada hasta que tú lo digas.",
+  "No records match. That is not proof that none exist upstream.":
+    "Ningún registro coincide. Eso no prueba que no existan en el sistema de origen.",
+  model: "modelo",
+  statement: "instrucción",
+});
+
+// Refusal headlines. The i18n audit cannot see these because they are looked up
+// from a table rather than written inside t("…"), so they are listed here by hand.
+// Without them a German reader gets an English sentence where the number should be.
+Object.assign(dictionaries.de, {
+  "Summing this here would multiply the total.": "Hier zu summieren würde die Summe vervielfachen.",
+  "These values are not measured in the same unit.":
+    "Diese Werte sind nicht in derselben Einheit gemessen.",
+  "This number is a state, not a flow, so it does not add up over time.":
+    "Diese Zahl ist ein Zustand, kein Fluss, und summiert sich nicht über die Zeit.",
+  "The model has no such business record.": "Das Modell kennt diesen Datensatz nicht.",
+  "The model has no such connection.": "Das Modell kennt diese Verbindung nicht.",
+  "The model has no such number.": "Das Modell kennt diese Kennzahl nicht.",
+  "That record has no such field.": "Dieser Datensatz hat dieses Feld nicht.",
+  "This path never reaches the record that number lives on.":
+    "Dieser Weg erreicht den Datensatz nie, auf dem diese Kennzahl liegt.",
+  "This path never reaches the record that says the unit.":
+    "Dieser Weg erreicht den Datensatz nie, der die Einheit nennt.",
+  "This connection runs the other way round.": "Diese Verbindung läuft andersherum.",
+  "Say how many levels deep to follow.": "Gib an, wie viele Ebenen tief gefolgt wird.",
+  "That is deeper than this connection allows.": "Das ist tiefer, als diese Verbindung erlaubt.",
+  "This connection does not repeat, so it has no depth.":
+    "Diese Verbindung wiederholt sich nicht und hat daher keine Tiefe.",
+  "This path takes more steps than the model allows.":
+    "Dieser Weg braucht mehr Schritte, als das Modell erlaubt.",
+});
+
+Object.assign(dictionaries.nl, {
+  "Summing this here would multiply the total.": "Hier optellen zou het totaal vermenigvuldigen.",
+  "These values are not measured in the same unit.":
+    "Deze waarden zijn niet in dezelfde eenheid gemeten.",
+  "This number is a state, not a flow, so it does not add up over time.":
+    "Dit getal is een toestand, geen stroom, en telt niet op over de tijd.",
+  "The model has no such business record.": "Het model kent dit record niet.",
+  "The model has no such connection.": "Het model kent deze verbinding niet.",
+  "The model has no such number.": "Het model kent dit kengetal niet.",
+  "That record has no such field.": "Dat record heeft dit veld niet.",
+  "This path never reaches the record that number lives on.":
+    "Dit pad bereikt nooit het record waarop dat kengetal ligt.",
+  "This path never reaches the record that says the unit.":
+    "Dit pad bereikt nooit het record dat de eenheid noemt.",
+  "This connection runs the other way round.": "Deze verbinding loopt andersom.",
+  "Say how many levels deep to follow.": "Geef aan hoeveel niveaus diep je volgt.",
+  "That is deeper than this connection allows.": "Dat is dieper dan deze verbinding toestaat.",
+  "This connection does not repeat, so it has no depth.":
+    "Deze verbinding herhaalt zich niet en heeft dus geen diepte.",
+  "This path takes more steps than the model allows.":
+    "Dit pad vraagt meer stappen dan het model toestaat.",
+});
+
+Object.assign(dictionaries.es, {
+  "Summing this here would multiply the total.": "Sumar aquí multiplicaría el total.",
+  "These values are not measured in the same unit.":
+    "Estos valores no están medidos en la misma unidad.",
+  "This number is a state, not a flow, so it does not add up over time.":
+    "Este número es un estado, no un flujo, y no se suma a lo largo del tiempo.",
+  "The model has no such business record.": "El modelo no conoce ese registro.",
+  "The model has no such connection.": "El modelo no conoce esa conexión.",
+  "The model has no such number.": "El modelo no conoce ese indicador.",
+  "That record has no such field.": "Ese registro no tiene ese campo.",
+  "This path never reaches the record that number lives on.":
+    "Este camino nunca alcanza el registro donde vive ese indicador.",
+  "This path never reaches the record that says the unit.":
+    "Este camino nunca alcanza el registro que indica la unidad.",
+  "This connection runs the other way round.": "Esta conexión va en sentido contrario.",
+  "Say how many levels deep to follow.": "Indica cuántos niveles de profundidad seguir.",
+  "That is deeper than this connection allows.":
+    "Eso es más profundo de lo que permite esta conexión.",
+  "This connection does not repeat, so it has no depth.":
+    "Esta conexión no se repite, así que no tiene profundidad.",
+  "This path takes more steps than the model allows.":
+    "Este camino requiere más pasos de los que el modelo permite.",
+});

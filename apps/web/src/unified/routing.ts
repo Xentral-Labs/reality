@@ -42,7 +42,7 @@ export type Selection = {
   session: string;
   q: string;
   page: number;
-  analyticsView?: "explore" | "reports";
+  analyticsView?: "explore" | "graph" | "reports";
   family: "customer" | "supplier" | "item" | "location";
   record: string;
   active: boolean;
@@ -231,7 +231,9 @@ export function readSelection(url: URL): Selection {
       ? url.searchParams.get("severity")!
       : "",
     exception: url.searchParams.get("exception") || "",
-    analyticsView: ["explore", "reports"].includes(url.searchParams.get("analytics_view") || "")
+    analyticsView: ["explore", "graph", "reports"].includes(
+      url.searchParams.get("analytics_view") || "",
+    )
       ? (url.searchParams.get("analytics_view") as Selection["analyticsView"])
       : "explore",
     family: ["customer", "supplier", "item", "location"].includes(
@@ -291,6 +293,7 @@ export function selectionUrl(selection: Selection): string {
   if (selection.route === "settings") query.set("settings_view", selection.settingsView);
   if (selection.route === "analytics") {
     if (selection.analyticsView === "reports") query.set("analytics_view", "reports");
+    if (selection.analyticsView === "graph") query.set("analytics_view", "graph");
   }
   if (selection.route === "master-data") {
     query.set("family", selection.family);

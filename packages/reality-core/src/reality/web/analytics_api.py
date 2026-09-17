@@ -10,6 +10,7 @@ from reality.services.core import InvalidOperation, NotFound
 from reality.services.memberships import Principal
 from reality.tools.analytics import ExportRequest, caller
 from reality.tools.application import run_read_tool
+from reality.tools.graph import GraphAskRequest
 from reality.web.auth import DatabaseSession
 
 router = APIRouter(prefix="/analytics")
@@ -78,6 +79,55 @@ def get_catalog(
     dataset: str | None = None,
 ):
     return read(session, tenant_id, "analytics.catalog", {"dataset": dataset}, request)
+
+
+@router.get("/graph/catalog")
+def get_graph_catalog(
+    tenant_id: str,
+    request: Request,
+    session: DatabaseSession,
+    node: str | None = None,
+):
+    return read(session, tenant_id, "graph.catalog", {"node": node}, request)
+
+
+@router.post("/graph/ask")
+async def post_graph_ask(
+    tenant_id: str, body: GraphAskRequest, request: Request, session: DatabaseSession
+):
+    """A refusal reaches the browser as a refusal, with its code.
+
+    The reason names the edge that fanned out or the unit that cannot be added,
+    and the page shows it where the answer would have been — it is the most
+    useful thing this feature says.
+    """
+    return await cancellable_read(
+        session, tenant_id, "graph.ask", body.model_dump(mode="json"), request
+    )
+
+
+@router.get("/graph/reports")
+def get_graph_reports(
+    tenant_id: str,
+    request: Request,
+    session: DatabaseSession,
+    query: str = "",
+    cursor: str | None = None,
+):
+    return read(
+        session,
+        tenant_id,
+        "graph.reports.list",
+        {"query": query, "cursor": cursor},
+        request,
+    )
+
+
+@router.get("/graph/reports/{report_id}")
+def get_graph_report(
+    report_id: str, tenant_id: str, request: Request, session: DatabaseSession
+):
+    return read(session, tenant_id, "graph.reports.get", {"report_id": report_id}, request)
 
 
 @router.post("/query")
