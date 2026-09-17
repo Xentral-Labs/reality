@@ -67,3 +67,8 @@ No domain, service or tool work is required by this adapter-only feature.
 - [x] T035 Adapt footer browser coverage before implementation for aligned bounds, empty tables and conditional selection actions.
 - [x] T036 Refine shared register surfaces, footer measurement, empty headers and calculation status styling.
 - [x] T037 Run frontend gates and browser coverage; inspect screenshots, update web contract and review evidence.
+
+## Sidebar simulation removal (FR-016)
+- [x] T038 Update existing shell/browser assertions for absence and retained control-route access.
+- [x] T039 Remove standalone indicator, dedicated polling component and orphan styles; update web contract.
+- [x] T040 Run frontend/spec/lint and focused browser checks; review and record evidence.

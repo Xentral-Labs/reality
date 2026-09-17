@@ -1,5 +1,4 @@
 import { SidebarTooltip } from "./SidebarTooltip";
-import { LiveSimulationIndicator } from "./LiveSimulationIndicator";
 import { isPurchasing } from "./pageIntroduction";
 import { PageActionTarget, PageCountTarget } from "./PageHeading";
 import { pageIntroduction } from "./pageIntroduction";
@@ -360,15 +359,6 @@ export function Shell({
                     </button>
                   </div>
                   <ActionLauncher key={company.id} onLaunch={() => setOpen(false)} />
-                  <LiveSimulationIndicator
-                    key={company.id}
-                    company={company}
-                    selection={selection}
-                    navigate={(target) => {
-                      setOpen(false);
-                      navigate(target);
-                    }}
-                  />
                 </div>
                 <div className="shell-navigation-scroll">
                   <nav aria-label={t("Daily work")}>

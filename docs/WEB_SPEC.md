@@ -3070,3 +3070,9 @@ retain their visible status. Inspector record types have a wider default column 
 regular-density details can wrap to two lines; stored user layouts remain authoritative.
 Search submission, density, resizing, sorting, source links and confirmations remain.
 This supersedes prior framed-register and full-column fixed-footer presentation.
+
+### Sidebar simulation indicator removal (spec 225 FR-016)
+The sidebar no longer shows a standalone Live simulation indicator or runs its
+dedicated status polling. Company-switcher simulation context, Integrations access
+and the existing tenant-scoped simulation control route remain unchanged. This
+supersedes earlier sidebar/header indicator placement requirements.

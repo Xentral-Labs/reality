@@ -141,3 +141,9 @@ Approved visual scope maps to T035–T037 and the shared footer browser. No crit
 
 ## FR-015 completion review
 Shared surface changes preserve table controls, row provenance, tenant reads and refresh semantics. Explicit search submission remains for touch access. Column defaults improve record-type space without changing stored preferences; full values retain existing title disclosure. Footer now follows table bounds in normal flow, eliminating the competing card/fixed-footer geometry. Required frontend/spec/documentation checks pass; no merge or deployment performed.
+
+## FR-016 pre-implementation review
+User explicitly approved removing the sidebar indicator in a separate PR. T038–T040 cover FR-016. No critical consistency findings: simulation functionality and company-switcher context remain unchanged. Existing requirement-quality checklists pass (7/7 and 4/4).
+
+## FR-016 completion review
+Removed only the standalone shell indicator, its unused polling component and styles. Company-switcher context and simulation controls remain unchanged. Updated tests and documentation match the approved scope; checks pass and no critical findings remain. No extension hooks configured.

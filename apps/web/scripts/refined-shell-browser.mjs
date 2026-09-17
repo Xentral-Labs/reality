@@ -249,7 +249,7 @@ try {
           .count(),
         0,
       );
-      await nav.locator("[data-live-simulation]").waitFor();
+      assert.equal(await nav.locator("[data-live-simulation]").count(), 0);
       await company.click();
       await bounded(page.locator('[role="dialog"]:popover-open'), width);
       await page.keyboard.press("Escape");
@@ -307,7 +307,6 @@ try {
   for (const selector of [
     "[data-company-id]",
     "[data-navigation-toggle]",
-    "[data-live-simulation]",
     ".shell-utility",
     "[data-navigation-item]",
     ".shell-chat-header .reality-chat-icon",

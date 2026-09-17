@@ -147,3 +147,6 @@ revisit, archived-only history, mobile and tenant change. Run required frontend 
 
 ## FR-015 register surface plan
 Adapter only: update shared tailwind.css, RegisterTable.tsx, ProjectionFreshness.tsx. Keep explicit search submit for touch and accessibility; refine its styling rather than remove functionality. ResizeObserver measures the register bounds for the footer and bounds empty-table height. Preserve saved column widths and full cell title disclosure. Increase the default Inspector record-type width and allow regular-density details to wrap to two lines. Tests: adapt register-footer-browser.mjs for aligned bounds, empty rows and selection, then run web-build, spec-check, lint, docs-catalog-check plus page count coverage. Constitution I–VIII PASS: no domain/service/tool/schema/query changes; source links and confirmations unchanged. Rollback is reverting adapter changes.
+
+## FR-016 plan
+Remove the Shell indicator mount and its now-unused component and CSS. Update shell contract and browser expectations; replace retired indicator polling acceptance with absence/navigation checks. No domain/service/tool/schema changes. Constitution I–VIII PASS; existing simulation controls and tenant boundaries remain. Verify web-build, spec-check, lint and the focused browser. Rollback: revert this presentation-only commit.

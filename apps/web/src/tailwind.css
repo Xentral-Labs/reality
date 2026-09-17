@@ -3263,64 +3263,6 @@ textarea.br-control.rule-draft-editor {
   }
 }
 
-/* Simulation state links to its source controls; the pulse is decorative. */
-.live-simulation-link {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  flex-shrink: 0;
-  min-height: 36px;
-  padding: 0 10px;
-  border: 1px solid var(--color-border-default);
-  border-radius: 999px;
-  color: var(--color-accent);
-  background: var(--color-accent-soft);
-  font-size: 12px;
-  font-weight: 500;
-  white-space: nowrap;
-}
-.live-simulation-link:hover {
-  border-color: var(--color-accent);
-}
-.live-simulation-link:focus-visible {
-  outline: 2px solid var(--color-accent);
-  outline-offset: 3px;
-}
-[data-live-dot] {
-  width: 7px;
-  height: 7px;
-  flex-shrink: 0;
-  border-radius: 50%;
-  background: currentColor;
-  animation: live-simulation-pulse 2.4s ease-in-out infinite;
-}
-@keyframes live-simulation-pulse {
-  0%,
-  100% {
-    opacity: 1;
-    box-shadow: 0 0 0 0 color-mix(in srgb, currentColor 22%, transparent);
-  }
-  50% {
-    opacity: 0.6;
-    box-shadow: 0 0 0 4px transparent;
-  }
-}
-@media (max-width: 1280px) {
-  .live-simulation-label {
-    display: none;
-  }
-  .live-simulation-link {
-    width: 36px;
-    padding: 0;
-  }
-}
-@media (prefers-reduced-motion: reduce) {
-  [data-live-dot] {
-    animation: none;
-  }
-}
-
 /* Daily work shares density based on the space remaining beside the chat. */
 [data-work-list] {
   container: work-list / inline-size;
@@ -3597,31 +3539,6 @@ textarea.br-control.rule-draft-editor {
 .shell-navigation [data-profile-label] > span:first-child {
   font-weight: 500;
 }
-.shell-navigation .live-simulation-link {
-  display: flex;
-  width: fit-content;
-  max-width: 100%;
-  justify-content: flex-start;
-  min-height: 26px;
-  gap: 6px;
-  margin: 3px 0 0 32px;
-  padding: 3px 5px;
-  border: 0;
-  border-radius: 4px;
-  color: var(--color-fg-muted);
-  background: transparent;
-  font-size: 12px;
-}
-.shell-navigation .live-simulation-label {
-  display: inline;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-.shell-navigation [data-live-dot] {
-  width: 5px;
-  height: 5px;
-  color: var(--color-accent);
-}
 .shell-chat-dock {
   position: fixed;
   inset: var(--app-header-height) 0 0;
@@ -3704,8 +3621,7 @@ textarea.br-control.rule-draft-editor {
     padding-inline: 8px;
   }
   .app-shell[data-navigation-collapsed="true"] .company-switcher-copy,
-  .app-shell[data-navigation-collapsed="true"] .company-switcher-trigger > svg,
-  .app-shell[data-navigation-collapsed="true"] .live-simulation-label {
+  .app-shell[data-navigation-collapsed="true"] .company-switcher-trigger > svg {
     display: none;
   }
   .app-shell[data-navigation-collapsed="true"] .company-switcher-trigger {
@@ -3719,11 +3635,6 @@ textarea.br-control.rule-draft-editor {
   }
   .app-shell[data-navigation-collapsed="true"] .shell-company {
     width: 100%;
-  }
-  .app-shell[data-navigation-collapsed="true"] .live-simulation-link {
-    justify-content: center;
-    margin: 3px auto 0;
-    width: 32px;
   }
   .app-shell[data-navigation-collapsed="true"] .shell-utility {
     justify-content: center;
@@ -3758,7 +3669,6 @@ textarea.br-control.rule-draft-editor {
   .shell-utility,
   .shell-navigation [data-navigation-item],
   .shell-navigation .company-switcher-trigger,
-  .shell-navigation .live-simulation-link,
   .shell-chat-header .reality-chat-icon {
     min-height: 44px;
   }
@@ -3774,8 +3684,7 @@ textarea.br-control.rule-draft-editor {
     min-width: 44px;
     min-height: 44px;
   }
-  .app-shell[data-navigation-collapsed="true"] .company-switcher-trigger,
-  .app-shell[data-navigation-collapsed="true"] .live-simulation-link {
+  .app-shell[data-navigation-collapsed="true"] .company-switcher-trigger {
     min-height: 44px;
     min-width: 44px;
   }
