@@ -338,6 +338,45 @@ def test_grouping_by_month_buckets_the_timestamp(session, business, sales):
     assert months[("2026-04", "USD")] == Decimal(300)
 
 
+def test_one_currency_may_be_summed_once_the_question_says_which(
+    session, business, sales
+):
+    """The refusal said "filter the question down to one", and following that
+    advice changed nothing: the check looked only at the axes. A question pinned
+    to a single currency is exactly the case where a sum is meaningful."""
+    result = ask(
+        session,
+        business.tenant.id,
+        **{
+            "from": "order",
+            "filter": [{"field": "root.currency", "op": "eq", "value": "EUR"}],
+            "measures": ["stated_order_amount"],
+        },
+    )
+    assert total(result) == Decimal(1500)
+
+
+def test_two_currencies_are_still_refused_however_they_are_named(
+    session, business, sales
+):
+    """The positive control: narrowing is not the same as pinning."""
+    for condition in (
+        {"field": "root.currency", "op": "ne", "value": "USD"},
+        {"field": "root.currency", "op": "in", "value": ["EUR", "USD"]},
+    ):
+        with pytest.raises(TraversalRefused) as refusal:
+            ask(
+                session,
+                business.tenant.id,
+                **{
+                    "from": "order",
+                    "filter": [condition],
+                    "measures": ["stated_order_amount"],
+                },
+            )
+        assert refusal.value.code == "unit_mismatch", condition
+
+
 def test_a_date_kept_as_text_cannot_be_folded_into_months(session, business, sales):
     """Found by asking it: `document_date` is a varchar on this table.
 

@@ -17,17 +17,14 @@ const { readSelection, selectionUrl, companySelection } = await import(
 // "overview" and "explore" were the configured generation. A link that still
 // names one opens the graph rather than a blank page, which is the whole reason
 // the value is validated rather than trusted.
-for (const view of ["", "overview", "invalid", "explore", "reports", "graph", "console"]) {
+for (const view of ["", "overview", "invalid", "explore", "console", "reports", "graph"]) {
   test(`analytics link ${view || "default"} opens a retained tab`, () => {
     const selection = readSelection(
       new URL(
         `https://example.test/app/analytics?tenant=one&analytics_view=${view}&days=90&metric=shipped&day=2026-09-17`,
       ),
     );
-    assert.equal(
-      selection.analyticsView,
-      ["reports", "graph", "console"].includes(view) ? view : "graph",
-    );
+    assert.equal(selection.analyticsView, ["reports", "graph"].includes(view) ? view : "graph");
     const url = new URL(selectionUrl(selection), "https://example.test");
     assert.equal(url.searchParams.get("tenant"), "one");
     for (const key of ["days", "metric", "day"]) assert.equal(url.searchParams.has(key), false);
@@ -48,7 +45,6 @@ test("rendered analytics carries no retired overview", () => {
         if (name === "./RegisterWorkbench") return { RegisterHeader: ({ children }) => children };
         if (name === "./analytics/ReportLibrary") return { ReportLibrary: () => "Saved reports" };
         if (name === "./analytics/GraphSteps") return { GraphSteps: () => "Graph content" };
-        if (name === "./analytics/GraphConsole") return { GraphConsole: () => "Console" };
         if (name.startsWith(".")) return {};
         return require(name);
       },
@@ -64,9 +60,8 @@ test("rendered analytics carries no retired overview", () => {
   // with it. The tabs are named rather than counted, so adding one does not
   // read as a regression and removing one does.
   assert.match(html, /aria-pressed="true">Business graph/);
-  assert.match(html, /Query console/);
   assert.match(html, /My reports/);
-  assert.doesNotMatch(html, /Overview|Recorded activity|Explore/);
+  assert.doesNotMatch(html, /Overview|Recorded activity|Explore|Query console/);
 });
 test("Home and client no longer consume retired metrics", () => {
   assert.doesNotMatch(source("../src/unified/HomePage.tsx"), /AnalyticsPreview/);
