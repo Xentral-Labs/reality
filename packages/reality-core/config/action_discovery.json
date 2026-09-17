@@ -214,7 +214,8 @@
     "mapping_history": "accounts",
     "preview_document": "accounts",
     "maintain_target_configuration": "accounts",
-    "change_report": "reports"
+    "change_report": "reports",
+    "change_graph_report": "reports"
   },
   "entries": [
     {
@@ -706,7 +707,8 @@
       "label": "Reports",
       "group": "reports",
       "commands": [
-        "change_report"
+        "change_report",
+        "change_graph_report"
       ],
       "placements": [
         "global"

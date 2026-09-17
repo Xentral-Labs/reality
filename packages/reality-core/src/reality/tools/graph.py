@@ -23,8 +23,10 @@ from reality.services.analytics.graph_model import (
     ReportingGraphError,
     reporting_catalog,
 )
+from reality.services.analytics.reports import get_report, list_reports
 from reality.services.analytics.traversal import TraversalRefused, run_traversal
 from reality.services.core import get_tenant
+from reality.tools.analytics import CALLER
 
 
 class GraphCatalogRequest(StrictModel):
@@ -68,9 +70,32 @@ class GraphAskRequest(StrictModel):
         return self
 
 
+class GraphReportsRequest(StrictModel):
+    query: str = Field(
+        default="", max_length=200, description="Optional report-name search."
+    )
+    limit: int = Field(
+        default=50, ge=1, le=200, description="Maximum private reports to return."
+    )
+    cursor: str | None = Field(
+        default=None,
+        max_length=2048,
+        description="Opaque continuation from the same owner-scoped search.",
+    )
+
+
+class GraphReportRequest(StrictModel):
+    report_id: str = Field(
+        max_length=128,
+        description="Opaque ID of a private graph report owned by the caller.",
+    )
+
+
 SCHEMAS = {
     "graph.catalog": GraphCatalogRequest,
     "graph.ask": GraphAskRequest,
+    "graph.reports.list": GraphReportsRequest,
+    "graph.reports.get": GraphReportRequest,
 }
 
 
@@ -82,6 +107,23 @@ def invoke(session, tenant_id: str, name: str, arguments: dict[str, Any]) -> Any
             return reporting_catalog(request.node)
         except ReportingGraphError as error:
             raise TraversalRefused(str(error), "unknown_node") from error
+
+    if name == "graph.reports.list":
+        return list_reports(
+            session,
+            tenant_id,
+            CALLER.get(),
+            **request.model_dump(mode="json"),
+            report_kind="graph",
+        )
+    if name == "graph.reports.get":
+        return get_report(
+            session,
+            tenant_id,
+            CALLER.get(),
+            request.report_id,
+            report_kind="graph",
+        )
 
     query = request.question or parse(request.path or "", request.parameters)
     result = run_traversal(session, tenant_id, query)
