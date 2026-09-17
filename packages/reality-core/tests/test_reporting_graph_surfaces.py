@@ -10,6 +10,7 @@ from __future__ import annotations
 from decimal import Decimal
 
 import pytest
+
 from reality.domain.traversal import Traversal
 from reality.services.analytics.cypher_surface import CypherRefused, parse
 from reality.services.analytics.traversal import run_traversal
