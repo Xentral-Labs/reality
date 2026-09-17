@@ -228,3 +228,12 @@ devices retain visible options. Existing row heights and mobile drawer width rem
 Acceptance: measure desktop width and unchanged row heights; verify hidden idle,
 hover, focus and open-menu visibility, single-line German archive label, and touch
 access. Scope approved by the owner on 2026-09-15.
+
+## Side-chat header simplification
+
+**FR-025**: The side-chat header shows its title, conversation history and new-chat
+controls without a Usage badge. Other Usage entry points and exhaustion/send
+restrictions remain unchanged. This supersedes FR-012 only for the side-chat header.
+Acceptance: opening a docked chat shows no Usage control beside its title; history
+and new-chat controls remain, and usage is still available beside the composer.
+Scope approved by the user's screenshot and removal request on 2026-09-17.

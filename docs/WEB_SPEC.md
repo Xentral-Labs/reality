@@ -2960,3 +2960,7 @@ No new filtering, business calculations, source authority or service paths are i
 Spec 218 navigation refinement: Tools replaces Available actions in the Inspector sidebar and contains Actions (default) and Calculated views. Tools is invariant across languages. Business Facts contains All records and Fact rules only. Existing inspector_view=commands/views URLs preserve tenant context and now activate Tools; reload/history and report behavior remain unchanged. This supersedes the Business Facts ownership of Calculated views stated above.
 
 Spec 219 directory refinement supersedes the custom report list/cards and workspace filter buttons: Calculated views reuses the Actions folder-tree component, toolbar, expandable groups and compact disclosures. Reports have one home under their first workspace category; all category labels remain in their details and search. Search opens matching groups without overwriting manual expansion. Expand all/Collapse all match Actions and are disabled while searching. A report disclosure exposes its description and Open report/Show details action. Existing dialogs, company context, deduplication and focus restoration remain unchanged.
+
+Spec 195 FR-025: The side-chat header no longer duplicates the Usage badge beside
+the conversation title. History and new-chat controls remain. Other usage entry
+points, allowance reads and exhausted-allowance sending restrictions are unchanged.

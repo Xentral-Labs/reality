@@ -367,3 +367,18 @@ pass, including the previously affected header test. The complete composer brows
 passes against the isolated preview on port 5188. TypeScript/Vite build, i18n audit,
 changed-file Prettier, spec policy and diff whitespace checks pass. T030 is complete.
 The existing bundle-size warning is unchanged. No concurrent work is included.
+
+## Side-chat header Usage badge (FR-025, 2026-09-17)
+
+Removed only the ChatUsage child in chatControls. History/new-chat controls and
+other Usage/exhaustion entry points remain. Existing usage-placement regression
+failed before the removal and passes afterward. All 232 frontend contracts,
+four-language audit, production build, spec policy and changed-file formatting
+passed. No backend/schema/catalog behavior changed; backend gates are inapplicable.
+The aggregate web-build command initially stopped on an unrelated pre-existing
+format issue in untracked DemoDataSource.tsx; its remaining gates were run directly
+and passed. The isolated PR checkout on current main (ac507c5a) subsequently
+passed the complete web-build gate, including repository-wide formatting, all 232
+frontend contracts, the four-language audit and production build. Spec policy and
+Ruff also passed there; T031 is complete. Diff reviewed:
+one production JSX line removed, no mutations or permission changes.

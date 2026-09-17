@@ -355,7 +355,6 @@ export function ChatPage({
   };
   const chatControls = (
     <div className="flex shrink-0 items-center gap-1">
-      {!sessionsTarget && <ChatUsage allowance={data.allowance} navigate={navigate} />}
       <button
         className={sessionsTarget ? compactHistoryClass : "reality-chat-icon"}
         aria-label={t("Conversation history")}
