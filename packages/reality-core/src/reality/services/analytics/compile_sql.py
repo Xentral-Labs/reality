@@ -122,7 +122,7 @@ def _coerce(column, value: Any, field: str) -> Any:
     kind = column.type
     try:
         if isinstance(kind, DateTime):
-            return datetime.fromisoformat(value.replace("Z", "+00:00"))
+            return datetime.fromisoformat(value)
         if isinstance(kind, Numeric):
             return Decimal(value)
         if isinstance(kind, Integer):
