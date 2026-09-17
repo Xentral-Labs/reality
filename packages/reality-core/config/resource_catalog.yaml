@@ -19,9 +19,11 @@ resources:
     description:
       en: "Read-time observations over retained evidence and operational services, with scoped contributors and private saved definitions."
       de: "Auswertungen über vorhandene Belege und operative Dienste mit nachvollziehbaren Datensätzen und privaten gespeicherten Einstellungen."
-    synonyms: [analytics, report, Auswertung, Bericht]
+    synonyms: [analytics, report, Auswertung, Bericht, graph, Graph]
     tables: [analytics_report]
-    match: "analytics"
+    # The graph tools are this same business resource asked a different way, so they
+    # belong here rather than in a second resource that would split Auswertung in two.
+    match: "analytics|graph_"
     views: []
     projections: []
     exceptions: []
