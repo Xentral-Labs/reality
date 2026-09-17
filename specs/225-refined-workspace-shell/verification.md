@@ -187,3 +187,6 @@ transitions to capture the settled appearance. Artifacts are in
 - `projection-freshness-browser.mjs`: PASS, in-flight, unchanged/newer outcomes, backlog and four languages.
 - Visually inspected `/private/tmp/content-heading-screens/finance-0-1440.png` and `/private/tmp/reality-register-empty-dark.png`; footer and toolbar align and mobile empty guidance remains readable.
 - Backend suite not rerun: presentation-only changes, no API/service/schema modifications.
+
+## FR-016 sidebar simulation removal
+`gmake web-build spec-check lint` PASS: 236 tests, formatting, all four localization audits, TypeScript, Vite, spec policy and Ruff. Existing bundle-size advisory only. Focused `live-simulation-header-browser.mjs` PASS for desktop, collapsed/mobile absence, zero indicator polling and retained tenant-scoped simulation route. Updated shell absence assertion failed before removal and passes afterward. No backend/schema changes; backend suite not rerun.
