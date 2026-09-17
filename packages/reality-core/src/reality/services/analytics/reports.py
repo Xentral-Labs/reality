@@ -9,13 +9,58 @@ from sqlalchemy.exc import IntegrityError
 
 from reality.db.analytics import AnalyticsReport
 from reality.db.core import AppUser, TenantMembership, now, uid
-from reality.domain.analytics import ReportChange
 from reality.services.analytics.execution import (
     AnalyticsError,
     checked_definition,
     fingerprint,
 )
 from reality.services.core import NotFound
+
+
+class ReportKind:
+    """What makes one kind of saved report different from another.
+
+    Retry, revision, ownership and soft deletion are the same for every report, so
+    they are written once. Only three things differ: the change model, how its
+    payload is checked, and the model version the row records — and the last is why
+    this exists at all, because a graph report that cannot say which meaning
+    produced it would silently change what it reports.
+    """
+
+    def __init__(self, key, change_model, payload_field, check, version=lambda: None):
+        self.key = key
+        self.change_model = change_model
+        self.payload_field = payload_field
+        self.check = check
+        self.version = version
+
+
+def _checked_analytics_definition(definition):
+    checked_definition({"definition": definition.model_dump(mode="json")})
+
+
+def _graph_kind():
+    from reality.domain.graph_report import GraphReportChange
+    from reality.services.analytics.graph_model import reporting_graph
+    from reality.services.analytics.traversal import plan
+
+    return ReportKind(
+        "graph",
+        GraphReportChange,
+        "question",
+        lambda question: plan(question),
+        lambda: reporting_graph().model_version,
+    )
+
+
+def kind(key):
+    if key == "graph":
+        return _graph_kind()
+    from reality.domain.analytics import ReportChange as _ReportChange
+
+    return ReportKind(
+        "definition", _ReportChange, "definition", _checked_analytics_definition
+    )
 
 
 def require_author(session, tenant_id, principal):
@@ -43,6 +88,8 @@ def render(row):
     return {
         "id": row.id,
         "name": row.name,
+        "kind": row.kind or "definition",
+        "model_version": row.model_version,
         "definition": row.definition,
         "revision": row.revision,
         "created_at": row.created_at.isoformat(),
@@ -68,11 +115,18 @@ def owned(session, tenant_id, principal, report_id, *, lock=False, deleted=False
     return row
 
 
-def get_report(session, tenant_id, principal, report_id):
-    return render(owned(session, tenant_id, principal, report_id))
+def get_report(session, tenant_id, principal, report_id, report_kind=None):
+    row = owned(session, tenant_id, principal, report_id)
+    if report_kind and (row.kind or "definition") != report_kind:
+        # Opening it under the wrong contract would read the question with the wrong
+        # meaning, which is worse than not finding it.
+        raise NotFound("Report not found.")
+    return render(row)
 
 
-def list_reports(session, tenant_id, principal, *, query="", limit=50, cursor=None):
+def list_reports(
+    session, tenant_id, principal, query="", limit=50, cursor=None, report_kind=None
+):
     owner = require_author(session, tenant_id, principal)
     if not 1 <= limit <= 200 or len(query) > 200:
         raise AnalyticsError("Choose a valid report list limit or search.")
@@ -81,11 +135,17 @@ def list_reports(session, tenant_id, principal, *, query="", limit=50, cursor=No
         AnalyticsReport.owner_user_id == owner,
         AnalyticsReport.deleted_at.is_(None),
     )
+    if report_kind == "definition":
+        statement = statement.where(
+            (AnalyticsReport.kind.is_(None)) | (AnalyticsReport.kind == "definition")
+        )
+    elif report_kind:
+        statement = statement.where(AnalyticsReport.kind == report_kind)
     if query:
         statement = statement.where(
             AnalyticsReport.name.icontains(query, autoescape=True)
         )
-    scope = fingerprint([tenant_id, owner, query])
+    scope = fingerprint([tenant_id, owner, query, report_kind or ""])
     if cursor:
         try:
             token = json.loads(base64.urlsafe_b64decode(cursor))
@@ -111,13 +171,24 @@ def list_reports(session, tenant_id, principal, *, query="", limit=50, cursor=No
 
 
 def change_report(session, tenant_id, principal, arguments):
+    """Save, rename, duplicate or delete a configured private report."""
+    return _change(session, tenant_id, principal, arguments, kind("definition"))
+
+
+def change_graph_report(session, tenant_id, principal, arguments):
+    """The same journey for a graph question, sharing one retry implementation."""
+    return _change(session, tenant_id, principal, arguments, kind("graph"))
+
+
+def _change(session, tenant_id, principal, arguments, contract):
     owner = require_author(session, tenant_id, principal)
     try:
-        request = ReportChange.model_validate(arguments)
+        request = contract.change_model.model_validate(arguments)
     except ValidationError as error:
         raise AnalyticsError(str(error)) from error
-    if request.definition:
-        checked_definition({"definition": request.definition.model_dump(mode="json")})
+    payload = getattr(request, contract.payload_field)
+    if payload:
+        contract.check(payload)
     digest = fingerprint(request.model_dump(mode="json"))
     request_id = str(request.request_id)
     if request.operation in {"create", "duplicate"}:
@@ -144,13 +215,15 @@ def change_report(session, tenant_id, principal, arguments):
                 )
             definition = source.definition
         else:
-            definition = request.definition.model_dump(mode="json")
+            definition = payload.model_dump(mode="json", by_alias=True)
         row = AnalyticsReport(
             id=uid("anr"),
             tenant_id=tenant_id,
             owner_user_id=owner,
             name=request.name,
             definition=definition,
+            kind=contract.key,
+            model_version=contract.version(),
             create_request_id=request_id,
             create_payload_hash=digest,
             last_request_id=request_id,
@@ -195,10 +268,17 @@ def change_report(session, tenant_id, principal, arguments):
         raise AnalyticsError(
             "The report changed. Reload it before saving.", "revision_conflict"
         )
+    if row.kind and row.kind != contract.key:
+        raise AnalyticsError(
+            f"This report holds a {row.kind} question; it cannot be changed as a "
+            f"{contract.key} one.",
+            "kind_mismatch",
+        )
     if request.name:
         row.name = request.name
-    if request.definition:
-        row.definition = request.definition.model_dump(mode="json")
+    if payload:
+        row.definition = payload.model_dump(mode="json", by_alias=True)
+        row.model_version = contract.version()
     if request.operation == "delete":
         row.deleted_at = now()
     row.revision += 1

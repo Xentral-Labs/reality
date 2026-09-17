@@ -20,6 +20,7 @@ explicit_operations:
   - reality.services.analytics.proposals:preview
   - reality.services.analytics.traversal:run_traversal
   - reality.services.analytics.compile_sql:execute
+  - reality.services.analytics.reports:change_graph_report
   - reality.services.read_contracts:read_metadata
   - reality.services.read_contracts:discovery_page
   - reality.services.read_contracts:finance_balances
@@ -842,8 +843,12 @@ families:
     operations: &reporting_graph_operations
       - reality.services.analytics.traversal:run_traversal
       - reality.services.analytics.compile_sql:execute
+      - reality.services.analytics.reports:change_graph_report
       - tool:graph.catalog
       - tool:graph.ask
+      - tool:graph.reports.list
+      - tool:graph.reports.get
+      - tool:graph.reports.change
     evidence:
       - id: tests/test_reporting_graph_isolation.py::test_a_neighbour_with_identical_labels_is_never_reached
         assertion: boundary

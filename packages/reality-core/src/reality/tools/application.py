@@ -2532,12 +2532,16 @@ def create_change_proposal(
             "target": {target_key: target_value},
             "requires_human_confirmation": True,
         }
-    if tool_name == "analytics.reports.change":
+    if tool_name in {"analytics.reports.change", "graph.reports.change"}:
         from reality.services.analytics.proposals import prepare
         from reality.tools.analytics import CALLER
 
         normalized_arguments, preview = prepare(
-            session, tenant_id, CALLER.get(), arguments
+            session,
+            tenant_id,
+            CALLER.get(),
+            arguments,
+            report_kind="graph" if tool_name.startswith("graph.") else "definition",
         )
     proposal = ChangeProposal(
         id=uid("act"),
@@ -2617,7 +2621,10 @@ def approve_and_execute_proposal(
     )
     if candidate is None:
         raise NotFound("Proposal not found.")
-    if candidate.type == "tool:analytics.reports.change":
+    if candidate.type in {
+        "tool:analytics.reports.change",
+        "tool:graph.reports.change",
+    }:
         from reality.services.analytics.proposals import reveal
 
         reveal(session, tenant_id, confirming_principal, json.loads(candidate.input))
@@ -2857,7 +2864,7 @@ def approve_and_execute_proposal(
     from reality.playground.actions import MASTER_TOOLS
     from reality.services.tenant_policy import master_tool_execution
 
-    if tool_name == "analytics.reports.change":
+    if tool_name in {"analytics.reports.change", "graph.reports.change"}:
         from reality.services.analytics.proposals import execute_change
 
         result = execute_change(session, tenant_id, confirming_principal, arguments)
@@ -2977,6 +2984,8 @@ from reality.tools.graph import invoke as invoke_graph
 _GRAPH_DESCRIPTIONS = {
     "graph.catalog": "Discover the business nodes, how they connect, and what each measure means.",
     "graph.ask": "Ask the reporting graph a question along declared edges and measures.",
+    "graph.reports.list": "List the caller's own saved graph reports.",
+    "graph.reports.get": "Open one of the caller's own saved graph reports.",
 }
 
 for _graph_name in GRAPH_SCHEMAS:
@@ -3001,6 +3010,13 @@ def _private_report_confirmation_only(session, tenant_id, arguments):
 TOOLS["analytics.reports.change"] = Tool(
     "analytics.reports.change",
     "Propose a private report definition change for its authenticated author.",
+    True,
+    _private_report_confirmation_only,
+)
+
+TOOLS["graph.reports.change"] = Tool(
+    "graph.reports.change",
+    "Propose saving, renaming or removing a private graph report for its author.",
     True,
     _private_report_confirmation_only,
 )
