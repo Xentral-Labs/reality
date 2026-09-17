@@ -35,16 +35,19 @@ export function RegisterWorkbench({ children }: { children: ReactNode }) {
 }
 export function RegisterHeader({
   children,
+  placement = "page",
 }: {
   title: string;
   children?: ReactNode;
   originalTitle?: boolean;
+  placement?: "page" | "local";
 }) {
   const layout = useContext(RegisterHeaderTarget);
   const target = layout?.target;
   const group = isValidElement<{ children?: ReactNode }>(children) ? children : null;
   const tabs = Children.toArray(group?.props.children);
   const multiple =
+    placement === "page" &&
     tabs.filter((tab) => isValidElement(tab) && (tab.type === "button" || tab.type === "a"))
       .length > 1;
   const activeKey = tabs.find(
@@ -81,6 +84,7 @@ export function RegisterHeader({
     layout.setHasTabs(true);
     return () => layout.setHasTabs(false);
   }, [multiple, layout?.setHasTabs]);
+  if (placement === "local") return <div className="inbox-local-controls">{children}</div>;
   if (!target || !children) return null;
   if (!multiple || !group || !layout) return createPortal(children, target);
   const content = tabs.flatMap<ReactNode>((tab) => {

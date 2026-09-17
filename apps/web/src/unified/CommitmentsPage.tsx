@@ -45,7 +45,7 @@ export function CommitmentsPage({
   return (
     <div className="mx-auto max-w-[1200px] space-y-3" data-work-list="commitments">
       <WorkHeader title="Commitments" total={list.page?.total} />
-      <RegisterHeader title="Commitments">
+      <RegisterHeader title="Commitments" placement="local">
         <nav className="register-tabs" aria-label={t("Delivery direction")}>
           {(
             [
@@ -59,7 +59,7 @@ export function CommitmentsPage({
               onClick={() => change({ deliveryType: value, q: "" })}
             >
               {t(label)}{" "}
-              {counts.data && deliveryType !== value && (
+              {counts.data && (
                 <span className="ml-2 rounded-full bg-surface-muted px-2 py-0.5 text-xs tabular-nums">
                   {formatNumber(counts.data[index].page.total)}
                 </span>

@@ -3949,3 +3949,32 @@ textarea.br-control.rule-draft-editor {
     min-height: 44px;
   }
 }
+
+/* Inbox sections retain local filters below their shared primary navigation. */
+.inbox-local-controls .register-tabs {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  max-width: 100%;
+  overflow-x: auto;
+  padding-bottom: 2px;
+}
+.inbox-local-controls .register-tabs > button {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  min-height: 32px;
+  padding: 5px 9px;
+  border-radius: 5px;
+  font-size: 12px;
+  color: var(--color-fg-muted);
+}
+.inbox-local-controls .register-tabs > button[aria-pressed="true"] {
+  color: var(--color-fg-strong);
+  background: var(--color-surface-muted);
+}
+@media (pointer: coarse) {
+  .inbox-local-controls .register-tabs > button {
+    min-height: 44px;
+  }
+}

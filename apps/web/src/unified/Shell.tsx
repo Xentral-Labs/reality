@@ -3,9 +3,9 @@ import { LiveSimulationIndicator } from "./LiveSimulationIndicator";
 import { isPurchasing } from "./pageIntroduction";
 import { PageActionTarget, PageCountTarget } from "./PageHeading";
 import { pageIntroduction } from "./pageIntroduction";
-import { dailyWork, isCommitmentsSelection } from "./dailyWork";
+import { dailyWork, isCommitmentsSelection, isInboxSelection } from "./dailyWork";
 import { ProfileMenu } from "./ProfileMenu";
-import { RegisterHeaderTarget } from "./RegisterWorkbench";
+import { RegisterHeader, RegisterHeaderTarget } from "./RegisterWorkbench";
 import { inspectorSections, inspectorSection, inspectorTabs } from "./inspectorSections";
 import { CompanySwitcher } from "./CompanySwitcher";
 import { ChatPage } from "./ChatPage";
@@ -27,11 +27,10 @@ import {
   PackageCheck,
   Wallet,
   Boxes,
-  TriangleAlert,
   ChartNoAxesCombined,
   LayoutGrid,
-  CheckSquare,
   House,
+  Inbox,
   History,
   Menu,
   PanelLeft,
@@ -123,7 +122,7 @@ export function Shell({
       stop();
     };
   }, []);
-  const dailyIcons = [PackageCheck, TriangleAlert, CheckSquare];
+  const inbox = isInboxSelection(selection);
   const inspectorIcons = [Waypoints, FileText, History, Zap];
   const destinations = [
     {
@@ -138,19 +137,17 @@ export function Shell({
       Icon: MessageSquare,
       active: selection.route === "chat",
     },
-    ...dailyWork.map((item, index) => ({
-      label: item.label,
-      target: item.selection,
-      Icon: dailyIcons[index],
-      active:
-        item.label === "Commitments"
-          ? isCommitmentsSelection(selection)
-          : selection.route === item.selection.route,
-    })),
+    {
+      label: "Inbox",
+      target: dailyWork[0].selection,
+      Icon: Inbox,
+      active: inbox,
+    },
   ];
   const introduction = pageIntroduction(selection);
-  const contentTitle =
-    selection.route === "inspector"
+  const contentTitle = inbox
+    ? "Inbox"
+    : selection.route === "inspector"
       ? inspectorTabs(selection.inspectorView || "overview").find(
           ([key]) =>
             key ===
@@ -647,6 +644,25 @@ export function Shell({
               </aside>
               <SidebarTooltip navigation={navigationRef} />
               <main id="main-content" className="min-w-0 px-4 py-5 lg:px-5 lg:py-6">
+                {inbox && (
+                  <RegisterHeader title="Inbox">
+                    <nav className="register-tabs" aria-label={t("Inbox")}>
+                      {dailyWork.map((item) => (
+                        <button
+                          key={item.label}
+                          aria-pressed={
+                            item.label === "Commitments"
+                              ? isCommitmentsSelection(selection)
+                              : selection.route === item.selection.route
+                          }
+                          onClick={() => navigate(item.selection)}
+                        >
+                          {t(item.label)}
+                        </button>
+                      ))}
+                    </nav>
+                  </RegisterHeader>
+                )}
                 {children}
               </main>
               <aside

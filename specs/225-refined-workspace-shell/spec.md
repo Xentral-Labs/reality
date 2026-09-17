@@ -176,3 +176,13 @@ legacy inline strip through RegisterHeader. Keep direction selection and service
 reads unchanged. The active side uses the shared filtered list count; the inactive
 side retains its existing unfiltered overview count, without duplicating the active
 count. No other top-level inline page tabs were found; row-level filters stay local.
+
+## Inbox navigation consolidation
+FR-013: Replace the three daily-work sidebar entries with one Inbox entry, without
+an aggregate badge. Inbox defaults to Commitments and is active for all three existing
+routes. Its header tabs are Commitments, Exceptions and Decisions. Preserve existing
+URLs, tenant scope, side/filter navigation, action confirmation and back/reload behavior.
+Customer/supplier direction and exception finding/rule selection become subordinate
+local controls, retaining their existing reads and overview counts. The header count
+belongs to the active register, not a sum of unlike queues. Home and Chat remain separate.
+Inbox is the product label in all supported languages. No new AI behavior or backend.

@@ -3041,3 +3041,12 @@ above the page content. This supersedes the earlier spec225 title-and-tab placem
 
 Commitments uses the same header for Customer side / Supplier side. The active side
 shows its filtered list count once; the inactive side keeps its overview count.
+
+### Inbox navigation (spec 225)
+Daily work has one Inbox sidebar entry with no aggregate badge. Its primary header
+tabs are Commitments, Exceptions and Decisions; existing queue URLs remain valid
+and select Inbox. The default destination is Commitments. Direction controls and
+exception findings/rules are subordinate local controls. Existing side overview
+counts remain local; the main header count belongs only to the active register. Home
+and Chat remain independent. No AI behavior, authorization or confirmation changes.
+This supersedes the three individual sidebar entries and their former primary tabs.

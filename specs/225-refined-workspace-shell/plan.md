@@ -125,3 +125,13 @@ clarification. Update daily-work browser to locate direction tabs/counts in the 
 header before wrapping the existing tabs in RegisterHeader. Preserve labels, counts,
 side switching/reload and list behavior. Run frontend gates and the daily-work browser
 matrix; verify header/body placement and screenshots. No backend changes required.
+
+## Inbox consolidation plan
+Approved FR-013. Constitution Check PASS; no unresolved scope. Reuse dailyWork's three
+canonical selections and add a pure selection predicate for Inbox membership. Shell
+renders one Inbox destination and one shared RegisterHeader for its three tabs.
+RegisterHeader gains an explicit local placement for subordinate direction/rule controls;
+these do not register header/count targets. Existing queue components/services remain.
+Tests first cover Inbox route membership (including nested rules and excluding Sales),
+then adapt daily-work browser for primary tabs, local side selection and one sidebar
+entry. Run frontend gates, daily-work and page-header/count browsers. No schema changes.

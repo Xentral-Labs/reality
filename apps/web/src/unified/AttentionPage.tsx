@@ -185,7 +185,7 @@ export function AttentionPage(props: {
   const view = props.selection.attentionView || "findings";
   return (
     <div className="min-w-0 space-y-4" data-exceptions-workspace>
-      <RegisterHeader title="Exceptions">
+      <RegisterHeader title="Exceptions" placement="local">
         <nav className="register-tabs" aria-label={t("Exceptions")}>
           {(
             [

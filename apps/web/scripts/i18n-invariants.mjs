@@ -1,4 +1,5 @@
 export const invariantTerms = new Map([
+  ["Inbox", "Unified daily-work product label (spec 225)"],
   ["⌘ K", "macOS command shortcut notation (spec 225)"],
   ["Ctrl K", "Control-key shortcut notation; localized where customary (spec 225)"],
   ["Analytics", "Analytics workspace name (spec 221)"],
