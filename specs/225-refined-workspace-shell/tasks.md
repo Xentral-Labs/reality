@@ -19,3 +19,8 @@
 
 T001 precedes T002–T004; tests precede T005–T007; verification follows all changes.
 No domain, service or tool work is required by this adapter-only feature.
+
+## Activities consolidation follow-up (FR-008)
+- [x] T010 Update navigation contract and shell/browser expectations before implementation.
+- [x] T011 Rename the history destination, remove shell-only activity code and update web documentation.
+- [x] T012 Run frontend gates and shell/shared-drawer browsers; review dependency removal and record results.

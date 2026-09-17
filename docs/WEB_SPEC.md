@@ -1965,7 +1965,8 @@ and document-wide hold editing remain separate.
 
 ### Unified activity drawer — Spec 134
 
-The unified header exposes Activity from every workspace as a modal side panel. It
+Home exposes View all activity as a modal side panel. The duplicate global shell
+entry was removed by spec 225; the Inspector Activities page shares this reader. It
 keeps the underlying route and unfinished input, restores focus on dismissal, and
 closes on company change. Its sole history authority is the tenant-scoped timeline
 service, with explicit search, occurrence-time windows (24 hours, 7 days, 30 days or
@@ -2986,8 +2987,10 @@ Company identity, switching and the existing live simulation link belong to the
 full-height primary sidebar. The page has a 48px header with title, inline count,
 keyboard-accessible description disclosure and neutral chat toggle. Desktop side chat
 starts at the workspace top with its own 48px header; standalone Chat and Storyline
-do not reserve a dock column. Activity and the existing action launcher sit above
-Profile in the sidebar; Appearance is in Profile. Native popovers keep menus outside
+do not reserve a dock column. The existing action launcher sits above Profile in the
+sidebar; Appearance is in Profile. The Inspector history destination is named Activities
+(German: Aktivitäten), preserving its history URL. There is no duplicate bottom Activity
+entry or shell-owned drawer state. Shared timeline services and Home access remain. Native popovers keep menus outside
 scroll clipping. Navigation and tabs use neutral active states and 13px text; page
 headers use 14px medium text. Business content typography is unchanged.
 

@@ -35,3 +35,16 @@ No extension hooks were registered. Domain, services and tools need no changes.
   filter, paging and mobile assertions remain intact.
 
 Final gate results and screenshot inspection are recorded in verification.md.
+
+## Activities consolidation review (2026-09-17)
+FR-008 is covered by T010–T012. Requirement review and Constitution Check passed
+before implementation; no unresolved clarifications or critical findings. The
+navigation contract failed on the old Event history label before the change and
+passed afterwards. Removed the Shell import, state, reset effect, trigger and drawer
+instance. There is no backend exclusive to this entry: tenant_timeline/timeline_activity
+and ActivityDrawer also serve the Inspector, Home, graph and projection consumers.
+These remain; the shared drawer browser now enters through Home and verifies retained
+page selection, focus, paging, retry, stale responses and tenant isolation.
+The history route and localization of unrelated graph event history remain unchanged.
+German desktop screenshot confirms one Activities destination and only Actions/Profile
+in the utility area. No additional business rules, writes or dependencies.

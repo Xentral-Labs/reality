@@ -7,3 +7,7 @@ viewport-bounded menus and existing overlay chat.
 All controls keep localized accessible names. Native popovers close on Escape and
 restore focus. Company changes dismiss company-scoped overlays. Existing permissions,
 source links, action confirmations and API requests stay authoritative.
+
+Inspector history is labeled Activities (German: Aktivitäten). Its history URL is
+stable. The bottom utility area contains Actions and Profile, without an Activity
+trigger or shell-owned activity overlay. Home retains its shared history drawer.

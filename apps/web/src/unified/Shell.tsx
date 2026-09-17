@@ -9,7 +9,6 @@ import { RegisterHeaderTarget } from "./RegisterWorkbench";
 import { inspectorSections, inspectorSection, inspectorTabs } from "./inspectorSections";
 import { CompanySwitcher } from "./CompanySwitcher";
 import { ChatPage } from "./ChatPage";
-import { ActivityDrawer } from "./ActivityDrawer";
 import { ActionLauncher, type DeliveryAction } from "./ActionLauncher";
 import { useEffect, useId, useLayoutEffect, useRef, useState, type ReactNode } from "react";
 import {
@@ -77,8 +76,6 @@ export function Shell({
   }, []);
   // Storyline has its own protocol column; the chat dock stays closed there.
   const dockOpen = chatOpen && selection.route !== "storyline" && selection.route !== "chat";
-  const [activityTenant, setActivityTenant] = useState<string | null>(null);
-  useEffect(() => setActivityTenant(null), [company.id]);
   const [registerHeader, setRegisterHeader] = useState<HTMLDivElement | null>(null);
   const navigationRef = useRef<HTMLElement>(null);
   const [open, setOpen] = useState(false);
@@ -630,18 +627,6 @@ export function Shell({
                   </nav>
                 </div>
                 <div className="shell-navigation-utilities">
-                  <button
-                    className="shell-utility"
-                    aria-label={t("Activity")}
-                    data-sidebar-tooltip={t("Activity")}
-                    onClick={() => {
-                      setOpen(false);
-                      setActivityTenant(company.id);
-                    }}
-                  >
-                    <History size={16} />
-                    <span data-navigation-label>{t("Activity")}</span>
-                  </button>
                   <ActionLauncher key={company.id} onLaunch={() => setOpen(false)} />
                   <ProfileMenu
                     user={user}
@@ -681,14 +666,6 @@ export function Shell({
                 </div>
               </aside>
             </div>
-            {activityTenant === company.id && (
-              <ActivityDrawer
-                key={company.id}
-                tenant={company.id}
-                companyName={company.name}
-                close={() => setActivityTenant(null)}
-              />
-            )}
           </div>
         </PageCountTarget.Provider>
       </PageActionTarget.Provider>

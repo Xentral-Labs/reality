@@ -12,14 +12,11 @@ test("Inspector sections match their contents and default destinations", () => {
     [
       ["Business Graph", "overview"],
       ["Business Facts", "facts"],
-      ["Event history", "history"],
+      ["Activities", "history"],
       ["Tools", "commands"],
     ],
   );
-  assert.deepEqual(
-    inspectorTabs("history").map((t) => t[0]),
-    ["history"],
-  );
+  assert.deepEqual(inspectorTabs("history"), [["history", "Activities"]]);
   assert.deepEqual(
     inspectorTabs("rules").map((t) => t[1]),
     ["All records", "Fact rules"],

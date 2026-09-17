@@ -62,3 +62,20 @@ screenshots. Shell headers align, company/global controls have separate homes an
 long company names truncate without page overflow. Theme screenshots disable CSS
 transitions to capture the settled appearance. Artifacts are in
 `/private/tmp/reality-225-browser/`. No production deployment or merge performed.
+
+## Activities consolidation follow-up (2026-09-17)
+- Navigation contract: observed expected old-label failure, then 5/5 passed.
+- `gmake web-build spec-check lint docs-catalog-check`: PASS, including formatting,
+  232 Node tests, all four translation catalogs, TypeScript and production build.
+  Existing large-chunk build warning remains non-blocking.
+- Refined shell browser: PASS, 32 localized layouts plus rail, touch, company and
+  keyboard checks. Explicitly checks one translated Activities navigation link,
+  absence from bottom utilities, unchanged history URL and embedded reader.
+- Shared activity browser: PASS through Home, including paging, failed read retry,
+  stale response/tenant isolation, inspection, retained page selection, focus and
+  16 localized layouts; no business writes or browser errors.
+- German desktop screenshot visually reviewed: Activities replaces Event history;
+  bottom utilities contain Actions/Profile only. Screenshots remain under
+  `/private/tmp/reality-225-browser/`.
+- `git diff --check`: PASS. Backend unchanged; no exclusive endpoint exists to remove.
+  Full backend suite was not rerun for this frontend-only follow-up.

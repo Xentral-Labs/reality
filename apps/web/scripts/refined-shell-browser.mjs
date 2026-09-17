@@ -48,7 +48,7 @@ const fixture = async (route) => {
   if (url.pathname === "/api/v1/bootstrap")
     return respond({ tenants, default_tenant_id: "tenant_a" });
   if (url.pathname.endsWith("/timeline"))
-    return respond({ items: [], has_more: false, next_cursor: null });
+    return respond({ events: [], activities: [], has_more: false });
   if (url.pathname.endsWith("/demo-data")) {
     statusReads++;
     const captured = simulation;
@@ -165,11 +165,12 @@ try {
   await company.click();
   await bounded(page.getByRole("dialog", { name: "Switch company", exact: true }), 1440);
   await page.keyboard.press("Escape");
-  await nav.getByRole("button", { name: "Activity", exact: true }).click();
-  const activity = page.getByRole("dialog", { name: "Activity", exact: true });
-  await activity.waitFor();
-  assert.ok((await activity.innerText()).includes("Northstar Commerce"));
-  await page.keyboard.press("Escape");
+  assert.equal(await nav.getByRole("button", { name: "Activity", exact: true }).count(), 0);
+  await nav.getByRole("link", { name: "Activities", exact: true }).click();
+  await page.locator("[data-inline-activity]").waitFor();
+  assert.equal(new URL(page.url()).searchParams.get("inspector_view"), "history");
+  assert.equal(await page.getByRole("dialog", { name: "Activity", exact: true }).count(), 0);
+  assert.ok((await header.innerText()).includes("Activities"));
   const launcher = nav.locator("[data-action-launcher]");
   await launcher.getByRole("button", { name: "Actions", exact: true }).click();
   await bounded(page.getByRole("dialog", { name: "Actions", exact: true }), 1440);
@@ -216,6 +217,20 @@ try {
       await header.waitFor();
       if (width < 1024) await page.locator("[data-navigation-opener]").click();
       await nav.waitFor({ state: "visible" });
+      const activityLabel = {
+        en: "Activities",
+        de: "Aktivitäten",
+        nl: "Activiteiten",
+        es: "Actividades",
+      }[language];
+      assert.equal(await nav.getByRole("link", { name: activityLabel, exact: true }).count(), 1);
+      assert.equal(
+        await nav
+          .locator(".shell-navigation-utilities")
+          .getByText(activityLabel, { exact: true })
+          .count(),
+        0,
+      );
       await nav.locator("[data-live-simulation]").waitFor();
       await company.click();
       await bounded(page.locator('[role="dialog"]:popover-open'), width);
