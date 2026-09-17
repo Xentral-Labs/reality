@@ -998,6 +998,14 @@ Spec 185 owns the analytics service, agent tools, private report configuration a
 - `packages/reality-core/tests/test_analytics_performance.py` — `specs/185-analytics-workspace/spec.md`, FR-006, FR-018 and SC-005.
 - `docs/features/analytics.md` — `specs/185-analytics-workspace/spec.md`, implemented Analytics, agent, privacy, observation, Web and persistence contract.
 
+## Reporting graph (224)
+
+Spec 224 owns the declared property graph over the typed tables, the traversal that is
+checked before it becomes a query, and the two surfaces that author one.
+
+- `packages/reality-core/tests/test_reporting_graph_declaration.py` — `specs/224-native-reporting-platform/spec.md`, FR-001–002, FR-005, FR-009, FR-013 and DR-002.
+- `packages/reality-core/tests/test_reporting_graph_coverage.py` — `specs/224-native-reporting-platform/spec.md`, FR-001–002, FR-013 and DR-003.
+
 
 ## Spec 189 — Open Signup by Default
 
