@@ -24,6 +24,7 @@ test("daily commitments preserve side across reload and cannot request history",
   );
   const page = source("../src/unified/CommitmentsPage.tsx");
   assert.match(page, /"open"/);
+  assert.match(page, /<RegisterHeader title="Commitments">[\s\S]*className="register-tabs"/);
   assert.doesNotMatch(page, /deliveryStatus|All delivery history|RegisterTable/);
 });
 test("incremental queue merge preserves identity without duplicate rows", async () => {

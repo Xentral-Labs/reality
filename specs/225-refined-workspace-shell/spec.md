@@ -169,3 +169,10 @@ without tabs keep their title count. Tabs scroll horizontally when space is limi
 mobile uses a compact labeled action-menu trigger. Preserve routes, tab selection,
 filters, permissions, action confirmation, counts and chat drafts. Apply through the
 shared register/header contract, including integrations where multiple tabs exist.
+
+## Commitments header regression
+FR-012 also applies to the Commitments customer/supplier direction tabs. Route this
+legacy inline strip through RegisterHeader. Keep direction selection and service
+reads unchanged. The active side uses the shared filtered list count; the inactive
+side retains its existing unfiltered overview count, without duplicating the active
+count. No other top-level inline page tabs were found; row-level filters stay local.

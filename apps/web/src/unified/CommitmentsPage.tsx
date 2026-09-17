@@ -2,6 +2,7 @@ import { ArrowRight, PackageCheck } from "lucide-react";
 import { useState } from "react";
 import { deliveryApi, type DeliveryRow } from "../api";
 import { formatDate, formatNumber, formatQuantity, t } from "../localization";
+import { RegisterHeader } from "./RegisterWorkbench";
 import { DeliveryCase } from "./DeliveryCase";
 import { ReadState } from "./ReadState";
 import { useRead } from "./useCompanyContext";
@@ -44,31 +45,29 @@ export function CommitmentsPage({
   return (
     <div className="mx-auto max-w-[1200px] space-y-3" data-work-list="commitments">
       <WorkHeader title="Commitments" total={list.page?.total} />
-      <div
-        className="flex gap-6 border-b border-border-default"
-        aria-label={t("Delivery direction")}
-      >
-        {(
-          [
-            ["customer_delivery", "Customer side"],
-            ["supplier_delivery", "Supplier side"],
-          ] as const
-        ).map(([value, label], index) => (
-          <button
-            key={value}
-            aria-pressed={deliveryType === value}
-            className="border-b-2 border-transparent px-1 pb-3 text-sm text-fg-muted aria-pressed:border-accent aria-pressed:text-accent"
-            onClick={() => change({ deliveryType: value, q: "" })}
-          >
-            {t(label)}{" "}
-            {counts.data && (
-              <span className="ml-2 rounded-full bg-surface-muted px-2 py-0.5 text-xs tabular-nums">
-                {formatNumber(counts.data[index].page.total)}
-              </span>
-            )}
-          </button>
-        ))}
-      </div>
+      <RegisterHeader title="Commitments">
+        <nav className="register-tabs" aria-label={t("Delivery direction")}>
+          {(
+            [
+              ["customer_delivery", "Customer side"],
+              ["supplier_delivery", "Supplier side"],
+            ] as const
+          ).map(([value, label], index) => (
+            <button
+              key={value}
+              aria-pressed={deliveryType === value}
+              onClick={() => change({ deliveryType: value, q: "" })}
+            >
+              {t(label)}{" "}
+              {counts.data && deliveryType !== value && (
+                <span className="ml-2 rounded-full bg-surface-muted px-2 py-0.5 text-xs tabular-nums">
+                  {formatNumber(counts.data[index].page.total)}
+                </span>
+              )}
+            </button>
+          ))}
+        </nav>
+      </RegisterHeader>
       <div className="flex flex-wrap items-center gap-3">
         <WorkSearch
           value={q}

@@ -3038,3 +3038,6 @@ horizontally as needed; it never scrolls the page to reveal the selection. Compa
 mobile action triggers retain their accessible labels. Existing forms, confirmation,
 permissions, filters and data reads are unchanged. No second tab/action row remains
 above the page content. This supersedes the earlier spec225 title-and-tab placement.
+
+Commitments uses the same header for Customer side / Supplier side. The active side
+shows its filtered list count once; the inactive side keeps its overview count.

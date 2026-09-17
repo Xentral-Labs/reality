@@ -167,9 +167,7 @@ try {
               await page.screenshot({ path: "/private/tmp/worklist-error.png" });
               throw error;
             });
-          assert.ok(
-            await page.locator("[data-page-introduction] h1 .page-introduction-count").innerText(),
-          );
+          assert.ok(await page.locator("[data-shell-header] [data-page-record-count]").innerText());
           assert.equal(await list.locator(":scope > header").count(), 0);
           assert.equal(await rows.count(), 50);
           const geometry = await rows.first().evaluate((row) => {
@@ -216,7 +214,14 @@ try {
           await preview.waitFor({ state: "hidden" });
           assert.equal(await rows.first().getAttribute("aria-expanded"), "false");
           if (kind === "commitments") {
-            await list.getByRole("button", { name: /Supplier side|Lieferantenseite/ }).click();
+            const header = page.locator("[data-shell-header]");
+            assert.equal(await header.locator(".register-tabs button").count(), 2);
+            assert.equal(await list.locator(".register-tabs").count(), 0);
+            assert.equal(
+              await header.locator(".shell-tab-count [data-page-record-count]").count(),
+              1,
+            );
+            await header.getByRole("button", { name: /Supplier side|Lieferantenseite/ }).click();
             await rows.filter({ hasText: "Supplier Studio 1" }).first().waitFor();
             assert.equal(await rows.count(), 50);
             await page.reload();
