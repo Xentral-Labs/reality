@@ -59,3 +59,17 @@ Observed the five missing keys in each language before adding translations. No
 business payloads, catalog definitions, APIs or action execution paths were changed.
 Browser search assertions cover translated package labels, excluding the permanent
 catalog shortcut from filtered action results. No unresolved review findings.
+
+## Command palette review
+FR-009/T016–T018 stay within the requested presentation/shortcut scope. The launcher
+uses the existing permitted global discovery entries, grouping, translated search,
+forms and catalog destination; no command, service or business behavior was added.
+The initial placement assertion failed before implementation. Browser evidence now
+covers both modifier shortcuts, focused/cleared search, centered geometry, Escape
+restoration, mobile access with closed navigation and precedence of open forms.
+The native popover is portaled to document.body to escape hidden mobile navigation.
+Listener cleanup follows the company-keyed launcher lifetime. Resize dismissal and
+pointer/touch entry remain. Shortcut notation is an explicit localization invariant;
+German Control-key notation uses Strg. Inspected desktop and mobile screenshots:
+compact company-area search, quiet backdrop, bounded list and no lower Actions item.
+No unresolved review findings; richer palette capabilities remain out of scope.

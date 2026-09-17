@@ -1,4 +1,5 @@
-import { Zap } from "lucide-react";
+import { Search } from "lucide-react";
+import { createPortal } from "react-dom";
 import {
   createContext,
   useContext,
@@ -123,13 +124,42 @@ export function ContextActions({
 export function ActionLauncher({ onLaunch }: { onLaunch: () => void }) {
   const id = useId();
   const panel = useRef<HTMLDivElement>(null);
+  const search = useRef<HTMLInputElement>(null);
+  const returnFocus = useRef<HTMLElement | null>(null);
+  const [query, setQuery] = useState("");
+  const shortcut = /Mac|iPhone|iPad/.test(navigator.platform) ? "⌘ K" : "Ctrl K";
   useEffect(() => {
     const close = () => panel.current?.hidePopover();
+    const keyboard = (event: KeyboardEvent) => {
+      if (event.key === "Escape" && panel.current?.matches(":popover-open")) {
+        event.preventDefault();
+        event.stopPropagation();
+        panel.current.hidePopover();
+        returnFocus.current?.focus();
+        return;
+      }
+      if (
+        !(event.metaKey || event.ctrlKey) ||
+        event.altKey ||
+        event.shiftKey ||
+        event.key.toLowerCase() !== "k"
+      )
+        return;
+      if (document.querySelector("dialog[open], [aria-modal='true']")) return;
+      event.preventDefault();
+      if (event.repeat) return;
+      panel.current?.togglePopover();
+      if (panel.current?.matches(":popover-open")) search.current?.focus();
+      else returnFocus.current?.focus();
+    };
     window.addEventListener("resize", close);
-    return () => window.removeEventListener("resize", close);
+    window.addEventListener("keydown", keyboard);
+    return () => {
+      window.removeEventListener("resize", close);
+      window.removeEventListener("keydown", keyboard);
+    };
   }, []);
   const context = useActionDiscovery();
-  const [query, setQuery] = useState("");
   if (!context) return null;
   const { data, loading, error, refresh } = context;
   const entries = menuEntries(data, "global", context);
@@ -159,6 +189,8 @@ export function ActionLauncher({ onLaunch }: { onLaunch: () => void }) {
       <input
         className="br-control mb-3 w-full"
         type="search"
+        ref={search}
+        autoFocus
         aria-label={t("Search actions")}
         placeholder={t("Search actions")}
         value={query}
@@ -208,32 +240,45 @@ export function ActionLauncher({ onLaunch }: { onLaunch: () => void }) {
     <div data-action-launcher>
       <button
         type="button"
-        className="shell-utility"
-        aria-label={t("Actions")}
-        data-sidebar-tooltip={t("Actions")}
+        className="shell-utility shell-command-trigger"
+        aria-label={t("Search actions")}
+        data-sidebar-tooltip={t("Search actions")}
+        aria-keyshortcuts="Meta+K Control+K"
         aria-haspopup="dialog"
         popoverTarget={id}
-        onClick={(event) => {
-          if (!panel.current) return;
-          const rect = event.currentTarget.getBoundingClientRect();
-          panel.current.style.left = `${Math.max(8, Math.min(rect.right + 8, innerWidth - 336))}px`;
-          panel.current.style.bottom = `${Math.max(8, innerHeight - rect.bottom)}px`;
-        }}
       >
-        <Zap size={16} />
-        <span data-navigation-label>{t("Actions")}</span>
+        <Search size={16} />
+        <span data-navigation-label>{t("Search actions")}</span>
+        <kbd data-navigation-label>{t(shortcut)}</kbd>
       </button>
-      <div
-        ref={panel}
-        id={id}
-        popover="auto"
-        role="dialog"
-        aria-label={t("Actions")}
-        data-action-menu
-        className="shell-action-menu"
-      >
-        {menu}
-      </div>
+      {createPortal(
+        <div
+          ref={panel}
+          id={id}
+          popover="auto"
+          role="dialog"
+          aria-label={t("Actions")}
+          data-action-menu
+          className="shell-action-menu"
+          onBeforeToggle={(event) => {
+            if ((event.nativeEvent as ToggleEvent).newState === "open") {
+              returnFocus.current = document.activeElement as HTMLElement | null;
+              setQuery("");
+            }
+          }}
+          onToggle={(event) => {
+            if ((event.nativeEvent as ToggleEvent).newState === "open") search.current?.focus();
+            else if (
+              document.activeElement === document.body ||
+              panel.current?.contains(document.activeElement)
+            )
+              returnFocus.current?.focus();
+          }}
+        >
+          {menu}
+        </div>,
+        document.body,
+      )}
     </div>
   );
 }

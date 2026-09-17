@@ -16536,3 +16536,5 @@ Object.assign(dictionaries.es, {
   "Record tracking event": "Registrar evento de seguimiento",
   "Correct tracking event": "Corregir evento de seguimiento",
 });
+
+Object.assign(dictionaries.de, { "Ctrl K": "Strg K" });

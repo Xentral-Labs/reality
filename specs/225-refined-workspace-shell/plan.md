@@ -78,3 +78,14 @@ Before implementation, test every executable discovery category/group/entry labe
 against the three non-English dictionaries and observe the five missing labels.
 Add translations, run that regression and the required frontend gates, and extend the
 existing shell browser to assert translated shipping labels and German menu search.
+
+## Command palette presentation plan
+Scope review: the user requests presentation and shortcut access only; no unresolved
+clarifications. Constitution Check PASS: existing discovery and execution paths stay
+unchanged. T016–T018 cover FR-009. Move ActionLauncher into the company block, replace
+its visible Actions label with search and a shortcut hint, center its native popover,
+and focus/reset search on open. Register and clean up one shortcut listener per keyed
+launcher; respect existing modal dialogs. Preserve native Escape/focus behavior.
+Extend shell browser before implementation for keyboard opening, focus, centering,
+query reset, absence of a lower launcher and all existing localized entries. Run
+required frontend gates, shell browser and launcher discovery regression.

@@ -11,3 +11,7 @@ source links, action confirmations and API requests stay authoritative.
 Inspector history is labeled Activities (German: Aktivitäten). Its history URL is
 stable. The bottom utility area contains Actions and Profile, without an Activity
 trigger or shell-owned activity overlay. Home retains its shared history drawer.
+
+FR-009 supersedes the bottom Actions placement: Search actions plus a platform
+shortcut hint lives in the company area and opens a centered palette. The lower
+utility area contains Profile only. The existing catalog and execution contract stay.

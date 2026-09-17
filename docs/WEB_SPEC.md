@@ -2999,3 +2999,15 @@ draft persistence, simulation eligibility/polling and shared services remain. Th
 retains company switching and global utility labels through tooltips. Mobile keeps a
 labeled drawer and directly reachable navigation/chat controls. Touch targets remain
 at least 44px. This supersedes earlier header placement and visual contracts only.
+
+
+### Command palette presentation (spec 225)
+The global action launcher is a centered command palette, opened with Cmd+K/Ctrl+K
+or a quiet Search actions control in the sidebar company area with a shortcut hint.
+The lower navigation contains Profile only. Empty search shows the same permitted,
+grouped global actions and catalog shortcut; translated search and existing forms,
+authorization and confirmation remain unchanged. Opening resets search and focuses
+it. Escape restores prior focus. Another open modal takes precedence over the
+shortcut. The palette is portaled outside navigation so keyboard access works when
+the mobile drawer is closed. Expanded, rail and mobile pointer access remain.
+Future command capabilities require a separate specification.
