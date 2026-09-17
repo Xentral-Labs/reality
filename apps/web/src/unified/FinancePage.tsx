@@ -332,6 +332,7 @@ function FinanceRegister({
                 metadata={data.metadata}
                 refresh={read.refresh}
                 loading={read.loading}
+                error={read.error}
               />
             )}
             {data.view !== "payments" && data.totals.length > 0 && (

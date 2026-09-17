@@ -16408,3 +16408,33 @@ Object.assign(dictionaries.es, {
   "Find a report and open its data. Each description explains what it shows.":
     "Busca un informe y abre sus datos. La descripción explica qué muestra.",
 });
+
+Object.assign(dictionaries.de, {
+  "Calculations run in the background. Refresh checks for a newer result.":
+    "Berechnungen laufen im Hintergrund. Aktualisieren prüft, ob ein neueres Ergebnis vorliegt.",
+  "Checking for a newer calculation…": "Neuere Berechnung wird gesucht…",
+  "No newer calculation available.": "Keine neuere Berechnung verfügbar.",
+  "Newer calculation loaded.": "Neuere Berechnung geladen.",
+  "Could not check for a newer calculation. Try again.":
+    "Die Prüfung ist fehlgeschlagen. Bitte erneut versuchen.",
+});
+
+Object.assign(dictionaries.nl, {
+  "Calculations run in the background. Refresh checks for a newer result.":
+    "Berekeningen worden op de achtergrond uitgevoerd. Vernieuwen controleert of er een nieuwer resultaat is.",
+  "Checking for a newer calculation…": "Controleren op een nieuwere berekening…",
+  "No newer calculation available.": "Geen nieuwere berekening beschikbaar.",
+  "Newer calculation loaded.": "Nieuwere berekening geladen.",
+  "Could not check for a newer calculation. Try again.":
+    "Controleren is mislukt. Probeer het opnieuw.",
+});
+
+Object.assign(dictionaries.es, {
+  "Calculations run in the background. Refresh checks for a newer result.":
+    "Los cálculos se ejecutan en segundo plano. Actualizar comprueba si hay un resultado más reciente.",
+  "Checking for a newer calculation…": "Buscando un cálculo más reciente…",
+  "No newer calculation available.": "No hay un cálculo más reciente disponible.",
+  "Newer calculation loaded.": "Se ha cargado un cálculo más reciente.",
+  "Could not check for a newer calculation. Try again.":
+    "No se pudo comprobar si hay un cálculo más reciente. Inténtalo de nuevo.",
+});

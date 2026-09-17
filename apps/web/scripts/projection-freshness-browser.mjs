@@ -19,12 +19,15 @@ let language = "en",
   completedAt = "2026-09-16T19:45:00Z",
   processed = 900,
   target = 900,
-  delay = 0;
+  delay = 0,
+  state = "ready",
+  readFails = false,
+  summaryRequests = 0;
 
 const metadata = () => ({
   projection: "exceptions",
   calculation_mode: "stored",
-  state: "ready",
+  state,
   processed_event_sequence: processed,
   target_event_sequence: target,
   completed_at: completedAt,
@@ -75,7 +78,9 @@ await page.route("**/api/**", async (route) => {
       ],
     });
   if (path.endsWith("/attention/summary")) {
+    summaryRequests++;
     if (delay) await new Promise((resolve) => setTimeout(resolve, delay));
+    if (readFails) return route.fulfill({ status: 503, body: "Unavailable" });
     return reply({
       classes: [{ class_id: "late_delivery", open: 3 }],
       total: 3,
@@ -83,6 +88,8 @@ await page.route("**/api/**", async (route) => {
       metadata: metadata(),
     });
   }
+  if (readFails && path.endsWith("/attention"))
+    return route.fulfill({ status: 503, body: "Unavailable" });
   return reply({
     metadata: metadata(),
     items: [],
@@ -98,9 +105,29 @@ try {
   await page.goto(`${base}/app/inspector?tenant=t1&inspector_view=exceptions`);
   await notice().waitFor();
 
+  const initialButton = await refreshButton().boundingBox();
+  const initialNotice = await notice().boundingBox();
+
+  const timestampBox = await notice().locator("[data-projection-timestamp]").boundingBox();
+  assert.ok(
+    Math.abs(initialButton.x - timestampBox.x - timestampBox.width - 12) < 1,
+    "Refresh must sit directly beside the timestamp",
+  );
+  const feedbackBox = await notice().locator("[data-projection-feedback]").boundingBox();
+  assert.ok(
+    feedbackBox.width <= 1 && feedbackBox.height <= 1,
+    "outcome feedback must not occupy a visible row",
+  );
+  const spinner = () => notice().locator("[data-refresh-spinner]");
+
+  assert.equal(await spinner().isVisible(), true, "idle button has a visible refresh icon");
+  assert.equal(await spinner().evaluate((node) => getComputedStyle(node).animationName), "none");
+  await refreshButton().focus();
+
   // 1. In flight: the control says so and cannot be pressed twice.
   delay = 1200;
-  await refreshButton().click();
+  const requestsBeforeClick = summaryRequests;
+  await refreshButton().press("Enter");
   await page.waitForFunction(
     () =>
       document.querySelector("[data-projection-freshness]")?.getAttribute("aria-busy") === "true",
@@ -110,7 +137,23 @@ try {
     true,
     "the control stays pressable while reading",
   );
-  assert.match(await notice().innerText(), /Updating/, "no in-flight wording");
+  assert.equal(await refreshButton().innerText(), "Refresh");
+  assert.equal(await spinner().isVisible(), true);
+  assert.notEqual(await spinner().evaluate((node) => getComputedStyle(node).animationName), "none");
+  assert.equal(await refreshButton().evaluate((node) => document.activeElement === node), true);
+  assert.deepEqual(await refreshButton().boundingBox(), initialButton);
+  assert.deepEqual(await notice().boundingBox(), initialNotice);
+  await notice()
+    .getByText("Checking for a newer calculation…", { exact: true })
+    .filter({ visible: true })
+    .waitFor();
+  await refreshButton().press("Enter");
+  await refreshButton().evaluate((node) => node.click());
+  assert.equal(
+    summaryRequests,
+    requestsBeforeClick + 1,
+    "busy activation must not issue another read",
+  );
   await page.screenshot({ path: `${out}/in-flight.png` });
 
   // 2. Nothing changed upstream: say so instead of leaving the view identical.
@@ -120,21 +163,28 @@ try {
   );
   assert.match(
     await notice().innerText(),
-    /Unchanged/,
+    /No newer calculation available/,
     "an unchanged result must be stated, not left silent",
   );
   assert.equal(await refreshButton().isDisabled(), false);
   await page.screenshot({ path: `${out}/unchanged.png` });
 
+  assert.deepEqual(await refreshButton().boundingBox(), initialButton);
+  assert.deepEqual(await notice().boundingBox(), initialNotice);
+
   // 3. A newer generation arrived: say that too.
   completedAt = "2026-09-16T20:15:00Z";
   await refreshButton().click();
   await page.locator('[data-projection-outcome="updated"]').waitFor();
-  assert.match(await notice().innerText(), /Updated/, "a newer result must be announced");
+  assert.match(
+    await notice().innerText(),
+    /Newer calculation loaded/,
+    "a newer result must be announced",
+  );
   await page.screenshot({ path: `${out}/updated.png` });
 
   // 4. A backlog is the reason to press the control at all.
-  delay = 0;
+  ((delay = 0), (state = "ready"), (readFails = false));
   processed = 880;
   target = 900;
   await refreshButton().click();
@@ -146,6 +196,73 @@ try {
   );
   assert.match(await notice().innerText(), /Events not yet included: 20/);
   await page.screenshot({ path: `${out}/behind.png` });
+
+  // Repeated fast reads of a failed calculation keep the layout stable, including mobile.
+  state = "failed";
+  for (const width of [1440, 390]) {
+    await page.setViewportSize({ width, height: 1000 });
+    await page.goto(`${base}/app/inspector?tenant=t1&inspector_view=exceptions`);
+    await notice().waitFor();
+    const buttonBox = await refreshButton().boundingBox();
+    const noticeBox = await notice().boundingBox();
+    for (let attempt = 0; attempt < 3; attempt++) {
+      const clickedAt = Date.now();
+      await refreshButton().click();
+      assert.equal(await spinner().isVisible(), true);
+      assert.equal(await refreshButton().isDisabled(), true);
+      await page.locator('[data-projection-outcome="unchanged"]').waitFor();
+      assert.ok(Date.now() - clickedAt >= 950, "fast reads keep feedback for one second");
+      assert.equal(await spinner().isVisible(), true);
+      assert.equal(
+        await spinner().evaluate((node) => getComputedStyle(node).animationName),
+        "none",
+      );
+      assert.deepEqual(await refreshButton().boundingBox(), buttonBox);
+      assert.deepEqual(await notice().boundingBox(), noticeBox);
+      assert.match(await notice().innerText(), /The calculation could not be updated/);
+      assert.match(await notice().innerText(), /No newer calculation available/);
+      assert.doesNotMatch(await notice().innerText(), /Unchanged/);
+    }
+    await page.screenshot({ path: `${out}/stable-${width}.png` });
+  }
+
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await refreshButton().click();
+  assert.equal(await spinner().isVisible(), true);
+  assert.equal(await spinner().evaluate((node) => getComputedStyle(node).animationName), "none");
+  await page.locator('[data-projection-outcome="unchanged"]').waitFor();
+  await page.emulateMedia({ reducedMotion: "no-preference" });
+
+  // A failed HTTP read must never be described as a successful check.
+  readFails = true;
+  await refreshButton().click();
+  await page
+    .getByText(/Unavailable|503/)
+    .first()
+    .waitFor();
+  assert.equal(await page.locator('[data-projection-outcome="unchanged"]').count(), 0);
+  assert.equal(await page.locator('[data-projection-outcome="updated"]').count(), 0);
+  readFails = false;
+
+  // Work lists retain metadata on failed reads, so they need explicit error feedback.
+  await page.goto(`${base}/app/attention?tenant=t1`);
+  await notice().waitFor();
+  readFails = true;
+  await refreshButton().click();
+  await notice()
+    .getByText("Could not check for a newer calculation. Try again.", { exact: true })
+    .filter({ visible: true })
+    .waitFor();
+  assert.equal(await page.locator('[data-projection-outcome="unchanged"]').count(), 0);
+  await page.waitForFunction(
+    () =>
+      document
+        .querySelector("[data-projection-freshness] button")
+        ?.getAttribute("aria-disabled") !== "true",
+  );
+  readFails = false;
+  await refreshButton().click();
+  await page.locator('[data-projection-outcome="unchanged"]').waitFor();
 
   // 5. Every wording exists in all four languages.
   for (language of ["de", "nl", "es"]) {
@@ -159,7 +276,7 @@ try {
     const text = await notice().innerText();
     assert.doesNotMatch(
       text,
-      /Unchanged|Updating|Events not yet included/,
+      /No newer calculation|Checking for|Events not yet included/,
       `${language} untranslated`,
     );
     assert.notEqual(text.trim(), "", `${language}: the notice is empty`);

@@ -81,6 +81,7 @@ export function ExceptionRulesRegister({
               metadata={summary.data?.metadata}
               refresh={summary.refresh}
               loading={summary.loading}
+              error={summary.error}
             />
             <div className="register-table-inset">
               <RegisterTable

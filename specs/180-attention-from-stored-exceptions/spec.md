@@ -181,6 +181,14 @@ the same stored generation as the Exceptions page and carry the same freshness l
   (US2 scenario 4), and a silent no-change reads as a broken control. Where the stored generation
   is behind the event stream, the notice MUST state how far behind it is. The control MUST NOT be
   renamed and no new endpoint may be introduced.
+  Owner refinement (2026-09-17): keep the Refresh label, button position and notice height
+  stable across repeated reads at desktop and mobile widths. The spinner supplies visible
+  click feedback; do not display additional checking/updated/unchanged sentences. Announce
+  results to assistive technology only. Place the last-calculated timestamp immediately
+  beside Refresh in a wrapping row, not at the opposite edge of a wide panel. Show pending,
+  uninitialized and failed calculation state and event backlog compactly below; omit the
+  redundant "Stored result" label when a completed timestamp is present. Keep read errors
+  visible and never report them as successful outcomes. No new endpoint or background work.
 - **FR-008**: Response shapes MUST stay compatible: existing fields keep their names; `metadata`
   is added.
 
@@ -253,3 +261,13 @@ Recorded with the owner on 2026-09-12.
 | SC-002 | `test_register_reads_the_stored_generation_in_canonical_order`, `test_uninitialized_company_is_awaiting_calculation_not_empty` run with derivations and builders monkeypatched to fail |
 | SC-003 | service: `test_stale_generation_keeps_rows_and_reports_pending`, uninitialized test; HTTP: metadata assertions; browser: ready, pending, uninitialized, cleared (`shots180/`) |
 | SC-004 | `FindingCleared` service and HTTP tests; browser cleared preview |
+
+Owner refinement: show a permanent 14px refresh-arrows icon beside the button label.
+It stays still when idle and rotates immediately for at least 1000 ms after activation,
+and longer while the read is pending. Never leave an empty icon slot. Dimensions stay
+fixed across idle/loading/completed states. Keyboard activation uses the same action.
+Keep duplicate activation disabled throughout this feedback interval; announce checking
+to assistive technology until it ends. Reduced motion keeps the indicator static. Clear the timer on
+unmount. Data can arrive immediately; the minimum interval only affects feedback.
+
+Busy controls retain keyboard focus using aria-disabled and reject repeat activation.

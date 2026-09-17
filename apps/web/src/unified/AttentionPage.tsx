@@ -74,7 +74,12 @@ function OpenExceptions({
           </button>
         </div>
       </div>
-      <ProjectionFreshness metadata={read.metadata} refresh={read.refresh} loading={read.loading} />
+      <ProjectionFreshness
+        metadata={read.metadata}
+        refresh={read.refresh}
+        loading={read.loading}
+        error={read.error}
+      />
       <section
         className="overflow-hidden rounded-xl border border-border-default bg-surface"
         aria-busy={read.loading}
