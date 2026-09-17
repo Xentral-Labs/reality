@@ -3,7 +3,7 @@ import { t } from "../localization";
 import { RegisterHeader } from "./RegisterWorkbench";
 import { AnalyticsExplorer } from "./analytics/AnalyticsExplorer";
 import { GraphConsole } from "./analytics/GraphConsole";
-import { GraphExplorer } from "./analytics/GraphExplorer";
+import { GraphSteps } from "./analytics/GraphSteps";
 import { ReportLibrary } from "./analytics/ReportLibrary";
 import type { AnalyticsReport } from "../api";
 import type { Selection } from "./routing";
@@ -50,7 +50,7 @@ function AnalyticsWorkspace({
       <div hidden={view !== "explore"}>
         <AnalyticsExplorer tenant={selection.tenant} report={report} onSaved={setReport} />
       </div>
-      {view === "graph" && <GraphExplorer tenant={selection.tenant} />}
+      {view === "graph" && <GraphSteps tenant={selection.tenant} />}
       {view === "console" && <GraphConsole tenant={selection.tenant} />}
       {view === "reports" && (
         <ReportLibrary

@@ -211,6 +211,31 @@ def reporting_graph() -> ReportingGraph:
     return parse_reporting_graph()
 
 
+def _kinds() -> dict[str, dict[str, str]]:
+    """What sort of value each column holds, so a filter can offer the right editor.
+
+    Guessing from the column name works until it does not; the schema already
+    knows, and the catalog is the place that carries what the surfaces need.
+    """
+    from sqlalchemy import Boolean, Date, DateTime, Integer, Numeric
+
+    out: dict[str, dict[str, str]] = {}
+    for table in Base.metadata.tables.values():
+        columns: dict[str, str] = {}
+        for column in table.columns:
+            kind = column.type
+            if isinstance(kind, (DateTime, Date)):
+                columns[column.name] = "time"
+            elif isinstance(kind, (Numeric, Integer)):
+                columns[column.name] = "number"
+            elif isinstance(kind, Boolean):
+                columns[column.name] = "boolean"
+            else:
+                columns[column.name] = "text"
+        out[table.name] = columns
+    return out
+
+
 def _label(carrier, fallback: str, language: str) -> str:
     """The word a person reads. Falls back to the key, which is never a lie."""
     label = getattr(carrier, "label", None)
@@ -224,6 +249,7 @@ def reporting_catalog(node: str | None = None, language: str = "en") -> dict[str
     and the executor can never describe different things.
     """
     graph = reporting_graph()
+    kinds = _kinds()
     if node is not None and node not in graph.nodes:
         raise ReportingGraphError(f"unknown node {node!r}")
     names = [node] if node else list(graph.nodes)
@@ -242,7 +268,13 @@ def reporting_catalog(node: str | None = None, language: str = "en") -> dict[str
                 "corrections": graph.nodes[name].corrections,
                 "coverage": list(graph.nodes[name].coverage),
                 "properties": [
-                    {"key": prop, "label": graph.nodes[name].label_of(prop, language)}
+                    {
+                        "key": prop,
+                        "label": graph.nodes[name].label_of(prop, language),
+                        "kind": kinds.get(graph.nodes[name].table or "", {}).get(
+                            graph.nodes[name].column_of(prop), "text"
+                        ),
+                    }
                     for prop in sorted(graph.nodes[name].properties)
                 ],
                 "evidence": graph.nodes[name].evidence,

@@ -70,6 +70,22 @@ def test_catalog_is_generated_from_the_declaration():
     assert edges["contains"] == "1:n", "the fan-out has to be visible in the catalog"
 
 
+def test_the_catalog_says_what_sort_of_value_each_field_holds():
+    """A filter row has to choose an editor, and the schema already knows.
+
+    Guessing from the column name works until a company names a text column
+    `ordered_at_note`, so the kind comes from the declared table rather than
+    from the word.
+    """
+    kinds = {
+        prop["key"]: prop["kind"]
+        for prop in reporting_catalog("order")["nodes"][0]["properties"]
+    }
+    assert kinds["ordered_at"] == "time"
+    assert kinds["currency"] == "text"
+    assert set(kinds.values()) <= {"time", "number", "boolean", "text"}
+
+
 def test_unknown_node_is_refused_by_the_catalog():
     with pytest.raises(ReportingGraphError):
         reporting_catalog("not_a_node")
