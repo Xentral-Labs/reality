@@ -2969,6 +2969,29 @@ for _analytics_name in ANALYTICS_SCHEMAS:
     )
 
 
+# The reporting graph shares the same dispatcher shape: discover what can be asked,
+# then ask it. A refusal carries its stable code out through the same path.
+from reality.tools.graph import SCHEMAS as GRAPH_SCHEMAS
+from reality.tools.graph import invoke as invoke_graph
+
+_GRAPH_DESCRIPTIONS = {
+    "graph.catalog": "Discover the business nodes, how they connect, and what each measure means.",
+    "graph.ask": "Ask the reporting graph a question along declared edges and measures.",
+}
+
+for _graph_name in GRAPH_SCHEMAS:
+
+    def _graph_read(session, tenant_id, arguments, name=_graph_name):
+        return invoke_graph(session, tenant_id, name, arguments)
+
+    TOOLS[_graph_name] = Tool(
+        _graph_name,
+        _GRAPH_DESCRIPTIONS[_graph_name],
+        False,
+        _graph_read,
+    )
+
+
 def _private_report_confirmation_only(session, tenant_id, arguments):
     raise InvalidOperation(
         "Private report changes require an authenticated proposal confirmation."
