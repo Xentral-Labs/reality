@@ -6479,7 +6479,16 @@ def send_chat_message(
         except PlaygroundOperationDenied as error:
             reply = f"The Copilot is not available for this company: {error}"
             turn_outcome = "denied"
-        except Exception as error:  # noqa: BLE001
+        except InvalidOperation as error:
+            # A refusal is a sentence somebody wrote for a reader: the question
+            # was understood and cannot be answered that way. Replacing it with
+            # "try again later" turns a correct answer into an apparent outage,
+            # and the reader retries something that will never work.
+            reply = str(error)
+            turn_outcome = "refused"
+        except Exception as error:
+            # Whatever this was, the class name alone is not enough to fix it.
+            logging.getLogger(__name__).exception("copilot turn failed")
             reply = (
                 "The managed Copilot could not answer right now. "
                 f"Please try again later ({type(error).__name__})."

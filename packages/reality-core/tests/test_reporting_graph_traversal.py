@@ -338,6 +338,29 @@ def test_grouping_by_month_buckets_the_timestamp(session, business, sales):
     assert months[("2026-04", "USD")] == Decimal(300)
 
 
+def test_a_date_kept_as_text_cannot_be_folded_into_months(session, business, sales):
+    """Found by asking it: `document_date` is a varchar on this table.
+
+    PostgreSQL answers `date_trunc(varchar, varchar) does not exist`, which
+    names two types and no question, and arrived at the reader as a 500. The
+    refusal is made against the declared column instead.
+    """
+    with pytest.raises(TraversalRefused) as refusal:
+        ask(
+            session,
+            business.tenant.id,
+            **{
+                "from": "order",
+                "measures": ["order_count"],
+                "group_by": [
+                    {"field": "root.document_date", "bucket": "month", "as": "month"}
+                ],
+            },
+        )
+    assert refusal.value.code == "not_temporal"
+    assert "document_date" in str(refusal.value)
+
+
 def test_following_an_edge_backwards_reaches_the_customer(session, business, sales):
     result = ask(
         session,
@@ -526,12 +549,16 @@ def test_an_existence_test_narrows_without_multiplying(session, business, sales)
             "exists": [
                 {
                     "follow": [{"edge": "contains", "as": "l"}],
-                    "filter": [{"field": "l.sku", "op": "eq", "value": business.item.sku}],
+                    "filter": [
+                        {"field": "l.sku", "op": "eq", "value": business.item.sku}
+                    ],
                 }
             ],
         },
     )
-    by_currency = {row["root.currency"]: Decimal(row["stated_order_amount"]) for row in result.rows}
+    by_currency = {
+        row["root.currency"]: Decimal(row["stated_order_amount"]) for row in result.rows
+    }
     assert by_currency["EUR"] == Decimal(1500), "1000 + 500, never 4000"
     assert result.statements == 1
 
@@ -553,7 +580,9 @@ def test_a_negated_existence_test_finds_what_is_missing(session, business, sales
             ],
         },
     )
-    assert sum(int(row["order_count"]) for row in result.rows) == 3, "every order qualifies"
+    assert sum(int(row["order_count"]) for row in result.rows) == 3, (
+        "every order qualifies"
+    )
 
 
 def test_an_existence_test_on_an_undeclared_edge_is_refused(session, business, sales):

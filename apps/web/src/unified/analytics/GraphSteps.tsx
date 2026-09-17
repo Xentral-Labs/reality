@@ -81,6 +81,7 @@ const REFUSALS: Record<string, string> = {
   depth_exceeded: "That is deeper than this connection allows.",
   not_recursive: "This connection does not repeat, so it has no depth.",
   path_too_long: "This path takes more steps than the model allows.",
+  not_temporal: "This field is not kept as a date, so it cannot be grouped by period.",
 };
 
 function refusalOf(failure: unknown): Refusal {
@@ -186,8 +187,6 @@ const OPERATORS: { key: string; label: string; kinds: string[]; valueless?: bool
 
 type Field = { field: string; label: string; kind: string };
 
-const TIME_FIELDS = ["ordered_at", "document_date", "occurred_at", "effective_at", "allocated_at"];
-
 /** Questions somebody would actually ask, built from what this company declares.
  *
  * A first screen of empty steps asks the reader to know the model. A first
@@ -200,7 +199,10 @@ function suggestions(catalog: GraphCatalog): { title: string; where: string; pla
     const amount = node.measures.find((measure) => measure.unit === "currency");
     const count = node.measures.find((measure) => measure.unit === "count");
     const currency = node.properties.find((property) => property.key === "currency");
-    const time = node.properties.find((property) => TIME_FIELDS.includes(property.key));
+    // A list of likely column names was wrong the moment a company kept a date
+    // as text: `document_date` is a varchar, and folding it into months asked
+    // PostgreSQL for date_trunc(varchar, varchar). The kind is already known.
+    const time = node.properties.find((property) => property.kind === "time");
     const base = {
       blocks: [{ alias: "o", node: node.key, filters: [] }],
       groups: [] as Group[],
