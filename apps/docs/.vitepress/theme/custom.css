@@ -15,11 +15,28 @@
   --vp-c-text-2: #5f667a;
 }
 
+/* The light ground was matched to the product; the dark one was left at the
+   VitePress default, which is a neutral near-black (#1b1b1f, saturation 7%) with
+   warm text (#dfdfd6, hue 60). The app and the site both sit on a blue-tinted
+   ground around hue 220 at 33-43% saturation, so the docs read as a different
+   product beside them. These are the app's own dark tokens. */
 :root.dark {
   --vp-c-brand-1: #a99cff;
   --vp-c-brand-2: #8e7fff;
   --vp-c-brand-3: #7665f5;
   --vp-c-brand-soft: rgba(169, 156, 255, 0.16);
+
+  --vp-c-bg: #0c111d;
+  --vp-c-bg-alt: #101828;
+  --vp-c-bg-elv: #101828;
+  --vp-c-bg-soft: #1d2939;
+
+  --vp-c-divider: #1d2939;
+  --vp-c-gutter: #0c111d;
+
+  --vp-c-text-1: #f5f6f8;
+  --vp-c-text-2: #98a2b3;
+  --vp-c-text-3: #788194;
 }
 
 .vpi-languages {
