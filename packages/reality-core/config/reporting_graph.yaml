@@ -1,0 +1,608 @@
+# The reporting graph: which tables are business concepts, how they connect, and
+# what each number means. Loaded and validated at start by
+# services/analytics/graph_model.py; an invalid declaration stops the application.
+#
+# Three rules make this a model rather than a list:
+#   - a node declares grain, key, tenant column and correction semantics
+#   - an edge declares direction, multiplicity and the column that carries it
+#   - a measure declares unit and additivity
+#
+# Nothing here creates a database object. Every entry describes how an existing
+# table is read.
+
+version: 1
+model_version: sales.1
+language: business terms are English here; the web surface translates them
+
+defaults:
+  tenant_column: tenant_id
+  corrections: replace          # must still be stated per node; this only catches typos
+
+
+# ---------------------------------------------------------------------------
+# NODES
+# ---------------------------------------------------------------------------
+
+nodes:
+
+  party:
+    table: party
+    grain: one business partner
+    key: id
+    corrections: replace
+    coverage: [current]         # current label only; no attribute history exists
+    evidence: source_record_id
+    properties:
+      name:              name
+      type:              type
+      is_active:         is_active
+      default_currency:  default_currency
+      accounting_code:   accounting_code
+      credit_limit:      credit_limit
+
+  item:
+    measures: none            # traversed and filtered, never summed
+    table: item
+    grain: one article
+    key: id
+    corrections: replace
+    coverage: [current]
+    evidence: source_record_id
+    properties:
+      sku:           sku
+      name:          name
+      unit:          unit          # the article's own unit — the authority for quantities
+      item_type:     item_type
+      tracking_type: tracking_type
+      is_active:     is_active
+
+  order:
+    table: document
+    where: { type: sales_order }
+    grain: one retained sales order
+    key: id
+    corrections: replace
+    time: ordered_at
+    coverage: [current, activity_period]
+    evidence: source_record_id
+    properties:
+      number:                 number
+      ordered_at:             ordered_at
+      document_date:          document_date
+      requested_delivery_at:  requested_delivery_at
+      currency:               currency
+      status:                 status
+      sales_channel:          sales_channel
+      customer_reference:     customer_reference
+
+  order_line:
+    table: document_line
+    of: order                   # only lines whose document is an order node
+    grain: one order position
+    key: id
+    corrections: replace
+    time: requested_at
+    coverage: [current, activity_period]
+    properties:
+      sku:         sku
+      description: description
+      quantity:    quantity
+      unit:        unit
+      line_type:   line_type
+      promised_at: promised_at
+      requested_at: requested_at
+
+  invoice:
+    table: document
+    where: { type: [sales_invoice, credit_note] }
+    grain: one invoice or credit note
+    key: id
+    corrections: replace
+    time: document_date
+    coverage: [current, activity_period]
+    evidence: source_record_id
+    properties:
+      number:        number
+      document_date: document_date
+      currency:      currency
+      status:        status
+      type:          type          # keeps credit notes distinguishable in every result
+
+  invoice_line:
+    table: document_line
+    of: invoice
+    grain: one invoice position
+    key: id
+    corrections: replace
+    properties:
+      sku:         sku
+      description: description
+      quantity:    quantity
+      unit:        unit
+
+  commitment:
+    table: commitment
+    grain: one promise to deliver or receive
+    key: id
+    corrections: revise           # commitment_revision holds the changes
+    revision_table:
+      table: commitment_revision
+      of: commitment_id
+      order_by: stated_at
+    time: due_at
+    coverage: [current, activity_period]
+    properties:
+      type:     type              # customer_delivery | supplier_delivery
+      status:   status
+      due_at:   due_at
+      quantity: quantity
+      currency: currency
+      priority: priority
+
+  posting:
+    table: ledger_entry
+    grain: one ledger entry
+    key: id
+    corrections: compensate       # ledger_reversal adds a reversing group, never deletes
+    correction_table:
+      table: ledger_reversal
+      original: original_posting_group_id
+      compensating: reversing_posting_group_id
+      joins_on: posting_group_id     # a reversal names a posting group, not one entry
+    time: effective_at
+    coverage: [current, activity_period]
+    evidence: source_record_id
+    properties:
+      posting_group_id: posting_group_id
+      effective_at:     effective_at
+      currency:         currency
+      debit_credit:     debit_credit
+
+  allocation:
+    table: settlement_allocation
+    grain: one settlement of a payment against an invoice
+    key: id
+    corrections: replace
+    time: allocated_at
+    coverage: [current, activity_period]
+    properties:
+      allocated_at: allocated_at
+      currency:     currency
+
+  movement:
+    table: movement
+    grain: one stock movement
+    key: id
+    corrections: compensate       # movement_correction adds a compensating movement
+    correction_table:
+      table: movement_correction
+      original: original_movement_id
+      compensating: compensating_movement_id
+      replacement: replacement_movement_id
+    time: occurred_at
+    coverage: [current, activity_period]
+    evidence: source_record_id
+    properties:
+      type:        type           # receipt | shipment | return
+      occurred_at: occurred_at
+      quantity:    quantity
+
+  shipment:
+    measures: none            # traversed and filtered, never summed
+    table: shipment
+    grain: one shipment
+    key: id
+    corrections: replace
+    time: created_at
+    coverage: [current, activity_period]
+    evidence: source_record_id
+    properties:
+      direction:  direction
+      purpose:    purpose
+      created_at: created_at
+
+  location:
+    measures: none            # traversed and filtered, never summed
+    table: location
+    grain: one storage location
+    key: id
+    corrections: replace
+    coverage: [current]
+    properties:
+      name:        name
+      type:        type
+      is_active:   is_active
+      allows_stock: allows_stock
+
+  return_announcement:
+    table: return_announcement
+    grain: one announced customer return
+    key: id
+    corrections: replace
+    time: announced_at
+    coverage: [current, activity_period]
+    evidence: source_record_id
+    properties:
+      reference:   reference
+      reason:      reason
+      status:      status
+      quantity:    quantity
+      announced_at: announced_at
+      expected_by: expected_by
+
+  # --- an object type the schema does not model -----------------------------
+  # Backed by fact rows, not by a table. This is how a new business concept
+  # becomes queryable without a migration. It obeys exactly the same rules.
+  campaign:
+    measures: none            # traversed and filtered, never summed
+    from_facts:
+      subject_type: campaign
+      properties:                 # predicate -> property, with an explicit cast
+        name:       { predicate: campaign_name,  cast: text }
+        started_at: { predicate: campaign_start, cast: timestamp }
+    grain: one campaign
+    key: subject_id
+    corrections: replace          # the latest fact per predicate wins
+    coverage: [current]
+
+
+# ---------------------------------------------------------------------------
+# EDGES
+#
+# Two kinds, one query language:
+#   via:  the link already exists in a column. Nothing is stored; it is declared.
+#   fact: the link does not exist yet. Each instance is a fact row somebody creates.
+# ---------------------------------------------------------------------------
+
+edges:
+
+  # --- sales ----------------------------------------------------------------
+  ordered_by:
+    from: order
+    to: party
+    via: document.party_id
+    multiplicity: n:1
+    nullable: true              # an order without a resolved party stays visible
+
+  ships_to:
+    from: order
+    to: party
+    via: document.ship_to_party_id
+    multiplicity: n:1
+    nullable: true
+
+  contains:
+    from: order
+    to: order_line
+    via: document_line.document_id
+    multiplicity: 1:n           # the fan-out that makes order-grain sums need folding
+
+  of_item:
+    from: order_line
+    to: item
+    via: document_line.item_id
+    multiplicity: n:1
+    nullable: true              # a free-text line has no article
+
+  default_location:
+    from: item
+    to: location
+    via: item.default_location_id
+    multiplicity: n:1
+    nullable: true              # an article without a default location is normal
+
+  # --- billing --------------------------------------------------------------
+  invoiced_to:
+    from: invoice
+    to: party
+    via: document.party_id
+    multiplicity: n:1
+    nullable: true
+
+  invoice_contains:
+    from: invoice
+    to: invoice_line
+    via: document_line.document_id
+    multiplicity: 1:n
+
+  bills:
+    from: invoice_line
+    to: order_line
+    via: document_line.billed_document_line_id
+    multiplicity: n:1           # the column sits on the invoice line and points back
+    nullable: true              # partial and consolidated billing leave it unset
+
+  # --- promises and fulfilment ---------------------------------------------
+  # Corrected against data-model.md: there is no direct order_line -> movement
+  # column. The path runs through commitment, which is what actually links them.
+  promises:
+    from: order_line
+    to: commitment
+    via: commitment.document_line_id
+    multiplicity: 1:n
+    nullable: true
+
+  commitment_of_item:
+    from: commitment
+    to: item
+    via: commitment.item_id
+    multiplicity: n:1
+    nullable: true
+
+  commitment_for_document:
+    from: commitment
+    to: order
+    via: commitment.document_id
+    multiplicity: n:1
+    nullable: true              # document-level link beside the line-level one
+
+  commitment_at_location:
+    from: commitment
+    to: location
+    via: commitment.location_id
+    multiplicity: n:1
+    nullable: true
+
+  fulfilled_by:
+    from: commitment
+    to: movement
+    via: movement.commitment_id
+    multiplicity: 1:n
+    nullable: true
+
+  moved_item:
+    from: movement
+    to: item
+    via: movement.item_id
+    multiplicity: n:1
+
+  moved_from:
+    from: movement
+    to: location
+    via: movement.from_location_id
+    multiplicity: n:1
+    nullable: true              # a receipt has no origin inside the company
+
+  moved_to:
+    from: movement
+    to: location
+    via: movement.to_location_id
+    multiplicity: n:1
+    nullable: true              # a shipment has no destination inside the company
+
+  # An outbound movement that settles a customer return: the goods that came back
+  # are put away, scrapped or sent on. NOT a correction — movement_correction fixes a
+  # wrongly recorded movement, this records a real later physical event. The service
+  # enforces: the target is type 'return', same item, and the goods leave the location
+  # they came back to, capped at what came back (services/core.py, create movement).
+  # It is what the return_unresolved exception class judges.
+  resolves:
+    from: movement
+    to: movement
+    via: movement.resolves_movement_id
+    multiplicity: n:1           # several partial resolutions may settle one return
+    nullable: true
+    target_where: { type: return }
+
+  within:
+    from: location
+    to: location
+    via: location.parent_location_id
+    multiplicity: n:1
+    recursive:
+      max_depth: 6
+      on_cycle: stop            # terminate and report, never exhaust the connection
+    nullable: true
+
+  # --- returns --------------------------------------------------------------
+  returned_as:
+    from: movement
+    to: return_announcement
+    via: movement.return_announcement_id
+    multiplicity: n:1
+    nullable: true              # only return movements carry it
+
+  announced_for:
+    from: return_announcement
+    to: commitment
+    via: return_announcement.commitment_id
+    multiplicity: n:1
+
+  # commitment carries both sides explicitly; for customer_delivery the company is
+  # from_party_id and the customer is to_party_id (verified in services/core.py)
+  committed_to:
+    from: commitment
+    to: party
+    via: commitment.to_party_id
+    multiplicity: n:1
+    nullable: true
+
+  committed_from:
+    from: commitment
+    to: party
+    via: commitment.from_party_id
+    multiplicity: n:1
+    nullable: true
+
+  # --- finance --------------------------------------------------------------
+  # Corrected against data-model.md: ledger_entry carries party_id and document_id
+  # directly, so these are plain columns, not a posting-group construction.
+  posted_for:
+    from: posting
+    to: party
+    via: ledger_entry.party_id
+    multiplicity: n:1
+    nullable: true
+
+  posted_from:
+    from: posting
+    to: invoice
+    via: ledger_entry.document_id
+    multiplicity: n:1
+    nullable: true
+
+  settles:
+    from: allocation
+    to: posting
+    via: settlement_allocation.invoice_ledger_entry_id
+    multiplicity: n:1
+
+  paid_by:
+    from: allocation
+    to: posting
+    via: settlement_allocation.payment_ledger_entry_id
+    multiplicity: n:1
+
+  # --- shipping -------------------------------------------------------------
+  shipped_to:
+    from: shipment
+    to: party
+    via: shipment.counterparty_id
+    multiplicity: n:1
+    nullable: true
+
+  # --- a link somebody creates ---------------------------------------------
+  # No column carries this. Each instance is one fact row. Same declaration
+  # rules as every other edge — direction, multiplicity, nullability — plus
+  # who may create one.
+  belongs_to_campaign:
+    from: order
+    to: campaign
+    fact:
+      predicate: belongs_to_campaign
+      subject: from             # fact.subject_id is the order, fact.value the campaign
+      cast: id
+    multiplicity: n:1
+    writable:
+      by: [member]              # VERIFY against the membership roles in use
+      as: assertion             # recorded as a human statement, not as an observation
+
+
+# ---------------------------------------------------------------------------
+# MEASURES
+#
+# additive_over lists the axes a sum is meaningful across.
+# never_across lists the axes where a sum is refused outright.
+# ---------------------------------------------------------------------------
+
+measures:
+
+  stated_order_amount:
+    node: order
+    source: gross_amount
+    unit: { column: currency, kind: currency }
+    additive_over: [time, party, sales_channel, item]
+    never_across: [currency]
+    unknown: keep               # a missing amount stays unknown, never becomes zero
+    note: received order amount; never unit_price multiplied by quantity
+
+  order_count:
+    node: order
+    source: { distinct: id }
+    unit: { kind: count }
+    additive_over: [time, party, sales_channel, item]
+
+  line_amount:
+    node: order_line
+    source: gross_amount
+    unit: { from_node: order, column: currency, kind: currency }
+    additive_over: [time, party, item, sales_channel]
+    never_across: [currency]
+    unknown: keep
+
+  ordered_quantity:
+    node: order_line
+    source: quantity
+    unit: { column: unit, kind: measure }
+    additive_over: [time, party]
+    never_across: [item, unit]  # pieces and kilograms do not add up
+
+  invoiced_amount:
+    node: invoice
+    source: gross_amount
+    unit: { column: currency, kind: currency }
+    additive_over: [time, party]
+    never_across: [currency]
+    note: credit notes keep their own sign; check type before presenting a total
+
+  posted_amount:
+    node: posting
+    source: amount
+    unit: { column: currency, kind: currency }
+    sign_from: debit_credit     # VERIFY the stored convention before first release
+    additive_over: [time, party, account]
+    never_across: [currency]
+
+  allocated_amount:
+    node: allocation
+    source: amount
+    unit: { column: currency, kind: currency }
+    additive_over: [time, party]
+    never_across: [currency]
+
+  moved_quantity:
+    node: movement
+    source: quantity
+    unit: { from_node: item, column: unit, kind: measure }
+    additive_over: [time, location]
+    never_across: [item, unit]
+    note: corrections are themselves movements, so a sum over all rows nets out;
+          a plain row count over the same rows is refused as inflated
+
+  committed_quantity:
+    node: commitment
+    source: quantity
+    unit: { from_node: item, column: unit, kind: measure }
+    additive_over: [time, party]
+    never_across: [item, unit]
+    note: resolved to the latest revision before aggregation
+
+  returned_quantity:
+    node: return_announcement
+    source: quantity
+    unit: { from_node: item, column: unit, kind: measure }
+    additive_over: [time, party]
+    never_across: [item, unit]
+
+  invoiced_quantity:
+    node: invoice_line
+    source: quantity
+    unit: { column: unit, kind: measure }
+    additive_over: [time, party]
+    never_across: [item, unit]
+
+  open_balance:
+    node: party
+    source: { service: finance.open_items }
+    unit: { kind: currency }
+    additive_over: [party]
+    never_across: [time]        # a state, not a flow — summing it over months is refused
+
+
+# ---------------------------------------------------------------------------
+# LIMITS
+# ---------------------------------------------------------------------------
+
+limits:
+  max_path_length: 8
+  max_recursive_depth: 6
+  result_rows: 10000
+  page_rows: 200
+  statement_timeout_seconds: 30
+  statements_per_traversal: 1   # asserted by the tests, not merely intended
+
+
+# ---------------------------------------------------------------------------
+# STILL OPEN — carried here so it is not lost between spec and implementation
+# ---------------------------------------------------------------------------
+#
+# 1. purchase_order and supplier_invoice nodes: the same shapes on the purchase
+#    side. Deliberately out of the first slice, not forgotten.
+# 2. movement.resolves_movement_id is a second correction link beside
+#    movement_correction. Its exact meaning must be confirmed before movement
+#    measures are published.
+# 3. posted_amount sign convention: whether debit_credit is a sign or a role.
+# 4. Aging needs a derived days_overdue property on invoice from the payment term.
+# 5. Writable fact edges need an authorization decision: who may assert a link,
+#    whether it is revocable, and whether an assertion is visible to other users
+#    of the same company before anybody confirms it.
