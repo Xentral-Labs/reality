@@ -3238,6 +3238,7 @@ export type AnalyticsReport = {
 };
 export type GraphMeasure = {
   key: string;
+  label: string;
   unit: "currency" | "measure" | "count";
   additive_over: string[];
   never_across: string[];
@@ -3245,22 +3246,31 @@ export type GraphMeasure = {
 };
 export type GraphEdge = {
   key: string;
+  label: string;
   to: string;
+  to_label: string;
   multiplicity: "n:1" | "1:n";
   recursive: boolean;
   stored: boolean;
 };
 export type GraphNode = {
   key: string;
+  label: string;
   grain: string;
   backed_by: string;
   corrections: "replace" | "revise" | "compensate";
   coverage: string[];
-  properties: string[];
+  properties: { key: string; label: string }[];
   evidence: string | null;
   measures: GraphMeasure[];
   edges: GraphEdge[];
-  edges_in: { key: string; from: string; multiplicity: "n:1" | "1:n" }[];
+  edges_in: {
+    key: string;
+    label: string;
+    from: string;
+    from_label: string;
+    multiplicity: "n:1" | "1:n";
+  }[];
 };
 export type GraphCatalog = {
   version: number;
@@ -3286,15 +3296,25 @@ export type GraphAnswer = {
   path: string[];
   model_version: string;
   statements: number;
+  /** The one statement this became. Bound placeholders only, never values. */
+  sql: string;
   question: GraphQuestion;
 };
 export const graphApi = {
-  catalog: (tenant: string) =>
-    request<GraphCatalog>(`/api/tenants/${tenant}/analytics/graph/catalog`),
+  catalog: (tenant: string, language: string) =>
+    request<GraphCatalog>(
+      `/api/tenants/${tenant}/analytics/graph/catalog?language=${encodeURIComponent(language)}`,
+    ),
   ask: (tenant: string, question: GraphQuestion, signal?: AbortSignal) =>
     request<GraphAnswer>(`/api/tenants/${tenant}/analytics/graph/ask`, {
       method: "POST",
       body: JSON.stringify({ question }),
+      signal,
+    }),
+  askPath: (tenant: string, path: string, signal?: AbortSignal) =>
+    request<GraphAnswer>(`/api/tenants/${tenant}/analytics/graph/ask`, {
+      method: "POST",
+      body: JSON.stringify({ path }),
       signal,
     }),
 };

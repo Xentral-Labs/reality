@@ -87,8 +87,11 @@ def get_graph_catalog(
     request: Request,
     session: DatabaseSession,
     node: str | None = None,
+    language: str = "en",
 ):
-    return read(session, tenant_id, "graph.catalog", {"node": node}, request)
+    return read(
+        session, tenant_id, "graph.catalog", {"node": node, "language": language}, request
+    )
 
 
 @router.post("/graph/ask")

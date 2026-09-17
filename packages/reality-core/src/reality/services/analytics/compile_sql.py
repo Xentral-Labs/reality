@@ -66,8 +66,8 @@ class Frame:
 
     def column(self, alias: str, prop: str):
         node = self.nodes[alias]
-        column = node.properties.get(prop, node.key if prop == node.key else None)
-        if column is None:
+        column = node.column_of(prop) or (node.key if prop == node.key else "")
+        if not column:
             raise TraversalRefused(f"{alias}.{prop} is not a declared property")
         return self.tables[alias].c[column]
 
@@ -220,6 +220,17 @@ def _condition(frame: Frame, field: str, op: str, value: Any) -> ColumnElement[b
     return column.is_not(None)
 
 
+def _compare(expression, op: str, value: Any) -> ColumnElement[bool]:
+    return {
+        "eq": expression == value,
+        "ne": expression != value,
+        "lt": expression < value,
+        "lte": expression <= value,
+        "gt": expression > value,
+        "gte": expression >= value,
+    }[op]
+
+
 def _measure_expression(path: ResolvedPath, frame: Frame, name: str):
     measure = path.measures[name]
     alias = path.measure_alias[name]
@@ -306,6 +317,32 @@ def build(path: ResolvedPath, tenant_id: str) -> Select:
         if c.field.split(".")[0] not in narrowed
     ]
 
+    # An existence test narrows without joining, so it cannot multiply a total.
+    # Joining the same sub-path would, which is the whole reason it is a clause.
+    for test in path.exists:
+        inner_tables: dict[str, Any] = {test.origin: frame.tables[test.origin]}
+        inner_nodes: dict[str, Node] = {test.origin: frame.nodes[test.origin]}
+        conditions: list[ColumnElement[bool]] = []
+        for hop in test.hops:
+            node = path.graph.nodes[hop.node]
+            table = _table(node.table or "").alias(hop.alias)
+            inner_tables[hop.alias] = table
+            inner_nodes[hop.alias] = node
+            inner = Frame(tables=inner_tables, nodes=inner_nodes, conditions=[])
+            conditions.append(_join_condition(hop, inner, hop.origin))
+            conditions += _scope(node, table, tenant_id)
+        inner = Frame(tables=inner_tables, nodes=inner_nodes, conditions=[])
+        for condition in test.conditions:
+            conditions.append(
+                _condition(inner, condition.field, condition.op, condition.value)
+            )
+        subquery = exists(
+            select(1)
+            .select_from(inner_tables[test.hops[0].alias])
+            .where(and_(*conditions))
+        )
+        frame.conditions.append(~subquery if test.negated else subquery)
+
     labels: list[Any] = []
     group_keys: list[Any] = []
     for grouping in query.group_by:
@@ -322,6 +359,11 @@ def build(path: ResolvedPath, tenant_id: str) -> Select:
     statement = statement.with_only_columns(*labels).where(and_(*frame.conditions))
     if group_keys:
         statement = statement.group_by(*group_keys)
+    for condition in query.having:
+        measured = next(
+            label for label in labels if getattr(label, "name", None) == condition.measure
+        )
+        statement = statement.having(_compare(measured, condition.op, condition.value))
     for ordering in query.order_by:
         column = next((label for label in labels if label.name == ordering.by), None)
         if column is None:

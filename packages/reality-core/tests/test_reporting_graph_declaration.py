@@ -52,8 +52,9 @@ def test_every_declared_table_and_column_exists():
             continue
         assert node.table in tables, name
         assert node.key in tables[node.table], name
-        for column in node.properties.values():
-            assert column in tables[node.table], f"{name}.{column}"
+        for prop in node.properties:
+            column = node.column_of(prop)
+            assert column in tables[node.table], f"{name}.{prop} -> {column}"
 
 
 def test_catalog_is_generated_from_the_declaration():
@@ -316,3 +317,30 @@ def test_an_unknown_key_is_refused_rather_than_ignored(payload):
 
     with pytest.raises(ValueError):
         parse_reporting_graph(broken(payload, mutate))
+
+
+# --- the words a person reads -----------------------------------------------
+
+
+def test_every_node_edge_and_measure_has_a_business_label():
+    """Keys are how the model talks to itself; nobody should have to learn them."""
+    graph = reporting_graph()
+    for name, node in graph.nodes.items():
+        assert node.label, f"node {name} has no label"
+    for name, edge in graph.edges.items():
+        assert edge.label, f"edge {name} has no label"
+    for name, measure in graph.measures.items():
+        assert measure.label, f"measure {name} has no label"
+
+
+def test_the_catalog_speaks_the_language_it_is_asked_for():
+    german = reporting_catalog("order", "de")["nodes"][0]
+    assert german["label"] == "Auftrag"
+    assert {m["label"] for m in german["measures"]} >= {"Auftragswert"}
+    assert {e["label"] for e in german["edges"]} >= {"enthält"}
+    assert {p["label"] for p in german["properties"]} >= {"Währung"}
+
+
+def test_an_unknown_language_falls_back_rather_than_failing():
+    """A missing translation shows the English word, which is never a lie."""
+    assert reporting_catalog("order", "fr")["nodes"][0]["label"] == "Sales order"

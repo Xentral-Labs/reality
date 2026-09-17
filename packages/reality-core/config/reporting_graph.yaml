@@ -26,6 +26,7 @@ defaults:
 nodes:
 
   party:
+    label: { en: "Business partner", de: "Geschäftspartner" }
     table: party
     grain: one business partner
     key: id
@@ -33,14 +34,15 @@ nodes:
     coverage: [current]         # current label only; no attribute history exists
     evidence: source_record_id
     properties:
-      name:              name
-      type:              type
-      is_active:         is_active
-      default_currency:  default_currency
-      accounting_code:   accounting_code
-      credit_limit:      credit_limit
+      name: { column: name, label: { en: "Name", de: "Name" } }
+      type: { column: type, label: { en: "Type", de: "Art" } }
+      is_active: { column: is_active, label: { en: "Active", de: "Aktiv" } }
+      default_currency: { column: default_currency, label: { en: "Currency", de: "Währung" } }
+      accounting_code: { column: accounting_code, label: { en: "Account", de: "Konto" } }
+      credit_limit: { column: credit_limit, label: { en: "Credit limit", de: "Kreditlimit" } }
 
   item:
+    label: { en: "Article", de: "Artikel" }
     measures: none            # traversed and filtered, never summed
     table: item
     grain: one article
@@ -49,14 +51,15 @@ nodes:
     coverage: [current]
     evidence: source_record_id
     properties:
-      sku:           sku
-      name:          name
-      unit:          unit          # the article's own unit — the authority for quantities
-      item_type:     item_type
-      tracking_type: tracking_type
-      is_active:     is_active
+      sku: { column: sku, label: { en: "Article number", de: "Artikelnummer" } }
+      name: { column: name, label: { en: "Name", de: "Name" } }
+      unit: { column: unit, label: { en: "Unit", de: "Einheit" } }
+      item_type: { column: item_type, label: { en: "Article type", de: "Artikelart" } }
+      tracking_type: { column: tracking_type, label: { en: "Tracking", de: "Rückverfolgung" } }
+      is_active: { column: is_active, label: { en: "Active", de: "Aktiv" } }
 
   order:
+    label: { en: "Sales order", de: "Auftrag" }
     table: document
     where: { type: sales_order }
     grain: one retained sales order
@@ -66,16 +69,17 @@ nodes:
     coverage: [current, activity_period]
     evidence: source_record_id
     properties:
-      number:                 number
-      ordered_at:             ordered_at
-      document_date:          document_date
-      requested_delivery_at:  requested_delivery_at
-      currency:               currency
-      status:                 status
-      sales_channel:          sales_channel
-      customer_reference:     customer_reference
+      number: { column: number, label: { en: "Number", de: "Nummer" } }
+      ordered_at: { column: ordered_at, label: { en: "Order date", de: "Bestelldatum" } }
+      document_date: { column: document_date, label: { en: "Document date", de: "Belegdatum" } }
+      requested_delivery_at: { column: requested_delivery_at, label: { en: "Requested delivery", de: "Wunschtermin" } }
+      currency: { column: currency, label: { en: "Currency", de: "Währung" } }
+      status: { column: status, label: { en: "Status", de: "Status" } }
+      sales_channel: { column: sales_channel, label: { en: "Channel", de: "Kanal" } }
+      customer_reference: { column: customer_reference, label: { en: "Customer reference", de: "Kundenreferenz" } }
 
   order_line:
+    label: { en: "Order line", de: "Auftragsposition" }
     table: document_line
     of: order                   # only lines whose document is an order node
     grain: one order position
@@ -84,15 +88,16 @@ nodes:
     time: requested_at
     coverage: [current, activity_period]
     properties:
-      sku:         sku
-      description: description
-      quantity:    quantity
-      unit:        unit
-      line_type:   line_type
-      promised_at: promised_at
-      requested_at: requested_at
+      sku: { column: sku, label: { en: "Article number", de: "Artikelnummer" } }
+      description: { column: description, label: { en: "Description", de: "Bezeichnung" } }
+      quantity: { column: quantity, label: { en: "Quantity", de: "Menge" } }
+      unit: { column: unit, label: { en: "Unit", de: "Einheit" } }
+      line_type: { column: line_type, label: { en: "Line type", de: "Positionsart" } }
+      promised_at: { column: promised_at, label: { en: "Promised", de: "Zugesagt" } }
+      requested_at: { column: requested_at, label: { en: "Requested", de: "Gewünscht" } }
 
   invoice:
+    label: { en: "Invoice", de: "Rechnung" }
     table: document
     where: { type: [sales_invoice, credit_note] }
     grain: one invoice or credit note
@@ -102,25 +107,27 @@ nodes:
     coverage: [current, activity_period]
     evidence: source_record_id
     properties:
-      number:        number
-      document_date: document_date
-      currency:      currency
-      status:        status
-      type:          type          # keeps credit notes distinguishable in every result
+      number: { column: number, label: { en: "Number", de: "Nummer" } }
+      document_date: { column: document_date, label: { en: "Document date", de: "Belegdatum" } }
+      currency: { column: currency, label: { en: "Currency", de: "Währung" } }
+      status: { column: status, label: { en: "Status", de: "Status" } }
+      type: { column: type, label: { en: "Type", de: "Art" } }
 
   invoice_line:
+    label: { en: "Invoice line", de: "Rechnungsposition" }
     table: document_line
     of: invoice
     grain: one invoice position
     key: id
     corrections: replace
     properties:
-      sku:         sku
-      description: description
-      quantity:    quantity
-      unit:        unit
+      sku: { column: sku, label: { en: "Article number", de: "Artikelnummer" } }
+      description: { column: description, label: { en: "Description", de: "Bezeichnung" } }
+      quantity: { column: quantity, label: { en: "Quantity", de: "Menge" } }
+      unit: { column: unit, label: { en: "Unit", de: "Einheit" } }
 
   commitment:
+    label: { en: "Commitment", de: "Verpflichtung" }
     table: commitment
     grain: one promise to deliver or receive
     key: id
@@ -132,14 +139,15 @@ nodes:
     time: due_at
     coverage: [current, activity_period]
     properties:
-      type:     type              # customer_delivery | supplier_delivery
-      status:   status
-      due_at:   due_at
-      quantity: quantity
-      currency: currency
-      priority: priority
+      type: { column: type, label: { en: "Type", de: "Art" } }
+      status: { column: status, label: { en: "Status", de: "Status" } }
+      due_at: { column: due_at, label: { en: "Due", de: "Fällig" } }
+      quantity: { column: quantity, label: { en: "Quantity", de: "Menge" } }
+      currency: { column: currency, label: { en: "Currency", de: "Währung" } }
+      priority: { column: priority, label: { en: "Priority", de: "Priorität" } }
 
   posting:
+    label: { en: "Ledger entry", de: "Buchung" }
     table: ledger_entry
     grain: one ledger entry
     key: id
@@ -153,12 +161,13 @@ nodes:
     coverage: [current, activity_period]
     evidence: source_record_id
     properties:
-      posting_group_id: posting_group_id
-      effective_at:     effective_at
-      currency:         currency
-      debit_credit:     debit_credit
+      posting_group_id: { column: posting_group_id, label: { en: "Posting group", de: "Buchungsgruppe" } }
+      effective_at: { column: effective_at, label: { en: "Effective", de: "Wirksam" } }
+      currency: { column: currency, label: { en: "Currency", de: "Währung" } }
+      debit_credit: { column: debit_credit, label: { en: "Debit/credit", de: "Soll/Haben" } }
 
   allocation:
+    label: { en: "Settlement", de: "Zahlungszuordnung" }
     table: settlement_allocation
     grain: one settlement of a payment against an invoice
     key: id
@@ -166,10 +175,11 @@ nodes:
     time: allocated_at
     coverage: [current, activity_period]
     properties:
-      allocated_at: allocated_at
-      currency:     currency
+      allocated_at: { column: allocated_at, label: { en: "Allocated", de: "Zugeordnet" } }
+      currency: { column: currency, label: { en: "Currency", de: "Währung" } }
 
   movement:
+    label: { en: "Stock movement", de: "Warenbewegung" }
     table: movement
     grain: one stock movement
     key: id
@@ -183,11 +193,12 @@ nodes:
     coverage: [current, activity_period]
     evidence: source_record_id
     properties:
-      type:        type           # receipt | shipment | return
-      occurred_at: occurred_at
-      quantity:    quantity
+      type: { column: type, label: { en: "Type", de: "Art" } }
+      occurred_at: { column: occurred_at, label: { en: "Occurred", de: "Geschehen" } }
+      quantity: { column: quantity, label: { en: "Quantity", de: "Menge" } }
 
   shipment:
+    label: { en: "Shipment", de: "Versand" }
     measures: none            # traversed and filtered, never summed
     table: shipment
     grain: one shipment
@@ -197,11 +208,12 @@ nodes:
     coverage: [current, activity_period]
     evidence: source_record_id
     properties:
-      direction:  direction
-      purpose:    purpose
-      created_at: created_at
+      direction: { column: direction, label: { en: "Direction", de: "Richtung" } }
+      purpose: { column: purpose, label: { en: "Purpose", de: "Zweck" } }
+      created_at: { column: created_at, label: { en: "Created", de: "Angelegt" } }
 
   location:
+    label: { en: "Location", de: "Lagerort" }
     measures: none            # traversed and filtered, never summed
     table: location
     grain: one storage location
@@ -209,12 +221,13 @@ nodes:
     corrections: replace
     coverage: [current]
     properties:
-      name:        name
-      type:        type
-      is_active:   is_active
-      allows_stock: allows_stock
+      name: { column: name, label: { en: "Name", de: "Name" } }
+      type: { column: type, label: { en: "Type", de: "Art" } }
+      is_active: { column: is_active, label: { en: "Active", de: "Aktiv" } }
+      allows_stock: { column: allows_stock, label: { en: "Holds stock", de: "Bestandsführend" } }
 
   return_announcement:
+    label: { en: "Announced return", de: "Angekündigte Retoure" }
     table: return_announcement
     grain: one announced customer return
     key: id
@@ -223,17 +236,18 @@ nodes:
     coverage: [current, activity_period]
     evidence: source_record_id
     properties:
-      reference:   reference
-      reason:      reason
-      status:      status
-      quantity:    quantity
-      announced_at: announced_at
-      expected_by: expected_by
+      reference: { column: reference, label: { en: "Reference", de: "Referenz" } }
+      reason: { column: reason, label: { en: "Reason", de: "Grund" } }
+      status: { column: status, label: { en: "Status", de: "Status" } }
+      quantity: { column: quantity, label: { en: "Quantity", de: "Menge" } }
+      announced_at: { column: announced_at, label: { en: "Announced", de: "Angekündigt" } }
+      expected_by: { column: expected_by, label: { en: "Expected", de: "Erwartet" } }
 
   # --- an object type the schema does not model -----------------------------
   # Backed by fact rows, not by a table. This is how a new business concept
   # becomes queryable without a migration. It obeys exactly the same rules.
   campaign:
+    label: { en: "Campaign", de: "Kampagne" }
     measures: none            # traversed and filtered, never summed
     from_facts:
       subject_type: campaign
@@ -258,6 +272,7 @@ edges:
 
   # --- sales ----------------------------------------------------------------
   ordered_by:
+    label: { en: "ordered by", de: "bestellt von" }
     from: order
     to: party
     via: document.party_id
@@ -265,6 +280,7 @@ edges:
     nullable: true              # an order without a resolved party stays visible
 
   ships_to:
+    label: { en: "delivered to", de: "geliefert an" }
     from: order
     to: party
     via: document.ship_to_party_id
@@ -272,12 +288,14 @@ edges:
     nullable: true
 
   contains:
+    label: { en: "contains", de: "enthält" }
     from: order
     to: order_line
     via: document_line.document_id
     multiplicity: 1:n           # the fan-out that makes order-grain sums need folding
 
   of_item:
+    label: { en: "for article", de: "für Artikel" }
     from: order_line
     to: item
     via: document_line.item_id
@@ -285,6 +303,7 @@ edges:
     nullable: true              # a free-text line has no article
 
   default_location:
+    label: { en: "default location", de: "Standardlagerort" }
     from: item
     to: location
     via: item.default_location_id
@@ -293,6 +312,7 @@ edges:
 
   # --- billing --------------------------------------------------------------
   invoiced_to:
+    label: { en: "invoiced to", de: "berechnet an" }
     from: invoice
     to: party
     via: document.party_id
@@ -300,12 +320,14 @@ edges:
     nullable: true
 
   invoice_contains:
+    label: { en: "contains", de: "enthält" }
     from: invoice
     to: invoice_line
     via: document_line.document_id
     multiplicity: 1:n
 
   bills:
+    label: { en: "bills", de: "berechnet" }
     from: invoice_line
     to: order_line
     via: document_line.billed_document_line_id
@@ -316,6 +338,7 @@ edges:
   # Corrected against data-model.md: there is no direct order_line -> movement
   # column. The path runs through commitment, which is what actually links them.
   promises:
+    label: { en: "promises", de: "sagt zu" }
     from: order_line
     to: commitment
     via: commitment.document_line_id
@@ -323,6 +346,7 @@ edges:
     nullable: true
 
   commitment_of_item:
+    label: { en: "for article", de: "für Artikel" }
     from: commitment
     to: item
     via: commitment.item_id
@@ -330,6 +354,7 @@ edges:
     nullable: true
 
   commitment_for_document:
+    label: { en: "for order", de: "zum Auftrag" }
     from: commitment
     to: order
     via: commitment.document_id
@@ -337,6 +362,7 @@ edges:
     nullable: true              # document-level link beside the line-level one
 
   commitment_at_location:
+    label: { en: "at location", de: "am Lagerort" }
     from: commitment
     to: location
     via: commitment.location_id
@@ -344,6 +370,7 @@ edges:
     nullable: true
 
   fulfilled_by:
+    label: { en: "fulfilled by", de: "erfüllt durch" }
     from: commitment
     to: movement
     via: movement.commitment_id
@@ -351,12 +378,14 @@ edges:
     nullable: true
 
   moved_item:
+    label: { en: "article", de: "Artikel" }
     from: movement
     to: item
     via: movement.item_id
     multiplicity: n:1
 
   moved_from:
+    label: { en: "out of", de: "aus Lagerort" }
     from: movement
     to: location
     via: movement.from_location_id
@@ -364,6 +393,7 @@ edges:
     nullable: true              # a receipt has no origin inside the company
 
   moved_to:
+    label: { en: "into", de: "in Lagerort" }
     from: movement
     to: location
     via: movement.to_location_id
@@ -377,6 +407,7 @@ edges:
   # they came back to, capped at what came back (services/core.py, create movement).
   # It is what the return_unresolved exception class judges.
   resolves:
+    label: { en: "settles return", de: "erledigt Retoure" }
     from: movement
     to: movement
     via: movement.resolves_movement_id
@@ -385,6 +416,7 @@ edges:
     target_where: { type: return }
 
   within:
+    label: { en: "inside", de: "innerhalb von" }
     from: location
     to: location
     via: location.parent_location_id
@@ -396,6 +428,7 @@ edges:
 
   # --- returns --------------------------------------------------------------
   returned_as:
+    label: { en: "announced as", de: "angekündigt als" }
     from: movement
     to: return_announcement
     via: movement.return_announcement_id
@@ -403,6 +436,7 @@ edges:
     nullable: true              # only return movements carry it
 
   announced_for:
+    label: { en: "announced for", de: "angekündigt zu" }
     from: return_announcement
     to: commitment
     via: return_announcement.commitment_id
@@ -411,6 +445,7 @@ edges:
   # commitment carries both sides explicitly; for customer_delivery the company is
   # from_party_id and the customer is to_party_id (verified in services/core.py)
   committed_to:
+    label: { en: "promised to", de: "zugesagt an" }
     from: commitment
     to: party
     via: commitment.to_party_id
@@ -418,6 +453,7 @@ edges:
     nullable: true
 
   committed_from:
+    label: { en: "promised by", de: "zugesagt von" }
     from: commitment
     to: party
     via: commitment.from_party_id
@@ -428,6 +464,7 @@ edges:
   # Corrected against data-model.md: ledger_entry carries party_id and document_id
   # directly, so these are plain columns, not a posting-group construction.
   posted_for:
+    label: { en: "posted for", de: "gebucht für" }
     from: posting
     to: party
     via: ledger_entry.party_id
@@ -435,6 +472,7 @@ edges:
     nullable: true
 
   posted_from:
+    label: { en: "posted from", de: "gebucht aus" }
     from: posting
     to: invoice
     via: ledger_entry.document_id
@@ -442,12 +480,14 @@ edges:
     nullable: true
 
   settles:
+    label: { en: "settles", de: "gleicht aus" }
     from: allocation
     to: posting
     via: settlement_allocation.invoice_ledger_entry_id
     multiplicity: n:1
 
   paid_by:
+    label: { en: "paid by", de: "bezahlt durch" }
     from: allocation
     to: posting
     via: settlement_allocation.payment_ledger_entry_id
@@ -455,6 +495,7 @@ edges:
 
   # --- shipping -------------------------------------------------------------
   shipped_to:
+    label: { en: "shipped to", de: "versandt an" }
     from: shipment
     to: party
     via: shipment.counterparty_id
@@ -466,6 +507,7 @@ edges:
   # rules as every other edge — direction, multiplicity, nullability — plus
   # who may create one.
   belongs_to_campaign:
+    label: { en: "belongs to campaign", de: "gehört zu Kampagne" }
     from: order
     to: campaign
     fact:
@@ -488,6 +530,7 @@ edges:
 measures:
 
   stated_order_amount:
+    label: { en: "Order value", de: "Auftragswert" }
     node: order
     source: gross_amount
     unit: { column: currency, kind: currency }
@@ -497,12 +540,14 @@ measures:
     note: received order amount; never unit_price multiplied by quantity
 
   order_count:
+    label: { en: "Orders", de: "Anzahl Aufträge" }
     node: order
     source: { distinct: id }
     unit: { kind: count }
     additive_over: [time, party, sales_channel, item]
 
   line_amount:
+    label: { en: "Line value", de: "Positionswert" }
     node: order_line
     source: gross_amount
     unit: { from_node: order, column: currency, kind: currency }
@@ -511,6 +556,7 @@ measures:
     unknown: keep
 
   ordered_quantity:
+    label: { en: "Ordered quantity", de: "Bestellte Menge" }
     node: order_line
     source: quantity
     unit: { column: unit, kind: measure }
@@ -518,6 +564,7 @@ measures:
     never_across: [item, unit]  # pieces and kilograms do not add up
 
   invoiced_amount:
+    label: { en: "Invoiced amount", de: "Rechnungsbetrag" }
     node: invoice
     source: gross_amount
     unit: { column: currency, kind: currency }
@@ -526,6 +573,7 @@ measures:
     note: credit notes keep their own sign; check type before presenting a total
 
   posted_amount:
+    label: { en: "Posted amount", de: "Buchungsbetrag" }
     node: posting
     source: amount
     unit: { column: currency, kind: currency }
@@ -534,6 +582,7 @@ measures:
     never_across: [currency]
 
   allocated_amount:
+    label: { en: "Allocated amount", de: "Zugeordneter Betrag" }
     node: allocation
     source: amount
     unit: { column: currency, kind: currency }
@@ -541,6 +590,7 @@ measures:
     never_across: [currency]
 
   moved_quantity:
+    label: { en: "Moved quantity", de: "Bewegte Menge" }
     node: movement
     source: quantity
     unit: { from_node: item, column: unit, kind: measure }
@@ -550,6 +600,7 @@ measures:
           a plain row count over the same rows is refused as inflated
 
   committed_quantity:
+    label: { en: "Promised quantity", de: "Zugesagte Menge" }
     node: commitment
     source: quantity
     unit: { from_node: item, column: unit, kind: measure }
@@ -558,6 +609,7 @@ measures:
     note: resolved to the latest revision before aggregation
 
   returned_quantity:
+    label: { en: "Returned quantity", de: "Retournierte Menge" }
     node: return_announcement
     source: quantity
     unit: { from_node: item, column: unit, kind: measure }
@@ -565,6 +617,7 @@ measures:
     never_across: [item, unit]
 
   invoiced_quantity:
+    label: { en: "Invoiced quantity", de: "Berechnete Menge" }
     node: invoice_line
     source: quantity
     unit: { column: unit, kind: measure }
@@ -572,6 +625,7 @@ measures:
     never_across: [item, unit]
 
   open_balance:
+    label: { en: "Open balance", de: "Offener Saldo" }
     node: party
     source: { service: finance.open_items }
     unit: { kind: currency }

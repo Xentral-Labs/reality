@@ -40,10 +40,22 @@ over declared recursive edges, declared measures, grouping, a filter on an aggre
 measure (`having`), an existence test over a declared sub-path, ordering by grouped
 expressions and measures, a bound limit, and typed bound parameters.
 
+`having` filters a declared measure the question already asks for, after grouping.
+An existence test narrows through a sub-path without joining it, so it cannot multiply
+a total — which is the whole reason it is a clause rather than another hop. Both are
+written in the path syntax as well:
+
+    MATCH (k:party)<-[:ordered_by]-(o:order)
+    WHERE EXISTS { MATCH <-[:ordered_by]-(x:order)-[:contains]->(l:order_line)
+                   WHERE l.sku = $sku }
+    RETURN k.name, count(order_count)
+    HAVING order_count >= 3
+
 Not yet admitted, and recorded as the next capability question rather than as an
 oversight: window expressions over ordered events — "the customer's second order",
 retention curves, cohort and gap analysis. These need declared window forms with their
 own grain rules; free window arithmetic would reopen the silent-multiplication hole.
+Fact-backed edges and service-backed measures also still refuse by name.
 
 Refused: an undeclared node, edge or measure; an unbounded depth; a write of any kind;
 session or catalog access; an arbitrary function; free arithmetic standing in for a

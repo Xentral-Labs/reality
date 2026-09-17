@@ -11056,7 +11056,7 @@ cannot be added, and is more useful than a total that is wrong.
 **Synopsis**
 
 ```text
-graph_catalog [node]
+graph_catalog [language] [node]
 ```
 
 **Access:** `read`
@@ -11082,9 +11082,10 @@ Discover the business nodes, how they connect, which edges fan out, and what eac
 
 **Parameters**
 
-| Name   | Type     | Required | Description                                                                                          | Default |
-| ------ | -------- | -------- | ---------------------------------------------------------------------------------------------------- | ------- |
-| `node` | `string` | no       | Optional exact node key; omit to discover every node, how they connect, and what each measure means. | `None`  |
+| Name       | Type     | Required | Description                                                                                          | Default |
+| ---------- | -------- | -------- | ---------------------------------------------------------------------------------------------------- | ------- |
+| `language` | `string` | no       | Language for the business words in the catalog.                                                      | `en`    |
+| `node`     | `string` | no       | Optional exact node key; omit to discover every node, how they connect, and what each measure means. | `None`  |
 
 ### `graph_ask` — Ask the business graph {#tool-graph_ask}
 

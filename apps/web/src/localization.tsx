@@ -16932,3 +16932,126 @@ Object.assign(dictionaries.es, {
   "This path takes more steps than the model allows.":
     "Este camino requiere más pasos de los que el modelo permite.",
 });
+
+// The question-first surface: pick a real question, then change what it asks.
+Object.assign(dictionaries.de, {
+  "What would you like to know?": "Was möchtest du wissen?",
+  "Pick a question to start, then change what it asks. For anything else, ask in the chat beside this page — it reads the same records.":
+    "Wähle eine Frage zum Einstieg und ändere danach, was sie fragt. Für alles andere frag im Chat daneben — er liest dieselben Datensätze.",
+  "Ask something else": "Etwas anderes fragen",
+  "Change what this asks": "Ändern, was gefragt wird",
+  Numbers: "Zahlen",
+  "Split by": "Aufteilen nach",
+  "Reach further": "Weiter greifen",
+  "Undo the last step": "Letzten Schritt zurücknehmen",
+  "Choose at least one number below.": "Wähle unten mindestens eine Zahl.",
+  "How this was worked out": "Wie das gerechnet wurde",
+  "Nothing chosen": "Nichts gewählt",
+  by: "je",
+});
+
+Object.assign(dictionaries.nl, {
+  "What would you like to know?": "Wat wil je weten?",
+  "Pick a question to start, then change what it asks. For anything else, ask in the chat beside this page — it reads the same records.":
+    "Kies een vraag om te beginnen en verander daarna wat hij vraagt. Voor al het andere vraag je het in de chat ernaast — die leest dezelfde records.",
+  "Ask something else": "Iets anders vragen",
+  "Change what this asks": "Wijzigen wat dit vraagt",
+  Numbers: "Getallen",
+  "Split by": "Opsplitsen naar",
+  "Reach further": "Verder reiken",
+  "Undo the last step": "Laatste stap ongedaan maken",
+  "Choose at least one number below.": "Kies hieronder minstens één getal.",
+  "How this was worked out": "Hoe dit is berekend",
+  "Nothing chosen": "Niets gekozen",
+  by: "per",
+});
+
+Object.assign(dictionaries.es, {
+  "What would you like to know?": "¿Qué quieres saber?",
+  "Pick a question to start, then change what it asks. For anything else, ask in the chat beside this page — it reads the same records.":
+    "Elige una pregunta para empezar y luego cambia lo que pregunta. Para lo demás, pregunta en el chat de al lado: lee los mismos registros.",
+  "Ask something else": "Preguntar otra cosa",
+  "Change what this asks": "Cambiar lo que pregunta",
+  Numbers: "Números",
+  "Split by": "Dividir por",
+  "Reach further": "Llegar más lejos",
+  "Undo the last step": "Deshacer el último paso",
+  "Choose at least one number below.": "Elige al menos un número abajo.",
+  "How this was worked out": "Cómo se calculó",
+  "Nothing chosen": "Nada elegido",
+  by: "por",
+});
+
+// The query console: the model on the left, the question in the middle, the
+// statement it became underneath.
+Object.assign(dictionaries.de, {
+  "Query console": "Abfragekonsole",
+  Question: "Frage",
+  "or press Cmd+Enter": "oder Cmd+Enter drücken",
+  "Search the model": "Modell durchsuchen",
+  Connections: "Verbindungen",
+  Fields: "Felder",
+  "Ask a question, or load one of the examples above.":
+    "Stell eine Frage oder lade eines der Beispiele oben.",
+  "Show the statement": "Anweisung zeigen",
+  rows: "Zeilen",
+  month: "Monat",
+  Month: "Monat",
+  "and everything inside it": "und alles darin",
+  "This surface only reads.": "Diese Oberfläche liest nur.",
+  "A question starts with MATCH.": "Eine Frage beginnt mit MATCH.",
+  "A question says what it wants back, with RETURN.":
+    "Eine Frage sagt mit RETURN, was sie zurückhaben will.",
+  "That is not part of this path syntax.": "Das gehört nicht zu dieser Pfadsyntax.",
+  "A value is missing.": "Ein Wert fehlt.",
+  "A connection points one way.": "Eine Verbindung zeigt in eine Richtung.",
+  "The first record of a path names its kind.": "Der erste Datensatz eines Wegs nennt seine Art.",
+});
+
+Object.assign(dictionaries.nl, {
+  "Query console": "Vraagconsole",
+  Question: "Vraag",
+  "or press Cmd+Enter": "of druk Cmd+Enter",
+  "Search the model": "Model doorzoeken",
+  Connections: "Verbindingen",
+  Fields: "Velden",
+  "Ask a question, or load one of the examples above.":
+    "Stel een vraag of laad een van de voorbeelden hierboven.",
+  "Show the statement": "Instructie tonen",
+  rows: "rijen",
+  month: "maand",
+  Month: "Maand",
+  "and everything inside it": "en alles daarbinnen",
+  "This surface only reads.": "Deze oppervlakte leest alleen.",
+  "A question starts with MATCH.": "Een vraag begint met MATCH.",
+  "A question says what it wants back, with RETURN.":
+    "Een vraag zegt met RETURN wat hij terug wil.",
+  "That is not part of this path syntax.": "Dat hoort niet bij deze padsyntaxis.",
+  "A value is missing.": "Er ontbreekt een waarde.",
+  "A connection points one way.": "Een verbinding wijst één kant op.",
+  "The first record of a path names its kind.": "Het eerste record van een pad noemt zijn soort.",
+});
+
+Object.assign(dictionaries.es, {
+  "Query console": "Consola de consultas",
+  Question: "Pregunta",
+  "or press Cmd+Enter": "o pulsa Cmd+Enter",
+  "Search the model": "Buscar en el modelo",
+  Connections: "Conexiones",
+  Fields: "Campos",
+  "Ask a question, or load one of the examples above.":
+    "Haz una pregunta o carga uno de los ejemplos de arriba.",
+  "Show the statement": "Mostrar la instrucción",
+  rows: "filas",
+  month: "mes",
+  Month: "Mes",
+  "and everything inside it": "y todo lo que hay dentro",
+  "This surface only reads.": "Esta superficie solo lee.",
+  "A question starts with MATCH.": "Una pregunta empieza con MATCH.",
+  "A question says what it wants back, with RETURN.":
+    "Una pregunta dice con RETURN qué quiere de vuelta.",
+  "That is not part of this path syntax.": "Eso no forma parte de esta sintaxis de camino.",
+  "A value is missing.": "Falta un valor.",
+  "A connection points one way.": "Una conexión apunta en un sentido.",
+  "The first record of a path names its kind.": "El primer registro de un camino nombra su tipo.",
+});
