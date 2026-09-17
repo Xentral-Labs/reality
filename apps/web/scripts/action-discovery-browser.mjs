@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { mkdir } from "node:fs/promises";
 import { pathToFileURL } from "node:url";
-import { reference } from "./action-discovery-fixture.mjs";
+import { reference } from "./tool-catalog-fixture.mjs";
 const { chromium } = await import(pathToFileURL(process.env.PLAYWRIGHT_MODULE));
 const browser = await chromium.launch({
   headless: true,
@@ -67,44 +67,18 @@ const go = async (path) => {
 };
 await mkdir("/private/tmp/action-discovery-screens", { recursive: true });
 await go("inspector?inspector_view=commands");
-const tree = page.locator("[data-action-directory]");
+const tree = page.locator("[data-tool-catalog]");
 await tree.waitFor();
-assert.equal(
-  await tree.locator('[data-directory-branch="warehouse"] > button').getAttribute("aria-expanded"),
-  "false",
-);
-await tree.locator('[data-directory-branch="warehouse"] > button').focus();
+await tree.locator('[data-tool-capability="form:movement_create"] > button').focus();
 await page.keyboard.press("Enter");
-await tree.locator('[data-directory-branch="movements"] > button').click();
-await tree.locator('[data-directory-entry="command:record_movement"] > summary').click();
 assert.equal(await tree.getByRole("button", { name: "Record shipment", exact: true }).count(), 1);
+await tree.locator('[data-tool-capability="form:receipt"] > button').click();
 assert.equal(await tree.getByRole("button", { name: "Receive goods", exact: true }).count(), 1);
-await page.screenshot({
-  path: "/private/tmp/action-discovery-screens/desktop.png",
-  fullPage: true,
-});
 await tree.getByRole("searchbox").fill("state_lot_expiry");
-assert.equal(
-  await tree.locator('[data-directory-entry="command:state_lot_expiry"]:visible').count(),
-  1,
-);
-assert.equal(
-  await tree.locator('[data-directory-branch="warehouse"] > button').getAttribute("aria-expanded"),
-  "true",
-);
-await tree.getByRole("button", { name: "Clear search", exact: true }).click();
-assert.equal(
-  await tree.locator('[data-directory-branch="movements"] > button').getAttribute("aria-expanded"),
-  "true",
-);
-assert.equal(
-  await tree.locator('[data-directory-branch="tracking"] > button').getAttribute("aria-expanded"),
-  "false",
-);
+assert.equal(await tree.locator('[data-tool-capability="command:state_lot_expiry"]').count(), 1);
 await tree.getByRole("searchbox").fill("no-match-985");
 assert.equal(await tree.getByText("No matching records", { exact: true }).count(), 1);
-await tree.getByRole("button", { name: "Clear search", exact: true }).click();
-await tree.getByRole("button", { name: "Collapse all", exact: true }).click();
+await tree.getByRole("button", { name: "Reset filters", exact: true }).click();
 if (process.env.DIRECTORY_ONLY === "1") {
   await browser.close();
   console.log("Action directory keyboard, search, expansion and preserved state checks passed.");
@@ -204,8 +178,8 @@ await page
 language = "de";
 await page.setViewportSize({ width: 390, height: 844 });
 await go("inspector?inspector_view=commands");
-await page.locator("[data-action-directory]").getByRole("searchbox").fill("Haltbarkeit");
-assert.ok((await page.locator("[data-directory-entry]:visible").count()) > 0);
+await page.locator("[data-tool-catalog]").getByRole("searchbox").fill("Haltbarkeit");
+assert.ok((await page.locator("[data-tool-capability]:visible").count()) > 0);
 assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth), false);
 await page.screenshot({
   path: "/private/tmp/action-discovery-screens/mobile-de.png",

@@ -524,12 +524,12 @@ test("Inspector records uses the same single toolbar inset as operational regist
   assert.doesNotMatch(css, /\[data-inspector-records\][^{]*margin-inline/);
 });
 
-test("Actions uses the shared register inset instead of custom spacing", () => {
-  const actions = source("../src/unified/ActionDirectory.tsx");
+test("Tools uses the shared toolbar for search and independent filters", () => {
+  const actions = source("../src/unified/ToolCatalog.tsx");
   assert.match(actions, /<RegisterToolbar/);
   assert.match(actions, /search=\{/);
   assert.match(actions, /filters=\{/);
-  assert.match(actions, /<div className="py-4">/);
+  assert.match(actions, /data-tool-catalog/);
   assert.doesNotMatch(actions, /<div className="p-4">/);
   assert.doesNotMatch(actions, /register-toolbar-block flex/);
 });

@@ -1,0 +1,2 @@
+# Validation
+Run focused Python catalog tests with PostgreSQL-configured environment (metadata reads require no database connection), then gmake web-build spec-check lint docs-catalog-check. Serve Vite and run unified-tool-catalog-browser.mjs with PLAYWRIGHT_MODULE and WEB_BASE_URL. Check commands/views bookmarks, translated search and topic/purpose filters, technical MCP definitions, existing forms/reports and narrow layouts. Compare public MCP metadata with pre-change baseline.

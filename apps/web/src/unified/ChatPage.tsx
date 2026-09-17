@@ -212,6 +212,19 @@ export function ChatPage({
   useEffect(() => {
     const receive = (event: Event) => {
       const value = (event as CustomEvent).detail;
+      if (
+        dock &&
+        value?.kind === "tool-capability" &&
+        value.tenant === selection.tenant &&
+        typeof value.prompt === "string" &&
+        value.prompt.length <= 4000
+      ) {
+        setQuestion((current) => (current.trim() ? `${current}\n\n${value.prompt}` : value.prompt));
+        requestAnimationFrame(() =>
+          document.querySelector<HTMLTextAreaElement>("#global-chat textarea")?.focus(),
+        );
+        return;
+      }
       if (validAnalyticsHandoff(value, selection.tenant))
         void startConversation(structuredClone(value));
     };

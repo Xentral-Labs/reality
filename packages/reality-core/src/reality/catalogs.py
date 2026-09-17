@@ -1458,7 +1458,11 @@ def load_application_catalog() -> dict[str, Any]:
 @lru_cache(maxsize=1)
 def _runtime_catalog_snapshot() -> dict[str, Any]:
     """Validate immutable deployment metadata once; failures are never cached."""
-    return load_application_catalog()
+    from reality.tool_catalog import build_tool_catalog
+
+    catalog = load_application_catalog()
+    catalog["tool_catalog"] = build_tool_catalog(catalog)
+    return catalog
 
 
 def runtime_application_catalog() -> dict[str, Any]:

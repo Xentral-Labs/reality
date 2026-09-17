@@ -3076,3 +3076,20 @@ The sidebar no longer shows a standalone Live simulation indicator or runs its
 dedicated status polling. Company-switcher simulation context, Integrations access
 and the existing tenant-scoped simulation control route remain unchanged. This
 supersedes earlier sidebar/header indicator placement requirements.
+
+## Unified tool catalog (spec 226)
+Tools has one directory for both legacy commands/views URLs, without Actions/Calculated
+views tabs. Visible business-topic sections contain capabilities, ordered by Retrieve,
+Check and explain, Change, then Page shortcut. Search matches localized display labels
+and exact command/MCP identifiers; topic and purpose filters compose independently.
+Deployment metadata links commands, discovery forms, workspace actions/views, projections
+and public MCP definitions through explicit relationships. Equivalent representations
+share a capability; distinct movement intents remain separate. The displayed count is
+capabilities, not a sum of overlapping technical catalogs. Underlying read variants retain
+their own report readers and freshness semantics in technical details.
+Details retain actual command/schema/code and report explanations. Web forms and navigation
+reuse existing eligibility. MCP badges mean supported tools, not user/token authorization.
+Use in chat appends a tenant-scoped draft without sending or discarding existing text;
+confirmation remains in the existing workflow. Company switches remount the directory.
+All MCP names, schemas, descriptions, access modes and dispatch paths remain unchanged.
+This supersedes the earlier two-tab Tools directory presentation from specs 218/219.

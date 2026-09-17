@@ -1,0 +1,2 @@
+# Research
+Decision: use explicit existing command coverage and report projection relationships, not label matching. Reason: record_movement has several real user intents; read aliases must not erase them. Additive Web metadata leaves MCP clients untouched. Reuse current action forms/report dialogs rather than create a second execution path. Availability means supported adapter, not current token permission. Existing technical descriptions retain source wording; topic/purpose/control labels localize through existing dictionaries.

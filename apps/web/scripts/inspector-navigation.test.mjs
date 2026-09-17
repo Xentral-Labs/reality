@@ -86,17 +86,14 @@ test("exception rules legacy links normalize without losing company or finding c
   assert.equal(invalid.attentionView, "findings");
 });
 
-test("Tools shares Actions and Calculated views without changing bookmarked URLs", async () => {
+test("Tools unifies capabilities without changing bookmarked URLs", async () => {
   const { readSelection, selectionUrl } = await import("../src/unified/routing.ts");
   for (const view of ["commands", "views"]) {
     const selection = readSelection(
       new URL(`https://example.test/app/inspector?tenant=t1&inspector_view=${view}`),
     );
     assert.equal(inspectorSection(selection.inspectorView).label, "Tools");
-    assert.deepEqual(inspectorTabs(view), [
-      ["commands", "Actions"],
-      ["views", "Calculated views"],
-    ]);
+    assert.deepEqual(inspectorTabs(view), [["commands", "Tools"]]);
     assert.equal(
       new URL(selectionUrl(selection), "https://example.test").searchParams.get("inspector_view"),
       view,

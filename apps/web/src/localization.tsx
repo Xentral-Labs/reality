@@ -16542,3 +16542,221 @@ Object.assign(dictionaries.de, { "Ctrl K": "Strg K" });
 Object.assign(dictionaries.de, { Inbox: "Inbox" });
 Object.assign(dictionaries.nl, { Inbox: "Inbox" });
 Object.assign(dictionaries.es, { Inbox: "Inbox" });
+
+Object.assign(dictionaries.de, {
+  "What Reality and your agents can do.": "Was Reality und deine Agenten können.",
+  "Search capabilities": "Fähigkeiten suchen",
+  Topic: "Thema",
+  "All topics": "Alle Themen",
+  Purpose: "Zweck",
+  "All purposes": "Alle Arten",
+  Retrieve: "Abrufen",
+  "Check and explain": "Prüfen & erklären",
+  Change: "Ändern",
+  "Page shortcut": "Seitenverknüpfung",
+  "Stock and warehouse": "Bestand & Lager",
+  "Shipments and returns": "Lieferungen & Retouren",
+  "Invoices and payments": "Rechnungen & Zahlungen",
+  "Accounting and allocation": "Buchhaltung & Kontierung",
+  "Partners and master data": "Geschäftspartner & Stammdaten",
+  "Data and evidence": "Daten & Nachweise",
+  "Issues and approvals": "Klärfälle & Freigaben",
+  "Company and access": "Unternehmen & Zugriff",
+  "Tool catalog is unavailable. Reload to try again.":
+    "Der Tool-Katalog ist nicht verfügbar. Bitte lade die Seite neu.",
+  "Changes use the existing review and confirmation flow.":
+    "Änderungen durchlaufen die bestehende Prüfung und Bestätigung.",
+  "No direct Web action is available here.":
+    "Hier ist keine direkte Aktion in der Oberfläche verfügbar.",
+  "MCP support describes available tools, not permission for your connection.":
+    "MCP zeigt die unterstützten Tools. Die Berechtigungen deiner Verbindung gelten weiterhin.",
+  "Related capabilities": "Passende Fähigkeiten",
+  "Approve and execute": "Bestätigen und ausführen",
+  "Prepares a proposal; does not execute it.":
+    "Bereitet einen Vorschlag vor; führt ihn noch nicht aus.",
+  Parameters: "Parameter",
+  "Use in chat": "Im Chat verwenden",
+  "Help me use this capability:": "Hilf mir, diese Fähigkeit zu verwenden:",
+});
+
+Object.assign(dictionaries.nl, {
+  "What Reality and your agents can do.": "Wat Reality en je agenten kunnen doen.",
+  "Search capabilities": "Mogelijkheden zoeken",
+  Topic: "Onderwerp",
+  "All topics": "Alle onderwerpen",
+  Purpose: "Doel",
+  "All purposes": "Alle soorten",
+  Retrieve: "Ophalen",
+  "Check and explain": "Controleren en verklaren",
+  Change: "Wijzigen",
+  "Page shortcut": "Paginalink",
+  "Stock and warehouse": "Voorraad en magazijn",
+  "Shipments and returns": "Zendingen en retouren",
+  "Invoices and payments": "Facturen en betalingen",
+  "Accounting and allocation": "Boekhouding en toewijzing",
+  "Partners and master data": "Relaties en stamgegevens",
+  "Data and evidence": "Gegevens en bewijs",
+  "Issues and approvals": "Aandachtspunten en goedkeuringen",
+  "Company and access": "Bedrijf en toegang",
+  "Tool catalog is unavailable. Reload to try again.":
+    "De toolcatalogus is niet beschikbaar. Laad de pagina opnieuw.",
+  "Changes use the existing review and confirmation flow.":
+    "Wijzigingen volgen de bestaande controle en bevestiging.",
+  "No direct Web action is available here.":
+    "Hier is geen directe actie in de interface beschikbaar.",
+  "MCP support describes available tools, not permission for your connection.":
+    "MCP toont ondersteunde tools. De rechten van je verbinding blijven gelden.",
+  "Related capabilities": "Gerelateerde mogelijkheden",
+  "Approve and execute": "Goedkeuren en uitvoeren",
+  "Prepares a proposal; does not execute it.": "Bereidt een voorstel voor; voert het nog niet uit.",
+  Parameters: "Invoerparameters",
+  "Use in chat": "In chat gebruiken",
+  "Help me use this capability:": "Help me deze mogelijkheid te gebruiken:",
+});
+
+Object.assign(dictionaries.es, {
+  "What Reality and your agents can do.": "Lo que Reality y tus agentes pueden hacer.",
+  "Search capabilities": "Buscar capacidades",
+  Topic: "Tema",
+  "All topics": "Todos los temas",
+  Purpose: "Propósito",
+  "All purposes": "Todos los tipos",
+  Retrieve: "Consultar",
+  "Check and explain": "Comprobar y explicar",
+  Change: "Modificar",
+  "Page shortcut": "Enlace a página",
+  "Stock and warehouse": "Existencias y almacén",
+  "Shipments and returns": "Envíos y devoluciones",
+  "Invoices and payments": "Facturas y pagos",
+  "Accounting and allocation": "Contabilidad e imputación",
+  "Partners and master data": "Socios y datos maestros",
+  "Data and evidence": "Datos y evidencias",
+  "Issues and approvals": "Incidencias y aprobaciones",
+  "Company and access": "Empresa y acceso",
+  "Tool catalog is unavailable. Reload to try again.":
+    "El catálogo de herramientas no está disponible. Recarga la página.",
+  "Changes use the existing review and confirmation flow.":
+    "Los cambios siguen el proceso existente de revisión y confirmación.",
+  "No direct Web action is available here.":
+    "Aquí no hay una acción directa disponible en la interfaz.",
+  "MCP support describes available tools, not permission for your connection.":
+    "MCP muestra las herramientas compatibles. Siguen vigentes los permisos de tu conexión.",
+  "Related capabilities": "Capacidades relacionadas",
+  "Approve and execute": "Aprobar y ejecutar",
+  "Prepares a proposal; does not execute it.": "Prepara una propuesta; todavía no la ejecuta.",
+  Parameters: "Parámetros",
+  "Use in chat": "Usar en el chat",
+  "Help me use this capability:": "Ayúdame a usar esta capacidad:",
+});
+
+Object.assign(dictionaries.de, {
+  "Describe an agent capability": "Agentenfähigkeit erklären",
+  "Discover business records": "Geschäftsdaten finden",
+  "List physical shipments": "Sendungen anzeigen",
+  "Explain a physical shipment": "Sendung erklären",
+  "Explain an order": "Auftrag erklären",
+  "Read interpretation coverage": "Interpretation der Quelldaten prüfen",
+  "Explain an operational exception": "Ausnahme erklären",
+  "List proposals awaiting approval": "Vorschläge zur Freigabe anzeigen",
+  "Reconcile proposal execution": "Ausführung eines Vorschlags prüfen",
+  "Approve and execute a proposal": "Vorschlag bestätigen und ausführen",
+  "Read finance balances": "Finanzsalden abrufen",
+  "List missing information": "Fehlende Informationen anzeigen",
+  "Inspect missing information": "Fehlende Informationen untersuchen",
+  "Simulate Fact rule": "Fact-Regel prüfen",
+  "Propose missing information": "Informationslücke vorschlagen",
+  "Propose investigation entry": "Untersuchungsnotiz vorschlagen",
+  "Propose modeling recommendation": "Modellierungsempfehlung vorschlagen",
+  "Propose classification decision": "Einordnung vorschlagen",
+  "Propose gap implementation": "Umsetzung für eine Informationslücke vorbereiten",
+  "Propose rule activation": "Regelaktivierung vorschlagen",
+  "Propose rule disablement": "Regeldeaktivierung vorschlagen",
+  "Propose historical replay": "Regelanwendung auf vorhandene Quellen vorschlagen",
+  "Available credit": "Verfügbares Guthaben",
+  "Party balances": "Salden je Geschäftspartner",
+  "Discover analytics": "Auswertungsmöglichkeiten anzeigen",
+  "Run an analysis": "Auswertung ausführen",
+  "Explain an analytical value": "Auswertungswert erklären",
+  "Export an analysis": "Auswertung exportieren",
+  "List my reports": "Meine Auswertungen anzeigen",
+  "Read my report": "Meine Auswertung abrufen",
+});
+
+Object.assign(dictionaries.nl, {
+  "Describe an agent capability": "Agentmogelijkheid uitleggen",
+  "Discover business records": "Bedrijfsgegevens vinden",
+  "List physical shipments": "Zendingen tonen",
+  "Explain a physical shipment": "Zending uitleggen",
+  "Explain an order": "Order uitleggen",
+  "Read interpretation coverage": "Interpretatie van brongegevens controleren",
+  "Explain an operational exception": "Uitzondering uitleggen",
+  "List proposals awaiting approval": "Voorstellen ter goedkeuring tonen",
+  "Reconcile proposal execution": "Uitvoering van een voorstel controleren",
+  "Approve and execute a proposal": "Voorstel goedkeuren en uitvoeren",
+  "Read finance balances": "Financiële saldi ophalen",
+  "List missing information": "Ontbrekende informatie tonen",
+  "Inspect missing information": "Ontbrekende informatie onderzoeken",
+  "Simulate Fact rule": "Fact-regel controleren",
+  "Propose missing information": "Informatiehiaat voorstellen",
+  "Propose investigation entry": "Onderzoeksnotitie voorstellen",
+  "Propose modeling recommendation": "Modelaanbeveling voorstellen",
+  "Propose classification decision": "Classificatie voorstellen",
+  "Propose gap implementation": "Implementatie voor informatiehiaat voorbereiden",
+  "Propose rule activation": "Regelactivering voorstellen",
+  "Propose rule disablement": "Regeluitschakeling voorstellen",
+  "Propose historical replay": "Regeltoepassing op bestaande bronnen voorstellen",
+  "Available credit": "Beschikbaar tegoed",
+  "Party balances": "Saldi per relatie",
+  "Discover analytics": "Analysemogelijkheden tonen",
+  "Run an analysis": "Analyse uitvoeren",
+  "Explain an analytical value": "Analysewaarde uitleggen",
+  "Export an analysis": "Analyse exporteren",
+  "List my reports": "Mijn rapporten tonen",
+  "Read my report": "Mijn rapport ophalen",
+});
+
+Object.assign(dictionaries.es, {
+  "Describe an agent capability": "Explicar una capacidad del agente",
+  "Discover business records": "Buscar registros empresariales",
+  "List physical shipments": "Mostrar envíos",
+  "Explain a physical shipment": "Explicar un envío",
+  "Explain an order": "Explicar un pedido",
+  "Read interpretation coverage": "Comprobar la interpretación de datos de origen",
+  "Explain an operational exception": "Explicar una incidencia",
+  "List proposals awaiting approval": "Mostrar propuestas pendientes de aprobación",
+  "Reconcile proposal execution": "Comprobar la ejecución de una propuesta",
+  "Approve and execute a proposal": "Aprobar y ejecutar una propuesta",
+  "Read finance balances": "Consultar saldos financieros",
+  "List missing information": "Mostrar información faltante",
+  "Inspect missing information": "Examinar información faltante",
+  "Simulate Fact rule": "Comprobar regla de Facts",
+  "Propose missing information": "Proponer información faltante",
+  "Propose investigation entry": "Proponer nota de investigación",
+  "Propose modeling recommendation": "Proponer una recomendación de modelado",
+  "Propose classification decision": "Proponer clasificación",
+  "Propose gap implementation": "Preparar implementación para información faltante",
+  "Propose rule activation": "Proponer activación de regla",
+  "Propose rule disablement": "Proponer desactivación de regla",
+  "Propose historical replay": "Proponer aplicación de regla a fuentes existentes",
+  "Available credit": "Crédito disponible",
+  "Party balances": "Saldos por socio",
+  "Discover analytics": "Mostrar posibilidades de análisis",
+  "Run an analysis": "Ejecutar un análisis",
+  "Explain an analytical value": "Explicar un valor analítico",
+  "Export an analysis": "Exportar un análisis",
+  "List my reports": "Mostrar mis informes",
+  "Read my report": "Consultar mi informe",
+});
+
+Object.assign(dictionaries.de, {
+  "Find what Reality can retrieve, explain or change, with its Web and MCP tools.":
+    "Finde heraus, was Reality mit seinen Web- und MCP-Tools abrufen, erklären oder ändern kann.",
+});
+Object.assign(dictionaries.nl, {
+  "Find what Reality can retrieve, explain or change, with its Web and MCP tools.":
+    "Ontdek wat Reality met zijn web- en MCP-tools kan ophalen, uitleggen of wijzigen.",
+});
+Object.assign(dictionaries.es, {
+  "Find what Reality can retrieve, explain or change, with its Web and MCP tools.":
+    "Descubre qué puede consultar, explicar o modificar Reality con sus herramientas web y MCP.",
+});

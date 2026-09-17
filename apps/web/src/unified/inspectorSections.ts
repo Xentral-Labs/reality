@@ -18,4 +18,6 @@ export const inspectorSection = (view = "overview") =>
   inspectorSections.find((section) => section.tabs.includes(view === "records" ? "facts" : view)) ||
   inspectorSections[0];
 export const inspectorTabs = (view: string) =>
-  inspectorSection(view).tabs.map((key) => [key, labels[key]] as const);
+  ["commands", "views"].includes(view)
+    ? [["commands", "Tools"] as const]
+    : inspectorSection(view).tabs.map((key) => [key, labels[key]] as const);
