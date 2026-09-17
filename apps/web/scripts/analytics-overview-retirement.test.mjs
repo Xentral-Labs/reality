@@ -28,7 +28,7 @@ for (const view of ["", "overview", "invalid", "explore", "reports"]) {
     assert.equal(companySelection(selection, "two").analyticsView, "explore");
   });
 }
-test("rendered analytics exposes only Explore and My reports", () => {
+test("rendered analytics carries no retired overview", () => {
   const exports = {};
   const require = createRequire(import.meta.url);
   vm.runInNewContext(
@@ -43,6 +43,7 @@ test("rendered analytics exposes only Explore and My reports", () => {
         if (name === "./analytics/AnalyticsExplorer")
           return { AnalyticsExplorer: () => "Explorer content" };
         if (name === "./analytics/ReportLibrary") return { ReportLibrary: () => "Saved reports" };
+        if (name === "./analytics/GraphExplorer") return { GraphExplorer: () => "Graph content" };
         if (name.startsWith(".")) return {};
         return require(name);
       },
@@ -54,8 +55,10 @@ test("rendered analytics exposes only Explore and My reports", () => {
       navigate: () => {},
     }),
   );
-  assert.equal((html.match(/<button/g) || []).length, 2);
+  // What spec 221 retired was the overview, not the right to add a view. The tabs
+  // are named rather than counted, so a new one does not read as a regression.
   assert.match(html, /aria-pressed="true">Explore/);
+  assert.match(html, /Business graph/);
   assert.match(html, /My reports/);
   assert.doesNotMatch(html, /Overview|Recorded activity/);
 });

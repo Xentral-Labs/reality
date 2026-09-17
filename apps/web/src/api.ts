@@ -3236,6 +3236,68 @@ export type AnalyticsReport = {
   updated_at: string;
   deleted: boolean;
 };
+export type GraphMeasure = {
+  key: string;
+  unit: "currency" | "measure" | "count";
+  additive_over: string[];
+  never_across: string[];
+  note: string | null;
+};
+export type GraphEdge = {
+  key: string;
+  to: string;
+  multiplicity: "n:1" | "1:n";
+  recursive: boolean;
+  stored: boolean;
+};
+export type GraphNode = {
+  key: string;
+  grain: string;
+  backed_by: string;
+  corrections: "replace" | "revise" | "compensate";
+  coverage: string[];
+  properties: string[];
+  evidence: string | null;
+  measures: GraphMeasure[];
+  edges: GraphEdge[];
+  edges_in: { key: string; from: string; multiplicity: "n:1" | "1:n" }[];
+};
+export type GraphCatalog = {
+  version: number;
+  model_version: string;
+  format: string;
+  nodes: GraphNode[];
+  limits: { max_path_length: number; result_rows: number; page_rows: number };
+};
+export type GraphHop = { edge: string; direction: "out" | "in"; as: string; from?: string };
+export type GraphGrouping = { field: string; bucket?: string; as?: string };
+export type GraphQuestion = {
+  from: string;
+  as?: string;
+  follow?: GraphHop[];
+  filter?: { field: string; op: string; value?: unknown }[];
+  measures?: string[];
+  group_by?: GraphGrouping[];
+  order_by?: { by: string; descending?: boolean }[];
+  limit?: number;
+};
+export type GraphAnswer = {
+  rows: Record<string, string | number | null>[];
+  path: string[];
+  model_version: string;
+  statements: number;
+  question: GraphQuestion;
+};
+export const graphApi = {
+  catalog: (tenant: string) =>
+    request<GraphCatalog>(`/api/tenants/${tenant}/analytics/graph/catalog`),
+  ask: (tenant: string, question: GraphQuestion, signal?: AbortSignal) =>
+    request<GraphAnswer>(`/api/tenants/${tenant}/analytics/graph/ask`, {
+      method: "POST",
+      body: JSON.stringify({ question }),
+      signal,
+    }),
+};
 export const analyticsApi = {
   proposal: (tenant: string, id: string) =>
     request<{
