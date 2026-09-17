@@ -135,3 +135,9 @@ remains reachable. Portal targets remain mounted so the composer is not replaced
 when the column opens/closes. New chat is independent of the column. No session
 persistence, permissions, confirmation or backend changes. An empty current history
 also dismisses any open overlay.
+
+## FR-015 pre-implementation analysis
+Approved visual scope maps to T035–T037 and the shared footer browser. No critical findings. Explicit submit remains available on touch; existing widths and cell disclosures preserve preferences. Empty states preserve existing wording rather than asserting a business condition from a filtered result. No schema or service impact.
+
+## FR-015 completion review
+Shared surface changes preserve table controls, row provenance, tenant reads and refresh semantics. Explicit search submission remains for touch access. Column defaults improve record-type space without changing stored preferences; full values retain existing title disclosure. Footer now follows table bounds in normal flow, eliminating the competing card/fixed-footer geometry. Required frontend/spec/documentation checks pass; no merge or deployment performed.

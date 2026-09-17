@@ -62,3 +62,8 @@ No domain, service or tool work is required by this adapter-only feature.
 - [x] T032 Add empty/first-session/revisit/tenant/archived/mobile browser coverage.
 - [x] T033 Gate history column on successful tenant-scoped availability and retain toolbar access.
 - [x] T034 Run frontend gates and browser regression; review screenshots and record results.
+
+## Continuous register surfaces (FR-015)
+- [x] T035 Adapt footer browser coverage before implementation for aligned bounds, empty tables and conditional selection actions.
+- [x] T036 Refine shared register surfaces, footer measurement, empty headers and calculation status styling.
+- [x] T037 Run frontend gates and browser coverage; inspect screenshots, update web contract and review evidence.

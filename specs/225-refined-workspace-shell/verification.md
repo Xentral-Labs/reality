@@ -179,3 +179,11 @@ transitions to capture the settled appearance. Artifacts are in
 - Empty desktop screenshot `/private/tmp/reality-empty-chat.png` reviewed: history
   column absent, centered welcome/composer and independent New chat toolbar action.
 - `git diff --check`: PASS. No backend changes.
+
+## FR-015 continuous register surfaces
+- `gmake web-build spec-check lint docs-catalog-check`: PASS, including 236 Node tests, localization audit, TypeScript and Vite. Existing bundle-size advisory only.
+- `register-footer-browser.mjs`: PASS for populated open items/payments/journal at 1440px and 390px, chat toggles, aligned table/footer, independent scrolling, selection controls, healthy freshness, compact empty state and no page overflow. Updated obsolete shell selectors and completed fixture view metadata. Initial run encountered a stale description selector before the new geometry assertion, so no meaningful test-first failure is claimed.
+- `page-title-counts-browser.mjs`: PASS, 18 registers plus tab, zero/error, nested navigation and mobile checks.
+- `projection-freshness-browser.mjs`: PASS, in-flight, unchanged/newer outcomes, backlog and four languages.
+- Visually inspected `/private/tmp/content-heading-screens/finance-0-1440.png` and `/private/tmp/reality-register-empty-dark.png`; footer and toolbar align and mobile empty guidance remains readable.
+- Backend suite not rerun: presentation-only changes, no API/service/schema modifications.

@@ -3059,3 +3059,14 @@ explicit history button becomes available instead. Reopening Chat with saved his
 restores the desktop column. New chat remains in the conversation toolbar regardless
 of column visibility. Mobile retains explicit overlay access. Hidden portal targets
 stay mounted to preserve composer state; errors do not establish empty history.
+
+### Continuous register surfaces (spec 225)
+Shared registers use an unframed surface with neutral filters, plain table headers,
+13px body text and tabular numbers. Paging sits directly below the table at the same
+width; selected-row tools appear only when rows are selected. Empty registers keep
+search, filters and paging, but hide column headers and use compact existing guidance.
+Healthy calculation freshness is a quiet line; delayed, pending and failed results
+retain their visible status. Inspector record types have a wider default column and
+regular-density details can wrap to two lines; stored user layouts remain authoritative.
+Search submission, density, resizing, sorting, source links and confirmations remain.
+This supersedes prior framed-register and full-column fixed-footer presentation.

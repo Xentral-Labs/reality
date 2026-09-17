@@ -83,6 +83,7 @@ export function ProjectionFreshness({
       role="status"
       aria-busy={busy || undefined}
       data-projection-freshness={metadata.state}
+      data-projection-attention={metadata.state !== "ready" || behind > 0 || !!error}
       className="my-3 rounded-lg bg-surface-muted p-3 text-sm text-fg-muted"
     >
       <div className="flex flex-wrap items-center gap-3">

@@ -252,16 +252,12 @@ export function RegisterTable({
     let frame = 0;
     const measure = () => {
       frame = 0;
-      const bounds = main.getBoundingClientRect();
-      footer.dataset.pageFooter = "";
-      footer.style.left = `${bounds.left}px`;
-      footer.style.width = `${bounds.width}px`;
       const available =
         window.innerHeight -
         scroll.getBoundingClientRect().top -
         footer.getBoundingClientRect().height -
         16;
-      scroll.style.height = `${Math.max(160, available)}px`;
+      scroll.style.height = rows.length ? `${Math.max(160, available)}px` : "auto";
       scroll.style.maxHeight = "none";
     };
     const schedule = () => {
@@ -269,6 +265,7 @@ export function RegisterTable({
     };
     const observer = new ResizeObserver(schedule);
     observer.observe(main);
+    observer.observe(register!);
     observer.observe(footer);
     window.addEventListener("resize", schedule);
     window.addEventListener("scroll", schedule);
@@ -278,13 +275,10 @@ export function RegisterTable({
       cancelAnimationFrame(frame);
       window.removeEventListener("resize", schedule);
       window.removeEventListener("scroll", schedule);
-      delete footer.dataset.pageFooter;
-      footer.style.removeProperty("left");
-      footer.style.removeProperty("width");
       scroll.style.removeProperty("height");
       scroll.style.removeProperty("max-height");
     };
-  }, [id, selectable, cursorView]);
+  }, [id, selectable, cursorView, rows.length, selected.length]);
 
   useEffect(() => {
     let saved = null;
@@ -396,7 +390,7 @@ export function RegisterTable({
               </Fragment>
             ))}
           </colgroup>
-          <thead>
+          <thead hidden={!rows.length}>
             <tr>
               {selectable && (
                 <th className="erp-select-cell">
@@ -640,7 +634,7 @@ export function RegisterTable({
       </div>
       {(selectable || !cursorView || footer) && (
         <div className="erp-register-footer">
-          {selectable && (
+          {selectable && selected.length > 0 && (
             <div className="erp-selection-tools">
               <span className="text-xs text-fg-muted">
                 {selected.length} {t("Selected on this page")}

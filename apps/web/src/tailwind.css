@@ -2969,20 +2969,6 @@ textarea.br-control.rule-draft-editor {
 .page-introduction-count:empty {
   display: none;
 }
-/* Page footers span the center column, independently of the inset table card. */
-.app-shell .erp-register-footer[data-page-footer] {
-  position: fixed;
-  bottom: 0;
-  z-index: 30;
-  box-sizing: border-box;
-  margin: 0;
-  padding: 12px 20px;
-  border: 0;
-  border-top: 1px solid var(--color-border-default);
-  border-radius: 0;
-  background: var(--color-surface);
-}
-
 /* Page-specific navigation sits between the introduction and its content. */
 .page-view-tabs:not(:has(.register-tabs, .page-introduction-actions:not(:empty))) {
   display: none;
@@ -3977,4 +3963,117 @@ textarea.br-control.rule-draft-editor {
   .inbox-local-controls .register-tabs > button {
     min-height: 44px;
   }
+}
+
+/* Continuous register surface (spec 225): align tools, rows and footer. */
+.register-surface,
+.register-facts-toolbar {
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+}
+.register-surface > :first-child,
+.register-surface > :last-child,
+.register-surface > form:first-child > .register-toolbar-block:first-child,
+.register-surface > .erp-register:last-child .erp-register-footer {
+  border-radius: 0;
+}
+.register-toolbar-block {
+  padding: 4px 0 12px;
+}
+.register-table-inset {
+  padding-inline: 0;
+}
+.register-tools-slot {
+  display: flex;
+  min-width: 0;
+  margin-left: auto;
+}
+.register-filter-chip,
+.register-filter-row .br-control,
+.register-filter-row .br-btn {
+  background: var(--color-surface);
+  color: var(--color-fg-muted);
+}
+.register-filter-chip strong {
+  color: var(--color-fg-default);
+  font-weight: 500;
+}
+.register-search input.br-control {
+  box-shadow: none;
+}
+.erp-table-scroll {
+  border: 0;
+  border-radius: 0;
+}
+.erp-table {
+  font-size: 13px;
+  color: var(--color-fg-default);
+  font-variant-numeric: tabular-nums;
+}
+.erp-table th,
+[data-selectable="true"] .erp-table th:nth-child(2) {
+  background: var(--color-surface);
+  color: var(--color-fg-muted);
+  font-size: 12px;
+  font-weight: 500;
+}
+.erp-register-footer {
+  position: static;
+  border: 0;
+  border-top: 1px solid var(--color-border-default);
+  border-radius: 0;
+  padding: 8px 0;
+  color: var(--color-fg-muted);
+}
+.erp-empty {
+  padding: 32px 16px;
+}
+.register-surface > [data-projection-freshness] {
+  margin-inline: 0;
+}
+[data-projection-freshness][data-projection-attention="false"] {
+  background: transparent;
+  padding: 0;
+  font-size: 12px;
+}
+[data-projection-freshness] .br-btn {
+  min-height: 32px;
+  padding: 4px 8px;
+  font-size: 12px;
+}
+[data-projection-freshness][data-projection-attention="false"] .br-btn {
+  border-color: transparent;
+  background: transparent;
+  color: var(--color-fg-muted);
+}
+@media (pointer: coarse) {
+  .register-filter-chip,
+  .register-filter-row .br-btn,
+  .register-search input.br-control,
+  .erp-register-footer .br-btn,
+  .erp-register-footer select,
+  [data-projection-freshness] .br-btn {
+    min-height: 44px;
+  }
+}
+
+.register-surface
+  > :not(.erp-register):not(.register-toolbar-block):not(.register-toolbar-form):not(
+    .register-table-inset
+  ) {
+  padding-inline: 0;
+}
+.erp-register[data-table-id^="inspector-records:"][data-density="normal"] td:nth-child(3) .erp-cell,
+.erp-register[data-table-id^="inspector-records:"][data-density="normal"]
+  td:nth-child(3)
+  .erp-cell
+  span {
+  white-space: normal;
+  overflow-wrap: anywhere;
+  max-height: 40px;
+}
+.erp-register[data-table-id^="inspector-records:"] td:nth-child(4) {
+  color: var(--color-fg-muted);
+  font-size: 12px;
 }
