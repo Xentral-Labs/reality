@@ -18,3 +18,9 @@ Date: 2026-09-17. Isolated worktree initially based on `f21aecfd`, rebased onto 
 The catalog is presentation metadata added to the existing application-reference response. It does not grant permissions, execute operations or change business rules. Existing UI eligibility and tenant context govern forms; MCP availability is explicitly distinguished from connection permissions. Chat handoff appends a draft and never sends it. Technical source descriptions preserve their original wording; visible controls and capability labels use existing localization.
 
 Future additions must supply classification metadata when the coverage validator requires it. This is intentional: new tools must not disappear silently from the human-facing catalog.
+
+## PR #82 CI regression
+
+CI exposed an additional HTTP cache test that stubbed the application catalog with only `version` and `projections`. That incomplete fixture cannot be passed to the new capability composer. Reproduced the `KeyError: commands` locally before the fix. The test now stubs the composer separately, checks the additive `tool_catalog` response, and asserts that both builders run exactly once across repeated HTTP reads. Production behavior and MCP contracts are unchanged. Spec impact: none; this corrects a test double for the existing FR-003/FR-006 contract.
+
+Post-fix verification: all HTTP boundary, application catalog and tool catalog tests pass (**49 passed**); Ruff and `git diff --check` pass.
