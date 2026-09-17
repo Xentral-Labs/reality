@@ -1,3 +1,4 @@
+import { LogoMark } from "../components/LogoMark";
 import { useEffect, useId, useRef } from "react";
 import { Check, ChevronDown, Plus, Settings } from "lucide-react";
 import type { Tenant } from "../api";
@@ -50,8 +51,8 @@ export function CompanySwitcher({
           panel.current.style.left = `${Math.max(8, Math.min(trigger.current.getBoundingClientRect().left, window.innerWidth - 344))}px`;
         }}
       >
-        <span className="company-switcher-initial" aria-hidden="true" data-localization="original">
-          {Array.from(company.name.trim())[0]?.toUpperCase() || "?"}
+        <span className="company-switcher-logo" aria-hidden="true">
+          <LogoMark />
         </span>
         <span className="company-switcher-copy min-w-0 flex-1 text-left">
           {company.sandbox_run_id ? (

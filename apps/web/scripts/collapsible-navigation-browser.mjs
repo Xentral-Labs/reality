@@ -151,8 +151,10 @@ try {
   const nav = page.locator("[data-primary-navigation]");
   const collapse = page.getByRole("button", { name: "Collapse sidebar", exact: true });
   await collapse.waitFor();
-  const heading = nav.locator(".shell-navigation-heading");
-  assert.ok((await heading.boundingBox()).height <= 36);
+  const heading = nav.locator(".shell-brand");
+  assert.ok((await heading.boundingBox()).height <= 44);
+  assert.equal(await heading.locator("[data-navigation-toggle]").count(), 1);
+  assert.equal(await nav.getByText("Daily work", { exact: true }).count(), 0);
   const links = nav.locator("a[data-navigation-item]");
   const names = await links.allTextContents();
   const width = async (locator) => (await locator.boundingBox()).width;

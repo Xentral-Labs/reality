@@ -113,3 +113,15 @@ transitions to capture the settled appearance. Artifacts are in
   rules or sidebar border; content/chat divider remains.
 - Diff review confirms active-tab indicator and all content separators unchanged.
 - `git diff --check`: PASS. No backend changes or new tests required.
+
+## Sidebar head grouping verification
+- Updated placement contracts fail before implementation and pass afterwards.
+- `gmake web-build spec-check lint docs-catalog-check`: PASS, including 235 tests,
+  formatting, translation audits, TypeScript, build and generated catalog consistency.
+- Refined shell browser: PASS, 32 localized layouts, touch targets, company and palette
+  access, keyboard focus and preserved drafts.
+- Collapsible navigation browser: PASS, new head placement, no visible Daily work
+  heading, rail, mobile, keyboard, profile, persistence and localization.
+- German desktop light and collapsed-rail screenshots visually reviewed; artifacts
+  in `/private/tmp/reality-225-browser/` and `/private/tmp/reality-203-browser/`.
+- `git diff --check`: PASS. No backend behavior changed.

@@ -33,7 +33,6 @@ import {
   Info,
 } from "lucide-react";
 import type { AuthUser, Tenant } from "../api";
-import { LogoMark } from "../components/LogoMark";
 import {
   storeThemePreference,
   readThemePreference,
@@ -298,19 +297,6 @@ export function Shell({
               >
                 <div className="shell-company-block">
                   <div className="shell-brand flex min-w-0 items-center gap-2">
-                    <a
-                      href={selectionUrl({ ...selection, route: "home" })}
-                      className="shell-brand-home grid size-8 shrink-0 place-items-center rounded-lg bg-accent p-1.5"
-                      aria-label="Reality"
-                      title="Reality"
-                      onClick={(e) => {
-                        e.preventDefault();
-                        setOpen(false);
-                        navigate({ route: "home" });
-                      }}
-                    >
-                      <LogoMark />
-                    </a>
                     <div className="shell-company min-w-0 flex-1">
                       <CompanySwitcher
                         company={company}
@@ -326,6 +312,20 @@ export function Shell({
                         }}
                       />
                     </div>
+                    <button
+                      type="button"
+                      data-navigation-toggle
+                      className="hidden size-8 shrink-0 items-center justify-center rounded-md text-fg-muted hover:bg-surface-muted hover:text-fg-strong focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent lg:flex"
+                      aria-label={t(navigationCollapsed ? "Expand sidebar" : "Collapse sidebar")}
+                      data-sidebar-tooltip={t(
+                        navigationCollapsed ? "Expand sidebar" : "Collapse sidebar",
+                      )}
+                      aria-expanded={!navigationCollapsed}
+                      aria-controls="primary-navigation"
+                      onClick={toggleNavigation}
+                    >
+                      <PanelLeft size={18} />
+                    </button>
                     <button
                       type="button"
                       data-navigation-close
@@ -349,25 +349,6 @@ export function Shell({
                 </div>
                 <div className="shell-navigation-scroll">
                   <nav aria-label={t("Daily work")}>
-                    <div className="shell-navigation-heading mb-1.5 flex items-center justify-between">
-                      <p className="px-3 text-[10px] uppercase tracking-wider text-fg-muted">
-                        {t("Daily work")}
-                      </p>
-                      <button
-                        type="button"
-                        data-navigation-toggle
-                        className="hidden size-8 shrink-0 items-center justify-center rounded-md text-fg-muted hover:bg-surface-muted hover:text-fg-strong focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent lg:flex"
-                        aria-label={t(navigationCollapsed ? "Expand sidebar" : "Collapse sidebar")}
-                        data-sidebar-tooltip={t(
-                          navigationCollapsed ? "Expand sidebar" : "Collapse sidebar",
-                        )}
-                        aria-expanded={!navigationCollapsed}
-                        aria-controls="primary-navigation"
-                        onClick={toggleNavigation}
-                      >
-                        <PanelLeft size={18} />
-                      </button>
-                    </div>
                     <div className="space-y-0.5">
                       {destinations.map(({ label, target, Icon, active }) => (
                         <a

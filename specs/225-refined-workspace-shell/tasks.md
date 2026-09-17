@@ -38,3 +38,8 @@ No domain, service or tool work is required by this adapter-only feature.
 ## Quiet shell boundaries (FR-010)
 - [x] T019 Remove four decorative boundaries while preserving chat divider and active tabs.
 - [x] T020 Run frontend gates and existing shell browser; visually review and record evidence.
+
+## Sidebar head grouping (FR-011)
+- [x] T021 Update placement contracts and navigation browser expectations.
+- [x] T022 Group company controls, refine search field and remove redundant heading.
+- [x] T023 Run frontend gates and shell/navigation browsers, inspect and document results.

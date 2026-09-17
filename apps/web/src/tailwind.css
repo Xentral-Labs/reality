@@ -2928,7 +2928,7 @@ textarea.br-control.rule-draft-editor {
   border-bottom-right-radius: 11px;
 }
 
-/* The company sits beside the logo as a two-line workspace switcher. */
+/* Company identity and logo share one workspace switcher target. */
 .shell-company > .company-switcher-trigger {
   width: 100%;
   max-width: 100%;
@@ -3226,7 +3226,6 @@ textarea.br-control.rule-draft-editor {
     :is(
       [data-navigation-label],
       .shell-navigation nav > p,
-      .shell-navigation-heading > p,
       [data-profile-label],
       [data-profile-chevron]
     ) {
@@ -3266,12 +3265,6 @@ textarea.br-control.rule-draft-editor {
   line-height: 20px;
   box-shadow: 0 6px 18px rgb(0 0 0 / 18%);
 }
-@media (min-width: 1024px) {
-  .app-shell[data-navigation-collapsed="true"] .shell-navigation-heading {
-    justify-content: center;
-  }
-}
-
 @media (hover: hover) and (pointer: fine) {
   [data-chat-session-list] .chat-session-options {
     opacity: 0;
@@ -3525,18 +3518,20 @@ textarea.br-control.rule-draft-editor {
 .shell-brand {
   min-height: 32px;
 }
-.shell-brand-home {
+.company-switcher-logo {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
   width: 26px;
   height: 26px;
   border-radius: 7px;
   padding: 5px;
-}
-.company-switcher-initial {
-  display: none;
+  background: var(--color-accent);
+  color: white;
 }
 .shell-company .company-switcher-copy {
   flex-direction: column-reverse;
-  gap: 2px;
+  gap: 0;
 }
 .shell-company .company-switcher-name {
   font-size: 13px;
@@ -3560,8 +3555,7 @@ textarea.br-control.rule-draft-editor {
 .shell-navigation-scroll nav + nav {
   margin-top: 18px;
 }
-.shell-navigation nav > p,
-.shell-navigation-heading > p {
+.shell-navigation nav > p {
   font-size: 12px;
   font-weight: 400;
   letter-spacing: 0;
@@ -3723,7 +3717,6 @@ textarea.br-control.rule-draft-editor {
   .app-shell[data-navigation-collapsed="true"] .shell-company-block {
     padding-inline: 8px;
   }
-  .app-shell[data-navigation-collapsed="true"] .shell-brand-home,
   .app-shell[data-navigation-collapsed="true"] .company-switcher-copy,
   .app-shell[data-navigation-collapsed="true"] .company-switcher-trigger > svg,
   .app-shell[data-navigation-collapsed="true"] .live-simulation-label {
@@ -3734,14 +3727,12 @@ textarea.br-control.rule-draft-editor {
     padding: 3px;
     min-height: 34px;
   }
-  .app-shell[data-navigation-collapsed="true"] .company-switcher-initial {
-    display: grid;
-    place-items: center;
-    width: 28px;
-    height: 28px;
-    border-radius: 6px;
-    background: var(--shell-selected);
-    font-weight: 500;
+  .app-shell[data-navigation-collapsed="true"] .shell-brand {
+    flex-direction: column;
+    gap: 2px;
+  }
+  .app-shell[data-navigation-collapsed="true"] .shell-company {
+    width: 100%;
   }
   .app-shell[data-navigation-collapsed="true"] .live-simulation-link {
     justify-content: center;
@@ -3853,4 +3844,32 @@ textarea.br-control.rule-draft-editor {
   min-height: 44px;
   background: var(--color-surface);
   box-shadow: 0 4px 0 4px var(--color-surface);
+}
+
+/* Company identity, navigation control and search form one compact sidebar head. */
+.shell-brand {
+  gap: 4px;
+}
+.shell-brand [data-navigation-toggle] {
+  width: 28px;
+  height: 32px;
+}
+.shell-company .company-switcher-context {
+  font-size: 11px;
+  line-height: 13px;
+}
+.shell-company-block .shell-command-trigger {
+  margin-top: 10px;
+  margin-bottom: 5px;
+  min-height: 32px;
+  border: 1px solid var(--color-border-subtle);
+  background: var(--color-surface);
+  border-radius: 6px;
+}
+@media (pointer: coarse) {
+  .shell-brand [data-navigation-toggle],
+  .shell-company-block .shell-command-trigger {
+    min-width: 44px;
+    min-height: 44px;
+  }
 }
