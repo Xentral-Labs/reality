@@ -2941,3 +2941,12 @@ right-aligned metadata. Narrow lists retain stacked title/context and at least
 search and filters share one row when space permits. Existing font sizes, native
 keyboard buttons, inline previews, grouping, ordering, filters, paging and all
 business/confirmation semantics remain unchanged.
+
+Spec 180 FR-009 refinement: stored-result Refresh retains its label and position,
+with no dimming. Its permanent refresh-arrows icon stays static when idle and rotates for at least
+one second after activation and until the read completes; reduced motion keeps it
+static. No empty icon slot appears. Keyboard activation uses the same action. The last-calculated
+timestamp sits directly beside the button in a wrapping row. Updated/unchanged and
+checking feedback is screen-reader-only; no extra visible feedback row. Pending/failed
+calculation state and backlog remain compactly beneath. Read errors stay visible and
+never produce success feedback. Duplicate clicks remain disabled during feedback.

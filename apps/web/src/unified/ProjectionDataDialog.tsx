@@ -137,6 +137,7 @@ export function ProjectionDataDialog({
         metadata={read.data?.metadata}
         refresh={read.refresh}
         loading={read.loading}
+        error={read.error}
       />
       {!dataAvailable ? (
         <p className="py-4 text-sm text-fg-muted">

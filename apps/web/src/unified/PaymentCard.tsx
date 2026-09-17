@@ -267,6 +267,7 @@ export function PaymentCard({
               metadata={invoices.data?.metadata}
               refresh={invoices.refresh}
               loading={invoices.loading}
+              error={invoices.error}
             />
             {(!invoices.data || invoices.error) && (
               <ReadState
