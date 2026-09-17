@@ -177,7 +177,7 @@ try {
   assert.match(await link.getAttribute("href"), /entry=cash/);
   assert.equal(confirmations, 1);
   await page.getByRole("button", { name: "Close", exact: true }).click();
-  await page.locator("[data-action-launcher] > summary").click();
+  await page.locator("[data-action-launcher] > button").click();
   if (
     !(await page.getByRole("dialog").count()) &&
     (await page.locator(".register-actions:not([open]) > summary").count())

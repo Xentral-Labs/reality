@@ -208,6 +208,8 @@ try {
   );
   for (const width of [1280, 1024, 768, 390]) {
     await page.setViewportSize({ width, height: 900 });
+    if (width < 1024 && !(await page.locator("[data-primary-navigation]").isVisible()))
+      await page.locator("[data-navigation-opener]").click();
     assert.equal(await indicator.isVisible(), true);
     const box = await indicator.boundingBox();
     assert.ok(box.x >= 0 && box.x + box.width <= width);

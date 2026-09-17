@@ -205,7 +205,7 @@ try {
   await dialog.getByRole("button", { name: "Check outcome", exact: true }).click();
   assert.equal(confirmations, 1);
   await page.goto(`${base}/app/orders-deliveries?tenant=company`);
-  await page.locator("[data-action-launcher] > summary").click();
+  await page.locator("[data-action-launcher] > button").click();
   await page
     .locator("details[open]")
     .getByRole("button", { name: "New order", exact: true })

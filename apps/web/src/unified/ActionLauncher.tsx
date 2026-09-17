@@ -1,4 +1,13 @@
-import { createContext, useContext, useState, type ReactNode } from "react";
+import { Zap } from "lucide-react";
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useId,
+  useRef,
+  useState,
+  type ReactNode,
+} from "react";
 import { api, type ApplicationReference } from "../api";
 import { useRead } from "./useCompanyContext";
 import { ReadState } from "./ReadState";
@@ -49,8 +58,8 @@ export function useActionDiscovery() {
   return useContext(Context);
 }
 function launch(entry: DiscoveryEntry, context: DiscoveryContext, element: HTMLElement) {
-  // Close the launcher disclosure, not a nested category disclosure.
-  element.closest("[data-action-launcher]")?.removeAttribute("open");
+  // Dismiss the launcher before invoking the existing shared action path.
+  element.closest<HTMLElement>("[popover]")?.hidePopover();
   if (entry.form && isActionForm(entry.form)) context.open(entry.form);
   else if (entry.destination)
     context.navigate({
@@ -111,7 +120,14 @@ export function ContextActions({
     </>
   );
 }
-export function ActionLauncher() {
+export function ActionLauncher({ onLaunch }: { onLaunch: () => void }) {
+  const id = useId();
+  const panel = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const close = () => panel.current?.hidePopover();
+    window.addEventListener("resize", close);
+    return () => window.removeEventListener("resize", close);
+  }, []);
   const context = useActionDiscovery();
   const [query, setQuery] = useState("");
   if (!context) return null;
@@ -134,67 +150,90 @@ export function ActionLauncher() {
       }),
     }))
     .filter((c) => c.entries.length);
-  return (
-    <details
-      className="relative"
-      data-action-launcher
-      onKeyDown={(e) => {
-        if (e.key === "Escape") {
-          e.currentTarget.open = false;
-          e.currentTarget.querySelector("summary")?.focus();
+  const openEntry = (entry: DiscoveryEntry, element: HTMLElement) => {
+    launch(entry, context, element);
+    onLaunch();
+  };
+  const menu = (
+    <>
+      <input
+        className="br-control mb-3 w-full"
+        type="search"
+        aria-label={t("Search actions")}
+        placeholder={t("Search actions")}
+        value={query}
+        onChange={(e) => setQuery(e.target.value)}
+      />
+      {!data && <ReadState loading={loading} error={error} retry={refresh} />}
+      {grouped.map((c) => (
+        <section key={c.key} className="mb-3" aria-label={t(c.label)}>
+          <h3 className="px-3 py-2 text-xs font-semibold text-fg-muted">{t(c.label)}</h3>
+          {c.entries.map((e) => (
+            <button
+              aria-label={t(e.label)}
+              key={e.key}
+              className="block w-full rounded-lg px-3 py-2 text-left text-sm hover:bg-surface-muted"
+              onClick={(event) => openEntry(e, event.currentTarget)}
+            >
+              {t(e.label)}
+              {e.destination && <span aria-hidden="true"> ↗</span>}
+            </button>
+          ))}
+        </section>
+      ))}
+      {data && !grouped.length && (
+        <p role="status" className="p-3 text-sm text-fg-muted">
+          {t("No matching records")}
+        </p>
+      )}
+      <button
+        className="br-btn w-full"
+        onClick={(e) =>
+          openEntry(
+            {
+              key: "catalog",
+              label: "Available actions",
+              placements: [],
+              destination: { route: "inspector", inspectorView: "commands" },
+            },
+            e.currentTarget,
+          )
         }
-      }}
-    >
-      <summary className="br-btn cursor-pointer">{t("Actions")}</summary>
-      <div className="fixed inset-x-4 top-24 z-30 mt-2 max-h-[75dvh] overflow-y-auto rounded-xl border border-border-default bg-surface p-3 shadow-lg sm:absolute sm:inset-x-auto sm:right-0 sm:top-full sm:w-80 sm:max-w-[calc(100vw-2rem)]">
-        <input
-          className="br-control mb-3 w-full"
-          type="search"
-          aria-label={t("Search actions")}
-          placeholder={t("Search actions")}
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-        />
-        {!data && <ReadState loading={loading} error={error} retry={refresh} />}
-        {grouped.map((c) => (
-          <section key={c.key} className="mb-3" aria-label={t(c.label)}>
-            <h3 className="px-3 py-2 text-xs font-semibold text-fg-muted">{t(c.label)}</h3>
-            {c.entries.map((e) => (
-              <button
-                aria-label={t(e.label)}
-                key={e.key}
-                className="block w-full rounded-lg px-3 py-2 text-left text-sm hover:bg-surface-muted"
-                onClick={(event) => launch(e, context, event.currentTarget)}
-              >
-                {t(e.label)}
-                {e.destination && <span aria-hidden="true"> ↗</span>}
-              </button>
-            ))}
-          </section>
-        ))}
-        {data && !grouped.length && (
-          <p role="status" className="p-3 text-sm text-fg-muted">
-            {t("No matching records")}
-          </p>
-        )}
-        <button
-          className="br-btn w-full"
-          onClick={(e) =>
-            launch(
-              {
-                key: "catalog",
-                label: "Available actions",
-                placements: [],
-                destination: { route: "inspector", inspectorView: "commands" },
-              },
-              context,
-              e.currentTarget,
-            )
-          }
-        >
-          {t("Available actions")}
-        </button>
+      >
+        {t("Available actions")}
+      </button>
+    </>
+  );
+  return (
+    <div data-action-launcher>
+      <button
+        type="button"
+        className="shell-utility"
+        aria-label={t("Actions")}
+        data-sidebar-tooltip={t("Actions")}
+        aria-haspopup="dialog"
+        popoverTarget={id}
+        onClick={(event) => {
+          if (!panel.current) return;
+          const rect = event.currentTarget.getBoundingClientRect();
+          panel.current.style.left = `${Math.max(8, Math.min(rect.right + 8, innerWidth - 336))}px`;
+          panel.current.style.bottom = `${Math.max(8, innerHeight - rect.bottom)}px`;
+        }}
+      >
+        <Zap size={16} />
+        <span data-navigation-label>{t("Actions")}</span>
+      </button>
+      <div
+        ref={panel}
+        id={id}
+        popover="auto"
+        role="dialog"
+        aria-label={t("Actions")}
+        data-action-menu
+        className="shell-action-menu"
+      >
+        {menu}
       </div>
-    </details>
+    </div>
   );
 }

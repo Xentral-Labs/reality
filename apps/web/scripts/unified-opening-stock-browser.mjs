@@ -262,7 +262,7 @@ try {
   await dialog.getByRole("button", { name: "Inspect movement", exact: true }).click();
   await page.getByRole("heading", { name: "Opening movement" }).waitFor();
   await page.goto(`${base}/app/warehouse?tenant=company`);
-  await page.locator("[data-action-launcher] > summary").click();
+  await page.locator("[data-action-launcher] > button").click();
   await page
     .locator("details[open]")
     .getByRole("button", { name: "Record opening stock", exact: true })

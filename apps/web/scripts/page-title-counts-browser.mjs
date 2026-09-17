@@ -79,7 +79,7 @@ try {
     await badge.waitFor();
     assert.equal((await badge.evaluate((el) => el.firstChild.textContent)).trim(), "37", path);
     assert.equal(await badge.count(), 1, path);
-    assert.equal((await page.locator("[data-shell-header]").boundingBox()).height, 60, path);
+    assert.equal((await page.locator("[data-shell-header]").boundingBox()).height, 48, path);
     assert.equal(
       await page.evaluate(() => document.documentElement.scrollWidth > innerWidth),
       false,
@@ -119,7 +119,9 @@ try {
   total = 37;
   await page.goto(base + "/app/inspector?inspector_view=facts");
   await badge.waitFor();
-  await page.getByText("Technical record overview", { exact: true }).click();
+  // The disclosure is keyboard-accessible even beside the fixed register footer.
+  await page.getByText("Technical record overview", { exact: true }).focus();
+  await page.keyboard.press("Enter");
   await page.locator(".register-count").waitFor();
   assert.equal((await badge.evaluate((el) => el.firstChild.textContent)).trim(), "37");
   assert.equal(await badge.count(), 1);
@@ -164,7 +166,6 @@ try {
   assert.ok(bounds.x >= 0 && bounds.x + bounds.width <= 390);
   assert.ok(bounds.y >= 0 && bounds.y + bounds.height <= 844);
   await page.screenshot({ path: "/private/tmp/page-title-counts-mobile.png" });
-  await page.locator("[data-header-controls-button]").click();
   await page.locator(".page-introduction-actions").waitFor();
   assert.ok(
     await page

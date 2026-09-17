@@ -16506,3 +16506,7 @@ Object.assign(dictionaries.es, {
   "Open simulation": "Abrir simulación",
   "Connect demo data": "Conectar datos de demostración",
 });
+
+Object.assign(dictionaries.de, { "About this page": "Über diese Seite" });
+Object.assign(dictionaries.nl, { "About this page": "Over deze pagina" });
+Object.assign(dictionaries.es, { "About this page": "Acerca de esta página" });

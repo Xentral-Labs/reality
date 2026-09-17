@@ -110,55 +110,64 @@ if (process.env.DIRECTORY_ONLY === "1") {
   console.log("Action directory keyboard, search, expansion and preserved state checks passed.");
   process.exit(0);
 }
-// The header bar: the first action is the primary button, one more stands beside it, two or
-// more sit behind More actions. Read them back in catalog order.
-const pageActions = async () => {
-  await page.locator('[data-page-action="primary"]').waitFor();
-  if (await page.locator(".register-actions:not([open]) > summary").count())
-    await page.locator(".register-actions > summary").click();
-  return page.evaluate(() => {
-    const slot = document.querySelector(".page-introduction-actions");
-    const primary = slot.querySelector('[data-page-action="primary"]').textContent;
-    const rest = [...slot.querySelectorAll('[data-page-action="secondary"]')].map(
-      (node) => node.textContent,
-    );
-    return { primary, rest, menu: !!slot.querySelector(".register-actions") };
+if (process.env.LAUNCHER_ONLY !== "1") {
+  // The header bar: the first action is the primary button, one more stands beside it, two or
+  // more sit behind More actions. Read them back in catalog order.
+  const pageActions = async () => {
+    await page.locator('[data-page-action="primary"]').waitFor();
+    if (await page.locator(".register-actions:not([open]) > summary").count())
+      await page.locator(".register-actions > summary").click();
+    return page.evaluate(() => {
+      const slot = document.querySelector(".page-introduction-actions");
+      const primary = slot.querySelector('[data-page-action="primary"]').textContent;
+      const rest = [...slot.querySelectorAll('[data-page-action="secondary"]')].map(
+        (node) => node.textContent,
+      );
+      return { primary, rest, menu: !!slot.querySelector(".register-actions") };
+    });
+  };
+  for (const view of ["stock", "reservations", "movements"]) {
+    await go("warehouse?warehouse_view=" + view);
+    const expected = {
+      stock: [],
+      reservations: ["Reserve stock", "Release reservation"],
+      movements: [
+        "Record opening stock",
+        "Receive goods",
+        "Record shipment",
+        "Dispatch package",
+        "Receive package",
+        "Correct movement",
+      ],
+    }[view];
+    if (!expected.length) {
+      assert.equal(await page.getByText("More actions", { exact: true }).count(), 0);
+      continue;
+    }
+    await page.getByText("More actions", { exact: true }).click();
+    const buttons = await page.locator(".register-action-menu button").allTextContents();
+    assert.deepEqual(buttons, expected);
+  }
+  for (const flow of ["receivable", "payable", "customer-credit", "supplier-balance"]) {
+    for (const view of ["open-items", "payments", "journal"]) {
+      await go(`finance?finance_view=${view}&flow=${flow}`);
+      const actions = await pageActions();
+      const buttons = [actions.primary, ...actions.rest];
+      if (flow === "payable" || flow === "supplier-balance")
+        assert.ok(!buttons.some((s) => /credit note|refund|customer/i.test(s)), buttons.join(","));
+      if (view === "journal")
+        assert.deepEqual(buttons, ["Reverse posting", "Import opening positions"]);
+    }
+  }
+  await go("finance?finance_view=payments&flow=receivable&direction=outgoing");
+  assert.deepEqual(await pageActions(), {
+    primary: "Record supplier payment",
+    rest: ["Import opening positions"],
+    menu: false,
   });
-};
-for (const view of ["stock", "reservations", "movements"]) {
-  await go("warehouse?warehouse_view=" + view);
-  const expected = {
-    stock: [],
-    reservations: ["Reserve stock", "Release reservation"],
-    movements: ["Record opening stock", "Receive goods", "Record shipment", "Correct movement"],
-  }[view];
-  if (!expected.length) {
-    assert.equal(await page.getByText("More actions", { exact: true }).count(), 0);
-    continue;
-  }
-  await page.getByText("More actions", { exact: true }).click();
-  const buttons = await page.locator(".register-action-menu button").allTextContents();
-  assert.deepEqual(buttons, expected);
 }
-for (const flow of ["receivable", "payable", "customer-credit", "supplier-balance"]) {
-  for (const view of ["open-items", "payments", "journal"]) {
-    await go(`finance?finance_view=${view}&flow=${flow}`);
-    const actions = await pageActions();
-    const buttons = [actions.primary, ...actions.rest];
-    if (flow === "payable" || flow === "supplier-balance")
-      assert.ok(!buttons.some((s) => /credit note|refund|customer/i.test(s)), buttons.join(","));
-    if (view === "journal")
-      assert.deepEqual(buttons, ["Reverse posting", "Import opening positions"]);
-  }
-}
-await go("finance?finance_view=payments&flow=receivable&direction=outgoing");
-assert.deepEqual(await pageActions(), {
-  primary: "Record supplier payment",
-  rest: ["Import opening positions"],
-  menu: false,
-});
 await go("warehouse?warehouse_view=movements");
-await page.locator("[data-action-launcher] > summary").click();
+await page.locator("[data-action-launcher] > button").click();
 assert.equal(
   await page
     .locator("[data-action-launcher]")
@@ -172,12 +181,12 @@ await page
   .getByRole("button", { name: "Record shipment", exact: true })
   .click();
 await page.locator("dialog").waitFor();
-assert.equal(await page.locator("[data-action-launcher]").getAttribute("open"), null);
+assert.equal(await page.locator("[data-action-menu]:popover-open").count(), 0);
 assert.equal(writes.length, 0, JSON.stringify(writes));
 // A failed catalog is visible and retryable, rather than displaying stale candidates.
 failCatalog = true;
 await go("warehouse?warehouse_view=stock");
-await page.locator("[data-action-launcher] > summary").click();
+await page.locator("[data-action-launcher] > button").click();
 await page
   .locator("[data-action-launcher]")
   .getByRole("button", { name: "Retry", exact: true })
@@ -201,8 +210,8 @@ await page.screenshot({
   path: "/private/tmp/action-discovery-screens/mobile-de.png",
   fullPage: true,
 });
-await page.locator(".shell-controls-trigger").click();
-await page.locator("[data-action-launcher] > summary").click();
+await page.locator("[data-navigation-opener]").click();
+await page.locator("[data-action-launcher] > button").click();
 const bounds = await page.locator("[data-action-launcher] > div").boundingBox();
 assert.ok(bounds.x >= 0 && bounds.x + bounds.width <= 390, JSON.stringify(bounds));
 await page.screenshot({

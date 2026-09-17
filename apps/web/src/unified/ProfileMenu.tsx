@@ -8,6 +8,8 @@ import {
   LogOut,
   Settings,
   UserRound,
+  Moon,
+  Sun,
 } from "lucide-react";
 import { api, type AuthUser } from "../api";
 import { t } from "../localization";
@@ -18,11 +20,15 @@ export function ProfileMenu({
   selection,
   navigate,
   closeNavigation,
+  dark,
+  toggleAppearance,
 }: {
   user: AuthUser;
   selection: Selection;
   navigate: (changes: Partial<Selection>) => void;
   closeNavigation: () => void;
+  dark: boolean;
+  toggleAppearance: () => void;
 }) {
   const id = useId();
   const panel = useRef<HTMLDivElement>(null);
@@ -124,6 +130,15 @@ export function ProfileMenu({
           <Settings size={17} />
           {t("Profile & preferences")}
         </a>
+        <button
+          type="button"
+          className={itemClass}
+          aria-label={t("Appearance")}
+          onClick={toggleAppearance}
+        >
+          {dark ? <Sun size={17} /> : <Moon size={17} />}
+          {t("Appearance")}
+        </button>
         {(
           [
             ["Documentation", __DOCS_URL__, BookOpen],

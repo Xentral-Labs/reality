@@ -432,24 +432,20 @@ test("every page action reaches the header through the one shared bar", () => {
   assert.doesNotMatch(master, /Create a record/);
 });
 
-test("desktop shell header reserves the same chat column as the body", () => {
+test("workspace header is separate from company and chat chrome", () => {
   const shell = source("../src/unified/Shell.tsx");
-  assert.match(shell, /data-chat-open=\{chatOpen \? "true" : "false"\}/);
-  assert.match(shell, /className="shell-header-center"/);
+  const header = shell.match(/<header[\s\S]*?<\/header>/)?.[0] || "";
   assert.doesNotMatch(
-    shell.match(/<header[\s\S]*?<\/header>/)?.[0] || "",
-    /page-introduction-actions/,
+    header,
+    /CompanySwitcher|ActionLauncher|LiveSimulationIndicator|page-introduction-actions/,
   );
+  assert.match(header, /data-page-description-trigger/);
+  assert.match(shell, /data-dock-open=\{dockOpen\}/);
   assert.match(
     shell,
     /data-page-tabs[\s\S]*ref=\{setRegisterHeader\}[\s\S]*page-introduction-actions[\s\S]*ref=\{setPageActions\}/,
   );
-  assert.match(shell, /<\/div>\s*<HeaderControls\s+identity=/);
-  const css = source("../src/tailwind.css");
-  assert.match(css, /--shell-chat-width:\s*360px/);
-  assert.match(css, /\[data-shell-header\]\[data-chat-open="true"\]/);
-  assert.match(css, /grid-template-columns:\s*200px minmax\(0, 1fr\) var\(--shell-chat-width\)/);
-  assert.match(css, /grid-template-columns:\s*200px minmax\(0, 1fr\) auto/);
+  assert.match(shell, /shell-navigation-utilities[\s\S]*<ActionLauncher/);
 });
 
 test("Exceptions keeps its catalog control beside filters instead of page actions", () => {
