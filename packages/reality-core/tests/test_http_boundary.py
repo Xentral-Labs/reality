@@ -363,12 +363,18 @@ def test_reference_endpoint_reuses_global_metadata(session, business, monkeypatc
 
     catalogs.clear_runtime_application_catalog()
     calls = []
+    tool_calls = []
 
     def build():
         calls.append(True)
         return {"version": 1, "projections": []}
 
+    def build_tools(catalog):
+        tool_calls.append(catalog["version"])
+        return {"version": 1, "entries": []}
+
     monkeypatch.setattr(catalogs, "load_application_catalog", build)
+    monkeypatch.setattr("reality.tool_catalog.build_tool_catalog", build_tools)
     client = client_for(session, monkeypatch)
     try:
         for _ in range(2):
@@ -376,8 +382,13 @@ def test_reference_endpoint_reuses_global_metadata(session, business, monkeypatc
                 f"/api/tenants/{business.tenant.id}/application-reference"
             )
             assert response.status_code == 200
-            assert response.json() == {"version": 1, "projections": []}
+            assert response.json() == {
+                "version": 1,
+                "projections": [],
+                "tool_catalog": {"version": 1, "entries": []},
+            }
         assert len(calls) == 1
+        assert tool_calls == [1]
     finally:
         catalogs.clear_runtime_application_catalog()
 
