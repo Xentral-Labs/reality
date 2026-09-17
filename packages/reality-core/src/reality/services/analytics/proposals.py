@@ -8,14 +8,13 @@ from reality.security.secrets import _master_key
 from reality.services.analytics.errors import AnalyticsError
 from reality.services.analytics.reports import (
     change_graph_report,
-    change_report,
     kind,
     owned,
     require_author,
 )
 
 
-def prepare(session, tenant_id, principal, arguments, report_kind="definition"):
+def prepare(session, tenant_id, principal, arguments, report_kind="graph"):
     owner = require_author(session, tenant_id, principal)
     contract = kind(report_kind)
     request = contract.change_model.model_validate(arguments)
@@ -61,8 +60,16 @@ def reveal(session, tenant_id, principal, arguments):
 
 def execute_change(session, tenant_id, principal, arguments):
     sealed, report_kind = reveal(session, tenant_id, principal, arguments)
-    save = change_graph_report if report_kind == "graph" else change_report
-    save(session, tenant_id, principal, sealed)
+    if report_kind != "graph":
+        # A proposal sealed by the retired generation names a kind nothing can
+        # save any more. Refusing it is the only honest outcome; saving it as a
+        # graph question would give it a meaning it never had.
+        raise AnalyticsError(
+            "This proposal was prepared by a retired analytics generation and "
+            "cannot be confirmed.",
+            "unknown_report_kind",
+        )
+    change_graph_report(session, tenant_id, principal, sealed)
     return {"private_report_changed": True}
 
 

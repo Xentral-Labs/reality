@@ -247,3 +247,56 @@ def test_a_retired_report_is_not_overwritten_by_a_graph_change(
             },
         )
     assert refusal.value.code == "kind_mismatch"
+
+
+# --- the whole way a chat saves one --------------------------------------------------
+
+
+def test_the_chat_route_prepares_confirms_and_saves_a_report(session, business, author):
+    """The path a copilot actually takes, which nothing exercised end to end.
+
+    Retiring the configured generation left `proposals.py` importing a function
+    that no longer existed. Every unit test still passed, because the import sits
+    inside the function that prepares a proposal and nothing called it — so the
+    first thing that did was a person in the chat.
+    """
+    from reality.services.analytics.reports import CALLER, caller
+    from reality.tools.application import (
+        approve_and_execute_proposal,
+        create_change_proposal,
+    )
+
+    with caller(author):
+        assert CALLER.get() is author
+        proposal = create_change_proposal(
+            session,
+            business.tenant.id,
+            "graph.reports.change",
+            {
+                "operation": "create",
+                "request_id": str(uuid4()),
+                "name": "Umsatz je Währung",
+                "question": QUESTION,
+            },
+        )
+    # The question is sealed: a proposal row is visible to the company, a private
+    # report is not.
+    assert "Umsatz je Währung" not in proposal.input
+
+    with pytest.raises(AnalyticsError):
+        approve_and_execute_proposal(
+            session,
+            business.tenant.id,
+            proposal.id,
+            confirming_principal=author,
+        )
+    approve_and_execute_proposal(
+        session,
+        business.tenant.id,
+        proposal.id,
+        confirming_principal=author,
+        confirmed=True,
+    )
+    saved = list_reports(session, business.tenant.id, author, report_kind="graph")
+    assert [row["name"] for row in saved["records"]] == ["Umsatz je Währung"]
+    assert saved["records"][0]["model_version"] == reporting_graph().model_version
