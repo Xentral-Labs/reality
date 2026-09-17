@@ -43,15 +43,15 @@ function OpenExceptions({
   const severityLabel = (value: string) =>
     t(severities.find(([key]) => key === value)?.[1] || value);
   return (
-    <div className="mx-auto max-w-[1200px] space-y-5" data-work-list="exceptions">
+    <div className="mx-auto max-w-[1200px] space-y-3" data-work-list="exceptions">
       <WorkHeader title="Exceptions" total={read.page?.total} />
-      <div className="exceptions-filter-row grid gap-3">
+      <div className="exceptions-filter-row work-list-toolbar grid gap-2">
         <WorkSearch
           value={q}
           change={(q) => navigate({ q, page: 1, exception: "" })}
           label="Search causes or references"
         />
-        <div className="flex min-w-0 gap-3">
+        <div className="work-list-filters flex min-w-0 flex-wrap gap-2">
           <select
             className="br-control min-w-0 flex-1"
             aria-label={t("Severity")}
@@ -95,7 +95,7 @@ function OpenExceptions({
           read.items.map((row, index) => (
             <div key={row.id}>
               {(index === 0 || row.severity !== read.items[index - 1].severity) && (
-                <h2 className="border-b border-border-default bg-surface-muted px-5 py-2 text-xs font-medium text-fg-muted">
+                <h2 className="border-b border-border-default bg-surface-muted px-4 py-1.5 text-xs font-medium text-fg-muted">
                   {severityLabel(row.severity)}
                 </h2>
               )}

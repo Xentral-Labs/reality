@@ -162,14 +162,16 @@ export function WorkRow({
       aria-expanded={selected}
       aria-controls={previewId}
       onClick={open}
-      className="flex w-full items-center gap-3 border-b border-border-default px-4 py-3.5 text-left last:border-b-0 hover:bg-surface-muted focus-visible:relative focus-visible:z-10 aria-pressed:bg-accent-soft sm:px-5"
+      className="work-row flex w-full items-center gap-3 text-left hover:bg-surface-muted focus-visible:relative focus-visible:z-10 aria-pressed:bg-accent-soft"
     >
       <span className="shrink-0 text-fg-muted">{icon}</span>
-      <span className="min-w-0 flex-1">
+      <span className="work-row-content min-w-0 flex-1">
         <span className="block truncate text-sm font-medium text-fg-strong">{title}</span>
-        <span className="mt-1 block truncate text-xs text-fg-muted">{context}</span>
+        {context && (
+          <span className="work-row-context block truncate text-xs text-fg-muted">{context}</span>
+        )}
       </span>
-      <span className="max-w-[35%] text-right text-xs text-fg-muted">{meta}</span>
+      <span className="work-row-meta text-right text-xs tabular-nums text-fg-muted">{meta}</span>
       {selected ? (
         <ChevronDown size={16} className="shrink-0 text-accent" />
       ) : (

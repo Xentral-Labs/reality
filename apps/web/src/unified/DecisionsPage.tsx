@@ -196,9 +196,9 @@ export function DecisionsPage({
     select(proposal.id, referenceTools.includes(proposal.tool), !!proposal.input.import_file);
   };
   return (
-    <div className="mx-auto max-w-[1200px] space-y-5" data-work-list="decisions">
+    <div className="mx-auto max-w-[1200px] space-y-3" data-work-list="decisions">
       <WorkHeader title="Decisions" total={list.page?.total} />
-      <div className="grid gap-3">
+      <div className="work-list-toolbar grid gap-2">
         <WorkSearch
           value={query}
           change={(value) => {
@@ -207,7 +207,7 @@ export function DecisionsPage({
           }}
           label="Search proposed changes"
         />
-        <div className="flex min-w-0 items-center gap-3">
+        <div className="work-list-filters flex min-w-0 flex-wrap items-center gap-2">
           <select
             className="br-control min-w-0 flex-1"
             aria-label={t("Action type")}

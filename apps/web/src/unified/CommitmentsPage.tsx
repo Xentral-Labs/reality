@@ -42,7 +42,7 @@ export function CommitmentsPage({
           ? "Overdue"
           : "Upcoming";
   return (
-    <div className="mx-auto max-w-[1200px] space-y-5" data-work-list="commitments">
+    <div className="mx-auto max-w-[1200px] space-y-3" data-work-list="commitments">
       <WorkHeader title="Commitments" total={list.page?.total} />
       <div
         className="flex gap-6 border-b border-border-default"
@@ -93,7 +93,7 @@ export function CommitmentsPage({
           list.items.map((row, index) => (
             <div key={row.id}>
               {(index === 0 || group(row) !== group(list.items[index - 1])) && (
-                <h2 className="border-b border-border-default bg-surface-muted px-5 py-2 text-xs font-medium text-fg-muted">
+                <h2 className="border-b border-border-default bg-surface-muted px-4 py-1.5 text-xs font-medium text-fg-muted">
                   {t(group(row))}
                 </h2>
               )}

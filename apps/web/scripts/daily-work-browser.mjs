@@ -172,6 +172,28 @@ try {
           );
           assert.equal(await list.locator(":scope > header").count(), 0);
           assert.equal(await rows.count(), 50);
+          const geometry = await rows.first().evaluate((row) => {
+            const content = row.children[1];
+            const title = content.children[0].getBoundingClientRect();
+            const context = content.children[1].getBoundingClientRect();
+            return {
+              height: row.getBoundingClientRect().height,
+              width: row.closest("[data-work-list]").getBoundingClientRect().width,
+              titleY: title.y,
+              contextY: context.y,
+            };
+          });
+          assert.ok(geometry.height >= 44, "Row retains a 44px target");
+          if (geometry.width >= 720) {
+            assert.equal(geometry.height, 44, "Wide rows use compact height");
+            assert.ok(
+              Math.abs(geometry.titleY - geometry.contextY) <= 2,
+              "Title and context align",
+            );
+          } else {
+            assert.ok(geometry.contextY > geometry.titleY, "Narrow rows stack context");
+          }
+
           await list
             .getByRole("button", {
               name: language === "de" ? "Weitere laden" : "Load more",
@@ -180,7 +202,8 @@ try {
             .click();
           await rows.nth(99).waitFor();
           assert.equal(await rows.count(), 100);
-          await rows.first().click();
+          await rows.first().focus();
+          await page.keyboard.press("Enter");
           const preview = list.getByRole("region").first();
           await preview.waitFor();
           assert.equal(await rows.first().getAttribute("aria-expanded"), "true");
