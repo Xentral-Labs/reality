@@ -300,3 +300,61 @@ def test_the_chat_route_prepares_confirms_and_saves_a_report(session, business, 
     saved = list_reports(session, business.tenant.id, author, report_kind="graph")
     assert [row["name"] for row in saved["records"]] == ["Umsatz je Währung"]
     assert saved["records"][0]["model_version"] == reporting_graph().model_version
+
+
+def test_a_refused_save_releases_the_proposal_instead_of_stranding_it(
+    session, business, author
+):
+    """Found by using it: a reused retry key locked a proposal out permanently.
+
+    Confirmation claims the proposal before it runs, and commits that claim, so a
+    crash mid-write leaves an outcome nobody can assume. A refusal is not that: it
+    wrote nothing. Leaving the claim would answer every later confirmation with
+    "execution is in progress", and the reader would never learn that the copilot
+    had reused a retry key.
+    """
+    from reality.services.analytics.reports import caller
+    from reality.tools.application import (
+        approve_and_execute_proposal,
+        create_change_proposal,
+    )
+
+    shared_key = str(uuid4())
+    save(session, business.tenant.id, author, request_id=shared_key)
+    with caller(author):
+        proposal = create_change_proposal(
+            session,
+            business.tenant.id,
+            "graph.reports.change",
+            {
+                "operation": "create",
+                "request_id": shared_key,
+                "name": "Eine andere Frage",
+                "question": {**QUESTION, "limit": 5},
+            },
+        )
+
+    with pytest.raises(AnalyticsError) as refusal:
+        approve_and_execute_proposal(
+            session,
+            business.tenant.id,
+            proposal.id,
+            confirming_principal=author,
+            confirmed=True,
+        )
+    assert refusal.value.code == "idempotency_conflict"
+
+    session.expire_all()
+    assert session.get(type(proposal), proposal.id).status == "proposed", (
+        "a refusal has to leave the proposal confirmable again"
+    )
+    # And the refusal is the same one the second time, rather than a dead end.
+    with pytest.raises(AnalyticsError) as again:
+        approve_and_execute_proposal(
+            session,
+            business.tenant.id,
+            proposal.id,
+            confirming_principal=author,
+            confirmed=True,
+        )
+    assert again.value.code == "idempotency_conflict"

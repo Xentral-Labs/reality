@@ -2860,7 +2860,25 @@ def approve_and_execute_proposal(
     if tool_name == "graph.reports.change":
         from reality.services.analytics.proposals import execute_change
 
-        result = execute_change(session, tenant_id, confirming_principal, arguments)
+        try:
+            result = execute_change(session, tenant_id, confirming_principal, arguments)
+        except (InvalidOperation, NotFound):
+            # A refused save wrote nothing, so the outcome is known, not unknown.
+            # Leaving the claim in place would strand the proposal: every further
+            # confirmation would answer "execution is in progress" and the reader
+            # would never learn that a retry key was reused or a revision moved on.
+            session.rollback()
+            session.execute(
+                update(ChangeProposal)
+                .where(
+                    ChangeProposal.tenant_id == tenant_id,
+                    ChangeProposal.id == proposal_id,
+                    ChangeProposal.status == "executing",
+                )
+                .values(status="proposed", decided_at=None, decided_by_user_id=None)
+            )
+            session.commit()
+            raise
     elif tool_name in MASTER_TOOLS:
         with master_tool_execution(session, tenant_id, tool_name, arguments):
             result = tool.handler(session, tenant_id, arguments)

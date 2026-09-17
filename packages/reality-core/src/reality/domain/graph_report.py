@@ -25,7 +25,12 @@ class GraphReportChange(StrictModel):
         description="The private graph report change to prepare for confirmation."
     )
     request_id: UUID = Field(
-        description="New client retry UUID; reuse it only for the identical change."
+        description=(
+            "A fresh UUID for this change. Generate a new one every time; reuse "
+            "one only to retry the identical change after a failed response. "
+            "The same key with different content is refused, because it cannot "
+            "be told apart from a change that was already saved."
+        )
     )
     report_id: str | None = Field(
         default=None,
