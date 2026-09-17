@@ -1006,6 +1006,7 @@ checked before it becomes a query, and the two surfaces that author one.
 - `packages/reality-core/tests/test_reporting_graph_declaration.py` — `specs/224-native-reporting-platform/spec.md`, FR-001–002, FR-005, FR-009, FR-013 and DR-002.
 - `packages/reality-core/tests/test_reporting_graph_coverage.py` — `specs/224-native-reporting-platform/spec.md`, FR-001–002, FR-013 and DR-003.
 - `packages/reality-core/tests/test_reporting_graph_traversal.py` — `specs/224-native-reporting-platform/spec.md`, FR-003–005, FR-010 and DR-001–002.
+- `packages/reality-core/tests/test_reporting_graph_isolation.py` — `specs/224-native-reporting-platform/spec.md`, FR-006, FR-011 and SC-005.
 
 
 ## Spec 189 — Open Signup by Default
