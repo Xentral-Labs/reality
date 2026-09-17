@@ -153,3 +153,18 @@ transitions to capture the settled appearance. Artifacts are in
 - German desktop screenshot reviewed: customer/supplier tabs and counts share the
   header, with no second direction strip. Artifacts in `/private/tmp/reality-work-lists/`.
 - `git diff --check`: PASS. No backend changes.
+
+## Inbox consolidation verification
+- New membership test failed before implementation; final frontend suite: 236/236 PASS.
+- `gmake web-build spec-check lint docs-catalog-check`: PASS, including formatting,
+  all supported translations, TypeScript, production build and generated catalog check.
+- Daily-work browser: PASS, 24 queue/layout combinations in English/German, both themes
+  and desktop/mobile. Direct Inbox tab clicks, tenant preservation, sidebar default,
+  removal of old links, no aggregate badge, side/reload behavior, paging, previews,
+  filters and zero business writes verified.
+- Page-introduction browser: PASS, 46 desktop/mobile layouts and three translations.
+- Title-count browser: PASS, 18 registers, nested views, filtered/error/zero counts
+  and mobile menu bounds.
+- German desktop screenshot reviewed in `/private/tmp/reality-work-lists/`: one Inbox
+  navigation entry, three primary tabs and subordinate direction controls.
+- `git diff --check`: PASS. No backend or confirmation behavior changed.

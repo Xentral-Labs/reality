@@ -20,3 +20,7 @@ FR-012 supersedes the title-plus-tabs arrangement: multiple tabs occupy the head
 in place of its visible title, with an adjacent selected-register count. Page actions
 and the labeled chat icon remain separate from the horizontal tab scroller. Pages
 without multiple tabs retain title/count and all pages retain their information button.
+
+FR-013 groups the three daily queues under Inbox. The shared primary tabs are now
+Commitments / Exceptions / Decisions; direction and exception rules use local controls.
+The Inbox sidebar entry has no aggregate badge and old queue URLs remain valid.

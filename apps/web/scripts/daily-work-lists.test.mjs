@@ -24,7 +24,10 @@ test("daily commitments preserve side across reload and cannot request history",
   );
   const page = source("../src/unified/CommitmentsPage.tsx");
   assert.match(page, /"open"/);
-  assert.match(page, /<RegisterHeader title="Commitments">[\s\S]*className="register-tabs"/);
+  assert.match(
+    page,
+    /<RegisterHeader title="Commitments" placement="local">[\s\S]*className="register-tabs"/,
+  );
   assert.doesNotMatch(page, /deliveryStatus|All delivery history|RegisterTable/);
 });
 test("incremental queue merge preserves identity without duplicate rows", async () => {
@@ -42,4 +45,21 @@ test("incremental queue merge preserves identity without duplicate rows", async 
       { id: "b", v: 3 },
     ],
   );
+});
+
+test("Inbox groups only its three queue routes and preserves nested exceptions", async () => {
+  const { isInboxSelection } = await load("../src/unified/dailyWork.ts");
+  for (const selection of [
+    { route: "orders-deliveries", ordersView: "commitments" },
+    { route: "attention", attentionView: "rules" },
+    { route: "decisions", proposal: "proposal-1" },
+  ])
+    assert.equal(isInboxSelection(selection), true);
+  for (const selection of [
+    { route: "orders-deliveries", ordersView: "customer-orders" },
+    { route: "orders-deliveries", ordersView: "supplier-orders" },
+    { route: "home" },
+    { route: "chat" },
+  ])
+    assert.equal(isInboxSelection(selection), false);
 });

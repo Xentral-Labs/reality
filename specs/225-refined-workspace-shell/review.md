@@ -115,3 +115,14 @@ buttons and retained their navigation callback and all data reads. Active filter
 count comes from WorkHeader through the shared tab count slot; inactive overview count
 stays in its direction button. Removed legacy accent/baseline styling. No duplicate
 active count and no service changes. The updated contract failed before the fix.
+
+## Inbox consolidation review
+FR-013/T029–T031: one sidebar destination reuses the canonical Commitments selection;
+the membership helper includes nested exceptions/proposals and excludes Sales/Purchasing.
+Existing dailyWork selections drive primary tabs without changing route semantics.
+Explicit local RegisterHeader placement keeps subordinate direction/rule controls out
+of the global tab/count registration lifecycle. No aggregate/sidebar badge is introduced;
+current-register count and local side totals preserve their distinct meanings. Home,
+Chat, services, permissions and confirmation remain unchanged. The route-membership
+test failed before the helper existed and passes afterwards. German desktop screenshot
+review confirms three primary tabs, one selected Inbox item and quieter local controls.

@@ -169,6 +169,17 @@ try {
             });
           assert.ok(await page.locator("[data-shell-header] [data-page-record-count]").innerText());
           assert.equal(await list.locator(":scope > header").count(), 0);
+          const nav = page.locator("[data-primary-navigation]");
+          assert.equal(await nav.locator('a[aria-label="Inbox"]').count(), 1);
+          assert.equal(
+            await nav.locator('a[aria-label="Inbox"]').getAttribute("aria-current"),
+            "page",
+          );
+          assert.equal(
+            await nav.locator('a[aria-label="Inbox"] [data-page-record-count]').count(),
+            0,
+          );
+          assert.equal(await page.locator("[data-shell-header] .register-tabs button").count(), 3);
           assert.equal(await rows.count(), 50);
           const geometry = await rows.first().evaluate((row) => {
             const content = row.children[1];
@@ -215,13 +226,13 @@ try {
           assert.equal(await rows.first().getAttribute("aria-expanded"), "false");
           if (kind === "commitments") {
             const header = page.locator("[data-shell-header]");
-            assert.equal(await header.locator(".register-tabs button").count(), 2);
-            assert.equal(await list.locator(".register-tabs").count(), 0);
+            assert.equal(await header.locator(".register-tabs button").count(), 3);
+            assert.equal(await list.locator(".register-tabs").count(), 1);
             assert.equal(
               await header.locator(".shell-tab-count [data-page-record-count]").count(),
               1,
             );
-            await header.getByRole("button", { name: /Supplier side|Lieferantenseite/ }).click();
+            await list.getByRole("button", { name: /Supplier side|Lieferantenseite/ }).click();
             await rows.filter({ hasText: "Supplier Studio 1" }).first().waitFor();
             assert.equal(await rows.count(), 50);
             await page.reload();
@@ -246,6 +257,27 @@ try {
             path: `/private/tmp/reality-work-lists/${kind}-${language}-${theme}-${mobile ? "mobile" : "desktop"}.png`,
           });
         }
+        for (const [index, kind] of [
+          [0, "commitments"],
+          [1, "exceptions"],
+          [2, "decisions"],
+        ]) {
+          await page.locator("[data-shell-header] .register-tabs button").nth(index).click();
+          await page.locator(`[data-work-list="${kind}"] [data-work-row]`).first().waitFor();
+          assert.equal(new URL(page.url()).searchParams.get("tenant"), "demo");
+        }
+        if (mobile) await page.locator("[data-navigation-opener]").click();
+        const navigation = page.locator("[data-primary-navigation]");
+        assert.equal(
+          await navigation
+            .locator(
+              'a[aria-label="Commitments"], a[aria-label="Exceptions"], a[aria-label="Decisions"], a[aria-label="Ausnahmen"], a[aria-label="Entscheidungen"]',
+            )
+            .count(),
+          0,
+        );
+        await navigation.getByRole("link", { name: "Inbox", exact: true }).click();
+        await page.locator('[data-work-list="commitments"] [data-work-row]').first().waitFor();
         assert.equal(writes, 0);
         assert.deepEqual(errors, []);
         console.log(

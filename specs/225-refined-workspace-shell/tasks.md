@@ -52,3 +52,8 @@ No domain, service or tool work is required by this adapter-only feature.
 ## Commitments header regression (FR-012)
 - [x] T027 Update daily-work header expectations, route legacy side tabs through RegisterHeader and preserve counts.
 - [x] T028 Verify frontend gates and daily-work browser matrix; review screenshots and record results.
+
+## Inbox consolidation (FR-013)
+- [x] T029 Add Inbox route membership tests and adapt browser placement checks.
+- [x] T030 Consolidate sidebar and header tabs, retaining local side/rule controls and translations.
+- [x] T031 Run frontend/browser gates, review navigation/count behavior and record results.

@@ -49,3 +49,11 @@ export const dailyWork = [
 export function isCommitmentsSelection(selection: Selection): boolean {
   return selection.route === "orders-deliveries" && selection.ordersView === "commitments";
 }
+
+export function isInboxSelection(selection: Selection): boolean {
+  return (
+    isCommitmentsSelection(selection) ||
+    selection.route === "attention" ||
+    selection.route === "decisions"
+  );
+}

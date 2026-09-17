@@ -16538,3 +16538,7 @@ Object.assign(dictionaries.es, {
 });
 
 Object.assign(dictionaries.de, { "Ctrl K": "Strg K" });
+
+Object.assign(dictionaries.de, { Inbox: "Inbox" });
+Object.assign(dictionaries.nl, { Inbox: "Inbox" });
+Object.assign(dictionaries.es, { Inbox: "Inbox" });
