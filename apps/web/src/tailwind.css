@@ -2995,7 +2995,6 @@ textarea.br-control.rule-draft-editor {
   justify-content: space-between;
   gap: 16px;
   margin-bottom: 20px;
-  border-bottom: 1px solid var(--color-border-default);
 }
 .page-view-tabs-target {
   min-width: 0;
@@ -3418,7 +3417,6 @@ textarea.br-control.rule-draft-editor {
   height: var(--app-header-height);
   min-width: 0;
   padding: 0 20px;
-  border-bottom: 1px solid var(--color-border-subtle);
   background: var(--color-surface);
 }
 .shell-page-heading {
@@ -3518,7 +3516,6 @@ textarea.br-control.rule-draft-editor {
   width: 240px;
   flex-direction: column;
   min-height: 0;
-  border-right: 1px solid var(--color-border-subtle);
   background: var(--shell-surface);
 }
 .shell-company-block {
@@ -3664,7 +3661,6 @@ textarea.br-control.rule-draft-editor {
   justify-content: space-between;
   gap: 8px;
   padding: 0 12px;
-  border-bottom: 1px solid var(--color-border-subtle);
 }
 .shell-chat-header [data-original-content] {
   font-size: 13px;

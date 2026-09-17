@@ -34,3 +34,7 @@ No domain, service or tool work is required by this adapter-only feature.
 - [x] T016 Add keyboard, focus, centering, query reset and placement browser checks.
 - [x] T017 Restyle/reposition the existing launcher and add the platform shortcut.
 - [x] T018 Verify frontend gates and launcher browsers; inspect visual result and review scope.
+
+## Quiet shell boundaries (FR-010)
+- [x] T019 Remove four decorative boundaries while preserving chat divider and active tabs.
+- [x] T020 Run frontend gates and existing shell browser; visually review and record evidence.

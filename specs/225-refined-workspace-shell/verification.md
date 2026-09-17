@@ -104,3 +104,12 @@ transitions to capture the settled appearance. Artifacts are in
   `/private/tmp/action-discovery-screens/mobile-menu-de.png`. Menu screenshots avoid
   full-page resizing, which intentionally dismisses the palette.
 - `git diff --check`: PASS. No backend changes; future command features remain deferred.
+
+## Quiet shell boundaries verification
+- `gmake web-build spec-check lint docs-catalog-check`: PASS (235 tests, translation
+  audits, formatting, TypeScript, production build and generated-doc consistency).
+- Existing refined shell browser: PASS, including 32 language/theme/viewport layouts
+  and keyboard/menu geometry. German desktop light screenshot reviewed: no header
+  rules or sidebar border; content/chat divider remains.
+- Diff review confirms active-tab indicator and all content separators unchanged.
+- `git diff --check`: PASS. No backend changes or new tests required.
