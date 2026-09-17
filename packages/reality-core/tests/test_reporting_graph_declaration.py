@@ -10,6 +10,7 @@ import copy
 
 import pytest
 import yaml
+
 from reality.config import config_text
 from reality.db.core import Base
 from reality.services.analytics.graph_model import (
