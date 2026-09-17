@@ -106,3 +106,12 @@ The initial header-placement contract failed before implementation. Route/count
 browser regressions cover tab changes, title-only transitions and nested documents.
 Desktop screenshot confirms the table begins directly below the single header;
 mobile uses a compact action icon and retains horizontally scrollable tab labels.
+
+## Commitments header regression review
+Commitments was the remaining top-level page strip bypassing RegisterHeader. Audit
+of page-level pressed controls found other workspaces already using the shared slot;
+remaining Master data controls are local filters. Wrapped the existing direction
+buttons and retained their navigation callback and all data reads. Active filtered
+count comes from WorkHeader through the shared tab count slot; inactive overview count
+stays in its direction button. Removed legacy accent/baseline styling. No duplicate
+active count and no service changes. The updated contract failed before the fix.

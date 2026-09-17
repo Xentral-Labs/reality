@@ -142,3 +142,14 @@ transitions to capture the settled appearance. Artifacts are in
   `/private/tmp/reality-225-tabs-de-390.png`. No second tab/action row remains.
 - `git diff --check`: PASS. Existing large-chunk warning remains non-blocking; no
   backend code or business calculations changed.
+
+## Commitments header regression verification
+- Placement contract failed before implementation, then passed.
+- `gmake web-build spec-check lint docs-catalog-check`: PASS, 235 tests, formatting,
+  translation audits, TypeScript, production build and catalog consistency.
+- Daily-work browser: PASS for three queues across English/German, light/dark and
+  desktop/mobile (24 queue/layout combinations). Header tabs/count placement, side
+  switching/reload, pagination, inline preview, filters and zero business writes verified.
+- German desktop screenshot reviewed: customer/supplier tabs and counts share the
+  header, with no second direction strip. Artifacts in `/private/tmp/reality-work-lists/`.
+- `git diff --check`: PASS. No backend changes.

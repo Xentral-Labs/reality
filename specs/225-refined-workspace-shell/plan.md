@@ -118,3 +118,10 @@ Scrollable tabs and compact mobile action/chat controls prevent overflow; action
 must remain outside tab overflow. Tests first update header placement expectations,
 then run full frontend gates, shell, page-introduction and title-count browsers covering
 routes, filters, empty/error/loading counts, mobile geometry and existing page actions.
+
+## Commitments header regression plan
+Restore FR-012 on the legacy Commitments strip. Constitution Check PASS; no unresolved
+clarification. Update daily-work browser to locate direction tabs/counts in the shell
+header before wrapping the existing tabs in RegisterHeader. Preserve labels, counts,
+side switching/reload and list behavior. Run frontend gates and the daily-work browser
+matrix; verify header/body placement and screenshots. No backend changes required.

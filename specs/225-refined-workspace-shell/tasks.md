@@ -48,3 +48,7 @@ No domain, service or tool work is required by this adapter-only feature.
 - [x] T024 Update shared header contracts and route/count browser expectations before implementation.
 - [x] T025 Integrate tab/action/count slots in the header with compact responsive controls.
 - [x] T026 Run frontend gates and shell/introduction/count browsers; review screenshots and record results.
+
+## Commitments header regression (FR-012)
+- [x] T027 Update daily-work header expectations, route legacy side tabs through RegisterHeader and preserve counts.
+- [x] T028 Verify frontend gates and daily-work browser matrix; review screenshots and record results.
