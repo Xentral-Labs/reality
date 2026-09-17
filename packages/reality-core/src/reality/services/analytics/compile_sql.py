@@ -24,13 +24,17 @@ from sqlalchemy import (
     Integer,
     Numeric,
     Select,
+    all_,
     and_,
     distinct,
     exists,
     func,
+    literal,
     select,
+    text,
 )
 from sqlalchemy import Table as SaTable
+from sqlalchemy.dialects.postgresql import array
 from sqlalchemy.orm import Session
 from sqlalchemy.sql.elements import ColumnElement
 
@@ -103,6 +107,60 @@ def _join_condition(hop: ResolvedHop, frame: Frame, origin: str) -> ColumnElemen
             values = selector if isinstance(selector, list) else [selector]
             condition = and_(condition, target.c[name].in_(values))
     return condition
+
+
+def _closure(hop: ResolvedHop, node: Node, tenant_id: str):
+    """Walk a recursive edge to a bounded depth, once, for the whole tenant.
+
+    The anchor and the recursive term both carry the tenant predicate. Forgetting
+    it in the recursive term is the classic way a closure leaks, and it is why
+    this is written here rather than left to whoever asks the question.
+
+    A visited list terminates a cycle. Real data is not supposed to contain one,
+    and a run that meets one has found a defect to report rather than a reason to
+    exhaust the connection.
+
+    The carrying column travels with each row so the walk works in both
+    directions: downwards a child names its parent, upwards a row's own carrier
+    names the parent to step onto next.
+    """
+    table_name, column = (hop.edge.via or "").split(".", 1)
+    table = _table(table_name)
+    key = node.key
+    low, high = hop.depth or (1, 1)
+
+    anchor = (
+        select(
+            table.c[key].label("ancestor"),
+            table.c[key].label("descendant"),
+            table.c[column].label("carrier"),
+            literal(0).label("depth"),
+            array([table.c[key]]).label("visited"),
+        )
+        .where(table.c[node.tenant] == tenant_id)
+        .cte(name=f"{hop.alias}_closure", recursive=True)
+    )
+    step = table.alias(f"{hop.alias}_step")
+    stepping = (
+        step.c[column] == anchor.c.descendant
+        if hop.direction == "in"
+        else step.c[key] == anchor.c.carrier
+    )
+    recursive_term = select(
+        anchor.c.ancestor,
+        step.c[key],
+        step.c[column],
+        anchor.c.depth + 1,
+        anchor.c.visited.op("||")(step.c[key]),
+    ).where(
+        and_(
+            stepping,
+            step.c[node.tenant] == tenant_id,
+            anchor.c.depth < high,
+            step.c[key] != all_(anchor.c.visited),
+        )
+    )
+    return anchor.union_all(recursive_term), low, high
 
 
 def _bucket(column, bucket: str):
@@ -195,6 +253,24 @@ def build(path: ResolvedPath, tenant_id: str) -> Select:
         frame.nodes[hop.alias] = node
         if hop.as_exists:
             continue
+        if hop.depth:
+            closure, low, high = _closure(hop, node, tenant_id)
+            origin_key = frame.tables[hop.origin].c[frame.nodes[hop.origin].key]
+            statement = statement.join(
+                closure,
+                and_(
+                    closure.c.ancestor == origin_key,
+                    closure.c.depth >= low,
+                    closure.c.depth <= high,
+                ),
+            ).join(
+                table,
+                and_(
+                    table.c[node.key] == closure.c.descendant,
+                    *_scope(node, table, tenant_id),
+                ),
+            )
+            continue
         statement = statement.join(
             table,
             and_(
@@ -263,8 +339,18 @@ def _plain(value: Any) -> Any:
 
 
 def execute(session: Session, tenant_id: str, path: ResolvedPath) -> TraversalResult:
+    """Run the one statement under a deadline the caller cannot raise.
+
+    The budget is set on the transaction rather than the connection, so it falls
+    away with the query and never leaks into whatever the session does next.
+    """
     statement = build(path, tenant_id)
     rendered = str(statement.compile(compile_kwargs={"literal_binds": False}))
+    # SET takes no bind parameter. The value is an integer field of the validated
+    # declaration, never anything a caller supplied, and it is coerced again here
+    # so this line cannot become an injection point if that ever changes.
+    budget_ms = int(path.graph.limits.statement_timeout_seconds) * 1000
+    session.execute(text(f"SET LOCAL statement_timeout = {budget_ms:d}"))
     rows = session.execute(statement).mappings().all()
     return TraversalResult(
         rows=tuple({key: _plain(value) for key, value in row.items()} for row in rows),
