@@ -123,18 +123,10 @@ try {
         await page.waitForURL(/\/app\/demo-data\?tenant=demo/);
         const panel = page.locator(".demo-data-integration");
         await panel.getByText("DEMO-1", { exact: true }).waitFor();
-        const demoNavigation = page.locator('[data-navigation-item][href*="/demo-data"]');
-        assert.equal(await demoNavigation.count(), 1);
-        assert.equal(await demoNavigation.getAttribute("aria-current"), "page");
-        assert.ok(
-          await demoNavigation.evaluate((el) => {
-            const companies = el.parentElement?.querySelector("a[href*='/settings']");
-            return (
-              !!companies &&
-              !!(companies.compareDocumentPosition(el) & Node.DOCUMENT_POSITION_FOLLOWING)
-            );
-          }),
-          "Demo Data follows Companies",
+        assert.equal(
+          await page.locator('[data-navigation-item][href*="/demo-data"]').count(),
+          0,
+          "The simulation is company context, not a navigation destination",
         );
         if (language === "en") {
           assert.equal(
@@ -217,9 +209,13 @@ try {
         );
         if (language === "en") {
           await page.goto(`${base}/app/data-sources?tenant=demo`);
-          await page
-            .locator('[data-navigation-item][href*="/demo-data"]')
-            .waitFor({ state: "attached" });
+          const source = page.locator("[data-demo-data-source]");
+          await source.waitFor();
+          await source.getByText("60 orders per hour", { exact: false }).waitFor();
+          assert.match(
+            await source.locator("[data-demo-data-open]").getAttribute("href"),
+            /\/app\/demo-data\?tenant=demo/,
+          );
           assert.equal(
             await page.locator(".demo-data-integration").count(),
             0,
@@ -228,10 +224,11 @@ try {
           ordinary = true;
           await page.reload();
           await page.locator('[data-company-id="demo"]').waitFor();
+          await page.locator("[data-source-table-inset]").waitFor();
           assert.equal(
-            await page.locator('[data-navigation-item][href*="/demo-data"]').count(),
+            await page.locator("[data-demo-data-source]").count(),
             0,
-            "Ordinary company has no Demo Data navigation",
+            "An ordinary company has no simulation source",
           );
         }
         assert.deepEqual(errors, []);

@@ -63,6 +63,8 @@ export function SettingsPage({
             companies={companies}
             switchCompany={switchCompany}
             openCompany={openCompany}
+            creating={view === "new"}
+            setCreating={(on) => navigate({ settingsView: on ? "new" : "company" })}
             openSimulation={(id) =>
               navigate({ tenant: id, route: "demo-data", page: 1, q: "", proposal: "" })
             }
@@ -86,7 +88,7 @@ export function SettingsPage({
           view={target.view}
           close={() => {
             setManagement(null);
-            if (view !== "company") navigate({ settingsView: "company" });
+            if (view !== "company" && view !== "new") navigate({ settingsView: "company" });
           }}
         />
       )}

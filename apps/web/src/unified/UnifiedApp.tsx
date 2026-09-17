@@ -260,7 +260,12 @@ export default function UnifiedApp({
                     />
                   </>
                 ) : selection.route === "data-sources" ? (
-                  <DataSourcesPage user={user.id} selection={selection} navigate={navigate} />
+                  <DataSourcesPage
+                    user={user.id}
+                    company={company}
+                    selection={selection}
+                    navigate={navigate}
+                  />
                 ) : selection.route === "finance" ? (
                   <FinancePage
                     canManage={company.role === "owner"}

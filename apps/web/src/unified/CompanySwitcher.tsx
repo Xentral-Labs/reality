@@ -1,15 +1,27 @@
 import { useId, useRef } from "react";
-import { Check, ChevronDown } from "lucide-react";
+import { Check, ChevronDown, Plus, Settings } from "lucide-react";
 import type { Tenant } from "../api";
 import { t } from "../localization";
+import { selectionUrl, type Selection } from "./routing";
+
+const simulationLabels = {
+  running: "Running",
+  paused: "Paused",
+  stopped: "Stopped",
+  disconnected: "Disconnected",
+} as const;
 
 export function CompanySwitcher({
   company,
   companies,
+  selection,
+  navigate,
   switchCompany,
 }: {
   company: Tenant;
   companies: Tenant[];
+  selection: Selection;
+  navigate: (changes: Partial<Selection>) => void;
   switchCompany: (id: string) => void;
 }) {
   const id = useId();
@@ -92,6 +104,12 @@ export function CompanySwitcher({
                 {row.sandbox_run_id && (
                   <span className="block text-xs text-fg-muted">{t("Practice company")}</span>
                 )}
+                {row.demo_data_state && (
+                  <span className="company-simulation-state" data-simulation={row.demo_data_state}>
+                    <span data-simulation-dot aria-hidden="true" />
+                    {t("Live simulation")} · {t(simulationLabels[row.demo_data_state])}
+                  </span>
+                )}
                 {companies.some((other) => other.id !== row.id && other.name === row.name) && (
                   <span
                     className="block break-all text-xs text-fg-muted"
@@ -106,6 +124,48 @@ export function CompanySwitcher({
               )}
             </button>
           ))}
+        </div>
+        <div className="mt-1.5 border-t border-border-default pt-1.5">
+          {(
+            [
+              ["Manage companies", "company", Settings],
+              ["New company", "new", Plus],
+            ] as const
+          ).map(([label, view, Icon]) => {
+            const target: Partial<Selection> = {
+              route: "settings",
+              settingsView: view,
+              proposal: "",
+              entry: "",
+              q: "",
+              page: 1,
+            };
+            return (
+              <a
+                key={view}
+                data-company-management={view}
+                className="flex w-full items-center gap-2 rounded-lg px-3 py-2.5 text-left text-sm hover:bg-surface-muted focus-visible:outline-accent"
+                href={selectionUrl({ ...selection, ...target })}
+                onClick={(event) => {
+                  if (
+                    event.button ||
+                    event.metaKey ||
+                    event.ctrlKey ||
+                    event.shiftKey ||
+                    event.altKey
+                  )
+                    return;
+                  event.preventDefault();
+                  panel.current?.hidePopover();
+                  trigger.current?.focus();
+                  navigate(target);
+                }}
+              >
+                <Icon size={17} className="shrink-0 text-fg-muted" />
+                {t(label)}
+              </a>
+            );
+          })}
         </div>
       </div>
     </>

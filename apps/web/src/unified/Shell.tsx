@@ -266,6 +266,8 @@ export function Shell({
                   <CompanySwitcher
                     company={company}
                     companies={companies}
+                    selection={selection}
+                    navigate={navigate}
                     switchCompany={switchCompany}
                   />
                 </div>
@@ -566,7 +568,6 @@ export function Shell({
                   <p className="mb-1.5 px-3 text-[10px] uppercase tracking-wider text-fg-muted">
                     {t("Company")}
                   </p>
-
                   <a
                     data-navigation-item
                     aria-label={t("Integrations")}
@@ -589,39 +590,6 @@ export function Shell({
                   >
                     <Database size={17} />
                     <span data-navigation-label>{t("Integrations")}</span>
-                  </a>
-                  <a
-                    data-navigation-item
-                    aria-label={t("Companies")}
-                    data-sidebar-tooltip={t("Companies")}
-                    className={`flex items-center gap-2 rounded-md px-3 py-2 text-[13px] leading-5 ${selection.route === "settings" && selection.settingsView !== "personal" ? activeNavigation : "hover:bg-surface-muted"}`}
-                    href={selectionUrl({
-                      ...selection,
-                      route: "settings",
-                      settingsView: "company",
-                      proposal: "",
-                      q: "",
-                      page: 1,
-                    })}
-                    aria-current={
-                      selection.route === "settings" && selection.settingsView !== "personal"
-                        ? "page"
-                        : undefined
-                    }
-                    onClick={(event) => {
-                      event.preventDefault();
-                      navigate({
-                        route: "settings",
-                        settingsView: "company",
-                        proposal: "",
-                        q: "",
-                        page: 1,
-                      });
-                      setOpen(false);
-                    }}
-                  >
-                    <Settings size={17} />
-                    <span data-navigation-label>{t("Companies")}</span>
                   </a>
                   <a
                     data-navigation-item
@@ -651,24 +619,6 @@ export function Shell({
                     <BookOpen size={17} />
                     <span data-navigation-label>{t("Storyline")}</span>
                   </a>
-                  {(company.company_kind === "demo" || company.demo_data_state) && (
-                    <a
-                      data-navigation-item
-                      aria-label={t("Demo Data")}
-                      data-sidebar-tooltip={t("Demo Data")}
-                      className={`flex items-center gap-2 rounded-md px-3 py-2 text-[13px] leading-5 ${selection.route === "demo-data" ? activeNavigation : "hover:bg-surface-muted"}`}
-                      href={selectionUrl({ ...selection, route: "demo-data", page: 1, q: "" })}
-                      aria-current={selection.route === "demo-data" ? "page" : undefined}
-                      onClick={(event) => {
-                        event.preventDefault();
-                        navigate({ route: "demo-data", page: 1, q: "" });
-                        setOpen(false);
-                      }}
-                    >
-                      <Database size={17} />
-                      <span data-navigation-label>{t("Demo Data")}</span>
-                    </a>
-                  )}
                 </nav>
                 <ProfileMenu
                   user={user}
