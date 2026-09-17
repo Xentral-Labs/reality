@@ -106,7 +106,7 @@ for (const width of [1440, 390]) {
     const badge = page.locator("[data-page-record-count]");
     if (await badge.count()) {
       const badgeBox = await badge.boundingBox();
-      const titleBox = await page.locator("[data-page-introduction] h1").boundingBox();
+      const titleBox = await page.locator("[data-shell-header]").boundingBox();
       assert.ok(badgeBox.width >= 18, path);
       assert.equal(badgeBox.height, 18, path);
       assert.ok(
@@ -115,10 +115,15 @@ for (const width of [1440, 390]) {
       );
     }
     const tabs = page.locator("[data-page-tabs] .register-tabs");
-    assert.equal(await page.locator("[data-shell-header] .register-tabs").count(), 0, path);
+    assert.equal(await page.locator("main .page-view-tabs").count(), 0, path);
     if (await tabs.count()) {
       const box = await tabs.boundingBox();
-      assert.ok(box.y >= header.y + header.height, path);
+      assert.ok(box.y >= header.y && box.y + box.height <= header.y + header.height, path);
+      assert.equal(
+        await page.locator("[data-shell-header]").getAttribute("data-has-tabs"),
+        "true",
+        path,
+      );
       if (width === 390) await tabs.locator("button,a").last().click();
       const selected = tabs.locator('[aria-pressed="true"], [aria-current="page"]');
       assert.equal(await selected.count(), 1, path);
@@ -128,6 +133,15 @@ for (const width of [1440, 390]) {
       }));
       assert.equal(style.border, "2px", path);
       assert.equal(style.radius, "0px", path);
+    }
+    const actions = page.locator("[data-shell-header] .register-actions");
+    if (await actions.count()) {
+      await actions.locator("summary").click();
+      const menu = await actions.locator(".register-action-menu").boundingBox();
+      assert.ok(menu.x >= 0 && menu.x + menu.width <= width + 1, path);
+      assert.ok(menu.y >= header.y + header.height - 8, path);
+      await actions.locator("summary").press("Escape");
+      assert.equal(await actions.getAttribute("open"), null, path);
     }
     if (width === 390) {
       await page.locator("[data-navigation-opener]").click();

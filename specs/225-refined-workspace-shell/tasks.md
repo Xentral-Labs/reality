@@ -43,3 +43,8 @@ No domain, service or tool work is required by this adapter-only feature.
 - [x] T021 Update placement contracts and navigation browser expectations.
 - [x] T022 Group company controls, refine search field and remove redundant heading.
 - [x] T023 Run frontend gates and shell/navigation browsers, inspect and document results.
+
+## Unified tab header (FR-012)
+- [x] T024 Update shared header contracts and route/count browser expectations before implementation.
+- [x] T025 Integrate tab/action/count slots in the header with compact responsive controls.
+- [x] T026 Run frontend gates and shell/introduction/count browsers; review screenshots and record results.

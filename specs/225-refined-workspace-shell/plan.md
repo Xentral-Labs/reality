@@ -106,3 +106,15 @@ visible Daily work label while retaining the landmark. Update superseded placeme
 contracts and existing navigation browser assertions first; run frontend gates and
 shell/collapsible navigation browsers, then inspect desktop/mobile/rail screenshots.
 No business service changes or new dependencies.
+
+## Unified tab header plan
+Approved FR-012. Constitution Check PASS; no unresolved clarification or backend scope.
+RegisterHeader reports whether it renders multiple direct tab controls through a
+shared layout context and provides an adjacent active-tab count portal target. Shell
+hosts existing tab/action portals in its header; a visually hidden heading preserves
+page orientation for assistive technology on tabbed pages. Single-title pages retain
+the visible title/count. Keep the tab portal stable to avoid remounting controls.
+Scrollable tabs and compact mobile action/chat controls prevent overflow; action menus
+must remain outside tab overflow. Tests first update header placement expectations,
+then run full frontend gates, shell, page-introduction and title-count browsers covering
+routes, filters, empty/error/loading counts, mobile geometry and existing page actions.

@@ -79,7 +79,7 @@ export function DataSourcesPage({
           ).map(([value, label]) => (
             <button
               key={value}
-              aria-pressed={view === value}
+              aria-pressed={view === value || (value === "records" && view === "documents")}
               onClick={() =>
                 navigate({ dataView: value, entry: "", q: "", page: 1, sourceRecord: "" })
               }

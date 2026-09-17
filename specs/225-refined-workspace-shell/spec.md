@@ -158,3 +158,14 @@ Below it, present the existing action palette trigger as a quiet search field wi
 short Search wording and platform shortcut. Remove the visible Daily work heading;
 retain its navigation landmark label. Tighten secondary company-context spacing.
 Preserve rail access, company menu, simulation eligibility, routes and action scope.
+
+## Unified tab header follow-up
+FR-012: Pages with multiple register tabs show those tabs in the workspace header
+instead of a duplicate visible title. Pages without multiple tabs retain the title.
+Keep one accessible page heading and the existing page-information disclosure.
+Move existing page actions to the right of the same header, with an icon-only chat
+toggle and tooltip. The current register count appears beside the active tab; pages
+without tabs keep their title count. Tabs scroll horizontally when space is limited;
+mobile uses a compact labeled action-menu trigger. Preserve routes, tab selection,
+filters, permissions, action confirmation, counts and chat drafts. Apply through the
+shared register/header contract, including integrations where multiple tabs exist.

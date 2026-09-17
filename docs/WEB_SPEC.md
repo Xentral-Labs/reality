@@ -3026,3 +3026,15 @@ platform shortcut; its accessible label still identifies action search. Daily wo
 remains the navigation landmark name without a redundant visible heading. Secondary
 company context uses tighter spacing. Existing palette scope and simulation semantics
 remain unchanged. Home remains directly available as the first navigation destination.
+
+### Single-row tabbed headers (spec 225)
+Multiple register tabs replace the visible page title in the workspace header.
+Title-only pages retain it; tabbed pages retain one visually hidden page heading and
+the page-information disclosure. Existing page actions occupy a separate right-hand
+slot outside tab scrolling, followed by an icon-only, labeled chat toggle. Counts
+appear adjacent to the active tab, or beside the title on pages without tabs. Nested
+Documents in Integrations select the Received data parent tab. The tab strip scrolls
+horizontally as needed; it never scrolls the page to reveal the selection. Compact
+mobile action triggers retain their accessible labels. Existing forms, confirmation,
+permissions, filters and data reads are unchanged. No second tab/action row remains
+above the page content. This supersedes the earlier spec225 title-and-tab placement.
