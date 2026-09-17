@@ -70,3 +70,11 @@ inspection share this read path and remain. Constitution Check: PASS; no data, s
 or authorization changes. Add navigation and shell assertions before implementation;
 move shared drawer regression entry to Home. Run the existing required frontend gates
 and both shell/activity browsers. No critical analysis findings or unresolved scope.
+
+## Action translation regression plan
+Review: scope is restoration of FR-007, without unresolved clarification. Constitution
+Check passes: translated interface labels only, no source values or service changes.
+Before implementation, test every executable discovery category/group/entry label
+against the three non-English dictionaries and observe the five missing labels.
+Add translations, run that regression and the required frontend gates, and extend the
+existing shell browser to assert translated shipping labels and German menu search.

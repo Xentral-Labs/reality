@@ -16514,3 +16514,25 @@ Object.assign(dictionaries.es, { "About this page": "Acerca de esta página" });
 Object.assign(dictionaries.de, { Activities: "Aktivitäten" });
 Object.assign(dictionaries.nl, { Activities: "Activiteiten" });
 Object.assign(dictionaries.es, { Activities: "Actividades" });
+
+Object.assign(dictionaries.de, {
+  "Record shipment notice": "Versandmeldung erfassen",
+  "Dispatch package": "Paket versenden",
+  "Receive package": "Paket empfangen",
+  "Record tracking event": "Tracking-Ereignis erfassen",
+  "Correct tracking event": "Tracking-Ereignis korrigieren",
+});
+Object.assign(dictionaries.nl, {
+  "Record shipment notice": "Verzendmelding vastleggen",
+  "Dispatch package": "Pakket verzenden",
+  "Receive package": "Pakket ontvangen",
+  "Record tracking event": "Trackinggebeurtenis vastleggen",
+  "Correct tracking event": "Trackinggebeurtenis corrigeren",
+});
+Object.assign(dictionaries.es, {
+  "Record shipment notice": "Registrar aviso de envío",
+  "Dispatch package": "Enviar paquete",
+  "Receive package": "Recibir paquete",
+  "Record tracking event": "Registrar evento de seguimiento",
+  "Correct tracking event": "Corregir evento de seguimiento",
+});

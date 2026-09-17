@@ -125,3 +125,10 @@ serve the main history page, Home and graph inspection; they are not exclusive c
 | Requirement | Story | Tasks | Verification |
 |---|---|---|---|
 | FR-008 | US2 | T010–T012 | Navigation contract, shell browser, shared drawer browser |
+
+## Action translation regression
+FR-007 requires localized control names. Five shipping/tracking entries loaded from
+`action_discovery.json` lack translations and fall back to English even when German
+is selected. Restore the existing requirement in all supported dictionaries. A
+regression test must cover every category, group and entry label from the executable
+discovery catalog, including future additions. No API or command definitions change.

@@ -24,3 +24,8 @@ No domain, service or tool work is required by this adapter-only feature.
 - [x] T010 Update navigation contract and shell/browser expectations before implementation.
 - [x] T011 Rename the history destination, remove shell-only activity code and update web documentation.
 - [x] T012 Run frontend gates and shell/shared-drawer browsers; review dependency removal and record results.
+
+## Action translation regression (FR-007)
+- [x] T013 Add failing coverage for all executable discovery labels and translated launcher search.
+- [x] T014 Translate the five missing shipping/tracking labels in German, Dutch and Spanish.
+- [x] T015 Run frontend gates and launcher browser coverage; review and record results.
