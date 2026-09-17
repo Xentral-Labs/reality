@@ -194,3 +194,8 @@ this company/page visit. Creating the first session must not automatically chang
 layout; a history button then permits explicit opening. Reopening the page with saved
 history restores desktop history. Keep New chat accessible independently of the column,
 preserve mobile overlay behavior, drafts, archived access and company isolation.
+
+## Continuous register surfaces (approved follow-up)
+FR-015: Shared registers use a continuous working surface: no enclosing rounded card or gray table-header fill; compact neutral filters, 13px body type, medium column labels and tabular numeric cells. Footer and rows share horizontal bounds. Selection actions appear only with a selection. Empty results hide redundant column headings and stay compact, retaining filters, paging and truthful existing empty guidance. Healthy calculation freshness becomes a quiet line; pending, failed, behind and read-error information remains visible. Existing search submission, column preferences, resizing, density, sorting, row actions and tenant reads remain unchanged.
+Acceptance: populated and empty Finance at desktop/mobile, with chat open/closed, keep aligned footer and independent row scrolling; selection/export remains reachable. Business Facts shares the surface without an extra toolbar frame. Theme and keyboard focus remain readable.
+Scope review: user approved the preceding visual proposal. No business/schema changes or unresolved clarifications.

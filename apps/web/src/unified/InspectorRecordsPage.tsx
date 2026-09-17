@@ -133,7 +133,7 @@ export function InspectorRecordsPage({
                   busy={read.loading}
                   cursorView={{
                     id: `inspector-records:${kind}`,
-                    widths: [160, 280, 360, 220, 112],
+                    widths: [190, 280, 360, 220, 112],
                   }}
                   actionWidth={112}
                   footer={

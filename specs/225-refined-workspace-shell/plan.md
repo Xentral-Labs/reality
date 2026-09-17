@@ -144,3 +144,6 @@ mounted inside a hidden column so ChatPage/composer do not remount. Move New cha
 conversation toolbar. Include archived history; do not settle initial state on errors.
 Plan browser checks for empty layout, first-session stability, explicit opening/closing,
 revisit, archived-only history, mobile and tenant change. Run required frontend gates.
+
+## FR-015 register surface plan
+Adapter only: update shared tailwind.css, RegisterTable.tsx, ProjectionFreshness.tsx. Keep explicit search submit for touch and accessibility; refine its styling rather than remove functionality. ResizeObserver measures the register bounds for the footer and bounds empty-table height. Preserve saved column widths and full cell title disclosure. Increase the default Inspector record-type width and allow regular-density details to wrap to two lines. Tests: adapt register-footer-browser.mjs for aligned bounds, empty rows and selection, then run web-build, spec-check, lint, docs-catalog-check plus page count coverage. Constitution I–VIII PASS: no domain/service/tool/schema/query changes; source links and confirmations unchanged. Rollback is reverting adapter changes.

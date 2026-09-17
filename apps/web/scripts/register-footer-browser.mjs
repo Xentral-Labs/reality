@@ -12,7 +12,7 @@ page.setDefaultTimeout(12000);
 const requests = [],
   errors = [];
 page.on("pageerror", (e) => errors.push(e.message));
-let language = "en",
+let language = process.env.REGISTER_LANGUAGE || "en",
   fail = false;
 const tenant = "finance_fixture";
 await page.route("**/api/**", async (route) => {
@@ -104,6 +104,13 @@ await page.route("**/api/**", async (route) => {
       inspect_id: `ledger_${n}`,
     };
     return reply({
+      view,
+      metadata: {
+        state: "ready",
+        completed_at: "2026-09-17T07:26:00Z",
+        processed_event_sequence: 1,
+        target_event_sequence: 1,
+      },
       items: empty
         ? []
         : Array.from({ length: 50 }, (_, index) => ({
@@ -152,8 +159,13 @@ for (const width of [1440, 390]) {
     });
     await page.locator("[data-shell-header]").waitFor();
     await page.locator("tbody tr").first().waitFor();
-    assert.equal(await page.locator("[data-page-introduction] h1:visible").count(), 1);
-    assert.equal(await page.locator("[data-page-description]:visible").count(), 1);
+    if (index === 0) await page.locator('[data-projection-attention="false"]').waitFor();
+    assert.equal(
+      await page.locator(".register-surface").evaluate((el) => getComputedStyle(el).borderTopWidth),
+      "0px",
+    );
+    assert.equal(await page.locator("[data-page-introduction] h1").count(), 1);
+    assert.equal(await page.locator("[data-page-description-trigger]:visible").count(), 1);
     await page.waitForTimeout(150);
     const footer = page.locator(".erp-register-footer");
     const scroll = page.locator(".erp-table-scroll");
@@ -164,8 +176,8 @@ for (const width of [1440, 390]) {
     const checkEdges = async () => {
       const edges = await footer.evaluate((el) => {
         const f = el.getBoundingClientRect(),
-          m = document.querySelector("main").getBoundingClientRect();
-        return { left: f.left - m.left, right: f.right - m.right, bottom: f.bottom - innerHeight };
+          m = document.querySelector(".erp-table-scroll").getBoundingClientRect();
+        return { left: f.left - m.left, right: f.right - m.right, bottom: f.top - m.bottom };
       });
       assert.ok(
         Math.abs(edges.left) < 2 && Math.abs(edges.right) < 2 && Math.abs(edges.bottom) < 2,
@@ -173,19 +185,29 @@ for (const width of [1440, 390]) {
       );
     };
     await checkEdges();
+    assert.equal(await page.locator(".erp-selection-tools").count(), 0);
+    await page.getByRole("checkbox", { name: "Select current page", exact: true }).check();
+    assert.equal(await page.locator(".erp-selection-tools").count(), 1);
+    await page.getByRole("checkbox", { name: "Select current page", exact: true }).uncheck();
     if (width >= 1024) {
-      await page.getByRole("button", { name: "Hide chat", exact: true }).click();
+      await page.locator(".shell-chat-toggle").click();
       await page.waitForTimeout(150);
       await checkEdges();
       assert.ok(
-        Math.abs(await footer.evaluate((el) => el.getBoundingClientRect().right - innerWidth)) < 2,
+        Math.abs(
+          await footer.evaluate(
+            (el) =>
+              el.getBoundingClientRect().right -
+              document.querySelector(".erp-table-scroll").getBoundingClientRect().right,
+          ),
+        ) < 2,
       );
       await page.getByRole("button", { name: "Show chat", exact: true }).click();
       await page.waitForTimeout(150);
       await checkEdges();
     }
     const bottom = await footer.evaluate((el) => el.getBoundingClientRect().bottom);
-    assert.ok(bottom <= 1000 && bottom >= 960, `footer bottom ${bottom} at ${width}`);
+    assert.ok(bottom <= 1000 && bottom >= 900, `footer bottom ${bottom} at ${width}`);
     await scroll.evaluate((el) => (el.scrollTop = 100));
     await page.waitForTimeout(50);
     assert.ok(await scroll.evaluate((el) => el.scrollTop > 0), "Rows must scroll independently");
@@ -204,5 +226,24 @@ for (const width of [1440, 390]) {
     });
   }
 }
+await page.goto(
+  (process.env.UNIFIED_APP_URL || "http://localhost:8087") + checkPaths[0] + "&q=missing",
+);
+await page.locator(".erp-empty").waitFor();
+assert.equal(await page.locator(".erp-table thead:visible").count(), 0);
+assert.ok(
+  await page.locator(".erp-table-scroll").evaluate((el) => el.getBoundingClientRect().height < 240),
+);
+assert.equal(await page.locator(".erp-selection-tools").count(), 0);
+assert.deepEqual(errors, []);
+await page.screenshot({ path: "/private/tmp/reality-register-empty.png" });
+await page.evaluate(() => {
+  localStorage.setItem("reality.theme", "dark");
+  window.dispatchEvent(new Event("reality:theme-changed"));
+});
+await page.screenshot({
+  path: "/private/tmp/reality-register-empty-dark.png",
+  animations: "disabled",
+});
 await browser.close();
 console.log("finance populated layout checks passed");
