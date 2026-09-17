@@ -1030,9 +1030,10 @@ def load_tenant_isolation_catalog() -> TenantIsolationCatalog:
 
 
 def _service(name: str) -> Any:
-    if name == "change_report":
-        from reality.services.analytics.reports import change_report
-        return change_report
+    if name in {"change_report", "change_graph_report"}:
+        from reality.services.analytics import reports
+
+        return getattr(reports, name)
     if hasattr(shipment_service_module, name):
         return getattr(shipment_service_module, name)
     if hasattr(finance_target_mapping_module, name):

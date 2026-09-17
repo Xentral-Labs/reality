@@ -42,6 +42,11 @@ class AnalyticsReport(Base):
     owner_user_id: Mapped[str] = mapped_column(ForeignKey("app_user.id"))
     name: Mapped[str] = mapped_column(String(120))
     definition: Mapped[dict] = mapped_column(JSONB)
+    # Which kind of question this is, and the model version that gave it meaning.
+    # Null for reports saved by the configured generation, whose meaning lives in
+    # the definition itself; a graph report always carries both.
+    kind: Mapped[str | None] = mapped_column(String, default=None)
+    model_version: Mapped[str | None] = mapped_column(String, default=None)
     revision: Mapped[int] = mapped_column(Integer, default=1)
     create_request_id: Mapped[str] = mapped_column(String(128))
     create_payload_hash: Mapped[str] = mapped_column(String(64))
