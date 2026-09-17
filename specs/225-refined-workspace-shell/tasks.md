@@ -1,0 +1,21 @@
+# Tasks: Refined workspace shell
+
+## Setup and requirements
+- [x] T001 Review approved scope, requirements checklist and Constitution Check (FR-001–007).
+
+## Tests first
+- [x] T002 [US1] Add failing layout, title and draft checks in `apps/web/scripts/refined-shell-browser.mjs` (FR-001/002/005).
+- [x] T003 [US2] Add utility, company and simulation reachability checks in the same browser script (FR-003/004).
+- [x] T004 [US3] Add rail/mobile/theme/language geometry and keyboard checks in the same script (FR-005/006/007).
+
+## Web adapter
+- [x] T005 [US1] Rearrange `Shell.tsx`, `CompanySwitcher.tsx`, `ChatPage.tsx` and shell CSS for aligned surfaces and description disclosure (FR-001/002/005).
+- [x] T006 [US2] Relocate utilities with `ActionLauncher.tsx` and `ProfileMenu.tsx`; preserve simulation reads (FR-003/004).
+- [x] T007 [US3] Apply neutral typography, responsive/rail styles and bounded menus in `tailwind.css` (FR-005/006/007).
+
+## Verify and review
+- [x] T008 Update superseded browser/contract expectations; run full required gates and relevant regression browsers (FR-001–007).
+- [x] T009 Update `docs/WEB_SPEC.md`, inspect screenshots, review diff and record evidence in `verification.md` (FR-001–007).
+
+T001 precedes T002–T004; tests precede T005–T007; verification follows all changes.
+No domain, service or tool work is required by this adapter-only feature.

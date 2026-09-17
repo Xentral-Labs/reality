@@ -13,6 +13,7 @@ import {
   SquarePen,
   Sparkles,
   Trash2,
+  X,
 } from "lucide-react";
 const emptyMessageClass = "flex flex-col justify-center";
 const compactHistoryClass = "reality-chat-icon free-play-mobile-control";
@@ -46,6 +47,7 @@ export function ChatPage({
   navigate,
   compact = false,
   dock = false,
+  closeDock,
   active = true,
   initialDraft = "",
   onInitialDraftUsed,
@@ -66,6 +68,7 @@ export function ChatPage({
   selection: Selection;
   compact?: boolean;
   dock?: boolean;
+  closeDock?: () => void;
   active?: boolean;
   initialDraft?: string;
   onInitialDraftUsed?: () => void;
@@ -496,15 +499,27 @@ export function ChatPage({
       )}
       {controlsTarget && createPortal(chatControls, controlsTarget)}
       {dock && !controlsTarget && (
-        <header className="flex h-16 shrink-0 items-center justify-between gap-2 border-b border-border-default px-4">
+        <header className="shell-chat-header">
           <div className="flex min-w-0 items-center gap-2">
-            <Sparkles size={21} className="shrink-0 text-accent" />
+            <Sparkles size={16} className="shrink-0 text-fg-muted" />
             <span className="truncate font-semibold" data-original-content="">
               {data.sessions.find((row) => row.id === data.active_session_id)?.title ||
                 t("New chat")}
             </span>
           </div>
-          {chatControls}
+          <div className="flex shrink-0 items-center gap-1">
+            {chatControls}
+            {closeDock && (
+              <button
+                type="button"
+                className="shell-icon-button"
+                aria-label={t("Hide chat")}
+                onClick={closeDock}
+              >
+                <X size={17} />
+              </button>
+            )}
+          </div>
         </header>
       )}
       {!compact && (

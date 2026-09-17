@@ -258,7 +258,7 @@ try {
       }
   language = "en";
   await page.goto(`${base}/app/work?tenant=ops`);
-  await page.locator("[data-action-launcher] > summary").click();
+  await page.locator("[data-action-launcher] > button").click();
   await page
     .locator("details[open]")
     .getByRole("button", { name: "Release delivery hold", exact: true })

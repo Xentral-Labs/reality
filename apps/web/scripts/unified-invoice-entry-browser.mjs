@@ -251,7 +251,7 @@ try {
   await page.getByRole("link", { name: "Open invoice", exact: true }).waitFor();
   assert.equal(confirmations, 1);
   await page.getByRole("button", { name: "Close", exact: true }).click();
-  await page.locator("[data-action-launcher] > summary").click();
+  await page.locator("[data-action-launcher] > button").click();
   if (await page.locator(".register-actions:not([open]) > summary").count())
     await page.locator(".register-actions > summary").click();
   await page.getByRole("button", { name: "New customer invoice", exact: true }).last().click();

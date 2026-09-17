@@ -75,13 +75,23 @@ await mkdir("/private/tmp/page-introduction-screens", { recursive: true });
 for (const width of [1440, 390]) {
   await page.setViewportSize({ width, height: 950 });
   for (const path of paths) {
-    await page.goto(origin + "/app" + path);
+    await page.goto(
+      origin + "/app" + path + (path.includes("?") ? "&" : "?") + "tenant=intro_company",
+    );
     const description = page.locator("[data-page-description]");
+    await page
+      .locator("[data-page-description-trigger]")
+      .click()
+      .catch(async (error) => {
+        console.error({ path, width, url: page.url(), errors });
+        await page.screenshot({ path: "/private/tmp/reality-225-introduction-failure.png" });
+        throw error;
+      });
     await description.waitFor();
     assert.equal(await page.locator("h1:visible").count(), 1, path);
     assert.equal(await page.locator("main [data-page-introduction]").count(), 0, path);
     const header = await page.locator("[data-shell-header]").boundingBox();
-    assert.equal(header.height, 60, path);
+    assert.equal(header.height, 48, path);
     assert.equal(
       await page.evaluate(() => document.documentElement.scrollWidth > innerWidth),
       false,
@@ -89,18 +99,20 @@ for (const width of [1440, 390]) {
     );
     assert.equal(await page.locator("[data-page-description]:visible").count(), 1, path);
     assert.ok((await description.innerText()).length > 20, path);
-    assert.equal(await description.getAttribute("title"), await description.innerText(), path);
     const descriptionBox = await description.boundingBox();
     assert.ok(descriptionBox.y >= header.y, path);
-    assert.ok(descriptionBox.y + descriptionBox.height <= header.y + header.height, path);
+    assert.ok(descriptionBox.y + descriptionBox.height <= 950, path);
+    await page.keyboard.press("Escape");
     const badge = page.locator("[data-page-record-count]");
     if (await badge.count()) {
       const badgeBox = await badge.boundingBox();
       const titleBox = await page.locator("[data-page-introduction] h1").boundingBox();
       assert.ok(badgeBox.width >= 18, path);
       assert.equal(badgeBox.height, 18, path);
-      assert.ok(badgeBox.y + badgeBox.height / 2 < titleBox.y + titleBox.height / 2, path);
-      assert.ok(descriptionBox.y - (badgeBox.y + badgeBox.height) >= 2, path);
+      assert.ok(
+        Math.abs(badgeBox.y + badgeBox.height / 2 - titleBox.y - titleBox.height / 2) <= 1,
+        path,
+      );
     }
     const tabs = page.locator("[data-page-tabs] .register-tabs");
     assert.equal(await page.locator("[data-shell-header] .register-tabs").count(), 0, path);
@@ -118,19 +130,20 @@ for (const width of [1440, 390]) {
       assert.equal(style.radius, "0px", path);
     }
     if (width === 390) {
-      await page.locator("[data-header-controls-button]").click();
+      await page.locator("[data-navigation-opener]").click();
       await page.getByRole("button", { name: "Switch company", exact: true }).waitFor();
       await page.getByRole("button", { name: "Switch company", exact: true }).click();
       await page.getByRole("dialog", { name: "Switch company", exact: true }).waitFor();
       await page.keyboard.press("Escape");
       await page.keyboard.press("Escape");
       if (path.includes("orders_view=customer-orders")) {
-        await page.locator("[data-header-controls-button]").click();
-        await page.locator("[data-action-launcher] > summary").click();
+        await page.locator("[data-navigation-opener]").click();
+        await page.locator("[data-action-launcher] > button").click();
         await page.getByRole("searchbox", { name: "Search actions", exact: true }).waitFor();
         await page.keyboard.press("Escape");
+        await page.locator("[data-navigation-close]").click();
       }
-      assert.equal((await page.locator("[data-shell-header]").boundingBox()).height, 60, path);
+      assert.equal((await page.locator("[data-shell-header]").boundingBox()).height, 48, path);
     }
   }
   await page.screenshot({
@@ -139,7 +152,8 @@ for (const width of [1440, 390]) {
   });
 }
 for (language of ["de", "nl", "es"]) {
-  await page.goto(origin + "/app/warehouse");
+  await page.goto(origin + "/app/warehouse?tenant=intro_company");
+  await page.locator("[data-page-description-trigger]").click();
   await page.locator("[data-page-description]").waitFor();
   assert.notEqual(
     await page.locator("[data-page-description]").textContent(),

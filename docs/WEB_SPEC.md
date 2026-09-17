@@ -2978,3 +2978,21 @@ companies and for any company with a Demo Data connection state; the card report
 connection state, rate and last successful import and links to the route. Integrations
 still does not embed the control panel itself. No service eligibility, tenant scope or
 write path changes.
+
+
+## Refined workspace shell (spec 225)
+
+Company identity, switching and the existing live simulation link belong to the
+full-height primary sidebar. The page has a 48px header with title, inline count,
+keyboard-accessible description disclosure and neutral chat toggle. Desktop side chat
+starts at the workspace top with its own 48px header; standalone Chat and Storyline
+do not reserve a dock column. Activity and the existing action launcher sit above
+Profile in the sidebar; Appearance is in Profile. Native popovers keep menus outside
+scroll clipping. Navigation and tabs use neutral active states and 13px text; page
+headers use 14px medium text. Business content typography is unchanged.
+
+The existing 200px sidebar/60px rail, storage preference, company isolation, chat
+draft persistence, simulation eligibility/polling and shared services remain. The rail
+retains company switching and global utility labels through tooltips. Mobile keeps a
+labeled drawer and directly reachable navigation/chat controls. Touch targets remain
+at least 44px. This supersedes earlier header placement and visual contracts only.

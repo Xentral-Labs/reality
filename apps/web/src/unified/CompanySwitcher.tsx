@@ -1,4 +1,4 @@
-import { useId, useRef } from "react";
+import { useEffect, useId, useRef } from "react";
 import { Check, ChevronDown, Plus, Settings } from "lucide-react";
 import type { Tenant } from "../api";
 import { t } from "../localization";
@@ -27,6 +27,11 @@ export function CompanySwitcher({
   const id = useId();
   const panel = useRef<HTMLDivElement>(null);
   const trigger = useRef<HTMLButtonElement>(null);
+  useEffect(() => {
+    const close = () => panel.current?.hidePopover();
+    window.addEventListener("resize", close);
+    return () => window.removeEventListener("resize", close);
+  }, []);
   return (
     <>
       <button
@@ -35,14 +40,19 @@ export function CompanySwitcher({
         aria-label={t("Switch company")}
         aria-describedby={company.sandbox_run_id ? `${id}-sandbox` : undefined}
         data-company-id={company.id}
+        data-sidebar-tooltip={company.name}
         popoverTarget={id}
         aria-haspopup="dialog"
         className="company-switcher-trigger flex min-w-0 items-center gap-1.5 rounded-lg hover:bg-surface-muted focus-visible:outline-accent"
         onClick={() => {
           if (!panel.current || !trigger.current) return;
+          panel.current.style.top = `${trigger.current.getBoundingClientRect().bottom + 8}px`;
           panel.current.style.left = `${Math.max(8, Math.min(trigger.current.getBoundingClientRect().left, window.innerWidth - 344))}px`;
         }}
       >
+        <span className="company-switcher-initial" aria-hidden="true" data-localization="original">
+          {Array.from(company.name.trim())[0]?.toUpperCase() || "?"}
+        </span>
         <span className="company-switcher-copy min-w-0 flex-1 text-left">
           {company.sandbox_run_id ? (
             <span

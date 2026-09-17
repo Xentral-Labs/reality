@@ -144,7 +144,7 @@ try {
   for (const multiple of [false, true]) {
     multiplePages = multiple;
     await page.goto(`${base}/app/warehouse?tenant=ops&warehouse_view=reservations`);
-    await page.locator("[data-action-launcher] > summary").click();
+    await page.locator("[data-action-launcher] > button").click();
     await page
       .locator("details[open]")
       .getByRole("button", { name: "Release reservation", exact: true })
@@ -254,7 +254,7 @@ try {
   await page.getByRole("button", { name: "Confirm change", exact: true }).click();
   assert.equal(confirmations, 2);
   await page.getByRole("button", { name: "Close", exact: true }).click();
-  await page.locator("[data-action-launcher] > summary").click();
+  await page.locator("[data-action-launcher] > button").click();
   await page.getByRole("button", { name: "Release reservation", exact: true }).last().waitFor();
   await page.getByRole("button", { name: "Receive goods", exact: true }).click();
   await page.getByRole("textbox", { name: "Search deliveries", exact: true }).fill("missing");
