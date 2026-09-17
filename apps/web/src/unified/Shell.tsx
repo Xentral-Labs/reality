@@ -336,6 +336,7 @@ export function Shell({
                       <X size={18} />
                     </button>
                   </div>
+                  <ActionLauncher key={company.id} onLaunch={() => setOpen(false)} />
                   <LiveSimulationIndicator
                     key={company.id}
                     company={company}
@@ -627,7 +628,6 @@ export function Shell({
                   </nav>
                 </div>
                 <div className="shell-navigation-utilities">
-                  <ActionLauncher key={company.id} onLaunch={() => setOpen(false)} />
                   <ProfileMenu
                     user={user}
                     selection={selection}

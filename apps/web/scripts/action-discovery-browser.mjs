@@ -170,17 +170,18 @@ await go("warehouse?warehouse_view=movements");
 await page.locator("[data-action-launcher] > button").click();
 assert.equal(
   await page
-    .locator("[data-action-launcher]")
+    .locator("[data-action-menu]")
     .getByRole("button", { name: "New supplier invoice", exact: true })
     .count(),
   1,
 );
-await page.locator("[data-action-launcher]").getByRole("searchbox").fill("Record shipment");
+await page.locator("[data-action-menu]").getByRole("searchbox").fill("Record shipment");
 await page
-  .locator("[data-action-launcher]")
+  .locator("[data-action-menu]")
   .getByRole("button", { name: "Record shipment", exact: true })
   .click();
 await page.locator("dialog").waitFor();
+await page.keyboard.press("Control+k");
 assert.equal(await page.locator("[data-action-menu]:popover-open").count(), 0);
 assert.equal(writes.length, 0, JSON.stringify(writes));
 // A failed catalog is visible and retryable, rather than displaying stale candidates.
@@ -188,16 +189,16 @@ failCatalog = true;
 await go("warehouse?warehouse_view=stock");
 await page.locator("[data-action-launcher] > button").click();
 await page
-  .locator("[data-action-launcher]")
+  .locator("[data-action-menu]")
   .getByRole("button", { name: "Retry", exact: true })
   .waitFor();
 failCatalog = false;
 await page
-  .locator("[data-action-launcher]")
+  .locator("[data-action-menu]")
   .getByRole("button", { name: "Retry", exact: true })
   .click();
 await page
-  .locator("[data-action-launcher]")
+  .locator("[data-action-menu]")
   .getByRole("button", { name: "Reserve stock", exact: true })
   .waitFor();
 language = "de";
@@ -212,11 +213,11 @@ await page.screenshot({
 });
 await page.locator("[data-navigation-opener]").click();
 await page.locator("[data-action-launcher] > button").click();
-const bounds = await page.locator("[data-action-launcher] > div").boundingBox();
+const bounds = await page.locator("[data-action-menu]").boundingBox();
 assert.ok(bounds.x >= 0 && bounds.x + bounds.width <= 390, JSON.stringify(bounds));
 await page.screenshot({
   path: "/private/tmp/action-discovery-screens/mobile-menu-de.png",
-  fullPage: true,
+  animations: "disabled",
 });
 assert.deepEqual(errors, []);
 assert.deepEqual(writes, []);

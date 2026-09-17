@@ -29,3 +29,8 @@ No domain, service or tool work is required by this adapter-only feature.
 - [x] T013 Add failing coverage for all executable discovery labels and translated launcher search.
 - [x] T014 Translate the five missing shipping/tracking labels in German, Dutch and Spanish.
 - [x] T015 Run frontend gates and launcher browser coverage; review and record results.
+
+## Command palette presentation (FR-009)
+- [x] T016 Add keyboard, focus, centering, query reset and placement browser checks.
+- [x] T017 Restyle/reposition the existing launcher and add the platform shortcut.
+- [x] T018 Verify frontend gates and launcher browsers; inspect visual result and review scope.

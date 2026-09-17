@@ -132,3 +132,14 @@ FR-007 requires localized control names. Five shipping/tracking entries loaded f
 is selected. Restore the existing requirement in all supported dictionaries. A
 regression test must cover every category, group and entry label from the executable
 discovery catalog, including future additions. No API or command definitions change.
+
+## Command palette presentation follow-up
+FR-009: Replace the bottom Actions navigation item with a quiet search trigger and
+platform shortcut hint in the company area. Cmd+K on macOS and Ctrl+K elsewhere open
+a centered, viewport-bounded action palette. Show all currently permitted global
+launcher entries grouped as before; search continues matching translated labels.
+Focus search on opening, clear previous queries, support Escape and restore focus.
+Keep a pointer/touch entrypoint in expanded, collapsed and mobile navigation. Do not
+intercept the shortcut while another modal is open. Preserve existing action forms,
+permissions, catalog shortcut and confirmation. No new command execution or search
+scope; future palette capabilities belong to a separate specification.

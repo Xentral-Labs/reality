@@ -445,7 +445,8 @@ test("workspace header is separate from company and chat chrome", () => {
     shell,
     /data-page-tabs[\s\S]*ref=\{setRegisterHeader\}[\s\S]*page-introduction-actions[\s\S]*ref=\{setPageActions\}/,
   );
-  assert.match(shell, /shell-navigation-utilities[\s\S]*<ActionLauncher/);
+  assert.match(shell, /shell-company-block[\s\S]*<ActionLauncher[\s\S]*<LiveSimulationIndicator/);
+  assert.doesNotMatch(shell, /shell-navigation-utilities[\s\S]*<ActionLauncher/);
 });
 
 test("Exceptions keeps its catalog control beside filters instead of page actions", () => {

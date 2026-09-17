@@ -172,7 +172,25 @@ try {
   assert.equal(await page.getByRole("dialog", { name: "Activity", exact: true }).count(), 0);
   assert.ok((await header.innerText()).includes("Activities"));
   const launcher = nav.locator("[data-action-launcher]");
-  await launcher.getByRole("button", { name: "Actions", exact: true }).click();
+  assert.equal(await nav.locator(".shell-navigation-utilities [data-action-launcher]").count(), 0);
+  await draft.focus();
+  await page.keyboard.press("Control+k");
+  const palette = page.locator("[data-action-menu]:popover-open");
+  await palette.waitFor();
+  assert.equal(
+    await palette.getByRole("searchbox").evaluate((n) => n === document.activeElement),
+    true,
+  );
+  const paletteBox = await box(palette);
+  assert.ok(Math.abs(paletteBox.x + paletteBox.width / 2 - 720) <= 1);
+  await palette.getByRole("searchbox").fill("no-such-action");
+  await page.keyboard.press("Escape");
+  assert.equal(await draft.evaluate((n) => n === document.activeElement), true);
+  await page.keyboard.press("Meta+k");
+  await palette.waitFor();
+  assert.equal(await palette.getByRole("searchbox").inputValue(), "");
+  await page.keyboard.press("Escape");
+  await launcher.getByRole("button", { name: "Search actions", exact: true }).click();
   await bounded(page.getByRole("dialog", { name: "Actions", exact: true }), 1440);
   assert.ok(
     (await page.getByRole("dialog", { name: "Actions", exact: true }).getByRole("button").count()) >
@@ -181,7 +199,7 @@ try {
   await page.keyboard.press("Escape");
   assert.equal(
     await launcher
-      .getByRole("button", { name: "Actions", exact: true })
+      .getByRole("button", { name: "Search actions", exact: true })
       .evaluate((n) => n === document.activeElement),
     true,
   );
@@ -247,6 +265,11 @@ try {
           "Tracking-Ereignis korrigieren",
         ])
           assert.equal(await menu.getByRole("button", { name: label, exact: true }).count(), 1);
+        if (width === 1440)
+          await page.screenshot({
+            path: "/private/tmp/reality-225-browser/command-palette-de.png",
+            animations: "disabled",
+          });
         await menu.getByRole("searchbox").fill("Paket");
         assert.deepEqual(await menu.locator("section button").allTextContents(), [
           "Paket versenden",
@@ -306,6 +329,10 @@ try {
     .getByRole("button", { name: "Available actions", exact: true })
     .click();
   assert.equal(await touchPage.locator("[data-primary-navigation]").isVisible(), false);
+  await touchPage.keyboard.press("Control+k");
+  await touchPage.locator("[data-action-menu]:popover-open").waitFor();
+  await bounded(touchPage.locator("[data-action-menu]:popover-open"), 390);
+  await touchPage.keyboard.press("Escape");
   await touchContext.close();
   assert.deepEqual(errors, []);
   console.log(

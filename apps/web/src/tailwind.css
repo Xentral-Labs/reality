@@ -3820,3 +3820,41 @@ textarea.br-control.rule-draft-editor {
     min-height: 44px;
   }
 }
+
+/* The command palette is shared by keyboard, pointer and touch entrypoints. */
+.shell-command-trigger {
+  margin-top: 5px;
+  color: var(--color-fg-muted);
+  gap: 7px;
+  padding-inline: 8px;
+  font-size: 12px;
+}
+.shell-command-trigger kbd {
+  margin-left: auto;
+  white-space: nowrap;
+  font: inherit;
+  font-size: 10px;
+  border: 1px solid var(--color-border-subtle);
+  border-radius: 4px;
+  padding: 1px 4px;
+}
+.shell-action-menu {
+  inset: 12dvh auto auto 50%;
+  transform: translateX(-50%);
+  width: 560px;
+  max-height: 76dvh;
+  padding: 8px;
+  border-radius: 12px;
+  box-shadow: 0 16px 64px rgb(var(--shade-rgb) / 20%);
+}
+.shell-action-menu::backdrop {
+  background: rgb(0 0 0 / 12%);
+}
+.shell-action-menu > input {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  min-height: 44px;
+  background: var(--color-surface);
+  box-shadow: 0 4px 0 4px var(--color-surface);
+}

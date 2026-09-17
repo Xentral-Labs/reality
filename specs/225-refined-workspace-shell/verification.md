@@ -88,3 +88,19 @@ transitions to capture the settled appearance. Artifacts are in
 - Refined shell browser: PASS, including all five German labels and translated
   package search at 320/390/1024/1440px, plus the existing 32-layout matrix.
 - `git diff --check`: PASS. No backend changes or backend suite needed.
+
+## Command palette presentation verification
+- `gmake web-build spec-check lint docs-catalog-check`: PASS; 235 tests, all four
+  translation audits, formatting, TypeScript and production build. Updated the
+  superseded lower-utility placement contract; shortcut symbols have explicit
+  reviewed invariant entries, with German Strg notation translated.
+- Refined shell browser: PASS, both keyboard modifiers, initial search focus,
+  query reset, Escape focus return, centered bounds, mobile keyboard access with
+  closed navigation, existing tenant/draft checks and 32 localized layouts.
+- Action discovery launcher browser: PASS, action form invocation, modal shortcut
+  precedence, catalog error/retry, translated search and mobile bounds; zero writes.
+- Visually inspected German desktop dark and mobile light palette screenshots.
+  Artifacts: `/private/tmp/reality-225-browser/command-palette-de.png` and
+  `/private/tmp/action-discovery-screens/mobile-menu-de.png`. Menu screenshots avoid
+  full-page resizing, which intentionally dismisses the palette.
+- `git diff --check`: PASS. No backend changes; future command features remain deferred.

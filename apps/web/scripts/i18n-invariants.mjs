@@ -1,4 +1,6 @@
 export const invariantTerms = new Map([
+  ["⌘ K", "macOS command shortcut notation (spec 225)"],
+  ["Ctrl K", "Control-key shortcut notation; localized where customary (spec 225)"],
   ["Analytics", "Analytics workspace name (spec 221)"],
   ["Tools", "Inspector actions and calculated views workspace (spec 218)"],
   ["Source", "Data-source product label (spec 217)"],
