@@ -49,8 +49,33 @@ erklärt die Maske und listet die Pakete, die Reality mitliefert.
 ## Das erste Ergebnis lesen
 
 Öffne **Start** für die aktuelle Position. Nutze **Ausnahmen** für Zustände, die Aufmerksamkeit
-brauchen, **Aktivität** für letzte Veränderungen und die passende Ansicht des Arbeitsbereichs für
-das maßgebliche Register. Wähle ein wichtiges Ergebnis und öffne **Prüfen**.
+brauchen, **Ereignisverlauf** für aufgezeichnete Ereignisse und die passende Ansicht des
+Arbeitsbereichs für das maßgebliche Register. Wähle ein wichtiges Ergebnis und öffne **Prüfen**.
+
+## Business Graph, Business Facts und Tools
+
+Beginne mit derselben Frage wie im Arbeitsalltag: „Warum sind sechs Lampen noch offen?“
+
+- **Business Facts** zeigt die Elemente des Geschäftsfalls: etwa Source Records, Documents,
+  Commitments, Reservations, Movements und Ledger Entries. Öffne einen Datensatz, um seine Details
+  und die vorhandenen Belege zu prüfen.
+- **Business Graph** zeigt, wie diese Elemente zusammenhängen und was im Zeitverlauf passiert ist.
+  Folge von der Lieferzusage zur Reservierung und zum Versand und dann zu den vorhandenen
+  Quelldaten. Graph und Timeline zeigen die erfasste Historie.
+- **Tools** zeigt, was Reality damit tun kann. Unter **Aktionen** findest du Commands; unter
+  **Berechnete Sichten** Views und Projections. Eine Sicht beantwortet eine Frage, etwa nach offenen
+  Lieferungen. Eine Aktion verändert Datensätze und nutzt den vorgesehenen Vorschau- und
+  Bestätigungsablauf.
+
+**Business Facts ist der Gruppenname für Datensätze.** Der Datentyp **Fact** bezeichnet weiterhin
+eine bestimmte, durch eine Quelle belegte Beobachtung. Ein Commitment oder Movement wird durch die
+Gruppierung nicht zu einem Fact. Berechnete Sichten gehören zu Tools; sie werden nicht als neue
+Quelldaten gespeichert. Bei gespeicherten Projections gehört der Berechnungsstand zur
+Interpretation.
+
+Der separate **Ereignisverlauf** listet aufgezeichnete Business Events chronologisch. Im Business
+Graph betrachtest du dagegen die Beziehungen und die Timeline eines Geschäftskontexts. Für
+Fähigkeiten und Parameter dient die [Tools-Referenz](/de/tool-usage/).
 
 ## Ein Beispiel zum Mitdenken
 

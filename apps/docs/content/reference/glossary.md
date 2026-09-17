@@ -1,5 +1,21 @@
 # Glossary
 
+## Business Graph
+
+The product area for relationships and the timeline of related records. It shows available business
+context, without promising complete history from every upstream system.
+
+## Business Facts
+
+The product area for individual model records, including sources, evidence and operational records.
+This group name is broader than the [Fact](#fact) data type.
+
+## Tools
+
+The product area for actions/commands and calculated views (views/projections). Read tools expose
+results; changes follow their permission and confirmation rules.
+[Use the three areas together](/getting-started/#business-graph-business-facts-and-tools).
+
 ## SourceRecord
 
 Immutable, lossless accepted input from an upstream source. Changed input creates a version or

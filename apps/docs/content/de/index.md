@@ -74,6 +74,18 @@ Referenzfalls.
 > diese Stufen zutreffen. Produktoberflächen dürfen die Sicht vereinfachen, aber niemals eine zweite
 > Version der geschäftlichen Wahrheit erzeugen.
 
+## Drei Bereiche, die du in der App wiederfindest
+
+- **Business Graph:** Wie hängt es zusammen, und was ist passiert? Sieh zusammengehörige Datensätze
+  als Graph und im Zeitverlauf.
+- **Business Facts:** Was ist erfasst? Prüfe einzelne Datensätze, ihre Details, Beziehungen und
+  Belege.
+- **Tools:** Was kann ich abfragen, berechnen oder ausführen? Finde Aktionen und Commands sowie
+  lesende Views und Projections.
+
+Die Namen bleiben in allen Sprachen gleich. [Ein erster Produktdurchlauf](/de/getting-started/)
+zeigt, wie du die drei Bereiche an einem Geschäftsfall nutzt.
+
 ## Drei Lernwege
 
 Die Zeiten sind eine Orientierung für die Lernzeit. Installation und eine produktive ERP-Anbindung

@@ -68,6 +68,18 @@ effect is verified. The Head of Operations remains the primary product role in t
 > those stages apply. Product surfaces may simplify the view, but they never create a second version
 > of business truth.
 
+## Three areas you will find in the app
+
+- **Business Graph:** How is it connected, and what happened? See related records as a graph and
+  over time.
+- **Business Facts:** What is recorded? Inspect individual records, their details, relationships and
+  evidence.
+- **Tools:** What can I query, calculate or execute? Find actions and commands, plus read-only views
+  and projections.
+
+These names stay the same in every language. [Your first product journey](/getting-started/) shows
+how to use all three for one business case.
+
 ## Three learning paths
 
 These times are approximate learning time. Installation and a production ERP connection are not

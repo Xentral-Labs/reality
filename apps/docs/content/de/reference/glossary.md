@@ -1,5 +1,21 @@
 # Glossar
 
+## Business Graph
+
+Der Produktbereich für die Beziehungen und die Timeline zusammengehöriger Datensätze. Er zeigt den
+vorhandenen Geschäftskontext; er verspricht keine vollständige Historie aller Vorsysteme.
+
+## Business Facts
+
+Der Produktbereich für die einzelnen Datensätze des Modells, einschließlich Quellen, Belegen und
+operativen Records. Der Gruppenname ist weiter gefasst als der Datentyp [Fact](#fact).
+
+## Tools
+
+Der Produktbereich für Aktionen/Commands und berechnete Sichten (Views/Projections). Lesende Tools
+zeigen Ergebnisse; ändernde Aktionen folgen ihren Berechtigungs- und Bestätigungsregeln.
+[So nutzt du die drei Bereiche](/de/getting-started/#business-graph-business-facts-und-tools).
+
 ## SourceRecord
 
 Unveränderliche, verlustfrei übernommene Eingabe aus einem Vorsystem. Geänderte Eingaben erzeugen
