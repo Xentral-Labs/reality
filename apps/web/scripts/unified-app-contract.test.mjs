@@ -466,7 +466,7 @@ test("Exceptions keeps its catalog control beside filters instead of page action
   );
   assert.match(
     attention,
-    /className="flex min-w-0 gap-3"[\s\S]*<select[\s\S]*View all possible findings/,
+    /className="work-list-filters[^"]*"[\s\S]*<select[\s\S]*View all possible findings/,
   );
 });
 

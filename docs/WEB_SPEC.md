@@ -2927,3 +2927,14 @@ Report details contain the original technical definitions, code, documentation a
 known application links. Existing tenant scope, freshness/error/empty states, preview
 bounds, focus restoration and business logic remain unchanged. Copy is localized in
 English, German, Dutch and Spanish; mobile uses the same list without page overflow.
+
+
+## Compact daily work lists (spec 220)
+
+Commitments, Exceptions and Decisions share compact rows. At 720px available list
+width, ordinary rows have a 44px target with aligned title/context columns and
+right-aligned metadata. Narrow lists retain stacked title/context and at least
+44px targets. Container width accounts for side chat. Group spacing is reduced;
+search and filters share one row when space permits. Existing font sizes, native
+keyboard buttons, inline previews, grouping, ordering, filters, paging and all
+business/confirmation semantics remain unchanged.

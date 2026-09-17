@@ -3569,3 +3569,55 @@ textarea.br-control.rule-draft-editor {
     animation: none;
   }
 }
+
+/* Daily work shares density based on the space remaining beside the chat. */
+[data-work-list] {
+  container: work-list / inline-size;
+}
+.work-row {
+  min-height: 44px;
+  padding: 8px 16px;
+}
+[data-work-list] section > div:has(> .work-row) + div:has(> .work-row) {
+  border-top: 1px solid var(--color-border-default);
+}
+.work-row-context {
+  margin-top: 2px;
+}
+.work-row-meta {
+  flex: 0 0 auto;
+  max-width: 35%;
+}
+.work-list-filters > select {
+  min-width: 120px;
+}
+.work-list-filters > button {
+  white-space: normal;
+}
+@container work-list (min-width: 720px) {
+  .work-row {
+    padding-block: 11px;
+  }
+  .work-row-content {
+    display: grid;
+    grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+    align-items: center;
+    gap: 20px;
+  }
+  .work-row-context {
+    margin-top: 0;
+  }
+  .work-row-meta {
+    flex-basis: 144px;
+  }
+  .work-list-toolbar {
+    grid-template-columns: minmax(220px, 1fr) auto;
+    align-items: center;
+  }
+  .work-list-filters {
+    flex-wrap: nowrap;
+  }
+  .work-list-filters > select {
+    max-width: 180px;
+  }
+}
