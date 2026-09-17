@@ -17136,3 +17136,21 @@ Object.assign(dictionaries.es, {
   "the last 30 days": "los últimos 30 días",
   "Use this period": "Usar este periodo",
 });
+
+// Sorting and the row count are steps like any other. One button carries all
+// three states a sort can be in, so the hint says what pressing it again does.
+Object.assign(dictionaries.de, {
+  "Press again to reverse it, once more to leave it unsorted":
+    "Nochmal drücken kehrt die Reihenfolge um, noch einmal hebt die Sortierung auf",
+  "Another number of rows": "Andere Zeilenzahl",
+});
+Object.assign(dictionaries.nl, {
+  "Press again to reverse it, once more to leave it unsorted":
+    "Nogmaals drukken keert de volgorde om, nog een keer heft de sortering op",
+  "Another number of rows": "Ander aantal rijen",
+});
+Object.assign(dictionaries.es, {
+  "Press again to reverse it, once more to leave it unsorted":
+    "Púlsalo otra vez para invertir el orden, una más para dejarlo sin ordenar",
+  "Another number of rows": "Otro número de filas",
+});

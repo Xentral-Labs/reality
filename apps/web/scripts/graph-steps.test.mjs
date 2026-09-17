@@ -31,7 +31,7 @@ vm.runInNewContext(
     },
   },
 );
-const { question, pruned, periodFilter } = exports;
+const { question, pruned, periodFilter, columnOf, nextOrder } = exports;
 
 /** The module runs in its own context, so its objects carry another realm's
  *  prototype. Comparing the values rather than the identities keeps the test
@@ -110,6 +110,48 @@ test("the stack compiles to the question the server checks", () => {
   assert.deepEqual(plain(asked.measures), ["stated_order_amount", "line_amount"]);
   assert.deepEqual(plain(asked.order_by), [{ by: "line_amount", descending: true }]);
   assert.equal(asked.limit, 10);
+});
+
+test("one button carries all three states a sort can be in", () => {
+  const first = nextOrder(undefined, "stated_order_amount");
+  assert.deepEqual(plain(first), { by: "stated_order_amount", descending: true });
+  const reversed = nextOrder(first, "stated_order_amount");
+  assert.equal(reversed.descending, false, "pressing it again reverses rather than clears");
+  assert.equal(nextOrder(reversed, "stated_order_amount"), undefined, "and once more unsorts");
+  assert.deepEqual(
+    plain(nextOrder(reversed, "o.currency")),
+    { by: "o.currency", descending: true },
+    "a different column starts over rather than inheriting the direction",
+  );
+});
+
+test("an axis can be sorted by the name the answer gives it", () => {
+  assert.equal(columnOf({ field: "o.currency", label: "Währung" }), "o.currency");
+  assert.equal(
+    columnOf({ field: "o.ordered_at", label: "Bestelldatum (Monat)", bucket: "month" }),
+    "Bestelldatum (Monat)",
+    "a bucketed axis is named, and the compiler orders by that name",
+  );
+  const asked = question({
+    blocks: [{ alias: "o", node: "order", filters: [] }],
+    measures: ["order_count"],
+    groups: [{ field: "o.ordered_at", label: "Bestelldatum (Monat)", bucket: "month" }],
+    order: { by: "Bestelldatum (Monat)", descending: false },
+    limit: 200,
+  });
+  assert.deepEqual(plain(asked.order_by), [{ by: "Bestelldatum (Monat)", descending: false }]);
+});
+
+test("a sort on a removed axis goes with it", () => {
+  const settled = pruned(
+    {
+      ...stacked,
+      blocks: stacked.blocks.slice(0, 1),
+      order: { by: "n1.sku", descending: true },
+    },
+    NODES,
+  );
+  assert.equal(settled.order, undefined, "nothing is sorted by a column that is gone");
 });
 
 test("a time axis is bucketed, because one row per instant is a list not an answer", () => {

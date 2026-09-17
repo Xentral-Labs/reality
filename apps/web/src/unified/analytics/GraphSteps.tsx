@@ -44,6 +44,26 @@ export type Plan = {
   limit: number;
 };
 
+/** What the answer calls this axis — the same name the compiler labels it with.
+ *
+ * A bucketed axis is named, a plain one keeps its field path, so sorting has to
+ * ask the grouping rather than guess.
+ */
+export function columnOf(group: Group) {
+  return group.bucket ? group.label : group.field;
+}
+
+/** Three states, one button: biggest first, smallest first, unsorted.
+ *
+ * A separate direction control would be a second thing to find for a choice
+ * that only ever has two answers.
+ */
+export function nextOrder(order: Plan["order"], by: string): Plan["order"] {
+  if (order?.by !== by) return { by, descending: true };
+  if (order.descending) return { by, descending: false };
+  return undefined;
+}
+
 type Refusal = { headline: string; detail: string };
 
 const REFUSALS: Record<string, string> = {
@@ -273,11 +293,13 @@ export function pruned(plan: Plan, nodes: Record<string, GraphNode>): Plan {
     plan.blocks.flatMap((block) => (nodes[block.node]?.measures ?? []).map((m) => m.key)),
   );
   const measures = plan.measures.filter((key) => reachable.has(key));
+  const groups = plan.groups.filter((group) => aliases.has(group.field.split(".")[0]));
+  const columns = new Set([...measures, ...groups.map(columnOf)]);
   return {
     ...plan,
     measures,
-    groups: plan.groups.filter((group) => aliases.has(group.field.split(".")[0])),
-    order: plan.order && measures.includes(plan.order.by) ? plan.order : undefined,
+    groups,
+    order: plan.order && columns.has(plan.order.by) ? plan.order : undefined,
   };
 }
 
@@ -455,6 +477,15 @@ function Stack({
       fansOut: fansOut(edge.multiplicity, "in"),
     })),
   ];
+  // The answer puts its axes first and its numbers after, so the sort step
+  // offers them in that order rather than in the order they were chosen.
+  const sortable = [
+    ...plan.groups.map((group) => ({ key: columnOf(group), label: group.label })),
+    ...plan.measures.map((key) => ({
+      key,
+      label: measures.find((measure) => measure.key === key)?.label ?? key,
+    })),
+  ];
   const withBlocks = (blocks: Block[]) => ({ ...plan, blocks });
 
   return (
@@ -621,43 +652,90 @@ function Stack({
           />
         </Step>
 
-        {plan.measures.length > 0 && (
-          <Step label={t("Biggest first")}>
-            {plan.measures.map((key) => (
-              <button
-                key={key}
-                className={chip(plan.order?.by === key)}
-                aria-pressed={plan.order?.by === key}
-                onClick={() =>
-                  change({
-                    ...plan,
-                    order: plan.order?.by === key ? undefined : { by: key, descending: true },
-                  })
-                }
-              >
-                {measures.find((measure) => measure.key === key)?.label ?? key}
-              </button>
-            ))}
+        {sortable.length > 0 && (
+          <Step label={t("Sort by")}>
+            {sortable.map((column) => {
+              const active = plan.order?.by === column.key;
+              return (
+                <button
+                  key={column.key}
+                  className={chip(active)}
+                  aria-pressed={active}
+                  title={t("Press again to reverse it, once more to leave it unsorted")}
+                  onClick={() => change({ ...plan, order: nextOrder(plan.order, column.key) })}
+                >
+                  {column.label}
+                  {active && <span aria-hidden="true">{plan.order?.descending ? "↓" : "↑"}</span>}
+                </button>
+              );
+            })}
           </Step>
         )}
 
         <Step label={t("At most")}>
-          {[10, 50, 200, 1000].map((size) => (
-            <button
-              key={size}
-              className={chip(plan.limit === size)}
-              aria-pressed={plan.limit === size}
-              onClick={() => change({ ...plan, limit: size })}
-            >
-              {size}
-            </button>
-          ))}
+          <AtMost
+            limit={plan.limit}
+            ceiling={catalog.limits.result_rows}
+            change={(limit) => change({ ...plan, limit })}
+          />
         </Step>
       </div>
       <button className="text-sm text-fg-muted underline" onClick={restart}>
         {t("Start a different question")}
       </button>
     </div>
+  );
+}
+
+/** How many rows to bring back, in the sizes people mean and any other.
+ *
+ * The presets are the answer almost every time; the field is there because the
+ * one time somebody wants 37 rows, a list of four sizes is a wall. It commits
+ * on Enter or on leaving, so a question is not re-asked once per keystroke.
+ */
+function AtMost({
+  limit,
+  ceiling,
+  change,
+}: {
+  limit: number;
+  ceiling: number;
+  change: (limit: number) => void;
+}) {
+  const [typed, setTyped] = useState("");
+  const sizes = [10, 50, 200, 1000].filter((size) => size <= ceiling);
+  const commit = () => {
+    const wanted = Number.parseInt(typed, 10);
+    setTyped("");
+    if (Number.isFinite(wanted) && wanted >= 1) change(Math.min(wanted, ceiling));
+  };
+  return (
+    <>
+      {sizes.map((size) => (
+        <button
+          key={size}
+          className={chip(limit === size)}
+          aria-pressed={limit === size}
+          onClick={() => change(size)}
+        >
+          {size}
+        </button>
+      ))}
+      <input
+        className="w-24 rounded-lg border border-border-default bg-surface px-2 py-2 text-sm"
+        type="number"
+        min={1}
+        max={ceiling}
+        aria-label={t("Another number of rows")}
+        placeholder={sizes.includes(limit) ? t("rows") : String(limit)}
+        value={typed}
+        onChange={(event) => setTyped(event.target.value)}
+        onBlur={commit}
+        onKeyDown={(event) => {
+          if (event.key === "Enter") commit();
+        }}
+      />
+    </>
   );
 }
 
