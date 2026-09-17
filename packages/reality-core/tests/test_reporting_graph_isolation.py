@@ -13,6 +13,7 @@ from __future__ import annotations
 from decimal import Decimal
 
 import pytest
+
 from reality.domain.traversal import Traversal
 from reality.services.analytics.compile_sql import build
 from reality.services.analytics.traversal import TraversalRefused, plan, run_traversal
