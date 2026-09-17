@@ -12503,7 +12503,7 @@ Object.assign(dictionaries.es, {
     "Eres miembro. Solo los propietarios gestionan usuarios y tokens de agentes.",
 });
 
-Object.assign(dictionaries.de, { "Manage companies": "Firmen verwalten" });
+Object.assign(dictionaries.de, { "Manage companies": "Unternehmen verwalten" });
 
 Object.assign(dictionaries.nl, { "Manage companies": "Bedrijven beheren" });
 
@@ -13292,7 +13292,7 @@ Object.assign(dictionaries.de, {
   "Manage items": "Artikel verwalten",
   "Manage locations": "Orte verwalten",
   "Manage integrations": "Integrationen verwalten",
-  "Manage companies": "Firmen verwalten",
+  "Manage companies": "Unternehmen verwalten",
   "Manage members": "Mitglieder verwalten",
   "Manage operational accounts": "Operative Konten verwalten",
   "Manage Demo Data": "Demo-Daten verwalten",
@@ -16475,3 +16475,34 @@ Object.assign(dictionaries.es, {
 Object.assign(dictionaries.de, { Entry: "Eintrag" });
 Object.assign(dictionaries.nl, { Entry: "Vermelding" });
 Object.assign(dictionaries.es, { Entry: "Entrada" });
+
+Object.assign(dictionaries.de, {
+  "Demo data simulation": "Demodaten-Simulation",
+  "Generated orders arrive in this company like data from a connected system.":
+    "Erzeugte Aufträge landen in diesem Unternehmen wie Daten aus einem angebundenen System.",
+  "orders per hour": "Aufträge pro Stunde",
+  "Connect the simulation to watch orders, deliveries and payments arrive by themselves.":
+    "Verbinde die Simulation und beobachte, wie Aufträge, Lieferungen und Zahlungen von selbst eintreffen.",
+  "Open simulation": "Simulation öffnen",
+  "Connect demo data": "Demodaten verbinden",
+});
+Object.assign(dictionaries.nl, {
+  "Demo data simulation": "Demodata-simulatie",
+  "Generated orders arrive in this company like data from a connected system.":
+    "Gegenereerde orders komen in dit bedrijf binnen als gegevens uit een gekoppeld systeem.",
+  "orders per hour": "orders per uur",
+  "Connect the simulation to watch orders, deliveries and payments arrive by themselves.":
+    "Koppel de simulatie en zie hoe orders, leveringen en betalingen vanzelf binnenkomen.",
+  "Open simulation": "Simulatie openen",
+  "Connect demo data": "Demodata koppelen",
+});
+Object.assign(dictionaries.es, {
+  "Demo data simulation": "Simulación de datos de demostración",
+  "Generated orders arrive in this company like data from a connected system.":
+    "Los pedidos generados llegan a esta empresa como datos de un sistema conectado.",
+  "orders per hour": "pedidos por hora",
+  "Connect the simulation to watch orders, deliveries and payments arrive by themselves.":
+    "Conecta la simulación para ver cómo llegan solos los pedidos, las entregas y los pagos.",
+  "Open simulation": "Abrir simulación",
+  "Connect demo data": "Conectar datos de demostración",
+});

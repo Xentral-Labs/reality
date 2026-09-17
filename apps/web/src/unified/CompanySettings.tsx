@@ -1,5 +1,4 @@
 import { PageActionBar } from "./PageActionBar";
-import { useState } from "react";
 import { api, type Bootstrap, type Tenant } from "../api";
 import { t } from "../localization";
 import { CompanySetup } from "../components/CompanySetup";
@@ -39,6 +38,8 @@ export function CompanySettings({
   manageCompany,
   openSimulation,
   openCompany,
+  creating,
+  setCreating,
 }: {
   company: Tenant;
   companies: Tenant[];
@@ -46,13 +47,15 @@ export function CompanySettings({
   openSimulation: (id: string) => void;
   manageCompany: (id: string, view: "access" | "agents" | "ai") => void;
   openCompany: (data: Bootstrap, id: string, options?: { announce?: boolean }) => void;
+  // The company switcher opens this form by URL, so the form follows the address.
+  creating: boolean;
+  setCreating: (creating: boolean) => void;
 }) {
-  const [create, setCreate] = useState(false);
   return (
     <div className="space-y-8">
       <section aria-label={t("Companies")} className="space-y-4">
         <PageActionBar
-          actions={[{ key: "create", label: "New company", onClick: () => setCreate(true) }]}
+          actions={[{ key: "create", label: "New company", onClick: () => setCreating(true) }]}
         />
         <ul className="space-y-3">
           {companies.map((row) => {
@@ -70,7 +73,7 @@ export function CompanySettings({
                   aria-current={current ? "true" : undefined}
                   onClick={() => {
                     if (!current) {
-                      setCreate(false);
+                      setCreating(false);
                       switchCompany(row.id);
                     }
                   }}
@@ -161,11 +164,11 @@ export function CompanySettings({
           })}
         </ul>
       </section>
-      {create && (
+      {creating && (
         <CreateCompany
-          close={() => setCreate(false)}
+          close={() => setCreating(false)}
           openCompany={(data, id) => {
-            setCreate(false);
+            setCreating(false);
             openCompany(data, id);
           }}
         />

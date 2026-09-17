@@ -2826,6 +2826,19 @@ textarea.br-control.rule-draft-editor {
 .company-sandbox-badge {
   @apply shrink-0 whitespace-nowrap rounded-md bg-accent-soft px-1.5 py-0.5 text-[10px] font-medium text-accent;
 }
+/* The switcher carries each company's simulation state so it reads as company context. */
+.company-simulation-state {
+  @apply mt-0.5 flex items-center gap-1.5 text-xs text-fg-muted;
+}
+.company-simulation-state[data-simulation="running"] {
+  @apply text-accent;
+}
+.company-simulation-state [data-simulation-dot] {
+  @apply size-1.5 shrink-0 rounded-full bg-fg-muted;
+}
+.company-simulation-state[data-simulation="running"] [data-simulation-dot] {
+  @apply bg-accent;
+}
 .demo-live-header {
   @apply flex flex-wrap items-start justify-between gap-3;
 }

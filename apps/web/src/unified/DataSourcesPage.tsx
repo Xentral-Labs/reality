@@ -1,6 +1,7 @@
 import { RegisterHeader, RegisterWorkbench, RegisterToolbar } from "./RegisterWorkbench";
 import { PageActionBar } from "./PageActionBar";
 import { IntegrationPreparation } from "./IntegrationPreparation";
+import { DemoDataSource, hasDemoDataSource } from "./DemoDataSource";
 import { useState } from "react";
 import { SourceConfiguration } from "./SourceConfiguration";
 import { ItemImportPanel } from "./ItemImportPanel";
@@ -10,6 +11,7 @@ import { RegisterTable } from "./RegisterTable";
 import {
   api,
   sourceWorkspaceApi,
+  type Tenant,
   type SourceSystemRow,
   type SourceMetadataRow,
   type DocumentRow,
@@ -37,8 +39,10 @@ export function DataSourcesPage({
   selection,
   navigate,
   user,
+  company,
 }: {
   user: string;
+  company: Tenant;
   selection: Selection;
   navigate: (changes: Partial<Selection>) => void;
 }) {
@@ -120,6 +124,9 @@ export function DataSourcesPage({
             navigate({ importProposal: "" });
           }}
         />
+      )}
+      {view === "systems" && hasDemoDataSource(company) && (
+        <DemoDataSource company={company} selection={selection} navigate={navigate} />
       )}
       {view === "systems" && (
         <IntegrationPreparation

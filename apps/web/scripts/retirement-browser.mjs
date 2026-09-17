@@ -134,10 +134,13 @@ try {
   assert.equal(new URL(page.url()).searchParams.get("settings_view"), "personal");
   assert.equal(await page.getByRole("link", { name: "Company access", exact: true }).count(), 0);
   assert.equal(
-    await page.getByRole("link", { name: "Companies", exact: true }).getAttribute("aria-current"),
-    null,
+    await page.getByRole("link", { name: "Companies", exact: true }).count(),
+    0,
+    "Company management belongs to the company switcher, not the navigation",
   );
-  await page.getByRole("link", { name: "Companies", exact: true }).click();
+  await page.getByRole("button", { name: "Switch company", exact: true }).click();
+  await page.locator('[data-company-management="company"]').click();
+  await page.waitForURL(/settings_view=company/);
   assert.equal(new URL(page.url()).searchParams.get("settings_view"), "company");
   assert.equal(await page.getByRole("navigation", { name: "Settings sections" }).count(), 0);
   const companies = page.getByRole("region", { name: "Companies", exact: true });
