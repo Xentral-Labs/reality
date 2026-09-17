@@ -25,9 +25,9 @@ model is the [agent capabilities chapter](/tool-usage/#choosing-a-tool) and the
 
 ## Playbooks
 
-- [Analytics](../analytics/#how-an-agent-operates-it): discover the vocabulary with
-  `analytics_catalog`, answer with `analytics_query`, explain a number with
-  `analytics_contributors`, and hand the definition to the visual Explorer.
+- [Analytics](../analytics/#how-an-agent-operates-it): discover the records and what connects them
+  with `graph_catalog`, answer with `graph_ask`, and read the refusal when a number cannot be given
+  honestly.
 
 - [Operating rhythm](./operating-rhythm): what has to happen every day, every week and every month,
   as concrete tasks with their signals.

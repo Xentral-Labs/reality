@@ -2313,31 +2313,6 @@ MCP_TOOL_CATALOG += tuple(
     for command, model in TARGET_COMMANDS.items()
 )
 
-from reality.tools.analytics import SCHEMAS as ANALYTICS_SCHEMAS
-
-for _public_name, _application_name, _label in (
-    ("analytics_catalog", "analytics.catalog", "Discover analytics"),
-    ("analytics_query", "analytics.query", "Run an analysis"),
-    ("analytics_contributors", "analytics.contributors", "Explain an analytical value"),
-    ("analytics_export", "analytics.export", "Export an analysis"),
-    ("analytics_reports_list", "analytics.reports.list", "List my reports"),
-    ("analytics_report_get", "analytics.reports.get", "Read my report"),
-):
-    MCP_TOOL_CATALOG += (
-        MCPToolDefinition(
-            _public_name,
-            _label,
-            "Discover supported datasets first; use structured definitions, scoped identities and declared units. Private reports require authenticated personal context.",
-            "read",
-            "Analytics",
-            {
-                "required": [],
-                **ANALYTICS_SCHEMAS[_application_name].model_json_schema(),
-            },
-            _read(_application_name),
-        ),
-    )
-
 from reality.tools.graph import SCHEMAS as GRAPH_SCHEMAS
 
 for _public_name, _application_name, _label in (
@@ -2361,7 +2336,6 @@ for _public_name, _application_name, _label in (
         ),
     )
 
-from reality.domain.analytics import ReportChange as _AnalyticsReportChange
 from reality.domain.graph_report import GraphReportChange as _GraphReportChange
 
 MCP_TOOL_CATALOG = (
@@ -2374,15 +2348,6 @@ MCP_TOOL_CATALOG = (
         "analytics",
         _GraphReportChange.model_json_schema(),
         _propose("graph.reports.change"),
-    ),
-    MCPToolDefinition(
-        "analytics_report_change_propose",
-        "Change private report",
-        "Prepare a private report change. Requires trusted authenticated user context; confirm explicitly before it is saved.",
-        "propose",
-        "analytics",
-        _AnalyticsReportChange.model_json_schema(),
-        _propose("analytics.reports.change"),
     ),
 )
 
@@ -2454,6 +2419,6 @@ def validate_tool_permissions(tool_names: list[str] | tuple[str, ...]) -> list[s
 
 
 def _analytics_caller():
-    from reality.tools.analytics import CALLER
+    from reality.services.analytics.reports import CALLER
 
     return CALLER.get()

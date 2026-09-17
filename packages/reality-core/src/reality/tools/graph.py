@@ -23,10 +23,9 @@ from reality.services.analytics.graph_model import (
     ReportingGraphError,
     reporting_catalog,
 )
-from reality.services.analytics.reports import get_report, list_reports
+from reality.services.analytics.reports import CALLER, get_report, list_reports
 from reality.services.analytics.traversal import TraversalRefused, run_traversal
 from reality.services.core import get_tenant
-from reality.tools.analytics import CALLER
 
 
 class GraphCatalogRequest(StrictModel):
@@ -50,7 +49,17 @@ class GraphAskRequest(StrictModel):
         default=None,
         description=(
             "The question as a checked object: a path through declared edges, "
-            "filters, declared measures and grouping."
+            "filters, declared measures and grouping. Every field is "
+            "alias.property, where the alias is `as` on the start node "
+            "(default 'root') or on a hop — 'ordered_at' alone is refused "
+            "because the path may reach more than one record that has it. A "
+            "period is two half-open bounds on the same field: gte the first "
+            "instant, lt the first instant after it. Example: "
+            '{"from": "order", "as": "o", '
+            '"filter": [{"field": "o.ordered_at", "op": "gte", "value": "2026-09-10T00:00:00Z"}, '
+            '{"field": "o.ordered_at", "op": "lt", "value": "2026-09-17T00:00:00Z"}], '
+            '"measures": ["stated_order_amount"], '
+            '"group_by": [{"field": "o.currency"}]}'
         ),
     )
     path: str | None = Field(

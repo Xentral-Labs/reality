@@ -1,11 +1,10 @@
 import { useState } from "react";
 import { t } from "../localization";
 import { RegisterHeader } from "./RegisterWorkbench";
-import { AnalyticsExplorer } from "./analytics/AnalyticsExplorer";
 import { GraphConsole } from "./analytics/GraphConsole";
 import { GraphSteps } from "./analytics/GraphSteps";
 import { ReportLibrary } from "./analytics/ReportLibrary";
-import type { AnalyticsReport } from "../api";
+import type { GraphReport } from "../api";
 import type { Selection } from "./routing";
 
 export function AnalyticsPage(props: {
@@ -22,15 +21,14 @@ function AnalyticsWorkspace({
   selection: Selection;
   navigate: (changes: Partial<Selection>) => void;
 }) {
-  const [report, setReport] = useState<AnalyticsReport | null>(null);
-  const view = selection.analyticsView || "explore";
+  const [report, setReport] = useState<GraphReport | null>(null);
+  const view = selection.analyticsView || "graph";
   return (
     <div className="mx-auto max-w-[1500px] space-y-6">
       <RegisterHeader title="Reports">
         <nav className="register-tabs" aria-label={t("Analytics views")}>
           {(
             [
-              ["explore", "Explore"],
               ["graph", "Business graph"],
               ["console", "Query console"],
               ["reports", "My reports"],
@@ -47,17 +45,16 @@ function AnalyticsWorkspace({
           ))}
         </nav>
       </RegisterHeader>
-      <div hidden={view !== "explore"}>
-        <AnalyticsExplorer tenant={selection.tenant} report={report} onSaved={setReport} />
-      </div>
-      {view === "graph" && <GraphSteps tenant={selection.tenant} />}
+      {view === "graph" && (
+        <GraphSteps tenant={selection.tenant} report={report} onSaved={setReport} />
+      )}
       {view === "console" && <GraphConsole tenant={selection.tenant} />}
       {view === "reports" && (
         <ReportLibrary
           tenant={selection.tenant}
           open={(value) => {
             setReport(value);
-            navigate({ analyticsView: "explore" });
+            navigate({ analyticsView: "graph" });
           }}
         />
       )}

@@ -31,7 +31,7 @@ vm.runInNewContext(
     },
   },
 );
-const { question, pruned, periodFilter, columnOf, nextOrder } = exports;
+const { question, pruned, periodFilter, columnOf, nextOrder, planOf } = exports;
 
 /** The module runs in its own context, so its objects carry another realm's
  *  prototype. Comparing the values rather than the identities keeps the test
@@ -41,9 +41,31 @@ const plain = (value) => JSON.parse(JSON.stringify(value));
 const NODES = {
   order: {
     key: "order",
+    label: "Auftrag",
     measures: [{ key: "stated_order_amount" }, { key: "order_count" }],
+    properties: [
+      { key: "currency", label: "Währung", kind: "text" },
+      { key: "ordered_at", label: "Bestelldatum", kind: "time" },
+    ],
+    edges: [
+      {
+        key: "contains",
+        label: "enthält",
+        to: "order_line",
+        to_label: "Auftragsposition",
+        multiplicity: "1:n",
+      },
+    ],
+    edges_in: [],
   },
-  order_line: { key: "order_line", measures: [{ key: "line_amount" }] },
+  order_line: {
+    key: "order_line",
+    label: "Auftragsposition",
+    measures: [{ key: "line_amount" }],
+    properties: [{ key: "sku", label: "Artikelnummer", kind: "text" }],
+    edges: [],
+    edges_in: [],
+  },
 };
 
 const stacked = {
@@ -164,4 +186,49 @@ test("a time axis is bucketed, because one row per instant is a list not an answ
   assert.deepEqual(plain(asked.group_by), [
     { field: "o.ordered_at", bucket: "month", as: "Bestelldatum (month)" },
   ]);
+});
+
+test("a saved question reopens as the steps that built it", () => {
+  const saved = question(pruned(stacked, NODES));
+  const reopened = plain(planOf(saved, NODES));
+  assert.equal(reopened.blocks.length, 2);
+  assert.equal(reopened.blocks[1].node, "order_line", "the hop names the record it reaches");
+  assert.equal(reopened.blocks[1].edge.fansOut, true, "and still says it fans out");
+  assert.deepEqual(reopened.measures, ["stated_order_amount", "line_amount"]);
+  assert.deepEqual(
+    reopened.groups.map((group) => group.field),
+    ["o.currency", "n1.sku"],
+  );
+  assert.deepEqual(plain(reopened.order), { by: "line_amount", descending: true });
+  assert.equal(reopened.limit, 10);
+});
+
+test("a reopened period is one line again, not two halves", () => {
+  const filter = periodFilter("o.ordered_at", "Bestelldatum", {
+    label: "dieses Jahr",
+    from: new Date("2026-01-01T00:00:00Z"),
+    until: new Date("2027-01-01T00:00:00Z"),
+  });
+  const saved = question({
+    blocks: [{ alias: "o", node: "order", filters: [filter] }],
+    measures: ["order_count"],
+    groups: [],
+    limit: 200,
+  });
+  const reopened = plain(planOf(saved, NODES));
+  assert.equal(reopened.blocks[0].filters.length, 1, "two bounds, one removable line");
+  assert.equal(reopened.blocks[0].filters[0].conditions.length, 2);
+  assert.equal(reopened.blocks[0].filters[0].shown, "Bestelldatum 2026-01-01 – 2027-01-01");
+});
+
+test("a question naming a record this model does not have reopens as nothing", () => {
+  assert.equal(planOf({ from: "not_a_node", measures: ["x"] }, NODES), null);
+  assert.equal(
+    planOf(
+      { from: "order", follow: [{ edge: "no_such_edge", direction: "out", as: "n1" }] },
+      NODES,
+    ),
+    null,
+    "rather than a stack with a step that cannot be taken",
+  );
 });

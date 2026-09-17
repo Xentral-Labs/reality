@@ -272,6 +272,11 @@ late corrections and reversals; unsupported temporal coverage.
   people mean and any other, and removing a step removes everything that pointed at the
   records it reached. Nobody has to know the model's keys to ask a correct question, and
   no offered step can produce a refused one.
+- **FR-016**: Retire the configured generation in the same change that makes the graph the
+  only analytics surface. A report saved under the retired generation carries no kind and
+  no model version: it is neither read nor written by any surface, and no translation is
+  invented for it. A refused tool call reaches the calling model as the result of that
+  call, so a question the model can correct is corrected rather than reported as an outage.
 
 ### Domain Requirements
 
@@ -363,6 +368,7 @@ owners.
 | FR-013 | US5.1–4 | T015 declaration-only extension proof |
 | FR-014 | non-goals | T016 deferred measurement trigger |
 | FR-015 | US1.1–2, US2.1 | T009 step stack: valid-only steps, fan-out marking, period and pruning contracts |
+| FR-016 | US3.1–3, US5 | T014 cutover: retired rows unread and unwritten, refusals returned to the model |
 | DR-001 | US4.3 | T005/T012 canonical evidence |
 | DR-002 | US1.3, US2.2 | T003/T005 amount and grain correctness |
 | DR-003 | US5, non-goals | T002/T014/T016 architecture review |

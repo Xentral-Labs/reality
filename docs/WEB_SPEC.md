@@ -2654,14 +2654,23 @@ automatically" / "Stop autoplay"); it issues the same prepare, confirm, branch a
 a person would click, and any click elsewhere or an error switches it off with a short note. The
 language switch of the profile re-renders the texts of a run without touching its trace.
 
-## Composable Analytics workspace (spec 185)
+## Declared Analytics workspace (spec 224)
 
-Analytics offers Explore (default) and My reports (spec 221 retires Overview). Typed draft
-settings, explicit execution, retained successful results, service-calculated totals,
-table/chart/pivot presentation and Inspector contributors use shared analytical tools.
-Private definitions and CSV are explicit actions. Existing chat supports removable,
-company-scoped analysis attachments and validated Open in Reports handoffs.
-See [the shared contract](features/analytics.md) and [verification status](../specs/185-analytics-workspace/verification.md).
+Analytics offers Business graph (default), Query console and My reports. Spec 221 retired
+Overview; spec 224 retired the configured Explore built on spec 185's fixed datasets, with
+its charts, pivots, contributor drill-down, CSV export and the chat analysis attachment.
+Links naming a retired view open the business graph.
+
+A question is built as an ordered stack of steps — start, reach, narrow, count, split, sort,
+bound — where each step offers only what the declaration makes valid at that point, and a hop
+states whether it fans out before it is taken. The console takes the Cypher-near path syntax
+and shows the statement it became. A refusal replaces the answer and names its cause.
+
+A saved report holds the question and the model version that gave it meaning, never the
+answer; reopening re-executes it. Reports saved by the configured generation remain in
+`analytics_report` with no kind and no model version, unread and never overwritten.
+See [the shared contract](features/analytics.md) and
+[spec 224](../specs/224-native-reporting-platform/spec.md).
 
 ## Public-site privacy and language handoff
 

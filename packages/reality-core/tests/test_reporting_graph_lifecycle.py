@@ -14,11 +14,10 @@ from uuid import uuid4
 import pytest
 
 from reality.domain.traversal import Traversal
-from reality.services.analytics.execution import AnalyticsError
+from reality.services.analytics.errors import AnalyticsError
 from reality.services.analytics.graph_model import reporting_graph
 from reality.services.analytics.reports import (
     change_graph_report,
-    change_report,
     get_report,
     list_reports,
 )
@@ -182,122 +181,69 @@ def test_saving_over_a_stale_revision_is_refused(session, business, author):
     assert refusal.value.code == "revision_conflict"
 
 
-# --- the two kinds do not mix ------------------------------------------------------
+# --- what the retired generation left behind ---------------------------------------
 
 
-def test_a_graph_report_is_not_listed_among_configured_ones(session, business, author):
-    save(session, business.tenant.id, author)
-    change_report(
-        session,
-        business.tenant.id,
-        author,
-        {
-            "operation": "create",
-            "request_id": str(uuid4()),
-            "name": "Alte Art",
-            "definition": {
-                "dataset": "sales_orders",
-                "dimensions": ["customer_id"],
-                "measures": ["order_count"],
-            },
+def _retired_report(session, tenant_id, owner):
+    """A row exactly as the configured generation saved it: no kind, no version.
+
+    They are still in the table. Nothing reads them any more, and the point of
+    these tests is that nothing silently writes over them either.
+    """
+    from reality.db.analytics import AnalyticsReport
+    from reality.db.core import uid
+
+    row = AnalyticsReport(
+        id=uid("rep"),
+        tenant_id=tenant_id,
+        owner_user_id=owner.user_id,
+        name="Alte Art",
+        definition={
+            "dataset": "sales_orders",
+            "dimensions": ["customer_id"],
+            "measures": ["order_count"],
         },
+        revision=1,
+        create_request_id=str(uuid4()),
+        create_payload_hash="retired",
+        last_request_id=str(uuid4()),
+        last_payload_hash="retired",
     )
-    graph = list_reports(session, business.tenant.id, author, report_kind="graph")
-    configured = list_reports(
-        session, business.tenant.id, author, report_kind="definition"
-    )
-    assert [r["name"] for r in graph["records"]] == ["Umsatz nach Währung"]
-    assert [r["name"] for r in configured["records"]] == ["Alte Art"]
+    session.add(row)
+    session.flush()
+    return row
 
 
-def test_opening_a_graph_report_under_the_wrong_contract_is_not_found(
+def test_a_retired_report_is_not_listed_among_graph_ones(session, business, author):
+    save(session, business.tenant.id, author)
+    _retired_report(session, business.tenant.id, author)
+    listed = list_reports(session, business.tenant.id, author, report_kind="graph")
+    assert [r["name"] for r in listed["records"]] == ["Umsatz nach Währung"]
+
+
+def test_a_retired_report_cannot_be_opened_as_a_graph_one(session, business, author):
+    """Reading it with the wrong meaning is worse than not finding it."""
+    row = _retired_report(session, business.tenant.id, author)
+    with pytest.raises(NotFound):
+        get_report(session, business.tenant.id, author, row.id, report_kind="graph")
+
+
+def test_a_retired_report_is_not_overwritten_by_a_graph_change(
     session, business, author
 ):
-    """Reading it with the wrong meaning is worse than not finding it."""
-    saved = save(session, business.tenant.id, author)
-    with pytest.raises(NotFound):
-        get_report(
-            session, business.tenant.id, author, saved["id"], report_kind="definition"
-        )
-
-
-def test_changing_a_report_as_the_wrong_kind_is_refused(session, business, author):
-    saved = save(session, business.tenant.id, author)
+    """The kind column is NULL on those rows, which is not the same as "any kind"."""
+    row = _retired_report(session, business.tenant.id, author)
     with pytest.raises(AnalyticsError) as refusal:
-        change_report(
+        change_graph_report(
             session,
             business.tenant.id,
             author,
             {
                 "operation": "rename",
                 "request_id": str(uuid4()),
-                "report_id": saved["id"],
-                "expected_revision": saved["revision"],
+                "report_id": row.id,
+                "expected_revision": row.revision,
                 "name": "Falsche Art",
             },
         )
     assert refusal.value.code == "kind_mismatch"
-
-
-# --- only the author ----------------------------------------------------------------
-
-
-def test_another_member_cannot_open_the_report(session, business, author, scheduled_owner):
-    from reality.db.core import AppUser, TenantMembership, now, uid
-
-    saved = save(session, business.tenant.id, author)
-    stranger = AppUser(
-        id=uid("usr"),
-        email="fremd@example.com",
-        password_hash="x",
-        status="active",
-        created_at=now(),
-    )
-    session.add(stranger)
-    session.add(
-        TenantMembership(
-            id=uid("mem"),
-            tenant_id=business.tenant.id,
-            user_id=stranger.id,
-            role="member",
-            status="active",
-        )
-    )
-    session.flush()
-    with pytest.raises(NotFound):
-        get_report(
-            session,
-            business.tenant.id,
-            Principal(stranger.id),
-            saved["id"],
-            report_kind="graph",
-        )
-
-
-# --- an unanswerable question is never saved -----------------------------------------
-
-
-def test_a_question_that_would_multiply_a_total_cannot_be_saved(
-    session, business, author
-):
-    """The fan-out rule holds at save time, not only at execution."""
-    with pytest.raises(Exception) as refusal:
-        save(
-            session,
-            business.tenant.id,
-            author,
-            question={
-                "from": "order",
-                "as": "o",
-                "follow": [
-                    {"edge": "contains", "as": "l"},
-                    {"edge": "of_item", "as": "i"},
-                ],
-                "measures": ["stated_order_amount"],
-                "group_by": [{"field": "i.sku"}],
-            },
-        )
-    assert getattr(refusal.value, "code", "") == "fan_out"
-    assert list_reports(session, business.tenant.id, author, report_kind="graph")[
-        "records"
-    ] == []

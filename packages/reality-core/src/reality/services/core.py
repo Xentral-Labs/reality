@@ -6330,7 +6330,6 @@ def send_chat_message(
     *,
     actor_user_id: str | None = None,
     context_commitment_id: str | None = None,
-    context_analytics: dict | None = None,
     language: str = "en",
     locale: str = "en-GB",
     timezone: str = "UTC",
@@ -6347,30 +6346,6 @@ def send_chat_message(
         raise InvalidOperation("Context annotations are created by the server.")
     original_message = message
     stored_message = message
-    if context_analytics:
-        if context_commitment_id:
-            raise InvalidOperation("Select one context for this question.")
-        from reality.services.analytics.execution import checked_definition
-
-        definition = checked_definition(
-            {"definition": context_analytics}
-        ).definition.model_dump(mode="json")
-        stored_message = context_prefix + json.dumps(
-            {
-                "analytics": {
-                    "version": 1,
-                    "tenant_id": tenant_id,
-                    "definition": definition,
-                },
-                "message": original_message,
-            }
-        )
-        message = (
-            "Selected analytics definition (not executed results): "
-            + json.dumps(definition)
-            + "\nUse analytics_catalog, analytics_query and analytics_contributors to answer from current data.\nQuestion: "
-            + original_message
-        )
     if context_commitment_id:
         commitment = _tenant_record(
             session, Commitment, tenant_id, context_commitment_id

@@ -8,7 +8,7 @@ CANCELLED: ContextVar[object | None] = ContextVar("analytics_cancelled", default
 
 
 def check_budget():
-    from reality.services.analytics.execution import AnalyticsError
+    from reality.services.analytics.errors import AnalyticsError
 
     cancelled = CANCELLED.get()
     if cancelled is not None and cancelled.is_set():

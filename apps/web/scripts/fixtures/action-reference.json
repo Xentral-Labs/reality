@@ -1,13 +1,6 @@
 {
   "commands": [
     {
-      "name": "Change Private Analytics Report",
-      "service": "change_report",
-      "mode": "mutation",
-      "adapters": ["Web", "MCP", "Chat"],
-      "effect": "Save, rename, duplicate or delete the authenticated user's private analytical definition with revision and retry protection."
-    },
-    {
       "name": "Change Private Graph Report",
       "service": "change_graph_report",
       "mode": "mutation",

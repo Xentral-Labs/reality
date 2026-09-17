@@ -17169,3 +17169,31 @@ Object.assign(dictionaries.es, {
   "This field is not kept as a date, so it cannot be grouped by period.":
     "Este campo no se guarda como fecha, así que no puede dividirse por periodo.",
 });
+
+// Saving a graph question. A report holds the question, so the words say that
+// rather than "save the result".
+Object.assign(dictionaries.de, {
+  "Save this question": "Diese Frage speichern",
+  "Save as a new report": "Als neue Auswertung speichern",
+});
+Object.assign(dictionaries.nl, {
+  "Save this question": "Deze vraag bewaren",
+  "Save as a new report": "Als nieuwe rapportage bewaren",
+});
+Object.assign(dictionaries.es, {
+  "Save this question": "Guardar esta pregunta",
+  "Save as a new report": "Guardar como nuevo informe",
+});
+
+Object.assign(dictionaries.de, {
+  "Save a question to find it here.": "Speichere eine Frage, dann findest du sie hier.",
+  "The saved question": "Die gespeicherte Frage",
+});
+Object.assign(dictionaries.nl, {
+  "Save a question to find it here.": "Bewaar een vraag, dan vind je hem hier.",
+  "The saved question": "De bewaarde vraag",
+});
+Object.assign(dictionaries.es, {
+  "Save a question to find it here.": "Guarda una pregunta y la encontrarás aquí.",
+  "The saved question": "La pregunta guardada",
+});

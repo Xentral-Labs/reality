@@ -2,6 +2,8 @@
 
 import base64
 import json
+from contextlib import contextmanager
+from contextvars import ContextVar
 
 from pydantic import ValidationError
 from sqlalchemy import select
@@ -9,12 +11,23 @@ from sqlalchemy.exc import IntegrityError
 
 from reality.db.analytics import AnalyticsReport
 from reality.db.core import AppUser, TenantMembership, now, uid
-from reality.services.analytics.execution import (
-    AnalyticsError,
-    checked_definition,
-    fingerprint,
-)
+from reality.services.analytics.errors import AnalyticsError, fingerprint
 from reality.services.core import NotFound
+from reality.services.memberships import Principal
+
+# Who is asking. A private report is owned, so every read and every change needs
+# the principal, and it travels here rather than through every signature.
+CALLER: ContextVar[Principal | None] = ContextVar("analytics_caller", default=None)
+
+
+@contextmanager
+def caller(principal):
+    token = CALLER.set(principal)
+    try:
+        yield
+    finally:
+        CALLER.reset(token)
+
 
 
 class ReportKind:
@@ -35,10 +48,6 @@ class ReportKind:
         self.version = version
 
 
-def _checked_analytics_definition(definition):
-    checked_definition({"definition": definition.model_dump(mode="json")})
-
-
 def _graph_kind():
     from reality.domain.graph_report import GraphReportChange
     from reality.services.analytics.graph_model import reporting_graph
@@ -54,13 +63,15 @@ def _graph_kind():
 
 
 def kind(key):
-    if key == "graph":
-        return _graph_kind()
-    from reality.domain.analytics import ReportChange as _ReportChange
+    """One kind ships today. The seam stays because the row records which one.
 
-    return ReportKind(
-        "definition", _ReportChange, "definition", _checked_analytics_definition
-    )
+    A report saved before the graph carries no kind and no model version; it is
+    not readable by any surface and is not migrated — the configured generation
+    it belonged to was replaced rather than translated.
+    """
+    if key != "graph":
+        raise AnalyticsError(f"unknown report kind {key!r}", "unknown_report_kind")
+    return _graph_kind()
 
 
 def require_author(session, tenant_id, principal):
@@ -135,11 +146,7 @@ def list_reports(
         AnalyticsReport.owner_user_id == owner,
         AnalyticsReport.deleted_at.is_(None),
     )
-    if report_kind == "definition":
-        statement = statement.where(
-            (AnalyticsReport.kind.is_(None)) | (AnalyticsReport.kind == "definition")
-        )
-    elif report_kind:
+    if report_kind:
         statement = statement.where(AnalyticsReport.kind == report_kind)
     if query:
         statement = statement.where(
@@ -168,11 +175,6 @@ def list_reports(
         if len(rows) > limit
         else None,
     }
-
-
-def change_report(session, tenant_id, principal, arguments):
-    """Save, rename, duplicate or delete a configured private report."""
-    return _change(session, tenant_id, principal, arguments, kind("definition"))
 
 
 def change_graph_report(session, tenant_id, principal, arguments):
@@ -268,9 +270,12 @@ def _change(session, tenant_id, principal, arguments, contract):
         raise AnalyticsError(
             "The report changed. Reload it before saving.", "revision_conflict"
         )
-    if row.kind and row.kind != contract.key:
+    # A row saved before the graph carries no kind at all. Treating that as
+    # "any kind" would let a graph change overwrite a retired report in place.
+    stored_kind = row.kind or "definition"
+    if stored_kind != contract.key:
         raise AnalyticsError(
-            f"This report holds a {row.kind} question; it cannot be changed as a "
+            f"This report holds a {stored_kind} question; it cannot be changed as a "
             f"{contract.key} one.",
             "kind_mismatch",
         )

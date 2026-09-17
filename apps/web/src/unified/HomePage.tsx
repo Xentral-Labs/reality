@@ -77,7 +77,7 @@ export function HomePage({
       {!data && !loading && <ReadState error={error} retry={refresh} />}
       <button
         className="br-btn"
-        onClick={() => navigate({ route: "analytics", analyticsView: "explore", page: 1 })}
+        onClick={() => navigate({ route: "analytics", analyticsView: "graph", page: 1 })}
       >
         {t("Open analytics")}
         <ArrowRight size={16} />

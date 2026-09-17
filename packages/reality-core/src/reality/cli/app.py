@@ -1874,7 +1874,7 @@ def finance_target_propose(
         con.print_json(data={"id": proposal.id, "preview": json.loads(proposal.output)})
 
 
-analytics_app = typer.Typer(help="Discover and execute structured analytical reports.")
+analytics_app = typer.Typer(help="Ask the business graph and read its catalog.")
 app.add_typer(analytics_app, name="analytics")
 
 graph_app = typer.Typer(help="Ask the reporting graph a question.")
@@ -1935,70 +1935,6 @@ def graph_ask(
         f"[dim]{len(result.rows)} rows · model {result.model_version} · "
         f"{result.statements} statement[/dim]"
     )
-
-
-@analytics_app.command("catalog")
-def analytics_catalog(dataset: str | None = None):
-    from reality.tools.application import run_read_tool
-
-    with Session() as session:
-        tenant = selected_tenant(session, read_current_tenant())
-        con.print_json(
-            data=run_read_tool(
-                session, tenant.id, "analytics.catalog", {"dataset": dataset}
-            )
-        )
-
-
-@analytics_app.command("query")
-def analytics_query(file: Annotated[Path, typer.Option(exists=True, dir_okay=False)]):
-    from reality.tools.application import run_read_tool
-
-    definition = json.loads(file.read_text())
-    with Session() as session:
-        tenant = selected_tenant(session, read_current_tenant())
-        con.print_json(
-            data=run_read_tool(
-                session, tenant.id, "analytics.query", {"definition": definition}
-            )
-        )
-
-
-@analytics_app.command("contributors")
-def analytics_contributors(
-    file: Annotated[Path, typer.Option(exists=True, dir_okay=False)],
-):
-    from reality.tools.application import run_read_tool
-
-    with Session() as session:
-        tenant = selected_tenant(session, read_current_tenant())
-        con.print_json(
-            data=run_read_tool(
-                session,
-                tenant.id,
-                "analytics.contributors",
-                json.loads(file.read_text()),
-            )
-        )
-
-
-@analytics_app.command("export")
-def analytics_export(
-    file: Annotated[Path, typer.Option(exists=True, dir_okay=False)],
-    output: Annotated[Path, typer.Option()],
-):
-    from reality.tools.application import run_read_tool
-
-    with Session() as session:
-        tenant = selected_tenant(session, read_current_tenant())
-        result = run_read_tool(
-            session,
-            tenant.id,
-            "analytics.export",
-            {"definition": json.loads(file.read_text())},
-        )
-    output.write_text(result["csv"])
-    con.print(f"Exported {result['row_count']} rows to {output}")
 
 
 if __name__ == "__main__":

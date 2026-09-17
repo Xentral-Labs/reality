@@ -14,18 +14,24 @@ const compiled = ts.transpile(source("../src/unified/routing.ts"), {
 const { readSelection, selectionUrl, companySelection } = await import(
   `data:text/javascript;base64,${Buffer.from(compiled).toString("base64")}`
 );
-for (const view of ["", "overview", "invalid", "explore", "reports"]) {
+// "overview" and "explore" were the configured generation. A link that still
+// names one opens the graph rather than a blank page, which is the whole reason
+// the value is validated rather than trusted.
+for (const view of ["", "overview", "invalid", "explore", "reports", "graph", "console"]) {
   test(`analytics link ${view || "default"} opens a retained tab`, () => {
     const selection = readSelection(
       new URL(
         `https://example.test/app/analytics?tenant=one&analytics_view=${view}&days=90&metric=shipped&day=2026-09-17`,
       ),
     );
-    assert.equal(selection.analyticsView, view === "reports" ? "reports" : "explore");
+    assert.equal(
+      selection.analyticsView,
+      ["reports", "graph", "console"].includes(view) ? view : "graph",
+    );
     const url = new URL(selectionUrl(selection), "https://example.test");
     assert.equal(url.searchParams.get("tenant"), "one");
     for (const key of ["days", "metric", "day"]) assert.equal(url.searchParams.has(key), false);
-    assert.equal(companySelection(selection, "two").analyticsView, "explore");
+    assert.equal(companySelection(selection, "two").analyticsView, "graph");
   });
 }
 test("rendered analytics carries no retired overview", () => {
@@ -40,10 +46,9 @@ test("rendered analytics carries no retired overview", () => {
       require: (name) => {
         if (name === "../localization") return { t: (value) => value };
         if (name === "./RegisterWorkbench") return { RegisterHeader: ({ children }) => children };
-        if (name === "./analytics/AnalyticsExplorer")
-          return { AnalyticsExplorer: () => "Explorer content" };
         if (name === "./analytics/ReportLibrary") return { ReportLibrary: () => "Saved reports" };
         if (name === "./analytics/GraphSteps") return { GraphSteps: () => "Graph content" };
+        if (name === "./analytics/GraphConsole") return { GraphConsole: () => "Console" };
         if (name.startsWith(".")) return {};
         return require(name);
       },
@@ -55,14 +60,23 @@ test("rendered analytics carries no retired overview", () => {
       navigate: () => {},
     }),
   );
-  // What spec 221 retired was the overview, not the right to add a view. The tabs
-  // are named rather than counted, so a new one does not read as a regression.
-  assert.match(html, /aria-pressed="true">Explore/);
-  assert.match(html, /Business graph/);
+  // Spec 221 retired the overview; spec 224 retired the configured explorer
+  // with it. The tabs are named rather than counted, so adding one does not
+  // read as a regression and removing one does.
+  assert.match(html, /aria-pressed="true">Business graph/);
+  assert.match(html, /Query console/);
   assert.match(html, /My reports/);
-  assert.doesNotMatch(html, /Overview|Recorded activity/);
+  assert.doesNotMatch(html, /Overview|Recorded activity|Explore/);
 });
 test("Home and client no longer consume retired metrics", () => {
   assert.doesNotMatch(source("../src/unified/HomePage.tsx"), /AnalyticsPreview/);
   assert.doesNotMatch(source("../src/api.ts"), /export type Insights|insights:|InsightMetric/);
+});
+test("the configured generation is gone from the client, not merely unmounted", () => {
+  const client = source("../src/api.ts");
+  assert.doesNotMatch(client, /analyticsApi|AnalyticsDefinition|AnalyticsCatalog/);
+  // A chat hand-off carried a definition into the copilot. There is no
+  // definition any more, so the context kind goes with it.
+  assert.doesNotMatch(client, /kind: "analytics"/);
+  assert.doesNotMatch(source("../src/unified/context.ts"), /AnalyticsHandoff/);
 });

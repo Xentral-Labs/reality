@@ -1,6 +1,6 @@
 import { analyticsError } from "./errors";
 import { useState } from "react";
-import { analyticsApi, type AnalyticsReport } from "../../api";
+import { graphApi, type GraphReport } from "../../api";
 import { formatDateTime, t } from "../../localization";
 import { useRead } from "../useCompanyContext";
 import { ReadState } from "../ReadState";
@@ -10,13 +10,13 @@ export function ReportLibrary({
   open,
 }: {
   tenant: string;
-  open: (report: AnalyticsReport) => void;
+  open: (report: GraphReport) => void;
 }) {
   const [query, setQuery] = useState("");
   const [cursor, setCursor] = useState<string | undefined>();
-  const read = useRead(() => analyticsApi.reports(tenant, query, cursor), [tenant, query, cursor]);
+  const read = useRead(() => graphApi.reports(tenant, query, cursor), [tenant, query, cursor]);
   const [edit, setEdit] = useState<{
-    report: AnalyticsReport;
+    report: GraphReport;
     operation: "rename" | "duplicate" | "delete";
     key: string;
   } | null>(null);
@@ -28,7 +28,7 @@ export function ReportLibrary({
     setBusy(true);
     setError("");
     try {
-      await analyticsApi.change(tenant, {
+      await graphApi.change(tenant, {
         operation: edit.operation,
         request_id: edit.key,
         report_id: edit.report.id,
@@ -52,7 +52,7 @@ export function ReportLibrary({
         </p>
       </div>
       <input
-        className="br-input max-w-md"
+        className="br-control max-w-md"
         aria-label={t("Search reports")}
         placeholder={t("Search reports")}
         value={query}
@@ -67,7 +67,7 @@ export function ReportLibrary({
         <>
           {!read.data.records.length && (
             <p className="rounded-xl border border-dashed border-border-default p-10 text-center text-fg-muted">
-              {t("Save an analysis to find it here.")}
+              {t("Save a question to find it here.")}
             </p>
           )}
           <div className="grid gap-4 lg:grid-cols-2">
@@ -131,7 +131,7 @@ export function ReportLibrary({
           </h3>
           {edit.operation !== "delete" && (
             <input
-              className="br-input my-3"
+              className="br-control my-3"
               maxLength={120}
               value={name}
               aria-label={t("Report name")}
@@ -142,7 +142,7 @@ export function ReportLibrary({
             />
           )}
           {error && (
-            <p role="alert" className="my-3 text-negative-text">
+            <p role="alert" className="my-3 text-critical-text">
               {error}
             </p>
           )}

@@ -9,8 +9,8 @@ from typing import Any
 
 from sqlalchemy.orm import Session
 
+from reality.services.analytics.reports import caller
 from reality.services.core import InvalidOperation, NotFound
-from reality.tools.analytics import caller
 
 _active_sends: set[asyncio.Task[None]] = set()
 

@@ -1758,7 +1758,6 @@ export const api = {
     sessionId: string,
     message: string,
     commitment?: string,
-    analytics?: AnalyticsDefinition,
     onEvent?: (event: ChatStreamEvent) => void,
   ) =>
     sendChatRequest(
@@ -1767,11 +1766,7 @@ export const api = {
         method: "POST",
         body: JSON.stringify({
           message,
-          ...(analytics
-            ? { context: { kind: "analytics", definition: analytics } }
-            : commitment
-              ? { context: { kind: "commitment", id: commitment } }
-              : {}),
+          ...(commitment ? { context: { kind: "commitment", id: commitment } } : {}),
         }),
       },
       onEvent,
@@ -3143,99 +3138,6 @@ export type StorylineImportResult = {
   warnings: StorylineImportError[];
   replaced: boolean;
 };
-export type AnalyticsFilter = {
-  field?: string;
-  op?: string;
-  value?: string | number | boolean;
-  values?: (string | number | boolean)[];
-  relationship?: "purchases" | "order_lines" | "outbound";
-  where?: AnalyticsFilter;
-  time?: AnalyticsDefinition["time"];
-  all?: AnalyticsFilter[];
-  any?: AnalyticsFilter[];
-};
-export type AnalyticsDefinition = {
-  version?: 1;
-  dataset: string;
-  dimensions: string[];
-  measures: string[];
-  where?: AnalyticsFilter | null;
-  time?: {
-    field: string;
-    timezone: string;
-    window: {
-      kind: string;
-      start?: string;
-      end?: string;
-      year?: number;
-      week?: number;
-      count?: number;
-    };
-  } | null;
-  cancellation?: string;
-  sort?: { field: string; direction: "asc" | "desc" }[];
-  compare?: "previous_period" | AnalyticsDefinition["time"] | null;
-  presentation?: {
-    kind: "table" | "bar" | "line" | "pivot";
-    rows?: string[];
-    column?: string | null;
-    measures?: string[];
-  };
-};
-export type AnalyticsDataset = {
-  key: string;
-  label: string;
-  grain: string;
-  relationships?: ("purchases" | "order_lines" | "outbound")[];
-  dimensions: {
-    key: string;
-    label: string;
-    type: string;
-    operators: string[];
-    groupable?: boolean;
-  }[];
-  measures: { key: string; label: string; aggregation: string; partition: string | null }[];
-};
-export type AnalyticsCatalog = {
-  version: number;
-  datasets: AnalyticsDataset[];
-  starters: { name: string; definition: AnalyticsDefinition }[];
-  limits: Record<string, number>;
-};
-export type AnalyticsResult = {
-  executed_definition: AnalyticsDefinition;
-  definition_fingerprint: string;
-  columns: { key: string; label: string; type: string }[];
-  rows: Record<string, string | number | null>[];
-  population_totals: Record<string, string | number | null>[];
-  page: { has_more: boolean; next_cursor: string | null; total: number };
-  pivot?: {
-    row_dimensions: string[];
-    column_dimension: string;
-    measures: string[];
-    cells: Record<string, string | number | null>[];
-    row_totals: Record<string, string | number | null>[];
-    column_totals: Record<string, string | number | null>[];
-    totals: Record<string, string | number | null>[];
-  } | null;
-  comparison: AnalyticsResult | null;
-  metadata: {
-    observed_at: string;
-    resolved_window: { start: string; end: string; timezone: string; field: string } | null;
-    missing_values: Record<string, number>;
-    undated_excluded: number;
-    history_scope: string;
-    consistency?: string;
-  };
-};
-export type AnalyticsReport = {
-  id: string;
-  name: string;
-  definition: AnalyticsDefinition;
-  revision: number;
-  updated_at: string;
-  deleted: boolean;
-};
 export type GraphMeasure = {
   key: string;
   label: string;
@@ -3301,6 +3203,33 @@ export type GraphAnswer = {
   sql: string;
   question: GraphQuestion;
 };
+/** A saved graph report holds the question, never its answer.
+ *
+ * Reopening it re-executes the traversal, so what comes back is a fresh
+ * observation rather than a preserved number — the only honest thing a report
+ * can be when the records underneath keep changing.
+ */
+export type GraphReport = {
+  id: string;
+  name: string;
+  kind: string;
+  /** The stored question. The field is named `definition` because one table
+   *  carries both kinds; for a graph report it is always a traversal. */
+  definition: GraphQuestion;
+  model_version: string | null;
+  revision: number;
+  created_at: string;
+  updated_at: string;
+  deleted: boolean;
+};
+export type GraphReportChange = {
+  operation: "create" | "update" | "rename" | "duplicate" | "delete";
+  request_id: string;
+  report_id?: string;
+  expected_revision?: number;
+  name?: string;
+  question?: GraphQuestion;
+};
 export const graphApi = {
   catalog: (tenant: string, language: string) =>
     request<GraphCatalog>(
@@ -3318,64 +3247,26 @@ export const graphApi = {
       body: JSON.stringify({ path }),
       signal,
     }),
-};
-export const analyticsApi = {
   proposal: (tenant: string, id: string) =>
     request<{
       proposal_id: string;
       status: string;
       operation: string;
-      name: string;
-      definition: AnalyticsDefinition;
+      name: string | null;
+      definition: GraphQuestion | null;
       expected_revision: number | null;
+      kind: string;
     }>(`/api/tenants/${tenant}/analytics/reports/proposals/${encodeURIComponent(id)}`),
-  catalog: (tenant: string) =>
-    request<AnalyticsCatalog>(`/api/tenants/${tenant}/analytics/catalog`),
-  query: (tenant: string, definition: AnalyticsDefinition, signal?: AbortSignal, cursor?: string) =>
-    request<AnalyticsResult>(`/api/tenants/${tenant}/analytics/query`, {
-      method: "POST",
-      body: JSON.stringify({ definition, cursor }),
-      signal,
-    }),
-  contributors: (
-    tenant: string,
-    definition: AnalyticsDefinition,
-    group: Record<string, unknown>,
-    measure: string,
-    cursor?: string,
-  ) =>
-    request<{
-      records: Record<string, string | null>[];
-      total: number;
-      has_more: boolean;
-      next_cursor: string | null;
-    }>(`/api/tenants/${tenant}/analytics/query/contributors`, {
-      method: "POST",
-      body: JSON.stringify({ definition, group, measure, ...(cursor ? { cursor } : {}) }),
-    }),
-  export: (tenant: string, definition: AnalyticsDefinition) =>
-    request<{ csv: string; filename: string; row_count: number }>(
-      `/api/tenants/${tenant}/analytics/export`,
-      { method: "POST", body: JSON.stringify({ definition }) },
-    ),
   reports: (tenant: string, query = "", cursor?: string) =>
-    request<{ records: AnalyticsReport[]; has_more: boolean; next_cursor: string | null }>(
-      `/api/tenants/${tenant}/analytics/reports?${new URLSearchParams({ query, ...(cursor ? { cursor } : {}) })}`,
+    request<{ records: GraphReport[]; has_more: boolean; next_cursor: string | null }>(
+      `/api/tenants/${tenant}/analytics/graph/reports?${new URLSearchParams({ query, ...(cursor ? { cursor } : {}) })}`,
     ),
   report: (tenant: string, id: string) =>
-    request<AnalyticsReport>(`/api/tenants/${tenant}/analytics/reports/${encodeURIComponent(id)}`),
-  change: (
-    tenant: string,
-    body: {
-      operation: string;
-      request_id: string;
-      report_id?: string;
-      expected_revision?: number;
-      name?: string;
-      definition?: AnalyticsDefinition;
-    },
-  ) =>
-    request<AnalyticsReport>(`/api/tenants/${tenant}/analytics/reports/changes`, {
+    request<GraphReport>(
+      `/api/tenants/${tenant}/analytics/graph/reports/${encodeURIComponent(id)}`,
+    ),
+  change: (tenant: string, body: GraphReportChange) =>
+    request<GraphReport>(`/api/tenants/${tenant}/analytics/graph/reports/changes`, {
       method: "POST",
       body: JSON.stringify(body),
     }),

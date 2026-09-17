@@ -6,16 +6,38 @@ from time import perf_counter
 from typing import Any
 
 import httpx
+from pydantic import ValidationError
 from sqlalchemy.orm import Session
 
 from reality.agent.streaming import ChatEventSink, streamed_message
 from reality.mcp.catalog import dispatch_tool, model_tool_schemas
+from reality.services.core import InvalidOperation, NotFound
 from reality.services.tenant_policy import (
     playground_chat_active,
     require_business_operation,
 )
 
 logger = logging.getLogger(__name__)
+
+
+def _call_tool(session, tenant_id, name, arguments, access) -> tuple[Any, bool]:
+    """Run one tool call, and hand a refusal back to the model rather than up.
+
+    A tool that says no has said something useful: which field was misspelled,
+    which connection fans out, which unit cannot be added. Letting that escape
+    ends the whole turn with "could not answer right now", when what the model
+    needed was one sentence to correct itself with. Anything that is not about
+    the request — a database that is gone — still travels up.
+    """
+    try:
+        return dispatch_tool(session, tenant_id, name, arguments, allowed_access=access), False
+    except ValidationError as error:
+        return {"error": error.errors(include_url=False, include_context=False)}, True
+    except (InvalidOperation, NotFound) as error:
+        return {
+            "error": str(error),
+            **({"code": error.code} if getattr(error, "code", None) else {}),
+        }, True
 
 
 def _compact(value: Any) -> str:
@@ -184,14 +206,12 @@ async def reply_via_tools(
             for call in calls:
                 arguments = json.loads(call["function"].get("arguments") or "{}")
                 tool_started = perf_counter()
-                result = dispatch_tool(
-                    session,
-                    tenant_id,
-                    call["function"]["name"],
-                    arguments,
-                    allowed_access=access,
+                result, refused = _call_tool(
+                    session, tenant_id, call["function"]["name"], arguments, access
                 )
-                _timing("tool", tool_started, name=call["function"]["name"])
+                _timing(
+                    "tool", tool_started, name=call["function"]["name"], refused=refused
+                )
                 messages.append(
                     {
                         "role": "tool",
@@ -287,19 +307,16 @@ async def reply_via_anthropic_tools(
             results = []
             for call in calls:
                 tool_started = perf_counter()
-                result = dispatch_tool(
-                    session,
-                    tenant_id,
-                    call["name"],
-                    call.get("input") or {},
-                    allowed_access=access,
+                result, refused = _call_tool(
+                    session, tenant_id, call["name"], call.get("input") or {}, access
                 )
-                _timing("tool", tool_started, name=call["name"])
+                _timing("tool", tool_started, name=call["name"], refused=refused)
                 results.append(
                     {
                         "type": "tool_result",
                         "tool_use_id": call["id"],
                         "content": _compact(result),
+                        **({"is_error": True} if refused else {}),
                     }
                 )
             messages.append({"role": "user", "content": results})

@@ -3,8 +3,9 @@
 [![Außensysteme oben; Aufträge und Zahlungen kommen von selbst in Reality an; Lieferungen, Retourenpakete, Kundenmails und Anrufe erreichen die Schicht darüber, die sie bucht; die Schicht liest, schlägt vor, entscheidet und prüft gegen Reality; Verfügbarkeit meldet die Schicht nach außen, nicht Reality](/agent-playbooks-layers-de.svg)](/agent-playbooks-layers-de.svg)
 
 [Auswertungen](../analytics/#so-bedient-ein-agent-die-auswertung) ergänzt die operativen Playbooks:
-`analytics_catalog` liefert die Begriffe, `analytics_query` die Antwort und `analytics_contributors`
-die Belege. Dieselbe Definition lässt sich im Explorer bearbeiten.
+`graph_catalog` liefert die Datensätze und ihre Verbindungen, `graph_ask` die Antwort. Kommt eine
+Ablehnung zurück, nennt sie die Beziehung, die auffächert, oder die Einheit, die sich nicht addieren
+lässt.
 
 Reality bringt keine eigenen Agenten mit und keinen Workflow-Editor. Reality stellt die Strukturen
 bereit, auf denen Agenten arbeiten können: Datensätze mit klarer Herkunft, Lesewerkzeuge, die den
