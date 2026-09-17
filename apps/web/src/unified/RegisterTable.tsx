@@ -173,6 +173,7 @@ function actionContent(value: ReactNode): ReactNode {
 export function RegisterTable({
   children,
   footer,
+  filterControl = true,
   actionWidth = 80,
   actionPresentation = "icons",
   cursorView,
@@ -182,6 +183,7 @@ export function RegisterTable({
   children: ReactNode;
   cursorView?: { id: string; widths: number[] };
   footer?: ReactNode;
+  filterControl?: boolean;
   actionWidth?: number;
   actionPresentation?: "icons" | "labels";
   className?: string;
@@ -475,7 +477,7 @@ export function RegisterTable({
                         ) : (
                           <span>{headers[i].props.children}</span>
                         )}
-                        {i === 0 && (
+                        {i === 0 && filterControl && (
                           <button
                             className="erp-filter"
                             title={t("Filter records")}

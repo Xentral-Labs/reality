@@ -12,17 +12,17 @@ No business logic, catalog, authorization, schema or action execution changes.
 
 ## User Scenarios & Testing
 ### US1 — Find facts and their rules (P1)
-Given Business Facts, users can switch among All records, Calculated views and Fact rules.
+Given Business Facts, users can switch among All records and Fact rules.
 ### US2 — Find exceptions and their rules (P1)
 Given Exceptions, users can switch among Open exceptions and Exception rules and open a finding from a rule.
 ### US3 — Understand inspector destinations (P1)
-Given the sidebar, Event history and Available actions are separate destinations with appropriate headings and icons.
+Given the sidebar, Event history and Tools are separate destinations. Tools contains Actions and Calculated views.
 
 ## Requirements
-- **FR-001**: Business Facts contains All records, Calculated views and Fact rules; no separate Rules navigation entry remains.
+- **FR-001**: Business Facts contains All records and Fact rules; no separate Rules navigation entry remains.
 - **FR-002**: Exceptions contains Open exceptions and Exception rules, reusing existing rule and finding views without changing their behavior.
-- **FR-003**: Event history and Available actions have separate sidebar entries and no unrelated sibling tabs.
-- **FR-004**: Old inspector rules, exceptions, history and commands links remain usable; company, search and finding context survive canonicalization. Back/forward and reload retain the selected Exceptions tab.
+- **FR-003**: Event history and Tools have separate sidebar entries. Tools is the invariant product label in every language and contains Actions (default) and Calculated views.
+- **FR-004**: Old inspector rules, exceptions, history, commands and views links remain usable; company, search and finding context survive canonicalization. Back/forward and reload retain the selected Exceptions tab.
 - **FR-005**: Navigation, tabs and headings use consistent English, German, Dutch and Spanish terminology and remain usable at desktop and mobile widths.
 
 ## Assumptions and Dependencies
@@ -40,3 +40,6 @@ The owner approved this exact structure in conversation on 2026-09-16. Existing 
 | FR-003 | T001,T002,T004 | Sidebar and isolated destination checks |
 | FR-004 | T001,T003,T004 | Routing regression, reload/back browser |
 | FR-005 | T002,T004 | Four-language browser and responsive checks |
+
+## Tools navigation refinement (2026-09-17)
+The user explicitly requested renaming Available actions to Tools and moving Calculated views out of Business Facts into Tools. Existing commands/views URLs remain unchanged and select the correct Tools tab, including reload/back/forward. No service or report behavior changes. FR-001/003/004/005 map to T005 and navigation regression/browser evidence.

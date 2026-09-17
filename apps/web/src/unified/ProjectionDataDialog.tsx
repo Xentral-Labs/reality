@@ -1,10 +1,10 @@
-import { useEffect, useId, useRef, type ReactNode } from "react";
+import { useEffect, useId, useRef, useState, type ReactNode } from "react";
 import { api, operationsApi, type ProjectionSnapshot } from "../api";
 import { t } from "../localization";
 import { useRead } from "./useCompanyContext";
 import { ReadState } from "./ReadState";
 import { ProjectionFreshness } from "./ProjectionFreshness";
-import { RegisterTable } from "./RegisterTable";
+import { ReportDataTable } from "./ReportDataTable";
 
 async function readView(tenant: string, name: string): Promise<ProjectionSnapshot> {
   if (!name.startsWith("view:")) return api.inspectorProjection(tenant, name);
@@ -85,6 +85,9 @@ export function ProjectionDataDialog({
 }) {
   const dialog = useRef<HTMLDialogElement>(null);
   const titleId = useId();
+  const [detailsOpen, setDetailsOpen] = useState(
+    () => !dataAvailable || window.matchMedia("(min-width: 1024px)").matches,
+  );
   const read = useRead(
     () => (dataAvailable ? readView(tenant, name) : Promise.resolve(null)),
     [tenant, name, dataAvailable],
@@ -99,13 +102,9 @@ export function ProjectionDataDialog({
     };
   }, []);
   const rows = read.data?.items.slice(0, 100);
-  const columns = Array.from(new Set(rows?.flatMap((row) => Object.keys(row)) || []));
-  const text = (value: unknown) =>
-    value === null || value === undefined
-      ? "—"
-      : typeof value === "object"
-        ? JSON.stringify(value)
-        : String(value);
+  const splitLayout = "lg:grid-cols-[minmax(0,1fr)_340px] lg:grid-rows-1";
+  const besideData = "max-h-[32dvh] lg:order-2 lg:max-h-none lg:border-b-0 lg:border-l";
+  const detailsOnly = "row-span-2 max-h-none";
   return (
     <dialog
       ref={dialog}
@@ -114,95 +113,78 @@ export function ProjectionDataDialog({
         event.preventDefault();
         close();
       }}
-      className="m-auto max-h-[90dvh] w-[min(1100px,94vw)] overflow-auto rounded-xl border border-border-default bg-surface p-5 text-fg shadow-xl backdrop:bg-black/30"
+      className="m-auto h-[90dvh] max-h-[90dvh] w-[min(1400px,94vw)] overflow-hidden rounded-xl border border-border-default bg-surface p-0 text-fg shadow-xl backdrop:bg-black/30"
     >
-      <header className="mb-4 flex items-start justify-between gap-4">
-        <div>
-          <h2 id={titleId} className="text-lg font-semibold">
-            {t(title || "View data")}
-          </h2>
-          {description ? (
-            <p className="mt-2 text-sm leading-relaxed text-fg-muted">{t(description)}</p>
-          ) : (
-            <p className="mt-1 break-all text-sm text-fg-muted" data-localization="original">
-              {name.replace(/^view:/, "")}
-            </p>
-          )}
-        </div>
-        <button className="br-btn" onClick={close}>
-          {t("Close")}
-        </button>
-      </header>
-      <ProjectionFreshness
-        metadata={read.data?.metadata}
-        refresh={read.refresh}
-        loading={read.loading}
-        error={read.error}
-      />
-      {!dataAvailable ? (
-        <p className="py-4 text-sm text-fg-muted">
-          {t(
-            "This report needs a business partner and an item. See the details for its inputs and calculation.",
-          )}
-        </p>
-      ) : !rows ? (
-        <ReadState loading={read.loading} error={read.error} retry={read.refresh} />
-      ) : !rows.length &&
-        read.data?.metadata &&
-        read.data.metadata.state !== "ready" ? null : !rows.length ? (
-        <p role="status" className="py-6 text-sm text-fg-muted">
-          {t("No results")}
-        </p>
-      ) : (
-        <>
-          <p className="mb-3 text-xs text-fg-muted">
-            {t("Preview of returned data; up to 100 rows from the first response.")}
-          </p>
-          <RegisterTable
-            cursorView={{ id: `inspector:projection:${name}`, widths: columns.map(() => 180) }}
-          >
-            <thead>
-              <tr>
-                {columns.map((column) => (
-                  <th key={column} data-localization="original">
-                    {column}
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {rows.map((row, index) => (
-                <tr key={index}>
-                  {columns.map((column) => (
-                    <td key={column} data-localization="original">
-                      {text(row[column])}
-                    </td>
-                  ))}
-                </tr>
-              ))}
-            </tbody>
-          </RegisterTable>
-          <details className="mt-4">
-            <summary className="cursor-pointer text-sm">{t("Technical details")}</summary>
-            <pre
-              className="mt-3 max-h-72 overflow-auto whitespace-pre-wrap break-all text-xs"
-              data-localization="original"
-            >
-              {JSON.stringify(rows, null, 2)}
-            </pre>
-          </details>
-        </>
-      )}
-      {details && (
-        <details
-          className="mt-6 border-t border-border-default pt-4"
-          open={!dataAvailable}
-          data-report-details
+      <div className="flex h-full min-h-0 flex-col">
+        <header className="flex shrink-0 items-start justify-between gap-4 border-b border-border-default p-5">
+          <div>
+            <h2 id={titleId} className="text-lg font-semibold">
+              {t(title || "View data")}
+            </h2>
+            {description ? (
+              <p className="mt-2 text-sm leading-relaxed text-fg-muted">{t(description)}</p>
+            ) : (
+              <p className="mt-1 break-all text-sm text-fg-muted" data-localization="original">
+                {name.replace(/^view:/, "")}
+              </p>
+            )}
+          </div>
+          <button className="br-btn" onClick={close}>
+            {t("Close")}
+          </button>
+        </header>
+        <div
+          className={`grid min-h-0 flex-1 grid-rows-[auto_minmax(0,1fr)] overflow-hidden ${details && dataAvailable ? splitLayout : "grid-cols-1"}`}
         >
-          <summary className="cursor-pointer font-medium">{t("Report details")}</summary>
-          <div className="mt-4 space-y-5">{details}</div>
-        </details>
-      )}
+          {details && (
+            <aside
+              className={`min-h-0 min-w-0 overflow-auto border-b border-border-default bg-surface-muted p-4 ${dataAvailable ? besideData : detailsOnly}`}
+            >
+              <details
+                open={detailsOpen}
+                onToggle={(event) => setDetailsOpen(event.currentTarget.open)}
+                data-report-details
+              >
+                <summary className="cursor-pointer font-medium">{t("About this report")}</summary>
+                <div className="mt-4 space-y-5">{details}</div>
+              </details>
+            </aside>
+          )}
+          <div
+            data-report-data
+            className={`min-h-0 min-w-0 overflow-auto p-5 ${details ? "lg:order-1" : "row-span-2"} ${!dataAvailable && details ? "hidden" : ""}`}
+          >
+            <ProjectionFreshness
+              metadata={read.data?.metadata}
+              refresh={read.refresh}
+              loading={read.loading}
+              error={read.error}
+            />
+            {!dataAvailable ? (
+              <p className="py-4 text-sm text-fg-muted">
+                {t(
+                  "This report needs a business partner and an item. See the details for its inputs and calculation.",
+                )}
+              </p>
+            ) : !rows ? (
+              <ReadState loading={read.loading} error={read.error} retry={read.refresh} />
+            ) : !rows.length &&
+              read.data?.metadata &&
+              read.data.metadata.state !== "ready" ? null : !rows.length ? (
+              <p role="status" className="py-6 text-sm text-fg-muted">
+                {t("No results")}
+              </p>
+            ) : (
+              <>
+                <p className="mb-3 text-xs text-fg-muted">
+                  {t("Preview of returned data; up to 100 rows from the first response.")}
+                </p>
+                <ReportDataTable key={name} name={name} rows={rows} />
+              </>
+            )}
+          </div>
+        </div>
+      </div>
     </dialog>
   );
 }

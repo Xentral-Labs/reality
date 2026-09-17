@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { buildReports, filterReports } from "../src/unified/reportCatalogEntries.ts";
+import { buildReports, filterReports, groupReports } from "../src/unified/reportCatalogEntries.ts";
 const projection = (key) => ({
   name: key,
   materialized_as: key,
@@ -57,4 +57,22 @@ test("report search uses localized names, descriptions and aliases together with
   assert.equal(filterReports(reports, "versand", "Sales", translate).length, 1);
   assert.equal(filterReports(reports, "versand", "Finance", translate).length, 0);
   assert.equal(filterReports(reports, "warehouse_queue", "All", translate).length, 1);
+});
+
+test("report directory has one home per target and retains unknown entries", () => {
+  const reports = buildReports(reference);
+  const groups = groupReports(reports);
+  assert.equal(groups.flatMap((group) => group.reports).length, reports.length);
+  assert.equal(
+    groups
+      .find((group) => group.key === "Sales")
+      .reports.filter((report) => report.target === "fulfillment_queue").length,
+    1,
+  );
+  assert.ok(
+    groups
+      .find((group) => group.key === "Company")
+      .reports.some((report) => report.target === "future_report"),
+  );
+  assert.ok(groups.every((group) => group.reports.length > 0));
 });

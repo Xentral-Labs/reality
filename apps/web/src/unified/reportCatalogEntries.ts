@@ -209,3 +209,18 @@ export function filterReports(
         .includes(needle),
   );
 }
+
+/** One directory home per report; secondary workspaces remain searchable metadata. */
+export function groupReports(reports: Report[]): Array<{ key: string; reports: Report[] }> {
+  return reportCategories
+    .filter((key) => key !== "All")
+    .map((key) => ({
+      key,
+      reports: reports.filter(
+        (report) =>
+          (reportCategories.includes(report.categories[0]) ? report.categories[0] : "Company") ===
+          key,
+      ),
+    }))
+    .filter((group) => group.reports.length > 0);
+}

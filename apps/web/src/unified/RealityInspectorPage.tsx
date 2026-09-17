@@ -1,6 +1,5 @@
-import { languageHref, readLanguage } from "../../../shared/language";
 import { ActionDirectory } from "./ActionDirectory";
-import { CatalogEntryDetails } from "./CatalogEntryDetails";
+import { ReportExplanation } from "./ReportExplanation";
 import { ReportCatalog } from "./ReportCatalog";
 import type { Report } from "./reportCatalogEntries";
 import { ProjectionDataDialog } from "./ProjectionDataDialog";
@@ -19,7 +18,7 @@ import { RulesWorkbench } from "./RulesWorkbench";
 import { ActivityDrawer } from "./ActivityDrawer";
 import { useRead } from "./useCompanyContext";
 import { ReadState } from "./ReadState";
-import type { Selection } from "./routing";
+import { navigationSelection, selectionUrl, type Selection } from "./routing";
 import type { DeliveryAction } from "./ActionLauncher";
 const kinds: Record<string, string> = {
   facts: "fact",
@@ -84,32 +83,6 @@ export function RealityInspectorPage({
     [tenant, tab, query, technicalOpen],
   );
   const [report, setReport] = useState<Report | null>(null);
-  const catalogLinks = (documentation: string, route?: string) => (
-    <>
-      <a
-        className="br-btn"
-        href={languageHref(
-          `${__DOCS_URL__.replace(/\/+$/, "")}/catalogs/${documentation}`,
-          readLanguage() ?? "en",
-          true,
-        )}
-        target="_blank"
-        rel="noopener noreferrer"
-      >
-        {t("Documentation")} ↗
-      </a>
-      {route && catalogRoutes[route] && (
-        <button
-          className="br-btn"
-          onClick={() =>
-            navigate({ ...catalogRoutes[route], tenant, q: "", page: 1, entry: "", record: "" })
-          }
-        >
-          {t("Open in application")}
-        </button>
-      )}
-    </>
-  );
   const openGraph = (target: GraphTarget) => {
     setRoot(target);
     navigate({ inspectorView: "graph" });
@@ -274,31 +247,29 @@ export function RealityInspectorPage({
           dataAvailable={report.dataAvailable}
           close={() => setReport(null)}
           details={
-            <>
-              {report.projection && (
-                <CatalogEntryDetails
-                  tenant={tenant}
-                  kind="projection"
-                  entry={report.projection}
-                  usedBy={report.views.map((view) => view.label)}
-                  actions={catalogLinks("projections")}
-                />
+            <ReportExplanation
+              report={report}
+              tenant={tenant}
+              workspaceLinks={report.views.flatMap((view) =>
+                catalogRoutes[view.route]
+                  ? [
+                      {
+                        label: view.label,
+                        href: selectionUrl(
+                          navigationSelection(selection, {
+                            ...catalogRoutes[view.route],
+                            tenant,
+                            q: "",
+                            page: 1,
+                            entry: "",
+                            record: "",
+                          }),
+                        ),
+                      },
+                    ]
+                  : [],
               )}
-              {report.views.map((view) => (
-                <div key={view.key}>
-                  <h3 className="font-medium" data-localization="original">
-                    {view.label}
-                  </h3>
-                  <CatalogEntryDetails
-                    tenant={tenant}
-                    kind="view"
-                    entry={view}
-                    projection={report.projection}
-                    actions={catalogLinks("workspaces", view.route)}
-                  />
-                </div>
-              ))}
-            </>
+            />
           }
         />
       )}

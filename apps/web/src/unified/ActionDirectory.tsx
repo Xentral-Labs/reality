@@ -1,7 +1,7 @@
 import { languageHref, readLanguage } from "../../../shared/language";
 import { useActionDiscovery } from "./ActionLauncher";
 import { useState } from "react";
-import { ChevronDown, ChevronRight, Folder, FolderOpen } from "lucide-react";
+import { DirectoryBranch } from "./DirectoryBranch";
 import type { ApplicationReference, CatalogCommand } from "../api";
 import { t } from "../localization";
 import { CatalogEntryDetails } from "./CatalogEntryDetails";
@@ -14,11 +14,6 @@ import {
   type DeliveryAction,
   type DirectoryEntry,
 } from "./actionDiscovery";
-
-const branchStyles = {
-  category: "border-b border-border-default last:border-0",
-  group: "ml-3 border-l border-border-default pl-3 sm:ml-6",
-};
 
 export function ActionDirectory({
   reference,
@@ -53,34 +48,19 @@ export function ActionDirectory({
   ) => {
     const open = searching || expanded.has(id);
     return (
-      <section key={id} className={branchStyles[level]} data-directory-branch={id}>
-        <button
-          type="button"
-          className="flex w-full min-w-0 items-center gap-2 rounded-lg px-2 py-3 text-left hover:bg-surface-muted focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent"
-          aria-expanded={open}
-          aria-controls={`branch-${id}`}
-          onClick={() => {
-            if (!searching) toggle(id);
-          }}
-        >
-          {open ? (
-            <ChevronDown size={16} className="shrink-0" />
-          ) : (
-            <ChevronRight size={16} className="shrink-0" />
-          )}
-          {level === "category" &&
-            (open ? (
-              <FolderOpen size={18} className="shrink-0 text-accent" />
-            ) : (
-              <Folder size={18} className="shrink-0 text-accent" />
-            ))}
-          <span className="min-w-0 flex-1 font-medium">{t(label)}</span>
-          <span className="text-right text-xs text-fg-muted">{count(values)}</span>
-        </button>
-        <div id={`branch-${id}`} hidden={!open}>
-          {children}
-        </div>
-      </section>
+      <DirectoryBranch
+        key={id}
+        id={id}
+        label={t(label)}
+        count={count(values)}
+        level={level}
+        open={open}
+        toggle={() => {
+          if (!searching) toggle(id);
+        }}
+      >
+        {children}
+      </DirectoryBranch>
     );
   };
   return (

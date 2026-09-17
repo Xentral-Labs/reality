@@ -105,6 +105,11 @@ await tree.getByRole("searchbox").fill("no-match-985");
 assert.equal(await tree.getByText("No matching records", { exact: true }).count(), 1);
 await tree.getByRole("button", { name: "Clear search", exact: true }).click();
 await tree.getByRole("button", { name: "Collapse all", exact: true }).click();
+if (process.env.DIRECTORY_ONLY === "1") {
+  await browser.close();
+  console.log("Action directory keyboard, search, expansion and preserved state checks passed.");
+  process.exit(0);
+}
 // The header bar: the first action is the primary button, one more stands beside it, two or
 // more sit behind More actions. Read them back in catalog order.
 const pageActions = async () => {

@@ -13,7 +13,7 @@ test("Inspector sections match their contents and default destinations", () => {
       ["Business Graph", "overview"],
       ["Business Facts", "facts"],
       ["Event history", "history"],
-      ["Available actions", "commands"],
+      ["Tools", "commands"],
     ],
   );
   assert.deepEqual(
@@ -22,7 +22,7 @@ test("Inspector sections match their contents and default destinations", () => {
   );
   assert.deepEqual(
     inspectorTabs("rules").map((t) => t[1]),
-    ["All records", "Calculated views", "Fact rules"],
+    ["All records", "Fact rules"],
   );
   assert.deepEqual(
     inspectorTabs("overview").map((t) => t[1]),
@@ -33,11 +33,10 @@ test("legacy records links share the single primary register", () => {
   assert.equal(inspectorSection("records"), inspectorSection("facts"));
   assert.deepEqual(inspectorTabs("records"), [
     ["facts", "All records"],
-    ["views", "Calculated views"],
     ["rules", "Fact rules"],
   ]);
-  assert.equal(inspectorSection("views").label, "Business Facts");
-  assert.equal(inspectorSection("commands").label, "Available actions");
+  assert.equal(inspectorSection("views").label, "Tools");
+  assert.equal(inspectorSection("commands").label, "Tools");
 });
 
 test("legacy URLs retain tenant, search and record-type filters", async () => {
@@ -88,4 +87,23 @@ test("exception rules legacy links normalize without losing company or finding c
     new URL("https://example.test/app/attention?attention_view=unknown"),
   );
   assert.equal(invalid.attentionView, "findings");
+});
+
+test("Tools shares Actions and Calculated views without changing bookmarked URLs", async () => {
+  const { readSelection, selectionUrl } = await import("../src/unified/routing.ts");
+  for (const view of ["commands", "views"]) {
+    const selection = readSelection(
+      new URL(`https://example.test/app/inspector?tenant=t1&inspector_view=${view}`),
+    );
+    assert.equal(inspectorSection(selection.inspectorView).label, "Tools");
+    assert.deepEqual(inspectorTabs(view), [
+      ["commands", "Actions"],
+      ["views", "Calculated views"],
+    ]);
+    assert.equal(
+      new URL(selectionUrl(selection), "https://example.test").searchParams.get("inspector_view"),
+      view,
+    );
+    assert.equal(selection.tenant, "t1");
+  }
 });
