@@ -8,7 +8,7 @@ Namen folgen dem ERP-Sprachgebrauch; der technische Schlüssel steht daneben.
 
 | Objekt                                                         | Listen | Aktionen | Klärfälle |
 | -------------------------------------------------------------- | ------ | -------- | --------- |
-| [Auswertung](#resource-analytics)                              | 0      | 2        | 0         |
+| [Auswertung](#resource-analytics)                              | 0      | 1        | 0         |
 | [Geschäftspartner](#resource-party)                            | 1      | 6        | 2         |
 | [Artikel](#resource-item)                                      | 5      | 3        | 2         |
 | [Lagerort](#resource-location)                                 | 3      | 3        | 0         |
@@ -35,16 +35,9 @@ privaten gespeicherten Einstellungen.
 
 **Aktionen**
 
-- [Private Auswertung ändern](./commands#command-change_report) (`change_report`)
 - [Private Graph-Auswertung ändern](./commands#command-change_graph_report) (`change_graph_report`)
 
 **Darunter:** Tabellen: `analytics_report` · Agenten-Tools ohne Geschäftsaktion:
-[`analytics_catalog`](./commands#tool-analytics_catalog),
-[`analytics_query`](./commands#tool-analytics_query),
-[`analytics_contributors`](./commands#tool-analytics_contributors),
-[`analytics_export`](./commands#tool-analytics_export),
-[`analytics_reports_list`](./commands#tool-analytics_reports_list),
-[`analytics_report_get`](./commands#tool-analytics_report_get),
 [`graph_catalog`](./commands#tool-graph_catalog), [`graph_ask`](./commands#tool-graph_ask),
 [`graph_reports_list`](./commands#tool-graph_reports_list),
 [`graph_report_get`](./commands#tool-graph_report_get)

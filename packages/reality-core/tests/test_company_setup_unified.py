@@ -116,8 +116,8 @@ def test_sandbox_reports_readable_without_mutation_authority(
 
     event.listen(session, "before_commit", deny_commit)
     try:
-        catalog = run_read_tool(session, result["tenant_id"], "analytics.catalog", {})
-        assert catalog["datasets"]
+        catalog = run_read_tool(session, result["tenant_id"], "graph.catalog", {})
+        assert catalog["nodes"]
     finally:
         event.remove(session, "before_commit", deny_commit)
     with pytest.raises(InvalidOperation):

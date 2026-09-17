@@ -4710,17 +4710,8 @@ class CopilotContext(ApiModel):
     id: str
 
 
-from reality.domain.analytics import AnalyticsDefinition as _ChatAnalyticsDefinition
-
-
-class CopilotAnalyticsContext(ApiModel):
-    model_config = ConfigDict(extra="forbid")
-    kind: Literal["analytics"]
-    definition: _ChatAnalyticsDefinition
-
-
 class CopilotMessageWrite(ApiModel):
-    context: CopilotContext | CopilotAnalyticsContext | None = None
+    context: CopilotContext | None = None
     message: str = Field(min_length=1, max_length=4000)
 
 
@@ -6394,7 +6385,7 @@ def post_copilot_message(
 ):
     try:
         user: AppUser | None = getattr(request.state, "user", None)
-        from reality.tools.analytics import caller
+        from reality.services.analytics.reports import caller
 
         if stream:
             from fastapi.responses import StreamingResponse
@@ -6411,9 +6402,6 @@ def post_copilot_message(
                 "actor_user_id": user.id if user else None,
                 "context_commitment_id": body.context.id
                 if isinstance(body.context, CopilotContext)
-                else None,
-                "context_analytics": body.context.definition.model_dump(mode="json")
-                if isinstance(body.context, CopilotAnalyticsContext)
                 else None,
                 "language": user.language if user else "en",
                 "locale": user.locale if user else "en-GB",
@@ -6448,9 +6436,6 @@ def post_copilot_message(
                 actor_user_id=user.id if user else None,
                 context_commitment_id=body.context.id
                 if isinstance(body.context, CopilotContext)
-                else None,
-                context_analytics=body.context.definition.model_dump(mode="json")
-                if isinstance(body.context, CopilotAnalyticsContext)
                 else None,
                 language=user.language if user else "en",
                 locale=user.locale if user else "en-GB",

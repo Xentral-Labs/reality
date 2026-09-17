@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   APIError,
   graphApi,
@@ -6,6 +6,7 @@ import {
   type GraphCatalog,
   type GraphNode,
   type GraphQuestion,
+  type GraphReport,
 } from "../../api";
 import { currentLanguage, formatExactDecimal, t } from "../../localization";
 import { ReadState } from "../ReadState";
@@ -246,12 +247,28 @@ function suggestions(catalog: GraphCatalog): { title: string; where: string; pla
   return out.slice(0, 6);
 }
 
-export function GraphSteps({ tenant }: { tenant: string }) {
+export function GraphSteps({
+  tenant,
+  report,
+  onSaved,
+}: {
+  tenant: string;
+  report?: GraphReport | null;
+  onSaved?: (report: GraphReport) => void;
+}) {
   const language = currentLanguage();
   const read = useRead(() => graphApi.catalog(tenant, language), [tenant, language]);
   if (!read.data)
     return <ReadState loading={read.loading} error={read.error} retry={read.refresh} />;
-  return <Builder key={tenant} tenant={tenant} catalog={read.data} />;
+  return (
+    <Builder
+      key={`${tenant}:${report?.id ?? ""}:${report?.revision ?? ""}`}
+      tenant={tenant}
+      catalog={read.data}
+      report={report ?? null}
+      onSaved={onSaved}
+    />
+  );
 }
 
 /** The question as the server has to receive it. */
@@ -305,7 +322,98 @@ export function pruned(plan: Plan, nodes: Record<string, GraphNode>): Plan {
   };
 }
 
-function Builder({ tenant, catalog }: { tenant: string; catalog: GraphCatalog }) {
+/** Read a saved question back as the steps that built it.
+ *
+ * A stored traversal names nodes only at its start; every later one is implied
+ * by the edge, so the catalog is walked alongside it. Two bounds on one field
+ * fold back into the single line they were entered as, because a period that
+ * reopens as two rows can be half-removed — the bug the stack was built to
+ * avoid in the first place.
+ */
+export function planOf(question: GraphQuestion, nodes: Record<string, GraphNode>): Plan | null {
+  const start = nodes[question.from];
+  if (!start) return null;
+  const blocks: Block[] = [{ alias: question.as || "root", node: question.from, filters: [] }];
+  for (const hop of question.follow ?? []) {
+    const at = nodes[blocks[blocks.length - 1].node];
+    const forward = (at?.edges ?? []).find((edge) => edge.key === hop.edge);
+    const backward = (at?.edges_in ?? []).find((edge) => edge.key === hop.edge);
+    const edge = hop.direction === "in" ? backward : forward;
+    if (!edge) return null;
+    blocks.push({
+      edge: {
+        key: hop.edge,
+        direction: hop.direction,
+        label:
+          hop.direction === "in"
+            ? `${(edge as { from_label: string }).from_label} (${edge.label})`
+            : `${edge.label} ${(edge as { to_label: string }).to_label}`,
+        fansOut: fansOut(edge.multiplicity, hop.direction),
+      },
+      alias: hop.as,
+      node: hop.direction === "in" ? (edge as { from: string }).from : (edge as { to: string }).to,
+      filters: [],
+    });
+  }
+  const labelOf = (field: string) => {
+    const [alias, key] = field.split(".");
+    const block = blocks.find((candidate) => candidate.alias === alias);
+    return (
+      (block && nodes[block.node]?.properties.find((property) => property.key === key)?.label) ||
+      field
+    );
+  };
+  for (const condition of question.filter ?? []) {
+    const block = blocks.find((candidate) => candidate.alias === condition.field.split(".")[0]);
+    if (!block) return null;
+    const open = block.filters.find(
+      (filter) =>
+        filter.conditions.length === 1 &&
+        filter.conditions[0].field === condition.field &&
+        filter.conditions[0].op === "gte" &&
+        condition.op === "lt",
+    );
+    if (open) {
+      open.conditions.push(condition);
+      open.shown = `${labelOf(condition.field)} ${shortDate(open.conditions[0].value)} – ${shortDate(condition.value)}`;
+      continue;
+    }
+    block.filters.push({
+      shown: `${labelOf(condition.field)} ${condition.op} ${condition.value ?? ""}`.trim(),
+      conditions: [condition],
+    });
+  }
+  return {
+    blocks,
+    measures: [...(question.measures ?? [])],
+    groups: (question.group_by ?? []).map((grouping) => ({
+      field: grouping.field,
+      label: grouping.as || labelOf(grouping.field),
+      ...(grouping.bucket ? { bucket: grouping.bucket } : {}),
+    })),
+    order: question.order_by?.[0]
+      ? { by: question.order_by[0].by, descending: Boolean(question.order_by[0].descending) }
+      : undefined,
+    limit: question.limit ?? 200,
+  };
+}
+
+/** The day out of an instant, which is all a period bound needs to read as. */
+function shortDate(value: unknown) {
+  return typeof value === "string" ? value.slice(0, 10) : String(value ?? "");
+}
+
+function Builder({
+  tenant,
+  catalog,
+  report,
+  onSaved,
+}: {
+  tenant: string;
+  catalog: GraphCatalog;
+  report: GraphReport | null;
+  onSaved?: (report: GraphReport) => void;
+}) {
   const nodes = useMemo(
     () =>
       Object.fromEntries(catalog.nodes.map((node) => [node.key, node])) as Record<
@@ -315,7 +423,11 @@ function Builder({ tenant, catalog }: { tenant: string; catalog: GraphCatalog })
     [catalog],
   );
   const starters = useMemo(() => suggestions(catalog), [catalog]);
-  const [plan, setPlan] = useState<Plan | null>(null);
+  // A saved report opens as its own steps; the key on this component means a
+  // different report is a different builder rather than a stale one.
+  const [plan, setPlan] = useState<Plan | null>(() =>
+    report ? planOf(report.definition, nodes) : null,
+  );
   const [answer, setAnswer] = useState<GraphAnswer | null>(null);
   const [refusal, setRefusal] = useState<Refusal | null>(null);
   const [busy, setBusy] = useState(false);
@@ -339,6 +451,16 @@ function Builder({ tenant, catalog }: { tenant: string; catalog: GraphCatalog })
       setBusy(false);
     }
   };
+
+  // A reopened report shows its answer without being touched first, which is
+  // the whole point of reopening one.
+  const asked = useRef(false);
+  useEffect(() => {
+    if (plan && !asked.current) {
+      asked.current = true;
+      void ask(plan);
+    }
+  });
 
   if (!plan)
     return (
@@ -392,19 +514,129 @@ function Builder({ tenant, catalog }: { tenant: string; catalog: GraphCatalog })
 
   return (
     <section className="grid items-start gap-6 lg:grid-cols-[minmax(0,460px)_minmax(0,1fr)]">
-      <Stack
-        catalog={catalog}
-        nodes={nodes}
-        plan={plan}
-        change={ask}
-        restart={() => {
-          setPlan(null);
-          setAnswer(null);
-          setRefusal(null);
-        }}
-      />
+      <div className="space-y-3">
+        <Stack
+          catalog={catalog}
+          nodes={nodes}
+          plan={plan}
+          change={ask}
+          restart={() => {
+            setPlan(null);
+            setAnswer(null);
+            setRefusal(null);
+          }}
+        />
+        <Save tenant={tenant} plan={plan} report={report} onSaved={onSaved} />
+      </div>
       <Answer answer={answer} refusal={refusal} busy={busy} plan={plan} nodes={nodes} />
     </section>
+  );
+}
+
+/** Save the question, never its answer.
+ *
+ * Reopening re-executes it, so what comes back is a fresh observation rather
+ * than a preserved number — the only honest thing a report can be when the
+ * records underneath it keep changing.
+ */
+function Save({
+  tenant,
+  plan,
+  report,
+  onSaved,
+}: {
+  tenant: string;
+  plan: Plan;
+  report: GraphReport | null;
+  onSaved?: (report: GraphReport) => void;
+}) {
+  const [naming, setNaming] = useState(false);
+  const [name, setName] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [failed, setFailed] = useState("");
+  const [saved, setSaved] = useState<string>("");
+
+  const send = async (change: Parameters<typeof graphApi.change>[1]) => {
+    setBusy(true);
+    setFailed("");
+    try {
+      const stored = await graphApi.change(tenant, change);
+      setNaming(false);
+      setName("");
+      setSaved(stored.name);
+      onSaved?.(stored);
+    } catch (failure) {
+      setFailed(failure instanceof Error ? failure.message : analyticsError(failure));
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  if (naming)
+    return (
+      <div className="flex flex-wrap items-center gap-2">
+        <input
+          className="rounded-lg border border-border-default bg-surface px-2 py-2 text-sm"
+          aria-label={t("Report name")}
+          autoFocus
+          value={name}
+          onChange={(event) => setName(event.target.value)}
+          onKeyDown={(event) => {
+            if (event.key === "Enter" && name.trim())
+              void send({
+                operation: "create",
+                request_id: crypto.randomUUID(),
+                name: name.trim(),
+                question: question(plan),
+              });
+          }}
+        />
+        <button
+          className="br-btn"
+          disabled={busy || !name.trim()}
+          onClick={() =>
+            void send({
+              operation: "create",
+              request_id: crypto.randomUUID(),
+              name: name.trim(),
+              question: question(plan),
+            })
+          }
+        >
+          {busy ? t("Saving…") : t("Save")}
+        </button>
+        <button className="text-xs text-fg-muted underline" onClick={() => setNaming(false)}>
+          {t("Cancel")}
+        </button>
+        {failed && <span className="text-xs text-warning-600">{failed}</span>}
+      </div>
+    );
+
+  return (
+    <div className="flex flex-wrap items-center gap-3 text-sm">
+      {report && (
+        <button
+          className="br-btn"
+          disabled={busy}
+          onClick={() =>
+            void send({
+              operation: "update",
+              request_id: crypto.randomUUID(),
+              report_id: report.id,
+              expected_revision: report.revision,
+              question: question(plan),
+            })
+          }
+        >
+          {busy ? t("Saving…") : `${t("Save")} „${report.name}“`}
+        </button>
+      )}
+      <button className="text-fg-muted underline" onClick={() => setNaming(true)}>
+        {report ? t("Save as a new report") : t("Save this question")}
+      </button>
+      {saved && <span className="text-xs text-fg-muted">{t("Saved")}</span>}
+      {failed && <span className="text-xs text-warning-600">{failed}</span>}
+    </div>
   );
 }
 

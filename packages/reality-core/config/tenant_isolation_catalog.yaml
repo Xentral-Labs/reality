@@ -11,12 +11,8 @@ discovery:
     - reality.services.scheduled_jobs
     - reality.services.playground
 explicit_operations:
-  - reality.services.analytics.execution:query
-  - reality.services.analytics.contributors:contributors
-  - reality.services.analytics.exports:export_csv
   - reality.services.analytics.reports:list_reports
   - reality.services.analytics.reports:get_report
-  - reality.services.analytics.reports:change_report
   - reality.services.analytics.proposals:preview
   - reality.services.analytics.traversal:run_traversal
   - reality.services.analytics.compile_sql:execute
@@ -806,31 +802,6 @@ families:
         assertion: boundary
         operations: *background_projection_operations
 
-  - key: analytics
-    description: Structured analytics and private report definitions preserve company and owner scope.
-    classification: boundary
-    reason: Compiler-owned tenant predicates, owned read transactions, trusted membership and explicit author confirmation.
-    authority: 185/FR-006, 185/FR-013, 185/DR-003
-    operations: &analytics_operations
-      - reality.services.analytics.execution:query
-      - reality.services.analytics.contributors:contributors
-      - reality.services.analytics.exports:export_csv
-      - reality.services.analytics.reports:list_reports
-      - reality.services.analytics.reports:get_report
-      - reality.services.analytics.reports:change_report
-      - reality.services.analytics.proposals:preview
-      - tool:analytics.catalog
-      - tool:analytics.query
-      - tool:analytics.contributors
-      - tool:analytics.export
-      - tool:analytics.reports.list
-      - tool:analytics.reports.get
-      - tool:analytics.reports.change
-    evidence:
-      - id: tests/test_analytics_adapters.py::test_analytics_tenant_and_private_owner_boundaries
-        assertion: boundary
-        operations: *analytics_operations
-
   - key: reporting_graph
     description: Traversals over the declared reporting graph stay inside the asking company.
     classification: boundary
@@ -843,7 +814,10 @@ families:
     operations: &reporting_graph_operations
       - reality.services.analytics.traversal:run_traversal
       - reality.services.analytics.compile_sql:execute
+      - reality.services.analytics.reports:list_reports
+      - reality.services.analytics.reports:get_report
       - reality.services.analytics.reports:change_graph_report
+      - reality.services.analytics.proposals:preview
       - tool:graph.catalog
       - tool:graph.ask
       - tool:graph.reports.list

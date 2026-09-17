@@ -1,7 +1,6 @@
 import type { ChatReply } from "../chatStream";
 import { createPortal } from "react-dom";
 import { ChatUsage } from "./ChatUsage";
-import { AnalyticsReportProposal } from "./analytics/AnalyticsReportProposal";
 import { AllowanceNotice, ChatComposer } from "./ChatComposer";
 import {
   Archive,
@@ -22,13 +21,8 @@ const inactiveSessionClass = "text-fg-default hover:bg-surface-muted";
 const dockFrame = "reality-chat flex h-full min-h-0 min-w-0 flex-col";
 const criticalButtonClass = "br-btn br-btn-critical";
 const primaryButtonClass = "br-btn br-btn-primary";
-import {
-  analyticsHash,
-  readAnalyticsHandoff,
-  validAnalyticsHandoff,
-  type AnalyticsHandoff,
-  messageContext,
-} from "./context";
+import { messageContext } from "./context";
+import { GraphReportProposal } from "./analytics/GraphReportProposal";
 const compactFrame = "flex h-[min(720px,75dvh)] min-w-0 flex-col gap-4";
 const fullFrame = "mx-auto flex h-[calc(100dvh-152px)] min-h-[500px] max-w-5xl flex-col gap-4";
 import { useEffect, useRef, useState, useId, type ReactNode } from "react";
@@ -135,22 +129,8 @@ export function ChatPage({
   useEffect(() => {
     if (initialDraft) onInitialDraftUsed?.();
   }, []);
-  const [analyticsContext, setAnalyticsContext] = useState<AnalyticsHandoff | null>(null);
-  const attachedSession = useRef<string | null>(null);
   const creatingSession = useRef(false);
   const [startingChat, setStartingChat] = useState(false);
-  useEffect(() => {
-    if (attachedSession.current && attachedSession.current !== selection.session) {
-      setAnalyticsContext(null);
-      attachedSession.current = null;
-    }
-  }, [selection.session]);
-  const openAnalytics = (value: AnalyticsHandoff) => {
-    if (!validAnalyticsHandoff(value, selection.tenant)) return;
-    navigate({ route: "analytics", analyticsView: "explore", commitment: "" });
-    location.hash = analyticsHash(value);
-    window.dispatchEvent(new CustomEvent("reality:analytics-handoff", { detail: value }));
-  };
 
   const [sending, setSending] = useState(false);
   const [liveReply, setLiveReply] = useState<{
@@ -183,7 +163,7 @@ export function ChatPage({
     const list = messageList.current;
     if (list) list.scrollTop = list.scrollHeight;
   }, [data?.messages.length, echo, sending, visibleReply?.text]);
-  const startConversation = async (analysis: AnalyticsHandoff | null = null) => {
+  const startConversation = async () => {
     if (creatingSession.current) return;
     if (sending) {
       setFailure(t("Wait for the current reply before starting a new chat."));
@@ -194,8 +174,6 @@ export function ChatPage({
     try {
       const created = await api.createCopilotSession(selection.tenant);
       if (!alive.current) return;
-      attachedSession.current = analysis ? created.id : null;
-      setAnalyticsContext(analysis);
       pendingSend.current = null;
       setEcho(null);
       setQuestion("");
@@ -225,8 +203,6 @@ export function ChatPage({
         );
         return;
       }
-      if (validAnalyticsHandoff(value, selection.tenant))
-        void startConversation(structuredClone(value));
     };
     window.addEventListener("reality:open-chat", receive);
     return () => window.removeEventListener("reality:open-chat", receive);
@@ -302,7 +278,6 @@ export function ChatPage({
         session,
         text,
         selection.commitment,
-        analyticsContext?.definition,
         (event) => {
           if (!alive.current) return;
           if (event.type === "reset") setLiveReply({ session, text: "" });
@@ -569,16 +544,6 @@ export function ChatPage({
           </button>
         </div>
       )}
-      {analyticsContext && (
-        <div className="m-3 flex items-center justify-between gap-2 rounded-lg bg-accent-soft p-3 text-xs">
-          <button onClick={() => openAnalytics(analyticsContext)}>
-            {t("Attached analysis")} · {analyticsContext.definition.dataset}
-          </button>
-          <button className="br-btn" onClick={() => setAnalyticsContext(null)}>
-            {t("Remove")}
-          </button>
-        </div>
-      )}
       {selection.commitment && (
         <button
           className="br-btn self-start"
@@ -672,14 +637,6 @@ export function ChatPage({
                 <time className="ml-2">{formatDateTime(message.created_at)}</time>
               )}
             </p>
-            {messageContext(message.content).analytics && (
-              <button
-                className="mb-3 text-xs text-accent underline"
-                onClick={() => openAnalytics(messageContext(message.content).analytics!)}
-              >
-                {t("Open in Reports")}
-              </button>
-            )}
             {messageContext(message.content).context && (
               <button
                 className="mb-3 text-xs text-accent underline"
@@ -701,19 +658,6 @@ export function ChatPage({
                 disallowedElements={["img"]}
                 components={{
                   a: ({ children, href }) => {
-                    if (href?.startsWith("/app/analytics?")) {
-                      const link = new URL(href, location.origin);
-                      const handoff = readAnalyticsHandoff(link.hash, selection.tenant);
-                      if (link.searchParams.get("tenant") === selection.tenant && handoff)
-                        return (
-                          <button
-                            className="text-accent underline"
-                            onClick={() => openAnalytics(handoff)}
-                          >
-                            {children}
-                          </button>
-                        );
-                    }
                     if (href?.startsWith("/app/work?")) {
                       const link = new URL(href, location.origin);
                       if (
@@ -746,8 +690,8 @@ export function ChatPage({
           </article>
         ))}
         {data.proposals.map((proposal) =>
-          proposal.tool === "analytics.reports.change" ? (
-            <AnalyticsReportProposal
+          proposal.tool === "graph.reports.change" ? (
+            <GraphReportProposal
               key={proposal.id}
               tenant={selection.tenant}
               id={proposal.id}

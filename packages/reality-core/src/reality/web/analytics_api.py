@@ -3,12 +3,11 @@
 from fastapi import APIRouter, HTTPException, Request
 from pydantic import ValidationError
 
-from reality.domain.analytics import AnalyticsQuery, ContributorQuery, ReportChange
-from reality.services.analytics.execution import AnalyticsError
-from reality.services.analytics.reports import change_report
+from reality.domain.graph_report import GraphReportChange
+from reality.services.analytics.errors import AnalyticsError
+from reality.services.analytics.reports import caller, change_graph_report
 from reality.services.core import InvalidOperation, NotFound
 from reality.services.memberships import Principal
-from reality.tools.analytics import ExportRequest, caller
 from reality.tools.application import run_read_tool
 from reality.tools.graph import GraphAskRequest
 from reality.web.auth import DatabaseSession
@@ -71,16 +70,6 @@ async def cancellable_read(session, tenant_id, name, values, request):
             await watcher
 
 
-@router.get("/catalog")
-def get_catalog(
-    tenant_id: str,
-    request: Request,
-    session: DatabaseSession,
-    dataset: str | None = None,
-):
-    return read(session, tenant_id, "analytics.catalog", {"dataset": dataset}, request)
-
-
 @router.get("/graph/catalog")
 def get_graph_catalog(
     tenant_id: str,
@@ -133,70 +122,9 @@ def get_graph_report(
     return read(session, tenant_id, "graph.reports.get", {"report_id": report_id}, request)
 
 
-@router.post("/query")
-async def post_query(
-    tenant_id: str, body: AnalyticsQuery, request: Request, session: DatabaseSession
-):
-    return await cancellable_read(
-        session, tenant_id, "analytics.query", body.model_dump(mode="json"), request
-    )
-
-
-@router.post("/query/contributors")
-async def post_contributors(
-    tenant_id: str, body: ContributorQuery, request: Request, session: DatabaseSession
-):
-    return await cancellable_read(
-        session,
-        tenant_id,
-        "analytics.contributors",
-        body.model_dump(mode="json"),
-        request,
-    )
-
-
-@router.post("/export")
-async def post_export(
-    tenant_id: str, body: ExportRequest, request: Request, session: DatabaseSession
-):
-    return await cancellable_read(
-        session, tenant_id, "analytics.export", body.model_dump(mode="json"), request
-    )
-
-
-@router.get("/reports")
-def get_reports(
-    tenant_id: str,
-    request: Request,
-    session: DatabaseSession,
-    query: str = "",
-    limit: int = 50,
-    cursor: str | None = None,
-):
-    return read(
-        session,
-        tenant_id,
-        "analytics.reports.list",
-        {"query": query, "limit": limit, "cursor": cursor},
-        request,
-    )
-
-
-@router.get("/reports/{report_id}")
-def get_saved(
-    tenant_id: str, report_id: str, request: Request, session: DatabaseSession
-):
-    return read(
-        session, tenant_id, "analytics.reports.get", {"report_id": report_id}, request
-    )
-
-
-@router.post("/reports/changes")
-def post_change(
-    tenant_id: str, body: ReportChange, request: Request, session: DatabaseSession
-):
+def _change(session, tenant_id, request, body, apply):
     try:
-        result = change_report(
+        result = apply(
             session, tenant_id, principal(request), body.model_dump(mode="json")
         )
         session.commit()
@@ -216,6 +144,22 @@ def post_change(
                 "message": str(error),
             },
         ) from error
+
+
+@router.post("/graph/reports/changes")
+def post_graph_change(
+    tenant_id: str,
+    body: GraphReportChange,
+    request: Request,
+    session: DatabaseSession,
+):
+    """Save the question, never its answer.
+
+    Reopening re-executes the traversal, so what comes back is a fresh
+    observation rather than a preserved number — the only honest thing a report
+    can be when the records underneath it keep changing.
+    """
+    return _change(session, tenant_id, request, body, change_graph_report)
 
 
 @router.get("/reports/proposals/{proposal_id}")

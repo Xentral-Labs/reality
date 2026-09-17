@@ -1,108 +1,88 @@
-# Auswertungen: von der Frage zum Beleg
+# Auswertungen: von der Frage zur Antwort
 
-Frag im bestehenden Chat „Welche Kunden haben Produkt X in KW 7 bestellt?“ oder baue dieselbe Frage
-unter **Analytics → Auswertungen → Erkunden** visuell auf. Beide Wege verwenden dieselben
-Auswertungswerkzeuge innerhalb des gewählten Unternehmens.
+Frag im bestehenden Chat „Welche Kunden haben Produkt X dieses Jahr bestellt?" oder öffne
+**Analytics → Geschäftsgraph** und baue dieselbe Frage als Schrittstapel auf. Beide Wege gehen durch
+dasselbe deklarierte Modell und bleiben im gewählten Unternehmen.
 
-## Die erste Auswertung erstellen
+## Die erste Frage bauen
 
-1. Wähle dein Unternehmen und öffne den Explorer. Wähle Verkaufsauftragspositionen.
-2. Suche Produkt X im Produktfeld und wähle den passenden Artikel aus. Der Name hilft beim Finden;
-   die ausgewählte Identität bestimmt den Filter.
-3. Wähle Auftragsdatum, ISO-Kalenderwoche **7**, Jahr **2026** und die geschäftliche Zeitzone.
-4. Gruppiere nach Kunde und wähle Auftragsanzahl oder bestellte Menge. Starte die Auswertung.
-5. Öffne die zugrunde liegenden Datensätze einer Zahl. Folge den Auftragsbelegen im Inspector bis
-   zur Originalquelle, soweit vorhanden.
+Die Seite liest sich von oben nach unten wie ein Satz. Jeder Schritt bietet nur an, was an dieser
+Stelle gültig ist — deshalb lässt sich gar keine Frage zusammenstellen, die anschließend abgelehnt
+werden müsste.
 
-Ein leeres Ergebnis bedeutet, dass keine gespeicherten Datensätze passen. Es beweist nicht, dass im
-Quellsystem niemals ein solcher Auftrag eingegangen ist.
+1. **Daten** — beginne bei den Datensätzen, die du ansehen willst: Aufträge, Rechnungen,
+   Warenbewegungen.
+2. **Nur** — grenze sie ein. Ein Datum bietet benannte Zeiträume (dieses Jahr, letzter Monat, die
+   letzten 30 Tage) oder einen selbst gewählten Bereich; Text und Zahlen bieten Vergleiche; ein
+   Ja-Nein-Feld bietet Ja oder Nein.
+3. **Dann** — geh über eine deklarierte Beziehung weiter. Jede sagt vorher, ob sie **eine** oder
+   **viele** Datensätze erreicht.
+4. **Kennzahl** — wähle die Zahlen. Angeboten wird nur, was dieser Weg tatsächlich erreicht.
+5. **Aufteilen nach** — wähle die Achsen. Ein Zeitstempel wird nach Monat aufgeteilt, denn eine
+   Zeile je Zeitpunkt ist eine Liste und keine Antwort.
+6. **Sortieren** und **Höchstens** — größte zuerst, kleinste zuerst oder unsortiert; zehn Zeilen
+   oder deine eigene Zahl.
 
-## Drei praktische Einstiege
+Entfernst du einen Schritt, verschwindet alles mit, was auf die dort erreichten Datensätze zeigte.
 
-- **Kunden für Produkt und Woche:** das Beispiel oben, nach Kunde gruppiert.
-- **Produktnachfrage im Zeitverlauf:** Verkaufsauftragspositionen nach Woche und Produkt gruppieren.
-  Mengen bleiben nach Einheit getrennt, angegebene Werte nach Währung.
-- **Offene Rechnungen nach Fälligkeitswoche:** offene Posten nach Fälligkeitswoche und Währung
-  gruppieren. Das beschreibt den aktuellen Stand und ist keine Liquiditätsprognose.
+## Drei brauchbare Ausgangspunkte
 
-## Erkunden, speichern und exportieren
+- **Umsatz je Währung und Monat:** bei Aufträgen beginnen, Auftragswert zählen, nach Währung und
+  Bestelldatum aufteilen. Beträge in verschiedenen Währungen werden nie zusammengezählt.
+- **Deine größten Kunden:** bei Aufträgen beginnen, zum bestellenden Geschäftspartner weitergehen,
+  nach Name und Währung aufteilen, nach Auftragswert sortieren, zehn behalten.
+- **Was ein Artikel verkauft hat:** bei Aufträgen beginnen, zu den Auftragspositionen weitergehen,
+  auf die Artikelnummer filtern, den Positionswert zählen.
 
-Ändere Filter, Kennzahlen, Gruppierung oder Sortierung und starte erneut. Änderungen am Entwurf
-ändern nicht die Bedeutung des bereits angezeigten Ergebnisses. Bei einem Fehler oder Abbruch bleibt
-das letzte erfolgreiche Ergebnis mit seinen ausgeführten Einstellungen sichtbar.
+## Wenn es Nein sagt
 
-Wähle Tabelle, Balken, Linie oder eine passende Pivotdarstellung. Die zugrunde liegenden Datensätze
-erklären eine Kennzahl. Eindeutige Auftragsanzahlen und Gesamtsummen lassen sich nicht immer aus den
-sichtbaren Zeilen aufsummieren. Beim Vorperiodenvergleich prüfst du die konkreten Zeiträume; eine
-prozentuale Änderung von null bleibt unbekannt.
+Manche Fragen lassen sich nicht richtig beantworten. Dann sagt die Seite das, statt eine falsche
+Zahl zu zeigen:
 
-Speichere die Definition unter **Meine Berichte**. Du kannst einen privaten Bericht öffnen,
-umbenennen, duplizieren oder löschen. Beim Öffnen werden aktuelle Daten gelesen und relative
-Zeiträume neu aufgelöst. Es entsteht kein eingefrorener Ergebnisstand. Der CSV-Export umfasst
-innerhalb der ausgewiesenen Grenze alle passenden Ergebniszeilen.
+- **„Hier zu summieren würde die Summe vervielfachen."** Ein Auftrag hat viele Positionen. Sobald
+  der Weg die Positionen erreicht, würde der Auftragswert einmal je Position gezählt. Nimm eine
+  Positions-Kennzahl oder den Schritt zurück.
+- **„Diese Werte sind nicht in derselben Einheit gemessen."** Euro und Dollar, Stück und Kilogramm.
+- **„Diese Zahl ist ein Zustand, kein Fluss."** Ein Lagerbestand lässt sich nicht über Monate
+  aufaddieren.
+- **„Dieses Feld ist nicht als Datum hinterlegt."** Manche Belegdaten liegen als Text vor; filtern
+  und auflisten geht, nach Monat aufteilen nicht.
 
-Über die Aktion zum Besprechen der Auswertung hängst du die Definition an den bestehenden Chat an.
-Der Agent kann seine unterstützte Auswertung wiederum im Explorer öffnen lassen.
+Weitergehen, ohne das Erreichte zu verwenden, vervielfacht nichts: der Schritt wird zur Prüfung, ob
+es die Datensätze gibt, nicht zu einer Verknüpfung. Deshalb kannst du nach Aufträgen fragen, _die
+einen Artikel enthalten_, ohne dass sich die Auftragssumme ändert.
+
+## Speichern
+
+Speichere eine Frage unter **Meine Auswertungen**. Wieder öffnen, umbenennen, duplizieren oder
+löschen — sie gehört nur dir.
+
+Gespeichert wird die **Frage**, nie ihre Antwort. Beim Öffnen läuft sie erneut gegen die Datensätze,
+wie sie jetzt sind; ein benannter Zeitraum löst sich also neu auf, und die Zahlen können abweichen.
+Speichern friert kein Ergebnis ein — eine eingefrorene Zahl hört in dem Moment auf zu stimmen, in
+dem jemand einen Datensatz korrigiert.
 
 ## So bedient ein Agent die Auswertung
 
-1. `analytics_catalog` liefert Datensätze, Dimensionen, Kennzahlen und unterstützte Beziehungen.
-2. Die bestehenden Referenzwerkzeuge lösen Artikel und Kunden auf.
-3. `analytics_query` führt eine strukturierte Definition aus.
-4. Der Agent berücksichtigt Beobachtungszeitpunkt, Zeitraum, Einheiten, Währungen und fehlende
-   Daten.
-5. `analytics_contributors` erklärt eine Zahl anhand der ausgeführten Definition, Gruppe und
-   Kennzahl. `analytics_export` liefert CSV.
+1. `graph_catalog` liefert die Datensätze, die dieses Unternehmen deklariert, ihre Verbindungen und
+   die Bedeutung jeder Zahl — in der Sprache des Lesers.
+2. `graph_ask` beantwortet eine Traversierung oder einen Pfad in der Cypher-nahen Syntax.
+3. Kommt eine Ablehnung zurück, nennt sie die Beziehung, die auffächert, oder die Einheit, die sich
+   nicht addieren lässt. Nochmal fragen ändert daran nichts.
 
-Der Agent übergibt kein SQL. Lesen benötigt keine Bestätigung. Private Änderungen werden mit
-`analytics_report_change_propose` vorbereitet und ausdrücklich bestätigt. Die Anwendung liefert die
-vertrauenswürdige Benutzeridentität; der Agent erfindet sie nicht in Argumenten. Zugangsdaten nur
-für ein Unternehmen können keine privaten Berichte besitzen.
+Der Agent reicht kein SQL ein, und das Mandantenprädikat setzt der Compiler, nicht der Fragende.
+Lesen braucht keine Bestätigung. Eine private Auswertung zu speichern läuft über
+`graph_report_change_propose` mit ausdrücklicher Bestätigung; die vertrauenswürdige
+Benutzeridentität liefert die Anwendung, sie wird nie in Werkzeugargumenten erfunden. Reine
+Mandanten-Zugangsdaten können keine privaten Auswertungen besitzen.
 
-Die [Tool-Referenz](../tool-usage/commands) enthält die exakten Eingaben. Die
-[Agenten-Playbooks](../agent-playbooks/) zeigen weitere Abläufe.
+Siehe die [genauen Werkzeugschemata](../tool-usage/commands) und die
+[Agenten-Playbooks](../agent-playbooks/).
 
-## Grenzen der Aussage
+## Was die Antwort abdeckt
 
-Ergebnisse beschreiben interpretierte Datensätze im gewählten Unternehmen. Fehlende Beträge bleiben
-unbekannt; Einheiten und Währungen werden nicht stillschweigend vermischt. Drilldowns und Exporte
-sind neue Beobachtungen und können bei Datenänderungen abweichen. Zu breite Anfragen verlangen
-engere Filter statt einer versteckten Stichprobe.
-
-<details>
-<summary>30 Geschäftsfragen und die unterstützten Aussagen</summary>
-
-| Frage                                             | Was sich feststellen lässt                                         |
-| ------------------------------------------------- | ------------------------------------------------------------------ |
-| Kunden mit Produkt X in KW 7                      | Passende gespeicherte Aufträge mit Jahr und Zeitzone.              |
-| Inaktive Kunden                                   | Früher beobachtete Käufer ohne Auftrag im Zeitraum.                |
-| Neukunden                                         | Erster beobachteter Kauf im gespeicherten Verlauf.                 |
-| Kundenwachstum                                    | Veränderung angegebener Auftragswerte je Währung.                  |
-| Käufer von A ohne B                               | Vorhandene und fehlende Käufe im gewählten Zeitraum.               |
-| Top-Produkte                                      | Rangfolge nach Aufträgen, Käufern oder vergleichbarer Menge.       |
-| Wöchentliche Nachfrage                            | Mengen und angegebene Positionswerte je Einheit/Währung.           |
-| Gemeinsam gekaufte Produkte                       | Eindeutige Produktpaare desselben Auftrags.                        |
-| Kundenpreise                                      | Erfasste vereinbarte Preise, keine aktuelle Preisliste.            |
-| Stornos und Retouren                              | Getrennte Stornoanzahlen und eingegangene Retourenmengen.          |
-| Unvollständige Lieferungen                        | Aktuelle offene Lieferzusagen an Kunden.                           |
-| Überfällige Kundenzusagen                         | Aktuelle überfällige Ausgangszusagen.                              |
-| Lieferbereitschaft aus Bestand                    | Reservierungs- und Sperrstatus, keine Zuteilungsoptimierung.       |
-| Fehlende Produkte                                 | Reservierungslücken oder Bestand gegen Bedarf, getrennt.           |
-| Lieferdauer                                       | Datierte Sendungen, keine allgemeine Empfangskennzahl.             |
-| Bestand je Lagerort                               | Aktueller physischer, reservierter und verfügbarer Bestand.        |
-| Bestand ohne Abgang                               | Positiver Bestand ohne ausgewählte wirksame Abgangsbewegung.       |
-| Bestand unter Bedarf                              | Unternehmensweiter Bestand gegen offenen Bedarf.                   |
-| Bestellungen nächste Woche fällig                 | Lieferantenzusagen mit wirksamen Terminen, keine Ankunftsprognose. |
-| Kunden bei Lieferantenverzug                      | Möglicher Bedarf desselben Artikels, keine belegte Zuteilung.      |
-| Lieferantenpünktlichkeit                          | Aktuell überfällige Zusagen, keine historische Quote.              |
-| Einkaufspreistrends                               | Historische angegebene Preise je Artikel, Währung und Einheit.     |
-| Lieferanten für X                                 | Beobachteter Einkauf; bestellt und empfangen bleiben getrennt.     |
-| Abhängigkeit von einem Lieferanten                | Ein beobachteter Lieferant, kein Nachweis fehlender Alternativen.  |
-| Teilweise empfangene oder berechnete Bestellungen | Kanonische Empfangs- und Abrechnungsbeobachtungen.                 |
-| Offene Kundenrechnungen                           | Aktuelle offene Posten und Altersstruktur.                         |
-| Zahlungsverzug                                    | Erfasste Zahlungen und Fälligkeiten, kein erfundener Durchschnitt. |
-| Versandt, aber nicht voll berechnet               | Versand-/Abrechnungsabweichungen mit Belegen.                      |
-| Nicht zugeordnete Zahlungen                       | Erfasste zugeordnete und nicht zugeordnete Beträge.                |
-| Forderungen/Verbindlichkeiten nach Woche          | Aktuelle offene Posten nach Fälligkeitswoche und Währung.          |
-
-</details>
+Ergebnisse beschreiben interpretierte Datensätze im gewählten Unternehmen. Ein leeres Ergebnis
+heißt, dass keine übernommenen Datensätze passen — es beweist nicht, dass das Quellsystem nie einen
+solchen Auftrag erhalten hat. Fehlende Beträge bleiben unbekannt, Einheiten und Währungen werden nie
+stillschweigend zusammengeführt. Zu jeder Antwort lässt sich die Anweisung anzeigen, zu der sie
+wurde, und der Weg, den sie genommen hat.

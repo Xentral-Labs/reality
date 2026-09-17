@@ -987,15 +987,6 @@ It also restores canonical customer-credit attribution under the existing spec.
 
 Spec 185 owns the analytics service, agent tools, private report configuration and workspace.
 
-- `packages/reality-core/tests/test_analytics_adapters.py` — `specs/185-analytics-workspace/spec.md`, FR-001–019 and DR-001–006.
-- `packages/reality-core/tests/test_analytics_chat.py` — `specs/185-analytics-workspace/spec.md`, FR-001–019 and DR-001–006.
-- `packages/reality-core/tests/test_analytics_contributors.py` — `specs/185-analytics-workspace/spec.md`, FR-001–019 and DR-001–006.
-- `packages/reality-core/tests/test_analytics_definitions.py` — `specs/185-analytics-workspace/spec.md`, FR-001–019 and DR-001–006.
-- `packages/reality-core/tests/test_analytics_execution.py` — `specs/185-analytics-workspace/spec.md`, FR-001–019 and DR-001–006.
-- `packages/reality-core/tests/test_analytics_exports.py` — `specs/185-analytics-workspace/spec.md`, FR-001–019 and DR-001–006.
-- `packages/reality-core/tests/test_analytics_questions.py` — `specs/185-analytics-workspace/spec.md`, FR-001–019 and DR-001–006.
-- `packages/reality-core/tests/test_analytics_reports.py` — `specs/185-analytics-workspace/spec.md`, FR-001–019 and DR-001–006.
-- `packages/reality-core/tests/test_analytics_performance.py` — `specs/185-analytics-workspace/spec.md`, FR-006, FR-018 and SC-005.
 - `docs/features/analytics.md` — `specs/185-analytics-workspace/spec.md`, implemented Analytics, agent, privacy, observation, Web and persistence contract.
 
 ## Reporting graph (224)

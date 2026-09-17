@@ -131,3 +131,123 @@ async def test_openai_compatible_copilot_receives_the_same_presentation_contract
     assert "UI language: de" in system
     assert "Locale and number format: de-DE" in system
     assert "Display timezone: Europe/Berlin" in system
+
+
+@pytest.mark.anyio
+async def test_a_refused_tool_call_reaches_the_model_instead_of_ending_the_turn(
+    monkeypatch, session, business
+):
+    """Found by asking it: "make a report of the last 7 days" answered nothing.
+
+    The model wrote a filter field without its alias, the traversal refused it,
+    and the exception travelled past the whole loop into the handler that turns
+    everything into "could not answer right now". The one sentence that would
+    have let the model fix its own call was the one that did not survive.
+    """
+    from reality.services.core import InvalidOperation
+
+    responses = iter(
+        [
+            {
+                "content": [
+                    {
+                        "type": "tool_use",
+                        "id": "toolu_1",
+                        "name": "graph_ask",
+                        "input": {"question": {"from": "order"}},
+                    }
+                ]
+            },
+            {"content": [{"type": "text", "text": "Hier ist der Bericht."}]},
+        ]
+    )
+    requests = []
+
+    class FakeClient:
+        async def __aenter__(self):
+            return self
+
+        async def __aexit__(self, *args):
+            return None
+
+        async def post(self, url, *, headers, json):
+            requests.append(json)
+            return FakeResponse(next(responses))
+
+    def refuse(*args, **kwargs):
+        raise InvalidOperation("a field is alias.property, got 'ordered_at'")
+
+    monkeypatch.setattr(mcp_chat.httpx, "AsyncClient", lambda **kwargs: FakeClient())
+    monkeypatch.setattr(mcp_chat, "model_tool_schemas", lambda **kwargs: [])
+    monkeypatch.setattr(mcp_chat, "dispatch_tool", refuse)
+
+    result = await mcp_chat.reply_via_anthropic_tools(
+        session=session,
+        tenant_id=business.tenant.id,
+        api_key="secret",
+        workspace_id="wrk_123",
+        history=[],
+        message="Alle Aufträge der letzten 7 Tage als Bericht",
+        language="de",
+        locale="de-DE",
+        timezone="Europe/Berlin",
+    )
+
+    assert result == "Hier ist der Bericht."
+    # The request payload is mutated in place between rounds, so the tool
+    # result is the second-to-last message once the turn has finished.
+    sent_back = requests[1]["messages"][-2]["content"][0]
+    assert sent_back["is_error"] is True
+    assert "alias.property" in sent_back["content"]
+
+
+@pytest.mark.anyio
+async def test_a_tool_failure_that_is_not_about_the_request_still_travels_up(
+    monkeypatch, session, business
+):
+    """The positive control for the test above: not every error is a refusal.
+
+    A database that is gone is not something the model can correct by writing a
+    better call, so it must not be fed back as advice.
+    """
+
+    class FakeClient:
+        async def __aenter__(self):
+            return self
+
+        async def __aexit__(self, *args):
+            return None
+
+        async def post(self, url, *, headers, json):
+            return FakeResponse(
+                {
+                    "content": [
+                        {
+                            "type": "tool_use",
+                            "id": "toolu_1",
+                            "name": "graph_ask",
+                            "input": {},
+                        }
+                    ]
+                }
+            )
+
+    def collapse(*args, **kwargs):
+        raise RuntimeError("the connection pool is gone")
+
+    monkeypatch.setattr(mcp_chat.httpx, "AsyncClient", lambda **kwargs: FakeClient())
+    monkeypatch.setattr(mcp_chat, "model_tool_schemas", lambda **kwargs: [])
+    monkeypatch.setattr(mcp_chat, "dispatch_tool", collapse)
+
+    with pytest.raises(RuntimeError):
+        await mcp_chat.reply_via_anthropic_tools(
+            session=session,
+            tenant_id=business.tenant.id,
+            api_key="secret",
+            workspace_id="wrk_123",
+            history=[],
+            message="Alle Aufträge",
+            language="de",
+            locale="de-DE",
+            timezone="Europe/Berlin",
+        )

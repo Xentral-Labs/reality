@@ -5,7 +5,7 @@ import json
 from cryptography.fernet import InvalidToken
 
 from reality.security.secrets import _master_key
-from reality.services.analytics.execution import AnalyticsError
+from reality.services.analytics.errors import AnalyticsError
 from reality.services.analytics.reports import (
     change_graph_report,
     change_report,
@@ -76,12 +76,16 @@ def preview(session, tenant_id, principal, proposal_id):
         select(ChangeProposal).where(
             ChangeProposal.tenant_id == tenant_id,
             ChangeProposal.id == proposal_id,
-            ChangeProposal.type == "tool:analytics.reports.change",
+            ChangeProposal.type.in_(
+                ("tool:analytics.reports.change", "tool:graph.reports.change")
+            ),
         )
     )
     if proposal is None:
         raise NotFound("Report proposal not found.")
-    arguments, _kind = reveal(session, tenant_id, principal, json.loads(proposal.input))
+    arguments, report_kind = reveal(
+        session, tenant_id, principal, json.loads(proposal.input)
+    )
     report = (
         owned(session, tenant_id, principal, arguments["report_id"], deleted=True)
         if arguments.get("report_id")
@@ -96,4 +100,5 @@ def preview(session, tenant_id, principal, proposal_id):
         or arguments.get("question")
         or (report.definition if report else None),
         "expected_revision": arguments.get("expected_revision"),
+        "kind": report_kind,
     }

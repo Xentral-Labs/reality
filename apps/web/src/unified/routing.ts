@@ -42,7 +42,7 @@ export type Selection = {
   session: string;
   q: string;
   page: number;
-  analyticsView?: "explore" | "graph" | "console" | "reports";
+  analyticsView?: "graph" | "console" | "reports";
   family: "customer" | "supplier" | "item" | "location";
   record: string;
   active: boolean;
@@ -231,11 +231,13 @@ export function readSelection(url: URL): Selection {
       ? url.searchParams.get("severity")!
       : "",
     exception: url.searchParams.get("exception") || "",
-    analyticsView: ["explore", "graph", "console", "reports"].includes(
+    // "explore" and "overview" were the configured generation. A link that
+    // still names one opens the graph rather than a blank page.
+    analyticsView: ["graph", "console", "reports"].includes(
       url.searchParams.get("analytics_view") || "",
     )
       ? (url.searchParams.get("analytics_view") as Selection["analyticsView"])
-      : "explore",
+      : "graph",
     family: ["customer", "supplier", "item", "location"].includes(
       url.searchParams.get("family") || "",
     )
@@ -293,7 +295,6 @@ export function selectionUrl(selection: Selection): string {
   if (selection.route === "settings") query.set("settings_view", selection.settingsView);
   if (selection.route === "analytics") {
     if (selection.analyticsView === "reports") query.set("analytics_view", "reports");
-    if (selection.analyticsView === "graph") query.set("analytics_view", "graph");
     if (selection.analyticsView === "console") query.set("analytics_view", "console");
   }
   if (selection.route === "master-data") {
@@ -356,7 +357,7 @@ export function companySelection(selection: Selection, tenant: string): Selectio
     q: "",
     page: 1,
     record: "",
-    analyticsView: "explore",
+    analyticsView: "graph",
     active: false,
     sourceSystem: "",
     sourceRecord: "",

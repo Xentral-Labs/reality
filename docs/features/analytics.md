@@ -1,116 +1,88 @@
 # Analytics and private reports
 
-Spec: [185](../../specs/185-analytics-workspace/spec.md). Verification and remaining
-checks: [evidence](../../specs/185-analytics-workspace/verification.md).
+Spec: [224](../../specs/224-native-reporting-platform/spec.md). It replaced the
+configured generation of [185](../../specs/185-analytics-workspace/spec.md), whose
+fifteen fixed datasets could only answer questions somebody had anticipated.
 
-## Shared capability
+## What is declared
 
-PostgreSQL remains the only database. The Explorer, command line and agents use
-`services/analytics/` through the same application tools. Callers submit a versioned
-analytical definition, never SQL. The catalog declares datasets, source grain,
-dimensions, filter operators, measures, compatible partitions, relationships,
-starter definitions and restricted business meanings.
+PostgreSQL remains the only database, and no records are copied. A declaration —
+`packages/reality-core/config/reporting_graph.yaml` — says which existing tables are
+business records (**nodes**), how they connect (**edges**), and what may be counted
+(**measures**). Four things are mandatory, because each one is a way to be wrong:
 
-The main perspectives cover stated sales/purchase order evidence, retained customer
-purchase history, co-ordered product pairs, current delivery commitments, stock,
-stock versus open demand, effective movements/returns, observed suppliers, canonical
-billing observations, invoice open items and recorded payments. These are read-time
-observations. They do not create new financial or operational authority.
+- **Grain** on a node: what one row is. Without it a count has no unit.
+- **Multiplicity** on an edge: `n:1` or `1:n`. It is what tells the compiler that a
+  hop fans out, and a total taken after a fan-out is multiplied.
+- **Unit and additivity** on a measure: amounts in different currencies are not added,
+  and a stock level is a state, so it does not add up over time.
+- **Corrections** on a node: whether a correction replaces, revises or compensates.
+
+Nothing is materialized. Adding a node, an edge or a measure is a change to the
+declaration, not a migration, a view or a compiler branch.
+
+## Asking
+
+A question is a checked object — a path, some filters, some measures — never SQL
+text. Two surfaces produce it and both compile to the same object:
+
+- the typed traversal accepted by `graph_ask` and `POST /analytics/graph/ask`;
+- a Cypher-near path syntax for people who would rather type it.
+
+The path syntax follows Cypher for matching and filtering. It deliberately diverges
+in one place: aggregation names a declared measure instead of doing arithmetic over
+properties, because the declaration is what knows whether the arithmetic is sound.
+
+Whatever is asked, the compiler emits **one** statement and puts the tenant predicate
+on **every** node in it, including inside recursive terms and existence tests. That is
+why the model needs no barrier view and no role per company. Each request owns a
+read-only transaction with a statement timeout, a bounded traversal depth and a
+bounded result size.
+
+## Refusals
+
+A question that cannot be answered correctly is refused with a stable code and a
+sentence, rather than answered with a number that is wrong:
+
+| code | what it means |
+| --- | --- |
+| `fan_out` | summing here would multiply the total |
+| `unit_mismatch` | the values are not in the same unit |
+| `not_additive` | the number is a state, not a flow |
+| `not_temporal` | the field is not kept as a date, so it has no period |
+| `measure_unreachable` | the path never reaches the record that number lives on |
+| `depth_exceeded`, `path_too_long` | the traversal is bounded, and this exceeds it |
+
+A hop that is filtered but never referenced narrows to `EXISTS` instead of joining, so
+it cannot multiply anything. A hop that *is* referenced after a fan-out is refused by
+name. Money partitions by currency, quantity by unit; no conversion is introduced.
 
 ## Agent operation
 
-1. Call `analytics_catalog` to discover the supported vocabulary and limitations.
-2. Resolve customer/product references with existing reference tools. Human names and
-   SKUs are search inputs; use returned opaque IDs in filters.
-3. Call `analytics_query` with a definition. Example: distinct retained orders by
-   customer for a resolved product in ISO week 7 of 2026:
-
-```json
-{
-  "definition": {
-    "version": 1,
-    "dataset": "sales_order_lines",
-    "dimensions": ["customer_id"],
-    "measures": ["order_count"],
-    "where": {"field": "product_id", "op": "eq", "value": "<resolved-item-id>"},
-    "time": {
-      "field": "ordered_at",
-      "timezone": "Europe/Berlin",
-      "window": {"kind": "iso_week", "year": 2026, "week": 7}
-    }
-  }
-}
-```
-
-4. Interpret exact typed values with the returned period, missing-value and history
-   metadata. Return the supplied `open_in_reports.url` for an editable Explorer
-   handoff. Never describe retained data as complete upstream history.
-5. Use `analytics_contributors` with the executed definition, group and selected
-   measure to inspect counted identities or underlying records. Continuation is a
-   fresh observation, not a frozen snapshot.
-6. Use `analytics_export` for a complete bounded CSV. Monetary and quantity strings
-   retain decimal precision; potentially executable spreadsheet text is escaped.
-
-Private tools are `analytics_reports_list`, `analytics_report_get` and
-`analytics_report_change_propose`. The latter prepares create/update/rename/duplicate/
-delete changes; the shared approval tool requires explicit confirmation. Trusted
-user identity is outside model arguments. Tenant-only MCP credentials can query
-business analytics but cannot claim a private report owner. Private proposal payloads
-are encrypted with the existing secret mechanism and generic action results are
-redacted. Names, definitions and report IDs are not tenant-wide storyline entries.
-
-## Observation and numeric semantics
-
-Each production query/contributor/export request owns a repeatable-read, read-only
-PostgreSQL transaction and rolls it back. Statement interruption, cancellation and
-cooperative CPU checks share the request deadline. Limits: 30 seconds, 10,000 groups,
-200 result rows per page, 100 contributors per page; bounded operational providers
-reject populations above their stated admission limits. A broad request fails without
-partial success or a hidden sample. Read transport telemetry can still be recorded
-outside the analytical transaction.
-
-Money partitions by currency; quantity by unit; prices by currency and unit. No FX,
-new conversion policy or source amount recomputation is introduced. Order totals are
-aggregated at order grain, separately from stated line amounts. Missing source amounts
-remain unknown even if an intake stores a default zero. Distinct counts and pivot
-totals are reaggregated from contributors, never summed from displayed pages.
-
-Absolute date ranges are half-open local calendar intervals. ISO weeks require a year
-and timezone. Previous-period comparisons expose absolute and relative changes;
-percent change from zero is unknown. First purchase means first observed retained
-purchase. A newer pending source version does not erase already interpreted evidence.
+1. Call `graph_catalog` to discover the records, connections and measures this company
+   declares, in the reader's language.
+2. Call `graph_ask` with a traversal, or with a path string.
+3. Read the refusal if one comes back. It names the edge that fanned out or the unit
+   that cannot be added; asking the same question again will not help.
 
 ## Web and persistence
 
 The sidebar lists Analytics last under Workspaces, after Master data, with no separate
 Analytics group. Its name and tooltip are Analytics in every language (spec 221).
-Analytics opens Explore and also offers My reports. Spec 221 retires Overview, its
-Home metric preview, and the exclusive company_insights GET reads; Home retains
-an Open analytics link. Default and legacy Overview links open Explore. Editing changes a draft;
-Run replaces the successful result only when the current request succeeds. Errors and
-cancellation retain previous results. Tables, bar/line charts and service-generated
-pivots show the executed result; supporting values open the existing Inspector.
+Default links and links naming a retired view open the business graph.
 
-"Start new chat about analysis" creates a new conversation through the shared chat
-service and opens it in the dock with a visible, removable typed analysis attachment.
-It sends no automatic message and preserves the previous conversation. Creation
-failure retains the existing draft/context. Attachments belong to the new session
-and are cleared when navigating to another conversation.
-Open in Reports validates version and company and opens a draft for review. Switching
-company clears private report and composer context.
+The page builds a question as an ordered stack of steps — start, reach, narrow, count,
+split, sort, bound — where each step offers only what the declaration makes valid at
+that point, and a hop says whether it fans out before it is taken. A query console
+beside it takes the path syntax directly and shows the statement it became.
 
-`analytics_report` is the only new table. It stores a private versioned definition
-(including presentation), tenant and authenticated owner, revision and retry metadata.
-It never stores result rows. Replacement updates use expected revisions, request keys
-are payload-bound, and tombstones prevent a lost create response from resurrecting a
-deleted report. Migration 0060 upgrades additively; downgrade refuses a populated table.
+`analytics_report` stores a saved report: the **question**, never its answer, with the
+model version that gave it meaning, its owner, a revision and a retry key. Reopening
+one re-executes it, so what comes back is a fresh observation rather than a preserved
+number — the only honest thing a report can be when the records underneath it keep
+changing. Reports are private to their author, and every change is confirmed
+explicitly. Migration 0062 added `kind` and `model_version` additively.
 
-Grouped charts immediately show the first available currency/unit partition.
-Buttons above the chart switch between loaded partitions without another query;
-tables and totals keep all partitions. Values are never converted or combined.
-Missing grouping retains actionable guidance. Editing query settings still requires
-explicit execution. Partition selection precedes the 50-row chart display limit.
-
-Explorer selectors and inputs use shared bordered controls with full-size click
-targets. Native dropdowns retain keyboard selection and visible chevrons; Filters
-is a bordered disclosure. Date controls adapt to the available container width.
+Reports saved by the configured generation are still in the table with neither column
+set. Nothing reads them, and nothing writes over them: they belonged to a generation
+that was replaced rather than translated.
