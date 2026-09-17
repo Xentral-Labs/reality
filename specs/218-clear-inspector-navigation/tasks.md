@@ -3,3 +3,5 @@
 - [x] T002 [US1/US3] Update inspectorSections, Shell, pageIntroduction and localization (FR-001,003,005).
 - [x] T003 [US2] Add Exceptions tab routing and reuse existing components; preserve legacy URLs and finding links (FR-002,004).
 - [x] T004 [US1/US2/US3] Browser-check four languages, mobile, legacy links and history; run frontend/spec gates and update docs/WEB_SPEC.md (FR-001–005).
+
+- [x] T005 [US1/US3] Update inspector-navigation.test.mjs and unified-inspector-browser.mjs for Tools tabs and direct views links; implement inspectorSections.ts grouping; verify four languages, spec/frontend gates and update WEB_SPEC (FR-001,003,004,005).

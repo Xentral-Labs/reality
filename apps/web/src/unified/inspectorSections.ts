@@ -1,8 +1,8 @@
 export const inspectorSections = [
   { label: "Business Graph", tabs: ["overview", "graph"] },
-  { label: "Business Facts", tabs: ["facts", "views", "rules"] },
+  { label: "Business Facts", tabs: ["facts", "rules"] },
   { label: "Event history", tabs: ["history"] },
-  { label: "Available actions", tabs: ["commands"] },
+  { label: "Tools", tabs: ["commands", "views"] },
 ];
 const labels: Record<string, string> = {
   overview: "Timeline",
@@ -12,7 +12,7 @@ const labels: Record<string, string> = {
   exceptions: "Exception rules",
   views: "Calculated views",
   history: "Event history",
-  commands: "Available actions",
+  commands: "Actions",
 };
 export const inspectorSection = (view = "overview") =>
   inspectorSections.find((section) => section.tabs.includes(view === "records" ? "facts" : view)) ||

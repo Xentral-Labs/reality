@@ -2950,3 +2950,21 @@ timestamp sits directly beside the button in a wrapping row. Updated/unchanged a
 checking feedback is screen-reader-only; no extra visible feedback row. Pending/failed
 calculation state and backlog remain compactly beneath. Read errors stay visible and
 never produce success feedback. Duplicate clicks remain disabled during feedback.
+
+Spec 219 FR-006: Opened reports retain a visible title, summary and Close control while data scrolls. The catalog explanation is initially open in a separately scrolling right column on desktop. On narrow screens its disclosure is above the data and initially collapsed to preserve reading space; details-only reports remain open. Explanation access never requires scrolling through the table. Existing catalog definitions, code/docs links, readers and preview limits are preserved.
+
+Spec 219 FR-006 sidebar refinement: show a single canonical calculation/view explanation. Code, documentation, alias-specific explanations and technical definitions are grouped under one initially collapsed Technical details disclosure, preserving all original links without repeating controls in the initial sidebar.
+
+Spec 219 FR-007/008 supersedes the alias-card sidebar composition above. About this
+report contains one business explanation, deduplicated workspace text links and one
+documentation link. One collapsed technical section exposes canonical calculation,
+source metadata, code and lossless catalog definitions. Aliases never render repeated
+Details cards. Dispatch data uses business-first columns and localized dates/booleans;
+other reports preserve unknown field fallbacks. Nested values open readable row details,
+where opaque identities and exact original data remain available. Report tables have a
+real final details action, neutral settings controls and no nonfunctional filter icon.
+No new filtering, business calculations, source authority or service paths are introduced.
+
+Spec 218 navigation refinement: Tools replaces Available actions in the Inspector sidebar and contains Actions (default) and Calculated views. Tools is invariant across languages. Business Facts contains All records and Fact rules only. Existing inspector_view=commands/views URLs preserve tenant context and now activate Tools; reload/history and report behavior remain unchanged. This supersedes the Business Facts ownership of Calculated views stated above.
+
+Spec 219 directory refinement supersedes the custom report list/cards and workspace filter buttons: Calculated views reuses the Actions folder-tree component, toolbar, expandable groups and compact disclosures. Reports have one home under their first workspace category; all category labels remain in their details and search. Search opens matching groups without overwriting manual expansion. Expand all/Collapse all match Actions and are disabled while searching. A report disclosure exposes its description and Open report/Show details action. Existing dialogs, company context, deduplication and focus restoration remain unchanged.

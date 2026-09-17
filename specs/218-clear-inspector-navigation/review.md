@@ -27,3 +27,8 @@ conflicting requirements, unmapped work or critical findings. Requirements check
 
 Event history and Exception rules reuse existing translations. Action launcher links
 use Available actions consistently with their destination. No business data migration.
+
+## Tools navigation refinement (2026-09-17)
+User-authorized scope: rename Available actions to Tools and move Calculated views there. Preimplementation review maps FR-001/003/004/005 to T005, with no critical inconsistency, unresolved clarification or Constitution exception. Navigation tests failed before the grouping change and now pass. The shared section catalog drives sidebar state, tabs and headers; commands/views URLs are unchanged.
+
+`gmake spec-check web-build` passed (224 tests, localization audit, TypeScript and production build; existing bundle-size advisory only). NAVIGATION_ONLY browser passed in English, German, Dutch and Spanish, covering desktop/mobile Tools tabs, old views links, active section, reload/back/forward and unchanged exception navigation. `git diff --check` passed. No schema, service, report or action-confirmation changes.

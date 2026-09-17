@@ -11,3 +11,6 @@ Update inspector-navigation.test.mjs first, observe failure, then implement. Run
 No data migration. Legacy URLs normalize at the shared routing boundary. Revert frontend commit to roll back.
 ## Risks
 Retained rules tab state must not prevent links to findings. Sidebar icon order must match the new destinations. Avoid duplicate translation aliases that confuse reverse localization.
+
+## Tools refinement
+Change only shared inspectorSections ownership/labels: Business Facts=[facts,rules], Tools=[commands,views], with Actions as the default tab. Existing keys preserve bookmarks, tenant and URL history; Shell already derives active navigation and headers from this source. Tools remains invariant in every language; Actions and Calculated views keep current translations. Constitution all eight PASS; no data/schema/service changes. Update navigation tests first, analyze coverage, verify four-language browser navigation and frontend/spec gates.

@@ -16438,3 +16438,40 @@ Object.assign(dictionaries.es, {
   "Could not check for a newer calculation. Try again.":
     "No se pudo comprobar si hay un cálculo más reciente. Inténtalo de nuevo.",
 });
+
+Object.assign(dictionaries.de, {
+  "Each row groups open customer deliveries by their order or supporting evidence. Readiness reflects active reservations and delivery holds.":
+    "Jede Zeile fasst offene Kundenlieferungen nach Auftrag oder zugehörigem Beleg zusammen. Die Versandbereitschaft berücksichtigt aktive Reservierungen und Liefersperren.",
+  "About this report": "Über diesen Bericht",
+  Entries: "Einträge",
+  "Order reference": "Auftragsreferenz",
+  "Blocking reasons": "Versandhindernisse",
+  "Physical stock": "Physischer Bestand",
+  Priority: "Priorität",
+});
+
+Object.assign(dictionaries.nl, {
+  "Each row groups open customer deliveries by their order or supporting evidence. Readiness reflects active reservations and delivery holds.":
+    "Elke rij groepeert open klantleveringen per order of bijbehorend bewijsstuk. De verzendgereedheid houdt rekening met actieve reserveringen en leveringsblokkades.",
+  "About this report": "Over dit rapport",
+  Entries: "Gegevens",
+  "Order reference": "Orderreferentie",
+  "Blocking reasons": "Leveringsblokkades",
+  "Physical stock": "Fysieke voorraad",
+  Priority: "Prioriteit",
+});
+
+Object.assign(dictionaries.es, {
+  "Each row groups open customer deliveries by their order or supporting evidence. Readiness reflects active reservations and delivery holds.":
+    "Cada fila agrupa entregas pendientes a clientes por pedido o documento justificativo. La disponibilidad para el envío tiene en cuenta las reservas activas y los bloqueos de entrega.",
+  "About this report": "Acerca de este informe",
+  Entries: "Entradas",
+  "Order reference": "Referencia del pedido",
+  "Blocking reasons": "Motivos de bloqueo",
+  "Physical stock": "Existencias físicas",
+  Priority: "Prioridad",
+});
+
+Object.assign(dictionaries.de, { Entry: "Eintrag" });
+Object.assign(dictionaries.nl, { Entry: "Vermelding" });
+Object.assign(dictionaries.es, { Entry: "Entrada" });

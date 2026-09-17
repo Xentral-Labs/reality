@@ -243,9 +243,30 @@ await page.route("**/api/**", async (route) => {
   if (path.includes("/projections/") || path.includes("/projection-snapshots/")) {
     if (projectionMode === "error")
       return reply({ detail: "Projection temporarily unavailable" }, 503);
-    const items = ["empty", "uninitialized"].includes(projectionMode)
-      ? []
-      : [{ item_id: "i1", available: "4" }];
+    const items =
+      path.includes("fulfillment_queue") &&
+      (process.env.REPORTS_ONLY === "1" || process.env.PROJECTION_ONLY === "1")
+        ? [
+            {
+              lines: [{ sku: "P01", quantity: "999999999999999999.123456" }],
+              party_id: "party-exact",
+              order_key: "order-exact",
+              party: "Maple Retail",
+              external_order_id: "SO-1042",
+              due_at: "2026-09-19T12:00:00Z",
+              ship_ready: false,
+              blocking_reasons: ["delivery_hold"],
+              priority: "normal",
+            },
+          ]
+        : ["empty", "uninitialized"].includes(projectionMode)
+          ? []
+          : process.env.REPORTS_ONLY === "1" || process.env.PROJECTION_ONLY === "1"
+            ? Array.from({ length: 100 }, (_, i) => ({
+                item_id: `i${i + 1}`,
+                available: i === 0 ? "4" : "100",
+              }))
+            : [{ item_id: "i1", available: "4" }];
     return reply(
       path.includes("/projection-snapshots/")
         ? {
@@ -578,28 +599,42 @@ if (process.env.REPORTS_ONLY === "1" || process.env.PROJECTION_ONLY === "1") {
       const catalog = page.locator("[data-report-catalog]");
       await catalog.waitFor();
       const row = catalog.locator('[data-report="inventory"]');
-      await row.waitFor();
+      const openReport = async (target) => {
+        const entry = catalog.locator(`[data-report="${target}"]`);
+        if ((await entry.getAttribute("open")) === null) await entry.locator("summary").click();
+        await entry.locator("[data-report-open]").click();
+      };
       assert.equal(await catalog.locator("[data-report]").count(), 5);
-      await row.getByText(tr("Stock overview"), { exact: true }).waitFor();
+      assert.equal(await row.isVisible(), false);
+      await catalog.getByRole("button", { name: tr("Expand all"), exact: true }).click();
+      await row.waitFor();
+      await row.locator("summary").focus();
+      await page.keyboard.press("Enter");
       await row
         .getByText(tr("See physical, reserved, available and expected stock."), { exact: true })
         .waitFor();
-      assert.equal(await catalog.locator("summary").count(), 0);
-      const filters = catalog.getByRole("group");
-      await filters.getByRole("button", { name: tr("Finance"), exact: true }).click();
-      assert.equal(await catalog.locator("[data-report]").count(), 1);
+      await catalog.getByRole("button", { name: tr("Collapse all"), exact: true }).click();
+      assert.equal(await row.isVisible(), false);
       const search = catalog.getByRole("searchbox");
+      await search.fill(tr("Stock overview"));
+      await row.waitFor();
+      assert.equal(
+        await catalog.getByRole("button", { name: tr("Expand all"), exact: true }).isDisabled(),
+        true,
+      );
+      await search.fill("");
+      assert.equal(await row.isVisible(), false);
+      await catalog.getByRole("button", { name: tr("Expand all"), exact: true }).click();
       await search.fill("does-not-exist");
       await catalog.getByText(tr("No matching reports"), { exact: true }).waitFor();
-      await search.fill("");
-      await filters.getByRole("button", { name: tr("All"), exact: true }).click();
       await search.fill(tr("Stock overview"));
       assert.equal(await catalog.locator("[data-report]").count(), 1);
-      await row.focus();
+      if ((await row.getAttribute("open")) === null) await row.locator("summary").click();
+      await row.locator("[data-report-open]").focus();
       await page.keyboard.press("Enter");
       const dialog = page.getByRole("dialog", { name: tr("Stock overview"), exact: true });
       await dialog.waitFor();
-      await dialog.getByText("i1", { exact: true }).waitFor();
+      await dialog.getByRole("cell", { name: "4", exact: true }).waitFor();
       if (language === "en") {
         for (const mode of ["pending", "failed", "uninitialized", "rows"]) {
           projectionMode = mode;
@@ -616,8 +651,47 @@ if (process.env.REPORTS_ONLY === "1" || process.env.PROJECTION_ONLY === "1") {
       assert.ok(
         readPaths.some((path) => path.includes("/tenants/t1/") && path.includes("inventory")),
       );
+      assert.notEqual(await dialog.locator("[data-report-details]").getAttribute("open"), null);
+      const explanationBox = await dialog.locator("[data-report-details]").boundingBox();
+      const tableBox = await dialog.getByRole("table").boundingBox();
+      assert.ok(
+        explanationBox.x >= tableBox.x + tableBox.width - 1,
+        "Explanation sits beside data",
+      );
+      const header = dialog.locator("header");
+      const headerBefore = await header.boundingBox();
+      await dialog.locator("[data-report-data]").evaluate((el) => {
+        el.scrollTop = el.scrollHeight;
+      });
+      assert.deepEqual(
+        await header.boundingBox(),
+        headerBefore,
+        "Report header stays visible while data scrolls",
+      );
+      await dialog.getByText(tr("About this report"), { exact: true }).click();
       assert.equal(await dialog.locator("[data-report-details]").getAttribute("open"), null);
-      await dialog.getByText(tr("Report details"), { exact: true }).click();
+      await dialog.getByText(tr("About this report"), { exact: true }).focus();
+      await page.keyboard.press("Enter");
+      assert.equal(
+        await dialog.getByRole("button", { name: tr("View code"), exact: true }).count(),
+        0,
+      );
+      assert.equal(
+        await dialog
+          .getByRole("link", { name: /Documentation|Dokumentation|Documentatie|Documentación/ })
+          .count(),
+        1,
+      );
+      assert.equal(
+        await dialog.getByRole("button", { name: tr("Filter records"), exact: true }).count(),
+        0,
+      );
+      await dialog.locator("[data-report-technical] > summary").click();
+      assert.equal(
+        await dialog.getByRole("button", { name: tr("View code"), exact: true }).count(),
+        1,
+      );
+      assert.equal(await dialog.locator("[data-catalog-secondary]").count(), 0);
       await dialog
         .getByRole("button", { name: tr("View code"), exact: true })
         .first()
@@ -626,27 +700,95 @@ if (process.env.REPORTS_ONLY === "1" || process.env.PROJECTION_ONLY === "1") {
         .getByRole("link", { name: /Documentation|Dokumentation|Documentatie|Documentación/ })
         .first()
         .waitFor();
+      await dialog.locator("[data-report-technical] > summary").click();
+      await dialog.locator("[data-report-data]").evaluate((el) => {
+        el.scrollTop = 0;
+      });
+      await dialog
+        .getByRole("button", { name: tr("Show details"), exact: true })
+        .first()
+        .click();
+      await dialog.getByText("i1", { exact: true }).waitFor();
+      await dialog
+        .getByRole("button", { name: tr("Show details"), exact: true })
+        .first()
+        .click();
+      await page.screenshot({
+        path: `/private/tmp/reality-219-browser/${language}-report-desktop.png`,
+      });
       await page.keyboard.press("Escape");
       await dialog.waitFor({ state: "detached" });
-      assert.equal(await row.evaluate((el) => el === document.activeElement), true);
+      assert.equal(
+        await row.locator("[data-report-open]").evaluate((el) => el === document.activeElement),
+        true,
+      );
       assert.equal(await search.inputValue(), tr("Stock overview"));
       await search.fill("");
-      await catalog.locator('[data-report="price_resolution"]').click();
+      await openReport("fulfillment_queue");
+      const dispatch = page.getByRole("dialog", { name: tr("Dispatch readiness"), exact: true });
+      await dispatch.getByRole("cell", { name: "Maple Retail", exact: true }).waitFor();
+      await dispatch
+        .getByRole("columnheader")
+        .first()
+        .getByText(tr("Customer"), { exact: true })
+        .waitFor();
+      assert.equal(
+        await dispatch.getByRole("columnheader", { name: "party_id", exact: true }).count(),
+        0,
+      );
+      assert.equal(await dispatch.locator("[data-report-technical]").count(), 1);
+      await dispatch.getByRole("button", { name: tr("Show details"), exact: true }).click();
+      await dispatch.getByText("party-exact", { exact: true }).waitFor();
+      await dispatch.getByRole("button", { name: tr("Show details"), exact: true }).click();
+      await dispatch.locator(".erp-table-scroll").evaluate((el) => {
+        el.scrollLeft = 0;
+      });
+      await page.screenshot({
+        path: `/private/tmp/reality-219-browser/${language}-dispatch-desktop.png`,
+      });
+      await dispatch.locator("[data-report-technical] > summary").click();
+      assert.equal(
+        await dispatch.getByRole("button", { name: tr("View code"), exact: true }).count(),
+        1,
+      );
+      await page.screenshot({
+        path: `/private/tmp/reality-219-browser/${language}-dispatch-technical.png`,
+      });
+      if (language === "de") {
+        await page.evaluate(() => {
+          document.documentElement.dataset.theme = "dark";
+        });
+        await page.screenshot({ path: "/private/tmp/reality-219-browser/de-dispatch-dark.png" });
+        await page.evaluate(() => {
+          document.documentElement.dataset.theme = "light";
+        });
+      }
+      await page.keyboard.press("Escape");
+      await openReport("price_resolution");
       await page.getByRole("dialog", { name: tr("Price determination"), exact: true }).waitFor();
       assert.equal(
         readPaths.some((path) => path.includes("projection-snapshots/price_resolution")),
         false,
       );
       await page.keyboard.press("Escape");
-      await catalog.locator('[data-report="view:items"]').click();
+      await openReport("view:items");
       await page.getByRole("dialog").getByText("Catalog item data", { exact: true }).waitFor();
       await page.keyboard.press("Escape");
       const hideChat = page.getByRole("button", { name: tr("Hide chat"), exact: true });
       if (await hideChat.isVisible()) await hideChat.click();
       await page.screenshot({ path: `/private/tmp/reality-219-browser/${language}-desktop.png` });
       await page.setViewportSize({ width: 390, height: 844 });
-      await row.click();
+      await openReport("inventory");
       await page.getByRole("dialog", { name: tr("Stock overview"), exact: true }).waitFor();
+      const mobileDialog = page.getByRole("dialog");
+      assert.equal(await mobileDialog.locator("[data-report-details]").getAttribute("open"), null);
+      await mobileDialog.getByText(tr("About this report"), { exact: true }).click();
+      await mobileDialog.locator("[data-report-explanation]").waitFor();
+      await mobileDialog.getByText(tr("About this report"), { exact: true }).click();
+      const mobileDetails = await mobileDialog.locator("[data-report-details]").boundingBox();
+      const mobileData = await mobileDialog.locator("[data-report-data]").boundingBox();
+      assert.ok(mobileDetails.y < mobileData.y, "Mobile explanation precedes data");
+      assert.ok(await mobileDialog.evaluate((el) => el.scrollWidth <= el.clientWidth + 1));
       await page.screenshot({
         path: `/private/tmp/reality-219-browser/${language}-report-mobile.png`,
       });
@@ -700,7 +842,7 @@ if (process.env.NAVIGATION_ONLY === "1") {
       await page.locator("[data-rules-register]").waitFor();
       assert.deepEqual(
         (await sidebar().getByRole("link").allTextContents()).map((x) => x.trim()),
-        ["Business Graph", "Business Facts", tr("Event history"), tr("Available actions")],
+        ["Business Graph", "Business Facts", tr("Event history"), "Tools"],
       );
       assert.equal(
         await sidebar()
@@ -710,18 +852,18 @@ if (process.env.NAVIGATION_ONLY === "1") {
       );
       assert.deepEqual(
         (await tabs().getByRole("button").allTextContents()).map((x) => x.trim()),
-        [tr("All records"), tr("Calculated views"), tr("Fact rules")],
+        [tr("All records"), tr("Fact rules")],
       );
       for (const [key, selector] of [
         ["Event history", "[data-inline-activity]"],
-        ["Available actions", "[data-action-directory]"],
+        ["Tools", "[data-action-directory]"],
       ]) {
         await sidebar()
           .getByRole("link", { name: tr(key), exact: true })
           .click();
-        await heading(key);
+        await heading(key === "Tools" ? "Actions" : key);
         await page.locator(selector).waitFor();
-        assert.equal(await tabs().count(), 0);
+        assert.equal(await tabs().count(), key === "Tools" ? 1 : 0);
         assert.equal(
           await sidebar()
             .getByRole("link", { name: tr(key), exact: true })
@@ -729,6 +871,28 @@ if (process.env.NAVIGATION_ONLY === "1") {
           "page",
         );
       }
+      assert.deepEqual(
+        (await tabs().getByRole("button").allTextContents()).map((x) => x.trim()),
+        [tr("Actions"), tr("Calculated views")],
+      );
+      await tabs()
+        .getByRole("button", { name: tr("Calculated views"), exact: true })
+        .click();
+      await page.locator("[data-report-catalog]").waitFor();
+      await heading("Calculated views");
+      assert.equal(
+        await sidebar()
+          .getByRole("link", { name: "Tools", exact: true })
+          .getAttribute("aria-current"),
+        "page",
+      );
+      assert.equal(new URL(page.url()).searchParams.get("inspector_view"), "views");
+      await page.reload();
+      await heading("Calculated views");
+      await page.goBack();
+      await heading("Actions");
+      await page.goForward();
+      await heading("Calculated views");
       await page.goto(`${base}/app/inspector?tenant=t1&inspector_view=exceptions`);
       await heading("Exception rules");
       await page.locator('[data-exception-class="shortage"]').waitFor();
@@ -770,6 +934,16 @@ if (process.env.NAVIGATION_ONLY === "1") {
       await heading("Exception rules");
       assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1));
       await page.screenshot({ path: `/private/tmp/reality-218-browser/${language}-mobile.png` });
+      await page.goto(`${base}/app/inspector?tenant=t1&inspector_view=views`);
+      await heading("Calculated views");
+      assert.deepEqual(
+        (await tabs().getByRole("button").allTextContents()).map((x) => x.trim()),
+        [tr("Actions"), tr("Calculated views")],
+      );
+      assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1));
+      await page.screenshot({
+        path: `/private/tmp/reality-218-browser/${language}-tools-mobile.png`,
+      });
       console.log(
         `Navigation passed: ${language}, desktop/mobile, legacy links, reload/history, rules to findings`,
       );
