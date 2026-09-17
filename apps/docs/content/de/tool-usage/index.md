@@ -126,6 +126,20 @@ ausdrücklich. Bleibt der Status `executing` oder widerspricht eine ID, Menge od
 das Ergebnis unbekannt. Eine erfolgreiche Antwort ist kein ausreichender Beweis; eskaliere und prüfe
 die genannten Datensätze, statt aus einer verschwundenen Ausnahme auf Erfolg zu schließen.
 
+### Ablehnungen tragen einen Code
+
+Lehnt ein Tool ab, ist das Ergebnis ein MCP-Fehlerergebnis, dessen Text ein JSON-Objekt ist:
+`{"code": "...", "message": "...", "tool": "..."}`. Der Code ist stabil und sagt, warum Reality
+abgelehnt hat: `not_found` (der in den Argumenten genannte Datensatz existiert in diesem Mandanten
+nicht), `invalid_operation` (die Anfrage ist für diesen Datensatz oder diese Argumente nicht
+gültig), `conflict` (die Anfrage war in der Form gültig, beruhte aber auf veraltetem Zustand),
+`needs_review` (ein Interpreter hat abgelehnt, weil die fachliche Bedeutung mehrdeutig ist),
+`reality_error` (jede andere fachlich lesbare Ablehnung). Die Nachricht ist der Satz, den ein Mensch
+liest; sie ist für Menschen und darf nicht geparst werden. Ein Agent, der entscheiden muss, ob er
+wiederholt, nachfragt oder aufhört, liest den Code und zeigt die Nachricht. Fehler, die keine
+Ablehnungen sind, etwa ein fehlender Scope oder ein unbekanntes Tool, behalten ihren Klartext ohne
+Code; sie sind keine fachlichen Ergebnisse.
+
 ### Leitfaden für eine weitere Fähigkeit ergänzen
 
 1. Nenne das exakte öffentliche MCP-Tool; teile keine Beschreibung zwischen Tools mit

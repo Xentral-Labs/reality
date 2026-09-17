@@ -123,6 +123,18 @@ or event disagrees, the outcome stays unknown. A successful response is not suff
 escalate and inspect the named records instead of inferring success from an exception that
 disappeared.
 
+### Refusals carry a code
+
+When a tool refuses, the result is an MCP error result whose text is one JSON object:
+`{"code": "...", "message": "...", "tool": "..."}`. The code is stable and says why Reality refused:
+`not_found` (the record the arguments name does not exist in this tenant), `invalid_operation` (the
+request is not valid for this record or these arguments), `conflict` (the request was valid in shape
+but based on stale state), `needs_review` (an interpreter declined because the business meaning is
+ambiguous), `reality_error` (any other business-readable refusal). The message is the sentence a
+person reads; it is for people and must not be parsed. An agent that has to decide whether to retry,
+ask, or stop reads the code and shows the message. Failures that are not refusals, such as a missing
+scope or an unknown tool, keep their plain text and no code; they are not business outcomes.
+
 ### Adding guidance for another capability
 
 1. Name the exact public MCP tool; do not share one description between tools with different intent,
