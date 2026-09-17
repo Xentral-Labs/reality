@@ -270,3 +270,16 @@ def test_the_terminal_accepts_either_syntax(session, business, sales, monkeypatc
         }
     )
     assert text == stored, "what the terminal parses is what a saved report holds"
+
+
+def test_a_limit_actually_limits():
+    """Found by running it: the keyword pattern consumed the digit it needed."""
+    assert parse("MATCH (o:order) RETURN o.currency, sum(stated_order_amount) LIMIT 4").limit == 4
+    assert (
+        parse(
+            "MATCH (o:order) RETURN o.currency, sum(stated_order_amount) "
+            "ORDER BY sum(stated_order_amount) DESC LIMIT 7"
+        ).limit
+        == 7
+    )
+    assert parse("MATCH (o:order) RETURN o.currency, sum(stated_order_amount)").limit == 200

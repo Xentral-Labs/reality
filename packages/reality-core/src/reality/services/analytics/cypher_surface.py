@@ -264,7 +264,10 @@ def parse(text: str, parameters: dict[str, Any] | None = None) -> Traversal:
     where_clause = _clause(text, "WHERE", ("RETURN", "ORDER BY", "LIMIT"))
     return_clause = _clause(text, "RETURN", ("ORDER BY", "LIMIT"))
     order_clause = _clause(text, "ORDER BY", ("LIMIT",))
-    limit_clause = _clause(text, "LIMIT", ())
+    # Read the number from the text rather than from a clause: the LIMIT keyword
+    # pattern has to include a digit so it cannot match a property called limit,
+    # which means the clause after it starts past that digit and is empty.
+    limit = re.search(r"\bLIMIT\s+(\d+)", text, re.IGNORECASE)
 
     if not return_clause.strip():
         raise CypherRefused("a question says what it wants back, with RETURN", "no_return_clause")
@@ -290,9 +293,8 @@ def parse(text: str, parameters: dict[str, Any] | None = None) -> Traversal:
         "group_by": groupings,
         "order_by": order_by,
     }
-    if limit_clause.strip():
-        found = re.search(r"\bLIMIT\s+(\d+)", text, re.IGNORECASE)
-        query["limit"] = int(found.group(1)) if found else 200
+    if limit:
+        query["limit"] = int(limit.group(1))
     try:
         return Traversal.model_validate(query)
     except ValueError as error:
