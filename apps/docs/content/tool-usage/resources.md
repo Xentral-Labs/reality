@@ -8,7 +8,7 @@ the technical key stands beside each one.
 
 | Object                                                           | Lists | Actions | Exceptions to clear |
 | ---------------------------------------------------------------- | ----- | ------- | ------------------- |
-| [Analytics report](#resource-analytics)                          | 0     | 1       | 0                   |
+| [Analytics report](#resource-analytics)                          | 0     | 2       | 0                   |
 | [Business partner](#resource-party)                              | 1     | 6       | 2                   |
 | [Item](#resource-item)                                           | 5     | 3       | 2                   |
 | [Warehouse location](#resource-location)                         | 3     | 3       | 0                   |
@@ -31,11 +31,12 @@ _Composable questions and private definitions_
 Read-time observations over retained evidence and operational services, with scoped contributors and
 private saved definitions.
 
-**Also called:** analytics, report, Auswertung, Bericht
+**Also called:** analytics, report, Auswertung, Bericht, graph, Graph
 
 **Actions**
 
 - [Change Private Analytics Report](./commands#command-change_report) (`change_report`)
+- [Change Private Graph Report](./commands#command-change_graph_report) (`change_graph_report`)
 
 **Underneath:** Tables: `analytics_report` · Agent tools without a command:
 [`analytics_catalog`](./commands#tool-analytics_catalog),
@@ -43,7 +44,10 @@ private saved definitions.
 [`analytics_contributors`](./commands#tool-analytics_contributors),
 [`analytics_export`](./commands#tool-analytics_export),
 [`analytics_reports_list`](./commands#tool-analytics_reports_list),
-[`analytics_report_get`](./commands#tool-analytics_report_get)
+[`analytics_report_get`](./commands#tool-analytics_report_get),
+[`graph_catalog`](./commands#tool-graph_catalog), [`graph_ask`](./commands#tool-graph_ask),
+[`graph_reports_list`](./commands#tool-graph_reports_list),
+[`graph_report_get`](./commands#tool-graph_report_get)
 
 ## Business partner {#resource-party}
 

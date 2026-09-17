@@ -119,10 +119,10 @@
         "en": "Read-time observations over retained evidence and operational services, with scoped contributors and private saved definitions.",
         "de": "Auswertungen über vorhandene Belege und operative Dienste mit nachvollziehbaren Datensätzen und privaten gespeicherten Einstellungen."
       },
-      "synonyms": ["analytics", "report", "Auswertung", "Bericht"],
+      "synonyms": ["analytics", "report", "Auswertung", "Bericht", "graph", "Graph"],
       "tables": ["analytics_report"],
       "lists": [],
-      "actions": ["command:change_report"],
+      "actions": ["command:change_report", "command:change_graph_report"],
       "reads": [],
       "exceptions": [],
       "tools": [
@@ -131,7 +131,11 @@
         "tool:analytics_contributors",
         "tool:analytics_export",
         "tool:analytics_reports_list",
-        "tool:analytics_report_get"
+        "tool:analytics_report_get",
+        "tool:graph_catalog",
+        "tool:graph_ask",
+        "tool:graph_reports_list",
+        "tool:graph_report_get"
       ],
       "events": [],
       "workspace_actions": []
@@ -40151,6 +40155,613 @@
       "resources": ["analytics"]
     },
     {
+      "id": "tool:graph_catalog",
+      "kind": "tool",
+      "key": "graph_catalog",
+      "label": "Discover the business graph",
+      "area": "cross_functional",
+      "summary": "Discover the nodes and measures first; a refusal names the edge that fanned out or the unit that cannot be added, and is more useful than a total that is wrong.",
+      "access": "read",
+      "group": "Analytics",
+      "synopsis": "graph_catalog [node]",
+      "parameters": [
+        {
+          "name": "node",
+          "type": "string",
+          "required": false,
+          "description": "Optional exact node key; omit to discover every node, how they connect, and what each measure means.",
+          "depth": 0,
+          "default": null
+        }
+      ],
+      "guidance": {
+        "purpose": "Discover the business nodes, how they connect, which edges fan out, and what each measure means.",
+        "use_when": ["Decide which nodes, edges and measures a question can use before asking it."],
+        "do_not_use_when": [
+          "Invent a node, edge or measure that the catalog does not list, or assume a relationship exists because two records look related."
+        ],
+        "limitations": [
+          "Describes the declared model, not the data; a node with no rows still appears. Coverage is per node and as-of questions are not offered."
+        ],
+        "empty_result": "The named node is not declared, not proof that the business concept is absent.",
+        "freshness": "The declaration is loaded at start; the catalog describes the model version it reports."
+      },
+      "read_modes": [
+        {
+          "query": "MCP graph_catalog",
+          "mode": "live",
+          "default": true
+        }
+      ],
+      "command": null,
+      "projections": [],
+      "links": [],
+      "label_de": "Discover the business graph",
+      "resources": ["analytics"]
+    },
+    {
+      "id": "tool:graph_ask",
+      "kind": "tool",
+      "key": "graph_ask",
+      "label": "Ask the business graph",
+      "area": "cross_functional",
+      "summary": "Discover the nodes and measures first; a refusal names the edge that fanned out or the unit that cannot be added, and is more useful than a total that is wrong.",
+      "access": "read",
+      "group": "Analytics",
+      "synopsis": "graph_ask [question] [path] [parameters]",
+      "parameters": [
+        {
+          "name": "question",
+          "type": "object",
+          "required": false,
+          "description": "The whole question.",
+          "depth": 0,
+          "default": null
+        },
+        {
+          "name": "question.from",
+          "type": "string",
+          "required": true,
+          "description": "",
+          "depth": 1
+        },
+        {
+          "name": "question.as",
+          "type": "string",
+          "required": false,
+          "description": "",
+          "depth": 1,
+          "default": "root"
+        },
+        {
+          "name": "question.follow",
+          "type": "array",
+          "required": false,
+          "description": "",
+          "depth": 1,
+          "default": []
+        },
+        {
+          "name": "question.follow[].edge",
+          "type": "string",
+          "required": true,
+          "description": "",
+          "depth": 2
+        },
+        {
+          "name": "question.follow[].direction",
+          "type": "string",
+          "required": false,
+          "description": "Business flow direction, such as sales or purchase, incoming or outgoing.",
+          "depth": 2,
+          "default": "out",
+          "enum": ["out", "in"]
+        },
+        {
+          "name": "question.follow[].as",
+          "type": "string",
+          "required": true,
+          "description": "",
+          "depth": 2
+        },
+        {
+          "name": "question.follow[].from",
+          "type": "string",
+          "required": false,
+          "description": "",
+          "depth": 2,
+          "default": null
+        },
+        {
+          "name": "question.follow[].depth",
+          "type": "array",
+          "required": false,
+          "description": "",
+          "depth": 2,
+          "default": null
+        },
+        {
+          "name": "question.filter",
+          "type": "array",
+          "required": false,
+          "description": "",
+          "depth": 1,
+          "default": []
+        },
+        {
+          "name": "question.filter[].field",
+          "type": "string",
+          "required": true,
+          "description": "",
+          "depth": 2
+        },
+        {
+          "name": "question.filter[].op",
+          "type": "string",
+          "required": true,
+          "description": "",
+          "depth": 2,
+          "enum": ["eq", "ne", "in", "not_in", "lt", "lte", "gt", "gte", "is_null", "is_not_null"]
+        },
+        {
+          "name": "question.filter[].value",
+          "type": "any",
+          "required": false,
+          "description": "Scalar observation value validated and canonicalized by its predicate contract.",
+          "depth": 2,
+          "default": null
+        },
+        {
+          "name": "question.measures",
+          "type": "array",
+          "required": false,
+          "description": "",
+          "depth": 1,
+          "default": []
+        },
+        {
+          "name": "question.group_by",
+          "type": "array",
+          "required": false,
+          "description": "",
+          "depth": 1,
+          "default": []
+        },
+        {
+          "name": "question.group_by[].field",
+          "type": "string",
+          "required": true,
+          "description": "",
+          "depth": 2
+        },
+        {
+          "name": "question.group_by[].bucket",
+          "type": "string",
+          "required": false,
+          "description": "",
+          "depth": 2,
+          "default": null,
+          "enum": ["day", "week", "month", "quarter", "year"]
+        },
+        {
+          "name": "question.group_by[].as",
+          "type": "string",
+          "required": false,
+          "description": "",
+          "depth": 2,
+          "default": null
+        },
+        {
+          "name": "question.order_by",
+          "type": "array",
+          "required": false,
+          "description": "",
+          "depth": 1,
+          "default": []
+        },
+        {
+          "name": "question.order_by[].by",
+          "type": "string",
+          "required": true,
+          "description": "",
+          "depth": 2
+        },
+        {
+          "name": "question.order_by[].descending",
+          "type": "boolean",
+          "required": false,
+          "description": "",
+          "depth": 2,
+          "default": false
+        },
+        {
+          "name": "question.limit",
+          "type": "integer",
+          "required": false,
+          "description": "Maximum number of records or jobs processed by this invocation.",
+          "depth": 1,
+          "default": 200
+        },
+        {
+          "name": "path",
+          "type": "string",
+          "required": false,
+          "description": "The same question in the path syntax, for example MATCH (o:order) RETURN o.currency, sum(stated_order_amount). RETURN names declared measures; arithmetic on properties is refused, because summing one along a path that fans out multiplies the total.",
+          "depth": 0,
+          "default": null
+        },
+        {
+          "name": "parameters",
+          "type": "object",
+          "required": false,
+          "description": "Values for $name placeholders used by the path syntax.",
+          "depth": 0
+        }
+      ],
+      "guidance": {
+        "purpose": "Ask a question as a path through declared edges with declared measures, grouping and filters.",
+        "use_when": [
+          "Answer an explicit question about retained company records by combining declared nodes."
+        ],
+        "do_not_use_when": [
+          "Sum a property directly, combine currencies or units, or attribute an order-level amount to one of its articles."
+        ],
+        "limitations": [
+          "Descriptive retained records only; unknown values stay unknown; no writes. Point-in-time and knowledge-time questions are refused rather than answered with today's rows."
+        ],
+        "empty_result": "No matching retained records, not proof of upstream absence.",
+        "freshness": "Each traversal is one fresh read-only observation in a consistent transaction snapshot."
+      },
+      "read_modes": [
+        {
+          "query": "MCP graph_ask",
+          "mode": "live",
+          "default": true
+        }
+      ],
+      "command": null,
+      "projections": [],
+      "links": [],
+      "label_de": "Ask the business graph",
+      "resources": ["analytics"]
+    },
+    {
+      "id": "tool:graph_reports_list",
+      "kind": "tool",
+      "key": "graph_reports_list",
+      "label": "List my graph reports",
+      "area": "cross_functional",
+      "summary": "Discover the nodes and measures first; a refusal names the edge that fanned out or the unit that cannot be added, and is more useful than a total that is wrong.",
+      "access": "read",
+      "group": "Analytics",
+      "synopsis": "graph_reports_list [query] [limit] [cursor]",
+      "parameters": [
+        {
+          "name": "query",
+          "type": "string",
+          "required": false,
+          "description": "Optional report-name search.",
+          "depth": 0,
+          "default": ""
+        },
+        {
+          "name": "limit",
+          "type": "integer",
+          "required": false,
+          "description": "Maximum private reports to return.",
+          "depth": 0,
+          "default": 50
+        },
+        {
+          "name": "cursor",
+          "type": "string",
+          "required": false,
+          "description": "Opaque continuation from the same owner-scoped search.",
+          "depth": 0,
+          "default": null
+        }
+      ],
+      "guidance": {
+        "purpose": "List the authenticated caller's own saved graph questions.",
+        "use_when": ["Offer a question the caller saved earlier instead of rebuilding it."],
+        "do_not_use_when": [
+          "Read another person's reports, or treat a saved report as a stored result."
+        ],
+        "limitations": [
+          "Owner-scoped configuration only. A report holds the question and its model version, never an answer."
+        ],
+        "empty_result": "The caller has saved no graph reports, not that none exist in the company.",
+        "freshness": "Current configuration; reopening the question re-executes it."
+      },
+      "read_modes": [
+        {
+          "query": "MCP graph_reports_list",
+          "mode": "live",
+          "default": true
+        }
+      ],
+      "command": null,
+      "projections": [],
+      "links": [],
+      "label_de": "List my graph reports",
+      "resources": ["analytics"]
+    },
+    {
+      "id": "tool:graph_report_get",
+      "kind": "tool",
+      "key": "graph_report_get",
+      "label": "Read my graph report",
+      "area": "cross_functional",
+      "summary": "Discover the nodes and measures first; a refusal names the edge that fanned out or the unit that cannot be added, and is more useful than a total that is wrong.",
+      "access": "read",
+      "group": "Analytics",
+      "synopsis": "graph_report_get report_id",
+      "parameters": [
+        {
+          "name": "report_id",
+          "type": "string",
+          "required": true,
+          "description": "Opaque ID of a private graph report owned by the caller.",
+          "depth": 0
+        }
+      ],
+      "guidance": {
+        "purpose": "Open one of the authenticated caller's own saved graph questions.",
+        "use_when": ["Re-ask a question the caller saved, exactly as it was saved."],
+        "do_not_use_when": [
+          "Open a report saved by the configured generation, or one owned by somebody else."
+        ],
+        "limitations": [
+          "Returns the question and its model version, never a stored answer. A report of another kind is reported as not found rather than read with the wrong meaning."
+        ],
+        "empty_result": "No such report is owned by this caller.",
+        "freshness": "Current configuration; the answer comes from asking it again."
+      },
+      "read_modes": [
+        {
+          "query": "MCP graph_report_get",
+          "mode": "live",
+          "default": true
+        }
+      ],
+      "command": null,
+      "projections": [],
+      "links": [],
+      "label_de": "Read my graph report",
+      "resources": ["analytics"]
+    },
+    {
+      "id": "tool:graph_report_change_propose",
+      "kind": "tool",
+      "key": "graph_report_change_propose",
+      "label": "Change private graph report",
+      "area": "cross_functional",
+      "summary": "Prepare a private graph report change. Requires trusted authenticated user context; confirm explicitly before it is saved.",
+      "access": "propose",
+      "group": "Analytics",
+      "synopsis": "graph_report_change_propose operation request_id [report_id] [expected_revision] [name] [question]",
+      "parameters": [
+        {
+          "name": "operation",
+          "type": "string",
+          "required": true,
+          "description": "The private graph report change to prepare for confirmation.",
+          "depth": 0,
+          "enum": ["create", "update", "rename", "duplicate", "delete"]
+        },
+        {
+          "name": "request_id",
+          "type": "string",
+          "required": true,
+          "description": "New client retry UUID; reuse it only for the identical change.",
+          "depth": 0
+        },
+        {
+          "name": "report_id",
+          "type": "string",
+          "required": false,
+          "description": "Opaque owned report ID; omitted only when creating.",
+          "depth": 0,
+          "default": null
+        },
+        {
+          "name": "expected_revision",
+          "type": "integer",
+          "required": false,
+          "description": "Revision shown to the caller; required for every existing report change.",
+          "depth": 0,
+          "default": null
+        },
+        {
+          "name": "name",
+          "type": "string",
+          "required": false,
+          "description": "Private report name for create, rename or duplicate.",
+          "depth": 0,
+          "default": null
+        },
+        {
+          "name": "question",
+          "type": "object",
+          "required": false,
+          "description": "The whole question.",
+          "depth": 0,
+          "default": null
+        },
+        {
+          "name": "question.from",
+          "type": "string",
+          "required": true,
+          "description": "",
+          "depth": 1
+        },
+        {
+          "name": "question.as",
+          "type": "string",
+          "required": false,
+          "description": "",
+          "depth": 1,
+          "default": "root"
+        },
+        {
+          "name": "question.follow",
+          "type": "array",
+          "required": false,
+          "description": "",
+          "depth": 1,
+          "default": []
+        },
+        {
+          "name": "question.follow[].edge",
+          "type": "string",
+          "required": true,
+          "description": "",
+          "depth": 2
+        },
+        {
+          "name": "question.follow[].direction",
+          "type": "string",
+          "required": false,
+          "description": "Business flow direction, such as sales or purchase, incoming or outgoing.",
+          "depth": 2,
+          "default": "out",
+          "enum": ["out", "in"]
+        },
+        {
+          "name": "question.follow[].as",
+          "type": "string",
+          "required": true,
+          "description": "",
+          "depth": 2
+        },
+        {
+          "name": "question.follow[].from",
+          "type": "string",
+          "required": false,
+          "description": "",
+          "depth": 2,
+          "default": null
+        },
+        {
+          "name": "question.follow[].depth",
+          "type": "array",
+          "required": false,
+          "description": "",
+          "depth": 2,
+          "default": null
+        },
+        {
+          "name": "question.filter",
+          "type": "array",
+          "required": false,
+          "description": "",
+          "depth": 1,
+          "default": []
+        },
+        {
+          "name": "question.filter[].field",
+          "type": "string",
+          "required": true,
+          "description": "",
+          "depth": 2
+        },
+        {
+          "name": "question.filter[].op",
+          "type": "string",
+          "required": true,
+          "description": "",
+          "depth": 2,
+          "enum": ["eq", "ne", "in", "not_in", "lt", "lte", "gt", "gte", "is_null", "is_not_null"]
+        },
+        {
+          "name": "question.filter[].value",
+          "type": "any",
+          "required": false,
+          "description": "Scalar observation value validated and canonicalized by its predicate contract.",
+          "depth": 2,
+          "default": null
+        },
+        {
+          "name": "question.measures",
+          "type": "array",
+          "required": false,
+          "description": "",
+          "depth": 1,
+          "default": []
+        },
+        {
+          "name": "question.group_by",
+          "type": "array",
+          "required": false,
+          "description": "",
+          "depth": 1,
+          "default": []
+        },
+        {
+          "name": "question.group_by[].field",
+          "type": "string",
+          "required": true,
+          "description": "",
+          "depth": 2
+        },
+        {
+          "name": "question.group_by[].bucket",
+          "type": "string",
+          "required": false,
+          "description": "",
+          "depth": 2,
+          "default": null,
+          "enum": ["day", "week", "month", "quarter", "year"]
+        },
+        {
+          "name": "question.group_by[].as",
+          "type": "string",
+          "required": false,
+          "description": "",
+          "depth": 2,
+          "default": null
+        },
+        {
+          "name": "question.order_by",
+          "type": "array",
+          "required": false,
+          "description": "",
+          "depth": 1,
+          "default": []
+        },
+        {
+          "name": "question.order_by[].by",
+          "type": "string",
+          "required": true,
+          "description": "",
+          "depth": 2
+        },
+        {
+          "name": "question.order_by[].descending",
+          "type": "boolean",
+          "required": false,
+          "description": "",
+          "depth": 2,
+          "default": false
+        },
+        {
+          "name": "question.limit",
+          "type": "integer",
+          "required": false,
+          "description": "Maximum number of records or jobs processed by this invocation.",
+          "depth": 1,
+          "default": 200
+        }
+      ],
+      "guidance": {},
+      "read_modes": [],
+      "command": "change_graph_report",
+      "projections": [],
+      "links": ["command:change_graph_report"],
+      "label_de": "Change private graph report",
+      "resources": ["analytics"]
+    },
+    {
       "id": "tool:analytics_report_change_propose",
       "kind": "tool",
       "key": "analytics_report_change_propose",
@@ -45369,6 +45980,30 @@
       "guidance": {},
       "links": ["tool:analytics_report_change_propose"],
       "label_de": "Private Auswertung ändern",
+      "resources": ["analytics"]
+    },
+    {
+      "id": "command:change_graph_report",
+      "kind": "command",
+      "key": "change_graph_report",
+      "label": "Change Private Graph Report",
+      "area": "cross_functional",
+      "summary": "Save, rename, duplicate or delete the authenticated user's private graph question, recording the model version that gave it meaning, with revision and retry protection.",
+      "mode": "mutation",
+      "adapters": ["Web", "MCP", "Chat"],
+      "reads": ["tenant", "app_user", "tenant_membership", "analytics_report"],
+      "writes": ["analytics_report"],
+      "confirmation": null,
+      "related_services": [],
+      "tools": ["graph_report_change_propose"],
+      "synopses": [
+        "graph_report_change_propose operation request_id [report_id] [expected_revision] [name] [question]"
+      ],
+      "events": [],
+      "actions": [],
+      "guidance": {},
+      "links": ["tool:graph_report_change_propose"],
+      "label_de": "Private Graph-Auswertung ändern",
       "resources": ["analytics"]
     },
     {

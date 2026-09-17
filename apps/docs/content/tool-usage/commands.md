@@ -14,6 +14,7 @@ all reach the same operation.
 | [`resend_invitation`](#command-resend_invitation)                                 | Resend company invitation             | Company & access           | `invitation_resend_propose`                                                                                                                                                                  | Web · API · MCP · Chat                  |
 | [`revoke_invitation`](#command-revoke_invitation)                                 | Revoke company invitation             | Company & access           | `invitation_revoke_propose`                                                                                                                                                                  | Web · API · MCP · Chat                  |
 | [`change_report`](#command-change_report)                                         | Change Private Analytics Report       | Cross-functional           | `analytics_report_change_propose`                                                                                                                                                            | Web · MCP · Chat                        |
+| [`change_graph_report`](#command-change_graph_report)                             | Change Private Graph Report           | Cross-functional           | `graph_report_change_propose`                                                                                                                                                                | Web · MCP · Chat                        |
 | [`accept_adjustment`](#command-accept_adjustment)                                 | Accept settlement reduction           | Finance                    | `finance_adjustment_propose`                                                                                                                                                                 | CLI · Web · MCP · Chat                  |
 | [`assign_component`](#command-assign_component)                                   | Assign received financial component   | Finance                    | `finance_component_assign_propose`                                                                                                                                                           | CLI · Web · MCP · Chat                  |
 | [`create_account`](#command-create_account)                                       | Create operational account            | Finance                    | `finance_create_account_propose`                                                                                                                                                             | CLI · Web · MCP · Chat                  |
@@ -6080,6 +6081,72 @@ analytics_report_change_propose operation request_id [report_id] [expected_revis
 
 **See also:** command [`change_report`](./commands#command-change_report)
 
+### `change_graph_report` — Change Private Graph Report {#command-change_graph_report}
+
+Save, rename, duplicate or delete the authenticated user's private graph question, recording the
+model version that gave it meaning, with revision and retry protection.
+
+**Synopsis**
+
+```text
+graph_report_change_propose operation request_id [report_id] [expected_revision] [name] [question]
+```
+
+**Reach via:** Web · MCP · Chat
+
+**Effect:** Reads: `tenant`, `app_user`, `tenant_membership`, `analytics_report` · Writes:
+`analytics_report`
+
+**See also:** agent tool
+[`graph_report_change_propose`](./commands#tool-graph_report_change_propose)
+
+#### `graph_report_change_propose` — Change private graph report {#tool-graph_report_change_propose}
+
+Prepare a private graph report change. Requires trusted authenticated user context; confirm
+explicitly before it is saved.
+
+**Synopsis**
+
+```text
+graph_report_change_propose operation request_id [report_id] [expected_revision] [name] [question]
+```
+
+**Access:** `propose`
+
+**Parameters**
+
+| Name                             | Type      | Required | Description                                                                                                      | Default |
+| -------------------------------- | --------- | -------- | ---------------------------------------------------------------------------------------------------------------- | ------- |
+| `operation`                      | `string`  | yes      | The private graph report change to prepare for confirmation. `create`, `update`, `rename`, `duplicate`, `delete` | —       |
+| `request_id`                     | `string`  | yes      | New client retry UUID; reuse it only for the identical change.                                                   | —       |
+| `report_id`                      | `string`  | no       | Opaque owned report ID; omitted only when creating.                                                              | `None`  |
+| `expected_revision`              | `integer` | no       | Revision shown to the caller; required for every existing report change.                                         | `None`  |
+| `name`                           | `string`  | no       | Private report name for create, rename or duplicate.                                                             | `None`  |
+| `question`                       | `object`  | no       | The whole question.                                                                                              | `None`  |
+| `question.from`                  | `string`  | yes      | —                                                                                                                | —       |
+| `question.as`                    | `string`  | no       | —                                                                                                                | `root`  |
+| `question.follow`                | `array`   | no       | —                                                                                                                | `[]`    |
+| `question.follow[].edge`         | `string`  | yes      | —                                                                                                                | —       |
+| `question.follow[].direction`    | `string`  | no       | Business flow direction, such as sales or purchase, incoming or outgoing. `out`, `in`                            | `out`   |
+| `question.follow[].as`           | `string`  | yes      | —                                                                                                                | —       |
+| `question.follow[].from`         | `string`  | no       | —                                                                                                                | `None`  |
+| `question.follow[].depth`        | `array`   | no       | —                                                                                                                | `None`  |
+| `question.filter`                | `array`   | no       | —                                                                                                                | `[]`    |
+| `question.filter[].field`        | `string`  | yes      | —                                                                                                                | —       |
+| `question.filter[].op`           | `string`  | yes      | `eq`, `ne`, `in`, `not_in`, `lt`, `lte`, `gt`, `gte`, `is_null`, `is_not_null`                                   | —       |
+| `question.filter[].value`        | `any`     | no       | Scalar observation value validated and canonicalized by its predicate contract.                                  | `None`  |
+| `question.measures`              | `array`   | no       | —                                                                                                                | `[]`    |
+| `question.group_by`              | `array`   | no       | —                                                                                                                | `[]`    |
+| `question.group_by[].field`      | `string`  | yes      | —                                                                                                                | —       |
+| `question.group_by[].bucket`     | `string`  | no       | `day`, `week`, `month`, `quarter`, `year`                                                                        | `None`  |
+| `question.group_by[].as`         | `string`  | no       | —                                                                                                                | `None`  |
+| `question.order_by`              | `array`   | no       | —                                                                                                                | `[]`    |
+| `question.order_by[].by`         | `string`  | yes      | —                                                                                                                | —       |
+| `question.order_by[].descending` | `boolean` | no       | —                                                                                                                | `False` |
+| `question.limit`                 | `integer` | no       | Maximum number of records or jobs processed by this invocation.                                                  | `200`   |
+
+**See also:** command [`change_graph_report`](./commands#command-change_graph_report)
+
 ## Agent tools without a business command
 
 These agent tools do not stand for one business command. Read tools answer a view or projection;
@@ -6124,6 +6191,10 @@ governance tools carry proposals, discovery and missing information.
 | [`analytics_export`](#tool-analytics_export)                                                     | Export an analysis               | `read`    | —                      |
 | [`analytics_reports_list`](#tool-analytics_reports_list)                                         | List my reports                  | `read`    | —                      |
 | [`analytics_report_get`](#tool-analytics_report_get)                                             | Read my report                   | `read`    | —                      |
+| [`graph_catalog`](#tool-graph_catalog)                                                           | Discover the business graph      | `read`    | —                      |
+| [`graph_ask`](#tool-graph_ask)                                                                   | Ask the business graph           | `read`    | —                      |
+| [`graph_reports_list`](#tool-graph_reports_list)                                                 | List my graph reports            | `read`    | —                      |
+| [`graph_report_get`](#tool-graph_report_get)                                                     | Read my graph report             | `read`    | —                      |
 
 ### `capability_describe` — Describe an agent capability {#tool-capability_describe}
 
@@ -10976,3 +11047,178 @@ Read a private report definition owned by the authenticated user.
 | Name        | Type     | Required | Description                                        | Default |
 | ----------- | -------- | -------- | -------------------------------------------------- | ------- |
 | `report_id` | `string` | yes      | Opaque ID of a private report owned by the caller. | —       |
+
+### `graph_catalog` — Discover the business graph {#tool-graph_catalog}
+
+Discover the nodes and measures first; a refusal names the edge that fanned out or the unit that
+cannot be added, and is more useful than a total that is wrong.
+
+**Synopsis**
+
+```text
+graph_catalog [node]
+```
+
+**Access:** `read`
+
+**How this query runs**
+
+| Concrete query      | Kind                        | Default |
+| ------------------- | --------------------------- | ------- |
+| `MCP graph_catalog` | Live — read at request time | yes     |
+
+[How this query runs](./views#read-execution)
+
+Discover the business nodes, how they connect, which edges fan out, and what each measure means.
+
+**Use when**
+
+- Decide which nodes, edges and measures a question can use before asking it.
+
+**Do not use when**
+
+- Invent a node, edge or measure that the catalog does not list, or assume a relationship exists
+  because two records look related.
+
+**Parameters**
+
+| Name   | Type     | Required | Description                                                                                          | Default |
+| ------ | -------- | -------- | ---------------------------------------------------------------------------------------------------- | ------- |
+| `node` | `string` | no       | Optional exact node key; omit to discover every node, how they connect, and what each measure means. | `None`  |
+
+### `graph_ask` — Ask the business graph {#tool-graph_ask}
+
+Discover the nodes and measures first; a refusal names the edge that fanned out or the unit that
+cannot be added, and is more useful than a total that is wrong.
+
+**Synopsis**
+
+```text
+graph_ask [question] [path] [parameters]
+```
+
+**Access:** `read`
+
+**How this query runs**
+
+| Concrete query  | Kind                        | Default |
+| --------------- | --------------------------- | ------- |
+| `MCP graph_ask` | Live — read at request time | yes     |
+
+[How this query runs](./views#read-execution)
+
+Ask a question as a path through declared edges with declared measures, grouping and filters.
+
+**Use when**
+
+- Answer an explicit question about retained company records by combining declared nodes.
+
+**Do not use when**
+
+- Sum a property directly, combine currencies or units, or attribute an order-level amount to one of
+  its articles.
+
+**Parameters**
+
+| Name                             | Type      | Required | Description                                                                                                                                                                                                                                              | Default |
+| -------------------------------- | --------- | -------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------- |
+| `question`                       | `object`  | no       | The whole question.                                                                                                                                                                                                                                      | `None`  |
+| `question.from`                  | `string`  | yes      | —                                                                                                                                                                                                                                                        | —       |
+| `question.as`                    | `string`  | no       | —                                                                                                                                                                                                                                                        | `root`  |
+| `question.follow`                | `array`   | no       | —                                                                                                                                                                                                                                                        | `[]`    |
+| `question.follow[].edge`         | `string`  | yes      | —                                                                                                                                                                                                                                                        | —       |
+| `question.follow[].direction`    | `string`  | no       | Business flow direction, such as sales or purchase, incoming or outgoing. `out`, `in`                                                                                                                                                                    | `out`   |
+| `question.follow[].as`           | `string`  | yes      | —                                                                                                                                                                                                                                                        | —       |
+| `question.follow[].from`         | `string`  | no       | —                                                                                                                                                                                                                                                        | `None`  |
+| `question.follow[].depth`        | `array`   | no       | —                                                                                                                                                                                                                                                        | `None`  |
+| `question.filter`                | `array`   | no       | —                                                                                                                                                                                                                                                        | `[]`    |
+| `question.filter[].field`        | `string`  | yes      | —                                                                                                                                                                                                                                                        | —       |
+| `question.filter[].op`           | `string`  | yes      | `eq`, `ne`, `in`, `not_in`, `lt`, `lte`, `gt`, `gte`, `is_null`, `is_not_null`                                                                                                                                                                           | —       |
+| `question.filter[].value`        | `any`     | no       | Scalar observation value validated and canonicalized by its predicate contract.                                                                                                                                                                          | `None`  |
+| `question.measures`              | `array`   | no       | —                                                                                                                                                                                                                                                        | `[]`    |
+| `question.group_by`              | `array`   | no       | —                                                                                                                                                                                                                                                        | `[]`    |
+| `question.group_by[].field`      | `string`  | yes      | —                                                                                                                                                                                                                                                        | —       |
+| `question.group_by[].bucket`     | `string`  | no       | `day`, `week`, `month`, `quarter`, `year`                                                                                                                                                                                                                | `None`  |
+| `question.group_by[].as`         | `string`  | no       | —                                                                                                                                                                                                                                                        | `None`  |
+| `question.order_by`              | `array`   | no       | —                                                                                                                                                                                                                                                        | `[]`    |
+| `question.order_by[].by`         | `string`  | yes      | —                                                                                                                                                                                                                                                        | —       |
+| `question.order_by[].descending` | `boolean` | no       | —                                                                                                                                                                                                                                                        | `False` |
+| `question.limit`                 | `integer` | no       | Maximum number of records or jobs processed by this invocation.                                                                                                                                                                                          | `200`   |
+| `path`                           | `string`  | no       | The same question in the path syntax, for example MATCH (o:order) RETURN o.currency, sum(stated_order_amount). RETURN names declared measures; arithmetic on properties is refused, because summing one along a path that fans out multiplies the total. | `None`  |
+| `parameters`                     | `object`  | no       | Values for $name placeholders used by the path syntax.                                                                                                                                                                                                   | —       |
+
+### `graph_reports_list` — List my graph reports {#tool-graph_reports_list}
+
+Discover the nodes and measures first; a refusal names the edge that fanned out or the unit that
+cannot be added, and is more useful than a total that is wrong.
+
+**Synopsis**
+
+```text
+graph_reports_list [query] [limit] [cursor]
+```
+
+**Access:** `read`
+
+**How this query runs**
+
+| Concrete query           | Kind                        | Default |
+| ------------------------ | --------------------------- | ------- |
+| `MCP graph_reports_list` | Live — read at request time | yes     |
+
+[How this query runs](./views#read-execution)
+
+List the authenticated caller's own saved graph questions.
+
+**Use when**
+
+- Offer a question the caller saved earlier instead of rebuilding it.
+
+**Do not use when**
+
+- Read another person's reports, or treat a saved report as a stored result.
+
+**Parameters**
+
+| Name     | Type      | Required | Description                                            | Default |
+| -------- | --------- | -------- | ------------------------------------------------------ | ------- |
+| `query`  | `string`  | no       | Optional report-name search.                           | —       |
+| `limit`  | `integer` | no       | Maximum private reports to return.                     | `50`    |
+| `cursor` | `string`  | no       | Opaque continuation from the same owner-scoped search. | `None`  |
+
+### `graph_report_get` — Read my graph report {#tool-graph_report_get}
+
+Discover the nodes and measures first; a refusal names the edge that fanned out or the unit that
+cannot be added, and is more useful than a total that is wrong.
+
+**Synopsis**
+
+```text
+graph_report_get report_id
+```
+
+**Access:** `read`
+
+**How this query runs**
+
+| Concrete query         | Kind                        | Default |
+| ---------------------- | --------------------------- | ------- |
+| `MCP graph_report_get` | Live — read at request time | yes     |
+
+[How this query runs](./views#read-execution)
+
+Open one of the authenticated caller's own saved graph questions.
+
+**Use when**
+
+- Re-ask a question the caller saved, exactly as it was saved.
+
+**Do not use when**
+
+- Open a report saved by the configured generation, or one owned by somebody else.
+
+**Parameters**
+
+| Name        | Type     | Required | Description                                              | Default |
+| ----------- | -------- | -------- | -------------------------------------------------------- | ------- |
+| `report_id` | `string` | yes      | Opaque ID of a private graph report owned by the caller. | —       |
