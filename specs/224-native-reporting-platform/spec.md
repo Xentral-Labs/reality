@@ -272,6 +272,12 @@ late corrections and reversals; unsupported temporal coverage.
   people mean and any other, and removing a step removes everything that pointed at the
   records it reached. Nobody has to know the model's keys to ask a correct question, and
   no offered step can produce a refused one.
+- **FR-017**: Open on the records, not on an empty builder. Picking a record type shows
+  those records immediately; narrowing, sorting and bounding then happen on the result —
+  a value filters, a column header sorts, the row count is set under the table. Only two
+  things are asked in words, what to count and what to split it by, and a measure that
+  may not be summed across an axis arrives with that axis already in place rather than
+  being offered and then refused.
 - **FR-016**: Retire the configured generation in the same change that makes the graph the
   only analytics surface. A report saved under the retired generation carries no kind and
   no model version: it is neither read nor written by any surface, and no translation is
@@ -369,6 +375,7 @@ owners.
 | FR-014 | non-goals | T016 deferred measurement trigger |
 | FR-015 | US1.1–2, US2.1 | T009 step stack: valid-only steps, fan-out marking, period and pruning contracts |
 | FR-016 | US3.1–3, US5 | T014 cutover: retired rows unread and unwritten, refusals returned to the model |
+| FR-017 | US1.1, US2.2 | T009 result-first surface: list on open, filter from a value, sort from a header, unit axis carried with its measure |
 | DR-001 | US4.3 | T005/T012 canonical evidence |
 | DR-002 | US1.3, US2.2 | T003/T005 amount and grain correctness |
 | DR-003 | US5, non-goals | T002/T014/T016 architecture review |

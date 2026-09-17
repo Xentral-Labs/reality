@@ -42,7 +42,7 @@ export type Selection = {
   session: string;
   q: string;
   page: number;
-  analyticsView?: "graph" | "console" | "reports";
+  analyticsView?: "graph" | "reports";
   family: "customer" | "supplier" | "item" | "location";
   record: string;
   active: boolean;
@@ -231,11 +231,9 @@ export function readSelection(url: URL): Selection {
       ? url.searchParams.get("severity")!
       : "",
     exception: url.searchParams.get("exception") || "",
-    // "explore" and "overview" were the configured generation. A link that
-    // still names one opens the graph rather than a blank page.
-    analyticsView: ["graph", "console", "reports"].includes(
-      url.searchParams.get("analytics_view") || "",
-    )
+    // "explore", "overview" and "console" are retired views. A link that still
+    // names one opens the graph rather than a blank page.
+    analyticsView: ["graph", "reports"].includes(url.searchParams.get("analytics_view") || "")
       ? (url.searchParams.get("analytics_view") as Selection["analyticsView"])
       : "graph",
     family: ["customer", "supplier", "item", "location"].includes(
@@ -295,7 +293,6 @@ export function selectionUrl(selection: Selection): string {
   if (selection.route === "settings") query.set("settings_view", selection.settingsView);
   if (selection.route === "analytics") {
     if (selection.analyticsView === "reports") query.set("analytics_view", "reports");
-    if (selection.analyticsView === "console") query.set("analytics_view", "console");
   }
   if (selection.route === "master-data") {
     query.set("family", selection.family);

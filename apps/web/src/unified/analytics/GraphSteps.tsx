@@ -8,18 +8,26 @@ import {
   type GraphQuestion,
   type GraphReport,
 } from "../../api";
-import { currentLanguage, formatExactDecimal, t } from "../../localization";
+import {
+  currentLanguage,
+  formatDate,
+  formatDateTime,
+  formatExactDecimal,
+  t,
+} from "../../localization";
 import { ReadState } from "../ReadState";
 import { useRead } from "../useCompanyContext";
 import { chip } from "./chips";
 import { analyticsError } from "./errors";
 
-/** A question read top to bottom as the steps that build it.
+/** The result is the question.
  *
- * The model is already a sequence — start somewhere, reach further, narrow,
- * count, split — so the page shows that sequence instead of three lists side by
- * side. Each step offers only what is valid where it stands, which is the part
- * a fixed form cannot do and the declaration makes free.
+ * An empty builder is a form, and a form has to be understood before it shows
+ * anything. Picking a record shows those records immediately; narrowing,
+ * sorting and bounding then happen on the table itself. Only two things are
+ * asked of the reader in words — what to count and what to split it by — and
+ * only one thing has to be learned: that reaching another record type can
+ * multiply a total, which is why that step says so before it is taken.
  */
 
 /** One readable line, which may take more than one condition to mean.
@@ -188,65 +196,6 @@ const OPERATORS: { key: string; label: string; kinds: string[]; valueless?: bool
 
 type Field = { field: string; label: string; kind: string };
 
-/** Questions somebody would actually ask, built from what this company declares.
- *
- * A first screen of empty steps asks the reader to know the model. A first
- * screen of real questions asks them to recognise their own work, and every one
- * of them opens as a stack they can take apart step by step.
- */
-function suggestions(catalog: GraphCatalog): { title: string; where: string; plan: Plan }[] {
-  const out: { title: string; where: string; plan: Plan }[] = [];
-  for (const node of catalog.nodes) {
-    const amount = node.measures.find((measure) => measure.unit === "currency");
-    const count = node.measures.find((measure) => measure.unit === "count");
-    const currency = node.properties.find((property) => property.key === "currency");
-    // A list of likely column names was wrong the moment a company kept a date
-    // as text: `document_date` is a varchar, and folding it into months asked
-    // PostgreSQL for date_trunc(varchar, varchar). The kind is already known.
-    const time = node.properties.find((property) => property.kind === "time");
-    const base = {
-      blocks: [{ alias: "o", node: node.key, filters: [] }],
-      groups: [] as Group[],
-      limit: 200,
-    };
-    if (amount && currency) {
-      out.push({
-        title: `${amount.label} ${t("by")} ${currency.label}`,
-        where: node.label,
-        plan: {
-          ...base,
-          measures: [amount.key],
-          groups: [{ field: `o.${currency.key}`, label: currency.label }],
-        },
-      });
-      if (time)
-        out.push({
-          title: `${amount.label} ${t("by")} ${t("month")}`,
-          where: node.label,
-          plan: {
-            ...base,
-            measures: [amount.key],
-            groups: [
-              { field: `o.${time.key}`, label: `${time.label} (${t("month")})`, bucket: "month" },
-              { field: `o.${currency.key}`, label: currency.label },
-            ],
-          },
-        });
-    }
-    if (count && currency)
-      out.push({
-        title: `${count.label} ${t("by")} ${currency.label}`,
-        where: node.label,
-        plan: {
-          ...base,
-          measures: [count.key],
-          groups: [{ field: `o.${currency.key}`, label: currency.label }],
-        },
-      });
-  }
-  return out.slice(0, 6);
-}
-
 export function GraphSteps({
   tenant,
   report,
@@ -403,6 +352,35 @@ function shortDate(value: unknown) {
   return typeof value === "string" ? value.slice(0, 10) : String(value ?? "");
 }
 
+/** The columns a list of these records opens with.
+ *
+ * Time first, because "when" is what somebody scans for, then the rest in the
+ * order the catalog declares them. Six is as many as reads at a glance; the
+ * point is to show the records, not every field they have.
+ */
+const IDENTITY = ["number", "sku", "name", "reference", "code"];
+
+export function listColumns(node: GraphNode, alias = "o"): Group[] {
+  // What somebody looks for first is which record it is, then when it happened.
+  const rank = (property: { key: string; kind: string }) =>
+    IDENTITY.includes(property.key) ? 0 : property.kind === "time" ? 1 : 2;
+  const ordered = [...node.properties].sort((a, b) => rank(a) - rank(b));
+  return ordered.slice(0, 6).map((property) => ({
+    field: `${alias}.${property.key}`,
+    label: property.label,
+  }));
+}
+
+/** A plan that lists the records of one node and nothing else. */
+export function listPlan(node: GraphNode): Plan {
+  return {
+    blocks: [{ alias: "o", node: node.key, filters: [] }],
+    measures: [],
+    groups: listColumns(node),
+    limit: 50,
+  };
+}
+
 function Builder({
   tenant,
   catalog,
@@ -422,9 +400,6 @@ function Builder({
       >,
     [catalog],
   );
-  const starters = useMemo(() => suggestions(catalog), [catalog]);
-  // A saved report opens as its own steps; the key on this component means a
-  // different report is a different builder rather than a stale one.
   const [plan, setPlan] = useState<Plan | null>(() =>
     report ? planOf(report.definition, nodes) : null,
   );
@@ -464,212 +439,59 @@ function Builder({
 
   if (!plan)
     return (
-      <section className="space-y-6">
+      <section className="space-y-5">
         <div>
-          <h2 className="text-xl font-semibold">{t("What would you like to know?")}</h2>
+          <h2 className="text-xl font-semibold">{t("What would you like to look at?")}</h2>
           <div className="mt-1 max-w-2xl text-sm text-fg-muted">
             {t(
-              "Open a question and take it apart step by step, or start from the records themselves.",
+              "Pick your records and you see them straight away. Everything else happens on the table.",
             )}
           </div>
         </div>
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          {starters.map((starter) => (
+        <div className="flex flex-wrap gap-2">
+          {catalog.nodes.map((node) => (
             <button
-              key={`${starter.where}-${starter.title}`}
-              className="rounded-xl border border-border-default bg-surface p-4 text-left hover:border-accent"
-              onClick={() => ask(starter.plan)}
+              key={node.key}
+              className="br-btn"
+              title={node.grain}
+              onClick={() => ask(listPlan(node))}
             >
-              <div className="font-medium">{starter.title}</div>
-              <div className="mt-1 text-xs text-fg-muted">{starter.where}</div>
+              {node.label}
             </button>
           ))}
         </div>
-        <fieldset className="space-y-2">
-          <legend className="text-sm font-medium">{t("Or start from the records")}</legend>
-          <div className="flex flex-wrap gap-2">
-            {catalog.nodes
-              .filter((node) => node.measures.length > 0)
-              .map((node) => (
-                <button
-                  key={node.key}
-                  className="br-btn"
-                  title={node.grain}
-                  onClick={() =>
-                    ask({
-                      blocks: [{ alias: "o", node: node.key, filters: [] }],
-                      measures: [node.measures[0].key],
-                      groups: [],
-                      limit: 200,
-                    })
-                  }
-                >
-                  {node.label}
-                </button>
-              ))}
-          </div>
-        </fieldset>
       </section>
     );
 
   return (
-    <section className="grid items-start gap-6 lg:grid-cols-[minmax(0,460px)_minmax(0,1fr)]">
-      <div className="space-y-3">
-        <Stack
-          catalog={catalog}
-          nodes={nodes}
-          plan={plan}
-          change={ask}
-          restart={() => {
-            setPlan(null);
-            setAnswer(null);
-            setRefusal(null);
-          }}
-        />
-        <Save tenant={tenant} plan={plan} report={report} onSaved={onSaved} />
-      </div>
-      <Answer answer={answer} refusal={refusal} busy={busy} plan={plan} nodes={nodes} />
+    <section className="space-y-4">
+      <Toolbar
+        catalog={catalog}
+        nodes={nodes}
+        plan={plan}
+        change={ask}
+        restart={() => {
+          setPlan(null);
+          setAnswer(null);
+          setRefusal(null);
+        }}
+      />
+      <Result
+        answer={answer}
+        refusal={refusal}
+        busy={busy}
+        plan={plan}
+        nodes={nodes}
+        ceiling={catalog.limits.result_rows}
+        change={ask}
+      />
+      <Save tenant={tenant} plan={plan} report={report} onSaved={onSaved} />
     </section>
   );
 }
 
-/** Save the question, never its answer.
- *
- * Reopening re-executes it, so what comes back is a fresh observation rather
- * than a preserved number — the only honest thing a report can be when the
- * records underneath it keep changing.
- */
-function Save({
-  tenant,
-  plan,
-  report,
-  onSaved,
-}: {
-  tenant: string;
-  plan: Plan;
-  report: GraphReport | null;
-  onSaved?: (report: GraphReport) => void;
-}) {
-  const [naming, setNaming] = useState(false);
-  const [name, setName] = useState("");
-  const [busy, setBusy] = useState(false);
-  const [failed, setFailed] = useState("");
-  const [saved, setSaved] = useState<string>("");
-
-  const send = async (change: Parameters<typeof graphApi.change>[1]) => {
-    setBusy(true);
-    setFailed("");
-    try {
-      const stored = await graphApi.change(tenant, change);
-      setNaming(false);
-      setName("");
-      setSaved(stored.name);
-      onSaved?.(stored);
-    } catch (failure) {
-      setFailed(failure instanceof Error ? failure.message : analyticsError(failure));
-    } finally {
-      setBusy(false);
-    }
-  };
-
-  if (naming)
-    return (
-      <div className="flex flex-wrap items-center gap-2">
-        <input
-          className="rounded-lg border border-border-default bg-surface px-2 py-2 text-sm"
-          aria-label={t("Report name")}
-          autoFocus
-          value={name}
-          onChange={(event) => setName(event.target.value)}
-          onKeyDown={(event) => {
-            if (event.key === "Enter" && name.trim())
-              void send({
-                operation: "create",
-                request_id: crypto.randomUUID(),
-                name: name.trim(),
-                question: question(plan),
-              });
-          }}
-        />
-        <button
-          className="br-btn"
-          disabled={busy || !name.trim()}
-          onClick={() =>
-            void send({
-              operation: "create",
-              request_id: crypto.randomUUID(),
-              name: name.trim(),
-              question: question(plan),
-            })
-          }
-        >
-          {busy ? t("Saving…") : t("Save")}
-        </button>
-        <button className="text-xs text-fg-muted underline" onClick={() => setNaming(false)}>
-          {t("Cancel")}
-        </button>
-        {failed && <span className="text-xs text-warning-600">{failed}</span>}
-      </div>
-    );
-
-  return (
-    <div className="flex flex-wrap items-center gap-3 text-sm">
-      {report && (
-        <button
-          className="br-btn"
-          disabled={busy}
-          onClick={() =>
-            void send({
-              operation: "update",
-              request_id: crypto.randomUUID(),
-              report_id: report.id,
-              expected_revision: report.revision,
-              question: question(plan),
-            })
-          }
-        >
-          {busy ? t("Saving…") : `${t("Save")} „${report.name}“`}
-        </button>
-      )}
-      <button className="text-fg-muted underline" onClick={() => setNaming(true)}>
-        {report ? t("Save as a new report") : t("Save this question")}
-      </button>
-      {saved && <span className="text-xs text-fg-muted">{t("Saved")}</span>}
-      {failed && <span className="text-xs text-warning-600">{failed}</span>}
-    </div>
-  );
-}
-
-function Step({
-  label,
-  children,
-  remove,
-}: {
-  label: string;
-  children: React.ReactNode;
-  remove?: { title: string; act: () => void };
-}) {
-  return (
-    <div className="flex items-start gap-3 px-4 py-3">
-      <div className="w-28 shrink-0 pt-2 text-xs uppercase tracking-wide text-fg-muted">
-        {label}
-      </div>
-      <div className="flex flex-1 flex-wrap items-center gap-2">{children}</div>
-      {remove && (
-        <button
-          className="shrink-0 pt-2 text-fg-muted hover:text-fg-strong"
-          title={remove.title}
-          aria-label={remove.title}
-          onClick={remove.act}
-        >
-          ×
-        </button>
-      )}
-    </div>
-  );
-}
-
-function Stack({
+/** Everything asked in words: which records, what to count, what to split by. */
+function Toolbar({
   catalog,
   nodes,
   plan,
@@ -682,15 +504,215 @@ function Stack({
   change: (next: Plan) => void;
   restart: () => void;
 }) {
-  const [reaching, setReaching] = useState(false);
   const measures = plan.blocks.flatMap((block) => nodes[block.node]?.measures ?? []);
-  const fieldsOf = (block: Block): Field[] =>
+  const fields: Field[] = plan.blocks.flatMap((block) =>
     (nodes[block.node]?.properties ?? []).map((property) => ({
       field: `${block.alias}.${property.key}`,
       label: property.label,
       kind: property.kind,
-    }));
-  const fields = plan.blocks.flatMap(fieldsOf);
+    })),
+  );
+  const summarised = plan.measures.length > 0;
+
+  return (
+    <div className="space-y-3">
+      <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+        <h2 className="text-xl font-semibold">{nodes[plan.blocks[0].node]?.label}</h2>
+        {plan.blocks.slice(1).map((block, index) => (
+          <span key={block.alias} className="flex items-center gap-2 text-sm">
+            <span aria-hidden="true" className="text-fg-muted">
+              ›
+            </span>
+            {block.edge?.label}
+            {block.edge?.fansOut && <span className="text-xs text-warning-600">{t("many")}</span>}
+            <button
+              className="text-fg-muted hover:text-fg-strong"
+              title={t("Remove this step and everything after it")}
+              onClick={() => change({ ...plan, blocks: plan.blocks.slice(0, index + 1) })}
+            >
+              ×
+            </button>
+          </span>
+        ))}
+        <Reach catalog={catalog} nodes={nodes} plan={plan} change={change} />
+        <button className="text-sm text-fg-muted underline" onClick={restart}>
+          {t("Other records")}
+        </button>
+      </div>
+
+      <div className="flex flex-wrap items-center gap-2">
+        {plan.blocks.flatMap((block, index) =>
+          block.filters.map((filter, position) => (
+            <Chip
+              key={`${block.alias}-${position}`}
+              filter={filter}
+              flip={() =>
+                change({
+                  ...plan,
+                  blocks: plan.blocks.map((candidate, at) =>
+                    at === index
+                      ? {
+                          ...candidate,
+                          filters: candidate.filters.map((one, p) =>
+                            p === position ? flipped(one) : one,
+                          ),
+                        }
+                      : candidate,
+                  ),
+                })
+              }
+              remove={() =>
+                change({
+                  ...plan,
+                  blocks: plan.blocks.map((candidate, at) =>
+                    at === index
+                      ? {
+                          ...candidate,
+                          filters: candidate.filters.filter((_, p) => p !== position),
+                        }
+                      : candidate,
+                  ),
+                })
+              }
+            />
+          )),
+        )}
+        <AddFilter fields={fields} add={(filter) => change(withFilter(plan, filter))} />
+      </div>
+
+      <div className="flex flex-wrap items-center gap-2 text-sm">
+        <span className="text-fg-muted">{t("Summarise")}</span>
+        <select
+          className="rounded-lg border border-border-default bg-surface px-2 py-2 text-sm"
+          aria-label={t("Number to summarise")}
+          value={plan.measures[0] ?? ""}
+          onChange={(event) => {
+            const measure = event.target.value;
+            if (!measure) {
+              const node = nodes[plan.blocks[plan.blocks.length - 1].node];
+              change({
+                ...plan,
+                measures: [],
+                groups: node ? listColumns(node, plan.blocks[plan.blocks.length - 1].alias) : [],
+                order: undefined,
+              });
+              return;
+            }
+            // A measure that may not be summed across currency arrives with
+            // that axis already in place. Offering it and then refusing it is
+            // a wall where an answer was expected, and the reader has learned
+            // nothing they could not have been told by showing the split.
+            const required = (
+              measures.find((candidate) => candidate.key === measure)?.never_across ?? []
+            )
+              .map((key) => fields.find((field) => field.field.endsWith(`.${key}`)))
+              .filter((field): field is Field => Boolean(field))
+              .map((field) => ({ field: field.field, label: field.label }));
+            const kept = plan.measures.length ? plan.groups : [];
+            change({
+              ...plan,
+              measures: [measure],
+              groups: [
+                ...kept,
+                ...required.filter((axis) => !kept.some((group) => group.field === axis.field)),
+              ],
+              order: { by: measure, descending: true },
+            });
+          }}
+        >
+          <option value="">{t("nothing — list the records")}</option>
+          {measures.map((measure) => (
+            <option key={measure.key} value={measure.key}>
+              {measure.label}
+            </option>
+          ))}
+        </select>
+        {summarised && (
+          <>
+            <span className="text-fg-muted">{t("by")}</span>
+            {plan.groups.map((group) => (
+              <button
+                key={columnOf(group)}
+                className={chip(true)}
+                title={t("Remove this axis")}
+                onClick={() =>
+                  change({
+                    ...plan,
+                    groups: plan.groups.filter(
+                      (candidate) => columnOf(candidate) !== columnOf(group),
+                    ),
+                  })
+                }
+              >
+                {group.label} <span className="text-fg-muted">×</span>
+              </button>
+            ))}
+            <AddGroup
+              fields={fields.filter(
+                (field) => !plan.groups.some((group) => group.field === field.field),
+              )}
+              add={(group) => change({ ...plan, groups: [...plan.groups, group] })}
+            />
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
+
+/** Put a filter on the block that owns its field. */
+function withFilter(plan: Plan, filter: Filter): Plan {
+  const alias = filter.conditions[0].field.split(".")[0];
+  return {
+    ...plan,
+    blocks: plan.blocks.map((block) =>
+      block.alias === alias ? { ...block, filters: [...block.filters, filter] } : block,
+    ),
+  };
+}
+
+/** `is` and `is not` are the same filter read two ways, so one click flips it. */
+function flipped(filter: Filter): Filter {
+  const swap: Record<string, string> = { eq: "ne", ne: "eq", gte: "lt", lt: "gte" };
+  if (!filter.conditions.every((condition) => swap[condition.op])) return filter;
+  return {
+    shown: filter.shown.includes(" ≠ ")
+      ? filter.shown.replace(" ≠ ", " = ")
+      : filter.shown.replace(" = ", " ≠ "),
+    conditions: filter.conditions.map((condition) => ({ ...condition, op: swap[condition.op] })),
+  };
+}
+
+function Chip({ filter, flip, remove }: { filter: Filter; flip: () => void; remove: () => void }) {
+  return (
+    <span className="inline-flex items-center gap-1 rounded-lg border border-accent bg-accent-soft px-2 py-1 text-sm">
+      <button title={t("Turn this filter around")} onClick={flip}>
+        {filter.shown}
+      </button>
+      <button
+        className="text-fg-muted hover:text-fg-strong"
+        title={t("Remove this filter")}
+        onClick={remove}
+      >
+        ×
+      </button>
+    </span>
+  );
+}
+
+/** Reaching another record type, which is the one step that can multiply. */
+function Reach({
+  catalog,
+  nodes,
+  plan,
+  change,
+}: {
+  catalog: GraphCatalog;
+  nodes: Record<string, GraphNode>;
+  plan: Plan;
+  change: (next: Plan) => void;
+}) {
+  const [open, setOpen] = useState(false);
   const tip = plan.blocks[plan.blocks.length - 1];
   const onward = [
     ...(nodes[tip.node]?.edges ?? []).map((edge) => ({
@@ -700,9 +722,6 @@ function Stack({
       direction: "out" as const,
       fansOut: fansOut(edge.multiplicity, "out"),
     })),
-    // An edge is worded for the way it was declared. Followed backwards that
-    // wording reads the wrong way round — "for order Commitment" — so the
-    // record reached leads and the relation follows it in brackets.
     ...(nodes[tip.node]?.edges_in ?? []).map((edge) => ({
       key: edge.key,
       label: `${edge.from_label} (${edge.label})`,
@@ -711,212 +730,223 @@ function Stack({
       fansOut: fansOut(edge.multiplicity, "in"),
     })),
   ];
-  // The answer puts its axes first and its numbers after, so the sort step
-  // offers them in that order rather than in the order they were chosen.
-  const sortable = [
-    ...plan.groups.map((group) => ({ key: columnOf(group), label: group.label })),
-    ...plan.measures.map((key) => ({
-      key,
-      label: measures.find((measure) => measure.key === key)?.label ?? key,
-    })),
-  ];
-  const withBlocks = (blocks: Block[]) => ({ ...plan, blocks });
+  if (!onward.length || plan.blocks.length > catalog.limits.max_path_length) return null;
+  if (!open)
+    return (
+      <button className="text-sm text-fg-muted underline" onClick={() => setOpen(true)}>
+        {t("Reach further…")}
+      </button>
+    );
+  return (
+    <span className="flex flex-wrap items-center gap-2">
+      {onward.map((edge) => (
+        <button
+          key={`${edge.key}-${edge.direction}`}
+          className="br-btn"
+          onClick={() => {
+            setOpen(false);
+            const alias = `n${plan.blocks.length}`;
+            const node = nodes[edge.node];
+            change({
+              ...plan,
+              blocks: [
+                ...plan.blocks,
+                {
+                  edge: {
+                    key: edge.key,
+                    direction: edge.direction,
+                    label: edge.label,
+                    fansOut: edge.fansOut,
+                  },
+                  alias,
+                  node: edge.node,
+                  filters: [],
+                },
+              ],
+              // A list follows the records it reached; a summary keeps its own.
+              groups: plan.measures.length || !node ? plan.groups : listColumns(node, alias),
+            });
+          }}
+        >
+          {edge.label}
+          <span className={`text-xs ${edge.fansOut ? "text-warning-600" : "text-fg-muted"}`}>
+            {edge.fansOut ? t("many") : t("one")}
+          </span>
+        </button>
+      ))}
+      <button className="text-xs text-fg-muted underline" onClick={() => setOpen(false)}>
+        {t("Cancel")}
+      </button>
+    </span>
+  );
+}
+
+/** Numbers line up under each other; axes read as text. */
+const NUMERIC_CELL = "text-right tabular-nums";
+
+/** The answer, and the place where most of the question is actually asked.
+ *
+ * A column header sorts. A value filters. The row count bounds. None of it
+ * needs a control anywhere else, and all of it shows its effect immediately —
+ * which is the whole reason this reads more easily than a builder.
+ */
+function Result({
+  answer,
+  refusal,
+  busy,
+  plan,
+  nodes,
+  ceiling,
+  change,
+}: {
+  answer: GraphAnswer | null;
+  refusal: Refusal | null;
+  busy: boolean;
+  plan: Plan;
+  nodes: Record<string, GraphNode>;
+  ceiling: number;
+  change: (next: Plan) => void;
+}) {
+  const [shown, setShown] = useState(false);
+  const axes = new Map(plan.groups.map((group) => [columnOf(group), group]));
+  /** What kind of value a column holds, so a timestamp does not read as
+   *  `2026-06-24 00:00:00+00:00` — which is a machine's spelling of a date. */
+  const kinds = new Map<string, string>(
+    plan.blocks.flatMap((block) =>
+      (nodes[block.node]?.properties ?? []).map(
+        (property) => [`${block.alias}.${property.key}`, property.kind] as [string, string],
+      ),
+    ),
+  );
+  const shownValue = (column: string, value: unknown) => {
+    const axis = axes.get(column);
+    if (!axis || kinds.get(axis.field) !== "time" || axis.bucket) return String(value);
+    const text = String(value);
+    return /[ T]00:00:00/.test(text) ? formatDate(text) : formatDateTime(text);
+  };
+  const labels: Record<string, string> = {};
+  for (const group of plan.groups) labels[columnOf(group)] = group.label;
+  for (const block of plan.blocks)
+    for (const measure of nodes[block.node]?.measures ?? []) labels[measure.key] = measure.label;
+
+  if (refusal)
+    return (
+      <div className="rounded-xl border border-warning-200 bg-warning-50 p-5">
+        <div className="text-sm font-semibold text-warning-600">{refusal.headline}</div>
+        <div className="mt-2 text-sm">{refusal.detail}</div>
+      </div>
+    );
+  if (!answer)
+    return (
+      <div className="rounded-xl border border-dashed border-border-default p-10 text-center text-sm text-fg-muted">
+        {t("Choose at least one number or one axis.")}
+      </div>
+    );
+
+  const columns = answer.rows.length ? Object.keys(answer.rows[0]) : [];
+  const numeric = (column: string) => (answer.question.measures ?? []).includes(column);
+  const sortMark = (column: string) =>
+    plan.order?.by === column ? (plan.order.descending ? "↓" : "↑") : "";
 
   return (
-    <div className="space-y-3">
-      <div className="divide-y divide-border-default rounded-xl border border-border-default bg-surface">
-        {plan.blocks.map((block, index) => (
-          <div key={block.alias} className="divide-y divide-border-subtle">
-            <Step
-              label={index === 0 ? t("Data") : t("Then")}
-              remove={
-                index > 0
-                  ? {
-                      title: t("Remove this step and everything after it"),
-                      act: () => change(withBlocks(plan.blocks.slice(0, index))),
-                    }
-                  : undefined
-              }
-            >
-              <span className="font-medium">
-                {index === 0 ? nodes[block.node]?.label : block.edge?.label}
-              </span>
-              {block.edge?.fansOut && <span className="text-xs text-warning-600">{t("many")}</span>}
-            </Step>
-            {block.filters.map((filter, position) => (
-              <Step
-                key={`${block.alias}-${position}`}
-                label={t("Only")}
-                remove={{
-                  title: t("Remove this filter"),
-                  act: () =>
-                    change(
-                      withBlocks(
-                        plan.blocks.map((candidate, at) =>
-                          at === index
-                            ? {
-                                ...candidate,
-                                filters: candidate.filters.filter((_, p) => p !== position),
-                              }
-                            : candidate,
-                        ),
-                      ),
-                    ),
-                }}
-              >
-                <span className="text-sm">{filter.shown}</span>
-              </Step>
-            ))}
-            <Step label="">
-              <AddFilter
-                key={block.alias}
-                fields={fieldsOf(block)}
-                add={(filter) =>
-                  change(
-                    withBlocks(
-                      plan.blocks.map((candidate, at) =>
-                        at === index
-                          ? { ...candidate, filters: [...candidate.filters, filter] }
-                          : candidate,
-                      ),
-                    ),
-                  )
-                }
-              />
-            </Step>
-          </div>
-        ))}
-
-        {onward.length > 0 && plan.blocks.length <= catalog.limits.max_path_length && (
-          <Step label={t("Then")}>
-            {reaching ? (
-              <>
-                {onward.map((edge) => (
-                  <button
-                    key={`${edge.key}-${edge.direction}`}
-                    className="br-btn"
-                    onClick={() => {
-                      setReaching(false);
-                      change(
-                        withBlocks([
-                          ...plan.blocks,
-                          {
-                            edge: {
-                              key: edge.key,
-                              direction: edge.direction,
-                              label: edge.label,
-                              fansOut: edge.fansOut,
-                            },
-                            alias: `n${plan.blocks.length}`,
-                            node: edge.node,
-                            filters: [],
-                          },
-                        ]),
-                      );
-                    }}
+    <div className={`space-y-3 ${busy ? "opacity-60" : ""}`} aria-busy={busy}>
+      {answer.rows.length === 0 ? (
+        <div className="rounded-xl border border-dashed border-border-default p-10 text-center text-sm text-fg-muted">
+          {t("No records match. That is not proof that none exist upstream.")}
+        </div>
+      ) : (
+        <div className="max-h-[34rem] overflow-auto rounded-xl border border-border-default bg-surface">
+          <table className="w-full border-collapse text-sm">
+            <thead className="sticky top-0 bg-surface">
+              <tr>
+                {columns.map((column) => (
+                  <th
+                    key={column}
+                    className={`border-b border-border-default px-3 py-2 font-medium ${
+                      numeric(column) ? NUMERIC_CELL : "text-left"
+                    }`}
                   >
-                    {edge.label}
-                    <span
-                      className={`text-xs ${edge.fansOut ? "text-warning-600" : "text-fg-muted"}`}
+                    <button
+                      className="underline-offset-4 hover:underline"
+                      title={t("Press again to reverse it, once more to leave it unsorted")}
+                      onClick={() => change({ ...plan, order: nextOrder(plan.order, column) })}
                     >
-                      {edge.fansOut ? t("many") : t("one")}
-                    </span>
-                  </button>
+                      {labels[column] ?? column}
+                      {sortMark(column) && (
+                        <span className="ml-1 text-fg-muted" aria-hidden="true">
+                          {sortMark(column)}
+                        </span>
+                      )}
+                    </button>
+                  </th>
                 ))}
-                <button
-                  className="text-xs text-fg-muted underline"
-                  onClick={() => setReaching(false)}
-                >
-                  {t("Cancel")}
-                </button>
-              </>
-            ) : (
-              <button className="text-sm text-fg-muted underline" onClick={() => setReaching(true)}>
-                {t("Reach further…")}
-              </button>
-            )}
-          </Step>
-        )}
-
-        <Step label={t("Count")}>
-          {measures.map((measure) => (
-            <button
-              key={measure.key}
-              className={chip(plan.measures.includes(measure.key))}
-              aria-pressed={plan.measures.includes(measure.key)}
-              onClick={() =>
-                change({
-                  ...plan,
-                  measures: plan.measures.includes(measure.key)
-                    ? plan.measures.filter((item) => item !== measure.key)
-                    : [...plan.measures, measure.key],
-                })
-              }
-            >
-              {measure.label}
-            </button>
-          ))}
-        </Step>
-
-        <Step label={t("Split by")}>
-          {plan.groups.map((group) => (
-            <button
-              key={`${group.field}-${group.bucket ?? ""}`}
-              className={chip(true)}
-              aria-pressed={true}
-              title={t("Remove this axis")}
-              onClick={() =>
-                change({
-                  ...plan,
-                  groups: plan.groups.filter(
-                    (candidate) =>
-                      !(candidate.field === group.field && candidate.bucket === group.bucket),
-                  ),
-                })
-              }
-            >
-              {group.label} <span className="text-fg-muted">×</span>
-            </button>
-          ))}
-          <AddGroup
-            fields={fields.filter(
-              (field) => !plan.groups.some((group) => group.field === field.field),
-            )}
-            add={(group) => change({ ...plan, groups: [...plan.groups, group] })}
-          />
-        </Step>
-
-        {sortable.length > 0 && (
-          <Step label={t("Sort by")}>
-            {sortable.map((column) => {
-              const active = plan.order?.by === column.key;
-              return (
-                <button
-                  key={column.key}
-                  className={chip(active)}
-                  aria-pressed={active}
-                  title={t("Press again to reverse it, once more to leave it unsorted")}
-                  onClick={() => change({ ...plan, order: nextOrder(plan.order, column.key) })}
-                >
-                  {column.label}
-                  {active && <span aria-hidden="true">{plan.order?.descending ? "↓" : "↑"}</span>}
-                </button>
-              );
-            })}
-          </Step>
-        )}
-
-        <Step label={t("At most")}>
-          <AtMost
-            limit={plan.limit}
-            ceiling={catalog.limits.result_rows}
-            change={(limit) => change({ ...plan, limit })}
-          />
-        </Step>
+              </tr>
+            </thead>
+            <tbody>
+              {answer.rows.map((row, index) => (
+                <tr key={index}>
+                  {columns.map((column) => {
+                    const axis = axes.get(column);
+                    const value = row[column];
+                    return (
+                      <td
+                        key={column}
+                        className={`border-b border-border-subtle px-3 py-2 ${
+                          numeric(column) ? NUMERIC_CELL : ""
+                        }`}
+                      >
+                        {value === null ? (
+                          <span className="text-fg-muted">{t("Unknown")}</span>
+                        ) : numeric(column) ? (
+                          formatExactDecimal(value as string)
+                        ) : axis && !axis.bucket ? (
+                          <button
+                            className="underline-offset-4 hover:underline"
+                            title={`${t("Only")} ${axis.label} = ${value}`}
+                            onClick={() =>
+                              change(
+                                withFilter(plan, {
+                                  shown: `${axis.label} = ${value}`,
+                                  conditions: [
+                                    { field: axis.field, op: "eq", value: String(value) },
+                                  ],
+                                }),
+                              )
+                            }
+                          >
+                            {shownValue(column, value)}
+                          </button>
+                        ) : (
+                          shownValue(column, value)
+                        )}
+                      </td>
+                    );
+                  })}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+      <div className="flex flex-wrap items-center gap-3 text-xs text-fg-muted">
+        <span>
+          {answer.rows.length} {t("rows")}
+        </span>
+        <AtMost
+          limit={plan.limit}
+          ceiling={ceiling}
+          change={(limit) => change({ ...plan, limit })}
+        />
+        <button className="underline" onClick={() => setShown(!shown)}>
+          {t("How this was worked out")}
+        </button>
+        {answer.path.length > 0 && <span>{answer.path.join(" · ")}</span>}
       </div>
-      <button className="text-sm text-fg-muted underline" onClick={restart}>
-        {t("Start a different question")}
-      </button>
+      {shown && (
+        <pre className="overflow-x-auto rounded-xl border border-border-default bg-surface p-3 font-mono text-xs">
+          {answer.sql}
+        </pre>
+      )}
     </div>
   );
 }
@@ -1161,105 +1191,109 @@ function AddGroup({ fields, add }: { fields: Field[]; add: (group: Group) => voi
   );
 }
 
-/** Numbers line up under each other; axes read as text. */
-const NUMERIC_CELL = "text-right tabular-nums";
-
-function Answer({
-  answer,
-  refusal,
-  busy,
+/** Save the question, never its answer.
+ *
+ * Reopening re-executes it, so what comes back is a fresh observation rather
+ * than a preserved number — the only honest thing a report can be when the
+ * records underneath it keep changing.
+ */
+function Save({
+  tenant,
   plan,
-  nodes,
+  report,
+  onSaved,
 }: {
-  answer: GraphAnswer | null;
-  refusal: Refusal | null;
-  busy: boolean;
+  tenant: string;
   plan: Plan;
-  nodes: Record<string, GraphNode>;
+  report: GraphReport | null;
+  onSaved?: (report: GraphReport) => void;
 }) {
-  const [shown, setShown] = useState(false);
-  // The answer comes back keyed by field path and measure key. A person reads
-  // neither, so the words from the model travel with the question.
-  const labels: Record<string, string> = {};
-  for (const group of plan.groups) labels[group.bucket ? group.label : group.field] = group.label;
-  for (const block of plan.blocks)
-    for (const measure of nodes[block.node]?.measures ?? []) labels[measure.key] = measure.label;
+  const [naming, setNaming] = useState(false);
+  const [name, setName] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [failed, setFailed] = useState("");
+  const [saved, setSaved] = useState<string>("");
 
-  if (refusal)
+  const send = async (change: Parameters<typeof graphApi.change>[1]) => {
+    setBusy(true);
+    setFailed("");
+    try {
+      const stored = await graphApi.change(tenant, change);
+      setNaming(false);
+      setName("");
+      setSaved(stored.name);
+      onSaved?.(stored);
+    } catch (failure) {
+      setFailed(failure instanceof Error ? failure.message : analyticsError(failure));
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  if (naming)
     return (
-      <div className="rounded-xl border border-warning-200 bg-warning-50 p-5">
-        <div className="text-sm font-semibold text-warning-600">{refusal.headline}</div>
-        <div className="mt-2 text-sm">{refusal.detail}</div>
-      </div>
-    );
-  if (!answer)
-    return (
-      <div className="rounded-xl border border-dashed border-border-default p-10 text-center text-sm text-fg-muted">
-        {t("Choose at least one number or one axis.")}
-      </div>
-    );
-  const columns = answer.rows.length ? Object.keys(answer.rows[0]) : [];
-  const numeric = (column: string) => (answer.question.measures ?? []).includes(column);
-  return (
-    <div className={`space-y-3 ${busy ? "opacity-60" : ""}`} aria-busy={busy}>
-      {answer.rows.length === 0 ? (
-        <div className="rounded-xl border border-dashed border-border-default p-10 text-center text-sm text-fg-muted">
-          {t("No records match. That is not proof that none exist upstream.")}
-        </div>
-      ) : (
-        <div className="max-h-[34rem] overflow-auto rounded-xl border border-border-default bg-surface">
-          <table className="w-full border-collapse text-sm">
-            <thead className="sticky top-0 bg-surface">
-              <tr>
-                {columns.map((column) => (
-                  <th
-                    key={column}
-                    className={`border-b border-border-default px-3 py-2 font-medium ${
-                      numeric(column) ? NUMERIC_CELL : "text-left"
-                    }`}
-                  >
-                    {labels[column] ?? column}
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {answer.rows.map((row, index) => (
-                <tr key={index}>
-                  {columns.map((column) => (
-                    <td
-                      key={column}
-                      className={`border-b border-border-subtle px-3 py-2 ${
-                        numeric(column) ? NUMERIC_CELL : ""
-                      }`}
-                    >
-                      {row[column] === null
-                        ? t("Unknown")
-                        : numeric(column)
-                          ? formatExactDecimal(row[column] as string)
-                          : String(row[column])}
-                    </td>
-                  ))}
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
-      <div className="flex flex-wrap items-center gap-3 text-xs text-fg-muted">
-        <span>
-          {answer.rows.length} {t("rows")}
-        </span>
-        {answer.path.length > 0 && <span>{answer.path.join(" · ")}</span>}
-        <button className="underline" onClick={() => setShown(!shown)}>
-          {t("How this was worked out")}
+      <div className="flex flex-wrap items-center gap-2">
+        <input
+          className="rounded-lg border border-border-default bg-surface px-2 py-2 text-sm"
+          aria-label={t("Report name")}
+          autoFocus
+          value={name}
+          onChange={(event) => setName(event.target.value)}
+          onKeyDown={(event) => {
+            if (event.key === "Enter" && name.trim())
+              void send({
+                operation: "create",
+                request_id: crypto.randomUUID(),
+                name: name.trim(),
+                question: question(plan),
+              });
+          }}
+        />
+        <button
+          className="br-btn"
+          disabled={busy || !name.trim()}
+          onClick={() =>
+            void send({
+              operation: "create",
+              request_id: crypto.randomUUID(),
+              name: name.trim(),
+              question: question(plan),
+            })
+          }
+        >
+          {busy ? t("Saving…") : t("Save")}
         </button>
+        <button className="text-xs text-fg-muted underline" onClick={() => setNaming(false)}>
+          {t("Cancel")}
+        </button>
+        {failed && <span className="text-xs text-warning-600">{failed}</span>}
       </div>
-      {shown && (
-        <pre className="overflow-x-auto rounded-xl border border-border-default bg-surface p-3 font-mono text-xs">
-          {answer.sql}
-        </pre>
+    );
+
+  return (
+    <div className="flex flex-wrap items-center gap-3 text-sm">
+      {report && (
+        <button
+          className="br-btn"
+          disabled={busy}
+          onClick={() =>
+            void send({
+              operation: "update",
+              request_id: crypto.randomUUID(),
+              report_id: report.id,
+              expected_revision: report.revision,
+              question: question(plan),
+            })
+          }
+        >
+          {busy ? t("Saving…") : `${t("Save")} „${report.name}“`}
+        </button>
       )}
+      <button className="text-fg-muted underline" onClick={() => setNaming(true)}>
+        {report ? t("Save as a new report") : t("Save this question")}
+      </button>
+      {saved && <span className="text-xs text-fg-muted">{t("Saved")}</span>}
+      {failed && <span className="text-xs text-warning-600">{failed}</span>}
     </div>
   );
 }

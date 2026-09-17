@@ -199,7 +199,9 @@ def resolve(graph: ReportingGraph, query: Traversal) -> ResolvedPath:
                     f"there is no edge called {hop.edge!r} in the model", "unknown_edge"
                 )
             source, target = (
-                (edge.from_, edge.to) if hop.direction == "out" else (edge.to, edge.from_)
+                (edge.from_, edge.to)
+                if hop.direction == "out"
+                else (edge.to, edge.from_)
             )
             if inner.get(at) != source:
                 raise TraversalRefused(
@@ -323,10 +325,30 @@ def check_fan_out(path: ResolvedPath) -> None:
         )
 
 
+def _pinned(path: ResolvedPath) -> set[str]:
+    """Fields the question has narrowed to exactly one value.
+
+    A sum across two currencies is meaningless, but a sum inside one is not, and
+    a question filtered to `currency = "EUR"` has already done that. The refusal
+    told the reader to "filter the question down to one" while the check looked
+    only at the axes — so following its own advice changed nothing.
+    """
+    return {
+        condition.field
+        for condition in path.query.filter
+        if condition.op == "eq"
+        or (
+            condition.op == "in"
+            and isinstance(condition.value, (list, tuple))
+            and len(condition.value) == 1
+        )
+    }
+
+
 def check_units(path: ResolvedPath) -> None:
     grouped = {
         grouping.field for grouping in path.query.group_by if grouping.bucket is None
-    }
+    } | _pinned(path)
     for name, measure in path.measures.items():
         unit = measure.unit
         if unit.kind == "count" or not unit.column:

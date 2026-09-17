@@ -17194,3 +17194,36 @@ Object.assign(dictionaries.es, {
   "Save a question to find it here.": "Guarda una pregunta y la encontrarás aquí.",
   "The saved question": "La pregunta guardada",
 });
+
+// The result is the question. What is asked in words is only what to count and
+// what to split it by; the rest happens on the table.
+Object.assign(dictionaries.de, {
+  "What would you like to look at?": "Was möchtest du dir ansehen?",
+  "Pick your records and you see them straight away. Everything else happens on the table.":
+    "Wähle deine Datensätze und du siehst sie sofort. Alles Weitere passiert an der Tabelle.",
+  "Other records": "Andere Datensätze",
+  Summarise: "Zusammenfassen",
+  "Number to summarise": "Zusammenzufassende Kennzahl",
+  "nothing — list the records": "nichts — Datensätze auflisten",
+  "Turn this filter around": "Diesen Filter umdrehen",
+});
+Object.assign(dictionaries.nl, {
+  "What would you like to look at?": "Wat wil je bekijken?",
+  "Pick your records and you see them straight away. Everything else happens on the table.":
+    "Kies je records en je ziet ze meteen. De rest gebeurt op de tabel.",
+  "Other records": "Andere records",
+  Summarise: "Samenvatten",
+  "Number to summarise": "Samen te vatten kengetal",
+  "nothing — list the records": "niets — records opsommen",
+  "Turn this filter around": "Dit filter omdraaien",
+});
+Object.assign(dictionaries.es, {
+  "What would you like to look at?": "¿Qué quieres ver?",
+  "Pick your records and you see them straight away. Everything else happens on the table.":
+    "Elige tus registros y los ves al instante. Todo lo demás ocurre en la tabla.",
+  "Other records": "Otros registros",
+  Summarise: "Resumir",
+  "Number to summarise": "Indicador a resumir",
+  "nothing — list the records": "nada — listar los registros",
+  "Turn this filter around": "Invertir este filtro",
+});

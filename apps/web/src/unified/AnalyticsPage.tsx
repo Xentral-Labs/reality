@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { t } from "../localization";
 import { RegisterHeader } from "./RegisterWorkbench";
-import { GraphConsole } from "./analytics/GraphConsole";
 import { GraphSteps } from "./analytics/GraphSteps";
 import { ReportLibrary } from "./analytics/ReportLibrary";
 import type { GraphReport } from "../api";
@@ -30,7 +29,6 @@ function AnalyticsWorkspace({
           {(
             [
               ["graph", "Business graph"],
-              ["console", "Query console"],
               ["reports", "My reports"],
             ] as const
           ).map(([key, label]) => (
@@ -48,7 +46,6 @@ function AnalyticsWorkspace({
       {view === "graph" && (
         <GraphSteps tenant={selection.tenant} report={report} onSaved={setReport} />
       )}
-      {view === "console" && <GraphConsole tenant={selection.tenant} />}
       {view === "reports" && (
         <ReportLibrary
           tenant={selection.tenant}
