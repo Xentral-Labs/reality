@@ -229,7 +229,11 @@
     "analytics_export": "analytics",
     "analytics_reports_list": "analytics",
     "analytics_report_get": "analytics",
-    "analytics_report_change_propose": "analytics"
+    "analytics_report_change_propose": "analytics",
+    "graph_catalog": "analytics",
+    "graph_ask": "analytics",
+    "graph_reports_list": "analytics",
+    "graph_report_get": "analytics"
   },
   "understand_tools": [
     "capability_describe",
@@ -243,7 +247,9 @@
     "reality_gap_simulate",
     "finance_target_mapping_preview",
     "analytics_query",
-    "analytics_contributors"
+    "analytics_contributors",
+    "graph_catalog",
+    "graph_ask"
   ],
   "related": {
     "form:reserve": [
