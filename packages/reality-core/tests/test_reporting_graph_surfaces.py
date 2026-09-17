@@ -283,3 +283,62 @@ def test_a_limit_actually_limits():
         == 7
     )
     assert parse("MATCH (o:order) RETURN o.currency, sum(stated_order_amount)").limit == 200
+
+
+# --- filtering on an aggregate, and on a sub-path -------------------------------
+
+
+def test_having_is_read_from_the_text():
+    query = parse(
+        "MATCH (o:order) RETURN o.currency, count(order_count) HAVING order_count >= 3"
+    )
+    assert query.having[0].measure == "order_count"
+    assert query.having[0].op == "gte"
+    assert query.having[0].value == 3
+
+
+def test_having_on_a_property_is_refused():
+    """After grouping, a property no longer exists — only the measure does."""
+    with pytest.raises(CypherRefused, match="declared measure"):
+        parse("MATCH (o:order) RETURN o.currency, count(order_count) HAVING o.number >= 3")
+
+
+def test_an_existence_block_is_read_as_a_sub_path():
+    query = parse(
+        "MATCH (k:party)<-[:ordered_by]-(o:order) "
+        'WHERE EXISTS { MATCH <-[:ordered_by]-(x:order)-[:contains]->(l:order_line) '
+        'WHERE l.sku = "P01" } '
+        "RETURN k.name, count(order_count)"
+    )
+    assert len(query.exists) == 1
+    assert [hop.edge for hop in query.exists[0].follow] == ["ordered_by", "contains"]
+    assert query.exists[0].filter[0].field == "l.sku"
+    assert query.exists[0].negated is False
+
+
+def test_a_negated_existence_block_is_read_as_such():
+    query = parse(
+        "MATCH (o:order) "
+        "WHERE NOT EXISTS { MATCH -[:contains]->(l:order_line) } "
+        "RETURN o.currency, count(order_count)"
+    )
+    assert query.exists[0].negated is True
+
+
+def test_the_synthetic_start_of_a_block_does_not_leak_into_the_question():
+    """It would collide with a real alias and resolve against the wrong record."""
+    query = parse(
+        "MATCH (k:party)<-[:ordered_by]-(o:order) "
+        "WHERE EXISTS { MATCH <-[:ordered_by]-(o2:order) } "
+        "RETURN k.name, count(order_count)"
+    )
+    assert query.exists[0].follow[0].from_ is None
+
+
+def test_ordinary_spacing_is_accepted():
+    """MATCH (a) -[:x]-> (b) is how somebody would actually type it."""
+    query = parse(
+        "MATCH (o:order) -[:contains]-> (l:order_line) "
+        "RETURN l.sku, o.currency, sum(line_amount)"
+    )
+    assert [hop.edge for hop in query.follow] == ["contains"]

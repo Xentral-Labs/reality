@@ -30,6 +30,11 @@ from reality.tools.analytics import CALLER
 
 
 class GraphCatalogRequest(StrictModel):
+    language: str = Field(
+        default="en",
+        max_length=5,
+        description="Language for the business words in the catalog.",
+    )
     node: str | None = Field(
         default=None,
         max_length=100,
@@ -104,7 +109,7 @@ def invoke(session, tenant_id: str, name: str, arguments: dict[str, Any]) -> Any
     get_tenant(session, tenant_id)
     if name == "graph.catalog":
         try:
-            return reporting_catalog(request.node)
+            return reporting_catalog(request.node, request.language)
         except ReportingGraphError as error:
             raise TraversalRefused(str(error), "unknown_node") from error
 
@@ -132,5 +137,6 @@ def invoke(session, tenant_id: str, name: str, arguments: dict[str, Any]) -> Any
         "path": list(result.path),
         "model_version": result.model_version,
         "statements": result.statements,
+        "sql": result.sql,
         "question": query.model_dump(mode="json", by_alias=True, exclude_defaults=True),
     }

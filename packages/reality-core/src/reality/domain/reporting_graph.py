@@ -39,6 +39,29 @@ class GraphModel(BaseModel):
     model_config = ConfigDict(extra="forbid", populate_by_name=True, frozen=True)
 
 
+class Label(GraphModel):
+    """What a person calls this, in the languages the product speaks.
+
+    The declaration is the only place that knows both the column and the word for
+    it, so the word lives here rather than in each surface. Chat, terminal and
+    browser then say the same thing, and a question can be read back to somebody
+    in their own language — which is the whole reason the query is an object.
+    """
+
+    en: str
+    de: str | None = None
+
+    def pick(self, language: str = "en") -> str:
+        return getattr(self, language, None) or self.en
+
+
+class Property(GraphModel):
+    """A readable field of a node."""
+
+    column: str
+    label: Label
+
+
 class Unit(GraphModel):
     """What a number is measured in, and where that is written down.
 
@@ -164,8 +187,19 @@ class Node(GraphModel):
     time: str | None = None
     coverage: tuple[Coverage, ...] = ("current",)
     evidence: str | None = None
-    properties: dict[str, str] = Field(default_factory=dict)
+    properties: dict[str, str | Property] = Field(default_factory=dict)
     measures: Literal["none"] | None = None
+    label: Label | None = None
+
+    def column_of(self, prop: str) -> str:
+        found = self.properties.get(prop)
+        if isinstance(found, Property):
+            return found.column
+        return found or ""
+
+    def label_of(self, prop: str, language: str = "en") -> str:
+        found = self.properties.get(prop)
+        return found.label.pick(language) if isinstance(found, Property) else prop
 
     @model_validator(mode="after")
     def check(self) -> Node:
@@ -206,6 +240,7 @@ class Edge(GraphModel):
     recursive: Recursive | None = None
     target_where: dict[str, Any] | None = None
     writable: Writable | None = None
+    label: Label | None = None
 
     @model_validator(mode="after")
     def check(self) -> Edge:
@@ -233,6 +268,7 @@ class Measure(GraphModel):
     unknown: UnknownPolicy = "keep"
     sign_from: str | None = None
     note: str | None = None
+    label: Label | None = None
 
     @model_validator(mode="after")
     def check(self) -> Measure:

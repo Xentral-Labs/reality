@@ -40163,8 +40163,16 @@
       "summary": "Discover the nodes and measures first; a refusal names the edge that fanned out or the unit that cannot be added, and is more useful than a total that is wrong.",
       "access": "read",
       "group": "Analytics",
-      "synopsis": "graph_catalog [node]",
+      "synopsis": "graph_catalog [language] [node]",
       "parameters": [
+        {
+          "name": "language",
+          "type": "string",
+          "required": false,
+          "description": "Language for the business words in the catalog.",
+          "depth": 0,
+          "default": "en"
+        },
         {
           "name": "node",
           "type": "string",

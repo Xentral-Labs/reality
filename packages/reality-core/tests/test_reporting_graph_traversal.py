@@ -460,3 +460,111 @@ def test_an_unknown_property_is_refused(session, business, sales):
                 "group_by": [{"field": "root.margin"}],
             },
         )
+
+
+# --- filtering on an aggregate, and on a sub-path that must exist ----------------
+
+
+def test_having_filters_on_the_aggregate(session, business, sales):
+    """Customers with at least two orders — the count decides, not the rows."""
+    result = ask(
+        session,
+        business.tenant.id,
+        **{
+            "from": "party",
+            "follow": [{"edge": "ordered_by", "direction": "in", "as": "o"}],
+            "measures": ["order_count"],
+            "group_by": [{"field": "root.name"}],
+            "having": [{"measure": "order_count", "op": "gte", "value": 2}],
+        },
+    )
+    assert [row["root.name"] for row in result.rows] == ["Müller GmbH"]
+    assert int(result.rows[0]["order_count"]) == 3
+
+
+def test_having_below_the_threshold_returns_nothing(session, business, sales):
+    result = ask(
+        session,
+        business.tenant.id,
+        **{
+            "from": "party",
+            "follow": [{"edge": "ordered_by", "direction": "in", "as": "o"}],
+            "measures": ["order_count"],
+            "group_by": [{"field": "root.name"}],
+            "having": [{"measure": "order_count", "op": "gte", "value": 99}],
+        },
+    )
+    assert result.rows == ()
+
+
+def test_having_on_a_measure_the_question_does_not_ask_for_is_refused(
+    session, business, sales
+):
+    with pytest.raises(ValueError, match="does not ask for"):
+        ask(
+            session,
+            business.tenant.id,
+            **{
+                "from": "party",
+                "follow": [{"edge": "ordered_by", "direction": "in", "as": "o"}],
+                "measures": ["order_count"],
+                "group_by": [{"field": "root.name"}],
+                "having": [{"measure": "stated_order_amount", "op": "gte", "value": 1}],
+            },
+        )
+
+
+def test_an_existence_test_narrows_without_multiplying(session, business, sales):
+    """The order still counts once, although the test walks its four lines."""
+    result = ask(
+        session,
+        business.tenant.id,
+        **{
+            "from": "order",
+            "measures": ["stated_order_amount"],
+            "group_by": [{"field": "root.currency"}],
+            "exists": [
+                {
+                    "follow": [{"edge": "contains", "as": "l"}],
+                    "filter": [{"field": "l.sku", "op": "eq", "value": business.item.sku}],
+                }
+            ],
+        },
+    )
+    by_currency = {row["root.currency"]: Decimal(row["stated_order_amount"]) for row in result.rows}
+    assert by_currency["EUR"] == Decimal(1500), "1000 + 500, never 4000"
+    assert result.statements == 1
+
+
+def test_a_negated_existence_test_finds_what_is_missing(session, business, sales):
+    result = ask(
+        session,
+        business.tenant.id,
+        **{
+            "from": "order",
+            "measures": ["order_count"],
+            "group_by": [{"field": "root.currency"}],
+            "exists": [
+                {
+                    "follow": [{"edge": "contains", "as": "l"}],
+                    "filter": [{"field": "l.sku", "op": "eq", "value": "NOT-A-SKU"}],
+                    "negated": True,
+                }
+            ],
+        },
+    )
+    assert sum(int(row["order_count"]) for row in result.rows) == 3, "every order qualifies"
+
+
+def test_an_existence_test_on_an_undeclared_edge_is_refused(session, business, sales):
+    with pytest.raises((TraversalRefused, ValueError)):
+        ask(
+            session,
+            business.tenant.id,
+            **{
+                "from": "order",
+                "measures": ["order_count"],
+                "group_by": [{"field": "root.currency"}],
+                "exists": [{"follow": [{"edge": "invented", "as": "x"}]}],
+            },
+        )

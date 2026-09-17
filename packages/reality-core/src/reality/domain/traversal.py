@@ -95,6 +95,37 @@ class Ordering(QueryModel):
     descending: bool = False
 
 
+class Having(QueryModel):
+    """A filter on an aggregate: customers with at least three orders.
+
+    It reads like a filter but runs after grouping, which is why it names a
+    measure rather than a property — the measure is the only thing that exists
+    at that point.
+    """
+
+    measure: str
+    op: Literal["eq", "ne", "lt", "lte", "gt", "gte"]
+    value: float
+
+
+class Existence(QueryModel):
+    """A sub-path that must exist, without joining it into the answer.
+
+    Joining it would multiply the rows; testing it does not. That is the whole
+    reason this is a separate clause rather than another hop.
+    """
+
+    follow: tuple[Hop, ...]
+    filter: tuple[Condition, ...] = ()
+    negated: bool = False
+
+    @model_validator(mode="after")
+    def check(self) -> Existence:
+        if not self.follow:
+            raise ValueError("an existence test follows at least one edge")
+        return self
+
+
 class Traversal(QueryModel):
     """The whole question."""
 
@@ -104,6 +135,8 @@ class Traversal(QueryModel):
     filter: tuple[Condition, ...] = ()
     measures: tuple[str, ...] = ()
     group_by: tuple[Grouping, ...] = ()
+    having: tuple[Having, ...] = ()
+    exists: tuple[Existence, ...] = ()
     order_by: tuple[Ordering, ...] = ()
     limit: int = Field(default=200, ge=1)
 
@@ -131,6 +164,17 @@ class Traversal(QueryModel):
             alias = grouping.field.split(".")[0]
             if alias not in known:
                 raise ValueError(f"group by {grouping.field} names an unreached alias")
+        for condition in self.having:
+            if condition.measure not in self.measures:
+                raise ValueError(
+                    f"having names {condition.measure!r}, which the question does not ask for"
+                )
+        for test in self.exists:
+            origin = test.follow[0].from_ or self.as_
+            if origin not in known:
+                raise ValueError(
+                    f"an existence test starts at {origin!r}, which the path has not reached"
+                )
         if not self.measures and not self.group_by:
             raise ValueError("a question asks for at least a measure or a grouping")
         return self

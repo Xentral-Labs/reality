@@ -68,7 +68,8 @@ def _check_node(name: str, node: Node, schema: dict[str, set[str]]) -> None:
             raise ReportingGraphError(
                 f"node {name}: {role} column {table}.{column} does not exist"
             )
-    for prop, column in node.properties.items():
+    for prop in node.properties:
+        column = node.column_of(prop)
         if column not in columns:
             raise ReportingGraphError(
                 f"node {name}: property {prop!r} reads {table}.{column}, which does not exist"
@@ -210,7 +211,13 @@ def reporting_graph() -> ReportingGraph:
     return parse_reporting_graph()
 
 
-def reporting_catalog(node: str | None = None) -> dict[str, Any]:
+def _label(carrier, fallback: str, language: str) -> str:
+    """The word a person reads. Falls back to the key, which is never a lie."""
+    label = getattr(carrier, "label", None)
+    return label.pick(language) if label else fallback
+
+
+def reporting_catalog(node: str | None = None, language: str = "en") -> dict[str, Any]:
     """What can be asked: the nodes, how they connect, and what each number means.
 
     Generated from the declaration rather than written beside it, so the catalog
@@ -227,17 +234,22 @@ def reporting_catalog(node: str | None = None) -> dict[str, Any]:
         "nodes": [
             {
                 "key": name,
+                "label": _label(graph.nodes[name], name, language),
                 "grain": graph.nodes[name].grain,
                 "backed_by": "facts"
                 if graph.nodes[name].from_facts
                 else graph.nodes[name].table,
                 "corrections": graph.nodes[name].corrections,
                 "coverage": list(graph.nodes[name].coverage),
-                "properties": sorted(graph.nodes[name].properties),
+                "properties": [
+                    {"key": prop, "label": graph.nodes[name].label_of(prop, language)}
+                    for prop in sorted(graph.nodes[name].properties)
+                ],
                 "evidence": graph.nodes[name].evidence,
                 "measures": [
                     {
                         "key": key,
+                        "label": _label(measure, key, language),
                         "unit": measure.unit.kind,
                         "additive_over": list(measure.additive_over),
                         "never_across": list(measure.never_across),
@@ -248,7 +260,9 @@ def reporting_catalog(node: str | None = None) -> dict[str, Any]:
                 "edges": [
                     {
                         "key": key,
+                        "label": _label(edge, key, language),
                         "to": edge.to,
+                        "to_label": _label(graph.nodes[edge.to], edge.to, language),
                         "multiplicity": edge.multiplicity,
                         "recursive": bool(edge.recursive),
                         "stored": bool(edge.fact),
@@ -256,7 +270,15 @@ def reporting_catalog(node: str | None = None) -> dict[str, Any]:
                     for key, edge in graph.edges_from(name).items()
                 ],
                 "edges_in": [
-                    {"key": key, "from": edge.from_, "multiplicity": edge.multiplicity}
+                    {
+                        "key": key,
+                        "label": _label(edge, key, language),
+                        "from": edge.from_,
+                        "from_label": _label(
+                            graph.nodes[edge.from_], edge.from_, language
+                        ),
+                        "multiplicity": edge.multiplicity,
+                    }
                     for key, edge in graph.edges_to(name).items()
                 ],
             }
