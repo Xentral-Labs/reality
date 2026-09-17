@@ -80,3 +80,15 @@ FR-010/T019–T020: four decorative border declarations removed. The active tab'
 focus indicators, content separators or business logic changed. The existing
 responsive shell browser and full frontend gates are sufficient for this CSS-only
 change; no new implementation-mirroring unit test was added.
+
+## Sidebar head grouping review
+FR-011/T021–T023 follow the approved grouping. Logo is inside the company-switcher
+button; the separate redundant logo home link is removed, with Home retained as the
+first navigation link. Collapse moves beside the company switcher; the rail stacks
+it below without losing company access. Search uses existing translated Search copy
+with the explicit Search actions accessible name. Daily work remains an accessible
+landmark. Removed obsolete heading/initial styles. No service, route, permission or
+simulation changes. Placement contracts failed before implementation and pass now.
+Desktop and rail screenshots reviewed: aligned controls, truncated long names, compact
+context, visible search field and no redundant visible heading. Browser coverage
+confirms company switching, draft persistence, focus, mobile and coarse-pointer targets.

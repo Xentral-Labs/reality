@@ -3017,3 +3017,12 @@ Workspace and docked chat headers have no bottom rule. Sidebar separation relies
 on its background rather than a right border. Page tabs retain only their active
 indicator, without a full-width baseline. The subtle vertical content/chat divider
 remains, as do all existing content-table, list and form boundaries.
+
+### Grouped sidebar head (spec 225)
+Logo and company context share the company-switcher button. Desktop collapse sits
+beside it; mobile retains Close, and the collapsed rail stacks company and expand
+controls. Search appears below as a quiet field with short visible wording and a
+platform shortcut; its accessible label still identifies action search. Daily work
+remains the navigation landmark name without a redundant visible heading. Secondary
+company context uses tighter spacing. Existing palette scope and simulation semantics
+remain unchanged. Home remains directly available as the first navigation destination.

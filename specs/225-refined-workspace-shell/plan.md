@@ -96,3 +96,13 @@ Remove four CSS border declarations only. Preserve chat dock border-left and act
 tab border. Existing shell browser checks responsive geometry, themes and keyboard
 behavior; visually review screenshots. Run required frontend gates. No additional
 unit tests for this reversible CSS-only change.
+
+## Sidebar head grouping plan
+Approved FR-011; no unresolved clarification. Constitution Check PASS. Move the logo
+inside CompanySwitcher and move the existing collapse control into the head row.
+Collapsed rail stacks switcher/toggle without overflow. Restyle the palette trigger
+as a compact field; keep its explicit Search actions accessible label. Remove the
+visible Daily work label while retaining the landmark. Update superseded placement
+contracts and existing navigation browser assertions first; run frontend gates and
+shell/collapsible navigation browsers, then inspect desktop/mobile/rail screenshots.
+No business service changes or new dependencies.

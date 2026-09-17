@@ -150,3 +150,11 @@ sidebar's right border and the full-width page-tab baseline. Retain the active t
 indicator and subtle vertical divider between content and chat. Sidebar background,
 spacing and existing focus styles preserve orientation. Content tables, lists and
 forms keep their existing boundaries; no layout geometry or behavior changes.
+
+## Sidebar head grouping follow-up
+FR-011: Treat logo and company name/context as one switcher target in a compact head
+row, with desktop collapse control at its right and mobile close control retained.
+Below it, present the existing action palette trigger as a quiet search field with
+short Search wording and platform shortcut. Remove the visible Daily work heading;
+retain its navigation landmark label. Tighten secondary company-context spacing.
+Preserve rail access, company menu, simulation eligibility, routes and action scope.

@@ -248,7 +248,7 @@ export function ActionLauncher({ onLaunch }: { onLaunch: () => void }) {
         popoverTarget={id}
       >
         <Search size={16} />
-        <span data-navigation-label>{t("Search actions")}</span>
+        <span data-navigation-label>{t("Search")}…</span>
         <kbd data-navigation-label>{t(shortcut)}</kbd>
       </button>
       {createPortal(

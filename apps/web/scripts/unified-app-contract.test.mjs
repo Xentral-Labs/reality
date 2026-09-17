@@ -41,8 +41,9 @@ test("authenticated dispatcher loads only the unified app", () => {
 
 test("unified shell uses the canonical Reality wordmark", () => {
   const shell = source("../src/unified/Shell.tsx");
-  assert.match(shell, /shell-brand-home[^>]*aria-label="Reality"/s);
+  assert.doesNotMatch(shell, /shell-brand-home/);
   const switcher = source("../src/unified/CompanySwitcher.tsx");
+  assert.match(switcher, /company-switcher-logo[\s\S]*<LogoMark \/>/);
   assert.match(switcher, />\s*Reality\s*<\/span>/);
   assert.doesNotMatch(shell + switcher, />\s*reality\s*<\/span>/);
 });
@@ -482,7 +483,7 @@ test("company context sits beside the logo as one workspace switcher", () => {
   const shell = source("../src/unified/Shell.tsx");
   assert.match(
     shell,
-    /className="shell-brand[^"]*">[\s\S]*shell-brand-home[\s\S]*<LogoMark \/>[\s\S]*<div className="shell-company min-w-0 flex-1">\s*<CompanySwitcher/,
+    /className="shell-brand[^"]*">[\s\S]*<CompanySwitcher[\s\S]*data-navigation-toggle/,
   );
   assert.equal(shell.match(/<CompanySwitcher/g).length, 1);
   assert.doesNotMatch(shell, /shell-company-(mobile|desktop)/);
