@@ -89,3 +89,10 @@ launcher; respect existing modal dialogs. Preserve native Escape/focus behavior.
 Extend shell browser before implementation for keyboard opening, focus, centering,
 query reset, absence of a lower launcher and all existing localized entries. Run
 required frontend gates, shell browser and launcher discovery regression.
+
+## Quiet shell boundaries plan
+Owner approved FR-010 explicitly. Constitution Check PASS; no unresolved questions.
+Remove four CSS border declarations only. Preserve chat dock border-left and active
+tab border. Existing shell browser checks responsive geometry, themes and keyboard
+behavior; visually review screenshots. Run required frontend gates. No additional
+unit tests for this reversible CSS-only change.

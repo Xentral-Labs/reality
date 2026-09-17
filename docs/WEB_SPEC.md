@@ -3011,3 +3011,9 @@ it. Escape restores prior focus. Another open modal takes precedence over the
 shortcut. The palette is portaled outside navigation so keyboard access works when
 the mobile drawer is closed. Expanded, rail and mobile pointer access remain.
 Future command capabilities require a separate specification.
+
+### Quiet shell boundaries (spec 225)
+Workspace and docked chat headers have no bottom rule. Sidebar separation relies
+on its background rather than a right border. Page tabs retain only their active
+indicator, without a full-width baseline. The subtle vertical content/chat divider
+remains, as do all existing content-table, list and form boundaries.

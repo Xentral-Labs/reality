@@ -143,3 +143,10 @@ Keep a pointer/touch entrypoint in expanded, collapsed and mobile navigation. Do
 intercept the shortcut while another modal is open. Preserve existing action forms,
 permissions, catalog shortcut and confirmation. No new command execution or search
 scope; future palette capabilities belong to a separate specification.
+
+## Quiet shell boundaries follow-up
+FR-010: Remove horizontal rules below the workspace and docked chat headers, the
+sidebar's right border and the full-width page-tab baseline. Retain the active tab
+indicator and subtle vertical divider between content and chat. Sidebar background,
+spacing and existing focus styles preserve orientation. Content tables, lists and
+forms keep their existing boundaries; no layout geometry or behavior changes.

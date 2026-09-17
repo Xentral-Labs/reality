@@ -73,3 +73,10 @@ pointer/touch entry remain. Shortcut notation is an explicit localization invari
 German Control-key notation uses Strg. Inspected desktop and mobile screenshots:
 compact company-area search, quiet backdrop, bounded list and no lower Actions item.
 No unresolved review findings; richer palette capabilities remain out of scope.
+
+## Quiet shell boundaries review
+FR-010/T019–T020: four decorative border declarations removed. The active tab's
+2px indicator and chat dock's subtle border-left remain. No selectors, sizes,
+focus indicators, content separators or business logic changed. The existing
+responsive shell browser and full frontend gates are sufficient for this CSS-only
+change; no new implementation-mirroring unit test was added.
