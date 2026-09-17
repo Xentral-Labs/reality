@@ -179,3 +179,13 @@ service, tenant, source or authority changes. Rollback: revert these styles.
 Validation: extend unified-chat-composer-browser.mjs first, run browser geometry
 and interaction checks, frontend contracts/build, formatting, spec policy and diff
 review. Backend, migrations and catalogs are unaffected and their gates do not apply.
+
+## Side-chat header simplification (FR-025)
+
+Remove the redundant ChatUsage child from chatControls in
+apps/web/src/unified/ChatPage.tsx. Keep shared usage components, allowance reads,
+other entry points and exhaustion guards. No backend, schema or catalog changes.
+Constitution Check: PASS; presentation-only removal. Extend the existing usage
+placement regression in chat-archive-contract.test.mjs first; run frontend contracts,
+localization/build and spec policy. Rollback restores the single header child.
+Analysis: requirement, acceptance and T031 align; no unresolved or critical findings.

@@ -81,3 +81,5 @@ as one coherent increment because free chat must carry truthful evidence.
   sidebar geometry, option visibility and single-line menu checks before styling;
   update CompanyChatPage.tsx, ChatPage.tsx and tailwind.css; run browser, frontend
   contracts/build, formatting and spec checks; review and record verification.md.
+
+- [x] T031 [FR-025] Extend the usage placement assertion in apps/web/scripts/chat-archive-contract.test.mjs; remove header badge from ChatPage.tsx, preserve other usage/exhaustion controls, run frontend and spec gates, and record verification.md.
