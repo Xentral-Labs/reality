@@ -1,6 +1,5 @@
-import { ActionDirectory } from "./ActionDirectory";
+import { ToolCatalog } from "./ToolCatalog";
 import { ReportExplanation } from "./ReportExplanation";
-import { ReportCatalog } from "./ReportCatalog";
 import type { Report } from "./reportCatalogEntries";
 import { ProjectionDataDialog } from "./ProjectionDataDialog";
 import { RecordGraphPage } from "./RecordGraphPage";
@@ -227,17 +226,16 @@ export function RealityInspectorPage({
             error={reference.error}
             retry={reference.refresh}
           />
-        ) : tab === "commands" ? (
-          <ActionDirectory
+        ) : (
+          <ToolCatalog
             key={tenant}
             reference={reference.data}
             tenant={tenant}
             openAction={openAction}
+            openReport={setReport}
           />
-        ) : (
-          <ReportCatalog key={tenant} reference={reference.data} open={setReport} />
         ))}
-      {tab === "views" && report && (
+      {needsReference && report && (
         <ProjectionDataDialog
           key={`${tenant}:${report.target}`}
           tenant={tenant}

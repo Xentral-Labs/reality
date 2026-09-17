@@ -69,7 +69,7 @@ const introductions = {
   },
   views: {
     title: "Reality Inspector",
-    description: "Find a report and open its data. Each description explains what it shows.",
+    description: "Find what Reality can retrieve, explain or change, with its Web and MCP tools.",
   },
   rules: {
     title: "Reality Inspector",
@@ -86,7 +86,7 @@ const introductions = {
   },
   commands: {
     title: "Reality Inspector",
-    description: "Explore available actions, their inputs and what they do.",
+    description: "Find what Reality can retrieve, explain or change, with its Web and MCP tools.",
   },
   facts: {
     title: "Business Facts",

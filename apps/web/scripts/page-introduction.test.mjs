@@ -31,7 +31,7 @@ test("subviews have distinct useful descriptions and aliases remain compatible",
     [
       "inspector",
       "inspectorView",
-      ["overview", "graph", "facts", "views", "rules", "exceptions", "history", "commands"],
+      ["overview", "graph", "facts", "rules", "exceptions", "history", "commands"],
     ],
     ["warehouse", "warehouseView", ["stock", "reservations", "movements"]],
     ["finance", "financeView", ["open-items", "payments", "journal", "settings"]],
@@ -46,6 +46,10 @@ test("subviews have distinct useful descriptions and aliases remain compatible",
     assert.equal(new Set(descriptions).size, values.length, route);
   }
   const base = selection("/inspector");
+  assert.deepEqual(
+    pageIntroduction({ ...base, inspectorView: "commands" }),
+    pageIntroduction({ ...base, inspectorView: "views" }),
+  );
   assert.deepEqual(
     pageIntroduction({ ...base, inspectorView: "records" }),
     pageIntroduction({ ...base, inspectorView: "facts" }),

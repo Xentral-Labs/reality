@@ -1152,3 +1152,9 @@ the stored result is unchanged, plus the backlog where the generation is behind 
 stream. Refresh still only reads. Browser evidence:
 `apps/web/scripts/projection-freshness-browser.mjs` (in-flight state, both outcomes, the
 backlog and all four languages).
+
+## Unified tool catalog (226)
+`specs/226-unified-tool-catalog/spec.md` FR-001–007 are covered by
+`packages/reality-core/tests/test_tool_catalog.py`, existing application catalog/MCP tests,
+`apps/web/scripts/tool-catalog.test.mjs`, `apps/web/scripts/inspector-navigation.test.mjs`
+and `apps/web/scripts/unified-tool-catalog-browser.mjs`.

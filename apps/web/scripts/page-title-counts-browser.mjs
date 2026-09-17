@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { pathToFileURL } from "node:url";
-import { reference } from "./action-discovery-fixture.mjs";
+import { reference } from "./tool-catalog-fixture.mjs";
 const { chromium } = await import(pathToFileURL(process.env.PLAYWRIGHT_MODULE));
 const browser = await chromium.launch({
   executablePath: process.env.PLAYWRIGHT_EXECUTABLE,
@@ -157,7 +157,7 @@ try {
     assert.equal(await page.locator(".register-toolbar-block .register-count").count(), 0, tab);
     if (tab === "commands") {
       await page
-        .getByRole("searchbox", { name: "Search action catalog" })
+        .getByRole("searchbox", { name: "Search capabilities" })
         .fill("no-such-command-xyz");
       await page.waitForFunction(() =>
         document.querySelector("[data-page-record-count]")?.textContent.startsWith("0"),

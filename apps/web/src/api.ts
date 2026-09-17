@@ -1009,7 +1009,35 @@ export type SpecializedProjectionData = {
   items: SpecializedProjectionRow[];
   page: Page;
 };
+export type ToolCapability = {
+  id: string;
+  title: string;
+  labels: Record<string, string>;
+  description: string;
+  topic: string;
+  purpose: "read" | "understand" | "change" | "navigate";
+  commands: string[];
+  actions: string[];
+  views: string[];
+  projections: string[];
+  mcp: string[];
+  discovery: string[];
+  related: string[];
+};
+export type ToolCatalogMetadata = {
+  version: number;
+  topics: { key: string; label: string }[];
+  entries: ToolCapability[];
+  mcp_tools: {
+    name: string;
+    label: string;
+    description: string;
+    access: "read" | "propose" | "confirm";
+    input_schema: Record<string, unknown>;
+  }[];
+};
 export type ApplicationReference = {
+  tool_catalog?: ToolCatalogMetadata;
   discovery?: import("./unified/actionDiscovery").ActionDiscovery;
   commands?: CatalogCommand[];
   command_count: number;

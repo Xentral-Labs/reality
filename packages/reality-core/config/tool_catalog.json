@@ -1,0 +1,264 @@
+{
+  "version": 1,
+  "topics": [
+    {
+      "key": "orders",
+      "label": "Orders and commitments"
+    },
+    {
+      "key": "stock",
+      "label": "Stock and warehouse"
+    },
+    {
+      "key": "shipping",
+      "label": "Shipments and returns"
+    },
+    {
+      "key": "payments",
+      "label": "Invoices and payments"
+    },
+    {
+      "key": "accounting",
+      "label": "Accounting and allocation"
+    },
+    {
+      "key": "master",
+      "label": "Partners and master data"
+    },
+    {
+      "key": "evidence",
+      "label": "Data and evidence"
+    },
+    {
+      "key": "review",
+      "label": "Issues and approvals"
+    },
+    {
+      "key": "analytics",
+      "label": "Analytics"
+    },
+    {
+      "key": "company",
+      "label": "Company and access"
+    }
+  ],
+  "groups": {
+    "orders": "orders",
+    "holds": "orders",
+    "returns": "shipping",
+    "reservations": "stock",
+    "movements": "stock",
+    "tracking": "stock",
+    "customer-invoices": "payments",
+    "supplier-invoices": "payments",
+    "payments": "payments",
+    "journal": "accounting",
+    "accounts": "accounting",
+    "references": "master",
+    "terms": "master",
+    "intake": "evidence",
+    "documents": "evidence",
+    "observations": "evidence",
+    "members": "company",
+    "reports": "analytics"
+  },
+  "command_topics": {
+    "record_shipment_notice": "shipping",
+    "record_packaged_execution": "shipping",
+    "record_shipment_event": "shipping",
+    "supersede_shipment_event": "shipping"
+  },
+  "form_tools": {
+    "shipment_dispatch": [
+      "shipment_dispatch_propose"
+    ],
+    "shipment_receive": [
+      "shipment_receive_propose"
+    ],
+    "commitment_hold": [
+      "commitment_hold_propose"
+    ],
+    "commitment_hold_release": [
+      "commitment_hold_release_propose"
+    ],
+    "party_delivery_hold": [
+      "party_delivery_hold_propose"
+    ],
+    "party_delivery_hold_release": [
+      "party_delivery_hold_release_propose"
+    ]
+  },
+  "form_topics": {
+    "receipt": "shipping",
+    "movement_create": "shipping"
+  },
+  "reads": {
+    "inventory": {
+      "topic": "stock",
+      "mcp": [
+        "inventory_read"
+      ]
+    },
+    "fulfillment_queue": {
+      "topic": "orders",
+      "mcp": [
+        "fulfillment_queue"
+      ],
+      "purpose": "understand"
+    },
+    "fulfillment_blockers": {
+      "topic": "orders",
+      "mcp": [
+        "fulfillment_blockers"
+      ],
+      "purpose": "understand"
+    },
+    "item_supply_demand": {
+      "topic": "stock",
+      "mcp": [
+        "item_supply_demand"
+      ],
+      "purpose": "understand"
+    },
+    "commitment_register": {
+      "topic": "orders",
+      "views": [
+        "commitments"
+      ],
+      "mcp": [
+        "commitments_list"
+      ]
+    },
+    "document_register": {
+      "topic": "evidence",
+      "views": [
+        "documents"
+      ]
+    },
+    "open_financial_items": {
+      "topic": "payments"
+    },
+    "payments": {
+      "topic": "payments",
+      "views": [
+        "payments"
+      ],
+      "mcp": [
+        "finance_payments"
+      ]
+    },
+    "journal": {
+      "topic": "accounting",
+      "views": [
+        "journal"
+      ]
+    },
+    "exceptions": {
+      "topic": "review",
+      "mcp": [
+        "exceptions_list"
+      ],
+      "purpose": "understand"
+    },
+    "price_resolution": {
+      "topic": "master",
+      "purpose": "understand"
+    },
+    "tenant_usage": {
+      "topic": "company"
+    },
+    "view:reservations": {
+      "topic": "stock"
+    },
+    "view:movements": {
+      "topic": "stock"
+    },
+    "view:locations": {
+      "topic": "master"
+    },
+    "view:parties": {
+      "topic": "master"
+    },
+    "view:items": {
+      "topic": "master"
+    },
+    "view:commercial_terms": {
+      "topic": "master"
+    },
+    "view:sources_imports": {
+      "topic": "evidence"
+    },
+    "timeline": {
+      "topic": "evidence",
+      "views": [
+        "activity"
+      ]
+    }
+  },
+  "mcp_topics": {
+    "capability_describe": "evidence",
+    "business_records_discover": "evidence",
+    "interpretation_coverage": "evidence",
+    "shipments_list": "shipping",
+    "shipment_explain": "shipping",
+    "order_explain": "orders",
+    "finance_balances": "payments",
+    "finance_credits": "payments",
+    "finance_party_balances": "payments",
+    "exceptions_list": "review",
+    "payment_run_preview": "review",
+    "stale_closure_preview": "review",
+    "exception_explain": "review",
+    "proposals_awaiting_approval": "review",
+    "proposal_execution_status": "review",
+    "proposal_approve_and_execute": "review",
+    "reality_gaps": "review",
+    "reality_gap_get": "review",
+    "reality_gap_simulate": "review",
+    "reality_gap_create_propose": "review",
+    "reality_gap_entry_add_propose": "review",
+    "reality_gap_recommend_propose": "review",
+    "reality_gap_decide_propose": "review",
+    "reality_gap_implementation_prepare_propose": "review",
+    "reality_gap_rule_activate_propose": "review",
+    "reality_gap_rule_disable_propose": "review",
+    "reality_gap_rule_replay_propose": "review",
+    "analytics_catalog": "analytics",
+    "analytics_query": "analytics",
+    "analytics_contributors": "analytics",
+    "analytics_export": "analytics",
+    "analytics_reports_list": "analytics",
+    "analytics_report_get": "analytics",
+    "analytics_report_change_propose": "analytics"
+  },
+  "understand_tools": [
+    "capability_describe",
+    "shipment_explain",
+    "order_explain",
+    "interpretation_coverage",
+    "payment_run_preview",
+    "stale_closure_preview",
+    "exception_explain",
+    "proposal_execution_status",
+    "reality_gap_simulate",
+    "finance_target_mapping_preview",
+    "analytics_query",
+    "analytics_contributors"
+  ],
+  "related": {
+    "form:reserve": [
+      "report:inventory",
+      "report:item_supply_demand"
+    ],
+    "form:shipment_dispatch": [
+      "report:fulfillment_queue",
+      "mcp:shipment_explain"
+    ],
+    "command:execute_payment_run": [
+      "command:preview_payment_run"
+    ],
+    "command:apply_settlement": [
+      "command:settlement_context"
+    ]
+  }
+}

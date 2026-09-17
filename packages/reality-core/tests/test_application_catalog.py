@@ -599,6 +599,9 @@ def test_runtime_catalog_reuses_successful_snapshot_without_shared_mutability(
 
     catalogs.clear_runtime_application_catalog()
     monkeypatch.setattr(catalogs, "load_application_catalog", build)
+    monkeypatch.setattr(
+        "reality.tool_catalog.build_tool_catalog", lambda _: {"entries": []}
+    )
     try:
         first = catalogs.runtime_application_catalog()
         first["projections"][0]["name"] = "Corrupted"
@@ -622,10 +625,16 @@ def test_runtime_catalog_retries_failed_validation(monkeypatch):
 
     catalogs.clear_runtime_application_catalog()
     monkeypatch.setattr(catalogs, "load_application_catalog", build)
+    monkeypatch.setattr(
+        "reality.tool_catalog.build_tool_catalog", lambda _: {"entries": []}
+    )
     try:
         with pytest.raises(ValueError, match="Catalog drift"):
             catalogs.runtime_application_catalog()
-        assert catalogs.runtime_application_catalog() == {"version": 1}
+        assert catalogs.runtime_application_catalog() == {
+            "version": 1,
+            "tool_catalog": {"entries": []},
+        }
         assert len(calls) == 2
     finally:
         catalogs.clear_runtime_application_catalog()
