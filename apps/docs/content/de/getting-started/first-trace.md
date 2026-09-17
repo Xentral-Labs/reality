@@ -3,6 +3,10 @@
 Ein brauchbares Ergebnis ist nicht nur sichtbar, es ist erklärbar. Beginne bei einer operativen
 Antwort und arbeite dich über die kürzesten echten Verknüpfungen zurück.
 
+Starte in **Business Facts** mit einem einzelnen Datensatz, folge seinen Beziehungen und seiner
+Timeline im **Business Graph** und nutze **Tools** für passende Abfragen, Berechnungen oder
+bestätigte Aktionen. Die drei Bereiche zeigen dieselbe Geschäftsrealität.
+
 ## 1. Mit einer operativen Frage beginnen
 
 Wähle ein Commitment, eine Reservation, ein Movement, einen Fact oder einen LedgerEntry, der die

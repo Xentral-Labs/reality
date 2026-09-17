@@ -3,6 +3,10 @@
 A useful result is not only visible; it is explainable. Start from an operational answer and move
 backward through the shortest true links.
 
+Start in **Business Facts** with an individual record, follow its relationships and timeline in
+**Business Graph**, and use **Tools** for relevant queries, calculations or confirmed actions. The
+three areas work with the same business reality.
+
 ## 1. Start with an operational question
 
 Choose a Commitment, Reservation, Movement, Fact, or LedgerEntry that affects today's work. Ask:

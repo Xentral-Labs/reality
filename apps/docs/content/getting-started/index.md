@@ -46,9 +46,32 @@ is an ordinary command; beside it you read every call Reality made and what it r
 
 ## Read the first result
 
-Open **Home** for the current position. Use **Exceptions** for conditions needing attention,
-**Activity** for recent change and the appropriate workspace View for the authoritative register.
+Open **Home** for the current position. Use **Exceptions** for conditions needing attention, **Event
+history** for recorded events and the appropriate workspace View for the authoritative register.
 Select one important result and open **Inspect**.
+
+## Business Graph, Business Facts and Tools
+
+Start with the same question you would ask at work: “Why are six lamps still open?”
+
+- **Business Facts** shows the elements of the case: for example Source Records, Documents,
+  Commitments, Reservations, Movements and Ledger Entries. Open a record to inspect its details and
+  the evidence actually available.
+- **Business Graph** shows how those elements connect and what happened over time. Follow the
+  delivery commitment to its reservation and shipment, then to the available source data. The graph
+  and timeline show retained history.
+- **Tools** shows what Reality can do with them. **Actions** contains commands; **Calculated views**
+  contains views and projections. A view answers a question, such as which deliveries are open. An
+  action changes records through its existing preview and confirmation flow.
+
+**Business Facts is the group name for records.** The **Fact** data type still means one specific
+source-supported observation. Grouping a Commitment or Movement here does not turn it into a Fact.
+Calculated views belong to Tools; they are not recorded as new source authority. For stored
+projections, check when the result was calculated.
+
+The separate **Event history** lists recorded Business Events chronologically. Business Graph
+instead explores relationships and the timeline of a business context. Use the
+[Tools reference](/tool-usage/) for capabilities and parameters.
 
 ## An example to think through
 

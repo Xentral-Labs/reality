@@ -33,3 +33,22 @@ User approval covers the renamed navigation and directly related headings/refere
 | FR-001 | T001,T002 | Inspector navigation regression |
 | FR-002 | T002,T003 | Caller review, vocabulary tests and browser |
 | FR-003 | T001,T003 | Legacy route tests, language audits and source-value tests |
+
+## Public explanation of the Inspector (2026-09-17)
+
+**FR-004**: Public documentation and the provider landing/explanation pages introduce
+Business Graph, Business Facts and Tools as the same three product groups users see
+in the Inspector. Business Graph explains relationships and their timeline; Business
+Facts groups inspectable records, including source/evidence and operational records;
+Tools groups actions/commands and read-only views/projections. Preserve Fact as a
+specific data type, distinguish reads from confirmed changes, and retain Event history
+as a separate chronological event log. No promise of complete external history.
+
+Acceptance: readers can map the three names to the UI, follow one delivery example
+from records to relationships to a read/action, and distinguish a Fact record from the
+Business Facts group. English and German docs and all four landing languages use
+identical product names. Public Context Graph wording is replaced; technical model
+identifiers and generated catalogs are unchanged. User approved this clarification.
+
+Traceability: FR-004 → T004 → docs link/build checks, site vocabulary/localization
+contracts and browser inspection of desktop/mobile examples.
