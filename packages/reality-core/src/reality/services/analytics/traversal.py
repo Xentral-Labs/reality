@@ -46,6 +46,7 @@ class ResolvedHop:
     node: str
     direction: str
     fans_out: bool
+    depth: tuple[int, int] | None = None
     as_exists: bool = False
 
 
@@ -68,9 +69,15 @@ class TraversalResult:
     path: tuple[str, ...]
 
 
-def _fans_out(edge: Edge, direction: str) -> bool:
+def _fans_out(edge: Edge, direction: str, recursive: bool = False) -> bool:
     """Following `contains` forwards reaches many lines; `ordered_by` backwards
-    reaches many orders. Both multiply whatever came before them."""
+    reaches many orders. Both multiply whatever came before them.
+
+    A variable-depth hop always reaches many rows, whichever way it is walked,
+    so it fans out regardless of the edge's own multiplicity.
+    """
+    if recursive:
+        return True
     return (edge.multiplicity == "1:n") == (direction == "out")
 
 
@@ -97,7 +104,20 @@ def resolve(graph: ReportingGraph, query: Traversal) -> ResolvedPath:
                 f"{node_of[origin]!r}. Follow it the other way round, or take another edge."
             )
         if hop.depth and not edge.recursive:
-            raise TraversalRefused(f"edge {hop.edge!r} is not declared recursive")
+            raise TraversalRefused(
+                f"edge {hop.edge!r} is not declared recursive, so it cannot be "
+                "walked to a variable depth"
+            )
+        if edge.recursive and not hop.depth:
+            raise TraversalRefused(
+                f"edge {hop.edge!r} is recursive, so a hop along it names the depth "
+                f"it walks, at most {edge.recursive.max_depth}"
+            )
+        if hop.depth and edge.recursive and hop.depth[1] > edge.recursive.max_depth:
+            raise TraversalRefused(
+                f"edge {hop.edge!r} is declared to a depth of "
+                f"{edge.recursive.max_depth}; {hop.depth[1]} is beyond it"
+            )
         hops.append(
             ResolvedHop(
                 alias=hop.as_,
@@ -106,7 +126,8 @@ def resolve(graph: ReportingGraph, query: Traversal) -> ResolvedPath:
                 edge=edge,
                 node=target,
                 direction=hop.direction,
-                fans_out=_fans_out(edge, hop.direction),
+                fans_out=_fans_out(edge, hop.direction, bool(hop.depth)),
+                depth=hop.depth,
             )
         )
         node_of[hop.as_] = target
@@ -151,7 +172,7 @@ def narrow_unreferenced_hops(path: ResolvedPath) -> ResolvedPath:
     used = _referenced(path)
     hops = list(path.hops)
     cut = len(hops)
-    while cut > 0 and hops[cut - 1].alias not in used:
+    while cut > 0 and hops[cut - 1].alias not in used and not hops[cut - 1].depth:
         cut -= 1
     if cut == len(hops):
         return path
