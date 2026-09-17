@@ -20,6 +20,7 @@ from decimal import Decimal, InvalidOperation
 from typing import Any
 
 from sqlalchemy import (
+    Date,
     DateTime,
     Integer,
     Numeric,
@@ -163,7 +164,18 @@ def _closure(hop: ResolvedHop, node: Node, tenant_id: str):
     return anchor.union_all(recursive_term), low, high
 
 
-def _bucket(column, bucket: str):
+def _bucket(column, bucket: str, field: str):
+    """Fold a timestamp into the period somebody asked for.
+
+    Only a column that actually holds a time can be folded. A date kept as text
+    reaches PostgreSQL as `date_trunc(varchar, varchar)`, whose error names two
+    types and no question, so the refusal is made here instead.
+    """
+    if not isinstance(column.type, (DateTime, Date)):
+        raise TraversalRefused(
+            f"{field} is not kept as a date, so it cannot be grouped by {bucket}",
+            code="not_temporal",
+        )
     unit, pattern = BUCKETS[bucket]
     return func.to_char(func.date_trunc(unit, column), pattern)
 
@@ -348,7 +360,9 @@ def build(path: ResolvedPath, tenant_id: str) -> Select:
     for grouping in query.group_by:
         alias, prop = grouping.field.split(".", 1)
         column = frame.column(alias, prop)
-        expression = _bucket(column, grouping.bucket) if grouping.bucket else column
+        expression = column
+        if grouping.bucket:
+            expression = _bucket(column, grouping.bucket, grouping.field)
         name = grouping.as_ or grouping.field
         labels.append(expression.label(name))
         group_keys.append(expression)

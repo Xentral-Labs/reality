@@ -21,6 +21,7 @@ const REFUSALS: Record<string, string> = {
   depth_exceeded: "That is deeper than this connection allows.",
   not_recursive: "This connection does not repeat, so it has no depth.",
   path_too_long: "This path takes more steps than the model allows.",
+  not_temporal: "This field is not kept as a date, so it cannot be grouped by period.",
   read_only: "This surface only reads.",
   no_match_clause: "A question starts with MATCH.",
   no_return_clause: "A question says what it wants back, with RETURN.",

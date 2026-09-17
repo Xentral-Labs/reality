@@ -17154,3 +17154,18 @@ Object.assign(dictionaries.es, {
     "Púlsalo otra vez para invertir el orden, una más para dejarlo sin ordenar",
   "Another number of rows": "Otro número de filas",
 });
+
+// A date kept as text can still be filtered and listed; only the fold into
+// months is refused, so the sentence says that rather than "wrong type".
+Object.assign(dictionaries.de, {
+  "This field is not kept as a date, so it cannot be grouped by period.":
+    "Dieses Feld ist nicht als Datum hinterlegt und lässt sich deshalb nicht nach Zeitraum aufteilen.",
+});
+Object.assign(dictionaries.nl, {
+  "This field is not kept as a date, so it cannot be grouped by period.":
+    "Dit veld staat niet als datum opgeslagen en is daarom niet per periode op te splitsen.",
+});
+Object.assign(dictionaries.es, {
+  "This field is not kept as a date, so it cannot be grouped by period.":
+    "Este campo no se guarda como fecha, así que no puede dividirse por periodo.",
+});
