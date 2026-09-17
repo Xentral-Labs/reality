@@ -18,6 +18,8 @@ explicit_operations:
   - reality.services.analytics.reports:get_report
   - reality.services.analytics.reports:change_report
   - reality.services.analytics.proposals:preview
+  - reality.services.analytics.traversal:run_traversal
+  - reality.services.analytics.compile_sql:execute
   - reality.services.read_contracts:read_metadata
   - reality.services.read_contracts:discovery_page
   - reality.services.read_contracts:finance_balances
@@ -827,3 +829,22 @@ families:
       - id: tests/test_analytics_adapters.py::test_analytics_tenant_and_private_owner_boundaries
         assertion: boundary
         operations: *analytics_operations
+
+  - key: reporting_graph
+    description: Traversals over the declared reporting graph stay inside the asking company.
+    classification: boundary
+    reason: >-
+      The compiler emits the tenant predicate on every node of every statement,
+      including inside recursive terms and existence tests, and authoring input
+      becomes bound parameters and declaration lookups rather than SQL text. There
+      is no barrier view and no role per tenant to keep in step.
+    authority: 224/FR-006, 224/FR-011, 224/SC-005
+    operations: &reporting_graph_operations
+      - reality.services.analytics.traversal:run_traversal
+      - reality.services.analytics.compile_sql:execute
+      - tool:graph.catalog
+      - tool:graph.ask
+    evidence:
+      - id: tests/test_reporting_graph_isolation.py::test_a_neighbour_with_identical_labels_is_never_reached
+        assertion: boundary
+        operations: *reporting_graph_operations

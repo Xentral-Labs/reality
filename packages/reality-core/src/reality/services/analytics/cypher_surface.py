@@ -24,6 +24,7 @@ import re
 from typing import Any
 
 from reality.domain.traversal import Traversal
+from reality.services.core import InvalidOperation
 
 BUCKETS = {"day", "week", "month", "quarter", "year"}
 AGGREGATES = {"sum", "count", "total"}
@@ -52,8 +53,16 @@ CONDITION = re.compile(
 )
 
 
-class CypherRefused(ValueError):
-    """The text is not a question this surface accepts, and why."""
+class CypherRefused(InvalidOperation):
+    """The text is not a question this surface accepts, and why.
+
+    Like a traversal refusal, it carries a stable code beside its sentence: the
+    caller branches on the code, the person reads the reason.
+    """
+
+    def __init__(self, message: str, code: str = "unreadable"):
+        super().__init__(message)
+        self.code = code
 
 
 # Clause keywords are matched as whole patterns rather than bare words, because a
@@ -86,7 +95,7 @@ def _value(token: str, parameters: dict[str, Any]) -> Any:
     if token.startswith("$"):
         name = token[1:]
         if name not in parameters:
-            raise CypherRefused(f"no value was supplied for ${name}")
+            raise CypherRefused(f"no value was supplied for ${name}", "missing_parameter")
         return parameters[name]
     if token[:1] in "'\"":
         return token[1:-1]
@@ -131,7 +140,7 @@ def _match(
         if root is None:
             if not label:
                 raise CypherRefused(
-                    "the first node of a path names its kind, as (o:order)"
+                    "the first node of a path names its kind, as (o:order)", "untyped_start"
                 )
             root = {"from": label, "as": alias}
         while position < len(segment):
@@ -145,7 +154,7 @@ def _match(
             outward = relation.group("tail") == "->"
             if inward == outward:
                 raise CypherRefused(
-                    "a relationship points one way: -[:edge]-> or <-[:edge]-"
+                    "a relationship points one way: -[:edge]-> or <-[:edge]-", "ambiguous_direction"
                 )
             hop: dict[str, Any] = {
                 "edge": relation.group("edge"),
@@ -195,7 +204,7 @@ def _where(clause: str, parameters: dict[str, Any]) -> list[dict]:
             "WHERE accepts comparisons on properties joined by AND, and nothing else"
         )
     if "OR" in re.findall(r"\b\w+\b", clause.upper()):
-        raise CypherRefused("WHERE joins its comparisons with AND; OR is not admitted")
+        raise CypherRefused("WHERE joins its comparisons with AND; OR is not admitted", "unsupported_syntax")
     return conditions
 
 
@@ -247,9 +256,9 @@ def parse(text: str, parameters: dict[str, Any] | None = None) -> Traversal:
         "LOAD",
     ):
         if re.search(rf"\b{forbidden}\b", text, re.IGNORECASE):
-            raise CypherRefused(f"{forbidden} is not admitted; this surface only reads")
+            raise CypherRefused(f"{forbidden} is not admitted; this surface only reads", "read_only")
     if not re.search(r"\bMATCH\b", text, re.IGNORECASE):
-        raise CypherRefused("a question starts with MATCH")
+        raise CypherRefused("a question starts with MATCH", "no_match_clause")
 
     match_clause = _clause(text, "MATCH", ("WHERE", "RETURN", "ORDER BY", "LIMIT"))
     where_clause = _clause(text, "WHERE", ("RETURN", "ORDER BY", "LIMIT"))
@@ -258,7 +267,7 @@ def parse(text: str, parameters: dict[str, Any] | None = None) -> Traversal:
     limit_clause = _clause(text, "LIMIT", ())
 
     if not return_clause.strip():
-        raise CypherRefused("a question says what it wants back, with RETURN")
+        raise CypherRefused("a question says what it wants back, with RETURN", "no_return_clause")
 
     root, follow, pattern_filters = _match(match_clause, parameters)
     conditions = pattern_filters + _where(where_clause, parameters)

@@ -31,10 +31,21 @@ from sqlalchemy.orm import Session
 from reality.domain.reporting_graph import Edge, Measure, ReportingGraph
 from reality.domain.traversal import Traversal
 from reality.services.analytics.graph_model import reporting_graph
+from reality.services.core import InvalidOperation
 
 
-class TraversalRefused(ValueError):
-    """The question cannot be answered correctly, and why."""
+class TraversalRefused(InvalidOperation):
+    """The question cannot be answered correctly, and why.
+
+    A refusal carries a stable code beside its sentence, so a caller can branch on
+    the kind of problem while a person reads the reason. It is an InvalidOperation
+    because that is what it is: the question was understood and cannot be answered,
+    which is different from the service being unavailable.
+    """
+
+    def __init__(self, message: str, code: str = "refused"):
+        super().__init__(message)
+        self.code = code
 
 
 @dataclass(frozen=True)
@@ -83,7 +94,7 @@ def _fans_out(edge: Edge, direction: str, recursive: bool = False) -> bool:
 
 def resolve(graph: ReportingGraph, query: Traversal) -> ResolvedPath:
     if query.from_ not in graph.nodes:
-        raise TraversalRefused(f"there is no node called {query.from_!r} in the model")
+        raise TraversalRefused(f"there is no node called {query.from_!r} in the model", "unknown_node")
     node_of = {query.as_: query.from_}
     hops: list[ResolvedHop] = []
     previous = query.as_
@@ -93,7 +104,7 @@ def resolve(graph: ReportingGraph, query: Traversal) -> ResolvedPath:
         if edge is None:
             raise TraversalRefused(
                 f"there is no edge called {hop.edge!r} in the model. Declare it with "
-                "its multiplicity and it works everywhere."
+                "its multiplicity and it works everywhere.", "unknown_edge"
             )
         source, target = (
             (edge.from_, edge.to) if hop.direction == "out" else (edge.to, edge.from_)
@@ -101,22 +112,22 @@ def resolve(graph: ReportingGraph, query: Traversal) -> ResolvedPath:
         if node_of[origin] != source:
             raise TraversalRefused(
                 f"edge {hop.edge!r} runs from {source!r}, but the path is at "
-                f"{node_of[origin]!r}. Follow it the other way round, or take another edge."
+                f"{node_of[origin]!r}. Follow it the other way round, or take another edge.", "edge_direction"
             )
         if hop.depth and not edge.recursive:
             raise TraversalRefused(
                 f"edge {hop.edge!r} is not declared recursive, so it cannot be "
-                "walked to a variable depth"
+                "walked to a variable depth", "not_recursive"
             )
         if edge.recursive and not hop.depth:
             raise TraversalRefused(
                 f"edge {hop.edge!r} is recursive, so a hop along it names the depth "
-                f"it walks, at most {edge.recursive.max_depth}"
+                f"it walks, at most {edge.recursive.max_depth}", "depth_required"
             )
         if hop.depth and edge.recursive and hop.depth[1] > edge.recursive.max_depth:
             raise TraversalRefused(
                 f"edge {hop.edge!r} is declared to a depth of "
-                f"{edge.recursive.max_depth}; {hop.depth[1]} is beyond it"
+                f"{edge.recursive.max_depth}; {hop.depth[1]} is beyond it", "depth_exceeded"
             )
         hops.append(
             ResolvedHop(
@@ -138,12 +149,12 @@ def resolve(graph: ReportingGraph, query: Traversal) -> ResolvedPath:
     for name in query.measures:
         measure = graph.measures.get(name)
         if measure is None:
-            raise TraversalRefused(f"there is no measure called {name!r} in the model")
+            raise TraversalRefused(f"there is no measure called {name!r} in the model", "unknown_measure")
         owners = [alias for alias, node in node_of.items() if node == measure.node]
         if not owners:
             raise TraversalRefused(
                 f"measure {name!r} lives on {measure.node!r}, which this path never "
-                "reaches. Follow an edge to it first."
+                "reaches. Follow an edge to it first.", "measure_unreachable"
             )
         measures[name] = measure
         measure_alias[name] = owners[0]
@@ -216,7 +227,7 @@ def check_fan_out(path: ResolvedPath) -> None:
         raise TraversalRefused(
             f"measure {name!r} is counted once per {measure.node!r}, but the edge "
             f"{edge.edge_name!r} reaches many {reached!r} rows for each one, so "
-            f"summing it here would multiply the total.{offer}"
+            f"summing it here would multiply the total.{offer}", "fan_out"
         )
 
 
@@ -236,7 +247,7 @@ def check_units(path: ResolvedPath) -> None:
             if not owners:
                 raise TraversalRefused(
                     f"measure {name!r} is measured in the unit of {unit.from_node!r}, "
-                    "which this path never reaches"
+                    "which this path never reaches", "unit_unreachable"
                 )
             home = owners[0]
         field = f"{home}.{unit.column}"
@@ -244,7 +255,7 @@ def check_units(path: ResolvedPath) -> None:
             axis = ", ".join(measure.never_across) or unit.column
             raise TraversalRefused(
                 f"measure {name!r} may not be summed across {axis}. Group by "
-                f"{field!r}, or filter the question down to one."
+                f"{field!r}, or filter the question down to one.", "unit_mismatch"
             )
 
 
@@ -254,7 +265,7 @@ def check_additivity(path: ResolvedPath) -> None:
         if has_time_axis and "time" in measure.never_across:
             raise TraversalRefused(
                 f"measure {name!r} is a state, not a flow, so it is not additive "
-                "over time. Ask for it as it stands, without a time axis."
+                "over time. Ask for it as it stands, without a time axis.", "not_additive"
             )
 
 
@@ -272,7 +283,7 @@ def check_properties(path: ResolvedPath) -> None:
             available = ", ".join(sorted(known(alias))[:8])
             raise TraversalRefused(
                 f"{path.node_of[alias]!r} has no property called {prop!r}. "
-                f"It has: {available}."
+                f"It has: {available}.", "unknown_property"
             )
 
 
@@ -281,7 +292,7 @@ def plan(query: Traversal, graph: ReportingGraph | None = None) -> ResolvedPath:
     graph = graph or reporting_graph()
     if len(query.follow) > graph.limits.max_path_length:
         raise TraversalRefused(
-            f"a path may take at most {graph.limits.max_path_length} steps"
+            f"a path may take at most {graph.limits.max_path_length} steps", "path_too_long"
         )
     path = resolve(graph, query)
     check_properties(path)
