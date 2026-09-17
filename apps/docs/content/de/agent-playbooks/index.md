@@ -1,5 +1,7 @@
 # Ein Geschäft mit Agenten auf Reality betreiben
 
+[![Außensysteme oben; Aufträge und Zahlungen kommen von selbst in Reality an; Lieferungen, Retourenpakete, Kundenmails und Anrufe erreichen die Schicht darüber, die sie bucht; die Schicht liest, schlägt vor, entscheidet und prüft gegen Reality; Verfügbarkeit meldet die Schicht nach außen, nicht Reality](/agent-playbooks-layers-de.svg)](/agent-playbooks-layers-de.svg)
+
 [Auswertungen](../analytics/#so-bedient-ein-agent-die-auswertung) ergänzt die operativen Playbooks:
 `analytics_catalog` liefert die Begriffe, `analytics_query` die Antwort und `analytics_contributors`
 die Belege. Dieselbe Definition lässt sich im Explorer bearbeiten.
@@ -72,8 +74,6 @@ eine Lesezeit-Beobachtung, ein Kandidat, eine Fehlmenge, eine Abweichung, wird n
 gespeichert.
 
 ## Was von selbst kommt und was nicht
-
-![Außensysteme oben; Aufträge und Zahlungen kommen von selbst in Reality an; Lieferungen, Retourenpakete, Kundenmails und Anrufe erreichen die Schicht darüber, die sie bucht; die Schicht liest, schlägt vor, entscheidet und prüft gegen Reality; Verfügbarkeit meldet die Schicht nach außen, nicht Reality](/agent-playbooks-layers-de.svg)
 
 Nur Aufträge und Zahlungen kommen von selbst (grün). Lieferungen an der Rampe, Retourenpakete,
 Kundenmails und Anrufe erreichen die Schicht darüber (grau), die sie bucht: Wareneingänge, Retouren,

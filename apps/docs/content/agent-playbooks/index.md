@@ -1,5 +1,7 @@
 # Run a business on Reality with agents
 
+[![Outside systems on top; orders and payments arrive in Reality by themselves; deliveries, return parcels, customer mail and calls reach the layer above, which books them; the layer reads, proposes, decides and verifies against Reality; availability is reported outward by the layer, not by Reality](/agent-playbooks-layers-en.svg)](/agent-playbooks-layers-en.svg)
+
 Reality ships no agents of its own and no workflow editor. What Reality provides is the structure
 agents can work on: records with a clear origin, read tools that show the need, proposal tools that
 prepare a change, and the **Decisions** page where a person approves it. The agents and workflows
@@ -66,8 +68,6 @@ rate or a formula; the proposal carries the value someone stated. And a read-tim
 candidate, a shortage, an exception, is never stored as a decision.
 
 ## What arrives by itself and what does not
-
-![Outside systems on top; orders and payments arrive in Reality by themselves; deliveries, return parcels, customer mail and calls reach the layer above, which books them; the layer reads, proposes, decides and verifies against Reality; availability is reported outward by the layer, not by Reality](/agent-playbooks-layers-en.svg)
 
 Only orders and payments come in on their own (green). Deliveries at the ramp, return parcels,
 customer mail and calls reach the layer above (grey), which books them: goods receipts, returns,
