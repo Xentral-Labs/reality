@@ -22,7 +22,7 @@ from reality.web import api, auth
 from reality.web import app as web
 
 
-def test_practice_company_is_shared_with_app(session, playground_http):
+def test_practice_company_is_shared_with_app(session, playground_http, monkeypatch):
     client, tenant, user, run, login = playground_http
     run.sandbox_kind = "practice"
     session.flush()
@@ -47,13 +47,13 @@ def test_practice_company_is_shared_with_app(session, playground_http):
     assert client.get(f"/api/tenants/{tenant.id}/attention").status_code == 200
     assert client.get(f"/api/tenants/{tenant.id}/attention/foreign").status_code == 404
 
-    assert client.get(f"/api/tenants/{tenant.id}/analytics").status_code == 200
-    assert (
-        client.get(
-            f"/api/tenants/{tenant.id}/analytics/contributors?metric=open"
-        ).status_code
-        == 200
+    # Composable analytics uses the shared auth database dependency.
+    monkeypatch.setitem(
+        web.app.dependency_overrides,
+        auth.database_session,
+        web.app.dependency_overrides[api.database_session],
     )
+    assert client.get(f"/api/tenants/{tenant.id}/analytics/catalog").status_code == 200
 
 
 @pytest.mark.parametrize(

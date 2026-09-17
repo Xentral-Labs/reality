@@ -146,11 +146,11 @@ try {
             document.getElementById(n.getAttribute("aria-labelledby"))?.textContent.trim(),
         ),
       ),
-    ["Daily work", "Workspaces", "Analytics", "Reality Inspector", "Company"],
+    ["Daily work", "Workspaces", "Reality Inspector", "Company"],
   );
-  const analytics = nav.getByRole("navigation", { name: "Analytics", exact: true });
-  assert.deepEqual(await analytics.getByRole("link").allTextContents(), ["Reports"]);
-  assert.equal(await nav.getByRole("link", { name: "Analytics", exact: true }).count(), 0);
+  const workspaces = nav.getByRole("navigation", { name: "Workspaces", exact: true });
+  assert.equal((await workspaces.getByRole("link").allTextContents()).at(-1), "Analytics");
+  assert.equal(await nav.getByRole("navigation", { name: "Analytics", exact: true }).count(), 0);
   assert.equal(primary.at(-1).trim(), "Settings");
   assert.ok(
     await nav
@@ -158,7 +158,7 @@ try {
       .first()
       .evaluate((n) => n.getBoundingClientRect().height <= 38),
   );
-  await page.getByRole("link", { name: "Reports", exact: true }).click();
+  await page.getByRole("link", { name: "Analytics", exact: true }).click();
   await page.waitForURL(/app\/analytics/);
   assert.equal(await input.inputValue(), "Keep this draft");
   await page.getByRole("button", { name: "Switch company", exact: true }).click();
@@ -226,7 +226,7 @@ try {
           assert.ok(headerControls.x >= chat.x);
         }
         assert.equal(
-          (await page.locator("#analytics-navigation-label").textContent()).trim(),
+          (await page.getByRole("link", { name: "Analytics", exact: true }).textContent()).trim(),
           "Analytics",
         );
         assert.equal(

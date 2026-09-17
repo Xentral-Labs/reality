@@ -246,7 +246,6 @@ def test_two_connections_serialize_stale_reference_updates(postgres_database):
 
 def test_practice_business_reads_do_not_grant_mutation_authority(session):
     from reality.db.core import Tenant, uid
-    from reality.services.company_insights import company_insights
 
     tenant = Tenant(id=uid("ten"), name="Isolated practice", purpose="playground")
     session.add(tenant)
@@ -256,7 +255,6 @@ def test_practice_business_reads_do_not_grant_mutation_authority(session):
 
     with pytest.raises(InvalidOperation):
         require_ordinary_workspace(session, tenant.id)
-    assert company_insights(session, tenant.id)["position"]["open"] == 0
 
 
 def _confirm(session, tid, family, operation, record, request_id):

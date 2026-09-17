@@ -26,24 +26,6 @@ const pager = (total) => ({
   has_next: false,
   has_previous: false,
 });
-const series = Array.from({ length: 30 }, (_, i) => ({
-  date: `2026-08-${String(i + 1).padStart(2, "0")}`,
-  created: [7, 8, 4, 3, 6][i % 5],
-  shipped: [5, 3, 7, 0, 4][i % 5],
-}));
-const insights = {
-  position: {
-    open: 12,
-    fully_reserved: 8,
-    needs_reservation: 4,
-    overdue: 2,
-    unknown_due: 1,
-    coverage_percent: "66.7",
-  },
-  series,
-  window: { days: 30, start: "2026-08-01T00:00:00Z", end: "2026-08-30T12:00:00Z", timezone: "UTC" },
-  observed_at: "2026-08-30T12:00:00Z",
-};
 for (const family of ["customer", "supplier", "item", "location"])
   records.set(family, {
     id: `${family}_one`,
@@ -89,12 +71,6 @@ await page.route("**/api/**", async (route) => {
       default_tenant_id: tenant,
     });
   if (path.endsWith("/application-reference")) return reply({ workspaces: [] });
-  if (path.endsWith("/analytics")) return reply(insights);
-  if (path.endsWith("/analytics/contributors"))
-    return reply({
-      items: [{ id: "movement_one", kind: "movement", at: "2026-08-30T10:00:00Z" }],
-      page: pager(1),
-    });
   if (path.endsWith("/dashboard"))
     return reply({
       totals: { open_deliveries: 12, exceptions: 2, pending_decisions: 1 },
@@ -190,15 +166,9 @@ await mkdir(out, { recursive: true });
 try {
   await page.goto(`${base}/app?tenant=${tenant}`);
   await page.getByRole("button", { name: "Open analytics", exact: true }).click();
-  await page.getByRole("heading", { name: "Understand the flow of your business." }).waitFor();
-  await page.getByRole("button", { name: "90 days", exact: true }).click();
-  assert.ok(page.url().includes("days=90"));
-  await page.getByText("Daily values and supporting records", { exact: true }).click();
-  await page.getByRole("button", { name: "Shipment movements 2026-08-01: 5", exact: true }).click();
-  assert.ok(page.url().includes("metric=shipped"));
-  await page.getByRole("button").filter({ hasText: "movement_one" }).click();
-  await page.getByRole("dialog").waitFor();
-  await page.keyboard.press("Escape");
+  const tabs = page.getByRole("navigation", { name: "Analytics views" });
+  await tabs.getByRole("button", { name: "Explore", exact: true }).waitFor();
+  assert.deepEqual(await tabs.getByRole("button").allTextContents(), ["Explore", "My reports"]);
   await page.goto(`${base}/app/warehouse?tenant=${tenant}&warehouse_view=movements`);
   const menu = page.locator(".register-actions > summary");
   await menu.click();
@@ -286,7 +256,7 @@ try {
         for (const workspace of ["analytics", "master-data"]) {
           await page.goto(`${base}/app/${workspace}?tenant=${tenant}&family=item&record=item_one`);
           await page.locator("h1").waitFor();
-          if (workspace === "analytics") await page.locator('svg[role="img"]').waitFor();
+          if (workspace === "analytics") await page.locator(".register-tabs").waitFor();
           else await page.getByRole("heading", { name: "Desk lamp", exact: true }).waitFor();
           assert.ok(
             await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth),
@@ -332,7 +302,7 @@ try {
       }
   assert.deepEqual(errors, []);
   console.log(
-    "PASS: analytics drill-down, four-family review/reload/confirm, lost response recovery without replay, edit snapshot, read retry, empty search, keyboard focus and 64 localized workspace/form/review screenshots.",
+    "PASS: analytics navigation, four-family review/reload/confirm, lost response recovery without replay, edit snapshot, read retry, empty search, keyboard focus and 64 localized workspace/form/review screenshots.",
   );
 } finally {
   await browser.close();

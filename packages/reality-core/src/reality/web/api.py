@@ -930,15 +930,6 @@ def get_attention_detail(tenant_id: str, identity: str, session: DatabaseSession
 
 
 ReferenceFamily = Literal["customer", "supplier", "item", "location"]
-AnalyticsMetric = Literal[
-    "open",
-    "fully_reserved",
-    "needs_reservation",
-    "overdue",
-    "unknown_due",
-    "created",
-    "shipped",
-]
 
 
 @router.get("/activity-volume")
@@ -984,42 +975,6 @@ def tenant_readiness(tenant_id: str, session: DatabaseSession):
         return readiness(session, tenant_id)
     except (NotFound, InvalidOperation) as error:
         raise api_error(error) from error
-
-
-@router.get("/analytics")
-def get_company_insights(
-    tenant_id: str, session: DatabaseSession, days: int = Query(30, ge=7, le=90)
-):
-    from reality.services.company_insights import company_insights
-
-    try:
-        return company_insights(session, tenant_id, days=days)
-    except (NotFound, InvalidOperation) as error:
-        raise api_error(error) from error
-    except ValueError as error:
-        raise HTTPException(status_code=422, detail=str(error)) from error
-
-
-@router.get("/analytics/contributors")
-def get_insight_contributors(
-    tenant_id: str,
-    session: DatabaseSession,
-    metric: AnalyticsMetric,
-    days: int = Query(30, ge=7, le=90),
-    day: str | None = None,
-    page: int = Query(1, ge=1),
-    size: int = Query(50, ge=1, le=100),
-):
-    from reality.services.company_insights import insight_contributors
-
-    try:
-        return insight_contributors(
-            session, tenant_id, metric=metric, days=days, day=day, page=page, size=size
-        )
-    except (NotFound, InvalidOperation) as error:
-        raise api_error(error) from error
-    except ValueError as error:
-        raise HTTPException(status_code=422, detail=str(error)) from error
 
 
 @router.get("/master-data")

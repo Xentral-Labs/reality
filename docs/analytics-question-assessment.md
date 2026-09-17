@@ -59,7 +59,7 @@ Summary: 4 existing-read cases, 19 composition cases and 7 substantial domain-de
 
 1. **The primary access gap is composability.** The MCP catalog exposes discovery, fixed operational reads and focused finance tools. The inspected public catalog has no general analytical request combining arbitrary supported dimensions, measures, joins and time filters. Discovery mainly offers family, text query and ID; it does not replace analytical aggregation.
 2. **Operational definitions must survive reuse.** `uncovered_demand` currently means unreserved open demand. `ship_ready` derives from reservations and holds. Neither establishes simultaneous stock feasibility. A generic query must not silently give these fields a stronger business meaning.
-3. **The model already holds more history than the dashboard exposes.** Order dates, line prices, promise revisions, physical returns and exact invoice-line links are present. `company_insights` currently exposes fixed metrics and 7/30/90-day windows; its created series uses commitment creation time, which is not order placement time.
+3. **The model already holds more history than the dashboard exposes.** Order dates, line prices, promise revisions, physical returns and exact invoice-line links are present. The legacy `company_insights` (retired by spec 221) exposed fixed metrics and 7/30/90-day windows; its created series uses commitment creation time, which is not order placement time.
 4. **Retained history is not historical reconstruction.** Read metadata explicitly reports retained-record scope and unknown upstream freshness. Source streams version external evidence; Shopify versions above the first require review in the inspected interpreter. Neither a latest-source pointer nor a raw document count is a general order-version reconciliation rule. An analytics implementation must establish each supported intake path's order identity and version policy before counting.
 5. **Pagination does not establish analytical consistency or bounded cost.** Current live keyset reads are not an atomic multi-query snapshot. Operational derivation can read the full relevant tenant state before slicing. Loading every page into an agent is therefore a weak foundation for exact totals at scale.
 6. **Missing business evidence must remain visible.** Unknown order dates, incomplete historical imports, missing item identity and incomparable units should produce explicit coverage information. Database defaults alone do not prove that a source supplied a zero price or amount.
@@ -90,7 +90,7 @@ Use deterministic fixtures with exact expected answers, not just successful quer
 - Payments allocated later than their effective date, partial settlement and changed terms; unsupported historical claims are explicit.
 - Complete aggregation across more rows than a tool page, repeatable result/trace consistency as designed, timeout/row limits and representative tenant-size performance.
 
-Existing tests provide reusable setup and expected behavior, not proof that the candidate tool exists. Relevant files include `test_mcp_read_contract.py`, `test_commitment_revisions.py`, `test_partial_invoicing_rebilling.py`, `test_inventory_and_fulfillment.py`, `test_company_insights.py`, `test_unified_payment_entry.py`, `test_returns.py`, and operational exception derivation tests under `packages/reality-core/tests/`.
+Existing tests provide reusable setup and expected behavior, not proof that the candidate tool exists. Relevant files include `test_mcp_read_contract.py`, `test_commitment_revisions.py`, `test_partial_invoicing_rebilling.py`, `test_inventory_and_fulfillment.py`, `test_unified_payment_entry.py`, `test_returns.py`, and operational exception derivation tests under `packages/reality-core/tests/`.
 
 ## What this establishes about a graph database
 
@@ -109,4 +109,4 @@ If later questions require extensive variable-depth relationship exploration, co
 - **[F] Finance:** `financial_open_items`, `aging_register`, `invoice_due_date`, `effective_payment_term` in [core services](../packages/reality-core/src/reality/services/core.py); [party balances](../packages/reality-core/src/reality/services/finance/balances.py).
 - **[O] Operational contracts:** [order to cash](features/order_to_cash.md), [procure to pay](features/procure_to_pay.md), [physical shipments](features/shipments.md).
 - **[X] Exceptions:** [exception definitions and test references](../packages/reality-core/config/operational_exception_catalog.yaml).
-- **Dashboard scope:** [company insights](../packages/reality-core/src/reality/services/company_insights.py).
+- **Dashboard scope:** [retired company insights](../specs/221-remove-analytics-overview/spec.md).

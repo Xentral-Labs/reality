@@ -58,20 +58,15 @@ test("workspace routes and bounded filters survive reload without leaking compan
     ),
   );
   assert.equal(selection.family, "item");
-  assert.equal(selection.days, 90);
   assert.equal(
     readSelection(new URL(selectionUrl(selection), "https://example.test")).record,
     "it1",
   );
   assert.equal(companySelection(selection, "two").record, "");
-  assert.equal(companySelection(selection, "two").day, "");
   const bad = readSelection(
     new URL("https://example.test/app/analytics?days=999&family=secret&metric=revenue&day=bad"),
   );
-  assert.equal(bad.days, 30);
   assert.equal(bad.family, "customer");
-  assert.equal(bad.metric, "open");
-  assert.equal(bad.day, "");
 });
 
 test("warehouse and attention selections preserve exact references and clear on company switch", async () => {

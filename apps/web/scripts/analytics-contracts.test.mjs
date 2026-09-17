@@ -2,10 +2,10 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 const source = (name) => readFileSync(new URL(`../src/${name}`, import.meta.url), "utf8");
-test("analytics navigation preserves the existing overview and isolates tenant drafts", () => {
+test("analytics navigation defaults to Explore and isolates tenant drafts", () => {
   const page = source("unified/AnalyticsPage.tsx");
-  assert.match(page, /function AnalyticsOverview/);
-  assert.match(page, /AnalyticsPreview/);
+  assert.doesNotMatch(page, /function AnalyticsOverview/);
+  assert.doesNotMatch(page, /AnalyticsPreview/);
   assert.match(page, /key=\{selection.tenant\}/);
   assert.match(source("unified/routing.ts"), /analytics_view/);
 });

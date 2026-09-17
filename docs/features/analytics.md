@@ -82,7 +82,11 @@ purchase. A newer pending source version does not erase already interpreted evid
 
 ## Web and persistence
 
-Analytics keeps Overview and adds Explore and My reports. Editing changes a draft;
+The sidebar lists Analytics last under Workspaces, after Master data, with no separate
+Analytics group. Its name and tooltip are Analytics in every language (spec 221).
+Analytics opens Explore and also offers My reports. Spec 221 retires Overview, its
+Home metric preview, and the exclusive company_insights GET reads; Home retains
+an Open analytics link. Default and legacy Overview links open Explore. Editing changes a draft;
 Run replaces the successful result only when the current request succeeds. Errors and
 cancellation retain previous results. Tables, bar/line charts and service-generated
 pivots show the executed result; supporting values open the existing Inspector.

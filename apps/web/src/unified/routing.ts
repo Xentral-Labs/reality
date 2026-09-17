@@ -42,17 +42,7 @@ export type Selection = {
   session: string;
   q: string;
   page: number;
-  analyticsView?: "overview" | "explore" | "reports";
-  days: 7 | 30 | 90;
-  metric:
-    | "open"
-    | "fully_reserved"
-    | "needs_reservation"
-    | "overdue"
-    | "unknown_due"
-    | "created"
-    | "shipped";
-  day: string;
+  analyticsView?: "explore" | "reports";
   family: "customer" | "supplier" | "item" | "location";
   record: string;
   active: boolean;
@@ -241,26 +231,9 @@ export function readSelection(url: URL): Selection {
       ? url.searchParams.get("severity")!
       : "",
     exception: url.searchParams.get("exception") || "",
-    days: [7, 30, 90].includes(Number(url.searchParams.get("days")))
-      ? (Number(url.searchParams.get("days")) as Selection["days"])
-      : 30,
     analyticsView: ["explore", "reports"].includes(url.searchParams.get("analytics_view") || "")
       ? (url.searchParams.get("analytics_view") as Selection["analyticsView"])
-      : "overview",
-    metric: [
-      "open",
-      "fully_reserved",
-      "needs_reservation",
-      "overdue",
-      "unknown_due",
-      "created",
-      "shipped",
-    ].includes(url.searchParams.get("metric") || "")
-      ? (url.searchParams.get("metric") as Selection["metric"])
-      : "open",
-    day: /^\d{4}-\d{2}-\d{2}$/.test(url.searchParams.get("day") || "")
-      ? url.searchParams.get("day")!
-      : "",
+      : "explore",
     family: ["customer", "supplier", "item", "location"].includes(
       url.searchParams.get("family") || "",
     )
@@ -317,11 +290,7 @@ export function selectionUrl(selection: Selection): string {
     query.set("import_proposal", selection.importProposal);
   if (selection.route === "settings") query.set("settings_view", selection.settingsView);
   if (selection.route === "analytics") {
-    if (selection.analyticsView && selection.analyticsView !== "overview")
-      query.set("analytics_view", selection.analyticsView);
-    query.set("days", String(selection.days));
-    query.set("metric", selection.metric);
-    if (selection.day) query.set("day", selection.day);
+    if (selection.analyticsView === "reports") query.set("analytics_view", "reports");
   }
   if (selection.route === "master-data") {
     query.set("family", selection.family);
@@ -383,9 +352,7 @@ export function companySelection(selection: Selection, tenant: string): Selectio
     q: "",
     page: 1,
     record: "",
-    day: "",
-    metric: "open",
-    analyticsView: "overview",
+    analyticsView: "explore",
     active: false,
     sourceSystem: "",
     sourceRecord: "",
