@@ -2338,10 +2338,43 @@ for _public_name, _application_name, _label in (
         ),
     )
 
+from reality.tools.graph import SCHEMAS as GRAPH_SCHEMAS
+
+for _public_name, _application_name, _label in (
+    ("graph_catalog", "graph.catalog", "Discover the business graph"),
+    ("graph_ask", "graph.ask", "Ask the business graph"),
+    ("graph_reports_list", "graph.reports.list", "List my graph reports"),
+    ("graph_report_get", "graph.reports.get", "Read my graph report"),
+):
+    MCP_TOOL_CATALOG += (
+        MCPToolDefinition(
+            _public_name,
+            _label,
+            "Discover the nodes and measures first; a refusal names the edge that fanned out or the unit that cannot be added, and is more useful than a total that is wrong.",
+            "read",
+            "Analytics",
+            {
+                "required": [],
+                **GRAPH_SCHEMAS[_application_name].model_json_schema(),
+            },
+            _read(_application_name),
+        ),
+    )
+
 from reality.domain.analytics import ReportChange as _AnalyticsReportChange
+from reality.domain.graph_report import GraphReportChange as _GraphReportChange
 
 MCP_TOOL_CATALOG = (
     *MCP_TOOL_CATALOG,
+    MCPToolDefinition(
+        "graph_report_change_propose",
+        "Change private graph report",
+        "Prepare a private graph report change. Requires trusted authenticated user context; confirm explicitly before it is saved.",
+        "propose",
+        "analytics",
+        _GraphReportChange.model_json_schema(),
+        _propose("graph.reports.change"),
+    ),
     MCPToolDefinition(
         "analytics_report_change_propose",
         "Change private report",

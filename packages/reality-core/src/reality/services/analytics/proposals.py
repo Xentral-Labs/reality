@@ -4,17 +4,24 @@ import json
 
 from cryptography.fernet import InvalidToken
 
-from reality.domain.analytics import ReportChange
 from reality.security.secrets import _master_key
-from reality.services.analytics.execution import AnalyticsError, checked_definition
-from reality.services.analytics.reports import change_report, owned, require_author
+from reality.services.analytics.execution import AnalyticsError
+from reality.services.analytics.reports import (
+    change_graph_report,
+    change_report,
+    kind,
+    owned,
+    require_author,
+)
 
 
-def prepare(session, tenant_id, principal, arguments):
+def prepare(session, tenant_id, principal, arguments, report_kind="definition"):
     owner = require_author(session, tenant_id, principal)
-    request = ReportChange.model_validate(arguments)
-    if request.definition:
-        checked_definition({"definition": request.definition.model_dump(mode="json")})
+    contract = kind(report_kind)
+    request = contract.change_model.model_validate(arguments)
+    payload = getattr(request, contract.payload_field)
+    if payload:
+        contract.check(payload)
     if request.report_id:
         report = owned(session, tenant_id, principal, request.report_id)
         if report.revision != request.expected_revision:
@@ -22,12 +29,13 @@ def prepare(session, tenant_id, principal, arguments):
                 "The report changed. Reload it before proposing a change.",
                 "revision_conflict",
             )
-    payload = {
+    sealed = {
         "tenant_id": tenant_id,
         "owner_user_id": owner,
+        "kind": contract.key,
         "arguments": request.model_dump(mode="json"),
     }
-    token = _master_key().encrypt(json.dumps(payload).encode()).decode()
+    token = _master_key().encrypt(json.dumps(sealed).encode()).decode()
     return {"private_report_change": token}, {
         "effect": "Change a private analytics report.",
         "requires_human_confirmation": True,
@@ -48,13 +56,13 @@ def reveal(session, tenant_id, principal, arguments):
             "Only the original author may confirm this private report change.",
             "user_context_required",
         )
-    return payload["arguments"]
+    return payload["arguments"], payload.get("kind", "definition")
 
 
 def execute_change(session, tenant_id, principal, arguments):
-    change_report(
-        session, tenant_id, principal, reveal(session, tenant_id, principal, arguments)
-    )
+    sealed, report_kind = reveal(session, tenant_id, principal, arguments)
+    save = change_graph_report if report_kind == "graph" else change_report
+    save(session, tenant_id, principal, sealed)
     return {"private_report_changed": True}
 
 
@@ -73,7 +81,7 @@ def preview(session, tenant_id, principal, proposal_id):
     )
     if proposal is None:
         raise NotFound("Report proposal not found.")
-    arguments = reveal(session, tenant_id, principal, json.loads(proposal.input))
+    arguments, _kind = reveal(session, tenant_id, principal, json.loads(proposal.input))
     report = (
         owned(session, tenant_id, principal, arguments["report_id"], deleted=True)
         if arguments.get("report_id")
@@ -85,6 +93,7 @@ def preview(session, tenant_id, principal, proposal_id):
         "operation": arguments["operation"],
         "name": arguments.get("name") or (report.name if report else None),
         "definition": arguments.get("definition")
+        or arguments.get("question")
         or (report.definition if report else None),
         "expected_revision": arguments.get("expected_revision"),
     }

@@ -545,6 +545,7 @@ labels:
   de:
     commands:
       change_report: Private Auswertung ändern
+      change_graph_report: Private Graph-Auswertung ändern
       list_targets: Buchhaltungsziele anzeigen
       list_target_references: Zielreferenzen anzeigen
       list_mappings: Kontenzuordnungen anzeigen

@@ -8,6 +8,13 @@
       "effect": "Save, rename, duplicate or delete the authenticated user's private analytical definition with revision and retry protection."
     },
     {
+      "name": "Change Private Graph Report",
+      "service": "change_graph_report",
+      "mode": "mutation",
+      "adapters": ["Web", "MCP", "Chat"],
+      "effect": "Save, rename, duplicate or delete the authenticated user's private graph question, recording the model version that gave it meaning, with revision and retry protection."
+    },
+    {
       "name": "List Targets",
       "service": "list_targets",
       "mode": "read",

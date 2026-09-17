@@ -206,6 +206,13 @@ commands:
     reads: [tenant, app_user, tenant_membership, analytics_report]
     writes: [analytics_report]
     effect: Save, rename, duplicate or delete the authenticated user's private analytical definition with revision and retry protection.
+  - name: Change Private Graph Report
+    service: change_graph_report
+    mode: mutation
+    adapters: [Web, MCP, Chat]
+    reads: [tenant, app_user, tenant_membership, analytics_report]
+    writes: [analytics_report]
+    effect: Save, rename, duplicate or delete the authenticated user's private graph question, recording the model version that gave it meaning, with revision and retry protection.
   - name: List Targets
     service: list_targets
     mode: read
@@ -1114,6 +1121,197 @@ commands:
     effect: Appends a reasoned correction or retraction without deleting the original event.
 
 capability_guidance:
+  graph_catalog:
+    kind: read
+    application_tool: graph.catalog
+    purpose: Discover the business nodes, how they connect, which edges fan out, and what each measure means.
+    use_when:
+    - Decide which nodes, edges and measures a question can use before asking it.
+    do_not_use_when:
+    - Invent a node, edge or measure that the catalog does not list, or assume a relationship exists because
+      two records look related.
+    required_context:
+    - Authorized tenant.
+    data_basis:
+    - document
+    - document_line
+    - party
+    - item
+    - commitment
+    - movement
+    - ledger_entry
+    - settlement_allocation
+    - location
+    - return_announcement
+    - analytics_report
+    limitations:
+    - Describes the declared model, not the data; a node with no rows still appears. Coverage is per node and
+      as-of questions are not offered.
+    freshness: The declaration is loaded at start; the catalog describes the model version it reports.
+    empty_result: The named node is not declared, not proof that the business concept is absent.
+    refusal_behavior: An unknown node is refused by name rather than returning an empty catalog.
+    confirmation: none
+    side_effects: none
+    verification:
+      role: independent
+      proves:
+      - Which questions the model can express and which measure lives at which grain.
+      does_not_prove:
+      - That any company has records for a node, or that a measure is populated.
+    unknown_when:
+    - A business concept exists in the schema but has not been declared as a node.
+    next_steps:
+    - Use graph_ask with a path built from the nodes, edges and measures listed here.
+    examples:
+      use:
+      - scenario: Find which measure may be summed after following order to its lines.
+        reason: The catalog states each edge's multiplicity and each measure's grain.
+      do_not_use:
+      - scenario: Read a customer's current balance.
+        reason: The catalog describes the model; graph_ask returns values.
+  graph_ask:
+    kind: read
+    application_tool: graph.ask
+    purpose: Ask a question as a path through declared edges with declared measures, grouping and filters.
+    use_when:
+    - Answer an explicit question about retained company records by combining declared nodes.
+    do_not_use_when:
+    - Sum a property directly, combine currencies or units, or attribute an order-level amount to one of its
+      articles.
+    required_context:
+    - Authorized tenant; saved reports additionally require trusted authenticated user context outside
+      arguments.
+    data_basis:
+    - document
+    - document_line
+    - party
+    - item
+    - commitment
+    - movement
+    - ledger_entry
+    - settlement_allocation
+    - location
+    - return_announcement
+    - analytics_report
+    limitations:
+    - Descriptive retained records only; unknown values stay unknown; no writes. Point-in-time and
+      knowledge-time questions are refused rather than answered with today's rows.
+    freshness: Each traversal is one fresh read-only observation in a consistent transaction snapshot.
+    empty_result: No matching retained records, not proof of upstream absence.
+    refusal_behavior: A refusal carries a stable code and names the edge that fanned out, the unit that cannot
+      be added or the property that does not exist; it is more useful than a total that is wrong.
+    confirmation: none
+    side_effects: none
+    verification:
+      role: independent
+      proves:
+      - The returned values follow the executed path, counted once per the measure's declared grain.
+      does_not_prove:
+      - Complete upstream records, future fulfilment or currency conversion.
+    unknown_when:
+    - Required dates, units or amounts were never received; they stay unknown rather than becoming zero.
+    next_steps:
+    - Save the question with graph_report_change_propose, or narrow it and ask again.
+    examples:
+      use:
+      - scenario: Customer order value this period against last year, by month and currency.
+        reason: Every node, edge and measure involved is declared, and the path does not fan out.
+      do_not_use:
+      - scenario: Order value per article.
+        reason: An order's value cannot be attributed to one of its articles; ask for line_amount instead.
+  graph_reports_list:
+    kind: read
+    application_tool: graph.reports.list
+    purpose: List the authenticated caller's own saved graph questions.
+    use_when:
+    - Offer a question the caller saved earlier instead of rebuilding it.
+    do_not_use_when:
+    - Read another person's reports, or treat a saved report as a stored result.
+    required_context:
+    - Authorized tenant and trusted authenticated user context outside arguments.
+    data_basis:
+    - document
+    - document_line
+    - party
+    - item
+    - commitment
+    - movement
+    - ledger_entry
+    - settlement_allocation
+    - location
+    - return_announcement
+    - analytics_report
+    limitations:
+    - Owner-scoped configuration only. A report holds the question and its model version, never an answer.
+    freshness: Current configuration; reopening the question re-executes it.
+    empty_result: The caller has saved no graph reports, not that none exist in the company.
+    refusal_behavior: Missing user context is refused rather than falling back to a tenant-wide list.
+    confirmation: none
+    side_effects: none
+    verification:
+      role: independent
+      proves:
+      - Which questions this caller saved, and under which model version.
+      does_not_prove:
+      - What any of them would answer now.
+    unknown_when:
+    - A report was saved under a model version whose meaning has since moved.
+    next_steps:
+    - Open one with graph_report_get and ask it with graph_ask.
+    examples:
+      use:
+      - scenario: Offer the caller their saved monthly revenue question.
+        reason: Saved questions are owner-scoped configuration.
+      do_not_use:
+      - scenario: Show the numbers from last month's saved report.
+        reason: No answer is stored; the question has to be asked again.
+  graph_report_get:
+    kind: read
+    application_tool: graph.reports.get
+    purpose: Open one of the authenticated caller's own saved graph questions.
+    use_when:
+    - Re-ask a question the caller saved, exactly as it was saved.
+    do_not_use_when:
+    - Open a report saved by the configured generation, or one owned by somebody else.
+    required_context:
+    - Authorized tenant and trusted authenticated user context outside arguments.
+    data_basis:
+    - document
+    - document_line
+    - party
+    - item
+    - commitment
+    - movement
+    - ledger_entry
+    - settlement_allocation
+    - location
+    - return_announcement
+    - analytics_report
+    limitations:
+    - Returns the question and its model version, never a stored answer. A report of another kind is reported
+      as not found rather than read with the wrong meaning.
+    freshness: Current configuration; the answer comes from asking it again.
+    empty_result: No such report is owned by this caller.
+    refusal_behavior: A report of another kind, or another owner's report, is not found rather than disclosed.
+    confirmation: none
+    side_effects: none
+    verification:
+      role: independent
+      proves:
+      - The stored question and the model version that gave it meaning.
+      does_not_prove:
+      - That the question still returns what it returned when it was saved.
+    unknown_when:
+    - The stored model version differs from the one now loaded.
+    next_steps:
+    - Ask it with graph_ask, or propose a change with graph_report_change_propose.
+    examples:
+      use:
+      - scenario: Reopen the saved monthly revenue question and run it.
+        reason: The report holds the question; running it is a fresh observation.
+      do_not_use:
+      - scenario: Read a colleague's saved report.
+        reason: Reports are private to their author.
   analytics_catalog:
     kind: read
     application_tool: analytics.catalog
@@ -3367,6 +3565,7 @@ reachable_mutations_that_are_not_commands:
 
 agent_command_coverage:
   change_report: {classification: eligible, tools: [analytics_report_change_propose]}
+  change_graph_report: {classification: eligible, tools: [graph_report_change_propose]}
   record_shipment_notice: {classification: eligible, tools: [shipment_notice_record_propose]}
   record_packaged_execution: {classification: eligible, tools: [shipment_dispatch_propose, shipment_receive_propose]}
   record_shipment_event: {classification: eligible, tools: [shipment_event_record_propose]}
