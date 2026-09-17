@@ -1877,6 +1877,65 @@ def finance_target_propose(
 analytics_app = typer.Typer(help="Discover and execute structured analytical reports.")
 app.add_typer(analytics_app, name="analytics")
 
+graph_app = typer.Typer(help="Ask the reporting graph a question.")
+app.add_typer(graph_app, name="graph")
+
+
+@graph_app.command("catalog")
+def graph_catalog(node: str | None = None):
+    """What can be asked: the nodes, how they connect, and what each number means."""
+    from reality.services.analytics.graph_model import reporting_catalog
+
+    con.print_json(data=reporting_catalog(node))
+
+
+@graph_app.command("ask")
+def graph_ask(
+    query: Annotated[
+        str | None, typer.Argument(help="A question in the path syntax.")
+    ] = None,
+    file: Annotated[Path | None, typer.Option(exists=True, dir_okay=False)] = None,
+    tenant: str | None = None,
+    show_sql: bool = False,
+):
+    """Ask in the path syntax, or from a file holding either syntax.
+
+    A refusal here is the product: it names the edge that fanned out, the unit
+    that cannot be added, or the property that does not exist.
+    """
+    from reality.domain.traversal import Traversal
+    from reality.services.analytics.cypher_surface import parse
+    from reality.services.analytics.traversal import TraversalRefused, run_traversal
+
+    if (query is None) == (file is None):
+        raise typer.BadParameter("give a question, or a file holding one")
+    text = query if query is not None else file.read_text()
+    asked = (
+        Traversal.model_validate(json.loads(text))
+        if text.lstrip().startswith("{")
+        else parse(text)
+    )
+    with Session() as session:
+        selected = selected_tenant(session, tenant)
+        try:
+            result = run_traversal(session, selected.id, asked)
+        except TraversalRefused as refusal:
+            con.print(f"[red]Refused.[/red] {refusal}")
+            raise typer.Exit(code=1) from refusal
+    if show_sql:
+        con.print(result.sql)
+    if not result.rows:
+        con.print("[dim]No rows.[/dim]")
+        return
+    table = Table(*result.rows[0].keys())
+    for row in result.rows:
+        table.add_row(*("—" if value is None else str(value) for value in row.values()))
+    con.print(table)
+    con.print(
+        f"[dim]{len(result.rows)} rows · model {result.model_version} · "
+        f"{result.statements} statement[/dim]"
+    )
+
 
 @analytics_app.command("catalog")
 def analytics_catalog(dataset: str | None = None):

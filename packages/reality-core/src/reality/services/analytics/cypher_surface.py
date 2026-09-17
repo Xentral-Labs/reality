@@ -1,0 +1,290 @@
+"""A Cypher-near surface for people who would rather read the path than the object.
+
+Both surfaces compile to the same `Traversal`, and that object is what is stored,
+fingerprinted and executed. Nothing here produces SQL; a name that is not in the
+declaration is refused before anything else happens.
+
+One deliberate divergence from Cypher, documented in the catalog and repeated in
+every refusal that hits it: `RETURN` names declared measures rather than doing
+arithmetic on properties. Literal Cypher allows `sum(o.gross_amount)` along a
+fanned-out path and returns a multiplied total without complaint, which is exactly
+the defect the model exists to remove. Adopting the syntax wholesale would import
+it back through the front door.
+
+    MATCH (c:party {id: $customer})<-[:ordered_by]-(o:order)
+    WHERE o.ordered_at >= $from AND o.ordered_at < $until
+    RETURN month(o.ordered_at), o.currency, sum(stated_order_amount)
+    ORDER BY sum(stated_order_amount) DESC
+    LIMIT 10
+"""
+
+from __future__ import annotations
+
+import re
+from typing import Any
+
+from reality.domain.traversal import Traversal
+
+BUCKETS = {"day", "week", "month", "quarter", "year"}
+AGGREGATES = {"sum", "count", "total"}
+COMPARISONS = {
+    ">=": "gte",
+    "<=": "lte",
+    "<>": "ne",
+    "!=": "ne",
+    "=": "eq",
+    ">": "gt",
+    "<": "lt",
+}
+
+NODE = re.compile(
+    r"\(\s*(?P<alias>\w*)\s*(?::\s*(?P<label>\w+))?\s*(?P<props>\{[^}]*\})?\s*\)"
+)
+RELATION = re.compile(
+    r"(?P<lead><-|-)\[\s*:\s*(?P<edge>\w+)"
+    r"\s*(?:\*\s*(?P<low>\d+)\s*\.\.\s*(?P<high>\d+)\s*)?\](?P<tail>->|-)"
+)
+PROPERTY = re.compile(r"(\w+)\s*:\s*(\$\w+|'[^']*'|\"[^\"]*\"|-?\d+(?:\.\d+)?)")
+CONDITION = re.compile(
+    r"(?P<field>\w+\.\w+)\s*(?:(?P<is>IS\s+(?:NOT\s+)?NULL)|(?P<in>IN)\s*(?P<list>\[[^\]]*\])"
+    r"|(?P<op>>=|<=|<>|!=|=|>|<)\s*(?P<value>\$\w+|'[^']*'|\"[^\"]*\"|-?\d+(?:\.\d+)?))",
+    re.IGNORECASE,
+)
+
+
+class CypherRefused(ValueError):
+    """The text is not a question this surface accepts, and why."""
+
+
+# Clause keywords are matched as whole patterns rather than bare words, because a
+# node label is an ordinary word: searching for ORDER finds the `order` inside
+# `(o:order)` and cuts the path in half.
+KEYWORDS = {
+    "MATCH": r"\bMATCH\b",
+    "WHERE": r"\bWHERE\b",
+    "RETURN": r"\bRETURN\b",
+    "ORDER BY": r"\bORDER\s+BY\b",
+    "LIMIT": r"\bLIMIT\s+\d",
+}
+
+
+def _clause(text: str, name: str, following: tuple[str, ...]) -> str:
+    start = re.search(KEYWORDS[name], text, re.IGNORECASE)
+    if start is None:
+        return ""
+    rest = text[start.end() :]
+    ends = [
+        match.start()
+        for word in following
+        if (match := re.search(KEYWORDS[word], rest, re.IGNORECASE))
+    ]
+    return rest[: min(ends)] if ends else rest
+
+
+def _value(token: str, parameters: dict[str, Any]) -> Any:
+    token = token.strip()
+    if token.startswith("$"):
+        name = token[1:]
+        if name not in parameters:
+            raise CypherRefused(f"no value was supplied for ${name}")
+        return parameters[name]
+    if token[:1] in "'\"":
+        return token[1:-1]
+    return float(token) if "." in token else int(token)
+
+
+def _match(
+    clause: str, parameters: dict[str, Any]
+) -> tuple[dict, list[dict], list[dict]]:
+    """Read the path: node, relationship, node, relationship, node, …"""
+    root: dict | None = None
+    follow: list[dict] = []
+    filters: list[dict] = []
+    counter = 0
+
+    def read_node(segment: str, position: int) -> tuple[str, str | None, int]:
+        nonlocal counter
+        node = NODE.match(segment, position)
+        if node is None:
+            raise CypherRefused(
+                f"expected a node pattern like (o:order) at {segment[position:][:24]!r}"
+            )
+        alias = node.group("alias")
+        if not alias:
+            counter += 1
+            alias = f"_{counter}"
+        for name, token in PROPERTY.findall(node.group("props") or ""):
+            filters.append(
+                {
+                    "field": f"{alias}.{name}",
+                    "op": "eq",
+                    "value": _value(token, parameters),
+                }
+            )
+        return alias, node.group("label"), node.end()
+
+    for raw in clause.split(","):
+        segment = raw.strip()
+        if not segment:
+            continue
+        alias, label, position = read_node(segment, 0)
+        if root is None:
+            if not label:
+                raise CypherRefused(
+                    "the first node of a path names its kind, as (o:order)"
+                )
+            root = {"from": label, "as": alias}
+        while position < len(segment):
+            relation = RELATION.match(segment, position)
+            if relation is None:
+                raise CypherRefused(
+                    "expected a relationship like -[:contains]-> at "
+                    f"{segment[position:][:24]!r}"
+                )
+            inward = relation.group("lead") == "<-"
+            outward = relation.group("tail") == "->"
+            if inward == outward:
+                raise CypherRefused(
+                    "a relationship points one way: -[:edge]-> or <-[:edge]-"
+                )
+            hop: dict[str, Any] = {
+                "edge": relation.group("edge"),
+                "direction": "in" if inward else "out",
+                "from": alias,
+            }
+            if relation.group("low"):
+                hop["depth"] = [int(relation.group("low")), int(relation.group("high"))]
+            alias, _label, position = read_node(segment, relation.end())
+            hop["as"] = alias
+            follow.append(hop)
+    if root is None:
+        raise CypherRefused("MATCH names no path")
+    return root, follow, filters
+
+
+def _where(clause: str, parameters: dict[str, Any]) -> list[dict]:
+    conditions: list[dict] = []
+    consumed = 0
+    for found in CONDITION.finditer(clause):
+        consumed += found.end() - found.start()
+        field = found.group("field")
+        if found.group("is"):
+            negated = "NOT" in found.group("is").upper()
+            conditions.append(
+                {"field": field, "op": "is_not_null" if negated else "is_null"}
+            )
+        elif found.group("in"):
+            items = [
+                _value(token, parameters)
+                for token in re.findall(
+                    r"\$\w+|'[^']*'|\"[^\"]*\"|-?\d+(?:\.\d+)?", found.group("list")
+                )
+            ]
+            conditions.append({"field": field, "op": "in", "value": items})
+        else:
+            conditions.append(
+                {
+                    "field": field,
+                    "op": COMPARISONS[found.group("op")],
+                    "value": _value(found.group("value"), parameters),
+                }
+            )
+    leftovers = re.sub(r"\bAND\b", "", clause, flags=re.IGNORECASE).strip()
+    if conditions and len(leftovers) > consumed + 8 * len(conditions):
+        raise CypherRefused(
+            "WHERE accepts comparisons on properties joined by AND, and nothing else"
+        )
+    if "OR" in re.findall(r"\b\w+\b", clause.upper()):
+        raise CypherRefused("WHERE joins its comparisons with AND; OR is not admitted")
+    return conditions
+
+
+def _return(clause: str) -> tuple[list[dict], list[str]]:
+    groupings: list[dict] = []
+    measures: list[str] = []
+    for item in [part.strip() for part in clause.split(",") if part.strip()]:
+        call = re.fullmatch(r"(\w+)\s*\(\s*([\w.]+)\s*\)", item)
+        if call:
+            function, argument = call.group(1).lower(), call.group(2)
+            if function in BUCKETS:
+                groupings.append(
+                    {"field": argument, "bucket": function, "as": function}
+                )
+                continue
+            if function in AGGREGATES:
+                if "." in argument:
+                    raise CypherRefused(
+                        f"{item} does arithmetic on a property. This surface names declared "
+                        "measures instead, because summing a property along a path that fans "
+                        "out returns a multiplied total without complaint. Ask the catalog "
+                        "which measure lives at the grain you reached."
+                    )
+                measures.append(argument)
+                continue
+            raise CypherRefused(f"{function}() is not admitted in RETURN")
+        if "." in item:
+            groupings.append({"field": item})
+            continue
+        measures.append(item)
+    if not groupings and not measures:
+        raise CypherRefused("RETURN names nothing")
+    return groupings, measures
+
+
+def parse(text: str, parameters: dict[str, Any] | None = None) -> Traversal:
+    """Read the text into the same object the typed surface produces."""
+    parameters = parameters or {}
+    # A write attempt is named as one before anything else, so the answer is about
+    # what was asked for rather than about the shape of the text.
+    for forbidden in (
+        "CREATE",
+        "MERGE",
+        "DELETE",
+        "SET",
+        "REMOVE",
+        "DETACH",
+        "CALL",
+        "LOAD",
+    ):
+        if re.search(rf"\b{forbidden}\b", text, re.IGNORECASE):
+            raise CypherRefused(f"{forbidden} is not admitted; this surface only reads")
+    if not re.search(r"\bMATCH\b", text, re.IGNORECASE):
+        raise CypherRefused("a question starts with MATCH")
+
+    match_clause = _clause(text, "MATCH", ("WHERE", "RETURN", "ORDER BY", "LIMIT"))
+    where_clause = _clause(text, "WHERE", ("RETURN", "ORDER BY", "LIMIT"))
+    return_clause = _clause(text, "RETURN", ("ORDER BY", "LIMIT"))
+    order_clause = _clause(text, "ORDER BY", ("LIMIT",))
+    limit_clause = _clause(text, "LIMIT", ())
+
+    if not return_clause.strip():
+        raise CypherRefused("a question says what it wants back, with RETURN")
+
+    root, follow, pattern_filters = _match(match_clause, parameters)
+    conditions = pattern_filters + _where(where_clause, parameters)
+    groupings, measures = _return(return_clause)
+
+    order_by = []
+    for item in [part.strip() for part in order_clause.split(",") if part.strip()]:
+        descending = bool(re.search(r"\bDESC\b", item, re.IGNORECASE))
+        name = re.sub(r"\b(ASC|DESC)\b", "", item, flags=re.IGNORECASE).strip()
+        call = re.fullmatch(r"\w+\s*\(\s*([\w.]+)\s*\)", name)
+        order_by.append(
+            {"by": call.group(1) if call else name, "descending": descending}
+        )
+
+    query: dict[str, Any] = {
+        **root,
+        "follow": follow,
+        "filter": conditions,
+        "measures": measures,
+        "group_by": groupings,
+        "order_by": order_by,
+    }
+    if limit_clause.strip():
+        found = re.search(r"\bLIMIT\s+(\d+)", text, re.IGNORECASE)
+        query["limit"] = int(found.group(1)) if found else 200
+    try:
+        return Traversal.model_validate(query)
+    except ValueError as error:
+        raise CypherRefused(str(error)) from error
