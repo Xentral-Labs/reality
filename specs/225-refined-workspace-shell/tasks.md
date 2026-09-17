@@ -57,3 +57,8 @@ No domain, service or tool work is required by this adapter-only feature.
 - [x] T029 Add Inbox route membership tests and adapt browser placement checks.
 - [x] T030 Consolidate sidebar and header tabs, retaining local side/rule controls and translations.
 - [x] T031 Run frontend/browser gates, review navigation/count behavior and record results.
+
+## Empty standalone history (FR-014)
+- [x] T032 Add empty/first-session/revisit/tenant/archived/mobile browser coverage.
+- [x] T033 Gate history column on successful tenant-scoped availability and retain toolbar access.
+- [x] T034 Run frontend gates and browser regression; review screenshots and record results.

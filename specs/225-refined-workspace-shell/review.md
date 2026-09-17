@@ -126,3 +126,12 @@ current-register count and local side totals preserve their distinct meanings. H
 Chat, services, permissions and confirmation remain unchanged. The route-membership
 test failed before the helper existed and passes afterwards. German desktop screenshot
 review confirms three primary tabs, one selected Inbox item and quieter local controls.
+
+## Empty standalone chat review
+FR-014/T032–T034: availability is reported by the existing successful copilot read,
+without an additional request. Company-scoped initial/current availability separate
+automatic first-render layout from explicit history opening. Archived-only history
+remains reachable. Portal targets remain mounted so the composer is not replaced
+when the column opens/closes. New chat is independent of the column. No session
+persistence, permissions, confirmation or backend changes. An empty current history
+also dismisses any open overlay.

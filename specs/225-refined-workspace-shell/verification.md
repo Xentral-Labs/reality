@@ -168,3 +168,14 @@ transitions to capture the settled appearance. Artifacts are in
 - German desktop screenshot reviewed in `/private/tmp/reality-work-lists/`: one Inbox
   navigation entry, three primary tabs and subordinate direction controls.
 - `git diff --check`: PASS. No backend or confirmation behavior changed.
+
+## Empty standalone chat history verification
+- `gmake web-build spec-check lint docs-catalog-check`: PASS, including 236 tests,
+  formatting, translation audits, TypeScript, production build and generated docs.
+- New empty-chat-history browser: PASS for empty layout, first-session stability,
+  explicit history opening/closing, draft preservation, saved-history revisit, mobile,
+  in-place company switching, archived-only history and retry after initial read failure.
+  No browser errors. Final overlay availability handling covered by a repeated run.
+- Empty desktop screenshot `/private/tmp/reality-empty-chat.png` reviewed: history
+  column absent, centered welcome/composer and independent New chat toolbar action.
+- `git diff --check`: PASS. No backend changes.

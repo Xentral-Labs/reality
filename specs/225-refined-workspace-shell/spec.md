@@ -186,3 +186,11 @@ Customer/supplier direction and exception finding/rule selection become subordin
 local controls, retaining their existing reads and overview counts. The header count
 belongs to the active register, not a sum of unlike queues. Home and Chat remain separate.
 Inbox is the product label in all supported languages. No new AI behavior or backend.
+
+## Empty standalone chat history
+FR-014: Hide the standalone conversation column when no active or archived sessions
+exist. Base automatic desktop visibility on the first successful history read for
+this company/page visit. Creating the first session must not automatically change
+layout; a history button then permits explicit opening. Reopening the page with saved
+history restores desktop history. Keep New chat accessible independently of the column,
+preserve mobile overlay behavior, drafts, archived access and company isolation.

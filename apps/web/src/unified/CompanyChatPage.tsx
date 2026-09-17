@@ -1,5 +1,5 @@
 import { X } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import type { Tenant } from "../api";
 import { t } from "../localization";
 import type { Selection } from "./routing";
@@ -22,6 +22,28 @@ export function CompanyChatPage({
 }) {
   const [sessionsTarget, setSessionsTarget] = useState<HTMLDivElement | null>(null);
   const [sessionsOpen, setSessionsOpen] = useState(false);
+  const [history, setHistory] = useState<{
+    tenant: string;
+    initial: boolean;
+    available: boolean;
+  } | null>(null);
+  const available = history?.tenant === selection.tenant && history.available;
+  const automaticHistory = available && history?.initial;
+  const reportHistory = useCallback(
+    (available: boolean) => {
+      setHistory((previous) =>
+        previous?.tenant === selection.tenant
+          ? previous.available === available
+            ? previous
+            : { ...previous, available }
+          : { tenant: selection.tenant, initial: available, available },
+      );
+    },
+    [selection.tenant],
+  );
+  useEffect(() => {
+    if (!available) setSessionsOpen(false);
+  }, [available, selection.tenant]);
   const closeSessions = useRef<HTMLButtonElement>(null);
   useEffect(() => {
     if (!sessionsOpen) return;
@@ -55,15 +77,22 @@ export function CompanyChatPage({
       <aside
         data-free-play-sessions
         aria-label={t("Conversation history")}
-        className={sessionsOpen ? openSessionsClass : closedSessionsClass}
+        className={
+          !available
+            ? "hidden"
+            : sessionsOpen
+              ? openSessionsClass
+              : automaticHistory
+                ? closedSessionsClass
+                : "hidden"
+        }
       >
         <div className="mb-3 flex items-center justify-between gap-2">
           <h2 className="text-sm font-semibold">{t("Conversation history")}</h2>
           <div className="flex items-center gap-1">
-            <div ref={setNewSessionTarget} />
             <button
               ref={closeSessions}
-              className="reality-chat-icon free-play-mobile-control"
+              className={`reality-chat-icon ${automaticHistory ? "free-play-mobile-control" : ""}`}
               aria-label={t("Close")}
               onClick={() => setSessionsOpen(false)}
             >
@@ -81,9 +110,10 @@ export function CompanyChatPage({
         data-independent-free-play
       >
         <header
-          className="flex h-10 shrink-0 items-center justify-end px-3 xl:h-0"
+          className="flex h-10 shrink-0 items-center justify-end gap-1 px-3"
           data-free-play-toolbar
         >
+          <div className="shrink-0" ref={setNewSessionTarget} />
           <div className="shrink-0" ref={setControlsTarget} />
         </header>
         {!isSandbox && (
@@ -96,6 +126,8 @@ export function CompanyChatPage({
           newSessionTarget={newSessionTarget}
           sessionsTarget={sessionsTarget}
           sessionsOpen={sessionsOpen}
+          onHistoryAvailability={reportHistory}
+          standaloneHistoryAvailable={automaticHistory ? undefined : available}
           toggleSessions={() => setSessionsOpen((open) => !open)}
           onSessionSelected={() => setSessionsOpen(false)}
           key={selection.tenant}

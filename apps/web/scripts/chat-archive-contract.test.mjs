@@ -58,7 +58,7 @@ test("usage sits with the composer disclaimer instead of conversation navigation
   );
 });
 
-test("new chat is a compact action in the conversation-history header", () => {
+test("new chat remains an independent compact toolbar action", () => {
   assert.match(companyChat, /newSessionTarget/u);
   assert.match(chat, /data-new-chat-action/u);
   assert.match(chat, /aria-label=\{t\("New chat"\)\}/u);

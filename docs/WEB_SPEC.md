@@ -3050,3 +3050,12 @@ exception findings/rules are subordinate local controls. Existing side overview
 counts remain local; the main header count belongs only to the active register. Home
 and Chat remain independent. No AI behavior, authorization or confirmation changes.
 This supersedes the three individual sidebar entries and their former primary tabs.
+
+### Empty standalone chat history (spec 225)
+Standalone Chat hides its conversation column when no active or archived conversations
+exist. The first successful history read per company/page visit determines automatic
+desktop visibility. Creating the first conversation does not expand the layout; an
+explicit history button becomes available instead. Reopening Chat with saved history
+restores the desktop column. New chat remains in the conversation toolbar regardless
+of column visibility. Mobile retains explicit overlay access. Hidden portal targets
+stay mounted to preserve composer state; errors do not establish empty history.

@@ -135,3 +135,12 @@ these do not register header/count targets. Existing queue components/services r
 Tests first cover Inbox route membership (including nested rules and excluding Sales),
 then adapt daily-work browser for primary tabs, local side selection and one sidebar
 entry. Run frontend gates, daily-work and page-header/count browsers. No schema changes.
+
+## Empty chat history plan
+Approved FR-014. Constitution Check PASS. ChatPage reports successful history availability
+to CompanyChatPage; its tenant-scoped initial snapshot controls automatic desktop column
+visibility, while current availability controls the history button. Keep portal targets
+mounted inside a hidden column so ChatPage/composer do not remount. Move New chat to the
+conversation toolbar. Include archived history; do not settle initial state on errors.
+Plan browser checks for empty layout, first-session stability, explicit opening/closing,
+revisit, archived-only history, mobile and tenant change. Run required frontend gates.

@@ -58,6 +58,8 @@ export function ChatPage({
   sessionsOpen,
   toggleSessions,
   onSessionSelected,
+  onHistoryAvailability,
+  standaloneHistoryAvailable,
 }: {
   controlsTarget?: HTMLElement | null;
   newSessionTarget?: HTMLElement | null;
@@ -65,6 +67,8 @@ export function ChatPage({
   sessionsOpen?: boolean;
   toggleSessions?: () => void;
   onSessionSelected?: () => void;
+  onHistoryAvailability?: (available: boolean) => void;
+  standaloneHistoryAvailable?: boolean;
   selection: Selection;
   compact?: boolean;
   dock?: boolean;
@@ -99,6 +103,9 @@ export function ChatPage({
       throw error;
     }
   }, [selection.tenant, selection.session, showArchived]);
+  useEffect(() => {
+    if (data) onHistoryAvailability?.(!!data.sessions.length || !!data.has_archived);
+  }, [data, onHistoryAvailability]);
   const recoveringSession =
     !showArchived && !!selection.session && code === `chat_session_missing:${selection.session}`;
   useEffect(() => {
@@ -358,14 +365,20 @@ export function ChatPage({
   };
   const chatControls = (
     <div className="flex shrink-0 items-center gap-1">
-      <button
-        className={sessionsTarget ? compactHistoryClass : "reality-chat-icon"}
-        aria-label={t("Conversation history")}
-        aria-expanded={sessionsTarget ? sessionsOpen : historyOpen}
-        onClick={() => (sessionsTarget ? toggleSessions?.() : setHistoryOpen(!historyOpen))}
-      >
-        <History size={20} />
-      </button>
+      {standaloneHistoryAvailable !== false && (
+        <button
+          className={
+            sessionsTarget && standaloneHistoryAvailable === undefined
+              ? compactHistoryClass
+              : "reality-chat-icon"
+          }
+          aria-label={t("Conversation history")}
+          aria-expanded={sessionsTarget ? sessionsOpen : historyOpen}
+          onClick={() => (sessionsTarget ? toggleSessions?.() : setHistoryOpen(!historyOpen))}
+        >
+          <History size={20} />
+        </button>
+      )}
       {!sessionsTarget && (
         <button
           className="reality-chat-icon"
