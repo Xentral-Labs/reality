@@ -208,3 +208,8 @@ The integration also assigns this feature number 237 because current main alread
 uses 235 for derivations in SQL. Historical benchmark seeds and artifact names
 remain unchanged for reproducibility. Fresh integrated frontend checks: 312 contract
 tests, production build, i18n tests and all four 2000-key language audits pass.
+
+Final integrated focused backend regression run: 133 passed in 52.23 seconds,
+including search matching, migration upgrade/downgrade, service authorization, HTTP,
+worklists, benchmark contracts and application catalog checks. The full serial
+PostgreSQL suite is still running; no complete passing result is claimed.
