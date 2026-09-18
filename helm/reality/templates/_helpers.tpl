@@ -65,7 +65,15 @@ distinguished by a tag prefix, because the target account provisions a single
 {{- $root := index . 0 -}}
 {{- $component := index . 1 -}}
 {{- $repository := required "image.repository must be set to the registry holding the Reality images (the chart composes <repository>:<component>-<tag>, one repository with component-prefixed tags)" ($component.image.repository | default $root.Values.image.repository) -}}
-{{- $tag := $component.image.tag | default $root.Values.image.tag | default $root.Chart.AppVersion -}}
+{{/*
+  toString is load-bearing. A git short SHA can be all digits (7536850),
+  and `helm --set image.tag=7536850` -- which is how Argo CD passes a
+  parameter unless forceString is set -- type-infers that as an int64.
+  printf "%s" then renders it as %!s(int64=7536850), an invalid image
+  reference: every pod fails with InvalidImageName, and because the
+  migrate Job is a PreSync hook the whole sync stops there.
+*/}}
+{{- $tag := ($component.image.tag | default $root.Values.image.tag | default $root.Chart.AppVersion) | toString -}}
 {{- if $component.image.tagPrefix -}}
 {{- printf "%s:%s%s" $repository $component.image.tagPrefix $tag -}}
 {{- else -}}
