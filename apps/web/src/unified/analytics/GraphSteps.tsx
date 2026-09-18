@@ -340,7 +340,7 @@ export function planOf(question: GraphQuestion, nodes: Record<string, GraphNode>
     );
     if (open) {
       open.conditions.push(condition);
-      open.shown = `${labelOf(condition.field)} ${shortDate(open.conditions[0].value)} – ${shortDate(condition.value)}`;
+      open.shown = `${labelOf(condition.field)} ${shortDate(open.conditions[0].value)} – ${lastIncluded(condition.value)}`;
       continue;
     }
     block.filters.push({
@@ -375,6 +375,31 @@ function shortDate(value: unknown) {
   if (typeof value !== "string") return String(value ?? "");
   const instant = new Date(value);
   return Number.isNaN(instant.getTime()) ? value.slice(0, 10) : formatDate(value);
+}
+
+/** The last day a half-open period actually includes.
+ *
+ * A period runs `>= 1 September` and `< 18 September`, so the reader picked
+ * 1–17 and the stored upper bound is the 18th. Showing the raw bound made the
+ * same filter read as "1. – 17." while it was being set and "1. – 18." after it
+ * was saved: the same question, two answers, and the second one looks like a
+ * day the report does not cover.
+ *
+ * Only a bound that falls on local midnight is a whole day; anything else is a
+ * real instant and is shown as itself.
+ */
+function lastIncluded(value: unknown) {
+  if (typeof value !== "string") return String(value ?? "");
+  const bound = new Date(value);
+  if (Number.isNaN(bound.getTime())) return value.slice(0, 10);
+  const midnight =
+    bound.getHours() === 0 &&
+    bound.getMinutes() === 0 &&
+    bound.getSeconds() === 0 &&
+    bound.getMilliseconds() === 0;
+  return formatDate(
+    midnight ? new Date(bound.getTime() - 86400000).toISOString() : bound.toISOString(),
+  );
 }
 
 /** The columns a list of these records opens with.
@@ -433,7 +458,22 @@ function Builder({
   const [busy, setBusy] = useState(false);
 
   const ask = async (next: Plan) => {
-    const settled = pruned(next, nodes);
+    // Every change funnels through here, so a hop that makes a required axis
+    // reachable brings it in without the reader meeting a refusal first.
+    const settled = pruned(
+      withRequiredAxes(
+        next,
+        next.blocks.flatMap((block) => nodes[block.node]?.measures ?? []),
+        next.blocks.flatMap((block) =>
+          (nodes[block.node]?.properties ?? []).map((property) => ({
+            field: `${block.alias}.${property.key}`,
+            label: property.label,
+            kind: property.kind,
+          })),
+        ),
+      ),
+      nodes,
+    );
     setPlan(settled);
     if (!settled.measures.length && !settled.groups.length) {
       setAnswer(null);
@@ -686,17 +726,51 @@ export function withMeasure(
   measures: { key: string; never_across: string[] }[],
   fields: Field[],
 ): Plan {
-  const required = (measures.find((candidate) => candidate.key === measure)?.never_across ?? [])
+  // The first number turns a list into a summary, so the list columns go.
+  const kept = plan.measures.length ? plan.groups : [];
+  return withRequiredAxes(
+    {
+      ...plan,
+      measures: [...plan.measures, measure],
+      groups: kept,
+      order: plan.order ?? { by: measure, descending: true },
+    },
+    measures,
+    fields,
+  );
+}
+
+/** The axes a chosen number may not be summed across, wherever they are reachable.
+ *
+ * `moved_quantity` is declared never additive across item and unit, and the unit
+ * lives on the article. Picking it before reaching the article is refused for
+ * one reason, and reaching the article afterwards is refused for another — two
+ * walls in a row for somebody who only wanted movements per article. The axis is
+ * added as soon as the path can see it, from wherever the change came.
+ */
+export function withRequiredAxes(
+  plan: Plan,
+  measures: { key: string; never_across: string[] }[],
+  fields: Field[],
+): Plan {
+  if (!plan.measures.length) return plan;
+  // Kept as an array rather than a spread Set: a Set has no length, and
+  // TypeScript's downlevel spread reads one, so the list came out empty under
+  // the test transpile while working in the build. A guard that only holds on
+  // one of the two is not a guard.
+  const wanted = plan.measures
+    .flatMap((key) => measures.find((candidate) => candidate.key === key)?.never_across ?? [])
+    .filter((key, index, all) => all.indexOf(key) === index);
+  const required = wanted
     .map((key) => fields.find((field) => field.field.endsWith(`.${key}`)))
     .filter((field): field is Field => Boolean(field))
     .map((field) => ({ field: field.field, label: field.label }));
-  // The first number turns a list into a summary, so the list columns go.
-  const kept = plan.measures.length ? plan.groups : [];
   return {
     ...plan,
-    measures: [...plan.measures, measure],
-    groups: [...kept, ...required.filter((axis) => !kept.some((g) => g.field === axis.field))],
-    order: plan.order ?? { by: measure, descending: true },
+    groups: [
+      ...plan.groups,
+      ...required.filter((axis) => !plan.groups.some((group) => group.field === axis.field)),
+    ],
   };
 }
 
