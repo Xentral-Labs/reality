@@ -16,8 +16,7 @@ from typing import Any
 
 from pydantic import Field, model_validator
 
-from reality.domain.analytics import StrictModel
-from reality.domain.traversal import Traversal
+from reality.domain.traversal import StrictModel, Traversal
 from reality.services.analytics.cypher_surface import parse
 from reality.services.analytics.graph_model import (
     ReportingGraphError,

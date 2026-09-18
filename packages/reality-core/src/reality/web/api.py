@@ -308,11 +308,11 @@ def require_tenant_surface_access(
         "shipment_package",
         "exception",
     }
-    analytics_read = (request.method == "GET" and route == "/analytics/catalog") or (
-        request.method == "POST"
-        and route
-        in {"/analytics/query", "/analytics/query/contributors", "/analytics/export"}
-    )
+    # Reading the graph is allowed in a playground; changing a report is not.
+    analytics_read = (
+        request.method == "GET"
+        and route in {"/analytics/graph/catalog", "/analytics/graph/templates"}
+    ) or (request.method == "POST" and route == "/analytics/graph/ask")
     if not analytics_read and (
         request.method != "GET" or (route not in readable and not inspector)
     ):

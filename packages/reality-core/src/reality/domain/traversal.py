@@ -28,6 +28,17 @@ class QueryModel(BaseModel):
     model_config = ConfigDict(extra="forbid", populate_by_name=True, frozen=True)
 
 
+class StrictModel(BaseModel):
+    """What a caller may send: named fields only, and nothing else accepted.
+
+    Not frozen, because a request is built up before it is validated. It lives
+    beside the query it accompanies rather than in the retired definition model
+    it came from.
+    """
+
+    model_config = ConfigDict(extra="forbid", populate_by_name=True)
+
+
 class Parameter(QueryModel):
     """A value supplied separately from the question, always bound, never inlined."""
 
