@@ -430,3 +430,48 @@ def test_a_difference_of_differences_is_refused():
     with pytest.raises(ReportingGraphError) as error:
         validate_against_schema(ReportingGraph.model_validate(payload))
     assert "itself a difference" in str(error.value)
+
+
+def test_a_short_vocabulary_is_read_from_the_company(
+    session, business, scheduled_owner
+):
+    """A model that has to guess a type writes one that does not exist.
+
+    Found by asking the copilot for open deliveries: it filtered
+    `type = "sale"` where the records say `customer_delivery`, got nothing back,
+    and reported that as a fact about the business — "there are currently no
+    open sales commitments" — while 746 units were open.
+
+    The words are read from the company rather than declared, so the list
+    cannot drift away from what the records say.
+    """
+    from datetime import UTC, datetime
+
+    from reality.services.core import create_commitment
+
+    create_commitment(
+        session,
+        business.tenant.id,
+        "customer_delivery",
+        business.company.id,
+        business.customer.id,
+        business.item.id,
+        business.location.id,
+        3,
+        datetime(2026, 3, 20, 10, tzinfo=UTC),
+    )
+    catalog = reporting_catalog(
+        "commitment", session=session, tenant_id=business.tenant.id
+    )
+    values = {
+        prop["key"]: prop.get("values") for prop in catalog["nodes"][0]["properties"]
+    }
+    assert values["type"] == ["customer_delivery"], "only what this company has"
+    assert values["status"] == ["open"]
+    assert values["due_at"] is None, "a timestamp has no vocabulary to list"
+
+
+def test_without_a_company_the_catalog_lists_no_values():
+    """The declaration alone cannot say what a column holds, and does not pretend to."""
+    commitment = reporting_catalog("commitment")["nodes"][0]
+    assert all("values" not in prop for prop in commitment["properties"])

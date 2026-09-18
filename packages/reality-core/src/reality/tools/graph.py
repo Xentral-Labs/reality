@@ -118,7 +118,12 @@ def invoke(session, tenant_id: str, name: str, arguments: dict[str, Any]) -> Any
     get_tenant(session, tenant_id)
     if name == "graph.catalog":
         try:
-            return reporting_catalog(request.node, request.language)
+            # The session comes with the call, so a short-vocabulary column can
+            # list the words this company's records actually use rather than
+            # leaving the caller to guess them.
+            return reporting_catalog(
+                request.node, request.language, session=session, tenant_id=tenant_id
+            )
         except ReportingGraphError as error:
             raise TraversalRefused(str(error), "unknown_node") from error
 
@@ -143,6 +148,13 @@ def invoke(session, tenant_id: str, name: str, arguments: dict[str, Any]) -> Any
     result = run_traversal(session, tenant_id, query)
     return {
         "rows": list(result.rows),
+        # An empty answer means one of two different things; only one of them is
+        # about the business, and the caller cannot tell them apart alone.
+        **(
+            {"matched_nothing": list(result.matched_nothing)}
+            if result.matched_nothing
+            else {}
+        ),
         "path": list(result.path),
         "model_version": result.model_version,
         "statements": result.statements,

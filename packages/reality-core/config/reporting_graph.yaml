@@ -35,7 +35,7 @@ nodes:
     evidence: source_record_id
     properties:
       name: { column: name, label: { en: "Name", de: "Name" } }
-      type: { column: type, label: { en: "Type", de: "Art" } }
+      type: { column: type, label: { en: "Type", de: "Art" }, enumerated: true }
       is_active: { column: is_active, label: { en: "Active", de: "Aktiv" } }
       default_currency: { column: default_currency, label: { en: "Currency", de: "Währung" } }
       accounting_code: { column: accounting_code, label: { en: "Account", de: "Konto" } }
@@ -74,8 +74,8 @@ nodes:
       document_date: { column: document_date, label: { en: "Document date", de: "Belegdatum" } }
       requested_delivery_at: { column: requested_delivery_at, label: { en: "Requested delivery", de: "Wunschtermin" } }
       currency: { column: currency, label: { en: "Currency", de: "Währung" } }
-      status: { column: status, label: { en: "Status", de: "Status" } }
-      sales_channel: { column: sales_channel, label: { en: "Channel", de: "Kanal" } }
+      status: { column: status, label: { en: "Status", de: "Status" }, enumerated: true }
+      sales_channel: { column: sales_channel, label: { en: "Channel", de: "Kanal" }, enumerated: true }
       customer_reference: { column: customer_reference, label: { en: "Customer reference", de: "Kundenreferenz" } }
 
   order_line:
@@ -139,8 +139,8 @@ nodes:
     time: due_at
     coverage: [current, activity_period]
     properties:
-      type: { column: type, label: { en: "Type", de: "Art" } }
-      status: { column: status, label: { en: "Status", de: "Status" } }
+      type: { column: type, label: { en: "Type", de: "Art" }, enumerated: true }
+      status: { column: status, label: { en: "Status", de: "Status" }, enumerated: true }
       due_at: { column: due_at, label: { en: "Due", de: "Fällig" } }
       quantity: { column: quantity, label: { en: "Quantity", de: "Menge" } }
       currency: { column: currency, label: { en: "Currency", de: "Währung" } }
@@ -193,7 +193,7 @@ nodes:
     coverage: [current, activity_period]
     evidence: source_record_id
     properties:
-      type: { column: type, label: { en: "Type", de: "Art" } }
+      type: { column: type, label: { en: "Type", de: "Art" }, enumerated: true }
       occurred_at: { column: occurred_at, label: { en: "Occurred", de: "Geschehen" } }
       quantity: { column: quantity, label: { en: "Quantity", de: "Menge" } }
 

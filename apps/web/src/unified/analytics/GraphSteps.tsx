@@ -98,6 +98,8 @@ const REFUSALS: Record<string, string> = {
   not_recursive: "This connection does not repeat, so it has no depth.",
   path_too_long: "This path takes more steps than the model allows.",
   not_temporal: "This field is not kept as a date, so it cannot be grouped by period.",
+  service_measure:
+    "This number is worked out in one authoritative place, and this page cannot run it yet.",
 };
 
 function refusalOf(failure: unknown): Refusal {
@@ -1014,8 +1016,22 @@ function Result({
   return (
     <div className={`space-y-3 ${busy ? "opacity-60" : ""}`} aria-busy={busy}>
       {answer.rows.length === 0 ? (
-        <div className="rounded-xl border border-dashed border-border-default p-10 text-center text-sm text-fg-muted">
-          {t("No records match. That is not proof that none exist upstream.")}
+        <div className="rounded-xl border border-dashed border-border-default p-10 text-center text-sm">
+          {answer.matched_nothing?.length ? (
+            <>
+              <div className="font-medium text-warning-600">{t("Nothing has that value.")}</div>
+              <div className="mt-2 text-fg-muted">{answer.matched_nothing.join(" · ")}</div>
+              <div className="mt-2 text-fg-muted">
+                {t(
+                  "The answer is empty because the question named something no record carries, not because the business has none.",
+                )}
+              </div>
+            </>
+          ) : (
+            <span className="text-fg-muted">
+              {t("No records match. That is not proof that none exist upstream.")}
+            </span>
+          )}
         </div>
       ) : (
         <div className="max-h-[34rem] overflow-auto rounded-xl border border-border-default bg-surface">

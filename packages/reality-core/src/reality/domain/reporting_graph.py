@@ -57,10 +57,17 @@ class Label(GraphModel):
 
 
 class Property(GraphModel):
-    """A readable field of a node."""
+    """A readable field of a node.
+
+    `enumerated` says the column holds a short fixed vocabulary — a type, a
+    status — worth listing in the catalog. The values themselves are not
+    declared here: they are read from the company being asked about, so they
+    cannot drift away from what the records actually say.
+    """
 
     column: str
     label: Label
+    enumerated: bool = False
 
 
 class Unit(GraphModel):
@@ -229,6 +236,14 @@ class Node(GraphModel):
         if isinstance(found, Property):
             return found.column
         return found or ""
+
+    def enumerated(self) -> dict[str, str]:
+        """The properties worth listing values for, as name to column."""
+        return {
+            name: found.column
+            for name, found in self.properties.items()
+            if isinstance(found, Property) and found.enumerated
+        }
 
     def label_of(self, prop: str, language: str = "en") -> str:
         if prop == self.key and prop not in self.properties:
