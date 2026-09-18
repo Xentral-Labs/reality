@@ -1189,3 +1189,7 @@ endpoints, reversals, stock corrections, cutoff and opening boundaries, tenant s
 fanout, input bounds, chat validation and Cypher round trips. Reporting graph contracts
 execute every template. `apps/web/scripts/analysis-snapshot.test.mjs` checks visible
 snapshot inputs, replacement of the selected date and preservation of unrelated filters.
+
+## Order journey timeline (spec 233)
+
+`packages/reality-core/tests/test_order_journey.py` covers FR-004–008/011: exact order membership, shared-reference exclusion, typed links, bounded pagination, read-only HTTP and tenant isolation. Frontend `order-journey-layout.test.mjs` and `order-journey-browser.mjs` cover FR-001–010 and SC-001–004. Spec233 supersedes spec162 active Timeline presentation.

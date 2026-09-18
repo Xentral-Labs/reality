@@ -6,7 +6,7 @@ import { RecordGraphPage } from "./RecordGraphPage";
 import { InspectorCatalog, InspectorDisclosure } from "./InspectorCatalog";
 import { RegisterHeader } from "./RegisterWorkbench";
 import { inspectorTabs } from "./inspectorSections";
-import { FlightRecorder } from "./FlightRecorder";
+import { OrderJourneyTimeline } from "./OrderJourneyTimeline";
 import { useState } from "react";
 import { api } from "../api";
 import { t } from "../localization";
@@ -107,7 +107,7 @@ export function RealityInspectorPage({
           </nav>
         </RegisterHeader>
       )}
-      {tab === "overview" && <FlightRecorder key={tenant} tenant={tenant} />}
+      {tab === "overview" && <OrderJourneyTimeline key={tenant} tenant={tenant} />}
       {tab === "facts" && (
         <TableProvider
           user={user}

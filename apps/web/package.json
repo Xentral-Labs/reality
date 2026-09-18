@@ -45,7 +45,8 @@
     "test:retirement-browser": "node scripts/retirement-browser.mjs",
     "test:signup-preferences-browser": "node scripts/signup-preferences-browser.mjs",
     "test:storyline-browser": "node scripts/storyline-browser.mjs",
-    "test:integrations-browser": "node scripts/integrations-catalog-browser.mjs"
+    "test:integrations-browser": "node scripts/integrations-catalog-browser.mjs",
+    "test:journey-browser": "node scripts/order-journey-browser.mjs"
   },
   "dependencies": {
     "@vitejs/plugin-react": "^5.0.0",

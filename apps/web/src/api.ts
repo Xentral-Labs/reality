@@ -466,6 +466,16 @@ export type TimelineEvent = {
   business_title: string;
   business_detail: string;
 };
+export type JourneyOrder = { id: string; number: string; party: string };
+export type JourneyRef = { kind: string; id: string };
+export type JourneyEdge = { from: JourneyRef; to: JourneyRef; label: string };
+export type JourneyPage = {
+  order?: JourneyOrder;
+  events: TimelineEvent[];
+  edges?: JourneyEdge[];
+  links_truncated?: boolean;
+  has_more: boolean;
+};
 export type TimelineActivity = {
   id: string;
   title: string;
@@ -1678,6 +1688,25 @@ export const api = {
     });
     if (beforeSequence) params.set("before_sequence", String(beforeSequence));
     return request<TimelineData>(`/api/tenants/${tenant}/timeline?${params}`, { signal });
+  },
+  journeyOrders: (tenant: string, query: string, signal?: AbortSignal) =>
+    request<{ orders: JourneyOrder[]; has_more: boolean }>(
+      `/api/tenants/${tenant}/order-journeys?${new URLSearchParams({ q: query })}`,
+      { signal },
+    ),
+  journey: (
+    tenant: string,
+    orderId: string,
+    cursor: { before?: number; after?: number } = {},
+    signal?: AbortSignal,
+  ) => {
+    const params = new URLSearchParams({ limit: "100", hours: "0" });
+    if (cursor.before !== undefined) params.set("before_sequence", String(cursor.before));
+    if (cursor.after !== undefined) params.set("after_sequence", String(cursor.after));
+    return request<JourneyPage>(
+      `/api/tenants/${tenant}/${orderId ? `order-journeys/${encodeURIComponent(orderId)}` : "timeline"}?${params}`,
+      { signal },
+    );
   },
   activitySignal: (tenant: string, afterSequence: number) =>
     request<ActivitySignal>(

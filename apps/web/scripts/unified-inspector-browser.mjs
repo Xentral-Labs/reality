@@ -1032,7 +1032,7 @@ try {
     0,
   );
   await page.getByRole("heading", { name: "Understand context", exact: true }).waitFor();
-  await page.locator('[data-recorder-event="evt1"]').waitFor();
+  await page.locator('[data-journey-history="evt1"]').waitFor();
   await tab("Reality records");
   await page.getByText("Facts · 1", { exact: true }).click();
   await page.getByRole("button", { name: "Record graph", exact: true }).last().click();
@@ -1479,107 +1479,17 @@ try {
     .click();
   await page.locator("[data-graph-start]").getByText("Bike Light", { exact: true }).waitFor();
   await page.screenshot({ path: "/private/tmp/reality-138-browser/graph-start.png" });
+  // Spec233 replaces recorder pulses and the secondary trace with order journeys.
+  // Exact membership, paging, collisions and responsive behavior are exercised by
+  // order-journey-browser.mjs; this suite retains the shared Inspector handoff.
   await page.goto("http://localhost:5177/app/inspector?tenant=t1&inspector_view=overview");
-  await page.getByRole("heading", { name: "Understand context", exact: true }).waitFor();
-  await page.locator('[data-recorder-event="evt1"]').waitFor();
-  await page.getByText("Beginning of recorded history", { exact: true }).waitFor();
-  assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
-  await page.screenshot({ path: "/private/tmp/reality-138-browser/overview-start.png" });
-  let failOlder = true;
-  const cursors = [];
-  const recorderRoute = async (route) => {
-    const url = new URL(route.request().url());
-    assert.equal(url.searchParams.get("hours"), "0");
-    const cursor = url.searchParams.get("before_sequence");
-    cursors.push(cursor);
-    if (cursor && failOlder) return route.fulfill({ status: 500, body: "Unavailable" });
-    const types = {
-      16: ["party", "p1"],
-      17: ["source_record", "source-1"],
-      18: ["document", "d1"],
-      19: ["commitment", "c1"],
-      20: ["reservation", "r1"],
-      21: ["movement", "move-1"],
-    };
-    const payloads = {
-      16: { name: "Müller GmbH" },
-      17: { external_id: "SO-2087", source_system: "Shopify" },
-      18: { number: "SO-2087", party_id: "p1" },
-      19: { document_id: "d1", item_id: "i1" },
-      20: { commitment_id: "c1" },
-      21: { reservation_id: "r1", commitment_id: "c1" },
-    };
-    const event = (sequence) => ({
-      id: `flight-${sequence}`,
-      sequence,
-      type:
-        { 17: "source_record.received", 18: "document.recorded", 21: "movement.recorded" }[
-          sequence
-        ] || `${(types[sequence] || ["fact"])[0]}.created`,
-      subject_type: (types[sequence] || ["fact"])[0],
-      subject_id: (types[sequence] || ["fact", `f${sequence}`])[1],
-      source_record_id: "source-1",
-      causation_id: "cause-1",
-      recorded_at: sequence > 1 ? "2026-09-08T10:00:00Z" : "2026-09-06T08:00:00Z",
-      occurred_at: "2026-09-05T08:00:00Z",
-      business_context: { item: "Bike Light", quantity: "5", unit: "pcs" },
-      payload: payloads[sequence] || {},
-      status: "completed",
-    });
-    return route.fulfill({
-      contentType: "application/json",
-      body: JSON.stringify({
-        events: cursor ? [event(1)] : Array.from({ length: 20 }, (_, i) => event(21 - i)),
-        has_more: !cursor,
-      }),
-    });
-  };
-  await page.route("**/timeline?**", recorderRoute);
-  await page.reload();
-  await page.locator('[data-recorder-event="flight-21"]').waitFor();
-  await page.getByRole("region", { name: "Event history" }).count();
-  await page.locator('[aria-label="Event history"]').evaluate((node) => {
-    node.scrollLeft = 0;
-  });
-  await page.getByText("Activity could not be loaded.", { exact: true }).waitFor();
-  assert.equal(await page.locator("[data-recorder-event]").count(), 20);
-  failOlder = false;
-  await page.getByRole("button", { name: "Retry", exact: true }).click();
-  await page.locator('[data-recorder-event="flight-1"]').waitFor();
-  assert.equal(await page.locator("[data-recorder-event]").count(), 21);
-  assert.deepEqual(cursors.filter(Boolean), ["2", "2"]);
-  await page.getByText("Beginning of recorded history", { exact: true }).waitFor();
-  assert.equal(await page.locator('[data-flight-node="source_record:source-1"]').count(), 1);
-  // Spec 162: the paper is a fixed time raster up to now; prepending an older recording day
-  // extends the raster to the left and keeps chronology, with the band's own scrolling.
-  const paper = await page.locator("[data-flight-band]").evaluate((node) => ({
-    scrollWidth: node.scrollWidth,
-    clientWidth: node.clientWidth,
-  }));
-  assert.ok(paper.scrollWidth >= paper.clientWidth, "the raster fills the band");
-  const [olderX, newerX] = await page.evaluate(() =>
-    ["flight-1", "flight-21"].map(
-      (id) => document.querySelector(`[data-recorder-event="${id}"]`).offsetLeft,
-    ),
-  );
-  assert.ok(olderX < newerX, "older recording days sit to the left of newer ones");
-  await page.locator('[data-flight-node="source_record:source-1"]').click();
-  await page
-    .locator("[data-flight-selection]")
-    .getByRole("button", { name: "Details", exact: true })
-    .click();
+  await page.locator('[data-journey-history="evt1"]').waitFor();
+  await page.locator('[data-journey-history="evt1"]').click();
+  await page.getByRole("button", { name: "Inspect record", exact: true }).click();
   await page.getByRole("dialog").waitFor();
   await page.getByRole("button", { name: "Close", exact: true }).click();
-  await page.setViewportSize({ width: 1440, height: 1000 });
-  await page.locator('[aria-label="Event history"]').evaluate((node) => {
-    node.scrollTop = 0;
-    node.scrollLeft = node.scrollWidth;
-  });
-  await page.screenshot({ path: "/private/tmp/reality-138-browser/flight-recorder-desktop.png" });
-  await page.setViewportSize({ width: 390, height: 844 });
   assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
-  await page.screenshot({ path: "/private/tmp/reality-138-browser/flight-recorder-mobile.png" });
-  await page.unroute("**/timeline?**", recorderRoute);
+  await page.screenshot({ path: "/private/tmp/reality-138-browser/order-journey-desktop.png" });
   let releaseOld;
   const oldRead = new Promise((resolve) => {
     releaseOld = resolve;
@@ -1599,9 +1509,9 @@ try {
     history.pushState({}, "", "/app/inspector?tenant=t2&inspector_view=overview");
     dispatchEvent(new PopStateEvent("popstate"));
   });
-  await page.getByText("No recorded events yet.", { exact: true }).waitFor();
+  await page.getByText("No recorded changes for this selection.", { exact: true }).waitFor();
   releaseOld();
-  assert.equal(await page.locator("[data-recorder-event]").count(), 0);
+  assert.equal(await page.locator("[data-journey-history]").count(), 0);
   await page.unroute("**/timeline?**", isolationRoute);
 
   starterScenario = "empty";
