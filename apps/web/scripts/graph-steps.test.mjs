@@ -26,7 +26,20 @@ vm.runInNewContext(
     exports,
     Date,
     require: (name) => {
-      if (name.startsWith(".")) return { t: (value) => value, APIError: class {} };
+      if (name.startsWith("."))
+        return {
+          t: (value) => value,
+          APIError: class {},
+          // The real one renders in the reader's own timezone, which is the
+          // whole point of the test below; Berlin is what the app ships with.
+          formatDate: (value) =>
+            new Intl.DateTimeFormat("de-DE", {
+              day: "2-digit",
+              month: "short",
+              year: "numeric",
+              timeZone: "Europe/Berlin",
+            }).format(new Date(value)),
+        };
       return require(name);
     },
   },
@@ -219,7 +232,11 @@ test("a reopened period is one line again, not two halves", () => {
   const reopened = plain(planOf(saved, NODES));
   assert.equal(reopened.blocks[0].filters.length, 1, "two bounds, one removable line");
   assert.equal(reopened.blocks[0].filters[0].conditions.length, 2);
-  assert.equal(reopened.blocks[0].filters[0].shown, "Bestelldatum 2026-01-01 – 2027-01-01");
+  assert.match(
+    reopened.blocks[0].filters[0].shown,
+    /Bestelldatum 01\. Jan\. 2026 – 01\. Jan\. 2027/,
+    "a bound reads as the day it falls on, in the reader's own timezone",
+  );
 });
 
 test("a question naming a record this model does not have reopens as nothing", () => {
@@ -281,4 +298,31 @@ test("taking the last number away puts the records back", () => {
   const none = plain(withoutMeasure(one, "order_count", NODES));
   assert.deepEqual(none.measures, []);
   assert.ok(none.groups.length > 0, "an empty table is not an answer; the records are");
+});
+
+test("a reopened period reads as the day it was picked, not the day before", () => {
+  // Berlin's local midnight on 1 September is 2026-08-31T22:00:00Z. Slicing the
+  // stored instant put "2026-08-31" on a filter somebody had set to 1 September:
+  // the query was right and the label was a day out, which is the worse failure,
+  // because the reader has no reason to doubt it.
+  const saved = question({
+    blocks: [
+      {
+        alias: "o",
+        node: "order",
+        filters: [
+          periodFilter("o.ordered_at", "Bestelldatum", {
+            label: "September",
+            from: new Date(2026, 8, 1),
+            until: new Date(2026, 8, 18),
+          }),
+        ],
+      },
+    ],
+    measures: ["order_count"],
+    groups: [],
+    limit: 50,
+  });
+  const shown = plain(planOf(saved, NODES)).blocks[0].filters[0].shown;
+  assert.doesNotMatch(shown, /31/, `a September filter must not read as August: ${shown}`);
 });
