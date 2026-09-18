@@ -1,0 +1,772 @@
+.analysis-builder {
+  --analysis-bg: var(--surface);
+  --analysis-surface: var(--surface);
+  --analysis-ink: var(--text-strong);
+  --analysis-muted: var(--text-muted);
+  --analysis-border: var(--border-default);
+  color: var(--analysis-ink);
+  background: var(--analysis-bg);
+  padding: 0;
+  border-radius: 0;
+  min-width: 0;
+  font-size: 13px;
+}
+.analysis-builder * {
+  box-sizing: border-box;
+}
+.analysis-card {
+  background: var(--analysis-surface);
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  overflow: hidden;
+}
+.analysis-card-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 14px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--analysis-border);
+}
+.analysis-card-heading h3 {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 500;
+}
+.analysis-save {
+  margin: 0;
+  padding: 0;
+  min-width: 0;
+  border: 0;
+}
+.analysis-save:disabled {
+  opacity: 0.5;
+}
+.analysis-interpretation {
+  padding: 12px 0;
+}
+.analysis-sentence {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 9px;
+  color: var(--analysis-muted);
+  font-size: 14px;
+  line-height: 1.5;
+}
+.analysis-token {
+  border: 0;
+  background: var(--accent-soft);
+  color: var(--accent);
+  border-radius: 8px;
+  font-weight: 500;
+  font-size: 13px;
+  padding: 5px 10px;
+  max-width: 290px;
+  min-height: 32px;
+}
+.analysis-hop {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+.analysis-token.analysis-relation {
+  background: var(--positive-bg);
+  color: var(--positive-text);
+}
+.analysis-token.analysis-period {
+  background: var(--caution-bg);
+  color: var(--caution-text);
+  max-width: 230px;
+}
+.analysis-sentence select[aria-label] {
+  cursor: pointer;
+}
+.analysis-chips {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 18px;
+}
+.analysis-chips:empty {
+  display: none;
+}
+.analysis-chips > span button {
+  font-size: 13px;
+}
+.analysis-chips > span button + button {
+  padding-left: 12px;
+  color: var(--text-muted);
+}
+.analysis-measures {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 14px;
+  font-size: 13px;
+  color: var(--analysis-muted);
+}
+.analysis-measures .analysis-token {
+  padding: 7px 9px;
+  min-height: 32px;
+  font-size: 13px;
+}
+.analysis-panel {
+  padding: 12px 0;
+  outline-offset: -3px;
+}
+.analysis-metrics {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin-bottom: 20px;
+}
+.analysis-metrics > div {
+  background: var(--surface-sunken);
+  border: 1px solid var(--analysis-border);
+  padding: 13px 14px;
+  border-radius: 8px;
+}
+.analysis-metrics span {
+  color: var(--text-muted);
+  display: block;
+  font-size: 13px;
+}
+.analysis-metrics strong {
+  display: block;
+  font-size: 20px;
+  line-height: 1.5;
+  font-weight: 700;
+}
+.analysis-metrics strong.analysis-read-time {
+  font-size: 13px;
+  padding: 5px 0;
+}
+.analysis-metrics small {
+  display: block;
+  color: var(--analysis-muted);
+  font-size: 11px;
+}
+.analysis-builder .erp-table button {
+  text-align: inherit;
+}
+.analysis-graph-scroll {
+  overflow-x: auto;
+  background: var(--surface-sunken);
+  border-radius: 8px;
+}
+.analysis-graph {
+  position: relative;
+}
+.analysis-graph svg {
+  position: absolute;
+  inset: 0;
+  color: var(--border-strong);
+}
+.analysis-graph line {
+  stroke: var(--border-strong);
+  stroke-width: 2.5px;
+}
+.analysis-graph text {
+  fill: var(--text-muted);
+  font-size: 12px;
+  paint-order: stroke;
+  stroke: var(--surface-sunken);
+  stroke-width: 8px;
+  stroke-linejoin: round;
+}
+.analysis-node {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  width: 116px;
+  height: 116px;
+  border: 1px solid var(--border-default);
+  border-radius: 50%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 3px;
+  box-shadow: none;
+}
+.analysis-node strong {
+  font-size: 15px;
+  line-height: 1.2;
+  overflow-wrap: anywhere;
+}
+.analysis-node small {
+  font-size: 12px;
+}
+.analysis-node-0 {
+  background: var(--positive-bg);
+  color: var(--positive-text);
+}
+.analysis-node-1 {
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+.analysis-node-2 {
+  background: var(--caution-bg);
+  color: var(--caution-text);
+}
+.analysis-node[aria-pressed="true"] {
+  outline: 3px solid var(--accent);
+  outline-offset: 3px;
+}
+.analysis-connections > p,
+.analysis-expert > p {
+  color: var(--text-muted);
+  font-size: 13px;
+  margin-top: 12px;
+}
+.analysis-node-editor {
+  margin-top: 16px;
+  padding: 16px;
+  border: 1px solid var(--analysis-border);
+  border-radius: 8px;
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.analysis-node-editor h4,
+.analysis-node-editor > p {
+  flex-basis: 100%;
+  margin: 0;
+}
+.analysis-editor-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 10px;
+  color: var(--text-muted);
+  font-size: 13px;
+}
+.analysis-code {
+  width: 100%;
+  min-height: 245px;
+  resize: vertical;
+  border: 0;
+  border-radius: 8px;
+  background: var(--surface-sunken);
+  color: var(--text-default);
+  padding: 18px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 14px;
+  line-height: 1.65;
+  white-space: pre;
+  overflow: auto;
+}
+.analysis-parameters {
+  min-height: 100px;
+  margin-top: 10px;
+}
+.analysis-expert details {
+  margin-top: 12px;
+  color: var(--text-muted);
+  font-size: 13px;
+}
+.analysis-notice {
+  margin: 12px 0;
+  padding: 12px 14px;
+  background: var(--caution-bg);
+  color: var(--caution-text);
+  border-radius: 8px;
+  font-size: 14px;
+}
+.analysis-panel .analysis-notice {
+  margin: 12px 0;
+}
+.analysis-builder :is(button, select, summary) {
+  cursor: pointer;
+}
+.analysis-builder :disabled {
+  cursor: default;
+}
+.analysis-builder :focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+@media (max-width: 760px) {
+  .analysis-builder {
+    padding: 0;
+    border-radius: 0;
+  }
+  .analysis-heading {
+    align-items: flex-start;
+    flex-wrap: wrap;
+  }
+  .analysis-heading h2 {
+    font-size: 22px;
+  }
+  .analysis-card-heading {
+    padding: 12px 0;
+    flex-wrap: wrap;
+  }
+  .analysis-interpretation,
+  .analysis-panel {
+    padding: 12px 0;
+  }
+  .analysis-sentence {
+    font-size: 14px;
+  }
+  .analysis-token {
+    max-width: 100%;
+    font-size: 14px;
+  }
+  .analysis-metrics {
+    grid-template-columns: 1fr;
+  }
+  .analysis-tabs {
+    gap: 4px;
+    padding: 8px 0;
+  }
+  .analysis-builder button {
+    min-height: 44px;
+  }
+  .analysis-editor-heading {
+    align-items: flex-start;
+    flex-wrap: wrap;
+  }
+  .analysis-save {
+    max-width: 100%;
+  }
+}
+.analysis-catalog-banner {
+  padding: 4px 0 12px;
+  margin-bottom: 12px;
+  border-bottom: 1px solid var(--border-subtle);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+}
+.analysis-catalog-banner p {
+  color: var(--text-muted);
+  font-size: 13px;
+  margin-top: 4px;
+}
+.analysis-catalog-counts {
+  display: flex;
+  gap: 24px;
+  text-align: center;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+.analysis-catalog-counts strong {
+  display: block;
+  color: var(--text-strong);
+  font-size: 21px;
+}
+.analysis-catalog-layout {
+  display: grid;
+  grid-template-columns: 230px minmax(0, 1fr);
+  gap: 16px;
+}
+.analysis-catalog-sidebar {
+  padding: 10px;
+}
+.analysis-catalog-sidebar h3 {
+  font-size: 11px;
+  text-transform: none;
+  letter-spacing: normal;
+  color: var(--analysis-muted);
+  padding: 14px 4px 6px;
+}
+.analysis-object-group > button {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  width: 100%;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--analysis-ink);
+  text-align: left;
+  padding: 10px 6px;
+  min-height: 32px;
+}
+.analysis-object-group > button[aria-pressed="true"] {
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+.analysis-object-group > button strong {
+  font-size: 13px;
+  flex: 1;
+}
+.analysis-object-group > button small {
+  font-size: 10px;
+  color: var(--analysis-muted);
+}
+.analysis-object-icon {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  flex-shrink: 0;
+  border-radius: 7px;
+  background: var(--surface-muted);
+  font-size: 10px;
+  color: var(--text-muted);
+  font-weight: 600;
+}
+.analysis-catalog-detail {
+  min-height: 510px;
+  min-width: 0;
+}
+.analysis-catalog-detail .analysis-card-heading p {
+  font-size: 12px;
+  color: var(--analysis-muted);
+  margin-top: 4px;
+}
+.analysis-catalog-edges {
+  display: grid;
+  gap: 12px;
+}
+.analysis-catalog-edges > div {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  border: 1px solid var(--analysis-border);
+  border-radius: 8px;
+  padding: 16px;
+}
+.analysis-catalog-edges .analysis-token {
+  font-size: 13px;
+  padding: 6px 9px;
+}
+.analysis-catalog-edges p {
+  margin-top: 10px;
+  color: var(--analysis-muted);
+  font-size: 12px;
+}
+@media (max-width: 760px) {
+  .analysis-catalog-layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .analysis-catalog-sidebar {
+    max-height: 230px;
+    overflow-y: auto;
+  }
+  .analysis-catalog-banner {
+    padding: 4px 0 12px;
+    margin-bottom: 12px;
+    border-bottom: 1px solid var(--border-subtle);
+    flex-wrap: wrap;
+  }
+  .analysis-catalog-edges > div {
+    flex-wrap: wrap;
+  }
+}
+.analysis-inline-menu {
+  position: relative;
+  max-width: 100%;
+}
+.analysis-inline-menu > summary {
+  list-style: none;
+  display: inline-block;
+  cursor: pointer;
+}
+.analysis-inline-menu > summary::-webkit-details-marker {
+  display: none;
+}
+.analysis-inline-menu > summary.analysis-period {
+  max-width: 320px;
+}
+.analysis-menu-content {
+  position: absolute;
+  z-index: 10;
+  top: calc(100% + 8px);
+  left: 0;
+  min-width: 270px;
+  width: max-content;
+  max-width: min(420px, 80vw);
+  padding: 14px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  background: var(--analysis-surface);
+  border: 1px solid var(--analysis-border);
+  border-radius: 8px;
+  box-shadow: var(--shadow-floating, 0 8px 24px rgb(0 0 0 / 0.12));
+  font-size: 14px;
+}
+.analysis-menu-content p {
+  width: 100%;
+}
+.analysis-card {
+  overflow: visible;
+}
+.analysis-menu-content select {
+  max-width: 100%;
+}
+
+@media (max-width: 760px) {
+  .analysis-inline-menu[open] {
+    flex-basis: 100%;
+    width: 100%;
+  }
+  .analysis-menu-content {
+    position: static;
+    min-width: 0;
+    width: 100%;
+    max-width: 100%;
+    margin-top: 8px;
+  }
+}
+
+.analysis-code {
+  border: 1px solid var(--border-default);
+  font-size: 13px;
+}
+.analysis-catalog-sidebar {
+  padding: 0 12px 0 0;
+  border-right: 1px solid var(--border-subtle);
+}
+.analysis-object-group > button strong {
+  font-weight: 500;
+}
+.analysis-graph-scroll {
+  border: 1px solid var(--border-subtle);
+}
+@media (pointer: coarse) {
+  .analysis-builder :is(button, select, summary) {
+    min-height: 44px;
+  }
+}
+@media (max-width: 760px) {
+  .analysis-catalog-sidebar {
+    border-right: 0;
+    padding: 0;
+  }
+}
+
+.analysis-builder .erp-table {
+  table-layout: auto;
+}
+.analysis-builder .erp-table td {
+  white-space: nowrap;
+}
+.analysis-builder .erp-table small {
+  display: block;
+  color: var(--text-muted);
+  font-size: 11px;
+}
+.analysis-catalog-counts strong {
+  display: inline;
+  font-size: inherit;
+  margin-right: 4px;
+}
+.analysis-catalog-counts {
+  text-align: left;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.analysis-catalog .register-toolbar-block {
+  padding-top: 0;
+}
+.analysis-catalog .register-filter-row:empty {
+  display: none;
+}
+
+.analysis-sentence .br-control {
+  width: auto;
+  max-width: 100%;
+}
+
+/* A question is one editing unit; results retain the shared register surface. */
+.analysis-question-section {
+  border: 1px solid var(--border-default);
+  border-radius: 12px;
+  background: var(--surface);
+  margin-bottom: 20px;
+}
+.analysis-question-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border-subtle);
+}
+.analysis-question-heading h2 {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+}
+.analysis-question-section .analysis-interpretation {
+  padding: 16px;
+}
+.analysis-question-section .analysis-sentence {
+  font-size: 14px;
+  gap: 8px;
+}
+.analysis-sentence .analysis-token {
+  display: inline-flex;
+  align-items: center;
+  min-height: 34px;
+  padding: 6px 10px;
+  font-size: 14px;
+  font-weight: 600;
+  max-width: 100%;
+  line-height: 1.4;
+}
+.analysis-sentence .analysis-token.analysis-period {
+  max-width: 100%;
+}
+.analysis-section-label {
+  color: var(--text-muted);
+  font-size: 12px;
+  font-weight: 500;
+}
+.analysis-question-section .analysis-chips {
+  margin-top: 12px;
+  gap: 8px;
+}
+.analysis-settings {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border-subtle);
+  color: var(--text-muted);
+  font-size: 13px;
+}
+.analysis-settings > summary {
+  width: fit-content;
+  padding: 4px 0;
+  font-weight: 500;
+}
+.analysis-record-controls {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+}
+.analysis-record-controls .br-control {
+  width: auto;
+  max-width: 100%;
+}
+.analysis-sort-controls {
+  font-size: 12px;
+}
+.analysis-question-section .analysis-notice {
+  margin: 12px 20px;
+}
+@media (max-width: 760px) {
+  .analysis-question-heading,
+  .analysis-question-section .analysis-interpretation {
+    padding: 16px;
+  }
+  .analysis-question-section .analysis-sentence,
+  .analysis-sentence .analysis-token {
+    font-size: 14px;
+  }
+  .analysis-question-section .analysis-sentence > *,
+  .analysis-record-controls > * {
+    max-width: 100%;
+    min-width: 0;
+  }
+}
+
+.analysis-object-group > summary {
+  margin: 18px 8px 6px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+.analysis-object-group > button {
+  width: 100%;
+}
+
+.analysis-object-group > summary {
+  cursor: pointer;
+  padding: 8px 0;
+}
+.analysis-object-group > summary small {
+  margin-left: 6px;
+  font-weight: 400;
+}
+.analysis-object-group > button strong {
+  overflow-wrap: anywhere;
+  min-width: 0;
+}
+.analysis-object-group > button small {
+  flex: 0 0 42px;
+}
+
+.analysis-object-group > button {
+  display: grid;
+  grid-template-columns: 28px minmax(0, 1fr);
+  column-gap: 9px;
+  row-gap: 2px;
+}
+.analysis-object-group .analysis-object-icon {
+  grid-row: 1 / 3;
+}
+.analysis-object-group > button strong {
+  overflow-wrap: break-word;
+  hyphens: auto;
+}
+.analysis-object-group > button small {
+  grid-column: 2;
+}
+
+/* Compact question controls use the same neutral surfaces as the workbench. */
+.analysis-question-section .analysis-sentence .analysis-token {
+  background: var(--surface);
+  color: var(--text-strong);
+  border: 1px solid var(--border-default);
+  font-weight: 500;
+}
+.analysis-question-section .analysis-sentence .analysis-token:hover,
+.analysis-question-section .analysis-inline-menu[open] > .analysis-token {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+.analysis-question-section .analysis-chat-action {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 30px;
+  padding: 4px 8px;
+  font-size: 12px;
+  border-color: transparent;
+  background: transparent;
+}
+.analysis-snapshot-inline,
+.analysis-snapshot-label {
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.analysis-snapshot-label .br-control {
+  width: auto;
+  min-height: 34px;
+}
+.analysis-question-section .analysis-chips > select.br-control {
+  width: 110px;
+  min-width: 0;
+  max-width: 100%;
+}
+.analysis-filter-empty {
+  color: var(--text-muted);
+  font-size: 12px;
+}
+
+.analysis-token:has(> .analysis-chevron) {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+.analysis-chevron {
+  flex: 0 0 14px;
+  width: 14px;
+  height: 14px;
+}

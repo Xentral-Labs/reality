@@ -68,6 +68,8 @@ class Property(GraphModel):
     column: str
     label: Label
     enumerated: bool = False
+    temporal: Literal["date"] | None = None
+    input: Literal["date"] | None = None
 
 
 class Unit(GraphModel):
@@ -213,6 +215,19 @@ class Node(GraphModel):
     from_facts: FactSource | None = None
     where: dict[str, Any] | None = None
     of: str | None = None
+    derivation: (
+        Literal[
+            "finance.aging",
+            "warehouse.inventory",
+            "positions.customer",
+            "positions.supplier",
+            "positions.stock",
+            "positions.customer.history",
+            "positions.supplier.history",
+            "positions.stock.history",
+        ]
+        | None
+    ) = None
     grain: str
     key: str
     tenant: str = "tenant_id"
@@ -225,6 +240,11 @@ class Node(GraphModel):
     properties: dict[str, str | Property] = Field(default_factory=dict)
     measures: Literal["none"] | None = None
     label: Label | None = None
+
+    description: Label | None = None
+    category: Label | None = None
+    category_order: int = 100
+    aliases: tuple[str, ...] = ()
 
     def column_of(self, prop: str) -> str:
         # The key is groupable without being declared a property: it is what the
@@ -272,6 +292,8 @@ class Node(GraphModel):
         if self.corrections != "compensate" and self.correction_table:
             raise ValueError("only a compensating node has a correction table")
         unsupported = set(self.coverage) & {"as_of_effective", "as_of_knowledge"}
+        if self.derivation and self.derivation.endswith(".history"):
+            unsupported.discard("as_of_effective")
         if unsupported:
             raise ValueError(
                 f"{sorted(unsupported)} is not backed by a tested history model; "
@@ -390,6 +412,7 @@ class ReportTemplate(GraphModel):
     about: Label
     question: dict[str, Any]
     period: TemplatePeriod | None = None
+    snapshot: str | None = None
 
 
 class ReportingGraph(GraphModel):

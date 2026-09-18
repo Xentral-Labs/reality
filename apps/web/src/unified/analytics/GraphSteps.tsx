@@ -1,3 +1,8 @@
+import { catalogGroups } from "./catalog";
+import { openAnalysisChat } from "./chatHandoff";
+import "./AnalysisBuilder.css";
+import { RegisterHeader } from "../RegisterWorkbench";
+import { PageActionBar } from "../PageActionBar";
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
   APIError,
@@ -11,6 +16,7 @@ import {
 import {
   currentLanguage,
   formatDate,
+  formatCalendarDate,
   formatDateTime,
   formatExactDecimal,
   t,
@@ -106,7 +112,7 @@ function refusalOf(failure: unknown): Refusal {
   const code = failure instanceof APIError ? failure.code : undefined;
   return {
     headline: t((code && REFUSALS[code]) || "This question cannot be answered correctly"),
-    detail: failure instanceof Error ? failure.message : analyticsError(failure),
+    detail: analyticsError(failure),
   };
 }
 
@@ -149,8 +155,8 @@ function periods(): { key: string; label: string; from: Date; until: Date }[] {
     {
       key: "last_30_days",
       label: t("the last 30 days"),
-      from: new Date(day.getTime() - 30 * 86400000),
-      until: new Date(day.getTime() + 86400000),
+      from: new Date(year, month, day.getDate() - 29),
+      until: new Date(year, month, day.getDate() + 1),
     },
   ];
 }
@@ -161,9 +167,9 @@ function periods(): { key: string; label: string; from: Date; until: Date }[] {
  * adopts it: "this month" is a different pair of instants in Auckland and in
  * Lisbon, and only the browser asking knows which.
  */
-export function periodOf(window: string): Filter | null {
+export function periodOf(window: string, temporal?: "date"): Filter | null {
   const found = periods().find((period) => period.key === window);
-  return found ? periodFilter("", "", found) : null;
+  return found ? periodFilter("", "", found, temporal) : null;
 }
 
 /** The bound as a real instant.
@@ -172,7 +178,9 @@ export function periodOf(window: string): Filter | null {
  * moment from midnight UTC. Sending the instant rather than the wall-clock text
  * is what keeps an hour of December out of January.
  */
-function instant(value: Date) {
+function instant(value: Date, temporal?: "date") {
+  if (temporal === "date")
+    return `${value.getFullYear()}-${String(value.getMonth() + 1).padStart(2, "0")}-${String(value.getDate()).padStart(2, "0")}`;
   return value.toISOString();
 }
 
@@ -185,12 +193,13 @@ export function periodFilter(
   field: string,
   label: string,
   period: { label: string; from: Date; until: Date },
+  temporal?: "date",
 ): Filter {
   return {
     shown: `${label} ${period.label}`,
     conditions: [
-      { field, op: "gte", value: instant(period.from) },
-      { field, op: "lt", value: instant(period.until) },
+      { field, op: "gte", value: instant(period.from, temporal) },
+      { field, op: "lt", value: instant(period.until, temporal) },
     ],
   };
 }
@@ -214,14 +223,27 @@ const OPERATORS: { key: string; label: string; kinds: string[]; valueless?: bool
   },
 ];
 
-type Field = { field: string; label: string; kind: string; values?: string[] };
+type Field = {
+  field: string;
+  label: string;
+  kind: string;
+  temporal?: "date";
+  input?: "date";
+  values?: string[];
+};
 
 export function GraphSteps({
   tenant,
   report,
   onSaved,
+  initialQuestion,
+  active = true,
+  onNew,
 }: {
   tenant: string;
+  active?: boolean;
+  onNew?: () => void;
+  initialQuestion?: GraphQuestion;
   report?: GraphReport | null;
   onSaved?: (report: GraphReport) => void;
 }) {
@@ -235,6 +257,9 @@ export function GraphSteps({
       tenant={tenant}
       catalog={read.data}
       report={report ?? null}
+      initialQuestion={initialQuestion}
+      active={active}
+      onNew={onNew}
       onSaved={onSaved}
     />
   );
@@ -305,6 +330,14 @@ export function pruned(plan: Plan, nodes: Record<string, GraphNode>): Plan {
  * avoid in the first place.
  */
 export function planOf(question: GraphQuestion, nodes: Record<string, GraphNode>): Plan | null {
+  if (
+    question.having?.length ||
+    question.exists?.length ||
+    (question.order_by?.length ?? 0) > 1 ||
+    question.follow?.some((hop) => hop.depth) ||
+    question.group_by?.some((group) => group.as && !group.bucket)
+  )
+    return null;
   const start = nodes[question.from];
   if (!start) return null;
   const blocks: Block[] = [{ alias: question.as || "root", node: question.from, filters: [] }];
@@ -320,12 +353,12 @@ export function planOf(question: GraphQuestion, nodes: Record<string, GraphNode>
     blocks.push({
       edge: {
         key: hop.edge,
-        direction: hop.direction,
+        direction: hop.direction ?? "out",
         label:
           hop.direction === "in"
             ? `${(edge as { from_label: string }).from_label} (${edge.label})`
             : `${edge.label} ${(edge as { to_label: string }).to_label}`,
-        fansOut: fansOut(edge.multiplicity, hop.direction),
+        fansOut: fansOut(edge.multiplicity, hop.direction ?? "out"),
         from: origin,
       },
       alias: hop.as,
@@ -384,8 +417,15 @@ export function planOf(question: GraphQuestion, nodes: Record<string, GraphNode>
  * right and the label was a day out, which is worse than either being wrong,
  * because the reader has no reason to doubt it.
  */
+function nextCalendarDay(value: string) {
+  const date = new Date(`${value}T00:00:00`);
+  date.setDate(date.getDate() + 1);
+  return date;
+}
+
 function shortDate(value: unknown) {
   if (typeof value !== "string") return String(value ?? "");
+  if (/^\d{4}-\d{2}-\d{2}$/.test(value)) return formatCalendarDate(value);
   const instant = new Date(value);
   return Number.isNaN(instant.getTime()) ? value.slice(0, 10) : formatDate(value);
 }
@@ -403,6 +443,11 @@ function shortDate(value: unknown) {
  */
 function lastIncluded(value: unknown) {
   if (typeof value !== "string") return String(value ?? "");
+  if (/^\d{4}-\d{2}-\d{2}$/.test(value)) {
+    const previous = new Date(`${value}T00:00:00Z`);
+    previous.setUTCDate(previous.getUTCDate() - 1);
+    return formatCalendarDate(previous.toISOString().slice(0, 10));
+  }
   const bound = new Date(value);
   if (Number.isNaN(bound.getTime())) return value.slice(0, 10);
   const midnight =
@@ -449,10 +494,16 @@ function Builder({
   catalog,
   report,
   onSaved,
+  initialQuestion,
+  active = true,
+  onNew,
 }: {
   tenant: string;
+  active?: boolean;
+  onNew?: () => void;
   catalog: GraphCatalog;
   report: GraphReport | null;
+  initialQuestion?: GraphQuestion;
   onSaved?: (report: GraphReport) => void;
 }) {
   const nodes = useMemo(
@@ -463,244 +514,684 @@ function Builder({
       >,
     [catalog],
   );
+  const first = nodes.order ?? catalog.nodes[0];
   const [plan, setPlan] = useState<Plan | null>(() =>
-    report ? planOf(report.definition, nodes) : null,
+    report
+      ? planOf(report.definition, nodes)
+      : initialQuestion
+        ? planOf(initialQuestion, nodes)
+        : first
+          ? listPlan(first)
+          : null,
   );
+  const [canonical, setCanonical] = useState<GraphQuestion | null>(
+    report?.definition ?? initialQuestion ?? null,
+  );
+  const [activeReport, setActiveReport] = useState(report);
   const [answer, setAnswer] = useState<GraphAnswer | null>(null);
   const [refusal, setRefusal] = useState<Refusal | null>(null);
   const [busy, setBusy] = useState(false);
-
+  const [tab, setTab] = useState<"result" | "connections" | "cypher">("result");
+  const [path, setPath] = useState("");
+  const [parameters, setParameters] = useState("{}");
+  const [draft, setDraft] = useState(false);
+  const [readAt, setReadAt] = useState<string | null>(null);
+  const [selected, setSelected] = useState<string | null>(null);
+  const [notice, setNotice] = useState("");
+  const generation = useRef(0);
+  const controller = useRef<AbortController | null>(null);
+  const start = () => {
+    controller.current?.abort();
+    controller.current = new AbortController();
+    const id = ++generation.current;
+    setBusy(true);
+    setRefusal(null);
+    setNotice("");
+    setAnswer(null);
+    setReadAt(null);
+    return { id, signal: controller.current.signal };
+  };
+  const receive = (value: GraphAnswer, id: number, keepText = false) => {
+    if (id !== generation.current) return;
+    setAnswer(value);
+    setCanonical(value.question);
+    setPlan(planOf(value.question, nodes));
+    setReadAt(new Date().toISOString());
+    setDraft(false);
+    if (!keepText) {
+      setPath(value.editor?.path ?? "");
+      setParameters(JSON.stringify(value.editor?.parameters ?? {}, null, 2));
+    }
+    if (!planOf(value.question, nodes))
+      setNotice(t("This query uses expert clauses. Its full definition is preserved."));
+    if (value.editor?.reason) setNotice(value.editor.reason);
+  };
+  const fail = (error: unknown, id: number) => {
+    if (
+      id === generation.current &&
+      !(error instanceof DOMException && error.name === "AbortError")
+    )
+      setRefusal(refusalOf(error));
+  };
+  const execute = async (value: GraphQuestion, keepText = false) => {
+    const { id, signal } = start();
+    setCanonical(value);
+    try {
+      receive(await graphApi.ask(tenant, value, signal), id, keepText);
+    } catch (error) {
+      fail(error, id);
+    } finally {
+      if (id === generation.current) setBusy(false);
+    }
+  };
   const ask = async (next: Plan) => {
-    // Every change funnels through here, so a hop that makes a required axis
-    // reachable brings it in without the reader meeting a refusal first.
     const settled = pruned(
       withRequiredAxes(
         next,
         next.blocks.flatMap((block) => nodes[block.node]?.measures ?? []),
-        next.blocks.flatMap((block) =>
-          (nodes[block.node]?.properties ?? []).map((property) => ({
-            field: `${block.alias}.${property.key}`,
-            label: property.label,
-            kind: property.kind,
-            ...(property.values ? { values: property.values } : {}),
-          })),
-        ),
+        fieldsOf(next, nodes),
       ),
       nodes,
     );
     setPlan(settled);
-    if (!settled.measures.length && !settled.groups.length) {
-      setAnswer(null);
-      setRefusal(null);
-      return;
-    }
-    setBusy(true);
-    setRefusal(null);
+    setSelected(null);
+    setDraft(false);
+    await execute(question(settled));
+  };
+  useEffect(() => {
+    if (report) void execute(report.definition);
+    else if (initialQuestion) void execute(initialQuestion);
+    else if (plan) void execute(question(plan));
+    return () => {
+      controller.current?.abort();
+      generation.current++;
+    };
+  }, []);
+  const executePath = async () => {
+    const { id, signal } = start();
     try {
-      setAnswer(await graphApi.ask(tenant, question(settled)));
-    } catch (failure) {
-      setAnswer(null);
-      setRefusal(refusalOf(failure));
+      const values: unknown = JSON.parse(parameters);
+      if (!values || Array.isArray(values) || typeof values !== "object")
+        throw new Error(t("Parameters must be a JSON object."));
+      receive(
+        await graphApi.askPath(tenant, path, signal, values as Record<string, unknown>),
+        id,
+        true,
+      );
+    } catch (error) {
+      fail(error, id);
     } finally {
-      setBusy(false);
+      if (id === generation.current) setBusy(false);
     }
   };
-
-  // A reopened report shows its answer without being touched first, which is
-  // the whole point of reopening one.
-  const asked = useRef(false);
-  useEffect(() => {
-    if (plan && !asked.current) {
-      asked.current = true;
-      void ask(plan);
-    }
-  });
-
-  if (!plan)
-    return (
-      <section className="space-y-5">
-        <div>
-          <h2 className="text-xl font-semibold">{t("What would you like to look at?")}</h2>
-          <div className="mt-1 max-w-2xl text-sm text-fg-muted">
-            {t(
-              "Pick your records and you see them straight away. Everything else happens on the table.",
-            )}
-          </div>
-        </div>
-        <div className="flex flex-wrap gap-2">
-          {catalog.nodes.map((node) => (
-            <button
-              key={node.key}
-              className="br-btn"
-              title={node.grain}
-              onClick={() => ask(listPlan(node))}
-            >
-              {node.label}
-            </button>
-          ))}
-        </div>
-      </section>
-    );
-
+  const editDraft = () => {
+    controller.current?.abort();
+    generation.current++;
+    setBusy(false);
+    setDraft(true);
+    setReadAt(null);
+    setRefusal(null);
+  };
+  const inspectPlan =
+    plan ??
+    (canonical
+      ? planOf(
+          {
+            ...canonical,
+            having: [],
+            exists: [],
+            order_by: [],
+            follow: canonical.follow?.map((hop) => ({ ...hop, depth: undefined })),
+            group_by: canonical.group_by?.map((group) => ({ ...group, as: undefined })),
+          },
+          nodes,
+        )
+      : null);
+  const shownPlan = inspectPlan ?? (first ? listPlan(first) : null);
+  if (!shownPlan)
+    return <div className="analysis-empty">{t("No analysis records are available.")}</div>;
+  const controlsLocked = draft || !plan;
+  const change = (next: Plan) => {
+    if (!controlsLocked) void ask(next);
+  };
+  const tabs = [
+    ["result", "Result"],
+    ["connections", "Connections"],
+    ["cypher", "Cypher"],
+  ] as const;
   return (
-    <section className="space-y-4">
-      <Toolbar
-        catalog={catalog}
-        nodes={nodes}
-        plan={plan}
-        change={ask}
-        restart={() => {
-          setPlan(null);
-          setAnswer(null);
-          setRefusal(null);
-        }}
-      />
-      <Result
-        answer={answer}
-        refusal={refusal}
-        busy={busy}
-        plan={plan}
-        nodes={nodes}
-        ceiling={catalog.limits.result_rows}
-        change={ask}
-      />
-      <Save tenant={tenant} plan={plan} report={report} onSaved={onSaved} />
+    <section className="analysis-builder register-surface" aria-busy={busy}>
+      <div className="analysis-card">
+        <fieldset disabled={busy || draft || !answer} className="analysis-save">
+          <Save
+            tenant={tenant}
+            plan={shownPlan}
+            definition={canonical ?? undefined}
+            report={activeReport}
+            onSaved={onSaved}
+            active={active}
+            onNew={onNew}
+            disabled={busy || draft || !answer}
+          />
+        </fieldset>
+        <section
+          className="analysis-question-section"
+          aria-label={t("How Reality understands your question")}
+        >
+          <header className="analysis-question-heading">
+            <h2>{t("How Reality understands your question")}</h2>
+            <button
+              className="br-btn analysis-chat-action"
+              disabled={busy || draft || !answer}
+              onClick={() =>
+                openAnalysisChat(
+                  tenant,
+                  activeReport?.name ?? t("Current analysis"),
+                  canonical ?? question(shownPlan),
+                )
+              }
+            >
+              <svg
+                aria-hidden="true"
+                width="14"
+                height="14"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.6"
+              >
+                <path d="M20 11.5a7.5 7.5 0 0 1-7.5 7.5H5l-3 3V11.5A7.5 7.5 0 0 1 9.5 4h3a7.5 7.5 0 0 1 7.5 7.5Z" />
+              </svg>
+              {t("Adapt with chat")}
+            </button>
+          </header>
+          {notice && (
+            <p className="analysis-notice" role="status">
+              {notice}
+            </p>
+          )}
+          {controlsLocked ? (
+            <div className="analysis-interpretation">
+              <p>
+                {draft
+                  ? t("Execute your edited query before changing the sentence or saving.")
+                  : t("This query uses expert clauses. Its full definition is preserved.")}
+              </p>
+              <button className="br-btn" onClick={() => setTab("cypher")}>
+                {t("Open query editor")}
+              </button>
+              <button
+                className="br-btn"
+                onClick={() => {
+                  setDraft(false);
+                  setActiveReport(null);
+                  setPath("");
+                  setParameters("{}");
+                  void ask(listPlan(first));
+                }}
+              >
+                {t("Start a new analysis")}
+              </button>
+            </div>
+          ) : (
+            <Toolbar catalog={catalog} nodes={nodes} plan={plan} change={change} />
+          )}
+        </section>
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <RegisterHeader title="Analysis views" placement="local">
+            <div className="register-tabs" role="tablist" aria-label={t("Analysis views")}>
+              {tabs.map(([key, label], index) => (
+                <button
+                  key={key}
+                  id={`analysis-tab-${key}`}
+                  role="tab"
+                  aria-selected={tab === key}
+                  aria-pressed={tab === key}
+                  aria-controls={`analysis-panel-${key}`}
+                  tabIndex={tab === key ? 0 : -1}
+                  onClick={() => setTab(key)}
+                  onKeyDown={(event) => {
+                    const target =
+                      event.key === "ArrowRight"
+                        ? (index + 1) % 3
+                        : event.key === "ArrowLeft"
+                          ? (index + 2) % 3
+                          : event.key === "Home"
+                            ? 0
+                            : event.key === "End"
+                              ? 2
+                              : -1;
+                    if (target >= 0) {
+                      event.preventDefault();
+                      setTab(tabs[target][0]);
+                      document.getElementById(`analysis-tab-${tabs[target][0]}`)?.focus();
+                    }
+                  }}
+                >
+                  {t(label)}
+                </button>
+              ))}
+            </div>
+          </RegisterHeader>
+        </div>
+        <div
+          className="analysis-panel"
+          id={`analysis-panel-${tab}`}
+          role="tabpanel"
+          aria-labelledby={`analysis-tab-${tab}`}
+          tabIndex={0}
+        >
+          {tab === "result" && (
+            <>
+              <div className="analysis-metrics">
+                <div>
+                  <span>{t("Returned rows")}</span>
+                  <strong>{answer && !busy && !draft ? answer.rows.length : "—"}</strong>
+                  <small>{t("Bounded by the selected row limit")}</small>
+                </div>
+                <div>
+                  <span>{t("Selected measures")}</span>
+                  <strong>{canonical?.measures?.length ?? 0}</strong>
+                  <small>{t("Currencies and units stay separate")}</small>
+                </div>
+                <div>
+                  <span>{t("Last successful read")}</span>
+                  <strong className="analysis-read-time">
+                    {readAt ? formatDateTime(readAt) : "—"}
+                  </strong>
+                  <small>{t("An observation of the available records")}</small>
+                </div>
+              </div>
+              {draft ? (
+                <p className="analysis-notice">
+                  {t("Execute your edited query to update the result.")}
+                </p>
+              ) : (
+                <Result
+                  answer={answer}
+                  refusal={refusal}
+                  busy={busy}
+                  plan={shownPlan}
+                  nodes={nodes}
+                  ceiling={catalog.limits.result_rows}
+                  change={change}
+                />
+              )}
+            </>
+          )}
+          {tab === "connections" && (
+            <ConnectionDiagram
+              plan={shownPlan}
+              nodes={nodes}
+              selected={selected}
+              select={setSelected}
+              change={controlsLocked ? undefined : change}
+            />
+          )}
+          {tab === "cypher" && (
+            <div className="analysis-expert">
+              <div className="analysis-editor-heading">
+                <span>{t("Generated from the interpreted question")}</span>
+                <button
+                  className="br-btn br-btn-primary"
+                  disabled={busy || !path.trim()}
+                  onClick={() => void executePath()}
+                >
+                  {t("Execute query")}
+                </button>
+              </div>
+              <textarea
+                aria-label={t("Cypher query")}
+                className="analysis-code"
+                value={path}
+                spellCheck={false}
+                onChange={(event) => {
+                  setPath(event.target.value);
+                  editDraft();
+                }}
+              />
+              <details>
+                <summary>{t("Query parameters")}</summary>
+                <textarea
+                  aria-label={t("Query parameters")}
+                  className="analysis-code analysis-parameters"
+                  value={parameters}
+                  spellCheck={false}
+                  onChange={(event) => {
+                    setParameters(event.target.value);
+                    editDraft();
+                  }}
+                />
+              </details>
+              <p>
+                {t(
+                  "Expert mode: edits remain in the query and may not translate fully back into the sentence. Only declared read queries are supported.",
+                )}
+              </p>
+              {!path && canonical && (
+                <button
+                  className="br-btn"
+                  disabled={busy}
+                  onClick={async () => {
+                    const id = generation.current;
+                    setBusy(true);
+                    setRefusal(null);
+                    try {
+                      const editor = await graphApi.format(
+                        tenant,
+                        canonical,
+                        controller.current?.signal,
+                      );
+                      if (id === generation.current) {
+                        setPath(editor.path ?? "");
+                        setParameters(JSON.stringify(editor.parameters, null, 2));
+                        if (editor.reason) setNotice(editor.reason);
+                      }
+                    } catch (error) {
+                      fail(error, id);
+                    } finally {
+                      if (id === generation.current) setBusy(false);
+                    }
+                  }}
+                >
+                  {t("Generate query")}
+                </button>
+              )}
+            </div>
+          )}
+          {tab !== "result" && refusal && (
+            <div className="analysis-notice" role="alert">
+              <strong>{refusal.headline}</strong>
+              <p>{refusal.detail}</p>
+            </div>
+          )}
+        </div>
+      </div>
     </section>
   );
 }
 
-/** Everything asked in words: which records, what to count, what to split by. */
+function fieldsOf(plan: Plan, nodes: Record<string, GraphNode>): Field[] {
+  return plan.blocks.flatMap((block) =>
+    (nodes[block.node]?.properties ?? []).map((property) => ({
+      field: `${block.alias}.${property.key}`,
+      label: `${nodes[block.node].label} · ${property.label}`,
+      kind: property.kind,
+      temporal: property.temporal,
+      input: property.input,
+      ...(property.values ? { values: property.values } : {}),
+    })),
+  );
+}
+
+export function questionPeriod(plan: Plan, nodes: Record<string, GraphNode>): Filter | undefined {
+  const dates = new Set(
+    fieldsOf(plan, nodes)
+      .filter((field) => field.kind === "time" && !field.input)
+      .map((field) => field.field),
+  );
+  return plan.blocks
+    .flatMap((block) => block.filters)
+    .find(
+      (filter) =>
+        filter.conditions.length === 2 &&
+        dates.has(filter.conditions[0].field) &&
+        filter.conditions.every((condition) => condition.field === filter.conditions[0].field) &&
+        filter.conditions.some((condition) => ["gte", "gt"].includes(condition.op)) &&
+        filter.conditions.some((condition) => ["lt", "lte"].includes(condition.op)),
+    );
+}
+
+export function withoutQuestionPeriod(plan: Plan, period: Filter): Plan {
+  return {
+    ...plan,
+    blocks: plan.blocks.map((block) => ({
+      ...block,
+      filters: block.filters.filter((filter) => filter !== period),
+    })),
+  };
+}
+
+function periodCaption(period: Filter): string {
+  const match = periods().find((window) =>
+    period.conditions.every(
+      (condition) =>
+        (condition.op === "gte" &&
+          [window.from.toISOString(), instant(window.from, "date")].includes(
+            String(condition.value),
+          )) ||
+        (condition.op === "lt" &&
+          [window.until.toISOString(), instant(window.until, "date")].includes(
+            String(condition.value),
+          )),
+    ),
+  );
+  return match?.label ?? period.shown;
+}
+
+function SentenceChevron() {
+  return (
+    <svg
+      className="analysis-chevron"
+      aria-hidden="true"
+      width="14"
+      height="14"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.75"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="m6 9 6 6 6-6" />
+    </svg>
+  );
+}
+
+/** Human captions only; the full grouping grain stays untouched in the plan. */
+export function groupCaptions(plan: Plan, nodes: Record<string, GraphNode>): string[] {
+  const described = plan.groups.filter((group) => {
+    const [alias, key] = group.field.split(".");
+    const node = nodes[plan.blocks.find((block) => block.alias === alias)?.node ?? ""];
+    const property = node?.properties.find((property) => property.key === key);
+    if (
+      property?.identity ||
+      property?.input ||
+      key === "id" ||
+      key.endsWith("_id") ||
+      key === "unit"
+    )
+      return false;
+    if (
+      ["sku", "number", "code"].includes(key) &&
+      plan.groups.some((other) => other.field === `${alias}.name`)
+    )
+      return false;
+    return true;
+  });
+  return (described.length ? described : plan.groups).map((group) => {
+    const [alias, key] = group.field.split(".");
+    const node = nodes[plan.blocks.find((block) => block.alias === alias)?.node ?? ""];
+    const property = node?.properties.find((property) => property.key === key);
+    const label = property?.label ?? group.label;
+    return group.bucket
+      ? group.label
+      : key === "name" && /^(name|naam|nombre)$/i.test(label)
+        ? (node?.label ?? label)
+        : label;
+  });
+}
+
+/** The sentence is another editor of the checked plan, not a second query language. */
 function Toolbar({
   catalog,
   nodes,
   plan,
   change,
-  restart,
 }: {
   catalog: GraphCatalog;
   nodes: Record<string, GraphNode>;
   plan: Plan;
   change: (next: Plan) => void;
-  restart: () => void;
 }) {
+  const fields = fieldsOf(plan, nodes);
   const measures = plan.blocks.flatMap((block) => nodes[block.node]?.measures ?? []);
-  const fields: Field[] = plan.blocks.flatMap((block) =>
-    (nodes[block.node]?.properties ?? []).map((property) => ({
-      field: `${block.alias}.${property.key}`,
-      label: property.label,
-      kind: property.kind,
-      ...(property.values ? { values: property.values } : {}),
-    })),
-  );
-  const summarised = plan.measures.length > 0;
-
-  return (
-    <div className="space-y-3">
-      <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
-        <h2 className="text-xl font-semibold">{nodes[plan.blocks[0].node]?.label}</h2>
-        {plan.blocks.slice(1).map((block, index) => (
-          <span key={block.alias} className="flex items-center gap-2 text-sm">
-            <span aria-hidden="true" className="text-fg-muted">
-              ›
-            </span>
-            {block.edge?.label}
-            {block.edge?.fansOut && <span className="text-xs text-warning-600">{t("many")}</span>}
-            <button
-              className="text-fg-muted hover:text-fg-strong"
-              title={t("Remove this step and everything after it")}
-              onClick={() => change({ ...plan, blocks: plan.blocks.slice(0, index + 1) })}
-            >
-              ×
-            </button>
-          </span>
-        ))}
-        <Reach catalog={catalog} nodes={nodes} plan={plan} change={change} />
-        <button className="text-sm text-fg-muted underline" onClick={restart}>
-          {t("Other records")}
-        </button>
-      </div>
-
-      <div className="flex flex-wrap items-center gap-2">
-        {plan.blocks.flatMap((block, index) =>
-          block.filters.map((filter, position) => (
-            <Chip
-              key={`${block.alias}-${position}`}
-              filter={filter}
-              flip={() =>
-                change({
-                  ...plan,
-                  blocks: plan.blocks.map((candidate, at) =>
-                    at === index
-                      ? {
-                          ...candidate,
-                          filters: candidate.filters.map((one, p) =>
-                            p === position ? flipped(one) : one,
-                          ),
-                        }
-                      : candidate,
-                  ),
-                })
-              }
-              remove={() =>
-                change({
-                  ...plan,
-                  blocks: plan.blocks.map((candidate, at) =>
-                    at === index
-                      ? {
-                          ...candidate,
-                          filters: candidate.filters.filter((_, p) => p !== position),
-                        }
-                      : candidate,
-                  ),
-                })
-              }
-            />
-          )),
-        )}
-        <AddFilter fields={fields} add={(filter) => change(withFilter(plan, filter))} />
-      </div>
-
-      <div className="flex flex-wrap items-center gap-2 text-sm">
-        <span className="text-fg-muted">{t("Summarise")}</span>
-        {plan.measures.map((key) => (
-          <button
-            key={key}
-            className={chip(true)}
-            title={t("Remove this number")}
-            onClick={() => change(withoutMeasure(plan, key, nodes))}
-          >
-            {measures.find((measure) => measure.key === key)?.label ?? key}{" "}
-            <span className="text-fg-muted">×</span>
-          </button>
-        ))}
-        <select
-          className="rounded-lg border border-border-default bg-surface px-2 py-2 text-sm"
-          aria-label={t("Number to summarise")}
-          value=""
-          onChange={(event) => {
-            const measure = event.target.value;
-            if (measure) change(withMeasure(plan, measure, measures, fields));
-          }}
-        >
-          <option value="">
-            {plan.measures.length ? t("Add…") : t("nothing — list the records")}
-          </option>
-          {measures
-            .filter((measure) => !plan.measures.includes(measure.key))
-            .map((measure) => (
-              <option key={measure.key} value={measure.key}>
-                {measure.label}
+  const [periodField, setPeriodField] = useState("");
+  const timeFields = fields.filter((field) => field.kind === "time" && !field.input);
+  const settings = useRef<HTMLDetailsElement>(null);
+  const activePeriod = questionPeriod(plan, nodes);
+  const effectivePeriodField =
+    periodField || activePeriod?.conditions[0].field || timeFields[0]?.field;
+  const groupNames = groupCaptions(plan, nodes);
+  const recordControls = (
+    <>
+      <select
+        className="br-control analysis-token analysis-root-choice"
+        style={{
+          width: `${Math.min(28, (nodes[plan.blocks[0].node]?.label.length ?? 10) + 4)}ch`,
+        }}
+        aria-label={t("Analysis records")}
+        value={plan.blocks[0].node}
+        onChange={(event) => change(listPlan(nodes[event.target.value]))}
+      >
+        {catalogGroups(catalog.nodes).map(([category, items]) => (
+          <optgroup key={category} label={category || t("Business objects")}>
+            {items.map((node) => (
+              <option key={node.key} value={node.key}>
+                {node.label}
               </option>
             ))}
-        </select>
-        {summarised && (
+          </optgroup>
+        ))}
+      </select>
+      {plan.blocks.slice(1).map((block, index) => (
+        <span key={block.alias} className="analysis-hop">
+          <span className="analysis-token analysis-relation">{t("with")}</span>
+          <details className="analysis-inline-menu">
+            <summary className="analysis-token">
+              {nodes[block.node]?.label} <SentenceChevron />
+            </summary>
+            <div className="analysis-menu-content">
+              <p>{block.edge?.label}</p>
+              <AddFilter
+                fields={fieldsOf({ ...plan, blocks: [block] }, nodes)}
+                add={(filter) => change(withFilter(plan, filter))}
+              />
+              <button
+                className="br-btn"
+                onClick={() => change({ ...plan, blocks: plan.blocks.slice(0, index + 1) })}
+              >
+                {t("Remove this step and everything after it")}
+              </button>
+            </div>
+          </details>
+        </span>
+      ))}
+      <Reach catalog={catalog} nodes={nodes} plan={plan} change={change} />
+    </>
+  );
+  return (
+    <div className="analysis-interpretation">
+      <div className="analysis-sentence">
+        <span>{t("Show me")}</span>
+        {plan.measures.length ? (
+          <button
+            className="analysis-token"
+            onClick={() => {
+              if (settings.current) {
+                settings.current.open = true;
+                settings.current.querySelector("summary")?.focus();
+              }
+            }}
+            aria-label={t("Measures and columns")}
+          >
+            {plan.measures
+              .map((key) => measures.find((measure) => measure.key === key)?.label ?? key)
+              .join(" + ")}
+            <SentenceChevron />
+          </button>
+        ) : (
+          recordControls
+        )}
+        {timeFields.length > 0 && (
           <>
-            <span className="text-fg-muted">{t("by")}</span>
+            <span>{t("from the")}</span>
+            <details className="analysis-inline-menu">
+              <summary className="analysis-token analysis-period">
+                {activePeriod ? periodCaption(activePeriod) : t("All periods")} <SentenceChevron />
+              </summary>
+              <div className="analysis-menu-content">
+                <select
+                  className="analysis-token analysis-period"
+                  aria-label={t("Period field")}
+                  value={effectivePeriodField}
+                  onChange={(event) => setPeriodField(event.target.value)}
+                >
+                  {timeFields.map((field) => (
+                    <option key={field.field} value={field.field}>
+                      {field.label}
+                    </option>
+                  ))}
+                </select>
+                <select
+                  className="analysis-token analysis-period"
+                  aria-label={t("Analysis period")}
+                  value=""
+                  onChange={(event) => {
+                    const period = periods().find((period) => period.key === event.target.value);
+                    const field =
+                      timeFields.find((field) => field.field === effectivePeriodField) ??
+                      timeFields[0];
+                    if (period)
+                      change(
+                        withFilter(
+                          {
+                            ...plan,
+                            blocks: plan.blocks.map((block) => ({
+                              ...block,
+                              filters: block.filters.filter(
+                                (filter) =>
+                                  !filter.conditions.every(
+                                    (condition) => condition.field === field.field,
+                                  ),
+                              ),
+                            })),
+                          },
+                          periodFilter(field.field, field.label, period, field.temporal),
+                        ),
+                      );
+                  }}
+                >
+                  <option value="">{t("Choose period")}</option>
+                  {periods().map((period) => (
+                    <option key={period.key} value={period.key}>
+                      {period.label}
+                    </option>
+                  ))}
+                </select>
+                <AddFilter fields={timeFields} add={(filter) => change(withFilter(plan, filter))} />
+                {activePeriod && (
+                  <button
+                    className="br-btn"
+                    onClick={() => change(withoutQuestionPeriod(plan, activePeriod))}
+                  >
+                    {t("Remove period")}
+                  </button>
+                )}
+              </div>
+            </details>
+          </>
+        )}
+        <span>{plan.measures.length ? t("grouped by") : t("showing")}</span>
+        <details className="analysis-inline-menu">
+          <summary className="analysis-token">
+            {groupNames.join(" · ") || t("Choose fields")} <SentenceChevron />
+          </summary>
+          <div className="analysis-menu-content">
             {plan.groups.map((group) => (
               <button
+                className="br-btn"
                 key={columnOf(group)}
-                className={chip(true)}
-                title={t("Remove this axis")}
                 onClick={() =>
                   change({
                     ...plan,
@@ -710,7 +1201,7 @@ function Toolbar({
                   })
                 }
               >
-                {group.label} <span className="text-fg-muted">×</span>
+                {group.label} ×
               </button>
             ))}
             <AddGroup
@@ -719,9 +1210,357 @@ function Toolbar({
               )}
               add={(group) => change({ ...plan, groups: [...plan.groups, group] })}
             />
-          </>
+          </div>
+        </details>
+        {fields.some((field) => field.input === "date") && (
+          <span className="analysis-snapshot-inline">
+            {fields
+              .filter((field) => field.input === "date")
+              .map((field) => {
+                const value = plan.blocks
+                  .flatMap((block) => block.filters)
+                  .flatMap((filter) => filter.conditions)
+                  .find(
+                    (condition) => condition.field === field.field && condition.op === "eq",
+                  )?.value;
+                return (
+                  <label
+                    key={field.field}
+                    className="analysis-snapshot-label"
+                    title={t("End of the selected day in UTC")}
+                  >
+                    <span>{t("as of")}</span>
+                    <input
+                      className="br-control"
+                      aria-label={field.label}
+                      type="date"
+                      value={typeof value === "string" ? value : ""}
+                      max={new Date().toISOString().slice(0, 10)}
+                      onChange={(event) => {
+                        const date = event.target.value;
+                        const cleared = {
+                          ...plan,
+                          blocks: plan.blocks.map((block) => ({
+                            ...block,
+                            filters: block.filters.filter(
+                              (filter) =>
+                                !filter.conditions.some(
+                                  (condition) => condition.field === field.field,
+                                ),
+                            ),
+                          })),
+                        };
+                        change(
+                          date
+                            ? withFilter(cleared, {
+                                shown: `${field.label} = ${formatCalendarDate(date)}`,
+                                conditions: [{ field: field.field, op: "eq", value: date }],
+                              })
+                            : cleared,
+                        );
+                      }}
+                    />
+                  </label>
+                );
+              })}
+          </span>
         )}
       </div>
+      <div className="analysis-chips register-filter-row">
+        <span className="analysis-section-label">{t("Filters")}</span>
+        {!plan.blocks.some((block) =>
+          block.filters.some(
+            (filter) =>
+              filter !== activePeriod &&
+              !filter.conditions.every((condition) =>
+                fields.some((field) => field.input && field.field === condition.field),
+              ),
+          ),
+        ) && <span className="analysis-filter-empty">{t("No restrictions")}</span>}
+        <AddFilter
+          fields={fields.filter((field) => !field.input)}
+          add={(filter) => change(withFilter(plan, filter))}
+        />
+        {plan.blocks.flatMap((block, index) =>
+          block.filters.flatMap((filter, position) =>
+            filter === activePeriod ||
+            filter.conditions.every((condition) =>
+              fields.some((field) => field.input && field.field === condition.field),
+            ) ? (
+              []
+            ) : (
+              <Chip
+                key={`${block.alias}-${position}`}
+                filter={filter}
+                flip={() =>
+                  change({
+                    ...plan,
+                    blocks: plan.blocks.map((candidate, at) =>
+                      at === index
+                        ? {
+                            ...candidate,
+                            filters: candidate.filters.map((one, p) =>
+                              p === position ? flipped(one) : one,
+                            ),
+                          }
+                        : candidate,
+                    ),
+                  })
+                }
+                remove={() =>
+                  change({
+                    ...plan,
+                    blocks: plan.blocks.map((candidate, at) =>
+                      at === index
+                        ? {
+                            ...candidate,
+                            filters: candidate.filters.filter((_, p) => p !== position),
+                          }
+                        : candidate,
+                    ),
+                  })
+                }
+              />
+            ),
+          ),
+        )}
+      </div>
+      <details ref={settings} className="analysis-settings">
+        <summary>{t("Measures and columns")}</summary>
+        {plan.measures.length > 0 && (
+          <div className="analysis-record-controls">
+            <span className="analysis-section-label">{t("Records and connections")}</span>
+            {recordControls}
+          </div>
+        )}
+        <div className="analysis-measures register-filter-row">
+          <span>{t("Summarise")}</span>
+          {plan.measures.map((key) => (
+            <button
+              key={key}
+              className="analysis-token"
+              title={t("Remove this number")}
+              onClick={() => change(withoutMeasure(plan, key, nodes))}
+            >
+              {measures.find((measure) => measure.key === key)?.label ?? key} ×
+            </button>
+          ))}
+          <select
+            className="br-control"
+            aria-label={t("Number to summarise")}
+            value=""
+            onChange={(event) => {
+              if (event.target.value)
+                change(withMeasure(plan, event.target.value, measures, fields));
+            }}
+          >
+            <option value="">
+              {plan.measures.length ? t("Add…") : t("nothing — list the records")}
+            </option>
+            {measures
+              .filter((measure) => !plan.measures.includes(measure.key))
+              .map((measure) => (
+                <option key={measure.key} value={measure.key}>
+                  {measure.label}
+                </option>
+              ))}
+          </select>
+          {plan.groups.map((group) => (
+            <button
+              key={columnOf(group)}
+              className="br-btn"
+              title={t("Remove this axis")}
+              onClick={() =>
+                change({
+                  ...plan,
+                  groups: plan.groups.filter(
+                    (candidate) => columnOf(candidate) !== columnOf(group),
+                  ),
+                })
+              }
+            >
+              {group.label} ×
+            </button>
+          ))}
+        </div>
+        <div className="analysis-sort-controls register-filter-row">
+          <span className="analysis-section-label">{t("Sort")}</span>
+          {plan.order && (
+            <button className="br-btn" onClick={() => change({ ...plan, order: undefined })}>
+              {t("Sort")}:{" "}
+              {measures.find((m) => m.key === plan.order?.by)?.label ??
+                plan.groups.find((g) => columnOf(g) === plan.order?.by)?.label ??
+                plan.order.by}{" "}
+              {plan.order.descending ? "↓" : "↑"} ×
+            </button>
+          )}
+
+          {!plan.order && <span>{t("No sorting selected")}</span>}
+        </div>
+      </details>
+    </div>
+  );
+}
+
+export function connectionLayout(plan: Plan) {
+  const levels = new Map<string, number>();
+  const slots = new Map<number, number>();
+  const nodes = plan.blocks.map((block, index) => {
+    const origin = block.edge?.from ?? plan.blocks[index - 1]?.alias;
+    const level = index === 0 ? 0 : (levels.get(origin) ?? 0) + 1;
+    levels.set(block.alias, level);
+    const slot = slots.get(level) ?? 0;
+    slots.set(level, slot + 1);
+    return { alias: block.alias, x: 130 + level * 300, y: 145 + slot * 170, block };
+  });
+  const maximumLevel = Math.max(1, ...Array.from(levels.values()));
+  const width = Math.max(850, 280 + maximumLevel * 300);
+  for (const point of nodes)
+    point.x = 130 + ((levels.get(point.alias) ?? 0) / maximumLevel) * (width - 260);
+  const edges = plan.blocks.slice(1).map((block, index) => ({
+    from: block.edge?.from ?? plan.blocks[index].alias,
+    to: block.alias,
+    label: block.edge?.label ?? "",
+    inward: block.edge?.direction === "in",
+  }));
+  return {
+    nodes,
+    edges,
+    width,
+    height: Math.max(300, ...nodes.map((node) => node.y + 100)),
+  };
+}
+
+function ConnectionDiagram({
+  plan,
+  nodes,
+  selected,
+  select,
+  change,
+}: {
+  plan: Plan;
+  nodes: Record<string, GraphNode>;
+  selected: string | null;
+  select: (alias: string | null) => void;
+  change?: (plan: Plan) => void;
+}) {
+  const layout = connectionLayout(plan);
+  const arrowMarker = "url(#analysis-arrow)";
+  const block = plan.blocks.find((block) => block.alias === selected);
+  return (
+    <div className="analysis-connections">
+      <div className="analysis-graph-scroll">
+        <div
+          className="analysis-graph"
+          style={{ width: layout.width, minWidth: "100%", height: layout.height }}
+        >
+          <svg
+            width="100%"
+            height={layout.height}
+            viewBox={`0 0 ${layout.width} ${layout.height}`}
+            preserveAspectRatio="none"
+            aria-label={t("Connections in this question")}
+          >
+            <defs>
+              <marker
+                id="analysis-arrow"
+                viewBox="0 0 10 10"
+                refX="9"
+                refY="5"
+                markerWidth="6"
+                markerHeight="6"
+                orient="auto-start-reverse"
+              >
+                <path d="M 0 0 L 10 5 L 0 10 z" fill="currentColor" />
+              </marker>
+            </defs>
+            {layout.edges.map((edge) => {
+              const from = layout.nodes.find((node) => node.alias === edge.from)!;
+              const to = layout.nodes.find((node) => node.alias === edge.to)!;
+              return (
+                <g key={edge.to}>
+                  <line
+                    x1={from.x + 60}
+                    y1={from.y}
+                    x2={to.x - 60}
+                    y2={to.y}
+                    markerEnd={edge.inward ? undefined : arrowMarker}
+                    markerStart={edge.inward ? arrowMarker : undefined}
+                  />
+                  <text x={(from.x + to.x) / 2} y={(from.y + to.y) / 2 - 16} textAnchor="middle">
+                    {edge.label}
+                  </text>
+                </g>
+              );
+            })}
+          </svg>
+          {layout.nodes.map((point, index) => (
+            <button
+              key={point.alias}
+              className={`analysis-node analysis-node-${index % 3}`}
+              aria-pressed={selected === point.alias}
+              style={{ left: `${(point.x / layout.width) * 100}%`, top: point.y }}
+              onClick={() => select(selected === point.alias ? null : point.alias)}
+            >
+              <strong
+                style={{
+                  fontSize: (nodes[point.block.node]?.label.length ?? 0) > 12 ? 11 : undefined,
+                }}
+              >
+                {nodes[point.block.node]?.label ?? point.block.node}
+              </strong>
+              <small>
+                {point.block.edge
+                  ? point.block.edge.fansOut
+                    ? t("Many related records")
+                    : t("One related record")
+                  : t("Starting records")}
+              </small>
+            </button>
+          ))}
+        </div>
+      </div>
+      <p>{t("Select a node to edit its filters and fields.")}</p>
+      {block && (
+        <div className="analysis-node-editor">
+          <h4>{nodes[block.node]?.label}</h4>
+          <p>{t(nodes[block.node]?.grain ?? "")}</p>
+          {change ? (
+            <>
+              <AddFilter
+                fields={fieldsOf({ ...plan, blocks: [block] }, nodes)}
+                add={(filter) => change(withFilter(plan, filter))}
+              />
+              <AddGroup
+                fields={fieldsOf({ ...plan, blocks: [block] }, nodes).filter(
+                  (field) => !plan.groups.some((group) => group.field === field.field),
+                )}
+                add={(group) => change({ ...plan, groups: [...plan.groups, group] })}
+              />
+              {block.filters.map((filter, i) => (
+                <button
+                  className="br-btn"
+                  key={i}
+                  onClick={() =>
+                    change({
+                      ...plan,
+                      blocks: plan.blocks.map((candidate) =>
+                        candidate.alias === block.alias
+                          ? { ...candidate, filters: candidate.filters.filter((_, at) => at !== i) }
+                          : candidate,
+                      ),
+                    })
+                  }
+                >
+                  {filter.shown} ×
+                </button>
+              ))}
+            </>
+          ) : (
+            <p>{t("Edit this query in expert mode.")}</p>
+          )}
+        </div>
+      )}
     </div>
   );
 }
@@ -818,7 +1657,21 @@ function withFilter(plan: Plan, filter: Filter): Plan {
   return {
     ...plan,
     blocks: plan.blocks.map((block) =>
-      block.alias === alias ? { ...block, filters: [...block.filters, filter] } : block,
+      block.alias === alias
+        ? {
+            ...block,
+            filters: [
+              ...block.filters.filter(
+                (existing) =>
+                  !filter.conditions[0].field.endsWith(".snapshot_date") ||
+                  !existing.conditions.some(
+                    (condition) => condition.field === filter.conditions[0].field,
+                  ),
+              ),
+              filter,
+            ],
+          }
+        : block,
     ),
   };
 }
@@ -917,7 +1770,7 @@ function Reach({
     <span className="flex flex-wrap items-center gap-2">
       {onward.map((edge) => (
         <button
-          key={`${edge.key}-${edge.direction}`}
+          key={`${edge.from}-${edge.key}-${edge.direction}`}
           className="br-btn"
           onClick={() => {
             setOpen(false);
@@ -1000,6 +1853,7 @@ function Result({
     const axis = axes.get(column);
     if (!axis || kinds.get(axis.field) !== "time" || axis.bucket) return String(value);
     const text = String(value);
+    if (/^\d{4}-\d{2}-\d{2}$/.test(text)) return formatCalendarDate(text);
     return /[ T]00:00:00/.test(text) ? formatDate(text) : formatDateTime(text);
   };
   const labels: Record<string, string> = {};
@@ -1016,8 +1870,8 @@ function Result({
     );
   if (!answer)
     return (
-      <div className="rounded-xl border border-dashed border-border-default p-10 text-center text-sm text-fg-muted">
-        {t("Choose at least one number or one axis.")}
+      <div className="erp-empty text-center text-sm text-fg-muted">
+        {busy ? t("Reading data…") : t("Choose at least one number or one axis.")}
       </div>
     );
 
@@ -1027,9 +1881,9 @@ function Result({
     plan.order?.by === column ? (plan.order.descending ? "↓" : "↑") : "";
 
   return (
-    <div className={`space-y-3 ${busy ? "opacity-60" : ""}`} aria-busy={busy}>
+    <div className={`erp-register ${busy ? "opacity-60" : ""}`} aria-busy={busy}>
       {answer.rows.length === 0 ? (
-        <div className="rounded-xl border border-dashed border-border-default p-10 text-center text-sm">
+        <div className="erp-empty text-center text-sm">
           {answer.matched_nothing?.length ? (
             <>
               <div className="font-medium text-warning-600">{t("Nothing has that value.")}</div>
@@ -1047,13 +1901,14 @@ function Result({
           )}
         </div>
       ) : (
-        <div className="max-h-[34rem] overflow-auto rounded-xl border border-border-default bg-surface">
-          <table className="w-full border-collapse text-sm">
+        <div className="erp-table-scroll">
+          <table className="erp-table w-full">
             <thead className="sticky top-0 bg-surface">
               <tr>
                 {columns.map((column) => (
                   <th
                     key={column}
+                    style={{ textAlign: numeric(column) ? "right" : "left" }}
                     className={`border-b border-border-default px-3 py-2 font-medium ${
                       numeric(column) ? NUMERIC_CELL : "text-left"
                     }`}
@@ -1083,6 +1938,7 @@ function Result({
                     return (
                       <td
                         key={column}
+                        style={{ textAlign: numeric(column) ? "right" : "left" }}
                         className={`border-b border-border-subtle px-3 py-2 ${
                           numeric(column) ? NUMERIC_CELL : ""
                         }`}
@@ -1120,7 +1976,7 @@ function Result({
           </table>
         </div>
       )}
-      <div className="flex flex-wrap items-center gap-3 text-xs text-fg-muted">
+      <div className="erp-register-footer flex flex-wrap items-center gap-3">
         <span>
           {answer.rows.length} {t("rows")}
         </span>
@@ -1178,7 +2034,7 @@ function AtMost({
         </button>
       ))}
       <input
-        className="w-24 rounded-lg border border-border-default bg-surface px-2 py-2 text-sm"
+        className="w-24 br-control"
         type="number"
         min={1}
         max={ceiling}
@@ -1219,18 +2075,49 @@ function AddFilter({ fields, add }: { fields: Field[]; add: (filter: Filter) => 
   if (!chosen)
     return (
       <select
-        className="rounded-lg border border-border-default bg-surface px-2 py-2 text-sm"
+        className="br-control"
         aria-label={t("Add a filter")}
         value=""
         onChange={(event) => setField(event.target.value)}
       >
-        <option value="">{t("Only where…")}</option>
+        <option value="">{t("+ Filter")}</option>
         {fields.map((candidate) => (
           <option key={candidate.field} value={candidate.field}>
             {candidate.label}
           </option>
         ))}
       </select>
+    );
+
+  if (chosen.input === "date")
+    return (
+      <div className="flex flex-wrap items-center gap-2">
+        <label className="text-sm">
+          {chosen.label}
+          <input
+            className="br-control ml-2"
+            type="date"
+            value={value}
+            max={new Date().toISOString().slice(0, 10)}
+            onChange={(event) => setValue(event.target.value)}
+          />
+        </label>
+        <button
+          className="br-btn"
+          disabled={!value}
+          onClick={() =>
+            submit({
+              shown: `${chosen.label} = ${formatCalendarDate(value)}`,
+              conditions: [{ field: chosen.field, op: "eq", value }],
+            })
+          }
+        >
+          {t("Apply")}
+        </button>
+        <button className="br-btn" onClick={clear}>
+          {t("Cancel")}
+        </button>
+      </div>
     );
 
   const operators = OPERATORS.filter((operator) => operator.kinds.includes(chosen.kind));
@@ -1245,7 +2132,9 @@ function AddFilter({ fields, add }: { fields: Field[]; add: (filter: Filter) => 
             <button
               key={period.key}
               className="br-btn"
-              onClick={() => submit(periodFilter(chosen.field, chosen.label, period))}
+              onClick={() =>
+                submit(periodFilter(chosen.field, chosen.label, period, chosen.temporal))
+              }
             >
               {period.label}
             </button>
@@ -1254,7 +2143,7 @@ function AddFilter({ fields, add }: { fields: Field[]; add: (filter: Filter) => 
             {t("from")}
             <input
               type="date"
-              className="rounded-lg border border-border-default bg-surface px-2 py-1 text-sm"
+              className="br-control"
               value={from}
               onChange={(event) => setFrom(event.target.value)}
             />
@@ -1263,7 +2152,7 @@ function AddFilter({ fields, add }: { fields: Field[]; add: (filter: Filter) => 
             {t("to")}
             <input
               type="date"
-              className="rounded-lg border border-border-default bg-surface px-2 py-1 text-sm"
+              className="br-control"
               value={until}
               onChange={(event) => setUntil(event.target.value)}
             />
@@ -1273,13 +2162,18 @@ function AddFilter({ fields, add }: { fields: Field[]; add: (filter: Filter) => 
               className="br-btn"
               onClick={() =>
                 submit(
-                  periodFilter(chosen.field, chosen.label, {
-                    label: `${formatDate(`${from}T00:00:00`)} – ${formatDate(`${until}T00:00:00`)}`,
-                    from: new Date(`${from}T00:00:00`),
-                    // The end of a named period is the day after it, so that a
-                    // record stamped at noon on the last day is still inside.
-                    until: new Date(new Date(`${until}T00:00:00`).getTime() + 86400000),
-                  }),
+                  periodFilter(
+                    chosen.field,
+                    chosen.label,
+                    {
+                      label: `${formatCalendarDate(from)} – ${formatCalendarDate(until)}`,
+                      from: new Date(`${from}T00:00:00`),
+                      // The end of a named period is the day after it, so that a
+                      // record stamped at noon on the last day is still inside.
+                      until: nextCalendarDay(until),
+                    },
+                    chosen.temporal,
+                  ),
                 )
               }
             >
@@ -1291,7 +2185,7 @@ function AddFilter({ fields, add }: { fields: Field[]; add: (filter: Filter) => 
       {chosen.kind !== "time" && (
         <>
           <select
-            className="rounded-lg border border-border-default bg-surface px-2 py-2 text-sm"
+            className="br-control"
             aria-label={t("Comparison")}
             value={selected.key}
             onChange={(event) => setOp(event.target.value)}
@@ -1308,7 +2202,7 @@ function AddFilter({ fields, add }: { fields: Field[]; add: (filter: Filter) => 
               // nobody has to guess one. Typing "sale" where the records say
               // "customer_delivery" returns nothing and looks like an answer.
               <select
-                className="rounded-lg border border-border-default bg-surface px-2 py-2 text-sm"
+                className="br-control"
                 aria-label={t("Value")}
                 value={value}
                 onChange={(event) => setValue(event.target.value)}
@@ -1329,7 +2223,7 @@ function AddFilter({ fields, add }: { fields: Field[]; add: (filter: Filter) => 
               </select>
             ) : (
               <input
-                className="rounded-lg border border-border-default bg-surface px-2 py-2 text-sm"
+                className="br-control"
                 inputMode={chosen.kind === "number" ? "decimal" : "text"}
                 aria-label={t("Value")}
                 value={value}
@@ -1370,7 +2264,7 @@ function AddGroup({ fields, add }: { fields: Field[]; add: (group: Group) => voi
   if (!fields.length) return null;
   return (
     <select
-      className="rounded-lg border border-border-default bg-surface px-2 py-2 text-sm"
+      className="br-control"
       aria-label={t("Split by another field")}
       value=""
       onChange={(event) => {
@@ -1407,9 +2301,17 @@ function Save({
   plan,
   report,
   onSaved,
+  definition,
+  active = true,
+  onNew,
+  disabled = false,
 }: {
   tenant: string;
+  active?: boolean;
+  onNew?: () => void;
+  disabled?: boolean;
   plan: Plan;
+  definition?: GraphQuestion;
   report: GraphReport | null;
   onSaved?: (report: GraphReport) => void;
 }) {
@@ -1439,7 +2341,7 @@ function Save({
     return (
       <div className="flex flex-wrap items-center gap-2">
         <input
-          className="rounded-lg border border-border-default bg-surface px-2 py-2 text-sm"
+          className="br-control"
           aria-label={t("Report name")}
           autoFocus
           value={name}
@@ -1450,7 +2352,7 @@ function Save({
                 operation: "create",
                 request_id: crypto.randomUUID(),
                 name: name.trim(),
-                question: question(plan),
+                question: definition ?? question(plan),
               });
           }}
         />
@@ -1462,13 +2364,13 @@ function Save({
               operation: "create",
               request_id: crypto.randomUUID(),
               name: name.trim(),
-              question: question(plan),
+              question: definition ?? question(plan),
             })
           }
         >
           {busy ? t("Saving…") : t("Save")}
         </button>
-        <button className="text-xs text-fg-muted underline" onClick={() => setNaming(false)}>
+        <button className="br-btn" onClick={() => setNaming(false)}>
           {t("Cancel")}
         </button>
         {failed && <span className="text-xs text-warning-600">{failed}</span>}
@@ -1477,28 +2379,60 @@ function Save({
 
   return (
     <div className="flex flex-wrap items-center gap-3 text-sm">
-      {report && (
-        <button
-          className="br-btn"
-          disabled={busy}
-          onClick={() =>
-            void send({
-              operation: "update",
-              request_id: crypto.randomUUID(),
-              report_id: report.id,
-              expected_revision: report.revision,
-              question: question(plan),
-            })
-          }
-        >
-          {busy ? t("Saving…") : `${t("Save")} „${report.name}“`}
-        </button>
+      {active && (
+        <PageActionBar
+          actions={[
+            onNew && { key: "new", label: "New analysis", onClick: onNew },
+            report && {
+              key: "save",
+              label: `${t("Save")} „${report.name}“`,
+              disabled: disabled || busy,
+              onClick: () =>
+                void send({
+                  operation: "update",
+                  request_id: crypto.randomUUID(),
+                  report_id: report.id,
+                  expected_revision: report.revision,
+                  question: definition ?? question(plan),
+                }),
+            },
+            {
+              key: "save-as",
+              label: report ? "Save as a new report" : "Save analysis",
+              disabled: disabled || busy,
+              onClick: () => setNaming(true),
+            },
+          ]}
+        />
       )}
-      <button className="text-fg-muted underline" onClick={() => setNaming(true)}>
-        {report ? t("Save as a new report") : t("Save this question")}
-      </button>
       {saved && <span className="text-xs text-fg-muted">{t("Saved")}</span>}
       {failed && <span className="text-xs text-warning-600">{failed}</span>}
     </div>
   );
+}
+
+/** A catalog selection becomes an ordinary unsaved plan. */
+export function explorePlan(
+  node: GraphNode,
+  nodes: Record<string, GraphNode>,
+  field?: string,
+  edgeKey?: string,
+  direction: "out" | "in" = "out",
+): Plan {
+  const plan = listPlan(node);
+  if (field) {
+    const property = node.properties.find((property) => property.key === field);
+    if (property && !plan.groups.some((group) => group.field === `o.${field}`))
+      plan.groups.push({ field: `o.${field}`, label: property.label });
+  }
+  if (edgeKey) {
+    const edge = reachable(plan, nodes).find(
+      (edge) => edge.key === edgeKey && edge.direction === direction,
+    );
+    if (edge) {
+      plan.blocks.push({ alias: "n1", node: edge.node, filters: [], edge: { ...edge } });
+      plan.groups = listColumns(nodes[edge.node], "n1");
+    }
+  }
+  return plan;
 }

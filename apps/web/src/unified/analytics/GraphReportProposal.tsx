@@ -16,10 +16,12 @@ export function GraphReportProposal({
   tenant,
   id,
   refresh,
+  open,
 }: {
   tenant: string;
   id: string;
   refresh: () => void;
+  open?: () => void;
 }) {
   const language = currentLanguage();
   const read = useRead(() => graphApi.proposal(tenant, id), [tenant, id]);
@@ -97,6 +99,14 @@ export function GraphReportProposal({
           {JSON.stringify(proposal.definition, null, 2)}
         </pre>
       </details>
+      {open &&
+        proposal.kind === "graph" &&
+        question &&
+        ["create", "update"].includes(proposal.operation) && (
+          <button className="br-btn" onClick={open}>
+            {t("Open in analysis")}
+          </button>
+        )}
       {error && (
         <p role="alert" className="text-sm text-critical-text">
           {error}

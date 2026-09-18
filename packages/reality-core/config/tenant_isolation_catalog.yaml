@@ -832,3 +832,21 @@ families:
         assertion: boundary
         operations:
           - tool:graph.catalog
+
+  - key: analysis_interpretation
+    description: Analysis interpretation validates membership before dispatch and formatting reads no records.
+    classification: boundary
+    reason: The caller identity is supplied by the authenticated adapter; only the declared model is sent to the provider, and execution remains tenant-scoped graph.ask.
+    authority: 228/FR-002, 228/FR-011
+    operations:
+      - tool:graph.interpret
+      - tool:graph.format
+    evidence:
+      - id: tests/test_analysis_builder.py::test_interpretation_checks_membership_before_dispatch
+        assertion: boundary
+        operations:
+          - tool:graph.interpret
+      - id: tests/test_analysis_builder.py::test_graph_formatter_is_tenant_checked_and_has_no_record_values
+        assertion: boundary
+        operations:
+          - tool:graph.format

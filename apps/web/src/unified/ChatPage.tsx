@@ -1,3 +1,9 @@
+import {
+  analysisContext,
+  analysisMessage,
+  analysisMessageContext,
+  type AnalysisChatContext,
+} from "./analytics/chatHandoff";
 import type { ChatReply } from "../chatStream";
 import { createPortal } from "react-dom";
 import { ChatUsage } from "./ChatUsage";
@@ -126,6 +132,8 @@ export function ChatPage({
   }, []);
   const pendingSend = useRef<{ session: string; text: string; before: string[] } | null>(null);
   const [question, setQuestion] = useState(initialDraft);
+  const [analysis, setAnalysis] = useState<AnalysisChatContext | null>(null);
+  useEffect(() => setAnalysis(null), [selection.tenant, selection.session]);
   useEffect(() => {
     if (initialDraft) onInitialDraftUsed?.();
   }, []);
@@ -190,6 +198,34 @@ export function ChatPage({
   useEffect(() => {
     const receive = (event: Event) => {
       const value = (event as CustomEvent).detail;
+      if (dock && value?.kind === "analysis" && value.tenant === selection.tenant) {
+        if (sending) {
+          setFailure(t("Wait for the current reply before changing the analysis context."));
+          return;
+        }
+        const context = analysisContext(value, selection.tenant);
+        if (!context) {
+          setFailure(
+            t("This analysis is too large to attach to chat. Use the analysis controls instead."),
+          );
+          return;
+        }
+        setAnalysis(context);
+        setQuestion((current) =>
+          current.trim()
+            ? current
+            : t(
+                context.question
+                  ? "Help me adapt this analysis. Ask me which changes I want."
+                  : "Help me create an analysis. Ask me what I want to understand.",
+              ),
+        );
+        setFailure("");
+        requestAnimationFrame(() =>
+          document.querySelector<HTMLTextAreaElement>("#global-chat textarea")?.focus(),
+        );
+        return;
+      }
       if (
         dock &&
         value?.kind === "tool-capability" &&
@@ -226,10 +262,18 @@ export function ChatPage({
       input.focus({ preventScroll: true });
   }, [sending, startingChat, loading, sessionReady, active, composerId]);
   const send = async () => {
-    const text = question;
+    const text = analysisMessage(question, analysis);
+    if (Array.from(text).length > 4000) {
+      setFailure(
+        t(
+          "Your message and analysis context are too long. Shorten the message or remove the context.",
+        ),
+      );
+      return;
+    }
     if (
       data?.allowance?.remaining === 0 ||
-      !text.trim() ||
+      !question.trim() ||
       sending ||
       creatingSession.current ||
       !sessionReady ||
@@ -251,11 +295,12 @@ export function ChatPage({
             (row) =>
               row.role === "user" &&
               !pending.before.includes(row.id) &&
-              messageContext(row.content).text === pending.text,
+              (row.content === pending.text || messageContext(row.content).text === pending.text),
           )
         ) {
           pendingSend.current = null;
           setQuestion("");
+          setAnalysis(null);
           navigate({ session: pending.session });
           refresh();
           return;
@@ -277,7 +322,7 @@ export function ChatPage({
         selection.tenant,
         session,
         text,
-        selection.commitment,
+        analysis ? "" : selection.commitment,
         (event) => {
           if (!alive.current) return;
           if (event.type === "reset") setLiveReply({ session, text: "" });
@@ -292,12 +337,14 @@ export function ChatPage({
       pendingSend.current = null;
       setLiveReply({ session, text: result.assistant.content, result });
       setEcho(null);
+      setAnalysis(null);
       if (session !== selection.session) navigate({ session });
     } catch (error) {
       setFailure((error as Error).message);
       setLiveReply(null);
       setEcho(null);
-      setQuestion(text);
+      setQuestion(question);
+      setAnalysis(analysis);
     } finally {
       refresh();
       setSending(false);
@@ -637,6 +684,18 @@ export function ChatPage({
                 <time className="ml-2">{formatDateTime(message.created_at)}</time>
               )}
             </p>
+            {message.role === "user" && analysisMessageContext(message.content) && (
+              <details className="mb-2 text-xs text-fg-muted">
+                <summary>
+                  {t("Analysis context")}: {analysisMessageContext(message.content)!.label}
+                </summary>
+                {analysisMessageContext(message.content)!.question && (
+                  <pre className="mt-2 overflow-auto whitespace-pre-wrap">
+                    {JSON.stringify(analysisMessageContext(message.content)!.question, null, 2)}
+                  </pre>
+                )}
+              </details>
+            )}
             {messageContext(message.content).context && (
               <button
                 className="mb-3 text-xs text-accent underline"
@@ -696,6 +755,14 @@ export function ChatPage({
               tenant={selection.tenant}
               id={proposal.id}
               refresh={refresh}
+              open={() =>
+                navigate({
+                  route: "analytics",
+                  analyticsView: "graph",
+                  analyticsProposal: proposal.id,
+                  proposal: "",
+                })
+              }
             />
           ) : (
             <button
@@ -756,6 +823,16 @@ export function ChatPage({
         <p role="alert" className="px-4 text-sm text-critical-text">
           {failure}
         </p>
+      )}
+      {analysis && !showArchived && (
+        <div className="flex shrink-0 items-center justify-between gap-2 border-t border-border-default px-4 py-2 text-xs text-fg-muted">
+          <span>
+            {t("Analysis context")}: {analysis.label}
+          </span>
+          <button className="br-btn" disabled={sending} onClick={() => setAnalysis(null)}>
+            {t("Remove context")}
+          </button>
+        </div>
       )}
       {showArchived ? (
         <p className="shrink-0 border-t border-border-default px-4 py-3 text-sm text-fg-muted">

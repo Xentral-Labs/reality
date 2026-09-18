@@ -36,6 +36,68 @@ common_columns:
   payload: Lossless JSON payload retained for traceability and fields that are not operationally typed.
 
 tables:
+  shipment:
+    description: A consignment linking physical movements through packages.
+    columns:
+      id: {}
+      tenant_id: {}
+      direction: {}
+      purpose: {}
+      counterparty_id: {}
+      source_record_id: {}
+      created_at: {}
+  shipment_package:
+    description: A package with stated carrier and tracking reference.
+    columns:
+      id: {}
+      tenant_id: {}
+      shipment_id: {}
+      carrier: {}
+      tracking_number: {}
+      source_record_id: {}
+      created_at: {}
+  shipment_event:
+    description: An immutable reported shipping event; supersession records qualify
+      its current validity.
+    columns:
+      id: {}
+      tenant_id: {}
+      shipment_id: {}
+      shipment_package_id: {}
+      event_type: {}
+      reporter_type: {}
+      occurred_at: {}
+      recorded_at: {}
+      location_text: {}
+      source_record_id: {}
+      external_event_id: {}
+  shipment_event_supersession:
+    description: A correction or withdrawal of a reported shipping event.
+    columns:
+      id: {}
+      tenant_id: {}
+      superseded_event_id: {}
+      replacement_event_id: {}
+      reason: {}
+      actor_context: {}
+      source_record_id: {}
+      created_at: {}
+  return_announcement:
+    description: A stated customer return announcement.
+    columns:
+      id: {}
+      tenant_id: {}
+      commitment_id: {}
+      quantity: {}
+      reference: {}
+      reason: {}
+      announced_at: {}
+      expected_by: {}
+      status: {}
+      closed_at: {}
+      note: {}
+      source_record_id: {}
+      created_at: {}
   accounting_target:
     description: Finance-only external configuration; no financial amount authority.
     columns:

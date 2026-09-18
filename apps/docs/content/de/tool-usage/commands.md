@@ -5593,6 +5593,8 @@ oder Projection; Steuerungs-Tools tragen Vorschläge, Erkundung und fehlende Inf
 | [`graph_catalog`](#tool-graph_catalog)                                                           | Discover the business graph      | `read`    | —                      |
 | [`graph_templates`](#tool-graph_templates)                                                       | List report templates            | `read`    | —                      |
 | [`graph_ask`](#tool-graph_ask)                                                                   | Ask the business graph           | `read`    | —                      |
+| [`graph_format`](#tool-graph_format)                                                             | Format an analysis query         | `read`    | —                      |
+| [`graph_interpret`](#tool-graph_interpret)                                                       | Interpret an analysis question   | `read`    | —                      |
 | [`graph_reports_list`](#tool-graph_reports_list)                                                 | List my graph reports            | `read`    | —                      |
 | [`graph_report_get`](#tool-graph_report_get)                                                     | Read my graph report             | `read`    | —                      |
 
@@ -6841,6 +6843,119 @@ Ask a question as a path through declared edges with declared measures, grouping
 | `question.limit`                       | `integer` | nein    | Maximum number of records or jobs processed by this invocation.                                                                                                                                                                                          | `200`    |
 | `path`                                 | `string`  | nein    | The same question in the path syntax, for example MATCH (o:order) RETURN o.currency, sum(stated_order_amount). RETURN names declared measures; arithmetic on properties is refused, because summing one along a path that fans out multiplies the total. | `None`   |
 | `parameters`                           | `object`  | nein    | Values for $name placeholders used by the path syntax.                                                                                                                                                                                                   | —        |
+
+### `graph_format` — Format an analysis query {#tool-graph_format}
+
+Discover the nodes and measures first; a refusal names the edge that fanned out or the unit that
+cannot be added, and is more useful than a total that is wrong.
+
+**Aufruf**
+
+```text
+graph_format question
+```
+
+**Zugriff:** `read`
+
+**So wird diese Abfrage ausgeführt**
+
+| Konkrete Abfrage   | Art                        | Standard |
+| ------------------ | -------------------------- | -------- |
+| `MCP graph_format` | Live — beim Aufruf gelesen | ja       |
+
+[So wird diese Abfrage ausgeführt](./views#read-execution)
+
+Format a checked reporting question as an editable path with separate parameters.
+
+**Verwenden, wenn**
+
+- Show the exact technical representation of an analysis without executing it.
+
+**Nicht verwenden, wenn**
+
+- Read business values or execute arbitrary Cypher.
+
+**Parameter**
+
+| Name                                   | Typ       | Pflicht | Beschreibung                                                                          | Standard |
+| -------------------------------------- | --------- | ------- | ------------------------------------------------------------------------------------- | -------- |
+| `question`                             | `object`  | ja      | The whole question.                                                                   | —        |
+| `question.from`                        | `string`  | ja      | —                                                                                     | —        |
+| `question.as`                          | `string`  | nein    | —                                                                                     | `root`   |
+| `question.follow`                      | `array`   | nein    | —                                                                                     | `[]`     |
+| `question.follow[].edge`               | `string`  | ja      | —                                                                                     | —        |
+| `question.follow[].direction`          | `string`  | nein    | Business flow direction, such as sales or purchase, incoming or outgoing. `out`, `in` | `out`    |
+| `question.follow[].as`                 | `string`  | ja      | —                                                                                     | —        |
+| `question.follow[].from`               | `string`  | nein    | —                                                                                     | `None`   |
+| `question.follow[].depth`              | `array`   | nein    | —                                                                                     | `None`   |
+| `question.filter`                      | `array`   | nein    | —                                                                                     | `[]`     |
+| `question.filter[].field`              | `string`  | ja      | —                                                                                     | —        |
+| `question.filter[].op`                 | `string`  | ja      | `eq`, `ne`, `in`, `not_in`, `lt`, `lte`, `gt`, `gte`, `is_null`, `is_not_null`        | —        |
+| `question.filter[].value`              | `any`     | nein    | Scalar observation value validated and canonicalized by its predicate contract.       | `None`   |
+| `question.measures`                    | `array`   | nein    | —                                                                                     | `[]`     |
+| `question.group_by`                    | `array`   | nein    | —                                                                                     | `[]`     |
+| `question.group_by[].field`            | `string`  | ja      | —                                                                                     | —        |
+| `question.group_by[].bucket`           | `string`  | nein    | `day`, `week`, `month`, `quarter`, `year`                                             | `None`   |
+| `question.group_by[].as`               | `string`  | nein    | —                                                                                     | `None`   |
+| `question.having`                      | `array`   | nein    | —                                                                                     | `[]`     |
+| `question.having[].measure`            | `string`  | ja      | —                                                                                     | —        |
+| `question.having[].op`                 | `string`  | ja      | `eq`, `ne`, `lt`, `lte`, `gt`, `gte`                                                  | —        |
+| `question.having[].value`              | `number`  | ja      | Scalar observation value validated and canonicalized by its predicate contract.       | —        |
+| `question.exists`                      | `array`   | nein    | —                                                                                     | `[]`     |
+| `question.exists[].follow`             | `array`   | ja      | —                                                                                     | —        |
+| `question.exists[].follow[].edge`      | `string`  | ja      | —                                                                                     | —        |
+| `question.exists[].follow[].direction` | `string`  | nein    | Business flow direction, such as sales or purchase, incoming or outgoing. `out`, `in` | `out`    |
+| `question.exists[].follow[].as`        | `string`  | ja      | —                                                                                     | —        |
+| `question.exists[].follow[].from`      | `string`  | nein    | —                                                                                     | `None`   |
+| `question.exists[].follow[].depth`     | `array`   | nein    | —                                                                                     | `None`   |
+| `question.exists[].filter`             | `array`   | nein    | —                                                                                     | `[]`     |
+| `question.exists[].filter[].field`     | `string`  | ja      | —                                                                                     | —        |
+| `question.exists[].filter[].op`        | `string`  | ja      | `eq`, `ne`, `in`, `not_in`, `lt`, `lte`, `gt`, `gte`, `is_null`, `is_not_null`        | —        |
+| `question.exists[].filter[].value`     | `any`     | nein    | Scalar observation value validated and canonicalized by its predicate contract.       | `None`   |
+| `question.exists[].negated`            | `boolean` | nein    | —                                                                                     | `False`  |
+| `question.order_by`                    | `array`   | nein    | —                                                                                     | `[]`     |
+| `question.order_by[].by`               | `string`  | ja      | —                                                                                     | —        |
+| `question.order_by[].descending`       | `boolean` | nein    | —                                                                                     | `False`  |
+| `question.limit`                       | `integer` | nein    | Maximum number of records or jobs processed by this invocation.                       | `200`    |
+
+### `graph_interpret` — Interpret an analysis question {#tool-graph_interpret}
+
+Discover the nodes and measures first; a refusal names the edge that fanned out or the unit that
+cannot be added, and is more useful than a total that is wrong.
+
+**Aufruf**
+
+```text
+graph_interpret text [language] [timezone]
+```
+
+**Zugriff:** `read`
+
+**So wird diese Abfrage ausgeführt**
+
+| Konkrete Abfrage      | Art                        | Standard |
+| --------------------- | -------------------------- | -------- |
+| `MCP graph_interpret` | Live — beim Aufruf gelesen | ja       |
+
+[So wird diese Abfrage ausgeführt](./views#read-execution)
+
+Interpret a business question into a checked traversal using the configured AI provider.
+
+**Verwenden, wenn**
+
+- A reader asks a business question without knowing model identifiers.
+
+**Nicht verwenden, wenn**
+
+- Execute writes or treat an interpretation as a calculated answer.
+
+**Parameter**
+
+| Name       | Typ      | Pflicht | Beschreibung                                             | Standard |
+| ---------- | -------- | ------- | -------------------------------------------------------- | -------- |
+| `text`     | `string` | ja      | Business question to interpret; no actions are executed. | —        |
+| `language` | `string` | nein    | —                                                        | `en`     |
+| `timezone` | `string` | nein    | —                                                        | `UTC`    |
 
 ### `graph_reports_list` — List my graph reports {#tool-graph_reports_list}
 

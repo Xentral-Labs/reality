@@ -1,4 +1,5 @@
 export const invariantTerms = new Map([
+  ["Cypher", "Established query-language name (spec 228)"],
   ["Inbox", "Unified daily-work product label (spec 225)"],
   ["⌘ K", "macOS command shortcut notation (spec 225)"],
   ["Ctrl K", "Control-key shortcut notation; localized where customary (spec 225)"],
@@ -63,6 +64,8 @@ export const invariantTerms = new Map([
 
 export const languageEquivalentTerms = {
   de: new Map([
+    ["+ Filter", "Filter is the established German UI term."],
+    ["Text", "German field type is also Text (spec 228)"],
     ["Chat", "Accepted German term for a conversation"],
     ["Simulation", "Identical German noun used for the simulation workspace"],
     ["4 h 19 min", "Localized time abbreviation"],
@@ -88,6 +91,7 @@ export const languageEquivalentTerms = {
     ["Version", "Accepted German technical term"],
   ]),
   nl: new Map([
+    ["+ Filter", "Filter is the established Dutch UI term."],
     ["Chat", "Accepted Dutch term for a conversation"],
     ["Credit", "Dutch accounting term for the credit side"],
     ["AP", "Accounting acronym"],

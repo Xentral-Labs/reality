@@ -21,20 +21,15 @@ ZERO = Decimal(0)
 SORT_KEYS = ("party", "open", "overdue", "credit", "balance", "oldest_due")
 
 
-def party_balances(
+def party_balance_rows(
     session: Session,
     tenant_id: str,
     *,
     side: str,
-    credit_only: bool = False,
-    query: str = "",
-    page: int = 1,
-    size: int = 50,
-    sort: str = "balance",
-    sort_direction: str = "desc",
     as_of: datetime | None = None,
-) -> dict[str, Any]:
-    """Open, overdue, credit and balance per party and currency for one side."""
+    effective_before: datetime | None = None,
+) -> list[dict[str, Any]]:
+    """Unpaged native values; a cutoff measures effective history, not past due terms."""
     core.get_tenant(session, tenant_id)
     if side not in {"customer", "supplier"}:
         raise core.InvalidOperation("Balance side must be customer or supplier.")
@@ -59,20 +54,24 @@ def party_balances(
         )
 
     # Open items with the one due-date rule, the rows the overdue classes judge.
-    for row in core.aging_register(session, tenant_id, as_of=moment):
+    source = (
+        core.financial_open_items(session, tenant_id, effective_before=effective_before)
+        if effective_before
+        else core.aging_register(session, tenant_id, as_of=moment)
+    )
+    for row in source:
         if row["control"].account != account or row["status"] not in {
             "open",
             "partial",
         }:
             continue
-        document = row["document"]
         outstanding = Decimal(row["open"])
         if outstanding <= ZERO:
             continue
-        entry = bucket(document.party_id, row["party"], document.currency)
+        entry = bucket(row["control"].party_id, row["party"], row["control"].currency)
         entry["open"] += outstanding
         entry["open_count"] += 1
-        due_date = row["due_date"]
+        due_date = row.get("due_date")
         if due_date is not None:
             if due_date < moment.date():
                 entry["overdue"] += outstanding
@@ -81,7 +80,11 @@ def party_balances(
 
     # Unused credit, the rows the credit register shows.
     credit_rows, _ = available_credit_rows(
-        session, tenant_id, side=side, status="outstanding"
+        session,
+        tenant_id,
+        side=side,
+        status="outstanding",
+        effective_before=effective_before,
     )
     for row in credit_rows:
         available = Decimal(row["open"])
@@ -91,10 +94,33 @@ def party_balances(
         entry["credit"] += available
         entry["credit_count"] += 1
 
+    return [
+        {**entry, "balance": entry["open"] - entry["credit"]}
+        for entry in buckets.values()
+        if entry["open"] != ZERO or entry["credit"] != ZERO
+    ]
+
+
+def party_balances(
+    session: Session,
+    tenant_id: str,
+    *,
+    side: str,
+    credit_only: bool = False,
+    query: str = "",
+    page: int = 1,
+    size: int = 50,
+    sort: str = "balance",
+    sort_direction: str = "desc",
+    as_of: datetime | None = None,
+) -> dict[str, Any]:
+    """Open, overdue, credit and balance per party and currency for one side."""
+    moment = as_of or datetime.now(UTC)
+    rows = party_balance_rows(session, tenant_id, side=side, as_of=moment)
     needle = query.strip().lower()
     items = []
     totals: dict[str, dict[str, Decimal | str]] = {}
-    for entry in buckets.values():
+    for entry in rows:
         if entry["open"] == ZERO and entry["credit"] == ZERO:
             continue
         if credit_only and entry["credit"] <= ZERO:

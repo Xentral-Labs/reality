@@ -62,83 +62,27 @@ INFRASTRUCTURE = {
     "scheduled_job_run",
     "demo_data_connection",
     "ordinary_company_creation",
-    "opening_scope",
-    "opening_item_detail",
     "source_classification_mapping_revision",
 }
 
 # Slices this feature deliberately leaves for later. Each names why, so a deferral
 # stays distinguishable from a gap — the distinction the audit was written to make.
 DEFERRED = {
-    "purchase": (
-        (
-            "The purchase side reuses the same shapes with different type "
-            "values. Sales first; closing this costs four node definitions, "
-            "no new mechanism."
-        ),
-        {"purchase order, supplier invoice and supplier credit note"},
-        {"purchase_order", "supplier_invoice", "supplier_credit_note"},
-    ),
-    "pricing": (
-        "Price lists and payment terms are needed for aging, which is its own slice.",
-        {
-            "payment_term",
-            "price_list",
-            "price_list_entry",
-            "party_price_list",
-            "party_group",
-            "party_group_member",
-            "party_group_price_list",
-            "party_role",
-        },
-        set(),
-    ),
-    "traceability": (
-        "Pallets, lots and serial units are the traceability slice.",
-        {
-            "handling_unit",
-            "lot",
-            "serial_unit",
-            "shipment_package",
-            "shipment_event",
-            "shipment_event_supersession",
-        },
-        set(),
-    ),
     "finance_detail": (
         (
             "Accounts, components and targets are the finance slice; the first "
             "slice reaches finance only through postings and allocations."
         ),
         {
-            "subledger_account",
             "finance_state",
             "finance_role_destination",
             "finance_reference",
-            "financial_component",
             "component_assignment_revision",
             "component_assignment_part",
             "accounting_target",
             "accounting_target_reference",
             "finance_target_mapping_revision",
         },
-        set(),
-    ),
-    "operational_holds": (
-        (
-            "Holds and reservations describe why something cannot move, which is "
-            "an operational question rather than a reporting one in this slice."
-        ),
-        {"commitment_hold", "party_hold", "reservation"},
-        set(),
-    ),
-    "context": (
-        (
-            "Facts are reachable as extension nodes; the fact table itself is not "
-            "a business node, and source_record is reached as evidence, not "
-            "traversed."
-        ),
-        {"fact", "source_record"},
         set(),
     ),
 }
@@ -157,6 +101,14 @@ VOCABULARY = {
         "supplier_invoice",
         "credit_note",
         "supplier_credit_note",
+        "customer_payment",
+        "supplier_payment",
+        "customer_refund",
+        "supplier_refund",
+        "customer_settlement_adjustment",
+        "supplier_settlement_adjustment",
+        "opening_customer_debt",
+        "opening_supplier_debt",
     },
     ("commitment", "type"): {"customer_delivery", "supplier_delivery"},
     ("movement", "type"): {

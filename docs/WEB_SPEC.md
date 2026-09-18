@@ -2654,33 +2654,40 @@ automatically" / "Stop autoplay"); it issues the same prepare, confirm, branch a
 a person would click, and any click elsewhere or an error switches it off with a short note. The
 language switch of the profile re-renders the texts of a run without touching its trace.
 
-## Declared Analytics workspace (spec 224)
+## Declared Analytics workspace (specs 224 and 228)
 
-Analytics offers Business graph (default) and My reports. Spec 221 retired Overview; spec
-224 retired the configured Explore built on spec 185's fixed datasets — with its charts,
-pivots, contributor drill-down, CSV export and the chat analysis attachment — and the
-query console with it, since nobody reads a path syntax to answer a business question.
-The syntax stays reachable through `graph_ask` and the CLI. Links naming a retired view
-open the business graph.
+Analytics offers My reports (default), Analysis and Explore data. Analysis starts with
+Create with chat, Use a template and Build it yourself; templates are an inline entry
+and open unsaved drafts. Legacy template links open this entry inside Analysis.
+Spec228 replaces spec224's result-first browser presentation with colored sentence controls, removable conditions, and Result / Connections / Cypher tabs.
+The owner’s design refinement removes the separate heading/status and question/examples
+panel and aligns Builder and Explore data with the shared flat application design.
+Spec221's Overview and spec185's configured dataset explorer remain retired.
 
-The page opens on the records rather than on an empty builder. Narrowing, sorting and
-bounding happen on the result: a value filters, a column header sorts, the row count sits
-under the table. Two things are asked in words — what to count and what to split it by —
-and several numbers may stand side by side. A connection is offered from everywhere the
-question has reached, since a realistic report branches; a hop states whether it fans out
-before it is taken; an axis a number may not be summed across arrives with reach rather
-than as a refusal. A refusal replaces the answer and names its cause, and an empty answer
-says whether the question named something no record carries.
+The sentence edits the declared traversal, with branching paths, multiple measures,
+required currency/unit axes, periods and filters. Result tables retain filtering,
+sorting, limits and derivation. Summary cards identify returned-row scope, selected
+measures and last successful read, never fabricated business totals. Connections show
+actual branch origins and directions; selecting a node exposes fields and filters.
 
-Not yet in the browser: `having`, `exists` and recursive depth, which the compiler
-supports and no control offers; and the path from a number to its records, which the
-retired generation had.
+The shared, metered `graph.interpret` capability remains available to tools. Browser
+templates and sentence controls work without a provider. Validated output is executed by `graph.ask`; unavailable or
+unsupported questions explain the refusal. Generated Cypher-near text and parameters
+are editable; unexecuted drafts survive tab changes and failed reads. Advanced `having`,
+`exists`, recursion and ordering remain preserved in expert mode, with explicit reset
+required before simplifying. Old responses cannot replace a newer query or company.
 
-A saved report holds the question and the model version that gave it meaning, never the
-answer; reopening re-executes it. Reports saved by the configured generation remain in
-`analytics_report` with no kind and no model version, unread and never overwritten.
-See [the shared contract](features/analytics.md) and
-[spec 224](../specs/224-native-reporting-platform/spec.md).
+Explore data shows real catalog counts, searchable objects/fields, declared relationships
+and bounded tenant-scoped previews. Use in analysis, Add field and Open path seed unsaved
+questions; browsing the catalog preserves the existing builder draft. Layout wraps on
+compact screens, with local scrolling for wide tables and diagrams; all new copy is localized.
+
+Private reports store the checked question and model version, never the answer. Explicit
+save retains ownership, revisions and retry keys; reopening re-executes it. Invalid expert
+drafts cannot save an earlier query. Reports from the configured generation remain unread
+and are never overwritten. See [the shared contract](features/analytics.md),
+[spec224](../specs/224-native-reporting-platform/spec.md) and
+[spec228](../specs/228-guided-analysis-builder/spec.md).
 
 ## Public-site privacy and language handoff
 
@@ -3122,3 +3129,82 @@ menu shows the full original account email with wrapping and no redundant Profil
 heading. Account settings links to the existing personal preferences destination.
 Appearance, resource links, dismissal and sign-out retain their existing behavior.
 No personal name is inferred or required.
+
+Analytics shared-component refinement (spec228 FR-014): all four views use the common
+RegisterWorkbench and single-row tabbed header. Save analysis and Use in analysis
+are page actions in the shared More actions menu, scoped to the active view. Local
+analysis/catalog tabs use the shared local navigation, tables use ERP register geometry,
+and templates/private reports use compact flat lists. No duplicate page titles appear
+inside these views. Mounted Builder drafts survive view switches without leaking header actions.
+
+### Analysis and the global chat (spec228 FR-015–017)
+
+Create with chat and the visible Adapt with chat action open the existing global chat
+with an editable prompt, without sending. Adaptation attaches only the checked query
+snapshot, not result rows, in a visible removable context. Pending, failed or unexecuted
+queries cannot be attached. Context is tenant-bound, bounded by the existing chat
+message limit, retained on failed sends and cleared on successful sends/session changes.
+The plain user-message context is not execution authority. Existing AI usage policy
+and confirmation remain. History exposes attached query context in a disclosure.
+
+Private graph create/update proposals offer Open in analysis: the destination reads the
+proposal through the existing owner/tenant-checked endpoint and executes its full
+definition as an unsaved draft. Opening does not approve or save. Other proposal kinds
+and operations cannot silently become an analysis. Empty My reports offers Create your
+first analysis; a filtered empty list explains the empty search instead.
+
+
+### Question hierarchy (spec228 FR-018)
+
+The analysis editor has one locally bordered question section headed “How Reality
+understands your question”, with Adapt with chat beside it. Larger editable tokens
+form the primary sentence; aggregate queries lead with their measures. A labeled
+Conditions row follows. The period appears once in the sentence and can be removed
+there as a whole, preserving unrelated filters. Measures and columns, record paths,
+and sorting remain editable in an initially collapsed disclosure. This local frame
+is intentional; result tabs and tables retain the shared flat register design.
+Currency and identity axes remain in the canonical query even when technical identity
+is omitted from the readable sentence. No additional page hero or question input is added.
+
+### Expanded analysis discovery (spec 229)
+
+Data explorer groups available analysis objects into collapsible business areas and
+searches model-provided synonyms and fields. Searches expand matching groups. Builder
+record selection uses the same groups. Sales and supplier invoices/credits, purchasing,
+payments/refunds, reservations/holds, traceability/shipping, terms, partner structure,
+accounts and evidence details have distinct truthful labels. Legacy combined invoice
+nodes remain compatible. Historical event/fact/source entries say they are history;
+recorded amounts are not labeled derived balances or inventory. See
+[analytics coverage](features/analytics.md#expanded-business-catalog-spec-229).
+
+### Finance and calendar analysis (spec 230)
+
+Data explorer and Analysis expose separate customer/supplier financial positions
+with canonical outstanding amounts, due dates and payment statuses. Calendar-date
+metadata enables period controls and monthly grouping for document dates; date-only
+values display without timezone shifts. The existing shared controls and question
+frame remain. See the finance and calendar analysis contract in features/analytics.md.
+
+### Current stock analysis and templates (spec 231)
+
+Explore data includes Current article stock under Warehouse and shipping, using the
+shared catalog/preview and question editor. Descriptions say all-location current stock
+and distinguish arithmetic availability from shipment permission. Three stock and three
+finance templates reuse the existing starting-point list and open unsaved definitions.
+There is no new page, chart, business write or independent inventory calculation.
+
+### Explicit snapshot inputs (spec 232)
+
+Customer/supplier balance and stock-detail templates use the shared register styling.
+A historical template requires a visible UTC snapshot date before adoption. The
+sentence editor shows this date separately from activity periods and replaces its
+single equality input when edited. Historical catalog previews link to the analysis
+for date selection instead of silently returning today's state. The catalog describes
+current master-data labels and the unavailable historical reservation/aging dimensions.
+
+### Compact question sentence (spec 228 FR-019)
+The question section uses 14px text, compact neutral bordered controls and a secondary
+chat action. Business grouping captions omit auxiliary identities, duplicate article
+codes and units while the full grouping remains in the query and advanced controls.
+Snapshot inputs sit inside the sentence, with accessible labels and a UTC explanation.
+The filter row explicitly shows an unrestricted state when no additional filters apply.

@@ -1,3 +1,4 @@
+import { analysisMessageText } from "./analytics/chatHandoff";
 /** Annotation is historical presentation, never tool authority.
  *
  * Messages written while the configured generation was live can still carry an
@@ -14,16 +15,16 @@ export function messageContext(content: string): {
       const value = JSON.parse(content.slice(prefix.length));
       if (typeof value.message === "string" && typeof value.commitment_id === "string")
         return {
-          text: value.message,
+          text: analysisMessageText(value.message),
           context: {
             id: value.commitment_id,
             label: typeof value.label === "string" ? value.label : value.commitment_id,
           },
         };
-      if (typeof value.message === "string") return { text: value.message };
+      if (typeof value.message === "string") return { text: analysisMessageText(value.message) };
     } catch {
       /* Historical text that is not a valid annotation remains readable. */
     }
   }
-  return { text: content };
+  return { text: analysisMessageText(content) };
 }

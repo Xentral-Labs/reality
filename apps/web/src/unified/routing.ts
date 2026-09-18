@@ -42,7 +42,8 @@ export type Selection = {
   session: string;
   q: string;
   page: number;
-  analyticsView?: "templates" | "graph" | "reports";
+  analyticsProposal?: string;
+  analyticsView?: "templates" | "graph" | "reports" | "explore";
   family: "customer" | "supplier" | "item" | "location";
   record: string;
   active: boolean;
@@ -231,13 +232,15 @@ export function readSelection(url: URL): Selection {
       ? url.searchParams.get("severity")!
       : "",
     exception: url.searchParams.get("exception") || "",
-    // "explore", "overview" and "console" are retired views. A link that still
-    // names one opens the graph rather than a blank page.
-    analyticsView: ["templates", "graph", "reports"].includes(
+    // Preserve explicit graph/template links; the workspace entry opens saved reports.
+    analyticsProposal: url.searchParams.get("analysis_proposal") || "",
+    analyticsView: ["templates", "graph", "reports", "explore"].includes(
       url.searchParams.get("analytics_view") || "",
     )
       ? (url.searchParams.get("analytics_view") as Selection["analyticsView"])
-      : "graph",
+      : url.searchParams.get("analytics_view")
+        ? "graph"
+        : "reports",
     family: ["customer", "supplier", "item", "location"].includes(
       url.searchParams.get("family") || "",
     )
@@ -294,6 +297,9 @@ export function selectionUrl(selection: Selection): string {
     query.set("import_proposal", selection.importProposal);
   if (selection.route === "settings") query.set("settings_view", selection.settingsView);
   if (selection.route === "analytics") {
+    if (selection.analyticsProposal) query.set("analysis_proposal", selection.analyticsProposal);
+    if (selection.analyticsView === "graph") query.set("analytics_view", "graph");
+    if (selection.analyticsView === "explore") query.set("analytics_view", "explore");
     if (selection.analyticsView === "reports") query.set("analytics_view", "reports");
     if (selection.analyticsView === "templates") query.set("analytics_view", "templates");
   }
@@ -357,7 +363,8 @@ export function companySelection(selection: Selection, tenant: string): Selectio
     q: "",
     page: 1,
     record: "",
-    analyticsView: "graph",
+    analyticsView: "reports",
+    analyticsProposal: "",
     active: false,
     sourceSystem: "",
     sourceRecord: "",

@@ -1,6 +1,7 @@
 """Read-time customer and supplier credit, without a second balance authority."""
 
 from collections import defaultdict
+from datetime import datetime
 from decimal import Decimal
 from typing import Any
 
@@ -19,6 +20,7 @@ def available_credit_rows(
     query: str = "",
     status: str = "outstanding",
     party_id: str | None = None,
+    effective_before: datetime | None = None,
 ) -> tuple[list[dict[str, Any]], dict[str, dict[str, Any]]]:
     """Every original credit of one side with its effective consumption, unpaged.
 
@@ -31,7 +33,8 @@ def available_credit_rows(
     customer = side == "customer"
     role = "accounts_receivable" if customer else "accounts_payable"
     reversal_groups = select(LedgerReversal.original_posting_group_id).where(
-        LedgerReversal.tenant_id == tenant_id
+        LedgerReversal.tenant_id == tenant_id,
+        LedgerReversal.reversed_at < effective_before if effective_before else True,
     )
     statement = (
         select(LedgerEntry, Document, Party.name)
@@ -46,6 +49,7 @@ def available_credit_rows(
         )
         .where(
             LedgerEntry.tenant_id == tenant_id,
+            LedgerEntry.effective_at < effective_before if effective_before else True,
             LedgerEntry.account == role,
             LedgerEntry.debit_credit == ("credit" if customer else "debit"),
             LedgerEntry.posting_group_id.not_in(reversal_groups),
@@ -70,7 +74,9 @@ def available_credit_rows(
     if party_id:
         statement = statement.where(LedgerEntry.party_id == party_id)
     allocations: dict[str, list] = defaultdict(list)
-    for allocation in core.active_settlement_allocations(session, tenant_id):
+    for allocation in core.active_settlement_allocations(
+        session, tenant_id, effective_before=effective_before
+    ):
         allocations[allocation.payment_ledger_entry_id].append(allocation)
         allocations[allocation.invoice_ledger_entry_id].append(allocation)
     items = []

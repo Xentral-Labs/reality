@@ -2976,6 +2976,8 @@ from reality.tools.graph import SCHEMAS as GRAPH_SCHEMAS
 from reality.tools.graph import invoke as invoke_graph
 
 _GRAPH_DESCRIPTIONS = {
+    "graph.format": "Format a checked graph question as an editable path with parameters.",
+    "graph.interpret": "Interpret a business question with the configured AI provider and existing usage allowance; does not execute it.",
     "graph.templates": "List the questions worth starting from, each one already checked against the model.",
     "graph.catalog": "Discover the business nodes, how they connect, and what each measure means.",
     "graph.ask": "Ask the reporting graph a question along declared edges and measures.",

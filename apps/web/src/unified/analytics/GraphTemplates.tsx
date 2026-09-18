@@ -1,9 +1,8 @@
 import { useState } from "react";
-import { graphApi, type GraphQuestion, type GraphReport, type GraphTemplate } from "../../api";
+import { graphApi, type GraphQuestion, type GraphTemplate } from "../../api";
 import { currentLanguage, t } from "../../localization";
 import { ReadState } from "../ReadState";
 import { useRead } from "../useCompanyContext";
-import { analyticsError } from "./errors";
 import { periodOf } from "./GraphSteps";
 
 /** Questions worth starting from, and one click to make one your own.
@@ -18,59 +17,27 @@ export function GraphTemplates({
   onAdopted,
 }: {
   tenant: string;
-  onAdopted: (report: GraphReport) => void;
+  onAdopted: (question: GraphQuestion) => void;
 }) {
+  const [snapshots, setSnapshots] = useState<Record<string, string>>({});
   const language = currentLanguage();
   const read = useRead(() => graphApi.templates(tenant, language), [tenant, language]);
-  const [busy, setBusy] = useState("");
-  const [failed, setFailed] = useState("");
-
   if (!read.data)
     return <ReadState loading={read.loading} error={read.error} retry={read.refresh} />;
 
-  const adopt = async (template: GraphTemplate) => {
-    setBusy(template.key);
-    setFailed("");
-    try {
-      onAdopted(
-        await graphApi.change(tenant, {
-          operation: "create",
-          request_id: crypto.randomUUID(),
-          name: template.label,
-          question: dated(template),
-        }),
-      );
-    } catch (failure) {
-      setFailed(failure instanceof Error ? failure.message : analyticsError(failure));
-    } finally {
-      setBusy("");
-    }
-  };
-
   return (
-    <section className="space-y-5">
+    <section className="register-surface">
       <div>
-        <h2 className="text-xl font-semibold">{t("Start from a template")}</h2>
-        <p className="mt-1 max-w-2xl text-sm text-fg-muted">
-          {t(
-            "Each one is a question, not an answer: taking it over runs it against your records and gives you your own copy to change.",
-          )}
+        <p className="mb-3 text-xs text-fg-muted">
+          {t("Choose a starting point. You can adjust it before saving.")}
         </p>
       </div>
-      {failed && (
-        <div className="rounded-xl border border-warning-200 bg-warning-50 p-4 text-sm">
-          {failed}
-        </div>
-      )}
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="divide-y divide-border-default">
         {read.data.templates.map((template) => (
-          <article
-            key={template.key}
-            className="flex flex-col gap-3 rounded-xl border border-border-default bg-surface p-5"
-          >
-            <div>
+          <article key={template.key} className="flex flex-wrap items-center gap-3 py-3 text-sm">
+            <div className="min-w-0 flex-1">
               <h3 className="font-medium">{template.label}</h3>
-              <p className="mt-2 text-sm text-fg-muted">{template.about}</p>
+              <p className="mt-1 text-xs text-fg-muted">{template.about}</p>
             </div>
             {template.period && (
               <p className="text-xs text-fg-muted">
@@ -78,12 +45,26 @@ export function GraphTemplates({
                 {t(WINDOWS[template.period.window] ?? template.period.window)}
               </p>
             )}
+            {template.snapshot && (
+              <label className="text-xs text-fg-muted">
+                {t("Snapshot date (UTC)")}
+                <input
+                  type="date"
+                  className="br-control ml-2"
+                  value={snapshots[template.key] ?? ""}
+                  max={new Date().toISOString().slice(0, 10)}
+                  onChange={(event) =>
+                    setSnapshots({ ...snapshots, [template.key]: event.target.value })
+                  }
+                />
+              </label>
+            )}
             <button
-              className="br-btn mt-auto self-start"
-              disabled={Boolean(busy)}
-              onClick={() => void adopt(template)}
+              className="br-btn"
+              disabled={Boolean(template.snapshot && !snapshots[template.key])}
+              onClick={() => onAdopted(dated(template, snapshots[template.key]))}
             >
-              {busy === template.key ? t("Saving…") : t("Take this over")}
+              {t("Use template")}
             </button>
           </article>
         ))}
@@ -92,7 +73,7 @@ export function GraphTemplates({
   );
 }
 
-/** The words a window is named by, so the card says what it will set. */
+/** The words a window is named by, so the template says what it will set. */
 const WINDOWS: Record<string, string> = {
   this_month: "this month",
   last_month: "last month",
@@ -106,9 +87,17 @@ const WINDOWS: Record<string, string> = {
  * A stored question holds instants. "This month" is a different pair of
  * instants in Auckland and in Lisbon, and only the browser asking knows which.
  */
-function dated(template: GraphTemplate): GraphQuestion {
+function dated(template: GraphTemplate, snapshot?: string): GraphQuestion {
+  if (template.snapshot && snapshot)
+    return {
+      ...template.question,
+      filter: [
+        ...(template.question.filter ?? []),
+        { field: template.snapshot, op: "eq", value: snapshot },
+      ],
+    };
   if (!template.period) return template.question;
-  const period = periodOf(template.period.window);
+  const period = periodOf(template.period.window, template.period.temporal);
   if (!period) return template.question;
   return {
     ...template.question,

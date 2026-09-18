@@ -13,6 +13,26 @@ type Preferences = { language: Language; locale: DisplayLocale; timezone: string
 
 const dictionaries: Record<Exclude<Language, "en">, Record<string, string>> = {
   de: {
+    "+ Filter": "+ Filter",
+    "No restrictions": "Keine Einschränkungen",
+    "as of": "zum",
+    "End of the selected day in UTC": "Ende des gewählten Tages in UTC",
+    "Snapshot date (UTC)": "Stichtag (UTC)",
+    "Choose a snapshot date in the analysis to preview historical values.":
+      "Wähle in der Analyse einen Stichtag, um historische Werte anzuzeigen.",
+    "Choose a snapshot date (end of the selected UTC day).":
+      "Wähle einen Stichtag (Ende des gewählten UTC-Tages).",
+    "Use one past or current calendar date for the snapshot.":
+      "Wähle für den Stichtag ein vergangenes oder heutiges Datum.",
+    "All snapshot dates in one analysis must agree.":
+      "Alle Stichtage einer Analyse müssen übereinstimmen.",
+    "The snapshot precedes retained opening coverage.":
+      "Der Stichtag liegt vor den gespeicherten Eröffnungssalden.",
+    "The snapshot precedes retained opening stock.":
+      "Der Stichtag liegt vor dem gespeicherten Eröffnungsbestand.",
+    "Position analysis exceeds its input limit; narrow the source in the operational register.":
+      "Diese Analyse überschreitet ihre Datengrenze. Nutze das zugehörige Register.",
+
     "My account": "Mein Konto",
     "Discover the business graph": "Geschäftsgraph entdecken",
     "Ask the business graph": "Geschäftsgraph befragen",
@@ -1882,6 +1902,26 @@ const dictionaries: Record<Exclude<Language, "en">, Record<string, string>> = {
     "Fully Reserved": "Vollständig reserviert",
   },
   nl: {
+    "+ Filter": "+ Filter",
+    "No restrictions": "Geen beperkingen",
+    "as of": "per",
+    "End of the selected day in UTC": "Einde van de gekozen dag in UTC",
+    "Snapshot date (UTC)": "Peildatum (UTC)",
+    "Choose a snapshot date in the analysis to preview historical values.":
+      "Kies een peildatum in de analyse om historische waarden te bekijken.",
+    "Choose a snapshot date (end of the selected UTC day).":
+      "Kies een peildatum (einde van de gekozen UTC-dag).",
+    "Use one past or current calendar date for the snapshot.":
+      "Kies een datum in het verleden of vandaag voor de peildatum.",
+    "All snapshot dates in one analysis must agree.":
+      "Alle peildatums in één analyse moeten overeenkomen.",
+    "The snapshot precedes retained opening coverage.":
+      "De peildatum ligt vóór de bewaarde openingssaldi.",
+    "The snapshot precedes retained opening stock.":
+      "De peildatum ligt vóór de bewaarde openingsvoorraad.",
+    "Position analysis exceeds its input limit; narrow the source in the operational register.":
+      "Deze analyse overschrijdt de gegevenslimiet. Gebruik het bijbehorende register.",
+
     "My account": "Mijn account",
     "Discover the business graph": "Bedrijfsgraaf ontdekken",
     "Ask the business graph": "Bedrijfsgraaf bevragen",
@@ -3448,6 +3488,26 @@ const dictionaries: Record<Exclude<Language, "en">, Record<string, string>> = {
     Customer: "Klant",
   },
   es: {
+    "+ Filter": "+ Filtro",
+    "No restrictions": "Sin restricciones",
+    "as of": "a fecha de",
+    "End of the selected day in UTC": "Final del día elegido en UTC",
+    "Snapshot date (UTC)": "Fecha de corte (UTC)",
+    "Choose a snapshot date in the analysis to preview historical values.":
+      "Elige una fecha de corte en el análisis para ver valores históricos.",
+    "Choose a snapshot date (end of the selected UTC day).":
+      "Elige una fecha de corte (fin del día UTC elegido).",
+    "Use one past or current calendar date for the snapshot.":
+      "Elige una fecha pasada o actual para la fecha de corte.",
+    "All snapshot dates in one analysis must agree.":
+      "Todas las fechas de corte de un análisis deben coincidir.",
+    "The snapshot precedes retained opening coverage.":
+      "La fecha de corte es anterior a los saldos iniciales conservados.",
+    "The snapshot precedes retained opening stock.":
+      "La fecha de corte es anterior al stock inicial conservado.",
+    "Position analysis exceeds its input limit; narrow the source in the operational register.":
+      "Este análisis supera su límite de datos. Usa el registro correspondiente.",
+
     "My account": "Mi cuenta",
     "Discover the business graph": "Explorar el grafo empresarial",
     "Ask the business graph": "Consultar el grafo empresarial",
@@ -9394,6 +9454,17 @@ const date = (value: string | Date, options: Intl.DateTimeFormatOptions) =>
   new Intl.DateTimeFormat(active.locale, { ...options, timeZone: active.timezone }).format(
     typeof value === "string" ? new Date(value) : value,
   );
+
+/** Calendar evidence is a day, independent of the user's display timezone. */
+export const formatCalendarDate = (value: string | null | undefined) =>
+  value
+    ? new Intl.DateTimeFormat(active.locale, {
+        day: "2-digit",
+        month: "short",
+        year: "numeric",
+        timeZone: "UTC",
+      }).format(new Date(`${value}T00:00:00Z`))
+    : "—";
 
 export const formatDate = (value: string | null | undefined) =>
   value ? date(value, { day: "2-digit", month: "short", year: "numeric" }) : "—";
@@ -17316,4 +17387,490 @@ Object.assign(dictionaries.es, {
   "Try again": "Intentar de nuevo",
   "This proposal was sealed with a key this installation no longer has, so its contents cannot be shown. It can only be rejected.":
     "Esta propuesta se selló con una clave que esta instalación ya no tiene, así que su contenido no se puede mostrar; solo se puede rechazar.",
+});
+
+// Guided analysis and catalog exploration.
+Object.assign(dictionaries.de, {
+  "+ Analysis": "+ Analyse",
+  "+ Condition": "+ Bedingung",
+  "Analysis Builder": "Analyse Builder",
+  "Analysis period": "Analysezeitraum",
+  "Analysis records": "Datensätze der Analyse",
+  "Analysis views": "Analyseansichten",
+  "Ask a question, understand it and adjust it when needed.":
+    "Frage stellen, verstehen und bei Bedarf anpassen.",
+  "Your analysis question": "Deine Analysefrage",
+  "Interpret question": "Frage ausführen",
+  "How Reality understands your question": "So versteht Reality deine Frage",
+  "Show me": "Zeige mir",
+  "from the": "aus dem Zeitraum",
+  "grouped by": "gruppiert nach",
+  showing: "mit den Feldern",
+  "Choose period": "Zeitraum wählen",
+  "Period field": "Datumsfeld",
+  "Save analysis": "Analyse speichern",
+  Result: "Ergebnis",
+  Connections: "Zusammenhang",
+  Cypher: "Cypher",
+  "Cypher query": "Cypher-Abfrage",
+  "Generated from the interpreted question": "Aus der verstandenen Frage automatisch erzeugt",
+  "Execute query": "Abfrage ausführen",
+  "Generate query": "Abfrage erzeugen",
+  "Query parameters": "Abfrageparameter",
+  "Parameters must be a JSON object.": "Parameter müssen ein JSON-Objekt sein.",
+  "Expert mode: edits remain in the query and may not translate fully back into the sentence. Only declared read queries are supported.":
+    "Expertenmodus: Änderungen bleiben als Abfrage erhalten und müssen nicht vollständig in den Satz zurückübersetzt werden. Unterstützt werden nur lesende Abfragen des Datenmodells.",
+  "This query uses expert clauses. Its full definition is preserved.":
+    "Diese Abfrage nutzt Expertenfunktionen. Ihre vollständige Definition bleibt erhalten.",
+  "Execute your edited query before changing the sentence or saving.":
+    "Führe deine geänderte Abfrage aus, bevor du den Satz bearbeitest oder speicherst.",
+  "Execute your edited query to update the result.":
+    "Führe deine geänderte Abfrage aus, um das Ergebnis zu aktualisieren.",
+  "Open query editor": "Abfrageeditor öffnen",
+  "Start a new analysis": "Neue Analyse beginnen",
+  "Query changed": "Abfrage geändert",
+  "Reading data…": "Daten werden gelesen …",
+  "Result up to date": "Ergebnis aktuell",
+  "Not calculated": "Noch nicht berechnet",
+  "Returned rows": "Ergebniszeilen",
+  "Bounded by the selected row limit": "Durch die gewählte Zeilenzahl begrenzt",
+  "Selected measures": "Gewählte Kennzahlen",
+  "Currencies and units stay separate": "Währungen und Einheiten bleiben getrennt",
+  "Last successful read": "Zuletzt erfolgreich gelesen",
+  "An observation of the available records": "Beobachtung der verfügbaren Datensätze",
+  "Connections in this question": "Zusammenhänge dieser Frage",
+  "Select a node to edit its filters and fields.":
+    "Klicke auf einen Knoten, um seine Filter und Felder zu bearbeiten.",
+  "Edit this query in expert mode.": "Bearbeite diese Abfrage im Expertenmodus.",
+  "Starting records": "Ausgangsdatensätze",
+  Sort: "Sortierung",
+  "Retry examples": "Beispiele erneut laden",
+  "No analysis records are available.": "Keine Datensätze für die Analyse verfügbar.",
+  "Explore data": "Daten erkunden",
+  "Which data can I access?": "Auf welche Daten kann ich zugreifen?",
+  "Objects, fields, relationships and sample records in one place.":
+    "Objekte, Felder, Beziehungen und Beispieldaten an einem Ort.",
+  "Your business as connected data": "Dein Business als verbundenes Datenmodell",
+  "Understand objects and follow their relationships.":
+    "Objekte verstehen und ihren Verbindungen folgen.",
+  "Object types": "Objekttypen",
+  Objects: "Objekte",
+  Relationships: "Beziehungen",
+  Fields: "Felder",
+  "Business objects": "Geschäftsobjekte",
+  "Search data catalog": "Datenkatalog durchsuchen",
+  "Search objects and fields…": "Objekte und Felder suchen …",
+  "No matching objects or fields.": "Keine passenden Objekte oder Felder.",
+  "Use in analysis": "In Analyse verwenden",
+  "Data catalog views": "Datenkatalogansichten",
+  Meaning: "Bedeutung",
+  "Unique record identity": "Eindeutige Datensatz-ID",
+  "Yes / No": "Ja / Nein",
+  Text: "Text",
+  "Open path": "Pfad öffnen",
+  "No declared relationships.": "Keine Beziehungen im Datenmodell definiert.",
+  "Preview of up to five records": "Vorschau von bis zu fünf Datensätzen",
+  "Query these records": "Diese Daten abfragen",
+});
+Object.assign(dictionaries.nl, {
+  "+ Analysis": "+ Analyse",
+  "+ Condition": "+ Voorwaarde",
+  "Analysis Builder": "Analysebouwer",
+  "Analysis period": "Analyseperiode",
+  "Analysis records": "Analyserecords",
+  "Analysis views": "Analyseweergaven",
+  "Ask a question, understand it and adjust it when needed.":
+    "Stel een vraag, begrijp deze en pas zo nodig aan.",
+  "Your analysis question": "Je analysevraag",
+  "Interpret question": "Vraag interpreteren",
+  "How Reality understands your question": "Zo begrijpt Reality je vraag",
+  "Show me": "Toon mij",
+  "from the": "uit de periode",
+  "grouped by": "gegroepeerd op",
+  showing: "met de velden",
+  "Choose period": "Periode kiezen",
+  "Period field": "Datumveld",
+  "Save analysis": "Analyse opslaan",
+  Result: "Resultaat",
+  Connections: "Verbanden",
+  Cypher: "Cypher",
+  "Cypher query": "Cypher-query",
+  "Generated from the interpreted question": "Automatisch uit de begrepen vraag gemaakt",
+  "Execute query": "Query uitvoeren",
+  "Generate query": "Query genereren",
+  "Query parameters": "Queryparameters",
+  "Parameters must be a JSON object.": "Parameters moeten een JSON-object zijn.",
+  "Expert mode: edits remain in the query and may not translate fully back into the sentence. Only declared read queries are supported.":
+    "Expertmodus: wijzigingen blijven in de query en zijn mogelijk niet volledig naar de zin terug te vertalen. Alleen leesquery’s van het datamodel worden ondersteund.",
+  "This query uses expert clauses. Its full definition is preserved.":
+    "Deze query gebruikt expertfuncties. De volledige definitie blijft behouden.",
+  "Execute your edited query before changing the sentence or saving.":
+    "Voer je gewijzigde query uit voordat je de zin bewerkt of opslaat.",
+  "Execute your edited query to update the result.":
+    "Voer je gewijzigde query uit om het resultaat te vernieuwen.",
+  "Open query editor": "Query-editor openen",
+  "Start a new analysis": "Nieuwe analyse starten",
+  "Query changed": "Query gewijzigd",
+  "Reading data…": "Gegevens worden gelezen…",
+  "Result up to date": "Resultaat actueel",
+  "Not calculated": "Nog niet berekend",
+  "Returned rows": "Resultaatrijen",
+  "Bounded by the selected row limit": "Begrensd door het gekozen rijenaantal",
+  "Selected measures": "Gekozen kengetallen",
+  "Currencies and units stay separate": "Valuta’s en eenheden blijven gescheiden",
+  "Last successful read": "Laatst succesvol gelezen",
+  "An observation of the available records": "Waarneming van de beschikbare records",
+  "Connections in this question": "Verbanden in deze vraag",
+  "Select a node to edit its filters and fields.":
+    "Selecteer een knooppunt om de filters en velden te bewerken.",
+  "Edit this query in expert mode.": "Bewerk deze query in expertmodus.",
+  "Starting records": "Beginrecords",
+  Sort: "Sortering",
+  "Retry examples": "Voorbeelden opnieuw laden",
+  "No analysis records are available.": "Geen analyserecords beschikbaar.",
+  "Explore data": "Gegevens verkennen",
+  "Which data can I access?": "Welke gegevens kan ik gebruiken?",
+  "Objects, fields, relationships and sample records in one place.":
+    "Objecten, velden, relaties en voorbeeldrecords op één plek.",
+  "Your business as connected data": "Je bedrijf als verbonden gegevensmodel",
+  "Understand objects and follow their relationships.": "Begrijp objecten en volg hun relaties.",
+  "Object types": "Objecttypen",
+  Objects: "Objecten",
+  Relationships: "Relaties",
+  Fields: "Velden",
+  "Business objects": "Bedrijfsobjecten",
+  "Search data catalog": "Gegevenscatalogus doorzoeken",
+  "Search objects and fields…": "Objecten en velden zoeken…",
+  "No matching objects or fields.": "Geen overeenkomende objecten of velden.",
+  "Use in analysis": "In analyse gebruiken",
+  "Data catalog views": "Gegevenscatalogusweergaven",
+  Meaning: "Betekenis",
+  "Unique record identity": "Unieke recordidentiteit",
+  "Yes / No": "Ja / Nee",
+  Text: "Tekst",
+  "Open path": "Pad openen",
+  "No declared relationships.": "Geen relaties in het gegevensmodel gedefinieerd.",
+  "Preview of up to five records": "Voorbeeld van maximaal vijf records",
+  "Query these records": "Deze records opvragen",
+});
+Object.assign(dictionaries.es, {
+  "+ Analysis": "+ Análisis",
+  "+ Condition": "+ Condición",
+  "Analysis Builder": "Constructor de análisis",
+  "Analysis period": "Periodo del análisis",
+  "Analysis records": "Registros del análisis",
+  "Analysis views": "Vistas del análisis",
+  "Ask a question, understand it and adjust it when needed.":
+    "Haz una pregunta, compréndela y ajústala cuando lo necesites.",
+  "Your analysis question": "Tu pregunta de análisis",
+  "Interpret question": "Interpretar pregunta",
+  "How Reality understands your question": "Así entiende Reality tu pregunta",
+  "Show me": "Muéstrame",
+  "from the": "del periodo",
+  "grouped by": "agrupado por",
+  showing: "con los campos",
+  "Choose period": "Elegir periodo",
+  "Period field": "Campo de fecha",
+  "Save analysis": "Guardar análisis",
+  Result: "Resultado",
+  Connections: "Relaciones",
+  Cypher: "Cypher",
+  "Cypher query": "Consulta Cypher",
+  "Generated from the interpreted question": "Generada a partir de la pregunta interpretada",
+  "Execute query": "Ejecutar consulta",
+  "Generate query": "Generar consulta",
+  "Query parameters": "Parámetros de consulta",
+  "Parameters must be a JSON object.": "Los parámetros deben ser un objeto JSON.",
+  "Expert mode: edits remain in the query and may not translate fully back into the sentence. Only declared read queries are supported.":
+    "Modo experto: los cambios permanecen en la consulta y pueden no traducirse por completo a la frase. Solo se admiten consultas de lectura del modelo.",
+  "This query uses expert clauses. Its full definition is preserved.":
+    "Esta consulta usa funciones avanzadas. Se conserva su definición completa.",
+  "Execute your edited query before changing the sentence or saving.":
+    "Ejecuta la consulta modificada antes de cambiar la frase o guardar.",
+  "Execute your edited query to update the result.":
+    "Ejecuta la consulta modificada para actualizar el resultado.",
+  "Open query editor": "Abrir editor de consultas",
+  "Start a new analysis": "Iniciar nuevo análisis",
+  "Query changed": "Consulta modificada",
+  "Reading data…": "Leyendo datos…",
+  "Result up to date": "Resultado actualizado",
+  "Not calculated": "Aún sin calcular",
+  "Returned rows": "Filas devueltas",
+  "Bounded by the selected row limit": "Limitadas por el máximo de filas elegido",
+  "Selected measures": "Indicadores seleccionados",
+  "Currencies and units stay separate": "Las monedas y unidades se mantienen separadas",
+  "Last successful read": "Última lectura correcta",
+  "An observation of the available records": "Observación de los registros disponibles",
+  "Connections in this question": "Relaciones de esta pregunta",
+  "Select a node to edit its filters and fields.":
+    "Selecciona un nodo para editar sus filtros y campos.",
+  "Edit this query in expert mode.": "Edita esta consulta en modo experto.",
+  "Starting records": "Registros iniciales",
+  Sort: "Orden",
+  "Retry examples": "Volver a cargar ejemplos",
+  "No analysis records are available.": "No hay registros disponibles para el análisis.",
+  "Explore data": "Explorar datos",
+  "Which data can I access?": "¿A qué datos puedo acceder?",
+  "Objects, fields, relationships and sample records in one place.":
+    "Objetos, campos, relaciones y registros de ejemplo en un solo lugar.",
+  "Your business as connected data": "Tu negocio como datos conectados",
+  "Understand objects and follow their relationships.":
+    "Comprende los objetos y sigue sus relaciones.",
+  "Object types": "Tipos de objeto",
+  Objects: "Objetos",
+  Relationships: "Relaciones",
+  Fields: "Campos",
+  "Business objects": "Objetos de negocio",
+  "Search data catalog": "Buscar en el catálogo de datos",
+  "Search objects and fields…": "Buscar objetos y campos…",
+  "No matching objects or fields.": "No hay objetos ni campos coincidentes.",
+  "Use in analysis": "Usar en el análisis",
+  "Data catalog views": "Vistas del catálogo de datos",
+  Meaning: "Significado",
+  "Unique record identity": "Identidad única del registro",
+  "Yes / No": "Sí / No",
+  Text: "Texto",
+  "Open path": "Abrir ruta",
+  "No declared relationships.": "No hay relaciones declaradas.",
+  "Preview of up to five records": "Vista previa de hasta cinco registros",
+  "Query these records": "Consultar estos registros",
+});
+
+Object.assign(dictionaries.de, {
+  with: "mit",
+  "All periods": "allen Zeiträumen",
+  "Choose fields": "Felder wählen",
+});
+Object.assign(dictionaries.nl, {
+  with: "met",
+  "All periods": "alle perioden",
+  "Choose fields": "Velden kiezen",
+});
+Object.assign(dictionaries.es, {
+  with: "con",
+  "All periods": "todos los periodos",
+  "Choose fields": "Elegir campos",
+});
+
+Object.assign(dictionaries.de, {
+  "Preview data": "Daten ansehen",
+  "Numeric field": "Zahl",
+  "This object has no queryable fields yet.": "Für dieses Objekt sind noch keine Felder abfragbar.",
+  "No AI provider is connected. Choose an example or use the sentence controls.":
+    "Es ist kein KI-Anbieter verbunden. Wähle ein Beispiel oder passe den Satz an.",
+  "The question could not be interpreted. Rephrase it or choose an example.":
+    "Die Frage konnte nicht verstanden werden. Formuliere sie um oder wähle ein Beispiel.",
+  "one business partner": "Ein Geschäftspartner",
+  "one article": "Ein Artikel",
+  "one retained sales order": "Ein gespeicherter Kundenauftrag",
+  "one order position": "Eine Auftragsposition",
+  "one invoice or credit note": "Eine Rechnung oder Gutschrift",
+  "one invoice position": "Eine Rechnungsposition",
+  "one promise to deliver or receive": "Eine Liefer- oder Empfangsverpflichtung",
+  "one ledger entry": "Eine Buchung",
+  "one settlement of a payment against an invoice": "Eine Zahlungszuordnung zu einer Rechnung",
+  "one stock movement": "Eine Warenbewegung",
+  "one shipment": "Ein Versand",
+  "one storage location": "Ein Lagerort",
+  "one announced customer return": "Eine angekündigte Kundenretoure",
+  "one campaign": "Eine Kampagne",
+});
+
+Object.assign(dictionaries.nl, {
+  "Preview data": "Gegevens bekijken",
+  "Numeric field": "Getal",
+  "This object has no queryable fields yet.": "Dit object heeft nog geen opvraagbare velden.",
+  "No AI provider is connected. Choose an example or use the sentence controls.":
+    "Er is geen AI-provider verbonden. Kies een voorbeeld of pas de zin aan.",
+  "The question could not be interpreted. Rephrase it or choose an example.":
+    "De vraag kon niet worden geïnterpreteerd. Formuleer deze anders of kies een voorbeeld.",
+  "one business partner": "Eén zakenpartner",
+  "one article": "Eén artikel",
+  "one retained sales order": "Eén bewaarde verkooporder",
+  "one order position": "Eén orderregel",
+  "one invoice or credit note": "Eén factuur of creditnota",
+  "one invoice position": "Eén factuurregel",
+  "one promise to deliver or receive": "Eén leverings- of ontvangstverplichting",
+  "one ledger entry": "Eén boeking",
+  "one settlement of a payment against an invoice": "Eén betalingstoewijzing aan een factuur",
+  "one stock movement": "Eén voorraadbeweging",
+  "one shipment": "Eén verzending",
+  "one storage location": "Eén opslaglocatie",
+  "one announced customer return": "Eén aangekondigde klantretour",
+  "one campaign": "Eén campagne",
+});
+
+Object.assign(dictionaries.es, {
+  "Preview data": "Ver datos",
+  "Numeric field": "Número",
+  "This object has no queryable fields yet.": "Este objeto aún no tiene campos consultables.",
+  "No AI provider is connected. Choose an example or use the sentence controls.":
+    "No hay un proveedor de IA conectado. Elige un ejemplo o ajusta la frase.",
+  "The question could not be interpreted. Rephrase it or choose an example.":
+    "No se pudo interpretar la pregunta. Reformúlala o elige un ejemplo.",
+  "one business partner": "Un socio comercial",
+  "one article": "Un artículo",
+  "one retained sales order": "Un pedido de venta registrado",
+  "one order position": "Una línea de pedido",
+  "one invoice or credit note": "Una factura o nota de crédito",
+  "one invoice position": "Una línea de factura",
+  "one promise to deliver or receive": "Un compromiso de entrega o recepción",
+  "one ledger entry": "Un asiento contable",
+  "one settlement of a payment against an invoice": "Una asignación de pago a una factura",
+  "one stock movement": "Un movimiento de existencias",
+  "one shipment": "Un envío",
+  "one storage location": "Una ubicación de almacén",
+  "one announced customer return": "Una devolución de cliente anunciada",
+  "one campaign": "Una campaña",
+});
+
+Object.assign(dictionaries.de, {
+  "Many related records": "Mehrere Datensätze",
+  "One related record": "Ein Datensatz",
+});
+Object.assign(dictionaries.nl, {
+  "Many related records": "Meerdere records",
+  "One related record": "Eén record",
+});
+Object.assign(dictionaries.es, {
+  "Many related records": "Varios registros",
+  "One related record": "Un registro",
+});
+
+Object.assign(dictionaries.de, {
+  Analysis: "Analyse",
+  "New analysis": "Neue Auswertung",
+  "Create with chat": "Mit Chat erstellen",
+  "Adapt with chat": "Mit Chat anpassen",
+  "Use a template": "Vorlage verwenden",
+  "Use template": "Vorlage verwenden",
+  "Build it yourself": "Selbst zusammenstellen",
+  "How would you like to create your analysis?": "Wie möchtest du deine Auswertung erstellen?",
+  "Describe your question in chat or choose the data yourself. Both lead to the same analysis.":
+    "Beschreibe deine Frage im Chat oder stelle die Daten selbst zusammen. Beide Wege führen zur gleichen Analyse.",
+  "Choose a starting point. You can adjust it before saving.":
+    "Wähle einen Einstieg. Du kannst ihn vor dem Speichern anpassen.",
+  "No reports match your search.": "Keine Auswertungen passen zu deiner Suche.",
+  "Your saved analyses will appear here.": "Hier findest du deine gespeicherten Auswertungen.",
+  "Create your first analysis": "Erste Auswertung erstellen",
+  "This proposal cannot be opened as an analysis.":
+    "Dieser Vorschlag kann nicht als Analyse geöffnet werden.",
+  "Open in analysis": "In Analyse öffnen",
+  "Current analysis": "Aktuelle Auswertung",
+  "Analysis context": "Auswertung als Kontext",
+  "Remove context": "Kontext entfernen",
+  "Help me adapt this analysis. Ask me which changes I want.":
+    "Hilf mir, diese Auswertung anzupassen. Frage mich, was ich ändern möchte.",
+  "Help me create an analysis. Ask me what I want to understand.":
+    "Hilf mir, eine Auswertung zu erstellen. Frage mich, was ich verstehen möchte.",
+  "Wait for the current reply before changing the analysis context.":
+    "Warte auf die aktuelle Antwort, bevor du den Auswertungskontext wechselst.",
+  "This analysis is too large to attach to chat. Use the analysis controls instead.":
+    "Diese Auswertung ist zu umfangreich für den Chatkontext. Verwende die Bedienelemente der Analyse.",
+  "Your message and analysis context are too long. Shorten the message or remove the context.":
+    "Deine Nachricht und der Auswertungskontext sind zu lang. Kürze die Nachricht oder entferne den Kontext.",
+});
+
+Object.assign(dictionaries.nl, {
+  Analysis: "Analyse",
+  "New analysis": "Nieuwe analyse",
+  "Create with chat": "Maken met chat",
+  "Adapt with chat": "Aanpassen met chat",
+  "Use a template": "Een sjabloon gebruiken",
+  "Use template": "Sjabloon gebruiken",
+  "Build it yourself": "Zelf samenstellen",
+  "How would you like to create your analysis?": "Hoe wil je je analyse maken?",
+  "Describe your question in chat or choose the data yourself. Both lead to the same analysis.":
+    "Beschrijf je vraag in de chat of kies zelf de gegevens. Beide manieren leiden tot dezelfde analyse.",
+  "Choose a starting point. You can adjust it before saving.":
+    "Kies een startpunt. Je kunt het aanpassen voordat je opslaat.",
+  "No reports match your search.": "Geen analyses gevonden voor je zoekopdracht.",
+  "Your saved analyses will appear here.": "Hier vind je je opgeslagen analyses.",
+  "Create your first analysis": "Je eerste analyse maken",
+  "This proposal cannot be opened as an analysis.":
+    "Dit voorstel kan niet als analyse worden geopend.",
+  "Open in analysis": "Openen in Analyse",
+  "Current analysis": "Huidige analyse",
+  "Analysis context": "Analyse als context",
+  "Remove context": "Context verwijderen",
+  "Help me adapt this analysis. Ask me which changes I want.":
+    "Help me deze analyse aan te passen. Vraag me wat ik wil veranderen.",
+  "Help me create an analysis. Ask me what I want to understand.":
+    "Help me een analyse te maken. Vraag me wat ik wil begrijpen.",
+  "Wait for the current reply before changing the analysis context.":
+    "Wacht op het huidige antwoord voordat je de analysecontext wijzigt.",
+  "This analysis is too large to attach to chat. Use the analysis controls instead.":
+    "Deze analyse is te groot voor de chatcontext. Gebruik de bedieningselementen van de analyse.",
+  "Your message and analysis context are too long. Shorten the message or remove the context.":
+    "Je bericht en analysecontext zijn te lang. Kort het bericht in of verwijder de context.",
+});
+
+Object.assign(dictionaries.es, {
+  Analysis: "Análisis",
+  "New analysis": "Nuevo análisis",
+  "Create with chat": "Crear con chat",
+  "Adapt with chat": "Ajustar con chat",
+  "Use a template": "Usar una plantilla",
+  "Use template": "Usar plantilla",
+  "Build it yourself": "Configurar manualmente",
+  "How would you like to create your analysis?": "¿Cómo quieres crear tu análisis?",
+  "Describe your question in chat or choose the data yourself. Both lead to the same analysis.":
+    "Describe tu pregunta en el chat o elige los datos. Ambas opciones llevan al mismo análisis.",
+  "Choose a starting point. You can adjust it before saving.":
+    "Elige un punto de partida. Puedes ajustarlo antes de guardar.",
+  "No reports match your search.": "No hay análisis que coincidan con tu búsqueda.",
+  "Your saved analyses will appear here.": "Aquí aparecerán tus análisis guardados.",
+  "Create your first analysis": "Crear tu primer análisis",
+  "This proposal cannot be opened as an analysis.":
+    "Esta propuesta no se puede abrir como análisis.",
+  "Open in analysis": "Abrir en Análisis",
+  "Current analysis": "Análisis actual",
+  "Analysis context": "Análisis como contexto",
+  "Remove context": "Quitar contexto",
+  "Help me adapt this analysis. Ask me which changes I want.":
+    "Ayúdame a ajustar este análisis. Pregúntame qué quiero cambiar.",
+  "Help me create an analysis. Ask me what I want to understand.":
+    "Ayúdame a crear un análisis. Pregúntame qué quiero entender.",
+  "Wait for the current reply before changing the analysis context.":
+    "Espera la respuesta actual antes de cambiar el contexto del análisis.",
+  "This analysis is too large to attach to chat. Use the analysis controls instead.":
+    "Este análisis es demasiado grande para el contexto del chat. Usa los controles del análisis.",
+  "Your message and analysis context are too long. Shorten the message or remove the context.":
+    "Tu mensaje y el contexto del análisis son demasiado largos. Acorta el mensaje o quita el contexto.",
+});
+
+Object.assign(dictionaries.de, {
+  "Measures and columns": "Kennzahlen und Spalten",
+  "Records and connections": "Datensätze und Verbindungen",
+  "Remove period": "Zeitraum entfernen",
+  "No sorting selected": "Keine Sortierung gewählt",
+});
+
+Object.assign(dictionaries.nl, {
+  "Measures and columns": "Meetwaarden en kolommen",
+  "Records and connections": "Records en verbindingen",
+  "Remove period": "Periode verwijderen",
+  "No sorting selected": "Geen sortering gekozen",
+});
+
+Object.assign(dictionaries.es, {
+  "Measures and columns": "Métricas y columnas",
+  "Records and connections": "Registros y relaciones",
+  "Remove period": "Quitar período",
+  "No sorting selected": "Sin orden seleccionado",
+});
+
+Object.assign(dictionaries.de, {
+  "Explore the available analysis objects and their relationships.":
+    "Erkunde die verfügbaren Analyseobjekte und ihre Verbindungen.",
+});
+
+Object.assign(dictionaries.nl, {
+  "Explore the available analysis objects and their relationships.":
+    "Verken de beschikbare analyseobjecten en hun relaties.",
+});
+
+Object.assign(dictionaries.es, {
+  "Explore the available analysis objects and their relationships.":
+    "Explora los objetos disponibles para análisis y sus relaciones.",
 });

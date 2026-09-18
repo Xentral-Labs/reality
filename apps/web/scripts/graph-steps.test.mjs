@@ -463,3 +463,136 @@ test("an axis a number may not be summed across arrives as soon as it is reachab
     "without adding it twice",
   );
 });
+
+// Advanced questions must never silently lose clauses in the sentence editor.
+test("advanced questions stay in expert mode instead of dropping their clauses", () => {
+  const base = { from: "order", measures: ["order_count"] };
+  for (const extra of [
+    { having: [{ measure: "order_count", op: "gt", value: 3 }] },
+    { exists: [{ follow: [{ edge: "ordered_by", as: "p" }] }] },
+    { order_by: [{ by: "order_count" }, { by: "o.currency" }] },
+    { group_by: [{ field: "root.currency", as: "Currency code" }] },
+    { follow: [{ edge: "contains", direction: "out", as: "l", depth: [1, 2] }] },
+  ])
+    assert.equal(planOf({ ...base, ...extra }, NODES), null);
+});
+
+test("connection diagram uses the declared origin for branches", () => {
+  const plan = {
+    ...BRANCHED,
+    blocks: [
+      ...BRANCHED.blocks,
+      {
+        alias: "n2",
+        node: "party",
+        filters: [],
+        edge: { key: "ordered_by", direction: "out", from: "o" },
+      },
+    ],
+  };
+  const diagram = plain(exports.connectionLayout(plan));
+  assert.equal(diagram.edges[1].from, "o");
+  assert.equal(diagram.edges[1].to, "n2");
+  assert.equal(diagram.nodes.length, 3);
+});
+
+test("catalog field and relation transitions produce ordinary unsaved questions", () => {
+  const value = exports.explorePlan(NODES.order, NODES, "ordered_at");
+  assert.equal(
+    value.groups.some((group) => group.field === "o.ordered_at"),
+    true,
+  );
+  const edge = exports.explorePlan(NODES.order, NODES, undefined, "ordered_by", "out");
+  assert.equal(edge.blocks[1].node, "party");
+  assert.equal(edge.blocks[1].edge.from, "o");
+  assert.equal(question(edge).follow[0].edge, "ordered_by");
+});
+
+test("omitted server defaults do not reverse a relationship's multiplicity", () => {
+  const reopened = planOf(
+    {
+      from: "order",
+      as: "o",
+      follow: [{ edge: "ordered_by", as: "p" }],
+      group_by: [{ field: "p.name" }],
+    },
+    NODES,
+  );
+  assert.equal(reopened.blocks[1].edge.direction, "out");
+  assert.equal(reopened.blocks[1].edge.fansOut, false);
+});
+
+test("the last 30 days covers exactly thirty local calendar dates", () => {
+  const period = exports.periodOf("last_30_days");
+  const from = new Date(period.conditions[0].value);
+  const until = new Date(period.conditions[1].value);
+  const day = (date) => Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()) / 86400000;
+  assert.equal(day(until) - day(from), 30);
+  assert.equal(from.getHours(), 0);
+  assert.equal(until.getHours(), 0);
+});
+
+test("question period recognizes only a bounded range on one declared time field", () => {
+  const period = periodFilter("o.ordered_at", "Bestelldatum", {
+    label: "September",
+    from: new Date(2026, 8, 1),
+    until: new Date(2026, 9, 1),
+  });
+  const plan = { ...stacked, blocks: [{ ...stacked.blocks[0], filters: [period] }] };
+  assert.equal(exports.questionPeriod(plan, NODES), period);
+  for (const conditions of [
+    [
+      { field: "o.currency", op: "gte", value: "A" },
+      { field: "o.currency", op: "lt", value: "Z" },
+    ],
+    [{ ...period.conditions[0] }, { ...period.conditions[1], field: "n1.ordered_at" }],
+    period.conditions.map((condition) => ({ ...condition, op: "eq" })),
+    [period.conditions[0]],
+  ]) {
+    assert.equal(
+      exports.questionPeriod(
+        { ...plan, blocks: [{ ...plan.blocks[0], filters: [{ shown: "Other", conditions }] }] },
+        NODES,
+      ),
+      undefined,
+    );
+  }
+});
+
+test("removing the question period preserves other filters and query dimensions", () => {
+  const period = periodFilter("o.ordered_at", "Bestelldatum", {
+    label: "September",
+    from: new Date(2026, 8, 1),
+    until: new Date(2026, 9, 1),
+  });
+  const other = {
+    shown: "After a specific day",
+    conditions: [{ field: "o.ordered_at", op: "gt", value: "2026-09-10T00:00:00Z" }],
+  };
+  const plan = {
+    ...stacked,
+    blocks: [{ ...stacked.blocks[0], filters: [period, other] }, stacked.blocks[1]],
+  };
+  const next = exports.withoutQuestionPeriod(plan, exports.questionPeriod(plan, NODES));
+  assert.deepEqual(
+    plain(next),
+    plain({ ...plan, blocks: [{ ...plan.blocks[0], filters: [other] }, plan.blocks[1]] }),
+  );
+  assert.equal(plan.blocks[0].filters.length, 2, "the original draft remains immutable");
+  assert.deepEqual(plain(question(next).filter), plain(other.conditions));
+});
+
+test("calendar date periods preserve wall-clock days rather than UTC instants", () => {
+  const from = new Date(2026, 8, 1);
+  const until = new Date(2026, 9, 1);
+  const filter = periodFilter(
+    "i.document_date",
+    "Date",
+    { label: "September", from, until },
+    "date",
+  );
+  assert.deepEqual(plain(filter.conditions), [
+    { field: "i.document_date", op: "gte", value: "2026-09-01" },
+    { field: "i.document_date", op: "lt", value: "2026-10-01" },
+  ]);
+});

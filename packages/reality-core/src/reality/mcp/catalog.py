@@ -2319,6 +2319,8 @@ for _public_name, _application_name, _label in (
     ("graph_catalog", "graph.catalog", "Discover the business graph"),
     ("graph_templates", "graph.templates", "List report templates"),
     ("graph_ask", "graph.ask", "Ask the business graph"),
+    ("graph_format", "graph.format", "Format an analysis query"),
+    ("graph_interpret", "graph.interpret", "Interpret an analysis question"),
     ("graph_reports_list", "graph.reports.list", "List my graph reports"),
     ("graph_report_get", "graph.reports.get", "Read my graph report"),
 ):

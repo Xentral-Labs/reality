@@ -40,6 +40,8 @@ private saved definitions.
 **Underneath:** Tables: `analytics_report` · Agent tools without a command:
 [`graph_catalog`](./commands#tool-graph_catalog),
 [`graph_templates`](./commands#tool-graph_templates), [`graph_ask`](./commands#tool-graph_ask),
+[`graph_format`](./commands#tool-graph_format),
+[`graph_interpret`](./commands#tool-graph_interpret),
 [`graph_reports_list`](./commands#tool-graph_reports_list),
 [`graph_report_get`](./commands#tool-graph_report_get)
 

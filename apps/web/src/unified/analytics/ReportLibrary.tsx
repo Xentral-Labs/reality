@@ -1,3 +1,5 @@
+import { PageActionBar } from "../PageActionBar";
+import { RegisterToolbar } from "../RegisterWorkbench";
 import { analyticsError } from "./errors";
 import { useState } from "react";
 import { graphApi, type GraphReport } from "../../api";
@@ -8,8 +10,10 @@ import { ReadState } from "../ReadState";
 export function ReportLibrary({
   tenant,
   open,
+  create,
 }: {
   tenant: string;
+  create?: () => void;
   open: (report: GraphReport) => void;
 }) {
   const [query, setQuery] = useState("");
@@ -44,45 +48,60 @@ export function ReportLibrary({
     }
   };
   return (
-    <section className="space-y-5">
+    <section className="register-surface">
+      {create && (
+        <PageActionBar
+          actions={[{ key: "new-analysis", label: "New analysis", onClick: create }]}
+        />
+      )}
       <div>
-        <h2 className="text-xl font-semibold">{t("My reports")}</h2>
-        <p className="mt-1 text-sm text-fg-muted">
+        <p className="mb-3 text-xs text-fg-muted">
           {t("Private to you in this company. Each opening runs against current records.")}
         </p>
       </div>
-      <input
-        className="br-control max-w-md"
-        aria-label={t("Search reports")}
-        placeholder={t("Search reports")}
-        value={query}
-        onChange={(event) => {
-          setQuery(event.target.value);
-          setCursor(undefined);
-        }}
+      <RegisterToolbar
+        search={
+          <input
+            className="br-control w-full"
+            aria-label={t("Search reports")}
+            placeholder={t("Search reports")}
+            value={query}
+            onChange={(event) => {
+              setQuery(event.target.value);
+              setCursor(undefined);
+            }}
+          />
+        }
       />
       {!read.data ? (
         <ReadState loading={read.loading} error={read.error} retry={read.refresh} />
       ) : (
         <>
           {!read.data.records.length && (
-            <p className="rounded-xl border border-dashed border-border-default p-10 text-center text-fg-muted">
-              {t("Save a question to find it here.")}
+            <p className="erp-empty text-center text-fg-muted">
+              {query
+                ? t("No reports match your search.")
+                : t("Your saved analyses will appear here.")}
+              {!query && create && (
+                <button className="br-btn mt-3" onClick={create}>
+                  {t("Create your first analysis")}
+                </button>
+              )}
             </p>
           )}
-          <div className="grid gap-4 lg:grid-cols-2">
+          <div className="divide-y divide-border-default">
             {read.data.records.map((report) => (
               <article
                 key={report.id}
-                className="rounded-xl border border-border-default bg-surface p-5"
+                className="flex flex-wrap items-center justify-between gap-3 py-3 text-sm"
               >
                 <button className="text-left" onClick={() => open(report)}>
-                  <h3 className="font-semibold text-accent">{report.name}</h3>
+                  <h3 className="font-medium text-fg-strong">{report.name}</h3>
                   <p className="mt-2 text-xs text-fg-muted">
                     {t("Updated")} {formatDateTime(report.updated_at)}
                   </p>
                 </button>
-                <div className="mt-4 flex gap-2">
+                <div className="flex flex-wrap gap-2">
                   {(
                     [
                       ["rename", "Rename"],
@@ -106,7 +125,7 @@ export function ReportLibrary({
               </article>
             ))}
           </div>
-          <div className="flex gap-2">
+          <div className="erp-register-footer flex gap-2">
             <button className="br-btn" disabled={!cursor} onClick={() => setCursor(undefined)}>
               {t("First page")}
             </button>
