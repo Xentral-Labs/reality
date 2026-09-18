@@ -1,9 +1,11 @@
+import { SelectedRecordPreview } from "./SelectedRecordPreview";
+import { recordOpened } from "./usePaletteHistory";
 import { RegisterWorkbench, RegisterHeader, RegisterToolbar } from "./RegisterWorkbench";
 import { PageActionBar } from "./PageActionBar";
 import { CustomerHoldCard } from "./CustomerHoldCard";
 import { useRegisterQuery } from "./TableContext";
 import { RegisterTable } from "./RegisterTable";
-import { Fragment, useState } from "react";
+import { Fragment, useEffect, useRef, useState } from "react";
 import { Search, Users, Package, MapPin } from "lucide-react";
 import { workspaceApi, type ReferenceDetail, type ReferenceFamily } from "../api";
 import { t } from "../localization";
@@ -53,10 +55,119 @@ export function MasterDataPage({
   );
   const [editor, setEditor] = useState<"create" | ReferenceDetail | null>(null);
   const [target, setTarget] = useState<{ kind: string; id: string } | null>(null);
-  const detail = detailRead.data;
+  const detail = detailRead.data?.id === record ? detailRead.data : null;
+  useEffect(() => {
+    if (detail && !detailRead.loading && !detailRead.error)
+      recordOpened(
+        tenant,
+        family === "customer" || family === "supplier" ? "party" : family,
+        detail.id,
+      );
+  }, [detail, detailRead.loading, detailRead.error, tenant, family]);
+  const preview = useRef<HTMLDivElement>(null);
+  const readyId = detail?.id;
+  useEffect(() => {
+    if (readyId) preview.current?.scrollIntoView({ block: "start", behavior: "instant" });
+  }, [readyId, record]);
   const draft = savedReferenceDraft(tenant);
+  const selectedPreview = !detail ? (
+    <ReadState loading={detailRead.loading} error={detailRead.error} retry={detailRead.refresh} />
+  ) : (
+    <div ref={preview} className="w-full" data-master-preview>
+      <div className="mb-4 text-sm">
+        <SourceBadge origin={detail.origin} inspect={setTarget} />
+        <ContributingSystems systems={detail.contributing_systems} />
+      </div>
+      <InspectorContent
+        data={{
+          title: detail.name,
+          sections: detail.preview_sections || [],
+          preview_sections: detail.preview_sections,
+        }}
+        selectedKind={family === "customer" || family === "supplier" ? "party" : family}
+        follow={setTarget}
+        compact
+      />
+      {!detail.preview_sections && (
+        <RecordSummary
+          record={Object.fromEntries(
+            referenceFields(family)
+              .filter((field) => field.key !== "name")
+              .map((field) => [field.key, detail[field.key]]),
+          )}
+        />
+      )}
+      <details className="mt-4 text-sm">
+        <summary>{t("Source")}</summary>
+        <RecordSummary
+          record={{
+            id: detail.id,
+            source_system: detail.source_system,
+            external_id: detail.external_id,
+          }}
+        />
+        {detail.source_record_id && (
+          <button
+            className="br-btn mt-3"
+            onClick={() =>
+              setTarget({
+                kind: "source_record",
+                id: detail.source_record_id!,
+              })
+            }
+          >
+            {t("Original source")}
+          </button>
+        )}
+      </details>
+      <div className="mt-5 flex flex-wrap justify-end gap-2">
+        {family === "customer" && (
+          <button className="br-btn" onClick={() => setHoldCustomer(detail.id)}>
+            {t("Customer delivery holds")}
+          </button>
+        )}
+        <button className="br-btn br-btn-primary" onClick={() => setEditor(detail)}>
+          {t("Edit details")}
+        </button>
+        {family === "item" && (
+          <button
+            className="br-btn"
+            onClick={() =>
+              navigate({
+                route: "warehouse",
+                warehouseView: "stock",
+                item: detail.id,
+                entry: "",
+                state: "",
+                q: "",
+                page: 1,
+              })
+            }
+          >
+            {t("Open warehouse")}
+          </button>
+        )}
+        <button
+          className="br-btn"
+          onClick={() =>
+            setTarget({
+              kind: family === "customer" || family === "supplier" ? "party" : family,
+              id: detail.id,
+            })
+          }
+        >
+          {t("Open full explanation")}
+        </button>
+      </div>
+    </div>
+  );
   return (
     <RegisterWorkbench>
+      {record && !read.data?.items.some((row) => row.id === record) && (
+        <SelectedRecordPreview kind="master" close={() => navigate({ record: "" })}>
+          {selectedPreview}
+        </SelectedRecordPreview>
+      )}
       {holdCustomer && (
         <CustomerHoldCard
           key={holdCustomer}
@@ -244,112 +355,7 @@ export function MasterDataPage({
                         open={record === row.id}
                         columns={family === "item" ? 8 : 7}
                       >
-                        {!detail ? (
-                          <ReadState
-                            loading={detailRead.loading}
-                            error={detailRead.error}
-                            retry={detailRead.refresh}
-                          />
-                        ) : (
-                          <div className="w-full" data-master-preview>
-                            <div className="mb-4 text-sm">
-                              <SourceBadge origin={detail.origin} inspect={setTarget} />
-                              <ContributingSystems systems={detail.contributing_systems} />
-                            </div>
-                            <InspectorContent
-                              data={{
-                                title: detail.name,
-                                sections: detail.preview_sections || [],
-                                preview_sections: detail.preview_sections,
-                              }}
-                              selectedKind={
-                                family === "customer" || family === "supplier" ? "party" : family
-                              }
-                              follow={setTarget}
-                              compact
-                            />
-                            {!detail.preview_sections && (
-                              <RecordSummary
-                                record={Object.fromEntries(
-                                  referenceFields(family)
-                                    .filter((field) => field.key !== "name")
-                                    .map((field) => [field.key, detail[field.key]]),
-                                )}
-                              />
-                            )}
-                            <details className="mt-4 text-sm">
-                              <summary>{t("Source")}</summary>
-                              <RecordSummary
-                                record={{
-                                  id: detail.id,
-                                  source_system: detail.source_system,
-                                  external_id: detail.external_id,
-                                }}
-                              />
-                              {detail.source_record_id && (
-                                <button
-                                  className="br-btn mt-3"
-                                  onClick={() =>
-                                    setTarget({
-                                      kind: "source_record",
-                                      id: detail.source_record_id!,
-                                    })
-                                  }
-                                >
-                                  {t("Original source")}
-                                </button>
-                              )}
-                            </details>
-                            <div className="mt-5 flex flex-wrap justify-end gap-2">
-                              {family === "customer" && (
-                                <button
-                                  className="br-btn"
-                                  onClick={() => setHoldCustomer(detail.id)}
-                                >
-                                  {t("Customer delivery holds")}
-                                </button>
-                              )}
-                              <button
-                                className="br-btn br-btn-primary"
-                                onClick={() => setEditor(detail)}
-                              >
-                                {t("Edit details")}
-                              </button>
-                              {family === "item" && (
-                                <button
-                                  className="br-btn"
-                                  onClick={() =>
-                                    navigate({
-                                      route: "warehouse",
-                                      warehouseView: "stock",
-                                      item: detail.id,
-                                      entry: "",
-                                      state: "",
-                                      q: "",
-                                      page: 1,
-                                    })
-                                  }
-                                >
-                                  {t("Open warehouse")}
-                                </button>
-                              )}
-                              <button
-                                className="br-btn"
-                                onClick={() =>
-                                  setTarget({
-                                    kind:
-                                      family === "customer" || family === "supplier"
-                                        ? "party"
-                                        : family,
-                                    id: detail.id,
-                                  })
-                                }
-                              >
-                                {t("Open full explanation")}
-                              </button>
-                            </div>
-                          </div>
-                        )}
+                        {selectedPreview}
                       </TablePreview>
                     </Fragment>
                   ))}

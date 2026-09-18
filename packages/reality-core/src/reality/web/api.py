@@ -314,8 +314,15 @@ def require_tenant_surface_access(
         request.method == "GET"
         and route in {"/analytics/graph/catalog", "/analytics/graph/templates"}
     ) or (request.method == "POST" and route == "/analytics/graph/ask")
-    if not analytics_read and (
-        request.method != "GET" or (route not in readable and not inspector)
+    search_read = request.method == "POST" and route in {
+        "/search/query",
+        "/search/resolve",
+    }
+    # The shared search service restricts each lesson candidate/target to readable kinds.
+    if (
+        not analytics_read
+        and not search_read
+        and (request.method != "GET" or (route not in readable and not inspector))
     ):
         raise PlaygroundOperationDenied("Playground does not support this operation.")
 
@@ -1657,6 +1664,7 @@ def tenant_open_items(
     item_status: str = "",
     party_id: str = "",
     credit_only: bool = False,
+    overdue: bool = False,
     sort: Literal[
         "",
         "id",
@@ -1734,6 +1742,7 @@ def tenant_open_items(
         party_id=party_id,
         amount_fields=("gross", "settled", "open"),
         with_metadata=True,
+        overdue=overdue,
     )
 
 
@@ -7366,3 +7375,72 @@ def propose_finance_target(
 from reality.web.analytics_api import router as analytics_router
 
 router.include_router(analytics_router)
+
+
+# Search uses bounded POST bodies for privacy; neither endpoint changes business state.
+from reality.domain.search import ResolveRequest, SearchRequest
+
+
+def _search_principal(request: Request):
+    import os
+
+    if os.environ.get("REALITY_AUTH_MODE", "enabled").lower() == "disabled":
+        return optional_request_principal(request)
+    return request_principal(request)
+
+
+@router.post("/search/query")
+def company_search(
+    tenant_id: str, body: SearchRequest, request: Request, session: DatabaseSession
+):
+    from sqlalchemy.exc import DBAPIError
+
+    from reality.services.global_search import search_company
+
+    try:
+        from hashlib import sha256
+
+        from reality.web.auth import COOKIE_NAME
+
+        session_scope = sha256(
+            request.cookies.get(COOKIE_NAME, "trusted-local").encode()
+        ).hexdigest()
+        return search_company(
+            session,
+            tenant_id,
+            _search_principal(request),
+            body,
+            session_scope=session_scope,
+        )
+    except NotFound as error:
+        raise HTTPException(404, "Search target not found.") from error
+    except (ValueError, InvalidOperation) as error:
+        raise HTTPException(422, "Invalid or unavailable search request.") from error
+    except DBAPIError as error:
+        raise HTTPException(
+            503, "Search is temporarily unavailable. Please retry."
+        ) from error
+
+
+@router.post("/search/resolve")
+def resolve_company_search(
+    tenant_id: str, body: ResolveRequest, request: Request, session: DatabaseSession
+):
+    from sqlalchemy.exc import DBAPIError
+
+    from reality.services.global_search import resolve_search_targets
+
+    try:
+        return {
+            "items": resolve_search_targets(
+                session, tenant_id, _search_principal(request), body.targets
+            )
+        }
+    except NotFound as error:
+        raise HTTPException(404, "Search target not found.") from error
+    except (ValueError, InvalidOperation) as error:
+        raise HTTPException(422, "Invalid or unavailable search request.") from error
+    except DBAPIError as error:
+        raise HTTPException(
+            503, "Search is temporarily unavailable. Please retry."
+        ) from error

@@ -35,6 +35,12 @@ test_engine = build_engine(os.environ["REALITY_DATABASE_URL"])
 # Build the schema once per worker; each test rolls back its outer transaction.
 Base.metadata.create_all(test_engine)
 
+# PostgreSQL search functions are test/migration support, never application startup DDL.
+from reality.db.search_sql import install_search_support
+
+with test_engine.begin() as search_connection:
+    install_search_support(search_connection)
+
 
 def _drop_database(database_name: str) -> None:
     with admin_engine.connect() as connection:

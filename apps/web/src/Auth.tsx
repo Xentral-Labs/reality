@@ -68,6 +68,19 @@ export function AuthGate({
   const [user, setUser] = useState<AuthUser | null>(null);
   const [ready, setReady] = useState(false);
   useEffect(() => {
+    const expired = () => setUser(null);
+    const storage = (event: StorageEvent) => {
+      if (event.key === "reality:logout") expired();
+    };
+    window.addEventListener("reality:session-expired", expired);
+    window.addEventListener("storage", storage);
+    return () => {
+      window.removeEventListener("reality:session-expired", expired);
+      window.removeEventListener("storage", storage);
+    };
+  }, []);
+
+  useEffect(() => {
     api
       .me()
       .then((value) => {

@@ -143,42 +143,52 @@ async def protect_application_api(request: Request, call_next):
     }
     if not path.startswith("/api/") or path in public_paths:
         return await call_next(request)
-    with Session() as session:
-        user = user_from_request(request, session)
-        if not user:
-            return JSONResponse({"detail": "Authentication required."}, status_code=401)
-        request.state.user = user
-        user_paths = {
-            "/api/auth/me",
-            "/api/auth/logout",
-            "/api/auth/profile",
-            "/api/auth/application",
-            "/api/auth/invitations/accept",
-        }
-        if (
-            path not in user_paths
-            and not is_account_setup_path(path, request.method)
-            and not path.startswith("/api/tenants/")
-            and path != "/api/playground"
-            and not path.startswith("/api/playground/")
-            and user.status != "active"
-            and not user.is_platform_admin
-        ):
-            return JSONResponse(
-                {"detail": "Access approval is still pending."}, status_code=403
-            )
-        marker = "/api/tenants/"
-        if marker in path and not user.is_platform_admin:
-            tenant_id = path.split(marker, 1)[1].split("/", 1)[0]
-            membership = session.scalar(
-                select(TenantMembership).where(
-                    TenantMembership.tenant_id == tenant_id,
-                    TenantMembership.user_id == user.id,
-                    TenantMembership.status == "active",
+
+    def authorize():
+        with Session() as session:
+            user = user_from_request(request, session)
+            if not user:
+                return JSONResponse(
+                    {"detail": "Authentication required."}, status_code=401
                 )
-            )
-            if not membership:
-                return JSONResponse({"detail": "Company not found."}, status_code=404)
+            request.state.user = user
+            user_paths = {
+                "/api/auth/me",
+                "/api/auth/logout",
+                "/api/auth/profile",
+                "/api/auth/application",
+                "/api/auth/invitations/accept",
+            }
+            if (
+                path not in user_paths
+                and not is_account_setup_path(path, request.method)
+                and not path.startswith("/api/tenants/")
+                and path != "/api/playground"
+                and not path.startswith("/api/playground/")
+                and user.status != "active"
+                and not user.is_platform_admin
+            ):
+                return JSONResponse(
+                    {"detail": "Access approval is still pending."}, status_code=403
+                )
+            marker = "/api/tenants/"
+            if marker in path and not user.is_platform_admin:
+                tenant_id = path.split(marker, 1)[1].split("/", 1)[0]
+                membership = session.scalar(
+                    select(TenantMembership).where(
+                        TenantMembership.tenant_id == tenant_id,
+                        TenantMembership.user_id == user.id,
+                        TenantMembership.status == "active",
+                    )
+                )
+                if not membership:
+                    return JSONResponse(
+                        {"detail": "Company not found."}, status_code=404
+                    )
+
+    rejection = await run_in_threadpool(authorize)
+    if rejection is not None:
+        return rejection
     return await call_next(request)
 
 

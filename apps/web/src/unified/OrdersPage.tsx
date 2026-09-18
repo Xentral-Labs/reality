@@ -1,3 +1,4 @@
+import { SelectedRecordPreview } from "./SelectedRecordPreview";
 import { useContextActions } from "./ActionLauncher";
 import { PageActionBar } from "./PageActionBar";
 import { isPurchasing } from "./pageIntroduction";
@@ -113,6 +114,29 @@ export function OrdersPage({
     <>
       <div hidden={!!selection.commitment}>
         <RegisterWorkbench>
+          {entry &&
+            ["customer-orders", "supplier-orders"].includes(view) &&
+            !data?.items.some((row) => row.id === entry) && (
+              <SelectedRecordPreview kind="order" close={() => navigate({ entry: "" })}>
+                <InlineInspector tenant={tenant} target={{ kind: "document", id: entry }}>
+                  <button
+                    className="br-btn"
+                    onClick={() =>
+                      change({
+                        ordersView: "deliveries",
+                        order: entry,
+                        deliveryType:
+                          view === "supplier-orders" ? "supplier_delivery" : "customer_delivery",
+                        deliveryStatus: "all",
+                        q: "",
+                      })
+                    }
+                  >
+                    {t("View commitments")}
+                  </button>
+                </InlineInspector>
+              </SelectedRecordPreview>
+            )}
           <RegisterHeader title={purchasing ? "Purchasing" : "Sales"}>
             <div className="register-tabs">
               {(
@@ -279,6 +303,7 @@ export function OrdersPage({
                             columns={9}
                           >
                             <InlineInspector
+                              reveal
                               tenant={tenant}
                               target={{ kind: "commitment", id: row.id }}
                             >
@@ -368,6 +393,7 @@ export function OrdersPage({
                             columns={7}
                           >
                             <InlineInspector
+                              reveal
                               tenant={tenant}
                               target={{ kind: "document", id: row.id }}
                             >

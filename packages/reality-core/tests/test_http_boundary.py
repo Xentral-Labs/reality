@@ -382,7 +382,12 @@ def test_reference_endpoint_reuses_global_metadata(session, business, monkeypatc
                 f"/api/tenants/{business.tenant.id}/application-reference"
             )
             assert response.status_code == 200
-            assert response.json() == {
+            result = response.json()
+            vocabulary = result.pop("search_vocabulary")
+            assert vocabulary and all(
+                "key" in row and "labels" in row for row in vocabulary
+            )
+            assert result == {
                 "version": 1,
                 "projections": [],
                 "tool_catalog": {"version": 1, "entries": []},
@@ -407,4 +412,7 @@ def test_projection_http_reads_do_not_materialize(session, business, monkeypatch
     assert result.status_code == 200
     assert result.json()["metadata"]["state"] == "uninitialized"
     assert client.get(base + "/projection-snapshots/missing").status_code == 404
-    assert client.get(base + "/finance/open-items").json()["metadata"]["state"] == "uninitialized"
+    assert (
+        client.get(base + "/finance/open-items").json()["metadata"]["state"]
+        == "uninitialized"
+    )

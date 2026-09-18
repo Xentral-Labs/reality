@@ -22,6 +22,8 @@ export type Selection = {
   inspectorView?: string;
   attentionView?: "findings" | "rules";
   inspectorRecordKind?: string;
+  inspectorTargetKind?: string;
+  inspectorTargetId?: string;
   tableSize: 25 | 50 | 100;
   tableSort: string;
   tableDirection: "asc" | "desc";
@@ -43,6 +45,10 @@ export type Selection = {
   q: string;
   page: number;
   analyticsProposal?: string;
+  analyticsReport?: string;
+  analyticsTemplate?: string;
+  calculatedReport?: string;
+  toolCapability?: string;
   analyticsView?: "templates" | "graph" | "reports" | "explore";
   family: "customer" | "supplier" | "item" | "location";
   record: string;
@@ -58,6 +64,7 @@ export type Selection = {
   partyId: string;
   flow: "receivable" | "payable" | "customer-credit" | "customer-balance" | "supplier-balance";
   financeStatus: string;
+  financeOverdue?: boolean;
   direction: string;
   account: string;
   warehouseView: "stock" | "reservations" | "movements";
@@ -116,6 +123,8 @@ export function readSelection(url: URL): Selection {
       ? url.searchParams.get("inspector_view")!
       : "overview",
     inspectorRecordKind: url.searchParams.get("inspector_record_kind") || undefined,
+    inspectorTargetKind: url.searchParams.get("inspector_target_kind") || "",
+    inspectorTargetId: url.searchParams.get("inspector_target_id") || "",
     factSubjectType: url.searchParams.get("fact_subject_type") || "",
     factSubject: url.searchParams.get("fact_subject") || "",
     factSource: url.searchParams.get("fact_source") || "",
@@ -195,6 +204,7 @@ export function readSelection(url: URL): Selection {
     balanceSide: url.searchParams.get("balance_side") === "supplier" ? "supplier" : "customer",
     creditOnly: url.searchParams.get("credit_only") === "1",
     partyId: url.searchParams.get("party_id") || "",
+    financeOverdue: url.searchParams.get("finance_overdue") === "1",
     financeStatus: ["", "outstanding", "open", "partial", "paid"].includes(
       url.searchParams.get("finance_status") ?? "outstanding",
     )
@@ -233,7 +243,16 @@ export function readSelection(url: URL): Selection {
       : "",
     exception: url.searchParams.get("exception") || "",
     // Preserve explicit graph/template links; the workspace entry opens saved reports.
-    analyticsProposal: url.searchParams.get("analysis_proposal") || "",
+    analyticsProposal:
+      !url.searchParams.get("analytics_report") && !url.searchParams.get("analytics_template")
+        ? url.searchParams.get("analysis_proposal") || ""
+        : "",
+    analyticsReport: url.searchParams.get("analytics_report") || "",
+    analyticsTemplate: !url.searchParams.get("analytics_report")
+      ? url.searchParams.get("analytics_template") || ""
+      : "",
+    calculatedReport: url.searchParams.get("calculated_report") || "",
+    toolCapability: url.searchParams.get("tool_capability") || "",
     analyticsView: ["templates", "graph", "reports", "explore"].includes(
       url.searchParams.get("analytics_view") || "",
     )
@@ -264,6 +283,15 @@ export function selectionUrl(selection: Selection): string {
     query.set("inspector_view", selection.inspectorView || "overview");
   for (const key of ["tenant", "commitment", "proposal", "session", "q"] as const)
     if (selection[key]) query.set(key, selection[key]);
+  if (selection.route === "analytics") {
+    if (selection.analyticsReport) query.set("analytics_report", selection.analyticsReport);
+    if (!selection.analyticsReport && selection.analyticsTemplate)
+      query.set("analytics_template", selection.analyticsTemplate);
+  }
+  if (selection.route === "inspector") {
+    if (selection.calculatedReport) query.set("calculated_report", selection.calculatedReport);
+    if (selection.toolCapability) query.set("tool_capability", selection.toolCapability);
+  }
   if (selection.tableSize !== 50) query.set("size", String(selection.tableSize));
   if (selection.tableScope) {
     query.set("table", selection.tableScope);
@@ -275,7 +303,11 @@ export function selectionUrl(selection: Selection): string {
   }
   if (selection.route === "orders-deliveries") {
     query.set("orders_view", selection.ordersView);
-    if (selection.ordersView === "deliveries" || selection.ordersView === "commitments") {
+    if (
+      selection.ordersView === "deliveries" ||
+      selection.ordersView === "commitments" ||
+      selection.ordersView === "shipments"
+    ) {
       query.set("delivery_type", selection.deliveryType);
       query.set("delivery_status", selection.deliveryStatus);
       if (selection.order) query.set("order", selection.order);
@@ -285,6 +317,10 @@ export function selectionUrl(selection: Selection): string {
   if (selection.route === "inspector" && selection.inspectorRecordKind)
     query.set("inspector_record_kind", selection.inspectorRecordKind);
   if (selection.route === "facts" || selection.route === "inspector") {
+    if (selection.inspectorTargetKind && selection.inspectorTargetId) {
+      query.set("inspector_target_kind", selection.inspectorTargetKind);
+      query.set("inspector_target_id", selection.inspectorTargetId);
+    }
     if (selection.factSubjectType) query.set("fact_subject_type", selection.factSubjectType);
     if (selection.factSubject) query.set("fact_subject", selection.factSubject);
     if (selection.factSource) query.set("fact_source", selection.factSource);
@@ -297,7 +333,8 @@ export function selectionUrl(selection: Selection): string {
     query.set("import_proposal", selection.importProposal);
   if (selection.route === "settings") query.set("settings_view", selection.settingsView);
   if (selection.route === "analytics") {
-    if (selection.analyticsProposal) query.set("analysis_proposal", selection.analyticsProposal);
+    if (!selection.analyticsReport && !selection.analyticsTemplate && selection.analyticsProposal)
+      query.set("analysis_proposal", selection.analyticsProposal);
     if (selection.analyticsView === "graph") query.set("analytics_view", "graph");
     if (selection.analyticsView === "explore") query.set("analytics_view", "explore");
     if (selection.analyticsView === "reports") query.set("analytics_view", "reports");
@@ -321,6 +358,7 @@ export function selectionUrl(selection: Selection): string {
       query.set("finance_settings", selection.financeSettings);
     query.set("flow", selection.flow);
     query.set("finance_status", selection.financeStatus);
+    if (selection.financeOverdue) query.set("finance_overdue", "1");
     if (selection.financeView === "balances") {
       query.set("balance_side", selection.balanceSide);
       if (selection.creditOnly) query.set("credit_only", "1");
@@ -351,6 +389,8 @@ export function companySelection(selection: Selection, tenant: string): Selectio
     tableSort: "",
     tableScope: "",
     tableDirection: "asc",
+    inspectorTargetKind: "",
+    inspectorTargetId: "",
     factSubjectType: "",
     factSubject: "",
     factSource: "",
@@ -365,6 +405,10 @@ export function companySelection(selection: Selection, tenant: string): Selectio
     record: "",
     analyticsView: "reports",
     analyticsProposal: "",
+    analyticsReport: "",
+    analyticsTemplate: "",
+    calculatedReport: "",
+    toolCapability: "",
     active: false,
     sourceSystem: "",
     sourceRecord: "",
@@ -374,6 +418,7 @@ export function companySelection(selection: Selection, tenant: string): Selectio
     creditOnly: false,
     partyId: "",
     financeStatus: "outstanding",
+    financeOverdue: false,
     direction: "",
     account: "",
     item: "",

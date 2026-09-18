@@ -1462,6 +1462,18 @@ def _runtime_catalog_snapshot() -> dict[str, Any]:
 
     catalog = load_application_catalog()
     catalog["tool_catalog"] = build_tool_catalog(catalog)
+    vocabulary = yaml.safe_load(config_text(RESOURCE_CATALOG_FILE))["resources"]
+    catalog["search_vocabulary"] = [
+        {
+            "key": row["key"],
+            "labels": row.get("label", {}),
+            "synonyms": row.get("synonyms", []),
+            "match": row.get("match", ""),
+            "views": row.get("views", []),
+            "projections": row.get("projections", []),
+        }
+        for row in vocabulary
+    ]
     return catalog
 
 

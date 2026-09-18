@@ -10381,12 +10381,14 @@ def _payment_rows(
     the company, the document and the party once per payment; on a 1,400-order
     company that was 11,000 reads and four minutes (spec 181).
     """
+    from reality.db.search import payment_eligibility
+
     get_tenant(session, tenant_id)
     cash_entries = [
         cash
         for cash in session.scalars(
             select(LedgerEntry)
-            .where(LedgerEntry.tenant_id == tenant_id, LedgerEntry.account == "cash")
+            .where(payment_eligibility(tenant_id))
             .where(
                 LedgerEntry.id.in_(cash_entry_ids)
                 if cash_entry_ids is not None

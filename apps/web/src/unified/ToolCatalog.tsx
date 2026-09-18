@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { ChevronRight, BookOpen, SearchCheck, Zap, ArrowUpRight } from "lucide-react";
 import type { ApplicationReference, ToolCapability } from "../api";
 import { t, currentLanguage } from "../localization";
@@ -23,17 +23,33 @@ export function ToolCatalog({
   tenant,
   openAction,
   openReport,
+  initialQuery = "",
+  initialCapability = "",
 }: {
+  initialQuery?: string;
+  initialCapability?: string;
   reference: ApplicationReference;
   tenant: string;
   openAction: (form: DeliveryAction) => void;
   openReport: (report: Report) => void;
 }) {
   const context = useActionDiscovery();
-  const [query, setQuery] = useState("");
+  const [query, setQuery] = useState(initialQuery);
   const [topic, setTopic] = useState("");
   const [purpose, setPurpose] = useState("");
-  const [expanded, setExpanded] = useState<string | null>(null);
+  const [expanded, setExpanded] = useState<string | null>(initialCapability || null);
+  useEffect(() => {
+    setQuery(initialQuery);
+    setTopic("");
+    setPurpose("");
+    setExpanded(initialCapability || null);
+    if (initialCapability)
+      requestAnimationFrame(() => {
+        const target = document.getElementById(`capability-${initialCapability}`);
+        target?.scrollIntoView({ block: "nearest" });
+        target?.querySelector<HTMLButtonElement>("button")?.focus({ preventScroll: true });
+      });
+  }, [initialQuery, initialCapability]);
   const catalog = reference.tool_catalog;
   const language = currentLanguage();
   const reports = buildReports(reference);

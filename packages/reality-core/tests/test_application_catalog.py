@@ -631,7 +631,12 @@ def test_runtime_catalog_retries_failed_validation(monkeypatch):
     try:
         with pytest.raises(ValueError, match="Catalog drift"):
             catalogs.runtime_application_catalog()
-        assert catalogs.runtime_application_catalog() == {
+        result = catalogs.runtime_application_catalog()
+        vocabulary = result.pop("search_vocabulary")
+        assert vocabulary and all(
+            "key" in row and "labels" in row for row in vocabulary
+        )
+        assert result == {
             "version": 1,
             "tool_catalog": {"entries": []},
         }

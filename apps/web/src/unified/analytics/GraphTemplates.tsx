@@ -15,8 +15,10 @@ import { periodOf } from "./GraphSteps";
 export function GraphTemplates({
   tenant,
   onAdopted,
+  selectedKey,
 }: {
   tenant: string;
+  selectedKey?: string;
   onAdopted: (question: GraphQuestion) => void;
 }) {
   const [snapshots, setSnapshots] = useState<Record<string, string>>({});
@@ -33,41 +35,43 @@ export function GraphTemplates({
         </p>
       </div>
       <div className="divide-y divide-border-default">
-        {read.data.templates.map((template) => (
-          <article key={template.key} className="flex flex-wrap items-center gap-3 py-3 text-sm">
-            <div className="min-w-0 flex-1">
-              <h3 className="font-medium">{template.label}</h3>
-              <p className="mt-1 text-xs text-fg-muted">{template.about}</p>
-            </div>
-            {template.period && (
-              <p className="text-xs text-fg-muted">
-                {t("Comes with a period")}:{" "}
-                {t(WINDOWS[template.period.window] ?? template.period.window)}
-              </p>
-            )}
-            {template.snapshot && (
-              <label className="text-xs text-fg-muted">
-                {t("Snapshot date (UTC)")}
-                <input
-                  type="date"
-                  className="br-control ml-2"
-                  value={snapshots[template.key] ?? ""}
-                  max={new Date().toISOString().slice(0, 10)}
-                  onChange={(event) =>
-                    setSnapshots({ ...snapshots, [template.key]: event.target.value })
-                  }
-                />
-              </label>
-            )}
-            <button
-              className="br-btn"
-              disabled={Boolean(template.snapshot && !snapshots[template.key])}
-              onClick={() => onAdopted(dated(template, snapshots[template.key]))}
-            >
-              {t("Use template")}
-            </button>
-          </article>
-        ))}
+        {read.data.templates
+          .filter((template) => !selectedKey || template.key === selectedKey)
+          .map((template) => (
+            <article key={template.key} className="flex flex-wrap items-center gap-3 py-3 text-sm">
+              <div className="min-w-0 flex-1">
+                <h3 className="font-medium">{template.label}</h3>
+                <p className="mt-1 text-xs text-fg-muted">{template.about}</p>
+              </div>
+              {template.period && (
+                <p className="text-xs text-fg-muted">
+                  {t("Comes with a period")}:{" "}
+                  {t(WINDOWS[template.period.window] ?? template.period.window)}
+                </p>
+              )}
+              {template.snapshot && (
+                <label className="text-xs text-fg-muted">
+                  {t("Snapshot date (UTC)")}
+                  <input
+                    type="date"
+                    className="br-control ml-2"
+                    value={snapshots[template.key] ?? ""}
+                    max={new Date().toISOString().slice(0, 10)}
+                    onChange={(event) =>
+                      setSnapshots({ ...snapshots, [template.key]: event.target.value })
+                    }
+                  />
+                </label>
+              )}
+              <button
+                className="br-btn"
+                disabled={Boolean(template.snapshot && !snapshots[template.key])}
+                onClick={() => onAdopted(dated(template, snapshots[template.key]))}
+              >
+                {t("Use template")}
+              </button>
+            </article>
+          ))}
       </div>
     </section>
   );

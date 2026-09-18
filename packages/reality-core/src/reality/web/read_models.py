@@ -1047,6 +1047,7 @@ def projection_page(
     sort_direction: str = "asc",
     amount_fields: tuple[str, ...] = (),
     with_metadata: bool = False,
+    overdue: bool = False,
 ):
     """One SQL snapshot for completed rows, count, totals and freshness."""
     from reality.services.core import NotFound
@@ -1063,6 +1064,16 @@ def projection_page(
         ProjectionRow.tenant_id == tenant_id,
         ProjectionRow.projection_name == projection_name,
     ]
+    if overdue:
+        if projection_name != OPEN_FINANCIAL_ITEMS:
+            raise ValueError(
+                "Overdue filtering requires the financial open-item reader."
+            )
+        from reality.services.finance.worklists import overdue_document_ids
+
+        criteria.append(
+            ProjectionRow.record_key.in_(overdue_document_ids(session, tenant_id))
+        )
     value = lambda key: projection_payload_text(session, key)
     if query:
         pattern = f"%{query.strip().lower()}%"
