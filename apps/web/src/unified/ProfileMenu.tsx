@@ -76,8 +76,8 @@ export function ProfileMenu({
       <button
         ref={trigger}
         type="button"
-        aria-label={t("Profile")}
-        data-sidebar-tooltip={t("Profile")}
+        aria-label={t("My account")}
+        data-sidebar-tooltip={t("My account")}
         aria-haspopup="dialog"
         popoverTarget={id}
         className="flex w-full items-center gap-2 rounded-lg px-2 py-2 text-left hover:bg-surface-muted focus-visible:outline-accent"
@@ -93,10 +93,7 @@ export function ProfileMenu({
           <UserRound size={17} />
         </span>
         <span data-profile-label className="min-w-0 flex-1">
-          <span className="block truncate text-[13px] font-semibold" data-localization="original">
-            {user.display_name || user.email}
-          </span>
-          <span className="block text-xs text-fg-muted">{t("Profile")}</span>
+          <span className="block text-[13px] font-medium">{t("My account")}</span>
         </span>
         <ChevronUp data-profile-chevron size={15} className="shrink-0 text-fg-muted" />
       </button>
@@ -105,14 +102,11 @@ export function ProfileMenu({
         id={id}
         popover="auto"
         role="dialog"
-        aria-label={t("Profile")}
+        aria-label={t("My account")}
         className="fixed inset-auto m-0 w-[272px] max-w-[calc(100vw-16px)] max-h-[calc(100dvh-100px)] overflow-y-auto rounded-xl border border-border-default bg-surface p-1.5 text-fg-default shadow-xl backdrop:bg-transparent"
       >
         <div className="border-b border-border-default px-3 py-2.5">
-          <p className="break-words text-sm font-semibold" data-localization="original">
-            {user.display_name || t("Profile")}
-          </p>
-          <p className="break-all text-xs text-fg-muted" data-localization="original">
+          <p className="break-all text-sm text-fg-muted" data-localization="original">
             {user.email}
           </p>
         </div>
@@ -128,7 +122,7 @@ export function ProfileMenu({
           }}
         >
           <Settings size={17} />
-          {t("Profile & preferences")}
+          {t("Account settings")}
         </a>
         <button
           type="button"

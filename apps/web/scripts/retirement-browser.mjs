@@ -117,8 +117,8 @@ try {
   assert.equal(new URL(page.url()).searchParams.get("orders_view"), "deliveries");
   assert.equal(new URL(page.url()).searchParams.has("commitment"), false);
   await page.getByRole("link", { name: "Home", exact: true }).click();
-  await page.getByRole("button", { name: "Profile", exact: true }).click();
-  const profile = page.getByRole("dialog", { name: "Profile", exact: true });
+  await page.getByRole("button", { name: "My account", exact: true }).click();
+  const profile = page.getByRole("dialog", { name: "My account", exact: true });
   await profile.getByText(user.email, { exact: true }).waitFor();
   for (const name of ["Documentation", "Reality website"]) {
     const link = profile.getByRole("link", { name, exact: true });
@@ -128,8 +128,8 @@ try {
   await page.screenshot({ path: "/private/tmp/profile-menu-desktop.png" });
   await page.keyboard.press("Escape");
   await profile.waitFor({ state: "hidden" });
-  await page.getByRole("button", { name: "Profile", exact: true }).click();
-  await profile.getByRole("link", { name: "Profile & preferences", exact: true }).click();
+  await page.getByRole("button", { name: "My account", exact: true }).click();
+  await profile.getByRole("link", { name: "Account settings", exact: true }).click();
   await page.waitForURL("**/app/settings?**");
   assert.equal(new URL(page.url()).searchParams.get("settings_view"), "personal");
   assert.equal(await page.getByRole("link", { name: "Company access", exact: true }).count(), 0);
@@ -215,10 +215,10 @@ try {
   assert.equal(await newCompany.evaluate((el) => el === document.activeElement), true);
   await page.screenshot({ path: "/private/tmp/company-settings.png" });
   assert.equal(writes.length, 0);
-  await page.getByRole("button", { name: "Profile", exact: true }).click();
-  await profile.getByRole("link", { name: "Profile & preferences", exact: true }).click();
+  await page.getByRole("button", { name: "My account", exact: true }).click();
+  await profile.getByRole("link", { name: "Account settings", exact: true }).click();
 
-  await page.getByRole("button", { name: "Profile", exact: true }).click();
+  await page.getByRole("button", { name: "My account", exact: true }).click();
   await profile.getByRole("button", { name: "Sign out", exact: true }).click();
   await profile.getByRole("alert").waitFor();
   assert.equal(new URL(page.url()).pathname, "/app/settings");
@@ -231,7 +231,7 @@ try {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto(base + "/app");
   await page.getByRole("button", { name: "Navigation", exact: true }).click();
-  await page.getByRole("button", { name: "Profile", exact: true }).click();
+  await page.getByRole("button", { name: "My account", exact: true }).click();
   await profile.getByRole("button", { name: "Sign out", exact: true }).waitFor();
   const bounds = await profile.boundingBox();
   assert.ok(

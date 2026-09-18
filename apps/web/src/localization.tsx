@@ -13,6 +13,7 @@ type Preferences = { language: Language; locale: DisplayLocale; timezone: string
 
 const dictionaries: Record<Exclude<Language, "en">, Record<string, string>> = {
   de: {
+    "My account": "Mein Konto",
     "Discover the business graph": "Geschäftsgraph entdecken",
     "Ask the business graph": "Geschäftsgraph befragen",
     "List my graph reports": "Meine Graph-Berichte auflisten",
@@ -1881,6 +1882,7 @@ const dictionaries: Record<Exclude<Language, "en">, Record<string, string>> = {
     "Fully Reserved": "Vollständig reserviert",
   },
   nl: {
+    "My account": "Mijn account",
     "Discover the business graph": "Bedrijfsgraaf ontdekken",
     "Ask the business graph": "Bedrijfsgraaf bevragen",
     "List my graph reports": "Mijn graafrapporten weergeven",
@@ -3446,6 +3448,7 @@ const dictionaries: Record<Exclude<Language, "en">, Record<string, string>> = {
     Customer: "Klant",
   },
   es: {
+    "My account": "Mi cuenta",
     "Discover the business graph": "Explorar el grafo empresarial",
     "Ask the business graph": "Consultar el grafo empresarial",
     "List my graph reports": "Listar mis informes de grafo",
