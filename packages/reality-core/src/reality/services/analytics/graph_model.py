@@ -170,6 +170,62 @@ def _check_measures(graph: ReportingGraph, schema: dict[str, set[str]]) -> None:
                 )
 
 
+def _check_deductions(graph: ReportingGraph) -> None:
+    """A deduction has to be walkable, countable and in the same unit.
+
+    Everything checked here is a way the subtraction would be silently wrong
+    rather than loudly broken: a path that does not reach the far measure, a
+    hop that is not really one-to-many, or money taken off a quantity.
+    """
+    for name, measure in graph.measures.items():
+        less = measure.less
+        if less is None:
+            continue
+        if less.measure not in graph.measures:
+            raise ReportingGraphError(
+                f"measure {name}: subtracts {less.measure!r}, which is not declared"
+            )
+        far = graph.measures[less.measure]
+        if far.less is not None:
+            raise ReportingGraphError(
+                f"measure {name}: subtracts {less.measure!r}, which is itself a "
+                "difference; declare the intermediate number instead of nesting"
+            )
+        if far.unit.kind != measure.unit.kind:
+            raise ReportingGraphError(
+                f"measure {name}: takes {far.unit.kind} off {measure.unit.kind}; "
+                "a difference is only a number when both sides are the same kind"
+            )
+        at = measure.node
+        for step in less.over:
+            edge = graph.edges.get(step.edge)
+            if edge is None:
+                raise ReportingGraphError(
+                    f"measure {name}: no edge called {step.edge!r}"
+                )
+            start, end = (
+                (edge.from_, edge.to)
+                if step.direction == "out"
+                else (edge.to, edge.from_)
+            )
+            if start != at:
+                raise ReportingGraphError(
+                    f"measure {name}: {step.edge!r} starts at {start!r}, but the "
+                    f"deduction has reached {at!r}"
+                )
+            if edge.fact is not None:
+                raise ReportingGraphError(
+                    f"measure {name}: {step.edge!r} is stored as Facts, which a "
+                    "deduction cannot count yet"
+                )
+            at = end
+        if at != far.node:
+            raise ReportingGraphError(
+                f"measure {name}: the path ends at {at!r}, but {less.measure!r} is "
+                f"counted on {far.node!r}"
+            )
+
+
 def validate_against_schema(graph: ReportingGraph) -> ReportingGraph:
     """Hold every declared name against the live schema.
 
@@ -183,6 +239,7 @@ def validate_against_schema(graph: ReportingGraph) -> ReportingGraph:
     for name, edge in graph.edges.items():
         _check_edge(name, edge, graph, schema, fks)
     _check_measures(graph, schema)
+    _check_deductions(graph)
     return graph
 
 
@@ -299,6 +356,19 @@ def reporting_catalog(node: str | None = None, language: str = "en") -> dict[str
                         "unit": measure.unit.kind,
                         "additive_over": list(measure.additive_over),
                         "never_across": list(measure.never_across),
+                        # What a difference is made of, so a reader can see that
+                        # the number is derived and from what.
+                        "less": (
+                            {
+                                "measure": measure.less.measure,
+                                "over": [
+                                    {"edge": step.edge, "direction": step.direction}
+                                    for step in measure.less.over
+                                ],
+                            }
+                            if measure.less
+                            else None
+                        ),
                         "note": measure.note,
                     }
                     for key, measure in graph.measures_of(name).items()

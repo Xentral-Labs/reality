@@ -28,6 +28,7 @@ from typing import Any, Literal
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 Multiplicity = Literal["n:1", "1:n"]
+Direction = Literal["out", "in"]
 Corrections = Literal["replace", "revise", "compensate"]
 UnitKind = Literal["currency", "measure", "count"]
 CyclePolicy = Literal["stop"]
@@ -171,6 +172,33 @@ class MeasureSource(GraphModel):
         return self
 
 
+class Step(GraphModel):
+    """One edge of a path, named the way a question names it."""
+
+    edge: str
+    direction: Direction = "out"
+
+
+class Deduction(GraphModel):
+    """What to take off the base number, and along which path it is counted.
+
+    "How much is still open" is the question every operational report is really
+    asking, and it is never one column: a promise is open by what has not moved
+    against it, an invoice by what has not been settled. The far side names a
+    declared measure rather than a raw column, so its unit and its additivity
+    are declared once and not re-derived here.
+    """
+
+    measure: str
+    over: tuple[Step, ...]
+
+    @model_validator(mode="after")
+    def check(self) -> Deduction:
+        if not self.over:
+            raise ValueError("a deduction is counted along at least one edge")
+        return self
+
+
 class Node(GraphModel):
     """One business concept, and the rows that are instances of it."""
 
@@ -276,11 +304,17 @@ class Measure(GraphModel):
     never_across: tuple[str, ...] = ()
     unknown: UnknownPolicy = "keep"
     sign_from: str | None = None
+    less: Deduction | None = None
     note: str | None = None
     label: Label | None = None
 
     @model_validator(mode="after")
     def check(self) -> Measure:
+        if self.less and not isinstance(self.source, str):
+            raise ValueError(
+                "a deduction is taken off a column; a distinct count or a service "
+                "value has no row to take it off"
+            )
         both = set(self.additive_over) & set(self.never_across)
         if both:
             raise ValueError(

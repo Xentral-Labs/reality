@@ -563,6 +563,19 @@ measures:
     additive_over: [time, party]
     never_across: [item, unit]  # pieces and kilograms do not add up
 
+  unbilled_order_quantity:
+    label: { en: "Unbilled quantity", de: "Unberechnete Menge" }
+    node: order_line
+    source: quantity
+    less:
+      measure: invoiced_quantity
+      over: [{ edge: bills, direction: in }]
+    unit: { column: unit, kind: measure }
+    additive_over: [time, party]
+    never_across: [item, unit]
+    note: ordered less what invoice lines bill against this line; it says nothing
+          about what was shipped, which is a movement question
+
   invoiced_amount:
     label: { en: "Invoiced amount", de: "Rechnungsbetrag" }
     node: invoice
@@ -608,6 +621,27 @@ measures:
     never_across: [item, unit]
     note: resolved to the latest revision before aggregation
 
+  # --- what is still open -------------------------------------------------
+  #
+  # A deduction takes a declared measure off a declared column along a declared
+  # path. It compiles to a correlated subquery rather than a join, because a
+  # join to the far side would repeat the row once per movement and multiply
+  # the promise it is supposed to be reducing.
+
+  open_commitment_quantity:
+    label: { en: "Open quantity", de: "Offene Menge" }
+    node: commitment
+    source: quantity
+    less:
+      measure: moved_quantity
+      over: [{ edge: fulfilled_by }]
+    unit: { from_node: item, column: unit, kind: measure }
+    additive_over: [time, party]
+    never_across: [item, unit]
+    note: promised less everything moved against it; negative means more moved
+          than was promised, which is an over-delivery and is not clamped away.
+          A cancelled promise is excluded by filtering status, not by this number
+
   returned_quantity:
     label: { en: "Returned quantity", de: "Retournierte Menge" }
     node: return_announcement
@@ -623,6 +657,13 @@ measures:
     unit: { column: unit, kind: measure }
     additive_over: [time, party]
     never_across: [item, unit]
+
+  # A receivable is NOT declared as a deduction. `invoiced_amount` less
+  # `allocated_amount` looks like the outstanding balance and is not: the
+  # canonical derivation covers opening items, several document types and
+  # reversal groups. Binding to it is the point of the measure below; deriving a
+  # second, simpler answer beside it would be the more dangerous kind of wrong,
+  # because it would agree most of the time.
 
   open_balance:
     label: { en: "Open balance", de: "Offener Saldo" }
