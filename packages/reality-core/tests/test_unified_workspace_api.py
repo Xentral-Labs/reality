@@ -19,8 +19,10 @@ def test_workspace_http_scopes_reads_and_requires_exact_confirmation(session, bu
         with TestClient(app) as client:
             base = f"/api/tenants/{business.tenant.id}"
             assert client.get(f"{base}/analytics?days=7").status_code == 404
-            # Composable contributors live at /analytics/query/contributors.
+            # Both of these belonged to the configured generation and are gone;
+            # the graph is served under /analytics/graph.
             assert client.get(f"{base}/analytics/contributors").status_code == 404
+            assert client.get(f"{base}/analytics/catalog").status_code == 404
             assert (
                 client.get(f"{base}/master-data?family=item&size=101").status_code
                 == 422

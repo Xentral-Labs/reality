@@ -16,8 +16,7 @@ from uuid import UUID
 
 from pydantic import Field, model_validator
 
-from reality.domain.analytics import StrictModel
-from reality.domain.traversal import Traversal
+from reality.domain.traversal import StrictModel, Traversal
 
 
 class GraphReportChange(StrictModel):
