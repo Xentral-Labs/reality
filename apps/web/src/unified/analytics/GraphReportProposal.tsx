@@ -26,6 +26,19 @@ export function GraphReportProposal({
   const catalog = useRead(() => graphApi.catalog(tenant, language), [tenant, language]);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
+  const act = async (decide: () => Promise<unknown>) => {
+    setBusy(true);
+    setError("");
+    try {
+      await decide();
+      read.refresh();
+      refresh();
+    } catch (failure) {
+      setError(analyticsError(failure));
+    } finally {
+      setBusy(false);
+    }
+  };
   if (!read.data)
     return <ReadState loading={read.loading} error={read.error} retry={read.refresh} />;
   const proposal = read.data;
@@ -66,25 +79,26 @@ export function GraphReportProposal({
         </p>
       )}
       {proposal.status === "proposed" && (
-        <button
-          className="br-btn br-btn-primary"
-          disabled={busy}
-          onClick={async () => {
-            setBusy(true);
-            setError("");
-            try {
-              await api.approveProposal(tenant, id, null);
-              read.refresh();
-              refresh();
-            } catch (failure) {
-              setError(analyticsError(failure));
-            } finally {
-              setBusy(false);
-            }
-          }}
-        >
-          {t("Confirm")}
-        </button>
+        <div className="flex flex-wrap gap-2">
+          <button
+            className="br-btn br-btn-primary"
+            disabled={busy}
+            onClick={() => act(() => api.approveProposal(tenant, id, null))}
+          >
+            {t("Confirm")}
+          </button>
+          {/* A proposal that can never succeed — a reused retry key, a revision
+              that moved on — has to be dismissible, or it sits in every chat
+              the reader opens with no way out. Every other proposal card in the
+              application already had this button; this one did not. */}
+          <button
+            className="br-btn"
+            disabled={busy}
+            onClick={() => act(() => api.rejectProposal(tenant, id, null))}
+          >
+            {t("Reject")}
+          </button>
+        </div>
       )}
     </section>
   );
