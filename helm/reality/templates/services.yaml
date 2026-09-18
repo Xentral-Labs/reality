@@ -1,4 +1,10 @@
-{{- range $name := list "api" "mcp" "web" "docs" }}
+{{/*
+  scheduler and worker take no inbound traffic. They get a Service purely so the
+  api can reach their /healthz: services/system_readiness.py probes them over
+  HTTP and reports "unknown" -- rendered in the UI as "Not yet verified" -- when
+  it has no URL to call.
+*/}}
+{{- range $name := list "api" "mcp" "web" "docs" "scheduler" "worker" }}
 {{- $component := index $.Values $name }}
 {{- if $component.enabled }}
 ---

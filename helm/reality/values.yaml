@@ -367,7 +367,9 @@ docs:
 # Background job runners
 # ---------------------------------------------------------------------------
 # `port` is the health port only (REALITY_BACKGROUND_HEALTH_PORT). Neither
-# runner takes inbound traffic, so neither gets a Service or an Ingress rule.
+# runner takes inbound traffic and neither gets an Ingress rule. They DO each
+# get a ClusterIP Service, so the api can probe /healthz for the readiness
+# banner (services/system_readiness.py); it is not a traffic path.
 #
 # terminationGracePeriodSeconds mirrors compose's stop_grace_period: 35s, so a
 # sweep in flight finishes instead of being SIGKILLed mid-transaction.

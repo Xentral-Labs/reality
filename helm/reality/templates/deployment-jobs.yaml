@@ -21,7 +21,8 @@
 {{/*
   The runner only starts its health server when REALITY_BACKGROUND_HEALTH_PORT
   is set (jobs/runtime.py), and it serves exactly /healthz. Liveness only: these
-  take no inbound traffic and have no Service, so readiness would gate nothing.
+  take no inbound traffic, so a readiness probe would gate nothing. Their
+  Service exists solely for the api's readiness probe, not for routing.
 */}}
 {{- $_ := set $c "probes" (dict
       "startupProbe" (dict "httpGet" (dict "path" "/healthz" "port" "http") "initialDelaySeconds" 5 "periodSeconds" 5 "timeoutSeconds" 5 "failureThreshold" 30)
