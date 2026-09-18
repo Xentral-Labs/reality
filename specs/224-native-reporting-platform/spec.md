@@ -278,6 +278,17 @@ late corrections and reversals; unsupported temporal coverage.
   things are asked in words, what to count and what to split it by, and a measure that
   may not be summed across an axis arrives with that axis already in place rather than
   being offered and then refused.
+- **FR-018**: Declare a number that is a difference. A measure may take a declared
+  measure off its own column along a declared path of edges — promised less moved,
+  ordered less billed — because "what is still open" is what an operational report is
+  actually asking and it is never one column. The compiler emits a correlated subquery,
+  never a join, so the far side cannot repeat the row it is reducing; the subquery
+  carries the tenant predicate like every other node. Both sides must be the same kind
+  of unit, the path must reach the node the far measure is counted on, and a difference
+  of differences is refused. Where a canonical service already derives the number — a
+  receivable balance — the measure binds to that service instead: a second, simpler
+  derivation beside it would be the more dangerous kind of wrong, because it would
+  agree most of the time.
 - **FR-016**: Retire the configured generation in the same change that makes the graph the
   only analytics surface. A report saved under the retired generation carries no kind and
   no model version: it is neither read nor written by any surface, and no translation is
@@ -376,6 +387,7 @@ owners.
 | FR-015 | US1.1–2, US2.1 | T009 step stack: valid-only steps, fan-out marking, period and pruning contracts |
 | FR-016 | US3.1–3, US5 | T014 cutover: retired rows unread and unwritten, refusals returned to the model |
 | FR-017 | US1.1, US2.2 | T009 result-first surface: list on open, filter from a value, sort from a header, unit axis carried with its measure |
+| FR-018 | US2.1, US5.1 | T004/T005 deductions: reconciled against hand-written SQL, no join, tenant inside the subquery, declaration guards |
 | DR-001 | US4.3 | T005/T012 canonical evidence |
 | DR-002 | US1.3, US2.2 | T003/T005 amount and grain correctness |
 | DR-003 | US5, non-goals | T002/T014/T016 architecture review |

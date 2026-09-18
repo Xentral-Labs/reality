@@ -7,18 +7,21 @@ without that is indistinguishable from bureaucracy.
 from __future__ import annotations
 
 import copy
+import json
 
 import pytest
 import yaml
 
 from reality.config import config_text
 from reality.db.core import Base
+from reality.domain.reporting_graph import ReportingGraph
 from reality.services.analytics.graph_model import (
     REPORTING_GRAPH_FILE,
     ReportingGraphError,
     parse_reporting_graph,
     reporting_catalog,
     reporting_graph,
+    validate_against_schema,
 )
 
 
@@ -379,3 +382,51 @@ def test_the_identity_is_offered_for_grouping():
         for prop in reporting_catalog("party", "de")["nodes"][0]["properties"]
     }
     assert german["id"] == "Kennung"
+
+
+def test_a_deduction_must_be_walkable_countable_and_in_the_same_unit():
+    """Each of these is a way the subtraction would be quietly wrong.
+
+    A path that does not reach the far measure, a hop that starts somewhere
+    else, or money taken off a quantity: all of them produce a number rather
+    than an error, which is why they are refused when the model is loaded and
+    not when somebody asks a question.
+    """
+    graph = reporting_graph()
+    base = graph.model_dump(by_alias=True)
+
+    def refused(change: dict) -> str:
+        payload = json.loads(json.dumps(base))
+        payload["measures"]["open_commitment_quantity"]["less"] = change
+        with pytest.raises(ReportingGraphError) as error:
+            validate_against_schema(ReportingGraph.model_validate(payload))
+        return str(error.value)
+
+    assert "not declared" in refused(
+        {"measure": "no_such_measure", "over": [{"edge": "fulfilled_by"}]}
+    )
+    assert "no edge called" in refused(
+        {"measure": "moved_quantity", "over": [{"edge": "no_such_edge"}]}
+    )
+    assert "starts at" in refused(
+        {"measure": "moved_quantity", "over": [{"edge": "contains"}]}
+    )
+    assert "ends at" in refused(
+        {"measure": "moved_quantity", "over": [{"edge": "commitment_of_item"}]}
+    )
+    assert "same kind" in refused(
+        {"measure": "invoiced_amount", "over": [{"edge": "fulfilled_by"}]}
+    )
+
+
+def test_a_difference_of_differences_is_refused():
+    """Nesting hides which number is actually being reported."""
+    graph = reporting_graph()
+    payload = json.loads(json.dumps(graph.model_dump(by_alias=True)))
+    payload["measures"]["unbilled_order_quantity"]["less"] = {
+        "measure": "open_commitment_quantity",
+        "over": [{"edge": "promises"}],
+    }
+    with pytest.raises(ReportingGraphError) as error:
+        validate_against_schema(ReportingGraph.model_validate(payload))
+    assert "itself a difference" in str(error.value)

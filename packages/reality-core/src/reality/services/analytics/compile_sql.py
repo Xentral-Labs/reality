@@ -243,12 +243,68 @@ def _compare(expression, op: str, value: Any) -> ColumnElement[bool]:
     }[op]
 
 
-def _measure_expression(path: ResolvedPath, frame: Frame, name: str):
+def _deducted(path: ResolvedPath, name: str, row, tenant_id: str):
+    """What is still open on this row: the base value, less what was counted
+    against it along a declared path.
+
+    It is a correlated subquery and not a join, and that is the whole point. A
+    join to the far side would repeat this row once per movement and multiply
+    the promise it is supposed to be reducing — the exact mistake the graph
+    exists to prevent, arriving through the back door of a difference.
+
+    The subquery carries the tenant predicate on every table it touches, for
+    the same reason the outer statement does.
+    """
+    measure = path.measures[name]
+    less = measure.less
+    assert less is not None  # only called for a measure that declares one
+    far = path.graph.measures[less.measure]
+
+    at = path.graph.nodes[measure.node]
+    carried = row
+    conditions: list[ColumnElement[bool]] = []
+    tables: list[Any] = []
+    for depth, step in enumerate(less.over):
+        edge = path.graph.edges[step.edge]
+        target_name = edge.to if step.direction == "out" else edge.from_
+        target = path.graph.nodes[target_name]
+        table = _table(target.table or "").alias(f"__less{depth}__{name}")
+        tables.append(table)
+        via_table, column = (edge.via or "").split(".", 1)
+        # The link column sits on one of the two tables; which one is what the
+        # declared multiplicity and direction already settled.
+        if at.table == via_table:
+            conditions.append(carried.c[column] == table.c[target.key])
+        else:
+            conditions.append(table.c[column] == carried.c[at.key])
+        if edge.target_where:
+            for selector_name, selector in edge.target_where.items():
+                values = selector if isinstance(selector, list) else [selector]
+                conditions.append(table.c[selector_name].in_(values))
+        conditions += _scope(target, table, tenant_id)
+        at, carried = target, table
+
+    counted = (
+        func.count(distinct(carried.c[far.source.distinct]))
+        if not isinstance(far.source, str)
+        else func.sum(carried.c[far.source])
+    )
+    statement = select(counted).where(and_(*conditions))
+    for table in tables[:-1]:
+        statement = statement.select_from(table)
+    # A promise nothing has moved against is open in full, not unknown.
+    return func.coalesce(statement.scalar_subquery(), 0)
+
+
+def _measure_expression(path: ResolvedPath, frame: Frame, name: str, tenant_id: str):
     measure = path.measures[name]
     alias = path.measure_alias[name]
     source = measure.source
     if isinstance(source, str):
-        return func.sum(frame.tables[alias].c[source])
+        row = frame.tables[alias]
+        if measure.less is not None:
+            return func.sum(row.c[source] - _deducted(path, name, row, tenant_id))
+        return func.sum(row.c[source])
     if source.distinct:
         return func.count(distinct(frame.tables[alias].c[source.distinct]))
     raise TraversalRefused(
@@ -368,14 +424,16 @@ def build(path: ResolvedPath, tenant_id: str) -> Select:
         group_keys.append(expression)
 
     for name in query.measures:
-        labels.append(_measure_expression(path, frame, name).label(name))
+        labels.append(_measure_expression(path, frame, name, tenant_id).label(name))
 
     statement = statement.with_only_columns(*labels).where(and_(*frame.conditions))
     if group_keys:
         statement = statement.group_by(*group_keys)
     for condition in query.having:
         measured = next(
-            label for label in labels if getattr(label, "name", None) == condition.measure
+            label
+            for label in labels
+            if getattr(label, "name", None) == condition.measure
         )
         statement = statement.having(_compare(measured, condition.op, condition.value))
     for ordering in query.order_by:

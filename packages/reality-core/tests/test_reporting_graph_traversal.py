@@ -124,6 +124,11 @@ def total(result, key="stated_order_amount") -> Decimal:
     return sum((Decimal(row[key]) for row in result.rows), Decimal(0))
 
 
+def plan_sql(session, tenant_id, **query) -> str:
+    """The statement itself, for the properties that are about its shape."""
+    return run_traversal(session, tenant_id, Traversal.model_validate(query)).sql
+
+
 # --- the number the whole design exists for -----------------------------------
 
 
@@ -636,3 +641,156 @@ def test_an_existence_test_on_an_undeclared_edge_is_refused(session, business, s
                 "exists": [{"follow": [{"edge": "invented", "as": "x"}]}],
             },
         )
+
+
+# --- what is still open ------------------------------------------------------------
+
+
+@pytest.fixture
+def promised(session, business):
+    """One promise of 10, part-delivered twice, beside one nothing moved against.
+
+    Two part deliveries is the whole point: a join to the movements would repeat
+    the promise once per movement and report 20 promised and 6 open, which is
+    the multiplication the graph exists to prevent — arriving through the back
+    door of a difference.
+    """
+    from datetime import UTC, datetime
+
+    from reality.services.core import create_commitment, record_movement
+
+    due = datetime(2026, 3, 20, 10, tzinfo=UTC)
+    record_movement(
+        session,
+        business.tenant.id,
+        "opening_stock",
+        business.item.id,
+        500,
+        to_location_id=business.location.id,
+    )
+    part = create_commitment(
+        session,
+        business.tenant.id,
+        "customer_delivery",
+        business.company.id,
+        business.customer.id,
+        business.item.id,
+        business.location.id,
+        10,
+        due,
+    )
+    untouched = create_commitment(
+        session,
+        business.tenant.id,
+        "customer_delivery",
+        business.company.id,
+        business.customer.id,
+        business.item.id,
+        business.location.id,
+        4,
+        due,
+    )
+    for quantity in (3, 4):
+        record_movement(
+            session,
+            business.tenant.id,
+            "shipment",
+            business.item.id,
+            quantity,
+            from_location_id=business.location.id,
+            commitment_id=part.id,
+        )
+    return {"part": part, "untouched": untouched}
+
+
+def test_open_quantity_subtracts_what_moved_without_multiplying_the_promise(
+    session, business, promised
+):
+    result = ask(
+        session,
+        business.tenant.id,
+        **{
+            "from": "commitment",
+            "follow": [{"edge": "commitment_of_item", "as": "i"}],
+            "filter": [
+                {"field": "root.type", "op": "eq", "value": "customer_delivery"}
+            ],
+            "measures": ["committed_quantity", "open_commitment_quantity"],
+            "group_by": [{"field": "root.id"}, {"field": "i.unit"}],
+        },
+    )
+    rows = {row["root.id"]: row for row in result.rows}
+    part = rows[promised["part"].id]
+    assert Decimal(part["committed_quantity"]) == Decimal(10), (
+        "two part deliveries must not repeat the promise"
+    )
+    assert Decimal(part["open_commitment_quantity"]) == Decimal(3), "10 less 3 and 4"
+    untouched = rows[promised["untouched"].id]
+    assert Decimal(untouched["open_commitment_quantity"]) == Decimal(4), (
+        "a promise nothing moved against is open in full, not unknown"
+    )
+
+
+def test_open_quantity_sums_across_promises(session, business, promised):
+    """The whole point of a measure: the same number, added up."""
+    result = ask(
+        session,
+        business.tenant.id,
+        **{
+            "from": "commitment",
+            "follow": [{"edge": "commitment_of_item", "as": "i"}],
+            "filter": [
+                {"field": "root.type", "op": "eq", "value": "customer_delivery"}
+            ],
+            "measures": ["open_commitment_quantity"],
+            "group_by": [{"field": "i.unit"}],
+        },
+    )
+    assert total(result, "open_commitment_quantity") == Decimal(7), "3 open plus 4 open"
+
+
+def test_a_deduction_is_counted_inside_the_asking_company_only(
+    session, business, promised
+):
+    """The subquery carries the tenant predicate, like every other node."""
+    statement = plan_sql(
+        session,
+        business.tenant.id,
+        **{
+            "from": "commitment",
+            "follow": [{"edge": "commitment_of_item", "as": "i"}],
+            "measures": ["open_commitment_quantity"],
+            "group_by": [{"field": "root.id"}, {"field": "i.unit"}],
+        },
+    )
+    inner = statement[statement.index("SELECT sum") :]
+    assert "tenant_id" in inner, "a deduction that leaks is a deduction that lies"
+    assert " JOIN movement" not in statement, "a join here would multiply the promise"
+
+
+def test_unbilled_quantity_counts_the_reverse_direction_of_an_edge(
+    session, business, sales
+):
+    """`bills` points from the invoice line back at the order line.
+
+    A deduction walks it backwards, which is the ordinary case: the column that
+    carries a link sits on the many side, so the one side always reads it in
+    reverse.
+    """
+    result = ask(
+        session,
+        business.tenant.id,
+        **{
+            "from": "order",
+            "follow": [{"edge": "contains", "as": "l"}],
+            "filter": [{"field": "root.number", "op": "eq", "value": "AN-001"}],
+            "measures": ["ordered_quantity", "unbilled_order_quantity"],
+            "group_by": [{"field": "l.unit"}],
+        },
+    )
+    assert len(result.rows) == 1
+    row = result.rows[0]
+    assert Decimal(row["ordered_quantity"]) == Decimal(4), "four lines of one each"
+    assert Decimal(row["unbilled_order_quantity"]) == Decimal(4), (
+        "nothing bills against these lines, so all of it is unbilled"
+    )
