@@ -20,6 +20,15 @@ from reality.services.tenant_policy import (
 logger = logging.getLogger(__name__)
 
 
+# How many times the model may look something up before it has to answer.
+# Six was set when a tool call was a lookup. A refusal is now handed back for the
+# model to correct, and correcting costs a round, so a question that needs
+# discovery, an attempt, a correction and a second attempt exhausted the budget
+# before it could answer. Found by an acceptance run: four of five ERP questions
+# ended in the step limit rather than in an answer or an honest refusal.
+ROUNDS = 12
+
+
 def _call_tool(session, tenant_id, name, arguments, access) -> tuple[Any, bool]:
     """Run one tool call, and hand a refusal back to the model rather than up.
 
@@ -30,7 +39,9 @@ def _call_tool(session, tenant_id, name, arguments, access) -> tuple[Any, bool]:
     the request — a database that is gone — still travels up.
     """
     try:
-        return dispatch_tool(session, tenant_id, name, arguments, allowed_access=access), False
+        return dispatch_tool(
+            session, tenant_id, name, arguments, allowed_access=access
+        ), False
     except ValidationError as error:
         return {"error": error.errors(include_url=False, include_context=False)}, True
     except (InvalidOperation, NotFound) as error:
@@ -38,6 +49,24 @@ def _call_tool(session, tenant_id, name, arguments, access) -> tuple[Any, bool]:
             "error": str(error),
             **({"code": error.code} if getattr(error, "code", None) else {}),
         }, True
+
+
+def _exhausted(attempted: list[str]) -> str:
+    """Say what was tried, not that a counter ran out.
+
+    "The model exceeded the maximum number of tool steps" tells the reader
+    nothing they can act on. What they need to know is that the question was
+    looked at repeatedly and still has no answer — which usually means it cannot
+    be expressed, not that waiting would help.
+    """
+    tried = ", ".join(dict.fromkeys(attempted)) or "no tools"
+    return (
+        "I could not answer this within the steps available. I tried "
+        f"{tried} and did not reach a result, which usually means part of the "
+        "question cannot be expressed against the current model rather than "
+        "that it needs another attempt. Ask for a smaller part of it, or ask "
+        "which parts are supported."
+    )
 
 
 def _compact(value: Any) -> str:
@@ -169,8 +198,9 @@ async def reply_via_tools(
         *_conversation_history(history),
         {"role": "user", "content": message},
     ]
+    attempted: list[str] = []
     async with httpx.AsyncClient(timeout=45) as client:
-        for round_index in range(6):
+        for round_index in range(ROUNDS):
             if on_event:
                 on_event({"type": "reset"})
             started = perf_counter()
@@ -206,6 +236,7 @@ async def reply_via_tools(
             for call in calls:
                 arguments = json.loads(call["function"].get("arguments") or "{}")
                 tool_started = perf_counter()
+                attempted.append(call["function"]["name"])
                 result, refused = _call_tool(
                     session, tenant_id, call["function"]["name"], arguments, access
                 )
@@ -219,7 +250,7 @@ async def reply_via_tools(
                         "content": _compact(result),
                     }
                 )
-    return "The model exceeded the maximum number of tool steps."
+    return _exhausted(attempted)
 
 
 def _anthropic_tool_schemas(access=("read", "propose")) -> list[dict[str, Any]]:
@@ -258,8 +289,9 @@ async def reply_via_anthropic_tools(
     if tools:
         tools[-1]["cache_control"] = {"type": "ephemeral"}
     system = [{"type": "text", "text": prompt, "cache_control": {"type": "ephemeral"}}]
+    attempted: list[str] = []
     async with httpx.AsyncClient(timeout=45) as client:
-        for round_index in range(6):
+        for round_index in range(ROUNDS):
             if on_event:
                 on_event({"type": "reset"})
             started = perf_counter()
@@ -307,6 +339,7 @@ async def reply_via_anthropic_tools(
             results = []
             for call in calls:
                 tool_started = perf_counter()
+                attempted.append(call["name"])
                 result, refused = _call_tool(
                     session, tenant_id, call["name"], call.get("input") or {}, access
                 )
@@ -320,4 +353,4 @@ async def reply_via_anthropic_tools(
                     }
                 )
             messages.append({"role": "user", "content": results})
-    return "The model exceeded the maximum number of tool steps."
+    return _exhausted(attempted)

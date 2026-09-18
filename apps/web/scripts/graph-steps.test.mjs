@@ -31,7 +31,8 @@ vm.runInNewContext(
     },
   },
 );
-const { question, pruned, periodFilter, columnOf, nextOrder, planOf } = exports;
+const { question, pruned, periodFilter, columnOf, nextOrder, planOf, withMeasure, withoutMeasure } =
+  exports;
 
 /** The module runs in its own context, so its objects carry another realm's
  *  prototype. Comparing the values rather than the identities keeps the test
@@ -231,4 +232,53 @@ test("a question naming a record this model does not have reopens as nothing", (
     null,
     "rather than a stack with a step that cannot be taken",
   );
+});
+
+/** Found by an ERP acceptance run: every report was a one-number report. */
+const CATALOGUE = [
+  { key: "stated_order_amount", never_across: ["currency"] },
+  { key: "order_count", never_across: [] },
+];
+const FIELDS = [
+  { field: "o.currency", label: "Währung", kind: "text" },
+  { field: "o.number", label: "Nummer", kind: "text" },
+];
+
+test("a second number stands beside the first, not in place of it", () => {
+  const listing = {
+    blocks: [{ alias: "o", node: "order", filters: [] }],
+    measures: [],
+    groups: [{ field: "o.number", label: "Nummer" }],
+    limit: 50,
+  };
+  const one = plain(withMeasure(listing, "stated_order_amount", CATALOGUE, FIELDS));
+  assert.deepEqual(one.measures, ["stated_order_amount"]);
+  assert.deepEqual(
+    one.groups.map((group) => group.field),
+    ["o.currency"],
+    "the first number replaces the list columns with the axis it needs",
+  );
+  const two = plain(withMeasure(one, "order_count", CATALOGUE, FIELDS));
+  assert.deepEqual(two.measures, ["stated_order_amount", "order_count"]);
+  assert.deepEqual(
+    two.groups.map((group) => group.field),
+    ["o.currency"],
+    "and a second number keeps the axes the first one established",
+  );
+});
+
+test("taking the last number away puts the records back", () => {
+  const summary = {
+    blocks: [{ alias: "o", node: "order", filters: [] }],
+    measures: ["stated_order_amount", "order_count"],
+    groups: [{ field: "o.currency", label: "Währung" }],
+    order: { by: "stated_order_amount", descending: true },
+    limit: 50,
+  };
+  const one = plain(withoutMeasure(summary, "stated_order_amount", NODES));
+  assert.deepEqual(one.measures, ["order_count"]);
+  assert.equal(one.order, undefined, "a sort on the removed number goes with it");
+  const none = plain(withoutMeasure(one, "order_count", NODES));
+  assert.deepEqual(none.measures, []);
+  assert.ok(none.groups.length > 0, "an empty table is not an answer; the records are");
 });

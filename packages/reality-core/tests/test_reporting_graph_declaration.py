@@ -360,3 +360,22 @@ def test_the_catalog_speaks_the_language_it_is_asked_for():
 def test_an_unknown_language_falls_back_rather_than_failing():
     """A missing translation shows the English word, which is never a lie."""
     assert reporting_catalog("order", "fr")["nodes"][0]["label"] == "Sales order"
+
+
+def test_the_identity_is_offered_for_grouping():
+    """Two customers with the same name are two customers.
+
+    The executor has always accepted the key; the catalog did not publish it, so
+    neither surface offered it and every grouped report silently merged them.
+    Found by an acceptance run: a saved customer report grouped by name.
+    """
+    party = reporting_catalog("party")["nodes"][0]
+    identity = [prop for prop in party["properties"] if prop.get("identity")]
+    assert [prop["key"] for prop in identity] == ["id"]
+    assert identity[0]["label"] == "Identity"
+    assert reporting_catalog("party", "de")["nodes"][0]["properties"]
+    german = {
+        prop["key"]: prop["label"]
+        for prop in reporting_catalog("party", "de")["nodes"][0]["properties"]
+    }
+    assert german["id"] == "Kennung"

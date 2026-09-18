@@ -17227,3 +17227,7 @@ Object.assign(dictionaries.es, {
   "nothing — list the records": "nada — listar los registros",
   "Turn this filter around": "Invertir este filtro",
 });
+
+Object.assign(dictionaries.de, { "Remove this number": "Diese Kennzahl entfernen" });
+Object.assign(dictionaries.nl, { "Remove this number": "Dit kengetal verwijderen" });
+Object.assign(dictionaries.es, { "Remove this number": "Quitar este indicador" });

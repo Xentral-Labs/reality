@@ -582,50 +582,36 @@ function Toolbar({
 
       <div className="flex flex-wrap items-center gap-2 text-sm">
         <span className="text-fg-muted">{t("Summarise")}</span>
+        {plan.measures.map((key) => (
+          <button
+            key={key}
+            className={chip(true)}
+            title={t("Remove this number")}
+            onClick={() => change(withoutMeasure(plan, key, nodes))}
+          >
+            {measures.find((measure) => measure.key === key)?.label ?? key}{" "}
+            <span className="text-fg-muted">×</span>
+          </button>
+        ))}
         <select
           className="rounded-lg border border-border-default bg-surface px-2 py-2 text-sm"
           aria-label={t("Number to summarise")}
-          value={plan.measures[0] ?? ""}
+          value=""
           onChange={(event) => {
             const measure = event.target.value;
-            if (!measure) {
-              const node = nodes[plan.blocks[plan.blocks.length - 1].node];
-              change({
-                ...plan,
-                measures: [],
-                groups: node ? listColumns(node, plan.blocks[plan.blocks.length - 1].alias) : [],
-                order: undefined,
-              });
-              return;
-            }
-            // A measure that may not be summed across currency arrives with
-            // that axis already in place. Offering it and then refusing it is
-            // a wall where an answer was expected, and the reader has learned
-            // nothing they could not have been told by showing the split.
-            const required = (
-              measures.find((candidate) => candidate.key === measure)?.never_across ?? []
-            )
-              .map((key) => fields.find((field) => field.field.endsWith(`.${key}`)))
-              .filter((field): field is Field => Boolean(field))
-              .map((field) => ({ field: field.field, label: field.label }));
-            const kept = plan.measures.length ? plan.groups : [];
-            change({
-              ...plan,
-              measures: [measure],
-              groups: [
-                ...kept,
-                ...required.filter((axis) => !kept.some((group) => group.field === axis.field)),
-              ],
-              order: { by: measure, descending: true },
-            });
+            if (measure) change(withMeasure(plan, measure, measures, fields));
           }}
         >
-          <option value="">{t("nothing — list the records")}</option>
-          {measures.map((measure) => (
-            <option key={measure.key} value={measure.key}>
-              {measure.label}
-            </option>
-          ))}
+          <option value="">
+            {plan.measures.length ? t("Add…") : t("nothing — list the records")}
+          </option>
+          {measures
+            .filter((measure) => !plan.measures.includes(measure.key))
+            .map((measure) => (
+              <option key={measure.key} value={measure.key}>
+                {measure.label}
+              </option>
+            ))}
         </select>
         {summarised && (
           <>
@@ -658,6 +644,58 @@ function Toolbar({
       </div>
     </div>
   );
+}
+
+/** Add a number to the summary, with the axis it may not be summed across.
+ *
+ * A measure that declares `never_across: [currency]` is refused unless the
+ * question splits by currency or pins it. Offering it and then refusing it is a
+ * wall where an answer was expected, so the axis arrives with the measure.
+ *
+ * Several numbers side by side is the ordinary case — order count beside order
+ * value — and a single-value control made every report a one-number report.
+ */
+export function withMeasure(
+  plan: Plan,
+  measure: string,
+  measures: { key: string; never_across: string[] }[],
+  fields: Field[],
+): Plan {
+  const required = (measures.find((candidate) => candidate.key === measure)?.never_across ?? [])
+    .map((key) => fields.find((field) => field.field.endsWith(`.${key}`)))
+    .filter((field): field is Field => Boolean(field))
+    .map((field) => ({ field: field.field, label: field.label }));
+  // The first number turns a list into a summary, so the list columns go.
+  const kept = plan.measures.length ? plan.groups : [];
+  return {
+    ...plan,
+    measures: [...plan.measures, measure],
+    groups: [...kept, ...required.filter((axis) => !kept.some((g) => g.field === axis.field))],
+    order: plan.order ?? { by: measure, descending: true },
+  };
+}
+
+/** Taking the last number away puts the records back, rather than nothing. */
+export function withoutMeasure(
+  plan: Plan,
+  measure: string,
+  nodes: Record<string, GraphNode>,
+): Plan {
+  const measures = plan.measures.filter((key) => key !== measure);
+  if (measures.length)
+    return {
+      ...plan,
+      measures,
+      order: plan.order?.by === measure ? undefined : plan.order,
+    };
+  const tip = plan.blocks[plan.blocks.length - 1];
+  const node = nodes[tip.node];
+  return {
+    ...plan,
+    measures: [],
+    groups: node ? listColumns(node, tip.alias) : [],
+    order: undefined,
+  };
 }
 
 /** Put a filter on the block that owns its field. */
