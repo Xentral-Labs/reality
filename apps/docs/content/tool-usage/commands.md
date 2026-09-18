@@ -5552,6 +5552,7 @@ governance tools carry proposals, discovery and missing information.
 | [`finance_party_balances`](#tool-finance_party_balances)                                         | Party balances                   | `read`    | —                      |
 | [`finance_payments`](#tool-finance_payments)                                                     | Recorded payments                | `read`    | —                      |
 | [`graph_catalog`](#tool-graph_catalog)                                                           | Discover the business graph      | `read`    | —                      |
+| [`graph_templates`](#tool-graph_templates)                                                       | List report templates            | `read`    | —                      |
 | [`graph_ask`](#tool-graph_ask)                                                                   | Ask the business graph           | `read`    | —                      |
 | [`graph_reports_list`](#tool-graph_reports_list)                                                 | List my graph reports            | `read`    | —                      |
 | [`graph_report_get`](#tool-graph_report_get)                                                     | Read my graph report             | `read`    | —                      |
@@ -6687,6 +6688,43 @@ Discover the business nodes, how they connect, which edges fan out, and what eac
 | ---------- | -------- | -------- | ---------------------------------------------------------------------------------------------------- | ------- |
 | `language` | `string` | no       | Language for the business words in the catalog.                                                      | `en`    |
 | `node`     | `string` | no       | Optional exact node key; omit to discover every node, how they connect, and what each measure means. | `None`  |
+
+### `graph_templates` — List report templates {#tool-graph_templates}
+
+Discover the nodes and measures first; a refusal names the edge that fanned out or the unit that
+cannot be added, and is more useful than a total that is wrong.
+
+**Synopsis**
+
+```text
+graph_templates [language]
+```
+
+**Access:** `read`
+
+**How this query runs**
+
+| Concrete query        | Kind                        | Default |
+| --------------------- | --------------------------- | ------- |
+| `MCP graph_templates` | Live — read at request time | yes     |
+
+[How this query runs](./views#read-execution)
+
+List the questions worth starting from, each already resolved against the declared model.
+
+**Use when**
+
+- Offer somebody a starting point instead of an empty builder, or find the shape of a common report.
+
+**Do not use when**
+
+- Treat a template as an answer; it is a question that still has to be executed.
+
+**Parameters**
+
+| Name       | Type     | Required | Description                                       | Default |
+| ---------- | -------- | -------- | ------------------------------------------------- | ------- |
+| `language` | `string` | no       | Language for the template names and explanations. | `en`    |
 
 ### `graph_ask` — Ask the business graph {#tool-graph_ask}
 

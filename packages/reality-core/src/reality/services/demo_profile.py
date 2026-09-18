@@ -333,7 +333,11 @@ def seed_profile(
                 _commit=False,
             )
             core.post_supplier_invoice(
-                session, tenant, supplier_invoice.id, effective_at=invoice_date, _commit=False
+                session,
+                tenant,
+                supplier_invoice.id,
+                effective_at=invoice_date,
+                _commit=False,
             )
             cases[key] = {**ref, "supplier_invoice_id": supplier_invoice.id}
             if paid is None:

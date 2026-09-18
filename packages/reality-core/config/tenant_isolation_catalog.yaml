@@ -819,6 +819,7 @@ families:
       - reality.services.analytics.reports:change_graph_report
       - reality.services.analytics.proposals:preview
       - tool:graph.catalog
+      - tool:graph.templates
       - tool:graph.ask
       - tool:graph.reports.list
       - tool:graph.reports.get

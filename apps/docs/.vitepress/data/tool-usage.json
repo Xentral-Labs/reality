@@ -127,6 +127,7 @@
       "exceptions": [],
       "tools": [
         "tool:graph_catalog",
+        "tool:graph_templates",
         "tool:graph_ask",
         "tool:graph_reports_list",
         "tool:graph_report_get"
@@ -10403,6 +10404,53 @@
       "projections": [],
       "links": [],
       "label_de": "Discover the business graph",
+      "resources": ["analytics"]
+    },
+    {
+      "id": "tool:graph_templates",
+      "kind": "tool",
+      "key": "graph_templates",
+      "label": "List report templates",
+      "area": "cross_functional",
+      "summary": "Discover the nodes and measures first; a refusal names the edge that fanned out or the unit that cannot be added, and is more useful than a total that is wrong.",
+      "access": "read",
+      "group": "Analytics",
+      "synopsis": "graph_templates [language]",
+      "parameters": [
+        {
+          "name": "language",
+          "type": "string",
+          "required": false,
+          "description": "Language for the template names and explanations.",
+          "depth": 0,
+          "default": "en"
+        }
+      ],
+      "guidance": {
+        "purpose": "List the questions worth starting from, each already resolved against the declared model.",
+        "use_when": [
+          "Offer somebody a starting point instead of an empty builder, or find the shape of a common report."
+        ],
+        "do_not_use_when": [
+          "Treat a template as an answer; it is a question that still has to be executed."
+        ],
+        "limitations": [
+          "A template carries no absolute date. Where it names a period window, whoever adopts it resolves that window against their own calendar, because only the caller knows what \"this month\" is."
+        ],
+        "empty_result": "No template is declared, not proof that no report is possible.",
+        "freshness": "Declared beside the model and loaded with it; every template resolves or the model does not load."
+      },
+      "read_modes": [
+        {
+          "query": "MCP graph_templates",
+          "mode": "live",
+          "default": true
+        }
+      ],
+      "command": null,
+      "projections": [],
+      "links": [],
+      "label_de": "List report templates",
       "resources": ["analytics"]
     },
     {

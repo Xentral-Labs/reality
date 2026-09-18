@@ -3244,6 +3244,19 @@ export type GraphReportChange = {
   name?: string;
   question?: GraphQuestion;
 };
+/** A question worth starting from, checked against the model before it is offered.
+ *
+ * `period` is the window the template means, not two instants: whoever adopts it
+ * resolves that against their own calendar, because only they know what "this
+ * month" is where they are.
+ */
+export type GraphTemplate = {
+  key: string;
+  label: string;
+  about: string;
+  question: GraphQuestion;
+  period: { field: string; window: string } | null;
+};
 export const graphApi = {
   catalog: (tenant: string, language: string) =>
     request<GraphCatalog>(
@@ -3271,6 +3284,10 @@ export const graphApi = {
       expected_revision: number | null;
       kind: string;
     }>(`/api/tenants/${tenant}/analytics/reports/proposals/${encodeURIComponent(id)}`),
+  templates: (tenant: string, language: string) =>
+    request<{ templates: GraphTemplate[] }>(
+      `/api/tenants/${tenant}/analytics/graph/templates?language=${encodeURIComponent(language)}`,
+    ),
   reports: (tenant: string, query = "", cursor?: string) =>
     request<{ records: GraphReport[]; has_more: boolean; next_cursor: string | null }>(
       `/api/tenants/${tenant}/analytics/graph/reports?${new URLSearchParams({ query, ...(cursor ? { cursor } : {}) })}`,

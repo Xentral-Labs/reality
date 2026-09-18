@@ -5591,6 +5591,7 @@ oder Projection; Steuerungs-Tools tragen Vorschläge, Erkundung und fehlende Inf
 | [`finance_party_balances`](#tool-finance_party_balances)                                         | Party balances                   | `read`    | —                      |
 | [`finance_payments`](#tool-finance_payments)                                                     | Recorded payments                | `read`    | —                      |
 | [`graph_catalog`](#tool-graph_catalog)                                                           | Discover the business graph      | `read`    | —                      |
+| [`graph_templates`](#tool-graph_templates)                                                       | List report templates            | `read`    | —                      |
 | [`graph_ask`](#tool-graph_ask)                                                                   | Ask the business graph           | `read`    | —                      |
 | [`graph_reports_list`](#tool-graph_reports_list)                                                 | List my graph reports            | `read`    | —                      |
 | [`graph_report_get`](#tool-graph_report_get)                                                     | Read my graph report             | `read`    | —                      |
@@ -6726,6 +6727,43 @@ Discover the business nodes, how they connect, which edges fan out, and what eac
 | ---------- | -------- | ------- | ---------------------------------------------------------------------------------------------------- | -------- |
 | `language` | `string` | nein    | Language for the business words in the catalog.                                                      | `en`     |
 | `node`     | `string` | nein    | Optional exact node key; omit to discover every node, how they connect, and what each measure means. | `None`   |
+
+### `graph_templates` — List report templates {#tool-graph_templates}
+
+Discover the nodes and measures first; a refusal names the edge that fanned out or the unit that
+cannot be added, and is more useful than a total that is wrong.
+
+**Aufruf**
+
+```text
+graph_templates [language]
+```
+
+**Zugriff:** `read`
+
+**So wird diese Abfrage ausgeführt**
+
+| Konkrete Abfrage      | Art                        | Standard |
+| --------------------- | -------------------------- | -------- |
+| `MCP graph_templates` | Live — beim Aufruf gelesen | ja       |
+
+[So wird diese Abfrage ausgeführt](./views#read-execution)
+
+List the questions worth starting from, each already resolved against the declared model.
+
+**Verwenden, wenn**
+
+- Offer somebody a starting point instead of an empty builder, or find the shape of a common report.
+
+**Nicht verwenden, wenn**
+
+- Treat a template as an answer; it is a question that still has to be executed.
+
+**Parameter**
+
+| Name       | Typ      | Pflicht | Beschreibung                                      | Standard |
+| ---------- | -------- | ------- | ------------------------------------------------- | -------- |
+| `language` | `string` | nein    | Language for the template names and explanations. | `en`     |
 
 ### `graph_ask` — Ask the business graph {#tool-graph_ask}
 

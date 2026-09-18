@@ -556,7 +556,9 @@ def delivery_evidence(
             .limit(1)
         )
         rows.append(
-            value("Interpretation", outcome.classification if outcome else "not_recorded")
+            value(
+                "Interpretation", outcome.classification if outcome else "not_recorded"
+            )
         )
         if outcome and outcome.interpreter_name:
             rows.append(

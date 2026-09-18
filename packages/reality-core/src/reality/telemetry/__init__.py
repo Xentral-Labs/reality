@@ -61,7 +61,8 @@ def _resource(service_name: str) -> Any:
     attributes = {
         "service.name": os.environ.get("OTEL_SERVICE_NAME", "").strip() or service_name,
         "service.version": os.environ.get("REALITY_IMAGE_TAG", "").strip() or "unknown",
-        "deployment.environment": os.environ.get("REALITY_ENV", "").strip() or "unknown",
+        "deployment.environment": os.environ.get("REALITY_ENV", "").strip()
+        or "unknown",
     }
     pod = os.environ.get("REALITY_POD_NAME", "").strip()
     if pod:
@@ -150,7 +151,6 @@ def instrument_fastapi(app: Any) -> None:
         FastAPIInstrumentor.instrument_app(app, excluded_urls="healthz,readyz")
     except Exception:
         log.exception("FastAPI instrumentation failed")
-
 
 
 def instrument_engine(engine: Any) -> None:

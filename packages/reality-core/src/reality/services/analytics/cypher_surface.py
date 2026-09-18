@@ -81,9 +81,7 @@ KEYWORDS = {
 
 # An existence test is written as a block so its path cannot be confused with the
 # main one: EXISTS { MATCH (o)-[:contains]->(l) WHERE l.sku = $sku }
-EXISTENCE = re.compile(
-    r"(?P<not>NOT\s+)?EXISTS\s*\{(?P<body>[^}]*)\}", re.IGNORECASE
-)
+EXISTENCE = re.compile(r"(?P<not>NOT\s+)?EXISTS\s*\{(?P<body>[^}]*)\}", re.IGNORECASE)
 
 
 def _clause(text: str, name: str, following: tuple[str, ...]) -> str:
@@ -236,7 +234,8 @@ def _having(clause: str) -> list[dict]:
     ):
         if "." in found.group("measure"):
             raise CypherRefused(
-                "HAVING filters a declared measure, not a property", "unsupported_syntax"
+                "HAVING filters a declared measure, not a property",
+                "unsupported_syntax",
             )
         out.append(
             {

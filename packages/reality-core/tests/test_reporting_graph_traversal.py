@@ -843,3 +843,14 @@ def test_an_empty_answer_says_whether_the_question_named_something_real(
     assert real_but_empty.matched_nothing == (), (
         "every value named here exists; the period is simply in the future"
     )
+
+
+def test_every_template_runs_against_real_records(session, business, sales, promised):
+    """Resolving is not running. A template is offered as a starting point, so
+    it has to survive the database too — the compiler, the tenant predicate and
+    whatever the correction rules do to each node."""
+    from reality.services.analytics.graph_model import reporting_graph
+
+    for name, template in reporting_graph().templates.items():
+        result = ask(session, business.tenant.id, **template.question)
+        assert result.statements == 1, f"{name} took more than one statement"

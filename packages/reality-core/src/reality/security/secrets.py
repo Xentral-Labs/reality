@@ -46,7 +46,9 @@ def _decoded(value: str) -> bytes:
 
 
 def _aad(record: Secret) -> bytes:
-    return f"{record.tenant_id}:{record.id}:{record.purpose}:{record.key_version}".encode()
+    return (
+        f"{record.tenant_id}:{record.id}:{record.purpose}:{record.key_version}".encode()
+    )
 
 
 def _fingerprint(value: str) -> str:
@@ -161,9 +163,7 @@ def replace_secret(
     previous = None
     if secret_id:
         previous = session.scalar(
-            select(Secret).where(
-                Secret.id == secret_id, Secret.tenant_id == tenant_id
-            )
+            select(Secret).where(Secret.id == secret_id, Secret.tenant_id == tenant_id)
         )
         if previous is None:
             raise NotFound("Secret not found.")
@@ -184,7 +184,9 @@ def replace_secret(
     return replacement
 
 
-def secret_metadata(session: Session, tenant_id: str, secret_id: str | None) -> Secret | None:
+def secret_metadata(
+    session: Session, tenant_id: str, secret_id: str | None
+) -> Secret | None:
     if not secret_id:
         return None
     return session.scalar(

@@ -2976,6 +2976,7 @@ from reality.tools.graph import SCHEMAS as GRAPH_SCHEMAS
 from reality.tools.graph import invoke as invoke_graph
 
 _GRAPH_DESCRIPTIONS = {
+    "graph.templates": "List the questions worth starting from, each one already checked against the model.",
     "graph.catalog": "Discover the business nodes, how they connect, and what each measure means.",
     "graph.ask": "Ask the reporting graph a question along declared edges and measures.",
     "graph.reports.list": "List the caller's own saved graph reports.",

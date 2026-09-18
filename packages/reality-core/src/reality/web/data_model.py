@@ -98,5 +98,7 @@ def load_data_model() -> dict[str, Any]:
         "description": catalog["description"],
         "sections": sections,
         "table_count": len(rendered_tables),
-        "column_count": sum(len(table["columns"]) for table in rendered_tables.values()),
+        "column_count": sum(
+            len(table["columns"]) for table in rendered_tables.values()
+        ),
     }

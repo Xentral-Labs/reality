@@ -72,7 +72,9 @@ def current_observations(
         if event.get("event_type") == "delivered" and event.get("package_id")
     }
     applicable = set(package_ids)
-    movement_times = [row.get("occurred_at") for row in movements if row.get("occurred_at")]
+    movement_times = [
+        row.get("occurred_at") for row in movements if row.get("occurred_at")
+    ]
     announced_times = [
         row.get("occurred_at")
         for row in events

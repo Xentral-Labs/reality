@@ -155,7 +155,7 @@ def send_verification_email(email: str, code: str) -> None:
           <a href="{safe_url}" style="display:inline-block;margin:16px 0;padding:13px 20px;border-radius:10px;background:#635bff;color:white;text-decoration:none;font-weight:600">Enter verification code</a>
           <p style="color:#667085;font-size:14px">Closed the tab? This button reopens Reality. Enter the code above to confirm your email. If it has expired, request a new code there.</p>
         </div>""",
-            kind="verification",
+        kind="verification",
     )
 
 
@@ -260,5 +260,5 @@ def send_company_invitation_email(
           <a href="{safe_url}" style="display:inline-block;margin-top:20px;padding:13px 20px;border-radius:10px;background:#635bff;color:white;text-decoration:none;font-weight:600">Open invitation</a>
           <p style="color:#667085;margin-top:28px">If you did not expect this invitation, report it to <a href="mailto:{_SUPPORT_EMAIL}" style="color:#475467">{_SUPPORT_EMAIL}</a>.</p>
         </div>""",
-            kind="invitation",
+        kind="invitation",
     )

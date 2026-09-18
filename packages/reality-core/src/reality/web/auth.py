@@ -646,9 +646,7 @@ def review_application(
 
 
 @admin_router.get("/access-applications/{application_id}/deletion-preview")
-def deletion_preview(
-    application_id: str, _: PlatformAdmin, session: DatabaseSession
-):
+def deletion_preview(application_id: str, _: PlatformAdmin, session: DatabaseSession):
     """Name what deleting this applicant would remove, before anything is removed."""
     try:
         return account_deletion_preview(

@@ -47,15 +47,15 @@ def record_origins(
     }
     if not wanted:
         return {}
-    sources = _sources(session, tenant_id, {value for value in wanted.values() if value})
+    sources = _sources(
+        session, tenant_id, {value for value in wanted.values() if value}
+    )
     current = _current_source_records(session, tenant_id, set(sources))
     systems = _systems(
         session, tenant_id, {source.source_system for source in sources.values()}
     )
     manual = [
-        record_id
-        for record_id, source_id in wanted.items()
-        if source_id not in sources
+        record_id for record_id, source_id in wanted.items() if source_id not in sources
     ]
     actors = (
         _deciding_actors(session, tenant_id, subject_type, manual)
@@ -68,7 +68,9 @@ def record_origins(
         if source is None:
             actor = actors.get(record_id)
             origins[record_id] = (
-                {**APPLICATION_ORIGIN, "actor": actor} if actor else dict(APPLICATION_ORIGIN)
+                {**APPLICATION_ORIGIN, "actor": actor}
+                if actor
+                else dict(APPLICATION_ORIGIN)
             )
             continue
         system = systems.get(source.source_system)

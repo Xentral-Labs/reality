@@ -147,12 +147,23 @@ function periods(): { key: string; label: string; from: Date; until: Date }[] {
       until: new Date(year, month, 1),
     },
     {
-      key: "last_30",
+      key: "last_30_days",
       label: t("the last 30 days"),
       from: new Date(day.getTime() - 30 * 86400000),
       until: new Date(day.getTime() + 86400000),
     },
   ];
+}
+
+/** One named window, resolved where the reader is.
+ *
+ * A template says which window it means and leaves the resolving to whoever
+ * adopts it: "this month" is a different pair of instants in Auckland and in
+ * Lisbon, and only the browser asking knows which.
+ */
+export function periodOf(window: string): Filter | null {
+  const found = periods().find((period) => period.key === window);
+  return found ? periodFilter("", "", found) : null;
 }
 
 /** The bound as a real instant.

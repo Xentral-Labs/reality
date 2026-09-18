@@ -94,6 +94,24 @@ the question itself did not match the data.
 3. Read the refusal if one comes back. It names the edge that fanned out or the unit
    that cannot be added; asking the same question again will not help.
 
+## Templates
+
+Six questions worth starting from are declared beside the model — an open delivery
+backlog, incoming supply, order intake by customer, order value by month, ordered but
+not billed, stock movements by article. They live in the declaration because they name
+nodes, edges and measures: one that cannot be resolved stops the model from loading
+rather than waiting to be clicked and refused, and every one of them is executed against
+real records by a test.
+
+A template carries no absolute date. Where it means a period it names the window —
+`this_month`, `last_year` — and whoever adopts it resolves that against their own
+calendar, because a template that hard-codes a month is wrong the following month.
+Taking one over creates an ordinary private report: same ownership, revision and retry,
+and the reader can change it from there.
+
+What is not a template is as deliberate as what is. Order value by currency is a required
+axis, not a report. Returns have no authoritative link to their credit yet.
+
 ## Web and persistence
 
 The sidebar lists Analytics last under Workspaces, after Master data, with no separate
