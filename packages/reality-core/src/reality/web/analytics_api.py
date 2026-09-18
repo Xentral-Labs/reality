@@ -13,6 +13,7 @@ from reality.tools.graph import (
     GraphAskRequest,
     GraphFormatRequest,
     GraphInterpretRequest,
+    GraphRequestedAnalysisRequest,
 )
 from reality.web.auth import DatabaseSession
 
@@ -113,6 +114,49 @@ async def post_graph_ask(
     )
 
 
+@router.post("/graph/request")
+def post_graph_request(
+    tenant_id: str,
+    body: GraphRequestedAnalysisRequest,
+    request: Request,
+    session: DatabaseSession,
+):
+    """Answer the question, or accept it for the worker and say which.
+
+    A refusal about the question still arrives here, with its code, exactly as it
+    does for an immediate ask. Only cost is deferred.
+    """
+    return read(
+        session, tenant_id, "graph.request", body.model_dump(mode="json"), request
+    )
+
+
+@router.get("/graph/requests")
+def get_graph_requests(
+    tenant_id: str,
+    request: Request,
+    session: DatabaseSession,
+    limit: int = 50,
+):
+    return read(session, tenant_id, "graph.requests.list", {"limit": limit}, request)
+
+
+@router.get("/graph/requests/{analysis_request_id}")
+def get_graph_request(
+    tenant_id: str,
+    analysis_request_id: str,
+    request: Request,
+    session: DatabaseSession,
+):
+    return read(
+        session,
+        tenant_id,
+        "graph.requests.get",
+        {"analysis_request_id": analysis_request_id},
+        request,
+    )
+
+
 @router.get("/graph/reports")
 def get_graph_reports(
     tenant_id: str,
@@ -200,7 +244,6 @@ def get_report_proposal(
                 "message": str(error),
             },
         ) from error
-
 
 
 @router.post("/graph/format")

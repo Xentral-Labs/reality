@@ -5558,6 +5558,8 @@ governance tools carry proposals, discovery and missing information.
 | [`graph_interpret`](#tool-graph_interpret)                                                       | Interpret an analysis question   | `read`    | —                      |
 | [`graph_reports_list`](#tool-graph_reports_list)                                                 | List my graph reports            | `read`    | —                      |
 | [`graph_report_get`](#tool-graph_report_get)                                                     | Read my graph report             | `read`    | —                      |
+| [`graph_requests_list`](#tool-graph_requests_list)                                               | List my requested analyses       | `read`    | —                      |
+| [`graph_request_get`](#tool-graph_request_get)                                                   | Collect a requested analysis     | `read`    | —                      |
 
 ### `capability_describe` — Describe an agent capability {#tool-capability_describe}
 
@@ -6993,3 +6995,77 @@ Open one of the authenticated caller's own saved graph questions.
 | Name        | Type     | Required | Description                                              | Default |
 | ----------- | -------- | -------- | -------------------------------------------------------- | ------- |
 | `report_id` | `string` | yes      | Opaque ID of a private graph report owned by the caller. | —       |
+
+### `graph_requests_list` — List my requested analyses {#tool-graph_requests_list}
+
+Discover the nodes and measures first; a refusal names the edge that fanned out or the unit that
+cannot be added, and is more useful than a total that is wrong.
+
+**Synopsis**
+
+```text
+graph_requests_list [limit]
+```
+
+**Access:** `read`
+
+**How this query runs**
+
+| Concrete query            | Kind                        | Default |
+| ------------------------- | --------------------------- | ------- |
+| `MCP graph_requests_list` | Live — read at request time | yes     |
+
+[How this query runs](./views#read-execution)
+
+List the authenticated caller's own requested analyses and where each one stands.
+
+**Use when**
+
+- Check whether a question asked earlier has been answered.
+
+**Do not use when**
+
+- Look for somebody else's requests; they are private to whoever asked them.
+
+**Parameters**
+
+| Name    | Type      | Required | Description                                                     | Default |
+| ------- | --------- | -------- | --------------------------------------------------------------- | ------- |
+| `limit` | `integer` | no       | Maximum number of records or jobs processed by this invocation. | `50`    |
+
+### `graph_request_get` — Collect a requested analysis {#tool-graph_request_get}
+
+Discover the nodes and measures first; a refusal names the edge that fanned out or the unit that
+cannot be added, and is more useful than a total that is wrong.
+
+**Synopsis**
+
+```text
+graph_request_get analysis_request_id
+```
+
+**Access:** `read`
+
+**How this query runs**
+
+| Concrete query          | Kind                        | Default |
+| ----------------------- | --------------------------- | ------- |
+| `MCP graph_request_get` | Live — read at request time | yes     |
+
+[How this query runs](./views#read-execution)
+
+Collect a requested analysis, with the question and the moment it was answered.
+
+**Use when**
+
+- Read the answer to a question this caller asked and that is ready.
+
+**Do not use when**
+
+- Use a collected answer as a current figure; it was true of one moment and of no other.
+
+**Parameters**
+
+| Name                  | Type     | Required | Description                                             | Default |
+| --------------------- | -------- | -------- | ------------------------------------------------------- | ------- |
+| `analysis_request_id` | `string` | yes      | Opaque ID of a requested analysis the caller asked for. | —       |

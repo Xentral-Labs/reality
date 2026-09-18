@@ -2983,6 +2983,9 @@ _GRAPH_DESCRIPTIONS = {
     "graph.ask": "Ask the reporting graph a question along declared edges and measures.",
     "graph.reports.list": "List the caller's own saved graph reports.",
     "graph.reports.get": "Open one of the caller's own saved graph reports.",
+    "graph.request": "Ask a question, and be given somewhere to collect it when the company is too large to answer in one request.",
+    "graph.requests.list": "List the caller's own requested analyses and where each one stands.",
+    "graph.requests.get": "Collect a requested analysis, with the question and the moment it was answered.",
 }
 
 for _graph_name in GRAPH_SCHEMAS:

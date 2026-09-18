@@ -63,8 +63,15 @@ time and company, so one large company's questions do not hold up everyone else'
   is evidence of one answer, never an authority another read derives from.
 - **FR-006**: Raise the input caps for the deferred path to what the worker can hold, and
   keep the immediate path's caps and its statement deadline unchanged.
-- **FR-007**: Expose request, state and collection through the existing analysis surfaces
+- **FR-007**: Expose state and collection as read tools on the existing analysis surfaces
   — web, tools and MCP — so a requested analysis is not a second way to ask a question.
+  Requesting one is a mutation: it records a question and enqueues a run. It is therefore
+  offered on the web API in this feature, and its agent-facing form belongs in the command
+  catalog with the other mutations, with the confirmation those carry. That is FR-008 and
+  is deliberately not delivered here.
+- **FR-008**: Offer requesting an analysis as a declared command, confirmed like every
+  other mutation, so an agent can ask for one without the read surface having to pretend
+  that recording a question changes nothing.
 
 ## Assumptions and Dependencies
 The scheduler and worker of spec 147 are deployed and their contract (docs/features/
@@ -95,7 +102,8 @@ feature moves the wait, not the ceiling.
 | FR-004 | US1 | T002,T004 | Tenant scope and principal re-validated at execution |
 | FR-005 | US1,US4 | T004 | Result carries question, moment, model version; retention |
 | FR-006 | US1 | T005 | Deferred caps raised, immediate caps unchanged |
-| FR-007 | US1,US4 | T006 | Web, tools and MCP request, state and collection |
+| FR-007 | US1,US4 | T006 | Web request; state and collection as read tools |
+| FR-008 | US1 | T007 | Requesting offered as a confirmed command (not delivered) |
 
 ## Evidence and risks
 Measured on the repository's fixture at the full profile, best of three, statistics
@@ -108,6 +116,12 @@ moment. The moment it is treated as a standing figure — read by another page, 
 against a register, used to decide something — it has become a second authority beside the
 canonical services, which is what this codebase refuses. The requirement is written to
 make that visible, and the tests exist to keep it visible.
+
+The application catalog refused an earlier shape of this work, correctly. Requesting an
+analysis had been written as a read tool, and a read may declare no side effect. Recording
+a question and enqueueing a run is a side effect, so the honest split is the one above:
+collecting and listing are reads and stay on the tool surface; requesting is a mutation and
+waits for FR-008 rather than being declared as something it is not.
 
 The second risk is FR-003. Deciding immediate against deferred by a budget means some
 questions change behaviour as a company grows, which is a surprise unless the asker is

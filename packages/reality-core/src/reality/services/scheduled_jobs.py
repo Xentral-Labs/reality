@@ -63,6 +63,7 @@ def _context(
 
 DEMO_JOB_TYPES = frozenset({"demo.generate_orders", "demo.settle_orders"})
 SETUP_JOB_TYPE = "company_setup.initialize"
+ANALYSIS_JOB_TYPE = "analysis.run"
 
 
 def _owner(
@@ -74,6 +75,13 @@ def _owner(
         from reality.services.demo_data import eligible
 
         eligible(session, tenant_id, actor_id)
+        return
+    if job_type == ANALYSIS_JOB_TYPE:
+        # Asking a question is not an owner's act. Whoever may ask it in the page
+        # may ask it deferred, and the handler checks that again before it runs.
+        from reality.jobs.handlers.analysis import require_analysis_requester
+
+        require_analysis_requester(session, _context(tenant_id, actor_id))
         return
     if job_type == SETUP_JOB_TYPE:
         # A verified account pending admission may create a Sandbox, so company

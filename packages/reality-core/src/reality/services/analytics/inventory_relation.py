@@ -9,6 +9,7 @@ from sqlalchemy.sql.selectable import TableValuedAlias
 
 from reality.db.core import Commitment, CommitmentRevision, Item, Movement
 from reality.services import core
+from reality.services.analytics.budget import input_ceiling
 from reality.services.analytics.traversal import TraversalRefused
 
 MAX_INVENTORY_ITEMS = 20_000
@@ -26,12 +27,13 @@ def relation(
     cache: dict[Any, Any] | None = None,
 ) -> TableValuedAlias:
     """Bound every family the canonical bulk derivation materializes in memory."""
-    for model, maximum in (
+    for model, declared in (
         (Item, MAX_INVENTORY_ITEMS),
         (Movement, MAX_INVENTORY_INPUTS),
         (Commitment, MAX_INVENTORY_COMMITMENTS),
         (CommitmentRevision, MAX_INVENTORY_INPUTS),
     ):
+        maximum = input_ceiling(declared)
         candidates = select(model.id).where(model.tenant_id == tenant_id)
         if model is Commitment:
             candidates = candidates.where(

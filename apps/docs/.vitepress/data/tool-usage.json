@@ -132,7 +132,9 @@
         "tool:graph_format",
         "tool:graph_interpret",
         "tool:graph_reports_list",
-        "tool:graph_report_get"
+        "tool:graph_report_get",
+        "tool:graph_requests_list",
+        "tool:graph_request_get"
       ],
       "events": [],
       "workspace_actions": []
@@ -11294,6 +11296,95 @@
       "projections": [],
       "links": [],
       "label_de": "Read my graph report",
+      "resources": ["analytics"]
+    },
+    {
+      "id": "tool:graph_requests_list",
+      "kind": "tool",
+      "key": "graph_requests_list",
+      "label": "List my requested analyses",
+      "area": "cross_functional",
+      "summary": "Discover the nodes and measures first; a refusal names the edge that fanned out or the unit that cannot be added, and is more useful than a total that is wrong.",
+      "access": "read",
+      "group": "Analytics",
+      "synopsis": "graph_requests_list [limit]",
+      "parameters": [
+        {
+          "name": "limit",
+          "type": "integer",
+          "required": false,
+          "description": "Maximum number of records or jobs processed by this invocation.",
+          "depth": 0,
+          "default": 50
+        }
+      ],
+      "guidance": {
+        "purpose": "List the authenticated caller's own requested analyses and where each one stands.",
+        "use_when": ["Check whether a question asked earlier has been answered."],
+        "do_not_use_when": [
+          "Look for somebody else's requests; they are private to whoever asked them."
+        ],
+        "limitations": [
+          "States where each request stands, never its rows. Collect one to read its answer."
+        ],
+        "empty_result": "This caller has asked for nothing, or their answers have expired.",
+        "freshness": "Current state of the caller's own requests."
+      },
+      "read_modes": [
+        {
+          "query": "MCP graph_requests_list",
+          "mode": "live",
+          "default": true
+        }
+      ],
+      "command": null,
+      "projections": [],
+      "links": [],
+      "label_de": "List my requested analyses",
+      "resources": ["analytics"]
+    },
+    {
+      "id": "tool:graph_request_get",
+      "kind": "tool",
+      "key": "graph_request_get",
+      "label": "Collect a requested analysis",
+      "area": "cross_functional",
+      "summary": "Discover the nodes and measures first; a refusal names the edge that fanned out or the unit that cannot be added, and is more useful than a total that is wrong.",
+      "access": "read",
+      "group": "Analytics",
+      "synopsis": "graph_request_get analysis_request_id",
+      "parameters": [
+        {
+          "name": "analysis_request_id",
+          "type": "string",
+          "required": true,
+          "description": "Opaque ID of a requested analysis the caller asked for.",
+          "depth": 0
+        }
+      ],
+      "guidance": {
+        "purpose": "Collect a requested analysis, with the question and the moment it was answered.",
+        "use_when": ["Read the answer to a question this caller asked and that is ready."],
+        "do_not_use_when": [
+          "Use a collected answer as a current figure; it was true of one moment and of no other."
+        ],
+        "limitations": [
+          "A stored answer is evidence of one answer at one moment. It is returned with its question and its `answered_at` so nothing downstream can mistake it for what is true now, and it is removed when it expires."
+        ],
+        "empty_result": "The question reached nothing when it ran.",
+        "freshness": "As of `answered_at`, never later."
+      },
+      "read_modes": [
+        {
+          "query": "MCP graph_request_get",
+          "mode": "live",
+          "default": true
+        }
+      ],
+      "command": null,
+      "projections": [],
+      "links": [],
+      "label_de": "Collect a requested analysis",
       "resources": ["analytics"]
     },
     {

@@ -117,6 +117,33 @@ class GraphFormatRequest(StrictModel):
     question: Traversal
 
 
+class GraphRequestedAnalysisRequest(StrictModel):
+    """Ask a question that may take minutes, and be told where to collect it."""
+
+    question: Traversal | None = None
+    path: str | None = Field(
+        default=None,
+        max_length=4000,
+        description="Cypher-shaped path, as the immediate ask accepts one.",
+    )
+    parameters: dict[str, Any] = Field(default_factory=dict)
+    request_id: str = Field(
+        max_length=128,
+        description="Caller-chosen identity; the same one returns the same request.",
+    )
+
+
+class GraphCollectRequest(StrictModel):
+    analysis_request_id: str = Field(
+        max_length=128,
+        description="Opaque ID of a requested analysis the caller asked for.",
+    )
+
+
+class GraphRequestsRequest(StrictModel):
+    limit: int = Field(default=50, ge=1, le=200)
+
+
 class GraphInterpretRequest(StrictModel):
     text: str = Field(
         min_length=1,
@@ -135,6 +162,9 @@ SCHEMAS = {
     "graph.interpret": GraphInterpretRequest,
     "graph.reports.list": GraphReportsRequest,
     "graph.reports.get": GraphReportRequest,
+    "graph.request": GraphRequestedAnalysisRequest,
+    "graph.requests.list": GraphRequestsRequest,
+    "graph.requests.get": GraphCollectRequest,
 }
 
 
@@ -181,8 +211,35 @@ def invoke(session, tenant_id: str, name: str, arguments: dict[str, Any]) -> Any
             report_kind="graph",
         )
 
+    if name in ("graph.request", "graph.requests.list", "graph.requests.get"):
+        from reality.services.analytics.requests import ask, collect, listing
+
+        principal = CALLER.get()
+        user_id = principal.user_id if principal else None
+        if name == "graph.requests.list":
+            return listing(session, tenant_id, user_id=user_id, limit=request.limit)
+        if name == "graph.requests.get":
+            return collect(
+                session, tenant_id, request.analysis_request_id, user_id=user_id
+            )
+        asked = request.question or parse(request.path or "", request.parameters)
+        outcome = ask(
+            session,
+            tenant_id,
+            question=asked,
+            user_id=user_id,
+            request_id=request.request_id,
+        )
+        if outcome["state"] == "answered":
+            return {"state": "answered", **_answer(outcome["answer"], asked)}
+        return outcome
+
     query = request.question or parse(request.path or "", request.parameters)
-    result = run_traversal(session, tenant_id, query)
+    return _answer(run_traversal(session, tenant_id, query), query)
+
+
+def _answer(result, query) -> dict[str, Any]:
+    """One shape for an answer, whether it arrived now or came back from a worker."""
     return {
         "rows": list(result.rows),
         "editor": _editor(query),

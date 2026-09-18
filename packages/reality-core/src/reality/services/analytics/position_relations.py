@@ -27,6 +27,7 @@ from reality.db.core import (
     SettlementAllocation,
 )
 from reality.db.opening import OpeningScope
+from reality.services.analytics.budget import input_ceiling
 from reality.services.analytics.traversal import ResolvedPath, TraversalRefused
 from reality.services.finance.balances import party_balance_rows
 from reality.services.inventory_positions import (
@@ -112,11 +113,10 @@ def bounded(
         candidates = select(model.id).where(model.tenant_id == tenant_id)
         if anchor and model is anchor[0]:
             candidates = candidates.where(model.id.in_(anchor[1]))
-        candidates = candidates.limit(MAX_ROWS + 1)
-        if (
-            session.scalar(select(func.count()).select_from(candidates.subquery()))
-            > MAX_ROWS
-        ):
+        candidates = candidates.limit(input_ceiling(MAX_ROWS) + 1)
+        if session.scalar(
+            select(func.count()).select_from(candidates.subquery())
+        ) > input_ceiling(MAX_ROWS):
             raise TraversalRefused(
                 "Position analysis exceeds its input limit; narrow the source in the operational register.",
                 "position_limit",

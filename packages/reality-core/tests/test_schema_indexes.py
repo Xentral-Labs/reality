@@ -47,7 +47,7 @@ def test_migration_creates_exactly_the_indexes_for_its_schema_generation():
     }
     # Revision 0059 owns every derived index for tables that existed at 0058.
     # Tables added by later migrations create their own derived indexes.
-    later_tables = {"analytics_report"}
+    later_tables = {"analytics_report", "analysis_request"}
     assert migrated == {
         entry for entry in derived if entry[1] not in later_tables
     }

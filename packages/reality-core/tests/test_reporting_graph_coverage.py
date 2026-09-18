@@ -43,6 +43,9 @@ INFRASTRUCTURE = {
     "storyline_package",
     "analytics_report",
     "analytics_report_draft",
+    # A requested analysis holds a question and the answer it was given, which is
+    # how somebody used the model — not a business record the model describes.
+    "analysis_request",
     "business_event",
     "projection_row",
     "projection_checkpoint",
