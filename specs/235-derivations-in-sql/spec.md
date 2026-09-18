@@ -3,22 +3,30 @@
 **Language**: English
 
 ## Context and Intent
-Nine of the sixty-four analysis objects — customer and supplier balances, open items,
-stock positions and their historical variants — are refused outright above 20,000 input
-rows. The other fifty-five have no such limit: they compile to one SQL aggregate and
-scale with PostgreSQL. The difference is not the question. It is that the nine rest on a
-canonical service that loads the company's finance or inventory history into Python
-objects and folds it there.
+`financial_open_items` folds a company's finance history in one Python process. It is
+reached from two places, and only one of them can afford to wait.
 
-Spec 181 records the owner's target: 10,000 companies at 100 to 1,000 orders a day each.
-At 1,000 orders a day a company reaches 20,000 finance documents in about twenty days, so
-the limit is not a ceiling somebody might one day touch — it is reached within a month of
-ordinary operation, and the analysis simply stops answering. Measured at that cap, a
-single balance question costs four seconds, which is why the refusal is there.
+The visible one is analysis: nine of the sixty-four analysis objects rest on it and are
+refused above 20,000 input rows. That refusal is not what makes this urgent. If an
+analysis may be requested and collected later — spec 236 — then four seconds, or forty,
+stops mattering, and the cap can be lifted by moving the work to a worker without
+touching a line of derivation logic.
 
-This specification does not raise the limit. It removes the reason for it: the canonical
-derivations become SQL that PostgreSQL folds, and the registers read the same SQL, so
-there is still exactly one definition of what an open item is.
+The one that cannot wait is the register. `projections.py` builds the
+`open_financial_items` projection from the same fold, and spec 181 SC-002 requires the
+affected projections to be ready within **5 seconds** of worker time after one business
+event on a company with 100,000 orders. Measured, the fold costs 4 to 5.7 seconds at
+20,000 finance documents, so at 100,000 it is roughly 20 to 25 seconds — four to five
+times over a budget that belongs to the operational screens, where "it will arrive later"
+is not an answer.
+
+Behind that sits a wall that no amount of waiting moves. The fold holds **5.3 KiB of
+Python heap per finance document**: 104 MiB at 20,000, and something near 5 GB at a
+million. That is not a slow job. That is a process that does not finish.
+
+This specification is therefore about neither analysis latency nor the 20,000 cap. It is
+about the projection budget and the memory ceiling, and it removes the cap as a
+consequence rather than as a goal.
 
 ### Non-Goals
 No persisted or materialized balance, no second definition beside the canonical one, no
@@ -27,14 +35,18 @@ measure or edge. Partitioning and multi-cluster placement are spec 181's User St
 stay there; this feature is what makes a derivation cheap enough for that to matter.
 
 ## User Scenarios & Testing
-### US1 — A company a year into the target volume still answers (P1)
-Given a company with hundreds of thousands of finance documents, asking for customer
-balances, open items or stock positions returns the same rows the canonical service
-returns today, within the page's time budget, without an input-size refusal.
+### US1 — The registers stay fresh at the recorded volume (P1)
+Given a company with 100,000 orders and one business event, the projections that feed the
+registers are ready within the 5 seconds spec 181 SC-002 allows, and the process that
+builds them holds a bounded amount of memory regardless of how much history the company
+has.
 ### US2 — One definition, two readers (P1)
 Given the registers and the analysis both asking what is open on an invoice, both reach
 the same expression, and a change to the rule changes both. Two answers that agree most
 of the time are the failure this prevents.
+### US3a — A million documents is a size, not a wall (P1)
+Given a company with a million finance documents, deriving its open items completes
+without holding the company in one process's heap.
 ### US3 — The narrow question stays narrow (P2)
 Given a question filtered to one party, article or period, the narrowing reaches the
 expression as a predicate, so PostgreSQL reads only what the question can reach.
@@ -71,14 +83,14 @@ the plain paths, which already have no cap, will meet their own limit at hundred
 millions of rows. That is a separate piece of work and this one does not wait for it.
 
 ## Success Criteria
-- **SC-001**: On a company with 100,000 finance documents, customer balances, supplier
-  balances and open items each return within 300 ms server time, the budget spec 181
-  SC-004 already sets for the registers.
+- **SC-001**: On a company with 100,000 finance documents, rebuilding the
+  `open_financial_items` projection after one business event completes within the 5 s of
+  worker time spec 181 SC-002 allows, where it takes 20 to 25 s today.
 - **SC-002**: Every derived row equals what the canonical service returns today, checked
   document by document on a company built from the scale fixture, not by sampling.
 - **SC-003**: No analysis refusal remains whose reason is the size of the company.
-- **SC-004**: The cost of a derivation grows sub-linearly in company size across the
-  fixture's three sizes, where it is measured linear today.
+- **SC-004**: The memory the derivation holds does not grow with the company's history,
+  where it is measured at 5.3 KiB per finance document today.
 - **SC-005**: One expression, one test: deleting the SQL breaks the registers and the
   analysis together.
 
@@ -103,6 +115,13 @@ which an earlier reading of this code blamed — costs **1 ms**, and a plain SQL
 over the same company also costs 1 ms. The round trip is not the problem and this feature
 does not touch it.
 
+**What this is not about.** An earlier draft of this specification argued from analysis
+latency and the 20,000 cap. That argument does not hold: an analysis that may be
+requested and collected later does not care whether it takes four seconds or forty, and
+spec 236 lifts the cap for analysis by moving the work to a worker. The measurements
+below matter because the same fold builds the register projections under a 5-second
+budget, and because it holds the company in memory.
+
 **The cost is measured, not extrapolated.** The repository's own fixture, at the full
 profile with the finance dimension it was missing, best of three samples with statistics
 analysed: at 10,000 finance documents the derivations cost 1,151 to 1,647 ms, and at
@@ -116,6 +135,11 @@ statement — control entry by document type and side, signed balance per docume
 account, allocations excluding reversed posting groups, reversal role, open amount —
 returns **exactly the same open amount for all 3,430 documents**, with no document missing
 and none added, in 45 ms against 536 ms. The draft is in this spec's research notes.
+
+**The memory is the part waiting cannot fix.** Measured with `tracemalloc` on the fixture
+at 20,000 finance documents: 104 MiB of Python heap, 5.3 KiB per document. A worker with
+half an hour still cannot hold a million documents this way. Time is negotiable; a
+process that runs out of memory is not.
 
 **The remaining risk is the second half, not the first.** 45 ms on this company is not
 45 ms at ten million rows; the SQL cost tracks total ledger volume and needs the indexes

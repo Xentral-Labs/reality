@@ -1,4 +1,9 @@
 # Tasks
+
+Sequence note: spec 236 (an analysis you request and collect) is the cheaper first step
+and removes analysis latency as a reason for this work. These tasks are about the
+projection budget and the memory ceiling, which 236 does not touch.
+
 - [ ] T001 Add per-document parity regressions between the canonical service and the expression (FR-001,006).
 - [ ] T002 Express the open-item derivation in SQL, including the effective-time cutoff (FR-001).
 - [ ] T003 Move the registers, exception classes and payment run onto it; delete the Python fold (FR-002).
