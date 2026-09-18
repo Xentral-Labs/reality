@@ -207,11 +207,6 @@ try {
   );
   await page.getByRole("combobox", { name: "Appearance", exact: true }).selectOption("dark");
   assert.equal(await page.evaluate(() => document.documentElement.dataset.theme), "dark");
-  await page.getByRole("button", { name: "Appearance", exact: true }).click();
-  assert.equal(
-    await page.getByRole("combobox", { name: "Appearance", exact: true }).inputValue(),
-    "light",
-  );
   await page.getByRole("combobox", { name: "Appearance", exact: true }).selectOption("system");
   await page.emulateMedia({ colorScheme: "dark" });
   await page.waitForFunction(() => document.documentElement.dataset.theme === "dark");

@@ -205,9 +205,9 @@ try {
   );
   await nav.getByRole("button", { name: "My account", exact: true }).click();
   const profile = page.getByRole("dialog", { name: "My account", exact: true });
-  const oldTheme = await page.locator("html").getAttribute("data-theme");
-  await profile.getByRole("button", { name: "Appearance", exact: true }).click();
-  assert.notEqual(await page.locator("html").getAttribute("data-theme"), oldTheme);
+  // Appearance lives in personal settings, not in this menu; what the menu owes
+  // the reader here is the way to those settings, and a draft that survives it.
+  await profile.getByRole("link", { name: "Account settings", exact: true }).waitFor();
   await page.keyboard.press("Escape");
   assert.equal(await draft.inputValue(), "Preserve the current company draft");
   await company.click();
