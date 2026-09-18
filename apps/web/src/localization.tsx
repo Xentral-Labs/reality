@@ -17265,3 +17265,7 @@ Object.assign(dictionaries.es, {
   "The answer is empty because the question named something no record carries, not because the business has none.":
     "La respuesta está vacía porque la pregunta nombró algo que ningún registro lleva, no porque el negocio no tenga ninguno.",
 });
+
+Object.assign(dictionaries.de, { "(empty)": "(leer)" });
+Object.assign(dictionaries.nl, { "(empty)": "(leeg)" });
+Object.assign(dictionaries.es, { "(empty)": "(vacío)" });

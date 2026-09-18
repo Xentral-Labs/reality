@@ -203,7 +203,7 @@ const OPERATORS: { key: string; label: string; kinds: string[]; valueless?: bool
   },
 ];
 
-type Field = { field: string; label: string; kind: string };
+type Field = { field: string; label: string; kind: string; values?: string[] };
 
 export function GraphSteps({
   tenant,
@@ -471,6 +471,7 @@ function Builder({
             field: `${block.alias}.${property.key}`,
             label: property.label,
             kind: property.kind,
+            ...(property.values ? { values: property.values } : {}),
           })),
         ),
       ),
@@ -577,6 +578,7 @@ function Toolbar({
       field: `${block.alias}.${property.key}`,
       label: property.label,
       kind: property.kind,
+      ...(property.values ? { values: property.values } : {}),
     })),
   );
   const summarised = plan.measures.length > 0;
@@ -1290,7 +1292,10 @@ function AddFilter({ fields, add }: { fields: Field[]; add: (filter: Filter) => 
             ))}
           </select>
           {!selected.valueless &&
-            (chosen.kind === "boolean" ? (
+            (chosen.kind === "boolean" || chosen.values?.length ? (
+              // The catalog knows which words this company's records use, so
+              // nobody has to guess one. Typing "sale" where the records say
+              // "customer_delivery" returns nothing and looks like an answer.
               <select
                 className="rounded-lg border border-border-default bg-surface px-2 py-2 text-sm"
                 aria-label={t("Value")}
@@ -1298,8 +1303,18 @@ function AddFilter({ fields, add }: { fields: Field[]; add: (filter: Filter) => 
                 onChange={(event) => setValue(event.target.value)}
               >
                 <option value="">…</option>
-                <option value="true">{t("yes")}</option>
-                <option value="false">{t("no")}</option>
+                {chosen.kind === "boolean" ? (
+                  <>
+                    <option value="true">{t("yes")}</option>
+                    <option value="false">{t("no")}</option>
+                  </>
+                ) : (
+                  chosen.values?.map((known) => (
+                    <option key={known} value={known}>
+                      {known || t("(empty)")}
+                    </option>
+                  ))
+                )}
               </select>
             ) : (
               <input
