@@ -38,8 +38,15 @@ import { analyticsError } from "./errors";
 type Condition = { field: string; op: string; value?: unknown };
 type Filter = { shown: string; conditions: Condition[] };
 type Block = {
-  /** The first block has no hop; every later one carries the edge that reached it. */
-  edge?: { key: string; direction: "out" | "in"; label: string; fansOut: boolean };
+  /** The first block has no hop; every later one carries the edge that reached it.
+   *  `from` is the alias it left, which is not always the step before it. */
+  edge?: {
+    key: string;
+    direction: "out" | "in";
+    label: string;
+    fansOut: boolean;
+    from?: string;
+  };
   alias: string;
   node: string;
   filters: Filter[];
@@ -225,10 +232,15 @@ export function question(plan: Plan): GraphQuestion {
   return {
     from: plan.blocks[0].node,
     as: plan.blocks[0].alias,
-    follow: plan.blocks.slice(1).map((block) => ({
+    follow: plan.blocks.slice(1).map((block, index) => ({
       edge: block.edge!.key,
       direction: block.edge!.direction,
       as: block.alias,
+      // Only when it is not the step before, so an ordinary path still reads
+      // as an ordinary path.
+      ...(block.edge!.from && block.edge!.from !== plan.blocks[index].alias
+        ? { from: block.edge!.from }
+        : {}),
     })),
     filter: plan.blocks.flatMap((block) =>
       block.filters.flatMap((filter) =>
@@ -284,7 +296,10 @@ export function planOf(question: GraphQuestion, nodes: Record<string, GraphNode>
   if (!start) return null;
   const blocks: Block[] = [{ alias: question.as || "root", node: question.from, filters: [] }];
   for (const hop of question.follow ?? []) {
-    const at = nodes[blocks[blocks.length - 1].node];
+    // A hop says where it starts when that is not the step before it, so a
+    // branching question reopens as the branch it was.
+    const origin = hop.from || blocks[blocks.length - 1].alias;
+    const at = nodes[blocks.find((block) => block.alias === origin)?.node ?? ""];
     const forward = (at?.edges ?? []).find((edge) => edge.key === hop.edge);
     const backward = (at?.edges_in ?? []).find((edge) => edge.key === hop.edge);
     const edge = hop.direction === "in" ? backward : forward;
@@ -298,6 +313,7 @@ export function planOf(question: GraphQuestion, nodes: Record<string, GraphNode>
             ? `${(edge as { from_label: string }).from_label} (${edge.label})`
             : `${edge.label} ${(edge as { to_label: string }).to_label}`,
         fansOut: fansOut(edge.multiplicity, hop.direction),
+        from: origin,
       },
       alias: hop.as,
       node: hop.direction === "in" ? (edge as { from: string }).from : (edge as { to: string }).to,
@@ -747,6 +763,46 @@ function Chip({ filter, flip, remove }: { filter: Filter; flip: () => void; remo
   );
 }
 
+/** Every connection the question can still take, from anywhere it has reached.
+ *
+ * A realistic report branches: an open delivery is asked about by customer AND
+ * by article, and both hang off the commitment. Offering only what continues
+ * from the last step made those reports impossible to build, although the
+ * executor has always accepted a hop that names where it starts.
+ *
+ * The record a connection leaves from is named only when the same connection is
+ * offered from more than one place, because that is the only time it is a
+ * question the reader has to answer.
+ */
+export function reachable(plan: Plan, nodes: Record<string, GraphNode>) {
+  const out = plan.blocks.flatMap((block) => [
+    ...(nodes[block.node]?.edges ?? []).map((edge) => ({
+      key: edge.key,
+      label: `${edge.label} ${edge.to_label}`,
+      node: edge.to,
+      direction: "out" as const,
+      from: block.alias,
+      at: nodes[block.node]?.label ?? block.node,
+      fansOut: fansOut(edge.multiplicity, "out"),
+    })),
+    ...(nodes[block.node]?.edges_in ?? []).map((edge) => ({
+      key: edge.key,
+      label: `${edge.from_label} (${edge.label})`,
+      node: edge.from,
+      direction: "in" as const,
+      from: block.alias,
+      at: nodes[block.node]?.label ?? block.node,
+      fansOut: fansOut(edge.multiplicity, "in"),
+    })),
+  ]);
+  const seen = new Map<string, number>();
+  for (const edge of out) seen.set(edge.label, (seen.get(edge.label) ?? 0) + 1);
+  return out.map((edge) => ({
+    ...edge,
+    origin: (seen.get(edge.label) ?? 0) > 1 ? edge.at : "",
+  }));
+}
+
 /** Reaching another record type, which is the one step that can multiply. */
 function Reach({
   catalog,
@@ -760,23 +816,7 @@ function Reach({
   change: (next: Plan) => void;
 }) {
   const [open, setOpen] = useState(false);
-  const tip = plan.blocks[plan.blocks.length - 1];
-  const onward = [
-    ...(nodes[tip.node]?.edges ?? []).map((edge) => ({
-      key: edge.key,
-      label: `${edge.label} ${edge.to_label}`,
-      node: edge.to,
-      direction: "out" as const,
-      fansOut: fansOut(edge.multiplicity, "out"),
-    })),
-    ...(nodes[tip.node]?.edges_in ?? []).map((edge) => ({
-      key: edge.key,
-      label: `${edge.from_label} (${edge.label})`,
-      node: edge.from,
-      direction: "in" as const,
-      fansOut: fansOut(edge.multiplicity, "in"),
-    })),
-  ];
+  const onward = reachable(plan, nodes);
   if (!onward.length || plan.blocks.length > catalog.limits.max_path_length) return null;
   if (!open)
     return (
@@ -804,6 +844,7 @@ function Reach({
                     direction: edge.direction,
                     label: edge.label,
                     fansOut: edge.fansOut,
+                    from: edge.from,
                   },
                   alias,
                   node: edge.node,
@@ -816,6 +857,7 @@ function Reach({
           }}
         >
           {edge.label}
+          {edge.origin && <span className="text-xs text-fg-muted">({edge.origin})</span>}
           <span className={`text-xs ${edge.fansOut ? "text-warning-600" : "text-fg-muted"}`}>
             {edge.fansOut ? t("many") : t("one")}
           </span>

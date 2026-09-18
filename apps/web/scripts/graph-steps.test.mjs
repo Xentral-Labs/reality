@@ -44,8 +44,17 @@ vm.runInNewContext(
     },
   },
 );
-const { question, pruned, periodFilter, columnOf, nextOrder, planOf, withMeasure, withoutMeasure } =
-  exports;
+const {
+  question,
+  pruned,
+  periodFilter,
+  columnOf,
+  nextOrder,
+  planOf,
+  withMeasure,
+  withoutMeasure,
+  reachable,
+} = exports;
 
 /** The module runs in its own context, so its objects carry another realm's
  *  prototype. Comparing the values rather than the identities keeps the test
@@ -69,7 +78,22 @@ const NODES = {
         to_label: "Auftragsposition",
         multiplicity: "1:n",
       },
+      {
+        key: "ordered_by",
+        label: "bestellt von",
+        to: "party",
+        to_label: "Geschäftspartner",
+        multiplicity: "n:1",
+      },
     ],
+    edges_in: [],
+  },
+  party: {
+    key: "party",
+    label: "Geschäftspartner",
+    measures: [],
+    properties: [{ key: "name", label: "Name", kind: "text" }],
+    edges: [],
     edges_in: [],
   },
   order_line: {
@@ -325,4 +349,58 @@ test("a reopened period reads as the day it was picked, not the day before", () 
   });
   const shown = plain(planOf(saved, NODES)).blocks[0].filters[0].shown;
   assert.doesNotMatch(shown, /31/, `a September filter must not read as August: ${shown}`);
+});
+
+/** A realistic report branches. Found by building B02 in the browser: an open
+ *  delivery is asked about by customer AND by article, and both hang off the
+ *  commitment, so a control that only continued from the last step could not
+ *  express it — although the executor has always taken a hop that says where
+ *  it starts. */
+const BRANCHED = {
+  blocks: [
+    { alias: "o", node: "order", filters: [] },
+    {
+      edge: { key: "contains", direction: "out", label: "enthält", fansOut: true, from: "o" },
+      alias: "n1",
+      node: "order_line",
+      filters: [],
+    },
+  ],
+  measures: [],
+  groups: [{ field: "o.currency", label: "Währung" }],
+  limit: 50,
+};
+
+test("a connection is offered from everywhere the question has reached", () => {
+  const offered = plain(reachable(BRANCHED, NODES));
+  assert.ok(
+    offered.some((edge) => edge.from === "o"),
+    "the order it started at still offers its own connections",
+  );
+});
+
+test("a branching hop says where it starts, and an ordinary one does not", () => {
+  const branched = {
+    ...BRANCHED,
+    blocks: [
+      ...BRANCHED.blocks,
+      {
+        edge: {
+          key: "ordered_by",
+          direction: "out",
+          label: "bestellt von",
+          fansOut: false,
+          from: "o",
+        },
+        alias: "n2",
+        node: "party",
+        filters: [],
+      },
+    ],
+  };
+  const asked = plain(question(branched));
+  assert.equal(asked.follow[0].from, undefined, "a plain step needs no origin");
+  assert.equal(asked.follow[1].from, "o", "a branch back to the order names it");
+  const reopened = plain(planOf(asked, NODES));
+  assert.equal(reopened.blocks[2].edge.from, "o", "and it reopens as the same branch");
 });
