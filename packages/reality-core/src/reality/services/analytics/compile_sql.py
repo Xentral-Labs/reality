@@ -307,9 +307,15 @@ def _measure_expression(path: ResolvedPath, frame: Frame, name: str, tenant_id: 
         return func.sum(row.c[source])
     if source.distinct:
         return func.count(distinct(frame.tables[alias].c[source.distinct]))
+    # Binding to the canonical service is the point of this measure: a receivable
+    # balance covers opening items, several document types and reversal groups,
+    # and a second derivation beside it would agree most of the time, which is
+    # the more dangerous kind of wrong. Executing it here is separate work.
     raise TraversalRefused(
-        f"measure {name!r} is produced by the canonical service {source.service!r}, "
-        "which this slice does not execute yet"
+        f"measure {name!r} comes from {source.service!r}, which works out the "
+        "number in one authoritative place. This page cannot run it yet, and "
+        "deriving a second answer beside it would be worse than saying so.",
+        "service_measure",
     )
 
 
@@ -452,6 +458,42 @@ def _plain(value: Any) -> Any:
     return str(value)
 
 
+def _unknown_values(
+    session: Session, tenant_id: str, path: ResolvedPath
+) -> tuple[str, ...]:
+    """Which equality filters name a value no record carries.
+
+    Asked only when the answer is empty, because that is the only time the
+    difference matters and the only time the extra look is worth taking. A model
+    that filtered `type = "sale"` where the records say `customer_delivery` got
+    nothing back and reported it as a fact about the business; this is what it
+    needed to know instead.
+    """
+    unknown: list[str] = []
+    for condition in path.query.filter:
+        if condition.op != "eq" or not isinstance(condition.value, str):
+            continue
+        alias, prop = condition.field.split(".", 1)
+        node = path.graph.nodes[path.node_of[alias]]
+        table = _table(node.table or "")
+        column = node.column_of(prop)
+        if not column or column not in table.c:
+            continue
+        found = session.scalar(
+            select(literal(1))
+            .select_from(table)
+            .where(
+                and_(
+                    table.c[column] == condition.value, *_scope(node, table, tenant_id)
+                )
+            )
+            .limit(1)
+        )
+        if found is None:
+            unknown.append(f"{condition.field} = {condition.value!r}")
+    return tuple(unknown)
+
+
 def execute(session: Session, tenant_id: str, path: ResolvedPath) -> TraversalResult:
     """Run the one statement under a deadline the caller cannot raise.
 
@@ -467,6 +509,7 @@ def execute(session: Session, tenant_id: str, path: ResolvedPath) -> TraversalRe
     session.execute(text(f"SET LOCAL statement_timeout = {budget_ms:d}"))
     rows = session.execute(statement).mappings().all()
     return TraversalResult(
+        matched_nothing=_unknown_values(session, tenant_id, path) if not rows else (),
         rows=tuple({key: _plain(value) for key, value in row.items()} for row in rows),
         sql=rendered,
         statements=1,

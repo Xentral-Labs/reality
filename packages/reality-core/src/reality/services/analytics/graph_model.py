@@ -312,7 +312,47 @@ def _label(carrier, fallback: str, language: str) -> str:
     return label.pick(language) if label else fallback
 
 
-def reporting_catalog(node: str | None = None, language: str = "en") -> dict[str, Any]:
+def _observed(session, tenant_id: str, graph, names: list[str]) -> dict[str, list[str]]:
+    """What a short-vocabulary column actually holds in this company.
+
+    A model that has to guess a status writes `type = "sale"` where the records
+    say `customer_delivery`, gets nothing back, and reports that as a fact about
+    the business. Listing the words the records use makes that mistake hard to
+    make, and reading them rather than declaring them means the list cannot drift
+    away from the data.
+    """
+    from sqlalchemy import distinct, select
+
+    from reality.db.core import Base
+
+    found: dict[str, list[str]] = {}
+    for name in names:
+        node = graph.nodes[name]
+        table = Base.metadata.tables.get(node.table or "")
+        if table is None:
+            continue
+        for prop, column in node.enumerated().items():
+            if column not in table.c:
+                continue
+            values = session.scalars(
+                select(distinct(table.c[column]))
+                .where(table.c[node.tenant] == tenant_id)
+                .order_by(table.c[column])
+                .limit(40)
+            ).all()
+            found[f"{name}.{prop}"] = [
+                str(value) for value in values if value is not None
+            ]
+    return found
+
+
+def reporting_catalog(
+    node: str | None = None,
+    language: str = "en",
+    *,
+    session=None,
+    tenant_id: str | None = None,
+) -> dict[str, Any]:
     """What can be asked: the nodes, how they connect, and what each number means.
 
     Generated from the declaration rather than written beside it, so the catalog
@@ -323,6 +363,11 @@ def reporting_catalog(node: str | None = None, language: str = "en") -> dict[str
     if node is not None and node not in graph.nodes:
         raise ReportingGraphError(f"unknown node {node!r}")
     names = [node] if node else list(graph.nodes)
+    seen = (
+        _observed(session, tenant_id, graph, names)
+        if session is not None and tenant_id
+        else {}
+    )
     return {
         "version": graph.version,
         "model_version": graph.model_version,
@@ -345,6 +390,11 @@ def reporting_catalog(node: str | None = None, language: str = "en") -> dict[str
                             graph.nodes[name].column_of(prop), "text"
                         ),
                         **({"identity": True} if prop == graph.nodes[name].key else {}),
+                        **(
+                            {"values": seen[f"{name}.{prop}"]}
+                            if f"{name}.{prop}" in seen
+                            else {}
+                        ),
                     }
                     for prop in _groupable(graph.nodes[name])
                 ],

@@ -17231,3 +17231,34 @@ Object.assign(dictionaries.es, {
 Object.assign(dictionaries.de, { "Remove this number": "Diese Kennzahl entfernen" });
 Object.assign(dictionaries.nl, { "Remove this number": "Dit kengetal verwijderen" });
 Object.assign(dictionaries.es, { "Remove this number": "Quitar este indicador" });
+
+Object.assign(dictionaries.de, {
+  "This number is worked out in one authoritative place, and this page cannot run it yet.":
+    "Diese Zahl wird an einer maßgeblichen Stelle ermittelt, und diese Seite kann sie noch nicht ausführen.",
+});
+Object.assign(dictionaries.nl, {
+  "This number is worked out in one authoritative place, and this page cannot run it yet.":
+    "Dit getal wordt op één gezaghebbende plek bepaald en deze pagina kan dat nog niet uitvoeren.",
+});
+Object.assign(dictionaries.es, {
+  "This number is worked out in one authoritative place, and this page cannot run it yet.":
+    "Este número se calcula en un único lugar autorizado y esta página todavía no puede ejecutarlo.",
+});
+
+// An empty answer means one of two different things, and only one is about the
+// business. The wording keeps them apart.
+Object.assign(dictionaries.de, {
+  "Nothing has that value.": "Kein Datensatz trägt diesen Wert.",
+  "The answer is empty because the question named something no record carries, not because the business has none.":
+    "Die Antwort ist leer, weil die Frage etwas benannt hat, das kein Datensatz trägt — nicht weil es im Geschäft nichts davon gibt.",
+});
+Object.assign(dictionaries.nl, {
+  "Nothing has that value.": "Geen record draagt deze waarde.",
+  "The answer is empty because the question named something no record carries, not because the business has none.":
+    "Het antwoord is leeg omdat de vraag iets noemde dat geen record draagt — niet omdat het bedrijf er geen heeft.",
+});
+Object.assign(dictionaries.es, {
+  "Nothing has that value.": "Ningún registro lleva ese valor.",
+  "The answer is empty because the question named something no record carries, not because the business has none.":
+    "La respuesta está vacía porque la pregunta nombró algo que ningún registro lleva, no porque el negocio no tenga ninguno.",
+});

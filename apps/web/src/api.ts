@@ -3196,6 +3196,10 @@ export type GraphQuestion = {
 };
 export type GraphAnswer = {
   rows: Record<string, string | number | null>[];
+  /** Equality filters whose value appears on no record at all. An empty answer
+   *  means one of two different things, and only one of them is about the
+   *  business. */
+  matched_nothing?: string[];
   path: string[];
   model_version: string;
   statements: number;

@@ -794,3 +794,52 @@ def test_unbilled_quantity_counts_the_reverse_direction_of_an_edge(
     assert Decimal(row["unbilled_order_quantity"]) == Decimal(4), (
         "nothing bills against these lines, so all of it is unbilled"
     )
+
+
+def test_an_empty_answer_says_whether_the_question_named_something_real(
+    session, business, sales
+):
+    """Found by asking the copilot: it filtered `type = "sale"` where the records
+    say `customer_delivery`, got nothing back, and told the reader there were no
+    open deliveries — while 746 units were open.
+
+    An empty answer means one of two very different things, and only one of them
+    is about the business.
+    """
+    nothing_matched = ask(
+        session,
+        business.tenant.id,
+        **{
+            "from": "order",
+            "filter": [
+                {"field": "root.sales_channel", "op": "eq", "value": "carrier pigeon"}
+            ],
+            "measures": ["order_count"],
+            "group_by": [{"field": "root.currency"}],
+        },
+    )
+    assert nothing_matched.rows == ()
+    assert nothing_matched.matched_nothing == ("root.sales_channel = 'carrier pigeon'",)
+
+    real_but_empty = ask(
+        session,
+        business.tenant.id,
+        **{
+            "from": "order",
+            "filter": [
+                {"field": "root.sales_channel", "op": "eq", "value": "web"},
+                {"field": "root.currency", "op": "eq", "value": "EUR"},
+                {
+                    "field": "root.ordered_at",
+                    "op": "gte",
+                    "value": "2099-01-01T00:00:00Z",
+                },
+            ],
+            "measures": ["order_count"],
+            "group_by": [{"field": "root.currency"}],
+        },
+    )
+    assert real_but_empty.rows == ()
+    assert real_but_empty.matched_nothing == (), (
+        "every value named here exists; the period is simply in the future"
+    )

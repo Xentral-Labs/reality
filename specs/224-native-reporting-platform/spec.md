@@ -300,6 +300,12 @@ late corrections and reversals; unsupported temporal coverage.
   an axis is a refusal waiting to happen, and meeting it twice in a row — once because
   the unit is out of reach and once because the question does not split by it — teaches
   the reader nothing that showing the split would not have said.
+- **FR-021**: Distinguish an empty answer from a question that named something no record
+  carries. A short-vocabulary column publishes the words this company's records actually
+  use, read from the company rather than declared, so a caller does not have to guess
+  them; and when an answer is empty, every equality filter whose value appears nowhere is
+  named. Nothing may present an empty result as a fact about the business when the
+  question itself did not match the data.
 - **FR-016**: Retire the configured generation in the same change that makes the graph the
   only analytics surface. A report saved under the retired generation carries no kind and
   no model version: it is neither read nor written by any surface, and no translation is
@@ -401,6 +407,7 @@ owners.
 | FR-018 | US2.1, US5.1 | T004/T005 deductions: reconciled against hand-written SQL, no join, tenant inside the subquery, declaration guards |
 | FR-019 | US1.1–2 | T009 branching: offered from every reached record, origin recorded only when it differs, reopens as the same branch |
 | FR-020 | US2.2 | T009 required axes arrive with reach, not as a second refusal |
+| FR-021 | US1.4, US4.3 | T003/T005 observed vocabularies and the empty-answer distinction, both ways |
 | DR-001 | US4.3 | T005/T012 canonical evidence |
 | DR-002 | US1.3, US2.2 | T003/T005 amount and grain correctness |
 | DR-003 | US5, non-goals | T002/T014/T016 architecture review |

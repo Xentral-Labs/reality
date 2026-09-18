@@ -90,6 +90,12 @@ class TraversalResult:
     statements: int
     model_version: str
     path: tuple[str, ...]
+    #: Equality filters whose value appears on no record at all. An empty answer
+    #: means one of two very different things — nothing matched, or the question
+    #: named something that does not exist — and only the second is the asker's
+    #: mistake. Saying which is the difference between "there is no open
+    #: delivery" and "there is no such status".
+    matched_nothing: tuple[str, ...] = ()
 
 
 def _fans_out(edge: Edge, direction: str, recursive: bool = False) -> bool:
