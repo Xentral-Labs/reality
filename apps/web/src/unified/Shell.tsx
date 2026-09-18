@@ -39,13 +39,7 @@ import {
   Info,
 } from "lucide-react";
 import type { AuthUser, Tenant } from "../api";
-import {
-  storeThemePreference,
-  readThemePreference,
-  resolveTheme,
-  applyTheme,
-  watchSystemTheme,
-} from "../theme";
+import { readThemePreference, applyTheme, watchSystemTheme } from "../theme";
 import { t } from "../localization";
 import { selectionUrl, type Selection } from "./routing";
 
@@ -107,13 +101,10 @@ export function Shell({
       // The current view remains usable when browser storage is unavailable.
     }
   };
-  const [dark, setDark] = useState(resolveTheme(readThemePreference()) === "dark");
   useEffect(() => {
-    const changed = () => {
-      const preference = readThemePreference();
-      applyTheme(preference);
-      setDark(resolveTheme(preference) === "dark");
-    };
+    // The preference lives in personal settings; the shell only has to keep the
+    // document in step with it, and with the device when it says "system".
+    const changed = () => applyTheme(readThemePreference());
     window.addEventListener("reality:theme-changed", changed);
     const stop = watchSystemTheme(changed);
     return () => {
@@ -627,8 +618,6 @@ export function Shell({
                     selection={selection}
                     navigate={navigate}
                     closeNavigation={() => setOpen(false)}
-                    dark={dark}
-                    toggleAppearance={() => storeThemePreference(dark ? "light" : "dark")}
                   />
                 </div>
               </aside>
