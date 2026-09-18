@@ -49,7 +49,14 @@ def reveal(session, tenant_id, principal, arguments):
             _master_key().decrypt(arguments["private_report_change"].encode())
         )
     except (InvalidToken, ValueError, KeyError, TypeError) as error:
-        raise AnalyticsError("The private report proposal cannot be read.") from error
+        # Sealed with a key this installation no longer has. Retrying cannot
+        # help, and saying "not found" would send the reader looking for a
+        # proposal that is sitting right in front of them.
+        raise AnalyticsError(
+            "This proposal was sealed with a key this installation no longer "
+            "has, so its contents cannot be shown. It can only be rejected.",
+            "sealed_unreadable",
+        ) from error
     if payload["tenant_id"] != tenant_id or payload["owner_user_id"] != owner:
         raise AnalyticsError(
             "Only the original author may confirm this private report change.",
