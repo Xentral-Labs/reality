@@ -3163,7 +3163,17 @@ export type GraphNode = {
   corrections: "replace" | "revise" | "compensate";
   coverage: string[];
   /** `kind` says what sort of value the column holds, so a filter can offer the right editor. */
-  properties: { key: string; label: string; kind: "text" | "number" | "boolean" | "time" }[];
+  properties: {
+    key: string;
+    label: string;
+    kind: "text" | "number" | "boolean" | "time";
+    /** True for the node's own key: grouping by it is the only way to keep two
+     *  records with the same name apart. */
+    identity?: boolean;
+    /** The words this company's records actually use, for a column with a short
+     *  fixed vocabulary. Read from the company, never declared. */
+    values?: string[];
+  }[];
   evidence: string | null;
   measures: GraphMeasure[];
   edges: GraphEdge[];
