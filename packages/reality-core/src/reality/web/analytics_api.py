@@ -183,5 +183,16 @@ def get_report_proposal(
 
     try:
         return preview(session, tenant_id, principal(request), proposal_id)
-    except (NotFound, AnalyticsError) as error:
+    except NotFound as error:
         raise HTTPException(404, "Report proposal not found.") from error
+    except AnalyticsError as error:
+        # A proposal that exists but cannot be shown is not a missing one. The
+        # three used to arrive as the same sentence, and only one of them meant
+        # what it said.
+        raise HTTPException(
+            422,
+            {
+                "code": getattr(error, "code", "invalid_definition"),
+                "message": str(error),
+            },
+        ) from error

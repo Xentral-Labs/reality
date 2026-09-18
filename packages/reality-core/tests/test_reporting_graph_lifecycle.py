@@ -8,10 +8,12 @@ cannot be silently reopened under another.
 
 from __future__ import annotations
 
+import json
 from decimal import Decimal
 from uuid import uuid4
 
 import pytest
+from cryptography.fernet import Fernet
 
 from reality.domain.traversal import Traversal
 from reality.services.analytics.errors import AnalyticsError
@@ -358,3 +360,50 @@ def test_a_refused_save_releases_the_proposal_instead_of_stranding_it(
             confirmed=True,
         )
     assert again.value.code == "idempotency_conflict"
+
+
+def test_a_proposal_that_cannot_be_unsealed_says_so_and_can_be_rejected(
+    session, business, author
+):
+    """Found by moving the running stack between two checkouts.
+
+    Each one generates its own key file, so a proposal sealed under one becomes
+    unreadable under the other. The route answered "Report proposal not found"
+    for that, for a proposal belonging to somebody else, and for one that really
+    was missing — three different situations, one sentence, and only one of them
+    meant what it said. A reader looked for a proposal that was in front of them
+    and pressed Try again forever.
+    """
+    from reality.services.analytics.proposals import preview
+    from reality.services.analytics.reports import caller
+    from reality.tools.application import create_change_proposal, reject_proposal
+
+    with caller(author):
+        proposal = create_change_proposal(
+            session,
+            business.tenant.id,
+            "graph.reports.change",
+            {
+                "operation": "create",
+                "request_id": str(uuid4()),
+                "name": "Unlesbar",
+                "question": QUESTION,
+            },
+        )
+    sealed = json.loads(proposal.input)
+    sealed["private_report_change"] = (
+        Fernet(Fernet.generate_key()).encrypt(b"{}").decode()
+    )
+    proposal.input = json.dumps(sealed)
+    session.flush()
+
+    with pytest.raises(AnalyticsError) as refusal:
+        preview(session, business.tenant.id, author, proposal.id)
+    assert refusal.value.code == "sealed_unreadable"
+    assert "rejected" in str(refusal.value), "say what can still be done about it"
+
+    # Rejecting needs no key, which is what makes the card dismissible.
+    reject_proposal(
+        session, business.tenant.id, proposal.id, confirming_principal=author
+    )
+    assert session.get(type(proposal), proposal.id).status == "rejected"

@@ -39,8 +39,32 @@ export function GraphReportProposal({
       setBusy(false);
     }
   };
+  if (read.loading) return <ReadState loading={true} retry={read.refresh} />;
   if (!read.data)
-    return <ReadState loading={read.loading} error={read.error} retry={read.refresh} />;
+    // A proposal that cannot be shown still has to be dismissible. Offering only
+    // "try again" leaves the reader pressing a button that can never work — for
+    // a card that follows them into every conversation they open.
+    return (
+      <section className="space-y-3 rounded-xl border border-warning-200 bg-warning-50 p-4">
+        <h3 className="text-sm font-semibold text-warning-600">
+          {t("This proposal cannot be shown")}
+        </h3>
+        <p className="text-sm">{analyticsError(read.error)}</p>
+        <div className="flex flex-wrap gap-2">
+          <button className="br-btn" disabled={busy} onClick={() => read.refresh()}>
+            {t("Try again")}
+          </button>
+          <button
+            className="br-btn"
+            disabled={busy}
+            onClick={() => act(() => api.rejectProposal(tenant, id, null))}
+          >
+            {t("Reject")}
+          </button>
+        </div>
+        {error && <p className="text-sm text-critical-text">{error}</p>}
+      </section>
+    );
   const proposal = read.data;
   const question = proposal.definition as GraphQuestion | null;
   const node = catalog.data?.nodes.find((candidate) => candidate.key === question?.from);

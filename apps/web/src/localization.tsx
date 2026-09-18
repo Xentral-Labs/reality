@@ -17296,3 +17296,24 @@ Object.assign(dictionaries.es, {
   "Take this over": "Adoptar",
   "Comes with a period": "Con periodo",
 });
+
+// A proposal that cannot be shown still has to be dismissible; "try again" on
+// its own is a button that can never work.
+Object.assign(dictionaries.de, {
+  "This proposal cannot be shown": "Dieser Vorschlag lässt sich nicht anzeigen",
+  "Try again": "Erneut versuchen",
+  "This proposal was sealed with a key this installation no longer has, so its contents cannot be shown. It can only be rejected.":
+    "Dieser Vorschlag wurde mit einem Schlüssel versiegelt, den diese Installation nicht mehr hat. Sein Inhalt lässt sich nicht anzeigen; er kann nur abgelehnt werden.",
+});
+Object.assign(dictionaries.nl, {
+  "This proposal cannot be shown": "Dit voorstel is niet te tonen",
+  "Try again": "Opnieuw proberen",
+  "This proposal was sealed with a key this installation no longer has, so its contents cannot be shown. It can only be rejected.":
+    "Dit voorstel is verzegeld met een sleutel die deze installatie niet meer heeft. De inhoud is niet te tonen; het kan alleen worden afgewezen.",
+});
+Object.assign(dictionaries.es, {
+  "This proposal cannot be shown": "Esta propuesta no se puede mostrar",
+  "Try again": "Intentar de nuevo",
+  "This proposal was sealed with a key this installation no longer has, so its contents cannot be shown. It can only be rejected.":
+    "Esta propuesta se selló con una clave que esta instalación ya no tiene, así que su contenido no se puede mostrar; solo se puede rechazar.",
+});
