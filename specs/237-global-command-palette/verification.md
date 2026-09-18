@@ -213,3 +213,15 @@ Final integrated focused backend regression run: 133 passed in 52.23 seconds,
 including search matching, migration upgrade/downgrade, service authorization, HTTP,
 worklists, benchmark contracts and application catalog checks. The full serial
 PostgreSQL suite is still running; no complete passing result is claimed.
+
+### PR 98 frontend CI environment correction
+
+The first frontend CI run failed because the command-palette target contract imports
+the executable catalog fixture, which requires `.venv/bin/python` and reality-core.
+The frontend job previously installed only Node dependencies; local checks had an
+existing Python environment. The job now provisions Python 3.12 and installs the
+shared core into that expected virtual environment before running contracts.
+Spec impact: none; this supplies test dependencies without changing product behavior
+or replacing executable catalog coverage with a manually duplicated fixture.
+All seven target contract tests pass locally; hosted CI remains the clean-environment
+verification of the workflow correction.
