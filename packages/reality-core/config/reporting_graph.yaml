@@ -26,6 +26,9 @@ defaults:
 nodes:
 
   party:
+    category_order: 50
+    category: { en: "Partners and items", de: "Partner und Artikel" }
+    aliases: ["Kunde", "Lieferant", "customer", "supplier"]
     label: { en: "Business partner", de: "Geschäftspartner" }
     table: party
     grain: one business partner
@@ -42,6 +45,8 @@ nodes:
       credit_limit: { column: credit_limit, label: { en: "Credit limit", de: "Kreditlimit" } }
 
   item:
+    category_order: 50
+    category: { en: "Partners and items", de: "Partner und Artikel" }
     label: { en: "Article", de: "Artikel" }
     measures: none            # traversed and filtered, never summed
     table: item
@@ -59,7 +64,9 @@ nodes:
       is_active: { column: is_active, label: { en: "Active", de: "Aktiv" } }
 
   order:
-    label: { en: "Sales order", de: "Auftrag" }
+    category_order: 10
+    category: { en: "Sales", de: "Verkauf" }
+    label: { en: "Sales order", de: "Kundenauftrag" }
     table: document
     where: { type: sales_order }
     grain: one retained sales order
@@ -71,7 +78,7 @@ nodes:
     properties:
       number: { column: number, label: { en: "Number", de: "Nummer" } }
       ordered_at: { column: ordered_at, label: { en: "Order date", de: "Bestelldatum" } }
-      document_date: { column: document_date, label: { en: "Document date", de: "Belegdatum" } }
+      document_date: { column: document_date, temporal: date, label: { en: "Document date", de: "Belegdatum" } }
       requested_delivery_at: { column: requested_delivery_at, label: { en: "Requested delivery", de: "Wunschtermin" } }
       currency: { column: currency, label: { en: "Currency", de: "Währung" } }
       status: { column: status, label: { en: "Status", de: "Status" }, enumerated: true }
@@ -79,6 +86,8 @@ nodes:
       customer_reference: { column: customer_reference, label: { en: "Customer reference", de: "Kundenreferenz" } }
 
   order_line:
+    category_order: 10
+    category: { en: "Sales", de: "Verkauf" }
     label: { en: "Order line", de: "Auftragsposition" }
     table: document_line
     of: order                   # only lines whose document is an order node
@@ -97,7 +106,9 @@ nodes:
       requested_at: { column: requested_at, label: { en: "Requested", de: "Gewünscht" } }
 
   invoice:
-    label: { en: "Invoice", de: "Rechnung" }
+    category_order: 10
+    category: { en: "Sales", de: "Verkauf" }
+    label: { en: "Customer invoices and credits", de: "Kundenrechnungen und Gutschriften" }
     table: document
     where: { type: [sales_invoice, credit_note] }
     grain: one invoice or credit note
@@ -108,13 +119,15 @@ nodes:
     evidence: source_record_id
     properties:
       number: { column: number, label: { en: "Number", de: "Nummer" } }
-      document_date: { column: document_date, label: { en: "Document date", de: "Belegdatum" } }
+      document_date: { column: document_date, temporal: date, label: { en: "Document date", de: "Belegdatum" } }
       currency: { column: currency, label: { en: "Currency", de: "Währung" } }
       status: { column: status, label: { en: "Status", de: "Status" } }
       type: { column: type, label: { en: "Type", de: "Art" } }
 
   invoice_line:
-    label: { en: "Invoice line", de: "Rechnungsposition" }
+    category_order: 10
+    category: { en: "Sales", de: "Verkauf" }
+    label: { en: "Customer invoice and credit lines", de: "Kundenrechnungs- und Gutschriftpositionen" }
     table: document_line
     of: invoice
     grain: one invoice position
@@ -127,6 +140,9 @@ nodes:
       unit: { column: unit, label: { en: "Unit", de: "Einheit" } }
 
   commitment:
+    category_order: 40
+    category: { en: "Warehouse and shipping", de: "Lager und Versand" }
+    aliases: ["Lieferzusage", "Lieferverpflichtung"]
     label: { en: "Commitment", de: "Verpflichtung" }
     table: commitment
     grain: one promise to deliver or receive
@@ -147,6 +163,8 @@ nodes:
       priority: { column: priority, label: { en: "Priority", de: "Priorität" } }
 
   posting:
+    category_order: 30
+    category: { en: "Payments and accounting", de: "Zahlungen und Buchhaltung" }
     label: { en: "Ledger entry", de: "Buchung" }
     table: ledger_entry
     grain: one ledger entry
@@ -167,6 +185,8 @@ nodes:
       debit_credit: { column: debit_credit, label: { en: "Debit/credit", de: "Soll/Haben" } }
 
   allocation:
+    category_order: 30
+    category: { en: "Payments and accounting", de: "Zahlungen und Buchhaltung" }
     label: { en: "Settlement", de: "Zahlungszuordnung" }
     table: settlement_allocation
     grain: one settlement of a payment against an invoice
@@ -179,6 +199,9 @@ nodes:
       currency: { column: currency, label: { en: "Currency", de: "Währung" } }
 
   movement:
+    category_order: 40
+    category: { en: "Warehouse and shipping", de: "Lager und Versand" }
+    aliases: ["Wareneingang", "Warenausgang", "Retoure", "Umlagerung"]
     label: { en: "Stock movement", de: "Warenbewegung" }
     table: movement
     grain: one stock movement
@@ -198,6 +221,8 @@ nodes:
       quantity: { column: quantity, label: { en: "Quantity", de: "Menge" } }
 
   shipment:
+    category_order: 40
+    category: { en: "Warehouse and shipping", de: "Lager und Versand" }
     label: { en: "Shipment", de: "Versand" }
     measures: none            # traversed and filtered, never summed
     table: shipment
@@ -213,6 +238,8 @@ nodes:
       created_at: { column: created_at, label: { en: "Created", de: "Angelegt" } }
 
   location:
+    category_order: 40
+    category: { en: "Warehouse and shipping", de: "Lager und Versand" }
     label: { en: "Location", de: "Lagerort" }
     measures: none            # traversed and filtered, never summed
     table: location
@@ -227,6 +254,8 @@ nodes:
       allows_stock: { column: allows_stock, label: { en: "Holds stock", de: "Bestandsführend" } }
 
   return_announcement:
+    category_order: 40
+    category: { en: "Warehouse and shipping", de: "Lager und Versand" }
     label: { en: "Announced return", de: "Angekündigte Retoure" }
     table: return_announcement
     grain: one announced customer return
@@ -247,6 +276,8 @@ nodes:
   # Backed by fact rows, not by a table. This is how a new business concept
   # becomes queryable without a migration. It obeys exactly the same rules.
   campaign:
+    category_order: 80
+    category: { en: "Additional objects", de: "Weitere Objekte" }
     label: { en: "Campaign", de: "Kampagne" }
     measures: none            # traversed and filtered, never summed
     from_facts:
@@ -259,6 +290,845 @@ nodes:
     corrections: replace          # the latest fact per predicate wins
     coverage: [current]
 
+  sales_invoice:
+    aliases: ['sales_invoice', 'Kundenrechnung', 'Kunde', 'Kunden', 'Verkauf', 'Ausgangsrechnung', 'Ausgangsrechnungen', 'Debitorenrechnung']
+    category_order: 10
+    description: {en: One retained customer invoice., de: Ein Datensatz je Kundenrechnung.}
+    label: {en: Customer invoice, de: Kundenrechnung}
+    table: document
+    where:
+      type: sales_invoice
+    grain: one retained customer invoice
+    key: id
+    corrections: replace
+    time: document_date
+    coverage:
+    - current
+    - activity_period
+    evidence: source_record_id
+    properties:
+      number: {column: number, label: {en: Number, de: Nummer}}
+      document_date: {column: document_date, temporal: date, label: {en: Document date, de: Belegdatum}}
+      currency: {column: currency, label: {en: Currency, de: Währung}}
+      status: {column: status, label: {en: Status, de: Status}, enumerated: true}
+      type: {column: type, label: {en: Type, de: Belegart}, enumerated: true}
+      gross_amount: {column: gross_amount, label: {en: Gross amount, de: Erfasster Betrag}}
+    category: {en: Sales, de: Verkauf}
+  sales_invoice_line:
+    aliases: ['Ausgangsrechnung', 'Ausgangsrechnungen', 'Debitorenrechnung']
+    category_order: 10
+    description: {en: One customer invoice line., de: Ein Datensatz je Kundenrechnungsposition.}
+    label: {en: Customer invoice line, de: Kundenrechnungsposition}
+    table: document_line
+    of: sales_invoice
+    grain: one customer invoice line
+    key: id
+    corrections: replace
+    properties:
+      sku: {column: sku, label: {en: Article number, de: Artikelnummer}}
+      description: {column: description, label: {en: Description, de: Bezeichnung}}
+      quantity: {column: quantity, label: {en: Quantity, de: Menge}}
+      unit: {column: unit, label: {en: Unit, de: Einheit}}
+      gross_amount: {column: gross_amount, label: {en: Gross amount, de: Erfasster Positionsbetrag}}
+      unit_price: {column: unit_price, label: {en: Unit price, de: Erfasster Einzelpreis}}
+    category: {en: Sales, de: Verkauf}
+    aliases: []
+  customer_credit_note:
+    aliases: ['credit_note', 'Kundengutschrift', 'Kunde', 'Kunden', 'Verkauf', 'Gutschriften', 'credit notes']
+    category_order: 10
+    description: {en: One retained customer credit note., de: Ein Datensatz je Kundengutschrift.}
+    label: {en: Customer credit note, de: Kundengutschrift}
+    table: document
+    where:
+      type: credit_note
+    grain: one retained customer credit note
+    key: id
+    corrections: replace
+    time: document_date
+    coverage:
+    - current
+    - activity_period
+    evidence: source_record_id
+    properties:
+      number: {column: number, label: {en: Number, de: Nummer}}
+      document_date: {column: document_date, temporal: date, label: {en: Document date, de: Belegdatum}}
+      currency: {column: currency, label: {en: Currency, de: Währung}}
+      status: {column: status, label: {en: Status, de: Status}, enumerated: true}
+      type: {column: type, label: {en: Type, de: Belegart}, enumerated: true}
+      gross_amount: {column: gross_amount, label: {en: Gross amount, de: Erfasster Betrag}}
+    category: {en: Sales, de: Verkauf}
+  customer_credit_note_line:
+    aliases: ['Gutschriften', 'credit notes']
+    category_order: 10
+    description: {en: One customer credit note line., de: Ein Datensatz je Kundengutschriftsposition.}
+    label: {en: Customer credit note line, de: Kundengutschriftsposition}
+    table: document_line
+    of: customer_credit_note
+    grain: one customer credit note line
+    key: id
+    corrections: replace
+    properties:
+      sku: {column: sku, label: {en: Article number, de: Artikelnummer}}
+      description: {column: description, label: {en: Description, de: Bezeichnung}}
+      quantity: {column: quantity, label: {en: Quantity, de: Menge}}
+      unit: {column: unit, label: {en: Unit, de: Einheit}}
+      gross_amount: {column: gross_amount, label: {en: Gross amount, de: Erfasster Positionsbetrag}}
+      unit_price: {column: unit_price, label: {en: Unit price, de: Erfasster Einzelpreis}}
+    category: {en: Sales, de: Verkauf}
+    aliases: []
+  purchase_order:
+    aliases: ['purchase_order', 'Bestellung', 'Lieferant', 'Lieferanten', 'Einkauf', 'Einkaufsbestellung', 'Lieferantenbestellung']
+    category_order: 20
+    description: {en: One retained purchase order., de: Ein Datensatz je Bestellung.}
+    label: {en: Purchase order, de: Bestellung}
+    table: document
+    where:
+      type: purchase_order
+    grain: one retained purchase order
+    key: id
+    corrections: replace
+    time: ordered_at
+    coverage:
+    - current
+    - activity_period
+    evidence: source_record_id
+    properties:
+      number: {column: number, label: {en: Number, de: Nummer}}
+      ordered_at: {column: ordered_at, label: {en: Order date, de: Bestelldatum}}
+      document_date: {column: document_date, temporal: date, label: {en: Document date, de: Belegdatum}}
+      requested_delivery_at: {column: requested_delivery_at, label: {en: Requested delivery, de: Wunschtermin}}
+      currency: {column: currency, label: {en: Currency, de: Währung}}
+      status: {column: status, label: {en: Status, de: Status}, enumerated: true}
+      sales_channel: {column: sales_channel, label: {en: Channel, de: Kanal}, enumerated: true}
+      customer_reference: {column: customer_reference, label: {en: Customer reference, de: Kundenreferenz}}
+      type: {column: type, label: {en: Type, de: Belegart}, enumerated: true}
+      gross_amount: {column: gross_amount, label: {en: Gross amount, de: Erfasster Betrag}}
+    category: {en: Purchasing, de: Einkauf}
+  purchase_order_line:
+    aliases: ['Einkaufsbestellung', 'Lieferantenbestellung']
+    category_order: 20
+    description: {en: One purchase order line., de: Ein Datensatz je Bestellposition.}
+    label: {en: Purchase order line, de: Bestellposition}
+    table: document_line
+    of: purchase_order
+    grain: one purchase order line
+    key: id
+    corrections: replace
+    time: requested_at
+    coverage:
+    - current
+    - activity_period
+    properties:
+      sku: {column: sku, label: {en: Article number, de: Artikelnummer}}
+      description: {column: description, label: {en: Description, de: Bezeichnung}}
+      quantity: {column: quantity, label: {en: Quantity, de: Menge}}
+      unit: {column: unit, label: {en: Unit, de: Einheit}}
+      line_type: {column: line_type, label: {en: Line type, de: Positionsart}}
+      promised_at: {column: promised_at, label: {en: Promised, de: Zugesagt}}
+      requested_at: {column: requested_at, label: {en: Requested, de: Gewünscht}}
+      gross_amount: {column: gross_amount, label: {en: Gross amount, de: Erfasster Positionsbetrag}}
+      unit_price: {column: unit_price, label: {en: Unit price, de: Erfasster Einzelpreis}}
+    category: {en: Purchasing, de: Einkauf}
+    aliases: []
+  supplier_invoice:
+    aliases: ['supplier_invoice', 'Eingangsrechnung', 'Lieferant', 'Lieferanten', 'Einkauf', 'Eingangsrechnungen', 'Kreditorenrechnung']
+    category_order: 20
+    description: {en: One retained supplier invoice., de: Ein Datensatz je Lieferantenrechnung.}
+    label: {en: Supplier invoice, de: Lieferantenrechnung}
+    table: document
+    where:
+      type: supplier_invoice
+    grain: one retained supplier invoice
+    key: id
+    corrections: replace
+    time: document_date
+    coverage:
+    - current
+    - activity_period
+    evidence: source_record_id
+    properties:
+      number: {column: number, label: {en: Number, de: Nummer}}
+      document_date: {column: document_date, temporal: date, label: {en: Document date, de: Belegdatum}}
+      currency: {column: currency, label: {en: Currency, de: Währung}}
+      status: {column: status, label: {en: Status, de: Status}, enumerated: true}
+      type: {column: type, label: {en: Type, de: Belegart}, enumerated: true}
+      gross_amount: {column: gross_amount, label: {en: Gross amount, de: Erfasster Betrag}}
+    category: {en: Purchasing, de: Einkauf}
+  supplier_invoice_line:
+    aliases: ['Eingangsrechnung', 'Eingangsrechnungen', 'Kreditorenrechnung']
+    category_order: 20
+    description: {en: One supplier invoice line., de: Ein Datensatz je Lieferantenrechnungsposition.}
+    label: {en: Supplier invoice line, de: Lieferantenrechnungsposition}
+    table: document_line
+    of: supplier_invoice
+    grain: one supplier invoice line
+    key: id
+    corrections: replace
+    properties:
+      sku: {column: sku, label: {en: Article number, de: Artikelnummer}}
+      description: {column: description, label: {en: Description, de: Bezeichnung}}
+      quantity: {column: quantity, label: {en: Quantity, de: Menge}}
+      unit: {column: unit, label: {en: Unit, de: Einheit}}
+      gross_amount: {column: gross_amount, label: {en: Gross amount, de: Erfasster Positionsbetrag}}
+      unit_price: {column: unit_price, label: {en: Unit price, de: Erfasster Einzelpreis}}
+    category: {en: Purchasing, de: Einkauf}
+    aliases: []
+  supplier_credit_note:
+    aliases: ['supplier_credit_note', 'Lieferantengutschrift', 'Lieferant', 'Lieferanten', 'Einkauf', 'Gutschriften', 'credit notes']
+    category_order: 20
+    description: {en: One retained supplier credit note., de: Ein Datensatz je Lieferantengutschrift.}
+    label: {en: Supplier credit note, de: Lieferantengutschrift}
+    table: document
+    where:
+      type: supplier_credit_note
+    grain: one retained supplier credit note
+    key: id
+    corrections: replace
+    time: document_date
+    coverage:
+    - current
+    - activity_period
+    evidence: source_record_id
+    properties:
+      number: {column: number, label: {en: Number, de: Nummer}}
+      document_date: {column: document_date, temporal: date, label: {en: Document date, de: Belegdatum}}
+      currency: {column: currency, label: {en: Currency, de: Währung}}
+      status: {column: status, label: {en: Status, de: Status}, enumerated: true}
+      type: {column: type, label: {en: Type, de: Belegart}, enumerated: true}
+      gross_amount: {column: gross_amount, label: {en: Gross amount, de: Erfasster Betrag}}
+    category: {en: Purchasing, de: Einkauf}
+  supplier_credit_note_line:
+    aliases: ['Gutschriften', 'credit notes']
+    category_order: 20
+    description: {en: One supplier credit note line., de: Ein Datensatz je Lieferantengutschriftsposition.}
+    label: {en: Supplier credit note line, de: Lieferantengutschriftsposition}
+    table: document_line
+    of: supplier_credit_note
+    grain: one supplier credit note line
+    key: id
+    corrections: replace
+    properties:
+      sku: {column: sku, label: {en: Article number, de: Artikelnummer}}
+      description: {column: description, label: {en: Description, de: Bezeichnung}}
+      quantity: {column: quantity, label: {en: Quantity, de: Menge}}
+      unit: {column: unit, label: {en: Unit, de: Einheit}}
+      gross_amount: {column: gross_amount, label: {en: Gross amount, de: Erfasster Positionsbetrag}}
+      unit_price: {column: unit_price, label: {en: Unit price, de: Erfasster Einzelpreis}}
+    category: {en: Purchasing, de: Einkauf}
+    aliases: []
+  customer_payment:
+    aliases: ['customer_payment', 'Zahlungseingang', 'Kunde', 'Kunden', 'Verkauf', 'Zahlung', 'Zahlungen']
+    category_order: 30
+    description: {en: One retained customer payment., de: Ein Datensatz je Zahlungseingang.}
+    label: {en: Customer payment, de: Zahlungseingang}
+    table: document
+    where:
+      type: customer_payment
+    grain: one retained customer payment
+    key: id
+    corrections: replace
+    time: document_date
+    coverage:
+    - current
+    - activity_period
+    evidence: source_record_id
+    properties:
+      number: {column: number, label: {en: Number, de: Nummer}}
+      document_date: {column: document_date, temporal: date, label: {en: Document date, de: Belegdatum}}
+      currency: {column: currency, label: {en: Currency, de: Währung}}
+      status: {column: status, label: {en: Status, de: Status}, enumerated: true}
+      type: {column: type, label: {en: Type, de: Belegart}, enumerated: true}
+      gross_amount: {column: gross_amount, label: {en: Gross amount, de: Erfasster Betrag}}
+    category: {en: Payments and accounting, de: Zahlungen und Buchhaltung}
+  supplier_payment:
+    aliases: ['supplier_payment', 'Zahlungsausgang', 'Lieferant', 'Lieferanten', 'Einkauf', 'Zahlung', 'Zahlungen']
+    category_order: 30
+    description: {en: One retained supplier payment., de: Ein Datensatz je Zahlungsausgang.}
+    label: {en: Supplier payment, de: Zahlungsausgang}
+    table: document
+    where:
+      type: supplier_payment
+    grain: one retained supplier payment
+    key: id
+    corrections: replace
+    time: document_date
+    coverage:
+    - current
+    - activity_period
+    evidence: source_record_id
+    properties:
+      number: {column: number, label: {en: Number, de: Nummer}}
+      document_date: {column: document_date, temporal: date, label: {en: Document date, de: Belegdatum}}
+      currency: {column: currency, label: {en: Currency, de: Währung}}
+      status: {column: status, label: {en: Status, de: Status}, enumerated: true}
+      type: {column: type, label: {en: Type, de: Belegart}, enumerated: true}
+      gross_amount: {column: gross_amount, label: {en: Gross amount, de: Erfasster Betrag}}
+    category: {en: Payments and accounting, de: Zahlungen und Buchhaltung}
+  customer_refund:
+    aliases: ['customer_refund', 'Erstattung an Kunden', 'Kunde', 'Kunden', 'Verkauf', 'Zahlung', 'Zahlungen']
+    category_order: 30
+    description: {en: One retained customer refund., de: Ein Datensatz je Erstattung an Kunden.}
+    label: {en: Customer refund, de: Erstattung an Kunden}
+    table: document
+    where:
+      type: customer_refund
+    grain: one retained customer refund
+    key: id
+    corrections: replace
+    time: document_date
+    coverage:
+    - current
+    - activity_period
+    evidence: source_record_id
+    properties:
+      number: {column: number, label: {en: Number, de: Nummer}}
+      document_date: {column: document_date, temporal: date, label: {en: Document date, de: Belegdatum}}
+      currency: {column: currency, label: {en: Currency, de: Währung}}
+      status: {column: status, label: {en: Status, de: Status}, enumerated: true}
+      type: {column: type, label: {en: Type, de: Belegart}, enumerated: true}
+      gross_amount: {column: gross_amount, label: {en: Gross amount, de: Erfasster Betrag}}
+    category: {en: Payments and accounting, de: Zahlungen und Buchhaltung}
+  supplier_refund:
+    aliases: ['supplier_refund', 'Erstattung vom Lieferanten', 'Lieferant', 'Lieferanten', 'Einkauf', 'Zahlung', 'Zahlungen']
+    category_order: 30
+    description: {en: One retained supplier refund., de: Ein Datensatz je Erstattung vom Lieferanten.}
+    label: {en: Supplier refund, de: Erstattung vom Lieferanten}
+    table: document
+    where:
+      type: supplier_refund
+    grain: one retained supplier refund
+    key: id
+    corrections: replace
+    time: document_date
+    coverage:
+    - current
+    - activity_period
+    evidence: source_record_id
+    properties:
+      number: {column: number, label: {en: Number, de: Nummer}}
+      document_date: {column: document_date, temporal: date, label: {en: Document date, de: Belegdatum}}
+      currency: {column: currency, label: {en: Currency, de: Währung}}
+      status: {column: status, label: {en: Status, de: Status}, enumerated: true}
+      type: {column: type, label: {en: Type, de: Belegart}, enumerated: true}
+      gross_amount: {column: gross_amount, label: {en: Gross amount, de: Erfasster Betrag}}
+    category: {en: Payments and accounting, de: Zahlungen und Buchhaltung}
+  customer_settlement_adjustment:
+    aliases: ['customer_settlement_adjustment', 'Kundenzahlungsabzug', 'Kunde', 'Kunden', 'Verkauf']
+    category_order: 30
+    description: {en: One retained customer settlement adjustment., de: Ein Datensatz je Kundenzahlungsabzug.}
+    label: {en: Customer settlement adjustment, de: Kundenzahlungsabzug}
+    table: document
+    where:
+      type: customer_settlement_adjustment
+    grain: one retained customer settlement adjustment
+    key: id
+    corrections: replace
+    time: document_date
+    coverage:
+    - current
+    - activity_period
+    evidence: source_record_id
+    properties:
+      number: {column: number, label: {en: Number, de: Nummer}}
+      document_date: {column: document_date, temporal: date, label: {en: Document date, de: Belegdatum}}
+      currency: {column: currency, label: {en: Currency, de: Währung}}
+      status: {column: status, label: {en: Status, de: Status}, enumerated: true}
+      type: {column: type, label: {en: Type, de: Belegart}, enumerated: true}
+      gross_amount: {column: gross_amount, label: {en: Gross amount, de: Erfasster Betrag}}
+    category: {en: Payments and accounting, de: Zahlungen und Buchhaltung}
+  supplier_settlement_adjustment:
+    aliases: ['supplier_settlement_adjustment', 'Lieferantenzahlungsabzug', 'Lieferant', 'Lieferanten', 'Einkauf']
+    category_order: 30
+    description: {en: One retained supplier settlement adjustment., de: Ein Datensatz je Lieferantenzahlungsabzug.}
+    label: {en: Supplier settlement adjustment, de: Lieferantenzahlungsabzug}
+    table: document
+    where:
+      type: supplier_settlement_adjustment
+    grain: one retained supplier settlement adjustment
+    key: id
+    corrections: replace
+    time: document_date
+    coverage:
+    - current
+    - activity_period
+    evidence: source_record_id
+    properties:
+      number: {column: number, label: {en: Number, de: Nummer}}
+      document_date: {column: document_date, temporal: date, label: {en: Document date, de: Belegdatum}}
+      currency: {column: currency, label: {en: Currency, de: Währung}}
+      status: {column: status, label: {en: Status, de: Status}, enumerated: true}
+      type: {column: type, label: {en: Type, de: Belegart}, enumerated: true}
+      gross_amount: {column: gross_amount, label: {en: Gross amount, de: Erfasster Betrag}}
+    category: {en: Payments and accounting, de: Zahlungen und Buchhaltung}
+  reservation:
+    category_order: 40
+    description: {en: A retained reservation. Filter status for active reservations; this is not available inventory., de: Eine Reservierung. Für aktive Reservierungen nach Status filtern; dies ist kein verfügbarer Bestand.}
+    label: {en: Reservation, de: Reservierung}
+    table: reservation
+    grain: one reservation
+    key: id
+    corrections: replace
+    coverage:
+    - current
+    - activity_period
+    properties:
+      quantity: {column: quantity, label: {en: Quantity, de: Menge}}
+      status: {column: status, label: {en: Status, de: Status}, enumerated: true}
+      reserved_at: {column: reserved_at, label: {en: Reserved at, de: Reserviert am}}
+    time: reserved_at
+    category: {en: Warehouse and shipping, de: Lager und Versand}
+    aliases: []
+  party_hold:
+    category_order: 50
+    description: {en: One partner hold., de: Ein Datensatz je Geschäftspartnersperre.}
+    label: {en: Partner hold, de: Geschäftspartnersperre}
+    table: party_hold
+    grain: one partner hold
+    key: id
+    corrections: replace
+    coverage:
+    - current
+    - activity_period
+    properties:
+      hold_type: {column: hold_type, label: {en: Hold type, de: Sperrart}, enumerated: true}
+      reason_code: {column: reason_code, label: {en: Reason code, de: Grund}, enumerated: true}
+      note: {column: note, label: {en: Note, de: Notiz}}
+      created_at: {column: created_at, label: {en: Created at, de: Angelegt am}}
+      released_at: {column: released_at, label: {en: Released at, de: Freigegeben am}}
+    time: created_at
+    category: {en: Partners and items, de: Partner und Artikel}
+    aliases: []
+  commitment_hold:
+    category_order: 40
+    description: {en: One commitment hold., de: Ein Datensatz je Verpflichtungssperre.}
+    label: {en: Commitment hold, de: Verpflichtungssperre}
+    table: commitment_hold
+    grain: one commitment hold
+    key: id
+    corrections: replace
+    coverage:
+    - current
+    - activity_period
+    properties:
+      reason_code: {column: reason_code, label: {en: Reason code, de: Grund}, enumerated: true}
+      note: {column: note, label: {en: Note, de: Notiz}}
+      created_at: {column: created_at, label: {en: Created at, de: Angelegt am}}
+      released_at: {column: released_at, label: {en: Released at, de: Freigegeben am}}
+    time: created_at
+    category: {en: Warehouse and shipping, de: Lager und Versand}
+    aliases: []
+  lot:
+    aliases: ['Charge', 'Chargen', 'MHD', 'Mindesthaltbarkeit']
+    category_order: 40
+    description: {en: One lot., de: Ein Datensatz je Artikelcharge.}
+    label: {en: Lot, de: Artikelcharge}
+    table: lot
+    grain: one lot
+    key: id
+    corrections: replace
+    coverage:
+    - current
+    - activity_period
+    properties:
+      lot_number: {column: lot_number, label: {en: Lot number, de: Chargennummer}}
+      expires_at: {column: expires_at, label: {en: Expires at, de: Mindesthaltbar bis}}
+      created_at: {column: created_at, label: {en: Created at, de: Angelegt am}}
+    time: created_at
+    category: {en: Warehouse and shipping, de: Lager und Versand}
+    evidence: source_record_id
+  serial_unit:
+    category_order: 40
+    description: {en: One serial unit., de: Ein Datensatz je Seriennummer.}
+    label: {en: Serial unit, de: Seriennummer}
+    table: serial_unit
+    grain: one serial unit
+    key: id
+    corrections: replace
+    coverage:
+    - current
+    - activity_period
+    properties:
+      serial_number: {column: serial_number, label: {en: Serial number, de: Seriennummer}}
+      created_at: {column: created_at, label: {en: Created at, de: Angelegt am}}
+    time: created_at
+    category: {en: Warehouse and shipping, de: Lager und Versand}
+    aliases: []
+    evidence: source_record_id
+  handling_unit:
+    aliases: ['Palette', 'Paletten', 'NVE', 'SSCC']
+    category_order: 40
+    description: {en: One handling unit., de: Ein Datensatz je Ladeeinheit.}
+    label: {en: Handling unit, de: Ladeeinheit}
+    table: handling_unit
+    grain: one handling unit
+    key: id
+    corrections: replace
+    coverage:
+    - current
+    - activity_period
+    properties:
+      nve: {column: nve, label: {en: Nve, de: NVE / SSCC}}
+      created_at: {column: created_at, label: {en: Created at, de: Angelegt am}}
+    time: created_at
+    category: {en: Warehouse and shipping, de: Lager und Versand}
+    evidence: source_record_id
+  shipment_package:
+    category_order: 40
+    description: {en: One shipment package., de: Ein Datensatz je Packstück.}
+    label: {en: Shipment package, de: Packstück}
+    table: shipment_package
+    grain: one shipment package
+    key: id
+    corrections: replace
+    coverage:
+    - current
+    - activity_period
+    properties:
+      carrier: {column: carrier, label: {en: Carrier, de: Versanddienstleister}}
+      tracking_number: {column: tracking_number, label: {en: Tracking number, de: Sendungsnummer}}
+      created_at: {column: created_at, label: {en: Created at, de: Angelegt am}}
+    time: created_at
+    category: {en: Warehouse and shipping, de: Lager und Versand}
+    aliases: []
+    evidence: source_record_id
+  shipment_event:
+    category_order: 40
+    description: {en: 'A reported shipping event, including superseded observations. Follow corrections to check validity.', de: 'Ein gemeldetes Versandereignis, auch wenn es später ersetzt wurde. Korrekturen zeigen seine Gültigkeit.'}
+    label: {en: Shipment event history, de: Versandereignis (Historie)}
+    table: shipment_event
+    grain: one shipment event history
+    key: id
+    corrections: replace
+    coverage:
+    - current
+    - activity_period
+    properties:
+      event_type: {column: event_type, label: {en: Event type, de: Ereignisart}, enumerated: true}
+      reporter_type: {column: reporter_type, label: {en: Reporter type, de: Gemeldet von}, enumerated: true}
+      occurred_at: {column: occurred_at, label: {en: Occurred at, de: Ereigniszeit}}
+      recorded_at: {column: recorded_at, label: {en: Recorded at, de: Erfasst am}}
+      location_text: {column: location_text, label: {en: Location text, de: Ortsangabe}}
+      external_event_id: {column: external_event_id, label: {en: External event id, de: Externe Ereigniskennung}}
+    time: recorded_at
+    category: {en: Warehouse and shipping, de: Lager und Versand}
+    aliases: []
+    evidence: source_record_id
+  shipment_event_supersession:
+    category_order: 40
+    description: {en: One shipment event correction., de: Ein Datensatz je Versandereigniskorrektur.}
+    label: {en: Shipment event correction, de: Versandereigniskorrektur}
+    table: shipment_event_supersession
+    grain: one shipment event correction
+    key: id
+    corrections: replace
+    coverage:
+    - current
+    - activity_period
+    properties:
+      reason: {column: reason, label: {en: Reason, de: Grund}}
+      created_at: {column: created_at, label: {en: Created at, de: Angelegt am}}
+    time: created_at
+    category: {en: Warehouse and shipping, de: Lager und Versand}
+    aliases: []
+    evidence: source_record_id
+  payment_term:
+    aliases: ['Zahlung', 'Zahlungen']
+    category_order: 60
+    description: {en: One payment term., de: Ein Datensatz je Zahlungsbedingung.}
+    label: {en: Payment term, de: Zahlungsbedingung}
+    table: payment_term
+    grain: one payment term
+    key: id
+    corrections: replace
+    coverage:
+    - current
+    properties:
+      code: {column: code, label: {en: Code, de: Code}}
+      name: {column: name, label: {en: Name, de: Name}}
+      due_days: {column: due_days, label: {en: Due days, de: Zahlungsziel in Tagen}}
+      discount_percent: {column: discount_percent, label: {en: Discount percent, de: Skonto in Prozent}}
+      discount_days: {column: discount_days, label: {en: Discount days, de: Skontofrist in Tagen}}
+      is_active: {column: is_active, label: {en: Is active, de: Aktiv}}
+    category: {en: Prices and terms, de: Preise und Konditionen}
+    evidence: source_record_id
+  price_list:
+    category_order: 60
+    description: {en: One price list., de: Ein Datensatz je Preisliste.}
+    label: {en: Price list, de: Preisliste}
+    table: price_list
+    grain: one price list
+    key: id
+    corrections: replace
+    coverage:
+    - current
+    properties:
+      code: {column: code, label: {en: Code, de: Code}}
+      name: {column: name, label: {en: Name, de: Name}}
+      direction: {column: direction, label: {en: Direction, de: Richtung}, enumerated: true}
+      currency: {column: currency, label: {en: Currency, de: Währung}}
+      valid_from: {column: valid_from, label: {en: Valid from, de: Gültig ab}}
+      valid_until: {column: valid_until, label: {en: Valid until, de: Gültig bis}}
+      is_default: {column: is_default, label: {en: Is default, de: Standard}}
+      is_active: {column: is_active, label: {en: Is active, de: Aktiv}}
+    category: {en: Prices and terms, de: Preise und Konditionen}
+    aliases: []
+    evidence: source_record_id
+  price_list_entry:
+    category_order: 60
+    description: {en: One price tier., de: Ein Datensatz je Preisstaffel.}
+    label: {en: Price tier, de: Preisstaffel}
+    table: price_list_entry
+    grain: one price tier
+    key: id
+    corrections: replace
+    coverage:
+    - current
+    properties:
+      min_quantity: {column: min_quantity, label: {en: Min quantity, de: Ab Menge}}
+      unit_price: {column: unit_price, label: {en: Unit price, de: Einzelpreis}}
+      unit: {column: unit, label: {en: Unit, de: Einheit}}
+      valid_from: {column: valid_from, label: {en: Valid from, de: Gültig ab}}
+      valid_until: {column: valid_until, label: {en: Valid until, de: Gültig bis}}
+    category: {en: Prices and terms, de: Preise und Konditionen}
+    aliases: []
+    evidence: source_record_id
+  party_price_list:
+    category_order: 60
+    description: {en: One partner price assignment., de: Ein Datensatz je Preiszuordnung zum Geschäftspartner.}
+    label: {en: Partner price assignment, de: Preiszuordnung zum Geschäftspartner}
+    table: party_price_list
+    grain: one partner price assignment
+    key: id
+    corrections: replace
+    coverage:
+    - current
+    properties:
+      priority: {column: priority, label: {en: Priority, de: Priorität}}
+      valid_from: {column: valid_from, label: {en: Valid from, de: Gültig ab}}
+      valid_until: {column: valid_until, label: {en: Valid until, de: Gültig bis}}
+    category: {en: Prices and terms, de: Preise und Konditionen}
+    aliases: []
+  party_group:
+    category_order: 50
+    description: {en: One partner group., de: Ein Datensatz je Geschäftspartnergruppe.}
+    label: {en: Partner group, de: Geschäftspartnergruppe}
+    table: party_group
+    grain: one partner group
+    key: id
+    corrections: replace
+    coverage:
+    - current
+    properties:
+      code: {column: code, label: {en: Code, de: Code}}
+      name: {column: name, label: {en: Name, de: Name}}
+      group_type: {column: group_type, label: {en: Group type, de: Gruppenart}}
+      is_active: {column: is_active, label: {en: Is active, de: Aktiv}}
+    category: {en: Partners and items, de: Partner und Artikel}
+    aliases: []
+    evidence: source_record_id
+  party_group_member:
+    category_order: 50
+    description: {en: One group membership., de: Ein Datensatz je Gruppenmitgliedschaft.}
+    label: {en: Group membership, de: Gruppenmitgliedschaft}
+    table: party_group_member
+    grain: one group membership
+    key: id
+    corrections: replace
+    coverage:
+    - current
+    properties:
+      valid_from: {column: valid_from, label: {en: Valid from, de: Gültig ab}}
+      valid_until: {column: valid_until, label: {en: Valid until, de: Gültig bis}}
+    category: {en: Partners and items, de: Partner und Artikel}
+    aliases: []
+  party_group_price_list:
+    category_order: 60
+    description: {en: One group price assignment., de: Ein Datensatz je Preiszuordnung zur Gruppe.}
+    label: {en: Group price assignment, de: Preiszuordnung zur Gruppe}
+    table: party_group_price_list
+    grain: one group price assignment
+    key: id
+    corrections: replace
+    coverage:
+    - current
+    properties:
+      priority: {column: priority, label: {en: Priority, de: Priorität}}
+      valid_from: {column: valid_from, label: {en: Valid from, de: Gültig ab}}
+      valid_until: {column: valid_until, label: {en: Valid until, de: Gültig bis}}
+    category: {en: Prices and terms, de: Preise und Konditionen}
+    aliases: []
+  party_role:
+    category_order: 50
+    description: {en: One partner role., de: Ein Datensatz je Geschäftspartnerrolle.}
+    label: {en: Partner role, de: Geschäftspartnerrolle}
+    table: party_role
+    grain: one partner role
+    key: id
+    corrections: replace
+    coverage:
+    - current
+    properties:
+      role: {column: role, label: {en: Role, de: Rolle}, enumerated: true}
+    category: {en: Partners and items, de: Partner und Artikel}
+    aliases: []
+  subledger_account:
+    category_order: 30
+    description: {en: One account., de: Ein Datensatz je Buchhaltungskonto.}
+    label: {en: Account, de: Buchhaltungskonto}
+    table: subledger_account
+    grain: one account
+    key: id
+    corrections: replace
+    coverage:
+    - current
+    properties:
+      code: {column: code, label: {en: Code, de: Code}}
+      name: {column: name, label: {en: Name, de: Name}}
+      role: {column: role, label: {en: Role, de: Kontenrolle}, enumerated: true}
+      state: {column: state, label: {en: State, de: Status}, enumerated: true}
+    category: {en: Payments and accounting, de: Zahlungen und Buchhaltung}
+    aliases: []
+
+
+  document:
+    measures: none
+    category_order: 70
+    label: {en: Document (all types), de: Beleg (alle Arten)}
+    category: {en: Evidence and facts, de: Belege und Fakten}
+    description: {en: One retained document (all types)., de: Ein Datensatz je Beleg (alle Arten).}
+    table: document
+    grain: one retained document (all types)
+    key: id
+    corrections: replace
+    coverage:
+    - current
+    properties:
+      type: {column: type, label: {en: Type, de: Belegart}, enumerated: true}
+      number: {column: number, label: {en: Number, de: Belegnummer}}
+      document_date: {column: document_date, temporal: date, label: {en: Document date, de: Belegdatum}}
+      currency: {column: currency, label: {en: Currency, de: Währung}}
+      gross_amount: {column: gross_amount, label: {en: Gross amount, de: Erfasster Betrag}}
+      status: {column: status, label: {en: Status, de: Belegstatus}, enumerated: true}
+    evidence: source_record_id
+  document_line:
+    measures: none
+    category_order: 70
+    label: {en: Document line (all types), de: Belegposition (alle Arten)}
+    category: {en: Evidence and facts, de: Belege und Fakten}
+    description: {en: One retained document line (all types)., de: Ein Datensatz je Belegposition (alle Arten).}
+    table: document_line
+    grain: one retained document line (all types)
+    key: id
+    corrections: replace
+    coverage:
+    - current
+    properties:
+      sku: {column: sku, label: {en: Sku, de: Artikelnummer}}
+      description: {column: description, label: {en: Description, de: Bezeichnung}}
+      quantity: {column: quantity, label: {en: Quantity, de: Menge}}
+      unit: {column: unit, label: {en: Unit, de: Einheit}}
+      unit_price: {column: unit_price, label: {en: Unit price, de: Erfasster Einzelpreis}}
+      gross_amount: {column: gross_amount, label: {en: Gross amount, de: Erfasster Positionsbetrag}}
+      line_type: {column: line_type, label: {en: Line type, de: Positionsart}}
+  financial_component:
+    measures: none
+    category_order: 30
+    label: {en: Received financial component, de: Erfasste Finanzkomponente}
+    category: {en: Payments and accounting, de: Zahlungen und Buchhaltung}
+    description: {en: One retained received financial component., de: Erfasste Beträge eines Belegs oder einer Position. Kopf- und Positionsbeträge nicht zusammenzählen.}
+    table: financial_component
+    grain: one retained received financial component
+    key: id
+    corrections: replace
+    coverage:
+    - current
+    properties:
+      stated_net: {column: stated_net, label: {en: Stated net, de: Erfasster Nettobetrag}}
+      stated_tax: {column: stated_tax, label: {en: Stated tax, de: Erfasster Steuerbetrag}}
+      stated_gross: {column: stated_gross, label: {en: Stated gross, de: Erfasster Bruttobetrag}}
+      stated_base: {column: stated_base, label: {en: Stated base, de: Erfasste Bemessungsgrundlage}}
+      currency: {column: currency, label: {en: Currency, de: Währung}}
+  opening_scope:
+    measures: none
+    category_order: 30
+    label: {en: Opening scope, de: Eröffnungsumfang}
+    category: {en: Payments and accounting, de: Zahlungen und Buchhaltung}
+    description: {en: One retained opening scope., de: Ein Datensatz je Eröffnungsumfang.}
+    table: opening_scope
+    grain: one retained opening scope
+    key: id
+    corrections: replace
+    coverage:
+    - current
+    - activity_period
+    properties:
+      source_namespace: {column: source_namespace, label: {en: Source namespace, de: Quellbereich}}
+      snapshot_key: {column: snapshot_key, label: {en: Snapshot key, de: Stichtagsreferenz}}
+      cutover_date: {column: cutover_date, label: {en: Cutover date, de: Übernahmestichtag}}
+      coverage_kind: {column: coverage_kind, label: {en: Coverage kind, de: Abdeckungsart}, enumerated: true}
+      direction: {column: direction, label: {en: Direction, de: Richtung}, enumerated: true}
+      currency: {column: currency, label: {en: Currency, de: Währung}}
+      created_at: {column: created_at, label: {en: Created at, de: Angelegt am}}
+    time: created_at
+  opening_item_detail:
+    measures: none
+    category_order: 30
+    label: {en: Opening item detail, de: Eröffnungsposten}
+    category: {en: Payments and accounting, de: Zahlungen und Buchhaltung}
+    description: {en: One retained opening item detail., de: Ein Datensatz je Eröffnungsposten.}
+    table: opening_item_detail
+    grain: one retained opening item detail
+    key: id
+    corrections: replace
+    coverage:
+    - current
+    properties:
+      external_item_key: {column: external_item_key, label: {en: External item key, de: Externe Postenreferenz}}
+      original_due_date: {column: original_due_date, label: {en: Original due date, de: Ursprüngliche Fälligkeit}}
+  source_record:
+    measures: none
+    category_order: 70
+    label: {en: Source record version, de: Quelldatensatz (Version)}
+    category: {en: Evidence and facts, de: Belege und Fakten}
+    description: {en: One retained source record version., de: Eine unveränderliche Version eines Quelldatensatzes. Frühere Versionen bleiben sichtbar; dies ist kein aktueller Geschäftszustand.}
+    table: source_record
+    grain: one retained source record version
+    key: id
+    corrections: replace
+    coverage:
+    - current
+    - activity_period
+    properties:
+      source_system: {column: source_system, label: {en: Source system, de: Quellsystem}, enumerated: true}
+      source_type: {column: source_type, label: {en: Source type, de: Quellart}, enumerated: true}
+      external_id: {column: external_id, label: {en: External id, de: Externe Kennung}}
+      version: {column: version, label: {en: Version, de: Version}}
+      source_version_at: {column: source_version_at, label: {en: Source version at, de: Quellzeitpunkt}}
+      received_at: {column: received_at, label: {en: Received at, de: Empfangen am}}
+    time: received_at
+  fact:
+    measures: none
+    category_order: 70
+    label: {en: Recorded additional fact, de: Zusatzfakt (Historie)}
+    category: {en: Evidence and facts, de: Belege und Fakten}
+    description: {en: One retained recorded additional fact., de: Ein erfasster Zusatzfakt. Frühere Aussagen bleiben sichtbar; Objektkennungen allein beweisen keine Verbindung.}
+    table: fact
+    grain: one retained recorded additional fact
+    key: id
+    corrections: replace
+    coverage:
+    - current
+    - activity_period
+    properties:
+      subject_type: {column: subject_type, label: {en: Subject type, de: Objektart}, enumerated: true}
+      subject_id: {column: subject_id, label: {en: Subject id, de: Objektkennung}}
+      predicate: {column: predicate, label: {en: Predicate, de: Aussage}, enumerated: true}
+      value: {column: value, label: {en: Value, de: Wert}}
+      observed_at: {column: observed_at, label: {en: Observed at, de: Beobachtet am}}
+      recorded_at: {column: recorded_at, label: {en: Recorded at, de: Erfasst am}}
+    evidence: source_record_id
+    time: recorded_at
+
 
 # ---------------------------------------------------------------------------
 # EDGES
@@ -268,7 +1138,1607 @@ nodes:
 #   fact: the link does not exist yet. Each instance is a fact row somebody creates.
 # ---------------------------------------------------------------------------
 
+  customer_open_item:
+    table: document
+    derivation: finance.aging
+    where: {type: [sales_invoice, opening_customer_debt]}
+    grain: one posted customer financial position, including settled and reversed positions
+    key: id
+    corrections: replace
+    evidence: source_record_id
+    label: {en: "Customer financial position", de: "Kundenposten"}
+    description: {en: "Current outstanding amounts and aging from finance, including opening debts; settled and reversed positions remain visible.", de: "Aktuelle Restbeträge und Fälligkeiten aus der Finanzansicht, einschließlich Anfangsposten; bezahlte und stornierte Posten bleiben sichtbar."}
+    category: {en: Payments and accounting, de: Zahlungen und Buchhaltung}
+    category_order: 30
+    aliases: [open items, outstanding, overdue, offene Posten, Restbetrag, überfällig]
+    properties:
+      number: {column: number, label: {en: Number, de: Nummer}}
+      type: {column: type, label: {en: Type, de: Art}, enumerated: true}
+      currency: {column: currency, label: {en: Currency, de: Währung}}
+      document_date: {column: document_date, temporal: date, label: {en: Document date, de: Belegdatum}}
+      due_date: {column: due_date, label: {en: Due date, de: Fällig am}}
+      days_overdue: {column: days_overdue, label: {en: Days overdue, de: Tage überfällig}}
+      settlement_status: {column: settlement_status, label: {en: Settlement status, de: Zahlungsstatus}}
+      open_amount: {column: open_amount, label: {en: Outstanding amount, de: Offener Betrag}}
+
+  supplier_open_item:
+    table: document
+    derivation: finance.aging
+    where: {type: [supplier_invoice, opening_supplier_debt]}
+    grain: one posted supplier financial position, including settled and reversed positions
+    key: id
+    corrections: replace
+    evidence: source_record_id
+    label: {en: "Supplier financial position", de: "Lieferantenposten"}
+    description: {en: "Current outstanding amounts and aging from finance, including opening debts; settled and reversed positions remain visible.", de: "Aktuelle Restbeträge und Fälligkeiten aus der Finanzansicht, einschließlich Anfangsposten; bezahlte und stornierte Posten bleiben sichtbar."}
+    category: {en: Payments and accounting, de: Zahlungen und Buchhaltung}
+    category_order: 30
+    aliases: [open items, outstanding, overdue, offene Posten, Restbetrag, überfällig]
+    properties:
+      number: {column: number, label: {en: Number, de: Nummer}}
+      type: {column: type, label: {en: Type, de: Art}, enumerated: true}
+      currency: {column: currency, label: {en: Currency, de: Währung}}
+      document_date: {column: document_date, temporal: date, label: {en: Document date, de: Belegdatum}}
+      due_date: {column: due_date, label: {en: Due date, de: Fällig am}}
+      days_overdue: {column: days_overdue, label: {en: Days overdue, de: Tage überfällig}}
+      settlement_status: {column: settlement_status, label: {en: Settlement status, de: Zahlungsstatus}}
+      open_amount: {column: open_amount, label: {en: Outstanding amount, de: Offener Betrag}}
+
+  stock_position:
+    table: item
+    derivation: warehouse.inventory
+    key: id
+    grain: one current article inventory position across all locations and tracking identities
+    corrections: replace
+    coverage:
+    - current
+    evidence: source_record_id
+    label:
+      en: Current article stock
+      de: Aktueller Artikelbestand
+    description:
+      en: Current stock across all locations. Available means physical stock minus active reservations;
+        it is not permission to ship and does not subtract holds or expired lots.
+      de: Aktueller Bestand über alle Lagerorte. Verfügbar bedeutet Bestand abzüglich aktiver Reservierungen;
+        dies ist keine Versandfreigabe und zieht Sperren oder abgelaufene Chargen nicht ab.
+    category:
+      en: Warehouse and shipping
+      de: Lager und Versand
+    category_order: 40
+    aliases:
+    - stock
+    - inventory
+    - available
+    - reserved
+    - Bestand
+    - verfügbar
+    - reserviert
+    - Fehlbestand
+    properties:
+      sku:
+        column: sku
+        label:
+          en: Article number
+          de: Artikelnummer
+      name:
+        column: name
+        label:
+          en: Article
+          de: Artikel
+      unit:
+        column: unit
+        label:
+          en: Unit
+          de: Einheit
+      physical:
+        column: physical
+        label:
+          en: Physical stock
+          de: Bestand
+      reserved:
+        column: reserved
+        label:
+          en: Reserved stock
+          de: Reserviert
+      available:
+        column: available
+        label:
+          en: Available stock
+          de: Verfügbar
+
+  customer_balance:
+    table: party
+    derivation: positions.customer
+    key: position_id
+    grain: one current party and currency on one side
+    corrections: replace
+    coverage:
+    - current
+    label:
+      en: Customer balances
+      de: Kundensalden
+    description:
+      en: Open invoices minus unused payments and credit notes, separated by currency.
+        Negative balances mean unused credit exceeds open debt.
+      de: Offene Rechnungen abzüglich ungenutzter Zahlungen und Gutschriften, getrennt
+        nach Währung. Negative Salden bedeuten mehr Guthaben als offene Schulden.
+    category:
+      en: Finance
+      de: Finanzen
+    category_order: 30
+    aliases:
+    - Kunden
+    - Saldo
+    - Guthaben
+    - balance
+    properties:
+      party_id:
+        column: id
+        label:
+          en: Party identity
+          de: Geschäftspartnerkennung
+      name:
+        column: name
+        label:
+          en: Business partner
+          de: Geschäftspartner
+      currency:
+        column: currency
+        label:
+          en: Currency
+          de: Währung
+      open:
+        column: open
+        label:
+          en: Open invoices
+          de: Offene Rechnungen
+      credit:
+        column: credit
+        label:
+          en: Unused credit
+          de: Ungenutztes Guthaben
+      balance:
+        column: balance
+        label:
+          en: Net balance
+          de: Gesamtsaldo
+  customer_balance_history:
+    table: party
+    derivation: positions.customer.history
+    key: position_id
+    grain: one party and currency on one side at the selected effective date
+    corrections: replace
+    coverage:
+    - as_of_effective
+    label:
+      en: Historical customer balances
+      de: Kundensalden zum Stichtag
+    description:
+      en: Open invoices minus unused payments and credit notes, separated by currency.
+        Effective through the selected UTC day; current names, no historical aging or
+        knowledge-time reconstruction.
+      de: Offene Rechnungen abzüglich ungenutzter Zahlungen und Gutschriften, getrennt
+        nach Währung. Wirksam bis Ende des gewählten UTC-Tages; heutige Namen, keine
+        historischen Fälligkeiten oder damaligen Wissensstände.
+    category:
+      en: Finance
+      de: Finanzen
+    category_order: 30
+    aliases:
+    - Kunden
+    - Saldo
+    - Guthaben
+    - balance
+    properties:
+      party_id:
+        column: id
+        label:
+          en: Party identity
+          de: Geschäftspartnerkennung
+      name:
+        column: name
+        label:
+          en: Business partner
+          de: Geschäftspartner
+      currency:
+        column: currency
+        label:
+          en: Currency
+          de: Währung
+      open:
+        column: open
+        label:
+          en: Open invoices
+          de: Offene Rechnungen
+      credit:
+        column: credit
+        label:
+          en: Unused credit
+          de: Ungenutztes Guthaben
+      balance:
+        column: balance
+        label:
+          en: Net balance
+          de: Gesamtsaldo
+      snapshot_date:
+        column: snapshot_date
+        label:
+          en: Snapshot date (UTC)
+          de: Stichtag (UTC)
+        temporal: date
+        input: date
+  supplier_balance:
+    table: party
+    derivation: positions.supplier
+    key: position_id
+    grain: one current party and currency on one side
+    corrections: replace
+    coverage:
+    - current
+    label:
+      en: Supplier balances
+      de: Lieferantensalden
+    description:
+      en: Open invoices minus unused payments and credit notes, separated by currency.
+        Negative balances mean unused credit exceeds open debt.
+      de: Offene Rechnungen abzüglich ungenutzter Zahlungen und Gutschriften, getrennt
+        nach Währung. Negative Salden bedeuten mehr Guthaben als offene Schulden.
+    category:
+      en: Finance
+      de: Finanzen
+    category_order: 30
+    aliases:
+    - Lieferanten
+    - Saldo
+    - Guthaben
+    - balance
+    properties:
+      party_id:
+        column: id
+        label:
+          en: Party identity
+          de: Geschäftspartnerkennung
+      name:
+        column: name
+        label:
+          en: Business partner
+          de: Geschäftspartner
+      currency:
+        column: currency
+        label:
+          en: Currency
+          de: Währung
+      open:
+        column: open
+        label:
+          en: Open invoices
+          de: Offene Rechnungen
+      credit:
+        column: credit
+        label:
+          en: Unused credit
+          de: Ungenutztes Guthaben
+      balance:
+        column: balance
+        label:
+          en: Net balance
+          de: Gesamtsaldo
+  supplier_balance_history:
+    table: party
+    derivation: positions.supplier.history
+    key: position_id
+    grain: one party and currency on one side at the selected effective date
+    corrections: replace
+    coverage:
+    - as_of_effective
+    label:
+      en: Historical supplier balances
+      de: Lieferantensalden zum Stichtag
+    description:
+      en: Open invoices minus unused payments and credit notes, separated by currency.
+        Effective through the selected UTC day; current names, no historical aging or
+        knowledge-time reconstruction.
+      de: Offene Rechnungen abzüglich ungenutzter Zahlungen und Gutschriften, getrennt
+        nach Währung. Wirksam bis Ende des gewählten UTC-Tages; heutige Namen, keine
+        historischen Fälligkeiten oder damaligen Wissensstände.
+    category:
+      en: Finance
+      de: Finanzen
+    category_order: 30
+    aliases:
+    - Lieferanten
+    - Saldo
+    - Guthaben
+    - balance
+    properties:
+      party_id:
+        column: id
+        label:
+          en: Party identity
+          de: Geschäftspartnerkennung
+      name:
+        column: name
+        label:
+          en: Business partner
+          de: Geschäftspartner
+      currency:
+        column: currency
+        label:
+          en: Currency
+          de: Währung
+      open:
+        column: open
+        label:
+          en: Open invoices
+          de: Offene Rechnungen
+      credit:
+        column: credit
+        label:
+          en: Unused credit
+          de: Ungenutztes Guthaben
+      balance:
+        column: balance
+        label:
+          en: Net balance
+          de: Gesamtsaldo
+      snapshot_date:
+        column: snapshot_date
+        label:
+          en: Snapshot date (UTC)
+          de: Stichtag (UTC)
+        temporal: date
+        input: date
+  stock_detail:
+    table: item
+    derivation: positions.stock
+    key: position_id
+    grain: one article, location, lot, serial and handling unit at one effective date
+    corrections: replace
+    coverage:
+    - current
+    label:
+      en: Stock by location and tracking identity
+      de: Bestand nach Lagerort und Charge
+    description:
+      en: Exact article, location, lot, serial and handling-unit quantities. Missing
+        tracking stays a separate group. Available = physical minus active reservations;
+        not shipment permission.
+      de: Mengen je Artikel, Lagerort, Charge, Seriennummer und Ladeeinheit. Fehlende
+        Zuordnungen bleiben eigene Gruppen. Verfügbar = Bestand minus aktive Reservierungen;
+        keine Versandfreigabe.
+    category:
+      en: Warehouse and shipping
+      de: Lager und Versand
+    category_order: 40
+    aliases:
+    - Lagerbestand
+    - Charge
+    - Seriennummer
+    - Stichtag
+    properties:
+      item_id:
+        column: id
+        label: {en: Article identity, de: Artikelkennung}
+      sku:
+        column: sku
+        label:
+          en: Article number
+          de: Artikelnummer
+      name:
+        column: name
+        label:
+          en: Article
+          de: Artikel
+      unit:
+        column: unit
+        label:
+          en: Unit
+          de: Einheit
+      location_id:
+        column: location_id
+        label:
+          en: Location identity
+          de: Lagerortkennung
+      location_name:
+        column: location_name
+        label:
+          en: Location
+          de: Lagerort
+      lot_id:
+        column: lot_id
+        label:
+          en: Lot identity
+          de: Chargenkennung
+      lot_name:
+        column: lot_name
+        label:
+          en: Lot
+          de: Charge
+      serial_unit_id:
+        column: serial_unit_id
+        label:
+          en: Serial identity
+          de: Serienkennung
+      serial_unit_name:
+        column: serial_unit_name
+        label:
+          en: Serial number
+          de: Seriennummer
+      handling_unit_id:
+        column: handling_unit_id
+        label:
+          en: Handling unit identity
+          de: Ladeeinheitkennung
+      handling_unit_name:
+        column: handling_unit_name
+        label:
+          en: Handling unit
+          de: Ladeeinheit
+      physical:
+        column: physical
+        label:
+          en: Physical stock
+          de: Bestand
+      reserved:
+        column: reserved
+        label:
+          en: Reserved stock
+          de: Reserviert
+      available:
+        column: available
+        label:
+          en: Available stock
+          de: Verfügbar
+  stock_history:
+    table: item
+    derivation: positions.stock.history
+    key: position_id
+    grain: one article, location, lot, serial and handling unit at one effective date
+    corrections: replace
+    coverage:
+    - as_of_effective
+    label:
+      en: Stock at snapshot date
+      de: Bestand zum Stichtag
+    description:
+      en: Physical stock at end of the selected UTC day from retained movements; current
+        names and units. Historical reservations and availability are not reconstructible.
+      de: Physischer Bestand zum Ende des gewählten UTC-Tages aus gespeicherten Bewegungen;
+        heutige Namen und Einheiten. Historische Reservierungen und Verfügbarkeit sind
+        nicht rekonstruierbar.
+    category:
+      en: Warehouse and shipping
+      de: Lager und Versand
+    category_order: 40
+    aliases:
+    - Lagerbestand
+    - Charge
+    - Seriennummer
+    - Stichtag
+    properties:
+      item_id:
+        column: id
+        label: {en: Article identity, de: Artikelkennung}
+      sku:
+        column: sku
+        label:
+          en: Article number
+          de: Artikelnummer
+      name:
+        column: name
+        label:
+          en: Article
+          de: Artikel
+      unit:
+        column: unit
+        label:
+          en: Unit
+          de: Einheit
+      location_id:
+        column: location_id
+        label:
+          en: Location identity
+          de: Lagerortkennung
+      location_name:
+        column: location_name
+        label:
+          en: Location
+          de: Lagerort
+      lot_id:
+        column: lot_id
+        label:
+          en: Lot identity
+          de: Chargenkennung
+      lot_name:
+        column: lot_name
+        label:
+          en: Lot
+          de: Charge
+      serial_unit_id:
+        column: serial_unit_id
+        label:
+          en: Serial identity
+          de: Serienkennung
+      serial_unit_name:
+        column: serial_unit_name
+        label:
+          en: Serial number
+          de: Seriennummer
+      handling_unit_id:
+        column: handling_unit_id
+        label:
+          en: Handling unit identity
+          de: Ladeeinheitkennung
+      handling_unit_name:
+        column: handling_unit_name
+        label:
+          en: Handling unit
+          de: Ladeeinheit
+      physical:
+        column: physical
+        label:
+          en: Physical stock
+          de: Bestand
+      snapshot_date:
+        column: snapshot_date
+        label:
+          en: Snapshot date (UTC)
+          de: Stichtag (UTC)
+        temporal: date
+        input: date
+
 edges:
+  customer_credit_note_line_credits_invoice:
+    label: {en: credits invoice line, de: schreibt Rechnungsposition gut}
+    from: customer_credit_note_line
+    to: sales_invoice_line
+    via: document_line.billed_document_line_id
+    multiplicity: n:1
+    nullable: true
+  purchase_order_promises:
+    label: {en: delivery commitments, de: Lieferverpflichtungen}
+    from: purchase_order
+    to: commitment
+    via: commitment.document_id
+    multiplicity: 1:n
+    nullable: true
+  purchase_order_line_promises:
+    label: {en: delivery commitments, de: Lieferverpflichtungen}
+    from: purchase_order_line
+    to: commitment
+    via: commitment.document_line_id
+    multiplicity: 1:n
+    nullable: true
+  commitment_evidence_document:
+    label: {en: evidence document, de: Beleg}
+    from: commitment
+    to: document
+    via: commitment.document_id
+    multiplicity: n:1
+    nullable: true
+  commitment_evidence_line:
+    label: {en: evidence line, de: Belegposition}
+    from: commitment
+    to: document_line
+    via: commitment.document_line_id
+    multiplicity: n:1
+    nullable: true
+  document_evidence_party_id:
+    label: {en: Related party, de: Geschäftspartner}
+    from: document
+    to: party
+    via: document.party_id
+    multiplicity: n:1
+    nullable: true
+  document_evidence_ship_to_party_id:
+    label: {en: Delivery recipient, de: Lieferempfänger}
+    from: document
+    to: party
+    via: document.ship_to_party_id
+    multiplicity: n:1
+    nullable: true
+  document_evidence_payment_term_id:
+    label: {en: Related payment term, de: Zahlungsbedingung}
+    from: document
+    to: payment_term
+    via: document.payment_term_id
+    multiplicity: n:1
+    nullable: true
+  document_line_evidence_document_id:
+    label: {en: Related document, de: Beleg}
+    from: document_line
+    to: document
+    via: document_line.document_id
+    multiplicity: n:1
+    nullable: true
+  document_line_evidence_item_id:
+    label: {en: Related item, de: Artikel}
+    from: document_line
+    to: item
+    via: document_line.item_id
+    multiplicity: n:1
+    nullable: true
+  document_line_evidence_price_list_entry_id:
+    label: {en: Related price list entry, de: Preisstaffel}
+    from: document_line
+    to: price_list_entry
+    via: document_line.price_list_entry_id
+    multiplicity: n:1
+    nullable: true
+  posting_evidence_document_id:
+    label: {en: Related document, de: Beleg}
+    from: posting
+    to: document
+    via: ledger_entry.document_id
+    multiplicity: n:1
+    nullable: true
+  party_source_record:
+    label: {en: Source record version, de: Quelldatensatz (Version)}
+    from: party
+    to: source_record
+    via: party.source_record_id
+    multiplicity: n:1
+    nullable: true
+  item_source_record:
+    label: {en: Source record version, de: Quelldatensatz (Version)}
+    from: item
+    to: source_record
+    via: item.source_record_id
+    multiplicity: n:1
+    nullable: true
+  order_source_record:
+    label: {en: Source record version, de: Quelldatensatz (Version)}
+    from: order
+    to: source_record
+    via: document.source_record_id
+    multiplicity: n:1
+    nullable: true
+  invoice_source_record:
+    label: {en: Source record version, de: Quelldatensatz (Version)}
+    from: invoice
+    to: source_record
+    via: document.source_record_id
+    multiplicity: n:1
+    nullable: true
+  posting_source_record:
+    label: {en: Source record version, de: Quelldatensatz (Version)}
+    from: posting
+    to: source_record
+    via: ledger_entry.source_record_id
+    multiplicity: n:1
+    nullable: true
+  movement_source_record:
+    label: {en: Source record version, de: Quelldatensatz (Version)}
+    from: movement
+    to: source_record
+    via: movement.source_record_id
+    multiplicity: n:1
+    nullable: true
+  shipment_source_record:
+    label: {en: Source record version, de: Quelldatensatz (Version)}
+    from: shipment
+    to: source_record
+    via: shipment.source_record_id
+    multiplicity: n:1
+    nullable: true
+  location_source_record:
+    label: {en: Source record version, de: Quelldatensatz (Version)}
+    from: location
+    to: source_record
+    via: location.source_record_id
+    multiplicity: n:1
+    nullable: true
+  return_announcement_source_record:
+    label: {en: Source record version, de: Quelldatensatz (Version)}
+    from: return_announcement
+    to: source_record
+    via: return_announcement.source_record_id
+    multiplicity: n:1
+    nullable: true
+  sales_invoice_source_record:
+    label: {en: Source record version, de: Quelldatensatz (Version)}
+    from: sales_invoice
+    to: source_record
+    via: document.source_record_id
+    multiplicity: n:1
+    nullable: true
+  customer_credit_note_source_record:
+    label: {en: Source record version, de: Quelldatensatz (Version)}
+    from: customer_credit_note
+    to: source_record
+    via: document.source_record_id
+    multiplicity: n:1
+    nullable: true
+  purchase_order_source_record:
+    label: {en: Source record version, de: Quelldatensatz (Version)}
+    from: purchase_order
+    to: source_record
+    via: document.source_record_id
+    multiplicity: n:1
+    nullable: true
+  supplier_invoice_source_record:
+    label: {en: Source record version, de: Quelldatensatz (Version)}
+    from: supplier_invoice
+    to: source_record
+    via: document.source_record_id
+    multiplicity: n:1
+    nullable: true
+  supplier_credit_note_source_record:
+    label: {en: Source record version, de: Quelldatensatz (Version)}
+    from: supplier_credit_note
+    to: source_record
+    via: document.source_record_id
+    multiplicity: n:1
+    nullable: true
+  customer_payment_source_record:
+    label: {en: Source record version, de: Quelldatensatz (Version)}
+    from: customer_payment
+    to: source_record
+    via: document.source_record_id
+    multiplicity: n:1
+    nullable: true
+  supplier_payment_source_record:
+    label: {en: Source record version, de: Quelldatensatz (Version)}
+    from: supplier_payment
+    to: source_record
+    via: document.source_record_id
+    multiplicity: n:1
+    nullable: true
+  customer_refund_source_record:
+    label: {en: Source record version, de: Quelldatensatz (Version)}
+    from: customer_refund
+    to: source_record
+    via: document.source_record_id
+    multiplicity: n:1
+    nullable: true
+  supplier_refund_source_record:
+    label: {en: Source record version, de: Quelldatensatz (Version)}
+    from: supplier_refund
+    to: source_record
+    via: document.source_record_id
+    multiplicity: n:1
+    nullable: true
+  customer_settlement_adjustment_source_record:
+    label: {en: Source record version, de: Quelldatensatz (Version)}
+    from: customer_settlement_adjustment
+    to: source_record
+    via: document.source_record_id
+    multiplicity: n:1
+    nullable: true
+  supplier_settlement_adjustment_source_record:
+    label: {en: Source record version, de: Quelldatensatz (Version)}
+    from: supplier_settlement_adjustment
+    to: source_record
+    via: document.source_record_id
+    multiplicity: n:1
+    nullable: true
+  lot_source_record:
+    label: {en: Source record version, de: Quelldatensatz (Version)}
+    from: lot
+    to: source_record
+    via: lot.source_record_id
+    multiplicity: n:1
+    nullable: true
+  serial_unit_source_record:
+    label: {en: Source record version, de: Quelldatensatz (Version)}
+    from: serial_unit
+    to: source_record
+    via: serial_unit.source_record_id
+    multiplicity: n:1
+    nullable: true
+  handling_unit_source_record:
+    label: {en: Source record version, de: Quelldatensatz (Version)}
+    from: handling_unit
+    to: source_record
+    via: handling_unit.source_record_id
+    multiplicity: n:1
+    nullable: true
+  shipment_package_source_record:
+    label: {en: Source record version, de: Quelldatensatz (Version)}
+    from: shipment_package
+    to: source_record
+    via: shipment_package.source_record_id
+    multiplicity: n:1
+    nullable: true
+  shipment_event_source_record:
+    label: {en: Source record version, de: Quelldatensatz (Version)}
+    from: shipment_event
+    to: source_record
+    via: shipment_event.source_record_id
+    multiplicity: n:1
+    nullable: true
+  shipment_event_supersession_source_record:
+    label: {en: Source record version, de: Quelldatensatz (Version)}
+    from: shipment_event_supersession
+    to: source_record
+    via: shipment_event_supersession.source_record_id
+    multiplicity: n:1
+    nullable: true
+  payment_term_source_record:
+    label: {en: Source record version, de: Quelldatensatz (Version)}
+    from: payment_term
+    to: source_record
+    via: payment_term.source_record_id
+    multiplicity: n:1
+    nullable: true
+  price_list_source_record:
+    label: {en: Source record version, de: Quelldatensatz (Version)}
+    from: price_list
+    to: source_record
+    via: price_list.source_record_id
+    multiplicity: n:1
+    nullable: true
+  price_list_entry_source_record:
+    label: {en: Source record version, de: Quelldatensatz (Version)}
+    from: price_list_entry
+    to: source_record
+    via: price_list_entry.source_record_id
+    multiplicity: n:1
+    nullable: true
+  party_group_source_record:
+    label: {en: Source record version, de: Quelldatensatz (Version)}
+    from: party_group
+    to: source_record
+    via: party_group.source_record_id
+    multiplicity: n:1
+    nullable: true
+  document_source_record:
+    label: {en: Source record version, de: Quelldatensatz (Version)}
+    from: document
+    to: source_record
+    via: document.source_record_id
+    multiplicity: n:1
+    nullable: true
+  financial_component_document:
+    label: {en: Document (all types), de: Beleg (alle Arten)}
+    from: financial_component
+    to: document
+    via: financial_component.document_id
+    multiplicity: n:1
+    nullable: true
+  financial_component_document_line:
+    label: {en: Document line (all types), de: Belegposition (alle Arten)}
+    from: financial_component
+    to: document_line
+    via: financial_component.document_line_id
+    multiplicity: n:1
+    nullable: true
+  opening_scope_party:
+    label: {en: Business partner, de: Geschäftspartner}
+    from: opening_scope
+    to: party
+    via: opening_scope.party_id
+    multiplicity: n:1
+    nullable: false
+  opening_item_detail_scope:
+    label: {en: Opening scope, de: Eröffnungsumfang}
+    from: opening_item_detail
+    to: opening_scope
+    via: opening_item_detail.scope_id
+    multiplicity: n:1
+    nullable: false
+  opening_item_detail_document:
+    label: {en: Document (all types), de: Beleg (alle Arten)}
+    from: opening_item_detail
+    to: document
+    via: opening_item_detail.document_id
+    multiplicity: n:1
+    nullable: false
+  source_record_supersedes_source_record:
+    label: {en: previous source version, de: vorherige Quellversion}
+    from: source_record
+    to: source_record
+    via: source_record.supersedes_source_record_id
+    multiplicity: n:1
+    nullable: true
+  fact_source_record:
+    label: {en: Source record version, de: Quelldatensatz (Version)}
+    from: fact
+    to: source_record
+    via: fact.source_record_id
+    multiplicity: n:1
+    nullable: true
+  party_payment_terms:
+    label: {en: "Payment terms", de: "Zahlungsbedingung"}
+    from: party
+    to: payment_term
+    via: party.payment_term_id
+    multiplicity: "n:1"
+    nullable: true
+  sales_invoice_party:
+    label: {en: business partner, de: Geschäftspartner}
+    from: sales_invoice
+    to: party
+    via: document.party_id
+    multiplicity: n:1
+    nullable: true
+  sales_invoice_terms:
+    label: {en: payment terms, de: Zahlungsbedingung}
+    from: sales_invoice
+    to: payment_term
+    via: document.payment_term_id
+    multiplicity: n:1
+    nullable: true
+  sales_invoice_ship_to:
+    label: {en: delivery recipient, de: Lieferempfänger}
+    from: sales_invoice
+    to: party
+    via: document.ship_to_party_id
+    multiplicity: n:1
+    nullable: true
+  sales_invoice_postings:
+    label: {en: posted as, de: gebucht als}
+    from: sales_invoice
+    to: posting
+    via: ledger_entry.document_id
+    multiplicity: 1:n
+    nullable: true
+  sales_invoice_contains:
+    label: {en: contains, de: enthält}
+    from: sales_invoice
+    to: sales_invoice_line
+    via: document_line.document_id
+    multiplicity: 1:n
+    nullable: false
+  sales_invoice_line_item:
+    label: {en: article, de: Artikel}
+    from: sales_invoice_line
+    to: item
+    via: document_line.item_id
+    multiplicity: n:1
+    nullable: true
+  sales_invoice_line_price:
+    label: {en: agreed price, de: Preisvereinbarung}
+    from: sales_invoice_line
+    to: price_list_entry
+    via: document_line.price_list_entry_id
+    multiplicity: n:1
+    nullable: true
+  customer_credit_note_party:
+    label: {en: business partner, de: Geschäftspartner}
+    from: customer_credit_note
+    to: party
+    via: document.party_id
+    multiplicity: n:1
+    nullable: true
+  customer_credit_note_terms:
+    label: {en: payment terms, de: Zahlungsbedingung}
+    from: customer_credit_note
+    to: payment_term
+    via: document.payment_term_id
+    multiplicity: n:1
+    nullable: true
+  customer_credit_note_ship_to:
+    label: {en: delivery recipient, de: Lieferempfänger}
+    from: customer_credit_note
+    to: party
+    via: document.ship_to_party_id
+    multiplicity: n:1
+    nullable: true
+  customer_credit_note_postings:
+    label: {en: posted as, de: gebucht als}
+    from: customer_credit_note
+    to: posting
+    via: ledger_entry.document_id
+    multiplicity: 1:n
+    nullable: true
+  customer_credit_note_contains:
+    label: {en: contains, de: enthält}
+    from: customer_credit_note
+    to: customer_credit_note_line
+    via: document_line.document_id
+    multiplicity: 1:n
+    nullable: false
+  customer_credit_note_line_item:
+    label: {en: article, de: Artikel}
+    from: customer_credit_note_line
+    to: item
+    via: document_line.item_id
+    multiplicity: n:1
+    nullable: true
+  customer_credit_note_line_price:
+    label: {en: agreed price, de: Preisvereinbarung}
+    from: customer_credit_note_line
+    to: price_list_entry
+    via: document_line.price_list_entry_id
+    multiplicity: n:1
+    nullable: true
+  purchase_order_party:
+    label: {en: business partner, de: Geschäftspartner}
+    from: purchase_order
+    to: party
+    via: document.party_id
+    multiplicity: n:1
+    nullable: true
+  purchase_order_terms:
+    label: {en: payment terms, de: Zahlungsbedingung}
+    from: purchase_order
+    to: payment_term
+    via: document.payment_term_id
+    multiplicity: n:1
+    nullable: true
+  purchase_order_ship_to:
+    label: {en: delivery recipient, de: Lieferempfänger}
+    from: purchase_order
+    to: party
+    via: document.ship_to_party_id
+    multiplicity: n:1
+    nullable: true
+  purchase_order_postings:
+    label: {en: posted as, de: gebucht als}
+    from: purchase_order
+    to: posting
+    via: ledger_entry.document_id
+    multiplicity: 1:n
+    nullable: true
+  purchase_order_contains:
+    label: {en: contains, de: enthält}
+    from: purchase_order
+    to: purchase_order_line
+    via: document_line.document_id
+    multiplicity: 1:n
+    nullable: false
+  purchase_order_line_item:
+    label: {en: article, de: Artikel}
+    from: purchase_order_line
+    to: item
+    via: document_line.item_id
+    multiplicity: n:1
+    nullable: true
+  purchase_order_line_price:
+    label: {en: agreed price, de: Preisvereinbarung}
+    from: purchase_order_line
+    to: price_list_entry
+    via: document_line.price_list_entry_id
+    multiplicity: n:1
+    nullable: true
+  supplier_invoice_party:
+    label: {en: business partner, de: Geschäftspartner}
+    from: supplier_invoice
+    to: party
+    via: document.party_id
+    multiplicity: n:1
+    nullable: true
+  supplier_invoice_terms:
+    label: {en: payment terms, de: Zahlungsbedingung}
+    from: supplier_invoice
+    to: payment_term
+    via: document.payment_term_id
+    multiplicity: n:1
+    nullable: true
+  supplier_invoice_ship_to:
+    label: {en: delivery recipient, de: Lieferempfänger}
+    from: supplier_invoice
+    to: party
+    via: document.ship_to_party_id
+    multiplicity: n:1
+    nullable: true
+  supplier_invoice_postings:
+    label: {en: posted as, de: gebucht als}
+    from: supplier_invoice
+    to: posting
+    via: ledger_entry.document_id
+    multiplicity: 1:n
+    nullable: true
+  supplier_invoice_contains:
+    label: {en: contains, de: enthält}
+    from: supplier_invoice
+    to: supplier_invoice_line
+    via: document_line.document_id
+    multiplicity: 1:n
+    nullable: false
+  supplier_invoice_line_item:
+    label: {en: article, de: Artikel}
+    from: supplier_invoice_line
+    to: item
+    via: document_line.item_id
+    multiplicity: n:1
+    nullable: true
+  supplier_invoice_line_price:
+    label: {en: agreed price, de: Preisvereinbarung}
+    from: supplier_invoice_line
+    to: price_list_entry
+    via: document_line.price_list_entry_id
+    multiplicity: n:1
+    nullable: true
+  supplier_credit_note_party:
+    label: {en: business partner, de: Geschäftspartner}
+    from: supplier_credit_note
+    to: party
+    via: document.party_id
+    multiplicity: n:1
+    nullable: true
+  supplier_credit_note_terms:
+    label: {en: payment terms, de: Zahlungsbedingung}
+    from: supplier_credit_note
+    to: payment_term
+    via: document.payment_term_id
+    multiplicity: n:1
+    nullable: true
+  supplier_credit_note_ship_to:
+    label: {en: delivery recipient, de: Lieferempfänger}
+    from: supplier_credit_note
+    to: party
+    via: document.ship_to_party_id
+    multiplicity: n:1
+    nullable: true
+  supplier_credit_note_postings:
+    label: {en: posted as, de: gebucht als}
+    from: supplier_credit_note
+    to: posting
+    via: ledger_entry.document_id
+    multiplicity: 1:n
+    nullable: true
+  supplier_credit_note_contains:
+    label: {en: contains, de: enthält}
+    from: supplier_credit_note
+    to: supplier_credit_note_line
+    via: document_line.document_id
+    multiplicity: 1:n
+    nullable: false
+  supplier_credit_note_line_item:
+    label: {en: article, de: Artikel}
+    from: supplier_credit_note_line
+    to: item
+    via: document_line.item_id
+    multiplicity: n:1
+    nullable: true
+  supplier_credit_note_line_price:
+    label: {en: agreed price, de: Preisvereinbarung}
+    from: supplier_credit_note_line
+    to: price_list_entry
+    via: document_line.price_list_entry_id
+    multiplicity: n:1
+    nullable: true
+  customer_payment_party:
+    label: {en: business partner, de: Geschäftspartner}
+    from: customer_payment
+    to: party
+    via: document.party_id
+    multiplicity: n:1
+    nullable: true
+  customer_payment_terms:
+    label: {en: payment terms, de: Zahlungsbedingung}
+    from: customer_payment
+    to: payment_term
+    via: document.payment_term_id
+    multiplicity: n:1
+    nullable: true
+  customer_payment_ship_to:
+    label: {en: delivery recipient, de: Lieferempfänger}
+    from: customer_payment
+    to: party
+    via: document.ship_to_party_id
+    multiplicity: n:1
+    nullable: true
+  customer_payment_postings:
+    label: {en: posted as, de: gebucht als}
+    from: customer_payment
+    to: posting
+    via: ledger_entry.document_id
+    multiplicity: 1:n
+    nullable: true
+  supplier_payment_party:
+    label: {en: business partner, de: Geschäftspartner}
+    from: supplier_payment
+    to: party
+    via: document.party_id
+    multiplicity: n:1
+    nullable: true
+  supplier_payment_terms:
+    label: {en: payment terms, de: Zahlungsbedingung}
+    from: supplier_payment
+    to: payment_term
+    via: document.payment_term_id
+    multiplicity: n:1
+    nullable: true
+  supplier_payment_ship_to:
+    label: {en: delivery recipient, de: Lieferempfänger}
+    from: supplier_payment
+    to: party
+    via: document.ship_to_party_id
+    multiplicity: n:1
+    nullable: true
+  supplier_payment_postings:
+    label: {en: posted as, de: gebucht als}
+    from: supplier_payment
+    to: posting
+    via: ledger_entry.document_id
+    multiplicity: 1:n
+    nullable: true
+  customer_refund_party:
+    label: {en: business partner, de: Geschäftspartner}
+    from: customer_refund
+    to: party
+    via: document.party_id
+    multiplicity: n:1
+    nullable: true
+  customer_refund_terms:
+    label: {en: payment terms, de: Zahlungsbedingung}
+    from: customer_refund
+    to: payment_term
+    via: document.payment_term_id
+    multiplicity: n:1
+    nullable: true
+  customer_refund_ship_to:
+    label: {en: delivery recipient, de: Lieferempfänger}
+    from: customer_refund
+    to: party
+    via: document.ship_to_party_id
+    multiplicity: n:1
+    nullable: true
+  customer_refund_postings:
+    label: {en: posted as, de: gebucht als}
+    from: customer_refund
+    to: posting
+    via: ledger_entry.document_id
+    multiplicity: 1:n
+    nullable: true
+  supplier_refund_party:
+    label: {en: business partner, de: Geschäftspartner}
+    from: supplier_refund
+    to: party
+    via: document.party_id
+    multiplicity: n:1
+    nullable: true
+  supplier_refund_terms:
+    label: {en: payment terms, de: Zahlungsbedingung}
+    from: supplier_refund
+    to: payment_term
+    via: document.payment_term_id
+    multiplicity: n:1
+    nullable: true
+  supplier_refund_ship_to:
+    label: {en: delivery recipient, de: Lieferempfänger}
+    from: supplier_refund
+    to: party
+    via: document.ship_to_party_id
+    multiplicity: n:1
+    nullable: true
+  supplier_refund_postings:
+    label: {en: posted as, de: gebucht als}
+    from: supplier_refund
+    to: posting
+    via: ledger_entry.document_id
+    multiplicity: 1:n
+    nullable: true
+  customer_settlement_adjustment_party:
+    label: {en: business partner, de: Geschäftspartner}
+    from: customer_settlement_adjustment
+    to: party
+    via: document.party_id
+    multiplicity: n:1
+    nullable: true
+  customer_settlement_adjustment_terms:
+    label: {en: payment terms, de: Zahlungsbedingung}
+    from: customer_settlement_adjustment
+    to: payment_term
+    via: document.payment_term_id
+    multiplicity: n:1
+    nullable: true
+  customer_settlement_adjustment_ship_to:
+    label: {en: delivery recipient, de: Lieferempfänger}
+    from: customer_settlement_adjustment
+    to: party
+    via: document.ship_to_party_id
+    multiplicity: n:1
+    nullable: true
+  customer_settlement_adjustment_postings:
+    label: {en: posted as, de: gebucht als}
+    from: customer_settlement_adjustment
+    to: posting
+    via: ledger_entry.document_id
+    multiplicity: 1:n
+    nullable: true
+  supplier_settlement_adjustment_party:
+    label: {en: business partner, de: Geschäftspartner}
+    from: supplier_settlement_adjustment
+    to: party
+    via: document.party_id
+    multiplicity: n:1
+    nullable: true
+  supplier_settlement_adjustment_terms:
+    label: {en: payment terms, de: Zahlungsbedingung}
+    from: supplier_settlement_adjustment
+    to: payment_term
+    via: document.payment_term_id
+    multiplicity: n:1
+    nullable: true
+  supplier_settlement_adjustment_ship_to:
+    label: {en: delivery recipient, de: Lieferempfänger}
+    from: supplier_settlement_adjustment
+    to: party
+    via: document.ship_to_party_id
+    multiplicity: n:1
+    nullable: true
+  supplier_settlement_adjustment_postings:
+    label: {en: posted as, de: gebucht als}
+    from: supplier_settlement_adjustment
+    to: posting
+    via: ledger_entry.document_id
+    multiplicity: 1:n
+    nullable: true
+  reservation_commitment:
+    label: {en: Commitment, de: Verpflichtung}
+    from: reservation
+    to: commitment
+    via: reservation.commitment_id
+    multiplicity: n:1
+    nullable: true
+  reservation_item:
+    label: {en: Article, de: Artikel}
+    from: reservation
+    to: item
+    via: reservation.item_id
+    multiplicity: n:1
+    nullable: true
+  reservation_location:
+    label: {en: Location, de: Lagerort}
+    from: reservation
+    to: location
+    via: reservation.location_id
+    multiplicity: n:1
+    nullable: true
+  reservation_handling_unit:
+    label: {en: Handling unit, de: Ladeeinheit}
+    from: reservation
+    to: handling_unit
+    via: reservation.handling_unit_id
+    multiplicity: n:1
+    nullable: true
+  reservation_lot:
+    label: {en: Lot, de: Artikelcharge}
+    from: reservation
+    to: lot
+    via: reservation.lot_id
+    multiplicity: n:1
+    nullable: true
+  reservation_serial_unit:
+    label: {en: Serial unit, de: Seriennummer}
+    from: reservation
+    to: serial_unit
+    via: reservation.serial_unit_id
+    multiplicity: n:1
+    nullable: true
+  party_hold_party:
+    label: {en: Business partner, de: Geschäftspartner}
+    from: party_hold
+    to: party
+    via: party_hold.party_id
+    multiplicity: n:1
+    nullable: true
+  commitment_hold_commitment:
+    label: {en: Commitment, de: Verpflichtung}
+    from: commitment_hold
+    to: commitment
+    via: commitment_hold.commitment_id
+    multiplicity: n:1
+    nullable: true
+  lot_item:
+    label: {en: Article, de: Artikel}
+    from: lot
+    to: item
+    via: lot.item_id
+    multiplicity: n:1
+    nullable: true
+  serial_unit_item:
+    label: {en: Article, de: Artikel}
+    from: serial_unit
+    to: item
+    via: serial_unit.item_id
+    multiplicity: n:1
+    nullable: true
+  serial_unit_lot:
+    label: {en: Lot, de: Artikelcharge}
+    from: serial_unit
+    to: lot
+    via: serial_unit.lot_id
+    multiplicity: n:1
+    nullable: true
+  shipment_package_shipment:
+    label: {en: Shipment, de: Versand}
+    from: shipment_package
+    to: shipment
+    via: shipment_package.shipment_id
+    multiplicity: n:1
+    nullable: true
+  shipment_event_shipment:
+    label: {en: Shipment, de: Versand}
+    from: shipment_event
+    to: shipment
+    via: shipment_event.shipment_id
+    multiplicity: n:1
+    nullable: true
+  shipment_event_shipment_package:
+    label: {en: Shipment package, de: Packstück}
+    from: shipment_event
+    to: shipment_package
+    via: shipment_event.shipment_package_id
+    multiplicity: n:1
+    nullable: true
+  shipment_event_supersession_superseded_event:
+    label: {en: superseded event, de: ersetztes Ereignis}
+    from: shipment_event_supersession
+    to: shipment_event
+    via: shipment_event_supersession.superseded_event_id
+    multiplicity: n:1
+    nullable: true
+  shipment_event_supersession_replacement_event:
+    label: {en: replacement event, de: Ersatzereignis}
+    from: shipment_event_supersession
+    to: shipment_event
+    via: shipment_event_supersession.replacement_event_id
+    multiplicity: n:1
+    nullable: true
+  party_role_party:
+    label: {en: Business partner, de: Geschäftspartner}
+    from: party_role
+    to: party
+    via: party_role.party_id
+    multiplicity: n:1
+    nullable: true
+  party_role_default_location:
+    label: {en: Location, de: Lagerort}
+    from: party_role
+    to: location
+    via: party_role.default_location_id
+    multiplicity: n:1
+    nullable: true
+  price_list_entry_price_list:
+    label: {en: Price list, de: Preisliste}
+    from: price_list_entry
+    to: price_list
+    via: price_list_entry.price_list_id
+    multiplicity: n:1
+    nullable: true
+  price_list_entry_item:
+    label: {en: Article, de: Artikel}
+    from: price_list_entry
+    to: item
+    via: price_list_entry.item_id
+    multiplicity: n:1
+    nullable: true
+  party_price_list_party:
+    label: {en: Business partner, de: Geschäftspartner}
+    from: party_price_list
+    to: party
+    via: party_price_list.party_id
+    multiplicity: n:1
+    nullable: true
+  party_price_list_price_list:
+    label: {en: Price list, de: Preisliste}
+    from: party_price_list
+    to: price_list
+    via: party_price_list.price_list_id
+    multiplicity: n:1
+    nullable: true
+  party_group_member_party:
+    label: {en: Business partner, de: Geschäftspartner}
+    from: party_group_member
+    to: party
+    via: party_group_member.party_id
+    multiplicity: n:1
+    nullable: true
+  party_group_member_party_group:
+    label: {en: Partner group, de: Geschäftspartnergruppe}
+    from: party_group_member
+    to: party_group
+    via: party_group_member.party_group_id
+    multiplicity: n:1
+    nullable: true
+  party_group_price_list_party_group:
+    label: {en: Partner group, de: Geschäftspartnergruppe}
+    from: party_group_price_list
+    to: party_group
+    via: party_group_price_list.party_group_id
+    multiplicity: n:1
+    nullable: true
+  party_group_price_list_price_list:
+    label: {en: Price list, de: Preisliste}
+    from: party_group_price_list
+    to: price_list
+    via: party_group_price_list.price_list_id
+    multiplicity: n:1
+    nullable: true
+  movement_handling_unit:
+    label: {en: Handling unit, de: Ladeeinheit}
+    from: movement
+    to: handling_unit
+    via: movement.handling_unit_id
+    multiplicity: n:1
+    nullable: true
+  movement_lot:
+    label: {en: Lot, de: Artikelcharge}
+    from: movement
+    to: lot
+    via: movement.lot_id
+    multiplicity: n:1
+    nullable: true
+  movement_serial_unit:
+    label: {en: Serial unit, de: Seriennummer}
+    from: movement
+    to: serial_unit
+    via: movement.serial_unit_id
+    multiplicity: n:1
+    nullable: true
+  movement_shipment_package:
+    label: {en: Shipment package, de: Packstück}
+    from: movement
+    to: shipment_package
+    via: movement.shipment_package_id
+    multiplicity: n:1
+    nullable: true
+  posting_account:
+    label: {en: Account, de: Buchhaltungskonto}
+    from: posting
+    to: subledger_account
+    via: ledger_entry.account_id
+    multiplicity: n:1
+    nullable: true
+  order_payment_term:
+    label: {en: Payment term, de: Zahlungsbedingung}
+    from: order
+    to: payment_term
+    via: document.payment_term_id
+    multiplicity: n:1
+    nullable: true
+  invoice_payment_term:
+    label: {en: Payment term, de: Zahlungsbedingung}
+    from: invoice
+    to: payment_term
+    via: document.payment_term_id
+    multiplicity: n:1
+    nullable: true
+  order_line_price_list_entry:
+    label: {en: Price tier, de: Preisstaffel}
+    from: order_line
+    to: price_list_entry
+    via: document_line.price_list_entry_id
+    multiplicity: n:1
+    nullable: true
+  invoice_line_price_list_entry:
+    label: {en: Price tier, de: Preisstaffel}
+    from: invoice_line
+    to: price_list_entry
+    via: document_line.price_list_entry_id
+    multiplicity: n:1
+    nullable: true
+  invoice_line_item:
+    label: {en: Article, de: Artikel}
+    from: invoice_line
+    to: item
+    via: document_line.item_id
+    multiplicity: n:1
+    nullable: true
+  sales_invoice_line_bills:
+    label: {en: bills line, de: berechnet Position}
+    from: sales_invoice_line
+    to: order_line
+    via: document_line.billed_document_line_id
+    multiplicity: n:1
+    nullable: true
+  customer_credit_note_line_bills:
+    label: {en: bills line, de: berechnet Position}
+    from: customer_credit_note_line
+    to: order_line
+    via: document_line.billed_document_line_id
+    multiplicity: n:1
+    nullable: true
+  supplier_invoice_line_bills:
+    label: {en: bills line, de: berechnet Position}
+    from: supplier_invoice_line
+    to: purchase_order_line
+    via: document_line.billed_document_line_id
+    multiplicity: n:1
+    nullable: true
+  supplier_credit_note_line_bills:
+    label: {en: bills line, de: berechnet Position}
+    from: supplier_credit_note_line
+    to: purchase_order_line
+    via: document_line.billed_document_line_id
+    multiplicity: n:1
+    nullable: true
+
 
   # --- sales ----------------------------------------------------------------
   ordered_by:
@@ -527,7 +2997,730 @@ edges:
 # never_across lists the axes where a sum is refused outright.
 # ---------------------------------------------------------------------------
 
+  customer_open_item_party:
+    from: customer_open_item
+    to: party
+    via: document.party_id
+    multiplicity: n:1
+    nullable: true
+    label: {en: belongs to, de: gehört zu}
+  customer_open_item_evidence:
+    from: customer_open_item
+    to: document
+    via: document.id
+    multiplicity: n:1
+    label: {en: evidenced by, de: belegt durch}
+
+  supplier_open_item_party:
+    from: supplier_open_item
+    to: party
+    via: document.party_id
+    multiplicity: n:1
+    nullable: true
+    label: {en: belongs to, de: gehört zu}
+  supplier_open_item_evidence:
+    from: supplier_open_item
+    to: document
+    via: document.id
+    multiplicity: n:1
+    label: {en: evidenced by, de: belegt durch}
+
+  stock_position_item:
+    from: stock_position
+    to: item
+    via: item.id
+    multiplicity: n:1
+    label:
+      en: Article
+      de: Artikel
+
+  customer_balance_party:
+    from: customer_balance
+    to: party
+    via: party.id
+    multiplicity: n:1
+    label:
+      en: Business partner
+      de: Geschäftspartner
+  customer_balance_history_party:
+    from: customer_balance_history
+    to: party
+    via: party.id
+    multiplicity: n:1
+    label:
+      en: Business partner
+      de: Geschäftspartner
+  supplier_balance_party:
+    from: supplier_balance
+    to: party
+    via: party.id
+    multiplicity: n:1
+    label:
+      en: Business partner
+      de: Geschäftspartner
+  supplier_balance_history_party:
+    from: supplier_balance_history
+    to: party
+    via: party.id
+    multiplicity: n:1
+    label:
+      en: Business partner
+      de: Geschäftspartner
+  stock_detail_item:
+    from: stock_detail
+    to: item
+    via: item.id
+    multiplicity: n:1
+    label:
+      en: Article
+      de: Artikel
+  stock_history_item:
+    from: stock_history
+    to: item
+    via: item.id
+    multiplicity: n:1
+    label:
+      en: Article
+      de: Artikel
+
 measures:
+
+  stock_physical:
+    node: stock_position
+    source: physical
+    label:
+      en: Physical stock
+      de: Bestand
+    unit:
+      kind: measure
+      column: unit
+    additive_over:
+    - item
+    never_across:
+    - unit
+    - time
+    note: Current all-location inventory from the canonical inventory service; availability is not release
+      eligibility.
+  stock_reserved:
+    node: stock_position
+    source: reserved
+    label:
+      en: Reserved stock
+      de: Reservierter Bestand
+    unit:
+      kind: measure
+      column: unit
+    additive_over:
+    - item
+    never_across:
+    - unit
+    - time
+    note: Current all-location inventory from the canonical inventory service; availability is not release
+      eligibility.
+  stock_available:
+    node: stock_position
+    source: available
+    label:
+      en: Available stock
+      de: Verfügbarer Bestand
+    unit:
+      kind: measure
+      column: unit
+    additive_over:
+    - item
+    never_across:
+    - unit
+    - time
+    note: Current all-location inventory from the canonical inventory service; availability is not release
+      eligibility.
+
+  customer_open_amount:
+    node: customer_open_item
+    source: open_amount
+    label: {en: "Customer outstanding amount", de: "Kunden: Offener Betrag"}
+    unit: {kind: currency, column: currency}
+    additive_over: [party]
+    never_across: [currency, time]
+    note: Current canonical finance position; not a historical settlement balance.
+
+  customer_overdue_amount:
+    node: customer_open_item
+    source: overdue_amount
+    label: {en: "Customer overdue amount", de: "Kunden: Überfälliger Betrag"}
+    unit: {kind: currency, column: currency}
+    additive_over: [party]
+    never_across: [currency, time]
+    note: Current canonical finance position; not a historical settlement balance.
+
+  supplier_open_amount:
+    node: supplier_open_item
+    source: open_amount
+    label: {en: "Supplier outstanding amount", de: "Lieferanten: Offener Betrag"}
+    unit: {kind: currency, column: currency}
+    additive_over: [party]
+    never_across: [currency, time]
+    note: Current canonical finance position; not a historical settlement balance.
+
+  supplier_overdue_amount:
+    node: supplier_open_item
+    source: overdue_amount
+    label: {en: "Supplier overdue amount", de: "Lieferanten: Überfälliger Betrag"}
+    unit: {kind: currency, column: currency}
+    additive_over: [party]
+    never_across: [currency, time]
+    note: Current canonical finance position; not a historical settlement balance.
+  sales_invoice_amount:
+    label: {en: Recorded amount, de: Erfasster Betrag}
+    node: sales_invoice
+    source: gross_amount
+    unit:
+      kind: currency
+      column: currency
+    additive_over:
+    - record
+    never_across:
+    - currency
+    note: Recorded document amount with its original sign; not a net revenue or cash-flow calculation.
+  sales_invoice_count:
+    label: {en: Document count, de: Anzahl Belege}
+    node: sales_invoice
+    source:
+      distinct: id
+    unit:
+      kind: count
+    additive_over:
+    - record
+    never_across: []
+  sales_invoice_line_amount:
+    label: {en: Recorded line amount, de: Erfasster Positionsbetrag}
+    node: sales_invoice_line
+    source: gross_amount
+    unit:
+      kind: currency
+      column: currency
+      from_node: sales_invoice
+    additive_over:
+    - record
+    never_across:
+    - currency
+  sales_invoice_line_quantity:
+    label: {en: Recorded quantity, de: Erfasste Menge}
+    node: sales_invoice_line
+    source: quantity
+    unit:
+      kind: measure
+      column: unit
+    additive_over:
+    - record
+    never_across:
+    - unit
+  customer_credit_note_amount:
+    label: {en: Recorded amount, de: Erfasster Betrag}
+    node: customer_credit_note
+    source: gross_amount
+    unit:
+      kind: currency
+      column: currency
+    additive_over:
+    - record
+    never_across:
+    - currency
+    note: Recorded document amount with its original sign; not a net revenue or cash-flow calculation.
+  customer_credit_note_count:
+    label: {en: Document count, de: Anzahl Belege}
+    node: customer_credit_note
+    source:
+      distinct: id
+    unit:
+      kind: count
+    additive_over:
+    - record
+    never_across: []
+  customer_credit_note_line_amount:
+    label: {en: Recorded line amount, de: Erfasster Positionsbetrag}
+    node: customer_credit_note_line
+    source: gross_amount
+    unit:
+      kind: currency
+      column: currency
+      from_node: customer_credit_note
+    additive_over:
+    - record
+    never_across:
+    - currency
+  customer_credit_note_line_quantity:
+    label: {en: Recorded quantity, de: Erfasste Menge}
+    node: customer_credit_note_line
+    source: quantity
+    unit:
+      kind: measure
+      column: unit
+    additive_over:
+    - record
+    never_across:
+    - unit
+  purchase_order_amount:
+    label: {en: Recorded amount, de: Erfasster Betrag}
+    node: purchase_order
+    source: gross_amount
+    unit:
+      kind: currency
+      column: currency
+    additive_over:
+    - record
+    never_across:
+    - currency
+    note: Recorded document amount with its original sign; not a net revenue or cash-flow calculation.
+  purchase_order_count:
+    label: {en: Document count, de: Anzahl Belege}
+    node: purchase_order
+    source:
+      distinct: id
+    unit:
+      kind: count
+    additive_over:
+    - record
+    never_across: []
+  purchase_order_line_amount:
+    label: {en: Recorded line amount, de: Erfasster Positionsbetrag}
+    node: purchase_order_line
+    source: gross_amount
+    unit:
+      kind: currency
+      column: currency
+      from_node: purchase_order
+    additive_over:
+    - record
+    never_across:
+    - currency
+  purchase_order_line_quantity:
+    label: {en: Recorded quantity, de: Erfasste Menge}
+    node: purchase_order_line
+    source: quantity
+    unit:
+      kind: measure
+      column: unit
+    additive_over:
+    - record
+    never_across:
+    - unit
+  supplier_invoice_amount:
+    label: {en: Recorded amount, de: Erfasster Betrag}
+    node: supplier_invoice
+    source: gross_amount
+    unit:
+      kind: currency
+      column: currency
+    additive_over:
+    - record
+    never_across:
+    - currency
+    note: Recorded document amount with its original sign; not a net revenue or cash-flow calculation.
+  supplier_invoice_count:
+    label: {en: Document count, de: Anzahl Belege}
+    node: supplier_invoice
+    source:
+      distinct: id
+    unit:
+      kind: count
+    additive_over:
+    - record
+    never_across: []
+  supplier_invoice_line_amount:
+    label: {en: Recorded line amount, de: Erfasster Positionsbetrag}
+    node: supplier_invoice_line
+    source: gross_amount
+    unit:
+      kind: currency
+      column: currency
+      from_node: supplier_invoice
+    additive_over:
+    - record
+    never_across:
+    - currency
+  supplier_invoice_line_quantity:
+    label: {en: Recorded quantity, de: Erfasste Menge}
+    node: supplier_invoice_line
+    source: quantity
+    unit:
+      kind: measure
+      column: unit
+    additive_over:
+    - record
+    never_across:
+    - unit
+  supplier_credit_note_amount:
+    label: {en: Recorded amount, de: Erfasster Betrag}
+    node: supplier_credit_note
+    source: gross_amount
+    unit:
+      kind: currency
+      column: currency
+    additive_over:
+    - record
+    never_across:
+    - currency
+    note: Recorded document amount with its original sign; not a net revenue or cash-flow calculation.
+  supplier_credit_note_count:
+    label: {en: Document count, de: Anzahl Belege}
+    node: supplier_credit_note
+    source:
+      distinct: id
+    unit:
+      kind: count
+    additive_over:
+    - record
+    never_across: []
+  supplier_credit_note_line_amount:
+    label: {en: Recorded line amount, de: Erfasster Positionsbetrag}
+    node: supplier_credit_note_line
+    source: gross_amount
+    unit:
+      kind: currency
+      column: currency
+      from_node: supplier_credit_note
+    additive_over:
+    - record
+    never_across:
+    - currency
+  supplier_credit_note_line_quantity:
+    label: {en: Recorded quantity, de: Erfasste Menge}
+    node: supplier_credit_note_line
+    source: quantity
+    unit:
+      kind: measure
+      column: unit
+    additive_over:
+    - record
+    never_across:
+    - unit
+  customer_payment_amount:
+    label: {en: Recorded amount, de: Erfasster Betrag}
+    node: customer_payment
+    source: gross_amount
+    unit:
+      kind: currency
+      column: currency
+    additive_over:
+    - record
+    never_across:
+    - currency
+    note: Recorded document amount with its original sign; not a net revenue or cash-flow calculation.
+  customer_payment_count:
+    label: {en: Document count, de: Anzahl Belege}
+    node: customer_payment
+    source:
+      distinct: id
+    unit:
+      kind: count
+    additive_over:
+    - record
+    never_across: []
+  supplier_payment_amount:
+    label: {en: Recorded amount, de: Erfasster Betrag}
+    node: supplier_payment
+    source: gross_amount
+    unit:
+      kind: currency
+      column: currency
+    additive_over:
+    - record
+    never_across:
+    - currency
+    note: Recorded document amount with its original sign; not a net revenue or cash-flow calculation.
+  supplier_payment_count:
+    label: {en: Document count, de: Anzahl Belege}
+    node: supplier_payment
+    source:
+      distinct: id
+    unit:
+      kind: count
+    additive_over:
+    - record
+    never_across: []
+  customer_refund_amount:
+    label: {en: Recorded amount, de: Erfasster Betrag}
+    node: customer_refund
+    source: gross_amount
+    unit:
+      kind: currency
+      column: currency
+    additive_over:
+    - record
+    never_across:
+    - currency
+    note: Recorded document amount with its original sign; not a net revenue or cash-flow calculation.
+  customer_refund_count:
+    label: {en: Document count, de: Anzahl Belege}
+    node: customer_refund
+    source:
+      distinct: id
+    unit:
+      kind: count
+    additive_over:
+    - record
+    never_across: []
+  supplier_refund_amount:
+    label: {en: Recorded amount, de: Erfasster Betrag}
+    node: supplier_refund
+    source: gross_amount
+    unit:
+      kind: currency
+      column: currency
+    additive_over:
+    - record
+    never_across:
+    - currency
+    note: Recorded document amount with its original sign; not a net revenue or cash-flow calculation.
+  supplier_refund_count:
+    label: {en: Document count, de: Anzahl Belege}
+    node: supplier_refund
+    source:
+      distinct: id
+    unit:
+      kind: count
+    additive_over:
+    - record
+    never_across: []
+  customer_settlement_adjustment_amount:
+    label: {en: Recorded amount, de: Erfasster Betrag}
+    node: customer_settlement_adjustment
+    source: gross_amount
+    unit:
+      kind: currency
+      column: currency
+    additive_over:
+    - record
+    never_across:
+    - currency
+    note: Recorded document amount with its original sign; not a net revenue or cash-flow calculation.
+  customer_settlement_adjustment_count:
+    label: {en: Document count, de: Anzahl Belege}
+    node: customer_settlement_adjustment
+    source:
+      distinct: id
+    unit:
+      kind: count
+    additive_over:
+    - record
+    never_across: []
+  supplier_settlement_adjustment_amount:
+    label: {en: Recorded amount, de: Erfasster Betrag}
+    node: supplier_settlement_adjustment
+    source: gross_amount
+    unit:
+      kind: currency
+      column: currency
+    additive_over:
+    - record
+    never_across:
+    - currency
+    note: Recorded document amount with its original sign; not a net revenue or cash-flow calculation.
+  supplier_settlement_adjustment_count:
+    label: {en: Document count, de: Anzahl Belege}
+    node: supplier_settlement_adjustment
+    source:
+      distinct: id
+    unit:
+      kind: count
+    additive_over:
+    - record
+    never_across: []
+  reservation_count:
+    label: {en: Record count, de: Anzahl Datensätze}
+    node: reservation
+    source:
+      distinct: id
+    unit:
+      kind: count
+    additive_over:
+    - record
+    never_across: []
+  party_hold_count:
+    label: {en: Record count, de: Anzahl Datensätze}
+    node: party_hold
+    source:
+      distinct: id
+    unit:
+      kind: count
+    additive_over:
+    - record
+    never_across: []
+  commitment_hold_count:
+    label: {en: Record count, de: Anzahl Datensätze}
+    node: commitment_hold
+    source:
+      distinct: id
+    unit:
+      kind: count
+    additive_over:
+    - record
+    never_across: []
+  lot_count:
+    label: {en: Record count, de: Anzahl Datensätze}
+    node: lot
+    source:
+      distinct: id
+    unit:
+      kind: count
+    additive_over:
+    - record
+    never_across: []
+  serial_unit_count:
+    label: {en: Record count, de: Anzahl Datensätze}
+    node: serial_unit
+    source:
+      distinct: id
+    unit:
+      kind: count
+    additive_over:
+    - record
+    never_across: []
+  handling_unit_count:
+    label: {en: Record count, de: Anzahl Datensätze}
+    node: handling_unit
+    source:
+      distinct: id
+    unit:
+      kind: count
+    additive_over:
+    - record
+    never_across: []
+  shipment_package_count:
+    label: {en: Record count, de: Anzahl Datensätze}
+    node: shipment_package
+    source:
+      distinct: id
+    unit:
+      kind: count
+    additive_over:
+    - record
+    never_across: []
+  shipment_event_count:
+    label: {en: Record count, de: Anzahl Datensätze}
+    node: shipment_event
+    source:
+      distinct: id
+    unit:
+      kind: count
+    additive_over:
+    - record
+    never_across: []
+  shipment_event_supersession_count:
+    label: {en: Record count, de: Anzahl Datensätze}
+    node: shipment_event_supersession
+    source:
+      distinct: id
+    unit:
+      kind: count
+    additive_over:
+    - record
+    never_across: []
+  payment_term_count:
+    label: {en: Record count, de: Anzahl Datensätze}
+    node: payment_term
+    source:
+      distinct: id
+    unit:
+      kind: count
+    additive_over:
+    - record
+    never_across: []
+  price_list_count:
+    label: {en: Record count, de: Anzahl Datensätze}
+    node: price_list
+    source:
+      distinct: id
+    unit:
+      kind: count
+    additive_over:
+    - record
+    never_across: []
+  price_list_entry_count:
+    label: {en: Record count, de: Anzahl Datensätze}
+    node: price_list_entry
+    source:
+      distinct: id
+    unit:
+      kind: count
+    additive_over:
+    - record
+    never_across: []
+  party_price_list_count:
+    label: {en: Record count, de: Anzahl Datensätze}
+    node: party_price_list
+    source:
+      distinct: id
+    unit:
+      kind: count
+    additive_over:
+    - record
+    never_across: []
+  party_group_count:
+    label: {en: Record count, de: Anzahl Datensätze}
+    node: party_group
+    source:
+      distinct: id
+    unit:
+      kind: count
+    additive_over:
+    - record
+    never_across: []
+  party_group_member_count:
+    label: {en: Record count, de: Anzahl Datensätze}
+    node: party_group_member
+    source:
+      distinct: id
+    unit:
+      kind: count
+    additive_over:
+    - record
+    never_across: []
+  party_group_price_list_count:
+    label: {en: Record count, de: Anzahl Datensätze}
+    node: party_group_price_list
+    source:
+      distinct: id
+    unit:
+      kind: count
+    additive_over:
+    - record
+    never_across: []
+  party_role_count:
+    label: {en: Record count, de: Anzahl Datensätze}
+    node: party_role
+    source:
+      distinct: id
+    unit:
+      kind: count
+    additive_over:
+    - record
+    never_across: []
+  subledger_account_count:
+    label: {en: Record count, de: Anzahl Datensätze}
+    node: subledger_account
+    source:
+      distinct: id
+    unit:
+      kind: count
+    additive_over:
+    - record
+    never_across: []
+  reservation_quantity:
+    label: {en: Reservation quantity (all statuses), de: Reservierungsmenge (alle Status)}
+    node: reservation
+    source: quantity
+    unit:
+      kind: measure
+      column: unit
+      from_node: item
+    additive_over:
+    - record
+    never_across:
+    - unit
+    - time
+    note: Snapshot of retained reservation rows. Filter status for active reservations; not available inventory.
+
 
   stated_order_amount:
     label: { en: "Order value", de: "Auftragswert" }
@@ -590,7 +3783,7 @@ measures:
     node: posting
     source: amount
     unit: { column: currency, kind: currency }
-    sign_from: debit_credit     # VERIFY the stored convention before first release
+    sign_from: debit_credit     # Canonical convention: debit positive, credit negative.
     additive_over: [time, party, account]
     never_across: [currency]
 
@@ -678,21 +3871,261 @@ measures:
 # LIMITS
 # ---------------------------------------------------------------------------
 
+  customer_balance_open:
+    node: customer_balance
+    source: open
+    label:
+      en: Open invoices
+      de: Offene Rechnungen
+    unit:
+      kind: currency
+      column: currency
+    additive_over:
+    - party
+    never_across:
+    - currency
+    - time
+  customer_unused_credit:
+    node: customer_balance
+    source: credit
+    label:
+      en: Unused credit
+      de: Ungenutztes Guthaben
+    unit:
+      kind: currency
+      column: currency
+    additive_over:
+    - party
+    never_across:
+    - currency
+    - time
+  customer_net_balance:
+    node: customer_balance
+    source: balance
+    label:
+      en: Net balance
+      de: Gesamtsaldo
+    unit:
+      kind: currency
+      column: currency
+    additive_over:
+    - party
+    never_across:
+    - currency
+    - time
+  customer_historical_balance_open:
+    node: customer_balance_history
+    source: open
+    label:
+      en: Open invoices
+      de: Offene Rechnungen
+    unit:
+      kind: currency
+      column: currency
+    additive_over:
+    - party
+    never_across:
+    - currency
+    - time
+  customer_historical_unused_credit:
+    node: customer_balance_history
+    source: credit
+    label:
+      en: Unused credit
+      de: Ungenutztes Guthaben
+    unit:
+      kind: currency
+      column: currency
+    additive_over:
+    - party
+    never_across:
+    - currency
+    - time
+  customer_historical_net_balance:
+    node: customer_balance_history
+    source: balance
+    label:
+      en: Net balance
+      de: Gesamtsaldo
+    unit:
+      kind: currency
+      column: currency
+    additive_over:
+    - party
+    never_across:
+    - currency
+    - time
+  supplier_balance_open:
+    node: supplier_balance
+    source: open
+    label:
+      en: Open invoices
+      de: Offene Rechnungen
+    unit:
+      kind: currency
+      column: currency
+    additive_over:
+    - party
+    never_across:
+    - currency
+    - time
+  supplier_unused_credit:
+    node: supplier_balance
+    source: credit
+    label:
+      en: Unused credit
+      de: Ungenutztes Guthaben
+    unit:
+      kind: currency
+      column: currency
+    additive_over:
+    - party
+    never_across:
+    - currency
+    - time
+  supplier_net_balance:
+    node: supplier_balance
+    source: balance
+    label:
+      en: Net balance
+      de: Gesamtsaldo
+    unit:
+      kind: currency
+      column: currency
+    additive_over:
+    - party
+    never_across:
+    - currency
+    - time
+  supplier_historical_balance_open:
+    node: supplier_balance_history
+    source: open
+    label:
+      en: Open invoices
+      de: Offene Rechnungen
+    unit:
+      kind: currency
+      column: currency
+    additive_over:
+    - party
+    never_across:
+    - currency
+    - time
+  supplier_historical_unused_credit:
+    node: supplier_balance_history
+    source: credit
+    label:
+      en: Unused credit
+      de: Ungenutztes Guthaben
+    unit:
+      kind: currency
+      column: currency
+    additive_over:
+    - party
+    never_across:
+    - currency
+    - time
+  supplier_historical_net_balance:
+    node: supplier_balance_history
+    source: balance
+    label:
+      en: Net balance
+      de: Gesamtsaldo
+    unit:
+      kind: currency
+      column: currency
+    additive_over:
+    - party
+    never_across:
+    - currency
+    - time
+  detail_physical:
+    node: stock_detail
+    source: physical
+    label:
+      en: Physical stock
+      de: Bestand
+    unit:
+      kind: measure
+      column: unit
+    additive_over:
+    - item
+    - location
+    - lot
+    - serial_unit
+    - handling_unit
+    never_across:
+    - unit
+    - time
+  detail_reserved:
+    node: stock_detail
+    source: reserved
+    label:
+      en: Reserved stock
+      de: Reserviert
+    unit:
+      kind: measure
+      column: unit
+    additive_over:
+    - item
+    - location
+    - lot
+    - serial_unit
+    - handling_unit
+    never_across:
+    - unit
+    - time
+  detail_available:
+    node: stock_detail
+    source: available
+    label:
+      en: Available stock
+      de: Verfügbar
+    unit:
+      kind: measure
+      column: unit
+    additive_over:
+    - item
+    - location
+    - lot
+    - serial_unit
+    - handling_unit
+    never_across:
+    - unit
+    - time
+  historical_physical:
+    node: stock_history
+    source: physical
+    label:
+      en: Physical stock
+      de: Bestand
+    unit:
+      kind: measure
+      column: unit
+    additive_over:
+    - item
+    - location
+    - lot
+    - serial_unit
+    - handling_unit
+    never_across:
+    - unit
+    - time
+
 limits:
   max_path_length: 8
   max_recursive_depth: 6
   result_rows: 10000
   page_rows: 200
   statement_timeout_seconds: 30
-  statements_per_traversal: 1   # asserted by the tests, not merely intended
+  statements_per_traversal: 1   # Ordinary SQL paths; finance derivations report measured bulk reads.
 
 
 # ---------------------------------------------------------------------------
 # STILL OPEN — carried here so it is not lost between spec and implementation
 # ---------------------------------------------------------------------------
 #
-# 1. purchase_order and supplier_invoice nodes: the same shapes on the purchase
-#    side. Deliberately out of the first slice, not forgotten.
+# 1. Purchase, payment and operational detail nodes are covered by spec 229.
 # 2. movement.resolves_movement_id is a second correction link beside
 #    movement_correction. Its exact meaning must be confirmed before movement
 #    measures are published.
@@ -718,6 +4151,7 @@ limits:
 # required axis, not a report. Returns have no authoritative link to their
 # credit yet. A dated one-off is somebody's experiment, not a starting point.
 # ---------------------------------------------------------------------------
+
 
 templates:
 
@@ -854,3 +4288,353 @@ templates:
         - { field: item.unit }
       order_by: [{ by: moved_quantity, descending: true }]
       limit: 200
+
+  stock_by_article:
+    label:
+      en: Stock by article
+      de: Bestand je Artikel
+    about:
+      en: Current quantities per article across all locations. Available = physical stock minus active reservations;
+        no shipment permission or historic stock.
+      de: Aktuelle Mengen je Artikel über alle Lagerorte. Verfügbar = Bestand minus aktive Reservierungen;
+        keine Versandfreigabe oder historische Bestandsansicht.
+    question:
+      from: stock_position
+      as: s
+      measures:
+      - stock_physical
+      - stock_reserved
+      - stock_available
+      group_by:
+      - field: s.id
+      - field: s.sku
+      - field: s.name
+      - field: s.unit
+      order_by:
+      - by: stock_available
+        descending: true
+      limit: 200
+  reserved_stock:
+    label:
+      en: Reserved stock
+      de: Reservierter Bestand
+    about:
+      en: Current quantities per article across all locations. Available = physical stock minus active reservations;
+        no shipment permission or historic stock.
+      de: Aktuelle Mengen je Artikel über alle Lagerorte. Verfügbar = Bestand minus aktive Reservierungen;
+        keine Versandfreigabe oder historische Bestandsansicht.
+    question:
+      from: stock_position
+      as: s
+      measures:
+      - stock_physical
+      - stock_reserved
+      - stock_available
+      group_by:
+      - field: s.id
+      - field: s.sku
+      - field: s.name
+      - field: s.unit
+      order_by:
+      - by: stock_reserved
+        descending: true
+      limit: 200
+      having:
+      - measure: stock_reserved
+        op: gt
+        value: 0
+  stock_shortages:
+    label:
+      en: Stock shortages
+      de: Fehlbestand
+    about:
+      en: Current quantities per article across all locations. Available = physical stock minus active reservations;
+        no shipment permission or historic stock.
+      de: Aktuelle Mengen je Artikel über alle Lagerorte. Verfügbar = Bestand minus aktive Reservierungen;
+        keine Versandfreigabe oder historische Bestandsansicht.
+    question:
+      from: stock_position
+      as: s
+      measures:
+      - stock_physical
+      - stock_reserved
+      - stock_available
+      group_by:
+      - field: s.id
+      - field: s.sku
+      - field: s.name
+      - field: s.unit
+      order_by:
+      - by: stock_available
+        descending: false
+      limit: 200
+      having:
+      - measure: stock_available
+        op: lt
+        value: 0
+  customer_outstanding:
+    label:
+      en: Outstanding by customer
+      de: Offene Beträge je Kunde
+    about:
+      en: Current invoice and opening-debt balances after settlements and reversals, separated by currency.
+        Unused credits are separate.
+      de: Aktuelle Rechnungs- und Anfangsposten nach Zahlungen und Stornos, getrennt nach Währung. Unverrechnete
+        Guthaben bleiben separat.
+    question:
+      from: customer_open_item
+      as: o
+      follow:
+      - edge: customer_open_item_party
+        as: p
+      group_by:
+      - field: p.id
+      - field: p.name
+      - field: o.currency
+      measures:
+      - customer_open_amount
+      having:
+      - measure: customer_open_amount
+        op: gt
+        value: 0
+      order_by:
+      - by: customer_open_amount
+        descending: true
+      limit: 200
+  supplier_outstanding:
+    label:
+      en: Outstanding by supplier
+      de: Offene Beträge je Lieferant
+    about:
+      en: Current invoice and opening-debt balances after settlements and reversals, separated by currency.
+        Unused credits are separate.
+      de: Aktuelle Rechnungs- und Anfangsposten nach Zahlungen und Stornos, getrennt nach Währung. Unverrechnete
+        Guthaben bleiben separat.
+    question:
+      from: supplier_open_item
+      as: o
+      follow:
+      - edge: supplier_open_item_party
+        as: p
+      group_by:
+      - field: p.id
+      - field: p.name
+      - field: o.currency
+      measures:
+      - supplier_open_amount
+      having:
+      - measure: supplier_open_amount
+        op: gt
+        value: 0
+      order_by:
+      - by: supplier_open_amount
+        descending: true
+      limit: 200
+  customer_overdue:
+    label:
+      en: Overdue by customer
+      de: Überfällige Beträge je Kunde
+    about:
+      en: Current invoice and opening-debt balances after settlements and reversals, separated by currency.
+        Unused credits are separate.
+      de: Aktuelle Rechnungs- und Anfangsposten nach Zahlungen und Stornos, getrennt nach Währung. Unverrechnete
+        Guthaben bleiben separat.
+    question:
+      from: customer_open_item
+      as: o
+      follow:
+      - edge: customer_open_item_party
+        as: p
+      group_by:
+      - field: p.id
+      - field: p.name
+      - field: o.currency
+      measures:
+      - customer_overdue_amount
+      having:
+      - measure: customer_overdue_amount
+        op: gt
+        value: 0
+      order_by:
+      - by: customer_overdue_amount
+        descending: true
+      limit: 200
+
+  customer_balance:
+    label:
+      en: Customer balances
+      de: Kundensalden
+    about:
+      en: Open invoices minus unused payments and credit notes, separated by currency.
+        Negative balances mean unused credit exceeds open debt.
+      de: Offene Rechnungen abzüglich ungenutzter Zahlungen und Gutschriften, getrennt
+        nach Währung. Negative Salden bedeuten mehr Guthaben als offene Schulden.
+    question:
+      from: customer_balance
+      as: b
+      measures:
+      - customer_balance_open
+      - customer_unused_credit
+      - customer_net_balance
+      group_by:
+      - field: b.party_id
+      - field: b.name
+      - field: b.currency
+      limit: 200
+  customer_balance_history:
+    label:
+      en: Historical customer balances
+      de: Kundensalden zum Stichtag
+    about:
+      en: Open invoices minus unused payments and credit notes, separated by currency.
+        Effective through the selected UTC day; current names, no historical aging or
+        knowledge-time reconstruction.
+      de: Offene Rechnungen abzüglich ungenutzter Zahlungen und Gutschriften, getrennt
+        nach Währung. Wirksam bis Ende des gewählten UTC-Tages; heutige Namen, keine
+        historischen Fälligkeiten oder damaligen Wissensstände.
+    question:
+      from: customer_balance_history
+      as: b
+      measures:
+      - customer_historical_balance_open
+      - customer_historical_unused_credit
+      - customer_historical_net_balance
+      group_by:
+      - field: b.party_id
+      - field: b.name
+      - field: b.currency
+      limit: 200
+    snapshot: b.snapshot_date
+  supplier_balance:
+    label:
+      en: Supplier balances
+      de: Lieferantensalden
+    about:
+      en: Open invoices minus unused payments and credit notes, separated by currency.
+        Negative balances mean unused credit exceeds open debt.
+      de: Offene Rechnungen abzüglich ungenutzter Zahlungen und Gutschriften, getrennt
+        nach Währung. Negative Salden bedeuten mehr Guthaben als offene Schulden.
+    question:
+      from: supplier_balance
+      as: b
+      measures:
+      - supplier_balance_open
+      - supplier_unused_credit
+      - supplier_net_balance
+      group_by:
+      - field: b.party_id
+      - field: b.name
+      - field: b.currency
+      limit: 200
+  supplier_balance_history:
+    label:
+      en: Historical supplier balances
+      de: Lieferantensalden zum Stichtag
+    about:
+      en: Open invoices minus unused payments and credit notes, separated by currency.
+        Effective through the selected UTC day; current names, no historical aging or
+        knowledge-time reconstruction.
+      de: Offene Rechnungen abzüglich ungenutzter Zahlungen und Gutschriften, getrennt
+        nach Währung. Wirksam bis Ende des gewählten UTC-Tages; heutige Namen, keine
+        historischen Fälligkeiten oder damaligen Wissensstände.
+    question:
+      from: supplier_balance_history
+      as: b
+      measures:
+      - supplier_historical_balance_open
+      - supplier_historical_unused_credit
+      - supplier_historical_net_balance
+      group_by:
+      - field: b.party_id
+      - field: b.name
+      - field: b.currency
+      limit: 200
+    snapshot: b.snapshot_date
+  stock_detail_location:
+    label:
+      en: Stock by location
+      de: Bestand je Lagerort
+    about: &id001
+      en: Exact article, location, lot, serial and handling-unit quantities. Missing
+        tracking stays a separate group. Available = physical minus active reservations;
+        not shipment permission.
+      de: Mengen je Artikel, Lagerort, Charge, Seriennummer und Ladeeinheit. Fehlende
+        Zuordnungen bleiben eigene Gruppen. Verfügbar = Bestand minus aktive Reservierungen;
+        keine Versandfreigabe.
+    question:
+      from: stock_detail
+      as: s
+      measures: &id002
+      - detail_physical
+      - detail_reserved
+      - detail_available
+      group_by:
+      - field: s.item_id
+      - field: s.sku
+      - field: s.name
+      - field: s.location_id
+      - field: s.location_name
+      - field: s.unit
+      limit: 200
+  stock_detail_lot:
+    label:
+      en: Stock by lot
+      de: Bestand je Charge
+    about: *id001
+    question:
+      from: stock_detail
+      as: s
+      measures: *id002
+      group_by:
+      - field: s.item_id
+      - field: s.sku
+      - field: s.name
+      - field: s.location_id
+      - field: s.location_name
+      - field: s.lot_id
+      - field: s.lot_name
+      - field: s.unit
+      limit: 200
+  stock_detail_serial_unit:
+    label:
+      en: Stock by serial number
+      de: Bestand je Seriennummer
+    about: *id001
+    question:
+      from: stock_detail
+      as: s
+      measures: *id002
+      group_by:
+      - field: s.item_id
+      - field: s.sku
+      - field: s.name
+      - field: s.location_id
+      - field: s.location_name
+      - field: s.serial_unit_id
+      - field: s.serial_unit_name
+      - field: s.unit
+      limit: 200
+  stock_history_location:
+    label:
+      en: Stock at snapshot date
+      de: Bestand zum Stichtag
+    about:
+      en: Physical stock at end of the selected UTC day from retained movements; current
+        names and units. Historical reservations and availability are not reconstructible.
+      de: Physischer Bestand zum Ende des gewählten UTC-Tages aus gespeicherten Bewegungen;
+        heutige Namen und Einheiten. Historische Reservierungen und Verfügbarkeit sind
+        nicht rekonstruierbar.
+    question:
+      from: stock_history
+      as: s
+      measures:
+      - historical_physical
+      group_by:
+      - field: s.item_id
+      - field: s.sku
+      - field: s.name
+      - field: s.location_id
+      - field: s.location_name
+      - field: s.unit
+      limit: 200
+    snapshot: s.snapshot_date

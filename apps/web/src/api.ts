@@ -3156,6 +3156,8 @@ export type GraphEdge = {
   stored: boolean;
 };
 export type GraphNode = {
+  category?: string | null;
+  aliases?: string[];
   key: string;
   label: string;
   grain: string;
@@ -3167,6 +3169,8 @@ export type GraphNode = {
     key: string;
     label: string;
     kind: "text" | "number" | "boolean" | "time";
+    temporal?: "date";
+    input?: "date";
     /** True for the node's own key: grouping by it is the only way to keep two
      *  records with the same name apart. */
     identity?: boolean;
@@ -3192,7 +3196,13 @@ export type GraphCatalog = {
   nodes: GraphNode[];
   limits: { max_path_length: number; result_rows: number; page_rows: number };
 };
-export type GraphHop = { edge: string; direction: "out" | "in"; as: string; from?: string };
+export type GraphHop = {
+  edge: string;
+  direction?: "out" | "in";
+  as: string;
+  from?: string;
+  depth?: [number, number];
+};
 export type GraphGrouping = { field: string; bucket?: string; as?: string };
 export type GraphQuestion = {
   from: string;
@@ -3200,12 +3210,29 @@ export type GraphQuestion = {
   follow?: GraphHop[];
   filter?: { field: string; op: string; value?: unknown }[];
   measures?: string[];
+  having?: { measure: string; op: string; value: number }[];
+  exists?: {
+    follow: GraphHop[];
+    filter?: { field: string; op: string; value?: unknown }[];
+    negated?: boolean;
+  }[];
   group_by?: GraphGrouping[];
   order_by?: { by: string; descending?: boolean }[];
   limit?: number;
 };
+export type GraphEditor = {
+  path: string | null;
+  parameters: Record<string, unknown>;
+  reason?: string;
+};
+export type GraphInterpretation = {
+  status: "ready" | "clarification" | "unsupported";
+  message: string;
+  question: GraphQuestion | null;
+};
 export type GraphAnswer = {
-  rows: Record<string, string | number | null>[];
+  editor?: GraphEditor;
+  rows: Record<string, string | number | boolean | null>[];
   /** Equality filters whose value appears on no record at all. An empty answer
    *  means one of two different things, and only one of them is about the
    *  business. */
@@ -3251,13 +3278,32 @@ export type GraphReportChange = {
  * month" is where they are.
  */
 export type GraphTemplate = {
+  snapshot?: string;
   key: string;
   label: string;
   about: string;
   question: GraphQuestion;
-  period: { field: string; window: string } | null;
+  period: { field: string; window: string; temporal?: "date" } | null;
 };
 export const graphApi = {
+  format: (tenant: string, question: GraphQuestion, signal?: AbortSignal) =>
+    request<GraphEditor>(`/api/tenants/${tenant}/analytics/graph/format`, {
+      method: "POST",
+      body: JSON.stringify({ question }),
+      signal,
+    }),
+  interpret: (
+    tenant: string,
+    text: string,
+    language: string,
+    timezone: string,
+    signal?: AbortSignal,
+  ) =>
+    request<GraphInterpretation>(`/api/tenants/${tenant}/analytics/graph/interpret`, {
+      method: "POST",
+      body: JSON.stringify({ text, language, timezone }),
+      signal,
+    }),
   catalog: (tenant: string, language: string) =>
     request<GraphCatalog>(
       `/api/tenants/${tenant}/analytics/graph/catalog?language=${encodeURIComponent(language)}`,
@@ -3268,10 +3314,15 @@ export const graphApi = {
       body: JSON.stringify({ question }),
       signal,
     }),
-  askPath: (tenant: string, path: string, signal?: AbortSignal) =>
+  askPath: (
+    tenant: string,
+    path: string,
+    signal?: AbortSignal,
+    parameters: Record<string, unknown> = {},
+  ) =>
     request<GraphAnswer>(`/api/tenants/${tenant}/analytics/graph/ask`, {
       method: "POST",
-      body: JSON.stringify({ path }),
+      body: JSON.stringify({ path, parameters }),
       signal,
     }),
   proposal: (tenant: string, id: string) =>

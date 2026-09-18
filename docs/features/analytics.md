@@ -1,6 +1,6 @@
 # Analytics and private reports
 
-Spec: [224](../../specs/224-native-reporting-platform/spec.md). It replaced the
+Specs: [224](../../specs/224-native-reporting-platform/spec.md) (reporting platform), [228](../../specs/228-guided-analysis-builder/spec.md) (guided builder and catalog). It replaced the
 configured generation of [185](../../specs/185-analytics-workspace/spec.md), whose
 fifteen fixed datasets could only answer questions somebody had anticipated.
 
@@ -39,9 +39,9 @@ A question is a checked object — a path, some filters, some measures — never
 text. Two surfaces produce it and both compile to the same object:
 
 - the typed traversal accepted by `graph_ask` and `POST /analytics/graph/ask`;
-- a Cypher-near path syntax, reachable through the tools and the CLI; the browser
-  surface for it was withdrawn, because nobody reads a path syntax to answer a
-  business question.
+- a Cypher-near path syntax, reachable through tools, CLI and the builder's Cypher tab.
+  `graph.format` produces editable text with separately bound parameters. Expert clauses
+  remain in the checked question even when sentence controls cannot represent them.
 
 The path syntax follows Cypher for matching and filtering. It deliberately diverges
 in one place: aggregation names a declared measure instead of doing arithmetic over
@@ -118,12 +118,33 @@ axis, not a report. Returns have no authoritative link to their credit yet.
 
 The sidebar lists Analytics last under Workspaces, after Master data, with no separate
 Analytics group. Its name and tooltip are Analytics in every language (spec 221).
-Default links and links naming a retired view open the business graph.
+Default links open My reports. Legacy retired-view links open Analysis; template links
+open the template choices inside Analysis.
 
-The page opens on the records rather than on an empty builder: picking a record type
-shows those records, and the rest happens on the result — a value filters, a column
-header sorts, the row count sits under the table. Two things are asked in words, what to
-count and what to split it by, and several numbers may stand side by side.
+The Analysis Builder starts directly with a compact configuration toolbar and an
+editable sentence. The separate heading, status badge and question/examples panel are
+omitted by owner request. Builder and Explore data use the shared flat application
+surfaces, controls and theme-aware semantic colors. Result, Connections and Cypher are presentations of the same checked
+question. Results retain value filters, column sorting, limits and SQL derivation. The
+summary cards describe returned rows, selected measures and the last successful read;
+they are not invented financial totals or upstream completeness claims.
+
+The retained shared interpretation tool `graph.interpret` supports free text: active membership, tenant provider policy and existing
+managed-question reservation apply before provider dispatch. Only the declared model
+and the user's question are sent, without catalog record-value lists. Provider output
+is validated and compiled before returning a question; `graph.ask` remains the executor.
+Unavailable providers and ambiguous/unsupported questions explain the next step. Exact
+example labels and sentence controls work without AI. Managed provider failures consume
+the already-reserved question, consistently with existing usage accounting.
+
+Explore data provides catalog search, object/edge/field counts, field and relationship
+lists, and bounded previews. Fields and paths open unsaved analyses. Browsing the catalog
+does not discard the current builder draft. It does not revive spec185's fixed datasets.
+
+Unexecuted expert text survives view switches and failed execution. It disables sentence
+edits and saving until a successful execution; explicit reset starts another analysis.
+Advanced clauses are preserved in expert mode. Pending/failed/edited queries never show
+an old answer as current, and obsolete requests cannot overwrite newer state.
 
 A connection is offered from everywhere the question has already reached, not only from
 its last step, because a realistic report branches — an open delivery is asked about by
@@ -141,3 +162,144 @@ explicitly. Migration 0062 added `kind` and `model_version` additively.
 Reports saved by the configured generation are still in the table with neither column
 set. Nothing reads them, and nothing writes over them: they belonged to a generation
 that was replaced rather than translated.
+
+Analytics shared-component refinement (spec228 FR-014): all four views use the common
+RegisterWorkbench and single-row tabbed header. Save analysis and Use in analysis
+are page actions in the shared More actions menu, scoped to the active view. Local
+analysis/catalog tabs use the shared local navigation, tables use ERP register geometry,
+and templates/private reports use compact flat lists. No duplicate page titles appear
+inside these views. Mounted Builder drafts survive view switches without leaking header actions.
+
+## Analysis entry and chat handoff
+
+The navigation is My reports → Analysis → Explore data. My reports is the default and
+its empty state offers Create your first analysis. Analysis offers chat, templates or
+manual construction; choosing a template opens an unsaved draft, not a stored report.
+The builder remains mounted while browsing other tabs.
+
+Create with chat/Adapt with chat use the existing global chat with an editable prompt
+and removable query-only context. No message is sent automatically. The existing
+4000-character message limit applies to text plus context; oversized attachments are
+explained, never truncated. Context is untrusted message content and grants no authority.
+The chat's graph report proposals offer Open in analysis for create/update definitions,
+loaded through the existing owner/tenant-scoped proposal API and executed as unsaved
+drafts. Confirmation remains necessary for chat saving; opening a proposal never confirms it.
+
+
+### Question hierarchy (spec228 FR-018)
+
+The analysis editor has one locally bordered question section headed “How Reality
+understands your question”, with Adapt with chat beside it. Larger editable tokens
+form the primary sentence; aggregate queries lead with their measures. A labeled
+Conditions row follows. The period appears once in the sentence and can be removed
+there as a whole, preserving unrelated filters. Measures and columns, record paths,
+and sorting remain editable in an initially collapsed disclosure. This local frame
+is intentional; result tabs and tables retain the shared flat register design.
+Currency and identity axes remain in the canonical query even when technical identity
+is omitted from the readable sentence. No additional page hero or question input is added.
+
+## Expanded business catalog (spec 229)
+
+The catalog exposes 55 named objects grouped in this order: Sales, Purchasing,
+Payments and accounting, Warehouse and shipping, Partners and items, Prices and
+terms, Evidence and facts, Additional objects. Groups collapse in the explorer;
+search matches declared names, synonyms, categories and fields and opens matching groups.
+The same category metadata groups the builder's record selector.
+
+Dedicated sales invoices/customer credits, purchase orders, supplier invoices/credits,
+their positions, payments/refunds and settlement adjustments are additive nodes. The
+old `invoice`/`invoice_line` keys remain combined customer invoice/credit views with
+explicit labels. Stored `sales.1` definitions are not rewritten. Position roots and
+joined positions enforce their parent document type through tenant-scoped EXISTS.
+Observed catalog values use that exact scope. Reverse same-table relations use the
+FK carrier implied by multiplicity/direction, including deductions and target filters.
+
+Reservations follow commitments and existing item/location/lot/serial/handling-unit
+references. Holds retain release timestamps. Packages connect movement to shipment;
+event history exposes supersession references and never claims to be current shipment
+status. Price lists/tiers/assignments, payment terms, partner roles/groups and accounts
+are queryable. Received financial components and opening scopes/items are browsable;
+component header and line amounts are not offered as a combined additive measure.
+Generic documents/positions and source-version metadata preserve evidence access.
+Additional facts are explicitly historical records, not inferred current attributes.
+
+Recorded document amounts preserve the source's sign and currency. They are not net
+revenue, cash flow or open balances. Reservation quantities are retained snapshots,
+not available stock; status filters distinguish active rows. Text document dates remain
+text and cannot acquire date-bucket semantics through their label.
+
+Remaining boundaries: operational stock/availability/aging and service-backed balance
+execution are not new graph implementations; use their canonical operational views.
+Finance target/component assignment histories remain outside this catalog. Full raw
+source payloads remain in the Inspector. The existing fact-backed campaign example
+still has no supported preview fields and is not presented as a new capability.
+
+## Finance and calendar analysis (spec 230)
+
+Customer and supplier financial-position nodes derive current remaining amounts,
+due dates, days overdue and overdue amounts through the same aging service as Finance.
+They include opening debts and retain paid/reversed positions with their canonical
+status; unposted evidence is not a financial position. Document and party links
+preserve traceability. Amounts remain grouped or filtered by currency. Current
+positions are not historical time series; state measures reject bucketed trends.
+Unused credits and net party balances remain in Finance, separate from invoice debts.
+
+Registered finance paths perform bounded canonical bulk reads plus one SQL aggregate;
+the response reports measured SQL reads. Ordinary paths retain one aggregate statement.
+A tenant with more than 20,000 debt documents receives an explicit refusal, not a
+partial total. The statement timeout applies before derivation; data stays ephemeral.
+This narrowly supersedes spec224's one-statement rule for registered service nodes.
+
+Ledger sums apply debit-positive/credit-negative signs. Explicit document calendar
+dates support filters and buckets without changing lossless source text. Invalid
+calendar dates become unknown; date-only UI bounds retain calendar days across
+time zones. Timestamp fields retain instant semantics.
+
+## Current stock and starting templates (spec 231)
+
+Current article stock is a separate item-backed analysis node. Physical, reserved and
+available quantities come from core.inventory_rows at one article across all locations
+and lot/serial/handling identities. Internal transfers cancel; movement corrections
+and active reservation status are respected. Articles without movements remain zero;
+negative availability is retained. Available means physical minus active reservations,
+not shipment permission, ATP, or expiry/hold-adjusted stock.
+
+Stock measures require unit grouping or a single-unit filter and reject time-bucket
+trends. Following movement/reservation history retains the ordinary fanout guard.
+Stock→article links preserve identity and the existing paths to evidence and Reality.
+The registered service adapter refuses more than 20,000 articles or open supplier commitments, or 100,000 movements
+or commitment revisions before materializing its inputs.
+No result limit truncates an aggregate. Registered service reads are counted honestly;
+plain article queries do not trigger stock derivation.
+
+Six additional localized starting templates open unsaved editable analyses: stock by
+article, reserved stock, shortages, customer outstanding, supplier outstanding and
+customer overdue. Stock templates retain article identity/unit; finance templates
+retain partner identity/currency. Existing templates and save confirmation remain.
+
+## Balances, exact stock dimensions and effective-date snapshots (spec 232)
+
+The graph exposes unpaged customer/supplier net balances at party × currency grain,
+using the same canonical open-item and unused-credit readers as Finance. Negative
+balances remain negative. A derived position has a stable opaque identity separate
+from its backing party or article identity; joins retain ordinary fanout safeguards.
+
+Stock detail groups movement legs and active reservations by article, location, lot,
+serial and handling unit. Missing dimensions form exact null buckets, never wildcard
+matches. Internal transfers conserve the article total. Current availability means
+physical minus active reservations, not permission to ship.
+
+Historical balance and physical-stock nodes require an explicit `snapshot_date =
+YYYY-MM-DD` input, through the end of that UTC day. Templates ask for the date before
+adoption; the sentence editor exposes a date control. Chat, saved questions and the
+path editor retain the same filter. Finance restricts posting effective times,
+allocation times and both endpoints, and reversal times consistently. Stock uses
+retained movement timestamps, including compensations. Queries before relevant
+opening coverage, future or conflicting dates are refused. Names and units remain
+current master data. Historical reservations, availability, aging and knowledge-time
+reconstruction are deliberately unavailable because their required history is absent.
+
+Position readers enforce a 20,000-row cap per input family before materialization,
+exact Decimal arithmetic, tenant scoping, statement deadlines, currency/unit grouping
+and read counts. They never truncate totals to register pages. No persisted snapshots,
+schema changes, external writes or alternate chat calculation paths are introduced.

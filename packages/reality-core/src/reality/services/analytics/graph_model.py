@@ -19,7 +19,7 @@ from sqlalchemy import inspect as sa_inspect
 
 from reality.config import config_text
 from reality.db.core import Base
-from reality.domain.reporting_graph import Edge, Node, ReportingGraph
+from reality.domain.reporting_graph import Edge, Node, Property, ReportingGraph
 
 REPORTING_GRAPH_FILE = "reporting_graph.yaml"
 
@@ -57,6 +57,14 @@ def _check_node(name: str, node: Node, schema: dict[str, set[str]]) -> None:
     if table not in schema:
         raise ReportingGraphError(f"node {name}: table {table!r} does not exist")
     columns = schema[table]
+    if node.derivation:
+        from reality.services.analytics.derivations import REGISTRY, columns_for
+
+        if table != REGISTRY[node.derivation].table:
+            raise ReportingGraphError(
+                f"{node.derivation} requires {REGISTRY[node.derivation].table} identity"
+            )
+        columns = columns | set(columns_for(node.derivation))
     named = {
         "key": node.key,
         "tenant": node.tenant,
@@ -148,12 +156,15 @@ def _check_measures(graph: ReportingGraph, schema: dict[str, set[str]]) -> None:
         table = node.table
         if not table:
             continue
+        from reality.services.analytics.derivations import columns_for
+
+        columns = schema[table] | set(columns_for(node.derivation))
         if isinstance(measure.source, str):
-            if measure.source not in schema[table]:
+            if measure.source not in columns:
                 raise ReportingGraphError(
                     f"measure {name}: {table}.{measure.source} does not exist"
                 )
-        elif measure.source.distinct and measure.source.distinct not in schema[table]:
+        elif measure.source.distinct and measure.source.distinct not in columns:
             raise ReportingGraphError(
                 f"measure {name}: distinct key {table}.{measure.source.distinct} does not exist"
             )
@@ -164,7 +175,16 @@ def _check_measures(graph: ReportingGraph, schema: dict[str, set[str]]) -> None:
         unit = measure.unit
         if unit.column:
             unit_table = graph.nodes[unit.from_node].table if unit.from_node else table
-            if unit_table and unit.column not in schema[unit_table]:
+            if unit_table and unit.column not in (
+                schema[unit_table]
+                | set(
+                    columns_for(
+                        graph.nodes[unit.from_node].derivation
+                        if unit.from_node
+                        else node.derivation
+                    )
+                )
+            ):
                 raise ReportingGraphError(
                     f"measure {name}: unit column {unit_table}.{unit.column} does not exist"
                 )
@@ -243,12 +263,24 @@ def _check_templates(graph: ReportingGraph) -> None:
         except ValueError as error:
             raise ReportingGraphError(f"template {name}: {error}") from error
         try:
-            plan(query, graph)
+            resolved = plan(query, graph)
         except TraversalRefused as error:
             raise ReportingGraphError(
                 f"template {name}: {error}. A template that cannot be answered "
                 "is worse than none, because somebody will click it."
             ) from error
+        if template.snapshot:
+            alias, separator, prop = template.snapshot.partition(".")
+            node = graph.nodes.get(resolved.node_of.get(alias, ""))
+            declaration = node.properties.get(prop) if node else None
+            if (
+                not separator
+                or not isinstance(declaration, Property)
+                or declaration.input != "date"
+            ):
+                raise ReportingGraphError(
+                    f"template {name}: snapshot must name a date input"
+                )
         if template.period and template.period.field.count(".") != 1:
             raise ReportingGraphError(
                 f"template {name}: a period names alias.property, "
@@ -275,6 +307,26 @@ def validate_against_schema(graph: ReportingGraph) -> ReportingGraph:
         _check_node(name, node, schema)
     for name, edge in graph.edges.items():
         _check_edge(name, edge, graph, schema, fks)
+    for name, node in graph.nodes.items():
+        visited = {name}
+        child = node
+        while child.of:
+            if child.of not in graph.nodes or child.of in visited:
+                raise ReportingGraphError(
+                    f"node {name}: invalid or cyclic parent {child.of!r}"
+                )
+            visited.add(child.of)
+            parent = graph.nodes[child.of]
+            links = [
+                key
+                for key, target in fks.items()
+                if key.startswith(f"{child.table}.") and target == parent.table
+            ]
+            if len(links) != 1:
+                raise ReportingGraphError(
+                    f"node {name}: parent needs one unambiguous foreign key"
+                )
+            child = parent
     _check_measures(graph, schema)
     _check_deductions(graph)
     _check_templates(graph)
@@ -332,6 +384,33 @@ def _kinds() -> dict[str, dict[str, str]]:
     return out
 
 
+def _property_kind(node, prop, kinds):
+    from sqlalchemy import Date, String
+
+    from reality.domain.reporting_graph import Property
+    from reality.services.analytics.derivations import columns_for
+
+    column = node.column_of(prop)
+    declared = node.properties.get(prop)
+    stored = Base.metadata.tables[node.table].c.get(column) if node.table else None
+    if (
+        (isinstance(declared, Property) and declared.temporal == "date")
+        or (stored is not None and isinstance(stored.type, Date))
+        or (
+            node.derivation
+            and isinstance(columns_for(node.derivation).get(column), Date)
+        )
+    ):
+        return {"kind": "time", "temporal": "date"}
+    if node.derivation and column in columns_for(node.derivation):
+        return {
+            "kind": "text"
+            if isinstance(columns_for(node.derivation)[column], String)
+            else "number"
+        }
+    return {"kind": kinds.get(node.table or "", {}).get(column, "text")}
+
+
 def _groupable(node) -> list[str]:
     """What a question may group by — which includes the identity.
 
@@ -363,6 +442,7 @@ def _observed(session, tenant_id: str, graph, names: list[str]) -> dict[str, lis
     from sqlalchemy import distinct, select
 
     from reality.db.core import Base
+    from reality.services.analytics.compile_sql import _scope
 
     found: dict[str, list[str]] = {}
     for name in names:
@@ -375,7 +455,7 @@ def _observed(session, tenant_id: str, graph, names: list[str]) -> dict[str, lis
                 continue
             values = session.scalars(
                 select(distinct(table.c[column]))
-                .where(table.c[node.tenant] == tenant_id)
+                .where(*_scope(node, table, tenant_id, graph))
                 .order_by(table.c[column])
                 .limit(40)
             ).all()
@@ -393,17 +473,30 @@ def reporting_templates(language: str = "en") -> list[dict[str, Any]]:
     that knows what "this month" is.
     """
     graph = reporting_graph()
+
+    def period_metadata(template):
+        from reality.domain.traversal import Traversal
+        from reality.services.analytics.traversal import resolve
+
+        if not template.period:
+            return None
+        path = resolve(graph, Traversal.model_validate(template.question))
+        alias, prop = template.period.field.split(".", 1)
+        metadata = _property_kind(graph.nodes[path.node_of[alias]], prop, _kinds())
+        return {
+            "field": template.period.field,
+            "window": template.period.window,
+            **({"temporal": "date"} if metadata.get("temporal") == "date" else {}),
+        }
+
     return [
         {
             "key": key,
             "label": template.label.pick(language),
             "about": template.about.pick(language),
             "question": template.question,
-            "period": (
-                {"field": template.period.field, "window": template.period.window}
-                if template.period
-                else None
-            ),
+            "period": period_metadata(template),
+            **({"snapshot": template.snapshot} if template.snapshot else {}),
         }
         for key, template in graph.templates.items()
     ]
@@ -425,7 +518,11 @@ def reporting_catalog(
     kinds = _kinds()
     if node is not None and node not in graph.nodes:
         raise ReportingGraphError(f"unknown node {node!r}")
-    names = [node] if node else list(graph.nodes)
+    names = (
+        [node]
+        if node
+        else sorted(graph.nodes, key=lambda key: graph.nodes[key].category_order)
+    )
     seen = (
         _observed(session, tenant_id, graph, names)
         if session is not None and tenant_id
@@ -439,7 +536,13 @@ def reporting_catalog(
             {
                 "key": name,
                 "label": _label(graph.nodes[name], name, language),
-                "grain": graph.nodes[name].grain,
+                "grain": graph.nodes[name].description.pick(language)
+                if graph.nodes[name].description
+                else graph.nodes[name].grain,
+                "category": graph.nodes[name].category.pick(language)
+                if graph.nodes[name].category
+                else None,
+                "aliases": list(graph.nodes[name].aliases),
                 "backed_by": "facts"
                 if graph.nodes[name].from_facts
                 else graph.nodes[name].table,
@@ -449,8 +552,14 @@ def reporting_catalog(
                     {
                         "key": prop,
                         "label": graph.nodes[name].label_of(prop, language),
-                        "kind": kinds.get(graph.nodes[name].table or "", {}).get(
-                            graph.nodes[name].column_of(prop), "text"
+                        **_property_kind(graph.nodes[name], prop, kinds),
+                        **(
+                            {"input": graph.nodes[name].properties[prop].input}
+                            if isinstance(
+                                graph.nodes[name].properties.get(prop), Property
+                            )
+                            and graph.nodes[name].properties[prop].input
+                            else {}
                         ),
                         **({"identity": True} if prop == graph.nodes[name].key else {}),
                         **(

@@ -1,21 +1,14 @@
-"""Turn a checked path into exactly one PostgreSQL statement.
+"""Compile checked paths with tenant predicates and bound values.
 
-Two properties matter more than anything else here.
-
-One statement. An eleven-thousand-query builder is what a per-row implementation
-produces, and it is the failure mode this compiler could most easily reproduce,
-so the count is asserted rather than assumed.
-
-The tenant predicate on every node. It comes from the authenticated caller and is
-emitted by this module, never written by whoever asked the question — which is why
-the model needs no barrier view and no role per tenant. Every identifier below is
-resolved through the declaration, and every value is bound.
+Ordinary paths execute one SQL aggregate. Registered service paths first perform
+one bounded canonical bulk derivation, then aggregate its ephemeral relation;
+the returned statement count measures those reads instead of claiming one.
 """
 
 from __future__ import annotations
 
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import date, datetime
 from decimal import Decimal, InvalidOperation
 from typing import Any
 
@@ -27,7 +20,10 @@ from sqlalchemy import (
     Select,
     all_,
     and_,
+    case,
+    cast,
     distinct,
+    event,
     exists,
     func,
     literal,
@@ -40,7 +36,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy.sql.elements import ColumnElement
 
 from reality.db.core import Base
-from reality.domain.reporting_graph import Node
+from reality.domain.reporting_graph import Node, Property, ReportingGraph
 from reality.services.analytics.traversal import (
     ResolvedHop,
     ResolvedPath,
@@ -70,7 +66,15 @@ class Frame:
         column = node.column_of(prop) or (node.key if prop == node.key else "")
         if not column:
             raise TraversalRefused(f"{alias}.{prop} is not a declared property")
-        return self.tables[alias].c[column]
+        value = self.tables[alias].c[column]
+        prop_def = node.properties.get(prop)
+        if (
+            isinstance(prop_def, Property)
+            and prop_def.temporal == "date"
+            and not isinstance(value.type, Date)
+        ):
+            return _calendar_date(value)
+        return value
 
 
 def _table(name: str) -> SaTable:
@@ -80,12 +84,36 @@ def _table(name: str) -> SaTable:
     return table
 
 
-def _scope(node: Node, table, tenant_id: str) -> list[ColumnElement[bool]]:
+def _scope(
+    node: Node, table, tenant_id: str, graph: ReportingGraph
+) -> list[ColumnElement[bool]]:
     """The tenant predicate, plus whatever makes this table mean this node."""
     conditions = [table.c[node.tenant] == tenant_id]
     for column, selector in (node.where or {}).items():
         values = selector if isinstance(selector, list) else [selector]
         conditions.append(table.c[column].in_(values))
+    if node.of:
+        parent = graph.nodes[node.of]
+        parent_table = _table(parent.table or "").alias()
+        links = [
+            column.name
+            for column in _table(node.table or "").columns
+            if any(key.column.table.name == parent.table for key in column.foreign_keys)
+        ]
+        if len(links) != 1:
+            raise TraversalRefused(
+                "a child node requires one unambiguous parent reference"
+            )
+        conditions.append(
+            exists(
+                select(1)
+                .select_from(parent_table)
+                .where(
+                    table.c[links[0]] == parent_table.c[parent.key],
+                    *_scope(parent, parent_table, tenant_id, graph),
+                )
+            )
+        )
     return conditions
 
 
@@ -96,14 +124,15 @@ def _join_condition(hop: ResolvedHop, frame: Frame, origin: str) -> ColumnElemen
         raise TraversalRefused(
             f"edge {hop.edge_name!r} is stored as Facts, which this slice does not traverse yet"
         )
-    table_name, column = hop.edge.via.split(".", 1)
-    carrier_alias = origin if frame.nodes[origin].table == table_name else hop.alias
+    _, column = hop.edge.via.split(".", 1)
+    origin_carries = (hop.edge.multiplicity == "n:1") == (hop.direction == "out")
+    carrier_alias = origin if origin_carries else hop.alias
     other_alias = hop.alias if carrier_alias == origin else origin
     carrier = frame.tables[carrier_alias].c[column]
     other = frame.tables[other_alias].c[frame.nodes[other_alias].key]
     condition = carrier == other
     if hop.edge.target_where:
-        target = frame.tables[hop.alias]
+        target = frame.tables[hop.alias if hop.direction == "out" else origin]
         for name, selector in hop.edge.target_where.items():
             values = selector if isinstance(selector, list) else [selector]
             condition = and_(condition, target.c[name].in_(values))
@@ -164,6 +193,28 @@ def _closure(hop: ResolvedHop, node: Node, tenant_id: str):
     return anchor.union_all(recursive_term), low, high
 
 
+def _calendar_date(column):
+    """Validate ISO calendar evidence without ever casting an invalid date."""
+    year = cast(func.substr(column, 1, 4), Integer)
+    month = cast(func.substr(column, 6, 2), Integer)
+    day = cast(func.substr(column, 9, 2), Integer)
+    last_day = func.extract(
+        "day", func.make_date(year, month, 1) + text("INTERVAL '1 month - 1 day'")
+    )
+    valid_day = case(
+        (day.between(1, last_day), func.make_date(year, month, day)), else_=None
+    )
+    valid_parts = case(
+        (and_(year.between(1, 9999), month.between(1, 12)), valid_day), else_=None
+    )
+    return cast(
+        case(
+            (column.op("~")(r"^[0-9]{4}-[0-9]{2}-[0-9]{2}$"), valid_parts), else_=None
+        ),
+        Date,
+    )
+
+
 def _bucket(column, bucket: str, field: str):
     """Fold a timestamp into the period somebody asked for.
 
@@ -193,6 +244,8 @@ def _coerce(column, value: Any, field: str) -> Any:
     try:
         if isinstance(kind, DateTime):
             return datetime.fromisoformat(value)
+        if isinstance(kind, Date):
+            return date.fromisoformat(value)
         if isinstance(kind, Numeric):
             return Decimal(value)
         if isinstance(kind, Integer):
@@ -270,18 +323,19 @@ def _deducted(path: ResolvedPath, name: str, row, tenant_id: str):
         target = path.graph.nodes[target_name]
         table = _table(target.table or "").alias(f"__less{depth}__{name}")
         tables.append(table)
-        via_table, column = (edge.via or "").split(".", 1)
+        _, column = (edge.via or "").split(".", 1)
         # The link column sits on one of the two tables; which one is what the
         # declared multiplicity and direction already settled.
-        if at.table == via_table:
+        if (edge.multiplicity == "n:1") == (step.direction == "out"):
             conditions.append(carried.c[column] == table.c[target.key])
         else:
             conditions.append(table.c[column] == carried.c[at.key])
         if edge.target_where:
             for selector_name, selector in edge.target_where.items():
                 values = selector if isinstance(selector, list) else [selector]
-                conditions.append(table.c[selector_name].in_(values))
-        conditions += _scope(target, table, tenant_id)
+                selector_table = table if step.direction == "out" else carried
+                conditions.append(selector_table.c[selector_name].in_(values))
+        conditions += _scope(target, table, tenant_id, path.graph)
         at, carried = target, table
 
     counted = (
@@ -304,7 +358,14 @@ def _measure_expression(path: ResolvedPath, frame: Frame, name: str, tenant_id: 
         row = frame.tables[alias]
         if measure.less is not None:
             return func.sum(row.c[source] - _deducted(path, name, row, tenant_id))
-        return func.sum(row.c[source])
+        value = row.c[source]
+        if measure.sign_from:
+            value = case(
+                (row.c[measure.sign_from] == "debit", value),
+                (row.c[measure.sign_from] == "credit", -value),
+                else_=None,
+            )
+        return func.sum(value)
     if source.distinct:
         return func.count(distinct(frame.tables[alias].c[source.distinct]))
     # Binding to the canonical service is the point of this measure: a receivable
@@ -319,21 +380,47 @@ def _measure_expression(path: ResolvedPath, frame: Frame, name: str, tenant_id: 
     )
 
 
-def build(path: ResolvedPath, tenant_id: str) -> Select:
+def build(path: ResolvedPath, tenant_id: str, derived_relations=None) -> Select:
+    def node_table(node, alias):
+        table = _table(node.table or "")
+        if node.derivation:
+            from reality.services.analytics.derivations import REGISTRY
+
+            source = (derived_relations or {}).get(node.derivation)
+            if source is None:
+                raise TraversalRefused(
+                    "This position requires canonical service execution",
+                    "service_measure",
+                )
+            identity = REGISTRY[node.derivation].identity
+            return (
+                select(*table.c, *[col for col in source.c if col.name != identity])
+                .select_from(
+                    table.join(
+                        source,
+                        table.c[REGISTRY[node.derivation].anchor_key]
+                        == source.c[identity],
+                    )
+                )
+                .where(table.c.tenant_id == tenant_id)
+                .subquery(alias)
+            )
+        return table.alias(alias)
+
     query = path.query
     frame = Frame(tables={}, nodes={}, conditions=[])
 
     root_alias = query.as_
     root_node = path.graph.nodes[path.node_of[root_alias]]
-    root_table = _table(root_node.table or "").alias(root_alias)
+    root_table = node_table(root_node, root_alias)
     frame.tables[root_alias] = root_table
     frame.nodes[root_alias] = root_node
-    frame.conditions += _scope(root_node, root_table, tenant_id)
+    frame.conditions += _scope(root_node, root_table, tenant_id, path.graph)
 
     statement = select().select_from(root_table)
     for hop in path.hops:
         node = path.graph.nodes[hop.node]
-        table = _table(node.table or "").alias(hop.alias)
+        table = node_table(node, hop.alias)
         frame.tables[hop.alias] = table
         frame.nodes[hop.alias] = node
         if hop.as_exists:
@@ -352,14 +439,15 @@ def build(path: ResolvedPath, tenant_id: str) -> Select:
                 table,
                 and_(
                     table.c[node.key] == closure.c.descendant,
-                    *_scope(node, table, tenant_id),
+                    *_scope(node, table, tenant_id, path.graph),
                 ),
             )
             continue
         statement = statement.join(
             table,
             and_(
-                _join_condition(hop, frame, hop.origin), *_scope(node, table, tenant_id)
+                _join_condition(hop, frame, hop.origin),
+                *_scope(node, table, tenant_id, path.graph),
             ),
             isouter=hop.edge.nullable and not hop.fans_out,
         )
@@ -373,7 +461,7 @@ def build(path: ResolvedPath, tenant_id: str) -> Select:
         table = frame.tables[hop.alias]
         inner = [
             _join_condition(hop, frame, hop.origin),
-            *_scope(node, table, tenant_id),
+            *_scope(node, table, tenant_id, path.graph),
         ]
         inner += [
             _condition(frame, c.field, c.op, c.value)
@@ -399,12 +487,12 @@ def build(path: ResolvedPath, tenant_id: str) -> Select:
         conditions: list[ColumnElement[bool]] = []
         for hop in test.hops:
             node = path.graph.nodes[hop.node]
-            table = _table(node.table or "").alias(hop.alias)
+            table = node_table(node, hop.alias)
             inner_tables[hop.alias] = table
             inner_nodes[hop.alias] = node
             inner = Frame(tables=inner_tables, nodes=inner_nodes, conditions=[])
             conditions.append(_join_condition(hop, inner, hop.origin))
-            conditions += _scope(node, table, tenant_id)
+            conditions += _scope(node, table, tenant_id, path.graph)
         inner = Frame(tables=inner_tables, nodes=inner_nodes, conditions=[])
         for condition in test.conditions:
             conditions.append(
@@ -484,7 +572,8 @@ def _unknown_values(
             .select_from(table)
             .where(
                 and_(
-                    table.c[column] == condition.value, *_scope(node, table, tenant_id)
+                    table.c[column] == condition.value,
+                    *_scope(node, table, tenant_id, path.graph),
                 )
             )
             .limit(1)
@@ -495,24 +584,55 @@ def _unknown_values(
 
 
 def execute(session: Session, tenant_id: str, path: ResolvedPath) -> TraversalResult:
-    """Run the one statement under a deadline the caller cannot raise.
+    """Run a checked query and any canonical derivation under statement deadlines.
 
     The budget is set on the transaction rather than the connection, so it falls
     away with the query and never leaks into whatever the session does next.
     """
-    statement = build(path, tenant_id)
-    rendered = str(statement.compile(compile_kwargs={"literal_binds": False}))
-    # SET takes no bind parameter. The value is an integer field of the validated
-    # declaration, never anything a caller supplied, and it is coerced again here
-    # so this line cannot become an injection point if that ever changes.
     budget_ms = int(path.graph.limits.statement_timeout_seconds) * 1000
     session.execute(text(f"SET LOCAL statement_timeout = {budget_ms:d}"))
-    rows = session.execute(statement).mappings().all()
+    used = {path.graph.nodes[name].derivation for name in path.node_of.values()} | {
+        path.graph.nodes[hop.node].derivation
+        for test in path.exists
+        for hop in test.hops
+    }
+    used.discard(None)
+    derived = bool(used)
+    reads = 0
+    connection = session.connection()
+
+    def count_read(conn, cursor, statement, parameters, context, executemany):
+        nonlocal reads
+        if statement.lstrip().upper().startswith(("SELECT", "WITH")):
+            reads += 1
+
+    if derived:
+        event.listen(connection, "before_cursor_execute", count_read)
+    try:
+        from reality.services.analytics.derivations import REGISTRY
+        from reality.services.analytics.position_relations import snapshot_date
+
+        snapshot = snapshot_date(path)
+        relations = {
+            name: REGISTRY[name].read(
+                session,
+                tenant_id,
+                **({"snapshot": snapshot} if name.endswith(".history") else {}),
+            )
+            for name in sorted(used)
+        }
+        statement = build(path, tenant_id, relations)
+        rendered = str(statement.compile(compile_kwargs={"literal_binds": False}))
+        rows = session.execute(statement).mappings().all()
+        unknown = _unknown_values(session, tenant_id, path) if not rows else ()
+    finally:
+        if derived:
+            event.remove(connection, "before_cursor_execute", count_read)
     return TraversalResult(
-        matched_nothing=_unknown_values(session, tenant_id, path) if not rows else (),
+        matched_nothing=unknown,
         rows=tuple({key: _plain(value) for key, value in row.items()} for row in rows),
         sql=rendered,
-        statements=1,
+        statements=reads if derived else 1,
         model_version=path.graph.model_version,
         path=tuple(
             f"{hop.origin}-[{hop.edge_name}]->{hop.alias}"

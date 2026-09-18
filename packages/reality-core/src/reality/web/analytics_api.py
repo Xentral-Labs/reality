@@ -9,7 +9,11 @@ from reality.services.analytics.reports import caller, change_graph_report
 from reality.services.core import InvalidOperation, NotFound
 from reality.services.memberships import Principal
 from reality.tools.application import run_read_tool
-from reality.tools.graph import GraphAskRequest
+from reality.tools.graph import (
+    GraphAskRequest,
+    GraphFormatRequest,
+    GraphInterpretRequest,
+)
 from reality.web.auth import DatabaseSession
 
 router = APIRouter(prefix="/analytics")
@@ -196,3 +200,25 @@ def get_report_proposal(
                 "message": str(error),
             },
         ) from error
+
+
+
+@router.post("/graph/format")
+def post_graph_format(
+    tenant_id: str, body: GraphFormatRequest, request: Request, session: DatabaseSession
+):
+    return read(
+        session, tenant_id, "graph.format", body.model_dump(mode="json"), request
+    )
+
+
+@router.post("/graph/interpret")
+def post_graph_interpret(
+    tenant_id: str,
+    body: GraphInterpretRequest,
+    request: Request,
+    session: DatabaseSession,
+):
+    return read(
+        session, tenant_id, "graph.interpret", body.model_dump(mode="json"), request
+    )

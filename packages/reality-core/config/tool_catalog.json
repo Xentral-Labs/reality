@@ -227,7 +227,9 @@
     "graph_catalog": "analytics",
     "graph_ask": "analytics",
     "graph_reports_list": "analytics",
-    "graph_report_get": "analytics"
+    "graph_report_get": "analytics",
+    "graph_format": "analytics",
+    "graph_interpret": "analytics"
   },
   "understand_tools": [
     "capability_describe",
@@ -242,7 +244,9 @@
     "finance_target_mapping_preview",
     "graph_templates",
     "graph_catalog",
-    "graph_ask"
+    "graph_ask",
+    "graph_format",
+    "graph_interpret"
   ],
   "related": {
     "form:reserve": [

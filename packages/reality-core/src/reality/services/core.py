@@ -5721,6 +5721,8 @@ def release_party_delivery_hold(
 
 def inventory_rows(session: OrmSession, tenant_id: str) -> list[dict[str, Any]]:
     """Derive the same inventory observations with a fixed number of tenant reads."""
+    from reality.services.inventory_positions import movement_legs
+
     items = list(
         session.scalars(
             select(Item).where(Item.tenant_id == tenant_id).order_by(Item.name)
@@ -5760,8 +5762,9 @@ def inventory_rows(session: OrmSession, tenant_id: str) -> list[dict[str, Any]]:
         movements = movements_by_item.get(item.id, [])
         receipts = [movement for movement in movements if movement.to_location_id]
         issues = [movement for movement in movements if movement.from_location_id]
-        physical = sum((m.quantity for m in receipts), ZERO) - sum(
-            (m.quantity for m in issues), ZERO
+        physical = sum(
+            (amount for movement in movements for _, amount in movement_legs(movement)),
+            ZERO,
         )
         reserved = decimal(reserved_by_item.get(item.id, ZERO))
         incoming = incoming_by_item.get(item.id, ZERO)
@@ -9608,7 +9611,11 @@ def _settlement_control_entry(
 
 
 def _settlement_control_entries(
-    session: OrmSession, tenant_id: str, documents: list[Document]
+    session: OrmSession,
+    tenant_id: str,
+    documents: list[Document],
+    *,
+    effective_before: datetime | None = None,
 ) -> dict[str, LedgerEntry]:
     """The control-account entry per settleable document, read once for many.
 
@@ -9626,6 +9633,7 @@ def _settlement_control_entries(
     for entry in session.scalars(
         select(LedgerEntry).where(
             LedgerEntry.tenant_id == tenant_id,
+            LedgerEntry.effective_at < effective_before if effective_before else True,
             LedgerEntry.document_id.in_(list(wanted)),
             LedgerEntry.account.in_({account for account, _ in wanted.values()}),
         )
@@ -9636,7 +9644,11 @@ def _settlement_control_entries(
 
 
 def _ledger_reversal_roles(
-    session: OrmSession, tenant_id: str, posting_group_ids: set[str]
+    session: OrmSession,
+    tenant_id: str,
+    posting_group_ids: set[str],
+    *,
+    effective_before: datetime | None = None,
 ) -> dict[str, tuple[LedgerReversal, str]]:
     """What `_ledger_reversal_for_group` answers, for many posting groups at once.
 
@@ -9649,6 +9661,9 @@ def _ledger_reversal_roles(
         session.scalars(
             select(LedgerReversal).where(
                 LedgerReversal.tenant_id == tenant_id,
+                LedgerReversal.reversed_at < effective_before
+                if effective_before
+                else True,
                 or_(
                     LedgerReversal.original_posting_group_id.in_(posting_group_ids),
                     LedgerReversal.reversing_posting_group_id.in_(posting_group_ids),
@@ -9669,7 +9684,12 @@ def _ledger_reversal_roles(
 
 
 def _document_account_balances(
-    session: OrmSession, tenant_id: str, accounts: set[str], document_ids: list[str]
+    session: OrmSession,
+    tenant_id: str,
+    accounts: set[str],
+    document_ids: list[str],
+    *,
+    effective_before: datetime | None = None,
 ) -> dict[tuple[str, str], Decimal]:
     """`account_balance` per (account, document) for many documents in one read."""
     if not accounts or not document_ids:
@@ -9684,6 +9704,7 @@ def _document_account_balances(
         )
         .where(
             LedgerEntry.tenant_id == tenant_id,
+            LedgerEntry.effective_at < effective_before if effective_before else True,
             LedgerEntry.account.in_(accounts),
             LedgerEntry.document_id.in_(document_ids),
         )
@@ -9718,7 +9739,11 @@ class SettlementPosition:
 
 
 def settlement_positions(
-    session: OrmSession, tenant_id: str, documents: list[Document]
+    session: OrmSession,
+    tenant_id: str,
+    documents: list[Document],
+    *,
+    effective_before: datetime | None = None,
 ) -> dict[str, SettlementPosition]:
     """`open_invoice_amount` and its inputs for many documents in five reads.
 
@@ -9726,19 +9751,28 @@ def settlement_positions(
     bounded by the documents passed, never by the company: allocations are read for
     these control entries only.
     """
-    controls = _settlement_control_entries(session, tenant_id, documents)
+    controls = _settlement_control_entries(
+        session, tenant_id, documents, effective_before=effective_before
+    )
     roles = _ledger_reversal_roles(
-        session, tenant_id, {entry.posting_group_id for entry in controls.values()}
+        session,
+        tenant_id,
+        {entry.posting_group_id for entry in controls.values()},
+        effective_before=effective_before,
     )
     balances = _document_account_balances(
         session,
         tenant_id,
         {entry.account for entry in controls.values()},
         list(controls),
+        effective_before=effective_before,
     )
     allocated = _allocated_per_entry(
         active_settlement_allocations(
-            session, tenant_id, entry_ids={entry.id for entry in controls.values()}
+            session,
+            tenant_id,
+            entry_ids={entry.id for entry in controls.values()},
+            effective_before=effective_before,
         )
     )
     positions = {}
@@ -10096,12 +10130,18 @@ def account_balance(
     return balance
 
 
-def financial_open_items(session: OrmSession, tenant_id: str) -> list[dict[str, Any]]:
-    return _financial_open_items(session, tenant_id)
+def financial_open_items(
+    session: OrmSession, tenant_id: str, *, effective_before: datetime | None = None
+) -> list[dict[str, Any]]:
+    return _financial_open_items(session, tenant_id, effective_before=effective_before)
 
 
 def _financial_open_items(
-    session: OrmSession, tenant_id: str, *, document_ids: set[str] | None = None
+    session: OrmSession,
+    tenant_id: str,
+    *,
+    document_ids: set[str] | None = None,
+    effective_before: datetime | None = None,
 ) -> list[dict[str, Any]]:
     get_tenant(session, tenant_id)
     rows = []
@@ -10164,7 +10204,9 @@ def _financial_open_items(
     # Six reads for the whole register instead of nine per document: a demo
     # company with 2,230 invoices took 27 seconds here, and four exception
     # classes each asked again.
-    positions = settlement_positions(session, tenant_id, documents)
+    positions = settlement_positions(
+        session, tenant_id, documents, effective_before=effective_before
+    )
     for document in documents:
         party = parties.get(document.party_id or "")
         position = positions.get(document.id)
@@ -10173,7 +10215,7 @@ def _financial_open_items(
             continue
         control, relation, role = position.control, position.relation, position.role
         open_amount = position.open
-        gross = decimal(document.gross_amount)
+        gross = decimal(control.amount if effective_before else document.gross_amount)
         rows.append(
             {
                 "document": document,
@@ -10389,7 +10431,11 @@ def _payment_rows(
 
 
 def active_settlement_allocations(
-    session: OrmSession, tenant_id: str, *, entry_ids: set[str] | None = None
+    session: OrmSession,
+    tenant_id: str,
+    *,
+    entry_ids: set[str] | None = None,
+    effective_before: datetime | None = None,
 ) -> list[SettlementAllocation]:
     """Return immutable allocations whose linked posting groups remain active.
 
@@ -10401,7 +10447,10 @@ def active_settlement_allocations(
     if entry_ids is not None and not entry_ids:
         return []
     query = select(SettlementAllocation).where(
-        SettlementAllocation.tenant_id == tenant_id
+        SettlementAllocation.tenant_id == tenant_id,
+        SettlementAllocation.allocated_at < effective_before
+        if effective_before
+        else True,
     )
     if entry_ids is not None:
         query = query.where(
@@ -10426,6 +10475,9 @@ def active_settlement_allocations(
         for row in session.scalars(
             select(LedgerEntry).where(
                 LedgerEntry.tenant_id == tenant_id,
+                LedgerEntry.effective_at < effective_before
+                if effective_before
+                else True,
                 LedgerEntry.id.in_(entry_ids),
             )
         )
@@ -10434,6 +10486,9 @@ def active_settlement_allocations(
         session.scalars(
             select(LedgerReversal.original_posting_group_id).where(
                 LedgerReversal.tenant_id == tenant_id,
+                LedgerReversal.reversed_at < effective_before
+                if effective_before
+                else True,
                 LedgerReversal.original_posting_group_id.in_(
                     {entry.posting_group_id for entry in entries.values()}
                 ),
@@ -12448,11 +12503,15 @@ def with_invoice_aging(
 
 
 def aging_register(
-    session: OrmSession, tenant_id: str, *, as_of: datetime | None = None
+    session: OrmSession,
+    tenant_id: str,
+    *,
+    as_of: datetime | None = None,
+    document_ids: set[str] | None = None,
 ) -> list[dict[str, Any]]:
-    """Derive due dates and aging from invoice evidence and payment terms."""
+    """Derive due dates and aging, optionally for a bounded set of documents."""
     return with_invoice_aging(
-        financial_open_items(session, tenant_id),
+        _financial_open_items(session, tenant_id, document_ids=document_ids),
         _payment_terms_by_id(session, tenant_id),
         as_of or now(),
     )

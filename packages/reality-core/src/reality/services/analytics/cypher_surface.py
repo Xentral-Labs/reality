@@ -49,7 +49,7 @@ RELATION = re.compile(
 )
 PROPERTY = re.compile(r"(\w+)\s*:\s*(\$\w+|'[^']*'|\"[^\"]*\"|-?\d+(?:\.\d+)?)")
 CONDITION = re.compile(
-    r"(?P<field>\w+\.\w+)\s*(?:(?P<is>IS\s+(?:NOT\s+)?NULL)|(?P<in>IN)\s*(?P<list>\[[^\]]*\])"
+    r"(?P<field>\w+\.\w+)\s*(?:(?P<is>IS\s+(?:NOT\s+)?NULL)|(?P<in>(?:NOT\s+)?IN)\s*(?P<list>\[[^\]]*\]|\$\w+)"
     r"|(?P<op>>=|<=|<>|!=|=|>|<)\s*(?P<value>\$\w+|'[^']*'|\"[^\"]*\"|-?\d+(?:\.\d+)?))",
     re.IGNORECASE,
 )
@@ -184,23 +184,39 @@ def _match(
 
 def _where(clause: str, parameters: dict[str, Any]) -> list[dict]:
     conditions: list[dict] = []
-    consumed = 0
-    for found in CONDITION.finditer(clause):
-        consumed += found.end() - found.start()
+    remaining = clause.strip()
+    while remaining:
+        found = CONDITION.match(remaining)
+        if not found:
+            raise CypherRefused(
+                "WHERE accepts comparisons on properties joined by AND; OR is not admitted",
+                "unsupported_syntax",
+            )
         field = found.group("field")
         if found.group("is"):
-            negated = "NOT" in found.group("is").upper()
-            conditions.append(
-                {"field": field, "op": "is_not_null" if negated else "is_null"}
-            )
+            op = "is_not_null" if "NOT" in found.group("is").upper() else "is_null"
+            conditions.append({"field": field, "op": op})
         elif found.group("in"):
-            items = [
+            token = found.group("list")
+            items = (
                 _value(token, parameters)
-                for token in re.findall(
-                    r"\$\w+|'[^']*'|\"[^\"]*\"|-?\d+(?:\.\d+)?", found.group("list")
-                )
-            ]
-            conditions.append({"field": field, "op": "in", "value": items})
+                if token.startswith("$")
+                else [
+                    _value(value, parameters)
+                    for value in re.findall(
+                        r"\$\w+|'[^']*'|\"[^\"]*\"|-?\d+(?:\.\d+)?", token
+                    )
+                ]
+            )
+            if not isinstance(items, list):
+                raise CypherRefused("IN needs a list", "unsupported_syntax")
+            conditions.append(
+                {
+                    "field": field,
+                    "op": "not_in" if "NOT" in found.group("in").upper() else "in",
+                    "value": items,
+                }
+            )
         else:
             conditions.append(
                 {
@@ -209,29 +225,38 @@ def _where(clause: str, parameters: dict[str, Any]) -> list[dict]:
                     "value": _value(found.group("value"), parameters),
                 }
             )
-    leftovers = re.sub(r"\bAND\b", "", clause, flags=re.IGNORECASE).strip()
-    if conditions and len(leftovers) > consumed + 8 * len(conditions):
-        raise CypherRefused(
-            "WHERE accepts comparisons on properties joined by AND, and nothing else"
-        )
-    if "OR" in re.findall(r"\b\w+\b", clause.upper()):
-        raise CypherRefused(
-            "WHERE joins its comparisons with AND; OR is not admitted",
-            "unsupported_syntax",
-        )
+        remaining = remaining[found.end() :].strip()
+        if remaining:
+            joined = re.match(r"AND\b", remaining, re.IGNORECASE)
+            if not joined:
+                raise CypherRefused(
+                    "WHERE joins comparisons with AND; OR is not admitted",
+                    "unsupported_syntax",
+                )
+            remaining = remaining[joined.end() :].strip()
+            if not remaining:
+                raise CypherRefused(
+                    "AND needs another comparison", "unsupported_syntax"
+                )
     return conditions
 
 
 def _having(clause: str) -> list[dict]:
     """A filter that runs after grouping, so it names a measure, not a property."""
     out: list[dict] = []
-    for found in re.finditer(
-        # The measure pattern has to see the dot, or "o.number" arrives as "number"
-        # and the check below never fires.
-        r"(?:\w+\s*\(\s*)?(?P<measure>[\w.]+?)\s*\)?\s*(?P<op>>=|<=|<>|!=|=|>|<)\s*"
-        r"(?P<value>-?\d+(?:\.\d+)?)",
-        clause,
-    ):
+    if not clause.strip():
+        return out
+    for term in re.split(r"\s+AND\s+", clause.strip(), flags=re.IGNORECASE):
+        found = re.fullmatch(
+            r"(?:\w+\s*\(\s*)?(?P<measure>[\w.]+?)\s*\)?\s*(?P<op>>=|<=|<>|!=|=|>|<)\s*"
+            r"(?P<value>-?\d+(?:\.\d+)?(?:[eE][+-]?\d+)?)",
+            term,
+        )
+        if not found:
+            raise CypherRefused(
+                "HAVING compares declared measures with numbers joined by AND",
+                "unsupported_syntax",
+            )
         if "." in found.group("measure"):
             raise CypherRefused(
                 "HAVING filters a declared measure, not a property",
@@ -268,9 +293,13 @@ def _existence(clause: str, parameters: dict[str, Any]) -> tuple[list[dict], str
         # relationship on. Its alias must not travel onwards: it would collide
         # with a real alias of the outer question, and the test would then be
         # resolved against the wrong record.
-        _root, follow, pattern = _match(f"(__start__:_){inner_match}", parameters)
-        if follow:
-            follow[0] = {k: v for k, v in follow[0].items() if k != "from"}
+        explicit_origin = inner_match.lstrip().startswith("(")
+        prefix = "(__start__:_), " if explicit_origin else "(__start__:_)"
+        _root, follow, pattern = _match(prefix + inner_match, parameters)
+        if follow and not explicit_origin:
+            follow[0] = {
+                key: value for key, value in follow[0].items() if key != "from"
+            }
         tests.append(
             {
                 "follow": follow,
@@ -278,19 +307,27 @@ def _existence(clause: str, parameters: dict[str, Any]) -> tuple[list[dict], str
                 "negated": bool(found.group("not")),
             }
         )
-    return tests, EXISTENCE.sub("", clause)
+    remainder = EXISTENCE.sub("", clause)
+    remainder = re.sub(r"\bAND\s*(?=AND\b)", "", remainder, flags=re.IGNORECASE)
+    remainder = re.sub(
+        r"(?:^\s*AND\b|\bAND\s*$)", "", remainder, flags=re.IGNORECASE
+    ).strip()
+    return tests, remainder
 
 
 def _return(clause: str) -> tuple[list[dict], list[str]]:
     groupings: list[dict] = []
     measures: list[str] = []
     for item in [part.strip() for part in clause.split(",") if part.strip()]:
+        named = re.fullmatch(r"(.+?)\s+AS\s+(`[^`]+`|\w+)", item, re.IGNORECASE)
+        alias = named.group(2).strip("`") if named else None
+        item = named.group(1).strip() if named else item
         call = re.fullmatch(r"(\w+)\s*\(\s*([\w.]+)\s*\)", item)
         if call:
             function, argument = call.group(1).lower(), call.group(2)
             if function in BUCKETS:
                 groupings.append(
-                    {"field": argument, "bucket": function, "as": function}
+                    {"field": argument, "bucket": function, "as": alias or function}
                 )
                 continue
             if function in AGGREGATES:
@@ -301,12 +338,20 @@ def _return(clause: str) -> tuple[list[dict], list[str]]:
                         "out returns a multiplied total without complaint. Ask the catalog "
                         "which measure lives at the grain you reached."
                     )
+                if alias:
+                    raise CypherRefused(
+                        "A declared measure keeps its name; a measure alias is not admitted"
+                    )
                 measures.append(argument)
                 continue
             raise CypherRefused(f"{function}() is not admitted in RETURN")
         if "." in item:
-            groupings.append({"field": item})
+            groupings.append({"field": item, **({"as": alias} if alias else {})})
             continue
+        if alias:
+            raise CypherRefused(
+                "A declared measure keeps its name; a measure alias is not admitted"
+            )
         measures.append(item)
     if not groupings and not measures:
         raise CypherRefused("RETURN names nothing")
@@ -361,7 +406,7 @@ def parse(text: str, parameters: dict[str, Any] | None = None) -> Traversal:
         name = re.sub(r"\b(ASC|DESC)\b", "", item, flags=re.IGNORECASE).strip()
         call = re.fullmatch(r"\w+\s*\(\s*([\w.]+)\s*\)", name)
         order_by.append(
-            {"by": call.group(1) if call else name, "descending": descending}
+            {"by": call.group(1) if call else name.strip("`"), "descending": descending}
         )
 
     query: dict[str, Any] = {
@@ -380,3 +425,113 @@ def parse(text: str, parameters: dict[str, Any] | None = None) -> Traversal:
         return Traversal.model_validate(query)
     except ValueError as error:
         raise CypherRefused(str(error)) from error
+
+
+def format_query(query: Traversal) -> dict[str, Any]:
+    """Produce an editable path with separately bound values, never SQL.
+
+    All clauses travel with the question. Simple controls may not understand an
+    existence test or recursion, but the expert editor must not lose them.
+    """
+    parameters: dict[str, Any] = {}
+    operators = {value: key for key, value in COMPARISONS.items()}
+
+    def identifier(value: str) -> str:
+        if not re.fullmatch(r"\w+", value):
+            raise CypherRefused(
+                "This identifier cannot be represented in path syntax",
+                "unsupported_syntax",
+            )
+        return value
+
+    def bound(value: Any) -> str:
+        key = f"value{len(parameters) + 1}"
+        parameters[key] = value
+        return f"${key}"
+
+    def conditions(values) -> list[str]:
+        result = []
+        for condition in values:
+            field = ".".join(identifier(part) for part in condition.field.split("."))
+            if condition.op in {"is_null", "is_not_null"}:
+                result.append(
+                    f"{field} IS {'NOT ' if condition.op == 'is_not_null' else ''}NULL"
+                )
+            elif condition.op in {"in", "not_in"}:
+                result.append(
+                    f"{field} {'NOT ' if condition.op == 'not_in' else ''}IN {bound(condition.value)}"
+                )
+            else:
+                result.append(
+                    f"{field} {operators[condition.op]} {bound(condition.value)}"
+                )
+        return result
+
+    def paths(hops, origin: str) -> str:
+        segments = []
+        for hop in hops:
+            start = identifier(hop.from_ or origin)
+            target = identifier(hop.as_)
+            depth = f"*{hop.depth[0]}..{hop.depth[1]}" if hop.depth else ""
+            edge = identifier(hop.edge)
+            relation = (
+                f"<-[:{edge}{depth}]-"
+                if hop.direction == "in"
+                else f"-[:{edge}{depth}]->"
+            )
+            segments.append(f"({start}){relation}({target})")
+            origin = hop.as_
+        return ", ".join(segments)
+
+    def quoted(value: str) -> str:
+        if (
+            "`" in value
+            or "," in value
+            or re.search(
+                r"\b(?:MATCH|WHERE|RETURN|HAVING|ORDER BY|LIMIT|CREATE|SET|DELETE)\b",
+                value,
+                re.IGNORECASE,
+            )
+        ):
+            raise CypherRefused(
+                "This column alias cannot be represented in path syntax",
+                "unsupported_syntax",
+            )
+        return f"`{value}`"
+
+    text = f"MATCH ({identifier(query.as_)}:{identifier(query.from_)})"
+    if query.follow:
+        text += ", " + paths(query.follow, query.as_)
+    where = conditions(query.filter)
+    for test in query.exists:
+        inner = paths(test.follow, query.as_)
+        filtered = conditions(test.filter)
+        where.append(
+            f"{'NOT ' if test.negated else ''}EXISTS {{ MATCH {inner}"
+            + (" WHERE " + " AND ".join(filtered) if filtered else "")
+            + " }"
+        )
+    if where:
+        text += "\nWHERE " + " AND ".join(where)
+    returned = []
+    for group in query.group_by:
+        field = ".".join(identifier(part) for part in group.field.split("."))
+        term = f"{group.bucket}({field})" if group.bucket else field
+        if group.as_ or group.bucket:
+            term += " AS " + quoted(group.as_ or group.field)
+        returned.append(term)
+    returned.extend(identifier(measure) for measure in query.measures)
+    text += "\nRETURN " + ", ".join(returned)
+    if query.having:
+        text += "\nHAVING " + " AND ".join(
+            f"{identifier(item.measure)} {operators[item.op]} {item.value}"
+            for item in query.having
+        )
+    if query.order_by:
+        text += "\nORDER BY " + ", ".join(
+            (item.by if re.fullmatch(r"[\w.]+", item.by) else quoted(item.by))
+            + (" DESC" if item.descending else " ASC")
+            for item in query.order_by
+        )
+    text += f"\nLIMIT {query.limit}"
+    return {"path": text, "parameters": parameters}

@@ -1,8 +1,8 @@
 """The reporting graph as agent tools; caller identity never comes from arguments.
 
-Two tools, matching the two things anybody needs: find out what can be asked, and
-ask it. The catalog is generated from the declaration, so the tool and the
-executor can never describe different things.
+Discovery, interpretation, formatting and execution share the same checked question.
+The catalog is generated from the declaration, so the tools and the executor can
+never describe different things.
 
 A refusal is returned as a refusal, with its stable code, because it is the most
 useful answer this feature produces: it names the edge that fanned out, the unit
@@ -17,7 +17,7 @@ from typing import Any
 from pydantic import Field, model_validator
 
 from reality.domain.traversal import StrictModel, Traversal
-from reality.services.analytics.cypher_surface import parse
+from reality.services.analytics.cypher_surface import format_query, parse
 from reality.services.analytics.graph_model import (
     ReportingGraphError,
     reporting_catalog,
@@ -113,10 +113,26 @@ class GraphReportRequest(StrictModel):
     )
 
 
+class GraphFormatRequest(StrictModel):
+    question: Traversal
+
+
+class GraphInterpretRequest(StrictModel):
+    text: str = Field(
+        min_length=1,
+        max_length=4000,
+        description="Business question to interpret; no actions are executed.",
+    )
+    language: str = Field(default="en", max_length=5)
+    timezone: str = Field(default="UTC", max_length=100)
+
+
 SCHEMAS = {
     "graph.catalog": GraphCatalogRequest,
     "graph.templates": GraphTemplatesRequest,
     "graph.ask": GraphAskRequest,
+    "graph.format": GraphFormatRequest,
+    "graph.interpret": GraphInterpretRequest,
     "graph.reports.list": GraphReportsRequest,
     "graph.reports.get": GraphReportRequest,
 }
@@ -125,6 +141,15 @@ SCHEMAS = {
 def invoke(session, tenant_id: str, name: str, arguments: dict[str, Any]) -> Any:
     request = SCHEMAS[name].model_validate(arguments or {})
     get_tenant(session, tenant_id)
+    if name == "graph.format":
+        from reality.services.analytics.traversal import plan
+
+        plan(request.question)
+        return format_query(request.question)
+    if name == "graph.interpret":
+        from reality.services.analytics.interpretation import interpret
+
+        return interpret(session, tenant_id, CALLER.get(), **request.model_dump())
     if name == "graph.catalog":
         try:
             # The session comes with the call, so a short-vocabulary column can
@@ -160,6 +185,7 @@ def invoke(session, tenant_id: str, name: str, arguments: dict[str, Any]) -> Any
     result = run_traversal(session, tenant_id, query)
     return {
         "rows": list(result.rows),
+        "editor": _editor(query),
         # An empty answer means one of two different things; only one of them is
         # about the business, and the caller cannot tell them apart alone.
         **(
@@ -173,3 +199,14 @@ def invoke(session, tenant_id: str, name: str, arguments: dict[str, Any]) -> Any
         "sql": result.sql,
         "question": query.model_dump(mode="json", by_alias=True, exclude_defaults=True),
     }
+
+
+def _editor(query):
+    from reality.services.analytics.cypher_surface import CypherRefused
+
+    try:
+        return format_query(query)
+    except CypherRefused as error:
+        # An existing saved query remains readable even if its historical alias
+        # cannot be represented in the admitted textual syntax.
+        return {"path": None, "parameters": {}, "reason": str(error)}

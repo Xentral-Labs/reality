@@ -14,9 +14,8 @@ const compiled = ts.transpile(source("../src/unified/routing.ts"), {
 const { readSelection, selectionUrl, companySelection } = await import(
   `data:text/javascript;base64,${Buffer.from(compiled).toString("base64")}`
 );
-// "overview" and "explore" were the configured generation. A link that still
-// names one opens the graph rather than a blank page, which is the whole reason
-// the value is validated rather than trusted.
+// Spec 228 restores explore as the declared-model catalog. Retired overview
+// and console links still open the builder.
 for (const view of [
   "",
   "overview",
@@ -35,12 +34,20 @@ for (const view of [
     );
     assert.equal(
       selection.analyticsView,
-      ["reports", "graph", "templates"].includes(view) ? view : "graph",
+      ["reports", "graph", "templates", "explore"].includes(view)
+        ? view
+        : view
+          ? "graph"
+          : "reports",
     );
     const url = new URL(selectionUrl(selection), "https://example.test");
     assert.equal(url.searchParams.get("tenant"), "one");
     for (const key of ["days", "metric", "day"]) assert.equal(url.searchParams.has(key), false);
-    assert.equal(companySelection(selection, "two").analyticsView, "graph");
+    assert.equal(companySelection(selection, "two").analyticsView, "reports");
+    assert.equal(
+      companySelection({ ...selection, analyticsProposal: "private" }, "two").analyticsProposal,
+      "",
+    );
   });
 }
 test("rendered analytics carries no retired overview", () => {
@@ -54,7 +61,11 @@ test("rendered analytics carries no retired overview", () => {
       exports,
       require: (name) => {
         if (name === "../localization") return { t: (value) => value };
-        if (name === "./RegisterWorkbench") return { RegisterHeader: ({ children }) => children };
+        if (name === "./RegisterWorkbench")
+          return {
+            RegisterHeader: ({ children }) => children,
+            RegisterWorkbench: ({ children }) => children,
+          };
         if (name === "./analytics/ReportLibrary") return { ReportLibrary: () => "Saved reports" };
         if (name === "./analytics/GraphSteps") return { GraphSteps: () => "Graph content" };
         if (name === "./analytics/GraphTemplates") return { GraphTemplates: () => "Templates" };
@@ -72,10 +83,12 @@ test("rendered analytics carries no retired overview", () => {
   // Spec 221 retired the overview; spec 224 retired the configured explorer
   // with it. The tabs are named rather than counted, so adding one does not
   // read as a regression and removing one does.
-  assert.match(html, /aria-pressed="true">Business graph/);
-  assert.match(html, /Templates/);
+  assert.match(html, /aria-pressed="true">My reports/);
+  assert.match(html, />Analysis</);
+  assert.match(html, /Explore data/);
+  assert.doesNotMatch(html, />Templates</);
   assert.match(html, /My reports/);
-  assert.doesNotMatch(html, /Overview|Recorded activity|Explore|Query console/);
+  assert.doesNotMatch(html, /Overview|Recorded activity|Query console/);
 });
 test("Home and client no longer consume retired metrics", () => {
   assert.doesNotMatch(source("../src/unified/HomePage.tsx"), /AnalyticsPreview/);

@@ -55,10 +55,17 @@ def test_every_declared_table_and_column_exists():
         if node.table is None:
             continue
         assert node.table in tables, name
-        assert node.key in tables[node.table], name
+        from reality.services.analytics.derivations import columns_for
+
+        assert node.key in (
+            set(tables[node.table]) | set(columns_for(node.derivation))
+        ), name
         for prop in node.properties:
             column = node.column_of(prop)
-            assert column in tables[node.table], f"{name}.{prop} -> {column}"
+            from reality.services.analytics.derivations import columns_for
+
+            available = tables[node.table] | (set(columns_for(node.derivation)))
+            assert column in available, f"{name}.{prop} -> {column}"
 
 
 def test_catalog_is_generated_from_the_declaration():
@@ -355,7 +362,7 @@ def test_every_node_edge_and_measure_has_a_business_label():
 
 def test_the_catalog_speaks_the_language_it_is_asked_for():
     german = reporting_catalog("order", "de")["nodes"][0]
-    assert german["label"] == "Auftrag"
+    assert german["label"] == "Kundenauftrag"
     assert {m["label"] for m in german["measures"]} >= {"Auftragswert"}
     assert {e["label"] for e in german["edges"]} >= {"enthält"}
     assert {p["label"] for p in german["properties"]} >= {"Währung"}

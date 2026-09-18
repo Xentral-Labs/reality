@@ -1,18 +1,21 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { t } from "../localization";
-import { RegisterHeader } from "./RegisterWorkbench";
+import { RegisterHeader, RegisterWorkbench } from "./RegisterWorkbench";
+import { DataExplorer } from "./analytics/DataExplorer";
 import { GraphSteps } from "./analytics/GraphSteps";
 import { GraphTemplates } from "./analytics/GraphTemplates";
 import { ReportLibrary } from "./analytics/ReportLibrary";
-import type { GraphReport } from "../api";
+import { openAnalysisChat } from "./analytics/chatHandoff";
+import { graphApi, type GraphReport, type GraphQuestion } from "../api";
+import { useRead } from "./useCompanyContext";
+import { ReadState } from "./ReadState";
 import type { Selection } from "./routing";
 
 export function AnalyticsPage(props: {
   selection: Selection;
   navigate: (changes: Partial<Selection>) => void;
 }) {
-  const { selection } = props;
-  return <AnalyticsWorkspace key={selection.tenant} {...props} />;
+  return <AnalyticsWorkspace key={props.selection.tenant} {...props} />;
 }
 function AnalyticsWorkspace({
   selection,
@@ -22,50 +25,145 @@ function AnalyticsWorkspace({
   navigate: (changes: Partial<Selection>) => void;
 }) {
   const [report, setReport] = useState<GraphReport | null>(null);
-  const view = selection.analyticsView || "graph";
+  const [draft, setDraft] = useState<{ question?: GraphQuestion; revision: number } | null>(null);
+  const [templates, setTemplates] = useState(selection.analyticsView === "templates");
+  const view =
+    selection.analyticsView === "templates" ? "graph" : selection.analyticsView || "reports";
+  const open = (question?: GraphQuestion, saved: GraphReport | null = null) => {
+    setReport(saved);
+    setDraft((previous) => ({ question, revision: (previous?.revision ?? 0) + 1 }));
+    setTemplates(false);
+    navigate({ analyticsView: "graph", analyticsProposal: "" });
+  };
+  const start = () => {
+    setReport(null);
+    setDraft(null);
+    setTemplates(false);
+    navigate({ analyticsView: "graph", analyticsProposal: "" });
+  };
   return (
-    <div className="mx-auto max-w-[1500px] space-y-6">
+    <RegisterWorkbench>
       <RegisterHeader title="Reports">
         <nav className="register-tabs" aria-label={t("Analytics views")}>
           {(
             [
-              ["templates", "Templates"],
-              ["graph", "Business graph"],
               ["reports", "My reports"],
+              ["graph", "Analysis"],
+              ["explore", "Explore data"],
             ] as const
           ).map(([key, label]) => (
             <button
               key={key}
               className="br-btn"
               aria-pressed={view === key}
-              onClick={() => navigate({ analyticsView: key, page: 1 })}
+              onClick={() => navigate({ analyticsView: key, analyticsProposal: "", page: 1 })}
             >
               {t(label)}
             </button>
           ))}
         </nav>
       </RegisterHeader>
-      {view === "templates" && (
-        <GraphTemplates
+      {view === "graph" && selection.analyticsProposal ? (
+        <ProposalAnalysis
+          key={`${selection.tenant}:${selection.analyticsProposal}`}
           tenant={selection.tenant}
-          onAdopted={(value) => {
-            setReport(value);
-            navigate({ analyticsView: "graph" });
-          }}
+          id={selection.analyticsProposal}
+          open={open}
         />
+      ) : (
+        view === "graph" &&
+        !draft && (
+          <section className="register-surface space-y-4">
+            <p className="text-sm text-fg-muted">
+              {t("How would you like to create your analysis?")}
+            </p>
+            <div className="flex flex-wrap gap-2">
+              <button
+                className="br-btn"
+                onClick={() => openAnalysisChat(selection.tenant, t("New analysis"))}
+              >
+                {t("Create with chat")}
+              </button>
+              <button
+                className="br-btn"
+                aria-pressed={templates || selection.analyticsView === "templates"}
+                onClick={() => setTemplates(!templates)}
+              >
+                {t("Use a template")}
+              </button>
+              <button className="br-btn" onClick={() => open()}>
+                {t("Build it yourself")}
+              </button>
+            </div>
+            <p className="text-xs text-fg-muted">
+              {t(
+                "Describe your question in chat or choose the data yourself. Both lead to the same analysis.",
+              )}
+            </p>
+            {(templates || selection.analyticsView === "templates") && (
+              <GraphTemplates tenant={selection.tenant} onAdopted={open} />
+            )}
+          </section>
+        )
       )}
-      {view === "graph" && (
-        <GraphSteps tenant={selection.tenant} report={report} onSaved={setReport} />
+      {draft && (
+        <div
+          hidden={
+            view !== "graph" ||
+            !!selection.analyticsProposal ||
+            selection.analyticsView === "templates"
+          }
+        >
+          <GraphSteps
+            key={draft.revision}
+            tenant={selection.tenant}
+            report={report}
+            initialQuestion={draft.question}
+            active={
+              view === "graph" &&
+              !selection.analyticsProposal &&
+              selection.analyticsView !== "templates"
+            }
+            onSaved={setReport}
+            onNew={start}
+          />
+        </div>
       )}
+      {view === "explore" && <DataExplorer tenant={selection.tenant} open={open} />}
       {view === "reports" && (
         <ReportLibrary
           tenant={selection.tenant}
-          open={(value) => {
-            setReport(value);
-            navigate({ analyticsView: "graph" });
-          }}
+          create={start}
+          open={(value) => open(value.definition, value)}
         />
       )}
-    </div>
+    </RegisterWorkbench>
+  );
+}
+
+function ProposalAnalysis({
+  tenant,
+  id,
+  open,
+}: {
+  tenant: string;
+  id: string;
+  open: (question: GraphQuestion) => void;
+}) {
+  const read = useRead(() => graphApi.proposal(tenant, id), [tenant, id]);
+  const proposal = read.data;
+  const supported =
+    proposal?.kind === "graph" &&
+    ["create", "update"].includes(proposal.operation) &&
+    !!proposal.definition;
+  useEffect(() => {
+    if (supported && proposal?.definition) open(proposal.definition);
+  }, [proposal, supported]);
+  if (!proposal)
+    return <ReadState loading={read.loading} error={read.error} retry={read.refresh} />;
+  return (
+    <p className="text-sm text-fg-muted" role="status">
+      {t(supported ? "Reading data…" : "This proposal cannot be opened as an analysis.")}
+    </p>
   );
 }

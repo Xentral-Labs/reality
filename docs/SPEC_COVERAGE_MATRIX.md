@@ -1154,3 +1154,38 @@ backlog and all four languages).
 `packages/reality-core/tests/test_tool_catalog.py`, existing application catalog/MCP tests,
 `apps/web/scripts/tool-catalog.test.mjs`, `apps/web/scripts/inspector-navigation.test.mjs`
 and `apps/web/scripts/unified-tool-catalog-browser.mjs`.
+
+- `packages/reality-core/tests/test_analysis_builder.py` — `specs/228-guided-analysis-builder/spec.md`, FR-002, FR-004, FR-007, FR-008, FR-009, FR-011, FR-012.
+
+- `apps/web/scripts/analysis-builder-state.test.mjs` and `apps/web/scripts/graph-steps.test.mjs` — `specs/228-guided-analysis-builder/spec.md`, FR-003, FR-004, FR-006, FR-007, FR-008, FR-009, FR-013.
+
+
+## Business analysis coverage (spec 229)
+
+`packages/reality-core/tests/test_reporting_graph_expansion.py` covers FR-001–006:
+typed documents and positions, tenant-scoped parent predicates, reverse same-table
+links, received signs, catalog vocabulary, all-node and all-edge query execution.
+The analysis declaration includes `shipment`, `shipment_package`, `shipment_event`,
+`shipment_event_supersession` and `return_announcement`; their authority remains the
+existing shipping/returns domain. It also exposes financial components and opening
+evidence without inventing aggregate financial state.
+
+## Finance and calendar analysis (spec 230)
+
+`packages/reality-core/tests/test_analysis_finance_dates.py` covers FR-001–005: canonical aging, reversals, opening debts, currencies, tenant boundaries, derivation limits, signed ledger sums and guarded calendar dates. Web period contracts cover date-only bounds.
+
+## Current stock analysis and templates (spec 231)
+
+`packages/reality-core/tests/test_analysis_warehouse.py` covers FR-001–004: stock parity
+with canonical inventory and Warehouse, reservation lifecycle, transfers/corrections,
+negative/zero stock, tenant/unit/time/fanout boundaries, bounded inputs, constant read
+cost, localized template execution and chat compilation.
+
+## Balances, exact inventory and effective-date analysis (spec 232)
+
+`packages/reality-core/tests/test_analysis_positions_history.py` covers FR-001–006:
+unpaged canonical balances, currencies, exact tracking/null buckets, allocation
+endpoints, reversals, stock corrections, cutoff and opening boundaries, tenant scope,
+fanout, input bounds, chat validation and Cypher round trips. Reporting graph contracts
+execute every template. `apps/web/scripts/analysis-snapshot.test.mjs` checks visible
+snapshot inputs, replacement of the selected date and preservation of unrelated filters.

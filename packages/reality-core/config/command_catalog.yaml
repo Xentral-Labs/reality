@@ -6,6 +6,7 @@ principle: CLI, Web, API, and Chat are adapters. Shared application services are
 # untyped until it is operationally relevant; once exposed here, explain its business
 # meaning rather than merely repeating its data type.
 parameter_descriptions:
+  effective_before: Exclusive UTC effective-time cutoff over retained postings, allocations and reversals; absent means current state. Does not reconstruct historical payment terms or knowledge time.
   principal: Trusted authenticated user context supplied by the server, never by model arguments.
   arguments: Strict versioned request object; nested fields are declared by the MCP input schema.
   type: Closed kind of the record where one is stated, such as a party's primary role or a location's type; the roles list, not this field, decides what a party may do.
@@ -1114,6 +1115,64 @@ commands:
     effect: Appends a reasoned correction or retraction without deleting the original event.
 
 capability_guidance:
+  graph_format:
+    kind: read
+    application_tool: graph.format
+    purpose: Format a checked reporting question as an editable path with separate parameters.
+    use_when:
+    - Show the exact technical representation of an analysis without executing it.
+    do_not_use_when:
+    - Read business values or execute arbitrary Cypher.
+    required_context: [Authorized tenant and a declared traversal.]
+    data_basis: [analytics_report]
+    limitations: [Only the admitted reporting path syntax is generated.]
+    freshness: Uses the currently loaded reporting declaration.
+    empty_result: Formatting never supplies business results.
+    refusal_behavior: Invalid model references or unrepresentable aliases are refused explicitly.
+    confirmation: none
+    side_effects: none
+    verification:
+      role: independent
+      proves: [The path and parameters encode the same checked question.]
+      does_not_prove: [The presence of matching business records.]
+    unknown_when: [The requested concept is not declared.]
+    next_steps: [Execute through graph_ask.]
+    examples:
+      use:
+      - scenario: Open an existing question in the expert editor.
+        reason: Bound parameters preserve exact values separately from syntax.
+      do_not_use:
+      - scenario: Update a business record through the query editor.
+        reason: Only read queries are admitted.
+  graph_interpret:
+    kind: read
+    application_tool: graph.interpret
+    purpose: Interpret a business question into a checked traversal using the configured AI provider.
+    use_when:
+    - A reader asks a business question without knowing model identifiers.
+    do_not_use_when:
+    - Execute writes or treat an interpretation as a calculated answer.
+    required_context: [Authorized tenant and authenticated active user.]
+    data_basis: [analytics_report]
+    limitations: [AI provider availability and existing managed question allowance apply; one managed question is reserved before dispatch and failures still consume it.]
+    freshness: Uses the current catalog and stated time zone; no business result is calculated.
+    empty_result: A clarification or unsupported explanation is not a zero business result.
+    refusal_behavior: Invalid output and unavailable concepts are refused before execution.
+    confirmation: none
+    side_effects: none
+    verification:
+      role: independent
+      proves: [The proposed traversal passes model and compilation checks.]
+      does_not_prove: [Correct understanding of ambiguous intent or matching records.]
+    unknown_when: [The question is ambiguous or the model lacks its required concept.]
+    next_steps: [Review the interpretation and execute it through graph_ask.]
+    examples:
+      use:
+      - scenario: Turn an order-value question into an editable analysis.
+        reason: The declared measures retain their business meaning.
+      do_not_use:
+      - scenario: Ask for unsupported invoice aging and assume order date is equivalent.
+        reason: Missing business semantics cannot be replaced by nearby fields.
   graph_templates:
     kind: read
     application_tool: graph.templates

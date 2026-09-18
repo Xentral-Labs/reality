@@ -382,13 +382,10 @@ def test_two_currencies_are_still_refused_however_they_are_named(
         assert refusal.value.code == "unit_mismatch", condition
 
 
-def test_a_date_kept_as_text_cannot_be_folded_into_months(session, business, sales):
-    """Found by asking it: `document_date` is a varchar on this table.
-
-    PostgreSQL answers `date_trunc(varchar, varchar) does not exist`, which
-    names two types and no question, and arrived at the reader as a 500. The
-    refusal is made against the declared column instead.
-    """
+def test_an_undeclared_text_field_cannot_be_folded_into_months(
+    session, business, sales
+):
+    """Only explicitly declared calendar evidence receives temporal semantics."""
     with pytest.raises(TraversalRefused) as refusal:
         ask(
             session,
@@ -397,12 +394,12 @@ def test_a_date_kept_as_text_cannot_be_folded_into_months(session, business, sal
                 "from": "order",
                 "measures": ["order_count"],
                 "group_by": [
-                    {"field": "root.document_date", "bucket": "month", "as": "month"}
+                    {"field": "root.number", "bucket": "month", "as": "month"}
                 ],
             },
         )
     assert refusal.value.code == "not_temporal"
-    assert "document_date" in str(refusal.value)
+    assert "number" in str(refusal.value)
 
 
 def test_following_an_edge_backwards_reaches_the_customer(session, business, sales):
@@ -849,11 +846,25 @@ def test_every_template_runs_against_real_records(session, business, sales, prom
     """Resolving is not running. A template is offered as a starting point, so
     it has to survive the database too — the compiler, the tenant predicate and
     whatever the correction rules do to each node."""
+    from datetime import UTC, datetime
+
     from reality.services.analytics.graph_model import reporting_graph
 
     for name, template in reporting_graph().templates.items():
-        result = ask(session, business.tenant.id, **template.question)
-        assert result.statements == 1, f"{name} took more than one statement"
+        query = dict(template.question)
+        if template.snapshot:
+            query["filter"] = [
+                {
+                    "field": template.snapshot,
+                    "op": "eq",
+                    "value": datetime.now(UTC).date().isoformat(),
+                }
+            ]
+        result = ask(session, business.tenant.id, **query)
+        if reporting_graph().nodes[template.question["from"]].derivation:
+            assert result.statements > 1, f"{name} must report canonical service reads"
+        else:
+            assert result.statements == 1, f"{name} took more than one statement"
 
 
 def test_the_article_template_takes_the_line_value_not_the_order_value(
