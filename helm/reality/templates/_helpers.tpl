@@ -115,6 +115,23 @@ Deliberate choices:
 */}}
 - name: REALITY_IMAGE_TAG
   value: {{ .Values.image.tag | default .Chart.AppVersion | quote }}
+{{/*
+  Readiness probe targets for services/system_readiness.py. Derived from the
+  chart's own Service names rather than configured per environment, so there is
+  nothing to keep in step. probe() is strict: it refuses redirects and rejects
+  any URL whose path is not exactly /healthz, so these are built literally.
+
+  Without them the api reports scheduler and worker as "unknown", which the UI
+  shows as "Not yet verified" alongside "Availability is not fully confirmed".
+*/}}
+{{- if .Values.scheduler.enabled }}
+- name: REALITY_SCHEDULER_HEALTH_URL
+  value: {{ printf "http://%s-scheduler:%v/healthz" (include "reality.fullname" .) .Values.scheduler.port | quote }}
+{{- end }}
+{{- if .Values.worker.enabled }}
+- name: REALITY_WORKER_HEALTH_URL
+  value: {{ printf "http://%s-worker:%v/healthz" (include "reality.fullname" .) .Values.worker.port | quote }}
+{{- end }}
 {{- if and .Values.telemetry.enabled .Values.telemetry.endpoint }}
 {{/*
   The presence of OTEL_EXPORTER_OTLP_ENDPOINT is the single switch the
