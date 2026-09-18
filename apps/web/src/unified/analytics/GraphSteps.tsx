@@ -347,9 +347,18 @@ export function planOf(question: GraphQuestion, nodes: Record<string, GraphNode>
   };
 }
 
-/** The day out of an instant, which is all a period bound needs to read as. */
+/** The day a bound falls on where the reader is.
+ *
+ * A bound is stored as a real instant, so local midnight on 1 September is
+ * `2026-08-31T22:00:00Z` in Berlin. Slicing the first ten characters off that
+ * put "31.08." on a filter somebody had set to 1 September: the query was
+ * right and the label was a day out, which is worse than either being wrong,
+ * because the reader has no reason to doubt it.
+ */
 function shortDate(value: unknown) {
-  return typeof value === "string" ? value.slice(0, 10) : String(value ?? "");
+  if (typeof value !== "string") return String(value ?? "");
+  const instant = new Date(value);
+  return Number.isNaN(instant.getTime()) ? value.slice(0, 10) : formatDate(value);
 }
 
 /** The columns a list of these records opens with.
@@ -1120,7 +1129,7 @@ function AddFilter({ fields, add }: { fields: Field[]; add: (filter: Filter) => 
               onClick={() =>
                 submit(
                   periodFilter(chosen.field, chosen.label, {
-                    label: `${from} – ${until}`,
+                    label: `${formatDate(`${from}T00:00:00`)} – ${formatDate(`${until}T00:00:00`)}`,
                     from: new Date(`${from}T00:00:00`),
                     // The end of a named period is the day after it, so that a
                     // record stamped at noon on the last day is still inside.
