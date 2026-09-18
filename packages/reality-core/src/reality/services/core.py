@@ -66,6 +66,7 @@ from reality.db.core import (
     now,
     uid,
 )
+from reality.domain.calendar import InvalidDay, as_day
 from reality.integrations.catalog import connector_catalog, connector_shell
 from reality.storyline.recorder import wrap_chat
 
@@ -5720,35 +5721,55 @@ def release_party_delivery_hold(
     return holds
 
 
-def inventory_rows(session: OrmSession, tenant_id: str) -> list[dict[str, Any]]:
-    """Derive the same inventory observations with a fixed number of tenant reads."""
+def inventory_rows(
+    session: OrmSession, tenant_id: str, *, item_ids: set[str] | None = None
+) -> list[dict[str, Any]]:
+    """Derive the same inventory observations with a fixed number of tenant reads.
+
+    `item_ids` narrows every read to the articles the caller can still reach. It
+    changes which rows come back, never how one is derived: each article's stock
+    is worked out from its own movements, reservations and open supplier promises,
+    so a smaller set yields the same rows for the articles it names.
+    """
     from reality.services.inventory_positions import movement_legs
+
+    def only(statement, column):
+        return statement if item_ids is None else statement.where(column.in_(item_ids))
 
     items = list(
         session.scalars(
-            select(Item).where(Item.tenant_id == tenant_id).order_by(Item.name)
+            only(select(Item).where(Item.tenant_id == tenant_id), Item.id).order_by(
+                Item.name
+            )
         )
     )
     movements_by_item: dict[str, list[Movement]] = {}
     for movement in session.scalars(
-        select(Movement)
-        .where(Movement.tenant_id == tenant_id)
-        .order_by(Movement.occurred_at.desc())
+        only(
+            select(Movement).where(Movement.tenant_id == tenant_id), Movement.item_id
+        ).order_by(Movement.occurred_at.desc())
     ):
         movements_by_item.setdefault(movement.item_id, []).append(movement)
     reserved_by_item = dict(
         session.execute(
-            select(Reservation.item_id, func.sum(Reservation.quantity))
-            .where(Reservation.tenant_id == tenant_id, Reservation.status == "active")
-            .group_by(Reservation.item_id)
+            only(
+                select(Reservation.item_id, func.sum(Reservation.quantity)).where(
+                    Reservation.tenant_id == tenant_id,
+                    Reservation.status == "active",
+                ),
+                Reservation.item_id,
+            ).group_by(Reservation.item_id)
         ).all()
     )
     suppliers = list(
         session.scalars(
-            select(Commitment).where(
-                Commitment.tenant_id == tenant_id,
-                Commitment.type == "supplier_delivery",
-                Commitment.status == "open",
+            only(
+                select(Commitment).where(
+                    Commitment.tenant_id == tenant_id,
+                    Commitment.type == "supplier_delivery",
+                    Commitment.status == "open",
+                ),
+                Commitment.item_id,
             )
         )
     )
@@ -6632,7 +6653,7 @@ def create_document(
         currency=currency,
         gross_amount=decimal(amount),
         status="recorded",
-        document_date=document_date,
+        document_date=_document_day(document_date),
         ordered_at=utc_datetime(ordered_at),
         requested_delivery_at=utc_datetime(requested_delivery_at),
         customer_reference=customer_reference.strip(),
@@ -6738,7 +6759,7 @@ def _preview_manual_document_input(
         "currency": currency,
         "gross_amount": decimal(gross_amount),
         "status": "recorded",
-        "document_date": document_date,
+        "document_date": _document_day(document_date),
         "ordered_at": utc_datetime(ordered_at),
         "requested_delivery_at": utc_datetime(requested_delivery_at),
         "customer_reference": customer_reference.strip(),
@@ -7133,19 +7154,28 @@ def _pricing_direction(document_type: str) -> str | None:
     return None
 
 
+def _document_day(value: date | datetime | str | None) -> date | None:
+    """A stated document date, refused as a business error rather than a crash.
+
+    The column takes a day, so text that is not one cannot be stored. Callers reach
+    this through the tools and the API, where an unreadable date is the asker's
+    mistake and belongs in a 422, not in a traceback.
+    """
+    try:
+        return as_day(value)
+    except InvalidDay as error:
+        raise InvalidOperation("Document date must use YYYY-MM-DD.") from error
+
+
 def _document_pricing_effective_at(
-    *, ordered_at: datetime | str | None, document_date: str
+    *, ordered_at: datetime | str | None, document_date: date | str | None
 ) -> datetime:
     ordered = utc_datetime(ordered_at)
     if ordered:
         return ordered
-    if document_date.strip():
-        try:
-            return datetime.combine(
-                date.fromisoformat(document_date.strip()), datetime.min.time(), UTC
-            )
-        except ValueError as error:
-            raise InvalidOperation("Document date must use YYYY-MM-DD.") from error
+    day = _document_day(document_date)
+    if day:
+        return datetime.combine(day, datetime.min.time(), UTC)
     return now()
 
 
@@ -7726,7 +7756,7 @@ def correct_manual_document(
         "party_id": party_id,
         "currency": currency,
         "gross_amount": decimal(amount),
-        "document_date": document_date.strip(),
+        "document_date": _document_day(document_date),
         "ordered_at": utc_datetime(ordered_at),
         "requested_delivery_at": utc_datetime(requested_delivery_at),
         "customer_reference": customer_reference.strip(),
@@ -10132,9 +10162,15 @@ def account_balance(
 
 
 def financial_open_items(
-    session: OrmSession, tenant_id: str, *, effective_before: datetime | None = None
+    session: OrmSession,
+    tenant_id: str,
+    *,
+    effective_before: datetime | None = None,
+    party_ids: set[str] | None = None,
 ) -> list[dict[str, Any]]:
-    return _financial_open_items(session, tenant_id, effective_before=effective_before)
+    return _financial_open_items(
+        session, tenant_id, effective_before=effective_before, party_ids=party_ids
+    )
 
 
 def _financial_open_items(
@@ -10143,7 +10179,14 @@ def _financial_open_items(
     *,
     document_ids: set[str] | None = None,
     effective_before: datetime | None = None,
+    party_ids: set[str] | None = None,
 ) -> list[dict[str, Any]]:
+    """Open items, optionally for named documents or named parties.
+
+    Both narrowings select rows; neither changes how one is derived. An item's
+    open amount comes from its own postings and its own allocations, so asking
+    about fewer documents returns fewer rows of the same arithmetic.
+    """
     get_tenant(session, tenant_id)
     rows = []
     documents = list(
@@ -10161,6 +10204,7 @@ def _financial_open_items(
                 ),
             )
             .where(Document.id.in_(document_ids) if document_ids is not None else True)
+            .where(Document.party_id.in_(party_ids) if party_ids is not None else True)
             .order_by(Document.document_date, Document.number)
         )
     )
@@ -11489,7 +11533,7 @@ def _shopify_interpretation(
         currency=payload.get("currency", "EUR"),
         gross_amount=decimal(payload.get("total_price", 0)),
         status="recorded",
-        document_date=str(payload.get("created_at", ""))[:10],
+        document_date=_document_day(payload.get("created_at")),
         ordered_at=utc_datetime(payload.get("created_at")),
         requested_delivery_at=utc_datetime(promised_at),
         sales_channel="shopify",
@@ -12429,13 +12473,11 @@ def effective_payment_term(
 def invoice_due_date(document: Document, term: PaymentTerm | None) -> date | None:
     """When an invoice is due: its own date advanced by the payment term.
 
-    The invoice date is stored as a string, so the parse guard belongs here and
-    not to each caller. Without a readable date nothing is asserted; without any
-    applicable term the invoice is due on its own date.
+    An invoice carrying no date asserts nothing; without any applicable term the
+    invoice is due on its own date.
     """
-    try:
-        document_day = date.fromisoformat(document.document_date)
-    except (TypeError, ValueError):
+    document_day = document.document_date
+    if document_day is None:
         return None
     return document_day + timedelta(days=term.due_days) if term else document_day
 
@@ -12450,9 +12492,8 @@ def invoice_discount_date(document: Document, term: PaymentTerm | None) -> date 
     """
     if term is None or term.discount_percent is None or term.discount_days is None:
         return None
-    try:
-        document_day = date.fromisoformat(document.document_date)
-    except (TypeError, ValueError):
+    document_day = document.document_date
+    if document_day is None:
         return None
     return document_day + timedelta(days=term.discount_days)
 
@@ -12509,10 +12550,13 @@ def aging_register(
     *,
     as_of: datetime | None = None,
     document_ids: set[str] | None = None,
+    party_ids: set[str] | None = None,
 ) -> list[dict[str, Any]]:
     """Derive due dates and aging, optionally for a bounded set of documents."""
     return with_invoice_aging(
-        _financial_open_items(session, tenant_id, document_ids=document_ids),
+        _financial_open_items(
+            session, tenant_id, document_ids=document_ids, party_ids=party_ids
+        ),
         _payment_terms_by_id(session, tenant_id),
         as_of or now(),
     )

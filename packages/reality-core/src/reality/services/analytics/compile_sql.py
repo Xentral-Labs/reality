@@ -8,7 +8,7 @@ the returned statement count measures those reads instead of claiming one.
 from __future__ import annotations
 
 from dataclasses import dataclass
-from datetime import date, datetime
+from datetime import UTC, date, datetime
 from decimal import Decimal, InvalidOperation
 from typing import Any
 
@@ -37,6 +37,7 @@ from sqlalchemy.sql.elements import ColumnElement
 
 from reality.db.core import Base
 from reality.domain.reporting_graph import Node, Property, ReportingGraph
+from reality.services.analytics import derivations
 from reality.services.analytics.traversal import (
     ResolvedHop,
     ResolvedPath,
@@ -380,33 +381,42 @@ def _measure_expression(path: ResolvedPath, frame: Frame, name: str, tenant_id: 
     )
 
 
-def build(path: ResolvedPath, tenant_id: str, derived_relations=None) -> Select:
-    def node_table(node, alias):
-        table = _table(node.table or "")
-        if node.derivation:
-            from reality.services.analytics.derivations import REGISTRY
+def _derived_table(node, alias, tenant_id, derived_relations):
+    """The node's table joined to the relation its canonical service produced."""
+    from reality.services.analytics.derivations import REGISTRY
 
-            source = (derived_relations or {}).get(node.derivation)
-            if source is None:
-                raise TraversalRefused(
-                    "This position requires canonical service execution",
-                    "service_measure",
-                )
-            identity = REGISTRY[node.derivation].identity
-            return (
-                select(*table.c, *[col for col in source.c if col.name != identity])
-                .select_from(
-                    table.join(
-                        source,
-                        table.c[REGISTRY[node.derivation].anchor_key]
-                        == source.c[identity],
-                    )
-                )
-                .where(table.c.tenant_id == tenant_id)
-                .subquery(alias)
+    table = _table(node.table or "")
+    source = (derived_relations or {}).get(node.derivation)
+    if source is None:
+        raise TraversalRefused(
+            "This position requires canonical service execution",
+            "service_measure",
+        )
+    identity = REGISTRY[node.derivation].identity
+    return (
+        select(*table.c, *[col for col in source.c if col.name != identity])
+        .select_from(
+            table.join(
+                source,
+                table.c[REGISTRY[node.derivation].anchor_key] == source.c[identity],
             )
-        return table.alias(alias)
+        )
+        .where(table.c.tenant_id == tenant_id)
+        .subquery(alias)
+    )
 
+
+def _compose(
+    path: ResolvedPath, tenant_id: str, node_table, keep
+) -> tuple[Frame, Select]:
+    """The FROM, the joins, the existence tests and the filters, once.
+
+    Two statements are built from one path: the answer, and the identity query
+    that tells a canonical derivation which rows the question can still reach.
+    They must agree about what the path means, so they share this, and differ
+    only in what they select and in which conditions they can express — `keep`
+    answers the second question for a field the plain table does not carry.
+    """
     query = path.query
     frame = Frame(tables={}, nodes={}, conditions=[])
 
@@ -466,7 +476,7 @@ def build(path: ResolvedPath, tenant_id: str, derived_relations=None) -> Select:
         inner += [
             _condition(frame, c.field, c.op, c.value)
             for c in query.filter
-            if c.field.split(".")[0] == hop.alias
+            if c.field.split(".")[0] == hop.alias and keep(frame, c.field)
         ]
         frame.conditions.append(
             exists(select(1).select_from(table).where(and_(*inner)))
@@ -476,7 +486,7 @@ def build(path: ResolvedPath, tenant_id: str, derived_relations=None) -> Select:
     frame.conditions += [
         _condition(frame, c.field, c.op, c.value)
         for c in query.filter
-        if c.field.split(".")[0] not in narrowed
+        if c.field.split(".")[0] not in narrowed and keep(frame, c.field)
     ]
 
     # An existence test narrows without joining, so it cannot multiply a total.
@@ -494,16 +504,128 @@ def build(path: ResolvedPath, tenant_id: str, derived_relations=None) -> Select:
             conditions.append(_join_condition(hop, inner, hop.origin))
             conditions += _scope(node, table, tenant_id, path.graph)
         inner = Frame(tables=inner_tables, nodes=inner_nodes, conditions=[])
+        skipped = False
         for condition in test.conditions:
+            if not keep(inner, condition.field):
+                skipped = True
+                continue
             conditions.append(
                 _condition(inner, condition.field, condition.op, condition.value)
             )
+        if skipped:
+            # A condition this statement cannot express would make the test claim
+            # something it did not check. An identity query may reach too far and
+            # still be correct; it may never reach too little, so the whole test
+            # is dropped rather than weakened.
+            continue
         subquery = exists(
             select(1)
             .select_from(inner_tables[test.hops[0].alias])
             .where(and_(*conditions))
         )
         frame.conditions.append(~subquery if test.negated else subquery)
+
+    return frame, statement
+
+
+# A derivation asked for the whole company however narrow the question was: the
+# canonical service ran over every document or party, and the filter was applied
+# to what came back. Measured on a 10,233-document company, one currency cost the
+# same 780 ms as no filter at all. The identity query below is the filter arriving
+# before the work instead of after it.
+MAX_PUSHED_IDENTITIES = 20_000
+
+
+def reachable_identities(
+    session: Session, path: ResolvedPath, tenant_id: str, derivation: str
+) -> set[str] | None:
+    """Which anchor rows the question can still reach, or None for "no narrowing".
+
+    None is not "nothing"; it means the set was not worth sending, either because
+    nothing in the question narrows it or because it is too large to bind. The
+    derivation then reads the company as it did before, which is the old behaviour
+    and never a wrong answer.
+
+    Correctness rests on one property: every condition used here is one the answer
+    applies too, and all of them are conjunctive. A row this query excludes is a
+    row the final WHERE would have dropped anyway. Conditions the plain anchor
+    table cannot express — the derived amounts themselves — are left out, so the
+    set can only ever be too generous.
+    """
+    from reality.services.analytics.derivations import REGISTRY
+
+    aliases = [
+        alias
+        for alias, name in path.node_of.items()
+        if path.graph.nodes[name].derivation == derivation
+    ]
+    if len(aliases) != 1:
+        # Two aliases on one derivation would need the union of both reaches, and
+        # nothing asks that yet. Reading the company is the honest fallback.
+        return None
+    alias = aliases[0]
+    derived_columns = set(derivations.columns_for(derivation))
+
+    def keep(frame: Frame, field: str) -> bool:
+        """Whether the plain anchor tables can express this condition at all.
+
+        A derived amount exists only in the relation the canonical service has not
+        produced yet, and a declared property may name a column that lives there
+        rather than on the table, so the column is checked against the table itself
+        and not merely against the declaration.
+        """
+        field_alias, prop = field.split(".", 1)
+        node = frame.nodes.get(field_alias)
+        if node is None:
+            return False
+        if node.derivation and prop in derived_columns:
+            return False
+        column = node.column_of(prop) or (node.key if prop == node.key else "")
+        table = Base.metadata.tables.get(node.table or "")
+        return bool(column) and table is not None and column in table.c
+
+    def node_table(node, table_alias):
+        return _table(node.table or "").alias(table_alias)
+
+    try:
+        frame, statement = _compose(path, tenant_id, node_table, keep)
+    except TraversalRefused:
+        return None
+
+    # A hop on its own is not a reason to run this: joining a balance to its party
+    # reaches every party there was, and binding all of them back costs more than it
+    # saves. Something the asker actually narrowed has to survive.
+    narrows = any(
+        keep(frame, condition.field) for condition in path.query.filter
+    ) or any(
+        keep(frame, condition.field)
+        for test in path.exists
+        for condition in test.conditions
+    )
+    if not narrows:
+        return None
+
+    anchor_key = REGISTRY[derivation].anchor_key
+    identity = frame.tables[alias].c[anchor_key]
+    statement = (
+        statement.with_only_columns(distinct(identity))
+        .where(and_(*frame.conditions))
+        .limit(MAX_PUSHED_IDENTITIES + 1)
+    )
+    found = set(session.scalars(statement))
+    if len(found) > MAX_PUSHED_IDENTITIES:
+        return None
+    return found
+
+
+def build(path: ResolvedPath, tenant_id: str, derived_relations=None) -> Select:
+    def node_table(node, alias):
+        if node.derivation:
+            return _derived_table(node, alias, tenant_id, derived_relations)
+        return _table(node.table or "").alias(alias)
+
+    query = path.query
+    frame, statement = _compose(path, tenant_id, node_table, lambda frame, field: True)
 
     labels: list[Any] = []
     group_keys: list[Any] = []
@@ -613,10 +735,18 @@ def execute(session: Session, tenant_id: str, path: ResolvedPath) -> TraversalRe
         from reality.services.analytics.position_relations import snapshot_date
 
         snapshot = snapshot_date(path)
+        # Where one question does reach two positions resting on the same canonical
+        # read, the second should not pay for it again. No declared edge leads from
+        # one derived node to another, so only an existence test walked backwards
+        # gets there and the case is narrow — but the instant must be shared
+        # regardless, or two reads of "now" disagree about what is overdue.
+        shared: dict[Any, Any] = {"moment": datetime.now(UTC)}
         relations = {
             name: REGISTRY[name].read(
                 session,
                 tenant_id,
+                identities=reachable_identities(session, path, tenant_id, name),
+                cache=shared,
                 **({"snapshot": snapshot} if name.endswith(".history") else {}),
             )
             for name in sorted(used)
@@ -628,6 +758,17 @@ def execute(session: Session, tenant_id: str, path: ResolvedPath) -> TraversalRe
     finally:
         if derived:
             event.remove(connection, "before_cursor_execute", count_read)
+    budget = path.graph.limits.statements_per_derivation
+    if derived and reads > budget:
+        # Not a gate on the asker: the ceiling sits far above what any declared
+        # derivation costs today. It is the alarm that fires when one of them
+        # quietly becomes a read per row, which is how this class of work goes
+        # wrong, and which no test that only checks the answer would notice.
+        raise TraversalRefused(
+            f"this analysis read {reads} statements, over the declared ceiling of "
+            f"{budget} for one canonical derivation",
+            "statement_budget",
+        )
     return TraversalResult(
         matched_nothing=unknown,
         rows=tuple({key: _plain(value) for key, value in row.items()} for row in rows),

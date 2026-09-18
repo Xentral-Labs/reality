@@ -18,7 +18,13 @@ MAX_INVENTORY_COMMITMENTS = 20_000
 INVENTORY_COLUMNS = {key: Numeric() for key in ("physical", "reserved", "available")}
 
 
-def relation(session: Session, tenant_id: str) -> TableValuedAlias:
+def relation(
+    session: Session,
+    tenant_id: str,
+    *,
+    identities: set[str] | None = None,
+    cache: dict[Any, Any] | None = None,
+) -> TableValuedAlias:
     """Bound every family the canonical bulk derivation materializes in memory."""
     for model, maximum in (
         (Item, MAX_INVENTORY_ITEMS),
@@ -31,6 +37,8 @@ def relation(session: Session, tenant_id: str) -> TableValuedAlias:
             candidates = candidates.where(
                 Commitment.type == "supplier_delivery", Commitment.status == "open"
             )
+        if identities is not None and model is Item:
+            candidates = candidates.where(Item.id.in_(identities))
         count = session.scalar(
             select(func.count()).select_from(candidates.limit(maximum + 1).subquery())
         )
@@ -39,7 +47,13 @@ def relation(session: Session, tenant_id: str) -> TableValuedAlias:
                 "Current stock analysis exceeds its input limit; use the warehouse register.",
                 "inventory_limit",
             )
-    rows = core.inventory_rows(session, tenant_id)
+    key = ("warehouse.inventory", None if identities is None else frozenset(identities))
+    if cache is not None and key in cache:
+        rows = cache[key]
+    else:
+        rows = core.inventory_rows(session, tenant_id, item_ids=identities)
+        if cache is not None:
+            cache[key] = rows
     return recordset(
         [
             {

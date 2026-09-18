@@ -1,3 +1,4 @@
+from datetime import date
 from decimal import Decimal
 
 import pytest
@@ -63,13 +64,17 @@ def test_pricing_resolves_direct_group_default_and_quantity_tiers(session, busin
     group = create_party_group(
         session, business.tenant.id, "DEALER_GOLD", "Gold dealers"
     )
-    add_party_group_member(
-        session, business.tenant.id, group.id, business.customer.id
-    )
+    add_party_group_member(session, business.tenant.id, group.id, business.customer.id)
     assign_group_price_list(session, business.tenant.id, group.id, group_list.id)
     assert resolve_price(
-        session, business.tenant.id, business.customer.id, business.item.id,
-        12, "sales", "EUR", "pcs"
+        session,
+        business.tenant.id,
+        business.customer.id,
+        business.item.id,
+        12,
+        "sales",
+        "EUR",
+        "pcs",
     ).unit_price == Decimal("8.0000")
 
     direct = create_price_list(
@@ -80,8 +85,14 @@ def test_pricing_resolves_direct_group_default_and_quantity_tiers(session, busin
         session, business.tenant.id, business.customer.id, direct.id
     )
     selected = resolve_price(
-        session, business.tenant.id, business.customer.id, business.item.id,
-        12, "sales", "EUR", "pcs"
+        session,
+        business.tenant.id,
+        business.customer.id,
+        business.item.id,
+        12,
+        "sales",
+        "EUR",
+        "pcs",
     )
     assert selected.unit_price == Decimal("6.0000")
     assert selected.source == "party"
@@ -100,17 +111,34 @@ def test_sales_and_purchase_lists_do_not_mix(session, business):
     create_price_list_entry(
         session, business.tenant.id, purchase.id, business.item.id, 1, 4, "pcs"
     )
+    assert (
+        resolve_price(
+            session,
+            business.tenant.id,
+            business.supplier.id,
+            business.item.id,
+            1,
+            "sales",
+            "EUR",
+            "pcs",
+        )
+        is None
+    )
     assert resolve_price(
-        session, business.tenant.id, business.supplier.id, business.item.id,
-        1, "sales", "EUR", "pcs"
-    ) is None
-    assert resolve_price(
-        session, business.tenant.id, business.supplier.id, business.item.id,
-        1, "purchase", "EUR", "pcs"
+        session,
+        business.tenant.id,
+        business.supplier.id,
+        business.item.id,
+        1,
+        "purchase",
+        "EUR",
+        "pcs",
     ).unit_price == Decimal("4.0000")
 
 
-def test_document_line_retains_agreed_entry_when_current_price_changes(session, business):
+def test_document_line_retains_agreed_entry_when_current_price_changes(
+    session, business
+):
     original = create_price_list(
         session, business.tenant.id, "OLD", "Old", "sales", "EUR", is_default=True
     )
@@ -123,14 +151,16 @@ def test_document_line_retains_agreed_entry_when_current_price_changes(session, 
         "sales_order",
         "SO-HISTORICAL-1",
         business.customer.id,
-        [{
-            "item_id": business.item.id,
-            "quantity": "2",
-            "unit": "pcs",
-            "unit_price": "10",
-            "gross_amount": "20",
-            "price_list_entry_id": original_entry.id,
-        }],
+        [
+            {
+                "item_id": business.item.id,
+                "quantity": "2",
+                "unit": "pcs",
+                "unit_price": "10",
+                "gross_amount": "20",
+                "price_list_entry_id": original_entry.id,
+            }
+        ],
         "20",
         ordered_at="2026-01-01T10:00:00Z",
     )
@@ -172,13 +202,15 @@ def test_selected_entry_must_reproduce_document_context_atomically(session, busi
             "sales_order",
             "SO-BAD-PRICE",
             business.customer.id,
-            [{
-                "item_id": business.item.id,
-                "quantity": "1",
-                "unit_price": "11",
-                "gross_amount": "11",
-                "price_list_entry_id": entry.id,
-            }],
+            [
+                {
+                    "item_id": business.item.id,
+                    "quantity": "1",
+                    "unit_price": "11",
+                    "gross_amount": "11",
+                    "price_list_entry_id": entry.id,
+                }
+            ],
             "11",
         )
 
@@ -190,12 +222,14 @@ def test_manual_agreement_remains_valid_without_pricing_entry(session, business)
         "sales_order",
         "SO-MANUAL-PRICE",
         business.customer.id,
-        [{
-            "item_id": business.item.id,
-            "quantity": "1",
-            "unit_price": "9",
-            "gross_amount": "9",
-        }],
+        [
+            {
+                "item_id": business.item.id,
+                "quantity": "1",
+                "unit_price": "9",
+                "gross_amount": "9",
+            }
+        ],
         "9",
     )
     explanation = historical_pricing_explanation(
@@ -207,30 +241,58 @@ def test_manual_agreement_remains_valid_without_pricing_entry(session, business)
         historical_pricing_explanation(session, foreign.id, lines[0].id)
 
 
-def test_manual_price_without_entry_keeps_legacy_free_form_document_date(session, business):
+def test_a_period_label_is_not_a_document_date(session, business):
+    """The typed field holds a day or nothing; a label is refused (spec 234).
+
+    It used to be stored verbatim, which left every reader to work out on each
+    read whether the value was a date — and to reach a different answer from the
+    next reader. What a source actually sent is kept in its payload, which is
+    where losslessness belongs.
+    """
+    lines = [
+        {
+            "item_id": business.item.id,
+            "quantity": "1",
+            "unit_price": "9",
+            "gross_amount": "9",
+        }
+    ]
+    with pytest.raises(InvalidOperation, match="YYYY-MM-DD"):
+        create_manual_document_with_lines(
+            session,
+            business.tenant.id,
+            "note",
+            "MANUAL-DATE",
+            business.customer.id,
+            lines,
+            "9",
+            document_date="legacy-period-label",
+        )
+    session.rollback()
+
     document, _ = create_manual_document_with_lines(
         session,
         business.tenant.id,
         "note",
         "MANUAL-DATE",
         business.customer.id,
-        [{
-            "item_id": business.item.id,
-            "quantity": "1",
-            "unit_price": "9",
-            "gross_amount": "9",
-        }],
+        lines,
         "9",
-        document_date="legacy-period-label",
+        document_date="2026-07-01",
     )
-    assert document.document_date == "legacy-period-label"
+    assert document.document_date == date(2026, 7, 1)
 
 
 def test_presentation_correction_keeps_historical_entry_after_default_changes(
     session, business
 ):
     price_list = create_price_list(
-        session, business.tenant.id, "HISTORY", "History", "sales", "EUR",
+        session,
+        business.tenant.id,
+        "HISTORY",
+        "History",
+        "sales",
+        "EUR",
         is_default=True,
     )
     entry = create_price_list_entry(
@@ -242,18 +304,26 @@ def test_presentation_correction_keeps_historical_entry_after_default_changes(
         "sales_order",
         "SO-HISTORY-CORRECTION",
         business.customer.id,
-        [{
-            "item_id": business.item.id,
-            "quantity": "1",
-            "unit_price": "10",
-            "gross_amount": "10",
-            "price_list_entry_id": entry.id,
-        }],
+        [
+            {
+                "item_id": business.item.id,
+                "quantity": "1",
+                "unit_price": "10",
+                "gross_amount": "10",
+                "price_list_entry_id": entry.id,
+            }
+        ],
         "10",
     )
     update_price_list(
-        session, business.tenant.id, price_list.id, "HISTORY", "History",
-        "sales", "EUR", is_default=False,
+        session,
+        business.tenant.id,
+        price_list.id,
+        "HISTORY",
+        "History",
+        "sales",
+        "EUR",
+        is_default=False,
     )
     snapshot = manual_document_line_snapshot(session, business.tenant.id, document.id)
     corrected_line = {**snapshot["lines"][0], "description": "Corrected label"}

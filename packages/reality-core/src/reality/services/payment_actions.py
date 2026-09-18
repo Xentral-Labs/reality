@@ -21,6 +21,7 @@ from reality.db.core import (
     SettlementAllocation,
     SourceRecord,
 )
+from reality.domain.calendar import day_text
 from reality.services.core import (
     InvalidOperation,
     NotFound,
@@ -252,8 +253,7 @@ def _payment_evidence(
             return None
         entries.append(entry)
     if refund and (
-        document.document_date
-        != utc_datetime(entries[0].effective_at).date().isoformat()
+        document.document_date != utc_datetime(entries[0].effective_at).date()
         or utc_datetime(entries[0].effective_at)
         != utc_datetime(entries[1].effective_at)
         or utc_datetime(entries[0].effective_at)
@@ -442,7 +442,7 @@ def _customer_credit_items(
             "document_id": document.id,
             "number": document.number,
             "document_type": document.type,
-            "document_date": document.document_date,
+            "document_date": day_text(document.document_date),
             "party_id": document.party_id,
             "party": party or "—",
             "gross": document.gross_amount,

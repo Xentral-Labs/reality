@@ -516,7 +516,7 @@ def _credit_evidence(
     entries = objects[2 + line_count : 4 + line_count]
     if (
         note.number != creation["number"]
-        or note.document_date != effective.date().isoformat()
+        or note.document_date != effective.date()
         or note.type != "credit_note"
         or note.source_record_id != source.id
         or note.party_id != review["state"]["context"]["invoice"]["party_id"]

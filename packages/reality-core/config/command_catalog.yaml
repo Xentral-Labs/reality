@@ -7,6 +7,8 @@ principle: CLI, Web, API, and Chat are adapters. Shared application services are
 # meaning rather than merely repeating its data type.
 parameter_descriptions:
   effective_before: Exclusive UTC effective-time cutoff over retained postings, allocations and reversals; absent means current state. Does not reconstruct historical payment terms or knowledge time.
+  item_ids: Opaque article identities the caller can still reach, used to select which articles are answered for; absent means every article of the company. It narrows the rows returned and never how one is derived, because each article's position is worked out from its own movements, reservations and open promises.
+  party_ids: Opaque business-partner identities the caller can still reach, used to select which partners are answered for; absent means every partner of the company. A balance is summed within one partner and currency and never across them, so naming fewer returns fewer rows of identical arithmetic.
   principal: Trusted authenticated user context supplied by the server, never by model arguments.
   arguments: Strict versioned request object; nested fields are declared by the MCP input schema.
   type: Closed kind of the record where one is stated, such as a party's primary role or a location's type; the roles list, not this field, decides what a party may do.

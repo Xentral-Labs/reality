@@ -625,7 +625,7 @@ def validate_dataset(session: Session, dataset: DatasetHandle) -> dict[str, int]
             )
         )
     )
-    if dates != {dataset.profile.business_date.isoformat()}:
+    if dates != {dataset.profile.business_date}:
         raise ValueError("Benchmark orders must share one business date.")
     first_source = session.get(SourceRecord, _id("src", f"b{dataset.profile.seed}", 0))
     first_document = session.get(Document, _id("doc", f"b{dataset.profile.seed}", 0))

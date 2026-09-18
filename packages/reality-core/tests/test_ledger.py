@@ -55,9 +55,7 @@ def test_sales_invoice_partial_payment_and_credit_are_balanced(session, business
         document_date="2026-09-27",
     )
     credit_entries = post_sales_credit_note(session, business.tenant.id, credit.id)
-    allocate_credit_note(
-        session, business.tenant.id, credit.id, invoice.id, "100.00"
-    )
+    allocate_credit_note(session, business.tenant.id, credit.id, invoice.id, "100.00")
 
     for group in (invoice_entries, payment_entries, credit_entries):
         debits = sum(
@@ -323,15 +321,18 @@ def test_invoice_due_date_rule(session, business):
     )
     no_term = invoice_with_term(session, business, "RE-3", "2026-07-01")
     empty_date = invoice_with_term(session, business, "RE-4", "")
-    broken_date = invoice_with_term(session, business, "RE-5", "not-a-date")
 
     # The term advances the invoice date; without one the invoice date stands.
     assert invoice_due_date(with_term, net30) == date(2026, 7, 31)
     assert invoice_due_date(zero_term, immediate) == date(2026, 7, 1)
     assert invoice_due_date(no_term, None) == date(2026, 7, 1)
-    # An unreadable date asserts nothing rather than raising or defaulting.
+    # A document stating no date asserts nothing rather than defaulting (spec 234).
     assert invoice_due_date(empty_date, None) is None
-    assert invoice_due_date(broken_date, net30) is None
+    # A date the calendar does not have is refused where it is written, so no
+    # reader has to judge it again. The source payload keeps whatever was sent.
+    with pytest.raises(InvalidOperation, match="YYYY-MM-DD"):
+        invoice_with_term(session, business, "RE-5", "not-a-date")
+    session.rollback()
 
     assert invoice_days_overdue(date(2026, 7, 31), AGING_AS_OF) == 31
     # The day the term elapses is not yet late.

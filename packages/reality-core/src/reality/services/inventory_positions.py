@@ -39,11 +39,15 @@ def inventory_detail_rows(
     tenant_id: str,
     *,
     effective_before: datetime | None = None,
+    item_ids: set[str] | None = None,
 ) -> list[dict[str, Any]]:
     """Null tracking dimensions are exact unknown buckets, never wildcard matches.
 
     Historical reads expose physical quantities only: reservation status is mutable.
     Names and units are current master data, not reconstructed historical attributes.
+
+    `item_ids` selects which articles are answered for. Every bucket is keyed by
+    its own article, so naming fewer of them drops whole rows and alters none.
     """
 
     def records(model):
@@ -53,6 +57,8 @@ def inventory_detail_rows(
         }
 
     items = records(Item)
+    if item_ids is not None:
+        items = {key: value for key, value in items.items() if key in item_ids}
     dimensions = [
         ("location_id", records(Location), "name"),
         ("lot_id", records(Lot), "lot_number"),
@@ -98,6 +104,8 @@ def inventory_detail_rows(
     movements = select(Movement).where(Movement.tenant_id == tenant_id)
     if effective_before:
         movements = movements.where(Movement.occurred_at < effective_before)
+    if item_ids is not None:
+        movements = movements.where(Movement.item_id.in_(item_ids))
     for movement in session.scalars(movements):
         for location, amount in movement_legs(movement):
             bucket(
@@ -108,11 +116,12 @@ def inventory_detail_rows(
                 movement.handling_unit_id,
             )["physical"] += amount
     if effective_before is None:
-        for reservation in session.scalars(
-            select(Reservation).where(
-                Reservation.tenant_id == tenant_id, Reservation.status == "active"
-            )
-        ):
+        reservations = select(Reservation).where(
+            Reservation.tenant_id == tenant_id, Reservation.status == "active"
+        )
+        if item_ids is not None:
+            reservations = reservations.where(Reservation.item_id.in_(item_ids))
+        for reservation in session.scalars(reservations):
             bucket(
                 reservation.item_id,
                 reservation.location_id,

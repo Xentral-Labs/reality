@@ -408,7 +408,13 @@ def test_source_mapping_migration_preserves_ledger_and_history(
             tenant = core.create_tenant(db, "Source mapping migration").id
             customer = core.create_party(db, tenant, "Customer", "customer")
             doc = core.create_document(
-                db, tenant, "sales_invoice", "PRESERVED", customer.id, "119"
+                db,
+                tenant,
+                "sales_invoice",
+                "PRESERVED",
+                customer.id,
+                "119",
+                document_date="2026-01-05",
             )
             core.post_sales_invoice(db, tenant, doc.id)
             customer = SimpleNamespace(id=customer.id)

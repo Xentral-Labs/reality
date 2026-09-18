@@ -102,11 +102,17 @@ def snapshot_date(path: ResolvedPath) -> date | None:
     return next(iter(selected), None)
 
 
-def bounded(session: Session, tenant_id: str, models: tuple[type[Base], ...]) -> None:
+def bounded(
+    session: Session,
+    tenant_id: str,
+    models: tuple[type[Base], ...],
+    anchor: tuple[type[Base], set[str]] | None = None,
+) -> None:
     for model in models:
-        candidates = (
-            select(model.id).where(model.tenant_id == tenant_id).limit(MAX_ROWS + 1)
-        )
+        candidates = select(model.id).where(model.tenant_id == tenant_id)
+        if anchor and model is anchor[0]:
+            candidates = candidates.where(model.id.in_(anchor[1]))
+        candidates = candidates.limit(MAX_ROWS + 1)
         if (
             session.scalar(select(func.count()).select_from(candidates.subquery()))
             > MAX_ROWS
@@ -142,12 +148,21 @@ def relation(
     columns: dict[str, TypeEngine],
     side: str | None = None,
     snapshot: date | None = None,
+    identities: set[str] | None = None,
+    cache: dict[Any, Any] | None = None,
 ) -> TableValuedAlias:
     before = (
         datetime.combine(snapshot + timedelta(days=1), time(), UTC)
         if snapshot
         else None
     )
+    key = (name, snapshot, None if identities is None else frozenset(identities))
+    if cache is not None and key in cache:
+        # The bounds and the opening-coverage refusals below depend only on the
+        # tenant, the snapshot and these identities, so the stored answer is one
+        # that already passed them in this request. Re-running them would ask the
+        # same question of the same rows.
+        return recordset(cache[key], name=name, identity=identity, columns=columns)
     if side:
         bounded(
             session,
@@ -161,6 +176,7 @@ def relation(
                 OpeningScope,
                 PaymentTerm,
             ),
+            (Party, identities) if identities is not None else None,
         )
         if snapshot and session.scalar(
             select(OpeningScope.id)
@@ -184,7 +200,13 @@ def relation(
                 **{k: row[k] for k in ("currency", "open", "credit", "balance")},
             }
             for row in party_balance_rows(
-                session, tenant_id, side=side, effective_before=before
+                session,
+                tenant_id,
+                side=side,
+                as_of=cache.get("moment") if cache is not None else None,
+                effective_before=before,
+                party_ids=identities,
+                cache=cache,
             )
         ]
     else:
@@ -192,6 +214,7 @@ def relation(
             session,
             tenant_id,
             (Item, Movement, Reservation, Location, Lot, SerialUnit, HandlingUnit),
+            (Item, identities) if identities is not None else None,
         )
         if before and session.scalar(
             select(Movement.id)
@@ -205,7 +228,9 @@ def relation(
             raise TraversalRefused(
                 "The snapshot precedes retained opening stock.", "history_unavailable"
             )
-        rows = inventory_detail_rows(session, tenant_id, effective_before=before)
+        rows = inventory_detail_rows(
+            session, tenant_id, effective_before=before, item_ids=identities
+        )
     data = [
         {
             **{k: str(v) if isinstance(v, Decimal) else v for k, v in row.items()},
@@ -213,4 +238,6 @@ def relation(
         }
         for row in rows
     ]
+    if cache is not None:
+        cache[key] = data
     return recordset(data, name=name, identity=identity, columns=columns)

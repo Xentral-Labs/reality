@@ -128,6 +128,12 @@ def _check_edge(
     if column not in schema[table]:
         raise ReportingGraphError(f"edge {name}: column {via} does not exist")
 
+    if edge.recursive and edge.recursive.max_depth > graph.limits.max_recursive_depth:
+        raise ReportingGraphError(
+            f"edge {name}: a depth of {edge.recursive.max_depth} exceeds the model's "
+            f"max_recursive_depth of {graph.limits.max_recursive_depth}"
+        )
+
     source = graph.nodes[edge.from_]
     target = graph.nodes[edge.to]
     # The direction check that catches a reversed declaration, which is otherwise

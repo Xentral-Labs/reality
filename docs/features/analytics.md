@@ -303,3 +303,46 @@ Position readers enforce a 20,000-row cap per input family before materializatio
 exact Decimal arithmetic, tenant scoping, statement deadlines, currency/unit grouping
 and read counts. They never truncate totals to register pages. No persisted snapshots,
 schema changes, external writes or alternate chat calculation paths are introduced.
+
+## What a question costs (spec 234)
+
+A question is answered in one of two ways, and the difference is large. An ordinary
+path compiles to one SQL aggregate. A path reaching a derived position first runs a
+canonical service, ships its rows back into PostgreSQL as one bound JSON value and
+aggregates that. Measured on a 10,233-document company, the first shape costs single
+milliseconds and the second hundreds.
+
+Before the canonical service runs, the compiler works out which anchor rows the
+question can still reach and passes them in. The identity query is built from the same
+frame as the answer, so both agree about what the path means; conditions the plain
+anchor table cannot express — the derived amounts themselves — are left out, and any
+existence test that loses a condition is dropped whole. The set can therefore only be
+too generous, never too small, and every condition is conjunctive, so a row it excludes
+is one the final `WHERE` would have dropped. Where nothing narrows, or the set exceeds
+the binding limit, the derivation reads the company exactly as before: push-down is an
+improvement that can always be declined.
+
+The canonical readers take the narrowing as an optional identity filter — `party_ids`
+on the open-item, aging and credit reads, `item_ids` on both inventory reads. Each
+selects rows and changes no arithmetic, because every position is summed within one
+party, article or document and never across them.
+
+`document.document_date` is a calendar date. Every surface still sends and receives ISO
+text, with an absent day spelled `""` outside and NULL inside; `reality.domain.calendar`
+holds the two conversions. An unreadable day — an impossible calendar date, or free text
+such as a period label — is refused where it is written rather than stored and judged
+again by each reader. That distinction matters beyond cost: a document stating no date
+and a document stating a date that does not exist used to be the same row to every
+report. What a source sent is still kept verbatim in its payload, which is the record
+that is meant to be lossless. `document` is indexed by tenant, type and day,
+and `document_line` by tenant and document, because sixteen and eight analysis objects
+respectively share those tables and otherwise pay for each other's rows.
+
+`statements_per_traversal` states what an ordinary path costs; the new
+`statements_per_derivation` is the ceiling one canonical bulk read may reach before the
+traversal is refused as a regression rather than served slowly. It sits far above what
+any declared derivation costs today, and exists to catch a derivation that quietly
+becomes a read per row.
+
+Cost is pinned in tests by statement counts and derivation inputs, not by wall-clock,
+which varies by an order of magnitude with the company's history and the machine's load.

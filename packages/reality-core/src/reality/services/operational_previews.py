@@ -180,7 +180,7 @@ def _document(session: Session, tenant: str, record_id: str) -> list[Section]:
             _party_label(doc.type), _name(party), "party", party.id if party else None
         ),
         _row("Document", doc.number, "document", doc.id),
-        _row("Date", _day(doc.document_date)),
+        _row("Date", doc.document_date),
         _row("Gross amount", money(doc.gross_amount, doc.currency)),
     ]
     for label, value in [
