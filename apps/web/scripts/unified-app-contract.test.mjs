@@ -402,11 +402,13 @@ test("a register with no rows explains itself once, inside the shared table fram
 
 test("every page action reaches the header through the one shared bar", () => {
   const bar = source("../src/unified/PageActionBar.tsx");
-  // Every available page action is in one More actions disclosure; none: nothing.
+  // Default actions use More actions; explicitly inline chat actions stay visible.
   assert.match(bar, /const available = actions\.filter/);
   assert.match(bar, /if \(!available\.length\) return null;/);
   assert.match(bar, /<RegisterActions>\{available\.map\(button\)\}<\/RegisterActions>/);
-  assert.match(bar, /data-page-action="menu"/);
+  assert.match(bar, /data-page-action=\{presentation\}/);
+  assert.match(bar, /presentation = "menu"/);
+  assert.match(bar, /page-inline-actions/);
   assert.doesNotMatch(bar, /br-btn-primary/);
   const unified = new URL("../src/unified/", import.meta.url);
   for (const name of readdirSync(unified).filter((file) => file.endsWith(".tsx"))) {

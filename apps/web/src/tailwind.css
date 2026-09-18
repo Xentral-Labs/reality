@@ -4471,3 +4471,33 @@ textarea.br-control.rule-draft-editor {
   color: var(--text-muted);
   overflow-wrap: anywhere;
 }
+
+/* Direct primary actions in the standalone chat header. */
+.page-inline-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.shell-workspace-header .page-inline-actions .br-btn {
+  min-height: 32px;
+  padding: 5px 8px;
+  gap: 4px;
+  font-size: 12px;
+}
+@media (pointer: coarse) {
+  .shell-workspace-header .page-inline-actions .br-btn {
+    min-height: 44px;
+  }
+}
+@media (max-width: 360px) {
+  .shell-workspace-header .page-inline-actions {
+    gap: 4px;
+  }
+  .shell-workspace-header .page-inline-actions .br-btn {
+    padding-inline: 5px;
+    font-size: 11px;
+  }
+  .shell-workspace-header .page-inline-actions .br-btn > svg:first-child {
+    display: none;
+  }
+}

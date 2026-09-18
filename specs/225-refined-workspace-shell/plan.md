@@ -184,3 +184,26 @@ wrapper using position: relative; preserve its accessible text. The daily-work
 browser's German mobile overflow assertion is the failing regression proof.
 FR-019 status refinement uses the existing Lucide warning icon with unchanged
 readiness conditions, and a neutral loading icon before the first read completes.
+
+## FR-020 compact chat navigation plan
+Constitution I–VIII PASS: web-only presentation, no business reads, calculations,
+writes, schema, dependencies or persistence changes. Domain/services/tools unchanged.
+The owner approved direct History and New chat controls in the existing page header.
+
+PageActionBar.tsx gains explicit inline presentation, with optional icon and expanded
+state. Its default More actions menu stays unchanged for all other callers.
+ChatPage.tsx uses inline History then New chat, reusing session callbacks.
+CompanyChatPage.tsx replaces automatic desktop history expansion with a bounded,
+right-aligned overlay. Keep the portal mounted to preserve drafts. Escape/Close
+return focus; outside click and selection close the list. Confirmation dialogs take
+precedence. Compact CSS preserves title and visible labels at mobile widths; the
+plus is decorative and can be omitted at <=360px. Reuse existing translations.
+
+Tests first: shared-action contract and empty-chat-history-browser.mjs cover direct
+header reachability, no body toolbar, toggle/keyboard dismissal, draft/bounds
+preservation, session/archive actions, tenant changes, retry, long lists and mobile
+bounds in all supported languages. Run frontend contracts, build, formatting, i18n,
+spec-check, lint, docs-catalog-check and the fixture browser; inspect screenshots.
+Backend/migration checks are inapplicable to these web-only paths. Rollback: revert
+adapter changes; no stored preferences or business data change. Review finds no
+unresolved clarification or critical coverage/Constitution findings.

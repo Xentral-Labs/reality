@@ -241,3 +241,25 @@ FR-019 status refinement: the owner found the hollow availability circle ambiguo
 Use an exclamation warning icon for checked but unconfirmed readiness; retain the
 positive check icon and explicit status text. Loading retains a distinct neutral
 indicator. Color is supplementary, never the only status signal.
+
+## Compact standalone chat navigation
+FR-020: Standalone Chat exposes History (with a disclosure arrow) followed by New chat
+(with a plus icon) directly at the upper right of the existing page header. Both
+actions have visible labels; neither requires opening More actions. No extra row.
+At very narrow widths the decorative plus may be omitted to retain both labels and
+the page title. History is initially closed
+on every visit, including saved and archived-only conversations. Opening it displays
+a bounded, scrollable overlay aligned with the upper-right controls, without reserving a second sidebar
+or changing conversation width. Selecting a conversation, starting a new chat,
+clicking outside or pressing Escape closes it. Escape/Close restores trigger focus.
+Keep drafts on open/close, current selection, archive/restore/removal, tenant isolation,
+translations and existing service calls. Empty history has no trigger until available.
+This supersedes FR-014 automatic desktop expansion only; docked chat is unchanged.
+
+Acceptance (US1/US3): at desktop and mobile widths, saved history starts closed;
+both actions are directly visible in the existing header; opening and closing preserves the
+composer draft and conversation bounds. Long lists scroll within the overlay.
+Archived-only access and retry remain available; switching company closes history.
+Scope review: requested by the owner to relocate history elegantly and make New chat
+easier to find. The owner approved directly visible header actions after reviewing discoverability;
+no unresolved clarification, schema, service or model change.

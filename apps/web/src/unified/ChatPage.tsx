@@ -1,3 +1,4 @@
+import { PageActionBar } from "./PageActionBar";
 import {
   analysisContext,
   analysisMessage,
@@ -15,6 +16,7 @@ import {
   History,
   LoaderCircle,
   MoreHorizontal,
+  Plus,
   SquarePen,
   Sparkles,
   Trash2,
@@ -60,6 +62,7 @@ export function ChatPage({
   onSessionSelected,
   onHistoryAvailability,
   standaloneHistoryAvailable,
+  standaloneActions = false,
 }: {
   controlsTarget?: HTMLElement | null;
   newSessionTarget?: HTMLElement | null;
@@ -69,6 +72,7 @@ export function ChatPage({
   onSessionSelected?: () => void;
   onHistoryAvailability?: (available: boolean) => void;
   standaloneHistoryAvailable?: boolean;
+  standaloneActions?: boolean;
   selection: Selection;
   compact?: boolean;
   dock?: boolean;
@@ -429,6 +433,33 @@ export function ChatPage({
   const frame = dock ? dockFrame : compact ? compactFrame : fullFrame;
   return (
     <div className={frame}>
+      {standaloneActions && (
+        <PageActionBar
+          presentation="inline"
+          actions={[
+            standaloneHistoryAvailable && {
+              key: "chat-history",
+              label: "History",
+              expanded: !!sessionsOpen,
+              onClick: (element) => {
+                element.focus({ preventScroll: true });
+                toggleSessions?.();
+              },
+            },
+            {
+              key: "new-chat",
+              label: "New chat",
+              icon: <Plus size={15} />,
+              disabled: sending || startingChat,
+              onClick: () => {
+                setShowArchived(false);
+                onSessionSelected?.();
+                void startConversation();
+              },
+            },
+          ]}
+        />
+      )}
       {sessionsTarget &&
         createPortal(
           <div className="flex h-full min-h-0 flex-col" data-chat-session-list>
@@ -444,7 +475,7 @@ export function ChatPage({
                 {t("Back to chats")}
               </button>
             ) : null}
-            <div className="min-h-0 flex-1 space-y-1 overflow-y-auto overscroll-contain xl:space-y-0">
+            <div className="min-h-0 flex-1 space-y-1 overflow-y-auto overscroll-contain xl:space-y-0 [&:has(details[open])]:pb-12">
               {!data.sessions.length && (
                 <p className="text-sm text-fg-muted">
                   {t(showArchived ? "No archived chats" : "No conversations yet.")}
@@ -546,7 +577,7 @@ export function ChatPage({
         </div>
       )}
       {controlsTarget && createPortal(chatControls, controlsTarget)}
-      {dock && !controlsTarget && (
+      {dock && !controlsTarget && !standaloneActions && (
         <header className="shell-chat-header">
           <div className="flex min-w-0 items-center gap-2">
             <Sparkles size={16} className="shrink-0 text-fg-muted" />

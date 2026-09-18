@@ -86,3 +86,10 @@ tasks. No parallel agent work or new infrastructure is necessary.
 - [x] T045 Run frontend gates and apps/web/scripts/home-live-browser.mjs matrix, inspect desktop/mobile screenshots and record evidence in verification.md.
 
 T044 precedes T045; existing functional and browser checks cover preserved behavior.
+
+## Compact chat navigation (FR-020)
+- [x] T046 [US1/US3] Adapt apps/web/scripts/empty-chat-history-browser.mjs and shared action contracts before implementation for direct header actions, closed history, overlay geometry, focus/drafts, archived access, mobile and company changes.
+- [x] T047 [US1/US3] Update apps/web/src/unified/CompanyChatPage.tsx, ChatPage.tsx, PageActionBar.tsx and tailwind.css; preserve mounted history and shared session actions; update docs/WEB_SPEC.md and docs/features/chat_sessions.md.
+- [x] T048 Run frontend gates and fixture browser, inspect desktop/mobile screenshots, review diff and record verification.md evidence.
+
+T046 precedes T047; T048 follows. FR-020 is covered by all three tasks.
