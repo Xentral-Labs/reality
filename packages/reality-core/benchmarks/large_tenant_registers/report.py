@@ -40,6 +40,22 @@ class CaseResult(BaseModel):
     query_evidence: list[dict[str, Any]]
 
 
+class DerivationResult(BaseModel):
+    """What one canonical derivation cost at the recorded cardinality.
+
+    Separate from `CaseResult` because a register case measures a projection read
+    and this measures the derivation a projection is built from — the cost analysis
+    pays at request time, which no register case can observe.
+    """
+
+    name: str
+    duration_ms: float = Field(ge=0)
+    statements: int = Field(ge=0)
+    rows: int = Field(ge=0)
+    per_input_us: float | None = None
+    samples: int = Field(default=1, ge=1)
+
+
 class BenchmarkResult(BaseModel):
     model_config = ConfigDict(title="Large-Tenant Register Benchmark Result")
 
@@ -50,6 +66,7 @@ class BenchmarkResult(BaseModel):
     environment: EnvironmentResult
     dataset: DatasetResult
     cases: list[CaseResult] = Field(min_length=9)
+    derivations: list[DerivationResult] = []
     outcome: Literal["passed", "failed"]
     limitations: list[str] = Field(min_length=1)
 
@@ -59,6 +76,7 @@ class BenchmarkResult(BaseModel):
         dataset: DatasetHandle,
         observations: list[CaseObservation],
         *,
+        derivations: list[Any] | None = None,
         git_revision: str,
         schema_revision: str = "metadata-current",
         postgresql: str = "test PostgreSQL",
@@ -85,6 +103,10 @@ class BenchmarkResult(BaseModel):
                 cardinalities=dataset.cardinalities,
             ),
             cases=[CaseResult.model_validate(vars(row)) for row in observations],
+            derivations=[
+                DerivationResult.model_validate(vars(row))
+                for row in (derivations or [])
+            ],
             outcome="passed"
             if all(row.outcome == "passed" for row in observations)
             else "failed",
@@ -143,6 +165,26 @@ def render_markdown(result: BenchmarkResult) -> str:
         lines.append(
             f"| {case.register_family} | {case.outcome} | {case.duration_ms:.3f} | {rows} / {total} |"
         )
+    if result.derivations:
+        lines.extend(
+            [
+                "",
+                "## Canonical derivations",
+                "",
+                "What analysis pays at request time. A register case above reads a",
+                "projection; these are the derivations a projection is built from, and",
+                "they run per question.",
+                "",
+                "| Derivation | Duration (ms) | Statements | Rows | Per input (µs) |",
+                "|---|---:|---:|---:|---:|",
+            ]
+        )
+        for row in result.derivations:
+            per_input = "—" if row.per_input_us is None else f"{row.per_input_us:.0f}"
+            lines.append(
+                f"| `{row.name}` | {row.duration_ms:.1f} | {row.statements} "
+                f"| {row.rows} | {per_input} |"
+            )
     lines.extend(["", "## Limitations", ""])
     lines.extend(f"- {limitation}" for limitation in result.limitations)
     return "\n".join(lines) + "\n"

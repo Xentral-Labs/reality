@@ -6,7 +6,7 @@ from dataclasses import dataclass
 from datetime import UTC, date, datetime, timedelta
 from decimal import Decimal
 
-from sqlalchemy import case, func, insert, select
+from sqlalchemy import case, func, insert, select, text
 from sqlalchemy.orm import Session
 
 from reality.db.core import (
@@ -33,20 +33,48 @@ SENTINEL = "CONTROL-TENANT-SENTINEL"
 
 @dataclass(frozen=True)
 class DatasetProfile:
+    """How much of each family the fixture builds.
+
+    `financial_count` used to be 120 in both profiles, so the full profile built
+    10,000 orders and 120 finance documents. Every read that derives money was
+    therefore measured on a company a hundredth the size of the one it claimed to
+    describe, and the derivations that fold a company's finance history in memory
+    looked free. A company with 10,000 orders has roughly 10,000 invoices, so the
+    full profile now says so, and both counts can be overridden for a scale run.
+
+    `open_every` leaves every nth invoice without its payment. Without it every
+    document nets to zero and the open-item path, which is the expensive one,
+    returns nothing to work on.
+    """
+
     name: str
     seed: int
     business_date: date
     order_count: int
     item_count: int = 150
     financial_count: int = 120
+    open_every: int = 5
 
     @classmethod
     def reduced(cls, *, seed: int, business_date: date) -> DatasetProfile:
         return cls("reduced", seed, business_date, 120)
 
     @classmethod
-    def full(cls, *, seed: int, business_date: date) -> DatasetProfile:
-        return cls("full", seed, business_date, 10_000)
+    def full(
+        cls,
+        *,
+        seed: int,
+        business_date: date,
+        order_count: int = 10_000,
+        financial_count: int | None = None,
+    ) -> DatasetProfile:
+        return cls(
+            "full",
+            seed,
+            business_date,
+            order_count,
+            financial_count=order_count if financial_count is None else financial_count,
+        )
 
 
 @dataclass(frozen=True)
@@ -214,7 +242,9 @@ def _build_control_records(
                 id=_id("led", f"{tag}c", 0),
                 tenant_id=tenant_id,
                 posting_group_id="control-invoice",
-                account_id=resolve_account(session, tenant_id, "accounts_receivable").id,
+                account_id=resolve_account(
+                    session, tenant_id, "accounts_receivable"
+                ).id,
                 party_id=party_id,
                 amount=Decimal(10),
                 currency="EUR",
@@ -250,7 +280,9 @@ def _build_control_records(
                 id=_id("led", f"{tag}c", 3),
                 tenant_id=tenant_id,
                 posting_group_id="control-payment",
-                account_id=resolve_account(session, tenant_id, "accounts_receivable").id,
+                account_id=resolve_account(
+                    session, tenant_id, "accounts_receivable"
+                ).id,
                 party_id=party_id,
                 amount=Decimal(10),
                 currency="EUR",
@@ -284,7 +316,10 @@ def build_dataset(session: Session, profile: DatasetProfile) -> DatasetHandle:
     session.flush()
     _bootstrap_accounts(session, tenant_id)
     _bootstrap_accounts(session, control_tenant_id)
-    account_ids = {role: resolve_account(session, tenant_id, role).id for role in ("accounts_receivable", "cash", "sales_revenue")}
+    account_ids = {
+        role: resolve_account(session, tenant_id, role).id
+        for role in ("accounts_receivable", "cash", "sales_revenue")
+    }
     session.add_all(
         [
             Party(
@@ -491,25 +526,33 @@ def build_dataset(session: Session, profile: DatasetProfile) -> DatasetHandle:
                 "document_date": profile.business_date.isoformat(),
             }
         )
-        payment_docs.append(
-            {
-                "id": payment_id,
-                "tenant_id": tenant_id,
-                "type": "customer_payment",
-                "number": f"PAY-{index:05d}",
-                "party_id": customer_id,
-                "currency": "EUR",
-                "gross_amount": amount,
-                "status": "recorded",
-                "document_date": profile.business_date.isoformat(),
-            }
-        )
-        for suffix, account, side, document_id, group in (
+        # Every nth invoice keeps no payment, so the register has something open
+        # to derive rather than a company that nets to zero.
+        settled = profile.open_every <= 0 or index % profile.open_every != 0
+        if settled:
+            payment_docs.append(
+                {
+                    "id": payment_id,
+                    "tenant_id": tenant_id,
+                    "type": "customer_payment",
+                    "number": f"PAY-{index:05d}",
+                    "party_id": customer_id,
+                    "currency": "EUR",
+                    "gross_amount": amount,
+                    "status": "recorded",
+                    "document_date": profile.business_date.isoformat(),
+                }
+            )
+        postings = [
             (0, "accounts_receivable", "debit", invoice_id, f"invoice-{index}"),
             (1, "sales_revenue", "credit", invoice_id, f"invoice-{index}"),
-            (2, "cash", "debit", payment_id, f"payment-{index}"),
-            (3, "accounts_receivable", "credit", payment_id, f"payment-{index}"),
-        ):
+        ]
+        if settled:
+            postings += [
+                (2, "cash", "debit", payment_id, f"payment-{index}"),
+                (3, "accounts_receivable", "credit", payment_id, f"payment-{index}"),
+            ]
+        for suffix, account, side, document_id, group in postings:
             ledger.append(
                 {
                     "id": _id("led", tag, index * 4 + suffix),
@@ -542,6 +585,14 @@ def build_dataset(session: Session, profile: DatasetProfile) -> DatasetHandle:
     # authoritative projection builder as Product Web and is never hand-authored.
     refresh_operational_projections(session, tenant_id, force=True)
     refresh_operational_projections(session, control_tenant_id, force=True)
+
+    # A freshly built company has whatever statistics autovacuum happened to reach
+    # in time, so the planner's choices — and therefore the recorded durations —
+    # depended on a race with a background daemon. One measured derivation came out
+    # slower at half the data than at full, reproducibly, until this ran. A real
+    # database converges on analysed statistics; the fixture states them.
+    session.commit()
+    session.execute(text("ANALYZE"))
     return load_dataset(session, profile)
 
 

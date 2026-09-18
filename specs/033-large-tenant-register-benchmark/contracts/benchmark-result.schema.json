@@ -106,6 +106,56 @@
       "title": "DatasetResult",
       "type": "object"
     },
+    "DerivationResult": {
+      "description": "What one canonical derivation cost at the recorded cardinality.\n\nSeparate from `CaseResult` because a register case measures a projection read\nand this measures the derivation a projection is built from \u2014 the cost analysis\npays at request time, which no register case can observe.",
+      "properties": {
+        "name": {
+          "title": "Name",
+          "type": "string"
+        },
+        "duration_ms": {
+          "minimum": 0,
+          "title": "Duration Ms",
+          "type": "number"
+        },
+        "statements": {
+          "minimum": 0,
+          "title": "Statements",
+          "type": "integer"
+        },
+        "rows": {
+          "minimum": 0,
+          "title": "Rows",
+          "type": "integer"
+        },
+        "per_input_us": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Per Input Us"
+        },
+        "samples": {
+          "default": 1,
+          "minimum": 1,
+          "title": "Samples",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "name",
+        "duration_ms",
+        "statements",
+        "rows"
+      ],
+      "title": "DerivationResult",
+      "type": "object"
+    },
     "EnvironmentResult": {
       "properties": {
         "python": {
@@ -170,6 +220,14 @@
       },
       "minItems": 9,
       "title": "Cases",
+      "type": "array"
+    },
+    "derivations": {
+      "default": [],
+      "items": {
+        "$ref": "#/$defs/DerivationResult"
+      },
+      "title": "Derivations",
       "type": "array"
     },
     "outcome": {

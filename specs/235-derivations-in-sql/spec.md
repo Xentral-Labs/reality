@@ -13,7 +13,8 @@ objects and folds it there.
 Spec 181 records the owner's target: 10,000 companies at 100 to 1,000 orders a day each.
 At 1,000 orders a day a company reaches 20,000 finance documents in about twenty days, so
 the limit is not a ceiling somebody might one day touch — it is reached within a month of
-ordinary operation, and the analysis simply stops answering.
+ordinary operation, and the analysis simply stops answering. Measured at that cap, a
+single balance question costs four seconds, which is why the refusal is there.
 
 This specification does not raise the limit. It removes the reason for it: the canonical
 derivations become SQL that PostgreSQL folds, and the registers read the same SQL, so
@@ -102,10 +103,13 @@ which an earlier reading of this code blamed — costs **1 ms**, and a plain SQL
 over the same company also costs 1 ms. The round trip is not the problem and this feature
 does not touch it.
 
-**The cost is linear in the company.** 130 µs per finance document, stable across
-companies of 177, 688, 711 and 3,430 finance documents. Extrapolated: 2.6 s at the
-current 20,000 cap, 13 s at 100,000, 2.2 minutes at a million, 22 minutes at ten million —
-per question, uncached.
+**The cost is measured, not extrapolated.** The repository's own fixture, at the full
+profile with the finance dimension it was missing, best of three samples with statistics
+analysed: at 10,000 finance documents the derivations cost 1,151 to 1,647 ms, and at
+20,000 — the cap where analysis refuses today — 2,726 to 4,141 ms. Doubling the company
+doubles the cost and a little more. The statement counts do not move between the two, so
+this is volume carried into a process, not a query per row. The 30-second deadline
+arrives between 150,000 and 200,000 finance documents.
 
 **The formulation is proven, not proposed.** The same arithmetic written as one SQL
 statement — control entry by document type and side, signed balance per document and
