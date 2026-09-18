@@ -47,6 +47,15 @@ rows: 132 → 136 µs per finance document for open items, 165 → 207 µs for c
 balances. The statement counts do not move, so this is not a query issued per row; it is
 the volume each of those eight to thirteen statements carries into the process.
 
+The same fold builds the `open_financial_items` projection (`projections.py:182`), which
+the registers read and which spec 181 SC-002 gives 5 seconds after a business event. At
+20,000 finance documents the fold alone takes 4 to 5.7 seconds, so the budget is already
+gone at a fifth of the recorded target.
+
+`tracemalloc` on the same fixture: **104 MiB of Python heap for 20,000 documents, 5.3 KiB
+each.** A million documents would be near 5 GB in one process. That is the limit no
+amount of patience moves.
+
 **At the 20,000 cap where analysis refuses today, every finance derivation costs between
 2.7 and 4.1 seconds.** Extrapolating the measured rate, the 30-second statement deadline
 arrives somewhere between 150,000 and 200,000 finance documents — which spec 181's target
