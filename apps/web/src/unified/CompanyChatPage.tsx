@@ -7,9 +7,7 @@ import { ChatPage } from "./ChatPage";
 import { StorylineChatEvidence } from "./StorylineChatEvidence";
 
 const openSessionsClass =
-  "absolute inset-y-0 left-0 z-20 flex w-64 flex-col rounded-xl border border-border-default bg-surface p-3 shadow-xl xl:static xl:z-auto xl:w-72 xl:shrink-0 xl:border-0 xl:bg-transparent xl:shadow-none";
-const closedSessionsClass =
-  "hidden w-72 shrink-0 flex-col border-r border-border-default p-3 xl:flex";
+  "absolute right-3 top-0 z-20 flex max-h-[min(32rem,calc(100%-4rem))] w-80 max-w-[calc(100%-1.5rem)] flex-col rounded-xl border border-border-default bg-surface p-3 shadow-xl";
 
 export function CompanyChatPage({
   selection,
@@ -24,11 +22,9 @@ export function CompanyChatPage({
   const [sessionsOpen, setSessionsOpen] = useState(false);
   const [history, setHistory] = useState<{
     tenant: string;
-    initial: boolean;
     available: boolean;
   } | null>(null);
   const available = history?.tenant === selection.tenant && history.available;
-  const automaticHistory = available && history?.initial;
   const reportHistory = useCallback(
     (available: boolean) => {
       setHistory((previous) =>
@@ -36,7 +32,7 @@ export function CompanyChatPage({
           ? previous.available === available
             ? previous
             : { ...previous, available }
-          : { tenant: selection.tenant, initial: available, available },
+          : { tenant: selection.tenant, available },
       );
     },
     [selection.tenant],
@@ -44,57 +40,58 @@ export function CompanyChatPage({
   useEffect(() => {
     if (!available) setSessionsOpen(false);
   }, [available, selection.tenant]);
+  useEffect(() => setSessionsOpen(false), [selection.tenant]);
   const closeSessions = useRef<HTMLButtonElement>(null);
+  const historyPanel = useRef<HTMLElement>(null);
+  const historyTrigger = useRef<HTMLElement | null>(null);
+  const dismissHistory = () => {
+    setSessionsOpen(false);
+    historyTrigger.current?.focus({ preventScroll: true });
+  };
   useEffect(() => {
     if (!sessionsOpen) return;
-    const previous = document.activeElement;
+    historyTrigger.current =
+      document.activeElement instanceof HTMLElement ? document.activeElement : null;
     closeSessions.current?.focus({ preventScroll: true });
     const dismiss = (event: KeyboardEvent) => {
-      if (event.key === "Escape") setSessionsOpen(false);
+      if (event.key === "Escape" && !document.querySelector("dialog[open]")) dismissHistory();
     };
+    const outside = (event: PointerEvent) => {
+      if (document.querySelector("dialog[open]")) return;
+      if (
+        event.target instanceof Node &&
+        !historyPanel.current?.contains(event.target) &&
+        !historyTrigger.current?.contains(event.target)
+      )
+        setSessionsOpen(false);
+    };
+    document.addEventListener("pointerdown", outside);
     document.addEventListener("keydown", dismiss);
     return () => {
       document.removeEventListener("keydown", dismiss);
-      if (previous instanceof HTMLElement && previous.isConnected)
-        previous.focus({ preventScroll: true });
+      document.removeEventListener("pointerdown", outside);
     };
   }, [sessionsOpen]);
-  const [controlsTarget, setControlsTarget] = useState<HTMLDivElement | null>(null);
-  const [newSessionTarget, setNewSessionTarget] = useState<HTMLDivElement | null>(null);
   const isSandbox =
     company.company_kind === "sandbox" ||
     company.purpose === "playground" ||
     !!company.sandbox_run_id;
   return (
     <div className="relative flex h-full min-h-0 w-full" data-free-play-layout>
-      {sessionsOpen && (
-        <button
-          className="absolute inset-0 z-10 bg-black/20 xl:hidden"
-          aria-label={t("Close")}
-          onClick={() => setSessionsOpen(false)}
-        />
-      )}
       <aside
+        ref={historyPanel}
         data-free-play-sessions
         aria-label={t("Conversation history")}
-        className={
-          !available
-            ? "hidden"
-            : sessionsOpen
-              ? openSessionsClass
-              : automaticHistory
-                ? closedSessionsClass
-                : "hidden"
-        }
+        className={available && sessionsOpen ? openSessionsClass : "hidden"}
       >
         <div className="mb-3 flex items-center justify-between gap-2">
           <h2 className="text-sm font-semibold">{t("Conversation history")}</h2>
           <div className="flex items-center gap-1">
             <button
               ref={closeSessions}
-              className={`reality-chat-icon ${automaticHistory ? "free-play-mobile-control" : ""}`}
+              className="reality-chat-icon"
               aria-label={t("Close")}
-              onClick={() => setSessionsOpen(false)}
+              onClick={dismissHistory}
             >
               <X size={18} />
             </button>
@@ -109,27 +106,23 @@ export function CompanyChatPage({
         className="flex h-full min-h-0 min-w-0 w-full flex-col overflow-hidden bg-surface"
         data-independent-free-play
       >
-        <header
-          className="flex h-10 shrink-0 items-center justify-end gap-1 px-3"
-          data-free-play-toolbar
-        >
-          <div className="shrink-0" ref={setNewSessionTarget} />
-          <div className="shrink-0" ref={setControlsTarget} />
-        </header>
         {!isSandbox && (
           <p className="px-4 pt-3 text-sm text-fg-muted" data-free-play-real-data>
             {t("You are working with this company's real data. Changes require confirmation.")}
           </p>
         )}
         <ChatPage
-          controlsTarget={controlsTarget}
-          newSessionTarget={newSessionTarget}
+          standaloneActions
           sessionsTarget={sessionsTarget}
           sessionsOpen={sessionsOpen}
           onHistoryAvailability={reportHistory}
-          standaloneHistoryAvailable={automaticHistory ? undefined : available}
-          toggleSessions={() => setSessionsOpen((open) => !open)}
-          onSessionSelected={() => setSessionsOpen(false)}
+          standaloneHistoryAvailable={!!available}
+          toggleSessions={() => {
+            setSessionsOpen((open) => !open);
+          }}
+          onSessionSelected={() => {
+            setSessionsOpen(false);
+          }}
           key={selection.tenant}
           selection={{ ...selection, commitment: "" }}
           navigate={navigate}

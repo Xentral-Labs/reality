@@ -3251,3 +3251,16 @@ Graph colors, activity semantics and confirmation boundaries are unchanged.
 Readiness uses a warning triangle for checked but unconfirmed availability, a
 neutral loading indicator while checking, and a checkmark for ready. The explicit
 text remains; warning color follows the light/dark caution theme token.
+
+### Compact standalone chat navigation (spec225 FR-020)
+
+Standalone Chat directly exposes History with a disclosure arrow, followed by
+New chat with a plus icon, in the upper-right page header. Both retain visible labels
+on mobile. The shared action bar uses its inline presentation for Chat only; other
+pages keep More actions. There is no additional toolbar. History opens a
+bounded scrollable overlay aligned to the right, initially closed
+on every visit, including saved/archived history. It closes on selection, New chat,
+outside click or Escape; Close/Escape restore focus to History. The conversation never
+resizes and drafts survive disclosure changes. Empty history hides the trigger until
+available. Session/archive services, tenant isolation and docked chat are unchanged.
+This supersedes FR-014 automatic desktop history expansion.

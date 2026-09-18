@@ -18,7 +18,9 @@ Allow multiple persistent conversations per tenant.
 - With no saved session, the page shows only one centered first-use surface containing
   the introduction, contextual suggestions, and composer. It does not render an empty
   session list or conversation header.
-- With saved sessions, the session list and new-conversation control are visible.
+- Standalone Chat directly exposes History and New chat in the existing upper-right
+  page header, with visible labels and no additional toolbar or menu to open first. Saved/archived sessions open in a bounded overlay on request,
+  initially closed even on revisit (spec225 FR-020). New chat is always available.
 - The message area never needs a separate conversation header; the selected title stays
   in the session list.
 - message history

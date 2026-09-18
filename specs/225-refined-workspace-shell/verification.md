@@ -231,3 +231,27 @@ transitions to capture the settled appearance. Artifacts are in
 - Final gates after all changes: `gmake spec-check lint web-build docs-catalog-check`
   PASS (275 frontend tests, four-language audit, production build, formatting and
   generated catalog consistency). `git diff --check` PASS. T041–T045 complete.
+
+## FR-020 compact standalone chat navigation — 2026-09-18
+
+The owner approved History disclosure followed by New chat directly in the existing
+header. Pre-implementation analysis: FR-020 maps to T046–T048; 100% incremental
+coverage, no unresolved clarification or critical consistency/Constitution findings.
+The adapted browser fixture initially failed on the original icon-only action's
+missing label; the shared action contract failed before explicit inline presentation.
+
+Browser acceptance passes direct access without a menu, History second-click closing,
+Escape/Close focus, outside dismissal, drafts, stable conversation bounds,
+new/session/archive actions, archived-only access, read retry, tenant isolation and
+41-session scrolling. English/German/Dutch/Spanish headers fit at 320px, including
+the page title. Reviewed desktop, mobile and translated screenshots. At <=360px,
+labels use compact spacing and New chat omits its decorative plus; labels remain.
+
+`gmake web-build` passes all 275 contracts, formatting, four-language audit, TypeScript
+and Vite. Spec policy, Ruff and generated docs checks pass. Existing chunk-size
+advisory only. Backend/schema/migration checks are inapplicable to this web-only
+change. Final review preserves the default action menu on other pages, dock controls,
+tenant-scoped services, confirmation and source authority.
+
+PR verification repeated on origin/main at 5746db5e in the isolated PR worktree:
+full web-build, spec-check, lint, docs-catalog-check and the browser matrix all pass.

@@ -58,8 +58,10 @@ test("usage sits with the composer disclaimer instead of conversation navigation
   );
 });
 
-test("new chat remains an independent compact toolbar action", () => {
-  assert.match(companyChat, /newSessionTarget/u);
+test("standalone chat actions use the shared page menu", () => {
+  assert.match(companyChat, /standaloneActions/u);
+  assert.match(chat, /<PageActionBar/u);
+  assert.doesNotMatch(companyChat, /data-free-play-toolbar/u);
   assert.match(chat, /data-new-chat-action/u);
   assert.match(chat, /aria-label=\{t\("New chat"\)\}/u);
 });
