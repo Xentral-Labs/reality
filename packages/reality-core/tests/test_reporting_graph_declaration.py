@@ -15,6 +15,7 @@ import yaml
 from reality.config import config_text
 from reality.db.core import Base
 from reality.domain.reporting_graph import ReportingGraph
+from reality.domain.traversal import Traversal
 from reality.services.analytics.graph_model import (
     REPORTING_GRAPH_FILE,
     ReportingGraphError,
@@ -475,3 +476,39 @@ def test_without_a_company_the_catalog_lists_no_values():
     """The declaration alone cannot say what a column holds, and does not pretend to."""
     commitment = reporting_catalog("commitment")["nodes"][0]
     assert all("values" not in prop for prop in commitment["properties"])
+
+
+def test_every_template_resolves_against_the_model():
+    """A template that cannot be answered is worse than none, because somebody
+    will click it — so the model refuses to load rather than offer one."""
+    graph = reporting_graph()
+    assert graph.templates, "the point of the section is that it has some"
+    for name, template in graph.templates.items():
+        assert template.label.de, f"{name} has no German name"
+        assert template.about.de, f"{name} explains itself in English only"
+        if template.period:
+            alias = template.period.field.split(".")[0]
+            assert alias in Traversal.model_validate(template.question).aliases()
+
+
+@pytest.mark.parametrize(
+    "break_it, expected",
+    [
+        (lambda q: q.__setitem__("measures", ["profit"]), "no measure called"),
+        (lambda q: q.__setitem__("from", "unicorn"), "unicorn"),
+        (
+            lambda q: (
+                q["follow"].append({"edge": "contains", "as": "l", "from": "o"}),
+                q["group_by"].append({"field": "l.sku"}),
+            ),
+            "multiply",
+        ),
+    ],
+)
+def test_a_template_that_would_be_refused_stops_the_model_loading(break_it, expected):
+    """Each of these is a question somebody would have clicked and been refused."""
+    payload = copy.deepcopy(yaml.safe_load(config_text(REPORTING_GRAPH_FILE)))
+    break_it(payload["templates"]["order_intake_by_customer"]["question"])
+    with pytest.raises(ReportingGraphError) as error:
+        parse_reporting_graph(payload)
+    assert expected in str(error.value)

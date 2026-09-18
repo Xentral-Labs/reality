@@ -17266,3 +17266,30 @@ Object.assign(dictionaries.es, {
 Object.assign(dictionaries.de, { "(empty)": "(leer)" });
 Object.assign(dictionaries.nl, { "(empty)": "(leeg)" });
 Object.assign(dictionaries.es, { "(empty)": "(vacío)" });
+
+// Templates. "Übernehmen" is the ERP word for making something of somebody
+// else's your own, which is exactly what the button does.
+Object.assign(dictionaries.de, {
+  Templates: "Vorlagen",
+  "Start from a template": "Mit einer Vorlage beginnen",
+  "Each one is a question, not an answer: taking it over runs it against your records and gives you your own copy to change.":
+    "Jede ist eine Frage, keine Antwort: beim Übernehmen läuft sie gegen deine Datensätze und du bekommst deine eigene Fassung zum Ändern.",
+  "Take this over": "Übernehmen",
+  "Comes with a period": "Mit Zeitraum",
+});
+Object.assign(dictionaries.nl, {
+  Templates: "Sjablonen",
+  "Start from a template": "Met een sjabloon beginnen",
+  "Each one is a question, not an answer: taking it over runs it against your records and gives you your own copy to change.":
+    "Elk is een vraag, geen antwoord: bij overnemen loopt hij tegen je records en krijg je je eigen versie om aan te passen.",
+  "Take this over": "Overnemen",
+  "Comes with a period": "Met periode",
+});
+Object.assign(dictionaries.es, {
+  Templates: "Plantillas",
+  "Start from a template": "Empezar con una plantilla",
+  "Each one is a question, not an answer: taking it over runs it against your records and gives you your own copy to change.":
+    "Cada una es una pregunta, no una respuesta: al adoptarla se ejecuta contra tus registros y obtienes tu propia copia para cambiar.",
+  "Take this over": "Adoptar",
+  "Comes with a period": "Con periodo",
+});

@@ -306,6 +306,14 @@ late corrections and reversals; unsupported temporal coverage.
   them; and when an answer is empty, every equality filter whose value appears nowhere is
   named. Nothing may present an empty result as a fact about the business when the
   question itself did not match the data.
+- **FR-022**: Declare report templates beside the model they read, and let one be taken
+  over as a private report in a single action. A template names nodes, edges and measures,
+  so one that cannot be resolved stops the model from loading rather than waiting to be
+  clicked and refused. It carries no absolute date: where it means a period it names the
+  window, and whoever adopts it resolves that against their own calendar, because a
+  template that hard-codes a month is wrong the following month. Taking one over creates
+  an ordinary private report — same ownership, revision and retry — which the reader can
+  then change.
 - **FR-016**: Retire the configured generation in the same change that makes the graph the
   only analytics surface. A report saved under the retired generation carries no kind and
   no model version: it is neither read nor written by any surface, and no translation is
@@ -408,6 +416,7 @@ owners.
 | FR-019 | US1.1–2 | T009 branching: offered from every reached record, origin recorded only when it differs, reopens as the same branch |
 | FR-020 | US2.2 | T009 required axes arrive with reach, not as a second refusal |
 | FR-021 | US1.4, US4.3 | T003/T005 observed vocabularies and the empty-answer distinction, both ways |
+| FR-022 | US1.1, US3.1 | T003/T009 templates: every one resolves at load and runs in one statement, adoption creates a private report |
 | DR-001 | US4.3 | T005/T012 canonical evidence |
 | DR-002 | US1.3, US2.2 | T003/T005 amount and grain correctness |
 | DR-003 | US5, non-goals | T002/T014/T016 architecture review |

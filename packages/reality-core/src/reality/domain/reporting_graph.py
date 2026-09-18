@@ -361,6 +361,37 @@ class Limits(GraphModel):
     statements_per_traversal: Literal[1] = 1
 
 
+Window = Literal["this_month", "last_month", "this_year", "last_year", "last_30_days"]
+
+
+class TemplatePeriod(GraphModel):
+    """A period a template means but cannot yet hold.
+
+    A stored question carries absolute instants, because that is the only form
+    that keeps meaning once it is saved. A template is not a question yet — it is
+    the shape of one — so it names the window and the field, and whoever adopts
+    it resolves that against their own calendar. Baking September 2026 into a
+    template would make it wrong the following month.
+    """
+
+    field: str
+    window: Window
+
+
+class ReportTemplate(GraphModel):
+    """A question worth starting from, declared beside the model it reads.
+
+    It lives here rather than in a table because it names nodes, edges and
+    measures: a template that names something the model does not have should
+    fail when the model loads, not when somebody clicks it.
+    """
+
+    label: Label
+    about: Label
+    question: dict[str, Any]
+    period: TemplatePeriod | None = None
+
+
 class ReportingGraph(GraphModel):
     """The whole declaration, cross-checked so a dangling name cannot be published."""
 
@@ -371,6 +402,7 @@ class ReportingGraph(GraphModel):
     nodes: dict[str, Node]
     edges: dict[str, Edge]
     measures: dict[str, Measure]
+    templates: dict[str, ReportTemplate] = Field(default_factory=dict)
     limits: Limits = Field(default_factory=Limits)
 
     @model_validator(mode="after")

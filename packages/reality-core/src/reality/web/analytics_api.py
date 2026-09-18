@@ -79,8 +79,19 @@ def get_graph_catalog(
     language: str = "en",
 ):
     return read(
-        session, tenant_id, "graph.catalog", {"node": node, "language": language}, request
+        session,
+        tenant_id,
+        "graph.catalog",
+        {"node": node, "language": language},
+        request,
     )
+
+
+@router.get("/graph/templates")
+def get_graph_templates(
+    tenant_id: str, request: Request, session: DatabaseSession, language: str = "en"
+):
+    return read(session, tenant_id, "graph.templates", {"language": language}, request)
 
 
 @router.post("/graph/ask")
@@ -119,7 +130,9 @@ def get_graph_reports(
 def get_graph_report(
     report_id: str, tenant_id: str, request: Request, session: DatabaseSession
 ):
-    return read(session, tenant_id, "graph.reports.get", {"report_id": report_id}, request)
+    return read(
+        session, tenant_id, "graph.reports.get", {"report_id": report_id}, request
+    )
 
 
 def _change(session, tenant_id, request, body, apply):

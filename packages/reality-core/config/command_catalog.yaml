@@ -1114,6 +1114,44 @@ commands:
     effect: Appends a reasoned correction or retraction without deleting the original event.
 
 capability_guidance:
+  graph_templates:
+    kind: read
+    application_tool: graph.templates
+    purpose: List the questions worth starting from, each already resolved against the declared model.
+    use_when:
+    - Offer somebody a starting point instead of an empty builder, or find the shape of a common report.
+    do_not_use_when:
+    - Treat a template as an answer; it is a question that still has to be executed.
+    required_context:
+    - Authorized tenant.
+    data_basis:
+    - analytics_report
+    limitations:
+    - A template carries no absolute date. Where it names a period window, whoever adopts it resolves that
+      window against their own calendar, because only the caller knows what "this month" is.
+    freshness: Declared beside the model and loaded with it; every template resolves or the model does not load.
+    empty_result: No template is declared, not proof that no report is possible.
+    refusal_behavior: A template that cannot be answered stops the model from loading, so none is ever offered.
+    confirmation: none
+    side_effects: none
+    verification:
+      role: independent
+      proves:
+      - Which report shapes the model can express today.
+      does_not_prove:
+      - That a company has records for any of them.
+    unknown_when:
+    - A report is common in a business but has no template because the model cannot express it yet.
+    next_steps:
+    - Execute the question with graph_ask, or save it with graph_report_change_propose.
+    examples:
+      use:
+      - scenario: Show somebody what Analytics can answer before they build anything.
+        reason: A starting point that is known to run beats an empty form.
+      do_not_use:
+      - scenario: Report the open delivery backlog from a template without executing it.
+        reason: A template holds the question; the numbers come from running it.
+
   graph_catalog:
     kind: read
     application_tool: graph.catalog

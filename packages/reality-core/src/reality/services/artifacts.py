@@ -49,7 +49,9 @@ def _s3_client():
 
 def artifact_path(artifact: SourceArtifact) -> Path:
     if storage_backend() != "file":
-        raise InvalidOperation("S3 artifacts must be accessed through materialize_artifact().")
+        raise InvalidOperation(
+            "S3 artifacts must be accessed through materialize_artifact()."
+        )
     root = artifact_root().resolve()
     path = (root / artifact.storage_key).resolve()
     if root not in path.parents:

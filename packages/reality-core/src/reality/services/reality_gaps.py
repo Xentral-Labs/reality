@@ -224,7 +224,7 @@ def capture_gap(
     origin_reference: str | None = None,
     created_by_user_id: str | None = None,
 ) -> RealityGap:
-    require_business_operation(session, tenant_id, 'capture_gap')
+    require_business_operation(session, tenant_id, "capture_gap")
     InvalidOperation, _ = _errors()
     _tenant(session, tenant_id)
     question = question.strip()
@@ -284,7 +284,7 @@ def add_gap_entry(
     actor_type: str = "human",
     actor_user_id: str | None = None,
 ) -> RealityGapEntry:
-    require_business_operation(session, tenant_id, 'add_gap_entry')
+    require_business_operation(session, tenant_id, "add_gap_entry")
     gap = _gap(session, tenant_id, gap_id)
     _advance(gap, expected_revision)
     if gap.status == "open":
@@ -304,7 +304,7 @@ def add_gap_entry(
 def recommend_gap(
     session: Session, tenant_id: str, gap_id: str, *, expected_revision: int
 ) -> RealityGapEntry:
-    require_business_operation(session, tenant_id, 'recommend_gap')
+    require_business_operation(session, tenant_id, "recommend_gap")
     gap = _gap(session, tenant_id, gap_id)
     entries = list(
         session.scalars(
@@ -349,7 +349,7 @@ def decide_gap(
     expected_revision: int,
     actor_user_id: str | None,
 ) -> RealityGap:
-    require_business_operation(session, tenant_id, 'decide_gap')
+    require_business_operation(session, tenant_id, "decide_gap")
     InvalidOperation, _ = _errors()
     if destination not in DESTINATIONS or not rationale.strip():
         raise InvalidOperation("A supported destination and rationale are required.")
@@ -388,13 +388,17 @@ def _validate_rule_draft(draft: dict[str, Any]) -> dict[str, Any]:
     output_path = draft.get("output_path", draft.get("value_path"))
     if output_mode not in {"source_path", "constant"}:
         raise InvalidOperation("Fact output mode is not supported.")
-    if output_mode == "source_path" and not PATH_PATTERN.fullmatch(str(output_path or "")):
+    if output_mode == "source_path" and not PATH_PATTERN.fullmatch(
+        str(output_path or "")
+    ):
         raise InvalidOperation("Source output path is not supported.")
     draft["output_mode"] = output_mode
     draft["output_path"] = str(output_path) if output_path else None
     draft["value_path"] = str(output_path or "")
     draft["output_scope"] = str(
-        draft.get("output_scope", "element" if draft.get("iteration_path") else "source")
+        draft.get(
+            "output_scope", "element" if draft.get("iteration_path") else "source"
+        )
     )
     if draft["output_scope"] not in {"source", "element"}:
         raise InvalidOperation("Fact output scope is not supported.")
@@ -450,9 +454,7 @@ def _validate_rule_draft(draft: dict[str, Any]) -> dict[str, Any]:
         path = str(condition.get("path", ""))
         operator = str(condition.get("operator", ""))
         value_type = str(condition.get("value_type", "string"))
-        scope = str(
-            condition.get("scope", "element" if iteration_path else "source")
-        )
+        scope = str(condition.get("scope", "element" if iteration_path else "source"))
         if (
             not PATH_PATTERN.fullmatch(path)
             or operator not in CONDITION_OPERATORS
@@ -526,7 +528,7 @@ def prepare_implementation(
     expected_revision: int,
     actor_user_id: str | None = None,
 ) -> InterpretationRule | RealityGapEntry:
-    require_business_operation(session, tenant_id, 'prepare_implementation')
+    require_business_operation(session, tenant_id, "prepare_implementation")
     gap = _gap(session, tenant_id, gap_id)
     if gap.destination != "fact":
         _advance(gap, expected_revision)
@@ -773,7 +775,9 @@ def _condition_group_applies(
     return all(results) if mode == "all" else any(results)
 
 
-def _observed_at(rule: InterpretationRule, payload: dict[str, Any], source: SourceRecord) -> datetime:
+def _observed_at(
+    rule: InterpretationRule, payload: dict[str, Any], source: SourceRecord
+) -> datetime:
     InvalidOperation, _ = _errors()
     if rule.observed_at_mode == "source_received_at":
         return source.received_at
@@ -787,7 +791,9 @@ def _observed_at(rule: InterpretationRule, payload: dict[str, Any], source: Sour
         raise InvalidOperation("Observation time is missing or invalid.") from error
 
 
-def _contexts(rule: InterpretationRule, payload: dict[str, Any]) -> list[tuple[str, Any | None]]:
+def _contexts(
+    rule: InterpretationRule, payload: dict[str, Any]
+) -> list[tuple[str, Any | None]]:
     InvalidOperation, _ = _errors()
     if not rule.iteration_path:
         return [("", None)]
@@ -935,7 +941,10 @@ def _evaluate(
     session: Session, rule: InterpretationRule, source: SourceRecord, *, persist: bool
 ) -> list[dict[str, Any]]:
     InvalidOperation, _ = _errors()
-    if source.source_system != rule.source_system or source.source_type != rule.source_type:
+    if (
+        source.source_system != rule.source_system
+        or source.source_type != rule.source_type
+    ):
         return [{"status": "not_matched", "element_key": ""}]
     try:
         payload = json.loads(source.payload)
@@ -987,9 +996,7 @@ def simulate_rule(
         "sources_considered": len(sources),
         "matches": sum(row["status"] == "matched" for row in results),
         "expected_facts": sum(row["status"] == "matched" for row in results),
-        "not_applicable": sum(
-            row["status"] == "not_applicable" for row in results
-        ),
+        "not_applicable": sum(row["status"] == "not_applicable" for row in results),
         "invalid_values": sum(row["status"] == "invalid_value" for row in results),
         "ambiguous_subjects": sum(
             row["status"] == "ambiguous_subject" for row in results
@@ -1027,12 +1034,20 @@ def _decode_replay_cursor(
         if received_at.tzinfo is None:
             raise ValueError
         return received_at, str(payload["source_record_id"])
-    except (ValueError, KeyError, TypeError, json.JSONDecodeError, Base64DecodeError) as error:
-        raise InvalidOperation("Replay cursor does not match this rule and scope.") from error
+    except (
+        ValueError,
+        KeyError,
+        TypeError,
+        json.JSONDecodeError,
+        Base64DecodeError,
+    ) as error:
+        raise InvalidOperation(
+            "Replay cursor does not match this rule and scope."
+        ) from error
 
 
 def activate_rule(session: Session, tenant_id: str, rule_id: str) -> InterpretationRule:
-    require_business_operation(session, tenant_id, 'activate_rule')
+    require_business_operation(session, tenant_id, "activate_rule")
     rule = _rule(session, tenant_id, rule_id)
     for active in session.scalars(
         select(InterpretationRule).where(
@@ -1060,7 +1075,7 @@ def activate_rule(session: Session, tenant_id: str, rule_id: str) -> Interpretat
 
 
 def disable_rule(session: Session, tenant_id: str, rule_id: str) -> InterpretationRule:
-    require_business_operation(session, tenant_id, 'disable_rule')
+    require_business_operation(session, tenant_id, "disable_rule")
     rule = _rule(session, tenant_id, rule_id)
     rule.status = "disabled"
     rule.disabled_at = now()
@@ -1077,7 +1092,7 @@ def replay_rule(
     limit: int = 500,
     cursor: str | None = None,
 ) -> dict[str, Any]:
-    require_business_operation(session, tenant_id, 'replay_rule')
+    require_business_operation(session, tenant_id, "replay_rule")
     rule = _rule(session, tenant_id, rule_id)
     query = select(SourceRecord).where(
         SourceRecord.tenant_id == tenant_id,
@@ -1208,7 +1223,7 @@ def replay_rule(
 def evaluate_active_rules(
     session: Session, tenant_id: str, source_record_id: str
 ) -> None:
-    require_business_operation(session, tenant_id, 'evaluate_active_rules')
+    require_business_operation(session, tenant_id, "evaluate_active_rules")
     source = session.scalar(
         select(SourceRecord).where(
             SourceRecord.tenant_id == tenant_id, SourceRecord.id == source_record_id

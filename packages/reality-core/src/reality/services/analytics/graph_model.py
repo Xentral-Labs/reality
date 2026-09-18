@@ -226,6 +226,43 @@ def _check_deductions(graph: ReportingGraph) -> None:
             )
 
 
+def _check_templates(graph: ReportingGraph) -> None:
+    """Every template must resolve against the model that is loading.
+
+    This is the whole reason a template lives beside the declaration: it names
+    nodes, edges and measures, and naming one the model does not have should
+    stop the model from loading rather than wait for somebody to click it. The
+    check runs the same resolution a real question runs, short of the database.
+    """
+    from reality.domain.traversal import Traversal
+    from reality.services.analytics.traversal import TraversalRefused, plan
+
+    for name, template in graph.templates.items():
+        try:
+            query = Traversal.model_validate(template.question)
+        except ValueError as error:
+            raise ReportingGraphError(f"template {name}: {error}") from error
+        try:
+            plan(query, graph)
+        except TraversalRefused as error:
+            raise ReportingGraphError(
+                f"template {name}: {error}. A template that cannot be answered "
+                "is worse than none, because somebody will click it."
+            ) from error
+        if template.period and template.period.field.count(".") != 1:
+            raise ReportingGraphError(
+                f"template {name}: a period names alias.property, "
+                f"got {template.period.field!r}"
+            )
+        if template.period:
+            alias = template.period.field.split(".")[0]
+            if alias not in query.aliases():
+                raise ReportingGraphError(
+                    f"template {name}: the period is on {alias!r}, which the "
+                    "question never reaches"
+                )
+
+
 def validate_against_schema(graph: ReportingGraph) -> ReportingGraph:
     """Hold every declared name against the live schema.
 
@@ -240,6 +277,7 @@ def validate_against_schema(graph: ReportingGraph) -> ReportingGraph:
         _check_edge(name, edge, graph, schema, fks)
     _check_measures(graph, schema)
     _check_deductions(graph)
+    _check_templates(graph)
     return graph
 
 
@@ -256,6 +294,7 @@ def parse_reporting_graph(payload: dict[str, Any] | None = None) -> ReportingGra
         "nodes",
         "edges",
         "measures",
+        "templates",
         "limits",
     }
     payload = {k: v for k, v in payload.items() if k in known}
@@ -344,6 +383,30 @@ def _observed(session, tenant_id: str, graph, names: list[str]) -> dict[str, lis
                 str(value) for value in values if value is not None
             ]
     return found
+
+
+def reporting_templates(language: str = "en") -> list[dict[str, Any]]:
+    """The questions worth starting from, in the reader's words.
+
+    A period travels as the window it means, not as two instants: whoever adopts
+    the template resolves it against their own calendar, which is the only place
+    that knows what "this month" is.
+    """
+    graph = reporting_graph()
+    return [
+        {
+            "key": key,
+            "label": template.label.pick(language),
+            "about": template.about.pick(language),
+            "question": template.question,
+            "period": (
+                {"field": template.period.field, "window": template.period.window}
+                if template.period
+                else None
+            ),
+        }
+        for key, template in graph.templates.items()
+    ]
 
 
 def reporting_catalog(

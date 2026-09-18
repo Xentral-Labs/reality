@@ -238,6 +238,7 @@ def component_context(
             current=_current(session, tenant_id, component),
         )
         from reality.services.finance.source_mappings import resolve_source_codes
+
         item["source_resolution"] = resolve_source_codes(session, tenant_id, item)
         items.append(item)
     return {

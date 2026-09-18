@@ -101,10 +101,14 @@ class ProcessLoop:
                 # needs every tenant. A worker only claims runs that already exist
                 # (feature 201).
                 discover = (
-                    jobs.tenant_catalog if self.role == "scheduler" else jobs.due_tenants
+                    jobs.tenant_catalog
+                    if self.role == "scheduler"
+                    else jobs.due_tenants
                 )
                 tenants = (
-                    [self.tenant_id] if self.tenant_id else discover(session, self.cursor)
+                    [self.tenant_id]
+                    if self.tenant_id
+                    else discover(session, self.cursor)
                 )
             if not tenants:
                 self.cursor = ""

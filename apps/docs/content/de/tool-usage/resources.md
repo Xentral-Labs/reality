@@ -38,7 +38,8 @@ privaten gespeicherten Einstellungen.
 - [Private Graph-Auswertung ändern](./commands#command-change_graph_report) (`change_graph_report`)
 
 **Darunter:** Tabellen: `analytics_report` · Agenten-Tools ohne Geschäftsaktion:
-[`graph_catalog`](./commands#tool-graph_catalog), [`graph_ask`](./commands#tool-graph_ask),
+[`graph_catalog`](./commands#tool-graph_catalog),
+[`graph_templates`](./commands#tool-graph_templates), [`graph_ask`](./commands#tool-graph_ask),
 [`graph_reports_list`](./commands#tool-graph_reports_list),
 [`graph_report_get`](./commands#tool-graph_report_get)
 

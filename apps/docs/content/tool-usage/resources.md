@@ -38,7 +38,8 @@ private saved definitions.
 - [Change Private Graph Report](./commands#command-change_graph_report) (`change_graph_report`)
 
 **Underneath:** Tables: `analytics_report` · Agent tools without a command:
-[`graph_catalog`](./commands#tool-graph_catalog), [`graph_ask`](./commands#tool-graph_ask),
+[`graph_catalog`](./commands#tool-graph_catalog),
+[`graph_templates`](./commands#tool-graph_templates), [`graph_ask`](./commands#tool-graph_ask),
 [`graph_reports_list`](./commands#tool-graph_reports_list),
 [`graph_report_get`](./commands#tool-graph_report_get)
 

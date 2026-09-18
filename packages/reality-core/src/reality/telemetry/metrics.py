@@ -133,7 +133,9 @@ def _dedicated_session_factory(fallback: Any) -> Any:
         # Warning, not debug: falling back means the gauge callbacks go back to
         # the request pool, which silently undoes the isolation and reinstates
         # the 30s block during the pool saturation these gauges diagnose.
-        log.warning("dedicated gauge pool unavailable; using shared pool", exc_info=True)
+        log.warning(
+            "dedicated gauge pool unavailable; using shared pool", exc_info=True
+        )
         return fallback
 
 
@@ -226,8 +228,14 @@ def access_review(decision: str) -> None:
 # deterministic fallback, which is otherwise invisible -- the fallback returns
 # HTTP 200 and looks healthy while answering uselessly.
 
+
 def copilot_turn(provider: str, outcome: str, seconds: float | None = None) -> None:
-    count("reality.copilot.turns", "Copilot turns served", provider=provider, outcome=outcome)
+    count(
+        "reality.copilot.turns",
+        "Copilot turns served",
+        provider=provider,
+        outcome=outcome,
+    )
     if seconds is not None:
         # The single most operationally important latency in the deployment:
         # a Copilot turn can run to ~270s against a 300s ALB idle timeout, so
@@ -246,7 +254,13 @@ def copilot_turn(provider: str, outcome: str, seconds: float | None = None) -> N
 
 
 def email_sent(provider: str, result: str, kind: str) -> None:
-    count("reality.emails", "Emails dispatched", provider=provider, result=result, kind=kind)
+    count(
+        "reality.emails",
+        "Emails dispatched",
+        provider=provider,
+        result=result,
+        kind=kind,
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -284,7 +298,11 @@ def job_sweep(role: str, counts: dict, seconds: float) -> None:
             role=role,
         )
         if counts.get("budget_exhausted"):
-            count("reality.jobs.budget_exhausted", "Sweeps that hit their budget", role=role)
+            count(
+                "reality.jobs.budget_exhausted",
+                "Sweeps that hit their budget",
+                role=role,
+            )
     except Exception:
         log.debug("job sweep metrics failed", exc_info=True)
 
@@ -292,6 +310,7 @@ def job_sweep(role: str, counts: dict, seconds: float) -> None:
 # ---------------------------------------------------------------------------
 # Connection pool
 # ---------------------------------------------------------------------------
+
 
 def observe_pool(engine: Any) -> None:
     """Report SQLAlchemy pool occupancy as observable gauges.
@@ -312,6 +331,7 @@ def observe_pool(engine: Any) -> None:
                 # A dead pool must not break collection.
                 log.debug("pool gauge failed", exc_info=True)
                 return []
+
         return callback
 
     meter = metrics.get_meter("reality")

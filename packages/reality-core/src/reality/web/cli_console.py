@@ -127,9 +127,7 @@ def command_docs() -> list[CliCommandDoc]:
         result = runner.invoke(cli_app, [*arguments, "--help"], color=False)
         return clean_terminal_output(result.output)
 
-    docs = [
-        CliCommandDoc("reality", help_for([]), _parameter_docs(root, descriptions))
-    ]
+    docs = [CliCommandDoc("reality", help_for([]), _parameter_docs(root, descriptions))]
 
     def visit(group, path: list[str]) -> None:
         for name, command in group.commands.items():

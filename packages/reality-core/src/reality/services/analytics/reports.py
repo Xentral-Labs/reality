@@ -29,7 +29,6 @@ def caller(principal):
         CALLER.reset(token)
 
 
-
 class ReportKind:
     """What makes one kind of saved report different from another.
 

@@ -23,8 +23,16 @@ PRESETS = (
 
 
 def find_preset(key: str, version: int) -> dict | None:
-    if key in {"company-empty", "international-demo", "atlas-execution"} and version == 1:
-        return {"key": key, "version": 1, "lesson_key": LESSON_KEY, "lesson_version": LESSON_VERSION}
+    if (
+        key in {"company-empty", "international-demo", "atlas-execution"}
+        and version == 1
+    ):
+        return {
+            "key": key,
+            "version": 1,
+            "lesson_key": LESSON_KEY,
+            "lesson_version": LESSON_VERSION,
+        }
     return next(
         (
             preset

@@ -46,7 +46,9 @@ def authorize(session: Session, context: JobContext, config: ProjectionConfig) -
         raise JobError("not_authorized")
 
 
-def refresh(session: Session, context: JobContext, config: ProjectionConfig) -> JobResult:
+def refresh(
+    session: Session, context: JobContext, config: ProjectionConfig
+) -> JobResult:
     from reality.services.projections import rebuild_projections
 
     count = rebuild_projections(session, context.tenant_id, config.names)

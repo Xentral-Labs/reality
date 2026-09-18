@@ -6167,7 +6167,9 @@ def change_proposal_count(
     )
 
 
-def get_chat_session(session: OrmSession, tenant_id: str, session_id: str) -> ChatSession:
+def get_chat_session(
+    session: OrmSession, tenant_id: str, session_id: str
+) -> ChatSession:
     """Validate the conversation scope without loading its messages."""
     return _tenant_record(session, ChatSession, tenant_id, session_id)
 
@@ -11181,9 +11183,7 @@ def connector_shells(session: OrmSession, tenant_id: str) -> list[dict[str, Any]
             # once tested is ambiguous between connectors whose display names share
             # a prefix, which listed one instance under two shells (spec 211).
             "instances": [
-                system
-                for system in systems
-                if system.connector_code == shell["code"]
+                system for system in systems if system.connector_code == shell["code"]
             ],
         }
         for shell in connector_catalog()["connectors"]

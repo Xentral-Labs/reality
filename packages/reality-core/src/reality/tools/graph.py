@@ -22,6 +22,7 @@ from reality.services.analytics.cypher_surface import parse
 from reality.services.analytics.graph_model import (
     ReportingGraphError,
     reporting_catalog,
+    reporting_templates,
 )
 from reality.services.analytics.reports import CALLER, get_report, list_reports
 from reality.services.analytics.traversal import TraversalRefused, run_traversal
@@ -84,6 +85,14 @@ class GraphAskRequest(StrictModel):
         return self
 
 
+class GraphTemplatesRequest(StrictModel):
+    language: str = Field(
+        default="en",
+        max_length=5,
+        description="Language for the template names and explanations.",
+    )
+
+
 class GraphReportsRequest(StrictModel):
     query: str = Field(
         default="", max_length=200, description="Optional report-name search."
@@ -107,6 +116,7 @@ class GraphReportRequest(StrictModel):
 
 SCHEMAS = {
     "graph.catalog": GraphCatalogRequest,
+    "graph.templates": GraphTemplatesRequest,
     "graph.ask": GraphAskRequest,
     "graph.reports.list": GraphReportsRequest,
     "graph.reports.get": GraphReportRequest,
@@ -126,6 +136,9 @@ def invoke(session, tenant_id: str, name: str, arguments: dict[str, Any]) -> Any
             )
         except ReportingGraphError as error:
             raise TraversalRefused(str(error), "unknown_node") from error
+
+    if name == "graph.templates":
+        return {"templates": reporting_templates(request.language)}
 
     if name == "graph.reports.list":
         return list_reports(

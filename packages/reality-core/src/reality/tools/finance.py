@@ -82,6 +82,8 @@ class AdjustmentRequest(AccountRequest):
 ADJUSTMENT_COMMAND = "finance.adjustment.accept"
 SETTLEMENT_COMMAND = "finance.settlement.apply"
 OPENING_COMMAND = "finance.opening.import"
+
+
 class CreateReference(AccountRequest):
     model_config = ConfigDict(extra="forbid", str_strip_whitespace=True)
     kind: Literal["cost_center", "case_code", "coding_group"]
@@ -98,7 +100,12 @@ class UpdateReference(AccountRequest):
     reason: str = Field(min_length=1, max_length=4000)
 
 
-REFERENCE_COMMANDS = {"finance.reference.create": CreateReference, "finance.reference.update": UpdateReference}
+REFERENCE_COMMANDS = {
+    "finance.reference.create": CreateReference,
+    "finance.reference.update": UpdateReference,
+}
+
+
 class ComponentPart(BaseModel):
     model_config = ConfigDict(extra="forbid", str_strip_whitespace=True)
     cost_center_reference_id: str = Field(min_length=1)
@@ -118,6 +125,8 @@ class AssignmentRequest(AccountRequest):
 
 
 ASSIGNMENT_COMMAND = "finance.component.assign"
+
+
 class SourceMappingRequest(AccountRequest):
     source_system_id: str = Field(min_length=1)
     namespace: str = Field(min_length=1, max_length=200)
@@ -217,6 +226,7 @@ SETTLEMENT_REQUEST = TypeAdapter(
 def validate_finance_request(name, arguments):
     if name in TARGET_COMMANDS:
         from reality.services.finance.target_mappings import validate
+
         return validate(name, arguments)
     if name in ACCOUNT_COMMANDS:
         return validate_request(name, arguments)
@@ -247,16 +257,45 @@ def execute_finance_command(
         from reality.services.finance.target_mappings import (
             maintain_target_configuration,
         )
-        return maintain_target_configuration(session, tenant_id, command=name, arguments=arguments, action_id=action_id, actor_id=actor_id)
+
+        return maintain_target_configuration(
+            session,
+            tenant_id,
+            command=name,
+            arguments=arguments,
+            action_id=action_id,
+            actor_id=actor_id,
+        )
     if name == SOURCE_MAPPING_COMMAND:
         from reality.services.finance.source_mappings import set_source_mapping
-        return set_source_mapping(session, tenant_id, arguments=validate_finance_request(name, arguments), action_id=action_id, actor_id=actor_id)
+
+        return set_source_mapping(
+            session,
+            tenant_id,
+            arguments=validate_finance_request(name, arguments),
+            action_id=action_id,
+            actor_id=actor_id,
+        )
     if name == ASSIGNMENT_COMMAND:
         from reality.services.finance.components import assign_component
-        return assign_component(session, tenant_id, arguments=validate_finance_request(name, arguments), action_id=action_id, actor_id=actor_id)
+
+        return assign_component(
+            session,
+            tenant_id,
+            arguments=validate_finance_request(name, arguments),
+            action_id=action_id,
+            actor_id=actor_id,
+        )
     if name in REFERENCE_COMMANDS:
         from reality.services.finance.references import maintain_reference
-        return maintain_reference(session, tenant_id, arguments=validate_finance_request(name, arguments), action_id=action_id, actor_id=actor_id)
+
+        return maintain_reference(
+            session,
+            tenant_id,
+            arguments=validate_finance_request(name, arguments),
+            action_id=action_id,
+            actor_id=actor_id,
+        )
     if name == OPENING_COMMAND:
         from reality.services.finance.opening import import_opening
 

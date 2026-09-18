@@ -53,19 +53,58 @@ ALIASES = {
 FILE_MAPPING_PROFILES = {
     "item": {
         "required": [("sku",), ("name",)],
-        "fields": ["sku", "name", "unit", "item_type", "tracking_type", "purchase_unit", "conversion_factor", "lead_time_days"],
+        "fields": [
+            "sku",
+            "name",
+            "unit",
+            "item_type",
+            "tracking_type",
+            "purchase_unit",
+            "conversion_factor",
+            "lead_time_days",
+        ],
     },
     "party": {
         "required": [("name",)],
-        "fields": ["name", "party_type", "roles", "accounting_code", "payment_term_code", "default_currency", "credit_limit", "tax_identifier"],
+        "fields": [
+            "name",
+            "party_type",
+            "roles",
+            "accounting_code",
+            "payment_term_code",
+            "default_currency",
+            "credit_limit",
+            "tax_identifier",
+        ],
     },
     "location": {
         "required": [("name",)],
         "fields": ["name", "location_type", "allows_stock"],
     },
     "sales_order": {
-        "required": [("order_id", "order_number"), ("sku",), ("quantity",), ("location",), ("party_accounting_code", "party_name")],
-        "fields": ["order_id", "order_number", "line_id", "party_accounting_code", "party_name", "sku", "name", "quantity", "unit_price", "currency", "location", "ordered_at", "requested_delivery_at", "customer_reference"],
+        "required": [
+            ("order_id", "order_number"),
+            ("sku",),
+            ("quantity",),
+            ("location",),
+            ("party_accounting_code", "party_name"),
+        ],
+        "fields": [
+            "order_id",
+            "order_number",
+            "line_id",
+            "party_accounting_code",
+            "party_name",
+            "sku",
+            "name",
+            "quantity",
+            "unit_price",
+            "currency",
+            "location",
+            "ordered_at",
+            "requested_delivery_at",
+            "customer_reference",
+        ],
     },
     "inventory_snapshot": {
         "required": [("sku",), ("location",), ("quantity",)],
@@ -73,7 +112,16 @@ FILE_MAPPING_PROFILES = {
     },
     "bank_statement": {
         "required": [("amount",), ("party_accounting_code", "party_name")],
-        "fields": ["payment_number", "external_id", "party_accounting_code", "party_name", "direction", "amount", "currency", "effective_at"],
+        "fields": [
+            "payment_number",
+            "external_id",
+            "party_accounting_code",
+            "party_name",
+            "direction",
+            "amount",
+            "currency",
+            "effective_at",
+        ],
     },
 }
 
@@ -105,7 +153,11 @@ def validate_mapping(target: str, mapping: dict[str, str]) -> None:
     profile = FILE_MAPPING_PROFILES.get(target)
     if not profile:
         return
-    missing = [" or ".join(group) for group in profile["required"] if not any(mapping.get(field) for field in group)]
+    missing = [
+        " or ".join(group)
+        for group in profile["required"]
+        if not any(mapping.get(field) for field in group)
+    ]
     if missing:
         raise InvalidOperation("Map the required fields: " + ", ".join(missing))
 
@@ -115,7 +167,9 @@ def _mapped_row(row: dict[str, Any], mapping: dict[str, str]) -> dict[str, Any]:
     normalized = {str(key).strip().lower(): value for key, value in row.items()}
     for target_field, source_column in mapping.items():
         if source_column:
-            mapped[target_field] = normalized.get(source_column.strip().lower(), row.get(source_column))
+            mapped[target_field] = normalized.get(
+                source_column.strip().lower(), row.get(source_column)
+            )
     return mapped
 
 
@@ -150,21 +204,31 @@ def _rows(path: Path, content_type: str, filename: str) -> Iterator[dict[str, An
             value = json.load(handle)
         values = value if isinstance(value, list) else [value]
         if any(not isinstance(row, dict) for row in values):
-            raise InvalidOperation("JSON import must contain an object or array of objects.")
+            raise InvalidOperation(
+                "JSON import must contain an object or array of objects."
+            )
         yield from values
         return
     raise InvalidOperation("No tabular parser exists for this file type.")
 
 
 def _item(session: Session, tenant_id: str, sku: str) -> Item:
-    item = session.scalar(select(Item).where(Item.tenant_id == tenant_id, Item.sku == sku))
+    item = session.scalar(
+        select(Item).where(Item.tenant_id == tenant_id, Item.sku == sku)
+    )
     if item is None:
         raise InvalidOperation(f"Unknown SKU: {sku}")
     return item
 
 
 def _location(session: Session, tenant_id: str, reference: str) -> Location:
-    rows = list(session.scalars(select(Location).where(Location.tenant_id == tenant_id, Location.name == reference)))
+    rows = list(
+        session.scalars(
+            select(Location).where(
+                Location.tenant_id == tenant_id, Location.name == reference
+            )
+        )
+    )
     if len(rows) != 1:
         raise InvalidOperation(f"Location must resolve uniquely by name: {reference}")
     return rows[0]
@@ -187,9 +251,17 @@ def _party(session: Session, tenant_id: str, row: dict[str, Any]) -> Party:
 
 
 def _single_company(session: Session, tenant_id: str) -> Party:
-    companies = list(session.scalars(select(Party).join(PartyRole).where(Party.tenant_id == tenant_id, PartyRole.role == "company")))
+    companies = list(
+        session.scalars(
+            select(Party)
+            .join(PartyRole)
+            .where(Party.tenant_id == tenant_id, PartyRole.role == "company")
+        )
+    )
     if len(companies) != 1:
-        raise InvalidOperation("Orders require exactly one company party in the tenant.")
+        raise InvalidOperation(
+            "Orders require exactly one company party in the tenant."
+        )
     return companies[0]
 
 
@@ -212,17 +284,33 @@ def interpret_artifact(
     if target == "item":
         from reality.services.business_locks import lock_delivery_state
         from reality.services.item_imports import _validate_new_rows
+
         lock_delivery_state(session, tenant_id)
         session.expire_all()
         rows = list(rows)
-        _validate_new_rows(session, tenant_id, [
-            {"sku": str(_value(row, "sku")).strip(), "name": str(_value(row, "name")).strip(), "unit": str(row.get("unit") or "pcs").strip()}
-            for row in rows
-        ])
+        _validate_new_rows(
+            session,
+            tenant_id,
+            [
+                {
+                    "sku": str(_value(row, "sku")).strip(),
+                    "name": str(_value(row, "name")).strip(),
+                    "unit": str(row.get("unit") or "pcs").strip(),
+                }
+                for row in rows
+            ],
+        )
         for row in rows:
-            sku, name = str(_value(row, "sku")).strip(), str(_value(row, "name")).strip()
+            sku, name = (
+                str(_value(row, "sku")).strip(),
+                str(_value(row, "name")).strip(),
+            )
             item = create_item(
-                session, tenant_id, sku, name, str(row.get("unit") or "pcs"),
+                session,
+                tenant_id,
+                sku,
+                name,
+                str(row.get("unit") or "pcs"),
                 item_type=str(row.get("item_type") or "stocked"),
                 tracking_type=str(row.get("tracking_type") or "none"),
                 purchase_unit=str(row.get("purchase_unit") or row.get("unit") or "pcs"),
@@ -235,7 +323,12 @@ def interpret_artifact(
             count += 1
     elif target == "location":
         for row in rows:
-            allows_stock = str(row.get("allows_stock") or "true").strip().lower() in {"1", "true", "yes", "y"}
+            allows_stock = str(row.get("allows_stock") or "true").strip().lower() in {
+                "1",
+                "true",
+                "yes",
+                "y",
+            }
             location = create_location(
                 session,
                 tenant_id,
@@ -249,9 +342,16 @@ def interpret_artifact(
     elif target == "party":
         for row in rows:
             party_type = str(row.get("party_type") or row.get("type") or "customer")
-            roles = [value.strip() for value in str(row.get("roles") or party_type).split(",") if value.strip()]
+            roles = [
+                value.strip()
+                for value in str(row.get("roles") or party_type).split(",")
+                if value.strip()
+            ]
             party = create_party(
-                session, tenant_id, str(_value(row, "name")), party_type,
+                session,
+                tenant_id,
+                str(_value(row, "name")),
+                party_type,
                 roles=roles,
                 accounting_code=str(row.get("accounting_code") or ""),
                 payment_term_code=str(row.get("payment_term_code") or ""),
@@ -265,16 +365,23 @@ def interpret_artifact(
     elif target == "inventory_snapshot":
         for row in rows:
             item = _item(session, tenant_id, str(_value(row, "sku")).strip())
-            location = _location(session, tenant_id, str(_value(row, "location")).strip())
+            location = _location(
+                session, tenant_id, str(_value(row, "location")).strip()
+            )
             asserted = decimal(_value(row, "quantity"))
             current = stock_at(session, tenant_id, item.id, location.id)
             delta = asserted - current
             if delta:
                 movement = record_movement(
-                    session, tenant_id, "adjustment", item.id, abs(delta),
+                    session,
+                    tenant_id,
+                    "adjustment",
+                    item.id,
+                    abs(delta),
                     to_location_id=location.id if delta > 0 else None,
                     from_location_id=location.id if delta < 0 else None,
-                    source_record_id=source.id, reason="Imported inventory snapshot",
+                    source_record_id=source.id,
+                    reason="Imported inventory snapshot",
                 )
                 created.append(movement.id)
             count += 1
@@ -283,15 +390,29 @@ def interpret_artifact(
             party = _party(session, tenant_id, row)
             direction = str(row.get("direction") or "incoming").strip().lower()
             if direction not in {"incoming", "outgoing"}:
-                raise InvalidOperation("Payment direction must be incoming or outgoing.")
+                raise InvalidOperation(
+                    "Payment direction must be incoming or outgoing."
+                )
             arguments = {
-                "session": session, "tenant_id": tenant_id, "party_id": party.id,
-                "amount": _value(row, "amount"), "currency": str(_value(row, "currency", "EUR")),
-                "payment_number": str(row.get("payment_number") or _value(row, "external_id") or uid("pay")),
+                "session": session,
+                "tenant_id": tenant_id,
+                "party_id": party.id,
+                "amount": _value(row, "amount"),
+                "currency": str(_value(row, "currency", "EUR")),
+                "payment_number": str(
+                    row.get("payment_number")
+                    or _value(row, "external_id")
+                    or uid("pay")
+                ),
                 "source_record_id": source.id,
-                "effective_at": utc_datetime(_value(row, "effective_at")) or datetime.now().astimezone(),
+                "effective_at": utc_datetime(_value(row, "effective_at"))
+                or datetime.now().astimezone(),
             }
-            entries = record_customer_payment(**arguments) if direction == "incoming" else record_supplier_payment(**arguments)
+            entries = (
+                record_customer_payment(**arguments)
+                if direction == "incoming"
+                else record_supplier_payment(**arguments)
+            )
             created.extend(entry.id for entry in entries)
             count += 1
     elif target == "sales_order":
@@ -305,8 +426,17 @@ def interpret_artifact(
         for order_id, order_rows in grouped.items():
             first = order_rows[0]
             customer = _party(session, tenant_id, first)
-            location = _location(session, tenant_id, str(_value(first, "location")).strip())
-            total = sum((positive(_value(row, "quantity")) * decimal(row.get("unit_price") or row.get("price") or 0) for row in order_rows), Decimal(0))
+            location = _location(
+                session, tenant_id, str(_value(first, "location")).strip()
+            )
+            total = sum(
+                (
+                    positive(_value(row, "quantity"))
+                    * decimal(row.get("unit_price") or row.get("price") or 0)
+                    for row in order_rows
+                ),
+                Decimal(0),
+            )
             order_source, order_source_created, _ = store_source_record(
                 session,
                 tenant_id,
@@ -318,14 +448,28 @@ def interpret_artifact(
             )
             if order_source_created:
                 emit_business_event(
-                    session, tenant_id, "source_record.received", "source_record",
-                    order_source.id, {"source_system": source.source_system, "source_type": "order", "external_id": order_id},
+                    session,
+                    tenant_id,
+                    "source_record.received",
+                    "source_record",
+                    order_source.id,
+                    {
+                        "source_system": source.source_system,
+                        "source_type": "order",
+                        "external_id": order_id,
+                    },
                     source_record_id=order_source.id,
                 )
             session.commit()
             document = create_document(
-                session, tenant_id, "sales_order", str(first.get("order_number") or order_id), customer.id, total,
-                currency=str(_value(first, "currency", "EUR")), source_record_id=order_source.id,
+                session,
+                tenant_id,
+                "sales_order",
+                str(first.get("order_number") or order_id),
+                customer.id,
+                total,
+                currency=str(_value(first, "currency", "EUR")),
+                source_record_id=order_source.id,
                 ordered_at=first.get("ordered_at") or None,
                 requested_delivery_at=first.get("requested_delivery_at") or None,
                 customer_reference=str(first.get("customer_reference") or ""),
@@ -333,27 +477,57 @@ def interpret_artifact(
             )
             for row in order_rows:
                 item = _item(session, tenant_id, str(_value(row, "sku")).strip())
-                quantity = positive(_value(row, "quantity")); price = decimal(row.get("unit_price") or row.get("price") or 0)
+                quantity = positive(_value(row, "quantity"))
+                price = decimal(row.get("unit_price") or row.get("price") or 0)
                 line = DocumentLine(
-                    id=uid("lin"), tenant_id=tenant_id, document_id=document.id,
+                    id=uid("lin"),
+                    tenant_id=tenant_id,
+                    document_id=document.id,
                     source_line_id=str(row.get("line_id") or "") or None,
-                    item_id=item.id, sku=item.sku,
-                    description=str(_value(row, "name", item.name)), quantity=quantity,
-                    unit_price=price, gross_amount=quantity * price, unit=item.unit,
+                    item_id=item.id,
+                    sku=item.sku,
+                    description=str(_value(row, "name", item.name)),
+                    quantity=quantity,
+                    unit_price=price,
+                    gross_amount=quantity * price,
+                    unit=item.unit,
                     requested_at=utc_datetime(row.get("requested_delivery_at")),
-                    line_type="item", payload=json.dumps(row, ensure_ascii=False),
+                    line_type="item",
+                    payload=json.dumps(row, ensure_ascii=False),
                 )
-                session.add(line); session.flush()
+                session.add(line)
+                session.flush()
                 commitment = Commitment(
-                    id=uid("com"), tenant_id=tenant_id, type="customer_delivery",
-                    from_party_id=company.id, to_party_id=customer.id,
-                    item_id=item.id, location_id=location.id, quantity=quantity,
-                    amount=quantity * price, currency=document.currency,
-                    due_at=utc_datetime(row.get("requested_delivery_at")), status="open",
-                    document_id=document.id, document_line_id=line.id,
+                    id=uid("com"),
+                    tenant_id=tenant_id,
+                    type="customer_delivery",
+                    from_party_id=company.id,
+                    to_party_id=customer.id,
+                    item_id=item.id,
+                    location_id=location.id,
+                    quantity=quantity,
+                    amount=quantity * price,
+                    currency=document.currency,
+                    due_at=utc_datetime(row.get("requested_delivery_at")),
+                    status="open",
+                    document_id=document.id,
+                    document_line_id=line.id,
                 )
-                session.add(commitment); created.append(commitment.id)
-                emit_business_event(session, tenant_id, "commitment.created", "commitment", commitment.id, {"document_id": document.id, "item_id": item.id, "quantity": quantity}, source_record_id=order_source.id)
+                session.add(commitment)
+                created.append(commitment.id)
+                emit_business_event(
+                    session,
+                    tenant_id,
+                    "commitment.created",
+                    "commitment",
+                    commitment.id,
+                    {
+                        "document_id": document.id,
+                        "item_id": item.id,
+                        "quantity": quantity,
+                    },
+                    source_record_id=order_source.id,
+                )
             session.commit()
             created.append(document.id)
             count += 1

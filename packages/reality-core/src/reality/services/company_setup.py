@@ -52,8 +52,7 @@ def options(session: Session, actor_id: str) -> dict:
     return {
         "actor_id": actor_id,
         "suggested_name": application.company_name if application else "",
-        "environments": (["business"] if user.status == "active" else [])
-        + ["sandbox"],
+        "environments": (["business"] if user.status == "active" else []) + ["sandbox"],
         "practice_enabled": True,
         "pending": user.status != "active",
     }

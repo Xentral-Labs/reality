@@ -516,7 +516,9 @@ def _details(
                     "source_record_id": event.source_record_id,
                     "superseded": supersession is not None,
                     "supersession_id": supersession.id if supersession else None,
-                    "supersession_reason": supersession.reason if supersession else None,
+                    "supersession_reason": supersession.reason
+                    if supersession
+                    else None,
                     "replacement_event_id": (
                         supersession.replacement_event_id if supersession else None
                     ),
@@ -526,7 +528,10 @@ def _details(
             "observations": observations,
             "quantities": {
                 "promised": str(
-                    sum((commitment.quantity for commitment in promised.values()), Decimal())
+                    sum(
+                        (commitment.quantity for commitment in promised.values()),
+                        Decimal(),
+                    )
                 )
                 if promised
                 else None,

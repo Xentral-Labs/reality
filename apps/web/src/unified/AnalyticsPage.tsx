@@ -2,6 +2,7 @@ import { useState } from "react";
 import { t } from "../localization";
 import { RegisterHeader } from "./RegisterWorkbench";
 import { GraphSteps } from "./analytics/GraphSteps";
+import { GraphTemplates } from "./analytics/GraphTemplates";
 import { ReportLibrary } from "./analytics/ReportLibrary";
 import type { GraphReport } from "../api";
 import type { Selection } from "./routing";
@@ -28,6 +29,7 @@ function AnalyticsWorkspace({
         <nav className="register-tabs" aria-label={t("Analytics views")}>
           {(
             [
+              ["templates", "Templates"],
               ["graph", "Business graph"],
               ["reports", "My reports"],
             ] as const
@@ -43,6 +45,15 @@ function AnalyticsWorkspace({
           ))}
         </nav>
       </RegisterHeader>
+      {view === "templates" && (
+        <GraphTemplates
+          tenant={selection.tenant}
+          onAdopted={(value) => {
+            setReport(value);
+            navigate({ analyticsView: "graph" });
+          }}
+        />
+      )}
       {view === "graph" && (
         <GraphSteps tenant={selection.tenant} report={report} onSaved={setReport} />
       )}

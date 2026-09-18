@@ -701,3 +701,135 @@ limits:
 # 5. Writable fact edges need an authorization decision: who may assert a link,
 #    whether it is revocable, and whether an assertion is visible to other users
 #    of the same company before anybody confirms it.
+
+# ---------------------------------------------------------------------------
+# TEMPLATES
+#
+# Questions worth starting from. They live beside the model because they name
+# nodes, edges and measures: a template that names something the model does not
+# have fails when the model loads, not when somebody clicks it.
+#
+# A template carries no absolute date. A stored question holds instants, which
+# is the only form that keeps its meaning once saved — so a template names the
+# window it means and whoever adopts it resolves that against their own
+# calendar. Baking September 2026 in would make the template wrong in October.
+#
+# What is NOT here is as deliberate as what is. "Order value by currency" is a
+# required axis, not a report. Returns have no authoritative link to their
+# credit yet. A dated one-off is somebody's experiment, not a starting point.
+# ---------------------------------------------------------------------------
+
+templates:
+
+  open_delivery_backlog:
+    label: { en: "Open delivery backlog", de: "Offener Lieferrückstand" }
+    about:
+      en: "What is still owed to customers, per customer and unit — promised less everything moved against it."
+      de: "Was Kunden noch zusteht, je Kunde und Einheit — zugesagt abzüglich allem, was dagegen bewegt wurde."
+    question:
+      from: commitment
+      as: o
+      follow:
+        - { edge: commitment_of_item, as: item }
+        - { edge: committed_to, as: customer, from: o }
+      filter:
+        - { field: o.type, op: eq, value: customer_delivery }
+        - { field: o.status, op: eq, value: open }
+      measures: [committed_quantity, open_commitment_quantity]
+      group_by:
+        - { field: customer.name }
+        - { field: item.unit }
+      order_by: [{ by: open_commitment_quantity, descending: true }]
+      limit: 50
+
+  incoming_supply:
+    label: { en: "Incoming supply", de: "Zulauf vom Lieferanten" }
+    about:
+      en: "What suppliers still owe, per supplier and article, oldest promise first."
+      de: "Was Lieferanten noch schulden, je Lieferant und Artikel, älteste Zusage zuerst."
+    question:
+      from: commitment
+      as: o
+      follow:
+        - { edge: commitment_of_item, as: item }
+        - { edge: committed_from, as: supplier, from: o }
+      filter:
+        - { field: o.type, op: eq, value: supplier_delivery }
+        - { field: o.status, op: eq, value: open }
+      measures: [open_commitment_quantity]
+      group_by:
+        - { field: supplier.name }
+        - { field: item.sku }
+        - { field: item.unit }
+      order_by: [{ by: open_commitment_quantity, descending: true }]
+      limit: 50
+
+  order_intake_by_customer:
+    label: { en: "Order intake by customer", de: "Auftragseingang je Kunde" }
+    about:
+      en: "Order value and how many orders, per customer identity and currency. Two customers sharing a name stay apart."
+      de: "Auftragswert und Anzahl Aufträge, je Kundenidentität und Währung. Zwei gleichnamige Kunden bleiben getrennt."
+    period: { field: o.ordered_at, window: this_month }
+    question:
+      from: order
+      as: o
+      follow: [{ edge: ordered_by, as: customer }]
+      measures: [stated_order_amount, order_count]
+      group_by:
+        - { field: customer.id }
+        - { field: customer.name }
+        - { field: o.currency }
+      order_by: [{ by: stated_order_amount, descending: true }]
+      limit: 50
+
+  revenue_by_month:
+    label: { en: "Order value by month", de: "Auftragswert je Monat" }
+    about:
+      en: "The trend, split by currency because amounts in different currencies are not added."
+      de: "Der Verlauf, nach Währung getrennt — Beträge in verschiedenen Währungen werden nicht addiert."
+    period: { field: o.ordered_at, window: last_year }
+    question:
+      from: order
+      as: o
+      measures: [stated_order_amount, order_count]
+      group_by:
+        - { field: o.ordered_at, bucket: month, as: Monat }
+        - { field: o.currency }
+      order_by: [{ by: Monat, descending: false }]
+      limit: 200
+
+  shipped_not_billed:
+    label: { en: "Ordered but not billed", de: "Bestellt, nicht berechnet" }
+    about:
+      en: "Order lines no invoice line bills against, per customer and unit. It says nothing about what was shipped, which is a movement question."
+      de: "Auftragspositionen, gegen die keine Rechnungsposition steht, je Kunde und Einheit. Es sagt nichts darüber aus, was versandt wurde — das ist eine Frage an die Warenbewegungen."
+    question:
+      from: order
+      as: o
+      follow:
+        - { edge: contains, as: line }
+        - { edge: ordered_by, as: customer, from: o }
+      measures: [ordered_quantity, unbilled_order_quantity]
+      group_by:
+        - { field: customer.name }
+        - { field: line.unit }
+      order_by: [{ by: unbilled_order_quantity, descending: true }]
+      limit: 50
+
+  stock_movement_reconciliation:
+    label: { en: "Stock movements by article", de: "Lagerbewegungen je Artikel" }
+    about:
+      en: "Receipts, shipments, returns and corrections side by side per article and unit. A period total is not the quantity on hand."
+      de: "Zugang, Versand, Retoure und Korrektur nebeneinander je Artikel und Einheit. Eine Periodensumme ist nicht der Bestand."
+    period: { field: o.occurred_at, window: this_month }
+    question:
+      from: movement
+      as: o
+      follow: [{ edge: moved_item, as: item }]
+      measures: [moved_quantity]
+      group_by:
+        - { field: item.sku }
+        - { field: o.type }
+        - { field: item.unit }
+      order_by: [{ by: moved_quantity, descending: true }]
+      limit: 200
