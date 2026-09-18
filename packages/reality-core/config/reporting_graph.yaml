@@ -787,7 +787,7 @@ templates:
     about:
       en: "The trend, split by currency because amounts in different currencies are not added."
       de: "Der Verlauf, nach Währung getrennt — Beträge in verschiedenen Währungen werden nicht addiert."
-    period: { field: o.ordered_at, window: last_year }
+    period: { field: o.ordered_at, window: this_year }
     question:
       from: order
       as: o
@@ -798,11 +798,11 @@ templates:
       order_by: [{ by: Monat, descending: false }]
       limit: 200
 
-  shipped_not_billed:
-    label: { en: "Ordered but not billed", de: "Bestellt, nicht berechnet" }
+  billing_backlog:
+    label: { en: "Billing backlog", de: "Fakturierungsrückstand" }
     about:
-      en: "Order lines no invoice line bills against, per customer and unit. It says nothing about what was shipped, which is a movement question."
-      de: "Auftragspositionen, gegen die keine Rechnungsposition steht, je Kunde und Einheit. Es sagt nichts darüber aus, was versandt wurde — das ist eine Frage an die Warenbewegungen."
+      en: "Ordered less what invoice lines bill against it, per customer and unit — the pair to the delivery backlog, counted from the order rather than from the promise. It says nothing about what was shipped, which is a question for the movements."
+      de: "Bestellt abzüglich dessen, was Rechnungspositionen dagegen berechnen, je Kunde und Einheit — das Gegenstück zum Lieferrückstand, vom Auftrag aus gezählt statt von der Zusage. Es sagt nichts darüber aus, was versandt wurde; das ist eine Frage an die Warenbewegungen."
     question:
       from: order
       as: o
@@ -814,6 +814,27 @@ templates:
         - { field: customer.name }
         - { field: line.unit }
       order_by: [{ by: unbilled_order_quantity, descending: true }]
+      limit: 50
+
+  order_value_by_article:
+    label: { en: "Order value by article", de: "Auftragswert je Artikel" }
+    about:
+      en: "What each article was ordered for, and how much of it. The value is the line's own, not the order's: one order reaches many lines, so summing the order amount here would count it once per line."
+      de: "Wofür jeder Artikel bestellt wurde, und wie viel davon. Der Wert ist der der Position, nicht der des Auftrags: ein Auftrag erreicht viele Positionen, eine Summe des Auftragswerts würde ihn je Position einmal zählen."
+    period: { field: o.ordered_at, window: this_year }
+    question:
+      from: order
+      as: o
+      follow:
+        - { edge: contains, as: line }
+        - { edge: of_item, as: item, from: line }
+      measures: [line_amount, ordered_quantity]
+      group_by:
+        - { field: item.sku }
+        - { field: item.name }
+        - { field: line.unit }
+        - { field: o.currency }
+      order_by: [{ by: line_amount, descending: true }]
       limit: 50
 
   stock_movement_reconciliation:

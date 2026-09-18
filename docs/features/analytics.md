@@ -96,9 +96,11 @@ the question itself did not match the data.
 
 ## Templates
 
-Six questions worth starting from are declared beside the model — an open delivery
-backlog, incoming supply, order intake by customer, order value by month, ordered but
-not billed, stock movements by article. They live in the declaration because they name
+Seven questions worth starting from are declared beside the model — an open delivery
+backlog and the billing backlog that pairs with it, incoming supply, order intake by
+customer, order value by month and by article, stock movements by article. Each is named
+after what it counts rather than what somebody might wish it meant: order value by
+article takes the line's amount, not the order's, because one order reaches many lines. They live in the declaration because they name
 nodes, edges and measures: one that cannot be resolved stops the model from loading
 rather than waiting to be clicked and refused, and every one of them is executed against
 real records by a test.
