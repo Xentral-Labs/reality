@@ -295,6 +295,11 @@ late corrections and reversals; unsupported temporal coverage.
   has always accepted a hop that names where it starts. A hop records its origin only
   when that is not the step before it, so an ordinary path stays an ordinary path, and a
   branching question reopens as the branch it was.
+- **FR-020**: Bring in an axis a chosen number may not be summed across the moment the
+  path can see it, whatever made it reachable. Declaring a measure never additive across
+  an axis is a refusal waiting to happen, and meeting it twice in a row — once because
+  the unit is out of reach and once because the question does not split by it — teaches
+  the reader nothing that showing the split would not have said.
 - **FR-016**: Retire the configured generation in the same change that makes the graph the
   only analytics surface. A report saved under the retired generation carries no kind and
   no model version: it is neither read nor written by any surface, and no translation is
@@ -395,6 +400,7 @@ owners.
 | FR-017 | US1.1, US2.2 | T009 result-first surface: list on open, filter from a value, sort from a header, unit axis carried with its measure |
 | FR-018 | US2.1, US5.1 | T004/T005 deductions: reconciled against hand-written SQL, no join, tenant inside the subquery, declaration guards |
 | FR-019 | US1.1–2 | T009 branching: offered from every reached record, origin recorded only when it differs, reopens as the same branch |
+| FR-020 | US2.2 | T009 required axes arrive with reach, not as a second refusal |
 | DR-001 | US4.3 | T005/T012 canonical evidence |
 | DR-002 | US1.3, US2.2 | T003/T005 amount and grain correctness |
 | DR-003 | US5, non-goals | T002/T014/T016 architecture review |

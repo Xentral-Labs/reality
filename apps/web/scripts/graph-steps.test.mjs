@@ -54,6 +54,7 @@ const {
   withMeasure,
   withoutMeasure,
   reachable,
+  withRequiredAxes,
 } = exports;
 
 /** The module runs in its own context, so its objects carry another realm's
@@ -128,8 +129,10 @@ const stacked = {
 test("a period is one line to read and one line to remove", () => {
   const filter = periodFilter("o.ordered_at", "Bestelldatum", {
     label: "dieses Jahr",
-    from: new Date("2026-01-01T00:00:00Z"),
-    until: new Date("2027-01-01T00:00:00Z"),
+    // Local dates, the way the page builds a named period — "this year" means
+    // midnight where the reader is, not midnight in UTC.
+    from: new Date(2026, 0, 1),
+    until: new Date(2027, 0, 1),
   });
   assert.equal(filter.shown, "Bestelldatum dieses Jahr");
   assert.deepEqual(
@@ -244,8 +247,10 @@ test("a saved question reopens as the steps that built it", () => {
 test("a reopened period is one line again, not two halves", () => {
   const filter = periodFilter("o.ordered_at", "Bestelldatum", {
     label: "dieses Jahr",
-    from: new Date("2026-01-01T00:00:00Z"),
-    until: new Date("2027-01-01T00:00:00Z"),
+    // Local dates, the way the page builds a named period — "this year" means
+    // midnight where the reader is, not midnight in UTC.
+    from: new Date(2026, 0, 1),
+    until: new Date(2027, 0, 1),
   });
   const saved = question({
     blocks: [{ alias: "o", node: "order", filters: [filter] }],
@@ -258,8 +263,8 @@ test("a reopened period is one line again, not two halves", () => {
   assert.equal(reopened.blocks[0].filters[0].conditions.length, 2);
   assert.match(
     reopened.blocks[0].filters[0].shown,
-    /Bestelldatum 01\. Jan\. 2026 – 01\. Jan\. 2027/,
-    "a bound reads as the day it falls on, in the reader's own timezone",
+    /Bestelldatum 01\. Jan\. 2026 – 31\. Dez\. 2026/,
+    "the upper bound is exclusive, so the last day it covers is the one shown",
   );
 });
 
@@ -403,4 +408,58 @@ test("a branching hop says where it starts, and an ordinary one does not", () =>
   assert.equal(asked.follow[1].from, "o", "a branch back to the order names it");
   const reopened = plain(planOf(asked, NODES));
   assert.equal(reopened.blocks[2].edge.from, "o", "and it reopens as the same branch");
+});
+
+test("a period reads the same before and after it is saved", () => {
+  // Entering 1 to 17 September stores `< 18 September`. Showing the raw bound
+  // made the same filter read as "1. – 17." while it was being set and
+  // "1. – 18." once reopened: two answers to one question, and the second one
+  // names a day the report does not cover.
+  const entered = periodFilter("o.ordered_at", "Bestelldatum", {
+    label: "picked",
+    from: new Date(2026, 8, 1),
+    until: new Date(2026, 8, 18),
+  });
+  const reopened = plain(
+    planOf(
+      question({
+        blocks: [{ alias: "o", node: "order", filters: [entered] }],
+        measures: ["order_count"],
+        groups: [],
+        limit: 50,
+      }),
+      NODES,
+    ),
+  ).blocks[0].filters[0].shown;
+  assert.match(reopened, /01\. Sept\. 2026 – 17\. Sept\. 2026/, reopened);
+});
+
+test("an axis a number may not be summed across arrives as soon as it is reachable", () => {
+  // Found by building B05: picking moved quantity before reaching the article
+  // is refused because the unit is unreachable, and reaching the article
+  // afterwards is refused because the question does not split by it. Two walls
+  // in a row for somebody who only wanted movements per article.
+  const beforeTheHop = withRequiredAxes(
+    {
+      blocks: [{ alias: "o", node: "order", filters: [] }],
+      measures: ["stated_order_amount"],
+      groups: [],
+      limit: 50,
+    },
+    CATALOGUE,
+    [],
+  );
+  assert.deepEqual(plain(beforeTheHop).groups, [], "nothing to add while it is out of reach");
+
+  const afterTheHop = plain(withRequiredAxes(beforeTheHop, CATALOGUE, FIELDS));
+  assert.deepEqual(
+    afterTheHop.groups.map((group) => group.field),
+    ["o.currency"],
+    "and it arrives the moment the path can see it",
+  );
+  assert.deepEqual(
+    plain(withRequiredAxes(afterTheHop, CATALOGUE, FIELDS)).groups.length,
+    1,
+    "without adding it twice",
+  );
 });
