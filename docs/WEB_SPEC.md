@@ -3208,3 +3208,26 @@ chat action. Business grouping captions omit auxiliary identities, duplicate art
 codes and units while the full grouping remains in the query and advanced controls.
 Snapshot inputs sit inside the sentence, with accessible labels and a UTC explanation.
 The filter row explicitly shows an unrestricted state when no additional filters apply.
+
+## Order journey timeline (spec 233)
+
+Business Graph's Timeline now uses Facts, Commitments, Reservations, Movements and
+Ledger entries lanes. Each point is a recorded change; same-position collisions expose
+all members. A compact sales-order search selects an exact service-owned journey
+through document/line, commitment, reservation and movement relationships. Shared
+customer, item, location, source or correlation never expands order membership.
+Directly attached facts and ledger entries are included; invoice/payment traversal
+is outside this first scope. Source/evidence history remains readable in the journey
+and Inspector rather than being plotted as business reality.
+
+The recording-time axis initially fits loaded business events, with explicit short
+periods, user-local Today and Fit history. Loaded counts and partial-history notices
+never claim tenant totals or a complete process. Polling uses the existing visible-tab
+30-second cadence, preserves selection/range, reports failures and pages forward by
+sequence. Old pages load explicitly. Relationships are held record references, not
+inferred event causation or historical state. Undated endpoints remain inspectable.
+
+Details sit beside the chart when space permits and below on smaller screens; scrolling
+stays within the chart. The existing Record graph and Inspector remain unchanged.
+This supersedes spec162's five technical lanes, obligatory time-bucket pulses and
+stacked-only trace layout for the active Timeline.

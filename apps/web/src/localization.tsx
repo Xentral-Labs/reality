@@ -9468,6 +9468,27 @@ export const formatCalendarDate = (value: string | null | undefined) =>
 
 export const formatDate = (value: string | null | undefined) =>
   value ? date(value, { day: "2-digit", month: "short", year: "numeric" }) : "—";
+/** UTC instants bounding the user's current display day, including DST days. */
+export function displayDayBounds(instant = Date.now()) {
+  const label = formatDate(new Date(instant).toISOString());
+  const sameDay = (value: number) => formatDate(new Date(value).toISOString()) === label;
+  let low = instant - 36 * 3_600_000,
+    high = instant;
+  while (high - low > 1) {
+    const mid = Math.floor((low + high) / 2);
+    if (sameDay(mid)) high = mid;
+    else low = mid;
+  }
+  const start = high;
+  low = instant;
+  high = instant + 36 * 3_600_000;
+  while (high - low > 1) {
+    const mid = Math.floor((low + high) / 2);
+    if (sameDay(mid)) low = mid;
+    else high = mid;
+  }
+  return { start, end: high - 1 };
+}
 export const formatDateTime = (value: string | null | undefined) =>
   value
     ? date(value, {
@@ -17873,4 +17894,136 @@ Object.assign(dictionaries.nl, {
 Object.assign(dictionaries.es, {
   "Explore the available analysis objects and their relationships.":
     "Explora los objetos disponibles para análisis y sus relaciones.",
+});
+
+Object.assign(dictionaries.de, {
+  "Choose sales order": "Auftrag auswählen",
+  "Search by order number or customer": "Nach Auftragsnummer oder Kunde suchen",
+  "Orders could not be loaded.": "Aufträge konnten nicht geladen werden.",
+  "No matching sales orders.": "Keine passenden Aufträge.",
+  "Refine the search to find more orders.": "Suche eingrenzen, um weitere Aufträge zu finden.",
+  "All activity": "Alle Aktivitäten",
+  "Recorded observations": "Festgehaltene Aussagen",
+  "What was promised": "Was zugesagt wurde",
+  "What was bound": "Was gebunden wurde",
+  "What actually moved": "Was bewegt wurde",
+  "What was posted": "Was gebucht wurde",
+  "15 minutes": "15 Minuten",
+  "1 hour": "1 Stunde",
+  "Fit history": "Verlauf einpassen",
+  "History could not be loaded.": "Verlauf konnte nicht geladen werden.",
+  "More new events are available.": "Weitere neue Ereignisse sind verfügbar.",
+  "Load newer events": "Neuere Ereignisse laden",
+  "Recorded changes": "Erfasste Änderungen",
+  "No recorded changes for this selection.": "Keine erfassten Änderungen für diese Auswahl.",
+  "No business events in this time range.": "Keine fachlichen Ereignisse in diesem Zeitraum.",
+  "Loaded events": "Geladene Ereignisse",
+  "Points show recorded changes. Lines show held record relationships.":
+    "Punkte zeigen erfasste Änderungen. Linien zeigen bestehende Datensatzbeziehungen.",
+  "Partial history. Load older events to see earlier changes.":
+    "Unvollständiger Verlauf. Ältere Ereignisse laden, um frühere Änderungen zu sehen.",
+  "Grouped changes": "Gruppierte Änderungen",
+  "Recorded history": "Erfasster Verlauf",
+  "Inspect order and source": "Auftrag und Herkunft ansehen",
+  "Selected change is outside the plotted lanes or time range.":
+    "Die ausgewählte Änderung liegt außerhalb der dargestellten Spuren oder des Zeitraums.",
+  "Inspect record": "Datensatz ansehen",
+  "Inspect event": "Ereignis ansehen",
+  "Record relationships": "Datensatzbeziehungen",
+  "Select a point to inspect its change and origin.":
+    "Punkt auswählen, um Änderung und Herkunft anzusehen.",
+});
+
+Object.assign(dictionaries.nl, {
+  "Choose sales order": "Verkooporder kiezen",
+  "Search by order number or customer": "Zoeken op ordernummer of klant",
+  "Orders could not be loaded.": "Orders konden niet worden geladen.",
+  "No matching sales orders.": "Geen overeenkomende verkooporders.",
+  "Refine the search to find more orders.": "Verfijn de zoekopdracht om meer orders te vinden.",
+  "All activity": "Alle activiteit",
+  "Recorded observations": "Vastgelegde waarnemingen",
+  "What was promised": "Wat is toegezegd",
+  "What was bound": "Wat is gebonden",
+  "What actually moved": "Wat is verplaatst",
+  "What was posted": "Wat is geboekt",
+  "15 minutes": "15 minuten",
+  "1 hour": "1 uur",
+  "Fit history": "Geschiedenis inpassen",
+  "History could not be loaded.": "Geschiedenis kon niet worden geladen.",
+  "More new events are available.": "Er zijn meer nieuwe gebeurtenissen beschikbaar.",
+  "Load newer events": "Nieuwere gebeurtenissen laden",
+  "Recorded changes": "Vastgelegde wijzigingen",
+  "No recorded changes for this selection.": "Geen vastgelegde wijzigingen voor deze selectie.",
+  "No business events in this time range.": "Geen zakelijke gebeurtenissen in deze periode.",
+  "Loaded events": "Geladen gebeurtenissen",
+  "Points show recorded changes. Lines show held record relationships.":
+    "Punten tonen vastgelegde wijzigingen. Lijnen tonen bestaande recordrelaties.",
+  "Partial history. Load older events to see earlier changes.":
+    "Gedeeltelijke geschiedenis. Laad oudere gebeurtenissen voor eerdere wijzigingen.",
+  "Grouped changes": "Gegroepeerde wijzigingen",
+  "Recorded history": "Vastgelegde geschiedenis",
+  "Inspect order and source": "Order en bron inspecteren",
+  "Selected change is outside the plotted lanes or time range.":
+    "De geselecteerde wijziging valt buiten de getoonde banen of periode.",
+  "Inspect record": "Record inspecteren",
+  "Inspect event": "Gebeurtenis inspecteren",
+  "Record relationships": "Recordrelaties",
+  "Select a point to inspect its change and origin.":
+    "Selecteer een punt om de wijziging en herkomst te bekijken.",
+});
+
+Object.assign(dictionaries.es, {
+  "Choose sales order": "Elegir pedido de venta",
+  "Search by order number or customer": "Buscar por número de pedido o cliente",
+  "Orders could not be loaded.": "No se pudieron cargar los pedidos.",
+  "No matching sales orders.": "No hay pedidos de venta coincidentes.",
+  "Refine the search to find more orders.": "Afina la búsqueda para encontrar más pedidos.",
+  "All activity": "Toda la actividad",
+  "Recorded observations": "Observaciones registradas",
+  "What was promised": "Lo que se prometió",
+  "What was bound": "Lo que se reservó",
+  "What actually moved": "Lo que se movió",
+  "What was posted": "Lo que se contabilizó",
+  "15 minutes": "15 minutos",
+  "1 hour": "1 hora",
+  "Fit history": "Ajustar al historial",
+  "History could not be loaded.": "No se pudo cargar el historial.",
+  "More new events are available.": "Hay más eventos nuevos disponibles.",
+  "Load newer events": "Cargar eventos más recientes",
+  "Recorded changes": "Cambios registrados",
+  "No recorded changes for this selection.": "No hay cambios registrados para esta selección.",
+  "No business events in this time range.": "No hay eventos de negocio en este período.",
+  "Loaded events": "Eventos cargados",
+  "Points show recorded changes. Lines show held record relationships.":
+    "Los puntos muestran cambios registrados. Las líneas muestran relaciones existentes entre registros.",
+  "Partial history. Load older events to see earlier changes.":
+    "Historial parcial. Carga eventos anteriores para ver cambios más antiguos.",
+  "Grouped changes": "Cambios agrupados",
+  "Recorded history": "Historial registrado",
+  "Inspect order and source": "Inspeccionar pedido y origen",
+  "Selected change is outside the plotted lanes or time range.":
+    "El cambio seleccionado está fuera de los carriles o del período mostrado.",
+  "Inspect record": "Inspeccionar registro",
+  "Inspect event": "Inspeccionar evento",
+  "Record relationships": "Relaciones entre registros",
+  "Select a point to inspect its change and origin.":
+    "Selecciona un punto para inspeccionar el cambio y su origen.",
+});
+
+Object.assign(dictionaries.nl, { Today: "Vandaag" });
+Object.assign(dictionaries.es, { Today: "Hoy" });
+
+Object.assign(dictionaries.de, {
+  "Some ledger links are not shown. Inspect the posting event for its full payload.":
+    "Einige Buchungsverknüpfungen werden nicht angezeigt. Das Buchungsereignis enthält die vollständigen Originaldaten.",
+});
+
+Object.assign(dictionaries.nl, {
+  "Some ledger links are not shown. Inspect the posting event for its full payload.":
+    "Sommige boekingsrelaties worden niet getoond. Inspecteer de boekingsgebeurtenis voor de volledige brongegevens.",
+});
+
+Object.assign(dictionaries.es, {
+  "Some ledger links are not shown. Inspect the posting event for its full payload.":
+    "No se muestran algunos enlaces contables. Inspecciona el evento contable para ver los datos completos.",
 });

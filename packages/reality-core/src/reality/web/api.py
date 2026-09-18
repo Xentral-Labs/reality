@@ -1885,6 +1885,44 @@ def tenant_timeline(
     )
 
 
+@router.get("/order-journeys")
+def tenant_order_journeys(
+    tenant_id: str, session: DatabaseSession, q: str = Query("", max_length=200)
+):
+    from reality.services.order_journey import search_order_journeys
+
+    try:
+        return search_order_journeys(session, tenant_id, query=q)
+    except NotFound as error:
+        raise HTTPException(404, str(error)) from error
+
+
+@router.get("/order-journeys/{order_id}")
+def tenant_order_journey(
+    tenant_id: str,
+    order_id: str,
+    session: DatabaseSession,
+    limit: int = Query(100, ge=1, le=250),
+    before_sequence: int | None = Query(None, ge=1),
+    after_sequence: int | None = Query(None, ge=0),
+):
+    from reality.services.order_journey import order_journey
+
+    try:
+        return order_journey(
+            session,
+            tenant_id,
+            order_id,
+            limit=limit,
+            before_sequence=before_sequence,
+            after_sequence=after_sequence,
+        )
+    except NotFound as error:
+        raise HTTPException(404, str(error)) from error
+    except InvalidOperation as error:
+        raise HTTPException(400, str(error)) from error
+
+
 @router.get("/activity-signal")
 def tenant_activity_signal(
     tenant_id: str,

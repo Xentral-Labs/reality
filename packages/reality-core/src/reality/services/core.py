@@ -13,6 +13,7 @@ from typing import Any
 
 from sqlalchemy import Select, and_, case, delete, func, or_, select, text
 from sqlalchemy.orm import Session as OrmSession
+from sqlalchemy.sql.elements import ColumnElement
 
 from reality.db.core import (
     AISettings,
@@ -12956,6 +12957,7 @@ def timeline_activity(
     before_sequence: int | None = None,
     record_type: str = "",
     after_sequence: int | None = None,
+    _subject_filter: ColumnElement[bool] | None = None,
 ) -> dict[str, Any]:
     """Tenant-scoped activity projection for the operational timeline UI.
 
@@ -12971,6 +12973,8 @@ def timeline_activity(
     forward = after_sequence is not None
     since = now() - timedelta(hours=max(1, min(hours, 24 * 30)))
     criteria = [BusinessEvent.tenant_id == tenant_id]
+    if _subject_filter is not None:
+        criteria.append(_subject_filter)
     if hours != 0 and not forward:
         criteria.append(BusinessEvent.occurred_at >= since)
     if before_sequence is not None:
