@@ -3093,3 +3093,12 @@ Use in chat appends a tenant-scoped draft without sending or discarding existing
 confirmation remains in the existing workflow. Company switches remount the directory.
 All MCP names, schemas, descriptions, access modes and dispatch paths remain unchanged.
 This supersedes the earlier two-tab Tools directory presentation from specs 218/219.
+
+## Email-only account menu (spec 227)
+
+The sidebar account trigger uses one localized My account label with its avatar and
+chevron, including its accessible name and collapsed-navigation tooltip. The open
+menu shows the full original account email with wrapping and no redundant Profile
+heading. Account settings links to the existing personal preferences destination.
+Appearance, resource links, dismissal and sign-out retain their existing behavior.
+No personal name is inferred or required.

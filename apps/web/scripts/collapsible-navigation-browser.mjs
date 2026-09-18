@@ -190,8 +190,8 @@ try {
   await tooltip.waitFor();
   await nav.evaluate((n) => n.dispatchEvent(new Event("scroll")));
   await tooltip.waitFor({ state: "hidden" });
-  await nav.getByRole("button", { name: "Profile", exact: true }).click();
-  await page.getByRole("dialog", { name: "Profile", exact: true }).waitFor();
+  await nav.getByRole("button", { name: "My account", exact: true }).click();
+  await page.getByRole("dialog", { name: "My account", exact: true }).waitFor();
   await page.keyboard.press("Escape");
   await page.getByRole("button", { name: "Switch company", exact: true }).click();
   await page.getByRole("dialog", { name: "Switch company", exact: true }).waitFor();

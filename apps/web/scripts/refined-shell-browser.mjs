@@ -203,8 +203,8 @@ try {
       .evaluate((n) => n === document.activeElement),
     true,
   );
-  await nav.getByRole("button", { name: "Profile", exact: true }).click();
-  const profile = page.getByRole("dialog", { name: "Profile", exact: true });
+  await nav.getByRole("button", { name: "My account", exact: true }).click();
+  const profile = page.getByRole("dialog", { name: "My account", exact: true });
   const oldTheme = await page.locator("html").getAttribute("data-theme");
   await profile.getByRole("button", { name: "Appearance", exact: true }).click();
   assert.notEqual(await page.locator("html").getAttribute("data-theme"), oldTheme);
@@ -221,8 +221,8 @@ try {
   assert.equal(await chat.isVisible(), false);
   assert.equal((await box(page.locator("#main-content"))).height, 852);
   await page.setViewportSize({ width: 1440, height: 500 });
-  await nav.getByRole("button", { name: "Profile", exact: true }).click();
-  const shortProfile = await box(page.getByRole("dialog", { name: "Profile", exact: true }));
+  await nav.getByRole("button", { name: "My account", exact: true }).click();
+  const shortProfile = await box(page.getByRole("dialog", { name: "My account", exact: true }));
   assert.ok(shortProfile.y >= 0 && shortProfile.y + shortProfile.height <= 500);
   await page.keyboard.press("Escape");
 
