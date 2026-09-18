@@ -230,6 +230,7 @@
     "graph_report_get": "analytics",
     "graph_requests_list": "analytics",
     "graph_request_get": "analytics",
+    "graph_request_propose": "analytics",
     "graph_format": "analytics",
     "graph_interpret": "analytics"
   },

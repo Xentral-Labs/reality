@@ -1218,4 +1218,8 @@ with the question, the moment and the model version beside them; a question that
 cannot be answered records why on its row while the run itself succeeds; membership is
 checked again when the worker runs, because the minutes between asking and running are
 when access changes; a stranger can neither request nor collect; and an uncollected answer
-is removed when it expires rather than lingering as a current figure.
+is removed when it expires rather than lingering as a current figure. FR-008: an agent
+proposes the request and a person confirms it; the proposal record carries the question
+sealed rather than in the open, because a proposal is company-visible and the question is
+the asker's; a question the model cannot express is refused when the proposal is prepared,
+not minutes later; and the tool refuses direct execution without a confirmation.

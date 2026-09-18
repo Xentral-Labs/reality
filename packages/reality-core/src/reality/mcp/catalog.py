@@ -2342,6 +2342,9 @@ for _public_name, _application_name, _label in (
     )
 
 from reality.domain.graph_report import GraphReportChange as _GraphReportChange
+from reality.tools.graph import (
+    GraphRequestedAnalysisRequest as _GraphRequestedAnalysis,
+)
 
 MCP_TOOL_CATALOG = (
     *MCP_TOOL_CATALOG,
@@ -2353,6 +2356,17 @@ MCP_TOOL_CATALOG = (
         "analytics",
         _GraphReportChange.model_json_schema(),
         _propose("graph.reports.change"),
+    ),
+    MCPToolDefinition(
+        "graph_request_propose",
+        "Request an analysis",
+        "Prepare an analysis question that may be answered by the worker rather than in "
+        "this call. Requires trusted authenticated user context; confirm explicitly. "
+        "A question the model cannot express is refused here, not minutes later.",
+        "propose",
+        "analytics",
+        _GraphRequestedAnalysis.model_json_schema(),
+        _propose("graph.requests.create"),
     ),
 )
 

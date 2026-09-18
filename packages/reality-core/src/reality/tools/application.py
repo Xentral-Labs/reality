@@ -2539,6 +2539,13 @@ def create_change_proposal(
         normalized_arguments, preview = prepare(
             session, tenant_id, CALLER.get(), arguments, report_kind="graph"
         )
+    if tool_name == "graph.requests.create":
+        from reality.services.analytics.proposals import prepare_request
+        from reality.services.analytics.reports import CALLER
+
+        normalized_arguments, preview = prepare_request(
+            session, tenant_id, CALLER.get(), arguments
+        )
     proposal = ChangeProposal(
         id=uid("act"),
         tenant_id=tenant_id,
@@ -2857,7 +2864,11 @@ def approve_and_execute_proposal(
     from reality.playground.actions import MASTER_TOOLS
     from reality.services.tenant_policy import master_tool_execution
 
-    if tool_name == "graph.reports.change":
+    if tool_name == "graph.requests.create":
+        from reality.services.analytics.proposals import execute_request
+
+        result = execute_request(session, tenant_id, confirming_principal, arguments)
+    elif tool_name == "graph.reports.change":
         from reality.services.analytics.proposals import execute_change
 
         try:
@@ -2983,7 +2994,6 @@ _GRAPH_DESCRIPTIONS = {
     "graph.ask": "Ask the reporting graph a question along declared edges and measures.",
     "graph.reports.list": "List the caller's own saved graph reports.",
     "graph.reports.get": "Open one of the caller's own saved graph reports.",
-    "graph.request": "Ask a question, and be given somewhere to collect it when the company is too large to answer in one request.",
     "graph.requests.list": "List the caller's own requested analyses and where each one stands.",
     "graph.requests.get": "Collect a requested analysis, with the question and the moment it was answered.",
 }
@@ -3012,4 +3022,18 @@ TOOLS["graph.reports.change"] = Tool(
     "Propose saving, renaming or removing a private graph report for its author.",
     True,
     _private_report_confirmation_only,
+)
+
+
+def _requested_analysis_confirmation_only(session, tenant_id, arguments):
+    raise InvalidOperation(
+        "Requesting an analysis requires an authenticated proposal confirmation."
+    )
+
+
+TOOLS["graph.requests.create"] = Tool(
+    "graph.requests.create",
+    "Propose asking an analysis question, answered now or by the worker.",
+    True,
+    _requested_analysis_confirmation_only,
 )

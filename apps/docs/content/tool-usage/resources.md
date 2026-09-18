@@ -45,7 +45,8 @@ private saved definitions.
 [`graph_reports_list`](./commands#tool-graph_reports_list),
 [`graph_report_get`](./commands#tool-graph_report_get),
 [`graph_requests_list`](./commands#tool-graph_requests_list),
-[`graph_request_get`](./commands#tool-graph_request_get)
+[`graph_request_get`](./commands#tool-graph_request_get),
+[`graph_request_propose`](./commands#tool-graph_request_propose)
 
 ## Business partner {#resource-party}
 

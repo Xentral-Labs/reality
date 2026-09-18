@@ -851,7 +851,7 @@ families:
       - reality.services.analytics.requests:collect
       - reality.services.analytics.requests:listing
       - reality.services.analytics.requests:expire
-      - tool:graph.request
+      - tool:graph.requests.create
       - tool:graph.requests.list
       - tool:graph.requests.get
     evidence:
