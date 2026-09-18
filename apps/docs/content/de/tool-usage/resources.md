@@ -43,7 +43,9 @@ privaten gespeicherten Einstellungen.
 [`graph_format`](./commands#tool-graph_format),
 [`graph_interpret`](./commands#tool-graph_interpret),
 [`graph_reports_list`](./commands#tool-graph_reports_list),
-[`graph_report_get`](./commands#tool-graph_report_get)
+[`graph_report_get`](./commands#tool-graph_report_get),
+[`graph_requests_list`](./commands#tool-graph_requests_list),
+[`graph_request_get`](./commands#tool-graph_request_get)
 
 ## Geschäftspartner {#resource-party}
 

@@ -10,6 +10,7 @@ from sqlalchemy.sql.selectable import TableValuedAlias
 
 from reality.db.core import Document
 from reality.services import core
+from reality.services.analytics.budget import input_ceiling
 from reality.services.analytics.traversal import TraversalRefused
 
 MAX_FINANCE_DOCUMENTS = 20_000
@@ -66,8 +67,10 @@ def relation(
     )
     if identities is not None:
         candidates = candidates.where(Document.id.in_(identities))
-    documents = set(session.scalars(candidates.limit(MAX_FINANCE_DOCUMENTS + 1)))
-    if len(documents) > MAX_FINANCE_DOCUMENTS:
+    documents = set(
+        session.scalars(candidates.limit(input_ceiling(MAX_FINANCE_DOCUMENTS) + 1))
+    )
+    if len(documents) > input_ceiling(MAX_FINANCE_DOCUMENTS):
         raise TraversalRefused(
             "Financial analysis exceeds the 20,000-document derivation limit; use the finance register.",
             "finance_limit",

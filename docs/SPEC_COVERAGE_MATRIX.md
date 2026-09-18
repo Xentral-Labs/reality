@@ -1205,3 +1205,17 @@ The cost is pinned in statement counts and derivation inputs rather than wall-cl
 it means the same on any machine. `packages/reality-core/tests/test_analysis_finance_dates.py`
 covers FR-005: an impossible day is refused as a business error and an absent one is
 still reported under an explicit unknown group.
+
+## 236 — An analysis you request and collect
+
+`packages/reality-core/tests/test_requested_analysis.py` covers FR-001–007: a question
+within the budget is answered in the request and records nothing; a question refused for
+its size is accepted for the worker, names the limit that sent it there, and is idempotent
+on its request id; every refusal that is a judgement about the question — an unknown node,
+an unknown measure, a fan-out — still arrives at request time, and the deferring set is
+pinned to exactly the three size codes; the worker answers and the asker collects the rows
+with the question, the moment and the model version beside them; a question that still
+cannot be answered records why on its row while the run itself succeeds; membership is
+checked again when the worker runs, because the minutes between asking and running are
+when access changes; a stranger can neither request nor collect; and an uncollected answer
+is removed when it expires rather than lingering as a current figure.

@@ -2323,6 +2323,8 @@ for _public_name, _application_name, _label in (
     ("graph_interpret", "graph.interpret", "Interpret an analysis question"),
     ("graph_reports_list", "graph.reports.list", "List my graph reports"),
     ("graph_report_get", "graph.reports.get", "Read my graph report"),
+    ("graph_requests_list", "graph.requests.list", "List my requested analyses"),
+    ("graph_request_get", "graph.requests.get", "Collect a requested analysis"),
 ):
     MCP_TOOL_CATALOG += (
         MCPToolDefinition(

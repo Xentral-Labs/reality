@@ -1404,6 +1404,80 @@ capability_guidance:
       do_not_use:
       - scenario: Read a colleague's saved report.
         reason: Reports are private to their author.
+  graph_requests_list:
+    kind: read
+    application_tool: graph.requests.list
+    purpose: List the authenticated caller's own requested analyses and where each one stands.
+    use_when:
+    - Check whether a question asked earlier has been answered.
+    do_not_use_when:
+    - Look for somebody else's requests; they are private to whoever asked them.
+    required_context:
+    - Authorized tenant and trusted authenticated user context outside arguments.
+    data_basis:
+    - analysis_request
+    limitations:
+    - States where each request stands, never its rows. Collect one to read its answer.
+    freshness: Current state of the caller's own requests.
+    empty_result: This caller has asked for nothing, or their answers have expired.
+    refusal_behavior: A caller who is not a member of the company is not found rather than told.
+    confirmation: none
+    side_effects: none
+    verification:
+      role: independent
+      proves:
+      - Which questions this caller asked and which have answers.
+      does_not_prove:
+      - What any of those answers say.
+    unknown_when:
+    - An answer expired before it was collected.
+    next_steps:
+    - Collect a ready one with graph_request_get.
+    examples:
+      use:
+      - scenario: See whether last night's balance question finished.
+        reason: The state says so without reading the answer.
+      do_not_use:
+      - scenario: Read the numbers from a finished request.
+        reason: That is what collecting it is for.
+  graph_request_get:
+    kind: read
+    application_tool: graph.requests.get
+    purpose: Collect a requested analysis, with the question and the moment it was answered.
+    use_when:
+    - Read the answer to a question this caller asked and that is ready.
+    do_not_use_when:
+    - Use a collected answer as a current figure; it was true of one moment and of no other.
+    required_context:
+    - Authorized tenant and trusted authenticated user context outside arguments.
+    data_basis:
+    - analysis_request
+    limitations:
+    - A stored answer is evidence of one answer at one moment. It is returned with its
+      question and its `answered_at` so nothing downstream can mistake it for what is true
+      now, and it is removed when it expires.
+    freshness: As of `answered_at`, never later.
+    empty_result: The question reached nothing when it ran.
+    refusal_behavior: Another caller's request is not found rather than disclosed.
+    confirmation: none
+    side_effects: none
+    verification:
+      role: independent
+      proves:
+      - What this question answered, at the moment it was answered.
+      does_not_prove:
+      - That the same question would answer the same today.
+    unknown_when:
+    - The records changed after `answered_at`.
+    next_steps:
+    - Ask it again with graph_request if the moment matters.
+    examples:
+      use:
+      - scenario: Read the customer balances requested this morning.
+        reason: The answer states when it was true.
+      do_not_use:
+      - scenario: Quote a collected balance as today's figure.
+        reason: It is an observation of one moment, not a standing number.
   finance_targets:
     kind: read
     application_tool: finance.targets.list

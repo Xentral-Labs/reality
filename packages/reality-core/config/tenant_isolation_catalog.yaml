@@ -16,6 +16,10 @@ explicit_operations:
   - reality.services.analytics.proposals:preview
   - reality.services.analytics.traversal:run_traversal
   - reality.services.analytics.compile_sql:execute
+  - reality.services.analytics.requests:ask
+  - reality.services.analytics.requests:collect
+  - reality.services.analytics.requests:listing
+  - reality.services.analytics.requests:expire
   - reality.services.analytics.reports:change_graph_report
   - reality.services.read_contracts:read_metadata
   - reality.services.read_contracts:discovery_page
@@ -832,6 +836,32 @@ families:
         assertion: boundary
         operations:
           - tool:graph.catalog
+
+  - key: requested_analysis
+    description: A requested analysis is scoped to its company and to the member who asked for it, at request time and again when the worker runs.
+    classification: boundary
+    reason: >-
+      The question runs through the same tenant-scoped traversal as an immediate ask.
+      The stored answer is reachable only by the member who requested it, and that
+      membership is checked again in the handler, because the minutes between asking
+      and running are exactly when access changes.
+    authority: 236/FR-004, 236/FR-005, 236/SC-004
+    operations: &requested_analysis_operations
+      - reality.services.analytics.requests:ask
+      - reality.services.analytics.requests:collect
+      - reality.services.analytics.requests:listing
+      - reality.services.analytics.requests:expire
+      - tool:graph.request
+      - tool:graph.requests.list
+      - tool:graph.requests.get
+    evidence:
+      - id: tests/test_requested_analysis.py::test_a_stranger_cannot_request_or_collect
+        assertion: boundary
+        operations: *requested_analysis_operations
+      - id: tests/test_requested_analysis.py::test_access_is_checked_again_when_the_worker_runs
+        assertion: boundary
+        operations:
+          - reality.services.analytics.requests:ask
 
   - key: analysis_interpretation
     description: Analysis interpretation validates membership before dispatch and formatting reads no records.
