@@ -854,3 +854,27 @@ def test_every_template_runs_against_real_records(session, business, sales, prom
     for name, template in reporting_graph().templates.items():
         result = ask(session, business.tenant.id, **template.question)
         assert result.statements == 1, f"{name} took more than one statement"
+
+
+def test_the_article_template_takes_the_line_value_not_the_order_value(
+    session, business, sales
+):
+    """The template every consultant builds is also the one that would multiply.
+
+    Order to line is one to many, so an order-grain amount summed here counts
+    each order once per line. The template takes `line_amount`, which is
+    declared at that grain; swapping in the order amount is refused by name
+    rather than answered with four times the truth.
+    """
+    from reality.services.analytics.graph_model import reporting_graph
+
+    template = reporting_graph().templates["order_value_by_article"]
+    result = ask(session, business.tenant.id, **template.question)
+    assert total(result, "line_amount") == Decimal(1800), (
+        "four lines of 250, one of 500 and one of 300, each counted once"
+    )
+
+    multiplied = {**template.question, "measures": ["stated_order_amount"]}
+    with pytest.raises(TraversalRefused) as refusal:
+        ask(session, business.tenant.id, **multiplied)
+    assert refusal.value.code == "fan_out"
