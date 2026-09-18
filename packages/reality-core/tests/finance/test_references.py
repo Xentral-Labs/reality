@@ -217,7 +217,13 @@ def test_reference_migration_preserves_postings_and_blocks_destructive_downgrade
             tenant = core.create_tenant(db, "Preserved finance").id
             party = core.create_party(db, tenant, "Customer", "customer")
             invoice = core.create_document(
-                db, tenant, "sales_invoice", "INV", party.id, "119"
+                db,
+                tenant,
+                "sales_invoice",
+                "INV",
+                party.id,
+                "119",
+                document_date="2026-01-05",
             )
             core.post_sales_invoice(db, tenant, invoice.id)
             before = (

@@ -48,6 +48,7 @@ from reality.db.core import (
     TenantMembership,
     uid,
 )
+from reality.domain.calendar import day_text
 from reality.mcp.auth import (
     active_mcp_access_tokens,
     create_mcp_access_token,
@@ -1620,7 +1621,7 @@ def tenant_evidence_documents(
         "items": [
             {
                 "id": document.id,
-                "date": _iso_value(document.document_date),
+                "date": day_text(document.document_date),
                 "type": document.type,
                 "number": document.number,
                 "party_id": document.party_id,
@@ -2814,7 +2815,7 @@ def suggestion_list(
             Suggestion(
                 value=x.id,
                 label=f"{x.number} · {x.type.replace('_', ' ').title()}",
-                description=x.document_date,
+                description=day_text(x.document_date),
                 status="active",
             )
             for x in records
@@ -5205,7 +5206,7 @@ def document_inspector(session: OrmSession, tenant_id: str, record_id: str):
             {
                 "title": "Document",
                 "rows": [
-                    inspector_row("Date", document.document_date),
+                    inspector_row("Date", day_text(document.document_date)),
                     inspector_row("Currency", document.currency),
                     inspector_row("Customer reference", document.customer_reference),
                     inspector_row("Sales channel", document.sales_channel),

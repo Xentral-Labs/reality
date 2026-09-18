@@ -173,15 +173,11 @@ def test_source_interpretation_failure_disappears_after_successful_retry(
     assert failed.record_id == job.id
     assert failed.trace["source_record_id"] == source.id
 
-    monkeypatch.setitem(
-        core.SOURCE_INTERPRETERS, ("shopify", "order"), interpreter
-    )
+    monkeypatch.setitem(core.SOURCE_INTERPRETERS, ("shopify", "order"), interpreter)
     retry_import_job(session, business.tenant.id, job.id)
     process_import_job(session, business.tenant.id, job.id)
 
-    assert "source_interpretation_failure" not in by_class(
-        session, business.tenant.id
-    )
+    assert "source_interpretation_failure" not in by_class(session, business.tenant.id)
 
 
 def test_unexplained_movement(session, business):
@@ -673,9 +669,7 @@ def test_new_classes_are_tenant_scoped(session, business):
     both_new_classes(
         session,
         other_tenant.id,
-        create_party(
-            session, other_tenant.id, "Nordwind Handel GmbH", "company"
-        ).id,
+        create_party(session, other_tenant.id, "Nordwind Handel GmbH", "company").id,
         create_party(session, other_tenant.id, "Schmidt AG", "customer").id,
         create_item(session, other_tenant.id, "BIKE-LIGHT", "Bike Light").id,
         create_location(session, other_tenant.id, "Bremen Warehouse").id,
@@ -725,7 +719,9 @@ def sales_invoice(
         business.tenant.id,
         document_type,
         number,
-        business.customer.id if document_type == "sales_invoice" else business.supplier.id,
+        business.customer.id
+        if document_type == "sales_invoice"
+        else business.supplier.id,
         amount,
         document_date=document_date,
         payment_term_code=term_code,
@@ -761,9 +757,7 @@ def test_overdue_receivable(session, business):
 def test_overdue_receivable_boundaries(session, business):
     tenant_id = business.tenant.id
     create_payment_term(session, tenant_id, "NET30", "Net 30 days", 30)
-    overdue = sales_invoice(
-        session, business, "RE-1", "2026-07-01", term_code="NET30"
-    )
+    overdue = sales_invoice(session, business, "RE-1", "2026-07-01", term_code="NET30")
     not_yet_due = sales_invoice(
         session, business, "RE-2", "2026-08-30", term_code="NET30"
     )
@@ -821,9 +815,7 @@ def test_overdue_receivable_reports_the_outstanding_amount(session, business):
         document_date="2026-08-20",
     )
     post_sales_credit_note(session, business.tenant.id, credit.id)
-    allocate_credit_note(
-        session, business.tenant.id, credit.id, invoice.id, "100.00"
-    )
+    allocate_credit_note(session, business.tenant.id, credit.id, invoice.id, "100.00")
 
     row = by_class(session, business.tenant.id)["overdue_receivable"]
 
@@ -836,9 +828,7 @@ def test_overdue_receivable_reports_the_outstanding_amount(session, business):
 
 def test_overdue_receivable_entry_shape(session, business):
     invoice, entries = overdue_invoice(session, business)
-    control = next(
-        entry for entry in entries if entry.account == "accounts_receivable"
-    )
+    control = next(entry for entry in entries if entry.account == "accounts_receivable")
 
     row = by_class(session, business.tenant.id)["overdue_receivable"]
 
@@ -954,7 +944,9 @@ def deliver(session, tenant_id, system, source_type, received_at, sequence):
     return record
 
 
-def daily_history(session, tenant_id, system, *, days=8, source_type="order", last=None):
+def daily_history(
+    session, tenant_id, system, *, days=8, source_type="order", last=None
+):
     """One arrival a day, so the longest pause is a day."""
     last = last or SILENT_AS_OF - timedelta(days=1)
     records = [
@@ -1084,9 +1076,7 @@ def test_silent_source_says_nothing_without_history(session, business):
             SILENT_AS_OF - timedelta(days=30 + sequence),
             sequence,
         )
-    inactive_system, inactive = declared_capability(
-        session, tenant_id, code="inactive"
-    )
+    inactive_system, inactive = declared_capability(session, tenant_id, code="inactive")
     daily_history(
         session,
         tenant_id,
@@ -1215,6 +1205,7 @@ def other_business(session, name):
         item=create_item(session, tenant.id, "BIKE-LIGHT", "Bike Light"),
         location=create_location(session, tenant.id, f"{name} Warehouse"),
     )
+
 
 def supplier_invoice_with_term(
     session, business, number, document_date, amount="600.00", *, term_code="NET30"
@@ -1345,13 +1336,6 @@ def test_overdue_payable_boundaries(session, business):
     assert records_of(session, tenant_id, "overdue_receivable") == {receivable.id}
 
 
-
-
-
-
-
-
-
 def test_overdue_payable_orders_longest_first(session, business):
     tenant_id = business.tenant.id
     create_payment_term(session, tenant_id, "NET30", "Net 30 days", 30)
@@ -1366,6 +1350,7 @@ def test_overdue_payable_orders_longest_first(session, business):
     assert [row.record_id for row in payables] == [older.id, newer.id]
     second = operational_exceptions(session, tenant_id, as_of=AS_OF)
     assert [row.id for row in second] == [row.id for row in first]
+
 
 def test_overdue_payable_entry_shape(session, business):
     invoice, entries = overdue_supplier_invoice(session, business)
@@ -1590,9 +1575,7 @@ def test_invoice_price_differs(session, business):
     bill(session, business, line, unit_price="9.00")
     assert "invoice_price_differs" not in by_class(session, business.tenant.id)
 
-    _, billed = bill(
-        session, business, line, number="RE-076-HIGH", unit_price="11.00"
-    )
+    _, billed = bill(session, business, line, number="RE-076-HIGH", unit_price="11.00")
     row = by_class(session, business.tenant.id)["invoice_price_differs"]
 
     # The wrong figure is on the invoice, so the invoice line carries the entry.
@@ -1758,9 +1741,9 @@ def test_one_delivered_quantity_path(session, business, monkeypatch):
     # The commitment classes and the line classes read the delivered quantity
     # through one helper, so a quantity is never counted two ways.
     assert commitment.id in calls
-    assert current["shipped_not_billed"].causal_values[
-        "delivered_quantity"
-    ] == Decimal("6.0000")
+    assert current["shipped_not_billed"].causal_values["delivered_quantity"] == Decimal(
+        "6.0000"
+    )
 
 
 def test_line_classes_expose_full_entry_shape(session, business):
@@ -1809,9 +1792,7 @@ def test_line_classes_expose_full_entry_shape(session, business):
 
     assert current["shipped_not_billed"].trace["commitment_id"] == commitment.id
     assert current["invoice_price_differs"].trace["document_id"] == invoice.id
-    assert (
-        current["invoice_price_differs"].trace["billed_document_line_id"] == line.id
-    )
+    assert current["invoice_price_differs"].trace["billed_document_line_id"] == line.id
     assert current["billed_not_received"].trace["document_id"] == purchase_document.id
     assert current["shipped_not_billed"].trace["document_id"] == document.id
     assert billed.id == current["invoice_price_differs"].record_id
@@ -1833,7 +1814,11 @@ def test_line_classes_clear_through_reality(session, business):
         quantity="5",
     )
     _, billed = bill(
-        session, business, sales_line, number="RE-CLEAR", quantity="5",
+        session,
+        business,
+        sales_line,
+        number="RE-CLEAR",
+        quantity="5",
         unit_price="10.00",
     )
 
@@ -2242,7 +2227,9 @@ def test_both_record_classes_expose_full_entry_shape(session, business):
 
     assert current["credit_limit_exceeded"].trace["party_id"] == party.id
     assert current["duplicate_supplier_invoice"].trace["document_id"] == second.id
-    assert current["duplicate_supplier_invoice"].trace["original_document_id"] == first.id
+    assert (
+        current["duplicate_supplier_invoice"].trace["original_document_id"] == first.id
+    )
 
 
 def test_record_classes_are_tenant_scoped(session, business):
@@ -2358,9 +2345,9 @@ def test_returned_not_credited(session, business):
     assert row.causal_values["uncredited_quantity"] == Decimal("6.0000")
 
     credit(session, business, line, quantity="4")
-    assert by_class(session, business.tenant.id)[
-        "returned_not_credited"
-    ].causal_values["uncredited_quantity"] == Decimal("2.0000")
+    assert by_class(session, business.tenant.id)["returned_not_credited"].causal_values[
+        "uncredited_quantity"
+    ] == Decimal("2.0000")
 
     credit(session, business, line, number="GS-079-2", quantity="2")
     assert "returned_not_credited" not in by_class(session, business.tenant.id)
@@ -2377,9 +2364,9 @@ def test_goods_that_were_never_billed_need_no_credit(session, business):
 
     # Bill them and the same return is owed a credit at once.
     bill(session, business, line, number="RE-RET-3", quantity="10")
-    assert by_class(session, business.tenant.id)[
-        "returned_not_credited"
-    ].causal_values["uncredited_quantity"] == Decimal("5.0000")
+    assert by_class(session, business.tenant.id)["returned_not_credited"].causal_values[
+        "uncredited_quantity"
+    ] == Decimal("5.0000")
 
 
 def test_credited_not_returned(session, business):
@@ -2462,9 +2449,9 @@ def test_crediting_sums_across_credit_notes(session, business):
     credit(session, business, line, number="GS-A", quantity="4")
     credit(session, business, line, number="GS-B", quantity="3")
 
-    assert by_class(session, business.tenant.id)[
-        "returned_not_credited"
-    ].causal_values["credited_quantity"] == Decimal("7.0000")
+    assert by_class(session, business.tenant.id)["returned_not_credited"].causal_values[
+        "credited_quantity"
+    ] == Decimal("7.0000")
 
 
 def test_return_classes_ignore_mismatched_units(session, business):
@@ -2483,12 +2470,17 @@ def test_return_classes_ignore_mismatched_units(session, business):
         session, business, number="SO-RET-10", unit="box"
     )
     ship(session, business, matching_commitment, 10)
-    bill(session, business, matching_line, number="RE-RET-10", quantity="10", unit="box")
+    bill(
+        session, business, matching_line, number="RE-RET-10", quantity="10", unit="box"
+    )
     send_back(session, business, matching_commitment, 5)
-    credit(session, business, matching_line, number="GS-MATCH", quantity="2", unit="box")
-    assert by_class(session, business.tenant.id)[
-        "returned_not_credited"
-    ].record_id == matching_line.id
+    credit(
+        session, business, matching_line, number="GS-MATCH", quantity="2", unit="box"
+    )
+    assert (
+        by_class(session, business.tenant.id)["returned_not_credited"].record_id
+        == matching_line.id
+    )
 
 
 def test_one_returned_quantity_path(session, business, monkeypatch):
@@ -2564,12 +2556,8 @@ def test_return_classes_order_longest_first(session, business):
     ):
         ship(session, business, commitment, 10)
         bill(session, business, line, number=number, quantity="10")
-    send_back(
-        session, business, first_commitment, 5, at=AS_OF - timedelta(days=20)
-    )
-    send_back(
-        session, business, second_commitment, 5, at=AS_OF - timedelta(days=2)
-    )
+    send_back(session, business, first_commitment, 5, at=AS_OF - timedelta(days=20))
+    send_back(session, business, second_commitment, 5, at=AS_OF - timedelta(days=2))
 
     rows = [
         entry.record_id
@@ -2639,9 +2627,7 @@ def history(session, business, *, lag_days=1, cases=6, quantity=5):
         commitment = undated_promise(
             session, business, age_days=90 - index, quantity=quantity
         )
-        fulfil(
-            session, business, commitment, after_days=lag_days, quantity=quantity
-        )
+        fulfil(session, business, commitment, after_days=lag_days, quantity=quantity)
 
 
 def thresholds(session, business):
@@ -3096,15 +3082,11 @@ def settle(session, business, movement, quantity, returns, *, days_after=1):
     )
 
 
-def resolution_history(
-    session, business, returns, *, lag_days=2, cases=6, prefix="A"
-):
+def resolution_history(session, business, returns, *, lag_days=2, cases=6, prefix="A"):
     """A tenant that normally deals with a return in `lag_days`."""
     stock(session, business, 400)
     for index in range(cases):
-        _, _, commitment = order(
-            session, business, number=f"SO-RES-{prefix}{index}"
-        )
+        _, _, commitment = order(session, business, number=f"SO-RES-{prefix}{index}")
         ship(session, business, commitment, 10)
         came = goods_back(
             session, business, commitment, 4, returns, days_ago=150 - index * 5
@@ -3121,9 +3103,7 @@ def test_the_resolution_norm_describes_this_tenant(session, business):
     # Four settled returns is not a norm.
     assert exceptions._resolution_threshold(session, business.tenant.id) is None
 
-    resolution_history(
-        session, business, returns, lag_days=2, cases=2, prefix="B"
-    )
+    resolution_history(session, business, returns, lag_days=2, cases=2, prefix="B")
 
     # Six is, and three times two days sits under the fortnight floor.
     assert exceptions._resolution_threshold(session, business.tenant.id) == (
@@ -3161,9 +3141,9 @@ def test_return_unresolved(session, business):
 
     # Settling part of it reports only what is still sitting.
     settle(session, business, sitting, 4, returns, days_after=59)
-    assert by_class(session, business.tenant.id)[
-        "return_unresolved"
-    ].causal_values["outstanding_quantity"] == Decimal("2.0000")
+    assert by_class(session, business.tenant.id)["return_unresolved"].causal_values[
+        "outstanding_quantity"
+    ] == Decimal("2.0000")
 
     # A recent return says nothing, whatever else is standing.
     _, _, fresh_commitment = order(session, business, number="SO-FRESH")
@@ -3360,9 +3340,9 @@ def test_credit_note_unsettled(session, business):
     allocate_credit_note(
         session, business.tenant.id, owed.id, invoice_document.id, "20.00"
     )
-    assert by_class(session, business.tenant.id)[
-        "credit_note_unsettled"
-    ].causal_values["outstanding_amount"] == Decimal("40.0000")
+    assert by_class(session, business.tenant.id)["credit_note_unsettled"].causal_values[
+        "outstanding_amount"
+    ] == Decimal("40.0000")
 
     # Refunding the rest clears it.
     post_customer_refund(session, business.tenant.id, owed.id, "40.00")
@@ -3462,7 +3442,9 @@ def sold_at(session, business, number, price, *, quantity="1", unit="pcs", item=
         business.customer.id,
         [
             {
-                "item_id": (item or business.item).id if (item or business.item) else None,
+                "item_id": (item or business.item).id
+                if (item or business.item)
+                else None,
                 "quantity": quantity,
                 "unit": unit,
                 "unit_price": price,
@@ -3498,9 +3480,10 @@ def test_without_a_purchase_price_nothing_is_reported(session, business):
 
     # Recording one reports the same line at once.
     purchase_price(session, business, "10.00")
-    assert by_class(session, business.tenant.id)[
-        "sold_below_purchase_price"
-    ].record_id == line.id
+    assert (
+        by_class(session, business.tenant.id)["sold_below_purchase_price"].record_id
+        == line.id
+    )
 
 
 def test_a_line_agreed_at_zero_is_a_decision(session, business):
@@ -3512,9 +3495,10 @@ def test_a_line_agreed_at_zero_is_a_decision(session, business):
 
     # A penny is not, which is what makes the silence a rule.
     penny = sold_at(session, business, "SO-PENNY", "0.01")
-    assert by_class(session, business.tenant.id)[
-        "sold_below_purchase_price"
-    ].record_id == penny.id
+    assert (
+        by_class(session, business.tenant.id)["sold_below_purchase_price"].record_id
+        == penny.id
+    )
 
 
 def test_only_sales_lines_are_judged(session, business):
@@ -3560,9 +3544,10 @@ def test_only_sales_lines_are_judged(session, business):
 
     # A sales line for the same item does report.
     cheap = sold_at(session, business, "SO-JUDGED", "3.00")
-    assert by_class(session, business.tenant.id)[
-        "sold_below_purchase_price"
-    ].record_id == cheap.id
+    assert (
+        by_class(session, business.tenant.id)["sold_below_purchase_price"].record_id
+        == cheap.id
+    )
 
 
 def test_a_different_currency_or_unit_is_not_compared(session, business):
@@ -3574,9 +3559,10 @@ def test_a_different_currency_or_unit_is_not_compared(session, business):
 
     # The same figures in the price list's own unit report at once.
     matching = sold_at(session, business, "SO-UNITS-MATCH", "2.00", unit="box")
-    assert by_class(session, business.tenant.id)[
-        "sold_below_purchase_price"
-    ].record_id == matching.id
+    assert (
+        by_class(session, business.tenant.id)["sold_below_purchase_price"].record_id
+        == matching.id
+    )
 
 
 def test_the_pricing_entry_exposes_full_shape(session, business):
@@ -3730,7 +3716,9 @@ def test_a_useless_factor_is_no_relation(session, business):
         session.flush()
         rows = by_class(session, business.tenant.id)
         assert "shipped_not_billed" not in rows
-        assert rows["units_not_comparable"].causal_values["reason"] == "no_stated_relation"
+        assert (
+            rows["units_not_comparable"].causal_values["reason"] == "no_stated_relation"
+        )
 
     business.item.conversion_factor = Decimal(12)
     session.flush()
@@ -4028,7 +4016,9 @@ def skonto_term(session, business, code="SK2_10", *, percent="2", days=10, due=3
     )
 
 
-def supplier_invoice_under(session, business, number, document_date, term_code, amount="1000.00"):
+def supplier_invoice_under(
+    session, business, number, document_date, term_code, amount="1000.00"
+):
     """A posted supplier invoice governed by a stated term."""
     invoice = create_document(
         session,
@@ -4266,7 +4256,9 @@ def test_the_discount_entry_orders_by_deadline(session, business):
     def reported():
         return [
             entry.record_id
-            for entry in operational_exceptions(session, business.tenant.id, as_of=AS_OF)
+            for entry in operational_exceptions(
+                session, business.tenant.id, as_of=AS_OF
+            )
             if entry.class_id == "purchase_discount_available"
         ]
 
@@ -4302,8 +4294,7 @@ def test_nothing_in_this_feature_divides():
         function.__name__
         for function in watched
         for node in ast.walk(ast.parse(textwrap.dedent(inspect.getsource(function))))
-        if isinstance(node, ast.BinOp)
-        and isinstance(node.op, ast.Div | ast.FloorDiv)
+        if isinstance(node, ast.BinOp) and isinstance(node.op, ast.Div | ast.FloorDiv)
     ]
 
     # Both sides of the discount comparison are multiplied out precisely so that
@@ -4363,7 +4354,9 @@ def payable(session, business, number, amount, *, day="2026-08-01"):
 
 def test_supplier_credit_unposted(session, business):
     supplier_posting_history(session, business, cases=6)
-    forgotten = supplier_note(session, business, "SG-FORGOTTEN", "40.00", day="2026-06-01")
+    forgotten = supplier_note(
+        session, business, "SG-FORGOTTEN", "40.00", day="2026-06-01"
+    )
     supplier_note(session, business, "SG-YESTERDAY", "5.00", day="2026-08-30")
 
     row = by_class(session, business.tenant.id)["supplier_credit_unposted"]
@@ -4562,7 +4555,9 @@ def return_to_supplier(session, business, commitment, quantity, **kwargs):
     )
 
 
-def supplier_credit_line(session, business, order_line, *, number, quantity, unit="pcs"):
+def supplier_credit_line(
+    session, business, order_line, *, number, quantity, unit="pcs"
+):
     document, lines = create_manual_document_with_lines(
         session,
         business.tenant.id,
@@ -4596,7 +4591,9 @@ def test_supplier_return_not_credited(session, business):
 
     # The supplier's invoice arrives, and now four went back that nobody has
     # credited.
-    bill(session, business, line, direction="purchase", number="ER-090-A", quantity="10")
+    bill(
+        session, business, line, direction="purchase", number="ER-090-A", quantity="10"
+    )
     row = by_class(session, tenant_id)["supplier_return_not_credited"]
 
     assert row.record_type == "document_line"
@@ -4619,7 +4616,9 @@ def test_supplier_return_not_credited(session, business):
 def test_supplier_credit_not_returned(session, business):
     tenant_id = business.tenant.id
     line, commitment = bought(session, business, number="PO-090-B")
-    bill(session, business, line, direction="purchase", number="ER-090-B", quantity="10")
+    bill(
+        session, business, line, direction="purchase", number="ER-090-B", quantity="10"
+    )
 
     # A rebate, an allowance or a price correction has no goods behind it, and
     # this class must never report one.
@@ -4661,7 +4660,14 @@ def test_receipt_unbilled_counts_what_is_still_here(session, business):
 def test_a_return_does_not_unmake_a_receipt(session, business):
     tenant_id = business.tenant.id
     line, commitment = bought(session, business, number="PO-090-RAW", quantity="10")
-    bill(session, business, line, direction="purchase", number="ER-090-RAW", quantity="10")
+    bill(
+        session,
+        business,
+        line,
+        direction="purchase",
+        number="ER-090-RAW",
+        quantity="10",
+    )
 
     # Billed ten, received ten: nothing is unreceived.
     assert "billed_not_received" not in by_class(session, tenant_id)
@@ -4674,7 +4680,14 @@ def test_a_return_does_not_unmake_a_receipt(session, business):
     assert "supplier_return_not_credited" in rows
 
     # The positive control: billing beyond what arrived still reports at once.
-    bill(session, business, line, direction="purchase", number="ER-090-RAW-2", quantity="3")
+    bill(
+        session,
+        business,
+        line,
+        direction="purchase",
+        number="ER-090-RAW-2",
+        quantity="3",
+    )
     assert by_class(session, tenant_id)["billed_not_received"].causal_values[
         "unreceived_quantity"
     ] == Decimal("3.0000")
@@ -4683,7 +4696,14 @@ def test_a_return_does_not_unmake_a_receipt(session, business):
 def test_the_supplier_return_entries_expose_full_shape(session, business):
     tenant_id = business.tenant.id
     line, commitment = bought(session, business, number="PO-090-SHAPE")
-    bill(session, business, line, direction="purchase", number="ER-090-SHAPE", quantity="10")
+    bill(
+        session,
+        business,
+        line,
+        direction="purchase",
+        number="ER-090-SHAPE",
+        quantity="10",
+    )
     return_to_supplier(session, business, commitment, 4)
 
     row = by_class(session, tenant_id)["supplier_return_not_credited"]
@@ -4712,7 +4732,14 @@ def test_the_supplier_return_entries_expose_full_shape(session, business):
 def test_the_supplier_return_entries_clear_through_reality(session, business):
     tenant_id = business.tenant.id
     line, commitment = bought(session, business, number="PO-090-CLEARS")
-    bill(session, business, line, direction="purchase", number="ER-090-CLEARS", quantity="10")
+    bill(
+        session,
+        business,
+        line,
+        direction="purchase",
+        number="ER-090-CLEARS",
+        quantity="10",
+    )
     return_to_supplier(session, business, commitment, 4)
     assert "supplier_return_not_credited" in by_class(session, tenant_id)
 
@@ -4724,7 +4751,14 @@ def test_the_supplier_return_entries_clear_through_reality(session, business):
 def test_an_unreconcilable_supplier_credit_is_reported_not_judged(session, business):
     tenant_id = business.tenant.id
     line, commitment = bought(session, business, number="PO-090-UNITS")
-    bill(session, business, line, direction="purchase", number="ER-090-UNITS", quantity="10")
+    bill(
+        session,
+        business,
+        line,
+        direction="purchase",
+        number="ER-090-UNITS",
+        quantity="10",
+    )
     return_to_supplier(session, business, commitment, 4)
     assert "supplier_return_not_credited" in by_class(session, tenant_id)
 
@@ -4764,7 +4798,9 @@ def test_the_supplier_return_entries_order_deterministically(session, business):
         (first, first_commitment, "ER-090-ORDER-1"),
         (second, second_commitment, "ER-090-ORDER-2"),
     ):
-        bill(session, business, line, direction="purchase", number=number, quantity="10")
+        bill(
+            session, business, line, direction="purchase", number=number, quantity="10"
+        )
         return_to_supplier(session, business, commitment, 4)
 
     def reported():
@@ -4781,7 +4817,14 @@ def test_the_supplier_return_entries_order_deterministically(session, business):
 def test_the_supplier_return_classes_are_tenant_scoped(session, business):
     tenant_id = business.tenant.id
     line, commitment = bought(session, business, number="PO-090-TENANT")
-    bill(session, business, line, direction="purchase", number="ER-090-TENANT", quantity="10")
+    bill(
+        session,
+        business,
+        line,
+        direction="purchase",
+        number="ER-090-TENANT",
+        quantity="10",
+    )
     return_to_supplier(session, business, commitment, 4)
     foreign = create_tenant(session, "Foreign supplier return tenant")
 
@@ -4805,7 +4848,9 @@ def unbooked(session, business, number, amount="100.00", *, kind="sales_invoice"
     )
 
 
-def booking_history(session, business, *, kind="sales_invoice", lag_days=2, cases=6, prefix="A"):
+def booking_history(
+    session, business, *, kind="sales_invoice", lag_days=2, cases=6, prefix="A"
+):
     """A tenant that normally books this kind of document `lag_days` after recording it."""
     post = post_sales_invoice if kind == "sales_invoice" else post_supplier_invoice
     for index in range(cases):
@@ -4828,7 +4873,9 @@ def booking_history(session, business, *, kind="sales_invoice", lag_days=2, case
 
 def test_sales_invoice_unposted(session, business):
     tenant_id = business.tenant.id
-    forgotten = unbooked(session, business, "RE-092-FORGOTTEN", "400.00", day="2026-06-01")
+    forgotten = unbooked(
+        session, business, "RE-092-FORGOTTEN", "400.00", day="2026-06-01"
+    )
 
     # Fewer than five booked invoices is no rhythm, so nothing is claimed.
     booking_history(session, business, cases=4)
@@ -4844,7 +4891,9 @@ def test_sales_invoice_unposted(session, business):
 
     # One recorded yesterday is inside the norm and says nothing.
     unbooked(session, business, "RE-092-YESTERDAY", "5.00", day="2026-08-30")
-    assert by_class(session, tenant_id)["sales_invoice_unposted"].record_id == forgotten.id
+    assert (
+        by_class(session, tenant_id)["sales_invoice_unposted"].record_id == forgotten.id
+    )
 
     # Booking it clears the entry with no manual step.
     post_sales_invoice(session, tenant_id, forgotten.id)
@@ -4890,7 +4939,9 @@ def test_each_document_type_learns_its_own_rhythm(session, business):
     # A prompt sales-invoice rhythm says nothing about supplier invoices, so the
     # supplier side claims no norm and reports nothing.
     assert (
-        exceptions._posting_threshold(session, tenant_id, "sales_invoice", "sales_revenue")
+        exceptions._posting_threshold(
+            session, tenant_id, "sales_invoice", "sales_revenue"
+        )
         is not None
     )
     assert (
@@ -4942,9 +4993,14 @@ def test_a_reversed_posting_is_not_an_unbooked_one(session, business):
 
 
 def test_a_document_with_no_date_says_nothing(session, business):
+    """A document stating no date is not judged; one stating a bad date is refused.
+
+    The two used to be the same case, because any text at all could be stored and
+    every reader had to decide again whether it was a date (spec 234).
+    """
     tenant_id = business.tenant.id
     booking_history(session, business, cases=6, prefix="DATE")
-    undated = unbooked(session, business, "RE-092-UNDATED", "90.00", day="whenever")
+    undated = unbooked(session, business, "RE-092-UNDATED", "90.00", day="")
 
     reported = {
         row.record_id
@@ -4960,6 +5016,11 @@ def test_a_document_with_no_date_says_nothing(session, business):
         for row in operational_exceptions(session, tenant_id, as_of=AS_OF)
         if row.class_id == "sales_invoice_unposted"
     }
+
+    # A day the calendar does not have never reaches the column.
+    with pytest.raises(core.InvalidOperation, match="YYYY-MM-DD"):
+        unbooked(session, business, "RE-092-BAD", "90.00", day="whenever")
+    session.rollback()
 
 
 def test_the_four_unposted_sides_stay_apart(session, business):
@@ -5109,9 +5170,7 @@ def test_a_revised_promise_is_judged_by_its_new_date(session, business):
     assert "overdue_incoming_supplier_commitment" in by_class(session, tenant_id)
 
     # The supplier acknowledges a later day. It is not late until that day.
-    revise_commitment(
-        session, tenant_id, commitment.id, AS_OF + timedelta(days=5)
-    )
+    revise_commitment(session, tenant_id, commitment.id, AS_OF + timedelta(days=5))
     assert "overdue_incoming_supplier_commitment" not in by_class(session, tenant_id)
 
     # The positive control: once the revised date passes it is overdue again,
@@ -5127,9 +5186,7 @@ def test_a_revision_cannot_buy_silence(session, business):
     before = by_class(session, tenant_id)["overdue_incoming_supplier_commitment"]
     assert before.cause_ids == ()
 
-    revise_commitment(
-        session, tenant_id, commitment.id, AS_OF - timedelta(days=5)
-    )
+    revise_commitment(session, tenant_id, commitment.id, AS_OF - timedelta(days=5))
     row = by_class(session, tenant_id)["overdue_incoming_supplier_commitment"]
 
     # Late against a date the supplier itself chose, having already moved it.
@@ -5141,9 +5198,10 @@ def test_a_revision_cannot_buy_silence(session, business):
     # The entry is not suppressed and nothing else about it moved.
     assert row.severity == before.severity
     assert row.record_id == before.record_id
-    assert row.causal_values["remaining_quantity"] == before.causal_values[
-        "remaining_quantity"
-    ]
+    assert (
+        row.causal_values["remaining_quantity"]
+        == before.causal_values["remaining_quantity"]
+    )
     assert set(row.trace) == set(before.trace)
 
 
@@ -5153,9 +5211,7 @@ def test_both_directions_can_be_revised(session, business):
     outgoing = late_promise(session, business, kind="customer_delivery")
     assert "overdue_outgoing_customer_commitment" in by_class(session, tenant_id)
 
-    revise_commitment(
-        session, tenant_id, outgoing.id, AS_OF + timedelta(days=5)
-    )
+    revise_commitment(session, tenant_id, outgoing.id, AS_OF + timedelta(days=5))
     assert "overdue_outgoing_customer_commitment" not in by_class(session, tenant_id)
 
     # And it says so when the agreed date passes too.
@@ -5173,9 +5229,7 @@ def test_a_dated_promise_is_no_longer_a_stalled_order(session, business):
     assert by_class(session, tenant_id)["order_stalled"].record_id == undated.id
 
     # Somebody states a date, so it is a dated order from now on.
-    revise_commitment(
-        session, tenant_id, undated.id, AS_OF + timedelta(days=30)
-    )
+    revise_commitment(session, tenant_id, undated.id, AS_OF + timedelta(days=30))
 
     rows = by_class(session, tenant_id)
     assert "order_stalled" not in rows
@@ -5186,9 +5240,7 @@ def test_revised_promises_order_deterministically(session, business):
     tenant_id = business.tenant.id
     first = late_promise(session, business)
     second = late_promise(session, business)
-    revise_commitment(
-        session, tenant_id, second.id, AS_OF - timedelta(days=1)
-    )
+    revise_commitment(session, tenant_id, second.id, AS_OF - timedelta(days=1))
 
     def reported():
         return [
@@ -5349,7 +5401,9 @@ def test_one_rule_answers_the_quantity_in_force():
 # Spec 099: the half of a return's life before the goods arrive.
 
 
-def announce(session, business, commitment, quantity, *, expected_by=None, at=None, reference=""):
+def announce(
+    session, business, commitment, quantity, *, expected_by=None, at=None, reference=""
+):
     return core.announce_customer_return(
         session,
         business.tenant.id,
@@ -5515,7 +5569,9 @@ def test_the_announcement_threshold_is_the_learned_rule(session, business):
     assert _announcement_arrival_threshold(session, business.tenant.id) is None
     arrived_announcements(session, business, 1)
     learned = _announcement_arrival_threshold(session, business.tenant.id)
-    assert learned == max(timedelta(days=1) * LEARNED_MULTIPLE, UNARRIVED_ANNOUNCEMENT_FLOOR)
+    assert learned == max(
+        timedelta(days=1) * LEARNED_MULTIPLE, UNARRIVED_ANNOUNCEMENT_FLOOR
+    )
 
     # A second tenant's history is its own: the rule is shared, never the cases.
     other = create_tenant(session, "Other GmbH")
@@ -5834,7 +5890,9 @@ def test_a_hold_suppresses_nothing(session, business):
 def test_holds_are_tenant_scoped(session, business):
     lifted_holds(session, business, 5)
     commitment = customer_commitment(session, business, 4, AS_OF + timedelta(days=30))
-    hold = core.hold_commitment(session, business.tenant.id, commitment.id, "compliance")
+    hold = core.hold_commitment(
+        session, business.tenant.id, commitment.id, "compliance"
+    )
     hold.created_at = AS_OF - timedelta(days=40)
     session.commit()
 
@@ -5907,7 +5965,9 @@ def test_stock_expired(session, business):
     empty = core.create_lot(
         session, business.tenant.id, item.id, "LOT-EMPTY", expires_at="2026-01-01"
     )
-    assert empty.id in {row.id for row in core.expired_lots(session, business.tenant.id)}
+    assert empty.id in {
+        row.id for row in core.expired_lots(session, business.tenant.id)
+    }
     assert empty.id not in {
         entry.record_id
         for entry in operational_exceptions(session, business.tenant.id, as_of=AS_OF)
@@ -5941,9 +6001,7 @@ def test_expired_stock_reserved_for_a_customer(session, business):
     commitment = customer_commitment(session, business, 4, AS_OF + timedelta(days=3))
     commitment.item_id = item.id
     session.commit()
-    reserved = core.reserve(
-        session, business.tenant.id, commitment.id, lot_id=lot.id
-    )
+    reserved = core.reserve(session, business.tenant.id, commitment.id, lot_id=lot.id)
 
     row = by_class(session, business.tenant.id)["stock_expired"]
     assert row.cause_ids == ("reserved_for_delivery",)
@@ -5952,9 +6010,7 @@ def test_expired_stock_reserved_for_a_customer(session, business):
 
     # Releasing the reservation removes the reason and leaves the entry, because
     # the stock is still expired.
-    core.release_reservation(
-        session, business.tenant.id, reserved.reservation.id
-    )
+    core.release_reservation(session, business.tenant.id, reserved.reservation.id)
     after = by_class(session, business.tenant.id)["stock_expired"]
     assert after.cause_ids == ()
     assert after.causal_values["reserved_quantity"] == Decimal(0)

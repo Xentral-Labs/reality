@@ -47,13 +47,16 @@ def test_signed_postings_match_account_balance(session, business):
     assert Decimal(result.rows[0]["posted_amount"]) == Decimal(70)
 
 
-def test_calendar_months_ignore_invalid_dates_without_losing_unknowns(
-    session, business
-):
+def test_an_impossible_day_is_refused_and_an_absent_one_still_groups(session, business):
+    """A day the calendar does not have never reaches the column (spec 234).
+
+    It used to be stored as text and skipped again by every reader, so the same
+    invalid value was re-judged on each read and counted as "unknown" beside
+    documents that genuinely stated no date. The two are different: one is a
+    mistake to refuse, the other is an absence to report.
+    """
     tenant = business.tenant.id
-    for n, day in enumerate(
-        ["2024-02-29", "2024-03-01", "2023-02-29", "2024-13-01", "", "oops"]
-    ):
+    for n, day in enumerate(["2024-02-29", "2024-03-01", ""]):
         core.create_document(
             session,
             tenant,
@@ -63,6 +66,18 @@ def test_calendar_months_ignore_invalid_dates_without_losing_unknowns(
             "10",
             document_date=day,
         )
+    for n, impossible in enumerate(["2023-02-29", "2024-13-01", "oops"]):
+        with pytest.raises(core.InvalidOperation, match="YYYY-MM-DD"):
+            core.create_document(
+                session,
+                tenant,
+                "sales_order",
+                f"BAD-{n}",
+                business.customer.id,
+                "10",
+                document_date=impossible,
+            )
+        session.rollback()
     query = {
         "from": "order",
         "as": "o",
@@ -80,7 +95,7 @@ def test_calendar_months_ignore_invalid_dates_without_losing_unknowns(
     assert amounts == {
         "2024-02": Decimal(10),
         "2024-03": Decimal(10),
-        None: Decimal(40),
+        None: Decimal(10),
     }
     query["filter"] = [
         {"field": "o.document_date", "op": "gte", "value": "2024-02-01"},

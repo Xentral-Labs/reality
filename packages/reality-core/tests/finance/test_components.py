@@ -477,7 +477,13 @@ def test_component_migration_preserves_postings_and_guards_history(
             tenant = core.create_tenant(db, "Component migration").id
             party = core.create_party(db, tenant, "Customer", "customer")
             doc = core.create_document(
-                db, tenant, "sales_invoice", "INV", party.id, "119"
+                db,
+                tenant,
+                "sales_invoice",
+                "INV",
+                party.id,
+                "119",
+                document_date="2026-01-05",
             )
             doc_id = doc.id
             core.post_sales_invoice(db, tenant, doc_id)

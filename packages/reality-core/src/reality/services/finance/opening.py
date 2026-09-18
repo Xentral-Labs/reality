@@ -224,7 +224,7 @@ def preview_opening(session: Session, tenant_id: str, values: dict) -> dict:
                 )
                 existing_day = core.utc_datetime(actual).date() if actual else None
             else:
-                existing_day = _day(existing.document_date or None, "existing document")
+                existing_day = existing.document_date
             if exact or existing_day is None or existing_day <= cutover:
                 raise core.Conflict(
                     "Existing historical or undated financial evidence overlaps this opening; reconcile it first."
@@ -448,7 +448,7 @@ def check_opening_coverage(
         core.utc_datetime(effective_at).date() if effective_at is not None else None
     )
     if not cash:
-        observed = _day(document.document_date or None, "original document")
+        observed = document.document_date
     if observed is None:
         raise core.InvalidOperation(
             "Opening cutover coverage requires an explicit original date or actual cash timestamp."

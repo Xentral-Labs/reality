@@ -988,6 +988,11 @@ class Document(Base):
             "type",
             name="uq_document_source_type",
         ),
+        # Sixteen analysis objects read this one table and tell themselves apart by
+        # `type`, so every one of them paid for the rows belonging to the other
+        # fifteen. The day is the third column because the questions that select a
+        # type almost always bound or group by it as well.
+        Index("ix_document_tenant_type_date", "tenant_id", "type", "document_date"),
     )
     id: Mapped[str] = mapped_column(String, primary_key=True)
     tenant_id: Mapped[str] = mapped_column(ForeignKey("tenant.id"), index=True)
@@ -998,7 +1003,10 @@ class Document(Base):
     currency: Mapped[str] = mapped_column(String, default="EUR")
     gross_amount: Mapped[Decimal] = mapped_column(Numeric(18, 4), default=0)
     status: Mapped[str] = mapped_column(String, default="open")
-    document_date: Mapped[str] = mapped_column(String, default="")
+    # A day, stored as a day: the register orders and filters on it, analysis groups
+    # by it, and an impossible date cannot reach the column at all. Callers and every
+    # transport still speak ISO text; `reality.domain.calendar` is the one crossing.
+    document_date: Mapped[date | None] = mapped_column(Date, default=None)
     ordered_at: Mapped[datetime | None] = mapped_column(UTCDateTime, default=None)
     requested_delivery_at: Mapped[datetime | None] = mapped_column(
         UTCDateTime, default=None
@@ -1023,6 +1031,10 @@ class DocumentLine(Base):
             "source_line_id",
             name="uq_document_line_source_line",
         ),
+        # Eight line objects are told apart by the type of their document, which the
+        # compiler checks with an EXISTS back to the parent. That lookup, and every
+        # line-of-document join, starts here.
+        Index("ix_document_line_tenant_document", "tenant_id", "document_id"),
     )
     id: Mapped[str] = mapped_column(String, primary_key=True)
     tenant_id: Mapped[str] = mapped_column(ForeignKey("tenant.id"), index=True)

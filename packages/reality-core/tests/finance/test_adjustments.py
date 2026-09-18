@@ -234,7 +234,13 @@ def test_additive_reduction_migration_preserves_populated_accounts(
             tenant = core.create_tenant(session, "Migration claim")
             party = core.create_party(session, tenant.id, "Customer", "customer")
             invoice = core.create_document(
-                session, tenant.id, "sales_invoice", "BEFORE", party.id, "100"
+                session,
+                tenant.id,
+                "sales_invoice",
+                "BEFORE",
+                party.id,
+                "100",
+                document_date="2026-01-05",
             )
             # Populate the historical schema directly; current posting services require the new coverage tables.
             accounts = {

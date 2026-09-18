@@ -9,6 +9,7 @@ from sqlalchemy import and_, or_, select
 from sqlalchemy.orm import Session
 
 from reality.db.core import Document, LedgerEntry, LedgerReversal, Party
+from reality.domain.calendar import day_text
 from reality.services import core
 
 
@@ -20,6 +21,7 @@ def available_credit_rows(
     query: str = "",
     status: str = "outstanding",
     party_id: str | None = None,
+    party_ids: set[str] | None = None,
     effective_before: datetime | None = None,
 ) -> tuple[list[dict[str, Any]], dict[str, dict[str, Any]]]:
     """Every original credit of one side with its effective consumption, unpaged.
@@ -73,6 +75,8 @@ def available_credit_rows(
         )
     if party_id:
         statement = statement.where(LedgerEntry.party_id == party_id)
+    if party_ids is not None:
+        statement = statement.where(LedgerEntry.party_id.in_(party_ids))
     allocations: dict[str, list] = defaultdict(list)
     for allocation in core.active_settlement_allocations(
         session, tenant_id, effective_before=effective_before
@@ -127,7 +131,7 @@ def available_credit_rows(
             else "payment"
             if document.type.endswith("_payment")
             else "credit_note",
-            "document_date": document.document_date,
+            "document_date": day_text(document.document_date),
             "source_record_id": entry.source_record_id or document.source_record_id,
             "party_id": entry.party_id,
             "party": party,

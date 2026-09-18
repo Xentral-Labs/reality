@@ -1193,3 +1193,15 @@ snapshot inputs, replacement of the selected date and preservation of unrelated 
 ## Order journey timeline (spec 233)
 
 `packages/reality-core/tests/test_order_journey.py` covers FR-004–008/011: exact order membership, shared-reference exclusion, typed links, bounded pagination, read-only HTTP and tenant isolation. Frontend `order-journey-layout.test.mjs` and `order-journey-browser.mjs` cover FR-001–010 and SC-001–004. Spec233 supersedes spec162 active Timeline presentation.
+
+## 234 — What an analysis costs
+
+`packages/reality-core/tests/test_analysis_derivation_cost.py` covers FR-001–008: an
+ordinary path still compiles to exactly one statement; a derivation stays under the
+declared ceiling; a filter reaches the canonical service already narrowed and the
+narrowed answer matches the unfiltered one for the same party; an unnarrowed question
+still reaches every party; one register asked for twice in a request is derived once.
+The cost is pinned in statement counts and derivation inputs rather than wall-clock, so
+it means the same on any machine. `packages/reality-core/tests/test_analysis_finance_dates.py`
+covers FR-005: an impossible day is refused as a business error and an absent one is
+still reported under an explicit unknown group.

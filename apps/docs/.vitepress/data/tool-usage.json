@@ -18648,10 +18648,10 @@
         },
         {
           "name": "document_date",
-          "type": "VARCHAR",
-          "nullable": false,
+          "type": "DATE",
+          "nullable": true,
           "default": {
-            "kind": "scalar",
+            "kind": "none",
             "value": ""
           },
           "meaning": {

@@ -29,6 +29,7 @@ from reality.db.core import (
     now,
     uid,
 )
+from reality.domain.calendar import day_text
 
 PROJECTION_VERSION = 4
 FULFILLMENT_QUEUE = "fulfillment_queue"
@@ -192,7 +193,7 @@ def _build_financial_rows(
             "original_due_date": row["original_due_date"].isoformat()
             if row["original_due_date"]
             else None,
-            "document_date": document.document_date,
+            "document_date": day_text(document.document_date),
             "party_id": document.party_id,
             "party": row["party"],
             "gross": document.gross_amount,
@@ -519,7 +520,7 @@ def _build_operational_rows(
                 "document_id": document.id,
                 "type": document.type,
                 "number": document.number,
-                "document_date": document.document_date,
+                "document_date": day_text(document.document_date),
                 "party_id": document.party_id,
                 "gross_amount": document.gross_amount,
                 "currency": document.currency,

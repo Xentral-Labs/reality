@@ -28,23 +28,53 @@ FINANCE_COLUMNS = {
 }
 
 
-def relation(session: Session, tenant_id: str) -> TableValuedAlias:
-    """One canonical bulk derivation, materialized only inside this read query."""
-    identities = set(
-        session.scalars(
-            select(Document.id)
-            .where(Document.tenant_id == tenant_id, Document.type.in_(FINANCE_TYPES))
-            .limit(MAX_FINANCE_DOCUMENTS + 1)
-        )
+def aging_rows(
+    session: Session,
+    tenant_id: str,
+    *,
+    moment: datetime,
+    document_ids: set[str],
+    cache: dict[Any, Any] | None = None,
+) -> list[dict[str, Any]]:
+    """The aging register, computed once per request for one set of documents.
+
+    Party balances rest on the same register as the open items do, so a question
+    reaching both used to derive it twice. The key is the exact set asked for,
+    because a smaller set is not a valid answer for a larger one.
+    """
+    key = ("finance.aging", moment, frozenset(document_ids))
+    if cache is not None and key in cache:
+        return cache[key]
+    rows = core.aging_register(
+        session, tenant_id, as_of=moment, document_ids=document_ids
     )
-    if len(identities) > MAX_FINANCE_DOCUMENTS:
+    if cache is not None:
+        cache[key] = rows
+    return rows
+
+
+def relation(
+    session: Session,
+    tenant_id: str,
+    *,
+    identities: set[str] | None = None,
+    cache: dict[Any, Any] | None = None,
+) -> TableValuedAlias:
+    """One canonical bulk derivation, materialized only inside this read query."""
+    candidates = select(Document.id).where(
+        Document.tenant_id == tenant_id, Document.type.in_(FINANCE_TYPES)
+    )
+    if identities is not None:
+        candidates = candidates.where(Document.id.in_(identities))
+    documents = set(session.scalars(candidates.limit(MAX_FINANCE_DOCUMENTS + 1)))
+    if len(documents) > MAX_FINANCE_DOCUMENTS:
         raise TraversalRefused(
             "Financial analysis exceeds the 20,000-document derivation limit; use the finance register.",
             "finance_limit",
         )
     moment = datetime.now(UTC)
-    rows = core.aging_register(
-        session, tenant_id, as_of=moment, document_ids=identities
+    rows = aging_rows(
+        session, tenant_id, moment=moment, document_ids=documents, cache=cache
     )
     data: list[dict[str, Any]] = []
     for row in rows:

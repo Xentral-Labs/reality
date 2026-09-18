@@ -375,12 +375,23 @@ class Measure(GraphModel):
 
 
 class Limits(GraphModel):
+    """Every number here is checked somewhere. A limit nobody enforces is a claim.
+
+    `statements_per_traversal` used to be pinned to one and was not true: a path
+    that reaches a derived position runs the canonical service first, and that was
+    measured at thirteen to twenty-five reads. It now states what an ordinary path
+    costs, and `statements_per_derivation` states the ceiling a canonical bulk read
+    may reach before the traversal is refused as a regression rather than served
+    slowly.
+    """
+
     max_path_length: int = Field(default=8, ge=1, le=32)
     max_recursive_depth: int = Field(default=6, ge=1, le=16)
     result_rows: int = Field(default=10_000, ge=1)
     page_rows: int = Field(default=200, ge=1)
     statement_timeout_seconds: int = Field(default=30, ge=1)
     statements_per_traversal: Literal[1] = 1
+    statements_per_derivation: int = Field(default=40, ge=1, le=500)
 
 
 Window = Literal["this_month", "last_month", "this_year", "last_year", "last_30_days"]

@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from collections.abc import Callable
 from dataclasses import asdict, dataclass
-from datetime import UTC, date, datetime, timedelta
+from datetime import UTC, datetime, timedelta
 from decimal import Decimal
 from itertools import pairwise
 from typing import Any
@@ -426,14 +426,9 @@ def _document_instant(document: Document) -> datetime | None:
     """When a document says it happened, as far as it says anything."""
     if document.ordered_at:
         return document.ordered_at
-    text = document.document_date.strip()
-    try:
-        return datetime.combine(
-            date.fromisoformat(text), datetime.min.time(), tzinfo=UTC
-        )
-    except ValueError:
-        # A free-form period label is not a date. Nothing is invented from it.
+    if document.document_date is None:
         return None
+    return datetime.combine(document.document_date, datetime.min.time(), tzinfo=UTC)
 
 
 def _billing_lines(

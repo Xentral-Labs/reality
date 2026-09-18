@@ -4118,7 +4118,10 @@ limits:
   result_rows: 10000
   page_rows: 200
   statement_timeout_seconds: 30
-  statements_per_traversal: 1   # Ordinary SQL paths; finance derivations report measured bulk reads.
+  statements_per_traversal: 1     # what an ordinary path costs, and all it may cost
+  statements_per_derivation: 40   # the ceiling one canonical bulk read may reach
+                                  # before the traversal is refused. Measured today:
+                                  # 13 for finance.aging, 25 for positions.customer.
 
 
 # ---------------------------------------------------------------------------

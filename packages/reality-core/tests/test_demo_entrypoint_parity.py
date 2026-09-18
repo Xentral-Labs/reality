@@ -1,5 +1,5 @@
 import json
-from datetime import UTC, datetime, timedelta
+from datetime import UTC, date, datetime, timedelta
 from decimal import Decimal
 
 from fastapi.testclient import TestClient
@@ -123,6 +123,11 @@ def canonical_value(value, aliases, today):
         return format(value.normalize(), "f")
     if isinstance(value, datetime):
         return "<timestamp>"
+    # A calendar day compares as the text the manifest has always recorded, so the
+    # relative-day substitution below still recognises it. `datetime` is checked
+    # first because it is a `date`.
+    if isinstance(value, date):
+        value = value.isoformat()
     if isinstance(value, list):
         return [canonical_value(item, aliases, today) for item in value]
     if isinstance(value, dict):

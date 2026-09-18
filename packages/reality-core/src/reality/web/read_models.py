@@ -29,6 +29,7 @@ from reality.db.core import (
     Tenant,
 )
 from reality.db.query_order import query_order
+from reality.domain.calendar import as_day
 from reality.services.delivery_reads import effective_value, fulfillment_expressions
 from reality.services.projections import (
     MATERIALIZED_PROJECTIONS,
@@ -367,9 +368,9 @@ def document_page(
     if document_type:
         criteria.append(Document.type == document_type)
     if date_from:
-        criteria.append(Document.document_date >= date_from)
+        criteria.append(Document.document_date >= as_day(date_from))
     if date_to:
-        criteria.append(Document.document_date <= date_to)
+        criteria.append(Document.document_date <= as_day(date_to))
     if status:
         criteria.append(Document.status == status)
     if source_system:

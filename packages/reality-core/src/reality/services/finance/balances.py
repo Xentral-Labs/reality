@@ -28,8 +28,20 @@ def party_balance_rows(
     side: str,
     as_of: datetime | None = None,
     effective_before: datetime | None = None,
+    party_ids: set[str] | None = None,
+    cache: dict[Any, Any] | None = None,
 ) -> list[dict[str, Any]]:
-    """Unpaged native values; a cutoff measures effective history, not past due terms."""
+    """Unpaged native values; a cutoff measures effective history, not past due terms.
+
+    `party_ids` selects which parties are answered for. A balance is summed within
+    one party and currency and never across parties, so naming fewer of them
+    returns fewer rows and changes none of them.
+
+    `cache` lets one request derive the open-item source once when it asks for both
+    sides. The key is the exact question asked of the source, so a narrower read is
+    never handed back for a wider one, and `as_of` must be given for the two sides
+    to agree on one instant.
+    """
     core.get_tenant(session, tenant_id)
     if side not in {"customer", "supplier"}:
         raise core.InvalidOperation("Balance side must be customer or supplier.")
@@ -54,11 +66,29 @@ def party_balance_rows(
         )
 
     # Open items with the one due-date rule, the rows the overdue classes judge.
-    source = (
-        core.financial_open_items(session, tenant_id, effective_before=effective_before)
-        if effective_before
-        else core.aging_register(session, tenant_id, as_of=moment)
+    key = (
+        "open_items",
+        effective_before or moment,
+        bool(effective_before),
+        None if party_ids is None else frozenset(party_ids),
     )
+    if cache is not None and key in cache:
+        source = cache[key]
+    else:
+        source = (
+            core.financial_open_items(
+                session,
+                tenant_id,
+                effective_before=effective_before,
+                party_ids=party_ids,
+            )
+            if effective_before
+            else core.aging_register(
+                session, tenant_id, as_of=moment, party_ids=party_ids
+            )
+        )
+        if cache is not None:
+            cache[key] = source
     for row in source:
         if row["control"].account != account or row["status"] not in {
             "open",
@@ -84,6 +114,7 @@ def party_balance_rows(
         tenant_id,
         side=side,
         status="outstanding",
+        party_ids=party_ids,
         effective_before=effective_before,
     )
     for row in credit_rows:

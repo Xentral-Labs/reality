@@ -331,6 +331,7 @@ def test_explicit_due_date_and_filtered_http_registers(session, business):
     assert aging["due_date"].isoformat() == "2025-12-15"
     assert aging["days_overdue"] > 0
     from reality.services.projections import rebuild_projections
+
     rebuild_projections(session, tenant, ["open_financial_items"])
     app.dependency_overrides[database_session] = lambda: session
     try:
