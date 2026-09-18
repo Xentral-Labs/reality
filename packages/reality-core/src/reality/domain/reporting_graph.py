@@ -192,12 +192,21 @@ class Node(GraphModel):
     label: Label | None = None
 
     def column_of(self, prop: str) -> str:
+        # The key is groupable without being declared a property: it is what the
+        # node is, and grouping by it is the only way to keep two records with
+        # the same name apart.
+        if prop == self.key and prop not in self.properties:
+            return self.key
         found = self.properties.get(prop)
         if isinstance(found, Property):
             return found.column
         return found or ""
 
     def label_of(self, prop: str, language: str = "en") -> str:
+        if prop == self.key and prop not in self.properties:
+            return {"de": "Kennung", "nl": "Kenmerk", "es": "Identidad"}.get(
+                language, "Identity"
+            )
         found = self.properties.get(prop)
         return found.label.pick(language) if isinstance(found, Property) else prop
 

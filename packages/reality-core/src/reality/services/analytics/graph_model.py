@@ -236,6 +236,19 @@ def _kinds() -> dict[str, dict[str, str]]:
     return out
 
 
+def _groupable(node) -> list[str]:
+    """What a question may group by — which includes the identity.
+
+    The executor has always accepted the key: grouping by it is the only way to
+    keep two customers with the same name apart. The catalog did not say so, so
+    neither surface offered it and every grouped report silently merged them.
+    """
+    keys = set(node.properties)
+    if node.table:
+        keys.add(node.key)
+    return sorted(keys)
+
+
 def _label(carrier, fallback: str, language: str) -> str:
     """The word a person reads. Falls back to the key, which is never a lie."""
     label = getattr(carrier, "label", None)
@@ -274,8 +287,9 @@ def reporting_catalog(node: str | None = None, language: str = "en") -> dict[str
                         "kind": kinds.get(graph.nodes[name].table or "", {}).get(
                             graph.nodes[name].column_of(prop), "text"
                         ),
+                        **({"identity": True} if prop == graph.nodes[name].key else {}),
                     }
-                    for prop in sorted(graph.nodes[name].properties)
+                    for prop in _groupable(graph.nodes[name])
                 ],
                 "evidence": graph.nodes[name].evidence,
                 "measures": [

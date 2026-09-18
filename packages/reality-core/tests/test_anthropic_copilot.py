@@ -251,3 +251,55 @@ async def test_a_tool_failure_that_is_not_about_the_request_still_travels_up(
             locale="de-DE",
             timezone="Europe/Berlin",
         )
+
+
+@pytest.mark.anyio
+async def test_running_out_of_steps_says_what_was_tried(monkeypatch, session, business):
+    """ "The model exceeded the maximum number of tool steps" told nobody anything.
+
+    An acceptance run put five realistic ERP questions to the copilot and four
+    ended on that sentence. What the reader needed to know is that the question
+    was looked at repeatedly and still has no answer — which usually means part
+    of it cannot be expressed, not that another attempt would help.
+    """
+
+    class FakeClient:
+        async def __aenter__(self):
+            return self
+
+        async def __aexit__(self, *args):
+            return None
+
+        async def post(self, url, *, headers, json):
+            return FakeResponse(
+                {
+                    "content": [
+                        {
+                            "type": "tool_use",
+                            "id": "toolu_1",
+                            "name": "graph_ask",
+                            "input": {},
+                        }
+                    ]
+                }
+            )
+
+    monkeypatch.setattr(mcp_chat.httpx, "AsyncClient", lambda **kwargs: FakeClient())
+    monkeypatch.setattr(mcp_chat, "model_tool_schemas", lambda **kwargs: [])
+    monkeypatch.setattr(mcp_chat, "dispatch_tool", lambda *a, **k: {"rows": []})
+
+    reply = await mcp_chat.reply_via_anthropic_tools(
+        session=session,
+        tenant_id=business.tenant.id,
+        api_key="secret",
+        workspace_id="wrk_123",
+        history=[],
+        message="Offene Posten nach Alter",
+        language="de",
+        locale="de-DE",
+        timezone="Europe/Berlin",
+    )
+
+    assert "graph_ask" in reply, "name the tool it kept reaching for"
+    assert "cannot be expressed" in reply, "and why another attempt will not help"
+    assert "maximum number of tool steps" not in reply
