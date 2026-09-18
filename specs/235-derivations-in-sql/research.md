@@ -25,19 +25,52 @@ For comparison, on the same company and the same rows:
 The JSON round trip is not where the cost is. The cost is that the company's finance
 history becomes Python objects.
 
-## The cost is linear in the company
+## The cost, measured at the sizes that matter
 
-| finance documents | `financial_open_items` | per document |
-|---|---|---|
-| 24 | 6 ms | 260 µs |
-| 177 | 25 ms | 142 µs |
-| 688 | 84 ms | 122 µs |
-| 711 | 84 ms | 119 µs |
-| 3,430 | 454 ms | 132 µs |
+The section above profiles one company that happened to exist. These are runs of the
+repository's own fixture at the full profile, best of three samples each, statistics
+analysed, same code and same host for both sizes. `financial_count` now scales with the
+profile: a company with 10,000 orders has 10,000 invoices, where the fixture used to
+build 120 of them regardless.
 
-The first row is startup noise. From 177 documents upwards the cost per document is flat,
-so the total is linear: 2.6 s at the current 20,000 cap, 13 s at 100,000, 2.2 minutes at
-a million, 22 minutes at ten million.
+| Derivation | 10,000 | 20,000 | factor | statements |
+|---|---:|---:|---:|---:|
+| `financial_open_items` | 1,320 ms | 2,726 ms | 2.1× | 8 |
+| `aging_register` | 1,315 ms | 3,033 ms | 2.3× | 9 |
+| `party_balance_rows.customer` | 1,647 ms | 4,141 ms | 2.5× | 13 |
+| `party_balance_rows.supplier` | 1,151 ms | 3,006 ms | 2.6× | 13 |
+| `inventory_rows` | 9 ms | 31 ms | 3.5× | 4 |
+| `inventory_detail_rows` | 8 ms | 19 ms | 2.3× | 7 |
+
+Doubling the company roughly doubles the cost, a little more than doubles it in most
+rows: 132 → 136 µs per finance document for open items, 165 → 207 µs for customer
+balances. The statement counts do not move, so this is not a query issued per row; it is
+the volume each of those eight to thirteen statements carries into the process.
+
+**At the 20,000 cap where analysis refuses today, every finance derivation costs between
+2.7 and 4.1 seconds.** Extrapolating the measured rate, the 30-second statement deadline
+arrives somewhere between 150,000 and 200,000 finance documents — which spec 181's target
+of 100 to 1,000 orders a day reaches inside a year.
+
+Evidence: [`specs/033-large-tenant-register-benchmark/evidence/benchmark-result.json`]
+(../033-large-tenant-register-benchmark/evidence/benchmark-result.json) for 10,000 and
+[`evidence/derivation-cost-20000.json`](evidence/derivation-cost-20000.json) for 20,000.
+
+### Two corrections this measurement forced
+
+The first draft of this note extrapolated 130 µs per finance document from a company of
+3,430 of them and put a million documents at 2.2 minutes. The measured rate at volume is
+136 to 207 µs depending on the derivation, so the shape was right and the constant was
+optimistic for balances, which were never measured separately.
+
+The larger correction is about the instrument. A first run reported customer balances as
+**slower at 10,000 documents than at 20,000**, reproducibly across best-of-three samples.
+That is not a thing that can be true, and it was not noise: the fixture had only the
+statistics autovacuum happened to reach in time, so the planner's choice — and every
+recorded duration — depended on a race with a background daemon. With `ANALYZE` stated by
+the fixture, the same derivation fell from 4,927 ms to 1,647 ms and the curve became
+monotonic. The benchmark now states its statistics, and the reading that looked like a
+finding about `available_credit_rows` was a finding about the fixture.
 
 ## The same arithmetic as one statement
 
@@ -129,7 +162,8 @@ LEFT JOIN allocated al ON al.entry_id = c.control_id
 | 711 | 96 ms | 61 ms |
 | 3,430 | 497 ms | 47 ms |
 
-The SQL row for 3,430 documents is faster than for 688 because its cost tracks the
+These four rows come from the development-database copy, not the fixture, and are kept
+because they are the pair that proves the formulation. The SQL row for 3,430 documents is faster than for 688 because its cost tracks the
 company's total ledger volume, not its document count — the two 700-document companies
 carry more postings each. That is the point: the SQL version's cost is a fixed set of hash
 aggregates over tables that indexes and partitions can bound, where the Python version's

@@ -15,6 +15,7 @@ from reality.db.core import Tenant
 
 from .cases import run_catalog
 from .dataset import DatasetProfile, build_dataset, load_dataset, validate_dataset
+from .derivations import run_derivations
 from .report import BenchmarkResult, semantic_result, write_result
 
 
@@ -51,6 +52,18 @@ def main() -> int:
         description="Run the deterministic large-tenant register benchmark."
     )
     parser.add_argument("--profile", choices=("reduced", "full"), default="full")
+    parser.add_argument(
+        "--orders",
+        type=int,
+        default=None,
+        help="Override the full profile's order count for a scale run.",
+    )
+    parser.add_argument(
+        "--financial",
+        type=int,
+        default=None,
+        help="Override the full profile's finance-document count; defaults to --orders.",
+    )
     parser.add_argument("--seed", type=int, default=32010)
     parser.add_argument(
         "--business-date", type=date.fromisoformat, default=date(2026, 9, 1)
@@ -82,10 +95,19 @@ def main() -> int:
             is_empty=tenant_count == 0,
             reuse=args.reuse,
         )
-        profile_factory = (
-            DatasetProfile.full if args.profile == "full" else DatasetProfile.reduced
-        )
-        profile = profile_factory(seed=args.seed, business_date=args.business_date)
+        if args.profile == "full":
+            profile = DatasetProfile.full(
+                seed=args.seed,
+                business_date=args.business_date,
+                **({"order_count": args.orders} if args.orders else {}),
+                **({"financial_count": args.financial} if args.financial else {}),
+            )
+        else:
+            if args.orders or args.financial:
+                raise ValueError("Size overrides apply to the full profile only.")
+            profile = DatasetProfile.reduced(
+                seed=args.seed, business_date=args.business_date
+            )
         dataset = (
             load_dataset(session, profile)
             if args.reuse
@@ -93,6 +115,7 @@ def main() -> int:
         )
         validate_dataset(session, dataset)
         runs = [run_catalog(session, dataset) for _ in range(args.repeat)]
+        derivations = run_derivations(session, dataset)
         if any(semantic_result(run) != semantic_result(runs[0]) for run in runs[1:]):
             raise AssertionError("Repeated benchmark runs produced semantic drift.")
         schema_revision = (
@@ -104,6 +127,7 @@ def main() -> int:
         result = BenchmarkResult.from_run(
             dataset,
             runs[0],
+            derivations=derivations,
             git_revision=_revision(),
             schema_revision=str(schema_revision),
             postgresql=postgresql,
