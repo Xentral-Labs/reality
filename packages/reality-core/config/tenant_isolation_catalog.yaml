@@ -827,3 +827,7 @@ families:
       - id: tests/test_reporting_graph_isolation.py::test_a_neighbour_with_identical_labels_is_never_reached
         assertion: boundary
         operations: *reporting_graph_operations
+      - id: tests/test_reporting_graph_isolation.py::test_the_catalog_lists_only_the_asking_company_s_vocabulary
+        assertion: boundary
+        operations:
+          - tool:graph.catalog

@@ -2656,15 +2656,25 @@ language switch of the profile re-renders the texts of a run without touching it
 
 ## Declared Analytics workspace (spec 224)
 
-Analytics offers Business graph (default), Query console and My reports. Spec 221 retired
-Overview; spec 224 retired the configured Explore built on spec 185's fixed datasets, with
-its charts, pivots, contributor drill-down, CSV export and the chat analysis attachment.
-Links naming a retired view open the business graph.
+Analytics offers Business graph (default) and My reports. Spec 221 retired Overview; spec
+224 retired the configured Explore built on spec 185's fixed datasets — with its charts,
+pivots, contributor drill-down, CSV export and the chat analysis attachment — and the
+query console with it, since nobody reads a path syntax to answer a business question.
+The syntax stays reachable through `graph_ask` and the CLI. Links naming a retired view
+open the business graph.
 
-A question is built as an ordered stack of steps — start, reach, narrow, count, split, sort,
-bound — where each step offers only what the declaration makes valid at that point, and a hop
-states whether it fans out before it is taken. The console takes the Cypher-near path syntax
-and shows the statement it became. A refusal replaces the answer and names its cause.
+The page opens on the records rather than on an empty builder. Narrowing, sorting and
+bounding happen on the result: a value filters, a column header sorts, the row count sits
+under the table. Two things are asked in words — what to count and what to split it by —
+and several numbers may stand side by side. A connection is offered from everywhere the
+question has reached, since a realistic report branches; a hop states whether it fans out
+before it is taken; an axis a number may not be summed across arrives with reach rather
+than as a refusal. A refusal replaces the answer and names its cause, and an empty answer
+says whether the question named something no record carries.
+
+Not yet in the browser: `having`, `exists` and recursive depth, which the compiler
+supports and no control offers; and the path from a number to its records, which the
+retired generation had.
 
 A saved report holds the question and the model version that gave it meaning, never the
 answer; reopening re-executes it. Reports saved by the configured generation remain in
@@ -2769,8 +2779,6 @@ reason, time, expiration and self/admin mode in the existing security audit.
 Consumption is never erased. Extra questions expire at the next UTC daily reset.
 Open chat allowance refreshes after a grant; failures retain the request identity.
 
-
-
 Spec 195 FR-017 supersedes the Free Play chooser and company-picker descriptions
 above: Free Play opens directly in the company selected in the main navigation.
 There is no separate company switcher or Sandbox creation action inside Free Play.
@@ -2778,7 +2786,6 @@ The global company switch retains the Free Play route and clears the prior chat
 session, draft and evidence. The library tile and page introduction explain this
 shared context. Existing Sandboxes remain available in the main company switcher;
 normal company creation and backend compatibility services remain unchanged.
-
 
 Spec 195 FR-018: Chat is a main product feature at `/app/chat`, independent of the
 Storyline library. Former `/app/free-play` bookmarks redirect to Chat, preserving
@@ -2907,7 +2914,6 @@ The former Context Graph area is named Business Graph; the Facts navigation area
 
 Data-source columns use Source rather than Origin, in every language. Source/Sources are invariant product labels; direct metadata/settings use localized Source compounds. Source Record continues to name an individual received record; related inspection actions and payload details explicitly use that name. The provenance groups in master-data forms/details are labeled Source. Source-system names, external IDs, technical origin fields, geographical origins and software-source-code terms are not rewritten.
 
-
 ### Inspector navigation by purpose (spec 218)
 
 Business Facts contains All records, Calculated views and Fact rules. Exceptions
@@ -2916,7 +2922,6 @@ are separate Inspector destinations, replacing the ambiguous Rules and Actions
 groups. Existing Inspector rule/history/action URLs remain usable; legacy exception
 rule links open the Exceptions rule tab. Rule-to-finding links select open exceptions.
 These presentation changes reuse existing services, permissions and action confirmation.
-
 
 ### Report catalog experience (spec 219)
 
@@ -2932,7 +2937,6 @@ Report details contain the original technical definitions, code, documentation a
 known application links. Existing tenant scope, freshness/error/empty states, preview
 bounds, focus restoration and business logic remain unchanged. Copy is localized in
 English, German, Dutch and Spanish; mobile uses the same list without page overflow.
-
 
 ## Compact daily work lists (spec 220)
 
@@ -2989,7 +2993,6 @@ connection state, rate and last successful import and links to the route. Integr
 still does not embed the control panel itself. No service eligibility, tenant scope or
 write path changes.
 
-
 ## Refined workspace shell (spec 225)
 
 Company identity, switching and the existing live simulation link belong to the
@@ -3009,8 +3012,8 @@ retains company switching and global utility labels through tooltips. Mobile kee
 labeled drawer and directly reachable navigation/chat controls. Touch targets remain
 at least 44px. This supersedes earlier header placement and visual contracts only.
 
-
 ### Command palette presentation (spec 225)
+
 The global action launcher is a centered command palette, opened with Cmd+K/Ctrl+K
 or a quiet Search actions control in the sidebar company area with a shortcut hint.
 The lower navigation contains Profile only. Empty search shows the same permitted,
@@ -3022,12 +3025,14 @@ the mobile drawer is closed. Expanded, rail and mobile pointer access remain.
 Future command capabilities require a separate specification.
 
 ### Quiet shell boundaries (spec 225)
+
 Workspace and docked chat headers have no bottom rule. Sidebar separation relies
 on its background rather than a right border. Page tabs retain only their active
 indicator, without a full-width baseline. The subtle vertical content/chat divider
 remains, as do all existing content-table, list and form boundaries.
 
 ### Grouped sidebar head (spec 225)
+
 Logo and company context share the company-switcher button. Desktop collapse sits
 beside it; mobile retains Close, and the collapsed rail stacks company and expand
 controls. Search appears below as a quiet field with short visible wording and a
@@ -3037,6 +3042,7 @@ company context uses tighter spacing. Existing palette scope and simulation sema
 remain unchanged. Home remains directly available as the first navigation destination.
 
 ### Single-row tabbed headers (spec 225)
+
 Multiple register tabs replace the visible page title in the workspace header.
 Title-only pages retain it; tabbed pages retain one visually hidden page heading and
 the page-information disclosure. Existing page actions occupy a separate right-hand
@@ -3052,6 +3058,7 @@ Commitments uses the same header for Customer side / Supplier side. The active s
 shows its filtered list count once; the inactive side keeps its overview count.
 
 ### Inbox navigation (spec 225)
+
 Daily work has one Inbox sidebar entry with no aggregate badge. Its primary header
 tabs are Commitments, Exceptions and Decisions; existing queue URLs remain valid
 and select Inbox. The default destination is Commitments. Direction controls and
@@ -3061,6 +3068,7 @@ and Chat remain independent. No AI behavior, authorization or confirmation chang
 This supersedes the three individual sidebar entries and their former primary tabs.
 
 ### Empty standalone chat history (spec 225)
+
 Standalone Chat hides its conversation column when no active or archived conversations
 exist. The first successful history read per company/page visit determines automatic
 desktop visibility. Creating the first conversation does not expand the layout; an
@@ -3070,6 +3078,7 @@ of column visibility. Mobile retains explicit overlay access. Hidden portal targ
 stay mounted to preserve composer state; errors do not establish empty history.
 
 ### Continuous register surfaces (spec 225)
+
 Shared registers use an unframed surface with neutral filters, plain table headers,
 13px body text and tabular numbers. Paging sits directly below the table at the same
 width; selected-row tools appear only when rows are selected. Empty registers keep
@@ -3081,12 +3090,14 @@ Search submission, density, resizing, sorting, source links and confirmations re
 This supersedes prior framed-register and full-column fixed-footer presentation.
 
 ### Sidebar simulation indicator removal (spec 225 FR-016)
+
 The sidebar no longer shows a standalone Live simulation indicator or runs its
 dedicated status polling. Company-switcher simulation context, Integrations access
 and the existing tenant-scoped simulation control route remain unchanged. This
 supersedes earlier sidebar/header indicator placement requirements.
 
 ## Unified tool catalog (spec 226)
+
 Tools has one directory for both legacy commands/views URLs, without Actions/Calculated
 views tabs. Visible business-topic sections contain capabilities, ordered by Retrieve,
 Check and explain, Change, then Page shortcut. Search matches localized display labels

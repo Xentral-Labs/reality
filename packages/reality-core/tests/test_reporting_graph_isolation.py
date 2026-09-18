@@ -417,3 +417,52 @@ def test_the_result_is_capped_by_the_model_limit(session, business):
         },
     ).lower()
     assert "limit" in sql
+
+
+def test_the_catalog_lists_only_the_asking_company_s_vocabulary(
+    session, business, two_companies
+):
+    """The catalog began reading company data, so it joined this boundary.
+
+    Until the vocabulary of a short-value column was published, the catalog was
+    a pure reading of the declaration and could not leak anything. It now looks
+    at what the records hold, which is a query like any other and gets the same
+    predicate — and the same attack.
+    """
+    from reality.services.analytics.graph_model import reporting_catalog
+
+    neighbour = create_party(session, two_companies.id, "Acme Bikes GmbH", "company")
+    buyer = create_party(session, two_companies.id, "Müller GmbH", "customer")
+    item = create_item(session, two_companies.id, "BIKE-BELL", "Bike Bell")
+    location = create_location(session, two_companies.id, "Ingolstadt Warehouse")
+    create_manual_order(
+        session,
+        two_companies.id,
+        "sales",
+        "AN-CANARY",
+        neighbour.id,
+        buyer.id,
+        location.id,
+        [line(item, "10")],
+        "10",
+        currency="EUR",
+        ordered_at="2026-03-10T10:00:00Z",
+        document_date="2026-03-10",
+        sales_channel="fahrradladen",
+    )
+    session.flush()
+
+    def channels(tenant_id: str) -> list[str]:
+        node = reporting_catalog("order", session=session, tenant_id=tenant_id)[
+            "nodes"
+        ][0]
+        return next(
+            prop["values"]
+            for prop in node["properties"]
+            if prop["key"] == "sales_channel"
+        )
+
+    assert "fahrradladen" in channels(two_companies.id)
+    assert "fahrradladen" not in channels(business.tenant.id), (
+        "a word only the neighbour's records use must not appear here"
+    )
