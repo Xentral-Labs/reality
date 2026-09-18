@@ -1,13 +1,13 @@
 import { ToolCatalog } from "./ToolCatalog";
 import { ReportExplanation } from "./ReportExplanation";
-import type { Report } from "./reportCatalogEntries";
+import { buildReports, type Report } from "./reportCatalogEntries";
 import { ProjectionDataDialog } from "./ProjectionDataDialog";
 import { RecordGraphPage } from "./RecordGraphPage";
 import { InspectorCatalog, InspectorDisclosure } from "./InspectorCatalog";
 import { RegisterHeader } from "./RegisterWorkbench";
 import { inspectorTabs } from "./inspectorSections";
 import { OrderJourneyTimeline } from "./OrderJourneyTimeline";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { api } from "../api";
 import { t } from "../localization";
 import { InspectorRecordsPage } from "./InspectorRecordsPage";
@@ -82,6 +82,15 @@ export function RealityInspectorPage({
     [tenant, tab, query, technicalOpen],
   );
   const [report, setReport] = useState<Report | null>(null);
+  useEffect(() => {
+    setReport(
+      reference.data && selection.calculatedReport
+        ? buildReports(reference.data).find(
+            (entry) => entry.target === selection.calculatedReport,
+          ) || null
+        : null,
+    );
+  }, [reference.data, selection.calculatedReport]);
   const openGraph = (target: GraphTarget) => {
     setRoot(target);
     navigate({ inspectorView: "graph" });
@@ -232,7 +241,9 @@ export function RealityInspectorPage({
             reference={reference.data}
             tenant={tenant}
             openAction={openAction}
-            openReport={setReport}
+            initialQuery={selection.q}
+            initialCapability={selection.toolCapability}
+            openReport={(value) => navigate({ calculatedReport: value.target })}
           />
         ))}
       {needsReference && report && (
@@ -243,7 +254,10 @@ export function RealityInspectorPage({
           title={report.title}
           description={report.description}
           dataAvailable={report.dataAvailable}
-          close={() => setReport(null)}
+          close={() => {
+            setReport(null);
+            navigate({ calculatedReport: "" });
+          }}
           details={
             <ReportExplanation
               report={report}

@@ -1,3 +1,4 @@
+import { recordOpened } from "./usePaletteHistory";
 import { inspectorValue } from "./inspectorFormat";
 import { useEffect, useRef, useState } from "react";
 import { api } from "../api";
@@ -21,10 +22,23 @@ export function Inspector({
   const dialog = useRef<HTMLDialogElement>(null);
   const [selected, select] = useState(target);
   const [history, setHistory] = useState<(typeof target)[]>([]);
-  const { data, loading, error, refresh } = useRead(
-    () => api.inspector(tenant, selected.kind, selected.id),
+  const {
+    data: loaded,
+    loading,
+    error,
+    refresh,
+  } = useRead(
+    () =>
+      api
+        .inspector(tenant, selected.kind, selected.id)
+        .then((data) => ({ data, kind: selected.kind, id: selected.id })),
     [tenant, selected.kind, selected.id],
   );
+  const data =
+    loaded?.kind === selected.kind && loaded?.id === selected.id ? loaded.data : undefined;
+  useEffect(() => {
+    if (data && !loading && !error) recordOpened(tenant, selected.kind, selected.id);
+  }, [data, loading, error, tenant, selected.kind, selected.id]);
   useEffect(() => {
     const previous = document.activeElement as HTMLElement;
     const node = dialog.current;
@@ -93,7 +107,10 @@ export function InspectorContent({
   const compactMeaningIsRedundant =
     compact && meaning.includes(title) && (subtitle === "—" || meaning.includes(subtitle));
   return (
-    <div className={compact ? compactGrid : undefined}>
+    <div
+      data-compact-inspector={compact || undefined}
+      className={compact ? compactGrid : undefined}
+    >
       {compact ? (
         <header className="flex min-w-0 flex-wrap items-baseline gap-x-2 gap-y-1 md:col-span-2">
           <h2

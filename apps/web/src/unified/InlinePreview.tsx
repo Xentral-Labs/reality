@@ -1,5 +1,6 @@
 import { useEffect, useId, useRef, useState, type ReactNode } from "react";
 import { ArrowRight, ChevronDown, ChevronRight, ListFilter, Pencil, Play } from "lucide-react";
+import { recordOpened } from "./usePaletteHistory";
 import { api } from "../api";
 import { t } from "../localization";
 import { Inspector, InspectorContent } from "./Inspector";
@@ -91,7 +92,11 @@ export function TablePreview({
   return (
     <tr data-inline-preview>
       <td colSpan={columns} className="bg-surface-muted/60 p-0">
-        <div id={id} role="region" className="sticky left-0 max-w-[100cqw] p-5 sm:p-6">
+        <div
+          id={id}
+          role="region"
+          className="record-preview-content sticky left-0 max-w-[100cqw] p-5 sm:p-6"
+        >
           {children}
         </div>
       </td>
@@ -103,27 +108,42 @@ export function InlineInspector({
   tenant,
   target,
   openFull,
+  reveal = false,
   children,
 }: {
   tenant: string;
   target: { kind: string; id: string };
   openFull?: () => void;
+  reveal?: boolean;
   children?: ReactNode;
 }) {
   const [full, setFull] = useState<{ kind: string; id: string } | null>(null);
   const read = useRead(
-    () => api.inspector(tenant, target.kind, target.id, true),
+    () =>
+      api
+        .inspector(tenant, target.kind, target.id, true)
+        .then((data) => ({ data, kind: target.kind, id: target.id })),
     [tenant, target.kind, target.id],
   );
+  const detail =
+    read.data?.kind === target.kind && read.data?.id === target.id ? read.data.data : undefined;
+  useEffect(() => {
+    if (detail && !read.loading && !read.error) recordOpened(tenant, target.kind, target.id);
+  }, [read.data, read.loading, read.error, tenant, target.kind, target.id]);
+  const content = useRef<HTMLDivElement>(null);
+  const ready = !!detail;
+  useEffect(() => {
+    if (reveal && ready) content.current?.scrollIntoView({ block: "start", behavior: "instant" });
+  }, [reveal, ready, target.id, target.kind]);
   const generated = useId();
-  if (!read.data)
-    return <ReadState loading={read.loading} error={read.error} retry={read.refresh} />;
+  if (!detail) return <ReadState loading={read.loading} error={read.error} retry={read.refresh} />;
   return (
     <div
+      ref={content}
       data-inline-inspector={generated}
       className="w-full max-w-[calc(100vw-5rem)] md:max-w-none"
     >
-      <InspectorContent data={read.data} selectedKind={target.kind} follow={setFull} compact />
+      <InspectorContent data={detail} selectedKind={target.kind} follow={setFull} compact />
       <div className="mt-5 flex flex-wrap justify-end gap-2">
         <button className="br-btn" onClick={openFull || (() => setFull(target))}>
           {t("Open full explanation")}

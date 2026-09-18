@@ -237,6 +237,18 @@ test("explicitly reopening the same report reloads it while catalog navigation r
       require: (name) =>
         name === "react"
           ? {
+              useRef: (initial) => {
+                const at = cursor++;
+                if (!(at in slots)) slots[at] = { current: initial };
+                return slots[at];
+              },
+              useEffect: (effect, dependencies) => {
+                const at = cursor++;
+                if (!slots[at] || dependencies.some((value, index) => value !== slots[at][index])) {
+                  slots[at] = dependencies;
+                  effect();
+                }
+              },
               useState: (initial) => {
                 const at = cursor++;
                 if (!(at in slots)) slots[at] = initial;

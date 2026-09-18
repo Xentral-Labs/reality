@@ -130,12 +130,21 @@ export default function UnifiedApp({
         <ActionDiscoveryProvider
           key={company.id}
           tenant={company.id}
+          user={user.id}
+          companies={bootstrap.tenants}
+          switchCompany={(id) => {
+            setAction(null);
+            setActionTarget({});
+            switchCompany(id);
+          }}
+          companyName={company.name}
+          selection={selection}
           owner={company.role === "owner"}
           demo={!!(company.company_kind === "demo" || company.demo_data_state)}
           navigate={navigate}
-          open={(tool) => {
+          open={(tool, target) => {
             navigate({ proposal: "" });
-            setActionTarget({});
+            setActionTarget(target || {});
             setAction(tool);
           }}
         >

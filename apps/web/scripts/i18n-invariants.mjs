@@ -1,4 +1,5 @@
 export const invariantTerms = new Map([
+  ["Esc", "Standard Escape keyboard key label"],
   ["Cypher", "Established query-language name (spec 228)"],
   ["Inbox", "Unified daily-work product label (spec 225)"],
   ["⌘ K", "macOS command shortcut notation (spec 225)"],

@@ -1,3 +1,4 @@
+import { searchApi, type SearchHit } from "../api";
 import { PageActionBar } from "./PageActionBar";
 import {
   analysisContext,
@@ -136,6 +137,8 @@ export function ChatPage({
   }, []);
   const pendingSend = useRef<{ session: string; text: string; before: string[] } | null>(null);
   const [question, setQuestion] = useState(initialDraft);
+  const [recordContext, setRecordContext] = useState<SearchHit | null>(null);
+  useEffect(() => setRecordContext(null), [selection.tenant, selection.session]);
   const [analysis, setAnalysis] = useState<AnalysisChatContext | null>(null);
   useEffect(() => setAnalysis(null), [selection.tenant, selection.session]);
   useEffect(() => {
@@ -200,8 +203,37 @@ export function ChatPage({
     }
   };
   useEffect(() => {
-    const receive = (event: Event) => {
+    let current = true;
+    const receive = async (event: Event) => {
       const value = (event as CustomEvent).detail;
+      if (
+        dock &&
+        value?.kind === "record-search" &&
+        value.tenant === selection.tenant &&
+        typeof value.prompt === "string" &&
+        value.prompt.length <= 4000
+      ) {
+        if (sending) return;
+        try {
+          const resolved = await searchApi.resolve(selection.tenant, [value.target]);
+          if (!current) return;
+          const hit = resolved.items[0];
+          if (!hit) {
+            setFailure(t("This record is no longer available."));
+            return;
+          }
+          setRecordContext(hit);
+          setQuestion((previous) =>
+            previous.trim() ? `${previous}\n\n${value.prompt}` : value.prompt,
+          );
+          requestAnimationFrame(() =>
+            document.querySelector<HTMLTextAreaElement>("#global-chat textarea")?.focus(),
+          );
+        } catch {
+          if (current) setFailure(t("This record is no longer available."));
+        }
+        return;
+      }
       if (dock && value?.kind === "analysis" && value.tenant === selection.tenant) {
         if (sending) {
           setFailure(t("Wait for the current reply before changing the analysis context."));
@@ -245,7 +277,10 @@ export function ChatPage({
       }
     };
     window.addEventListener("reality:open-chat", receive);
-    return () => window.removeEventListener("reality:open-chat", receive);
+    return () => {
+      current = false;
+      window.removeEventListener("reality:open-chat", receive);
+    };
   }, [selection.tenant, sending, navigate]);
   useEffect(() => {
     if (!data?.allowance) return;
@@ -266,7 +301,10 @@ export function ChatPage({
       input.focus({ preventScroll: true });
   }, [sending, startingChat, loading, sessionReady, active, composerId]);
   const send = async () => {
-    const text = analysisMessage(question, analysis);
+    const recordText = recordContext
+      ? `${question}\n\nSelected record: ${recordContext.label} [${recordContext.target.record_kind}:${recordContext.target.id}]`
+      : question;
+    const text = analysisMessage(recordText, analysis);
     if (Array.from(text).length > 4000) {
       setFailure(
         t(
@@ -305,6 +343,7 @@ export function ChatPage({
           pendingSend.current = null;
           setQuestion("");
           setAnalysis(null);
+          setRecordContext(null);
           navigate({ session: pending.session });
           refresh();
           return;
@@ -342,6 +381,7 @@ export function ChatPage({
       setLiveReply({ session, text: result.assistant.content, result });
       setEcho(null);
       setAnalysis(null);
+      setRecordContext(null);
       if (session !== selection.session) navigate({ session });
     } catch (error) {
       setFailure((error as Error).message);
@@ -854,6 +894,16 @@ export function ChatPage({
         <p role="alert" className="px-4 text-sm text-critical-text">
           {failure}
         </p>
+      )}
+      {recordContext && !showArchived && (
+        <div className="flex shrink-0 items-center justify-between gap-2 border-t border-border-default px-4 py-2 text-xs text-fg-muted">
+          <span>
+            {t("Selected record")}: <span data-localization="original">{recordContext.label}</span>
+          </span>
+          <button className="br-btn" disabled={sending} onClick={() => setRecordContext(null)}>
+            {t("Remove context")}
+          </button>
+        </div>
       )}
       {analysis && !showArchived && (
         <div className="flex shrink-0 items-center justify-between gap-2 border-t border-border-default px-4 py-2 text-xs text-fg-muted">

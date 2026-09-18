@@ -9,27 +9,37 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import { api, type ApplicationReference } from "../api";
+import { api, deliveryApi, type ApplicationReference, type Tenant } from "../api";
 import { useRead } from "./useCompanyContext";
 import { ReadState } from "./ReadState";
 import { t } from "../localization";
 import {
-  entryGroup,
   isActionForm,
   menuEntries,
   type DeliveryAction,
   type DiscoveryEntry,
 } from "./actionDiscovery";
 import type { Selection } from "./routing";
+import { paletteActionPrefill, type PaletteActionTarget } from "./commandPaletteTargets";
+import type { PaletteEntry } from "./commandPaletteEntries";
+import { usePaletteHistory } from "./usePaletteHistory";
+import { CommandPalette } from "./CommandPalette";
 import type { PageAction } from "./PageActionBar";
 export type { DeliveryAction } from "./actionDiscovery";
 
-type DiscoveryContext = {
+export type DiscoveryContext = {
+  tenant: string;
+  user: string;
+  companies: Tenant[];
+  switchCompany: (id: string) => void;
+  companyName: string;
+  selection: Selection;
   data?: ApplicationReference;
   loading: boolean;
   error?: string;
   refresh: () => void;
-  open: (tool: DeliveryAction) => void;
+  open: (tool: DeliveryAction, target?: PaletteActionTarget) => void;
+  contextual: PaletteEntry[];
   navigate: (target: Partial<Selection>) => void;
   owner: boolean;
   demo: boolean;
@@ -37,6 +47,11 @@ type DiscoveryContext = {
 const Context = createContext<DiscoveryContext | null>(null);
 export function ActionDiscoveryProvider({
   tenant,
+  user,
+  companies,
+  switchCompany,
+  companyName,
+  selection,
   open,
   navigate,
   owner,
@@ -44,6 +59,11 @@ export function ActionDiscoveryProvider({
   children,
 }: {
   tenant: string;
+  user: string;
+  companies: Tenant[];
+  switchCompany: (id: string) => void;
+  companyName: string;
+  selection: Selection;
   open: DiscoveryContext["open"];
   navigate: DiscoveryContext["navigate"];
   owner: boolean;
@@ -51,8 +71,78 @@ export function ActionDiscoveryProvider({
   children: ReactNode;
 }) {
   const read = useRead(() => api.applicationReference(tenant), [tenant]);
+  usePaletteHistory(user, tenant, selection, { owner, demo });
+  const selected = useRead(
+    () =>
+      selection.commitment
+        ? deliveryApi.detail(tenant, selection.commitment)
+        : Promise.resolve(null),
+    [tenant, selection.commitment],
+  );
+  const detail =
+    !selected.loading && !selected.error && selected.data?.case.id === selection.commitment
+      ? selected.data.case
+      : null;
+  const eligible =
+    detail && (detail.type === "customer_delivery" || detail.status === "open")
+      ? menuEntries(
+          read.data,
+          detail.type === "customer_delivery" ? "commitment.customer" : "commitment.supplier",
+          { owner, demo },
+        )
+      : [];
+  const contextual: PaletteEntry[] = eligible
+    .filter(
+      (entry) =>
+        entry.form &&
+        [
+          "reserve",
+          "movement_create",
+          "receipt",
+          "commitment_hold",
+          "commitment_hold_release",
+        ].includes(entry.form),
+    )
+    .filter(
+      (entry) =>
+        entry.form !==
+        (detail?.blockers.some((blocker) => blocker.scope === "commitment")
+          ? "commitment_hold"
+          : "commitment_hold_release"),
+    )
+    .map((entry) => ({
+      key: `action:${entry.form}`,
+      group: "actions",
+      label: `${t(entry.label)} · ${selection.commitment}`,
+      aliases: [entry.label],
+      references: [selection.commitment],
+      outcome: "Open form",
+      target: {
+        kind: "action",
+        id: entry.form as DeliveryAction,
+        prefill: paletteActionPrefill(entry.form!, { commitment: selection.commitment }),
+      },
+    }));
+
   return (
-    <Context.Provider value={{ ...read, open, navigate, owner, demo }}>{children}</Context.Provider>
+    <Context.Provider
+      value={{
+        ...read,
+        tenant,
+        user,
+        companies,
+        switchCompany,
+        companyName,
+        selection,
+        open,
+        contextual,
+        navigate,
+        owner,
+        demo,
+      }}
+    >
+      {children}
+    </Context.Provider>
   );
 }
 export function useActionDiscovery() {
@@ -126,7 +216,7 @@ export function ActionLauncher({ onLaunch }: { onLaunch: () => void }) {
   const panel = useRef<HTMLDivElement>(null);
   const search = useRef<HTMLInputElement>(null);
   const returnFocus = useRef<HTMLElement | null>(null);
-  const [query, setQuery] = useState("");
+  const [generation, setGeneration] = useState(0);
   const shortcut = /Mac|iPhone|iPad/.test(navigator.platform) ? "⌘ K" : "Ctrl K";
   useEffect(() => {
     const close = () => panel.current?.hidePopover();
@@ -145,6 +235,7 @@ export function ActionLauncher({ onLaunch }: { onLaunch: () => void }) {
         event.key.toLowerCase() !== "k"
       )
         return;
+      if (event.isComposing) return;
       if (document.querySelector("dialog[open], [aria-modal='true']")) return;
       event.preventDefault();
       if (event.repeat) return;
@@ -161,88 +252,22 @@ export function ActionLauncher({ onLaunch }: { onLaunch: () => void }) {
   }, []);
   const context = useActionDiscovery();
   if (!context) return null;
-  const { data, loading, error, refresh } = context;
-  const entries = menuEntries(data, "global", context);
-  const categories = data?.discovery?.categories || [];
-  const q = query.trim().toLocaleLowerCase();
-  const grouped = categories
-    .map((c) => ({
-      ...c,
-      entries: entries.filter((e) => {
-        const group = entryGroup(data!, e);
-        const subgroup = c.groups.find((g) => g.key === group);
-        return (
-          subgroup &&
-          `${t(c.label)} ${t(subgroup.label)} ${t(e.label)} ${e.command || ""}`
-            .toLocaleLowerCase()
-            .includes(q)
-        );
-      }),
-    }))
-    .filter((c) => c.entries.length);
-  const openEntry = (entry: DiscoveryEntry, element: HTMLElement) => {
-    launch(entry, context, element);
-    onLaunch();
-  };
   const menu = (
-    <>
-      <input
-        className="br-control mb-3 w-full"
-        type="search"
-        ref={search}
-        autoFocus
-        aria-label={t("Search actions")}
-        placeholder={t("Search actions")}
-        value={query}
-        onChange={(e) => setQuery(e.target.value)}
-      />
-      {!data && <ReadState loading={loading} error={error} retry={refresh} />}
-      {grouped.map((c) => (
-        <section key={c.key} className="mb-3" aria-label={t(c.label)}>
-          <h3 className="px-3 py-2 text-xs font-semibold text-fg-muted">{t(c.label)}</h3>
-          {c.entries.map((e) => (
-            <button
-              aria-label={t(e.label)}
-              key={e.key}
-              className="block w-full rounded-lg px-3 py-2 text-left text-sm hover:bg-surface-muted"
-              onClick={(event) => openEntry(e, event.currentTarget)}
-            >
-              {t(e.label)}
-              {e.destination && <span aria-hidden="true"> ↗</span>}
-            </button>
-          ))}
-        </section>
-      ))}
-      {data && !grouped.length && (
-        <p role="status" className="p-3 text-sm text-fg-muted">
-          {t("No matching records")}
-        </p>
-      )}
-      <button
-        className="br-btn w-full"
-        onClick={(e) =>
-          openEntry(
-            {
-              key: "catalog",
-              label: "Available actions",
-              placements: [],
-              destination: { route: "inspector", inspectorView: "commands" },
-            },
-            e.currentTarget,
-          )
-        }
-      >
-        {t("Available actions")}
-      </button>
-    </>
+    <CommandPalette
+      key={generation}
+      context={context}
+      searchRef={search}
+      close={() => panel.current?.hidePopover()}
+      onLaunch={onLaunch}
+    />
   );
   return (
     <div data-action-launcher>
       <button
         type="button"
         className="shell-utility shell-command-trigger"
-        aria-label={t("Search actions")}
-        data-sidebar-tooltip={t("Search actions")}
+        aria-label={t("Search or start an action")}
+        data-sidebar-tooltip={t("Search or start an action")}
         aria-keyshortcuts="Meta+K Control+K"
         aria-haspopup="dialog"
         popoverTarget={id}
@@ -257,13 +282,13 @@ export function ActionLauncher({ onLaunch }: { onLaunch: () => void }) {
           id={id}
           popover="auto"
           role="dialog"
-          aria-label={t("Actions")}
+          aria-label={t("Search or start an action")}
           data-action-menu
           className="shell-action-menu"
           onBeforeToggle={(event) => {
             if ((event.nativeEvent as ToggleEvent).newState === "open") {
               returnFocus.current = document.activeElement as HTMLElement | null;
-              setQuery("");
+              setGeneration((value) => value + 1);
             }
           }}
           onToggle={(event) => {

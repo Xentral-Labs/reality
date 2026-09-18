@@ -1,4 +1,5 @@
-import { useEffect, useState } from "react";
+import { recordOpened } from "./usePaletteHistory";
+import { useEffect, useRef, useState } from "react";
 import { t } from "../localization";
 import { RegisterHeader, RegisterWorkbench } from "./RegisterWorkbench";
 import { DataExplorer } from "./analytics/DataExplorer";
@@ -27,19 +28,40 @@ function AnalyticsWorkspace({
   const [report, setReport] = useState<GraphReport | null>(null);
   const [draft, setDraft] = useState<{ question?: GraphQuestion; revision: number } | null>(null);
   const [templates, setTemplates] = useState(selection.analyticsView === "templates");
+  const targetKey = `${selection.analyticsReport || ""}:${selection.analyticsTemplate || ""}`;
+  const currentTarget = useRef(targetKey);
+  useEffect(() => {
+    if (currentTarget.current === targetKey) return;
+    currentTarget.current = targetKey;
+    setReport(null);
+    setDraft(null);
+    setTemplates(selection.analyticsView === "templates");
+  }, [targetKey, selection.analyticsView]);
   const view =
     selection.analyticsView === "templates" ? "graph" : selection.analyticsView || "reports";
   const open = (question?: GraphQuestion, saved: GraphReport | null = null) => {
+    currentTarget.current = ":";
     setReport(saved);
     setDraft((previous) => ({ question, revision: (previous?.revision ?? 0) + 1 }));
     setTemplates(false);
-    navigate({ analyticsView: "graph", analyticsProposal: "" });
+    navigate({
+      analyticsView: "graph",
+      analyticsProposal: "",
+      analyticsTemplate: "",
+      analyticsReport: "",
+    });
   };
   const start = () => {
+    currentTarget.current = ":";
     setReport(null);
     setDraft(null);
     setTemplates(false);
-    navigate({ analyticsView: "graph", analyticsProposal: "" });
+    navigate({
+      analyticsView: "graph",
+      analyticsProposal: "",
+      analyticsTemplate: "",
+      analyticsReport: "",
+    });
   };
   return (
     <RegisterWorkbench>
@@ -63,7 +85,16 @@ function AnalyticsWorkspace({
           ))}
         </nav>
       </RegisterHeader>
-      {view === "graph" && selection.analyticsProposal ? (
+      {view === "graph" && selection.analyticsReport && !draft ? (
+        <SavedReportAnalysis
+          tenant={selection.tenant}
+          id={selection.analyticsReport}
+          loaded={(value) => {
+            setReport(value);
+            setDraft({ question: value.definition, revision: 1 });
+          }}
+        />
+      ) : view === "graph" && selection.analyticsProposal ? (
         <ProposalAnalysis
           key={`${selection.tenant}:${selection.analyticsProposal}`}
           tenant={selection.tenant}
@@ -101,7 +132,15 @@ function AnalyticsWorkspace({
               )}
             </p>
             {(templates || selection.analyticsView === "templates") && (
-              <GraphTemplates tenant={selection.tenant} onAdopted={open} />
+              <GraphTemplates
+                tenant={selection.tenant}
+                selectedKey={selection.analyticsTemplate}
+                onAdopted={(question) => {
+                  setDraft({ question, revision: 1 });
+                  setTemplates(false);
+                  navigate({ analyticsView: "graph" });
+                }}
+              />
             )}
           </section>
         )
@@ -166,4 +205,23 @@ function ProposalAnalysis({
       {t(supported ? "Reading data…" : "This proposal cannot be opened as an analysis.")}
     </p>
   );
+}
+
+function SavedReportAnalysis({
+  tenant,
+  id,
+  loaded,
+}: {
+  tenant: string;
+  id: string;
+  loaded: (report: GraphReport) => void;
+}) {
+  const read = useRead(() => graphApi.report(tenant, id), [tenant, id]);
+  useEffect(() => {
+    if (read.data) {
+      recordOpened(tenant, "analytics_report", id);
+      loaded(read.data);
+    }
+  }, [read.data]);
+  return <ReadState loading={read.loading} error={read.error} retry={read.refresh} />;
 }

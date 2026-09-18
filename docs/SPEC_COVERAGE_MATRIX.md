@@ -1223,3 +1223,20 @@ proposes the request and a person confirms it; the proposal record carries the q
 sealed rather than in the open, because a proposal is company-visible and the question is
 the asker's; a question the model cannot express is refused when the proposal is prepared,
 not minutes later; and the tool refuses direct execution without a confirmation.
+
+## Global command palette (spec 237; implementation in progress)
+
+Feature contract: `docs/features/command-palette.md`.
+
+The following test families provide incremental evidence; they do not certify the
+remaining browser, workload and final review acceptance gates.
+
+| Test family | Requirement evidence |
+|---|---|
+| `packages/reality-core/tests/test_global_search_matching.py` | FR-007/008/021, DR-004: matching corpus, typed bounds and SQL parity |
+| `packages/reality-core/tests/test_global_search_migration.py` | DR-005: migration round trip and normalization support |
+| `packages/reality-core/tests/test_global_search_service.py` | FR-004/005/009, DR-003/004: exact records, complete pagination and canonical identity |
+| `packages/reality-core/tests/test_global_search_access.py` | FR-011/014/017: cross-tenant joins, private reports, lesson scope and cursor sessions |
+| `packages/reality-core/tests/test_global_search_web.py` | FR-004/011/012: typed read-only adapter and safe responses |
+| `packages/reality-core/tests/test_global_search_worklists.py` | FR-016: canonical overdue filtering before pagination |
+| `packages/reality-core/tests/test_global_search_benchmark.py` | SC-003: full-population risk probe and disposable dataset guards, not latency acceptance |

@@ -1,0 +1,21 @@
+[
+  {"query":"AU-12","label":"Order","references":["AU-12"],"tier":0},
+  {"query":"au-12","label":"Order","references":["AU-12"],"tier":1},
+  {"query":"Muller","label":"Müller","references":[],"tier":1},
+  {"query":"STRASSE","label":"Straße","references":[],"tier":1},
+  {"query":"cafe","label":"Café","references":[],"tier":1},
+  {"query":"factuur","label":"Factuur","references":[],"tier":1},
+  {"query":"factura","label":"Factura","references":[],"tier":1},
+  {"query":"ware","label":"Warehouse","references":[],"tier":2},
+  {"query":"north trad","label":"Northstar Trading","references":[],"tier":2},
+  {"query":"warehose","label":"Warehouse","references":[],"tier":3},
+  {"query":"warehouuse","label":"Warehouse","references":[],"tier":3},
+  {"query":"warehause","label":"Warehouse","references":[],"tier":3},
+  {"query":"warehosue","label":"Warehouse","references":[],"tier":3},
+  {"query":"warehaxse","label":"Warehouse","references":[],"tier":null},
+  {"query":"cst","label":"Cost","references":[],"tier":null},
+  {"query":"SKU-142","label":"Widget","references":["SKU-124"],"tier":null},
+  {"query":"7","label":"Seven","references":["7"],"tier":0},
+  {"query":"muller sup","label":"Müller Supplies","references":[],"tier":2},
+  {"query":"   ","label":"Anything","references":[],"tier":null}
+]

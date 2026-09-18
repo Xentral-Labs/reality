@@ -3264,3 +3264,12 @@ outside click or Escape; Close/Escape restore focus to History. The conversation
 resizes and drafts survive disclosure changes. Empty history hides the trigger until
 available. Session/archive services, tenant isolation and docked chat are unchanged.
 This supersedes FR-014 automatic desktop history expansion.
+
+## Global command palette (spec 237)
+
+The shared Command/Ctrl+K entry combines scoped record search, navigation, existing
+forms, calculated/private reports, templates and personal shortcuts. Search and
+selection do not execute business mutations. See the
+[command palette contract](features/command-palette.md) for implemented boundaries
+and [spec 237 verification](../specs/237-global-command-palette/verification.md) for
+remaining release gates, including the unpassed ten-user performance qualification.

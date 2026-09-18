@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { api } from "../api";
 import { t } from "../localization";
 import { FactsPage } from "./FactsPage";
@@ -43,6 +43,14 @@ export function InspectorRecordsPage({
       : "all");
   const kind = families.some(([key]) => key === requested) ? requested : "all";
   const [target, setTarget] = useState<Target | null>(null);
+  useEffect(() => {
+    const allowed = [...families.map(([kind]) => kind), "payment", "shipment"];
+    setTarget(
+      selection.inspectorTargetId && allowed.includes(selection.inspectorTargetKind || "")
+        ? { kind: selection.inspectorTargetKind!, id: selection.inspectorTargetId }
+        : null,
+    );
+  }, [selection.inspectorTargetKind, selection.inspectorTargetId, tenant]);
   const read = useRead(
     () =>
       kind === "fact"
@@ -220,7 +228,10 @@ export function InspectorRecordsPage({
           key={`${tenant}:${target.kind}:${target.id}`}
           tenant={tenant}
           target={target}
-          close={() => setTarget(null)}
+          close={() => {
+            setTarget(null);
+            navigate({ inspectorTargetKind: "", inspectorTargetId: "" });
+          }}
         />
       )}
     </RegisterWorkbench>

@@ -123,6 +123,7 @@ function FinanceRegister({
     account,
     balanceSide,
     creditOnly,
+    financeOverdue,
     partyId,
     q,
     page,
@@ -142,7 +143,7 @@ function FinanceRegister({
     if (view === "open-items")
       return {
         view,
-        ...(await api.openItems(tenant, q, flow, status, page, table, partyId)),
+        ...(await api.openItems(tenant, q, flow, status, page, table, partyId, financeOverdue)),
       };
     if (view === "balances")
       return {
@@ -161,6 +162,7 @@ function FinanceRegister({
     account,
     balanceSide,
     creditOnly,
+    selection.financeOverdue,
     partyId,
     q,
     page,
@@ -261,7 +263,12 @@ function FinanceRegister({
                     aria-label={t("Flow")}
                     value={flow}
                     onChange={(e) =>
-                      navigate({ flow: e.target.value as Selection["flow"], page: 1, entry: "" })
+                      navigate({
+                        flow: e.target.value as Selection["flow"],
+                        page: 1,
+                        entry: "",
+                        financeOverdue: false,
+                      })
                     }
                   >
                     <option value="receivable">{t("Receivables")}</option>
@@ -270,6 +277,18 @@ function FinanceRegister({
                     <option value="customer-balance">{t("Available customer credit")}</option>
                     <option value="supplier-balance">{t("Available supplier credit")}</option>
                   </select>
+                  {["receivable", "payable"].includes(flow) && (
+                    <label className="flex items-center gap-2 text-sm">
+                      <input
+                        type="checkbox"
+                        checked={!!selection.financeOverdue}
+                        onChange={(event) =>
+                          navigate({ financeOverdue: event.target.checked, page: 1 })
+                        }
+                      />
+                      {t("Overdue invoices")}
+                    </label>
+                  )}
                   <select
                     style={{ width: "auto", maxWidth: "100%" }}
                     className="br-control"

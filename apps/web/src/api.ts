@@ -1,4 +1,5 @@
 import { readChatStream, type ChatReply, type ChatStreamEvent } from "./chatStream";
+import { clearPalettePreferences } from "./unified/commandPalettePreferences";
 import type { SignupPreferences } from "./signupPreferences";
 
 export type CompanyProfileManifest = {
@@ -1047,6 +1048,14 @@ export type ToolCatalogMetadata = {
   }[];
 };
 export type ApplicationReference = {
+  search_vocabulary?: {
+    key: string;
+    labels: Record<string, string>;
+    synonyms: string[];
+    match: string;
+    views: string[];
+    projections: string[];
+  }[];
   tool_catalog?: ToolCatalogMetadata;
   discovery?: import("./unified/actionDiscovery").ActionDiscovery;
   commands?: CatalogCommand[];
@@ -1140,6 +1149,14 @@ async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
     headers: { Accept: "application/json", "Content-Type": "application/json", ...init.headers },
   });
   if (!response.ok) {
+    if (response.status === 401) {
+      try {
+        clearPalettePreferences(localStorage);
+      } catch {
+        /* Storage can be disabled. */
+      }
+      window.dispatchEvent(new Event("reality:session-expired"));
+    }
     const payload = await response.json().catch(() => null);
     throw new APIError(
       typeof payload?.detail === "string"
@@ -1309,7 +1326,16 @@ export const api = {
       method: "POST",
       body: JSON.stringify({ email, password }),
     }),
-  logout: () => request<void>("/api/auth/logout", { method: "POST" }),
+  logout: async () => {
+    await request<void>("/api/auth/logout", { method: "POST" });
+    try {
+      clearPalettePreferences(localStorage);
+      localStorage.setItem("reality:logout", String(Date.now()));
+    } catch {
+      /* Storage can be disabled. */
+    }
+    window.dispatchEvent(new Event("reality:session-expired"));
+  },
   updateApplication: (body: Record<string, unknown>) =>
     request<AuthUser>("/api/auth/application", { method: "PUT", body: JSON.stringify(body) }),
   updateProfile: (body: Record<string, unknown>) =>
@@ -1599,6 +1625,7 @@ export const api = {
     page = 1,
     table: TableQuery = {},
     partyId = "",
+    overdue = false,
   ) => {
     const params = new URLSearchParams({
       q: query,
@@ -1606,6 +1633,7 @@ export const api = {
       item_status: status,
       page: String(page),
     });
+    if (overdue) params.set("overdue", "true");
     if (partyId) params.set("party_id", partyId);
     return request<{
       items: OpenItemRow[];
@@ -3380,5 +3408,71 @@ export const graphApi = {
     request<GraphReport>(`/api/tenants/${tenant}/analytics/graph/reports/changes`, {
       method: "POST",
       body: JSON.stringify(body),
+    }),
+};
+
+export type SearchProvider =
+  "partners" | "items_locations" | "orders" | "finance" | "shipping" | "reality" | "reports";
+export type SearchRecordTarget = {
+  kind: "record" | "saved_report";
+  record_kind:
+    | "party"
+    | "item"
+    | "location"
+    | "document"
+    | "source_record"
+    | "commitment"
+    | "reservation"
+    | "movement"
+    | "fact"
+    | "ledger_entry"
+    | "payment"
+    | "shipment"
+    | "analytics_report";
+  id: string;
+};
+export type SearchHit = {
+  key: string;
+  family: string;
+  group: SearchProvider;
+  label: string;
+  secondary: string;
+  roles: string[];
+  target: SearchRecordTarget;
+  tier: number;
+  sort_key: [number, number, number, number, string, string, string];
+};
+export type SearchPage = {
+  items: SearchHit[];
+  has_more: boolean;
+  next_cursor: string | null;
+  provider: SearchProvider;
+  scope: string;
+};
+export const searchApi = {
+  query: (
+    tenant: string,
+    body: {
+      query: string;
+      provider: SearchProvider;
+      language: string;
+      limit?: number;
+      family?: string;
+      cursor?: string | null;
+      recent_keys?: string[];
+      context?: string[];
+    },
+    signal?: AbortSignal,
+  ) =>
+    request<SearchPage>(`/api/tenants/${encodeURIComponent(tenant)}/search/query`, {
+      method: "POST",
+      body: JSON.stringify(body),
+      signal,
+    }),
+  resolve: (tenant: string, targets: SearchRecordTarget[], signal?: AbortSignal) =>
+    request<{ items: SearchHit[] }>(`/api/tenants/${encodeURIComponent(tenant)}/search/resolve`, {
+      method: "POST",
+      body: JSON.stringify({ targets }),
+      signal,
     }),
 };
