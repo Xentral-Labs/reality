@@ -2,7 +2,7 @@ import type { Selection } from "./routing";
 
 const introductions = {
   home: {
-    title: "Home",
+    title: "Welcome",
     description: "See open commitments, exceptions and decisions across your company.",
   },
   customers: {

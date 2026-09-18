@@ -2,7 +2,7 @@ import { SidebarTooltip } from "./SidebarTooltip";
 import { isPurchasing } from "./pageIntroduction";
 import { PageActionTarget, PageCountTarget } from "./PageHeading";
 import { pageIntroduction } from "./pageIntroduction";
-import { dailyWork, isCommitmentsSelection, isInboxSelection } from "./dailyWork";
+import { dailyWork, isCommitmentsSelection, isInboxSelection, welcomeSelection } from "./dailyWork";
 import { ProfileMenu } from "./ProfileMenu";
 import { RegisterHeader, RegisterHeaderTarget } from "./RegisterWorkbench";
 import { inspectorSections, inspectorSection, inspectorTabs } from "./inspectorSections";
@@ -28,7 +28,6 @@ import {
   Boxes,
   ChartNoAxesCombined,
   LayoutGrid,
-  House,
   Inbox,
   History,
   Menu,
@@ -116,22 +115,16 @@ export function Shell({
   const inspectorIcons = [Waypoints, FileText, History, Zap];
   const destinations = [
     {
-      label: "Home",
-      target: { route: "home", proposal: "", page: 1, q: "" } as Partial<Selection>,
-      Icon: House,
-      active: selection.route === "home",
+      label: "Inbox",
+      target: welcomeSelection,
+      Icon: Inbox,
+      active: inbox,
     },
     {
       label: "Chat",
       target: { route: "chat", commitment: "", proposal: "", page: 1, q: "" } as Partial<Selection>,
       Icon: MessageSquare,
       active: selection.route === "chat",
-    },
-    {
-      label: "Inbox",
-      target: dailyWork[0].selection,
-      Icon: Inbox,
-      active: inbox,
     },
   ];
   const introduction = pageIntroduction(selection);
@@ -626,6 +619,12 @@ export function Shell({
                 {inbox && (
                   <RegisterHeader title="Inbox">
                     <nav className="register-tabs" aria-label={t("Inbox")}>
+                      <button
+                        aria-pressed={selection.route === "home"}
+                        onClick={() => navigate(welcomeSelection)}
+                      >
+                        {t("Welcome")}
+                      </button>
                       {dailyWork.map((item) => (
                         <button
                           key={item.label}

@@ -1,5 +1,12 @@
 import type { Selection } from "./routing";
 
+export const welcomeSelection = {
+  route: "home",
+  proposal: "",
+  page: 1,
+  q: "",
+} as const satisfies Partial<Selection>;
+
 export const dailyWork = [
   {
     label: "Commitments",
@@ -52,6 +59,7 @@ export function isCommitmentsSelection(selection: Selection): boolean {
 
 export function isInboxSelection(selection: Selection): boolean {
   return (
+    selection.route === "home" ||
     isCommitmentsSelection(selection) ||
     selection.route === "attention" ||
     selection.route === "decisions"

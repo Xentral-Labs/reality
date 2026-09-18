@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Activity, CheckCircle2, Circle, History } from "lucide-react";
+import { CheckCircle2, LoaderCircle, TriangleAlert, History } from "lucide-react";
 import { api, type ActivityVolume, type SystemReadiness } from "../api";
 import { formatDateTime, t } from "../localization";
 import { ActivityDrawer } from "./ActivityDrawer";
@@ -119,31 +119,31 @@ function HomePulseBody({
           ? t("Checking…")
           : t("Currently unavailable");
   return (
-    <section
-      data-home-pulse=""
-      className="overflow-hidden rounded-xl border border-border-default bg-surface"
-    >
-      <div className="flex flex-wrap items-center justify-between gap-4 border-b border-border-default p-6">
+    <section data-home-pulse="" className="min-w-0 space-y-4 text-[13px]">
+      <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h2 className="flex items-center gap-2 text-xl font-semibold text-fg-strong">
-            <Activity size={20} className="text-accent" />
-            {t("Your company, in motion")}
-          </h2>
-          <p className="mt-2 text-sm text-fg-muted">
+          <h2 className="text-sm font-medium text-fg-strong">{t("Your company, in motion")}</h2>
+          <p className="mt-1 text-xs text-fg-muted">
             {t("Recorded activity · updates every 10 seconds")}
           </p>
         </div>
-        <button className="br-btn" onClick={() => setHistory(true)}>
+        <button className="br-btn text-xs" onClick={() => setHistory(true)}>
           <History size={16} />
           {t("View all activity")}
         </button>
       </div>
       <div
-        className="flex flex-wrap items-center gap-x-6 gap-y-3 border-b border-border-default bg-surface-muted px-6 py-3 text-xs"
+        className="flex flex-wrap items-center gap-x-5 gap-y-2 text-xs"
         aria-label={t("System status")}
       >
         <p className="flex items-center gap-2 font-medium" role="status">
-          {ready ? <CheckCircle2 size={16} className="text-accent" /> : <Circle size={16} />}{" "}
+          {ready ? (
+            <CheckCircle2 size={16} className="shrink-0 text-fg-muted" aria-hidden="true" />
+          ) : !checked ? (
+            <LoaderCircle size={16} className="shrink-0 text-fg-muted" aria-hidden="true" />
+          ) : (
+            <TriangleAlert size={16} className="shrink-0 text-caution-text" aria-hidden="true" />
+          )}{" "}
           {ready
             ? t("Everything is ready")
             : !checked
@@ -162,25 +162,22 @@ function HomePulseBody({
           </span>
         ))}
       </div>
-      <div className="p-5 sm:p-6">
-        <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
-          <div className="flex flex-wrap gap-1" aria-label={t("Time range")}>
-            {(
-              [
-                [1, "24 hours"],
-                [7, "7 days"],
-                [30, "30 days"],
-              ] as const
-            ).map(([value, name]) => (
-              <button
-                key={value}
-                className={`br-btn ${days === value ? "br-btn-primary" : ""}`}
-                aria-pressed={days === value}
-                onClick={() => setDays(value)}
-              >
-                {t(name)}
-              </button>
-            ))}
+      <div>
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+          <div className="inbox-local-controls">
+            <div className="register-tabs" aria-label={t("Time range")}>
+              {(
+                [
+                  [1, "24 hours"],
+                  [7, "7 days"],
+                  [30, "30 days"],
+                ] as const
+              ).map(([value, name]) => (
+                <button key={value} aria-pressed={days === value} onClick={() => setDays(value)}>
+                  {t(name)}
+                </button>
+              ))}
+            </div>
           </div>
           <p className="text-xs text-fg-muted">
             {data ? `${t("Updated")}: ${formatDateTime(data.observed_at)}` : t("Loading…")}

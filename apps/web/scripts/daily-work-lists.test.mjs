@@ -47,19 +47,32 @@ test("incremental queue merge preserves identity without duplicate rows", async 
   );
 });
 
-test("Inbox groups only its three queue routes and preserves nested exceptions", async () => {
+test("Inbox groups Welcome and its three queue routes and preserves nested exceptions", async () => {
   const { isInboxSelection } = await load("../src/unified/dailyWork.ts");
   for (const selection of [
     { route: "orders-deliveries", ordersView: "commitments" },
     { route: "attention", attentionView: "rules" },
     { route: "decisions", proposal: "proposal-1" },
+    { route: "home" },
   ])
     assert.equal(isInboxSelection(selection), true);
   for (const selection of [
     { route: "orders-deliveries", ordersView: "customer-orders" },
     { route: "orders-deliveries", ordersView: "supplier-orders" },
-    { route: "home" },
     { route: "chat" },
   ])
     assert.equal(isInboxSelection(selection), false);
+});
+
+test("fresh entry and Welcome selection preserve company on reload", async () => {
+  const { readSelection, selectionUrl } = await load("../src/unified/routing.ts");
+  const { welcomeSelection, isInboxSelection } = await load("../src/unified/dailyWork.ts");
+  const fresh = readSelection(new URL("https://example.test/app?tenant=one"));
+  assert.equal(isInboxSelection(fresh), true);
+  assert.equal(welcomeSelection.route, fresh.route);
+  const restored = readSelection(
+    new URL(selectionUrl({ ...fresh, ...welcomeSelection }), "https://example.test"),
+  );
+  assert.equal(restored.route, "home");
+  assert.equal(restored.tenant, "one");
 });

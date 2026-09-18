@@ -190,3 +190,44 @@ transitions to capture the settled appearance. Artifacts are in
 
 ## FR-016 sidebar simulation removal
 `gmake web-build spec-check lint` PASS: 236 tests, formatting, all four localization audits, TypeScript, Vite, spec policy and Ruff. Existing bundle-size advisory only. Focused `live-simulation-header-browser.mjs` PASS for desktop, collapsed/mobile absence, zero indicator polling and retained tenant-scoped simulation route. Updated shell absence assertion failed before removal and passes afterward. No backend/schema changes; backend suite not rerun.
+
+## Inbox Welcome (FR-017–018), 2026-09-18
+
+- Scope authorized by the owner: dissolve Home into Inbox Welcome, prioritize company
+  activity and choose three supporting operational links. Spec/plan/tasks reviewed
+  before implementation: two requirements, three mapped tasks, no critical findings.
+- Test-first: daily-work membership/fresh-entry tests failed before implementation
+  (home was outside Inbox); all four focused tests pass afterward.
+- `gmake spec-check lint web-build docs-catalog-check`: PASS. Web gate includes
+  formatting, all 275 contract tests, all four-language translation audits and
+  TypeScript/Vite production build. Generated documentation has no remaining diff.
+- Home live browser: English/light/desktop complete polling, stale/error recovery,
+  hidden-tab suspension, company isolation, ranges and drilldown passed. The pointer
+  test initially hit an existing subpixel partial bucket on mobile; hover coverage
+  now uses the preceding complete bucket. `HOVER_ONLY=1` full 16-case language/theme/
+  desktop-mobile matrix passes, including independent dashboard loading, first
+  Welcome tab, active Inbox, no Home entry, content order and no writes.
+- Visually reviewed German desktop/mobile screenshots in
+  `/private/tmp/reality-graph-browser/`: activity first, three compact queue links,
+  shared header navigation, readable themes and no horizontal overflow.
+- Final scope review: HomePulse and application services untouched, no schema or
+  permissions changes. Existing landing and queue URLs preserve tenant context.
+  Backend and migration runs are not required for this adapter-only change.
+
+### Final styling and status refinement
+
+- Owner-requested FR-019 removes enclosing cards, reduces heading/body spacing,
+  reuses neutral local tabs and gives unconfirmed readiness a theme-aware caution
+  triangle. A loader marks checking; ready retains the checkmark.
+- Final full `home-live-browser.mjs`: PASS, all 16 language/theme/viewport cases,
+  including polling, stale recovery, warning icon, period preferences and
+  company switching. Desktop/mobile screenshots reviewed after the flat restyle.
+- Final `daily-work-browser.mjs`: PASS, all eight language/theme/viewport cases,
+  all three queues, filters/paging/previews, Welcome default, three shortcuts,
+  back/reload, tenant preservation and zero writes.
+- German mobile fourth-tab overflow was traced to the absolutely positioned
+  screen-reader count label; position: relative on the existing count wrapper
+  contains it in the scroll strip. The unchanged overflow assertion now passes.
+- Final gates after all changes: `gmake spec-check lint web-build docs-catalog-check`
+  PASS (275 frontend tests, four-language audit, production build, formatting and
+  generated catalog consistency). `git diff --check` PASS. T041–T045 complete.

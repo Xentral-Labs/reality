@@ -72,3 +72,17 @@ No domain, service or tool work is required by this adapter-only feature.
 - [x] T038 Update existing shell/browser assertions for absence and retained control-route access.
 - [x] T039 Remove standalone indicator, dedicated polling component and orphan styles; update web contract.
 - [x] T040 Run frontend/spec/lint and focused browser checks; review and record evidence.
+
+## Inbox Welcome (FR-017–018)
+- [x] T041 [US1] Extend apps/web/scripts/daily-work-lists.test.mjs and home-live-browser.mjs for Welcome membership, navigation, content order and retained activity.
+- [x] T042 [US1] Update apps/web/src/unified/dailyWork.ts, Shell.tsx, HomePage.tsx, pageIntroduction.ts and localization.tsx; adapt daily-work-browser.mjs.
+- [x] T043 Run frontend and browser gates, inspect screenshots, update docs/WEB_SPEC.md and docs/features/home-live-status.md, record review in verification.md.
+
+T041 precedes T042; T043 follows implementation. Both requirements map to all three
+tasks. No parallel agent work or new infrastructure is necessary.
+
+## Welcome visual consistency (FR-019)
+- [x] T044 [US1] Restyle apps/web/src/unified/HomePage.tsx, HomePulse.tsx and ActivityGraph.tsx with flat register surfaces, neutral local controls and clear status icons; contain header count labels in apps/web/src/tailwind.css.
+- [x] T045 Run frontend gates and apps/web/scripts/home-live-browser.mjs matrix, inspect desktop/mobile screenshots and record evidence in verification.md.
+
+T044 precedes T045; existing functional and browser checks cover preserved behavior.

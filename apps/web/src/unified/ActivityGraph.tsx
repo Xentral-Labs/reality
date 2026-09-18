@@ -244,7 +244,7 @@ export function ActivityGraph({
         </text>
       </svg>
       <div
-        className="mt-3 grid min-h-16 rounded-lg bg-surface-muted p-3 text-sm"
+        className="mt-3 grid min-h-16 border-t border-border-default py-3 text-[13px]"
         data-activity-summary=""
       >
         <div

@@ -156,6 +156,25 @@ try {
         const panel = page.locator("[data-home-pulse]"),
           bars = panel.locator("[data-activity-bucket]");
         await bars.first().waitFor();
+        const welcome = { en: "Welcome", de: "Willkommen", nl: "Welkom", es: "Bienvenida" }[
+          language
+        ];
+        const tabs = page.locator("[data-shell-header] .register-tabs button");
+        assert.equal(await tabs.count(), 4);
+        assert.equal(await tabs.first().innerText(), welcome);
+        assert.equal(await tabs.first().getAttribute("aria-pressed"), "true");
+        assert.equal(await page.locator('[data-primary-navigation] a[href^="/app?"]').count(), 1);
+        assert.equal(
+          await page.locator('[data-primary-navigation] a[aria-label="Home"]').count(),
+          0,
+        );
+        assert.equal(
+          await page
+            .locator('[data-primary-navigation] a[aria-label="Inbox"]')
+            .getAttribute("aria-current"),
+          "page",
+        );
+        assert.ok(await panel.evaluate((el) => el === el.parentElement.firstElementChild));
         const beforeDashboard = await panel.evaluate((el) => el.getBoundingClientRect().top);
         assert.equal(await page.locator("main .read-line").count(), 3);
         releaseDashboard();
@@ -228,7 +247,8 @@ try {
         const restingHeight = (await summary.boundingBox()).height;
         await bars.first().hover();
         assert.equal((await summary.boundingBox()).height, restingHeight, "Summary grows on hover");
-        await bars.last().hover();
+        // Use a complete bucket: the live partial bucket can be subpixel-wide.
+        await bars.nth((await bars.count()) - 2).hover();
         assert.equal(
           (await summary.boundingBox()).height,
           restingHeight,
@@ -261,6 +281,7 @@ try {
             .waitFor({ timeout: 14000 });
           assert.ok(await bars.count());
           assert.equal(await panel.getByText("Everything is ready", { exact: true }).count(), 0);
+          assert.equal(await panel.locator('[role="status"] .lucide-triangle-alert').count(), 1);
           failed = false;
           await panel.getByText("Everything is ready", { exact: true }).waitFor({ timeout: 14000 });
           await page.evaluate(() => {
@@ -294,7 +315,7 @@ try {
           );
           await bars.first().waitFor();
         }
-        await panel.scrollIntoViewIfNeeded();
+        await page.evaluate(() => window.scrollTo(0, 0));
         assert.equal(
           await page.evaluate(() => document.documentElement.scrollWidth > innerWidth),
           false,
@@ -303,6 +324,7 @@ try {
         assert.equal(writes, 0);
         await page.screenshot({
           path: `/private/tmp/reality-graph-browser/${language}-${theme}-${mobile ? "mobile" : "desktop"}.png`,
+          fullPage: true,
         });
         console.log(`PASS ${language} ${theme} ${mobile ? "mobile" : "desktop"}`);
         await page.close();

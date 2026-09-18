@@ -3794,6 +3794,7 @@ textarea.br-control.rule-draft-editor {
   white-space: nowrap;
 }
 .shell-tab-count {
+  position: relative;
   flex-shrink: 0;
   margin-left: -12px;
 }
