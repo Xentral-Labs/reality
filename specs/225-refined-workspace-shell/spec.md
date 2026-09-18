@@ -202,3 +202,42 @@ Scope review: user approved the preceding visual proposal. No business/schema ch
 
 ## Sidebar simulation removal (approved follow-up)
 FR-016: The sidebar must not display the standalone Live simulation indicator in expanded, collapsed or mobile navigation. Remove its dedicated status polling and unused presentation code. Keep the simulation control route, Integrations entry and company-switcher context unchanged. This supersedes FR-003 simulation placement only. Acceptance: a running playground company has no sidebar indicator; direct simulation controls still open with the same tenant. Scope approved by the user; no unresolved clarifications.
+
+## Inbox Welcome (approved follow-up)
+FR-017: Remove Home as a separate sidebar destination. Inbox is first, followed by
+Chat; Inbox opens its first tab, Welcome. The remaining tabs are Commitments,
+Exceptions and Decisions. The existing /app landing route becomes Inbox Welcome,
+so fresh entry, reload and existing landing links preserve company context. Explicit
+queue deep links retain their current selections. Welcome is localized in all four
+supported languages.
+
+FR-018: Welcome leads with the existing Your company, in motion panel, followed by
+exactly three compact links with service-reported open counts for Commitments,
+Exceptions and Decisions. Remove the trial questions, open-work hero, duplicate
+decisions panel and analytics shortcut from this surface. Preserve activity ranges,
+readiness, errors, polling, inspector drilldown and company isolation. Dashboard
+loading/failure must not block activity; unknown counts must not appear as zero.
+
+Acceptance (US1/US2/US3): fresh /app and Inbox navigation select Welcome; queue links,
+reload and browser history select the corresponding tab. Desktop and mobile have
+one Inbox and no Home destination. Activity appears before three queue shortcuts;
+each shortcut opens its existing queue. All languages have translated Welcome.
+Scope review: requested directly by the owner, including discretion to choose three
+or four supporting items. We choose the three existing operational queues. No open
+clarifications. This supersedes FR-013's default and separate Home placement.
+
+## Welcome visual consistency (approved follow-up)
+FR-019: Welcome uses the existing flat register design: no enclosing activity card
+or boxed queue cards, compact 13px content and a 14px medium section heading, quiet
+readiness text and neutral local time-range tabs. Keep accent color for graph data,
+not a primary selected-range button. The graph summary is unfilled, with stable
+height on hover. Queue links form a compact responsive summary separated by subtle
+rules. Preserve all FR-017–018 behavior, visible errors and accessible focus/touch
+controls. Acceptance: desktop/mobile in both themes share the register visual
+hierarchy without horizontal overflow; graph inspection does not move content.
+Owner explicitly requested matching the rest of the application after viewing Welcome.
+
+FR-019 status refinement: the owner found the hollow availability circle ambiguous.
+Use an exclamation warning icon for checked but unconfirmed readiness; retain the
+positive check icon and explicit status text. Loading retains a distinct neutral
+indicator. Color is supplementary, never the only status signal.

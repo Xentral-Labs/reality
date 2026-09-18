@@ -3231,3 +3231,23 @@ Details sit beside the chart when space permits and below on smaller screens; sc
 stays within the chart. The existing Record graph and Inspector remain unchanged.
 This supersedes spec162's five technical lanes, obligatory time-bucket pulses and
 stacked-only trace layout for the active Timeline.
+
+### Inbox Welcome (spec 225 FR-017–018)
+
+Inbox is the first daily-work destination, followed by Chat. Home is no longer a
+separate sidebar item. Inbox opens Welcome, the first of four header tabs before
+Commitments, Exceptions and Decisions. The existing /app landing URL now displays
+Welcome; explicit queue URLs preserve their selections and tenant context.
+Welcome leads with Your company, in motion and follows it with three compact queue
+count links. Trial questions, the open-work hero, duplicate decision explanation
+and analytics shortcut are removed from this surface. Activity/readiness services,
+polling, periods, errors, drilldowns and independent dashboard loading are preserved.
+This supersedes the separate Home entry and Commitments default above.
+
+Welcome styling (spec225 FR-019) follows the flat register surface: compact heading
+and readiness row, neutral local period controls, an unfilled stable graph summary
+and three queue links separated by subtle rules. No enclosing dashboard cards remain.
+Graph colors, activity semantics and confirmation boundaries are unchanged.
+Readiness uses a warning triangle for checked but unconfirmed availability, a
+neutral loading indicator while checking, and a checkmark for ready. The explicit
+text remains; warning color follows the light/dark caution theme token.

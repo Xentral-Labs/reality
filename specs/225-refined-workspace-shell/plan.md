@@ -150,3 +150,37 @@ Adapter only: update shared tailwind.css, RegisterTable.tsx, ProjectionFreshness
 
 ## FR-016 plan
 Remove the Shell indicator mount and its now-unused component and CSS. Update shell contract and browser expectations; replace retired indicator polling acceptance with absence/navigation checks. No domain/service/tool/schema changes. Constitution I–VIII PASS; existing simulation controls and tenant boundaries remain. Verify web-build, spec-check, lint and the focused browser. Rollback: revert this presentation-only commit.
+
+## FR-017–018 Inbox Welcome plan
+Preserve the internal home route and /app URL as Welcome, avoiding redirect or saved
+link migrations. Include home in dailyWork.ts Inbox membership; Shell.tsx uses a
+shared welcome selection for the first sidebar destination and first header tab.
+HomePage.tsx becomes the compact Welcome composition, keeping HomePulse.tsx intact
+and the existing dashboard reader/count links. Update pageIntroduction.ts and the
+three translated dictionaries in localization.tsx. No domain, service, tool, schema,
+permissions or source authority changes; Constitution I–VIII PASS.
+Tests first: extend daily-work-lists.test.mjs and home-live-browser.mjs for membership,
+fresh entry, selected tabs, ordering, no Home sidebar, shortcuts and back/reload.
+Adapt daily-work-browser.mjs's Inbox default expectation. Run full frontend contract
+tests, web-build, i18n audit, spec-check, lint, docs-catalog-check, Home activity and
+daily-work fixture browsers; inspect desktop/mobile screenshots. Backend/migration
+gates are inapplicable to these web/document-only paths. Rollback: revert adapters
+and documentation; no stored data or preferences change.
+
+## FR-019 visual consistency plan
+Adapter styling only in HomePage.tsx, HomePulse.tsx and ActivityGraph.tsx. Reuse
+existing inbox-local-controls/register-tabs for neutral ranges and existing button
+styles. Remove enclosing cards, muted summary fill and large heading/padding;
+retain reserved summary space and graph proportions. Constitution I–VIII PASS;
+no source/service/schema changes. Review: no ambiguities or critical findings; one
+requirement covered by T044–T045. Existing activity browser matrix covers layout,
+hover stability and semantics; no implementation-mirroring unit test is needed for
+reversible styling. Re-run frontend gates and visual matrix, inspect screenshots.
+Rollback: revert presentation changes only.
+
+FR-017 mobile verification exposed an absolutely positioned screen-reader count
+label escaping the scrollable fourth tab. Contain it within the existing tab-count
+wrapper using position: relative; preserve its accessible text. The daily-work
+browser's German mobile overflow assertion is the failing regression proof.
+FR-019 status refinement uses the existing Lucide warning icon with unchanged
+readiness conditions, and a neutral loading icon before the first read completes.

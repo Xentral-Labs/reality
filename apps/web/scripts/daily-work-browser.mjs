@@ -69,6 +69,12 @@ try {
               tenants: [{ id: "demo", name: "Northstar Demo", role: "owner" }],
               default_tenant_id: "demo",
             });
+          if (p.endsWith("/dashboard"))
+            return reply({
+              totals: { open_deliveries: 120, exceptions: 120, pending_decisions: 120 },
+            });
+          if (p.endsWith("/activity-volume") || p.endsWith("/readiness"))
+            return route.fulfill({ status: 503, body: "Unavailable in queue fixture" });
           if (p.endsWith("/copilot"))
             return reply({
               sessions: [],
@@ -179,7 +185,7 @@ try {
             await nav.locator('a[aria-label="Inbox"] [data-page-record-count]').count(),
             0,
           );
-          assert.equal(await page.locator("[data-shell-header] .register-tabs button").count(), 3);
+          assert.equal(await page.locator("[data-shell-header] .register-tabs button").count(), 4);
           assert.equal(await rows.count(), 50);
           const geometry = await rows.first().evaluate((row) => {
             const content = row.children[1];
@@ -226,7 +232,7 @@ try {
           assert.equal(await rows.first().getAttribute("aria-expanded"), "false");
           if (kind === "commitments") {
             const header = page.locator("[data-shell-header]");
-            assert.equal(await header.locator(".register-tabs button").count(), 3);
+            assert.equal(await header.locator(".register-tabs button").count(), 4);
             assert.equal(await list.locator(".register-tabs").count(), 1);
             assert.equal(
               await header.locator(".shell-tab-count [data-page-record-count]").count(),
@@ -262,7 +268,10 @@ try {
           [1, "exceptions"],
           [2, "decisions"],
         ]) {
-          await page.locator("[data-shell-header] .register-tabs button").nth(index).click();
+          await page
+            .locator("[data-shell-header] .register-tabs button")
+            .nth(index + 1)
+            .click();
           await page.locator(`[data-work-list="${kind}"] [data-work-row]`).first().waitFor();
           assert.equal(new URL(page.url()).searchParams.get("tenant"), "demo");
         }
@@ -277,7 +286,29 @@ try {
           0,
         );
         await navigation.getByRole("link", { name: "Inbox", exact: true }).click();
-        await page.locator('[data-work-list="commitments"] [data-work-row]').first().waitFor();
+        await page.locator("[data-home-pulse]").waitFor();
+        assert.equal(
+          await page
+            .locator("[data-shell-header] .register-tabs button")
+            .first()
+            .getAttribute("aria-pressed"),
+          "true",
+        );
+        const shortcuts = page.locator("main .grid > button");
+        assert.equal(await shortcuts.count(), 3);
+        for (const [index, kind] of [
+          [0, "commitments"],
+          [1, "exceptions"],
+          [2, "decisions"],
+        ]) {
+          await shortcuts.nth(index).click();
+          await page.locator(`[data-work-list="${kind}"]`).waitFor();
+          assert.equal(new URL(page.url()).searchParams.get("tenant"), "demo");
+          await page.goBack();
+          await page.locator("[data-home-pulse]").waitFor();
+        }
+        await page.reload();
+        await page.locator("[data-home-pulse]").waitFor();
         assert.equal(writes, 0);
         assert.deepEqual(errors, []);
         console.log(

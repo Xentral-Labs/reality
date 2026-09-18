@@ -70,3 +70,11 @@ most one day. It returns latest50 matching event identities, total and has_more.
 Each opens the existing event Inspector. Full history remains in Activity. Both
 reads retain normal tenant admission, require no schema or writes and expose no
 new mutation permissions. Tests: `test_activity_volume.py`, `home-live-browser.mjs`.
+
+## Inbox Welcome placement (spec 225 FR-017–018)
+
+The former Home surface now lives in Inbox's first tab, Welcome, at the same /app
+landing URL. Company activity is its first content, followed by the three existing
+operational queue counts. The activity implementation and its loading, polling,
+readiness, period preferences and inspector links are unchanged. There is no separate
+Home sidebar entry.
