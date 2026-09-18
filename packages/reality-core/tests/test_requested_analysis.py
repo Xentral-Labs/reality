@@ -6,6 +6,7 @@ deferred; a judgement about the question may not. Most of this file exists to ho
 that line.
 """
 
+import json
 from datetime import UTC, datetime, timedelta
 
 import pytest
@@ -331,3 +332,105 @@ def test_an_uncollected_answer_does_not_linger(session, business, asker, monkeyp
 
     assert analysis_requests.expire(session, business.tenant.id) == 1
     assert listing(session, business.tenant.id, user_id=asker.id)["items"] == []
+
+
+# --- FR-008: requesting as a declared, confirmed command ------------------------
+
+
+def propose_and_confirm(session, tenant_id, principal, arguments):
+    from reality.services.analytics.reports import caller
+    from reality.tools.application import (
+        approve_and_execute_proposal,
+        create_change_proposal,
+    )
+
+    with caller(principal):
+        proposal = create_change_proposal(
+            session, tenant_id, "graph.requests.create", arguments
+        )
+        executed = approve_and_execute_proposal(
+            session,
+            tenant_id,
+            proposal.id,
+            confirming_principal=principal,
+        )
+    return proposal, executed
+
+
+def test_an_agent_proposes_a_request_and_a_person_confirms_it(
+    session, business, asker, monkeypatch
+):
+    """Requesting writes something, so it is a proposal, not a read."""
+    from reality.services.memberships import Principal
+
+    _defer(monkeypatch)
+    proposal, executed = propose_and_confirm(
+        session,
+        business.tenant.id,
+        Principal(asker.id),
+        {
+            "question": question().model_dump(mode="json", by_alias=True),
+            "request_id": "agent-1",
+        },
+    )
+    assert proposal.status == "executed" or executed.status == "executed"
+    outcome = json.loads(executed.output)
+    assert outcome["state"] == "accepted"
+    assert session.query(AnalysisRequest).count() == 1
+
+
+def test_the_proposal_never_shows_the_question_to_the_company(
+    session, business, asker, monkeypatch
+):
+    """A proposal record is company-visible; the question asked is the asker's."""
+    from reality.services.analytics.reports import caller
+    from reality.services.memberships import Principal
+    from reality.tools.application import create_change_proposal
+
+    _defer(monkeypatch)
+    with caller(Principal(asker.id)):
+        proposal = create_change_proposal(
+            session,
+            business.tenant.id,
+            "graph.requests.create",
+            {
+                "question": question().model_dump(mode="json", by_alias=True),
+                "request_id": "agent-sealed",
+            },
+        )
+    stored = json.loads(proposal.input)
+    assert set(stored) == {"requested_analysis"}
+    assert "order" not in proposal.input
+
+
+def test_a_question_the_model_cannot_express_is_refused_when_proposed(
+    session, business, asker
+):
+    """Planning happens at proposal time, so the refusal reaches whoever asked."""
+    from reality.services.analytics.reports import caller
+    from reality.services.memberships import Principal
+    from reality.tools.application import create_change_proposal
+
+    with caller(Principal(asker.id)), pytest.raises(TraversalRefused) as refusal:
+        create_change_proposal(
+            session,
+            business.tenant.id,
+            "graph.requests.create",
+            {
+                "question": {
+                    "from": "no_such_node",
+                    "as": "o",
+                    "measures": ["order_count"],
+                },
+                "request_id": "agent-bad",
+            },
+        )
+    assert refusal.value.code == "unknown_node"
+
+
+def test_requesting_cannot_be_executed_without_a_confirmation(session, business):
+    from reality.services.core import InvalidOperation
+    from reality.tools.application import TOOLS
+
+    with pytest.raises(InvalidOperation, match="confirmation"):
+        TOOLS["graph.requests.create"].handler(session, business.tenant.id, {})

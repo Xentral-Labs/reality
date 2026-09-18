@@ -126,9 +126,41 @@ def post_graph_request(
     A refusal about the question still arrives here, with its code, exactly as it
     does for an immediate ask. Only cost is deferred.
     """
-    return read(
-        session, tenant_id, "graph.request", body.model_dump(mode="json"), request
-    )
+    # The web adapter carries an authenticated user who has already asked, so it
+    # reaches the service directly. An agent has not asked anybody; it proposes
+    # `graph.requests.create` and a person confirms it.
+    from reality.services.analytics.cypher_surface import parse
+    from reality.services.analytics.requests import ask
+
+    try:
+        with caller(principal(request)):
+            asked = body.question or parse(body.path or "", body.parameters)
+            outcome = ask(
+                session,
+                tenant_id,
+                question=asked,
+                user_id=principal(request).user_id if principal(request) else None,
+                request_id=body.request_id,
+            )
+    except NotFound as error:
+        raise HTTPException(404, str(error)) from error
+    except (AnalyticsError, InvalidOperation, ValidationError) as error:
+        raise HTTPException(
+            422,
+            {
+                "code": getattr(error, "code", "invalid_definition"),
+                "message": str(error),
+            },
+        ) from error
+    if outcome["state"] == "answered":
+        result = outcome["answer"]
+        return {
+            "state": "answered",
+            "rows": list(result.rows),
+            "model_version": result.model_version,
+            "statements": result.statements,
+        }
+    return outcome
 
 
 @router.get("/graph/requests")

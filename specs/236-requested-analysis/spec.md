@@ -66,9 +66,8 @@ time and company, so one large company's questions do not hold up everyone else'
 - **FR-007**: Expose state and collection as read tools on the existing analysis surfaces
   — web, tools and MCP — so a requested analysis is not a second way to ask a question.
   Requesting one is a mutation: it records a question and enqueues a run. It is therefore
-  offered on the web API in this feature, and its agent-facing form belongs in the command
-  catalog with the other mutations, with the confirmation those carry. That is FR-008 and
-  is deliberately not delivered here.
+  offered on the web API, where an authenticated person has already asked, and its
+  agent-facing form is a declared command with a confirmation. That is FR-008.
 - **FR-008**: Offer requesting an analysis as a declared command, confirmed like every
   other mutation, so an agent can ask for one without the read surface having to pretend
   that recording a question changes nothing.
@@ -103,7 +102,7 @@ feature moves the wait, not the ceiling.
 | FR-005 | US1,US4 | T004 | Result carries question, moment, model version; retention |
 | FR-006 | US1 | T005 | Deferred caps raised, immediate caps unchanged |
 | FR-007 | US1,US4 | T006 | Web request; state and collection as read tools |
-| FR-008 | US1 | T007 | Requesting offered as a confirmed command (not delivered) |
+| FR-008 | US1 | T007 | Proposed and confirmed; sealed; refused at proposal time |
 
 ## Evidence and risks
 Measured on the repository's fixture at the full profile, best of three, statistics
@@ -121,7 +120,15 @@ The application catalog refused an earlier shape of this work, correctly. Reques
 analysis had been written as a read tool, and a read may declare no side effect. Recording
 a question and enqueueing a run is a side effect, so the honest split is the one above:
 collecting and listing are reads and stay on the tool surface; requesting is a mutation and
-waits for FR-008 rather than being declared as something it is not.
+is a proposal an agent prepares and a person confirms (FR-008). The question inside that
+proposal is sealed, for the same reason a private report change is: a proposal record is
+visible to the company, and a question somebody asked is theirs. What the company sees is
+that an analysis was requested, not what was asked.
+
+The question is planned, but not executed, when the proposal is prepared. Planning is what
+turns an unknown name or an edge that fans out into a refusal, so that refusal reaches
+whoever is still looking; executing it is the expensive part and waits for the
+confirmation.
 
 The second risk is FR-003. Deciding immediate against deferred by a budget means some
 questions change behaviour as a company grows, which is a surprise unless the asker is

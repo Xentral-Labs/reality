@@ -162,7 +162,6 @@ SCHEMAS = {
     "graph.interpret": GraphInterpretRequest,
     "graph.reports.list": GraphReportsRequest,
     "graph.reports.get": GraphReportRequest,
-    "graph.request": GraphRequestedAnalysisRequest,
     "graph.requests.list": GraphRequestsRequest,
     "graph.requests.get": GraphCollectRequest,
 }
@@ -211,28 +210,14 @@ def invoke(session, tenant_id: str, name: str, arguments: dict[str, Any]) -> Any
             report_kind="graph",
         )
 
-    if name in ("graph.request", "graph.requests.list", "graph.requests.get"):
-        from reality.services.analytics.requests import ask, collect, listing
+    if name in ("graph.requests.list", "graph.requests.get"):
+        from reality.services.analytics.requests import collect, listing
 
         principal = CALLER.get()
         user_id = principal.user_id if principal else None
         if name == "graph.requests.list":
             return listing(session, tenant_id, user_id=user_id, limit=request.limit)
-        if name == "graph.requests.get":
-            return collect(
-                session, tenant_id, request.analysis_request_id, user_id=user_id
-            )
-        asked = request.question or parse(request.path or "", request.parameters)
-        outcome = ask(
-            session,
-            tenant_id,
-            question=asked,
-            user_id=user_id,
-            request_id=request.request_id,
-        )
-        if outcome["state"] == "answered":
-            return {"state": "answered", **_answer(outcome["answer"], asked)}
-        return outcome
+        return collect(session, tenant_id, request.analysis_request_id, user_id=user_id)
 
     query = request.question or parse(request.path or "", request.parameters)
     return _answer(run_traversal(session, tenant_id, query), query)

@@ -134,7 +134,8 @@
         "tool:graph_reports_list",
         "tool:graph_report_get",
         "tool:graph_requests_list",
-        "tool:graph_request_get"
+        "tool:graph_request_get",
+        "tool:graph_request_propose"
       ],
       "events": [],
       "workspace_actions": []
@@ -11739,6 +11740,343 @@
       "projections": [],
       "links": ["command:change_graph_report"],
       "label_de": "Change private graph report",
+      "resources": ["analytics"]
+    },
+    {
+      "id": "tool:graph_request_propose",
+      "kind": "tool",
+      "key": "graph_request_propose",
+      "label": "Request an analysis",
+      "area": "cross_functional",
+      "summary": "Prepare an analysis question that may be answered by the worker rather than in this call. Requires trusted authenticated user context; confirm explicitly. A question the model cannot express is refused here, not minutes later.",
+      "access": "propose",
+      "group": "Analytics",
+      "synopsis": "graph_request_propose [question] [path] [parameters] request_id",
+      "parameters": [
+        {
+          "name": "question",
+          "type": "object",
+          "required": false,
+          "description": "The whole question.",
+          "depth": 0,
+          "default": null
+        },
+        {
+          "name": "question.from",
+          "type": "string",
+          "required": true,
+          "description": "",
+          "depth": 1
+        },
+        {
+          "name": "question.as",
+          "type": "string",
+          "required": false,
+          "description": "",
+          "depth": 1,
+          "default": "root"
+        },
+        {
+          "name": "question.follow",
+          "type": "array",
+          "required": false,
+          "description": "",
+          "depth": 1,
+          "default": []
+        },
+        {
+          "name": "question.follow[].edge",
+          "type": "string",
+          "required": true,
+          "description": "",
+          "depth": 2
+        },
+        {
+          "name": "question.follow[].direction",
+          "type": "string",
+          "required": false,
+          "description": "Business flow direction, such as sales or purchase, incoming or outgoing.",
+          "depth": 2,
+          "default": "out",
+          "enum": ["out", "in"]
+        },
+        {
+          "name": "question.follow[].as",
+          "type": "string",
+          "required": true,
+          "description": "",
+          "depth": 2
+        },
+        {
+          "name": "question.follow[].from",
+          "type": "string",
+          "required": false,
+          "description": "",
+          "depth": 2,
+          "default": null
+        },
+        {
+          "name": "question.follow[].depth",
+          "type": "array",
+          "required": false,
+          "description": "",
+          "depth": 2,
+          "default": null
+        },
+        {
+          "name": "question.filter",
+          "type": "array",
+          "required": false,
+          "description": "",
+          "depth": 1,
+          "default": []
+        },
+        {
+          "name": "question.filter[].field",
+          "type": "string",
+          "required": true,
+          "description": "",
+          "depth": 2
+        },
+        {
+          "name": "question.filter[].op",
+          "type": "string",
+          "required": true,
+          "description": "",
+          "depth": 2,
+          "enum": ["eq", "ne", "in", "not_in", "lt", "lte", "gt", "gte", "is_null", "is_not_null"]
+        },
+        {
+          "name": "question.filter[].value",
+          "type": "any",
+          "required": false,
+          "description": "Scalar observation value validated and canonicalized by its predicate contract.",
+          "depth": 2,
+          "default": null
+        },
+        {
+          "name": "question.measures",
+          "type": "array",
+          "required": false,
+          "description": "",
+          "depth": 1,
+          "default": []
+        },
+        {
+          "name": "question.group_by",
+          "type": "array",
+          "required": false,
+          "description": "",
+          "depth": 1,
+          "default": []
+        },
+        {
+          "name": "question.group_by[].field",
+          "type": "string",
+          "required": true,
+          "description": "",
+          "depth": 2
+        },
+        {
+          "name": "question.group_by[].bucket",
+          "type": "string",
+          "required": false,
+          "description": "",
+          "depth": 2,
+          "default": null,
+          "enum": ["day", "week", "month", "quarter", "year"]
+        },
+        {
+          "name": "question.group_by[].as",
+          "type": "string",
+          "required": false,
+          "description": "",
+          "depth": 2,
+          "default": null
+        },
+        {
+          "name": "question.having",
+          "type": "array",
+          "required": false,
+          "description": "",
+          "depth": 1,
+          "default": []
+        },
+        {
+          "name": "question.having[].measure",
+          "type": "string",
+          "required": true,
+          "description": "",
+          "depth": 2
+        },
+        {
+          "name": "question.having[].op",
+          "type": "string",
+          "required": true,
+          "description": "",
+          "depth": 2,
+          "enum": ["eq", "ne", "lt", "lte", "gt", "gte"]
+        },
+        {
+          "name": "question.having[].value",
+          "type": "number",
+          "required": true,
+          "description": "Scalar observation value validated and canonicalized by its predicate contract.",
+          "depth": 2
+        },
+        {
+          "name": "question.exists",
+          "type": "array",
+          "required": false,
+          "description": "",
+          "depth": 1,
+          "default": []
+        },
+        {
+          "name": "question.exists[].follow",
+          "type": "array",
+          "required": true,
+          "description": "",
+          "depth": 2
+        },
+        {
+          "name": "question.exists[].follow[].edge",
+          "type": "string",
+          "required": true,
+          "description": "",
+          "depth": 3
+        },
+        {
+          "name": "question.exists[].follow[].direction",
+          "type": "string",
+          "required": false,
+          "description": "Business flow direction, such as sales or purchase, incoming or outgoing.",
+          "depth": 3,
+          "default": "out",
+          "enum": ["out", "in"]
+        },
+        {
+          "name": "question.exists[].follow[].as",
+          "type": "string",
+          "required": true,
+          "description": "",
+          "depth": 3
+        },
+        {
+          "name": "question.exists[].follow[].from",
+          "type": "string",
+          "required": false,
+          "description": "",
+          "depth": 3,
+          "default": null
+        },
+        {
+          "name": "question.exists[].follow[].depth",
+          "type": "array",
+          "required": false,
+          "description": "",
+          "depth": 3,
+          "default": null
+        },
+        {
+          "name": "question.exists[].filter",
+          "type": "array",
+          "required": false,
+          "description": "",
+          "depth": 2,
+          "default": []
+        },
+        {
+          "name": "question.exists[].filter[].field",
+          "type": "string",
+          "required": true,
+          "description": "",
+          "depth": 3
+        },
+        {
+          "name": "question.exists[].filter[].op",
+          "type": "string",
+          "required": true,
+          "description": "",
+          "depth": 3,
+          "enum": ["eq", "ne", "in", "not_in", "lt", "lte", "gt", "gte", "is_null", "is_not_null"]
+        },
+        {
+          "name": "question.exists[].filter[].value",
+          "type": "any",
+          "required": false,
+          "description": "Scalar observation value validated and canonicalized by its predicate contract.",
+          "depth": 3,
+          "default": null
+        },
+        {
+          "name": "question.exists[].negated",
+          "type": "boolean",
+          "required": false,
+          "description": "",
+          "depth": 2,
+          "default": false
+        },
+        {
+          "name": "question.order_by",
+          "type": "array",
+          "required": false,
+          "description": "",
+          "depth": 1,
+          "default": []
+        },
+        {
+          "name": "question.order_by[].by",
+          "type": "string",
+          "required": true,
+          "description": "",
+          "depth": 2
+        },
+        {
+          "name": "question.order_by[].descending",
+          "type": "boolean",
+          "required": false,
+          "description": "",
+          "depth": 2,
+          "default": false
+        },
+        {
+          "name": "question.limit",
+          "type": "integer",
+          "required": false,
+          "description": "Maximum number of records or jobs processed by this invocation.",
+          "depth": 1,
+          "default": 200
+        },
+        {
+          "name": "path",
+          "type": "string",
+          "required": false,
+          "description": "Cypher-shaped path, as the immediate ask accepts one.",
+          "depth": 0,
+          "default": null
+        },
+        {
+          "name": "parameters",
+          "type": "object",
+          "required": false,
+          "description": "",
+          "depth": 0
+        },
+        {
+          "name": "request_id",
+          "type": "string",
+          "required": true,
+          "description": "Caller-chosen identity; the same one returns the same request.",
+          "depth": 0
+        }
+      ],
+      "guidance": {},
+      "read_modes": [],
+      "command": null,
+      "projections": [],
+      "links": [],
+      "label_de": "Request an analysis",
       "resources": ["analytics"]
     },
     {

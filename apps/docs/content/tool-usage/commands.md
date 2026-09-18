@@ -5560,6 +5560,7 @@ governance tools carry proposals, discovery and missing information.
 | [`graph_report_get`](#tool-graph_report_get)                                                     | Read my graph report             | `read`    | —                      |
 | [`graph_requests_list`](#tool-graph_requests_list)                                               | List my requested analyses       | `read`    | —                      |
 | [`graph_request_get`](#tool-graph_request_get)                                                   | Collect a requested analysis     | `read`    | —                      |
+| [`graph_request_propose`](#tool-graph_request_propose)                                           | Request an analysis              | `propose` | —                      |
 
 ### `capability_describe` — Describe an agent capability {#tool-capability_describe}
 
@@ -7069,3 +7070,63 @@ Collect a requested analysis, with the question and the moment it was answered.
 | Name                  | Type     | Required | Description                                             | Default |
 | --------------------- | -------- | -------- | ------------------------------------------------------- | ------- |
 | `analysis_request_id` | `string` | yes      | Opaque ID of a requested analysis the caller asked for. | —       |
+
+### `graph_request_propose` — Request an analysis {#tool-graph_request_propose}
+
+Prepare an analysis question that may be answered by the worker rather than in this call. Requires
+trusted authenticated user context; confirm explicitly. A question the model cannot express is
+refused here, not minutes later.
+
+**Synopsis**
+
+```text
+graph_request_propose [question] [path] [parameters] request_id
+```
+
+**Access:** `propose`
+
+**Parameters**
+
+| Name                                   | Type      | Required | Description                                                                           | Default |
+| -------------------------------------- | --------- | -------- | ------------------------------------------------------------------------------------- | ------- |
+| `question`                             | `object`  | no       | The whole question.                                                                   | `None`  |
+| `question.from`                        | `string`  | yes      | —                                                                                     | —       |
+| `question.as`                          | `string`  | no       | —                                                                                     | `root`  |
+| `question.follow`                      | `array`   | no       | —                                                                                     | `[]`    |
+| `question.follow[].edge`               | `string`  | yes      | —                                                                                     | —       |
+| `question.follow[].direction`          | `string`  | no       | Business flow direction, such as sales or purchase, incoming or outgoing. `out`, `in` | `out`   |
+| `question.follow[].as`                 | `string`  | yes      | —                                                                                     | —       |
+| `question.follow[].from`               | `string`  | no       | —                                                                                     | `None`  |
+| `question.follow[].depth`              | `array`   | no       | —                                                                                     | `None`  |
+| `question.filter`                      | `array`   | no       | —                                                                                     | `[]`    |
+| `question.filter[].field`              | `string`  | yes      | —                                                                                     | —       |
+| `question.filter[].op`                 | `string`  | yes      | `eq`, `ne`, `in`, `not_in`, `lt`, `lte`, `gt`, `gte`, `is_null`, `is_not_null`        | —       |
+| `question.filter[].value`              | `any`     | no       | Scalar observation value validated and canonicalized by its predicate contract.       | `None`  |
+| `question.measures`                    | `array`   | no       | —                                                                                     | `[]`    |
+| `question.group_by`                    | `array`   | no       | —                                                                                     | `[]`    |
+| `question.group_by[].field`            | `string`  | yes      | —                                                                                     | —       |
+| `question.group_by[].bucket`           | `string`  | no       | `day`, `week`, `month`, `quarter`, `year`                                             | `None`  |
+| `question.group_by[].as`               | `string`  | no       | —                                                                                     | `None`  |
+| `question.having`                      | `array`   | no       | —                                                                                     | `[]`    |
+| `question.having[].measure`            | `string`  | yes      | —                                                                                     | —       |
+| `question.having[].op`                 | `string`  | yes      | `eq`, `ne`, `lt`, `lte`, `gt`, `gte`                                                  | —       |
+| `question.having[].value`              | `number`  | yes      | Scalar observation value validated and canonicalized by its predicate contract.       | —       |
+| `question.exists`                      | `array`   | no       | —                                                                                     | `[]`    |
+| `question.exists[].follow`             | `array`   | yes      | —                                                                                     | —       |
+| `question.exists[].follow[].edge`      | `string`  | yes      | —                                                                                     | —       |
+| `question.exists[].follow[].direction` | `string`  | no       | Business flow direction, such as sales or purchase, incoming or outgoing. `out`, `in` | `out`   |
+| `question.exists[].follow[].as`        | `string`  | yes      | —                                                                                     | —       |
+| `question.exists[].follow[].from`      | `string`  | no       | —                                                                                     | `None`  |
+| `question.exists[].follow[].depth`     | `array`   | no       | —                                                                                     | `None`  |
+| `question.exists[].filter`             | `array`   | no       | —                                                                                     | `[]`    |
+| `question.exists[].filter[].field`     | `string`  | yes      | —                                                                                     | —       |
+| `question.exists[].filter[].op`        | `string`  | yes      | `eq`, `ne`, `in`, `not_in`, `lt`, `lte`, `gt`, `gte`, `is_null`, `is_not_null`        | —       |
+| `question.exists[].filter[].value`     | `any`     | no       | Scalar observation value validated and canonicalized by its predicate contract.       | `None`  |
+| `question.exists[].negated`            | `boolean` | no       | —                                                                                     | `False` |
+| `question.order_by`                    | `array`   | no       | —                                                                                     | `[]`    |
+| `question.order_by[].by`               | `string`  | yes      | —                                                                                     | —       |
+| `question.order_by[].descending`       | `boolean` | no       | —                                                                                     | `False` |
+| `question.limit`                       | `integer` | no       | Maximum number of records or jobs processed by this invocation.                       | `200`   |
+| `path`                                 | `string`  | no       | Cypher-shaped path, as the immediate ask accepts one.                                 | `None`  |
+| `parameters`                           | `object`  | no       | —                                                                                     | —       |
+| `request_id`                           | `string`  | yes      | Caller-chosen identity; the same one returns the same request.                        | —       |
