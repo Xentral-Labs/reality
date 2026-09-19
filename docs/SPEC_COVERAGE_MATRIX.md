@@ -1288,6 +1288,14 @@ tests state what this projection cannot bound — renaming an article reaches ev
 ever made for it, including the fulfilled one, and past the ceiling the same subject makes
 the builder decline. Both fail when the article is not resolved to its promises.
 
+The timeline is where a missed record shows as a line of history that is simply absent, so
+two tests watch the producers that create records no event names — a movement correction,
+which appends a compensating and a replacement movement, and a ledger reversal, whose
+counter-entries sit in a new posting group — and both fail when the stored relation is not
+followed. A third test renames a party and insists the refresh produces no rows and speaks
+for none, because no timeline row prints a party: the one projection that can say nothing
+of its own changed, and must not re-read a company's history to say it.
+
 `packages/reality-core/tests/test_working_set.py` covers 181 FR-003: a derivation about
 open work must not read the work that is finished. Sixty more cancelled promises are added
 to a company and what every derivation reads is compared before and after. Each projection

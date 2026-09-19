@@ -35,4 +35,10 @@
     reservations resolve to promises, and the movement correction is followed for the
     same reason. It is a register, not a queue: it keeps the promise that was cancelled,
     so nothing here is bounded by open work and a wide subject declines instead.
-  - [ ] the remaining five.
+  - [x] `timeline` — the five records it prints resolve directly, an article resolves to
+    the promises, reservations and movements that print its name, and both hidden
+    producers are followed: the movement correction and the ledger reversal, whose
+    records would otherwise be missing lines of history rather than stale ones. Subjects
+    no row prints are declared rather than declined, so a window of documents and parties
+    produces nothing and speaks for nothing.
+  - [ ] the remaining four.

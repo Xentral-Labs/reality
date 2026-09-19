@@ -191,12 +191,13 @@ builder and class measurements at checkpoints, and compare two commits on the sa
   merge, the refusals, the fallback report, and the equivalence property that stands between
   an optimisation and a silently wrong projection.
 
-  **Seven of twelve builders narrow** — `journal`, `document_register`, `inventory`,
-  `item_supply_demand`, `fulfillment_queue`, `fulfillment_blockers`, `commitment_register`.
-  The remaining five evaluate the company, which is always correct and always allowed (a
-  builder may decline). What is left, in the order it is worth doing:
+  **Eight of twelve builders narrow** — `journal`, `document_register`, `inventory`,
+  `item_supply_demand`, `fulfillment_queue`, `fulfillment_blockers`, `commitment_register`,
+  `timeline`. The remaining four evaluate the company, which is always correct and always
+  allowed (a builder may decline). What is left, in the order it is worth doing:
 
-  * `timeline` (43 event types), `tenant_usage` (60) — most work, least obvious payoff.
+  * `tenant_usage` (60 event types) — the widest, and it answers about the company rather
+    than about a record, so it may have no narrowed shape at all.
   * `payments` and `open_financial_items` are poor candidates despite having the fewest event
     types: both name the *tenant* on `payments.run`, so they would decline exactly when the
     most has changed.
@@ -231,6 +232,13 @@ builder and class measurements at checkpoints, and compare two commits on the sa
   hide behind: renaming an article reaches every promise ever made for it, and past
   `MAX_NARROWED_ROWS` it declines. That is the honest shape — the cheap changes narrow, the
   wide ones are a rebuild wearing another name.
+
+  The timeline was the builder that read the company's whole history on every refresh: five
+  tables end to end. It is also the first that can answer **"nothing of mine changed"**. A
+  timeline row is one of five records and prints that record's own fields plus its article's
+  name, so a document, a party, a location or an observation — all real changes the catalog
+  rightly says invalidate it — reach no row. Such a window produces no rows and speaks for
+  none, which writes and removes nothing rather than re-reading the history.
 
   **Time-based transitions**: delivered in the part that mattered, and not in the part the
   requirement literally names. Measurement showed that two of the three projections refreshed

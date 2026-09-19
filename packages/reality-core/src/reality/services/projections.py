@@ -290,6 +290,34 @@ def _commitment_register_rows(
     }
 
 
+def _timeline_rows(
+    session: Session,
+    tenant_id: str,
+    records: dict[str, set[str]] | None = None,
+) -> dict[str, dict[str, Any]]:
+    """The timeline, for the whole company or for the named records alone.
+
+    The key carries the moment, so it is stable only because these five records never
+    move in time: `received_at`, `created_at`, `reserved_at`, `occurred_at` and
+    `effective_at` are written once and never reassigned, and none of the five is ever
+    deleted. A correction appends; it does not edit. That is what lets a narrowed
+    refresh speak for the rows it produced.
+    """
+    from reality.services.core import timeline
+
+    return {
+        f"{occurred_at.isoformat()}:{record_type}:{record_id}": {
+            "occurred_at": occurred_at,
+            "record_type": record_type,
+            "title": title,
+            "record_id": record_id,
+        }
+        for occurred_at, record_type, title, record_id in timeline(
+            session, tenant_id, records
+        )
+    }
+
+
 def _journal_row(entry) -> dict[str, Any]:
     """One journal row, so the whole company and one posting group agree on its shape."""
     return {
@@ -671,7 +699,6 @@ def _build_operational_rows(
         inventory_rows,
         journal_rows,
         tenant_usage_summaries,
-        timeline,
     )
 
     selected = set(OPERATIONAL_PROJECTIONS) if names is None else names
@@ -745,18 +772,7 @@ def _build_operational_rows(
             entry.id: _journal_row(entry) for entry in journal_rows(session, tenant_id)
         }
     if TIMELINE in selected:
-        timeline_projection = {
-            f"{occurred_at.isoformat()}:{record_type}:{record_id}": {
-                "occurred_at": occurred_at,
-                "record_type": record_type,
-                "title": title,
-                "record_id": record_id,
-            }
-            for occurred_at, record_type, title, record_id in timeline(
-                session, tenant_id
-            )
-        }
-        result[TIMELINE] = timeline_projection
+        result[TIMELINE] = _timeline_rows(session, tenant_id)
     if OPEN_FINANCIAL_ITEMS in selected:
         result[OPEN_FINANCIAL_ITEMS] = _build_financial_rows(session, tenant_id)
     if PAYMENTS in selected:
@@ -1661,6 +1677,144 @@ def _narrowed_commitment_register(
     return NarrowedRows(rows, promises)
 
 
+#: A timeline row is one of five records, and its title prints that record's own
+#: fields plus, where the record names an article, the article's name. So these are
+#: the only subjects that can change what a row says. Everything else the catalog
+#: lists against the timeline is a real business change that no row prints.
+TIMELINE_SUBJECTS = frozenset(
+    {"source_record", "commitment", "reservation", "movement", "posting_group", "item"}
+)
+#: Subjects that reach no timeline row. They are named rather than declined, because
+#: a document, a party, a location or an observation changes nothing this projection
+#: shows, and a refresh that has learned only about them has genuinely nothing to do.
+#: Adding a field to a timeline row that prints one of these makes this list wrong.
+TIMELINE_SILENT_SUBJECTS = frozenset(
+    {
+        "fact",
+        "document",
+        "party",
+        "location",
+        "lot",
+        "handling_unit",
+        "serial_unit",
+        "shipment",
+        "shipment_event",
+        "return_announcement",
+        "settlement_allocation",
+        "financial_component",
+    }
+)
+
+
+def _timeline_records(
+    session: Session, tenant_id: str, changes: ChangeSet, projection: str
+) -> dict[str, set[str]] | str:
+    """The records whose timeline rows the change set can have altered.
+
+    Two producers create a row that no event names, and both are followed here for
+    the third time in this feature: a movement correction appends its compensating
+    and replacement movements, and a ledger reversal puts its counter-entries in a
+    new posting group. Without them the timeline would simply be missing entries —
+    the quietest wrong answer a projection can give.
+
+    An article is the wide subject here: its name is printed on every promise,
+    reservation and movement ever made for it, so renaming one reaches the whole
+    history and declines past `MAX_NARROWED_ROWS`.
+    """
+    from reality.db.core import LedgerEntry, LedgerReversal, MovementCorrection
+
+    unknown = sorted(
+        set(changes.subjects or {}) - TIMELINE_SUBJECTS - TIMELINE_SILENT_SUBJECTS
+    )
+    if unknown:
+        return f"{projection} cannot narrow by {unknown[0]}"
+    sources = set(changes.ids("source_record"))
+    promises = set(changes.ids("commitment"))
+    reservations = set(changes.ids("reservation"))
+    movements = set(changes.ids("movement"))
+    groups = set(changes.ids("posting_group"))
+    if movements:
+        for original, compensating, replacement in session.execute(
+            select(
+                MovementCorrection.original_movement_id,
+                MovementCorrection.compensating_movement_id,
+                MovementCorrection.replacement_movement_id,
+            ).where(
+                MovementCorrection.tenant_id == tenant_id,
+                MovementCorrection.original_movement_id.in_(movements),
+            )
+        ).all():
+            movements.update(
+                value for value in (original, compensating, replacement) if value
+            )
+    entries: set[str] = set()
+    if groups:
+        for original, reversing in session.execute(
+            select(
+                LedgerReversal.original_posting_group_id,
+                LedgerReversal.reversing_posting_group_id,
+            ).where(
+                LedgerReversal.tenant_id == tenant_id,
+                or_(
+                    LedgerReversal.original_posting_group_id.in_(groups),
+                    LedgerReversal.reversing_posting_group_id.in_(groups),
+                ),
+            )
+        ).all():
+            groups.update((original, reversing))
+        entries.update(
+            session.scalars(
+                select(LedgerEntry.id).where(
+                    LedgerEntry.tenant_id == tenant_id,
+                    LedgerEntry.posting_group_id.in_(groups),
+                )
+            )
+        )
+    if items := changes.ids("item"):
+        for model, found in (
+            (Commitment, promises),
+            (Reservation, reservations),
+            (Movement, movements),
+        ):
+            found.update(
+                session.scalars(
+                    select(model.id).where(
+                        model.tenant_id == tenant_id, model.item_id.in_(items)
+                    )
+                )
+            )
+    records = {
+        "source_record": sources,
+        "commitment": promises,
+        "reservation": reservations,
+        "movement": movements,
+        "ledger_entry": entries,
+    }
+    total = sum(len(ids) for ids in records.values())
+    if total > MAX_NARROWED_ROWS:
+        return f"{total} records is not worth visiting one at a time"
+    return records
+
+
+def _narrowed_timeline(
+    session: Session, tenant_id: str, changes: ChangeSet
+) -> NarrowedRows | str:
+    """The timeline, for the records that changed (FR-002).
+
+    This is the builder that reads a company's whole history every time: five tables
+    end to end, every refresh. It is also the one that can answer "nothing of mine
+    changed" — a window that touched only documents and parties produces no rows and
+    speaks for none, which removes and writes nothing.
+    """
+    records = _timeline_records(session, tenant_id, changes, "the timeline")
+    if isinstance(records, str):
+        return records
+    rows = json.loads(_dump(_timeline_rows(session, tenant_id, records)))
+    # The five records never move in time and are never deleted, so a row read here
+    # is the stored row for that record and no other key can belong to it.
+    return NarrowedRows(rows, frozenset(rows))
+
+
 #: Builders that can derive by change. A projection absent from this map evaluates the
 #: company, which is always correct; one present may still decline for a change set it
 #: cannot resolve, by returning the reason instead of rows (FR-002).
@@ -1672,6 +1826,7 @@ NARROWED_BUILDERS = {
     FULFILLMENT_QUEUE: _narrowed_fulfillment_queue,
     FULFILLMENT_BLOCKERS: _narrowed_fulfillment_blockers,
     COMMITMENT_REGISTER: _narrowed_commitment_register,
+    TIMELINE: _narrowed_timeline,
 }
 
 
