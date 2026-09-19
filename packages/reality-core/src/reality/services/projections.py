@@ -317,6 +317,54 @@ def _build_payment_rows(session: Session, tenant_id: str) -> dict[str, dict[str,
     return payment_projection
 
 
+def _open_delivery_reasons(
+    commitment: Commitment,
+    shortage: Decimal,
+    commitment_holds: dict[str, Any],
+    party_holds: dict[str, Any],
+) -> list[tuple[str, str]]:
+    """Why one open promise cannot ship, by the three rules that decide it.
+
+    Written once because two paths ask it now: the company's whole open work, and
+    one article's share of it when supply and demand derives by change (FR-002). A
+    blocker that appears in one and not the other is exactly the silent wrongness
+    the equivalence property is there to catch, so there is one rule to disagree with.
+    """
+    reasons: list[tuple[str, str]] = []
+    if hold := commitment_holds.get(commitment.id):
+        reasons.append(("commitment_hold", hold.reason_code))
+    if hold := party_holds.get(commitment.to_party_id or ""):
+        reasons.append(("party_delivery_hold", hold.reason_code))
+    if shortage > 0:
+        reasons.append(("insufficient_reservation", "stock not fully reserved"))
+    return reasons
+
+
+def _supply_demand_row(
+    stock: dict[str, Any],
+    demand: Decimal,
+    uncovered: Decimal,
+    blocked_order_keys: set[str],
+) -> dict[str, Any]:
+    """One article's supply and demand, in the one shape both paths produce."""
+    item = stock["item"]
+    return {
+        "item_id": item.id,
+        "item": item.name,
+        "sku": item.sku,
+        **quantity_unit(item),
+        "physical": stock["physical"],
+        "reserved": stock["reserved"],
+        "available": stock["available"],
+        "incoming": stock["incoming"],
+        "open_customer_demand": demand,
+        "uncovered_demand": uncovered,
+        "projected": stock["projected"],
+        "blocked_order_count": len(blocked_order_keys),
+        "blocked_order_keys": sorted(blocked_order_keys),
+    }
+
+
 def _build_operational_rows(
     session: Session, tenant_id: str, names: set[str] | None = None
 ) -> dict[str, dict[str, dict[str, Any]]]:
@@ -466,15 +514,10 @@ def _build_operational_rows(
                 if not commitment.item_id:
                     continue
                 demand_by_item[commitment.item_id] += open_value
-                reasons: list[tuple[str, str]] = []
-                if hold := commitment_holds.get(commitment.id):
-                    reasons.append(("commitment_hold", hold.reason_code))
-                if hold := party_holds.get(commitment.to_party_id or ""):
-                    reasons.append(("party_delivery_hold", hold.reason_code))
+                reasons = _open_delivery_reasons(
+                    commitment, shortage, commitment_holds, party_holds
+                )
                 if shortage > 0:
-                    reasons.append(
-                        ("insufficient_reservation", "stock not fully reserved")
-                    )
                     uncovered_by_item[commitment.item_id] += shortage
                 item = items.get(commitment.item_id or "")
                 line = {
@@ -548,21 +591,12 @@ def _build_operational_rows(
         supply_demand: dict[str, dict[str, Any]] = {}
         for row in inventory_rows(session, tenant_id):
             item = row["item"]
-            supply_demand[item.id] = {
-                "item_id": item.id,
-                "item": item.name,
-                "sku": item.sku,
-                **quantity_unit(item),
-                "physical": row["physical"],
-                "reserved": row["reserved"],
-                "available": row["available"],
-                "incoming": row["incoming"],
-                "open_customer_demand": demand_by_item[item.id],
-                "uncovered_demand": uncovered_by_item[item.id],
-                "projected": row["projected"],
-                "blocked_order_count": len(blocked_orders_by_item[item.id]),
-                "blocked_order_keys": sorted(blocked_orders_by_item[item.id]),
-            }
+            supply_demand[item.id] = _supply_demand_row(
+                row,
+                demand_by_item[item.id],
+                uncovered_by_item[item.id],
+                blocked_orders_by_item[item.id],
+            )
         for name, rows in (
             (FULFILLMENT_QUEUE, queue),
             (FULFILLMENT_BLOCKERS, blockers),
@@ -948,7 +982,7 @@ def _narrowed_document_register(
 
 
 def _items_touched(
-    session: Session, tenant_id: str, changes: ChangeSet
+    session: Session, tenant_id: str, changes: ChangeSet, projection: str = "stock"
 ) -> frozenset[str] | str:
     """The articles the changed records belong to, or why they cannot be found.
 
@@ -969,7 +1003,7 @@ def _items_touched(
     known = {"item", "movement", "reservation", "commitment", "fact"}
     unknown = sorted(set(changes.subjects or {}) - known)
     if unknown:
-        return f"stock cannot narrow by {unknown[0]}"
+        return f"{projection} cannot narrow by {unknown[0]}"
     items = set(changes.ids("item"))
     movements = set(changes.ids("movement"))
     commitments = set(changes.ids("commitment"))
@@ -987,7 +1021,10 @@ def _items_touched(
             elif subject_type == "lot":
                 lots.add(subject_id)
             else:
-                return f"stock cannot narrow by an observation about a {subject_type}"
+                return (
+                    f"{projection} cannot narrow by an observation "
+                    f"about a {subject_type}"
+                )
     if movements:
         for original, compensating, replacement in session.execute(
             select(
@@ -1054,6 +1091,132 @@ def _narrowed_inventory(
     return NarrowedRows(rows, frozenset(rows))
 
 
+def _narrowed_item_supply_demand(
+    session: Session, tenant_id: str, changes: ChangeSet
+) -> NarrowedRows | str:
+    """Supply and demand, for the articles the changed records belong to (FR-002).
+
+    This projection is stock plus the open promises made against it, so it narrows by
+    the same articles stock does — with one subject stock never sees. A delivery hold
+    is placed on a **party**, and `party.delivery_hold_placed` names that party alone;
+    every article the party is still waiting for becomes blocked by it. The party is
+    therefore resolved through its open promises, the same question the register asks
+    of a party and answers with documents.
+
+    Everything else about an article is answered from that article's own records: the
+    demand is the open quantity of the promises naming it, the uncovered part is what
+    those promises have not reserved, and the blocked orders are the orders blocked on
+    it. No figure here is a share of a company-wide total, which is why one article can
+    be derived without the others.
+    """
+    from reality.services.core import commitment_terms, inventory_rows
+
+    subjects = dict(changes.subjects or {})
+    parties = set(subjects.pop("party", frozenset()))
+    items: set[str] = set()
+    if parties:
+        # A hold names the party; the promises say which articles stop moving.
+        items.update(
+            session.scalars(
+                select(Commitment.item_id).where(
+                    Commitment.tenant_id == tenant_id,
+                    Commitment.type == "customer_delivery",
+                    Commitment.status == "open",
+                    Commitment.to_party_id.in_(parties),
+                    Commitment.item_id.is_not(None),
+                )
+            )
+        )
+    touched = _items_touched(
+        session, tenant_id, ChangeSet(subjects), "supply and demand"
+    )
+    if isinstance(touched, str):
+        return touched
+    items.update(touched)
+    if not items:
+        return "no supply and demand subject resolved to an article"
+    if len(items) > MAX_NARROWED_ROWS:
+        return f"{len(items)} articles is not worth visiting one at a time"
+
+    commitments = list(
+        session.scalars(
+            select(Commitment).where(
+                Commitment.tenant_id == tenant_id,
+                Commitment.type == "customer_delivery",
+                Commitment.status == "open",
+                Commitment.item_id.in_(items),
+            )
+        )
+    )
+    commitment_ids = [row.id for row in commitments]
+    terms = commitment_terms(session, tenant_id, commitment_ids)
+    active_reservations: dict[str, Decimal] = defaultdict(Decimal)
+    commitment_holds: dict[str, Any] = {}
+    party_holds: dict[str, Any] = {}
+    if commitment_ids:
+        for reservation in session.scalars(
+            select(Reservation).where(
+                Reservation.tenant_id == tenant_id,
+                Reservation.status == "active",
+                Reservation.commitment_id.in_(commitment_ids),
+            )
+        ):
+            active_reservations[reservation.commitment_id] += reservation.quantity
+        commitment_holds = {
+            hold.commitment_id: hold
+            for hold in session.scalars(
+                select(CommitmentHold).where(
+                    CommitmentHold.tenant_id == tenant_id,
+                    CommitmentHold.commitment_id.in_(commitment_ids),
+                    CommitmentHold.released_at.is_(None),
+                )
+            )
+        }
+        if held_parties := {row.to_party_id for row in commitments} - {None}:
+            party_holds = {
+                hold.party_id: hold
+                for hold in session.scalars(
+                    select(PartyHold).where(
+                        PartyHold.tenant_id == tenant_id,
+                        PartyHold.party_id.in_(held_parties),
+                        PartyHold.hold_type == "delivery",
+                        PartyHold.released_at.is_(None),
+                    )
+                )
+            }
+    demand_by_item: dict[str, Decimal] = defaultdict(Decimal)
+    uncovered_by_item: dict[str, Decimal] = defaultdict(Decimal)
+    blocked_orders_by_item: dict[str, set[str]] = defaultdict(set)
+    for commitment in commitments:
+        open_value = terms[commitment.id].open
+        reserved = active_reservations[commitment.id]
+        shortage = max(Decimal(0), open_value - reserved)
+        demand_by_item[commitment.item_id] += open_value
+        if shortage > 0:
+            uncovered_by_item[commitment.item_id] += shortage
+        if _open_delivery_reasons(commitment, shortage, commitment_holds, party_holds):
+            # The same order key the whole-company path groups its promises by.
+            blocked_orders_by_item[commitment.item_id].add(
+                commitment.document_id or commitment.id
+            )
+    rows = json.loads(
+        _dump(
+            {
+                stock["item"].id: _supply_demand_row(
+                    stock,
+                    demand_by_item[stock["item"].id],
+                    uncovered_by_item[stock["item"].id],
+                    blocked_orders_by_item[stock["item"].id],
+                )
+                for stock in inventory_rows(session, tenant_id, item_ids=items)
+            }
+        )
+    )
+    # An Item is never deleted, so the articles read here are exactly the stored rows
+    # this refresh speaks for.
+    return NarrowedRows(rows, frozenset(rows))
+
+
 #: Builders that can derive by change. A projection absent from this map evaluates the
 #: company, which is always correct; one present may still decline for a change set it
 #: cannot resolve, by returning the reason instead of rows (FR-002).
@@ -1061,6 +1224,7 @@ NARROWED_BUILDERS = {
     JOURNAL: _narrowed_journal,
     DOCUMENT_REGISTER: _narrowed_document_register,
     INVENTORY: _narrowed_inventory,
+    ITEM_SUPPLY_DEMAND: _narrowed_item_supply_demand,
 }
 
 

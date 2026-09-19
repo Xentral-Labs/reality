@@ -191,12 +191,10 @@ builder and class measurements at checkpoints, and compare two commits on the sa
   merge, the refusals, the fallback report, and the equivalence property that stands between
   an optimisation and a silently wrong projection.
 
-  **Three of twelve builders narrow** — `journal`, `document_register`, `inventory`. The
-  remaining nine evaluate the company, which is always correct and always allowed (a builder
-  may decline). What is left, in the order it is worth doing:
+  **Four of twelve builders narrow** — `journal`, `document_register`, `inventory`,
+  `item_supply_demand`. The remaining eight evaluate the company, which is always correct
+  and always allowed (a builder may decline). What is left, in the order it is worth doing:
 
-  * `item_supply_demand` — nearly the same subjects as `inventory` and can reuse
-    `_items_touched` directly; the cheapest remaining.
   * `fulfillment_queue`, `fulfillment_blockers`, `commitment_register` — promise-shaped,
     about twenty event types each.
   * `timeline` (43 event types), `tenant_usage` (60) — most work, least obvious payoff.
@@ -213,6 +211,13 @@ builder and class measurements at checkpoints, and compare two commits on the sa
   Both were found by asking what the producing service creates that its event does not name, and
   both are pinned by tests that fail when the stored relation is not followed. Ask that question
   first of every remaining builder.
+
+  `item_supply_demand` added a second question of the same family, about reach rather than
+  creation: `party.delivery_hold_placed` names the party and nothing else, while what it stops
+  is every article that party is still waiting for. The subject is resolved through the open
+  promises, as the register resolves a party to its documents. The two paths now share the
+  blocking rules and the row shape, so the only thing a narrowed run decides for itself is
+  which promises to read.
 
   **Time-based transitions**: delivered in the part that mattered, and not in the part the
   requirement literally names. Measurement showed that two of the three projections refreshed
