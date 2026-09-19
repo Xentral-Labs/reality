@@ -10447,8 +10447,15 @@ def open_item_control_accounts(
     ]
 
 
-def payment_rows(session: OrmSession, tenant_id: str) -> list[dict[str, Any]]:
-    return _payment_rows(session, tenant_id)
+def payment_rows(
+    session: OrmSession, tenant_id: str, cash_entry_ids: set[str] | None = None
+) -> list[dict[str, Any]]:
+    """Every payment with what it settled, or the named ones alone.
+
+    `cash_entry_ids` selects rows and nothing else: a payment's allocated and
+    unallocated amounts come from its own control entry and its own allocations.
+    """
+    return _payment_rows(session, tenant_id, cash_entry_ids=cash_entry_ids)
 
 
 def _payment_rows(

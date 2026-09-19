@@ -191,16 +191,11 @@ builder and class measurements at checkpoints, and compare two commits on the sa
   merge, the refusals, the fallback report, and the equivalence property that stands between
   an optimisation and a silently wrong projection.
 
-  **Nine of twelve builders narrow** — `journal`, `document_register`, `inventory`,
+  **Ten of twelve builders narrow** — `journal`, `document_register`, `inventory`,
   `item_supply_demand`, `fulfillment_queue`, `fulfillment_blockers`, `commitment_register`,
-  `timeline`, `open_financial_items`. The remaining three evaluate the company, which is
-  always correct and always allowed (a builder may decline). What is left, in the order it
-  is worth doing:
+  `timeline`, `open_financial_items`, `payments`. The remaining two evaluate the company,
+  which is always correct and always allowed (a builder may decline). What is left:
 
-  * `payments`, the other half of the pair this specification called poor candidates. The
-    open items proved the judgement half wrong: a payment run names the tenant and is
-    declined, but every other window resolves to documents and narrows. `payments` is keyed
-    by cash entry rather than by document and is worth the same look.
   * `tenant_usage` (60 event types) — the widest, and it answers about the company rather
     than about a record, so it may have no narrowed shape at all.
   * `exceptions` (37) is the largest and needs its own design, because its evaluation loads
@@ -261,6 +256,15 @@ builder and class measurements at checkpoints, and compare two commits on the sa
   word `reversed` comes from the stored relation. Two lookups of the same shape, one
   necessary and one not — which is why each is decided by watching a test fail rather than
   by symmetry.
+
+  `payments` completed that correction: the pair this specification wrote off both narrow.
+  Its own lesson is about a subject that points one record short of the row. A settlement
+  allocation names the *control* entry of a payment's posting group, while the row is the
+  cash entry beside it, so the resolution takes a second hop through the group. Stopping at
+  the named entry leaves the payment's allocated amount stale, which is the figure the
+  projection exists to show. And the allocation hop runs in both directions here too:
+  reversing an **invoice's** posting group gives the payment back what it had allocated,
+  and that group holds no cash entry at all.
 
   **Time-based transitions**: delivered in the part that mattered, and not in the part the
   requirement literally names. Measurement showed that two of the three projections refreshed
