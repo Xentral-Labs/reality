@@ -170,6 +170,33 @@ def _replace_rows(
     checkpoint.updated_at = stamp
 
 
+def _inventory_rows(
+    session: Session, tenant_id: str, item_ids: frozenset[str] | set[str] | None = None
+) -> dict[str, dict[str, Any]]:
+    """Stock, for the whole company or for named articles alone."""
+    from reality.services.core import inventory_rows
+
+    return {
+        row["item"].id: {
+            "item_id": row["item"].id,
+            "item": row["item"].name,
+            "sku": row["item"].sku,
+            **quantity_unit(row["item"]),
+            "aggregation": "item_all_locations",
+            "physical": row["physical"],
+            "reserved": row["reserved"],
+            "available": row["available"],
+            "incoming": row["incoming"],
+            "projected": row["projected"],
+            "receipt_ids": [movement.id for movement in row["receipts"]],
+            "issue_ids": [movement.id for movement in row["issues"]],
+        }
+        for row in inventory_rows(
+            session, tenant_id, item_ids=set(item_ids) if item_ids is not None else None
+        )
+    }
+
+
 def _document_register_rows(
     session: Session,
     tenant_id: str,
@@ -509,24 +536,7 @@ def _build_operational_rows(
             if name in selected:
                 result[name] = rows
     if INVENTORY in selected:
-        inventory_projection = {
-            row["item"].id: {
-                "item_id": row["item"].id,
-                "item": row["item"].name,
-                "sku": row["item"].sku,
-                **quantity_unit(row["item"]),
-                "aggregation": "item_all_locations",
-                "physical": row["physical"],
-                "reserved": row["reserved"],
-                "available": row["available"],
-                "incoming": row["incoming"],
-                "projected": row["projected"],
-                "receipt_ids": [movement.id for movement in row["receipts"]],
-                "issue_ids": [movement.id for movement in row["issues"]],
-            }
-            for row in inventory_rows(session, tenant_id)
-        }
-        result[INVENTORY] = inventory_projection
+        result[INVENTORY] = _inventory_rows(session, tenant_id)
     if EXCEPTIONS in selected:
         from reality.services.exceptions import operational_exception_rows
 
@@ -891,12 +901,120 @@ def _narrowed_document_register(
     return NarrowedRows(rows, frozenset(rows))
 
 
+def _items_touched(
+    session: Session, tenant_id: str, changes: ChangeSet
+) -> frozenset[str] | str:
+    """The articles the changed records belong to, or why they cannot be found.
+
+    Every frequent subject that reaches a stock projection carries an article: a
+    movement, a reservation, a promise, an observation about one of those. A location,
+    a master-data lifecycle change and the tenant do not, and are declined — they are
+    rare enough that evaluating the company for them costs little.
+
+    The trap here is the same shape as the ledger reversal, in a different service.
+    `movement.corrected` names the **original** movement, while the compensating and
+    replacement movements it creates are appended with `emit_recorded_event=False` —
+    no event names them, and a replacement may carry a *different* article than the
+    one that was corrected. Narrowing on the named movement alone leaves that article
+    stale. The stored correction is followed instead.
+    """
+    from reality.db.core import Fact, Lot, Movement, MovementCorrection
+
+    known = {"item", "movement", "reservation", "commitment", "fact"}
+    unknown = sorted(set(changes.subjects or {}) - known)
+    if unknown:
+        return f"stock cannot narrow by {unknown[0]}"
+    items = set(changes.ids("item"))
+    movements = set(changes.ids("movement"))
+    commitments = set(changes.ids("commitment"))
+    lots: set[str] = set()
+    if facts := changes.ids("fact"):
+        for subject_type, subject_id in session.execute(
+            select(Fact.subject_type, Fact.subject_id).where(
+                Fact.tenant_id == tenant_id, Fact.id.in_(facts)
+            )
+        ).all():
+            if subject_type == "movement":
+                movements.add(subject_id)
+            elif subject_type == "commitment":
+                commitments.add(subject_id)
+            elif subject_type == "lot":
+                lots.add(subject_id)
+            else:
+                return f"stock cannot narrow by an observation about a {subject_type}"
+    if movements:
+        for original, compensating, replacement in session.execute(
+            select(
+                MovementCorrection.original_movement_id,
+                MovementCorrection.compensating_movement_id,
+                MovementCorrection.replacement_movement_id,
+            ).where(
+                MovementCorrection.tenant_id == tenant_id,
+                MovementCorrection.original_movement_id.in_(movements),
+            )
+        ).all():
+            movements.update(
+                value for value in (original, compensating, replacement) if value
+            )
+        items.update(
+            session.scalars(
+                select(Movement.item_id).where(
+                    Movement.tenant_id == tenant_id, Movement.id.in_(movements)
+                )
+            )
+        )
+    if reservations := changes.ids("reservation"):
+        items.update(
+            session.scalars(
+                select(Reservation.item_id).where(
+                    Reservation.tenant_id == tenant_id,
+                    Reservation.id.in_(reservations),
+                )
+            )
+        )
+    if commitments:
+        items.update(
+            session.scalars(
+                select(Commitment.item_id).where(
+                    Commitment.tenant_id == tenant_id,
+                    Commitment.id.in_(commitments),
+                    Commitment.item_id.is_not(None),
+                )
+            )
+        )
+    if lots:
+        items.update(
+            session.scalars(
+                select(Lot.item_id).where(Lot.tenant_id == tenant_id, Lot.id.in_(lots))
+            )
+        )
+    return frozenset(items)
+
+
+def _narrowed_inventory(
+    session: Session, tenant_id: str, changes: ChangeSet
+) -> NarrowedRows | str:
+    """Stock, for the articles the changed records belong to (FR-002)."""
+    items = _items_touched(session, tenant_id, changes)
+    if isinstance(items, str):
+        return items
+    if not items:
+        return "no stock subject resolved to an article"
+    if len(items) > MAX_NARROWED_ROWS:
+        return f"{len(items)} articles is not worth visiting one at a time"
+    rows = json.loads(_dump(_inventory_rows(session, tenant_id, items)))
+    # An Item is never deleted, so the articles read here are exactly the stored rows
+    # this refresh speaks for.
+    return NarrowedRows(rows, frozenset(rows))
+
+
 #: Builders that can derive by change. A projection absent from this map evaluates the
 #: company, which is always correct; one present may still decline for a change set it
 #: cannot resolve, by returning the reason instead of rows (FR-002).
 NARROWED_BUILDERS = {
     JOURNAL: _narrowed_journal,
     DOCUMENT_REGISTER: _narrowed_document_register,
+    INVENTORY: _narrowed_inventory,
 }
 
 

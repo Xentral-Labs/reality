@@ -583,3 +583,147 @@ def test_a_promise_made_against_an_existing_order_updates_that_order_row(
 
     projections.refresh_operational_projections(session, tenant, force=True)
     assert _register(session, tenant)[order.id]["commitment_ids"] != []
+
+
+# --- the third builder: stock (FR-002) -------------------------------------------
+
+
+def _stock(session, tenant_id):
+    return {
+        key: payload
+        for (name, key), payload in snapshot(session, tenant_id).items()
+        if name == projections.INVENTORY
+    }
+
+
+def test_a_receipt_narrows_stock_and_agrees_with_the_company(session, business):
+    tenant = business.tenant.id
+    a_little_business(session, business)
+    projections.refresh_operational_projections(session, tenant)
+    before = _stock(session, tenant)[business.item.id]["physical"]
+
+    record_movement(
+        session,
+        tenant,
+        "receipt",
+        business.item.id,
+        "3",
+        to_location_id=business.location.id,
+    )
+    with projections.narrowing_report() as report:
+        projections.refresh_operational_projections(session, tenant)
+    assert report.get(projections.INVENTORY) is None, report.get(projections.INVENTORY)
+    narrowed = _stock(session, tenant)
+    assert narrowed[business.item.id]["physical"] != before
+
+    projections.refresh_operational_projections(session, tenant, force=True)
+    assert narrowed == _stock(session, tenant)
+
+
+def test_correcting_a_movement_onto_another_article_reaches_both(session, business):
+    """The second trap of this shape, in a different service.
+
+    `movement.corrected` names the movement that was corrected. The compensating and
+    replacement movements it appends carry no event of their own, and a replacement may
+    name a *different* article. Narrowing on the named movement alone leaves that
+    article's stock stale.
+    """
+    from reality.services.core import correct_movement, create_item
+
+    tenant = business.tenant.id
+    other = create_item(session, tenant, "BIKE-BELL", "Bike Bell")
+    a_little_business(session, business)
+    wrong = record_movement(
+        session,
+        tenant,
+        "receipt",
+        business.item.id,
+        "5",
+        to_location_id=business.location.id,
+    )
+    projections.refresh_operational_projections(session, tenant)
+    assert _stock(session, tenant)[other.id]["physical"] == "0"
+
+    correct_movement(
+        session,
+        tenant,
+        wrong.id,
+        reason="the receipt was booked onto the wrong article",
+        replacement={
+            "type": "receipt",
+            "item_id": other.id,
+            "quantity": "5",
+            "to_location_id": business.location.id,
+        },
+        _commit=False,
+    )
+    with projections.narrowing_report() as report:
+        projections.refresh_operational_projections(session, tenant)
+    assert report.get(projections.INVENTORY) is None, report.get(projections.INVENTORY)
+    narrowed = _stock(session, tenant)
+
+    projections.refresh_operational_projections(session, tenant, force=True)
+    assert narrowed == _stock(session, tenant)
+    assert narrowed[other.id]["physical"] != "0", (
+        "the replacement movement's article kept its stale stock"
+    )
+
+
+def test_stock_declines_a_location_it_cannot_resolve_to_an_article(session, business):
+    changes = projections.ChangeSet({"location": frozenset({business.location.id})})
+    outcome = projections._narrowed_inventory(session, business.tenant.id, changes)
+    assert isinstance(outcome, str)
+    assert "location" in outcome
+
+
+def test_stock_declines_an_observation_about_a_document(session, business):
+    """A Fact reaches stock through its subject, and a document is not an article."""
+    from reality.db.core import Fact, now, uid
+
+    tenant = business.tenant.id
+    a_little_business(session, business)
+    fact = Fact(
+        id=uid("fct"),
+        tenant_id=tenant,
+        subject_type="document",
+        subject_id="doc_probe",
+        predicate="payment_promised",
+        value="{}",
+        observed_at=now(),
+    )
+    session.add(fact)
+    session.flush()
+    changes = projections.ChangeSet({"fact": frozenset({fact.id})})
+    outcome = projections._narrowed_inventory(session, tenant, changes)
+    assert isinstance(outcome, str)
+    assert "document" in outcome
+
+
+def test_a_narrowed_stock_refresh_writes_only_the_articles_that_changed(
+    session, business
+):
+    from reality.services.core import create_item
+
+    tenant = business.tenant.id
+    create_item(session, tenant, "BIKE-PUMP", "Bike Pump")
+    create_item(session, tenant, "BIKE-LOCK", "Bike Lock")
+    a_little_business(session, business)
+    projections.refresh_operational_projections(session, tenant)
+    whole_company = projections.rebuild_projections(
+        session, tenant, [projections.INVENTORY], force=True
+    )
+    session.commit()
+
+    record_movement(
+        session,
+        tenant,
+        "receipt",
+        business.item.id,
+        "1",
+        to_location_id=business.location.id,
+    )
+    written = projections.rebuild_projections(session, tenant, [projections.INVENTORY])
+    session.commit()
+
+    assert whole_company >= 3
+    assert written == 1, "one receipt touches one article"
