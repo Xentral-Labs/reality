@@ -896,9 +896,7 @@ export function ChatPage({
           data-ai-not-configured
           className="mx-4 mb-3 flex shrink-0 flex-wrap items-center justify-between gap-3 rounded-xl border border-border-default bg-surface-muted px-4 py-3 text-sm"
         >
-          <span className="font-medium text-fg-default">
-            {t("AI credentials not configured")}
-          </span>
+          <span className="font-medium text-fg-default">{t("AI credentials not configured")}</span>
           <button
             className="br-btn"
             onClick={() => navigate({ route: "settings", settingsView: "ai" })}

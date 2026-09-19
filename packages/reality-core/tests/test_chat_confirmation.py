@@ -1,5 +1,7 @@
 import json
 
+from sqlalchemy import func, select
+
 from reality.agent.provider import DummyProvider
 from reality.db.core import Party
 from reality.services.core import (
@@ -13,7 +15,6 @@ from reality.services.core import (
     send_chat_message,
 )
 from reality.tools.application import confirm_tool, proposed_tools
-from sqlalchemy import func, select
 
 
 def test_dummy_provider_is_deterministic():
