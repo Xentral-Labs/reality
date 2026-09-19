@@ -215,8 +215,17 @@ builder and class measurements at checkpoints, and compare two commits on the sa
 ### Measurable Outcomes
 
 - **SC-001**: One order with invoice and payment costs at most 60 database reads and 100 ms
-  of SQL on a company with 100,000 orders, within 20 % of the same cost at 1,000 orders
-  (baseline 2026-09-12: ~300 reads, ~660 ms, and rising with history).
+  of SQL on a company with 100,000 orders, within 20 % of the same cost at 1,000 orders.
+
+  The baseline this cited — "2026-09-12: ~300 reads, ~660 ms, and rising with history" —
+  came from scripts that no longer exist and cannot be reproduced. It is superseded by the
+  measurement the repository now carries (`benchmarks/ingest_cost`, FR-006), which on
+  2026-09-19 records **507 reads and 516 ms** at 3,001 orders and, after the authority
+  check moved to once per transaction, **no growth at all** across that range: 1.0× where
+  this criterion allows 1.20. The two numbers are not comparable — the older profile
+  measured the service calls inside one scheduler occurrence and the new one measures the
+  whole occurrence — which is the reason the cited baseline is replaced rather than
+  compared against. The absolute part of this criterion remains unmet.
 - **SC-002**: After one business event on a company with 100,000 orders, the affected
   projections are ready within 5 s of worker time; a full rebuild of that company stays a
   maintenance operation.
