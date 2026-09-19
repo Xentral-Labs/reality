@@ -427,3 +427,159 @@ def test_a_narrowed_journal_writes_only_the_entries_that_changed(session, busine
 
     assert written < whole_company
     assert written == 2, "one sales invoice posts a two-sided entry and nothing else"
+
+
+# --- the second builder: the document register (FR-002) --------------------------
+
+
+def _register(session, tenant_id):
+    return {
+        key: payload
+        for (name, key), payload in snapshot(session, tenant_id).items()
+        if name == projections.DOCUMENT_REGISTER
+    }
+
+
+def test_a_new_order_narrows_the_document_register_and_agrees_with_the_company(
+    session, business
+):
+    tenant = business.tenant.id
+    a_little_business(session, business)
+    projections.refresh_operational_projections(session, tenant)
+    before = _register(session, tenant)
+    assert len(before) > 1
+
+    create_document(
+        session,
+        tenant,
+        "sales_order",
+        "ORD-241-E",
+        business.customer.id,
+        "30",
+        document_date="2026-08-07",
+    )
+    with projections.narrowing_report() as report:
+        projections.refresh_operational_projections(session, tenant)
+    assert report.get(projections.DOCUMENT_REGISTER) is None, report.get(
+        projections.DOCUMENT_REGISTER
+    )
+    narrowed = _register(session, tenant)
+
+    projections.refresh_operational_projections(session, tenant, force=True)
+    assert narrowed == _register(session, tenant)
+    # FR-003: the documents nobody touched are still there, unchanged.
+    assert set(before) < set(narrowed)
+    assert all(narrowed[key] == payload for key, payload in before.items())
+
+
+def test_a_party_change_reaches_every_document_that_cites_it(session, business):
+    """A party is one record and many rows; the builder must resolve all of them."""
+    tenant = business.tenant.id
+    a_little_business(session, business)
+    projections.refresh_operational_projections(session, tenant)
+    mine = {
+        key
+        for key, payload in _register(session, tenant).items()
+        if payload["party_id"] == business.customer.id
+    }
+    assert len(mine) > 1, "the fixture gave this party only one document"
+
+    changes = projections.ChangeSet({"party": frozenset({business.customer.id})})
+    outcome = projections._narrowed_document_register(session, tenant, changes)
+    assert isinstance(outcome, projections.NarrowedRows), outcome
+    assert mine <= outcome.covers
+
+
+def test_a_party_with_more_documents_than_the_ceiling_declines(
+    session, business, monkeypatch
+):
+    """One record reaching the whole company is the slow path with extra steps."""
+    tenant = business.tenant.id
+    a_little_business(session, business)
+    monkeypatch.setattr(projections, "MAX_NARROWED_ROWS", 1)
+    changes = projections.ChangeSet({"party": frozenset({business.customer.id})})
+    outcome = projections._narrowed_document_register(session, tenant, changes)
+    assert isinstance(outcome, str)
+    assert "not worth visiting one at a time" in outcome
+
+
+def test_the_register_declines_a_subject_it_cannot_resolve(session, business):
+    changes = projections.ChangeSet({"item": frozenset({business.item.id})})
+    outcome = projections._narrowed_document_register(
+        session, business.tenant.id, changes
+    )
+    assert isinstance(outcome, str)
+    assert "item" in outcome
+
+
+def test_a_narrowed_register_writes_only_the_documents_that_changed(session, business):
+    tenant = business.tenant.id
+    a_little_business(session, business)
+    projections.refresh_operational_projections(session, tenant)
+    whole_company = projections.rebuild_projections(
+        session, tenant, [projections.DOCUMENT_REGISTER], force=True
+    )
+    session.commit()
+
+    create_document(
+        session,
+        tenant,
+        "sales_order",
+        "ORD-241-F",
+        business.customer.id,
+        "12",
+        document_date="2026-08-08",
+    )
+    written = projections.rebuild_projections(
+        session, tenant, [projections.DOCUMENT_REGISTER]
+    )
+    session.commit()
+
+    assert whole_company > 1
+    assert written == 1, "one new order is one register row"
+
+
+def test_a_promise_made_against_an_existing_order_updates_that_order_row(
+    session, business
+):
+    """The changed record is a commitment; the row that changes belongs to a document.
+
+    This is the shape the whole feature has to get right: the subject of the event is
+    not the key of the row. Resolving it wrongly leaves `commitment_ids` stale, and
+    the register would quietly disagree with the promises it lists.
+    """
+    tenant = business.tenant.id
+    a_little_business(session, business)
+    order = create_document(
+        session,
+        tenant,
+        "sales_order",
+        "ORD-241-G",
+        business.customer.id,
+        "80",
+        document_date="2026-08-09",
+    )
+    projections.refresh_operational_projections(session, tenant)
+    assert _register(session, tenant)[order.id]["commitment_ids"] == []
+
+    create_commitment(
+        session,
+        tenant,
+        "customer_delivery",
+        business.company.id,
+        business.customer.id,
+        business.item.id,
+        business.location.id,
+        "2",
+        "2026-08-20T00:00:00+00:00",
+        document_id=order.id,
+    )
+    with projections.narrowing_report() as report:
+        projections.refresh_operational_projections(session, tenant)
+    assert report.get(projections.DOCUMENT_REGISTER) is None, report.get(
+        projections.DOCUMENT_REGISTER
+    )
+    assert _register(session, tenant)[order.id]["commitment_ids"] != []
+
+    projections.refresh_operational_projections(session, tenant, force=True)
+    assert _register(session, tenant)[order.id]["commitment_ids"] != []

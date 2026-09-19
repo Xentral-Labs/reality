@@ -170,6 +170,35 @@ def _replace_rows(
     checkpoint.updated_at = stamp
 
 
+def _document_register_rows(
+    session: Session,
+    tenant_id: str,
+    document_ids: frozenset[str] | set[str] | None = None,
+) -> dict[str, dict[str, Any]]:
+    """The document register, for the whole company or for named documents alone."""
+    from reality.services.core import document_rows
+
+    return {
+        document.id: {
+            "document_id": document.id,
+            "type": document.type,
+            "number": document.number,
+            "document_date": day_text(document.document_date),
+            "party_id": document.party_id,
+            "gross_amount": document.gross_amount,
+            "currency": document.currency,
+            "source_record_id": source.id if source else None,
+            "source_system": source.source_system if source else None,
+            "external_id": source.external_id if source else None,
+            "line_ids": [line.id for line in lines_],
+            "commitment_ids": [commitment.id for commitment in commitments_],
+        }
+        for document, source, lines_, commitments_ in document_rows(
+            session, tenant_id, document_ids
+        )
+    }
+
+
 def _journal_row(entry) -> dict[str, Any]:
     """One journal row, so the whole company and one posting group agree on its shape."""
     return {
@@ -265,7 +294,6 @@ def _build_operational_rows(
     from reality.services.core import (
         commitment_rows,
         commitment_terms,
-        document_rows,
         inventory_rows,
         journal_rows,
         tenant_usage_summaries,
@@ -543,23 +571,7 @@ def _build_operational_rows(
             }
         result[COMMITMENT_REGISTER] = commitment_projection
     if DOCUMENT_REGISTER in selected:
-        document_projection = {}
-        for document, source, lines_, commitments_ in document_rows(session, tenant_id):
-            document_projection[document.id] = {
-                "document_id": document.id,
-                "type": document.type,
-                "number": document.number,
-                "document_date": day_text(document.document_date),
-                "party_id": document.party_id,
-                "gross_amount": document.gross_amount,
-                "currency": document.currency,
-                "source_record_id": source.id if source else None,
-                "source_system": source.source_system if source else None,
-                "external_id": source.external_id if source else None,
-                "line_ids": [line.id for line in lines_],
-                "commitment_ids": [commitment.id for commitment in commitments_],
-            }
-        result[DOCUMENT_REGISTER] = document_projection
+        result[DOCUMENT_REGISTER] = _document_register_rows(session, tenant_id)
     if JOURNAL in selected:
         result[JOURNAL] = {
             entry.id: _journal_row(entry) for entry in journal_rows(session, tenant_id)
@@ -816,10 +828,76 @@ def _narrowed_journal(
     return NarrowedRows(rows, frozenset(rows))
 
 
+#: A change set names records, but one record can reach many rows: every document of a
+#: party, every entry on an account. Past this many resolved rows a narrowed refresh is
+#: no longer obviously the cheaper path, so the builder declines and the company is
+#: evaluated in the four sequential reads it already knows how to do. The number is a
+#: declared ceiling rather than a measurement; lower it when there is one.
+MAX_NARROWED_ROWS = 2_000
+
+
+def _narrowed_document_register(
+    session: Session, tenant_id: str, changes: ChangeSet
+) -> NarrowedRows | str:
+    """The document register, for the documents the changed records belong to.
+
+    Five subject types reach this projection and each resolves to documents without
+    guessing: a document is itself, a commitment and a source record name the document
+    they belong to, and a party or a payment term name every document that cites them.
+
+    That last pair is the reason `MAX_NARROWED_ROWS` exists. One `party.updated` for a
+    customer with the company's whole order history resolves to the whole company, and
+    a narrowed path that visits everything is the slow path with extra steps.
+    """
+    known = {"document", "commitment", "source_record", "party", "payment_term"}
+    unknown = sorted(set(changes.subjects or {}) - known)
+    if unknown:
+        return f"document register cannot narrow by {unknown[0]}"
+    documents = set(changes.ids("document"))
+    reach = []
+    if parties := changes.ids("party"):
+        reach.append(
+            or_(Document.party_id.in_(parties), Document.ship_to_party_id.in_(parties))
+        )
+    if sources := changes.ids("source_record"):
+        reach.append(Document.source_record_id.in_(sources))
+    if terms := changes.ids("payment_term"):
+        reach.append(Document.payment_term_id.in_(terms))
+    if reach:
+        documents.update(
+            session.scalars(
+                select(Document.id).where(Document.tenant_id == tenant_id, or_(*reach))
+            )
+        )
+    if commitments := changes.ids("commitment"):
+        # A commitment's document is set when it is made and never moved, so the
+        # document it names now is the only row it has ever been part of.
+        documents.update(
+            session.scalars(
+                select(Commitment.document_id).where(
+                    Commitment.tenant_id == tenant_id,
+                    Commitment.id.in_(commitments),
+                    Commitment.document_id.is_not(None),
+                )
+            )
+        )
+    if not documents:
+        return "no document register subject resolved to a document"
+    if len(documents) > MAX_NARROWED_ROWS:
+        return f"{len(documents)} documents is not worth visiting one at a time"
+    rows = json.loads(_dump(_document_register_rows(session, tenant_id, documents)))
+    # A document is never deleted, so the documents read here are exactly the stored
+    # rows this refresh speaks for.
+    return NarrowedRows(rows, frozenset(rows))
+
+
 #: Builders that can derive by change. A projection absent from this map evaluates the
 #: company, which is always correct; one present may still decline for a change set it
 #: cannot resolve, by returning the reason instead of rows (FR-002).
-NARROWED_BUILDERS = {JOURNAL: _narrowed_journal}
+NARROWED_BUILDERS = {
+    JOURNAL: _narrowed_journal,
+    DOCUMENT_REGISTER: _narrowed_document_register,
+}
 
 
 def projection_state_expressions(tenant_id: str, name: str) -> dict[str, Any]:
