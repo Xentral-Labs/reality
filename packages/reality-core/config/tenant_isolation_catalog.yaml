@@ -55,6 +55,9 @@ families:
       - reality.services.read_contracts:operational_page
       - reality.services.core:business_discovery_statement
       - reality.services.projections:derive_projection_rows
+      # The change set reads only this company's business events, and is used to
+      # decide what a refresh may skip — never what it may reach (spec 241).
+      - reality.services.projections:change_set
     evidence:
       - id: tests/test_mcp_read_contract.py::test_diagnostic_services_exclude_foreign_reality
         assertion: boundary

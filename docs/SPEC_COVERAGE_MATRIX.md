@@ -1247,3 +1247,19 @@ remaining browser, workload and final review acceptance gates.
 | `packages/reality-core/tests/test_global_search_web.py` | FR-004/011/012: typed read-only adapter and safe responses |
 | `packages/reality-core/tests/test_global_search_worklists.py` | FR-016: canonical overdue filtering before pagination |
 | `packages/reality-core/tests/test_global_search_benchmark.py` | SC-003: full-population risk probe and disposable dataset guards, not latency acceptance |
+
+
+## 241 — Derive by change, not by company
+
+`packages/reality-core/tests/test_incremental_derivation.py` covers FR-001, FR-002 and
+FR-006: incremental refresh and full rebuild leave identical stored rows, compared
+without the evaluation timestamp an exception carries, because the property is about
+what the rows say and not about the second they were derived. A positive control makes
+a builder withhold one row — exactly the failure a wrong narrowing produces — and
+insists the comparison notices, so the property is known to be guarding something
+rather than passing for the wrong reason. A third test refuses to let a projection sit
+outside the property by producing no rows for the fixture. The change set is held to
+its three refusals: an event type the catalog does not list, a window with more changed
+records than are worth visiting one at a time, and a window with no new events. A
+refresh reports why each projection narrowed or did not, so a feature whose builders all
+decline looks like that rather than like success.
