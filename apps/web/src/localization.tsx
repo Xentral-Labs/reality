@@ -18152,3 +18152,22 @@ Object.assign(dictionaries.es, {
   "Some ledger links are not shown. Inspect the posting event for its full payload.":
     "No se muestran algunos enlaces contables. Inspecciona el evento contable para ver los datos completos.",
 });
+
+Object.assign(dictionaries.de, {
+  "Search in": "Suchen in",
+  "Filters the search above by record type.": "Filtert die Suche oben nach Datensatztyp.",
+  "Type a name or number above to search.":
+    "Oben einen Namen oder eine Nummer eingeben, um zu suchen.",
+});
+
+Object.assign(dictionaries.nl, {
+  "Search in": "Zoeken in",
+  "Filters the search above by record type.": "Filtert de zoekopdracht hierboven op recordtype.",
+  "Type a name or number above to search.": "Voer hierboven een naam of nummer in om te zoeken.",
+});
+
+Object.assign(dictionaries.es, {
+  "Search in": "Buscar en",
+  "Filters the search above by record type.": "Filtra la búsqueda de arriba por tipo de registro.",
+  "Type a name or number above to search.": "Escribe arriba un nombre o número para buscar.",
+});

@@ -330,29 +330,35 @@ export function CommandPalette({
         )}
         {query.length > 500 && <p role="alert">{t("Search supports at most 500 characters.")}</p>}
         {filter === "records" && (
-          <label className="block pb-2 text-xs">
-            {t("Record type")}
-            <select
-              className="br-control ml-2"
-              value={family}
-              onChange={(event) => {
-                setFamily(event.target.value);
-                setExpanded("");
-                setPage(0);
-                setActive(null);
-              }}
-            >
-              <option value="">{t("All records")}</option>
-              {Object.values(searchFamilies)
-                .flat()
-                .filter((value) => value !== "private_report")
-                .map((value) => (
-                  <option key={value} value={value}>
-                    {t(value.replaceAll("_", " "))}
-                  </option>
-                ))}
-            </select>
-          </label>
+          <div className="command-palette-record-filter">
+            <label>
+              {t("Search in")}
+              <select
+                className="br-control"
+                aria-describedby={`${id}-record-filter-hint`}
+                value={family}
+                onChange={(event) => {
+                  setFamily(event.target.value);
+                  setExpanded("");
+                  setPage(0);
+                  setActive(null);
+                }}
+              >
+                <option value="">{t("All records")}</option>
+                {Object.values(searchFamilies)
+                  .flat()
+                  .filter((value) => value !== "private_report")
+                  .map((value) => (
+                    <option key={value} value={value}>
+                      {t(
+                        value.replaceAll("_", " ").replace(/^./, (letter) => letter.toUpperCase()),
+                      )}
+                    </option>
+                  ))}
+              </select>
+            </label>
+            <p id={`${id}-record-filter-hint`}>{t("Filters the search above by record type.")}</p>
+          </div>
         )}
         {!context.data && (
           <ReadState loading={context.loading} error={context.error} retry={context.refresh} />
@@ -446,7 +452,9 @@ export function CommandPalette({
               ? ""
               : Object.values(records.providers).some((state) => state.error)
                 ? t("Search incomplete")
-                : t("No matching records")}
+                : filter === "records" && !query.trim()
+                  ? t("Type a name or number above to search.")
+                  : t("No matching records")}
         </p>
         {!expanded &&
           hiddenGroups.map((group) => (

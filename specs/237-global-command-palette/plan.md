@@ -192,3 +192,8 @@ changes to the palette; retain its dimensions, spacing grid and hit targets. Val
 with existing frontend contracts, build, localization and a live screenshot. New
 behavioral tests are unnecessary for this reversible presentation-only adjustment.
 Constitution Check: PASS; no service/schema/authority changes.
+
+Record-filter refinement: retain native select and provider logic; use a wrapping,
+inset filter row, localized explanation and query-aware empty state. Validate the
+frontend contracts, build, localization and visual layout. Constitution check: PASS;
+no data model, service, authorization or mutation changes.

@@ -306,3 +306,10 @@ app's visual language: unframed 16px outline icons at sidebar stroke weight,
 workspace-specific page symbols, neutral active-tab underline, regular list labels
 and shared surface/border/radius tokens. Record kinds distinguish items/locations.
 No search, ranking, navigation, loading or confirmation behavior changes.
+
+### Record search filter clarity
+
+FR-010/021: the Records type selector is a compact, inset search filter labeled
+"Search in". Helper copy explicitly relates it to the query above. With no query
+and no recent matching records, prompt the user to enter a search instead of
+claiming there are no matching records. Preserve filter semantics and keyboard access.

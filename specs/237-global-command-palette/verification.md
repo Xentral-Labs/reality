@@ -225,3 +225,13 @@ Spec impact: none; this supplies test dependencies without changing product beha
 or replacing executable catalog coverage with a manually duplicated fixture.
 All seven target contract tests pass locally; hosted CI remains the clean-environment
 verification of the workflow correction.
+
+### Record-filter clarity — 2026-09-19
+
+The Records filter now uses an inset, wrapping row with an intrinsic-width select,
+"Search in" label and a description associated through aria-describedby. An empty
+query with no shortcuts prompts a name/number search rather than claiming no matches.
+312 frontend contracts, production build and all four 2003-key localization audits
+pass in the isolated checkout. Changes also applied to the active local frontend.
+Browser visual acceptance remains pending; T062 is not marked complete.
+PR 98 is already merged, so this refinement has not been pushed to that branch.

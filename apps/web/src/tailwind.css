@@ -4900,3 +4900,27 @@ textarea.br-control.rule-draft-editor {
 [data-master-preview] {
   scroll-margin-top: 16px;
 }
+
+.command-palette-record-filter {
+  margin: 8px 12px 12px;
+}
+.command-palette-record-filter label {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--color-fg-muted);
+}
+.command-palette-record-filter .br-control {
+  width: auto;
+  max-width: 100%;
+  min-width: 0;
+  min-height: 44px;
+  font-size: 13px;
+}
+.command-palette-record-filter p {
+  margin: 6px 0 0;
+  font-size: 12px;
+  color: var(--color-fg-muted);
+}
