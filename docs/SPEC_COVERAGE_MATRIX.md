@@ -1282,6 +1282,12 @@ the service settles both — and it fails when the stored correction is not foll
 more test holds the declared list of blocking reasons against the rules that produce them,
 because a reason the list does not name is a blocker that can never be deleted.
 
+The register of promises is tested against the queue it resembles: the order that is over
+leaves the queue, the promise that was cancelled stays in the register and says so. Two
+tests state what this projection cannot bound — renaming an article reaches every promise
+ever made for it, including the fulfilled one, and past the ceiling the same subject makes
+the builder decline. Both fail when the article is not resolved to its promises.
+
 `packages/reality-core/tests/test_working_set.py` covers 181 FR-003: a derivation about
 open work must not read the work that is finished. Sixty more cancelled promises are added
 to a company and what every derivation reads is compared before and after. Each projection

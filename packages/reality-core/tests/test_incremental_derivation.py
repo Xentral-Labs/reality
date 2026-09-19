@@ -1156,3 +1156,215 @@ def test_a_narrowed_queue_refresh_writes_only_the_orders_that_changed(
 
     assert whole_company >= 3
     assert written == 1, "one new order touches one order"
+
+
+# --- the seventh builder: the register of promises (FR-002) ---------------------
+
+
+def _promises(session, tenant_id):
+    return {
+        key: payload
+        for (name, key), payload in snapshot(session, tenant_id).items()
+        if name == projections.COMMITMENT_REGISTER
+    }
+
+
+def test_a_new_promise_narrows_the_register_and_agrees_with_the_company(
+    session, business
+):
+    tenant = business.tenant.id
+    a_little_business(session, business)
+    projections.refresh_operational_projections(session, tenant)
+    before = set(_promises(session, tenant))
+
+    _, commitment = _promise(session, business, "ORD-241-R", "6")
+    with projections.narrowing_report() as report:
+        projections.refresh_operational_projections(session, tenant)
+    reason = report.get(projections.COMMITMENT_REGISTER)
+    assert reason is None, reason
+    narrowed = _promises(session, tenant)
+    assert set(narrowed) - before == {commitment.id}
+
+    projections.refresh_operational_projections(session, tenant, force=True)
+    assert narrowed == _promises(session, tenant)
+
+
+def test_a_cancelled_promise_keeps_its_row_and_says_so(session, business):
+    """The difference between a register and a queue, stated as a test.
+
+    The queue drops the order that is over; the register keeps the promise and
+    changes its status. A narrowed refresh that treated the two alike would either
+    lose the row or leave it saying `open`.
+    """
+    from reality.services.core import cancel_commitment
+
+    tenant = business.tenant.id
+    _, commitment = _promise(session, business, "ORD-241-RC", "3")
+    projections.refresh_operational_projections(session, tenant)
+    assert _promises(session, tenant)[commitment.id]["status"] == "open"
+
+    cancel_commitment(session, tenant, commitment.id, _commit=False)
+    with projections.narrowing_report() as report:
+        projections.refresh_operational_projections(session, tenant)
+    reason = report.get(projections.COMMITMENT_REGISTER)
+    assert reason is None, reason
+    narrowed = _promises(session, tenant)
+    assert narrowed[commitment.id]["status"] == "cancelled"
+
+    projections.refresh_operational_projections(session, tenant, force=True)
+    assert narrowed == _promises(session, tenant)
+
+
+def test_renaming_an_article_reaches_every_promise_that_prints_it(session, business):
+    """An article is one record and many rows, and the register is not bounded by
+    open work: the promise that was fulfilled prints the new name too."""
+    from reality.services.core import record_movement, update_item
+
+    tenant = business.tenant.id
+    _, first = _promise(session, business, "ORD-241-RN1", "2")
+    _, second = _promise(session, business, "ORD-241-RN2", "2")
+    record_movement(
+        session,
+        tenant,
+        "receipt",
+        business.item.id,
+        "2",
+        to_location_id=business.location.id,
+    )
+    record_movement(
+        session,
+        tenant,
+        "shipment",
+        business.item.id,
+        "2",
+        from_location_id=business.location.id,
+        commitment_id=first.id,
+    )
+    projections.refresh_operational_projections(session, tenant)
+    assert _promises(session, tenant)[first.id]["status"] == "fulfilled"
+
+    update_item(
+        session,
+        tenant,
+        business.item.id,
+        business.item.sku,
+        "Fahrradlampe",
+        business.item.unit or "piece",
+        _commit=False,
+    )
+    with projections.narrowing_report() as report:
+        projections.refresh_operational_projections(session, tenant)
+    reason = report.get(projections.COMMITMENT_REGISTER)
+    assert reason is None, reason
+    narrowed = _promises(session, tenant)
+    assert narrowed[first.id]["item"] == "Fahrradlampe", (
+        "the finished promise kept the old name"
+    )
+    assert narrowed[second.id]["item"] == "Fahrradlampe"
+
+    projections.refresh_operational_projections(session, tenant, force=True)
+    assert narrowed == _promises(session, tenant)
+
+
+def test_the_register_declines_a_company_wide_closure(session, business):
+    """`promises.closed` cancels many promises and names the tenant."""
+    changes = projections.ChangeSet({"tenant": frozenset({business.tenant.id})})
+    outcome = projections._narrowed_commitment_register(
+        session, business.tenant.id, changes
+    )
+    assert isinstance(outcome, str)
+    assert "the commitment register" in outcome and "tenant" in outcome
+
+
+def test_an_article_with_more_promises_than_the_ceiling_declines(
+    session, business, monkeypatch
+):
+    tenant = business.tenant.id
+    _promise(session, business, "ORD-241-RL1", "1")
+    _promise(session, business, "ORD-241-RL2", "1")
+    monkeypatch.setattr(projections, "MAX_NARROWED_ROWS", 1)
+    changes = projections.ChangeSet({"item": frozenset({business.item.id})})
+    outcome = projections._narrowed_commitment_register(session, tenant, changes)
+    assert isinstance(outcome, str)
+    assert "not worth visiting one at a time" in outcome
+
+
+def test_a_narrowed_register_writes_only_the_promises_that_changed(session, business):
+    tenant = business.tenant.id
+    for number in ("ORD-241-RW1", "ORD-241-RW2", "ORD-241-RW3"):
+        _promise(session, business, number, "1")
+    projections.refresh_operational_projections(session, tenant)
+    whole_company = projections.rebuild_projections(
+        session, tenant, [projections.COMMITMENT_REGISTER], force=True
+    )
+    session.commit()
+
+    _promise(session, business, "ORD-241-RW4", "1")
+    written = projections.rebuild_projections(
+        session, tenant, [projections.COMMITMENT_REGISTER]
+    )
+    session.commit()
+
+    assert whole_company >= 3
+    assert written == 1, "one new promise is one register row"
+
+
+def test_a_correction_that_moves_a_shipment_reaches_both_promises_in_the_register(
+    session, business
+):
+    """The trap, once more, where it changes two rows at once.
+
+    The replacement movement is booked against another promise and the service
+    settles the status of both. `movement.corrected` names the original movement and
+    neither promise, so a register that resolves only what the event names leaves one
+    row saying `fulfilled` and the other saying `open`, both wrongly.
+    """
+    from reality.services.core import correct_movement, record_movement
+
+    tenant = business.tenant.id
+    _, first = _promise(session, business, "ORD-241-RX1", "2")
+    _, second = _promise(session, business, "ORD-241-RX2", "2")
+    record_movement(
+        session,
+        tenant,
+        "receipt",
+        business.item.id,
+        "10",
+        to_location_id=business.location.id,
+    )
+    wrong = record_movement(
+        session,
+        tenant,
+        "shipment",
+        business.item.id,
+        "2",
+        from_location_id=business.location.id,
+        commitment_id=first.id,
+    )
+    projections.refresh_operational_projections(session, tenant)
+    assert _promises(session, tenant)[first.id]["status"] == "fulfilled"
+
+    correct_movement(
+        session,
+        tenant,
+        wrong.id,
+        reason="the shipment belonged to the other promise",
+        replacement={
+            "type": "shipment",
+            "item_id": business.item.id,
+            "quantity": "2",
+            "from_location_id": business.location.id,
+            "commitment_id": second.id,
+        },
+        _commit=False,
+    )
+    with projections.narrowing_report() as report:
+        projections.refresh_operational_projections(session, tenant)
+    reason = report.get(projections.COMMITMENT_REGISTER)
+    assert reason is None, reason
+    narrowed = _promises(session, tenant)
+
+    projections.refresh_operational_projections(session, tenant, force=True)
+    assert narrowed == _promises(session, tenant)
+    assert narrowed[first.id]["status"] == "open"
+    assert narrowed[second.id]["status"] == "fulfilled"

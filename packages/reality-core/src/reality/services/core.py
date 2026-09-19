@@ -2915,14 +2915,17 @@ def create_commitment(
     return commitment
 
 
-def commitments(session: OrmSession, tenant_id: str) -> list[Commitment]:
-    return list(
-        session.scalars(
-            select(Commitment)
-            .where(Commitment.tenant_id == tenant_id)
-            .order_by(Commitment.due_at)
-        )
-    )
+def commitments(
+    session: OrmSession, tenant_id: str, commitment_ids: Iterable[str] | None = None
+) -> list[Commitment]:
+    """Every promise of the company, or the named ones, in the same order."""
+    ids = None if commitment_ids is None else set(commitment_ids)
+    if ids is not None and not ids:
+        return []
+    statement = select(Commitment).where(Commitment.tenant_id == tenant_id)
+    if ids is not None:
+        statement = statement.where(Commitment.id.in_(ids))
+    return list(session.scalars(statement.order_by(Commitment.due_at)))
 
 
 def movement_quantity(
@@ -5895,10 +5898,17 @@ def operational_exceptions(
 issues = operational_exceptions
 
 
-def commitment_rows(session: OrmSession, tenant_id: str):
-    """Every promise with its risk, counterparty, item and reservation, in six reads."""
+def commitment_rows(
+    session: OrmSession, tenant_id: str, commitment_ids: Iterable[str] | None = None
+):
+    """Every promise with its risk, counterparty, item and reservation, in six reads.
+
+    `commitment_ids` narrows every read to the promises the caller names. It changes
+    which rows come back, never how one is derived: each promise's risk, counterparty
+    and reservation are worked out from its own records.
+    """
     rows = []
-    listed = commitments(session, tenant_id)
+    listed = commitments(session, tenant_id, commitment_ids)
     terms = commitment_terms(session, tenant_id, [row.id for row in listed])
     party_ids = {
         row.to_party_id if row.type == "customer_delivery" else row.from_party_id

@@ -230,6 +230,66 @@ def _document_register_rows(
     }
 
 
+def _commitment_register_rows(
+    session: Session,
+    tenant_id: str,
+    commitment_ids: frozenset[str] | set[str] | None = None,
+) -> dict[str, dict[str, Any]]:
+    """The register of promises, for the whole company or for named promises alone.
+
+    This is a register, not a queue: it shows the promise that was cancelled and the
+    one that was fulfilled. So it cannot be bounded by open work the way the queue is
+    — only by the promises the caller names (FR-002).
+    """
+    from reality.services.core import commitment_rows, commitment_terms
+
+    listed = commitment_rows(session, tenant_id, commitment_ids)
+    promises = [commitment for commitment, *_ in listed]
+    terms = commitment_terms(session, tenant_id, [row.id for row in promises])
+
+    def by_id(model, ids):
+        if ids is None:
+            statement = select(model).where(model.tenant_id == tenant_id)
+        elif ids:
+            statement = select(model).where(
+                model.tenant_id == tenant_id, model.id.in_(ids)
+            )
+        else:
+            return {}
+        return {row.id: row for row in session.scalars(statement)}
+
+    named = commitment_ids is not None
+    items = by_id(Item, {row.item_id for row in promises} - {None} if named else None)
+    document_lines = by_id(
+        DocumentLine,
+        {row.document_line_id for row in promises} - {None} if named else None,
+    )
+    return {
+        commitment.id: {
+            "commitment_id": commitment.id,
+            "type": commitment.type,
+            "status": commitment.status,
+            "document_id": commitment.document_id,
+            "item_id": commitment.item_id,
+            "item": item_name,
+            "counterparty": counterparty,
+            "quantity": terms[commitment.id].quantity,
+            "original_quantity": commitment.quantity,
+            **quantity_unit(
+                items.get(commitment.item_id),
+                document_lines.get(commitment.document_line_id),
+            ),
+            "reserved": reserved,
+            "open_quantity": terms[commitment.id].open,
+            "due_at": terms[commitment.id].due_at,
+            "original_due_at": commitment.due_at,
+            "priority": commitment.priority,
+            "risk": commitment_risk,
+        }
+        for commitment, commitment_risk, counterparty, item_name, reserved in listed
+    }
+
+
 def _journal_row(entry) -> dict[str, Any]:
     """One journal row, so the whole company and one posting group agree on its shape."""
     return {
@@ -607,7 +667,6 @@ def _build_operational_rows(
     # Imported here to keep the authoritative domain services independent from
     # their disposable read cache.
     from reality.services.core import (
-        commitment_rows,
         commitment_terms,
         inventory_rows,
         journal_rows,
@@ -617,25 +676,11 @@ def _build_operational_rows(
 
     selected = set(OPERATIONAL_PROJECTIONS) if names is None else names
     result = {}
-    if COMMITMENT_REGISTER in selected:
-        # The register shows every promise, so it needs every article and line. The
-        # open-work projections read the ones their own promises name and no more.
-        items = {
-            row.id: row
-            for row in session.scalars(select(Item).where(Item.tenant_id == tenant_id))
-        }
-        document_lines = {
-            row.id: row
-            for row in session.scalars(
-                select(DocumentLine).where(DocumentLine.tenant_id == tenant_id)
-            )
-        }
     # Spec 181 FR-003: the queue, the blockers and supply and demand are about work
     # that is still open, so they are given the promises that are still open and
-    # nothing else. The commitment register is a register — it shows a promise that was
-    # cancelled — so when it is in this batch the terms are read for the whole company
-    # and shared. A closed promise excluded here is excluded by predicate, never
-    # fetched and skipped.
+    # nothing else. A closed promise excluded here is excluded by predicate, never
+    # fetched and skipped. The commitment register is a register — it shows a promise
+    # that was cancelled — and reads its own promises.
     working_set = selected & {
         FULFILLMENT_QUEUE,
         FULFILLMENT_BLOCKERS,
@@ -655,11 +700,7 @@ def _build_operational_rows(
         else []
     )
     terms = (
-        commitment_terms(session, tenant_id)
-        if COMMITMENT_REGISTER in selected
-        else commitment_terms(
-            session, tenant_id, [row.id for row in customer_commitments]
-        )
+        commitment_terms(session, tenant_id, [row.id for row in customer_commitments])
         if working_set
         else {}
     )
@@ -696,36 +737,7 @@ def _build_operational_rows(
         }
         result[EXCEPTIONS] = exception_projection
     if COMMITMENT_REGISTER in selected:
-        commitment_projection = {}
-        for (
-            commitment,
-            commitment_risk,
-            counterparty,
-            item_name,
-            reserved,
-        ) in commitment_rows(session, tenant_id):
-            commitment_projection[commitment.id] = {
-                "commitment_id": commitment.id,
-                "type": commitment.type,
-                "status": commitment.status,
-                "document_id": commitment.document_id,
-                "item_id": commitment.item_id,
-                "item": item_name,
-                "counterparty": counterparty,
-                "quantity": terms[commitment.id].quantity,
-                "original_quantity": commitment.quantity,
-                **quantity_unit(
-                    items.get(commitment.item_id),
-                    document_lines.get(commitment.document_line_id),
-                ),
-                "reserved": reserved,
-                "open_quantity": terms[commitment.id].open,
-                "due_at": terms[commitment.id].due_at,
-                "original_due_at": commitment.due_at,
-                "priority": commitment.priority,
-                "risk": commitment_risk,
-            }
-        result[COMMITMENT_REGISTER] = commitment_projection
+        result[COMMITMENT_REGISTER] = _commitment_register_rows(session, tenant_id)
     if DOCUMENT_REGISTER in selected:
         result[DOCUMENT_REGISTER] = _document_register_rows(session, tenant_id)
     if JOURNAL in selected:
@@ -1517,6 +1529,138 @@ def _narrowed_fulfillment_blockers(
     return NarrowedRows(json.loads(_dump(work.blockers)), covers)
 
 
+def _promises_touched(
+    session: Session, tenant_id: str, changes: ChangeSet, projection: str
+) -> frozenset[str] | str:
+    """The promises the changed records belong to, or why they cannot be found.
+
+    A promise is the register's row, so every subject has to end at one. A document,
+    an article and a party name promises; a movement and a reservation name the
+    promise they were booked against; an observation names one of those.
+
+    Two things separate this from the queue. The register has no open-work bound to
+    hide behind: it shows the promise that was cancelled, so `item.updated` on a
+    long-traded article and `party.updated` on an old customer reach that article's
+    or that party's whole history, and past `MAX_NARROWED_ROWS` the builder declines
+    and the company is evaluated. And `promises.closed` names the tenant while
+    cancelling many promises at once, which is a subject no record-level builder can
+    visit — it declines, and that is the right answer rather than a guess.
+
+    The movement correction is followed here too: its replacement may be booked
+    against a **different** promise, and the service settles the status of both.
+    """
+    from reality.db.core import Fact, MovementCorrection
+
+    known = {
+        "commitment",
+        "document",
+        "item",
+        "party",
+        "movement",
+        "reservation",
+        "fact",
+    }
+    unknown = sorted(set(changes.subjects or {}) - known)
+    if unknown:
+        return f"{projection} cannot narrow by {unknown[0]}"
+    promises = set(changes.ids("commitment"))
+    documents = set(changes.ids("document"))
+    movements = set(changes.ids("movement"))
+    reservations = set(changes.ids("reservation"))
+    if facts := changes.ids("fact"):
+        for subject_type, subject_id in session.execute(
+            select(Fact.subject_type, Fact.subject_id).where(
+                Fact.tenant_id == tenant_id, Fact.id.in_(facts)
+            )
+        ).all():
+            if subject_type == "commitment":
+                promises.add(subject_id)
+            elif subject_type == "document":
+                documents.add(subject_id)
+            elif subject_type == "movement":
+                movements.add(subject_id)
+            elif subject_type == "reservation":
+                reservations.add(subject_id)
+            else:
+                return (
+                    f"{projection} cannot narrow by an observation "
+                    f"about a {subject_type}"
+                )
+    if movements:
+        for original, compensating, replacement in session.execute(
+            select(
+                MovementCorrection.original_movement_id,
+                MovementCorrection.compensating_movement_id,
+                MovementCorrection.replacement_movement_id,
+            ).where(
+                MovementCorrection.tenant_id == tenant_id,
+                MovementCorrection.original_movement_id.in_(movements),
+            )
+        ).all():
+            movements.update(
+                value for value in (original, compensating, replacement) if value
+            )
+        promises.update(
+            session.scalars(
+                select(Movement.commitment_id).where(
+                    Movement.tenant_id == tenant_id,
+                    Movement.id.in_(movements),
+                    Movement.commitment_id.is_not(None),
+                )
+            )
+        )
+    if reservations:
+        promises.update(
+            session.scalars(
+                select(Reservation.commitment_id).where(
+                    Reservation.tenant_id == tenant_id,
+                    Reservation.id.in_(reservations),
+                )
+            )
+        )
+    reach = []
+    if documents:
+        reach.append(Commitment.document_id.in_(documents))
+    if items := changes.ids("item"):
+        reach.append(Commitment.item_id.in_(items))
+    if parties := changes.ids("party"):
+        # The row prints the counterparty, which is the buyer on a delivery promise
+        # and the seller on a supply one.
+        reach.append(
+            or_(
+                Commitment.to_party_id.in_(parties),
+                Commitment.from_party_id.in_(parties),
+            )
+        )
+    if reach:
+        promises.update(
+            session.scalars(
+                select(Commitment.id).where(
+                    Commitment.tenant_id == tenant_id, or_(*reach)
+                )
+            )
+        )
+    if not promises:
+        return f"no {projection} subject resolved to a promise"
+    if len(promises) > MAX_NARROWED_ROWS:
+        return f"{len(promises)} promises is not worth visiting one at a time"
+    return frozenset(promises)
+
+
+def _narrowed_commitment_register(
+    session: Session, tenant_id: str, changes: ChangeSet
+) -> NarrowedRows | str:
+    """The register of promises, for the promises that changed (FR-002)."""
+    promises = _promises_touched(session, tenant_id, changes, "the commitment register")
+    if isinstance(promises, str):
+        return promises
+    rows = json.loads(_dump(_commitment_register_rows(session, tenant_id, promises)))
+    # A promise is never deleted — it is cancelled, and the register keeps showing it
+    # — so the promises resolved here are exactly the stored rows this refresh speaks
+    # for.
+    return NarrowedRows(rows, promises)
+
+
 #: Builders that can derive by change. A projection absent from this map evaluates the
 #: company, which is always correct; one present may still decline for a change set it
 #: cannot resolve, by returning the reason instead of rows (FR-002).
@@ -1527,6 +1671,7 @@ NARROWED_BUILDERS = {
     ITEM_SUPPLY_DEMAND: _narrowed_item_supply_demand,
     FULFILLMENT_QUEUE: _narrowed_fulfillment_queue,
     FULFILLMENT_BLOCKERS: _narrowed_fulfillment_blockers,
+    COMMITMENT_REGISTER: _narrowed_commitment_register,
 }
 
 
