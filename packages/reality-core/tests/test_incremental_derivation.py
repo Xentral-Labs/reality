@@ -261,3 +261,169 @@ def test_a_refresh_reports_which_projections_narrowed(session, business):
     # A forced rebuild narrows nothing, and says so rather than staying silent.
     assert all(reason for reason in report.values())
     assert set(report) <= set(projections.MATERIALIZED_PROJECTIONS)
+
+
+# --- the first builder that narrows: the journal (FR-002, FR-003) ----------------
+
+
+def _journal(session, tenant_id):
+    return {
+        key: payload
+        for (name, key), payload in snapshot(session, tenant_id).items()
+        if name == projections.JOURNAL
+    }
+
+
+def test_a_second_invoice_narrows_the_journal_and_agrees_with_the_company(
+    session, business
+):
+    """The property again, on the path that now actually derives by change.
+
+    The first two tests pass whether or not anything narrows. This one asserts that
+    the journal did narrow — otherwise it would keep passing after a change quietly
+    turned narrowing off, and prove nothing.
+    """
+    tenant = business.tenant.id
+    a_little_business(session, business)
+    projections.refresh_operational_projections(session, tenant)
+
+    second = create_document(
+        session,
+        tenant,
+        "sales_invoice",
+        "INV-241-B",
+        business.customer.id,
+        "60",
+        document_date="2026-08-03",
+    )
+    post_sales_invoice(session, tenant, second.id)
+
+    with projections.narrowing_report() as report:
+        projections.refresh_operational_projections(session, tenant)
+    assert report.get(projections.JOURNAL) is None, (
+        f"the journal declined to narrow: {report.get(projections.JOURNAL)}"
+    )
+    narrowed = _journal(session, tenant)
+
+    projections.refresh_operational_projections(session, tenant, force=True)
+    assert narrowed == _journal(session, tenant)
+    assert len(narrowed) > 2
+
+
+def test_narrowing_the_journal_leaves_the_rows_it_did_not_look_at(session, business):
+    """FR-003: a partial result is merged, not published as the whole projection."""
+    tenant = business.tenant.id
+    a_little_business(session, business)
+    projections.refresh_operational_projections(session, tenant)
+    before = _journal(session, tenant)
+    assert before
+
+    second = create_document(
+        session,
+        tenant,
+        "sales_invoice",
+        "INV-241-C",
+        business.customer.id,
+        "25",
+        document_date="2026-08-04",
+    )
+    post_sales_invoice(session, tenant, second.id)
+    projections.refresh_operational_projections(session, tenant)
+    after = _journal(session, tenant)
+
+    assert set(before) < set(after), (
+        "the earlier entries were dropped by a narrowed run"
+    )
+    assert all(after[key] == payload for key, payload in before.items())
+
+
+def test_a_reversal_reaches_the_entries_no_event_names(session, business):
+    """The reversing group is created by `ledger.reversed`, which names the original.
+
+    Narrowing on the event's subject alone would leave the reversing entries out of
+    the journal. This is the concrete shape of the danger the whole feature is built
+    around, so it is pinned rather than trusted.
+    """
+    from reality.services.core import (
+        journal_rows,
+        reverse_ledger_posting_group,
+    )
+
+    tenant = business.tenant.id
+    a_little_business(session, business)
+    projections.refresh_operational_projections(session, tenant)
+
+    group_id = journal_rows(session, tenant)[0].posting_group_id
+    reverse_ledger_posting_group(
+        session, tenant, group_id, reason="an entry posted to the wrong account"
+    )
+
+    with projections.narrowing_report() as report:
+        projections.refresh_operational_projections(session, tenant)
+    assert report.get(projections.JOURNAL) is None, report.get(projections.JOURNAL)
+    narrowed = _journal(session, tenant)
+
+    projections.refresh_operational_projections(session, tenant, force=True)
+    complete = _journal(session, tenant)
+    assert narrowed == complete
+    reversing = {
+        payload["posting_group_id"]
+        for payload in complete.values()
+        if payload["posting_group_id"] != group_id
+    }
+    assert reversing, "the fixture produced no reversing entries to miss"
+
+
+def test_a_payment_run_is_a_change_the_journal_declines_to_narrow(session, business):
+    """`payments.run` names the tenant, which is not a record a builder can visit."""
+    changes = projections.ChangeSet({"tenant": frozenset({business.tenant.id})})
+    outcome = projections._narrowed_journal(session, business.tenant.id, changes)
+    assert isinstance(outcome, str)
+    assert "tenant" in outcome
+
+
+def test_a_version_change_evaluates_the_whole_projection(
+    session, business, monkeypatch
+):
+    """FR-005: a new row shape applies to rows no event touched."""
+    tenant = business.tenant.id
+    a_little_business(session, business)
+    projections.refresh_operational_projections(session, tenant)
+    monkeypatch.setattr(
+        projections, "PROJECTION_VERSION", projections.PROJECTION_VERSION + 1
+    )
+    with projections.narrowing_report() as report:
+        projections.refresh_operational_projections(session, tenant)
+    assert report[projections.JOURNAL] == "projection version changed"
+
+
+def test_a_narrowed_journal_writes_only_the_entries_that_changed(session, business):
+    """What the feature is for, as a count rather than a stopwatch.
+
+    Rows written is machine-independent; milliseconds are not. The full path writes
+    every entry in the company, the narrowed path writes the posting group that
+    changed, and the gap is the whole point of spec 181 FR-002.
+    """
+    tenant = business.tenant.id
+    a_little_business(session, business)
+    projections.refresh_operational_projections(session, tenant)
+    whole_company = projections.rebuild_projections(
+        session, tenant, [projections.JOURNAL], force=True
+    )
+    session.commit()
+
+    invoice = create_document(
+        session,
+        tenant,
+        "sales_invoice",
+        "INV-241-D",
+        business.customer.id,
+        "15",
+        document_date="2026-08-06",
+    )
+    post_sales_invoice(session, tenant, invoice.id)
+    written = projections.rebuild_projections(session, tenant, [projections.JOURNAL])
+    session.commit()
+
+    assert written < whole_company
+    assert written == 2, "one sales invoice posts a two-sided entry and nothing else"
