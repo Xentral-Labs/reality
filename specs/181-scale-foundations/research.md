@@ -115,9 +115,40 @@ Nineteen per cent fewer queries at an empty company, thirty-one per cent at sixt
 orders (553 → 383). The reads that fell are exactly the ones the measurement
 pointed at, which is the useful part: this was not a guess that happened to help.
 
-What remains: `source_record` is now the largest repeated read of every step (76 in
-one payment), and `tenant` is still read 33 times — from paths that do not go
-through the profile branch. Neither is addressed here.
+What remains: `source_record` is now the largest repeated read of every step, and
+`tenant` is still read from paths that do not go through the profile branch.
+Neither is addressed here.
+
+#### At three thousand orders, on a quiet host
+
+The short run above spans 60 orders, which is not a curve. This one runs to 3,001
+with the same code and nothing else on the machine; it is the record now in
+[evidence/ingest-cost.json](evidence/ingest-cost.json).
+
+| Orders already recorded | Queries per order to cash | SQL ms |
+| --- | --- | --- |
+| 0 | 505 | 361 |
+| 500 | 304 | 122 |
+| 1,500 | 326 | 197 |
+| 3,001 | 507 | 516 |
+
+**Queries per order to cash do not grow: 1.0× from the smallest company to the
+largest, where SC-001 allows 1.20.** The earlier reading of 1.42× came from a
+401-order span before this change and does not survive either correction.
+
+Three honest qualifications. The middle checkpoints are lower because those sweeps
+produced two records each, and a sweep's fixed cost — claiming, the throttle check,
+the settlement scan — is halved when it is divided by two. The number is therefore
+per record produced in a sweep, not per record in isolation, and it moves with how
+many the demo profile happens to deliver. **SQL time does still grow**, 361 to 516
+ms, so something is becoming dearer even where the statement count does not. And
+the absolute target is far off: SC-001 asks for at most 60 reads and 100 ms for one
+order to cash, and this measures 507 and 516.
+
+So FR-001's curve criterion is met over this range and its absolute one is not.
+The per-table column says where the rest sits: `source_record` ×58 to ×62 in every
+step, against `tenant` ×8 to ×14 and `playground_run` ×11 now that the authority is
+established once.
 
 ## 2. Whole-company derivation
 
