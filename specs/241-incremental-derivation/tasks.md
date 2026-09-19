@@ -45,4 +45,10 @@
     payment term all resolve to the documents whose open amount they move; a payment run
     names the tenant and is declined. What it speaks for is the documents it resolved,
     because a document with no control posting is not an open item and its row must go.
-  - [ ] the remaining three.
+  - [x] `payments` — a posting group holds the cash entry, a party and a document are
+    printed on the row, and a settlement allocation names the control entry beside the
+    cash one, so it resolves through that entry's group. Allocations are carried in both
+    directions: reversing an invoice's group changes what the payment has allocated. A
+    payment run names the tenant and is declined.
+  - [ ] the remaining two: `tenant_usage`, which answers about the company rather than
+    about a record, and `exceptions`, which loads the company by construction.
