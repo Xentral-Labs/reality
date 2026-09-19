@@ -1264,6 +1264,15 @@ records than are worth visiting one at a time, and a window with no new events. 
 refresh reports why each projection narrowed or did not, so a feature whose builders all
 decline looks like that rather than like success.
 
+The same file holds one section per narrowed builder, and each one carries the question
+that builder's subjects raise. For supply and demand that question is reach rather than
+creation: a delivery hold is recorded against a party, so the test insists the articles
+that party is waiting for come back blocked, and both halves of that answer — resolving
+the party to its articles, and reading the holds at all — were disabled in turn and
+watched to fail. A cancelled promise is the second control: the narrowed path reads the
+open promises of an article and nothing else, and dropping that predicate is a difference
+the comparison catches.
+
 `packages/reality-core/tests/test_working_set.py` covers 181 FR-003: a derivation about
 open work must not read the work that is finished. Sixty more cancelled promises are added
 to a company and what every derivation reads is compared before and after. Each projection

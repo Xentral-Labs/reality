@@ -727,3 +727,209 @@ def test_a_narrowed_stock_refresh_writes_only_the_articles_that_changed(
 
     assert whole_company >= 3
     assert written == 1, "one receipt touches one article"
+
+
+# --- the fourth builder: supply and demand (FR-002) ------------------------------
+
+
+def _supply(session, tenant_id):
+    return {
+        key: payload
+        for (name, key), payload in snapshot(session, tenant_id).items()
+        if name == projections.ITEM_SUPPLY_DEMAND
+    }
+
+
+def _promise(session, business, number: str, quantity: str):
+    """An order with one open delivery promise on the fixture's article."""
+    tenant = business.tenant.id
+    order = create_document(
+        session,
+        tenant,
+        "sales_order",
+        number,
+        business.customer.id,
+        "100",
+        document_date="2026-08-01",
+    )
+    return order, create_commitment(
+        session,
+        tenant,
+        "customer_delivery",
+        business.company.id,
+        business.customer.id,
+        business.item.id,
+        business.location.id,
+        quantity,
+        "2026-08-20T00:00:00+00:00",
+        document_id=order.id,
+    )
+
+
+def test_a_new_promise_narrows_supply_and_demand_and_agrees_with_the_company(
+    session, business
+):
+    tenant = business.tenant.id
+    a_little_business(session, business)
+    projections.refresh_operational_projections(session, tenant)
+    before = _supply(session, tenant)[business.item.id]["open_customer_demand"]
+
+    _promise(session, business, "ORD-241-SD", "2")
+    with projections.narrowing_report() as report:
+        projections.refresh_operational_projections(session, tenant)
+    reason = report.get(projections.ITEM_SUPPLY_DEMAND)
+    assert reason is None, reason
+    narrowed = _supply(session, tenant)
+    assert narrowed[business.item.id]["open_customer_demand"] != before
+
+    projections.refresh_operational_projections(session, tenant, force=True)
+    assert narrowed == _supply(session, tenant)
+
+
+def test_a_receipt_narrows_supply_and_demand_and_agrees_with_the_company(
+    session, business
+):
+    """Stock moves and the uncovered demand for that article moves with it."""
+    tenant = business.tenant.id
+    a_little_business(session, business)
+    projections.refresh_operational_projections(session, tenant)
+    before = _supply(session, tenant)[business.item.id]
+
+    record_movement(
+        session,
+        tenant,
+        "receipt",
+        business.item.id,
+        "7",
+        to_location_id=business.location.id,
+    )
+    with projections.narrowing_report() as report:
+        projections.refresh_operational_projections(session, tenant)
+    reason = report.get(projections.ITEM_SUPPLY_DEMAND)
+    assert reason is None, reason
+    narrowed = _supply(session, tenant)
+    assert narrowed[business.item.id]["available"] != before["available"]
+
+    projections.refresh_operational_projections(session, tenant, force=True)
+    assert narrowed == _supply(session, tenant)
+
+
+def test_a_delivery_hold_on_a_party_reaches_the_articles_it_stops(session, business):
+    """The subject question, asked of this projection (spec 241).
+
+    `party.delivery_hold_placed` names the party and nothing else. What it stops is
+    every open promise to that party, and each of those is about an article whose row
+    now counts a blocked order. Resolving only the records the event names would find
+    no article at all, and the hold would be invisible in supply and demand until
+    something else touched that article.
+    """
+    from reality.services.core import hold_party_delivery, reserve
+
+    tenant = business.tenant.id
+    record_movement(
+        session,
+        tenant,
+        "receipt",
+        business.item.id,
+        "10",
+        to_location_id=business.location.id,
+    )
+    _, commitment = _promise(session, business, "ORD-241-HOLD", "4")
+    # Fully reserved, so the only thing that can block this order is the hold.
+    reserve(session, tenant, commitment.id, "4", _commit=False)
+    projections.refresh_operational_projections(session, tenant)
+    assert _supply(session, tenant)[business.item.id]["blocked_order_count"] == 0
+
+    hold_party_delivery(session, tenant, business.customer.id, "credit_check")
+    with projections.narrowing_report() as report:
+        projections.refresh_operational_projections(session, tenant)
+    reason = report.get(projections.ITEM_SUPPLY_DEMAND)
+    assert reason is None, reason
+    narrowed = _supply(session, tenant)
+    assert narrowed[business.item.id]["blocked_order_count"] == 1, (
+        "the hold on the party left the article it stops unblocked"
+    )
+
+    projections.refresh_operational_projections(session, tenant, force=True)
+    assert narrowed == _supply(session, tenant)
+
+
+def test_supply_and_demand_declines_a_subject_it_cannot_resolve(session, business):
+    changes = projections.ChangeSet({"location": frozenset({business.location.id})})
+    outcome = projections._narrowed_item_supply_demand(
+        session, business.tenant.id, changes
+    )
+    assert isinstance(outcome, str)
+    assert "supply and demand" in outcome and "location" in outcome
+
+
+def test_closing_promises_names_the_company_and_is_declined(session, business):
+    """`promises.closed` names the tenant, which is not an article to visit."""
+    changes = projections.ChangeSet({"tenant": frozenset({business.tenant.id})})
+    outcome = projections._narrowed_item_supply_demand(
+        session, business.tenant.id, changes
+    )
+    assert isinstance(outcome, str)
+    assert "tenant" in outcome
+
+
+def test_a_narrowed_supply_and_demand_refresh_writes_only_the_articles_that_changed(
+    session, business
+):
+    from reality.services.core import create_item
+
+    tenant = business.tenant.id
+    create_item(session, tenant, "BIKE-PUMP", "Bike Pump")
+    create_item(session, tenant, "BIKE-LOCK", "Bike Lock")
+    a_little_business(session, business)
+    projections.refresh_operational_projections(session, tenant)
+    whole_company = projections.rebuild_projections(
+        session, tenant, [projections.ITEM_SUPPLY_DEMAND], force=True
+    )
+    session.commit()
+
+    record_movement(
+        session,
+        tenant,
+        "receipt",
+        business.item.id,
+        "1",
+        to_location_id=business.location.id,
+    )
+    written = projections.rebuild_projections(
+        session, tenant, [projections.ITEM_SUPPLY_DEMAND]
+    )
+    session.commit()
+
+    assert whole_company >= 3
+    assert written == 1, "one receipt touches one article"
+
+
+def test_a_cancelled_promise_leaves_the_demand_it_was_counted_in(session, business):
+    """FR-003: a promise that is over is no longer open work.
+
+    The narrowed path reads the promises of the article it was given, and it reads
+    only the open ones — the same predicate the whole-company path applies. Without
+    it the article would keep the demand of a promise nobody is waiting for, and no
+    later event would take it away.
+    """
+    from reality.services.core import cancel_commitment
+
+    tenant = business.tenant.id
+    a_little_business(session, business)
+    _, cancelled = _promise(session, business, "ORD-241-GONE", "5")
+    projections.refresh_operational_projections(session, tenant)
+    with_promise = _supply(session, tenant)[business.item.id]["open_customer_demand"]
+
+    cancel_commitment(session, tenant, cancelled.id, _commit=False)
+    with projections.narrowing_report() as report:
+        projections.refresh_operational_projections(session, tenant)
+    reason = report.get(projections.ITEM_SUPPLY_DEMAND)
+    assert reason is None, reason
+    narrowed = _supply(session, tenant)
+    assert narrowed[business.item.id]["open_customer_demand"] != with_promise, (
+        "the cancelled promise is still counted as demand"
+    )
+
+    projections.refresh_operational_projections(session, tenant, force=True)
+    assert narrowed == _supply(session, tenant)

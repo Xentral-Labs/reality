@@ -21,4 +21,8 @@
     resolve to articles; follows the stored movement correction to the compensating
     and replacement movements no event names; declines a location, a master-data
     change and the tenant.
-  - [ ] the remaining nine.
+  - [x] `item_supply_demand` — the same articles stock resolves, plus a party: a
+    delivery hold names only the party it was placed on, and the open promises say
+    which articles stop moving. The blocking rules and the row shape are now written
+    once and used by both the whole-company path and the narrowed one.
+  - [ ] the remaining eight.
