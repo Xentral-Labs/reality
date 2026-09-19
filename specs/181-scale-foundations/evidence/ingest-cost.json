@@ -1,11 +1,11 @@
 {
   "result_version": "1",
-  "created_at": "2026-09-19T06:25:34.314555Z",
-  "git_revision": "aa10f4fc97afa137a145bee96a877a9ad526c0d0",
+  "created_at": "2026-09-19T08:19:42.969071Z",
+  "git_revision": "2315b92a8874201f3078163d28915caca79a9bde",
   "python": "3.12.4",
   "platform": "macOS-27.0-arm64-arm-64bit",
   "postgresql": "17.10",
-  "tenant_id": "ten_2144b3c07e",
+  "tenant_id": "ten_5f0a023047",
   "samples": [
     {
       "orders_before": 0,
@@ -13,9 +13,9 @@
         {
           "step": "order",
           "produced": 1,
-          "queries": 158,
-          "sql_ms": 54.5,
-          "wall_ms": 89.3,
+          "queries": 140,
+          "sql_ms": 95.0,
+          "wall_ms": 140.9,
           "repeated_reads": [
             {
               "table": "source_record",
@@ -23,11 +23,11 @@
             },
             {
               "table": "playground_run",
-              "count": 20
+              "count": 11
             },
             {
               "table": "tenant",
-              "count": 17
+              "count": 8
             },
             {
               "table": "business_event",
@@ -45,251 +45,218 @@
         },
         {
           "step": "invoice",
-          "produced": 2,
-          "queries": 140,
-          "sql_ms": 48.5,
-          "wall_ms": 81.4,
+          "produced": 1,
+          "queries": 164,
+          "sql_ms": 129.9,
+          "wall_ms": 193.2,
           "repeated_reads": [
             {
               "table": "source_record",
-              "count": 70
-            },
-            {
-              "table": "tenant",
-              "count": 42
+              "count": 62
             },
             {
               "table": "playground_run",
-              "count": 34
+              "count": 11
+            },
+            {
+              "table": "tenant",
+              "count": 11
             },
             {
               "table": "business_event",
-              "count": 16
+              "count": 8
+            },
+            {
+              "table": "scheduled_job_run",
+              "count": 7
+            },
+            {
+              "table": "document",
+              "count": 7
+            }
+          ]
+        },
+        {
+          "step": "payment",
+          "produced": 1,
+          "queries": 201,
+          "sql_ms": 135.8,
+          "wall_ms": 204.7,
+          "repeated_reads": [
+            {
+              "table": "source_record",
+              "count": 62
+            },
+            {
+              "table": "tenant",
+              "count": 14
             },
             {
               "table": "document",
               "count": 14
             },
             {
-              "table": "finance_state",
+              "table": "ledger_reversal",
               "count": 12
-            }
-          ]
-        },
-        {
-          "step": "payment",
-          "produced": 2,
-          "queries": 229,
-          "sql_ms": 102.3,
-          "wall_ms": 154.0,
-          "repeated_reads": [
-            {
-              "table": "source_record",
-              "count": 78
-            },
-            {
-              "table": "tenant",
-              "count": 73
             },
             {
               "table": "playground_run",
-              "count": 51
-            },
-            {
-              "table": "document",
-              "count": 35
+              "count": 11
             },
             {
               "table": "business_event",
-              "count": 28
-            },
-            {
-              "table": "ledger_reversal",
-              "count": 25
+              "count": 10
             }
           ]
         }
       ]
     },
     {
-      "orders_before": 64,
+      "orders_before": 500,
       "steps": [
         {
           "step": "order",
-          "produced": 2,
-          "queries": 115,
-          "sql_ms": 289.2,
-          "wall_ms": 387.7,
+          "produced": 4,
+          "queries": 74,
+          "sql_ms": 24.5,
+          "wall_ms": 35.8,
           "repeated_reads": [
             {
               "table": "source_record",
-              "count": 64
+              "count": 76
             },
             {
-              "table": "tenant",
-              "count": 34
-            },
-            {
-              "table": "playground_run",
+              "table": "business_event",
               "count": 32
             },
             {
-              "table": "business_event",
-              "count": 16
+              "table": "tenant",
+              "count": 29
             },
             {
               "table": "import_job",
-              "count": 10
+              "count": 20
+            },
+            {
+              "table": "playground_run",
+              "count": 17
             },
             {
               "table": "party",
-              "count": 8
+              "count": 14
             }
           ]
         },
         {
           "step": "invoice",
-          "produced": 2,
-          "queries": 208,
-          "sql_ms": 183.1,
-          "wall_ms": 274.4,
+          "produced": 4,
+          "queries": 96,
+          "sql_ms": 34.5,
+          "wall_ms": 62.3,
           "repeated_reads": [
             {
               "table": "source_record",
-              "count": 78
+              "count": 86
             },
             {
               "table": "tenant",
-              "count": 68
+              "count": 41
             },
             {
-              "table": "playground_run",
-              "count": 49
+              "table": "business_event",
+              "count": 32
             },
             {
               "table": "document",
               "count": 28
             },
             {
-              "table": "business_event",
-              "count": 26
+              "table": "finance_state",
+              "count": 24
             },
             {
-              "table": "finance_state",
-              "count": 21
+              "table": "import_job",
+              "count": 20
             }
           ]
         },
         {
           "step": "payment",
-          "produced": 2,
-          "queries": 230,
-          "sql_ms": 222.0,
-          "wall_ms": 328.2,
+          "produced": 4,
+          "queries": 134,
+          "sql_ms": 62.6,
+          "wall_ms": 102.0,
           "repeated_reads": [
             {
               "table": "source_record",
-              "count": 78
-            },
-            {
-              "table": "tenant",
-              "count": 73
-            },
-            {
-              "table": "playground_run",
-              "count": 51
+              "count": 85
             },
             {
               "table": "document",
-              "count": 35
+              "count": 55
             },
             {
-              "table": "business_event",
-              "count": 28
+              "table": "tenant",
+              "count": 53
             },
             {
               "table": "ledger_reversal",
-              "count": 26
+              "count": 52
+            },
+            {
+              "table": "business_event",
+              "count": 40
+            },
+            {
+              "table": "ledger_entry",
+              "count": 40
             }
           ]
         }
       ]
     },
     {
-      "orders_before": 183,
+      "orders_before": 1500,
       "steps": [
         {
           "step": "order",
-          "produced": 1,
-          "queries": 158,
-          "sql_ms": 179.2,
-          "wall_ms": 259.1,
-          "repeated_reads": [
-            {
-              "table": "source_record",
-              "count": 58
-            },
-            {
-              "table": "playground_run",
-              "count": 20
-            },
-            {
-              "table": "tenant",
-              "count": 17
-            },
-            {
-              "table": "business_event",
-              "count": 8
-            },
-            {
-              "table": "scheduled_job_run",
-              "count": 7
-            },
-            {
-              "table": "demo_data_connection",
-              "count": 5
-            }
-          ]
-        },
-        {
-          "step": "invoice",
-          "produced": 2,
-          "queries": 140,
-          "sql_ms": 99.7,
-          "wall_ms": 154.3,
+          "produced": 3,
+          "queries": 81,
+          "sql_ms": 40.0,
+          "wall_ms": 50.1,
           "repeated_reads": [
             {
               "table": "source_record",
               "count": 70
             },
             {
+              "table": "business_event",
+              "count": 24
+            },
+            {
               "table": "tenant",
-              "count": 42
+              "count": 22
             },
             {
               "table": "playground_run",
-              "count": 34
+              "count": 15
             },
             {
-              "table": "business_event",
-              "count": 16
+              "table": "import_job",
+              "count": 15
             },
             {
-              "table": "document",
-              "count": 14
-            },
-            {
-              "table": "finance_state",
-              "count": 12
+              "table": "party",
+              "count": 11
             }
           ]
         },
         {
-          "step": "payment",
-          "produced": 2,
-          "queries": 230,
-          "sql_ms": 207.7,
-          "wall_ms": 317.4,
+          "step": "invoice",
+          "produced": 3,
+          "queries": 103,
+          "sql_ms": 60.4,
+          "wall_ms": 100.2,
           "repeated_reads": [
             {
               "table": "source_record",
@@ -297,37 +264,70 @@
             },
             {
               "table": "tenant",
-              "count": 73
-            },
-            {
-              "table": "playground_run",
-              "count": 51
-            },
-            {
-              "table": "document",
-              "count": 35
+              "count": 31
             },
             {
               "table": "business_event",
-              "count": 28
+              "count": 24
+            },
+            {
+              "table": "document",
+              "count": 21
+            },
+            {
+              "table": "finance_state",
+              "count": 18
+            },
+            {
+              "table": "playground_run",
+              "count": 15
+            }
+          ]
+        },
+        {
+          "step": "payment",
+          "produced": 3,
+          "queries": 142,
+          "sql_ms": 97.0,
+          "wall_ms": 159.5,
+          "repeated_reads": [
+            {
+              "table": "source_record",
+              "count": 78
+            },
+            {
+              "table": "document",
+              "count": 42
+            },
+            {
+              "table": "tenant",
+              "count": 40
             },
             {
               "table": "ledger_reversal",
-              "count": 26
+              "count": 39
+            },
+            {
+              "table": "business_event",
+              "count": 30
+            },
+            {
+              "table": "ledger_entry",
+              "count": 30
             }
           ]
         }
       ]
     },
     {
-      "orders_before": 401,
+      "orders_before": 3001,
       "steps": [
         {
           "step": "order",
           "produced": 1,
-          "queries": 158,
-          "sql_ms": 216.8,
-          "wall_ms": 308.0,
+          "queries": 140,
+          "sql_ms": 98.2,
+          "wall_ms": 115.9,
           "repeated_reads": [
             {
               "table": "source_record",
@@ -335,11 +335,11 @@
             },
             {
               "table": "playground_run",
-              "count": 20
+              "count": 11
             },
             {
               "table": "tenant",
-              "count": 17
+              "count": 8
             },
             {
               "table": "business_event",
@@ -357,67 +357,67 @@
         },
         {
           "step": "invoice",
-          "produced": 2,
-          "queries": 414,
-          "sql_ms": 602.8,
-          "wall_ms": 916.0,
+          "produced": 1,
+          "queries": 164,
+          "sql_ms": 186.8,
+          "wall_ms": 329.2,
           "repeated_reads": [
             {
-              "table": "tenant",
-              "count": 146
-            },
-            {
               "table": "source_record",
-              "count": 101
+              "count": 62
             },
             {
               "table": "playground_run",
-              "count": 94
+              "count": 11
             },
             {
-              "table": "document",
-              "count": 69
+              "table": "tenant",
+              "count": 11
             },
             {
               "table": "business_event",
-              "count": 56
+              "count": 8
             },
             {
-              "table": "ledger_reversal",
-              "count": 52
+              "table": "scheduled_job_run",
+              "count": 7
+            },
+            {
+              "table": "document",
+              "count": 7
             }
           ]
         },
         {
           "step": "payment",
-          "produced": 2,
-          "queries": 178,
-          "sql_ms": 204.6,
-          "wall_ms": 365.1,
+          "produced": 1,
+          "queries": 203,
+          "sql_ms": 231.5,
+          "wall_ms": 453.2,
           "repeated_reads": [
             {
               "table": "source_record",
-              "count": 68
+              "count": 62
             },
             {
               "table": "tenant",
-              "count": 52
-            },
-            {
-              "table": "playground_run",
-              "count": 38
+              "count": 14
             },
             {
               "table": "document",
-              "count": 26
+              "count": 14
             },
             {
               "table": "ledger_reversal",
-              "count": 26
+              "count": 13
+            },
+            {
+              "table": "playground_run",
+              "count": 11
             },
             {
               "table": "business_event",
-              "count": 20
+              "count": 10
             }
           ]
         }
