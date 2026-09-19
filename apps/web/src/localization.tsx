@@ -623,6 +623,9 @@ const dictionaries: Record<Exclude<Language, "en">, Record<string, string>> = {
     "Advanced company settings": "Erweiterte Firmeneinstellungen",
     "AI credentials configured": "KI-Zugang eingerichtet",
     "AI credentials not configured": "KI-Zugang nicht eingerichtet",
+    "Anthropic API key (optional)": "Anthropic-API-Schlüssel (optional)",
+    "Optional. Enables AI chat for this company. The temporary installation removes the encrypted credential when you quit.":
+      "Optional. Aktiviert den KI-Chat für dieses Unternehmen. Die temporäre Installation entfernt den verschlüsselten Zugang beim Beenden.",
     "Appearance is saved in this browser. System follows your device.":
       "Die Darstellung wird in diesem Browser gespeichert. System folgt deiner Geräteeinstellung.",
     "Check saved preferences": "Gespeicherte Einstellungen prüfen",
@@ -2555,6 +2558,9 @@ const dictionaries: Record<Exclude<Language, "en">, Record<string, string>> = {
     "Advanced company settings": "Geavanceerde bedrijfsinstellingen",
     "AI credentials configured": "AI-inloggegevens ingesteld",
     "AI credentials not configured": "AI-inloggegevens niet ingesteld",
+    "Anthropic API key (optional)": "Anthropic API-sleutel (optioneel)",
+    "Optional. Enables AI chat for this company. The temporary installation removes the encrypted credential when you quit.":
+      "Optioneel. Schakelt AI-chat in voor dit bedrijf. De tijdelijke installatie verwijdert de versleutelde referentie bij afsluiten.",
     "Appearance is saved in this browser. System follows your device.":
       "De weergave wordt in deze browser opgeslagen. Systeem volgt je apparaatinstelling.",
     "Check saved preferences": "Opgeslagen voorkeuren controleren",
@@ -4185,6 +4191,9 @@ const dictionaries: Record<Exclude<Language, "en">, Record<string, string>> = {
     "Advanced company settings": "Configuración avanzada de la empresa",
     "AI credentials configured": "Credenciales de IA configuradas",
     "AI credentials not configured": "Credenciales de IA sin configurar",
+    "Anthropic API key (optional)": "Clave API de Anthropic (opcional)",
+    "Optional. Enables AI chat for this company. The temporary installation removes the encrypted credential when you quit.":
+      "Opcional. Activa el chat con IA para esta empresa. La instalación temporal elimina la credencial cifrada al salir.",
     "Appearance is saved in this browser. System follows your device.":
       "La apariencia se guarda en este navegador. Sistema sigue la configuración del dispositivo.",
     "Check saved preferences": "Comprobar preferencias guardadas",

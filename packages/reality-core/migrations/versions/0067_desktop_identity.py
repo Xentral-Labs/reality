@@ -3,8 +3,8 @@
 import sqlalchemy as sa
 from alembic import op
 
-revision = "0063_desktop_identity"
-down_revision = "0062_graph_report_model_version"
+revision = "0067_desktop_identity"
+down_revision = "0066_global_search_support"
 branch_labels = None
 depends_on = None
 
