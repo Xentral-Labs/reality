@@ -110,16 +110,24 @@ def _replace_rows(
     projection_name: str,
     rows: dict[str, dict[str, Any]],
     source_sequence: int,
+    covers: frozenset[str] | None = None,
 ) -> None:
-    existing = {
-        row.record_key: row
-        for row in session.scalars(
-            select(ProjectionRow).where(
-                ProjectionRow.tenant_id == tenant_id,
-                ProjectionRow.projection_name == projection_name,
-            )
-        )
-    }
+    """Write a derivation's rows; `covers` says how much of the projection it speaks for.
+
+    `None` means the whole projection was evaluated, so a stored row the derivation
+    did not produce no longer belongs and is removed. A narrowed derivation passes the
+    record keys it was authoritative for (spec 241 FR-003): rows inside that set but
+    absent from the result are removed, rows outside it are left exactly as they are,
+    because nothing was learned about them. Loading only the covered rows is where a
+    narrowed refresh stops paying for the company.
+    """
+    stored = select(ProjectionRow).where(
+        ProjectionRow.tenant_id == tenant_id,
+        ProjectionRow.projection_name == projection_name,
+    )
+    if covers is not None:
+        stored = stored.where(ProjectionRow.record_key.in_(covers | set(rows)))
+    existing = {row.record_key: row for row in session.scalars(stored)}
     stamp = now()
     for record_key, payload in rows.items():
         row = existing.pop(record_key, None)
@@ -160,6 +168,24 @@ def _replace_rows(
     checkpoint.status = "ready"
     checkpoint.error = ""
     checkpoint.updated_at = stamp
+
+
+def _journal_row(entry) -> dict[str, Any]:
+    """One journal row, so the whole company and one posting group agree on its shape."""
+    return {
+        "ledger_entry_id": entry.id,
+        "posting_group_id": entry.posting_group_id,
+        "account": entry.account,
+        "account_id": entry.account_id,
+        "account_code": entry.account_record.code,
+        "party_id": entry.party_id,
+        "document_id": entry.document_id,
+        "debit_credit": entry.debit_credit,
+        "amount": entry.amount,
+        "currency": entry.currency,
+        "effective_at": entry.effective_at,
+        "source_record_id": entry.source_record_id,
+    }
 
 
 def quantity_unit(
@@ -535,24 +561,9 @@ def _build_operational_rows(
             }
         result[DOCUMENT_REGISTER] = document_projection
     if JOURNAL in selected:
-        journal_projection = {
-            entry.id: {
-                "ledger_entry_id": entry.id,
-                "posting_group_id": entry.posting_group_id,
-                "account": entry.account,
-                "account_id": entry.account_id,
-                "account_code": entry.account_record.code,
-                "party_id": entry.party_id,
-                "document_id": entry.document_id,
-                "debit_credit": entry.debit_credit,
-                "amount": entry.amount,
-                "currency": entry.currency,
-                "effective_at": entry.effective_at,
-                "source_record_id": entry.source_record_id,
-            }
-            for entry in journal_rows(session, tenant_id)
+        result[JOURNAL] = {
+            entry.id: _journal_row(entry) for entry in journal_rows(session, tenant_id)
         }
-        result[JOURNAL] = journal_projection
     if TIMELINE in selected:
         timeline_projection = {
             f"{occurred_at.isoformat()}:{record_type}:{record_id}": {
@@ -734,6 +745,83 @@ def change_set(
     return ChangeSet({kind: frozenset(ids) for kind, ids in subjects.items()})
 
 
+@dataclass(frozen=True)
+class NarrowedRows:
+    """What a narrowed builder produced, and how much of the projection it speaks for.
+
+    `covers` is the set of record keys the builder was authoritative for in this
+    refresh. A key inside it that is missing from `rows` has genuinely gone; a key
+    outside it was not looked at and must survive untouched (FR-003).
+    """
+
+    rows: dict[str, dict[str, Any]]
+    covers: frozenset[str]
+
+
+def _narrowed_journal(
+    session: Session, tenant_id: str, changes: ChangeSet
+) -> NarrowedRows | str:
+    """The journal, for the posting groups and accounts that changed (FR-002).
+
+    Four event types reach this projection. Two name a `posting_group`, one names a
+    `subledger_account` whose code every entry on it prints, and `payments.run` names
+    the tenant — which is not a record this builder can visit, so it declines and the
+    company is evaluated.
+
+    A reversal is the trap here. `ledger.reversed` names the group that *was*
+    reversed, while the entries it creates belong to a new reversing group that no
+    event names. Narrowing on the subject alone would leave those entries out of the
+    journal, so the stored reversal relation is followed to find them. That is a
+    recorded link, not an assumption about what the producer happens to do today.
+    """
+    from reality.db.core import LedgerEntry, LedgerReversal
+
+    known = {"posting_group", "subledger_account"}
+    unknown = sorted(set(changes.subjects or {}) - known)
+    if unknown:
+        return f"journal cannot narrow by {unknown[0]}"
+    groups = set(changes.ids("posting_group"))
+    accounts = set(changes.ids("subledger_account"))
+    if not groups and not accounts:
+        return "no journal subject changed"
+    if groups:
+        for original, reversing in session.execute(
+            select(
+                LedgerReversal.original_posting_group_id,
+                LedgerReversal.reversing_posting_group_id,
+            ).where(
+                LedgerReversal.tenant_id == tenant_id,
+                or_(
+                    LedgerReversal.original_posting_group_id.in_(groups),
+                    LedgerReversal.reversing_posting_group_id.in_(groups),
+                ),
+            )
+        ).all():
+            groups.update((original, reversing))
+    reach = []
+    if groups:
+        reach.append(LedgerEntry.posting_group_id.in_(groups))
+    if accounts:
+        reach.append(LedgerEntry.account_id.in_(accounts))
+    entries = list(
+        session.scalars(
+            select(LedgerEntry)
+            .where(LedgerEntry.tenant_id == tenant_id, or_(*reach))
+            .order_by(LedgerEntry.effective_at.desc(), LedgerEntry.posting_group_id)
+        )
+    )
+    rows = json.loads(_dump({entry.id: _journal_row(entry) for entry in entries}))
+    # A ledger entry is never deleted — a correction is a reversing entry — so the
+    # entries read here are exactly the stored rows this refresh speaks for.
+    return NarrowedRows(rows, frozenset(rows))
+
+
+#: Builders that can derive by change. A projection absent from this map evaluates the
+#: company, which is always correct; one present may still decline for a change set it
+#: cannot resolve, by returning the reason instead of rows (FR-002).
+NARROWED_BUILDERS = {JOURNAL: _narrowed_journal}
+
+
 def projection_state_expressions(tenant_id: str, name: str) -> dict[str, Any]:
     """Scalar expressions can accompany data in the very same PostgreSQL snapshot."""
     from reality.db.scheduled_jobs import ScheduledJobRun
@@ -912,13 +1000,30 @@ def rebuild_projections(
         narrowing = (
             ChangeSet(None, "full rebuild requested")
             if force or name not in checkpoints
+            # A new row shape applies to rows no event touched, so a version change
+            # is evaluated in full however little changed (FR-005).
+            else ChangeSet(None, "projection version changed")
+            if checkpoints[name].projection_version != PROJECTION_VERSION
             else change_set(session, tenant_id, name, since, targets[name])
         )
+        narrowed = None
+        if narrowing.narrowed and name in NARROWED_BUILDERS:
+            with session.no_autoflush:
+                outcome = NARROWED_BUILDERS[name](session, tenant_id, narrowing)
+            if isinstance(outcome, NarrowedRows):
+                narrowed = outcome
+            else:
+                narrowing = ChangeSet(None, outcome)
+        elif narrowing.narrowed:
+            narrowing = ChangeSet(None, f"{name} evaluates the company")
         report = NARROWING.get()
         if report is not None:
             report.setdefault(name, narrowing.reason)
-        rows = derive_projection_rows(session, tenant_id, name)
-        _replace_rows(session, tenant_id, name, rows, targets[name])
+        if narrowed is None:
+            rows, covers = derive_projection_rows(session, tenant_id, name), None
+        else:
+            rows, covers = narrowed.rows, narrowed.covers
+        _replace_rows(session, tenant_id, name, rows, targets[name], covers=covers)
         count += len(rows)
     session.flush()
     return count
