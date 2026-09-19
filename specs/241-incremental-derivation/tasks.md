@@ -10,4 +10,8 @@
   - [x] `document_register` — documents, commitments, source records, parties and
     payment terms resolve to documents; a party reaching more than
     `MAX_NARROWED_ROWS` of them declines.
-  - [ ] the remaining ten.
+  - [x] `inventory` — movements, reservations, promises and observations about them
+    resolve to articles; follows the stored movement correction to the compensating
+    and replacement movements no event names; declines a location, a master-data
+    change and the tenant.
+  - [ ] the remaining nine.
