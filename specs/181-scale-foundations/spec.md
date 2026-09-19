@@ -186,6 +186,41 @@ builder and class measurements at checkpoints, and compare two commits on the sa
   a change set (record ids by type) and re-evaluate only the rows that depend on it; full
   company evaluation remains available for maintenance rebuilds. Time-based transitions MUST be
   selected by indexed dates.
+
+  Implemented as spec 241. The mechanism is complete and merged: the change set, the partial
+  merge, the refusals, the fallback report, and the equivalence property that stands between
+  an optimisation and a silently wrong projection.
+
+  **Three of twelve builders narrow** — `journal`, `document_register`, `inventory`. The
+  remaining nine evaluate the company, which is always correct and always allowed (a builder
+  may decline). What is left, in the order it is worth doing:
+
+  * `item_supply_demand` — nearly the same subjects as `inventory` and can reuse
+    `_items_touched` directly; the cheapest remaining.
+  * `fulfillment_queue`, `fulfillment_blockers`, `commitment_register` — promise-shaped,
+    about twenty event types each.
+  * `timeline` (43 event types), `tenant_usage` (60) — most work, least obvious payoff.
+  * `payments` and `open_financial_items` are poor candidates despite having the fewest event
+    types: both name the *tenant* on `payments.run`, so they would decline exactly when the
+    most has changed.
+  * `exceptions` (37) is the largest and needs its own design, because its evaluation loads
+    the whole company by construction (see FR-003).
+
+  **The rule that makes narrowing safe, learned twice and stated once:** an event's subject is
+  what was *acted on*, not everything the action created. `ledger.reversed` names the original
+  posting group while the counter-entries live in a new one no event names; `movement.corrected`
+  names the corrected movement while the replacement it appends may carry a *different article*.
+  Both were found by asking what the producing service creates that its event does not name, and
+  both are pinned by tests that fail when the stored relation is not followed. Ask that question
+  first of every remaining builder.
+
+  **Time-based transitions**: delivered in the part that mattered, and not in the part the
+  requirement literally names. Measurement showed that two of the three projections refreshed
+  every sixty seconds do not read the clock at all, and they were taken off the cadence.
+  `exceptions` remains, and cannot be selected by indexed date as written: about half its
+  thirty-five classes compare against a *threshold learned from finished promises*, which moves
+  for every standing record at once and has no per-record date to select by. That is a feature
+  of its own, not a task.
 - **FR-003**: Working set. Derivations MUST read only open or active records unless the class
   is explicitly about history; closed records MUST be excluded by predicate, not filtered in
   memory.
@@ -233,6 +268,10 @@ builder and class measurements at checkpoints, and compare two commits on the sa
 - **FR-005**: Storage. Operational tables MUST be partitionable by tenant and time; source
   payloads MUST be movable to a tiered store behind the existing reference; every repository
   query MUST resolve its cluster from the tenant scope.
+
+  Untouched as of 2026-09-19. `PARTITION BY` appears nowhere in the repository, no payload is
+  tiered, and no query resolves a cluster. It is the largest remaining piece of this spec and
+  nothing currently depends on it, which is why FR-007 puts it last.
 - **FR-006**: Measurement. The repository MUST carry the scale fixture and measurement as a
   maintained tool, refused on business companies, producing the machine-readable record User
   Story 5 describes.
@@ -270,12 +309,27 @@ builder and class measurements at checkpoints, and compare two commits on the sa
 - **SC-002**: After one business event on a company with 100,000 orders, the affected
   projections are ready within 5 s of worker time; a full rebuild of that company stays a
   maintenance operation.
+
+  **Never measured at that size.** The largest company these changes were verified against is
+  the repository fixture and a 10,000-order benchmark tenant. Nothing here may be reported as
+  meeting this criterion until it has been run.
 - **SC-003**: With 10,000 synthetic companies of which 1 % change per minute, the refresh
   fleet's work is proportional to the changes and the due dates, not to the company count.
+
+  The structural obstacle is removed: discovery is one indexed read across all companies and a
+  quiet company is not visited (FR-004). **The proportionality itself is unmeasured** — there
+  has never been a ten-thousand-company fixture. Until there is, the claim is that the shape is
+  right, not that the number is.
 - **SC-004**: Reads of the Exceptions page, the registers and Home stay under 300 ms server
   time at 100,000 orders per company (already met for the Exceptions page, spec 180).
+
+  Met for the Exceptions page only. The registers and Home have **not** been measured at
+  100,000 orders per company.
 - **SC-005**: Two fixture runs on the same commit differ by less than 10 % on every recorded
   cost.
+
+  The fixture exists and is maintained (FR-006), but **two runs on one commit have never been
+  compared**. It is the cheapest unmet criterion here: it needs a run, not a change.
 
 ## Assumptions and Dependencies
 
