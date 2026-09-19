@@ -1368,3 +1368,214 @@ def test_a_correction_that_moves_a_shipment_reaches_both_promises_in_the_registe
     assert narrowed == _promises(session, tenant)
     assert narrowed[first.id]["status"] == "open"
     assert narrowed[second.id]["status"] == "fulfilled"
+
+
+# --- the eighth builder: the timeline (FR-002) -----------------------------------
+
+
+def _timeline(session, tenant_id):
+    return {
+        key: payload
+        for (name, key), payload in snapshot(session, tenant_id).items()
+        if name == projections.TIMELINE
+    }
+
+
+def test_an_order_narrows_the_timeline_and_agrees_with_the_company(session, business):
+    tenant = business.tenant.id
+    a_little_business(session, business)
+    projections.refresh_operational_projections(session, tenant)
+    before = set(_timeline(session, tenant))
+
+    _promise(session, business, "ORD-241-T", "2")
+    record_movement(
+        session,
+        tenant,
+        "receipt",
+        business.item.id,
+        "2",
+        to_location_id=business.location.id,
+    )
+    with projections.narrowing_report() as report:
+        projections.refresh_operational_projections(session, tenant)
+    reason = report.get(projections.TIMELINE)
+    assert reason is None, reason
+    narrowed = _timeline(session, tenant)
+    assert set(narrowed) - before, "the new records left no mark on the timeline"
+
+    projections.refresh_operational_projections(session, tenant, force=True)
+    assert narrowed == _timeline(session, tenant)
+
+
+def test_a_correction_puts_the_movements_no_event_names_on_the_timeline(
+    session, business
+):
+    """Here the trap shows as a row that is simply missing.
+
+    The compensating and replacement movements are records of their own — two more
+    lines in the company's history — and no event names either of them.
+    """
+    from reality.services.core import correct_movement
+
+    tenant = business.tenant.id
+    a_little_business(session, business)
+    wrong = record_movement(
+        session,
+        tenant,
+        "receipt",
+        business.item.id,
+        "5",
+        to_location_id=business.location.id,
+    )
+    projections.refresh_operational_projections(session, tenant)
+    before = set(_timeline(session, tenant))
+
+    correct_movement(
+        session,
+        tenant,
+        wrong.id,
+        reason="the quantity was wrong",
+        replacement={
+            "type": "receipt",
+            "item_id": business.item.id,
+            "quantity": "3",
+            "to_location_id": business.location.id,
+        },
+        _commit=False,
+    )
+    with projections.narrowing_report() as report:
+        projections.refresh_operational_projections(session, tenant)
+    reason = report.get(projections.TIMELINE)
+    assert reason is None, reason
+    narrowed = _timeline(session, tenant)
+    assert len(set(narrowed) - before) == 2, (
+        "the compensating and replacement movements are missing from the timeline"
+    )
+
+    projections.refresh_operational_projections(session, tenant, force=True)
+    assert narrowed == _timeline(session, tenant)
+
+
+def test_a_reversal_puts_its_counter_entries_on_the_timeline(session, business):
+    from reality.services.core import journal_rows, reverse_ledger_posting_group
+
+    tenant = business.tenant.id
+    a_little_business(session, business)
+    projections.refresh_operational_projections(session, tenant)
+    before = set(_timeline(session, tenant))
+
+    group_id = journal_rows(session, tenant)[0].posting_group_id
+    reverse_ledger_posting_group(
+        session, tenant, group_id, reason="an entry posted to the wrong account"
+    )
+    with projections.narrowing_report() as report:
+        projections.refresh_operational_projections(session, tenant)
+    reason = report.get(projections.TIMELINE)
+    assert reason is None, reason
+    narrowed = _timeline(session, tenant)
+    assert set(narrowed) - before, "the reversing entries are missing from the timeline"
+
+    projections.refresh_operational_projections(session, tenant, force=True)
+    assert narrowed == _timeline(session, tenant)
+
+
+def test_a_window_that_changes_nothing_the_timeline_shows_writes_nothing(
+    session, business
+):
+    """The one builder that can say "nothing of mine changed".
+
+    A party is renamed. It is a real business change, and the catalog is right that
+    it invalidates the timeline — but no timeline row prints a party, so the refresh
+    produces no rows and speaks for none. It must not fall back to reading the
+    company's whole history for it.
+    """
+    from reality.services.core import update_party
+
+    tenant = business.tenant.id
+    a_little_business(session, business)
+    projections.refresh_operational_projections(session, tenant)
+    before = _timeline(session, tenant)
+
+    update_party(
+        session,
+        tenant,
+        business.customer.id,
+        "Müller & Söhne GmbH",
+        business.customer.type,
+    )
+    changes = projections.ChangeSet({"party": frozenset({business.customer.id})})
+    outcome = projections._narrowed_timeline(session, tenant, changes)
+    assert isinstance(outcome, projections.NarrowedRows), outcome
+    assert outcome.rows == {} and outcome.covers == frozenset()
+
+    with projections.narrowing_report() as report:
+        projections.refresh_operational_projections(session, tenant)
+    reason = report.get(projections.TIMELINE)
+    assert reason is None, reason
+    assert _timeline(session, tenant) == before
+
+
+def test_renaming_an_article_reaches_every_timeline_row_that_prints_it(
+    session, business
+):
+    from reality.services.core import update_item
+
+    tenant = business.tenant.id
+    a_little_business(session, business)
+    projections.refresh_operational_projections(session, tenant)
+    assert any(
+        "Bike Light" in payload["title"]
+        for payload in _timeline(session, tenant).values()
+    )
+
+    update_item(
+        session,
+        tenant,
+        business.item.id,
+        business.item.sku,
+        "Fahrradlampe",
+        business.item.unit or "piece",
+        _commit=False,
+    )
+    with projections.narrowing_report() as report:
+        projections.refresh_operational_projections(session, tenant)
+    reason = report.get(projections.TIMELINE)
+    assert reason is None, reason
+    narrowed = _timeline(session, tenant)
+    assert not any("Bike Light" in payload["title"] for payload in narrowed.values()), (
+        "rows kept printing the old article name"
+    )
+
+    projections.refresh_operational_projections(session, tenant, force=True)
+    assert narrowed == _timeline(session, tenant)
+
+
+def test_the_timeline_declines_a_company_wide_subject(session, business):
+    changes = projections.ChangeSet({"tenant": frozenset({business.tenant.id})})
+    outcome = projections._narrowed_timeline(session, business.tenant.id, changes)
+    assert isinstance(outcome, str)
+    assert "the timeline" in outcome and "tenant" in outcome
+
+
+def test_a_narrowed_timeline_writes_only_the_records_that_changed(session, business):
+    tenant = business.tenant.id
+    a_little_business(session, business)
+    projections.refresh_operational_projections(session, tenant)
+    whole_company = projections.rebuild_projections(
+        session, tenant, [projections.TIMELINE], force=True
+    )
+    session.commit()
+
+    record_movement(
+        session,
+        tenant,
+        "receipt",
+        business.item.id,
+        "1",
+        to_location_id=business.location.id,
+    )
+    written = projections.rebuild_projections(session, tenant, [projections.TIMELINE])
+    session.commit()
+
+    assert whole_company > 5
+    assert written == 1, "one receipt is one line of history"
