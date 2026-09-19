@@ -6,7 +6,7 @@ COPY packages/reality-core/config packages/reality-core/config
 COPY packages/reality-core/fixtures packages/reality-core/fixtures
 COPY packages/reality-core/storylines packages/reality-core/storylines
 COPY packages/reality-core/migrations packages/reality-core/migrations
-COPY apps/docs/scripts/generate-catalog-reference.py apps/docs/scripts/data_model_reference.py apps/docs/scripts/
+COPY apps/docs/scripts/generate-catalog-reference.py apps/docs/scripts/data_model_reference.py apps/docs/scripts/analytics_model_reference.py apps/docs/scripts/
 COPY apps/docs/content apps/docs/content
 RUN python -m pip install --no-cache-dir ./packages/reality-core \
     && PYTHONPATH=packages/reality-core/src python apps/docs/scripts/generate-catalog-reference.py
