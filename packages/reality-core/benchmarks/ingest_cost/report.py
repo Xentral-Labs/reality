@@ -15,13 +15,27 @@ class RepeatedRead(BaseModel):
     count: int = Field(ge=2)
 
 
+class SlowStatement(BaseModel):
+    sql: str
+    ms: float = Field(ge=0)
+    count: int = Field(ge=1)
+    span: Literal["interpreting", "sweep", "both"] = "both"
+
+
 class StepResult(BaseModel):
     step: Literal["order", "invoice", "payment"]
     produced: int = Field(ge=0)
     queries: int = Field(ge=0)
     sql_ms: float = Field(ge=0)
     wall_ms: float = Field(ge=0)
+    #: The part of the above that interpreted a record. The remainder is the
+    #: sweep's own selection work, which for a synthetic company is the demo
+    #: generator's and which no real intake runs.
+    interpreting_queries: int = Field(default=0, ge=0)
+    interpreting_ms: float = Field(default=0, ge=0)
     repeated_reads: list[RepeatedRead] = []
+    slowest_interpreting: list[SlowStatement] = []
+    slowest_sweep: list[SlowStatement] = []
 
 
 class SampleResult(BaseModel):
@@ -35,6 +49,11 @@ class SampleResult(BaseModel):
     @property
     def sql_ms(self) -> float:
         return sum(step.sql_ms for step in self.steps)
+
+    @property
+    def interpreting(self) -> int:
+        """What a real intake pays, which is what SC-001 is about."""
+        return sum(step.interpreting_queries for step in self.steps)
 
 
 class IngestResult(BaseModel):
@@ -75,12 +94,12 @@ class IngestResult(BaseModel):
         """How much dearer one order to cash is at the largest size than the smallest."""
         if len(self.samples) < 2:
             return None
-        first, last = self.samples[0].queries, self.samples[-1].queries
+        first, last = self.samples[0].interpreting, self.samples[-1].interpreting
         return round(last / first, 2) if first else None
 
     def summary(self) -> str:
         lines = [
-            f"{'orders':>8}  {'queries':>8}  {'SQL ms':>8}   per step",
+            f"{'orders':>8}  {'interp.':>8}  {'sweep':>8}  {'SQL ms':>8}   per step",
         ]
         for sample in self.samples:
             steps = "  ".join(
@@ -88,15 +107,15 @@ class IngestResult(BaseModel):
                 for step in sample.steps
             )
             lines.append(
-                f"{sample.orders_before:>8}  {sample.queries:>8}  "
-                f"{sample.sql_ms:>8.0f}   {steps}"
+                f"{sample.orders_before:>8}  {sample.interpreting:>8}  "
+                f"{sample.queries:>8}  {sample.sql_ms:>8.0f}   {steps}"
             )
         growth = self.growth()
         if growth is not None:
             lines.append("")
             lines.append(
-                f"queries per order to cash, largest against smallest: {growth}x"
-                " (SC-001 allows 1.20)"
+                f"interpreting queries per order to cash, largest against smallest:"
+                f" {growth}x (SC-001 allows 1.20)"
             )
         return "\n".join(lines)
 
@@ -111,8 +130,14 @@ def render_markdown(result: IngestResult) -> str:
         "",
         "## One order to cash, as the company grows",
         "",
-        "| Orders before | Step | Records | Queries each | SQL ms each | Largest repeated reads |",
-        "|---:|---|---:|---:|---:|---|",
+        "Two numbers per step. **Interpreting** is what a real intake pays for one",
+        "record: `enqueue_source` and `process_import_job_bound`, the path SC-001 is",
+        "about. **Sweep** is the whole scheduler occurrence, which for a synthetic",
+        "company also carries the demo generator's selection, throttle and idempotency",
+        "work — cost no customer's company runs.",
+        "",
+        "| Orders before | Step | Records | Interpreting | Sweep | ms (interp./sweep) | Largest repeated reads |",
+        "|---:|---|---:|---:|---:|---:|---|",
     ]
     for sample in result.samples:
         for step in sample.steps:
@@ -122,7 +147,8 @@ def render_markdown(result: IngestResult) -> str:
             )
             lines.append(
                 f"| {sample.orders_before} | {step.step} | {step.produced} "
-                f"| {step.queries} | {step.sql_ms:.0f} | {repeated} |"
+                f"| {step.interpreting_queries} | {step.queries} "
+                f"| {step.interpreting_ms:.0f} / {step.sql_ms:.0f} | {repeated} |"
             )
     growth = result.growth()
     if growth is not None:
@@ -133,6 +159,50 @@ def render_markdown(result: IngestResult) -> str:
                 "measured company to the largest. SC-001 allows 1.20."
             ),
         ]
+
+    def statement_rows(attribute: str):
+        return [
+            (sample.orders_before, step.step, row)
+            for sample in result.samples
+            for step in sample.steps
+            for row in getattr(step, attribute)[:2]
+        ]
+
+    def statement_table(title: str, explanation: str, rows) -> None:
+        if not rows:
+            return
+        lines.extend(
+            [
+                "",
+                f"## {title}",
+                "",
+                explanation,
+                "",
+                "| Orders before | Step | ms | Runs | Span | Statement |",
+                "|---:|---|---:|---:|---|---|",
+            ]
+        )
+        for orders, step, row in rows:
+            sql = row.sql[:150].replace("|", "\\|")
+            lines.append(
+                f"| {orders} | {step} | {row.ms:.0f} | {row.count} | {row.span} "
+                f"| `{sql}` |"
+            )
+
+    statement_table(
+        "Where the interpreting time went",
+        "Only the product's own span. A step whose statement count stays flat while "
+        "its time grows has one query reading more rows, and this names it.",
+        statement_rows("slowest_interpreting"),
+    )
+    statement_table(
+        "Where the sweep time went",
+        "Selection, throttle and idempotency around the interpreting. For a "
+        "synthetic company this is the demo generator, which no customer's company "
+        "runs — listing it beside the product's own work is how a demo throttle "
+        "once looked like an intake problem.",
+        statement_rows("slowest_sweep"),
+    )
     lines += ["", "## Limitations", ""]
     lines += [f"- {limitation}" for limitation in result.limitations]
     return "\n".join(lines) + "\n"

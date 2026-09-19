@@ -10,6 +10,7 @@ measures a path nobody uses.
 
 from __future__ import annotations
 
+from contextlib import contextmanager
 from dataclasses import dataclass
 from datetime import timedelta
 from uuid import uuid4
@@ -139,6 +140,38 @@ def execute(session: Session, company: IngestCompany, run) -> str:
     )
     session.commit()
     return status
+
+
+@contextmanager
+def marked_intake():
+    """Wrap the two service calls a real intake makes, wherever they are reached.
+
+    The handlers call them from inside their own selection work, so the span
+    cannot be opened from the runner. The functions are wrapped instead — they are
+    public services and nothing in the product is changed, only observed.
+    """
+    from reality.services import core
+
+    from .measure import interpreting
+
+    original_enqueue = core.enqueue_source
+    original_process = core.process_import_job_bound
+
+    def enqueue(*args, **kwargs):
+        with interpreting():
+            return original_enqueue(*args, **kwargs)
+
+    def process(*args, **kwargs):
+        with interpreting():
+            return original_process(*args, **kwargs)
+
+    core.enqueue_source = enqueue
+    core.process_import_job_bound = process
+    try:
+        yield
+    finally:
+        core.enqueue_source = original_enqueue
+        core.process_import_job_bound = original_process
 
 
 def make_due(session: Session, company: IngestCompany, ahead: timedelta) -> None:

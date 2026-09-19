@@ -119,36 +119,45 @@ What remains: `source_record` is now the largest repeated read of every step, an
 `tenant` is still read from paths that do not go through the profile branch.
 Neither is addressed here.
 
-#### At three thousand orders, on a quiet host
+#### What that reading counted, and what it did not
 
-The short run above spans 60 orders, which is not a curve. This one runs to 3,001
-with the same code and nothing else on the machine; it is the record now in
-[evidence/ingest-cost.json](evidence/ingest-cost.json).
+The run above reported 507 statements per order to cash and no growth. The second
+figure stands. The first counted something wider than this criterion asks about, and
+the difference is large enough to matter.
 
-| Orders already recorded | Queries per order to cash | SQL ms |
+A scheduler occurrence does two things, and only one of them is the product's. It
+**selects** what to work on — for a synthetic company that is the demo generator's own
+bookkeeping, its throttle count and its idempotency check — and it **interprets** a
+record, which is `enqueue_source` and `process_import_job_bound`, the path every real
+intake takes and the only one FR-001 is about. No customer's company runs the first.
+The measurement now records both.
+
+Measured 2026-09-19 with the two told apart, one record per sweep at every checkpoint:
+
+| Orders already recorded | Interpreting | Whole sweep |
 | --- | --- | --- |
-| 0 | 505 | 361 |
-| 500 | 304 | 122 |
-| 1,500 | 326 | 197 |
-| 3,001 | 507 | 516 |
+| 0 | 223 | 505 |
+| 502 | 225 | 507 |
+| 1,500 | 225 | 507 |
 
-**Queries per order to cash do not grow: 1.0× from the smallest company to the
-largest, where SC-001 allows 1.20.** The earlier reading of 1.42× came from a
-401-order span before this change and does not survive either correction.
+Per step, interpreting: order 48, invoice 69, payment 106 at an empty company; 48, 69,
+108 at 1,500 orders.
 
-Three honest qualifications. The middle checkpoints are lower because those sweeps
-produced two records each, and a sweep's fixed cost — claiming, the throttle check,
-the settlement scan — is halved when it is divided by two. The number is therefore
-per record produced in a sweep, not per record in isolation, and it moves with how
-many the demo profile happens to deliver. **SQL time does still grow**, 361 to 516
-ms, so something is becoming dearer even where the statement count does not. And
-the absolute target is far off: SC-001 asks for at most 60 reads and 100 ms for one
-order to cash, and this measures 507 and 516.
+**Fewer than half of a sweep's statements are the product's**: 223 of 505. The absolute
+distance to SC-001's 60 is therefore about four times, not eight. **And the path is
+flat** — 1.01× across the range, where the criterion allows 1.20.
 
-So FR-001's curve criterion is met over this range and its absolute one is not.
-The per-table column says where the rest sits: `source_record` ×58 to ×62 in every
-step, against `tenant` ×8 to ×14 and `playground_run` ×11 now that the authority is
-established once.
+The correction worth recording is not the conclusion but how nearly it was overturned.
+An earlier two-checkpoint reading of the same split reported 1.17× growth and was about
+to be published. Its sweeps had produced one, two and three records at different
+checkpoints, and a sweep's fixed cost divided by two and by three does not give two
+readings of the same thing: the "growth" was the divisor moving. The runner now keeps
+only sweeps that produced exactly one record, so that class of reading cannot be taken
+again.
+
+The run to 3,000 with the split in place did not complete: the job handler's lease
+expired twice under desktop load above a load average of 70. Query counts survive
+contention; leases do not. The fourth checkpoint is owed.
 
 ## 2. Whole-company derivation
 

@@ -219,13 +219,17 @@ builder and class measurements at checkpoints, and compare two commits on the sa
 
   The baseline this cited — "2026-09-12: ~300 reads, ~660 ms, and rising with history" —
   came from scripts that no longer exist and cannot be reproduced. It is superseded by the
-  measurement the repository now carries (`benchmarks/ingest_cost`, FR-006), which on
-  2026-09-19 records **507 reads and 516 ms** at 3,001 orders and, after the authority
-  check moved to once per transaction, **no growth at all** across that range: 1.0× where
-  this criterion allows 1.20. The two numbers are not comparable — the older profile
-  measured the service calls inside one scheduler occurrence and the new one measures the
-  whole occurrence — which is the reason the cited baseline is replaced rather than
-  compared against. The absolute part of this criterion remains unmet.
+  measurement the repository now carries (`benchmarks/ingest_cost`, FR-006). That
+  measurement reports two numbers, and this criterion is about the first: **interpreting**
+  one record, which is what every intake pays, against the **sweep** around it, which for
+  a synthetic company also carries the demo generator's selection and throttle that no
+  customer's company runs.
+
+  Measured 2026-09-19 to 1,500 orders, after the authority check moved to once per
+  transaction: **223 statements per order to cash**, flat across the range at 1.01× where
+  this criterion allows 1.20. A first reading of 507 counted both spans; it was right
+  about the growth and wrong about the size by more than double. The absolute part of
+  this criterion remains unmet by about four times.
 - **SC-002**: After one business event on a company with 100,000 orders, the affected
   projections are ready within 5 s of worker time; a full rebuild of that company stays a
   maintenance operation.

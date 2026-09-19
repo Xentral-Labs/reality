@@ -37,7 +37,14 @@ PRODUCES = {
     "payment": "customer_payment",
 }
 
-from .company import build, claim_for, execute, make_due, settle_from
+from .company import (
+    build,
+    claim_for,
+    execute,
+    make_due,
+    marked_intake,
+    settle_from,
+)
 from .measure import measured
 from .report import IngestResult, write_result
 
@@ -130,10 +137,24 @@ def _measure_step(session, company, engine, job_type: str, label: str):
         if job_type == "demo.settle_orders":
             settle_from(session, company, run, SETTLEMENT_AHEAD)
         before = _documents(session, company.tenant_id, PRODUCES[label])
-        with measured(engine, label) as cost:
+        with measured(engine, label) as cost, marked_intake():
             execute(session, company, run)
         cost.produced = _documents(session, company.tenant_id, PRODUCES[label]) - before
-        if cost.produced > 0:
+        # Only a sweep that produced exactly one record is kept. A sweep carries a
+        # fixed cost — claiming, the throttle, the selection — beside its per-record
+        # work, so dividing by two records and by three does not give two readings of
+        # the same thing. Comparing such readings across checkpoints once produced a
+        # 1.17x "growth" that was nothing but the divisor moving, and it was very
+        # nearly published as a finding.
+        if cost.produced == 1:
+            if cost.interpreting_queries == 0:
+                # The wrapper did not reach the handler's call — the same trap the
+                # clock fell into. A zero here means the split is not measured, not
+                # that interpreting is free, so it is a failure rather than a row.
+                raise RuntimeError(
+                    "No statement was attributed to interpreting; the intake wrapper "
+                    "did not reach the service the handler calls."
+                )
             return cost
     return None
 
