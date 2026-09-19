@@ -345,36 +345,76 @@ def _build_operational_rows(
                 select(DocumentLine).where(DocumentLine.tenant_id == tenant_id)
             )
         }
+    # Spec 181 FR-003: the queue, the blockers and supply and demand are about work
+    # that is still open, so they are given the promises that are still open and
+    # nothing else. The commitment register is a register — it shows a promise that was
+    # cancelled — so when it is in this batch the terms are read for the whole company
+    # and shared. A closed promise excluded here is excluded by predicate, never
+    # fetched and skipped.
+    working_set = selected & {
+        FULFILLMENT_QUEUE,
+        FULFILLMENT_BLOCKERS,
+        ITEM_SUPPLY_DEMAND,
+    }
+    customer_commitments = (
+        list(
+            session.scalars(
+                select(Commitment).where(
+                    Commitment.tenant_id == tenant_id,
+                    Commitment.type == "customer_delivery",
+                    Commitment.status == "open",
+                )
+            )
+        )
+        if working_set
+        else []
+    )
     terms = (
         commitment_terms(session, tenant_id)
-        if selected
-        & {
-            FULFILLMENT_QUEUE,
-            FULFILLMENT_BLOCKERS,
-            ITEM_SUPPLY_DEMAND,
-            COMMITMENT_REGISTER,
-        }
+        if COMMITMENT_REGISTER in selected
+        else commitment_terms(
+            session, tenant_id, [row.id for row in customer_commitments]
+        )
+        if working_set
         else {}
     )
-    if selected & {FULFILLMENT_QUEUE, FULFILLMENT_BLOCKERS, ITEM_SUPPLY_DEMAND}:
+    if working_set:
         parties = {
             row.id: row
             for row in session.scalars(
                 select(Party).where(Party.tenant_id == tenant_id)
             )
         }
-        documents = {
-            row.id: row
-            for row in session.scalars(
-                select(Document).where(Document.tenant_id == tenant_id)
-            )
-        }
-        sources = {
-            row.id: row
-            for row in session.scalars(
-                select(SourceRecord).where(SourceRecord.tenant_id == tenant_id)
-            )
-        }
+        # Only the orders those open promises were made on, and only their source
+        # records: a company's finished history is not part of its open work.
+        open_document_ids = {row.document_id for row in customer_commitments} - {None}
+        documents = (
+            {
+                row.id: row
+                for row in session.scalars(
+                    select(Document).where(
+                        Document.tenant_id == tenant_id,
+                        Document.id.in_(open_document_ids),
+                    )
+                )
+            }
+            if open_document_ids
+            else {}
+        )
+        open_source_ids = {row.source_record_id for row in documents.values()} - {None}
+        sources = (
+            {
+                row.id: row
+                for row in session.scalars(
+                    select(SourceRecord).where(
+                        SourceRecord.tenant_id == tenant_id,
+                        SourceRecord.id.in_(open_source_ids),
+                    )
+                )
+            }
+            if open_source_ids
+            else {}
+        )
         active_reservations: dict[str, Decimal] = defaultdict(Decimal)
         for reservation in session.scalars(
             select(Reservation).where(
@@ -401,15 +441,6 @@ def _build_operational_rows(
                 )
             )
         }
-        customer_commitments = list(
-            session.scalars(
-                select(Commitment).where(
-                    Commitment.tenant_id == tenant_id,
-                    Commitment.type == "customer_delivery",
-                    Commitment.status == "open",
-                )
-            )
-        )
         grouped: dict[str, list[Commitment]] = defaultdict(list)
         for commitment in customer_commitments:
             grouped[commitment.document_id or commitment.id].append(commitment)

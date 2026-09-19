@@ -189,6 +189,23 @@ builder and class measurements at checkpoints, and compare two commits on the sa
 - **FR-003**: Working set. Derivations MUST read only open or active records unless the class
   is explicitly about history; closed records MUST be excluded by predicate, not filtered in
   memory.
+
+  Measured 2026-09-19 by adding sixty cancelled promises to a company and comparing what
+  each derivation reads. The fulfilment queue, the blockers and supply and demand each read
+  **124 rows more** — not because their promise query lacked a predicate, which it had, but
+  because they were handed the terms of every promise in the company and the whole document
+  table to look up four orders in. Bounded to the open promises and their orders, the three
+  are flat: sixty more cancelled promises now cost them nothing.
+  `test_working_set.py` keeps it that way and fails without the fix.
+
+  **Exceptions is exempt, and it is the interesting case.** Its evaluation loads every
+  commitment, document, line and revision of the company. That cannot be reduced to an open
+  working set, because half of its thirty-five classes judge what happened *after* a promise
+  was fulfilled — billed and not received, received and not billed, shipped and not billed.
+  An open-work set would not be a cheaper version of that answer, it would be a different
+  one. The reduction available here is narrowing by change set (spec 241), not by status.
+  What was fixed is that six classes each re-read the same order-line promises; they now
+  share one read per side of the trade within an evaluation.
 - **FR-004**: Refresh units. Each projection of each company MUST be its own scheduled unit
   with its own budget, checkpoint and failure state. Timer-driven eligibility MUST be replaced
   by date-indexed selection across companies; a company with no change and no due date MUST

@@ -1263,3 +1263,10 @@ its three refusals: an event type the catalog does not list, a window with more 
 records than are worth visiting one at a time, and a window with no new events. A
 refresh reports why each projection narrowed or did not, so a feature whose builders all
 decline looks like that rather than like success.
+
+`packages/reality-core/tests/test_working_set.py` covers 181 FR-003: a derivation about
+open work must not read the work that is finished. Sixty more cancelled promises are added
+to a company and what every derivation reads is compared before and after. Each projection
+is either declared to be about open work or carries a written reason for reading what is
+finished, so no projection sits outside that decision unnoticed, and a control insists that
+*something* grew — otherwise the silence of the others would mean nothing.
