@@ -10239,11 +10239,16 @@ def financial_open_items(
     session: OrmSession,
     tenant_id: str,
     *,
+    document_ids: set[str] | None = None,
     effective_before: datetime | None = None,
     party_ids: set[str] | None = None,
 ) -> list[dict[str, Any]]:
     return _financial_open_items(
-        session, tenant_id, effective_before=effective_before, party_ids=party_ids
+        session,
+        tenant_id,
+        document_ids=document_ids,
+        effective_before=effective_before,
+        party_ids=party_ids,
     )
 
 

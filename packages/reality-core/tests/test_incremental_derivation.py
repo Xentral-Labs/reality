@@ -12,6 +12,7 @@ not known to be a net.
 """
 
 import json
+from decimal import Decimal
 
 from sqlalchemy import select
 
@@ -1579,3 +1580,248 @@ def test_a_narrowed_timeline_writes_only_the_records_that_changed(session, busin
 
     assert whole_company > 5
     assert written == 1, "one receipt is one line of history"
+
+
+# --- the ninth builder: the open items (FR-002) ----------------------------------
+
+
+def _open_items(session, tenant_id):
+    return {
+        key: payload
+        for (name, key), payload in snapshot(session, tenant_id).items()
+        if name == projections.OPEN_FINANCIAL_ITEMS
+    }
+
+
+def test_a_new_invoice_narrows_the_open_items_and_agrees_with_the_company(
+    session, business
+):
+    tenant = business.tenant.id
+    a_little_business(session, business)
+    projections.refresh_operational_projections(session, tenant)
+    before = set(_open_items(session, tenant))
+
+    invoice = create_document(
+        session,
+        tenant,
+        "sales_invoice",
+        "INV-241-F",
+        business.customer.id,
+        "250",
+        document_date="2026-08-12",
+    )
+    post_sales_invoice(session, tenant, invoice.id)
+    with projections.narrowing_report() as report:
+        projections.refresh_operational_projections(session, tenant)
+    reason = report.get(projections.OPEN_FINANCIAL_ITEMS)
+    assert reason is None, reason
+    narrowed = _open_items(session, tenant)
+    assert set(narrowed) - before == {invoice.id}
+
+    projections.refresh_operational_projections(session, tenant, force=True)
+    assert narrowed == _open_items(session, tenant)
+
+
+def test_a_payment_moves_the_open_amount_of_the_invoice_it_settles(session, business):
+    """An allocation names two ledger entries and no document at all.
+
+    `settlement.allocated` is how an open item stops being open, so a builder that
+    cannot follow an allocation to the invoice it settles would keep reporting a paid
+    invoice as open — the one thing this projection exists to answer.
+    """
+    tenant = business.tenant.id
+    a_little_business(session, business)
+    projections.refresh_operational_projections(session, tenant)
+    invoice_id = next(
+        key
+        for key, payload in _open_items(session, tenant).items()
+        if payload["document_type"] == "sales_invoice"
+    )
+    before = _open_items(session, tenant)[invoice_id]["open"]
+
+    from reality.services import core
+
+    payment = record_customer_payment(session, tenant, business.customer.id, "30")
+    core.allocate_settlement(
+        session,
+        tenant,
+        next(entry for entry in payment if entry.account == "accounts_receivable").id,
+        core._settlement_control_entry(session, tenant, invoice_id).id,
+        Decimal(30),
+        _commit=False,
+    )
+    with projections.narrowing_report() as report:
+        projections.refresh_operational_projections(session, tenant)
+    reason = report.get(projections.OPEN_FINANCIAL_ITEMS)
+    assert reason is None, reason
+    narrowed = _open_items(session, tenant)
+    assert narrowed[invoice_id]["open"] != before, (
+        "the settled invoice still reports its old open amount"
+    )
+
+    projections.refresh_operational_projections(session, tenant, force=True)
+    assert narrowed == _open_items(session, tenant)
+
+
+def test_a_reversal_is_the_row_it_changes(session, business):
+    """The reversing entries sit in a posting group no event names, and the row that
+    has to change is the one that now says `reversed`."""
+    from reality.services.core import journal_rows, reverse_ledger_posting_group
+
+    tenant = business.tenant.id
+    a_little_business(session, business)
+    projections.refresh_operational_projections(session, tenant)
+    invoice_id = next(
+        key
+        for key, payload in _open_items(session, tenant).items()
+        if payload["document_type"] == "sales_invoice"
+    )
+    group_id = next(
+        row.posting_group_id
+        for row in journal_rows(session, tenant)
+        if row.document_id == invoice_id
+    )
+
+    reverse_ledger_posting_group(
+        session, tenant, group_id, reason="the invoice was posted twice"
+    )
+    with projections.narrowing_report() as report:
+        projections.refresh_operational_projections(session, tenant)
+    reason = report.get(projections.OPEN_FINANCIAL_ITEMS)
+    assert reason is None, reason
+    narrowed = _open_items(session, tenant)
+    assert narrowed[invoice_id]["status"] == "reversed"
+
+    projections.refresh_operational_projections(session, tenant, force=True)
+    assert narrowed == _open_items(session, tenant)
+
+
+def test_a_payment_term_reaches_the_documents_of_the_parties_that_inherit_it(
+    session, business
+):
+    from reality.services.core import create_payment_term, update_party
+
+    tenant = business.tenant.id
+    a_little_business(session, business)
+    term = create_payment_term(session, tenant, "NET30", "30 Tage netto", 30)
+    update_party(
+        session,
+        tenant,
+        business.customer.id,
+        business.customer.name,
+        business.customer.type,
+        payment_term_code="NET30",
+        _commit=False,
+    )
+    projections.refresh_operational_projections(session, tenant)
+    mine = {
+        key
+        for key, payload in _open_items(session, tenant).items()
+        if payload["party_id"] == business.customer.id
+    }
+    assert mine, "the fixture gave the party no open item to inherit the term"
+
+    changes = projections.ChangeSet({"payment_term": frozenset({term.id})})
+    outcome = projections._narrowed_open_financial_items(session, tenant, changes)
+    assert isinstance(outcome, projections.NarrowedRows), outcome
+    assert mine <= outcome.covers
+
+
+def test_the_open_items_decline_a_payment_run(session, business):
+    changes = projections.ChangeSet({"tenant": frozenset({business.tenant.id})})
+    outcome = projections._narrowed_open_financial_items(
+        session, business.tenant.id, changes
+    )
+    assert isinstance(outcome, str)
+    assert "the open items" in outcome and "tenant" in outcome
+
+
+def test_a_narrowed_open_items_refresh_writes_only_the_documents_that_changed(
+    session, business
+):
+    tenant = business.tenant.id
+    a_little_business(session, business)
+    for number in ("INV-241-W1", "INV-241-W2"):
+        other = create_document(
+            session,
+            tenant,
+            "sales_invoice",
+            number,
+            business.customer.id,
+            "40",
+            document_date="2026-08-13",
+        )
+        post_sales_invoice(session, tenant, other.id)
+    projections.refresh_operational_projections(session, tenant)
+    whole_company = projections.rebuild_projections(
+        session, tenant, [projections.OPEN_FINANCIAL_ITEMS], force=True
+    )
+    session.commit()
+
+    last = create_document(
+        session,
+        tenant,
+        "sales_invoice",
+        "INV-241-W3",
+        business.customer.id,
+        "40",
+        document_date="2026-08-14",
+    )
+    post_sales_invoice(session, tenant, last.id)
+    written = projections.rebuild_projections(
+        session, tenant, [projections.OPEN_FINANCIAL_ITEMS]
+    )
+    session.commit()
+
+    assert whole_company >= 3
+    assert written == 1, "one new invoice is one open item"
+
+
+def test_reversing_a_payment_gives_the_invoice_its_open_amount_back(session, business):
+    """The hop the full suite had to find for me.
+
+    Reversing the payment's posting group un-settles the allocation, and the row that
+    changes is the **invoice's** — a document the event does not name and the reversed
+    group's own entries do not carry. Resolving a posting group to its documents and
+    stopping there leaves the invoice reporting an amount somebody already got back.
+    """
+    from reality.services import core
+    from reality.services.core import reverse_ledger_posting_group
+
+    tenant = business.tenant.id
+    a_little_business(session, business)
+    payment = record_customer_payment(session, tenant, business.customer.id, "40")
+    projections.refresh_operational_projections(session, tenant)
+    invoice_id = next(
+        key
+        for key, payload in _open_items(session, tenant).items()
+        if payload["document_type"] == "sales_invoice"
+    )
+    core.allocate_settlement(
+        session,
+        tenant,
+        next(entry for entry in payment if entry.account == "accounts_receivable").id,
+        core._settlement_control_entry(session, tenant, invoice_id).id,
+        Decimal(40),
+        _commit=False,
+    )
+    projections.refresh_operational_projections(session, tenant)
+    assert _open_items(session, tenant)[invoice_id]["open"] == "60.0000"
+
+    reverse_ledger_posting_group(
+        session,
+        tenant,
+        payment[0].posting_group_id,
+        reason="the payment was recorded in error",
+    )
+    with projections.narrowing_report() as report:
+        projections.refresh_operational_projections(session, tenant)
+    reason = report.get(projections.OPEN_FINANCIAL_ITEMS)
+    assert reason is None, reason
+    narrowed = _open_items(session, tenant)
+    assert narrowed[invoice_id]["open"] == "100.0000", (
+        "the invoice kept an open amount the reversed payment had settled"
+    )
+
+    projections.refresh_operational_projections(session, tenant, force=True)
+    assert narrowed == _open_items(session, tenant)

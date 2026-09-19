@@ -1296,6 +1296,18 @@ followed. A third test renames a party and insists the refresh produces no rows 
 for none, because no timeline row prints a party: the one projection that can say nothing
 of its own changed, and must not re-read a company's history to say it.
 
+The open items are tested through the two records that move an invoice without naming it:
+a settlement allocation, which names two ledger entries, and a payment term, which a party
+lends to its documents. Both tests fail when the resolution is removed. A third watches the
+row that says `reversed`. The sabotage pass earned its keep negatively here as well — it
+showed that following the ledger reversal changed no outcome, because the event names the
+original posting group and that group's entries carry the document, so the lookup was
+dropped rather than kept for symmetry. The hop that *is* needed came from the suite
+instead: `test_finance_partial_refresh_preserves_other_checkpoints_and_tracks_settlement`
+reverses a payment and reads the invoice, and a fourth test in
+`test_incremental_derivation.py` now states the same thing as a property — an allocation
+ties two documents together, so un-settling one gives the other its open amount back.
+
 `packages/reality-core/tests/test_working_set.py` covers 181 FR-003: a derivation about
 open work must not read the work that is finished. Sixty more cancelled promises are added
 to a company and what every derivation reads is compared before and after. Each projection
