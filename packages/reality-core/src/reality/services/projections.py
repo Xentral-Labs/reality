@@ -351,12 +351,24 @@ def quantity_unit(
 
 
 def _build_financial_rows(
-    session: Session, tenant_id: str
+    session: Session,
+    tenant_id: str,
+    document_ids: frozenset[str] | set[str] | None = None,
 ) -> dict[str, dict[str, Any]]:
+    """Open items, for the whole company or for the named documents alone.
+
+    An item's open amount comes from its own control posting and its own
+    allocations, so asking about fewer documents returns fewer rows of the same
+    arithmetic (FR-002).
+    """
     from reality.services.core import financial_open_items
 
     open_items_projection = {}
-    for row in financial_open_items(session, tenant_id):
+    for row in financial_open_items(
+        session,
+        tenant_id,
+        document_ids=None if document_ids is None else set(document_ids),
+    ):
         document = row["document"]
         open_items_projection[document.id] = {
             "document_id": document.id,
@@ -1815,6 +1827,142 @@ def _narrowed_timeline(
     return NarrowedRows(rows, frozenset(rows))
 
 
+def _open_items_touched(
+    session: Session, tenant_id: str, changes: ChangeSet, projection: str
+) -> frozenset[str] | str:
+    """The documents whose open item the change set can have moved.
+
+    An open item is a document, so every subject has to end at one. A posting group
+    holds the entries that put the document on an account; an allocation names the two
+    entries it settles between; a party and a payment term are printed on the row and
+    decide when it falls due.
+
+    An allocation is the hop that cannot be skipped. It ties a payment's entry to an
+    invoice's, so touching **either** side moves both documents' open amounts — and
+    reversing a payment's posting group deactivates its allocations while naming
+    neither the allocation nor the invoice. The counterpart entry is therefore read for
+    every entry this change set reaches, from the allocation table itself rather than
+    from the active ones, because the reversal is what made them inactive.
+
+    The `LedgerReversal` relation, by contrast, is deliberately not followed: the event
+    names the original posting group, whose entries carry the document, and the word
+    `reversed` on the row comes from the stored relation rather than from reading the
+    counter-entries. A sabotage of that lookup changed no outcome.
+    """
+    from reality.db.core import LedgerEntry, SettlementAllocation
+
+    known = {
+        "document",
+        "party",
+        "payment_term",
+        "posting_group",
+        "settlement_allocation",
+    }
+    unknown = sorted(set(changes.subjects or {}) - known)
+    if unknown:
+        return f"{projection} cannot narrow by {unknown[0]}"
+    documents = set(changes.ids("document"))
+    entries: set[str] = set()
+    if allocations := changes.ids("settlement_allocation"):
+        for invoice_entry, payment_entry in session.execute(
+            select(
+                SettlementAllocation.invoice_ledger_entry_id,
+                SettlementAllocation.payment_ledger_entry_id,
+            ).where(
+                SettlementAllocation.tenant_id == tenant_id,
+                SettlementAllocation.id.in_(allocations),
+            )
+        ).all():
+            entries.update((invoice_entry, payment_entry))
+    groups = set(changes.ids("posting_group"))
+    if groups:
+        entries.update(
+            session.scalars(
+                select(LedgerEntry.id).where(
+                    LedgerEntry.tenant_id == tenant_id,
+                    LedgerEntry.posting_group_id.in_(groups),
+                )
+            )
+        )
+    if entries:
+        # Both sides of every allocation these entries take part in: settling, or
+        # un-settling by reversal, moves the open amount of the document at the other
+        # end, which no event in this window names.
+        for invoice_entry, payment_entry in session.execute(
+            select(
+                SettlementAllocation.invoice_ledger_entry_id,
+                SettlementAllocation.payment_ledger_entry_id,
+            ).where(
+                SettlementAllocation.tenant_id == tenant_id,
+                or_(
+                    SettlementAllocation.invoice_ledger_entry_id.in_(entries),
+                    SettlementAllocation.payment_ledger_entry_id.in_(entries),
+                ),
+            )
+        ).all():
+            entries.update((invoice_entry, payment_entry))
+    reach = []
+    if entries:
+        reach.append(LedgerEntry.id.in_(entries))
+    if reach:
+        documents.update(
+            document_id
+            for document_id in session.scalars(
+                select(LedgerEntry.document_id).where(
+                    LedgerEntry.tenant_id == tenant_id, or_(*reach)
+                )
+            )
+            if document_id
+        )
+    parties = set(changes.ids("party"))
+    if terms := changes.ids("payment_term"):
+        # A term is cited by a document, or by the party whose documents inherit it.
+        documents.update(
+            session.scalars(
+                select(Document.id).where(
+                    Document.tenant_id == tenant_id,
+                    Document.payment_term_id.in_(terms),
+                )
+            )
+        )
+        parties.update(
+            session.scalars(
+                select(Party.id).where(
+                    Party.tenant_id == tenant_id, Party.payment_term_id.in_(terms)
+                )
+            )
+        )
+    if parties:
+        documents.update(
+            session.scalars(
+                select(Document.id).where(
+                    Document.tenant_id == tenant_id, Document.party_id.in_(parties)
+                )
+            )
+        )
+    if not documents:
+        return f"no {projection} subject resolved to a document"
+    if len(documents) > MAX_NARROWED_ROWS:
+        return f"{len(documents)} documents is not worth visiting one at a time"
+    return frozenset(documents)
+
+
+def _narrowed_open_financial_items(
+    session: Session, tenant_id: str, changes: ChangeSet
+) -> NarrowedRows | str:
+    """The open items, for the documents that changed (FR-002).
+
+    What it speaks for is the documents it resolved, not the rows it produced: a
+    document that has no control posting is not an open item at all, so a refresh that
+    finds none must be able to remove the row that was there.
+    """
+    documents = _open_items_touched(session, tenant_id, changes, "the open items")
+    if isinstance(documents, str):
+        return documents
+    rows = json.loads(_dump(_build_financial_rows(session, tenant_id, documents)))
+    return NarrowedRows(rows, documents)
+
+
 #: Builders that can derive by change. A projection absent from this map evaluates the
 #: company, which is always correct; one present may still decline for a change set it
 #: cannot resolve, by returning the reason instead of rows (FR-002).
@@ -1827,6 +1975,7 @@ NARROWED_BUILDERS = {
     FULFILLMENT_BLOCKERS: _narrowed_fulfillment_blockers,
     COMMITMENT_REGISTER: _narrowed_commitment_register,
     TIMELINE: _narrowed_timeline,
+    OPEN_FINANCIAL_ITEMS: _narrowed_open_financial_items,
 }
 
 

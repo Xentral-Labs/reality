@@ -191,16 +191,18 @@ builder and class measurements at checkpoints, and compare two commits on the sa
   merge, the refusals, the fallback report, and the equivalence property that stands between
   an optimisation and a silently wrong projection.
 
-  **Eight of twelve builders narrow** — `journal`, `document_register`, `inventory`,
+  **Nine of twelve builders narrow** — `journal`, `document_register`, `inventory`,
   `item_supply_demand`, `fulfillment_queue`, `fulfillment_blockers`, `commitment_register`,
-  `timeline`. The remaining four evaluate the company, which is always correct and always
-  allowed (a builder may decline). What is left, in the order it is worth doing:
+  `timeline`, `open_financial_items`. The remaining three evaluate the company, which is
+  always correct and always allowed (a builder may decline). What is left, in the order it
+  is worth doing:
 
+  * `payments`, the other half of the pair this specification called poor candidates. The
+    open items proved the judgement half wrong: a payment run names the tenant and is
+    declined, but every other window resolves to documents and narrows. `payments` is keyed
+    by cash entry rather than by document and is worth the same look.
   * `tenant_usage` (60 event types) — the widest, and it answers about the company rather
     than about a record, so it may have no narrowed shape at all.
-  * `payments` and `open_financial_items` are poor candidates despite having the fewest event
-    types: both name the *tenant* on `payments.run`, so they would decline exactly when the
-    most has changed.
   * `exceptions` (37) is the largest and needs its own design, because its evaluation loads
     the whole company by construction (see FR-003).
 
@@ -239,6 +241,26 @@ builder and class measurements at checkpoints, and compare two commits on the sa
   name, so a document, a party, a location or an observation — all real changes the catalog
   rightly says invalidate it — reach no row. Such a window produces no rows and speaks for
   none, which writes and removes nothing rather than re-reading the history.
+
+  The open items then corrected this specification's own judgement. They were written off
+  above because `payments.run` names the tenant; a payment run is indeed declined, but a
+  posting, an allocation, a party and a payment term all resolve to documents, which is
+  every other window.
+
+  They also produced the clearest lesson about how far a subject reaches — and it was the
+  existing test suite, not the sabotage pass, that produced it. Reversing a **payment's**
+  posting group un-settles its allocation, and the row that changes is the **invoice's**: a
+  document the event does not name and the reversed group's own entries do not carry. An
+  allocation ties two documents together, so touching either side moves both, and the
+  counterpart must be read from the allocation table rather than from the active
+  allocations — because the reversal is exactly what made one inactive. The same hop,
+  taken twice, is what `payments` needs to see an invoice reversal.
+
+  The `LedgerReversal` relation itself is *not* followed by either: a sabotage of that
+  lookup changed no outcome, because the event names the original posting group and the
+  word `reversed` comes from the stored relation. Two lookups of the same shape, one
+  necessary and one not — which is why each is decided by watching a test fail rather than
+  by symmetry.
 
   **Time-based transitions**: delivered in the part that mattered, and not in the part the
   requirement literally names. Measurement showed that two of the three projections refreshed
