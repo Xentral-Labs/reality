@@ -5,7 +5,7 @@ import json
 import logging
 import os
 import time
-from collections.abc import Callable, Iterable
+from collections.abc import Callable, Collection, Iterable
 from dataclasses import dataclass
 from datetime import UTC, date, datetime, timedelta
 from decimal import Decimal
@@ -5961,15 +5961,23 @@ def commitment_control_accounts(
     return result
 
 
-def document_rows(session: OrmSession, tenant_id: str):
-    """Every document with its source, lines and linked promises, in four reads."""
+def document_rows(
+    session: OrmSession, tenant_id: str, document_ids: Collection[str] | None = None
+):
+    """Every document with its source, lines and linked promises, in four reads.
+
+    `document_ids` bounds all four to a named set, for a caller that already knows
+    which documents it has to account for. `None` means the whole company.
+    """
+    scope = [Document.id.in_(document_ids)] if document_ids is not None else []
     documents = list(
         session.scalars(
             select(Document)
-            .where(Document.tenant_id == tenant_id)
+            .where(Document.tenant_id == tenant_id, *scope)
             .order_by(Document.document_date, Document.id)
         )
     )
+    held = {row.id for row in documents}
     source_ids = {row.source_record_id for row in documents} - {None}
     sources = (
         {
@@ -5986,14 +5994,21 @@ def document_rows(session: OrmSession, tenant_id: str):
     lines: dict[str, list[DocumentLine]] = {}
     for line in session.scalars(
         select(DocumentLine)
-        .where(DocumentLine.tenant_id == tenant_id)
+        .where(
+            DocumentLine.tenant_id == tenant_id,
+            *([DocumentLine.document_id.in_(held)] if document_ids is not None else []),
+        )
         .order_by(DocumentLine.id)
     ):
         lines.setdefault(line.document_id, []).append(line)
     linked: dict[str, list[Commitment]] = {}
     for commitment in session.scalars(
         select(Commitment)
-        .where(Commitment.tenant_id == tenant_id, Commitment.document_id.is_not(None))
+        .where(
+            Commitment.tenant_id == tenant_id,
+            Commitment.document_id.is_not(None),
+            *([Commitment.document_id.in_(held)] if document_ids is not None else []),
+        )
         .order_by(Commitment.id)
     ):
         linked.setdefault(commitment.document_id, []).append(commitment)

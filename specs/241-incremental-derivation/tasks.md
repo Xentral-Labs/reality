@@ -7,4 +7,7 @@
 - [ ] T006 Narrow the first builders, one at a time, each behind the equivalence test (FR-002).
   - [x] `journal` — posting groups and subledger accounts; follows the stored reversal
     relation to the reversing group no event names; declines a `tenant` subject.
-  - [ ] the remaining eleven.
+  - [x] `document_register` — documents, commitments, source records, parties and
+    payment terms resolve to documents; a party reaching more than
+    `MAX_NARROWED_ROWS` of them declines.
+  - [ ] the remaining ten.
