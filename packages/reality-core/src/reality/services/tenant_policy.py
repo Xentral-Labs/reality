@@ -660,6 +660,31 @@ def master_tool_execution(session: Session, tenant_id: str, tool: str, arguments
         _master_execution.reset(token)
 
 
+def _profile_authority_holds(session: Session, profile: tuple, tenant_id: str) -> bool:
+    """Whether this profile may still write, established once per transaction.
+
+    Spec 181 FR-001: the authority check is established once per transaction and
+    reused by every core service call within it. It used to run per call, and the
+    ingest measurement found the cost: `playground_run` read 51 times and `tenant`
+    73 times while recording one payment, because `require_playground_run` is a
+    four-table join that deliberately re-reads, and every service call asked again.
+
+    What is cached is one transaction's answer, and it is dropped the moment
+    anything in that transaction writes a `Tenant` or a `PlaygroundRun` — the two
+    records the answer depends on. A refusal that would have happened still
+    happens; it is only asked once.
+    """
+    key = (session, session.get_transaction(), tenant_id, profile[2], profile[3])
+    if _profile_checked.get() == key:
+        return True
+    run = require_playground_run(session, profile[2], profile[3])
+    tenant = session.scalar(select(Tenant).where(Tenant.id == tenant_id))
+    if run.status in {"initializing", "active"} and tenant.archived_at is None:
+        _profile_checked.set(key)
+        return True
+    return False
+
+
 def require_core_operation(session: Session, tenant_id: str, operation: str) -> None:
     """Permit only private initial reference setup; egress has no such exception."""
     profile = _profile_authority.get()
@@ -669,11 +694,9 @@ def require_core_operation(session: Session, tenant_id: str, operation: str) -> 
         and profile[1] is session.get_transaction()
         and profile[4] == tenant_id
         and operation in profile[5]
+        and _profile_authority_holds(session, profile, tenant_id)
     ):
-        run = require_playground_run(session, profile[2], profile[3])
-        tenant = session.scalar(select(Tenant).where(Tenant.id == tenant_id))
-        if run.status in {"initializing", "active"} and tenant.archived_at is None:
-            return
+        return
     if profile is not None:
         raise PlaygroundOperationDenied(
             "Profile authority does not permit this operation."
@@ -1156,6 +1179,23 @@ _SETTLEMENT_OPERATIONS = _INTAKE_OPERATIONS | frozenset(
 _profile_authority: ContextVar[tuple | None] = ContextVar(
     "company_profile_authority", default=None
 )
+#: The transaction whose profile authority has already been established, so the
+#: next service call in it does not ask again. Forgotten whenever the records that
+#: answer it are written; see `_forget_profile_authority`.
+_profile_checked: ContextVar[tuple | None] = ContextVar(
+    "company_profile_checked", default=None
+)
+
+
+def _forget_profile_authority(session: Session, flush_context, instances) -> None:
+    """Drop the cached answer when this transaction changes what it rests on."""
+    for record in (*session.new, *session.dirty, *session.deleted):
+        if isinstance(record, (Tenant, PlaygroundRun)):
+            _profile_checked.set(None)
+            return
+
+
+event.listen(Session, "before_flush", _forget_profile_authority)
 
 
 @contextmanager

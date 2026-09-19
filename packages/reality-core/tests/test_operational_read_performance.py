@@ -429,3 +429,81 @@ def test_projection_builders_read_per_company_not_per_record(session, business):
     assert many_rows["commitment_register"] == few_rows["commitment_register"] + 40
     assert many[0] == few[0], (few[0], many[0])
     assert few[0] < 120, f"Per-record builder reads: {few[0]}"
+
+
+# --- spec 181 FR-001: authority established once per transaction ---------------
+
+
+@contextmanager
+def _table_reads(session, table: str):
+    """How many statements in this block read one table."""
+    import re
+
+    counts = [0]
+    bind = session.get_bind()
+    pattern = re.compile(rf"\b(?:FROM|JOIN)\s+{table}\b", re.IGNORECASE)
+
+    def count(conn, cursor, statement, parameters, context, executemany):
+        if pattern.search(statement):
+            counts[0] += 1
+
+    event.listen(bind, "before_cursor_execute", count)
+    try:
+        yield counts
+    finally:
+        event.remove(bind, "before_cursor_execute", count)
+
+
+def test_profile_authority_is_established_once_per_transaction(session, business):
+    """Spec 181 FR-001: every service call in one transaction reuses the answer.
+
+    It used to be asked per call, and the ingest measurement put a number on it:
+    `playground_run` read 51 times and `tenant` 73 times while recording one
+    payment. What the check decides cannot change between two calls of the same
+    transaction unless that transaction writes one of the two records it rests on.
+    """
+    from reality.services.core import NotFound
+    from reality.services.tenant_policy import (
+        _profile_authority_holds,
+        _profile_checked,
+    )
+
+    profile = (session, session.get_transaction(), "run-probe", "user-probe")
+    token = _profile_checked.set(None)
+    try:
+        # The run does not exist, so the check refuses — and a refusal is never
+        # remembered as permission.
+        with pytest.raises(NotFound):
+            _profile_authority_holds(session, profile, business.tenant.id)
+        assert _profile_checked.get() is None
+
+        # Once established, neither record is read again in this transaction.
+        _profile_checked.set(
+            (
+                session,
+                session.get_transaction(),
+                business.tenant.id,
+                "run-probe",
+                "user-probe",
+            )
+        )
+        with (
+            _table_reads(session, "playground_run") as runs,
+            _table_reads(session, "tenant") as tenants,
+        ):
+            for _ in range(5):
+                assert _profile_authority_holds(session, profile, business.tenant.id)
+        assert runs[0] == 0
+        assert tenants[0] == 0
+    finally:
+        _profile_checked.reset(token)
+
+
+def test_writing_a_tenant_forgets_the_established_authority(session, business):
+    """The answer rests on `Tenant` and `PlaygroundRun`; writing one drops it."""
+    from reality.services.tenant_policy import _profile_checked
+
+    _profile_checked.set(("probe",))
+    business.tenant.name = f"{business.tenant.name} "
+    session.flush()
+    assert _profile_checked.get() is None
