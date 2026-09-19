@@ -1,0 +1,1391 @@
+bringing up nodes...
+bringing up nodes...
+
+........................................................................ [  2%]
+........................................................................ [  4%]
+........................................................................ [  6%]
+........................................................................ [  8%]
+........................................................................ [ 10%]
+........................................................................ [ 13%]
+........................................................................ [ 15%]
+........................................................................ [ 17%]
+........................................................................ [ 19%]
+........................................................................ [ 21%]
+........................................................................ [ 24%]
+........................................................................ [ 26%]
+........................................................................ [ 28%]
+........................................................................ [ 30%]
+........................................................................ [ 32%]
+........................................................................ [ 34%]
+........................................................................ [ 37%]
+........................................................................ [ 39%]
+........................................................................ [ 41%]
+........................................................................ [ 43%]
+........................................................................ [ 45%]
+........................................................................ [ 48%]
+........................................................................ [ 50%]
+........................................................................ [ 52%]
+........................................................................ [ 54%]
+........................................................................ [ 56%]
+......ss................................................................ [ 59%]
+........................................................................ [ 61%]
+........................................................................ [ 63%]
+........................................................................ [ 65%]
+........................................................................ [ 67%]
+...................................................................F.... [ 69%]
+........................................................................ [ 72%]
+........................................................................ [ 74%]
+........................................................................ [ 76%]
+........................................................................ [ 78%]
+.........................F.FF.F.FFF..................................... [ 80%]
+............F........................................................... [ 83%]
+.........................................................ss............. [ 85%]
+............................................F.F......................... [ 87%]
+...F.................................................................... [ 89%]
+.....sss...s............................................................ [ 91%]
+........................................................................ [ 93%]
+......s................................................................. [ 96%]
+........................................................................ [ 98%]
+.........................................F............                   [100%]
+=================================== FAILURES ===================================
+_______ test_settlement_occurrence_emits_due_records_in_bounded_batches ________
+[gw1] darwin -- Python 3.12.4 /Users/benediktsauter/GitHub/reality/.venv/bin/python3.12
+
+session = <sqlalchemy.orm.session.Session object at 0x10cbdaa20>
+scheduled_owner = <reality.db.core.AppUser object at 0x110d7a780>
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x1110fc5c0>
+
+    def test_settlement_occurrence_emits_due_records_in_bounded_batches(
+        session, scheduled_owner, monkeypatch
+    ):
+        """Feature 168 FR-018: due invoices and payments, oldest first, at most ten per occurrence."""
+        from datetime import timedelta
+    
+        from sqlalchemy import func
+    
+        from reality.db.core import Document, Movement, Reservation, SourceRecord, now
+        from reality.db.scheduled_jobs import ScheduledJob
+        from reality.integrations import demo_data as synthetic
+        from reality.services import demo_data
+    
+        monkeypatch.setattr("reality.integrations.demo_data.burst_size", lambda *args: 1)
+        # The production bound leaves headroom at 300 orders per hour; the test uses a
+        # batch of ten so a dozen orders exercise the bound in two occurrences.
+        assert demo_data.SETTLEMENT_BATCH == 25
+        monkeypatch.setattr(demo_data, "SETTLEMENT_BATCH", 10)
+        # Compressed delays collapse to zero so every non-late story is due at once.
+        monkeypatch.setattr(
+            synthetic,
+            "DELAYS",
+            {k: (0, 0) for k in ("invoice", "provider", "bank", "second")},
+        )
+        actor = scheduled_owner.id
+        tenant, order_schedule = _running_demo(session, monkeypatch, actor, "settle")
+        for _ in range(12):
+            _tick(session, tenant, order_schedule)
+            session.refresh(order_schedule)
+        orders = list(
+            session.scalars(
+                select(SourceRecord).where(
+                    SourceRecord.tenant_id == tenant, SourceRecord.source_type == "order"
+                )
+            )
+        )
+        assert len(orders) == 12
+        # One order is older than the scan window: it is left alone until it returns.
+        stale = orders[0]
+        stale.received_at = now() - timedelta(days=40)
+        session.flush()
+        seed = order_schedule.configuration["arguments"]["seed"]
+        plans = {
+            order.external_id: synthetic.settlement_plan(
+                seed, order_schedule.id, order.external_id, json.loads(order.payload)
+            )
+            for order in orders
+        }
+        expected_payments = sum(
+            len(plan.payments)
+            for external_id, plan in plans.items()
+            if plan.outcome != "late" and external_id != stale.external_id
+        )
+        movements_before = session.scalar(
+            select(func.count()).select_from(Movement).where(Movement.tenant_id == tenant)
+        )
+        status = demo_data.status(session, tenant, actor)
+        settlement = session.get(ScheduledJob, status["settlement_schedule_id"])
+    
+        history, totals = _settle_all(session, tenant, settlement)
+        assert all(sum(tick.values()) <= 10 for tick in history)
+        assert history[0] == {"invoice": 10, "payment": 0}
+>       assert totals == {"invoice": 11, "payment": expected_payments}
+E       AssertionError: assert {'invoice': 10, 'payment': 0} == {'invoice': 11, 'payment': 10}
+E         
+E         Differing items:
+E         {'payment': 0} != {'payment': 10}
+E         {'invoice': 10} != {'invoice': 11}
+E         Use -v to get more diff
+
+tests/test_demo_data_intake.py:651: AssertionError
+_____________________ test_record_reads_are_non_disclosing _____________________
+[gw1] darwin -- Python 3.12.4 /Users/benediktsauter/GitHub/reality/.venv/bin/python3.12
+
+session = <sqlalchemy.orm.session.Session object at 0x10ed8e9f0>
+two_tenant_graph = TwoTenantGraph(local=TenantGraph(tenant=<reality.db.core.Tenant object at 0x10f042f60>, company=<reality.db.core.Party...eality.db.core.ChatSession object at 0x10f0b2300>, source_system=<reality.db.core.SourceSystem object at 0x10e05e810>))
+
+    def test_record_reads_are_non_disclosing(session, two_tenant_graph):
+        local = two_tenant_graph.local
+        foreign = two_tenant_graph.foreign
+    
+        with pytest.raises(NotFound) as foreign_error:
+            document_detail(session, local.tenant.id, foreign.document.id)
+        with pytest.raises(NotFound) as unknown_error:
+            document_detail(session, local.tenant.id, "doc_unknown")
+    
+        assert str(foreign_error.value) == str(unknown_error.value)
+        assert (
+            document_detail(session, local.tenant.id, local.document.id)["document"].id
+            == local.document.id
+        )
+        for detail_service, foreign_id, unknown_id in (
+            (party_detail, foreign.customer.id, "par_unknown"),
+            (item_detail, foreign.item.id, "itm_unknown"),
+            (get_chat_session, foreign.chat_session.id, "cht_unknown"),
+        ):
+            with pytest.raises(NotFound) as foreign_detail_error:
+                detail_service(session, local.tenant.id, foreign_id)
+            with pytest.raises(NotFound) as unknown_detail_error:
+                detail_service(session, local.tenant.id, unknown_id)
+            assert str(foreign_detail_error.value) == str(unknown_detail_error.value)
+>       assert _family("record_reads")["classification"] == "record_read"
+               ^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/tenant_isolation/test_families.py:90: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/tenant_isolation/test_families.py:61: in _family
+    for family in load_tenant_isolation_catalog().families
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src/reality/catalogs.py:1015: in load_tenant_isolation_catalog
+    catalog = validate_tenant_isolation_catalog(payload)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+payload = {'version': 1, 'discovery': {'modules': ['reality.services.core', 'reality.services.artifacts', 'reality.services.file... 'classification': 'collection', 'authority': '003/FR-010, 003/FR-012, 019/FR-005, 040/FR-002, 040/DR-003', ...}, ...]}
+discovered_operations = None
+
+    def validate_tenant_isolation_catalog(
+        payload: dict[str, Any],
+        *,
+        discovered_operations: tuple[str, ...] | None = None,
+    ) -> TenantIsolationCatalog:
+        """Validate complete operation classification and executable evidence mapping."""
+        version = payload.get("version")
+        if not isinstance(version, int) or isinstance(version, bool) or version < 1:
+            raise ValueError("Tenant isolation catalog version must be a positive integer")
+        families = payload.get("families")
+        if not isinstance(families, list) or not families:
+            raise ValueError("Tenant isolation catalog requires non-empty families")
+        explicit = payload.get("explicit_operations", [])
+        if not isinstance(explicit, list) or not all(
+            isinstance(item, str) for item in explicit
+        ):
+            raise ValueError("explicit_operations must be a list of operation names")
+        discovered = discovered_operations or discover_tenant_operations(
+            explicit_operations=tuple(explicit)
+        )
+    
+        keys: set[str] = set()
+        mapped: dict[str, str] = {}
+        evidence_ids: set[str] = set()
+        normalized: list[dict[str, Any]] = []
+        for index, raw_family in enumerate(families):
+            if not isinstance(raw_family, dict):
+                raise TypeError(
+                    f"Tenant isolation family at index {index} must be a mapping"
+                )
+            context = f"Tenant isolation family at index {index}"
+            key = _required_text(raw_family, "key", context)
+            if key in keys:
+                raise ValueError(f"Duplicate tenant isolation family: {key}")
+            keys.add(key)
+            _required_text(raw_family, "description", key)
+            authority = _required_text(raw_family, "authority", key)
+            classification = _required_text(raw_family, "classification", key)
+            if classification not in TENANT_ISOLATION_CLASSIFICATIONS:
+                raise ValueError(
+                    f"Unknown tenant isolation classification for {key}: {classification}"
+                )
+            if classification in {"boundary", "global_admin"}:
+                _required_text(raw_family, "reason", key)
+            operations = raw_family.get("operations")
+            if (
+                not isinstance(operations, list)
+                or not operations
+                or not all(isinstance(item, str) and item for item in operations)
+            ):
+                raise ValueError(f"{key} requires non-empty operations")
+            for operation in operations:
+                previous = mapped.get(operation)
+                if previous:
+                    raise ValueError(
+                        f"Duplicate tenant isolation operation: {operation} ({previous}, {key})"
+                    )
+                mapped[operation] = key
+            evidence = raw_family.get("evidence")
+            if not isinstance(evidence, list) or not evidence:
+                raise ValueError(f"{key} requires non-empty evidence")
+            covered: set[str] = set()
+            for item in evidence:
+                if not isinstance(item, dict):
+                    raise TypeError(f"{key} evidence entries must be mappings")
+                evidence_id = _required_text(item, "id", f"{key} evidence")
+                if evidence_id in evidence_ids:
+                    raise ValueError(f"Duplicate tenant isolation evidence: {evidence_id}")
+                evidence_ids.add(evidence_id)
+                assertion = _required_text(item, "assertion", f"{key} evidence")
+                if assertion != classification:
+                    raise ValueError(
+                        f"Evidence classification mismatch for {evidence_id}: {assertion} != {classification}"
+                    )
+                evidence_operations = item.get("operations")
+                if not isinstance(evidence_operations, list) or not evidence_operations:
+                    raise ValueError(f"{evidence_id} requires covered operations")
+                unknown_evidence = set(evidence_operations) - set(operations)
+                if unknown_evidence:
+                    raise ValueError(
+                        f"Evidence {evidence_id} references unknown family operations: {sorted(unknown_evidence)}"
+                    )
+                covered.update(evidence_operations)
+            missing_evidence = sorted(set(operations) - covered)
+            if missing_evidence:
+                raise ValueError(f"Unproven operations in {key}: {missing_evidence}")
+            normalized.append({**raw_family, "authority": authority})
+    
+        discovered_set = set(discovered)
+        mapped_set = set(mapped)
+        missing = sorted(discovered_set - mapped_set)
+        stale = sorted(mapped_set - discovered_set)
+        if missing or stale:
+>           raise ValueError(
+                f"Tenant isolation catalog drift: missing={missing}, stale={stale}"
+            )
+E           ValueError: Tenant isolation catalog drift: missing=[], stale=['reality.services.costing:build_inventory_generation', 'reality.services.costing:inventory_cost_snapshot']
+
+src/reality/catalogs.py:889: ValueError
+___________________ test_collections_exclude_foreign_records ___________________
+[gw1] darwin -- Python 3.12.4 /Users/benediktsauter/GitHub/reality/.venv/bin/python3.12
+
+session = <sqlalchemy.orm.session.Session object at 0x11011d370>
+two_tenant_graph = TwoTenantGraph(local=TenantGraph(tenant=<reality.db.core.Tenant object at 0x11011ddf0>, company=<reality.db.core.Party...eality.db.core.ChatSession object at 0x10e082c00>, source_system=<reality.db.core.SourceSystem object at 0x1100f5f70>))
+
+    def test_collections_exclude_foreign_records(session, two_tenant_graph):
+        local = two_tenant_graph.local
+        foreign = two_tenant_graph.foreign
+    
+        assert {row.id for row in parties(session, local.tenant.id)} == {
+            local.company.id,
+            local.customer.id,
+        }
+        assert {row.id for row in items(session, local.tenant.id)} == {local.item.id}
+        assert {row.id for row in locations(session, local.tenant.id)} == {
+            local.location.id
+        }
+        assert {row.id for row in commitments(session, local.tenant.id)} == {
+            local.commitment.id
+        }
+        assert foreign.item.id not in {
+            row["item"].id for row in inventory_rows(session, local.tenant.id)
+        }
+        assert {row.id for row in source_records(session, local.tenant.id)} == {
+            local.source.id
+        }
+        assert {row.id for row in chat_sessions(session, local.tenant.id)} == {
+            local.chat_session.id
+        }
+        assert {
+            system.id
+            for system in integration_registry(session, local.tenant.id)["systems"]
+        } == {local.source_system.id}
+        assert all(
+            row["document"].tenant_id == local.tenant.id
+            for row in financial_open_items(session, local.tenant.id)
+        )
+        assert all(
+            row["movement"].tenant_id == local.tenant.id
+            for row in movement_register(session, local.tenant.id)
+        )
+        local_timeline_ids = {row[3] for row in timeline(session, local.tenant.id)}
+        assert local.source.id in local_timeline_ids
+        assert foreign.source.id not in local_timeline_ids
+        assert foreign.commitment.id not in local_timeline_ids
+>       assert _family("collections")["classification"] == "collection"
+               ^^^^^^^^^^^^^^^^^^^^^^
+
+tests/tenant_isolation/test_families.py:164: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/tenant_isolation/test_families.py:61: in _family
+    for family in load_tenant_isolation_catalog().families
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src/reality/catalogs.py:1015: in load_tenant_isolation_catalog
+    catalog = validate_tenant_isolation_catalog(payload)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+payload = {'version': 1, 'discovery': {'modules': ['reality.services.core', 'reality.services.artifacts', 'reality.services.file... 'classification': 'collection', 'authority': '003/FR-010, 003/FR-012, 019/FR-005, 040/FR-002, 040/DR-003', ...}, ...]}
+discovered_operations = None
+
+    def validate_tenant_isolation_catalog(
+        payload: dict[str, Any],
+        *,
+        discovered_operations: tuple[str, ...] | None = None,
+    ) -> TenantIsolationCatalog:
+        """Validate complete operation classification and executable evidence mapping."""
+        version = payload.get("version")
+        if not isinstance(version, int) or isinstance(version, bool) or version < 1:
+            raise ValueError("Tenant isolation catalog version must be a positive integer")
+        families = payload.get("families")
+        if not isinstance(families, list) or not families:
+            raise ValueError("Tenant isolation catalog requires non-empty families")
+        explicit = payload.get("explicit_operations", [])
+        if not isinstance(explicit, list) or not all(
+            isinstance(item, str) for item in explicit
+        ):
+            raise ValueError("explicit_operations must be a list of operation names")
+        discovered = discovered_operations or discover_tenant_operations(
+            explicit_operations=tuple(explicit)
+        )
+    
+        keys: set[str] = set()
+        mapped: dict[str, str] = {}
+        evidence_ids: set[str] = set()
+        normalized: list[dict[str, Any]] = []
+        for index, raw_family in enumerate(families):
+            if not isinstance(raw_family, dict):
+                raise TypeError(
+                    f"Tenant isolation family at index {index} must be a mapping"
+                )
+            context = f"Tenant isolation family at index {index}"
+            key = _required_text(raw_family, "key", context)
+            if key in keys:
+                raise ValueError(f"Duplicate tenant isolation family: {key}")
+            keys.add(key)
+            _required_text(raw_family, "description", key)
+            authority = _required_text(raw_family, "authority", key)
+            classification = _required_text(raw_family, "classification", key)
+            if classification not in TENANT_ISOLATION_CLASSIFICATIONS:
+                raise ValueError(
+                    f"Unknown tenant isolation classification for {key}: {classification}"
+                )
+            if classification in {"boundary", "global_admin"}:
+                _required_text(raw_family, "reason", key)
+            operations = raw_family.get("operations")
+            if (
+                not isinstance(operations, list)
+                or not operations
+                or not all(isinstance(item, str) and item for item in operations)
+            ):
+                raise ValueError(f"{key} requires non-empty operations")
+            for operation in operations:
+                previous = mapped.get(operation)
+                if previous:
+                    raise ValueError(
+                        f"Duplicate tenant isolation operation: {operation} ({previous}, {key})"
+                    )
+                mapped[operation] = key
+            evidence = raw_family.get("evidence")
+            if not isinstance(evidence, list) or not evidence:
+                raise ValueError(f"{key} requires non-empty evidence")
+            covered: set[str] = set()
+            for item in evidence:
+                if not isinstance(item, dict):
+                    raise TypeError(f"{key} evidence entries must be mappings")
+                evidence_id = _required_text(item, "id", f"{key} evidence")
+                if evidence_id in evidence_ids:
+                    raise ValueError(f"Duplicate tenant isolation evidence: {evidence_id}")
+                evidence_ids.add(evidence_id)
+                assertion = _required_text(item, "assertion", f"{key} evidence")
+                if assertion != classification:
+                    raise ValueError(
+                        f"Evidence classification mismatch for {evidence_id}: {assertion} != {classification}"
+                    )
+                evidence_operations = item.get("operations")
+                if not isinstance(evidence_operations, list) or not evidence_operations:
+                    raise ValueError(f"{evidence_id} requires covered operations")
+                unknown_evidence = set(evidence_operations) - set(operations)
+                if unknown_evidence:
+                    raise ValueError(
+                        f"Evidence {evidence_id} references unknown family operations: {sorted(unknown_evidence)}"
+                    )
+                covered.update(evidence_operations)
+            missing_evidence = sorted(set(operations) - covered)
+            if missing_evidence:
+                raise ValueError(f"Unproven operations in {key}: {missing_evidence}")
+            normalized.append({**raw_family, "authority": authority})
+    
+        discovered_set = set(discovered)
+        mapped_set = set(mapped)
+        missing = sorted(discovered_set - mapped_set)
+        stale = sorted(mapped_set - discovered_set)
+        if missing or stale:
+>           raise ValueError(
+                f"Tenant isolation catalog drift: missing={missing}, stale={stale}"
+            )
+E           ValueError: Tenant isolation catalog drift: missing=[], stale=['reality.services.costing:build_inventory_generation', 'reality.services.costing:inventory_cost_snapshot']
+
+src/reality/catalogs.py:889: ValueError
+____________________ test_aggregates_exclude_foreign_values ____________________
+[gw1] darwin -- Python 3.12.4 /Users/benediktsauter/GitHub/reality/.venv/bin/python3.12
+
+session = <sqlalchemy.orm.session.Session object at 0x11011e6c0>
+two_tenant_graph = TwoTenantGraph(local=TenantGraph(tenant=<reality.db.core.Tenant object at 0x10ef315e0>, company=<reality.db.core.Party...eality.db.core.ChatSession object at 0x10ef7b530>, source_system=<reality.db.core.SourceSystem object at 0x10efb32c0>))
+
+    def test_aggregates_exclude_foreign_values(session, two_tenant_graph):
+        local = two_tenant_graph.local
+        foreign = two_tenant_graph.foreign
+    
+        assert stock_at(
+            session, local.tenant.id, local.item.id, local.location.id
+        ) == Decimal(3)
+        assert stock_at(
+            session, foreign.tenant.id, foreign.item.id, foreign.location.id
+        ) == Decimal(11)
+        assert chat_session_count(session, local.tenant.id) == 1
+        assert chat_session_count(session, foreign.tenant.id) == 1
+        assert account_balance(session, local.tenant.id, "accounts_receivable") == Decimal(
+            100
+        )
+        assert account_balance(
+            session, foreign.tenant.id, "accounts_receivable"
+        ) == Decimal(100)
+        refresh_operational_projections(session, local.tenant.id)
+        projected_inventory = projection_rows(session, local.tenant.id, "inventory")
+        assert {row["item_id"] for row in projected_inventory} == {local.item.id}
+        assert foreign.item.id not in {row["item_id"] for row in projected_inventory}
+>       assert _family("aggregates")["classification"] == "aggregate"
+               ^^^^^^^^^^^^^^^^^^^^^
+
+tests/tenant_isolation/test_families.py:189: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/tenant_isolation/test_families.py:61: in _family
+    for family in load_tenant_isolation_catalog().families
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src/reality/catalogs.py:1015: in load_tenant_isolation_catalog
+    catalog = validate_tenant_isolation_catalog(payload)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+payload = {'version': 1, 'discovery': {'modules': ['reality.services.core', 'reality.services.artifacts', 'reality.services.file... 'classification': 'collection', 'authority': '003/FR-010, 003/FR-012, 019/FR-005, 040/FR-002, 040/DR-003', ...}, ...]}
+discovered_operations = None
+
+    def validate_tenant_isolation_catalog(
+        payload: dict[str, Any],
+        *,
+        discovered_operations: tuple[str, ...] | None = None,
+    ) -> TenantIsolationCatalog:
+        """Validate complete operation classification and executable evidence mapping."""
+        version = payload.get("version")
+        if not isinstance(version, int) or isinstance(version, bool) or version < 1:
+            raise ValueError("Tenant isolation catalog version must be a positive integer")
+        families = payload.get("families")
+        if not isinstance(families, list) or not families:
+            raise ValueError("Tenant isolation catalog requires non-empty families")
+        explicit = payload.get("explicit_operations", [])
+        if not isinstance(explicit, list) or not all(
+            isinstance(item, str) for item in explicit
+        ):
+            raise ValueError("explicit_operations must be a list of operation names")
+        discovered = discovered_operations or discover_tenant_operations(
+            explicit_operations=tuple(explicit)
+        )
+    
+        keys: set[str] = set()
+        mapped: dict[str, str] = {}
+        evidence_ids: set[str] = set()
+        normalized: list[dict[str, Any]] = []
+        for index, raw_family in enumerate(families):
+            if not isinstance(raw_family, dict):
+                raise TypeError(
+                    f"Tenant isolation family at index {index} must be a mapping"
+                )
+            context = f"Tenant isolation family at index {index}"
+            key = _required_text(raw_family, "key", context)
+            if key in keys:
+                raise ValueError(f"Duplicate tenant isolation family: {key}")
+            keys.add(key)
+            _required_text(raw_family, "description", key)
+            authority = _required_text(raw_family, "authority", key)
+            classification = _required_text(raw_family, "classification", key)
+            if classification not in TENANT_ISOLATION_CLASSIFICATIONS:
+                raise ValueError(
+                    f"Unknown tenant isolation classification for {key}: {classification}"
+                )
+            if classification in {"boundary", "global_admin"}:
+                _required_text(raw_family, "reason", key)
+            operations = raw_family.get("operations")
+            if (
+                not isinstance(operations, list)
+                or not operations
+                or not all(isinstance(item, str) and item for item in operations)
+            ):
+                raise ValueError(f"{key} requires non-empty operations")
+            for operation in operations:
+                previous = mapped.get(operation)
+                if previous:
+                    raise ValueError(
+                        f"Duplicate tenant isolation operation: {operation} ({previous}, {key})"
+                    )
+                mapped[operation] = key
+            evidence = raw_family.get("evidence")
+            if not isinstance(evidence, list) or not evidence:
+                raise ValueError(f"{key} requires non-empty evidence")
+            covered: set[str] = set()
+            for item in evidence:
+                if not isinstance(item, dict):
+                    raise TypeError(f"{key} evidence entries must be mappings")
+                evidence_id = _required_text(item, "id", f"{key} evidence")
+                if evidence_id in evidence_ids:
+                    raise ValueError(f"Duplicate tenant isolation evidence: {evidence_id}")
+                evidence_ids.add(evidence_id)
+                assertion = _required_text(item, "assertion", f"{key} evidence")
+                if assertion != classification:
+                    raise ValueError(
+                        f"Evidence classification mismatch for {evidence_id}: {assertion} != {classification}"
+                    )
+                evidence_operations = item.get("operations")
+                if not isinstance(evidence_operations, list) or not evidence_operations:
+                    raise ValueError(f"{evidence_id} requires covered operations")
+                unknown_evidence = set(evidence_operations) - set(operations)
+                if unknown_evidence:
+                    raise ValueError(
+                        f"Evidence {evidence_id} references unknown family operations: {sorted(unknown_evidence)}"
+                    )
+                covered.update(evidence_operations)
+            missing_evidence = sorted(set(operations) - covered)
+            if missing_evidence:
+                raise ValueError(f"Unproven operations in {key}: {missing_evidence}")
+            normalized.append({**raw_family, "authority": authority})
+    
+        discovered_set = set(discovered)
+        mapped_set = set(mapped)
+        missing = sorted(discovered_set - mapped_set)
+        stale = sorted(mapped_set - discovered_set)
+        if missing or stale:
+>           raise ValueError(
+                f"Tenant isolation catalog drift: missing={missing}, stale={stale}"
+            )
+E           ValueError: Tenant isolation catalog drift: missing=[], stale=['reality.services.costing:build_inventory_generation', 'reality.services.costing:inventory_cost_snapshot']
+
+src/reality/catalogs.py:889: ValueError
+__ test_membership_invitation_operations_are_registered_at_tenant_boundaries ___
+[gw1] darwin -- Python 3.12.4 /Users/benediktsauter/GitHub/reality/.venv/bin/python3.12
+
+    def test_membership_invitation_operations_are_registered_at_tenant_boundaries():
+>       catalog = load_tenant_isolation_catalog()
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/tenant_isolation/test_families.py:262: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+src/reality/catalogs.py:1015: in load_tenant_isolation_catalog
+    catalog = validate_tenant_isolation_catalog(payload)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+payload = {'version': 1, 'discovery': {'modules': ['reality.services.core', 'reality.services.artifacts', 'reality.services.file... 'classification': 'collection', 'authority': '003/FR-010, 003/FR-012, 019/FR-005, 040/FR-002, 040/DR-003', ...}, ...]}
+discovered_operations = None
+
+    def validate_tenant_isolation_catalog(
+        payload: dict[str, Any],
+        *,
+        discovered_operations: tuple[str, ...] | None = None,
+    ) -> TenantIsolationCatalog:
+        """Validate complete operation classification and executable evidence mapping."""
+        version = payload.get("version")
+        if not isinstance(version, int) or isinstance(version, bool) or version < 1:
+            raise ValueError("Tenant isolation catalog version must be a positive integer")
+        families = payload.get("families")
+        if not isinstance(families, list) or not families:
+            raise ValueError("Tenant isolation catalog requires non-empty families")
+        explicit = payload.get("explicit_operations", [])
+        if not isinstance(explicit, list) or not all(
+            isinstance(item, str) for item in explicit
+        ):
+            raise ValueError("explicit_operations must be a list of operation names")
+        discovered = discovered_operations or discover_tenant_operations(
+            explicit_operations=tuple(explicit)
+        )
+    
+        keys: set[str] = set()
+        mapped: dict[str, str] = {}
+        evidence_ids: set[str] = set()
+        normalized: list[dict[str, Any]] = []
+        for index, raw_family in enumerate(families):
+            if not isinstance(raw_family, dict):
+                raise TypeError(
+                    f"Tenant isolation family at index {index} must be a mapping"
+                )
+            context = f"Tenant isolation family at index {index}"
+            key = _required_text(raw_family, "key", context)
+            if key in keys:
+                raise ValueError(f"Duplicate tenant isolation family: {key}")
+            keys.add(key)
+            _required_text(raw_family, "description", key)
+            authority = _required_text(raw_family, "authority", key)
+            classification = _required_text(raw_family, "classification", key)
+            if classification not in TENANT_ISOLATION_CLASSIFICATIONS:
+                raise ValueError(
+                    f"Unknown tenant isolation classification for {key}: {classification}"
+                )
+            if classification in {"boundary", "global_admin"}:
+                _required_text(raw_family, "reason", key)
+            operations = raw_family.get("operations")
+            if (
+                not isinstance(operations, list)
+                or not operations
+                or not all(isinstance(item, str) and item for item in operations)
+            ):
+                raise ValueError(f"{key} requires non-empty operations")
+            for operation in operations:
+                previous = mapped.get(operation)
+                if previous:
+                    raise ValueError(
+                        f"Duplicate tenant isolation operation: {operation} ({previous}, {key})"
+                    )
+                mapped[operation] = key
+            evidence = raw_family.get("evidence")
+            if not isinstance(evidence, list) or not evidence:
+                raise ValueError(f"{key} requires non-empty evidence")
+            covered: set[str] = set()
+            for item in evidence:
+                if not isinstance(item, dict):
+                    raise TypeError(f"{key} evidence entries must be mappings")
+                evidence_id = _required_text(item, "id", f"{key} evidence")
+                if evidence_id in evidence_ids:
+                    raise ValueError(f"Duplicate tenant isolation evidence: {evidence_id}")
+                evidence_ids.add(evidence_id)
+                assertion = _required_text(item, "assertion", f"{key} evidence")
+                if assertion != classification:
+                    raise ValueError(
+                        f"Evidence classification mismatch for {evidence_id}: {assertion} != {classification}"
+                    )
+                evidence_operations = item.get("operations")
+                if not isinstance(evidence_operations, list) or not evidence_operations:
+                    raise ValueError(f"{evidence_id} requires covered operations")
+                unknown_evidence = set(evidence_operations) - set(operations)
+                if unknown_evidence:
+                    raise ValueError(
+                        f"Evidence {evidence_id} references unknown family operations: {sorted(unknown_evidence)}"
+                    )
+                covered.update(evidence_operations)
+            missing_evidence = sorted(set(operations) - covered)
+            if missing_evidence:
+                raise ValueError(f"Unproven operations in {key}: {missing_evidence}")
+            normalized.append({**raw_family, "authority": authority})
+    
+        discovered_set = set(discovered)
+        mapped_set = set(mapped)
+        missing = sorted(discovered_set - mapped_set)
+        stale = sorted(mapped_set - discovered_set)
+        if missing or stale:
+>           raise ValueError(
+                f"Tenant isolation catalog drift: missing={missing}, stale={stale}"
+            )
+E           ValueError: Tenant isolation catalog drift: missing=[], stale=['reality.services.costing:build_inventory_generation', 'reality.services.costing:inventory_cost_snapshot']
+
+src/reality/catalogs.py:889: ValueError
+____________________ test_cross_tenant_mutations_are_atomic ____________________
+[gw1] darwin -- Python 3.12.4 /Users/benediktsauter/GitHub/reality/.venv/bin/python3.12
+
+session = <sqlalchemy.orm.session.Session object at 0x10ec28770>
+two_tenant_graph = TwoTenantGraph(local=TenantGraph(tenant=<reality.db.core.Tenant object at 0x10ebe3740>, company=<reality.db.core.Party...eality.db.core.ChatSession object at 0x10eba92e0>, source_system=<reality.db.core.SourceSystem object at 0x10ebaad20>))
+
+    def test_cross_tenant_mutations_are_atomic(session, two_tenant_graph):
+        local = two_tenant_graph.local
+        foreign = two_tenant_graph.foreign
+        tenant_ids = (local.tenant.id, foreign.tenant.id)
+        rows_before = tenant_row_counts(session, tenant_ids)
+        events_before = event_sequences(session, tenant_ids)
+    
+        with pytest.raises(NotFound):
+            create_commitment(
+                session,
+                local.tenant.id,
+                "customer_delivery",
+                local.company.id,
+                local.customer.id,
+                foreign.item.id,
+                local.location.id,
+                1,
+                "2026-09-04",
+            )
+    
+        assert tenant_row_counts(session, tenant_ids) == rows_before
+        assert event_sequences(session, tenant_ids) == events_before
+        assert (
+>           _family("mutations_and_relationships")["classification"]
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+            == "mutation_relationship"
+        )
+
+tests/tenant_isolation/test_families.py:387: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/tenant_isolation/test_families.py:61: in _family
+    for family in load_tenant_isolation_catalog().families
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src/reality/catalogs.py:1015: in load_tenant_isolation_catalog
+    catalog = validate_tenant_isolation_catalog(payload)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+payload = {'version': 1, 'discovery': {'modules': ['reality.services.core', 'reality.services.artifacts', 'reality.services.file... 'classification': 'collection', 'authority': '003/FR-010, 003/FR-012, 019/FR-005, 040/FR-002, 040/DR-003', ...}, ...]}
+discovered_operations = None
+
+    def validate_tenant_isolation_catalog(
+        payload: dict[str, Any],
+        *,
+        discovered_operations: tuple[str, ...] | None = None,
+    ) -> TenantIsolationCatalog:
+        """Validate complete operation classification and executable evidence mapping."""
+        version = payload.get("version")
+        if not isinstance(version, int) or isinstance(version, bool) or version < 1:
+            raise ValueError("Tenant isolation catalog version must be a positive integer")
+        families = payload.get("families")
+        if not isinstance(families, list) or not families:
+            raise ValueError("Tenant isolation catalog requires non-empty families")
+        explicit = payload.get("explicit_operations", [])
+        if not isinstance(explicit, list) or not all(
+            isinstance(item, str) for item in explicit
+        ):
+            raise ValueError("explicit_operations must be a list of operation names")
+        discovered = discovered_operations or discover_tenant_operations(
+            explicit_operations=tuple(explicit)
+        )
+    
+        keys: set[str] = set()
+        mapped: dict[str, str] = {}
+        evidence_ids: set[str] = set()
+        normalized: list[dict[str, Any]] = []
+        for index, raw_family in enumerate(families):
+            if not isinstance(raw_family, dict):
+                raise TypeError(
+                    f"Tenant isolation family at index {index} must be a mapping"
+                )
+            context = f"Tenant isolation family at index {index}"
+            key = _required_text(raw_family, "key", context)
+            if key in keys:
+                raise ValueError(f"Duplicate tenant isolation family: {key}")
+            keys.add(key)
+            _required_text(raw_family, "description", key)
+            authority = _required_text(raw_family, "authority", key)
+            classification = _required_text(raw_family, "classification", key)
+            if classification not in TENANT_ISOLATION_CLASSIFICATIONS:
+                raise ValueError(
+                    f"Unknown tenant isolation classification for {key}: {classification}"
+                )
+            if classification in {"boundary", "global_admin"}:
+                _required_text(raw_family, "reason", key)
+            operations = raw_family.get("operations")
+            if (
+                not isinstance(operations, list)
+                or not operations
+                or not all(isinstance(item, str) and item for item in operations)
+            ):
+                raise ValueError(f"{key} requires non-empty operations")
+            for operation in operations:
+                previous = mapped.get(operation)
+                if previous:
+                    raise ValueError(
+                        f"Duplicate tenant isolation operation: {operation} ({previous}, {key})"
+                    )
+                mapped[operation] = key
+            evidence = raw_family.get("evidence")
+            if not isinstance(evidence, list) or not evidence:
+                raise ValueError(f"{key} requires non-empty evidence")
+            covered: set[str] = set()
+            for item in evidence:
+                if not isinstance(item, dict):
+                    raise TypeError(f"{key} evidence entries must be mappings")
+                evidence_id = _required_text(item, "id", f"{key} evidence")
+                if evidence_id in evidence_ids:
+                    raise ValueError(f"Duplicate tenant isolation evidence: {evidence_id}")
+                evidence_ids.add(evidence_id)
+                assertion = _required_text(item, "assertion", f"{key} evidence")
+                if assertion != classification:
+                    raise ValueError(
+                        f"Evidence classification mismatch for {evidence_id}: {assertion} != {classification}"
+                    )
+                evidence_operations = item.get("operations")
+                if not isinstance(evidence_operations, list) or not evidence_operations:
+                    raise ValueError(f"{evidence_id} requires covered operations")
+                unknown_evidence = set(evidence_operations) - set(operations)
+                if unknown_evidence:
+                    raise ValueError(
+                        f"Evidence {evidence_id} references unknown family operations: {sorted(unknown_evidence)}"
+                    )
+                covered.update(evidence_operations)
+            missing_evidence = sorted(set(operations) - covered)
+            if missing_evidence:
+                raise ValueError(f"Unproven operations in {key}: {missing_evidence}")
+            normalized.append({**raw_family, "authority": authority})
+    
+        discovered_set = set(discovered)
+        mapped_set = set(mapped)
+        missing = sorted(discovered_set - mapped_set)
+        stale = sorted(mapped_set - discovered_set)
+        if missing or stale:
+>           raise ValueError(
+                f"Tenant isolation catalog drift: missing={missing}, stale={stale}"
+            )
+E           ValueError: Tenant isolation catalog drift: missing=[], stale=['reality.services.costing:build_inventory_generation', 'reality.services.costing:inventory_cost_snapshot']
+
+src/reality/catalogs.py:889: ValueError
+_________________ test_registered_boundaries_are_tenant_scoped _________________
+[gw1] darwin -- Python 3.12.4 /Users/benediktsauter/GitHub/reality/.venv/bin/python3.12
+
+session = <sqlalchemy.orm.session.Session object at 0x10ec2bf20>
+two_tenant_graph = TwoTenantGraph(local=TenantGraph(tenant=<reality.db.core.Tenant object at 0x10ec2bef0>, company=<reality.db.core.Party...eality.db.core.ChatSession object at 0x10eb03770>, source_system=<reality.db.core.SourceSystem object at 0x10eb02d50>))
+
+    def test_registered_boundaries_are_tenant_scoped(session, two_tenant_graph):
+        local = two_tenant_graph.local
+        foreign = two_tenant_graph.foreign
+    
+        from reality.services.projections import INVENTORY, rebuild_projections
+    
+        for graph in (local, foreign):
+            rebuild_projections(session, graph.tenant.id, (INVENTORY,))
+        result = run_read_tool(session, local.tenant.id, "inventory")
+    
+        assert {row["item_id"] for row in result} == {local.item.id}
+        assert foreign.item.id not in {row["item_id"] for row in result}
+>       assert _family("application_boundaries")["classification"] == "boundary"
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/tenant_isolation/test_families.py:404: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/tenant_isolation/test_families.py:61: in _family
+    for family in load_tenant_isolation_catalog().families
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src/reality/catalogs.py:1015: in load_tenant_isolation_catalog
+    catalog = validate_tenant_isolation_catalog(payload)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+payload = {'version': 1, 'discovery': {'modules': ['reality.services.core', 'reality.services.artifacts', 'reality.services.file... 'classification': 'collection', 'authority': '003/FR-010, 003/FR-012, 019/FR-005, 040/FR-002, 040/DR-003', ...}, ...]}
+discovered_operations = None
+
+    def validate_tenant_isolation_catalog(
+        payload: dict[str, Any],
+        *,
+        discovered_operations: tuple[str, ...] | None = None,
+    ) -> TenantIsolationCatalog:
+        """Validate complete operation classification and executable evidence mapping."""
+        version = payload.get("version")
+        if not isinstance(version, int) or isinstance(version, bool) or version < 1:
+            raise ValueError("Tenant isolation catalog version must be a positive integer")
+        families = payload.get("families")
+        if not isinstance(families, list) or not families:
+            raise ValueError("Tenant isolation catalog requires non-empty families")
+        explicit = payload.get("explicit_operations", [])
+        if not isinstance(explicit, list) or not all(
+            isinstance(item, str) for item in explicit
+        ):
+            raise ValueError("explicit_operations must be a list of operation names")
+        discovered = discovered_operations or discover_tenant_operations(
+            explicit_operations=tuple(explicit)
+        )
+    
+        keys: set[str] = set()
+        mapped: dict[str, str] = {}
+        evidence_ids: set[str] = set()
+        normalized: list[dict[str, Any]] = []
+        for index, raw_family in enumerate(families):
+            if not isinstance(raw_family, dict):
+                raise TypeError(
+                    f"Tenant isolation family at index {index} must be a mapping"
+                )
+            context = f"Tenant isolation family at index {index}"
+            key = _required_text(raw_family, "key", context)
+            if key in keys:
+                raise ValueError(f"Duplicate tenant isolation family: {key}")
+            keys.add(key)
+            _required_text(raw_family, "description", key)
+            authority = _required_text(raw_family, "authority", key)
+            classification = _required_text(raw_family, "classification", key)
+            if classification not in TENANT_ISOLATION_CLASSIFICATIONS:
+                raise ValueError(
+                    f"Unknown tenant isolation classification for {key}: {classification}"
+                )
+            if classification in {"boundary", "global_admin"}:
+                _required_text(raw_family, "reason", key)
+            operations = raw_family.get("operations")
+            if (
+                not isinstance(operations, list)
+                or not operations
+                or not all(isinstance(item, str) and item for item in operations)
+            ):
+                raise ValueError(f"{key} requires non-empty operations")
+            for operation in operations:
+                previous = mapped.get(operation)
+                if previous:
+                    raise ValueError(
+                        f"Duplicate tenant isolation operation: {operation} ({previous}, {key})"
+                    )
+                mapped[operation] = key
+            evidence = raw_family.get("evidence")
+            if not isinstance(evidence, list) or not evidence:
+                raise ValueError(f"{key} requires non-empty evidence")
+            covered: set[str] = set()
+            for item in evidence:
+                if not isinstance(item, dict):
+                    raise TypeError(f"{key} evidence entries must be mappings")
+                evidence_id = _required_text(item, "id", f"{key} evidence")
+                if evidence_id in evidence_ids:
+                    raise ValueError(f"Duplicate tenant isolation evidence: {evidence_id}")
+                evidence_ids.add(evidence_id)
+                assertion = _required_text(item, "assertion", f"{key} evidence")
+                if assertion != classification:
+                    raise ValueError(
+                        f"Evidence classification mismatch for {evidence_id}: {assertion} != {classification}"
+                    )
+                evidence_operations = item.get("operations")
+                if not isinstance(evidence_operations, list) or not evidence_operations:
+                    raise ValueError(f"{evidence_id} requires covered operations")
+                unknown_evidence = set(evidence_operations) - set(operations)
+                if unknown_evidence:
+                    raise ValueError(
+                        f"Evidence {evidence_id} references unknown family operations: {sorted(unknown_evidence)}"
+                    )
+                covered.update(evidence_operations)
+            missing_evidence = sorted(set(operations) - covered)
+            if missing_evidence:
+                raise ValueError(f"Unproven operations in {key}: {missing_evidence}")
+            normalized.append({**raw_family, "authority": authority})
+    
+        discovered_set = set(discovered)
+        mapped_set = set(mapped)
+        missing = sorted(discovered_set - mapped_set)
+        stale = sorted(mapped_set - discovered_set)
+        if missing or stale:
+>           raise ValueError(
+                f"Tenant isolation catalog drift: missing={missing}, stale={stale}"
+            )
+E           ValueError: Tenant isolation catalog drift: missing=[], stale=['reality.services.costing:build_inventory_generation', 'reality.services.costing:inventory_cost_snapshot']
+
+src/reality/catalogs.py:889: ValueError
+________________ test_global_tenant_administration_is_explicit _________________
+[gw1] darwin -- Python 3.12.4 /Users/benediktsauter/GitHub/reality/.venv/bin/python3.12
+
+    def test_global_tenant_administration_is_explicit():
+>       family = _family("tenant_administration")
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/tenant_isolation/test_families.py:408: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/tenant_isolation/test_families.py:61: in _family
+    for family in load_tenant_isolation_catalog().families
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src/reality/catalogs.py:1015: in load_tenant_isolation_catalog
+    catalog = validate_tenant_isolation_catalog(payload)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+payload = {'version': 1, 'discovery': {'modules': ['reality.services.core', 'reality.services.artifacts', 'reality.services.file... 'classification': 'collection', 'authority': '003/FR-010, 003/FR-012, 019/FR-005, 040/FR-002, 040/DR-003', ...}, ...]}
+discovered_operations = None
+
+    def validate_tenant_isolation_catalog(
+        payload: dict[str, Any],
+        *,
+        discovered_operations: tuple[str, ...] | None = None,
+    ) -> TenantIsolationCatalog:
+        """Validate complete operation classification and executable evidence mapping."""
+        version = payload.get("version")
+        if not isinstance(version, int) or isinstance(version, bool) or version < 1:
+            raise ValueError("Tenant isolation catalog version must be a positive integer")
+        families = payload.get("families")
+        if not isinstance(families, list) or not families:
+            raise ValueError("Tenant isolation catalog requires non-empty families")
+        explicit = payload.get("explicit_operations", [])
+        if not isinstance(explicit, list) or not all(
+            isinstance(item, str) for item in explicit
+        ):
+            raise ValueError("explicit_operations must be a list of operation names")
+        discovered = discovered_operations or discover_tenant_operations(
+            explicit_operations=tuple(explicit)
+        )
+    
+        keys: set[str] = set()
+        mapped: dict[str, str] = {}
+        evidence_ids: set[str] = set()
+        normalized: list[dict[str, Any]] = []
+        for index, raw_family in enumerate(families):
+            if not isinstance(raw_family, dict):
+                raise TypeError(
+                    f"Tenant isolation family at index {index} must be a mapping"
+                )
+            context = f"Tenant isolation family at index {index}"
+            key = _required_text(raw_family, "key", context)
+            if key in keys:
+                raise ValueError(f"Duplicate tenant isolation family: {key}")
+            keys.add(key)
+            _required_text(raw_family, "description", key)
+            authority = _required_text(raw_family, "authority", key)
+            classification = _required_text(raw_family, "classification", key)
+            if classification not in TENANT_ISOLATION_CLASSIFICATIONS:
+                raise ValueError(
+                    f"Unknown tenant isolation classification for {key}: {classification}"
+                )
+            if classification in {"boundary", "global_admin"}:
+                _required_text(raw_family, "reason", key)
+            operations = raw_family.get("operations")
+            if (
+                not isinstance(operations, list)
+                or not operations
+                or not all(isinstance(item, str) and item for item in operations)
+            ):
+                raise ValueError(f"{key} requires non-empty operations")
+            for operation in operations:
+                previous = mapped.get(operation)
+                if previous:
+                    raise ValueError(
+                        f"Duplicate tenant isolation operation: {operation} ({previous}, {key})"
+                    )
+                mapped[operation] = key
+            evidence = raw_family.get("evidence")
+            if not isinstance(evidence, list) or not evidence:
+                raise ValueError(f"{key} requires non-empty evidence")
+            covered: set[str] = set()
+            for item in evidence:
+                if not isinstance(item, dict):
+                    raise TypeError(f"{key} evidence entries must be mappings")
+                evidence_id = _required_text(item, "id", f"{key} evidence")
+                if evidence_id in evidence_ids:
+                    raise ValueError(f"Duplicate tenant isolation evidence: {evidence_id}")
+                evidence_ids.add(evidence_id)
+                assertion = _required_text(item, "assertion", f"{key} evidence")
+                if assertion != classification:
+                    raise ValueError(
+                        f"Evidence classification mismatch for {evidence_id}: {assertion} != {classification}"
+                    )
+                evidence_operations = item.get("operations")
+                if not isinstance(evidence_operations, list) or not evidence_operations:
+                    raise ValueError(f"{evidence_id} requires covered operations")
+                unknown_evidence = set(evidence_operations) - set(operations)
+                if unknown_evidence:
+                    raise ValueError(
+                        f"Evidence {evidence_id} references unknown family operations: {sorted(unknown_evidence)}"
+                    )
+                covered.update(evidence_operations)
+            missing_evidence = sorted(set(operations) - covered)
+            if missing_evidence:
+                raise ValueError(f"Unproven operations in {key}: {missing_evidence}")
+            normalized.append({**raw_family, "authority": authority})
+    
+        discovered_set = set(discovered)
+        mapped_set = set(mapped)
+        missing = sorted(discovered_set - mapped_set)
+        stale = sorted(mapped_set - discovered_set)
+        if missing or stale:
+>           raise ValueError(
+                f"Tenant isolation catalog drift: missing={missing}, stale={stale}"
+            )
+E           ValueError: Tenant isolation catalog drift: missing=[], stale=['reality.services.costing:build_inventory_generation', 'reality.services.costing:inventory_cost_snapshot']
+
+src/reality/catalogs.py:889: ValueError
+_________ test_a_small_profile_is_still_ready_when_the_request_answers _________
+[gw1] darwin -- Python 3.12.4 /Users/benediktsauter/GitHub/reality/.venv/bin/python3.12
+
+session = <sqlalchemy.orm.session.Session object at 0x10ea94bc0>
+scheduled_owner = <reality.db.core.AppUser object at 0x10ebd6f60>
+
+    def test_a_small_profile_is_still_ready_when_the_request_answers(
+        session, scheduled_owner
+    ):
+        """Only the international profile is worth deferring."""
+        result = _create(session, scheduled_owner, key="empty", content="empty")
+        assert result["status"] == "ready" and result["destination"]
+        assert _queued(session, result["tenant_id"]) == []
+        baseline = _create(session, scheduled_owner, key="baseline")
+>       assert seed_company(session, baseline["tenant_id"]) == "succeeded"
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_company_setup_initialization.py:149: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/conftest.py:252: in seed_company
+    return jobs.execute_claim(session, tenant_id, run.id, run.claim_token)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+session = <sqlalchemy.orm.session.Session object at 0x10ea94bc0>
+tenant_id = 'ten_f8a5a0ee4a', run_id = 'run_5638404b63664f9c9f2630e2e4a31e0e'
+claim_token = '74814c6bfc1e43ec8a26a0503f6b6766'
+
+    def execute_claim(
+        session: Session, tenant_id: str, run_id: str, claim_token: str
+    ) -> str:
+        """Effects and success share the caller's transaction. Handler cannot commit."""
+        schedule, run = _locked_claim(session, tenant_id, run_id)
+        if run.status == "succeeded":
+            return "succeeded"
+        if (
+            run.status != "running"
+            or not claim_token
+            or run.claim_token != claim_token
+            or run.lease_expires_at <= now()
+        ):
+            raise JobError("stale_claim")
+        if schedule and not schedule.enabled:
+            run.status = "retry"
+            run.claim_token = None
+            run.lease_expires_at = None
+            return "retry"
+        definition, parsed = _authorize_run_or_schedule(session, run)
+        context = _context(tenant_id, run.actor_id, run)
+    
+        def reject_commit(_session):
+            if _session.in_nested_transaction():
+                return
+            raise JobError("handler_commit_forbidden")
+    
+        event.listen(session, "before_commit", reject_commit)
+        try:
+            result = definition.handler(session, context, parsed)
+            result = JobResult.model_validate(result)
+            session.flush()
+            if now() >= context.deadline or now() >= run.lease_expires_at:
+>               raise JobError("handler_timeout")
+E               reality.jobs.registry.JobError: handler_timeout
+
+src/reality/services/scheduled_jobs.py:678: JobError
+_____________________ test_purchases_cover_the_whole_chain _____________________
+[gw0] darwin -- Python 3.12.4 /Users/benediktsauter/GitHub/reality/.venv/bin/python3.12
+
+session = <sqlalchemy.orm.session.Session object at 0x11947eb70>
+scheduled_owner = <reality.db.core.AppUser object at 0x11881df70>
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x115d52060>
+
+    def test_purchases_cover_the_whole_chain(session, scheduled_owner, monkeypatch):
+        """Feature 204: ordered, received, invoiced and paid in every combination."""
+        from decimal import Decimal
+    
+        from reality.db.core import Commitment, PlaygroundRun
+        from reality.services import core
+    
+>       tenant = _demo_company(session, scheduled_owner, "purchases")
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/scenarios/test_international_demo.py:255: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/scenarios/test_international_demo.py:119: in _demo_company
+    assert seed_company(session, tenant) == "succeeded"
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests/conftest.py:252: in seed_company
+    return jobs.execute_claim(session, tenant_id, run.id, run.claim_token)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+session = <sqlalchemy.orm.session.Session object at 0x11947eb70>
+tenant_id = 'ten_fa83a8117b', run_id = 'run_795b8474e9e245d48e36ac228fac309e'
+claim_token = 'c49b68407ce741fab7326aa2e53f695c'
+
+    def execute_claim(
+        session: Session, tenant_id: str, run_id: str, claim_token: str
+    ) -> str:
+        """Effects and success share the caller's transaction. Handler cannot commit."""
+        schedule, run = _locked_claim(session, tenant_id, run_id)
+        if run.status == "succeeded":
+            return "succeeded"
+        if (
+            run.status != "running"
+            or not claim_token
+            or run.claim_token != claim_token
+            or run.lease_expires_at <= now()
+        ):
+            raise JobError("stale_claim")
+        if schedule and not schedule.enabled:
+            run.status = "retry"
+            run.claim_token = None
+            run.lease_expires_at = None
+            return "retry"
+        definition, parsed = _authorize_run_or_schedule(session, run)
+        context = _context(tenant_id, run.actor_id, run)
+    
+        def reject_commit(_session):
+            if _session.in_nested_transaction():
+                return
+            raise JobError("handler_commit_forbidden")
+    
+        event.listen(session, "before_commit", reject_commit)
+        try:
+            result = definition.handler(session, context, parsed)
+            result = JobResult.model_validate(result)
+            session.flush()
+            if now() >= context.deadline or now() >= run.lease_expires_at:
+>               raise JobError("handler_timeout")
+E               reality.jobs.registry.JobError: handler_timeout
+
+src/reality/services/scheduled_jobs.py:678: JobError
+____________________ test_settlement_is_authored_not_drawn _____________________
+[gw0] darwin -- Python 3.12.4 /Users/benediktsauter/GitHub/reality/.venv/bin/python3.12
+
+session = <sqlalchemy.orm.session.Session object at 0x119d8a090>
+scheduled_owner = <reality.db.core.AppUser object at 0x115a54e90>
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x116af11f0>
+
+    def test_settlement_is_authored_not_drawn(session, scheduled_owner, monkeypatch):
+        """Feature 204: the same profile version settles the same way everywhere."""
+>       first = _demo_company(session, scheduled_owner, "settle-a")
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/scenarios/test_international_demo.py:277: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/scenarios/test_international_demo.py:119: in _demo_company
+    assert seed_company(session, tenant) == "succeeded"
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests/conftest.py:252: in seed_company
+    return jobs.execute_claim(session, tenant_id, run.id, run.claim_token)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+session = <sqlalchemy.orm.session.Session object at 0x119d8a090>
+tenant_id = 'ten_78bc2258e0', run_id = 'run_c2c28150efec430d8bccd38600417200'
+claim_token = 'f13add04cecf42168277889aa70d7a0c'
+
+    def execute_claim(
+        session: Session, tenant_id: str, run_id: str, claim_token: str
+    ) -> str:
+        """Effects and success share the caller's transaction. Handler cannot commit."""
+        schedule, run = _locked_claim(session, tenant_id, run_id)
+        if run.status == "succeeded":
+            return "succeeded"
+        if (
+            run.status != "running"
+            or not claim_token
+            or run.claim_token != claim_token
+            or run.lease_expires_at <= now()
+        ):
+            raise JobError("stale_claim")
+        if schedule and not schedule.enabled:
+            run.status = "retry"
+            run.claim_token = None
+            run.lease_expires_at = None
+            return "retry"
+        definition, parsed = _authorize_run_or_schedule(session, run)
+        context = _context(tenant_id, run.actor_id, run)
+    
+        def reject_commit(_session):
+            if _session.in_nested_transaction():
+                return
+            raise JobError("handler_commit_forbidden")
+    
+        event.listen(session, "before_commit", reject_commit)
+        try:
+            result = definition.handler(session, context, parsed)
+            result = JobResult.model_validate(result)
+            session.flush()
+            if now() >= context.deadline or now() >= run.lease_expires_at:
+>               raise JobError("handler_timeout")
+E               reality.jobs.registry.JobError: handler_timeout
+
+src/reality/services/scheduled_jobs.py:678: JobError
+______ test_standalone_free_play_records_real_chat_and_preserves_archive _______
+[gw1] darwin -- Python 3.12.4 /Users/benediktsauter/GitHub/reality/.venv/bin/python3.12
+
+http = (<starlette.testclient.TestClient object at 0x1133a1c10>, <reality.db.core.AppUser object at 0x112c04380>)
+session = <sqlalchemy.orm.session.Session object at 0x112a2b020>
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x112a2b140>
+
+    def test_standalone_free_play_records_real_chat_and_preserves_archive(
+        http, session, monkeypatch
+    ):
+        from reality.agent import mcp_chat
+        from reality.db.core import PlaygroundRun
+        from reality.services import playground
+    
+        client, actor = http
+        result = client.post("/api/storyline/free-play", json={"confirmed": True}).json()
+        tenant = result["tenant_id"]
+>       assert seed_company(session, tenant) == "succeeded"
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_storyline_chat.py:251: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/conftest.py:252: in seed_company
+    return jobs.execute_claim(session, tenant_id, run.id, run.claim_token)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+session = <sqlalchemy.orm.session.Session object at 0x112a2b020>
+tenant_id = 'ten_995d7a1a83', run_id = 'run_2333bf70098f48dc803586e4b656dd16'
+claim_token = '5ca0e4184a7a4bd8a30dbd811a5f12b0'
+
+    def execute_claim(
+        session: Session, tenant_id: str, run_id: str, claim_token: str
+    ) -> str:
+        """Effects and success share the caller's transaction. Handler cannot commit."""
+        schedule, run = _locked_claim(session, tenant_id, run_id)
+        if run.status == "succeeded":
+            return "succeeded"
+        if (
+            run.status != "running"
+            or not claim_token
+            or run.claim_token != claim_token
+            or run.lease_expires_at <= now()
+        ):
+            raise JobError("stale_claim")
+        if schedule and not schedule.enabled:
+            run.status = "retry"
+            run.claim_token = None
+            run.lease_expires_at = None
+            return "retry"
+        definition, parsed = _authorize_run_or_schedule(session, run)
+        context = _context(tenant_id, run.actor_id, run)
+    
+        def reject_commit(_session):
+            if _session.in_nested_transaction():
+                return
+            raise JobError("handler_commit_forbidden")
+    
+        event.listen(session, "before_commit", reject_commit)
+        try:
+            result = definition.handler(session, context, parsed)
+            result = JobResult.model_validate(result)
+            session.flush()
+            if now() >= context.deadline or now() >= run.lease_expires_at:
+>               raise JobError("handler_timeout")
+E               reality.jobs.registry.JobError: handler_timeout
+
+src/reality/services/scheduled_jobs.py:678: JobError
+___________________ test_every_module_under_reality_imports ____________________
+[gw0] darwin -- Python 3.12.4 /Users/benediktsauter/GitHub/reality/.venv/bin/python3.12
+
+    def test_every_module_under_reality_imports():
+        broken: list[str] = []
+        for module in pkgutil.walk_packages(reality.__path__, "reality."):
+            try:
+                importlib.import_module(module.name)
+            except Exception as error:  # noqa: BLE001 — the point is what broke, not its kind
+                broken.append(f"{module.name}: {type(error).__name__}: {error}")
+>       assert not broken, "\n".join(broken)
+E       AssertionError: reality.services.inventory_generations: ImportError: cannot import name 'ALGORITHM_VERSION' from 'reality.domain.inventory_costing' (/Users/benediktsauter/GitHub/reality/packages/reality-core/src/reality/domain/inventory_costing.py)
+E       assert not ["reality.services.inventory_generations: ImportError: cannot import name 'ALGORITHM_VERSION' from 'reality.domain.inventory_costing' (/Users/benediktsauter/GitHub/reality/packages/reality-core/src/reality/domain/inventory_costing.py)"]
+
+tests/test_every_module_imports.py:28: AssertionError
+=============================== warnings summary ===============================
+tests/test_storyline_library_api.py::test_a_chapter_is_prepared_confirmed_and_explained_over_http
+  /Users/benediktsauter/GitHub/reality/packages/reality-core/tests/conftest.py:117: SAWarning: transaction already deassociated from connection
+    transaction.rollback()
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+FAILED tests/test_demo_data_intake.py::test_settlement_occurrence_emits_due_records_in_bounded_batches
+FAILED tests/tenant_isolation/test_families.py::test_record_reads_are_non_disclosing
+FAILED tests/tenant_isolation/test_families.py::test_collections_exclude_foreign_records
+FAILED tests/tenant_isolation/test_families.py::test_aggregates_exclude_foreign_values
+FAILED tests/tenant_isolation/test_families.py::test_membership_invitation_operations_are_registered_at_tenant_boundaries
+FAILED tests/tenant_isolation/test_families.py::test_cross_tenant_mutations_are_atomic
+FAILED tests/tenant_isolation/test_families.py::test_registered_boundaries_are_tenant_scoped
+FAILED tests/tenant_isolation/test_families.py::test_global_tenant_administration_is_explicit
+FAILED tests/test_company_setup_initialization.py::test_a_small_profile_is_still_ready_when_the_request_answers
+FAILED tests/scenarios/test_international_demo.py::test_purchases_cover_the_whole_chain
+FAILED tests/scenarios/test_international_demo.py::test_settlement_is_authored_not_drawn
+FAILED tests/test_storyline_chat.py::test_standalone_free_play_records_real_chat_and_preserves_archive
+FAILED tests/test_every_module_imports.py::test_every_module_under_reality_imports
+13 failed, 3272 passed, 9 skipped, 1 warning in 1598.34s (0:26:38)

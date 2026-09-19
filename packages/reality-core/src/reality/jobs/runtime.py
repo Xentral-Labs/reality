@@ -46,11 +46,18 @@ def database(*, scheduler: bool = False, child: bool = False) -> Engine:
 
 
 class ProcessLoop:
-    def __init__(self, role: str, *, tenant_id: str | None = None):
+    def __init__(
+        self,
+        role: str,
+        *,
+        tenant_id: str | None = None,
+        session_info: dict[str, str] | None = None,
+    ):
         if role not in ("scheduler", "worker"):
             raise JobError("invalid_role")
         self.role = role
         self.tenant_id = tenant_id
+        self.session_info = dict(session_info or {})
         self.cursor = ""
         self.stop = Event()
 
@@ -96,7 +103,7 @@ class ProcessLoop:
         while (
             not self.stop.is_set() and monotonic() < deadline and processed < max_runs
         ):
-            with Session(engine) as session:
+            with Session(engine, info=self.session_info) as session:
                 # The scheduler materializes schedules no run represents yet, so it
                 # needs every tenant. A worker only claims runs that already exist
                 # (feature 201).
@@ -123,7 +130,7 @@ class ProcessLoop:
                     break
                 self.cursor = tenant_id
                 outcomes = {"failed": 0}
-                with Session(engine) as session, session.begin():
+                with Session(engine, info=self.session_info) as session, session.begin():
                     if self.role == "scheduler":
                         from reality.services.projection_jobs import (
                             _prefer_projection,
@@ -167,7 +174,13 @@ class ProcessLoop:
                     )
                 if claim:
                     started = monotonic()
-                    status = execute_process(engine, tenant_id, *claim, stop=self.stop)
+                    status = execute_process(
+                        engine,
+                        tenant_id,
+                        *claim,
+                        stop=self.stop,
+                        session_info=self.session_info,
+                    )
                     logger.info(
                         json.dumps(
                             {

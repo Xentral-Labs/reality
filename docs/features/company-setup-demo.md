@@ -45,7 +45,7 @@ The shared creation request accepts optional strict `live_simulation` (default f
 
 The flag is immutable creation intent in the existing PlaygroundRun JSON and part of its request fingerprint. After baseline seeding, shared connection/start services and `live_setup_complete` commit atomically. Failed setup retains the same baseline and exposes a retryable, non-ready result; GET never performs setup. A completed request remains completed even if the owner later pauses/stops the source. No new schema or scheduler mechanism.
 
-Spec 146 FR-023: first and later creation use one goal-based choice: Start your own company, Create an empty Sandbox, or Try demo data. Only the demo choice shows optional Enable live simulation; switching away clears it. Eligibility filters available choices. The existing environment/content/live_simulation API contract is unchanged.
+Spec 146 FR-023: first and later creation use one goal-based choice: Start your own company, Create an empty Sandbox, or Try demo data. Only the demo choice shows optional Enable live simulation. Selecting demo defaults it on; the owner may turn it off, and switching away clears it. Eligibility filters available choices. The existing environment/content/live_simulation API contract is unchanged.
 
 Spec 146 FR-024: name is visibly required with helper text. Create remains actionable when the name is missing; empty/whitespace submissions show a localized inline alert and focus/scroll the invalid name field without a request. Correction clears the message and startup/live choices remain intact.
 

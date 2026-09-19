@@ -1,7 +1,5 @@
 import json
 
-from sqlalchemy import func, select
-
 from reality.agent.provider import DummyProvider
 from reality.db.core import Party
 from reality.services.core import (
@@ -15,12 +13,31 @@ from reality.services.core import (
     send_chat_message,
 )
 from reality.tools.application import confirm_tool, proposed_tools
+from sqlalchemy import func, select
 
 
 def test_dummy_provider_is_deterministic():
     provider = DummyProvider()
     assert provider.reply("inventory") == provider.reply("inventory")
     assert "confirmation" in provider.reply("reserve com_123").content.lower()
+
+
+def test_unconfigured_ai_explains_how_to_enable_chat(session, business, monkeypatch):
+    monkeypatch.delenv("ANTHROPIC_API_KEY", raising=False)
+    chat = create_chat_session(session, business.tenant.id)
+
+    _, answer = send_chat_message(
+        session,
+        business.tenant.id,
+        chat.id,
+        "Which customer orders are still open?",
+    )
+
+    assert answer.content == (
+        "AI is not configured for this company. Add an Anthropic API key in "
+        "AI configuration, then ask again."
+    )
+    assert "V0 local agent" not in answer.content
 
 
 def test_chat_mutation_is_visible_as_proposal_before_confirmation(session, business):

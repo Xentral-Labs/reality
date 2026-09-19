@@ -1,0 +1,20 @@
+{
+  "format_version": 1,
+  "target": "aarch64-apple-darwin",
+  "minimum_macos": "14.0",
+  "python": {
+    "version": "3.12.14",
+    "build": "20260901",
+    "archive": "python.tar.gz",
+    "root": "python",
+    "url": "https://github.com/astral-sh/python-build-standalone/releases/download/20260901/cpython-3.12.14%2B20260901-aarch64-apple-darwin-install_only_stripped.tar.gz",
+    "sha256": "81a359f1cfadd4da11766534c5913791cea55f26e1bb902cacd2a531bb1e4b2b"
+  },
+  "postgresql": {
+    "version": "17.11",
+    "archive": "postgresql.tar.bz2",
+    "root": "postgresql-17.11",
+    "url": "https://ftp.postgresql.org/pub/source/v17.11/postgresql-17.11.tar.bz2",
+    "sha256": "dd27f2b3c59e73ed14aa3324901242bf69a032a6347805f274e6260322d42979"
+  }
+}

@@ -1,0 +1,26 @@
+   Compiling reality-desktop-port-probe v0.1.0 (/Users/benediktsauter/GitHub/reality/apps/desktop/spike)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.85s
+     Running unittests ../src-tauri/src/supervisor.rs (/private/tmp/reality-desktop-cargo/debug/deps/reality_desktop_port_probe-a8accfad3811c352)
+
+running 6 tests
+test tests::address_exhaustion_is_bounded ... ok
+test tests::dropping_partial_startup_releases_owned_listeners ... ok
+test tests::reports_are_role_scoped_and_loopback_only ... ok
+test tests::resource_exhaustion_does_not_spin ... ok
+test tests::stale_reports_cannot_restore_a_previous_endpoint ... ok
+test tests::transient_allocation_failure_keeps_the_successful_socket ... ok
+
+test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src/main.rs (/private/tmp/reality-desktop-cargo/debug/deps/reality_desktop_port_probe-7f5f094beca48975)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests reality_desktop_port_probe
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+

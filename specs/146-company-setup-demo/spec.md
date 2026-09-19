@@ -263,7 +263,7 @@ Each company list item groups its name, environment/content labels, role, switch
 
 ## Goal-based creation — FR-023
 
-The owner approved one choice among Start your own company (business/empty, default when eligible), Create an empty Sandbox (sandbox/empty), and Try demo data (sandbox/international_demo). Remove the separate content/environment selectors. Show only eligible choices. Only demo reveals optional Enable live simulation, off by default; leaving demo clears live intent. Explain automatic integration setup and recurring demo orders, with the existing 60/hour rate. Preserve first/later creation, required name, confirmation and request recovery.
+The owner approved one choice among Start your own company (business/empty, default when eligible), Create an empty Sandbox (sandbox/empty), and Try demo data (sandbox/international_demo). Remove the separate content/environment selectors. Show only eligible choices. Only demo reveals optional Enable live simulation, on by default whenever demo is selected; the owner may turn it off before confirmation, and leaving demo clears live intent. Explain automatic integration setup and recurring demo orders, with the existing 60/hour rate. Preserve first/later creation, required name, confirmation and request recovery.
 
 ## Required name feedback — FR-024
 

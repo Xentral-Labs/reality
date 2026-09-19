@@ -233,12 +233,13 @@ try {
         assert.equal(await page.locator("dialog fieldset").count(), 1);
         assert.equal(await page.locator('dialog input[type="checkbox"]').count(), 0);
         await choices.nth(2).check();
-        await page.locator('dialog input[type="checkbox"]').check();
+        assert.equal(await page.locator('dialog input[type="checkbox"]').isChecked(), true);
+        await page.locator('dialog input[type="checkbox"]').uncheck();
+        assert.equal(await page.locator('dialog input[type="checkbox"]').isChecked(), false);
         await choices.nth(1).check();
         assert.equal(await page.locator('dialog input[type="checkbox"]').count(), 0);
         await choices.nth(2).check();
-        assert.equal(await page.locator('dialog input[type="checkbox"]').isChecked(), false);
-        await page.locator('dialog input[type="checkbox"]').check();
+        assert.equal(await page.locator('dialog input[type="checkbox"]').isChecked(), true);
         const nameInput = page.locator("dialog #setup-company-name");
         const createButton = page.locator("dialog .onboarding-form button.primary-button");
         const writesBeforeInvalid = setupCount;

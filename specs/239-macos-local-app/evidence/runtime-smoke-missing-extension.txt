@@ -1,0 +1,10 @@
+Initial bundled migration smoke failed at existing migration 0063.
+    cursor.execute(statement, parameters)
+  File "/Users/benediktsauter/GitHub/reality/apps/desktop/build/relocated runtime/python/lib/python3.12/site-packages/psycopg/cursor.py", line 117, in execute
+    raise ex.with_traceback(None)
+sqlalchemy.exc.NotSupportedError: (psycopg.errors.FeatureNotSupported) extension "pg_trgm" is not available
+DETAIL:  Could not open extension control file "/Users/benediktsauter/GitHub/reality/apps/desktop/build/relocated runtime/postgres/share/extension/pg_trgm.control": No such file or directory.
+HINT:  The extension must first be installed on the system where PostgreSQL is running.
+[SQL: CREATE EXTENSION IF NOT EXISTS pg_trgm]
+(Background on this error at: https://sqlalche.me/e/20/tw8g)
+

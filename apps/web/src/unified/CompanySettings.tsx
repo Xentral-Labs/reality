@@ -8,7 +8,7 @@ export function CreateCompany({
   openCompany,
   close,
 }: {
-  openCompany: (data: Bootstrap, id: string) => void;
+  openCompany: (data: Bootstrap, id: string, options?: { home?: boolean }) => void;
   close?: () => void;
 }) {
   return (
@@ -19,7 +19,7 @@ export function CreateCompany({
         const data = await api.bootstrap();
         if (!data.tenants.some((row) => row.id === result.tenant_id))
           throw new Error("Company access unavailable");
-        openCompany(data, result.tenant_id);
+        openCompany(data, result.tenant_id, { home: true });
       }}
     />
   );
@@ -46,7 +46,7 @@ export function CompanySettings({
   switchCompany: (id: string) => void;
   openSimulation: (id: string) => void;
   manageCompany: (id: string, view: "access" | "agents" | "ai") => void;
-  openCompany: (data: Bootstrap, id: string, options?: { announce?: boolean }) => void;
+  openCompany: (data: Bootstrap, id: string, options?: { announce?: boolean; home?: boolean }) => void;
   // The company switcher opens this form by URL, so the form follows the address.
   creating: boolean;
   setCreating: (creating: boolean) => void;
@@ -167,9 +167,9 @@ export function CompanySettings({
       {creating && (
         <CreateCompany
           close={() => setCreating(false)}
-          openCompany={(data, id) => {
+          openCompany={(data, id, options) => {
             setCreating(false);
-            openCompany(data, id);
+            openCompany(data, id, options);
           }}
         />
       )}

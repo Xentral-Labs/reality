@@ -1,0 +1,17 @@
+.......F                                                                 [100%]
+=================================== FAILURES ===================================
+________________ test_runtime_layout_requires_search_extension _________________
+
+builder = <module 'desktop_runtime_build' from '/Users/benediktsauter/GitHub/reality/apps/desktop/scripts/build-runtime.py'>
+tmp_path = PosixPath('/private/var/folders/y5/px944wdj1tl6g6w9lc54gbwh0000gn/T/pytest-of-benediktsauter/pytest-100/test_runtime_layout_requires_s0')
+
+    def test_runtime_layout_requires_search_extension(builder, tmp_path):
+        with pytest.raises(ValueError, match="pg_trgm"):
+>           builder.validate_runtime_layout(tmp_path)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E           AttributeError: module 'desktop_runtime_build' has no attribute 'validate_runtime_layout'
+
+apps/desktop/tests/test_runtime_build.py:111: AttributeError
+=========================== short test summary info ============================
+FAILED apps/desktop/tests/test_runtime_build.py::test_runtime_layout_requires_search_extension
+1 failed, 7 passed in 0.17s

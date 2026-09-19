@@ -39,6 +39,7 @@ from reality.playground.actions import (
     PlaygroundShipmentInput,
     validate_master_input,
 )
+from reality.services.account_policy import account_eligible, account_eligible_clause
 from reality.services.core import InvalidOperation, NotFound
 
 
@@ -863,10 +864,7 @@ def require_playground_account(session: Session, user_id: str) -> AppUser:
     )
     if user is None:
         raise NotFound("Account not found.")
-    if (
-        user.status not in {"active", "pending_approval"}
-        or user.email_verified_at is None
-    ):
+    if not account_eligible(session, user, allow_pending=True):
         raise PlaygroundOperationDenied(
             "A verified, enabled account is required for Playground."
         )
@@ -891,8 +889,7 @@ def require_playground_run(
         result = session.execute(
             select(
                 PlaygroundRun,
-                AppUser.status,
-                AppUser.email_verified_at,
+                AppUser,
                 Tenant.archived_at,
             )
             .join(Tenant, Tenant.id == PlaygroundRun.tenant_id)
@@ -913,8 +910,8 @@ def require_playground_run(
         ).one_or_none()
     if result is None:
         raise NotFound("Playground run not found.")
-    run, account_status, verified_at, tenant_archived_at = result
-    if account_status not in {"active", "pending_approval"} or verified_at is None:
+    run, owner, tenant_archived_at = result
+    if not account_eligible(session, owner, allow_pending=True):
         raise PlaygroundOperationDenied(
             "A verified, enabled account is required for Playground."
         )
@@ -1027,6 +1024,17 @@ _PRACTICE_APP_OPERATIONS = frozenset(
         # operation; its tool access is decided in the chat loop, its mutations
         # stay behind the proposal boundary like every other practice operation.
         "generic_provider_call",
+        # Practice companies use the same owner-scoped AI configuration as an
+        # ordinary company. This admits only credential custody and resolution;
+        # chat mutations still remain behind the existing proposal boundary.
+        "ai_settings",
+        "ai_settings_update",
+        "ai_key_resolve",
+        "generic_copilot_context",
+        "secret_create",
+        "secret_replace",
+        "secret_revoke",
+        "secret_resolve",
         "add_chat_assistant_message",
         "archive_chat_session",
         "restore_chat_session",
@@ -1064,8 +1072,7 @@ def practice_company_runs(
             PlaygroundRun.status == "active",
             Tenant.purpose == "playground",
             Tenant.archived_at.is_(None),
-            AppUser.status == "active",
-            AppUser.email_verified_at.is_not(None),
+            account_eligible_clause(session),
             TenantMembership.role == "owner",
             TenantMembership.status == "active",
         )

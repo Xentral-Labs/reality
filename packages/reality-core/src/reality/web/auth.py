@@ -39,6 +39,7 @@ from reality.services.account_deletion import (
     application_account_id,
     delete_account,
 )
+from reality.services.account_policy import session_identity_allowed
 from reality.services.core import InvalidOperation, NotFound, RealityError
 from reality.services.memberships import (
     accept_invitation,
@@ -101,6 +102,8 @@ def audit(
 
 
 def issue_code(session: OrmSession, user: AppUser) -> str:
+    if user.authentication_method != "email":
+        raise InvalidOperation("Email verification requires an email identity.")
     recent = session.scalar(
         select(EmailVerificationCode)
         .where(EmailVerificationCode.user_id == user.id)
@@ -124,16 +127,9 @@ def issue_code(session: OrmSession, user: AppUser) -> str:
 
 
 def create_session(session: OrmSession, user: AppUser, response: Response) -> None:
-    clear_token = secrets.token_urlsafe(48)
-    session.add(
-        UserSession(
-            id=uid("ses"),
-            user_id=user.id,
-            token_hash=digest(clear_token),
-            expires_at=now() + timedelta(days=SESSION_DAYS),
-        )
-    )
-    user.last_login_at = now()
+    from reality.services.account_sessions import issue_session
+
+    clear_token = issue_session(session, user)
     response.set_cookie(
         COOKIE_NAME,
         clear_token,
@@ -158,7 +154,8 @@ def user_from_request(request: Request, session: OrmSession) -> AppUser | None:
     )
     if not auth_session:
         return None
-    return session.get(AppUser, auth_session.user_id)
+    user = session.get(AppUser, auth_session.user_id)
+    return user if user and session_identity_allowed(session, user) else None
 
 
 def current_user(request: Request, session: DatabaseSession) -> AppUser:
@@ -391,7 +388,7 @@ def resend_code(body: dict, session: DatabaseSession):
     require_public_signup()
     email = normalize_email(str(body.get("email", "")))
     user = session.scalar(select(AppUser).where(AppUser.email == email))
-    if user and not user.email_verified_at:
+    if user and user.authentication_method == "email" and not user.email_verified_at:
         issue_code(session, user)
         session.commit()
     return {"ok": True}
@@ -402,7 +399,7 @@ def verify_email(body: VerifyBody, response: Response, session: DatabaseSession)
     user = session.scalar(
         select(AppUser).where(AppUser.email == normalize_email(str(body.email)))
     )
-    if not user:
+    if not user or user.authentication_method != "email":
         raise HTTPException(
             status_code=400, detail="Invalid or expired verification code."
         )
@@ -494,7 +491,7 @@ def login(body: LoginBody, response: Response, session: DatabaseSession):
         select(AppUser).where(AppUser.email == normalize_email(str(body.email)))
     )
     try:
-        valid = bool(user) and password_hasher.verify(user.password_hash, body.password)
+        valid = bool(user) and user.authentication_method == "email" and password_hasher.verify(user.password_hash, body.password)
     except VerifyMismatchError:
         valid = False
     if not valid or not user:
@@ -514,12 +511,10 @@ def login(body: LoginBody, response: Response, session: DatabaseSession):
 def logout(request: Request, response: Response, session: DatabaseSession):
     token = request.cookies.get(COOKIE_NAME)
     if token:
-        auth_session = session.scalar(
-            select(UserSession).where(UserSession.token_hash == digest(token))
-        )
-        if auth_session:
-            auth_session.revoked_at = now()
-            session.commit()
+        from reality.services.account_sessions import revoke_session
+
+        revoke_session(session, token)
+        session.commit()
     response.delete_cookie(COOKIE_NAME, path="/")
 
 

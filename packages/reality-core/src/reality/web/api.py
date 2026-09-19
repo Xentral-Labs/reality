@@ -26,6 +26,7 @@ from reality.catalogs import (
     runtime_application_catalog,
 )
 from reality.db.core import (
+    AISettings,
     AppUser,
     BusinessEvent,
     ChangeProposal,
@@ -6282,7 +6283,17 @@ def copilots_payload(
         if active and not archived
         else []
     )
+    settings = session.get(AISettings, tenant_id)
+    ai_configured = bool(
+        (
+            settings
+            and settings.provider in {"anthropic", "openai_compatible"}
+            and has_configured_api_key(settings)
+        )
+        or os.environ.get("ANTHROPIC_API_KEY", "").strip()
+    )
     return {
+        "ai_configured": ai_configured,
         "sessions": [
             {
                 "id": row.id,

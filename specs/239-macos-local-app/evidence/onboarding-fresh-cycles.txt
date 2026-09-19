@@ -1,0 +1,8 @@
+Fresh test 1/2: /private/tmp/reality-preview-test-8y4tbsb6/Reality Local.app
+Opening company setup with a fresh database; quitting removes its test data.
+Native cookie proof: cookie_hidden=true, native_command_denied=true
+Disposable app copy removed. Source app preserved.
+Fresh test 2/2: /private/tmp/reality-preview-test-m375qiw5/Reality Local.app
+Opening company setup with a fresh database; quitting removes its test data.
+Native cookie proof: cookie_hidden=true, native_command_denied=true
+Disposable app copy removed. Source app preserved.

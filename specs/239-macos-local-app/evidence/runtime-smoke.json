@@ -1,0 +1,9 @@
+{
+  "migration_revision": "0067_selling_costs",
+  "pg_trgm_version": "1.6",
+  "tcp_listening": false,
+  "tenant_count": 0,
+  "catalog_loaded": true,
+  "job_roles_imported": true,
+  "dump_archive_readable": true
+}

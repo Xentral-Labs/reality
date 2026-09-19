@@ -1,0 +1,86 @@
+FFF                                                                      [100%]
+=================================== FAILURES ===================================
+_______________________ test_distinct_copies_and_cleanup _______________________
+
+tmp_path = PosixPath('/private/var/folders/y5/px944wdj1tl6g6w9lc54gbwh0000gn/T/pytest-of-benediktsauter/pytest-110/test_distinct_copies_and_clean0')
+
+    def test_distinct_copies_and_cleanup(tmp_path):
+>       module = helper()
+                 ^^^^^^^^
+
+apps/desktop/tests/test_preview_cycle.py:29: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+apps/desktop/tests/test_preview_cycle.py:13: in helper
+    spec.loader.exec_module(module)
+<frozen importlib._bootstrap_external>:991: in exec_module
+    ???
+<frozen importlib._bootstrap_external>:1128: in get_code
+    ???
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <_frozen_importlib_external.SourceFileLoader object at 0x106c01130>
+path = '/Users/benediktsauter/GitHub/reality/apps/desktop/scripts/test-preview.py'
+
+>   ???
+E   FileNotFoundError: [Errno 2] No such file or directory: '/Users/benediktsauter/GitHub/reality/apps/desktop/scripts/test-preview.py'
+
+<frozen importlib._bootstrap_external>:1186: FileNotFoundError
+_________________________ test_failure_cleans_install __________________________
+
+tmp_path = PosixPath('/private/var/folders/y5/px944wdj1tl6g6w9lc54gbwh0000gn/T/pytest-of-benediktsauter/pytest-110/test_failure_cleans_install0')
+
+    def test_failure_cleans_install(tmp_path):
+        with pytest.raises(RuntimeError):
+>           with helper().installation(source(tmp_path)) as app:
+                 ^^^^^^^^
+
+apps/desktop/tests/test_preview_cycle.py:44: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+apps/desktop/tests/test_preview_cycle.py:13: in helper
+    spec.loader.exec_module(module)
+<frozen importlib._bootstrap_external>:991: in exec_module
+    ???
+<frozen importlib._bootstrap_external>:1128: in get_code
+    ???
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <_frozen_importlib_external.SourceFileLoader object at 0x106c00ad0>
+path = '/Users/benediktsauter/GitHub/reality/apps/desktop/scripts/test-preview.py'
+
+>   ???
+E   FileNotFoundError: [Errno 2] No such file or directory: '/Users/benediktsauter/GitHub/reality/apps/desktop/scripts/test-preview.py'
+
+<frozen importlib._bootstrap_external>:1186: FileNotFoundError
+___________________________ test_reject_foreign_app ____________________________
+
+tmp_path = PosixPath('/private/var/folders/y5/px944wdj1tl6g6w9lc54gbwh0000gn/T/pytest-of-benediktsauter/pytest-110/test_reject_foreign_app0')
+
+    def test_reject_foreign_app(tmp_path):
+        app = source(tmp_path)
+        (app / 'Contents/Info.plist').write_bytes(plistlib.dumps({'CFBundleIdentifier': 'other'}))
+        with pytest.raises(ValueError):
+>           with helper().installation(app):
+                 ^^^^^^^^
+
+apps/desktop/tests/test_preview_cycle.py:53: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+apps/desktop/tests/test_preview_cycle.py:13: in helper
+    spec.loader.exec_module(module)
+<frozen importlib._bootstrap_external>:991: in exec_module
+    ???
+<frozen importlib._bootstrap_external>:1128: in get_code
+    ???
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <_frozen_importlib_external.SourceFileLoader object at 0x106c3c950>
+path = '/Users/benediktsauter/GitHub/reality/apps/desktop/scripts/test-preview.py'
+
+>   ???
+E   FileNotFoundError: [Errno 2] No such file or directory: '/Users/benediktsauter/GitHub/reality/apps/desktop/scripts/test-preview.py'
+
+<frozen importlib._bootstrap_external>:1186: FileNotFoundError
+=========================== short test summary info ============================
+FAILED apps/desktop/tests/test_preview_cycle.py::test_distinct_copies_and_cleanup
+FAILED apps/desktop/tests/test_preview_cycle.py::test_failure_cleans_install
+FAILED apps/desktop/tests/test_preview_cycle.py::test_reject_foreign_app - Fi...
+3 failed in 0.05s

@@ -30,7 +30,26 @@ SAFE_CODES = frozenset(
 )
 
 
-def child_main(tenant_id: str, run_id: str, token: str) -> int:
+def _session_info_from_stdin() -> dict[str, str]:
+    try:
+        value = json.loads(sys.stdin.readline(4096))
+    except (ValueError, OSError):
+        return {}
+    if not isinstance(value, dict) or set(value) - {
+        "desktop_installation_id",
+        "desktop_owner_id",
+    }:
+        return {}
+    return value if all(isinstance(item, str) and item for item in value.values()) else {}
+
+
+def child_main(
+    tenant_id: str,
+    run_id: str,
+    token: str,
+    *,
+    session_info: dict[str, str] | None = None,
+) -> int:
     from sqlalchemy import select
     from sqlalchemy.exc import SQLAlchemyError
     from sqlalchemy.orm import Session
@@ -55,7 +74,7 @@ def child_main(tenant_id: str, run_id: str, token: str) -> int:
             if job_type == "projections.refresh"
             else engine
         )
-        with Session(execution_engine) as session, session.begin():
+        with Session(execution_engine, info=session_info or {}) as session, session.begin():
             status = execute_claim(session, tenant_id, run_id, token)
         print(json.dumps({"status": status}))
         return 0
@@ -88,6 +107,7 @@ def execute_process(
     *,
     stop: Event | None = None,
     timeout: float = 30,
+    session_info: dict[str, str] | None = None,
 ) -> str:
     """Wait at most timeout+2s; settle from durable state after child termination."""
     from sqlalchemy.orm import Session
@@ -96,13 +116,23 @@ def execute_process(
 
     # No inherited connection or caller-controlled shell; child uses only shared core.
     child = subprocess.Popen(
-        [sys.executable, "-m", "reality.jobs.runner", tenant_id, run_id, token],
+        [
+            sys.executable,
+            "-m",
+            "reality.jobs.runner",
+            tenant_id,
+            run_id,
+            token,
+            "--session-info-stdin",
+        ],
+        stdin=subprocess.PIPE,
         stdout=subprocess.PIPE,
         stderr=subprocess.DEVNULL,
         text=True,
     )
     deadline = monotonic() + timeout
     timed_out = False
+    child_input = json.dumps(session_info or {}) + "\n"
     try:
         while True:
             remaining = deadline - monotonic()
@@ -116,9 +146,13 @@ def execute_process(
                     output, _ = child.communicate(timeout=2)
                 break
             try:
-                output, _ = child.communicate(timeout=min(0.2, remaining))
+                output, _ = child.communicate(
+                    input=child_input,
+                    timeout=min(0.2, remaining),
+                )
                 break
             except subprocess.TimeoutExpired:
+                child_input = None
                 # SIGTERM stops new dispatch. Already handed-off work gets its bound.
                 continue
     finally:
@@ -146,6 +180,11 @@ def execute_process(
 
 
 if __name__ == "__main__":
-    if len(sys.argv) != 4:
+    if len(sys.argv) not in {4, 5}:
         raise SystemExit(2)
-    raise SystemExit(child_main(*sys.argv[1:]))
+    with_info = len(sys.argv) == 5 and sys.argv[4] == "--session-info-stdin"
+    if len(sys.argv) == 5 and not with_info:
+        raise SystemExit(2)
+    raise SystemExit(
+        child_main(*sys.argv[1:4], session_info=_session_info_from_stdin() if with_info else {})
+    )
