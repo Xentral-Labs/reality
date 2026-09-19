@@ -89,6 +89,36 @@ What the per-table column still shows, unchanged since September: `tenant`,
 payment. That is the authority check issued per service call rather than per
 transaction, which FR-001 names and which nothing has yet addressed.
 
+### FR-001, first step: the authority check, 2026-09-19
+
+The per-table column named its own fix. `require_core_operation` established the
+profile's authority on every service call — `require_playground_run`, a four-table
+join that deliberately re-reads, and a `Tenant` select beside it. FR-001 asks for
+that once per transaction, reused by every call within it.
+
+It is now established once and remembered, keyed by session, transaction, tenant,
+run and user. The answer is forgotten the moment that transaction writes a `Tenant`
+or a `PlaygroundRun` — the two records it rests on — and a refusal is never
+remembered, only a permission. Both are held by tests in
+`tests/test_operational_read_performance.py`.
+
+Measured with the tool above, same method, same host:
+
+| Step | Queries before | Queries after | `tenant` | `playground_run` |
+| --- | --- | --- | --- | --- |
+| Order | 158 | 140 | 17 → 8 | 20 → 11 |
+| Invoice | 140 | 118 | 42 → 21 | 34 → 13 |
+| Payment | 229 | 168 | 73 → 33 | 51 → 15 |
+| **Order to cash** | **527** | **426** | | |
+
+Nineteen per cent fewer queries at an empty company, thirty-one per cent at sixty
+orders (553 → 383). The reads that fell are exactly the ones the measurement
+pointed at, which is the useful part: this was not a guess that happened to help.
+
+What remains: `source_record` is now the largest repeated read of every step (76 in
+one payment), and `tenant` is still read 33 times — from paths that do not go
+through the profile branch. Neither is addressed here.
+
 ## 2. Whole-company derivation
 
 Demo company `ten_de87f2e90b` (6,641 documents, 8,808 ledger entries, 2,230 open items):
