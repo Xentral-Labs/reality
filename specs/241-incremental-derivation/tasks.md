@@ -31,4 +31,8 @@
     booked against a *different* promise and settle two orders the event does not name.
     Each speaks for what it resolved rather than what it produced — an order that
     finished and a blocker that cleared both leave no row to find.
-  - [ ] the remaining six.
+  - [x] `commitment_register` — promises, documents, articles, parties, movements and
+    reservations resolve to promises, and the movement correction is followed for the
+    same reason. It is a register, not a queue: it keeps the promise that was cancelled,
+    so nothing here is bounded by open work and a wide subject declines instead.
+  - [ ] the remaining five.

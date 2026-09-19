@@ -191,13 +191,11 @@ builder and class measurements at checkpoints, and compare two commits on the sa
   merge, the refusals, the fallback report, and the equivalence property that stands between
   an optimisation and a silently wrong projection.
 
-  **Six of twelve builders narrow** — `journal`, `document_register`, `inventory`,
-  `item_supply_demand`, `fulfillment_queue`, `fulfillment_blockers`. The remaining six
-  evaluate the company, which is always correct and always allowed (a builder may
-  decline). What is left, in the order it is worth doing:
+  **Seven of twelve builders narrow** — `journal`, `document_register`, `inventory`,
+  `item_supply_demand`, `fulfillment_queue`, `fulfillment_blockers`, `commitment_register`.
+  The remaining five evaluate the company, which is always correct and always allowed (a
+  builder may decline). What is left, in the order it is worth doing:
 
-  * `commitment_register` — promise-shaped like the queue, but a register: it shows the
-    promise that was cancelled, so it cannot be bounded by open work the way the queue is.
   * `timeline` (43 event types), `tenant_usage` (60) — most work, least obvious payoff.
   * `payments` and `open_financial_items` are poor candidates despite having the fewest event
     types: both name the *tenant* on `payments.run`, so they would decline exactly when the
@@ -227,6 +225,12 @@ builder and class measurements at checkpoints, and compare two commits on the sa
   key that says so. They also sharpened the trap: a movement correction may book its
   replacement against a *different* promise, and the service then settles the status of
   both, so two orders change and the one event names neither.
+
+  The register of promises showed what a projection gives up when it is a register rather
+  than a queue. It keeps the promise that was cancelled, so it has no open-work bound to
+  hide behind: renaming an article reaches every promise ever made for it, and past
+  `MAX_NARROWED_ROWS` it declines. That is the honest shape — the cheap changes narrow, the
+  wide ones are a rebuild wearing another name.
 
   **Time-based transitions**: delivered in the part that mattered, and not in the part the
   requirement literally names. Measurement showed that two of the three projections refreshed
