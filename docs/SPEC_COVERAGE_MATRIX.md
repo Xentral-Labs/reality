@@ -1270,3 +1270,12 @@ to a company and what every derivation reads is compared before and after. Each 
 is either declared to be about open work or carries a written reason for reading what is
 finished, so no projection sits outside that decision unnoticed, and a control insists that
 *something* grew — otherwise the silence of the others would mean nothing.
+
+`packages/reality-core/tests/test_clock_sensitivity.py` covers FR-004: which projections
+answer differently when only the clock moves. The membership of the cadence list is
+measured rather than recalled — every projection is derived twice four hundred days
+apart with no event in between — and the exceptions projection is the control, because
+if the faked clock stopped reaching the derivations this file would approve of anything.
+Two projections that were rebuilt every sixty seconds do not read the clock at all and
+no longer are; a final test insists that a refresh with no events behind it rebuilds only
+the one projection that does.

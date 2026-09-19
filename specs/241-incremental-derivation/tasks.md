@@ -2,7 +2,14 @@
 - [x] T001 Add the equivalence property test — incremental against full — before any builder narrows (FR-006).
 - [x] T002 Collect the change set from events between checkpoint and target; pass it to the builders (FR-001,002).
 - [x] T003 Merge a partial result instead of replacing, and remove rows that disappear for a narrowed subject (FR-003).
-- [ ] T004 Select time-based transitions by indexed date (FR-004).
+- [x] T004 Select time-based transitions by indexed date (FR-004).
+  - [x] Measure which projections read the clock at all. Two of the three on the
+    cadence did not, and no longer rebuild every minute; `test_clock_sensitivity.py`
+    keeps the list a measurement rather than a recollection.
+  - [ ] `exceptions` still evaluates the company on the cadence. Half its classes
+    compare against a stated date and could be selected by index; the other half
+    compare against a threshold learned from finished promises, which moves for every
+    record at once and has no per-record date to select by. Its own feature.
 - [x] T005 Keep full evaluation for version changes, operator rebuilds and decliners (FR-005).
 - [ ] T006 Narrow the first builders, one at a time, each behind the equivalence test (FR-002).
   - [x] `journal` — posting groups and subledger accounts; follows the stored reversal
