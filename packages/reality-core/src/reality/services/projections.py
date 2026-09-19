@@ -2,6 +2,9 @@ from __future__ import annotations
 
 import json
 from collections import defaultdict
+from contextlib import contextmanager
+from contextvars import ContextVar
+from dataclasses import dataclass
 from datetime import date, datetime
 from decimal import Decimal
 from functools import lru_cache, wraps
@@ -642,6 +645,95 @@ def relevant_event_target(tenant_id: str, name: str):
     )
 
 
+#: Why each projection of the last refresh did or did not narrow, for whoever is
+#: measuring. Spec 241 SC-004: a feature whose builders all decline must look like
+#: that, not like a success. `None` against a name means it narrowed.
+NARROWING: ContextVar[dict | None] = ContextVar("projection_narrowing", default=None)
+
+
+@contextmanager
+def narrowing_report():
+    """Collect why each projection narrowed or did not, for one refresh."""
+    report: dict[str, str | None] = {}
+    token = NARROWING.set(report)
+    try:
+        yield report
+    finally:
+        NARROWING.reset(token)
+
+
+@dataclass(frozen=True)
+class ChangeSet:
+    """The records a refresh has to account for, or the reason it cannot narrow.
+
+    Spec 241 FR-001. `subjects` maps a subject type to the ids of the records whose
+    business events fall between the stored checkpoint and the target sequence. A
+    builder given one may derive only those records' rows; a builder that does not
+    know how to narrow by them says so and evaluates the company, which is FR-002
+    and always correct.
+
+    `reason` names why narrowing is off when it is, so that "everything fell back"
+    is a visible state rather than a silent one (SC-004).
+    """
+
+    subjects: dict[str, frozenset[str]] | None
+    reason: str | None = None
+
+    @property
+    def narrowed(self) -> bool:
+        return self.subjects is not None
+
+    def ids(self, subject_type: str) -> frozenset[str]:
+        return (self.subjects or {}).get(subject_type, frozenset())
+
+
+#: Above this many changed records, deriving each one costs more than deriving the
+#: company: the narrowed path issues work per subject and the full path does not.
+#: A refresh that has fallen this far behind is a rebuild wearing another name.
+MAX_NARROWED_SUBJECTS = 200
+
+
+def change_set(
+    session: Session, tenant_id: str, name: str, since: int, until: int
+) -> ChangeSet:
+    """What changed for this projection between two sequences.
+
+    Narrowing is refused, rather than guessed, in three cases: nothing is known about
+    an event type the catalog does not list, the refresh is time-sensitive and ran
+    because the clock moved rather than because a record did, and too many records
+    changed to be worth visiting one at a time.
+    """
+    if since >= until:
+        return ChangeSet(None, "no new events")
+    dependencies = projection_dependencies()
+    types = [kind for kind, affected in dependencies.items() if name in affected]
+    rows = session.execute(
+        select(
+            BusinessEvent.event_type,
+            BusinessEvent.subject_type,
+            BusinessEvent.subject_id,
+        )
+        .where(
+            BusinessEvent.tenant_id == tenant_id,
+            BusinessEvent.sequence > since,
+            BusinessEvent.sequence <= until,
+        )
+        .limit(MAX_NARROWED_SUBJECTS + 1)
+    ).all()
+    if len(rows) > MAX_NARROWED_SUBJECTS:
+        return ChangeSet(None, "too many changes to visit one at a time")
+    subjects: dict[str, set[str]] = {}
+    for event_type, subject_type, subject_id in rows:
+        if event_type not in dependencies:
+            # The catalog does not say what this event touches, so nothing may be
+            # assumed about what it left unchanged.
+            return ChangeSet(None, f"unknown event type {event_type!r}")
+        if event_type not in types:
+            continue
+        subjects.setdefault(subject_type, set()).add(subject_id)
+    return ChangeSet({kind: frozenset(ids) for kind, ids in subjects.items()})
+
+
 def projection_state_expressions(tenant_id: str, name: str) -> dict[str, Any]:
     """Scalar expressions can accompany data in the very same PostgreSQL snapshot."""
     from reality.db.scheduled_jobs import ScheduledJobRun
@@ -816,6 +908,15 @@ def rebuild_projections(
     count = 0
     # Financial builders remain independent even when tests forbid operational reads.
     for name in changed:
+        since = checkpoints[name].last_event_sequence if name in checkpoints else 0
+        narrowing = (
+            ChangeSet(None, "full rebuild requested")
+            if force or name not in checkpoints
+            else change_set(session, tenant_id, name, since, targets[name])
+        )
+        report = NARROWING.get()
+        if report is not None:
+            report.setdefault(name, narrowing.reason)
         rows = derive_projection_rows(session, tenant_id, name)
         _replace_rows(session, tenant_id, name, rows, targets[name])
         count += len(rows)
