@@ -12,6 +12,7 @@ from decimal import Decimal
 from typing import Any
 
 from sqlalchemy import Select, and_, case, delete, func, or_, select, text
+from sqlalchemy import inspect as sa_inspect
 from sqlalchemy.orm import Session as OrmSession
 from sqlalchemy.sql.elements import ColumnElement
 
@@ -63,6 +64,7 @@ from reality.db.core import (
     SourceStream,
     SourceSystem,
     Tenant,
+    TenantEventProgress,
     now,
     uid,
 )
@@ -409,8 +411,11 @@ def emit_business_event(
 
     require_decision_action(session, tenant_id, action_id, event_type=event_type)
     session.scalar(select(Tenant).where(Tenant.id == tenant_id).with_for_update())
+    progress = _event_progress(session, tenant_id)
     last_sequence = (
-        session.scalar(
+        progress.last_event_sequence
+        if progress is not None
+        else session.scalar(
             select(func.max(BusinessEvent.sequence)).where(
                 BusinessEvent.tenant_id == tenant_id
             )
@@ -433,7 +438,45 @@ def emit_business_event(
         correlation_id=correlation_id,
     )
     session.add(event)
+    if progress is not None:
+        # The company's progress and the event that moved it are written in one
+        # transaction, so a reader that sees one sees the other (spec 181 FR-004).
+        progress.last_event_sequence = event.sequence
     return event
+
+
+#: Whether this process has found the event-progress table. It is asked once, because
+#: the answer cannot change under a running process: a migration adds the table before
+#: the code that needs it is asked to do anything with it.
+_progress_table: dict[str, bool] = {}
+
+
+def _event_progress(session: OrmSession, tenant_id: str) -> TenantEventProgress | None:
+    """The company's event progress row, or None where the schema has no such table.
+
+    The number is an accelerator for deciding what to refresh (spec 181 FR-004), not a
+    business record — the events themselves are the truth, and the sequence can always
+    be read from them. So its absence must not stop business from happening, which is
+    not only about old schemas in tests: during a rolling upgrade the new code runs
+    against the old schema until the migration lands, and a company that cannot record
+    a sale for that window would be a far worse failure than a scheduler sweep that has
+    to fall back to visiting every company.
+    """
+    bind = session.get_bind()
+    # A bound session hands back a Connection; only the engine behind it names the
+    # database this answer belongs to.
+    url = str(getattr(bind, "engine", bind).url)
+    if url not in _progress_table:
+        _progress_table[url] = sa_inspect(bind).has_table(
+            TenantEventProgress.__tablename__
+        )
+    if not _progress_table[url]:
+        return None
+    progress = session.get(TenantEventProgress, tenant_id)
+    if progress is None:
+        progress = TenantEventProgress(tenant_id=tenant_id, last_event_sequence=0)
+        session.add(progress)
+    return progress
 
 
 def business_events(

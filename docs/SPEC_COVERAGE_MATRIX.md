@@ -1279,3 +1279,13 @@ if the faked clock stopped reaching the derivations this file would approve of a
 Two projections that were rebuilt every sixty seconds do not read the clock at all and
 no longer are; a final test insists that a refresh with no events behind it rebuilds only
 the one projection that does.
+
+`packages/reality-core/tests/test_refresh_units.py` covers 181 FR-004 and SC-003: a
+company with no change and no due date must cause no work. It asserts both directions —
+a quiet company is not offered to the scheduler, and a company that changed, whose
+cadence came round, or whose projections were never built, is — because a selection that
+returns nothing is cheap and useless. Two statement counts pin the shape rather than the
+speed: asking one company what is behind is one read where it used to be twelve, and
+discovering what to do across the instance is a fixed number of statements however many
+companies exist. A last test holds the company's recorded event progress against the
+events themselves, because the selection believes that number.

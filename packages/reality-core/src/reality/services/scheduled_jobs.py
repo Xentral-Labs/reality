@@ -872,6 +872,37 @@ def list_schedules(session: Session, tenant_id: str, actor_id: str, **kwargs) ->
     return _list(session, ScheduledJob, tenant_id, actor_id, **kwargs)
 
 
+def scheduler_tenants(session: Session, after: str = "", limit: int = 100) -> list[str]:
+    """The companies a scheduler sweep has anything to do in (spec 181 FR-004).
+
+    It used to take every company in the instance and ask each of them whether a
+    schedule was due and whether any of twelve projections had fallen behind. That is
+    work proportional to how many companies exist rather than to how many changed, and
+    SC-003 says a company with no change and no due date must cause none of it.
+
+    So the two questions are asked of all companies at once and their answers unioned: a
+    company with a schedule whose time has come, and a company whose projections are
+    behind. A quiet company appears in neither and is never visited.
+    """
+    from reality.services.projection_jobs import due_projection_tenants
+
+    scheduled = list(
+        session.scalars(
+            select(ScheduledJob.tenant_id)
+            .where(
+                ScheduledJob.tenant_id > after,
+                ScheduledJob.enabled.is_(True),
+                ScheduledJob.next_run_at <= now(),
+            )
+            .group_by(ScheduledJob.tenant_id)
+            .order_by(ScheduledJob.tenant_id)
+            .limit(limit)
+        )
+    )
+    projection = due_projection_tenants(session, after, limit)
+    return sorted(set(scheduled) | set(projection))[:limit]
+
+
 def has_due_schedule(session: Session, tenant_id: str) -> bool:
     return (
         session.scalar(

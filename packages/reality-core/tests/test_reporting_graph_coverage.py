@@ -49,6 +49,9 @@ INFRASTRUCTURE = {
     "business_event",
     "projection_row",
     "projection_checkpoint",
+    # How far a company's events have got, which is machinery for deciding what to
+    # refresh (spec 181 FR-004) and says nothing about the business.
+    "tenant_event_progress",
     "action",
     "reality_gap",
     "reality_gap_entry",

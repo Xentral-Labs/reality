@@ -141,7 +141,7 @@ def test_cursor_survives_partial_final_catalog_page(scheduled_database, monkeypa
     visited = []
     monkeypatch.setattr(
         jobs,
-        "tenant_catalog",
+        "scheduler_tenants",
         lambda s, after: [t for t in ["a", "b", "c"] if t > after],
     )
     monkeypatch.setattr(

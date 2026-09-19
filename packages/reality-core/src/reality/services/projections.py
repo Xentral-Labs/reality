@@ -29,6 +29,7 @@ from reality.db.core import (
     Reservation,
     SourceRecord,
     Tenant,
+    TenantEventProgress,
     now,
     uid,
 )
@@ -111,6 +112,7 @@ def _replace_rows(
     rows: dict[str, dict[str, Any]],
     source_sequence: int,
     covers: frozenset[str] | None = None,
+    observed: int | None = None,
 ) -> None:
     """Write a derivation's rows; `covers` says how much of the projection it speaks for.
 
@@ -165,6 +167,8 @@ def _replace_rows(
         session.add(checkpoint)
     checkpoint.projection_version = PROJECTION_VERSION
     checkpoint.last_event_sequence = source_sequence
+    if observed is not None:
+        checkpoint.observed_event_sequence = observed
     checkpoint.status = "ready"
     checkpoint.error = ""
     checkpoint.updated_at = stamp
@@ -1208,6 +1212,16 @@ def rebuild_projections(
         name: session.scalar(select(relevant_event_target(tenant_id, name)))
         for name in selected
     }
+    # Where the company as a whole has got to, so each refreshed projection can record
+    # that it has looked at least this far (spec 181 FR-004).
+    observed = (
+        session.scalar(
+            select(TenantEventProgress.last_event_sequence).where(
+                TenantEventProgress.tenant_id == tenant_id
+            )
+        )
+        or 0
+    )
     checkpoints = {
         c.projection_name: c
         for c in session.scalars(
@@ -1261,7 +1275,15 @@ def rebuild_projections(
             rows, covers = derive_projection_rows(session, tenant_id, name), None
         else:
             rows, covers = narrowed.rows, narrowed.covers
-        _replace_rows(session, tenant_id, name, rows, targets[name], covers=covers)
+        _replace_rows(
+            session,
+            tenant_id,
+            name,
+            rows,
+            targets[name],
+            covers=covers,
+            observed=observed,
+        )
         count += len(rows)
     session.flush()
     return count
