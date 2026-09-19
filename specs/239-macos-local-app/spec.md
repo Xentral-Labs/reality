@@ -3,7 +3,7 @@
 **Feature Branch**: Not created; specification-only work in the current checkout.
 **Feature Directory**: `specs/239-macos-local-app`
 **Created**: 2026-09-19
-**Status**: Product scope accepted for planning — implementation not started
+**Status**: Disposable development preview implemented; persistent release qualification remains open
 **Language**: English
 **Input**: Offer Reality locally on macOS through a download, ask only essential setup questions including an LLM API key, and let the user start immediately. Produce a concept and specification.
 
