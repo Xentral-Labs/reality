@@ -12275,23 +12275,60 @@ def explain_commitment(
     }
 
 
-def timeline(session: OrmSession, tenant_id: str):
-    rows = []
+def timeline(
+    session: OrmSession,
+    tenant_id: str,
+    records: dict[str, Iterable[str]] | None = None,
+) -> list[tuple[Any, str, str, str]]:
+    """The company's records in time order — all of them, or the named ones.
+
+    `records` maps a record kind (`source_record`, `commitment`, `reservation`,
+    `movement`, `ledger_entry`) to the ids to read. It changes which rows come back,
+    never how one is derived: a row prints its own record's fields and, where the
+    record names an article, that article's name (spec 181 FR-002).
+    """
+
+    def read(model, kind):
+        statement = select(model).where(model.tenant_id == tenant_id)
+        if records is None:
+            return list(session.scalars(statement))
+        ids = set(records.get(kind) or ())
+        if not ids:
+            return []
+        return list(session.scalars(statement.where(model.id.in_(ids))))
+
+    sources = read(SourceRecord, "source_record")
+    promises = read(Commitment, "commitment")
+    reservations = read(Reservation, "reservation")
+    movements = read(Movement, "movement")
+    entries = read(LedgerEntry, "ledger_entry")
+
     # One item read for the whole timeline instead of one per commitment,
     # reservation and movement (spec 181).
-    item_names = {
-        row.id: getattr(row, "name", None) or row.sku or row.id
-        for row in session.scalars(select(Item).where(Item.tenant_id == tenant_id))
+    item_ids = {
+        record.item_id
+        for record in (*promises, *reservations, *movements)
+        if record.item_id
     }
+    item_query = select(Item).where(Item.tenant_id == tenant_id)
+    if records is not None:
+        item_query = item_query.where(Item.id.in_(item_ids)) if item_ids else None
+    item_names = (
+        {}
+        if item_query is None
+        else {
+            row.id: getattr(row, "name", None) or row.sku or row.id
+            for row in session.scalars(item_query)
+        }
+    )
 
     def item_name(item_id: str | None) -> str:
         if not item_id:
             return "—"
         return item_names.get(item_id, item_id)
 
-    for record in session.scalars(
-        select(SourceRecord).where(SourceRecord.tenant_id == tenant_id)
-    ):
+    rows = []
+    for record in sources:
         rows.append(
             (
                 record.received_at,
@@ -12300,9 +12337,7 @@ def timeline(session: OrmSession, tenant_id: str):
                 record.id,
             )
         )
-    for record in session.scalars(
-        select(Commitment).where(Commitment.tenant_id == tenant_id)
-    ):
+    for record in promises:
         rows.append(
             (
                 record.created_at,
@@ -12311,9 +12346,7 @@ def timeline(session: OrmSession, tenant_id: str):
                 record.id,
             )
         )
-    for record in session.scalars(
-        select(Reservation).where(Reservation.tenant_id == tenant_id)
-    ):
+    for record in reservations:
         rows.append(
             (
                 record.reserved_at,
@@ -12322,9 +12355,7 @@ def timeline(session: OrmSession, tenant_id: str):
                 record.id,
             )
         )
-    for record in session.scalars(
-        select(Movement).where(Movement.tenant_id == tenant_id)
-    ):
+    for record in movements:
         rows.append(
             (
                 record.occurred_at,
@@ -12333,9 +12364,7 @@ def timeline(session: OrmSession, tenant_id: str):
                 record.id,
             )
         )
-    for record in session.scalars(
-        select(LedgerEntry).where(LedgerEntry.tenant_id == tenant_id)
-    ):
+    for record in entries:
         rows.append(
             (
                 record.effective_at,
