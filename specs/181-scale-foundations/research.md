@@ -56,6 +56,39 @@ reads as the most frequent active statement. The worker's minute-level projectio
 the same company competes on the database and adds to the slope. Later checkpoints (1k, 3k,
 10k, 30k, 100k) are appended below as the run completes.
 
+### Measured again, 2026-09-19, by a tool that stays
+
+The numbers above came from scripts in a scratch directory. They are gone, which is
+why nobody could say whether the ingest path had improved. FR-006 asks for the
+measurement as a maintained tool; it is now `packages/reality-core/benchmarks/ingest_cost`
+and its record is [evidence/ingest-cost.json](evidence/ingest-cost.json).
+
+| Orders already recorded | Queries per order to cash | SQL ms |
+| --- | --- | --- |
+| 0 | 527 | 205 |
+| 64 | 553 | 694 |
+| 183 | 528 | 487 |
+| 401 | 750 | 1,024 |
+
+**Queries per order to cash grow 1.42× from the smallest measured company to the
+largest. SC-001 allows 1.20.** That criterion is therefore missed today, and — for
+the first time — missed measurably.
+
+Three things this does not say. It is **not** a comparison with the September figures:
+this measures a whole scheduler occurrence, including the throttle check and the
+settlement scan, where the earlier profile measured the service calls inside one. It
+is a new baseline on a stated method, not evidence of a regression. The SQL
+milliseconds moved between 205 and 1,024 on a host that was not idle and should be
+read as a shape, not a value. And the largest company measured is 401 orders, two
+orders of magnitude below the target in SC-001, so the ratio is only as good as that
+range — a longer run is the obvious next measurement, and the tool takes
+`--checkpoints` for it.
+
+What the per-table column still shows, unchanged since September: `tenant`,
+`playground_run` and `source_record` dominate every step — 73, 51 and 78 reads in one
+payment. That is the authority check issued per service call rather than per
+transaction, which FR-001 names and which nothing has yet addressed.
+
 ## 2. Whole-company derivation
 
 Demo company `ten_de87f2e90b` (6,641 documents, 8,808 ledger entries, 2,230 open items):
