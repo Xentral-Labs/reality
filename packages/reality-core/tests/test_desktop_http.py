@@ -5,6 +5,7 @@ from uuid import uuid4
 
 import pytest
 from fastapi.testclient import TestClient
+
 from reality.services import desktop_identity
 from reality.services.account_sessions import issue_session
 from reality.web.desktop import create_desktop_app

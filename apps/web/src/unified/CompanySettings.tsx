@@ -46,7 +46,11 @@ export function CompanySettings({
   switchCompany: (id: string) => void;
   openSimulation: (id: string) => void;
   manageCompany: (id: string, view: "access" | "agents" | "ai") => void;
-  openCompany: (data: Bootstrap, id: string, options?: { announce?: boolean; home?: boolean }) => void;
+  openCompany: (
+    data: Bootstrap,
+    id: string,
+    options?: { announce?: boolean; home?: boolean },
+  ) => void;
   // The company switcher opens this form by URL, so the form follows the address.
   creating: boolean;
   setCreating: (creating: boolean) => void;

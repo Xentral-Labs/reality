@@ -3,11 +3,12 @@
 import uuid
 
 import pytest
+from sqlalchemy import func, select
+
 from reality.db.core import AccessApplication, AppUser, now
 from reality.services import account_policy, company_setup, desktop_identity
 from reality.services.core import InvalidOperation
 from reality.services.tenant_policy import PlaygroundOperationDenied
-from sqlalchemy import func, select
 
 
 def local_owner(session):
@@ -94,9 +95,10 @@ def test_python_sql_account_policy_agree(session, status, method, bound):
 def test_hosted_session_rejects_local_owner_even_with_valid_token(session):
     from datetime import timedelta
 
+    from starlette.requests import Request
+
     from reality.db.core import UserSession, uid
     from reality.web import auth
-    from starlette.requests import Request
 
     owner = local_owner(session)
     session.add(
@@ -118,6 +120,7 @@ def test_hosted_session_rejects_local_owner_even_with_valid_token(session):
 
 def test_local_owner_cannot_use_email_login_or_verification(session):
     from fastapi import HTTPException, Response
+
     from reality.web import auth
 
     owner = local_owner(session)
@@ -134,9 +137,10 @@ def test_local_owner_cannot_use_email_login_or_verification(session):
 
 
 def test_session_issuance_and_revocation_share_owner_policy(session):
+    from starlette.requests import Request
+
     from reality.services.account_sessions import issue_session, revoke_session
     from reality.web import auth
-    from starlette.requests import Request
 
     owner = local_owner(session)
     token = issue_session(session, owner)
