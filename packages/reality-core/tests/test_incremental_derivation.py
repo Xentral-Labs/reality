@@ -933,3 +933,226 @@ def test_a_cancelled_promise_leaves_the_demand_it_was_counted_in(session, busine
 
     projections.refresh_operational_projections(session, tenant, force=True)
     assert narrowed == _supply(session, tenant)
+
+
+# --- the fifth and sixth builders: the queue and its blockers (FR-002) -----------
+
+
+def _queue(session, tenant_id):
+    return {
+        key: payload
+        for (name, key), payload in snapshot(session, tenant_id).items()
+        if name == projections.FULFILLMENT_QUEUE
+    }
+
+
+def _blockers(session, tenant_id):
+    return {
+        key: payload
+        for (name, key), payload in snapshot(session, tenant_id).items()
+        if name == projections.FULFILLMENT_BLOCKERS
+    }
+
+
+def test_every_reason_a_promise_can_be_blocked_by_is_declared(session, business):
+    """The narrowed blockers refresh deletes by key, so the list must be complete.
+
+    A reason the rules can produce and the list does not name would leave a stale
+    blocker behind for ever: no row is produced for it, and no key speaks for it.
+    """
+    from reality.services.core import hold_commitment, hold_party_delivery
+
+    tenant = business.tenant.id
+    _, commitment = _promise(session, business, "ORD-241-ALL", "4")
+    hold_commitment(session, tenant, commitment.id, "credit_check", _commit=False)
+    hold_party_delivery(session, tenant, business.customer.id, "compliance")
+    session.flush()
+    projections.refresh_operational_projections(session, tenant)
+
+    reasons = {row["blocker_type"] for row in _blockers(session, tenant).values()}
+    assert reasons == set(projections.DELIVERY_BLOCKER_TYPES), (
+        "the declared reasons and the rules that produce them have drifted apart"
+    )
+
+
+def test_a_new_order_narrows_the_queue_and_agrees_with_the_company(session, business):
+    tenant = business.tenant.id
+    a_little_business(session, business)
+    projections.refresh_operational_projections(session, tenant)
+    before = set(_queue(session, tenant))
+
+    order, _ = _promise(session, business, "ORD-241-Q", "3")
+    with projections.narrowing_report() as report:
+        projections.refresh_operational_projections(session, tenant)
+    for name in (projections.FULFILLMENT_QUEUE, projections.FULFILLMENT_BLOCKERS):
+        assert report.get(name) is None, report.get(name)
+    narrowed = _queue(session, tenant)
+    assert set(narrowed) - before == {order.id}
+
+    projections.refresh_operational_projections(session, tenant, force=True)
+    assert narrowed == _queue(session, tenant)
+    assert _blockers(session, tenant)
+
+
+def test_an_order_whose_last_promise_is_finished_leaves_the_queue(session, business):
+    """What a narrowed refresh speaks for is the orders it resolved, not its rows.
+
+    A shipment that closes the last open promise of an order produces no queue row
+    for it — and that is exactly the refresh that has to remove one.
+    """
+    from reality.services.core import record_movement
+
+    tenant = business.tenant.id
+    order, commitment = _promise(session, business, "ORD-241-DONE", "2")
+    record_movement(
+        session,
+        tenant,
+        "receipt",
+        business.item.id,
+        "2",
+        to_location_id=business.location.id,
+    )
+    projections.refresh_operational_projections(session, tenant)
+    assert order.id in _queue(session, tenant)
+
+    record_movement(
+        session,
+        tenant,
+        "shipment",
+        business.item.id,
+        "2",
+        from_location_id=business.location.id,
+        commitment_id=commitment.id,
+    )
+    with projections.narrowing_report() as report:
+        projections.refresh_operational_projections(session, tenant)
+    reason = report.get(projections.FULFILLMENT_QUEUE)
+    assert reason is None, reason
+    narrowed = _queue(session, tenant)
+    assert order.id not in narrowed, "the finished order kept its place in the queue"
+
+    projections.refresh_operational_projections(session, tenant, force=True)
+    assert narrowed == _queue(session, tenant)
+
+
+def test_a_blocker_that_cleared_is_removed_although_nothing_produces_its_row(
+    session, business
+):
+    from reality.services.core import hold_commitment, release_commitment_hold
+
+    tenant = business.tenant.id
+    _, commitment = _promise(session, business, "ORD-241-BLK", "2")
+    hold_commitment(session, tenant, commitment.id, "credit_check", _commit=False)
+    projections.refresh_operational_projections(session, tenant)
+    held = f"{commitment.id}:commitment_hold"
+    assert held in _blockers(session, tenant)
+
+    release_commitment_hold(session, tenant, commitment.id, _commit=False)
+    with projections.narrowing_report() as report:
+        projections.refresh_operational_projections(session, tenant)
+    reason = report.get(projections.FULFILLMENT_BLOCKERS)
+    assert reason is None, reason
+    narrowed = _blockers(session, tenant)
+    assert held not in narrowed, "the released hold kept its blocker"
+
+    projections.refresh_operational_projections(session, tenant, force=True)
+    assert narrowed == _blockers(session, tenant)
+
+
+def test_a_correction_that_moves_a_shipment_to_another_promise_reaches_both_orders(
+    session, business
+):
+    """The movement-correction trap, one step worse than in stock.
+
+    `movement.corrected` names the movement that was corrected. The replacement it
+    appends carries no event, and it may be booked against a **different promise** —
+    the service then settles the status of both promises, so two orders change and
+    the one event names neither of them.
+    """
+    from reality.services.core import correct_movement, record_movement
+
+    tenant = business.tenant.id
+    first, first_promise = _promise(session, business, "ORD-241-C1", "2")
+    second, _ = _promise(session, business, "ORD-241-C2", "2")
+    second_promise = session.scalars(
+        select(projections.Commitment).where(
+            projections.Commitment.tenant_id == tenant,
+            projections.Commitment.document_id == second.id,
+        )
+    ).one()
+    record_movement(
+        session,
+        tenant,
+        "receipt",
+        business.item.id,
+        "10",
+        to_location_id=business.location.id,
+    )
+    wrong = record_movement(
+        session,
+        tenant,
+        "shipment",
+        business.item.id,
+        "2",
+        from_location_id=business.location.id,
+        commitment_id=first_promise.id,
+    )
+    projections.refresh_operational_projections(session, tenant)
+    assert first.id not in _queue(session, tenant), "the shipped order is finished"
+    assert second.id in _queue(session, tenant)
+
+    correct_movement(
+        session,
+        tenant,
+        wrong.id,
+        reason="the shipment belonged to the other order",
+        replacement={
+            "type": "shipment",
+            "item_id": business.item.id,
+            "quantity": "2",
+            "from_location_id": business.location.id,
+            "commitment_id": second_promise.id,
+        },
+        _commit=False,
+    )
+    with projections.narrowing_report() as report:
+        projections.refresh_operational_projections(session, tenant)
+    reason = report.get(projections.FULFILLMENT_QUEUE)
+    assert reason is None, reason
+    narrowed = _queue(session, tenant)
+
+    projections.refresh_operational_projections(session, tenant, force=True)
+    assert narrowed == _queue(session, tenant)
+    assert first.id in narrowed, "the order the shipment was taken off stayed finished"
+    assert second.id not in narrowed, "the order it was moved to stayed open"
+
+
+def test_the_queue_declines_a_subject_it_cannot_resolve(session, business):
+    changes = projections.ChangeSet({"tenant": frozenset({business.tenant.id})})
+    outcome = projections._narrowed_fulfillment_queue(
+        session, business.tenant.id, changes
+    )
+    assert isinstance(outcome, str)
+    assert "the fulfillment queue" in outcome and "tenant" in outcome
+
+
+def test_a_narrowed_queue_refresh_writes_only_the_orders_that_changed(
+    session, business
+):
+    tenant = business.tenant.id
+    for number in ("ORD-241-W1", "ORD-241-W2", "ORD-241-W3"):
+        _promise(session, business, number, "1")
+    projections.refresh_operational_projections(session, tenant)
+    whole_company = projections.rebuild_projections(
+        session, tenant, [projections.FULFILLMENT_QUEUE], force=True
+    )
+    session.commit()
+
+    _promise(session, business, "ORD-241-W4", "1")
+    written = projections.rebuild_projections(
+        session, tenant, [projections.FULFILLMENT_QUEUE]
+    )
+    session.commit()
+
+    assert whole_company >= 3
+    assert written == 1, "one new order touches one order"
