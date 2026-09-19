@@ -1,0 +1,139 @@
+EEEEE                                                                    [100%]
+==================================== ERRORS ====================================
+_______ ERROR at setup of test_checksum_mismatch_stops_before_extraction _______
+
+    @pytest.fixture
+    def builder():
+        scripts = Path(__file__).resolve().parents[1] / "scripts"
+        sys.path.insert(0, str(scripts))
+        try:
+            spec = importlib.util.spec_from_file_location("desktop_runtime_build", scripts / "build-runtime.py")
+            module = importlib.util.module_from_spec(spec)
+>           spec.loader.exec_module(module)
+
+apps/desktop/tests/test_runtime_build.py:21: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+<frozen importlib._bootstrap_external>:991: in exec_module
+    ???
+<frozen importlib._bootstrap_external>:1128: in get_code
+    ???
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <_frozen_importlib_external.SourceFileLoader object at 0x10963c0e0>
+path = '/Users/benediktsauter/GitHub/reality/apps/desktop/scripts/build-runtime.py'
+
+>   ???
+E   FileNotFoundError: [Errno 2] No such file or directory: '/Users/benediktsauter/GitHub/reality/apps/desktop/scripts/build-runtime.py'
+
+<frozen importlib._bootstrap_external>:1186: FileNotFoundError
+____________ ERROR at setup of test_archive_path_escape_is_rejected ____________
+
+    @pytest.fixture
+    def builder():
+        scripts = Path(__file__).resolve().parents[1] / "scripts"
+        sys.path.insert(0, str(scripts))
+        try:
+            spec = importlib.util.spec_from_file_location("desktop_runtime_build", scripts / "build-runtime.py")
+            module = importlib.util.module_from_spec(spec)
+>           spec.loader.exec_module(module)
+
+apps/desktop/tests/test_runtime_build.py:21: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+<frozen importlib._bootstrap_external>:991: in exec_module
+    ???
+<frozen importlib._bootstrap_external>:1128: in get_code
+    ???
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <_frozen_importlib_external.SourceFileLoader object at 0x1095cf1a0>
+path = '/Users/benediktsauter/GitHub/reality/apps/desktop/scripts/build-runtime.py'
+
+>   ???
+E   FileNotFoundError: [Errno 2] No such file or directory: '/Users/benediktsauter/GitHub/reality/apps/desktop/scripts/build-runtime.py'
+
+<frozen importlib._bootstrap_external>:1186: FileNotFoundError
+__________ ERROR at setup of test_archive_symlink_escape_is_rejected ___________
+
+    @pytest.fixture
+    def builder():
+        scripts = Path(__file__).resolve().parents[1] / "scripts"
+        sys.path.insert(0, str(scripts))
+        try:
+            spec = importlib.util.spec_from_file_location("desktop_runtime_build", scripts / "build-runtime.py")
+            module = importlib.util.module_from_spec(spec)
+>           spec.loader.exec_module(module)
+
+apps/desktop/tests/test_runtime_build.py:21: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+<frozen importlib._bootstrap_external>:991: in exec_module
+    ???
+<frozen importlib._bootstrap_external>:1128: in get_code
+    ???
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <_frozen_importlib_external.SourceFileLoader object at 0x1095ce330>
+path = '/Users/benediktsauter/GitHub/reality/apps/desktop/scripts/build-runtime.py'
+
+>   ???
+E   FileNotFoundError: [Errno 2] No such file or directory: '/Users/benediktsauter/GitHub/reality/apps/desktop/scripts/build-runtime.py'
+
+<frozen importlib._bootstrap_external>:1186: FileNotFoundError
+__ ERROR at setup of test_install_name_replacement_is_relative_to_each_binary __
+
+    @pytest.fixture
+    def builder():
+        scripts = Path(__file__).resolve().parents[1] / "scripts"
+        sys.path.insert(0, str(scripts))
+        try:
+            spec = importlib.util.spec_from_file_location("desktop_runtime_build", scripts / "build-runtime.py")
+            module = importlib.util.module_from_spec(spec)
+>           spec.loader.exec_module(module)
+
+apps/desktop/tests/test_runtime_build.py:21: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+<frozen importlib._bootstrap_external>:991: in exec_module
+    ???
+<frozen importlib._bootstrap_external>:1128: in get_code
+    ???
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <_frozen_importlib_external.SourceFileLoader object at 0x10963c6b0>
+path = '/Users/benediktsauter/GitHub/reality/apps/desktop/scripts/build-runtime.py'
+
+>   ???
+E   FileNotFoundError: [Errno 2] No such file or directory: '/Users/benediktsauter/GitHub/reality/apps/desktop/scripts/build-runtime.py'
+
+<frozen importlib._bootstrap_external>:1186: FileNotFoundError
+_________ ERROR at setup of test_output_cannot_overwrite_existing_data _________
+
+    @pytest.fixture
+    def builder():
+        scripts = Path(__file__).resolve().parents[1] / "scripts"
+        sys.path.insert(0, str(scripts))
+        try:
+            spec = importlib.util.spec_from_file_location("desktop_runtime_build", scripts / "build-runtime.py")
+            module = importlib.util.module_from_spec(spec)
+>           spec.loader.exec_module(module)
+
+apps/desktop/tests/test_runtime_build.py:21: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+<frozen importlib._bootstrap_external>:991: in exec_module
+    ???
+<frozen importlib._bootstrap_external>:1128: in get_code
+    ???
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <_frozen_importlib_external.SourceFileLoader object at 0x10963cf20>
+path = '/Users/benediktsauter/GitHub/reality/apps/desktop/scripts/build-runtime.py'
+
+>   ???
+E   FileNotFoundError: [Errno 2] No such file or directory: '/Users/benediktsauter/GitHub/reality/apps/desktop/scripts/build-runtime.py'
+
+<frozen importlib._bootstrap_external>:1186: FileNotFoundError
+=========================== short test summary info ============================
+ERROR apps/desktop/tests/test_runtime_build.py::test_checksum_mismatch_stops_before_extraction
+ERROR apps/desktop/tests/test_runtime_build.py::test_archive_path_escape_is_rejected
+ERROR apps/desktop/tests/test_runtime_build.py::test_archive_symlink_escape_is_rejected
+ERROR apps/desktop/tests/test_runtime_build.py::test_install_name_replacement_is_relative_to_each_binary
+ERROR apps/desktop/tests/test_runtime_build.py::test_output_cannot_overwrite_existing_data
+5 errors in 0.03s

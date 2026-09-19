@@ -1,0 +1,179 @@
+EEEEEEE                                                                  [100%]
+==================================== ERRORS ====================================
+________ ERROR at setup of test_absolute_developer_library_is_rejected _________
+
+    @pytest.fixture
+    def audit():
+        spec = importlib.util.spec_from_file_location("desktop_runtime_audit", SCRIPT)
+        module = importlib.util.module_from_spec(spec)
+        sys.modules[spec.name] = module
+>       spec.loader.exec_module(module)
+
+apps/desktop/tests/test_package.py:18: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+<frozen importlib._bootstrap_external>:991: in exec_module
+    ???
+<frozen importlib._bootstrap_external>:1128: in get_code
+    ???
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <_frozen_importlib_external.SourceFileLoader object at 0x107537d70>
+path = '/Users/benediktsauter/GitHub/reality/apps/desktop/scripts/runtime_audit.py'
+
+>   ???
+E   FileNotFoundError: [Errno 2] No such file or directory: '/Users/benediktsauter/GitHub/reality/apps/desktop/scripts/runtime_audit.py'
+
+<frozen importlib._bootstrap_external>:1186: FileNotFoundError
+____ ERROR at setup of test_system_and_relative_dependencies_are_classified ____
+
+    @pytest.fixture
+    def audit():
+        spec = importlib.util.spec_from_file_location("desktop_runtime_audit", SCRIPT)
+        module = importlib.util.module_from_spec(spec)
+        sys.modules[spec.name] = module
+>       spec.loader.exec_module(module)
+
+apps/desktop/tests/test_package.py:18: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+<frozen importlib._bootstrap_external>:991: in exec_module
+    ???
+<frozen importlib._bootstrap_external>:1128: in get_code
+    ???
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <_frozen_importlib_external.SourceFileLoader object at 0x107536420>
+path = '/Users/benediktsauter/GitHub/reality/apps/desktop/scripts/runtime_audit.py'
+
+>   ???
+E   FileNotFoundError: [Errno 2] No such file or directory: '/Users/benediktsauter/GitHub/reality/apps/desktop/scripts/runtime_audit.py'
+
+<frozen importlib._bootstrap_external>:1186: FileNotFoundError
+_ ERROR at setup of test_malicious_system_prefix_is_not_treated_as_system_library _
+
+    @pytest.fixture
+    def audit():
+        spec = importlib.util.spec_from_file_location("desktop_runtime_audit", SCRIPT)
+        module = importlib.util.module_from_spec(spec)
+        sys.modules[spec.name] = module
+>       spec.loader.exec_module(module)
+
+apps/desktop/tests/test_package.py:18: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+<frozen importlib._bootstrap_external>:991: in exec_module
+    ???
+<frozen importlib._bootstrap_external>:1128: in get_code
+    ???
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <_frozen_importlib_external.SourceFileLoader object at 0x1075651f0>
+path = '/Users/benediktsauter/GitHub/reality/apps/desktop/scripts/runtime_audit.py'
+
+>   ???
+E   FileNotFoundError: [Errno 2] No such file or directory: '/Users/benediktsauter/GitHub/reality/apps/desktop/scripts/runtime_audit.py'
+
+<frozen importlib._bootstrap_external>:1186: FileNotFoundError
+___ ERROR at setup of test_runtime_tree_rejects_escaping_and_broken_symlinks ___
+
+    @pytest.fixture
+    def audit():
+        spec = importlib.util.spec_from_file_location("desktop_runtime_audit", SCRIPT)
+        module = importlib.util.module_from_spec(spec)
+        sys.modules[spec.name] = module
+>       spec.loader.exec_module(module)
+
+apps/desktop/tests/test_package.py:18: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+<frozen importlib._bootstrap_external>:991: in exec_module
+    ???
+<frozen importlib._bootstrap_external>:1128: in get_code
+    ???
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <_frozen_importlib_external.SourceFileLoader object at 0x107564a10>
+path = '/Users/benediktsauter/GitHub/reality/apps/desktop/scripts/runtime_audit.py'
+
+>   ???
+E   FileNotFoundError: [Errno 2] No such file or directory: '/Users/benediktsauter/GitHub/reality/apps/desktop/scripts/runtime_audit.py'
+
+<frozen importlib._bootstrap_external>:1186: FileNotFoundError
+____ ERROR at setup of test_runtime_tree_accepts_internal_relative_symlinks ____
+
+    @pytest.fixture
+    def audit():
+        spec = importlib.util.spec_from_file_location("desktop_runtime_audit", SCRIPT)
+        module = importlib.util.module_from_spec(spec)
+        sys.modules[spec.name] = module
+>       spec.loader.exec_module(module)
+
+apps/desktop/tests/test_package.py:18: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+<frozen importlib._bootstrap_external>:991: in exec_module
+    ???
+<frozen importlib._bootstrap_external>:1128: in get_code
+    ???
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <_frozen_importlib_external.SourceFileLoader object at 0x107565790>
+path = '/Users/benediktsauter/GitHub/reality/apps/desktop/scripts/runtime_audit.py'
+
+>   ???
+E   FileNotFoundError: [Errno 2] No such file or directory: '/Users/benediktsauter/GitHub/reality/apps/desktop/scripts/runtime_audit.py'
+
+<frozen importlib._bootstrap_external>:1186: FileNotFoundError
+_ ERROR at setup of test_core_wheel_requires_migrations_catalogs_and_demo_resources _
+
+    @pytest.fixture
+    def audit():
+        spec = importlib.util.spec_from_file_location("desktop_runtime_audit", SCRIPT)
+        module = importlib.util.module_from_spec(spec)
+        sys.modules[spec.name] = module
+>       spec.loader.exec_module(module)
+
+apps/desktop/tests/test_package.py:18: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+<frozen importlib._bootstrap_external>:991: in exec_module
+    ???
+<frozen importlib._bootstrap_external>:1128: in get_code
+    ???
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <_frozen_importlib_external.SourceFileLoader object at 0x107566660>
+path = '/Users/benediktsauter/GitHub/reality/apps/desktop/scripts/runtime_audit.py'
+
+>   ???
+E   FileNotFoundError: [Errno 2] No such file or directory: '/Users/benediktsauter/GitHub/reality/apps/desktop/scripts/runtime_audit.py'
+
+<frozen importlib._bootstrap_external>:1186: FileNotFoundError
+___________ ERROR at setup of test_core_wheel_rejects_archive_escape ___________
+
+    @pytest.fixture
+    def audit():
+        spec = importlib.util.spec_from_file_location("desktop_runtime_audit", SCRIPT)
+        module = importlib.util.module_from_spec(spec)
+        sys.modules[spec.name] = module
+>       spec.loader.exec_module(module)
+
+apps/desktop/tests/test_package.py:18: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+<frozen importlib._bootstrap_external>:991: in exec_module
+    ???
+<frozen importlib._bootstrap_external>:1128: in get_code
+    ???
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <_frozen_importlib_external.SourceFileLoader object at 0x107567890>
+path = '/Users/benediktsauter/GitHub/reality/apps/desktop/scripts/runtime_audit.py'
+
+>   ???
+E   FileNotFoundError: [Errno 2] No such file or directory: '/Users/benediktsauter/GitHub/reality/apps/desktop/scripts/runtime_audit.py'
+
+<frozen importlib._bootstrap_external>:1186: FileNotFoundError
+=========================== short test summary info ============================
+ERROR apps/desktop/tests/test_package.py::test_absolute_developer_library_is_rejected
+ERROR apps/desktop/tests/test_package.py::test_system_and_relative_dependencies_are_classified
+ERROR apps/desktop/tests/test_package.py::test_malicious_system_prefix_is_not_treated_as_system_library
+ERROR apps/desktop/tests/test_package.py::test_runtime_tree_rejects_escaping_and_broken_symlinks
+ERROR apps/desktop/tests/test_package.py::test_runtime_tree_accepts_internal_relative_symlinks
+ERROR apps/desktop/tests/test_package.py::test_core_wheel_requires_migrations_catalogs_and_demo_resources
+ERROR apps/desktop/tests/test_package.py::test_core_wheel_rejects_archive_escape
+7 errors in 0.12s

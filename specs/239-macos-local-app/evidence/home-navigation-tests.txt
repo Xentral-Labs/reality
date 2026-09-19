@@ -1,0 +1,37 @@
+✔ current routes are bounded; compatibility is resolved at the entry (1.347833ms)
+✔ selection round-trips opaque IDs and does not propagate arbitrary query data (1.173541ms)
+✔ authenticated dispatcher loads only the unified app (0.537208ms)
+✔ unified shell uses the canonical Reality wordmark (0.403584ms)
+✔ workspace routes and bounded filters survive reload without leaking company selection (0.615209ms)
+✔ warehouse and attention selections preserve exact references and clear on company switch (0.919875ms)
+✔ finance deep links preserve filters and inspection while company changes clear context (0.641042ms)
+✔ source exploration retains exact versions and clears company context (0.376208ms)
+✔ settings section round-trips and unknown sections fall back safely (0.274542ms)
+✔ orders workspace keeps typed filters and exact order scope without changing legacy routes (0.367875ms)
+✔ Facts normalizes inspection and clears exact subject/source scope between companies (0.271167ms)
+✔ Inspector tabs and embedded fact filters survive reload without arbitrary view names (0.1655ms)
+✔ unified UI has no audited legacy exits (2.081334ms)
+✔ a reload keeps the answer already on screen and never collapses to a placeholder (1.250125ms)
+✔ the Workspaces sidebar does not duplicate the Inspector Facts register (0.251917ms)
+✔ one shared read placeholder draws the shape of the answer, not a framed sentence (8.484416ms)
+✔ a register with no rows explains itself once, inside the shared table frame (7.597542ms)
+✔ every page action reaches the header through the one shared bar (13.275167ms)
+✔ workspace header is separate from company and chat chrome (0.622ms)
+✔ Exceptions keeps its catalog control beside filters instead of page actions (0.479833ms)
+✔ Decisions explains how proposals enter the queue beside its action filter (0.793667ms)
+✔ company context sits beside the logo as one workspace switcher (2.145458ms)
+✔ company switcher labels sandbox companies in its option list (1.154542ms)
+✔ Inspector records uses the same single toolbar inset as operational registers (1.431625ms)
+✔ Tools uses the shared toolbar for search and independent filters (0.2185ms)
+✔ Actions event history uses the shared toolbar and table structure (0.628125ms)
+✔ Rules table uses the same inset as its toolbar (0.563583ms)
+✔ every Inspector table footer uses the shared browser-bottom footer (0.444333ms)
+✔ master data forms expose every field the shared services accept (0.473834ms)
+ℹ tests 29
+ℹ suites 0
+ℹ pass 29
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1095.58725

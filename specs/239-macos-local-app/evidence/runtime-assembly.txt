@@ -1,0 +1,6 @@
+Installing locked dependencies from the offline wheelhouse
+Auditing and signing bundled native extensions
+{
+  "output": "/Users/benediktsauter/GitHub/reality/apps/desktop/build/relocated runtime core",
+  "native_binaries": 110
+}

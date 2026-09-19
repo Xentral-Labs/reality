@@ -6593,6 +6593,12 @@ def send_chat_message(
             f"• Customer receivables: EUR {receivable:g}\n"
             f"• Supplier payables: EUR {payable:g}"
         )
+    elif not own_provider and not managed_key:
+        reply = (
+            "AI is not configured for this company. Add an Anthropic API key in "
+            "AI configuration, then ask again."
+        )
+        turn_outcome = "no_provider"
     else:
         reply = "V0 local agent: ask about inventory or fulfillment risk."
     # Set where the reply is produced, not sniffed from its text: the string

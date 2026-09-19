@@ -1,0 +1,108 @@
+EEEE                                                                     [100%]
+==================================== ERRORS ====================================
+__ ERROR at setup of test_three_roles_start_with_conventional_ports_occupied ___
+
+tmp_path_factory = TempPathFactory(_given_basetemp=None, _trace=<pluggy._tracing.TagTracerSub object at 0x106577c20>, _basetemp=PosixPath.../y5/px944wdj1tl6g6w9lc54gbwh0000gn/T/pytest-of-benediktsauter/pytest-85'), _retention_count=3, _retention_policy='all')
+
+    @pytest.fixture(scope="session")
+    def probe_binary(tmp_path_factory):
+        target = tmp_path_factory.mktemp("desktop-cargo")
+        env = dict(os.environ, CARGO_TARGET_DIR=str(target))
+        clt = Path("/Library/Developer/CommandLineTools")
+        if clt.is_dir():
+            env["DEVELOPER_DIR"] = str(clt)
+        result = subprocess.run(
+            ["cargo", "build", "--offline", "--manifest-path", str(DESKTOP / "spike/Cargo.toml")],
+            env=env, text=True, capture_output=True, timeout=90,
+        )
+>       assert result.returncode == 0, result.stderr
+E       AssertionError:    Compiling reality-desktop-port-probe v0.1.0 (/Users/benediktsauter/GitHub/reality/apps/desktop/spike)
+E         error: couldn't read ../src-tauri/src/supervisor.rs: No such file or directory (os error 2)
+E         
+E         error: could not compile `reality-desktop-port-probe` (lib) due to 1 previous error
+E         
+E       assert 101 == 0
+E        +  where 101 = CompletedProcess(args=['cargo', 'build', '--offline', '--manifest-path', '/Users/benediktsauter/GitHub/reality/apps/de...le or directory (os error 2)\n\nerror: could not compile `reality-desktop-port-probe` (lib) due to 1 previous error\n").returncode
+
+apps/desktop/tests/conftest.py:23: AssertionError
+_ ERROR at setup of test_reported_port_stays_bound_and_serves_without_rebinding _
+
+tmp_path_factory = TempPathFactory(_given_basetemp=None, _trace=<pluggy._tracing.TagTracerSub object at 0x106577c20>, _basetemp=PosixPath.../y5/px944wdj1tl6g6w9lc54gbwh0000gn/T/pytest-of-benediktsauter/pytest-85'), _retention_count=3, _retention_policy='all')
+
+    @pytest.fixture(scope="session")
+    def probe_binary(tmp_path_factory):
+        target = tmp_path_factory.mktemp("desktop-cargo")
+        env = dict(os.environ, CARGO_TARGET_DIR=str(target))
+        clt = Path("/Library/Developer/CommandLineTools")
+        if clt.is_dir():
+            env["DEVELOPER_DIR"] = str(clt)
+        result = subprocess.run(
+            ["cargo", "build", "--offline", "--manifest-path", str(DESKTOP / "spike/Cargo.toml")],
+            env=env, text=True, capture_output=True, timeout=90,
+        )
+>       assert result.returncode == 0, result.stderr
+E       AssertionError:    Compiling reality-desktop-port-probe v0.1.0 (/Users/benediktsauter/GitHub/reality/apps/desktop/spike)
+E         error: couldn't read ../src-tauri/src/supervisor.rs: No such file or directory (os error 2)
+E         
+E         error: could not compile `reality-desktop-port-probe` (lib) due to 1 previous error
+E         
+E       assert 101 == 0
+E        +  where 101 = CompletedProcess(args=['cargo', 'build', '--offline', '--manifest-path', '/Users/benediktsauter/GitHub/reality/apps/de...le or directory (os error 2)\n\nerror: could not compile `reality-desktop-port-probe` (lib) due to 1 previous error\n").returncode
+
+apps/desktop/tests/conftest.py:23: AssertionError
+___ ERROR at setup of test_separate_process_generations_coexist_and_restart ____
+
+tmp_path_factory = TempPathFactory(_given_basetemp=None, _trace=<pluggy._tracing.TagTracerSub object at 0x106577c20>, _basetemp=PosixPath.../y5/px944wdj1tl6g6w9lc54gbwh0000gn/T/pytest-of-benediktsauter/pytest-85'), _retention_count=3, _retention_policy='all')
+
+    @pytest.fixture(scope="session")
+    def probe_binary(tmp_path_factory):
+        target = tmp_path_factory.mktemp("desktop-cargo")
+        env = dict(os.environ, CARGO_TARGET_DIR=str(target))
+        clt = Path("/Library/Developer/CommandLineTools")
+        if clt.is_dir():
+            env["DEVELOPER_DIR"] = str(clt)
+        result = subprocess.run(
+            ["cargo", "build", "--offline", "--manifest-path", str(DESKTOP / "spike/Cargo.toml")],
+            env=env, text=True, capture_output=True, timeout=90,
+        )
+>       assert result.returncode == 0, result.stderr
+E       AssertionError:    Compiling reality-desktop-port-probe v0.1.0 (/Users/benediktsauter/GitHub/reality/apps/desktop/spike)
+E         error: couldn't read ../src-tauri/src/supervisor.rs: No such file or directory (os error 2)
+E         
+E         error: could not compile `reality-desktop-port-probe` (lib) due to 1 previous error
+E         
+E       assert 101 == 0
+E        +  where 101 = CompletedProcess(args=['cargo', 'build', '--offline', '--manifest-path', '/Users/benediktsauter/GitHub/reality/apps/de...le or directory (os error 2)\n\nerror: could not compile `reality-desktop-port-probe` (lib) due to 1 previous error\n").returncode
+
+apps/desktop/tests/conftest.py:23: AssertionError
+______ ERROR at setup of test_untrusted_role_is_rejected_before_listening ______
+
+tmp_path_factory = TempPathFactory(_given_basetemp=None, _trace=<pluggy._tracing.TagTracerSub object at 0x106577c20>, _basetemp=PosixPath.../y5/px944wdj1tl6g6w9lc54gbwh0000gn/T/pytest-of-benediktsauter/pytest-85'), _retention_count=3, _retention_policy='all')
+
+    @pytest.fixture(scope="session")
+    def probe_binary(tmp_path_factory):
+        target = tmp_path_factory.mktemp("desktop-cargo")
+        env = dict(os.environ, CARGO_TARGET_DIR=str(target))
+        clt = Path("/Library/Developer/CommandLineTools")
+        if clt.is_dir():
+            env["DEVELOPER_DIR"] = str(clt)
+        result = subprocess.run(
+            ["cargo", "build", "--offline", "--manifest-path", str(DESKTOP / "spike/Cargo.toml")],
+            env=env, text=True, capture_output=True, timeout=90,
+        )
+>       assert result.returncode == 0, result.stderr
+E       AssertionError:    Compiling reality-desktop-port-probe v0.1.0 (/Users/benediktsauter/GitHub/reality/apps/desktop/spike)
+E         error: couldn't read ../src-tauri/src/supervisor.rs: No such file or directory (os error 2)
+E         
+E         error: could not compile `reality-desktop-port-probe` (lib) due to 1 previous error
+E         
+E       assert 101 == 0
+E        +  where 101 = CompletedProcess(args=['cargo', 'build', '--offline', '--manifest-path', '/Users/benediktsauter/GitHub/reality/apps/de...le or directory (os error 2)\n\nerror: could not compile `reality-desktop-port-probe` (lib) due to 1 previous error\n").returncode
+
+apps/desktop/tests/conftest.py:23: AssertionError
+=========================== short test summary info ============================
+ERROR apps/desktop/tests/test_ports.py::test_three_roles_start_with_conventional_ports_occupied
+ERROR apps/desktop/tests/test_ports.py::test_reported_port_stays_bound_and_serves_without_rebinding
+ERROR apps/desktop/tests/test_ports.py::test_separate_process_generations_coexist_and_restart
+ERROR apps/desktop/tests/test_ports.py::test_untrusted_role_is_rejected_before_listening
+4 errors in 0.67s

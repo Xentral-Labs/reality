@@ -1,0 +1,27 @@
+........F                                                                [100%]
+=================================== FAILURES ===================================
+_________ test_native_minimum_os_is_checked_including_universal_slices _________
+
+audit = <module 'desktop_runtime_audit' from '/Users/benediktsauter/GitHub/reality/apps/desktop/scripts/runtime_audit.py'>
+
+    def test_native_minimum_os_is_checked_including_universal_slices(audit):
+        output = """Load command 10
+          cmd LC_BUILD_VERSION
+      cmdsize 32
+     platform 1
+        minos 11.0
+          sdk 14.0
+    Load command 11
+          cmd LC_VERSION_MIN_MACOSX
+      cmdsize 16
+      version 10.9
+          sdk 13.0
+    """
+>       assert audit.minimum_macos_versions(output) == [(11, 0), (10, 9)]
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       AttributeError: module 'desktop_runtime_audit' has no attribute 'minimum_macos_versions'
+
+apps/desktop/tests/test_package.py:111: AttributeError
+=========================== short test summary info ============================
+FAILED apps/desktop/tests/test_package.py::test_native_minimum_os_is_checked_including_universal_slices
+1 failed, 8 passed in 0.16s

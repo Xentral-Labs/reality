@@ -1,0 +1,12 @@
+[package]
+name = "reality-desktop-port-probe"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+[lib]
+path = "../src-tauri/src/supervisor.rs"
+
+[[bin]]
+name = "reality-desktop-port-probe"
+path = "src/main.rs"

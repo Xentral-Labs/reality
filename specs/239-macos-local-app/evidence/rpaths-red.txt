@@ -1,0 +1,28 @@
+.........F                                                               [100%]
+=================================== FAILURES ===================================
+__________ test_rpaths_are_parsed_without_confusing_dependency_names ___________
+
+audit = <module 'desktop_runtime_audit' from '/Users/benediktsauter/GitHub/reality/apps/desktop/scripts/runtime_audit.py'>
+
+    def test_rpaths_are_parsed_without_confusing_dependency_names(audit):
+        output = """Load command 12
+              cmd LC_RPATH
+          cmdsize 48
+             path /tmp/build with spaces/postgres/lib (offset 12)
+    Load command 13
+              cmd LC_LOAD_DYLIB
+             name @rpath/libpq.5.dylib (offset 24)
+    Load command 14
+              cmd LC_RPATH
+             path @loader_path/../lib (offset 12)
+    """
+>       assert audit.library_search_paths(output) == [
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^
+            "/tmp/build with spaces/postgres/lib", "@loader_path/../lib"
+        ]
+E       AttributeError: module 'desktop_runtime_audit' has no attribute 'library_search_paths'
+
+apps/desktop/tests/test_package.py:131: AttributeError
+=========================== short test summary info ============================
+FAILED apps/desktop/tests/test_package.py::test_rpaths_are_parsed_without_confusing_dependency_names
+1 failed, 9 passed in 0.10s

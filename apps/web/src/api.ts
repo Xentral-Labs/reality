@@ -55,6 +55,7 @@ export type CompanySetupOptions = {
   environments: ("business" | "sandbox")[];
   practice_enabled: boolean;
   pending: boolean;
+  desktop_anthropic_setup?: boolean;
 };
 export type CompanySetupResult = {
   tenant_id: string;
@@ -651,6 +652,7 @@ export type ManagedAllowance = {
 };
 export type CopilotData = {
   allowance?: ManagedAllowance | null;
+  ai_configured?: boolean;
   sessions: CopilotSession[];
   active_session_id: string | null;
   messages: CopilotMessage[];

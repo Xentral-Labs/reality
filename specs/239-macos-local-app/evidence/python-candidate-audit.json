@@ -1,0 +1,15 @@
+{
+  "qualification": "preflight only; clean-Mac execution still required",
+  "problems": [
+    "/opt/homebrew/Cellar/python@3.12/3.12.4/Frameworks/Python.framework/Versions/3.12/Python"
+  ],
+  "binaries": [
+    {
+      "path": "/opt/homebrew/opt/python@3.12/bin/python3.12",
+      "external_dependencies": [
+        "/opt/homebrew/Cellar/python@3.12/3.12.4/Frameworks/Python.framework/Versions/3.12/Python"
+      ],
+      "relative_dependencies_requiring_validation": []
+    }
+  ]
+}

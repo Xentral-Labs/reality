@@ -70,10 +70,14 @@ export default function UnifiedApp({
   }, [route]);
   // A company someone set up is announced; a practice company a storyline opened is not,
   // the story itself says where the person is.
-  const openCompany = (data: Bootstrap, id: string, options?: { announce?: boolean }) => {
+  const openCompany = (
+    data: Bootstrap,
+    id: string,
+    options?: { announce?: boolean; home?: boolean },
+  ) => {
     setAction(null);
     setActionTarget({});
-    context.openCompany(data, id);
+    context.openCompany(data, id, options?.home ?? false);
     setCreatedCompany(options?.announce === false ? null : id);
   };
   if (!bootstrap)

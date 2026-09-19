@@ -1,0 +1,1 @@
+PASS: native-compatible cookie → real setup form → one created company → product workspace.

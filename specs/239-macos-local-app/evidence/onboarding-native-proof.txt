@@ -1,0 +1,2 @@
+exit_code=0
+Native cookie proof: cookie_hidden=true, native_command_denied=true

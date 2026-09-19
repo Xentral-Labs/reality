@@ -1,0 +1,344 @@
+I001 [*] Import block is un-sorted or un-formatted
+  --> benchmarks/global_search/runner.py:3:1
+   |
+ 1 |   """Guarded search dataset and reproducible service workload, never live company data."""
+ 2 |
+ 3 | / from __future__ import annotations
+ 4 | |
+ 5 | | import argparse
+ 6 | | import hashlib
+ 7 | | import json
+ 8 | | import os
+ 9 | | import platform
+10 | | import statistics
+11 | | import time
+12 | | from concurrent.futures import ThreadPoolExecutor
+13 | | from datetime import UTC, datetime
+14 | | from http.cookies import SimpleCookie
+15 | | from pathlib import Path
+16 | |
+17 | | from fastapi import Response
+18 | | from reality.db.analytics import AnalyticsReport
+19 | | from reality.db.core import (
+20 | |     AppUser,
+21 | |     Commitment,
+22 | |     Document,
+23 | |     Fact,
+24 | |     Item,
+25 | |     LedgerEntry,
+26 | |     Location,
+27 | |     Movement,
+28 | |     Party,
+29 | |     PartyRole,
+30 | |     Reservation,
+31 | |     Shipment,
+32 | |     ShipmentPackage,
+33 | |     SourceRecord,
+34 | |     SubledgerAccount,
+35 | |     Tenant,
+36 | |     TenantMembership,
+37 | | )
+38 | | from reality.domain.search import SearchRequest
+39 | | from reality.services.global_search import search_company
+40 | | from reality.services.memberships import Principal
+41 | | from sqlalchemy import create_engine, func, insert, select, text
+42 | | from sqlalchemy.engine import make_url
+43 | | from sqlalchemy.orm import Session
+44 | |
+45 | | from benchmarks.large_tenant_registers.runner import validate_database_target
+   | |_____________________________________________________________________________^
+46 |
+47 |   TENANT = "search_benchmark"
+   |
+help: Organize imports
+   |
+17 | from fastapi import Response
+18 + from sqlalchemy import create_engine, func, insert, select, text
+19 + from sqlalchemy.engine import make_url
+20 + from sqlalchemy.orm import Session
+21 +
+22 + from benchmarks.large_tenant_registers.runner import validate_database_target
+23 | from reality.db.analytics import AnalyticsReport
+--------------------------------------------------------------------------------
+45 | from reality.services.memberships import Principal
+   - from sqlalchemy import create_engine, func, insert, select, text
+   - from sqlalchemy.engine import make_url
+   - from sqlalchemy.orm import Session
+   -
+   - from benchmarks.large_tenant_registers.runner import validate_database_target
+46 |
+   |
+
+I001 [*] Import block is un-sorted or un-formatted
+ --> migrations/versions/0063_global_search_support.py:3:1
+  |
+1 |   """Read-only global search support over existing held fields (spec 235)."""
+2 |
+3 | / from alembic import op
+4 | | from reality.db.search_sql import drop_search_support, install_search_support
+  | |_____________________________________________________________________________^
+5 |
+6 |   revision = "0063_global_search_support"
+  |
+help: Organize imports
+  |
+3 | from alembic import op
+4 +
+5 | from reality.db.search_sql import drop_search_support, install_search_support
+  |
+
+I001 [*] Import block is un-sorted or un-formatted
+ --> tests/test_global_search_access.py:3:1
+  |
+1 |   """Search authorization applies to aliases, retained versions and owned definitions."""
+2 |
+3 | / import pytest
+4 | | from reality.db.analytics import AnalyticsReport
+5 | | from reality.db.core import AppUser, PartyRole, SourceRecord, TenantMembership, now
+6 | | from reality.domain.search import RecordTarget, SearchRequest
+7 | | from reality.services.core import NotFound, create_document, create_party, create_tenant
+8 | | from reality.services.global_search import resolve_search_targets, search_company
+9 | | from reality.services.memberships import Principal
+  | |__________________________________________________^
+help: Organize imports
+  |
+3 | import pytest
+4 +
+5 | from reality.db.analytics import AnalyticsReport
+  |
+
+I001 [*] Import block is un-sorted or un-formatted
+ --> tests/test_global_search_benchmark.py:3:1
+  |
+1 |   """Early full-population risk probe; not the ten-user browser acceptance benchmark."""
+2 |
+3 | / import time
+4 | |
+5 | | from reality.db.core import Item
+6 | | from reality.domain.search import SearchRequest
+7 | | from reality.services.global_search import search_company
+8 | | from sqlalchemy import insert
+  | |_____________________________^
+help: Organize imports
+   |
+4  |
+5  + from sqlalchemy import insert
+6  +
+7  | from reality.db.core import Item
+8  | from reality.domain.search import SearchRequest
+9  | from reality.services.global_search import search_company
+   - from sqlalchemy import insert
+10 |
+   |
+
+I001 [*] Import block is un-sorted or un-formatted
+  --> tests/test_global_search_benchmark.py:45:5
+   |
+44 |   def test_benchmark_dataset_and_guards_are_explicit():
+45 | /     import pytest
+46 | |     from benchmarks.global_search.runner import (
+47 | |         cases_for,
+48 | |         counts_for,
+49 | |         validate_database_target,
+50 | |     )
+   | |_____^
+51 |
+52 |       counts = counts_for(100000)
+   |
+help: Organize imports
+   |
+45 |     import pytest
+46 +
+47 |     from benchmarks.global_search.runner import (
+   |
+
+I001 [*] Import block is un-sorted or un-formatted
+  --> tests/test_global_search_matching.py:3:1
+   |
+ 1 |   """Search ordering is a contract shared by PostgreSQL and the palette."""
+ 2 |
+ 3 | / import json
+ 4 | | from pathlib import Path
+ 5 | |
+ 6 | | import pytest
+ 7 | | from pydantic import ValidationError
+ 8 | | from reality.domain.search import SearchRequest, edit_one, match_tier, normalize
+   | |________________________________________________________________________________^
+ 9 |
+10 |   CASES = json.loads(
+   |
+help: Organize imports
+  |
+7 | from pydantic import ValidationError
+8 +
+9 | from reality.domain.search import SearchRequest, edit_one, match_tier, normalize
+  |
+
+I001 [*] Import block is un-sorted or un-formatted
+  --> tests/test_global_search_matching.py:61:5
+   |
+59 |   @pytest.mark.parametrize("case", CASES, ids=lambda row: row["query"])
+60 |   def test_staged_sql_predicates_match_the_authoritative_corpus(session, case):
+61 | /     from reality.db.search import _tier_match
+62 | |     from sqlalchemy import literal, select
+   | |__________________________________________^
+63 |
+64 |       if not case["query"].strip():
+   |
+help: Organize imports
+   |
+60 | def test_staged_sql_predicates_match_the_authoritative_corpus(session, case):
+   -     from reality.db.search import _tier_match
+61 |     from sqlalchemy import literal, select
+62 |
+63 +     from reality.db.search import _tier_match
+64 +
+65 |     if not case["query"].strip():
+   |
+
+I001 [*] Import block is un-sorted or un-formatted
+  --> tests/test_global_search_matching.py:85:5
+   |
+83 |   @pytest.mark.parametrize("query,tier", [("Warehouse", 2), ("warehose", 3)])
+84 |   def test_nullable_identifiers_do_not_remove_name_matches(session, query, tier):
+85 | /     from reality.db.search import _tier_match
+86 | |     from sqlalchemy import String, literal, select
+   | |__________________________________________________^
+87 |
+88 |       actual = [
+   |
+help: Organize imports
+   |
+84 | def test_nullable_identifiers_do_not_remove_name_matches(session, query, tier):
+   -     from reality.db.search import _tier_match
+85 |     from sqlalchemy import String, literal, select
+86 |
+87 +     from reality.db.search import _tier_match
+88 +
+89 |     actual = [
+   |
+
+I001 [*] Import block is un-sorted or un-formatted
+  --> tests/test_global_search_migration.py:3:1
+   |
+ 1 |   """SQL search support uses the same semantics and preserves existing data."""
+ 2 |
+ 3 | / import json
+ 4 | | from pathlib import Path
+ 5 | |
+ 6 | | import pytest
+ 7 | | from alembic import command
+ 8 | | from alembic.config import Config
+ 9 | | from reality.db.search_sql import install_search_support
+10 | | from sqlalchemy import create_engine, text
+   | |__________________________________________^
+11 |
+12 |   CASES = json.loads(
+   |
+help: Organize imports
+   |
+8  | from alembic.config import Config
+   - from reality.db.search_sql import install_search_support
+9  | from sqlalchemy import create_engine, text
+10 |
+11 + from reality.db.search_sql import install_search_support
+12 +
+13 | CASES = json.loads(
+   |
+
+I001 [*] Import block is un-sorted or un-formatted
+ --> tests/test_global_search_service.py:3:1
+  |
+1 |   """The palette searches complete scoped sets before limiting results."""
+2 |
+3 | / import pytest
+4 | | from reality.domain.search import RecordTarget, SearchRequest
+5 | | from reality.services.core import NotFound, create_item, create_tenant
+6 | | from reality.services.global_search import resolve_search_targets, search_company
+7 | | from reality.services.memberships import Principal
+  | |__________________________________________________^
+help: Organize imports
+  |
+3 | import pytest
+4 +
+5 | from reality.domain.search import RecordTarget, SearchRequest
+  |
+
+I001 [*] Import block is un-sorted or un-formatted
+   --> tests/test_global_search_service.py:142:5
+    |
+141 |   def test_document_payment_shipment_canonical_authorities(session, business):
+142 | /     from reality.db.core import LedgerEntry, Shipment, ShipmentPackage, SourceRecord
+143 | |     from reality.services.core import (
+144 | |         create_document,
+145 | |         post_customer_payment,
+146 | |         post_sales_invoice,
+147 | |     )
+148 | |     from sqlalchemy import select
+    | |_________________________________^
+149 |
+150 |       tenant = business.tenant.id
+    |
+help: Organize imports
+    |
+141 | def test_document_payment_shipment_canonical_authorities(session, business):
+142 +     from sqlalchemy import select
+143 +
+144 |     from reality.db.core import LedgerEntry, Shipment, ShipmentPackage, SourceRecord
+--------------------------------------------------------------------------------
+149 |     )
+    -     from sqlalchemy import select
+150 |
+    |
+
+I001 [*] Import block is un-sorted or un-formatted
+ --> tests/test_global_search_web.py:3:1
+  |
+1 |   """Transport validates bounds and delegates read-only search."""
+2 |
+3 | / from fastapi.testclient import TestClient
+4 | | from reality.web import api as api_module
+5 | | from reality.web.app import app
+6 | | from sqlalchemy import event
+  | |____________________________^
+help: Organize imports
+  |
+3 | from fastapi.testclient import TestClient
+4 + from sqlalchemy import event
+5 +
+6 | from reality.web import api as api_module
+7 | from reality.web.app import app
+  - from sqlalchemy import event
+8 |
+  |
+
+I001 [*] Import block is un-sorted or un-formatted
+  --> tests/test_global_search_web.py:60:5
+   |
+59 |   def test_search_admission_does_not_block_the_async_event_loop(monkeypatch):
+60 | /     import asyncio
+61 | |     import threading
+62 | |     from contextlib import nullcontext
+63 | |     from types import SimpleNamespace
+64 | |
+65 | |     from reality.web import app as web_app
+66 | |     from starlette.requests import Request
+67 | |     from starlette.responses import PlainTextResponse
+   | |_____________________________________________________^
+68 |
+69 |       started = threading.Event()
+   |
+help: Organize imports
+   |
+64 |
+   -     from reality.web import app as web_app
+65 |     from starlette.requests import Request
+66 |     from starlette.responses import PlainTextResponse
+67 |
+68 +     from reality.web import app as web_app
+69 +
+70 |     started = threading.Event()
+   |
+
+Found 13 errors.
+[*] 13 fixable with the `--fix` option.

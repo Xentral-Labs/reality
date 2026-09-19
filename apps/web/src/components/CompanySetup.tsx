@@ -31,6 +31,7 @@ export function CompanySetup({
   const [result, setResult] = useState<CompanySetupResult>();
   const [busy, setBusy] = useState(true);
   const [error, setError] = useState("");
+  const [apiKey, setApiKey] = useState("");
   const [steps, setSteps] = useState<SetupStep[] | null>(null);
   const attemptedOpen = useRef<string | undefined>(undefined);
   const mounted = useRef(true);
@@ -106,6 +107,13 @@ export function CompanySetup({
     setBusy(true);
     setError("");
     try {
+      if (apiKey.trim()) {
+        await api.saveAISettings(result.tenant_id, {
+          provider_preset: "anthropic",
+          api_key: apiKey.trim(),
+        });
+        setApiKey("");
+      }
       if (created) await created(result);
       else window.location.assign(result.destination);
       sessionStorage.removeItem(storageKey(options.actor_id));
@@ -204,6 +212,8 @@ export function CompanySetup({
             options={options}
             initialName={first ? options.suggested_name : ""}
             busy={busy}
+            apiKey={apiKey}
+            setApiKey={setApiKey}
             submit={submit}
             cancel={close}
           />

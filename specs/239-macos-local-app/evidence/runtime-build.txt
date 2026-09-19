@@ -1,0 +1,10 @@
+Extracting verified standalone Python and PostgreSQL sources
+Configuring PostgreSQL without Homebrew dependencies
+Compiling PostgreSQL
+Relocating and auditing native libraries
+{
+  "output": "/Users/benediktsauter/GitHub/reality/apps/desktop/build/runtime-with-search",
+  "python": "3.12.14 (main, Sep  1 2026, 14:09:38) [Clang 22.1.3 ]",
+  "postgresql": "postgres (PostgreSQL) 17.11",
+  "native_binaries": 82
+}

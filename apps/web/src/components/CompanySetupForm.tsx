@@ -6,12 +6,16 @@ export function CompanySetupForm({
   options,
   initialName,
   busy,
+  apiKey,
+  setApiKey,
   submit,
   cancel,
 }: {
   options: CompanySetupOptions;
   initialName: string;
   busy: boolean;
+  apiKey: string;
+  setApiKey: (value: string) => void;
   submit: (choices: CompanySetupChoices) => Promise<void>;
   cancel?: () => void;
 }) {
@@ -109,7 +113,7 @@ export function CompanySetupForm({
                 checked={choice === item.value}
                 onChange={() => {
                   setChoice(item.value);
-                  setLiveSimulation(false);
+                  setLiveSimulation(item.value === "demo");
                 }}
                 aria-describedby={`setup-${item.value}-description`}
               />
@@ -137,6 +141,27 @@ export function CompanySetupForm({
           </>
         )}
       </fieldset>
+      {options.desktop_anthropic_setup && (
+        <div className="onboarding-api-key">
+          <label htmlFor="setup-anthropic-key">{t("Anthropic API key (optional)")}</label>
+          <input
+            id="setup-anthropic-key"
+            type="password"
+            placeholder="sk-ant-…"
+            value={apiKey}
+            onChange={(event) => setApiKey(event.target.value)}
+            autoComplete="off"
+            spellCheck={false}
+            disabled={busy}
+            aria-describedby="setup-anthropic-key-help"
+          />
+          <p id="setup-anthropic-key-help" className="text-sm text-fg-muted">
+            {t(
+              "Optional. Enables AI chat for this company. The temporary installation removes the encrypted credential when you quit.",
+            )}
+          </p>
+        </div>
+      )}
       <div className="onboarding-actions">
         {cancel && (
           <button type="button" className="secondary-button" disabled={busy} onClick={cancel}>

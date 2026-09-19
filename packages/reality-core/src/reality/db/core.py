@@ -413,6 +413,15 @@ class AppUser(Base):
     """A human identity. Business access is granted separately by membership."""
 
     __tablename__ = "app_user"
+    __table_args__ = (
+        CheckConstraint(
+            "authentication_method IN ('email', 'local_os')",
+            name="ck_app_user_authentication_method",
+        ),
+    )
+    authentication_method: Mapped[str] = mapped_column(
+        String, default="email", server_default="email"
+    )
     id: Mapped[str] = mapped_column(String, primary_key=True)
     email: Mapped[str] = mapped_column(String, unique=True, index=True)
     password_hash: Mapped[str] = mapped_column(Text)

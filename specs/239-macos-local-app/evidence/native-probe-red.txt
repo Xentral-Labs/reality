@@ -1,0 +1,104 @@
+EEEE                                                                     [100%]
+==================================== ERRORS ====================================
+__________ ERROR at setup of test_no_localhost_authentication_bypass ___________
+
+    @pytest.fixture
+    def probe():
+        path = Path(__file__).resolve().parents[1] / "scripts/native-probe.py"
+        spec = importlib.util.spec_from_file_location("native_probe", path)
+        module = importlib.util.module_from_spec(spec)
+>       spec.loader.exec_module(module)
+
+apps/desktop/tests/test_native_probe.py:18: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+<frozen importlib._bootstrap_external>:991: in exec_module
+    ???
+<frozen importlib._bootstrap_external>:1128: in get_code
+    ???
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <_frozen_importlib_external.SourceFileLoader object at 0x10b8cf7d0>
+path = '/Users/benediktsauter/GitHub/reality/apps/desktop/scripts/native-probe.py'
+
+>   ???
+E   FileNotFoundError: [Errno 2] No such file or directory: '/Users/benediktsauter/GitHub/reality/apps/desktop/scripts/native-probe.py'
+
+<frozen importlib._bootstrap_external>:1186: FileNotFoundError
+_____ ERROR at setup of test_valid_cookie_opens_page_without_disclosing_it _____
+
+    @pytest.fixture
+    def probe():
+        path = Path(__file__).resolve().parents[1] / "scripts/native-probe.py"
+        spec = importlib.util.spec_from_file_location("native_probe", path)
+        module = importlib.util.module_from_spec(spec)
+>       spec.loader.exec_module(module)
+
+apps/desktop/tests/test_native_probe.py:18: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+<frozen importlib._bootstrap_external>:991: in exec_module
+    ???
+<frozen importlib._bootstrap_external>:1128: in get_code
+    ???
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <_frozen_importlib_external.SourceFileLoader object at 0x10b8ce0c0>
+path = '/Users/benediktsauter/GitHub/reality/apps/desktop/scripts/native-probe.py'
+
+>   ???
+E   FileNotFoundError: [Errno 2] No such file or directory: '/Users/benediktsauter/GitHub/reality/apps/desktop/scripts/native-probe.py'
+
+<frozen importlib._bootstrap_external>:1186: FileNotFoundError
+_____ ERROR at setup of test_proof_requires_same_origin_and_typed_payload ______
+
+    @pytest.fixture
+    def probe():
+        path = Path(__file__).resolve().parents[1] / "scripts/native-probe.py"
+        spec = importlib.util.spec_from_file_location("native_probe", path)
+        module = importlib.util.module_from_spec(spec)
+>       spec.loader.exec_module(module)
+
+apps/desktop/tests/test_native_probe.py:18: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+<frozen importlib._bootstrap_external>:991: in exec_module
+    ???
+<frozen importlib._bootstrap_external>:1128: in get_code
+    ???
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <_frozen_importlib_external.SourceFileLoader object at 0x10b9486e0>
+path = '/Users/benediktsauter/GitHub/reality/apps/desktop/scripts/native-probe.py'
+
+>   ???
+E   FileNotFoundError: [Errno 2] No such file or directory: '/Users/benediktsauter/GitHub/reality/apps/desktop/scripts/native-probe.py'
+
+<frozen importlib._bootstrap_external>:1186: FileNotFoundError
+______ ERROR at setup of test_new_instance_has_a_different_cookie_secret _______
+
+    @pytest.fixture
+    def probe():
+        path = Path(__file__).resolve().parents[1] / "scripts/native-probe.py"
+        spec = importlib.util.spec_from_file_location("native_probe", path)
+        module = importlib.util.module_from_spec(spec)
+>       spec.loader.exec_module(module)
+
+apps/desktop/tests/test_native_probe.py:18: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+<frozen importlib._bootstrap_external>:991: in exec_module
+    ???
+<frozen importlib._bootstrap_external>:1128: in get_code
+    ???
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <_frozen_importlib_external.SourceFileLoader object at 0x10b9492e0>
+path = '/Users/benediktsauter/GitHub/reality/apps/desktop/scripts/native-probe.py'
+
+>   ???
+E   FileNotFoundError: [Errno 2] No such file or directory: '/Users/benediktsauter/GitHub/reality/apps/desktop/scripts/native-probe.py'
+
+<frozen importlib._bootstrap_external>:1186: FileNotFoundError
+=========================== short test summary info ============================
+ERROR apps/desktop/tests/test_native_probe.py::test_no_localhost_authentication_bypass
+ERROR apps/desktop/tests/test_native_probe.py::test_valid_cookie_opens_page_without_disclosing_it
+ERROR apps/desktop/tests/test_native_probe.py::test_proof_requires_same_origin_and_typed_payload
+ERROR apps/desktop/tests/test_native_probe.py::test_new_instance_has_a_different_cookie_secret
+4 errors in 0.05s

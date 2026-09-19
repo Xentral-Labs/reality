@@ -2742,6 +2742,15 @@ textarea.br-control.rule-draft-editor {
 .onboarding-form > input {
   @apply min-h-11 w-full rounded-lg border border-border-default bg-surface px-3 text-fg-strong;
 }
+.onboarding-api-key {
+  @apply mt-3 grid gap-2 rounded-xl border border-border-default bg-surface-muted p-4;
+}
+.onboarding-api-key > label {
+  @apply text-sm font-semibold text-fg-default;
+}
+.onboarding-api-key > input {
+  @apply min-h-11 w-full rounded-lg border border-border-default bg-surface px-3 text-fg-strong shadow-theme-xs outline-none placeholder:text-fg-quiet focus:border-brand-400 focus:ring-3 focus:ring-brand-500/10;
+}
 .onboarding-form fieldset {
   @apply mt-3 min-w-0 rounded-xl border border-border-default p-4;
 }
@@ -3164,6 +3173,21 @@ textarea.br-control.rule-draft-editor {
 }
 .company-setup-card .primary-button {
   @apply min-h-11 mt-2;
+}
+
+@media (min-width: 640px) and (min-height: 760px) {
+  .onboarding-screen { @apply py-2; }
+  .onboarding-screen > .company-setup-card { @apply gap-1 px-8 py-3; }
+  .onboarding-screen .company-setup-symbol { @apply size-10 rounded-xl; }
+  .onboarding-screen .company-setup-symbol svg { @apply size-5; }
+  .onboarding-screen .company-setup-card h1 { @apply text-2xl; }
+  .onboarding-screen .company-setup-description { @apply leading-5; }
+  .onboarding-screen .onboarding-form { @apply mt-2 gap-1; }
+  .onboarding-screen .onboarding-form fieldset { @apply mt-2 px-4 py-2; }
+  .onboarding-screen .onboarding-form fieldset label { @apply min-h-8; }
+  .onboarding-screen .onboarding-form fieldset p { @apply mb-1 leading-5; }
+  .onboarding-screen .onboarding-api-key { @apply mt-2 gap-1 px-4 py-2; }
+  .onboarding-screen .company-setup-card .primary-button { @apply mt-1; }
 }
 
 /* Standalone Chat scrolls its conversation independently of navigation. */
