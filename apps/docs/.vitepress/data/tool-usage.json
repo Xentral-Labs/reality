@@ -16286,7 +16286,7 @@
         "ledger.reversed",
         "settlement.allocated"
       ],
-      "clock_refresh_seconds": 60,
+      "clock_refresh_seconds": null,
       "service": "projection_rows",
       "related_services": ["tenant_usage_summaries"],
       "consumers": ["Tenant management"],
@@ -16513,7 +16513,7 @@
         "movement.recorded",
         "movement.corrected"
       ],
-      "clock_refresh_seconds": 60,
+      "clock_refresh_seconds": null,
       "service": "projection_rows",
       "related_services": ["commitment_rows"],
       "consumers": ["Commitments"],

@@ -571,9 +571,6 @@ Change Proposal, and chat activity without loading business rows or querying onc
 `lot.expiry_stated`, `lot.expiry_corrected`, `serial_unit.created`, `movement.recorded`,
 `movement.corrected`, `ledger.posted`, `ledger.reversed`, `settlement.allocated`
 
-Zusätzlich alle 60 Sekunden für eine Hintergrundaktualisierung vorgesehen, auch ohne neues Business
-Event.
-
 ### `inventory` — Inventory {#projection-inventory}
 
 Physical movement balance minus active reservations; incoming commitments are added for projected
@@ -699,9 +696,6 @@ status on documents.
 `commitment.created`, `commitment.cancelled`, `commitment.revised`, `promises.closed`,
 `commitment.held`, `commitment.hold_released`, `reservation.created`, `reservation.released`,
 `movement.recorded`, `movement.corrected`
-
-Zusätzlich alle 60 Sekunden für eine Hintergrundaktualisierung vorgesehen, auch ohne neues Business
-Event.
 
 **Siehe auch:** Agenten-Tool [`commitments_list`](./commands#tool-commitments_list), Agenten-Tool
 [`reservation_propose`](./commands#tool-reservation_propose), Agenten-Tool
