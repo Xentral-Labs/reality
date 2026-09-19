@@ -41,4 +41,8 @@
     records would otherwise be missing lines of history rather than stale ones. Subjects
     no row prints are declared rather than declined, so a window of documents and parties
     produces nothing and speaks for nothing.
-  - [ ] the remaining four.
+  - [x] `open_financial_items` — a posting group, a settlement allocation, a party and a
+    payment term all resolve to the documents whose open amount they move; a payment run
+    names the tenant and is declined. What it speaks for is the documents it resolved,
+    because a document with no control posting is not an open item and its row must go.
+  - [ ] the remaining three.
