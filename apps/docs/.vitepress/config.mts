@@ -276,7 +276,7 @@ const sidebar = (locale: LocaleKey) => {
           ],
         },
         {
-          text: locale === "de" ? "Auswertungen / Analytics" : "Analytics / Reports",
+          text: "Analytics",
           link: route(locale, "/analytics/"),
         },
       ],

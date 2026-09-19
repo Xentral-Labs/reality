@@ -2,6 +2,7 @@
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, shallowRef } from "vue";
 import { useData } from "vitepress";
 import DataModelExplorer from "./DataModelExplorer.vue";
+import AnalyticsModelExplorer from "./AnalyticsModelExplorer.vue";
 
 type Kind =
   "command" | "tool" | "view" | "projection" | "action" | "exception" | "event" | "workspace";
@@ -122,6 +123,10 @@ interface Process {
 }
 
 interface Model {
+  analyticsModel: Record<
+    "en" | "de",
+    InstanceType<typeof AnalyticsModelExplorer>["$props"]["catalog"]
+  >;
   read_mode_definitions: Record<string, { label: Localized; description: Localized }>;
   dataModels: InstanceType<typeof DataModelExplorer>["$props"]["models"];
   areas: { key: string; label: Localized }[];
@@ -130,7 +135,7 @@ interface Model {
   entries: Entry[];
 }
 
-type Tab = "resources" | "processes" | "model" | "technical";
+type Tab = "resources" | "processes" | "model" | "analytics" | "technical";
 
 type Locale = "en" | "de";
 
@@ -162,6 +167,7 @@ const copy: Record<Locale, Record<string, string>> = {
     tabResources: "Resources",
     tabProcesses: "Processes",
     tabModel: "Data model",
+    tabAnalytics: "Analytics model",
     tabTechnical: "Technical",
     searchResources: "Find an object, list, action or exception: order, invoice, Skonto, stock…",
     lists: "Lists",
@@ -270,6 +276,7 @@ const copy: Record<Locale, Record<string, string>> = {
     tabResources: "Ressourcen",
     tabProcesses: "Prozesse",
     tabModel: "Datenmodell",
+    tabAnalytics: "Analytics-Modell",
     tabTechnical: "Technik",
     searchResources:
       "Objekt, Liste, Aktion oder Klärfall finden: Auftrag, Rechnung, Skonto, Bestand…",
@@ -389,6 +396,7 @@ const mode = ref<"list" | "tree">("list");
 const selectedId = ref("");
 const tab = ref<Tab>("resources");
 const selectedModel = ref("");
+const selectedAnalytics = ref("");
 const selectedResource = ref("");
 const selectedProcess = ref("");
 const selectedStep = ref(-1);
@@ -443,8 +451,7 @@ const matchesQuery = (e: Entry) => {
   return tokens.value.every((token) => text.includes(token));
 };
 
-const areaLabel = (key: string) =>
-  model.value?.areas.find((a) => a.key === key)?.label[locale.value] || key;
+const areaLabel = (key: string) => model.value?.areas.find((a) => a.key === key)?.label.en || key;
 
 const kindCounts = computed(() => {
   const counts = new Map<Kind, number>();
@@ -493,7 +500,7 @@ const areaTree = computed(() =>
   (model.value?.areas || [])
     .map((a) => ({
       key: a.key,
-      label: a.label[locale.value],
+      label: a.label.en,
       kinds: KIND_ORDER.map((k) => ({
         kind: k,
         entries: (model.value?.entries || []).filter(
@@ -504,8 +511,8 @@ const areaTree = computed(() =>
     .filter((a) => a.kinds.length > 0),
 );
 
-const name = (e: Entry | undefined) =>
-  e ? (locale.value === "de" && e.label_de ? e.label_de : e.label) : "";
+const name = (e: Entry | undefined) => e?.label || "";
+const canonical = (value: Localized | undefined) => value?.en || "";
 const loc = (value: Localized | undefined) => (value ? value[locale.value] || value.en : "");
 
 const resourceByKey = computed(
@@ -564,6 +571,7 @@ const playbookUrl = (p: Process) =>
 let pushed = 0;
 
 const currentHash = () => {
+  if (tab.value === "analytics") return `analytics:${selectedAnalytics.value}`;
   if (tab.value === "model") return `model:${selectedModel.value}`;
   if (tab.value === "resources" && selectedResource.value)
     return `resource:${selectedResource.value}` + (selectedId.value ? `/${selectedId.value}` : "");
@@ -657,6 +665,19 @@ const openModel = (key: string) => {
   );
 };
 
+const openAnalytics = (key: string) => {
+  tab.value = "analytics";
+  selectedAnalytics.value = key;
+  query.value = "";
+  selectedId.value = "";
+  commit();
+  void nextTick(() => {
+    const detail = document.querySelector<HTMLElement>(".am-detail");
+    detail?.focus({ preventScroll: true });
+    detail?.scrollIntoView({ block: "start", behavior: "smooth" });
+  });
+};
+
 const openModelAction = (id: string) => {
   tab.value = "technical";
   query.value = "";
@@ -683,14 +704,16 @@ const contextTarget = computed(() => {
   const resource = currentResource.value;
   const process = currentProcess.value;
   if (tab.value === "resources" && resource)
-    return { label: loc(resource.label), go: () => openResource(resource.key) };
+    return { label: canonical(resource.label), go: () => openResource(resource.key) };
   if (tab.value === "processes" && process)
-    return { label: loc(process.label), go: () => openProcess(process.key) };
+    return { label: canonical(process.label), go: () => openProcess(process.key) };
   return null;
 });
 
 const canGoBack = computed(() =>
-  Boolean(selectedId.value || contextTarget.value || tab.value === "model"),
+  Boolean(
+    selectedId.value || contextTarget.value || tab.value === "model" || tab.value === "analytics",
+  ),
 );
 
 const goBack = () => {
@@ -704,6 +727,10 @@ const goBack = () => {
     return;
   }
   selectedId.value = "";
+  if (tab.value === "analytics") {
+    if (selectedAnalytics.value) selectedAnalytics.value = "";
+    else tab.value = "resources";
+  }
   if (tab.value === "model") {
     if (selectedModel.value) selectedModel.value = "";
     else tab.value = "resources";
@@ -808,7 +835,15 @@ const applyHash = () => {
   const [context, entry] = hash.includes("/") ? hash.split("/", 2) : ["", hash];
   const head = context || entry;
   selectedId.value = "";
-  if (head.startsWith("model:")) {
+  if (head.startsWith("analytics:")) {
+    tab.value = "analytics";
+    query.value = "";
+    selectedAnalytics.value = model.value?.analyticsModel[locale.value].nodes.some(
+      (n) => n.key === head.slice(10),
+    )
+      ? head.slice(10)
+      : "";
+  } else if (head.startsWith("model:")) {
     tab.value = "model";
     selectedModel.value = model.value?.dataModels.some((m) => m.key === head.slice(6))
       ? head.slice(6)
@@ -889,6 +924,10 @@ const explorerIntro = computed(() => {
             "Datenstrukturen",
             "Datensätze, Felder und Beziehungen – vom Stammsatz bis zur Buchung.",
           ],
+          analytics: [
+            "Analytics-Modell",
+            "Abfragbare Geschäftsobjekte, Beziehungen, Kennzahlen und Vorlagen – direkt aus dem ausführbaren Modell.",
+          ],
           technical: [
             "Tools und Schnittstellen",
             "Kommandos, Agenten-Tools, Sichten und Events mit ihren Schnittstellen.",
@@ -907,6 +946,10 @@ const explorerIntro = computed(() => {
             "Data structures",
             "Records, fields and relationships, from master data to financial postings.",
           ],
+          analytics: [
+            "Analytics model",
+            "Queryable business objects, relationships, measures and templates — from the executable model.",
+          ],
           technical: [
             "Tools and interfaces",
             "Commands, agent tools, views and events with their interfaces.",
@@ -923,7 +966,7 @@ const explorerIntro = computed(() => {
     <template v-else>
       <div class="tool-usage-tabs" role="tablist">
         <button
-          v-for="item in ['resources', 'processes', 'model', 'technical'] as Tab[]"
+          v-for="item in ['resources', 'processes', 'model', 'analytics', 'technical'] as Tab[]"
           :key="item"
           type="button"
           role="tab"
@@ -947,13 +990,17 @@ const explorerIntro = computed(() => {
             v-model="query"
             type="search"
             :placeholder="
-              tab === 'model'
+              tab === 'analytics'
                 ? locale === 'de'
-                  ? 'Baustein oder Feld finden: Commitment, due_at, Menge…'
-                  : 'Find a record or field: Commitment, due_at, quantity…'
-                : tab === 'technical'
-                  ? t.search
-                  : t.searchResources
+                  ? 'Objekt, Feld oder Kennzahl finden…'
+                  : 'Find an object, field or measure…'
+                : tab === 'model'
+                  ? locale === 'de'
+                    ? 'Baustein oder Feld finden: Commitment, due_at, Menge…'
+                    : 'Find a record or field: Commitment, due_at, quantity…'
+                  : tab === 'technical'
+                    ? t.search
+                    : t.searchResources
             "
             autocomplete="off"
             spellcheck="false"
@@ -1022,7 +1069,7 @@ const explorerIntro = computed(() => {
           :disabled="!areaCounts.get(a.key)"
           @click="area = area === a.key ? '' : a.key"
         >
-          {{ a.label[locale] }} <span class="count">{{ areaCounts.get(a.key) || 0 }}</span>
+          {{ a.label.en }} <span class="count">{{ areaCounts.get(a.key) || 0 }}</span>
         </button>
       </div>
 
@@ -1036,6 +1083,14 @@ const explorerIntro = computed(() => {
         @select="openModel"
         @action="openModelAction"
       />
+      <AnalyticsModelExplorer
+        v-else-if="tab === 'analytics'"
+        :catalog="model.analyticsModel[locale]"
+        :selected-key="selectedAnalytics"
+        :locale="locale"
+        :query="query"
+        @select="openAnalytics"
+      />
       <div v-else class="tool-usage-body">
         <section ref="listPane" class="tool-usage-list explorer-surface" aria-live="polite">
           <template v-if="tab === 'resources'">
@@ -1044,7 +1099,7 @@ const explorerIntro = computed(() => {
                 <button type="button" class="drill-up" @click="goRoot">
                   ← {{ t.tabResources }}
                 </button>
-                <strong>{{ loc(currentResource.label) }}</strong>
+                <strong>{{ canonical(currentResource.label) }}</strong>
               </div>
               <p v-if="resourceSections.length === 0" class="tool-usage-empty">{{ t.empty }}</p>
               <template v-for="section in resourceSections" :key="section.key">
@@ -1077,7 +1132,7 @@ const explorerIntro = computed(() => {
                     class="resource-card explorer-card"
                     @click="openResource(r.key)"
                   >
-                    <strong>{{ loc(r.label) }}</strong>
+                    <strong>{{ canonical(r.label) }}</strong>
                     <span class="resource-subtitle">{{ loc(r.subtitle) }}</span>
                     <span class="resource-counts">
                       {{ r.lists.length }} {{ t.countLists }} · {{ r.actions.length }}
@@ -1117,7 +1172,7 @@ const explorerIntro = computed(() => {
                 <button type="button" class="drill-up" @click="goRoot">
                   ← {{ t.tabProcesses }}
                 </button>
-                <strong>{{ loc(currentProcess.label) }}</strong>
+                <strong>{{ canonical(currentProcess.label) }}</strong>
               </div>
               <ol class="drill-steps">
                 <li v-for="(step, index) in currentProcess.steps" :key="index">
@@ -1127,7 +1182,7 @@ const explorerIntro = computed(() => {
                     @click="jumpToStep(index)"
                   >
                     <span class="step-no">{{ index + 1 }}</span>
-                    <span class="row-name">{{ loc(step.title) }}</span>
+                    <span class="row-name">{{ canonical(step.title) }}</span>
                   </button>
                 </li>
               </ol>
@@ -1139,7 +1194,7 @@ const explorerIntro = computed(() => {
                   class="resource-card explorer-card"
                   @click="openProcess(p.key)"
                 >
-                  <strong>{{ loc(p.label) }}</strong>
+                  <strong>{{ canonical(p.label) }}</strong>
                   <span class="resource-subtitle">{{ loc(p.summary) }}</span>
                   <span class="resource-counts">{{ p.steps.length }} {{ t.steps }}</span>
                 </button>
@@ -1294,7 +1349,7 @@ const explorerIntro = computed(() => {
                     class="linkish"
                     @click="openResource(key)"
                   >
-                    {{ loc(resourceByKey.get(key)?.label) }}
+                    {{ canonical(resourceByKey.get(key)?.label) }}
                   </button>
                 </p>
 
@@ -1334,7 +1389,7 @@ const explorerIntro = computed(() => {
                       <code>{{ read.query }}</code>
                     </p>
                     <p>
-                      <strong>{{ loc(model!.read_mode_definitions[read.mode].label) }}</strong
+                      <strong>{{ canonical(model!.read_mode_definitions[read.mode].label) }}</strong
                       ><template v-if="read.default">
                         · {{ locale === "de" ? "Standard" : "Default" }}</template
                       >
@@ -1642,7 +1697,7 @@ const explorerIntro = computed(() => {
                 <template v-else>
                   <header class="resource-header">
                     <span class="man-section">{{ t.object }}</span>
-                    <h3 class="resource-title">{{ loc(currentResource.label) }}</h3>
+                    <h3 class="resource-title">{{ canonical(currentResource.label) }}</h3>
                     <p class="resource-subtitle">{{ loc(currentResource.subtitle) }}</p>
                   </header>
                   <p>{{ loc(currentResource.description) }}</p>
@@ -1663,7 +1718,7 @@ const explorerIntro = computed(() => {
                       <li v-for="p in processesOf(currentResource.key)" :key="p.key">
                         <button type="button" class="tool-usage-row" @click="openProcess(p.key)">
                           <span class="badge badge-process">{{ t.tabProcesses }}</span>
-                          <span class="row-name">{{ loc(p.label) }}</span>
+                          <span class="row-name">{{ canonical(p.label) }}</span>
                         </button>
                       </li>
                     </ul>
@@ -1716,7 +1771,7 @@ const explorerIntro = computed(() => {
                 <template v-else>
                   <header class="resource-header">
                     <span class="man-section">{{ t.tabProcesses }}</span>
-                    <h3 class="resource-title">{{ loc(currentProcess.label) }}</h3>
+                    <h3 class="resource-title">{{ canonical(currentProcess.label) }}</h3>
                     <p class="resource-subtitle">{{ loc(currentProcess.summary) }}</p>
                   </header>
                   <p v-if="currentProcess.playbook">
@@ -1729,11 +1784,11 @@ const explorerIntro = computed(() => {
                       :key="index"
                       :class="{ 'step-current': index === selectedStep }"
                     >
-                      <h4 class="step-title">{{ loc(step.title) }}</h4>
+                      <h4 class="step-title">{{ canonical(step.title) }}</h4>
                       <p v-if="resourceByKey.get(step.resource)" class="step-object">
                         {{ t.object }}:
                         <button type="button" class="linkish" @click="openResource(step.resource)">
-                          {{ loc(resourceByKey.get(step.resource)!.label) }}
+                          {{ canonical(resourceByKey.get(step.resource)!.label) }}
                         </button>
                       </p>
                       <ul v-if="step.actions.length || step.tools.length" class="business-list">
