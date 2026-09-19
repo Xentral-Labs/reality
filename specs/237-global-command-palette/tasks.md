@@ -185,3 +185,5 @@ No extension hooks are configured. Generation does not check off tasks or the re
 - [x] T060 [US2] [FR-005, FR-021] Audit palette destination renderers/families, verify live layouts and run frontend contracts/build/i18n; record absent fixtures and remaining limitations explicitly.
 
 - [x] T061 [US3] [FR-010, FR-021] Match palette icons/type/tab/surface treatment to existing app styling, preserving layout; run existing frontend checks and inspect live.
+
+- [ ] T062 Clarify the Records search filter and empty-query guidance (FR-010/021); verify frontend contracts, build, localization and visual layout.
