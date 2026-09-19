@@ -25,4 +25,10 @@
     delivery hold names only the party it was placed on, and the open promises say
     which articles stop moving. The blocking rules and the row shape are now written
     once and used by both the whole-company path and the narrowed one.
-  - [ ] the remaining eight.
+  - [x] `fulfillment_queue` and `fulfillment_blockers` — one derivation, so one step:
+    promises, documents, source records, parties, articles, movements and reservations
+    resolve to orders; the movement correction is followed because a replacement may be
+    booked against a *different* promise and settle two orders the event does not name.
+    Each speaks for what it resolved rather than what it produced — an order that
+    finished and a blocker that cleared both leave no row to find.
+  - [ ] the remaining six.

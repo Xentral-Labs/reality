@@ -1273,6 +1273,15 @@ watched to fail. A cancelled promise is the second control: the narrowed path re
 open promises of an article and nothing else, and dropping that predicate is a difference
 the comparison catches.
 
+For the fulfillment queue and its blockers the question is disappearance. A shipment that
+closes an order's last promise, and a hold that is released, both leave a stored row with
+nothing to replace it, so two tests insist the row goes and both fail when the refresh
+speaks only for the rows it produced. A third moves a shipment from one order to another
+through a movement correction — the replacement is booked against a different promise and
+the service settles both — and it fails when the stored correction is not followed. One
+more test holds the declared list of blocking reasons against the rules that produce them,
+because a reason the list does not name is a blocker that can never be deleted.
+
 `packages/reality-core/tests/test_working_set.py` covers 181 FR-003: a derivation about
 open work must not read the work that is finished. Sixty more cancelled promises are added
 to a company and what every derivation reads is compared before and after. Each projection

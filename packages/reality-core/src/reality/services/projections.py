@@ -317,6 +317,16 @@ def _build_payment_rows(session: Session, tenant_id: str) -> dict[str, dict[str,
     return payment_projection
 
 
+#: Every reason an open promise can be blocked by. A narrowed blockers refresh has to
+#: name all of them for the promises it read: a blocker that cleared leaves no row to
+#: find, so its key must be spoken for to be removed.
+DELIVERY_BLOCKER_TYPES = (
+    "commitment_hold",
+    "party_delivery_hold",
+    "insufficient_reservation",
+)
+
+
 def _open_delivery_reasons(
     commitment: Commitment,
     shortage: Decimal,
@@ -365,6 +375,232 @@ def _supply_demand_row(
     }
 
 
+@dataclass(frozen=True)
+class OpenWork:
+    """What a set of open delivery promises says.
+
+    Three projections read it off one pass: the orders and their readiness, what
+    blocks each promise, and the per-article totals supply and demand needs.
+    """
+
+    queue: dict[str, dict[str, Any]]
+    blockers: dict[str, dict[str, Any]]
+    demand_by_item: dict[str, Decimal]
+    uncovered_by_item: dict[str, Decimal]
+    blocked_orders_by_item: dict[str, set[str]]
+
+
+def _open_work_rows(
+    session: Session,
+    tenant_id: str,
+    commitments: list[Commitment],
+    terms: dict[str, Any],
+) -> OpenWork:
+    """The fulfillment queue and its blockers for the promises it is given.
+
+    Every read here is bounded by those promises: the orders they were made on, the
+    source records of those orders, and the parties, articles, document lines,
+    reservations and holds they name. The whole-company path hands it every open
+    customer promise; a narrowed refresh hands it the promises of the orders that
+    changed (FR-002). Neither reads a company's finished history (FR-003).
+    """
+    document_ids = {row.document_id for row in commitments} - {None}
+    documents = (
+        {
+            row.id: row
+            for row in session.scalars(
+                select(Document).where(
+                    Document.tenant_id == tenant_id, Document.id.in_(document_ids)
+                )
+            )
+        }
+        if document_ids
+        else {}
+    )
+    source_ids = {row.source_record_id for row in documents.values()} - {None}
+    sources = (
+        {
+            row.id: row
+            for row in session.scalars(
+                select(SourceRecord).where(
+                    SourceRecord.tenant_id == tenant_id,
+                    SourceRecord.id.in_(source_ids),
+                )
+            )
+        }
+        if source_ids
+        else {}
+    )
+    party_ids = (
+        {row.to_party_id for row in commitments}
+        | {row.party_id for row in documents.values()}
+    ) - {None}
+    parties = (
+        {
+            row.id: row
+            for row in session.scalars(
+                select(Party).where(
+                    Party.tenant_id == tenant_id, Party.id.in_(party_ids)
+                )
+            )
+        }
+        if party_ids
+        else {}
+    )
+    item_ids = {row.item_id for row in commitments} - {None}
+    items = (
+        {
+            row.id: row
+            for row in session.scalars(
+                select(Item).where(Item.tenant_id == tenant_id, Item.id.in_(item_ids))
+            )
+        }
+        if item_ids
+        else {}
+    )
+    line_ids = {row.document_line_id for row in commitments} - {None}
+    document_lines = (
+        {
+            row.id: row
+            for row in session.scalars(
+                select(DocumentLine).where(
+                    DocumentLine.tenant_id == tenant_id, DocumentLine.id.in_(line_ids)
+                )
+            )
+        }
+        if line_ids
+        else {}
+    )
+    commitment_ids = [row.id for row in commitments]
+    active_reservations: dict[str, Decimal] = defaultdict(Decimal)
+    commitment_holds: dict[str, Any] = {}
+    party_holds: dict[str, Any] = {}
+    if commitment_ids:
+        for reservation in session.scalars(
+            select(Reservation).where(
+                Reservation.tenant_id == tenant_id,
+                Reservation.status == "active",
+                Reservation.commitment_id.in_(commitment_ids),
+            )
+        ):
+            active_reservations[reservation.commitment_id] += reservation.quantity
+        commitment_holds = {
+            hold.commitment_id: hold
+            for hold in session.scalars(
+                select(CommitmentHold).where(
+                    CommitmentHold.tenant_id == tenant_id,
+                    CommitmentHold.commitment_id.in_(commitment_ids),
+                    CommitmentHold.released_at.is_(None),
+                )
+            )
+        }
+    if party_ids:
+        party_holds = {
+            hold.party_id: hold
+            for hold in session.scalars(
+                select(PartyHold).where(
+                    PartyHold.tenant_id == tenant_id,
+                    PartyHold.party_id.in_(party_ids),
+                    PartyHold.hold_type == "delivery",
+                    PartyHold.released_at.is_(None),
+                )
+            )
+        }
+    grouped: dict[str, list[Commitment]] = defaultdict(list)
+    for commitment in commitments:
+        grouped[commitment.document_id or commitment.id].append(commitment)
+
+    queue: dict[str, dict[str, Any]] = {}
+    blockers: dict[str, dict[str, Any]] = {}
+    blocked_orders_by_item: dict[str, set[str]] = defaultdict(set)
+    demand_by_item: dict[str, Decimal] = defaultdict(Decimal)
+    uncovered_by_item: dict[str, Decimal] = defaultdict(Decimal)
+    for record_key, order_commitments in grouped.items():
+        document = documents.get(order_commitments[0].document_id or "")
+        source = sources.get(document.source_record_id or "") if document else None
+        lines = []
+        order_blockers: list[dict[str, Any]] = []
+        for commitment in order_commitments:
+            open_value = terms[commitment.id].open
+            reserved = active_reservations[commitment.id]
+            shortage = max(Decimal(0), open_value - reserved)
+            if not commitment.item_id:
+                continue
+            demand_by_item[commitment.item_id] += open_value
+            reasons = _open_delivery_reasons(
+                commitment, shortage, commitment_holds, party_holds
+            )
+            if shortage > 0:
+                uncovered_by_item[commitment.item_id] += shortage
+            item = items.get(commitment.item_id or "")
+            line = {
+                "commitment_id": commitment.id,
+                "item_id": commitment.item_id,
+                "item": item.name if item else commitment.item_id,
+                "sku": item.sku if item else "",
+                "quantity": terms[commitment.id].quantity,
+                "original_quantity": commitment.quantity,
+                "open_quantity": open_value,
+                "reserved_quantity": reserved,
+                "shortage_quantity": shortage,
+                "due_at": terms[commitment.id].due_at,
+                "original_due_at": commitment.due_at,
+                "location_id": commitment.location_id,
+                "blocking_reasons": [reason for reason, _ in reasons],
+                **quantity_unit(item, document_lines.get(commitment.document_line_id)),
+            }
+            lines.append(line)
+            for reason, detail in reasons:
+                blocker_key = f"{commitment.id}:{reason}"
+                blocker = {
+                    "blocker_id": blocker_key,
+                    "blocker_type": reason,
+                    "detail": detail,
+                    "order_key": record_key,
+                    "document_id": commitment.document_id,
+                    "document_number": document.number if document else None,
+                    "commitment_id": commitment.id,
+                    "item_id": commitment.item_id,
+                    "item": item.name if item else commitment.item_id,
+                    "shortage_quantity": shortage
+                    if reason == "insufficient_reservation"
+                    else "0",
+                    "due_at": terms[commitment.id].due_at,
+                    **quantity_unit(
+                        item, document_lines.get(commitment.document_line_id)
+                    ),
+                }
+                blockers[blocker_key] = blocker
+                order_blockers.append(blocker)
+                blocked_orders_by_item[commitment.item_id].add(record_key)
+        party_id = document.party_id if document else order_commitments[0].to_party_id
+        party = parties.get(party_id or "")
+        queue[record_key] = {
+            "order_key": record_key,
+            "document_id": document.id if document else None,
+            "document_number": document.number if document else None,
+            "source_system": source.source_system if source else None,
+            "external_order_id": source.external_id if source else None,
+            "party_id": party_id,
+            "party": party.name if party else party_id,
+            "due_at": min(
+                (line["due_at"] for line in lines if line["due_at"]), default=None
+            ),
+            "priority": max(
+                (row.priority for row in order_commitments),
+                key=lambda value: PRIORITY_RANK.get(value, 1),
+                default="normal",
+            ),
+            "readiness": "ready" if not order_blockers else "blocked",
+            "ship_ready": not order_blockers,
+            "blocking_reasons": sorted({row["blocker_type"] for row in order_blockers}),
+            "lines": lines,
+        }
+    return OpenWork(
+        queue, blockers, demand_by_item, uncovered_by_item, blocked_orders_by_item
+    )
+
+
 def _build_operational_rows(
     session: Session, tenant_id: str, names: set[str] | None = None
 ) -> dict[str, dict[str, dict[str, Any]]]:
@@ -381,12 +617,9 @@ def _build_operational_rows(
 
     selected = set(OPERATIONAL_PROJECTIONS) if names is None else names
     result = {}
-    if selected & {
-        FULFILLMENT_QUEUE,
-        FULFILLMENT_BLOCKERS,
-        ITEM_SUPPLY_DEMAND,
-        COMMITMENT_REGISTER,
-    }:
+    if COMMITMENT_REGISTER in selected:
+        # The register shows every promise, so it needs every article and line. The
+        # open-work projections read the ones their own promises name and no more.
         items = {
             row.id: row
             for row in session.scalars(select(Item).where(Item.tenant_id == tenant_id))
@@ -431,175 +664,19 @@ def _build_operational_rows(
         else {}
     )
     if working_set:
-        parties = {
-            row.id: row
-            for row in session.scalars(
-                select(Party).where(Party.tenant_id == tenant_id)
-            )
-        }
-        # Only the orders those open promises were made on, and only their source
-        # records: a company's finished history is not part of its open work.
-        open_document_ids = {row.document_id for row in customer_commitments} - {None}
-        documents = (
-            {
-                row.id: row
-                for row in session.scalars(
-                    select(Document).where(
-                        Document.tenant_id == tenant_id,
-                        Document.id.in_(open_document_ids),
-                    )
-                )
-            }
-            if open_document_ids
-            else {}
-        )
-        open_source_ids = {row.source_record_id for row in documents.values()} - {None}
-        sources = (
-            {
-                row.id: row
-                for row in session.scalars(
-                    select(SourceRecord).where(
-                        SourceRecord.tenant_id == tenant_id,
-                        SourceRecord.id.in_(open_source_ids),
-                    )
-                )
-            }
-            if open_source_ids
-            else {}
-        )
-        active_reservations: dict[str, Decimal] = defaultdict(Decimal)
-        for reservation in session.scalars(
-            select(Reservation).where(
-                Reservation.tenant_id == tenant_id, Reservation.status == "active"
-            )
-        ):
-            active_reservations[reservation.commitment_id] += reservation.quantity
-        commitment_holds = {
-            hold.commitment_id: hold
-            for hold in session.scalars(
-                select(CommitmentHold).where(
-                    CommitmentHold.tenant_id == tenant_id,
-                    CommitmentHold.released_at.is_(None),
-                )
-            )
-        }
-        party_holds = {
-            hold.party_id: hold
-            for hold in session.scalars(
-                select(PartyHold).where(
-                    PartyHold.tenant_id == tenant_id,
-                    PartyHold.hold_type == "delivery",
-                    PartyHold.released_at.is_(None),
-                )
-            )
-        }
-        grouped: dict[str, list[Commitment]] = defaultdict(list)
-        for commitment in customer_commitments:
-            grouped[commitment.document_id or commitment.id].append(commitment)
-
-        queue: dict[str, dict[str, Any]] = {}
-        blockers: dict[str, dict[str, Any]] = {}
-        blocked_orders_by_item: dict[str, set[str]] = defaultdict(set)
-        demand_by_item: dict[str, Decimal] = defaultdict(Decimal)
-        uncovered_by_item: dict[str, Decimal] = defaultdict(Decimal)
-        for record_key, commitments in grouped.items():
-            document = documents.get(commitments[0].document_id or "")
-            source = sources.get(document.source_record_id or "") if document else None
-            lines = []
-            order_blockers: list[dict[str, Any]] = []
-            for commitment in commitments:
-                open_value = terms[commitment.id].open
-                reserved = active_reservations[commitment.id]
-                shortage = max(Decimal(0), open_value - reserved)
-                if not commitment.item_id:
-                    continue
-                demand_by_item[commitment.item_id] += open_value
-                reasons = _open_delivery_reasons(
-                    commitment, shortage, commitment_holds, party_holds
-                )
-                if shortage > 0:
-                    uncovered_by_item[commitment.item_id] += shortage
-                item = items.get(commitment.item_id or "")
-                line = {
-                    "commitment_id": commitment.id,
-                    "item_id": commitment.item_id,
-                    "item": item.name if item else commitment.item_id,
-                    "sku": item.sku if item else "",
-                    "quantity": terms[commitment.id].quantity,
-                    "original_quantity": commitment.quantity,
-                    "open_quantity": open_value,
-                    "reserved_quantity": reserved,
-                    "shortage_quantity": shortage,
-                    "due_at": terms[commitment.id].due_at,
-                    "original_due_at": commitment.due_at,
-                    "location_id": commitment.location_id,
-                    "blocking_reasons": [reason for reason, _ in reasons],
-                    **quantity_unit(
-                        item, document_lines.get(commitment.document_line_id)
-                    ),
-                }
-                lines.append(line)
-                for reason, detail in reasons:
-                    blocker_key = f"{commitment.id}:{reason}"
-                    blocker = {
-                        "blocker_id": blocker_key,
-                        "blocker_type": reason,
-                        "detail": detail,
-                        "order_key": record_key,
-                        "document_id": commitment.document_id,
-                        "document_number": document.number if document else None,
-                        "commitment_id": commitment.id,
-                        "item_id": commitment.item_id,
-                        "item": item.name if item else commitment.item_id,
-                        "shortage_quantity": shortage
-                        if reason == "insufficient_reservation"
-                        else "0",
-                        "due_at": terms[commitment.id].due_at,
-                        **quantity_unit(
-                            item, document_lines.get(commitment.document_line_id)
-                        ),
-                    }
-                    blockers[blocker_key] = blocker
-                    order_blockers.append(blocker)
-                    blocked_orders_by_item[commitment.item_id].add(record_key)
-            party_id = document.party_id if document else commitments[0].to_party_id
-            party = parties.get(party_id or "")
-            queue[record_key] = {
-                "order_key": record_key,
-                "document_id": document.id if document else None,
-                "document_number": document.number if document else None,
-                "source_system": source.source_system if source else None,
-                "external_order_id": source.external_id if source else None,
-                "party_id": party_id,
-                "party": party.name if party else party_id,
-                "due_at": min(
-                    (line["due_at"] for line in lines if line["due_at"]), default=None
-                ),
-                "priority": max(
-                    (row.priority for row in commitments),
-                    key=lambda value: PRIORITY_RANK.get(value, 1),
-                    default="normal",
-                ),
-                "readiness": "ready" if not order_blockers else "blocked",
-                "ship_ready": not order_blockers,
-                "blocking_reasons": sorted(
-                    {row["blocker_type"] for row in order_blockers}
-                ),
-                "lines": lines,
-            }
-
+        work = _open_work_rows(session, tenant_id, customer_commitments, terms)
         supply_demand: dict[str, dict[str, Any]] = {}
         for row in inventory_rows(session, tenant_id):
             item = row["item"]
             supply_demand[item.id] = _supply_demand_row(
                 row,
-                demand_by_item[item.id],
-                uncovered_by_item[item.id],
-                blocked_orders_by_item[item.id],
+                work.demand_by_item[item.id],
+                work.uncovered_by_item[item.id],
+                work.blocked_orders_by_item[item.id],
             )
         for name, rows in (
-            (FULFILLMENT_QUEUE, queue),
-            (FULFILLMENT_BLOCKERS, blockers),
+            (FULFILLMENT_QUEUE, work.queue),
+            (FULFILLMENT_BLOCKERS, work.blockers),
             (ITEM_SUPPLY_DEMAND, supply_demand),
         ):
             if name in selected:
@@ -1217,6 +1294,229 @@ def _narrowed_item_supply_demand(
     return NarrowedRows(rows, frozenset(rows))
 
 
+def _orders_touched(
+    session: Session, tenant_id: str, changes: ChangeSet, projection: str
+) -> frozenset[str] | str:
+    """The orders the changed records belong to, or why they cannot be found.
+
+    An order here is a document with delivery promises on it, or a promise made with
+    no document; either way its key is `document_id or commitment_id`, the same key
+    the whole-company path groups by. Every subject that reaches the queue resolves
+    to one without guessing: a promise and a document name theirs, a source record
+    and a party name documents, an article and a party name promises, and a movement
+    or a reservation names the promise it was booked against.
+
+    The trap is the movement correction, and it is worse here than in stock.
+    `movement.corrected` names the movement that was corrected; the compensating and
+    replacement movements it appends carry no event of their own, and **a replacement
+    may be booked against a different promise** — the service then settles the status
+    of both promises, so two orders change and one event names neither. The stored
+    correction is followed instead.
+
+    An article and a party are resolved through the promises that are still **open**:
+    a finished order has no row in the queue, so there is nothing about it to refresh
+    (FR-003). A party is also resolved through the documents that cite it, because the
+    row prints the document's party and that need not be the promise's.
+    """
+    from reality.db.core import Fact, MovementCorrection
+
+    known = {
+        "commitment",
+        "document",
+        "source_record",
+        "party",
+        "item",
+        "movement",
+        "reservation",
+        "fact",
+    }
+    unknown = sorted(set(changes.subjects or {}) - known)
+    if unknown:
+        return f"{projection} cannot narrow by {unknown[0]}"
+    commitments = set(changes.ids("commitment"))
+    documents = set(changes.ids("document"))
+    movements = set(changes.ids("movement"))
+    reservations = set(changes.ids("reservation"))
+    if facts := changes.ids("fact"):
+        for subject_type, subject_id in session.execute(
+            select(Fact.subject_type, Fact.subject_id).where(
+                Fact.tenant_id == tenant_id, Fact.id.in_(facts)
+            )
+        ).all():
+            if subject_type == "commitment":
+                commitments.add(subject_id)
+            elif subject_type == "document":
+                documents.add(subject_id)
+            elif subject_type == "movement":
+                movements.add(subject_id)
+            elif subject_type == "reservation":
+                reservations.add(subject_id)
+            else:
+                return (
+                    f"{projection} cannot narrow by an observation "
+                    f"about a {subject_type}"
+                )
+    if movements:
+        for original, compensating, replacement in session.execute(
+            select(
+                MovementCorrection.original_movement_id,
+                MovementCorrection.compensating_movement_id,
+                MovementCorrection.replacement_movement_id,
+            ).where(
+                MovementCorrection.tenant_id == tenant_id,
+                MovementCorrection.original_movement_id.in_(movements),
+            )
+        ).all():
+            movements.update(
+                value for value in (original, compensating, replacement) if value
+            )
+        commitments.update(
+            session.scalars(
+                select(Movement.commitment_id).where(
+                    Movement.tenant_id == tenant_id,
+                    Movement.id.in_(movements),
+                    Movement.commitment_id.is_not(None),
+                )
+            )
+        )
+    if reservations:
+        commitments.update(
+            session.scalars(
+                select(Reservation.commitment_id).where(
+                    Reservation.tenant_id == tenant_id,
+                    Reservation.id.in_(reservations),
+                )
+            )
+        )
+    if sources := changes.ids("source_record"):
+        documents.update(
+            session.scalars(
+                select(Document.id).where(
+                    Document.tenant_id == tenant_id,
+                    Document.source_record_id.in_(sources),
+                )
+            )
+        )
+    parties = changes.ids("party")
+    reach = []
+    if items := changes.ids("item"):
+        reach.append(Commitment.item_id.in_(items))
+    if parties:
+        reach.append(Commitment.to_party_id.in_(parties))
+    if reach:
+        commitments.update(
+            session.scalars(
+                select(Commitment.id).where(
+                    Commitment.tenant_id == tenant_id,
+                    Commitment.type == "customer_delivery",
+                    Commitment.status == "open",
+                    or_(*reach),
+                )
+            )
+        )
+    if parties:
+        documents.update(
+            session.scalars(
+                select(Commitment.document_id)
+                .join(Document, Document.id == Commitment.document_id)
+                .where(
+                    Commitment.tenant_id == tenant_id,
+                    Commitment.type == "customer_delivery",
+                    Commitment.status == "open",
+                    Document.party_id.in_(parties),
+                )
+            )
+        )
+    orders = set(documents)
+    if commitments:
+        for commitment_id, document_id in session.execute(
+            select(Commitment.id, Commitment.document_id).where(
+                Commitment.tenant_id == tenant_id, Commitment.id.in_(commitments)
+            )
+        ).all():
+            orders.add(document_id or commitment_id)
+    if not orders:
+        return f"no {projection} subject resolved to an order"
+    if len(orders) > MAX_NARROWED_ROWS:
+        return f"{len(orders)} orders is not worth visiting one at a time"
+    return frozenset(orders)
+
+
+def _narrowed_open_work(
+    session: Session, tenant_id: str, changes: ChangeSet, projection: str
+) -> tuple[OpenWork, frozenset[str], frozenset[str]] | str:
+    """The open work of the orders that changed, with what it speaks for.
+
+    The promises of those orders are read whatever their status, because what a
+    narrowed refresh must say about a promise that is finished is that its rows are
+    gone — and a key nobody names is a key nobody deletes. Only the open ones are
+    derived; the rest are there to be spoken for.
+    """
+    from reality.services.core import commitment_terms
+
+    orders = _orders_touched(session, tenant_id, changes, projection)
+    if isinstance(orders, str):
+        return orders
+    promises = list(
+        session.scalars(
+            select(Commitment).where(
+                Commitment.tenant_id == tenant_id,
+                Commitment.type == "customer_delivery",
+                or_(Commitment.document_id.in_(orders), Commitment.id.in_(orders)),
+            )
+        )
+    )
+    if len(promises) > MAX_NARROWED_ROWS:
+        return f"{len(promises)} promises is not worth visiting one at a time"
+    open_promises = [row for row in promises if row.status == "open"]
+    work = _open_work_rows(
+        session,
+        tenant_id,
+        open_promises,
+        commitment_terms(session, tenant_id, [row.id for row in open_promises]),
+    )
+    return work, orders, frozenset(row.id for row in promises)
+
+
+def _narrowed_fulfillment_queue(
+    session: Session, tenant_id: str, changes: ChangeSet
+) -> NarrowedRows | str:
+    """The fulfillment queue, for the orders the changed records belong to (FR-002).
+
+    What it speaks for is the orders it resolved, not the rows it produced: an order
+    whose last open promise was just fulfilled produces no row, and that is exactly
+    when its row has to go.
+    """
+    outcome = _narrowed_open_work(session, tenant_id, changes, "the fulfillment queue")
+    if isinstance(outcome, str):
+        return outcome
+    work, orders, _ = outcome
+    return NarrowedRows(json.loads(_dump(work.queue)), orders)
+
+
+def _narrowed_fulfillment_blockers(
+    session: Session, tenant_id: str, changes: ChangeSet
+) -> NarrowedRows | str:
+    """What blocks those orders (FR-002).
+
+    A blocker's key is the promise and the reason, and a blocker that cleared leaves
+    nothing behind to notice, so this refresh speaks for every reason of every promise
+    of the orders it read — including the promises that are no longer open.
+    """
+    outcome = _narrowed_open_work(
+        session, tenant_id, changes, "the fulfillment blockers"
+    )
+    if isinstance(outcome, str):
+        return outcome
+    work, _, promises = outcome
+    covers = frozenset(
+        f"{commitment_id}:{reason}"
+        for commitment_id in promises
+        for reason in DELIVERY_BLOCKER_TYPES
+    )
+    return NarrowedRows(json.loads(_dump(work.blockers)), covers)
+
+
 #: Builders that can derive by change. A projection absent from this map evaluates the
 #: company, which is always correct; one present may still decline for a change set it
 #: cannot resolve, by returning the reason instead of rows (FR-002).
@@ -1225,6 +1525,8 @@ NARROWED_BUILDERS = {
     DOCUMENT_REGISTER: _narrowed_document_register,
     INVENTORY: _narrowed_inventory,
     ITEM_SUPPLY_DEMAND: _narrowed_item_supply_demand,
+    FULFILLMENT_QUEUE: _narrowed_fulfillment_queue,
+    FULFILLMENT_BLOCKERS: _narrowed_fulfillment_blockers,
 }
 
 
