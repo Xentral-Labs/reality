@@ -1308,6 +1308,14 @@ reverses a payment and reads the invoice, and a fourth test in
 `test_incremental_derivation.py` now states the same thing as a property — an allocation
 ties two documents together, so un-settling one gives the other its open amount back.
 
+The payments are tested on the hop that is easy to miss: an allocation names the control
+entry of the payment's posting group, not the cash entry the row is keyed by, and a test
+that allocates a payment against an invoice fails when the resolution stops at the entry
+the event named. A second test reverses a payment and insists nothing is left to allocate,
+and a third reverses the *invoice* and insists the payment gets its allocation back — the
+group reversed there holds no cash entry, so it is the allocation that carries the change
+across, and removing that hop fails the test.
+
 `packages/reality-core/tests/test_working_set.py` covers 181 FR-003: a derivation about
 open work must not read the work that is finished. Sixty more cancelled promises are added
 to a company and what every derivation reads is compared before and after. Each projection

@@ -394,11 +394,20 @@ def _build_financial_rows(
     return open_items_projection
 
 
-def _build_payment_rows(session: Session, tenant_id: str) -> dict[str, dict[str, Any]]:
+def _build_payment_rows(
+    session: Session,
+    tenant_id: str,
+    cash_entry_ids: frozenset[str] | set[str] | None = None,
+) -> dict[str, dict[str, Any]]:
+    """Payments, for the whole company or for the named cash entries alone."""
     from reality.services.core import payment_rows
 
     payment_projection = {}
-    for row in payment_rows(session, tenant_id):
+    for row in payment_rows(
+        session,
+        tenant_id,
+        None if cash_entry_ids is None else set(cash_entry_ids),
+    ):
         cash = row["cash_entry"]
         payment_projection[cash.id] = {
             "payment_entry_id": cash.id,
@@ -1963,6 +1972,118 @@ def _narrowed_open_financial_items(
     return NarrowedRows(rows, documents)
 
 
+def _payments_touched(
+    session: Session, tenant_id: str, changes: ChangeSet, projection: str
+) -> frozenset[str] | str:
+    """The cash entries whose payment row the change set can have moved.
+
+    A payment row is one cash entry, and every subject reaches it through a posting
+    group: the group holds the cash line, and a party and a document are printed on
+    the row beside it.
+
+    An allocation is two hops away, in both directions. `settlement.allocated` names
+    the **control** entry of the payment's group — the receivable side, not the cash
+    line the row is keyed by — so the group is looked up from that entry. And settling
+    works both ways: reversing an *invoice's* posting group un-settles the allocation
+    and changes what the **payment** has allocated, while naming neither the payment
+    nor the allocation. So every entry this change set reaches is carried across its
+    allocations, from the allocation table rather than the active ones, because a
+    reversal is exactly what makes one inactive.
+    """
+    from reality.db.core import LedgerEntry, SettlementAllocation
+
+    known = {"document", "party", "posting_group", "settlement_allocation"}
+    unknown = sorted(set(changes.subjects or {}) - known)
+    if unknown:
+        return f"{projection} cannot narrow by {unknown[0]}"
+
+    def groups_of(entry_ids: set[str]) -> set[str]:
+        if not entry_ids:
+            return set()
+        return set(
+            session.scalars(
+                select(LedgerEntry.posting_group_id).where(
+                    LedgerEntry.tenant_id == tenant_id, LedgerEntry.id.in_(entry_ids)
+                )
+            )
+        )
+
+    groups = set(changes.ids("posting_group"))
+    if allocations := changes.ids("settlement_allocation"):
+        named: set[str] = set()
+        for invoice_entry, payment_entry in session.execute(
+            select(
+                SettlementAllocation.invoice_ledger_entry_id,
+                SettlementAllocation.payment_ledger_entry_id,
+            ).where(
+                SettlementAllocation.tenant_id == tenant_id,
+                SettlementAllocation.id.in_(allocations),
+            )
+        ).all():
+            named.update((invoice_entry, payment_entry))
+        groups.update(groups_of(named))
+    if groups:
+        settled: set[str] = set()
+        group_entries = set(
+            session.scalars(
+                select(LedgerEntry.id).where(
+                    LedgerEntry.tenant_id == tenant_id,
+                    LedgerEntry.posting_group_id.in_(groups),
+                )
+            )
+        )
+        for invoice_entry, payment_entry in session.execute(
+            select(
+                SettlementAllocation.invoice_ledger_entry_id,
+                SettlementAllocation.payment_ledger_entry_id,
+            ).where(
+                SettlementAllocation.tenant_id == tenant_id,
+                or_(
+                    SettlementAllocation.invoice_ledger_entry_id.in_(group_entries),
+                    SettlementAllocation.payment_ledger_entry_id.in_(group_entries),
+                ),
+            )
+        ).all():
+            settled.update((invoice_entry, payment_entry))
+        groups.update(groups_of(settled))
+    reach = []
+    if groups:
+        reach.append(LedgerEntry.posting_group_id.in_(groups))
+    if parties := changes.ids("party"):
+        reach.append(LedgerEntry.party_id.in_(parties))
+    if documents := changes.ids("document"):
+        reach.append(LedgerEntry.document_id.in_(documents))
+    if not reach:
+        return f"no {projection} subject resolved to a payment"
+    entries = set(
+        session.scalars(
+            select(LedgerEntry.id).where(
+                LedgerEntry.tenant_id == tenant_id, or_(*reach)
+            )
+        )
+    )
+    if not entries:
+        return f"no {projection} subject resolved to a payment"
+    if len(entries) > MAX_NARROWED_ROWS:
+        return f"{len(entries)} entries is not worth visiting one at a time"
+    # Entries that are not payments may be in here; `payment_rows` keeps only the ones
+    # that are, and a key that never had a row is a key whose removal does nothing.
+    return frozenset(entries)
+
+
+def _narrowed_payments(
+    session: Session, tenant_id: str, changes: ChangeSet
+) -> NarrowedRows | str:
+    """The payments, for the cash entries that changed (FR-002)."""
+    entries = _payments_touched(session, tenant_id, changes, "the payments")
+    if isinstance(entries, str):
+        return entries
+    rows = json.loads(_dump(_build_payment_rows(session, tenant_id, entries)))
+    # What it speaks for is every entry it resolved, not the rows it produced: an
+    # entry that is no longer a payment row must be able to lose one.
+    return NarrowedRows(rows, entries)
+
+
 #: Builders that can derive by change. A projection absent from this map evaluates the
 #: company, which is always correct; one present may still decline for a change set it
 #: cannot resolve, by returning the reason instead of rows (FR-002).
@@ -1976,6 +2097,7 @@ NARROWED_BUILDERS = {
     COMMITMENT_REGISTER: _narrowed_commitment_register,
     TIMELINE: _narrowed_timeline,
     OPEN_FINANCIAL_ITEMS: _narrowed_open_financial_items,
+    PAYMENTS: _narrowed_payments,
 }
 
 

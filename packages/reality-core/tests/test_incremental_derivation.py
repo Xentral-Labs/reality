@@ -1825,3 +1825,184 @@ def test_reversing_a_payment_gives_the_invoice_its_open_amount_back(session, bus
 
     projections.refresh_operational_projections(session, tenant, force=True)
     assert narrowed == _open_items(session, tenant)
+
+
+# --- the tenth builder: the payments (FR-002) ------------------------------------
+
+
+def _payments(session, tenant_id):
+    return {
+        key: payload
+        for (name, key), payload in snapshot(session, tenant_id).items()
+        if name == projections.PAYMENTS
+    }
+
+
+def test_a_payment_narrows_the_payments_and_agrees_with_the_company(session, business):
+    tenant = business.tenant.id
+    a_little_business(session, business)
+    projections.refresh_operational_projections(session, tenant)
+    before = set(_payments(session, tenant))
+
+    record_customer_payment(session, tenant, business.customer.id, "25")
+    with projections.narrowing_report() as report:
+        projections.refresh_operational_projections(session, tenant)
+    reason = report.get(projections.PAYMENTS)
+    assert reason is None, reason
+    narrowed = _payments(session, tenant)
+    assert len(set(narrowed) - before) == 1
+
+    projections.refresh_operational_projections(session, tenant, force=True)
+    assert narrowed == _payments(session, tenant)
+
+
+def test_an_allocation_moves_the_payment_it_settles(session, business):
+    """The allocation names the control entry, and the row is the cash entry.
+
+    `settlement.allocated` carries the receivable side of the payment's posting, not
+    the cash line the row is keyed by. Resolving the entry the event names and
+    stopping there leaves the payment's allocated amount as it was — the figure this
+    projection exists to show.
+    """
+    from reality.services import core
+
+    tenant = business.tenant.id
+    a_little_business(session, business)
+    payment = record_customer_payment(session, tenant, business.customer.id, "20")
+    projections.refresh_operational_projections(session, tenant)
+    invoice_id = next(
+        key
+        for key, payload in _open_items(session, tenant).items()
+        if payload["document_type"] == "sales_invoice"
+    )
+    cash_id = next(entry.id for entry in payment if entry.account in ("cash", "bank"))
+    assert _payments(session, tenant)[cash_id]["allocated"] == "0"
+
+    core.allocate_settlement(
+        session,
+        tenant,
+        next(entry for entry in payment if entry.account == "accounts_receivable").id,
+        core._settlement_control_entry(session, tenant, invoice_id).id,
+        Decimal(20),
+        _commit=False,
+    )
+    with projections.narrowing_report() as report:
+        projections.refresh_operational_projections(session, tenant)
+    reason = report.get(projections.PAYMENTS)
+    assert reason is None, reason
+    narrowed = _payments(session, tenant)
+    assert narrowed[cash_id]["allocated"] != "0", (
+        "the payment still reports nothing allocated"
+    )
+
+    projections.refresh_operational_projections(session, tenant, force=True)
+    assert narrowed == _payments(session, tenant)
+
+
+def test_a_reversed_payment_has_nothing_left_to_allocate(session, business):
+    from reality.services.core import reverse_ledger_posting_group
+
+    tenant = business.tenant.id
+    a_little_business(session, business)
+    payment = record_customer_payment(session, tenant, business.customer.id, "15")
+    projections.refresh_operational_projections(session, tenant)
+    cash_id = next(entry.id for entry in payment if entry.account in ("cash", "bank"))
+    assert _payments(session, tenant)[cash_id]["unallocated"] != "0"
+
+    reverse_ledger_posting_group(
+        session,
+        tenant,
+        payment[0].posting_group_id,
+        reason="the payment was recorded twice",
+    )
+    with projections.narrowing_report() as report:
+        projections.refresh_operational_projections(session, tenant)
+    reason = report.get(projections.PAYMENTS)
+    assert reason is None, reason
+    narrowed = _payments(session, tenant)
+    assert narrowed[cash_id]["unallocated"] == "0"
+
+    projections.refresh_operational_projections(session, tenant, force=True)
+    assert narrowed == _payments(session, tenant)
+
+
+def test_the_payments_decline_a_payment_run(session, business):
+    changes = projections.ChangeSet({"tenant": frozenset({business.tenant.id})})
+    outcome = projections._narrowed_payments(session, business.tenant.id, changes)
+    assert isinstance(outcome, str)
+    assert "the payments" in outcome and "tenant" in outcome
+
+
+def test_a_narrowed_payments_refresh_writes_only_the_entries_that_changed(
+    session, business
+):
+    tenant = business.tenant.id
+    a_little_business(session, business)
+    for amount in ("10", "11", "12"):
+        record_customer_payment(session, tenant, business.customer.id, amount)
+    projections.refresh_operational_projections(session, tenant)
+    whole_company = projections.rebuild_projections(
+        session, tenant, [projections.PAYMENTS], force=True
+    )
+    session.commit()
+
+    record_customer_payment(session, tenant, business.customer.id, "13")
+    written = projections.rebuild_projections(session, tenant, [projections.PAYMENTS])
+    session.commit()
+
+    assert whole_company >= 4
+    assert written == 1, "one payment is one row"
+
+
+def test_reversing_an_invoice_gives_the_payment_back_what_it_had_allocated(
+    session, business
+):
+    """The same allocation hop, from the other end.
+
+    Reversing the **invoice's** posting group un-settles the allocation. What changes
+    is the payment's allocated amount, and the reversed group holds no cash entry at
+    all — so a resolution that stops at the entries of the group it was given finds no
+    payment row to refresh.
+    """
+    from reality.services import core
+    from reality.services.core import reverse_ledger_posting_group
+
+    tenant = business.tenant.id
+    a_little_business(session, business)
+    payment = record_customer_payment(session, tenant, business.customer.id, "20")
+    projections.refresh_operational_projections(session, tenant)
+    invoice_id = next(
+        key
+        for key, payload in _open_items(session, tenant).items()
+        if payload["document_type"] == "sales_invoice"
+    )
+    cash_id = next(entry.id for entry in payment if entry.account in ("cash", "bank"))
+    invoice_entry = core._settlement_control_entry(session, tenant, invoice_id)
+    core.allocate_settlement(
+        session,
+        tenant,
+        next(entry for entry in payment if entry.account == "accounts_receivable").id,
+        invoice_entry.id,
+        Decimal(20),
+        _commit=False,
+    )
+    projections.refresh_operational_projections(session, tenant)
+    assert _payments(session, tenant)[cash_id]["allocated"] == "20.0000"
+
+    reverse_ledger_posting_group(
+        session,
+        tenant,
+        invoice_entry.posting_group_id,
+        reason="the invoice was posted in error",
+    )
+    with projections.narrowing_report() as report:
+        projections.refresh_operational_projections(session, tenant)
+    reason = report.get(projections.PAYMENTS)
+    assert reason is None, reason
+    narrowed = _payments(session, tenant)
+    assert narrowed[cash_id]["allocated"] == "0", (
+        "the payment still reports an allocation the reversed invoice gave back"
+    )
+
+    projections.refresh_operational_projections(session, tenant, force=True)
+    assert narrowed == _payments(session, tenant)
