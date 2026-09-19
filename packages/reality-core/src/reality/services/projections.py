@@ -668,7 +668,18 @@ def derive_projection_rows(
 MATERIALIZED_PROJECTIONS = tuple(
     name for name in OPERATIONAL_PROJECTIONS if name != PRICE_RESOLUTION
 )
-TIME_SENSITIVE_PROJECTIONS = (EXCEPTIONS, COMMITMENT_REGISTER, TENANT_USAGE)
+#: Projections whose rows change because the clock moved, with no event to announce
+#: it, and which are therefore refreshed on a cadence rather than on a change.
+#:
+#: Only exceptions belong here. An exception judges a promise against the moment it is
+#: read — overdue, standing so many days — so its rows move without anybody doing
+#: anything. The commitment register and the tenant usage summary were on this list
+#: too, and measurement says they do not belong: a promise's risk is `reserved < open`
+#: and its date in force is the last one stated, while a usage summary is counts and a
+#: latest timestamp. Neither reads the clock, so rebuilding them every minute was work
+#: that could not change an answer. `test_clock_sensitivity.py` keeps that honest: if
+#: one of them starts reading the clock, it fails and the name goes back on this list.
+TIME_SENSITIVE_PROJECTIONS = (EXCEPTIONS,)
 
 
 @lru_cache(maxsize=1)
