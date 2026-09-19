@@ -210,6 +210,26 @@ builder and class measurements at checkpoints, and compare two commits on the sa
   with its own budget, checkpoint and failure state. Timer-driven eligibility MUST be replaced
   by date-indexed selection across companies; a company with no change and no due date MUST
   cause no work.
+
+  Delivered 2026-09-19 for the selection half. The scheduler took every company in the
+  instance and asked twelve questions about each, so ten thousand quiet companies cost a
+  hundred and twenty thousand reads a sweep. It now asks all companies at once in one
+  indexed read and never visits a quiet one; asking a selected company what is behind is
+  one round trip rather than twelve, with the eligibility rules unchanged.
+
+  Two things had to be learned to get there, and both are recorded because they constrain
+  what can be done next. A company's progress may **not** live on the `tenant` row: every
+  table that references a company takes `FOR KEY SHARE` on it, so writing it on every
+  business event makes concurrent REPEATABLE READ transactions fail to serialise. And a
+  projection's own `last_event_sequence` may **not** be compared against the company's,
+  because it counts only the events that projection depends on and sits below the company's
+  on purpose — a journal no posting has touched stays at zero however busy the company is.
+  The checkpoint therefore carries a second number, how far the *company* had got when that
+  projection last looked, and that is what the fleet-wide selection compares.
+
+  Still open: each projection is not yet its own scheduled *run*. The per-projection
+  checkpoint, status and error already exist; what is shared is the job row, so one
+  projection's failure is still recorded against a run that covered several.
 - **FR-005**: Storage. Operational tables MUST be partitionable by tenant and time; source
   payloads MUST be movable to a tiered store behind the existing reference; every repository
   query MUST resolve its cluster from the tenant scope.

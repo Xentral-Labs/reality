@@ -105,10 +105,11 @@ class ProcessLoop:
         ):
             with Session(engine, info=self.session_info) as session:
                 # The scheduler materializes schedules no run represents yet, so it
-                # needs every tenant. A worker only claims runs that already exist
-                # (feature 201).
+                # needs every tenant that has something due — not every tenant that
+                # exists, which is what it used to take (spec 181 FR-004). A worker only
+                # claims runs that already exist (feature 201).
                 discover = (
-                    jobs.tenant_catalog
+                    jobs.scheduler_tenants
                     if self.role == "scheduler"
                     else jobs.due_tenants
                 )

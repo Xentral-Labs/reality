@@ -27,6 +27,8 @@ explicit_operations:
   - reality.services.read_contracts:location_inventory_rows
   - reality.services.read_contracts:operational_page
   - reality.services.scheduled_jobs:tenant_catalog
+  - reality.services.scheduled_jobs:scheduler_tenants
+  - reality.services.projection_jobs:due_projection_tenants
   - reality.services.core:create_tenant
   - reality.services.core:find_tenant
   - reality.services.core:tenant_usage_summaries
@@ -536,6 +538,7 @@ families:
       - reality.services.scheduled_jobs:execute_claim
       - reality.services.scheduled_jobs:record_failure
       - reality.services.scheduled_jobs:has_due_schedule
+      - reality.services.projection_jobs:due_projections
     evidence:
       - id: tests/test_scheduled_jobs.py::test_execution_boundaries_reject_foreign_records
         assertion: boundary
@@ -558,8 +561,13 @@ families:
     authority: 147/DR-002
     operations: &scheduled_discovery
       - reality.services.scheduled_jobs:tenant_catalog
+      - reality.services.scheduled_jobs:scheduler_tenants
+      - reality.services.projection_jobs:due_projection_tenants
     evidence:
       - id: tests/test_scheduled_jobs.py::test_catalog_discovers_only_bounded_identifiers
+        assertion: global_admin
+        operations: *scheduled_discovery
+      - id: tests/test_refresh_units.py::test_an_archived_company_is_never_offered
         assertion: global_admin
         operations: *scheduled_discovery
 

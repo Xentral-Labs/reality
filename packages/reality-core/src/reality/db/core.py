@@ -1753,6 +1753,26 @@ class ProjectionRow(Base):
     updated_at: Mapped[datetime] = mapped_column(UTCDateTime, default=now)
 
 
+class TenantEventProgress(Base):
+    """How far one company's business events have got, on a row of its own.
+
+    `max(business_event.sequence)` answers this for one company at a time. Spec 181
+    FR-004 needs it asked of every company at once — which projections of which
+    companies have fallen behind — and that has to be one indexed read rather than ten
+    thousand round trips a sweep.
+
+    It is deliberately **not** a column on `tenant`. Every table that references a
+    company takes `FOR KEY SHARE` on its row to check the foreign key, so writing that
+    row on every business event makes any concurrent REPEATABLE READ transaction that
+    inserts anything fail to serialise — which is to say, all of them. Nothing
+    references this table, so writing it disturbs nobody.
+    """
+
+    __tablename__ = "tenant_event_progress"
+    tenant_id: Mapped[str] = mapped_column(ForeignKey("tenant.id"), primary_key=True)
+    last_event_sequence: Mapped[int] = mapped_column(BigInteger, default=0)
+
+
 class ProjectionCheckpoint(Base):
     __tablename__ = "projection_checkpoint"
     __table_args__ = (UniqueConstraint("tenant_id", "projection_name"),)
@@ -1761,6 +1781,17 @@ class ProjectionCheckpoint(Base):
     projection_name: Mapped[str] = mapped_column(String, index=True)
     projection_version: Mapped[int] = mapped_column(Integer, default=1)
     last_event_sequence: Mapped[int] = mapped_column(BigInteger, default=0)
+    #: Where the *company* had got to when this projection was last evaluated, as
+    #: opposed to `last_event_sequence`, which is where the events this projection
+    #: depends on had got to. The two differ on purpose: a journal that no posting has
+    #: touched sits at zero however busy the company is, so comparing it against the
+    #: company would say "behind" forever.
+    #:
+    #: This is the column the fleet-wide selection compares (spec 181 FR-004). It
+    #: answers "has anything at all happened here since this projection last looked",
+    #: which over-selects — the event may turn out to be irrelevant — and never
+    #: under-selects, which is the direction that would leave a projection stale.
+    observed_event_sequence: Mapped[int] = mapped_column(BigInteger, default=0)
     status: Mapped[str] = mapped_column(String, default="ready")
     error: Mapped[str] = mapped_column(Text, default="")
     updated_at: Mapped[datetime] = mapped_column(UTCDateTime, default=now)
