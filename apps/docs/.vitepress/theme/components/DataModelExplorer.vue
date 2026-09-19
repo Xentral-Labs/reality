@@ -173,7 +173,7 @@ const fields = computed(
 const entriesById = computed(() => new Map(props.entries.map((e) => [e.id, e])));
 const actionName = (id: string) => {
   const e = entriesById.value.get(id);
-  return e ? (de.value ? e.label_de || e.label : e.label) : id;
+  return e ? e.label : id;
 };
 const modelName = (key: string) => props.models.find((m) => m.key === key)?.name || key;
 const prefix = computed(() => (de.value ? "/de" : ""));
@@ -239,7 +239,7 @@ const defaultText = (field: Field) => {
         :aria-pressed="activeGroup === group.key"
         @click="activeGroup = group.key"
       >
-        {{ loc(group.label!) }} <span>{{ group.count }}</span>
+        {{ group.label!.en }} <span>{{ group.count }}</span>
       </button>
     </nav>
     <p class="metadata-note">{{ t.searchAll }}</p>

@@ -1459,6 +1459,9 @@ def main() -> None:
     model = build_model()
     from data_model_reference import build_data_models
 
+    from analytics_model_reference import build_analytics_model
+
+    model["analyticsModel"] = build_analytics_model()
     model["dataModels"] = build_data_models(model["entries"])
     model["storylines"] = storyline_models()
     write_storyline_files()

@@ -170,7 +170,7 @@ jobs:
       - name: Install catalog generator dependencies
         run: python -m pip install ./packages/reality-core
       - name: Verify documentation storage metadata
-        run: PYTHONPATH=packages/reality-core/src python -m unittest discover -s apps/docs/scripts -p test_data_model_reference.py
+        run: PYTHONPATH=packages/reality-core/src python -m unittest discover -s apps/docs/scripts -p 'test_*.py'
       - name: Reject stale generated catalogs
         run: |
           PYTHONPATH=packages/reality-core/src python apps/docs/scripts/generate-catalog-reference.py
