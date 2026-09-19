@@ -636,7 +636,25 @@ def _order_line_promises(
     Starting from the Commitment is what excludes a freight, discount or service
     line: it promises no goods, can never be received, and must never be
     reported for failing to arrive.
+
+    Six classes ask for this, twice for each side of the trade, and the answer is the
+    same every time within one evaluation. It is held in the evaluation's own retained
+    inputs, so a derivation reads it once per side rather than once per class.
     """
+    inputs = _inputs(session, tenant_id)
+    if inputs is not None:
+        key = ("order_line_promises", commitment_type)
+        if key not in inputs.cache:
+            inputs.cache[key] = _read_order_line_promises(
+                session, tenant_id, commitment_type
+            )
+        return inputs.cache[key]
+    return _read_order_line_promises(session, tenant_id, commitment_type)
+
+
+def _read_order_line_promises(
+    session: Session, tenant_id: str, commitment_type: str
+) -> list[tuple[Commitment, DocumentLine, Document]]:
     return list(
         session.execute(
             select(Commitment, DocumentLine, Document)
