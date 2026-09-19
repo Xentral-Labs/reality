@@ -1,11 +1,11 @@
 {
   "result_version": "1",
-  "created_at": "2026-09-19T08:19:42.969071Z",
-  "git_revision": "2315b92a8874201f3078163d28915caca79a9bde",
+  "created_at": "2026-09-19T11:21:06.983992Z",
+  "git_revision": "e17606a3b35f2f125a11a833d1f400f36f05ac50",
   "python": "3.12.4",
   "platform": "macOS-27.0-arm64-arm-64bit",
   "postgresql": "17.10",
-  "tenant_id": "ten_5f0a023047",
+  "tenant_id": "ten_86dd528899",
   "samples": [
     {
       "orders_before": 0,
@@ -14,8 +14,10 @@
           "step": "order",
           "produced": 1,
           "queries": 140,
-          "sql_ms": 95.0,
-          "wall_ms": 140.9,
+          "sql_ms": 2608.9,
+          "wall_ms": 2878.7,
+          "interpreting_queries": 48,
+          "interpreting_ms": 1083.0,
           "repeated_reads": [
             {
               "table": "source_record",
@@ -41,14 +43,80 @@
               "table": "demo_data_connection",
               "count": 5
             }
+          ],
+          "slowest_interpreting": [
+            {
+              "sql": "SELECT source_record.id, source_record.tenant_id, source_record.source_system, source_record.source_type, source_record.external_id, source_record.payload, source_record.payload_hash, source_record.source_artifact_id, source_record.version, source_record.source_version_at, source_record.supersedes_source_record_id, source_record.received_at FROM source_record WHERE source_record.tenant_id = %(tena",
+              "ms": 1054.6,
+              "count": 57,
+              "span": "both"
+            },
+            {
+              "sql": "UPDATE source_stream SET current_source_record_id=%(current_source_record_id)s::VARCHAR WHERE source_stream.id = %(source_stream_id)s::VARCHAR",
+              "ms": 161.9,
+              "count": 1,
+              "span": "interpreting"
+            },
+            {
+              "sql": "INSERT INTO import_job (id, tenant_id, source_record_id, status, attempts, input, error, next_attempt_at, created_at, completed_at) VALUES (%(id)s::VARCHAR, %(tenant_id)s::VARCHAR, %(source_record_id)s::VARCHAR, %(status)s::VARCHAR, %(attempts)s::INTEGER, %(input)s::VARCHAR, %(error)s::VARCHAR, %(next_attempt_at)s::TIMESTAMP WITH TIME ZONE, %(created_at)s::TIMESTAMP WITH TIME ZONE, %(completed_at)",
+              "ms": 160.6,
+              "count": 1,
+              "span": "interpreting"
+            },
+            {
+              "sql": "SELECT pg_advisory_xact_lock(%(lock_key)s)",
+              "ms": 144.4,
+              "count": 1,
+              "span": "interpreting"
+            },
+            {
+              "sql": "SELECT playground_run.id, playground_run.tenant_id, playground_run.owner_user_id, playground_run.preset_key, playground_run.sandbox_kind, playground_run.preset_version, playground_run.lesson_key, playground_run.lesson_version, playground_run.client_request_key, playground_run.status, playground_run.initialization_progress, playground_run.initialization_error_code, playground_run.created_at, playgr",
+              "ms": 132.3,
+              "count": 11,
+              "span": "both"
+            }
+          ],
+          "slowest_sweep": [
+            {
+              "sql": "SELECT source_record.id, source_record.tenant_id, source_record.source_system, source_record.source_type, source_record.external_id, source_record.payload, source_record.payload_hash, source_record.source_artifact_id, source_record.version, source_record.source_version_at, source_record.supersedes_source_record_id, source_record.received_at FROM source_record WHERE source_record.tenant_id = %(tena",
+              "ms": 1054.6,
+              "count": 57,
+              "span": "both"
+            },
+            {
+              "sql": "SELECT playground_run.id, playground_run.tenant_id, playground_run.owner_user_id, playground_run.preset_key, playground_run.sandbox_kind, playground_run.preset_version, playground_run.lesson_key, playground_run.lesson_version, playground_run.client_request_key, playground_run.status, playground_run.initialization_progress, playground_run.initialization_error_code, playground_run.created_at, playgr",
+              "ms": 132.3,
+              "count": 11,
+              "span": "both"
+            },
+            {
+              "sql": "SELECT scheduled_job_run.id, scheduled_job_run.tenant_id, scheduled_job_run.schedule_id, scheduled_job_run.actor_id, scheduled_job_run.job_type, scheduled_job_run.configuration, scheduled_job_run.schedule_revision, scheduled_job_run.scheduled_for, scheduled_job_run.request_id, scheduled_job_run.request_fingerprint, scheduled_job_run.status, scheduled_job_run.attempt_count, scheduled_job_run.next_a",
+              "ms": 85.1,
+              "count": 5,
+              "span": "sweep"
+            },
+            {
+              "sql": "SELECT scheduled_job.id, scheduled_job.tenant_id, scheduled_job.actor_id, scheduled_job.job_type, scheduled_job.configuration, scheduled_job.interval_seconds, scheduled_job.cron_expression, scheduled_job.enabled, scheduled_job.next_run_at, scheduled_job.revision, scheduled_job.create_request_id, scheduled_job.create_fingerprint, scheduled_job.last_control_request_id, scheduled_job.last_control_fin",
+              "ms": 80.6,
+              "count": 4,
+              "span": "sweep"
+            },
+            {
+              "sql": "SELECT demo_data_connection.id, demo_data_connection.tenant_id, demo_data_connection.source_system_id, demo_data_connection.current_schedule_id, demo_data_connection.settlement_schedule_id, demo_data_connection.state, demo_data_connection.revision, demo_data_connection.last_request_key, demo_data_connection.last_request_fingerprint, demo_data_connection.created_at, demo_data_connection.updated_at ",
+              "ms": 59.6,
+              "count": 5,
+              "span": "sweep"
+            }
           ]
         },
         {
           "step": "invoice",
           "produced": 1,
           "queries": 164,
-          "sql_ms": 129.9,
-          "wall_ms": 193.2,
+          "sql_ms": 3810.7,
+          "wall_ms": 4255.0,
+          "interpreting_queries": 69,
+          "interpreting_ms": 3106.8,
           "repeated_reads": [
             {
               "table": "source_record",
@@ -74,14 +142,80 @@
               "table": "document",
               "count": 7
             }
+          ],
+          "slowest_interpreting": [
+            {
+              "sql": "SELECT tenant.id FROM tenant WHERE tenant.id = %(id_1)s::VARCHAR FOR UPDATE",
+              "ms": 449.3,
+              "count": 5,
+              "span": "interpreting"
+            },
+            {
+              "sql": "SELECT source_record.id, source_record.tenant_id, source_record.source_system, source_record.source_type, source_record.external_id, source_record.payload, source_record.payload_hash, source_record.source_artifact_id, source_record.version, source_record.source_version_at, source_record.supersedes_source_record_id, source_record.received_at FROM source_record WHERE source_record.tenant_id = %(tena",
+              "ms": 429.5,
+              "count": 59,
+              "span": "both"
+            },
+            {
+              "sql": "SELECT document.id, document.tenant_id, document.source_record_id, document.type, document.number, document.party_id, document.currency, document.gross_amount, document.status, document.document_date, document.ordered_at, document.requested_delivery_at, document.customer_reference, document.sales_channel, document.payment_term_id, document.ship_to_party_id FROM document WHERE document.tenant_id = ",
+              "ms": 370.4,
+              "count": 6,
+              "span": "interpreting"
+            },
+            {
+              "sql": "SELECT finance_state.id, finance_state.tenant_id, finance_state.revision FROM finance_state WHERE finance_state.tenant_id = %(tenant_id_1)s::VARCHAR FOR UPDATE",
+              "ms": 335.0,
+              "count": 2,
+              "span": "interpreting"
+            },
+            {
+              "sql": "INSERT INTO finance_state (id, tenant_id, revision) VALUES (%(id)s::VARCHAR, %(tenant_id)s::VARCHAR, %(revision)s::INTEGER) ON CONFLICT (tenant_id) DO NOTHING",
+              "ms": 239.0,
+              "count": 2,
+              "span": "interpreting"
+            }
+          ],
+          "slowest_sweep": [
+            {
+              "sql": "SELECT source_record.id, source_record.tenant_id, source_record.source_system, source_record.source_type, source_record.external_id, source_record.payload, source_record.payload_hash, source_record.source_artifact_id, source_record.version, source_record.source_version_at, source_record.supersedes_source_record_id, source_record.received_at FROM source_record WHERE source_record.tenant_id = %(tena",
+              "ms": 429.5,
+              "count": 59,
+              "span": "both"
+            },
+            {
+              "sql": "SELECT CASE WHEN (import_job.status = %(status_1)s::VARCHAR AND (EXISTS (SELECT interpretation_outcome.id FROM interpretation_outcome WHERE interpretation_outcome.tenant_id = %(tenant_id_1)s::VARCHAR AND interpretation_outcome.import_job_id = import_job.id AND interpretation_outcome.classification = %(classification_1)s::VARCHAR)) AND (EXISTS (SELECT document.id FROM document WHERE document.tenant",
+              "ms": 153.2,
+              "count": 3,
+              "span": "sweep"
+            },
+            {
+              "sql": "SELECT playground_run.id, playground_run.tenant_id, playground_run.owner_user_id, playground_run.preset_key, playground_run.sandbox_kind, playground_run.preset_version, playground_run.lesson_key, playground_run.lesson_version, playground_run.client_request_key, playground_run.status, playground_run.initialization_progress, playground_run.initialization_error_code, playground_run.created_at, playgr",
+              "ms": 86.6,
+              "count": 11,
+              "span": "both"
+            },
+            {
+              "sql": "SELECT demo_data_connection.id, demo_data_connection.tenant_id, demo_data_connection.source_system_id, demo_data_connection.current_schedule_id, demo_data_connection.settlement_schedule_id, demo_data_connection.state, demo_data_connection.revision, demo_data_connection.last_request_key, demo_data_connection.last_request_fingerprint, demo_data_connection.created_at, demo_data_connection.updated_at ",
+              "ms": 55.5,
+              "count": 5,
+              "span": "sweep"
+            },
+            {
+              "sql": "SELECT scheduled_job_run.id, scheduled_job_run.tenant_id, scheduled_job_run.schedule_id, scheduled_job_run.actor_id, scheduled_job_run.job_type, scheduled_job_run.configuration, scheduled_job_run.schedule_revision, scheduled_job_run.scheduled_for, scheduled_job_run.request_id, scheduled_job_run.request_fingerprint, scheduled_job_run.status, scheduled_job_run.attempt_count, scheduled_job_run.next_a",
+              "ms": 46.5,
+              "count": 5,
+              "span": "sweep"
+            }
           ]
         },
         {
           "step": "payment",
           "produced": 1,
           "queries": 201,
-          "sql_ms": 135.8,
-          "wall_ms": 204.7,
+          "sql_ms": 1018.4,
+          "wall_ms": 1283.3,
+          "interpreting_queries": 106,
+          "interpreting_ms": 665.2,
           "repeated_reads": [
             {
               "table": "source_record",
@@ -107,227 +241,85 @@
               "table": "business_event",
               "count": 10
             }
-          ]
-        }
-      ]
-    },
-    {
-      "orders_before": 500,
-      "steps": [
-        {
-          "step": "order",
-          "produced": 4,
-          "queries": 74,
-          "sql_ms": 24.5,
-          "wall_ms": 35.8,
-          "repeated_reads": [
+          ],
+          "slowest_interpreting": [
             {
-              "table": "source_record",
-              "count": 76
+              "sql": "SELECT source_record.id, source_record.tenant_id, source_record.source_system, source_record.source_type, source_record.external_id, source_record.payload, source_record.payload_hash, source_record.source_artifact_id, source_record.version, source_record.source_version_at, source_record.supersedes_source_record_id, source_record.received_at FROM source_record WHERE source_record.tenant_id = %(tena",
+              "ms": 230.1,
+              "count": 59,
+              "span": "both"
             },
             {
-              "table": "business_event",
-              "count": 32
+              "sql": "SELECT document.id, document.tenant_id, document.source_record_id, document.type, document.number, document.party_id, document.currency, document.gross_amount, document.status, document.document_date, document.ordered_at, document.requested_delivery_at, document.customer_reference, document.sales_channel, document.payment_term_id, document.ship_to_party_id FROM document WHERE document.tenant_id = ",
+              "ms": 80.9,
+              "count": 13,
+              "span": "interpreting"
             },
             {
-              "table": "tenant",
-              "count": 29
+              "sql": "SELECT playground_run.id, playground_run.tenant_id, playground_run.owner_user_id, playground_run.preset_key, playground_run.sandbox_kind, playground_run.preset_version, playground_run.lesson_key, playground_run.lesson_version, playground_run.client_request_key, playground_run.status, playground_run.initialization_progress, playground_run.initialization_error_code, playground_run.created_at, playgr",
+              "ms": 45.1,
+              "count": 11,
+              "span": "both"
             },
             {
-              "table": "import_job",
-              "count": 20
+              "sql": "SELECT ledger_reversal.id, ledger_reversal.tenant_id, ledger_reversal.original_posting_group_id, ledger_reversal.reversing_posting_group_id, ledger_reversal.reason, ledger_reversal.reversed_at, ledger_reversal.actor_context, ledger_reversal.request_fingerprint FROM ledger_reversal WHERE ledger_reversal.tenant_id = %(tenant_id_1)s::VARCHAR AND ledger_reversal.original_posting_group_id = %(original_",
+              "ms": 44.7,
+              "count": 6,
+              "span": "interpreting"
             },
             {
-              "table": "playground_run",
-              "count": 17
-            },
-            {
-              "table": "party",
-              "count": 14
+              "sql": "SELECT ledger_entry.id, ledger_entry.tenant_id, ledger_entry.posting_group_id, ledger_entry.account_id, ledger_entry.party_id, ledger_entry.amount, ledger_entry.currency, ledger_entry.debit_credit, ledger_entry.effective_at, ledger_entry.document_id, ledger_entry.source_record_id, subledger_account_1.id AS id_1, subledger_account_1.tenant_id AS tenant_id_1, subledger_account_1.code, subledger_acco",
+              "ms": 43.6,
+              "count": 8,
+              "span": "interpreting"
             }
-          ]
-        },
-        {
-          "step": "invoice",
-          "produced": 4,
-          "queries": 96,
-          "sql_ms": 34.5,
-          "wall_ms": 62.3,
-          "repeated_reads": [
+          ],
+          "slowest_sweep": [
             {
-              "table": "source_record",
-              "count": 86
+              "sql": "SELECT source_record.id, source_record.tenant_id, source_record.source_system, source_record.source_type, source_record.external_id, source_record.payload, source_record.payload_hash, source_record.source_artifact_id, source_record.version, source_record.source_version_at, source_record.supersedes_source_record_id, source_record.received_at FROM source_record WHERE source_record.tenant_id = %(tena",
+              "ms": 230.1,
+              "count": 59,
+              "span": "both"
             },
             {
-              "table": "tenant",
-              "count": 41
+              "sql": "SELECT playground_run.id, playground_run.tenant_id, playground_run.owner_user_id, playground_run.preset_key, playground_run.sandbox_kind, playground_run.preset_version, playground_run.lesson_key, playground_run.lesson_version, playground_run.client_request_key, playground_run.status, playground_run.initialization_progress, playground_run.initialization_error_code, playground_run.created_at, playgr",
+              "ms": 45.1,
+              "count": 11,
+              "span": "both"
             },
             {
-              "table": "business_event",
-              "count": 32
+              "sql": "SELECT CASE WHEN (import_job.status = %(status_1)s::VARCHAR AND (EXISTS (SELECT interpretation_outcome.id FROM interpretation_outcome WHERE interpretation_outcome.tenant_id = %(tenant_id_1)s::VARCHAR AND interpretation_outcome.import_job_id = import_job.id AND interpretation_outcome.classification = %(classification_1)s::VARCHAR)) AND (EXISTS (SELECT document.id FROM document WHERE document.tenant",
+              "ms": 15.6,
+              "count": 3,
+              "span": "sweep"
             },
             {
-              "table": "document",
-              "count": 28
+              "sql": "SELECT scheduled_job.id, scheduled_job.tenant_id, scheduled_job.actor_id, scheduled_job.job_type, scheduled_job.configuration, scheduled_job.interval_seconds, scheduled_job.cron_expression, scheduled_job.enabled, scheduled_job.next_run_at, scheduled_job.revision, scheduled_job.create_request_id, scheduled_job.create_fingerprint, scheduled_job.last_control_request_id, scheduled_job.last_control_fin",
+              "ms": 14.5,
+              "count": 4,
+              "span": "sweep"
             },
             {
-              "table": "finance_state",
-              "count": 24
-            },
-            {
-              "table": "import_job",
-              "count": 20
-            }
-          ]
-        },
-        {
-          "step": "payment",
-          "produced": 4,
-          "queries": 134,
-          "sql_ms": 62.6,
-          "wall_ms": 102.0,
-          "repeated_reads": [
-            {
-              "table": "source_record",
-              "count": 85
-            },
-            {
-              "table": "document",
-              "count": 55
-            },
-            {
-              "table": "tenant",
-              "count": 53
-            },
-            {
-              "table": "ledger_reversal",
-              "count": 52
-            },
-            {
-              "table": "business_event",
-              "count": 40
-            },
-            {
-              "table": "ledger_entry",
-              "count": 40
+              "sql": "SELECT scheduled_job_run.id, scheduled_job_run.tenant_id, scheduled_job_run.schedule_id, scheduled_job_run.actor_id, scheduled_job_run.job_type, scheduled_job_run.configuration, scheduled_job_run.schedule_revision, scheduled_job_run.scheduled_for, scheduled_job_run.request_id, scheduled_job_run.request_fingerprint, scheduled_job_run.status, scheduled_job_run.attempt_count, scheduled_job_run.next_a",
+              "ms": 14.0,
+              "count": 5,
+              "span": "sweep"
             }
           ]
         }
       ]
     },
     {
-      "orders_before": 1500,
-      "steps": [
-        {
-          "step": "order",
-          "produced": 3,
-          "queries": 81,
-          "sql_ms": 40.0,
-          "wall_ms": 50.1,
-          "repeated_reads": [
-            {
-              "table": "source_record",
-              "count": 70
-            },
-            {
-              "table": "business_event",
-              "count": 24
-            },
-            {
-              "table": "tenant",
-              "count": 22
-            },
-            {
-              "table": "playground_run",
-              "count": 15
-            },
-            {
-              "table": "import_job",
-              "count": 15
-            },
-            {
-              "table": "party",
-              "count": 11
-            }
-          ]
-        },
-        {
-          "step": "invoice",
-          "produced": 3,
-          "queries": 103,
-          "sql_ms": 60.4,
-          "wall_ms": 100.2,
-          "repeated_reads": [
-            {
-              "table": "source_record",
-              "count": 78
-            },
-            {
-              "table": "tenant",
-              "count": 31
-            },
-            {
-              "table": "business_event",
-              "count": 24
-            },
-            {
-              "table": "document",
-              "count": 21
-            },
-            {
-              "table": "finance_state",
-              "count": 18
-            },
-            {
-              "table": "playground_run",
-              "count": 15
-            }
-          ]
-        },
-        {
-          "step": "payment",
-          "produced": 3,
-          "queries": 142,
-          "sql_ms": 97.0,
-          "wall_ms": 159.5,
-          "repeated_reads": [
-            {
-              "table": "source_record",
-              "count": 78
-            },
-            {
-              "table": "document",
-              "count": 42
-            },
-            {
-              "table": "tenant",
-              "count": 40
-            },
-            {
-              "table": "ledger_reversal",
-              "count": 39
-            },
-            {
-              "table": "business_event",
-              "count": 30
-            },
-            {
-              "table": "ledger_entry",
-              "count": 30
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "orders_before": 3001,
+      "orders_before": 502,
       "steps": [
         {
           "step": "order",
           "produced": 1,
           "queries": 140,
-          "sql_ms": 98.2,
-          "wall_ms": 115.9,
+          "sql_ms": 189.2,
+          "wall_ms": 250.6,
+          "interpreting_queries": 48,
+          "interpreting_ms": 74.4,
           "repeated_reads": [
             {
               "table": "source_record",
@@ -353,14 +345,80 @@
               "table": "demo_data_connection",
               "count": 5
             }
+          ],
+          "slowest_interpreting": [
+            {
+              "sql": "SELECT source_record.id, source_record.tenant_id, source_record.source_system, source_record.source_type, source_record.external_id, source_record.payload, source_record.payload_hash, source_record.source_artifact_id, source_record.version, source_record.source_version_at, source_record.supersedes_source_record_id, source_record.received_at FROM source_record WHERE source_record.tenant_id = %(tena",
+              "ms": 63.0,
+              "count": 57,
+              "span": "both"
+            },
+            {
+              "sql": "SELECT playground_run.id, playground_run.tenant_id, playground_run.owner_user_id, playground_run.preset_key, playground_run.sandbox_kind, playground_run.preset_version, playground_run.lesson_key, playground_run.lesson_version, playground_run.client_request_key, playground_run.status, playground_run.initialization_progress, playground_run.initialization_error_code, playground_run.created_at, playgr",
+              "ms": 10.0,
+              "count": 11,
+              "span": "both"
+            },
+            {
+              "sql": "INSERT INTO business_event (id, tenant_id, sequence, event_type, schema_version, subject_type, subject_id, occurred_at, recorded_at, payload, source_record_id, action_id, causation_id, correlation_id) VALUES (%(id)s::VARCHAR, %(tenant_id)s::VARCHAR, %(sequence)s::BIGINT, %(event_type)s::VARCHAR, %(schema_version)s::INTEGER, %(subject_type)s::VARCHAR, %(subject_id)s::VARCHAR, %(occurred_at)s::TIMES",
+              "ms": 5.7,
+              "count": 4,
+              "span": "interpreting"
+            },
+            {
+              "sql": "SELECT document.id, document.tenant_id, document.source_record_id, document.type, document.number, document.party_id, document.currency, document.gross_amount, document.status, document.document_date, document.ordered_at, document.requested_delivery_at, document.customer_reference, document.sales_channel, document.payment_term_id, document.ship_to_party_id FROM document WHERE document.tenant_id = ",
+              "ms": 5.2,
+              "count": 2,
+              "span": "interpreting"
+            },
+            {
+              "sql": "SELECT party.id, party.tenant_id, party.type, party.name, party.payload, party.is_active, party.source_record_id, party.accounting_code, party.payment_term_id, party.default_currency, party.credit_limit, party.tax_identifier FROM party WHERE party.tenant_id = %(tenant_id_1)s::VARCHAR AND party.id = %(id_1)s::VARCHAR",
+              "ms": 4.9,
+              "count": 3,
+              "span": "interpreting"
+            }
+          ],
+          "slowest_sweep": [
+            {
+              "sql": "SELECT source_record.id, source_record.tenant_id, source_record.source_system, source_record.source_type, source_record.external_id, source_record.payload, source_record.payload_hash, source_record.source_artifact_id, source_record.version, source_record.source_version_at, source_record.supersedes_source_record_id, source_record.received_at FROM source_record WHERE source_record.tenant_id = %(tena",
+              "ms": 63.0,
+              "count": 57,
+              "span": "both"
+            },
+            {
+              "sql": "SELECT CASE WHEN (import_job.status = %(status_1)s::VARCHAR AND (EXISTS (SELECT interpretation_outcome.id FROM interpretation_outcome WHERE interpretation_outcome.tenant_id = %(tenant_id_1)s::VARCHAR AND interpretation_outcome.import_job_id = import_job.id AND interpretation_outcome.classification = %(classification_1)s::VARCHAR)) AND (EXISTS (SELECT document.id FROM document WHERE document.tenant",
+              "ms": 22.6,
+              "count": 2,
+              "span": "sweep"
+            },
+            {
+              "sql": "SELECT playground_run.id, playground_run.tenant_id, playground_run.owner_user_id, playground_run.preset_key, playground_run.sandbox_kind, playground_run.preset_version, playground_run.lesson_key, playground_run.lesson_version, playground_run.client_request_key, playground_run.status, playground_run.initialization_progress, playground_run.initialization_error_code, playground_run.created_at, playgr",
+              "ms": 10.0,
+              "count": 11,
+              "span": "both"
+            },
+            {
+              "sql": "SELECT scheduled_job_run.id, scheduled_job_run.tenant_id, scheduled_job_run.schedule_id, scheduled_job_run.actor_id, scheduled_job_run.job_type, scheduled_job_run.configuration, scheduled_job_run.schedule_revision, scheduled_job_run.scheduled_for, scheduled_job_run.request_id, scheduled_job_run.request_fingerprint, scheduled_job_run.status, scheduled_job_run.attempt_count, scheduled_job_run.next_a",
+              "ms": 4.7,
+              "count": 5,
+              "span": "sweep"
+            },
+            {
+              "sql": "SELECT demo_data_connection.id, demo_data_connection.tenant_id, demo_data_connection.source_system_id, demo_data_connection.current_schedule_id, demo_data_connection.settlement_schedule_id, demo_data_connection.state, demo_data_connection.revision, demo_data_connection.last_request_key, demo_data_connection.last_request_fingerprint, demo_data_connection.created_at, demo_data_connection.updated_at ",
+              "ms": 4.3,
+              "count": 5,
+              "span": "sweep"
+            }
           ]
         },
         {
           "step": "invoice",
           "produced": 1,
           "queries": 164,
-          "sql_ms": 186.8,
-          "wall_ms": 329.2,
+          "sql_ms": 258.9,
+          "wall_ms": 386.9,
+          "interpreting_queries": 69,
+          "interpreting_ms": 105.1,
           "repeated_reads": [
             {
               "table": "source_record",
@@ -386,14 +444,80 @@
               "table": "document",
               "count": 7
             }
+          ],
+          "slowest_interpreting": [
+            {
+              "sql": "SELECT source_record.id, source_record.tenant_id, source_record.source_system, source_record.source_type, source_record.external_id, source_record.payload, source_record.payload_hash, source_record.source_artifact_id, source_record.version, source_record.source_version_at, source_record.supersedes_source_record_id, source_record.received_at FROM source_record WHERE source_record.tenant_id = %(tena",
+              "ms": 58.6,
+              "count": 59,
+              "span": "both"
+            },
+            {
+              "sql": "SELECT finance_state.id, finance_state.tenant_id, finance_state.revision FROM finance_state WHERE finance_state.tenant_id = %(tenant_id_1)s::VARCHAR FOR UPDATE",
+              "ms": 15.1,
+              "count": 2,
+              "span": "interpreting"
+            },
+            {
+              "sql": "UPDATE finance_state SET revision=%(revision)s::INTEGER WHERE finance_state.id = %(finance_state_id)s::VARCHAR",
+              "ms": 11.5,
+              "count": 2,
+              "span": "interpreting"
+            },
+            {
+              "sql": "SELECT document.id, document.tenant_id, document.source_record_id, document.type, document.number, document.party_id, document.currency, document.gross_amount, document.status, document.document_date, document.ordered_at, document.requested_delivery_at, document.customer_reference, document.sales_channel, document.payment_term_id, document.ship_to_party_id FROM document WHERE document.tenant_id = ",
+              "ms": 11.5,
+              "count": 6,
+              "span": "interpreting"
+            },
+            {
+              "sql": "SELECT playground_run.id, playground_run.tenant_id, playground_run.owner_user_id, playground_run.preset_key, playground_run.sandbox_kind, playground_run.preset_version, playground_run.lesson_key, playground_run.lesson_version, playground_run.client_request_key, playground_run.status, playground_run.initialization_progress, playground_run.initialization_error_code, playground_run.created_at, playgr",
+              "ms": 9.7,
+              "count": 11,
+              "span": "both"
+            }
+          ],
+          "slowest_sweep": [
+            {
+              "sql": "SELECT source_record.id, source_record.tenant_id, source_record.source_system, source_record.source_type, source_record.external_id, source_record.payload, source_record.payload_hash, source_record.source_artifact_id, source_record.version, source_record.source_version_at, source_record.supersedes_source_record_id, source_record.received_at FROM source_record WHERE source_record.tenant_id = %(tena",
+              "ms": 58.6,
+              "count": 59,
+              "span": "both"
+            },
+            {
+              "sql": "SELECT CASE WHEN (import_job.status = %(status_1)s::VARCHAR AND (EXISTS (SELECT interpretation_outcome.id FROM interpretation_outcome WHERE interpretation_outcome.tenant_id = %(tenant_id_1)s::VARCHAR AND interpretation_outcome.import_job_id = import_job.id AND interpretation_outcome.classification = %(classification_1)s::VARCHAR)) AND (EXISTS (SELECT document.id FROM document WHERE document.tenant",
+              "ms": 37.0,
+              "count": 3,
+              "span": "sweep"
+            },
+            {
+              "sql": "SELECT source_record.id, source_record.tenant_id, source_record.source_system, source_record.source_type, source_record.external_id, source_record.payload, source_record.payload_hash, source_record.source_artifact_id, source_record.version, source_record.source_version_at, source_record.supersedes_source_record_id, source_record.received_at, scheduled_job.id AS id_1, (scheduled_job.configuration[%",
+              "ms": 17.1,
+              "count": 1,
+              "span": "sweep"
+            },
+            {
+              "sql": "SELECT source_record.external_id FROM source_record WHERE source_record.tenant_id = %(tenant_id_1)s::VARCHAR AND source_record.source_system = %(source_system_1)s::VARCHAR AND source_record.source_type IN (%(source_type_1_1)s::VARCHAR, %(source_type_1_2)s::VARCHAR) AND source_record.external_id IN (%(external_id_1_1)s::VARCHAR, %(external_id_1_2)s::VARCHAR, %(external_id_1_3)s::VARCHAR, %(external",
+              "ms": 11.4,
+              "count": 1,
+              "span": "sweep"
+            },
+            {
+              "sql": "SELECT playground_run.id, playground_run.tenant_id, playground_run.owner_user_id, playground_run.preset_key, playground_run.sandbox_kind, playground_run.preset_version, playground_run.lesson_key, playground_run.lesson_version, playground_run.client_request_key, playground_run.status, playground_run.initialization_progress, playground_run.initialization_error_code, playground_run.created_at, playgr",
+              "ms": 9.7,
+              "count": 11,
+              "span": "both"
+            }
           ]
         },
         {
           "step": "payment",
           "produced": 1,
           "queries": 203,
-          "sql_ms": 231.5,
-          "wall_ms": 453.2,
+          "sql_ms": 428.4,
+          "wall_ms": 612.6,
+          "interpreting_queries": 108,
+          "interpreting_ms": 182.2,
           "repeated_reads": [
             {
               "table": "source_record",
@@ -418,6 +542,372 @@
             {
               "table": "business_event",
               "count": 10
+            }
+          ],
+          "slowest_interpreting": [
+            {
+              "sql": "SELECT source_record.id, source_record.tenant_id, source_record.source_system, source_record.source_type, source_record.external_id, source_record.payload, source_record.payload_hash, source_record.source_artifact_id, source_record.version, source_record.source_version_at, source_record.supersedes_source_record_id, source_record.received_at FROM source_record WHERE source_record.tenant_id = %(tena",
+              "ms": 94.8,
+              "count": 59,
+              "span": "both"
+            },
+            {
+              "sql": "SELECT ledger_entry.id, ledger_entry.tenant_id, ledger_entry.posting_group_id, ledger_entry.account_id, ledger_entry.party_id, ledger_entry.amount, ledger_entry.currency, ledger_entry.debit_credit, ledger_entry.effective_at, ledger_entry.document_id, ledger_entry.source_record_id, subledger_account_1.id AS id_1, subledger_account_1.tenant_id AS tenant_id_1, subledger_account_1.code, subledger_acco",
+              "ms": 23.9,
+              "count": 9,
+              "span": "interpreting"
+            },
+            {
+              "sql": "SELECT playground_run.id, playground_run.tenant_id, playground_run.owner_user_id, playground_run.preset_key, playground_run.sandbox_kind, playground_run.preset_version, playground_run.lesson_key, playground_run.lesson_version, playground_run.client_request_key, playground_run.status, playground_run.initialization_progress, playground_run.initialization_error_code, playground_run.created_at, playgr",
+              "ms": 19.6,
+              "count": 11,
+              "span": "both"
+            },
+            {
+              "sql": "INSERT INTO source_record (id, tenant_id, source_system, source_type, external_id, payload, payload_hash, source_artifact_id, version, source_version_at, supersedes_source_record_id, received_at) VALUES (%(id)s::VARCHAR, %(tenant_id)s::VARCHAR, %(source_system)s::VARCHAR, %(source_type)s::VARCHAR, %(external_id)s::VARCHAR, %(payload)s::VARCHAR, %(payload_hash)s::VARCHAR, %(source_artifact_id)s::VA",
+              "ms": 18.1,
+              "count": 1,
+              "span": "interpreting"
+            },
+            {
+              "sql": "SELECT document.id, document.tenant_id, document.source_record_id, document.type, document.number, document.party_id, document.currency, document.gross_amount, document.status, document.document_date, document.ordered_at, document.requested_delivery_at, document.customer_reference, document.sales_channel, document.payment_term_id, document.ship_to_party_id FROM document WHERE document.tenant_id = ",
+              "ms": 16.4,
+              "count": 13,
+              "span": "interpreting"
+            }
+          ],
+          "slowest_sweep": [
+            {
+              "sql": "SELECT source_record.id, source_record.tenant_id, source_record.source_system, source_record.source_type, source_record.external_id, source_record.payload, source_record.payload_hash, source_record.source_artifact_id, source_record.version, source_record.source_version_at, source_record.supersedes_source_record_id, source_record.received_at FROM source_record WHERE source_record.tenant_id = %(tena",
+              "ms": 94.8,
+              "count": 59,
+              "span": "both"
+            },
+            {
+              "sql": "SELECT CASE WHEN (import_job.status = %(status_1)s::VARCHAR AND (EXISTS (SELECT interpretation_outcome.id FROM interpretation_outcome WHERE interpretation_outcome.tenant_id = %(tenant_id_1)s::VARCHAR AND interpretation_outcome.import_job_id = import_job.id AND interpretation_outcome.classification = %(classification_1)s::VARCHAR)) AND (EXISTS (SELECT document.id FROM document WHERE document.tenant",
+              "ms": 52.1,
+              "count": 3,
+              "span": "sweep"
+            },
+            {
+              "sql": "SELECT source_record.id, source_record.tenant_id, source_record.source_system, source_record.source_type, source_record.external_id, source_record.payload, source_record.payload_hash, source_record.source_artifact_id, source_record.version, source_record.source_version_at, source_record.supersedes_source_record_id, source_record.received_at, scheduled_job.id AS id_1, (scheduled_job.configuration[%",
+              "ms": 36.0,
+              "count": 1,
+              "span": "sweep"
+            },
+            {
+              "sql": "SELECT source_record.external_id FROM source_record WHERE source_record.tenant_id = %(tenant_id_1)s::VARCHAR AND source_record.source_system = %(source_system_1)s::VARCHAR AND source_record.source_type IN (%(source_type_1_1)s::VARCHAR, %(source_type_1_2)s::VARCHAR) AND source_record.external_id IN (%(external_id_1_1)s::VARCHAR, %(external_id_1_2)s::VARCHAR, %(external_id_1_3)s::VARCHAR, %(external",
+              "ms": 23.5,
+              "count": 1,
+              "span": "sweep"
+            },
+            {
+              "sql": "SELECT playground_run.id, playground_run.tenant_id, playground_run.owner_user_id, playground_run.preset_key, playground_run.sandbox_kind, playground_run.preset_version, playground_run.lesson_key, playground_run.lesson_version, playground_run.client_request_key, playground_run.status, playground_run.initialization_progress, playground_run.initialization_error_code, playground_run.created_at, playgr",
+              "ms": 19.6,
+              "count": 11,
+              "span": "both"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "orders_before": 1500,
+      "steps": [
+        {
+          "step": "order",
+          "produced": 1,
+          "queries": 140,
+          "sql_ms": 80.8,
+          "wall_ms": 104.9,
+          "interpreting_queries": 48,
+          "interpreting_ms": 17.7,
+          "repeated_reads": [
+            {
+              "table": "source_record",
+              "count": 58
+            },
+            {
+              "table": "playground_run",
+              "count": 11
+            },
+            {
+              "table": "tenant",
+              "count": 8
+            },
+            {
+              "table": "business_event",
+              "count": 8
+            },
+            {
+              "table": "scheduled_job_run",
+              "count": 7
+            },
+            {
+              "table": "demo_data_connection",
+              "count": 5
+            }
+          ],
+          "slowest_interpreting": [
+            {
+              "sql": "SELECT source_record.id, source_record.tenant_id, source_record.source_system, source_record.source_type, source_record.external_id, source_record.payload, source_record.payload_hash, source_record.source_artifact_id, source_record.version, source_record.source_version_at, source_record.supersedes_source_record_id, source_record.received_at FROM source_record WHERE source_record.tenant_id = %(tena",
+              "ms": 15.0,
+              "count": 57,
+              "span": "both"
+            },
+            {
+              "sql": "SELECT playground_run.id, playground_run.tenant_id, playground_run.owner_user_id, playground_run.preset_key, playground_run.sandbox_kind, playground_run.preset_version, playground_run.lesson_key, playground_run.lesson_version, playground_run.client_request_key, playground_run.status, playground_run.initialization_progress, playground_run.initialization_error_code, playground_run.created_at, playgr",
+              "ms": 3.1,
+              "count": 11,
+              "span": "both"
+            },
+            {
+              "sql": "INSERT INTO business_event (id, tenant_id, sequence, event_type, schema_version, subject_type, subject_id, occurred_at, recorded_at, payload, source_record_id, action_id, causation_id, correlation_id) VALUES (%(id)s::VARCHAR, %(tenant_id)s::VARCHAR, %(sequence)s::BIGINT, %(event_type)s::VARCHAR, %(schema_version)s::INTEGER, %(subject_type)s::VARCHAR, %(subject_id)s::VARCHAR, %(occurred_at)s::TIMES",
+              "ms": 1.6,
+              "count": 4,
+              "span": "interpreting"
+            },
+            {
+              "sql": "SELECT max(business_event.sequence) AS max_1 FROM business_event WHERE business_event.tenant_id = %(tenant_id_1)s::VARCHAR",
+              "ms": 1.3,
+              "count": 4,
+              "span": "interpreting"
+            },
+            {
+              "sql": "SELECT tenant.id, tenant.name, tenant.purpose, tenant.created_at, tenant.archived_at FROM tenant WHERE tenant.id = %(id_1)s::VARCHAR FOR UPDATE",
+              "ms": 0.9,
+              "count": 4,
+              "span": "interpreting"
+            }
+          ],
+          "slowest_sweep": [
+            {
+              "sql": "SELECT CASE WHEN (import_job.status = %(status_1)s::VARCHAR AND (EXISTS (SELECT interpretation_outcome.id FROM interpretation_outcome WHERE interpretation_outcome.tenant_id = %(tenant_id_1)s::VARCHAR AND interpretation_outcome.import_job_id = import_job.id AND interpretation_outcome.classification = %(classification_1)s::VARCHAR)) AND (EXISTS (SELECT document.id FROM document WHERE document.tenant",
+              "ms": 38.7,
+              "count": 2,
+              "span": "sweep"
+            },
+            {
+              "sql": "SELECT source_record.id, source_record.tenant_id, source_record.source_system, source_record.source_type, source_record.external_id, source_record.payload, source_record.payload_hash, source_record.source_artifact_id, source_record.version, source_record.source_version_at, source_record.supersedes_source_record_id, source_record.received_at FROM source_record WHERE source_record.tenant_id = %(tena",
+              "ms": 15.0,
+              "count": 57,
+              "span": "both"
+            },
+            {
+              "sql": "SELECT playground_run.id, playground_run.tenant_id, playground_run.owner_user_id, playground_run.preset_key, playground_run.sandbox_kind, playground_run.preset_version, playground_run.lesson_key, playground_run.lesson_version, playground_run.client_request_key, playground_run.status, playground_run.initialization_progress, playground_run.initialization_error_code, playground_run.created_at, playgr",
+              "ms": 3.1,
+              "count": 11,
+              "span": "both"
+            },
+            {
+              "sql": "SELECT scheduled_job_run.id, scheduled_job_run.tenant_id, scheduled_job_run.schedule_id, scheduled_job_run.actor_id, scheduled_job_run.job_type, scheduled_job_run.configuration, scheduled_job_run.schedule_revision, scheduled_job_run.scheduled_for, scheduled_job_run.request_id, scheduled_job_run.request_fingerprint, scheduled_job_run.status, scheduled_job_run.attempt_count, scheduled_job_run.next_a",
+              "ms": 1.5,
+              "count": 5,
+              "span": "sweep"
+            },
+            {
+              "sql": "SELECT demo_data_connection.id, demo_data_connection.tenant_id, demo_data_connection.source_system_id, demo_data_connection.current_schedule_id, demo_data_connection.settlement_schedule_id, demo_data_connection.state, demo_data_connection.revision, demo_data_connection.last_request_key, demo_data_connection.last_request_fingerprint, demo_data_connection.created_at, demo_data_connection.updated_at ",
+              "ms": 1.3,
+              "count": 5,
+              "span": "sweep"
+            }
+          ]
+        },
+        {
+          "step": "invoice",
+          "produced": 1,
+          "queries": 164,
+          "sql_ms": 135.8,
+          "wall_ms": 214.1,
+          "interpreting_queries": 69,
+          "interpreting_ms": 21.6,
+          "repeated_reads": [
+            {
+              "table": "source_record",
+              "count": 62
+            },
+            {
+              "table": "playground_run",
+              "count": 11
+            },
+            {
+              "table": "tenant",
+              "count": 11
+            },
+            {
+              "table": "business_event",
+              "count": 8
+            },
+            {
+              "table": "scheduled_job_run",
+              "count": 7
+            },
+            {
+              "table": "document",
+              "count": 7
+            }
+          ],
+          "slowest_interpreting": [
+            {
+              "sql": "SELECT source_record.id, source_record.tenant_id, source_record.source_system, source_record.source_type, source_record.external_id, source_record.payload, source_record.payload_hash, source_record.source_artifact_id, source_record.version, source_record.source_version_at, source_record.supersedes_source_record_id, source_record.received_at FROM source_record WHERE source_record.tenant_id = %(tena",
+              "ms": 15.4,
+              "count": 59,
+              "span": "both"
+            },
+            {
+              "sql": "SELECT playground_run.id, playground_run.tenant_id, playground_run.owner_user_id, playground_run.preset_key, playground_run.sandbox_kind, playground_run.preset_version, playground_run.lesson_key, playground_run.lesson_version, playground_run.client_request_key, playground_run.status, playground_run.initialization_progress, playground_run.initialization_error_code, playground_run.created_at, playgr",
+              "ms": 4.1,
+              "count": 11,
+              "span": "both"
+            },
+            {
+              "sql": "SELECT document.id, document.tenant_id, document.source_record_id, document.type, document.number, document.party_id, document.currency, document.gross_amount, document.status, document.document_date, document.ordered_at, document.requested_delivery_at, document.customer_reference, document.sales_channel, document.payment_term_id, document.ship_to_party_id FROM document WHERE document.tenant_id = ",
+              "ms": 1.6,
+              "count": 6,
+              "span": "interpreting"
+            },
+            {
+              "sql": "INSERT INTO business_event (id, tenant_id, sequence, event_type, schema_version, subject_type, subject_id, occurred_at, recorded_at, payload, source_record_id, action_id, causation_id, correlation_id) VALUES (%(id)s::VARCHAR, %(tenant_id)s::VARCHAR, %(sequence)s::BIGINT, %(event_type)s::VARCHAR, %(schema_version)s::INTEGER, %(subject_type)s::VARCHAR, %(subject_id)s::VARCHAR, %(occurred_at)s::TIMES",
+              "ms": 1.6,
+              "count": 4,
+              "span": "interpreting"
+            },
+            {
+              "sql": "INSERT INTO document (id, tenant_id, source_record_id, type, number, party_id, currency, gross_amount, status, document_date, ordered_at, requested_delivery_at, customer_reference, sales_channel, payment_term_id, ship_to_party_id) VALUES (%(id)s::VARCHAR, %(tenant_id)s::VARCHAR, %(source_record_id)s::VARCHAR, %(type)s::VARCHAR, %(number)s::VARCHAR, %(party_id)s::VARCHAR, %(currency)s::VARCHAR, %(g",
+              "ms": 1.2,
+              "count": 1,
+              "span": "interpreting"
+            }
+          ],
+          "slowest_sweep": [
+            {
+              "sql": "SELECT CASE WHEN (import_job.status = %(status_1)s::VARCHAR AND (EXISTS (SELECT interpretation_outcome.id FROM interpretation_outcome WHERE interpretation_outcome.tenant_id = %(tenant_id_1)s::VARCHAR AND interpretation_outcome.import_job_id = import_job.id AND interpretation_outcome.classification = %(classification_1)s::VARCHAR)) AND (EXISTS (SELECT document.id FROM document WHERE document.tenant",
+              "ms": 54.9,
+              "count": 3,
+              "span": "sweep"
+            },
+            {
+              "sql": "SELECT source_record.id, source_record.tenant_id, source_record.source_system, source_record.source_type, source_record.external_id, source_record.payload, source_record.payload_hash, source_record.source_artifact_id, source_record.version, source_record.source_version_at, source_record.supersedes_source_record_id, source_record.received_at, scheduled_job.id AS id_1, (scheduled_job.configuration[%",
+              "ms": 21.0,
+              "count": 1,
+              "span": "sweep"
+            },
+            {
+              "sql": "SELECT source_record.id, source_record.tenant_id, source_record.source_system, source_record.source_type, source_record.external_id, source_record.payload, source_record.payload_hash, source_record.source_artifact_id, source_record.version, source_record.source_version_at, source_record.supersedes_source_record_id, source_record.received_at FROM source_record WHERE source_record.tenant_id = %(tena",
+              "ms": 15.4,
+              "count": 59,
+              "span": "both"
+            },
+            {
+              "sql": "SELECT source_record.external_id FROM source_record WHERE source_record.tenant_id = %(tenant_id_1)s::VARCHAR AND source_record.source_system = %(source_system_1)s::VARCHAR AND source_record.source_type IN (%(source_type_1_1)s::VARCHAR, %(source_type_1_2)s::VARCHAR) AND source_record.external_id IN (%(external_id_1_1)s::VARCHAR, %(external_id_1_2)s::VARCHAR, %(external_id_1_3)s::VARCHAR, %(external",
+              "ms": 12.7,
+              "count": 1,
+              "span": "sweep"
+            },
+            {
+              "sql": "SELECT playground_run.id, playground_run.tenant_id, playground_run.owner_user_id, playground_run.preset_key, playground_run.sandbox_kind, playground_run.preset_version, playground_run.lesson_key, playground_run.lesson_version, playground_run.client_request_key, playground_run.status, playground_run.initialization_progress, playground_run.initialization_error_code, playground_run.created_at, playgr",
+              "ms": 4.1,
+              "count": 11,
+              "span": "both"
+            }
+          ]
+        },
+        {
+          "step": "payment",
+          "produced": 1,
+          "queries": 203,
+          "sql_ms": 227.0,
+          "wall_ms": 384.8,
+          "interpreting_queries": 108,
+          "interpreting_ms": 120.6,
+          "repeated_reads": [
+            {
+              "table": "source_record",
+              "count": 62
+            },
+            {
+              "table": "tenant",
+              "count": 14
+            },
+            {
+              "table": "document",
+              "count": 14
+            },
+            {
+              "table": "ledger_reversal",
+              "count": 13
+            },
+            {
+              "table": "playground_run",
+              "count": 11
+            },
+            {
+              "table": "business_event",
+              "count": 10
+            }
+          ],
+          "slowest_interpreting": [
+            {
+              "sql": "SELECT ledger_reversal.original_posting_group_id FROM ledger_reversal WHERE ledger_reversal.tenant_id = %(tenant_id_1)s::VARCHAR AND ledger_reversal.original_posting_group_id IN (%(original_posting_group_id_1_1)s::VARCHAR, %(original_posting_group_id_1_2)s::VARCHAR, %(original_posting_group_id_1_3)s::VARCHAR, %(original_posting_group_id_1_4)s::VARCHAR, %(original_posting_group_id_1_5)s::VARCHAR, %",
+              "ms": 52.7,
+              "count": 1,
+              "span": "interpreting"
+            },
+            {
+              "sql": "SELECT ledger_entry.id, ledger_entry.tenant_id, ledger_entry.posting_group_id, ledger_entry.account_id, ledger_entry.party_id, ledger_entry.amount, ledger_entry.currency, ledger_entry.debit_credit, ledger_entry.effective_at, ledger_entry.document_id, ledger_entry.source_record_id, subledger_account_1.id AS id_1, subledger_account_1.tenant_id AS tenant_id_1, subledger_account_1.code, subledger_acco",
+              "ms": 20.2,
+              "count": 9,
+              "span": "interpreting"
+            },
+            {
+              "sql": "SELECT subledger_account.id, subledger_account.tenant_id, subledger_account.code, subledger_account.name, subledger_account.role, subledger_account.state, subledger_account.revision FROM subledger_account WHERE subledger_account.tenant_id = %(tenant_id_1)s::VARCHAR AND subledger_account.id = %(id_1)s::VARCHAR",
+              "ms": 17.2,
+              "count": 4,
+              "span": "interpreting"
+            },
+            {
+              "sql": "SELECT source_record.id, source_record.tenant_id, source_record.source_system, source_record.source_type, source_record.external_id, source_record.payload, source_record.payload_hash, source_record.source_artifact_id, source_record.version, source_record.source_version_at, source_record.supersedes_source_record_id, source_record.received_at FROM source_record WHERE source_record.tenant_id = %(tena",
+              "ms": 13.9,
+              "count": 59,
+              "span": "both"
+            },
+            {
+              "sql": "SELECT document.id, document.tenant_id, document.source_record_id, document.type, document.number, document.party_id, document.currency, document.gross_amount, document.status, document.document_date, document.ordered_at, document.requested_delivery_at, document.customer_reference, document.sales_channel, document.payment_term_id, document.ship_to_party_id FROM document WHERE document.tenant_id = ",
+              "ms": 4.2,
+              "count": 13,
+              "span": "interpreting"
+            }
+          ],
+          "slowest_sweep": [
+            {
+              "sql": "SELECT CASE WHEN (import_job.status = %(status_1)s::VARCHAR AND (EXISTS (SELECT interpretation_outcome.id FROM interpretation_outcome WHERE interpretation_outcome.tenant_id = %(tenant_id_1)s::VARCHAR AND interpretation_outcome.import_job_id = import_job.id AND interpretation_outcome.classification = %(classification_1)s::VARCHAR)) AND (EXISTS (SELECT document.id FROM document WHERE document.tenant",
+              "ms": 52.6,
+              "count": 3,
+              "span": "sweep"
+            },
+            {
+              "sql": "SELECT source_record.id, source_record.tenant_id, source_record.source_system, source_record.source_type, source_record.external_id, source_record.payload, source_record.payload_hash, source_record.source_artifact_id, source_record.version, source_record.source_version_at, source_record.supersedes_source_record_id, source_record.received_at, scheduled_job.id AS id_1, (scheduled_job.configuration[%",
+              "ms": 18.6,
+              "count": 1,
+              "span": "sweep"
+            },
+            {
+              "sql": "SELECT source_record.id, source_record.tenant_id, source_record.source_system, source_record.source_type, source_record.external_id, source_record.payload, source_record.payload_hash, source_record.source_artifact_id, source_record.version, source_record.source_version_at, source_record.supersedes_source_record_id, source_record.received_at FROM source_record WHERE source_record.tenant_id = %(tena",
+              "ms": 13.9,
+              "count": 59,
+              "span": "both"
+            },
+            {
+              "sql": "SELECT source_record.external_id FROM source_record WHERE source_record.tenant_id = %(tenant_id_1)s::VARCHAR AND source_record.source_system = %(source_system_1)s::VARCHAR AND source_record.source_type IN (%(source_type_1_1)s::VARCHAR, %(source_type_1_2)s::VARCHAR) AND source_record.external_id IN (%(external_id_1_1)s::VARCHAR, %(external_id_1_2)s::VARCHAR, %(external_id_1_3)s::VARCHAR, %(external",
+              "ms": 12.5,
+              "count": 1,
+              "span": "sweep"
+            },
+            {
+              "sql": "SELECT playground_run.id, playground_run.tenant_id, playground_run.owner_user_id, playground_run.preset_key, playground_run.sandbox_kind, playground_run.preset_version, playground_run.lesson_key, playground_run.lesson_version, playground_run.client_request_key, playground_run.status, playground_run.initialization_progress, playground_run.initialization_error_code, playground_run.created_at, playgr",
+              "ms": 3.1,
+              "count": 11,
+              "span": "both"
             }
           ]
         }

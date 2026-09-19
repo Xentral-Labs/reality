@@ -83,9 +83,11 @@ def test_the_record_states_what_it_cannot_prove():
                     {
                         "step": "order",
                         "produced": 1,
-                        "queries": 70,
+                        "queries": 140,
                         "sql_ms": 150.0,
                         "wall_ms": 160.0,
+                        "interpreting_queries": 70,
+                        "interpreting_ms": 80.0,
                     }
                 ],
             },
@@ -95,9 +97,11 @@ def test_the_record_states_what_it_cannot_prove():
                     {
                         "step": "order",
                         "produced": 1,
-                        "queries": 84,
+                        "queries": 130,
                         "sql_ms": 180.0,
                         "wall_ms": 190.0,
+                        "interpreting_queries": 84,
+                        "interpreting_ms": 110.0,
                     }
                 ],
             },
@@ -110,7 +114,48 @@ def test_the_record_states_what_it_cannot_prove():
         created_at=datetime.now(UTC),
     )
     # SC-001 is a ratio, so the record carries one rather than leaving a reader to
-    # divide two numbers and guess which way round they go.
+    # divide two numbers and guess which way round they go. It is measured on the
+    # interpreting span: the sweep total here *falls* while the product path rises,
+    # and a ratio taken from the sum would report no growth at all — which is the
+    # mistake this split exists to prevent.
     assert result.growth() == 1.2
     assert any("curve" in limitation for limitation in result.limitations)
     assert any("milliseconds" in limitation for limitation in result.limitations)
+
+
+def test_the_slowest_statements_are_separated_by_span():
+    """A sweep statement must never be listed as an interpreting one.
+
+    Mixing them is how the demo generator's throttle came to look like a problem
+    with the intake: it was the dearest statement of the step, and the step's list
+    did not say which half of the work it belonged to.
+    """
+    from benchmarks.ingest_cost.measure import StepCost
+
+    cost = StepCost("invoice")
+    cost.statements = {
+        "SELECT throttle": {
+            "sql": "SELECT throttle",
+            "ms": 200.0,
+            "count": 6,
+            "interpreting": False,
+        },
+        "SELECT document": {
+            "sql": "SELECT document",
+            "ms": 40.0,
+            "count": 12,
+            "interpreting": True,
+        },
+        "SELECT tenant": {
+            "sql": "SELECT tenant",
+            "ms": 10.0,
+            "count": 3,
+            "interpreting": None,
+        },
+    }
+    interpreting = cost.slowest(interpreting=True)
+    assert [row["sql"] for row in interpreting] == ["SELECT document", "SELECT tenant"]
+    sweep = cost.slowest(interpreting=False)
+    assert sweep[0]["sql"] == "SELECT throttle"
+    # A shape reached from both spans says so rather than claiming one.
+    assert [row["span"] for row in interpreting] == ["interpreting", "both"]
