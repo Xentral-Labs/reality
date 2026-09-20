@@ -992,6 +992,8 @@ slowest statements are separated by span, so a statement of the sweep is never l
 one of the interpreting — the confusion that made a demo generator's throttle look like a
 problem with the intake.
 
+- `packages/reality-core/tests/test_tenant_lifecycle.py::test_the_usage_summary_agrees_with_the_tables_it_summarises`: FR-002. The usage summary asks every table in one statement instead of twenty-four, so each figure is held against a count taken on its own, and the company-by-company call is held against the whole-instance one. Dropping a table from the union, or attributing one to the wrong figure, fails it — the two sabotages that were run, because a wrong total here is a number nobody could see was wrong.
+
 ## Composable analytics (185)
 
 Spec 185 owns the analytics service, agent tools, private report configuration and workspace.
