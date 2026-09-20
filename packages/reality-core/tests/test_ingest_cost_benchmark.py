@@ -316,3 +316,113 @@ def test_no_ratio_is_reported_when_the_samples_hold_different_steps():
 
     assert result.growth() is None
     assert "No ratio" in result.summary()
+
+
+def _shape_of(session, *statements: str):
+    """Classify tables this test just created, in a transaction that rolls back."""
+    from sqlalchemy import text as sql
+
+    from benchmarks.ingest_cost.storage import storage_shape
+
+    for statement in statements:
+        session.execute(sql(statement))
+    session.flush()
+    return storage_shape(session, orders=0)
+
+
+def _blocked(shape) -> dict[str, list[str]]:
+    return {
+        entry.table_name: entry.constraints
+        for entry in shape.blocked_from_tenant_partitioning
+    }
+
+
+def test_a_table_keyed_only_by_its_id_cannot_be_split_by_company(session):
+    """FR-005's first clause, and the reason it is not a strategy but a list.
+
+    PostgreSQL refuses to partition a table unless every unique constraint holds
+    the partition key. A primary key on `id` alone is therefore the whole
+    obstacle, and naming the constraint is what turns the requirement into work.
+    """
+    shape = _shape_of(
+        session,
+        "CREATE TABLE probe_id_only (id text PRIMARY KEY, tenant_id text NOT NULL)",
+    )
+    assert _blocked(shape)["probe_id_only"] == ["probe_id_only_pkey"]
+
+
+def test_a_table_whose_keys_all_name_the_company_is_ready(session):
+    shape = _shape_of(
+        session,
+        "CREATE TABLE probe_ready ("
+        "  tenant_id text NOT NULL, id text NOT NULL, number text NOT NULL,"
+        "  PRIMARY KEY (tenant_id, id),"
+        "  CONSTRAINT uq_probe_ready_number UNIQUE (tenant_id, number))",
+    )
+    assert "probe_ready" not in _blocked(shape)
+
+
+def test_a_promise_that_must_hold_across_companies_is_reported_too(session):
+    """Not every blocker is an oversight, which is why the constraint is named.
+
+    An invitation token has to be unique across every company or it would not be
+    a token at all. Such a table shows up here exactly like the mechanical ones,
+    and only the name tells a reader that this one is a decision rather than a
+    key nobody revisited.
+    """
+    shape = _shape_of(
+        session,
+        "CREATE TABLE probe_token ("
+        "  tenant_id text NOT NULL, id text NOT NULL, token_hash text NOT NULL,"
+        "  PRIMARY KEY (tenant_id, id),"
+        "  CONSTRAINT uq_probe_token_hash UNIQUE (token_hash))",
+    )
+    assert _blocked(shape)["probe_token"] == ["uq_probe_token_hash"]
+
+
+def test_a_table_without_a_company_is_not_called_blocked(session):
+    """Shared tables were never candidates; reporting them would invent work."""
+    shape = _shape_of(
+        session,
+        "CREATE TABLE probe_shared (id text PRIMARY KEY, label text NOT NULL)",
+    )
+    assert "probe_shared" not in _blocked(shape)
+
+
+def test_the_size_of_a_table_is_its_three_parts(session):
+    """Rows, indexes and what PostgreSQL moved out of line are kept apart.
+
+    They are three different decisions, and the measurement that adds them up
+    before recording them cannot tell a tiering question from an indexing one.
+    """
+    from benchmarks.ingest_cost.report import TableSize
+
+    table = TableSize(
+        table_name="probe",
+        estimated_rows=10,
+        heap_bytes=300,
+        index_bytes=700,
+        out_of_line_bytes=24,
+    )
+    assert table.total_bytes == 1024
+
+
+def test_a_company_with_no_orders_yet_is_not_divided_by(session):
+    """The same trap the growth ratio fell into, one measurement further on."""
+    from benchmarks.ingest_cost.report import StorageShape
+
+    assert StorageShape(orders=0, tables=[]).bytes_per_order is None
+
+
+def test_a_record_written_before_storage_was_measured_still_loads():
+    """FR-006 keeps old runs comparable; a new field must not orphan them."""
+    result = IngestResult.from_samples(
+        [{"orders_before": 0, "steps": []}],
+        tenant_id="ten_x",
+        git_revision="abcdef1",
+        python="3.12.4",
+        platform="probe",
+        postgresql="17",
+        created_at=datetime.now(UTC),
+    )
+    assert result.samples[0].storage is None

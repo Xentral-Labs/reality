@@ -443,9 +443,45 @@ builder and class measurements at checkpoints, and compare two commits on the sa
   payloads MUST be movable to a tiered store behind the existing reference; every repository
   query MUST resolve its cluster from the tenant scope.
 
-  Untouched as of 2026-09-19. `PARTITION BY` appears nowhere in the repository, no payload is
-  tiered, and no query resolves a cluster. It is the largest remaining piece of this spec and
-  nothing currently depends on it, which is why FR-007 puts it last.
+  `PARTITION BY` still appears nowhere, no payload is tiered, and no query resolves a
+  cluster. What changed on 2026-09-20 is that the requirement is measured rather than
+  assumed: `benchmarks.ingest_cost` records, at every checkpoint, the size of every table
+  that grew — rows, indexes and what PostgreSQL moved out of line, kept apart because they
+  are three different decisions — and which tenant-scoped tables their keys would let
+  anyone partition. A 500-order company keeps 17.5 MB, or **35.9 kB per order to cash**.
+  Three findings, and two of them change what this requirement should do first.
+
+  **The first clause is a list, not a strategy.** PostgreSQL refuses to partition a table
+  unless every unique constraint contains the partition key, the primary key included. Of
+  81 tenant-scoped tables, **79 are blocked, and 70 of them by nothing but their primary
+  key**, which is `id` alone — one mechanical change made seventy times. Only nine carry a
+  unique constraint that does not name the company, and those are not oversights: an
+  invitation token and an MCP access token must be unique across every company or they
+  would not be tokens. The work is seventy keys and nine decisions, and the measurement
+  names every constraint rather than leaving the next reader to find them.
+
+  **The second clause is not where the bytes are.** The premise was that lossless source
+  payloads sit in the hot tables and should move to a tiered store. They do sit there, but
+  they are small: a payload averages **691 bytes**, so PostgreSQL never moves one out of
+  line, and all of them together are about 6 % of what the company keeps. Tiering *every*
+  source payload would therefore remove under a sixteenth of the storage. The bulk is
+  ordinary rows and their indexes, which in several tables outweigh the rows they point at
+  by more than two to one. Tiering payloads may still be right for a reason this
+  requirement does not state — they are written once, read rarely and kept forever — but it
+  is not a storage lever, and FR-005 should stop implying that it is.
+
+  **And the instrument cannot yet see the largest table.** In the development database
+  `projection_row` is the biggest thing in the schema; in the fixture it holds **zero
+  rows**, because the run ingests and settles but never refreshes a projection. The same
+  fixture reaches 769 job runs where a real company accumulates them minute by minute with
+  nothing deleting them — the development database holds 81,710 `projections.refresh` rows
+  against 38,454 source records. So the storage this requirement must answer for has two
+  halves, and the measurement currently covers the ingested half only. The derived half,
+  and retention for the job history the current-state note already calls unbounded, belong
+  in this requirement and are not yet measured.
+
+  Still untouched: partitioning itself, the tiered store, and cluster resolution. It remains
+  the largest remaining piece of this spec, which is why FR-007 puts it last.
 - **FR-006**: Measurement. The repository MUST carry the scale fixture and measurement as a
   maintained tool, refused on business companies, producing the machine-readable record User
   Story 5 describes.

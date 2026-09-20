@@ -23,7 +23,7 @@ import sys
 from pathlib import Path
 from typing import Any
 
-from .report import IngestResult
+from .report import IngestResult, human_bytes
 
 #: SC-005's threshold. It applies to the timings; the counts are held to exact
 #: equality, because a query that ran once yesterday and twice today is a change
@@ -119,6 +119,49 @@ def compare(
                             "spread": round(spread, 3),
                         }
                     )
+        if left.storage is None or right.storage is None:
+            continue
+        where = {"orders_before": left.orders_before, "step": "storage"}
+        # What a company keeps is compared as a size, not as a count, although it
+        # is arithmetic: a table holds whatever autovacuum has not yet reclaimed,
+        # so two runs of the same commit differ by a background process. The
+        # blocked tables are a property of the schema and are held to equality.
+        compared += 1
+        sizes = (left.storage.total_bytes, right.storage.total_bytes)
+        spread = _relative(*sizes)
+        if spread > tolerance:
+            findings.append(
+                {
+                    **where,
+                    "figure": "kept_bytes",
+                    "kind": "size",
+                    "first": sizes[0],
+                    "second": sizes[1],
+                    "spread": round(spread, 3),
+                }
+            )
+        compared += 1
+        blocked = (
+            [
+                entry.table_name
+                for entry in left.storage.blocked_from_tenant_partitioning
+            ],
+            [
+                entry.table_name
+                for entry in right.storage.blocked_from_tenant_partitioning
+            ],
+        )
+        if blocked[0] != blocked[1]:
+            findings.append(
+                {
+                    **where,
+                    "figure": "tables_blocked_from_partitioning",
+                    "kind": "count",
+                    "first": len(blocked[0]),
+                    "second": len(blocked[1]),
+                    "difference": len(blocked[1]) - len(blocked[0]),
+                }
+            )
     return {
         "git_revision": first.git_revision,
         "tolerance": tolerance,
@@ -145,6 +188,12 @@ def render(verdict: dict[str, Any]) -> str:
             lines.append(
                 f"  {where} checkpoint: the company held "
                 f"{finding['first']} orders against {finding['second']}"
+            )
+        elif finding["kind"] == "size":
+            lines.append(
+                f"  {where} {finding['figure']}: "
+                f"{human_bytes(finding['first'])} → "
+                f"{human_bytes(finding['second'])} ({finding['spread']:.0%})"
             )
         elif finding["kind"] == "count":
             lines.append(

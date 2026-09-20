@@ -48,6 +48,7 @@ from .company import (
 )
 from .measure import measured
 from .report import IngestResult, write_result
+from .storage import storage_shape
 
 
 def validate_database_target(database_name: str, *, confirmed: bool) -> None:
@@ -275,10 +276,16 @@ def main() -> int:
             _grow_to(session, company, checkpoint)
             session.execute(text("ANALYZE"))
             session.commit()
+            orders_before = _orders(session, company.tenant_id)
+            # Taken before the steps and straight after the ANALYZE above, so the
+            # sizes belong to the checkpoint the row is labelled with and the row
+            # estimates are the ones PostgreSQL just refreshed.
+            storage = storage_shape(session, orders=orders_before)
             samples.append(
                 {
-                    "orders_before": _orders(session, company.tenant_id),
+                    "orders_before": orders_before,
                     "steps": _sample(session, company, engine),
+                    "storage": storage,
                 }
             )
         postgresql = str(session.scalar(text("SHOW server_version")))
