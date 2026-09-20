@@ -35,6 +35,8 @@ model is the [agent capabilities chapter](/tool-usage/#choosing-a-tool) and the
   including partial shipments, revised promises, holds and stale promises.
 - [Receivables and payments](./receivables-and-payments): from a shipped order to a settled invoice,
   including short, over, unmatched and lump-sum payments, reductions, credits and refunds.
+- [Contribution margin](./contribution-margin): track DB1 and DB2 per invoice line, identify missing
+  evidence, review selling-cost composition and explain later knowledge without overwriting history.
 - [Purchasing and replenishment](./purchasing-and-replenishment): from a shortage to a paid supplier
   invoice, including purchase orders, receipts, the three-way check, the payment run, supplier
   differences and credits.

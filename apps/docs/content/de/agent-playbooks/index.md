@@ -40,6 +40,9 @@ nicht fest; das ist deine Seite der Arbeit. Die technische Referenz jedes Werkze
 - [Forderungen und Zahlungen](./receivables-and-payments): vom versandten Auftrag zur ausgeglichenen
   Rechnung, mit Minder-, Über-, unzugeordneten und Sammelzahlungen, Abzügen, Gutschriften und
   Erstattungen.
+- [Deckungsbeitrag](./contribution-margin): DB1 und DB2 je Rechnungsposition verfolgen, fehlende
+  Grundlagen erkennen, Vertriebskosten erklären und späteres Wissen nachvollziehen, ohne die
+  Historie zu überschreiben.
 - [Einkauf und Nachschub](./purchasing-and-replenishment): von der Fehlmenge zur bezahlten
   Lieferantenrechnung, mit Bestellungen, Wareneingängen, Rechnungsprüfung, Zahllauf,
   Lieferantenabweichungen und Gutschriften.

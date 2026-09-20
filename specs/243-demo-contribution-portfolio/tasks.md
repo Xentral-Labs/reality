@@ -57,7 +57,7 @@ All task descriptions, paths, review notes, and resulting repository artifacts M
 ## Phase 6: Documentation and Cross-Cutting Review
 
 - [x] T019 [P] [FR-012] Update the durable international-v3 portfolio contract and arithmetic in `docs/features/company-setup-demo.md` and `specs/146-company-setup-demo/contracts/demo-profile.md`
-- [x] T020 [P] [FR-012] Add the varied demo portfolio example and discovery guidance to `apps/docs/content/concepts/business-reality-guide/08-inventory-cost-and-contribution.md` and its German counterpart
+- [x] T020 [P] [FR-012] Add the varied demo portfolio example to the bilingual ERP guide and a situation-led DB1/DB2 tool playbook under `apps/docs/content/{,de/}agent-playbooks/contribution-margin.md`, including sidebar navigation
 - [x] T021 [P] [FR-012] Extend documentation contract assertions in `apps/docs/scripts/docs-contract.test.mjs`
 - [x] T022 [FR-001-FR-012] [DR-001-DR-005] Update executable evidence mapping in `docs/SPEC_COVERAGE_MATRIX.md`
 - [x] T023 Run `make spec-check` and audit requirement coverage across `specs/243-demo-contribution-portfolio/`
