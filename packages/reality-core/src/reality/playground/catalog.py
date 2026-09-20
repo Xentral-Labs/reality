@@ -24,9 +24,8 @@ PRESETS = (
 
 def find_preset(key: str, version: int) -> dict | None:
     supported_company_profile = (
-        (key == "international-demo" and version in {1, 2})
-        or (key in {"company-empty", "atlas-execution"} and version == 1)
-    )
+        key == "international-demo" and version in {1, 2, 3}
+    ) or (key in {"company-empty", "atlas-execution"} and version == 1)
     if supported_company_profile:
         return {
             "key": key,

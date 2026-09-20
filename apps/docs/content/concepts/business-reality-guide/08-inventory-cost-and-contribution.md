@@ -86,6 +86,28 @@ If the selling-cost review is incomplete, this same case can still show supporte
 while DB2 remains unknown. If all seven selling categories were explicitly reviewed as zero or not
 applicable, DB2 could validly equal DB1. An empty checklist never means zero.
 
+## Compare the demo portfolio
+
+A newly created company with **Demo Data** includes six complete, named contribution examples. Use
+their `COST-*` invoice references in Finance to compare why DB1 and DB2 differ:
+
+| Demo outcome                   | Net revenue | Goods cost |     DB1 | Direct selling | Allocated selling |      DB2 |  DB2 rate |
+| ------------------------------ | ----------: | ---------: | ------: | -------------: | ----------------: | -------: | --------: |
+| Fixture A                      |   EUR 1,200 |    EUR 630 | EUR 570 |         EUR 90 |            EUR 24 |  EUR 456 |       38% |
+| Healthy                        |     EUR 250 |    EUR 100 | EUR 150 |         EUR 20 |             EUR 5 |  EUR 125 |       50% |
+| Low contribution               |     EUR 150 |    EUR 100 |  EUR 50 |         EUR 25 |            EUR 15 |   EUR 10 |   6.6667% |
+| Negative DB2                   |     EUR 130 |    EUR 100 |  EUR 30 |         EUR 35 |            EUR 25 | − EUR 30 | −23.0769% |
+| Selling costs reviewed as zero |     EUR 180 |    EUR 100 |  EUR 80 |          EUR 0 |             EUR 0 |   EUR 80 |  44.4444% |
+| Allocated-cost heavy           |     EUR 220 |    EUR 100 | EUR 120 |         EUR 10 |            EUR 50 |   EUR 60 |  27.2727% |
+
+The negative example is not an error: its evidenced selling costs exceed DB1. The zero-selling-cost
+example is complete only because every selling category was explicitly reviewed as zero. The demo
+also retains a missing-cost case and a late-cost/customer-return case; those teach why unknown is
+different from zero and why later knowledge does not rewrite an earlier state.
+
+This portfolio belongs to the versioned setup profile. Continuously arriving synthetic demo orders
+remain uncosted by default and are never silently approved into it.
+
 ## When a result is calculated
 
 Reality derives the monetary observation at read time from retained inputs. It does not store DB1 or

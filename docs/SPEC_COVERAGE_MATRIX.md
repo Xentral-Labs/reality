@@ -1414,7 +1414,7 @@ Feature contract: `docs/features/receipt-costing.md`.
 | `packages/reality-core/tests/test_costing_migration.py` | DR-001–005: all composite authority foreign keys, upgrade, empty downgrade and refusal to erase retained history |
 | `packages/reality-core/tests/test_costing_services.py` | FR-001–003/007/014–016/019: actual receipt A, explicit category review, tax, late costs, immutable replacement/correction history, transaction rollback and foreign authority refusal |
 | `packages/reality-core/tests/test_costing_tools.py` | FR-016/019/027: actual application/MCP dispatch, explicit owner confirmation, replay, demotion and foreign tenant scope |
-| `packages/reality-core/tests/test_demo_costing_profile.py` | FR-026, SC-007: international-v2 replay/authority, source-backed fixture A quantity coverage, deliberate missing cost and signed late-cost return |
+| `packages/reality-core/tests/test_demo_costing_profile.py` | Spec 146 FR-026/SC-007 and spec 243 FR-001–011/DR-001–005: international-v3 replay/authority, six exact source-backed contribution outcomes with varied selling costs, deliberate missing cost and signed late-cost return |
 | `packages/reality-core/tests/test_carrying_value_domain.py` | FR-009/015/022, SC-001/003: explicit write-down/recovery reconciliation, exact predecessor scope, precision and acquisition-cost ceiling |
 | `packages/reality-core/tests/test_carrying_value_migration.py` | FR-009/019, SC-003: guarded assessment schema, shortest same-tenant links, immutability and protected rollback |
 | `packages/reality-core/tests/test_carrying_value_services.py` | FR-009/015/019, SC-001/003: owner-confirmed preview/execution, source/member scope, staleness, bounded recovery and current/historical acquisition-to-carrying reads |

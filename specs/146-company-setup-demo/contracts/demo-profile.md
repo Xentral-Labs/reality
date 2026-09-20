@@ -1,6 +1,6 @@
 # Canonical International Demo Profile
 
-Status: implemented local profile `international-v2`; no live deployment. Read contracts/capability gaps remain owned by spec 144. No new analytics API is implied.
+Status: implemented local profile `international-v3`; no live deployment. Read contracts/capability gaps remain owned by spec 144. No new analytics API is implied.
 
 ## Catalog and identity
 
@@ -76,10 +76,10 @@ Expose tenant/profile/version/anchor/windows and bounded named case/reference li
 
 Execution profile has a separate fresh practice tenant, one unit matching free stock and one open unreserved commitment, plus a held refusal case. Its marker disallows Demo Data. No confirmed proposal/receipt is fabricated on setup. Existing actual review/confirmation and receipt verification demonstrate reserved+1, available−1, physical unchanged. Repeating with a fresh request creates a new tenant; same request reuses prior result; earlier analysis and audit survive.
 
-## Bounded costing stories (international-v2)
+## Bounded costing stories (international-v3)
 
-The canonical baseline adds three named source-backed cases without changing the
-ongoing Demo Data generator. `fixture_a` states 1,200 EUR net revenue, 100 pcs and
+The canonical baseline retains three named source-backed stories and adds five complete
+comparison outcomes without changing the ongoing Demo Data generator. `fixture_a` states 1,200 EUR net revenue, 100 pcs and
 1,050 EUR acquisition cost; 60 fulfilled and billed pcs are explicitly matched at
 630 EUR, while 40 remaining pcs retain 420 EUR acquisition value. DB1 is derived as
 570 EUR; 90 EUR direct and 24 EUR allocated source-backed selling costs derive DB2 of
@@ -87,7 +87,15 @@ ongoing Demo Data generator. `fixture_a` states 1,200 EUR net revenue, 100 pcs a
 revenue evidence without a cost review. `late_cost_return` retains the earlier gap,
 then adds separately sourced cost and an exact ten-piece customer return/credit match.
 
-All three flow through `demo_profile` SourceRecords and the normal document, movement
+The five `portfolio_*` cases each consume 100 EUR from one separately authored and
+reviewed acquisition lot. Their source-stated net revenues and reviewed direct/allocated
+selling costs derive these complete outcomes: healthy 250/100/20/5 → DB1 150 and DB2 125;
+low 150/100/25/15 → DB1 50 and DB2 10; negative 130/100/35/25 → DB1 30 and DB2 −30;
+reviewed-zero selling 180/100/0/0 → DB1 and DB2 80; allocated-heavy 220/100/10/50 →
+DB1 120 and DB2 60. One joint final inventory review and one joint contribution review
+keep all six complete positions current at the same knowledge boundary.
+
+All cases flow through `demo_profile` SourceRecords and the normal document, movement
 and costing services. The fixed initialization recipe uses a transaction/run/owner-bound
 authority and ordinary cost proposals/events; it is not available to adapters and grants
 no other finance command. Replay never duplicates approvals or restarts a later paused or

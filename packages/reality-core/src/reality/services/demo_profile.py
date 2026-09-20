@@ -810,46 +810,46 @@ def seed_profile(
             },
         ]
         late_inventory_arguments = {
-                "operation": "inventory_review",
-                "expected_event_sequence": _sequence(session, tenant),
-                "item_id": items["P03"],
-                "owner_party_id": parties["company"],
-                "method": "fifo",
-                "currency": "EUR",
-                "base_unit": "pcs",
-                "history_start": (anchor - timedelta(seconds=1)).isoformat(),
-                "effective_at": returned.occurred_at.isoformat(),
-                "history_complete_from_zero": True,
-                "receipt_cost_scopes_confirmed": True,
-                "economic_issue_ids": [issue.id],
-                "supplier_return_ids": [cleanup.id],
-                "customer_return_ids": [returned.id],
-                "openings": [
-                    {
-                        "movement_id": opening.id,
-                        "evidence_source_record_id": acquisition_source.id,
-                        "acquisition_cost": "1050",
-                    }
-                ],
-                "specific_selections": [
-                    {
-                        "movement_id": cleanup.id,
-                        "entry_movement_id": opening.id,
-                        "receipt_movement_id": opening.id,
-                        "quantity": "40",
-                    }
-                ],
-                "return_parts": [
-                    {
-                        "movement_id": returned.id,
-                        "issue_movement_id": issue.id,
-                        "entry_movement_id": opening.id,
-                        "receipt_movement_id": opening.id,
-                        "quantity": "10",
-                    }
-                ],
-                "ownership_parts": late_ownership,
-                "reason": "Canonical late cost and exact customer return review",
+            "operation": "inventory_review",
+            "expected_event_sequence": _sequence(session, tenant),
+            "item_id": items["P03"],
+            "owner_party_id": parties["company"],
+            "method": "fifo",
+            "currency": "EUR",
+            "base_unit": "pcs",
+            "history_start": (anchor - timedelta(seconds=1)).isoformat(),
+            "effective_at": returned.occurred_at.isoformat(),
+            "history_complete_from_zero": True,
+            "receipt_cost_scopes_confirmed": True,
+            "economic_issue_ids": [issue.id],
+            "supplier_return_ids": [cleanup.id],
+            "customer_return_ids": [returned.id],
+            "openings": [
+                {
+                    "movement_id": opening.id,
+                    "evidence_source_record_id": acquisition_source.id,
+                    "acquisition_cost": "1050",
+                }
+            ],
+            "specific_selections": [
+                {
+                    "movement_id": cleanup.id,
+                    "entry_movement_id": opening.id,
+                    "receipt_movement_id": opening.id,
+                    "quantity": "40",
+                }
+            ],
+            "return_parts": [
+                {
+                    "movement_id": returned.id,
+                    "issue_movement_id": issue.id,
+                    "entry_movement_id": opening.id,
+                    "receipt_movement_id": opening.id,
+                    "quantity": "10",
+                }
+            ],
+            "ownership_parts": late_ownership,
+            "reason": "Canonical late cost and exact customer return review",
         }
         late_inventory = _cost_action(session, run, late_inventory_arguments)
         late_issue_member = session.scalar(
@@ -1020,25 +1020,21 @@ def seed_profile(
             "shipment",
             date=fixture_time + timedelta(seconds=4),
         )
-        refreshed_inventory = _cost_action(
-            session,
-            run,
-            late_inventory_arguments
-            | {
-                "expected_event_sequence": _sequence(session, tenant),
-                "effective_at": late_cleanup.occurred_at.isoformat(),
-                "economic_issue_ids": [issue.id, late_cleanup.id],
-                "ownership_parts": late_ownership
-                + [
-                    {
-                        "movement_id": late_cleanup.id,
-                        "owner_party_id": parties["company"],
-                        "evidence_source_record_id": late_cleanup.source_record_id,
-                        "quantity": "10",
-                    }
-                ],
-            },
-        )
+        fixture_refreshed_arguments = late_inventory_arguments | {
+            "expected_event_sequence": _sequence(session, tenant),
+            "effective_at": late_cleanup.occurred_at.isoformat(),
+            "economic_issue_ids": [issue.id, late_cleanup.id],
+            "ownership_parts": late_ownership
+            + [
+                {
+                    "movement_id": late_cleanup.id,
+                    "owner_party_id": parties["company"],
+                    "evidence_source_record_id": late_cleanup.source_record_id,
+                    "quantity": "10",
+                }
+            ],
+        }
+        _cost_action(session, run, fixture_refreshed_arguments)
         candidate = contribution_preview(session, tenant, billed_lines[0].id)
         evidenced_selling = {"outbound_freight", "payment_fee"}
         contribution = _cost_action(
@@ -1076,14 +1072,440 @@ def seed_profile(
                 ],
             },
         )
+
+        # Feature 243: five more complete outcomes turn the single technical proof
+        # into a bounded business portfolio. Received amounts stay in ordinary
+        # sources; the existing retained-cost services remain the only calculators.
+        portfolio_specs = (
+            ("healthy", "C3", "250", "20", "5"),
+            ("low", "C4", "150", "25", "15"),
+            ("negative", "C5", "130", "35", "25"),
+            ("zero-selling", "C6", "180", "0", "0"),
+            ("allocated-heavy", "C7", "220", "10", "50"),
+        )
+        portfolio_time = anchor - timedelta(minutes=1)
+        portfolio_acquisition_source = source(
+            "cost_evidence",
+            "COST-PORTFOLIO-ACQUISITION",
+            {
+                "item_key": "P05",
+                "quantity": "50",
+                "unit": "pcs",
+                "currency": "EUR",
+                "acquisition_cost": "500",
+            },
+        )
+        portfolio_opening = core.record_movement(
+            session,
+            tenant,
+            "opening_stock",
+            items["P05"],
+            "50",
+            to_location_id=locations["A"],
+            source_record_id=portfolio_acquisition_source.id,
+            occurred_at=portfolio_time,
+            _commit=False,
+        )
+        portfolio_rows = []
+        for index, (name, customer, revenue, direct, allocated) in enumerate(
+            portfolio_specs, 1
+        ):
+            reference = f"COST-PORTFOLIO-{name.upper()}"
+            sold, sold_lines = order(
+                f"{reference}-ORDER",
+                "P05",
+                counterparty=customer,
+                quantity="10",
+                price=str(Decimal(revenue) / Decimal(10)),
+                gross=revenue,
+                date=portfolio_time,
+            )
+            portfolio_issue = movement(
+                f"{reference}-SHIPMENT",
+                "P05",
+                "10",
+                "shipment",
+                commitment=sold["commitment_id"],
+                date=portfolio_time + timedelta(seconds=index),
+            )
+            portfolio_invoice_lines = [
+                {
+                    **sold_lines[0],
+                    "billed_document_line_id": sold["line_id"],
+                    "reality_finance_v1": {"net": revenue, "tax": "0"},
+                }
+            ]
+            portfolio_invoice_source = source(
+                "sales_invoice",
+                f"{reference}-INVOICE",
+                {
+                    "number": f"{reference}-INVOICE",
+                    "currency": "EUR",
+                    "gross_amount": revenue,
+                    "amount_basis": "net",
+                    "tax_amount": "0",
+                    "lines": portfolio_invoice_lines,
+                },
+            )
+            portfolio_invoice, portfolio_billed = (
+                core.create_manual_document_with_lines(
+                    session,
+                    tenant,
+                    "sales_invoice",
+                    f"{reference}-INVOICE",
+                    parties[customer],
+                    portfolio_invoice_lines,
+                    revenue,
+                    source_record_id=portfolio_invoice_source.id,
+                    _commit=False,
+                )
+            )
+            core.post_sales_invoice(
+                session,
+                tenant,
+                portfolio_invoice.id,
+                effective_at=portfolio_issue.occurred_at,
+                _commit=False,
+            )
+            portfolio_rows.append(
+                {
+                    "name": name.replace("-", "_"),
+                    "reference": reference,
+                    "revenue": revenue,
+                    "direct": direct,
+                    "allocated": allocated,
+                    "issue": portfolio_issue,
+                    "invoice": portfolio_invoice,
+                    "invoice_line": portfolio_billed[0],
+                }
+            )
+
+        portfolio_movement_ids = {
+            portfolio_opening.id,
+            *(row["issue"].id for row in portfolio_rows),
+        }
+        prior_p05 = list(
+            session.scalars(
+                select(Movement).where(
+                    Movement.tenant_id == tenant,
+                    Movement.item_id == items["P05"],
+                    Movement.id.not_in(portfolio_movement_ids),
+                    Movement.occurred_at <= late_cleanup.occurred_at,
+                )
+            )
+        )
+        portfolio_ownership = [
+            {
+                "movement_id": row.id,
+                "owner_party_id": parties["S1"],
+                "evidence_source_record_id": row.source_record_id,
+                "quantity": str(row.quantity),
+            }
+            for row in prior_p05
+        ] + [
+            {
+                "movement_id": portfolio_opening.id,
+                "owner_party_id": parties["company"],
+                "evidence_source_record_id": portfolio_acquisition_source.id,
+                "quantity": "50",
+            },
+            *(
+                {
+                    "movement_id": row["issue"].id,
+                    "owner_party_id": parties["company"],
+                    "evidence_source_record_id": portfolio_acquisition_source.id,
+                    "quantity": "10",
+                }
+                for row in portfolio_rows
+            ),
+        ]
+        portfolio_inventory_arguments = {
+            "operation": "inventory_review",
+            "expected_event_sequence": _sequence(session, tenant),
+            "item_id": items["P05"],
+            "owner_party_id": parties["company"],
+            "method": "fifo",
+            "currency": "EUR",
+            "base_unit": "pcs",
+            "history_start": (portfolio_time - timedelta(seconds=1)).isoformat(),
+            "effective_at": late_cleanup.occurred_at.isoformat(),
+            "history_complete_from_zero": True,
+            "receipt_cost_scopes_confirmed": True,
+            "economic_issue_ids": [row["issue"].id for row in portfolio_rows],
+            "openings": [
+                {
+                    "movement_id": portfolio_opening.id,
+                    "evidence_source_record_id": portfolio_acquisition_source.id,
+                    "acquisition_cost": "500",
+                }
+            ],
+            "ownership_parts": portfolio_ownership,
+            "reason": "Canonical contribution portfolio acquisition review",
+        }
+        portfolio_inventory = _cost_action(session, run, portfolio_inventory_arguments)
+        portfolio_opening_basis = session.scalar(
+            select(CostMovementBasis).where(
+                CostMovementBasis.tenant_id == tenant,
+                CostMovementBasis.movement_id == portfolio_opening.id,
+            )
+        )
+        for row in portfolio_rows:
+            row["issue_basis"] = session.scalar(
+                select(CostMovementBasis).where(
+                    CostMovementBasis.tenant_id == tenant,
+                    CostMovementBasis.movement_id == row["issue"].id,
+                )
+            )
+            row["inventory_member"] = session.scalar(
+                select(CostInventoryMember).where(
+                    CostInventoryMember.tenant_id == tenant,
+                    CostInventoryMember.review_id == portfolio_inventory["review_id"],
+                    CostInventoryMember.movement_basis_id == row["issue_basis"].id,
+                )
+            )
+            portfolio_received = components._received(
+                session, tenant, row["invoice"], row["invoice_line"]
+            )
+            row["commercial"] = _cost_action(
+                session,
+                run,
+                {
+                    "operation": "commercial_match_review",
+                    "expected_event_sequence": _sequence(session, tenant),
+                    "document_line_id": row["invoice_line"].id,
+                    "expected_evidence_hash": portfolio_received["evidence_hash"],
+                    "profile": "commercial_v1",
+                    "profile_confirmed": True,
+                    "goods_cost_disposition": "inventory",
+                    "inventory_parts": [
+                        {
+                            "inventory_member_id": row["inventory_member"].id,
+                            "entry_movement_basis_id": portfolio_opening_basis.id,
+                            "receipt_movement_basis_id": portfolio_opening_basis.id,
+                            "quantity": "10",
+                        }
+                    ],
+                    "reason": f"Canonical {row['reference']} commercial match",
+                },
+            )
+
+        portfolio_selling_lines = []
+        for row in portfolio_rows:
+            selling_total = Decimal(row["direct"]) + Decimal(row["allocated"])
+            if not selling_total:
+                continue
+            portfolio_selling_lines.append(
+                {
+                    "item_id": None,
+                    "quantity": "1",
+                    "unit": "service",
+                    "unit_price": str(selling_total),
+                    "gross_amount": str(selling_total),
+                    "source_line_id": f"{row['reference']}-SELLING-1",
+                    "description": f"Authored selling costs for {row['reference']}",
+                    "reality_finance_v1": {"net": str(selling_total), "tax": "0"},
+                }
+            )
+        portfolio_selling_total = sum(
+            (Decimal(line["gross_amount"]) for line in portfolio_selling_lines),
+            Decimal(0),
+        )
+        portfolio_selling_source = source(
+            "supplier_invoice",
+            "COST-PORTFOLIO-SELLING",
+            {
+                "number": "COST-PORTFOLIO-SELLING",
+                "gross_amount": str(portfolio_selling_total),
+                "currency": "EUR",
+                "lines": portfolio_selling_lines,
+            },
+        )
+        portfolio_selling_document, portfolio_selling_document_lines = (
+            core.create_manual_document_with_lines(
+                session,
+                tenant,
+                "supplier_invoice",
+                "COST-PORTFOLIO-SELLING",
+                parties["S1"],
+                portfolio_selling_lines,
+                str(portfolio_selling_total),
+                source_record_id=portfolio_selling_source.id,
+                _commit=False,
+            )
+        )
+        core.post_supplier_invoice(
+            session,
+            tenant,
+            portfolio_selling_document.id,
+            effective_at=portfolio_time,
+            _commit=False,
+        )
+        evidenced_index = 0
+        for row in portfolio_rows:
+            evidenced_categories = set()
+            parts = []
+            if Decimal(row["direct"]) or Decimal(row["allocated"]):
+                selling_line = portfolio_selling_document_lines[evidenced_index]
+                evidenced_index += 1
+                selling_evidence = components._received(
+                    session, tenant, portfolio_selling_document, selling_line
+                )
+                if Decimal(row["direct"]):
+                    evidenced_categories.add("outbound_freight")
+                    parts.append(
+                        {
+                            "document_line_id": row["invoice_line"].id,
+                            "category": "outbound_freight",
+                            "source_share": row["direct"],
+                            "cost_effect": 1,
+                            "assignment_kind": "direct",
+                        }
+                    )
+                if Decimal(row["allocated"]):
+                    evidenced_categories.add("payment_fee")
+                    parts.append(
+                        {
+                            "document_line_id": row["invoice_line"].id,
+                            "category": "payment_fee",
+                            "source_share": row["allocated"],
+                            "cost_effect": 1,
+                            "assignment_kind": "allocated",
+                        }
+                    )
+                _cost_action(
+                    session,
+                    run,
+                    {
+                        "operation": "selling_assign",
+                        "expected_event_sequence": _sequence(session, tenant),
+                        "reason": f"Canonical {row['reference']} selling costs",
+                        "document_id": portfolio_selling_document.id,
+                        "document_line_id": selling_line.id,
+                        "expected_evidence_hash": selling_evidence["evidence_hash"],
+                        "tax_treatment": "not_applicable",
+                        "selling_expense_confirmed": True,
+                        "parts": parts,
+                    },
+                )
+            row["evidenced_categories"] = evidenced_categories
+
+        final_inventory_batch = _cost_action(
+            session,
+            run,
+            {
+                "operation": "inventory_batch_review",
+                "expected_event_sequence": _sequence(session, tenant),
+                "reason": "Canonical contribution portfolio final joint inventory review",
+                "scopes": [
+                    {
+                        key: value
+                        for key, value in arguments.items()
+                        if key not in {"operation", "expected_event_sequence", "reason"}
+                    }
+                    for arguments in (
+                        fixture_refreshed_arguments,
+                        portfolio_inventory_arguments,
+                    )
+                ],
+            },
+        )
+        final_inventory_by_item = {
+            result["item_id"]: result for result in final_inventory_batch["reviews"]
+        }
+        portfolio_positions = []
+        for row in portfolio_rows:
+            candidate = contribution_preview(session, tenant, row["invoice_line"].id)
+            portfolio_positions.append(
+                {
+                    "document_line_id": row["invoice_line"].id,
+                    "expected_candidate_hash": candidate["candidate_hash"],
+                    "profile": "commercial_v1",
+                    "profile_confirmed": True,
+                    "revenue_complete": True,
+                    "economic_at": candidate["trace"]["proposed_economic_at"],
+                    "selling_categories": [
+                        {
+                            "category": category,
+                            "disposition": (
+                                "evidenced"
+                                if category in row["evidenced_categories"]
+                                else "confirmed_zero"
+                            ),
+                            "reason": f"Canonical {row['reference']} reviewed selling scope",
+                        }
+                        for category in (
+                            "outbound_freight",
+                            "fulfilment",
+                            "packaging",
+                            "payment_fee",
+                            "marketplace_commission",
+                            "sales_commission",
+                            "other_selling",
+                        )
+                    ],
+                }
+            )
+        fixture_candidate = contribution_preview(session, tenant, billed_lines[0].id)
+        portfolio_positions.insert(
+            0,
+            {
+                "document_line_id": billed_lines[0].id,
+                "expected_candidate_hash": fixture_candidate["candidate_hash"],
+                "profile": "commercial_v1",
+                "profile_confirmed": True,
+                "revenue_complete": True,
+                "economic_at": fixture_candidate["trace"]["proposed_economic_at"],
+                "selling_categories": [
+                    {
+                        "category": category,
+                        "disposition": (
+                            "evidenced"
+                            if category in evidenced_selling
+                            else "confirmed_zero"
+                        ),
+                        "reason": "Canonical fixture A reviewed selling scope",
+                    }
+                    for category in (
+                        "outbound_freight",
+                        "fulfilment",
+                        "packaging",
+                        "payment_fee",
+                        "marketplace_commission",
+                        "sales_commission",
+                        "other_selling",
+                    )
+                ],
+            },
+        )
+        portfolio_contributions = _cost_action(
+            session,
+            run,
+            {
+                "operation": "contribution_batch_review",
+                "expected_event_sequence": _sequence(session, tenant),
+                "reason": "Canonical contribution portfolio complete DB2 review",
+                "positions": portfolio_positions,
+            },
+        )
+        contributions_by_line = {
+            result["document_line_id"]: result
+            for result in portfolio_contributions["reviews"]
+        }
+        for row in portfolio_rows:
+            row["contribution"] = contributions_by_line[row["invoice_line"].id]
+        contribution = contributions_by_line[billed_lines[0].id]
+
         costing_cases = {
             "fixture_a": {
+                "reference": "COST-A-INVOICE",
                 "item_id": items["P03"],
                 "invoice_line_id": billed_lines[0].id,
                 "inventory_review_id": inventory["review_id"],
                 "match_revision_id": commercial["match_revision_id"],
                 "contribution_review_id": contribution["review_id"],
-                "final_inventory_review_id": refreshed_inventory["review_id"],
+                "final_inventory_review_id": final_inventory_by_item[items["P03"]][
+                    "review_id"
+                ],
             },
             "missing_cost": {
                 "invoice_line_id": missing_billed[0].id,
@@ -1095,6 +1517,19 @@ def seed_profile(
                 "return_match_revision_id": return_match["match_revision_id"],
                 "initial_state": "cost_incomplete",
                 "current_state": "late_cost_return_reviewed",
+            },
+            **{
+                f"portfolio_{row['name']}": {
+                    "reference": f"{row['reference']}-INVOICE",
+                    "item_id": items["P05"],
+                    "invoice_line_id": row["invoice_line"].id,
+                    "inventory_review_id": final_inventory_by_item[items["P05"]][
+                        "review_id"
+                    ],
+                    "match_revision_id": row["commercial"]["match_revision_id"],
+                    "contribution_review_id": row["contribution"]["review_id"],
+                }
+                for row in portfolio_rows
             },
         }
 
