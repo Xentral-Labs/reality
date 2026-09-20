@@ -182,6 +182,30 @@ builder and class measurements at checkpoints, and compare two commits on the sa
   call within it, with the same refusals as today. The payment matcher MUST read its candidate
   open items in bounded queries. The measured cost per step is recorded in research.md and
   the target in SC-001.
+  **The matcher reads the invoices that can still owe (2026-09-20).** The candidate
+  search loaded every invoice the customer ever had and worked out the open amount of
+  each: eleven statements at fifty invoices and eleven at four hundred, but 11 ms
+  against 55 — flat in statements, growing in rows. It now selects in one read the
+  invoices whose control postings are not already covered by allocations that are still
+  active: **16 ms at four hundred, and the curve is flat.** A test measures rows read
+  rather than statements, because that is the measure the growth was hiding in.
+
+  Two things about that change are worth keeping. The filter is deliberately generous —
+  it counts every control posting whatever its direction, and keeps any invoice a
+  reversal touches — because taking one invoice too many costs a row while dropping an
+  open one would hide it from the matcher. And the first shape of the query was **7.5
+  times slower than no filter at all** (413 ms against 55): correlated `IN` subqueries
+  and `NOT IN` over the reversals. The anti-join that replaced it is the one measured.
+
+  **What the repeated reads are, now that the measurement can say.** The ingest record
+  counted reads per table across both spans, so `source_record ×58` looked like the
+  intake when most of it was the demo generator's own selection; interpreting one record
+  reads it 5 to 7 times. Per span, the largest repetitions left are `tenant` 8 to 14 per
+  step, `tenant_event_progress` 8 to 10, and in the payment step `document` ×14,
+  `ledger_reversal` ×13 and `ledger_entry` ×10. The tenant purpose is immutable by a
+  database trigger and is read five times in one payment's call tree — the next thing
+  worth establishing once per transaction.
+
 - **FR-002**: Incremental derivation. Exception classes and projection builders MUST accept
   a change set (record ids by type) and re-evaluate only the rows that depend on it; full
   company evaluation remains available for maintenance rebuilds. Time-based transitions MUST be

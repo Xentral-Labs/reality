@@ -26,8 +26,8 @@ from decimal import Decimal
 from typing import Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field
-from sqlalchemy import select
-from sqlalchemy.orm import Session
+from sqlalchemy import and_, func, or_, select
+from sqlalchemy.orm import Session, aliased
 
 from reality.db.core import (
     Document,
@@ -574,6 +574,80 @@ def _stated(source: SourceRecord | None) -> tuple[tuple[Reference, ...], str]:
     return references, text
 
 
+def _invoices_that_can_still_owe(
+    session: Session, tenant_id: str, party_id: str | None, currency: str
+) -> list[Document]:
+    """The party's invoices a payment could still belong to, chosen in one read."""
+    from reality.db.core import LedgerEntry, LedgerReversal, SettlementAllocation
+
+    control_account, _ = core.SETTLEMENT_CONTROL["sales_invoice"]
+    payment_entry = aliased(LedgerEntry)
+    invoice_entry = aliased(LedgerEntry)
+    reversal = aliased(LedgerReversal)
+    settled = (
+        select(
+            invoice_entry.document_id.label("document_id"),
+            func.sum(SettlementAllocation.amount).label("settled"),
+        )
+        .select_from(SettlementAllocation)
+        .join(
+            invoice_entry,
+            invoice_entry.id == SettlementAllocation.invoice_ledger_entry_id,
+        )
+        .join(
+            payment_entry,
+            payment_entry.id == SettlementAllocation.payment_ledger_entry_id,
+        )
+        .outerjoin(
+            reversal,
+            and_(
+                reversal.tenant_id == tenant_id,
+                or_(
+                    reversal.original_posting_group_id
+                    == payment_entry.posting_group_id,
+                    reversal.reversing_posting_group_id
+                    == payment_entry.posting_group_id,
+                ),
+            ),
+        )
+        .where(
+            SettlementAllocation.tenant_id == tenant_id,
+            invoice_entry.account == control_account,
+            reversal.id.is_(None),
+        )
+        .group_by(invoice_entry.document_id)
+        .subquery()
+    )
+    charged = (
+        select(
+            LedgerEntry.document_id.label("document_id"),
+            func.sum(LedgerEntry.amount).label("charged"),
+        )
+        .where(
+            LedgerEntry.tenant_id == tenant_id,
+            LedgerEntry.account == control_account,
+            LedgerEntry.document_id.is_not(None),
+        )
+        .group_by(LedgerEntry.document_id)
+        .subquery()
+    )
+    return list(
+        session.scalars(
+            select(Document)
+            .join(charged, charged.c.document_id == Document.id)
+            .outerjoin(settled, settled.c.document_id == Document.id)
+            .where(
+                Document.tenant_id == tenant_id,
+                Document.party_id == party_id,
+                Document.type == "sales_invoice",
+                Document.currency == currency,
+                func.coalesce(settled.c.settled, 0) < charged.c.charged,
+            )
+            .order_by(Document.number)
+        )
+    )
+
+
 def payment_candidates(
     session: Session, tenant_id: str, payment_document_id: str
 ) -> list[Candidate]:
@@ -602,17 +676,8 @@ def payment_candidates(
         ).invoices
     }
     candidates: list[Candidate] = []
-    invoices = list(
-        session.scalars(
-            select(Document)
-            .where(
-                Document.tenant_id == tenant_id,
-                Document.party_id == payment.party_id,
-                Document.type == "sales_invoice",
-                Document.currency == payment.currency,
-            )
-            .order_by(Document.number)
-        )
+    invoices = _invoices_that_can_still_owe(
+        session, tenant_id, payment.party_id, payment.currency
     )
     # Five reads for all of the customer's invoices instead of five per invoice: the
     # per-invoice form read every allocation of the company each time, so one payment

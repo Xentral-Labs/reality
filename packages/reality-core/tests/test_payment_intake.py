@@ -685,3 +685,72 @@ def test_matching_cost_does_not_grow_with_the_customers_settled_history(
     single, amount = cost(lambda: core.open_invoice_amount(session, tenant, invoice.id))
     assert amount == Decimal(77)
     assert single <= 8, single
+
+
+def test_the_candidate_search_does_not_read_more_as_the_history_settles(
+    session, business
+):
+    """FR-001, in the measure the statement count cannot show.
+
+    The search asked a bounded number of times and read an unbounded number of
+    rows: every invoice the customer ever had, settled or not, and a settlement
+    position for each. On a company of four hundred invoices that was 55 ms where
+    fifty took 11 — flat in statements, growing in work.
+
+    Rows read is the measure that sees it, and it is the same number on any host.
+    """
+    from sqlalchemy import event
+
+    tenant = business.tenant.id
+
+    def settle(count, prefix):
+        for index in range(count):
+            _invoice(session, business, f"{prefix}:{index}", f"{prefix}-{index}", "40")
+            _pay(
+                session,
+                business,
+                "40",
+                [Reference(type="invoice_number", value=f"{prefix}-{index}")],
+                external_id=f"{prefix}:{index}:payment",
+            )
+
+    def rows_read(operation):
+        counted = [0]
+        bind = session.get_bind()
+
+        def after(conn, cursor, *args):
+            if cursor.rowcount and cursor.rowcount > 0:
+                counted[0] += cursor.rowcount
+
+        event.listen(bind, "after_cursor_execute", after)
+        try:
+            result = operation()
+        finally:
+            event.remove(bind, "after_cursor_execute", after)
+        return counted[0], result
+
+    def candidates(probe):
+        return lambda: payment_intake.payment_candidates(
+            session,
+            tenant,
+            _pay(
+                session,
+                business,
+                "77",
+                [Reference(type="customer_number", value="C-1")],
+                external_id=probe,
+            )[1].id,
+        )
+
+    settle(2, "few")
+    _invoice(session, business, "open:a", "OPEN-A", "77")
+    small, first = rows_read(candidates("rows:1"))
+    assert {c.number for c in first} == {"OPEN-A"}
+
+    settle(20, "many")
+    large, second = rows_read(candidates("rows:2"))
+    assert {c.number for c in second} == {"OPEN-A"}
+
+    assert large <= small + 10, (
+        f"twenty more settled invoices cost {large - small} more rows to search"
+    )

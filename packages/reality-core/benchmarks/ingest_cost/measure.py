@@ -89,16 +89,28 @@ class StepCost:
     #: real intake runs.
     interpreting_queries: int = 0
     interpreting_ms: float = 0.0
+    #: Read counts per table, kept apart by span. Together they answered the wrong
+    #: question: FR-001 is about what *interpreting* one record costs, and a count
+    #: that mixed in the sweep's own selection made `source_record` look like 58
+    #: reads of the intake when most of them were the demo generator finding work.
     tables: Counter = field(default_factory=Counter)
+    tables_interpreting: Counter = field(default_factory=Counter)
     #: Milliseconds and count per statement shape, so a step whose statement count
     #: stays flat while its time grows can say which statement grew. That is the
     #: failure this column exists for: the same query reading more rows as the
     #: company fills up is invisible in a count and fatal at size.
     statements: dict = field(default_factory=dict)
 
-    def repeated(self, limit: int = 6) -> list[tuple[str, int]]:
-        """The tables this step read most, which is where its cost lives."""
-        return [(table, n) for table, n in self.tables.most_common(limit) if n > 1]
+    def repeated(
+        self, limit: int = 6, *, interpreting: bool = False
+    ) -> list[tuple[str, int]]:
+        """The tables this step read most, in one span or across both.
+
+        `interpreting=True` is the one FR-001 is about: what reading one record
+        costs, without the sweep's selection around it.
+        """
+        counter = self.tables_interpreting if interpreting else self.tables
+        return [(table, n) for table, n in counter.most_common(limit) if n > 1]
 
     def slowest(self, limit: int = 5, interpreting: bool | None = True) -> list[dict]:
         """The statement shapes this step spent most of its time in.
@@ -141,6 +153,10 @@ class StepCost:
             "repeated_reads": [
                 {"table": table, "count": n} for table, n in self.repeated()
             ],
+            "repeated_interpreting_reads": [
+                {"table": table, "count": n}
+                for table, n in self.repeated(interpreting=True)
+            ],
             "slowest_interpreting": self.slowest(interpreting=True),
             "slowest_sweep": self.slowest(interpreting=False),
         }
@@ -167,7 +183,10 @@ def measured(engine: Engine, name: str):
             cost.interpreting_ms += elapsed
         match = _TABLE.search(statement)
         if match:
-            cost.tables[match.group(1).lower()] += 1
+            table = match.group(1).lower()
+            cost.tables[table] += 1
+            if _INTERPRETING.get():
+                cost.tables_interpreting[table] += 1
         shape = _shape(statement)
         row = cost.statements.setdefault(
             shape,
