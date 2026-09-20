@@ -360,6 +360,34 @@ test("ERP handbook explains the complete contribution bridge in both languages",
   }
 });
 
+test("ERP handbook compares the complete demo contribution portfolio in both languages", () => {
+  const editions = [
+    ["", ["Compare the demo portfolio", "Negative DB2", "Allocated-cost heavy", "− EUR 30"]],
+    [
+      "de/",
+      [
+        "Das Demo-Portfolio vergleichen",
+        "Negativer DB2",
+        "Hoher Anteil zugeordneter Kosten",
+        "−30 EUR",
+      ],
+    ],
+  ];
+  for (const [locale, terms] of editions) {
+    const page = fs.readFileSync(
+      path.join(
+        contentRoot,
+        locale,
+        "concepts",
+        "business-reality-guide",
+        "08-inventory-cost-and-contribution.md",
+      ),
+      "utf8",
+    );
+    for (const term of terms) assert.ok(page.includes(term), `${locale || "en"}: ${term}`);
+  }
+});
+
 test("the ERP practical book is a first-class navigation section", () => {
   const config = fs.readFileSync(path.join(docsRoot, ".vitepress", "config.mts"), "utf8");
   assert.ok(config.includes('realityGuide: "Reality for ERP professionals"'));

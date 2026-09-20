@@ -1,8 +1,7 @@
 from conftest import seed_company
-from sqlalchemy import func, select
-
 from reality.db.core import Commitment, Item, Location, Party, PlaygroundRun
 from reality.services import company_setup
+from sqlalchemy import func, select
 
 
 def test_canonical_profile_counts_and_cases(session, scheduled_owner, monkeypatch):
@@ -144,8 +143,17 @@ def test_orders_spread_over_the_customer_pool(session, scheduled_owner, monkeypa
     monkeypatch.setenv("REALITY_PLAYGROUND_ENABLED", "true")
     tenant = _demo_company(session, scheduled_owner, "spread")
     orders = _documents(session, tenant, "sales_order")
-    assert len(orders) == 36
-    held = Counter(orders.values())
+    portfolio_orders = {
+        number: buyer
+        for number, buyer in orders.items()
+        if number.startswith("COST-PORTFOLIO-")
+    }
+    assert len(portfolio_orders) == 5, portfolio_orders
+    operational_orders = {
+        number: buyer for number, buyer in orders.items() if number not in portfolio_orders
+    }
+    assert len(operational_orders) == 36
+    held = Counter(operational_orders.values())
     assert len(held) >= 18, held
     assert max(held.values()) <= 5, held
     assert sum(1 for count in held.values() if count > 2) <= 3, held
@@ -262,7 +270,13 @@ def test_purchases_cover_the_whole_chain(session, scheduled_owner, monkeypatch):
     assert len(orders) == 6, orders
     assert len(set(orders.values())) == 3, "every supplier takes part"
     payables = _states(_open_amounts(session, tenant, "supplier_invoice"))
-    assert sorted(payables.values()) == ["open", "open", "paid", "part"], payables
+    assert payables["COST-PORTFOLIO-SELLING"] == "open", payables
+    operational_payables = {
+        number: state
+        for number, state in payables.items()
+        if number != "COST-PORTFOLIO-SELLING"
+    }
+    assert sorted(operational_payables.values()) == ["open", "open", "paid", "part"], payables
     run = session.scalar(
         select(PlaygroundRun).where(PlaygroundRun.tenant_id == tenant)
     )

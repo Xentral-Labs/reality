@@ -4,9 +4,11 @@ from decimal import Decimal
 
 import pytest
 from conftest import seed_company
-from sqlalchemy import func, select
-
-from reality.db.contribution import CostCommercialMatchRevision
+from reality.db.contribution import (
+    CostCommercialMatchRevision,
+    CostContributionReview,
+    CostSellingPart,
+)
 from reality.db.core import PlaygroundRun, SourceRecord
 from reality.db.inventory_costing import CostInventoryReview
 from reality.demo.international import PROFILE_VERSION
@@ -21,6 +23,64 @@ from reality.services.tenant_policy import (
     PlaygroundOperationDenied,
     profile_cost_action_scope,
 )
+from sqlalchemy import func, select
+
+COMPLETE_PORTFOLIO = {
+    "fixture_a": {
+        "revenue": "1200.0000",
+        "goods_cost": "630.0000",
+        "direct": "90.0000",
+        "allocated": "24.0000",
+        "db1": "570.0000",
+        "db2": "456.0000",
+        "db2_rate": "38.0000",
+    },
+    "portfolio_healthy": {
+        "revenue": "250.0000",
+        "goods_cost": "100.0000",
+        "direct": "20.0000",
+        "allocated": "5.0000",
+        "db1": "150.0000",
+        "db2": "125.0000",
+        "db2_rate": "50.0000",
+    },
+    "portfolio_low": {
+        "revenue": "150.0000",
+        "goods_cost": "100.0000",
+        "direct": "25.0000",
+        "allocated": "15.0000",
+        "db1": "50.0000",
+        "db2": "10.0000",
+        "db2_rate": "6.6667",
+    },
+    "portfolio_negative": {
+        "revenue": "130.0000",
+        "goods_cost": "100.0000",
+        "direct": "35.0000",
+        "allocated": "25.0000",
+        "db1": "30.0000",
+        "db2": "-30.0000",
+        "db2_rate": "-23.0769",
+    },
+    "portfolio_zero_selling": {
+        "revenue": "180.0000",
+        "goods_cost": "100.0000",
+        "direct": "0.0000",
+        "allocated": "0.0000",
+        "db1": "80.0000",
+        "db2": "80.0000",
+        "db2_rate": "44.4444",
+    },
+    "portfolio_allocated_heavy": {
+        "revenue": "220.0000",
+        "goods_cost": "100.0000",
+        "direct": "10.0000",
+        "allocated": "50.0000",
+        "db1": "120.0000",
+        "db2": "60.0000",
+        "db2_rate": "27.2727",
+    },
+}
 
 
 def _seed(session, owner, key: str = "costing-demo") -> PlaygroundRun:
@@ -35,7 +95,10 @@ def _seed(session, owner, key: str = "costing-demo") -> PlaygroundRun:
     )
     assert seed_company(session, result["tenant_id"]) == "succeeded"
     run = session.get(PlaygroundRun, result["run_id"])
-    assert run.status == "active", (run.initialization_error_code, run.initialization_progress)
+    assert run.status == "active", (
+        run.initialization_error_code,
+        run.initialization_progress,
+    )
     return run
 
 
@@ -44,10 +107,10 @@ def test_canonical_profile_versions_and_replays_one_costing_baseline(
 ):
     run = _seed(session, scheduled_owner)
     manifest = run.initialization_progress
-    assert PROFILE_VERSION == 2
-    assert manifest["profile"] == {"key": "international_demo", "version": 2}
+    assert PROFILE_VERSION == 3
+    assert manifest["profile"] == {"key": "international_demo", "version": 3}
     assert set(manifest["costing_cases"]) == {
-        "fixture_a",
+        *COMPLETE_PORTFOLIO,
         "missing_cost",
         "late_cost_return",
     }
@@ -61,6 +124,25 @@ def test_canonical_profile_versions_and_replays_one_costing_baseline(
             select(func.count())
             .select_from(CostCommercialMatchRevision)
             .where(CostCommercialMatchRevision.tenant_id == run.tenant_id)
+        ),
+        session.scalar(
+            select(func.count())
+            .select_from(CostContributionReview)
+            .where(CostContributionReview.tenant_id == run.tenant_id)
+        ),
+        session.scalar(
+            select(func.count())
+            .select_from(CostSellingPart)
+            .where(CostSellingPart.tenant_id == run.tenant_id)
+        ),
+        session.scalar(
+            select(func.count())
+            .select_from(SourceRecord)
+            .where(
+                SourceRecord.tenant_id == run.tenant_id,
+                SourceRecord.source_system == "demo_profile",
+                SourceRecord.external_id.like("COST-PORTFOLIO-%"),
+            )
         ),
     )
     assert (
@@ -78,13 +160,35 @@ def test_canonical_profile_versions_and_replays_one_costing_baseline(
             .select_from(CostCommercialMatchRevision)
             .where(CostCommercialMatchRevision.tenant_id == run.tenant_id)
         ),
+        session.scalar(
+            select(func.count())
+            .select_from(CostContributionReview)
+            .where(CostContributionReview.tenant_id == run.tenant_id)
+        ),
+        session.scalar(
+            select(func.count())
+            .select_from(CostSellingPart)
+            .where(CostSellingPart.tenant_id == run.tenant_id)
+        ),
+        session.scalar(
+            select(func.count())
+            .select_from(SourceRecord)
+            .where(
+                SourceRecord.tenant_id == run.tenant_id,
+                SourceRecord.source_system == "demo_profile",
+                SourceRecord.external_id.like("COST-PORTFOLIO-%"),
+            )
+        ),
     )
 
-    with pytest.raises(PlaygroundOperationDenied), profile_cost_action_scope(
-        session,
-        run.id,
-        scheduled_owner.id,
-        {"operation": "inventory_review"},
+    with (
+        pytest.raises(PlaygroundOperationDenied),
+        profile_cost_action_scope(
+            session,
+            run.id,
+            scheduled_owner.id,
+            {"operation": "inventory_review"},
+        ),
     ):
         pass
 
@@ -148,6 +252,73 @@ def test_complete_case_has_exact_quantity_coverage_and_source_lineage(
             )
         )
         >= 4
+    )
+
+
+def test_complete_portfolio_has_varied_exact_outcomes(session, scheduled_owner):
+    run = _seed(session, scheduled_owner, "costing-portfolio")
+    cases = run.initialization_progress["costing_cases"]
+    observed = {}
+    for name, expected in COMPLETE_PORTFOLIO.items():
+        case = cases[name]
+        assert case["reference"].startswith("COST-")
+        result = reviewed_contribution(
+            session,
+            run.tenant_id,
+            case["invoice_line_id"],
+            review_id=case["contribution_review_id"],
+        )
+        observed[name] = {
+            "revenue": result["trace"]["received_net"],
+            "goods_cost": result["trace"]["consumption"]["cost"],
+            "direct": result["direct_selling_cost"],
+            "allocated": result["allocated_selling_cost"],
+            "db1": result["db1"],
+            "db2": result["db2"],
+            "db2_rate": result["db2_rate"],
+        }
+        assert observed[name] == expected
+        assert result["currency"] == "EUR"
+        assert result["missing_basis"] == []
+        assert result["economic_at"]
+        assert result["knowledge_at"]
+    assert Decimal(observed["portfolio_healthy"]["db2"]) > Decimal(
+        observed["portfolio_low"]["db2"]
+    )
+    assert Decimal(observed["portfolio_negative"]["db2"]) < 0
+
+
+def test_portfolio_selling_costs_reconcile_and_remain_source_backed(
+    session, scheduled_owner
+):
+    run = _seed(session, scheduled_owner, "costing-portfolio-selling")
+    cases = run.initialization_progress["costing_cases"]
+    compositions = set()
+    for name in COMPLETE_PORTFOLIO:
+        case = cases[name]
+        result = reviewed_contribution(
+            session,
+            run.tenant_id,
+            case["invoice_line_id"],
+            review_id=case["contribution_review_id"],
+        )
+        direct = Decimal(result["direct_selling_cost"])
+        allocated = Decimal(result["allocated_selling_cost"])
+        compositions.add((direct, allocated))
+        assert Decimal(result["db2"]) == Decimal(result["db1"]) - direct - allocated
+        assert result["trace"]["selling"]["categories"]
+    assert len(compositions) >= 3
+    assert (
+        session.scalar(
+            select(func.count())
+            .select_from(SourceRecord)
+            .where(
+                SourceRecord.tenant_id == run.tenant_id,
+                SourceRecord.source_system == "demo_profile",
+                SourceRecord.external_id.like("COST-PORTFOLIO-%"),
+            )
+        )
+        >= 12
     )
 
 

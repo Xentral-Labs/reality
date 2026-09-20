@@ -89,6 +89,31 @@ Ist das Vertriebskosten-Review unvollständig, kann derselbe Fall weiterhin eine
 570 EUR zeigen, während DB2 unbekannt bleibt. Wurden alle sieben Kategorien ausdrücklich mit null
 oder „nicht anwendbar“ geprüft, darf DB2 gleich DB1 sein. Eine leere Prüfliste bedeutet nie null.
 
+## Das Demo-Portfolio vergleichen
+
+Eine neu mit **Demo-Daten** angelegte Firma enthält sechs vollständige, benannte
+Deckungsbeitragsbeispiele. Über ihre `COST-*`-Rechnungsreferenzen findest du sie in Finance und
+kannst vergleichen, warum DB1 und DB2 unterschiedlich ausfallen:
+
+| Demo-Ergebnis                      | Nettoerlös | Warenkosten |     DB1 | Direkte Vertriebskosten | Zugeordnete Vertriebskosten |     DB2 |  DB2-Quote |
+| ---------------------------------- | ---------: | ----------: | ------: | ----------------------: | --------------------------: | ------: | ---------: |
+| Fixture A                          |  1.200 EUR |     630 EUR | 570 EUR |                  90 EUR |                      24 EUR | 456 EUR |       38 % |
+| Gesunde Marge                      |    250 EUR |     100 EUR | 150 EUR |                  20 EUR |                       5 EUR | 125 EUR |       50 % |
+| Niedriger Deckungsbeitrag          |    150 EUR |     100 EUR |  50 EUR |                  25 EUR |                      15 EUR |  10 EUR |   6,6667 % |
+| Negativer DB2                      |    130 EUR |     100 EUR |  30 EUR |                  35 EUR |                      25 EUR | −30 EUR | −23,0769 % |
+| Vertriebskosten mit null bestätigt |    180 EUR |     100 EUR |  80 EUR |                   0 EUR |                       0 EUR |  80 EUR |  44,4444 % |
+| Hoher Anteil zugeordneter Kosten   |    220 EUR |     100 EUR | 120 EUR |                  10 EUR |                      50 EUR |  60 EUR |  27,2727 % |
+
+Das negative Beispiel ist kein Fehler: Seine belegten Vertriebskosten sind höher als DB1. Das
+Nullkosten-Beispiel ist nur vollständig, weil jede Vertriebskosten-Kategorie ausdrücklich mit null
+geprüft wurde. Zusätzlich bleiben ein Fall mit fehlenden Kosten sowie ein Fall mit verspäteten
+Kosten und Kundenretoure erhalten. Sie zeigen, warum unbekannt nicht null bedeutet und warum
+späteres Wissen einen früheren Stand nicht überschreibt.
+
+Dieses Portfolio gehört zum versionierten Einrichtungsprofil. Fortlaufend eintreffende synthetische
+Demo-Aufträge bleiben standardmäßig ohne Kostengrundlage und werden niemals stillschweigend in das
+geprüfte Portfolio aufgenommen.
+
 ## Wann das Ergebnis berechnet wird
 
 Reality leitet die Geldbeträge beim Lesen aus festgehaltenen Eingaben ab. DB1 und DB2 werden nicht

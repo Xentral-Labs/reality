@@ -88,11 +88,10 @@ def eligible(session: Session, tenant_id: str, actor_id: str) -> PlaygroundRun:
         run.status != "active"
         or run.sandbox_kind != "practice"
         or run.preset_key not in {"company-empty", "international-demo"}
+        or (run.preset_key == "company-empty" and run.preset_version != 1)
         or (
-            run.preset_key == "company-empty" and run.preset_version != 1
-        )
-        or (
-            run.preset_key == "international-demo" and run.preset_version not in {1, 2}
+            run.preset_key == "international-demo"
+            and run.preset_version not in {1, 2, 3}
         )
     ):
         raise PlaygroundOperationDenied(
