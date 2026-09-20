@@ -1,0 +1,27 @@
+F                                                                        [100%]
+=================================== FAILURES ===================================
+_______ test_unresolved_late_target_cannot_be_answered_by_direct_replay ________
+
+session = <sqlalchemy.orm.session.Session object at 0x110095940>
+
+    def test_unresolved_late_target_cannot_be_answered_by_direct_replay(session):
+        from benchmarks.large_tenant_registers import costing_cases as cases
+    
+        c = session.connection()
+        build(c, Profile.named("reduced"))
+        # Author an unresolved target before publishing the initial synthetic view.
+        c.execute(text("DELETE FROM costing_spike.attribution WHERE tenant='a' AND component_id=2"))
+        rows, inventory = cases.derive(c, "a")
+        cases.publish(c, "a", rows, inventory)
+        c.execute(text("INSERT INTO costing_spike.adjustment VALUES ('a',1,2,10,'source:unknown-target:1')"))
+        value = cases.live_order_read(c, "a", 1)
+>       assert value["state"] == "not_ready" and value["value"] is None
+E       AssertionError: assert ('current' == 'not_ready'
+E         
+E         - not_ready
+E         + current)
+
+packages/reality-core/tests/test_costing_spike_postgres.py:425: AssertionError
+=========================== short test summary info ============================
+FAILED packages/reality-core/tests/test_costing_spike_postgres.py::test_unresolved_late_target_cannot_be_answered_by_direct_replay
+1 failed, 14 deselected in 1.48s

@@ -1,0 +1,5 @@
+Full backend exit 0: 3205 passed, 9 skipped, 1 warning.
+Owned container: reality-costing-234-selling
+Container ID: 452fa5824b5c6869e6fd22260e41af79faa2553f030daa2f3435e6e99f5c45c8
+docker rm --force returned that exact ID with exit 0.
+No existing company database used or removed.

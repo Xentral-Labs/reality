@@ -1,0 +1,16 @@
+
+==================================== ERRORS ====================================
+___________ ERROR collecting tests/test_inventory_review_options.py ____________
+ImportError while importing test module '/Users/benediktsauter/GitHub/reality/packages/reality-core/tests/test_inventory_review_options.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+/opt/homebrew/Cellar/python@3.12/3.12.4/Frameworks/Python.framework/Versions/3.12/lib/python3.12/importlib/__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests/test_inventory_review_options.py:8: in <module>
+    from reality.services.analytics import inventory_options
+E   ImportError: cannot import name 'inventory_options' from 'reality.services.analytics' (/Users/benediktsauter/GitHub/reality/packages/reality-core/src/reality/services/analytics/__init__.py)
+=========================== short test summary info ============================
+ERROR tests/test_inventory_review_options.py
+!!!!!!!!!!!!!!!!!!!! Interrupted: 1 error during collection !!!!!!!!!!!!!!!!!!!!
+1 error in 0.25s

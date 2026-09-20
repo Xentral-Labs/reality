@@ -2365,6 +2365,64 @@ TOOLS["finance.accounts.list"] = Tool(
     False,
     lambda session, tenant_id, arguments: list_accounts(session, tenant_id),
 )
+from reality.tools.costing import commercial_match as _commercial_match_tool
+from reality.tools.costing import contribution as _contribution_preview_tool
+from reality.tools.costing import evidence as _cost_evidence_tool
+from reality.tools.costing import inventory as _inventory_cost_tool
+from reality.tools.costing import query as _cost_query_tool
+from reality.tools.costing import receipt as _receipt_cost_tool
+from reality.tools.costing import record as _cost_record_tool
+from reality.tools.costing import reviewed_contribution as _reviewed_contribution_tool
+
+TOOLS["cost.query.get"] = Tool(
+    "cost.query.get",
+    "Read an exact retained cost answer with constrained cutoffs, scope and freshness.",
+    False,
+    _cost_query_tool,
+)
+TOOLS["cost.record.get"] = Tool(
+    "cost.record.get",
+    "Inspect retained cost evidence, decisions and exact member pages.",
+    False,
+    _cost_record_tool,
+)
+TOOLS["cost.contribution.get"] = Tool(
+    "cost.contribution.get",
+    "Read confirmed whole-line DB1 and independently reviewed DB2, or their exact retained history.",
+    False,
+    _reviewed_contribution_tool,
+)
+TOOLS["cost.commercial-match.get"] = Tool(
+    "cost.commercial-match.get",
+    "Read a retained partial commercial match and its derived DB1 observation.",
+    False,
+    _commercial_match_tool,
+)
+TOOLS["cost.contribution.preview"] = Tool(
+    "cost.contribution.preview",
+    "Read an unconfirmed exact revenue/consumption candidate; finalized margins stay unavailable.",
+    False,
+    _contribution_preview_tool,
+)
+TOOLS["cost.inventory.get"] = Tool(
+    "cost.inventory.get",
+    "Read confirmed inventory acquisition costs and retained basis.",
+    False,
+    _inventory_cost_tool,
+)
+TOOLS["cost.receipt.get"] = Tool(
+    "cost.receipt.get",
+    "Read receipt costs and retained review history.",
+    False,
+    _receipt_cost_tool,
+)
+TOOLS["cost.evidence.get"] = Tool(
+    "cost.evidence.get",
+    "Read exact received acquisition-cost evidence.",
+    False,
+    _cost_evidence_tool,
+)
+
 for _name in FINANCE_COMMANDS:
     TOOLS[_name] = Tool(
         _name,
@@ -2426,6 +2484,13 @@ def create_change_proposal(
     }
     from reality.domain.target_mappings import COMMANDS as TARGET_COMMANDS
 
+    if tool_name == "cost.change":
+        from reality.services.analytics.reports import CALLER
+        from reality.services.costing import preview_cost_change
+
+        preview["costing"] = preview_cost_change(
+            session, tenant_id, normalized_arguments, principal=CALLER.get()
+        )
     if tool_name in TARGET_COMMANDS:
         from reality.services.finance.target_mappings import preview_change
 
@@ -2624,6 +2689,14 @@ def approve_and_execute_proposal(
     )
     if candidate is None:
         raise NotFound("Proposal not found.")
+    if candidate.type == "tool:cost.change":
+        from reality.services.costing import _owner
+
+        if not confirmed:
+            raise InvalidOperation(
+                "Explicit confirmation is required for cost decisions."
+            )
+        _owner(session, tenant_id, confirming_principal)
     if candidate.type == "tool:graph.reports.change":
         from reality.services.analytics.proposals import reveal
 
@@ -2701,6 +2774,7 @@ def approve_and_execute_proposal(
                 SETTLEMENT_COMMAND,
                 OPENING_COMMAND,
                 ASSIGNMENT_COMMAND,
+                "cost.change",
             }:
                 from reality.services.business_locks import lock_delivery_state
 
@@ -2987,6 +3061,10 @@ from reality.tools.graph import SCHEMAS as GRAPH_SCHEMAS
 from reality.tools.graph import invoke as invoke_graph
 
 _GRAPH_DESCRIPTIONS = {
+    "graph.company_generation.current": "Read the verified currently published company cost generation metadata for explicit fixed analysis selection; no values are calculated.",
+    "graph.captured_reports.list": "List sealed captured report generations for explicit fixed analysis selection; no financial approval is implied.",
+    "graph.contribution_reviews.list": "List retained joint contribution confirmations for explicit historical report selection; no cache readiness or value is implied.",
+    "graph.inventory_reviews.list": "List retained joint inventory confirmations for explicit historical report selection; no cache readiness or value is implied.",
     "graph.format": "Format a checked graph question as an editable path with parameters.",
     "graph.interpret": "Interpret a business question with the configured AI provider and existing usage allowance; does not execute it.",
     "graph.templates": "List the questions worth starting from, each one already checked against the model.",

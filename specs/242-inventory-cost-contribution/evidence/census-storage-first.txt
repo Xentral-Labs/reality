@@ -1,0 +1,30 @@
+F
+=================================== FAILURES ===================================
+_________ test_retained_values_replay_and_original_read_only_discovery _________
+
+scheduled_database = (Engine(postgresql+psycopg://costing:***@127.0.0.1:55439/reality_migration_faeb6de728), sessionmaker(class_='Session',...0.0.1:55439/reality_migration_faeb6de728), autoflush=True, expire_on_commit=False), 'ten_be35194977', 'usr_d0e48d6a82')
+
+    def test_retained_values_replay_and_original_read_only_discovery(scheduled_database):
+        data = seed(scheduled_database)
+        factory, tenant, cutoff, *_ = data
+>       capture = retain(data)
+                  ^^^^^^^^^^^^
+
+tests/test_cost_census_storage.py:22: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+data = (sessionmaker(class_='Session', bind=Engine(postgresql+psycopg://costing:***@127.0.0.1:55439/reality_migration_faeb6de...6, 9, 19, 15, 28, 58, 433284, tzinfo=datetime.timezone.utc), 'itm_ad17a79694', 'loc_231d05d785', 'mov_e578935eb4', ...)
+request = 'capture-1'
+
+    def retain(data, request="capture-1"):
+        factory, tenant, cutoff, *_ = data
+        with read_session(factory) as session:
+>           result = costing.retain_company_cost_census(session, tenant, cutoff, request_id=request)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E           AttributeError: module 'reality.services.costing' has no attribute 'retain_company_cost_census'. Did you mean: 'capture_company_cost_census'?
+
+tests/test_cost_census_storage.py:14: AttributeError
+=========================== short test summary info ============================
+FAILED tests/test_cost_census_storage.py::test_retained_values_replay_and_original_read_only_discovery
+!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!
+1 failed in 2.13s

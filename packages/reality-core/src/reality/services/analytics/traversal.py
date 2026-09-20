@@ -96,6 +96,7 @@ class TraversalResult:
     #: mistake. Saying which is the difference between "there is no open
     #: delivery" and "there is no such status".
     matched_nothing: tuple[str, ...] = ()
+    cost_basis: dict[str, Any] | None = None
 
 
 def _fans_out(edge: Edge, direction: str, recursive: bool = False) -> bool:
@@ -429,6 +430,98 @@ def plan(query: Traversal, graph: ReportingGraph | None = None) -> ResolvedPath:
             f"a path may take at most {graph.limits.max_path_length} steps",
             "path_too_long",
         )
+    costing = graph.nodes.get(query.from_)
+    is_inventory = costing is not None and costing.derivation == "costing.inventory"
+    if is_inventory and not (
+        query.inventory_cost_context
+        or query.captured_cost_context
+        or query.company_cost_context
+    ):
+        raise TraversalRefused(
+            "An inventory cost context is required", "cost_context_required"
+        )
+    if query.inventory_cost_context is not None and (
+        not is_inventory
+        or query.follow
+        or query.exists
+        or query.captured_cost_context is not None
+        or query.company_cost_context is not None
+    ):
+        raise TraversalRefused(
+            "Inventory cost context requires a standalone inventory question",
+            "cost_context_invalid",
+        )
+    if is_inventory and any(group.bucket for group in query.group_by):
+        raise TraversalRefused(
+            "A confirmed inventory state cannot be bucketed across time", "not_additive"
+        )
+    is_contribution = (
+        costing is not None and costing.derivation == "costing.contribution"
+    )
+    if is_contribution and not (
+        query.contribution_cost_context
+        or query.captured_cost_context
+        or query.company_cost_context
+    ):
+        raise TraversalRefused(
+            "A contribution cost context is required", "cost_context_required"
+        )
+    if query.contribution_cost_context is not None and (
+        not is_contribution
+        or query.follow
+        or query.exists
+        or query.inventory_cost_context is not None
+        or query.captured_cost_context is not None
+        or query.company_cost_context is not None
+    ):
+        raise TraversalRefused(
+            "Contribution cost context requires a standalone contribution question",
+            "cost_context_invalid",
+        )
+    if query.captured_cost_context is not None and (
+        not (is_inventory or is_contribution)
+        or query.follow
+        or query.exists
+        or query.inventory_cost_context is not None
+        or query.contribution_cost_context is not None
+        or query.company_cost_context is not None
+    ):
+        raise TraversalRefused(
+            "Captured cost context requires a standalone inventory or contribution question",
+            "cost_context_invalid",
+        )
+    if query.company_cost_context is not None and (
+        not (is_inventory or is_contribution)
+        or query.follow
+        or query.exists
+        or query.inventory_cost_context is not None
+        or query.contribution_cost_context is not None
+        or query.captured_cost_context is not None
+    ):
+        raise TraversalRefused(
+            "Company cost context requires a standalone inventory or contribution question",
+            "cost_context_invalid",
+        )
+    if is_contribution:
+        if any(
+            group.bucket and group.field != f"{query.as_}.economic_at"
+            for group in query.group_by
+        ):
+            raise TraversalRefused(
+                "Only contribution economic dates may be bucketed", "not_additive"
+            )
+        axes = {group.field for group in query.group_by if not group.bucket}
+        axes.update(
+            condition.field for condition in query.filter if condition.op == "eq"
+        )
+        if (
+            query.measures
+            and not {f"{query.as_}.currency", f"{query.as_}.base_unit"} <= axes
+        ):
+            raise TraversalRefused(
+                "Contribution measures require currency and base unit grouping or equality filters",
+                "unit_mismatch",
+            )
     path = resolve(graph, query)
     check_properties(path)
     path = narrow_unreferenced_hops(path)
@@ -445,4 +538,5 @@ def run_traversal(
     from reality.services.analytics.compile_sql import execute
 
     path = plan(query)
-    return execute(session, tenant_id, path)
+    with session.no_autoflush:
+        return execute(session, tenant_id, path)

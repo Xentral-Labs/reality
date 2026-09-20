@@ -6,6 +6,26 @@ principle: CLI, Web, API, and Chat are adapters. Shared application services are
 # untyped until it is operationally relevant; once exposed here, explain its business
 # meaning rather than merely repeating its data type.
 parameter_descriptions:
+  knowledge_at: Optional exact retained knowledge cutoff in UTC; mismatches refuse instead of reinterpreting current evidence as historical.
+  scope_id: Exact item identity for inventory or received invoice-line identity for contribution.
+  policy_revision_id: Optional exact retained valuation-policy constraint; mismatches refuse without activating policy.
+  page: One-based page of retained membership, bounded to 25 records per page.
+  language: Requested inspection labels (en/de); nl/es use English fallback.
+  review_id: Exact retained inventory or contribution review identity for the selected tool; absence selects its latest review.
+  assessment_revision_id: Optional exact retained carrying-value assessment identity paired with the selected inventory review; absence selects the latest verified assessment for a current read.
+  match_revision_id: Exact retained commercial match revision identity; absence selects the latest revision for the sold line.
+  expected_candidate_hash: Exact fingerprint returned by the current contribution preview; changed evidence requires a new preview.
+  profile_confirmed: Explicit owner confirmation of the declared commercial profile for this reviewed scope.
+  revenue_complete: Explicit owner confirmation that received revenue covers this entire matched quantity.
+  economic_at: Confirmed UTC recognition time; this whole-line contribution scope requires the exact shipment time.
+  document_line_id: Opaque same-tenant received document line identity; must belong to the selected document.
+  selling_expense_confirmed: Explicit owner confirmation of selling expense, excluding acquisition costs, inventory purchases, general overhead and already included manufacturing cost.
+  selling_categories: Complete seven-category commercial_v1 selling checklist; omitted means DB2 remains unknown.
+  source_share: Explicit signed share of the selected received amount; total shares cannot exceed that source bucket.
+  cost_effect: Explicit economic cost direction, separate from the retained source sign.
+  assignment_kind: Direct cost attribution or explicitly allocated share, kept separate in contribution output.
+  manifest_id: Opaque sealed receipt review input set; absence requests current retained knowledge.
+  confirmed: Explicit human approval of the unchanged prepared decision.
   effective_before: Exclusive UTC effective-time cutoff over retained postings, allocations and reversals; absent means current state. Does not reconstruct historical payment terms or knowledge time.
   item_ids: Opaque article identities the caller can still reach, used to select which articles are answered for; absent means every article of the company. It narrows the rows returned and never how one is derived, because each article's position is worked out from its own movements, reservations and open promises.
   party_ids: Opaque business-partner identities the caller can still reach, used to select which partners are answered for; absent means every partner of the company. A balance is summed within one partner and currency and never across them, so naming fewer returns fewer rows of identical arithmetic.
@@ -205,6 +225,148 @@ parameter_descriptions:
   value: Scalar observation value validated and canonicalized by its predicate contract.
 
 commands:
+  - name: Read reviewed partial commercial match
+    service: commercial_match
+    mode: read
+    adapters: [CLI, Web, MCP, Chat]
+    reads: [document_line, cost_commercial_match_revision, cost_commercial_inventory_part, cost_commercial_direct_part, cost_inventory_member, cost_inventory_review, cost_policy_revision, cost_movement_basis, cost_attribution_revision, cost_attribution_part, cost_component_basis, financial_component]
+    writes: []
+    effect: Derive DB1 from one confirmed partial commercial match or reproduce an exact retained revision without creating financial authority.
+  - name: Read cost query context
+    service: cost_query
+    mode: read
+    adapters: [CLI, Web, MCP, Chat]
+    reads: [business_event, cost_attribution_part, cost_attribution_revision, cost_component_basis, cost_contribution_review, cost_input_manifest, cost_inventory_member, cost_inventory_review, cost_movement_basis, cost_ownership_revision, cost_policy_revision, cost_receipt_basis, cost_revenue_match_basis, cost_scope_review, cost_selling_attribution_part, cost_selling_review_category, cost_selling_review_member, document_line, financial_component, item]
+    writes: []
+    effect: Read one admitted inventory or contribution scope with exact retained cutoffs and explicit current or historical freshness; no global generation claim.
+  - name: Inspect retained cost record
+    service: cost_record
+    mode: read
+    adapters: [CLI, Web, MCP, Chat]
+    reads: [cost_receipt_basis, cost_component_basis, cost_conversion_basis_revision, cost_attribution_revision, cost_attribution_part, cost_component_replacement, cost_correction_basis, cost_input_manifest, cost_scope_review, cost_scope_review_category, cost_manifest_receipt, cost_manifest_component, cost_manifest_attribution, cost_manifest_correction, cost_manifest_replacement, cost_policy_revision, cost_movement_basis, cost_ownership_revision, cost_inventory_review, cost_inventory_member, cost_valuation_assessment_revision, cost_valuation_assessment_part, cost_revenue_match_basis, cost_contribution_review, cost_selling_attribution_part, cost_selling_review_category, cost_selling_review_member, cost_company_census, cost_company_census_movement, cost_company_census_document, cost_company_census_line, cost_company_census_source, cost_captured_basis, cost_captured_inventory_basis, cost_captured_contribution_basis, cost_company_manifest, cost_company_inventory_input, cost_company_contribution_input, cost_company_generation, financial_component, action, movement_correction, interpretation_outcome]
+    writes: []
+    effect: Inspect retained evidence and decision fields with tenant-safe source links and paged exact membership; no current valuation claim or business writes.
+  - name: Read reviewed commercial contribution
+    service: reviewed_contribution
+    mode: read
+    adapters: [CLI, Web, MCP, Chat]
+    reads: [cost_selling_attribution_part, cost_selling_review_category, cost_selling_review_member, cost_attribution_revision, cost_component_basis, cost_conversion_basis_revision, financial_component, document_line, business_event, cost_revenue_match_basis, cost_contribution_review, cost_inventory_member, cost_inventory_review, cost_movement_basis, cost_input_manifest]
+    writes: []
+    effect: Derive confirmed whole-line DB1 and independently reviewed DB2, or reproduce their exact retained historical basis.
+  - name: Preview current contribution candidate
+    service: contribution_preview
+    mode: read
+    adapters: [CLI, Web, MCP, Chat]
+    reads: [document, document_line, commitment, commitment_revision, movement, movement_correction, business_event, cost_inventory_review, cost_inventory_member, cost_policy_revision, cost_movement_basis, cost_ownership_revision, cost_input_manifest]
+    writes: []
+    effect: Follow an exact whole invoice/order/shipment scope to received net revenue and reviewed consumption; show known DB1 only, with missing commercial review and selling costs.
+  - name: Read reviewed inventory acquisition costs
+    service: inventory_cost
+    mode: read
+    adapters: [CLI, Web, MCP, Chat]
+    reads: [item, business_event, source_record, cost_policy_revision, cost_movement_basis, cost_ownership_revision, cost_inventory_review, cost_inventory_member, cost_valuation_assessment_revision, cost_valuation_assessment_part, cost_conversion_basis_revision, cost_receipt_basis, cost_input_manifest, cost_attribution_revision, cost_attribution_part, cost_scope_review]
+    writes: []
+    effect: Derive stock acquisition value and consumption from a bounded confirmed ownership/policy scope, and derive a separate carrying value only from an exact source-backed retained assessment.
+  - name: Read received acquisition-cost evidence
+    service: cost_evidence
+    mode: read
+    adapters:
+    - CLI
+    - Web
+    - MCP
+    - Chat
+    reads:
+    - movement
+    - document
+    - document_line
+    - source_record
+    - financial_component
+    - cost_receipt_basis
+    - cost_attribution_revision
+    - cost_attribution_part
+    - cost_scope_review
+    - cost_input_manifest
+    writes: []
+    effect: Derive receipt costs from exact received amounts and explicit owner decisions; retain sealed
+      reviewed knowledge and keep incomplete costs unknown.
+  - name: Read receipt acquisition costs
+    service: receipt_cost
+    mode: read
+    adapters:
+    - CLI
+    - Web
+    - MCP
+    - Chat
+    reads:
+    - movement
+    - document
+    - document_line
+    - source_record
+    - financial_component
+    - cost_receipt_basis
+    - cost_attribution_revision
+    - cost_attribution_part
+    - cost_scope_review
+    - cost_input_manifest
+    writes: []
+    effect: Derive receipt costs from exact received amounts and explicit owner decisions; retain sealed
+      reviewed knowledge and keep incomplete costs unknown.
+  - name: Confirm cost and contribution decision
+    service: execute_cost_change
+    mode: mutation
+    adapters:
+    - CLI
+    - Web
+    - MCP
+    - Chat
+    reads:
+    - movement
+    - document
+    - document_line
+    - source_record
+    - financial_component
+    - cost_receipt_basis
+    - cost_attribution_revision
+    - cost_attribution_part
+    - cost_scope_review
+    - cost_input_manifest
+    - cost_inventory_review
+    - cost_inventory_member
+    - cost_valuation_assessment_revision
+    - cost_valuation_assessment_part
+    - cost_conversion_basis_revision
+    writes:
+    - cost_revenue_match_basis
+    - cost_contribution_review
+    - cost_selling_attribution_part
+    - cost_selling_review_category
+    - cost_selling_review_member
+    - cost_policy_revision
+    - cost_movement_basis
+    - cost_ownership_revision
+    - cost_inventory_review
+    - cost_inventory_member
+    - cost_valuation_assessment_revision
+    - cost_valuation_assessment_part
+    - cost_conversion_basis_revision
+    - financial_component
+    - cost_receipt_basis
+    - cost_component_basis
+    - cost_attribution_revision
+    - cost_attribution_part
+    - cost_component_replacement
+    - cost_scope_review
+    - cost_scope_review_category
+    - cost_input_manifest
+    - cost_manifest_receipt
+    - cost_manifest_component
+    - cost_manifest_attribution
+    - cost_manifest_correction
+    - cost_manifest_replacement
+    - business_event
+    - action
+    effect: Derive receipt costs from exact received amounts and explicit owner decisions; retain sealed
+      reviewed knowledge and keep incomplete costs unknown.
   - name: Change Private Graph Report
     service: change_graph_report
     mode: mutation
@@ -1314,6 +1476,114 @@ capability_guidance:
       do_not_use:
       - scenario: Order value per article.
         reason: An order's value cannot be attributed to one of its articles; ask for line_amount instead.
+  graph_captured_reports_list:
+    kind: read
+    application_tool: graph.captured_reports.list
+    purpose: Discover sealed captured report generations for an explicit fixed analysis selection.
+    use_when: [Select one captured inventory or contribution generation by its opaque identity.]
+    do_not_use_when: [Treat publication as financial approval or silently choose the latest generation.]
+    required_context: [Authorized tenant, inventory or contribution family.]
+    data_basis: [cost_generation, cost_captured_basis, cost_company_census, cost_publication]
+    limitations: [Bounded metadata only; graph.ask rechecks sealed cache integrity and returns known subtotals only.]
+    freshness: Fixed capture metadata plus ready or pending relative to the current tenant event cursor.
+    empty_result: No sealed captured generation for this family in the company or page.
+    refusal_behavior: Foreign and absent continuation identities are equally not found.
+    confirmation: none
+    side_effects: none
+    verification:
+      role: independent
+      proves: [Which sealed captured generation identities can be selected.]
+      does_not_prove: [Complete company coverage, historical common knowledge or financial approval.]
+    unknown_when: [No captured report has been built for the retained selection.]
+    next_steps: [Ask graph_ask with the explicitly selected captured_cost_context.]
+    examples:
+      use:
+      - scenario: Reopen a fixed captured review selection in Analysis.
+        reason: The opaque generation identity remains fixed when newer reports are published.
+      do_not_use:
+      - scenario: Present the newest captured report as the final company valuation.
+        reason: Captured reports expose known subtotals and explicit gaps only.
+  graph_company_generation_current:
+    kind: read
+    application_tool: graph.company_generation.current
+    purpose: Discover the verified currently published company cost generation for explicit fixed analysis selection.
+    use_when: [Select the published financial company generation for inventory or contribution analysis.]
+    do_not_use_when: [Build or publish a generation, or treat independent member reviews as one company policy.]
+    required_context: [Authorized tenant, inventory or contribution family.]
+    data_basis: [cost_company_publication, cost_company_generation, cost_company_manifest]
+    limitations: [Metadata only; graph.ask verifies and reads the fixed generation values.]
+    freshness: Ready or pending relative to the current tenant event cursor.
+    empty_result: No published company cost generation.
+    refusal_behavior: Foreign tenant data is never disclosed.
+    confirmation: none
+    side_effects: none
+    verification:
+      role: independent
+      proves: [Which verified published company generation can be selected.]
+      does_not_prove: [One common company policy, complete DB2 coverage or current values after pending evidence.]
+    unknown_when: [No financial company generation is published.]
+    next_steps: [Ask graph_ask with the explicitly selected company_cost_context.]
+    examples:
+      use:
+      - scenario: Analyze the published company contribution generation by customer and article.
+        reason: The fixed generation keeps rows, coverage and totals on one verified basis.
+      do_not_use:
+      - scenario: Treat independent member reviews as one approved company accounting policy.
+        reason: The generation explicitly retains independent member authority.
+  graph_contribution_reviews_list:
+    kind: read
+    application_tool: graph.contribution_reviews.list
+    purpose: Discover retained joint contribution confirmations for explicit historical report selection.
+    use_when: [Select a confirmed historical contribution scope by cutoff and economic owner.]
+    do_not_use_when: [Treat discovery as cache readiness or financial approval.]
+    required_context: [Authorized tenant.]
+    data_basis: [cost_contribution_review, cost_inventory_member, cost_inventory_review, cost_policy_revision, cost_revenue_match_basis, action, party]
+    limitations: [Bounded metadata only; graph.ask rechecks integrity and complete cache availability.]
+    freshness: Retained confirmations ordered by event sequence; owner names are current display labels.
+    empty_result: No retained joint confirmations in this company or on the next page.
+    refusal_behavior: Foreign and absent continuation identities are equally not found.
+    confirmation: none
+    side_effects: none
+    verification:
+      role: independent
+      proves: [Which joint contribution confirmations can be selected.]
+      does_not_prove: [That a selected valuation is available or complete.]
+    unknown_when: [Selected caches have not been built or are unavailable.]
+    next_steps: [Ask graph_ask with the explicitly selected contribution_cost_context.]
+    examples:
+      use:
+      - scenario: Choose a confirmed historical contribution cutoff for a saved report.
+        reason: Selection preserves the actual joint confirmation identity.
+      do_not_use:
+      - scenario: Approve the latest valuation automatically.
+        reason: Discovery neither chooses nor confirms financial decisions.
+  graph_inventory_reviews_list:
+    kind: read
+    application_tool: graph.inventory_reviews.list
+    purpose: Discover retained joint inventory confirmations for explicit historical report selection.
+    use_when: [Select a confirmed historical inventory scope by cutoff and economic owner.]
+    do_not_use_when: [Treat discovery as cache readiness or financial approval.]
+    required_context: [Authorized tenant.]
+    data_basis: [cost_inventory_review, cost_policy_revision, action, party]
+    limitations: [Bounded metadata only; graph.ask rechecks integrity and complete cache availability.]
+    freshness: Retained confirmations ordered by event sequence; owner names are current display labels.
+    empty_result: No retained joint confirmations in this company or on the next page.
+    refusal_behavior: Foreign and absent continuation identities are equally not found.
+    confirmation: none
+    side_effects: none
+    verification:
+      role: independent
+      proves: [Which joint inventory confirmations can be selected.]
+      does_not_prove: [That a selected valuation is available or complete.]
+    unknown_when: [Selected caches have not been built or are unavailable.]
+    next_steps: [Ask graph_ask with the explicitly selected inventory_cost_context.]
+    examples:
+      use:
+      - scenario: Choose a confirmed historical inventory cutoff for a saved report.
+        reason: Selection preserves the actual joint confirmation identity.
+      do_not_use:
+      - scenario: Approve the latest valuation automatically.
+        reason: Discovery neither chooses nor confirms financial decisions.
   graph_reports_list:
     kind: read
     application_tool: graph.reports.list
@@ -2483,6 +2753,358 @@ capability_guidance:
       do_not_use:
       - scenario: Determine customer debt.
         reason: Use open items.
+  cost_query_get:
+    kind: read
+    application_tool: cost.query.get
+    purpose: Read one admitted inventory or contribution scope with constrained cutoffs, exact basis identity and independent freshness.
+    use_when:
+    - Explain the exact retained basis of an inventory or DB1/DB2 answer.
+    do_not_use_when:
+    - Group multiple independently reviewed scopes or activate valuation policies.
+    required_context:
+    - Tenant, inventory/contribution kind and scope ID; optional exact review, UTC cutoffs and policy constraints.
+    data_basis: [cost_component_basis, cost_attribution_revision, cost_input_manifest, cost_inventory_review, cost_contribution_review, financial_component, action]
+    limitations:
+    - Ready freshness does not establish DB2 or carrying-value evidence completeness.
+    - Only exact retained cutoffs are supported; no generalized historical reconstruction or published generation.
+    freshness: Ready, stale, uninitialized or historical; stale current answers expose only basis_result.
+    empty_result: An unreviewed scope has no resolved context; absent or foreign scopes are not found.
+    refusal_behavior: Unsupported cutoffs/policy constraints and invalid scope refuse; current reads require READ COMMITTED.
+    confirmation: none
+    side_effects: none
+    verification:
+      role: independent
+      proves:
+      - Requested versus resolved cutoffs, scoped retained basis identity and delegated arithmetic.
+      does_not_prove:
+      - Company-wide profile approval, generation readiness or HGB carrying value.
+    unknown_when:
+    - The admitted scope has no review or required evidence is missing.
+    next_steps:
+    - Inspect returned review references with cost.record.get; use confirmed workflows to renew stale basis.
+    examples:
+      use:
+      - scenario: Request an exact historical contribution review with its actual knowledge cutoff.
+        reason: The shared service preserves historical inputs and exposes the resolved valuation basis.
+      do_not_use:
+      - scenario: Treat a historical contribution review as approval of current numbers.
+        reason: A retained record is not a current completeness assessment.
+  cost_record_get:
+    kind: read
+    application_tool: cost.record.get
+    purpose: Inspect one retained cost record with exact values, source links and paged membership through the same reader as the web Inspector and CLI.
+    use_when:
+    - Follow an opaque cost, policy, inventory or contribution review reference to its retained evidence.
+    do_not_use_when:
+    - Calculate a current cost or margin, change a policy, or request an arbitrary database table.
+    required_context:
+    - Tenant, allowlisted record kind and opaque record ID; optional member page and presentation language.
+    data_basis: [cost_component_basis, cost_attribution_revision, cost_input_manifest, cost_inventory_review, cost_contribution_review, financial_component, action]
+    limitations:
+    - Retained record inspection does not establish current completeness; actions exclude proposal input/output.
+    - Owned membership is paged at 25 rows; Dutch and Spanish labels fall back to English.
+    freshness: Exact retained fields and memberships; bridge decision status is recorded state, not current valuation approval.
+    empty_result: A record may have no owned members; absent or foreign records are not found.
+    refusal_behavior: Unknown kind, foreign or missing identity, invalid page or incompatible language refuses.
+    confirmation: none
+    side_effects: none
+    verification:
+      role: independent
+      proves:
+      - Exact retained record fields, shortest supported reference links and member counts.
+      does_not_prove:
+      - Current cost completeness, legal suitability or recomputed contribution.
+    unknown_when:
+    - Current valuation or coverage has not been queried through its own shared service.
+    next_steps:
+    - Follow the returned links and member pages; use cost.contribution.get or cost.inventory.get for calculated values.
+    examples:
+      use:
+      - scenario: Follow a DB2 selling membership to its allocation revision and received supplier component.
+        reason: The same read preserves original amounts and source identity across Inspector, CLI and MCP.
+      do_not_use:
+      - scenario: Treat a historical contribution review as approval of current numbers.
+        reason: A retained record is not a current completeness assessment.
+  cost_commercial_match_get:
+    kind: read
+    application_tool: cost.commercial-match.get
+    purpose: Read a confirmed partial commercial match and derive DB1 from its retained revenue and frozen cost references.
+    use_when:
+    - Explain split billing, partial fulfilment, direct service input or an exact historical credit/return match.
+    do_not_use_when:
+    - Infer a match, allocate a partial direct component, or request company-wide contribution reporting.
+    required_context:
+    - Tenant and sold document-line ID; optional exact commercial match revision ID.
+    data_basis: [cost_commercial_match_revision, cost_commercial_inventory_part, cost_commercial_direct_part, cost_inventory_member, cost_inventory_review, cost_attribution_revision, cost_component_basis, financial_component]
+    limitations:
+    - Only explicitly confirmed portions are read; direct evidence must be one complete retained attribution.
+    - DB2 and unsupported production/WIP inference remain unavailable.
+    freshness: The current read selects the latest revision; an explicit revision ID reproduces its immutable history.
+    empty_result: An unreviewed line has unknown DB1 and names commercial_match_not_reviewed.
+    refusal_behavior: Foreign scope is not found; corrupt hashes, incompatible units/currency or broken frozen references refuse.
+    confirmation: none
+    side_effects: none
+    verification:
+      role: independent
+      proves:
+      - Exact confirmed commercial portions and their derived inventory or complete direct cost observation.
+      does_not_prove:
+      - Legal recognition suitability, DB2 completeness, FX conversion or inferred production cost.
+    unknown_when:
+    - The latest disposition is unresolved or referenced cost evidence is unknown.
+    next_steps:
+    - Inspect retained match and cost records; confirm a new commercial_match_review to rematch.
+    examples:
+      use:
+      - scenario: Reproduce one half of a split invoice against 30 of 60 frozen issued units.
+        reason: The read retains the exact portion while deriving amount and DB1 without stored allocation authority.
+      do_not_use:
+      - scenario: Allocate half of a supplier component by entering a percentage.
+        reason: Partial direct-component allocation remains unsupported.
+  cost_contribution_get:
+    kind: read
+    application_tool: cost.contribution.get
+    purpose: Read confirmed DB1 and independently reviewed DB2 for one full invoice line and shipment from retained inputs.
+    use_when:
+    - Explain a confirmed single-line DB1 or reproduce a specific historical contribution review.
+    do_not_use_when:
+    - Request partial revenue matching, rematching, HGB value or company-wide reports.
+    required_context:
+    - Tenant and invoice document-line ID; optional exact contribution review ID.
+    data_basis: [cost_revenue_match_basis, cost_contribution_review, cost_inventory_member, cost_inventory_review, cost_selling_attribution_part, cost_selling_review_category, cost_selling_review_member, cost_attribution_revision, cost_component_basis, financial_component]
+    limitations:
+    - Whole positive-quantity invoice/shipment bindings only; no silent reuse or rematching.
+    - Profile approval is scoped to this review; DB2 needs the seven-category selling review and exact received net expense shares. Global reporting remains unavailable.
+    freshness: Current completeness becomes stale after any later tenant event; explicit review IDs reproduce retained history.
+    empty_result: An unreviewed line has unknown DB1 and DB2.
+    refusal_behavior: Foreign scope is not found; corrupt retained inputs or incompatible membership refuse.
+    confirmation: none
+    side_effects: none
+    verification:
+      role: independent
+      proves:
+      - Confirmed commercial_v1 revenue completeness and exact reviewed consumption for this full-line scope.
+      does_not_prove:
+      - Legal recognition suitability, whole-company completeness, unsupported tax/FX or unreviewed changes.
+    unknown_when:
+    - The line is unreviewed or stale; DB2 remains unknown without complete selling-category decisions, independently of DB1.
+    next_steps:
+    - Obtain a current contribution preview and confirm contribution_review through cost_change_propose for supported scope.
+    examples:
+      use:
+      - scenario: Reproduce DB1 570 and rate 47.5 percent from the original confirmed review after late freight changes the current basis.
+        reason: The read pins both retained revenue context and exact inventory membership.
+      do_not_use:
+      - scenario: Sum current and historical review versions as separate sales.
+        reason: They are revisions of the same whole-line binding, not disjoint contributions.
+  cost_contribution_preview:
+    kind: read
+    application_tool: cost.contribution.preview
+    purpose: Preview a current exact revenue and consumption candidate with known DB1 and explicit missing review basis.
+    use_when:
+    - Explain a single fully billed and shipped item line with current reviewed inventory costs.
+    do_not_use_when:
+    - Request final DB1/DB2, historical margin, partial billing, returns or company-wide reports.
+    required_context:
+    - Tenant and opaque sales invoice document-line ID.
+    data_basis: [document, document_line, commitment, movement, cost_inventory_review, cost_inventory_member]
+    limitations:
+    - Only one whole invoice line, one order line, one customer-delivery commitment and one shipment are supported.
+    - No confirmed commercial match, profile revision or selling-cost review exists in this preview.
+    freshness: Current read only; requires a current inventory review and unchanged tenant event cursor during the read.
+    empty_result: Missing or ambiguous evidence returns explicit gaps and no known margin.
+    refusal_behavior: Foreign identities are not found; concurrent changes or unsupported transaction isolation refuse.
+    confirmation: none
+    side_effects: none
+    verification:
+      role: independent
+      proves:
+      - A bounded current candidate follows exact existing relationships and received net revenue without prorating.
+      does_not_prove:
+      - Confirmed revenue recognition, completeness of sales costs, final margin or historical context.
+    unknown_when:
+    - Revenue, exact fulfilment or reviewed consumption is unavailable, ambiguous or stale.
+    next_steps:
+    - Inspect the returned missing basis and receipt evidence; use cost_change_propose contribution_review for supported whole-line scope.
+    examples:
+      use:
+      - scenario: Explain known DB1 of 570 from received net revenue 1200 and reviewed consumption 630.
+        reason: The service follows exact billing and fulfilment references while exposing missing reviews.
+      do_not_use:
+      - scenario: Publish this preview as final DB2.
+        reason: Selling costs and commercial completeness remain unreviewed.
+  cost_inventory_get:
+    kind: read
+    application_tool: cost.inventory.get
+    purpose: Read stock acquisition value and economic consumption at an explicitly confirmed bounded cutoff.
+    use_when:
+    - Explain a confirmed inventory review and its original receipt costs.
+    do_not_use_when:
+    - Request HGB carrying value, DB margins or unreviewed live whole-company inventory.
+    required_context:
+    - Tenant and opaque item ID; optional exact inventory review ID for frozen history.
+    data_basis:
+    - cost_policy_revision
+    - cost_movement_basis
+    - cost_ownership_revision
+    - cost_inventory_review
+    - cost_inventory_member
+    - cost_input_manifest
+    limitations:
+    - At most 100 movements and 20 receipts in one explicitly confirmed FIFO or specific-identification item, currency, unit and economic-owner scope.
+    - Returns, adjustments, opening layers, corrected pools and mixed ownership require later integration.
+    freshness: Latest confirmed cutoff becomes stale after any later tenant event; explicit review IDs retain their exact basis.
+    empty_result: A scope without a review has unknown acquisition value.
+    refusal_behavior: Foreign item/review identities are unavailable; unsupported or corrupt input membership refuses.
+    confirmation: none
+    side_effects: none
+    verification:
+      role: independent
+      proves:
+      - Acquisition value and consumption from exact confirmed policy, ownership and retained input membership.
+      does_not_prove:
+      - HGB carrying value, margin, current unreviewed stock or policy suitability for other scopes.
+    unknown_when:
+    - The scope is unreviewed or later evidence invalidates its current completeness.
+    next_steps:
+    - Prepare an owner-confirmed inventory_review through cost_change_propose when the scope is supported.
+    examples:
+      use:
+      - scenario: Explain 420 remaining acquisition value and 630 consumed cost from a receipt of 1050.
+        reason: The confirmed input set retains policy, ownership and original receipt evidence.
+      do_not_use:
+      - scenario: Determine a company's final HGB inventory book value.
+        reason: Separate valuation assessments and whole-company qualification are not implemented by this tool.
+  cost_receipt_get:
+    kind: read
+    application_tool: cost.receipt.get
+    purpose: Read receipt acquisition costs, category coverage and exact retained review history.
+    use_when:
+    - Explain receipt costs before or after explicit review.
+    do_not_use_when:
+    - Determine inventory book value or contribution margin.
+    required_context:
+    - tenant and an opaque receipt/document ID; optional retained manifest for receipt reads
+    data_basis:
+    - movement
+    - document
+    - document_line
+    - source_record
+    - financial_component
+    - cost_attribution_revision
+    - cost_scope_review
+    - cost_input_manifest
+    limitations:
+    - At most 100 cost components per receipt; no currency or unit conversion.
+    - Receipt cost is not yet inventory valuation or DB1/DB2.
+    freshness: Current committed evidence or exact retained manifest; unrelated input events conservatively
+      invalidate the current review.
+    empty_result: An unadmitted receipt has unknown cost.
+    refusal_behavior: Unknown or foreign tenants are unavailable.
+    confirmation: none
+    side_effects: none
+    verification:
+      role: independent
+      proves:
+      - Held evidence, explicit shares and reviewed receipt completeness.
+      does_not_prove:
+      - Inventory valuation, accounting compliance or contribution margins.
+    unknown_when:
+    - The scope is unreviewed, stale, corrected or has unsupported tax basis.
+    next_steps:
+    - Prepare a cost decision with the returned event sequence and evidence fingerprint.
+    examples:
+      use:
+      - scenario: Explain 1050 acquisition costs on a 100-unit receipt.
+        reason: Goods, freight and reductions remain traceable.
+      do_not_use:
+      - scenario: Determine DB2 for an order.
+        reason: This first slice does not implement consumption or selling costs.
+  cost_evidence_get:
+    kind: read
+    application_tool: cost.evidence.get
+    purpose: Read stated supplier invoice or credit amounts and their evidence fingerprint without writing.
+    use_when:
+    - Explain receipt costs before or after explicit review.
+    do_not_use_when:
+    - Determine inventory book value or contribution margin.
+    required_context:
+    - tenant and an opaque receipt/document ID; optional retained manifest for receipt reads
+    data_basis:
+    - movement
+    - document
+    - document_line
+    - source_record
+    - financial_component
+    - cost_attribution_revision
+    - cost_scope_review
+    - cost_input_manifest
+    limitations:
+    - At most 100 cost components per receipt; no currency or unit conversion.
+    - Receipt cost is not yet inventory valuation or DB1/DB2.
+    freshness: Current committed evidence or exact retained manifest; unrelated input events conservatively
+      invalidate the current review.
+    empty_result: An unadmitted receipt has unknown cost.
+    refusal_behavior: Unknown or foreign tenants are unavailable.
+    confirmation: none
+    side_effects: none
+    verification:
+      role: independent
+      proves:
+      - Held evidence, explicit shares and reviewed receipt completeness.
+      does_not_prove:
+      - Inventory valuation, accounting compliance or contribution margins.
+    unknown_when:
+    - The scope is unreviewed, stale, corrected or has unsupported tax basis.
+    next_steps:
+    - Prepare a cost decision with the returned event sequence and evidence fingerprint.
+    examples:
+      use:
+      - scenario: Explain 1050 acquisition costs on a 100-unit receipt.
+        reason: Goods, freight and reductions remain traceable.
+      do_not_use:
+      - scenario: Determine DB2 for an order.
+        reason: This first slice does not implement consumption or selling costs.
+  cost_change_propose:
+    application_tool: cost.change
+    purpose: Prepare acquisition or selling-cost decisions, bounded inventory reviews and explicitly confirmed whole-line DB1/DB2 reviews.
+    use_when:
+    - Assign received acquisition amounts, review their completeness, confirm bounded inventory scope or approve an exact whole-line commercial contribution.
+    do_not_use_when:
+    - Automatically choose company policies, post ledger entries, certify HGB book value or calculate unsupported tax/FX or company-wide margins.
+    required_context:
+    - tenant, authenticated active owner, event sequence, reason and operation-specific received evidence
+      or review categories; inventory_review additionally requires explicit owner Party, unit/currency, empty-opening history, all economic issues and receipt cost/ownership evidence; inventory_batch_review confirms 2–10 distinct scopes with one cutoff, owner and currency, limited to 100 movements and 20 receipts in total; contribution_review requires an exact candidate hash, explicit commercial_v1/revenue completeness and shipment economic time; selling_assign requires received net evidence, confirmed selling expense, exact sold-line shares and recoverable/no-tax treatment; optional selling_categories reviews all seven categories for DB2
+    preconditions:
+    - Explicit active owner confirmation; unchanged event sequence and received evidence.
+    confirmation: required
+    idempotency:
+      mode: supported
+      guidance: Reuse the proposal ID after a lost response; changed input needs a new preview.
+    refusals:
+    - code: invalid_cost_decision
+      description: Missing/foreign evidence, stale sequence, non-owner, unconfirmed action, excess shares,
+        mixed currency, unsupported corrected receipt or invalid tax shares.
+    events:
+    - cost.attributed
+    - cost.reviewed
+    verification_reads:
+    - name: cost.contribution.get
+      proves: Confirmed whole-line revenue and inventory basis, plus independently reviewed selling-cost coverage for DB2.
+    - name: cost.receipt.get
+      proves: Retained received-cost shares and reviewed completeness.
+    - name: cost.inventory.get
+      proves: Confirmed bounded policy, ownership, acquisition value and consumption at an exact retained cutoff.
+    examples:
+      use:
+      - scenario: Attribute received goods 1000 and freight 100 to a receipt.
+        reason: Actual source amounts support explicit signed shares.
+      do_not_use:
+      - scenario: Infer discount from a payment difference.
+        reason: A difference is not acquisition-cost evidence.
+    postcondition:
+      kind: reference
+      meaning: An immutable attribution, receipt/inventory scope review or whole-line contribution review exists; original amounts remain unchanged.
   finance_component_assign_propose:
     application_tool: finance.component.assign
     purpose: Prepare explicit classification and cost-center shares for a received component.
@@ -3501,6 +4123,15 @@ agent_command_coverage:
   list_source_mappings: {classification: eligible, tools: [finance_source_mappings]}
   component_context: {classification: eligible, tools: [finance_components]}
   component_history: {classification: eligible, tools: [finance_component_history]}
+  cost_evidence: {classification: eligible, tools: [cost_evidence_get]}
+  inventory_cost: {classification: eligible, tools: [cost_inventory_get]}
+  contribution_preview: {classification: eligible, tools: [cost_contribution_preview]}
+  commercial_match: {classification: eligible, tools: [cost_commercial_match_get]}
+  cost_query: {classification: eligible, tools: [cost_query_get]}
+  cost_record: {classification: eligible, tools: [cost_record_get]}
+  reviewed_contribution: {classification: eligible, tools: [cost_contribution_get]}
+  receipt_cost: {classification: eligible, tools: [cost_receipt_get]}
+  execute_cost_change: {classification: eligible, tools: [cost_change_propose]}
   assign_component: {classification: eligible, tools: [finance_component_assign_propose]}
   list_references: {classification: eligible, tools: [finance_references]}
   reference_history: {classification: eligible, tools: [finance_reference_history]}

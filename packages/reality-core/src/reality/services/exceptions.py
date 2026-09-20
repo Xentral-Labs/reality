@@ -1,13 +1,13 @@
 from __future__ import annotations
 
 from collections.abc import Callable
-from dataclasses import asdict, dataclass
+from dataclasses import asdict, dataclass, replace
 from datetime import UTC, datetime, time, timedelta
 from decimal import Decimal
 from itertools import pairwise
 from typing import Any
 
-from sqlalchemy import func, or_, select
+from sqlalchemy import case, func, or_, select
 from sqlalchemy.orm import Session, aliased
 
 from reality.db.core import (
@@ -108,6 +108,10 @@ CLASS_ORDER = {
     "commitment_hold_unreleased": 32,
     "party_hold_unreleased": 33,
     "stock_expired": 34,
+    "missing_acquisition_cost": 35,
+    "unassigned_cost_component": 36,
+    "stale_cost_review": 37,
+    "negative_actual_db1": 38,
 }
 
 
@@ -139,6 +143,272 @@ class OperationalException:
         value["sort_at"] = self.sort_at.isoformat() if self.sort_at else None
         value["cause_ids"] = list(self.cause_ids)
         return value
+
+
+def _cost_finding(
+    class_id: str,
+    record_type: str,
+    record_id: str,
+    *,
+    cause_ids: tuple[str, ...],
+    causal_values: dict[str, Any],
+    trace: dict[str, Any],
+) -> OperationalException:
+    labels = {
+        "missing_acquisition_cost": (
+            "Acquisition cost is missing",
+            "Actual inventory value or DB1 is incomplete.",
+        ),
+        "unassigned_cost_component": (
+            "Cost component is unassigned",
+            "Received cost evidence is not assigned to its economic scope.",
+        ),
+        "stale_cost_review": (
+            "Cost review is stale",
+            "Later relevant evidence requires a new review.",
+        ),
+        "negative_actual_db1": (
+            "Actual DB1 is negative",
+            "Supported actual goods cost exceeds received net revenue.",
+        ),
+    }
+    title, impact = labels[class_id]
+    return OperationalException(
+        id=_identity(class_id, record_id),
+        class_id=class_id,
+        cause_ids=cause_ids,
+        severity="normal",
+        title=title,
+        impact=impact,
+        record_type=record_type,
+        record_id=record_id,
+        causal_values=causal_values,
+        trace=trace,
+    )
+
+
+def _derive_cost_findings(
+    *,
+    tenant_id: str,
+    basis: dict[str, Any],
+    inventory_rows=(),
+    component_rows=(),
+    contribution_rows=(),
+    previous_rows=(),
+) -> list[OperationalException]:
+    """Derive cost routing facts without replaying financial calculations."""
+    if basis.get("state") != "ready":
+        if basis.get("state") not in {"pending", "failed"}:
+            return []
+        return [
+            replace(
+                row,
+                trace={
+                    **row.trace,
+                    "cost_basis_state": basis["state"],
+                    "generation_id": basis.get("generation_id"),
+                    "manifest_id": basis.get("manifest_id"),
+                },
+            )
+            for row in previous_rows
+        ]
+    common = {
+        "cost_basis_state": "ready",
+        "generation_id": basis.get("generation_id"),
+        "manifest_id": basis.get("manifest_id"),
+    }
+    findings: list[OperationalException] = []
+    for row in inventory_rows:
+        if row.get("tenant_id") != tenant_id:
+            continue
+        if row.get("support_state") == "unknown":
+            findings.append(
+                _cost_finding(
+                    "missing_acquisition_cost",
+                    "item",
+                    row["item_id"],
+                    cause_ids=("acquisition_cost_unknown",),
+                    causal_values={"has_sale": bool(row.get("has_sale", False))},
+                    trace={**common, "review_id": row.get("review_id")},
+                )
+            )
+        elif row.get("review_state") == "stale":
+            findings.append(
+                _cost_finding(
+                    "stale_cost_review",
+                    "item",
+                    row["item_id"],
+                    cause_ids=("later_relevant_evidence",),
+                    causal_values={},
+                    trace={**common, "review_id": row.get("review_id")},
+                )
+            )
+    for row in component_rows:
+        if (
+            row.get("tenant_id") != tenant_id
+            or row.get("assignment_state") != "unassigned"
+        ):
+            continue
+        record_type = "document_line" if row.get("document_line_id") else "document"
+        record_id = row.get("document_line_id") or row.get("document_id")
+        if record_id:
+            findings.append(
+                _cost_finding(
+                    "unassigned_cost_component",
+                    record_type,
+                    record_id,
+                    cause_ids=("cost_component_unassigned",),
+                    causal_values={},
+                    trace={**common, "component_id": row["component_id"]},
+                )
+            )
+    for row in contribution_rows:
+        if row.get("tenant_id") != tenant_id:
+            continue
+        if row.get("db1_state") != "known":
+            findings.append(
+                _cost_finding(
+                    "missing_acquisition_cost",
+                    "document_line",
+                    row["document_line_id"],
+                    cause_ids=("contribution_goods_cost_unknown",),
+                    causal_values={"has_sale": True},
+                    trace={**common, "review_id": row.get("review_id")},
+                )
+            )
+            continue
+        revenue, goods = row.get("revenue"), row.get("goods_cost")
+        if revenue is not None and goods is not None and revenue - goods < 0:
+            findings.append(
+                _cost_finding(
+                    "negative_actual_db1",
+                    "document_line",
+                    row["document_line_id"],
+                    cause_ids=("supported_actual_db1_negative",),
+                    causal_values={"db1": revenue - goods},
+                    trace={**common, "review_id": row.get("review_id")},
+                )
+            )
+    return findings
+
+
+def cost_findings(
+    session: Session,
+    tenant_id: str,
+    *,
+    previous_rows: tuple[OperationalException, ...] = (),
+) -> list[OperationalException]:
+    """Read one verified company basis and derive tenant-scoped routing facts."""
+    from reality.db.company_generations import CostCompanyInventoryInput
+    from reality.db.components import FinancialComponent
+    from reality.db.costing import (
+        CostAttribution,
+        CostComponentBasis,
+        CostManifestAttribution,
+        CostManifestComponent,
+    )
+    from reality.db.inventory_costing import CostInventoryMember
+    from reality.services.analytics.costing_relation import (
+        company_contribution_relation,
+        company_generation_basis,
+        company_inventory_relation,
+    )
+
+    with session.no_autoflush:
+        basis = company_generation_basis(session, tenant_id, protect=True)
+        if basis["state"] != "ready":
+            return _derive_cost_findings(
+                tenant_id=tenant_id, basis=basis, previous_rows=previous_rows
+            )
+        inventory = [
+            {**dict(row), "support_state": row["state"], "has_sale": False}
+            for row in session.execute(
+                company_inventory_relation(tenant_id, basis["generation_id"])
+            ).mappings()
+        ]
+        contribution = list(
+            session.execute(
+                company_contribution_relation(tenant_id, basis["generation_id"])
+            ).mappings()
+        )
+        assigned = (
+            select(CostManifestAttribution.id)
+            .join(
+                CostAttribution,
+                (CostAttribution.tenant_id == tenant_id)
+                & (
+                    CostAttribution.id
+                    == CostManifestAttribution.attribution_revision_id
+                ),
+            )
+            .where(
+                CostManifestAttribution.tenant_id == tenant_id,
+                CostManifestAttribution.manifest_id
+                == CostManifestComponent.manifest_id,
+                CostAttribution.component_basis_id
+                == CostManifestComponent.component_basis_id,
+                CostAttribution.state == "assigned",
+            )
+            .exists()
+        )
+        components = [
+            dict(row)
+            for row in session.execute(
+                select(
+                    CostComponentBasis.tenant_id,
+                    FinancialComponent.id.label("component_id"),
+                    FinancialComponent.document_id,
+                    FinancialComponent.document_line_id,
+                    case((assigned, "assigned"), else_="unassigned").label(
+                        "assignment_state"
+                    ),
+                )
+                .select_from(CostCompanyInventoryInput)
+                .join(
+                    CostInventoryMember,
+                    (CostInventoryMember.tenant_id == tenant_id)
+                    & (
+                        CostInventoryMember.review_id
+                        == CostCompanyInventoryInput.review_id
+                    ),
+                )
+                .join(
+                    CostManifestComponent,
+                    (CostManifestComponent.tenant_id == tenant_id)
+                    & (
+                        CostManifestComponent.manifest_id
+                        == CostInventoryMember.receipt_manifest_id
+                    ),
+                )
+                .join(
+                    CostComponentBasis,
+                    (CostComponentBasis.tenant_id == tenant_id)
+                    & (
+                        CostComponentBasis.id
+                        == CostManifestComponent.component_basis_id
+                    ),
+                )
+                .join(
+                    FinancialComponent,
+                    (FinancialComponent.tenant_id == tenant_id)
+                    & (FinancialComponent.id == CostComponentBasis.component_id),
+                )
+                .where(
+                    CostCompanyInventoryInput.tenant_id == tenant_id,
+                    CostCompanyInventoryInput.manifest_id == basis["manifest_id"],
+                    CostCompanyInventoryInput.review_id.is_not(None),
+                )
+                .distinct()
+            ).mappings()
+        ]
+        return _derive_cost_findings(
+            tenant_id=tenant_id,
+            basis=basis,
+            inventory_rows=inventory,
+            component_rows=components,
+            contribution_rows=contribution,
+            previous_rows=previous_rows,
+        )
 
 
 def _identity(class_id: str, record_id: str) -> str:
@@ -3098,6 +3368,13 @@ def _financial_derivator(
     return _financial_exceptions(session, tenant_id)
 
 
+def _stored_cost_derivator(
+    session: Session, tenant_id: str, as_of: datetime
+) -> list[OperationalException]:
+    """Cost findings are materialized together once, never derived per live class."""
+    return []
+
+
 DERIVATION_REGISTRY: dict[str, Derivator] = {
     "overdue_outgoing_customer_commitment": _overdue_outgoing_customer_commitment,
     "outgoing_commitment_at_risk": _outgoing_commitment_at_risk,
@@ -3134,6 +3411,10 @@ DERIVATION_REGISTRY: dict[str, Derivator] = {
     "commitment_hold_unreleased": _commitment_hold_unreleased_exceptions,
     "party_hold_unreleased": _party_hold_unreleased_exceptions,
     "stock_expired": _stock_expired_exceptions,
+    "missing_acquisition_cost": _stored_cost_derivator,
+    "unassigned_cost_component": _stored_cost_derivator,
+    "stale_cost_review": _stored_cost_derivator,
+    "negative_actual_db1": _stored_cost_derivator,
 }
 
 

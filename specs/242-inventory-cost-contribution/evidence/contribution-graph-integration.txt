@@ -1,0 +1,450 @@
+...........................................................FF.FF........ [ 98%]
+.                                                                        [100%]
+=================================== FAILURES ===================================
+_____ test_production_tenant_isolation_catalog_is_complete_and_resolvable ______
+
+    def test_production_tenant_isolation_catalog_is_complete_and_resolvable():
+>       catalog = catalogs.load_tenant_isolation_catalog()
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_application_catalog.py:420: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+src/reality/catalogs.py:1012: in load_tenant_isolation_catalog
+    payload = yaml.safe_load(config_text(TENANT_ISOLATION_CATALOG_FILE))
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../../.venv/lib/python3.12/site-packages/yaml/__init__.py:125: in safe_load
+    return load(stream, SafeLoader)
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+../../.venv/lib/python3.12/site-packages/yaml/__init__.py:81: in load
+    return loader.get_single_data()
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+../../.venv/lib/python3.12/site-packages/yaml/constructor.py:49: in get_single_data
+    node = self.get_single_node()
+           ^^^^^^^^^^^^^^^^^^^^^^
+../../.venv/lib/python3.12/site-packages/yaml/composer.py:36: in get_single_node
+    document = self.compose_document()
+               ^^^^^^^^^^^^^^^^^^^^^^^
+../../.venv/lib/python3.12/site-packages/yaml/composer.py:55: in compose_document
+    node = self.compose_node(None, None)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../../.venv/lib/python3.12/site-packages/yaml/composer.py:84: in compose_node
+    node = self.compose_mapping_node(anchor)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../../.venv/lib/python3.12/site-packages/yaml/composer.py:133: in compose_mapping_node
+    item_value = self.compose_node(node, item_key)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../../.venv/lib/python3.12/site-packages/yaml/composer.py:82: in compose_node
+    node = self.compose_sequence_node(anchor)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../../.venv/lib/python3.12/site-packages/yaml/composer.py:111: in compose_sequence_node
+    node.value.append(self.compose_node(node, index))
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../../.venv/lib/python3.12/site-packages/yaml/composer.py:84: in compose_node
+    node = self.compose_mapping_node(anchor)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../../.venv/lib/python3.12/site-packages/yaml/composer.py:133: in compose_mapping_node
+    item_value = self.compose_node(node, item_key)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../../.venv/lib/python3.12/site-packages/yaml/composer.py:82: in compose_node
+    node = self.compose_sequence_node(anchor)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../../.venv/lib/python3.12/site-packages/yaml/composer.py:110: in compose_sequence_node
+    while not self.check_event(SequenceEndEvent):
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../../.venv/lib/python3.12/site-packages/yaml/parser.py:98: in check_event
+    self.current_event = self.state()
+                         ^^^^^^^^^^^^
+../../.venv/lib/python3.12/site-packages/yaml/parser.py:382: in parse_block_sequence_entry
+    if self.check_token(BlockEntryToken):
+       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../../.venv/lib/python3.12/site-packages/yaml/scanner.py:116: in check_token
+    self.fetch_more_tokens()
+../../.venv/lib/python3.12/site-packages/yaml/scanner.py:223: in fetch_more_tokens
+    return self.fetch_value()
+           ^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <yaml.loader.SafeLoader object at 0x10f57f320>
+
+    def fetch_value(self):
+    
+        # Do we determine a simple key?
+        if self.flow_level in self.possible_simple_keys:
+    
+            # Add KEY.
+            key = self.possible_simple_keys[self.flow_level]
+            del self.possible_simple_keys[self.flow_level]
+            self.tokens.insert(key.token_number-self.tokens_taken,
+                    KeyToken(key.mark, key.mark))
+    
+            # If this key starts a new block mapping, we need to add
+            # BLOCK-MAPPING-START.
+            if not self.flow_level:
+                if self.add_indent(key.column):
+                    self.tokens.insert(key.token_number-self.tokens_taken,
+                            BlockMappingStartToken(key.mark, key.mark))
+    
+            # There cannot be two simple keys one after another.
+            self.allow_simple_key = False
+    
+        # It must be a part of a complex key.
+        else:
+    
+            # Block context needs additional checks.
+            # (Do we really need them? They will be caught by the parser
+            # anyway.)
+            if not self.flow_level:
+    
+                # We are allowed to start a complex value if and only if
+                # we can start a simple key.
+                if not self.allow_simple_key:
+>                   raise ScannerError(None, None,
+                            "mapping values are not allowed here",
+                            self.get_mark())
+E                   yaml.scanner.ScannerError: mapping values are not allowed here
+E                     in "<unicode string>", line 839, column 59:
+E                        ... tribution_reviews.list      - id: tests/test_inventory_review_op ... 
+E                                                            ^
+
+../../.venv/lib/python3.12/site-packages/yaml/scanner.py:577: ScannerError
+_________ test_membership_access_operations_are_explicitly_classified __________
+
+    def test_membership_access_operations_are_explicitly_classified():
+>       catalog = catalogs.load_tenant_isolation_catalog()
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_application_catalog.py:437: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+src/reality/catalogs.py:1012: in load_tenant_isolation_catalog
+    payload = yaml.safe_load(config_text(TENANT_ISOLATION_CATALOG_FILE))
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../../.venv/lib/python3.12/site-packages/yaml/__init__.py:125: in safe_load
+    return load(stream, SafeLoader)
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+../../.venv/lib/python3.12/site-packages/yaml/__init__.py:81: in load
+    return loader.get_single_data()
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+../../.venv/lib/python3.12/site-packages/yaml/constructor.py:49: in get_single_data
+    node = self.get_single_node()
+           ^^^^^^^^^^^^^^^^^^^^^^
+../../.venv/lib/python3.12/site-packages/yaml/composer.py:36: in get_single_node
+    document = self.compose_document()
+               ^^^^^^^^^^^^^^^^^^^^^^^
+../../.venv/lib/python3.12/site-packages/yaml/composer.py:55: in compose_document
+    node = self.compose_node(None, None)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../../.venv/lib/python3.12/site-packages/yaml/composer.py:84: in compose_node
+    node = self.compose_mapping_node(anchor)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../../.venv/lib/python3.12/site-packages/yaml/composer.py:133: in compose_mapping_node
+    item_value = self.compose_node(node, item_key)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../../.venv/lib/python3.12/site-packages/yaml/composer.py:82: in compose_node
+    node = self.compose_sequence_node(anchor)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../../.venv/lib/python3.12/site-packages/yaml/composer.py:111: in compose_sequence_node
+    node.value.append(self.compose_node(node, index))
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../../.venv/lib/python3.12/site-packages/yaml/composer.py:84: in compose_node
+    node = self.compose_mapping_node(anchor)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../../.venv/lib/python3.12/site-packages/yaml/composer.py:133: in compose_mapping_node
+    item_value = self.compose_node(node, item_key)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../../.venv/lib/python3.12/site-packages/yaml/composer.py:82: in compose_node
+    node = self.compose_sequence_node(anchor)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../../.venv/lib/python3.12/site-packages/yaml/composer.py:110: in compose_sequence_node
+    while not self.check_event(SequenceEndEvent):
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../../.venv/lib/python3.12/site-packages/yaml/parser.py:98: in check_event
+    self.current_event = self.state()
+                         ^^^^^^^^^^^^
+../../.venv/lib/python3.12/site-packages/yaml/parser.py:382: in parse_block_sequence_entry
+    if self.check_token(BlockEntryToken):
+       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../../.venv/lib/python3.12/site-packages/yaml/scanner.py:116: in check_token
+    self.fetch_more_tokens()
+../../.venv/lib/python3.12/site-packages/yaml/scanner.py:223: in fetch_more_tokens
+    return self.fetch_value()
+           ^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <yaml.loader.SafeLoader object at 0x10fdcc680>
+
+    def fetch_value(self):
+    
+        # Do we determine a simple key?
+        if self.flow_level in self.possible_simple_keys:
+    
+            # Add KEY.
+            key = self.possible_simple_keys[self.flow_level]
+            del self.possible_simple_keys[self.flow_level]
+            self.tokens.insert(key.token_number-self.tokens_taken,
+                    KeyToken(key.mark, key.mark))
+    
+            # If this key starts a new block mapping, we need to add
+            # BLOCK-MAPPING-START.
+            if not self.flow_level:
+                if self.add_indent(key.column):
+                    self.tokens.insert(key.token_number-self.tokens_taken,
+                            BlockMappingStartToken(key.mark, key.mark))
+    
+            # There cannot be two simple keys one after another.
+            self.allow_simple_key = False
+    
+        # It must be a part of a complex key.
+        else:
+    
+            # Block context needs additional checks.
+            # (Do we really need them? They will be caught by the parser
+            # anyway.)
+            if not self.flow_level:
+    
+                # We are allowed to start a complex value if and only if
+                # we can start a simple key.
+                if not self.allow_simple_key:
+>                   raise ScannerError(None, None,
+                            "mapping values are not allowed here",
+                            self.get_mark())
+E                   yaml.scanner.ScannerError: mapping values are not allowed here
+E                     in "<unicode string>", line 839, column 59:
+E                        ... tribution_reviews.list      - id: tests/test_inventory_review_op ... 
+E                                                            ^
+
+../../.venv/lib/python3.12/site-packages/yaml/scanner.py:577: ScannerError
+____________ test_every_reachable_mutation_is_declared_or_explained ____________
+
+    def test_every_reachable_mutation_is_declared_or_explained():
+        """The gate spec 091 said was missing.
+    
+        An operation could be built, made tenant-safe, wired to a surface and never
+        declared — which is how booking an invoice reached no surface at all and
+        five shipped exception classes could never fire.
+        """
+        commands = yaml.safe_load(config_text(catalogs.CATALOG_FILES["commands"]))
+        declared = _declared_services(commands)
+        not_commands = commands.get("reachable_mutations_that_are_not_commands", {})
+>       population = _reachable_mutations()
+                     ^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_application_catalog.py:524: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_application_catalog.py:494: in _reachable_mutations
+    isolation = yaml.safe_load(config_text(catalogs.TENANT_ISOLATION_CATALOG_FILE))
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../../.venv/lib/python3.12/site-packages/yaml/__init__.py:125: in safe_load
+    return load(stream, SafeLoader)
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+../../.venv/lib/python3.12/site-packages/yaml/__init__.py:81: in load
+    return loader.get_single_data()
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+../../.venv/lib/python3.12/site-packages/yaml/constructor.py:49: in get_single_data
+    node = self.get_single_node()
+           ^^^^^^^^^^^^^^^^^^^^^^
+../../.venv/lib/python3.12/site-packages/yaml/composer.py:36: in get_single_node
+    document = self.compose_document()
+               ^^^^^^^^^^^^^^^^^^^^^^^
+../../.venv/lib/python3.12/site-packages/yaml/composer.py:55: in compose_document
+    node = self.compose_node(None, None)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../../.venv/lib/python3.12/site-packages/yaml/composer.py:84: in compose_node
+    node = self.compose_mapping_node(anchor)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../../.venv/lib/python3.12/site-packages/yaml/composer.py:133: in compose_mapping_node
+    item_value = self.compose_node(node, item_key)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../../.venv/lib/python3.12/site-packages/yaml/composer.py:82: in compose_node
+    node = self.compose_sequence_node(anchor)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../../.venv/lib/python3.12/site-packages/yaml/composer.py:111: in compose_sequence_node
+    node.value.append(self.compose_node(node, index))
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../../.venv/lib/python3.12/site-packages/yaml/composer.py:84: in compose_node
+    node = self.compose_mapping_node(anchor)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../../.venv/lib/python3.12/site-packages/yaml/composer.py:133: in compose_mapping_node
+    item_value = self.compose_node(node, item_key)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../../.venv/lib/python3.12/site-packages/yaml/composer.py:82: in compose_node
+    node = self.compose_sequence_node(anchor)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../../.venv/lib/python3.12/site-packages/yaml/composer.py:110: in compose_sequence_node
+    while not self.check_event(SequenceEndEvent):
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../../.venv/lib/python3.12/site-packages/yaml/parser.py:98: in check_event
+    self.current_event = self.state()
+                         ^^^^^^^^^^^^
+../../.venv/lib/python3.12/site-packages/yaml/parser.py:382: in parse_block_sequence_entry
+    if self.check_token(BlockEntryToken):
+       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../../.venv/lib/python3.12/site-packages/yaml/scanner.py:116: in check_token
+    self.fetch_more_tokens()
+../../.venv/lib/python3.12/site-packages/yaml/scanner.py:223: in fetch_more_tokens
+    return self.fetch_value()
+           ^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <yaml.loader.SafeLoader object at 0x10f42fbf0>
+
+    def fetch_value(self):
+    
+        # Do we determine a simple key?
+        if self.flow_level in self.possible_simple_keys:
+    
+            # Add KEY.
+            key = self.possible_simple_keys[self.flow_level]
+            del self.possible_simple_keys[self.flow_level]
+            self.tokens.insert(key.token_number-self.tokens_taken,
+                    KeyToken(key.mark, key.mark))
+    
+            # If this key starts a new block mapping, we need to add
+            # BLOCK-MAPPING-START.
+            if not self.flow_level:
+                if self.add_indent(key.column):
+                    self.tokens.insert(key.token_number-self.tokens_taken,
+                            BlockMappingStartToken(key.mark, key.mark))
+    
+            # There cannot be two simple keys one after another.
+            self.allow_simple_key = False
+    
+        # It must be a part of a complex key.
+        else:
+    
+            # Block context needs additional checks.
+            # (Do we really need them? They will be caught by the parser
+            # anyway.)
+            if not self.flow_level:
+    
+                # We are allowed to start a complex value if and only if
+                # we can start a simple key.
+                if not self.allow_simple_key:
+>                   raise ScannerError(None, None,
+                            "mapping values are not allowed here",
+                            self.get_mark())
+E                   yaml.scanner.ScannerError: mapping values are not allowed here
+E                     in "<unicode string>", line 839, column 59:
+E                        ... tribution_reviews.list      - id: tests/test_inventory_review_op ... 
+E                                                            ^
+
+../../.venv/lib/python3.12/site-packages/yaml/scanner.py:577: ScannerError
+________________ test_the_command_gate_fails_in_both_directions ________________
+
+    def test_the_command_gate_fails_in_both_directions():
+        """A stale exemption is how a list like this rots.
+    
+        The operation it named stops being reachable, the entry stays, and the next
+        operation with that name inherits a silence nobody chose.
+        """
+        commands = yaml.safe_load(config_text(catalogs.CATALOG_FILES["commands"]))
+        declared = _declared_services(commands)
+        not_commands = commands.get("reachable_mutations_that_are_not_commands", {})
+>       population = _reachable_mutations()
+                     ^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_application_catalog.py:544: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_application_catalog.py:494: in _reachable_mutations
+    isolation = yaml.safe_load(config_text(catalogs.TENANT_ISOLATION_CATALOG_FILE))
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../../.venv/lib/python3.12/site-packages/yaml/__init__.py:125: in safe_load
+    return load(stream, SafeLoader)
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+../../.venv/lib/python3.12/site-packages/yaml/__init__.py:81: in load
+    return loader.get_single_data()
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+../../.venv/lib/python3.12/site-packages/yaml/constructor.py:49: in get_single_data
+    node = self.get_single_node()
+           ^^^^^^^^^^^^^^^^^^^^^^
+../../.venv/lib/python3.12/site-packages/yaml/composer.py:36: in get_single_node
+    document = self.compose_document()
+               ^^^^^^^^^^^^^^^^^^^^^^^
+../../.venv/lib/python3.12/site-packages/yaml/composer.py:55: in compose_document
+    node = self.compose_node(None, None)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../../.venv/lib/python3.12/site-packages/yaml/composer.py:84: in compose_node
+    node = self.compose_mapping_node(anchor)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../../.venv/lib/python3.12/site-packages/yaml/composer.py:133: in compose_mapping_node
+    item_value = self.compose_node(node, item_key)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../../.venv/lib/python3.12/site-packages/yaml/composer.py:82: in compose_node
+    node = self.compose_sequence_node(anchor)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../../.venv/lib/python3.12/site-packages/yaml/composer.py:111: in compose_sequence_node
+    node.value.append(self.compose_node(node, index))
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../../.venv/lib/python3.12/site-packages/yaml/composer.py:84: in compose_node
+    node = self.compose_mapping_node(anchor)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../../.venv/lib/python3.12/site-packages/yaml/composer.py:133: in compose_mapping_node
+    item_value = self.compose_node(node, item_key)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../../.venv/lib/python3.12/site-packages/yaml/composer.py:82: in compose_node
+    node = self.compose_sequence_node(anchor)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../../.venv/lib/python3.12/site-packages/yaml/composer.py:110: in compose_sequence_node
+    while not self.check_event(SequenceEndEvent):
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../../.venv/lib/python3.12/site-packages/yaml/parser.py:98: in check_event
+    self.current_event = self.state()
+                         ^^^^^^^^^^^^
+../../.venv/lib/python3.12/site-packages/yaml/parser.py:382: in parse_block_sequence_entry
+    if self.check_token(BlockEntryToken):
+       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../../.venv/lib/python3.12/site-packages/yaml/scanner.py:116: in check_token
+    self.fetch_more_tokens()
+../../.venv/lib/python3.12/site-packages/yaml/scanner.py:223: in fetch_more_tokens
+    return self.fetch_value()
+           ^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <yaml.loader.SafeLoader object at 0x10c1700b0>
+
+    def fetch_value(self):
+    
+        # Do we determine a simple key?
+        if self.flow_level in self.possible_simple_keys:
+    
+            # Add KEY.
+            key = self.possible_simple_keys[self.flow_level]
+            del self.possible_simple_keys[self.flow_level]
+            self.tokens.insert(key.token_number-self.tokens_taken,
+                    KeyToken(key.mark, key.mark))
+    
+            # If this key starts a new block mapping, we need to add
+            # BLOCK-MAPPING-START.
+            if not self.flow_level:
+                if self.add_indent(key.column):
+                    self.tokens.insert(key.token_number-self.tokens_taken,
+                            BlockMappingStartToken(key.mark, key.mark))
+    
+            # There cannot be two simple keys one after another.
+            self.allow_simple_key = False
+    
+        # It must be a part of a complex key.
+        else:
+    
+            # Block context needs additional checks.
+            # (Do we really need them? They will be caught by the parser
+            # anyway.)
+            if not self.flow_level:
+    
+                # We are allowed to start a complex value if and only if
+                # we can start a simple key.
+                if not self.allow_simple_key:
+>                   raise ScannerError(None, None,
+                            "mapping values are not allowed here",
+                            self.get_mark())
+E                   yaml.scanner.ScannerError: mapping values are not allowed here
+E                     in "<unicode string>", line 839, column 59:
+E                        ... tribution_reviews.list      - id: tests/test_inventory_review_op ... 
+E                                                            ^
+
+../../.venv/lib/python3.12/site-packages/yaml/scanner.py:577: ScannerError
+=========================== short test summary info ============================
+FAILED tests/test_application_catalog.py::test_production_tenant_isolation_catalog_is_complete_and_resolvable
+FAILED tests/test_application_catalog.py::test_membership_access_operations_are_explicitly_classified
+FAILED tests/test_application_catalog.py::test_every_reachable_mutation_is_declared_or_explained
+FAILED tests/test_application_catalog.py::test_the_command_gate_fails_in_both_directions
+4 failed, 69 passed in 26.93s

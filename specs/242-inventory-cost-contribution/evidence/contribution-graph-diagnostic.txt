@@ -1,0 +1,312 @@
+F
+=================================== FAILURES ===================================
+_____________ test_same_unit_partial_group_and_saved_http_question _____________
+
+self = <sqlalchemy.engine.base.Connection object at 0x10e15acf0>
+dialect = <sqlalchemy.dialects.postgresql.psycopg.PGDialect_psycopg object at 0x10ba45760>
+context = <sqlalchemy.dialects.postgresql.psycopg.PGExecutionContext_psycopg object at 0x10f4a67e0>
+statement = <sqlalchemy.dialects.postgresql.psycopg.PGCompiler_psycopg object at 0x10f4b1580>
+parameters = [{'date_trunc_1': 'month', 'economic_at_1': '^[0-9]{4}-[0-9]{2}-[0-9]{2}$', 'substr_1': 1, 'substr_2': 4, ...}]
+
+    def _exec_single_context(
+        self,
+        dialect: Dialect,
+        context: ExecutionContext,
+        statement: Union[str, Compiled],
+        parameters: Optional[_AnyMultiExecuteParams],
+    ) -> CursorResult[Any]:
+        """continue the _execute_context() method for a single DBAPI
+        cursor.execute() or cursor.executemany() call.
+    
+        """
+        if dialect.bind_typing is BindTyping.SETINPUTSIZES:
+            generic_setinputsizes = context._prepare_set_input_sizes()
+    
+            if generic_setinputsizes:
+                try:
+                    dialect.do_set_input_sizes(
+                        context.cursor, generic_setinputsizes, context
+                    )
+                except BaseException as e:
+                    self._handle_dbapi_exception(
+                        e, str(statement), parameters, None, context
+                    )
+    
+        cursor, str_statement, parameters = (
+            context.cursor,
+            context.statement,
+            context.parameters,
+        )
+    
+        effective_parameters: Optional[_AnyExecuteParams]
+    
+        if not context.executemany:
+            effective_parameters = parameters[0]
+        else:
+            effective_parameters = parameters
+    
+        if self._has_events or self.engine._has_events:
+            for fn in self.dispatch.before_cursor_execute:
+                str_statement, effective_parameters = fn(
+                    self,
+                    cursor,
+                    str_statement,
+                    effective_parameters,
+                    context,
+                    context.executemany,
+                )
+    
+        if self._echo:
+            self._log_info(str_statement)
+    
+            stats = context._get_cache_stats()
+    
+            if not self.engine.hide_parameters:
+                self._log_info(
+                    "[%s] %r",
+                    stats,
+                    sql_util._repr_params(
+                        effective_parameters,
+                        batches=10,
+                        ismulti=context.executemany,
+                    ),
+                )
+            else:
+                self._log_info(
+                    "[%s] [SQL parameters hidden due to hide_parameters=True]",
+                    stats,
+                )
+    
+        evt_handled: bool = False
+        try:
+            if context.execute_style is ExecuteStyle.EXECUTEMANY:
+                effective_parameters = cast(
+                    "_CoreMultiExecuteParams", effective_parameters
+                )
+                if self.dialect._has_events:
+                    for fn in self.dialect.dispatch.do_executemany:
+                        if fn(
+                            cursor,
+                            str_statement,
+                            effective_parameters,
+                            context,
+                        ):
+                            evt_handled = True
+                            break
+                if not evt_handled:
+                    self.dialect.do_executemany(
+                        cursor,
+                        str_statement,
+                        effective_parameters,
+                        context,
+                    )
+            elif not effective_parameters and context.no_parameters:
+                if self.dialect._has_events:
+                    for fn in self.dialect.dispatch.do_execute_no_params:
+                        if fn(cursor, str_statement, context):
+                            evt_handled = True
+                            break
+                if not evt_handled:
+                    self.dialect.do_execute_no_params(
+                        cursor, str_statement, context
+                    )
+            else:
+                effective_parameters = cast(
+                    "_CoreSingleExecuteParams", effective_parameters
+                )
+                if self.dialect._has_events:
+                    for fn in self.dialect.dispatch.do_execute:
+                        if fn(
+                            cursor,
+                            str_statement,
+                            effective_parameters,
+                            context,
+                        ):
+                            evt_handled = True
+                            break
+                if not evt_handled:
+>                   self.dialect.do_execute(
+                        cursor, str_statement, effective_parameters, context
+                    )
+
+../../.venv/lib/python3.12/site-packages/sqlalchemy/engine/base.py:1969: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+../../.venv/lib/python3.12/site-packages/sqlalchemy/engine/default.py:952: in do_execute
+    cursor.execute(statement, parameters)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <psycopg.Cursor [closed] [INERROR] (host=127.0.0.1 port=55439 user=costing database=reality_pytest_c729336240) at 0x10f1af4d0>
+query = 'SELECT root.currency AS "root.currency", root.base_unit AS "root.base_unit", to_char(date_trunc(%(date_trunc_1)s::VAR...) AS INTEGER)) END END END AS DATE)), %(to_char_1)s::VARCHAR) ORDER BY "root.base_unit" \n LIMIT %(param_26)s::INTEGER'
+params = {'date_trunc_1': 'month', 'economic_at_1': '^[0-9]{4}-[0-9]{2}-[0-9]{2}$', 'substr_1': 1, 'substr_2': 4, ...}
+prepare = None, binary = None
+
+    def execute(
+        self,
+        query: Query,
+        params: Params | None = None,
+        *,
+        prepare: bool | None = None,
+        binary: bool | None = None,
+    ) -> Self:
+        """
+        Execute a query or command to the database.
+        """
+        try:
+            with self._conn.lock:
+                self._conn.wait(
+                    self._execute_gen(query, params, prepare=prepare, binary=binary)
+                )
+        except e._NO_TRACEBACK as ex:
+>           raise ex.with_traceback(None)
+E           psycopg.errors.UndefinedFunction: operator does not exist: timestamp with time zone ~ character varying
+E           LINE 1: ...unc($1::VARCHAR, CAST(CASE WHEN (root.economic_at ~ $2::VARC...
+E                                                                        ^
+E           HINT:  No operator matches the given name and argument types. You might need to add explicit type casts.
+
+../../.venv/lib/python3.12/site-packages/psycopg/cursor.py:117: UndefinedFunction
+
+The above exception was the direct cause of the following exception:
+
+session = <sqlalchemy.orm.session.Session object at 0x10e28c6e0>
+business = Business(tenant=<reality.db.core.Tenant object at 0x10e28c530>, company=<reality.db.core.Party object at 0x10ef7fdd0>,...ef7eea0>, item=<reality.db.core.Item object at 0x10efab770>, location=<reality.db.core.Location object at 0x10e1dc500>)
+cost_owner = <reality.db.core.AppUser object at 0x10efaa870>
+
+    def test_same_unit_partial_group_and_saved_http_question(session, business, cost_owner):
+        from uuid import uuid4
+    
+        from fastapi import FastAPI
+        from fastapi.testclient import TestClient
+    
+        from reality.services.analytics.reports import change_graph_report, get_report
+        from reality.services.memberships import Principal
+        from reality.web import analytics_api, auth
+    
+        tenant = business.tenant.id
+        args, _, _ = fixtures.fixtures.prepared(
+            session, business, cost_owner, second_unit="pcs"
+        )
+        action, _ = fixtures.fixtures.stock.commit_review(
+            session, business, cost_owner, args
+        )
+        costing.build_contribution_generation(session, tenant, action.id)
+        principal = Principal(cost_owner.id)
+        saved = change_graph_report(
+            session,
+            tenant,
+            principal,
+            {
+                "operation": "create",
+                "request_id": str(uuid4()),
+                "name": "Contribution",
+                "question": question(action.id),
+            },
+        )
+        reopened = get_report(session, tenant, principal, saved["id"], report_kind="graph")
+        assert reopened["definition"]["contribution_cost_context"]["action_id"] == action.id
+        app = FastAPI()
+        app.include_router(analytics_api.router, prefix="/tenants/{tenant_id}")
+        app.dependency_overrides[auth.database_session] = lambda: session
+        with TestClient(app) as client:
+            response = client.post(
+                f"/tenants/{tenant}/analytics/graph/ask",
+                json={"question": reopened["definition"]},
+            )
+        assert response.status_code == 200, response.text
+        assert response.json()["rows"] == [
+            {
+                "root.currency": "EUR",
+                "root.base_unit": "pcs",
+                "contribution_db1": "1140.0000",
+                "contribution_db2": None,
+                "contribution_db2_known": "570.0000",
+                "contribution_db2_covered": 1,
+                "contribution_db2_required": 2,
+                "contribution_db1_rate": "47.5000",
+            }
+        ]
+>       bucketed = run_traversal(
+            session,
+            tenant,
+            Traversal.model_validate(
+                question(
+                    action.id,
+                    group_by=[
+                        {"field": "root.currency"},
+                        {"field": "root.base_unit"},
+                        {"field": "root.economic_at", "bucket": "month"},
+                    ],
+                )
+            ),
+        )
+
+tests/test_contribution_graph_reporting.py:194: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+src/reality/services/analytics/traversal.py:504: in run_traversal
+    return execute(session, tenant_id, path)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src/reality/services/analytics/compile_sql.py:653: in execute
+    rows = session.execute(statement).mappings().all()
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+../../.venv/lib/python3.12/site-packages/sqlalchemy/orm/session.py:2373: in execute
+    return self._execute_internal(
+../../.venv/lib/python3.12/site-packages/sqlalchemy/orm/session.py:2280: in _execute_internal
+    result = conn.execute(
+../../.venv/lib/python3.12/site-packages/sqlalchemy/engine/base.py:1421: in execute
+    return meth(
+../../.venv/lib/python3.12/site-packages/sqlalchemy/sql/elements.py:526: in _execute_on_connection
+    return connection._execute_clauseelement(
+../../.venv/lib/python3.12/site-packages/sqlalchemy/engine/base.py:1643: in _execute_clauseelement
+    ret = self._execute_context(
+../../.venv/lib/python3.12/site-packages/sqlalchemy/engine/base.py:1848: in _execute_context
+    return self._exec_single_context(
+../../.venv/lib/python3.12/site-packages/sqlalchemy/engine/base.py:1988: in _exec_single_context
+    self._handle_dbapi_exception(
+../../.venv/lib/python3.12/site-packages/sqlalchemy/engine/base.py:2365: in _handle_dbapi_exception
+    raise sqlalchemy_exception.with_traceback(exc_info[2]) from e
+../../.venv/lib/python3.12/site-packages/sqlalchemy/engine/base.py:1969: in _exec_single_context
+    self.dialect.do_execute(
+../../.venv/lib/python3.12/site-packages/sqlalchemy/engine/default.py:952: in do_execute
+    cursor.execute(statement, parameters)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <psycopg.Cursor [closed] [INERROR] (host=127.0.0.1 port=55439 user=costing database=reality_pytest_c729336240) at 0x10f1af4d0>
+query = 'SELECT root.currency AS "root.currency", root.base_unit AS "root.base_unit", to_char(date_trunc(%(date_trunc_1)s::VAR...) AS INTEGER)) END END END AS DATE)), %(to_char_1)s::VARCHAR) ORDER BY "root.base_unit" \n LIMIT %(param_26)s::INTEGER'
+params = {'date_trunc_1': 'month', 'economic_at_1': '^[0-9]{4}-[0-9]{2}-[0-9]{2}$', 'substr_1': 1, 'substr_2': 4, ...}
+prepare = None, binary = None
+
+    def execute(
+        self,
+        query: Query,
+        params: Params | None = None,
+        *,
+        prepare: bool | None = None,
+        binary: bool | None = None,
+    ) -> Self:
+        """
+        Execute a query or command to the database.
+        """
+        try:
+            with self._conn.lock:
+                self._conn.wait(
+                    self._execute_gen(query, params, prepare=prepare, binary=binary)
+                )
+        except e._NO_TRACEBACK as ex:
+>           raise ex.with_traceback(None)
+E           sqlalchemy.exc.ProgrammingError: (psycopg.errors.UndefinedFunction) operator does not exist: timestamp with time zone ~ character varying
+E           LINE 1: ...unc($1::VARCHAR, CAST(CASE WHEN (root.economic_at ~ $2::VARC...
+E                                                                        ^
+E           HINT:  No operator matches the given name and argument types. You might need to add explicit type casts.
+E           [SQL: SELECT root.currency AS "root.currency", root.base_unit AS "root.base_unit", to_char(date_trunc(%(date_trunc_1)s::VARCHAR, CAST(CASE WHEN (root.economic_at ~ %(economic_at_1)s::VARCHAR) THEN CASE WHEN (CAST(substr(root.economic_at, %(substr_1)s::INTEGER, %(substr_2)s::INTEGER) AS INTEGER) BETWEEN %(param_1)s::INTEGER AND %(param_2)s::INTEGER AND CAST(substr(root.economic_at, %(substr_3)s::INTEGER, %(substr_4)s::INTEGER) AS INTEGER) BETWEEN %(param_3)s::INTEGER AND %(param_4)s::INTEGER) THEN CASE WHEN (CAST(substr(root.economic_at, %(substr_5)s::INTEGER, %(substr_6)s::INTEGER) AS INTEGER) BETWEEN %(param_5)s::INTEGER AND EXTRACT(day FROM make_date(CAST(substr(root.economic_at, %(substr_1)s::INTEGER, %(substr_2)s::INTEGER) AS INTEGER), CAST(substr(root.economic_at, %(substr_3)s::INTEGER, %(substr_4)s::INTEGER) AS INTEGER), %(make_date_1)s::INTEGER) + INTERVAL '1 month - 1 day')) THEN make_date(CAST(substr(root.economic_at, %(substr_1)s::INTEGER, %(substr_2)s::INTEGER) AS INTEGER), CAST(substr(root.economic_at, %(substr_3)s::INTEGER, %(substr_4)s::INTEGER) AS INTEGER), CAST(substr(root.economic_at, %(substr_5)s::INTEGER, %(substr_6)s::INTEGER) AS INTEGER)) END END END AS DATE)), %(to_char_1)s::VARCHAR) AS "root.economic_at", CASE WHEN (%(param_6)s AND count(*) > %(count_1)s::INTEGER AND count(*) FILTER (WHERE root.revenue IS NOT NULL AND root.goods_cost IS NOT NULL AND root.revenue_state = %(revenue_state_1)s::VARCHAR AND root.goods_cost_state = %(goods_cost_state_1)s::VARCHAR) = count(*)) THEN coalesce(sum(CASE WHEN (root.revenue IS NOT NULL AND root.goods_cost IS NOT NULL AND root.revenue_state IN (%(revenue_state_2_1)s::VARCHAR, %(revenue_state_2_2)s::VARCHAR) AND root.goods_cost_state IN (%(goods_cost_state_2_1)s::VARCHAR, %(goods_cost_state_2_2)s::VARCHAR)) THEN root.revenue - root.goods_cost ELSE %(param_7)s::INTEGER END), %(coalesce_1)s::INTEGER) END AS contribution_db1, CASE WHEN (%(param_8)s AND count(*) > %(count_2)s::INTEGER AND count(*) FILTER (WHERE root.revenue IS NOT NULL AND root.goods_cost IS NOT NULL AND root.direct_selling_cost IS NOT NULL AND root.allocated_selling_cost IS NOT NULL AND root.revenue_state = %(revenue_state_3)s::VARCHAR AND root.goods_cost_state = %(goods_cost_state_3)s::VARCHAR AND root.direct_selling_cost_state = %(direct_selling_cost_state_1)s::VARCHAR AND root.allocated_selling_cost_state = %(allocated_selling_cost_state_1)s::VARCHAR) = count(*)) THEN coalesce(sum(CASE WHEN (root.revenue IS NOT NULL AND root.goods_cost IS NOT NULL AND root.direct_selling_cost IS NOT NULL AND root.allocated_selling_cost IS NOT NULL AND root.revenue_state IN (%(revenue_state_4_1)s::VARCHAR, %(revenue_state_4_2)s::VARCHAR) AND root.goods_cost_state IN (%(goods_cost_state_4_1)s::VARCHAR, %(goods_cost_state_4_2)s::VARCHAR) AND root.direct_selling_cost_state IN (%(direct_selling_cost_state_2_1)s::VARCHAR, %(direct_selling_cost_state_2_2)s::VARCHAR) AND root.allocated_selling_cost_state IN (%(allocated_selling_cost_state_2_1)s::VARCHAR, %(allocated_selling_cost_state_2_2)s::VARCHAR)) THEN ((root.revenue - root.goods_cost) - root.direct_selling_cost) - root.allocated_selling_cost ELSE %(param_9)s::INTEGER END), %(coalesce_2)s::INTEGER) END AS contribution_db2, coalesce(sum(CASE WHEN (root.revenue IS NOT NULL AND root.goods_cost IS NOT NULL AND root.direct_selling_cost IS NOT NULL AND root.allocated_selling_cost IS NOT NULL AND root.revenue_state IN (%(revenue_state_5_1)s::VARCHAR, %(revenue_state_5_2)s::VARCHAR) AND root.goods_cost_state IN (%(goods_cost_state_5_1)s::VARCHAR, %(goods_cost_state_5_2)s::VARCHAR) AND root.direct_selling_cost_state IN (%(direct_selling_cost_state_3_1)s::VARCHAR, %(direct_selling_cost_state_3_2)s::VARCHAR) AND root.allocated_selling_cost_state IN (%(allocated_selling_cost_state_3_1)s::VARCHAR, %(allocated_selling_cost_state_3_2)s::VARCHAR)) THEN ((root.revenue - root.goods_cost) - root.direct_selling_cost) - root.allocated_selling_cost ELSE %(param_10)s::INTEGER END), %(coalesce_3)s::INTEGER) AS contribution_db2_known, count(*) FILTER (WHERE root.revenue IS NOT NULL AND root.goods_cost IS NOT NULL AND root.direct_selling_cost IS NOT NULL AND root.allocated_selling_cost IS NOT NULL AND root.revenue_state = %(revenue_state_6)s::VARCHAR AND root.goods_cost_state = %(goods_cost_state_6)s::VARCHAR AND root.direct_selling_cost_state = %(direct_selling_cost_state_4)s::VARCHAR AND root.allocated_selling_cost_state = %(allocated_selling_cost_state_4)s::VARCHAR) AS contribution_db2_covered, count(*) AS contribution_db2_required, CASE WHEN (CASE WHEN (%(param_11)s AND count(*) > %(count_3)s::INTEGER AND count(*) FILTER (WHERE root.revenue IS NOT NULL AND root.revenue_state = %(revenue_state_7)s::VARCHAR) = count(*)) THEN coalesce(sum(CASE WHEN (root.revenue IS NOT NULL AND root.revenue_state IN (%(revenue_state_8_1)s::VARCHAR, %(revenue_state_8_2)s::VARCHAR)) THEN root.revenue ELSE %(param_12)s::INTEGER END), %(coalesce_4)s::INTEGER) END > %(param_13)s::INTEGER) THEN CAST(sign(CASE WHEN (%(param_14)s AND count(*) > %(count_4)s::INTEGER AND count(*) FILTER (WHERE root.revenue IS NOT NULL AND root.goods_cost IS NOT NULL AND root.revenue_state = %(revenue_state_9)s::VARCHAR AND root.goods_cost_state = %(goods_cost_state_7)s::VARCHAR) = count(*)) THEN coalesce(sum(CASE WHEN (root.revenue IS NOT NULL AND root.goods_cost IS NOT NULL AND root.revenue_state IN (%(revenue_state_10_1)s::VARCHAR, %(revenue_state_10_2)s::VARCHAR) AND root.goods_cost_state IN (%(goods_cost_state_8_1)s::VARCHAR, %(goods_cost_state_8_2)s::VARCHAR)) THEN root.revenue - root.goods_cost ELSE %(param_15)s::INTEGER END), %(coalesce_5)s::INTEGER) END) * (div(abs(CASE WHEN (%(param_14)s AND count(*) > %(count_4)s::INTEGER AND count(*) FILTER (WHERE root.revenue IS NOT NULL AND root.goods_cost IS NOT NULL AND root.revenue_state = %(revenue_state_9)s::VARCHAR AND root.goods_cost_state = %(goods_cost_state_7)s::VARCHAR) = count(*)) THEN coalesce(sum(CASE WHEN (root.revenue IS NOT NULL AND root.goods_cost IS NOT NULL AND root.revenue_state IN (%(revenue_state_10_1)s::VARCHAR, %(revenue_state_10_2)s::VARCHAR) AND root.goods_cost_state IN (%(goods_cost_state_8_1)s::VARCHAR, %(goods_cost_state_8_2)s::VARCHAR)) THEN root.revenue - root.goods_cost ELSE %(param_15)s::INTEGER END), %(coalesce_5)s::INTEGER) END) * %(abs_1)s::INTEGER, nullif(CASE WHEN (%(param_11)s AND count(*) > %(count_3)s::INTEGER AND count(*) FILTER (WHERE root.revenue IS NOT NULL AND root.revenue_state = %(revenue_state_7)s::VARCHAR) = count(*)) THEN coalesce(sum(CASE WHEN (root.revenue IS NOT NULL AND root.revenue_state IN (%(revenue_state_8_1)s::VARCHAR, %(revenue_state_8_2)s::VARCHAR)) THEN root.revenue ELSE %(param_12)s::INTEGER END), %(coalesce_4)s::INTEGER) END, %(nullif_1)s::INTEGER)) + CASE WHEN (mod(abs(CASE WHEN (%(param_14)s AND count(*) > %(count_4)s::INTEGER AND count(*) FILTER (WHERE root.revenue IS NOT NULL AND root.goods_cost IS NOT NULL AND root.revenue_state = %(revenue_state_9)s::VARCHAR AND root.goods_cost_state = %(goods_cost_state_7)s::VARCHAR) = count(*)) THEN coalesce(sum(CASE WHEN (root.revenue IS NOT NULL AND root.goods_cost IS NOT NULL AND root.revenue_state IN (%(revenue_state_10_1)s::VARCHAR, %(revenue_state_10_2)s::VARCHAR) AND root.goods_cost_state IN (%(goods_cost_state_8_1)s::VARCHAR, %(goods_cost_state_8_2)s::VARCHAR)) THEN root.revenue - root.goods_cost ELSE %(param_15)s::INTEGER END), %(coalesce_5)s::INTEGER) END) * %(abs_1)s::INTEGER, nullif(CASE WHEN (%(param_11)s AND count(*) > %(count_3)s::INTEGER AND count(*) FILTER (WHERE root.revenue IS NOT NULL AND root.revenue_state = %(revenue_state_7)s::VARCHAR) = count(*)) THEN coalesce(sum(CASE WHEN (root.revenue IS NOT NULL AND root.revenue_state IN (%(revenue_state_8_1)s::VARCHAR, %(revenue_state_8_2)s::VARCHAR)) THEN root.revenue ELSE %(param_12)s::INTEGER END), %(coalesce_4)s::INTEGER) END, %(nullif_1)s::INTEGER)) * %(mod_1)s::INTEGER > nullif(CASE WHEN (%(param_11)s AND count(*) > %(count_3)s::INTEGER AND count(*) FILTER (WHERE root.revenue IS NOT NULL AND root.revenue_state = %(revenue_state_7)s::VARCHAR) = count(*)) THEN coalesce(sum(CASE WHEN (root.revenue IS NOT NULL AND root.revenue_state IN (%(revenue_state_8_1)s::VARCHAR, %(revenue_state_8_2)s::VARCHAR)) THEN root.revenue ELSE %(param_12)s::INTEGER END), %(coalesce_4)s::INTEGER) END, %(nullif_1)s::INTEGER)) THEN %(param_16)s::INTEGER WHEN (mod(abs(CASE WHEN (%(param_14)s AND count(*) > %(count_4)s::INTEGER AND count(*) FILTER (WHERE root.revenue IS NOT NULL AND root.goods_cost IS NOT NULL AND root.revenue_state = %(revenue_state_9)s::VARCHAR AND root.goods_cost_state = %(goods_cost_state_7)s::VARCHAR) = count(*)) THEN coalesce(sum(CASE WHEN (root.revenue IS NOT NULL AND root.goods_cost IS NOT NULL AND root.revenue_state IN (%(revenue_state_10_1)s::VARCHAR, %(revenue_state_10_2)s::VARCHAR) AND root.goods_cost_state IN (%(goods_cost_state_8_1)s::VARCHAR, %(goods_cost_state_8_2)s::VARCHAR)) THEN root.revenue - root.goods_cost ELSE %(param_15)s::INTEGER END), %(coalesce_5)s::INTEGER) END) * %(abs_1)s::INTEGER, nullif(CASE WHEN (%(param_11)s AND count(*) > %(count_3)s::INTEGER AND count(*) FILTER (WHERE root.revenue IS NOT NULL AND root.revenue_state = %(revenue_state_7)s::VARCHAR) = count(*)) THEN coalesce(sum(CASE WHEN (root.revenue IS NOT NULL AND root.revenue_state IN (%(revenue_state_8_1)s::VARCHAR, %(revenue_state_8_2)s::VARCHAR)) THEN root.revenue ELSE %(param_12)s::INTEGER END), %(coalesce_4)s::INTEGER) END, %(nullif_1)s::INTEGER)) * %(mod_2)s::INTEGER = nullif(CASE WHEN (%(param_11)s AND count(*) > %(count_3)s::INTEGER AND count(*) FILTER (WHERE root.revenue IS NOT NULL AND root.revenue_state = %(revenue_state_7)s::VARCHAR) = count(*)) THEN coalesce(sum(CASE WHEN (root.revenue IS NOT NULL AND root.revenue_state IN (%(revenue_state_8_1)s::VARCHAR, %(revenue_state_8_2)s::VARCHAR)) THEN root.revenue ELSE %(param_12)s::INTEGER END), %(coalesce_4)s::INTEGER) END, %(nullif_1)s::INTEGER) AND mod(div(abs(CASE WHEN (%(param_14)s AND count(*) > %(count_4)s::INTEGER AND count(*) FILTER (WHERE root.revenue IS NOT NULL AND root.goods_cost IS NOT NULL AND root.revenue_state = %(revenue_state_9)s::VARCHAR AND root.goods_cost_state = %(goods_cost_state_7)s::VARCHAR) = count(*)) THEN coalesce(sum(CASE WHEN (root.revenue IS NOT NULL AND root.goods_cost IS NOT NULL AND root.revenue_state IN (%(revenue_state_10_1)s::VARCHAR, %(revenue_state_10_2)s::VARCHAR) AND root.goods_cost_state IN (%(goods_cost_state_8_1)s::VARCHAR, %(goods_cost_state_8_2)s::VARCHAR)) THEN root.revenue - root.goods_cost ELSE %(param_15)s::INTEGER END), %(coalesce_5)s::INTEGER) END) * %(abs_1)s::INTEGER, nullif(CASE WHEN (%(param_11)s AND count(*) > %(count_3)s::INTEGER AND count(*) FILTER (WHERE root.revenue IS NOT NULL AND root.revenue_state = %(revenue_state_7)s::VARCHAR) = count(*)) THEN coalesce(sum(CASE WHEN (root.revenue IS NOT NULL AND root.revenue_state IN (%(revenue_state_8_1)s::VARCHAR, %(revenue_state_8_2)s::VARCHAR)) THEN root.revenue ELSE %(param_12)s::INTEGER END), %(coalesce_4)s::INTEGER) END, %(nullif_1)s::INTEGER)), %(mod_3)s::INTEGER) = %(mod_4)s::INTEGER) THEN %(param_17)s::INTEGER ELSE %(param_18)s::INTEGER END) * %(param_19)s AS NUMERIC) END AS contribution_db1_rate 
+E           FROM (SELECT cost_contribution_generation.tenant_id AS tenant_id, cost_contribution_generation.id AS generation_id, cost_contribution_generation.action_id AS profile_scope_action_id, cost_contribution_snapshot.id AS snapshot_id, cost_contribution_review.id AS review_id, cost_revenue_match_basis.document_line_id AS document_line_id, cost_revenue_match_basis.order_line_id AS order_line_id, cost_revenue_match_basis.item_id AS item_id, cost_revenue_match_basis.customer_id AS customer_id, cost_revenue_match_basis.sales_channel AS sales_channel, cost_revenue_match_basis.currency AS currency, cost_revenue_match_basis.base_unit AS base_unit, cost_revenue_match_basis.quantity AS quantity, cost_inventory_review.policy_id AS policy_revision_id, cost_inventory_review.effective_at AS effective_at, cost_contribution_review.economic_at AS economic_at, cost_contribution_review.knowledge_at AS knowledge_at, cost_revenue_match_basis.stated_net AS revenue, %(param_20)s::VARCHAR AS revenue_state, cost_contribution_snapshot.goods_cost AS goods_cost, %(param_21)s::VARCHAR AS goods_cost_state, cost_contribution_snapshot.known_direct_selling_cost AS known_direct_selling_cost, cost_contribution_snapshot.known_allocated_selling_cost AS known_allocated_selling_cost, CASE WHEN cost_contribution_snapshot.selling_complete THEN cost_contribution_snapshot.known_direct_selling_cost END AS direct_selling_cost, CASE WHEN cost_contribution_snapshot.selling_complete THEN cost_contribution_snapshot.known_allocated_selling_cost END AS allocated_selling_cost, CASE WHEN cost_contribution_snapshot.selling_complete THEN %(param_22)s::VARCHAR ELSE %(param_23)s::VARCHAR END AS direct_selling_cost_state, CASE WHEN cost_contribution_snapshot.selling_complete THEN %(param_24)s::VARCHAR ELSE %(param_25)s::VARCHAR END AS allocated_selling_cost_state 
+E           FROM cost_contribution_generation JOIN cost_contribution_snapshot ON cost_contribution_snapshot.tenant_id = %(tenant_id_1)s::VARCHAR AND cost_contribution_snapshot.generation_id = cost_contribution_generation.id JOIN cost_contribution_review ON cost_contribution_review.tenant_id = %(tenant_id_2)s::VARCHAR AND cost_contribution_review.id = cost_contribution_snapshot.review_id AND cost_contribution_review.action_id = cost_contribution_generation.action_id JOIN cost_revenue_match_basis ON cost_revenue_match_basis.tenant_id = %(tenant_id_3)s::VARCHAR AND cost_revenue_match_basis.id = cost_contribution_review.revenue_basis_id JOIN cost_inventory_member ON cost_inventory_member.tenant_id = %(tenant_id_4)s::VARCHAR AND cost_inventory_member.id = cost_contribution_review.inventory_member_id JOIN cost_inventory_review ON cost_inventory_review.tenant_id = %(tenant_id_5)s::VARCHAR AND cost_inventory_review.id = cost_inventory_member.review_id 
+E           WHERE cost_contribution_generation.tenant_id = %(tenant_id_6)s::VARCHAR AND cost_contribution_generation.id = %(id_1)s::VARCHAR) AS root 
+E           WHERE root.tenant_id = %(tenant_id_7)s::VARCHAR GROUP BY root.currency, root.base_unit, to_char(date_trunc(%(date_trunc_1)s::VARCHAR, CAST(CASE WHEN (root.economic_at ~ %(economic_at_1)s::VARCHAR) THEN CASE WHEN (CAST(substr(root.economic_at, %(substr_1)s::INTEGER, %(substr_2)s::INTEGER) AS INTEGER) BETWEEN %(param_1)s::INTEGER AND %(param_2)s::INTEGER AND CAST(substr(root.economic_at, %(substr_3)s::INTEGER, %(substr_4)s::INTEGER) AS INTEGER) BETWEEN %(param_3)s::INTEGER AND %(param_4)s::INTEGER) THEN CASE WHEN (CAST(substr(root.economic_at, %(substr_5)s::INTEGER, %(substr_6)s::INTEGER) AS INTEGER) BETWEEN %(param_5)s::INTEGER AND EXTRACT(day FROM make_date(CAST(substr(root.economic_at, %(substr_1)s::INTEGER, %(substr_2)s::INTEGER) AS INTEGER), CAST(substr(root.economic_at, %(substr_3)s::INTEGER, %(substr_4)s::INTEGER) AS INTEGER), %(make_date_1)s::INTEGER) + INTERVAL '1 month - 1 day')) THEN make_date(CAST(substr(root.economic_at, %(substr_1)s::INTEGER, %(substr_2)s::INTEGER) AS INTEGER), CAST(substr(root.economic_at, %(substr_3)s::INTEGER, %(substr_4)s::INTEGER) AS INTEGER), CAST(substr(root.economic_at, %(substr_5)s::INTEGER, %(substr_6)s::INTEGER) AS INTEGER)) END END END AS DATE)), %(to_char_1)s::VARCHAR) ORDER BY "root.base_unit" 
+E            LIMIT %(param_26)s::INTEGER]
+E           [parameters: {'date_trunc_1': 'month', 'economic_at_1': '^[0-9]{4}-[0-9]{2}-[0-9]{2}$', 'substr_1': 1, 'substr_2': 4, 'param_1': 1, 'param_2': 9999, 'substr_3': 6, 'substr_4': 2, 'param_3': 1, 'param_4': 12, 'substr_5': 9, 'substr_6': 2, 'param_5': 1, 'make_date_1': 1, 'to_char_1': 'YYYY-MM', 'param_6': True, 'count_1': 0, 'revenue_state_1': 'reviewed', 'goods_cost_state_1': 'reviewed', 'param_7': 0, 'coalesce_1': 0, 'param_8': True, 'count_2': 0, 'revenue_state_3': 'reviewed', 'goods_cost_state_3': 'reviewed', 'direct_selling_cost_state_1': 'reviewed', 'allocated_selling_cost_state_1': 'reviewed', 'param_9': 0, 'coalesce_2': 0, 'param_10': 0, 'coalesce_3': 0, 'revenue_state_6': 'reviewed', 'goods_cost_state_6': 'reviewed', 'direct_selling_cost_state_4': 'reviewed', 'allocated_selling_cost_state_4': 'reviewed', 'param_11': True, 'count_3': 0, 'revenue_state_7': 'reviewed', 'param_12': 0, 'coalesce_4': 0, 'param_13': 0, 'param_14': True, 'count_4': 0, 'revenue_state_9': 'reviewed', 'goods_cost_state_7': 'reviewed', 'param_15': 0, 'coalesce_5': 0, 'abs_1': 1000000, 'nullif_1': 0, 'mod_1': 2, 'param_16': 1, 'mod_2': 2, 'mod_3': 2, 'mod_4': 1, 'param_17': 1, 'param_18': 0, 'param_19': Decimal('0.0001'), 'param_20': 'reviewed', 'param_21': 'reviewed', 'param_22': 'reviewed', 'param_23': 'unknown', 'param_24': 'reviewed', 'param_25': 'unknown', 'tenant_id_1': 'ten_e49f9663c4', 'tenant_id_2': 'ten_e49f9663c4', 'tenant_id_3': 'ten_e49f9663c4', 'tenant_id_4': 'ten_e49f9663c4', 'tenant_id_5': 'ten_e49f9663c4', 'tenant_id_6': 'ten_e49f9663c4', 'id_1': 'ccg_57592d3fb5', 'tenant_id_7': 'ten_e49f9663c4', 'param_26': 200, 'revenue_state_2_1': 'reviewed', 'revenue_state_2_2': 'evidenced', 'goods_cost_state_2_1': 'reviewed', 'goods_cost_state_2_2': 'evidenced', 'revenue_state_4_1': 'reviewed', 'revenue_state_4_2': 'evidenced', 'goods_cost_state_4_1': 'reviewed', 'goods_cost_state_4_2': 'evidenced', 'direct_selling_cost_state_2_1': 'reviewed', 'direct_selling_cost_state_2_2': 'evidenced', 'allocated_selling_cost_state_2_1': 'reviewed', 'allocated_selling_cost_state_2_2': 'evidenced', 'revenue_state_5_1': 'reviewed', 'revenue_state_5_2': 'evidenced', 'goods_cost_state_5_1': 'reviewed', 'goods_cost_state_5_2': 'evidenced', 'direct_selling_cost_state_3_1': 'reviewed', 'direct_selling_cost_state_3_2': 'evidenced', 'allocated_selling_cost_state_3_1': 'reviewed', 'allocated_selling_cost_state_3_2': 'evidenced', 'revenue_state_8_1': 'reviewed', 'revenue_state_8_2': 'evidenced', 'revenue_state_10_1': 'reviewed', 'revenue_state_10_2': 'evidenced', 'goods_cost_state_8_1': 'reviewed', 'goods_cost_state_8_2': 'evidenced'}]
+E           (Background on this error at: https://sqlalche.me/e/20/f405)
+
+../../.venv/lib/python3.12/site-packages/psycopg/cursor.py:117: ProgrammingError
+=========================== short test summary info ============================
+FAILED tests/test_contribution_graph_reporting.py::test_same_unit_partial_group_and_saved_http_question
+!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!
+1 failed in 3.79s

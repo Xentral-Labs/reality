@@ -559,6 +559,17 @@ def _proposal_creation_scope(
 def require_proposal_creation(
     session: Session, tenant_id: str, tool_name: str, arguments: dict
 ) -> None:
+    profile_cost = _profile_cost_authority.get()
+    if (
+        profile_cost is not None
+        and profile_cost[0] is session
+        and profile_cost[1] is session.get_transaction()
+        and profile_cost[4] == tenant_id
+        and tool_name == "cost.change"
+        and profile_cost[5] == json.dumps(arguments, sort_keys=True, allow_nan=False)
+    ):
+        require_playground_run(session, profile_cost[2], profile_cost[3])
+        return
     authority = _proposal_authority.get()
     if (
         authority is not None
@@ -688,6 +699,19 @@ def _profile_authority_holds(session: Session, profile: tuple, tenant_id: str) -
 
 def require_core_operation(session: Session, tenant_id: str, operation: str) -> None:
     """Permit only private initial reference setup; egress has no such exception."""
+    profile_cost = _profile_cost_authority.get()
+    if (
+        profile_cost is not None
+        and profile_cost[0] is session
+        and profile_cost[1] is session.get_transaction()
+        and profile_cost[4] == tenant_id
+        and operation in {"execute_cost_change", "emit_business_event"}
+    ):
+        run = require_playground_run(session, profile_cost[2], profile_cost[3])
+        tenant = session.get(Tenant, tenant_id)
+        if run.status == "initializing" and tenant.archived_at is None:
+            return
+        raise PlaygroundOperationDenied("Profile costing authority is unavailable.")
     profile = _profile_authority.get()
     if (
         profile
@@ -1236,15 +1260,65 @@ def _forget_profile_authority(session: Session, flush_context, instances) -> Non
 
 event.listen(Session, "before_flush", _forget_profile_authority)
 
+_profile_cost_authority: ContextVar[tuple | None] = ContextVar(
+    "company_profile_cost_authority", default=None
+)
+
+
+@contextmanager
+def profile_cost_action_scope(
+    session: Session, run_id: str, actor_id: str, arguments: dict
+):
+    """Bind one fixed v2 profile cost action to its setup transaction."""
+    from reality.demo.international import PROFILE_VERSION
+
+    run = require_playground_run(session, run_id, actor_id)
+    transaction = session.get_transaction()
+    if (
+        transaction is None
+        or run.status != "initializing"
+        or run.preset_key != "international-demo"
+        or run.preset_version != PROFILE_VERSION
+    ):
+        raise PlaygroundOperationDenied("Profile costing authority is unavailable.")
+    intent = json.dumps(arguments, sort_keys=True, allow_nan=False)
+    token = _profile_cost_authority.set(
+        (session, transaction, run.id, actor_id, run.tenant_id, intent)
+    )
+    try:
+        yield
+    finally:
+        _profile_cost_authority.reset(token)
+
+
+def profile_cost_owner_active(
+    session: Session, tenant_id: str, actor_id: str
+) -> bool:
+    """Recognize only the owner bound to the current fixed profile cost action."""
+    authority = _profile_cost_authority.get()
+    if (
+        authority is None
+        or authority[0] is not session
+        or authority[1] is not session.get_transaction()
+        or authority[3] != actor_id
+        or authority[4] != tenant_id
+    ):
+        return False
+    run = require_playground_run(session, authority[2], actor_id)
+    return run.status == "initializing"
+
 
 @contextmanager
 def _profile_scope(session: Session, run_id: str, actor_id: str):
     """Only fixed approved initialization may seed operational reality."""
+    from reality.demo.international import PROFILE_VERSION
+
     run = require_playground_run(session, run_id, actor_id)
     if (
         run.status != "initializing"
         or run.preset_key not in {"international-demo", "atlas-execution"}
-        or run.preset_version != 1
+        or run.preset_version
+        != (PROFILE_VERSION if run.preset_key == "international-demo" else 1)
     ):
         raise PlaygroundOperationDenied("Profile initialization is unavailable.")
     with _bound_profile_scope(session, run, actor_id, _PROFILE_OPERATIONS):

@@ -1,0 +1,51 @@
+..........F............................................................. [ 60%]
+...............................................                          [100%]
+=================================== FAILURES ===================================
+___________ test_frozen_read_neither_writes_nor_scans_live_movements ___________
+
+session = <sqlalchemy.orm.session.Session object at 0x11128dc70>
+business = Business(tenant=<reality.db.core.Tenant object at 0x11128e570>, company=<reality.db.core.Party object at 0x1112b29c0>,...128dfa0>, item=<reality.db.core.Item object at 0x1111a06e0>, location=<reality.db.core.Location object at 0x11128d3d0>)
+cost_owner = <reality.db.core.AppUser object at 0x11128edb0>
+
+    def test_frozen_read_neither_writes_nor_scans_live_movements(
+        session, business, cost_owner
+    ):
+        from sqlalchemy import event
+    
+        from reality.db.core import Item
+    
+        args, data = prepared(session, business, cost_owner)
+        _, first = stock.commit_review(session, business, cost_owner, args)
+        statements = []
+    
+        def observe(conn, cursor, statement, parameters, context, executemany):
+            statements.append(statement.lower())
+    
+        pending = Item(
+            id="pending-db1",
+            tenant_id=business.tenant.id,
+            sku="pending-db1",
+            name="Pending",
+            unit="pcs",
+        )
+        session.add(pending)
+        connection = session.connection()
+        event.listen(connection, "before_cursor_execute", observe)
+        try:
+            result = reviewed_contribution(
+                session, business.tenant.id, data[0].id, review_id=first["review_id"]
+            )
+        finally:
+            event.remove(connection, "before_cursor_execute", observe)
+        assert result["db1"] == "570.0000" and pending in session.new
+        assert not any(
+            s.lstrip().startswith(("insert", "update", "delete")) for s in statements
+        )
+>       assert not any("from movement " in s or "from movement\n" in s for s in statements)
+E       assert not True
+E        +  where True = any(<generator object test_frozen_read_neither_writes_nor_scans_live_movements.<locals>.<genexpr> at 0x10fb08790>)
+
+tests/test_contribution_reviews.py:345: AssertionError
+=========================== short test summary info ============================
+FAILED tests/test_contribution_reviews.py::test_frozen_read_neither_writes_nor_scans_live_movements
+1 failed, 118 passed in 64.07s (0:01:04)

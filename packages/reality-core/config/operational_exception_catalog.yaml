@@ -869,3 +869,76 @@ classes:
         authority: 109/FR-008
         evidence:
           - tests/operational_exceptions/test_derivation.py::test_expired_stock_reserved_for_a_customer
+  - id: missing_acquisition_cost
+    label: Missing acquisition cost
+    description: A company-generation subject has no supported actual acquisition cost. Missing evidence remains unknown and is never treated as zero.
+    owner: Purchasing or inventory control
+    clears_through: Confirming the missing receipt-cost evidence and publishing a current complete company generation.
+    severity: high
+    derivation: missing_acquisition_cost
+    record_type: item
+    authority: 234/FR-025
+    evidence:
+      - tests/test_cost_findings.py::test_missing_acquisition_cost_includes_unsold_inventory_subject
+    causes:
+      - id: acquisition_cost_unknown
+        label: Acquisition cost unknown
+        authority: 234/FR-014
+        evidence:
+          - tests/test_cost_findings.py::test_missing_acquisition_cost_includes_unsold_inventory_subject
+      - id: contribution_goods_cost_unknown
+        label: Contribution goods cost unknown
+        authority: 234/FR-014
+        evidence:
+          - tests/test_cost_findings.py::test_incomplete_db1_refuses_negative_margin_and_reports_cost_gap
+  - id: unassigned_cost_component
+    label: Unassigned cost component
+    description: Received cost evidence belongs to the company basis but has not been assigned to its economic cost scope.
+    owner: Purchasing or finance operations
+    clears_through: Confirming an assignment or an evidenced not-applicable treatment and publishing a current generation.
+    severity: high
+    derivation: unassigned_cost_component
+    record_type: document_line
+    authority: 234/FR-025
+    evidence:
+      - tests/test_cost_findings.py::test_unassigned_component_uses_existing_document_line_subject
+    causes:
+      - id: cost_component_unassigned
+        label: Cost component unassigned
+        authority: 234/FR-003
+        evidence:
+          - tests/test_cost_findings.py::test_unassigned_component_uses_existing_document_line_subject
+  - id: stale_cost_review
+    label: Stale cost review
+    description: Later relevant evidence exists after the retained financial review used by the published company basis.
+    owner: Finance operations
+    clears_through: Reviewing the changed evidence and publishing a current company generation.
+    severity: normal
+    derivation: stale_cost_review
+    record_type: item
+    authority: 234/FR-025
+    evidence:
+      - tests/test_cost_findings.py::test_stale_review_identity_is_stable_across_generations
+    causes:
+      - id: later_relevant_evidence
+        label: Later relevant evidence
+        authority: 234/FR-015
+        evidence:
+          - tests/test_cost_findings.py::test_stale_review_identity_is_stable_across_generations
+  - id: negative_actual_db1
+    label: Negative actual DB1
+    description: Complete supported actual goods cost exceeds the received net revenue of the reviewed sales line.
+    owner: Sales management
+    clears_through: Correcting the commercial evidence or accepting and reviewing a non-negative current contribution basis.
+    severity: normal
+    derivation: negative_actual_db1
+    record_type: document_line
+    authority: 234/FR-025
+    evidence:
+      - tests/test_cost_findings.py::test_negative_actual_db1_requires_complete_supported_db1_not_db2
+    causes:
+      - id: supported_actual_db1_negative
+        label: Supported actual DB1 negative
+        authority: 234/FR-011
+        evidence:
+          - tests/test_cost_findings.py::test_negative_actual_db1_requires_complete_supported_db1_not_db2

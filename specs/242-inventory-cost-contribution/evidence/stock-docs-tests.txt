@@ -1,0 +1,18 @@
+✔ data model covers core records with bilingual meanings and valid actions (1.690333ms)
+✔ model preserves semantic boundaries and exact authority links (0.159125ms)
+✔ model entry is linked in both handbooks and supports readable navigation (0.440291ms)
+✔ Fact example preserves the actual text value and composite account scope is explained (0.081125ms)
+✔ ERP reference covers master data, pricing, shipping and finance with valid groups (0.164708ms)
+✔ stored fields use a semantic table with visible metadata and local scrolling (0.142541ms)
+✔ all explorer tabs share visual primitives and a consistent header (0.3155ms)
+✔ every catalog read describes its actual execution mode (0.830416ms)
+✔ inventory modes follow the adapter and response format, not the business name (0.143375ms)
+✔ both published languages explain modes, freshness and concrete query variants (4.209416ms)
+ℹ tests 10
+ℹ suites 0
+ℹ pass 10
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 90.94775

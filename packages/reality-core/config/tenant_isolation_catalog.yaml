@@ -11,6 +11,11 @@ discovery:
     - reality.services.scheduled_jobs
     - reality.services.playground
 explicit_operations:
+  - reality.services.exceptions:cost_findings
+  - reality.services.analytics.company_options:company_generation_option
+  - reality.services.analytics.captured_options:captured_report_options
+  - reality.services.analytics.contribution_options:contribution_review_options
+  - reality.services.analytics.inventory_options:inventory_review_options
   - reality.services.analytics.reports:list_reports
   - reality.services.analytics.reports:get_report
   - reality.services.analytics.proposals:preview
@@ -845,6 +850,14 @@ families:
       - reality.services.analytics.reports:get_report
       - reality.services.analytics.reports:change_graph_report
       - reality.services.analytics.proposals:preview
+      - reality.services.analytics.inventory_options:inventory_review_options
+      - reality.services.analytics.contribution_options:contribution_review_options
+      - reality.services.analytics.captured_options:captured_report_options
+      - reality.services.analytics.company_options:company_generation_option
+      - tool:graph.company_generation.current
+      - tool:graph.captured_reports.list
+      - tool:graph.contribution_reviews.list
+      - tool:graph.inventory_reviews.list
       - tool:graph.catalog
       - tool:graph.templates
       - tool:graph.ask
@@ -852,6 +865,26 @@ families:
       - tool:graph.reports.get
       - tool:graph.reports.change
     evidence:
+      - id: tests/test_company_generation_graph.py::test_published_company_generation_discovery_is_metadata_only
+        assertion: boundary
+        operations:
+          - reality.services.analytics.company_options:company_generation_option
+          - tool:graph.company_generation.current
+      - id: tests/test_captured_report_options.py::test_family_cursor_tenant_and_http_boundaries
+        assertion: boundary
+        operations:
+          - reality.services.analytics.captured_options:captured_report_options
+          - tool:graph.captured_reports.list
+      - id: tests/test_contribution_review_options.py::test_foreign_and_missing_cursors_do_not_disclose
+        assertion: boundary
+        operations:
+          - reality.services.analytics.contribution_options:contribution_review_options
+          - tool:graph.contribution_reviews.list
+      - id: tests/test_inventory_review_options.py::test_foreign_and_missing_cursors_do_not_disclose
+        assertion: boundary
+        operations:
+          - reality.services.analytics.inventory_options:inventory_review_options
+          - tool:graph.inventory_reviews.list
       - id: tests/test_reporting_graph_isolation.py::test_a_neighbour_with_identical_labels_is_never_reached
         assertion: boundary
         operations: *reporting_graph_operations
@@ -903,3 +936,187 @@ families:
         assertion: boundary
         operations:
           - tool:graph.format
+
+  - key: receipt_costing
+    description: Receipt costs and their immutable history remain inside the requesting company.
+    classification: boundary
+    reason: Every retained authority and manifest lookup includes tenant scope; composite foreign keys prevent cross-company attribution.
+    authority: 234/FR-019
+    operations: &receipt_costing_operations
+      - reality.services.costing:build_captured_cost_generation
+      - reality.services.costing:publish_captured_cost_generation
+      - reality.services.costing:captured_cost_report
+      - reality.services.costing:discard_captured_cost_generation
+      - reality.services.costing:captured_cost_summary
+      - reality.services.costing:retain_captured_cost_basis
+      - reality.services.costing:captured_cost_basis
+      - reality.services.costing:replay_captured_cost_basis
+      - reality.services.costing:capture_company_cost_census
+      - reality.services.costing:resolve_company_cost_census
+      - reality.services.costing:retain_company_cost_census
+      - reality.services.costing:admit_company_cost_manifest
+      - reality.services.costing:build_company_cost_generation
+      - reality.services.costing:publish_company_cost_generation
+      - reality.services.costing:company_cost_generation_report
+      - reality.services.projections:cost_finding_prerequisite
+      - reality.services.exceptions:cost_findings
+      - reality.services.costing:company_cost_census
+      - reality.services.costing:verify_company_cost_census
+      - reality.services.costing:company_cost_census_members
+      - reality.services.costing:build_contribution_generation
+      - reality.services.costing:contribution_snapshot
+      - reality.services.costing:build_inventory_batch_generation
+      - reality.services.costing:inventory_batch_snapshot
+      - reality.services.costing:inventory_cost_snapshots
+      - reality.services.costing:build_inventory_generation
+      - reality.services.costing:inventory_cost_snapshot
+      - reality.services.costing:cost_query
+      - tool:cost.query.get
+      - reality.services.costing:cost_record
+      - tool:cost.record.get
+      - reality.services.costing:reviewed_contribution
+      - tool:cost.contribution.get
+      - reality.services.costing:commercial_match
+      - tool:cost.commercial-match.get
+      - reality.services.costing:contribution_preview
+      - tool:cost.contribution.preview
+      - reality.services.costing:inventory_cost
+      - tool:cost.inventory.get
+      - reality.services.costing:cost_evidence
+      - reality.services.costing:receipt_cost
+      - reality.services.costing:preview_cost_change
+      - reality.services.costing:execute_cost_change
+      - tool:cost.receipt.get
+      - tool:cost.evidence.get
+      - tool:cost.change
+    evidence:
+      - id: tests/test_captured_report.py::test_foreign_operations_and_transaction_boundaries
+        assertion: boundary
+        operations:
+          - reality.services.costing:build_captured_cost_generation
+          - reality.services.costing:publish_captured_cost_generation
+          - reality.services.costing:captured_cost_report
+          - reality.services.costing:discard_captured_cost_generation
+      - id: tests/test_cost_captured_summary.py::test_real_single_basis_summary_and_tenant_boundary
+        assertion: boundary
+        operations:
+          - reality.services.costing:captured_cost_summary
+      - id: tests/test_cost_captured_basis_storage.py::test_foreign_and_clean_transaction_boundaries
+        assertion: boundary
+        operations:
+          - reality.services.costing:retain_captured_cost_basis
+          - reality.services.costing:captured_cost_basis
+          - reality.services.costing:replay_captured_cost_basis
+      - id: tests/test_cost_census_resolution.py::test_foreign_and_bounds_refuse_before_valuation
+        assertion: boundary
+        operations:
+          - reality.services.costing:resolve_company_cost_census
+      - id: tests/test_cost_census_storage.py::test_foreign_capture_and_member_reads_are_absent
+        assertion: boundary
+        operations:
+          - reality.services.costing:retain_company_cost_census
+          - reality.services.costing:company_cost_census
+          - reality.services.costing:verify_company_cost_census
+          - reality.services.costing:company_cost_census_members
+      - id: tests/test_company_generation_manifest.py::test_foreign_stale_and_non_owner_admission_refuse
+        assertion: boundary
+        operations:
+          - reality.services.costing:admit_company_cost_manifest
+      - id: tests/test_company_generation_jobs.py::test_publication_cas_retry_conflict_and_pending_preservation
+        assertion: boundary
+        operations:
+          - reality.services.costing:build_company_cost_generation
+          - reality.services.costing:publish_company_cost_generation
+      - id: tests/test_company_generation_reads.py::test_one_generation_pages_totals_and_no_read_side_enqueue
+        assertion: boundary
+        operations:
+          - reality.services.costing:company_cost_generation_report
+      - id: tests/test_company_generation_prerequisites.py::test_cost_basis_unavailable_ready_pending_and_identity_preserved
+        assertion: boundary
+        operations:
+          - reality.services.projections:cost_finding_prerequisite
+      - id: tests/test_cost_findings.py::test_provider_reports_unknown_population_and_preserves_it_while_pending
+        assertion: boundary
+        operations:
+          - reality.services.exceptions:cost_findings
+      - id: tests/test_cost_census.py::test_tenant_boundary_and_absence
+        assertion: boundary
+        operations:
+          - reality.services.costing:capture_company_cost_census
+      - id: tests/test_contribution_generations.py::test_foreign_action_membership_and_corrupt_cache_refuse
+        assertion: boundary
+        operations:
+          - reality.services.costing:build_contribution_generation
+          - reality.services.costing:contribution_snapshot
+      - id: tests/test_contribution_batch_review.py::test_joint_stale_revoked_and_foreign_refuse
+        assertion: boundary
+        operations:
+          - reality.services.costing:preview_cost_change
+          - reality.services.costing:execute_cost_change
+      - id: tests/test_inventory_batch_generations.py::test_joint_foreign_and_unconfirmed_actions_refuse
+        assertion: boundary
+        operations:
+          - reality.services.costing:build_inventory_batch_generation
+          - reality.services.costing:inventory_batch_snapshot
+      - id: tests/test_inventory_snapshot_selection.py::test_selection_foreign_missing_members_refuse_equally
+        assertion: boundary
+        operations:
+          - reality.services.costing:inventory_cost_snapshots
+      - id: tests/test_inventory_generations.py::test_foreign_build_read_and_relation_refuse
+        assertion: boundary
+        operations:
+          - reality.services.costing:build_inventory_generation
+          - reality.services.costing:inventory_cost_snapshot
+      - id: tests/test_cost_query.py::test_missing_constraints_and_foreign_tool_scope_refuse
+        assertion: boundary
+        operations:
+          - reality.services.costing:cost_query
+          - tool:cost.query.get
+      - id: tests/test_cost_records.py::test_real_cost_records_are_inspectable_and_tenant_scoped
+        assertion: boundary
+        operations:
+          - reality.services.costing:cost_record
+          - tool:cost.record.get
+      - id: tests/test_cost_records.py::test_later_retained_company_context_is_inspectable_but_results_stay_private
+        assertion: boundary
+        operations:
+          - reality.services.costing:cost_record
+      - id: tests/test_selling_costs.py::test_selling_foreign_links_and_historical_read_refuse
+        assertion: boundary
+        operations:
+          - reality.services.costing:preview_cost_change
+          - reality.services.costing:reviewed_contribution
+          - tool:cost.contribution.get
+      - id: tests/test_contribution_reviews.py::test_review_foreign_scope_is_unavailable
+        assertion: boundary
+        operations:
+          - reality.services.costing:reviewed_contribution
+          - tool:cost.contribution.get
+      - id: tests/test_commercial_matching_services.py::test_commercial_inventory_match_uses_exact_frozen_portions
+        assertion: boundary
+        operations:
+          - reality.services.costing:commercial_match
+          - tool:cost.commercial-match.get
+      - id: tests/test_contribution_services.py::test_preview_foreign_scope_and_dispatch
+        assertion: boundary
+        operations:
+          - reality.services.costing:contribution_preview
+          - tool:cost.contribution.preview
+      - id: tests/test_inventory_costing_services.py::test_inventory_foreign_scope_and_actual_read_tool
+        assertion: boundary
+        operations:
+          - reality.services.costing:inventory_cost
+          - tool:cost.inventory.get
+      - id: tests/test_costing_tools.py::test_mcp_cost_schema_and_handlers_use_application_services
+        assertion: boundary
+        operations:
+          - reality.services.costing:cost_evidence
+          - reality.services.costing:receipt_cost
+          - reality.services.costing:preview_cost_change
+          - tool:cost.receipt.get
+          - tool:cost.evidence.get
+          - tool:cost.change
+      - id: tests/test_costing_services.py::test_service_replay_and_foreign_manifest_are_bound
+        assertion: boundary
+        operations:
+          - reality.services.costing:execute_cost_change

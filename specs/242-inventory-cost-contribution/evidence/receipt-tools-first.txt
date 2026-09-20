@@ -1,0 +1,63 @@
+FF                                                                       [100%]
+=================================== FAILURES ===================================
+_______________ test_cost_tool_confirmation_replay_and_demotion ________________
+
+session = <sqlalchemy.orm.session.Session object at 0x1104e2cc0>
+business = Business(tenant=<reality.db.core.Tenant object at 0x1104e2a50>, company=<reality.db.core.Party object at 0x10fb1bb00>,...071d970>, item=<reality.db.core.Item object at 0x110747950>, location=<reality.db.core.Location object at 0x11071fce0>)
+cost_owner = <reality.db.core.AppUser object at 0x110747e60>
+
+    def test_cost_tool_confirmation_replay_and_demotion(session, business, cost_owner):
+        movement = receipt(session, business)
+        doc = evidence(session, business)
+        principal = Principal(cost_owner.id)
+        args = assignment(session, business, movement, doc, "1000")
+        with caller(principal):
+>           proposal = create_change_proposal(session, business.tenant.id, "cost.change", args)
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_costing_tools.py:23: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+src/reality/storyline/recorder.py:451: in create_change_proposal
+    return function(session, tenant_id, tool_name, arguments, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+session = <sqlalchemy.orm.session.Session object at 0x1104e2cc0>
+tenant_id = 'ten_8c1eb8d56d', tool_name = 'cost.change'
+arguments = {'operation': 'assign', 'document_id': 'doc_95663ee671', 'expected_event_sequence': 7, 'expected_evidence_hash': '380839918a45f33d4adad3172056d6221bd1e9f84e9e9f2c4c46511dee0ea925', ...}
+actor_type = 'agent', _commit = True
+
+    def create_change_proposal(
+        session: Session,
+        tenant_id: str,
+        tool_name: str,
+        arguments: dict[str, Any],
+        *,
+        actor_type: str = "agent",
+        _commit: bool = True,
+    ) -> ChangeProposal:
+        require_proposal_creation(session, tenant_id, tool_name, arguments)
+        tool = TOOLS.get(tool_name)
+        if tool is None:
+>           raise NotFound("Tool not found.")
+E           reality.services.core.NotFound: Tool not found.
+
+src/reality/tools/application.py:2389: NotFound
+__________ test_mcp_cost_schema_and_handlers_use_application_services __________
+
+session = <sqlalchemy.orm.session.Session object at 0x1112239e0>
+business = Business(tenant=<reality.db.core.Tenant object at 0x111220830>, company=<reality.db.core.Party object at 0x10dea6900>,...12a0a40>, item=<reality.db.core.Item object at 0x111220b30>, location=<reality.db.core.Location object at 0x111220b90>)
+cost_owner = <reality.db.core.AppUser object at 0x1112a0920>
+
+    def test_mcp_cost_schema_and_handlers_use_application_services(session, business, cost_owner):
+        movement = receipt(session, business)
+        doc = evidence(session, business)
+>       command = MCP_TOOL_REGISTRY["cost_change_propose"]
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       KeyError: 'cost_change_propose'
+
+tests/test_costing_tools.py:43: KeyError
+=========================== short test summary info ============================
+FAILED tests/test_costing_tools.py::test_cost_tool_confirmation_replay_and_demotion
+FAILED tests/test_costing_tools.py::test_mcp_cost_schema_and_handlers_use_application_services
+2 failed in 1.60s

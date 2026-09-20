@@ -3,7 +3,8 @@ import { inspectorValue } from "./inspectorFormat";
 import { useEffect, useRef, useState } from "react";
 import { api } from "../api";
 import type { InspectorData } from "../api";
-import { t } from "../localization";
+import { currentLanguage, t } from "../localization";
+import { RegisterPager } from "./WarehousePage";
 import { useRead } from "./useCompanyContext";
 import { ReadState } from "./ReadState";
 
@@ -22,6 +23,8 @@ export function Inspector({
   const dialog = useRef<HTMLDialogElement>(null);
   const [selected, select] = useState(target);
   const [history, setHistory] = useState<(typeof target)[]>([]);
+  const [memberPage, setMemberPage] = useState(1);
+  const language = currentLanguage();
   const {
     data: loaded,
     loading,
@@ -30,12 +33,25 @@ export function Inspector({
   } = useRead(
     () =>
       api
-        .inspector(tenant, selected.kind, selected.id)
-        .then((data) => ({ data, kind: selected.kind, id: selected.id })),
-    [tenant, selected.kind, selected.id],
+        .inspector(tenant, selected.kind, selected.id, false, memberPage, language)
+        .then((data) => ({
+          data,
+          tenant,
+          kind: selected.kind,
+          id: selected.id,
+          memberPage,
+          language,
+        })),
+    [tenant, selected.kind, selected.id, memberPage, language],
   );
   const data =
-    loaded?.kind === selected.kind && loaded?.id === selected.id ? loaded.data : undefined;
+    loaded?.tenant === tenant &&
+    loaded.kind === selected.kind &&
+    loaded.id === selected.id &&
+    loaded.memberPage === memberPage &&
+    loaded.language === language
+      ? loaded.data
+      : undefined;
   useEffect(() => {
     if (data && !loading && !error) recordOpened(tenant, selected.kind, selected.id);
   }, [data, loading, error, tenant, selected.kind, selected.id]);
@@ -62,6 +78,7 @@ export function Inspector({
           className="br-btn"
           disabled={!history.length}
           onClick={() => {
+            setMemberPage(1);
             select(history[history.length - 1]);
             setHistory(history.slice(0, -1));
           }}
@@ -75,14 +92,20 @@ export function Inspector({
       {!data ? (
         <ReadState loading={loading} error={error} retry={refresh} />
       ) : (
-        <InspectorContent
-          data={data}
-          selectedKind={selected.kind}
-          follow={(target) => {
-            setHistory([...history, selected]);
-            select(target);
-          }}
-        />
+        <>
+          <InspectorContent
+            data={data}
+            selectedKind={selected.kind}
+            follow={(target) => {
+              setMemberPage(1);
+              setHistory([...history, selected]);
+              select(target);
+            }}
+          />
+          {data.member_page && data.member_page.total > 0 && (
+            <RegisterPager page={data.member_page} change={setMemberPage} />
+          )}
+        </>
       )}
     </dialog>
   );

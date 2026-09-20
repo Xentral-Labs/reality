@@ -1,0 +1,71 @@
+{
+  "strategy": "direct",
+  "dataset_version": "costing-spike-v3",
+  "profile": "full",
+  "qualification_passed": false,
+  "measurements": {
+    "order": {
+      "samples": 200,
+      "p50_s": 0.04665124999883119,
+      "p95_s": 0.1549365830142051,
+      "max_s": 0.21731858400744386,
+      "budget_s": 0.5
+    }
+  },
+  "limitations": [
+    "Exact dedicated 4-vCPU/16-GiB reference host is not certified; see separately captured enforced container limits.",
+    "An OS/database cold-cache run and the full freshness response contract are not certified.",
+    "Experimental typed relations are not yet wired to the product analysis compiler or exception register.",
+    "V3 distributes returns, split/partial matching, supplier credits and stated nonrecoverable tax; full FX/ownership/review and credit-to-revenue matching remain product proofs.",
+    "Projection completeness/review invalidation and source-version history are not product implementations.",
+    "Only direct order latency and whole-pool reconstruction are measured; other direct read surfaces remain unqualified."
+  ],
+  "input_revision_before": 61,
+  "reconstruction_s": [
+    16.094072298990795,
+    15.09866904799128,
+    15.360400089994073
+  ],
+  "checksum": "643817a815afef1f2af9390b2a9ee1822eb526a3cb6c40abf5561e50b4cded88",
+  "measured_order_budget_passed": true,
+  "input_revision_after": 61,
+  "status": "exploratory",
+  "cardinalities": {
+    "a": {
+      "item": 10000,
+      "trade_order": 100000,
+      "movement": 1000000,
+      "component": 1000000,
+      "attribution": 1000000,
+      "matching": 600000
+    },
+    "b": {
+      "item": 10000,
+      "trade_order": 100000,
+      "movement": 1000000,
+      "component": 1000000,
+      "attribution": 1000000,
+      "matching": 600000
+    }
+  },
+  "setup_s": 0.3693536249920726,
+  "python": "3.12.13",
+  "platform": "Linux-6.10.14-linuxkit-aarch64-with-glibc2.41",
+  "git_revision": "709af5c1a6358be2f004003f37b836ff6095b5bf",
+  "peak_rss_bytes": 683085824,
+  "elapsed_s": 50.03919418901205,
+  "postgres_version": "17.10",
+  "source_digest": "4f408f73befcbd36d5161458efc940cc4f572ff930bc04ebc1d9d3f704b0707d",
+  "process_cgroup": {
+    "cpu.max": "200000 100000",
+    "memory.max": "2147483648",
+    "memory.swap.max": "0",
+    "memory.peak": "665452544"
+  },
+  "adversarial_distribution": {
+    "issue": 600000,
+    "receipt": 291000,
+    "return": 9000,
+    "transfer": 100000
+  }
+}

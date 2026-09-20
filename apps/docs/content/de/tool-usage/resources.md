@@ -10,15 +10,15 @@ Namen folgen dem ERP-Sprachgebrauch; der technische Schlüssel steht daneben.
 | -------------------------------------------------------------- | ------ | -------- | --------- |
 | [Auswertung](#resource-analytics)                              | 0      | 1        | 0         |
 | [Geschäftspartner](#resource-party)                            | 1      | 6        | 2         |
-| [Artikel](#resource-item)                                      | 5      | 3        | 2         |
+| [Artikel](#resource-item)                                      | 5      | 3        | 3         |
 | [Lagerort](#resource-location)                                 | 3      | 3        | 0         |
 | [Preise und Zahlungsbedingungen](#resource-terms)              | 2      | 6        | 2         |
-| [Auftrag](#resource-order)                                     | 8      | 9        | 7         |
+| [Auftrag](#resource-order)                                     | 8      | 9        | 9         |
 | [Lieferung und Wareneingang](#resource-delivery)               | 2      | 6        | 2         |
 | [Charge, Seriennummer und Palette](#resource-lot)              | 0      | 5        | 1         |
 | [Rechnung und Gutschrift](#resource-invoice)                   | 3      | 9        | 14        |
 | [Zahlung und Ausgleich](#resource-payment)                     | 2      | 7        | 2         |
-| [Buchhaltung und Konten](#resource-accounting)                 | 2      | 10       | 1         |
+| [Buchhaltung und Konten](#resource-accounting)                 | 2      | 11       | 3         |
 | [Retoure](#resource-return)                                    | 0      | 2        | 6         |
 | [Beleg und Quellsystem](#resource-source)                      | 3      | 10       | 2         |
 | [Unternehmen und Benutzer](#resource-company)                  | 1      | 4        | 0         |
@@ -38,6 +38,10 @@ privaten gespeicherten Einstellungen.
 - [Private Graph-Auswertung ändern](./commands#command-change_graph_report) (`change_graph_report`)
 
 **Darunter:** Tabellen: `analytics_report` · Agenten-Tools ohne Geschäftsaktion:
+[`graph_company_generation_current`](./commands#tool-graph_company_generation_current),
+[`graph_captured_reports_list`](./commands#tool-graph_captured_reports_list),
+[`graph_contribution_reviews_list`](./commands#tool-graph_contribution_reviews_list),
+[`graph_inventory_reviews_list`](./commands#tool-graph_inventory_reviews_list),
 [`graph_catalog`](./commands#tool-graph_catalog),
 [`graph_templates`](./commands#tool-graph_templates), [`graph_ask`](./commands#tool-graph_ask),
 [`graph_format`](./commands#tool-graph_format),
@@ -119,12 +123,18 @@ hier.
 - [Stammdatensatz aktivieren oder deaktivieren](./commands#command-set_master_data_active)
   (`set_master_data_active`)
 
+**Nachschlagen**
+
+- [Bestand zu Anschaffungskosten anzeigen](./commands#command-inventory_cost) (`inventory_cost`)
+
 **Klärfälle**
 
 - [Einheiten nicht vergleichbar](./exceptions#exception-units_not_comparable)
   (`units_not_comparable`)
 - [Reservierung übersteigt Bestand](./exceptions#exception-reservation_exceeds_stock)
   (`reservation_exceeds_stock`)
+- [Anschaffungskosten fehlen](./exceptions#exception-missing_acquisition_cost)
+  (`missing_acquisition_cost`)
 
 **Kommt vor in:** [Purchase-to-Pay](./processes#process-procure_to_pay),
 [Stammdaten und Quellen](./processes#process-master_data)
@@ -133,7 +143,8 @@ hier.
 [`item.updated`](./events#event-item-updated),
 [`master_data.lifecycle_changed`](./events#event-master_data-lifecycle_changed) · Agenten-Tools ohne
 Geschäftsaktion: [`inventory_read`](./commands#tool-inventory_read),
-[`item_supply_demand`](./commands#tool-item_supply_demand)
+[`item_supply_demand`](./commands#tool-item_supply_demand),
+[`graph_inventory_reviews_list`](./commands#tool-graph_inventory_reviews_list)
 
 ## Lagerort {#resource-location}
 
@@ -266,6 +277,8 @@ Bestellung, Verpflichtung, Lieferverpflichtung, Reservierung, Rückstand, Liefer
   (`commitment_hold_unreleased`)
 - [Liefersperre nicht aufgehoben](./exceptions#exception-party_hold_unreleased)
   (`party_hold_unreleased`)
+- [Kostenprüfung veraltet](./exceptions#exception-stale_cost_review) (`stale_cost_review`)
+- [Tatsächlicher DB1 negativ](./exceptions#exception-negative_actual_db1) (`negative_actual_db1`)
 
 **Kommt vor in:** [Order-to-Cash](./processes#process-order_to_cash),
 [Purchase-to-Pay](./processes#process-procure_to_pay)
@@ -500,6 +513,7 @@ Kontenrahmen, Storno, Eröffnungsbilanz, Sachkonto
 
 **Aktionen**
 
+- [Kostenentscheidung bestätigen](./commands#command-execute_cost_change) (`execute_cost_change`)
 - [Buchhaltungsziel pflegen](./commands#command-maintain_target_configuration)
   (`maintain_target_configuration`)
 - [Quellcode zuordnen](./commands#command-set_source_mapping) (`set_source_mapping`)
@@ -515,6 +529,16 @@ Kontenrahmen, Storno, Eröffnungsbilanz, Sachkonto
 
 **Nachschlagen**
 
+- [Geprüfte Teilzuordnung anzeigen](./commands#command-commercial_match) (`commercial_match`)
+- [Kosten mit Bewertungsbasis abfragen](./commands#command-cost_query) (`cost_query`)
+- [Kostennachweis prüfen](./commands#command-cost_record) (`cost_record`)
+- [Geprüfte Deckungsbeiträge anzeigen](./commands#command-reviewed_contribution)
+  (`reviewed_contribution`)
+- [Deckungsbeitragsvorschau prüfen](./commands#command-contribution_preview)
+  (`contribution_preview`)
+- [Bestand zu Anschaffungskosten anzeigen](./commands#command-inventory_cost) (`inventory_cost`)
+- [Empfangene Anschaffungskosten anzeigen](./commands#command-cost_evidence) (`cost_evidence`)
+- [Anschaffungskosten des Wareneingangs anzeigen](./commands#command-receipt_cost) (`receipt_cost`)
 - [Buchhaltungsziele anzeigen](./commands#command-list_targets) (`list_targets`)
 - [Zielreferenzen anzeigen](./commands#command-list_target_references) (`list_target_references`)
 - [Kontenzuordnungen anzeigen](./commands#command-list_mappings) (`list_mappings`)
@@ -534,14 +558,36 @@ Kontenrahmen, Storno, Eröffnungsbilanz, Sachkonto
 
 - [Nicht zugeordneter Finanzvorgang](./exceptions#exception-unmatched_financial_event)
   (`unmatched_financial_event`)
+- [Kostenkomponente nicht zugeordnet](./exceptions#exception-unassigned_cost_component)
+  (`unassigned_cost_component`)
+- [Kostenprüfung veraltet](./exceptions#exception-stale_cost_review) (`stale_cost_review`)
 
 **Kommt vor in:** [Finanzeinrichtung und Periodenarbeit](./processes#process-finance_setup)
 
-**Darunter:** Tabellen: `ledger_entry`, `ledger_reversal`, `subledger_account`,
-`finance_role_destination`, `accounting_target`, `accounting_target_reference`,
-`finance_target_mapping_revision`, `source_classification_mapping_revision`, `financial_component`,
-`component_assignment_revision`, `component_assignment_part`, `finance_reference`, `opening_scope`,
-`opening_item_detail` · Events:
+**Darunter:** Tabellen: `cost_company_manifest`, `cost_company_inventory_input`,
+`cost_company_contribution_input`, `cost_company_generation`, `cost_company_inventory_result`,
+`cost_company_contribution_result`, `cost_company_publication`, `cost_generation`,
+`cost_inventory_row`, `cost_contribution_row`, `cost_publication`, `cost_captured_basis`,
+`cost_captured_inventory_basis`, `cost_captured_contribution_basis`, `cost_company_census`,
+`cost_company_census_movement`, `cost_company_census_document`, `cost_company_census_line`,
+`cost_company_census_source`, `cost_contribution_generation`, `cost_contribution_snapshot`,
+`cost_inventory_generation`, `cost_inventory_snapshot`, `cost_inventory_publication`,
+`cost_commercial_match_revision`, `cost_commercial_inventory_part`, `cost_commercial_direct_part`,
+`cost_selling_attribution_part`, `cost_selling_review_category`, `cost_selling_review_member`,
+`cost_revenue_match_basis`, `cost_contribution_review`, `cost_policy_revision`,
+`cost_movement_basis`, `cost_ownership_revision`, `cost_inventory_review`, `cost_inventory_member`,
+`cost_valuation_assessment_revision`, `cost_valuation_assessment_part`,
+`cost_conversion_basis_revision`, `cost_attribution_part`, `cost_attribution_revision`,
+`cost_component_basis`, `cost_component_replacement`, `cost_correction_basis`,
+`cost_input_manifest`, `cost_manifest_attribution`, `cost_manifest_component`,
+`cost_manifest_correction`, `cost_manifest_receipt`, `cost_manifest_replacement`,
+`cost_receipt_basis`, `cost_scope_review`, `cost_scope_review_category`, `ledger_entry`,
+`ledger_reversal`, `subledger_account`, `finance_role_destination`, `accounting_target`,
+`accounting_target_reference`, `finance_target_mapping_revision`,
+`source_classification_mapping_revision`, `financial_component`, `component_assignment_revision`,
+`component_assignment_part`, `finance_reference`, `opening_scope`, `opening_item_detail` · Events:
+[`cost.attributed`](./events#event-cost-attributed),
+[`cost.reviewed`](./events#event-cost-reviewed),
 [`finance.target_configuration_changed`](./events#event-finance-target_configuration_changed),
 [`finance.source_mapping_changed`](./events#event-finance-source_mapping_changed),
 [`finance.component_assigned`](./events#event-finance-component_assigned),
@@ -629,6 +675,7 @@ Nachweis, Quelle
 
 **Nachschlagen**
 
+- [Geprüfte Teilzuordnung anzeigen](./commands#command-commercial_match) (`commercial_match`)
 - [Belegzuordnung vorschauen](./commands#command-preview_document) (`preview_document`)
 - [Quellcode-Zuordnungen anzeigen](./commands#command-list_source_mappings) (`list_source_mappings`)
 - [Verlauf der Quellcode-Zuordnung](./commands#command-source_mapping_history)

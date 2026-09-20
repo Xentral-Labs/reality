@@ -1,0 +1,53 @@
+
+==================================== ERRORS ====================================
+__________________ ERROR collecting tests/test_cost_query.py ___________________
+tests/test_cost_query.py:6: in <module>
+    import test_cost_records as fixtures
+<frozen importlib._bootstrap>:1360: in _find_and_load
+    ???
+<frozen importlib._bootstrap>:1331: in _find_and_load_unlocked
+    ???
+<frozen importlib._bootstrap>:935: in _load_unlocked
+    ???
+../../.venv/lib/python3.12/site-packages/_pytest/assertion/rewrite.py:188: in exec_module
+    exec(co, module.__dict__)
+tests/test_cost_records.py:7: in <module>
+    import test_contribution_reviews as revenue
+<frozen importlib._bootstrap>:1360: in _find_and_load
+    ???
+<frozen importlib._bootstrap>:1331: in _find_and_load_unlocked
+    ???
+<frozen importlib._bootstrap>:935: in _load_unlocked
+    ???
+../../.venv/lib/python3.12/site-packages/_pytest/assertion/rewrite.py:188: in exec_module
+    exec(co, module.__dict__)
+tests/test_contribution_reviews.py:6: in <module>
+    import test_contribution_services as fixtures
+<frozen importlib._bootstrap>:1360: in _find_and_load
+    ???
+<frozen importlib._bootstrap>:1331: in _find_and_load_unlocked
+    ???
+<frozen importlib._bootstrap>:935: in _load_unlocked
+    ???
+../../.venv/lib/python3.12/site-packages/_pytest/assertion/rewrite.py:188: in exec_module
+    exec(co, module.__dict__)
+tests/test_contribution_services.py:6: in <module>
+    import test_costing_services as costs
+<frozen importlib._bootstrap>:1360: in _find_and_load
+    ???
+<frozen importlib._bootstrap>:1331: in _find_and_load_unlocked
+    ???
+<frozen importlib._bootstrap>:935: in _load_unlocked
+    ???
+../../.venv/lib/python3.12/site-packages/_pytest/assertion/rewrite.py:188: in exec_module
+    exec(co, module.__dict__)
+tests/test_costing_services.py:14: in <module>
+    from reality.services.costing import (
+src/reality/services/costing.py:1267: in <module>
+    review_id: str | None = None, effective_at: datetime | str | None = None,
+                                                ^^^^^^^^
+E   NameError: name 'datetime' is not defined. Did you forget to import 'datetime'
+=========================== short test summary info ============================
+ERROR tests/test_cost_query.py - NameError: name 'datetime' is not defined. D...
+!!!!!!!!!!!!!!!!!!!! Interrupted: 1 error during collection !!!!!!!!!!!!!!!!!!!!
+1 error in 0.74s

@@ -1,0 +1,102 @@
+{
+  "strategy": "projection",
+  "dataset_version": "costing-spike-v2",
+  "profile": "reduced",
+  "qualification_passed": false,
+  "measurements": {
+    "order": {
+      "samples": 20,
+      "p50_s": 0.0014411459997063503,
+      "p95_s": 0.002857792016584426,
+      "max_s": 0.003027791011845693,
+      "budget_s": 0.5
+    },
+    "tool": {
+      "samples": 20,
+      "p50_s": 0.0018157710146624595,
+      "p95_s": 0.0020257919968571514,
+      "max_s": 0.002052333002211526,
+      "budget_s": 3
+    },
+    "inventory": {
+      "samples": 20,
+      "p50_s": 0.00306110450765118,
+      "p95_s": 0.003854541981127113,
+      "max_s": 0.0039714160084258765,
+      "budget_s": 2
+    },
+    "monthly": {
+      "samples": 20,
+      "p50_s": 0.0016616459906799719,
+      "p95_s": 0.0023685829946771264,
+      "max_s": 0.0026515420177020133,
+      "budget_s": 3
+    },
+    "attention": {
+      "samples": 20,
+      "p50_s": 0.002240396002889611,
+      "p95_s": 0.0029672919772565365,
+      "max_s": 0.0030790419841650873,
+      "budget_s": 2
+    }
+  },
+  "limitations": [
+    "Exploratory host: combined 4-vCPU/16-GiB envelope is not enforced.",
+    "An OS/database cold-cache run and the full freshness response contract are not certified.",
+    "Experimental typed relations are not yet wired to the product analysis compiler or exception register.",
+    "Full generated history is regular receipts/issues/transfers; returns, split credits, tax and partial matching are independent small proofs, not distributed full-load scenarios.",
+    "Projection completeness/review invalidation and source-version history are not product implementations.",
+    "200 read samples per surface are measured separately from the 30 mixed-update rounds; the complete 200-sample mixed-load protocol remains pending.",
+    "Reduced sample/update counts do not satisfy full fixture J protocol."
+  ],
+  "input_revision_before": 0,
+  "reconstruction_s": [
+    0.022755541984224692,
+    0.022594416019273922,
+    0.021613082994008437
+  ],
+  "checksum": "51ff506e9529cb4faaed4d4d832d42334b29ca2b0e5299b2dc35774ae439fcaf",
+  "refresh": {
+    "samples": 2,
+    "p50_s": 0.014230292013962753,
+    "p95_s": 0.01487116701900959,
+    "max_s": 0.01487116701900959,
+    "last_affected_rows": 60,
+    "one_change_per_second_sustained": true
+  },
+  "reads_during_refresh": {
+    "samples": 10,
+    "p50_s": 0.002298103499924764,
+    "p95_s": 0.004937083984259516,
+    "max_s": 0.004937083984259516
+  },
+  "measured_budgets_passed": true,
+  "input_revision_after": 2,
+  "status": "exploratory",
+  "cardinalities": {
+    "a": {
+      "item": 12,
+      "trade_order": 120,
+      "movement": 1200,
+      "component": 1200,
+      "attribution": 1200,
+      "matching": 720
+    },
+    "b": {
+      "item": 12,
+      "trade_order": 120,
+      "movement": 1200,
+      "component": 1200,
+      "attribution": 1200,
+      "matching": 720
+    }
+  },
+  "setup_s": 0.15917866601375863,
+  "python": "3.12.4",
+  "platform": "macOS-27.0-arm64-arm-64bit",
+  "git_revision": "709af5c1a6358be2f004003f37b836ff6095b5bf",
+  "peak_rss_bytes": 89292800,
+  "elapsed_s": 2.3967617500165943,
+  "postgres_version": "17.10",
+  "source_digest": "285fc181edaccdd154e5198ef83c6f04285cca2407d0e2acb3b3175993d4b92e"
+}

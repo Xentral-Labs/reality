@@ -1,6 +1,69 @@
 {
   "commands": [
     {
+      "name": "Read reviewed partial commercial match",
+      "service": "commercial_match",
+      "mode": "read",
+      "adapters": ["CLI", "Web", "MCP", "Chat"],
+      "effect": "Derive DB1 from one confirmed partial commercial match or reproduce an exact retained revision without creating financial authority."
+    },
+    {
+      "name": "Read cost query context",
+      "service": "cost_query",
+      "mode": "read",
+      "adapters": ["CLI", "Web", "MCP", "Chat"],
+      "effect": "Read one admitted inventory or contribution scope with exact retained cutoffs and explicit current or historical freshness; no global generation claim."
+    },
+    {
+      "name": "Inspect retained cost record",
+      "service": "cost_record",
+      "mode": "read",
+      "adapters": ["CLI", "Web", "MCP", "Chat"],
+      "effect": "Inspect retained evidence and decision fields with tenant-safe source links and paged exact membership; no current valuation claim or business writes."
+    },
+    {
+      "name": "Read reviewed commercial contribution",
+      "service": "reviewed_contribution",
+      "mode": "read",
+      "adapters": ["CLI", "Web", "MCP", "Chat"],
+      "effect": "Derive confirmed whole-line DB1 and independently reviewed DB2, or reproduce their exact retained historical basis."
+    },
+    {
+      "name": "Preview current contribution candidate",
+      "service": "contribution_preview",
+      "mode": "read",
+      "adapters": ["CLI", "Web", "MCP", "Chat"],
+      "effect": "Follow an exact whole invoice/order/shipment scope to received net revenue and reviewed consumption; show known DB1 only, with missing commercial review and selling costs."
+    },
+    {
+      "name": "Read reviewed inventory acquisition costs",
+      "service": "inventory_cost",
+      "mode": "read",
+      "adapters": ["CLI", "Web", "MCP", "Chat"],
+      "effect": "Derive stock acquisition value and consumption from a bounded confirmed ownership/policy scope, and derive a separate carrying value only from an exact source-backed retained assessment."
+    },
+    {
+      "name": "Read received acquisition-cost evidence",
+      "service": "cost_evidence",
+      "mode": "read",
+      "adapters": ["CLI", "Web", "MCP", "Chat"],
+      "effect": "Derive receipt costs from exact received amounts and explicit owner decisions; retain sealed reviewed knowledge and keep incomplete costs unknown."
+    },
+    {
+      "name": "Read receipt acquisition costs",
+      "service": "receipt_cost",
+      "mode": "read",
+      "adapters": ["CLI", "Web", "MCP", "Chat"],
+      "effect": "Derive receipt costs from exact received amounts and explicit owner decisions; retain sealed reviewed knowledge and keep incomplete costs unknown."
+    },
+    {
+      "name": "Confirm cost and contribution decision",
+      "service": "execute_cost_change",
+      "mode": "mutation",
+      "adapters": ["CLI", "Web", "MCP", "Chat"],
+      "effect": "Derive receipt costs from exact received amounts and explicit owner decisions; retain sealed reviewed knowledge and keep incomplete costs unknown."
+    },
+    {
       "name": "Change Private Graph Report",
       "service": "change_graph_report",
       "mode": "mutation",

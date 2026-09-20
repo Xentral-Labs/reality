@@ -1,0 +1,26 @@
+..................................................F..................... [ 98%]
+.                                                                        [100%]
+=================================== FAILURES ===================================
+______________________ test_repository_spec_policy_passes ______________________
+
+    def test_repository_spec_policy_passes() -> None:
+        result = subprocess.run(
+            ["python3", str(POLICY_PATH)],
+            cwd=ROOT,
+            check=False,
+            capture_output=True,
+            text=True,
+        )
+>       assert result.returncode == 0, result.stdout + result.stderr
+E       AssertionError: Spec policy failed:
+E         - coverage matrix is missing catalog table: cost_inventory_generation
+E         - coverage matrix is missing catalog table: cost_inventory_publication
+E         - coverage matrix is missing catalog table: cost_inventory_snapshot
+E         
+E       assert 1 == 0
+E        +  where 1 = CompletedProcess(args=['python3', '/Users/benediktsauter/GitHub/reality/scripts/check_spec_policy.py'], returncode=1, ...g table: cost_inventory_publication\n- coverage matrix is missing catalog table: cost_inventory_snapshot\n', stderr='').returncode
+
+tests/test_spec_policy.py:24: AssertionError
+=========================== short test summary info ============================
+FAILED tests/test_spec_policy.py::test_repository_spec_policy_passes - Assert...
+1 failed, 72 passed in 60.28s (0:01:00)

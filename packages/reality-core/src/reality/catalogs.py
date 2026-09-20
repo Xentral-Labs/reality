@@ -105,6 +105,10 @@ OPERATIONAL_EXCEPTION_CLASS_ORDER = (
     "commitment_hold_unreleased",
     "party_hold_unreleased",
     "stock_expired",
+    "missing_acquisition_cost",
+    "unassigned_cost_component",
+    "stale_cost_review",
+    "negative_actual_db1",
 )
 # A cause names a business reason and stays comparable wherever it appears, so
 # more than one class may declare the same one. The vocabulary itself stays
@@ -114,6 +118,11 @@ OPERATIONAL_EXCEPTION_CAUSE_VOCABULARY = (
     "early_payment_discount_taken",
     "promise_was_revised",
     "reserved_for_delivery",
+    "acquisition_cost_unknown",
+    "contribution_goods_cost_unknown",
+    "cost_component_unassigned",
+    "later_relevant_evidence",
+    "supported_actual_db1_negative",
 )
 CAPABILITY_GUIDANCE_REQUIRED_TOOLS = {
     "business_records_discover",
@@ -137,7 +146,10 @@ TENANT_ISOLATION_CLASSIFICATIONS = {
     "boundary",
     "global_admin",
 }
+from reality.services import costing as costing_service_module
+
 TENANT_SERVICE_MODULES = {
+    "reality.services.costing": costing_service_module,
     "reality.services.projection_jobs": projection_job_service_module,
     "reality.services.finance.source_mappings": finance_source_mapping_module,
     "reality.services.finance.target_mappings": finance_target_mapping_module,
@@ -1030,6 +1042,8 @@ def load_tenant_isolation_catalog() -> TenantIsolationCatalog:
 
 
 def _service(name: str) -> Any:
+    if hasattr(costing_service_module, name):
+        return getattr(costing_service_module, name)
     if name == "change_graph_report":
         from reality.services.analytics import reports
 
@@ -1202,6 +1216,7 @@ def _literal_business_events() -> set[str]:
 
     for module in (
         service_module,
+        costing_service_module,
         credit_actions,
         finance_account_service_module,
         finance_reference_service_module,

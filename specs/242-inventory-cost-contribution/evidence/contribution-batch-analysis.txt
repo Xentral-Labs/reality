@@ -1,0 +1,15 @@
+Reviewed scope: T137-T140 and FR-007/011/012/014/015/016/019.
+Spec/plan/tasks/contract consistency: 7 requirements mapped, no unmapped new tasks,
+no critical findings and no unresolved requirement markers.
+Constitution PASS: existing authority tables, shared owner/proposal execution,
+no schema expansion, received values unchanged, same-tenant shortest links.
+Batch approval is the actual new action, not a fabricated global profile revision.
+Each single-line admission runs before the decision event. The joint guard verifies
+common inventory action/cutoff/knowledge/event/currency/owner and disjoint shipments.
+An explicit bounded positions field avoids conflicting with the inventory scopes schema.
+Shared recorded_at participates in each existing review digest; old single-line output
+retains its shape. Existing savepoint and tenant serialization govern all members.
+Open dependency: publication must validate exact executed batch membership before
+admitting a report population. This stage returns no total or cache readiness claim.
+Reviewer checklists remain 40 checked / 6 open under existing continuation permission.
+No extension hooks file present; no global release gate is closed by this stage.

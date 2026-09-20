@@ -139,6 +139,7 @@ class SourceMappingRequest(AccountRequest):
 
 SOURCE_MAPPING_COMMAND = "finance.source_mapping.set"
 FINANCE_COMMANDS = {
+    "cost.change",
     *TARGET_COMMANDS,
     SOURCE_MAPPING_COMMAND,
     ASSIGNMENT_COMMAND,
@@ -235,6 +236,10 @@ def validate_finance_request(name, arguments):
     from reality.services.core import InvalidOperation
 
     try:
+        if name == "cost.change":
+            from reality.domain.costing import CHANGE
+
+            return CHANGE.validate_python(arguments).model_dump(mode="json")
         if name == SOURCE_MAPPING_COMMAND:
             return SourceMappingRequest.model_validate(arguments).model_dump()
         if name == ASSIGNMENT_COMMAND:
@@ -253,6 +258,17 @@ def validate_finance_request(name, arguments):
 def execute_finance_command(
     session, tenant_id, name, arguments, *, action_id, actor_id=None
 ):
+    if name == "cost.change":
+        from reality.services.costing import execute_cost_change
+
+        return execute_cost_change(
+            session,
+            tenant_id,
+            arguments=arguments,
+            action_id=action_id,
+            actor_id=actor_id,
+            confirmed=True,
+        )
     if name in TARGET_COMMANDS:
         from reality.services.finance.target_mappings import (
             maintain_target_configuration,

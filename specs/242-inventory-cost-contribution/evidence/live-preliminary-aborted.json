@@ -1,0 +1,11 @@
+{
+  "status": "aborted",
+  "qualification_passed": false,
+  "reason": "Stopped owned runner after discovering unresolved-target guard gap; finalized code is measured separately.",
+  "observed_reconstruction_s": [
+    49.746,
+    45.625
+  ],
+  "dataset_retained": true,
+  "business_data_touched": false
+}

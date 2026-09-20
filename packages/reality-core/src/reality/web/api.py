@@ -6063,8 +6063,27 @@ def get_inspector(
     tenant_id: str,
     session: DatabaseSession,
     preview: bool = False,
+    member_page: int = Query(default=1, ge=1, le=10000),
+    language: str = "en",
 ):
     try:
+        from reality.domain.cost_records import RECORDS
+        from reality.tools.application import run_read_tool
+
+        if kind in RECORDS:
+            return complete_inspector(
+                run_read_tool(
+                    session,
+                    tenant_id,
+                    "cost.record.get",
+                    {
+                        "kind": kind,
+                        "record_id": record_id,
+                        "page": member_page,
+                        "language": language,
+                    },
+                )
+            )
         if kind in {"document_line", "source_record", "business_event"}:
             from reality.services.delivery_reads import delivery_evidence
 
@@ -6258,7 +6277,7 @@ def get_inspector(
             if sections is not None:
                 payload["preview_sections"] = sections
         return complete_inspector(payload)
-    except NotFound as error:
+    except (NotFound, InvalidOperation) as error:
         raise api_error(error) from error
 
 
@@ -6617,6 +6636,40 @@ def explorer_record(record) -> dict:
     return {"id": record.id, "title": title, "fields": fields}
 
 
+@router.get("/cost-query")
+def get_cost_query(
+    tenant_id: str,
+    session: DatabaseSession,
+    kind: str,
+    scope_id: str,
+    review_id: str | None = None,
+    effective_at: str | None = None,
+    knowledge_at: str | None = None,
+    policy_revision_id: str | None = None,
+):
+    """Read an admitted cost scope and its constrained retained query context."""
+    from reality.tools.application import run_read_tool
+
+    try:
+        return run_read_tool(
+            session,
+            tenant_id,
+            "cost.query.get",
+            {
+                "kind": kind,
+                "scope_id": scope_id,
+                "review_id": review_id,
+                "effective_at": effective_at,
+                "knowledge_at": knowledge_at,
+                "policy_revision_id": policy_revision_id,
+            },
+        )
+    except InvalidOperation as error:
+        raise HTTPException(status_code=422, detail=str(error)) from error
+    except NotFound as error:
+        raise api_error(error) from error
+
+
 @router.get("/inspector-records")
 def get_inspector_records(
     tenant_id: str,
@@ -6625,11 +6678,18 @@ def get_inspector_records(
     q: str = Query(default="", max_length=500),
     page: int = Query(default=1, ge=1),
     size: int = Query(default=50, ge=25, le=100),
+    language: str = "en",
 ):
     """Read all supported Inspector families through the shared scoped register."""
     try:
         return inspector_records(
-            session, tenant_id, kind=kind, query=q, page=page, size=size
+            session,
+            tenant_id,
+            kind=kind,
+            query=q,
+            page=page,
+            size=size,
+            language=language,
         )
     except InvalidOperation as error:
         raise HTTPException(status_code=422, detail=str(error)) from error

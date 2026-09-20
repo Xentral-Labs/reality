@@ -50,6 +50,7 @@ def require_company_owner(
     from sqlalchemy import select
 
     from reality.db.core import AppUser, Tenant
+    from reality.services.account_policy import account_eligible
     from reality.services.core import RealityError
     from reality.services.memberships import Principal, require_owner
 
@@ -63,8 +64,7 @@ def require_company_owner(
         tenant is None
         or tenant.archived_at is not None
         or user is None
-        or user.status != "active"
-        or user.email_verified_at is None
+        or not account_eligible(session, user)
     ):
         raise JobError("not_authorized")
 
@@ -109,6 +109,15 @@ def definitions() -> dict[str, JobDefinition]:
     if not _INITIALIZED:
         from reality.jobs.handlers.analysis import ANALYSIS
         from reality.jobs.handlers.company_setup import INITIALIZE
+        from reality.jobs.handlers.costing import (
+            ADMIT_COMPANY_MANIFEST,
+            BUILD_COMPANY_GENERATION,
+            PUBLISH_CAPTURED_REPORT,
+            PUBLISH_COMPANY_GENERATION,
+            REFRESH_CAPTURED_REPORT,
+            REFRESH_CONTRIBUTION,
+            REFRESH_INVENTORY,
+        )
         from reality.jobs.handlers.demo_data import DEMO, SETTLE
         from reality.jobs.handlers.invitations import CLEANUP
         from reality.jobs.handlers.projections import REFRESH
@@ -119,6 +128,13 @@ def definitions() -> dict[str, JobDefinition]:
         register(SETTLE)
         register(INITIALIZE)
         register(ANALYSIS)
+        register(REFRESH_INVENTORY)
+        register(REFRESH_CONTRIBUTION)
+        register(REFRESH_CAPTURED_REPORT)
+        register(PUBLISH_CAPTURED_REPORT)
+        register(ADMIT_COMPANY_MANIFEST)
+        register(BUILD_COMPANY_GENERATION)
+        register(PUBLISH_COMPANY_GENERATION)
         _INITIALIZED = True
     return dict(_REGISTRY)
 

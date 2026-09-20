@@ -1,0 +1,62 @@
+✔ a period is one line to read and one line to remove (1.900417ms)
+✔ taking a step away takes away what pointed at it (0.158208ms)
+✔ the stack compiles to the question the server checks (0.124ms)
+✔ one button carries all three states a sort can be in (0.0795ms)
+✔ an axis can be sorted by the name the answer gives it (0.079667ms)
+✔ a sort on a removed axis goes with it (0.055167ms)
+✔ a time axis is bucketed, because one row per instant is a list not an answer (0.056291ms)
+✔ a saved question reopens as the steps that built it (0.238666ms)
+✔ a reopened period is one line again, not two halves (9.713584ms)
+✔ a question naming a record this model does not have reopens as nothing (0.101875ms)
+✔ a second number stands beside the first, not in place of it (0.195958ms)
+✔ taking the last number away puts the records back (0.149292ms)
+✔ a reopened period reads as the day it was picked, not the day before (0.227958ms)
+✔ a connection is offered from everywhere the question has reached (0.116542ms)
+✔ a branching hop says where it starts, and an ordinary one does not (0.078375ms)
+✔ a period reads the same before and after it is saved (0.146291ms)
+✔ an axis a number may not be summed across arrives as soon as it is reachable (0.063709ms)
+✔ advanced questions stay in expert mode instead of dropping their clauses (0.055542ms)
+✔ connection diagram uses the declared origin for branches (0.133792ms)
+✔ catalog field and relation transitions produce ordinary unsaved questions (0.109375ms)
+✔ omitted server defaults do not reverse a relationship's multiplicity (0.044833ms)
+✔ the last 30 days covers exactly thirty local calendar dates (0.096458ms)
+✔ question period recognizes only a bounded range on one declared time field (0.184541ms)
+✔ removing the question period preserves other filters and query dimensions (0.128042ms)
+✔ calendar date periods preserve wall-clock days rather than UTC instants (0.048792ms)
+✖ inventory context survives visual edits and is absent from a new ordinary plan (1.204292ms)
+ℹ tests 26
+ℹ suites 0
+ℹ pass 25
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 385.857208
+
+✖ failing tests:
+
+test at apps/web/scripts/graph-steps.test.mjs:600:1
+✖ inventory context survives visual edits and is absent from a new ordinary plan (1.204292ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+  
+  + undefined
+  - {
+  -   action_id: 'confirmed-action',
+  -   mode: 'historical'
+  - }
+  
+      at TestContext.<anonymous> (file:///Users/benediktsauter/GitHub/reality/apps/web/scripts/graph-steps.test.mjs:609:10)
+      at Test.runInAsyncScope (node:async_hooks:226:14)
+      at Test.run (node:internal/test_runner/test:1201:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:831:18)
+      at Test.postRun (node:internal/test_runner/test:1330:19)
+      at Test.run (node:internal/test_runner/test:1258:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: { action_id: 'confirmed-action', mode: 'historical' },
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }

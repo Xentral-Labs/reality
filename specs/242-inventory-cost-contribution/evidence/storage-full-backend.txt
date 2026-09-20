@@ -1,0 +1,24 @@
+Stored inventory integration final verification (2026-09-19)
+
+Original complete backend collection: 3,312 unique tests in disjoint partitions.
+Serial demo partition: 81 passed, 3 failed (existing 30-second handler timeouts).
+Parallel remainder: 3,217 passed, 2 failed, 9 skipped, 1 warning.
+Combined original result: 3,298 passed, 5 failed, 9 skipped. Not a green full run.
+
+The two table-classification failures were corrected explicitly: the three disposable
+cache tables are excluded from retained financial authority and deferred from grouped
+reporting until compatible-generation and inventory cutoff semantics are implemented.
+The three timeout cases passed when rerun alone: 3 passed in 41.14s. No timeouts changed.
+
+Final current-checkout focused verification: 141 passed in 53.34s, including actual
+worker execution, migrations, concurrency, authority exclusions and reporting coverage.
+All 12 tracked costing/worker source and test hashes stayed unchanged during that run.
+Concurrent external desktop changes affected shared worker code near the end of the
+original full run. This final focused run does not substitute for a stable full CI run.
+
+Docs tests: 73 passed. Web tests: 314 passed. Generated reference is idempotent.
+Scoped lint/format and git diff --check pass. Global Ruff retains 11 unrelated
+findings in global-search tests. T108 and overall T080/release gates remain open.
+
+Owned disposable PostgreSQL container decf4d345335 was removed with its volumes.
+No application database migration, company activation, commit, merge or deployment.

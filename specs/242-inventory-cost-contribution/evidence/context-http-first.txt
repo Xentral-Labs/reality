@@ -1,0 +1,26 @@
+F                                                                        [100%]
+=================================== FAILURES ===================================
+________________ test_http_query_uses_same_context_and_refusals ________________
+
+session = <sqlalchemy.orm.session.Session object at 0x1103efb60>
+business = Business(tenant=<reality.db.core.Tenant object at 0x1102fa1b0>, company=<reality.db.core.Party object at 0x11110a750>,...110b140>, item=<reality.db.core.Item object at 0x1111397c0>, location=<reality.db.core.Location object at 0x111139be0>)
+cost_owner = <reality.db.core.AppUser object at 0x11113a510>
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x11113aa50>
+
+    def test_http_query_uses_same_context_and_refusals(session, business, cost_owner, monkeypatch):
+        from test_http_boundary import client_for
+    
+        review, data, _ = fixtures.prepared(session, business, cost_owner)
+        args = {"kind": "contribution", "scope_id": data[0].id, "review_id": review["review_id"]}
+        expected = cost_query(session, business.tenant.id, **args)
+        client = client_for(session, monkeypatch)
+        path = f"/api/tenants/{business.tenant.id}/cost-query"
+        response = client.get(path, params=args)
+>       assert response.status_code == 200
+E       assert 404 == 200
+E        +  where 404 = <Response [404 Not Found]>.status_code
+
+tests/test_cost_query.py:262: AssertionError
+=========================== short test summary info ============================
+FAILED tests/test_cost_query.py::test_http_query_uses_same_context_and_refusals
+1 failed in 5.30s

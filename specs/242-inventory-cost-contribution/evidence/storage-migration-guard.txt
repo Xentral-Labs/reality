@@ -1,0 +1,368 @@
+F
+=================================== FAILURES ===================================
+______________ test_cache_downgrade_refuses_unfinished_worker_run ______________
+
+self = <sqlalchemy.engine.base.Connection object at 0x10eab6180>
+dialect = <sqlalchemy.dialects.postgresql.psycopg.PGDialect_psycopg object at 0x10eab48c0>
+context = <sqlalchemy.dialects.postgresql.psycopg.PGExecutionContext_psycopg object at 0x10ec26390>
+statement = <sqlalchemy.dialects.postgresql.psycopg.PGCompiler_psycopg object at 0x10ec25cd0>
+parameters = [{'id': 'cache-run', 'tenant_id': 'ten_352cf58bb6', 'schedule_id': None, 'actor_id': 'cache-worker-owner', ...}]
+
+    def _exec_single_context(
+        self,
+        dialect: Dialect,
+        context: ExecutionContext,
+        statement: Union[str, Compiled],
+        parameters: Optional[_AnyMultiExecuteParams],
+    ) -> CursorResult[Any]:
+        """continue the _execute_context() method for a single DBAPI
+        cursor.execute() or cursor.executemany() call.
+    
+        """
+        if dialect.bind_typing is BindTyping.SETINPUTSIZES:
+            generic_setinputsizes = context._prepare_set_input_sizes()
+    
+            if generic_setinputsizes:
+                try:
+                    dialect.do_set_input_sizes(
+                        context.cursor, generic_setinputsizes, context
+                    )
+                except BaseException as e:
+                    self._handle_dbapi_exception(
+                        e, str(statement), parameters, None, context
+                    )
+    
+        cursor, str_statement, parameters = (
+            context.cursor,
+            context.statement,
+            context.parameters,
+        )
+    
+        effective_parameters: Optional[_AnyExecuteParams]
+    
+        if not context.executemany:
+            effective_parameters = parameters[0]
+        else:
+            effective_parameters = parameters
+    
+        if self._has_events or self.engine._has_events:
+            for fn in self.dispatch.before_cursor_execute:
+                str_statement, effective_parameters = fn(
+                    self,
+                    cursor,
+                    str_statement,
+                    effective_parameters,
+                    context,
+                    context.executemany,
+                )
+    
+        if self._echo:
+            self._log_info(str_statement)
+    
+            stats = context._get_cache_stats()
+    
+            if not self.engine.hide_parameters:
+                self._log_info(
+                    "[%s] %r",
+                    stats,
+                    sql_util._repr_params(
+                        effective_parameters,
+                        batches=10,
+                        ismulti=context.executemany,
+                    ),
+                )
+            else:
+                self._log_info(
+                    "[%s] [SQL parameters hidden due to hide_parameters=True]",
+                    stats,
+                )
+    
+        evt_handled: bool = False
+        try:
+            if context.execute_style is ExecuteStyle.EXECUTEMANY:
+                effective_parameters = cast(
+                    "_CoreMultiExecuteParams", effective_parameters
+                )
+                if self.dialect._has_events:
+                    for fn in self.dialect.dispatch.do_executemany:
+                        if fn(
+                            cursor,
+                            str_statement,
+                            effective_parameters,
+                            context,
+                        ):
+                            evt_handled = True
+                            break
+                if not evt_handled:
+                    self.dialect.do_executemany(
+                        cursor,
+                        str_statement,
+                        effective_parameters,
+                        context,
+                    )
+            elif not effective_parameters and context.no_parameters:
+                if self.dialect._has_events:
+                    for fn in self.dialect.dispatch.do_execute_no_params:
+                        if fn(cursor, str_statement, context):
+                            evt_handled = True
+                            break
+                if not evt_handled:
+                    self.dialect.do_execute_no_params(
+                        cursor, str_statement, context
+                    )
+            else:
+                effective_parameters = cast(
+                    "_CoreSingleExecuteParams", effective_parameters
+                )
+                if self.dialect._has_events:
+                    for fn in self.dialect.dispatch.do_execute:
+                        if fn(
+                            cursor,
+                            str_statement,
+                            effective_parameters,
+                            context,
+                        ):
+                            evt_handled = True
+                            break
+                if not evt_handled:
+>                   self.dialect.do_execute(
+                        cursor, str_statement, effective_parameters, context
+                    )
+
+../../.venv/lib/python3.12/site-packages/sqlalchemy/engine/base.py:1969: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+../../.venv/lib/python3.12/site-packages/sqlalchemy/engine/default.py:952: in do_execute
+    cursor.execute(statement, parameters)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <psycopg.Cursor [closed] [BAD] at 0x10ddebdd0>
+query = 'INSERT INTO scheduled_job_run (id, tenant_id, schedule_id, actor_id, job_type, configuration, schedule_revision, sche...:TIMESTAMP WITH TIME ZONE, %(finished_at)s::TIMESTAMP WITH TIME ZONE, %(last_error_code)s::VARCHAR, %(result)s::JSONB)'
+params = {'id': 'cache-run', 'tenant_id': 'ten_352cf58bb6', 'schedule_id': None, 'actor_id': 'cache-worker-owner', ...}
+prepare = None, binary = None
+
+    def execute(
+        self,
+        query: Query,
+        params: Params | None = None,
+        *,
+        prepare: bool | None = None,
+        binary: bool | None = None,
+    ) -> Self:
+        """
+        Execute a query or command to the database.
+        """
+        try:
+            with self._conn.lock:
+                self._conn.wait(
+                    self._execute_gen(query, params, prepare=prepare, binary=binary)
+                )
+        except e._NO_TRACEBACK as ex:
+>           raise ex.with_traceback(None)
+E           psycopg.errors.CheckViolation: new row for relation "scheduled_job_run" violates check constraint "ck_scheduled_run_origin"
+E           DETAIL:  Failing row contains (cache-run, ten_352cf58bb6, null, cache-worker-owner, costing.inventory.refresh, {"version": 1, "arguments": {"review_id": "retained-review"}}, null, null, null, null, pending, 0, 2026-09-19 10:36:00.597805+00, null, null, 2026-09-19 10:36:00.59781+00, null, null, null, null).
+
+../../.venv/lib/python3.12/site-packages/psycopg/cursor.py:117: CheckViolation
+
+The above exception was the direct cause of the following exception:
+
+postgres_database = 'postgresql+psycopg://costing:costing-local-only@127.0.0.1:55439/reality_migration_77c74675e0'
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x10ddde300>
+
+    def test_cache_downgrade_refuses_unfinished_worker_run(postgres_database, monkeypatch):
+        from sqlalchemy.orm import Session
+    
+        from reality.db.core import AppUser
+        from reality.db.scheduled_jobs import ScheduledJobRun
+        from reality.services import core
+    
+        monkeypatch.setenv("REALITY_DATABASE_URL", postgres_database)
+        config = Config("alembic.ini")
+        config.set_main_option("sqlalchemy.url", postgres_database)
+        command.upgrade(config, "0075_inventory_generations")
+        engine = create_engine(postgres_database)
+        try:
+            with Session(engine) as session:
+                tenant = core.create_tenant(session, "Migration job")
+                actor = AppUser(
+                    id="cache-worker-owner",
+                    email="cache-worker@example.test",
+                    password_hash="unused",
+                    status="active",
+                    email_verified_at=core.now(),
+                )
+                session.add(actor)
+                session.flush()
+                run = ScheduledJobRun(
+                    id="cache-run",
+                    tenant_id=tenant.id,
+                    actor_id=actor.id,
+                    job_type="costing.inventory.refresh",
+                    configuration={
+                        "version": 1,
+                        "arguments": {"review_id": "retained-review"},
+                    },
+                )
+                session.add(run)
+>               session.commit()
+
+tests/test_inventory_generation_migration.py:101: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+../../.venv/lib/python3.12/site-packages/sqlalchemy/orm/session.py:2035: in commit
+    trans.commit(_to_root=True)
+<string>:2: in commit
+    ???
+../../.venv/lib/python3.12/site-packages/sqlalchemy/orm/state_changes.py:137: in _go
+    ret_value = fn(self, *arg, **kw)
+                ^^^^^^^^^^^^^^^^^^^^
+../../.venv/lib/python3.12/site-packages/sqlalchemy/orm/session.py:1316: in commit
+    self._prepare_impl()
+<string>:2: in _prepare_impl
+    ???
+../../.venv/lib/python3.12/site-packages/sqlalchemy/orm/state_changes.py:137: in _go
+    ret_value = fn(self, *arg, **kw)
+                ^^^^^^^^^^^^^^^^^^^^
+../../.venv/lib/python3.12/site-packages/sqlalchemy/orm/session.py:1290: in _prepare_impl
+    self.session.flush()
+../../.venv/lib/python3.12/site-packages/sqlalchemy/orm/session.py:4353: in flush
+    self._flush(objects)
+../../.venv/lib/python3.12/site-packages/sqlalchemy/orm/session.py:4488: in _flush
+    with util.safe_reraise():
+../../.venv/lib/python3.12/site-packages/sqlalchemy/util/langhelpers.py:122: in __exit__
+    raise exc_value.with_traceback(exc_tb)
+../../.venv/lib/python3.12/site-packages/sqlalchemy/orm/session.py:4449: in _flush
+    flush_context.execute()
+../../.venv/lib/python3.12/site-packages/sqlalchemy/orm/unitofwork.py:465: in execute
+    rec.execute(self)
+../../.venv/lib/python3.12/site-packages/sqlalchemy/orm/unitofwork.py:641: in execute
+    util.preloaded.orm_persistence.save_obj(
+../../.venv/lib/python3.12/site-packages/sqlalchemy/orm/persistence.py:94: in save_obj
+    _emit_insert_statements(
+../../.venv/lib/python3.12/site-packages/sqlalchemy/orm/persistence.py:1049: in _emit_insert_statements
+    result = connection.execute(
+../../.venv/lib/python3.12/site-packages/sqlalchemy/engine/base.py:1421: in execute
+    return meth(
+../../.venv/lib/python3.12/site-packages/sqlalchemy/sql/elements.py:526: in _execute_on_connection
+    return connection._execute_clauseelement(
+../../.venv/lib/python3.12/site-packages/sqlalchemy/engine/base.py:1643: in _execute_clauseelement
+    ret = self._execute_context(
+../../.venv/lib/python3.12/site-packages/sqlalchemy/engine/base.py:1848: in _execute_context
+    return self._exec_single_context(
+../../.venv/lib/python3.12/site-packages/sqlalchemy/engine/base.py:1988: in _exec_single_context
+    self._handle_dbapi_exception(
+../../.venv/lib/python3.12/site-packages/sqlalchemy/engine/base.py:2365: in _handle_dbapi_exception
+    raise sqlalchemy_exception.with_traceback(exc_info[2]) from e
+../../.venv/lib/python3.12/site-packages/sqlalchemy/engine/base.py:1969: in _exec_single_context
+    self.dialect.do_execute(
+../../.venv/lib/python3.12/site-packages/sqlalchemy/engine/default.py:952: in do_execute
+    cursor.execute(statement, parameters)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <psycopg.Cursor [closed] [BAD] at 0x10ddebdd0>
+query = 'INSERT INTO scheduled_job_run (id, tenant_id, schedule_id, actor_id, job_type, configuration, schedule_revision, sche...:TIMESTAMP WITH TIME ZONE, %(finished_at)s::TIMESTAMP WITH TIME ZONE, %(last_error_code)s::VARCHAR, %(result)s::JSONB)'
+params = {'id': 'cache-run', 'tenant_id': 'ten_352cf58bb6', 'schedule_id': None, 'actor_id': 'cache-worker-owner', ...}
+prepare = None, binary = None
+
+    def execute(
+        self,
+        query: Query,
+        params: Params | None = None,
+        *,
+        prepare: bool | None = None,
+        binary: bool | None = None,
+    ) -> Self:
+        """
+        Execute a query or command to the database.
+        """
+        try:
+            with self._conn.lock:
+                self._conn.wait(
+                    self._execute_gen(query, params, prepare=prepare, binary=binary)
+                )
+        except e._NO_TRACEBACK as ex:
+>           raise ex.with_traceback(None)
+E           sqlalchemy.exc.IntegrityError: (psycopg.errors.CheckViolation) new row for relation "scheduled_job_run" violates check constraint "ck_scheduled_run_origin"
+E           DETAIL:  Failing row contains (cache-run, ten_352cf58bb6, null, cache-worker-owner, costing.inventory.refresh, {"version": 1, "arguments": {"review_id": "retained-review"}}, null, null, null, null, pending, 0, 2026-09-19 10:36:00.597805+00, null, null, 2026-09-19 10:36:00.59781+00, null, null, null, null).
+E           [SQL: INSERT INTO scheduled_job_run (id, tenant_id, schedule_id, actor_id, job_type, configuration, schedule_revision, scheduled_for, request_id, request_fingerprint, status, attempt_count, next_attempt_at, claim_token, lease_expires_at, created_at, started_at, finished_at, last_error_code, result) VALUES (%(id)s::VARCHAR, %(tenant_id)s::VARCHAR, %(schedule_id)s::VARCHAR, %(actor_id)s::VARCHAR, %(job_type)s::VARCHAR, %(configuration)s::JSONB, %(schedule_revision)s::INTEGER, %(scheduled_for)s::TIMESTAMP WITH TIME ZONE, %(request_id)s::VARCHAR, %(request_fingerprint)s::VARCHAR, %(status)s::VARCHAR, %(attempt_count)s::INTEGER, %(next_attempt_at)s::TIMESTAMP WITH TIME ZONE, %(claim_token)s::VARCHAR, %(lease_expires_at)s::TIMESTAMP WITH TIME ZONE, %(created_at)s::TIMESTAMP WITH TIME ZONE, %(started_at)s::TIMESTAMP WITH TIME ZONE, %(finished_at)s::TIMESTAMP WITH TIME ZONE, %(last_error_code)s::VARCHAR, %(result)s::JSONB)]
+E           [parameters: {'id': 'cache-run', 'tenant_id': 'ten_352cf58bb6', 'schedule_id': None, 'actor_id': 'cache-worker-owner', 'job_type': 'costing.inventory.refresh', 'configuration': Jsonb({'version': 1, 'arguments': {'revie ... (61 chars)), 'schedule_revision': None, 'scheduled_for': None, 'request_id': None, 'request_fingerprint': None, 'status': 'pending', 'attempt_count': 0, 'next_attempt_at': datetime.datetime(2026, 9, 19, 10, 36, 0, 597805, tzinfo=datetime.timezone.utc), 'claim_token': None, 'lease_expires_at': None, 'created_at': datetime.datetime(2026, 9, 19, 10, 36, 0, 597810, tzinfo=datetime.timezone.utc), 'started_at': None, 'finished_at': None, 'last_error_code': None, 'result': None}]
+E           (Background on this error at: https://sqlalche.me/e/20/gkpj)
+
+../../.venv/lib/python3.12/site-packages/psycopg/cursor.py:117: IntegrityError
+----------------------------- Captured stderr call -----------------------------
+INFO  [alembic.runtime.migration] Context impl PostgresqlImpl.
+INFO  [alembic.runtime.migration] Will assume transactional DDL.
+INFO  [alembic.runtime.migration] Running upgrade  -> 0001_initial, Initial Source, Evidence, and Reality schema.
+INFO  [alembic.runtime.migration] Running upgrade 0001_initial -> 0002_settlement_allocations, Add explicit payment-to-invoice settlement allocations.
+INFO  [alembic.runtime.migration] Running upgrade 0002_settlement_allocations -> 0003_master_data_active, Add lifecycle state to master data.
+INFO  [alembic.runtime.migration] Running upgrade 0003_master_data_active -> 0004_master_data_source, Link parties and items to immutable source records.
+INFO  [alembic.runtime.migration] Running upgrade 0004_master_data_source -> 0005_operational_fields, Add the proven operational fields selected for V0.
+INFO  [alembic.runtime.migration] Running upgrade 0005_operational_fields -> 0006_commitment_holds, Add reversible execution holds for commitments.
+INFO  [alembic.runtime.migration] Running upgrade 0006_commitment_holds -> 0007_party_delivery_holds, Add reversible delivery holds for customer parties.
+INFO  [alembic.runtime.migration] Running upgrade 0007_party_delivery_holds -> 0008_utc_timestamps, Store business timestamps with explicit UTC timezone semantics.
+INFO  [alembic.runtime.migration] Running upgrade 0008_utc_timestamps -> 0009_payment_terms, Normalize payment terms into tenant-scoped master data.
+INFO  [alembic.runtime.migration] Running upgrade 0009_payment_terms -> 0010_pricing, Add explainable sales and purchase pricing.
+INFO  [alembic.runtime.migration] Running upgrade 0010_pricing -> 0011_source_import_idempotency, Add durable source idempotency and retryable import jobs.
+INFO  [alembic.runtime.migration] Running upgrade 0011_source_import_idempotency -> 0012_business_events, Add the transactional business-event outbox.
+INFO  [alembic.runtime.migration] Running upgrade 0012_business_events -> 0013_integration_registry, Add tenant integration registry.
+INFO  [alembic.runtime.migration] Running upgrade 0013_integration_registry -> 0014_tenant_lifecycle, Add reversible tenant archival.
+INFO  [alembic.runtime.migration] Running upgrade 0014_tenant_lifecycle -> 0015_handling_units, Add optional pallet handling units to movements.
+INFO  [alembic.runtime.migration] Running upgrade 0015_handling_units -> 0016_inventory_tracking_dimensions, Add lot and serial dimensions to movements and reservations.
+INFO  [alembic.runtime.migration] Running upgrade 0016_inventory_tracking_dimensions -> 0017_ai_settings, Add tenant-scoped AI provider settings.
+INFO  [alembic.runtime.migration] Running upgrade 0017_ai_settings -> 0018_materialized_projections, Add generic tenant-scoped materialized projection storage.
+INFO  [alembic.runtime.migration] Running upgrade 0018_materialized_projections -> 0019_mcp_access_tokens, Add tenant-scoped MCP bearer tokens.
+INFO  [alembic.runtime.migration] Running upgrade 0019_mcp_access_tokens -> 0020_scale_read_paths, Index tenant-scoped operational read paths.
+INFO  [alembic.runtime.migration] Running upgrade 0020_scale_read_paths -> 0021_source_artifacts, Add immutable streamed source artifacts.
+INFO  [alembic.runtime.migration] Running upgrade 0021_source_artifacts -> 0022_mcp_tool_permissions, Add explicit per-token MCP tool permissions.
+INFO  [alembic.runtime.migration] Running upgrade 0022_mcp_tool_permissions -> 0023_exception_terminology, Rename the materialized issue projection to operational exceptions.
+INFO  [alembic.runtime.migration] Running upgrade 0023_exception_terminology -> 0024_user_access, Add human identities, access applications and tenant memberships.
+INFO  [alembic.runtime.migration] Running upgrade 0024_user_access -> 0025_user_language, store UI language separately from locale
+INFO  [alembic.runtime.migration] Running upgrade 0025_user_language -> 0026_secret_vault, Add the tenant-scoped encrypted secret vault.
+INFO  [alembic.runtime.migration] Running upgrade 0026_secret_vault -> 0027_access_admission_counter, Add the automatic access admission counter.
+INFO  [alembic.runtime.migration] Running upgrade 0027_access_admission_counter -> 0028_movement_corrections, Add auditable Movement correction relationships.
+INFO  [alembic.runtime.migration] Running upgrade 0028_movement_corrections -> 0029_ledger_reversals, Add auditable Ledger posting-group reversals.
+INFO  [alembic.runtime.migration] Running upgrade 0029_ledger_reversals -> 0030_company_membership_invitations, Add company membership invitations and durable delivery intent.
+INFO  [alembic.runtime.migration] Running upgrade 0030_company_membership_invitations -> 0031_chat_session_archiving, Retain archived chat sessions and their audit context.
+INFO  [alembic.runtime.migration] Running upgrade 0031_chat_session_archiving -> 0032_fact_observation_identity, Add tenant-scoped Fact observation retry identity.
+INFO  [alembic.runtime.migration] Running upgrade 0032_fact_observation_identity -> 0033_interpretation_outcomes, Preserve source interpretation attempt outcomes.
+INFO  [alembic.runtime.migration] Running upgrade 0033_interpretation_outcomes -> 0034_decision_attribution, Record who decided a change proposal and when.
+INFO  [alembic.runtime.migration] Running upgrade 0034_decision_attribution -> 0035_reality_gaps, Add Reality Gap workflow and safe interpretation rules.
+INFO  [alembic.runtime.migration] Running upgrade 0035_reality_gaps -> 0036_erp_interpretation_rules, Add ERP-ready conditional interpretation rule fields.
+INFO  [alembic.runtime.migration] Running upgrade 0036_erp_interpretation_rules -> 0037_invoice_order_link, Let an invoice line name the order line it bills.
+INFO  [alembic.runtime.migration] Running upgrade 0037_invoice_order_link -> 0038_return_resolution, Let a movement say which return it settles.
+INFO  [alembic.runtime.migration] Running upgrade 0038_return_resolution -> 0039_early_payment_discount, Let a payment term state an early-payment discount.
+INFO  [alembic.runtime.migration] Running upgrade 0039_early_payment_discount -> 0040_commitment_revisions, Let a counterparty state a new date without erasing the old one.
+INFO  [alembic.runtime.migration] Running upgrade 0038_return_resolution -> 0039_learning_playground, Private learning-run metadata; existing tenants remain businesses.
+INFO  [alembic.runtime.migration] Running upgrade 0039_learning_playground, 0040_commitment_revisions -> 0041_playground_main_merge, Join existing Playground and main histories without rewriting deployed revisions.
+INFO  [alembic.runtime.migration] Running upgrade 0041_playground_main_merge -> 0042_commitment_revision_quantity, Let one statement restate a promise's quantity as well as its date.
+INFO  [alembic.runtime.migration] Running upgrade 0042_commitment_revision_quantity -> 0043_return_announcements, Let a customer say goods are coming back before they arrive.
+INFO  [alembic.runtime.migration] Running upgrade 0041_playground_main_merge -> 0043_practice_companies, Keep named practice companies active independently of quick experiments.
+INFO  [alembic.runtime.migration] Running upgrade 0043_practice_companies, 0043_return_announcements -> 0044_playground_returns_merge, Join practice companies and announced returns without rewriting either history.
+INFO  [alembic.runtime.migration] Running upgrade 0044_playground_returns_merge -> 0045_lot_expiry, Let a lot carry the best-before date somebody stated.
+INFO  [alembic.runtime.migration] Running upgrade 0044_playground_returns_merge -> 0045_scheduled_jobs, Add tenant-scoped schedules and durable logical job runs.
+INFO  [alembic.runtime.migration] Running upgrade 0045_scheduled_jobs -> 0046_company_setup_demo, Add approved ordinary creation receipts and demo connection lifecycle.
+INFO  [alembic.runtime.migration] Running upgrade 0046_company_setup_demo, 0045_lot_expiry -> 0047_merge_demo_lot_expiry, Join scheduled demo setup and existing lot expiry without rewriting either branch.
+INFO  [alembic.runtime.migration] Running upgrade 0047_merge_demo_lot_expiry -> 0048_finance_accounts, Introduce required account identities for a clean local finance cutover.
+INFO  [alembic.runtime.migration] Running upgrade 0048_finance_accounts -> 0049_settlement_reduction_roles, Permit explicit settlement reduction counterparts without rewriting history.
+INFO  [alembic.runtime.migration] Running upgrade 0049_settlement_reduction_roles -> 0050_opening_subledger, Add declared opening coverage and residual-item evidence without rewriting history.
+INFO  [alembic.runtime.migration] Running upgrade 0050_opening_subledger -> 0051_finance_references, Add managed internal references without changing existing financial evidence.
+INFO  [alembic.runtime.migration] Running upgrade 0051_finance_references -> 0052_component_assignments, Normalize received finance components and preserve internal assignment revisions.
+INFO  [alembic.runtime.migration] Running upgrade 0052_component_assignments -> 0053_source_classification, Add exact source classification revisions without rewriting evidence.
+INFO  [alembic.runtime.migration] Running upgrade 0053_source_classification -> 0054_target_mappings, Add Finance-only external targets and reviewed mapping revisions.
+INFO  [alembic.runtime.migration] Running upgrade 0054_target_mappings -> 0055_demo_settlement_schedule, Give the Demo Data connection its settlement schedule (feature 168).
+INFO  [alembic.runtime.migration] Running upgrade 0055_demo_settlement_schedule -> 0056_physical_shipments, Add physical shipments, packages, and append-only tracking events.
+INFO  [alembic.runtime.migration] Running upgrade 0056_physical_shipments -> 0057_projection_jobs, Allow narrowly scoped internal projection jobs without false user attribution.
+INFO  [alembic.runtime.migration] Running upgrade 0057_projection_jobs -> 0058_storyline, Storyline mode (spec 182): Fact recording order, run and step markers, trace and library.
+INFO  [alembic.runtime.migration] Running upgrade 0058_storyline -> 0059_foreign_key_indexes, Index the first column of every foreign key (spec 181, ingest cost and company removal).
+INFO  [alembic.runtime.migration] Running upgrade 0059_foreign_key_indexes -> 0060_analytics_reports, Private analytics definitions; no computed business results are stored.
+INFO  [alembic.runtime.migration] Running upgrade 0060_analytics_reports -> 0061_source_system_addressing, Address a configured source system, and name the connector it came from (spec 211).
+INFO  [alembic.runtime.migration] Running upgrade 0061_source_system_addressing -> 0062_graph_report_model_version, Record which model interpreted a saved report (spec 224).
+INFO  [alembic.runtime.migration] Running upgrade 0062_graph_report_model_version -> 0063_global_search_support, Read-only global search support over existing held fields (spec 235).
+INFO  [alembic.runtime.migration] Running upgrade 0063_global_search_support -> 0071_receipt_costing, Retained receipt acquisition-cost decisions (spec 242).
+INFO  [alembic.runtime.migration] Running upgrade 0071_receipt_costing -> 0072_inventory_costing, Confirmed bounded inventory authority and retained inputs (spec 242).
+INFO  [alembic.runtime.migration] Running upgrade 0072_inventory_costing -> 0073_contribution_reviews, Retained commercial revenue and reviewed DB1 scope (spec 242).
+INFO  [alembic.runtime.migration] Running upgrade 0073_contribution_reviews -> 0074_selling_costs, Source-backed selling decisions and frozen DB2 membership (spec 242).
+INFO  [alembic.runtime.migration] Running upgrade 0074_selling_costs -> 0068_desktop_identity, Distinguish local OS identity from email admission (spec 239).
+INFO  [alembic.runtime.migration] Running upgrade 0068_desktop_identity -> 0075_inventory_generations, Disposable retained-inventory publications (spec242); no financial authority.
+=========================== short test summary info ============================
+FAILED tests/test_inventory_generation_migration.py::test_cache_downgrade_refuses_unfinished_worker_run
+!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!
+1 failed in 6.03s

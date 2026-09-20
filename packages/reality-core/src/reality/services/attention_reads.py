@@ -10,7 +10,7 @@ says so when a stored finding has cleared since the generation was calculated.
 from datetime import UTC, datetime
 from typing import Any
 
-from sqlalchemy import case, cast, func, select
+from sqlalchemy import Integer, case, cast, func, literal, literal_column, select
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Session
 
@@ -25,6 +25,7 @@ from reality.services.exceptions import (
 from reality.services.projections import (
     EXCEPTIONS,
     _read_without_flush,
+    cost_finding_prerequisite,
     projection_metadata,
     projection_state_expressions,
 )
@@ -135,6 +136,7 @@ def stored_exceptions(
     generation gets no rows and the state `uninitialized`, which is not an empty queue.
     """
     get_tenant(session, tenant_id)
+    cost_basis = cost_finding_prerequisite(session, tenant_id, protect=True)
     payloads = (
         select(ProjectionRow.payload)
         .where(
@@ -162,9 +164,12 @@ def stored_exceptions(
     if values is None:
         raise NotFound("Tenant not found.")
     rows = sorted(values["items"] or [], key=_canonical)
-    return rows, projection_metadata(EXCEPTIONS, values)
+    metadata = projection_metadata(EXCEPTIONS, values)
+    metadata["cost_basis"] = cost_basis
+    return rows, metadata
 
 
+@_read_without_flush
 def attention_summary(session: Session, tenant_id: str) -> dict[str, Any]:
     """Count the stored findings per catalog class.
 
@@ -172,21 +177,59 @@ def attention_summary(session: Session, tenant_id: str) -> dict[str, Any]:
     reports zero rather than disappearing. The counts belong to the generation the
     metadata describes.
     """
-    rows, metadata = stored_exceptions(session, tenant_id)
+    get_tenant(session, tenant_id)
+    cost_basis = cost_finding_prerequisite(session, tenant_id, protect=True)
+    payload = cast(ProjectionRow.payload, JSONB)
+    grouped = (
+        select(
+            payload["class_id"].astext.label("class_id"),
+            func.count().label("open"),
+        )
+        .where(
+            ProjectionRow.tenant_id == tenant_id,
+            ProjectionRow.projection_name == EXCEPTIONS,
+        )
+        .group_by(literal_column("class_id"))
+        .subquery()
+    )
+    counts = select(
+        func.coalesce(
+            func.jsonb_object_agg(grouped.c.class_id, grouped.c.open),
+            cast(literal("{}"), JSONB),
+        )
+    ).scalar_subquery()
+    values = (
+        session.execute(
+            select(
+                counts.label("counts"),
+                *(
+                    expression.label(key)
+                    for key, expression in projection_state_expressions(
+                        tenant_id, EXCEPTIONS
+                    ).items()
+                ),
+            ).where(Tenant.id == tenant_id)
+        )
+        .mappings()
+        .one()
+    )
+    metadata = projection_metadata(EXCEPTIONS, values)
+    metadata["cost_basis"] = cost_basis
+    stored_counts = values["counts"] or {}
     counts = {class_id: 0 for class_id in _class_ids()}
-    for row in rows:
-        counts[row["class_id"]] = counts.get(row["class_id"], 0) + 1
+    counts.update({class_id: int(count) for class_id, count in stored_counts.items()})
     return {
         "classes": [
             {"class_id": class_id, "open": open_count}
             for class_id, open_count in counts.items()
         ],
-        "total": len(rows),
+        "total": sum(counts.values()),
         "observed_at": metadata["completed_at"],
         "metadata": metadata,
     }
 
 
+@_read_without_flush
 def attention_register(
     session: Session,
     tenant_id: str,
@@ -201,31 +244,84 @@ def attention_register(
         raise ValueError("Unknown exception severity.")
     if class_id and class_id not in _class_ids():
         raise ValueError("Unknown exception class.")
-    rows, metadata = stored_exceptions(session, tenant_id)
+    get_tenant(session, tenant_id)
+    cost_basis = cost_finding_prerequisite(session, tenant_id, protect=True)
     needle = query.strip().casefold()
-    rows = [
-        row
-        for row in rows
-        if (not severity or row["severity"] == severity)
-        and (not class_id or row["class_id"] == class_id)
-        and (
-            not needle
-            or any(
-                needle in str(row[key]).casefold()
-                for key in ("id", "class_id", "title", "impact", "record_id")
+    size = max(1, min(size, 100))
+    requested_page = max(1, page)
+    payload = cast(ProjectionRow.payload, JSONB)
+    filters = [
+        ProjectionRow.tenant_id == tenant_id,
+        ProjectionRow.projection_name == EXCEPTIONS,
+    ]
+    if severity:
+        filters.append(payload["severity"].astext == severity)
+    if class_id:
+        filters.append(payload["class_id"].astext == class_id)
+    if needle:
+        searchable = func.lower(
+            func.concat_ws(
+                " ",
+                payload["id"].astext,
+                payload["class_id"].astext,
+                payload["title"].astext,
+                payload["impact"].astext,
+                payload["record_id"].astext,
             )
         )
-    ]
-    size = max(1, min(size, 100))
-    total = len(rows)
-    pages = max(1, (total + size - 1) // size)
-    page = max(1, min(page, pages))
+        filters.append(searchable.contains(needle))
+    total = (
+        select(func.count())
+        .select_from(ProjectionRow)
+        .where(*filters)
+        .scalar_subquery()
+    )
+    pages = func.greatest(1, func.ceil(total / size))
+    selected_page = func.least(requested_page, pages)
+    page_rows = (
+        select(payload.label("payload"))
+        .where(*filters)
+        .order_by(
+            cast(payload["position"].astext, Integer).asc().nulls_last(),
+            payload["severity"].astext,
+            payload["class_id"].astext,
+            payload["record_id"].astext,
+        )
+        .limit(size)
+        .offset(cast((selected_page - 1) * size, Integer))
+        .subquery()
+    )
+    items = select(func.json_agg(page_rows.c.payload)).scalar_subquery()
+    values = (
+        session.execute(
+            select(
+                items.label("items"),
+                total.label("total"),
+                cast(pages, Integer).label("pages"),
+                cast(selected_page, Integer).label("page"),
+                *(
+                    expression.label(key)
+                    for key, expression in projection_state_expressions(
+                        tenant_id, EXCEPTIONS
+                    ).items()
+                ),
+            ).where(Tenant.id == tenant_id)
+        )
+        .mappings()
+        .one()
+    )
+    metadata = projection_metadata(EXCEPTIONS, values)
+    metadata["cost_basis"] = cost_basis
+    rows = values["items"] or []
+    page = values["page"]
+    pages = values["pages"]
+    total_count = values["total"]
     return {
-        "items": _targets(session, tenant_id, rows[(page - 1) * size : page * size]),
+        "items": _targets(session, tenant_id, rows),
         "page": {
             "number": page,
             "size": size,
-            "total": total,
+            "total": total_count,
             "pages": pages,
             "has_previous": page > 1,
             "has_next": page < pages,
@@ -245,9 +341,19 @@ def attention_detail(session: Session, tenant_id: str, identity: str) -> dict[st
         )
     except NotFound:
         rows, metadata = stored_exceptions(session, tenant_id)
-        if any(row["id"] == identity for row in rows):
+        stored = next((row for row in rows if row["id"] == identity), None)
+        if stored and stored["class_id"] in {
+            "missing_acquisition_cost",
+            "unassigned_cost_component",
+            "stale_cost_review",
+            "negative_actual_db1",
+        }:
+            detail = {**stored, "raw_source": None}
+            observed = metadata["completed_at"]
+        elif stored:
             raise FindingCleared(metadata["completed_at"]) from None
-        raise
+        else:
+            raise
     entry = next(
         entry
         for entry in load_operational_exception_catalog().classes

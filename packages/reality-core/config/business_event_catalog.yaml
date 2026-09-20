@@ -1,6 +1,8 @@
 version: 1
 title: Business Events
 events:
+  - {type: cost.attributed, producer: execute_cost_change, subject: action, invalidates: [Timeline, Tenant usage]}
+  - {type: cost.reviewed, producer: execute_cost_change, subject: action, invalidates: [Timeline, Tenant usage]}
   - {type: shipment.notice_recorded, producer: record_shipment_notice, subject: shipment, invalidates: [Timeline, Operational Exceptions, Tenant usage]}
   - {type: shipment.event_recorded, producer: record_shipment_event, subject: shipment_event, invalidates: [Timeline, Operational Exceptions, Tenant usage]}
   - {type: shipment.event_superseded, producer: supersede_shipment_event, subject: shipment_event, invalidates: [Timeline, Operational Exceptions, Tenant usage]}

@@ -1,0 +1,79 @@
+.FF.                                                                     [100%]
+=================================== FAILURES ===================================
+__________ test_context_current_history_constraints_and_shared_tools ___________
+
+session = <sqlalchemy.orm.session.Session object at 0x10e82c320>
+business = Business(tenant=<reality.db.core.Tenant object at 0x1101a7ad0>, company=<reality.db.core.Party object at 0x110eca2a0>,...0e97ec0>, item=<reality.db.core.Item object at 0x110ef17c0>, location=<reality.db.core.Location object at 0x110ef11f0>)
+cost_owner = <reality.db.core.AppUser object at 0x110ef23f0>
+
+    def test_context_current_history_constraints_and_shared_tools(session, business, cost_owner):
+        review, data, _ = fixtures.prepared(session, business, cost_owner)
+        args = {"kind":"contribution", "scope_id":data[0].id}
+        current = cost_query(session, business.tenant.id, **args)
+        assert current["freshness"]["state"] == "ready"
+        assert current["result"]["db2"] == "456.0000"
+        assert current["resolved"]["generation_id"] is None
+        assert current["resolved"]["profile_revision_id"] is None
+        assert current["resolved"]["scope_profile_review_id"] == review["review_id"]
+        historical = cost_query(session, business.tenant.id, **args, review_id=review["review_id"])
+        assert historical["freshness"]["state"] == "historical"
+        assert compatible_contexts(current, historical)
+        assert historical["requested"]["review_id"] == review["review_id"]
+>       assert run_read_tool(session, business.tenant.id, "cost.query.get", args) == current
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_cost_query.py:38: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+src/reality/storyline/recorder.py:413: in run_read_tool
+    return function(session, tenant_id, tool_name, arguments)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+session = <sqlalchemy.orm.session.Session object at 0x10e82c320>
+tenant_id = 'ten_47d0d5ae91', tool_name = 'cost.query.get'
+arguments = {'kind': 'contribution', 'scope_id': 'lin_5def5109c7'}
+
+    def run_read_tool(
+        session: Session,
+        tenant_id: str,
+        tool_name: str,
+        arguments: dict[str, Any] | None = None,
+    ) -> Any:
+        tool = TOOLS.get(tool_name)
+        if tool is None:
+>           raise NotFound("Tool not found.")
+E           reality.services.core.NotFound: Tool not found.
+
+src/reality/tools/application.py:2111: NotFound
+_____ test_stale_context_keeps_only_retained_result_and_history_is_stable ______
+
+session = <sqlalchemy.orm.session.Session object at 0x10e82c2c0>
+business = Business(tenant=<reality.db.core.Tenant object at 0x11128a3c0>, company=<reality.db.core.Party object at 0x111174560>,...128ba40>, item=<reality.db.core.Item object at 0x1111cd130>, location=<reality.db.core.Location object at 0x1110fbe30>)
+cost_owner = <reality.db.core.AppUser object at 0x110f33f20>
+
+    def test_stale_context_keeps_only_retained_result_and_history_is_stable(session, business, cost_owner):
+        review, data, _ = fixtures.prepared(session, business, cost_owner)
+        args = dict(kind="contribution", scope_id=data[0].id)
+        previous = cost_query(session, business.tenant.id, **args, review_id=review["review_id"])
+        core.record_movement(session, business.tenant.id, "receipt", business.item.id, "1", to_location_id=business.location.id)
+        stale = cost_query(session, business.tenant.id, **args)
+        assert stale["freshness"]["state"] == "stale"
+        assert stale["result"] is None and stale["basis_result"]["basis_db2"] == "456.0000"
+        statements=[]
+        def watch(conn, cursor, statement, parameters, context, executemany):
+            statements.append(statement.lower())
+        event.listen(session.bind, "before_cursor_execute", watch)
+        try:
+            historical = cost_query(session, business.tenant.id, **args, review_id=review["review_id"])
+        finally:
+            event.remove(session.bind, "before_cursor_execute", watch)
+        assert historical == previous
+>       assert not any("max(business_event.sequence)" in sql for sql in statements)
+E       assert not True
+E        +  where True = any(<generator object test_stale_context_keeps_only_retained_result_and_history_is_stable.<locals>.<genexpr> at 0x10fca1970>)
+
+tests/test_cost_query.py:66: AssertionError
+=========================== short test summary info ============================
+FAILED tests/test_cost_query.py::test_context_current_history_constraints_and_shared_tools
+FAILED tests/test_cost_query.py::test_stale_context_keeps_only_retained_result_and_history_is_stable
+2 failed, 2 passed in 6.99s

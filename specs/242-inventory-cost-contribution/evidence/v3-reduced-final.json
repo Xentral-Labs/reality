@@ -1,0 +1,186 @@
+{
+  "strategy": "projection",
+  "dataset_version": "costing-spike-v3",
+  "profile": "reduced",
+  "qualification_passed": false,
+  "measurements": {
+    "order": {
+      "samples": 20,
+      "p50_s": 0.002814271501847543,
+      "p95_s": 0.0048755829920992255,
+      "max_s": 0.005092041974421591,
+      "budget_s": 0.5
+    },
+    "tool": {
+      "samples": 20,
+      "p50_s": 0.003663999494165182,
+      "p95_s": 0.005356207984732464,
+      "max_s": 0.0056751249940134585,
+      "budget_s": 3
+    },
+    "inventory": {
+      "samples": 20,
+      "p50_s": 0.0031147709960350767,
+      "p95_s": 0.004420290992129594,
+      "max_s": 0.005863833008334041,
+      "budget_s": 2
+    },
+    "monthly": {
+      "samples": 20,
+      "p50_s": 0.0024613124987808987,
+      "p95_s": 0.004122166981687769,
+      "max_s": 0.004885125003056601,
+      "budget_s": 3
+    },
+    "attention": {
+      "samples": 20,
+      "p50_s": 0.005118978981045075,
+      "p95_s": 0.00737325000227429,
+      "max_s": 0.0074754999950528145,
+      "budget_s": 2
+    }
+  },
+  "limitations": [
+    "Exact dedicated 4-vCPU/16-GiB reference host is not certified; see separately captured enforced container limits.",
+    "An OS/database cold-cache run and the full freshness response contract are not certified.",
+    "Experimental typed relations are not yet wired to the product analysis compiler or exception register.",
+    "V3 distributes returns, split/partial matching, supplier credits and stated nonrecoverable tax; full FX/ownership/review and credit-to-revenue matching remain product proofs.",
+    "Projection completeness/review invalidation and source-version history are not product implementations.",
+    "Reduced sample/update counts do not satisfy full fixture J protocol."
+  ],
+  "input_revision_before": 2,
+  "reconstruction_s": [
+    0.03794779101735912,
+    0.029031374986516312,
+    0.028822583000874147
+  ],
+  "checksum": "9cf2e7a6fa0e5e5bf1c2e7330c415ec3efba994961fc3c478db478d46f1c4454",
+  "mixed_measurements": {
+    "order": {
+      "samples": 20,
+      "p50_s": 0.004672083494369872,
+      "p95_s": 0.0073361249815206975,
+      "max_s": 0.00798537500668317,
+      "budget_s": 0.5,
+      "started_offset_s": 0.003928707999875769,
+      "finished_offset_s": 1.9109139180218335,
+      "states": {
+        "current": 19,
+        "stale": 1
+      }
+    },
+    "tool": {
+      "samples": 20,
+      "p50_s": 0.004646729488740675,
+      "p95_s": 0.007671249972190708,
+      "max_s": 0.007678083988139406,
+      "budget_s": 3,
+      "started_offset_s": 0.0044662080181296915,
+      "finished_offset_s": 1.909407043014653,
+      "states": {
+        "current": 19,
+        "not_ready": 1
+      }
+    },
+    "inventory": {
+      "samples": 20,
+      "p50_s": 0.004616833495674655,
+      "p95_s": 0.0078096249781083316,
+      "max_s": 0.00805341699742712,
+      "budget_s": 2,
+      "started_offset_s": 0.0041828330140560865,
+      "finished_offset_s": 1.9111011680215597,
+      "states": {
+        "current": 19,
+        "stale": 1
+      }
+    },
+    "monthly": {
+      "samples": 20,
+      "p50_s": 0.004170229003648274,
+      "p95_s": 0.0073249580163974315,
+      "max_s": 0.008364084002096206,
+      "budget_s": 3,
+      "started_offset_s": 0.003428708005230874,
+      "finished_offset_s": 1.9107698760053609,
+      "states": {
+        "current": 19,
+        "stale": 1
+      }
+    },
+    "attention": {
+      "samples": 20,
+      "p50_s": 0.0049166459939442575,
+      "p95_s": 0.007486874994356185,
+      "max_s": 0.008694167016074061,
+      "budget_s": 2,
+      "started_offset_s": 0.003705667011672631,
+      "finished_offset_s": 1.9097278760164045,
+      "states": {
+        "current": 19,
+        "stale": 1
+      }
+    }
+  },
+  "refresh": {
+    "samples": 3,
+    "p50_s": 0.012326750002102926,
+    "p95_s": 0.020569457992678508,
+    "max_s": 0.020569457992678508,
+    "last_affected_rows": 60,
+    "requested_minimum_updates": 2,
+    "change_stream_covers_all_readers": true,
+    "committed_offsets_s": [
+      0.003066125005716458,
+      1.0082960840081796,
+      2.0065317930129822
+    ],
+    "one_change_per_second_sustained": true
+  },
+  "reconciliation": {
+    "observations": 732,
+    "inventory_pools": 12,
+    "complete_values_equal": true
+  },
+  "measured_budgets_passed": true,
+  "input_revision_after": 5,
+  "status": "exploratory",
+  "cardinalities": {
+    "a": {
+      "item": 12,
+      "trade_order": 120,
+      "movement": 1200,
+      "component": 1200,
+      "attribution": 1200,
+      "matching": 720
+    },
+    "b": {
+      "item": 12,
+      "trade_order": 120,
+      "movement": 1200,
+      "component": 1200,
+      "attribution": 1200,
+      "matching": 720
+    }
+  },
+  "setup_s": 0.03642566700000316,
+  "python": "3.12.13",
+  "platform": "Linux-6.10.14-linuxkit-aarch64-with-glibc2.41",
+  "git_revision": "709af5c1a6358be2f004003f37b836ff6095b5bf",
+  "peak_rss_bytes": 88178688,
+  "elapsed_s": 2.405826585018076,
+  "postgres_version": "17.10",
+  "source_digest": "4f408f73befcbd36d5161458efc940cc4f572ff930bc04ebc1d9d3f704b0707d",
+  "process_cgroup": {
+    "cpu.max": "200000 100000",
+    "memory.max": "2147483648",
+    "memory.swap.max": "0",
+    "memory.peak": "70176768"
+  },
+  "adversarial_distribution": {
+    "return": 12,
+    "transfer": 120,
+    "receipt": 348,
+    "issue": 720
+  }
+}

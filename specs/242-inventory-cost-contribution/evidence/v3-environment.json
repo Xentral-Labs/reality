@@ -1,0 +1,30 @@
+{
+  "docker_vm": {
+    "cpus": 8,
+    "memory_bytes": 8218251264,
+    "dedicated": false
+  },
+  "postgres": {
+    "container": "reality-costing-234-v3",
+    "image_id": "sha256:742f40ea20b9ff2ff31db5458d127452988a2164df9e17441e191f3b72252193",
+    "cpu_max": "200000 100000",
+    "memory_max": 4294967296,
+    "memory_swap_max": 0
+  },
+  "python": {
+    "image_id": "sha256:f1d0fbcd7eb59ef4f85c3b110871b13f441135cd7cb18e7d7d266b49d19a836a",
+    "cpu_max": "200000 100000",
+    "memory_max": 2147483648,
+    "memory_swap_max": 0
+  },
+  "combined_upper_bound": {
+    "cpus": 4,
+    "memory_bytes": 6442450944
+  },
+  "reference_host_certified": false,
+  "limitations": [
+    "Shared Docker VM; other workloads remain running.",
+    "Exact dedicated 16-GiB reference host unavailable.",
+    "Storage is Docker local virtual disk; dedicated SSD I/O and OS cold cache are not certified."
+  ]
+}

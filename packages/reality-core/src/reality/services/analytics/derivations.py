@@ -4,10 +4,15 @@ from collections.abc import Callable
 from dataclasses import dataclass
 from typing import Any
 
-from sqlalchemy.sql.selectable import TableValuedAlias
+from sqlalchemy.sql.selectable import FromClause
 from sqlalchemy.types import TypeEngine
 
-from reality.services.analytics import finance_relation, inventory_relation
+from reality.services.analytics import (
+    contribution_relation,
+    costing_relation,
+    finance_relation,
+    inventory_relation,
+)
 
 
 @dataclass(frozen=True)
@@ -15,12 +20,29 @@ class Derivation:
     table: str
     identity: str
     columns: dict[str, TypeEngine]
-    read: Callable[..., TableValuedAlias]
-    recordset: Callable[[list[dict[str, Any]]], TableValuedAlias]
+    read: Callable[..., FromClause | tuple[FromClause, dict[str, Any]]]
+    recordset: Callable[[list[dict[str, Any]]], FromClause]
     anchor_key: str = "id"
+    canonical: bool = False
 
 
 REGISTRY = {
+    "costing.contribution": Derivation(
+        "cost_contribution_snapshot",
+        "snapshot_id",
+        contribution_relation.CONTRIBUTION_COLUMNS,
+        contribution_relation.report_relation,
+        contribution_relation.empty_relation,
+        canonical=True,
+    ),
+    "costing.inventory": Derivation(
+        "cost_inventory_snapshot",
+        "snapshot_id",
+        costing_relation.INVENTORY_COLUMNS,
+        costing_relation.report_relation,
+        costing_relation.empty_relation,
+        canonical=True,
+    ),
     "finance.aging": Derivation(
         "document",
         "document_id",

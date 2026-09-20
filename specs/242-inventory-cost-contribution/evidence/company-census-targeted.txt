@@ -1,0 +1,51 @@
+F........                                                                [100%]
+=================================== FAILURES ===================================
+______________ test_unreviewed_reality_and_evidence_are_not_lost _______________
+
+scheduled_database = (Engine(postgresql+psycopg://costing:***@127.0.0.1:55439/reality_migration_f37dc8bd74), sessionmaker(class_='Session',...0.0.1:55439/reality_migration_f37dc8bd74), autoflush=True, expire_on_commit=False), 'ten_57e1188e0f', 'usr_869741476d')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x10bbcd1f0>
+
+    def test_unreviewed_reality_and_evidence_are_not_lost(scheduled_database, monkeypatch):
+        (
+            factory,
+            tenant,
+            cutoff,
+            item,
+            _,
+            movement,
+            future,
+            invoice,
+            line,
+            credit,
+            source,
+        ) = seed(scheduled_database)
+        with read_session(factory) as session:
+    
+            def forbidden(*args, **kwargs):
+                raise AssertionError("Census may neither write nor calculate costs")
+    
+            monkeypatch.setattr(session, "flush", forbidden)
+            monkeypatch.setattr(costing, "inventory_cost", forbidden)
+            result = costing.capture_company_cost_census(session, tenant, cutoff)
+        assert result["publication_eligible"] is False
+        assert result["context"]["snapshot"] and "knowledge_at" not in result["context"]
+        assert result["inventory"][0]["item_id"] == item
+        assert result["inventory"][0]["movement_ids"] == [movement]
+        assert future not in result["inventory"][0]["movement_ids"]
+        assert result["contribution"][0]["document_line_id"] == line
+        assert result["contribution"][0]["document_id"] == invoice
+        assert "economic_scope_unassessed" in result["contribution"][0]["gaps"]
+        assert result["document_gaps"] == [
+            {"document_id": credit, "reason": "document_lines_missing"}
+        ]
+        assert result["sources"][0]["source_record_id"] == source
+>       assert result["sources"][0]["classification"] == "unresolved"
+E       AssertionError: assert 'unsupported' == 'unresolved'
+E         
+E         - unresolved
+E         + unsupported
+
+tests/test_cost_census.py:123: AssertionError
+=========================== short test summary info ============================
+FAILED tests/test_cost_census.py::test_unreviewed_reality_and_evidence_are_not_lost
+1 failed, 8 passed in 11.36s

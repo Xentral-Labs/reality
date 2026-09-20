@@ -47,6 +47,10 @@ CLOCK_READING = {
 #: visible and shrinks when someone gives them a scenario; a class that starts
 #: producing rows here fails the test until it is moved out of this list.
 WITHOUT_A_SCENARIO = {
+    "missing_acquisition_cost",
+    "unassigned_cost_component",
+    "stale_cost_review",
+    "negative_actual_db1",
     "outgoing_commitment_at_risk",
     "order_stalled",
     "shipped_not_billed",

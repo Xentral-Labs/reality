@@ -1,0 +1,379 @@
+FF.......F...FF                                                          [100%]
+=================================== FAILURES ===================================
+__________________ test_inventory_service_a_and_exact_history __________________
+
+session = <sqlalchemy.orm.session.Session object at 0x10fddcd70>
+business = Business(tenant=<reality.db.core.Tenant object at 0x10fddcdd0>, company=<reality.db.core.Party object at 0x110ab9430>,...0abb890>, item=<reality.db.core.Item object at 0x110abb980>, location=<reality.db.core.Location object at 0x110abb620>)
+cost_owner = <reality.db.core.AppUser object at 0x110ae07d0>
+
+    def test_inventory_service_a_and_exact_history(session, business, cost_owner):
+        args, movement, issue = prepared(session, business, cost_owner)
+        before = session.scalar(select(func.count()).select_from(CostInventoryReview))
+        preview = preview_cost_change(
+            session, business.tenant.id, args, principal=Principal(cost_owner.id)
+        )
+        assert preview["review"]["movement_count"] == 2
+        assert (
+            session.scalar(select(func.count()).select_from(CostInventoryReview)) == before
+        )
+        action, result = commit_review(session, business, cost_owner, args)
+        assert result["acquisition_value"] == "420.0000"
+        assert result["consumption"][0]["cost"] == "630.0000"
+        assert result["consumption"][0]["movement_id"] == issue.id
+        assert result["remaining"][0]["receipt_movement_id"] == movement.id
+        assert result["carrying_value"] is None
+        assert result["owner_party_id"] == business.customer.id
+        assert result["policy_id"] and result["review_id"]
+        assert result["persistence"] == {
+            "business_writes": False,
+            "projection_writes": False,
+        }
+        assert (
+>           run_read_tool(
+                session,
+                business.tenant.id,
+                "cost.inventory.get",
+                {"item_id": business.item.id},
+            )
+            == result
+        )
+
+packages/reality-core/tests/test_inventory_costing_services.py:132: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+packages/reality-core/src/reality/storyline/recorder.py:413: in run_read_tool
+    return function(session, tenant_id, tool_name, arguments)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+packages/reality-core/src/reality/tools/application.py:2114: in run_read_tool
+    return _json_value(tool.handler(session, tenant_id, arguments or {}))
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+packages/reality-core/src/reality/tools/costing.py:67: in inventory
+    return costing.inventory_cost(session, tenant_id, **request.model_dump())
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+packages/reality-core/src/reality/services/costing.py:1164: in inventory_cost
+    return _read(session, tenant_id, item_id, review_id=review_id)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+session = <sqlalchemy.orm.session.Session object at 0x10fddcd70>
+tenant = 'ten_5ff1cb4f6d', item_id = 'itm_f62a12e5fe', review_id = None
+
+    def _read(
+        session: Session, tenant: str, item_id: str, *, review_id: str | None = None
+    ) -> dict:
+        with session.no_autoflush:
+            core.get_tenant(session, tenant)
+            _row(session, Item, tenant, item_id)
+            if review_id:
+                review = _row(session, CostInventoryReview, tenant, review_id)
+            else:
+                review = session.scalar(
+                    select(CostInventoryReview)
+                    .join(
+                        CostPolicyRevision,
+                        (CostPolicyRevision.tenant_id == CostInventoryReview.tenant_id)
+                        & (CostPolicyRevision.id == CostInventoryReview.policy_id),
+                    )
+                    .where(
+                        CostInventoryReview.tenant_id == tenant,
+                        CostPolicyRevision.item_id == item_id,
+                    )
+                    .order_by(CostPolicyRevision.revision.desc())
+                    .limit(1)
+                )
+            if review is None:
+                return {
+                    "item_id": item_id,
+                    "review_id": None,
+                    "review_state": "unreviewed",
+                    "acquisition_value": None,
+                    "carrying_value": None,
+                    "consumption": [],
+                    "missing_basis": ["inventory_scope_not_reviewed"],
+                    "persistence": {"business_writes": False, "projection_writes": False},
+                }
+            policy = _row(session, CostPolicyRevision, tenant, review.policy_id)
+            if policy.item_id != item_id:
+                raise core.NotFound("Costing scope not found.")
+            payload, inputs, receipts = _inputs(session, tenant, review, policy)
+            if _hash(payload) != review.content_hash:
+>               raise core.InvalidOperation("Inventory input integrity mismatch.")
+E               reality.services.core.InvalidOperation: Inventory input integrity mismatch.
+
+packages/reality-core/src/reality/services/inventory_costing.py:477: InvalidOperation
+___ test_inventory_late_cost_requires_receipt_review_and_preserves_old_basis ___
+
+session = <sqlalchemy.orm.session.Session object at 0x110c826c0>
+business = Business(tenant=<reality.db.core.Tenant object at 0x110df3e30>, company=<reality.db.core.Party object at 0x110d72ff0>,...0aba300>, item=<reality.db.core.Item object at 0x110ca74a0>, location=<reality.db.core.Location object at 0x110c2bfb0>)
+cost_owner = <reality.db.core.AppUser object at 0x110df0cb0>
+
+    def test_inventory_late_cost_requires_receipt_review_and_preserves_old_basis(
+        session, business, cost_owner
+    ):
+        args, movement, _ = prepared(session, business, cost_owner)
+        _, first = commit_review(session, business, cost_owner, args)
+        doc = fixtures.evidence(session, business, "50", "0")
+        fixtures.execute(
+            session,
+            business,
+            cost_owner,
+            fixtures.assignment(session, business, movement, doc, "50", "inbound_freight"),
+        )
+        args["expected_event_sequence"] = receipt_cost(
+            session, business.tenant.id, movement.id
+        )["event_sequence"]
+        with pytest.raises(core.InvalidOperation, match="receipt review"):
+            preview_cost_change(
+                session, business.tenant.id, args, principal=Principal(cost_owner.id)
+            )
+        review = fixtures.review(
+            session,
+            business,
+            cost_owner,
+            movement,
+            {"goods", "inbound_freight", "purchase_reduction"},
+        )
+        args["receipts"][0]["manifest_id"] = review["manifest_id"]
+        args["expected_event_sequence"] = receipt_cost(
+            session, business.tenant.id, movement.id
+        )["event_sequence"]
+        _, second = commit_review(session, business, cost_owner, args)
+        assert second["acquisition_value"] == "440.0000"
+        assert second["consumption"][0]["cost"] == "660.0000"
+        assert (
+>           inventory_cost(
+                session, business.tenant.id, business.item.id, review_id=first["review_id"]
+            )["acquisition_value"]
+            == "420.0000"
+        )
+
+packages/reality-core/tests/test_inventory_costing_services.py:196: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+packages/reality-core/src/reality/services/costing.py:1164: in inventory_cost
+    return _read(session, tenant_id, item_id, review_id=review_id)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+session = <sqlalchemy.orm.session.Session object at 0x110c826c0>
+tenant = 'ten_fd2bffa8cf', item_id = 'itm_1deb1d2bb7'
+review_id = 'cst_6e4fc474d0'
+
+    def _read(
+        session: Session, tenant: str, item_id: str, *, review_id: str | None = None
+    ) -> dict:
+        with session.no_autoflush:
+            core.get_tenant(session, tenant)
+            _row(session, Item, tenant, item_id)
+            if review_id:
+                review = _row(session, CostInventoryReview, tenant, review_id)
+            else:
+                review = session.scalar(
+                    select(CostInventoryReview)
+                    .join(
+                        CostPolicyRevision,
+                        (CostPolicyRevision.tenant_id == CostInventoryReview.tenant_id)
+                        & (CostPolicyRevision.id == CostInventoryReview.policy_id),
+                    )
+                    .where(
+                        CostInventoryReview.tenant_id == tenant,
+                        CostPolicyRevision.item_id == item_id,
+                    )
+                    .order_by(CostPolicyRevision.revision.desc())
+                    .limit(1)
+                )
+            if review is None:
+                return {
+                    "item_id": item_id,
+                    "review_id": None,
+                    "review_state": "unreviewed",
+                    "acquisition_value": None,
+                    "carrying_value": None,
+                    "consumption": [],
+                    "missing_basis": ["inventory_scope_not_reviewed"],
+                    "persistence": {"business_writes": False, "projection_writes": False},
+                }
+            policy = _row(session, CostPolicyRevision, tenant, review.policy_id)
+            if policy.item_id != item_id:
+                raise core.NotFound("Costing scope not found.")
+            payload, inputs, receipts = _inputs(session, tenant, review, policy)
+            if _hash(payload) != review.content_hash:
+>               raise core.InvalidOperation("Inventory input integrity mismatch.")
+E               reality.services.core.InvalidOperation: Inventory input integrity mismatch.
+
+packages/reality-core/src/reality/services/inventory_costing.py:477: InvalidOperation
+______________ test_inventory_foreign_scope_and_actual_read_tool _______________
+
+session = <sqlalchemy.orm.session.Session object at 0x111593410>
+business = Business(tenant=<reality.db.core.Tenant object at 0x1115921e0>, company=<reality.db.core.Party object at 0x111591a30>,...1591d60>, item=<reality.db.core.Item object at 0x111593800>, location=<reality.db.core.Location object at 0x111591a00>)
+cost_owner = <reality.db.core.AppUser object at 0x111591730>
+
+    def test_inventory_foreign_scope_and_actual_read_tool(session, business, cost_owner):
+        args, _, _ = prepared(session, business, cost_owner)
+        other = core.create_tenant(session, "Unrelated inventory company")
+        with pytest.raises(core.NotFound):
+            inventory_cost(session, other.id, business.item.id)
+        with pytest.raises(core.NotFound):
+            preview_cost_change(session, other.id, args, principal=Principal(cost_owner.id))
+        args["expected_event_sequence"] = receipt_cost(
+            session, business.tenant.id, args["receipts"][0]["movement_id"]
+        )["event_sequence"]
+        _, result = commit_review(session, business, cost_owner, args)
+        assert MCP_TOOL_REGISTRY["cost_inventory_get"].input_schema["properties"][
+            "review_id"
+        ]
+        assert (
+>           run_read_tool(
+                session,
+                business.tenant.id,
+                "cost.inventory.get",
+                {"item_id": business.item.id},
+            )["review_id"]
+            == result["review_id"]
+        )
+
+packages/reality-core/tests/test_inventory_costing_services.py:256: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+packages/reality-core/src/reality/storyline/recorder.py:413: in run_read_tool
+    return function(session, tenant_id, tool_name, arguments)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+packages/reality-core/src/reality/tools/application.py:2114: in run_read_tool
+    return _json_value(tool.handler(session, tenant_id, arguments or {}))
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+packages/reality-core/src/reality/tools/costing.py:67: in inventory
+    return costing.inventory_cost(session, tenant_id, **request.model_dump())
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+packages/reality-core/src/reality/services/costing.py:1164: in inventory_cost
+    return _read(session, tenant_id, item_id, review_id=review_id)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+session = <sqlalchemy.orm.session.Session object at 0x111593410>
+tenant = 'ten_57afc8c4fe', item_id = 'itm_8fa80ef5b1', review_id = None
+
+    def _read(
+        session: Session, tenant: str, item_id: str, *, review_id: str | None = None
+    ) -> dict:
+        with session.no_autoflush:
+            core.get_tenant(session, tenant)
+            _row(session, Item, tenant, item_id)
+            if review_id:
+                review = _row(session, CostInventoryReview, tenant, review_id)
+            else:
+                review = session.scalar(
+                    select(CostInventoryReview)
+                    .join(
+                        CostPolicyRevision,
+                        (CostPolicyRevision.tenant_id == CostInventoryReview.tenant_id)
+                        & (CostPolicyRevision.id == CostInventoryReview.policy_id),
+                    )
+                    .where(
+                        CostInventoryReview.tenant_id == tenant,
+                        CostPolicyRevision.item_id == item_id,
+                    )
+                    .order_by(CostPolicyRevision.revision.desc())
+                    .limit(1)
+                )
+            if review is None:
+                return {
+                    "item_id": item_id,
+                    "review_id": None,
+                    "review_state": "unreviewed",
+                    "acquisition_value": None,
+                    "carrying_value": None,
+                    "consumption": [],
+                    "missing_basis": ["inventory_scope_not_reviewed"],
+                    "persistence": {"business_writes": False, "projection_writes": False},
+                }
+            policy = _row(session, CostPolicyRevision, tenant, review.policy_id)
+            if policy.item_id != item_id:
+                raise core.NotFound("Costing scope not found.")
+            payload, inputs, receipts = _inputs(session, tenant, review, policy)
+            if _hash(payload) != review.content_hash:
+>               raise core.InvalidOperation("Inventory input integrity mismatch.")
+E               reality.services.core.InvalidOperation: Inventory input integrity mismatch.
+
+packages/reality-core/src/reality/services/inventory_costing.py:477: InvalidOperation
+___________ test_inventory_migration_foreign_keys_and_empty_rollback ___________
+
+postgres_database = 'postgresql+psycopg://costing:costing-local-only@127.0.0.1:55439/reality_migration_723cade56b'
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x111592510>
+
+    def test_inventory_migration_foreign_keys_and_empty_rollback(
+        postgres_database, monkeypatch
+    ):
+        monkeypatch.setenv("REALITY_DATABASE_URL", postgres_database)
+        config = Config("alembic.ini")
+        config.set_main_option("sqlalchemy.url", postgres_database)
+>       command.upgrade(config, "0072_inventory_costing")
+
+packages/reality-core/tests/test_inventory_costing_migration.py:23: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+.venv/lib/python3.12/site-packages/alembic/command.py:467: in upgrade
+    script = ScriptDirectory.from_config(config)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+cls = <class 'alembic.script.base.ScriptDirectory'>
+config = <alembic.config.Config object at 0x111591730>
+
+    @classmethod
+    def from_config(cls, config: Config) -> ScriptDirectory:
+        """Produce a new :class:`.ScriptDirectory` given a :class:`.Config`
+        instance.
+    
+        The :class:`.Config` need only have the ``script_location`` key
+        present.
+    
+        """
+        script_location = config.get_alembic_option("script_location")
+        if script_location is None:
+>           raise util.CommandError(
+                "No 'script_location' key found in configuration."
+            )
+E           alembic.util.exc.CommandError: No 'script_location' key found in configuration.
+
+.venv/lib/python3.12/site-packages/alembic/script/base.py:165: CommandError
+__________________ test_inventory_populated_downgrade_refuses __________________
+
+postgres_database = 'postgresql+psycopg://costing:costing-local-only@127.0.0.1:55439/reality_migration_5f4ca75f7a'
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x110f112e0>
+
+    def test_inventory_populated_downgrade_refuses(postgres_database, monkeypatch):
+        monkeypatch.setenv("REALITY_DATABASE_URL", postgres_database)
+        config = Config("alembic.ini")
+        config.set_main_option("sqlalchemy.url", postgres_database)
+>       command.upgrade(config, "0072_inventory_costing")
+
+packages/reality-core/tests/test_inventory_costing_migration.py:51: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+.venv/lib/python3.12/site-packages/alembic/command.py:467: in upgrade
+    script = ScriptDirectory.from_config(config)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+cls = <class 'alembic.script.base.ScriptDirectory'>
+config = <alembic.config.Config object at 0x110c64ad0>
+
+    @classmethod
+    def from_config(cls, config: Config) -> ScriptDirectory:
+        """Produce a new :class:`.ScriptDirectory` given a :class:`.Config`
+        instance.
+    
+        The :class:`.Config` need only have the ``script_location`` key
+        present.
+    
+        """
+        script_location = config.get_alembic_option("script_location")
+        if script_location is None:
+>           raise util.CommandError(
+                "No 'script_location' key found in configuration."
+            )
+E           alembic.util.exc.CommandError: No 'script_location' key found in configuration.
+
+.venv/lib/python3.12/site-packages/alembic/script/base.py:165: CommandError
+=========================== short test summary info ============================
+FAILED packages/reality-core/tests/test_inventory_costing_services.py::test_inventory_service_a_and_exact_history
+FAILED packages/reality-core/tests/test_inventory_costing_services.py::test_inventory_late_cost_requires_receipt_review_and_preserves_old_basis
+FAILED packages/reality-core/tests/test_inventory_costing_services.py::test_inventory_foreign_scope_and_actual_read_tool
+FAILED packages/reality-core/tests/test_inventory_costing_migration.py::test_inventory_migration_foreign_keys_and_empty_rollback
+FAILED packages/reality-core/tests/test_inventory_costing_migration.py::test_inventory_populated_downgrade_refuses
+5 failed, 10 passed in 5.24s

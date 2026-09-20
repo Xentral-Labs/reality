@@ -1,0 +1,16 @@
+F
+=================================== FAILURES ===================================
+______________ test_v1_verification_and_v2_lifecycle_independence ______________
+
+    def test_v1_verification_and_v2_lifecycle_independence():
+>       from reality.domain.cost_captured_basis import (
+            assemble_captured_basis,
+            verify_captured_basis,
+        )
+E       ImportError: cannot import name 'verify_captured_basis' from 'reality.domain.cost_captured_basis' (/Users/benediktsauter/GitHub/reality/packages/reality-core/src/reality/domain/cost_captured_basis.py)
+
+tests/test_cost_captured_basis_storage.py:52: ImportError
+=========================== short test summary info ============================
+FAILED tests/test_cost_captured_basis_storage.py::test_v1_verification_and_v2_lifecycle_independence
+!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!
+1 failed in 0.76s

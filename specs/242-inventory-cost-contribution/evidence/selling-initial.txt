@@ -1,0 +1,343 @@
+.FFFF.........FF...............                                          [100%]
+=================================== FAILURES ===================================
+________ test_fixture_a_db2_history_revision_withdrawal_and_tool_parity ________
+
+session = <sqlalchemy.orm.session.Session object at 0x1104fe6f0>
+business = Business(tenant=<reality.db.core.Tenant object at 0x1104fd1f0>, company=<reality.db.core.Party object at 0x1111ebb60>,...11e99d0>, item=<reality.db.core.Item object at 0x111216f60>, location=<reality.db.core.Location object at 0x11012e960>)
+cost_owner = <reality.db.core.AppUser object at 0x111217ec0>
+
+    def test_fixture_a_db2_history_revision_withdrawal_and_tool_parity(
+        session, business, cost_owner
+    ):
+        args, data = revenue.prepared(session, business, cost_owner)
+        doc = costs.evidence(session, business, "114", "0")
+        assign = selling(session, business, data[0], doc)
+        assign["parts"] = [
+            assign["parts"][0] | {"source_share": "90"},
+            assign["parts"][0]
+            | {
+                "source_share": "24",
+                "category": "payment_fee",
+                "assignment_kind": "allocated",
+            },
+        ]
+        _, assigned = stock.commit_review(session, business, cost_owner, assign)
+>       reviewed = refresh(
+            session,
+            business,
+            cost_owner,
+            args,
+            data,
+            categories("outbound_freight", "payment_fee"),
+        )
+
+tests/test_selling_costs.py:160: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+session = <sqlalchemy.orm.session.Session object at 0x1104fe6f0>
+business = Business(tenant=<reality.db.core.Tenant object at 0x1104fd1f0>, company=<reality.db.core.Party object at 0x1111ebb60>,...11e99d0>, item=<reality.db.core.Item object at 0x111216f60>, location=<reality.db.core.Location object at 0x11012e960>)
+owner = <reality.db.core.AppUser object at 0x111217ec0>
+args = {'operation': 'contribution_review', 'document_line_id': 'lin_052240fc05', 'expected_event_sequence': 18, 'expected_candidate_hash': 'd53c605cb11960a749796c3bcf2da908fa21c4fdf75b3cc94f858eb61cfefa84', ...}
+data = (<reality.db.core.DocumentLine object at 0x111263740>, <reality.db.core.DocumentLine object at 0x111237fb0>, <reality....ition_value': '420.0000', 'action_id': 'act_be70e15998', 'algorithm_version': 'inventory-v1', 'base_unit': 'pcs', ...})
+decisions = [{'category': 'outbound_freight', 'disposition': 'evidenced', 'reason': 'Reviewed evidenced selling scope'}, {'categor..., {'category': 'sales_commission', 'disposition': 'confirmed_zero', 'reason': 'Reviewed evidenced selling scope'}, ...]
+
+    def refresh(session, business, owner, args, data, decisions):
+        prior = data[5]
+        source = prior["receipt_sources"][0]
+        stock.commit_review(
+            session,
+            business,
+            owner,
+            {
+                "operation": "inventory_review",
+                "expected_event_sequence": cost_evidence_cursor(session, business),
+                "item_id": business.item.id,
+                "owner_party_id": business.company.id,
+                "method": "fifo",
+                "currency": "EUR",
+                "base_unit": business.item.unit,
+                "history_start": prior["history_start"],
+                "effective_at": core.now().isoformat(),
+                "history_complete_from_zero": True,
+                "receipt_cost_scopes_confirmed": True,
+                "economic_issue_ids": [data[4].id],
+                "receipts": [
+                    {
+                        "movement_id": source["movement_id"],
+>                       "manifest_id": source["manifest_id"],
+                                       ^^^^^^^^^^^^^^^^^^^^^
+                        "ownership_source_record_id": source["ownership_source_record_id"],
+                    }
+                ],
+                "reason": "Refresh bounded inventory after selling input",
+            },
+        )
+E       KeyError: 'manifest_id'
+
+tests/test_selling_costs.py:123: KeyError
+____________ test_supplier_credit_has_explicit_reducing_effect[-10] ____________
+
+session = <sqlalchemy.orm.session.Session object at 0x111579c70>
+business = Business(tenant=<reality.db.core.Tenant object at 0x111484e00>, company=<reality.db.core.Party object at 0x111320530>,...146a630>, item=<reality.db.core.Item object at 0x11143da00>, location=<reality.db.core.Location object at 0x111349f70>)
+cost_owner = <reality.db.core.AppUser object at 0x111349dc0>, amount = '-10'
+
+    @pytest.mark.parametrize("amount", ["-10", "10"])
+    def test_supplier_credit_has_explicit_reducing_effect(
+        session, business, cost_owner, amount
+    ):
+        args, data = revenue.prepared(session, business, cost_owner)
+        doc = costs.evidence(session, business, amount, "0", "supplier_credit_note")
+        assign = selling(session, business, data[0], doc, amount)
+        assign["parts"][0]["cost_effect"] = -1
+        stock.commit_review(session, business, cost_owner, assign)
+>       reviewed = refresh(
+            session, business, cost_owner, args, data, categories("outbound_freight")
+        )
+
+tests/test_selling_costs.py:218: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+session = <sqlalchemy.orm.session.Session object at 0x111579c70>
+business = Business(tenant=<reality.db.core.Tenant object at 0x111484e00>, company=<reality.db.core.Party object at 0x111320530>,...146a630>, item=<reality.db.core.Item object at 0x11143da00>, location=<reality.db.core.Location object at 0x111349f70>)
+owner = <reality.db.core.AppUser object at 0x111349dc0>
+args = {'operation': 'contribution_review', 'document_line_id': 'lin_859be259e2', 'expected_event_sequence': 18, 'expected_candidate_hash': '1fa2f3b4be539a2a9e38fe5742715b01263b2c8875575e6d98636cbf3e0224a4', ...}
+data = (<reality.db.core.DocumentLine object at 0x11143c980>, <reality.db.core.DocumentLine object at 0x111387fe0>, <reality....ition_value': '420.0000', 'action_id': 'act_08ab397540', 'algorithm_version': 'inventory-v1', 'base_unit': 'pcs', ...})
+decisions = [{'category': 'outbound_freight', 'disposition': 'evidenced', 'reason': 'Reviewed evidenced selling scope'}, {'categor..., {'category': 'sales_commission', 'disposition': 'confirmed_zero', 'reason': 'Reviewed evidenced selling scope'}, ...]
+
+    def refresh(session, business, owner, args, data, decisions):
+        prior = data[5]
+        source = prior["receipt_sources"][0]
+        stock.commit_review(
+            session,
+            business,
+            owner,
+            {
+                "operation": "inventory_review",
+                "expected_event_sequence": cost_evidence_cursor(session, business),
+                "item_id": business.item.id,
+                "owner_party_id": business.company.id,
+                "method": "fifo",
+                "currency": "EUR",
+                "base_unit": business.item.unit,
+                "history_start": prior["history_start"],
+                "effective_at": core.now().isoformat(),
+                "history_complete_from_zero": True,
+                "receipt_cost_scopes_confirmed": True,
+                "economic_issue_ids": [data[4].id],
+                "receipts": [
+                    {
+                        "movement_id": source["movement_id"],
+>                       "manifest_id": source["manifest_id"],
+                                       ^^^^^^^^^^^^^^^^^^^^^
+                        "ownership_source_record_id": source["ownership_source_record_id"],
+                    }
+                ],
+                "reason": "Refresh bounded inventory after selling input",
+            },
+        )
+E       KeyError: 'manifest_id'
+
+tests/test_selling_costs.py:123: KeyError
+____________ test_supplier_credit_has_explicit_reducing_effect[10] _____________
+
+session = <sqlalchemy.orm.session.Session object at 0x1116b7e60>
+business = Business(tenant=<reality.db.core.Tenant object at 0x1116b5a90>, company=<reality.db.core.Party object at 0x1116b7140>,...16b6000>, item=<reality.db.core.Item object at 0x1116b7e90>, location=<reality.db.core.Location object at 0x1116b6660>)
+cost_owner = <reality.db.core.AppUser object at 0x1116b48c0>, amount = '10'
+
+    @pytest.mark.parametrize("amount", ["-10", "10"])
+    def test_supplier_credit_has_explicit_reducing_effect(
+        session, business, cost_owner, amount
+    ):
+        args, data = revenue.prepared(session, business, cost_owner)
+        doc = costs.evidence(session, business, amount, "0", "supplier_credit_note")
+        assign = selling(session, business, data[0], doc, amount)
+        assign["parts"][0]["cost_effect"] = -1
+        stock.commit_review(session, business, cost_owner, assign)
+>       reviewed = refresh(
+            session, business, cost_owner, args, data, categories("outbound_freight")
+        )
+
+tests/test_selling_costs.py:218: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+session = <sqlalchemy.orm.session.Session object at 0x1116b7e60>
+business = Business(tenant=<reality.db.core.Tenant object at 0x1116b5a90>, company=<reality.db.core.Party object at 0x1116b7140>,...16b6000>, item=<reality.db.core.Item object at 0x1116b7e90>, location=<reality.db.core.Location object at 0x1116b6660>)
+owner = <reality.db.core.AppUser object at 0x1116b48c0>
+args = {'operation': 'contribution_review', 'document_line_id': 'lin_8b00fe6f95', 'expected_event_sequence': 18, 'expected_candidate_hash': '600dd1205160a27f1542b35ef18f69437d4ff03c59356dafb9cf29dcd03ba623', ...}
+data = (<reality.db.core.DocumentLine object at 0x11166c740>, <reality.db.core.DocumentLine object at 0x11166cb90>, <reality....ition_value': '420.0000', 'action_id': 'act_84f79dc121', 'algorithm_version': 'inventory-v1', 'base_unit': 'pcs', ...})
+decisions = [{'category': 'outbound_freight', 'disposition': 'evidenced', 'reason': 'Reviewed evidenced selling scope'}, {'categor..., {'category': 'sales_commission', 'disposition': 'confirmed_zero', 'reason': 'Reviewed evidenced selling scope'}, ...]
+
+    def refresh(session, business, owner, args, data, decisions):
+        prior = data[5]
+        source = prior["receipt_sources"][0]
+        stock.commit_review(
+            session,
+            business,
+            owner,
+            {
+                "operation": "inventory_review",
+                "expected_event_sequence": cost_evidence_cursor(session, business),
+                "item_id": business.item.id,
+                "owner_party_id": business.company.id,
+                "method": "fifo",
+                "currency": "EUR",
+                "base_unit": business.item.unit,
+                "history_start": prior["history_start"],
+                "effective_at": core.now().isoformat(),
+                "history_complete_from_zero": True,
+                "receipt_cost_scopes_confirmed": True,
+                "economic_issue_ids": [data[4].id],
+                "receipts": [
+                    {
+                        "movement_id": source["movement_id"],
+>                       "manifest_id": source["manifest_id"],
+                                       ^^^^^^^^^^^^^^^^^^^^^
+                        "ownership_source_record_id": source["ownership_source_record_id"],
+                    }
+                ],
+                "reason": "Refresh bounded inventory after selling input",
+            },
+        )
+E       KeyError: 'manifest_id'
+
+tests/test_selling_costs.py:123: KeyError
+_______________ test_independent_unknown_and_contradictory_zero ________________
+
+session = <sqlalchemy.orm.session.Session object at 0x11166da00>
+business = Business(tenant=<reality.db.core.Tenant object at 0x11166f4d0>, company=<reality.db.core.Party object at 0x111541850>,...161d9d0>, item=<reality.db.core.Item object at 0x11143dbb0>, location=<reality.db.core.Location object at 0x111540140>)
+cost_owner = <reality.db.core.AppUser object at 0x11166f2c0>
+
+    def test_independent_unknown_and_contradictory_zero(session, business, cost_owner):
+        args, data = revenue.prepared(session, business, cost_owner)
+        doc = costs.evidence(session, business, "24", "0")
+        stock.commit_review(
+            session, business, cost_owner, selling(session, business, data[0], doc, "24")
+        )
+>       reviewed = refresh(session, business, cost_owner, args, data, categories())
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_selling_costs.py:231: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+session = <sqlalchemy.orm.session.Session object at 0x11166da00>
+business = Business(tenant=<reality.db.core.Tenant object at 0x11166f4d0>, company=<reality.db.core.Party object at 0x111541850>,...161d9d0>, item=<reality.db.core.Item object at 0x11143dbb0>, location=<reality.db.core.Location object at 0x111540140>)
+owner = <reality.db.core.AppUser object at 0x11166f2c0>
+args = {'operation': 'contribution_review', 'document_line_id': 'lin_75581b03d3', 'expected_event_sequence': 18, 'expected_candidate_hash': '0726a43a1c3c7d7487cc739f5bd4a043186f84de75422719ca230443c6976936', ...}
+data = (<reality.db.core.DocumentLine object at 0x11166ce60>, <reality.db.core.DocumentLine object at 0x11166e030>, <reality....ition_value': '420.0000', 'action_id': 'act_7c845a9b3a', 'algorithm_version': 'inventory-v1', 'base_unit': 'pcs', ...})
+decisions = [{'category': 'outbound_freight', 'disposition': 'confirmed_zero', 'reason': 'Reviewed evidenced selling scope'}, {'ca..., {'category': 'sales_commission', 'disposition': 'confirmed_zero', 'reason': 'Reviewed evidenced selling scope'}, ...]
+
+    def refresh(session, business, owner, args, data, decisions):
+        prior = data[5]
+        source = prior["receipt_sources"][0]
+        stock.commit_review(
+            session,
+            business,
+            owner,
+            {
+                "operation": "inventory_review",
+                "expected_event_sequence": cost_evidence_cursor(session, business),
+                "item_id": business.item.id,
+                "owner_party_id": business.company.id,
+                "method": "fifo",
+                "currency": "EUR",
+                "base_unit": business.item.unit,
+                "history_start": prior["history_start"],
+                "effective_at": core.now().isoformat(),
+                "history_complete_from_zero": True,
+                "receipt_cost_scopes_confirmed": True,
+                "economic_issue_ids": [data[4].id],
+                "receipts": [
+                    {
+                        "movement_id": source["movement_id"],
+>                       "manifest_id": source["manifest_id"],
+                                       ^^^^^^^^^^^^^^^^^^^^^
+                        "ownership_source_record_id": source["ownership_source_record_id"],
+                    }
+                ],
+                "reason": "Refresh bounded inventory after selling input",
+            },
+        )
+E       KeyError: 'manifest_id'
+
+tests/test_selling_costs.py:123: KeyError
+_________ test_source_cannot_be_reused_across_acquisition_and_selling __________
+
+session = <sqlalchemy.orm.session.Session object at 0x111386120>
+business = Business(tenant=<reality.db.core.Tenant object at 0x111322870>, company=<reality.db.core.Party object at 0x1117fa960>,...12f2870>, item=<reality.db.core.Item object at 0x111688e90>, location=<reality.db.core.Location object at 0x1113202f0>)
+cost_owner = <reality.db.core.AppUser object at 0x11159a060>
+
+    def test_source_cannot_be_reused_across_acquisition_and_selling(
+        session, business, cost_owner
+    ):
+        _args, data = revenue.prepared(session, business, cost_owner)
+        movement = session.get(Movement, data[5]["receipt_sources"][0]["movement_id"])
+        doc = costs.evidence(session, business, "24", "0")
+        costs.execute(
+            session,
+            business,
+            cost_owner,
+            costs.assignment(session, business, movement, doc, "24"),
+        )
+>       with pytest.raises(core.InvalidOperation, match="acquisition"):
+E       AssertionError: Regex pattern did not match.
+E         Expected regex: 'acquisition'
+E         Actual message: 'Acquisition evidence cannot also fund selling costs.'
+
+tests/test_selling_costs.py:304: AssertionError
+_______ test_selling_owner_confirmation_rollback_and_immutable_evidence ________
+
+session = <sqlalchemy.orm.session.Session object at 0x1116b47a0>
+business = Business(tenant=<reality.db.core.Tenant object at 0x11166f560>, company=<reality.db.core.Party object at 0x10eb8e6f0>,...166fa40>, item=<reality.db.core.Item object at 0x1117f8650>, location=<reality.db.core.Location object at 0x1117fa180>)
+cost_owner = <reality.db.core.AppUser object at 0x1116b5e20>
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x1116b7b60>
+
+    def test_selling_owner_confirmation_rollback_and_immutable_evidence(
+        session, business, cost_owner, monkeypatch
+    ):
+        from reality.db.contribution import CostSellingPart
+        from reality.services import selling_costs
+    
+        _args, data = revenue.prepared(session, business, cost_owner)
+        doc = costs.evidence(session, business, "24", "0")
+        args = selling(session, business, data[0], doc, "24")
+        with pytest.raises(core.InvalidOperation, match="confirmation"):
+            execute_cost_change(
+                session,
+                business.tenant.id,
+                arguments=args,
+                action_id="none",
+                actor_id=cost_owner.id,
+            )
+        original = selling_costs._new
+    
+        def fail(*a, **kw):
+            result = original(*a, **kw)
+            if a[1] is CostSellingPart:
+                raise RuntimeError("rollback selling")
+            return result
+    
+        monkeypatch.setattr(selling_costs, "_new", fail)
+        with pytest.raises(RuntimeError, match="rollback selling"):
+            costs.execute(session, business, cost_owner, args)
+        assert session.scalar(select(CostSellingPart.id)) is None
+        monkeypatch.setattr(selling_costs, "_new", original)
+        costs.execute(session, business, cost_owner, args)
+        with pytest.raises(core.InvalidOperation, match="immutable"):
+>           core.correct_manual_document(
+                session,
+                business.tenant.id,
+                doc.id,
+                reason="Change admitted source",
+                gross_amount="99",
+            )
+E           TypeError: correct_manual_document() got an unexpected keyword argument 'reason'
+
+tests/test_selling_costs.py:368: TypeError
+=========================== short test summary info ============================
+FAILED tests/test_selling_costs.py::test_fixture_a_db2_history_revision_withdrawal_and_tool_parity
+FAILED tests/test_selling_costs.py::test_supplier_credit_has_explicit_reducing_effect[-10]
+FAILED tests/test_selling_costs.py::test_supplier_credit_has_explicit_reducing_effect[10]
+FAILED tests/test_selling_costs.py::test_independent_unknown_and_contradictory_zero
+FAILED tests/test_selling_costs.py::test_source_cannot_be_reused_across_acquisition_and_selling
+FAILED tests/test_selling_costs.py::test_selling_owner_confirmation_rollback_and_immutable_evidence
+6 failed, 25 passed in 34.09s

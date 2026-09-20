@@ -1,0 +1,4 @@
+All 15 source/test/catalog hashes unchanged.
+Explicit working-tree change policy passed across 342 paths.
+No extension hooks configured.
+Spec policy passed.

@@ -27,7 +27,7 @@ const answer = (question = query, marker = "current") => ({
 
 // Render the real component with deterministic hooks and deferred network reads.
 // Children stay shallow: assertions observe the props passed to the real controls.
-function harness(initialQuestion = query) {
+function harness(initialQuestion = query, selectedCatalog = catalog) {
   const slots = [],
     effects = [],
     requests = [];
@@ -71,6 +71,8 @@ function harness(initialQuestion = query) {
           : name === "react/jsx-runtime"
             ? { jsx, jsxs: jsx }
             : {
+                InventoryValuationSelector: function InventoryValuationSelector() {},
+                InventoryValuationBasis: function InventoryValuationBasis() {},
                 t: (text) => text,
                 currentLanguage: () => "en",
                 formatDateTime: (value) => value,
@@ -85,7 +87,12 @@ function harness(initialQuestion = query) {
   let tree;
   const render = () => {
     cursor = 0;
-    tree = exports.Builder({ tenant: "tenant-a", catalog, report: null, initialQuestion });
+    tree = exports.Builder({
+      tenant: "tenant-a",
+      catalog: selectedCatalog,
+      report: null,
+      initialQuestion,
+    });
     return tree;
   };
   const all = (entry) =>
@@ -303,5 +310,93 @@ test("explicitly reopening the same report reloads it while catalog navigation r
   assert.notEqual(
     render("graph").find((entry) => entry.type === components.GraphSteps).key,
     firstKey,
+  );
+});
+
+const inventoryNode = {
+  ...node,
+  key: "inventory_valuation",
+  label: "Inventory valuation",
+  properties: [{ key: "currency", label: "Currency", kind: "text" }],
+};
+const inventoryCatalog = { ...catalog, nodes: [node, inventoryNode] };
+const inventoryQuestion = {
+  from: "inventory_valuation",
+  as: "o",
+  group_by: [{ field: "o.currency" }],
+};
+
+test("inventory waits for explicit selection and discards cleared or superseded answers", async () => {
+  const ui = harness(inventoryQuestion, inventoryCatalog);
+  assert.equal(ui.requests.length, 0);
+  assert.equal(ui.component("Save").props.disabled, true);
+  ui.component("InventoryValuationSelector").props.select({
+    action_id: "first",
+    mode: "historical",
+  });
+  ui.render();
+  assert.equal(ui.requests[0].question.inventory_cost_context.action_id, "first");
+  ui.component("InventoryValuationSelector").props.select({
+    action_id: "second",
+    mode: "historical",
+  });
+  ui.render();
+  assert.equal(ui.requests[0].signal.aborted, true);
+  ui.requests[0].resolve(answer(ui.requests[0].question, "old"));
+  await settle();
+  ui.render();
+  assert.equal(ui.component("Result").props.answer, null);
+  ui.component("InventoryValuationSelector").props.select();
+  ui.render();
+  assert.equal(ui.requests[1].signal.aborted, true);
+  assert.equal(ui.requests.length, 2);
+  ui.requests[1].resolve(answer(ui.requests[1].question, "cleared"));
+  await settle();
+  ui.render();
+  assert.equal(ui.component("Result").props.answer, null);
+  assert.equal(ui.component("Save").props.disabled, true);
+});
+
+test("captured selection clears historical context and executes the fixed generation", () => {
+  const ui = harness(
+    { ...inventoryQuestion, inventory_cost_context: { action_id: "historical" } },
+    inventoryCatalog,
+  );
+  ui.component("InventoryValuationSelector").props.selectCaptured({
+    generation_id: "cgr_fixed",
+  });
+  ui.render();
+  assert.deepEqual(ui.requests.at(-1).question.captured_cost_context, {
+    generation_id: "cgr_fixed",
+  });
+  assert.equal(ui.requests.at(-1).question.inventory_cost_context, undefined);
+});
+
+test("reopened inventory context survives edits, saving, and failed replacement", async () => {
+  const saved = {
+    ...inventoryQuestion,
+    inventory_cost_context: { action_id: "saved", mode: "historical" },
+  };
+  const ui = harness(saved, inventoryCatalog);
+  ui.requests[0].resolve({ ...answer(saved), cost_basis: { action_id: "saved" } });
+  await settle();
+  ui.render();
+  assert.equal(ui.component("Save").props.definition.inventory_cost_context.action_id, "saved");
+  assert.equal(ui.component("InventoryValuationBasis").props.basis.action_id, "saved");
+  const toolbar = ui.component("Toolbar");
+  toolbar.props.change({ ...toolbar.props.plan, limit: 10 });
+  ui.render();
+  assert.equal(ui.requests[1].question.inventory_cost_context.action_id, "saved");
+  ui.requests[1].reject(new Error("Cache unavailable"));
+  await settle();
+  ui.render();
+  assert.equal(ui.component("Result").props.answer, null);
+  assert.equal(ui.component("InventoryValuationBasis"), undefined);
+  assert.equal(ui.component("Save").props.disabled, true);
+  ui.tab("Cypher");
+  ui.render();
+  assert.equal(
+    ui.find((entry) => entry.props?.["aria-label"] === "Cypher query"),
+    undefined,
   );
 });

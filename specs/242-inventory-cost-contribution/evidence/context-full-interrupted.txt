@@ -1,0 +1,86 @@
+bringing up nodes...
+bringing up nodes...
+
+........................................................................ [  2%]
+........................................................................ [  4%]
+..................F..................................................... [  6%]
+........................................................................ [  8%]
+........................................................................ [ 11%]
+......................................
+=================================== FAILURES ===================================
+___________________ test_canonical_profile_counts_and_cases ____________________
+[gw2] darwin -- Python 3.12.4 /Users/benediktsauter/GitHub/reality/.venv/bin/python3.12
+
+session = <sqlalchemy.orm.session.Session object at 0x10e857800>
+scheduled_owner = <reality.db.core.AppUser object at 0x10db75400>
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x10e823710>
+
+    def test_canonical_profile_counts_and_cases(session, scheduled_owner, monkeypatch):
+        result = company_setup.create_company(
+            session,
+            scheduled_owner.id,
+            "canonical",
+            "Harbor Supply",
+            "sandbox",
+            "international_demo",
+            confirmed=True,
+        )
+        assert result["status"] == "initializing", result
+        tenant = result["tenant_id"]
+>       assert seed_company(session, tenant) == "succeeded"
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/scenarios/test_international_demo.py:20: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/conftest.py:252: in seed_company
+    return jobs.execute_claim(session, tenant_id, run.id, run.claim_token)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+session = <sqlalchemy.orm.session.Session object at 0x10e857800>
+tenant_id = 'ten_162b0efbae', run_id = 'run_eff51997c1ee4996a5553c9bf9378392'
+claim_token = '4a3077c73acc4413b924f48cb5d99c87'
+
+    def execute_claim(
+        session: Session, tenant_id: str, run_id: str, claim_token: str
+    ) -> str:
+        """Effects and success share the caller's transaction. Handler cannot commit."""
+        schedule, run = _locked_claim(session, tenant_id, run_id)
+        if run.status == "succeeded":
+            return "succeeded"
+        if (
+            run.status != "running"
+            or not claim_token
+            or run.claim_token != claim_token
+            or run.lease_expires_at <= now()
+        ):
+            raise JobError("stale_claim")
+        if schedule and not schedule.enabled:
+            run.status = "retry"
+            run.claim_token = None
+            run.lease_expires_at = None
+            return "retry"
+        definition, parsed = _authorize_run_or_schedule(session, run)
+        context = _context(tenant_id, run.actor_id, run)
+    
+        def reject_commit(_session):
+            if _session.in_nested_transaction():
+                return
+            raise JobError("handler_commit_forbidden")
+    
+        event.listen(session, "before_commit", reject_commit)
+        try:
+            result = definition.handler(session, context, parsed)
+            result = JobResult.model_validate(result)
+            session.flush()
+            if now() >= context.deadline or now() >= run.lease_expires_at:
+>               raise JobError("handler_timeout")
+E               reality.jobs.registry.JobError: handler_timeout
+
+src/reality/services/scheduled_jobs.py:678: JobError
+=========================== short test summary info ============================
+FAILED tests/scenarios/test_international_demo.py::test_canonical_profile_counts_and_cases
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! KeyboardInterrupt !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+/opt/homebrew/Cellar/python@3.12/3.12.4/Frameworks/Python.framework/Versions/3.12/lib/python3.12/threading.py:359: KeyboardInterrupt
+(to show a full traceback on KeyboardInterrupt use --full-trace)
+1 failed, 397 passed in 176.58s (0:02:56)

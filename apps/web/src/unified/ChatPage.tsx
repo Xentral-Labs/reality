@@ -24,6 +24,7 @@ import {
   X,
 } from "lucide-react";
 const emptyMessageClass = "flex flex-col justify-center";
+const standaloneControlClass = "br-btn min-h-11 gap-2 px-3";
 const compactHistoryClass = "reality-chat-icon free-play-mobile-control";
 const activeSessionClass = "bg-accent-soft font-medium text-accent";
 const inactiveSessionClass = "text-fg-default hover:bg-surface-muted";
@@ -447,15 +448,20 @@ export function ChatPage({
       {standaloneHistoryAvailable !== false && (
         <button
           className={
-            sessionsTarget && standaloneHistoryAvailable === undefined
-              ? compactHistoryClass
-              : "reality-chat-icon"
+            sessionsTarget && standaloneHistoryAvailable !== undefined
+              ? standaloneControlClass
+              : sessionsTarget
+                ? compactHistoryClass
+                : "reality-chat-icon"
           }
           aria-label={t("Conversation history")}
           aria-expanded={sessionsTarget ? sessionsOpen : historyOpen}
           onClick={() => (sessionsTarget ? toggleSessions?.() : setHistoryOpen(!historyOpen))}
         >
-          <History size={20} />
+          <History size={18} />
+          {sessionsTarget && standaloneHistoryAvailable !== undefined && (
+            <span>{t("Chat history")}</span>
+          )}
         </button>
       )}
       {!sessionsTarget && (
@@ -596,7 +602,7 @@ export function ChatPage({
       {newSessionTarget &&
         createPortal(
           <button
-            className="reality-chat-icon"
+            className="br-btn min-h-11 gap-2 px-3"
             data-new-chat-action
             aria-label={t("New chat")}
             title={t("New chat")}
@@ -608,6 +614,7 @@ export function ChatPage({
             }}
           >
             <SquarePen size={18} />
+            <span>{t("New chat")}</span>
           </button>,
           newSessionTarget,
         )}

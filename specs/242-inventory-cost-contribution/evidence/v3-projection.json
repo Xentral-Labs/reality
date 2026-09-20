@@ -1,0 +1,213 @@
+{
+  "strategy": "projection",
+  "dataset_version": "costing-spike-v3",
+  "profile": "full",
+  "qualification_passed": false,
+  "measurements": {
+    "order": {
+      "samples": 200,
+      "p50_s": 0.0016893334977794439,
+      "p95_s": 0.0028114170127082616,
+      "max_s": 0.0036379579978529364,
+      "budget_s": 0.5
+    },
+    "tool": {
+      "samples": 200,
+      "p50_s": 0.0017688125080894679,
+      "p95_s": 0.002536374988267198,
+      "max_s": 0.0038629579939879477,
+      "budget_s": 3
+    },
+    "inventory": {
+      "samples": 200,
+      "p50_s": 0.003676540989545174,
+      "p95_s": 0.00504066699068062,
+      "max_s": 0.007958667003549635,
+      "budget_s": 2
+    },
+    "monthly": {
+      "samples": 200,
+      "p50_s": 0.03360970849462319,
+      "p95_s": 0.09281641701818444,
+      "max_s": 0.14127150000422262,
+      "budget_s": 3
+    },
+    "attention": {
+      "samples": 200,
+      "p50_s": 0.3872451044881018,
+      "p95_s": 0.5832132089999504,
+      "max_s": 0.8097925840120297,
+      "budget_s": 2
+    }
+  },
+  "limitations": [
+    "Exact dedicated 4-vCPU/16-GiB reference host is not certified; see separately captured enforced container limits.",
+    "An OS/database cold-cache run and the full freshness response contract are not certified.",
+    "Experimental typed relations are not yet wired to the product analysis compiler or exception register.",
+    "V3 distributes returns, split/partial matching, supplier credits and stated nonrecoverable tax; full FX/ownership/review and credit-to-revenue matching remain product proofs.",
+    "Projection completeness/review invalidation and source-version history are not product implementations."
+  ],
+  "input_revision_before": 30,
+  "reconstruction_s": [
+    19.714705549995415,
+    20.602454717998626,
+    19.598648218001472
+  ],
+  "checksum": "5e56c3b6f4c6bd0cb1f218b5eeafcb2d207f8b7bcc65c156d37e1718aa0ca0ba",
+  "mixed_measurements": {
+    "order": {
+      "samples": 200,
+      "p50_s": 0.0029958749801153317,
+      "p95_s": 0.029327917000046,
+      "max_s": 0.0803998329793103,
+      "budget_s": 0.5,
+      "started_offset_s": 0.004563708003843203,
+      "finished_offset_s": 29.85329584698775,
+      "states": {
+        "current": 129,
+        "stale": 71
+      }
+    },
+    "tool": {
+      "samples": 200,
+      "p50_s": 0.002702271012822166,
+      "p95_s": 0.022177667007781565,
+      "max_s": 0.062318332988070324,
+      "budget_s": 3,
+      "started_offset_s": 0.005057957983808592,
+      "finished_offset_s": 29.853386429982493,
+      "states": {
+        "current": 128,
+        "not_ready": 72
+      }
+    },
+    "inventory": {
+      "samples": 200,
+      "p50_s": 0.005801145496661775,
+      "p95_s": 0.03451308299554512,
+      "max_s": 0.0873180000053253,
+      "budget_s": 2,
+      "started_offset_s": 0.005495041987160221,
+      "finished_offset_s": 29.855084388982505,
+      "states": {
+        "current": 129,
+        "stale": 71
+      }
+    },
+    "monthly": {
+      "samples": 200,
+      "p50_s": 0.029329437486012466,
+      "p95_s": 0.089664334023837,
+      "max_s": 0.14681583299534395,
+      "budget_s": 3,
+      "started_offset_s": 0.004912625008728355,
+      "finished_offset_s": 29.861584013997344,
+      "states": {
+        "current": 129,
+        "stale": 71
+      }
+    },
+    "attention": {
+      "samples": 200,
+      "p50_s": 0.056088541488861665,
+      "p95_s": 0.12688545798300765,
+      "max_s": 0.17853612499311566,
+      "budget_s": 2,
+      "started_offset_s": 0.004729292006231844,
+      "finished_offset_s": 29.89863151399186,
+      "states": {
+        "current": 129,
+        "stale": 71
+      }
+    }
+  },
+  "refresh": {
+    "samples": 31,
+    "p50_s": 0.3802222090016585,
+    "p95_s": 0.5155228760268074,
+    "max_s": 0.7121384170022793,
+    "last_affected_rows": 3000,
+    "requested_minimum_updates": 30,
+    "change_stream_covers_all_readers": true,
+    "committed_offsets_s": [
+      0.004244249983457848,
+      1.00577325100312,
+      2.003025626007002,
+      3.006668917980278,
+      4.003376793989446,
+      5.003070710983593,
+      6.0050090449803974,
+      7.005422002985142,
+      8.004118754004594,
+      9.114677587989718,
+      10.00239650500589,
+      11.004885504982667,
+      12.005433963990072,
+      13.006077047990402,
+      14.001292381988605,
+      15.004853756981902,
+      16.00381004900555,
+      17.002657507982804,
+      18.007106799981557,
+      19.007125175005058,
+      20.003060133982217,
+      21.004345759982243,
+      22.002632051997352,
+      23.002178634982556,
+      24.003901760996087,
+      25.00595976097975,
+      26.00739988699206,
+      27.00577530398732,
+      28.00288413799717,
+      29.003410721983528,
+      30.004381763981655
+    ],
+    "one_change_per_second_sustained": true
+  },
+  "reconciliation": {
+    "observations": 609000,
+    "inventory_pools": 10000,
+    "complete_values_equal": true
+  },
+  "measured_budgets_passed": true,
+  "input_revision_after": 61,
+  "status": "exploratory",
+  "cardinalities": {
+    "a": {
+      "item": 10000,
+      "trade_order": 100000,
+      "movement": 1000000,
+      "component": 1000000,
+      "attribution": 1000000,
+      "matching": 600000
+    },
+    "b": {
+      "item": 10000,
+      "trade_order": 100000,
+      "movement": 1000000,
+      "component": 1000000,
+      "attribution": 1000000,
+      "matching": 600000
+    }
+  },
+  "setup_s": 0.5685365009994712,
+  "python": "3.12.13",
+  "platform": "Linux-6.10.14-linuxkit-aarch64-with-glibc2.41",
+  "git_revision": "709af5c1a6358be2f004003f37b836ff6095b5bf",
+  "peak_rss_bytes": 1222017024,
+  "elapsed_s": 142.37437056499766,
+  "postgres_version": "17.10",
+  "source_digest": "4f408f73befcbd36d5161458efc940cc4f572ff930bc04ebc1d9d3f704b0707d",
+  "process_cgroup": {
+    "cpu.max": "200000 100000",
+    "memory.max": "2147483648",
+    "memory.swap.max": "0",
+    "memory.peak": "1206484992"
+  },
+  "adversarial_distribution": {
+    "issue": 600000,
+    "receipt": 291000,
+    "return": 9000,
+    "transfer": 100000
+  }
+}

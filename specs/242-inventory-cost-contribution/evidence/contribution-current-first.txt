@@ -1,0 +1,23 @@
+F
+=================================== FAILURES ===================================
+______________ test_current_missing_ready_pending_and_historical _______________
+
+session = <sqlalchemy.orm.session.Session object at 0x10bbc7290>
+business = Business(tenant=<reality.db.core.Tenant object at 0x10bbc7320>, company=<reality.db.core.Party object at 0x10c8db4a0>,...c8d9340>, item=<reality.db.core.Item object at 0x10c9068a0>, location=<reality.db.core.Location object at 0x10c906cc0>)
+cost_owner = <reality.db.core.AppUser object at 0x10c907680>
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x10c929250>
+
+    def test_current_missing_ready_pending_and_historical(
+        session, business, cost_owner, monkeypatch
+    ):
+        tenant = business.tenant.id
+        action, _ = fixtures.confirmed(session, business, cost_owner)
+>       missing = costing.contribution_snapshot(session, tenant, action, mode="current")
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       TypeError: contribution_snapshot() got an unexpected keyword argument 'mode'
+
+tests/test_contribution_current.py:31: TypeError
+=========================== short test summary info ============================
+FAILED tests/test_contribution_current.py::test_current_missing_ready_pending_and_historical
+!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!
+1 failed in 3.75s

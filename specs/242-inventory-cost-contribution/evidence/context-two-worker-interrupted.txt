@@ -1,0 +1,105 @@
+bringing up nodes...
+bringing up nodes...
+
+........................................................................ [  2%]
+........................................................................ [  4%]
+........................................................................ [  6%]
+........................................................................ [  8%]
+........................................................................ [ 11%]
+........................................................................ [ 13%]
+......................................................................ss [ 15%]
+........................................................................ [ 17%]
+........................................................................ [ 20%]
+........................................................................ [ 22%]
+........................................................................ [ 24%]
+........................................................................ [ 26%]
+.........................................................F.............. [ 28%]
+........
+=================================== FAILURES ===================================
+_____________ test_live_creation_provisions_and_starts_once[True] ______________
+[gw1] darwin -- Python 3.12.4 /Users/benediktsauter/GitHub/reality/.venv/bin/python3.12
+
+session = <sqlalchemy.orm.session.Session object at 0x110772810>
+scheduled_owner = <reality.db.core.AppUser object at 0x10ee3bc80>
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x10fe19ee0>
+pending = True
+
+    @pytest.mark.parametrize("pending", [False, True])
+    def test_live_creation_provisions_and_starts_once(
+        session, scheduled_owner, monkeypatch, pending
+    ):
+        from reality.services import demo_data
+    
+        if pending:
+            scheduled_owner.status = "pending_approval"
+            session.commit()
+        actor = scheduled_owner.id
+        result = company_setup.create_company(
+            session,
+            actor,
+            "live-create",
+            "Live Demo",
+            "sandbox",
+            "international_demo",
+            live_simulation=True,
+            confirmed=True,
+        )
+        assert result["status"] == "initializing"
+>       assert seed_company(session, result["tenant_id"]) == "succeeded"
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_company_setup.py:292: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/conftest.py:252: in seed_company
+    return jobs.execute_claim(session, tenant_id, run.id, run.claim_token)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+session = <sqlalchemy.orm.session.Session object at 0x110772810>
+tenant_id = 'ten_f3ef262e9f', run_id = 'run_a6125b9074174454bbbc222c8fecbe89'
+claim_token = '0b0661cfc931467092c04faeafd3654c'
+
+    def execute_claim(
+        session: Session, tenant_id: str, run_id: str, claim_token: str
+    ) -> str:
+        """Effects and success share the caller's transaction. Handler cannot commit."""
+        schedule, run = _locked_claim(session, tenant_id, run_id)
+        if run.status == "succeeded":
+            return "succeeded"
+        if (
+            run.status != "running"
+            or not claim_token
+            or run.claim_token != claim_token
+            or run.lease_expires_at <= now()
+        ):
+            raise JobError("stale_claim")
+        if schedule and not schedule.enabled:
+            run.status = "retry"
+            run.claim_token = None
+            run.lease_expires_at = None
+            return "retry"
+        definition, parsed = _authorize_run_or_schedule(session, run)
+        context = _context(tenant_id, run.actor_id, run)
+    
+        def reject_commit(_session):
+            if _session.in_nested_transaction():
+                return
+            raise JobError("handler_commit_forbidden")
+    
+        event.listen(session, "before_commit", reject_commit)
+        try:
+            result = definition.handler(session, context, parsed)
+            result = JobResult.model_validate(result)
+            session.flush()
+            if now() >= context.deadline or now() >= run.lease_expires_at:
+>               raise JobError("handler_timeout")
+E               reality.jobs.registry.JobError: handler_timeout
+
+src/reality/services/scheduled_jobs.py:678: JobError
+=========================== short test summary info ============================
+FAILED tests/test_company_setup.py::test_live_creation_provisions_and_starts_once[True]
+!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! KeyboardInterrupt !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+/opt/homebrew/Cellar/python@3.12/3.12.4/Frameworks/Python.framework/Versions/3.12/lib/python3.12/threading.py:359: KeyboardInterrupt
+(to show a full traceback on KeyboardInterrupt use --full-trace)
+1 failed, 941 passed, 2 skipped in 404.16s (0:06:44)

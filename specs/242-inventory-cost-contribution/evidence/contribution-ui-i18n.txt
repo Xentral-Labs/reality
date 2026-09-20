@@ -1,0 +1,22 @@
+en: PASS — 2032/2032 covered, 0 invariant, 0 missing, 0 invalid
+de: FAIL — 2029/2032 covered, 31 invariant, 3 missing, 0 invalid
+- missing: Anthropic API key (optional)
+  at src/components/CompanySetupForm.tsx:146
+- missing: Optional. Enables AI chat for this company. The temporary installation removes the encrypted credential when you quit.
+  at src/components/CompanySetupForm.tsx:160
+- missing: sk-ant-…
+  at src/components/CompanySetupForm.tsx:150
+nl: FAIL — 2029/2032 covered, 32 invariant, 3 missing, 0 invalid
+- missing: Anthropic API key (optional)
+  at src/components/CompanySetupForm.tsx:146
+- missing: Optional. Enables AI chat for this company. The temporary installation removes the encrypted credential when you quit.
+  at src/components/CompanySetupForm.tsx:160
+- missing: sk-ant-…
+  at src/components/CompanySetupForm.tsx:150
+es: FAIL — 2029/2032 covered, 26 invariant, 3 missing, 0 invalid
+- missing: Anthropic API key (optional)
+  at src/components/CompanySetupForm.tsx:146
+- missing: Optional. Enables AI chat for this company. The temporary installation removes the encrypted credential when you quit.
+  at src/components/CompanySetupForm.tsx:160
+- missing: sk-ant-…
+  at src/components/CompanySetupForm.tsx:150

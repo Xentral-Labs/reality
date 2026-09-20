@@ -1,0 +1,42 @@
+......................................FFF                                [100%]
+=================================== FAILURES ===================================
+_________ test_scope_key_cannot_mask_changed_valuation_basis[changes0] _________
+
+changes = {'policy_revision_id': 'another-policy'}
+
+    @pytest.mark.parametrize("changes", [
+        {"policy_revision_id": "another-policy"},
+        {"effective_at": "2026-08-01T00:00:00Z"},
+    ])
+    def test_scope_key_cannot_mask_changed_valuation_basis(changes):
+>       with pytest.raises(PublicationRefusal, match="cost_context_unsupported"):
+E       Failed: DID NOT RAISE PublicationRefusal
+
+packages/reality-core/tests/test_cost_generation.py:228: Failed
+_________ test_scope_key_cannot_mask_changed_valuation_basis[changes1] _________
+
+changes = {'effective_at': '2026-08-01T00:00:00Z'}
+
+    @pytest.mark.parametrize("changes", [
+        {"policy_revision_id": "another-policy"},
+        {"effective_at": "2026-08-01T00:00:00Z"},
+    ])
+    def test_scope_key_cannot_mask_changed_valuation_basis(changes):
+>       with pytest.raises(PublicationRefusal, match="cost_context_unsupported"):
+E       Failed: DID NOT RAISE PublicationRefusal
+
+packages/reality-core/tests/test_cost_generation.py:228: Failed
+___________ test_scope_key_cannot_mask_changed_contribution_profile ____________
+
+    def test_scope_key_cannot_mask_changed_contribution_profile():
+        candidate = generation(kind="contribution", profile_revision_id="profile2")
+        prior = generation("g1", 19, kind="contribution", profile_revision_id="profile1")
+>       with pytest.raises(PublicationRefusal, match="cost_context_unsupported"):
+E       Failed: DID NOT RAISE PublicationRefusal
+
+packages/reality-core/tests/test_cost_generation.py:235: Failed
+=========================== short test summary info ============================
+FAILED packages/reality-core/tests/test_cost_generation.py::test_scope_key_cannot_mask_changed_valuation_basis[changes0]
+FAILED packages/reality-core/tests/test_cost_generation.py::test_scope_key_cannot_mask_changed_valuation_basis[changes1]
+FAILED packages/reality-core/tests/test_cost_generation.py::test_scope_key_cannot_mask_changed_contribution_profile
+3 failed, 38 passed in 2.16s

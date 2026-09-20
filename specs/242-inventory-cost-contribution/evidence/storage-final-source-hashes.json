@@ -1,0 +1,14 @@
+{
+  "packages/reality-core/src/reality/jobs/runner.py": "bb72b51e45e8a00e72ccc6c121c5034509f15de8203bae177ea43d627daf5eb5",
+  "packages/reality-core/src/reality/jobs/runtime.py": "a96f58d46592110bd0b8ddba9e9898a7e024b2a2d3a677853a598be511a391a0",
+  "packages/reality-core/src/reality/db/cost_generations.py": "cd3848c223493b2fbc3317d2cdc5fa30db9b2691d4c5cf81b3414aea40021ed4",
+  "packages/reality-core/src/reality/domain/cost_generation.py": "c7c0585ce1591d831a30fe288f9a52062fed6b82324487b6e79d109be45175b5",
+  "packages/reality-core/src/reality/services/inventory_generations.py": "37387883a3c26a906a4c11ec7d4d2e1cc87444af369255b5ad25ca2f513b9621",
+  "packages/reality-core/src/reality/services/costing.py": "5f7cc15b7c9875bd6768744a3c38676a5d1a2162aeee093f6302a382051d78dc",
+  "packages/reality-core/src/reality/services/analytics/costing_relation.py": "e90371176533f1c180d09651c3cd78a8c0f02ea639004a810f24193aa660fbdb",
+  "packages/reality-core/src/reality/jobs/handlers/costing.py": "d89d828f67c9be300a319dda1e1f4daf27495899a9434f37f9803c83d20b0baf",
+  "packages/reality-core/src/reality/jobs/registry.py": "b6f00cd3a540a0d5fc2c3be671b8deadc9a45fc3019c37d2487660a753405f1a",
+  "packages/reality-core/tests/test_cost_records.py": "a0a75bd871517600cd41348aa28dd631a84e489b2db3c3a8801eaee53b44f98d",
+  "packages/reality-core/tests/test_inventory_generations.py": "89a5241b612c3a8465670c70f80dc903a8a04f055bb038d9e52232fdf04fc3bd",
+  "packages/reality-core/tests/test_reporting_graph_coverage.py": "f0439636d435ff0b0698f49ba48b8c5cae5d675736327b2d6e1541e5dc7910d7"
+}

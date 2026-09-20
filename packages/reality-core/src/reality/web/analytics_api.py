@@ -297,3 +297,77 @@ def post_graph_interpret(
     return read(
         session, tenant_id, "graph.interpret", body.model_dump(mode="json"), request
     )
+
+
+@router.get("/graph/contribution-reviews")
+def get_contribution_reviews(
+    tenant_id: str,
+    request: Request,
+    session: DatabaseSession,
+    limit: int = 20,
+    cursor: str | None = None,
+):
+    return read(
+        session,
+        tenant_id,
+        "graph.contribution_reviews.list",
+        {
+            "limit": limit,
+            "cursor": cursor,
+        },
+        request,
+    )
+
+
+@router.get("/graph/captured-reports")
+def get_captured_reports(
+    tenant_id: str,
+    request: Request,
+    session: DatabaseSession,
+    family: str,
+    limit: int = 20,
+    cursor: str | None = None,
+):
+    return read(
+        session,
+        tenant_id,
+        "graph.captured_reports.list",
+        {"family": family, "limit": limit, "cursor": cursor},
+        request,
+    )
+
+
+@router.get("/graph/company-generation")
+def get_company_generation(
+    tenant_id: str,
+    request: Request,
+    session: DatabaseSession,
+    family: str,
+):
+    return read(
+        session,
+        tenant_id,
+        "graph.company_generation.current",
+        {"family": family},
+        request,
+    )
+
+
+@router.get("/graph/inventory-reviews")
+def get_inventory_reviews(
+    tenant_id: str,
+    request: Request,
+    session: DatabaseSession,
+    limit: int = 20,
+    cursor: str | None = None,
+):
+    return read(
+        session,
+        tenant_id,
+        "graph.inventory_reviews.list",
+        {
+            "limit": limit,
+            "cursor": cursor,
+        },
+        request,
+    )

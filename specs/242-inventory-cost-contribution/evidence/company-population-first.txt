@@ -1,0 +1,16 @@
+
+==================================== ERRORS ====================================
+________________ ERROR collecting tests/test_cost_population.py ________________
+ImportError while importing test module '/Users/benediktsauter/GitHub/reality/packages/reality-core/tests/test_cost_population.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+/opt/homebrew/Cellar/python@3.12/3.12.4/Frameworks/Python.framework/Versions/3.12/lib/python3.12/importlib/__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+packages/reality-core/tests/test_cost_population.py:9: in <module>
+    from reality.domain.cost_population import (
+E   ModuleNotFoundError: No module named 'reality.domain.cost_population'
+=========================== short test summary info ============================
+ERROR packages/reality-core/tests/test_cost_population.py
+!!!!!!!!!!!!!!!!!!!! Interrupted: 1 error during collection !!!!!!!!!!!!!!!!!!!!
+1 error in 0.10s

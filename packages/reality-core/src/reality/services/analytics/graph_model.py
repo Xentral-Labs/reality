@@ -18,10 +18,34 @@ import yaml
 from sqlalchemy import inspect as sa_inspect
 
 from reality.config import config_text
+from reality.db import (
+    captured_report,
+    company_generations,
+    contribution,
+    cost_captured_basis,
+    cost_census,
+    cost_generations,
+    costing,
+    inventory_costing,
+)
 from reality.db.core import Base
 from reality.domain.reporting_graph import Edge, Node, Property, ReportingGraph
 
 REPORTING_GRAPH_FILE = "reporting_graph.yaml"
+
+# Importing model modules registers their tables on the shared SQLAlchemy Base.
+# Keep the binding explicit so standalone catalog/docs generation validates the
+# same complete schema as the application process.
+_COST_SCHEMA_MODULES = (
+    captured_report,
+    company_generations,
+    contribution,
+    cost_captured_basis,
+    cost_census,
+    cost_generations,
+    costing,
+    inventory_costing,
+)
 
 
 class ReportingGraphError(ValueError):
@@ -173,6 +197,14 @@ def _check_measures(graph: ReportingGraph, schema: dict[str, set[str]]) -> None:
         elif measure.source.distinct and measure.source.distinct not in columns:
             raise ReportingGraphError(
                 f"measure {name}: distinct key {table}.{measure.source.distinct} does not exist"
+            )
+        if (
+            not isinstance(measure.source, str)
+            and measure.source.contribution
+            and (node.derivation != "costing.contribution" or measure.sign_from)
+        ):
+            raise ReportingGraphError(
+                "Contribution aggregates require the canonical contribution node"
             )
         if measure.sign_from and measure.sign_from not in schema[table]:
             raise ReportingGraphError(
@@ -391,7 +423,7 @@ def _kinds() -> dict[str, dict[str, str]]:
 
 
 def _property_kind(node, prop, kinds):
-    from sqlalchemy import Date, String
+    from sqlalchemy import Date, DateTime, String
 
     from reality.domain.reporting_graph import Property
     from reality.services.analytics.derivations import columns_for
@@ -409,6 +441,8 @@ def _property_kind(node, prop, kinds):
     ):
         return {"kind": "time", "temporal": "date"}
     if node.derivation and column in columns_for(node.derivation):
+        if isinstance(columns_for(node.derivation)[column], DateTime):
+            return {"kind": "time"}
         return {
             "kind": "text"
             if isinstance(columns_for(node.derivation)[column], String)

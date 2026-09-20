@@ -596,3 +596,120 @@ test("calendar date periods preserve wall-clock days rather than UTC instants", 
     { field: "i.document_date", op: "lt", value: "2026-10-01" },
   ]);
 });
+
+test("inventory context survives visual edits and is absent from a new ordinary plan", () => {
+  const inventory = { ...NODES.order, key: "inventory_valuation" };
+  const nodes = { ...NODES, inventory_valuation: inventory };
+  const context = { action_id: "confirmed-action", mode: "historical" };
+  const original = {
+    from: "inventory_valuation",
+    as: "o",
+    inventory_cost_context: context,
+    group_by: [{ field: "o.currency" }],
+    limit: 50,
+  };
+  const plan = planOf(original, nodes);
+  assert.deepEqual(plain(question(plan)).inventory_cost_context, context);
+  const edited = pruned(
+    { ...plan, limit: 10, order: { by: "o.currency", descending: true } },
+    nodes,
+  );
+  assert.deepEqual(plain(question(edited)).inventory_cost_context, context);
+  assert.equal(question(exports.listPlan(NODES.order)).inventory_cost_context, undefined);
+});
+
+test("inventory quantity adds the declared base-unit axis without losing the valuation", () => {
+  const context = { action_id: "confirmed", mode: "historical" };
+  const plan = {
+    blocks: [{ alias: "o", node: "inventory_valuation", filters: [] }],
+    inventoryCostContext: context,
+    measures: ["inventory_remaining_quantity"],
+    groups: [],
+    limit: 50,
+  };
+  const next = withRequiredAxes(
+    plan,
+    [{ key: "inventory_remaining_quantity", never_across: ["base_unit", "time"] }],
+    [{ field: "o.base_unit", label: "Base unit", kind: "text" }],
+  );
+  assert.deepEqual(plain(next.groups), [{ field: "o.base_unit", label: "Base unit" }]);
+  assert.deepEqual(plain(question(next)).inventory_cost_context, context);
+});
+
+test("contribution selection survives the editable question roundtrip", () => {
+  const context = { action_id: "contribution-confirmed", mode: "historical" };
+  const node = {
+    ...NODES.order,
+    key: "contribution_valuation",
+    properties: [
+      { key: "currency", label: "Currency" },
+      { key: "base_unit", label: "Base unit" },
+    ],
+    measures: [],
+  };
+  const plan = exports.listPlan(node);
+  assert.ok(plan.measures.includes("contribution_db2_covered"));
+  plan.contributionCostContext = context;
+  const encoded = plain(question(plan));
+  assert.deepEqual(encoded.contribution_cost_context, context);
+  const decoded = planOf(encoded, { contribution_valuation: node });
+  assert.deepEqual(plain(question(decoded)).contribution_cost_context, context);
+});
+
+test("contribution current selection survives the editable question roundtrip", () => {
+  const context = { action_id: "contribution-confirmed", mode: "current" };
+  const node = {
+    ...NODES.order,
+    key: "contribution_valuation",
+    properties: [
+      { key: "currency", label: "Currency" },
+      { key: "base_unit", label: "Base unit" },
+    ],
+    measures: [],
+  };
+  const plan = exports.listPlan(node);
+  assert.ok(plan.measures.includes("contribution_db2_covered"));
+  plan.contributionCostContext = context;
+  const encoded = plain(question(plan));
+  assert.deepEqual(encoded.contribution_cost_context, context);
+  const decoded = planOf(encoded, { contribution_valuation: node });
+  assert.deepEqual(plain(question(decoded)).contribution_cost_context, context);
+});
+
+test("captured generation identity survives the editable question roundtrip", () => {
+  const context = { generation_id: "cgr_fixed" };
+  const node = {
+    ...NODES.order,
+    key: "contribution_valuation",
+    properties: [
+      { key: "currency", label: "Currency" },
+      { key: "base_unit", label: "Base unit" },
+    ],
+    measures: [],
+  };
+  const plan = exports.listPlan(node);
+  plan.capturedCostContext = context;
+  const encoded = plain(question(plan));
+  assert.deepEqual(encoded.captured_cost_context, context);
+  const decoded = planOf(encoded, { contribution_valuation: node });
+  assert.deepEqual(plain(question(decoded)).captured_cost_context, context);
+});
+
+test("company generation identity survives the editable question roundtrip", () => {
+  const context = { generation_id: "ccg_fixed" };
+  const node = {
+    ...NODES.order,
+    key: "contribution_valuation",
+    properties: [
+      { key: "currency", label: "Currency" },
+      { key: "base_unit", label: "Base unit" },
+    ],
+    measures: [],
+  };
+  const plan = exports.listPlan(node);
+  plan.companyCostContext = context;
+  const encoded = plain(question(plan));
+  assert.deepEqual(encoded.company_cost_context, context);
+  const decoded = planOf(encoded, { contribution_valuation: node });
+  assert.deepEqual(plain(question(decoded)).company_cost_context, context);
+});

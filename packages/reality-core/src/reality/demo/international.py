@@ -1,6 +1,6 @@
 """Versioned synthetic vocabulary and authored comparison inputs."""
 
-PROFILE_VERSION = 1
+PROFILE_VERSION = 2
 ITEMS = (
     ("P01", "Summit Bottle", "pcs", "Outdoor"),
     ("P02", "Trail Lantern", "pcs", "Outdoor"),

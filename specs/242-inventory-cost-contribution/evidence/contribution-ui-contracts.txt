@@ -1,0 +1,43 @@
+✔ late responses cannot overwrite a newer sentence or update an unmounted company (128.972583ms)
+✔ expert drafts survive tab changes and failed execution and block saving (78.133958ms)
+✔ expert execution passes the full checked definition to saving (50.531125ms)
+✔ catalog previews keep false values false and translate boolean labels (9.352041ms)
+✔ explicitly reopening the same report reloads it while catalog navigation retains the draft (6.569542ms)
+✔ inventory waits for explicit selection and discards cleared or superseded answers (45.7005ms)
+✔ reopened inventory context survives edits, saving, and failed replacement (42.946084ms)
+✔ a period is one line to read and one line to remove (3.421708ms)
+✔ taking a step away takes away what pointed at it (0.169708ms)
+✔ the stack compiles to the question the server checks (0.139542ms)
+✔ one button carries all three states a sort can be in (0.080042ms)
+✔ an axis can be sorted by the name the answer gives it (0.079083ms)
+✔ a sort on a removed axis goes with it (0.056709ms)
+✔ a time axis is bucketed, because one row per instant is a list not an answer (0.060209ms)
+✔ a saved question reopens as the steps that built it (0.258208ms)
+✔ a reopened period is one line again, not two halves (33.36375ms)
+✔ a question naming a record this model does not have reopens as nothing (0.146084ms)
+✔ a second number stands beside the first, not in place of it (0.239542ms)
+✔ taking the last number away puts the records back (0.583958ms)
+✔ a reopened period reads as the day it was picked, not the day before (0.268334ms)
+✔ a connection is offered from everywhere the question has reached (0.149625ms)
+✔ a branching hop says where it starts, and an ordinary one does not (0.092625ms)
+✔ a period reads the same before and after it is saved (0.173041ms)
+✔ an axis a number may not be summed across arrives as soon as it is reachable (0.079875ms)
+✔ advanced questions stay in expert mode instead of dropping their clauses (0.078834ms)
+✔ connection diagram uses the declared origin for branches (0.153042ms)
+✔ catalog field and relation transitions produce ordinary unsaved questions (0.142ms)
+✔ omitted server defaults do not reverse a relationship's multiplicity (0.049375ms)
+✔ the last 30 days covers exactly thirty local calendar dates (0.104917ms)
+✔ question period recognizes only a bounded range on one declared time field (0.174792ms)
+✔ removing the question period preserves other filters and query dimensions (0.188125ms)
+✔ calendar date periods preserve wall-clock days rather than UTC instants (0.063792ms)
+✔ inventory context survives visual edits and is absent from a new ordinary plan (0.146334ms)
+✔ inventory quantity adds the declared base-unit axis without losing the valuation (1.622625ms)
+✔ contribution selection survives the editable question roundtrip (0.154041ms)
+ℹ tests 35
+ℹ suites 0
+ℹ pass 35
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 615.706833

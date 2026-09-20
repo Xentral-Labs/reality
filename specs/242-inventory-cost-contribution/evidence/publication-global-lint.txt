@@ -1,0 +1,366 @@
+I001 [*] Import block is un-sorted or un-formatted
+  --> tests/test_desktop_http.py:3:1
+   |
+ 1 |   """The desktop transport reuses authenticated company setup without public signup."""
+ 2 |
+ 3 | / from contextlib import contextmanager
+ 4 | | from uuid import uuid4
+ 5 | |
+ 6 | | import pytest
+ 7 | | from fastapi.testclient import TestClient
+ 8 | | from reality.services import desktop_identity
+ 9 | | from reality.services.account_sessions import issue_session
+10 | | from reality.web.desktop import create_desktop_app
+   | |__________________________________________________^
+help: Organize imports
+  |
+7 | from fastapi.testclient import TestClient
+8 +
+9 | from reality.services import desktop_identity
+  |
+
+I001 [*] Import block is un-sorted or un-formatted
+  --> tests/test_desktop_identity.py:3:1
+   |
+ 1 |   """Local ownership must never become a hosted email verification bypass."""
+ 2 |
+ 3 | / import uuid
+ 4 | |
+ 5 | | import pytest
+ 6 | | from reality.db.core import AccessApplication, AppUser, now
+ 7 | | from reality.services import account_policy, company_setup, desktop_identity
+ 8 | | from reality.services.core import InvalidOperation
+ 9 | | from reality.services.tenant_policy import PlaygroundOperationDenied
+10 | | from sqlalchemy import func, select
+   | |___________________________________^
+help: Organize imports
+   |
+5  | import pytest
+6  + from sqlalchemy import func, select
+7  +
+8  | from reality.db.core import AccessApplication, AppUser, now
+9  | from reality.services import account_policy, company_setup, desktop_identity
+10 | from reality.services.core import InvalidOperation
+11 | from reality.services.tenant_policy import PlaygroundOperationDenied
+   - from sqlalchemy import func, select
+12 |
+   |
+
+I001 [*] Import block is un-sorted or un-formatted
+   --> tests/test_desktop_identity.py:95:5
+    |
+ 94 |   def test_hosted_session_rejects_local_owner_even_with_valid_token(session):
+ 95 | /     from datetime import timedelta
+ 96 | |
+ 97 | |     from reality.db.core import UserSession, uid
+ 98 | |     from reality.web import auth
+ 99 | |     from starlette.requests import Request
+    | |__________________________________________^
+100 |
+101 |       owner = local_owner(session)
+    |
+help: Organize imports
+    |
+96  |
+97  +     from starlette.requests import Request
+98  +
+99  |     from reality.db.core import UserSession, uid
+100 |     from reality.web import auth
+    -     from starlette.requests import Request
+101 |
+    |
+
+I001 [*] Import block is un-sorted or un-formatted
+   --> tests/test_desktop_identity.py:120:5
+    |
+119 |   def test_local_owner_cannot_use_email_login_or_verification(session):
+120 | /     from fastapi import HTTPException, Response
+121 | |     from reality.web import auth
+    | |________________________________^
+122 |
+123 |       owner = local_owner(session)
+    |
+help: Organize imports
+    |
+120 |     from fastapi import HTTPException, Response
+121 +
+122 |     from reality.web import auth
+    |
+
+I001 [*] Import block is un-sorted or un-formatted
+   --> tests/test_desktop_identity.py:137:5
+    |
+136 |   def test_session_issuance_and_revocation_share_owner_policy(session):
+137 | /     from reality.services.account_sessions import issue_session, revoke_session
+138 | |     from reality.web import auth
+139 | |     from starlette.requests import Request
+    | |__________________________________________^
+140 |
+141 |       owner = local_owner(session)
+    |
+help: Organize imports
+    |
+136 | def test_session_issuance_and_revocation_share_owner_policy(session):
+137 +     from starlette.requests import Request
+138 +
+139 |     from reality.services.account_sessions import issue_session, revoke_session
+140 |     from reality.web import auth
+    -     from starlette.requests import Request
+141 |
+    |
+
+I001 [*] Import block is un-sorted or un-formatted
+ --> tests/test_global_search_access.py:3:1
+  |
+1 |   """Search authorization applies to aliases, retained versions and owned definitions."""
+2 |
+3 | / import pytest
+4 | | from reality.db.analytics import AnalyticsReport
+5 | | from reality.db.core import AppUser, PartyRole, SourceRecord, TenantMembership, now
+6 | | from reality.domain.search import RecordTarget, SearchRequest
+7 | | from reality.services.core import NotFound, create_document, create_party, create_tenant
+8 | | from reality.services.global_search import resolve_search_targets, search_company
+9 | | from reality.services.memberships import Principal
+  | |__________________________________________________^
+help: Organize imports
+  |
+3 | import pytest
+4 +
+5 | from reality.db.analytics import AnalyticsReport
+  |
+
+I001 [*] Import block is un-sorted or un-formatted
+ --> tests/test_global_search_benchmark.py:3:1
+  |
+1 |   """Early full-population risk probe; not the ten-user browser acceptance benchmark."""
+2 |
+3 | / import time
+4 | |
+5 | | from reality.db.core import Item
+6 | | from reality.domain.search import SearchRequest
+7 | | from reality.services.global_search import search_company
+8 | | from sqlalchemy import insert
+  | |_____________________________^
+help: Organize imports
+   |
+4  |
+5  + from sqlalchemy import insert
+6  +
+7  | from reality.db.core import Item
+8  | from reality.domain.search import SearchRequest
+9  | from reality.services.global_search import search_company
+   - from sqlalchemy import insert
+10 |
+   |
+
+I001 [*] Import block is un-sorted or un-formatted
+  --> tests/test_global_search_benchmark.py:45:5
+   |
+44 |   def test_benchmark_dataset_and_guards_are_explicit():
+45 | /     import pytest
+46 | |     from benchmarks.global_search.runner import (
+47 | |         cases_for,
+48 | |         counts_for,
+49 | |         validate_database_target,
+50 | |     )
+   | |_____^
+51 |
+52 |       counts = counts_for(100000)
+   |
+help: Organize imports
+   |
+45 |     import pytest
+46 +
+47 |     from benchmarks.global_search.runner import (
+   |
+
+I001 [*] Import block is un-sorted or un-formatted
+  --> tests/test_global_search_matching.py:3:1
+   |
+ 1 |   """Search ordering is a contract shared by PostgreSQL and the palette."""
+ 2 |
+ 3 | / import json
+ 4 | | from pathlib import Path
+ 5 | |
+ 6 | | import pytest
+ 7 | | from pydantic import ValidationError
+ 8 | | from reality.domain.search import SearchRequest, edit_one, match_tier, normalize
+   | |________________________________________________________________________________^
+ 9 |
+10 |   CASES = json.loads(
+   |
+help: Organize imports
+  |
+7 | from pydantic import ValidationError
+8 +
+9 | from reality.domain.search import SearchRequest, edit_one, match_tier, normalize
+  |
+
+I001 [*] Import block is un-sorted or un-formatted
+  --> tests/test_global_search_matching.py:61:5
+   |
+59 |   @pytest.mark.parametrize("case", CASES, ids=lambda row: row["query"])
+60 |   def test_staged_sql_predicates_match_the_authoritative_corpus(session, case):
+61 | /     from reality.db.search import _tier_match
+62 | |     from sqlalchemy import literal, select
+   | |__________________________________________^
+63 |
+64 |       if not case["query"].strip():
+   |
+help: Organize imports
+   |
+60 | def test_staged_sql_predicates_match_the_authoritative_corpus(session, case):
+   -     from reality.db.search import _tier_match
+61 |     from sqlalchemy import literal, select
+62 |
+63 +     from reality.db.search import _tier_match
+64 +
+65 |     if not case["query"].strip():
+   |
+
+I001 [*] Import block is un-sorted or un-formatted
+  --> tests/test_global_search_matching.py:85:5
+   |
+83 |   @pytest.mark.parametrize("query,tier", [("Warehouse", 2), ("warehose", 3)])
+84 |   def test_nullable_identifiers_do_not_remove_name_matches(session, query, tier):
+85 | /     from reality.db.search import _tier_match
+86 | |     from sqlalchemy import String, literal, select
+   | |__________________________________________________^
+87 |
+88 |       actual = [
+   |
+help: Organize imports
+   |
+84 | def test_nullable_identifiers_do_not_remove_name_matches(session, query, tier):
+   -     from reality.db.search import _tier_match
+85 |     from sqlalchemy import String, literal, select
+86 |
+87 +     from reality.db.search import _tier_match
+88 +
+89 |     actual = [
+   |
+
+I001 [*] Import block is un-sorted or un-formatted
+  --> tests/test_global_search_migration.py:3:1
+   |
+ 1 |   """SQL search support uses the same semantics and preserves existing data."""
+ 2 |
+ 3 | / import json
+ 4 | | from pathlib import Path
+ 5 | |
+ 6 | | import pytest
+ 7 | | from alembic import command
+ 8 | | from alembic.config import Config
+ 9 | | from reality.db.search_sql import install_search_support
+10 | | from sqlalchemy import create_engine, text
+   | |__________________________________________^
+11 |
+12 |   CASES = json.loads(
+   |
+help: Organize imports
+   |
+8  | from alembic.config import Config
+   - from reality.db.search_sql import install_search_support
+9  | from sqlalchemy import create_engine, text
+10 |
+11 + from reality.db.search_sql import install_search_support
+12 +
+13 | CASES = json.loads(
+   |
+
+I001 [*] Import block is un-sorted or un-formatted
+ --> tests/test_global_search_service.py:3:1
+  |
+1 |   """The palette searches complete scoped sets before limiting results."""
+2 |
+3 | / import pytest
+4 | | from reality.domain.search import RecordTarget, SearchRequest
+5 | | from reality.services.core import NotFound, create_item, create_tenant
+6 | | from reality.services.global_search import resolve_search_targets, search_company
+7 | | from reality.services.memberships import Principal
+  | |__________________________________________________^
+help: Organize imports
+  |
+3 | import pytest
+4 +
+5 | from reality.domain.search import RecordTarget, SearchRequest
+  |
+
+I001 [*] Import block is un-sorted or un-formatted
+   --> tests/test_global_search_service.py:142:5
+    |
+141 |   def test_document_payment_shipment_canonical_authorities(session, business):
+142 | /     from reality.db.core import LedgerEntry, Shipment, ShipmentPackage, SourceRecord
+143 | |     from reality.services.core import (
+144 | |         create_document,
+145 | |         post_customer_payment,
+146 | |         post_sales_invoice,
+147 | |     )
+148 | |     from sqlalchemy import select
+    | |_________________________________^
+149 |
+150 |       tenant = business.tenant.id
+    |
+help: Organize imports
+    |
+141 | def test_document_payment_shipment_canonical_authorities(session, business):
+142 +     from sqlalchemy import select
+143 +
+144 |     from reality.db.core import LedgerEntry, Shipment, ShipmentPackage, SourceRecord
+--------------------------------------------------------------------------------
+149 |     )
+    -     from sqlalchemy import select
+150 |
+    |
+
+I001 [*] Import block is un-sorted or un-formatted
+ --> tests/test_global_search_web.py:3:1
+  |
+1 |   """Transport validates bounds and delegates read-only search."""
+2 |
+3 | / from fastapi.testclient import TestClient
+4 | | from reality.web import api as api_module
+5 | | from reality.web.app import app
+6 | | from sqlalchemy import event
+  | |____________________________^
+help: Organize imports
+  |
+3 | from fastapi.testclient import TestClient
+4 + from sqlalchemy import event
+5 +
+6 | from reality.web import api as api_module
+7 | from reality.web.app import app
+  - from sqlalchemy import event
+8 |
+  |
+
+I001 [*] Import block is un-sorted or un-formatted
+  --> tests/test_global_search_web.py:60:5
+   |
+59 |   def test_search_admission_does_not_block_the_async_event_loop(monkeypatch):
+60 | /     import asyncio
+61 | |     import threading
+62 | |     from contextlib import nullcontext
+63 | |     from types import SimpleNamespace
+64 | |
+65 | |     from reality.web import app as web_app
+66 | |     from starlette.requests import Request
+67 | |     from starlette.responses import PlainTextResponse
+   | |_____________________________________________________^
+68 |
+69 |       started = threading.Event()
+   |
+help: Organize imports
+   |
+64 |
+   -     from reality.web import app as web_app
+65 |     from starlette.requests import Request
+66 |     from starlette.responses import PlainTextResponse
+67 |
+68 +     from reality.web import app as web_app
+69 +
+70 |     started = threading.Event()
+   |
+
+Found 16 errors.
+[*] 16 fixable with the `--fix` option.

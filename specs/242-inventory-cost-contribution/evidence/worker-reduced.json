@@ -1,0 +1,134 @@
+{
+  "status": "exploratory",
+  "qualification_passed": false,
+  "source_digest": "0adc9d510319c25e332ddcb0245a3a8413e4fa8b4c50af1f1831ee5b952ecd4b",
+  "setup_s": 0.1382220000086818,
+  "cardinalities": {
+    "a": {
+      "item": 12,
+      "trade_order": 120,
+      "movement": 1200,
+      "component": 1200,
+      "attribution": 1200,
+      "matching": 720
+    },
+    "b": {
+      "item": 12,
+      "trade_order": 120,
+      "movement": 1200,
+      "component": 1200,
+      "attribution": 1200,
+      "matching": 720
+    }
+  },
+  "cycles": [
+    {
+      "generation": "b4ae3e3465af484c8c17387b1ca6335b",
+      "reconstruction_s": 0.9825319180090446,
+      "children": {
+        "samples": 1,
+        "p50_s": 0.9279795840266161,
+        "p95_s": 0.9279795840266161,
+        "max_s": 0.9279795840266161
+      },
+      "job_counts": [
+        {
+          "rows": 732,
+          "ranges": 1,
+          "movements": 1200,
+          "published": 1
+        }
+      ],
+      "readers": [
+        {
+          "samples": 10,
+          "p50_s": 0.000994957983493805,
+          "p95_s": 0.0035107500152662396,
+          "max_s": 0.0035107500152662396,
+          "states": {
+            "ready": 1,
+            "not_ready": 9
+          },
+          "generations": [
+            "b4ae3e3465af484c8c17387b1ca6335b"
+          ]
+        },
+        {
+          "samples": 10,
+          "p50_s": 0.0008763130026636645,
+          "p95_s": 0.028162665985291824,
+          "max_s": 0.028162665985291824,
+          "states": {
+            "ready": 2,
+            "not_ready": 8
+          },
+          "generations": [
+            "b4ae3e3465af484c8c17387b1ca6335b"
+          ]
+        },
+        {
+          "samples": 10,
+          "p50_s": 0.0008703335042810068,
+          "p95_s": 0.006712374975904822,
+          "max_s": 0.006712374975904822,
+          "states": {
+            "ready": 1,
+            "not_ready": 9
+          },
+          "generations": [
+            "b4ae3e3465af484c8c17387b1ca6335b"
+          ]
+        },
+        {
+          "samples": 10,
+          "p50_s": 0.0013252084900159389,
+          "p95_s": 0.020709917007479817,
+          "max_s": 0.020709917007479817,
+          "states": {
+            "ready": 1,
+            "not_ready": 9
+          },
+          "generations": [
+            "b4ae3e3465af484c8c17387b1ca6335b"
+          ]
+        },
+        {
+          "samples": 10,
+          "p50_s": 0.0010060214844997972,
+          "p95_s": 0.020362542010843754,
+          "max_s": 0.020362542010843754,
+          "states": {
+            "ready": 1,
+            "not_ready": 9
+          },
+          "generations": [
+            "b4ae3e3465af484c8c17387b1ca6335b"
+          ]
+        }
+      ],
+      "checksum": "5673b466cae53297eaf62b8432742d24c416fdf573bf4e62503b8f768bb05394",
+      "observations": 732,
+      "inventory_pools": 12,
+      "poll_seconds": 0.0,
+      "measured_limits_passed": true
+    }
+  ],
+  "profile": "reduced",
+  "python": "3.12.13",
+  "git_revision": "709af5c1a6358be2f004003f37b836ff6095b5bf",
+  "elapsed_s": 1.144971750996774,
+  "measured_limits_passed": true,
+  "limitations": [
+    "Static experimental bootstrap; normal product registry/worker startup remains unchanged.",
+    "Real shared queue, child watchdog and settlement; driver simulates five-second worker polling, not deployed scheduler phase/fairness.",
+    "Exact dedicated reference host and cold OS cache remain unqualified.",
+    "Frozen adjustment revision over immutable v3 base inputs is not general product source-version history.",
+    "Typed published SQL relation is exercised; actual analysis compiler/MCP/exception adapters remain unimplemented."
+  ],
+  "process_cgroup": {
+    "cpu.max": "200000 100000",
+    "memory.max": "2147483648",
+    "memory.swap.max": "0",
+    "memory.peak": "149757952"
+  }
+}

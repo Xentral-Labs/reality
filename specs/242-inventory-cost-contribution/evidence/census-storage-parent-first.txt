@@ -1,0 +1,101 @@
+F
+=================================== FAILURES ===================================
+_______ test_capture_refuses_unavailable_header_instead_of_dropping_line _______
+
+scheduled_database = (Engine(postgresql+psycopg://costing:***@127.0.0.1:55439/reality_migration_154f21cb8a), sessionmaker(class_='Session',...ing:***@127.0.0.1:55439/reality_migration_154f21cb8a), autoflush=True, expire_on_commit=False), 'ten_70f2d66bda', None)
+
+    def test_capture_refuses_unavailable_header_instead_of_dropping_line(scheduled_database):
+        data = seed(scheduled_database)
+        factory, tenant, cutoff, _, _, _, _, _, line, *_ = data
+        with factory() as session:
+            other = core.create_tenant(session, "Other").id
+            party = core.create_party(session, other, "Other customer", "customer")
+            document = core.create_document(session, other, "sales_invoice", "PRIVATE", party.id, "0")
+            # Legacy schema permits this malformed cross-tenant link; services must not omit it.
+            session.execute(text("UPDATE document_line SET document_id=:parent WHERE tenant_id=:tenant AND id=:line"), {"parent": document.id, "tenant": tenant, "line": line})
+            session.commit()
+>       with read_session(factory) as session, pytest.raises(core.InvalidOperation, match="unavailable header"):
+E       Failed: DID NOT RAISE InvalidOperation
+
+tests/test_cost_census_storage.py:568: Failed
+---------------------------- Captured stderr setup -----------------------------
+INFO  [alembic.runtime.migration] Context impl PostgresqlImpl.
+INFO  [alembic.runtime.migration] Will assume transactional DDL.
+INFO  [alembic.runtime.migration] Running upgrade  -> 0001_initial, Initial Source, Evidence, and Reality schema.
+INFO  [alembic.runtime.migration] Running upgrade 0001_initial -> 0002_settlement_allocations, Add explicit payment-to-invoice settlement allocations.
+INFO  [alembic.runtime.migration] Running upgrade 0002_settlement_allocations -> 0003_master_data_active, Add lifecycle state to master data.
+INFO  [alembic.runtime.migration] Running upgrade 0003_master_data_active -> 0004_master_data_source, Link parties and items to immutable source records.
+INFO  [alembic.runtime.migration] Running upgrade 0004_master_data_source -> 0005_operational_fields, Add the proven operational fields selected for V0.
+INFO  [alembic.runtime.migration] Running upgrade 0005_operational_fields -> 0006_commitment_holds, Add reversible execution holds for commitments.
+INFO  [alembic.runtime.migration] Running upgrade 0006_commitment_holds -> 0007_party_delivery_holds, Add reversible delivery holds for customer parties.
+INFO  [alembic.runtime.migration] Running upgrade 0007_party_delivery_holds -> 0008_utc_timestamps, Store business timestamps with explicit UTC timezone semantics.
+INFO  [alembic.runtime.migration] Running upgrade 0008_utc_timestamps -> 0009_payment_terms, Normalize payment terms into tenant-scoped master data.
+INFO  [alembic.runtime.migration] Running upgrade 0009_payment_terms -> 0010_pricing, Add explainable sales and purchase pricing.
+INFO  [alembic.runtime.migration] Running upgrade 0010_pricing -> 0011_source_import_idempotency, Add durable source idempotency and retryable import jobs.
+INFO  [alembic.runtime.migration] Running upgrade 0011_source_import_idempotency -> 0012_business_events, Add the transactional business-event outbox.
+INFO  [alembic.runtime.migration] Running upgrade 0012_business_events -> 0013_integration_registry, Add tenant integration registry.
+INFO  [alembic.runtime.migration] Running upgrade 0013_integration_registry -> 0014_tenant_lifecycle, Add reversible tenant archival.
+INFO  [alembic.runtime.migration] Running upgrade 0014_tenant_lifecycle -> 0015_handling_units, Add optional pallet handling units to movements.
+INFO  [alembic.runtime.migration] Running upgrade 0015_handling_units -> 0016_inventory_tracking_dimensions, Add lot and serial dimensions to movements and reservations.
+INFO  [alembic.runtime.migration] Running upgrade 0016_inventory_tracking_dimensions -> 0017_ai_settings, Add tenant-scoped AI provider settings.
+INFO  [alembic.runtime.migration] Running upgrade 0017_ai_settings -> 0018_materialized_projections, Add generic tenant-scoped materialized projection storage.
+INFO  [alembic.runtime.migration] Running upgrade 0018_materialized_projections -> 0019_mcp_access_tokens, Add tenant-scoped MCP bearer tokens.
+INFO  [alembic.runtime.migration] Running upgrade 0019_mcp_access_tokens -> 0020_scale_read_paths, Index tenant-scoped operational read paths.
+INFO  [alembic.runtime.migration] Running upgrade 0020_scale_read_paths -> 0021_source_artifacts, Add immutable streamed source artifacts.
+INFO  [alembic.runtime.migration] Running upgrade 0021_source_artifacts -> 0022_mcp_tool_permissions, Add explicit per-token MCP tool permissions.
+INFO  [alembic.runtime.migration] Running upgrade 0022_mcp_tool_permissions -> 0023_exception_terminology, Rename the materialized issue projection to operational exceptions.
+INFO  [alembic.runtime.migration] Running upgrade 0023_exception_terminology -> 0024_user_access, Add human identities, access applications and tenant memberships.
+INFO  [alembic.runtime.migration] Running upgrade 0024_user_access -> 0025_user_language, store UI language separately from locale
+INFO  [alembic.runtime.migration] Running upgrade 0025_user_language -> 0026_secret_vault, Add the tenant-scoped encrypted secret vault.
+INFO  [alembic.runtime.migration] Running upgrade 0026_secret_vault -> 0027_access_admission_counter, Add the automatic access admission counter.
+INFO  [alembic.runtime.migration] Running upgrade 0027_access_admission_counter -> 0028_movement_corrections, Add auditable Movement correction relationships.
+INFO  [alembic.runtime.migration] Running upgrade 0028_movement_corrections -> 0029_ledger_reversals, Add auditable Ledger posting-group reversals.
+INFO  [alembic.runtime.migration] Running upgrade 0029_ledger_reversals -> 0030_company_membership_invitations, Add company membership invitations and durable delivery intent.
+INFO  [alembic.runtime.migration] Running upgrade 0030_company_membership_invitations -> 0031_chat_session_archiving, Retain archived chat sessions and their audit context.
+INFO  [alembic.runtime.migration] Running upgrade 0031_chat_session_archiving -> 0032_fact_observation_identity, Add tenant-scoped Fact observation retry identity.
+INFO  [alembic.runtime.migration] Running upgrade 0032_fact_observation_identity -> 0033_interpretation_outcomes, Preserve source interpretation attempt outcomes.
+INFO  [alembic.runtime.migration] Running upgrade 0033_interpretation_outcomes -> 0034_decision_attribution, Record who decided a change proposal and when.
+INFO  [alembic.runtime.migration] Running upgrade 0034_decision_attribution -> 0035_reality_gaps, Add Reality Gap workflow and safe interpretation rules.
+INFO  [alembic.runtime.migration] Running upgrade 0035_reality_gaps -> 0036_erp_interpretation_rules, Add ERP-ready conditional interpretation rule fields.
+INFO  [alembic.runtime.migration] Running upgrade 0036_erp_interpretation_rules -> 0037_invoice_order_link, Let an invoice line name the order line it bills.
+INFO  [alembic.runtime.migration] Running upgrade 0037_invoice_order_link -> 0038_return_resolution, Let a movement say which return it settles.
+INFO  [alembic.runtime.migration] Running upgrade 0038_return_resolution -> 0039_early_payment_discount, Let a payment term state an early-payment discount.
+INFO  [alembic.runtime.migration] Running upgrade 0039_early_payment_discount -> 0040_commitment_revisions, Let a counterparty state a new date without erasing the old one.
+INFO  [alembic.runtime.migration] Running upgrade 0038_return_resolution -> 0039_learning_playground, Private learning-run metadata; existing tenants remain businesses.
+INFO  [alembic.runtime.migration] Running upgrade 0039_learning_playground, 0040_commitment_revisions -> 0041_playground_main_merge, Join existing Playground and main histories without rewriting deployed revisions.
+INFO  [alembic.runtime.migration] Running upgrade 0041_playground_main_merge -> 0042_commitment_revision_quantity, Let one statement restate a promise's quantity as well as its date.
+INFO  [alembic.runtime.migration] Running upgrade 0042_commitment_revision_quantity -> 0043_return_announcements, Let a customer say goods are coming back before they arrive.
+INFO  [alembic.runtime.migration] Running upgrade 0041_playground_main_merge -> 0043_practice_companies, Keep named practice companies active independently of quick experiments.
+INFO  [alembic.runtime.migration] Running upgrade 0043_practice_companies, 0043_return_announcements -> 0044_playground_returns_merge, Join practice companies and announced returns without rewriting either history.
+INFO  [alembic.runtime.migration] Running upgrade 0044_playground_returns_merge -> 0045_lot_expiry, Let a lot carry the best-before date somebody stated.
+INFO  [alembic.runtime.migration] Running upgrade 0044_playground_returns_merge -> 0045_scheduled_jobs, Add tenant-scoped schedules and durable logical job runs.
+INFO  [alembic.runtime.migration] Running upgrade 0045_scheduled_jobs -> 0046_company_setup_demo, Add approved ordinary creation receipts and demo connection lifecycle.
+INFO  [alembic.runtime.migration] Running upgrade 0046_company_setup_demo, 0045_lot_expiry -> 0047_merge_demo_lot_expiry, Join scheduled demo setup and existing lot expiry without rewriting either branch.
+INFO  [alembic.runtime.migration] Running upgrade 0047_merge_demo_lot_expiry -> 0048_finance_accounts, Introduce required account identities for a clean local finance cutover.
+INFO  [alembic.runtime.migration] Running upgrade 0048_finance_accounts -> 0049_settlement_reduction_roles, Permit explicit settlement reduction counterparts without rewriting history.
+INFO  [alembic.runtime.migration] Running upgrade 0049_settlement_reduction_roles -> 0050_opening_subledger, Add declared opening coverage and residual-item evidence without rewriting history.
+INFO  [alembic.runtime.migration] Running upgrade 0050_opening_subledger -> 0051_finance_references, Add managed internal references without changing existing financial evidence.
+INFO  [alembic.runtime.migration] Running upgrade 0051_finance_references -> 0052_component_assignments, Normalize received finance components and preserve internal assignment revisions.
+INFO  [alembic.runtime.migration] Running upgrade 0052_component_assignments -> 0053_source_classification, Add exact source classification revisions without rewriting evidence.
+INFO  [alembic.runtime.migration] Running upgrade 0053_source_classification -> 0054_target_mappings, Add Finance-only external targets and reviewed mapping revisions.
+INFO  [alembic.runtime.migration] Running upgrade 0054_target_mappings -> 0055_demo_settlement_schedule, Give the Demo Data connection its settlement schedule (feature 168).
+INFO  [alembic.runtime.migration] Running upgrade 0055_demo_settlement_schedule -> 0056_physical_shipments, Add physical shipments, packages, and append-only tracking events.
+INFO  [alembic.runtime.migration] Running upgrade 0056_physical_shipments -> 0057_projection_jobs, Allow narrowly scoped internal projection jobs without false user attribution.
+INFO  [alembic.runtime.migration] Running upgrade 0057_projection_jobs -> 0058_storyline, Storyline mode (spec 182): Fact recording order, run and step markers, trace and library.
+INFO  [alembic.runtime.migration] Running upgrade 0058_storyline -> 0059_foreign_key_indexes, Index the first column of every foreign key (spec 181, ingest cost and company removal).
+INFO  [alembic.runtime.migration] Running upgrade 0059_foreign_key_indexes -> 0060_analytics_reports, Private analytics definitions; no computed business results are stored.
+INFO  [alembic.runtime.migration] Running upgrade 0060_analytics_reports -> 0061_source_system_addressing, Address a configured source system, and name the connector it came from (spec 211).
+INFO  [alembic.runtime.migration] Running upgrade 0061_source_system_addressing -> 0062_graph_report_model_version, Record which model interpreted a saved report (spec 224).
+INFO  [alembic.runtime.migration] Running upgrade 0062_graph_report_model_version -> 0063_global_search_support, Read-only global search support over existing held fields (spec 235).
+INFO  [alembic.runtime.migration] Running upgrade 0063_global_search_support -> 0071_receipt_costing, Retained receipt acquisition-cost decisions (spec 242).
+INFO  [alembic.runtime.migration] Running upgrade 0071_receipt_costing -> 0072_inventory_costing, Confirmed bounded inventory authority and retained inputs (spec 242).
+INFO  [alembic.runtime.migration] Running upgrade 0072_inventory_costing -> 0073_contribution_reviews, Retained commercial revenue and reviewed DB1 scope (spec 242).
+INFO  [alembic.runtime.migration] Running upgrade 0073_contribution_reviews -> 0074_selling_costs, Source-backed selling decisions and frozen DB2 membership (spec 242).
+INFO  [alembic.runtime.migration] Running upgrade 0074_selling_costs -> 0068_desktop_identity, Distinguish local OS identity from email admission (spec 239).
+INFO  [alembic.runtime.migration] Running upgrade 0068_desktop_identity -> 0075_inventory_generations, Disposable retained-inventory publications (spec242); no financial authority.
+INFO  [alembic.runtime.migration] Running upgrade 0075_inventory_generations -> 0076_contribution_generations, Disposable joint contribution observations (spec242); no financial authority.
+INFO  [alembic.runtime.migration] Running upgrade 0076_contribution_generations -> 0077_company_cost_census, Retained company discovery; never a financial approval (spec242).
+=========================== short test summary info ============================
+FAILED tests/test_cost_census_storage.py::test_capture_refuses_unavailable_header_instead_of_dropping_line
+!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!
+1 failed, 18 deselected in 4.44s

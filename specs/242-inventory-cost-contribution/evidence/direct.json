@@ -1,0 +1,59 @@
+{
+  "strategy": "direct",
+  "dataset_version": "costing-spike-v2",
+  "profile": "full",
+  "qualification_passed": false,
+  "measurements": {
+    "order": {
+      "samples": 200,
+      "p50_s": 0.050436687510227785,
+      "p95_s": 0.1423789999971632,
+      "max_s": 0.1921592500002589,
+      "budget_s": 0.5
+    }
+  },
+  "limitations": [
+    "Exploratory host: combined 4-vCPU/16-GiB envelope is not enforced.",
+    "An OS/database cold-cache run and the full freshness response contract are not certified.",
+    "Experimental typed relations are not yet wired to the product analysis compiler or exception register.",
+    "Full generated history is regular receipts/issues/transfers; returns, split credits, tax and partial matching are independent small proofs, not distributed full-load scenarios.",
+    "Projection completeness/review invalidation and source-version history are not product implementations.",
+    "Only direct order latency and whole-pool reconstruction are measured; other direct read surfaces remain unqualified."
+  ],
+  "input_revision_before": 30,
+  "reconstruction_s": [
+    12.057984249986475,
+    12.406406875001267,
+    12.249606750003295
+  ],
+  "checksum": "b55e20c8e576ad5488aeb2d27f6b182f4ce92c5fb656a93c42605c719b081923",
+  "measured_order_budget_passed": true,
+  "input_revision_after": 30,
+  "status": "exploratory",
+  "cardinalities": {
+    "a": {
+      "item": 10000,
+      "trade_order": 100000,
+      "movement": 1000000,
+      "component": 1000000,
+      "attribution": 1000000,
+      "matching": 600000
+    },
+    "b": {
+      "item": 10000,
+      "trade_order": 100000,
+      "movement": 1000000,
+      "component": 1000000,
+      "attribution": 1000000,
+      "matching": 600000
+    }
+  },
+  "setup_s": 0.3728698749910109,
+  "python": "3.12.4",
+  "platform": "macOS-27.0-arm64-arm-64bit",
+  "git_revision": "709af5c1a6358be2f004003f37b836ff6095b5bf",
+  "peak_rss_bytes": 657408000,
+  "elapsed_s": 40.24411741600488,
+  "postgres_version": "17.10",
+  "source_digest": "285fc181edaccdd154e5198ef83c6f04285cca2407d0e2acb3b3175993d4b92e"
+}

@@ -5,6 +5,7 @@ from __future__ import annotations
 from datetime import datetime, timedelta
 from decimal import Decimal
 
+from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from reality.db.core import PlaygroundRun
@@ -14,6 +15,7 @@ from reality.demo.international import (
     ITEMS,
     LOCATIONS,
     ORDER_CUSTOMERS,
+    PROFILE_VERSION,
     PURCHASES,
     SETTLEMENT,
     SUPPLIER_ITEMS,
@@ -22,6 +24,34 @@ from reality.demo.international import (
     WEEKLY_SETTLEMENT,
 )
 from reality.services import core
+
+
+def _cost_action(session: Session, run: PlaygroundRun, arguments: dict) -> dict:
+    """Execute one fixed canonical-profile cost decision without committing."""
+    from reality.services.analytics.reports import caller
+    from reality.services.costing import execute_cost_change
+    from reality.services.memberships import Principal
+    from reality.services.tenant_policy import profile_cost_action_scope
+    from reality.tools.application import create_change_proposal
+
+    with profile_cost_action_scope(session, run.id, run.owner_user_id, arguments):
+        with caller(Principal(run.owner_user_id)):
+            action = create_change_proposal(
+                session,
+                run.tenant_id,
+                "cost.change",
+                arguments,
+                actor_type="system",
+                _commit=False,
+            )
+        return execute_cost_change(
+            session,
+            run.tenant_id,
+            arguments=arguments,
+            action_id=action.id,
+            actor_id=run.owner_user_id,
+            confirmed=True,
+        )
 
 
 def seed_profile(
@@ -83,7 +113,7 @@ def seed_profile(
             "demo_profile",
             kind,
             key,
-            {"synthetic": True, "profile_version": 1, **payload},
+            {"synthetic": True, "profile_version": PROFILE_VERSION, **payload},
         )[0]
 
     def buyer(key: str) -> str:
@@ -504,6 +534,570 @@ def seed_profile(
             "correction_id": corrected.correction_id,
         }
 
+        # FR-026 fixture A: authored source evidence enters the ordinary document,
+        # movement and costing services. P03's pre-existing two units stay supplier-
+        # owned for this review; the later cleanup preserves the operational case's
+        # original physical stock without changing the frozen cost observation.
+        from reality.db.core import Movement
+        from reality.db.inventory_costing import CostInventoryMember, CostMovementBasis
+        from reality.services.costing import _sequence, contribution_preview
+        from reality.services.finance import components
+
+        # Keep the canonical costing case inside the final week of the retained
+        # twelve-week demo history while still ordering its events explicitly.
+        fixture_time = anchor - timedelta(seconds=1)
+        acquisition_source = source(
+            "cost_evidence",
+            "COST-A-ACQUISITION",
+            {
+                "item_key": "P03",
+                "quantity": "100",
+                "unit": "pcs",
+                "currency": "EUR",
+                "acquisition_cost": "1050",
+            },
+        )
+        opening = core.record_movement(
+            session,
+            tenant,
+            "opening_stock",
+            items["P03"],
+            "100",
+            to_location_id=locations["A"],
+            source_record_id=acquisition_source.id,
+            occurred_at=fixture_time,
+            _commit=False,
+        )
+        sale, sale_lines = order(
+            "COST-A-ORDER",
+            "P03",
+            counterparty="C1",
+            quantity="60",
+            price="20",
+            gross="1200",
+            date=fixture_time,
+        )
+        issue = movement(
+            "COST-A-SHIPMENT",
+            "P03",
+            "60",
+            "shipment",
+            commitment=sale["commitment_id"],
+            date=fixture_time + timedelta(seconds=1),
+        )
+        invoice_lines = [
+            {
+                **sale_lines[0],
+                "billed_document_line_id": sale["line_id"],
+                "reality_finance_v1": {"net": "1200", "tax": "0"},
+            }
+        ]
+        invoice_source = source(
+            "sales_invoice",
+            "COST-A-INVOICE",
+            {
+                "number": "COST-A-INVOICE",
+                "currency": "EUR",
+                "gross_amount": "1200",
+                "amount_basis": "net",
+                "tax_amount": "0",
+                "lines": invoice_lines,
+            },
+        )
+        _invoice, billed_lines = core.create_manual_document_with_lines(
+            session,
+            tenant,
+            "sales_invoice",
+            "COST-A-INVOICE",
+            parties["C1"],
+            invoice_lines,
+            "1200",
+            source_record_id=invoice_source.id,
+            _commit=False,
+        )
+        core.post_sales_invoice(
+            session, tenant, _invoice.id, effective_at=fixture_time, _commit=False
+        )
+        prior_p03 = list(
+            session.scalars(
+                select(Movement).where(
+                    Movement.tenant_id == tenant,
+                    Movement.item_id == items["P03"],
+                    Movement.id.not_in([opening.id, issue.id]),
+                    Movement.occurred_at <= issue.occurred_at,
+                )
+            )
+        )
+        ownership = [
+            {
+                "movement_id": row.id,
+                "owner_party_id": parties["S1"],
+                "evidence_source_record_id": row.source_record_id,
+                "quantity": str(row.quantity),
+            }
+            for row in prior_p03
+        ] + [
+            {
+                "movement_id": opening.id,
+                "owner_party_id": parties["company"],
+                "evidence_source_record_id": acquisition_source.id,
+                "quantity": "100",
+            },
+            {
+                "movement_id": issue.id,
+                "owner_party_id": parties["company"],
+                "evidence_source_record_id": acquisition_source.id,
+                "quantity": "60",
+            },
+        ]
+        inventory = _cost_action(
+            session,
+            run,
+            {
+                "operation": "inventory_review",
+                "expected_event_sequence": _sequence(session, tenant),
+                "item_id": items["P03"],
+                "owner_party_id": parties["company"],
+                "method": "fifo",
+                "currency": "EUR",
+                "base_unit": "pcs",
+                "history_start": (anchor - timedelta(seconds=1)).isoformat(),
+                "effective_at": issue.occurred_at.isoformat(),
+                "history_complete_from_zero": True,
+                "receipt_cost_scopes_confirmed": True,
+                "economic_issue_ids": [issue.id],
+                "openings": [
+                    {
+                        "movement_id": opening.id,
+                        "evidence_source_record_id": acquisition_source.id,
+                        "acquisition_cost": "1050",
+                    }
+                ],
+                "ownership_parts": ownership,
+                "reason": "Canonical fixture A ownership and acquisition review",
+            },
+        )
+        issue_basis = session.scalar(
+            select(CostMovementBasis).where(
+                CostMovementBasis.tenant_id == tenant,
+                CostMovementBasis.movement_id == issue.id,
+            )
+        )
+        opening_basis = session.scalar(
+            select(CostMovementBasis).where(
+                CostMovementBasis.tenant_id == tenant,
+                CostMovementBasis.movement_id == opening.id,
+            )
+        )
+        issue_member = session.scalar(
+            select(CostInventoryMember).where(
+                CostInventoryMember.tenant_id == tenant,
+                CostInventoryMember.review_id == inventory["review_id"],
+                CostInventoryMember.movement_basis_id == issue_basis.id,
+            )
+        )
+        received = components._received(session, tenant, _invoice, billed_lines[0])
+        commercial = _cost_action(
+            session,
+            run,
+            {
+                "operation": "commercial_match_review",
+                "expected_event_sequence": _sequence(session, tenant),
+                "document_line_id": billed_lines[0].id,
+                "expected_evidence_hash": received["evidence_hash"],
+                "profile": "commercial_v1",
+                "profile_confirmed": True,
+                "goods_cost_disposition": "inventory",
+                "inventory_parts": [
+                    {
+                        "inventory_member_id": issue_member.id,
+                        "entry_movement_basis_id": opening_basis.id,
+                        "receipt_movement_basis_id": opening_basis.id,
+                        "quantity": "60",
+                    }
+                ],
+                "reason": "Canonical fixture A exact commercial match",
+            },
+        )
+        # Restore P03's original operational physical balance after the frozen review.
+        cleanup_source = source(
+            "movement",
+            "COST-A-CLEANUP",
+            {
+                "type": "supplier_return",
+                "item_key": "P03",
+                "quantity": "40",
+                "unit": "pcs",
+                "location_key": "A",
+                "occurred_at": (fixture_time + timedelta(seconds=2)).isoformat(),
+            },
+        )
+        cleanup = core.record_movement(
+            session,
+            tenant,
+            "supplier_return",
+            items["P03"],
+            "40",
+            from_location_id=locations["A"],
+            source_record_id=cleanup_source.id,
+            occurred_at=fixture_time + timedelta(seconds=2),
+            _commit=False,
+        )
+
+        missing_sale, missing_lines = order(
+            "COST-MISSING-ORDER",
+            "P04",
+            counterparty="C2",
+            quantity="5",
+            price="20",
+            gross="100",
+            date=fixture_time,
+        )
+        missing_invoice_lines = [
+            {
+                **missing_lines[0],
+                "billed_document_line_id": missing_sale["line_id"],
+                "reality_finance_v1": {"net": "100", "tax": "0"},
+            }
+        ]
+        missing_source = source(
+            "sales_invoice",
+            "COST-MISSING-INVOICE",
+            {
+                "number": "COST-MISSING-INVOICE",
+                "gross_amount": "100",
+                "currency": "EUR",
+                "lines": missing_invoice_lines,
+            },
+        )
+        _missing_invoice, missing_billed = core.create_manual_document_with_lines(
+            session,
+            tenant,
+            "sales_invoice",
+            "COST-MISSING-INVOICE",
+            parties["C2"],
+            missing_invoice_lines,
+            "100",
+            source_record_id=missing_source.id,
+            _commit=False,
+        )
+        core.post_sales_invoice(
+            session,
+            tenant,
+            _missing_invoice.id,
+            effective_at=fixture_time,
+            _commit=False,
+        )
+        returned = movement(
+            "COST-LATE-RETURN",
+            "P03",
+            "10",
+            "return",
+            date=fixture_time + timedelta(seconds=3),
+        )
+        late_ownership = ownership + [
+            {
+                "movement_id": cleanup.id,
+                "owner_party_id": parties["company"],
+                "evidence_source_record_id": acquisition_source.id,
+                "quantity": "40",
+            },
+            {
+                "movement_id": returned.id,
+                "owner_party_id": parties["company"],
+                "evidence_source_record_id": acquisition_source.id,
+                "quantity": "10",
+            },
+        ]
+        late_inventory_arguments = {
+                "operation": "inventory_review",
+                "expected_event_sequence": _sequence(session, tenant),
+                "item_id": items["P03"],
+                "owner_party_id": parties["company"],
+                "method": "fifo",
+                "currency": "EUR",
+                "base_unit": "pcs",
+                "history_start": (anchor - timedelta(seconds=1)).isoformat(),
+                "effective_at": returned.occurred_at.isoformat(),
+                "history_complete_from_zero": True,
+                "receipt_cost_scopes_confirmed": True,
+                "economic_issue_ids": [issue.id],
+                "supplier_return_ids": [cleanup.id],
+                "customer_return_ids": [returned.id],
+                "openings": [
+                    {
+                        "movement_id": opening.id,
+                        "evidence_source_record_id": acquisition_source.id,
+                        "acquisition_cost": "1050",
+                    }
+                ],
+                "specific_selections": [
+                    {
+                        "movement_id": cleanup.id,
+                        "entry_movement_id": opening.id,
+                        "receipt_movement_id": opening.id,
+                        "quantity": "40",
+                    }
+                ],
+                "return_parts": [
+                    {
+                        "movement_id": returned.id,
+                        "issue_movement_id": issue.id,
+                        "entry_movement_id": opening.id,
+                        "receipt_movement_id": opening.id,
+                        "quantity": "10",
+                    }
+                ],
+                "ownership_parts": late_ownership,
+                "reason": "Canonical late cost and exact customer return review",
+        }
+        late_inventory = _cost_action(session, run, late_inventory_arguments)
+        late_issue_member = session.scalar(
+            select(CostInventoryMember).where(
+                CostInventoryMember.tenant_id == tenant,
+                CostInventoryMember.review_id == late_inventory["review_id"],
+                CostInventoryMember.movement_basis_id == issue_basis.id,
+            )
+        )
+        return_basis = session.scalar(
+            select(CostMovementBasis).where(
+                CostMovementBasis.tenant_id == tenant,
+                CostMovementBasis.movement_id == returned.id,
+            )
+        )
+        return_member = session.scalar(
+            select(CostInventoryMember).where(
+                CostInventoryMember.tenant_id == tenant,
+                CostInventoryMember.review_id == late_inventory["review_id"],
+                CostInventoryMember.movement_basis_id == return_basis.id,
+            )
+        )
+        credit_lines = [
+            {
+                **sale_lines[0],
+                "quantity": "10",
+                "gross_amount": "200",
+                # The credit is matched through its exact returned inventory slice.
+                # Do not pretend it is a second billing line for the order: that would
+                # make the otherwise complete sale's fulfillment scope ambiguous.
+                "billed_document_line_id": None,
+                "reality_finance_v1": {"net": "200", "tax": "0"},
+            }
+        ]
+        credit_source = source(
+            "credit_note",
+            "COST-LATE-CREDIT",
+            {
+                "number": "COST-LATE-CREDIT",
+                "gross_amount": "200",
+                "currency": "EUR",
+                "lines": credit_lines,
+            },
+        )
+        credit, credit_billed = core.create_manual_document_with_lines(
+            session,
+            tenant,
+            "credit_note",
+            "COST-LATE-CREDIT",
+            parties["C1"],
+            credit_lines,
+            "200",
+            source_record_id=credit_source.id,
+            _commit=False,
+        )
+        core.post_sales_credit_note(
+            session,
+            tenant,
+            credit.id,
+            effective_at=returned.occurred_at,
+            _commit=False,
+        )
+        credit_received = components._received(
+            session, tenant, credit, credit_billed[0]
+        )
+        return_match = _cost_action(
+            session,
+            run,
+            {
+                "operation": "commercial_match_review",
+                "expected_event_sequence": _sequence(session, tenant),
+                "document_line_id": credit_billed[0].id,
+                "expected_evidence_hash": credit_received["evidence_hash"],
+                "profile": "commercial_v1",
+                "profile_confirmed": True,
+                "goods_cost_disposition": "inventory",
+                "inventory_parts": [
+                    {
+                        "inventory_member_id": return_member.id,
+                        "original_issue_member_id": late_issue_member.id,
+                        "entry_movement_basis_id": opening_basis.id,
+                        "receipt_movement_basis_id": opening_basis.id,
+                        "quantity": "10",
+                    }
+                ],
+                "reason": "Canonical signed return commercial match",
+            },
+        )
+        selling_lines = [
+            {
+                "item_id": None,
+                "quantity": "1",
+                "unit": "service",
+                "unit_price": "114",
+                "gross_amount": "114",
+                "source_line_id": "COST-A-SELLING-1",
+                "description": "Authored selling costs for fixture A",
+                "reality_finance_v1": {"net": "114", "tax": "0"},
+            }
+        ]
+        selling_source = source(
+            "supplier_invoice",
+            "COST-A-SELLING",
+            {
+                "number": "COST-A-SELLING",
+                "gross_amount": "114",
+                "currency": "EUR",
+                "lines": selling_lines,
+            },
+        )
+        selling_document, selling_document_lines = (
+            core.create_manual_document_with_lines(
+                session,
+                tenant,
+                "supplier_invoice",
+                "COST-A-SELLING",
+                parties["S1"],
+                selling_lines,
+                "114",
+                source_record_id=selling_source.id,
+                _commit=False,
+            )
+        )
+        core.post_supplier_invoice(
+            session,
+            tenant,
+            selling_document.id,
+            effective_at=fixture_time,
+            _commit=False,
+        )
+        selling_evidence = components._received(
+            session, tenant, selling_document, selling_document_lines[0]
+        )
+        _cost_action(
+            session,
+            run,
+            {
+                "operation": "selling_assign",
+                "expected_event_sequence": _sequence(session, tenant),
+                "reason": "Canonical fixture A authored selling costs",
+                "document_id": selling_document.id,
+                "document_line_id": selling_document_lines[0].id,
+                "expected_evidence_hash": selling_evidence["evidence_hash"],
+                "tax_treatment": "not_applicable",
+                "selling_expense_confirmed": True,
+                "parts": [
+                    {
+                        "document_line_id": billed_lines[0].id,
+                        "category": "outbound_freight",
+                        "source_share": "90",
+                        "cost_effect": 1,
+                        "assignment_kind": "direct",
+                    },
+                    {
+                        "document_line_id": billed_lines[0].id,
+                        "category": "payment_fee",
+                        "source_share": "24",
+                        "cost_effect": 1,
+                        "assignment_kind": "allocated",
+                    },
+                ],
+            },
+        )
+        late_cleanup = movement(
+            "COST-LATE-CLEANUP",
+            "P03",
+            "10",
+            "shipment",
+            date=fixture_time + timedelta(seconds=4),
+        )
+        refreshed_inventory = _cost_action(
+            session,
+            run,
+            late_inventory_arguments
+            | {
+                "expected_event_sequence": _sequence(session, tenant),
+                "effective_at": late_cleanup.occurred_at.isoformat(),
+                "economic_issue_ids": [issue.id, late_cleanup.id],
+                "ownership_parts": late_ownership
+                + [
+                    {
+                        "movement_id": late_cleanup.id,
+                        "owner_party_id": parties["company"],
+                        "evidence_source_record_id": late_cleanup.source_record_id,
+                        "quantity": "10",
+                    }
+                ],
+            },
+        )
+        candidate = contribution_preview(session, tenant, billed_lines[0].id)
+        evidenced_selling = {"outbound_freight", "payment_fee"}
+        contribution = _cost_action(
+            session,
+            run,
+            {
+                "operation": "contribution_review",
+                "expected_event_sequence": candidate["event_sequence"],
+                "reason": "Canonical fixture A complete DB2 review",
+                "document_line_id": billed_lines[0].id,
+                "expected_candidate_hash": candidate["candidate_hash"],
+                "profile": "commercial_v1",
+                "profile_confirmed": True,
+                "revenue_complete": True,
+                "economic_at": candidate["trace"]["proposed_economic_at"],
+                "selling_categories": [
+                    {
+                        "category": category,
+                        "disposition": (
+                            "evidenced"
+                            if category in evidenced_selling
+                            else "confirmed_zero"
+                        ),
+                        "reason": "Canonical fixture A reviewed selling scope",
+                    }
+                    for category in (
+                        "outbound_freight",
+                        "fulfilment",
+                        "packaging",
+                        "payment_fee",
+                        "marketplace_commission",
+                        "sales_commission",
+                        "other_selling",
+                    )
+                ],
+            },
+        )
+        costing_cases = {
+            "fixture_a": {
+                "item_id": items["P03"],
+                "invoice_line_id": billed_lines[0].id,
+                "inventory_review_id": inventory["review_id"],
+                "match_revision_id": commercial["match_revision_id"],
+                "contribution_review_id": contribution["review_id"],
+                "final_inventory_review_id": refreshed_inventory["review_id"],
+            },
+            "missing_cost": {
+                "invoice_line_id": missing_billed[0].id,
+                "quantity": "5",
+            },
+            "late_cost_return": {
+                "credit_line_id": credit_billed[0].id,
+                "inventory_review_id": late_inventory["review_id"],
+                "return_match_revision_id": return_match["match_revision_id"],
+                "initial_state": "cost_incomplete",
+                "current_state": "late_cost_return_reviewed",
+            },
+        }
+
     session.flush()
     manifest = {
         "parties": parties,
@@ -519,14 +1113,13 @@ def seed_profile(
             "operations": "available",
             "finance": "available" if not execution else "not_seeded",
             "metric": "Booked sales_revenue credits minus debits, grouped by currency and effective_at; gross amounts, not net revenue, profit or payment.",
-            "cost_basis": "missing",
+            "cost_basis": "bounded_cases",
             "promotions": "missing",
             "crm": "another_source",
             "marketing": "another_source",
         },
+        "costing_cases": {} if execution else costing_cases,
     }
-
-    from sqlalchemy import func, select
 
     from reality.db.core import Item, Location, Party
     from reality.demo.profile_contract import ProfileManifest

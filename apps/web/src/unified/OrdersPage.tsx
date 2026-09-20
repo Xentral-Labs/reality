@@ -5,6 +5,7 @@ import { isPurchasing } from "./pageIntroduction";
 import { Fragment, useLayoutEffect, useRef, useState } from "react";
 import { DeliveryCase } from "./DeliveryCase";
 import { RegisterWorkbench, RegisterHeader, RegisterToolbar } from "./RegisterWorkbench";
+import { DocumentContributionExplanations } from "./DocumentContributionExplanations";
 import { useRegisterQuery } from "./TableContext";
 import { RegisterTable } from "./RegisterTable";
 import { api, deliveryApi, type DeliveryRow, type DocumentRow, type Page } from "../api";
@@ -396,6 +397,15 @@ export function OrdersPage({
                               reveal
                               tenant={tenant}
                               target={{ kind: "document", id: row.id }}
+                              supplement={(detail) =>
+                                view === "customer-orders" ? (
+                                  <DocumentContributionExplanations
+                                    tenant={tenant}
+                                    detail={detail}
+                                    source="billed_invoice_lines"
+                                  />
+                                ) : null
+                              }
                             >
                               <button
                                 className="br-btn"

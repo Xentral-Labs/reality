@@ -35,7 +35,7 @@ from reality.db.core import (
 )
 from reality.domain.calendar import day_text
 
-PROJECTION_VERSION = 4
+PROJECTION_VERSION = 5
 FULFILLMENT_QUEUE = "fulfillment_queue"
 FULFILLMENT_BLOCKERS = "fulfillment_blockers"
 ITEM_SUPPLY_DEMAND = "item_supply_demand"
@@ -780,15 +780,51 @@ def _build_operational_rows(
     if INVENTORY in selected:
         result[INVENTORY] = _inventory_rows(session, tenant_id)
     if EXCEPTIONS in selected:
-        from reality.services.exceptions import operational_exception_rows
+        from reality.services.exceptions import (
+            CLASS_ORDER,
+            SEVERITY_ORDER,
+            OperationalException,
+            cost_findings,
+            operational_exception_rows,
+        )
 
-        # Each row carries the key it is ordered by, not its place in the order. A
-        # rank would have to be recomputed for the whole company every time one row
-        # changed, which is what stops this projection deriving by change
-        # (spec 181 FR-002); the readers order by the same key the derivation uses.
-        result[EXCEPTIONS] = {
-            row["id"]: row for row in operational_exception_rows(session, tenant_id)
+        # Cost findings preserve their previous durable state while a replacement
+        # generation is pending. Rows keep stable ordering keys rather than a global
+        # rank so the projection remains incrementally derivable (specs 181 and 234).
+        cost_classes = {
+            "missing_acquisition_cost",
+            "unassigned_cost_component",
+            "stale_cost_review",
+            "negative_actual_db1",
         }
+        previous = []
+        for payload in session.scalars(
+            select(ProjectionRow.payload).where(
+                ProjectionRow.tenant_id == tenant_id,
+                ProjectionRow.projection_name == EXCEPTIONS,
+            )
+        ):
+            if isinstance(payload, str):
+                payload = json.loads(payload)
+            if payload.get("class_id") not in cost_classes:
+                continue
+            value = dict(payload)
+            value["cause_ids"] = tuple(value["cause_ids"])
+            value.pop("raw_source", None)
+            previous.append(OperationalException(**value))
+        combined = operational_exception_rows(session, tenant_id)
+        combined.extend(
+            row.to_dict()
+            for row in cost_findings(session, tenant_id, previous_rows=tuple(previous))
+        )
+        combined.sort(
+            key=lambda row: (
+                SEVERITY_ORDER[row["severity"]],
+                CLASS_ORDER[row["class_id"]],
+                row["record_id"],
+            )
+        )
+        result[EXCEPTIONS] = {row["id"]: row for row in combined}
     if COMMITMENT_REGISTER in selected:
         result[COMMITMENT_REGISTER] = _commitment_register_rows(session, tenant_id)
     if DOCUMENT_REGISTER in selected:
@@ -2243,6 +2279,15 @@ def projection_metadata(name: str, values: dict[str, Any]) -> dict[str, Any]:
         "upstream_freshness": "unknown",
         "consistency": "completed_snapshot",
     }
+
+
+def cost_finding_prerequisite(
+    session: Session, tenant_id: str, *, protect: bool = False
+) -> dict[str, Any]:
+    """Pin verified company-cost identity/freshness without deriving findings."""
+    from reality.services.analytics.costing_relation import company_generation_basis
+
+    return company_generation_basis(session, tenant_id, protect=protect)
 
 
 @_read_without_flush

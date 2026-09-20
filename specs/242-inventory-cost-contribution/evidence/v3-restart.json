@@ -1,0 +1,44 @@
+{
+  "kind": "first reads after dedicated PostgreSQL container restart",
+  "os_cache_cold": false,
+  "samples_per_surface": 1,
+  "measurements": {
+    "order": {
+      "elapsed_s": 0.01053741600480862,
+      "states": [
+        "current"
+      ]
+    },
+    "inventory": {
+      "elapsed_s": 0.002946332999272272,
+      "states": [
+        "current"
+      ]
+    },
+    "monthly": {
+      "elapsed_s": 0.028692749998299405,
+      "states": [
+        "current"
+      ]
+    },
+    "attention": {
+      "elapsed_s": 0.053807874995982274,
+      "states": [
+        "current"
+      ]
+    },
+    "tool": {
+      "elapsed_s": 0.0007004590006545186,
+      "states": [
+        "current"
+      ]
+    }
+  },
+  "published_revision": 61,
+  "source_digest": "4f408f73befcbd36d5161458efc940cc4f572ff930bc04ebc1d9d3f704b0707d",
+  "limitations": [
+    "Only PostgreSQL shared buffers were reset; OS cache is retained.",
+    "Sequential first reads may warm shared inputs for later surfaces; no p95 claim.",
+    "No reconstruction is invoked by this probe."
+  ]
+}

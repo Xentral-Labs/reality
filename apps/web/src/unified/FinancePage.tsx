@@ -33,6 +33,7 @@ import { RegisterPager } from "./WarehousePage";
 import { InlineInspector, PreviewButton, TablePreview } from "./InlinePreview";
 import { useRead } from "./useCompanyContext";
 import type { Selection } from "./routing";
+import { DocumentContributionExplanations } from "./DocumentContributionExplanations";
 
 type FinanceData =
   | {
@@ -530,6 +531,15 @@ function FinanceRegister({
                               <InlineInspector
                                 tenant={tenant}
                                 target={{ kind: "document", id: row.document_id }}
+                                supplement={(detail) =>
+                                  row.document_type === "sales_invoice" ? (
+                                    <DocumentContributionExplanations
+                                      tenant={tenant}
+                                      detail={detail}
+                                      source="document_lines"
+                                    />
+                                  ) : null
+                                }
                               >
                                 {[
                                   "sales_invoice",

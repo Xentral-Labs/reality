@@ -144,7 +144,7 @@ def test_orders_spread_over_the_customer_pool(session, scheduled_owner, monkeypa
     monkeypatch.setenv("REALITY_PLAYGROUND_ENABLED", "true")
     tenant = _demo_company(session, scheduled_owner, "spread")
     orders = _documents(session, tenant, "sales_order")
-    assert len(orders) == 34
+    assert len(orders) == 36
     held = Counter(orders.values())
     assert len(held) >= 18, held
     assert max(held.values()) <= 5, held
@@ -165,9 +165,14 @@ def test_comparison_windows_and_money_state_one_buyer(
     invoices = _documents(session, tenant, "sales_invoice")
     assert invoices
     for number, buyer in invoices.items():
+        if number.startswith("COST-"):
+            continue
         assert orders[f"H-{number.removeprefix('INV-')}"] == buyer, number
     credits = _documents(session, tenant, "credit_note")
-    assert credits == {"CR-001": invoices["INV-credit-origin"]}
+    assert credits == {
+        "CR-001": invoices["INV-credit-origin"],
+        "COST-LATE-CREDIT": "Northstar Outdoor",
+    }
 
 
 def test_seeded_buyers_are_authored_not_drawn(session, scheduled_owner, monkeypatch):
@@ -257,7 +262,7 @@ def test_purchases_cover_the_whole_chain(session, scheduled_owner, monkeypatch):
     assert len(orders) == 6, orders
     assert len(set(orders.values())) == 3, "every supplier takes part"
     payables = _states(_open_amounts(session, tenant, "supplier_invoice"))
-    assert sorted(payables.values()) == ["open", "paid", "part"], payables
+    assert sorted(payables.values()) == ["open", "open", "paid", "part"], payables
     run = session.scalar(
         select(PlaygroundRun).where(PlaygroundRun.tenant_id == tenant)
     )

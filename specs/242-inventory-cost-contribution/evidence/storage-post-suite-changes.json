@@ -1,0 +1,13 @@
+{
+  "added": [],
+  "removed": [],
+  "changed": [
+    "packages/reality-core/src/reality/jobs/runner.py",
+    "packages/reality-core/src/reality/jobs/runtime.py",
+    "packages/reality-core/src/reality/web/desktop.py",
+    "packages/reality-core/tests/test_cost_records.py",
+    "packages/reality-core/tests/test_desktop_http.py",
+    "packages/reality-core/tests/test_inventory_generations.py",
+    "packages/reality-core/tests/test_reporting_graph_coverage.py"
+  ]
+}

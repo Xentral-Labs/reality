@@ -1,0 +1,7 @@
+Spec policy failed:
+- coverage matrix is missing test family: packages/reality-core/tests/test_global_search_benchmark.py
+- coverage matrix is missing test family: packages/reality-core/tests/test_global_search_matching.py
+- coverage matrix is missing test family: packages/reality-core/tests/test_global_search_migration.py
+- coverage matrix is missing test family: packages/reality-core/tests/test_global_search_service.py
+- coverage matrix is missing test family: packages/reality-core/tests/test_global_search_web.py
+- coverage matrix is missing test family: packages/reality-core/tests/test_global_search_worklists.py

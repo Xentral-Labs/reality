@@ -1,0 +1,8 @@
+{
+  "packages/reality-core/src/reality/domain/costing.py": "cef2032872e53273109261075110ba65420b4ef4f1f856667ffde7bf4981d379",
+  "packages/reality-core/src/reality/services/inventory_costing.py": "a4105d7bbda1839c24909fa67fe224db0a89e7b7131d38ed8c8dd2502f52eac0",
+  "packages/reality-core/src/reality/services/costing.py": "bb074abe27b3f7a462e3eacbe7c52b3f6ed0ef418b73abded152682f95d6f591",
+  "packages/reality-core/src/reality/services/inventory_generations.py": "1cc6fc32e1284c77e879ad38464a22230f9ddea13c86a918a473102c06f3ad96",
+  "packages/reality-core/src/reality/tools/costing.py": "32a41b2524205572ec9d91c726bddd1e629c0ae8ee5423cdc50b31f2ef48a4c3",
+  "packages/reality-core/tests/test_inventory_batch_review.py": "5460386e62b0f99fb310828ca7a5493461d5c4a28b0d098ce9f089a98205d204"
+}
