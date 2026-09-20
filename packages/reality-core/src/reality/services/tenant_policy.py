@@ -1117,8 +1117,7 @@ def require_business_operation(
         raise PlaygroundOperationDenied(
             "Playground internal scopes cannot access business operations."
         )
-    with session.no_autoflush:
-        purpose = session.scalar(select(Tenant.purpose).where(Tenant.id == tenant_id))
+    purpose = _company_purpose(session, tenant_id)
     if purpose is None:
         raise NotFound("Company not found.")
     if (
@@ -1192,6 +1191,37 @@ _profile_authority: ContextVar[tuple | None] = ContextVar(
 _profile_checked: ContextVar[tuple | None] = ContextVar(
     "company_profile_checked", default=None
 )
+#: The company purpose this transaction has already read, with the transaction and
+#: the company it belongs to. See `_company_purpose`.
+_purpose_read: ContextVar[tuple | None] = ContextVar(
+    "company_purpose_read", default=None
+)
+
+
+def _company_purpose(session: Session, tenant_id: str) -> str | None:
+    """What this company is for, read once per transaction.
+
+    Spec 181 FR-001: every service call in a write path asks whether this company
+    may be written to, and the ingest measurement found the purpose read five times
+    in one payment's call tree. It cannot change underneath the answer — the database
+    refuses it, with a trigger that raises `Tenant purpose is immutable` on any update
+    of that column — so reading it again inside one transaction can only produce what
+    it produced the first time.
+
+    Only a company that was *found* is remembered. A company created later in the
+    same transaction must be seen when it is asked about, which is why absence is
+    never cached; and a transaction that writes a `Tenant` drops the answer with the
+    profile authority's (see `_forget_profile_authority`).
+    """
+    key = (session, session.get_transaction(), tenant_id)
+    remembered = _purpose_read.get()
+    if remembered is not None and remembered[0] == key:
+        return remembered[1]
+    with session.no_autoflush:
+        purpose = session.scalar(select(Tenant.purpose).where(Tenant.id == tenant_id))
+    if purpose is not None:
+        _purpose_read.set((key, purpose))
+    return purpose
 
 
 def _forget_profile_authority(session: Session, flush_context, instances) -> None:
@@ -1199,6 +1229,8 @@ def _forget_profile_authority(session: Session, flush_context, instances) -> Non
     for record in (*session.new, *session.dirty, *session.deleted):
         if isinstance(record, (Tenant, PlaygroundRun)):
             _profile_checked.set(None)
+            if isinstance(record, Tenant):
+                _purpose_read.set(None)
             return
 
 
