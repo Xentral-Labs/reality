@@ -57,6 +57,40 @@ The alternative is to keep the rank and accept that `exceptions` never narrows. 
 is a defensible choice — its evaluation is company-wide by construction — but then
 FR-002 should say so about this projection rather than leave it open.
 
+## What the investigation of steps 2 and 3 found (2026-09-20)
+
+The order below was written before the classes were counted, and two of its steps are in
+the wrong place.
+
+**Bounding the shared input scope buys little.** `exceptions.py` makes 43 direct database
+reads and uses the shared scope in 11 places. Several classes read the session themselves —
+`credit_limit_exceeded` loads the parties with a limit, `duplicate_supplier_invoice` asks
+the service layer to group a supplier's invoices — so bounding `_exception_input_scope`
+would narrow a handful of classes and leave the rest reading the company. Because the
+projection is published as a whole, the company is read either way.
+
+**Narrowing here is all-or-nothing.** A refresh may only skip a class if that class is
+*provably unaffected* by the change set. So the saving appears when every class in the
+window either narrows or is provably unaffected — not when the first few do.
+
+**And the "is this class record-local?" property has no universal probe.** A first attempt
+measured it by adding an unrelated record and looking for changed verdicts. It reported
+`credit_limit_exceeded` and `duplicate_supplier_invoice` as record-local; both are
+company-wide. "Unrelated" is exactly what each class defines differently — another invoice
+of the same party, another invoice under the same number, any finished promise for a
+learned threshold. That property therefore belongs with each class's own narrowing, tested
+per class with its own probe, and not in a table filled in advance.
+
+**What does have a universal probe is the clock**: same company, derived twice, four
+hundred days apart. `tests/operational_exceptions/test_class_clock.py` measures it —
+three classes read the clock today (`overdue_outgoing_customer_commitment`,
+`overdue_incoming_supplier_commitment`, `overdue_receivable`) — and pins the twenty-eight
+classes the fixture does not bring about at all, so that gap is visible and shrinks.
+
+**Corrected order:** the clock first (it is the standing cost, and its list is now
+measured), then per-class narrowing one class at a time with its own probe, and the bounded
+input scope only where a narrowed class actually reads through it.
+
 ## Proposed order of work, if the decision is "store the key"
 
 1. **Carry `sort_at`, drop `position`.** One field added to the stored row, one
