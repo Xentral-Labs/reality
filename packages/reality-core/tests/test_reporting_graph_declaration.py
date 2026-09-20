@@ -498,6 +498,26 @@ def test_every_template_resolves_against_the_model():
             assert alias in Traversal.model_validate(template.question).aliases()
 
 
+def test_ceo_contribution_templates_are_localized_context_free_questions():
+    graph = reporting_graph()
+    expected = {
+        "contribution_overview",
+        "contribution_by_month",
+        "contribution_by_sales_channel",
+        "contribution_margin_leakage",
+    }
+    assert expected <= graph.templates.keys()
+    for key in expected:
+        template = graph.templates[key]
+        assert template.label.en and template.label.de
+        assert template.about.en and template.about.de
+        assert template.question["from"] == "contribution_valuation"
+        assert "contribution_cost_context" not in template.question
+        assert {"c.currency", "c.base_unit"} <= {
+            group["field"] for group in template.question["group_by"]
+        }
+
+
 @pytest.mark.parametrize(
     "break_it, expected",
     [

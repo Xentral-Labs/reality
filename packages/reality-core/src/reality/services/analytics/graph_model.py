@@ -292,7 +292,7 @@ def _check_templates(graph: ReportingGraph) -> None:
     stop the model from loading rather than wait for somebody to click it. The
     check runs the same resolution a real question runs, short of the database.
     """
-    from reality.domain.traversal import Traversal
+    from reality.domain.traversal import ContributionCostContext, Traversal
     from reality.services.analytics.traversal import TraversalRefused, plan
 
     for name, template in graph.templates.items():
@@ -300,8 +300,28 @@ def _check_templates(graph: ReportingGraph) -> None:
             query = Traversal.model_validate(template.question)
         except ValueError as error:
             raise ReportingGraphError(f"template {name}: {error}") from error
+        validation_query = query
+        node = graph.nodes.get(query.from_)
+        if (
+            node is not None
+            and node.derivation == "costing.contribution"
+            and query.contribution_cost_context is None
+            and query.captured_cost_context is None
+            and query.company_cost_context is None
+        ):
+            # A static template cannot name a tenant's confirmed cost basis. The
+            # browser adopts this context-free shape and requires the reader to
+            # choose one before execution. Supply a sentinel only to the pure
+            # planner so the rest of the question is still checked at load time.
+            validation_query = query.model_copy(
+                update={
+                    "contribution_cost_context": ContributionCostContext(
+                        action_id="template-validation"
+                    )
+                }
+            )
         try:
-            resolved = plan(query, graph)
+            resolved = plan(validation_query, graph)
         except TraversalRefused as error:
             raise ReportingGraphError(
                 f"template {name}: {error}. A template that cannot be answered "

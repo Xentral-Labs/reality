@@ -42894,6 +42894,171 @@
       },
       "templates": [
         {
+          "key": "contribution_overview",
+          "label": "DB1 and DB2 overview",
+          "about": "Executive contribution position for one explicitly selected confirmed cost basis, with revenue, cost of goods, DB1, DB2, rates, and completeness.",
+          "question": {
+            "from": "contribution_valuation",
+            "as": "c",
+            "measures": [
+              "contribution_revenue",
+              "contribution_goods_cost",
+              "contribution_db1",
+              "contribution_db1_known",
+              "contribution_db1_rate",
+              "contribution_db1_covered",
+              "contribution_db1_required",
+              "contribution_db2",
+              "contribution_db2_known",
+              "contribution_db2_rate",
+              "contribution_db2_covered",
+              "contribution_db2_required"
+            ],
+            "group_by": [
+              {
+                "field": "c.currency"
+              },
+              {
+                "field": "c.base_unit"
+              }
+            ],
+            "order_by": [
+              {
+                "by": "contribution_revenue",
+                "descending": true
+              }
+            ],
+            "limit": 50
+          },
+          "period": null
+        },
+        {
+          "key": "contribution_by_month",
+          "label": "DB1 and DB2 by month",
+          "about": "Monthly contribution development within one explicitly selected confirmed cost basis; currencies and units remain separate and incomplete margins stay unknown.",
+          "question": {
+            "from": "contribution_valuation",
+            "as": "c",
+            "measures": [
+              "contribution_revenue",
+              "contribution_db1",
+              "contribution_db1_rate",
+              "contribution_db1_covered",
+              "contribution_db1_required",
+              "contribution_db2",
+              "contribution_db2_known",
+              "contribution_db2_rate",
+              "contribution_db2_covered",
+              "contribution_db2_required"
+            ],
+            "group_by": [
+              {
+                "field": "c.economic_at",
+                "bucket": "month",
+                "as": "Month"
+              },
+              {
+                "field": "c.currency"
+              },
+              {
+                "field": "c.base_unit"
+              }
+            ],
+            "order_by": [
+              {
+                "by": "Month",
+                "descending": false
+              }
+            ],
+            "limit": 200
+          },
+          "period": {
+            "field": "c.economic_at",
+            "window": "this_year",
+            "temporal": "date"
+          }
+        },
+        {
+          "key": "contribution_by_sales_channel",
+          "label": "DB1 and DB2 by sales channel",
+          "about": "Contribution and completeness by sales channel for one explicitly selected confirmed cost basis, ordered by revenue.",
+          "question": {
+            "from": "contribution_valuation",
+            "as": "c",
+            "measures": [
+              "contribution_revenue",
+              "contribution_db1",
+              "contribution_db1_rate",
+              "contribution_db1_covered",
+              "contribution_db1_required",
+              "contribution_db2",
+              "contribution_db2_known",
+              "contribution_db2_rate",
+              "contribution_db2_covered",
+              "contribution_db2_required"
+            ],
+            "group_by": [
+              {
+                "field": "c.sales_channel"
+              },
+              {
+                "field": "c.currency"
+              },
+              {
+                "field": "c.base_unit"
+              }
+            ],
+            "order_by": [
+              {
+                "by": "contribution_revenue",
+                "descending": true
+              }
+            ],
+            "limit": 200
+          },
+          "period": null
+        },
+        {
+          "key": "contribution_margin_leakage",
+          "label": "Contribution margin leakage",
+          "about": "Weakest sales-channel margins first for one explicitly selected confirmed cost basis; incomplete DB2 remains unknown and visible through coverage.",
+          "question": {
+            "from": "contribution_valuation",
+            "as": "c",
+            "measures": [
+              "contribution_revenue",
+              "contribution_db1",
+              "contribution_db1_rate",
+              "contribution_db1_covered",
+              "contribution_db1_required",
+              "contribution_db2",
+              "contribution_db2_known",
+              "contribution_db2_rate",
+              "contribution_db2_covered",
+              "contribution_db2_required"
+            ],
+            "group_by": [
+              {
+                "field": "c.sales_channel"
+              },
+              {
+                "field": "c.currency"
+              },
+              {
+                "field": "c.base_unit"
+              }
+            ],
+            "order_by": [
+              {
+                "by": "contribution_db2_rate",
+                "descending": false
+              }
+            ],
+            "limit": 50
+          },
+          "period": null
+        },
+        {
           "key": "open_delivery_backlog",
           "label": "Open delivery backlog",
           "about": "What is still owed to customers, per customer and unit — promised less everything moved against it.",
@@ -66231,6 +66396,171 @@
         "statements_per_derivation": 40
       },
       "templates": [
+        {
+          "key": "contribution_overview",
+          "label": "DB1 and DB2 overview",
+          "about": "Deckungsbeitragslage für eine ausdrücklich gewählte bestätigte Kostengrundlage – mit Erlös, Wareneinsatz, DB1, DB2, Quoten und Vollständigkeit.",
+          "question": {
+            "from": "contribution_valuation",
+            "as": "c",
+            "measures": [
+              "contribution_revenue",
+              "contribution_goods_cost",
+              "contribution_db1",
+              "contribution_db1_known",
+              "contribution_db1_rate",
+              "contribution_db1_covered",
+              "contribution_db1_required",
+              "contribution_db2",
+              "contribution_db2_known",
+              "contribution_db2_rate",
+              "contribution_db2_covered",
+              "contribution_db2_required"
+            ],
+            "group_by": [
+              {
+                "field": "c.currency"
+              },
+              {
+                "field": "c.base_unit"
+              }
+            ],
+            "order_by": [
+              {
+                "by": "contribution_revenue",
+                "descending": true
+              }
+            ],
+            "limit": 50
+          },
+          "period": null
+        },
+        {
+          "key": "contribution_by_month",
+          "label": "DB1 and DB2 by month",
+          "about": "Monatliche Deckungsbeitragsentwicklung innerhalb einer ausdrücklich gewählten bestätigten Kostengrundlage; Währungen und Einheiten bleiben getrennt, unvollständige Margen unbekannt.",
+          "question": {
+            "from": "contribution_valuation",
+            "as": "c",
+            "measures": [
+              "contribution_revenue",
+              "contribution_db1",
+              "contribution_db1_rate",
+              "contribution_db1_covered",
+              "contribution_db1_required",
+              "contribution_db2",
+              "contribution_db2_known",
+              "contribution_db2_rate",
+              "contribution_db2_covered",
+              "contribution_db2_required"
+            ],
+            "group_by": [
+              {
+                "field": "c.economic_at",
+                "bucket": "month",
+                "as": "Month"
+              },
+              {
+                "field": "c.currency"
+              },
+              {
+                "field": "c.base_unit"
+              }
+            ],
+            "order_by": [
+              {
+                "by": "Month",
+                "descending": false
+              }
+            ],
+            "limit": 200
+          },
+          "period": {
+            "field": "c.economic_at",
+            "window": "this_year",
+            "temporal": "date"
+          }
+        },
+        {
+          "key": "contribution_by_sales_channel",
+          "label": "DB1 and DB2 by sales channel",
+          "about": "Deckungsbeitrag und Vollständigkeit je Vertriebskanal für eine ausdrücklich gewählte bestätigte Kostengrundlage, nach Erlös sortiert.",
+          "question": {
+            "from": "contribution_valuation",
+            "as": "c",
+            "measures": [
+              "contribution_revenue",
+              "contribution_db1",
+              "contribution_db1_rate",
+              "contribution_db1_covered",
+              "contribution_db1_required",
+              "contribution_db2",
+              "contribution_db2_known",
+              "contribution_db2_rate",
+              "contribution_db2_covered",
+              "contribution_db2_required"
+            ],
+            "group_by": [
+              {
+                "field": "c.sales_channel"
+              },
+              {
+                "field": "c.currency"
+              },
+              {
+                "field": "c.base_unit"
+              }
+            ],
+            "order_by": [
+              {
+                "by": "contribution_revenue",
+                "descending": true
+              }
+            ],
+            "limit": 200
+          },
+          "period": null
+        },
+        {
+          "key": "contribution_margin_leakage",
+          "label": "Contribution margin leakage",
+          "about": "Schwächste Vertriebskanalmargen zuerst für eine ausdrücklich gewählte bestätigte Kostengrundlage; unvollständiger DB2 bleibt unbekannt und über die Abdeckung sichtbar.",
+          "question": {
+            "from": "contribution_valuation",
+            "as": "c",
+            "measures": [
+              "contribution_revenue",
+              "contribution_db1",
+              "contribution_db1_rate",
+              "contribution_db1_covered",
+              "contribution_db1_required",
+              "contribution_db2",
+              "contribution_db2_known",
+              "contribution_db2_rate",
+              "contribution_db2_covered",
+              "contribution_db2_required"
+            ],
+            "group_by": [
+              {
+                "field": "c.sales_channel"
+              },
+              {
+                "field": "c.currency"
+              },
+              {
+                "field": "c.base_unit"
+              }
+            ],
+            "order_by": [
+              {
+                "by": "contribution_db2_rate",
+                "descending": false
+              }
+            ],
+            "limit": 50
+          },
+          "period": null
+        },
         {
           "key": "open_delivery_backlog",
           "label": "Open delivery backlog",

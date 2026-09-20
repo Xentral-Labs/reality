@@ -73,6 +73,47 @@ test("templates open an unsaved question without calling a mutation", () => {
     .props.onClick();
   assert.equal(received, query);
 });
+test("a contribution template preserves the missing context for explicit selection", () => {
+  const module = {};
+  const jsx = (type, props) => ({ type, props });
+  const question = {
+    from: "contribution_valuation",
+    as: "c",
+    group_by: [{ field: "c.currency" }, { field: "c.base_unit" }],
+    measures: ["contribution_db1", "contribution_db2"],
+  };
+  const template = {
+    key: "contribution_overview",
+    label: "Contribution overview",
+    about: "",
+    question,
+  };
+  vm.runInNewContext(compile(source("analytics/GraphTemplates.tsx")), {
+    exports: module,
+    require: (name) =>
+      name === "react/jsx-runtime"
+        ? { jsx, jsxs: jsx }
+        : {
+            useState: (value) => [value, () => {}],
+            currentLanguage: () => "en",
+            t: (key) => key,
+            useRead: () => ({ data: { templates: [template] } }),
+          },
+  });
+  let received;
+  const walk = (e) =>
+    !e || typeof e !== "object"
+      ? []
+      : Array.isArray(e)
+        ? e.flatMap(walk)
+        : [e, ...walk(e.props?.children)];
+  const tree = module.GraphTemplates({ tenant: "one", onAdopted: (value) => (received = value) });
+  walk(tree)
+    .find((e) => e.type === "button")
+    .props.onClick();
+  assert.equal(received.from, "contribution_valuation");
+  assert.equal(received.contribution_cost_context, undefined);
+});
 test("analysis proposal URLs retain the handoff only in the analysis workspace and clear on company switch", () => {
   const module = {};
   vm.runInNewContext(compile(source("routing.ts")), { exports: module, URL, URLSearchParams });
