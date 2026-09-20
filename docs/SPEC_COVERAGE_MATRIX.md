@@ -1003,6 +1003,8 @@ problem with the intake.
 
 - `packages/reality-core/tests/operational_exceptions/test_class_clock.py` (the `next_clock_moment` tests) and `tests/test_projection_jobs.py::test_a_clock_refresh_waits_for_the_moment_something_can_change`: FR-004's cadence. The earliest dated moment inside the window is the answer, a date beyond the window does not delay the daily cap, a revised date is its own candidate, and — the test that stops the saving being bought with a late verdict — a promise falling due in five hours makes the projection pending in five hours rather than in a day. Ignoring the dated candidates and always waiting the full day fails three of them.
 
+- `packages/reality-core/tests/test_incremental_derivation.py` (the exceptions section): FR-002's twelfth builder, which narrows by class. A warehouse event must leave the five money classes untouched and a document must reach all of them; declaring those classes dependent on movements fails both that test and the one that follows. A payment run, which names the company, narrows nothing and says so. And an exception that cleared is removed although nothing produced its row — the reason `covers` is read from the stored keys of the classes evaluated rather than taken from what the refresh produced.
+
 ## Composable analytics (185)
 
 Spec 185 owns the analytics service, agent tools, private report configuration and workspace.
