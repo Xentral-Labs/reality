@@ -2006,3 +2006,126 @@ def test_reversing_an_invoice_gives_the_payment_back_what_it_had_allocated(
 
     projections.refresh_operational_projections(session, tenant, force=True)
     assert narrowed == _payments(session, tenant)
+
+
+# --- the twelfth builder: the exceptions, by class (FR-002) ----------------------
+
+
+def _exceptions(session, tenant_id):
+    return {
+        key: payload
+        for (name, key), payload in snapshot(session, tenant_id).items()
+        if name == projections.EXCEPTIONS
+    }
+
+
+def test_a_warehouse_event_leaves_the_money_classes_alone(session, business):
+    """This projection narrows by class, not by record (spec 181 FR-002).
+
+    Half its classes judge what happened after a promise was fulfilled and several
+    compare records against each other, so there is no bounded set of records to
+    derive. What there is: a movement cannot move a credit limit, an aging register
+    or a duplicate invoice number — and skipping those five is what stops the
+    open-items read happening at all.
+    """
+    from reality.services.exceptions import CLASS_DEPENDENCIES, affected_classes
+
+    tenant = business.tenant.id
+    a_little_business(session, business)
+    projections.refresh_operational_projections(session, tenant)
+
+    skipped = set(CLASS_DEPENDENCIES) - set(affected_classes({"movement"}))
+    assert skipped == set(CLASS_DEPENDENCIES), (
+        "a movement reached a class that only money can move"
+    )
+    assert set(affected_classes({"document"})) >= set(CLASS_DEPENDENCIES), (
+        "a document must reach every class that reads the open items"
+    )
+
+    record_movement(
+        session,
+        tenant,
+        "receipt",
+        business.item.id,
+        "2",
+        to_location_id=business.location.id,
+    )
+    with projections.narrowing_report() as report:
+        projections.refresh_operational_projections(session, tenant)
+    reason = report.get(projections.EXCEPTIONS)
+    assert reason is None, reason
+    narrowed = _exceptions(session, tenant)
+
+    projections.refresh_operational_projections(session, tenant, force=True)
+    assert narrowed == _exceptions(session, tenant)
+
+
+def test_a_payment_run_is_a_change_every_class_could_feel(session, business):
+    """`payments.run` names the company and can settle anything, so nothing is skipped."""
+    changes = projections.ChangeSet({"tenant": frozenset({business.tenant.id})})
+    outcome = projections._narrowed_exceptions(session, business.tenant.id, changes)
+    assert isinstance(outcome, str)
+    assert "every class" in outcome
+
+
+def test_a_cleared_exception_of_an_evaluated_class_is_removed(session, business):
+    """What it speaks for is every key of the classes it evaluated.
+
+    An exception that has cleared leaves no row to find, so its key has to be named
+    to be removed — which is why `covers` is read from the stored rows and not taken
+    from what this refresh produced.
+    """
+    from reality.services.core import create_commitment, record_movement
+
+    tenant = business.tenant.id
+    order = create_document(
+        session,
+        tenant,
+        "sales_order",
+        "ORD-241-EXC",
+        business.customer.id,
+        "100",
+        document_date="2026-08-01",
+    )
+    promise = create_commitment(
+        session,
+        tenant,
+        "customer_delivery",
+        business.company.id,
+        business.customer.id,
+        business.item.id,
+        business.location.id,
+        "2",
+        "2026-08-10T00:00:00+00:00",
+        document_id=order.id,
+    )
+    record_movement(
+        session,
+        tenant,
+        "receipt",
+        business.item.id,
+        "5",
+        to_location_id=business.location.id,
+    )
+    projections.refresh_operational_projections(session, tenant)
+    overdue = f"exc__overdue_outgoing_customer_commitment__{promise.id}"
+    assert overdue in _exceptions(session, tenant)
+
+    record_movement(
+        session,
+        tenant,
+        "shipment",
+        business.item.id,
+        "2",
+        from_location_id=business.location.id,
+        commitment_id=promise.id,
+    )
+    with projections.narrowing_report() as report:
+        projections.refresh_operational_projections(session, tenant)
+    reason = report.get(projections.EXCEPTIONS)
+    assert reason is None, reason
+    narrowed = _exceptions(session, tenant)
+    assert overdue not in narrowed, "the shipped promise kept its overdue entry"
+
+    projections.refresh_operational_projections(session, tenant, force=True)
+    assert narrowed == _exceptions(session, tenant)

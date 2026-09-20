@@ -291,6 +291,25 @@ builder and class measurements at checkpoints, and compare two commits on the sa
   reversing an **invoice's** posting group gives the payment back what it had allocated,
   and that group holds no cash entry at all.
 
+  **`exceptions` narrows by class, and that is the shape its own measurement asked for
+  (2026-09-20).** Eleven builders narrow by record; this one cannot, because half its
+  classes judge what happened after a promise was fulfilled and several compare records
+  against each other — a credit limit against a party's whole ledger, an invoice number
+  against every other. What it does have is classes a warehouse event cannot possibly
+  have moved.
+
+  Measuring told the rest. On a company of 200 orders the whole catalog costs 69 ms, and
+  46 of them are the open-items read that five money classes share. So the inputs became
+  lazy — read when a class first asks rather than before any class runs — and a refresh
+  evaluates only the classes the change set can have moved. A movement skips those five
+  and with them that read: **51 statements and 210 ms become 39 and 70 at 200 orders, and
+  337 ms become 221 at 600.**
+
+  A class absent from `CLASS_DEPENDENCIES` is evaluated whatever changed, so the list is a
+  set of claims to be tested rather than a promise to be complete: a missing entry costs a
+  saving, never a wrong answer. `payments.run` names the company, so nothing is skipped
+  for it.
+
   **The cadence is a date now (2026-09-20).** `exceptions` was rebuilt for every company
   every sixty seconds in case something had aged. The checkpoint records
   `clock_due_at` — the earliest moment a verdict could change with no event at all — and the

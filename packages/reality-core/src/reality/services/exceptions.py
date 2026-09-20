@@ -3217,9 +3217,63 @@ def next_clock_moment(
     return min(candidates)
 
 
+#: What a class reads the company for, as the kinds of record whose change can move
+#: its verdict. A class **absent from this map is evaluated whatever changed** — the
+#: conservative default — so an entry here is a claim that has to be tested, and a
+#: missing entry costs a saving rather than correctness.
+#:
+#: The five here were chosen by measurement, not by taste: on a company of 200 orders
+#: the whole catalog costs 69 ms, and 46 of them are the open-items read these five
+#: share. A warehouse event cannot move any of them, and skipping them is what stops
+#: that read happening at all (spec 181 FR-002).
+CLASS_DEPENDENCIES: dict[str, frozenset[str]] = dict.fromkeys(
+    (
+        "overdue_receivable",
+        "overdue_payable",
+        "purchase_discount_available",
+        "credit_limit_exceeded",
+        "duplicate_supplier_invoice",
+    ),
+    frozenset(
+        {
+            # The open item itself, and what settles or ages it.
+            "document",
+            "posting_group",
+            "settlement_allocation",
+            "payment_term",
+            # The party carries the credit limit and lends its term to a document.
+            "party",
+            # `payments.run` names the company and can settle anything.
+            "tenant",
+        }
+    ),
+)
+
+
+def affected_classes(subject_types: set[str] | frozenset[str]) -> list[str]:
+    """The classes a change of these kinds can have moved, in catalog order."""
+    return [
+        class_id
+        for class_id in DERIVATION_REGISTRY
+        if class_id not in CLASS_DEPENDENCIES
+        or CLASS_DEPENDENCIES[class_id] & set(subject_types)
+    ]
+
+
 def operational_exceptions(
-    session: Session, tenant_id: str, *, as_of: datetime | None = None
+    session: Session,
+    tenant_id: str,
+    *,
+    as_of: datetime | None = None,
+    classes: list[str] | None = None,
 ) -> list[OperationalException]:
+    """Every current exception, or only the named classes.
+
+    `classes` is how a refresh evaluates what a change could have moved and leaves the
+    rest of the stored generation alone (spec 181 FR-002). The inputs are read when a
+    class first asks for one, so a class that does not run costs nothing — which is
+    what makes evaluating a subset worth anything.
+    """
     if session.scalar(select(Tenant.id).where(Tenant.id == tenant_id)) is None:
         from reality.services.core import NotFound
 
@@ -3232,12 +3286,21 @@ def operational_exceptions(
         "outgoing_commitment_at_risk",
         "overdue_incoming_supplier_commitment",
     }
+    wanted = set(DERIVATION_REGISTRY) if classes is None else set(classes)
+    unknown = sorted(wanted - set(DERIVATION_REGISTRY))
+    if unknown:
+        raise ValueError(f"Unknown operational exception class: {unknown[0]}")
     with _exception_input_scope(session, tenant_id):
-        rows = _commitment_exceptions(session, tenant_id, instant)
+        rows = (
+            _commitment_exceptions(session, tenant_id, instant)
+            if wanted & commitment_classes
+            else []
+        )
+        rows = [row for row in rows if row.class_id in wanted]
         rows.extend(
             row
             for class_id, derivator in DERIVATION_REGISTRY.items()
-            if class_id not in commitment_classes
+            if class_id not in commitment_classes and class_id in wanted
             for row in derivator(session, tenant_id, instant)
         )
     return sorted(
@@ -3252,10 +3315,17 @@ def operational_exceptions(
 
 
 def operational_exception_rows(
-    session: Session, tenant_id: str, *, as_of: datetime | None = None
+    session: Session,
+    tenant_id: str,
+    *,
+    as_of: datetime | None = None,
+    classes: list[str] | None = None,
 ) -> list[dict[str, Any]]:
     return [
-        row.to_dict() for row in operational_exceptions(session, tenant_id, as_of=as_of)
+        row.to_dict()
+        for row in operational_exceptions(
+            session, tenant_id, as_of=as_of, classes=classes
+        )
     ]
 
 

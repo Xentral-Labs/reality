@@ -33,6 +33,19 @@ set cannot bound it: `billed and not received`, `received and not billed`, `ship
 and not billed` judge what happened *after* a promise was fulfilled. An open-work set
 is not a cheaper version of that answer, it is a different one.
 
+## Status (2026-09-20, third update)
+
+Narrowing landed, by class rather than by record, and the measurement chose that shape:
+the cost is not spread over thirty-five classes but concentrated in one read that five of
+them share. The inputs are lazy now, so a class that does not run costs nothing, and a
+movement skips the five money classes and the open-items read with them — 210 ms to 70 at
+200 orders.
+
+What remains is enlarging `CLASS_DEPENDENCIES`. Every class in it is a claim with a test;
+every class out of it is evaluated whatever changed. Bounding a class to named *records*
+is a further step that only the record-shaped classes can take, and the cost measurement
+says it is worth little until the shared reads are already skipped.
+
 ## Status (2026-09-20, second update)
 
 The clock is done, and it was the right thing to do first. `clock_due_at` on the
