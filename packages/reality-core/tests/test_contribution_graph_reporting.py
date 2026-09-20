@@ -7,10 +7,76 @@ from sqlalchemy import update
 from reality.db.cost_generations import CostContributionSnapshot
 from reality.domain.traversal import Traversal
 from reality.services import core, costing
+from reality.services.analytics.graph_model import reporting_graph
 from reality.services.analytics.traversal import TraversalRefused, plan, run_traversal
 from reality.tools.graph import invoke
 
 cost_owner = fixtures.cost_owner
+
+
+def test_ceo_templates_execute_only_with_the_explicit_confirmed_basis(
+    session, business, cost_owner
+):
+    tenant = business.tenant.id
+    action, _ = fixtures.confirmed(session, business, cost_owner)
+    costing.build_contribution_generation(session, tenant, action)
+    keys = (
+        "contribution_overview",
+        "contribution_by_month",
+        "contribution_by_sales_channel",
+        "contribution_margin_leakage",
+    )
+    for key in keys:
+        template = reporting_graph().templates[key]
+        with pytest.raises(TraversalRefused) as missing:
+            run_traversal(session, tenant, Traversal.model_validate(template.question))
+        assert missing.value.code == "cost_context_required"
+        result = invoke(
+            session,
+            tenant,
+            "graph.ask",
+            {
+                "question": {
+                    **template.question,
+                    "contribution_cost_context": {
+                        "action_id": action,
+                        "mode": "historical",
+                    },
+                }
+            },
+        )
+        assert result["rows"], key
+        assert all("c.currency" in row and "c.base_unit" in row for row in result["rows"])
+
+
+def test_ceo_template_shapes_preserve_coverage_and_do_not_hide_unknown_db2():
+    graph = reporting_graph()
+    overview = graph.templates["contribution_overview"].question
+    assert {
+        "contribution_revenue",
+        "contribution_goods_cost",
+        "contribution_db1",
+        "contribution_db1_rate",
+        "contribution_db2",
+        "contribution_db2_rate",
+        "contribution_db1_covered",
+        "contribution_db1_required",
+        "contribution_db2_covered",
+        "contribution_db2_required",
+    } <= set(overview["measures"])
+    monthly = graph.templates["contribution_by_month"].question
+    assert monthly["group_by"][0] == {
+        "field": "c.economic_at",
+        "bucket": "month",
+        "as": "Month",
+    }
+    channel = graph.templates["contribution_by_sales_channel"].question
+    assert channel["group_by"][0] == {"field": "c.sales_channel"}
+    leakage = graph.templates["contribution_margin_leakage"].question
+    assert leakage.get("having", []) == []
+    assert leakage["order_by"] == [
+        {"by": "contribution_db2_rate", "descending": False}
+    ]
 
 
 def question(action, **changes):
