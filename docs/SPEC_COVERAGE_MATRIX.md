@@ -999,6 +999,8 @@ problem with the intake.
 
 - `packages/reality-core/tests/test_attention_reads.py::test_two_findings_of_one_class_are_ordered_by_date_and_not_by_record_id`: FR-002's first step for `exceptions`. Two promises of one class are built so that their dates and their record ids disagree, then the stored generation is held against the derivation's order. It fails when the reader's key loses `sort_at` — which is what the stored `position` used to carry, and what a narrowed refresh could never compute.
 
+- `packages/reality-core/tests/operational_exceptions/test_class_clock.py`: FR-002/FR-004 for `exceptions`. Which classes answer differently when only the clock moves, measured by deriving one company twice four hundred days apart — three do. It also pins the twenty-eight classes the fixture does not bring about, so the gap in the measurement is visible rather than implied, and it refuses to pass when the probe moves nothing at all.
+
 ## Composable analytics (185)
 
 Spec 185 owns the analytics service, agent tools, private report configuration and workspace.

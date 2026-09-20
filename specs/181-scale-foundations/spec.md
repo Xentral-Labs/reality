@@ -213,7 +213,14 @@ builder and class measurements at checkpoints, and compare two commits on the sa
     it, which also ends a quieter disagreement: within a class the derivation puts the
     oldest first, while a reader without `sort_at` fell back on the record id. The
     narrowing itself, the input scope and the clock are the remaining steps
-    (`docs/ideas/exceptions-derive-by-change.md`).
+    (`docs/ideas/exceptions-derive-by-change.md`), and their order was corrected by
+    counting: 43 of this module's reads go straight to the session and 11 through the
+    shared scope, so bounding that scope narrows a few classes and leaves the company
+    read. Narrowing here is all-or-nothing — a class may be skipped only when it is
+    provably unaffected — and whether a class is record-local has no universal probe, as
+    a first attempt showed by calling two company-wide classes record-local. The clock
+    does have one, and its list is now measured rather than recalled: three classes read
+    it (`tests/operational_exceptions/test_class_clock.py`).
 
   **The rule that makes narrowing safe, learned twice and stated once:** an event's subject is
   what was *acted on*, not everything the action created. `ledger.reversed` names the original
