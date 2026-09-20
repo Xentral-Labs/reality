@@ -15,27 +15,63 @@ from reality.db.scheduled_jobs import ScheduledJobRun
 from reality.services import projections, scheduled_jobs
 
 
-def enqueue_due_projections(session: Session, tenant_id: str) -> ScheduledJobRun | None:
-    """Coalesce dirty projections; an unavailable/full queue cannot affect writers."""
+def enqueue_due_projections(
+    session: Session, tenant_id: str
+) -> list[ScheduledJobRun]:
+    """One run per projection that is behind (spec 181 FR-004).
+
+    The twelve used to share a run. Their checkpoints, statuses and errors were
+    already their own, but the *job* was not: a builder that exceeded the budget
+    failed a run that had covered several projections, so the others' work was
+    recorded as failed with it and recovery could not name one of them.
+
+    A projection that already has an unfinished run is not enqueued again — that is
+    the coalescing the shared run used to give, kept per projection rather than per
+    company. A quiet company still produces nothing at all.
+    """
     tenant = session.scalar(
         select(Tenant).where(Tenant.id == tenant_id).with_for_update(skip_locked=True)
     )
     if tenant is None or tenant.archived_at is not None:
-        return None
-    if session.scalar(
-        select(ScheduledJobRun.id)
-        .where(
+        return []
+    names = due_projections(session, tenant_id)
+    if not names:
+        return []
+    queued = queued_projections(session, tenant_id)
+    runs = []
+    for name in names:
+        if name in queued:
+            continue
+        run = scheduled_jobs.enqueue_projection_run(
+            session, tenant_id, [name], queued=queued
+        )
+        if run is None:
+            continue
+        runs.append(run)
+        queued.add(name)
+    return runs
+
+
+def queued_projections(session: Session, tenant_id: str) -> set[str]:
+    """Which projections of this company already have a run waiting or running.
+
+    Read from the runs' own configuration rather than from a new column: there are
+    at most as many unfinished refresh runs as there are projections, so this is one
+    read of a handful of rows, and the queue stays the single source of truth about
+    what is already promised.
+    """
+    unfinished = session.scalars(
+        select(ScheduledJobRun).where(
             ScheduledJobRun.tenant_id == tenant_id,
             ScheduledJobRun.job_type == "projections.refresh",
             ScheduledJobRun.status.in_(scheduled_jobs.UNFINISHED),
         )
-        .limit(1)
-    ):
-        return None
-    names = due_projections(session, tenant_id)
-    if not names:
-        return None
-    return scheduled_jobs.enqueue_projection_run(session, tenant_id, names)
+    )
+    return {
+        name
+        for run in unfinished
+        for name in (run.configuration or {}).get("arguments", {}).get("names", [])
+    }
 
 
 def due_projections(session: Session, tenant_id: str) -> list[str]:

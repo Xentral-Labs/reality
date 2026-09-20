@@ -959,23 +959,31 @@ def cancel_queued_run(
 
 
 def enqueue_projection_run(
-    session: Session, tenant_id: str, names: list[str]
+    session: Session,
+    tenant_id: str,
+    names: list[str],
+    queued: set[str] | None = None,
 ) -> ScheduledJobRun | None:
     """Internal scheduler producer; NULL actor grants only the registered cache job."""
     definition = get_definition("projections.refresh")
     parsed = definition.validate({"names": names})
+    if len(parsed.names) != 1:
+        # The queue's uniqueness is per projection (spec 181 FR-004), and it reads
+        # the projection out of the first name. A run carrying two would be promised
+        # under one of them, so a caller that wants two enqueues two.
+        raise ValueError("A refresh run carries exactly one projection.")
     tenant = _tenant_lock(session, tenant_id, skip=True)
     if tenant is None or tenant.archived_at is not None:
         return None
-    if session.scalar(
-        select(ScheduledJobRun.id)
-        .where(
-            ScheduledJobRun.tenant_id == tenant_id,
-            ScheduledJobRun.job_type == definition.name,
-            ScheduledJobRun.status.in_(UNFINISHED),
-        )
-        .limit(1)
-    ) or not _capacity(session, tenant_id):
+    from reality.services.projection_jobs import queued_projections
+
+    # Per projection, not per company (spec 181 FR-004): a refresh already waiting
+    # for the journal must not stop one being enqueued for stock. A caller
+    # enqueueing several passes the set it already read, because asking once per
+    # projection made the bootstrap of one company twelve reads of the same rows.
+    if queued is None:
+        queued = queued_projections(session, tenant_id)
+    if set(parsed.names) & queued or not _capacity(session, tenant_id):
         return None
     envelope = {"version": definition.version, "arguments": parsed.model_dump()}
     run = ScheduledJobRun(

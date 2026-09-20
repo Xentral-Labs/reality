@@ -11,6 +11,7 @@ from sqlalchemy import (
     Integer,
     String,
     UniqueConstraint,
+    text,
 )
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column
@@ -103,10 +104,14 @@ class ScheduledJobRun(Base):
             "(job_type = 'projections.refresh' AND actor_id IS NULL AND schedule_id IS NULL) OR (job_type <> 'projections.refresh' AND actor_id IS NOT NULL)",
             name="ck_scheduled_run_actor",
         ),
+        # One unfinished refresh run per projection of a company (spec 181 FR-004).
+        # The projection is read out of the run's own configuration, so the queue
+        # stays the only place that says what is already promised.
         Index(
             "uq_projection_run_unfinished",
             "tenant_id",
             "job_type",
+            text("(configuration #>> '{arguments,names,0}')"),
             unique=True,
             postgresql_where="job_type = 'projections.refresh' AND status IN ('pending','running','retry','unresolved')",
         ),

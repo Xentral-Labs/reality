@@ -324,9 +324,25 @@ builder and class measurements at checkpoints, and compare two commits on the sa
   The checkpoint therefore carries a second number, how far the *company* had got when that
   projection last looked, and that is what the fleet-wide selection compares.
 
-  Still open: each projection is not yet its own scheduled *run*. The per-projection
-  checkpoint, status and error already exist; what is shared is the job row, so one
-  projection's failure is still recorded against a run that covered several.
+  **Delivered 2026-09-20 for the run half as well.** Each projection that is behind gets
+  its own run, so a builder that exceeds its budget fails a run about one projection: that
+  one reports `failed` with its reason and waits for someone, and its neighbours are
+  untouched. The coalescing the shared run gave is kept per projection — a projection with
+  a run already waiting is not enqueued again — and a quiet company still produces nothing.
+
+  The guard that made this one run per company was a partial unique index on
+  `(tenant_id, job_type)`; migration `0069_projection_run_per_projection` takes the
+  projection into it, read out of the run's own configuration so the queue stays the only
+  place that says what is already promised.
+
+  **What it costs, measured rather than assumed.** A full cycle of one company — enqueue,
+  then work the queue empty — went from 175 statements to 394 when all twelve projections
+  are behind, and from 156 to 295 after one business event leaves eight behind. That is
+  roughly twice the *bookkeeping*: a lock, an insert, an authorisation, a claim and a
+  completion per run. The builders' own work is unchanged and grows with the company, so
+  the share this overhead takes falls as companies grow. One operational consequence is
+  worth knowing: a worker sweep takes at most ten runs, so a company behind on twelve is
+  worked in two sweeps rather than one.
 - **FR-005**: Storage. Operational tables MUST be partitionable by tenant and time; source
   payloads MUST be movable to a tiered store behind the existing reference; every repository
   query MUST resolve its cluster from the tenant scope.
