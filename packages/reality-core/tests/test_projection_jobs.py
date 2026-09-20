@@ -112,18 +112,34 @@ def test_refresh_is_transaction_bound_and_does_not_run_unrelated_builders(
     } == {projections.INVENTORY}
 
 
-def test_time_only_refresh_is_scoped_and_archive_stops_dispatch(
+def test_a_clock_refresh_waits_for_the_moment_something_can_change(
     session, business, monkeypatch
 ):
+    """Spec 181 FR-004: the cadence is a date now, not a minute.
+
+    The clock-driven projection used to be offered again sixty seconds after it was
+    built, for every company, whether or not anything could have aged. It is offered
+    when the moment it recorded arrives — and on a company with nothing dated that
+    moment is a day away, which is the cap that bounds everything this cannot see.
+    """
+    from reality.services.exceptions import IDLE_CLOCK_FLOOR
+
     tenant = business.tenant.id
     dispatch(session, tenant)
     complete_all(session, tenant)
-    later = now() + timedelta(seconds=61)
-    monkeypatch.setattr(projections, "now", lambda: later)
+
+    a_minute_later = now() + timedelta(seconds=61)
+    monkeypatch.setattr(projections, "now", lambda: a_minute_later)
+    assert dispatch_names(session, tenant) == set(), (
+        "a minute cannot have aged anything on this company"
+    )
+
+    past_the_moment = now() + IDLE_CLOCK_FLOOR + timedelta(minutes=1)
+    monkeypatch.setattr(projections, "now", lambda: past_the_moment)
     assert dispatch_names(session, tenant) == set(
         projections.TIME_SENSITIVE_PROJECTIONS
     )
-    business.tenant.archived_at = now()
+    business.tenant.archived_at = past_the_moment
     session.flush()
     assert scheduled_jobs.claim_next(session, tenant) is None
 

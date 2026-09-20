@@ -239,3 +239,170 @@ def test_every_class_is_either_brought_about_here_or_named_as_missing(
     assert not present & WITHOUT_A_SCENARIO, (
         "a class produces rows here and is still listed as missing a scenario"
     )
+
+
+def test_the_next_clock_moment_is_the_earliest_date_in_the_window(session, business):
+    """What replaces asking every sixty seconds (spec 181 FR-004).
+
+    A promise due tomorrow can turn overdue tonight with nobody doing anything, so
+    that date is when this projection next has something to say. The answer is the
+    earliest such date, and never later than a day, because an age-based verdict on an
+    idle company is judged against a span this cannot see.
+    """
+    from reality.services.core import create_commitment
+    from reality.services.exceptions import IDLE_CLOCK_FLOOR, next_clock_moment
+
+    tenant = business.tenant.id
+    now = dt.datetime.now(dt.UTC)
+    assert next_clock_moment(session, tenant, as_of=now) == now + IDLE_CLOCK_FLOOR
+
+    soon = now + dt.timedelta(hours=5)
+    create_commitment(
+        session,
+        tenant,
+        "customer_delivery",
+        business.company.id,
+        business.customer.id,
+        business.item.id,
+        business.location.id,
+        "3",
+        soon.isoformat(),
+    )
+    later = now + dt.timedelta(hours=9)
+    create_commitment(
+        session,
+        tenant,
+        "customer_delivery",
+        business.company.id,
+        business.customer.id,
+        business.item.id,
+        business.location.id,
+        "1",
+        later.isoformat(),
+    )
+    session.flush()
+
+    assert next_clock_moment(session, tenant, as_of=now) == soon
+
+
+def test_a_date_beyond_the_window_does_not_move_the_moment(session, business):
+    """A promise due next year says nothing about tonight.
+
+    Without the cap this would be the answer and the projection would sit untouched
+    for months; with it, the company is looked at once a day, which is what bounds
+    everything that ages.
+    """
+    from reality.services.core import create_commitment
+    from reality.services.exceptions import IDLE_CLOCK_FLOOR, next_clock_moment
+
+    tenant = business.tenant.id
+    now = dt.datetime.now(dt.UTC)
+    create_commitment(
+        session,
+        tenant,
+        "customer_delivery",
+        business.company.id,
+        business.customer.id,
+        business.item.id,
+        business.location.id,
+        "3",
+        (now + dt.timedelta(days=200)).isoformat(),
+    )
+    session.flush()
+
+    assert next_clock_moment(session, tenant, as_of=now) == now + IDLE_CLOCK_FLOOR
+
+
+def test_a_revised_date_inside_the_window_is_its_own_candidate(session, business):
+    """The date in force is the last one stated, so a revision is a moment too."""
+    from reality.services.core import create_commitment, revise_commitment
+    from reality.services.exceptions import next_clock_moment
+
+    tenant = business.tenant.id
+    now = dt.datetime.now(dt.UTC)
+    promise = create_commitment(
+        session,
+        tenant,
+        "customer_delivery",
+        business.company.id,
+        business.customer.id,
+        business.item.id,
+        business.location.id,
+        "3",
+        (now - dt.timedelta(days=1)).isoformat(),
+    )
+    revised = now + dt.timedelta(hours=3)
+    revise_commitment(
+        session, tenant, promise.id, revised.isoformat(), note="moved", _commit=False
+    )
+    session.flush()
+
+    assert next_clock_moment(session, tenant, as_of=now) == revised
+
+
+def test_a_promise_falling_due_tonight_is_looked_at_tonight(session, business):
+    """The saving must not be bought with a late verdict.
+
+    A company whose promise falls due in five hours records that moment, so it is
+    evaluated then — not a day later, and not 1,440 times before.
+    """
+    from reality.services.core import create_commitment
+    from reality.services.exceptions import IDLE_CLOCK_FLOOR
+    from reality.services.projections import (
+        EXCEPTIONS,
+        projection_metadata,
+        projection_state_expressions,
+        rebuild_projections,
+    )
+
+    tenant = business.tenant.id
+    now = dt.datetime.now(dt.UTC)
+    due = now + dt.timedelta(hours=5)
+    create_commitment(
+        session,
+        tenant,
+        "customer_delivery",
+        business.company.id,
+        business.customer.id,
+        business.item.id,
+        business.location.id,
+        "3",
+        due.isoformat(),
+    )
+    session.flush()
+    rebuild_projections(session, tenant, [EXCEPTIONS], force=True)
+    session.flush()
+
+    def state(at):
+        import reality.services.projections as module
+
+        values = dict(
+            session.execute(
+                __import__("sqlalchemy").select(
+                    *[
+                        expression.label(key)
+                        for key, expression in projection_state_expressions(
+                            tenant, EXCEPTIONS
+                        ).items()
+                    ]
+                )
+            )
+            .mappings()
+            .one()
+        )
+        original = module.now
+        module.now = lambda: at
+        try:
+            return projection_metadata(EXCEPTIONS, values)["state"]
+        finally:
+            module.now = original
+
+    assert state(now + dt.timedelta(minutes=2)) == "ready", (
+        "two minutes cannot have aged anything"
+    )
+    assert state(due + dt.timedelta(minutes=1)) == "pending", (
+        "the promise is overdue and nobody was told"
+    )
+    assert due + dt.timedelta(minutes=1) < now + IDLE_CLOCK_FLOOR, (
+        "the fixture no longer tests the dated case"
+    )

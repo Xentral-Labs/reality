@@ -33,6 +33,18 @@ set cannot bound it: `billed and not received`, `received and not billed`, `ship
 and not billed` judge what happened *after* a promise was fulfilled. An open-work set
 is not a cheaper version of that answer, it is a different one.
 
+## Status (2026-09-20, second update)
+
+The clock is done, and it was the right thing to do first. `clock_due_at` on the
+projection checkpoint records the earliest moment a verdict could change with no event,
+the selection compares it, and the twenty-four hour cap bounds every ageing rule this
+cannot see — including the twenty-eight classes with no scenario in the measurement, which
+is why the cap exists rather than a list of records. One evaluation costs 75 statements and
+65–179 ms; an idle company paid 1,440 a day and now pays one.
+
+What remains of this note is narrowing by change set, class by class, each with its own
+probe.
+
 ## Status
 
 The decision below was taken on 2026-09-20: **store the key**. Step 1 of the proposed order

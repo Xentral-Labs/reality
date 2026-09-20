@@ -172,6 +172,13 @@ def _replace_rows(
     checkpoint.status = "ready"
     checkpoint.error = ""
     checkpoint.updated_at = stamp
+    if projection_name in TIME_SENSITIVE_PROJECTIONS:
+        # Asked here rather than by the selection, because the answer needs the
+        # company's dates and the selection asks about ten thousand companies at once
+        # (spec 181 FR-004).
+        from reality.services.exceptions import next_clock_moment
+
+        checkpoint.clock_due_at = next_clock_moment(session, tenant_id, as_of=stamp)
 
 
 def _inventory_rows(
@@ -2135,19 +2142,27 @@ def projection_state_expressions(tenant_id: str, name: str) -> dict[str, Any]:
         "projection_version": checkpoint(ProjectionCheckpoint.projection_version),
         "target_event_sequence": relevant_event_target(tenant_id, name),
         "failed_at": failed,
+        "clock_due_at": checkpoint(ProjectionCheckpoint.clock_due_at),
     }
 
 
 def projection_metadata(name: str, values: dict[str, Any]) -> dict[str, Any]:
     completed = values["completed_at"]
     failed = values.get("failed_at")
+    clock_due = values.get("clock_due_at")
     pending = (
         values["projection_version"] != PROJECTION_VERSION
         or (values["processed_event_sequence"] or 0) < values["target_event_sequence"]
         or (
             name in TIME_SENSITIVE_PROJECTIONS
             and completed is not None
-            and (now() - completed).total_seconds() >= 60
+            and (
+                # A generation written before the clock moment was recorded keeps the
+                # old cadence, so an upgrade cannot leave it unexamined.
+                (now() - completed).total_seconds() >= 60
+                if clock_due is None
+                else clock_due <= now()
+            )
         )
     )
     state = (

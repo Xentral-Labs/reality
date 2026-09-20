@@ -1001,6 +1001,8 @@ problem with the intake.
 
 - `packages/reality-core/tests/operational_exceptions/test_class_clock.py`: FR-002/FR-004 for `exceptions`. Which classes answer differently when only the clock moves, measured by deriving one company twice four hundred days apart — three do. It also pins the twenty-eight classes the fixture does not bring about, so the gap in the measurement is visible rather than implied, and it refuses to pass when the probe moves nothing at all.
 
+- `packages/reality-core/tests/operational_exceptions/test_class_clock.py` (the `next_clock_moment` tests) and `tests/test_projection_jobs.py::test_a_clock_refresh_waits_for_the_moment_something_can_change`: FR-004's cadence. The earliest dated moment inside the window is the answer, a date beyond the window does not delay the daily cap, a revised date is its own candidate, and — the test that stops the saving being bought with a late verdict — a promise falling due in five hours makes the projection pending in five hours rather than in a day. Ignoring the dated candidates and always waiting the full day fails three of them.
+
 ## Composable analytics (185)
 
 Spec 185 owns the analytics service, agent tools, private report configuration and workspace.
