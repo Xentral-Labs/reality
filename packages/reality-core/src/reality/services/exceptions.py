@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from collections.abc import Callable
 from dataclasses import asdict, dataclass
-from datetime import UTC, datetime, timedelta
+from datetime import UTC, datetime, time, timedelta
 from decimal import Decimal
 from itertools import pairwise
 from typing import Any
@@ -13,12 +13,14 @@ from sqlalchemy.orm import Session, aliased
 from reality.db.core import (
     Commitment,
     CommitmentHold,
+    CommitmentRevision,
     Document,
     DocumentLine,
     ImportJob,
     Item,
     LedgerEntry,
     Location,
+    Lot,
     Movement,
     MovementCorrection,
     Party,
@@ -3133,6 +3135,86 @@ DERIVATION_REGISTRY: dict[str, Derivator] = {
     "party_hold_unreleased": _party_hold_unreleased_exceptions,
     "stock_expired": _stock_expired_exceptions,
 }
+
+
+#: How long a company with nothing dated may go without a clock-driven evaluation.
+#: The cadence exists only for companies where nothing happens but time passes — any
+#: business event re-derives this projection through its change set — so this bounds
+#: the one case the dated candidates below cannot see: an age-based verdict on an idle
+#: company. Today such a verdict is at most sixty seconds late; with this it is at most
+#: a day, and an idle company costs one evaluation instead of 1,440 (spec 181 FR-004).
+IDLE_CLOCK_FLOOR = timedelta(hours=24)
+
+
+def next_clock_moment(
+    session: Session, tenant_id: str, *, as_of: datetime | None = None
+) -> datetime:
+    """The earliest moment a verdict here could change with no event at all.
+
+    Three things in this catalog are judged against a date the records themselves
+    carry: a promise's date in force, an open item's due date, and a lot's stated
+    best-before. Their next *future* value is when a verdict can flip without anybody
+    doing anything, and asking for the earliest of them is what replaces asking every
+    sixty seconds.
+
+    Everything else that ages — a source gone silent, an order stalled, a hold nobody
+    lifted — is judged against a span measured from a record's own timestamp, and the
+    shortest such span in this module is twenty-four hours. Rather than enumerate those
+    records, which would be a list to forget something from, the answer is capped at
+    `IDLE_CLOCK_FLOOR`: it cannot be later than a day, whatever ages.
+
+    Never `None`, because a company with nothing dated still ages.
+    """
+    instant = as_of or datetime.now(UTC)
+    latest = instant + IDLE_CLOCK_FLOOR
+    candidates: list[datetime] = [latest]
+
+    candidates.extend(
+        session.scalars(
+            select(Commitment.due_at).where(
+                Commitment.tenant_id == tenant_id,
+                Commitment.status == "open",
+                Commitment.due_at.is_not(None),
+                Commitment.due_at > instant,
+                Commitment.due_at <= latest,
+            )
+        )
+    )
+    # A revision restates the date, so the date in force can be later than the one on
+    # the commitment: the revisions inside the window are candidates of their own.
+    candidates.extend(
+        session.scalars(
+            select(CommitmentRevision.due_at).where(
+                CommitmentRevision.tenant_id == tenant_id,
+                CommitmentRevision.due_at.is_not(None),
+                CommitmentRevision.due_at > instant,
+                CommitmentRevision.due_at <= latest,
+            )
+        )
+    )
+    for expires_at in session.scalars(
+        select(Lot.expires_at).where(
+            Lot.tenant_id == tenant_id,
+            Lot.expires_at.is_not(None),
+            Lot.expires_at > instant.date(),
+            Lot.expires_at <= latest.date(),
+        )
+    ):
+        candidates.append(
+            datetime.combine(expires_at, time.min, tzinfo=UTC) + timedelta(days=1)
+        )
+    with _exception_input_scope(session, tenant_id):
+        for row in _aging_register(session, tenant_id, instant):
+            due_date = row["due_date"]
+            if (
+                due_date is not None
+                and row["status"] in {"open", "partial"}
+                and instant.date() < due_date <= latest.date()
+            ):
+                candidates.append(
+                    datetime.combine(due_date, time.min, tzinfo=UTC) + timedelta(days=1)
+                )
+    return min(candidates)
 
 
 def operational_exceptions(

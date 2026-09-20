@@ -1795,6 +1795,13 @@ class ProjectionCheckpoint(Base):
     status: Mapped[str] = mapped_column(String, default="ready")
     error: Mapped[str] = mapped_column(Text, default="")
     updated_at: Mapped[datetime] = mapped_column(UTCDateTime, default=now)
+    #: When this projection could next answer differently with no event at all, for
+    #: the one projection whose classes are judged against the moment they are read
+    #: (spec 181 FR-004). It replaces asking every sixty seconds whether anything has
+    #: aged: a company with nothing dated is looked at once a day, and one with a
+    #: promise falling due tonight is looked at tonight. `None` for every projection
+    #: that does not read the clock, and for a generation written before this column.
+    clock_due_at: Mapped[datetime | None] = mapped_column(UTCDateTime, default=None)
 
 
 class ChatSession(Base):

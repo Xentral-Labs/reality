@@ -291,6 +291,24 @@ builder and class measurements at checkpoints, and compare two commits on the sa
   reversing an **invoice's** posting group gives the payment back what it had allocated,
   and that group holds no cash entry at all.
 
+  **The cadence is a date now (2026-09-20).** `exceptions` was rebuilt for every company
+  every sixty seconds in case something had aged. The checkpoint records
+  `clock_due_at` — the earliest moment a verdict could change with no event at all — and the
+  selection compares that instead. Three things in this catalog are judged against a date
+  the records carry (a promise's date in force, an open item's due date, a lot's
+  best-before), so their next future value is when the projection next has something to
+  say. Everything else ages against a span measured from a record's own timestamp, and
+  rather than enumerate those records — a list to forget something from — the answer is
+  capped at twenty-four hours.
+
+  The trade is stated rather than hidden: an age-based verdict on a company where *nothing
+  happens* can now be up to a day late where it was up to a minute. It matters only for
+  idle companies, because any business event re-derives this projection through its change
+  set. Measured cost of one evaluation: 75 statements, 65 ms at 200 orders and 179 ms at
+  800. An idle company paid 1,440 of those a day and now pays one — at ten thousand
+  companies, the difference between hundreds of CPU-hours a day and a fraction of one, to
+  discover that nothing changed.
+
   **Time-based transitions**: delivered in the part that mattered, and not in the part the
   requirement literally names. Measurement showed that two of the three projections refreshed
   every sixty seconds do not read the clock at all, and they were taken off the cadence.
