@@ -197,6 +197,26 @@ builder and class measurements at checkpoints, and compare two commits on the sa
   times slower than no filter at all** (413 ms against 55): correlated `IN` subqueries
   and `NOT IN` over the reversals. The anti-join that replaced it is the one measured.
 
+  **The company purpose is established once per scope (2026-09-20).** Every service
+  call on a write path asks whether this company may be written to, and that answer
+  begins with what the company is *for*. Four calls in one transaction read it twelve
+  times; they now read it twice — once for the transaction, once where the session
+  moves into its own scope — and one payment's call tree drops from 38 statements to
+  34. It cannot change underneath the answer: the database refuses it with a trigger
+  that raises `Tenant purpose is immutable`, which is why remembering it is safe
+  rather than merely convenient. Absence is never remembered, because a company
+  created later in the same transaction has to be seen.
+
+  **And the measurement does not see either of today's two improvements**, which is
+  worth more than the improvements. SC-001 is measured through the demo intake, and
+  that path runs under a profile authority: `require_business_operation` returns
+  before it reads the purpose at all, and the demo settlement never calls the payment
+  matcher. Both changes are on the path a real tenant's writes take, and the
+  criterion's figure stays at 238 interpreting queries. **The instrument measures one
+  of the two ways into this system.** Until a fixture drives the business path, FR-001
+  progress on it can be measured directly — as it was here — but not tracked by
+  SC-001.
+
   **What the repeated reads are, now that the measurement can say.** The ingest record
   counted reads per table across both spans, so `source_record ×58` looked like the
   intake when most of it was the demo generator's own selection; interpreting one record

@@ -1009,6 +1009,8 @@ problem with the intake.
 
 - `packages/reality-core/tests/test_global_search_service.py::test_every_materialized_search_cte_carries_its_own_name`: the search's materialized CTEs must carry their family's name. SQLAlchemy keys anonymous constructs by `id(object)` and renders them `anon_1`, `anon_2`…, so two CTEs built at different moments share a name once the first object has been collected — and several of them meet in one `union_all`. The symptom is `CompileError: Multiple, unrelated CTEs found with the same name`, which appears and disappears with unrelated code; it surfaced in CI while the suite was green locally. Putting the unnamed CTE back fails this test and the canonical-authorities test beside it.
 
+- `packages/reality-core/tests/test_company_purpose_once.py`: FR-001's per-transaction purpose. Four service calls in one transaction read what a company is for twelve times before this and twice after; a savepoint is its own scope and asks again on purpose, because an answer learned inside one must not outlive its rollback. Two rules keep the memory honest and are tested as rules: a company created later in the same transaction is still seen, because absence is never remembered, and a practice company is refused as often as it is asked.
+
 ## Composable analytics (185)
 
 Spec 185 owns the analytics service, agent tools, private report configuration and workspace.
