@@ -327,6 +327,13 @@ test("book-length guide explains the operational model through worked business c
   }
 });
 
+test("the contribution chapter is directly available in both handbook sidebars", () => {
+  const config = fs.readFileSync(path.join(docsRoot, ".vitepress", "config.mts"), "utf8");
+  assert.match(config, /"Inventory cost, DB1 and DB2"/);
+  assert.match(config, /"Bestandskosten, DB1 und DB2"/);
+  assert.match(config, /"08-inventory-cost-and-contribution"/);
+});
+
 test("ERP handbook explains the complete contribution bridge in both languages", () => {
   const editions = [
     [

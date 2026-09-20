@@ -84,6 +84,7 @@ const copy: Record<LocaleKey, NavigationCopy> = {
       "Working as Process Owner",
       "One order from start to finish",
       "Facts and open questions",
+      "Inventory cost, DB1 and DB2",
       "Summary",
     ],
     agentPlaybooks: "Agents",
@@ -143,6 +144,7 @@ const copy: Record<LocaleKey, NavigationCopy> = {
       "Als Prozessverantwortliche/r arbeiten",
       "Ein Auftrag von Anfang bis Ende",
       "Facts und offene Fragen",
+      "Bestandskosten, DB1 und DB2",
       "Zusammenfassung",
     ],
     agentPlaybooks: "Agenten",
@@ -210,6 +212,7 @@ const sidebar = (locale: LocaleKey) => {
     "04-working-as-process-owner",
     "05-one-order-end-to-end",
     "06-facts-and-open-questions",
+    "08-inventory-cost-and-contribution",
     "07-model-at-a-glance",
   ];
   return [
