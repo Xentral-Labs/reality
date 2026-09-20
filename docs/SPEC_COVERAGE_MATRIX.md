@@ -997,6 +997,8 @@ problem with the intake.
 
 - `packages/reality-core/tests/test_projection_jobs.py::test_each_projection_behind_gets_its_own_run_and_is_not_queued_twice` and `::test_a_failure_is_recorded_against_one_projection_and_not_its_neighbours`: FR-004's run half. The first holds both directions of the split — a company behind on several projections gets a run each, and a projection whose run is already waiting is not enqueued again. The second is the reason for the split: a run is claimed and failed, and the projection it named is `failed` while its neighbours are not, which the shared run could not say. `test_projection_job_migration.py::test_downgrade_preserves_internal_job_history` now walks both refusals a downgrade meets: the queue cannot be squeezed back into one run per company while several are unfinished, and the internal history cannot be dropped at all.
 
+- `packages/reality-core/tests/test_attention_reads.py::test_two_findings_of_one_class_are_ordered_by_date_and_not_by_record_id`: FR-002's first step for `exceptions`. Two promises of one class are built so that their dates and their record ids disagree, then the stored generation is held against the derivation's order. It fails when the reader's key loses `sort_at` — which is what the stored `position` used to carry, and what a narrowed refresh could never compute.
+
 ## Composable analytics (185)
 
 Spec 185 owns the analytics service, agent tools, private report configuration and workspace.

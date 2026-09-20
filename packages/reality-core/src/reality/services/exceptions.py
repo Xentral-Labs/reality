@@ -124,8 +124,17 @@ class OperationalException:
     sort_at: datetime | None = None
 
     def to_dict(self) -> dict[str, Any]:
+        """The row, carrying the moment it is ordered by.
+
+        `sort_at` used to be dropped here, and the stored projection kept each row's
+        *place* in the company's order instead — a rank, which is only true relative
+        to every other row. A refresh that derives three rows cannot know that
+        (spec 181 FR-002), so the row carries its own key and the readers do the
+        ordering. It is an ISO string in both paths, live and stored, because the two
+        must not order differently.
+        """
         value = asdict(self)
-        value.pop("sort_at")
+        value["sort_at"] = self.sort_at.isoformat() if self.sort_at else None
         value["cause_ids"] = list(self.cause_ids)
         return value
 

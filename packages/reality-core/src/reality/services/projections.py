@@ -775,15 +775,13 @@ def _build_operational_rows(
     if EXCEPTIONS in selected:
         from reality.services.exceptions import operational_exception_rows
 
-        # The stored rows keep the derivation's canonical order as a position, so a
-        # reader paging through them shows the same sequence the live queue would.
-        exception_projection = {
-            row["id"]: {**row, "position": position}
-            for position, row in enumerate(
-                operational_exception_rows(session, tenant_id)
-            )
+        # Each row carries the key it is ordered by, not its place in the order. A
+        # rank would have to be recomputed for the whole company every time one row
+        # changed, which is what stops this projection deriving by change
+        # (spec 181 FR-002); the readers order by the same key the derivation uses.
+        result[EXCEPTIONS] = {
+            row["id"]: row for row in operational_exception_rows(session, tenant_id)
         }
-        result[EXCEPTIONS] = exception_projection
     if COMMITMENT_REGISTER in selected:
         result[COMMITMENT_REGISTER] = _commitment_register_rows(session, tenant_id)
     if DOCUMENT_REGISTER in selected:
