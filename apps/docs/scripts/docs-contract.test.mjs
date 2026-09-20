@@ -297,7 +297,7 @@ test("book-length guide explains the operational model through worked business c
       .sort()
       .map((file) => fs.readFileSync(path.join(guideRoot, file), "utf8")),
   ].join("\n");
-  assert.equal(fs.readdirSync(guideRoot).filter((file) => file.endsWith(".md")).length, 7);
+  assert.equal(fs.readdirSync(guideRoot).filter((file) => file.endsWith(".md")).length, 8);
   for (const term of [
     "From ERP Documents to Business Reality",
     "The Process Owner Role",
@@ -305,6 +305,9 @@ test("book-length guide explains the operational model through worked business c
     "partial goods receipt",
     "When an external customer changes an order",
     "Invoice, partial payment and credit",
+    "Inventory Cost, DB1 and DB2",
+    "DB1 = received net revenue",
+    "Unknown is not zero",
     "Exceptions, Approvals and Responsibility",
     "Decision guide",
   ]) {
@@ -321,6 +324,26 @@ test("book-length guide explains the operational model through worked business c
       `${locale || "en"}: list explanation missing`,
     );
     assert.match(usage, /What is open\?|Was ist offen\?/u);
+  }
+});
+
+test("ERP handbook explains the complete contribution bridge in both languages", () => {
+  const editions = [
+    ["", ["Consumed acquisition cost", "Direct selling cost", "DB2 rate", "Inspect cost basis"], ["1,200", "630", "570", "90", "24", "456", "38%"]],
+    ["de/", ["Verbrauchte Anschaffungskosten", "Direkte Vertriebskosten", "DB2-Quote", "Kostengrundlage prüfen"], ["1.200", "630", "570", "90", "24", "456", "38%"]],
+  ];
+  for (const [locale, terms, amounts] of editions) {
+    const page = fs.readFileSync(
+      path.join(
+        contentRoot,
+        locale,
+        "concepts/business-reality-guide/08-inventory-cost-and-contribution.md",
+      ),
+      "utf8",
+    );
+    for (const term of terms) assert.ok(page.includes(term), `${locale || "en"}: missing ${term}`);
+    for (const amount of amounts)
+      assert.ok(page.replace(/\s+/gu, "").includes(amount), `${locale || "en"}: missing ${amount}`);
   }
 });
 
