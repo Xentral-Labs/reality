@@ -134,3 +134,90 @@ def test_tenant_management_hides_archived_tenants_and_confirms_web_deletion(
     assert archived.name not in switcher_page.text
     assert rejected.status_code == 400
     assert deleted.status_code == 303
+
+
+def test_the_usage_summary_agrees_with_the_tables_it_summarises(session, business):
+    """Every figure comes from one statement now, so each is held against a count
+    taken on its own (spec 181).
+
+    The per-table form this replaced was 24 round trips of the same arithmetic; a
+    union that lost a table, or attributed one to the wrong figure, would be a number
+    nobody could see was wrong.
+    """
+    from sqlalchemy import func
+
+    from reality.db.core import (
+        BusinessEvent,
+        Commitment,
+        Document,
+        Item,
+        LedgerEntry,
+        Location,
+        Movement,
+        Reservation,
+        SourceRecord,
+        SourceSystem,
+    )
+    from reality.services.core import (
+        create_commitment,
+        post_sales_invoice,
+        record_customer_payment,
+        record_movement,
+        reserve,
+    )
+
+    tenant = business.tenant.id
+    order = create_document(
+        session, tenant, "sales_order", "SO-USAGE", business.customer.id, "100"
+    )
+    commitment = create_commitment(
+        session,
+        tenant,
+        "customer_delivery",
+        business.company.id,
+        business.customer.id,
+        business.item.id,
+        business.location.id,
+        "3",
+        "2026-09-30T00:00:00+00:00",
+        document_id=order.id,
+    )
+    record_movement(
+        session,
+        tenant,
+        "receipt",
+        business.item.id,
+        "5",
+        to_location_id=business.location.id,
+    )
+    reserve(session, tenant, commitment.id, "3", _commit=False)
+    invoice = create_document(
+        session, tenant, "sales_invoice", "INV-USAGE", business.customer.id, "100"
+    )
+    post_sales_invoice(session, tenant, invoice.id)
+    record_customer_payment(session, tenant, business.customer.id, "40")
+
+    def rows(model) -> int:
+        return session.scalar(
+            select(func.count()).select_from(model).where(model.tenant_id == tenant)
+        )
+
+    summary = tenant_usage_summaries(session, tenant_id=tenant)[tenant]
+    assert summary["source_count"] == rows(SourceRecord)
+    assert summary["evidence_count"] == rows(Document)
+    assert summary["reality_count"] == (
+        rows(Commitment) + rows(Reservation) + rows(Movement) + rows(LedgerEntry)
+    )
+    assert summary["configured_count"] == (
+        rows(SourceSystem) + rows(Party) + rows(Item) + rows(Location)
+    )
+    assert summary["reality_count"] > 0 and summary["configured_count"] > 0
+    assert summary["state"] == "in_use"
+    assert summary["last_activity_at"] == session.scalar(
+        select(func.max(BusinessEvent.occurred_at)).where(
+            BusinessEvent.tenant_id == tenant
+        )
+    )
+    # The company-by-company call and the whole-instance call ask differently and
+    # must answer the same.
+    assert tenant_usage_summaries(session)[tenant] == summary
