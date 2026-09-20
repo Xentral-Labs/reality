@@ -42,9 +42,66 @@ class StepResult(BaseModel):
     slowest_sweep: list[SlowStatement] = []
 
 
+class TableSize(BaseModel):
+    """What one table costs to keep, split by what the bytes are doing.
+
+    The three are separated because they are three different decisions. The heap
+    is the rows somebody's work produced. The indexes are a choice about reads,
+    and in this schema they frequently outweigh the rows they point at. What sits
+    out of line is the large text PostgreSQL moved aside on its own — the payload
+    a tiered store would take over (spec 181 FR-005).
+    """
+
+    table_name: str
+    estimated_rows: int = Field(ge=0)
+    heap_bytes: int = Field(ge=0)
+    index_bytes: int = Field(ge=0)
+    out_of_line_bytes: int = Field(ge=0)
+
+    @property
+    def total_bytes(self) -> int:
+        return self.heap_bytes + self.index_bytes + self.out_of_line_bytes
+
+
+class TableBlocker(BaseModel):
+    """A tenant-scoped table and the uniqueness promises that pin it to one cluster.
+
+    PostgreSQL will not partition a table unless every unique constraint contains
+    the partition key, so each name here is a constraint that would have to change
+    before this table could be split by company.
+    """
+
+    table_name: str
+    constraints: list[str] = Field(min_length=1)
+
+
+class StorageShape(BaseModel):
+    """Where a company's bytes went, and what the schema would allow (FR-005)."""
+
+    orders: int = Field(ge=0)
+    tables: list[TableSize] = []
+    blocked_from_tenant_partitioning: list[TableBlocker] = []
+
+    @property
+    def total_bytes(self) -> int:
+        return sum(table.total_bytes for table in self.tables)
+
+    @property
+    def bytes_per_order(self) -> int | None:
+        """What one order to cash leaves behind, or None before there is one.
+
+        The database's absolute size is a property of how far the fixture was
+        driven. This is the figure that can be held against another run.
+        """
+        return round(self.total_bytes / self.orders) if self.orders else None
+
+
 class SampleResult(BaseModel):
     orders_before: int = Field(ge=0)
     steps: list[StepResult]
+    #: Absent in records written before storage was measured, so an older run
+    #: still loads rather than becoming unreadable (spec 181 FR-005).
+    storage: StorageShape | None = None
 
     @property
     def queries(self) -> int:
@@ -90,6 +147,17 @@ class IngestResult(BaseModel):
                     "answer it, and the ratio is only as good as the largest size "
                     "measured."
                 ),
+                (
+                    "Table sizes include whatever autovacuum has not yet reclaimed, "
+                    "so two runs can differ by the timing of a background process "
+                    "and not by a byte of data."
+                ),
+                (
+                    "The storage recorded here is the ingested half. This run never "
+                    "refreshes a projection, so `projection_row` — the largest table "
+                    "in a worked company — stays empty, and the job history never "
+                    "reaches the size a company accumulates minute by minute."
+                ),
             ],
             **meta,
         )
@@ -123,6 +191,33 @@ class IngestResult(BaseModel):
                 f"{sample.orders_before:>8}  {sample.interpreting:>8}  "
                 f"{sample.queries:>8}  {sample.sql_ms:>8.0f}   {steps}"
             )
+        storage = [
+            sample.storage for sample in self.samples if sample.storage is not None
+        ]
+        if storage:
+            lines.append("")
+            lines.append(
+                f"{'orders':>8}  {'kept':>10}  {'per order':>10}   largest tables"
+            )
+            for shape in storage:
+                largest = "  ".join(
+                    f"{table.table_name} {human_bytes(table.total_bytes)}"
+                    for table in shape.tables[:3]
+                )
+                per_order = shape.bytes_per_order
+                lines.append(
+                    f"{shape.orders:>8}  {human_bytes(shape.total_bytes):>10}  "
+                    f"{(human_bytes(per_order) if per_order else '-'):>10}   {largest}"
+                )
+            blocked = storage[-1].blocked_from_tenant_partitioning
+            lines.append("")
+            lines.append(
+                f"{len(blocked)} tenant-scoped tables cannot be partitioned by "
+                "company: a unique constraint does not contain the tenant "
+                "(spec 181 FR-005)."
+                if blocked
+                else "Every tenant-scoped table could be partitioned by company."
+            )
         growth = self.growth()
         lines.append("")
         if growth is not None:
@@ -136,6 +231,16 @@ class IngestResult(BaseModel):
                 "and the smallest are not the same measurement."
             )
         return "\n".join(lines)
+
+
+def human_bytes(count: int) -> str:
+    """Bytes in the unit a reader can hold in their head."""
+    size = float(count)
+    for unit in ("B", "kB", "MB", "GB"):
+        if size < 1024 or unit == "GB":
+            return f"{size:.0f} {unit}" if unit == "B" else f"{size:.1f} {unit}"
+        size /= 1024
+    return f"{size:.1f} GB"
 
 
 def render_markdown(result: IngestResult) -> str:
@@ -221,6 +326,69 @@ def render_markdown(result: IngestResult) -> str:
         "once looked like an intake problem.",
         statement_rows("slowest_sweep"),
     )
+    storage = [
+        sample.storage for sample in result.samples if sample.storage is not None
+    ]
+    if storage:
+        latest = storage[-1]
+        lines += [
+            "",
+            "## What the data costs to keep",
+            "",
+            (
+                "Three columns, because they are three different decisions. **Rows** "
+                "is the work somebody did. **Indexes** is a choice about reads, and "
+                "in this schema it frequently outweighs the rows it points at. **Out "
+                "of line** is the large text PostgreSQL moved aside by itself — the "
+                "payload spec 181 FR-005 would give to a tiered store. A small "
+                "figure repeated across tables is that store existing and standing "
+                "empty, not payload sitting in it: nothing here is large enough for "
+                "PostgreSQL to move, so the payloads are in the rows."
+            ),
+            "",
+            f"At {latest.orders} orders the company keeps "
+            f"**{human_bytes(latest.total_bytes)}**"
+            + (
+                f", or **{human_bytes(latest.bytes_per_order)} per order to cash**."
+                if latest.bytes_per_order
+                else "."
+            ),
+            "",
+            "| Table | Rows | Rows (bytes) | Indexes | Out of line | Total |",
+            "|---|---:|---:|---:|---:|---:|",
+        ]
+        for table in latest.tables[:15]:
+            lines.append(
+                f"| `{table.table_name}` | {table.estimated_rows} "
+                f"| {human_bytes(table.heap_bytes)} "
+                f"| {human_bytes(table.index_bytes)} "
+                f"| {human_bytes(table.out_of_line_bytes)} "
+                f"| {human_bytes(table.total_bytes)} |"
+            )
+        blocked = latest.blocked_from_tenant_partitioning
+        lines += ["", "## What the keys would allow", ""]
+        if blocked:
+            lines += [
+                (
+                    "PostgreSQL refuses to partition a table unless every unique "
+                    "constraint contains the partition key, the primary key "
+                    f"included. **{len(blocked)} tenant-scoped tables** are held "
+                    "back by a constraint that does not name the company, so "
+                    "FR-005's first clause is a list of constraints to change "
+                    "rather than a partitioning strategy to choose."
+                ),
+                "",
+                "| Table | Constraints that do not contain the tenant |",
+                "|---|---|",
+            ]
+            for entry in blocked:
+                names = ", ".join(f"`{name}`" for name in entry.constraints)
+                lines.append(f"| `{entry.table_name}` | {names} |")
+        else:
+            lines.append(
+                "Every tenant-scoped table's uniqueness promises contain the "
+                "company, so each could be partitioned by tenant."
+            )
     lines += ["", "## Limitations", ""]
     lines += [f"- {limitation}" for limitation in result.limitations]
     return "\n".join(lines) + "\n"
