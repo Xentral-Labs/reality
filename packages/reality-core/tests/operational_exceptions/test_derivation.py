@@ -628,8 +628,12 @@ def test_new_classes_expose_full_entry_shape(session, business):
             "record_id",
             "causal_values",
             "trace",
+            "sort_at",
         } <= set(payload)
-        assert "sort_at" not in payload
+        # The row carries the moment it is ordered by. It used to be dropped here,
+        # and the stored projection kept each row's rank instead — which is what
+        # stopped that projection deriving by change (spec 181 FR-002).
+        assert payload["sort_at"] is None or payload["sort_at"].endswith("+00:00")
 
 
 def test_new_classes_clear_through_reality(session, business):

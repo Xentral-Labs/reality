@@ -33,6 +33,13 @@ set cannot bound it: `billed and not received`, `received and not billed`, `ship
 and not billed` judge what happened *after* a promise was fulfilled. An open-work set
 is not a cheaper version of that answer, it is a different one.
 
+## Status
+
+The decision below was taken on 2026-09-20: **store the key**. Step 1 of the proposed order
+is done — the row carries `sort_at`, the readers order by
+`(severity, class rank, sort_at, record_id)`, and the stored `position` is gone. Steps 2 to 4
+are open.
+
 ## The decision needed first
 
 **Store the key, not the rank.** Carry `sort_at` on the stored row and let the readers

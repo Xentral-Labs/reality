@@ -205,7 +205,15 @@ builder and class measurements at checkpoints, and compare two commits on the sa
     and 7–8 ms, flat across the same range. If the scans ever do show, the next step is
     maintained counters with reconciliation, not a change set.
   * `exceptions` (37) is the largest and needs its own design, because its evaluation loads
-    the whole company by construction (see FR-003).
+    the whole company by construction (see FR-003). The **first obstacle is removed**: its
+    stored rows carried `position`, each row's place in the whole company's order, and a
+    refresh that derives three rows cannot know a rank. The cause was one line —
+    `OperationalException.to_dict()` dropped `sort_at` — so the order had to be kept as a
+    number. The row now carries the key the derivation orders by and the readers order by
+    it, which also ends a quieter disagreement: within a class the derivation puts the
+    oldest first, while a reader without `sort_at` fell back on the record id. The
+    narrowing itself, the input scope and the clock are the remaining steps
+    (`docs/ideas/exceptions-derive-by-change.md`).
 
   **The rule that makes narrowing safe, learned twice and stated once:** an event's subject is
   what was *acted on*, not everything the action created. `ledger.reversed` names the original

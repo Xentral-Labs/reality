@@ -108,14 +108,18 @@ def _class_ids() -> list[str]:
 
 
 def _canonical(row: dict[str, Any]) -> tuple[Any, ...]:
-    # A generation written before the builder recorded positions orders by the same
-    # severity and class rank the derivation uses; the record id keeps it stable.
-    position = row.get("position")
+    """The derivation's own order, from the keys the row carries.
+
+    `(severity, class rank, sort_at, record_id)` is what `operational_exceptions`
+    sorts by, and the row now carries every part of it. Rows written before that —
+    generations that stored a `position` and no `sort_at` — order by the rest, which
+    is where they already agreed; within a class they fall back on the record id, as
+    they did before this reader could see a date at all.
+    """
     return (
-        position is None,
-        position or 0,
         SEVERITY_ORDER.get(row.get("severity", ""), len(SEVERITY_ORDER)),
         CLASS_ORDER.get(row.get("class_id", ""), len(CLASS_ORDER)),
+        row.get("sort_at") or "9999-12-31T23:59:59+00:00",
         str(row.get("record_id", "")),
     )
 

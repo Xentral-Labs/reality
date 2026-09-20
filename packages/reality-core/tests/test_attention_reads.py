@@ -177,3 +177,70 @@ def test_detail_explains_live_and_classifies_a_cleared_finding(session, business
     with pytest.raises(NotFound) as unknown:
         attention_detail(session, business.tenant.id, "exc__invented__x")
     assert not isinstance(unknown.value, FindingCleared)
+
+
+def test_two_findings_of_one_class_are_ordered_by_date_and_not_by_record_id(
+    session, business
+):
+    """The part of the order a rank used to carry (spec 181 FR-002).
+
+    Within a class the derivation puts the oldest promise first. The stored rows used
+    to carry their *place* in that order, and the reader fell back on the record id
+    whenever a generation had none — a different order. The row now carries `sort_at`,
+    so the two agree.
+
+    The two promises here are built so that the dates and the ids disagree: the
+    later-created promise is made the older one. Without that, an order by id would
+    pass this test by accident.
+    """
+    from reality.services.core import create_commitment, record_movement, utc_datetime
+
+    tenant = business.tenant.id
+    record_movement(
+        session,
+        tenant,
+        "receipt",
+        business.item.id,
+        "20",
+        to_location_id=business.location.id,
+    )
+    promises = [
+        create_commitment(
+            session,
+            tenant,
+            "customer_delivery",
+            business.company.id,
+            business.customer.id,
+            business.item.id,
+            business.location.id,
+            "2",
+            "2026-08-01T00:00:00+00:00",
+        )
+        for _ in range(2)
+    ]
+    first_by_id, second_by_id = sorted(promises, key=lambda row: row.id)
+    # The promise with the larger id is the older one, so date and id disagree.
+    first_by_id.due_at = utc_datetime("2026-08-20T00:00:00+00:00")
+    second_by_id.due_at = utc_datetime("2026-08-01T00:00:00+00:00")
+    session.flush()
+
+    canonical = operational_exception_rows(session, tenant)
+    overdue = [
+        row["record_id"]
+        for row in canonical
+        if row["class_id"] == "overdue_outgoing_customer_commitment"
+    ]
+    assert overdue[:2] == [second_by_id.id, first_by_id.id], (
+        "the derivation puts the older promise first"
+    )
+    assert overdue[:2] != sorted(overdue[:2]), (
+        "the fixture no longer makes date and id disagree"
+    )
+
+    _publish(session, tenant)
+    stored, _ = stored_exceptions(session, tenant)
+    assert [
+        row["record_id"]
+        for row in stored
+        if row["class_id"] == "overdue_outgoing_customer_commitment"
+    ][:2] == overdue[:2]
