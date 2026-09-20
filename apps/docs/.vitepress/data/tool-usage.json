@@ -797,6 +797,61 @@
       "workspace_actions": []
     },
     {
+      "key": "contribution",
+      "label": {
+        "en": "Contribution margin",
+        "de": "Deckungsbeitrag"
+      },
+      "subtitle": {
+        "en": "Reviewed DB1 and DB2 for exact sales-invoice lines",
+        "de": "Geprüfter DB1 und DB2 für konkrete Ausgangsrechnungspositionen"
+      },
+      "description": {
+        "en": "The explainable bridge from received net revenue through reviewed consumed acquisition cost to DB1, and through direct and allocated selling costs to DB2. Missing evidence stays unknown; every confirmed result retains its review and knowledge boundary.",
+        "de": "Die nachvollziehbare Brücke vom empfangenen Nettoerlös über geprüfte verbrauchte Anschaffungskosten zu DB1 und über direkte und umgelegte Vertriebskosten zu DB2. Fehlende Evidenz bleibt unbekannt; jedes bestätigte Ergebnis behält seine Prüfung und Wissensgrenze."
+      },
+      "synonyms": [
+        "contribution margin",
+        "gross margin",
+        "DB1",
+        "DB2",
+        "Deckungsbeitrag",
+        "Rohertrag",
+        "Marge"
+      ],
+      "tables": [
+        "cost_commercial_match_revision",
+        "cost_commercial_inventory_part",
+        "cost_commercial_direct_part",
+        "cost_revenue_match_basis",
+        "cost_contribution_review",
+        "cost_selling_attribution_part",
+        "cost_selling_review_category",
+        "cost_selling_review_member"
+      ],
+      "lists": [],
+      "actions": ["command:execute_cost_change"],
+      "reads": [
+        "command:commercial_match",
+        "command:cost_query",
+        "command:cost_record",
+        "command:reviewed_contribution",
+        "command:contribution_preview",
+        "command:inventory_cost",
+        "command:cost_evidence",
+        "command:receipt_cost"
+      ],
+      "exceptions": [
+        "exception:missing_acquisition_cost",
+        "exception:unassigned_cost_component",
+        "exception:stale_cost_review",
+        "exception:negative_actual_db1"
+      ],
+      "tools": ["tool:graph_contribution_reviews_list"],
+      "events": ["event:cost.attributed", "event:cost.reviewed"],
+      "workspace_actions": []
+    },
+    {
       "key": "return",
       "label": {
         "en": "Return",
@@ -10602,7 +10657,7 @@
       "projections": [],
       "links": [],
       "label_de": "List confirmed contribution valuations",
-      "resources": ["analytics"]
+      "resources": ["analytics", "contribution"]
     },
     {
       "id": "tool:graph_inventory_reviews_list",
@@ -12737,7 +12792,7 @@
       "projections": [],
       "links": ["command:commercial_match"],
       "label_de": "Reviewed partial commercial match",
-      "resources": ["accounting", "source"]
+      "resources": ["accounting", "contribution", "source"]
     },
     {
       "id": "tool:cost_query_get",
@@ -12822,7 +12877,7 @@
       "projections": [],
       "links": ["command:cost_query"],
       "label_de": "Read cost query context",
-      "resources": ["accounting"]
+      "resources": ["accounting", "contribution"]
     },
     {
       "id": "tool:cost_record_get",
@@ -12893,7 +12948,7 @@
       "projections": [],
       "links": ["command:cost_record"],
       "label_de": "Inspect retained cost record",
-      "resources": ["accounting"]
+      "resources": ["accounting", "contribution"]
     },
     {
       "id": "tool:cost_contribution_get",
@@ -12948,7 +13003,7 @@
       "projections": [],
       "links": ["command:reviewed_contribution"],
       "label_de": "Reviewed commercial contribution",
-      "resources": ["accounting"]
+      "resources": ["accounting", "contribution"]
     },
     {
       "id": "tool:cost_contribution_preview",
@@ -12995,7 +13050,7 @@
       "projections": [],
       "links": ["command:contribution_preview"],
       "label_de": "Current contribution candidate",
-      "resources": ["accounting"]
+      "resources": ["accounting", "contribution"]
     },
     {
       "id": "tool:cost_inventory_get",
@@ -13056,7 +13111,7 @@
       "projections": [],
       "links": ["command:inventory_cost"],
       "label_de": "Reviewed inventory acquisition value",
-      "resources": ["accounting", "item"]
+      "resources": ["accounting", "contribution", "item"]
     },
     {
       "id": "tool:cost_receipt_get",
@@ -13107,7 +13162,7 @@
       "projections": [],
       "links": ["command:receipt_cost"],
       "label_de": "Receipt acquisition costs",
-      "resources": ["accounting"]
+      "resources": ["accounting", "contribution"]
     },
     {
       "id": "tool:cost_evidence_get",
@@ -13158,7 +13213,7 @@
       "projections": [],
       "links": ["command:cost_evidence"],
       "label_de": "Received cost evidence",
-      "resources": ["accounting"]
+      "resources": ["accounting", "contribution"]
     },
     {
       "id": "tool:cost_change_propose",
@@ -14142,7 +14197,7 @@
       "projections": [],
       "links": ["command:execute_cost_change"],
       "label_de": "Review cost and contribution decision",
-      "resources": ["accounting"]
+      "resources": ["accounting", "contribution"]
     },
     {
       "id": "command:commercial_match",
@@ -14191,7 +14246,7 @@
       },
       "links": ["tool:cost_commercial_match_get"],
       "label_de": "Geprüfte Teilzuordnung anzeigen",
-      "resources": ["accounting", "source"]
+      "resources": ["accounting", "contribution", "source"]
     },
     {
       "id": "command:cost_query",
@@ -14248,7 +14303,7 @@
       },
       "links": ["tool:cost_query_get"],
       "label_de": "Kosten mit Bewertungsbasis abfragen",
-      "resources": ["accounting"]
+      "resources": ["accounting", "contribution"]
     },
     {
       "id": "command:cost_record",
@@ -14328,7 +14383,7 @@
       },
       "links": ["tool:cost_record_get"],
       "label_de": "Kostennachweis prüfen",
-      "resources": ["accounting"]
+      "resources": ["accounting", "contribution"]
     },
     {
       "id": "command:reviewed_contribution",
@@ -14380,7 +14435,7 @@
       },
       "links": ["tool:cost_contribution_get"],
       "label_de": "Geprüfte Deckungsbeiträge anzeigen",
-      "resources": ["accounting"]
+      "resources": ["accounting", "contribution"]
     },
     {
       "id": "command:contribution_preview",
@@ -14430,7 +14485,7 @@
       },
       "links": ["tool:cost_contribution_preview"],
       "label_de": "Deckungsbeitragsvorschau prüfen",
-      "resources": ["accounting"]
+      "resources": ["accounting", "contribution"]
     },
     {
       "id": "command:inventory_cost",
@@ -14481,7 +14536,7 @@
       },
       "links": ["tool:cost_inventory_get"],
       "label_de": "Bestand zu Anschaffungskosten anzeigen",
-      "resources": ["accounting", "item"]
+      "resources": ["accounting", "contribution", "item"]
     },
     {
       "id": "command:cost_evidence",
@@ -14524,7 +14579,7 @@
       },
       "links": ["tool:cost_evidence_get"],
       "label_de": "Empfangene Anschaffungskosten anzeigen",
-      "resources": ["accounting"]
+      "resources": ["accounting", "contribution"]
     },
     {
       "id": "command:receipt_cost",
@@ -14567,7 +14622,7 @@
       },
       "links": ["tool:cost_receipt_get"],
       "label_de": "Anschaffungskosten des Wareneingangs anzeigen",
-      "resources": ["accounting"]
+      "resources": ["accounting", "contribution"]
     },
     {
       "id": "command:execute_cost_change",
@@ -14672,7 +14727,7 @@
       },
       "links": ["tool:cost_change_propose", "event:cost.attributed", "event:cost.reviewed"],
       "label_de": "Kostenentscheidung bestätigen",
-      "resources": ["accounting"]
+      "resources": ["accounting", "contribution"]
     },
     {
       "id": "command:change_graph_report",
@@ -20270,7 +20325,7 @@
         "view:items"
       ],
       "label_de": "Anschaffungskosten fehlen",
-      "resources": ["item"]
+      "resources": ["contribution", "item"]
     },
     {
       "id": "exception:unassigned_cost_component",
@@ -20296,7 +20351,7 @@
       ],
       "links": ["projection:exceptions", "tool:exceptions_list", "tool:exception_explain"],
       "label_de": "Kostenkomponente nicht zugeordnet",
-      "resources": ["accounting"]
+      "resources": ["accounting", "contribution"]
     },
     {
       "id": "exception:stale_cost_review",
@@ -20327,7 +20382,7 @@
         "view:items"
       ],
       "label_de": "Kostenprüfung veraltet",
-      "resources": ["accounting", "order"]
+      "resources": ["accounting", "contribution", "order"]
     },
     {
       "id": "exception:negative_actual_db1",
@@ -20353,7 +20408,7 @@
       ],
       "links": ["projection:exceptions", "tool:exceptions_list", "tool:exception_explain"],
       "label_de": "Tatsächlicher DB1 negativ",
-      "resources": ["order"]
+      "resources": ["contribution", "order"]
     },
     {
       "id": "event:cost.attributed",
@@ -20367,7 +20422,7 @@
       "invalidates": ["Timeline", "Tenant usage"],
       "links": ["command:execute_cost_change"],
       "label_de": "cost.attributed",
-      "resources": ["accounting"]
+      "resources": ["accounting", "contribution"]
     },
     {
       "id": "event:cost.reviewed",
@@ -20381,7 +20436,7 @@
       "invalidates": ["Timeline", "Tenant usage"],
       "links": ["command:execute_cost_change"],
       "label_de": "cost.reviewed",
-      "resources": ["accounting"]
+      "resources": ["accounting", "contribution"]
     },
     {
       "id": "event:shipment.notice_recorded",

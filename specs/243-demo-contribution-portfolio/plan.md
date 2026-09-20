@@ -47,6 +47,7 @@ apps/docs/content/{,de/}concepts/business-reality-guide/
   08-inventory-cost-and-contribution.md                        # business-facing worked portfolio
 apps/docs/content/{,de/}agent-playbooks/contribution-margin.md # operational DB1/DB2 situations and tools
 apps/docs/.vitepress/config.mts                                # bilingual playbook navigation
+packages/reality-core/config/resource_catalog.yaml             # first-class contribution business resource
 docs/SPEC_COVERAGE_MATRIX.md                                   # executable evidence mapping
 ```
 
