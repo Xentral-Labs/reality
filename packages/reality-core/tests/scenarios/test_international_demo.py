@@ -1,7 +1,8 @@
 from conftest import seed_company
+from sqlalchemy import func, select
+
 from reality.db.core import Commitment, Item, Location, Party, PlaygroundRun
 from reality.services import company_setup
-from sqlalchemy import func, select
 
 
 def test_canonical_profile_counts_and_cases(session, scheduled_owner, monkeypatch):

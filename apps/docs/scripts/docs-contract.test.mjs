@@ -9,6 +9,36 @@ const contentRoot = path.join(docsRoot, "content");
 const repositoryRoot = path.resolve(docsRoot, "..", "..");
 const translatedLocales = ["de"];
 
+test("contribution agent playbook maps common DB1 and DB2 situations to governed tools", () => {
+  const config = fs.readFileSync(path.join(docsRoot, ".vitepress/config.mts"), "utf8");
+  assert.ok(config.includes('playbookContribution: "Contribution margin"'));
+  assert.ok(config.includes('playbookContribution: "Deckungsbeitrag"'));
+  assert.ok(config.includes('"/agent-playbooks/contribution-margin"'));
+
+  for (const locale of ["", "de/"]) {
+    const playbook = fs.readFileSync(
+      path.join(contentRoot, locale, "agent-playbooks/contribution-margin.md"),
+      "utf8",
+    );
+    const index = fs.readFileSync(
+      path.join(contentRoot, locale, "agent-playbooks/index.md"),
+      "utf8",
+    );
+    assert.ok(index.includes("./contribution-margin"));
+    for (const tool of [
+      "cost_query_get",
+      "cost_contribution_preview",
+      "cost_commercial_match_get",
+      "cost_change_propose",
+      "graph_contribution_reviews_list",
+    ])
+      assert.ok(playbook.includes(tool), `${locale || "en"} playbook lacks ${tool}`);
+    assert.match(playbook, /missing means zero|fehlend mit null/u);
+    assert.match(playbook, /negative DB2|negativer DB2/u);
+    assert.match(playbook, /knowledge_at/u);
+  }
+});
+
 test("operational recap emphasizes record types rather than calculated balances", () => {
   for (const locale of ["", "de/"]) {
     const chapter = fs.readFileSync(

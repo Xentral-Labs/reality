@@ -28,6 +28,7 @@ type NavigationCopy = {
   agentPlaybooks: string;
   playbookFulfilment: string;
   playbookReceivables: string;
+  playbookContribution: string;
   playbookPurchasing: string;
   playbookReturns: string;
   playbookMasterData: string;
@@ -90,6 +91,7 @@ const copy: Record<LocaleKey, NavigationCopy> = {
     agentPlaybooks: "Agents",
     playbookFulfilment: "Sales and fulfilment",
     playbookReceivables: "Receivables and payments",
+    playbookContribution: "Contribution margin",
     playbookPurchasing: "Purchasing and replenishment",
     playbookReturns: "Returns",
     playbookMasterData: "Master data and sources",
@@ -150,6 +152,7 @@ const copy: Record<LocaleKey, NavigationCopy> = {
     agentPlaybooks: "Agenten",
     playbookFulfilment: "Vertrieb und Versand",
     playbookReceivables: "Forderungen und Zahlungen",
+    playbookContribution: "Deckungsbeitrag",
     playbookPurchasing: "Einkauf und Nachschub",
     playbookReturns: "Retouren",
     playbookMasterData: "Stammdaten und Quellen",
@@ -266,6 +269,10 @@ const sidebar = (locale: LocaleKey) => {
             {
               text: labels.playbookReceivables,
               link: route(locale, "/agent-playbooks/receivables-and-payments"),
+            },
+            {
+              text: labels.playbookContribution,
+              link: route(locale, "/agent-playbooks/contribution-margin"),
             },
             {
               text: labels.playbookPurchasing,
