@@ -250,3 +250,53 @@ def test_branch_limits_follow_label_order_not_identity_order(session, business):
         "Unique word 04",
         "Unique word 05",
     ]
+
+
+def test_every_materialized_search_cte_carries_its_own_name(session, business):
+    """An unnamed CTE is named after the object's `id()`, which CPython reuses.
+
+    SQLAlchemy keys anonymous constructs by `id(object)` (`cache_anon_map.get_anon`)
+    and renders them as `anon_1`, `anon_2`… Two CTEs built at different moments can
+    therefore share a name once the first object has been collected, and this query
+    puts several of them in one `union_all`. The result is
+    `CompileError: Multiple, unrelated CTEs found with the same name: 'anon_12'` —
+    a failure that appears and disappears with unrelated code, as it did in CI while
+    passing locally.
+
+    Naming each one after its family makes the collision impossible, and this test
+    holds that rather than the symptom.
+    """
+    from sqlalchemy import event
+
+    from reality.services.core import create_document, post_sales_invoice
+
+    tenant = business.tenant.id
+    invoice = create_document(
+        session, tenant, "sales_invoice", "INV-CTE", business.customer.id, 100
+    )
+    post_sales_invoice(session, tenant, invoice.id)
+    create_item(session, tenant, "CTE-ITEM", "Named cte item")
+    session.flush()
+
+    seen: list[str] = []
+    bind = session.get_bind()
+
+    def capture(conn, cursor, statement, *args):
+        if " AS MATERIALIZED (" in statement or "WITH " in statement:
+            seen.append(statement)
+
+    event.listen(bind, "before_cursor_execute", capture)
+    try:
+        search_company(
+            session, tenant, None, SearchRequest(provider="finance", query="INV")
+        )
+    finally:
+        event.remove(bind, "before_cursor_execute", capture)
+
+    materialized = [text for text in seen if "AS MATERIALIZED" in text]
+    assert materialized, "the search no longer materializes any family"
+    for statement in materialized:
+        assert "matched_" in statement, statement[:200]
+        assert "anon_" not in statement.split(" AS MATERIALIZED")[0], (
+            "a materialized search CTE is still unnamed"
+        )
