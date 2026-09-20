@@ -208,6 +208,43 @@ def make_due(session: Session, company: IngestCompany, ahead: timedelta) -> None
     session.commit()
 
 
+def settle_one(session: Session, company: IngestCompany, run, ahead: timedelta) -> bool:
+    """Let this settlement run see exactly the earliest item that is due.
+
+    The handler settles everything due `as of` its own run's creation, oldest
+    first, up to a batch. Placing that moment four hours ahead — which is what
+    the fixture used to do — hands it the whole backlog, and a sweep that
+    invoiced one order and paid five others was recorded as the cost of one
+    invoice. Two runs on the same commit then disagreed by 519 queries against
+    168 (spec 181 SC-005).
+
+    Placing it on the first due moment instead leaves that item due and usually
+    nothing else, so the sweep interprets one record and the measurement is of
+    that record. Two items *can* fall due in the same instant — a generator batch
+    stamps several orders with one moment — and then the sweep carries both and
+    the runner rejects it. That rejection is also what clears the tie, so the
+    next attempt measures cleanly; giving up here instead cost a whole run its
+    invoice and payment steps.
+
+    Returns False only when nothing is due at all.
+    """
+    from reality.db.core import now
+    from reality.db.scheduled_jobs import ScheduledJobRun
+    from reality.services import demo_data
+
+    due = demo_data.settlement_work(session, company.tenant_id, now() + ahead, limit=2)
+    if not due:
+        return False
+    first = due[0]["due_at"]
+    session.execute(
+        ScheduledJobRun.__table__.update()
+        .where(ScheduledJobRun.id == run.id)
+        .values(created_at=first)
+    )
+    session.flush()
+    return True
+
+
 def settle_from(
     session: Session, company: IngestCompany, run, ahead: timedelta
 ) -> None:

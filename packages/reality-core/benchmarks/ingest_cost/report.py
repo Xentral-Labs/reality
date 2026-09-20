@@ -91,8 +91,17 @@ class IngestResult(BaseModel):
         )
 
     def growth(self) -> float | None:
-        """How much dearer one order to cash is at the largest size than the smallest."""
+        """How much dearer one order to cash is at the largest size than the smallest.
+
+        `None` when the samples do not hold the same steps. A sample whose payment
+        step found no single-record sweep is not a cheaper order to cash, it is an
+        incomplete measurement — and dividing one by the other produced a 0.53x
+        "improvement" that was nothing but a missing step (spec 181 SC-005).
+        """
         if len(self.samples) < 2:
+            return None
+        shapes = {tuple(step.step for step in sample.steps) for sample in self.samples}
+        if len(shapes) > 1:
             return None
         first, last = self.samples[0].interpreting, self.samples[-1].interpreting
         return round(last / first, 2) if first else None
@@ -111,11 +120,16 @@ class IngestResult(BaseModel):
                 f"{sample.queries:>8}  {sample.sql_ms:>8.0f}   {steps}"
             )
         growth = self.growth()
+        lines.append("")
         if growth is not None:
-            lines.append("")
             lines.append(
                 f"interpreting queries per order to cash, largest against smallest:"
                 f" {growth}x (SC-001 allows 1.20)"
+            )
+        else:
+            lines.append(
+                "No ratio: the samples do not hold the same steps, so the largest "
+                "and the smallest are not the same measurement."
             )
         return "\n".join(lines)
 
