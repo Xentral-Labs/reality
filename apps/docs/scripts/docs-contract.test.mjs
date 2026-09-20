@@ -329,8 +329,21 @@ test("book-length guide explains the operational model through worked business c
 
 test("ERP handbook explains the complete contribution bridge in both languages", () => {
   const editions = [
-    ["", ["Consumed acquisition cost", "Direct selling cost", "DB2 rate", "Inspect cost basis"], ["1,200", "630", "570", "90", "24", "456", "38%"]],
-    ["de/", ["Verbrauchte Anschaffungskosten", "Direkte Vertriebskosten", "DB2-Quote", "Kostengrundlage prüfen"], ["1.200", "630", "570", "90", "24", "456", "38%"]],
+    [
+      "",
+      ["Consumed acquisition cost", "Direct selling cost", "DB2 rate", "Inspect cost basis"],
+      ["1,200", "630", "570", "90", "24", "456", "38%"],
+    ],
+    [
+      "de/",
+      [
+        "Verbrauchte Anschaffungskosten",
+        "Direkte Vertriebskosten",
+        "DB2-Quote",
+        "Kostengrundlage prüfen",
+      ],
+      ["1.200", "630", "570", "90", "24", "456", "38%"],
+    ],
   ];
   for (const [locale, terms, amounts] of editions) {
     const page = fs.readFileSync(
