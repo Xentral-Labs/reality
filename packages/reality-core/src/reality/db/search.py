@@ -448,7 +448,14 @@ def candidate_query(
             # label families can stop on their ordered index without collecting a
             # very broad (potentially 100,000-row) matching set first.
             if family_name not in {"party", "item", "location", "private_report"}:
-                matched = statement.cte().prefix_with("MATERIALIZED")
+                # Named after its family, because an unnamed CTE takes a name
+                # derived from the object's `id()`, and CPython hands an id back
+                # out once the first object is collected. Two of these live in one
+                # `union_all`, so a reused id is two CTEs called `anon_12` and a
+                # compile error that appears and disappears with unrelated code.
+                matched = statement.cte(name=f"matched_{family_name}").prefix_with(
+                    "MATERIALIZED"
+                )
                 statement = select(matched)
             columns = statement.selected_columns
             physical_key = columns.kind + literal(":") + columns.id

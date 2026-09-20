@@ -1007,6 +1007,8 @@ problem with the intake.
 
 - `packages/reality-core/tests/test_payment_intake.py::test_the_candidate_search_does_not_read_more_as_the_history_settles`: FR-001 in the measure a statement count cannot show. Twenty more settled invoices must not cost the candidate search more rows; the test counts rows read, because the search was already flat in statements while its work grew with the customer's history. It fails against the search that loaded every invoice.
 
+- `packages/reality-core/tests/test_global_search_service.py::test_every_materialized_search_cte_carries_its_own_name`: the search's materialized CTEs must carry their family's name. SQLAlchemy keys anonymous constructs by `id(object)` and renders them `anon_1`, `anon_2`…, so two CTEs built at different moments share a name once the first object has been collected — and several of them meet in one `union_all`. The symptom is `CompileError: Multiple, unrelated CTEs found with the same name`, which appears and disappears with unrelated code; it surfaced in CI while the suite was green locally. Putting the unnamed CTE back fails this test and the canonical-authorities test beside it.
+
 ## Composable analytics (185)
 
 Spec 185 owns the analytics service, agent tools, private report configuration and workspace.
