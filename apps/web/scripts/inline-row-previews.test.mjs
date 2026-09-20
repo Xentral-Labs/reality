@@ -39,8 +39,16 @@ test("sticky identity cells share the row highlight", async () => {
   const css = await readFile(new URL("../src/tailwind.css", import.meta.url), "utf8");
   assert.match(
     css,
-    /\[data-selectable="true"\] \.erp-table tr:hover td:nth-child\(2\)\s*\{\s*background: var\(--color-surface-muted\);/,
+    /\[data-selectable="true"\] \.erp-table tr:not\(\[data-inline-preview\]\):hover td:nth-child\(2\)\s*\{\s*background: var\(--color-surface-muted\);/,
   );
+});
+
+test("expanded preview rows keep their background while the pointer moves over them", async () => {
+  const preview = await source("InlinePreview.tsx");
+  const css = await readFile(new URL("../src/tailwind.css", import.meta.url), "utf8");
+  assert.match(preview, /<tr data-inline-preview>/);
+  assert.match(css, /\.erp-table tr:not\(\[data-inline-preview\]\):hover td/);
+  assert.doesNotMatch(css, /\.erp-table tr:hover td/);
 });
 
 test("daily work lists render previews inline instead of WorkDrawer", async () => {
