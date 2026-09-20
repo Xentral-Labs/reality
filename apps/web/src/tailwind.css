@@ -1864,7 +1864,7 @@ textarea {
 .erp-table th:last-child {
   text-align: right;
 }
-.erp-table tr:hover td {
+.erp-table tr:not([data-inline-preview]):hover td {
   background: var(--color-surface-muted);
   cursor: pointer;
 }
@@ -2422,7 +2422,7 @@ textarea {
   z-index: 5;
   background: var(--color-surface-muted);
 }
-[data-selectable="true"] .erp-table tr:hover td:nth-child(2) {
+[data-selectable="true"] .erp-table tr:not([data-inline-preview]):hover td:nth-child(2) {
   background: var(--color-surface-muted);
 }
 @media (max-width: 639px) {
