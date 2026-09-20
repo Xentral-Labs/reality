@@ -44,6 +44,7 @@ from .company import (
     make_due,
     marked_intake,
     settle_from,
+    settle_one,
 )
 from .measure import measured
 from .report import IngestResult, write_result
@@ -100,13 +101,14 @@ def _grow_to(session, company, target: int) -> None:
 
 
 SETTLEMENT_AHEAD = timedelta(hours=4)
-
-
-SETTLEMENT_AHEAD = timedelta(hours=4)
 #: How many sweeps a measured step may take before giving up on producing a record.
 #: A sweep that produced nothing has no cost per record, and reporting its sweep
 #: cost as if it had produced one is how the middle of a curve comes out wrong.
-ATTEMPTS = 8
+#: Raised from eight when the single-record rule arrived: a settlement sweep is
+#: now handed one due item on purpose, but the generator still delivers whatever
+#: its profile says, so a sample may need several tries before one sweep carries
+#: exactly one record. A try that is rejected is an ordinary unmeasured sweep.
+ATTEMPTS = 24
 
 
 def _run_once(session, company, job_type: str) -> bool:
@@ -119,6 +121,53 @@ def _run_once(session, company, job_type: str) -> bool:
         settle_from(session, company, run, SETTLEMENT_AHEAD)
     execute(session, company, run)
     return True
+
+
+#: A settlement sweep costs what its backlog makes it cost. Two runs of this
+#: benchmark on the same commit disagreed by 400 queries against 168 for one
+#: invoice, and 281 against 208 for one payment, until the backlog was emptied
+#: first: the sweep that happened to face one walked it, and the record reported
+#: that as the interpretation having become more expensive (spec 181 SC-005,
+#: measured 2026-09-20). The bound is here so a settlement that cannot drain
+#: fails loudly instead of sweeping for ever.
+DRAIN_LIMIT = 200
+
+
+def _drain_settlement(session, company) -> int:
+    """Settle until there is nothing left to settle, and say how long it took.
+
+    The measured steps are about what *one* record costs. A sweep facing five
+    orders and a sweep facing none both produce one invoice here — the runner
+    keeps only single-record sweeps — but they do not do the same work, so the
+    state before the measurement has to be the same every time, not merely
+    similar.
+    """
+    tenant_id = company.tenant_id
+    for swept in range(DRAIN_LIMIT):
+        before = (
+            _documents(session, tenant_id, "sales_invoice"),
+            _documents(session, tenant_id, "customer_payment"),
+        )
+        if not _run_once(session, company, "demo.settle_orders"):
+            return swept
+        after = (
+            _documents(session, tenant_id, "sales_invoice"),
+            _documents(session, tenant_id, "customer_payment"),
+        )
+        if after == before:
+            return swept
+    raise RuntimeError(
+        f"Settlement still had work after {DRAIN_LIMIT} sweeps; "
+        "the measurement would report a backlog as the cost of one record."
+    )
+
+
+def _produced_counts(session, tenant_id: str) -> dict[str, int]:
+    """How many of each kind the company holds: what a sweep delivered, in full."""
+    return {
+        document_type: _documents(session, tenant_id, document_type)
+        for document_type in set(PRODUCES.values())
+    }
 
 
 def _measure_step(session, company, engine, job_type: str, label: str):
@@ -134,19 +183,29 @@ def _measure_step(session, company, engine, job_type: str, label: str):
         run = claim_for(session, company, job_type)
         if run is None:
             continue
-        if job_type == "demo.settle_orders":
-            settle_from(session, company, run, SETTLEMENT_AHEAD)
-        before = _documents(session, company.tenant_id, PRODUCES[label])
+        if job_type == "demo.settle_orders" and not settle_one(
+            session, company, run, SETTLEMENT_AHEAD
+        ):
+            continue
+        before = _produced_counts(session, company.tenant_id)
         with measured(engine, label) as cost, marked_intake():
             execute(session, company, run)
-        cost.produced = _documents(session, company.tenant_id, PRODUCES[label]) - before
+        after = _produced_counts(session, company.tenant_id)
+        delivered = {kind: after[kind] - before[kind] for kind in after}
+        cost.produced = delivered[PRODUCES[label]]
         # Only a sweep that produced exactly one record is kept. A sweep carries a
         # fixed cost — claiming, the throttle, the selection — beside its per-record
         # work, so dividing by two records and by three does not give two readings of
         # the same thing. Comparing such readings across checkpoints once produced a
         # 1.17x "growth" that was nothing but the divisor moving, and it was very
         # nearly published as a finding.
-        if cost.produced == 1:
+        # Exactly one record of any kind, not merely one of the kind asked for. A
+        # settlement sweep invoices and pays in the same pass: the one that
+        # invoiced one order and paid five others produced one `sales_invoice`
+        # and cost six records' work, and the record said an invoice had become
+        # five times more expensive. Two runs on the same commit disagreed by
+        # 519 queries against 168 that way (spec 181 SC-005, 2026-09-20).
+        if sum(delivered.values()) == 1 and cost.produced == 1:
             if cost.interpreting_queries == 0:
                 # The wrapper did not reach the handler's call — the same trap the
                 # clock fell into. A zero here means the split is not measured, not
@@ -166,6 +225,9 @@ def _sample(session, company, engine) -> list[dict]:
     reads the order, and the payment walks the customer's history — which is the
     one `research.md` found growing with the company.
     """
+    # From an empty settlement backlog, so the three steps measure the same thing
+    # at every checkpoint and in every run (SC-005).
+    _drain_settlement(session, company)
     steps = [
         _measure_step(session, company, engine, "demo.generate_orders", "order"),
         _measure_step(session, company, engine, "demo.settle_orders", "invoice"),

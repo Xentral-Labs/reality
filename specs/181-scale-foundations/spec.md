@@ -390,8 +390,41 @@ builder and class measurements at checkpoints, and compare two commits on the sa
 - **SC-005**: Two fixture runs on the same commit differ by less than 10 % on every recorded
   cost.
 
-  The fixture exists and is maintained (FR-006), but **two runs on one commit have never been
-  compared**. It is the cheapest unmet criterion here: it needs a run, not a change.
+  **Compared for the first time on 2026-09-20, and it needed a change after all.** It was
+  written here as the cheapest criterion — a run, not a change. The first pair of runs on the
+  same commit disagreed by 400 queries against 168 for one invoice, and reported 0.99× and
+  0.58× as the same commit's SC-001 ratio. Three defects in the measurement, each found by
+  the comparison and each fixed:
+
+  1. **The divisor counted one kind of record.** A settlement sweep invoices and pays in the
+     same pass. A sweep that invoiced one order and paid five others produced exactly one
+     `sales_invoice`, passed the "one record" filter, and was recorded as the cost of one
+     invoice — five times too high. The measured sweep must now deliver exactly one record of
+     *any* kind.
+  2. **The sweep was handed the whole backlog.** The fixture placed a settlement run's moment
+     four hours ahead, so everything due came at once. It now places it on the first due
+     moment, which leaves one item due. Two items falling due in the same instant are
+     ordinary — a generator batch stamps several orders alike — and the sweep that carries
+     both is rejected, which is also what clears the tie for the next attempt.
+  3. **A missing step was reported as an improvement.** When a checkpoint found no
+     single-record payment sweep, the summary still divided largest by smallest and printed
+     0.53× — a halving that was one absent measurement. The ratio is now refused when the
+     samples do not hold the same steps.
+
+  After those, two runs at 0/250/500 orders agree on **52 of 54 recorded costs**: `order` at
+  52 interpreting queries and `invoice` at 73 in all six samples of both runs. The two that
+  differ are the payment step, by 4 of 208 (2 %) — and it varies *within* a run as well
+  (109, 111, 113), so it is which payment the fixture met, not the host. That is inside the
+  10 % this criterion allows.
+
+  **The timings are not, and on this hardware cannot be.** Twenty-four of the fifty-four
+  costs are milliseconds beyond 10 %: up to 75 % at the first checkpoint, where the caches
+  are cold, and 10–27 % afterwards. The record already says the milliseconds do not mean the
+  same on any host; this criterion as written ("every recorded cost") therefore cannot be met
+  by a wall clock on a shared machine. **Decision needed from the owner:** read SC-005 as the
+  counts, with the timings reported beside their spread, or keep it as written and accept that
+  it stays unmet. The comparison tool implements the first reading — counts exact, timings to
+  the tolerance — and says which is which in every finding.
 
 ## Assumptions and Dependencies
 

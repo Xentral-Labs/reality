@@ -159,3 +159,160 @@ def test_the_slowest_statements_are_separated_by_span():
     assert sweep[0]["sql"] == "SELECT throttle"
     # A shape reached from both spans says so rather than claiming one.
     assert [row["span"] for row in interpreting] == ["interpreting", "both"]
+
+
+def _run(revision: str = "abc1234", **overrides) -> IngestResult:
+    """One recorded run, small enough that a test can state what it expects."""
+    step = {
+        "step": "order",
+        "produced": 1,
+        "queries": 120,
+        "sql_ms": 100.0,
+        "wall_ms": 110.0,
+        "interpreting_queries": 60,
+        "interpreting_ms": 50.0,
+        **overrides,
+    }
+    return IngestResult.from_samples(
+        [{"orders_before": 0, "steps": [step]}],
+        created_at=datetime(2026, 9, 20, tzinfo=UTC),
+        git_revision=revision,
+        python="3.12",
+        platform="test",
+        postgresql="17",
+        tenant_id="ten_compare",
+    )
+
+
+def test_two_identical_runs_agree_on_every_recorded_cost():
+    """SC-005 asks the measurement to know its own spread before it is believed."""
+    from benchmarks.ingest_cost.compare import compare
+
+    verdict = compare(_run(), _run())
+
+    assert verdict["repeatable"] is True
+    assert verdict["findings"] == []
+    assert verdict["compared"] == 6, "every figure of the step is compared"
+
+
+def test_a_query_that_ran_once_more_is_reported_however_small():
+    """A count is the same arithmetic on any host, so it is held to equality.
+
+    Ten per cent of a hundred and twenty queries is twelve; a tolerance would let
+    a builder read eleven more times a run and call it weather.
+    """
+    from benchmarks.ingest_cost.compare import compare
+
+    verdict = compare(_run(), _run(queries=121))
+
+    assert verdict["repeatable"] is False
+    assert [
+        (finding["step"], finding["figure"], finding["difference"])
+        for finding in verdict["findings"]
+    ] == [("order", "queries", 1)]
+
+
+def test_a_timing_within_the_tolerance_is_weather_and_beyond_it_is_a_finding():
+    from benchmarks.ingest_cost.compare import compare
+
+    assert compare(_run(), _run(sql_ms=109.0))["repeatable"] is True
+    beyond = compare(_run(), _run(sql_ms=120.0))
+    assert [finding["figure"] for finding in beyond["findings"]] == ["sql_ms"]
+    assert beyond["findings"][0]["spread"] == pytest.approx(0.167, abs=0.001)
+
+
+def test_a_finding_names_the_checkpoint_and_the_step_it_belongs_to():
+    """User Story 5: every change in cost is attributable to an intake step."""
+    from benchmarks.ingest_cost.compare import compare
+
+    verdict = compare(_run(), _run(interpreting_queries=61))
+
+    assert verdict["findings"][0]["orders_before"] == 0
+    assert verdict["findings"][0]["step"] == "order"
+    assert verdict["findings"][0]["kind"] == "count"
+
+
+def test_two_runs_of_different_commits_are_refused_rather_than_diffed():
+    """SC-005 is about repeatability, and two commits cannot answer it."""
+    from benchmarks.ingest_cost.compare import NotComparable, compare
+
+    with pytest.raises(NotComparable, match="same commit"):
+        compare(_run("abc1234"), _run("def5678"))
+
+
+def test_a_checkpoint_that_drifted_is_reported_rather_than_refused():
+    """The fixture cannot land on a checkpoint exactly.
+
+    One sweep delivers several orders, so growing "to 250" can stop at 251 — and
+    two runs of the same command then record different sizes. That is drift in the
+    company, not in the cost, so the comparison says so and carries on comparing.
+    """
+    from benchmarks.ingest_cost.compare import compare
+
+    first = _run()
+    second = _run()
+    second.samples[0].orders_before = 251
+
+    verdict = compare(first, second)
+
+    assert [finding["figure"] for finding in verdict["findings"]] == ["checkpoint"]
+    assert verdict["findings"][0]["difference"] == 251
+
+
+def test_two_runs_with_a_different_number_of_checkpoints_are_refused():
+    from benchmarks.ingest_cost.compare import NotComparable, compare
+
+    first = _run()
+    second = _run()
+    second.samples.append(second.samples[0].model_copy(deep=True))
+
+    with pytest.raises(NotComparable, match="number of checkpoints"):
+        compare(first, second)
+
+
+def test_no_ratio_is_reported_when_the_samples_hold_different_steps():
+    """A missing step is an incomplete measurement, not a cheaper order to cash.
+
+    One run reported 0.53x — a halving — because its largest company had found no
+    single-record payment sweep and the ratio divided two different measurements
+    (spec 181 SC-005, 2026-09-20).
+    """
+    complete = {
+        "orders_before": 0,
+        "steps": [
+            {
+                "step": "order",
+                "produced": 1,
+                "queries": 144,
+                "sql_ms": 30.0,
+                "wall_ms": 40.0,
+                "interpreting_queries": 52,
+                "interpreting_ms": 12.0,
+            },
+            {
+                "step": "payment",
+                "produced": 1,
+                "queries": 208,
+                "sql_ms": 60.0,
+                "wall_ms": 70.0,
+                "interpreting_queries": 113,
+                "interpreting_ms": 30.0,
+            },
+        ],
+    }
+    partial = {
+        "orders_before": 500,
+        "steps": [complete["steps"][0]],
+    }
+    result = IngestResult.from_samples(
+        [complete, partial],
+        created_at=datetime(2026, 9, 20, tzinfo=UTC),
+        git_revision="abc1234",
+        python="3.12",
+        platform="test",
+        postgresql="17",
+        tenant_id="ten_shape",
+    )
+
+    assert result.growth() is None
+    assert "No ratio" in result.summary()
