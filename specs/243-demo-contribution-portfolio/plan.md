@@ -48,6 +48,8 @@ apps/docs/content/{,de/}concepts/business-reality-guide/
 apps/docs/content/{,de/}agent-playbooks/contribution-margin.md # operational DB1/DB2 situations and tools
 apps/docs/.vitepress/config.mts                                # bilingual playbook navigation
 packages/reality-core/config/resource_catalog.yaml             # first-class contribution business resource
+packages/reality-core/config/tool_catalog.json                 # first-class application Tools topic
+apps/web/src/localization.tsx                                  # translated application topic label
 docs/SPEC_COVERAGE_MATRIX.md                                   # executable evidence mapping
 ```
 

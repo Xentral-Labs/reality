@@ -60,6 +60,7 @@ All task descriptions, paths, review notes, and resulting repository artifacts M
 - [x] T020 [P] [FR-012] Add the varied demo portfolio example to the bilingual ERP guide and a situation-led DB1/DB2 tool playbook under `apps/docs/content/{,de/}agent-playbooks/contribution-margin.md`, including sidebar navigation
 - [x] T021 [P] [FR-012] Extend documentation contract assertions in `apps/docs/scripts/docs-contract.test.mjs`
 - [x] T021A [P] [FR-012] Group DB1/DB2 tools and exceptions under the bilingual `Contribution margin` business resource in `packages/reality-core/config/resource_catalog.yaml` and regenerate Tool Usage
+- [x] T021B [P] [FR-012] Group the same capabilities under a translated `Contribution margin` topic in the application Tools catalog and verify its exact membership
 - [x] T022 [FR-001-FR-012] [DR-001-DR-005] Update executable evidence mapping in `docs/SPEC_COVERAGE_MATRIX.md`
 - [x] T023 Run `make spec-check` and audit requirement coverage across `specs/243-demo-contribution-portfolio/`
 - [x] T024 Run Ruff and the focused `packages/reality-core/tests/test_demo_costing_profile.py` PostgreSQL suite
