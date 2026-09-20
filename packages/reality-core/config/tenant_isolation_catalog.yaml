@@ -539,6 +539,7 @@ families:
       - reality.services.scheduled_jobs:record_failure
       - reality.services.scheduled_jobs:has_due_schedule
       - reality.services.projection_jobs:due_projections
+      - reality.services.projection_jobs:queued_projections
     evidence:
       - id: tests/test_scheduled_jobs.py::test_execution_boundaries_reject_foreign_records
         assertion: boundary
