@@ -22,6 +22,10 @@
       "label": "Accounting and allocation"
     },
     {
+      "key": "contribution",
+      "label": "Contribution margin"
+    },
+    {
       "key": "master",
       "label": "Partners and master data"
     },
@@ -63,6 +67,15 @@
     "reports": "analytics"
   },
   "command_topics": {
+    "cost_evidence": "contribution",
+    "receipt_cost": "contribution",
+    "inventory_cost": "contribution",
+    "commercial_match": "contribution",
+    "contribution_preview": "contribution",
+    "cost_query": "contribution",
+    "cost_record": "contribution",
+    "reviewed_contribution": "contribution",
+    "execute_cost_change": "contribution",
     "record_shipment_notice": "shipping",
     "record_packaged_execution": "shipping",
     "record_shipment_event": "shipping",
@@ -229,7 +242,7 @@
     "graph_captured_reports_list": "analytics",
     "graph_company_generation_current": "analytics",
     "graph_inventory_reviews_list": "analytics",
-    "graph_contribution_reviews_list": "analytics",
+    "graph_contribution_reviews_list": "contribution",
     "graph_reports_list": "analytics",
     "graph_report_get": "analytics",
     "graph_requests_list": "analytics",

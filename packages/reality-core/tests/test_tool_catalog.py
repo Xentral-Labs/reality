@@ -47,3 +47,23 @@ def test_catalog_metadata_cannot_mutate_mcp_schema():
     result = build_tool_catalog(load_application_catalog())
     result["mcp_tools"][0]["input_schema"].clear()
     assert before == [tool.public_metadata() for tool in tool_definitions()]
+
+
+def test_contribution_capabilities_share_one_business_topic():
+    result = build_tool_catalog(load_application_catalog())
+    topics = {row["key"]: row["label"] for row in result["topics"]}
+    assert topics["contribution"] == "Contribution margin"
+    entries = result["entries"]
+    expected = {
+        "command:cost_evidence",
+        "command:receipt_cost",
+        "command:inventory_cost",
+        "command:commercial_match",
+        "command:contribution_preview",
+        "command:cost_query",
+        "command:cost_record",
+        "command:reviewed_contribution",
+        "command:execute_cost_change",
+        "mcp:graph_contribution_reviews_list",
+    }
+    assert {row["id"] for row in entries if row["topic"] == "contribution"} == expected

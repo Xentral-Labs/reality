@@ -90,6 +90,27 @@ try {
     await page.getByRole("button", { name: "Use in chat", exact: true }).click();
     assert.match(await draft.inputValue(), /^Keep my existing draft\./);
     await page.getByRole("button", { name: "Reset filters", exact: true }).click();
+    await page.getByRole("combobox", { name: "Topic", exact: true }).selectOption("contribution");
+    assert.deepEqual(
+      new Set(
+        await page
+          .locator("[data-tool-capability]")
+          .evaluateAll((nodes) => nodes.map((node) => node.getAttribute("data-tool-capability"))),
+      ),
+      new Set([
+        "command:cost_evidence",
+        "command:receipt_cost",
+        "command:inventory_cost",
+        "command:commercial_match",
+        "command:contribution_preview",
+        "command:cost_query",
+        "command:cost_record",
+        "command:reviewed_contribution",
+        "command:execute_cost_change",
+        "mcp:graph_contribution_reviews_list",
+      ]),
+    );
+    await page.getByRole("button", { name: "Reset filters", exact: true }).click();
     await page.getByRole("combobox", { name: "Topic", exact: true }).selectOption("stock");
     await page.getByRole("combobox", { name: "Purpose", exact: true }).selectOption("change");
     assert.ok((await page.locator("[data-tool-capability]").count()) > 0);
