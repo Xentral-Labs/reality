@@ -2,6 +2,26 @@
 
 [Back to the guide overview](../business-reality-guide)
 
+## What changes for you
+
+Previously, you usually had to combine ERP exports, warehouse information and cost evidence in a
+spreadsheet, choose the applicable costs, calculate DB1 and DB2 and document the assumptions
+separately. Reality now keeps this process in one traceable workflow:
+
+| Previously                                                | With Reality                                                                                 |
+| --------------------------------------------------------- | -------------------------------------------------------------------------------------------- |
+| Export and combine ERP, warehouse and finance data        | Receive the normal business evidence through the existing source and application paths       |
+| Select a purchase price or cost basis manually            | Use the cost actually consumed from reviewed inventory layers                                |
+| Distribute freight, fees and commissions in a spreadsheet | Preview and confirm explicit direct or allocated cost assignments                            |
+| Calculate DB1 and DB2 yourself                            | Let the shared costing service derive DB1 and DB2 from the reviewed basis                    |
+| Decide yourself whether a missing value means zero        | Keep missing inputs unknown; zero requires an explicit review decision                       |
+| Document the calculation and assumptions separately       | Follow every amount through reviews, assignments and records to its original source          |
+| Rebuild the spreadsheet when later evidence arrives       | See the result become stale and confirm a new review or generation without rewriting history |
+
+Your responsibility does not disappear: you still confirm economic ownership, the inventory method,
+cost assignments and completeness. What changes is that Reality performs the repeatable arithmetic,
+checks the retained scope and keeps the audit trail.
+
 ## What the two margins mean
 
 Reality's `commercial_v1` contribution profile answers how much of received net revenue remains

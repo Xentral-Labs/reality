@@ -2,6 +2,27 @@
 
 [Zurück zur Übersicht](../business-reality-guide)
 
+## Was sich für dich ändert
+
+Bisher musstest du ERP-Exporte, Lagerinformationen und Kostenbelege meistens in einer Tabelle
+zusammenführen, die anzuwendenden Kosten auswählen, DB1 und DB2 selbst berechnen und die Annahmen
+getrennt dokumentieren. Reality führt diesen Ablauf jetzt in einem nachvollziehbaren Prozess
+zusammen:
+
+| Bisher                                                      | Mit Reality                                                                                                       |
+| ----------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------- |
+| ERP-, Lager- und Finanzdaten exportieren und zusammenführen | Normale Geschäftsbelege über die vorhandenen Quellen und Anwendungen empfangen                                    |
+| Einkaufspreis oder Kostenbasis manuell auswählen            | Tatsächlich verbrauchte Kosten aus geprüften Bestandsschichten verwenden                                          |
+| Fracht, Gebühren und Provisionen in einer Tabelle verteilen | Direkte oder verteilte Kostenzuordnungen in einer Vorschau prüfen und bestätigen                                  |
+| DB1 und DB2 selbst berechnen                                | DB1 und DB2 vom gemeinsamen Kostenservice aus der geprüften Grundlage ableiten lassen                             |
+| Selbst entscheiden, ob ein fehlender Wert null bedeutet     | Fehlende Eingaben bleiben unbekannt; null erfordert eine ausdrückliche Review-Entscheidung                        |
+| Berechnung und Annahmen getrennt dokumentieren              | Jeden Betrag über Reviews, Zuordnungen und Datensätze bis zur ursprünglichen Quelle verfolgen                     |
+| Tabelle bei späteren Belegen manuell neu aufbauen           | Ergebnis wird als veraltet markiert; neues Review oder neue Generation bestätigen, ohne Historie zu überschreiben |
+
+Deine Verantwortung verschwindet nicht: Du bestätigst weiterhin wirtschaftliches Eigentum,
+Bestandsmethode, Kostenzuordnungen und Vollständigkeit. Neu ist, dass Reality die wiederholbare
+Berechnung ausführt, den festgehaltenen Umfang prüft und die Nachweiskette bewahrt.
+
 ## Was die beiden Deckungsbeiträge bedeuten
 
 Das Deckungsbeitragsprofil `commercial_v1` beantwortet, was vom empfangenen Nettoerlös nach zwei
