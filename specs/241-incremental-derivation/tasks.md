@@ -50,5 +50,8 @@
     cash one, so it resolves through that entry's group. Allocations are carried in both
     directions: reversing an invoice's group changes what the payment has allocated. A
     payment run names the tenant and is declined.
-  - [ ] the remaining two: `tenant_usage`, which answers about the company rather than
-    about a record, and `exceptions`, which loads the company by construction.
+  - [x] `tenant_usage` — decided by measurement, not narrowed: its row is the company,
+    so there is nothing to narrow by, and the refresh was nearly flat already (37
+    statements, 10.6 ms at 200 orders and 12.6 ms at 2,400). The twenty-four grouped
+    aggregates are one statement now: 14 statements and 7–8 ms across the same range.
+  - [ ] `exceptions`, which loads the company by construction and needs its own design.

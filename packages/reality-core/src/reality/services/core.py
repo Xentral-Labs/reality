@@ -11,7 +11,20 @@ from datetime import UTC, date, datetime, timedelta
 from decimal import Decimal
 from typing import Any
 
-from sqlalchemy import Select, and_, case, delete, func, or_, select, text
+from sqlalchemy import (
+    Select,
+    and_,
+    case,
+    cast,
+    delete,
+    func,
+    literal,
+    null,
+    or_,
+    select,
+    text,
+    union_all,
+)
 from sqlalchemy import inspect as sa_inspect
 from sqlalchemy.orm import Session as OrmSession
 from sqlalchemy.sql.elements import ColumnElement
@@ -65,6 +78,7 @@ from reality.db.core import (
     SourceSystem,
     Tenant,
     TenantEventProgress,
+    UTCDateTime,
     now,
     uid,
 )
@@ -921,10 +935,47 @@ def _purge_tenant_records(session: OrmSession, tenant_id: str) -> None:
         session.execute(delete(table).where(table.c.tenant_id == tenant_id))
 
 
+def _usage_sources() -> tuple[tuple[str | None, Any, Any], ...]:
+    """What the usage summary counts, and where it reads a last-activity time.
+
+    One entry per table — `(bucket, model, timestamp column)`, with `None` where a
+    table only counts or only dates — because the whole summary is asked in one
+    statement. The per-table form cost 37 round trips: about 11 ms on a company of
+    200 orders and about 13 ms on one of 2,400, so the round trips were the cost and
+    the scans were not (spec 181).
+    """
+    return (
+        ("source_count", SourceRecord, SourceRecord.received_at),
+        ("evidence_count", Document, None),
+        ("reality_count", Commitment, Commitment.created_at),
+        ("reality_count", Reservation, Reservation.reserved_at),
+        ("reality_count", Movement, Movement.occurred_at),
+        ("reality_count", LedgerEntry, LedgerEntry.effective_at),
+        ("configured_count", SourceSystem, None),
+        ("configured_count", Party, None),
+        ("configured_count", Item, None),
+        ("configured_count", Location, None),
+        (None, ImportJob, ImportJob.created_at),
+        (None, CommitmentHold, CommitmentHold.created_at),
+        (None, PartyHold, PartyHold.created_at),
+        (None, SettlementAllocation, SettlementAllocation.allocated_at),
+        (None, Fact, Fact.observed_at),
+        (None, ChangeProposal, ChangeProposal.created_at),
+        (None, BusinessEvent, BusinessEvent.occurred_at),
+        (None, ChatSession, ChatSession.updated_at),
+        (None, ChatMessage, ChatMessage.created_at),
+    )
+
+
 def tenant_usage_summaries(
     session: OrmSession, *, tenant_id: str | None = None
 ) -> dict[str, dict[str, Any]]:
-    """Return one cheap, grouped usage projection for every tenant."""
+    """Return one cheap, grouped usage projection for every tenant.
+
+    Every table is asked in the same statement. The figures are identical to the
+    per-table form this replaces: a count of rows per tenant, and the latest of the
+    timestamps the tables carry.
+    """
     tenant_rows = (
         [get_tenant(session, tenant_id)]
         if tenant_id
@@ -942,51 +993,34 @@ def tenant_usage_summaries(
         for tenant in tenant_rows
     }
 
-    def grouped_count(model) -> dict[str, int]:
-        return {
-            grouped_tenant_id: count
-            for grouped_tenant_id, count in session.execute(
-                select(model.tenant_id, func.count(model.id))
-                .where(model.tenant_id == tenant_id if tenant_id else True)
-                .group_by(model.tenant_id)
+    parts = []
+    for index, (bucket, model, timestamp_column) in enumerate(_usage_sources()):
+        parts.append(
+            select(
+                literal(index).label("source"),
+                model.tenant_id.label("tenant_id"),
+                func.count(model.id).label("total"),
+                (
+                    func.max(timestamp_column)
+                    if timestamp_column is not None
+                    else cast(null(), UTCDateTime)
+                ).label("last_at"),
             )
-        }
-
-    for grouped_tenant_id, count in grouped_count(SourceRecord).items():
-        summaries[grouped_tenant_id]["source_count"] = count
-    for grouped_tenant_id, count in grouped_count(Document).items():
-        summaries[grouped_tenant_id]["evidence_count"] = count
-    for model in (Commitment, Reservation, Movement, LedgerEntry):
-        for grouped_tenant_id, count in grouped_count(model).items():
-            summaries[grouped_tenant_id]["reality_count"] += count
-    for model in (SourceSystem, Party, Item, Location):
-        for grouped_tenant_id, count in grouped_count(model).items():
-            summaries[grouped_tenant_id]["configured_count"] += count
-    timestamp_sources = (
-        (SourceRecord, SourceRecord.received_at),
-        (ImportJob, ImportJob.created_at),
-        (Commitment, Commitment.created_at),
-        (CommitmentHold, CommitmentHold.created_at),
-        (PartyHold, PartyHold.created_at),
-        (Reservation, Reservation.reserved_at),
-        (Movement, Movement.occurred_at),
-        (LedgerEntry, LedgerEntry.effective_at),
-        (SettlementAllocation, SettlementAllocation.allocated_at),
-        (Fact, Fact.observed_at),
-        (ChangeProposal, ChangeProposal.created_at),
-        (BusinessEvent, BusinessEvent.occurred_at),
-        (ChatSession, ChatSession.updated_at),
-        (ChatMessage, ChatMessage.created_at),
-    )
-    for model, timestamp_column in timestamp_sources:
-        for grouped_tenant_id, occurred_at in session.execute(
-            select(model.tenant_id, func.max(timestamp_column))
             .where(model.tenant_id == tenant_id if tenant_id else True)
             .group_by(model.tenant_id)
-        ):
-            current = summaries[grouped_tenant_id]["last_activity_at"]
-            if occurred_at is not None and (current is None or occurred_at > current):
-                summaries[grouped_tenant_id]["last_activity_at"] = occurred_at
+        )
+    buckets = [bucket for bucket, _, _ in _usage_sources()]
+    for index, grouped_tenant_id, total, last_at in session.execute(union_all(*parts)):
+        summary = summaries.get(grouped_tenant_id)
+        if summary is None:
+            # A tenant outside this call's scope, or archived away between reads.
+            continue
+        bucket = buckets[index]
+        if bucket is not None:
+            summary[bucket] += total
+        current = summary["last_activity_at"]
+        if last_at is not None and (current is None or last_at > current):
+            summary["last_activity_at"] = last_at
 
     for summary in summaries.values():
         operational_count = (

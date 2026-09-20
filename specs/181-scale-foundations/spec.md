@@ -196,8 +196,14 @@ builder and class measurements at checkpoints, and compare two commits on the sa
   `timeline`, `open_financial_items`, `payments`. The remaining two evaluate the company,
   which is always correct and always allowed (a builder may decline). What is left:
 
-  * `tenant_usage` (60 event types) — the widest, and it answers about the company rather
-    than about a record, so it may have no narrowed shape at all.
+  * `tenant_usage` — **measured, and it does not narrow.** Its single row is the company:
+    the change set names records and the row names totals, so there is nothing to narrow
+    by. The measurement said the assumption behind "the widest" was wrong as well. A
+    refresh cost 37 statements and 10.6 ms at 200 orders, 11.5 ms at 800 and 12.6 ms at
+    2,400 — a twelvefold company for 19 % more — so the round trips were the cost and the
+    scans were not. The twenty-four grouped aggregates became one statement: 14 statements
+    and 7–8 ms, flat across the same range. If the scans ever do show, the next step is
+    maintained counters with reconciliation, not a change set.
   * `exceptions` (37) is the largest and needs its own design, because its evaluation loads
     the whole company by construction (see FR-003).
 
@@ -256,6 +262,10 @@ builder and class measurements at checkpoints, and compare two commits on the sa
   word `reversed` comes from the stored relation. Two lookups of the same shape, one
   necessary and one not — which is why each is decided by watching a test fail rather than
   by symmetry.
+
+  `tenant_usage` closed the list by being measured rather than narrowed, and it is the
+  clearest case in this feature of measuring before deciding: the builder called the widest
+  was nearly flat, and the work it actually wanted was fewer round trips.
 
   `payments` completed that correction: the pair this specification wrote off both narrow.
   Its own lesson is about a subject that points one record short of the row. A settlement
