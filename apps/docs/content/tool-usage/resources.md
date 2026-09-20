@@ -19,6 +19,7 @@ the technical key stands beside each one.
 | [Invoice and credit note](#resource-invoice)                     | 3     | 9       | 14                  |
 | [Payment and settlement](#resource-payment)                      | 2     | 7       | 2                   |
 | [Ledger and accounts](#resource-accounting)                      | 2     | 11      | 3                   |
+| [Contribution margin](#resource-contribution)                    | 0     | 1       | 4                   |
 | [Return](#resource-return)                                       | 0     | 2       | 6                   |
 | [Document and source system](#resource-source)                   | 3     | 10      | 2                   |
 | [Company and users](#resource-company)                           | 1     | 4       | 0                   |
@@ -586,6 +587,50 @@ Kontenrahmen, Storno, Eröffnungsbilanz, Sachkonto
 [`finance.reference_changed`](./events#event-finance-reference_changed),
 [`finance.account_changed`](./events#event-finance-account_changed),
 [`ledger.posted`](./events#event-ledger-posted), [`ledger.reversed`](./events#event-ledger-reversed)
+
+## Contribution margin {#resource-contribution}
+
+_Reviewed DB1 and DB2 for exact sales-invoice lines_
+
+The explainable bridge from received net revenue through reviewed consumed acquisition cost to DB1,
+and through direct and allocated selling costs to DB2. Missing evidence stays unknown; every
+confirmed result retains its review and knowledge boundary.
+
+**Also called:** contribution margin, gross margin, DB1, DB2, Deckungsbeitrag, Rohertrag, Marge
+
+**Actions**
+
+- [Confirm cost and contribution decision](./commands#command-execute_cost_change)
+  (`execute_cost_change`)
+
+**Look up**
+
+- [Read reviewed partial commercial match](./commands#command-commercial_match) (`commercial_match`)
+- [Read cost query context](./commands#command-cost_query) (`cost_query`)
+- [Inspect retained cost record](./commands#command-cost_record) (`cost_record`)
+- [Read reviewed commercial contribution](./commands#command-reviewed_contribution)
+  (`reviewed_contribution`)
+- [Preview current contribution candidate](./commands#command-contribution_preview)
+  (`contribution_preview`)
+- [Read reviewed inventory acquisition costs](./commands#command-inventory_cost) (`inventory_cost`)
+- [Read received acquisition-cost evidence](./commands#command-cost_evidence) (`cost_evidence`)
+- [Read receipt acquisition costs](./commands#command-receipt_cost) (`receipt_cost`)
+
+**Exceptions to clear**
+
+- [Missing acquisition cost](./exceptions#exception-missing_acquisition_cost)
+  (`missing_acquisition_cost`)
+- [Unassigned cost component](./exceptions#exception-unassigned_cost_component)
+  (`unassigned_cost_component`)
+- [Stale cost review](./exceptions#exception-stale_cost_review) (`stale_cost_review`)
+- [Negative actual DB1](./exceptions#exception-negative_actual_db1) (`negative_actual_db1`)
+
+**Underneath:** Tables: `cost_commercial_match_revision`, `cost_commercial_inventory_part`,
+`cost_commercial_direct_part`, `cost_revenue_match_basis`, `cost_contribution_review`,
+`cost_selling_attribution_part`, `cost_selling_review_category`, `cost_selling_review_member` ·
+Events: [`cost.attributed`](./events#event-cost-attributed),
+[`cost.reviewed`](./events#event-cost-reviewed) · Agent tools without a command:
+[`graph_contribution_reviews_list`](./commands#tool-graph_contribution_reviews_list)
 
 ## Return {#resource-return}
 

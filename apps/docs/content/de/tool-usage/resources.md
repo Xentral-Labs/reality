@@ -19,6 +19,7 @@ Namen folgen dem ERP-Sprachgebrauch; der technische Schlüssel steht daneben.
 | [Rechnung und Gutschrift](#resource-invoice)                   | 3      | 9        | 14        |
 | [Zahlung und Ausgleich](#resource-payment)                     | 2      | 7        | 2         |
 | [Buchhaltung und Konten](#resource-accounting)                 | 2      | 11       | 3         |
+| [Deckungsbeitrag](#resource-contribution)                      | 0      | 1        | 4         |
 | [Retoure](#resource-return)                                    | 0      | 2        | 6         |
 | [Beleg und Quellsystem](#resource-source)                      | 3      | 10       | 2         |
 | [Unternehmen und Benutzer](#resource-company)                  | 1      | 4        | 0         |
@@ -594,6 +595,49 @@ Kontenrahmen, Storno, Eröffnungsbilanz, Sachkonto
 [`finance.reference_changed`](./events#event-finance-reference_changed),
 [`finance.account_changed`](./events#event-finance-account_changed),
 [`ledger.posted`](./events#event-ledger-posted), [`ledger.reversed`](./events#event-ledger-reversed)
+
+## Deckungsbeitrag {#resource-contribution}
+
+_Geprüfter DB1 und DB2 für konkrete Ausgangsrechnungspositionen_
+
+Die nachvollziehbare Brücke vom empfangenen Nettoerlös über geprüfte verbrauchte Anschaffungskosten
+zu DB1 und über direkte und umgelegte Vertriebskosten zu DB2. Fehlende Evidenz bleibt unbekannt;
+jedes bestätigte Ergebnis behält seine Prüfung und Wissensgrenze.
+
+**Auch genannt:** contribution margin, gross margin, DB1, DB2, Deckungsbeitrag, Rohertrag, Marge
+
+**Aktionen**
+
+- [Kostenentscheidung bestätigen](./commands#command-execute_cost_change) (`execute_cost_change`)
+
+**Nachschlagen**
+
+- [Geprüfte Teilzuordnung anzeigen](./commands#command-commercial_match) (`commercial_match`)
+- [Kosten mit Bewertungsbasis abfragen](./commands#command-cost_query) (`cost_query`)
+- [Kostennachweis prüfen](./commands#command-cost_record) (`cost_record`)
+- [Geprüfte Deckungsbeiträge anzeigen](./commands#command-reviewed_contribution)
+  (`reviewed_contribution`)
+- [Deckungsbeitragsvorschau prüfen](./commands#command-contribution_preview)
+  (`contribution_preview`)
+- [Bestand zu Anschaffungskosten anzeigen](./commands#command-inventory_cost) (`inventory_cost`)
+- [Empfangene Anschaffungskosten anzeigen](./commands#command-cost_evidence) (`cost_evidence`)
+- [Anschaffungskosten des Wareneingangs anzeigen](./commands#command-receipt_cost) (`receipt_cost`)
+
+**Klärfälle**
+
+- [Anschaffungskosten fehlen](./exceptions#exception-missing_acquisition_cost)
+  (`missing_acquisition_cost`)
+- [Kostenkomponente nicht zugeordnet](./exceptions#exception-unassigned_cost_component)
+  (`unassigned_cost_component`)
+- [Kostenprüfung veraltet](./exceptions#exception-stale_cost_review) (`stale_cost_review`)
+- [Tatsächlicher DB1 negativ](./exceptions#exception-negative_actual_db1) (`negative_actual_db1`)
+
+**Darunter:** Tabellen: `cost_commercial_match_revision`, `cost_commercial_inventory_part`,
+`cost_commercial_direct_part`, `cost_revenue_match_basis`, `cost_contribution_review`,
+`cost_selling_attribution_part`, `cost_selling_review_category`, `cost_selling_review_member` ·
+Events: [`cost.attributed`](./events#event-cost-attributed),
+[`cost.reviewed`](./events#event-cost-reviewed) · Agenten-Tools ohne Geschäftsaktion:
+[`graph_contribution_reviews_list`](./commands#tool-graph_contribution_reviews_list)
 
 ## Retoure {#resource-return}
 

@@ -140,7 +140,7 @@ resources:
     views: [orders, commitments, reservations, fulfillment_blockers, warehouse_queue]
     projections: [fulfillment_queue, fulfillment_blockers, commitment_register]
     exceptions:
-      [overdue_outgoing_customer_commitment, outgoing_commitment_at_risk, order_stalled, overdue_incoming_supplier_commitment, reservation_exceeds_stock, commitment_hold_unreleased, party_hold_unreleased, negative_actual_db1]
+      [overdue_outgoing_customer_commitment, outgoing_commitment_at_risk, order_stalled, overdue_incoming_supplier_commitment, reservation_exceeds_stock, commitment_hold_unreleased, party_hold_unreleased, stale_cost_review, negative_actual_db1]
 
   - key: delivery
     label:
@@ -251,10 +251,34 @@ resources:
         ergänzen eine Gegenbuchung; nichts wird gelöscht.
     synonyms: [journal, GL, chart of accounts, reversal, opening balance, export, DATEV, Journal, Kontenrahmen, Storno, Eröffnungsbilanz, Sachkonto]
     tables: [cost_company_manifest, cost_company_inventory_input, cost_company_contribution_input, cost_company_generation, cost_company_inventory_result, cost_company_contribution_result, cost_company_publication, cost_generation, cost_inventory_row, cost_contribution_row, cost_publication, cost_captured_basis, cost_captured_inventory_basis, cost_captured_contribution_basis, cost_company_census, cost_company_census_movement, cost_company_census_document, cost_company_census_line, cost_company_census_source, cost_contribution_generation, cost_contribution_snapshot, cost_inventory_generation, cost_inventory_snapshot, cost_inventory_publication, cost_commercial_match_revision, cost_commercial_inventory_part, cost_commercial_direct_part, cost_selling_attribution_part, cost_selling_review_category, cost_selling_review_member, cost_revenue_match_basis, cost_contribution_review, cost_policy_revision, cost_movement_basis, cost_ownership_revision, cost_inventory_review, cost_inventory_member, cost_valuation_assessment_revision, cost_valuation_assessment_part, cost_conversion_basis_revision, cost_attribution_part, cost_attribution_revision, cost_component_basis, cost_component_replacement, cost_correction_basis, cost_input_manifest, cost_manifest_attribution, cost_manifest_component, cost_manifest_correction, cost_manifest_receipt, cost_manifest_replacement, cost_receipt_basis, cost_scope_review, cost_scope_review_category, ledger_entry, ledger_reversal, subledger_account, finance_role_destination, accounting_target, accounting_target_reference, finance_target_mapping_revision, source_classification_mapping_revision, financial_component, component_assignment_revision, component_assignment_part, finance_reference, opening_scope, opening_item_detail]
-    match: "cost_|receipt_cost|inventory_cost|contribution_preview|reviewed_contribution|ledger|account|target|mapping|reference|component|opening|matrix"
+    match: "cost_|receipt_cost|inventory_cost|contribution_preview|reviewed_contribution|commercial_match|ledger|account|target|mapping|reference|component|opening|matrix"
     views: [journal]
     projections: [journal]
-    exceptions: [unmatched_financial_event]
+    exceptions: [unmatched_financial_event, unassigned_cost_component, stale_cost_review]
+
+  - key: contribution
+    label:
+      en: "Contribution margin"
+      de: "Deckungsbeitrag"
+    subtitle:
+      en: "Reviewed DB1 and DB2 for exact sales-invoice lines"
+      de: "Geprüfter DB1 und DB2 für konkrete Ausgangsrechnungspositionen"
+    description:
+      en: >-
+        The explainable bridge from received net revenue through reviewed consumed acquisition
+        cost to DB1, and through direct and allocated selling costs to DB2. Missing evidence stays
+        unknown; every confirmed result retains its review and knowledge boundary.
+      de: >-
+        Die nachvollziehbare Brücke vom empfangenen Nettoerlös über geprüfte verbrauchte
+        Anschaffungskosten zu DB1 und über direkte und umgelegte Vertriebskosten zu DB2. Fehlende
+        Evidenz bleibt unbekannt; jedes bestätigte Ergebnis behält seine Prüfung und Wissensgrenze.
+    synonyms: [contribution margin, gross margin, DB1, DB2, Deckungsbeitrag, Rohertrag, Marge]
+    tables:
+      [cost_commercial_match_revision, cost_commercial_inventory_part, cost_commercial_direct_part, cost_revenue_match_basis, cost_contribution_review, cost_selling_attribution_part, cost_selling_review_category, cost_selling_review_member]
+    match: "^(cost_evidence|inventory_cost|contribution_preview|commercial_match|cost_query|cost_record|reviewed_contribution|receipt_cost|execute_cost_change|graph_contribution_reviews_list)$"
+    views: []
+    projections: []
+    exceptions: [missing_acquisition_cost, unassigned_cost_component, stale_cost_review, negative_actual_db1]
 
   - key: return
     label:
@@ -297,7 +321,7 @@ resources:
         verstummte Quellen erscheinen als Klärfälle.
     synonyms: [ERP, shop, import, connector, interface, evidence, Schnittstelle, Import, Beleg, Nachweis, Quelle]
     tables: [source_system, source_capability, document, document_line, fact]
-    match: "source|connector|document|fact|interpretation|ingest"
+    match: "source|connector|document|fact|interpretation|ingest|commercial_match"
     views: [documents, sources_imports]
     projections: [document_register]
     exceptions: [silent_source, source_interpretation_failure]

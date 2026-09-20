@@ -61,7 +61,7 @@ Expected: all commands pass. This feature requires no migration.
 - Focused profile and security proof: 6 passed.
 - Complete international-demo acceptance story: 25 passed in 196.12 seconds.
 - Adjacent company-setup and Demo Data lifecycle regression set: 10 passed.
-- Documentation: formatting passed, 76 contract tests passed, production build passed.
+- Documentation: formatting passed, 77 contract tests passed, production build passed.
 - Web: formatting passed, 328 contract tests passed, all four locale audits passed, production build passed.
 - Repository policy and Ruff checks passed.
 - The complete backend suite is delegated to the pull-request PostgreSQL gate. A root-directory run was invalid because migration tests could not resolve the Core `alembic.ini`; a parallelized Core run was also invalid because concurrent full-profile initialization exceeded the deliberately bounded job lease. Both invocation artifacts were excluded from acceptance evidence. All affected tests pass in the supported serial mode.

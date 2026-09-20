@@ -39,6 +39,38 @@ test("contribution agent playbook maps common DB1 and DB2 situations to governed
   }
 });
 
+test("contribution margin is a first-class bilingual business resource", () => {
+  for (const locale of ["", "de/"]) {
+    const resources = fs.readFileSync(
+      path.join(contentRoot, locale, "tool-usage/resources.md"),
+      "utf8",
+    );
+    const start = resources.indexOf(locale ? "## Deckungsbeitrag" : "## Contribution margin");
+    assert.notEqual(start, -1);
+    const section = resources.slice(start, resources.indexOf("\n## ", start + 4));
+    for (const tool of [
+      "execute_cost_change",
+      "contribution_preview",
+      "reviewed_contribution",
+      "commercial_match",
+      "cost_query",
+      "cost_record",
+      "inventory_cost",
+      "cost_evidence",
+      "receipt_cost",
+      "graph_contribution_reviews_list",
+    ])
+      assert.ok(section.includes(tool), `${locale || "en"} resource lacks ${tool}`);
+    for (const exception of [
+      "missing_acquisition_cost",
+      "unassigned_cost_component",
+      "stale_cost_review",
+      "negative_actual_db1",
+    ])
+      assert.ok(section.includes(exception), `${locale || "en"} resource lacks ${exception}`);
+  }
+});
+
 test("operational recap emphasizes record types rather than calculated balances", () => {
   for (const locale of ["", "de/"]) {
     const chapter = fs.readFileSync(
