@@ -555,6 +555,17 @@ families:
       - id: tests/test_scheduled_invitation_cleanup.py::test_cleanup_batch_scope_and_retention
         assertion: boundary
         operations: *scheduled_cleanup_operations
+  - key: scheduled_history_retention
+    description: Retention forgets finished job runs of one explicit company, keeping the most recent of each kind.
+    classification: boundary
+    reason: Called by the refresh handler the queue already authorized; the shared retention service takes an explicit tenant and deletes nothing outside it.
+    authority: 181/FR-005
+    operations: &scheduled_history_retention_operations
+      - reality.services.scheduled_jobs:cleanup_finished_runs
+    evidence:
+      - id: tests/test_job_history_retention.py::test_another_company_is_never_touched
+        assertion: boundary
+        operations: *scheduled_history_retention_operations
   - key: scheduled_tenant_discovery
     description: Background processes discover only bounded tenant identifiers.
     classification: global_admin

@@ -46,13 +46,33 @@ def authorize(session: Session, context: JobContext, config: ProjectionConfig) -
         raise JobError("not_authorized")
 
 
+#: How many finished runs one refresh forgets on its way out. The work that
+#: makes the history is the work that tidies it, so the tidying keeps pace with
+#: the mess by construction and costs an idle company nothing. Small, because it
+#: shares the handler's thirty-second budget with the refresh itself.
+FORGET_PER_REFRESH = 20
+
+
 def refresh(
     session: Session, context: JobContext, config: ProjectionConfig
 ) -> JobResult:
     from reality.services.projections import rebuild_projections
+    from reality.services.scheduled_jobs import cleanup_finished_runs
 
     count = rebuild_projections(session, context.tenant_id, config.names)
-    return JobResult(counts={"projections": len(config.names), "rows": count})
+    # Spec 181 FR-005: this table was the one thing in the schema that grew
+    # without any bound, and refreshes are what fill it. A company that refreshes
+    # often forgets often; one that has stopped has nothing left to forget.
+    forgotten = cleanup_finished_runs(
+        session, tenant_id=context.tenant_id, limit=FORGET_PER_REFRESH
+    )
+    return JobResult(
+        counts={
+            "projections": len(config.names),
+            "rows": count,
+            "runs_forgotten": forgotten,
+        }
+    )
 
 
 REFRESH = JobDefinition(

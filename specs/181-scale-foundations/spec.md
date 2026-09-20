@@ -470,6 +470,27 @@ builder and class measurements at checkpoints, and compare two commits on the sa
   requirement does not state — they are written once, read rarely and kept forever — but it
   is not a storage lever, and FR-005 should stop implying that it is.
 
+  **The job history no longer grows without bound (2026-09-20).** A refresh now forgets a
+  few finished runs on its way out, so the work that fills this table is the work that
+  empties it: a company that refreshes often forgets often, and one that has stopped has
+  nothing left to forget. What is kept is everything anyone can still be told — every
+  unfinished run, because that is the queue; every failure, because a projection's
+  freshness is read from exactly those (`projection_state_expressions` takes the newest
+  failed or unresolved run as `failed_at`); the most recent twenty of each kind of work,
+  counted per projection rather than per job type; anything finished within the last week;
+  and every run a person asked for. What bounds the table is the **count**, not the age: a
+  time-sensitive projection refreshes about twice a minute, which is a quarter of a million
+  rows in ninety days, so an age alone would have bounded nothing.
+
+  The subtle rule is the last one. Every run carries a `request_id`, because the schema
+  demands either a schedule or a request, but the two are not the same promise: a refresh
+  invents its key (`uid("projection")`) and nothing ever quotes it back, while a manual
+  run's key is the caller's own and `create_manual_run` answers a repeat by handing that
+  very row back. Forgetting a manual run would quietly turn a retry into a second
+  execution, so those are kept. They are asked for by people and do not grow on their own;
+  if they ever do, **how long a request key stays honoured is a decision somebody has to
+  make**, not a number to tune.
+
   **And the instrument cannot yet see the largest table.** In the development database
   `projection_row` is the biggest thing in the schema; in the fixture it holds **zero
   rows**, because the run ingests and settles but never refreshes a projection. The same

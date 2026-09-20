@@ -12,7 +12,7 @@ import json
 from datetime import datetime, timedelta
 from uuid import uuid4
 
-from sqlalchemy import and_, event, func, or_, select
+from sqlalchemy import and_, delete, event, func, or_, select
 from sqlalchemy.orm import Session
 from sqlalchemy.sql.elements import ColumnElement
 
@@ -999,3 +999,151 @@ def enqueue_projection_run(
     session.flush()
     _authorize_run_or_schedule(session, run)
     return run
+
+
+#: The statuses a finished run can hold that nothing reads back. `failed` and
+#: `unresolved` are deliberately absent: a projection's freshness is told from
+#: them (`projection_state_expressions` takes the newest one as `failed_at`), so
+#: deleting a failure would make a company look like it never had one.
+DISCARDABLE = ("succeeded", "cancelled")
+
+#: How many finished runs of one kind of work a company keeps whatever happens.
+#: An age alone cannot bound this table: a time-sensitive projection is refreshed
+#: about twice a minute, which is a quarter of a million rows in ninety days. A
+#: count per kind bounds it no matter how busy the company is.
+KEEP_PER_KIND = 20
+
+#: Below this age nothing is removed, however many there are, so a run somebody
+#: is looking at right now does not vanish under them.
+MINIMUM_AGE = timedelta(days=7)
+
+
+def _run_kind() -> ColumnElement:
+    """What a run is one of, for the purpose of keeping the most recent few.
+
+    A schedule's occurrences are one kind. A projection refresh is one kind *per
+    projection*: they share a job type and a company, and keeping twenty of the
+    twelve together would keep twenty of whichever refreshes most often. The
+    projection is read out of the run's own configuration, exactly as the
+    queue's own uniqueness index reads it (spec 181 FR-004).
+    """
+    return func.coalesce(
+        ScheduledJobRun.schedule_id,
+        ScheduledJobRun.configuration[("arguments", "names", 0)].astext,
+        ScheduledJobRun.job_type,
+    )
+
+
+def cleanup_finished_runs(
+    session: Session,
+    *,
+    tenant_id: str,
+    limit: int = 100,
+    keep: int = KEEP_PER_KIND,
+    minimum_age: timedelta = MINIMUM_AGE,
+) -> int:
+    """Forget finished runs a company has enough of (spec 181 FR-005).
+
+    The job history was the one table in the schema that grew without any bound
+    at all: the development database held 81,710 `projections.refresh` rows
+    against 38,454 source records, more than two rows of bookkeeping for every
+    record interpreted, and nothing ever removed one.
+
+    What is kept is everything anyone can still be told: every unfinished run,
+    because that is the queue itself; every failure, because a projection's
+    freshness is read from it; the most recent `keep` of each kind of work, so a
+    schedule always has a last outcome to show; and anything younger than
+    `minimum_age`; and every run a person asked for.
+
+    That last one is the subtle one. Every run carries a `request_id`, because
+    the schema demands either a schedule or a request, but they are not the same
+    thing. A refresh makes one up (`uid("projection")`) and nothing ever quotes
+    it back — what stops a second refresh being queued is the unfinished index,
+    not the key. A manual run's key comes from the caller, and `create_manual_run`
+    answers a repeat by handing back that very row. Forgetting it would quietly
+    turn a retry into a second execution, so a run with an actor and no schedule
+    is kept. Those are asked for by people and do not grow on their own; if they
+    ever do, how long a request key is honoured is a decision somebody has to
+    make rather than a number to tune here.
+    """
+    if not 1 <= limit <= 1000:
+        raise ValueError("Cleanup batch must be between 1 and 1000.")
+    if keep < 1:
+        raise ValueError("A company keeps at least one run of each kind.")
+    ranked = (
+        select(
+            ScheduledJobRun.id,
+            func.row_number()
+            .over(
+                partition_by=(ScheduledJobRun.job_type, _run_kind()),
+                order_by=(
+                    ScheduledJobRun.finished_at.desc(),
+                    ScheduledJobRun.id.desc(),
+                ),
+            )
+            .label("recency"),
+            ScheduledJobRun.finished_at,
+        )
+        .where(
+            ScheduledJobRun.tenant_id == tenant_id,
+            ScheduledJobRun.status.in_(DISCARDABLE),
+            ScheduledJobRun.finished_at.is_not(None),
+        )
+        .subquery()
+    )
+    forgettable = list(
+        session.scalars(
+            select(ScheduledJobRun.id)
+            .where(
+                ScheduledJobRun.tenant_id == tenant_id,
+                ScheduledJobRun.id.in_(
+                    select(ranked.c.id).where(
+                        ranked.c.recency > keep,
+                        ranked.c.finished_at <= now() - minimum_age,
+                    )
+                ),
+                ~_asked_for_by_a_person(),
+                ~_still_referenced(),
+            )
+            .order_by(ScheduledJobRun.finished_at, ScheduledJobRun.id)
+            .limit(limit)
+            .with_for_update(skip_locked=True)
+        )
+    )
+    if not forgettable:
+        return 0
+    session.execute(
+        delete(ScheduledJobRun).where(
+            ScheduledJobRun.tenant_id == tenant_id,
+            ScheduledJobRun.id.in_(forgettable),
+        )
+    )
+    return len(forgettable)
+
+
+def _asked_for_by_a_person() -> ColumnElement[bool]:
+    """Whether this run is a request somebody made rather than work the system found.
+
+    A manual run has an actor and no schedule, and its `request_id` is the
+    caller's own: `create_manual_run` answers a repeat of it by returning this
+    row. The system's refreshes have no actor and invent their key.
+    """
+    return and_(
+        ScheduledJobRun.schedule_id.is_(None),
+        ScheduledJobRun.actor_id.is_not(None),
+    )
+
+
+def _still_referenced() -> ColumnElement[bool]:
+    """Whether something outside the queue points at this run.
+
+    An analysis that was deferred to the worker keeps the run that answered it,
+    so forgetting the run would break that reference rather than free a row.
+    """
+    from reality.db.analytics import AnalysisRequest
+
+    return (
+        select(AnalysisRequest.id)
+        .where(AnalysisRequest.run_id == ScheduledJobRun.id)
+        .exists()
+    )
