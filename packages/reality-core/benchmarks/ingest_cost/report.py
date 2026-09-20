@@ -34,6 +34,10 @@ class StepResult(BaseModel):
     interpreting_queries: int = Field(default=0, ge=0)
     interpreting_ms: float = Field(default=0, ge=0)
     repeated_reads: list[RepeatedRead] = []
+    #: The same, for the interpreting span alone — what one record costs, without
+    #: the sweep that found it. The two differ by more than they look: a table the
+    #: demo generator polls is not a table the intake reads.
+    repeated_interpreting_reads: list[RepeatedRead] = []
     slowest_interpreting: list[SlowStatement] = []
     slowest_sweep: list[SlowStatement] = []
 

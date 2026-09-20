@@ -1005,6 +1005,8 @@ problem with the intake.
 
 - `packages/reality-core/tests/test_incremental_derivation.py` (the exceptions section): FR-002's twelfth builder, which narrows by class. A warehouse event must leave the five money classes untouched and a document must reach all of them; declaring those classes dependent on movements fails both that test and the one that follows. A payment run, which names the company, narrows nothing and says so. And an exception that cleared is removed although nothing produced its row — the reason `covers` is read from the stored keys of the classes evaluated rather than taken from what the refresh produced.
 
+- `packages/reality-core/tests/test_payment_intake.py::test_the_candidate_search_does_not_read_more_as_the_history_settles`: FR-001 in the measure a statement count cannot show. Twenty more settled invoices must not cost the candidate search more rows; the test counts rows read, because the search was already flat in statements while its work grew with the customer's history. It fails against the search that loaded every invoice.
+
 ## Composable analytics (185)
 
 Spec 185 owns the analytics service, agent tools, private report configuration and workspace.
