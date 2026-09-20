@@ -13,9 +13,19 @@ from reality.services.core import create_item, record_movement
 
 
 def dispatch(session, tenant_id):
+    """Every run the scheduler would enqueue now — one per projection behind."""
     from reality.services.projection_jobs import enqueue_due_projections
 
     return enqueue_due_projections(session, tenant_id)
+
+
+def dispatch_names(session, tenant_id):
+    """Which projections were enqueued, whatever they were split across."""
+    return {
+        name
+        for run in dispatch(session, tenant_id)
+        for name in run.configuration["arguments"]["names"]
+    }
 
 
 def complete(session, tenant_id):
@@ -29,14 +39,39 @@ def complete(session, tenant_id):
     return run
 
 
-def test_bootstrap_coalesces_and_catches_later_events(session, business):
+def complete_all(session, tenant_id):
+    """Work the queue empty, which is now several runs rather than one."""
+    finished = []
+    while (run := scheduled_jobs.claim_next(session, tenant_id)) is not None:
+        assert (
+            scheduled_jobs.execute_claim(session, tenant_id, run.id, run.claim_token)
+            == "succeeded"
+        )
+        session.flush()
+        finished.append(run)
+    return finished
+
+
+def test_each_projection_behind_gets_its_own_run_and_is_not_queued_twice(
+    session, business
+):
+    """FR-004: the unit of work is one projection of one company.
+
+    The twelve used to share a run, so a builder over its budget failed a run that
+    covered several projections. What the shared run gave — a company is not queued
+    again while its refresh is waiting — is kept here per projection.
+    """
     tenant = business.tenant.id
     first = dispatch(session, tenant)
-    assert first and first.actor_id is None
-    assert dispatch(session, tenant) is None
-    run = complete(session, tenant)
-    assert run.id == first.id
-    assert dispatch(session, tenant) is None
+    assert len(first) > 1, "a company with nothing built is behind on several"
+    assert all(run.actor_id is None for run in first)
+    assert [run.configuration["arguments"]["names"] for run in first] == [
+        [name] for run in first for name in run.configuration["arguments"]["names"]
+    ], "one projection per run"
+    assert dispatch(session, tenant) == [], "already queued, not queued again"
+    finished = complete_all(session, tenant)
+    assert {run.id for run in finished} == {run.id for run in first}
+    assert dispatch(session, tenant) == []
     record_movement(
         session,
         tenant,
@@ -46,8 +81,8 @@ def test_bootstrap_coalesces_and_catches_later_events(session, business):
         to_location_id=business.location.id,
     )
     second = dispatch(session, tenant)
-    assert second and second.id != first.id
-    complete(session, tenant)
+    assert second and {run.id for run in second}.isdisjoint({run.id for run in first})
+    complete_all(session, tenant)
     assert (
         projections.projection_rows(session, tenant, projections.INVENTORY)[0][
             "physical"
@@ -82,11 +117,10 @@ def test_time_only_refresh_is_scoped_and_archive_stops_dispatch(
 ):
     tenant = business.tenant.id
     dispatch(session, tenant)
-    complete(session, tenant)
+    complete_all(session, tenant)
     later = now() + timedelta(seconds=61)
     monkeypatch.setattr(projections, "now", lambda: later)
-    run = dispatch(session, tenant)
-    assert set(run.configuration["arguments"]["names"]) == set(
+    assert dispatch_names(session, tenant) == set(
         projections.TIME_SENSITIVE_PROJECTIONS
     )
     business.tenant.archived_at = now()
@@ -151,7 +185,7 @@ def test_pending_snapshot_retains_completed_rows_and_is_tenant_scoped(
 ):
     tenant = business.tenant.id
     dispatch(session, tenant)
-    complete(session, tenant)
+    complete_all(session, tenant)
     ready = projections.projection_snapshot(session, tenant, projections.INVENTORY)
     assert ready["metadata"]["state"] == "ready"
     create_item(session, tenant, "NEW", "New item")
@@ -163,7 +197,7 @@ def test_pending_snapshot_retains_completed_rows_and_is_tenant_scoped(
         > old["metadata"]["processed_event_sequence"]
     )
     dispatch(session, tenant)
-    complete(session, tenant)
+    complete_all(session, tenant)
     assert (
         len(
             projections.projection_snapshot(session, tenant, projections.INVENTORY)[
@@ -180,7 +214,7 @@ def test_pending_snapshot_retains_completed_rows_and_is_tenant_scoped(
 
 def test_queue_cap_defers_without_advancing_checkpoint(session, business, monkeypatch):
     monkeypatch.setattr(scheduled_jobs, "QUEUE_LIMIT", 0)
-    assert dispatch(session, business.tenant.id) is None
+    assert dispatch(session, business.tenant.id) == []
     assert (
         session.scalar(
             select(ProjectionCheckpoint).where(
@@ -205,26 +239,37 @@ def test_real_scheduler_and_worker_publish_without_a_user_actor(scheduled_databa
     engine, factory, tenant, _actor = scheduled_database
     with factory() as db:
         create_item(db, tenant, "AUTO", "Automatic inventory")
-    assert (
-        ProcessLoop("scheduler", tenant_id=tenant).sweep(
-            engine, max_runs=1, max_seconds=25
-        )["materialized"]
-        == 1
-    )
-    assert (
-        ProcessLoop("worker", tenant_id=tenant).sweep(
-            engine, max_runs=1, max_seconds=25
-        )["succeeded"]
-        == 1
-    )
+    # One run per projection behind (spec 181 FR-004), so the scheduler reports
+    # what it enqueued and the worker has that many to do.
+    enqueued = ProcessLoop("scheduler", tenant_id=tenant).sweep(
+        engine, max_runs=1, max_seconds=25
+    )["materialized"]
+    assert enqueued > 1
+    # A worker sweep may take ten runs at most, and a company now has one per
+    # projection behind, so the queue is worked in more than one sweep.
+    worker = ProcessLoop("worker", tenant_id=tenant)
+    succeeded = 0
+    while succeeded < enqueued:
+        done = worker.sweep(engine, max_runs=10, max_seconds=25)["succeeded"]
+        assert done, "the worker stopped before the queue was empty"
+        succeeded += done
+    assert succeeded == enqueued
     with factory() as db:
         response = projections.projection_snapshot(db, tenant, projections.INVENTORY)
         assert response["metadata"]["state"] == "ready"
         assert response["items"][0]["sku"] == "AUTO"
-        run = db.scalar(
-            select(ScheduledJobRun).where(ScheduledJobRun.tenant_id == tenant)
+        runs = list(
+            db.scalars(
+                select(ScheduledJobRun).where(ScheduledJobRun.tenant_id == tenant)
+            )
         )
-        assert run.actor_id is None and run.status == "succeeded"
+        assert len(runs) == enqueued
+        assert all(run.actor_id is None and run.status == "succeeded" for run in runs)
+        assert sorted(
+            name for run in runs for name in run.configuration["arguments"]["names"]
+        ) == sorted(
+            {name for run in runs for name in run.configuration["arguments"]["names"]}
+        ), "no projection was enqueued twice"
 
 
 def test_repeatable_publication_does_not_swallow_concurrent_business_event(
@@ -330,34 +375,55 @@ def test_rolled_back_event_and_failed_publication_leave_no_progress(
         )
 
 
-def test_failed_job_retains_data_and_requires_explicit_recovery(session, business):
+def test_a_failure_is_recorded_against_one_projection_and_not_its_neighbours(
+    session, business
+):
+    """FR-004, and the reason the run was split.
+
+    A builder that fails used to fail a run that had covered several projections,
+    so the others were marked failed with it and recovery could not name one. The
+    failing run now carries one projection: that one is `failed` and waits for
+    someone, and the rest are untouched.
+    """
     tenant = business.tenant.id
     dispatch(session, tenant)
-    complete(session, tenant)
+    complete_all(session, tenant)
     create_item(session, tenant, "LATER", "Later")
-    dispatch(session, tenant)
+    queued = dispatch(session, tenant)
+    assert len(queued) > 1, "one new article is behind on several projections"
+
     run = scheduled_jobs.claim_next(session, tenant)
+    broken = run.configuration["arguments"]["names"][0]
     scheduled_jobs.record_failure(
         session, tenant, run.id, run.claim_token, "handler_failed", retryable=False
     )
-    assert (
-        projections.projection_snapshot(session, tenant, projections.INVENTORY)[
-            "metadata"
-        ]["state"]
-        == "failed"
+
+    def state(name):
+        return projections.projection_snapshot(session, tenant, name)["metadata"][
+            "state"
+        ]
+
+    assert state(broken) == "failed"
+    neighbours = {
+        name
+        for other in queued
+        for name in other.configuration["arguments"]["names"]
+        if name != broken
+    }
+    assert neighbours, "the fixture queued only one projection"
+    assert not any(state(name) == "failed" for name in neighbours), (
+        "a neighbour was failed by a run that was not about it"
     )
-    assert dispatch(session, tenant) is None
-    projections.rebuild_projections(
-        session, tenant, projections.MATERIALIZED_PROJECTIONS, force=True
-    )
-    assert (
-        projections.projection_snapshot(session, tenant, projections.INVENTORY)[
-            "metadata"
-        ]["state"]
-        == "ready"
-    )
+
+    # The broken one is not offered again, and the neighbours are already queued.
+    assert broken not in dispatch_names(session, tenant)
+    complete_all(session, tenant)
+    assert state(broken) == "failed"
+
+    projections.rebuild_projections(session, tenant, [broken], force=True)
+    assert state(broken) == "ready"
     create_item(session, tenant, "RECOVERED", "Recovered")
-    assert dispatch(session, tenant) is not None
+    assert broken in dispatch_names(session, tenant)
 
 
 def test_unknown_events_invalidate_and_known_unrelated_events_do_not(session, business):
@@ -424,9 +490,10 @@ def test_projection_services_keep_other_tenant_untouched(session, business):
     create_item(session, foreign, "FOREIGN", "Private foreign item")
     projections.rebuild_projections(session, foreign, [projections.INVENTORY])
     before = projections.projection_snapshot(session, foreign, projections.INVENTORY)
-    run = enqueue_due_projections(session, local)
-    assert run.tenant_id == local
-    complete(session, local)
+    runs = enqueue_due_projections(session, local)
+    assert runs and {run.tenant_id for run in runs} == {local}
+    run = runs[0]
+    complete_all(session, local)
     assert (
         projections.projection_snapshot(session, foreign, projections.INVENTORY)
         == before
@@ -525,7 +592,7 @@ def test_old_version_and_missing_checkpoint_bootstrap_without_new_event(
 
     tenant = business.tenant.id
     dispatch(session, tenant)
-    complete(session, tenant)
+    complete_all(session, tenant)
     checkpoint = session.scalar(
         select(ProjectionCheckpoint).where(
             ProjectionCheckpoint.tenant_id == tenant,
@@ -540,12 +607,11 @@ def test_old_version_and_missing_checkpoint_bootstrap_without_new_event(
         )
     )
     session.flush()
-    run = dispatch(session, tenant)
-    assert set(run.configuration["arguments"]["names"]) == {
+    assert dispatch_names(session, tenant) == {
         projections.INVENTORY,
         projections.PAYMENTS,
     }
-    complete(session, tenant)
+    complete_all(session, tenant)
     for name in (projections.INVENTORY, projections.PAYMENTS):
         assert (
             projections.projection_snapshot(session, tenant, name)["metadata"]["state"]
@@ -555,17 +621,20 @@ def test_old_version_and_missing_checkpoint_bootstrap_without_new_event(
 
 def test_retry_keeps_internal_identity_and_publishes_once(session, business):
     tenant = business.tenant.id
-    first = dispatch(session, tenant)
+    first = {run.id for run in dispatch(session, tenant)}
     claim = scheduled_jobs.claim_next(session, tenant)
+    retried = claim.configuration["arguments"]["names"][0]
     scheduled_jobs.record_failure(
         session, tenant, claim.id, claim.claim_token, "handler_failed", retryable=True
     )
-    assert dispatch(session, tenant) is None
+    # A retry is still the promise for that projection, so it is not queued again.
+    assert retried not in dispatch_names(session, tenant)
     claim.next_attempt_at = now() - timedelta(seconds=1)
     session.flush()
-    completed = complete(session, tenant)
-    assert completed.id == first.id and completed.actor_id is None
-    assert dispatch(session, tenant) is None
+    completed = complete_all(session, tenant)
+    assert {run.id for run in completed} == first
+    assert all(run.actor_id is None for run in completed)
+    assert dispatch(session, tenant) == []
 
 
 def test_commitment_hold_invalidates_supply_demand(session, business):

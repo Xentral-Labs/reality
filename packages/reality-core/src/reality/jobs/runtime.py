@@ -140,17 +140,13 @@ class ProcessLoop:
 
                         result = 0
                         if _prefer_projection(session, tenant_id):
-                            result = int(
-                                enqueue_due_projections(session, tenant_id) is not None
-                            )
+                            result = len(enqueue_due_projections(session, tenant_id))
                         if result == 0:
                             result = jobs.materialize_due(
                                 session, tenant_id, outcomes=outcomes
                             )
                         if result == 0 and not outcomes["failed"]:
-                            result = int(
-                                enqueue_due_projections(session, tenant_id) is not None
-                            )
+                            result = len(enqueue_due_projections(session, tenant_id))
                         counts["materialized"] += result
                         counts["deferred"] += int(
                             result == 0 and jobs.has_due_schedule(session, tenant_id)

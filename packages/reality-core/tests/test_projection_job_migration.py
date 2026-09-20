@@ -75,8 +75,20 @@ def test_downgrade_preserves_internal_job_history(postgres_database, monkeypatch
     try:
         with Session(engine) as db:
             tenant = create_tenant(db, "Projection migration history")
-            run = enqueue_due_projections(db, tenant.id)
-            tenant_id, run_id = tenant.id, run.id
+            runs = enqueue_due_projections(db, tenant.id)
+            assert len(runs) > 1, "one run per projection behind (spec 181 FR-004)"
+            tenant_id, run_id = tenant.id, runs[0].id
+            db.commit()
+        # The queue is refused before the history is: restoring the per-company
+        # index cannot be done while a company holds several unfinished runs.
+        with pytest.raises(RuntimeError, match="more than one unfinished refresh run"):
+            command.downgrade(config, "0056_physical_shipments")
+        with Session(engine) as db:
+            db.execute(
+                ScheduledJobRun.__table__.update()
+                .where(ScheduledJobRun.tenant_id == tenant_id)
+                .values(status="succeeded")
+            )
             db.commit()
         with pytest.raises(RuntimeError, match="Internal job history exists"):
             command.downgrade(config, "0056_physical_shipments")
