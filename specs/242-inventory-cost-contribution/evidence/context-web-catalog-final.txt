@@ -1,0 +1,18 @@
+✔ dynamic action discovery labels have de translations (4.740084ms)
+✔ dynamic action discovery labels have nl translations (0.257ms)
+✔ dynamic action discovery labels have es translations (0.184333ms)
+✔ all catalog identities occur once and share reviewed categories (1.875666ms)
+✔ search reveals exact hidden command, category descendants, and translated labels (66.148792ms)
+✔ unknown future capabilities stay visible (4.637833ms)
+✔ every supported form is registered and Warehouse placement is specific (1.844958ms)
+✔ Finance context never offers customer-only actions to suppliers (0.391625ms)
+✔ management entries honor owner and demo visibility and unknown handlers never launch (1.905208ms)
+✔ explicit payment direction selects the correct payment form context (0.569583ms)
+ℹ tests 10
+ℹ suites 0
+ℹ pass 10
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 901.449416

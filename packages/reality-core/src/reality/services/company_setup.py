@@ -19,6 +19,7 @@ from reality.db.core import (
     now,
     uid,
 )
+from reality.demo.international import PROFILE_VERSION
 from reality.services.core import Conflict, InvalidOperation, NotFound, create_tenant
 from reality.services.tenant_policy import (
     PlaygroundOperationDenied,
@@ -273,7 +274,7 @@ def create_company(
         actor_id,
         request_key,
         preset_key=PRESETS[content],
-        preset_version=1,
+        preset_version=PROFILE_VERSION if content == "international_demo" else 1,
         sandbox_kind="practice",
         company_name=name,
         confirmed=True,
@@ -368,7 +369,8 @@ def initialize_profile(
     run = require_playground_run(session, run_id, actor_id)
     if run.status in {"active", "archived"}:
         return run
-    if run.preset_version != 1 or run.preset_key not in PRESETS.values():
+    expected_version = PROFILE_VERSION if run.preset_key == "international-demo" else 1
+    if run.preset_version != expected_version or run.preset_key not in PRESETS.values():
         raise Conflict("Unsupported company profile version.")
     tenant = session.scalar(select(Tenant).where(Tenant.id == run.tenant_id))
     if tenant.archived_at:
@@ -405,7 +407,7 @@ def initialize_profile(
             run.initialization_progress = {
                 **initial,
                 **references,
-                "profile": {"key": content, "version": 1},
+                "profile": {"key": content, "version": run.preset_version},
             }
             if len(json.dumps(run.initialization_progress).encode()) > 64000:
                 raise InvalidOperation("Profile manifest is too large.")
@@ -424,6 +426,9 @@ def initialize_profile(
         )
     if _commit:
         session.commit()
+    from reality.storyline import recorder
+
+    recorder.clear_cache(run.tenant_id)
     return run
 
 

@@ -1,0 +1,22 @@
+......................F............................
+=================================== FAILURES ===================================
+_______________ test_invalid_amount_cannot_count_as_covered[0.0] _______________
+
+amount = 0.0
+
+    @pytest.mark.parametrize("amount", ["NaN", "Infinity", "bad", 0.0, True])
+    def test_invalid_amount_cannot_count_as_covered(amount):
+        context, result = example()
+        result["inventory"][0]["result"]["acquisition_value"] = amount
+>       with pytest.raises(ValueError, match="Captured basis"):
+E       AssertionError: Regex pattern did not match.
+E         Expected regex: 'Captured basis'
+E         Actual message: 'Unsupported census snapshot value.'
+
+tests/test_cost_captured_basis.py:268: AssertionError
+=========================== short test summary info ============================
+FAILED tests/test_cost_captured_basis.py::test_invalid_amount_cannot_count_as_covered[0.0]
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! KeyboardInterrupt !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+/Users/benediktsauter/GitHub/reality/.venv/lib/python3.12/site-packages/psycopg/cursor.py:117: KeyboardInterrupt
+(to show a full traceback on KeyboardInterrupt use --full-trace)
+1 failed, 50 passed in 150.27s (0:02:30)

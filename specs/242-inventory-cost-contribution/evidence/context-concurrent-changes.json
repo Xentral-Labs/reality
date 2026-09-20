@@ -1,0 +1,14 @@
+{
+  "changed": [
+    "packages/reality-core/src/reality/web/auth.py",
+    "packages/reality-core/src/reality/db/core.py",
+    "packages/reality-core/src/reality/jobs/registry.py",
+    "packages/reality-core/src/reality/services/tenant_policy.py"
+  ],
+  "new": [
+    "packages/reality-core/src/reality/services/desktop_identity.py",
+    "packages/reality-core/src/reality/services/account_policy.py",
+    "packages/reality-core/tests/test_desktop_identity_migration.py",
+    "packages/reality-core/tests/test_desktop_identity.py"
+  ]
+}

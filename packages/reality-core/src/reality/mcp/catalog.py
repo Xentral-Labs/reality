@@ -2316,6 +2316,26 @@ MCP_TOOL_CATALOG += tuple(
 from reality.tools.graph import SCHEMAS as GRAPH_SCHEMAS
 
 for _public_name, _application_name, _label in (
+    (
+        "graph_company_generation_current",
+        "graph.company_generation.current",
+        "Read current published company cost generation",
+    ),
+    (
+        "graph_captured_reports_list",
+        "graph.captured_reports.list",
+        "List captured report generations",
+    ),
+    (
+        "graph_contribution_reviews_list",
+        "graph.contribution_reviews.list",
+        "List confirmed contribution valuations",
+    ),
+    (
+        "graph_inventory_reviews_list",
+        "graph.inventory_reviews.list",
+        "List confirmed inventory valuations",
+    ),
     ("graph_catalog", "graph.catalog", "Discover the business graph"),
     ("graph_templates", "graph.templates", "List report templates"),
     ("graph_ask", "graph.ask", "Ask the business graph"),
@@ -2367,6 +2387,102 @@ MCP_TOOL_CATALOG = (
         "analytics",
         _GraphRequestedAnalysis.model_json_schema(),
         _propose("graph.requests.create"),
+    ),
+)
+
+from reality.domain.cost_query import CostQueryRequest
+from reality.domain.cost_records import CostRecordRead
+from reality.domain.costing import (
+    CommercialMatchRead,
+    ContributionRead,
+    EvidenceRead,
+    InventoryRead,
+    ReceiptRead,
+    ReviewedContributionRead,
+)
+from reality.tools.costing import change_input_schema
+
+MCP_TOOL_CATALOG += (
+    MCPToolDefinition(
+        "cost_commercial_match_get",
+        "Reviewed partial commercial match",
+        "Read one confirmed partial commercial match or exact historical revision from retained revenue and frozen cost evidence.",
+        "read",
+        "finance",
+        CommercialMatchRead.model_json_schema(),
+        _read("cost.commercial-match.get"),
+    ),
+    MCPToolDefinition(
+        "cost_query_get",
+        "Read cost query context",
+        "Read one admitted cost scope with its exact retained basis and explicit freshness; not a company-wide generation.",
+        "read",
+        "finance",
+        CostQueryRequest.model_json_schema(),
+        _read("cost.query.get"),
+    ),
+    MCPToolDefinition(
+        "cost_record_get",
+        "Inspect retained cost record",
+        "Read exact cost evidence, decision references and bounded retained membership; no current valuation claim.",
+        "read",
+        "finance",
+        CostRecordRead.model_json_schema(),
+        _read("cost.record.get"),
+    ),
+    MCPToolDefinition(
+        "cost_contribution_get",
+        "Reviewed commercial contribution",
+        "Read confirmed DB1 and independently reviewed DB2 for one whole invoice/shipment scope or its exact historical review.",
+        "read",
+        "finance",
+        ReviewedContributionRead.model_json_schema(),
+        _read("cost.contribution.get"),
+    ),
+    MCPToolDefinition(
+        "cost_contribution_preview",
+        "Current contribution candidate",
+        "Read a bounded exact invoice/shipment candidate and known DB1; no confirmed or historical margin.",
+        "read",
+        "finance",
+        ContributionRead.model_json_schema(),
+        _read("cost.contribution.preview"),
+    ),
+    MCPToolDefinition(
+        "cost_inventory_get",
+        "Reviewed inventory acquisition value",
+        "Read bounded confirmed stock and consumption at a retained cutoff; carrying value is unavailable.",
+        "read",
+        "finance",
+        InventoryRead.model_json_schema(),
+        _read("cost.inventory.get"),
+    ),
+    MCPToolDefinition(
+        "cost_receipt_get",
+        "Receipt acquisition costs",
+        "Read known costs, reviewed completeness and an exact retained manifest. Missing costs stay unknown.",
+        "read",
+        "finance",
+        ReceiptRead.model_json_schema(),
+        _read("cost.receipt.get"),
+    ),
+    MCPToolDefinition(
+        "cost_evidence_get",
+        "Received cost evidence",
+        "Read stated supplier invoice or credit amounts and their evidence fingerprint without writing.",
+        "read",
+        "finance",
+        EvidenceRead.model_json_schema(),
+        _read("cost.evidence.get"),
+    ),
+    MCPToolDefinition(
+        "cost_change_propose",
+        "Review cost and contribution decision",
+        "Prepare explicit received-cost attribution, replacement, withdrawal, inventory scope or whole-line contribution review. An active owner must explicitly confirm the unchanged proposal.",
+        "propose",
+        "finance",
+        change_input_schema(),
+        _propose("cost.change"),
     ),
 )
 

@@ -1,0 +1,17 @@
+{
+  "packages/reality-core/src/reality/domain/costing.py": "227dd9e1ae32b3aa13b1c82dd35f2f0632c26a1b57d6f9b173a81798e3dcec04",
+  "packages/reality-core/src/reality/db/contribution.py": "fe38cc7926f58c8e39be5efb88616a3c38f60245dfc8d0a9b1d3e96e820d61d4",
+  "packages/reality-core/src/reality/services/costing.py": "abc44a0be6df98089d19765c01c4bdd1ee16865e42f79a8f4bdf0a2132e70d53",
+  "packages/reality-core/src/reality/services/contribution_reviews.py": "8a3fa4e42ae263a1062530660367dddcc1c88bf85b77bd7614bfa6285b36d859",
+  "packages/reality-core/src/reality/services/selling_costs.py": "314851ab7fd7918cca6f5013886260cf06e29878243d58c707a29f527e217ed2",
+  "packages/reality-core/src/reality/tools/costing.py": "34422d884a31acd14e0ef50667f5697d8da2627bf98106f0e637761c343d14bb",
+  "packages/reality-core/src/reality/mcp/catalog.py": "7cf7874768b09e04997d7ac790a3b29172083e6f8a70badb56ef20d37e4a0443",
+  "packages/reality-core/tests/test_selling_costs.py": "1e5a428cb6c5720bd700e78f987f34b7c18536937583394a17a73655741b25ce",
+  "packages/reality-core/tests/test_selling_migration.py": "9bec828ee8b4b22e2b57417df5241cdde0b154974bd28731b61246c8cf7ca9da",
+  "packages/reality-core/tests/test_reporting_graph_coverage.py": "78c30dbb84d8c8c321b69616f836ea5cdb4c7c452a40cbf1f771d37d71de9188",
+  "packages/reality-core/migrations/versions/0074_selling_costs.py": "f4fc6f2cae798649b23abf2ca9329285035d697569dea35c52e53f740ef91be1",
+  "packages/reality-core/config/data_model.yaml": "fdb42743cf59cb536a6e7aa77d9ad6955871785d3b783cbaa8ab935d721f6e8a",
+  "packages/reality-core/config/command_catalog.yaml": "47f064d4e8d464c5008ebd38925e94cda28d3574ee89476b8826b31d73470d50",
+  "packages/reality-core/config/resource_catalog.yaml": "c764697f75f4baf06edc4cc10bdcdb6533792645caa1e1d1e736973c18302a37",
+  "packages/reality-core/config/tenant_isolation_catalog.yaml": "9eb3d40e4e7fb936fbcd8d7cc5cd7a092c83e49d39a8b9176019a374ca4ece63"
+}

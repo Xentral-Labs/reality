@@ -273,6 +273,29 @@ export type InventoryRow = {
   incoming: string;
   projected: string;
 };
+export type CostQueryEnvelope = {
+  requested: {
+    kind: "inventory" | "contribution";
+    scope_id: string;
+    review_id: string | null;
+  };
+  resolved: null | {
+    currency: string;
+    base_unit: string;
+    effective_at: string;
+    knowledge_at: string;
+    review_id: string;
+  };
+  context_id: string | null;
+  freshness: {
+    state: "ready" | "stale" | "historical" | "uninitialized";
+    processed_event_sequence: number | null;
+    target_event_sequence: number | null;
+  };
+  result: Record<string, unknown> | null;
+  basis_result: Record<string, unknown>;
+  persistence: { business_writes: false; projection_writes: false };
+};
 export type CommitmentRow = {
   id: string;
   risk: "at_risk" | "ok";
@@ -784,6 +807,8 @@ export type BillingAvailability = {
   }[];
 };
 export type InspectorData = {
+  member_page?: Page;
+  fields?: Record<string, unknown>;
   preview_sections?: { title: string; rows: InspectorRow[]; has_more?: boolean }[];
   title_parts?: import("./unified/inspectorPresentation").InspectorPart[];
   subtitle_parts?: import("./unified/inspectorPresentation").InspectorPart[];
@@ -1533,6 +1558,10 @@ export const api = {
       `/api/tenants/${tenant}/inventory-control?${params}`,
     );
   },
+  costQuery: (tenant: string, kind: "inventory" | "contribution", scopeId: string) => {
+    const params = new URLSearchParams({ kind, scope_id: scopeId });
+    return request<CostQueryEnvelope>(`/api/tenants/${tenant}/cost-query?${params}`);
+  },
   specializedProjection: (
     tenant: string,
     projection: "fulfillment_queue" | "fulfillment_blockers" | "item_supply_demand",
@@ -1765,8 +1794,21 @@ export const api = {
     ),
   applicationReference: (tenant: string) =>
     request<ApplicationReference>(`/api/tenants/${tenant}/application-reference`),
-  inspectorRecords: (tenant: string, kind: string, query: string, page: number, size: number) => {
-    const params = new URLSearchParams({ kind, q: query, page: String(page), size: String(size) });
+  inspectorRecords: (
+    tenant: string,
+    kind: string,
+    query: string,
+    page: number,
+    size: number,
+    language = "en",
+  ) => {
+    const params = new URLSearchParams({
+      kind,
+      q: query,
+      page: String(page),
+      size: String(size),
+      language,
+    });
     return request<InspectorRegisterData>(`/api/tenants/${tenant}/inspector-records?${params}`);
   },
   explorer: (tenant: string, query = "", kind = "") => {
@@ -1840,10 +1882,20 @@ export const api = {
       method: "POST",
       body: JSON.stringify({ session_id: sessionId }),
     }),
-  inspector: (tenant: string, kind: string, id: string, preview = false) =>
-    request<InspectorData>(
-      `/api/tenants/${tenant}/inspector/${encodeURIComponent(kind)}/${encodeURIComponent(id)}${preview ? `?${new URLSearchParams({ preview: "true" })}` : ""}`,
-    ),
+  inspector: (
+    tenant: string,
+    kind: string,
+    id: string,
+    preview = false,
+    memberPage = 1,
+    language = "en",
+  ) => {
+    const params = new URLSearchParams({ member_page: String(memberPage), language });
+    if (preview) params.set("preview", "true");
+    return request<InspectorData>(
+      `/api/tenants/${tenant}/inspector/${encodeURIComponent(kind)}/${encodeURIComponent(id)}?${params}`,
+    );
+  },
   parties: (tenant: string) => request<PartyRow[]>(`/api/tenants/${tenant}/parties`),
   createParty: (tenant: string, body: Record<string, unknown>) =>
     request<PartyRow>(`/api/tenants/${tenant}/parties`, {
@@ -3200,7 +3252,7 @@ export type StorylineImportResult = {
 export type GraphMeasure = {
   key: string;
   label: string;
-  unit: "currency" | "measure" | "count";
+  unit: "currency" | "measure" | "count" | "percent";
   additive_over: string[];
   never_across: string[];
   note: string | null;
@@ -3263,7 +3315,45 @@ export type GraphHop = {
   depth?: [number, number];
 };
 export type GraphGrouping = { field: string; bucket?: string; as?: string };
+export type InventoryReviewOption = {
+  action_id: string;
+  effective_at: string;
+  knowledge_at: string;
+  owner_party_id: string;
+  owner_name: string;
+  currency: string;
+  item_count: number;
+};
+export type ContributionReviewOption = Omit<InventoryReviewOption, "item_count"> & {
+  position_count: number;
+};
+export type CapturedReportOption = {
+  generation_id: string;
+  basis_id: string;
+  effective_at: string;
+  observed_at: string;
+  event_sequence: number;
+  completed_at: string;
+  inventory_count: number;
+  contribution_count: number;
+  published: boolean;
+  freshness: "ready" | "pending";
+  financial_publication_eligible: false;
+};
+export type CompanyGenerationOption = {
+  generation_id: string;
+  effective_at: string;
+  knowledge_at: string;
+  completed_at: string;
+  subject_count: number;
+  state: "ready" | "pending";
+  authority_scope: "independent_member_reviews";
+};
 export type GraphQuestion = {
+  captured_cost_context?: { generation_id: string };
+  company_cost_context?: { generation_id: string };
+  contribution_cost_context?: { action_id: string; mode?: "historical" | "current" };
+  inventory_cost_context?: { action_id: string; mode?: "historical" };
   from: string;
   as?: string;
   follow?: GraphHop[];
@@ -3290,6 +3380,36 @@ export type GraphInterpretation = {
   question: GraphQuestion | null;
 };
 export type GraphAnswer = {
+  cost_basis?: {
+    kind?: "contribution" | "captured_review_selection_v1" | "financial_company_generation";
+    action_id?: string;
+    generation_id?: string;
+    generation_ids?: string[];
+    basis_id?: string;
+    financial_publication_eligible?: false;
+    context: {
+      effective_at: string;
+      knowledge_at?: string;
+      observed_at?: string;
+      event_sequence?: number;
+      owner_party_id?: string;
+      currency?: string;
+      algorithm_version?: string;
+      review_ids?: string[];
+    };
+    coverage: {
+      expected_items?: number;
+      available_items?: number;
+      expected_positions?: number;
+      available_positions?: number;
+      db2_available_positions?: number;
+    };
+    freshness: {
+      state: "historical" | "ready" | "pending" | "captured";
+      processed_event_sequence?: number;
+      target_event_sequence?: number | null;
+    };
+  };
   editor?: GraphEditor;
   rows: Record<string, string | number | boolean | null>[];
   /** Equality filters whose value appears on no record at all. An empty answer
@@ -3345,6 +3465,22 @@ export type GraphTemplate = {
   period: { field: string; window: string; temporal?: "date" } | null;
 };
 export const graphApi = {
+  companyGeneration: (tenant: string, family: "inventory" | "contribution") =>
+    request<{ item: CompanyGenerationOption | null }>(
+      `/api/tenants/${tenant}/analytics/graph/company-generation?family=${family}`,
+    ),
+  capturedReports: (tenant: string, family: "inventory" | "contribution", cursor?: string) =>
+    request<{ items: CapturedReportOption[]; next_cursor: string | null }>(
+      `/api/tenants/${tenant}/analytics/graph/captured-reports?family=${family}${cursor ? `&cursor=${encodeURIComponent(cursor)}` : ""}`,
+    ),
+  contributionReviews: (tenant: string, cursor?: string) =>
+    request<{ items: ContributionReviewOption[]; next_cursor: string | null }>(
+      `/api/tenants/${tenant}/analytics/graph/contribution-reviews${cursor ? `?cursor=${encodeURIComponent(cursor)}` : ""}`,
+    ),
+  inventoryReviews: (tenant: string, cursor?: string) =>
+    request<{ items: InventoryReviewOption[]; next_cursor: string | null }>(
+      `/api/tenants/${tenant}/analytics/graph/inventory-reviews${cursor ? `?cursor=${encodeURIComponent(cursor)}` : ""}`,
+    ),
   format: (tenant: string, question: GraphQuestion, signal?: AbortSignal) =>
     request<GraphEditor>(`/api/tenants/${tenant}/analytics/graph/format`, {
       method: "POST",

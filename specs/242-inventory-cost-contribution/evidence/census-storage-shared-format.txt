@@ -1,0 +1,18 @@
+unformatted: File would be reformatted
+   --> src/reality/db/core.py:417:25
+    |
+416 |     __table_args__ = (
+    -         CheckConstraint("authentication_method IN ('email', 'local_os')", name="ck_app_user_authentication_method"),
+417 +         CheckConstraint(
+418 +             "authentication_method IN ('email', 'local_os')",
+419 +             name="ck_app_user_authentication_method",
+420 +         ),
+421 |     )
+    -     authentication_method: Mapped[str] = mapped_column(String, default="email", server_default="email")
+422 +     authentication_method: Mapped[str] = mapped_column(
+423 +         String, default="email", server_default="email"
+424 +     )
+425 |     id: Mapped[str] = mapped_column(String, primary_key=True)
+    |
+
+1 file would be reformatted, 1 file already formatted

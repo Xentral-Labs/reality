@@ -1,0 +1,37 @@
+F
+=================================== FAILURES ===================================
+______________ test_unreviewed_reality_and_evidence_are_not_lost _______________
+
+scheduled_database = (Engine(postgresql+psycopg://costing:***@127.0.0.1:55439/reality_migration_d64da847a2), sessionmaker(class_='Session',...0.0.1:55439/reality_migration_d64da847a2), autoflush=True, expire_on_commit=False), 'ten_5f81f59032', 'usr_bf5aece456')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x10c7f6030>
+
+    def test_unreviewed_reality_and_evidence_are_not_lost(scheduled_database, monkeypatch):
+        (
+            factory,
+            tenant,
+            cutoff,
+            item,
+            _,
+            movement,
+            future,
+            invoice,
+            line,
+            credit,
+            source,
+        ) = seed(scheduled_database)
+        with read_session(factory) as session:
+    
+            def forbidden(*args, **kwargs):
+                raise AssertionError("Census may neither write nor calculate costs")
+    
+            monkeypatch.setattr(session, "flush", forbidden)
+            monkeypatch.setattr(costing, "inventory_cost", forbidden)
+>           result = costing.capture_company_cost_census(session, tenant, cutoff)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E           AttributeError: module 'reality.services.costing' has no attribute 'capture_company_cost_census'
+
+tests/test_cost_census.py:110: AttributeError
+=========================== short test summary info ============================
+FAILED tests/test_cost_census.py::test_unreviewed_reality_and_evidence_are_not_lost
+!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!
+1 failed in 2.81s

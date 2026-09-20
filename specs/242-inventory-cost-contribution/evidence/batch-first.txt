@@ -1,0 +1,488 @@
+FFFFF......                                                              [100%]
+=================================== FAILURES ===================================
+________ test_batch_mcp_confirmation_shared_basis_replay_and_snapshots _________
+
+session = <sqlalchemy.orm.session.Session object at 0x10f5a9ee0>
+business = Business(tenant=<reality.db.core.Tenant object at 0x10ff0b4d0>, company=<reality.db.core.Party object at 0x110c2e7e0>,...0c2c380>, item=<reality.db.core.Item object at 0x110c2d370>, location=<reality.db.core.Location object at 0x110c2ee40>)
+cost_owner = <reality.db.core.AppUser object at 0x110c56960>
+
+    def test_batch_mcp_confirmation_shared_basis_replay_and_snapshots(
+        session, business, cost_owner
+    ):
+        tenant = business.tenant.id
+        args = prepared(session, business, cost_owner)
+        command = MCP_TOOL_REGISTRY["cost_change_propose"]
+>       assert (
+            "inventory_batch_review"
+            in command.input_schema["properties"]["operation"]["enum"]
+        )
+E       AssertionError: assert 'inventory_batch_review' in ['assign', 'replace', 'review', 'withdraw', 'inventory_review', 'contribution_review', ...]
+
+tests/test_inventory_batch_review.py:74: AssertionError
+_____________ test_batch_stale_preview_and_owner_revocation_refuse _____________
+
+name = 'cost.change'
+arguments = {'operation': 'inventory_batch_review', 'expected_event_sequence': 24, 'reason': 'Confirm exact whole-item scopes toge...R', ...}, {'item_id': 'itm_f09d5d2026', 'owner_party_id': 'pty_3136e5d461', 'method': 'fifo', 'currency': 'EUR', ...}]}
+
+    def validate_finance_request(name, arguments):
+        if name in TARGET_COMMANDS:
+            from reality.services.finance.target_mappings import validate
+    
+            return validate(name, arguments)
+        if name in ACCOUNT_COMMANDS:
+            return validate_request(name, arguments)
+        from pydantic import ValidationError
+    
+        from reality.services.core import InvalidOperation
+    
+        try:
+            if name == "cost.change":
+                from reality.domain.costing import CHANGE
+    
+>               return CHANGE.validate_python(arguments).model_dump(mode="json")
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+src/reality/tools/finance.py:242: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = TypeAdapter(Annotated[Union[Assign, Review, Replace, Withdraw, InventoryReview, ContributionReview, SellingAssign], FieldInfo(annotation=NoneType, required=True, discriminator='operation')])
+object = {'operation': 'inventory_batch_review', 'expected_event_sequence': 24, 'reason': 'Confirm exact whole-item scopes toge...R', ...}, {'item_id': 'itm_f09d5d2026', 'owner_party_id': 'pty_3136e5d461', 'method': 'fifo', 'currency': 'EUR', ...}]}
+strict = None, extra = None, from_attributes = None, context = None
+experimental_allow_partial = False, by_alias = None, by_name = None
+
+    def validate_python(
+        self,
+        object: Any,
+        /,
+        *,
+        strict: bool | None = None,
+        extra: ExtraValues | None = None,
+        from_attributes: bool | None = None,
+        context: Any | None = None,
+        experimental_allow_partial: bool | Literal['off', 'on', 'trailing-strings'] = False,
+        by_alias: bool | None = None,
+        by_name: bool | None = None,
+    ) -> T:
+        """Validate a Python object against the model.
+    
+        Args:
+            object: The Python object to validate against the model.
+            strict: Whether to strictly check types.
+            extra: Whether to ignore, allow, or forbid extra data during model validation.
+                See the [`extra` configuration value][pydantic.ConfigDict.extra] for details.
+            from_attributes: Whether to extract data from object attributes.
+            context: Additional context to pass to the validator.
+            experimental_allow_partial: **Experimental** whether to enable
+                [partial validation](../concepts/experimental.md#partial-validation), e.g. to process streams.
+                * False / 'off': Default behavior, no partial validation.
+                * True / 'on': Enable partial validation.
+                * 'trailing-strings': Enable partial validation and allow trailing strings in the input.
+            by_alias: Whether to use the field's alias when validating against the provided input data.
+            by_name: Whether to use the field's name when validating against the provided input data.
+    
+        !!! note
+            When using `TypeAdapter` with a Pydantic `dataclass`, the use of the `from_attributes`
+            argument is not supported.
+    
+        Returns:
+            The validated object.
+        """
+        if by_alias is False and by_name is not True:
+            raise PydanticUserError(
+                'At least one of `by_alias` or `by_name` must be set to True.',
+                code='validate-by-alias-and-name-false',
+            )
+    
+>       return self.validator.validate_python(
+            object,
+            strict=strict,
+            extra=extra,
+            from_attributes=from_attributes,
+            context=context,
+            allow_partial=experimental_allow_partial,
+            by_alias=by_alias,
+            by_name=by_name,
+        )
+E       pydantic_core._pydantic_core.ValidationError: 1 validation error for tagged-union[Assign,Review,Replace,Withdraw,function-after[exact_scope(), InventoryReview],ContributionReview,SellingAssign]
+E         Input tag 'inventory_batch_review' found using 'operation' does not match any of the expected tags: 'assign', 'review', 'replace', 'withdraw', 'inventory_review', 'contribution_review', 'selling_assign' [type=union_tag_invalid, input_value={'operation': 'inventory_...': 'src_fd89ae7c39'}]}]}, input_type=dict]
+E           For further information visit https://errors.pydantic.dev/2.13/v/union_tag_invalid
+
+../../.venv/lib/python3.12/site-packages/pydantic/type_adapter.py:441: ValidationError
+
+The above exception was the direct cause of the following exception:
+
+session = <sqlalchemy.orm.session.Session object at 0x110ea56d0>
+business = Business(tenant=<reality.db.core.Tenant object at 0x110deb4d0>, company=<reality.db.core.Party object at 0x110c2d5e0>,...0c54cb0>, item=<reality.db.core.Item object at 0x110de90d0>, location=<reality.db.core.Location object at 0x110ea6750>)
+cost_owner = <reality.db.core.AppUser object at 0x110dd2960>
+
+    def test_batch_stale_preview_and_owner_revocation_refuse(session, business, cost_owner):
+        tenant = business.tenant.id
+        args = prepared(session, business, cost_owner)
+>       action = propose(session, tenant, cost_owner, args)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_inventory_batch_review.py:135: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_inventory_batch_review.py:65: in propose
+    return create_change_proposal(session, tenant, "cost.change", args)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src/reality/storyline/recorder.py:451: in create_change_proposal
+    return function(session, tenant_id, tool_name, arguments, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src/reality/tools/application.py:2466: in create_change_proposal
+    normalized_arguments = validate_finance_request(tool_name, arguments)
+                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+name = 'cost.change'
+arguments = {'operation': 'inventory_batch_review', 'expected_event_sequence': 24, 'reason': 'Confirm exact whole-item scopes toge...R', ...}, {'item_id': 'itm_f09d5d2026', 'owner_party_id': 'pty_3136e5d461', 'method': 'fifo', 'currency': 'EUR', ...}]}
+
+    def validate_finance_request(name, arguments):
+        if name in TARGET_COMMANDS:
+            from reality.services.finance.target_mappings import validate
+    
+            return validate(name, arguments)
+        if name in ACCOUNT_COMMANDS:
+            return validate_request(name, arguments)
+        from pydantic import ValidationError
+    
+        from reality.services.core import InvalidOperation
+    
+        try:
+            if name == "cost.change":
+                from reality.domain.costing import CHANGE
+    
+                return CHANGE.validate_python(arguments).model_dump(mode="json")
+            if name == SOURCE_MAPPING_COMMAND:
+                return SourceMappingRequest.model_validate(arguments).model_dump()
+            if name == ASSIGNMENT_COMMAND:
+                return AssignmentRequest.model_validate(arguments).model_dump()
+            if name in REFERENCE_COMMANDS:
+                return REFERENCE_COMMANDS[name].model_validate(arguments).model_dump()
+            if name == OPENING_COMMAND:
+                return OpeningRequest.model_validate(arguments).model_dump()
+            if name == SETTLEMENT_COMMAND:
+                return SETTLEMENT_REQUEST.validate_python(arguments).model_dump()
+            return AdjustmentRequest.model_validate(arguments).model_dump()
+        except ValidationError as error:
+>           raise InvalidOperation(str(error)) from error
+E           reality.services.core.InvalidOperation: 1 validation error for tagged-union[Assign,Review,Replace,Withdraw,function-after[exact_scope(), InventoryReview],ContributionReview,SellingAssign]
+E             Input tag 'inventory_batch_review' found using 'operation' does not match any of the expected tags: 'assign', 'review', 'replace', 'withdraw', 'inventory_review', 'contribution_review', 'selling_assign' [type=union_tag_invalid, input_value={'operation': 'inventory_...': 'src_fd89ae7c39'}]}]}, input_type=dict]
+E               For further information visit https://errors.pydantic.dev/2.13/v/union_tag_invalid
+
+src/reality/tools/finance.py:255: InvalidOperation
+__________ test_batch_second_execution_failure_rolls_back_all_members __________
+
+name = 'cost.change'
+arguments = {'operation': 'inventory_batch_review', 'expected_event_sequence': 24, 'reason': 'Confirm exact whole-item scopes toge...R', ...}, {'item_id': 'itm_c47438a154', 'owner_party_id': 'pty_a170760bf2', 'method': 'fifo', 'currency': 'EUR', ...}]}
+
+    def validate_finance_request(name, arguments):
+        if name in TARGET_COMMANDS:
+            from reality.services.finance.target_mappings import validate
+    
+            return validate(name, arguments)
+        if name in ACCOUNT_COMMANDS:
+            return validate_request(name, arguments)
+        from pydantic import ValidationError
+    
+        from reality.services.core import InvalidOperation
+    
+        try:
+            if name == "cost.change":
+                from reality.domain.costing import CHANGE
+    
+>               return CHANGE.validate_python(arguments).model_dump(mode="json")
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+src/reality/tools/finance.py:242: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = TypeAdapter(Annotated[Union[Assign, Review, Replace, Withdraw, InventoryReview, ContributionReview, SellingAssign], FieldInfo(annotation=NoneType, required=True, discriminator='operation')])
+object = {'operation': 'inventory_batch_review', 'expected_event_sequence': 24, 'reason': 'Confirm exact whole-item scopes toge...R', ...}, {'item_id': 'itm_c47438a154', 'owner_party_id': 'pty_a170760bf2', 'method': 'fifo', 'currency': 'EUR', ...}]}
+strict = None, extra = None, from_attributes = None, context = None
+experimental_allow_partial = False, by_alias = None, by_name = None
+
+    def validate_python(
+        self,
+        object: Any,
+        /,
+        *,
+        strict: bool | None = None,
+        extra: ExtraValues | None = None,
+        from_attributes: bool | None = None,
+        context: Any | None = None,
+        experimental_allow_partial: bool | Literal['off', 'on', 'trailing-strings'] = False,
+        by_alias: bool | None = None,
+        by_name: bool | None = None,
+    ) -> T:
+        """Validate a Python object against the model.
+    
+        Args:
+            object: The Python object to validate against the model.
+            strict: Whether to strictly check types.
+            extra: Whether to ignore, allow, or forbid extra data during model validation.
+                See the [`extra` configuration value][pydantic.ConfigDict.extra] for details.
+            from_attributes: Whether to extract data from object attributes.
+            context: Additional context to pass to the validator.
+            experimental_allow_partial: **Experimental** whether to enable
+                [partial validation](../concepts/experimental.md#partial-validation), e.g. to process streams.
+                * False / 'off': Default behavior, no partial validation.
+                * True / 'on': Enable partial validation.
+                * 'trailing-strings': Enable partial validation and allow trailing strings in the input.
+            by_alias: Whether to use the field's alias when validating against the provided input data.
+            by_name: Whether to use the field's name when validating against the provided input data.
+    
+        !!! note
+            When using `TypeAdapter` with a Pydantic `dataclass`, the use of the `from_attributes`
+            argument is not supported.
+    
+        Returns:
+            The validated object.
+        """
+        if by_alias is False and by_name is not True:
+            raise PydanticUserError(
+                'At least one of `by_alias` or `by_name` must be set to True.',
+                code='validate-by-alias-and-name-false',
+            )
+    
+>       return self.validator.validate_python(
+            object,
+            strict=strict,
+            extra=extra,
+            from_attributes=from_attributes,
+            context=context,
+            allow_partial=experimental_allow_partial,
+            by_alias=by_alias,
+            by_name=by_name,
+        )
+E       pydantic_core._pydantic_core.ValidationError: 1 validation error for tagged-union[Assign,Review,Replace,Withdraw,function-after[exact_scope(), InventoryReview],ContributionReview,SellingAssign]
+E         Input tag 'inventory_batch_review' found using 'operation' does not match any of the expected tags: 'assign', 'review', 'replace', 'withdraw', 'inventory_review', 'contribution_review', 'selling_assign' [type=union_tag_invalid, input_value={'operation': 'inventory_...': 'src_a3bf63cd22'}]}]}, input_type=dict]
+E           For further information visit https://errors.pydantic.dev/2.13/v/union_tag_invalid
+
+../../.venv/lib/python3.12/site-packages/pydantic/type_adapter.py:441: ValidationError
+
+The above exception was the direct cause of the following exception:
+
+session = <sqlalchemy.orm.session.Session object at 0x110c99880>
+business = Business(tenant=<reality.db.core.Tenant object at 0x110da36e0>, company=<reality.db.core.Party object at 0x110da3560>,...0debb00>, item=<reality.db.core.Item object at 0x110da3ce0>, location=<reality.db.core.Location object at 0x110faf500>)
+cost_owner = <reality.db.core.AppUser object at 0x110deb980>
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x110deb7a0>
+
+    def test_batch_second_execution_failure_rolls_back_all_members(
+        session, business, cost_owner, monkeypatch
+    ):
+        import reality.services.inventory_costing as service
+    
+        tenant = business.tenant.id
+        args = prepared(session, business, cost_owner)
+>       action = propose(session, tenant, cost_owner, args)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_inventory_batch_review.py:182: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_inventory_batch_review.py:65: in propose
+    return create_change_proposal(session, tenant, "cost.change", args)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src/reality/storyline/recorder.py:451: in create_change_proposal
+    return function(session, tenant_id, tool_name, arguments, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src/reality/tools/application.py:2466: in create_change_proposal
+    normalized_arguments = validate_finance_request(tool_name, arguments)
+                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+name = 'cost.change'
+arguments = {'operation': 'inventory_batch_review', 'expected_event_sequence': 24, 'reason': 'Confirm exact whole-item scopes toge...R', ...}, {'item_id': 'itm_c47438a154', 'owner_party_id': 'pty_a170760bf2', 'method': 'fifo', 'currency': 'EUR', ...}]}
+
+    def validate_finance_request(name, arguments):
+        if name in TARGET_COMMANDS:
+            from reality.services.finance.target_mappings import validate
+    
+            return validate(name, arguments)
+        if name in ACCOUNT_COMMANDS:
+            return validate_request(name, arguments)
+        from pydantic import ValidationError
+    
+        from reality.services.core import InvalidOperation
+    
+        try:
+            if name == "cost.change":
+                from reality.domain.costing import CHANGE
+    
+                return CHANGE.validate_python(arguments).model_dump(mode="json")
+            if name == SOURCE_MAPPING_COMMAND:
+                return SourceMappingRequest.model_validate(arguments).model_dump()
+            if name == ASSIGNMENT_COMMAND:
+                return AssignmentRequest.model_validate(arguments).model_dump()
+            if name in REFERENCE_COMMANDS:
+                return REFERENCE_COMMANDS[name].model_validate(arguments).model_dump()
+            if name == OPENING_COMMAND:
+                return OpeningRequest.model_validate(arguments).model_dump()
+            if name == SETTLEMENT_COMMAND:
+                return SETTLEMENT_REQUEST.validate_python(arguments).model_dump()
+            return AdjustmentRequest.model_validate(arguments).model_dump()
+        except ValidationError as error:
+>           raise InvalidOperation(str(error)) from error
+E           reality.services.core.InvalidOperation: 1 validation error for tagged-union[Assign,Review,Replace,Withdraw,function-after[exact_scope(), InventoryReview],ContributionReview,SellingAssign]
+E             Input tag 'inventory_batch_review' found using 'operation' does not match any of the expected tags: 'assign', 'review', 'replace', 'withdraw', 'inventory_review', 'contribution_review', 'selling_assign' [type=union_tag_invalid, input_value={'operation': 'inventory_...': 'src_a3bf63cd22'}]}]}, input_type=dict]
+E               For further information visit https://errors.pydantic.dev/2.13/v/union_tag_invalid
+
+src/reality/tools/finance.py:255: InvalidOperation
+__________ test_batch_foreign_or_absent_member_refuses_without_writes __________
+
+arguments = {'operation': 'inventory_batch_review', 'expected_event_sequence': 24, 'reason': 'Confirm exact whole-item scopes toge...R', ...}, {'item_id': 'itm_0818082fbb', 'owner_party_id': 'pty_e2146968c5', 'method': 'fifo', 'currency': 'EUR', ...}]}
+
+    def _request(arguments):
+        try:
+>           return CHANGE.validate_python(arguments)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+src/reality/services/costing.py:128: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = TypeAdapter(Annotated[Union[Assign, Review, Replace, Withdraw, InventoryReview, ContributionReview, SellingAssign], FieldInfo(annotation=NoneType, required=True, discriminator='operation')])
+object = {'operation': 'inventory_batch_review', 'expected_event_sequence': 24, 'reason': 'Confirm exact whole-item scopes toge...R', ...}, {'item_id': 'itm_0818082fbb', 'owner_party_id': 'pty_e2146968c5', 'method': 'fifo', 'currency': 'EUR', ...}]}
+strict = None, extra = None, from_attributes = None, context = None
+experimental_allow_partial = False, by_alias = None, by_name = None
+
+    def validate_python(
+        self,
+        object: Any,
+        /,
+        *,
+        strict: bool | None = None,
+        extra: ExtraValues | None = None,
+        from_attributes: bool | None = None,
+        context: Any | None = None,
+        experimental_allow_partial: bool | Literal['off', 'on', 'trailing-strings'] = False,
+        by_alias: bool | None = None,
+        by_name: bool | None = None,
+    ) -> T:
+        """Validate a Python object against the model.
+    
+        Args:
+            object: The Python object to validate against the model.
+            strict: Whether to strictly check types.
+            extra: Whether to ignore, allow, or forbid extra data during model validation.
+                See the [`extra` configuration value][pydantic.ConfigDict.extra] for details.
+            from_attributes: Whether to extract data from object attributes.
+            context: Additional context to pass to the validator.
+            experimental_allow_partial: **Experimental** whether to enable
+                [partial validation](../concepts/experimental.md#partial-validation), e.g. to process streams.
+                * False / 'off': Default behavior, no partial validation.
+                * True / 'on': Enable partial validation.
+                * 'trailing-strings': Enable partial validation and allow trailing strings in the input.
+            by_alias: Whether to use the field's alias when validating against the provided input data.
+            by_name: Whether to use the field's name when validating against the provided input data.
+    
+        !!! note
+            When using `TypeAdapter` with a Pydantic `dataclass`, the use of the `from_attributes`
+            argument is not supported.
+    
+        Returns:
+            The validated object.
+        """
+        if by_alias is False and by_name is not True:
+            raise PydanticUserError(
+                'At least one of `by_alias` or `by_name` must be set to True.',
+                code='validate-by-alias-and-name-false',
+            )
+    
+>       return self.validator.validate_python(
+            object,
+            strict=strict,
+            extra=extra,
+            from_attributes=from_attributes,
+            context=context,
+            allow_partial=experimental_allow_partial,
+            by_alias=by_alias,
+            by_name=by_name,
+        )
+E       pydantic_core._pydantic_core.ValidationError: 1 validation error for tagged-union[Assign,Review,Replace,Withdraw,function-after[exact_scope(), InventoryReview],ContributionReview,SellingAssign]
+E         Input tag 'inventory_batch_review' found using 'operation' does not match any of the expected tags: 'assign', 'review', 'replace', 'withdraw', 'inventory_review', 'contribution_review', 'selling_assign' [type=union_tag_invalid, input_value={'operation': 'inventory_...': 'src_6616532e57'}]}]}, input_type=dict]
+E           For further information visit https://errors.pydantic.dev/2.13/v/union_tag_invalid
+
+../../.venv/lib/python3.12/site-packages/pydantic/type_adapter.py:441: ValidationError
+
+The above exception was the direct cause of the following exception:
+
+session = <sqlalchemy.orm.session.Session object at 0x111056180>
+business = Business(tenant=<reality.db.core.Tenant object at 0x111055f40>, company=<reality.db.core.Party object at 0x110e7c170>,...0e7f950>, item=<reality.db.core.Item object at 0x111054b60>, location=<reality.db.core.Location object at 0x111054680>)
+cost_owner = <reality.db.core.AppUser object at 0x110e1cd10>
+
+    def test_batch_foreign_or_absent_member_refuses_without_writes(
+        session, business, cost_owner
+    ):
+        tenant = business.tenant.id
+        args = prepared(session, business, cost_owner)
+        foreign = core.create_tenant(session, "Foreign")
+        foreign_item = core.create_item(session, foreign.id, "FOREIGN", "Foreign")
+        before = counts(session, tenant)
+        for item in (foreign_item.id, "absent"):
+            invalid = copy.deepcopy(args)
+            invalid["scopes"][1]["item_id"] = item
+            with pytest.raises(core.NotFound):
+>               costing.preview_cost_change(
+                    session, tenant, invalid, principal=Principal(cost_owner.id)
+                )
+
+tests/test_inventory_batch_review.py:220: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+src/reality/services/costing.py:828: in preview_cost_change
+    request = _request(arguments)
+              ^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+arguments = {'operation': 'inventory_batch_review', 'expected_event_sequence': 24, 'reason': 'Confirm exact whole-item scopes toge...R', ...}, {'item_id': 'itm_0818082fbb', 'owner_party_id': 'pty_e2146968c5', 'method': 'fifo', 'currency': 'EUR', ...}]}
+
+    def _request(arguments):
+        try:
+            return CHANGE.validate_python(arguments)
+        except ValidationError as error:
+>           raise core.InvalidOperation(str(error)) from error
+E           reality.services.core.InvalidOperation: 1 validation error for tagged-union[Assign,Review,Replace,Withdraw,function-after[exact_scope(), InventoryReview],ContributionReview,SellingAssign]
+E             Input tag 'inventory_batch_review' found using 'operation' does not match any of the expected tags: 'assign', 'review', 'replace', 'withdraw', 'inventory_review', 'contribution_review', 'selling_assign' [type=union_tag_invalid, input_value={'operation': 'inventory_...': 'src_6616532e57'}]}]}, input_type=dict]
+E               For further information visit https://errors.pydantic.dev/2.13/v/union_tag_invalid
+
+src/reality/services/costing.py:130: InvalidOperation
+____________ test_batch_total_movement_budget_refuses_before_writes ____________
+
+session = <sqlalchemy.orm.session.Session object at 0x1110562d0>
+business = Business(tenant=<reality.db.core.Tenant object at 0x110fd1ca0>, company=<reality.db.core.Party object at 0x110ea70e0>,...0e1d760>, item=<reality.db.core.Item object at 0x110debec0>, location=<reality.db.core.Location object at 0x110ea6a80>)
+cost_owner = <reality.db.core.AppUser object at 0x110ea5340>
+
+    def test_batch_total_movement_budget_refuses_before_writes(
+        session, business, cost_owner
+    ):
+        tenant = business.tenant.id
+        args = prepared(session, business, cost_owner)
+        # Each individual item remains below 100; the common request exceeds 100.
+        for scope in args["scopes"]:
+            for _ in range(49):
+                core.record_movement(
+                    session,
+                    tenant,
+                    "transfer",
+                    scope["item_id"],
+                    "1",
+                    from_location_id=business.location.id,
+                    to_location_id=business.location.id,
+                )
+        cutoff = core.now().isoformat()
+        for scope in args["scopes"]:
+            scope["effective_at"] = cutoff
+        args["expected_event_sequence"] = costing._sequence(session, tenant)
+        before = counts(session, tenant)
+>       with pytest.raises(core.InvalidOperation, match="bound"):
+E       AssertionError: Regex pattern did not match.
+E         Expected regex: 'bound'
+E         Actual message: "1 validation error for tagged-union[Assign,Review,Replace,Withdraw,function-after[exact_scope(), InventoryReview],ContributionReview,SellingAssign]\n  Input tag 'inventory_batch_review' found using 'operation' does not match any of the expected tags: 'assign', 'review', 'replace', 'withdraw', 'inventory_review', 'contribution_review', 'selling_assign' [type=union_tag_invalid, input_value={'operation': 'inventory_...': 'src_1567687329'}]}]}, input_type=dict]\n    For further information visit https://errors.pydantic.dev/2.13/v/union_tag_invalid"
+
+tests/test_inventory_batch_review.py:248: AssertionError
+=========================== short test summary info ============================
+FAILED tests/test_inventory_batch_review.py::test_batch_mcp_confirmation_shared_basis_replay_and_snapshots
+FAILED tests/test_inventory_batch_review.py::test_batch_stale_preview_and_owner_revocation_refuse
+FAILED tests/test_inventory_batch_review.py::test_batch_second_execution_failure_rolls_back_all_members
+FAILED tests/test_inventory_batch_review.py::test_batch_foreign_or_absent_member_refuses_without_writes
+FAILED tests/test_inventory_batch_review.py::test_batch_total_movement_budget_refuses_before_writes
+5 failed, 6 passed in 5.61s

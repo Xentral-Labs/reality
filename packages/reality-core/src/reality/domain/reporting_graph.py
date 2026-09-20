@@ -30,7 +30,7 @@ from pydantic import BaseModel, ConfigDict, Field, model_validator
 Multiplicity = Literal["n:1", "1:n"]
 Direction = Literal["out", "in"]
 Corrections = Literal["replace", "revise", "compensate"]
-UnitKind = Literal["currency", "measure", "count"]
+UnitKind = Literal["currency", "measure", "count", "percent"]
 CyclePolicy = Literal["stop"]
 Coverage = Literal["current", "activity_period", "as_of_effective", "as_of_knowledge"]
 UnknownPolicy = Literal["keep"]
@@ -173,11 +173,36 @@ class MeasureSource(GraphModel):
 
     distinct: str | None = None
     service: str | None = None
+    contribution: (
+        Literal[
+            "revenue_total",
+            "goods_cost_total",
+            "db1_total",
+            "db2_total",
+            "db1_known",
+            "db2_known",
+            "db1_covered",
+            "db2_covered",
+            "db1_required",
+            "db2_required",
+            "db1_rate",
+            "db2_rate",
+        ]
+        | None
+    ) = None
 
     @model_validator(mode="after")
     def check(self) -> MeasureSource:
-        if bool(self.distinct) == bool(self.service):
-            raise ValueError("a measure source is either a distinct key or a service")
+        if (
+            sum(
+                bool(value)
+                for value in (self.distinct, self.service, self.contribution)
+            )
+            != 1
+        ):
+            raise ValueError(
+                "a measure source requires exactly one distinct key, service or contribution aggregate"
+            )
         return self
 
 
@@ -217,6 +242,8 @@ class Node(GraphModel):
     of: str | None = None
     derivation: (
         Literal[
+            "costing.inventory",
+            "costing.contribution",
             "finance.aging",
             "warehouse.inventory",
             "positions.customer",
@@ -294,6 +321,8 @@ class Node(GraphModel):
         unsupported = set(self.coverage) & {"as_of_effective", "as_of_knowledge"}
         if self.derivation and self.derivation.endswith(".history"):
             unsupported.discard("as_of_effective")
+        if self.derivation in {"costing.inventory", "costing.contribution"}:
+            unsupported.clear()
         if unsupported:
             raise ValueError(
                 f"{sorted(unsupported)} is not backed by a tested history model; "

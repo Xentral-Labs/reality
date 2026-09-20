@@ -1,0 +1,4 @@
+Final source/test/catalog hashes unchanged for 15 files.
+Explicit working-tree change policy passed across 318 paths.
+Spec policy and git diff --check passed.
+No .specify/extensions.yml or after-implement hooks configured.

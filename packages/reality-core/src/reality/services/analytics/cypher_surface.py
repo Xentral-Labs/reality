@@ -433,6 +433,16 @@ def format_query(query: Traversal) -> dict[str, Any]:
     All clauses travel with the question. Simple controls may not understand an
     existence test or recursion, but the expert editor must not lose them.
     """
+    if (
+        query.inventory_cost_context is not None
+        or query.contribution_cost_context is not None
+        or query.captured_cost_context is not None
+        or query.company_cost_context is not None
+    ):
+        raise CypherRefused(
+            "Historical cost context requires the JSON question format",
+            "unsupported_syntax",
+        )
     parameters: dict[str, Any] = {}
     operators = {value: key for key, value in COMPARISONS.items()}
 

@@ -1,0 +1,4 @@
+{
+  "packages/reality-core/src/reality/domain/inventory_costing.py": "78504111a30e5d3c981000a4acf7e149243b2376a1c83e116e12836af98606df",
+  "packages/reality-core/tests/test_inventory_costing.py": "cd0130d0dbe06605f5e28c86b298c4173c8ef09637f3771da62cb71b88c0b8b4"
+}

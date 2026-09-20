@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { api } from "../api";
-import { t } from "../localization";
+import { currentLanguage, t } from "../localization";
 import { FactsPage } from "./FactsPage";
 import { RegisterWorkbench, RegisterToolbar } from "./RegisterWorkbench";
 import { RegisterTable } from "./RegisterTable";
@@ -41,12 +41,24 @@ export function InspectorRecordsPage({
     (selection.factSubject || selection.factSource || selection.factSubjectType || selection.entry
       ? "fact"
       : "all");
-  const kind = families.some(([key]) => key === requested) ? requested : "all";
+  const kind =
+    families.some(([key]) => key === requested) || requested.startsWith("cost_")
+      ? requested
+      : "all";
+  const language = currentLanguage();
   const [target, setTarget] = useState<Target | null>(null);
   useEffect(() => {
     const allowed = [...families.map(([kind]) => kind), "payment", "shipment"];
     setTarget(
-      selection.inspectorTargetId && allowed.includes(selection.inspectorTargetKind || "")
+      selection.inspectorTargetId &&
+        (allowed.includes(selection.inspectorTargetKind || "") ||
+          (selection.inspectorTargetKind || "").startsWith("cost_") ||
+          [
+            "financial_component",
+            "action",
+            "movement_correction",
+            "interpretation_outcome",
+          ].includes(selection.inspectorTargetKind || ""))
         ? { kind: selection.inspectorTargetKind!, id: selection.inspectorTargetId }
         : null,
     );
@@ -55,9 +67,15 @@ export function InspectorRecordsPage({
     () =>
       kind === "fact"
         ? Promise.resolve(null)
-        : api.inspectorRecords(tenant, kind, q, page, tableSize),
-    [tenant, kind, q, page, tableSize],
+        : api.inspectorRecords(tenant, kind, q, page, tableSize, language),
+    [tenant, kind, q, page, tableSize, language],
   );
+  const availableFamilies = [
+    ...families,
+    ...(read.data?.types || [])
+      .filter((entry) => !families.some(([key]) => key === entry.kind))
+      .map((entry) => [entry.kind, entry.label]),
+  ];
   const picker = (
     <label className="text-sm">
       {t("Record type")}
@@ -78,7 +96,7 @@ export function InspectorRecordsPage({
           });
         }}
       >
-        {families.map(([key, label]) => (
+        {availableFamilies.map(([key, label]) => (
           <option key={key} value={key}>
             {t(label)}
           </option>
@@ -207,12 +225,14 @@ export function InspectorRecordsPage({
                           >
                             {t("Details")}
                           </button>
-                          <button
-                            className="br-btn"
-                            onClick={() => graph({ kind: row.kind, id: row.id })}
-                          >
-                            {t("Record graph")}
-                          </button>
+                          {!row.kind.startsWith("cost_") && (
+                            <button
+                              className="br-btn"
+                              onClick={() => graph({ kind: row.kind, id: row.id })}
+                            >
+                              {t("Record graph")}
+                            </button>
+                          )}
                         </td>
                       </tr>
                     ))}

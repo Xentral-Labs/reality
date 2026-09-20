@@ -1,0 +1,43 @@
+FF                                                                       [100%]
+=================================== FAILURES ===================================
+___________ test_live_order_scoped_freshness_fallback_and_read_only ____________
+
+session = <sqlalchemy.orm.session.Session object at 0x10bc54f20>
+
+    def test_live_order_scoped_freshness_fallback_and_read_only(session):
+        from benchmarks.large_tenant_registers import costing_cases as cases
+    
+        c = session.connection()
+        build(c, Profile.named("reduced"))
+        rows, inventory = cases.derive(c, "a")
+        cases.publish(c, "a", rows, inventory)
+        baseline = order_read(c, "a", 2)
+        c.execute(text("INSERT INTO costing_spike.adjustment VALUES ('a',1,1,10,'source:late:1')"))
+>       unaffected = cases.live_order_read(c, "a", 2)
+                     ^^^^^^^^^^^^^^^^^^^^^
+E       AttributeError: module 'benchmarks.large_tenant_registers.costing_cases' has no attribute 'live_order_read'
+
+packages/reality-core/tests/test_costing_spike_postgres.py:336: AttributeError
+__ test_live_order_bound_refuses_before_replay_and_selling_change_invalidates __
+
+session = <sqlalchemy.orm.session.Session object at 0x10bf7a660>
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x10bfa0fb0>
+
+    def test_live_order_bound_refuses_before_replay_and_selling_change_invalidates(session, monkeypatch):
+        from benchmarks.large_tenant_registers import costing_cases as cases
+    
+        c = session.connection()
+        build(c, Profile.named("reduced"))
+        rows, inventory = cases.derive(c, "a")
+        cases.publish(c, "a", rows, inventory)
+        # First selling component belongs to order 1, independently of its receipt cost.
+        c.execute(text("INSERT INTO costing_spike.adjustment VALUES ('a',1,721,1,'source:fee:1')"))
+>       assert cases.live_order_read(c, "a", 1)["basis"] == "direct"
+               ^^^^^^^^^^^^^^^^^^^^^
+E       AttributeError: module 'benchmarks.large_tenant_registers.costing_cases' has no attribute 'live_order_read'
+
+packages/reality-core/tests/test_costing_spike_postgres.py:357: AttributeError
+=========================== short test summary info ============================
+FAILED packages/reality-core/tests/test_costing_spike_postgres.py::test_live_order_scoped_freshness_fallback_and_read_only
+FAILED packages/reality-core/tests/test_costing_spike_postgres.py::test_live_order_bound_refuses_before_replay_and_selling_change_invalidates
+2 failed, 11 deselected in 1.05s

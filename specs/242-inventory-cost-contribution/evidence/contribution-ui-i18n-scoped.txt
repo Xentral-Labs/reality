@@ -1,0 +1,4 @@
+en: PASS — 174/174 covered, 0 invariant, 0 missing, 0 invalid
+de: PASS — 174/174 covered, 3 invariant, 0 missing, 0 invalid
+nl: PASS — 174/174 covered, 3 invariant, 0 missing, 0 invalid
+es: PASS — 174/174 covered, 2 invariant, 0 missing, 0 invalid

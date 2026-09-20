@@ -1,6 +1,6 @@
 # Canonical International Demo Profile
 
-Status: implemented local profile `international-v1`; no live deployment. Read contracts/capability gaps remain owned by spec 144. No new analytics API is implied.
+Status: implemented local profile `international-v2`; no live deployment. Read contracts/capability gaps remain owned by spec 144. No new analytics API is implied.
 
 ## Catalog and identity
 
@@ -75,3 +75,21 @@ Baseline source namespace is `demo_profile`; ongoing arrival namespace is `demo_
 Expose tenant/profile/version/anchor/windows and bounded named case/reference links. Include each relevant area as available, fillable with test data, interface gap or another source, referencing spec 144 assessment. Current/historical prices are supported only through existing authoritative fields; missing costs/promotions/price floors remain absent and no invented margin scenario is presented.
 
 Execution profile has a separate fresh practice tenant, one unit matching free stock and one open unreserved commitment, plus a held refusal case. Its marker disallows Demo Data. No confirmed proposal/receipt is fabricated on setup. Existing actual review/confirmation and receipt verification demonstrate reserved+1, available−1, physical unchanged. Repeating with a fresh request creates a new tenant; same request reuses prior result; earlier analysis and audit survive.
+
+## Bounded costing stories (international-v2)
+
+The canonical baseline adds three named source-backed cases without changing the
+ongoing Demo Data generator. `fixture_a` states 1,200 EUR net revenue, 100 pcs and
+1,050 EUR acquisition cost; 60 fulfilled and billed pcs are explicitly matched at
+630 EUR, while 40 remaining pcs retain 420 EUR acquisition value. DB1 is derived as
+570 EUR; 90 EUR direct and 24 EUR allocated source-backed selling costs derive DB2 of
+456 EUR (38 %) through the shared contribution read. `missing_cost` deliberately retains quantity and
+revenue evidence without a cost review. `late_cost_return` retains the earlier gap,
+then adds separately sourced cost and an exact ten-piece customer return/credit match.
+
+All three flow through `demo_profile` SourceRecords and the normal document, movement
+and costing services. The fixed initialization recipe uses a transaction/run/owner-bound
+authority and ordinary cost proposals/events; it is not available to adapters and grants
+no other finance command. Replay never duplicates approvals or restarts a later paused or
+stopped Demo Data source. Continuous synthetic orders retain their default missing-cost
+semantics and are not advertised as fully costed.

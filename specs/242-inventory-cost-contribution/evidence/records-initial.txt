@@ -1,0 +1,56 @@
+....F                                                                    [100%]
+=================================== FAILURES ===================================
+________________ test_web_and_cli_use_same_cost_record_service _________________
+
+session = <sqlalchemy.orm.session.Session object at 0x10a59f290>
+business = Business(tenant=<reality.db.core.Tenant object at 0x10cfe00e0>, company=<reality.db.core.Party object at 0x10bf3f440>,...ceaf2f0>, item=<reality.db.core.Item object at 0x10bf3f410>, location=<reality.db.core.Location object at 0x10bf3f470>)
+cost_owner = <reality.db.core.AppUser object at 0x10d16d1c0>
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x10d1084d0>
+
+    def test_web_and_cli_use_same_cost_record_service(
+        session, business, cost_owner, monkeypatch
+    ):
+        import importlib
+    
+        from test_http_boundary import client_for
+    
+        cli = importlib.import_module("reality.cli.app")
+        result, _, _ = prepared(session, business, cost_owner)
+        expected = cost_record(
+            session, business.tenant.id, "cost_contribution_review", result["review_id"]
+        )
+        client = client_for(session, monkeypatch)
+        response = client.get(
+            f"/api/tenants/{business.tenant.id}/inspector/cost_contribution_review/{result['review_id']}"
+        )
+        assert response.status_code == 200
+        assert response.json()["fields"] == expected["fields"]
+        assert response.json()["member_page"] == expected["member_page"]
+    
+        @contextmanager
+        def scope():
+            yield session
+    
+        monkeypatch.setattr(cli, "Session", scope)
+        output = CliRunner().invoke(
+            cli.app,
+            [
+                "cost-record",
+                "cost_contribution_review",
+                result["review_id"],
+                "--tenant-id",
+                business.tenant.id,
+            ],
+        )
+>       assert output.exit_code == 0, output.output
+E       AssertionError: INFO  [alembic.runtime.migration] Context impl PostgresqlImpl.
+E         INFO  [alembic.runtime.migration] Will assume transactional DDL.
+E         INFO  [alembic.runtime.migration] Running upgrade  -> 0001_initial, Initial Source, Evidence, and Reality schema.
+E         
+E       assert 1 == 0
+E        +  where 1 = <Result ProgrammingError('(psycopg.errors.DuplicateTable) relation "tenant" already exists')>.exit_code
+
+tests/test_cost_records.py:204: AssertionError
+=========================== short test summary info ============================
+FAILED tests/test_cost_records.py::test_web_and_cli_use_same_cost_record_service
+1 failed, 4 passed in 3.54s

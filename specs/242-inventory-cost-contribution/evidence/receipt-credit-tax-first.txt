@@ -1,0 +1,238 @@
+FF                                                                       [100%]
+=================================== FAILURES ===================================
+_______ test_nonrecoverable_tax_on_supplier_credit_reduces_cost[50-9.5] ________
+
+arguments = {'operation': 'assign', 'document_id': 'doc_a015e41910', 'expected_event_sequence': 9, 'expected_evidence_hash': '5d3a6727caf3388cf845708aea631db4eb3a7d26de1693dd08e122391dcd31cb', ...}
+
+    def _request(arguments):
+        try:
+>           return CHANGE.validate_python(arguments)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+src/reality/services/costing.py:124: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = TypeAdapter(Annotated[Union[Assign, Review, Replace, Withdraw], FieldInfo(annotation=NoneType, required=True, discriminator='operation')])
+object = {'operation': 'assign', 'document_id': 'doc_a015e41910', 'expected_event_sequence': 9, 'expected_evidence_hash': '5d3a6727caf3388cf845708aea631db4eb3a7d26de1693dd08e122391dcd31cb', ...}
+strict = None, extra = None, from_attributes = None, context = None
+experimental_allow_partial = False, by_alias = None, by_name = None
+
+    def validate_python(
+        self,
+        object: Any,
+        /,
+        *,
+        strict: bool | None = None,
+        extra: ExtraValues | None = None,
+        from_attributes: bool | None = None,
+        context: Any | None = None,
+        experimental_allow_partial: bool | Literal['off', 'on', 'trailing-strings'] = False,
+        by_alias: bool | None = None,
+        by_name: bool | None = None,
+    ) -> T:
+        """Validate a Python object against the model.
+    
+        Args:
+            object: The Python object to validate against the model.
+            strict: Whether to strictly check types.
+            extra: Whether to ignore, allow, or forbid extra data during model validation.
+                See the [`extra` configuration value][pydantic.ConfigDict.extra] for details.
+            from_attributes: Whether to extract data from object attributes.
+            context: Additional context to pass to the validator.
+            experimental_allow_partial: **Experimental** whether to enable
+                [partial validation](../concepts/experimental.md#partial-validation), e.g. to process streams.
+                * False / 'off': Default behavior, no partial validation.
+                * True / 'on': Enable partial validation.
+                * 'trailing-strings': Enable partial validation and allow trailing strings in the input.
+            by_alias: Whether to use the field's alias when validating against the provided input data.
+            by_name: Whether to use the field's name when validating against the provided input data.
+    
+        !!! note
+            When using `TypeAdapter` with a Pydantic `dataclass`, the use of the `from_attributes`
+            argument is not supported.
+    
+        Returns:
+            The validated object.
+        """
+        if by_alias is False and by_name is not True:
+            raise PydanticUserError(
+                'At least one of `by_alias` or `by_name` must be set to True.',
+                code='validate-by-alias-and-name-false',
+            )
+    
+>       return self.validator.validate_python(
+            object,
+            strict=strict,
+            extra=extra,
+            from_attributes=from_attributes,
+            context=context,
+            allow_partial=experimental_allow_partial,
+            by_alias=by_alias,
+            by_name=by_name,
+        )
+E       pydantic_core._pydantic_core.ValidationError: 1 validation error for tagged-union[Assign,Review,Replace,Withdraw]
+E       assign.parts.1
+E         Value error, Cost effect contradicts the selected category. [type=value_error, input_value={'movement_id': 'mov_9a46...tax', 'cost_effect': -1}, input_type=dict]
+E           For further information visit https://errors.pydantic.dev/2.13/v/value_error
+
+../../.venv/lib/python3.12/site-packages/pydantic/type_adapter.py:441: ValidationError
+
+The above exception was the direct cause of the following exception:
+
+session = <sqlalchemy.orm.session.Session object at 0x10fcfd040>
+business = Business(tenant=<reality.db.core.Tenant object at 0x11008b5c0>, company=<reality.db.core.Party object at 0x110d7d130>,...02c6cc0>, item=<reality.db.core.Item object at 0x1102c6d20>, location=<reality.db.core.Location object at 0x1102c6780>)
+cost_owner = <reality.db.core.AppUser object at 0x110d9d040>, credit = '50'
+tax = '9.5'
+
+    @pytest.mark.parametrize("credit,tax", [("50", "9.5"), ("-50", "-9.5")])
+    def test_nonrecoverable_tax_on_supplier_credit_reduces_cost(session, business, cost_owner, credit, tax):
+        movement = receipt(session, business)
+        goods = evidence(session, business, "1000", "0")
+        execute(session, business, cost_owner, assignment(session, business, movement, goods, "1000"))
+        credit_doc = evidence(session, business, credit, tax, document_type="supplier_credit_note")
+        args = assignment(session, business, movement, credit_doc, credit, "purchase_reduction", tax_treatment="nonrecoverable", nonrecoverable_tax_amount=tax)
+        args["parts"].append({"movement_id":movement.id,"category":"nonrecoverable_tax","source_share":tax,"amount_bucket":"nonrecoverable_tax","cost_effect":-1})
+>       execute(session, business, cost_owner, args)
+
+tests/test_costing_services.py:610: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_costing_services.py:110: in execute
+    preview = preview_cost_change(
+src/reality/services/costing.py:789: in preview_cost_change
+    request = _request(arguments)
+              ^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+arguments = {'operation': 'assign', 'document_id': 'doc_a015e41910', 'expected_event_sequence': 9, 'expected_evidence_hash': '5d3a6727caf3388cf845708aea631db4eb3a7d26de1693dd08e122391dcd31cb', ...}
+
+    def _request(arguments):
+        try:
+            return CHANGE.validate_python(arguments)
+        except ValidationError as error:
+>           raise core.InvalidOperation(str(error)) from error
+E           reality.services.core.InvalidOperation: 1 validation error for tagged-union[Assign,Review,Replace,Withdraw]
+E           assign.parts.1
+E             Value error, Cost effect contradicts the selected category. [type=value_error, input_value={'movement_id': 'mov_9a46...tax', 'cost_effect': -1}, input_type=dict]
+E               For further information visit https://errors.pydantic.dev/2.13/v/value_error
+
+src/reality/services/costing.py:126: InvalidOperation
+______ test_nonrecoverable_tax_on_supplier_credit_reduces_cost[-50--9.5] _______
+
+arguments = {'operation': 'assign', 'document_id': 'doc_fa40be0c0f', 'expected_event_sequence': 9, 'expected_evidence_hash': '15633d4b58b4fada07c57e814a26f648aee478f158b20a9fb93f423074524907', ...}
+
+    def _request(arguments):
+        try:
+>           return CHANGE.validate_python(arguments)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+src/reality/services/costing.py:124: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = TypeAdapter(Annotated[Union[Assign, Review, Replace, Withdraw], FieldInfo(annotation=NoneType, required=True, discriminator='operation')])
+object = {'operation': 'assign', 'document_id': 'doc_fa40be0c0f', 'expected_event_sequence': 9, 'expected_evidence_hash': '15633d4b58b4fada07c57e814a26f648aee478f158b20a9fb93f423074524907', ...}
+strict = None, extra = None, from_attributes = None, context = None
+experimental_allow_partial = False, by_alias = None, by_name = None
+
+    def validate_python(
+        self,
+        object: Any,
+        /,
+        *,
+        strict: bool | None = None,
+        extra: ExtraValues | None = None,
+        from_attributes: bool | None = None,
+        context: Any | None = None,
+        experimental_allow_partial: bool | Literal['off', 'on', 'trailing-strings'] = False,
+        by_alias: bool | None = None,
+        by_name: bool | None = None,
+    ) -> T:
+        """Validate a Python object against the model.
+    
+        Args:
+            object: The Python object to validate against the model.
+            strict: Whether to strictly check types.
+            extra: Whether to ignore, allow, or forbid extra data during model validation.
+                See the [`extra` configuration value][pydantic.ConfigDict.extra] for details.
+            from_attributes: Whether to extract data from object attributes.
+            context: Additional context to pass to the validator.
+            experimental_allow_partial: **Experimental** whether to enable
+                [partial validation](../concepts/experimental.md#partial-validation), e.g. to process streams.
+                * False / 'off': Default behavior, no partial validation.
+                * True / 'on': Enable partial validation.
+                * 'trailing-strings': Enable partial validation and allow trailing strings in the input.
+            by_alias: Whether to use the field's alias when validating against the provided input data.
+            by_name: Whether to use the field's name when validating against the provided input data.
+    
+        !!! note
+            When using `TypeAdapter` with a Pydantic `dataclass`, the use of the `from_attributes`
+            argument is not supported.
+    
+        Returns:
+            The validated object.
+        """
+        if by_alias is False and by_name is not True:
+            raise PydanticUserError(
+                'At least one of `by_alias` or `by_name` must be set to True.',
+                code='validate-by-alias-and-name-false',
+            )
+    
+>       return self.validator.validate_python(
+            object,
+            strict=strict,
+            extra=extra,
+            from_attributes=from_attributes,
+            context=context,
+            allow_partial=experimental_allow_partial,
+            by_alias=by_alias,
+            by_name=by_name,
+        )
+E       pydantic_core._pydantic_core.ValidationError: 1 validation error for tagged-union[Assign,Review,Replace,Withdraw]
+E       assign.parts.1
+E         Value error, Cost effect contradicts the selected category. [type=value_error, input_value={'movement_id': 'mov_7122...tax', 'cost_effect': -1}, input_type=dict]
+E           For further information visit https://errors.pydantic.dev/2.13/v/value_error
+
+../../.venv/lib/python3.12/site-packages/pydantic/type_adapter.py:441: ValidationError
+
+The above exception was the direct cause of the following exception:
+
+session = <sqlalchemy.orm.session.Session object at 0x10dffeb40>
+business = Business(tenant=<reality.db.core.Tenant object at 0x110d7fef0>, company=<reality.db.core.Party object at 0x10da44ef0>,...0089340>, item=<reality.db.core.Item object at 0x110d9f140>, location=<reality.db.core.Location object at 0x110d9d3a0>)
+cost_owner = <reality.db.core.AppUser object at 0x110dc5670>, credit = '-50'
+tax = '-9.5'
+
+    @pytest.mark.parametrize("credit,tax", [("50", "9.5"), ("-50", "-9.5")])
+    def test_nonrecoverable_tax_on_supplier_credit_reduces_cost(session, business, cost_owner, credit, tax):
+        movement = receipt(session, business)
+        goods = evidence(session, business, "1000", "0")
+        execute(session, business, cost_owner, assignment(session, business, movement, goods, "1000"))
+        credit_doc = evidence(session, business, credit, tax, document_type="supplier_credit_note")
+        args = assignment(session, business, movement, credit_doc, credit, "purchase_reduction", tax_treatment="nonrecoverable", nonrecoverable_tax_amount=tax)
+        args["parts"].append({"movement_id":movement.id,"category":"nonrecoverable_tax","source_share":tax,"amount_bucket":"nonrecoverable_tax","cost_effect":-1})
+>       execute(session, business, cost_owner, args)
+
+tests/test_costing_services.py:610: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_costing_services.py:110: in execute
+    preview = preview_cost_change(
+src/reality/services/costing.py:789: in preview_cost_change
+    request = _request(arguments)
+              ^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+arguments = {'operation': 'assign', 'document_id': 'doc_fa40be0c0f', 'expected_event_sequence': 9, 'expected_evidence_hash': '15633d4b58b4fada07c57e814a26f648aee478f158b20a9fb93f423074524907', ...}
+
+    def _request(arguments):
+        try:
+            return CHANGE.validate_python(arguments)
+        except ValidationError as error:
+>           raise core.InvalidOperation(str(error)) from error
+E           reality.services.core.InvalidOperation: 1 validation error for tagged-union[Assign,Review,Replace,Withdraw]
+E           assign.parts.1
+E             Value error, Cost effect contradicts the selected category. [type=value_error, input_value={'movement_id': 'mov_7122...tax', 'cost_effect': -1}, input_type=dict]
+E               For further information visit https://errors.pydantic.dev/2.13/v/value_error
+
+src/reality/services/costing.py:126: InvalidOperation
+=========================== short test summary info ============================
+FAILED tests/test_costing_services.py::test_nonrecoverable_tax_on_supplier_credit_reduces_cost[50-9.5]
+FAILED tests/test_costing_services.py::test_nonrecoverable_tax_on_supplier_credit_reduces_cost[-50--9.5]
+2 failed in 1.94s

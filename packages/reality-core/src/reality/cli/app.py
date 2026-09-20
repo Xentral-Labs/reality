@@ -278,8 +278,9 @@ def selected_tenant(session, explicit_id: str | None = None):
 
 
 @app.callback()
-def boot():
-    init_db()
+def boot(ctx: typer.Context):
+    if ctx.invoked_subcommand not in {"cost-record", "cost-query"}:
+        init_db()
 
 
 @app.command()
@@ -1935,6 +1936,66 @@ def graph_ask(
         f"[dim]{len(result.rows)} rows · model {result.model_version} · "
         f"{result.statements} statement[/dim]"
     )
+
+
+@app.command("cost-record")
+def cost_record_read(
+    kind: str,
+    record_id: str,
+    tenant_id: str | None = None,
+    page: int = 1,
+    language: str = "en",
+) -> None:
+    """Inspect retained cost evidence and page its exact review membership."""
+    from reality.tools.application import run_read_tool
+
+    with Session() as session:
+        tenant = selected_tenant(session, tenant_id)
+        con.print_json(
+            data=run_read_tool(
+                session,
+                tenant.id,
+                "cost.record.get",
+                {
+                    "kind": kind,
+                    "record_id": record_id,
+                    "page": page,
+                    "language": language,
+                },
+            )
+        )
+
+
+@app.command("cost-query")
+def cost_query_read(
+    kind: str,
+    scope_id: str,
+    tenant_id: str | None = None,
+    review_id: str | None = None,
+    effective_at: str | None = None,
+    knowledge_at: str | None = None,
+    policy_revision_id: str | None = None,
+) -> None:
+    """Read a bounded costing answer together with its constrained retained basis."""
+    from reality.tools.application import run_read_tool
+
+    with Session() as session:
+        tenant = selected_tenant(session, tenant_id)
+        con.print_json(
+            data=run_read_tool(
+                session,
+                tenant.id,
+                "cost.query.get",
+                {
+                    "kind": kind,
+                    "scope_id": scope_id,
+                    "review_id": review_id,
+                    "effective_at": effective_at,
+                    "knowledge_at": knowledge_at,
+                    "policy_revision_id": policy_revision_id,
+                },
+            )
+        )
 
 
 if __name__ == "__main__":

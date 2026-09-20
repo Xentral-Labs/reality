@@ -1,0 +1,6 @@
+........................................................................ [  2%]
+........
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! KeyboardInterrupt !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+/Users/benediktsauter/GitHub/reality/.venv/lib/python3.12/site-packages/psycopg/cursor.py:117: KeyboardInterrupt
+(to show a full traceback on KeyboardInterrupt use --full-trace)
+80 passed in 43.25s

@@ -11,6 +11,7 @@ import { ReadState } from "./ReadState";
 import { InlineInspector, PreviewButton, TablePreview } from "./InlinePreview";
 import { useRead } from "./useCompanyContext";
 import type { Selection } from "./routing";
+import { CostExplanation } from "./CostExplanation";
 
 const states: Record<WarehouseView, [string, string][]> = {
   stock: [
@@ -269,6 +270,9 @@ export function WarehousePage({
                         open={entry === row.id}
                         columns={5}
                       >
+                        {stock && (
+                          <CostExplanation tenant={tenant} kind="inventory" scopeId={row.id} />
+                        )}
                         <InlineInspector tenant={tenant} target={{ kind, id: row.id }}>
                           {view === "reservations" && row.status === "active" && release && (
                             <button

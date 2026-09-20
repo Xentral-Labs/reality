@@ -1,0 +1,5 @@
+{
+  "packages/reality-core/src/reality/services/costing.py": "1991de192bc3967cedf54c950708da16da03934dcbc25916e1462c7e77a751ad",
+  "packages/reality-core/src/reality/services/inventory_generations.py": "7b2558ea9b3dc807c59e18d4f18a566448cfa7b45a7d4c2705f21396ee80f5c6",
+  "packages/reality-core/tests/test_inventory_snapshot_selection.py": "ade561418cef0cdc2a6472f7912cddc684de727053542f1608ad59021d5b1cb9"
+}

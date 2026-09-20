@@ -1,0 +1,20 @@
+
+> reality-frontend@0.1.0 build
+> tsc -b && vite --config vite.config.ts build
+
+vite v7.3.6 building client environment for production...
+transforming...
+✓ 2001 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/index.html                          0.72 kB │ gzip:   0.39 kB
+dist/assets/UnifiedApp-BiBtFOQg.css     12.90 kB │ gzip:   2.80 kB
+dist/assets/index-DkTM-c8Q.css         241.73 kB │ gzip:  34.00 kB
+dist/assets/UnifiedApp-BKKoJ-eK.js     966.56 kB │ gzip: 252.07 kB
+dist/assets/index-DLak2mZw.js        1,263.60 kB │ gzip: 369.05 kB
+
+(!) Some chunks are larger than 500 kB after minification. Consider:
+- Using dynamic import() to code-split the application
+- Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks
+- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+✓ built in 6.58s

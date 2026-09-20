@@ -40,7 +40,9 @@ def _session_info_from_stdin() -> dict[str, str]:
         "desktop_owner_id",
     }:
         return {}
-    return value if all(isinstance(item, str) and item for item in value.values()) else {}
+    return (
+        value if all(isinstance(item, str) and item for item in value.values()) else {}
+    )
 
 
 def child_main(
@@ -71,10 +73,13 @@ def child_main(
             )
         execution_engine = (
             engine.execution_options(isolation_level="REPEATABLE READ")
-            if job_type == "projections.refresh"
+            if job_type in {"projections.refresh", "costing.captured_report.refresh"}
             else engine
         )
-        with Session(execution_engine, info=session_info or {}) as session, session.begin():
+        with (
+            Session(execution_engine, info=session_info or {}) as session,
+            session.begin(),
+        ):
             status = execute_claim(session, tenant_id, run_id, token)
         print(json.dumps({"status": status}))
         return 0
@@ -186,5 +191,7 @@ if __name__ == "__main__":
     if len(sys.argv) == 5 and not with_info:
         raise SystemExit(2)
     raise SystemExit(
-        child_main(*sys.argv[1:4], session_info=_session_info_from_stdin() if with_info else {})
+        child_main(
+            *sys.argv[1:4], session_info=_session_info_from_stdin() if with_info else {}
+        )
     )

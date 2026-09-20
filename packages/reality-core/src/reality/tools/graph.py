@@ -12,7 +12,7 @@ that where it cannot act on a wrong number.
 
 from __future__ import annotations
 
-from typing import Any
+from typing import Any, Literal
 
 from pydantic import Field, model_validator
 
@@ -92,6 +92,19 @@ class GraphTemplatesRequest(StrictModel):
     )
 
 
+class InventoryReviewsRequest(StrictModel):
+    limit: int = Field(default=20, ge=1, le=50, strict=True)
+    cursor: str | None = Field(default=None, min_length=1, max_length=128)
+
+
+class CapturedReportsRequest(InventoryReviewsRequest):
+    family: Literal["inventory", "contribution"]
+
+
+class CompanyGenerationRequest(StrictModel):
+    family: Literal["inventory", "contribution"]
+
+
 class GraphReportsRequest(StrictModel):
     query: str = Field(
         default="", max_length=200, description="Optional report-name search."
@@ -155,6 +168,10 @@ class GraphInterpretRequest(StrictModel):
 
 
 SCHEMAS = {
+    "graph.company_generation.current": CompanyGenerationRequest,
+    "graph.captured_reports.list": CapturedReportsRequest,
+    "graph.inventory_reviews.list": InventoryReviewsRequest,
+    "graph.contribution_reviews.list": InventoryReviewsRequest,
     "graph.catalog": GraphCatalogRequest,
     "graph.templates": GraphTemplatesRequest,
     "graph.ask": GraphAskRequest,
@@ -169,7 +186,30 @@ SCHEMAS = {
 
 def invoke(session, tenant_id: str, name: str, arguments: dict[str, Any]) -> Any:
     request = SCHEMAS[name].model_validate(arguments or {})
-    get_tenant(session, tenant_id)
+    with session.no_autoflush:
+        get_tenant(session, tenant_id)
+    if name == "graph.company_generation.current":
+        from reality.services.analytics.company_options import (
+            company_generation_option,
+        )
+
+        return company_generation_option(session, tenant_id, **request.model_dump())
+    if name == "graph.captured_reports.list":
+        from reality.services.analytics.captured_options import captured_report_options
+
+        return captured_report_options(session, tenant_id, **request.model_dump())
+    if name == "graph.contribution_reviews.list":
+        from reality.services.analytics.contribution_options import (
+            contribution_review_options,
+        )
+
+        return contribution_review_options(session, tenant_id, **request.model_dump())
+    if name == "graph.inventory_reviews.list":
+        from reality.services.analytics.inventory_options import (
+            inventory_review_options,
+        )
+
+        return inventory_review_options(session, tenant_id, **request.model_dump())
     if name == "graph.format":
         from reality.services.analytics.traversal import plan
 
@@ -227,6 +267,7 @@ def _answer(result, query) -> dict[str, Any]:
     """One shape for an answer, whether it arrived now or came back from a worker."""
     return {
         "rows": list(result.rows),
+        **({"cost_basis": result.cost_basis} if result.cost_basis is not None else {}),
         "editor": _editor(query),
         # An empty answer means one of two different things; only one of them is
         # about the business, and the caller cannot tell them apart alone.

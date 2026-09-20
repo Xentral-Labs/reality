@@ -570,7 +570,16 @@ def _credit_evidence(
     ):
         return None
     for line, expected in zip(lines, creation["lines"], strict=True):
-        actual = {key: getattr(line, key) for key in expected if key != "id"}
+        line_payload = json.loads(line.payload or "{}")
+        actual = {
+            key: (
+                line_payload.get("reality_finance_v1")
+                if key == "reality_finance_v1"
+                else getattr(line, key)
+            )
+            for key in expected
+            if key != "id"
+        }
         wanted = {key: value for key, value in expected.items() if key != "id"}
         if _canonical(json.loads(_json(actual))) != _canonical(wanted):
             return None

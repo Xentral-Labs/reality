@@ -1,0 +1,325 @@
+FFFFFFFFFFFFF                                                            [100%]
+=================================== FAILURES ===================================
+________________ test_relation_sql_parity_grain_and_partitions _________________
+
+session = <sqlalchemy.orm.session.Session object at 0x11030e9c0>
+business = Business(tenant=<reality.db.core.Tenant object at 0x11030eb70>, company=<reality.db.core.Party object at 0x110ff7ec0>,...1027ef0>, item=<reality.db.core.Item object at 0x111027f20>, location=<reality.db.core.Location object at 0x111027da0>)
+cost_owner = <reality.db.core.AppUser object at 0x111051520>
+
+    def test_relation_sql_parity_grain_and_partitions(session, business, cost_owner):
+        tenant = business.tenant.id
+        action, ids = stored(session, business, cost_owner)
+>       relation = costing_relation.inventory_selection_relation(tenant, ids).subquery()
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       AttributeError: module 'reality.services.analytics.costing_relation' has no attribute 'inventory_selection_relation'
+
+tests/test_inventory_costing_relation.py:28: AttributeError
+_____________ test_relation_foreign_missing_and_partial_membership _____________
+
+session = <sqlalchemy.orm.session.Session object at 0x1113d24e0>
+business = Business(tenant=<reality.db.core.Tenant object at 0x1113a9310>, company=<reality.db.core.Party object at 0x11129fdd0>,...1024d70>, item=<reality.db.core.Item object at 0x111165400>, location=<reality.db.core.Location object at 0x11136f620>)
+cost_owner = <reality.db.core.AppUser object at 0x111051e80>
+
+    def test_relation_foreign_missing_and_partial_membership(session, business, cost_owner):
+        tenant = business.tenant.id
+        _, ids = stored(session, business, cost_owner)
+        foreign = core.create_tenant(session, "Other company")
+        for caller_tenant, chosen in ((foreign.id, ids), (tenant, ["absent"])):
+>           relation = costing_relation.inventory_selection_relation(
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+                caller_tenant, chosen
+            ).subquery()
+E           AttributeError: module 'reality.services.analytics.costing_relation' has no attribute 'inventory_selection_relation'
+
+tests/test_inventory_costing_relation.py:88: AttributeError
+_____________ test_relation_preserves_retained_units_and_exact_ids _____________
+
+session = <sqlalchemy.orm.session.Session object at 0x111407a70>
+business = Business(tenant=<reality.db.core.Tenant object at 0x111407650>, company=<reality.db.core.Party object at 0x1111673e0>,...030e8a0>, item=<reality.db.core.Item object at 0x111051df0>, location=<reality.db.core.Location object at 0x1112e92b0>)
+cost_owner = <reality.db.core.AppUser object at 0x1114077d0>
+
+    def test_relation_preserves_retained_units_and_exact_ids(session, business, cost_owner):
+        tenant = business.tenant.id
+        _, ids = stored(session, business, cost_owner)
+>       query = costing_relation.inventory_selection_relation(tenant, ids).order_by(
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+            "generation_id"
+        )
+E       AttributeError: module 'reality.services.analytics.costing_relation' has no attribute 'inventory_selection_relation'
+
+tests/test_inventory_costing_relation.py:111: AttributeError
+___________ test_relation_rejects_invalid_selection_before_sql[ids0] ___________
+
+ids = []
+
+    @pytest.mark.parametrize(
+        "ids",
+        [
+            [],
+            (),
+            "id",
+            {"id"},
+            [""],
+            [" "],
+            [None],
+            [True],
+            ["same", "same"],
+            [str(i) for i in range(101)],
+        ],
+    )
+    def test_relation_rejects_invalid_selection_before_sql(ids):
+        with pytest.raises(core.InvalidOperation, match="selection"):
+>           costing_relation.inventory_selection_relation("tenant", ids)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E           AttributeError: module 'reality.services.analytics.costing_relation' has no attribute 'inventory_selection_relation'
+
+tests/test_inventory_costing_relation.py:148: AttributeError
+___________ test_relation_rejects_invalid_selection_before_sql[ids1] ___________
+
+ids = ()
+
+    @pytest.mark.parametrize(
+        "ids",
+        [
+            [],
+            (),
+            "id",
+            {"id"},
+            [""],
+            [" "],
+            [None],
+            [True],
+            ["same", "same"],
+            [str(i) for i in range(101)],
+        ],
+    )
+    def test_relation_rejects_invalid_selection_before_sql(ids):
+        with pytest.raises(core.InvalidOperation, match="selection"):
+>           costing_relation.inventory_selection_relation("tenant", ids)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E           AttributeError: module 'reality.services.analytics.costing_relation' has no attribute 'inventory_selection_relation'
+
+tests/test_inventory_costing_relation.py:148: AttributeError
+____________ test_relation_rejects_invalid_selection_before_sql[id] ____________
+
+ids = 'id'
+
+    @pytest.mark.parametrize(
+        "ids",
+        [
+            [],
+            (),
+            "id",
+            {"id"},
+            [""],
+            [" "],
+            [None],
+            [True],
+            ["same", "same"],
+            [str(i) for i in range(101)],
+        ],
+    )
+    def test_relation_rejects_invalid_selection_before_sql(ids):
+        with pytest.raises(core.InvalidOperation, match="selection"):
+>           costing_relation.inventory_selection_relation("tenant", ids)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E           AttributeError: module 'reality.services.analytics.costing_relation' has no attribute 'inventory_selection_relation'
+
+tests/test_inventory_costing_relation.py:148: AttributeError
+___________ test_relation_rejects_invalid_selection_before_sql[ids3] ___________
+
+ids = {'id'}
+
+    @pytest.mark.parametrize(
+        "ids",
+        [
+            [],
+            (),
+            "id",
+            {"id"},
+            [""],
+            [" "],
+            [None],
+            [True],
+            ["same", "same"],
+            [str(i) for i in range(101)],
+        ],
+    )
+    def test_relation_rejects_invalid_selection_before_sql(ids):
+        with pytest.raises(core.InvalidOperation, match="selection"):
+>           costing_relation.inventory_selection_relation("tenant", ids)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E           AttributeError: module 'reality.services.analytics.costing_relation' has no attribute 'inventory_selection_relation'
+
+tests/test_inventory_costing_relation.py:148: AttributeError
+___________ test_relation_rejects_invalid_selection_before_sql[ids4] ___________
+
+ids = ['']
+
+    @pytest.mark.parametrize(
+        "ids",
+        [
+            [],
+            (),
+            "id",
+            {"id"},
+            [""],
+            [" "],
+            [None],
+            [True],
+            ["same", "same"],
+            [str(i) for i in range(101)],
+        ],
+    )
+    def test_relation_rejects_invalid_selection_before_sql(ids):
+        with pytest.raises(core.InvalidOperation, match="selection"):
+>           costing_relation.inventory_selection_relation("tenant", ids)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E           AttributeError: module 'reality.services.analytics.costing_relation' has no attribute 'inventory_selection_relation'
+
+tests/test_inventory_costing_relation.py:148: AttributeError
+___________ test_relation_rejects_invalid_selection_before_sql[ids5] ___________
+
+ids = [' ']
+
+    @pytest.mark.parametrize(
+        "ids",
+        [
+            [],
+            (),
+            "id",
+            {"id"},
+            [""],
+            [" "],
+            [None],
+            [True],
+            ["same", "same"],
+            [str(i) for i in range(101)],
+        ],
+    )
+    def test_relation_rejects_invalid_selection_before_sql(ids):
+        with pytest.raises(core.InvalidOperation, match="selection"):
+>           costing_relation.inventory_selection_relation("tenant", ids)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E           AttributeError: module 'reality.services.analytics.costing_relation' has no attribute 'inventory_selection_relation'
+
+tests/test_inventory_costing_relation.py:148: AttributeError
+___________ test_relation_rejects_invalid_selection_before_sql[ids6] ___________
+
+ids = [None]
+
+    @pytest.mark.parametrize(
+        "ids",
+        [
+            [],
+            (),
+            "id",
+            {"id"},
+            [""],
+            [" "],
+            [None],
+            [True],
+            ["same", "same"],
+            [str(i) for i in range(101)],
+        ],
+    )
+    def test_relation_rejects_invalid_selection_before_sql(ids):
+        with pytest.raises(core.InvalidOperation, match="selection"):
+>           costing_relation.inventory_selection_relation("tenant", ids)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E           AttributeError: module 'reality.services.analytics.costing_relation' has no attribute 'inventory_selection_relation'
+
+tests/test_inventory_costing_relation.py:148: AttributeError
+___________ test_relation_rejects_invalid_selection_before_sql[ids7] ___________
+
+ids = [True]
+
+    @pytest.mark.parametrize(
+        "ids",
+        [
+            [],
+            (),
+            "id",
+            {"id"},
+            [""],
+            [" "],
+            [None],
+            [True],
+            ["same", "same"],
+            [str(i) for i in range(101)],
+        ],
+    )
+    def test_relation_rejects_invalid_selection_before_sql(ids):
+        with pytest.raises(core.InvalidOperation, match="selection"):
+>           costing_relation.inventory_selection_relation("tenant", ids)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E           AttributeError: module 'reality.services.analytics.costing_relation' has no attribute 'inventory_selection_relation'
+
+tests/test_inventory_costing_relation.py:148: AttributeError
+___________ test_relation_rejects_invalid_selection_before_sql[ids8] ___________
+
+ids = ['same', 'same']
+
+    @pytest.mark.parametrize(
+        "ids",
+        [
+            [],
+            (),
+            "id",
+            {"id"},
+            [""],
+            [" "],
+            [None],
+            [True],
+            ["same", "same"],
+            [str(i) for i in range(101)],
+        ],
+    )
+    def test_relation_rejects_invalid_selection_before_sql(ids):
+        with pytest.raises(core.InvalidOperation, match="selection"):
+>           costing_relation.inventory_selection_relation("tenant", ids)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E           AttributeError: module 'reality.services.analytics.costing_relation' has no attribute 'inventory_selection_relation'
+
+tests/test_inventory_costing_relation.py:148: AttributeError
+___________ test_relation_rejects_invalid_selection_before_sql[ids9] ___________
+
+ids = ['0', '1', '2', '3', '4', '5', ...]
+
+    @pytest.mark.parametrize(
+        "ids",
+        [
+            [],
+            (),
+            "id",
+            {"id"},
+            [""],
+            [" "],
+            [None],
+            [True],
+            ["same", "same"],
+            [str(i) for i in range(101)],
+        ],
+    )
+    def test_relation_rejects_invalid_selection_before_sql(ids):
+        with pytest.raises(core.InvalidOperation, match="selection"):
+>           costing_relation.inventory_selection_relation("tenant", ids)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E           AttributeError: module 'reality.services.analytics.costing_relation' has no attribute 'inventory_selection_relation'
+
+tests/test_inventory_costing_relation.py:148: AttributeError
+=========================== short test summary info ============================
+FAILED tests/test_inventory_costing_relation.py::test_relation_sql_parity_grain_and_partitions
+FAILED tests/test_inventory_costing_relation.py::test_relation_foreign_missing_and_partial_membership
+FAILED tests/test_inventory_costing_relation.py::test_relation_preserves_retained_units_and_exact_ids
+FAILED tests/test_inventory_costing_relation.py::test_relation_rejects_invalid_selection_before_sql[ids0]
+FAILED tests/test_inventory_costing_relation.py::test_relation_rejects_invalid_selection_before_sql[ids1]
+FAILED tests/test_inventory_costing_relation.py::test_relation_rejects_invalid_selection_before_sql[id]
+FAILED tests/test_inventory_costing_relation.py::test_relation_rejects_invalid_selection_before_sql[ids3]
+FAILED tests/test_inventory_costing_relation.py::test_relation_rejects_invalid_selection_before_sql[ids4]
+FAILED tests/test_inventory_costing_relation.py::test_relation_rejects_invalid_selection_before_sql[ids5]
+FAILED tests/test_inventory_costing_relation.py::test_relation_rejects_invalid_selection_before_sql[ids6]
+FAILED tests/test_inventory_costing_relation.py::test_relation_rejects_invalid_selection_before_sql[ids7]
+FAILED tests/test_inventory_costing_relation.py::test_relation_rejects_invalid_selection_before_sql[ids8]
+FAILED tests/test_inventory_costing_relation.py::test_relation_rejects_invalid_selection_before_sql[ids9]
+13 failed in 7.08s

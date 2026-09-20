@@ -1,0 +1,137 @@
+..................F.....................................                 [100%]
+=================================== FAILURES ===================================
+_________________ test_split_catalog_is_complete_and_composed __________________
+
+    def test_split_catalog_is_complete_and_composed():
+        catalog = load_application_catalog()
+    
+        assert catalog["command_count"] == 95
+        assert catalog["event_count"] == 62
+        assert catalog["projection_count"] == len(OPERATIONAL_PROJECTIONS) == 13
+        assert catalog["fact_predicate_count"] == 7
+        assert catalog["operational_exception_classes"] == [
+            "overdue_outgoing_customer_commitment",
+            "outgoing_commitment_at_risk",
+            "order_stalled",
+            "overdue_incoming_supplier_commitment",
+            "shipped_not_billed",
+            "billed_not_received",
+            "invoice_price_differs",
+            "sold_below_purchase_price",
+            "returned_not_credited",
+            "credited_not_returned",
+            "supplier_return_not_credited",
+            "supplier_credit_not_returned",
+            "return_unresolved",
+            "receipt_unbilled",
+            "units_not_comparable",
+            "reservation_exceeds_stock",
+            "silent_source",
+            "source_interpretation_failure",
+            "unexplained_movement",
+            "sales_invoice_unposted",
+            "supplier_invoice_unposted",
+            "credit_note_unposted",
+            "credit_note_unsettled",
+            "supplier_credit_unposted",
+            "supplier_credit_unclaimed",
+            "overdue_receivable",
+            "credit_limit_exceeded",
+            "overdue_payable",
+            "purchase_discount_available",
+            "duplicate_supplier_invoice",
+            "unmatched_financial_event",
+            "announced_return_not_arrived",
+            "commitment_hold_unreleased",
+            "party_hold_unreleased",
+            "stock_expired",
+        ]
+        assert {entry["materialized_as"] for entry in catalog["projections"]} == set(
+            OPERATIONAL_PROJECTIONS
+        )
+        assert [workspace["key"] for workspace in catalog["workspaces"]] == [
+            "company",
+            "operations",
+            "warehouse",
+            "finance",
+            "data",
+        ]
+        company = catalog["workspaces"][0]
+        operations = catalog["workspaces"][1]
+        warehouse = catalog["workspaces"][2]
+        assert [view["key"] for view in company["views"]].count("activity") == 1
+        assert all(
+            view["key"] != "activity"
+            for workspace in catalog["workspaces"][1:]
+            for view in workspace["views"]
+        )
+        assert [view["key"] for view in warehouse["views"]][:3] == [
+            "inventory",
+            "warehouse_queue",
+            "reservations",
+        ]
+        operation_views = {view["key"]: view for view in operations["views"]}
+        warehouse_views = {view["key"]: view for view in warehouse["views"]}
+        assert operation_views["orders"]["projection"] == "fulfillment_queue"
+        assert warehouse_views["warehouse_queue"]["projection"] == "fulfillment_queue"
+        assert operation_views["fulfillment_blockers"]["projection"] == (
+            "fulfillment_blockers"
+        )
+        assert warehouse_views["supply_demand"]["projection"] == "item_supply_demand"
+        classified_projections = {
+            view.get("projection")
+            for workspace in catalog["workspaces"]
+            for view in workspace["views"]
+        }
+        assert "tenant_usage" not in classified_projections
+        assert "price_resolution" not in classified_projections
+        assert {action["command"] for action in warehouse["actions"]} >= {
+            "reserve",
+            "record_movement",
+            "correct_movement",
+            "hold_commitment",
+        }
+        assert [action["command"] for action in operations["actions"]] == [
+            "create_manual_order",
+            "reserve",
+            "hold_commitment",
+            "hold_document_commitments",
+            "hold_party_delivery",
+        ]
+        assert [action["command"] for action in operations["actions"][:2]] == [
+            "create_manual_order",
+            "reserve",
+        ]
+        assert [action["command"] for action in company["actions"]] == ["observe_fact"]
+        assert [action["command"] for action in catalog["workspaces"][3]["actions"]] == [
+            "post_customer_payment",
+            "post_supplier_payment",
+        ]
+        # Data Management is a set of registers and commands nothing.
+        assert catalog["workspaces"][4]["actions"] == []
+        command_effects = {
+            command["service"]: command["effect"] for command in catalog["commands"]
+        }
+        assert all(
+            action["description"] == command_effects[action["command"]]
+            for workspace in catalog["workspaces"]
+            for action in workspace["actions"]
+        )
+        web_missing = {
+            command["service"]
+            for command in catalog["commands"]
+            if "Web" not in command["adapters"]
+        }
+>       assert web_missing == set()
+E       AssertionError: assert {'cost_eviden...receipt_cost'} == set()
+E         
+E         Extra items in the left set:
+E         'receipt_cost'
+E         'execute_cost_change'
+E         'cost_evidence'
+E         Use -v to get more diff
+
+tests/test_application_catalog.py:132: AssertionError
+=========================== short test summary info ============================
+FAILED tests/test_application_catalog.py::test_split_catalog_is_complete_and_composed
+1 failed, 55 passed in 22.43s

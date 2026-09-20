@@ -210,6 +210,21 @@ def test_all_table_nodes_can_preview_their_declared_fields(session, business):
     for name, node in reporting_graph().nodes.items():
         if not node.table:
             continue
+        if node.derivation in {"costing.inventory", "costing.contribution"}:
+            # A catalog probe must not select an implicit financial basis.
+            from reality.services.analytics.traversal import TraversalRefused
+
+            with pytest.raises(TraversalRefused) as failure:
+                ask(
+                    session,
+                    business.tenant.id,
+                    **{
+                        "from": name,
+                        "group_by": [{"field": "root." + node.key}],
+                    },
+                )
+            assert failure.value.code == "cost_context_required"
+            continue
         result = ask(
             session,
             business.tenant.id,

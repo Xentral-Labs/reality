@@ -1,0 +1,262 @@
+FFFFFFFF                                                                 [100%]
+=================================== FAILURES ===================================
+_______________ test_joint_partial_complete_retry_and_freshness ________________
+
+session = <sqlalchemy.orm.session.Session object at 0x1108781d0>
+business = Business(tenant=<reality.db.core.Tenant object at 0x110878290>, company=<reality.db.core.Party object at 0x1115638c0>,...1563e30>, item=<reality.db.core.Item object at 0x111592690>, location=<reality.db.core.Location object at 0x111592d80>)
+cost_owner = <reality.db.core.AppUser object at 0x1115939e0>
+
+    def test_joint_partial_complete_retry_and_freshness(session, business, cost_owner):
+        tenant = business.tenant.id
+        action, reviews = confirmed(session, business, cost_owner)
+>       blank = costing.inventory_batch_snapshot(session, tenant, action)
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       AttributeError: module 'reality.services.costing' has no attribute 'inventory_batch_snapshot'. Did you mean: 'inventory_cost_snapshot'?
+
+tests/test_inventory_batch_generations.py:29: AttributeError
+______________ test_joint_foreign_and_unconfirmed_actions_refuse _______________
+
+session = <sqlalchemy.orm.session.Session object at 0x1117ea2d0>
+business = Business(tenant=<reality.db.core.Tenant object at 0x1117ea480>, company=<reality.db.core.Party object at 0x1117ea420>,...1770170>, item=<reality.db.core.Item object at 0x10ef6cd70>, location=<reality.db.core.Location object at 0x1117ebfe0>)
+cost_owner = <reality.db.core.AppUser object at 0x1117456d0>
+
+    def test_joint_foreign_and_unconfirmed_actions_refuse(session, business, cost_owner):
+        tenant = business.tenant.id
+        action, _ = confirmed(session, business, cost_owner)
+        foreign = core.create_tenant(session, "Foreign")
+        for caller_tenant, identity in ((foreign.id, action), (tenant, "absent")):
+            for fn in (
+>               costing.inventory_batch_snapshot,
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+                costing.build_inventory_batch_generation,
+            ):
+E           AttributeError: module 'reality.services.costing' has no attribute 'inventory_batch_snapshot'. Did you mean: 'inventory_cost_snapshot'?
+
+tests/test_inventory_batch_generations.py:88: AttributeError
+__________________ test_joint_second_build_failure_rolls_back __________________
+
+session = <sqlalchemy.orm.session.Session object at 0x111854260>
+business = Business(tenant=<reality.db.core.Tenant object at 0x11189f8c0>, company=<reality.db.core.Party object at 0x1117eab70>,...17ea4e0>, item=<reality.db.core.Item object at 0x111745520>, location=<reality.db.core.Location object at 0x11187b980>)
+cost_owner = <reality.db.core.AppUser object at 0x111593230>
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x1117ac680>
+
+    def test_joint_second_build_failure_rolls_back(
+        session, business, cost_owner, monkeypatch
+    ):
+        from reality.services import inventory_generations
+    
+        tenant = business.tenant.id
+        action, _ = confirmed(session, business, cost_owner)
+        original = inventory_generations._build
+        calls = []
+    
+        def fail(*args, **kwargs):
+            calls.append(1)
+            if len(calls) == 2:
+                raise core.InvalidOperation("Injected joint build failure")
+            return original(*args, **kwargs)
+    
+        monkeypatch.setattr(inventory_generations, "_build", fail)
+        with pytest.raises(core.InvalidOperation, match="Injected"):
+>           costing.build_inventory_batch_generation(session, tenant, action)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E           AttributeError: module 'reality.services.costing' has no attribute 'build_inventory_batch_generation'. Did you mean: 'build_inventory_generation'?
+
+tests/test_inventory_batch_generations.py:126: AttributeError
+__________________ test_joint_bounded_read_no_flush_or_replay __________________
+
+session = <sqlalchemy.orm.session.Session object at 0x1117f64e0>
+business = Business(tenant=<reality.db.core.Tenant object at 0x1117f65d0>, company=<reality.db.core.Party object at 0x10ef6ce30>,...17f7b90>, item=<reality.db.core.Item object at 0x10ef6cdd0>, location=<reality.db.core.Location object at 0x111773680>)
+cost_owner = <reality.db.core.AppUser object at 0x1117f64b0>
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x1118e86e0>
+
+    def test_joint_bounded_read_no_flush_or_replay(
+        session, business, cost_owner, monkeypatch
+    ):
+        tenant = business.tenant.id
+        action, _ = confirmed(session, business, cost_owner)
+>       costing.build_inventory_batch_generation(session, tenant, action)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       AttributeError: module 'reality.services.costing' has no attribute 'build_inventory_batch_generation'. Did you mean: 'build_inventory_generation'?
+
+tests/test_inventory_batch_generations.py:140: AttributeError
+_______________________ test_joint_corrupt_cache_refuses _______________________
+
+session = <sqlalchemy.orm.session.Session object at 0x1117f6540>
+business = Business(tenant=<reality.db.core.Tenant object at 0x1117f44a0>, company=<reality.db.core.Party object at 0x111773d40>,...17737a0>, item=<reality.db.core.Item object at 0x11194d580>, location=<reality.db.core.Location object at 0x111773c50>)
+cost_owner = <reality.db.core.AppUser object at 0x111772120>
+
+    def test_joint_corrupt_cache_refuses(session, business, cost_owner):
+        tenant = business.tenant.id
+        action, _ = confirmed(session, business, cost_owner)
+>       costing.build_inventory_batch_generation(session, tenant, action)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       AttributeError: module 'reality.services.costing' has no attribute 'build_inventory_batch_generation'. Did you mean: 'build_inventory_generation'?
+
+tests/test_inventory_batch_generations.py:174: AttributeError
+____________________ test_joint_concurrent_builds_converge _____________________
+
+scheduled_database = (Engine(postgresql+psycopg://costing:***@127.0.0.1:55439/reality_migration_ef792a2302), sessionmaker(class_='Session',...0.0.1:55439/reality_migration_ef792a2302), autoflush=True, expire_on_commit=False), 'ten_42565b7120', 'usr_a468ee67c8')
+
+    def test_joint_concurrent_builds_converge(scheduled_database):
+        _, factory, tenant, actor = scheduled_database
+        action, _, _ = prepare_committed(factory, tenant, actor)
+        barrier = Barrier(2)
+    
+        def build(_):
+            with factory.begin() as session:
+                barrier.wait(timeout=10)
+                return costing.build_inventory_batch_generation(session, tenant, action)
+    
+        with ThreadPoolExecutor(max_workers=2) as executor:
+>           results = list(executor.map(build, range(2)))
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_inventory_batch_generations.py:209: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/opt/homebrew/Cellar/python@3.12/3.12.4/Frameworks/Python.framework/Versions/3.12/lib/python3.12/concurrent/futures/_base.py:619: in result_iterator
+    yield _result_or_cancel(fs.pop())
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/opt/homebrew/Cellar/python@3.12/3.12.4/Frameworks/Python.framework/Versions/3.12/lib/python3.12/concurrent/futures/_base.py:317: in _result_or_cancel
+    return fut.result(timeout)
+           ^^^^^^^^^^^^^^^^^^^
+/opt/homebrew/Cellar/python@3.12/3.12.4/Frameworks/Python.framework/Versions/3.12/lib/python3.12/concurrent/futures/_base.py:456: in result
+    return self.__get_result()
+           ^^^^^^^^^^^^^^^^^^^
+/opt/homebrew/Cellar/python@3.12/3.12.4/Frameworks/Python.framework/Versions/3.12/lib/python3.12/concurrent/futures/_base.py:401: in __get_result
+    raise self._exception
+/opt/homebrew/Cellar/python@3.12/3.12.4/Frameworks/Python.framework/Versions/3.12/lib/python3.12/concurrent/futures/thread.py:58: in run
+    result = self.fn(*self.args, **self.kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+_ = 0
+
+    def build(_):
+        with factory.begin() as session:
+            barrier.wait(timeout=10)
+>           return costing.build_inventory_batch_generation(session, tenant, action)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E           AttributeError: module 'reality.services.costing' has no attribute 'build_inventory_batch_generation'. Did you mean: 'build_inventory_generation'?
+
+tests/test_inventory_batch_generations.py:206: AttributeError
+_________________ test_joint_atomic_visibility_and_late_intake _________________
+
+scheduled_database = (Engine(postgresql+psycopg://costing:***@127.0.0.1:55439/reality_migration_537def7cf6), sessionmaker(class_='Session',...0.0.1:55439/reality_migration_537def7cf6), autoflush=True, expire_on_commit=False), 'ten_4c995692e0', 'usr_8b3acaa569')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x111b954c0>
+
+    def test_joint_atomic_visibility_and_late_intake(scheduled_database, monkeypatch):
+        from reality.services import inventory_generations
+    
+        _, factory, tenant, actor = scheduled_database
+        action, item, location = prepare_committed(factory, tenant, actor)
+        reached, release = Event(), Event()
+        original = inventory_generations._build
+        calls = []
+    
+        def paused(*args, **kwargs):
+            result = original(*args, **kwargs)
+            calls.append(1)
+            if len(calls) == 1:
+                reached.set()
+                assert release.wait(timeout=10)
+            return result
+    
+        monkeypatch.setattr(inventory_generations, "_build", paused)
+    
+        def build():
+            with factory.begin() as session:
+                return costing.build_inventory_batch_generation(session, tenant, action)
+    
+        with ThreadPoolExecutor(max_workers=1) as executor:
+            future = executor.submit(build)
+            try:
+>               assert reached.wait(timeout=10)
+E               assert False
+E                +  where False = wait(timeout=10)
+E                +    where wait = <threading.Event at 0x111bf4a10: unset>.wait
+
+tests/test_inventory_batch_generations.py:240: AssertionError
+___________________ test_joint_real_worker_and_legacy_config ___________________
+
+self = JobDefinition(name='costing.inventory.refresh', version=1, config_model=<class 'reality.jobs.handlers.costing.InventoryConfig'>, authorize=<function authorize at 0x111e058a0>, handler=<function refresh at 0x111e06ac0>)
+arguments = {'action_id': 'act_6e7f0ae86c'}
+
+    def validate(self, arguments: dict) -> BaseModel:
+        if (
+            not isinstance(arguments, dict)
+            or len(json.dumps(arguments).encode()) > 15000
+        ):
+            raise JobError("invalid_configuration")
+        try:
+>           return self.config_model.model_validate(arguments)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E           pydantic_core._pydantic_core.ValidationError: 2 validation errors for InventoryConfig
+E           review_id
+E             Field required [type=missing, input_value={'action_id': 'act_6e7f0ae86c'}, input_type=dict]
+E               For further information visit https://errors.pydantic.dev/2.13/v/missing
+E           action_id
+E             Extra inputs are not permitted [type=extra_forbidden, input_value='act_6e7f0ae86c', input_type=str]
+E               For further information visit https://errors.pydantic.dev/2.13/v/extra_forbidden
+
+src/reality/jobs/registry.py:87: ValidationError
+
+The above exception was the direct cause of the following exception:
+
+scheduled_database = (Engine(postgresql+psycopg://costing:***@127.0.0.1:55439/reality_migration_c0494fd68e), sessionmaker(class_='Session',...0.0.1:55439/reality_migration_c0494fd68e), autoflush=True, expire_on_commit=False), 'ten_5b44b45f67', 'usr_80f44e6b6b')
+
+    def test_joint_real_worker_and_legacy_config(scheduled_database):
+        from reality.jobs.runtime import ProcessLoop
+    
+        definition = get_definition("costing.inventory.refresh")
+        assert definition.config_model.model_validate({"review_id": "old"}).model_dump(
+            mode="json"
+        ) == {"review_id": "old"}
+        engine, factory, tenant, actor = scheduled_database
+        action, _, _ = prepare_committed(factory, tenant, actor)
+        with factory.begin() as session:
+>           scheduled_jobs.create_manual_run(
+                session,
+                tenant,
+                actor,
+                "costing.inventory.refresh",
+                {"action_id": action},
+                request_id="joint-worker",
+            )
+
+tests/test_inventory_batch_generations.py:278: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+src/reality/services/scheduled_jobs.py:427: in create_manual_run
+    envelope = _validated(session, tenant_id, actor_id, job_type, config)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src/reality/services/scheduled_jobs.py:185: in _validated
+    parsed = definition.validate(config)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = JobDefinition(name='costing.inventory.refresh', version=1, config_model=<class 'reality.jobs.handlers.costing.InventoryConfig'>, authorize=<function authorize at 0x111e058a0>, handler=<function refresh at 0x111e06ac0>)
+arguments = {'action_id': 'act_6e7f0ae86c'}
+
+    def validate(self, arguments: dict) -> BaseModel:
+        if (
+            not isinstance(arguments, dict)
+            or len(json.dumps(arguments).encode()) > 15000
+        ):
+            raise JobError("invalid_configuration")
+        try:
+            return self.config_model.model_validate(arguments)
+        except ValueError as error:
+>           raise JobError("invalid_configuration") from error
+E           reality.jobs.registry.JobError: invalid_configuration
+
+src/reality/jobs/registry.py:89: JobError
+=========================== short test summary info ============================
+FAILED tests/test_inventory_batch_generations.py::test_joint_partial_complete_retry_and_freshness
+FAILED tests/test_inventory_batch_generations.py::test_joint_foreign_and_unconfirmed_actions_refuse
+FAILED tests/test_inventory_batch_generations.py::test_joint_second_build_failure_rolls_back
+FAILED tests/test_inventory_batch_generations.py::test_joint_bounded_read_no_flush_or_replay
+FAILED tests/test_inventory_batch_generations.py::test_joint_corrupt_cache_refuses
+FAILED tests/test_inventory_batch_generations.py::test_joint_concurrent_builds_converge
+FAILED tests/test_inventory_batch_generations.py::test_joint_atomic_visibility_and_late_intake
+FAILED tests/test_inventory_batch_generations.py::test_joint_real_worker_and_legacy_config
+8 failed in 28.98s

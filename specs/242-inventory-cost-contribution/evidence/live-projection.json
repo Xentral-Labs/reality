@@ -1,0 +1,233 @@
+{
+  "strategy": "projection",
+  "dataset_version": "costing-spike-v3",
+  "profile": "full",
+  "qualification_passed": false,
+  "measurements": {
+    "order": {
+      "samples": 200,
+      "p50_s": 0.006355707999318838,
+      "p95_s": 0.01188937498955056,
+      "max_s": 0.01921854098327458,
+      "budget_s": 0.5
+    },
+    "tool": {
+      "samples": 200,
+      "p50_s": 0.007122375493054278,
+      "p95_s": 0.010081624990561977,
+      "max_s": 0.015936499985400587,
+      "budget_s": 3
+    },
+    "inventory": {
+      "samples": 200,
+      "p50_s": 0.014650791490566917,
+      "p95_s": 0.022189499984961003,
+      "max_s": 0.03704999998444691,
+      "budget_s": 2
+    },
+    "monthly": {
+      "samples": 200,
+      "p50_s": 0.04478745852247812,
+      "p95_s": 0.1405712089908775,
+      "max_s": 0.1889717079757247,
+      "budget_s": 3
+    },
+    "attention": {
+      "samples": 200,
+      "p50_s": 0.5198685840005055,
+      "p95_s": 1.0832763749931473,
+      "max_s": 1.5870195839961525,
+      "budget_s": 2
+    }
+  },
+  "limitations": [
+    "Exact dedicated 4-vCPU/16-GiB reference host is not certified; see separately captured enforced container limits.",
+    "An OS/database cold-cache run and the full freshness response contract are not certified.",
+    "Experimental typed relations are not yet wired to the product analysis compiler or exception register.",
+    "V3 distributes returns, split/partial matching, supplier credits and stated nonrecoverable tax; full FX/ownership/review and credit-to-revenue matching remain product proofs.",
+    "Projection completeness/review invalidation and source-version history are not product implementations."
+  ],
+  "input_revision_before": 0,
+  "reconstruction_s": [
+    32.64099239002098,
+    30.85158147200127,
+    42.49410039401846
+  ],
+  "checksum": "24cf8b30dd3f520740bda7d799d83e6a6a2816473ea8138b748625c10384d0d3",
+  "mixed_measurements": {
+    "order": {
+      "samples": 200,
+      "p50_s": 0.02808195850229822,
+      "p95_s": 0.057234249979956076,
+      "max_s": 0.13985025000874884,
+      "budget_s": 0.5,
+      "started_offset_s": 0.009140792011749,
+      "finished_offset_s": 29.898117180011468,
+      "states": {
+        "current": 62,
+        "stale": 138
+      },
+      "routes": {
+        "projection": 200
+      }
+    },
+    "tool": {
+      "samples": 200,
+      "p50_s": 0.003707354495418258,
+      "p95_s": 1.1074932079936843,
+      "max_s": 1.986959500994999,
+      "budget_s": 3,
+      "started_offset_s": 0.010810250008944422,
+      "finished_offset_s": 31.62087880598847,
+      "states": {
+        "current": 200
+      },
+      "routes": {
+        "direct": 26,
+        "projection": 174
+      }
+    },
+    "inventory": {
+      "samples": 200,
+      "p50_s": 0.04121254199708346,
+      "p95_s": 0.08963820801000111,
+      "max_s": 0.15749862499069422,
+      "budget_s": 2,
+      "started_offset_s": 0.00964279199251905,
+      "finished_offset_s": 29.895403347007232,
+      "states": {
+        "current": 62,
+        "stale": 138
+      },
+      "routes": {
+        "projection": 200
+      }
+    },
+    "monthly": {
+      "samples": 200,
+      "p50_s": 0.07891714602010325,
+      "p95_s": 0.19297320800251327,
+      "max_s": 0.31067512501613237,
+      "budget_s": 3,
+      "started_offset_s": 0.009894541988614947,
+      "finished_offset_s": 29.918403888004832,
+      "states": {
+        "current": 63,
+        "stale": 137
+      },
+      "routes": {
+        "projection": 200
+      }
+    },
+    "attention": {
+      "samples": 200,
+      "p50_s": 0.17263710449333303,
+      "p95_s": 0.2656954590056557,
+      "max_s": 0.3781429590017069,
+      "budget_s": 2,
+      "started_offset_s": 0.010344957991037518,
+      "finished_offset_s": 34.12766714001191,
+      "states": {
+        "current": 79,
+        "stale": 121
+      },
+      "routes": {
+        "projection": 200
+      }
+    }
+  },
+  "refresh": {
+    "samples": 36,
+    "p50_s": 0.6248316669953056,
+    "p95_s": 1.098285499989288,
+    "max_s": 1.1251149169984274,
+    "last_affected_rows": 3000,
+    "requested_minimum_updates": 30,
+    "change_stream_covers_all_readers": true,
+    "committed_offsets_s": [
+      0.008318917010910809,
+      1.1131656260113232,
+      2.0300817509996705,
+      3.2273251680016983,
+      4.210847376991296,
+      5.202093628002331,
+      6.029269919003127,
+      7.012480918987421,
+      8.007226127985632,
+      9.006452169996919,
+      10.02347712899791,
+      11.008578920998843,
+      12.009146213007625,
+      13.00445683900034,
+      14.00524050599779,
+      15.016400090011302,
+      16.004627423011698,
+      17.006892548990436,
+      18.119847883004695,
+      19.003695007995702,
+      20.003519091987982,
+      21.008675426011905,
+      22.05295742599992,
+      23.002979301993037,
+      24.005156094004633,
+      25.003264761005994,
+      26.00654922000831,
+      27.005455762002384,
+      28.009187804011162,
+      29.00461355500738,
+      30.006517347006593,
+      31.003093431005254,
+      32.003568805987015,
+      33.002883056993596,
+      34.00271176500246,
+      35.00275864099967
+    ],
+    "one_change_per_second_sustained": true
+  },
+  "reconciliation": {
+    "observations": 609000,
+    "inventory_pools": 10000,
+    "complete_values_equal": true
+  },
+  "measured_budgets_passed": true,
+  "input_revision_after": 36,
+  "status": "exploratory",
+  "cardinalities": {
+    "a": {
+      "item": 10000,
+      "trade_order": 100000,
+      "movement": 1000000,
+      "component": 1000000,
+      "attribution": 1000000,
+      "matching": 600000
+    },
+    "b": {
+      "item": 10000,
+      "trade_order": 100000,
+      "movement": 1000000,
+      "component": 1000000,
+      "attribution": 1000000,
+      "matching": 600000
+    }
+  },
+  "setup_s": 0.6973529169918038,
+  "python": "3.12.13",
+  "platform": "Linux-6.10.14-linuxkit-aarch64-with-glibc2.41",
+  "git_revision": "709af5c1a6358be2f004003f37b836ff6095b5bf",
+  "peak_rss_bytes": 1223557120,
+  "elapsed_s": 214.23842126401723,
+  "postgres_version": "17.10",
+  "source_digest": "015aa49e1fbb54f4bb2e44ef8b0fe2f9a88e70fca72cea636868ff14a256e032",
+  "process_cgroup": {
+    "cpu.max": "200000 100000",
+    "memory.max": "2147483648",
+    "memory.swap.max": "0",
+    "memory.peak": "1206312960"
+  },
+  "adversarial_distribution": {
+    "issue": 600000,
+    "receipt": 291000,
+    "return": 9000,
+    "transfer": 100000
+  }
+}

@@ -34,8 +34,12 @@ def test_history_has_twelve_weeks_distinct_currencies_and_linked_credit(
     anchor = datetime.fromisoformat(manifest["anchor"])
     postings = list(
         session.scalars(
-            select(LedgerEntry).where(
-                LedgerEntry.tenant_id == tenant, LedgerEntry.account == "sales_revenue"
+            select(LedgerEntry)
+            .join(Document, Document.id == LedgerEntry.document_id)
+            .where(
+                LedgerEntry.tenant_id == tenant,
+                LedgerEntry.account == "sales_revenue",
+                ~Document.number.like("COST-%"),
             )
         )
     )
@@ -70,4 +74,4 @@ def test_history_has_twelve_weeks_distinct_currencies_and_linked_credit(
     assert any(
         row.debit_credit == "debit" and row.amount == Decimal(24) for row in postings
     )
-    assert manifest["capabilities"]["cost_basis"] == "missing"
+    assert manifest["capabilities"]["cost_basis"] == "bounded_cases"

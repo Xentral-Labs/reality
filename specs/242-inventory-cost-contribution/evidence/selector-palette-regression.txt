@@ -1,0 +1,15 @@
+✔ palette routes open exact capability, report and template without stale record context (4.893167ms)
+✔ owner and demo destinations stay eligible and include primary workspaces (2.0895ms)
+✔ unknown targets do not become arbitrary routes or commands (5041.091375ms)
+✔ catalog entries deduplicate canonical targets and never fabricate a mutation form (8.72575ms)
+✔ prefills copy only the existing form target fields (2.050541ms)
+✔ report route targets are exclusive and inbound shipment direction survives reload (1.041959ms)
+✔ every record family round-trips into its exact supported detail renderer (1.195833ms)
+ℹ tests 7
+ℹ suites 0
+ℹ pass 7
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 5427.470125

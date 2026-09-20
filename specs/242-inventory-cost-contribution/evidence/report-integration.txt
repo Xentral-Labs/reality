@@ -1,0 +1,64 @@
+........................................................................ [ 24%]
+......F................................................................. [ 48%]
+........................................................................ [ 72%]
+........................................................................ [ 97%]
+........                                                                 [100%]
+=================================== FAILURES ===================================
+____________ test_all_table_nodes_can_preview_their_declared_fields ____________
+
+session = <sqlalchemy.orm.session.Session object at 0x1120faf30>
+business = Business(tenant=<reality.db.core.Tenant object at 0x112c8a5a0>, company=<reality.db.core.Party object at 0x1120da810>,...20d9ca0>, item=<reality.db.core.Item object at 0x1120d9220>, location=<reality.db.core.Location object at 0x1120db0e0>)
+
+    def test_all_table_nodes_can_preview_their_declared_fields(session, business):
+        from reality.services.analytics.graph_model import reporting_graph
+    
+        for name, node in reporting_graph().nodes.items():
+            if not node.table:
+                continue
+>           result = ask(
+                session,
+                business.tenant.id,
+                **{
+                    "from": name,
+                    "as": "o",
+                    "filter": snapshot_inputs(node, "o"),
+                    "group_by": [
+                        {"field": "o." + field} for field in [node.key, *node.properties]
+                    ],
+                    "limit": 1,
+                },
+            )
+
+tests/test_reporting_graph_expansion.py:213: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_reporting_graph_expansion.py:15: in ask
+    return run_traversal(session, tenant, Traversal.model_validate(query))
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src/reality/services/analytics/traversal.py:461: in run_traversal
+    path = plan(query)
+           ^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+query = Traversal(from_='inventory_valuation', inventory_cost_context=None, as_='o', follow=(), filter=(), measures=(), group_...=None, as_=None), Grouping(field='o.knowledge_at', bucket=None, as_=None)), having=(), exists=(), order_by=(), limit=1)
+graph = ReportingGraph(version=1, model_version='sales.1', language='business terms are English here; the web surface translat...=8, max_recursive_depth=6, result_rows=10000, page_rows=200, statement_timeout_seconds=30, statements_per_traversal=1))
+
+    def plan(query: Traversal, graph: ReportingGraph | None = None) -> ResolvedPath:
+        """Resolve and check a question. Nothing touches the database until this passes."""
+        graph = graph or reporting_graph()
+        if len(query.follow) > graph.limits.max_path_length:
+            raise TraversalRefused(
+                f"a path may take at most {graph.limits.max_path_length} steps",
+                "path_too_long",
+            )
+        costing = graph.nodes.get(query.from_)
+        is_inventory = costing is not None and costing.derivation == "costing.inventory"
+        if is_inventory and query.inventory_cost_context is None:
+>           raise TraversalRefused(
+                "An inventory cost context is required", "cost_context_required"
+            )
+E           reality.services.analytics.traversal.TraversalRefused: An inventory cost context is required
+
+src/reality/services/analytics/traversal.py:436: TraversalRefused
+=========================== short test summary info ============================
+FAILED tests/test_reporting_graph_expansion.py::test_all_table_nodes_can_preview_their_declared_fields
+1 failed, 295 passed in 118.52s (0:01:58)

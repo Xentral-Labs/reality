@@ -43,7 +43,7 @@ export const invariantTerms = new Map([
   ["SKU", "Business identifier acronym"],
   ["ID", "Identifier acronym"],
   ["API", "Technical acronym"],
-  ["sk-ant-…", "Anthropic credential-prefix example"],
+  ["sk-ant-…", "Anthropic API-key format example"],
   ["Shopify", "Connector brand"],
   ["Shopify Payments", "Connector brand"],
   ["Billbee", "Connector brand"],

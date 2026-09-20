@@ -1,0 +1,2 @@
+Spec policy passed.
+Explicit working-tree changed-file policy passed (220 files).

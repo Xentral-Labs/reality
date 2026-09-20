@@ -1896,10 +1896,18 @@ def init_db() -> None:
 # Register infrastructure metadata even when callers import only Base.
 # Register private analytics configuration with the shared metadata.
 from reality.db import analytics as _analytics_models  # noqa: F401
+from reality.db import captured_report as _captured_report  # noqa: F401
+from reality.db import company_generations as _company_generations  # noqa: F401
 from reality.db import company_setup as _company_setup  # noqa: F401
 from reality.db import components as _components  # noqa: F401
+from reality.db import contribution as _contribution  # noqa: F401
+from reality.db import cost_captured_basis as _cost_captured_basis  # noqa: F401
+from reality.db import cost_census as _cost_census  # noqa: F401
+from reality.db import cost_generations as _cost_generations  # noqa: F401
+from reality.db import costing as _costing  # noqa: F401
 from reality.db import demo_data as _demo_data  # noqa: F401
 from reality.db import finance_references as _finance_references  # noqa: F401
+from reality.db import inventory_costing as _inventory_costing  # noqa: F401
 from reality.db import opening as _opening  # noqa: F401
 from reality.db import scheduled_jobs as _scheduled_jobs  # noqa: F401
 from reality.db import source_mappings as _source_mappings  # noqa: F401

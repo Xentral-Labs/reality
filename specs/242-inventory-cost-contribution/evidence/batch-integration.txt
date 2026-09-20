@@ -1,0 +1,981 @@
+F.F........FFFF............FF.......F.FFFF....FF...                      [100%]
+=================================== FAILURES ===================================
+________ test_batch_mcp_confirmation_shared_basis_replay_and_snapshots _________
+
+session = <sqlalchemy.orm.session.Session object at 0x10d6709e0>
+business = Business(tenant=<reality.db.core.Tenant object at 0x10d9da3c0>, company=<reality.db.core.Party object at 0x10e6f54c0>,...e6f7680>, item=<reality.db.core.Item object at 0x10e6c3350>, location=<reality.db.core.Location object at 0x10d573f80>)
+cost_owner = <reality.db.core.AppUser object at 0x10e719460>
+
+    def test_batch_mcp_confirmation_shared_basis_replay_and_snapshots(
+        session, business, cost_owner
+    ):
+        tenant = business.tenant.id
+        args = prepared(session, business, cost_owner)
+        command = MCP_TOOL_REGISTRY["cost_change_propose"]
+        assert (
+            "inventory_batch_review"
+            in command.input_schema["properties"]["operation"]["enum"]
+        )
+        assert command.input_schema["properties"]["scopes"]["maxItems"] == 10
+        before = counts(session, tenant)
+        with caller(Principal(cost_owner.id)):
+            proposed = command.handler(session, tenant, args)
+        assert proposed["requires_human_confirmation"]
+        assert counts(session, tenant) == before
+        with pytest.raises(core.InvalidOperation, match="confirmation"):
+            approve_and_execute_proposal(
+                session,
+                tenant,
+                proposed["proposal_id"],
+                confirming_principal=Principal(cost_owner.id),
+            )
+>       action = approve_and_execute_proposal(
+            session,
+            tenant,
+            proposed["proposal_id"],
+            confirming_principal=Principal(cost_owner.id),
+            confirmed=True,
+        )
+
+tests/test_inventory_batch_review.py:91: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+src/reality/storyline/recorder.py:488: in decide
+    return function(session, tenant_id, proposal_id, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src/reality/tools/application.py:2784: in approve_and_execute_proposal
+    result = execute_finance_command(
+src/reality/tools/finance.py:264: in execute_finance_command
+    return execute_cost_change(
+src/reality/services/costing.py:1051: in execute_cost_change
+    result = _execute_batch(session, tenant_id, request, review, event, action)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src/reality/services/inventory_costing.py:600: in _execute_batch
+    _execute(
+src/reality/services/inventory_costing.py:333: in _execute
+    payload, _, _ = _inputs(session, tenant, review, policy)
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+session = <sqlalchemy.orm.session.Session object at 0x10d6709e0>
+tenant = 'ten_64bdf57473'
+review = <reality.db.inventory_costing.CostInventoryReview object at 0x10e6f58b0>
+policy = <reality.db.inventory_costing.CostPolicyRevision object at 0x10ea2c7a0>
+
+    def _inputs(
+        session: Session, tenant: str, review, policy
+    ) -> tuple[dict, list[dict], list[dict]]:
+        if (
+            review.algorithm_version != ALGORITHM_VERSION
+            or review.input_schema_version != 1
+        ):
+            raise core.InvalidOperation("Unsupported inventory review version.")
+        members = list(
+            session.scalars(
+                select(CostInventoryMember)
+                .where(
+                    CostInventoryMember.tenant_id == tenant,
+                    CostInventoryMember.review_id == review.id,
+                )
+                .order_by(CostInventoryMember.id)
+>               .limit(movement_limit + 1)
+                       ^^^^^^^^^^^^^^
+            )
+        )
+E       NameError: name 'movement_limit' is not defined
+
+src/reality/services/inventory_costing.py:370: NameError
+__________ test_batch_second_execution_failure_rolls_back_all_members __________
+
+session = <sqlalchemy.orm.session.Session object at 0x10e88c860>
+business = Business(tenant=<reality.db.core.Tenant object at 0x10e88e0f0>, company=<reality.db.core.Party object at 0x10ebbd1f0>,...e963710>, item=<reality.db.core.Item object at 0x10e91ba40>, location=<reality.db.core.Location object at 0x10e71ab40>)
+cost_owner = <reality.db.core.AppUser object at 0x10e88e3c0>
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x10ea2ef00>
+
+    def test_batch_second_execution_failure_rolls_back_all_members(
+        session, business, cost_owner, monkeypatch
+    ):
+        import reality.services.inventory_costing as service
+    
+        tenant = business.tenant.id
+        args = prepared(session, business, cost_owner)
+        action = propose(session, tenant, cost_owner, args)
+        before = counts(session, tenant)
+        execute = service._execute
+        called = []
+    
+        def fail_second(*args, **kwargs):
+            called.append(1)
+            if len(called) == 2:
+                raise core.InvalidOperation("Injected second member failure")
+            return execute(*args, **kwargs)
+    
+        monkeypatch.setattr(service, "_execute", fail_second)
+        with pytest.raises(core.InvalidOperation, match="Injected"):
+>           costing.execute_cost_change(
+                session,
+                tenant,
+                arguments=args,
+                action_id=action.id,
+                actor_id=cost_owner.id,
+                confirmed=True,
+            )
+
+tests/test_inventory_batch_review.py:195: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+src/reality/services/costing.py:1051: in execute_cost_change
+    result = _execute_batch(session, tenant_id, request, review, event, action)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src/reality/services/inventory_costing.py:600: in _execute_batch
+    _execute(
+tests/test_inventory_batch_review.py:191: in fail_second
+    return execute(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+src/reality/services/inventory_costing.py:333: in _execute
+    payload, _, _ = _inputs(session, tenant, review, policy)
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+session = <sqlalchemy.orm.session.Session object at 0x10e88c860>
+tenant = 'ten_c8ec870619'
+review = <reality.db.inventory_costing.CostInventoryReview object at 0x10e8f32c0>
+policy = <reality.db.inventory_costing.CostPolicyRevision object at 0x10e8f26f0>
+
+    def _inputs(
+        session: Session, tenant: str, review, policy
+    ) -> tuple[dict, list[dict], list[dict]]:
+        if (
+            review.algorithm_version != ALGORITHM_VERSION
+            or review.input_schema_version != 1
+        ):
+            raise core.InvalidOperation("Unsupported inventory review version.")
+        members = list(
+            session.scalars(
+                select(CostInventoryMember)
+                .where(
+                    CostInventoryMember.tenant_id == tenant,
+                    CostInventoryMember.review_id == review.id,
+                )
+                .order_by(CostInventoryMember.id)
+>               .limit(movement_limit + 1)
+                       ^^^^^^^^^^^^^^
+            )
+        )
+E       NameError: name 'movement_limit' is not defined
+
+src/reality/services/inventory_costing.py:370: NameError
+__________________ test_selection_retains_distinct_item_bases __________________
+
+session = <sqlalchemy.orm.session.Session object at 0x10e766ed0>
+business = Business(tenant=<reality.db.core.Tenant object at 0x10e764710>, company=<reality.db.core.Party object at 0x10e8f0620>,...e7ecef0>, item=<reality.db.core.Item object at 0x10ebbc170>, location=<reality.db.core.Location object at 0x10e764830>)
+cost_owner = <reality.db.core.AppUser object at 0x10eb61250>
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x10e821100>
+
+    def test_selection_retains_distinct_item_bases(
+        session, business, cost_owner, monkeypatch
+    ):
+        tenant = business.tenant.id
+>       first = build(session, business, cost_owner)
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_inventory_snapshot_selection.py:27: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_inventory_snapshot_selection.py:17: in build
+    review = fixtures.reviewed(session, business, owner)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests/test_inventory_generations.py:28: in reviewed
+    return fixtures.commit_review(session, business, owner, args)[1]["review_id"]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests/test_inventory_costing_services.py:100: in commit_review
+    done = approve_and_execute_proposal(
+src/reality/storyline/recorder.py:488: in decide
+    return function(session, tenant_id, proposal_id, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src/reality/tools/application.py:2784: in approve_and_execute_proposal
+    result = execute_finance_command(
+src/reality/tools/finance.py:264: in execute_finance_command
+    return execute_cost_change(
+src/reality/services/costing.py:1056: in execute_cost_change
+    result = _execute(session, tenant_id, request, review, event, action)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src/reality/services/inventory_costing.py:333: in _execute
+    payload, _, _ = _inputs(session, tenant, review, policy)
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+session = <sqlalchemy.orm.session.Session object at 0x10e766ed0>
+tenant = 'ten_082674cd20'
+review = <reality.db.inventory_costing.CostInventoryReview object at 0x10e8d64e0>
+policy = <reality.db.inventory_costing.CostPolicyRevision object at 0x10e8d51f0>
+
+    def _inputs(
+        session: Session, tenant: str, review, policy
+    ) -> tuple[dict, list[dict], list[dict]]:
+        if (
+            review.algorithm_version != ALGORITHM_VERSION
+            or review.input_schema_version != 1
+        ):
+            raise core.InvalidOperation("Unsupported inventory review version.")
+        members = list(
+            session.scalars(
+                select(CostInventoryMember)
+                .where(
+                    CostInventoryMember.tenant_id == tenant,
+                    CostInventoryMember.review_id == review.id,
+                )
+                .order_by(CostInventoryMember.id)
+>               .limit(movement_limit + 1)
+                       ^^^^^^^^^^^^^^
+            )
+        )
+E       NameError: name 'movement_limit' is not defined
+
+src/reality/services/inventory_costing.py:370: NameError
+____________ test_selection_foreign_missing_members_refuse_equally _____________
+
+session = <sqlalchemy.orm.session.Session object at 0x10f0db680>
+business = Business(tenant=<reality.db.core.Tenant object at 0x10f0dad80>, company=<reality.db.core.Party object at 0x10f0daf60>,...eb6f860>, item=<reality.db.core.Item object at 0x10eb6f4a0>, location=<reality.db.core.Location object at 0x10eb6f1a0>)
+cost_owner = <reality.db.core.AppUser object at 0x10f0db4d0>
+
+    def test_selection_foreign_missing_members_refuse_equally(
+        session, business, cost_owner
+    ):
+        tenant = business.tenant.id
+>       generation = build(session, business, cost_owner)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_inventory_snapshot_selection.py:85: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_inventory_snapshot_selection.py:17: in build
+    review = fixtures.reviewed(session, business, owner)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests/test_inventory_generations.py:28: in reviewed
+    return fixtures.commit_review(session, business, owner, args)[1]["review_id"]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests/test_inventory_costing_services.py:100: in commit_review
+    done = approve_and_execute_proposal(
+src/reality/storyline/recorder.py:488: in decide
+    return function(session, tenant_id, proposal_id, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src/reality/tools/application.py:2784: in approve_and_execute_proposal
+    result = execute_finance_command(
+src/reality/tools/finance.py:264: in execute_finance_command
+    return execute_cost_change(
+src/reality/services/costing.py:1056: in execute_cost_change
+    result = _execute(session, tenant_id, request, review, event, action)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src/reality/services/inventory_costing.py:333: in _execute
+    payload, _, _ = _inputs(session, tenant, review, policy)
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+session = <sqlalchemy.orm.session.Session object at 0x10f0db680>
+tenant = 'ten_850de5588b'
+review = <reality.db.inventory_costing.CostInventoryReview object at 0x10eb62120>
+policy = <reality.db.inventory_costing.CostPolicyRevision object at 0x10eb618b0>
+
+    def _inputs(
+        session: Session, tenant: str, review, policy
+    ) -> tuple[dict, list[dict], list[dict]]:
+        if (
+            review.algorithm_version != ALGORITHM_VERSION
+            or review.input_schema_version != 1
+        ):
+            raise core.InvalidOperation("Unsupported inventory review version.")
+        members = list(
+            session.scalars(
+                select(CostInventoryMember)
+                .where(
+                    CostInventoryMember.tenant_id == tenant,
+                    CostInventoryMember.review_id == review.id,
+                )
+                .order_by(CostInventoryMember.id)
+>               .limit(movement_limit + 1)
+                       ^^^^^^^^^^^^^^
+            )
+        )
+E       NameError: name 'movement_limit' is not defined
+
+src/reality/services/inventory_costing.py:370: NameError
+______________ test_selection_two_queries_without_flush_or_replay ______________
+
+session = <sqlalchemy.orm.session.Session object at 0x10e6f45c0>
+business = Business(tenant=<reality.db.core.Tenant object at 0x10e93ac60>, company=<reality.db.core.Party object at 0x10e93bf50>,...e93b260>, item=<reality.db.core.Item object at 0x10e93bd70>, location=<reality.db.core.Location object at 0x10e93b890>)
+cost_owner = <reality.db.core.AppUser object at 0x10e93af90>
+
+    def test_selection_two_queries_without_flush_or_replay(session, business, cost_owner):
+        tenant = business.tenant.id
+>       first = build(session, business, cost_owner)
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_inventory_snapshot_selection.py:102: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_inventory_snapshot_selection.py:17: in build
+    review = fixtures.reviewed(session, business, owner)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests/test_inventory_generations.py:28: in reviewed
+    return fixtures.commit_review(session, business, owner, args)[1]["review_id"]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests/test_inventory_costing_services.py:100: in commit_review
+    done = approve_and_execute_proposal(
+src/reality/storyline/recorder.py:488: in decide
+    return function(session, tenant_id, proposal_id, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src/reality/tools/application.py:2784: in approve_and_execute_proposal
+    result = execute_finance_command(
+src/reality/tools/finance.py:264: in execute_finance_command
+    return execute_cost_change(
+src/reality/services/costing.py:1056: in execute_cost_change
+    result = _execute(session, tenant_id, request, review, event, action)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src/reality/services/inventory_costing.py:333: in _execute
+    payload, _, _ = _inputs(session, tenant, review, policy)
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+session = <sqlalchemy.orm.session.Session object at 0x10e6f45c0>
+tenant = 'ten_31f5cf03d2'
+review = <reality.db.inventory_costing.CostInventoryReview object at 0x10eb6ecc0>
+policy = <reality.db.inventory_costing.CostPolicyRevision object at 0x10e93bc20>
+
+    def _inputs(
+        session: Session, tenant: str, review, policy
+    ) -> tuple[dict, list[dict], list[dict]]:
+        if (
+            review.algorithm_version != ALGORITHM_VERSION
+            or review.input_schema_version != 1
+        ):
+            raise core.InvalidOperation("Unsupported inventory review version.")
+        members = list(
+            session.scalars(
+                select(CostInventoryMember)
+                .where(
+                    CostInventoryMember.tenant_id == tenant,
+                    CostInventoryMember.review_id == review.id,
+                )
+                .order_by(CostInventoryMember.id)
+>               .limit(movement_limit + 1)
+                       ^^^^^^^^^^^^^^
+            )
+        )
+E       NameError: name 'movement_limit' is not defined
+
+src/reality/services/inventory_costing.py:370: NameError
+______________ test_selection_corrupt_member_refuses_whole_result ______________
+
+session = <sqlalchemy.orm.session.Session object at 0x10eb6f710>
+business = Business(tenant=<reality.db.core.Tenant object at 0x10eb6ddf0>, company=<reality.db.core.Party object at 0x10eb6f6e0>,...eb6edb0>, item=<reality.db.core.Item object at 0x10eb6c080>, location=<reality.db.core.Location object at 0x10eb6d820>)
+cost_owner = <reality.db.core.AppUser object at 0x10eb6f2c0>
+
+    def test_selection_corrupt_member_refuses_whole_result(session, business, cost_owner):
+        tenant = business.tenant.id
+>       generation = build(session, business, cost_owner)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_inventory_snapshot_selection.py:135: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_inventory_snapshot_selection.py:17: in build
+    review = fixtures.reviewed(session, business, owner)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests/test_inventory_generations.py:28: in reviewed
+    return fixtures.commit_review(session, business, owner, args)[1]["review_id"]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests/test_inventory_costing_services.py:100: in commit_review
+    done = approve_and_execute_proposal(
+src/reality/storyline/recorder.py:488: in decide
+    return function(session, tenant_id, proposal_id, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src/reality/tools/application.py:2784: in approve_and_execute_proposal
+    result = execute_finance_command(
+src/reality/tools/finance.py:264: in execute_finance_command
+    return execute_cost_change(
+src/reality/services/costing.py:1056: in execute_cost_change
+    result = _execute(session, tenant_id, request, review, event, action)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src/reality/services/inventory_costing.py:333: in _execute
+    payload, _, _ = _inputs(session, tenant, review, policy)
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+session = <sqlalchemy.orm.session.Session object at 0x10eb6f710>
+tenant = 'ten_bd4ad049db'
+review = <reality.db.inventory_costing.CostInventoryReview object at 0x10ebbddc0>
+policy = <reality.db.inventory_costing.CostPolicyRevision object at 0x10ebbd8b0>
+
+    def _inputs(
+        session: Session, tenant: str, review, policy
+    ) -> tuple[dict, list[dict], list[dict]]:
+        if (
+            review.algorithm_version != ALGORITHM_VERSION
+            or review.input_schema_version != 1
+        ):
+            raise core.InvalidOperation("Unsupported inventory review version.")
+        members = list(
+            session.scalars(
+                select(CostInventoryMember)
+                .where(
+                    CostInventoryMember.tenant_id == tenant,
+                    CostInventoryMember.review_id == review.id,
+                )
+                .order_by(CostInventoryMember.id)
+>               .limit(movement_limit + 1)
+                       ^^^^^^^^^^^^^^
+            )
+        )
+E       NameError: name 'movement_limit' is not defined
+
+src/reality/services/inventory_costing.py:370: NameError
+__________________ test_inventory_service_a_and_exact_history __________________
+
+session = <sqlalchemy.orm.session.Session object at 0x10e88f650>
+business = Business(tenant=<reality.db.core.Tenant object at 0x10e71ab70>, company=<reality.db.core.Party object at 0x10e71a9c0>,...e7192b0>, item=<reality.db.core.Item object at 0x10d784d40>, location=<reality.db.core.Location object at 0x10e93bdd0>)
+cost_owner = <reality.db.core.AppUser object at 0x10e718770>
+
+    def test_inventory_service_a_and_exact_history(session, business, cost_owner):
+        args, movement, issue = prepared(session, business, cost_owner)
+        before = session.scalar(select(func.count()).select_from(CostInventoryReview))
+        preview = preview_cost_change(
+            session, business.tenant.id, args, principal=Principal(cost_owner.id)
+        )
+        assert preview["review"]["movement_count"] == 2
+        assert preview["review"]["acquisition_value"] == "420.0000"
+        assert preview["review"]["consumption"][0]["cost"] == "630.0000"
+        assert (
+            session.scalar(select(func.count()).select_from(CostInventoryReview)) == before
+        )
+>       action, result = commit_review(session, business, cost_owner, args)
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_inventory_costing_services.py:122: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_inventory_costing_services.py:100: in commit_review
+    done = approve_and_execute_proposal(
+src/reality/storyline/recorder.py:488: in decide
+    return function(session, tenant_id, proposal_id, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src/reality/tools/application.py:2784: in approve_and_execute_proposal
+    result = execute_finance_command(
+src/reality/tools/finance.py:264: in execute_finance_command
+    return execute_cost_change(
+src/reality/services/costing.py:1056: in execute_cost_change
+    result = _execute(session, tenant_id, request, review, event, action)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src/reality/services/inventory_costing.py:333: in _execute
+    payload, _, _ = _inputs(session, tenant, review, policy)
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+session = <sqlalchemy.orm.session.Session object at 0x10e88f650>
+tenant = 'ten_a633802c5f'
+review = <reality.db.inventory_costing.CostInventoryReview object at 0x10eb6e750>
+policy = <reality.db.inventory_costing.CostPolicyRevision object at 0x10eb6e6f0>
+
+    def _inputs(
+        session: Session, tenant: str, review, policy
+    ) -> tuple[dict, list[dict], list[dict]]:
+        if (
+            review.algorithm_version != ALGORITHM_VERSION
+            or review.input_schema_version != 1
+        ):
+            raise core.InvalidOperation("Unsupported inventory review version.")
+        members = list(
+            session.scalars(
+                select(CostInventoryMember)
+                .where(
+                    CostInventoryMember.tenant_id == tenant,
+                    CostInventoryMember.review_id == review.id,
+                )
+                .order_by(CostInventoryMember.id)
+>               .limit(movement_limit + 1)
+                       ^^^^^^^^^^^^^^
+            )
+        )
+E       NameError: name 'movement_limit' is not defined
+
+src/reality/services/inventory_costing.py:370: NameError
+___ test_inventory_late_cost_requires_receipt_review_and_preserves_old_basis ___
+
+session = <sqlalchemy.orm.session.Session object at 0x10f0d8290>
+business = Business(tenant=<reality.db.core.Tenant object at 0x10f0da660>, company=<reality.db.core.Party object at 0x10f0da3f0>,...f0d92e0>, item=<reality.db.core.Item object at 0x10f0d8800>, location=<reality.db.core.Location object at 0x10f0da060>)
+cost_owner = <reality.db.core.AppUser object at 0x10f0d84a0>
+
+    def test_inventory_late_cost_requires_receipt_review_and_preserves_old_basis(
+        session, business, cost_owner
+    ):
+        args, movement, _ = prepared(session, business, cost_owner)
+>       _, first = commit_review(session, business, cost_owner, args)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_inventory_costing_services.py:174: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_inventory_costing_services.py:100: in commit_review
+    done = approve_and_execute_proposal(
+src/reality/storyline/recorder.py:488: in decide
+    return function(session, tenant_id, proposal_id, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src/reality/tools/application.py:2784: in approve_and_execute_proposal
+    result = execute_finance_command(
+src/reality/tools/finance.py:264: in execute_finance_command
+    return execute_cost_change(
+src/reality/services/costing.py:1056: in execute_cost_change
+    result = _execute(session, tenant_id, request, review, event, action)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src/reality/services/inventory_costing.py:333: in _execute
+    payload, _, _ = _inputs(session, tenant, review, policy)
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+session = <sqlalchemy.orm.session.Session object at 0x10f0d8290>
+tenant = 'ten_6330c0a82e'
+review = <reality.db.inventory_costing.CostInventoryReview object at 0x10f003950>
+policy = <reality.db.inventory_costing.CostPolicyRevision object at 0x10f003920>
+
+    def _inputs(
+        session: Session, tenant: str, review, policy
+    ) -> tuple[dict, list[dict], list[dict]]:
+        if (
+            review.algorithm_version != ALGORITHM_VERSION
+            or review.input_schema_version != 1
+        ):
+            raise core.InvalidOperation("Unsupported inventory review version.")
+        members = list(
+            session.scalars(
+                select(CostInventoryMember)
+                .where(
+                    CostInventoryMember.tenant_id == tenant,
+                    CostInventoryMember.review_id == review.id,
+                )
+                .order_by(CostInventoryMember.id)
+>               .limit(movement_limit + 1)
+                       ^^^^^^^^^^^^^^
+            )
+        )
+E       NameError: name 'movement_limit' is not defined
+
+src/reality/services/inventory_costing.py:370: NameError
+______________ test_inventory_foreign_scope_and_actual_read_tool _______________
+
+session = <sqlalchemy.orm.session.Session object at 0x10e960da0>
+business = Business(tenant=<reality.db.core.Tenant object at 0x10e963fe0>, company=<reality.db.core.Party object at 0x10f0d9e50>,...f0d81d0>, item=<reality.db.core.Item object at 0x10f0da660>, location=<reality.db.core.Location object at 0x10f0dbb90>)
+cost_owner = <reality.db.core.AppUser object at 0x10e961880>
+
+    def test_inventory_foreign_scope_and_actual_read_tool(session, business, cost_owner):
+        args, _, _ = prepared(session, business, cost_owner)
+        other = core.create_tenant(session, "Unrelated inventory company")
+        with pytest.raises(core.NotFound):
+            inventory_cost(session, other.id, business.item.id)
+        with pytest.raises(core.NotFound):
+            preview_cost_change(session, other.id, args, principal=Principal(cost_owner.id))
+        args["expected_event_sequence"] = receipt_cost(
+            session, business.tenant.id, args["receipts"][0]["movement_id"]
+        )["event_sequence"]
+>       _, result = commit_review(session, business, cost_owner, args)
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_inventory_costing_services.py:259: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_inventory_costing_services.py:100: in commit_review
+    done = approve_and_execute_proposal(
+src/reality/storyline/recorder.py:488: in decide
+    return function(session, tenant_id, proposal_id, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src/reality/tools/application.py:2784: in approve_and_execute_proposal
+    result = execute_finance_command(
+src/reality/tools/finance.py:264: in execute_finance_command
+    return execute_cost_change(
+src/reality/services/costing.py:1056: in execute_cost_change
+    result = _execute(session, tenant_id, request, review, event, action)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src/reality/services/inventory_costing.py:333: in _execute
+    payload, _, _ = _inputs(session, tenant, review, policy)
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+session = <sqlalchemy.orm.session.Session object at 0x10e960da0>
+tenant = 'ten_d8b312ddb6'
+review = <reality.db.inventory_costing.CostInventoryReview object at 0x10eb61a60>
+policy = <reality.db.inventory_costing.CostPolicyRevision object at 0x10e88cf80>
+
+    def _inputs(
+        session: Session, tenant: str, review, policy
+    ) -> tuple[dict, list[dict], list[dict]]:
+        if (
+            review.algorithm_version != ALGORITHM_VERSION
+            or review.input_schema_version != 1
+        ):
+            raise core.InvalidOperation("Unsupported inventory review version.")
+        members = list(
+            session.scalars(
+                select(CostInventoryMember)
+                .where(
+                    CostInventoryMember.tenant_id == tenant,
+                    CostInventoryMember.review_id == review.id,
+                )
+                .order_by(CostInventoryMember.id)
+>               .limit(movement_limit + 1)
+                       ^^^^^^^^^^^^^^
+            )
+        )
+E       NameError: name 'movement_limit' is not defined
+
+src/reality/services/inventory_costing.py:370: NameError
+___________ test_inventory_manifest_integrity_and_read_never_flushes ___________
+
+session = <sqlalchemy.orm.session.Session object at 0x10ebbf230>
+business = Business(tenant=<reality.db.core.Tenant object at 0x10e9a4920>, company=<reality.db.core.Party object at 0x10e9a6060>,...e9a4770>, item=<reality.db.core.Item object at 0x10e8218b0>, location=<reality.db.core.Location object at 0x10e8207a0>)
+cost_owner = <reality.db.core.AppUser object at 0x10e9a5580>
+
+    def test_inventory_manifest_integrity_and_read_never_flushes(
+        session, business, cost_owner
+    ):
+        args, _, _ = prepared(session, business, cost_owner)
+>       _, result = commit_review(session, business, cost_owner, args)
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_inventory_costing_services.py:349: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_inventory_costing_services.py:100: in commit_review
+    done = approve_and_execute_proposal(
+src/reality/storyline/recorder.py:488: in decide
+    return function(session, tenant_id, proposal_id, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src/reality/tools/application.py:2784: in approve_and_execute_proposal
+    result = execute_finance_command(
+src/reality/tools/finance.py:264: in execute_finance_command
+    return execute_cost_change(
+src/reality/services/costing.py:1056: in execute_cost_change
+    result = _execute(session, tenant_id, request, review, event, action)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src/reality/services/inventory_costing.py:333: in _execute
+    payload, _, _ = _inputs(session, tenant, review, policy)
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+session = <sqlalchemy.orm.session.Session object at 0x10ebbf230>
+tenant = 'ten_53fb2e4a05'
+review = <reality.db.inventory_costing.CostInventoryReview object at 0x10ea98a10>
+policy = <reality.db.inventory_costing.CostPolicyRevision object at 0x10ea9b1d0>
+
+    def _inputs(
+        session: Session, tenant: str, review, policy
+    ) -> tuple[dict, list[dict], list[dict]]:
+        if (
+            review.algorithm_version != ALGORITHM_VERSION
+            or review.input_schema_version != 1
+        ):
+            raise core.InvalidOperation("Unsupported inventory review version.")
+        members = list(
+            session.scalars(
+                select(CostInventoryMember)
+                .where(
+                    CostInventoryMember.tenant_id == tenant,
+                    CostInventoryMember.review_id == review.id,
+                )
+                .order_by(CostInventoryMember.id)
+>               .limit(movement_limit + 1)
+                       ^^^^^^^^^^^^^^
+            )
+        )
+E       NameError: name 'movement_limit' is not defined
+
+src/reality/services/inventory_costing.py:370: NameError
+______________ test_inventory_bounds_and_corrections_are_explicit ______________
+
+session = <sqlalchemy.orm.session.Session object at 0x10ebbe930>
+business = Business(tenant=<reality.db.core.Tenant object at 0x10ebbe960>, company=<reality.db.core.Party object at 0x10ebbd550>,...ebbc560>, item=<reality.db.core.Item object at 0x10ebbe8a0>, location=<reality.db.core.Location object at 0x10ebbf0e0>)
+cost_owner = <reality.db.core.AppUser object at 0x10ebbe0c0>
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x10ebbebd0>
+
+    def test_inventory_bounds_and_corrections_are_explicit(
+        session, business, cost_owner, monkeypatch
+    ):
+        args, _, issue = prepared(session, business, cost_owner)
+        from reality.services import inventory_costing
+    
+        monkeypatch.setattr(inventory_costing, "MAX_MOVEMENTS", 1)
+>       with pytest.raises(core.InvalidOperation, match="bound"):
+E       Failed: DID NOT RAISE InvalidOperation
+
+tests/test_inventory_costing_services.py:376: Failed
+__ test_original_event_order_survives_simultaneous_movements_and_readmission ___
+
+session = <sqlalchemy.orm.session.Session object at 0x10eae47d0>
+business = Business(tenant=<reality.db.core.Tenant object at 0x10eae6450>, company=<reality.db.core.Party object at 0x10e731b80>,...e732120>, item=<reality.db.core.Item object at 0x10e731850>, location=<reality.db.core.Location object at 0x10e733200>)
+cost_owner = <reality.db.core.AppUser object at 0x10eae7500>
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x10eae7110>
+
+    def test_original_event_order_survives_simultaneous_movements_and_readmission(
+        session, business, cost_owner, monkeypatch
+    ):
+        original_uid = core.uid
+        movement_ids = iter(["mov_z_receipt", "mov_a_issue"])
+        monkeypatch.setattr(
+            core,
+            "uid",
+            lambda prefix: next(movement_ids) if prefix == "mov" else original_uid(prefix),
+        )
+        args, receipt, issue = prepared(session, business, cost_owner, same_instant=True)
+        assert receipt.occurred_at == issue.occurred_at and issue.id < receipt.id
+>       _, first = commit_review(session, business, cost_owner, args)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_inventory_costing_services.py:403: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_inventory_costing_services.py:100: in commit_review
+    done = approve_and_execute_proposal(
+src/reality/storyline/recorder.py:488: in decide
+    return function(session, tenant_id, proposal_id, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src/reality/tools/application.py:2784: in approve_and_execute_proposal
+    result = execute_finance_command(
+src/reality/tools/finance.py:264: in execute_finance_command
+    return execute_cost_change(
+src/reality/services/costing.py:1056: in execute_cost_change
+    result = _execute(session, tenant_id, request, review, event, action)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src/reality/services/inventory_costing.py:333: in _execute
+    payload, _, _ = _inputs(session, tenant, review, policy)
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+session = <sqlalchemy.orm.session.Session object at 0x10eae47d0>
+tenant = 'ten_aade001187'
+review = <reality.db.inventory_costing.CostInventoryReview object at 0x10e93bcb0>
+policy = <reality.db.inventory_costing.CostPolicyRevision object at 0x10e93b3e0>
+
+    def _inputs(
+        session: Session, tenant: str, review, policy
+    ) -> tuple[dict, list[dict], list[dict]]:
+        if (
+            review.algorithm_version != ALGORITHM_VERSION
+            or review.input_schema_version != 1
+        ):
+            raise core.InvalidOperation("Unsupported inventory review version.")
+        members = list(
+            session.scalars(
+                select(CostInventoryMember)
+                .where(
+                    CostInventoryMember.tenant_id == tenant,
+                    CostInventoryMember.review_id == review.id,
+                )
+                .order_by(CostInventoryMember.id)
+>               .limit(movement_limit + 1)
+                       ^^^^^^^^^^^^^^
+            )
+        )
+E       NameError: name 'movement_limit' is not defined
+
+src/reality/services/inventory_costing.py:370: NameError
+__________ test_retained_unit_and_mcp_scope_after_master_data_change ___________
+
+session = <sqlalchemy.orm.session.Session object at 0x10ea9a210>
+business = Business(tenant=<reality.db.core.Tenant object at 0x10ea9ac00>, company=<reality.db.core.Party object at 0x10eb63f80>,...eb6c2c0>, item=<reality.db.core.Item object at 0x10ea992e0>, location=<reality.db.core.Location object at 0x10eb6d0d0>)
+cost_owner = <reality.db.core.AppUser object at 0x10f0dac00>
+
+    def test_retained_unit_and_mcp_scope_after_master_data_change(
+        session, business, cost_owner
+    ):
+        args, _, _ = prepared(session, business, cost_owner)
+        command = MCP_TOOL_REGISTRY["cost_change_propose"]
+        with caller(Principal(cost_owner.id)):
+            proposal = command.handler(session, business.tenant.id, args)
+>       approved = approve_and_execute_proposal(
+            session,
+            business.tenant.id,
+            proposal["proposal_id"],
+            confirming_principal=Principal(cost_owner.id),
+            confirmed=True,
+        )
+
+tests/test_inventory_costing_services.py:418: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+src/reality/storyline/recorder.py:488: in decide
+    return function(session, tenant_id, proposal_id, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src/reality/tools/application.py:2784: in approve_and_execute_proposal
+    result = execute_finance_command(
+src/reality/tools/finance.py:264: in execute_finance_command
+    return execute_cost_change(
+src/reality/services/costing.py:1056: in execute_cost_change
+    result = _execute(session, tenant_id, request, review, event, action)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src/reality/services/inventory_costing.py:333: in _execute
+    payload, _, _ = _inputs(session, tenant, review, policy)
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+session = <sqlalchemy.orm.session.Session object at 0x10ea9a210>
+tenant = 'ten_71397ce92e'
+review = <reality.db.inventory_costing.CostInventoryReview object at 0x10f097740>
+policy = <reality.db.inventory_costing.CostPolicyRevision object at 0x10f096c30>
+
+    def _inputs(
+        session: Session, tenant: str, review, policy
+    ) -> tuple[dict, list[dict], list[dict]]:
+        if (
+            review.algorithm_version != ALGORITHM_VERSION
+            or review.input_schema_version != 1
+        ):
+            raise core.InvalidOperation("Unsupported inventory review version.")
+        members = list(
+            session.scalars(
+                select(CostInventoryMember)
+                .where(
+                    CostInventoryMember.tenant_id == tenant,
+                    CostInventoryMember.review_id == review.id,
+                )
+                .order_by(CostInventoryMember.id)
+>               .limit(movement_limit + 1)
+                       ^^^^^^^^^^^^^^
+            )
+        )
+E       NameError: name 'movement_limit' is not defined
+
+src/reality/services/inventory_costing.py:370: NameError
+_________ test_inventory_read_does_not_enumerate_live_movement_history _________
+
+session = <sqlalchemy.orm.session.Session object at 0x10f0daea0>
+business = Business(tenant=<reality.db.core.Tenant object at 0x10f0d9a30>, company=<reality.db.core.Party object at 0x10f0cd7c0>,...ea2c830>, item=<reality.db.core.Item object at 0x10f0d9eb0>, location=<reality.db.core.Location object at 0x10ea2fcb0>)
+cost_owner = <reality.db.core.AppUser object at 0x10f0d8800>
+
+    def test_inventory_read_does_not_enumerate_live_movement_history(
+        session, business, cost_owner
+    ):
+        from sqlalchemy import event
+    
+        args, _, _ = prepared(session, business, cost_owner)
+>       commit_review(session, business, cost_owner, args)
+
+tests/test_inventory_costing_services.py:543: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_inventory_costing_services.py:100: in commit_review
+    done = approve_and_execute_proposal(
+src/reality/storyline/recorder.py:488: in decide
+    return function(session, tenant_id, proposal_id, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src/reality/tools/application.py:2784: in approve_and_execute_proposal
+    result = execute_finance_command(
+src/reality/tools/finance.py:264: in execute_finance_command
+    return execute_cost_change(
+src/reality/services/costing.py:1056: in execute_cost_change
+    result = _execute(session, tenant_id, request, review, event, action)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src/reality/services/inventory_costing.py:333: in _execute
+    payload, _, _ = _inputs(session, tenant, review, policy)
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+session = <sqlalchemy.orm.session.Session object at 0x10f0daea0>
+tenant = 'ten_7851ec487e'
+review = <reality.db.inventory_costing.CostInventoryReview object at 0x10ef6f380>
+policy = <reality.db.inventory_costing.CostPolicyRevision object at 0x10ef6c860>
+
+    def _inputs(
+        session: Session, tenant: str, review, policy
+    ) -> tuple[dict, list[dict], list[dict]]:
+        if (
+            review.algorithm_version != ALGORITHM_VERSION
+            or review.input_schema_version != 1
+        ):
+            raise core.InvalidOperation("Unsupported inventory review version.")
+        members = list(
+            session.scalars(
+                select(CostInventoryMember)
+                .where(
+                    CostInventoryMember.tenant_id == tenant,
+                    CostInventoryMember.review_id == review.id,
+                )
+                .order_by(CostInventoryMember.id)
+>               .limit(movement_limit + 1)
+                       ^^^^^^^^^^^^^^
+            )
+        )
+E       NameError: name 'movement_limit' is not defined
+
+src/reality/services/inventory_costing.py:370: NameError
+___ test_inventory_cutoff_offsets_are_canonical_and_foreign_review_is_hidden ___
+
+session = <sqlalchemy.orm.session.Session object at 0x10f0cf0b0>
+business = Business(tenant=<reality.db.core.Tenant object at 0x10f0cd670>, company=<reality.db.core.Party object at 0x10f0cecf0>,...f0cea80>, item=<reality.db.core.Item object at 0x10f0ce660>, location=<reality.db.core.Location object at 0x10f0cd9a0>)
+cost_owner = <reality.db.core.AppUser object at 0x10f0cdac0>
+
+    def test_inventory_cutoff_offsets_are_canonical_and_foreign_review_is_hidden(
+        session, business, cost_owner
+    ):
+        from datetime import datetime, timezone
+    
+        from sqlalchemy.exc import IntegrityError
+    
+        args, _, _ = prepared(session, business, cost_owner)
+        for key in ("history_start", "effective_at"):
+            args[key] = (
+                datetime.fromisoformat(args[key])
+                .astimezone(timezone(timedelta(hours=2)))
+                .isoformat()
+            )
+>       _, result = commit_review(session, business, cost_owner, args)
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_inventory_costing_services.py:580: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_inventory_costing_services.py:100: in commit_review
+    done = approve_and_execute_proposal(
+src/reality/storyline/recorder.py:488: in decide
+    return function(session, tenant_id, proposal_id, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src/reality/tools/application.py:2784: in approve_and_execute_proposal
+    result = execute_finance_command(
+src/reality/tools/finance.py:264: in execute_finance_command
+    return execute_cost_change(
+src/reality/services/costing.py:1056: in execute_cost_change
+    result = _execute(session, tenant_id, request, review, event, action)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src/reality/services/inventory_costing.py:333: in _execute
+    payload, _, _ = _inputs(session, tenant, review, policy)
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+session = <sqlalchemy.orm.session.Session object at 0x10f0cf0b0>
+tenant = 'ten_d1cb81ea01'
+review = <reality.db.inventory_costing.CostInventoryReview object at 0x10efe6e40>
+policy = <reality.db.inventory_costing.CostPolicyRevision object at 0x10f0cfb90>
+
+    def _inputs(
+        session: Session, tenant: str, review, policy
+    ) -> tuple[dict, list[dict], list[dict]]:
+        if (
+            review.algorithm_version != ALGORITHM_VERSION
+            or review.input_schema_version != 1
+        ):
+            raise core.InvalidOperation("Unsupported inventory review version.")
+        members = list(
+            session.scalars(
+                select(CostInventoryMember)
+                .where(
+                    CostInventoryMember.tenant_id == tenant,
+                    CostInventoryMember.review_id == review.id,
+                )
+                .order_by(CostInventoryMember.id)
+>               .limit(movement_limit + 1)
+                       ^^^^^^^^^^^^^^
+            )
+        )
+E       NameError: name 'movement_limit' is not defined
+
+src/reality/services/inventory_costing.py:370: NameError
+=========================== short test summary info ============================
+FAILED tests/test_inventory_batch_review.py::test_batch_mcp_confirmation_shared_basis_replay_and_snapshots
+FAILED tests/test_inventory_batch_review.py::test_batch_second_execution_failure_rolls_back_all_members
+FAILED tests/test_inventory_snapshot_selection.py::test_selection_retains_distinct_item_bases
+FAILED tests/test_inventory_snapshot_selection.py::test_selection_foreign_missing_members_refuse_equally
+FAILED tests/test_inventory_snapshot_selection.py::test_selection_two_queries_without_flush_or_replay
+FAILED tests/test_inventory_snapshot_selection.py::test_selection_corrupt_member_refuses_whole_result
+FAILED tests/test_inventory_costing_services.py::test_inventory_service_a_and_exact_history
+FAILED tests/test_inventory_costing_services.py::test_inventory_late_cost_requires_receipt_review_and_preserves_old_basis
+FAILED tests/test_inventory_costing_services.py::test_inventory_foreign_scope_and_actual_read_tool
+FAILED tests/test_inventory_costing_services.py::test_inventory_manifest_integrity_and_read_never_flushes
+FAILED tests/test_inventory_costing_services.py::test_inventory_bounds_and_corrections_are_explicit
+FAILED tests/test_inventory_costing_services.py::test_original_event_order_survives_simultaneous_movements_and_readmission
+FAILED tests/test_inventory_costing_services.py::test_retained_unit_and_mcp_scope_after_master_data_change
+FAILED tests/test_inventory_costing_services.py::test_inventory_read_does_not_enumerate_live_movement_history
+FAILED tests/test_inventory_costing_services.py::test_inventory_cutoff_offsets_are_canonical_and_foreign_review_is_hidden
+15 failed, 36 passed in 29.52s

@@ -1,0 +1,229 @@
+....FF........................................F......................... [ 85%]
+............                                                             [100%]
+=================================== FAILURES ===================================
+__________________ test_seeded_buyers_are_authored_not_drawn ___________________
+
+session = <sqlalchemy.orm.session.Session object at 0x1112d7530>
+scheduled_owner = <reality.db.core.AppUser object at 0x1113f2cf0>
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x111219b50>
+
+    def test_seeded_buyers_are_authored_not_drawn(session, scheduled_owner, monkeypatch):
+        """Feature 200: the same profile version seeds the same buyer everywhere."""
+        monkeypatch.setenv("REALITY_PLAYGROUND_ENABLED", "true")
+        first = _documents(
+>           session, _demo_company(session, scheduled_owner, "a"), "sales_order"
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        )
+
+tests/scenarios/test_international_demo.py:177: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/scenarios/test_international_demo.py:119: in _demo_company
+    assert seed_company(session, tenant) == "succeeded"
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests/conftest.py:252: in seed_company
+    return jobs.execute_claim(session, tenant_id, run.id, run.claim_token)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+session = <sqlalchemy.orm.session.Session object at 0x1112d7530>
+tenant_id = 'ten_9111bd17a5', run_id = 'run_478e1a10a9fd47b0a62da8fafe39d901'
+claim_token = '12fecf5eaf8d4f94a102231be5cd6b28'
+
+    def execute_claim(
+        session: Session, tenant_id: str, run_id: str, claim_token: str
+    ) -> str:
+        """Effects and success share the caller's transaction. Handler cannot commit."""
+        schedule, run = _locked_claim(session, tenant_id, run_id)
+        if run.status == "succeeded":
+            return "succeeded"
+        if (
+            run.status != "running"
+            or not claim_token
+            or run.claim_token != claim_token
+            or run.lease_expires_at <= now()
+        ):
+            raise JobError("stale_claim")
+        if schedule and not schedule.enabled:
+            run.status = "retry"
+            run.claim_token = None
+            run.lease_expires_at = None
+            return "retry"
+        definition, parsed = _authorize_run_or_schedule(session, run)
+        context = _context(tenant_id, run.actor_id, run)
+    
+        def reject_commit(_session):
+            if _session.in_nested_transaction():
+                return
+            raise JobError("handler_commit_forbidden")
+    
+        event.listen(session, "before_commit", reject_commit)
+        try:
+            result = definition.handler(session, context, parsed)
+            result = JobResult.model_validate(result)
+            session.flush()
+            if now() >= context.deadline or now() >= run.lease_expires_at:
+>               raise JobError("handler_timeout")
+E               reality.jobs.registry.JobError: handler_timeout
+
+src/reality/services/scheduled_jobs.py:678: JobError
+_______________ test_seeded_invoices_are_settled_in_three_states _______________
+
+session = <sqlalchemy.orm.session.Session object at 0x1112bb260>
+scheduled_owner = <reality.db.core.AppUser object at 0x1114790a0>
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x1114796d0>
+
+    def test_seeded_invoices_are_settled_in_three_states(
+        session, scheduled_owner, monkeypatch
+    ):
+        """Feature 204: the company gets paid, so open items mean something."""
+        from collections import Counter
+        from decimal import Decimal
+    
+        from reality.db.core import Document
+    
+>       tenant = _demo_company(session, scheduled_owner, "settled")
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/scenarios/test_international_demo.py:221: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/scenarios/test_international_demo.py:119: in _demo_company
+    assert seed_company(session, tenant) == "succeeded"
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests/conftest.py:252: in seed_company
+    return jobs.execute_claim(session, tenant_id, run.id, run.claim_token)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+session = <sqlalchemy.orm.session.Session object at 0x1112bb260>
+tenant_id = 'ten_5becc7357f', run_id = 'run_27be73aeb2814e599f069d43e8846cf1'
+claim_token = '76c7a9cf6bee4d89a957b22f8dba346a'
+
+    def execute_claim(
+        session: Session, tenant_id: str, run_id: str, claim_token: str
+    ) -> str:
+        """Effects and success share the caller's transaction. Handler cannot commit."""
+        schedule, run = _locked_claim(session, tenant_id, run_id)
+        if run.status == "succeeded":
+            return "succeeded"
+        if (
+            run.status != "running"
+            or not claim_token
+            or run.claim_token != claim_token
+            or run.lease_expires_at <= now()
+        ):
+            raise JobError("stale_claim")
+        if schedule and not schedule.enabled:
+            run.status = "retry"
+            run.claim_token = None
+            run.lease_expires_at = None
+            return "retry"
+        definition, parsed = _authorize_run_or_schedule(session, run)
+        context = _context(tenant_id, run.actor_id, run)
+    
+        def reject_commit(_session):
+            if _session.in_nested_transaction():
+                return
+            raise JobError("handler_commit_forbidden")
+    
+        event.listen(session, "before_commit", reject_commit)
+        try:
+            result = definition.handler(session, context, parsed)
+            result = JobResult.model_validate(result)
+            session.flush()
+            if now() >= context.deadline or now() >= run.lease_expires_at:
+>               raise JobError("handler_timeout")
+E               reality.jobs.registry.JobError: handler_timeout
+
+src/reality/services/scheduled_jobs.py:678: JobError
+_ test_ten_worker_occurrences_create_orders_without_business_execution[international_demo-False] _
+
+session = <sqlalchemy.orm.session.Session object at 0x1115ed910>
+scheduled_owner = <reality.db.core.AppUser object at 0x111483ad0>
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x111de98b0>
+pending = False, content = 'international_demo'
+
+    @pytest.mark.parametrize("pending", [False, True])
+    @pytest.mark.parametrize("content", ["empty", "international_demo"])
+    def test_ten_worker_occurrences_create_orders_without_business_execution(
+        session, scheduled_owner, monkeypatch, pending, content
+    ):
+        from datetime import timedelta
+    
+        from sqlalchemy import func
+    
+        from reality.db.core import Commitment, Document, Movement, Reservation, now
+        from reality.db.scheduled_jobs import ScheduledJob
+        from reality.services import company_setup, demo_data, scheduled_jobs
+    
+        monkeypatch.setattr("reality.integrations.demo_data.burst_size", lambda *args: 1)
+        if pending:
+            scheduled_owner.status = "pending_approval"
+            session.commit()
+        actor = scheduled_owner.id
+        setup = company_setup.create_company(
+            session,
+            actor,
+            "worker-empty",
+            "Live Sandbox",
+            "sandbox",
+            content,
+            confirmed=True,
+        )
+        tenant = setup["tenant_id"]
+        # Feature 199: a company with profile content is seeded by the worker, so the
+        # baseline this test compares against is taken after that work has run.
+>       seed_company(session, tenant)
+
+tests/test_demo_data_intake.py:119: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/conftest.py:252: in seed_company
+    return jobs.execute_claim(session, tenant_id, run.id, run.claim_token)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+session = <sqlalchemy.orm.session.Session object at 0x1115ed910>
+tenant_id = 'ten_bcd5e5e06a', run_id = 'run_96ca6dc2df464b16997bfc4b93590845'
+claim_token = 'f308d5e2cb974738a66db0c1f6a6c805'
+
+    def execute_claim(
+        session: Session, tenant_id: str, run_id: str, claim_token: str
+    ) -> str:
+        """Effects and success share the caller's transaction. Handler cannot commit."""
+        schedule, run = _locked_claim(session, tenant_id, run_id)
+        if run.status == "succeeded":
+            return "succeeded"
+        if (
+            run.status != "running"
+            or not claim_token
+            or run.claim_token != claim_token
+            or run.lease_expires_at <= now()
+        ):
+            raise JobError("stale_claim")
+        if schedule and not schedule.enabled:
+            run.status = "retry"
+            run.claim_token = None
+            run.lease_expires_at = None
+            return "retry"
+        definition, parsed = _authorize_run_or_schedule(session, run)
+        context = _context(tenant_id, run.actor_id, run)
+    
+        def reject_commit(_session):
+            if _session.in_nested_transaction():
+                return
+            raise JobError("handler_commit_forbidden")
+    
+        event.listen(session, "before_commit", reject_commit)
+        try:
+            result = definition.handler(session, context, parsed)
+            result = JobResult.model_validate(result)
+            session.flush()
+            if now() >= context.deadline or now() >= run.lease_expires_at:
+>               raise JobError("handler_timeout")
+E               reality.jobs.registry.JobError: handler_timeout
+
+src/reality/services/scheduled_jobs.py:678: JobError
+=========================== short test summary info ============================
+FAILED tests/scenarios/test_international_demo.py::test_seeded_buyers_are_authored_not_drawn
+FAILED tests/scenarios/test_international_demo.py::test_seeded_invoices_are_settled_in_three_states
+FAILED tests/test_demo_data_intake.py::test_ten_worker_occurrences_create_orders_without_business_execution[international_demo-False]
+3 failed, 81 passed in 880.10s (0:14:40)

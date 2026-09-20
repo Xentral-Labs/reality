@@ -72,7 +72,7 @@ resources:
     match: "^(create|update)_item$|item_(create|update)|units_not_comparable|inventory|supply_demand"
     views: [items, inventory, supply_demand]
     projections: [inventory, item_supply_demand]
-    exceptions: [units_not_comparable, reservation_exceeds_stock]
+    exceptions: [units_not_comparable, reservation_exceeds_stock, missing_acquisition_cost]
 
   - key: location
     label:
@@ -140,7 +140,7 @@ resources:
     views: [orders, commitments, reservations, fulfillment_blockers, warehouse_queue]
     projections: [fulfillment_queue, fulfillment_blockers, commitment_register]
     exceptions:
-      [overdue_outgoing_customer_commitment, outgoing_commitment_at_risk, order_stalled, overdue_incoming_supplier_commitment, reservation_exceeds_stock, commitment_hold_unreleased, party_hold_unreleased]
+      [overdue_outgoing_customer_commitment, outgoing_commitment_at_risk, order_stalled, overdue_incoming_supplier_commitment, reservation_exceeds_stock, commitment_hold_unreleased, party_hold_unreleased, negative_actual_db1]
 
   - key: delivery
     label:
@@ -250,8 +250,8 @@ resources:
         und die Konfiguration, die Buchungen einem externen Buchhaltungssystem zuordnet. Stornos
         ergänzen eine Gegenbuchung; nichts wird gelöscht.
     synonyms: [journal, GL, chart of accounts, reversal, opening balance, export, DATEV, Journal, Kontenrahmen, Storno, Eröffnungsbilanz, Sachkonto]
-    tables: [ledger_entry, ledger_reversal, subledger_account, finance_role_destination, accounting_target, accounting_target_reference, finance_target_mapping_revision, source_classification_mapping_revision, financial_component, component_assignment_revision, component_assignment_part, finance_reference, opening_scope, opening_item_detail]
-    match: "ledger|account|target|mapping|reference|component|opening|matrix"
+    tables: [cost_company_manifest, cost_company_inventory_input, cost_company_contribution_input, cost_company_generation, cost_company_inventory_result, cost_company_contribution_result, cost_company_publication, cost_generation, cost_inventory_row, cost_contribution_row, cost_publication, cost_captured_basis, cost_captured_inventory_basis, cost_captured_contribution_basis, cost_company_census, cost_company_census_movement, cost_company_census_document, cost_company_census_line, cost_company_census_source, cost_contribution_generation, cost_contribution_snapshot, cost_inventory_generation, cost_inventory_snapshot, cost_inventory_publication, cost_commercial_match_revision, cost_commercial_inventory_part, cost_commercial_direct_part, cost_selling_attribution_part, cost_selling_review_category, cost_selling_review_member, cost_revenue_match_basis, cost_contribution_review, cost_policy_revision, cost_movement_basis, cost_ownership_revision, cost_inventory_review, cost_inventory_member, cost_valuation_assessment_revision, cost_valuation_assessment_part, cost_conversion_basis_revision, cost_attribution_part, cost_attribution_revision, cost_component_basis, cost_component_replacement, cost_correction_basis, cost_input_manifest, cost_manifest_attribution, cost_manifest_component, cost_manifest_correction, cost_manifest_receipt, cost_manifest_replacement, cost_receipt_basis, cost_scope_review, cost_scope_review_category, ledger_entry, ledger_reversal, subledger_account, finance_role_destination, accounting_target, accounting_target_reference, finance_target_mapping_revision, source_classification_mapping_revision, financial_component, component_assignment_revision, component_assignment_part, finance_reference, opening_scope, opening_item_detail]
+    match: "cost_|receipt_cost|inventory_cost|contribution_preview|reviewed_contribution|ledger|account|target|mapping|reference|component|opening|matrix"
     views: [journal]
     projections: [journal]
     exceptions: [unmatched_financial_event]
@@ -546,6 +546,15 @@ processes:
 labels:
   de:
     commands:
+      cost_evidence: Empfangene Anschaffungskosten anzeigen
+      inventory_cost: Bestand zu Anschaffungskosten anzeigen
+      contribution_preview: Deckungsbeitragsvorschau prüfen
+      commercial_match: Geprüfte Teilzuordnung anzeigen
+      cost_query: Kosten mit Bewertungsbasis abfragen
+      cost_record: Kostennachweis prüfen
+      reviewed_contribution: Geprüfte Deckungsbeiträge anzeigen
+      receipt_cost: Anschaffungskosten des Wareneingangs anzeigen
+      execute_cost_change: Kostenentscheidung bestätigen
       change_graph_report: Private Graph-Auswertung ändern
       list_targets: Buchhaltungsziele anzeigen
       list_target_references: Zielreferenzen anzeigen
@@ -707,6 +716,10 @@ labels:
       commitment_hold_unreleased: Sperre der Verpflichtung nicht aufgehoben
       party_hold_unreleased: Liefersperre nicht aufgehoben
       stock_expired: Abgelaufener Bestand
+      missing_acquisition_cost: Anschaffungskosten fehlen
+      unassigned_cost_component: Kostenkomponente nicht zugeordnet
+      stale_cost_review: Kostenprüfung veraltet
+      negative_actual_db1: Tatsächlicher DB1 negativ
     workspaces:
       company: Unternehmensübersicht
       operations: Auftragsbearbeitung

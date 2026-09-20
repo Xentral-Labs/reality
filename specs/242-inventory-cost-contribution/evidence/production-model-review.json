@@ -1,0 +1,16 @@
+{
+  "baseline": "709af5c1a6358be2f004003f37b836ff6095b5bf",
+  "scope": "Planning-only production model proposal over existing spec242 costing baseline. Parallel features excluded from isolated check.",
+  "spec_policy_exit_code": 0,
+  "shared_policy_exit_code": 0,
+  "missing_local_links": [],
+  "runtime_tests_rerun": false,
+  "review_findings_resolved": [
+    "Replacement chain and atomic prior-attribution withdrawal",
+    "First-slice correction admission and manifest membership",
+    "Absolute source share times economic sign",
+    "Recoverable or mixed gross does not become complete acquisition basis"
+  ],
+  "production_schema_approved": false,
+  "production_implementation": false
+}

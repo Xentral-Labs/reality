@@ -1,0 +1,25 @@
+F
+=================================== FAILURES ===================================
+_____ test_zero_is_covered_unknown_is_not_and_knowledge_remains_per_review _____
+
+    def test_zero_is_covered_unknown_is_not_and_knowledge_remains_per_review():
+        context, result = example()
+>       basis = assemble(context, result)
+                ^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_cost_captured_basis.py:83: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+context = {'id': 'capture', 'tenant_id': 'tenant', 'content_hash': 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa', 'effective_at': '2026-09-18T00:00:00+00:00', ...}
+result = {'census_id': 'capture', 'tenant_id': 'tenant', 'event_sequence': 3, 'effective_at': '2026-09-18T00:00:00+00:00', ...}
+inventory = ('item',), contribution = ('line',)
+
+    def assemble(context, result, inventory=("item",), contribution=("line",)):
+>       from reality.domain.cost_captured_basis import assemble_captured_basis
+E       ModuleNotFoundError: No module named 'reality.domain.cost_captured_basis'
+
+tests/test_cost_captured_basis.py:76: ModuleNotFoundError
+=========================== short test summary info ============================
+FAILED tests/test_cost_captured_basis.py::test_zero_is_covered_unknown_is_not_and_knowledge_remains_per_review
+!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!
+1 failed in 1.96s

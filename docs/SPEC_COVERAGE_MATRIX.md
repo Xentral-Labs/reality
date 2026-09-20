@@ -1362,3 +1362,236 @@ speed: asking one company what is behind is one read where it used to be twelve,
 discovering what to do across the instance is a fixed number of statements however many
 companies exist. A last test holds the company's recorded event progress against the
 events themselves, because the selection believes that number.
++## Costing architecture qualification (spec 242, Phase 0 only)
+
+`packages/reality-core/tests/test_costing_spike_contract.py` proves received-cost
+composition, signed allocation, FIFO/specific identity, return provenance and cumulative
+rounding for FR-002/003/005/007/020/021/022. These are experimental calculations, not
+implemented product cost services.
+
+`packages/reality-core/tests/test_costing_spike_postgres.py` proves fixed experimental
+cardinalities, tenant isolation, rollback, scoped replacement and deterministic replay
+for FR-018 and DR-001–005. Benchmark evidence distinguishes exploratory measurements
+from the still-pending full architecture qualification.
+
+Spec 242 continuation extends those same test families with return COGS reversal,
+distributed split/partial matching, stale/live responses, failed refresh recovery,
+concurrent intake with frozen-revision publication, and sustained mixed-load generation.
+These remain experiment proofs, not production adapter or accounting acceptance.
+
+Spec 242 scoped-live continuation adds proofs to the existing PostgreSQL test family:
+unrelated-pool currentness, exact bounded direct/projected parity, financial and movement
+limit refusal before replay, snapshot consistency, unchanged publication state, and
+refusal of unresolved late targets. These do not certify product adapter availability.
+
+`packages/reality-core/tests/test_costing_spike_jobs.py` covers spec 242 FR-018 and
+DR-004/005: staged visibility, frozen revisions, indivisible-pool refusal, foreign
+scope, shared claim rollback/retry/replay, archived-tenant authorization, unchanged
+normal registry, canonical monthly relation parity, real child timeout/retry, and
+repeatable-read consistency across atomic publication. This remains an isolated
+shared-worker qualification adapter, not production registration.
+
+`packages/reality-core/tests/test_costing_product_qualification.py` proves the integrated
+fixture J release decision fails closed for reduced profiles, prototype entrypoints,
+missing evidence, tenant leaks, checksum drift and every FR-018 budget.
+`packages/reality-core/tests/test_costing_product_workloads.py` proves the timed adapter
+uses the shared cost-query, graph, Exceptions and MCP product entrypoints with the exact
+tenant scope. These tests qualify the harness contract only; the dedicated full-profile
+reference-host run remains required.
+
+
+## Receipt acquisition costs (spec 242; approved first production slice)
+
+Feature contract: `docs/features/receipt-costing.md`.
+
+| Test family | Requirement evidence |
+|---|---|
+| `packages/reality-core/tests/test_costing_domain.py` | FR-002/003/020/021/022: signed contribution, source-share conservation, tax buckets and Decimal precision |
+| `packages/reality-core/tests/test_cost_allocation.py` | FR-002/003/013/022: signed largest-remainder allocation, stable opaque-ID ties, residual conservation and exact conversion precision boundaries |
+| `packages/reality-core/tests/test_cost_allocation_services.py` | FR-002/003/019/020/022: owner-confirmed weighted receipt allocation, explicit driver semantics, exact persisted shares, tax-bucket and tenant refusals |
+| `packages/reality-core/tests/test_cost_conversion_migration.py` | FR-002/013/019/022, SC-003: immutable source-backed conversion revisions, exact ratio precision, nullable same-tenant attribution links and protected rollback |
+| `packages/reality-core/tests/test_cost_conversion_services.py` | FR-002/013/016/019/022: owner-confirmed source-backed conversion history, preserved original shares, read-time converted acquisition/DB2 observations and refusal to use unit authority as currency authority |
+| `packages/reality-core/tests/test_costing_migration.py` | DR-001–005: all composite authority foreign keys, upgrade, empty downgrade and refusal to erase retained history |
+| `packages/reality-core/tests/test_costing_services.py` | FR-001–003/007/014–016/019: actual receipt A, explicit category review, tax, late costs, immutable replacement/correction history, transaction rollback and foreign authority refusal |
+| `packages/reality-core/tests/test_costing_tools.py` | FR-016/019/027: actual application/MCP dispatch, explicit owner confirmation, replay, demotion and foreign tenant scope |
+| `packages/reality-core/tests/test_demo_costing_profile.py` | FR-026, SC-007: international-v2 replay/authority, source-backed fixture A quantity coverage, deliberate missing cost and signed late-cost return |
+| `packages/reality-core/tests/test_carrying_value_domain.py` | FR-009/015/022, SC-001/003: explicit write-down/recovery reconciliation, exact predecessor scope, precision and acquisition-cost ceiling |
+| `packages/reality-core/tests/test_carrying_value_migration.py` | FR-009/019, SC-003: guarded assessment schema, shortest same-tenant links, immutability and protected rollback |
+| `packages/reality-core/tests/test_carrying_value_services.py` | FR-009/015/019, SC-001/003: owner-confirmed preview/execution, source/member scope, staleness, bounded recovery and current/historical acquisition-to-carrying reads |
+
+Retained first-slice tables: `cost_attribution_part`, `cost_attribution_revision`, `cost_component_basis`, `cost_component_replacement`, `cost_correction_basis`, `cost_input_manifest`, `cost_manifest_attribution`, `cost_manifest_component`, `cost_manifest_correction`, `cost_manifest_receipt`, `cost_manifest_replacement`, `cost_receipt_basis`, `cost_scope_review`, `cost_scope_review_category`.
+
+### Spec 242 inventory calculation foundation
+
+`packages/reality-core/tests/test_inventory_costing.py` covers FR-004–007/017/018/022:
+explicit FIFO/specific calculation, stock/consumption conservation, return-time order,
+exact original receipt provenance, losses/supplier returns, unknown-cost coverage,
+late-cost immutable replay, monetary residuals and bounded work. This pure domain
+foundation does not establish company policy, economic ownership, admitted movement
+history or a public inventory/DB application surface.
+
+### Spec 242 reviewed inventory services
+
+`packages/reality-core/tests/test_inventory_costing_services.py` covers FR-004–008,
+FR-014–019/022/027: bounded complete pool admission, explicit FIFO/owner/history policy,
+receipt scope reaffirmation, current/stale/frozen reads, conservation, late costs,
+corrections, retained units/event ordering, exact membership integrity, owner confirmation,
+foreign scope refusal, rollback and actual application/MCP dispatch.
+`packages/reality-core/tests/test_inventory_costing_migration.py` covers DR-001–005:
+static inventory schema, composite tenant FKs, empty rollback and retained-history
+rollback refusal. Tables: `cost_policy_revision`, `cost_movement_basis`,
+`cost_ownership_revision`, `cost_opening_basis`, `cost_inventory_review`,
+`cost_inventory_ownership_part`, `cost_inventory_member`.
+
+### Spec 242 contribution calculation foundation
+
+`packages/reality-core/tests/test_contribution.py` covers FR-010–014/016/022:
+commercial_v1 DB1/DB2 arithmetic, independent actual/review coverage, null-preserving
+partial subtotals, aggregate rates, signed shares, stable grouping/unassigned dimensions,
+currency/unit/context separation, trace retention, precision, cutoff and bounded work.
+This pure kernel does not establish revenue matching or expose company DB reporting.
+`packages/reality-core/tests/test_commercial_matching_migration.py` covers the approved
+append-only partial commercial matching authority, tenant-composite FK parity, sealed SQL
+immutability, empty rollback and populated downgrade refusal for
+`cost_commercial_match_revision`, `cost_commercial_inventory_part` and
+`cost_commercial_direct_part`.
+`packages/reality-core/tests/test_commercial_matching_services.py` covers
+FR-002/003/007/010/011/017/019/022: owner-confirmed admission, split/cross-line
+capacity conservation, deterministic frozen inventory reads, complete direct service,
+shipping, kit and production inputs, signed credit/return matching, free goods,
+explicit unresolved WIP, rematch capacity release, historical replay, tenant isolation
+and direct service/Application Tool/MCP parity without stored derived cost or margin.
+
+### Spec 242 contribution SQL aggregation
+
+`packages/reality-core/tests/test_contribution_aggregates.py` covers FR-011/012/014/022:
+actual PostgreSQL parity with the domain kernel for all 256 input-state combinations,
+partial same-slice margins, independent DB1/DB2 coverage, preview/empty scope,
+signed shares, weighted aggregate rates and exact half-even ties/large numeric values.
+The internal SQL helper does not admit a tenant/report population or publish graph measures.
+
+### Spec 242 current contribution preview
+
+`packages/reality-core/tests/test_contribution_services.py` covers FR-010/011/014/016/019:
+exact current invoice/order/commitment/shipment traversal, received net evidence, reviewed
+consumption, unknown commercial/selling coverage, tenant/tool/MCP parity, no writes,
+ambiguous/stale scope and concurrent-input refusal. No finalized or historical DB claim.
+
+### Spec 242 confirmed single-line contribution
+
+`packages/reality-core/tests/test_contribution_reviews.py` covers FR-007/010–016/019/022:
+owner confirmation, exact candidate binding, final DB1/independent DB2 gaps, immutable
+historical replay, late-cost reaffirmation, no full-quantity reuse, source protection,
+foreign scope, rollback, read-only behavior and actual application/MCP parity.
+`packages/reality-core/tests/test_contribution_migration.py` covers DR-001–005:
+static migration, composite tenant FKs, empty rollback and retained-history refusal.
+Tables: `cost_revenue_match_basis`, `cost_contribution_review`.
+
+### Source-backed selling costs and reviewed DB2 (234 continuation)
+
+Authority: `specs/234-inventory-cost-contribution/contracts/selling-service.md`.
+Tables: `cost_selling_attribution_part`, `cost_selling_review_category`, `cost_selling_review_member`.
+Tests: `packages/reality-core/tests/test_selling_costs.py`,
+`packages/reality-core/tests/test_selling_migration.py`.
+
+### Retained cost record inspection (234 T078)
+
+Authority: `specs/234-inventory-cost-contribution/contracts/record-inspection.md`.
+Tests: `packages/reality-core/tests/test_cost_records.py`. Existing cost authority tables
+are read through fixed allowlists; no new storage or valuation rule.
+
+Retained query context: `packages/reality-core/tests/test_cost_query.py` (234).
+
+Stored inventory publications, including assessment-bound carrying snapshots and
+replay-free historical reads: `packages/reality-core/tests/test_inventory_generations.py`
+and `packages/reality-core/tests/test_inventory_generation_migration.py` (234
+FR-007/014/016/018/019). Three disposable cache tables and owner-authorized shared jobs;
+retained review authority remains unchanged. Tables: `cost_inventory_generation`,
+`cost_inventory_snapshot`, `cost_inventory_publication`.
+
+Generation publication guard: `packages/reality-core/tests/test_cost_generation.py`
+(242 FR-007/012/014/018, T101–T103). Pure domain decisions only; production
+publication transactions, shared workers and canonical relations remain T080.
+
+### Spec 242 joint contribution confirmation
+
+`packages/reality-core/tests/test_contribution_batch_review.py` covers
+FR-007/011/012/014/015/016/019: genuine two-item inventory/revenue confirmation,
+shared action/event/knowledge time, independent selling coverage, exact replay and
+historical member reads, complete rollback, stale/revoked/foreign refusal, request
+bounds and isolated cross-member compatibility/disjoint-shipment guards.
+The operation retains selected scope authority; it does not publish a report cache.
+
+
+### Spec 242 stored joint contribution observations
+
+`packages/reality-core/tests/test_contribution_generations.py` covers
+FR-007/011/012/014/016/018/019/022: exact real joint membership, persisted/SQL/domain
+parity, independent missing selling coverage, bounded historical reads without replay
+or autoflush, stable later knowledge, corruption/foreign refusal, atomic failure,
+concurrency and the shared owner-authorized worker.
+`packages/reality-core/tests/test_contribution_generation_migration.py` covers the two
+disposable tables `cost_contribution_generation` and `cost_contribution_snapshot`: static
+migration, tenant foreign keys, populated cache rollback and
+unfinished worker downgrade refusal. Public DB graph measures remain deferred.
+
+| Historical contribution graph admission, coverage, saved/HTTP reports | 242 FR-012/014/022 | `packages/reality-core/tests/test_contribution_graph_reporting.py` |
+| Tenant-scoped contribution confirmation discovery | 242 FR-012/014/022 | `packages/reality-core/tests/test_contribution_review_options.py` |
+| Selected contribution freshness and final read cursor, concurrency, historical independence | 242 FR-007/014/018 | `packages/reality-core/tests/test_contribution_current.py` |
+| Exact company-generation population closure and independent financial coverage | 242 FR-007/012/014/018 | `packages/reality-core/tests/test_cost_population.py` |
+
+| Current source-backed company census, unreviewed scope, MVCC, bounds and tenant isolation | 242 FR-007/014/018 | `packages/reality-core/tests/test_cost_census.py` |
+
+| Manifest-bound company publication validation and selected-scope separation | 242 FR-007/012/014/018 | `packages/reality-core/tests/test_company_cost_publication.py` |
+
+
+Retained company discovery (242 FR-007/014/018/019): `cost_company_census`,
+`cost_company_census_movement`, `cost_company_census_document`,
+`cost_company_census_line`, `cost_company_census_source`. These retain current observed
+values and typed source references, not approved costs or historical financial knowledge.
+
+| Verification family | Specification | Tests |
+|---|---|---|
+| Atomic capture, frozen values, replay, SQL immutability and scoped member inspection | 242 FR-007/014/018/019 | `packages/reality-core/tests/test_cost_census_storage.py` |
+| Typed retention schema, restricted downgrade and migration parity | 242 FR-007/019 | `packages/reality-core/tests/test_cost_census_migration.py` |
+| Exact snapshot serialization and byte bounds | 242 FR-007/018/022 | `packages/reality-core/tests/test_cost_census_serialization.py` |
+
+| Captured-time review resolution, cutoff/membership gaps and no future approval | 242 FR-007/012/014/019 | `packages/reality-core/tests/test_cost_census_resolution.py` |
+
+| Proved contribution-only events preserve unrelated captured financial inputs | 242 FR-007/014/019 | `packages/reality-core/tests/test_cost_review_relevance.py` |
+| Common captured review vector binds exact subjects, independent coverage and gaps without historical/publication claims | 242 FR-007/012/014/019 | `packages/reality-core/tests/test_cost_captured_basis.py` |
+| Retained captured review selection, version integrity, atomicity and pinned replay | 242 FR-007/012/014/019 | `packages/reality-core/tests/test_cost_captured_basis_storage.py` |
+| Captured-basis typed migration, tenant constraints and protected downgrade | 242 FR-007/012/014/019 | `packages/reality-core/tests/test_cost_captured_basis_migration.py` |
+
+Retained captured review selection (242 FR-007/012/014/019): `cost_captured_basis`,
+`cost_captured_inventory_basis`, `cost_captured_contribution_basis`. Schema/immutability
+and scoped retain/read/replay proofs are in test_cost_captured_basis_migration.py and
+test_cost_captured_basis_storage.py; retained selection grants no company publication.
+
+| Captured known subtotals preserve partitions, unsupported rows and independent DB coverage | 242 FR-007/011/012/014/019 | `packages/reality-core/tests/test_cost_captured_summary.py` |
+
+| Fixed captured report storage, publication CAS, pagination, tenant boundaries and cache disposal | 242 FR-007/012/014/018/019 | `packages/reality-core/tests/test_captured_report.py` |
+| Fixed captured generation graph/tool/HTTP reads and saved-analysis identity retention | 242 FR-012/014/016/018/019/023 | `packages/reality-core/tests/test_captured_report_graph.py` |
+| Sealed captured-generation discovery, tenant-safe cursors and Analysis selection | 242 FR-012/014/016/019/023/024 | `packages/reality-core/tests/test_captured_report_options.py`; `apps/web/scripts/analysis-builder-state.test.mjs` |
+| Owner-authorized idempotent captured-report worker build without publication | 242 FR-007/014/018/019 | `packages/reality-core/tests/test_captured_report_jobs.py` |
+| Owner-authorized captured-report CAS publication worker with stale-request refusal | 242 FR-007/014/018/019 | `packages/reality-core/tests/test_captured_report_jobs.py`; `packages/reality-core/tests/test_captured_report.py` |
+| Retained exact financial company manifest and disposable generation schema (`cost_company_manifest`, `cost_company_inventory_input`, `cost_company_contribution_input`, `cost_company_generation`, `cost_company_inventory_result`, `cost_company_contribution_result`, `cost_company_publication`) | 242 FR-007/012/014/018/019 | `packages/reality-core/tests/test_company_generations.py`; `packages/reality-core/tests/test_company_generation_migration.py` |
+| Owner-authorized exact company-manifest admission, explicit unknowns, gap binding, replay and atomic refusal | 242 FR-007/012/014/019 | `packages/reality-core/tests/test_company_generation_manifest.py` |
+| Deterministic company-generation chunks, explicit unknown completion, cache integrity, scope-keyed CAS publication and owner-authorized shared jobs | 242 FR-007/012/014/018/019 | `packages/reality-core/tests/test_company_generation_jobs.py` |
+| Fixed-generation company pages, totals, coverage and SELECT-only reads | 242 FR-012/014/018/019 | `packages/reality-core/tests/test_company_generation_reads.py` |
+| Fixed company-generation graph context, grouped values, discovery and saved identity | 242 FR-012/013/014/016/023/024 | `packages/reality-core/tests/test_company_generation_graph.py` |
+| Published company-generation identity and ready/pending/unavailable freshness as a protected cost-finding prerequisite, without activating findings | 242 FR-012/014/018/025 | `packages/reality-core/tests/test_company_generation_prerequisites.py` |
+| Shared cost-finding derivation: unsold gaps, unassigned components, stale review identity, supported negative DB1, clearing, pending preservation and tenant isolation | 242 FR-014/015/018/025 | `packages/reality-core/tests/test_cost_findings.py` |
+| Local product-qualification orchestration, retained-manifest reconstruction, concurrent refresh reads and evidence capture | 242 FR-007/012/014/018/019/022 | `packages/reality-core/tests/test_costing_product_runner.py` |
+
+Captured report cache tables (242 FR-007/012/014/018/019): `cost_generation`,
+`cost_inventory_row`, `cost_contribution_row`, `cost_publication`. Migration parity,
+immutable sealing, typed membership, publication and retained-input survival are proved
+in test_captured_report.py. Cache publication grants no company financial approval.
+
+| Inventory batch generation orchestration and publication | 242 FR-007/014/018/019 | `packages/reality-core/tests/test_inventory_batch_generations.py` |
+| Atomic multi-item inventory review confirmation | 242 FR-007/014/018/019 | `packages/reality-core/tests/test_inventory_batch_review.py` |
+| Inventory costing reporting-graph relation | 242 FR-012/013/014/016 | `packages/reality-core/tests/test_inventory_costing_relation.py` |
+| Stored inventory graph reporting and tenant boundaries | 242 FR-012/014/016/018 | `packages/reality-core/tests/test_inventory_graph_reporting.py` |
+| Tenant-scoped inventory review discovery | 242 FR-012/014/022 | `packages/reality-core/tests/test_inventory_review_options.py` |
+| Current and historical inventory snapshot selection | 242 FR-007/014/018 | `packages/reality-core/tests/test_inventory_snapshot_selection.py` |

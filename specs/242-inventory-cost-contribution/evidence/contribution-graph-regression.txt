@@ -1,0 +1,1599 @@
+.......F................................................................ [ 23%]
+...........................................................F............ [ 47%]
+........................................................................ [ 71%]
+...................................................................FF... [ 95%]
+...F.FF.F.FFF                                                            [100%]
+=================================== FAILURES ===================================
+_____________ test_same_unit_partial_group_and_saved_http_question _____________
+
+self = <sqlalchemy.engine.base.Connection object at 0x10fba85c0>
+dialect = <sqlalchemy.dialects.postgresql.psycopg.PGDialect_psycopg object at 0x10bf6adb0>
+context = <sqlalchemy.dialects.postgresql.psycopg.PGExecutionContext_psycopg object at 0x10fbed2e0>
+statement = <sqlalchemy.dialects.postgresql.psycopg.PGCompiler_psycopg object at 0x10fba9e50>
+parameters = [{'date_trunc_1': 'month', 'economic_at_1': '^[0-9]{4}-[0-9]{2}-[0-9]{2}$', 'substr_1': 1, 'substr_2': 4, ...}]
+
+    def _exec_single_context(
+        self,
+        dialect: Dialect,
+        context: ExecutionContext,
+        statement: Union[str, Compiled],
+        parameters: Optional[_AnyMultiExecuteParams],
+    ) -> CursorResult[Any]:
+        """continue the _execute_context() method for a single DBAPI
+        cursor.execute() or cursor.executemany() call.
+    
+        """
+        if dialect.bind_typing is BindTyping.SETINPUTSIZES:
+            generic_setinputsizes = context._prepare_set_input_sizes()
+    
+            if generic_setinputsizes:
+                try:
+                    dialect.do_set_input_sizes(
+                        context.cursor, generic_setinputsizes, context
+                    )
+                except BaseException as e:
+                    self._handle_dbapi_exception(
+                        e, str(statement), parameters, None, context
+                    )
+    
+        cursor, str_statement, parameters = (
+            context.cursor,
+            context.statement,
+            context.parameters,
+        )
+    
+        effective_parameters: Optional[_AnyExecuteParams]
+    
+        if not context.executemany:
+            effective_parameters = parameters[0]
+        else:
+            effective_parameters = parameters
+    
+        if self._has_events or self.engine._has_events:
+            for fn in self.dispatch.before_cursor_execute:
+                str_statement, effective_parameters = fn(
+                    self,
+                    cursor,
+                    str_statement,
+                    effective_parameters,
+                    context,
+                    context.executemany,
+                )
+    
+        if self._echo:
+            self._log_info(str_statement)
+    
+            stats = context._get_cache_stats()
+    
+            if not self.engine.hide_parameters:
+                self._log_info(
+                    "[%s] %r",
+                    stats,
+                    sql_util._repr_params(
+                        effective_parameters,
+                        batches=10,
+                        ismulti=context.executemany,
+                    ),
+                )
+            else:
+                self._log_info(
+                    "[%s] [SQL parameters hidden due to hide_parameters=True]",
+                    stats,
+                )
+    
+        evt_handled: bool = False
+        try:
+            if context.execute_style is ExecuteStyle.EXECUTEMANY:
+                effective_parameters = cast(
+                    "_CoreMultiExecuteParams", effective_parameters
+                )
+                if self.dialect._has_events:
+                    for fn in self.dialect.dispatch.do_executemany:
+                        if fn(
+                            cursor,
+                            str_statement,
+                            effective_parameters,
+                            context,
+                        ):
+                            evt_handled = True
+                            break
+                if not evt_handled:
+                    self.dialect.do_executemany(
+                        cursor,
+                        str_statement,
+                        effective_parameters,
+                        context,
+                    )
+            elif not effective_parameters and context.no_parameters:
+                if self.dialect._has_events:
+                    for fn in self.dialect.dispatch.do_execute_no_params:
+                        if fn(cursor, str_statement, context):
+                            evt_handled = True
+                            break
+                if not evt_handled:
+                    self.dialect.do_execute_no_params(
+                        cursor, str_statement, context
+                    )
+            else:
+                effective_parameters = cast(
+                    "_CoreSingleExecuteParams", effective_parameters
+                )
+                if self.dialect._has_events:
+                    for fn in self.dialect.dispatch.do_execute:
+                        if fn(
+                            cursor,
+                            str_statement,
+                            effective_parameters,
+                            context,
+                        ):
+                            evt_handled = True
+                            break
+                if not evt_handled:
+>                   self.dialect.do_execute(
+                        cursor, str_statement, effective_parameters, context
+                    )
+
+../../.venv/lib/python3.12/site-packages/sqlalchemy/engine/base.py:1969: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+../../.venv/lib/python3.12/site-packages/sqlalchemy/engine/default.py:952: in do_execute
+    cursor.execute(statement, parameters)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <psycopg.Cursor [closed] [INERROR] (host=127.0.0.1 port=55439 user=costing database=reality_pytest_ef185173f9) at 0x10f91f650>
+query = 'SELECT root.currency AS "root.currency", root.base_unit AS "root.base_unit", to_char(date_trunc(%(date_trunc_1)s::VAR...) AS INTEGER)) END END END AS DATE)), %(to_char_1)s::VARCHAR) ORDER BY "root.base_unit" \n LIMIT %(param_26)s::INTEGER'
+params = {'date_trunc_1': 'month', 'economic_at_1': '^[0-9]{4}-[0-9]{2}-[0-9]{2}$', 'substr_1': 1, 'substr_2': 4, ...}
+prepare = None, binary = None
+
+    def execute(
+        self,
+        query: Query,
+        params: Params | None = None,
+        *,
+        prepare: bool | None = None,
+        binary: bool | None = None,
+    ) -> Self:
+        """
+        Execute a query or command to the database.
+        """
+        try:
+            with self._conn.lock:
+                self._conn.wait(
+                    self._execute_gen(query, params, prepare=prepare, binary=binary)
+                )
+        except e._NO_TRACEBACK as ex:
+>           raise ex.with_traceback(None)
+E           psycopg.errors.UndefinedFunction: operator does not exist: timestamp with time zone ~ character varying
+E           LINE 1: ...unc($1::VARCHAR, CAST(CASE WHEN (root.economic_at ~ $2::VARC...
+E                                                                        ^
+E           HINT:  No operator matches the given name and argument types. You might need to add explicit type casts.
+
+../../.venv/lib/python3.12/site-packages/psycopg/cursor.py:117: UndefinedFunction
+
+The above exception was the direct cause of the following exception:
+
+session = <sqlalchemy.orm.session.Session object at 0x10fb7ba70>
+business = Business(tenant=<reality.db.core.Tenant object at 0x10f8d27b0>, company=<reality.db.core.Party object at 0x10f8d1ac0>,...f8d1520>, item=<reality.db.core.Item object at 0x10d9f1460>, location=<reality.db.core.Location object at 0x10f7620c0>)
+cost_owner = <reality.db.core.AppUser object at 0x10fb60f50>
+
+    def test_same_unit_partial_group_and_saved_http_question(session, business, cost_owner):
+        from uuid import uuid4
+    
+        from fastapi import FastAPI
+        from fastapi.testclient import TestClient
+    
+        from reality.services.analytics.reports import change_graph_report, get_report
+        from reality.services.memberships import Principal
+        from reality.web import analytics_api, auth
+    
+        tenant = business.tenant.id
+        args, _, _ = fixtures.fixtures.prepared(
+            session, business, cost_owner, second_unit="pcs"
+        )
+        action, _ = fixtures.fixtures.stock.commit_review(
+            session, business, cost_owner, args
+        )
+        costing.build_contribution_generation(session, tenant, action.id)
+        principal = Principal(cost_owner.id)
+        saved = change_graph_report(
+            session,
+            tenant,
+            principal,
+            {
+                "operation": "create",
+                "request_id": str(uuid4()),
+                "name": "Contribution",
+                "question": question(action.id),
+            },
+        )
+        reopened = get_report(session, tenant, principal, saved["id"], report_kind="graph")
+        assert reopened["definition"]["contribution_cost_context"]["action_id"] == action.id
+        app = FastAPI()
+        app.include_router(analytics_api.router, prefix="/tenants/{tenant_id}")
+        app.dependency_overrides[auth.database_session] = lambda: session
+        with TestClient(app) as client:
+            response = client.post(
+                f"/tenants/{tenant}/analytics/graph/ask",
+                json={"question": reopened["definition"]},
+            )
+        assert response.status_code == 200, response.text
+        assert response.json()["rows"] == [
+            {
+                "root.currency": "EUR",
+                "root.base_unit": "pcs",
+                "contribution_db1": "1140.0000",
+                "contribution_db2": None,
+                "contribution_db2_known": "570.0000",
+                "contribution_db2_covered": 1,
+                "contribution_db2_required": 2,
+                "contribution_db1_rate": "47.5000",
+            }
+        ]
+>       bucketed = run_traversal(
+            session,
+            tenant,
+            Traversal.model_validate(
+                question(
+                    action.id,
+                    group_by=[
+                        {"field": "root.currency"},
+                        {"field": "root.base_unit"},
+                        {"field": "root.economic_at", "bucket": "month"},
+                    ],
+                )
+            ),
+        )
+
+tests/test_contribution_graph_reporting.py:194: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+src/reality/services/analytics/traversal.py:504: in run_traversal
+    return execute(session, tenant_id, path)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src/reality/services/analytics/compile_sql.py:653: in execute
+    rows = session.execute(statement).mappings().all()
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+../../.venv/lib/python3.12/site-packages/sqlalchemy/orm/session.py:2373: in execute
+    return self._execute_internal(
+../../.venv/lib/python3.12/site-packages/sqlalchemy/orm/session.py:2280: in _execute_internal
+    result = conn.execute(
+../../.venv/lib/python3.12/site-packages/sqlalchemy/engine/base.py:1421: in execute
+    return meth(
+../../.venv/lib/python3.12/site-packages/sqlalchemy/sql/elements.py:526: in _execute_on_connection
+    return connection._execute_clauseelement(
+../../.venv/lib/python3.12/site-packages/sqlalchemy/engine/base.py:1643: in _execute_clauseelement
+    ret = self._execute_context(
+../../.venv/lib/python3.12/site-packages/sqlalchemy/engine/base.py:1848: in _execute_context
+    return self._exec_single_context(
+../../.venv/lib/python3.12/site-packages/sqlalchemy/engine/base.py:1988: in _exec_single_context
+    self._handle_dbapi_exception(
+../../.venv/lib/python3.12/site-packages/sqlalchemy/engine/base.py:2365: in _handle_dbapi_exception
+    raise sqlalchemy_exception.with_traceback(exc_info[2]) from e
+../../.venv/lib/python3.12/site-packages/sqlalchemy/engine/base.py:1969: in _exec_single_context
+    self.dialect.do_execute(
+../../.venv/lib/python3.12/site-packages/sqlalchemy/engine/default.py:952: in do_execute
+    cursor.execute(statement, parameters)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <psycopg.Cursor [closed] [INERROR] (host=127.0.0.1 port=55439 user=costing database=reality_pytest_ef185173f9) at 0x10f91f650>
+query = 'SELECT root.currency AS "root.currency", root.base_unit AS "root.base_unit", to_char(date_trunc(%(date_trunc_1)s::VAR...) AS INTEGER)) END END END AS DATE)), %(to_char_1)s::VARCHAR) ORDER BY "root.base_unit" \n LIMIT %(param_26)s::INTEGER'
+params = {'date_trunc_1': 'month', 'economic_at_1': '^[0-9]{4}-[0-9]{2}-[0-9]{2}$', 'substr_1': 1, 'substr_2': 4, ...}
+prepare = None, binary = None
+
+    def execute(
+        self,
+        query: Query,
+        params: Params | None = None,
+        *,
+        prepare: bool | None = None,
+        binary: bool | None = None,
+    ) -> Self:
+        """
+        Execute a query or command to the database.
+        """
+        try:
+            with self._conn.lock:
+                self._conn.wait(
+                    self._execute_gen(query, params, prepare=prepare, binary=binary)
+                )
+        except e._NO_TRACEBACK as ex:
+>           raise ex.with_traceback(None)
+E           sqlalchemy.exc.ProgrammingError: (psycopg.errors.UndefinedFunction) operator does not exist: timestamp with time zone ~ character varying
+E           LINE 1: ...unc($1::VARCHAR, CAST(CASE WHEN (root.economic_at ~ $2::VARC...
+E                                                                        ^
+E           HINT:  No operator matches the given name and argument types. You might need to add explicit type casts.
+E           [SQL: SELECT root.currency AS "root.currency", root.base_unit AS "root.base_unit", to_char(date_trunc(%(date_trunc_1)s::VARCHAR, CAST(CASE WHEN (root.economic_at ~ %(economic_at_1)s::VARCHAR) THEN CASE WHEN (CAST(substr(root.economic_at, %(substr_1)s::INTEGER, %(substr_2)s::INTEGER) AS INTEGER) BETWEEN %(param_1)s::INTEGER AND %(param_2)s::INTEGER AND CAST(substr(root.economic_at, %(substr_3)s::INTEGER, %(substr_4)s::INTEGER) AS INTEGER) BETWEEN %(param_3)s::INTEGER AND %(param_4)s::INTEGER) THEN CASE WHEN (CAST(substr(root.economic_at, %(substr_5)s::INTEGER, %(substr_6)s::INTEGER) AS INTEGER) BETWEEN %(param_5)s::INTEGER AND EXTRACT(day FROM make_date(CAST(substr(root.economic_at, %(substr_1)s::INTEGER, %(substr_2)s::INTEGER) AS INTEGER), CAST(substr(root.economic_at, %(substr_3)s::INTEGER, %(substr_4)s::INTEGER) AS INTEGER), %(make_date_1)s::INTEGER) + INTERVAL '1 month - 1 day')) THEN make_date(CAST(substr(root.economic_at, %(substr_1)s::INTEGER, %(substr_2)s::INTEGER) AS INTEGER), CAST(substr(root.economic_at, %(substr_3)s::INTEGER, %(substr_4)s::INTEGER) AS INTEGER), CAST(substr(root.economic_at, %(substr_5)s::INTEGER, %(substr_6)s::INTEGER) AS INTEGER)) END END END AS DATE)), %(to_char_1)s::VARCHAR) AS "root.economic_at", CASE WHEN (%(param_6)s AND count(*) > %(count_1)s::INTEGER AND count(*) FILTER (WHERE root.revenue IS NOT NULL AND root.goods_cost IS NOT NULL AND root.revenue_state = %(revenue_state_1)s::VARCHAR AND root.goods_cost_state = %(goods_cost_state_1)s::VARCHAR) = count(*)) THEN coalesce(sum(CASE WHEN (root.revenue IS NOT NULL AND root.goods_cost IS NOT NULL AND root.revenue_state IN (%(revenue_state_2_1)s::VARCHAR, %(revenue_state_2_2)s::VARCHAR) AND root.goods_cost_state IN (%(goods_cost_state_2_1)s::VARCHAR, %(goods_cost_state_2_2)s::VARCHAR)) THEN root.revenue - root.goods_cost ELSE %(param_7)s::INTEGER END), %(coalesce_1)s::INTEGER) END AS contribution_db1, CASE WHEN (%(param_8)s AND count(*) > %(count_2)s::INTEGER AND count(*) FILTER (WHERE root.revenue IS NOT NULL AND root.goods_cost IS NOT NULL AND root.direct_selling_cost IS NOT NULL AND root.allocated_selling_cost IS NOT NULL AND root.revenue_state = %(revenue_state_3)s::VARCHAR AND root.goods_cost_state = %(goods_cost_state_3)s::VARCHAR AND root.direct_selling_cost_state = %(direct_selling_cost_state_1)s::VARCHAR AND root.allocated_selling_cost_state = %(allocated_selling_cost_state_1)s::VARCHAR) = count(*)) THEN coalesce(sum(CASE WHEN (root.revenue IS NOT NULL AND root.goods_cost IS NOT NULL AND root.direct_selling_cost IS NOT NULL AND root.allocated_selling_cost IS NOT NULL AND root.revenue_state IN (%(revenue_state_4_1)s::VARCHAR, %(revenue_state_4_2)s::VARCHAR) AND root.goods_cost_state IN (%(goods_cost_state_4_1)s::VARCHAR, %(goods_cost_state_4_2)s::VARCHAR) AND root.direct_selling_cost_state IN (%(direct_selling_cost_state_2_1)s::VARCHAR, %(direct_selling_cost_state_2_2)s::VARCHAR) AND root.allocated_selling_cost_state IN (%(allocated_selling_cost_state_2_1)s::VARCHAR, %(allocated_selling_cost_state_2_2)s::VARCHAR)) THEN ((root.revenue - root.goods_cost) - root.direct_selling_cost) - root.allocated_selling_cost ELSE %(param_9)s::INTEGER END), %(coalesce_2)s::INTEGER) END AS contribution_db2, coalesce(sum(CASE WHEN (root.revenue IS NOT NULL AND root.goods_cost IS NOT NULL AND root.direct_selling_cost IS NOT NULL AND root.allocated_selling_cost IS NOT NULL AND root.revenue_state IN (%(revenue_state_5_1)s::VARCHAR, %(revenue_state_5_2)s::VARCHAR) AND root.goods_cost_state IN (%(goods_cost_state_5_1)s::VARCHAR, %(goods_cost_state_5_2)s::VARCHAR) AND root.direct_selling_cost_state IN (%(direct_selling_cost_state_3_1)s::VARCHAR, %(direct_selling_cost_state_3_2)s::VARCHAR) AND root.allocated_selling_cost_state IN (%(allocated_selling_cost_state_3_1)s::VARCHAR, %(allocated_selling_cost_state_3_2)s::VARCHAR)) THEN ((root.revenue - root.goods_cost) - root.direct_selling_cost) - root.allocated_selling_cost ELSE %(param_10)s::INTEGER END), %(coalesce_3)s::INTEGER) AS contribution_db2_known, count(*) FILTER (WHERE root.revenue IS NOT NULL AND root.goods_cost IS NOT NULL AND root.direct_selling_cost IS NOT NULL AND root.allocated_selling_cost IS NOT NULL AND root.revenue_state = %(revenue_state_6)s::VARCHAR AND root.goods_cost_state = %(goods_cost_state_6)s::VARCHAR AND root.direct_selling_cost_state = %(direct_selling_cost_state_4)s::VARCHAR AND root.allocated_selling_cost_state = %(allocated_selling_cost_state_4)s::VARCHAR) AS contribution_db2_covered, count(*) AS contribution_db2_required, CASE WHEN (CASE WHEN (%(param_11)s AND count(*) > %(count_3)s::INTEGER AND count(*) FILTER (WHERE root.revenue IS NOT NULL AND root.revenue_state = %(revenue_state_7)s::VARCHAR) = count(*)) THEN coalesce(sum(CASE WHEN (root.revenue IS NOT NULL AND root.revenue_state IN (%(revenue_state_8_1)s::VARCHAR, %(revenue_state_8_2)s::VARCHAR)) THEN root.revenue ELSE %(param_12)s::INTEGER END), %(coalesce_4)s::INTEGER) END > %(param_13)s::INTEGER) THEN CAST(sign(CASE WHEN (%(param_14)s AND count(*) > %(count_4)s::INTEGER AND count(*) FILTER (WHERE root.revenue IS NOT NULL AND root.goods_cost IS NOT NULL AND root.revenue_state = %(revenue_state_9)s::VARCHAR AND root.goods_cost_state = %(goods_cost_state_7)s::VARCHAR) = count(*)) THEN coalesce(sum(CASE WHEN (root.revenue IS NOT NULL AND root.goods_cost IS NOT NULL AND root.revenue_state IN (%(revenue_state_10_1)s::VARCHAR, %(revenue_state_10_2)s::VARCHAR) AND root.goods_cost_state IN (%(goods_cost_state_8_1)s::VARCHAR, %(goods_cost_state_8_2)s::VARCHAR)) THEN root.revenue - root.goods_cost ELSE %(param_15)s::INTEGER END), %(coalesce_5)s::INTEGER) END) * (div(abs(CASE WHEN (%(param_14)s AND count(*) > %(count_4)s::INTEGER AND count(*) FILTER (WHERE root.revenue IS NOT NULL AND root.goods_cost IS NOT NULL AND root.revenue_state = %(revenue_state_9)s::VARCHAR AND root.goods_cost_state = %(goods_cost_state_7)s::VARCHAR) = count(*)) THEN coalesce(sum(CASE WHEN (root.revenue IS NOT NULL AND root.goods_cost IS NOT NULL AND root.revenue_state IN (%(revenue_state_10_1)s::VARCHAR, %(revenue_state_10_2)s::VARCHAR) AND root.goods_cost_state IN (%(goods_cost_state_8_1)s::VARCHAR, %(goods_cost_state_8_2)s::VARCHAR)) THEN root.revenue - root.goods_cost ELSE %(param_15)s::INTEGER END), %(coalesce_5)s::INTEGER) END) * %(abs_1)s::INTEGER, nullif(CASE WHEN (%(param_11)s AND count(*) > %(count_3)s::INTEGER AND count(*) FILTER (WHERE root.revenue IS NOT NULL AND root.revenue_state = %(revenue_state_7)s::VARCHAR) = count(*)) THEN coalesce(sum(CASE WHEN (root.revenue IS NOT NULL AND root.revenue_state IN (%(revenue_state_8_1)s::VARCHAR, %(revenue_state_8_2)s::VARCHAR)) THEN root.revenue ELSE %(param_12)s::INTEGER END), %(coalesce_4)s::INTEGER) END, %(nullif_1)s::INTEGER)) + CASE WHEN (mod(abs(CASE WHEN (%(param_14)s AND count(*) > %(count_4)s::INTEGER AND count(*) FILTER (WHERE root.revenue IS NOT NULL AND root.goods_cost IS NOT NULL AND root.revenue_state = %(revenue_state_9)s::VARCHAR AND root.goods_cost_state = %(goods_cost_state_7)s::VARCHAR) = count(*)) THEN coalesce(sum(CASE WHEN (root.revenue IS NOT NULL AND root.goods_cost IS NOT NULL AND root.revenue_state IN (%(revenue_state_10_1)s::VARCHAR, %(revenue_state_10_2)s::VARCHAR) AND root.goods_cost_state IN (%(goods_cost_state_8_1)s::VARCHAR, %(goods_cost_state_8_2)s::VARCHAR)) THEN root.revenue - root.goods_cost ELSE %(param_15)s::INTEGER END), %(coalesce_5)s::INTEGER) END) * %(abs_1)s::INTEGER, nullif(CASE WHEN (%(param_11)s AND count(*) > %(count_3)s::INTEGER AND count(*) FILTER (WHERE root.revenue IS NOT NULL AND root.revenue_state = %(revenue_state_7)s::VARCHAR) = count(*)) THEN coalesce(sum(CASE WHEN (root.revenue IS NOT NULL AND root.revenue_state IN (%(revenue_state_8_1)s::VARCHAR, %(revenue_state_8_2)s::VARCHAR)) THEN root.revenue ELSE %(param_12)s::INTEGER END), %(coalesce_4)s::INTEGER) END, %(nullif_1)s::INTEGER)) * %(mod_1)s::INTEGER > nullif(CASE WHEN (%(param_11)s AND count(*) > %(count_3)s::INTEGER AND count(*) FILTER (WHERE root.revenue IS NOT NULL AND root.revenue_state = %(revenue_state_7)s::VARCHAR) = count(*)) THEN coalesce(sum(CASE WHEN (root.revenue IS NOT NULL AND root.revenue_state IN (%(revenue_state_8_1)s::VARCHAR, %(revenue_state_8_2)s::VARCHAR)) THEN root.revenue ELSE %(param_12)s::INTEGER END), %(coalesce_4)s::INTEGER) END, %(nullif_1)s::INTEGER)) THEN %(param_16)s::INTEGER WHEN (mod(abs(CASE WHEN (%(param_14)s AND count(*) > %(count_4)s::INTEGER AND count(*) FILTER (WHERE root.revenue IS NOT NULL AND root.goods_cost IS NOT NULL AND root.revenue_state = %(revenue_state_9)s::VARCHAR AND root.goods_cost_state = %(goods_cost_state_7)s::VARCHAR) = count(*)) THEN coalesce(sum(CASE WHEN (root.revenue IS NOT NULL AND root.goods_cost IS NOT NULL AND root.revenue_state IN (%(revenue_state_10_1)s::VARCHAR, %(revenue_state_10_2)s::VARCHAR) AND root.goods_cost_state IN (%(goods_cost_state_8_1)s::VARCHAR, %(goods_cost_state_8_2)s::VARCHAR)) THEN root.revenue - root.goods_cost ELSE %(param_15)s::INTEGER END), %(coalesce_5)s::INTEGER) END) * %(abs_1)s::INTEGER, nullif(CASE WHEN (%(param_11)s AND count(*) > %(count_3)s::INTEGER AND count(*) FILTER (WHERE root.revenue IS NOT NULL AND root.revenue_state = %(revenue_state_7)s::VARCHAR) = count(*)) THEN coalesce(sum(CASE WHEN (root.revenue IS NOT NULL AND root.revenue_state IN (%(revenue_state_8_1)s::VARCHAR, %(revenue_state_8_2)s::VARCHAR)) THEN root.revenue ELSE %(param_12)s::INTEGER END), %(coalesce_4)s::INTEGER) END, %(nullif_1)s::INTEGER)) * %(mod_2)s::INTEGER = nullif(CASE WHEN (%(param_11)s AND count(*) > %(count_3)s::INTEGER AND count(*) FILTER (WHERE root.revenue IS NOT NULL AND root.revenue_state = %(revenue_state_7)s::VARCHAR) = count(*)) THEN coalesce(sum(CASE WHEN (root.revenue IS NOT NULL AND root.revenue_state IN (%(revenue_state_8_1)s::VARCHAR, %(revenue_state_8_2)s::VARCHAR)) THEN root.revenue ELSE %(param_12)s::INTEGER END), %(coalesce_4)s::INTEGER) END, %(nullif_1)s::INTEGER) AND mod(div(abs(CASE WHEN (%(param_14)s AND count(*) > %(count_4)s::INTEGER AND count(*) FILTER (WHERE root.revenue IS NOT NULL AND root.goods_cost IS NOT NULL AND root.revenue_state = %(revenue_state_9)s::VARCHAR AND root.goods_cost_state = %(goods_cost_state_7)s::VARCHAR) = count(*)) THEN coalesce(sum(CASE WHEN (root.revenue IS NOT NULL AND root.goods_cost IS NOT NULL AND root.revenue_state IN (%(revenue_state_10_1)s::VARCHAR, %(revenue_state_10_2)s::VARCHAR) AND root.goods_cost_state IN (%(goods_cost_state_8_1)s::VARCHAR, %(goods_cost_state_8_2)s::VARCHAR)) THEN root.revenue - root.goods_cost ELSE %(param_15)s::INTEGER END), %(coalesce_5)s::INTEGER) END) * %(abs_1)s::INTEGER, nullif(CASE WHEN (%(param_11)s AND count(*) > %(count_3)s::INTEGER AND count(*) FILTER (WHERE root.revenue IS NOT NULL AND root.revenue_state = %(revenue_state_7)s::VARCHAR) = count(*)) THEN coalesce(sum(CASE WHEN (root.revenue IS NOT NULL AND root.revenue_state IN (%(revenue_state_8_1)s::VARCHAR, %(revenue_state_8_2)s::VARCHAR)) THEN root.revenue ELSE %(param_12)s::INTEGER END), %(coalesce_4)s::INTEGER) END, %(nullif_1)s::INTEGER)), %(mod_3)s::INTEGER) = %(mod_4)s::INTEGER) THEN %(param_17)s::INTEGER ELSE %(param_18)s::INTEGER END) * %(param_19)s AS NUMERIC) END AS contribution_db1_rate 
+E           FROM (SELECT cost_contribution_generation.tenant_id AS tenant_id, cost_contribution_generation.id AS generation_id, cost_contribution_generation.action_id AS profile_scope_action_id, cost_contribution_snapshot.id AS snapshot_id, cost_contribution_review.id AS review_id, cost_revenue_match_basis.document_line_id AS document_line_id, cost_revenue_match_basis.order_line_id AS order_line_id, cost_revenue_match_basis.item_id AS item_id, cost_revenue_match_basis.customer_id AS customer_id, cost_revenue_match_basis.sales_channel AS sales_channel, cost_revenue_match_basis.currency AS currency, cost_revenue_match_basis.base_unit AS base_unit, cost_revenue_match_basis.quantity AS quantity, cost_inventory_review.policy_id AS policy_revision_id, cost_inventory_review.effective_at AS effective_at, cost_contribution_review.economic_at AS economic_at, cost_contribution_review.knowledge_at AS knowledge_at, cost_revenue_match_basis.stated_net AS revenue, %(param_20)s::VARCHAR AS revenue_state, cost_contribution_snapshot.goods_cost AS goods_cost, %(param_21)s::VARCHAR AS goods_cost_state, cost_contribution_snapshot.known_direct_selling_cost AS known_direct_selling_cost, cost_contribution_snapshot.known_allocated_selling_cost AS known_allocated_selling_cost, CASE WHEN cost_contribution_snapshot.selling_complete THEN cost_contribution_snapshot.known_direct_selling_cost END AS direct_selling_cost, CASE WHEN cost_contribution_snapshot.selling_complete THEN cost_contribution_snapshot.known_allocated_selling_cost END AS allocated_selling_cost, CASE WHEN cost_contribution_snapshot.selling_complete THEN %(param_22)s::VARCHAR ELSE %(param_23)s::VARCHAR END AS direct_selling_cost_state, CASE WHEN cost_contribution_snapshot.selling_complete THEN %(param_24)s::VARCHAR ELSE %(param_25)s::VARCHAR END AS allocated_selling_cost_state 
+E           FROM cost_contribution_generation JOIN cost_contribution_snapshot ON cost_contribution_snapshot.tenant_id = %(tenant_id_1)s::VARCHAR AND cost_contribution_snapshot.generation_id = cost_contribution_generation.id JOIN cost_contribution_review ON cost_contribution_review.tenant_id = %(tenant_id_2)s::VARCHAR AND cost_contribution_review.id = cost_contribution_snapshot.review_id AND cost_contribution_review.action_id = cost_contribution_generation.action_id JOIN cost_revenue_match_basis ON cost_revenue_match_basis.tenant_id = %(tenant_id_3)s::VARCHAR AND cost_revenue_match_basis.id = cost_contribution_review.revenue_basis_id JOIN cost_inventory_member ON cost_inventory_member.tenant_id = %(tenant_id_4)s::VARCHAR AND cost_inventory_member.id = cost_contribution_review.inventory_member_id JOIN cost_inventory_review ON cost_inventory_review.tenant_id = %(tenant_id_5)s::VARCHAR AND cost_inventory_review.id = cost_inventory_member.review_id 
+E           WHERE cost_contribution_generation.tenant_id = %(tenant_id_6)s::VARCHAR AND cost_contribution_generation.id = %(id_1)s::VARCHAR) AS root 
+E           WHERE root.tenant_id = %(tenant_id_7)s::VARCHAR GROUP BY root.currency, root.base_unit, to_char(date_trunc(%(date_trunc_1)s::VARCHAR, CAST(CASE WHEN (root.economic_at ~ %(economic_at_1)s::VARCHAR) THEN CASE WHEN (CAST(substr(root.economic_at, %(substr_1)s::INTEGER, %(substr_2)s::INTEGER) AS INTEGER) BETWEEN %(param_1)s::INTEGER AND %(param_2)s::INTEGER AND CAST(substr(root.economic_at, %(substr_3)s::INTEGER, %(substr_4)s::INTEGER) AS INTEGER) BETWEEN %(param_3)s::INTEGER AND %(param_4)s::INTEGER) THEN CASE WHEN (CAST(substr(root.economic_at, %(substr_5)s::INTEGER, %(substr_6)s::INTEGER) AS INTEGER) BETWEEN %(param_5)s::INTEGER AND EXTRACT(day FROM make_date(CAST(substr(root.economic_at, %(substr_1)s::INTEGER, %(substr_2)s::INTEGER) AS INTEGER), CAST(substr(root.economic_at, %(substr_3)s::INTEGER, %(substr_4)s::INTEGER) AS INTEGER), %(make_date_1)s::INTEGER) + INTERVAL '1 month - 1 day')) THEN make_date(CAST(substr(root.economic_at, %(substr_1)s::INTEGER, %(substr_2)s::INTEGER) AS INTEGER), CAST(substr(root.economic_at, %(substr_3)s::INTEGER, %(substr_4)s::INTEGER) AS INTEGER), CAST(substr(root.economic_at, %(substr_5)s::INTEGER, %(substr_6)s::INTEGER) AS INTEGER)) END END END AS DATE)), %(to_char_1)s::VARCHAR) ORDER BY "root.base_unit" 
+E            LIMIT %(param_26)s::INTEGER]
+E           [parameters: {'date_trunc_1': 'month', 'economic_at_1': '^[0-9]{4}-[0-9]{2}-[0-9]{2}$', 'substr_1': 1, 'substr_2': 4, 'param_1': 1, 'param_2': 9999, 'substr_3': 6, 'substr_4': 2, 'param_3': 1, 'param_4': 12, 'substr_5': 9, 'substr_6': 2, 'param_5': 1, 'make_date_1': 1, 'to_char_1': 'YYYY-MM', 'param_6': True, 'count_1': 0, 'revenue_state_1': 'reviewed', 'goods_cost_state_1': 'reviewed', 'param_7': 0, 'coalesce_1': 0, 'param_8': True, 'count_2': 0, 'revenue_state_3': 'reviewed', 'goods_cost_state_3': 'reviewed', 'direct_selling_cost_state_1': 'reviewed', 'allocated_selling_cost_state_1': 'reviewed', 'param_9': 0, 'coalesce_2': 0, 'param_10': 0, 'coalesce_3': 0, 'revenue_state_6': 'reviewed', 'goods_cost_state_6': 'reviewed', 'direct_selling_cost_state_4': 'reviewed', 'allocated_selling_cost_state_4': 'reviewed', 'param_11': True, 'count_3': 0, 'revenue_state_7': 'reviewed', 'param_12': 0, 'coalesce_4': 0, 'param_13': 0, 'param_14': True, 'count_4': 0, 'revenue_state_9': 'reviewed', 'goods_cost_state_7': 'reviewed', 'param_15': 0, 'coalesce_5': 0, 'abs_1': 1000000, 'nullif_1': 0, 'mod_1': 2, 'param_16': 1, 'mod_2': 2, 'mod_3': 2, 'mod_4': 1, 'param_17': 1, 'param_18': 0, 'param_19': Decimal('0.0001'), 'param_20': 'reviewed', 'param_21': 'reviewed', 'param_22': 'reviewed', 'param_23': 'unknown', 'param_24': 'reviewed', 'param_25': 'unknown', 'tenant_id_1': 'ten_c1f10ef962', 'tenant_id_2': 'ten_c1f10ef962', 'tenant_id_3': 'ten_c1f10ef962', 'tenant_id_4': 'ten_c1f10ef962', 'tenant_id_5': 'ten_c1f10ef962', 'tenant_id_6': 'ten_c1f10ef962', 'id_1': 'ccg_687314740d', 'tenant_id_7': 'ten_c1f10ef962', 'param_26': 200, 'revenue_state_2_1': 'reviewed', 'revenue_state_2_2': 'evidenced', 'goods_cost_state_2_1': 'reviewed', 'goods_cost_state_2_2': 'evidenced', 'revenue_state_4_1': 'reviewed', 'revenue_state_4_2': 'evidenced', 'goods_cost_state_4_1': 'reviewed', 'goods_cost_state_4_2': 'evidenced', 'direct_selling_cost_state_2_1': 'reviewed', 'direct_selling_cost_state_2_2': 'evidenced', 'allocated_selling_cost_state_2_1': 'reviewed', 'allocated_selling_cost_state_2_2': 'evidenced', 'revenue_state_5_1': 'reviewed', 'revenue_state_5_2': 'evidenced', 'goods_cost_state_5_1': 'reviewed', 'goods_cost_state_5_2': 'evidenced', 'direct_selling_cost_state_3_1': 'reviewed', 'direct_selling_cost_state_3_2': 'evidenced', 'allocated_selling_cost_state_3_1': 'reviewed', 'allocated_selling_cost_state_3_2': 'evidenced', 'revenue_state_8_1': 'reviewed', 'revenue_state_8_2': 'evidenced', 'revenue_state_10_1': 'reviewed', 'revenue_state_10_2': 'evidenced', 'goods_cost_state_8_1': 'reviewed', 'goods_cost_state_8_2': 'evidenced'}]
+E           (Background on this error at: https://sqlalche.me/e/20/f405)
+
+../../.venv/lib/python3.12/site-packages/psycopg/cursor.py:117: ProgrammingError
+____________ test_all_table_nodes_can_preview_their_declared_fields ____________
+
+session = <sqlalchemy.orm.session.Session object at 0x1101222d0>
+business = Business(tenant=<reality.db.core.Tenant object at 0x10ff65fa0>, company=<reality.db.core.Party object at 0x10fa8e510>,...fa8f080>, item=<reality.db.core.Item object at 0x10fa8e270>, location=<reality.db.core.Location object at 0x10fa8cb30>)
+
+    def test_all_table_nodes_can_preview_their_declared_fields(session, business):
+        from reality.services.analytics.graph_model import reporting_graph
+    
+        for name, node in reporting_graph().nodes.items():
+            if not node.table:
+                continue
+            if node.derivation == "costing.inventory":
+                # A catalog probe must not select an implicit financial basis.
+                from reality.services.analytics.traversal import TraversalRefused
+    
+                with pytest.raises(TraversalRefused) as failure:
+                    ask(
+                        session,
+                        business.tenant.id,
+                        **{
+                            "from": name,
+                            "group_by": [{"field": "root." + node.key}],
+                        },
+                    )
+                assert failure.value.code == "cost_context_required"
+                continue
+>           result = ask(
+                session,
+                business.tenant.id,
+                **{
+                    "from": name,
+                    "as": "o",
+                    "filter": snapshot_inputs(node, "o"),
+                    "group_by": [
+                        {"field": "o." + field} for field in [node.key, *node.properties]
+                    ],
+                    "limit": 1,
+                },
+            )
+
+tests/test_reporting_graph_expansion.py:228: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_reporting_graph_expansion.py:15: in ask
+    return run_traversal(session, tenant, Traversal.model_validate(query))
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src/reality/services/analytics/traversal.py:502: in run_traversal
+    path = plan(query)
+           ^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+query = Traversal(from_='contribution_valuation', inventory_cost_context=None, contribution_cost_context=None, as_='o', follow... as_=None), Grouping(field='o.policy_revision_id', bucket=None, as_=None)), having=(), exists=(), order_by=(), limit=1)
+graph = ReportingGraph(version=1, model_version='sales.1', language='business terms are English here; the web surface translat...=8, max_recursive_depth=6, result_rows=10000, page_rows=200, statement_timeout_seconds=30, statements_per_traversal=1))
+
+    def plan(query: Traversal, graph: ReportingGraph | None = None) -> ResolvedPath:
+        """Resolve and check a question. Nothing touches the database until this passes."""
+        graph = graph or reporting_graph()
+        if len(query.follow) > graph.limits.max_path_length:
+            raise TraversalRefused(
+                f"a path may take at most {graph.limits.max_path_length} steps",
+                "path_too_long",
+            )
+        costing = graph.nodes.get(query.from_)
+        is_inventory = costing is not None and costing.derivation == "costing.inventory"
+        if is_inventory and query.inventory_cost_context is None:
+            raise TraversalRefused(
+                "An inventory cost context is required", "cost_context_required"
+            )
+        if query.inventory_cost_context is not None and (
+            not is_inventory or query.follow or query.exists
+        ):
+            raise TraversalRefused(
+                "Inventory cost context requires a standalone inventory question",
+                "cost_context_invalid",
+            )
+        if is_inventory and any(group.bucket for group in query.group_by):
+            raise TraversalRefused(
+                "A confirmed inventory state cannot be bucketed across time", "not_additive"
+            )
+        is_contribution = (
+            costing is not None and costing.derivation == "costing.contribution"
+        )
+        if is_contribution and query.contribution_cost_context is None:
+>           raise TraversalRefused(
+                "A contribution cost context is required", "cost_context_required"
+            )
+E           reality.services.analytics.traversal.TraversalRefused: A contribution cost context is required
+
+src/reality/services/analytics/traversal.py:454: TraversalRefused
+_____ test_production_tenant_isolation_catalog_is_complete_and_resolvable ______
+
+    def test_production_tenant_isolation_catalog_is_complete_and_resolvable():
+>       catalog = catalogs.load_tenant_isolation_catalog()
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_application_catalog.py:420: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+src/reality/catalogs.py:1015: in load_tenant_isolation_catalog
+    catalog = validate_tenant_isolation_catalog(payload)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+payload = {'version': 1, 'discovery': {'modules': ['reality.services.core', 'reality.services.artifacts', 'reality.services.file... 'classification': 'collection', 'authority': '003/FR-010, 003/FR-012, 019/FR-005, 040/FR-002, 040/DR-003', ...}, ...]}
+discovered_operations = None
+
+    def validate_tenant_isolation_catalog(
+        payload: dict[str, Any],
+        *,
+        discovered_operations: tuple[str, ...] | None = None,
+    ) -> TenantIsolationCatalog:
+        """Validate complete operation classification and executable evidence mapping."""
+        version = payload.get("version")
+        if not isinstance(version, int) or isinstance(version, bool) or version < 1:
+            raise ValueError("Tenant isolation catalog version must be a positive integer")
+        families = payload.get("families")
+        if not isinstance(families, list) or not families:
+            raise ValueError("Tenant isolation catalog requires non-empty families")
+        explicit = payload.get("explicit_operations", [])
+        if not isinstance(explicit, list) or not all(
+            isinstance(item, str) for item in explicit
+        ):
+            raise ValueError("explicit_operations must be a list of operation names")
+        discovered = discovered_operations or discover_tenant_operations(
+            explicit_operations=tuple(explicit)
+        )
+    
+        keys: set[str] = set()
+        mapped: dict[str, str] = {}
+        evidence_ids: set[str] = set()
+        normalized: list[dict[str, Any]] = []
+        for index, raw_family in enumerate(families):
+            if not isinstance(raw_family, dict):
+                raise TypeError(
+                    f"Tenant isolation family at index {index} must be a mapping"
+                )
+            context = f"Tenant isolation family at index {index}"
+            key = _required_text(raw_family, "key", context)
+            if key in keys:
+                raise ValueError(f"Duplicate tenant isolation family: {key}")
+            keys.add(key)
+            _required_text(raw_family, "description", key)
+            authority = _required_text(raw_family, "authority", key)
+            classification = _required_text(raw_family, "classification", key)
+            if classification not in TENANT_ISOLATION_CLASSIFICATIONS:
+                raise ValueError(
+                    f"Unknown tenant isolation classification for {key}: {classification}"
+                )
+            if classification in {"boundary", "global_admin"}:
+                _required_text(raw_family, "reason", key)
+            operations = raw_family.get("operations")
+            if (
+                not isinstance(operations, list)
+                or not operations
+                or not all(isinstance(item, str) and item for item in operations)
+            ):
+                raise ValueError(f"{key} requires non-empty operations")
+            for operation in operations:
+                previous = mapped.get(operation)
+                if previous:
+                    raise ValueError(
+                        f"Duplicate tenant isolation operation: {operation} ({previous}, {key})"
+                    )
+                mapped[operation] = key
+            evidence = raw_family.get("evidence")
+            if not isinstance(evidence, list) or not evidence:
+                raise ValueError(f"{key} requires non-empty evidence")
+            covered: set[str] = set()
+            for item in evidence:
+                if not isinstance(item, dict):
+                    raise TypeError(f"{key} evidence entries must be mappings")
+                evidence_id = _required_text(item, "id", f"{key} evidence")
+                if evidence_id in evidence_ids:
+                    raise ValueError(f"Duplicate tenant isolation evidence: {evidence_id}")
+                evidence_ids.add(evidence_id)
+                assertion = _required_text(item, "assertion", f"{key} evidence")
+                if assertion != classification:
+                    raise ValueError(
+                        f"Evidence classification mismatch for {evidence_id}: {assertion} != {classification}"
+                    )
+                evidence_operations = item.get("operations")
+                if not isinstance(evidence_operations, list) or not evidence_operations:
+                    raise ValueError(f"{evidence_id} requires covered operations")
+                unknown_evidence = set(evidence_operations) - set(operations)
+                if unknown_evidence:
+                    raise ValueError(
+                        f"Evidence {evidence_id} references unknown family operations: {sorted(unknown_evidence)}"
+                    )
+                covered.update(evidence_operations)
+            missing_evidence = sorted(set(operations) - covered)
+            if missing_evidence:
+                raise ValueError(f"Unproven operations in {key}: {missing_evidence}")
+            normalized.append({**raw_family, "authority": authority})
+    
+        discovered_set = set(discovered)
+        mapped_set = set(mapped)
+        missing = sorted(discovered_set - mapped_set)
+        stale = sorted(mapped_set - discovered_set)
+        if missing or stale:
+>           raise ValueError(
+                f"Tenant isolation catalog drift: missing={missing}, stale={stale}"
+            )
+E           ValueError: Tenant isolation catalog drift: missing=[], stale=['reality.services.analytics.contribution_options:contribution_review_options']
+
+src/reality/catalogs.py:889: ValueError
+_________ test_membership_access_operations_are_explicitly_classified __________
+
+    def test_membership_access_operations_are_explicitly_classified():
+>       catalog = catalogs.load_tenant_isolation_catalog()
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_application_catalog.py:437: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+src/reality/catalogs.py:1015: in load_tenant_isolation_catalog
+    catalog = validate_tenant_isolation_catalog(payload)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+payload = {'version': 1, 'discovery': {'modules': ['reality.services.core', 'reality.services.artifacts', 'reality.services.file... 'classification': 'collection', 'authority': '003/FR-010, 003/FR-012, 019/FR-005, 040/FR-002, 040/DR-003', ...}, ...]}
+discovered_operations = None
+
+    def validate_tenant_isolation_catalog(
+        payload: dict[str, Any],
+        *,
+        discovered_operations: tuple[str, ...] | None = None,
+    ) -> TenantIsolationCatalog:
+        """Validate complete operation classification and executable evidence mapping."""
+        version = payload.get("version")
+        if not isinstance(version, int) or isinstance(version, bool) or version < 1:
+            raise ValueError("Tenant isolation catalog version must be a positive integer")
+        families = payload.get("families")
+        if not isinstance(families, list) or not families:
+            raise ValueError("Tenant isolation catalog requires non-empty families")
+        explicit = payload.get("explicit_operations", [])
+        if not isinstance(explicit, list) or not all(
+            isinstance(item, str) for item in explicit
+        ):
+            raise ValueError("explicit_operations must be a list of operation names")
+        discovered = discovered_operations or discover_tenant_operations(
+            explicit_operations=tuple(explicit)
+        )
+    
+        keys: set[str] = set()
+        mapped: dict[str, str] = {}
+        evidence_ids: set[str] = set()
+        normalized: list[dict[str, Any]] = []
+        for index, raw_family in enumerate(families):
+            if not isinstance(raw_family, dict):
+                raise TypeError(
+                    f"Tenant isolation family at index {index} must be a mapping"
+                )
+            context = f"Tenant isolation family at index {index}"
+            key = _required_text(raw_family, "key", context)
+            if key in keys:
+                raise ValueError(f"Duplicate tenant isolation family: {key}")
+            keys.add(key)
+            _required_text(raw_family, "description", key)
+            authority = _required_text(raw_family, "authority", key)
+            classification = _required_text(raw_family, "classification", key)
+            if classification not in TENANT_ISOLATION_CLASSIFICATIONS:
+                raise ValueError(
+                    f"Unknown tenant isolation classification for {key}: {classification}"
+                )
+            if classification in {"boundary", "global_admin"}:
+                _required_text(raw_family, "reason", key)
+            operations = raw_family.get("operations")
+            if (
+                not isinstance(operations, list)
+                or not operations
+                or not all(isinstance(item, str) and item for item in operations)
+            ):
+                raise ValueError(f"{key} requires non-empty operations")
+            for operation in operations:
+                previous = mapped.get(operation)
+                if previous:
+                    raise ValueError(
+                        f"Duplicate tenant isolation operation: {operation} ({previous}, {key})"
+                    )
+                mapped[operation] = key
+            evidence = raw_family.get("evidence")
+            if not isinstance(evidence, list) or not evidence:
+                raise ValueError(f"{key} requires non-empty evidence")
+            covered: set[str] = set()
+            for item in evidence:
+                if not isinstance(item, dict):
+                    raise TypeError(f"{key} evidence entries must be mappings")
+                evidence_id = _required_text(item, "id", f"{key} evidence")
+                if evidence_id in evidence_ids:
+                    raise ValueError(f"Duplicate tenant isolation evidence: {evidence_id}")
+                evidence_ids.add(evidence_id)
+                assertion = _required_text(item, "assertion", f"{key} evidence")
+                if assertion != classification:
+                    raise ValueError(
+                        f"Evidence classification mismatch for {evidence_id}: {assertion} != {classification}"
+                    )
+                evidence_operations = item.get("operations")
+                if not isinstance(evidence_operations, list) or not evidence_operations:
+                    raise ValueError(f"{evidence_id} requires covered operations")
+                unknown_evidence = set(evidence_operations) - set(operations)
+                if unknown_evidence:
+                    raise ValueError(
+                        f"Evidence {evidence_id} references unknown family operations: {sorted(unknown_evidence)}"
+                    )
+                covered.update(evidence_operations)
+            missing_evidence = sorted(set(operations) - covered)
+            if missing_evidence:
+                raise ValueError(f"Unproven operations in {key}: {missing_evidence}")
+            normalized.append({**raw_family, "authority": authority})
+    
+        discovered_set = set(discovered)
+        mapped_set = set(mapped)
+        missing = sorted(discovered_set - mapped_set)
+        stale = sorted(mapped_set - discovered_set)
+        if missing or stale:
+>           raise ValueError(
+                f"Tenant isolation catalog drift: missing={missing}, stale={stale}"
+            )
+E           ValueError: Tenant isolation catalog drift: missing=[], stale=['reality.services.analytics.contribution_options:contribution_review_options']
+
+src/reality/catalogs.py:889: ValueError
+_____________________ test_record_reads_are_non_disclosing _____________________
+
+session = <sqlalchemy.orm.session.Session object at 0x1129d4800>
+two_tenant_graph = TwoTenantGraph(local=TenantGraph(tenant=<reality.db.core.Tenant object at 0x1129d53a0>, company=<reality.db.core.Party...eality.db.core.ChatSession object at 0x111f74d40>, source_system=<reality.db.core.SourceSystem object at 0x1125e1d30>))
+
+    def test_record_reads_are_non_disclosing(session, two_tenant_graph):
+        local = two_tenant_graph.local
+        foreign = two_tenant_graph.foreign
+    
+        with pytest.raises(NotFound) as foreign_error:
+            document_detail(session, local.tenant.id, foreign.document.id)
+        with pytest.raises(NotFound) as unknown_error:
+            document_detail(session, local.tenant.id, "doc_unknown")
+    
+        assert str(foreign_error.value) == str(unknown_error.value)
+        assert (
+            document_detail(session, local.tenant.id, local.document.id)["document"].id
+            == local.document.id
+        )
+        for detail_service, foreign_id, unknown_id in (
+            (party_detail, foreign.customer.id, "par_unknown"),
+            (item_detail, foreign.item.id, "itm_unknown"),
+            (get_chat_session, foreign.chat_session.id, "cht_unknown"),
+        ):
+            with pytest.raises(NotFound) as foreign_detail_error:
+                detail_service(session, local.tenant.id, foreign_id)
+            with pytest.raises(NotFound) as unknown_detail_error:
+                detail_service(session, local.tenant.id, unknown_id)
+            assert str(foreign_detail_error.value) == str(unknown_detail_error.value)
+>       assert _family("record_reads")["classification"] == "record_read"
+               ^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/tenant_isolation/test_families.py:90: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/tenant_isolation/test_families.py:61: in _family
+    for family in load_tenant_isolation_catalog().families
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src/reality/catalogs.py:1015: in load_tenant_isolation_catalog
+    catalog = validate_tenant_isolation_catalog(payload)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+payload = {'version': 1, 'discovery': {'modules': ['reality.services.core', 'reality.services.artifacts', 'reality.services.file... 'classification': 'collection', 'authority': '003/FR-010, 003/FR-012, 019/FR-005, 040/FR-002, 040/DR-003', ...}, ...]}
+discovered_operations = None
+
+    def validate_tenant_isolation_catalog(
+        payload: dict[str, Any],
+        *,
+        discovered_operations: tuple[str, ...] | None = None,
+    ) -> TenantIsolationCatalog:
+        """Validate complete operation classification and executable evidence mapping."""
+        version = payload.get("version")
+        if not isinstance(version, int) or isinstance(version, bool) or version < 1:
+            raise ValueError("Tenant isolation catalog version must be a positive integer")
+        families = payload.get("families")
+        if not isinstance(families, list) or not families:
+            raise ValueError("Tenant isolation catalog requires non-empty families")
+        explicit = payload.get("explicit_operations", [])
+        if not isinstance(explicit, list) or not all(
+            isinstance(item, str) for item in explicit
+        ):
+            raise ValueError("explicit_operations must be a list of operation names")
+        discovered = discovered_operations or discover_tenant_operations(
+            explicit_operations=tuple(explicit)
+        )
+    
+        keys: set[str] = set()
+        mapped: dict[str, str] = {}
+        evidence_ids: set[str] = set()
+        normalized: list[dict[str, Any]] = []
+        for index, raw_family in enumerate(families):
+            if not isinstance(raw_family, dict):
+                raise TypeError(
+                    f"Tenant isolation family at index {index} must be a mapping"
+                )
+            context = f"Tenant isolation family at index {index}"
+            key = _required_text(raw_family, "key", context)
+            if key in keys:
+                raise ValueError(f"Duplicate tenant isolation family: {key}")
+            keys.add(key)
+            _required_text(raw_family, "description", key)
+            authority = _required_text(raw_family, "authority", key)
+            classification = _required_text(raw_family, "classification", key)
+            if classification not in TENANT_ISOLATION_CLASSIFICATIONS:
+                raise ValueError(
+                    f"Unknown tenant isolation classification for {key}: {classification}"
+                )
+            if classification in {"boundary", "global_admin"}:
+                _required_text(raw_family, "reason", key)
+            operations = raw_family.get("operations")
+            if (
+                not isinstance(operations, list)
+                or not operations
+                or not all(isinstance(item, str) and item for item in operations)
+            ):
+                raise ValueError(f"{key} requires non-empty operations")
+            for operation in operations:
+                previous = mapped.get(operation)
+                if previous:
+                    raise ValueError(
+                        f"Duplicate tenant isolation operation: {operation} ({previous}, {key})"
+                    )
+                mapped[operation] = key
+            evidence = raw_family.get("evidence")
+            if not isinstance(evidence, list) or not evidence:
+                raise ValueError(f"{key} requires non-empty evidence")
+            covered: set[str] = set()
+            for item in evidence:
+                if not isinstance(item, dict):
+                    raise TypeError(f"{key} evidence entries must be mappings")
+                evidence_id = _required_text(item, "id", f"{key} evidence")
+                if evidence_id in evidence_ids:
+                    raise ValueError(f"Duplicate tenant isolation evidence: {evidence_id}")
+                evidence_ids.add(evidence_id)
+                assertion = _required_text(item, "assertion", f"{key} evidence")
+                if assertion != classification:
+                    raise ValueError(
+                        f"Evidence classification mismatch for {evidence_id}: {assertion} != {classification}"
+                    )
+                evidence_operations = item.get("operations")
+                if not isinstance(evidence_operations, list) or not evidence_operations:
+                    raise ValueError(f"{evidence_id} requires covered operations")
+                unknown_evidence = set(evidence_operations) - set(operations)
+                if unknown_evidence:
+                    raise ValueError(
+                        f"Evidence {evidence_id} references unknown family operations: {sorted(unknown_evidence)}"
+                    )
+                covered.update(evidence_operations)
+            missing_evidence = sorted(set(operations) - covered)
+            if missing_evidence:
+                raise ValueError(f"Unproven operations in {key}: {missing_evidence}")
+            normalized.append({**raw_family, "authority": authority})
+    
+        discovered_set = set(discovered)
+        mapped_set = set(mapped)
+        missing = sorted(discovered_set - mapped_set)
+        stale = sorted(mapped_set - discovered_set)
+        if missing or stale:
+>           raise ValueError(
+                f"Tenant isolation catalog drift: missing={missing}, stale={stale}"
+            )
+E           ValueError: Tenant isolation catalog drift: missing=[], stale=['reality.services.analytics.contribution_options:contribution_review_options']
+
+src/reality/catalogs.py:889: ValueError
+___________________ test_collections_exclude_foreign_records ___________________
+
+session = <sqlalchemy.orm.session.Session object at 0x11253ec00>
+two_tenant_graph = TwoTenantGraph(local=TenantGraph(tenant=<reality.db.core.Tenant object at 0x11253eae0>, company=<reality.db.core.Party...eality.db.core.ChatSession object at 0x1122d0bc0>, source_system=<reality.db.core.SourceSystem object at 0x11260e750>))
+
+    def test_collections_exclude_foreign_records(session, two_tenant_graph):
+        local = two_tenant_graph.local
+        foreign = two_tenant_graph.foreign
+    
+        assert {row.id for row in parties(session, local.tenant.id)} == {
+            local.company.id,
+            local.customer.id,
+        }
+        assert {row.id for row in items(session, local.tenant.id)} == {local.item.id}
+        assert {row.id for row in locations(session, local.tenant.id)} == {
+            local.location.id
+        }
+        assert {row.id for row in commitments(session, local.tenant.id)} == {
+            local.commitment.id
+        }
+        assert foreign.item.id not in {
+            row["item"].id for row in inventory_rows(session, local.tenant.id)
+        }
+        assert {row.id for row in source_records(session, local.tenant.id)} == {
+            local.source.id
+        }
+        assert {row.id for row in chat_sessions(session, local.tenant.id)} == {
+            local.chat_session.id
+        }
+        assert {
+            system.id
+            for system in integration_registry(session, local.tenant.id)["systems"]
+        } == {local.source_system.id}
+        assert all(
+            row["document"].tenant_id == local.tenant.id
+            for row in financial_open_items(session, local.tenant.id)
+        )
+        assert all(
+            row["movement"].tenant_id == local.tenant.id
+            for row in movement_register(session, local.tenant.id)
+        )
+        local_timeline_ids = {row[3] for row in timeline(session, local.tenant.id)}
+        assert local.source.id in local_timeline_ids
+        assert foreign.source.id not in local_timeline_ids
+        assert foreign.commitment.id not in local_timeline_ids
+>       assert _family("collections")["classification"] == "collection"
+               ^^^^^^^^^^^^^^^^^^^^^^
+
+tests/tenant_isolation/test_families.py:164: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/tenant_isolation/test_families.py:61: in _family
+    for family in load_tenant_isolation_catalog().families
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src/reality/catalogs.py:1015: in load_tenant_isolation_catalog
+    catalog = validate_tenant_isolation_catalog(payload)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+payload = {'version': 1, 'discovery': {'modules': ['reality.services.core', 'reality.services.artifacts', 'reality.services.file... 'classification': 'collection', 'authority': '003/FR-010, 003/FR-012, 019/FR-005, 040/FR-002, 040/DR-003', ...}, ...]}
+discovered_operations = None
+
+    def validate_tenant_isolation_catalog(
+        payload: dict[str, Any],
+        *,
+        discovered_operations: tuple[str, ...] | None = None,
+    ) -> TenantIsolationCatalog:
+        """Validate complete operation classification and executable evidence mapping."""
+        version = payload.get("version")
+        if not isinstance(version, int) or isinstance(version, bool) or version < 1:
+            raise ValueError("Tenant isolation catalog version must be a positive integer")
+        families = payload.get("families")
+        if not isinstance(families, list) or not families:
+            raise ValueError("Tenant isolation catalog requires non-empty families")
+        explicit = payload.get("explicit_operations", [])
+        if not isinstance(explicit, list) or not all(
+            isinstance(item, str) for item in explicit
+        ):
+            raise ValueError("explicit_operations must be a list of operation names")
+        discovered = discovered_operations or discover_tenant_operations(
+            explicit_operations=tuple(explicit)
+        )
+    
+        keys: set[str] = set()
+        mapped: dict[str, str] = {}
+        evidence_ids: set[str] = set()
+        normalized: list[dict[str, Any]] = []
+        for index, raw_family in enumerate(families):
+            if not isinstance(raw_family, dict):
+                raise TypeError(
+                    f"Tenant isolation family at index {index} must be a mapping"
+                )
+            context = f"Tenant isolation family at index {index}"
+            key = _required_text(raw_family, "key", context)
+            if key in keys:
+                raise ValueError(f"Duplicate tenant isolation family: {key}")
+            keys.add(key)
+            _required_text(raw_family, "description", key)
+            authority = _required_text(raw_family, "authority", key)
+            classification = _required_text(raw_family, "classification", key)
+            if classification not in TENANT_ISOLATION_CLASSIFICATIONS:
+                raise ValueError(
+                    f"Unknown tenant isolation classification for {key}: {classification}"
+                )
+            if classification in {"boundary", "global_admin"}:
+                _required_text(raw_family, "reason", key)
+            operations = raw_family.get("operations")
+            if (
+                not isinstance(operations, list)
+                or not operations
+                or not all(isinstance(item, str) and item for item in operations)
+            ):
+                raise ValueError(f"{key} requires non-empty operations")
+            for operation in operations:
+                previous = mapped.get(operation)
+                if previous:
+                    raise ValueError(
+                        f"Duplicate tenant isolation operation: {operation} ({previous}, {key})"
+                    )
+                mapped[operation] = key
+            evidence = raw_family.get("evidence")
+            if not isinstance(evidence, list) or not evidence:
+                raise ValueError(f"{key} requires non-empty evidence")
+            covered: set[str] = set()
+            for item in evidence:
+                if not isinstance(item, dict):
+                    raise TypeError(f"{key} evidence entries must be mappings")
+                evidence_id = _required_text(item, "id", f"{key} evidence")
+                if evidence_id in evidence_ids:
+                    raise ValueError(f"Duplicate tenant isolation evidence: {evidence_id}")
+                evidence_ids.add(evidence_id)
+                assertion = _required_text(item, "assertion", f"{key} evidence")
+                if assertion != classification:
+                    raise ValueError(
+                        f"Evidence classification mismatch for {evidence_id}: {assertion} != {classification}"
+                    )
+                evidence_operations = item.get("operations")
+                if not isinstance(evidence_operations, list) or not evidence_operations:
+                    raise ValueError(f"{evidence_id} requires covered operations")
+                unknown_evidence = set(evidence_operations) - set(operations)
+                if unknown_evidence:
+                    raise ValueError(
+                        f"Evidence {evidence_id} references unknown family operations: {sorted(unknown_evidence)}"
+                    )
+                covered.update(evidence_operations)
+            missing_evidence = sorted(set(operations) - covered)
+            if missing_evidence:
+                raise ValueError(f"Unproven operations in {key}: {missing_evidence}")
+            normalized.append({**raw_family, "authority": authority})
+    
+        discovered_set = set(discovered)
+        mapped_set = set(mapped)
+        missing = sorted(discovered_set - mapped_set)
+        stale = sorted(mapped_set - discovered_set)
+        if missing or stale:
+>           raise ValueError(
+                f"Tenant isolation catalog drift: missing={missing}, stale={stale}"
+            )
+E           ValueError: Tenant isolation catalog drift: missing=[], stale=['reality.services.analytics.contribution_options:contribution_review_options']
+
+src/reality/catalogs.py:889: ValueError
+____________________ test_aggregates_exclude_foreign_values ____________________
+
+session = <sqlalchemy.orm.session.Session object at 0x11254d5b0>
+two_tenant_graph = TwoTenantGraph(local=TenantGraph(tenant=<reality.db.core.Tenant object at 0x11254cce0>, company=<reality.db.core.Party...eality.db.core.ChatSession object at 0x11254e8d0>, source_system=<reality.db.core.SourceSystem object at 0x11254c4d0>))
+
+    def test_aggregates_exclude_foreign_values(session, two_tenant_graph):
+        local = two_tenant_graph.local
+        foreign = two_tenant_graph.foreign
+    
+        assert stock_at(
+            session, local.tenant.id, local.item.id, local.location.id
+        ) == Decimal(3)
+        assert stock_at(
+            session, foreign.tenant.id, foreign.item.id, foreign.location.id
+        ) == Decimal(11)
+        assert chat_session_count(session, local.tenant.id) == 1
+        assert chat_session_count(session, foreign.tenant.id) == 1
+        assert account_balance(session, local.tenant.id, "accounts_receivable") == Decimal(
+            100
+        )
+        assert account_balance(
+            session, foreign.tenant.id, "accounts_receivable"
+        ) == Decimal(100)
+        refresh_operational_projections(session, local.tenant.id)
+        projected_inventory = projection_rows(session, local.tenant.id, "inventory")
+        assert {row["item_id"] for row in projected_inventory} == {local.item.id}
+        assert foreign.item.id not in {row["item_id"] for row in projected_inventory}
+>       assert _family("aggregates")["classification"] == "aggregate"
+               ^^^^^^^^^^^^^^^^^^^^^
+
+tests/tenant_isolation/test_families.py:189: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/tenant_isolation/test_families.py:61: in _family
+    for family in load_tenant_isolation_catalog().families
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src/reality/catalogs.py:1015: in load_tenant_isolation_catalog
+    catalog = validate_tenant_isolation_catalog(payload)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+payload = {'version': 1, 'discovery': {'modules': ['reality.services.core', 'reality.services.artifacts', 'reality.services.file... 'classification': 'collection', 'authority': '003/FR-010, 003/FR-012, 019/FR-005, 040/FR-002, 040/DR-003', ...}, ...]}
+discovered_operations = None
+
+    def validate_tenant_isolation_catalog(
+        payload: dict[str, Any],
+        *,
+        discovered_operations: tuple[str, ...] | None = None,
+    ) -> TenantIsolationCatalog:
+        """Validate complete operation classification and executable evidence mapping."""
+        version = payload.get("version")
+        if not isinstance(version, int) or isinstance(version, bool) or version < 1:
+            raise ValueError("Tenant isolation catalog version must be a positive integer")
+        families = payload.get("families")
+        if not isinstance(families, list) or not families:
+            raise ValueError("Tenant isolation catalog requires non-empty families")
+        explicit = payload.get("explicit_operations", [])
+        if not isinstance(explicit, list) or not all(
+            isinstance(item, str) for item in explicit
+        ):
+            raise ValueError("explicit_operations must be a list of operation names")
+        discovered = discovered_operations or discover_tenant_operations(
+            explicit_operations=tuple(explicit)
+        )
+    
+        keys: set[str] = set()
+        mapped: dict[str, str] = {}
+        evidence_ids: set[str] = set()
+        normalized: list[dict[str, Any]] = []
+        for index, raw_family in enumerate(families):
+            if not isinstance(raw_family, dict):
+                raise TypeError(
+                    f"Tenant isolation family at index {index} must be a mapping"
+                )
+            context = f"Tenant isolation family at index {index}"
+            key = _required_text(raw_family, "key", context)
+            if key in keys:
+                raise ValueError(f"Duplicate tenant isolation family: {key}")
+            keys.add(key)
+            _required_text(raw_family, "description", key)
+            authority = _required_text(raw_family, "authority", key)
+            classification = _required_text(raw_family, "classification", key)
+            if classification not in TENANT_ISOLATION_CLASSIFICATIONS:
+                raise ValueError(
+                    f"Unknown tenant isolation classification for {key}: {classification}"
+                )
+            if classification in {"boundary", "global_admin"}:
+                _required_text(raw_family, "reason", key)
+            operations = raw_family.get("operations")
+            if (
+                not isinstance(operations, list)
+                or not operations
+                or not all(isinstance(item, str) and item for item in operations)
+            ):
+                raise ValueError(f"{key} requires non-empty operations")
+            for operation in operations:
+                previous = mapped.get(operation)
+                if previous:
+                    raise ValueError(
+                        f"Duplicate tenant isolation operation: {operation} ({previous}, {key})"
+                    )
+                mapped[operation] = key
+            evidence = raw_family.get("evidence")
+            if not isinstance(evidence, list) or not evidence:
+                raise ValueError(f"{key} requires non-empty evidence")
+            covered: set[str] = set()
+            for item in evidence:
+                if not isinstance(item, dict):
+                    raise TypeError(f"{key} evidence entries must be mappings")
+                evidence_id = _required_text(item, "id", f"{key} evidence")
+                if evidence_id in evidence_ids:
+                    raise ValueError(f"Duplicate tenant isolation evidence: {evidence_id}")
+                evidence_ids.add(evidence_id)
+                assertion = _required_text(item, "assertion", f"{key} evidence")
+                if assertion != classification:
+                    raise ValueError(
+                        f"Evidence classification mismatch for {evidence_id}: {assertion} != {classification}"
+                    )
+                evidence_operations = item.get("operations")
+                if not isinstance(evidence_operations, list) or not evidence_operations:
+                    raise ValueError(f"{evidence_id} requires covered operations")
+                unknown_evidence = set(evidence_operations) - set(operations)
+                if unknown_evidence:
+                    raise ValueError(
+                        f"Evidence {evidence_id} references unknown family operations: {sorted(unknown_evidence)}"
+                    )
+                covered.update(evidence_operations)
+            missing_evidence = sorted(set(operations) - covered)
+            if missing_evidence:
+                raise ValueError(f"Unproven operations in {key}: {missing_evidence}")
+            normalized.append({**raw_family, "authority": authority})
+    
+        discovered_set = set(discovered)
+        mapped_set = set(mapped)
+        missing = sorted(discovered_set - mapped_set)
+        stale = sorted(mapped_set - discovered_set)
+        if missing or stale:
+>           raise ValueError(
+                f"Tenant isolation catalog drift: missing={missing}, stale={stale}"
+            )
+E           ValueError: Tenant isolation catalog drift: missing=[], stale=['reality.services.analytics.contribution_options:contribution_review_options']
+
+src/reality/catalogs.py:889: ValueError
+__ test_membership_invitation_operations_are_registered_at_tenant_boundaries ___
+
+    def test_membership_invitation_operations_are_registered_at_tenant_boundaries():
+>       catalog = load_tenant_isolation_catalog()
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/tenant_isolation/test_families.py:262: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+src/reality/catalogs.py:1015: in load_tenant_isolation_catalog
+    catalog = validate_tenant_isolation_catalog(payload)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+payload = {'version': 1, 'discovery': {'modules': ['reality.services.core', 'reality.services.artifacts', 'reality.services.file... 'classification': 'collection', 'authority': '003/FR-010, 003/FR-012, 019/FR-005, 040/FR-002, 040/DR-003', ...}, ...]}
+discovered_operations = None
+
+    def validate_tenant_isolation_catalog(
+        payload: dict[str, Any],
+        *,
+        discovered_operations: tuple[str, ...] | None = None,
+    ) -> TenantIsolationCatalog:
+        """Validate complete operation classification and executable evidence mapping."""
+        version = payload.get("version")
+        if not isinstance(version, int) or isinstance(version, bool) or version < 1:
+            raise ValueError("Tenant isolation catalog version must be a positive integer")
+        families = payload.get("families")
+        if not isinstance(families, list) or not families:
+            raise ValueError("Tenant isolation catalog requires non-empty families")
+        explicit = payload.get("explicit_operations", [])
+        if not isinstance(explicit, list) or not all(
+            isinstance(item, str) for item in explicit
+        ):
+            raise ValueError("explicit_operations must be a list of operation names")
+        discovered = discovered_operations or discover_tenant_operations(
+            explicit_operations=tuple(explicit)
+        )
+    
+        keys: set[str] = set()
+        mapped: dict[str, str] = {}
+        evidence_ids: set[str] = set()
+        normalized: list[dict[str, Any]] = []
+        for index, raw_family in enumerate(families):
+            if not isinstance(raw_family, dict):
+                raise TypeError(
+                    f"Tenant isolation family at index {index} must be a mapping"
+                )
+            context = f"Tenant isolation family at index {index}"
+            key = _required_text(raw_family, "key", context)
+            if key in keys:
+                raise ValueError(f"Duplicate tenant isolation family: {key}")
+            keys.add(key)
+            _required_text(raw_family, "description", key)
+            authority = _required_text(raw_family, "authority", key)
+            classification = _required_text(raw_family, "classification", key)
+            if classification not in TENANT_ISOLATION_CLASSIFICATIONS:
+                raise ValueError(
+                    f"Unknown tenant isolation classification for {key}: {classification}"
+                )
+            if classification in {"boundary", "global_admin"}:
+                _required_text(raw_family, "reason", key)
+            operations = raw_family.get("operations")
+            if (
+                not isinstance(operations, list)
+                or not operations
+                or not all(isinstance(item, str) and item for item in operations)
+            ):
+                raise ValueError(f"{key} requires non-empty operations")
+            for operation in operations:
+                previous = mapped.get(operation)
+                if previous:
+                    raise ValueError(
+                        f"Duplicate tenant isolation operation: {operation} ({previous}, {key})"
+                    )
+                mapped[operation] = key
+            evidence = raw_family.get("evidence")
+            if not isinstance(evidence, list) or not evidence:
+                raise ValueError(f"{key} requires non-empty evidence")
+            covered: set[str] = set()
+            for item in evidence:
+                if not isinstance(item, dict):
+                    raise TypeError(f"{key} evidence entries must be mappings")
+                evidence_id = _required_text(item, "id", f"{key} evidence")
+                if evidence_id in evidence_ids:
+                    raise ValueError(f"Duplicate tenant isolation evidence: {evidence_id}")
+                evidence_ids.add(evidence_id)
+                assertion = _required_text(item, "assertion", f"{key} evidence")
+                if assertion != classification:
+                    raise ValueError(
+                        f"Evidence classification mismatch for {evidence_id}: {assertion} != {classification}"
+                    )
+                evidence_operations = item.get("operations")
+                if not isinstance(evidence_operations, list) or not evidence_operations:
+                    raise ValueError(f"{evidence_id} requires covered operations")
+                unknown_evidence = set(evidence_operations) - set(operations)
+                if unknown_evidence:
+                    raise ValueError(
+                        f"Evidence {evidence_id} references unknown family operations: {sorted(unknown_evidence)}"
+                    )
+                covered.update(evidence_operations)
+            missing_evidence = sorted(set(operations) - covered)
+            if missing_evidence:
+                raise ValueError(f"Unproven operations in {key}: {missing_evidence}")
+            normalized.append({**raw_family, "authority": authority})
+    
+        discovered_set = set(discovered)
+        mapped_set = set(mapped)
+        missing = sorted(discovered_set - mapped_set)
+        stale = sorted(mapped_set - discovered_set)
+        if missing or stale:
+>           raise ValueError(
+                f"Tenant isolation catalog drift: missing={missing}, stale={stale}"
+            )
+E           ValueError: Tenant isolation catalog drift: missing=[], stale=['reality.services.analytics.contribution_options:contribution_review_options']
+
+src/reality/catalogs.py:889: ValueError
+____________________ test_cross_tenant_mutations_are_atomic ____________________
+
+session = <sqlalchemy.orm.session.Session object at 0x1127a8890>
+two_tenant_graph = TwoTenantGraph(local=TenantGraph(tenant=<reality.db.core.Tenant object at 0x1127aa060>, company=<reality.db.core.Party...eality.db.core.ChatSession object at 0x1127abef0>, source_system=<reality.db.core.SourceSystem object at 0x1127ab6b0>))
+
+    def test_cross_tenant_mutations_are_atomic(session, two_tenant_graph):
+        local = two_tenant_graph.local
+        foreign = two_tenant_graph.foreign
+        tenant_ids = (local.tenant.id, foreign.tenant.id)
+        rows_before = tenant_row_counts(session, tenant_ids)
+        events_before = event_sequences(session, tenant_ids)
+    
+        with pytest.raises(NotFound):
+            create_commitment(
+                session,
+                local.tenant.id,
+                "customer_delivery",
+                local.company.id,
+                local.customer.id,
+                foreign.item.id,
+                local.location.id,
+                1,
+                "2026-09-04",
+            )
+    
+        assert tenant_row_counts(session, tenant_ids) == rows_before
+        assert event_sequences(session, tenant_ids) == events_before
+        assert (
+>           _family("mutations_and_relationships")["classification"]
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+            == "mutation_relationship"
+        )
+
+tests/tenant_isolation/test_families.py:387: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/tenant_isolation/test_families.py:61: in _family
+    for family in load_tenant_isolation_catalog().families
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src/reality/catalogs.py:1015: in load_tenant_isolation_catalog
+    catalog = validate_tenant_isolation_catalog(payload)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+payload = {'version': 1, 'discovery': {'modules': ['reality.services.core', 'reality.services.artifacts', 'reality.services.file... 'classification': 'collection', 'authority': '003/FR-010, 003/FR-012, 019/FR-005, 040/FR-002, 040/DR-003', ...}, ...]}
+discovered_operations = None
+
+    def validate_tenant_isolation_catalog(
+        payload: dict[str, Any],
+        *,
+        discovered_operations: tuple[str, ...] | None = None,
+    ) -> TenantIsolationCatalog:
+        """Validate complete operation classification and executable evidence mapping."""
+        version = payload.get("version")
+        if not isinstance(version, int) or isinstance(version, bool) or version < 1:
+            raise ValueError("Tenant isolation catalog version must be a positive integer")
+        families = payload.get("families")
+        if not isinstance(families, list) or not families:
+            raise ValueError("Tenant isolation catalog requires non-empty families")
+        explicit = payload.get("explicit_operations", [])
+        if not isinstance(explicit, list) or not all(
+            isinstance(item, str) for item in explicit
+        ):
+            raise ValueError("explicit_operations must be a list of operation names")
+        discovered = discovered_operations or discover_tenant_operations(
+            explicit_operations=tuple(explicit)
+        )
+    
+        keys: set[str] = set()
+        mapped: dict[str, str] = {}
+        evidence_ids: set[str] = set()
+        normalized: list[dict[str, Any]] = []
+        for index, raw_family in enumerate(families):
+            if not isinstance(raw_family, dict):
+                raise TypeError(
+                    f"Tenant isolation family at index {index} must be a mapping"
+                )
+            context = f"Tenant isolation family at index {index}"
+            key = _required_text(raw_family, "key", context)
+            if key in keys:
+                raise ValueError(f"Duplicate tenant isolation family: {key}")
+            keys.add(key)
+            _required_text(raw_family, "description", key)
+            authority = _required_text(raw_family, "authority", key)
+            classification = _required_text(raw_family, "classification", key)
+            if classification not in TENANT_ISOLATION_CLASSIFICATIONS:
+                raise ValueError(
+                    f"Unknown tenant isolation classification for {key}: {classification}"
+                )
+            if classification in {"boundary", "global_admin"}:
+                _required_text(raw_family, "reason", key)
+            operations = raw_family.get("operations")
+            if (
+                not isinstance(operations, list)
+                or not operations
+                or not all(isinstance(item, str) and item for item in operations)
+            ):
+                raise ValueError(f"{key} requires non-empty operations")
+            for operation in operations:
+                previous = mapped.get(operation)
+                if previous:
+                    raise ValueError(
+                        f"Duplicate tenant isolation operation: {operation} ({previous}, {key})"
+                    )
+                mapped[operation] = key
+            evidence = raw_family.get("evidence")
+            if not isinstance(evidence, list) or not evidence:
+                raise ValueError(f"{key} requires non-empty evidence")
+            covered: set[str] = set()
+            for item in evidence:
+                if not isinstance(item, dict):
+                    raise TypeError(f"{key} evidence entries must be mappings")
+                evidence_id = _required_text(item, "id", f"{key} evidence")
+                if evidence_id in evidence_ids:
+                    raise ValueError(f"Duplicate tenant isolation evidence: {evidence_id}")
+                evidence_ids.add(evidence_id)
+                assertion = _required_text(item, "assertion", f"{key} evidence")
+                if assertion != classification:
+                    raise ValueError(
+                        f"Evidence classification mismatch for {evidence_id}: {assertion} != {classification}"
+                    )
+                evidence_operations = item.get("operations")
+                if not isinstance(evidence_operations, list) or not evidence_operations:
+                    raise ValueError(f"{evidence_id} requires covered operations")
+                unknown_evidence = set(evidence_operations) - set(operations)
+                if unknown_evidence:
+                    raise ValueError(
+                        f"Evidence {evidence_id} references unknown family operations: {sorted(unknown_evidence)}"
+                    )
+                covered.update(evidence_operations)
+            missing_evidence = sorted(set(operations) - covered)
+            if missing_evidence:
+                raise ValueError(f"Unproven operations in {key}: {missing_evidence}")
+            normalized.append({**raw_family, "authority": authority})
+    
+        discovered_set = set(discovered)
+        mapped_set = set(mapped)
+        missing = sorted(discovered_set - mapped_set)
+        stale = sorted(mapped_set - discovered_set)
+        if missing or stale:
+>           raise ValueError(
+                f"Tenant isolation catalog drift: missing={missing}, stale={stale}"
+            )
+E           ValueError: Tenant isolation catalog drift: missing=[], stale=['reality.services.analytics.contribution_options:contribution_review_options']
+
+src/reality/catalogs.py:889: ValueError
+_________________ test_registered_boundaries_are_tenant_scoped _________________
+
+session = <sqlalchemy.orm.session.Session object at 0x1127a8770>
+two_tenant_graph = TwoTenantGraph(local=TenantGraph(tenant=<reality.db.core.Tenant object at 0x1127a8800>, company=<reality.db.core.Party...eality.db.core.ChatSession object at 0x11248c830>, source_system=<reality.db.core.SourceSystem object at 0x112509e50>))
+
+    def test_registered_boundaries_are_tenant_scoped(session, two_tenant_graph):
+        local = two_tenant_graph.local
+        foreign = two_tenant_graph.foreign
+    
+        from reality.services.projections import INVENTORY, rebuild_projections
+    
+        for graph in (local, foreign):
+            rebuild_projections(session, graph.tenant.id, (INVENTORY,))
+        result = run_read_tool(session, local.tenant.id, "inventory")
+    
+        assert {row["item_id"] for row in result} == {local.item.id}
+        assert foreign.item.id not in {row["item_id"] for row in result}
+>       assert _family("application_boundaries")["classification"] == "boundary"
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/tenant_isolation/test_families.py:404: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/tenant_isolation/test_families.py:61: in _family
+    for family in load_tenant_isolation_catalog().families
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src/reality/catalogs.py:1015: in load_tenant_isolation_catalog
+    catalog = validate_tenant_isolation_catalog(payload)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+payload = {'version': 1, 'discovery': {'modules': ['reality.services.core', 'reality.services.artifacts', 'reality.services.file... 'classification': 'collection', 'authority': '003/FR-010, 003/FR-012, 019/FR-005, 040/FR-002, 040/DR-003', ...}, ...]}
+discovered_operations = None
+
+    def validate_tenant_isolation_catalog(
+        payload: dict[str, Any],
+        *,
+        discovered_operations: tuple[str, ...] | None = None,
+    ) -> TenantIsolationCatalog:
+        """Validate complete operation classification and executable evidence mapping."""
+        version = payload.get("version")
+        if not isinstance(version, int) or isinstance(version, bool) or version < 1:
+            raise ValueError("Tenant isolation catalog version must be a positive integer")
+        families = payload.get("families")
+        if not isinstance(families, list) or not families:
+            raise ValueError("Tenant isolation catalog requires non-empty families")
+        explicit = payload.get("explicit_operations", [])
+        if not isinstance(explicit, list) or not all(
+            isinstance(item, str) for item in explicit
+        ):
+            raise ValueError("explicit_operations must be a list of operation names")
+        discovered = discovered_operations or discover_tenant_operations(
+            explicit_operations=tuple(explicit)
+        )
+    
+        keys: set[str] = set()
+        mapped: dict[str, str] = {}
+        evidence_ids: set[str] = set()
+        normalized: list[dict[str, Any]] = []
+        for index, raw_family in enumerate(families):
+            if not isinstance(raw_family, dict):
+                raise TypeError(
+                    f"Tenant isolation family at index {index} must be a mapping"
+                )
+            context = f"Tenant isolation family at index {index}"
+            key = _required_text(raw_family, "key", context)
+            if key in keys:
+                raise ValueError(f"Duplicate tenant isolation family: {key}")
+            keys.add(key)
+            _required_text(raw_family, "description", key)
+            authority = _required_text(raw_family, "authority", key)
+            classification = _required_text(raw_family, "classification", key)
+            if classification not in TENANT_ISOLATION_CLASSIFICATIONS:
+                raise ValueError(
+                    f"Unknown tenant isolation classification for {key}: {classification}"
+                )
+            if classification in {"boundary", "global_admin"}:
+                _required_text(raw_family, "reason", key)
+            operations = raw_family.get("operations")
+            if (
+                not isinstance(operations, list)
+                or not operations
+                or not all(isinstance(item, str) and item for item in operations)
+            ):
+                raise ValueError(f"{key} requires non-empty operations")
+            for operation in operations:
+                previous = mapped.get(operation)
+                if previous:
+                    raise ValueError(
+                        f"Duplicate tenant isolation operation: {operation} ({previous}, {key})"
+                    )
+                mapped[operation] = key
+            evidence = raw_family.get("evidence")
+            if not isinstance(evidence, list) or not evidence:
+                raise ValueError(f"{key} requires non-empty evidence")
+            covered: set[str] = set()
+            for item in evidence:
+                if not isinstance(item, dict):
+                    raise TypeError(f"{key} evidence entries must be mappings")
+                evidence_id = _required_text(item, "id", f"{key} evidence")
+                if evidence_id in evidence_ids:
+                    raise ValueError(f"Duplicate tenant isolation evidence: {evidence_id}")
+                evidence_ids.add(evidence_id)
+                assertion = _required_text(item, "assertion", f"{key} evidence")
+                if assertion != classification:
+                    raise ValueError(
+                        f"Evidence classification mismatch for {evidence_id}: {assertion} != {classification}"
+                    )
+                evidence_operations = item.get("operations")
+                if not isinstance(evidence_operations, list) or not evidence_operations:
+                    raise ValueError(f"{evidence_id} requires covered operations")
+                unknown_evidence = set(evidence_operations) - set(operations)
+                if unknown_evidence:
+                    raise ValueError(
+                        f"Evidence {evidence_id} references unknown family operations: {sorted(unknown_evidence)}"
+                    )
+                covered.update(evidence_operations)
+            missing_evidence = sorted(set(operations) - covered)
+            if missing_evidence:
+                raise ValueError(f"Unproven operations in {key}: {missing_evidence}")
+            normalized.append({**raw_family, "authority": authority})
+    
+        discovered_set = set(discovered)
+        mapped_set = set(mapped)
+        missing = sorted(discovered_set - mapped_set)
+        stale = sorted(mapped_set - discovered_set)
+        if missing or stale:
+>           raise ValueError(
+                f"Tenant isolation catalog drift: missing={missing}, stale={stale}"
+            )
+E           ValueError: Tenant isolation catalog drift: missing=[], stale=['reality.services.analytics.contribution_options:contribution_review_options']
+
+src/reality/catalogs.py:889: ValueError
+________________ test_global_tenant_administration_is_explicit _________________
+
+    def test_global_tenant_administration_is_explicit():
+>       family = _family("tenant_administration")
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/tenant_isolation/test_families.py:408: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/tenant_isolation/test_families.py:61: in _family
+    for family in load_tenant_isolation_catalog().families
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src/reality/catalogs.py:1015: in load_tenant_isolation_catalog
+    catalog = validate_tenant_isolation_catalog(payload)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+payload = {'version': 1, 'discovery': {'modules': ['reality.services.core', 'reality.services.artifacts', 'reality.services.file... 'classification': 'collection', 'authority': '003/FR-010, 003/FR-012, 019/FR-005, 040/FR-002, 040/DR-003', ...}, ...]}
+discovered_operations = None
+
+    def validate_tenant_isolation_catalog(
+        payload: dict[str, Any],
+        *,
+        discovered_operations: tuple[str, ...] | None = None,
+    ) -> TenantIsolationCatalog:
+        """Validate complete operation classification and executable evidence mapping."""
+        version = payload.get("version")
+        if not isinstance(version, int) or isinstance(version, bool) or version < 1:
+            raise ValueError("Tenant isolation catalog version must be a positive integer")
+        families = payload.get("families")
+        if not isinstance(families, list) or not families:
+            raise ValueError("Tenant isolation catalog requires non-empty families")
+        explicit = payload.get("explicit_operations", [])
+        if not isinstance(explicit, list) or not all(
+            isinstance(item, str) for item in explicit
+        ):
+            raise ValueError("explicit_operations must be a list of operation names")
+        discovered = discovered_operations or discover_tenant_operations(
+            explicit_operations=tuple(explicit)
+        )
+    
+        keys: set[str] = set()
+        mapped: dict[str, str] = {}
+        evidence_ids: set[str] = set()
+        normalized: list[dict[str, Any]] = []
+        for index, raw_family in enumerate(families):
+            if not isinstance(raw_family, dict):
+                raise TypeError(
+                    f"Tenant isolation family at index {index} must be a mapping"
+                )
+            context = f"Tenant isolation family at index {index}"
+            key = _required_text(raw_family, "key", context)
+            if key in keys:
+                raise ValueError(f"Duplicate tenant isolation family: {key}")
+            keys.add(key)
+            _required_text(raw_family, "description", key)
+            authority = _required_text(raw_family, "authority", key)
+            classification = _required_text(raw_family, "classification", key)
+            if classification not in TENANT_ISOLATION_CLASSIFICATIONS:
+                raise ValueError(
+                    f"Unknown tenant isolation classification for {key}: {classification}"
+                )
+            if classification in {"boundary", "global_admin"}:
+                _required_text(raw_family, "reason", key)
+            operations = raw_family.get("operations")
+            if (
+                not isinstance(operations, list)
+                or not operations
+                or not all(isinstance(item, str) and item for item in operations)
+            ):
+                raise ValueError(f"{key} requires non-empty operations")
+            for operation in operations:
+                previous = mapped.get(operation)
+                if previous:
+                    raise ValueError(
+                        f"Duplicate tenant isolation operation: {operation} ({previous}, {key})"
+                    )
+                mapped[operation] = key
+            evidence = raw_family.get("evidence")
+            if not isinstance(evidence, list) or not evidence:
+                raise ValueError(f"{key} requires non-empty evidence")
+            covered: set[str] = set()
+            for item in evidence:
+                if not isinstance(item, dict):
+                    raise TypeError(f"{key} evidence entries must be mappings")
+                evidence_id = _required_text(item, "id", f"{key} evidence")
+                if evidence_id in evidence_ids:
+                    raise ValueError(f"Duplicate tenant isolation evidence: {evidence_id}")
+                evidence_ids.add(evidence_id)
+                assertion = _required_text(item, "assertion", f"{key} evidence")
+                if assertion != classification:
+                    raise ValueError(
+                        f"Evidence classification mismatch for {evidence_id}: {assertion} != {classification}"
+                    )
+                evidence_operations = item.get("operations")
+                if not isinstance(evidence_operations, list) or not evidence_operations:
+                    raise ValueError(f"{evidence_id} requires covered operations")
+                unknown_evidence = set(evidence_operations) - set(operations)
+                if unknown_evidence:
+                    raise ValueError(
+                        f"Evidence {evidence_id} references unknown family operations: {sorted(unknown_evidence)}"
+                    )
+                covered.update(evidence_operations)
+            missing_evidence = sorted(set(operations) - covered)
+            if missing_evidence:
+                raise ValueError(f"Unproven operations in {key}: {missing_evidence}")
+            normalized.append({**raw_family, "authority": authority})
+    
+        discovered_set = set(discovered)
+        mapped_set = set(mapped)
+        missing = sorted(discovered_set - mapped_set)
+        stale = sorted(mapped_set - discovered_set)
+        if missing or stale:
+>           raise ValueError(
+                f"Tenant isolation catalog drift: missing={missing}, stale={stale}"
+            )
+E           ValueError: Tenant isolation catalog drift: missing=[], stale=['reality.services.analytics.contribution_options:contribution_review_options']
+
+src/reality/catalogs.py:889: ValueError
+=========================== short test summary info ============================
+FAILED tests/test_contribution_graph_reporting.py::test_same_unit_partial_group_and_saved_http_question
+FAILED tests/test_reporting_graph_expansion.py::test_all_table_nodes_can_preview_their_declared_fields
+FAILED tests/test_application_catalog.py::test_production_tenant_isolation_catalog_is_complete_and_resolvable
+FAILED tests/test_application_catalog.py::test_membership_access_operations_are_explicitly_classified
+FAILED tests/tenant_isolation/test_families.py::test_record_reads_are_non_disclosing
+FAILED tests/tenant_isolation/test_families.py::test_collections_exclude_foreign_records
+FAILED tests/tenant_isolation/test_families.py::test_aggregates_exclude_foreign_values
+FAILED tests/tenant_isolation/test_families.py::test_membership_invitation_operations_are_registered_at_tenant_boundaries
+FAILED tests/tenant_isolation/test_families.py::test_cross_tenant_mutations_are_atomic
+FAILED tests/tenant_isolation/test_families.py::test_registered_boundaries_are_tenant_scoped
+FAILED tests/tenant_isolation/test_families.py::test_global_tenant_administration_is_explicit
+11 failed, 290 passed in 137.06s (0:02:17)

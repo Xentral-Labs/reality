@@ -1,0 +1,169 @@
+{
+  "strategy": "projection",
+  "dataset_version": "costing-spike-v3",
+  "profile": "reduced",
+  "qualification_passed": false,
+  "measurements": {
+    "order": {
+      "samples": 20,
+      "p50_s": 0.0017197710112668574,
+      "p95_s": 0.002435959002468735,
+      "max_s": 0.0024843340215738863,
+      "budget_s": 0.5
+    },
+    "tool": {
+      "samples": 20,
+      "p50_s": 0.0017309579998254776,
+      "p95_s": 0.0025936670135706663,
+      "max_s": 0.0026216660044156015,
+      "budget_s": 3
+    },
+    "inventory": {
+      "samples": 20,
+      "p50_s": 0.002244541989057325,
+      "p95_s": 0.0030188749951776117,
+      "max_s": 0.003307083999970928,
+      "budget_s": 2
+    },
+    "monthly": {
+      "samples": 20,
+      "p50_s": 0.0014859579969197512,
+      "p95_s": 0.002221292001195252,
+      "max_s": 0.002811250014929101,
+      "budget_s": 3
+    },
+    "attention": {
+      "samples": 20,
+      "p50_s": 0.0026064160047098994,
+      "p95_s": 0.0034747080062516034,
+      "max_s": 0.004116875003091991,
+      "budget_s": 2
+    }
+  },
+  "limitations": [
+    "Exact dedicated 4-vCPU/16-GiB reference host is not certified; see separately captured enforced container limits.",
+    "An OS/database cold-cache run and the full freshness response contract are not certified.",
+    "Experimental typed relations are not yet wired to the product analysis compiler or exception register.",
+    "V3 distributes returns, split/partial matching, supplier credits and stated nonrecoverable tax; full FX/ownership/review and credit-to-revenue matching remain product proofs.",
+    "Projection completeness/review invalidation and source-version history are not product implementations.",
+    "Reduced sample/update counts do not satisfy full fixture J protocol."
+  ],
+  "input_revision_before": 0,
+  "reconstruction_s": [
+    0.022759832994779572,
+    0.045853500021621585,
+    0.04622258400195278
+  ],
+  "checksum": "33a11e899b7231299975c38dbc9091a5923941807f9af9149d7172fa108cbd74",
+  "mixed_measurements": {
+    "order": {
+      "samples": 20,
+      "p50_s": 0.0031758539989823475,
+      "p95_s": 0.006779250019462779,
+      "max_s": 0.006958208017749712,
+      "budget_s": 0.5,
+      "states": {
+        "current": 20
+      }
+    },
+    "tool": {
+      "samples": 20,
+      "p50_s": 0.002666458996827714,
+      "p95_s": 0.005367707984987646,
+      "max_s": 0.006395874981535599,
+      "budget_s": 3,
+      "states": {
+        "current": 20
+      }
+    },
+    "inventory": {
+      "samples": 20,
+      "p50_s": 0.00351120850245934,
+      "p95_s": 0.007259707985213026,
+      "max_s": 0.007774625002639368,
+      "budget_s": 2,
+      "states": {
+        "current": 20
+      }
+    },
+    "monthly": {
+      "samples": 20,
+      "p50_s": 0.0032319164893124253,
+      "p95_s": 0.006900000007590279,
+      "max_s": 0.007696792017668486,
+      "budget_s": 3,
+      "states": {
+        "current": 20
+      }
+    },
+    "attention": {
+      "samples": 20,
+      "p50_s": 0.0038917915226193145,
+      "p95_s": 0.0075952920014970005,
+      "max_s": 0.008106207998935133,
+      "budget_s": 2,
+      "states": {
+        "current": 19,
+        "stale": 1
+      }
+    }
+  },
+  "refresh": {
+    "samples": 2,
+    "p50_s": 0.01084975000412669,
+    "p95_s": 0.015501666988711804,
+    "max_s": 0.015501666988711804,
+    "last_affected_rows": 60,
+    "committed_offsets_s": [
+      0.0038574999780394137,
+      1.0112420420045964
+    ],
+    "one_change_per_second_sustained": true
+  },
+  "reconciliation": {
+    "observations": 732,
+    "inventory_pools": 12,
+    "complete_values_equal": true
+  },
+  "measured_budgets_passed": true,
+  "input_revision_after": 2,
+  "status": "exploratory",
+  "cardinalities": {
+    "a": {
+      "item": 12,
+      "trade_order": 120,
+      "movement": 1200,
+      "component": 1200,
+      "attribution": 1200,
+      "matching": 720
+    },
+    "b": {
+      "item": 12,
+      "trade_order": 120,
+      "movement": 1200,
+      "component": 1200,
+      "attribution": 1200,
+      "matching": 720
+    }
+  },
+  "setup_s": 0.11214795798878185,
+  "python": "3.12.13",
+  "platform": "Linux-6.10.14-linuxkit-aarch64-with-glibc2.41",
+  "git_revision": "709af5c1a6358be2f004003f37b836ff6095b5bf",
+  "peak_rss_bytes": 88342528,
+  "elapsed_s": 2.262378875981085,
+  "postgres_version": "17.10",
+  "source_digest": "b66bf2d840f36d5a87d2b477e31a05414a5d04399b5fdd0f015b71c7e91c3fd1",
+  "process_cgroup": {
+    "cpu.max": "200000 100000",
+    "memory.max": "2147483648",
+    "memory.swap.max": "0",
+    "memory.peak": "74186752"
+  },
+  "adversarial_distribution": {
+    "return": 12,
+    "transfer": 120,
+    "receipt": 348,
+    "issue": 720
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "serial_files": [
+    "tests/scenarios/test_international_demo.py",
+    "tests/test_company_setup.py",
+    "tests/test_company_setup_api.py",
+    "tests/test_company_setup_initialization.py",
+    "tests/test_company_setup_unified.py",
+    "tests/test_demo_data_intake.py",
+    "tests/test_demo_execution_profile.py",
+    "tests/test_demo_profile_history.py",
+    "tests/test_free_playground.py",
+    "tests/test_storyline_chat.py"
+  ],
+  "serial_count": 84,
+  "remaining_count": 3228,
+  "total_collected": 3312
+}

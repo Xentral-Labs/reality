@@ -1,0 +1,1 @@
+Generated references are idempotent; working-tree spec change policy passes.

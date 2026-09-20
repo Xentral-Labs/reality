@@ -69,7 +69,8 @@ For demo intake, derive upstream delivery identity from the subsystem's business
 ## Registered subsystems
 
 `projections.refresh`, `invitations.cleanup`, `demo.generate_orders`,
-`demo.settle_orders` and `company_setup.initialize`. The last one seeds a confirmed
+`demo.settle_orders`, `costing.inventory.refresh`, `costing.contribution.refresh`,
+`costing.captured_report.refresh`, `costing.captured_report.publish` and `company_setup.initialize`. The last one seeds a confirmed
 company profile outside the request that asked for it (feature 199); its ownership rule
 is the playground run's own owner rather than `require_company_owner`, because a
 verified account pending admission may create a Sandbox. `create_manual_run` authorizes
@@ -181,3 +182,59 @@ keep frozen run inputs independent of later schedule changes. Missed offsets coa
 queue capacity and one-unfinished-run rules still apply. Other jobs and public scheduling
 command schemas retain their existing defaults. Tests: `test_scheduled_job_startup.py`
 and `test_demo_data_startup.py`.
+
+## Retained inventory cache (spec 234)
+
+`costing.inventory.refresh` is an owner-authorized, database-only job with strict
+`{"review_id": "<confirmed-inventory-review-id>"}` configuration. Each execution
+revalidates the active owner and tenant review, then calls the shared costing service.
+It rebuilds one bounded retained item scope and publishes a disposable observation in
+the same transaction as run success. Existing claim fencing and deadlines apply.
+Retry and duplicate jobs retain one generation per review/algorithm. The result holds
+safe counts and a `cost_inventory_generation` reference; it does not return monetary
+values in job logs or approve new cost evidence.
+
+Registration creates no schedule or automatic cache upkeep. Use the existing confirmed
+operator workflow to enqueue a manual run; reads never enqueue. Freshness and source
+traceability are described in [receipt costing](receipt-costing.md). Migration0069
+must precede execution, never run at worker startup. Before schema rollback, remove the
+registration and drain/cancel unfinished runs; the migration refuses while any remain.
+
+The existing `costing.inventory.refresh` definition also accepts a confirmed batch
+`action_id`, mutually exclusive with `review_id`. Its handler uses the shared joint
+inventory builder and the same actor, claim, deadline and transaction checks. It reports
+only created-generation/row counts and opaque member references. Existing review-only
+configuration serialization is preserved for request-fingerprint compatibility. Batch
+support adds no registration, automatic schedule or startup migration. Drain pending batch
+configs before rolling back that config extension; migration0069's existing job guard
+covers both forms because the job name is unchanged.
+
+
+### Retained joint contribution refresh
+
+`costing.contribution.refresh` accepts exactly `action_id` for an executed
+contribution_batch_review. The shared registry/worker checks the active owner and
+tenant-bound confirmed membership at admission and execution. Its handler calls
+`build_contribution_generation` with the shared deadline and returns counts plus an
+opaque cost_contribution_generation reference. All calculations precede cache writes;
+publication is atomic and same-basis retries reuse verified output. It does not approve
+revenue, costs or policy, and no schedule is created or resumed automatically. Migration
+0070 refuses cache removal while this job has unfinished runs.
+
+### Bounded captured report refresh
+
+`costing.captured_report.refresh` accepts exactly one sealed retained `basis_id`. The
+shared registry revalidates the active company owner and same-tenant basis at admission and
+execution. Its child transaction uses REPEATABLE READ and calls the shared captured-report
+builder; retries reuse the verified generation. The result contains one opaque
+`cost_generation` reference and a generation count, never amounts. The job does not retain
+a new census/basis, publish the generation, activate a schedule or grant financial approval.
+The current ten-subject report bound remains unchanged. CAS publication stays a separate
+READ COMMITTED operation; larger-company chunking requires a separately reviewed design.
+
+`costing.captured_report.publish` is the separate owner-authorized READ COMMITTED step.
+Its strict configuration names one sealed `generation_id` and nullable
+`expected_previous_id`. It calls the shared tenant-serialized CAS service, so an obsolete,
+ambiguous or stale queued request fails without changing the pointer; same-generation retry
+is unchanged. The result reports only whether the pointer changed plus the opaque generation
+reference. It neither builds a cache nor changes financial eligibility.

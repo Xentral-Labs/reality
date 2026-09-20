@@ -1,0 +1,8 @@
+{
+  "packages/reality-core/src/reality/services/inventory_batch_generations.py": "9bf24f3704a5d8468f6ff1f3898c78102f7e838fecf50339044cf8bdc089689d",
+  "packages/reality-core/src/reality/services/inventory_generations.py": "e2bd8e1b94314ccec73d505dd221e8b3866e846b29d788e69ae73f7dc4e0be67",
+  "packages/reality-core/src/reality/services/costing.py": "29bb58d45a5f3ffb8a06585cc49a559dd4a1cb0c94184a5c5a578b1d387fb1d1",
+  "packages/reality-core/src/reality/jobs/handlers/costing.py": "38dd92ca22d410f3eb780f2126838ff26737cf3e6dc8d2df391b4180591544cd",
+  "packages/reality-core/tests/test_inventory_batch_generations.py": "b9f2ddee858234eedeb69a5c5bcbb06942ca417bf527f8065f5cb70df7c3f772",
+  "packages/reality-core/tests/test_application_catalog.py": "234ea415ec7d6ea875e233b0a60bcb6f2b7aac79ad0560c0c57051b413bc78bb"
+}

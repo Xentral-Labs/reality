@@ -1,0 +1,16 @@
+
+==================================== ERRORS ====================================
+_____________ ERROR collecting tests/test_inventory_generations.py _____________
+ImportError while importing test module '/Users/benediktsauter/GitHub/reality/packages/reality-core/tests/test_inventory_generations.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+/opt/homebrew/Cellar/python@3.12/3.12.4/Frameworks/Python.framework/Versions/3.12/lib/python3.12/importlib/__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+packages/reality-core/tests/test_inventory_generations.py:13: in <module>
+    from reality.db.cost_generations import (
+E   ModuleNotFoundError: No module named 'reality.db.cost_generations'
+=========================== short test summary info ============================
+ERROR packages/reality-core/tests/test_inventory_generations.py
+!!!!!!!!!!!!!!!!!!!! Interrupted: 1 error during collection !!!!!!!!!!!!!!!!!!!!
+1 error in 0.64s

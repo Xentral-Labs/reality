@@ -546,8 +546,8 @@ Change Proposal, and chat activity without loading business rows or querying onc
 
 [How this query runs](./views#read-execution)
 
-**Background refresh after:** `shipment.notice_recorded`, `shipment.event_recorded`,
-`shipment.event_superseded`, `finance.target_configuration_changed`,
+**Background refresh after:** `cost.attributed`, `cost.reviewed`, `shipment.notice_recorded`,
+`shipment.event_recorded`, `shipment.event_superseded`, `finance.target_configuration_changed`,
 `finance.source_mapping_changed`, `finance.component_assigned`, `finance.reference_changed`,
 `finance.account_changed`, `credit.recorded`, `invoice.recorded`, `order.recorded`,
 `source_record.stored`, `commitment.fulfilled`, `reservation.consumed`, `fact.observed`,
@@ -661,7 +661,11 @@ exception [`shipped_not_billed`](./exceptions#exception-shipped_not_billed), exc
 [`announced_return_not_arrived`](./exceptions#exception-announced_return_not_arrived), exception
 [`commitment_hold_unreleased`](./exceptions#exception-commitment_hold_unreleased), exception
 [`party_hold_unreleased`](./exceptions#exception-party_hold_unreleased), exception
-[`stock_expired`](./exceptions#exception-stock_expired)
+[`stock_expired`](./exceptions#exception-stock_expired), exception
+[`missing_acquisition_cost`](./exceptions#exception-missing_acquisition_cost), exception
+[`unassigned_cost_component`](./exceptions#exception-unassigned_cost_component), exception
+[`stale_cost_review`](./exceptions#exception-stale_cost_review), exception
+[`negative_actual_db1`](./exceptions#exception-negative_actual_db1)
 
 ### `commitment_register` — Commitment register {#projection-commitment_register}
 
@@ -800,17 +804,18 @@ Normalizes important evidence and reality timestamps into one chronological oper
 
 [How this query runs](./views#read-execution)
 
-**Background refresh after:** `shipment.notice_recorded`, `shipment.event_recorded`,
-`shipment.event_superseded`, `finance.component_assigned`, `credit.recorded`, `invoice.recorded`,
-`order.recorded`, `source_record.stored`, `commitment.fulfilled`, `reservation.consumed`,
-`fact.observed`, `source_record.received`, `source_record.unmapped`, `source_record.interpreted`,
-`party.created`, `party.updated`, `item.created`, `item.updated`, `location.created`,
-`location.updated`, `document.recorded`, `document.corrected`, `commitment.created`,
-`commitment.cancelled`, `commitment.revised`, `promises.closed`, `payments.run`, `return.announced`,
-`return.announcement_withdrawn`, `commitment.held`, `commitment.hold_released`,
-`reservation.created`, `reservation.released`, `handling_unit.created`, `lot.created`,
-`lot.expiry_stated`, `lot.expiry_corrected`, `serial_unit.created`, `movement.recorded`,
-`movement.corrected`, `ledger.posted`, `ledger.reversed`, `settlement.allocated`
+**Background refresh after:** `cost.attributed`, `cost.reviewed`, `shipment.notice_recorded`,
+`shipment.event_recorded`, `shipment.event_superseded`, `finance.component_assigned`,
+`credit.recorded`, `invoice.recorded`, `order.recorded`, `source_record.stored`,
+`commitment.fulfilled`, `reservation.consumed`, `fact.observed`, `source_record.received`,
+`source_record.unmapped`, `source_record.interpreted`, `party.created`, `party.updated`,
+`item.created`, `item.updated`, `location.created`, `location.updated`, `document.recorded`,
+`document.corrected`, `commitment.created`, `commitment.cancelled`, `commitment.revised`,
+`promises.closed`, `payments.run`, `return.announced`, `return.announcement_withdrawn`,
+`commitment.held`, `commitment.hold_released`, `reservation.created`, `reservation.released`,
+`handling_unit.created`, `lot.created`, `lot.expiry_stated`, `lot.expiry_corrected`,
+`serial_unit.created`, `movement.recorded`, `movement.corrected`, `ledger.posted`,
+`ledger.reversed`, `settlement.allocated`
 
 **See also:** agent tool [`fact_observe_propose`](./commands#tool-fact_observe_propose), agent tool
 [`movement_create_propose`](./commands#tool-movement_create_propose), agent tool

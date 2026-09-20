@@ -1,0 +1,4 @@
+{
+  "packages/reality-core/src/reality/domain/cost_generation.py": "c7c0585ce1591d831a30fe288f9a52062fed6b82324487b6e79d109be45175b5",
+  "packages/reality-core/tests/test_cost_generation.py": "edf4c2d7e90eee28c239e8ae920bba805d5a062ce3b36f80e3425419a11b642d"
+}

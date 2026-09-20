@@ -2,6 +2,27 @@ version: 1
 title: Reality Data Model
 description: Machine-readable catalog for documentation, validation, and future generators.
 sections:
+  - name: Financial Company Generations
+    description: Retained exact company inputs and disposable complete-population observations.
+    tables: [cost_company_manifest, cost_company_inventory_input, cost_company_contribution_input, cost_company_generation, cost_company_inventory_result, cost_company_contribution_result, cost_company_publication]
+  - name: Captured Reports
+    description: Disposable fixed captured observations; no financial company approval.
+    tables: [cost_generation, cost_inventory_row, cost_contribution_row, cost_publication]
+  - name: Captured Review Basis
+    description: Immutable selected reviews and captured gaps, not financial approval or disposable output.
+    tables: [cost_captured_basis, cost_captured_inventory_basis, cost_captured_contribution_basis]
+  - name: Retained Company Discovery
+    description: Immutable current input observations, not financial approvals or disposable valuation caches.
+    tables: [cost_company_census, cost_company_census_movement, cost_company_census_document, cost_company_census_line, cost_company_census_source]
+  - name: Commercial Contribution
+    description: Retained legacy whole-line and revisioned partial commercial matching with confirmed DB1 review membership.
+    tables: [cost_commercial_match_revision, cost_commercial_inventory_part, cost_commercial_direct_part, cost_revenue_match_basis, cost_contribution_review, cost_selling_attribution_part, cost_selling_review_category, cost_selling_review_member]
+  - name: Inventory Costing
+    description: Confirmed policy, ownership and bounded frozen movement history.
+    tables: [cost_policy_revision, cost_movement_basis, cost_ownership_revision, cost_opening_basis, cost_inventory_review, cost_inventory_ownership_part, cost_inventory_member]
+  - name: Receipt Costing
+    description: Retained received-cost evidence, confirmed allocation decisions and exact reviewed input history.
+    tables: [cost_attribution_part, cost_attribution_revision, cost_component_basis, cost_component_replacement, cost_correction_basis, cost_input_manifest, cost_manifest_attribution, cost_manifest_component, cost_manifest_correction, cost_manifest_receipt, cost_manifest_replacement, cost_receipt_basis, cost_scope_review, cost_scope_review_category]
   - name: Foundation
     description: Tenant boundary and immutable upstream evidence.
     tables: [tenant, source_system, source_capability, source_artifact, source_stream, source_record, import_job, interpretation_outcome, interpretation_record_reference]
@@ -25,7 +46,7 @@ sections:
     tables: [app_user, email_verification_code, user_session, access_application, access_admission_counter, tenant_membership, company_invitation, invitation_delivery, security_audit_event]
   - name: Projections
     description: Disposable tenant-scoped read models rebuilt from Business Events and authoritative Reality.
-    tables: [projection_row, projection_checkpoint]
+    tables: [projection_row, projection_checkpoint, cost_contribution_generation, cost_contribution_snapshot, cost_inventory_generation, cost_inventory_snapshot, cost_inventory_publication]
 
 common_columns:
   id: Opaque technical identity. Human-readable numbers are never used as identity.
@@ -1116,3 +1137,954 @@ tables:
         description: Action id of the explicit source classification revision.
       created_at:
         description: Created at of the explicit source classification revision.
+
+  cost_attribution_part:
+    description: Signed share of one received amount bucket attributed to one admitted receipt.
+    columns:
+      attribution_revision_id:
+        description: Exact retained allocation revision.
+      receipt_basis_id:
+        description: Admitted receipt quantity and base-unit scope.
+      amount_bucket:
+        description: Selected received amount or independent nonrecoverable received-tax share.
+      category:
+        description: One of the six acquisition-cost categories.
+      source_share:
+        description: Explicit Decimal share retaining the original source sign.
+      cost_effect:
+        description: Economic direction, minus one for acquisition reductions including related tax refunds, and plus one for additions.
+      assignment_kind:
+        description: Explicit direct or allocated attribution; no allocation key is inferred.
+      id:
+        description: Opaque retained record identity.
+      tenant_id:
+        description: Owning company; all authority references enforce the same tenant.
+  cost_attribution_revision:
+    description: Confirmed revision of explicit received acquisition-cost allocation and tax treatment.
+    columns:
+      component_basis_id:
+        description: Admitted received component whose allocation is being revised.
+      revision:
+        description: Monotonic decision revision within its owning component or receipt.
+      supersedes_id:
+        description: Previous decision revision; history is retained.
+      introduced_event_id:
+        description: Business Event introducing this retained input or decision.
+      action_id:
+        description: Confirmed proposal carrying input, confirming user and replay result.
+      effective_at:
+        description: UTC instant associated with the retained decision or sealed request.
+      reason:
+        description: Explicit human explanation of the decision.
+      state:
+        description: Closed state of the attribution or sealed manifest.
+      basis:
+        description: Selected received net, gross or explicitly stated base amount.
+      tax_treatment:
+        description: Explicit recoverable, nonrecoverable, mixed, not-applicable or unknown input-tax treatment.
+      selected_basis_tax_inclusion:
+        description: Whether the chosen received amount includes input tax, excludes it or remains unknown.
+      nonrecoverable_tax_amount:
+        description: Explicit signed share of received tax that cannot be recovered.
+      id:
+        description: Opaque retained record identity.
+      tenant_id:
+        description: Owning company; all authority references enforce the same tenant.
+  cost_component_basis:
+    description: Admission of an immutable received financial component; no derived price authority.
+    columns:
+      component_id:
+        description: Shortest link to exact stated net/tax/gross/base financial evidence.
+      introduced_event_id:
+        description: Business Event introducing this retained input or decision.
+      interpretation_outcome_id:
+        description: Producing interpretation outcome when available; manual evidence does not invent one.
+      evidence_fingerprint:
+        description: Fingerprint of received amount fields and evidence metadata at admission.
+      input_schema_version:
+        description: Version of the retained costing input contract.
+      id:
+        description: Opaque retained record identity.
+      tenant_id:
+        description: Owning company; all authority references enforce the same tenant.
+  cost_component_replacement:
+    description: Confirmed relationship retiring previous received evidence in favor of fresh evidence.
+    columns:
+      previous_basis_id:
+        description: Predecessor received component admission retired by this replacement.
+      replacement_basis_id:
+        description: Fresh distinct received component admission replacing the predecessor.
+      introduced_event_id:
+        description: Business Event introducing this retained input or decision.
+      action_id:
+        description: Confirmed proposal carrying input, confirming user and replay result.
+      reason:
+        description: Explicit human explanation of the decision.
+      id:
+        description: Opaque retained record identity.
+      tenant_id:
+        description: Owning company; all authority references enforce the same tenant.
+  cost_correction_basis:
+    description: Retained link to the normal append-only movement correction authority.
+    columns:
+      movement_correction_id:
+        description: Normal append-only MovementCorrection affecting the admitted receipt.
+      introduced_event_id:
+        description: Business Event introducing this retained input or decision.
+      input_schema_version:
+        description: Version of the retained costing input contract.
+      id:
+        description: Opaque retained record identity.
+      tenant_id:
+        description: Owning company; all authority references enforce the same tenant.
+  cost_input_manifest:
+    description: Sealed exact membership and event cutoff; stores no calculated monetary result.
+    columns:
+      target_event_sequence:
+        description: Inclusive tenant event cutoff for input selection.
+      effective_at:
+        description: UTC instant associated with the retained decision or sealed request.
+      knowledge_at:
+        description: UTC instant when this retained membership was sealed.
+      input_schema_version:
+        description: Version of the retained costing input contract.
+      algorithm_version:
+        description: Receipt calculation contract used to interpret this manifest.
+      state:
+        description: Closed state of the attribution or sealed manifest.
+      content_hash:
+        description: Canonical hash of the sorted typed input identities.
+      sealed_at:
+        description: UTC completion instant of the immutable membership.
+      id:
+        description: Opaque retained record identity.
+      tenant_id:
+        description: Owning company; all authority references enforce the same tenant.
+  cost_manifest_attribution:
+    description: Typed retained member of one sealed receipt input manifest; shortest authority link.
+    columns:
+      manifest_id:
+        description: Exact sealed retained input membership.
+      attribution_revision_id:
+        description: Exact retained allocation revision.
+      id:
+        description: Opaque retained record identity.
+      tenant_id:
+        description: Owning company; all authority references enforce the same tenant.
+  cost_manifest_component:
+    description: Typed retained member of one sealed receipt input manifest; shortest authority link.
+    columns:
+      manifest_id:
+        description: Exact sealed retained input membership.
+      component_basis_id:
+        description: Admitted received component whose allocation is being revised.
+      id:
+        description: Opaque retained record identity.
+      tenant_id:
+        description: Owning company; all authority references enforce the same tenant.
+  cost_manifest_correction:
+    description: Typed retained member of one sealed receipt input manifest; shortest authority link.
+    columns:
+      manifest_id:
+        description: Exact sealed retained input membership.
+      correction_basis_id:
+        description: Exact admitted movement correction member.
+      id:
+        description: Opaque retained record identity.
+      tenant_id:
+        description: Owning company; all authority references enforce the same tenant.
+  cost_manifest_receipt:
+    description: Typed retained member of one sealed receipt input manifest; shortest authority link.
+    columns:
+      manifest_id:
+        description: Exact sealed retained input membership.
+      receipt_basis_id:
+        description: Admitted receipt quantity and base-unit scope.
+      id:
+        description: Opaque retained record identity.
+      tenant_id:
+        description: Owning company; all authority references enforce the same tenant.
+  cost_manifest_replacement:
+    description: Typed retained member of one sealed receipt input manifest; shortest authority link.
+    columns:
+      manifest_id:
+        description: Exact sealed retained input membership.
+      replacement_id:
+        description: Exact retained evidence replacement member.
+      id:
+        description: Opaque retained record identity.
+      tenant_id:
+        description: Owning company; all authority references enforce the same tenant.
+  cost_receipt_basis:
+    description: Retained receipt quantity and item base unit at admission, linked to the original Movement.
+    columns:
+      movement_id:
+        description: Original admitted goods receipt Movement.
+      introduced_event_id:
+        description: Business Event introducing this retained input or decision.
+      base_quantity:
+        description: Movement quantity retained when the receipt enters costing.
+      base_unit:
+        description: Item base unit retained at receipt admission; no unit conversion is inferred.
+      input_schema_version:
+        description: Version of the retained costing input contract.
+      id:
+        description: Opaque retained record identity.
+      tenant_id:
+        description: Owning company; all authority references enforce the same tenant.
+  cost_scope_review:
+    description: Owner review of all acquisition categories against one sealed input membership.
+    columns:
+      receipt_basis_id:
+        description: Admitted receipt quantity and base-unit scope.
+      revision:
+        description: Monotonic decision revision within its owning component or receipt.
+      supersedes_id:
+        description: Previous decision revision; history is retained.
+      manifest_id:
+        description: Exact sealed retained input membership.
+      introduced_event_id:
+        description: Business Event introducing this retained input or decision.
+      action_id:
+        description: Confirmed proposal carrying input, confirming user and replay result.
+      reason:
+        description: Explicit human explanation of the decision.
+      id:
+        description: Opaque retained record identity.
+      tenant_id:
+        description: Owning company; all authority references enforce the same tenant.
+  cost_scope_review_category:
+    description: Explicit category disposition and reason in one receipt scope review.
+    columns:
+      review_id:
+        description: Owning confirmed scope review.
+      category:
+        description: One of the six acquisition-cost categories.
+      disposition:
+        description: Evidenced, explicitly zero, not applicable or unresolved category.
+      reason:
+        description: Explicit human explanation of the decision.
+      id:
+        description: Opaque retained record identity.
+      tenant_id:
+        description: Owning company; all authority references enforce the same tenant.
+  cost_policy_revision:
+    description: Confirmed FIFO or specific-identification policy for an evidenced item, owner, currency and base-unit history scope.
+    columns:
+      item_id:
+        description: Item whose complete bounded history forms the valuation scope.
+      owner_party_id:
+        description: Explicitly confirmed economic owner; never inferred from physical location.
+      revision:
+        description: Increasing revision within the item or receipt decision scope.
+      supersedes_id:
+        description: Exact predecessor decision retained for historical replay.
+      method:
+        description: Explicit FIFO or evidenced specific-identification selection; unsupported methods refuse.
+      currency:
+        description: Single reviewed valuation currency without implicit conversion.
+      base_unit:
+        description: Retained base unit; mixed or changed units require separate reviewed support.
+      history_start:
+        description: Confirmed empty-opening boundary; prior held movements refuse.
+      introduced_event_id:
+        description: Admission or decision event establishing retained knowledge.
+      action_id:
+        description: Bound owner-confirmed action and idempotent execution result.
+      reason:
+        description: Owner explanation supporting the explicit decision.
+      id:
+        description: Opaque retained record identity.
+      tenant_id:
+        description: Owning company; all authority references enforce same-tenant scope.
+  cost_movement_basis:
+    description: Immutable admission of held physical movement inputs and their original event ordering; physical return, supplier-return and adjustment kinds do not establish their economic interpretation.
+    columns:
+      movement_id:
+        description: Shortest link to the original physical Movement.
+      movement_event_id:
+        description: Original movement.recorded event, or movement.corrected event for an effective replacement, whose sequence preserves knowledge ordering.
+      introduced_event_id:
+        description: Admission or decision event establishing retained knowledge.
+      movement_type:
+        description: Recorded physical kind retained independently of reviewed economic interpretation.
+      base_quantity:
+        description: Exact positive movement quantity retained at admission.
+      base_unit:
+        description: Retained base unit; mixed or changed units require separate reviewed support.
+      occurred_at:
+        description: Retained economic movement instant in UTC.
+      input_schema_version:
+        description: Version of the retained input contract.
+      id:
+        description: Opaque retained record identity.
+      tenant_id:
+        description: Owning company; all authority references enforce same-tenant scope.
+  cost_ownership_revision:
+    description: Confirmed full receipt ownership supported by exact source evidence.
+    columns:
+      receipt_basis_id:
+        description: Exact admitted receipt whose ownership is reviewed.
+      owner_party_id:
+        description: Explicitly confirmed economic owner; never inferred from physical location.
+      evidence_source_record_id:
+        description: Immutable received payload explicitly reviewed as ownership evidence.
+      covered_quantity:
+        description: Full receipt quantity covered by this ownership decision.
+      revision:
+        description: Increasing revision within the item or receipt decision scope.
+      supersedes_id:
+        description: Exact predecessor decision retained for historical replay.
+      introduced_event_id:
+        description: Admission or decision event establishing retained knowledge.
+      action_id:
+        description: Bound owner-confirmed action and idempotent execution result.
+      reason:
+        description: Owner explanation supporting the explicit decision.
+      id:
+        description: Opaque retained record identity.
+      tenant_id:
+        description: Owning company; all authority references enforce same-tenant scope.
+  cost_opening_basis:
+    description: Immutable source-backed acquisition-cost and economic-owner authority for an existing opening-stock movement; never a fabricated receipt or derived inventory value.
+    columns:
+      movement_basis_id: {description: Exact retained opening-stock movement input.}
+      owner_party_id: {description: Confirmed economic owner; never inferred from location.}
+      evidence_source_record_id: {description: Immutable source payload stating the opening acquisition-cost basis.}
+      acquisition_cost: {description: Exact non-negative total stated for the complete opening quantity; zero is distinct from unknown.}
+      currency: {description: Stated currency matching the reviewed inventory scope.}
+      input_schema_version: {description: Version of the retained opening input contract.}
+      introduced_event_id: {description: Confirming inventory review event.}
+      action_id: {description: Owner-confirmed action retaining the exact request.}
+      reason: {description: Owner explanation supporting the opening decision.}
+      id: {description: Opaque retained record identity.}
+      tenant_id: {description: Owning company; all authority references enforce same-tenant scope.}
+  cost_inventory_review:
+    description: Confirmed policy and immutable inventory input membership at a fixed cutoff; no calculated monetary authority.
+    columns:
+      policy_id:
+        description: Exact confirmed policy revision for this frozen review.
+      effective_at:
+        description: Fixed economic cutoff of this inventory review.
+      target_event_sequence:
+        description: Sealed knowledge boundary including the introducing review event.
+      knowledge_at:
+        description: Displayed admission time; event identity defines exact knowledge membership.
+      algorithm_version:
+        description: Declared inventory calculation algorithm version.
+      input_schema_version:
+        description: Version of the retained input contract.
+      content_hash:
+        description: Canonical integrity digest of exact retained policy and input membership.
+      introduced_event_id:
+        description: Admission or decision event establishing retained knowledge.
+      action_id:
+        description: Bound owner-confirmed action and idempotent execution result.
+      reason:
+        description: Owner explanation supporting the explicit decision.
+      id:
+        description: Opaque retained record identity.
+      tenant_id:
+        description: Owning company; all authority references enforce same-tenant scope.
+  cost_inventory_ownership_part:
+    description: Immutable evidenced economic-owner quantity allocation for one retained inventory review movement; never inferred from physical custody or transit state.
+    columns:
+      review_id: {description: Exact retained inventory review owning the allocation set.}
+      movement_basis_id: {description: Exact retained physical movement being allocated.}
+      owner_party_id: {description: Explicit economic owner of this positive quantity portion.}
+      evidence_source_record_id: {description: Immutable payload supporting the ownership statement.}
+      quantity: {description: Exact positive owner portion in the movement base unit.}
+      input_schema_version: {description: Version of the retained ownership-part contract.}
+      id: {description: Opaque retained record identity.}
+      tenant_id: {description: Owning company; all links enforce the same tenant.}
+  cost_inventory_member:
+    description: Exact typed inventory review membership, linking receipt cost and ownership where applicable.
+    columns:
+      review_id:
+        description: Owning inventory review.
+      movement_basis_id:
+        description: Exact retained movement input included in this review.
+      kind:
+        description: Confirmed semantic receipt, economic issue, within-pool transfer, customer return, supplier return or loss.
+      receipt_manifest_id:
+        description: Exact sealed receipt cost review; absent for non-receipt members.
+      ownership_revision_id:
+        description: Exact receipt ownership revision; absent for non-receipt members.
+      id:
+        description: Opaque retained record identity.
+      tenant_id:
+        description: Owning company; all authority references enforce same-tenant scope.
+
+  cost_commercial_match_revision:
+    description: Immutable owner-confirmed revision binding one source-stated sold line to an explicit goods-cost disposition.
+    columns:
+      document_line_id: {description: Exact source-evidenced sold invoice or credit line.}
+      order_line_id: {description: Optional shortest link to the evidenced ordered line.}
+      revision: {description: Positive append-only revision for this sold line.}
+      supersedes_id: {description: Prior commercial match revision replaced by this decision.}
+      stated_net: {description: Exact signed source-stated net revenue; never recomputed from parts.}
+      stated_quantity: {description: Nullable exact signed source-stated quantity.}
+      currency: {description: Source-stated revenue currency.}
+      base_unit: {description: Nullable source-stated quantity unit.}
+      evidence_hash: {description: Digest binding the admitted source evidence.}
+      goods_cost_disposition: {description: Explicit inventory, direct-evidence, not-applicable or unresolved decision.}
+      profile: {description: Confirmed commercial interpretation profile.}
+      introduced_event_id: {description: Business event introducing the owner decision.}
+      action_id: {description: Confirmed proposal retaining the exact request.}
+      reason: {description: Owner explanation for the match revision.}
+      input_schema_version: {description: Version of the retained commercial matching contract.}
+      content_hash: {description: Canonical digest sealing the header and exact parts.}
+      id: {description: Opaque retained revision identity.}
+      tenant_id: {description: Owning company; every relationship enforces the same tenant.}
+  cost_commercial_inventory_part:
+    description: Immutable exact frozen inventory consumption or return portion assigned to a commercial match revision.
+    columns:
+      match_revision_id: {description: Sealed commercial match revision owning this portion.}
+      inventory_member_id: {description: Exact frozen shipment or customer-return inventory member.}
+      original_issue_member_id: {description: Original issue required for a customer-return credit portion.}
+      entry_movement_basis_id: {description: Exact retained inventory entry layer identity.}
+      receipt_movement_basis_id: {description: Exact retained receipt layer identity.}
+      quantity: {description: Exact positive matched quantity in the inventory base unit.}
+      input_schema_version: {description: Version of the retained commercial inventory-part contract.}
+      id: {description: Opaque retained part identity.}
+      tenant_id: {description: Owning company; every relationship enforces the same tenant.}
+  cost_commercial_direct_part:
+    description: Immutable whole source-backed attribution revision used as an explicit service, shipping, kit or production input.
+    columns:
+      match_revision_id: {description: Sealed commercial match revision owning this direct input.}
+      attribution_revision_id: {description: Existing retained source-backed cost attribution; no amount is copied.}
+      input_role: {description: Explicit service, shipping, kit or production semantic role.}
+      input_schema_version: {description: Version of the retained commercial direct-part contract.}
+      id: {description: Opaque retained part identity.}
+      tenant_id: {description: Owning company; every relationship enforces the same tenant.}
+  cost_revenue_match_basis:
+    description: Retained full-line revenue and shipment input binding; no derived margin authority.
+    columns:
+      document_line_id:
+        description: Received invoice line admitted to this unique full-quantity revenue binding.
+      order_line_id:
+        description: Retained billed order-line identity for historical context; parent document is reachable through
+          this link.
+      movement_basis_id:
+        description: Exact retained shipment input; a whole shipment cannot be reused by another revenue basis.
+      item_id:
+        description: Retained received item identity for historical grouping and inventory compatibility.
+      customer_id:
+        description: Retained transaction customer identity; current display names are not historical dimensions.
+      stated_net:
+        description: Exact received line net revenue, copied unchanged; never recomputed from price or gross.
+      quantity:
+        description: Exact received full-line quantity, matched to the retained whole shipment.
+      currency:
+        description: Received valuation currency, with no implicit conversion.
+      base_unit:
+        description: Received line unit matching the retained inventory base unit.
+      invoice_date:
+        description: Received invoice date retained separately from confirmed revenue economic time.
+      sales_channel:
+        description: Original transaction channel text retained from the billed order.
+      evidence_hash:
+        description: Fingerprint of the received financial evidence at admission.
+      input_schema_version:
+        description: Version of retained whole-line revenue/context input semantics.
+      introduced_event_id:
+        description: Same-tenant event admitting the source input or confirming the review.
+      id:
+        description: Opaque retained record identity.
+      tenant_id:
+        description: Owning company; every relationship uses same-tenant constraints.
+  cost_contribution_review:
+    description: Owner-confirmed commercial profile/revenue completeness and exact inventory membership; DB1 is derived.
+    columns:
+      revenue_basis_id:
+        description: Stable full-line revenue and shipment binding reviewed by this decision.
+      inventory_member_id:
+        description: Exact inventory issue membership; reaches its frozen review and movement basis without duplicated
+          FKs.
+      revision:
+        description: Increasing review revision for this revenue binding.
+      supersedes_id:
+        description: Exact predecessor review retained for reproducibility.
+      profile:
+        description: Explicitly owner-confirmed commercial_v1 profile, scoped to this review.
+      economic_at:
+        description: Explicitly confirmed revenue recognition time equal to this supported shipment time.
+      knowledge_at:
+        description: Displayed decision time; the event cursor and retained membership define exact knowledge.
+      introduced_event_id:
+        description: Same-tenant event admitting the source input or confirming the review.
+      event_sequence:
+        description: Sealed event cursor including this confirming decision.
+      action_id:
+        description: Exact bound owner-confirmed action; repeated execution replays its result.
+      reason:
+        description: Owner explanation of recognition, profile and completeness confirmation.
+      content_hash:
+        description: Canonical integrity digest of retained revenue basis, decision and inventory membership.
+      id:
+        description: Opaque retained record identity.
+      tenant_id:
+        description: Owning company; every relationship uses same-tenant constraints.
+
+  cost_selling_attribution_part:
+    description: Retained source-backed selling decision or exact DB2 review membership; no stored margin.
+    columns:
+      attribution_revision_id:
+        description: Exact complete revision of the received component allocation.
+      document_line_id:
+        description: Sold invoice line receiving the evidenced expense share.
+      category:
+        description: Commercial_v1 selling category confirmed by the owner.
+      source_share:
+        description: Explicit signed share of received net; never inferred from payout or price.
+      cost_effect:
+        description: Explicit invoice charge or supplier credit direction.
+      assignment_kind:
+        description: Direct attribution or explicitly allocated share.
+      id:
+        description: Opaque retained identity.
+      tenant_id:
+        description: Owning company enforced by composite tenant foreign keys.
+
+  cost_selling_review_category:
+    description: Retained source-backed selling decision or exact DB2 review membership; no stored margin.
+    columns:
+      review_id:
+        description: Contribution review owning this immutable completeness decision.
+      category:
+        description: One of the seven commercial_v1 selling categories.
+      disposition:
+        description: Evidenced, confirmed zero, not applicable or unresolved scope.
+      reason:
+        description: Owner explanation for the completeness or zero declaration.
+      id:
+        description: Opaque retained identity.
+      tenant_id:
+        description: Owning company enforced by composite tenant foreign keys.
+
+  cost_selling_review_member:
+    description: Retained source-backed selling decision or exact DB2 review membership; no stored margin.
+    columns:
+      review_id:
+        description: Contribution review pinning this exact historical allocation part.
+      part_id:
+        description: Exact retained selling part; source and revision are reachable through it.
+      id:
+        description: Opaque retained identity.
+      tenant_id:
+        description: Owning company enforced by composite tenant foreign keys.
+
+  cost_inventory_generation:
+    description: Disposable completed calculation of one retained inventory review; not financial authority.
+    columns:
+      review_id:
+        description: Exact same-tenant retained inventory input review.
+      algorithm_version:
+        description: Version of the inventory calculation used for reconstruction.
+      completed_at:
+        description: UTC time of completed calculation; publication commits atomically.
+      output_hash:
+        description: Integrity digest binding canonical numeric output to the retained review input hash.
+  cost_inventory_snapshot:
+    description: Canonical disposable quantity and acquisition-value observation for one generation.
+    columns:
+      generation_id:
+        description: Exact same-tenant calculation generation; one row per generation.
+      remaining_quantity:
+        description: Derived owned remaining base quantity at the retained cutoff.
+      acquisition_value:
+        description: Derived remaining acquisition cost; never a statutory carrying-value assessment.
+  cost_inventory_publication:
+    description: Atomic publication of a completed generation for the exact retained inventory review.
+    columns:
+      review_id:
+        description: Retained review scope with one published pointer.
+      generation_id:
+        description: Completed generation constrained to the same tenant and review.
+
+  cost_contribution_generation:
+    description: Disposable complete historical calculation of one confirmed joint contribution action.
+    columns:
+      action_id:
+        description: Exact confirmed selection; not a new financial approval.
+      algorithm_version:
+        description: Fixed commercial contribution calculation version.
+      completed_at:
+        description: Completion time; all position observations commit together.
+      output_hash:
+        description: Digest binding exact retained membership and typed output values.
+  cost_contribution_snapshot:
+    description: Disposable consumed and selling cost observation per retained contribution review.
+    columns:
+      generation_id:
+        description: Complete same-tenant calculation containing this position.
+      review_id:
+        description: Shortest link to retained revenue, inventory and selling evidence.
+      goods_cost:
+        description: Derived consumed acquisition cost for the admitted full shipment.
+      known_direct_selling_cost:
+        description: Known direct selling subtotal; null when no selling review exists.
+      known_allocated_selling_cost:
+        description: Known allocated selling subtotal; null when no selling review exists.
+      selling_complete:
+        description: All required selling categories are reviewed; false never implies zero.
+
+  cost_company_census:
+    description: Retained current company discovery with typed provenance; no valuation or approval.
+    columns:
+      request_id:
+        description: Same-tenant capture retry identity.
+      request_hash:
+        description: Canonical hash of the requested cutoff, version and record bound.
+      effective_at:
+        description: Requested inventory effective cutoff in UTC.
+      observed_at:
+        description: Current snapshot observation time, not a historical financial knowledge cutoff.
+      snapshot_identity:
+        description: Diagnostic PostgreSQL snapshot identity; not a reusable database snapshot.
+      event_sequence:
+        description: Visible tenant event watermark; not complete historical admission.
+      input_schema_version:
+        description: Allowlisted retained observation serialization version.
+      state:
+        description: Building or sealed; sealing grants no financial approval.
+      movement_count:
+        description: Verified number of retained movement members.
+      document_count:
+        description: Verified number of retained document members.
+      line_count:
+        description: Verified number of retained line members.
+      source_count:
+        description: Verified number of retained source members.
+      content_hash:
+        description: Canonical integrity digest of observed values or complete typed membership.
+      sealed_at:
+        description: UTC instant when all retained families passed integrity verification.
+      id:
+        description: Opaque retained observation identity.
+      tenant_id:
+        description: Owning company; every lookup and relationship is scoped.
+
+  cost_company_census_movement:
+    description: Retained current company discovery with typed provenance; no valuation or approval.
+    columns:
+      census_id:
+        description: Same-tenant retained current census.
+      movement_id:
+        description: Original movement identity; retained values preserve this observation.
+      observed_values:
+        description: Exact versioned observed record values; Decimal amounts remain strings and never become a new authority.
+      content_hash:
+        description: Canonical integrity digest of observed values or complete typed membership.
+      id:
+        description: Opaque retained observation identity.
+      tenant_id:
+        description: Owning company; every lookup and relationship is scoped.
+
+  cost_company_census_document:
+    description: Retained current company discovery with typed provenance; no valuation or approval.
+    columns:
+      census_id:
+        description: Same-tenant retained current census.
+      document_id:
+        description: Original document identity, including headers without lines.
+      observed_values:
+        description: Exact versioned observed record values; Decimal amounts remain strings and never become a new authority.
+      content_hash:
+        description: Canonical integrity digest of observed values or complete typed membership.
+      id:
+        description: Opaque retained observation identity.
+      tenant_id:
+        description: Owning company; every lookup and relationship is scoped.
+
+  cost_company_census_line:
+    description: Retained current company discovery with typed provenance; no valuation or approval.
+    columns:
+      census_id:
+        description: Same-tenant retained current census.
+      document_line_id:
+        description: Original document-line evidence identity.
+      observed_values:
+        description: Exact versioned observed record values; Decimal amounts remain strings and never become a new authority.
+      content_hash:
+        description: Canonical integrity digest of observed values or complete typed membership.
+      document_member_id:
+        description: Frozen header member in this same census.
+      id:
+        description: Opaque retained observation identity.
+      tenant_id:
+        description: Owning company; every lookup and relationship is scoped.
+
+  cost_company_census_source:
+    description: Retained current company discovery with typed provenance; no valuation or approval.
+    columns:
+      census_id:
+        description: Same-tenant retained current census.
+      source_record_id:
+        description: Immutable original source version; raw payload is not copied.
+      observed_values:
+        description: Exact versioned observed record values; Decimal amounts remain strings and never become a new authority.
+      content_hash:
+        description: Canonical integrity digest of observed values or complete typed membership.
+      interpretation_outcome_id:
+        description: Exact nullable same-tenant source interpretation outcome.
+      id:
+        description: Opaque retained observation identity.
+      tenant_id:
+        description: Owning company; every lookup and relationship is scoped.
+
+  cost_captured_basis:
+    description: Immutable captured review selection referencing existing evidence and
+      approvals.
+    columns:
+      census_id:
+        description: Retained observed population and context.
+      request_id:
+        description: Same-tenant internal retry identity.
+      request_hash:
+        description: Canonical requested census, version and bounds.
+      basis_version:
+        description: Explicit supported captured-review assembly version.
+      state:
+        description: Building or sealed; sealing grants no financial approval.
+      sealed_at:
+        description: UTC completion of retained membership verification.
+      inventory_count:
+        description: Verified inventory member count.
+      contribution_count:
+        description: Verified contribution candidate count.
+      basis_digest:
+        description: Versioned canonical basis digest excluding lifecycle metadata.
+      observations:
+        description: Allowlisted selection, coverage and gap metadata; no monetary authority.
+      id:
+        description: Opaque retained basis or member identity.
+      tenant_id:
+        description: Owning company; all access and links are scoped.
+
+  cost_captured_inventory_basis:
+    description: Immutable captured review selection referencing existing evidence and
+      approvals.
+    columns:
+      basis_id:
+        description: Parent retained review selection.
+      item_id:
+        description: Captured inventory subject, including unreviewed items.
+      review_id:
+        description: Optional pinned confirmed review, never a latest-selection pointer.
+      observations:
+        description: Allowlisted selection, coverage and gap metadata; no monetary authority.
+      content_hash:
+        description: Integrity hash of typed member identity and observation metadata.
+      id:
+        description: Opaque retained basis or member identity.
+      tenant_id:
+        description: Owning company; all access and links are scoped.
+
+  cost_captured_contribution_basis:
+    description: Immutable captured review selection referencing existing evidence and
+      approvals.
+    columns:
+      basis_id:
+        description: Parent retained review selection.
+      document_line_id:
+        description: Captured sales-line candidate, including unsupported candidates.
+      review_id:
+        description: Optional pinned confirmed review, never a latest-selection pointer.
+      observations:
+        description: Allowlisted selection, coverage and gap metadata; no monetary authority.
+      content_hash:
+        description: Integrity hash of typed member identity and observation metadata.
+      id:
+        description: Opaque retained basis or member identity.
+      tenant_id:
+        description: Owning company; all access and links are scoped.
+
+  cost_company_manifest:
+    description: Sealed financial input population assembled from one retained company census.
+    columns:
+      census_id: {description: Exact retained discovery observation.}
+      effective_at: {description: UTC valuation cutoff.}
+      knowledge_at: {description: UTC knowledge instant captured after the committed event cursor.}
+      target_event_sequence: {description: Last committed tenant event included by the manifest.}
+      inventory_algorithm_version: {description: Pinned inventory algorithm.}
+      contribution_algorithm_version: {description: Pinned commercial algorithm.}
+      scope_key: {description: Canonical compatible company context.}
+      population_digest: {description: Integrity digest over exact typed expected subjects.}
+      inventory_count: {description: Expected inventory subject count.}
+      contribution_count: {description: Expected contribution subject count.}
+      header_gap_count: {description: Exact unresolved header-gap count.}
+      source_gap_count: {description: Exact unresolved source-gap count.}
+      gap_digest: {description: Canonical binding of unresolved header and source gaps.}
+      state: {description: Building or sealed retained manifest.}
+      sealed_at: {description: UTC sealing instant.}
+      content_hash: {description: Integrity digest over the complete manifest.}
+      id: {description: Opaque manifest identity.}
+      tenant_id: {description: Owning company; all access and links are scoped.}
+
+  cost_company_inventory_input:
+    description: One expected inventory subject and its optional approved retained review.
+    columns:
+      manifest_id: {description: Exact retained company manifest.}
+      item_id: {description: Existing inventory subject identity.}
+      review_id: {description: Approved retained inventory review when supported.}
+      input_fingerprint: {description: Canonical retained financial input binding.}
+      support_state: {description: Known or explicit unknown input state.}
+      id: {description: Opaque typed member identity.}
+      tenant_id: {description: Owning company; all access and links are scoped.}
+
+  cost_company_contribution_input:
+    description: One expected commercial subject and its optional approved retained reviews.
+    columns:
+      manifest_id: {description: Exact retained company manifest.}
+      census_line_id: {description: Retained census line membership.}
+      review_id: {description: Approved retained contribution review when DB1 is supported.}
+      inventory_review_id: {description: Exact linked inventory review when applicable.}
+      input_fingerprint: {description: Canonical retained financial input binding.}
+      db1_state: {description: Known or explicit unknown DB1 input state.}
+      db2_state: {description: Known or explicit unknown DB2 input state.}
+      id: {description: Opaque typed member identity.}
+      tenant_id: {description: Owning company; all access and links are scoped.}
+
+  cost_company_generation:
+    description: Disposable evaluation envelope covering one exact retained company manifest.
+    columns:
+      manifest_id: {description: Retained financial input authority.}
+      algorithm_bundle: {description: Fixed compatible inventory and contribution algorithms.}
+      scope_key: {description: Canonical publication scope.}
+      state: {description: Building or sealed generation.}
+      expected_work_count: {description: Exact planned bounded work count.}
+      completed_work_count: {description: Successfully completed bounded work count.}
+      inventory_count: {description: Exact persisted inventory result count.}
+      contribution_count: {description: Exact persisted contribution result count.}
+      inventory_content_hash: {description: Integrity digest over inventory result membership.}
+      contribution_content_hash: {description: Integrity digest over contribution result membership.}
+      started_at: {description: UTC build start.}
+      completed_at: {description: UTC verification and sealing instant.}
+      id: {description: Opaque disposable generation identity.}
+      tenant_id: {description: Owning company; all access and links are scoped.}
+
+  cost_company_inventory_result:
+    description: Known canonical cache reference or explicit unknown inventory result.
+    columns:
+      generation_id: {description: Exact company generation.}
+      inventory_input_id: {description: Exact retained manifest member.}
+      inventory_generation_id: {description: Verified canonical per-review cache when known.}
+      state: {description: Known or explicit unknown result.}
+      result_fingerprint: {description: Integrity digest over the fixed result reference.}
+      id: {description: Opaque disposable result identity.}
+      tenant_id: {description: Owning company; all access and links are scoped.}
+
+  cost_company_contribution_result:
+    description: Known canonical cache reference or explicit unknown contribution result.
+    columns:
+      generation_id: {description: Exact company generation.}
+      contribution_input_id: {description: Exact retained manifest member.}
+      contribution_generation_id: {description: Verified canonical contribution cache when known.}
+      review_id: {description: Exact review within the referenced contribution cache.}
+      db1_state: {description: Known or explicit unknown DB1 result state.}
+      db2_state: {description: Known or explicit unknown DB2 result state.}
+      result_fingerprint: {description: Integrity digest over the fixed result reference.}
+      id: {description: Opaque disposable result identity.}
+      tenant_id: {description: Owning company; all access and links are scoped.}
+
+  cost_company_publication:
+    description: Scope-keyed atomic pointer to one sealed financial company generation.
+    columns:
+      scope_key: {description: Canonical compatible company context.}
+      generation_id: {description: Sealed exact-population company generation.}
+      updated_at: {description: UTC pointer transition instant.}
+      id: {description: Opaque publication identity.}
+      tenant_id: {description: Owning company; all access and links are scoped.}
+
+  cost_generation:
+    description: Tenant-scoped disposable captured report output; retained inputs remain separate.
+    columns:
+      captured_basis_id:
+        description: Retained review selection; never a substituted historical financial manifest.
+      kind:
+        description: Explicit captured review selection report kind.
+      algorithm_version:
+        description: Pinned canonical report calculation version.
+      scope_key:
+        description: Service-derived tenant, kind and effective-cutoff publication key.
+      state:
+        description: Building or sealed generation; available or unknown member observation.
+      completed_at:
+        description: UTC instant when exact cached content was verified and sealed.
+      inventory_count:
+        description: Exact retained inventory membership count.
+      contribution_count:
+        description: Exact retained contribution candidate count.
+      output_hash:
+        description: Canonical integrity digest over both complete output families.
+      id:
+        description: Opaque disposable report identity.
+      tenant_id:
+        description: Owning company; access and relationships remain tenant-scoped.
+
+  cost_inventory_row:
+    description: Tenant-scoped disposable captured report output; retained inputs remain separate.
+    columns:
+      generation_id:
+        description: Exact report generation shared by all page and aggregate reads.
+      inventory_basis_member_id:
+        description: Shortest retained link to inventory subject, review and gaps.
+      state:
+        description: Building or sealed generation; available or unknown member observation.
+      currency:
+        description: Verified report currency; absent for unknown subjects.
+      base_unit:
+        description: Verified base unit; incompatible units remain separate.
+      method:
+        description: Verified inventory valuation method partition.
+      owner_party_id:
+        description: Verified same-company economic ownership partition.
+      remaining_quantity:
+        description: Canonical observed remaining quantity, absent when unsupported.
+      acquisition_value:
+        description: Canonical acquisition value observation, not a new financial authority.
+      carrying_value:
+        description: Separately supported carrying observation; unknown remains null.
+      id:
+        description: Opaque disposable report identity.
+      tenant_id:
+        description: Owning company; access and relationships remain tenant-scoped.
+
+  cost_contribution_row:
+    description: Tenant-scoped disposable captured report output; retained inputs remain separate.
+    columns:
+      generation_id:
+        description: Exact report generation shared by all page and aggregate reads.
+      contribution_basis_member_id:
+        description: Shortest retained link to sales candidate, review and gaps.
+      state:
+        description: Building or sealed generation; available or unknown member observation.
+      currency:
+        description: Verified report currency; absent for unknown subjects.
+      base_unit:
+        description: Verified base unit; incompatible units remain separate.
+      revenue:
+        description: Canonical received net revenue of the supported reviewed position.
+      goods_cost:
+        description: Canonical consumption cost of the supported reviewed position.
+      direct_selling_cost:
+        description: Complete supported direct selling cost; absent when incomplete.
+      allocated_selling_cost:
+        description: Complete supported allocated selling cost; absent when incomplete.
+      id:
+        description: Opaque disposable report identity.
+      tenant_id:
+        description: Owning company; access and relationships remain tenant-scoped.
+
+  cost_publication:
+    description: Tenant-scoped disposable captured report publication pointer.
+    columns:
+      scope_key:
+        description: Service-derived tenant, kind and effective-cutoff publication key.
+      generation_id:
+        description: Exact report generation shared by all page and aggregate reads.
+      id:
+        description: Opaque disposable report identity.
+      tenant_id:
+        description: Owning company; access and relationships remain tenant-scoped.

@@ -1,0 +1,20 @@
+F                                                                        [100%]
+=================================== FAILURES ===================================
+_______ test_current_review_refuses_old_snapshot_but_history_is_explicit _______
+
+session = <sqlalchemy.orm.session.Session object at 0x10db839e0>
+business = Business(tenant=<reality.db.core.Tenant object at 0x10db83a70>, company=<reality.db.core.Party object at 0x10e899310>,...ddd7bc0>, item=<reality.db.core.Item object at 0x10e899970>, location=<reality.db.core.Location object at 0x10e89b860>)
+cost_owner = <reality.db.core.AppUser object at 0x10e8c9430>
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x10e8c9ee0>
+
+    def test_current_review_refuses_old_snapshot_but_history_is_explicit(session, business, cost_owner, monkeypatch):
+        args, data = prepared(session, business, cost_owner)
+        _, result = stock.commit_review(session, business, cost_owner, args)
+        monkeypatch.setattr(session.connection(), "get_isolation_level", lambda: "REPEATABLE READ")
+>       with pytest.raises(core.InvalidOperation, match="READ COMMITTED"):
+E       Failed: DID NOT RAISE InvalidOperation
+
+tests/test_contribution_reviews.py:367: Failed
+=========================== short test summary info ============================
+FAILED tests/test_contribution_reviews.py::test_current_review_refuses_old_snapshot_but_history_is_explicit
+1 failed in 2.84s

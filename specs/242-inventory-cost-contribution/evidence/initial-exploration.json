@@ -1,0 +1,99 @@
+{
+  "strategy": "projection",
+  "dataset_version": "costing-spike-v1",
+  "profile": "full",
+  "qualification_passed": false,
+  "measurements": {
+    "order": {
+      "samples": 200,
+      "p50_s": 0.002223458490334451,
+      "p95_s": 0.0032689159852452576,
+      "max_s": 0.004550084006041288,
+      "budget_s": 0.5
+    },
+    "tool": {
+      "samples": 200,
+      "p50_s": 0.0021667705004801974,
+      "p95_s": 0.0031037919980008155,
+      "max_s": 0.00390474998857826,
+      "budget_s": 3
+    },
+    "inventory": {
+      "samples": 200,
+      "p50_s": 0.007192978999228217,
+      "p95_s": 0.010940916981780902,
+      "max_s": 0.015166375000262633,
+      "budget_s": 2
+    },
+    "monthly": {
+      "samples": 200,
+      "p50_s": 0.01861233300587628,
+      "p95_s": 0.06285062502138317,
+      "max_s": 0.0935382499883417,
+      "budget_s": 3
+    },
+    "attention": {
+      "samples": 200,
+      "p50_s": 0.22614545849501155,
+      "p95_s": 0.39538324999739416,
+      "max_s": 0.5468957910197787,
+      "budget_s": 2
+    }
+  },
+  "limitations": [
+    "Exploratory host: combined 4-vCPU/16-GiB envelope is not enforced.",
+    "Cache absence is measured; an OS/database cold-cache run is not certified.",
+    "Experimental typed relations are not yet wired to the product analysis compiler or exception register.",
+    "Full generated history is regular receipts/issues/transfers; returns, split credits, tax and partial matching are independent small proofs, not distributed full-load scenarios.",
+    "Projection completeness/review invalidation and source-version history are not product implementations."
+  ],
+  "reconstruction_s": [
+    26.529645707982127,
+    20.77786091598682,
+    27.896626292000292
+  ],
+  "checksum": "6b6d0f29459ca5b84218cb9a6e6c0cd1fe2653213f3ae75fda09bdaff90092df",
+  "refresh": {
+    "samples": 30,
+    "p50_s": 0.18725710400030948,
+    "p95_s": 0.276712166989455,
+    "max_s": 0.3058842909813393,
+    "last_affected_rows": 3000,
+    "one_change_per_second_sustained": true
+  },
+  "reads_during_refresh": {
+    "samples": 150,
+    "p50_s": 0.00976481250836514,
+    "p95_s": 0.07049641699995846,
+    "max_s": 0.12655783299123868
+  },
+  "measured_budgets_passed": true,
+  "status": "exploratory",
+  "cardinalities": {
+    "a": {
+      "item": 10000,
+      "trade_order": 100000,
+      "movement": 1000000,
+      "component": 1000000,
+      "attribution": 1000000,
+      "matching": 600000
+    },
+    "b": {
+      "item": 10000,
+      "trade_order": 100000,
+      "movement": 1000000,
+      "component": 1000000,
+      "attribution": 1000000,
+      "matching": 600000
+    }
+  },
+  "setup_s": 126.16627012501704,
+  "python": "3.12.4",
+  "platform": "macOS-27.0-arm64-arm-64bit",
+  "git_revision": "709af5c1a6358be2f004003f37b836ff6095b5bf",
+  "peak_rss_bytes": 853606400,
+  "elapsed_s": 265.37725937500363,
+  "postgres_version": "17.10",
+  "source_digest": "47d94e865d044f6a2ea4832de4b01c41a63dcd43f134acdfde6546320f417c71",
+  "superseded_reason": "Initial exploration used mutable synthetic late-cost updates. Superseded by v2 append-only adjustment evidence; not qualification evidence. Source digest was captured after concurrent edits and is not a valid exact build identity."
+}

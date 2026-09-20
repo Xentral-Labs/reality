@@ -1,0 +1,13 @@
+F
+=================================== FAILURES ===================================
+__________________ test_publication_context_and_cursor_rules ___________________
+
+    def test_publication_context_and_cursor_rules():
+>       from reality.domain.captured_report import CapturedPublication, decide
+E       ModuleNotFoundError: No module named 'reality.domain.captured_report'
+
+tests/test_captured_report.py:9: ModuleNotFoundError
+=========================== short test summary info ============================
+FAILED tests/test_captured_report.py::test_publication_context_and_cursor_rules
+!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!
+1 failed in 0.87s

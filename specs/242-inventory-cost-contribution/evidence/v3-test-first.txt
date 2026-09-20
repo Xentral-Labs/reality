@@ -1,0 +1,47 @@
+..............F......FF                                                  [100%]
+=================================== FAILURES ===================================
+___________ test_return_exposes_exact_cost_reversal_for_contribution ___________
+
+    def test_return_exposes_exact_cost_reversal_for_contribution():
+        result = replay([
+            Event("receipt", "receipt", D(3), D(1)),
+            Event("sale", "issue", D(1)),
+            Event("returned", "return", D(1), original_issue="sale"),
+        ])
+>       assert result.returns[0].cost == D("-0.3333")
+               ^^^^^^^^^^^^^^
+E       AttributeError: 'Result' object has no attribute 'returns'
+
+packages/reality-core/tests/test_costing_spike_contract.py:203: AttributeError
+___________ test_adversarial_matching_returns_and_stated_reductions ____________
+
+session = <sqlalchemy.orm.session.Session object at 0x10e5b72c0>
+
+    def test_adversarial_matching_returns_and_stated_reductions(session):
+        from benchmarks.large_tenant_registers.costing_cases import derive
+    
+        connection = session.connection()
+        build(connection, Profile.named("reduced"))
+        rows, inventory = derive(connection, "a")
+        assert len({r.issue_id for r in rows}) == len(rows)
+>       assert connection.scalar(text("SELECT count(*) FROM costing_spike.movement WHERE tenant='a' AND kind='return'")) > 0
+E       assert 0 > 0
+E        +  where 0 = scalar(<sqlalchemy.sql.elements.TextClause object at 0x10e574d10>)
+E        +    where scalar = <sqlalchemy.engine.base.Connection object at 0x10e47fe00>.scalar
+E        +    and   <sqlalchemy.sql.elements.TextClause object at 0x10e574d10> = text("SELECT count(*) FROM costing_spike.movement WHERE tenant='a' AND kind='return'")
+
+packages/reality-core/tests/test_costing_spike_postgres.py:142: AssertionError
+___ test_live_snapshot_refuses_stale_and_other_pool_cannot_advance_watermark ___
+
+session = <sqlalchemy.orm.session.Session object at 0x10e5b7200>
+
+    def test_live_snapshot_refuses_stale_and_other_pool_cannot_advance_watermark(session):
+>       from benchmarks.large_tenant_registers.costing_cases import derive, refresh_pool, snapshot_read
+E       ImportError: cannot import name 'snapshot_read' from 'benchmarks.large_tenant_registers.costing_cases' (/Users/benediktsauter/GitHub/reality/packages/reality-core/benchmarks/large_tenant_registers/costing_cases.py)
+
+packages/reality-core/tests/test_costing_spike_postgres.py:159: ImportError
+=========================== short test summary info ============================
+FAILED packages/reality-core/tests/test_costing_spike_contract.py::test_return_exposes_exact_cost_reversal_for_contribution
+FAILED packages/reality-core/tests/test_costing_spike_postgres.py::test_adversarial_matching_returns_and_stated_reductions
+FAILED packages/reality-core/tests/test_costing_spike_postgres.py::test_live_snapshot_refuses_stale_and_other_pool_cannot_advance_watermark
+3 failed, 20 passed in 1.76s

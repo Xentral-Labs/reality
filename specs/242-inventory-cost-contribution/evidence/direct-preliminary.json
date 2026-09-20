@@ -1,0 +1,55 @@
+{
+  "strategy": "direct",
+  "dataset_version": "costing-spike-v2",
+  "profile": "full",
+  "qualification_passed": false,
+  "measurements": {
+    "order": {
+      "samples": 20,
+      "p50_s": 0.14598177099833265,
+      "p95_s": 0.18475137499626726,
+      "max_s": 0.298359457985498
+    }
+  },
+  "limitations": [
+    "Exploratory host: combined 4-vCPU/16-GiB envelope is not enforced.",
+    "An OS/database cold-cache run and the full freshness response contract are not certified.",
+    "Experimental typed relations are not yet wired to the product analysis compiler or exception register.",
+    "Full generated history is regular receipts/issues/transfers; returns, split credits, tax and partial matching are independent small proofs, not distributed full-load scenarios.",
+    "Projection completeness/review invalidation and source-version history are not product implementations.",
+    "Direct candidate rejected or exploratory only; remaining read workloads not qualified."
+  ],
+  "reconstruction_s": [
+    17.317004540993366,
+    19.558897917013383,
+    22.19473149999976
+  ],
+  "checksum": "b55e20c8e576ad5488aeb2d27f6b182f4ce92c5fb656a93c42605c719b081923",
+  "status": "exploratory",
+  "cardinalities": {
+    "a": {
+      "item": 10000,
+      "trade_order": 100000,
+      "movement": 1000000,
+      "component": 1000000,
+      "attribution": 1000000,
+      "matching": 600000
+    },
+    "b": {
+      "item": 10000,
+      "trade_order": 100000,
+      "movement": 1000000,
+      "component": 1000000,
+      "attribution": 1000000,
+      "matching": 600000
+    }
+  },
+  "setup_s": 0.5940865000011399,
+  "python": "3.12.4",
+  "platform": "macOS-27.0-arm64-arm-64bit",
+  "git_revision": "709af5c1a6358be2f004003f37b836ff6095b5bf",
+  "peak_rss_bytes": 648527872,
+  "elapsed_s": 63.145122957997955,
+  "postgres_version": "17.10",
+  "source_digest": "c059276742d196f4aa18f781ce68d92ed914714a9d1def21d1613e158120db68"
+}

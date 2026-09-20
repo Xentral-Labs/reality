@@ -1,0 +1,422 @@
+{
+  "status": "exploratory",
+  "qualification_passed": false,
+  "source_digest": "0adc9d510319c25e332ddcb0245a3a8413e4fa8b4c50af1f1831ee5b952ecd4b",
+  "setup_s": 66.45143915500375,
+  "cardinalities": {
+    "a": {
+      "item": 10000,
+      "trade_order": 100000,
+      "movement": 1000000,
+      "component": 1000000,
+      "attribution": 1000000,
+      "matching": 600000
+    },
+    "b": {
+      "item": 10000,
+      "trade_order": 100000,
+      "movement": 1000000,
+      "component": 1000000,
+      "attribution": 1000000,
+      "matching": 600000
+    }
+  },
+  "cycles": [
+    {
+      "generation": "dfa1e3a871d249438ba283b63090e8d4",
+      "reconstruction_s": 94.72789466899121,
+      "children": {
+        "samples": 7,
+        "p50_s": 8.880800962011563,
+        "p95_s": 10.118169547000434,
+        "max_s": 10.118169547000434
+      },
+      "job_counts": [
+        {
+          "rows": 91497,
+          "ranges": 3,
+          "movements": 150000,
+          "published": 0
+        },
+        {
+          "rows": 91497,
+          "ranges": 3,
+          "movements": 150000,
+          "published": 0
+        },
+        {
+          "rows": 91497,
+          "ranges": 3,
+          "movements": 150000,
+          "published": 0
+        },
+        {
+          "rows": 91275,
+          "ranges": 3,
+          "movements": 149950,
+          "published": 0
+        },
+        {
+          "rows": 91200,
+          "ranges": 3,
+          "movements": 150000,
+          "published": 0
+        },
+        {
+          "rows": 91200,
+          "ranges": 3,
+          "movements": 150000,
+          "published": 0
+        },
+        {
+          "rows": 60834,
+          "ranges": 3,
+          "movements": 100050,
+          "published": 1
+        }
+      ],
+      "readers": [
+        {
+          "samples": 910,
+          "p50_s": 0.00161162500444334,
+          "p95_s": 0.00645170800271444,
+          "max_s": 0.031153666990576312,
+          "states": {
+            "not_ready": 908,
+            "ready": 2
+          },
+          "generations": [
+            "dfa1e3a871d249438ba283b63090e8d4"
+          ]
+        },
+        {
+          "samples": 908,
+          "p50_s": 0.001740520994644612,
+          "p95_s": 0.0055730419990140945,
+          "max_s": 0.0525465419923421,
+          "states": {
+            "not_ready": 906,
+            "ready": 2
+          },
+          "generations": [
+            "dfa1e3a871d249438ba283b63090e8d4"
+          ]
+        },
+        {
+          "samples": 908,
+          "p50_s": 0.0016995000041788444,
+          "p95_s": 0.006272667000303045,
+          "max_s": 0.05557704099919647,
+          "states": {
+            "not_ready": 906,
+            "ready": 2
+          },
+          "generations": [
+            "dfa1e3a871d249438ba283b63090e8d4"
+          ]
+        },
+        {
+          "samples": 908,
+          "p50_s": 0.0017886045097839087,
+          "p95_s": 0.006226750003406778,
+          "max_s": 0.04907183299656026,
+          "states": {
+            "not_ready": 906,
+            "ready": 2
+          },
+          "generations": [
+            "dfa1e3a871d249438ba283b63090e8d4"
+          ]
+        },
+        {
+          "samples": 908,
+          "p50_s": 0.001684854505583644,
+          "p95_s": 0.0063567500037606806,
+          "max_s": 0.08814445900497958,
+          "states": {
+            "not_ready": 906,
+            "ready": 2
+          },
+          "generations": [
+            "dfa1e3a871d249438ba283b63090e8d4"
+          ]
+        }
+      ],
+      "checksum": "69f4029f37dd1e6e8c17ec1bdc424c00d2bb789db77295cf84adce420c01a104",
+      "observations": 609000,
+      "inventory_pools": 10000,
+      "poll_seconds": 5.0,
+      "measured_limits_passed": true
+    },
+    {
+      "generation": "ca84bb611772485cade52fd7e19325c5",
+      "reconstruction_s": 93.67631970898947,
+      "children": {
+        "samples": 7,
+        "p50_s": 7.9485128369997256,
+        "p95_s": 11.788923339016037,
+        "max_s": 11.788923339016037
+      },
+      "job_counts": [
+        {
+          "rows": 91497,
+          "ranges": 3,
+          "movements": 150000,
+          "published": 0
+        },
+        {
+          "rows": 91497,
+          "ranges": 3,
+          "movements": 150000,
+          "published": 0
+        },
+        {
+          "rows": 91497,
+          "ranges": 3,
+          "movements": 150000,
+          "published": 0
+        },
+        {
+          "rows": 91275,
+          "ranges": 3,
+          "movements": 149950,
+          "published": 0
+        },
+        {
+          "rows": 91200,
+          "ranges": 3,
+          "movements": 150000,
+          "published": 0
+        },
+        {
+          "rows": 91200,
+          "ranges": 3,
+          "movements": 150000,
+          "published": 0
+        },
+        {
+          "rows": 60834,
+          "ranges": 3,
+          "movements": 100050,
+          "published": 1
+        }
+      ],
+      "readers": [
+        {
+          "samples": 882,
+          "p50_s": 0.004030375508591533,
+          "p95_s": 0.009912084002280608,
+          "max_s": 0.05225666699698195,
+          "states": {
+            "ready": 882
+          },
+          "generations": [
+            "ca84bb611772485cade52fd7e19325c5",
+            "dfa1e3a871d249438ba283b63090e8d4"
+          ]
+        },
+        {
+          "samples": 879,
+          "p50_s": 0.004280541994376108,
+          "p95_s": 0.011220957996556535,
+          "max_s": 0.05764075001934543,
+          "states": {
+            "ready": 879
+          },
+          "generations": [
+            "ca84bb611772485cade52fd7e19325c5",
+            "dfa1e3a871d249438ba283b63090e8d4"
+          ]
+        },
+        {
+          "samples": 879,
+          "p50_s": 0.0042917910031974316,
+          "p95_s": 0.010450834000948817,
+          "max_s": 0.060575459006940946,
+          "states": {
+            "ready": 879
+          },
+          "generations": [
+            "ca84bb611772485cade52fd7e19325c5",
+            "dfa1e3a871d249438ba283b63090e8d4"
+          ]
+        },
+        {
+          "samples": 878,
+          "p50_s": 0.0044086874986533076,
+          "p95_s": 0.011409041995648295,
+          "max_s": 0.0527348330069799,
+          "states": {
+            "ready": 878
+          },
+          "generations": [
+            "ca84bb611772485cade52fd7e19325c5",
+            "dfa1e3a871d249438ba283b63090e8d4"
+          ]
+        },
+        {
+          "samples": 878,
+          "p50_s": 0.004487458994844928,
+          "p95_s": 0.010648875002516434,
+          "max_s": 0.05369216701365076,
+          "states": {
+            "ready": 878
+          },
+          "generations": [
+            "ca84bb611772485cade52fd7e19325c5",
+            "dfa1e3a871d249438ba283b63090e8d4"
+          ]
+        }
+      ],
+      "checksum": "69f4029f37dd1e6e8c17ec1bdc424c00d2bb789db77295cf84adce420c01a104",
+      "observations": 609000,
+      "inventory_pools": 10000,
+      "poll_seconds": 5.0,
+      "measured_limits_passed": true
+    },
+    {
+      "generation": "0acfb9fc5801481f8e2311ad5d3c24df",
+      "reconstruction_s": 100.39585258701118,
+      "children": {
+        "samples": 7,
+        "p50_s": 8.779392004013062,
+        "p95_s": 12.111012921988731,
+        "max_s": 12.111012921988731
+      },
+      "job_counts": [
+        {
+          "rows": 91497,
+          "ranges": 3,
+          "movements": 150000,
+          "published": 0
+        },
+        {
+          "rows": 91497,
+          "ranges": 3,
+          "movements": 150000,
+          "published": 0
+        },
+        {
+          "rows": 91497,
+          "ranges": 3,
+          "movements": 150000,
+          "published": 0
+        },
+        {
+          "rows": 91275,
+          "ranges": 3,
+          "movements": 149950,
+          "published": 0
+        },
+        {
+          "rows": 91200,
+          "ranges": 3,
+          "movements": 150000,
+          "published": 0
+        },
+        {
+          "rows": 91200,
+          "ranges": 3,
+          "movements": 150000,
+          "published": 0
+        },
+        {
+          "rows": 60834,
+          "ranges": 3,
+          "movements": 100050,
+          "published": 1
+        }
+      ],
+      "readers": [
+        {
+          "samples": 925,
+          "p50_s": 0.005274292023386806,
+          "p95_s": 0.015487291995668784,
+          "max_s": 0.12507520799408667,
+          "states": {
+            "ready": 925
+          },
+          "generations": [
+            "0acfb9fc5801481f8e2311ad5d3c24df",
+            "ca84bb611772485cade52fd7e19325c5"
+          ]
+        },
+        {
+          "samples": 928,
+          "p50_s": 0.004832563005038537,
+          "p95_s": 0.01637716600089334,
+          "max_s": 0.11514837498543784,
+          "states": {
+            "ready": 928
+          },
+          "generations": [
+            "0acfb9fc5801481f8e2311ad5d3c24df",
+            "ca84bb611772485cade52fd7e19325c5"
+          ]
+        },
+        {
+          "samples": 927,
+          "p50_s": 0.004919583996525034,
+          "p95_s": 0.014902374998200685,
+          "max_s": 0.10729799998807721,
+          "states": {
+            "ready": 927
+          },
+          "generations": [
+            "0acfb9fc5801481f8e2311ad5d3c24df",
+            "ca84bb611772485cade52fd7e19325c5"
+          ]
+        },
+        {
+          "samples": 927,
+          "p50_s": 0.004815124993911013,
+          "p95_s": 0.01615629199659452,
+          "max_s": 0.12532445800025016,
+          "states": {
+            "ready": 927
+          },
+          "generations": [
+            "0acfb9fc5801481f8e2311ad5d3c24df",
+            "ca84bb611772485cade52fd7e19325c5"
+          ]
+        },
+        {
+          "samples": 927,
+          "p50_s": 0.004799833026481792,
+          "p95_s": 0.01604762498755008,
+          "max_s": 0.1040948329900857,
+          "states": {
+            "ready": 927
+          },
+          "generations": [
+            "0acfb9fc5801481f8e2311ad5d3c24df",
+            "ca84bb611772485cade52fd7e19325c5"
+          ]
+        }
+      ],
+      "checksum": "69f4029f37dd1e6e8c17ec1bdc424c00d2bb789db77295cf84adce420c01a104",
+      "observations": 609000,
+      "inventory_pools": 10000,
+      "poll_seconds": 5.0,
+      "measured_limits_passed": true
+    }
+  ],
+  "profile": "full",
+  "python": "3.12.13",
+  "git_revision": "709af5c1a6358be2f004003f37b836ff6095b5bf",
+  "elapsed_s": 456.0715662080038,
+  "measured_limits_passed": true,
+  "limitations": [
+    "Static experimental bootstrap; normal product registry/worker startup remains unchanged.",
+    "Real shared queue, child watchdog and settlement; driver simulates five-second worker polling, not deployed scheduler phase/fairness.",
+    "Exact dedicated reference host and cold OS cache remain unqualified.",
+    "Frozen adjustment revision over immutable v3 base inputs is not general product source-version history.",
+    "Typed published SQL relation is exercised; actual analysis compiler/MCP/exception adapters remain unimplemented."
+  ],
+  "process_cgroup": {
+    "cpu.max": "200000 100000",
+    "memory.max": "2147483648",
+    "memory.swap.max": "0",
+    "memory.peak": "1076400128"
+  }
+}

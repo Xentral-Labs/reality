@@ -1,7 +1,7 @@
 import { useEffect, useId, useRef, useState, type ReactNode } from "react";
 import { ArrowRight, ChevronDown, ChevronRight, ListFilter, Pencil, Play } from "lucide-react";
 import { recordOpened } from "./usePaletteHistory";
-import { api } from "../api";
+import { api, type InspectorData } from "../api";
 import { t } from "../localization";
 import { Inspector, InspectorContent } from "./Inspector";
 import { ReadState } from "./ReadState";
@@ -109,12 +109,14 @@ export function InlineInspector({
   target,
   openFull,
   reveal = false,
+  supplement,
   children,
 }: {
   tenant: string;
   target: { kind: string; id: string };
   openFull?: () => void;
   reveal?: boolean;
+  supplement?: (detail: InspectorData) => ReactNode;
   children?: ReactNode;
 }) {
   const [full, setFull] = useState<{ kind: string; id: string } | null>(null);
@@ -144,6 +146,7 @@ export function InlineInspector({
       className="w-full max-w-[calc(100vw-5rem)] md:max-w-none"
     >
       <InspectorContent data={detail} selectedKind={target.kind} follow={setFull} compact />
+      {supplement?.(detail)}
       <div className="mt-5 flex flex-wrap justify-end gap-2">
         <button className="br-btn" onClick={openFull || (() => setFull(target))}>
           {t("Open full explanation")}

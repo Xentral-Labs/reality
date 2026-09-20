@@ -8,6 +8,7 @@ from sqlalchemy import String, cast, func, or_, select
 from sqlalchemy.orm import Session
 
 from reality.db.core import (
+    Base,
     BusinessEvent,
     Commitment,
     Document,
@@ -21,6 +22,7 @@ from reality.db.core import (
     Reservation,
     SourceRecord,
 )
+from reality.domain.cost_records import COST_KINDS, RECORDS
 from reality.services.core import InvalidOperation, get_tenant
 
 # Ordered families are an explicit presentation order, not a derived business state.
@@ -38,6 +40,9 @@ FAMILIES = (
     (LedgerEntry, "Ledger entries"),
     (BusinessEvent, "Business events"),
 )
+_models = {mapper.local_table.name: mapper.class_ for mapper in Base.registry.mappers}
+FAMILIES += tuple((_models[kind], RECORDS[kind]["labels"][0]) for kind in COST_KINDS)
+
 FIELDS = (
     "id",
     "name",
@@ -83,7 +88,7 @@ def _value(value: Any) -> Any:
     return value
 
 
-def inspector_records(
+def _inspector_records(
     session: Session,
     tenant_id: str,
     *,
@@ -91,6 +96,7 @@ def inspector_records(
     query: str = "",
     page: int = 1,
     size: int = 50,
+    language: str = "en",
 ) -> dict[str, Any]:
     """Page authoritative summaries by family then opaque ID without payload dumps."""
     get_tenant(session, tenant_id)
@@ -127,6 +133,8 @@ def inspector_records(
             or 0
         )
         total += count
+        if language == "de" and model.__tablename__ in RECORDS:
+            label = RECORDS[model.__tablename__]["labels"][1]
         definitions.append((model, label, fields, conditions, count))
     pages = max(1, (total + size - 1) // size)
     number = min(page, pages)
@@ -191,7 +199,13 @@ def inspector_records(
     return {
         "items": items,
         "types": [
-            {"kind": model.__tablename__, "label": label} for model, label in FAMILIES
+            {
+                "kind": model.__tablename__,
+                "label": RECORDS[model.__tablename__]["labels"][1]
+                if language == "de" and model.__tablename__ in RECORDS
+                else label,
+            }
+            for model, label in FAMILIES
         ],
         "page": {
             "number": number,
@@ -202,3 +216,26 @@ def inspector_records(
             "has_next": number < pages,
         },
     }
+
+
+def inspector_records(
+    session: Session,
+    tenant_id: str,
+    *,
+    kind: str = "all",
+    query: str = "",
+    page: int = 1,
+    size: int = 50,
+    language: str = "en",
+) -> dict[str, Any]:
+    """Read scoped register summaries without flushing pending business writes."""
+    with session.no_autoflush:
+        return _inspector_records(
+            session,
+            tenant_id,
+            kind=kind,
+            query=query,
+            page=page,
+            size=size,
+            language=language,
+        )

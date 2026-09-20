@@ -1,0 +1,1 @@
+PASS: generated public catalog references reproduce byte-identically.

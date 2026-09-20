@@ -1,0 +1,85 @@
+......F................................................................. [ 61%]
+.............................................                            [100%]
+=================================== FAILURES ===================================
+_________________ test_joint_atomic_visibility_and_late_intake _________________
+
+scheduled_database = (Engine(postgresql+psycopg://costing:***@127.0.0.1:55439/reality_migration_98672cd4f5), sessionmaker(class_='Session',...0.0.1:55439/reality_migration_98672cd4f5), autoflush=True, expire_on_commit=False), 'ten_342086a4ab', 'usr_c932985299')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x10e4cb200>
+
+    def test_joint_atomic_visibility_and_late_intake(scheduled_database, monkeypatch):
+        from reality.services import inventory_generations
+    
+        _, factory, tenant, actor = scheduled_database
+        action, item, location = prepare_committed(factory, tenant, actor)
+        reached, release = Event(), Event()
+        original = inventory_generations._build
+        calls = []
+    
+        def paused(*args, **kwargs):
+            result = original(*args, **kwargs)
+            calls.append(1)
+            if len(calls) == 1:
+                reached.set()
+                assert release.wait(timeout=10)
+            return result
+    
+        monkeypatch.setattr(inventory_generations, "_build", paused)
+    
+        def build():
+            with factory.begin() as session:
+                return costing.build_inventory_batch_generation(session, tenant, action)
+    
+        with ThreadPoolExecutor(max_workers=1) as executor:
+            future = executor.submit(build)
+            try:
+                assert reached.wait(timeout=10)
+                with factory() as session:
+                    assert (
+                        costing.inventory_batch_snapshot(session, tenant, action)["result"]
+                        is None
+                    )
+                with factory.begin() as session:
+                    core.record_movement(
+                        session, tenant, "receipt", item, "1", to_location_id=location
+                    )
+            finally:
+                release.set()
+>           future.result(timeout=15)
+
+tests/test_inventory_batch_generations.py:244: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/opt/homebrew/Cellar/python@3.12/3.12.4/Frameworks/Python.framework/Versions/3.12/lib/python3.12/concurrent/futures/_base.py:449: in result
+    return self.__get_result()
+           ^^^^^^^^^^^^^^^^^^^
+/opt/homebrew/Cellar/python@3.12/3.12.4/Frameworks/Python.framework/Versions/3.12/lib/python3.12/concurrent/futures/_base.py:401: in __get_result
+    raise self._exception
+/opt/homebrew/Cellar/python@3.12/3.12.4/Frameworks/Python.framework/Versions/3.12/lib/python3.12/concurrent/futures/thread.py:58: in run
+    result = self.fn(*self.args, **self.kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests/test_inventory_batch_generations.py:227: in build
+    return costing.build_inventory_batch_generation(session, tenant, action)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src/reality/services/costing.py:1363: in build_inventory_batch_generation
+    return _build(session, tenant_id, action_id, deadline=deadline)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src/reality/services/inventory_batch_generations.py:120: in _build
+    inventory_generations._build(session, tenant, review.id, deadline=deadline)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+args = (<sqlalchemy.orm.session.Session object at 0x1112248f0>, 'ten_342086a4ab', 'cst_6573bdd239')
+kwargs = {'deadline': None}
+
+    def paused(*args, **kwargs):
+        result = original(*args, **kwargs)
+        calls.append(1)
+        if len(calls) == 1:
+            reached.set()
+>           assert release.wait(timeout=10)
+E           assert False
+E            +  where False = wait(timeout=10)
+E            +    where wait = <threading.Event at 0x111145490: unset>.wait
+
+tests/test_inventory_batch_generations.py:220: AssertionError
+=========================== short test summary info ============================
+FAILED tests/test_inventory_batch_generations.py::test_joint_atomic_visibility_and_late_intake
+1 failed, 116 passed in 124.37s (0:02:04)

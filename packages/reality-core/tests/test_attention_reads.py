@@ -3,6 +3,7 @@
 from datetime import timedelta
 
 import pytest
+from sqlalchemy import event
 from unified_fixtures import delivery_fixture
 
 from reality.catalogs import load_operational_exception_catalog
@@ -59,6 +60,11 @@ def test_register_reads_the_stored_generation_in_canonical_order(
     assert [row["id"] for row in everything["items"]] == [
         row["id"] for row in canonical
     ]
+    exact_page = attention_register(
+        session, business.tenant.id, page=999, size=len(canonical)
+    )
+    assert exact_page["page"]["number"] == 1
+    assert exact_page["page"]["pages"] == 1
     assert result["metadata"]["state"] == "ready"
     assert result["metadata"]["calculation_mode"] == "stored"
     assert result["metadata"]["completed_at"]
@@ -107,6 +113,48 @@ def test_summary_counts_every_class_from_the_same_generation(session, business):
     register = attention_register(session, business.tenant.id)
     assert summary["total"] == register["page"]["total"]
     assert summary["metadata"] == register["metadata"]
+
+
+def test_register_and_summary_bound_work_in_postgresql(session, business):
+    delivery_fixture(session, business)
+    _publish(session, business.tenant.id)
+    statements = []
+
+    def capture(_connection, _cursor, statement, _parameters, _context, _many):
+        statements.append(statement.lower())
+
+    event.listen(session.bind, "before_cursor_execute", capture)
+    try:
+        first = attention_register(
+            session,
+            business.tenant.id,
+            query="commitment",
+            page=999,
+            size=1,
+        )
+        register_statements = list(statements)
+        statements.clear()
+        attention_summary(session, business.tenant.id)
+        summary_statements = list(statements)
+    finally:
+        event.remove(session.bind, "before_cursor_execute", capture)
+
+    assert len(first["items"]) <= 1
+    register_sql = next(
+        statement
+        for statement in register_statements
+        if "from projection_row" in statement and "json_agg" in statement
+    )
+    assert " limit " in register_sql
+    assert " offset " in register_sql
+    assert "concat_ws" in register_sql
+    summary_sql = next(
+        statement
+        for statement in summary_statements
+        if "from projection_row" in statement and "jsonb_object_agg" in statement
+    )
+    assert " group by " in summary_sql
+    assert "json_agg" not in summary_sql
 
 
 def test_uninitialized_company_is_awaiting_calculation_not_empty(

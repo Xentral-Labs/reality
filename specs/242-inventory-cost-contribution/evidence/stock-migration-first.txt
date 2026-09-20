@@ -1,0 +1,82 @@
+FF                                                                       [100%]
+=================================== FAILURES ===================================
+___________ test_inventory_migration_foreign_keys_and_empty_rollback ___________
+
+postgres_database = 'postgresql+psycopg://costing:costing-local-only@127.0.0.1:55439/reality_migration_509c4b65e7'
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x10db6ec00>
+
+    def test_inventory_migration_foreign_keys_and_empty_rollback(postgres_database, monkeypatch):
+        monkeypatch.setenv("REALITY_DATABASE_URL", postgres_database)
+        config = Config("alembic.ini")
+        config.set_main_option("sqlalchemy.url", postgres_database)
+>       command.upgrade(config, "0072_inventory_costing")
+
+packages/reality-core/tests/test_inventory_costing_migration.py:16: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+.venv/lib/python3.12/site-packages/alembic/command.py:467: in upgrade
+    script = ScriptDirectory.from_config(config)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+cls = <class 'alembic.script.base.ScriptDirectory'>
+config = <alembic.config.Config object at 0x10ba93620>
+
+    @classmethod
+    def from_config(cls, config: Config) -> ScriptDirectory:
+        """Produce a new :class:`.ScriptDirectory` given a :class:`.Config`
+        instance.
+    
+        The :class:`.Config` need only have the ``script_location`` key
+        present.
+    
+        """
+        script_location = config.get_alembic_option("script_location")
+        if script_location is None:
+>           raise util.CommandError(
+                "No 'script_location' key found in configuration."
+            )
+E           alembic.util.exc.CommandError: No 'script_location' key found in configuration.
+
+.venv/lib/python3.12/site-packages/alembic/script/base.py:165: CommandError
+__________________ test_inventory_populated_downgrade_refuses __________________
+
+postgres_database = 'postgresql+psycopg://costing:costing-local-only@127.0.0.1:55439/reality_migration_ff2c3443a4'
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x10deafe30>
+
+    def test_inventory_populated_downgrade_refuses(postgres_database, monkeypatch):
+        monkeypatch.setenv("REALITY_DATABASE_URL", postgres_database)
+        config = Config("alembic.ini")
+        config.set_main_option("sqlalchemy.url", postgres_database)
+>       command.upgrade(config, "0072_inventory_costing")
+
+packages/reality-core/tests/test_inventory_costing_migration.py:37: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+.venv/lib/python3.12/site-packages/alembic/command.py:467: in upgrade
+    script = ScriptDirectory.from_config(config)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+cls = <class 'alembic.script.base.ScriptDirectory'>
+config = <alembic.config.Config object at 0x10dead760>
+
+    @classmethod
+    def from_config(cls, config: Config) -> ScriptDirectory:
+        """Produce a new :class:`.ScriptDirectory` given a :class:`.Config`
+        instance.
+    
+        The :class:`.Config` need only have the ``script_location`` key
+        present.
+    
+        """
+        script_location = config.get_alembic_option("script_location")
+        if script_location is None:
+>           raise util.CommandError(
+                "No 'script_location' key found in configuration."
+            )
+E           alembic.util.exc.CommandError: No 'script_location' key found in configuration.
+
+.venv/lib/python3.12/site-packages/alembic/script/base.py:165: CommandError
+=========================== short test summary info ============================
+FAILED packages/reality-core/tests/test_inventory_costing_migration.py::test_inventory_migration_foreign_keys_and_empty_rollback
+FAILED packages/reality-core/tests/test_inventory_costing_migration.py::test_inventory_populated_downgrade_refuses
+2 failed in 1.22s

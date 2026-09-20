@@ -55,6 +55,10 @@ def test_production_operational_exception_catalog_has_closed_registry():
         "commitment_hold_unreleased",
         "party_hold_unreleased",
         "stock_expired",
+        "missing_acquisition_cost",
+        "unassigned_cost_component",
+        "stale_cost_review",
+        "negative_actual_db1",
     ]
     assert catalog.classes[0]["causes"][0]["id"] == "insufficient_reservation"
     assert {entry["derivation"] for entry in catalog.classes} == set(
@@ -187,6 +191,11 @@ def test_catalog_rejects_cause_vocabulary_drift():
         "early_payment_discount_taken",
         "promise_was_revised",
         "reserved_for_delivery",
+        "acquisition_cost_unknown",
+        "contribution_goods_cost_unknown",
+        "cost_component_unassigned",
+        "later_relevant_evidence",
+        "supported_actual_db1_negative",
     )
 
 

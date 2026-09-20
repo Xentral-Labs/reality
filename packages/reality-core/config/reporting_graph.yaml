@@ -1184,6 +1184,58 @@ nodes:
       settlement_status: {column: settlement_status, label: {en: Settlement status, de: Zahlungsstatus}}
       open_amount: {column: open_amount, label: {en: Outstanding amount, de: Offener Betrag}}
 
+  contribution_valuation:
+    table: cost_contribution_snapshot
+    derivation: costing.contribution
+    key: snapshot_id
+    grain: one retained sales position in one explicitly confirmed historical contribution selection
+    corrections: replace
+    coverage: [as_of_effective, as_of_knowledge]
+    label: {en: Confirmed contribution, de: Bestätigter Deckungsbeitrag}
+    description:
+      en: Historical DB1 and DB2 for an explicit confirmed selection. Incomplete costs suppress final margins. Requires contribution_cost_context.
+      de: Historischer DB1 und DB2 einer bestätigten Auswahl. Bei unvollständigen Kosten bleiben endgültige Margen offen. Benötigt contribution_cost_context.
+    category: {en: Finance, de: Finanzen}
+    category_order: 50
+    properties:
+      item_id: {column: item_id, label: {en: Article identity, de: Artikelkennung}}
+      review_id: {column: review_id, label: {en: Review identity, de: Prüfungskennung}}
+      document_line_id: {column: document_line_id, label: {en: Invoice position, de: Rechnungsposition}}
+      order_line_id: {column: order_line_id, label: {en: Order position, de: Auftragsposition}}
+      customer_id: {column: customer_id, label: {en: Customer identity, de: Kundenkennung}}
+      sales_channel: {column: sales_channel, label: {en: Sales channel, de: Vertriebskanal}}
+      currency: {column: currency, label: {en: Currency, de: Währung}}
+      base_unit: {column: base_unit, label: {en: Base unit, de: Basiseinheit}}
+      economic_at: {column: economic_date, label: {en: Economic date, de: Wirtschaftliches Datum}, temporal: date}
+      effective_at: {column: effective_at, label: {en: Valuation cutoff, de: Bewertungsstichtag}}
+      knowledge_at: {column: knowledge_at, label: {en: Knowledge cutoff, de: Wissensstand}}
+      policy_revision_id: {column: policy_revision_id, label: {en: Policy revision, de: Bewertungsregelversion}}
+
+  inventory_valuation:
+    table: cost_inventory_snapshot
+    derivation: costing.inventory
+    key: snapshot_id
+    grain: one item snapshot in one explicitly confirmed historical inventory selection
+    corrections: replace
+    coverage: [as_of_effective, as_of_knowledge]
+    label: {en: Confirmed inventory valuation, de: Bestätigte Lagerbewertung}
+    description:
+      en: Historical acquisition value for one explicitly selected confirmed batch. Requires inventory_cost_context in the JSON question; no carrying value assessment.
+      de: Historische Anschaffungskosten einer ausdrücklich ausgewählten bestätigten Bewertung. Benötigt inventory_cost_context in der JSON-Abfrage; keine Niederstwertbewertung.
+    category: {en: Warehouse and shipping, de: Lager und Versand}
+    category_order: 40
+    properties:
+      item_id: {column: item_id, label: {en: Article identity, de: Artikelkennung}}
+      review_id: {column: review_id, label: {en: Review identity, de: Prüfungskennung}}
+      generation_id: {column: generation_id, label: {en: Calculation identity, de: Berechnungskennung}}
+      policy_revision_id: {column: policy_revision_id, label: {en: Policy revision, de: Bewertungsregelversion}}
+      owner_party_id: {column: owner_party_id, label: {en: Economic owner, de: Wirtschaftlicher Eigentümer}}
+      method: {column: method, label: {en: Valuation method, de: Bewertungsmethode}}
+      currency: {column: currency, label: {en: Currency, de: Währung}}
+      base_unit: {column: base_unit, label: {en: Base unit, de: Basiseinheit}}
+      effective_at: {column: effective_at, label: {en: Valuation cutoff, de: Bewertungsstichtag}}
+      knowledge_at: {column: knowledge_at, label: {en: Knowledge cutoff, de: Wissensstand}}
+
   stock_position:
     table: item
     derivation: warehouse.inventory
@@ -3084,6 +3136,119 @@ edges:
       de: Artikel
 
 measures:
+
+  contribution_revenue:
+    node: contribution_valuation
+    source: {contribution: revenue_total}
+    label: {en: "Revenue", de: "Erlös"}
+    unit: {kind: currency, column: currency}
+    additive_over: [item, customer, sales_channel, economic_at]
+    never_across: [currency, base_unit]
+    note: Recomputed from filtered confirmed positions; incomplete inputs keep final totals unknown. Percentages use grouped totals, never summed rates.
+  contribution_goods_cost:
+    node: contribution_valuation
+    source: {contribution: goods_cost_total}
+    label: {en: "Cost of goods", de: "Wareneinsatz"}
+    unit: {kind: currency, column: currency}
+    additive_over: [item, customer, sales_channel, economic_at]
+    never_across: [currency, base_unit]
+    note: Recomputed from filtered confirmed positions; incomplete inputs keep final totals unknown. Percentages use grouped totals, never summed rates.
+  contribution_db1:
+    node: contribution_valuation
+    source: {contribution: db1_total}
+    label: {en: "DB1", de: "DB1"}
+    unit: {kind: currency, column: currency}
+    additive_over: [item, customer, sales_channel, economic_at]
+    never_across: [currency, base_unit]
+    note: Recomputed from filtered confirmed positions; incomplete inputs keep final totals unknown. Percentages use grouped totals, never summed rates.
+  contribution_db2:
+    node: contribution_valuation
+    source: {contribution: db2_total}
+    label: {en: "DB2", de: "DB2"}
+    unit: {kind: currency, column: currency}
+    additive_over: [item, customer, sales_channel, economic_at]
+    never_across: [currency, base_unit]
+    note: Recomputed from filtered confirmed positions; incomplete inputs keep final totals unknown. Percentages use grouped totals, never summed rates.
+  contribution_db1_known:
+    node: contribution_valuation
+    source: {contribution: db1_known}
+    label: {en: "DB1 known subtotal", de: "DB1 bekannte Teilsumme"}
+    unit: {kind: currency, column: currency}
+    additive_over: [item, customer, sales_channel, economic_at]
+    never_across: [currency, base_unit]
+    note: Recomputed from filtered confirmed positions; incomplete inputs keep final totals unknown. Percentages use grouped totals, never summed rates.
+  contribution_db1_covered:
+    node: contribution_valuation
+    source: {contribution: db1_covered}
+    label: {en: "DB1 covered positions", de: "DB1 bewertete Positionen"}
+    unit: {kind: count}
+    additive_over: [item, customer, sales_channel, economic_at]
+    never_across: [currency, base_unit]
+    note: Recomputed from filtered confirmed positions; incomplete inputs keep final totals unknown. Percentages use grouped totals, never summed rates.
+  contribution_db1_required:
+    node: contribution_valuation
+    source: {contribution: db1_required}
+    label: {en: "DB1 required positions", de: "DB1 benötigte Positionen"}
+    unit: {kind: count}
+    additive_over: [item, customer, sales_channel, economic_at]
+    never_across: [currency, base_unit]
+    note: Recomputed from filtered confirmed positions; incomplete inputs keep final totals unknown. Percentages use grouped totals, never summed rates.
+  contribution_db1_rate:
+    node: contribution_valuation
+    source: {contribution: db1_rate}
+    label: {en: "DB1 (%)", de: "DB1 (%)"}
+    unit: {kind: percent, column: currency}
+    additive_over: [item, customer, sales_channel, economic_at]
+    never_across: [currency, base_unit]
+    note: Recomputed from filtered confirmed positions; incomplete inputs keep final totals unknown. Percentages use grouped totals, never summed rates.
+  contribution_db2_known:
+    node: contribution_valuation
+    source: {contribution: db2_known}
+    label: {en: "DB2 known subtotal", de: "DB2 bekannte Teilsumme"}
+    unit: {kind: currency, column: currency}
+    additive_over: [item, customer, sales_channel, economic_at]
+    never_across: [currency, base_unit]
+    note: Recomputed from filtered confirmed positions; incomplete inputs keep final totals unknown. Percentages use grouped totals, never summed rates.
+  contribution_db2_covered:
+    node: contribution_valuation
+    source: {contribution: db2_covered}
+    label: {en: "DB2 covered positions", de: "DB2 bewertete Positionen"}
+    unit: {kind: count}
+    additive_over: [item, customer, sales_channel, economic_at]
+    never_across: [currency, base_unit]
+    note: Recomputed from filtered confirmed positions; incomplete inputs keep final totals unknown. Percentages use grouped totals, never summed rates.
+  contribution_db2_required:
+    node: contribution_valuation
+    source: {contribution: db2_required}
+    label: {en: "DB2 required positions", de: "DB2 benötigte Positionen"}
+    unit: {kind: count}
+    additive_over: [item, customer, sales_channel, economic_at]
+    never_across: [currency, base_unit]
+    note: Recomputed from filtered confirmed positions; incomplete inputs keep final totals unknown. Percentages use grouped totals, never summed rates.
+  contribution_db2_rate:
+    node: contribution_valuation
+    source: {contribution: db2_rate}
+    label: {en: "DB2 (%)", de: "DB2 (%)"}
+    unit: {kind: percent, column: currency}
+    additive_over: [item, customer, sales_channel, economic_at]
+    never_across: [currency, base_unit]
+    note: Recomputed from filtered confirmed positions; incomplete inputs keep final totals unknown. Percentages use grouped totals, never summed rates.
+
+  inventory_acquisition_value:
+    node: inventory_valuation
+    source: acquisition_value
+    label: {en: Inventory acquisition value, de: Lagerwert zu Anschaffungskosten}
+    unit: {kind: currency, column: currency}
+    additive_over: [item]
+    never_across: [currency, time]
+    note: Complete confirmed historical selection only; not an assessed carrying value.
+  inventory_remaining_quantity:
+    node: inventory_valuation
+    source: remaining_quantity
+    label: {en: Valued remaining quantity, de: Bewertete Restmenge}
+    unit: {kind: measure, column: base_unit}
+    additive_over: [item]
+    never_across: [base_unit, time]
 
   stock_physical:
     node: stock_position

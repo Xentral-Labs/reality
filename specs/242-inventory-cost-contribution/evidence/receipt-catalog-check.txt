@@ -1,0 +1,3374 @@
+..FFFFFFFFFFFFFFFF...........F.......FFF                                 [100%]
+=================================== FAILURES ===================================
+_________________ test_split_catalog_is_complete_and_composed __________________
+
+    def test_split_catalog_is_complete_and_composed():
+>       catalog = load_application_catalog()
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_application_catalog.py:13: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+    def load_application_catalog() -> dict[str, Any]:
+        operational_exception_catalog = load_operational_exception_catalog()
+        resources = {
+            kind: yaml.safe_load(config_text(filename))
+            for kind, filename in CATALOG_FILES.items()
+        }
+        versions = {resource.get("version") for resource in resources.values()}
+        if len(versions) != 1:
+            raise ValueError(f"Catalog versions differ: {sorted(versions)}")
+    
+        commands = resources["commands"].get("commands", [])
+        agent_coverage = resources["commands"].get("agent_command_coverage", {})
+        additional_agent_commands = resources["commands"].get(
+            "agent_additional_commands", {}
+        )
+        capability_guidance_raw = resources["commands"].get("capability_guidance", {})
+        events = resources["events"].get("events", [])
+        projections = resources["projections"].get("projections", [])
+        fact_predicates = resources["fact_predicates"].get("fact_predicates", [])
+        descriptions = resources["commands"].get("parameter_descriptions", {})
+        workspace_payload = yaml.safe_load(config_text(WORKSPACE_CATALOG_FILE))
+        known_tables = set(Base.metadata.tables)
+    
+        _unique(commands, "name", "commands")
+        projection_names = _unique(projections, "name", "projections")
+        materialized_names = _unique(
+            projections, "materialized_as", "projection materializations"
+        )
+        event_types = _unique(events, "type", "events")
+        _unique(fact_predicates, "predicate", "fact predicates")
+        supported_fact_value_types = {
+            "string",
+            "date",
+            "datetime",
+            "integer",
+            "decimal",
+            "boolean",
+            "enum",
+        }
+        for entry in fact_predicates:
+            predicate = _required_text(entry, "predicate", "fact predicate")
+            _required_text(entry, "description", predicate)
+            subject_types = entry.get("subject_types")
+            if (
+                not isinstance(subject_types, list)
+                or not subject_types
+                or not all(isinstance(item, str) and item.strip() for item in subject_types)
+            ):
+                raise ValueError(f"{predicate} requires non-empty subject_types")
+            value_type = _required_text(entry, "value_type", predicate)
+            if value_type not in supported_fact_value_types:
+                raise ValueError(f"{predicate} has unsupported value_type: {value_type}")
+            allowed_values = entry.get("allowed_values")
+            if value_type == "enum" and (
+                not isinstance(allowed_values, list)
+                or not allowed_values
+                or not all(isinstance(item, str) for item in allowed_values)
+            ):
+                raise ValueError(f"{predicate} enum requires allowed_values")
+    
+        command_services = [entry["service"] for entry in commands]
+        missing_coverage = sorted(set(command_services) - set(agent_coverage))
+        stale_coverage = sorted(set(agent_coverage) - set(command_services))
+        if missing_coverage or stale_coverage:
+            raise ValueError(
+                "Agent command coverage drift: "
+                f"missing={missing_coverage}, stale={stale_coverage}"
+            )
+        from reality.mcp.catalog import MCP_TOOL_CATALOG, MCP_TOOL_NAMES
+    
+        public_business_read_names = {
+            tool.name
+            for tool in MCP_TOOL_CATALOG
+            if tool.access == "read" and tool.name != "capability_describe"
+        }
+    
+        mapped_tools: list[str] = []
+        for service_name, coverage in {
+            **agent_coverage,
+            **additional_agent_commands,
+        }.items():
+            classification = coverage.get("classification")
+            if classification not in {"eligible", "excluded", "blocked"}:
+                raise ValueError(
+                    f"Invalid agent classification for {service_name}: {classification}"
+                )
+            tools = coverage.get("tools", [])
+            reason = str(coverage.get("reason", "")).strip()
+            if classification == "eligible" and not tools:
+                raise ValueError(f"Eligible agent command has no tools: {service_name}")
+            if classification != "eligible" and not reason:
+                raise ValueError(
+                    f"Non-eligible agent command has no reason: {service_name}"
+                )
+            mapped_tools.extend(tools)
+        duplicate_tools = sorted(
+            {name for name in mapped_tools if mapped_tools.count(name) > 1}
+        )
+        missing_tools = sorted(set(mapped_tools) - MCP_TOOL_NAMES)
+        if duplicate_tools or missing_tools:
+            raise ValueError(
+                "Agent tool mapping drift: "
+                f"missing={missing_tools}, duplicate={duplicate_tools}"
+            )
+    
+        application_tools = application_tool_module.TOOLS
+        proposal_targets = {
+            tool_name: str(entry.get("application_tool", "")).strip()
+            for tool_name, entry in capability_guidance_raw.items()
+            if isinstance(entry, dict) and str(entry.get("application_tool", "")).strip()
+        }
+        unknown_application_tools = sorted(
+            {name for name in proposal_targets.values() if name not in application_tools}
+        )
+        if unknown_application_tools:
+            raise ValueError(
+                "Capability guidance references unknown application tools: "
+                f"{unknown_application_tools}"
+            )
+        capability_guidance = validate_capability_guidance(
+            capability_guidance_raw,
+            commands=commands,
+            agent_coverage=agent_coverage,
+            event_types=event_types,
+            projection_names=materialized_names,
+            read_tool_names={
+                name for name, tool in application_tools.items() if not tool.mutating
+            },
+            mutating_tool_names={
+                name for name, tool in application_tools.items() if tool.mutating
+            },
+            proposal_targets=proposal_targets,
+            required_tools=CAPABILITY_GUIDANCE_REQUIRED_TOOLS | public_business_read_names,
+            public_tool_names=set(MCP_TOOL_NAMES),
+            data_basis_names=known_tables
+            | projection_names
+            | materialized_names
+            | {
+                "change_proposal",
+                "interpretation_outcome",
+                "operational_exception",
+            },
+        )
+    
+        for entry in [*commands, *projections]:
+            services = [entry["service"], *entry.get("related_services", [])]
+            for service_name in services:
+                if not callable(_service(service_name)):
+>                   raise TypeError(f"Catalog references missing service: {service_name}")
+E                   TypeError: Catalog references missing service: cost_evidence
+
+src/reality/catalogs.py:1381: TypeError
+______ test_workspace_catalog_rejects_drift[<lambda>-Duplicate workspace] ______
+
+change = <function <lambda> at 0x10a40a8e0>, message = 'Duplicate workspace'
+
+    @pytest.mark.parametrize(
+        ("change", "message"),
+        [
+            (
+                lambda payload: payload["workspaces"].append(payload["workspaces"][0]),
+                "Duplicate workspace",
+            ),
+            (lambda payload: payload["views"][0].update(route="missing"), "unknown route"),
+            (
+                lambda payload: payload["views"].append(
+                    {
+                        "key": "unknown_projection",
+                        "label": "Unknown projection",
+                        "route": "orders",
+                        "kind": "materialized_projection",
+                        "projection": "not_registered",
+                        "description": "Invalid fixture",
+                    }
+                ),
+                "unknown projection",
+            ),
+            (
+                lambda payload: payload["actions"][0].update(command="missing"),
+                "unknown command",
+            ),
+            (
+                lambda payload: payload["actions"][0].update(confirmation="none"),
+                "confirmation",
+            ),
+            (
+                lambda payload: payload["workspaces"][0].update(complete_navigation="yes"),
+                "complete_navigation",
+            ),
+        ],
+    )
+    def test_workspace_catalog_rejects_drift(change, message):
+        payload = yaml.safe_load(catalogs.config_text("workspace_catalog.yaml"))
+        change(payload)
+>       commands = load_application_catalog()["commands"]
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_application_catalog.py:173: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+    def load_application_catalog() -> dict[str, Any]:
+        operational_exception_catalog = load_operational_exception_catalog()
+        resources = {
+            kind: yaml.safe_load(config_text(filename))
+            for kind, filename in CATALOG_FILES.items()
+        }
+        versions = {resource.get("version") for resource in resources.values()}
+        if len(versions) != 1:
+            raise ValueError(f"Catalog versions differ: {sorted(versions)}")
+    
+        commands = resources["commands"].get("commands", [])
+        agent_coverage = resources["commands"].get("agent_command_coverage", {})
+        additional_agent_commands = resources["commands"].get(
+            "agent_additional_commands", {}
+        )
+        capability_guidance_raw = resources["commands"].get("capability_guidance", {})
+        events = resources["events"].get("events", [])
+        projections = resources["projections"].get("projections", [])
+        fact_predicates = resources["fact_predicates"].get("fact_predicates", [])
+        descriptions = resources["commands"].get("parameter_descriptions", {})
+        workspace_payload = yaml.safe_load(config_text(WORKSPACE_CATALOG_FILE))
+        known_tables = set(Base.metadata.tables)
+    
+        _unique(commands, "name", "commands")
+        projection_names = _unique(projections, "name", "projections")
+        materialized_names = _unique(
+            projections, "materialized_as", "projection materializations"
+        )
+        event_types = _unique(events, "type", "events")
+        _unique(fact_predicates, "predicate", "fact predicates")
+        supported_fact_value_types = {
+            "string",
+            "date",
+            "datetime",
+            "integer",
+            "decimal",
+            "boolean",
+            "enum",
+        }
+        for entry in fact_predicates:
+            predicate = _required_text(entry, "predicate", "fact predicate")
+            _required_text(entry, "description", predicate)
+            subject_types = entry.get("subject_types")
+            if (
+                not isinstance(subject_types, list)
+                or not subject_types
+                or not all(isinstance(item, str) and item.strip() for item in subject_types)
+            ):
+                raise ValueError(f"{predicate} requires non-empty subject_types")
+            value_type = _required_text(entry, "value_type", predicate)
+            if value_type not in supported_fact_value_types:
+                raise ValueError(f"{predicate} has unsupported value_type: {value_type}")
+            allowed_values = entry.get("allowed_values")
+            if value_type == "enum" and (
+                not isinstance(allowed_values, list)
+                or not allowed_values
+                or not all(isinstance(item, str) for item in allowed_values)
+            ):
+                raise ValueError(f"{predicate} enum requires allowed_values")
+    
+        command_services = [entry["service"] for entry in commands]
+        missing_coverage = sorted(set(command_services) - set(agent_coverage))
+        stale_coverage = sorted(set(agent_coverage) - set(command_services))
+        if missing_coverage or stale_coverage:
+            raise ValueError(
+                "Agent command coverage drift: "
+                f"missing={missing_coverage}, stale={stale_coverage}"
+            )
+        from reality.mcp.catalog import MCP_TOOL_CATALOG, MCP_TOOL_NAMES
+    
+        public_business_read_names = {
+            tool.name
+            for tool in MCP_TOOL_CATALOG
+            if tool.access == "read" and tool.name != "capability_describe"
+        }
+    
+        mapped_tools: list[str] = []
+        for service_name, coverage in {
+            **agent_coverage,
+            **additional_agent_commands,
+        }.items():
+            classification = coverage.get("classification")
+            if classification not in {"eligible", "excluded", "blocked"}:
+                raise ValueError(
+                    f"Invalid agent classification for {service_name}: {classification}"
+                )
+            tools = coverage.get("tools", [])
+            reason = str(coverage.get("reason", "")).strip()
+            if classification == "eligible" and not tools:
+                raise ValueError(f"Eligible agent command has no tools: {service_name}")
+            if classification != "eligible" and not reason:
+                raise ValueError(
+                    f"Non-eligible agent command has no reason: {service_name}"
+                )
+            mapped_tools.extend(tools)
+        duplicate_tools = sorted(
+            {name for name in mapped_tools if mapped_tools.count(name) > 1}
+        )
+        missing_tools = sorted(set(mapped_tools) - MCP_TOOL_NAMES)
+        if duplicate_tools or missing_tools:
+            raise ValueError(
+                "Agent tool mapping drift: "
+                f"missing={missing_tools}, duplicate={duplicate_tools}"
+            )
+    
+        application_tools = application_tool_module.TOOLS
+        proposal_targets = {
+            tool_name: str(entry.get("application_tool", "")).strip()
+            for tool_name, entry in capability_guidance_raw.items()
+            if isinstance(entry, dict) and str(entry.get("application_tool", "")).strip()
+        }
+        unknown_application_tools = sorted(
+            {name for name in proposal_targets.values() if name not in application_tools}
+        )
+        if unknown_application_tools:
+            raise ValueError(
+                "Capability guidance references unknown application tools: "
+                f"{unknown_application_tools}"
+            )
+        capability_guidance = validate_capability_guidance(
+            capability_guidance_raw,
+            commands=commands,
+            agent_coverage=agent_coverage,
+            event_types=event_types,
+            projection_names=materialized_names,
+            read_tool_names={
+                name for name, tool in application_tools.items() if not tool.mutating
+            },
+            mutating_tool_names={
+                name for name, tool in application_tools.items() if tool.mutating
+            },
+            proposal_targets=proposal_targets,
+            required_tools=CAPABILITY_GUIDANCE_REQUIRED_TOOLS | public_business_read_names,
+            public_tool_names=set(MCP_TOOL_NAMES),
+            data_basis_names=known_tables
+            | projection_names
+            | materialized_names
+            | {
+                "change_proposal",
+                "interpretation_outcome",
+                "operational_exception",
+            },
+        )
+    
+        for entry in [*commands, *projections]:
+            services = [entry["service"], *entry.get("related_services", [])]
+            for service_name in services:
+                if not callable(_service(service_name)):
+>                   raise TypeError(f"Catalog references missing service: {service_name}")
+E                   TypeError: Catalog references missing service: cost_evidence
+
+src/reality/catalogs.py:1381: TypeError
+_________ test_workspace_catalog_rejects_drift[<lambda>-unknown route] _________
+
+change = <function <lambda> at 0x10a6058a0>, message = 'unknown route'
+
+    @pytest.mark.parametrize(
+        ("change", "message"),
+        [
+            (
+                lambda payload: payload["workspaces"].append(payload["workspaces"][0]),
+                "Duplicate workspace",
+            ),
+            (lambda payload: payload["views"][0].update(route="missing"), "unknown route"),
+            (
+                lambda payload: payload["views"].append(
+                    {
+                        "key": "unknown_projection",
+                        "label": "Unknown projection",
+                        "route": "orders",
+                        "kind": "materialized_projection",
+                        "projection": "not_registered",
+                        "description": "Invalid fixture",
+                    }
+                ),
+                "unknown projection",
+            ),
+            (
+                lambda payload: payload["actions"][0].update(command="missing"),
+                "unknown command",
+            ),
+            (
+                lambda payload: payload["actions"][0].update(confirmation="none"),
+                "confirmation",
+            ),
+            (
+                lambda payload: payload["workspaces"][0].update(complete_navigation="yes"),
+                "complete_navigation",
+            ),
+        ],
+    )
+    def test_workspace_catalog_rejects_drift(change, message):
+        payload = yaml.safe_load(catalogs.config_text("workspace_catalog.yaml"))
+        change(payload)
+>       commands = load_application_catalog()["commands"]
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_application_catalog.py:173: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+    def load_application_catalog() -> dict[str, Any]:
+        operational_exception_catalog = load_operational_exception_catalog()
+        resources = {
+            kind: yaml.safe_load(config_text(filename))
+            for kind, filename in CATALOG_FILES.items()
+        }
+        versions = {resource.get("version") for resource in resources.values()}
+        if len(versions) != 1:
+            raise ValueError(f"Catalog versions differ: {sorted(versions)}")
+    
+        commands = resources["commands"].get("commands", [])
+        agent_coverage = resources["commands"].get("agent_command_coverage", {})
+        additional_agent_commands = resources["commands"].get(
+            "agent_additional_commands", {}
+        )
+        capability_guidance_raw = resources["commands"].get("capability_guidance", {})
+        events = resources["events"].get("events", [])
+        projections = resources["projections"].get("projections", [])
+        fact_predicates = resources["fact_predicates"].get("fact_predicates", [])
+        descriptions = resources["commands"].get("parameter_descriptions", {})
+        workspace_payload = yaml.safe_load(config_text(WORKSPACE_CATALOG_FILE))
+        known_tables = set(Base.metadata.tables)
+    
+        _unique(commands, "name", "commands")
+        projection_names = _unique(projections, "name", "projections")
+        materialized_names = _unique(
+            projections, "materialized_as", "projection materializations"
+        )
+        event_types = _unique(events, "type", "events")
+        _unique(fact_predicates, "predicate", "fact predicates")
+        supported_fact_value_types = {
+            "string",
+            "date",
+            "datetime",
+            "integer",
+            "decimal",
+            "boolean",
+            "enum",
+        }
+        for entry in fact_predicates:
+            predicate = _required_text(entry, "predicate", "fact predicate")
+            _required_text(entry, "description", predicate)
+            subject_types = entry.get("subject_types")
+            if (
+                not isinstance(subject_types, list)
+                or not subject_types
+                or not all(isinstance(item, str) and item.strip() for item in subject_types)
+            ):
+                raise ValueError(f"{predicate} requires non-empty subject_types")
+            value_type = _required_text(entry, "value_type", predicate)
+            if value_type not in supported_fact_value_types:
+                raise ValueError(f"{predicate} has unsupported value_type: {value_type}")
+            allowed_values = entry.get("allowed_values")
+            if value_type == "enum" and (
+                not isinstance(allowed_values, list)
+                or not allowed_values
+                or not all(isinstance(item, str) for item in allowed_values)
+            ):
+                raise ValueError(f"{predicate} enum requires allowed_values")
+    
+        command_services = [entry["service"] for entry in commands]
+        missing_coverage = sorted(set(command_services) - set(agent_coverage))
+        stale_coverage = sorted(set(agent_coverage) - set(command_services))
+        if missing_coverage or stale_coverage:
+            raise ValueError(
+                "Agent command coverage drift: "
+                f"missing={missing_coverage}, stale={stale_coverage}"
+            )
+        from reality.mcp.catalog import MCP_TOOL_CATALOG, MCP_TOOL_NAMES
+    
+        public_business_read_names = {
+            tool.name
+            for tool in MCP_TOOL_CATALOG
+            if tool.access == "read" and tool.name != "capability_describe"
+        }
+    
+        mapped_tools: list[str] = []
+        for service_name, coverage in {
+            **agent_coverage,
+            **additional_agent_commands,
+        }.items():
+            classification = coverage.get("classification")
+            if classification not in {"eligible", "excluded", "blocked"}:
+                raise ValueError(
+                    f"Invalid agent classification for {service_name}: {classification}"
+                )
+            tools = coverage.get("tools", [])
+            reason = str(coverage.get("reason", "")).strip()
+            if classification == "eligible" and not tools:
+                raise ValueError(f"Eligible agent command has no tools: {service_name}")
+            if classification != "eligible" and not reason:
+                raise ValueError(
+                    f"Non-eligible agent command has no reason: {service_name}"
+                )
+            mapped_tools.extend(tools)
+        duplicate_tools = sorted(
+            {name for name in mapped_tools if mapped_tools.count(name) > 1}
+        )
+        missing_tools = sorted(set(mapped_tools) - MCP_TOOL_NAMES)
+        if duplicate_tools or missing_tools:
+            raise ValueError(
+                "Agent tool mapping drift: "
+                f"missing={missing_tools}, duplicate={duplicate_tools}"
+            )
+    
+        application_tools = application_tool_module.TOOLS
+        proposal_targets = {
+            tool_name: str(entry.get("application_tool", "")).strip()
+            for tool_name, entry in capability_guidance_raw.items()
+            if isinstance(entry, dict) and str(entry.get("application_tool", "")).strip()
+        }
+        unknown_application_tools = sorted(
+            {name for name in proposal_targets.values() if name not in application_tools}
+        )
+        if unknown_application_tools:
+            raise ValueError(
+                "Capability guidance references unknown application tools: "
+                f"{unknown_application_tools}"
+            )
+        capability_guidance = validate_capability_guidance(
+            capability_guidance_raw,
+            commands=commands,
+            agent_coverage=agent_coverage,
+            event_types=event_types,
+            projection_names=materialized_names,
+            read_tool_names={
+                name for name, tool in application_tools.items() if not tool.mutating
+            },
+            mutating_tool_names={
+                name for name, tool in application_tools.items() if tool.mutating
+            },
+            proposal_targets=proposal_targets,
+            required_tools=CAPABILITY_GUIDANCE_REQUIRED_TOOLS | public_business_read_names,
+            public_tool_names=set(MCP_TOOL_NAMES),
+            data_basis_names=known_tables
+            | projection_names
+            | materialized_names
+            | {
+                "change_proposal",
+                "interpretation_outcome",
+                "operational_exception",
+            },
+        )
+    
+        for entry in [*commands, *projections]:
+            services = [entry["service"], *entry.get("related_services", [])]
+            for service_name in services:
+                if not callable(_service(service_name)):
+>                   raise TypeError(f"Catalog references missing service: {service_name}")
+E                   TypeError: Catalog references missing service: cost_evidence
+
+src/reality/catalogs.py:1381: TypeError
+______ test_workspace_catalog_rejects_drift[<lambda>-unknown projection] _______
+
+change = <function <lambda> at 0x10a605940>, message = 'unknown projection'
+
+    @pytest.mark.parametrize(
+        ("change", "message"),
+        [
+            (
+                lambda payload: payload["workspaces"].append(payload["workspaces"][0]),
+                "Duplicate workspace",
+            ),
+            (lambda payload: payload["views"][0].update(route="missing"), "unknown route"),
+            (
+                lambda payload: payload["views"].append(
+                    {
+                        "key": "unknown_projection",
+                        "label": "Unknown projection",
+                        "route": "orders",
+                        "kind": "materialized_projection",
+                        "projection": "not_registered",
+                        "description": "Invalid fixture",
+                    }
+                ),
+                "unknown projection",
+            ),
+            (
+                lambda payload: payload["actions"][0].update(command="missing"),
+                "unknown command",
+            ),
+            (
+                lambda payload: payload["actions"][0].update(confirmation="none"),
+                "confirmation",
+            ),
+            (
+                lambda payload: payload["workspaces"][0].update(complete_navigation="yes"),
+                "complete_navigation",
+            ),
+        ],
+    )
+    def test_workspace_catalog_rejects_drift(change, message):
+        payload = yaml.safe_load(catalogs.config_text("workspace_catalog.yaml"))
+        change(payload)
+>       commands = load_application_catalog()["commands"]
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_application_catalog.py:173: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+    def load_application_catalog() -> dict[str, Any]:
+        operational_exception_catalog = load_operational_exception_catalog()
+        resources = {
+            kind: yaml.safe_load(config_text(filename))
+            for kind, filename in CATALOG_FILES.items()
+        }
+        versions = {resource.get("version") for resource in resources.values()}
+        if len(versions) != 1:
+            raise ValueError(f"Catalog versions differ: {sorted(versions)}")
+    
+        commands = resources["commands"].get("commands", [])
+        agent_coverage = resources["commands"].get("agent_command_coverage", {})
+        additional_agent_commands = resources["commands"].get(
+            "agent_additional_commands", {}
+        )
+        capability_guidance_raw = resources["commands"].get("capability_guidance", {})
+        events = resources["events"].get("events", [])
+        projections = resources["projections"].get("projections", [])
+        fact_predicates = resources["fact_predicates"].get("fact_predicates", [])
+        descriptions = resources["commands"].get("parameter_descriptions", {})
+        workspace_payload = yaml.safe_load(config_text(WORKSPACE_CATALOG_FILE))
+        known_tables = set(Base.metadata.tables)
+    
+        _unique(commands, "name", "commands")
+        projection_names = _unique(projections, "name", "projections")
+        materialized_names = _unique(
+            projections, "materialized_as", "projection materializations"
+        )
+        event_types = _unique(events, "type", "events")
+        _unique(fact_predicates, "predicate", "fact predicates")
+        supported_fact_value_types = {
+            "string",
+            "date",
+            "datetime",
+            "integer",
+            "decimal",
+            "boolean",
+            "enum",
+        }
+        for entry in fact_predicates:
+            predicate = _required_text(entry, "predicate", "fact predicate")
+            _required_text(entry, "description", predicate)
+            subject_types = entry.get("subject_types")
+            if (
+                not isinstance(subject_types, list)
+                or not subject_types
+                or not all(isinstance(item, str) and item.strip() for item in subject_types)
+            ):
+                raise ValueError(f"{predicate} requires non-empty subject_types")
+            value_type = _required_text(entry, "value_type", predicate)
+            if value_type not in supported_fact_value_types:
+                raise ValueError(f"{predicate} has unsupported value_type: {value_type}")
+            allowed_values = entry.get("allowed_values")
+            if value_type == "enum" and (
+                not isinstance(allowed_values, list)
+                or not allowed_values
+                or not all(isinstance(item, str) for item in allowed_values)
+            ):
+                raise ValueError(f"{predicate} enum requires allowed_values")
+    
+        command_services = [entry["service"] for entry in commands]
+        missing_coverage = sorted(set(command_services) - set(agent_coverage))
+        stale_coverage = sorted(set(agent_coverage) - set(command_services))
+        if missing_coverage or stale_coverage:
+            raise ValueError(
+                "Agent command coverage drift: "
+                f"missing={missing_coverage}, stale={stale_coverage}"
+            )
+        from reality.mcp.catalog import MCP_TOOL_CATALOG, MCP_TOOL_NAMES
+    
+        public_business_read_names = {
+            tool.name
+            for tool in MCP_TOOL_CATALOG
+            if tool.access == "read" and tool.name != "capability_describe"
+        }
+    
+        mapped_tools: list[str] = []
+        for service_name, coverage in {
+            **agent_coverage,
+            **additional_agent_commands,
+        }.items():
+            classification = coverage.get("classification")
+            if classification not in {"eligible", "excluded", "blocked"}:
+                raise ValueError(
+                    f"Invalid agent classification for {service_name}: {classification}"
+                )
+            tools = coverage.get("tools", [])
+            reason = str(coverage.get("reason", "")).strip()
+            if classification == "eligible" and not tools:
+                raise ValueError(f"Eligible agent command has no tools: {service_name}")
+            if classification != "eligible" and not reason:
+                raise ValueError(
+                    f"Non-eligible agent command has no reason: {service_name}"
+                )
+            mapped_tools.extend(tools)
+        duplicate_tools = sorted(
+            {name for name in mapped_tools if mapped_tools.count(name) > 1}
+        )
+        missing_tools = sorted(set(mapped_tools) - MCP_TOOL_NAMES)
+        if duplicate_tools or missing_tools:
+            raise ValueError(
+                "Agent tool mapping drift: "
+                f"missing={missing_tools}, duplicate={duplicate_tools}"
+            )
+    
+        application_tools = application_tool_module.TOOLS
+        proposal_targets = {
+            tool_name: str(entry.get("application_tool", "")).strip()
+            for tool_name, entry in capability_guidance_raw.items()
+            if isinstance(entry, dict) and str(entry.get("application_tool", "")).strip()
+        }
+        unknown_application_tools = sorted(
+            {name for name in proposal_targets.values() if name not in application_tools}
+        )
+        if unknown_application_tools:
+            raise ValueError(
+                "Capability guidance references unknown application tools: "
+                f"{unknown_application_tools}"
+            )
+        capability_guidance = validate_capability_guidance(
+            capability_guidance_raw,
+            commands=commands,
+            agent_coverage=agent_coverage,
+            event_types=event_types,
+            projection_names=materialized_names,
+            read_tool_names={
+                name for name, tool in application_tools.items() if not tool.mutating
+            },
+            mutating_tool_names={
+                name for name, tool in application_tools.items() if tool.mutating
+            },
+            proposal_targets=proposal_targets,
+            required_tools=CAPABILITY_GUIDANCE_REQUIRED_TOOLS | public_business_read_names,
+            public_tool_names=set(MCP_TOOL_NAMES),
+            data_basis_names=known_tables
+            | projection_names
+            | materialized_names
+            | {
+                "change_proposal",
+                "interpretation_outcome",
+                "operational_exception",
+            },
+        )
+    
+        for entry in [*commands, *projections]:
+            services = [entry["service"], *entry.get("related_services", [])]
+            for service_name in services:
+                if not callable(_service(service_name)):
+>                   raise TypeError(f"Catalog references missing service: {service_name}")
+E                   TypeError: Catalog references missing service: cost_evidence
+
+src/reality/catalogs.py:1381: TypeError
+________ test_workspace_catalog_rejects_drift[<lambda>-unknown command] ________
+
+change = <function <lambda> at 0x10a6059e0>, message = 'unknown command'
+
+    @pytest.mark.parametrize(
+        ("change", "message"),
+        [
+            (
+                lambda payload: payload["workspaces"].append(payload["workspaces"][0]),
+                "Duplicate workspace",
+            ),
+            (lambda payload: payload["views"][0].update(route="missing"), "unknown route"),
+            (
+                lambda payload: payload["views"].append(
+                    {
+                        "key": "unknown_projection",
+                        "label": "Unknown projection",
+                        "route": "orders",
+                        "kind": "materialized_projection",
+                        "projection": "not_registered",
+                        "description": "Invalid fixture",
+                    }
+                ),
+                "unknown projection",
+            ),
+            (
+                lambda payload: payload["actions"][0].update(command="missing"),
+                "unknown command",
+            ),
+            (
+                lambda payload: payload["actions"][0].update(confirmation="none"),
+                "confirmation",
+            ),
+            (
+                lambda payload: payload["workspaces"][0].update(complete_navigation="yes"),
+                "complete_navigation",
+            ),
+        ],
+    )
+    def test_workspace_catalog_rejects_drift(change, message):
+        payload = yaml.safe_load(catalogs.config_text("workspace_catalog.yaml"))
+        change(payload)
+>       commands = load_application_catalog()["commands"]
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_application_catalog.py:173: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+    def load_application_catalog() -> dict[str, Any]:
+        operational_exception_catalog = load_operational_exception_catalog()
+        resources = {
+            kind: yaml.safe_load(config_text(filename))
+            for kind, filename in CATALOG_FILES.items()
+        }
+        versions = {resource.get("version") for resource in resources.values()}
+        if len(versions) != 1:
+            raise ValueError(f"Catalog versions differ: {sorted(versions)}")
+    
+        commands = resources["commands"].get("commands", [])
+        agent_coverage = resources["commands"].get("agent_command_coverage", {})
+        additional_agent_commands = resources["commands"].get(
+            "agent_additional_commands", {}
+        )
+        capability_guidance_raw = resources["commands"].get("capability_guidance", {})
+        events = resources["events"].get("events", [])
+        projections = resources["projections"].get("projections", [])
+        fact_predicates = resources["fact_predicates"].get("fact_predicates", [])
+        descriptions = resources["commands"].get("parameter_descriptions", {})
+        workspace_payload = yaml.safe_load(config_text(WORKSPACE_CATALOG_FILE))
+        known_tables = set(Base.metadata.tables)
+    
+        _unique(commands, "name", "commands")
+        projection_names = _unique(projections, "name", "projections")
+        materialized_names = _unique(
+            projections, "materialized_as", "projection materializations"
+        )
+        event_types = _unique(events, "type", "events")
+        _unique(fact_predicates, "predicate", "fact predicates")
+        supported_fact_value_types = {
+            "string",
+            "date",
+            "datetime",
+            "integer",
+            "decimal",
+            "boolean",
+            "enum",
+        }
+        for entry in fact_predicates:
+            predicate = _required_text(entry, "predicate", "fact predicate")
+            _required_text(entry, "description", predicate)
+            subject_types = entry.get("subject_types")
+            if (
+                not isinstance(subject_types, list)
+                or not subject_types
+                or not all(isinstance(item, str) and item.strip() for item in subject_types)
+            ):
+                raise ValueError(f"{predicate} requires non-empty subject_types")
+            value_type = _required_text(entry, "value_type", predicate)
+            if value_type not in supported_fact_value_types:
+                raise ValueError(f"{predicate} has unsupported value_type: {value_type}")
+            allowed_values = entry.get("allowed_values")
+            if value_type == "enum" and (
+                not isinstance(allowed_values, list)
+                or not allowed_values
+                or not all(isinstance(item, str) for item in allowed_values)
+            ):
+                raise ValueError(f"{predicate} enum requires allowed_values")
+    
+        command_services = [entry["service"] for entry in commands]
+        missing_coverage = sorted(set(command_services) - set(agent_coverage))
+        stale_coverage = sorted(set(agent_coverage) - set(command_services))
+        if missing_coverage or stale_coverage:
+            raise ValueError(
+                "Agent command coverage drift: "
+                f"missing={missing_coverage}, stale={stale_coverage}"
+            )
+        from reality.mcp.catalog import MCP_TOOL_CATALOG, MCP_TOOL_NAMES
+    
+        public_business_read_names = {
+            tool.name
+            for tool in MCP_TOOL_CATALOG
+            if tool.access == "read" and tool.name != "capability_describe"
+        }
+    
+        mapped_tools: list[str] = []
+        for service_name, coverage in {
+            **agent_coverage,
+            **additional_agent_commands,
+        }.items():
+            classification = coverage.get("classification")
+            if classification not in {"eligible", "excluded", "blocked"}:
+                raise ValueError(
+                    f"Invalid agent classification for {service_name}: {classification}"
+                )
+            tools = coverage.get("tools", [])
+            reason = str(coverage.get("reason", "")).strip()
+            if classification == "eligible" and not tools:
+                raise ValueError(f"Eligible agent command has no tools: {service_name}")
+            if classification != "eligible" and not reason:
+                raise ValueError(
+                    f"Non-eligible agent command has no reason: {service_name}"
+                )
+            mapped_tools.extend(tools)
+        duplicate_tools = sorted(
+            {name for name in mapped_tools if mapped_tools.count(name) > 1}
+        )
+        missing_tools = sorted(set(mapped_tools) - MCP_TOOL_NAMES)
+        if duplicate_tools or missing_tools:
+            raise ValueError(
+                "Agent tool mapping drift: "
+                f"missing={missing_tools}, duplicate={duplicate_tools}"
+            )
+    
+        application_tools = application_tool_module.TOOLS
+        proposal_targets = {
+            tool_name: str(entry.get("application_tool", "")).strip()
+            for tool_name, entry in capability_guidance_raw.items()
+            if isinstance(entry, dict) and str(entry.get("application_tool", "")).strip()
+        }
+        unknown_application_tools = sorted(
+            {name for name in proposal_targets.values() if name not in application_tools}
+        )
+        if unknown_application_tools:
+            raise ValueError(
+                "Capability guidance references unknown application tools: "
+                f"{unknown_application_tools}"
+            )
+        capability_guidance = validate_capability_guidance(
+            capability_guidance_raw,
+            commands=commands,
+            agent_coverage=agent_coverage,
+            event_types=event_types,
+            projection_names=materialized_names,
+            read_tool_names={
+                name for name, tool in application_tools.items() if not tool.mutating
+            },
+            mutating_tool_names={
+                name for name, tool in application_tools.items() if tool.mutating
+            },
+            proposal_targets=proposal_targets,
+            required_tools=CAPABILITY_GUIDANCE_REQUIRED_TOOLS | public_business_read_names,
+            public_tool_names=set(MCP_TOOL_NAMES),
+            data_basis_names=known_tables
+            | projection_names
+            | materialized_names
+            | {
+                "change_proposal",
+                "interpretation_outcome",
+                "operational_exception",
+            },
+        )
+    
+        for entry in [*commands, *projections]:
+            services = [entry["service"], *entry.get("related_services", [])]
+            for service_name in services:
+                if not callable(_service(service_name)):
+>                   raise TypeError(f"Catalog references missing service: {service_name}")
+E                   TypeError: Catalog references missing service: cost_evidence
+
+src/reality/catalogs.py:1381: TypeError
+_________ test_workspace_catalog_rejects_drift[<lambda>-confirmation] __________
+
+change = <function <lambda> at 0x10a605a80>, message = 'confirmation'
+
+    @pytest.mark.parametrize(
+        ("change", "message"),
+        [
+            (
+                lambda payload: payload["workspaces"].append(payload["workspaces"][0]),
+                "Duplicate workspace",
+            ),
+            (lambda payload: payload["views"][0].update(route="missing"), "unknown route"),
+            (
+                lambda payload: payload["views"].append(
+                    {
+                        "key": "unknown_projection",
+                        "label": "Unknown projection",
+                        "route": "orders",
+                        "kind": "materialized_projection",
+                        "projection": "not_registered",
+                        "description": "Invalid fixture",
+                    }
+                ),
+                "unknown projection",
+            ),
+            (
+                lambda payload: payload["actions"][0].update(command="missing"),
+                "unknown command",
+            ),
+            (
+                lambda payload: payload["actions"][0].update(confirmation="none"),
+                "confirmation",
+            ),
+            (
+                lambda payload: payload["workspaces"][0].update(complete_navigation="yes"),
+                "complete_navigation",
+            ),
+        ],
+    )
+    def test_workspace_catalog_rejects_drift(change, message):
+        payload = yaml.safe_load(catalogs.config_text("workspace_catalog.yaml"))
+        change(payload)
+>       commands = load_application_catalog()["commands"]
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_application_catalog.py:173: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+    def load_application_catalog() -> dict[str, Any]:
+        operational_exception_catalog = load_operational_exception_catalog()
+        resources = {
+            kind: yaml.safe_load(config_text(filename))
+            for kind, filename in CATALOG_FILES.items()
+        }
+        versions = {resource.get("version") for resource in resources.values()}
+        if len(versions) != 1:
+            raise ValueError(f"Catalog versions differ: {sorted(versions)}")
+    
+        commands = resources["commands"].get("commands", [])
+        agent_coverage = resources["commands"].get("agent_command_coverage", {})
+        additional_agent_commands = resources["commands"].get(
+            "agent_additional_commands", {}
+        )
+        capability_guidance_raw = resources["commands"].get("capability_guidance", {})
+        events = resources["events"].get("events", [])
+        projections = resources["projections"].get("projections", [])
+        fact_predicates = resources["fact_predicates"].get("fact_predicates", [])
+        descriptions = resources["commands"].get("parameter_descriptions", {})
+        workspace_payload = yaml.safe_load(config_text(WORKSPACE_CATALOG_FILE))
+        known_tables = set(Base.metadata.tables)
+    
+        _unique(commands, "name", "commands")
+        projection_names = _unique(projections, "name", "projections")
+        materialized_names = _unique(
+            projections, "materialized_as", "projection materializations"
+        )
+        event_types = _unique(events, "type", "events")
+        _unique(fact_predicates, "predicate", "fact predicates")
+        supported_fact_value_types = {
+            "string",
+            "date",
+            "datetime",
+            "integer",
+            "decimal",
+            "boolean",
+            "enum",
+        }
+        for entry in fact_predicates:
+            predicate = _required_text(entry, "predicate", "fact predicate")
+            _required_text(entry, "description", predicate)
+            subject_types = entry.get("subject_types")
+            if (
+                not isinstance(subject_types, list)
+                or not subject_types
+                or not all(isinstance(item, str) and item.strip() for item in subject_types)
+            ):
+                raise ValueError(f"{predicate} requires non-empty subject_types")
+            value_type = _required_text(entry, "value_type", predicate)
+            if value_type not in supported_fact_value_types:
+                raise ValueError(f"{predicate} has unsupported value_type: {value_type}")
+            allowed_values = entry.get("allowed_values")
+            if value_type == "enum" and (
+                not isinstance(allowed_values, list)
+                or not allowed_values
+                or not all(isinstance(item, str) for item in allowed_values)
+            ):
+                raise ValueError(f"{predicate} enum requires allowed_values")
+    
+        command_services = [entry["service"] for entry in commands]
+        missing_coverage = sorted(set(command_services) - set(agent_coverage))
+        stale_coverage = sorted(set(agent_coverage) - set(command_services))
+        if missing_coverage or stale_coverage:
+            raise ValueError(
+                "Agent command coverage drift: "
+                f"missing={missing_coverage}, stale={stale_coverage}"
+            )
+        from reality.mcp.catalog import MCP_TOOL_CATALOG, MCP_TOOL_NAMES
+    
+        public_business_read_names = {
+            tool.name
+            for tool in MCP_TOOL_CATALOG
+            if tool.access == "read" and tool.name != "capability_describe"
+        }
+    
+        mapped_tools: list[str] = []
+        for service_name, coverage in {
+            **agent_coverage,
+            **additional_agent_commands,
+        }.items():
+            classification = coverage.get("classification")
+            if classification not in {"eligible", "excluded", "blocked"}:
+                raise ValueError(
+                    f"Invalid agent classification for {service_name}: {classification}"
+                )
+            tools = coverage.get("tools", [])
+            reason = str(coverage.get("reason", "")).strip()
+            if classification == "eligible" and not tools:
+                raise ValueError(f"Eligible agent command has no tools: {service_name}")
+            if classification != "eligible" and not reason:
+                raise ValueError(
+                    f"Non-eligible agent command has no reason: {service_name}"
+                )
+            mapped_tools.extend(tools)
+        duplicate_tools = sorted(
+            {name for name in mapped_tools if mapped_tools.count(name) > 1}
+        )
+        missing_tools = sorted(set(mapped_tools) - MCP_TOOL_NAMES)
+        if duplicate_tools or missing_tools:
+            raise ValueError(
+                "Agent tool mapping drift: "
+                f"missing={missing_tools}, duplicate={duplicate_tools}"
+            )
+    
+        application_tools = application_tool_module.TOOLS
+        proposal_targets = {
+            tool_name: str(entry.get("application_tool", "")).strip()
+            for tool_name, entry in capability_guidance_raw.items()
+            if isinstance(entry, dict) and str(entry.get("application_tool", "")).strip()
+        }
+        unknown_application_tools = sorted(
+            {name for name in proposal_targets.values() if name not in application_tools}
+        )
+        if unknown_application_tools:
+            raise ValueError(
+                "Capability guidance references unknown application tools: "
+                f"{unknown_application_tools}"
+            )
+        capability_guidance = validate_capability_guidance(
+            capability_guidance_raw,
+            commands=commands,
+            agent_coverage=agent_coverage,
+            event_types=event_types,
+            projection_names=materialized_names,
+            read_tool_names={
+                name for name, tool in application_tools.items() if not tool.mutating
+            },
+            mutating_tool_names={
+                name for name, tool in application_tools.items() if tool.mutating
+            },
+            proposal_targets=proposal_targets,
+            required_tools=CAPABILITY_GUIDANCE_REQUIRED_TOOLS | public_business_read_names,
+            public_tool_names=set(MCP_TOOL_NAMES),
+            data_basis_names=known_tables
+            | projection_names
+            | materialized_names
+            | {
+                "change_proposal",
+                "interpretation_outcome",
+                "operational_exception",
+            },
+        )
+    
+        for entry in [*commands, *projections]:
+            services = [entry["service"], *entry.get("related_services", [])]
+            for service_name in services:
+                if not callable(_service(service_name)):
+>                   raise TypeError(f"Catalog references missing service: {service_name}")
+E                   TypeError: Catalog references missing service: cost_evidence
+
+src/reality/catalogs.py:1381: TypeError
+______ test_workspace_catalog_rejects_drift[<lambda>-complete_navigation] ______
+
+change = <function <lambda> at 0x10a605b20>, message = 'complete_navigation'
+
+    @pytest.mark.parametrize(
+        ("change", "message"),
+        [
+            (
+                lambda payload: payload["workspaces"].append(payload["workspaces"][0]),
+                "Duplicate workspace",
+            ),
+            (lambda payload: payload["views"][0].update(route="missing"), "unknown route"),
+            (
+                lambda payload: payload["views"].append(
+                    {
+                        "key": "unknown_projection",
+                        "label": "Unknown projection",
+                        "route": "orders",
+                        "kind": "materialized_projection",
+                        "projection": "not_registered",
+                        "description": "Invalid fixture",
+                    }
+                ),
+                "unknown projection",
+            ),
+            (
+                lambda payload: payload["actions"][0].update(command="missing"),
+                "unknown command",
+            ),
+            (
+                lambda payload: payload["actions"][0].update(confirmation="none"),
+                "confirmation",
+            ),
+            (
+                lambda payload: payload["workspaces"][0].update(complete_navigation="yes"),
+                "complete_navigation",
+            ),
+        ],
+    )
+    def test_workspace_catalog_rejects_drift(change, message):
+        payload = yaml.safe_load(catalogs.config_text("workspace_catalog.yaml"))
+        change(payload)
+>       commands = load_application_catalog()["commands"]
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_application_catalog.py:173: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+    def load_application_catalog() -> dict[str, Any]:
+        operational_exception_catalog = load_operational_exception_catalog()
+        resources = {
+            kind: yaml.safe_load(config_text(filename))
+            for kind, filename in CATALOG_FILES.items()
+        }
+        versions = {resource.get("version") for resource in resources.values()}
+        if len(versions) != 1:
+            raise ValueError(f"Catalog versions differ: {sorted(versions)}")
+    
+        commands = resources["commands"].get("commands", [])
+        agent_coverage = resources["commands"].get("agent_command_coverage", {})
+        additional_agent_commands = resources["commands"].get(
+            "agent_additional_commands", {}
+        )
+        capability_guidance_raw = resources["commands"].get("capability_guidance", {})
+        events = resources["events"].get("events", [])
+        projections = resources["projections"].get("projections", [])
+        fact_predicates = resources["fact_predicates"].get("fact_predicates", [])
+        descriptions = resources["commands"].get("parameter_descriptions", {})
+        workspace_payload = yaml.safe_load(config_text(WORKSPACE_CATALOG_FILE))
+        known_tables = set(Base.metadata.tables)
+    
+        _unique(commands, "name", "commands")
+        projection_names = _unique(projections, "name", "projections")
+        materialized_names = _unique(
+            projections, "materialized_as", "projection materializations"
+        )
+        event_types = _unique(events, "type", "events")
+        _unique(fact_predicates, "predicate", "fact predicates")
+        supported_fact_value_types = {
+            "string",
+            "date",
+            "datetime",
+            "integer",
+            "decimal",
+            "boolean",
+            "enum",
+        }
+        for entry in fact_predicates:
+            predicate = _required_text(entry, "predicate", "fact predicate")
+            _required_text(entry, "description", predicate)
+            subject_types = entry.get("subject_types")
+            if (
+                not isinstance(subject_types, list)
+                or not subject_types
+                or not all(isinstance(item, str) and item.strip() for item in subject_types)
+            ):
+                raise ValueError(f"{predicate} requires non-empty subject_types")
+            value_type = _required_text(entry, "value_type", predicate)
+            if value_type not in supported_fact_value_types:
+                raise ValueError(f"{predicate} has unsupported value_type: {value_type}")
+            allowed_values = entry.get("allowed_values")
+            if value_type == "enum" and (
+                not isinstance(allowed_values, list)
+                or not allowed_values
+                or not all(isinstance(item, str) for item in allowed_values)
+            ):
+                raise ValueError(f"{predicate} enum requires allowed_values")
+    
+        command_services = [entry["service"] for entry in commands]
+        missing_coverage = sorted(set(command_services) - set(agent_coverage))
+        stale_coverage = sorted(set(agent_coverage) - set(command_services))
+        if missing_coverage or stale_coverage:
+            raise ValueError(
+                "Agent command coverage drift: "
+                f"missing={missing_coverage}, stale={stale_coverage}"
+            )
+        from reality.mcp.catalog import MCP_TOOL_CATALOG, MCP_TOOL_NAMES
+    
+        public_business_read_names = {
+            tool.name
+            for tool in MCP_TOOL_CATALOG
+            if tool.access == "read" and tool.name != "capability_describe"
+        }
+    
+        mapped_tools: list[str] = []
+        for service_name, coverage in {
+            **agent_coverage,
+            **additional_agent_commands,
+        }.items():
+            classification = coverage.get("classification")
+            if classification not in {"eligible", "excluded", "blocked"}:
+                raise ValueError(
+                    f"Invalid agent classification for {service_name}: {classification}"
+                )
+            tools = coverage.get("tools", [])
+            reason = str(coverage.get("reason", "")).strip()
+            if classification == "eligible" and not tools:
+                raise ValueError(f"Eligible agent command has no tools: {service_name}")
+            if classification != "eligible" and not reason:
+                raise ValueError(
+                    f"Non-eligible agent command has no reason: {service_name}"
+                )
+            mapped_tools.extend(tools)
+        duplicate_tools = sorted(
+            {name for name in mapped_tools if mapped_tools.count(name) > 1}
+        )
+        missing_tools = sorted(set(mapped_tools) - MCP_TOOL_NAMES)
+        if duplicate_tools or missing_tools:
+            raise ValueError(
+                "Agent tool mapping drift: "
+                f"missing={missing_tools}, duplicate={duplicate_tools}"
+            )
+    
+        application_tools = application_tool_module.TOOLS
+        proposal_targets = {
+            tool_name: str(entry.get("application_tool", "")).strip()
+            for tool_name, entry in capability_guidance_raw.items()
+            if isinstance(entry, dict) and str(entry.get("application_tool", "")).strip()
+        }
+        unknown_application_tools = sorted(
+            {name for name in proposal_targets.values() if name not in application_tools}
+        )
+        if unknown_application_tools:
+            raise ValueError(
+                "Capability guidance references unknown application tools: "
+                f"{unknown_application_tools}"
+            )
+        capability_guidance = validate_capability_guidance(
+            capability_guidance_raw,
+            commands=commands,
+            agent_coverage=agent_coverage,
+            event_types=event_types,
+            projection_names=materialized_names,
+            read_tool_names={
+                name for name, tool in application_tools.items() if not tool.mutating
+            },
+            mutating_tool_names={
+                name for name, tool in application_tools.items() if tool.mutating
+            },
+            proposal_targets=proposal_targets,
+            required_tools=CAPABILITY_GUIDANCE_REQUIRED_TOOLS | public_business_read_names,
+            public_tool_names=set(MCP_TOOL_NAMES),
+            data_basis_names=known_tables
+            | projection_names
+            | materialized_names
+            | {
+                "change_proposal",
+                "interpretation_outcome",
+                "operational_exception",
+            },
+        )
+    
+        for entry in [*commands, *projections]:
+            services = [entry["service"], *entry.get("related_services", [])]
+            for service_name in services:
+                if not callable(_service(service_name)):
+>                   raise TypeError(f"Catalog references missing service: {service_name}")
+E                   TypeError: Catalog references missing service: cost_evidence
+
+src/reality/catalogs.py:1381: TypeError
+_____ test_workspace_catalog_rejects_actions_without_command_effect[None] ______
+
+effect = None
+
+    @pytest.mark.parametrize("effect", [None, "", "   "])
+    def test_workspace_catalog_rejects_actions_without_command_effect(effect):
+        payload = yaml.safe_load(catalogs.config_text("workspace_catalog.yaml"))
+>       catalog = load_application_catalog()
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_application_catalog.py:185: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+    def load_application_catalog() -> dict[str, Any]:
+        operational_exception_catalog = load_operational_exception_catalog()
+        resources = {
+            kind: yaml.safe_load(config_text(filename))
+            for kind, filename in CATALOG_FILES.items()
+        }
+        versions = {resource.get("version") for resource in resources.values()}
+        if len(versions) != 1:
+            raise ValueError(f"Catalog versions differ: {sorted(versions)}")
+    
+        commands = resources["commands"].get("commands", [])
+        agent_coverage = resources["commands"].get("agent_command_coverage", {})
+        additional_agent_commands = resources["commands"].get(
+            "agent_additional_commands", {}
+        )
+        capability_guidance_raw = resources["commands"].get("capability_guidance", {})
+        events = resources["events"].get("events", [])
+        projections = resources["projections"].get("projections", [])
+        fact_predicates = resources["fact_predicates"].get("fact_predicates", [])
+        descriptions = resources["commands"].get("parameter_descriptions", {})
+        workspace_payload = yaml.safe_load(config_text(WORKSPACE_CATALOG_FILE))
+        known_tables = set(Base.metadata.tables)
+    
+        _unique(commands, "name", "commands")
+        projection_names = _unique(projections, "name", "projections")
+        materialized_names = _unique(
+            projections, "materialized_as", "projection materializations"
+        )
+        event_types = _unique(events, "type", "events")
+        _unique(fact_predicates, "predicate", "fact predicates")
+        supported_fact_value_types = {
+            "string",
+            "date",
+            "datetime",
+            "integer",
+            "decimal",
+            "boolean",
+            "enum",
+        }
+        for entry in fact_predicates:
+            predicate = _required_text(entry, "predicate", "fact predicate")
+            _required_text(entry, "description", predicate)
+            subject_types = entry.get("subject_types")
+            if (
+                not isinstance(subject_types, list)
+                or not subject_types
+                or not all(isinstance(item, str) and item.strip() for item in subject_types)
+            ):
+                raise ValueError(f"{predicate} requires non-empty subject_types")
+            value_type = _required_text(entry, "value_type", predicate)
+            if value_type not in supported_fact_value_types:
+                raise ValueError(f"{predicate} has unsupported value_type: {value_type}")
+            allowed_values = entry.get("allowed_values")
+            if value_type == "enum" and (
+                not isinstance(allowed_values, list)
+                or not allowed_values
+                or not all(isinstance(item, str) for item in allowed_values)
+            ):
+                raise ValueError(f"{predicate} enum requires allowed_values")
+    
+        command_services = [entry["service"] for entry in commands]
+        missing_coverage = sorted(set(command_services) - set(agent_coverage))
+        stale_coverage = sorted(set(agent_coverage) - set(command_services))
+        if missing_coverage or stale_coverage:
+            raise ValueError(
+                "Agent command coverage drift: "
+                f"missing={missing_coverage}, stale={stale_coverage}"
+            )
+        from reality.mcp.catalog import MCP_TOOL_CATALOG, MCP_TOOL_NAMES
+    
+        public_business_read_names = {
+            tool.name
+            for tool in MCP_TOOL_CATALOG
+            if tool.access == "read" and tool.name != "capability_describe"
+        }
+    
+        mapped_tools: list[str] = []
+        for service_name, coverage in {
+            **agent_coverage,
+            **additional_agent_commands,
+        }.items():
+            classification = coverage.get("classification")
+            if classification not in {"eligible", "excluded", "blocked"}:
+                raise ValueError(
+                    f"Invalid agent classification for {service_name}: {classification}"
+                )
+            tools = coverage.get("tools", [])
+            reason = str(coverage.get("reason", "")).strip()
+            if classification == "eligible" and not tools:
+                raise ValueError(f"Eligible agent command has no tools: {service_name}")
+            if classification != "eligible" and not reason:
+                raise ValueError(
+                    f"Non-eligible agent command has no reason: {service_name}"
+                )
+            mapped_tools.extend(tools)
+        duplicate_tools = sorted(
+            {name for name in mapped_tools if mapped_tools.count(name) > 1}
+        )
+        missing_tools = sorted(set(mapped_tools) - MCP_TOOL_NAMES)
+        if duplicate_tools or missing_tools:
+            raise ValueError(
+                "Agent tool mapping drift: "
+                f"missing={missing_tools}, duplicate={duplicate_tools}"
+            )
+    
+        application_tools = application_tool_module.TOOLS
+        proposal_targets = {
+            tool_name: str(entry.get("application_tool", "")).strip()
+            for tool_name, entry in capability_guidance_raw.items()
+            if isinstance(entry, dict) and str(entry.get("application_tool", "")).strip()
+        }
+        unknown_application_tools = sorted(
+            {name for name in proposal_targets.values() if name not in application_tools}
+        )
+        if unknown_application_tools:
+            raise ValueError(
+                "Capability guidance references unknown application tools: "
+                f"{unknown_application_tools}"
+            )
+        capability_guidance = validate_capability_guidance(
+            capability_guidance_raw,
+            commands=commands,
+            agent_coverage=agent_coverage,
+            event_types=event_types,
+            projection_names=materialized_names,
+            read_tool_names={
+                name for name, tool in application_tools.items() if not tool.mutating
+            },
+            mutating_tool_names={
+                name for name, tool in application_tools.items() if tool.mutating
+            },
+            proposal_targets=proposal_targets,
+            required_tools=CAPABILITY_GUIDANCE_REQUIRED_TOOLS | public_business_read_names,
+            public_tool_names=set(MCP_TOOL_NAMES),
+            data_basis_names=known_tables
+            | projection_names
+            | materialized_names
+            | {
+                "change_proposal",
+                "interpretation_outcome",
+                "operational_exception",
+            },
+        )
+    
+        for entry in [*commands, *projections]:
+            services = [entry["service"], *entry.get("related_services", [])]
+            for service_name in services:
+                if not callable(_service(service_name)):
+>                   raise TypeError(f"Catalog references missing service: {service_name}")
+E                   TypeError: Catalog references missing service: cost_evidence
+
+src/reality/catalogs.py:1381: TypeError
+_______ test_workspace_catalog_rejects_actions_without_command_effect[] ________
+
+effect = ''
+
+    @pytest.mark.parametrize("effect", [None, "", "   "])
+    def test_workspace_catalog_rejects_actions_without_command_effect(effect):
+        payload = yaml.safe_load(catalogs.config_text("workspace_catalog.yaml"))
+>       catalog = load_application_catalog()
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_application_catalog.py:185: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+    def load_application_catalog() -> dict[str, Any]:
+        operational_exception_catalog = load_operational_exception_catalog()
+        resources = {
+            kind: yaml.safe_load(config_text(filename))
+            for kind, filename in CATALOG_FILES.items()
+        }
+        versions = {resource.get("version") for resource in resources.values()}
+        if len(versions) != 1:
+            raise ValueError(f"Catalog versions differ: {sorted(versions)}")
+    
+        commands = resources["commands"].get("commands", [])
+        agent_coverage = resources["commands"].get("agent_command_coverage", {})
+        additional_agent_commands = resources["commands"].get(
+            "agent_additional_commands", {}
+        )
+        capability_guidance_raw = resources["commands"].get("capability_guidance", {})
+        events = resources["events"].get("events", [])
+        projections = resources["projections"].get("projections", [])
+        fact_predicates = resources["fact_predicates"].get("fact_predicates", [])
+        descriptions = resources["commands"].get("parameter_descriptions", {})
+        workspace_payload = yaml.safe_load(config_text(WORKSPACE_CATALOG_FILE))
+        known_tables = set(Base.metadata.tables)
+    
+        _unique(commands, "name", "commands")
+        projection_names = _unique(projections, "name", "projections")
+        materialized_names = _unique(
+            projections, "materialized_as", "projection materializations"
+        )
+        event_types = _unique(events, "type", "events")
+        _unique(fact_predicates, "predicate", "fact predicates")
+        supported_fact_value_types = {
+            "string",
+            "date",
+            "datetime",
+            "integer",
+            "decimal",
+            "boolean",
+            "enum",
+        }
+        for entry in fact_predicates:
+            predicate = _required_text(entry, "predicate", "fact predicate")
+            _required_text(entry, "description", predicate)
+            subject_types = entry.get("subject_types")
+            if (
+                not isinstance(subject_types, list)
+                or not subject_types
+                or not all(isinstance(item, str) and item.strip() for item in subject_types)
+            ):
+                raise ValueError(f"{predicate} requires non-empty subject_types")
+            value_type = _required_text(entry, "value_type", predicate)
+            if value_type not in supported_fact_value_types:
+                raise ValueError(f"{predicate} has unsupported value_type: {value_type}")
+            allowed_values = entry.get("allowed_values")
+            if value_type == "enum" and (
+                not isinstance(allowed_values, list)
+                or not allowed_values
+                or not all(isinstance(item, str) for item in allowed_values)
+            ):
+                raise ValueError(f"{predicate} enum requires allowed_values")
+    
+        command_services = [entry["service"] for entry in commands]
+        missing_coverage = sorted(set(command_services) - set(agent_coverage))
+        stale_coverage = sorted(set(agent_coverage) - set(command_services))
+        if missing_coverage or stale_coverage:
+            raise ValueError(
+                "Agent command coverage drift: "
+                f"missing={missing_coverage}, stale={stale_coverage}"
+            )
+        from reality.mcp.catalog import MCP_TOOL_CATALOG, MCP_TOOL_NAMES
+    
+        public_business_read_names = {
+            tool.name
+            for tool in MCP_TOOL_CATALOG
+            if tool.access == "read" and tool.name != "capability_describe"
+        }
+    
+        mapped_tools: list[str] = []
+        for service_name, coverage in {
+            **agent_coverage,
+            **additional_agent_commands,
+        }.items():
+            classification = coverage.get("classification")
+            if classification not in {"eligible", "excluded", "blocked"}:
+                raise ValueError(
+                    f"Invalid agent classification for {service_name}: {classification}"
+                )
+            tools = coverage.get("tools", [])
+            reason = str(coverage.get("reason", "")).strip()
+            if classification == "eligible" and not tools:
+                raise ValueError(f"Eligible agent command has no tools: {service_name}")
+            if classification != "eligible" and not reason:
+                raise ValueError(
+                    f"Non-eligible agent command has no reason: {service_name}"
+                )
+            mapped_tools.extend(tools)
+        duplicate_tools = sorted(
+            {name for name in mapped_tools if mapped_tools.count(name) > 1}
+        )
+        missing_tools = sorted(set(mapped_tools) - MCP_TOOL_NAMES)
+        if duplicate_tools or missing_tools:
+            raise ValueError(
+                "Agent tool mapping drift: "
+                f"missing={missing_tools}, duplicate={duplicate_tools}"
+            )
+    
+        application_tools = application_tool_module.TOOLS
+        proposal_targets = {
+            tool_name: str(entry.get("application_tool", "")).strip()
+            for tool_name, entry in capability_guidance_raw.items()
+            if isinstance(entry, dict) and str(entry.get("application_tool", "")).strip()
+        }
+        unknown_application_tools = sorted(
+            {name for name in proposal_targets.values() if name not in application_tools}
+        )
+        if unknown_application_tools:
+            raise ValueError(
+                "Capability guidance references unknown application tools: "
+                f"{unknown_application_tools}"
+            )
+        capability_guidance = validate_capability_guidance(
+            capability_guidance_raw,
+            commands=commands,
+            agent_coverage=agent_coverage,
+            event_types=event_types,
+            projection_names=materialized_names,
+            read_tool_names={
+                name for name, tool in application_tools.items() if not tool.mutating
+            },
+            mutating_tool_names={
+                name for name, tool in application_tools.items() if tool.mutating
+            },
+            proposal_targets=proposal_targets,
+            required_tools=CAPABILITY_GUIDANCE_REQUIRED_TOOLS | public_business_read_names,
+            public_tool_names=set(MCP_TOOL_NAMES),
+            data_basis_names=known_tables
+            | projection_names
+            | materialized_names
+            | {
+                "change_proposal",
+                "interpretation_outcome",
+                "operational_exception",
+            },
+        )
+    
+        for entry in [*commands, *projections]:
+            services = [entry["service"], *entry.get("related_services", [])]
+            for service_name in services:
+                if not callable(_service(service_name)):
+>                   raise TypeError(f"Catalog references missing service: {service_name}")
+E                   TypeError: Catalog references missing service: cost_evidence
+
+src/reality/catalogs.py:1381: TypeError
+______ test_workspace_catalog_rejects_actions_without_command_effect[   ] ______
+
+effect = '   '
+
+    @pytest.mark.parametrize("effect", [None, "", "   "])
+    def test_workspace_catalog_rejects_actions_without_command_effect(effect):
+        payload = yaml.safe_load(catalogs.config_text("workspace_catalog.yaml"))
+>       catalog = load_application_catalog()
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_application_catalog.py:185: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+    def load_application_catalog() -> dict[str, Any]:
+        operational_exception_catalog = load_operational_exception_catalog()
+        resources = {
+            kind: yaml.safe_load(config_text(filename))
+            for kind, filename in CATALOG_FILES.items()
+        }
+        versions = {resource.get("version") for resource in resources.values()}
+        if len(versions) != 1:
+            raise ValueError(f"Catalog versions differ: {sorted(versions)}")
+    
+        commands = resources["commands"].get("commands", [])
+        agent_coverage = resources["commands"].get("agent_command_coverage", {})
+        additional_agent_commands = resources["commands"].get(
+            "agent_additional_commands", {}
+        )
+        capability_guidance_raw = resources["commands"].get("capability_guidance", {})
+        events = resources["events"].get("events", [])
+        projections = resources["projections"].get("projections", [])
+        fact_predicates = resources["fact_predicates"].get("fact_predicates", [])
+        descriptions = resources["commands"].get("parameter_descriptions", {})
+        workspace_payload = yaml.safe_load(config_text(WORKSPACE_CATALOG_FILE))
+        known_tables = set(Base.metadata.tables)
+    
+        _unique(commands, "name", "commands")
+        projection_names = _unique(projections, "name", "projections")
+        materialized_names = _unique(
+            projections, "materialized_as", "projection materializations"
+        )
+        event_types = _unique(events, "type", "events")
+        _unique(fact_predicates, "predicate", "fact predicates")
+        supported_fact_value_types = {
+            "string",
+            "date",
+            "datetime",
+            "integer",
+            "decimal",
+            "boolean",
+            "enum",
+        }
+        for entry in fact_predicates:
+            predicate = _required_text(entry, "predicate", "fact predicate")
+            _required_text(entry, "description", predicate)
+            subject_types = entry.get("subject_types")
+            if (
+                not isinstance(subject_types, list)
+                or not subject_types
+                or not all(isinstance(item, str) and item.strip() for item in subject_types)
+            ):
+                raise ValueError(f"{predicate} requires non-empty subject_types")
+            value_type = _required_text(entry, "value_type", predicate)
+            if value_type not in supported_fact_value_types:
+                raise ValueError(f"{predicate} has unsupported value_type: {value_type}")
+            allowed_values = entry.get("allowed_values")
+            if value_type == "enum" and (
+                not isinstance(allowed_values, list)
+                or not allowed_values
+                or not all(isinstance(item, str) for item in allowed_values)
+            ):
+                raise ValueError(f"{predicate} enum requires allowed_values")
+    
+        command_services = [entry["service"] for entry in commands]
+        missing_coverage = sorted(set(command_services) - set(agent_coverage))
+        stale_coverage = sorted(set(agent_coverage) - set(command_services))
+        if missing_coverage or stale_coverage:
+            raise ValueError(
+                "Agent command coverage drift: "
+                f"missing={missing_coverage}, stale={stale_coverage}"
+            )
+        from reality.mcp.catalog import MCP_TOOL_CATALOG, MCP_TOOL_NAMES
+    
+        public_business_read_names = {
+            tool.name
+            for tool in MCP_TOOL_CATALOG
+            if tool.access == "read" and tool.name != "capability_describe"
+        }
+    
+        mapped_tools: list[str] = []
+        for service_name, coverage in {
+            **agent_coverage,
+            **additional_agent_commands,
+        }.items():
+            classification = coverage.get("classification")
+            if classification not in {"eligible", "excluded", "blocked"}:
+                raise ValueError(
+                    f"Invalid agent classification for {service_name}: {classification}"
+                )
+            tools = coverage.get("tools", [])
+            reason = str(coverage.get("reason", "")).strip()
+            if classification == "eligible" and not tools:
+                raise ValueError(f"Eligible agent command has no tools: {service_name}")
+            if classification != "eligible" and not reason:
+                raise ValueError(
+                    f"Non-eligible agent command has no reason: {service_name}"
+                )
+            mapped_tools.extend(tools)
+        duplicate_tools = sorted(
+            {name for name in mapped_tools if mapped_tools.count(name) > 1}
+        )
+        missing_tools = sorted(set(mapped_tools) - MCP_TOOL_NAMES)
+        if duplicate_tools or missing_tools:
+            raise ValueError(
+                "Agent tool mapping drift: "
+                f"missing={missing_tools}, duplicate={duplicate_tools}"
+            )
+    
+        application_tools = application_tool_module.TOOLS
+        proposal_targets = {
+            tool_name: str(entry.get("application_tool", "")).strip()
+            for tool_name, entry in capability_guidance_raw.items()
+            if isinstance(entry, dict) and str(entry.get("application_tool", "")).strip()
+        }
+        unknown_application_tools = sorted(
+            {name for name in proposal_targets.values() if name not in application_tools}
+        )
+        if unknown_application_tools:
+            raise ValueError(
+                "Capability guidance references unknown application tools: "
+                f"{unknown_application_tools}"
+            )
+        capability_guidance = validate_capability_guidance(
+            capability_guidance_raw,
+            commands=commands,
+            agent_coverage=agent_coverage,
+            event_types=event_types,
+            projection_names=materialized_names,
+            read_tool_names={
+                name for name, tool in application_tools.items() if not tool.mutating
+            },
+            mutating_tool_names={
+                name for name, tool in application_tools.items() if tool.mutating
+            },
+            proposal_targets=proposal_targets,
+            required_tools=CAPABILITY_GUIDANCE_REQUIRED_TOOLS | public_business_read_names,
+            public_tool_names=set(MCP_TOOL_NAMES),
+            data_basis_names=known_tables
+            | projection_names
+            | materialized_names
+            | {
+                "change_proposal",
+                "interpretation_outcome",
+                "operational_exception",
+            },
+        )
+    
+        for entry in [*commands, *projections]:
+            services = [entry["service"], *entry.get("related_services", [])]
+            for service_name in services:
+                if not callable(_service(service_name)):
+>                   raise TypeError(f"Catalog references missing service: {service_name}")
+E                   TypeError: Catalog references missing service: cost_evidence
+
+src/reality/catalogs.py:1381: TypeError
+__________ test_only_the_reference_workspace_lists_its_whole_surface ___________
+
+    def test_only_the_reference_workspace_lists_its_whole_surface():
+        """Progressive disclosure stays the rule; Data Management is the stated exception."""
+>       workspaces = load_application_catalog()["workspaces"]
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_application_catalog.py:200: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+    def load_application_catalog() -> dict[str, Any]:
+        operational_exception_catalog = load_operational_exception_catalog()
+        resources = {
+            kind: yaml.safe_load(config_text(filename))
+            for kind, filename in CATALOG_FILES.items()
+        }
+        versions = {resource.get("version") for resource in resources.values()}
+        if len(versions) != 1:
+            raise ValueError(f"Catalog versions differ: {sorted(versions)}")
+    
+        commands = resources["commands"].get("commands", [])
+        agent_coverage = resources["commands"].get("agent_command_coverage", {})
+        additional_agent_commands = resources["commands"].get(
+            "agent_additional_commands", {}
+        )
+        capability_guidance_raw = resources["commands"].get("capability_guidance", {})
+        events = resources["events"].get("events", [])
+        projections = resources["projections"].get("projections", [])
+        fact_predicates = resources["fact_predicates"].get("fact_predicates", [])
+        descriptions = resources["commands"].get("parameter_descriptions", {})
+        workspace_payload = yaml.safe_load(config_text(WORKSPACE_CATALOG_FILE))
+        known_tables = set(Base.metadata.tables)
+    
+        _unique(commands, "name", "commands")
+        projection_names = _unique(projections, "name", "projections")
+        materialized_names = _unique(
+            projections, "materialized_as", "projection materializations"
+        )
+        event_types = _unique(events, "type", "events")
+        _unique(fact_predicates, "predicate", "fact predicates")
+        supported_fact_value_types = {
+            "string",
+            "date",
+            "datetime",
+            "integer",
+            "decimal",
+            "boolean",
+            "enum",
+        }
+        for entry in fact_predicates:
+            predicate = _required_text(entry, "predicate", "fact predicate")
+            _required_text(entry, "description", predicate)
+            subject_types = entry.get("subject_types")
+            if (
+                not isinstance(subject_types, list)
+                or not subject_types
+                or not all(isinstance(item, str) and item.strip() for item in subject_types)
+            ):
+                raise ValueError(f"{predicate} requires non-empty subject_types")
+            value_type = _required_text(entry, "value_type", predicate)
+            if value_type not in supported_fact_value_types:
+                raise ValueError(f"{predicate} has unsupported value_type: {value_type}")
+            allowed_values = entry.get("allowed_values")
+            if value_type == "enum" and (
+                not isinstance(allowed_values, list)
+                or not allowed_values
+                or not all(isinstance(item, str) for item in allowed_values)
+            ):
+                raise ValueError(f"{predicate} enum requires allowed_values")
+    
+        command_services = [entry["service"] for entry in commands]
+        missing_coverage = sorted(set(command_services) - set(agent_coverage))
+        stale_coverage = sorted(set(agent_coverage) - set(command_services))
+        if missing_coverage or stale_coverage:
+            raise ValueError(
+                "Agent command coverage drift: "
+                f"missing={missing_coverage}, stale={stale_coverage}"
+            )
+        from reality.mcp.catalog import MCP_TOOL_CATALOG, MCP_TOOL_NAMES
+    
+        public_business_read_names = {
+            tool.name
+            for tool in MCP_TOOL_CATALOG
+            if tool.access == "read" and tool.name != "capability_describe"
+        }
+    
+        mapped_tools: list[str] = []
+        for service_name, coverage in {
+            **agent_coverage,
+            **additional_agent_commands,
+        }.items():
+            classification = coverage.get("classification")
+            if classification not in {"eligible", "excluded", "blocked"}:
+                raise ValueError(
+                    f"Invalid agent classification for {service_name}: {classification}"
+                )
+            tools = coverage.get("tools", [])
+            reason = str(coverage.get("reason", "")).strip()
+            if classification == "eligible" and not tools:
+                raise ValueError(f"Eligible agent command has no tools: {service_name}")
+            if classification != "eligible" and not reason:
+                raise ValueError(
+                    f"Non-eligible agent command has no reason: {service_name}"
+                )
+            mapped_tools.extend(tools)
+        duplicate_tools = sorted(
+            {name for name in mapped_tools if mapped_tools.count(name) > 1}
+        )
+        missing_tools = sorted(set(mapped_tools) - MCP_TOOL_NAMES)
+        if duplicate_tools or missing_tools:
+            raise ValueError(
+                "Agent tool mapping drift: "
+                f"missing={missing_tools}, duplicate={duplicate_tools}"
+            )
+    
+        application_tools = application_tool_module.TOOLS
+        proposal_targets = {
+            tool_name: str(entry.get("application_tool", "")).strip()
+            for tool_name, entry in capability_guidance_raw.items()
+            if isinstance(entry, dict) and str(entry.get("application_tool", "")).strip()
+        }
+        unknown_application_tools = sorted(
+            {name for name in proposal_targets.values() if name not in application_tools}
+        )
+        if unknown_application_tools:
+            raise ValueError(
+                "Capability guidance references unknown application tools: "
+                f"{unknown_application_tools}"
+            )
+        capability_guidance = validate_capability_guidance(
+            capability_guidance_raw,
+            commands=commands,
+            agent_coverage=agent_coverage,
+            event_types=event_types,
+            projection_names=materialized_names,
+            read_tool_names={
+                name for name, tool in application_tools.items() if not tool.mutating
+            },
+            mutating_tool_names={
+                name for name, tool in application_tools.items() if tool.mutating
+            },
+            proposal_targets=proposal_targets,
+            required_tools=CAPABILITY_GUIDANCE_REQUIRED_TOOLS | public_business_read_names,
+            public_tool_names=set(MCP_TOOL_NAMES),
+            data_basis_names=known_tables
+            | projection_names
+            | materialized_names
+            | {
+                "change_proposal",
+                "interpretation_outcome",
+                "operational_exception",
+            },
+        )
+    
+        for entry in [*commands, *projections]:
+            services = [entry["service"], *entry.get("related_services", [])]
+            for service_name in services:
+                if not callable(_service(service_name)):
+>                   raise TypeError(f"Catalog references missing service: {service_name}")
+E                   TypeError: Catalog references missing service: cost_evidence
+
+src/reality/catalogs.py:1381: TypeError
+_______________ test_event_catalog_contains_every_known_omission _______________
+
+    def test_event_catalog_contains_every_known_omission():
+>       event_types = {entry["type"] for entry in load_application_catalog()["events"]}
+                                                  ^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_application_catalog.py:211: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+    def load_application_catalog() -> dict[str, Any]:
+        operational_exception_catalog = load_operational_exception_catalog()
+        resources = {
+            kind: yaml.safe_load(config_text(filename))
+            for kind, filename in CATALOG_FILES.items()
+        }
+        versions = {resource.get("version") for resource in resources.values()}
+        if len(versions) != 1:
+            raise ValueError(f"Catalog versions differ: {sorted(versions)}")
+    
+        commands = resources["commands"].get("commands", [])
+        agent_coverage = resources["commands"].get("agent_command_coverage", {})
+        additional_agent_commands = resources["commands"].get(
+            "agent_additional_commands", {}
+        )
+        capability_guidance_raw = resources["commands"].get("capability_guidance", {})
+        events = resources["events"].get("events", [])
+        projections = resources["projections"].get("projections", [])
+        fact_predicates = resources["fact_predicates"].get("fact_predicates", [])
+        descriptions = resources["commands"].get("parameter_descriptions", {})
+        workspace_payload = yaml.safe_load(config_text(WORKSPACE_CATALOG_FILE))
+        known_tables = set(Base.metadata.tables)
+    
+        _unique(commands, "name", "commands")
+        projection_names = _unique(projections, "name", "projections")
+        materialized_names = _unique(
+            projections, "materialized_as", "projection materializations"
+        )
+        event_types = _unique(events, "type", "events")
+        _unique(fact_predicates, "predicate", "fact predicates")
+        supported_fact_value_types = {
+            "string",
+            "date",
+            "datetime",
+            "integer",
+            "decimal",
+            "boolean",
+            "enum",
+        }
+        for entry in fact_predicates:
+            predicate = _required_text(entry, "predicate", "fact predicate")
+            _required_text(entry, "description", predicate)
+            subject_types = entry.get("subject_types")
+            if (
+                not isinstance(subject_types, list)
+                or not subject_types
+                or not all(isinstance(item, str) and item.strip() for item in subject_types)
+            ):
+                raise ValueError(f"{predicate} requires non-empty subject_types")
+            value_type = _required_text(entry, "value_type", predicate)
+            if value_type not in supported_fact_value_types:
+                raise ValueError(f"{predicate} has unsupported value_type: {value_type}")
+            allowed_values = entry.get("allowed_values")
+            if value_type == "enum" and (
+                not isinstance(allowed_values, list)
+                or not allowed_values
+                or not all(isinstance(item, str) for item in allowed_values)
+            ):
+                raise ValueError(f"{predicate} enum requires allowed_values")
+    
+        command_services = [entry["service"] for entry in commands]
+        missing_coverage = sorted(set(command_services) - set(agent_coverage))
+        stale_coverage = sorted(set(agent_coverage) - set(command_services))
+        if missing_coverage or stale_coverage:
+            raise ValueError(
+                "Agent command coverage drift: "
+                f"missing={missing_coverage}, stale={stale_coverage}"
+            )
+        from reality.mcp.catalog import MCP_TOOL_CATALOG, MCP_TOOL_NAMES
+    
+        public_business_read_names = {
+            tool.name
+            for tool in MCP_TOOL_CATALOG
+            if tool.access == "read" and tool.name != "capability_describe"
+        }
+    
+        mapped_tools: list[str] = []
+        for service_name, coverage in {
+            **agent_coverage,
+            **additional_agent_commands,
+        }.items():
+            classification = coverage.get("classification")
+            if classification not in {"eligible", "excluded", "blocked"}:
+                raise ValueError(
+                    f"Invalid agent classification for {service_name}: {classification}"
+                )
+            tools = coverage.get("tools", [])
+            reason = str(coverage.get("reason", "")).strip()
+            if classification == "eligible" and not tools:
+                raise ValueError(f"Eligible agent command has no tools: {service_name}")
+            if classification != "eligible" and not reason:
+                raise ValueError(
+                    f"Non-eligible agent command has no reason: {service_name}"
+                )
+            mapped_tools.extend(tools)
+        duplicate_tools = sorted(
+            {name for name in mapped_tools if mapped_tools.count(name) > 1}
+        )
+        missing_tools = sorted(set(mapped_tools) - MCP_TOOL_NAMES)
+        if duplicate_tools or missing_tools:
+            raise ValueError(
+                "Agent tool mapping drift: "
+                f"missing={missing_tools}, duplicate={duplicate_tools}"
+            )
+    
+        application_tools = application_tool_module.TOOLS
+        proposal_targets = {
+            tool_name: str(entry.get("application_tool", "")).strip()
+            for tool_name, entry in capability_guidance_raw.items()
+            if isinstance(entry, dict) and str(entry.get("application_tool", "")).strip()
+        }
+        unknown_application_tools = sorted(
+            {name for name in proposal_targets.values() if name not in application_tools}
+        )
+        if unknown_application_tools:
+            raise ValueError(
+                "Capability guidance references unknown application tools: "
+                f"{unknown_application_tools}"
+            )
+        capability_guidance = validate_capability_guidance(
+            capability_guidance_raw,
+            commands=commands,
+            agent_coverage=agent_coverage,
+            event_types=event_types,
+            projection_names=materialized_names,
+            read_tool_names={
+                name for name, tool in application_tools.items() if not tool.mutating
+            },
+            mutating_tool_names={
+                name for name, tool in application_tools.items() if tool.mutating
+            },
+            proposal_targets=proposal_targets,
+            required_tools=CAPABILITY_GUIDANCE_REQUIRED_TOOLS | public_business_read_names,
+            public_tool_names=set(MCP_TOOL_NAMES),
+            data_basis_names=known_tables
+            | projection_names
+            | materialized_names
+            | {
+                "change_proposal",
+                "interpretation_outcome",
+                "operational_exception",
+            },
+        )
+    
+        for entry in [*commands, *projections]:
+            services = [entry["service"], *entry.get("related_services", [])]
+            for service_name in services:
+                if not callable(_service(service_name)):
+>                   raise TypeError(f"Catalog references missing service: {service_name}")
+E                   TypeError: Catalog references missing service: cost_evidence
+
+src/reality/catalogs.py:1381: TypeError
+___________ test_command_contracts_are_enriched_from_public_services ___________
+
+    def test_command_contracts_are_enriched_from_public_services():
+>       catalog = load_application_catalog()
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_application_catalog.py:222: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+    def load_application_catalog() -> dict[str, Any]:
+        operational_exception_catalog = load_operational_exception_catalog()
+        resources = {
+            kind: yaml.safe_load(config_text(filename))
+            for kind, filename in CATALOG_FILES.items()
+        }
+        versions = {resource.get("version") for resource in resources.values()}
+        if len(versions) != 1:
+            raise ValueError(f"Catalog versions differ: {sorted(versions)}")
+    
+        commands = resources["commands"].get("commands", [])
+        agent_coverage = resources["commands"].get("agent_command_coverage", {})
+        additional_agent_commands = resources["commands"].get(
+            "agent_additional_commands", {}
+        )
+        capability_guidance_raw = resources["commands"].get("capability_guidance", {})
+        events = resources["events"].get("events", [])
+        projections = resources["projections"].get("projections", [])
+        fact_predicates = resources["fact_predicates"].get("fact_predicates", [])
+        descriptions = resources["commands"].get("parameter_descriptions", {})
+        workspace_payload = yaml.safe_load(config_text(WORKSPACE_CATALOG_FILE))
+        known_tables = set(Base.metadata.tables)
+    
+        _unique(commands, "name", "commands")
+        projection_names = _unique(projections, "name", "projections")
+        materialized_names = _unique(
+            projections, "materialized_as", "projection materializations"
+        )
+        event_types = _unique(events, "type", "events")
+        _unique(fact_predicates, "predicate", "fact predicates")
+        supported_fact_value_types = {
+            "string",
+            "date",
+            "datetime",
+            "integer",
+            "decimal",
+            "boolean",
+            "enum",
+        }
+        for entry in fact_predicates:
+            predicate = _required_text(entry, "predicate", "fact predicate")
+            _required_text(entry, "description", predicate)
+            subject_types = entry.get("subject_types")
+            if (
+                not isinstance(subject_types, list)
+                or not subject_types
+                or not all(isinstance(item, str) and item.strip() for item in subject_types)
+            ):
+                raise ValueError(f"{predicate} requires non-empty subject_types")
+            value_type = _required_text(entry, "value_type", predicate)
+            if value_type not in supported_fact_value_types:
+                raise ValueError(f"{predicate} has unsupported value_type: {value_type}")
+            allowed_values = entry.get("allowed_values")
+            if value_type == "enum" and (
+                not isinstance(allowed_values, list)
+                or not allowed_values
+                or not all(isinstance(item, str) for item in allowed_values)
+            ):
+                raise ValueError(f"{predicate} enum requires allowed_values")
+    
+        command_services = [entry["service"] for entry in commands]
+        missing_coverage = sorted(set(command_services) - set(agent_coverage))
+        stale_coverage = sorted(set(agent_coverage) - set(command_services))
+        if missing_coverage or stale_coverage:
+            raise ValueError(
+                "Agent command coverage drift: "
+                f"missing={missing_coverage}, stale={stale_coverage}"
+            )
+        from reality.mcp.catalog import MCP_TOOL_CATALOG, MCP_TOOL_NAMES
+    
+        public_business_read_names = {
+            tool.name
+            for tool in MCP_TOOL_CATALOG
+            if tool.access == "read" and tool.name != "capability_describe"
+        }
+    
+        mapped_tools: list[str] = []
+        for service_name, coverage in {
+            **agent_coverage,
+            **additional_agent_commands,
+        }.items():
+            classification = coverage.get("classification")
+            if classification not in {"eligible", "excluded", "blocked"}:
+                raise ValueError(
+                    f"Invalid agent classification for {service_name}: {classification}"
+                )
+            tools = coverage.get("tools", [])
+            reason = str(coverage.get("reason", "")).strip()
+            if classification == "eligible" and not tools:
+                raise ValueError(f"Eligible agent command has no tools: {service_name}")
+            if classification != "eligible" and not reason:
+                raise ValueError(
+                    f"Non-eligible agent command has no reason: {service_name}"
+                )
+            mapped_tools.extend(tools)
+        duplicate_tools = sorted(
+            {name for name in mapped_tools if mapped_tools.count(name) > 1}
+        )
+        missing_tools = sorted(set(mapped_tools) - MCP_TOOL_NAMES)
+        if duplicate_tools or missing_tools:
+            raise ValueError(
+                "Agent tool mapping drift: "
+                f"missing={missing_tools}, duplicate={duplicate_tools}"
+            )
+    
+        application_tools = application_tool_module.TOOLS
+        proposal_targets = {
+            tool_name: str(entry.get("application_tool", "")).strip()
+            for tool_name, entry in capability_guidance_raw.items()
+            if isinstance(entry, dict) and str(entry.get("application_tool", "")).strip()
+        }
+        unknown_application_tools = sorted(
+            {name for name in proposal_targets.values() if name not in application_tools}
+        )
+        if unknown_application_tools:
+            raise ValueError(
+                "Capability guidance references unknown application tools: "
+                f"{unknown_application_tools}"
+            )
+        capability_guidance = validate_capability_guidance(
+            capability_guidance_raw,
+            commands=commands,
+            agent_coverage=agent_coverage,
+            event_types=event_types,
+            projection_names=materialized_names,
+            read_tool_names={
+                name for name, tool in application_tools.items() if not tool.mutating
+            },
+            mutating_tool_names={
+                name for name, tool in application_tools.items() if tool.mutating
+            },
+            proposal_targets=proposal_targets,
+            required_tools=CAPABILITY_GUIDANCE_REQUIRED_TOOLS | public_business_read_names,
+            public_tool_names=set(MCP_TOOL_NAMES),
+            data_basis_names=known_tables
+            | projection_names
+            | materialized_names
+            | {
+                "change_proposal",
+                "interpretation_outcome",
+                "operational_exception",
+            },
+        )
+    
+        for entry in [*commands, *projections]:
+            services = [entry["service"], *entry.get("related_services", [])]
+            for service_name in services:
+                if not callable(_service(service_name)):
+>                   raise TypeError(f"Catalog references missing service: {service_name}")
+E                   TypeError: Catalog references missing service: cost_evidence
+
+src/reality/catalogs.py:1381: TypeError
+________ test_membership_commands_are_internal_and_require_confirmation ________
+
+    def test_membership_commands_are_internal_and_require_confirmation():
+        membership_services = {
+            "create_invitation",
+            "resend_invitation",
+            "revoke_invitation",
+            "remove_member",
+        }
+        commands = [
+            command
+>           for command in load_application_catalog()["commands"]
+                           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+            if command["service"] in membership_services
+        ]
+
+tests/test_application_catalog.py:241: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+    def load_application_catalog() -> dict[str, Any]:
+        operational_exception_catalog = load_operational_exception_catalog()
+        resources = {
+            kind: yaml.safe_load(config_text(filename))
+            for kind, filename in CATALOG_FILES.items()
+        }
+        versions = {resource.get("version") for resource in resources.values()}
+        if len(versions) != 1:
+            raise ValueError(f"Catalog versions differ: {sorted(versions)}")
+    
+        commands = resources["commands"].get("commands", [])
+        agent_coverage = resources["commands"].get("agent_command_coverage", {})
+        additional_agent_commands = resources["commands"].get(
+            "agent_additional_commands", {}
+        )
+        capability_guidance_raw = resources["commands"].get("capability_guidance", {})
+        events = resources["events"].get("events", [])
+        projections = resources["projections"].get("projections", [])
+        fact_predicates = resources["fact_predicates"].get("fact_predicates", [])
+        descriptions = resources["commands"].get("parameter_descriptions", {})
+        workspace_payload = yaml.safe_load(config_text(WORKSPACE_CATALOG_FILE))
+        known_tables = set(Base.metadata.tables)
+    
+        _unique(commands, "name", "commands")
+        projection_names = _unique(projections, "name", "projections")
+        materialized_names = _unique(
+            projections, "materialized_as", "projection materializations"
+        )
+        event_types = _unique(events, "type", "events")
+        _unique(fact_predicates, "predicate", "fact predicates")
+        supported_fact_value_types = {
+            "string",
+            "date",
+            "datetime",
+            "integer",
+            "decimal",
+            "boolean",
+            "enum",
+        }
+        for entry in fact_predicates:
+            predicate = _required_text(entry, "predicate", "fact predicate")
+            _required_text(entry, "description", predicate)
+            subject_types = entry.get("subject_types")
+            if (
+                not isinstance(subject_types, list)
+                or not subject_types
+                or not all(isinstance(item, str) and item.strip() for item in subject_types)
+            ):
+                raise ValueError(f"{predicate} requires non-empty subject_types")
+            value_type = _required_text(entry, "value_type", predicate)
+            if value_type not in supported_fact_value_types:
+                raise ValueError(f"{predicate} has unsupported value_type: {value_type}")
+            allowed_values = entry.get("allowed_values")
+            if value_type == "enum" and (
+                not isinstance(allowed_values, list)
+                or not allowed_values
+                or not all(isinstance(item, str) for item in allowed_values)
+            ):
+                raise ValueError(f"{predicate} enum requires allowed_values")
+    
+        command_services = [entry["service"] for entry in commands]
+        missing_coverage = sorted(set(command_services) - set(agent_coverage))
+        stale_coverage = sorted(set(agent_coverage) - set(command_services))
+        if missing_coverage or stale_coverage:
+            raise ValueError(
+                "Agent command coverage drift: "
+                f"missing={missing_coverage}, stale={stale_coverage}"
+            )
+        from reality.mcp.catalog import MCP_TOOL_CATALOG, MCP_TOOL_NAMES
+    
+        public_business_read_names = {
+            tool.name
+            for tool in MCP_TOOL_CATALOG
+            if tool.access == "read" and tool.name != "capability_describe"
+        }
+    
+        mapped_tools: list[str] = []
+        for service_name, coverage in {
+            **agent_coverage,
+            **additional_agent_commands,
+        }.items():
+            classification = coverage.get("classification")
+            if classification not in {"eligible", "excluded", "blocked"}:
+                raise ValueError(
+                    f"Invalid agent classification for {service_name}: {classification}"
+                )
+            tools = coverage.get("tools", [])
+            reason = str(coverage.get("reason", "")).strip()
+            if classification == "eligible" and not tools:
+                raise ValueError(f"Eligible agent command has no tools: {service_name}")
+            if classification != "eligible" and not reason:
+                raise ValueError(
+                    f"Non-eligible agent command has no reason: {service_name}"
+                )
+            mapped_tools.extend(tools)
+        duplicate_tools = sorted(
+            {name for name in mapped_tools if mapped_tools.count(name) > 1}
+        )
+        missing_tools = sorted(set(mapped_tools) - MCP_TOOL_NAMES)
+        if duplicate_tools or missing_tools:
+            raise ValueError(
+                "Agent tool mapping drift: "
+                f"missing={missing_tools}, duplicate={duplicate_tools}"
+            )
+    
+        application_tools = application_tool_module.TOOLS
+        proposal_targets = {
+            tool_name: str(entry.get("application_tool", "")).strip()
+            for tool_name, entry in capability_guidance_raw.items()
+            if isinstance(entry, dict) and str(entry.get("application_tool", "")).strip()
+        }
+        unknown_application_tools = sorted(
+            {name for name in proposal_targets.values() if name not in application_tools}
+        )
+        if unknown_application_tools:
+            raise ValueError(
+                "Capability guidance references unknown application tools: "
+                f"{unknown_application_tools}"
+            )
+        capability_guidance = validate_capability_guidance(
+            capability_guidance_raw,
+            commands=commands,
+            agent_coverage=agent_coverage,
+            event_types=event_types,
+            projection_names=materialized_names,
+            read_tool_names={
+                name for name, tool in application_tools.items() if not tool.mutating
+            },
+            mutating_tool_names={
+                name for name, tool in application_tools.items() if tool.mutating
+            },
+            proposal_targets=proposal_targets,
+            required_tools=CAPABILITY_GUIDANCE_REQUIRED_TOOLS | public_business_read_names,
+            public_tool_names=set(MCP_TOOL_NAMES),
+            data_basis_names=known_tables
+            | projection_names
+            | materialized_names
+            | {
+                "change_proposal",
+                "interpretation_outcome",
+                "operational_exception",
+            },
+        )
+    
+        for entry in [*commands, *projections]:
+            services = [entry["service"], *entry.get("related_services", [])]
+            for service_name in services:
+                if not callable(_service(service_name)):
+>                   raise TypeError(f"Catalog references missing service: {service_name}")
+E                   TypeError: Catalog references missing service: cost_evidence
+
+src/reality/catalogs.py:1381: TypeError
+_____________ test_event_drift_fails_with_missing_and_stale_names ______________
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x10ce2fb90>
+
+    def test_event_drift_fails_with_missing_and_stale_names(monkeypatch):
+        monkeypatch.setattr(
+            catalogs,
+            "_literal_business_events",
+            lambda: {"implemented.only"},
+        )
+    
+        with pytest.raises(
+            ValueError,
+            match=r"Business Event catalog drift: missing=\['implemented.only'\].*stale=",
+        ):
+>           load_application_catalog()
+
+tests/test_application_catalog.py:263: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+    def load_application_catalog() -> dict[str, Any]:
+        operational_exception_catalog = load_operational_exception_catalog()
+        resources = {
+            kind: yaml.safe_load(config_text(filename))
+            for kind, filename in CATALOG_FILES.items()
+        }
+        versions = {resource.get("version") for resource in resources.values()}
+        if len(versions) != 1:
+            raise ValueError(f"Catalog versions differ: {sorted(versions)}")
+    
+        commands = resources["commands"].get("commands", [])
+        agent_coverage = resources["commands"].get("agent_command_coverage", {})
+        additional_agent_commands = resources["commands"].get(
+            "agent_additional_commands", {}
+        )
+        capability_guidance_raw = resources["commands"].get("capability_guidance", {})
+        events = resources["events"].get("events", [])
+        projections = resources["projections"].get("projections", [])
+        fact_predicates = resources["fact_predicates"].get("fact_predicates", [])
+        descriptions = resources["commands"].get("parameter_descriptions", {})
+        workspace_payload = yaml.safe_load(config_text(WORKSPACE_CATALOG_FILE))
+        known_tables = set(Base.metadata.tables)
+    
+        _unique(commands, "name", "commands")
+        projection_names = _unique(projections, "name", "projections")
+        materialized_names = _unique(
+            projections, "materialized_as", "projection materializations"
+        )
+        event_types = _unique(events, "type", "events")
+        _unique(fact_predicates, "predicate", "fact predicates")
+        supported_fact_value_types = {
+            "string",
+            "date",
+            "datetime",
+            "integer",
+            "decimal",
+            "boolean",
+            "enum",
+        }
+        for entry in fact_predicates:
+            predicate = _required_text(entry, "predicate", "fact predicate")
+            _required_text(entry, "description", predicate)
+            subject_types = entry.get("subject_types")
+            if (
+                not isinstance(subject_types, list)
+                or not subject_types
+                or not all(isinstance(item, str) and item.strip() for item in subject_types)
+            ):
+                raise ValueError(f"{predicate} requires non-empty subject_types")
+            value_type = _required_text(entry, "value_type", predicate)
+            if value_type not in supported_fact_value_types:
+                raise ValueError(f"{predicate} has unsupported value_type: {value_type}")
+            allowed_values = entry.get("allowed_values")
+            if value_type == "enum" and (
+                not isinstance(allowed_values, list)
+                or not allowed_values
+                or not all(isinstance(item, str) for item in allowed_values)
+            ):
+                raise ValueError(f"{predicate} enum requires allowed_values")
+    
+        command_services = [entry["service"] for entry in commands]
+        missing_coverage = sorted(set(command_services) - set(agent_coverage))
+        stale_coverage = sorted(set(agent_coverage) - set(command_services))
+        if missing_coverage or stale_coverage:
+            raise ValueError(
+                "Agent command coverage drift: "
+                f"missing={missing_coverage}, stale={stale_coverage}"
+            )
+        from reality.mcp.catalog import MCP_TOOL_CATALOG, MCP_TOOL_NAMES
+    
+        public_business_read_names = {
+            tool.name
+            for tool in MCP_TOOL_CATALOG
+            if tool.access == "read" and tool.name != "capability_describe"
+        }
+    
+        mapped_tools: list[str] = []
+        for service_name, coverage in {
+            **agent_coverage,
+            **additional_agent_commands,
+        }.items():
+            classification = coverage.get("classification")
+            if classification not in {"eligible", "excluded", "blocked"}:
+                raise ValueError(
+                    f"Invalid agent classification for {service_name}: {classification}"
+                )
+            tools = coverage.get("tools", [])
+            reason = str(coverage.get("reason", "")).strip()
+            if classification == "eligible" and not tools:
+                raise ValueError(f"Eligible agent command has no tools: {service_name}")
+            if classification != "eligible" and not reason:
+                raise ValueError(
+                    f"Non-eligible agent command has no reason: {service_name}"
+                )
+            mapped_tools.extend(tools)
+        duplicate_tools = sorted(
+            {name for name in mapped_tools if mapped_tools.count(name) > 1}
+        )
+        missing_tools = sorted(set(mapped_tools) - MCP_TOOL_NAMES)
+        if duplicate_tools or missing_tools:
+            raise ValueError(
+                "Agent tool mapping drift: "
+                f"missing={missing_tools}, duplicate={duplicate_tools}"
+            )
+    
+        application_tools = application_tool_module.TOOLS
+        proposal_targets = {
+            tool_name: str(entry.get("application_tool", "")).strip()
+            for tool_name, entry in capability_guidance_raw.items()
+            if isinstance(entry, dict) and str(entry.get("application_tool", "")).strip()
+        }
+        unknown_application_tools = sorted(
+            {name for name in proposal_targets.values() if name not in application_tools}
+        )
+        if unknown_application_tools:
+            raise ValueError(
+                "Capability guidance references unknown application tools: "
+                f"{unknown_application_tools}"
+            )
+        capability_guidance = validate_capability_guidance(
+            capability_guidance_raw,
+            commands=commands,
+            agent_coverage=agent_coverage,
+            event_types=event_types,
+            projection_names=materialized_names,
+            read_tool_names={
+                name for name, tool in application_tools.items() if not tool.mutating
+            },
+            mutating_tool_names={
+                name for name, tool in application_tools.items() if tool.mutating
+            },
+            proposal_targets=proposal_targets,
+            required_tools=CAPABILITY_GUIDANCE_REQUIRED_TOOLS | public_business_read_names,
+            public_tool_names=set(MCP_TOOL_NAMES),
+            data_basis_names=known_tables
+            | projection_names
+            | materialized_names
+            | {
+                "change_proposal",
+                "interpretation_outcome",
+                "operational_exception",
+            },
+        )
+    
+        for entry in [*commands, *projections]:
+            services = [entry["service"], *entry.get("related_services", [])]
+            for service_name in services:
+                if not callable(_service(service_name)):
+>                   raise TypeError(f"Catalog references missing service: {service_name}")
+E                   TypeError: Catalog references missing service: cost_evidence
+
+src/reality/catalogs.py:1381: TypeError
+___________ test_projection_drift_fails_with_missing_and_stale_names ___________
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x10d147680>
+
+    def test_projection_drift_fails_with_missing_and_stale_names(monkeypatch):
+        monkeypatch.setattr(
+            catalogs.projection_service_module,
+            "OPERATIONAL_PROJECTIONS",
+            ("implemented_only",),
+        )
+    
+        with pytest.raises(
+            ValueError,
+            match=r"Projection catalog drift: missing=\['implemented_only'\].*stale=",
+        ):
+>           load_application_catalog()
+
+tests/test_application_catalog.py:277: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+    def load_application_catalog() -> dict[str, Any]:
+        operational_exception_catalog = load_operational_exception_catalog()
+        resources = {
+            kind: yaml.safe_load(config_text(filename))
+            for kind, filename in CATALOG_FILES.items()
+        }
+        versions = {resource.get("version") for resource in resources.values()}
+        if len(versions) != 1:
+            raise ValueError(f"Catalog versions differ: {sorted(versions)}")
+    
+        commands = resources["commands"].get("commands", [])
+        agent_coverage = resources["commands"].get("agent_command_coverage", {})
+        additional_agent_commands = resources["commands"].get(
+            "agent_additional_commands", {}
+        )
+        capability_guidance_raw = resources["commands"].get("capability_guidance", {})
+        events = resources["events"].get("events", [])
+        projections = resources["projections"].get("projections", [])
+        fact_predicates = resources["fact_predicates"].get("fact_predicates", [])
+        descriptions = resources["commands"].get("parameter_descriptions", {})
+        workspace_payload = yaml.safe_load(config_text(WORKSPACE_CATALOG_FILE))
+        known_tables = set(Base.metadata.tables)
+    
+        _unique(commands, "name", "commands")
+        projection_names = _unique(projections, "name", "projections")
+        materialized_names = _unique(
+            projections, "materialized_as", "projection materializations"
+        )
+        event_types = _unique(events, "type", "events")
+        _unique(fact_predicates, "predicate", "fact predicates")
+        supported_fact_value_types = {
+            "string",
+            "date",
+            "datetime",
+            "integer",
+            "decimal",
+            "boolean",
+            "enum",
+        }
+        for entry in fact_predicates:
+            predicate = _required_text(entry, "predicate", "fact predicate")
+            _required_text(entry, "description", predicate)
+            subject_types = entry.get("subject_types")
+            if (
+                not isinstance(subject_types, list)
+                or not subject_types
+                or not all(isinstance(item, str) and item.strip() for item in subject_types)
+            ):
+                raise ValueError(f"{predicate} requires non-empty subject_types")
+            value_type = _required_text(entry, "value_type", predicate)
+            if value_type not in supported_fact_value_types:
+                raise ValueError(f"{predicate} has unsupported value_type: {value_type}")
+            allowed_values = entry.get("allowed_values")
+            if value_type == "enum" and (
+                not isinstance(allowed_values, list)
+                or not allowed_values
+                or not all(isinstance(item, str) for item in allowed_values)
+            ):
+                raise ValueError(f"{predicate} enum requires allowed_values")
+    
+        command_services = [entry["service"] for entry in commands]
+        missing_coverage = sorted(set(command_services) - set(agent_coverage))
+        stale_coverage = sorted(set(agent_coverage) - set(command_services))
+        if missing_coverage or stale_coverage:
+            raise ValueError(
+                "Agent command coverage drift: "
+                f"missing={missing_coverage}, stale={stale_coverage}"
+            )
+        from reality.mcp.catalog import MCP_TOOL_CATALOG, MCP_TOOL_NAMES
+    
+        public_business_read_names = {
+            tool.name
+            for tool in MCP_TOOL_CATALOG
+            if tool.access == "read" and tool.name != "capability_describe"
+        }
+    
+        mapped_tools: list[str] = []
+        for service_name, coverage in {
+            **agent_coverage,
+            **additional_agent_commands,
+        }.items():
+            classification = coverage.get("classification")
+            if classification not in {"eligible", "excluded", "blocked"}:
+                raise ValueError(
+                    f"Invalid agent classification for {service_name}: {classification}"
+                )
+            tools = coverage.get("tools", [])
+            reason = str(coverage.get("reason", "")).strip()
+            if classification == "eligible" and not tools:
+                raise ValueError(f"Eligible agent command has no tools: {service_name}")
+            if classification != "eligible" and not reason:
+                raise ValueError(
+                    f"Non-eligible agent command has no reason: {service_name}"
+                )
+            mapped_tools.extend(tools)
+        duplicate_tools = sorted(
+            {name for name in mapped_tools if mapped_tools.count(name) > 1}
+        )
+        missing_tools = sorted(set(mapped_tools) - MCP_TOOL_NAMES)
+        if duplicate_tools or missing_tools:
+            raise ValueError(
+                "Agent tool mapping drift: "
+                f"missing={missing_tools}, duplicate={duplicate_tools}"
+            )
+    
+        application_tools = application_tool_module.TOOLS
+        proposal_targets = {
+            tool_name: str(entry.get("application_tool", "")).strip()
+            for tool_name, entry in capability_guidance_raw.items()
+            if isinstance(entry, dict) and str(entry.get("application_tool", "")).strip()
+        }
+        unknown_application_tools = sorted(
+            {name for name in proposal_targets.values() if name not in application_tools}
+        )
+        if unknown_application_tools:
+            raise ValueError(
+                "Capability guidance references unknown application tools: "
+                f"{unknown_application_tools}"
+            )
+        capability_guidance = validate_capability_guidance(
+            capability_guidance_raw,
+            commands=commands,
+            agent_coverage=agent_coverage,
+            event_types=event_types,
+            projection_names=materialized_names,
+            read_tool_names={
+                name for name, tool in application_tools.items() if not tool.mutating
+            },
+            mutating_tool_names={
+                name for name, tool in application_tools.items() if tool.mutating
+            },
+            proposal_targets=proposal_targets,
+            required_tools=CAPABILITY_GUIDANCE_REQUIRED_TOOLS | public_business_read_names,
+            public_tool_names=set(MCP_TOOL_NAMES),
+            data_basis_names=known_tables
+            | projection_names
+            | materialized_names
+            | {
+                "change_proposal",
+                "interpretation_outcome",
+                "operational_exception",
+            },
+        )
+    
+        for entry in [*commands, *projections]:
+            services = [entry["service"], *entry.get("related_services", [])]
+            for service_name in services:
+                if not callable(_service(service_name)):
+>                   raise TypeError(f"Catalog references missing service: {service_name}")
+E                   TypeError: Catalog references missing service: cost_evidence
+
+src/reality/catalogs.py:1381: TypeError
+_____ test_production_tenant_isolation_catalog_is_complete_and_resolvable ______
+
+    def test_production_tenant_isolation_catalog_is_complete_and_resolvable():
+        catalog = catalogs.load_tenant_isolation_catalog()
+    
+>       assert len(catalog.families) == 29
+E       assert 30 == 29
+E        +  where 30 = len(({'key': 'diagnostic_reads', 'description': "Direct MCP diagnostics derive only the selected tenant's retained records..., 'classification': 'collection', 'authority': '003/FR-010, 003/FR-012, 019/FR-005, 040/FR-002, 040/DR-003', ...}, ...))
+E        +    where ({'key': 'diagnostic_reads', 'description': "Direct MCP diagnostics derive only the selected tenant's retained records..., 'classification': 'collection', 'authority': '003/FR-010, 003/FR-012, 019/FR-005, 040/FR-002, 040/DR-003', ...}, ...) = TenantIsolationCatalog(version=1, discovered_operations=('projection:commitment_register', 'projection:document_regist...lity.services.costing:execute_cost_change', 'tool:cost.receipt.get', 'tool:cost.evidence.get', 'tool:cost.change']}]})).families
+
+tests/test_application_catalog.py:421: AssertionError
+______ test_catalog_covers_every_existing_definition_without_changing_mcp ______
+
+    def test_catalog_covers_every_existing_definition_without_changing_mcp():
+>       source = load_application_catalog()
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_tool_catalog.py:9: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+    def load_application_catalog() -> dict[str, Any]:
+        operational_exception_catalog = load_operational_exception_catalog()
+        resources = {
+            kind: yaml.safe_load(config_text(filename))
+            for kind, filename in CATALOG_FILES.items()
+        }
+        versions = {resource.get("version") for resource in resources.values()}
+        if len(versions) != 1:
+            raise ValueError(f"Catalog versions differ: {sorted(versions)}")
+    
+        commands = resources["commands"].get("commands", [])
+        agent_coverage = resources["commands"].get("agent_command_coverage", {})
+        additional_agent_commands = resources["commands"].get(
+            "agent_additional_commands", {}
+        )
+        capability_guidance_raw = resources["commands"].get("capability_guidance", {})
+        events = resources["events"].get("events", [])
+        projections = resources["projections"].get("projections", [])
+        fact_predicates = resources["fact_predicates"].get("fact_predicates", [])
+        descriptions = resources["commands"].get("parameter_descriptions", {})
+        workspace_payload = yaml.safe_load(config_text(WORKSPACE_CATALOG_FILE))
+        known_tables = set(Base.metadata.tables)
+    
+        _unique(commands, "name", "commands")
+        projection_names = _unique(projections, "name", "projections")
+        materialized_names = _unique(
+            projections, "materialized_as", "projection materializations"
+        )
+        event_types = _unique(events, "type", "events")
+        _unique(fact_predicates, "predicate", "fact predicates")
+        supported_fact_value_types = {
+            "string",
+            "date",
+            "datetime",
+            "integer",
+            "decimal",
+            "boolean",
+            "enum",
+        }
+        for entry in fact_predicates:
+            predicate = _required_text(entry, "predicate", "fact predicate")
+            _required_text(entry, "description", predicate)
+            subject_types = entry.get("subject_types")
+            if (
+                not isinstance(subject_types, list)
+                or not subject_types
+                or not all(isinstance(item, str) and item.strip() for item in subject_types)
+            ):
+                raise ValueError(f"{predicate} requires non-empty subject_types")
+            value_type = _required_text(entry, "value_type", predicate)
+            if value_type not in supported_fact_value_types:
+                raise ValueError(f"{predicate} has unsupported value_type: {value_type}")
+            allowed_values = entry.get("allowed_values")
+            if value_type == "enum" and (
+                not isinstance(allowed_values, list)
+                or not allowed_values
+                or not all(isinstance(item, str) for item in allowed_values)
+            ):
+                raise ValueError(f"{predicate} enum requires allowed_values")
+    
+        command_services = [entry["service"] for entry in commands]
+        missing_coverage = sorted(set(command_services) - set(agent_coverage))
+        stale_coverage = sorted(set(agent_coverage) - set(command_services))
+        if missing_coverage or stale_coverage:
+            raise ValueError(
+                "Agent command coverage drift: "
+                f"missing={missing_coverage}, stale={stale_coverage}"
+            )
+        from reality.mcp.catalog import MCP_TOOL_CATALOG, MCP_TOOL_NAMES
+    
+        public_business_read_names = {
+            tool.name
+            for tool in MCP_TOOL_CATALOG
+            if tool.access == "read" and tool.name != "capability_describe"
+        }
+    
+        mapped_tools: list[str] = []
+        for service_name, coverage in {
+            **agent_coverage,
+            **additional_agent_commands,
+        }.items():
+            classification = coverage.get("classification")
+            if classification not in {"eligible", "excluded", "blocked"}:
+                raise ValueError(
+                    f"Invalid agent classification for {service_name}: {classification}"
+                )
+            tools = coverage.get("tools", [])
+            reason = str(coverage.get("reason", "")).strip()
+            if classification == "eligible" and not tools:
+                raise ValueError(f"Eligible agent command has no tools: {service_name}")
+            if classification != "eligible" and not reason:
+                raise ValueError(
+                    f"Non-eligible agent command has no reason: {service_name}"
+                )
+            mapped_tools.extend(tools)
+        duplicate_tools = sorted(
+            {name for name in mapped_tools if mapped_tools.count(name) > 1}
+        )
+        missing_tools = sorted(set(mapped_tools) - MCP_TOOL_NAMES)
+        if duplicate_tools or missing_tools:
+            raise ValueError(
+                "Agent tool mapping drift: "
+                f"missing={missing_tools}, duplicate={duplicate_tools}"
+            )
+    
+        application_tools = application_tool_module.TOOLS
+        proposal_targets = {
+            tool_name: str(entry.get("application_tool", "")).strip()
+            for tool_name, entry in capability_guidance_raw.items()
+            if isinstance(entry, dict) and str(entry.get("application_tool", "")).strip()
+        }
+        unknown_application_tools = sorted(
+            {name for name in proposal_targets.values() if name not in application_tools}
+        )
+        if unknown_application_tools:
+            raise ValueError(
+                "Capability guidance references unknown application tools: "
+                f"{unknown_application_tools}"
+            )
+        capability_guidance = validate_capability_guidance(
+            capability_guidance_raw,
+            commands=commands,
+            agent_coverage=agent_coverage,
+            event_types=event_types,
+            projection_names=materialized_names,
+            read_tool_names={
+                name for name, tool in application_tools.items() if not tool.mutating
+            },
+            mutating_tool_names={
+                name for name, tool in application_tools.items() if tool.mutating
+            },
+            proposal_targets=proposal_targets,
+            required_tools=CAPABILITY_GUIDANCE_REQUIRED_TOOLS | public_business_read_names,
+            public_tool_names=set(MCP_TOOL_NAMES),
+            data_basis_names=known_tables
+            | projection_names
+            | materialized_names
+            | {
+                "change_proposal",
+                "interpretation_outcome",
+                "operational_exception",
+            },
+        )
+    
+        for entry in [*commands, *projections]:
+            services = [entry["service"], *entry.get("related_services", [])]
+            for service_name in services:
+                if not callable(_service(service_name)):
+>                   raise TypeError(f"Catalog references missing service: {service_name}")
+E                   TypeError: Catalog references missing service: cost_evidence
+
+src/reality/catalogs.py:1381: TypeError
+_______ test_inventory_aliases_merge_but_movement_intents_stay_separate ________
+
+    def test_inventory_aliases_merge_but_movement_intents_stay_separate():
+>       entries = build_tool_catalog(load_application_catalog())["entries"]
+                                     ^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_tool_catalog.py:29: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+    def load_application_catalog() -> dict[str, Any]:
+        operational_exception_catalog = load_operational_exception_catalog()
+        resources = {
+            kind: yaml.safe_load(config_text(filename))
+            for kind, filename in CATALOG_FILES.items()
+        }
+        versions = {resource.get("version") for resource in resources.values()}
+        if len(versions) != 1:
+            raise ValueError(f"Catalog versions differ: {sorted(versions)}")
+    
+        commands = resources["commands"].get("commands", [])
+        agent_coverage = resources["commands"].get("agent_command_coverage", {})
+        additional_agent_commands = resources["commands"].get(
+            "agent_additional_commands", {}
+        )
+        capability_guidance_raw = resources["commands"].get("capability_guidance", {})
+        events = resources["events"].get("events", [])
+        projections = resources["projections"].get("projections", [])
+        fact_predicates = resources["fact_predicates"].get("fact_predicates", [])
+        descriptions = resources["commands"].get("parameter_descriptions", {})
+        workspace_payload = yaml.safe_load(config_text(WORKSPACE_CATALOG_FILE))
+        known_tables = set(Base.metadata.tables)
+    
+        _unique(commands, "name", "commands")
+        projection_names = _unique(projections, "name", "projections")
+        materialized_names = _unique(
+            projections, "materialized_as", "projection materializations"
+        )
+        event_types = _unique(events, "type", "events")
+        _unique(fact_predicates, "predicate", "fact predicates")
+        supported_fact_value_types = {
+            "string",
+            "date",
+            "datetime",
+            "integer",
+            "decimal",
+            "boolean",
+            "enum",
+        }
+        for entry in fact_predicates:
+            predicate = _required_text(entry, "predicate", "fact predicate")
+            _required_text(entry, "description", predicate)
+            subject_types = entry.get("subject_types")
+            if (
+                not isinstance(subject_types, list)
+                or not subject_types
+                or not all(isinstance(item, str) and item.strip() for item in subject_types)
+            ):
+                raise ValueError(f"{predicate} requires non-empty subject_types")
+            value_type = _required_text(entry, "value_type", predicate)
+            if value_type not in supported_fact_value_types:
+                raise ValueError(f"{predicate} has unsupported value_type: {value_type}")
+            allowed_values = entry.get("allowed_values")
+            if value_type == "enum" and (
+                not isinstance(allowed_values, list)
+                or not allowed_values
+                or not all(isinstance(item, str) for item in allowed_values)
+            ):
+                raise ValueError(f"{predicate} enum requires allowed_values")
+    
+        command_services = [entry["service"] for entry in commands]
+        missing_coverage = sorted(set(command_services) - set(agent_coverage))
+        stale_coverage = sorted(set(agent_coverage) - set(command_services))
+        if missing_coverage or stale_coverage:
+            raise ValueError(
+                "Agent command coverage drift: "
+                f"missing={missing_coverage}, stale={stale_coverage}"
+            )
+        from reality.mcp.catalog import MCP_TOOL_CATALOG, MCP_TOOL_NAMES
+    
+        public_business_read_names = {
+            tool.name
+            for tool in MCP_TOOL_CATALOG
+            if tool.access == "read" and tool.name != "capability_describe"
+        }
+    
+        mapped_tools: list[str] = []
+        for service_name, coverage in {
+            **agent_coverage,
+            **additional_agent_commands,
+        }.items():
+            classification = coverage.get("classification")
+            if classification not in {"eligible", "excluded", "blocked"}:
+                raise ValueError(
+                    f"Invalid agent classification for {service_name}: {classification}"
+                )
+            tools = coverage.get("tools", [])
+            reason = str(coverage.get("reason", "")).strip()
+            if classification == "eligible" and not tools:
+                raise ValueError(f"Eligible agent command has no tools: {service_name}")
+            if classification != "eligible" and not reason:
+                raise ValueError(
+                    f"Non-eligible agent command has no reason: {service_name}"
+                )
+            mapped_tools.extend(tools)
+        duplicate_tools = sorted(
+            {name for name in mapped_tools if mapped_tools.count(name) > 1}
+        )
+        missing_tools = sorted(set(mapped_tools) - MCP_TOOL_NAMES)
+        if duplicate_tools or missing_tools:
+            raise ValueError(
+                "Agent tool mapping drift: "
+                f"missing={missing_tools}, duplicate={duplicate_tools}"
+            )
+    
+        application_tools = application_tool_module.TOOLS
+        proposal_targets = {
+            tool_name: str(entry.get("application_tool", "")).strip()
+            for tool_name, entry in capability_guidance_raw.items()
+            if isinstance(entry, dict) and str(entry.get("application_tool", "")).strip()
+        }
+        unknown_application_tools = sorted(
+            {name for name in proposal_targets.values() if name not in application_tools}
+        )
+        if unknown_application_tools:
+            raise ValueError(
+                "Capability guidance references unknown application tools: "
+                f"{unknown_application_tools}"
+            )
+        capability_guidance = validate_capability_guidance(
+            capability_guidance_raw,
+            commands=commands,
+            agent_coverage=agent_coverage,
+            event_types=event_types,
+            projection_names=materialized_names,
+            read_tool_names={
+                name for name, tool in application_tools.items() if not tool.mutating
+            },
+            mutating_tool_names={
+                name for name, tool in application_tools.items() if tool.mutating
+            },
+            proposal_targets=proposal_targets,
+            required_tools=CAPABILITY_GUIDANCE_REQUIRED_TOOLS | public_business_read_names,
+            public_tool_names=set(MCP_TOOL_NAMES),
+            data_basis_names=known_tables
+            | projection_names
+            | materialized_names
+            | {
+                "change_proposal",
+                "interpretation_outcome",
+                "operational_exception",
+            },
+        )
+    
+        for entry in [*commands, *projections]:
+            services = [entry["service"], *entry.get("related_services", [])]
+            for service_name in services:
+                if not callable(_service(service_name)):
+>                   raise TypeError(f"Catalog references missing service: {service_name}")
+E                   TypeError: Catalog references missing service: cost_evidence
+
+src/reality/catalogs.py:1381: TypeError
+________________ test_catalog_metadata_cannot_mutate_mcp_schema ________________
+
+    def test_catalog_metadata_cannot_mutate_mcp_schema():
+        before = deepcopy([tool.public_metadata() for tool in tool_definitions()])
+>       result = build_tool_catalog(load_application_catalog())
+                                    ^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_tool_catalog.py:47: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+    def load_application_catalog() -> dict[str, Any]:
+        operational_exception_catalog = load_operational_exception_catalog()
+        resources = {
+            kind: yaml.safe_load(config_text(filename))
+            for kind, filename in CATALOG_FILES.items()
+        }
+        versions = {resource.get("version") for resource in resources.values()}
+        if len(versions) != 1:
+            raise ValueError(f"Catalog versions differ: {sorted(versions)}")
+    
+        commands = resources["commands"].get("commands", [])
+        agent_coverage = resources["commands"].get("agent_command_coverage", {})
+        additional_agent_commands = resources["commands"].get(
+            "agent_additional_commands", {}
+        )
+        capability_guidance_raw = resources["commands"].get("capability_guidance", {})
+        events = resources["events"].get("events", [])
+        projections = resources["projections"].get("projections", [])
+        fact_predicates = resources["fact_predicates"].get("fact_predicates", [])
+        descriptions = resources["commands"].get("parameter_descriptions", {})
+        workspace_payload = yaml.safe_load(config_text(WORKSPACE_CATALOG_FILE))
+        known_tables = set(Base.metadata.tables)
+    
+        _unique(commands, "name", "commands")
+        projection_names = _unique(projections, "name", "projections")
+        materialized_names = _unique(
+            projections, "materialized_as", "projection materializations"
+        )
+        event_types = _unique(events, "type", "events")
+        _unique(fact_predicates, "predicate", "fact predicates")
+        supported_fact_value_types = {
+            "string",
+            "date",
+            "datetime",
+            "integer",
+            "decimal",
+            "boolean",
+            "enum",
+        }
+        for entry in fact_predicates:
+            predicate = _required_text(entry, "predicate", "fact predicate")
+            _required_text(entry, "description", predicate)
+            subject_types = entry.get("subject_types")
+            if (
+                not isinstance(subject_types, list)
+                or not subject_types
+                or not all(isinstance(item, str) and item.strip() for item in subject_types)
+            ):
+                raise ValueError(f"{predicate} requires non-empty subject_types")
+            value_type = _required_text(entry, "value_type", predicate)
+            if value_type not in supported_fact_value_types:
+                raise ValueError(f"{predicate} has unsupported value_type: {value_type}")
+            allowed_values = entry.get("allowed_values")
+            if value_type == "enum" and (
+                not isinstance(allowed_values, list)
+                or not allowed_values
+                or not all(isinstance(item, str) for item in allowed_values)
+            ):
+                raise ValueError(f"{predicate} enum requires allowed_values")
+    
+        command_services = [entry["service"] for entry in commands]
+        missing_coverage = sorted(set(command_services) - set(agent_coverage))
+        stale_coverage = sorted(set(agent_coverage) - set(command_services))
+        if missing_coverage or stale_coverage:
+            raise ValueError(
+                "Agent command coverage drift: "
+                f"missing={missing_coverage}, stale={stale_coverage}"
+            )
+        from reality.mcp.catalog import MCP_TOOL_CATALOG, MCP_TOOL_NAMES
+    
+        public_business_read_names = {
+            tool.name
+            for tool in MCP_TOOL_CATALOG
+            if tool.access == "read" and tool.name != "capability_describe"
+        }
+    
+        mapped_tools: list[str] = []
+        for service_name, coverage in {
+            **agent_coverage,
+            **additional_agent_commands,
+        }.items():
+            classification = coverage.get("classification")
+            if classification not in {"eligible", "excluded", "blocked"}:
+                raise ValueError(
+                    f"Invalid agent classification for {service_name}: {classification}"
+                )
+            tools = coverage.get("tools", [])
+            reason = str(coverage.get("reason", "")).strip()
+            if classification == "eligible" and not tools:
+                raise ValueError(f"Eligible agent command has no tools: {service_name}")
+            if classification != "eligible" and not reason:
+                raise ValueError(
+                    f"Non-eligible agent command has no reason: {service_name}"
+                )
+            mapped_tools.extend(tools)
+        duplicate_tools = sorted(
+            {name for name in mapped_tools if mapped_tools.count(name) > 1}
+        )
+        missing_tools = sorted(set(mapped_tools) - MCP_TOOL_NAMES)
+        if duplicate_tools or missing_tools:
+            raise ValueError(
+                "Agent tool mapping drift: "
+                f"missing={missing_tools}, duplicate={duplicate_tools}"
+            )
+    
+        application_tools = application_tool_module.TOOLS
+        proposal_targets = {
+            tool_name: str(entry.get("application_tool", "")).strip()
+            for tool_name, entry in capability_guidance_raw.items()
+            if isinstance(entry, dict) and str(entry.get("application_tool", "")).strip()
+        }
+        unknown_application_tools = sorted(
+            {name for name in proposal_targets.values() if name not in application_tools}
+        )
+        if unknown_application_tools:
+            raise ValueError(
+                "Capability guidance references unknown application tools: "
+                f"{unknown_application_tools}"
+            )
+        capability_guidance = validate_capability_guidance(
+            capability_guidance_raw,
+            commands=commands,
+            agent_coverage=agent_coverage,
+            event_types=event_types,
+            projection_names=materialized_names,
+            read_tool_names={
+                name for name, tool in application_tools.items() if not tool.mutating
+            },
+            mutating_tool_names={
+                name for name, tool in application_tools.items() if tool.mutating
+            },
+            proposal_targets=proposal_targets,
+            required_tools=CAPABILITY_GUIDANCE_REQUIRED_TOOLS | public_business_read_names,
+            public_tool_names=set(MCP_TOOL_NAMES),
+            data_basis_names=known_tables
+            | projection_names
+            | materialized_names
+            | {
+                "change_proposal",
+                "interpretation_outcome",
+                "operational_exception",
+            },
+        )
+    
+        for entry in [*commands, *projections]:
+            services = [entry["service"], *entry.get("related_services", [])]
+            for service_name in services:
+                if not callable(_service(service_name)):
+>                   raise TypeError(f"Catalog references missing service: {service_name}")
+E                   TypeError: Catalog references missing service: cost_evidence
+
+src/reality/catalogs.py:1381: TypeError
+=========================== short test summary info ============================
+FAILED tests/test_application_catalog.py::test_split_catalog_is_complete_and_composed
+FAILED tests/test_application_catalog.py::test_workspace_catalog_rejects_drift[<lambda>-Duplicate workspace]
+FAILED tests/test_application_catalog.py::test_workspace_catalog_rejects_drift[<lambda>-unknown route]
+FAILED tests/test_application_catalog.py::test_workspace_catalog_rejects_drift[<lambda>-unknown projection]
+FAILED tests/test_application_catalog.py::test_workspace_catalog_rejects_drift[<lambda>-unknown command]
+FAILED tests/test_application_catalog.py::test_workspace_catalog_rejects_drift[<lambda>-confirmation]
+FAILED tests/test_application_catalog.py::test_workspace_catalog_rejects_drift[<lambda>-complete_navigation]
+FAILED tests/test_application_catalog.py::test_workspace_catalog_rejects_actions_without_command_effect[None]
+FAILED tests/test_application_catalog.py::test_workspace_catalog_rejects_actions_without_command_effect[]
+FAILED tests/test_application_catalog.py::test_workspace_catalog_rejects_actions_without_command_effect[   ]
+FAILED tests/test_application_catalog.py::test_only_the_reference_workspace_lists_its_whole_surface
+FAILED tests/test_application_catalog.py::test_event_catalog_contains_every_known_omission
+FAILED tests/test_application_catalog.py::test_command_contracts_are_enriched_from_public_services
+FAILED tests/test_application_catalog.py::test_membership_commands_are_internal_and_require_confirmation
+FAILED tests/test_application_catalog.py::test_event_drift_fails_with_missing_and_stale_names
+FAILED tests/test_application_catalog.py::test_projection_drift_fails_with_missing_and_stale_names
+FAILED tests/test_application_catalog.py::test_production_tenant_isolation_catalog_is_complete_and_resolvable
+FAILED tests/test_tool_catalog.py::test_catalog_covers_every_existing_definition_without_changing_mcp
+FAILED tests/test_tool_catalog.py::test_inventory_aliases_merge_but_movement_intents_stay_separate
+FAILED tests/test_tool_catalog.py::test_catalog_metadata_cannot_mutate_mcp_schema
+20 failed, 20 passed in 9.46s

@@ -1,0 +1,1963 @@
+....................FFFFFFFFFFFFFFFF...........................FFFFFFFFF [ 93%]
+FF...                                                                    [100%]
+=================================== FAILURES ===================================
+_________________ test_split_catalog_is_complete_and_composed __________________
+
+    def test_split_catalog_is_complete_and_composed():
+>       catalog = load_application_catalog()
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_application_catalog.py:14: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+src/reality/catalogs.py:1355: in load_application_catalog
+    capability_guidance = validate_capability_guidance(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+guidance = {'graph_format': {'kind': 'read', 'application_tool': 'graph.format', 'purpose': 'Format a checked reporting question ...easure means.', 'use_when': ['Decide which nodes, edges and measures a question can use before asking it.'], ...}, ...}
+commands = [{'name': 'Read reviewed inventory acquisition costs', 'service': 'inventory_cost', 'mode': 'read', 'adapters': ['CLI'...name': 'List Targets', 'service': 'list_targets', 'mode': 'read', 'adapters': ['CLI', 'Web', 'MCP', 'Chat'], ...}, ...]
+agent_coverage = {'change_graph_report': {'classification': 'eligible', 'tools': ['graph_report_change_propose']}, 'record_shipment_not...e_propose']}, 'record_shipment_event': {'classification': 'eligible', 'tools': ['shipment_event_record_propose']}, ...}
+event_types = {'commitment.cancelled', 'commitment.created', 'commitment.fulfilled', 'commitment.held', 'commitment.hold_released', 'commitment.revised', ...}
+projection_names = {'commitment_register', 'document_register', 'exceptions', 'fulfillment_blockers', 'fulfillment_queue', 'inventory', ...}
+read_tool_names = {'business_discover', 'capability_describe', 'commitments', 'cost.evidence.get', 'cost.inventory.get', 'cost.receipt.get', ...}
+mutating_tool_names = {'commitment_hold', 'commitment_hold_release', 'commitment_revise', 'connector_install', 'cost.change', 'credit_note_allocate', ...}
+proposal_targets = {'graph_format': 'graph.format', 'graph_interpret': 'graph.interpret', 'graph_templates': 'graph.templates', 'graph_catalog': 'graph.catalog', ...}
+required_tools = {'business_records_discover', 'commitments_list', 'cost_evidence_get', 'cost_inventory_get', 'cost_receipt_get', 'exception_explain', ...}
+public_tool_names = {'business_records_discover', 'capability_describe', 'commitment_hold_propose', 'commitment_hold_release_propose', 'commitment_revise_propose', 'commitments_list', ...}
+data_basis_names = {'Commitment register', 'Document register', 'Fulfillment blockers', 'Fulfillment queue', 'Inventory', 'Item supply and demand', ...}
+
+    def validate_capability_guidance(
+        guidance: dict[str, Any] | list[dict[str, Any]],
+        *,
+        commands: list[dict[str, Any]],
+        agent_coverage: dict[str, dict[str, Any]],
+        event_types: set[str],
+        projection_names: set[str],
+        read_tool_names: set[str],
+        mutating_tool_names: set[str],
+        proposal_targets: dict[str, str],
+        required_tools: set[str] | None = None,
+        public_tool_names: set[str] | None = None,
+        data_basis_names: set[str] | None = None,
+    ) -> dict[str, dict[str, Any]]:
+        """Validate and normalize non-authoritative guidance for public agent tools."""
+        if isinstance(guidance, list):
+            names = [str(item.get("tool_name", "")) for item in guidance]
+            duplicates = sorted({name for name in names if names.count(name) > 1})
+            if duplicates:
+                raise ValueError(f"Duplicate capability guidance: {duplicates}")
+            guidance = {
+                str(item.get("tool_name", "")): {
+                    key: value for key, value in item.items() if key != "tool_name"
+                }
+                for item in guidance
+            }
+        if not isinstance(guidance, dict):
+            raise TypeError("Capability guidance must be a mapping")
+        required = required_tools or set()
+        missing_required = sorted(required - set(guidance))
+        if missing_required:
+>           raise ValueError(
+                f"Capability guidance missing required tools: {missing_required}"
+            )
+E           ValueError: Capability guidance missing required tools: ['cost_inventory_get']
+
+src/reality/catalogs.py:304: ValueError
+______ test_workspace_catalog_rejects_drift[<lambda>-Duplicate workspace] ______
+
+change = <function <lambda> at 0x10dcaa7a0>, message = 'Duplicate workspace'
+
+    @pytest.mark.parametrize(
+        ("change", "message"),
+        [
+            (
+                lambda payload: payload["workspaces"].append(payload["workspaces"][0]),
+                "Duplicate workspace",
+            ),
+            (lambda payload: payload["views"][0].update(route="missing"), "unknown route"),
+            (
+                lambda payload: payload["views"].append(
+                    {
+                        "key": "unknown_projection",
+                        "label": "Unknown projection",
+                        "route": "orders",
+                        "kind": "materialized_projection",
+                        "projection": "not_registered",
+                        "description": "Invalid fixture",
+                    }
+                ),
+                "unknown projection",
+            ),
+            (
+                lambda payload: payload["actions"][0].update(command="missing"),
+                "unknown command",
+            ),
+            (
+                lambda payload: payload["actions"][0].update(confirmation="none"),
+                "confirmation",
+            ),
+            (
+                lambda payload: payload["workspaces"][0].update(complete_navigation="yes"),
+                "complete_navigation",
+            ),
+        ],
+    )
+    def test_workspace_catalog_rejects_drift(change, message):
+        payload = yaml.safe_load(catalogs.config_text("workspace_catalog.yaml"))
+        change(payload)
+>       commands = load_application_catalog()["commands"]
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_application_catalog.py:174: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+src/reality/catalogs.py:1355: in load_application_catalog
+    capability_guidance = validate_capability_guidance(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+guidance = {'graph_format': {'kind': 'read', 'application_tool': 'graph.format', 'purpose': 'Format a checked reporting question ...easure means.', 'use_when': ['Decide which nodes, edges and measures a question can use before asking it.'], ...}, ...}
+commands = [{'name': 'Read reviewed inventory acquisition costs', 'service': 'inventory_cost', 'mode': 'read', 'adapters': ['CLI'...name': 'List Targets', 'service': 'list_targets', 'mode': 'read', 'adapters': ['CLI', 'Web', 'MCP', 'Chat'], ...}, ...]
+agent_coverage = {'change_graph_report': {'classification': 'eligible', 'tools': ['graph_report_change_propose']}, 'record_shipment_not...e_propose']}, 'record_shipment_event': {'classification': 'eligible', 'tools': ['shipment_event_record_propose']}, ...}
+event_types = {'commitment.cancelled', 'commitment.created', 'commitment.fulfilled', 'commitment.held', 'commitment.hold_released', 'commitment.revised', ...}
+projection_names = {'commitment_register', 'document_register', 'exceptions', 'fulfillment_blockers', 'fulfillment_queue', 'inventory', ...}
+read_tool_names = {'business_discover', 'capability_describe', 'commitments', 'cost.evidence.get', 'cost.inventory.get', 'cost.receipt.get', ...}
+mutating_tool_names = {'commitment_hold', 'commitment_hold_release', 'commitment_revise', 'connector_install', 'cost.change', 'credit_note_allocate', ...}
+proposal_targets = {'graph_format': 'graph.format', 'graph_interpret': 'graph.interpret', 'graph_templates': 'graph.templates', 'graph_catalog': 'graph.catalog', ...}
+required_tools = {'business_records_discover', 'commitments_list', 'cost_evidence_get', 'cost_inventory_get', 'cost_receipt_get', 'exception_explain', ...}
+public_tool_names = {'business_records_discover', 'capability_describe', 'commitment_hold_propose', 'commitment_hold_release_propose', 'commitment_revise_propose', 'commitments_list', ...}
+data_basis_names = {'Commitment register', 'Document register', 'Fulfillment blockers', 'Fulfillment queue', 'Inventory', 'Item supply and demand', ...}
+
+    def validate_capability_guidance(
+        guidance: dict[str, Any] | list[dict[str, Any]],
+        *,
+        commands: list[dict[str, Any]],
+        agent_coverage: dict[str, dict[str, Any]],
+        event_types: set[str],
+        projection_names: set[str],
+        read_tool_names: set[str],
+        mutating_tool_names: set[str],
+        proposal_targets: dict[str, str],
+        required_tools: set[str] | None = None,
+        public_tool_names: set[str] | None = None,
+        data_basis_names: set[str] | None = None,
+    ) -> dict[str, dict[str, Any]]:
+        """Validate and normalize non-authoritative guidance for public agent tools."""
+        if isinstance(guidance, list):
+            names = [str(item.get("tool_name", "")) for item in guidance]
+            duplicates = sorted({name for name in names if names.count(name) > 1})
+            if duplicates:
+                raise ValueError(f"Duplicate capability guidance: {duplicates}")
+            guidance = {
+                str(item.get("tool_name", "")): {
+                    key: value for key, value in item.items() if key != "tool_name"
+                }
+                for item in guidance
+            }
+        if not isinstance(guidance, dict):
+            raise TypeError("Capability guidance must be a mapping")
+        required = required_tools or set()
+        missing_required = sorted(required - set(guidance))
+        if missing_required:
+>           raise ValueError(
+                f"Capability guidance missing required tools: {missing_required}"
+            )
+E           ValueError: Capability guidance missing required tools: ['cost_inventory_get']
+
+src/reality/catalogs.py:304: ValueError
+_________ test_workspace_catalog_rejects_drift[<lambda>-unknown route] _________
+
+change = <function <lambda> at 0x10dcf3100>, message = 'unknown route'
+
+    @pytest.mark.parametrize(
+        ("change", "message"),
+        [
+            (
+                lambda payload: payload["workspaces"].append(payload["workspaces"][0]),
+                "Duplicate workspace",
+            ),
+            (lambda payload: payload["views"][0].update(route="missing"), "unknown route"),
+            (
+                lambda payload: payload["views"].append(
+                    {
+                        "key": "unknown_projection",
+                        "label": "Unknown projection",
+                        "route": "orders",
+                        "kind": "materialized_projection",
+                        "projection": "not_registered",
+                        "description": "Invalid fixture",
+                    }
+                ),
+                "unknown projection",
+            ),
+            (
+                lambda payload: payload["actions"][0].update(command="missing"),
+                "unknown command",
+            ),
+            (
+                lambda payload: payload["actions"][0].update(confirmation="none"),
+                "confirmation",
+            ),
+            (
+                lambda payload: payload["workspaces"][0].update(complete_navigation="yes"),
+                "complete_navigation",
+            ),
+        ],
+    )
+    def test_workspace_catalog_rejects_drift(change, message):
+        payload = yaml.safe_load(catalogs.config_text("workspace_catalog.yaml"))
+        change(payload)
+>       commands = load_application_catalog()["commands"]
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_application_catalog.py:174: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+src/reality/catalogs.py:1355: in load_application_catalog
+    capability_guidance = validate_capability_guidance(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+guidance = {'graph_format': {'kind': 'read', 'application_tool': 'graph.format', 'purpose': 'Format a checked reporting question ...easure means.', 'use_when': ['Decide which nodes, edges and measures a question can use before asking it.'], ...}, ...}
+commands = [{'name': 'Read reviewed inventory acquisition costs', 'service': 'inventory_cost', 'mode': 'read', 'adapters': ['CLI'...name': 'List Targets', 'service': 'list_targets', 'mode': 'read', 'adapters': ['CLI', 'Web', 'MCP', 'Chat'], ...}, ...]
+agent_coverage = {'change_graph_report': {'classification': 'eligible', 'tools': ['graph_report_change_propose']}, 'record_shipment_not...e_propose']}, 'record_shipment_event': {'classification': 'eligible', 'tools': ['shipment_event_record_propose']}, ...}
+event_types = {'commitment.cancelled', 'commitment.created', 'commitment.fulfilled', 'commitment.held', 'commitment.hold_released', 'commitment.revised', ...}
+projection_names = {'commitment_register', 'document_register', 'exceptions', 'fulfillment_blockers', 'fulfillment_queue', 'inventory', ...}
+read_tool_names = {'business_discover', 'capability_describe', 'commitments', 'cost.evidence.get', 'cost.inventory.get', 'cost.receipt.get', ...}
+mutating_tool_names = {'commitment_hold', 'commitment_hold_release', 'commitment_revise', 'connector_install', 'cost.change', 'credit_note_allocate', ...}
+proposal_targets = {'graph_format': 'graph.format', 'graph_interpret': 'graph.interpret', 'graph_templates': 'graph.templates', 'graph_catalog': 'graph.catalog', ...}
+required_tools = {'business_records_discover', 'commitments_list', 'cost_evidence_get', 'cost_inventory_get', 'cost_receipt_get', 'exception_explain', ...}
+public_tool_names = {'business_records_discover', 'capability_describe', 'commitment_hold_propose', 'commitment_hold_release_propose', 'commitment_revise_propose', 'commitments_list', ...}
+data_basis_names = {'Commitment register', 'Document register', 'Fulfillment blockers', 'Fulfillment queue', 'Inventory', 'Item supply and demand', ...}
+
+    def validate_capability_guidance(
+        guidance: dict[str, Any] | list[dict[str, Any]],
+        *,
+        commands: list[dict[str, Any]],
+        agent_coverage: dict[str, dict[str, Any]],
+        event_types: set[str],
+        projection_names: set[str],
+        read_tool_names: set[str],
+        mutating_tool_names: set[str],
+        proposal_targets: dict[str, str],
+        required_tools: set[str] | None = None,
+        public_tool_names: set[str] | None = None,
+        data_basis_names: set[str] | None = None,
+    ) -> dict[str, dict[str, Any]]:
+        """Validate and normalize non-authoritative guidance for public agent tools."""
+        if isinstance(guidance, list):
+            names = [str(item.get("tool_name", "")) for item in guidance]
+            duplicates = sorted({name for name in names if names.count(name) > 1})
+            if duplicates:
+                raise ValueError(f"Duplicate capability guidance: {duplicates}")
+            guidance = {
+                str(item.get("tool_name", "")): {
+                    key: value for key, value in item.items() if key != "tool_name"
+                }
+                for item in guidance
+            }
+        if not isinstance(guidance, dict):
+            raise TypeError("Capability guidance must be a mapping")
+        required = required_tools or set()
+        missing_required = sorted(required - set(guidance))
+        if missing_required:
+>           raise ValueError(
+                f"Capability guidance missing required tools: {missing_required}"
+            )
+E           ValueError: Capability guidance missing required tools: ['cost_inventory_get']
+
+src/reality/catalogs.py:304: ValueError
+______ test_workspace_catalog_rejects_drift[<lambda>-unknown projection] _______
+
+change = <function <lambda> at 0x10dcf31a0>, message = 'unknown projection'
+
+    @pytest.mark.parametrize(
+        ("change", "message"),
+        [
+            (
+                lambda payload: payload["workspaces"].append(payload["workspaces"][0]),
+                "Duplicate workspace",
+            ),
+            (lambda payload: payload["views"][0].update(route="missing"), "unknown route"),
+            (
+                lambda payload: payload["views"].append(
+                    {
+                        "key": "unknown_projection",
+                        "label": "Unknown projection",
+                        "route": "orders",
+                        "kind": "materialized_projection",
+                        "projection": "not_registered",
+                        "description": "Invalid fixture",
+                    }
+                ),
+                "unknown projection",
+            ),
+            (
+                lambda payload: payload["actions"][0].update(command="missing"),
+                "unknown command",
+            ),
+            (
+                lambda payload: payload["actions"][0].update(confirmation="none"),
+                "confirmation",
+            ),
+            (
+                lambda payload: payload["workspaces"][0].update(complete_navigation="yes"),
+                "complete_navigation",
+            ),
+        ],
+    )
+    def test_workspace_catalog_rejects_drift(change, message):
+        payload = yaml.safe_load(catalogs.config_text("workspace_catalog.yaml"))
+        change(payload)
+>       commands = load_application_catalog()["commands"]
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_application_catalog.py:174: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+src/reality/catalogs.py:1355: in load_application_catalog
+    capability_guidance = validate_capability_guidance(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+guidance = {'graph_format': {'kind': 'read', 'application_tool': 'graph.format', 'purpose': 'Format a checked reporting question ...easure means.', 'use_when': ['Decide which nodes, edges and measures a question can use before asking it.'], ...}, ...}
+commands = [{'name': 'Read reviewed inventory acquisition costs', 'service': 'inventory_cost', 'mode': 'read', 'adapters': ['CLI'...name': 'List Targets', 'service': 'list_targets', 'mode': 'read', 'adapters': ['CLI', 'Web', 'MCP', 'Chat'], ...}, ...]
+agent_coverage = {'change_graph_report': {'classification': 'eligible', 'tools': ['graph_report_change_propose']}, 'record_shipment_not...e_propose']}, 'record_shipment_event': {'classification': 'eligible', 'tools': ['shipment_event_record_propose']}, ...}
+event_types = {'commitment.cancelled', 'commitment.created', 'commitment.fulfilled', 'commitment.held', 'commitment.hold_released', 'commitment.revised', ...}
+projection_names = {'commitment_register', 'document_register', 'exceptions', 'fulfillment_blockers', 'fulfillment_queue', 'inventory', ...}
+read_tool_names = {'business_discover', 'capability_describe', 'commitments', 'cost.evidence.get', 'cost.inventory.get', 'cost.receipt.get', ...}
+mutating_tool_names = {'commitment_hold', 'commitment_hold_release', 'commitment_revise', 'connector_install', 'cost.change', 'credit_note_allocate', ...}
+proposal_targets = {'graph_format': 'graph.format', 'graph_interpret': 'graph.interpret', 'graph_templates': 'graph.templates', 'graph_catalog': 'graph.catalog', ...}
+required_tools = {'business_records_discover', 'commitments_list', 'cost_evidence_get', 'cost_inventory_get', 'cost_receipt_get', 'exception_explain', ...}
+public_tool_names = {'business_records_discover', 'capability_describe', 'commitment_hold_propose', 'commitment_hold_release_propose', 'commitment_revise_propose', 'commitments_list', ...}
+data_basis_names = {'Commitment register', 'Document register', 'Fulfillment blockers', 'Fulfillment queue', 'Inventory', 'Item supply and demand', ...}
+
+    def validate_capability_guidance(
+        guidance: dict[str, Any] | list[dict[str, Any]],
+        *,
+        commands: list[dict[str, Any]],
+        agent_coverage: dict[str, dict[str, Any]],
+        event_types: set[str],
+        projection_names: set[str],
+        read_tool_names: set[str],
+        mutating_tool_names: set[str],
+        proposal_targets: dict[str, str],
+        required_tools: set[str] | None = None,
+        public_tool_names: set[str] | None = None,
+        data_basis_names: set[str] | None = None,
+    ) -> dict[str, dict[str, Any]]:
+        """Validate and normalize non-authoritative guidance for public agent tools."""
+        if isinstance(guidance, list):
+            names = [str(item.get("tool_name", "")) for item in guidance]
+            duplicates = sorted({name for name in names if names.count(name) > 1})
+            if duplicates:
+                raise ValueError(f"Duplicate capability guidance: {duplicates}")
+            guidance = {
+                str(item.get("tool_name", "")): {
+                    key: value for key, value in item.items() if key != "tool_name"
+                }
+                for item in guidance
+            }
+        if not isinstance(guidance, dict):
+            raise TypeError("Capability guidance must be a mapping")
+        required = required_tools or set()
+        missing_required = sorted(required - set(guidance))
+        if missing_required:
+>           raise ValueError(
+                f"Capability guidance missing required tools: {missing_required}"
+            )
+E           ValueError: Capability guidance missing required tools: ['cost_inventory_get']
+
+src/reality/catalogs.py:304: ValueError
+________ test_workspace_catalog_rejects_drift[<lambda>-unknown command] ________
+
+change = <function <lambda> at 0x10dcf3240>, message = 'unknown command'
+
+    @pytest.mark.parametrize(
+        ("change", "message"),
+        [
+            (
+                lambda payload: payload["workspaces"].append(payload["workspaces"][0]),
+                "Duplicate workspace",
+            ),
+            (lambda payload: payload["views"][0].update(route="missing"), "unknown route"),
+            (
+                lambda payload: payload["views"].append(
+                    {
+                        "key": "unknown_projection",
+                        "label": "Unknown projection",
+                        "route": "orders",
+                        "kind": "materialized_projection",
+                        "projection": "not_registered",
+                        "description": "Invalid fixture",
+                    }
+                ),
+                "unknown projection",
+            ),
+            (
+                lambda payload: payload["actions"][0].update(command="missing"),
+                "unknown command",
+            ),
+            (
+                lambda payload: payload["actions"][0].update(confirmation="none"),
+                "confirmation",
+            ),
+            (
+                lambda payload: payload["workspaces"][0].update(complete_navigation="yes"),
+                "complete_navigation",
+            ),
+        ],
+    )
+    def test_workspace_catalog_rejects_drift(change, message):
+        payload = yaml.safe_load(catalogs.config_text("workspace_catalog.yaml"))
+        change(payload)
+>       commands = load_application_catalog()["commands"]
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_application_catalog.py:174: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+src/reality/catalogs.py:1355: in load_application_catalog
+    capability_guidance = validate_capability_guidance(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+guidance = {'graph_format': {'kind': 'read', 'application_tool': 'graph.format', 'purpose': 'Format a checked reporting question ...easure means.', 'use_when': ['Decide which nodes, edges and measures a question can use before asking it.'], ...}, ...}
+commands = [{'name': 'Read reviewed inventory acquisition costs', 'service': 'inventory_cost', 'mode': 'read', 'adapters': ['CLI'...name': 'List Targets', 'service': 'list_targets', 'mode': 'read', 'adapters': ['CLI', 'Web', 'MCP', 'Chat'], ...}, ...]
+agent_coverage = {'change_graph_report': {'classification': 'eligible', 'tools': ['graph_report_change_propose']}, 'record_shipment_not...e_propose']}, 'record_shipment_event': {'classification': 'eligible', 'tools': ['shipment_event_record_propose']}, ...}
+event_types = {'commitment.cancelled', 'commitment.created', 'commitment.fulfilled', 'commitment.held', 'commitment.hold_released', 'commitment.revised', ...}
+projection_names = {'commitment_register', 'document_register', 'exceptions', 'fulfillment_blockers', 'fulfillment_queue', 'inventory', ...}
+read_tool_names = {'business_discover', 'capability_describe', 'commitments', 'cost.evidence.get', 'cost.inventory.get', 'cost.receipt.get', ...}
+mutating_tool_names = {'commitment_hold', 'commitment_hold_release', 'commitment_revise', 'connector_install', 'cost.change', 'credit_note_allocate', ...}
+proposal_targets = {'graph_format': 'graph.format', 'graph_interpret': 'graph.interpret', 'graph_templates': 'graph.templates', 'graph_catalog': 'graph.catalog', ...}
+required_tools = {'business_records_discover', 'commitments_list', 'cost_evidence_get', 'cost_inventory_get', 'cost_receipt_get', 'exception_explain', ...}
+public_tool_names = {'business_records_discover', 'capability_describe', 'commitment_hold_propose', 'commitment_hold_release_propose', 'commitment_revise_propose', 'commitments_list', ...}
+data_basis_names = {'Commitment register', 'Document register', 'Fulfillment blockers', 'Fulfillment queue', 'Inventory', 'Item supply and demand', ...}
+
+    def validate_capability_guidance(
+        guidance: dict[str, Any] | list[dict[str, Any]],
+        *,
+        commands: list[dict[str, Any]],
+        agent_coverage: dict[str, dict[str, Any]],
+        event_types: set[str],
+        projection_names: set[str],
+        read_tool_names: set[str],
+        mutating_tool_names: set[str],
+        proposal_targets: dict[str, str],
+        required_tools: set[str] | None = None,
+        public_tool_names: set[str] | None = None,
+        data_basis_names: set[str] | None = None,
+    ) -> dict[str, dict[str, Any]]:
+        """Validate and normalize non-authoritative guidance for public agent tools."""
+        if isinstance(guidance, list):
+            names = [str(item.get("tool_name", "")) for item in guidance]
+            duplicates = sorted({name for name in names if names.count(name) > 1})
+            if duplicates:
+                raise ValueError(f"Duplicate capability guidance: {duplicates}")
+            guidance = {
+                str(item.get("tool_name", "")): {
+                    key: value for key, value in item.items() if key != "tool_name"
+                }
+                for item in guidance
+            }
+        if not isinstance(guidance, dict):
+            raise TypeError("Capability guidance must be a mapping")
+        required = required_tools or set()
+        missing_required = sorted(required - set(guidance))
+        if missing_required:
+>           raise ValueError(
+                f"Capability guidance missing required tools: {missing_required}"
+            )
+E           ValueError: Capability guidance missing required tools: ['cost_inventory_get']
+
+src/reality/catalogs.py:304: ValueError
+_________ test_workspace_catalog_rejects_drift[<lambda>-confirmation] __________
+
+change = <function <lambda> at 0x10dcf32e0>, message = 'confirmation'
+
+    @pytest.mark.parametrize(
+        ("change", "message"),
+        [
+            (
+                lambda payload: payload["workspaces"].append(payload["workspaces"][0]),
+                "Duplicate workspace",
+            ),
+            (lambda payload: payload["views"][0].update(route="missing"), "unknown route"),
+            (
+                lambda payload: payload["views"].append(
+                    {
+                        "key": "unknown_projection",
+                        "label": "Unknown projection",
+                        "route": "orders",
+                        "kind": "materialized_projection",
+                        "projection": "not_registered",
+                        "description": "Invalid fixture",
+                    }
+                ),
+                "unknown projection",
+            ),
+            (
+                lambda payload: payload["actions"][0].update(command="missing"),
+                "unknown command",
+            ),
+            (
+                lambda payload: payload["actions"][0].update(confirmation="none"),
+                "confirmation",
+            ),
+            (
+                lambda payload: payload["workspaces"][0].update(complete_navigation="yes"),
+                "complete_navigation",
+            ),
+        ],
+    )
+    def test_workspace_catalog_rejects_drift(change, message):
+        payload = yaml.safe_load(catalogs.config_text("workspace_catalog.yaml"))
+        change(payload)
+>       commands = load_application_catalog()["commands"]
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_application_catalog.py:174: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+src/reality/catalogs.py:1355: in load_application_catalog
+    capability_guidance = validate_capability_guidance(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+guidance = {'graph_format': {'kind': 'read', 'application_tool': 'graph.format', 'purpose': 'Format a checked reporting question ...easure means.', 'use_when': ['Decide which nodes, edges and measures a question can use before asking it.'], ...}, ...}
+commands = [{'name': 'Read reviewed inventory acquisition costs', 'service': 'inventory_cost', 'mode': 'read', 'adapters': ['CLI'...name': 'List Targets', 'service': 'list_targets', 'mode': 'read', 'adapters': ['CLI', 'Web', 'MCP', 'Chat'], ...}, ...]
+agent_coverage = {'change_graph_report': {'classification': 'eligible', 'tools': ['graph_report_change_propose']}, 'record_shipment_not...e_propose']}, 'record_shipment_event': {'classification': 'eligible', 'tools': ['shipment_event_record_propose']}, ...}
+event_types = {'commitment.cancelled', 'commitment.created', 'commitment.fulfilled', 'commitment.held', 'commitment.hold_released', 'commitment.revised', ...}
+projection_names = {'commitment_register', 'document_register', 'exceptions', 'fulfillment_blockers', 'fulfillment_queue', 'inventory', ...}
+read_tool_names = {'business_discover', 'capability_describe', 'commitments', 'cost.evidence.get', 'cost.inventory.get', 'cost.receipt.get', ...}
+mutating_tool_names = {'commitment_hold', 'commitment_hold_release', 'commitment_revise', 'connector_install', 'cost.change', 'credit_note_allocate', ...}
+proposal_targets = {'graph_format': 'graph.format', 'graph_interpret': 'graph.interpret', 'graph_templates': 'graph.templates', 'graph_catalog': 'graph.catalog', ...}
+required_tools = {'business_records_discover', 'commitments_list', 'cost_evidence_get', 'cost_inventory_get', 'cost_receipt_get', 'exception_explain', ...}
+public_tool_names = {'business_records_discover', 'capability_describe', 'commitment_hold_propose', 'commitment_hold_release_propose', 'commitment_revise_propose', 'commitments_list', ...}
+data_basis_names = {'Commitment register', 'Document register', 'Fulfillment blockers', 'Fulfillment queue', 'Inventory', 'Item supply and demand', ...}
+
+    def validate_capability_guidance(
+        guidance: dict[str, Any] | list[dict[str, Any]],
+        *,
+        commands: list[dict[str, Any]],
+        agent_coverage: dict[str, dict[str, Any]],
+        event_types: set[str],
+        projection_names: set[str],
+        read_tool_names: set[str],
+        mutating_tool_names: set[str],
+        proposal_targets: dict[str, str],
+        required_tools: set[str] | None = None,
+        public_tool_names: set[str] | None = None,
+        data_basis_names: set[str] | None = None,
+    ) -> dict[str, dict[str, Any]]:
+        """Validate and normalize non-authoritative guidance for public agent tools."""
+        if isinstance(guidance, list):
+            names = [str(item.get("tool_name", "")) for item in guidance]
+            duplicates = sorted({name for name in names if names.count(name) > 1})
+            if duplicates:
+                raise ValueError(f"Duplicate capability guidance: {duplicates}")
+            guidance = {
+                str(item.get("tool_name", "")): {
+                    key: value for key, value in item.items() if key != "tool_name"
+                }
+                for item in guidance
+            }
+        if not isinstance(guidance, dict):
+            raise TypeError("Capability guidance must be a mapping")
+        required = required_tools or set()
+        missing_required = sorted(required - set(guidance))
+        if missing_required:
+>           raise ValueError(
+                f"Capability guidance missing required tools: {missing_required}"
+            )
+E           ValueError: Capability guidance missing required tools: ['cost_inventory_get']
+
+src/reality/catalogs.py:304: ValueError
+______ test_workspace_catalog_rejects_drift[<lambda>-complete_navigation] ______
+
+change = <function <lambda> at 0x10dcf3380>, message = 'complete_navigation'
+
+    @pytest.mark.parametrize(
+        ("change", "message"),
+        [
+            (
+                lambda payload: payload["workspaces"].append(payload["workspaces"][0]),
+                "Duplicate workspace",
+            ),
+            (lambda payload: payload["views"][0].update(route="missing"), "unknown route"),
+            (
+                lambda payload: payload["views"].append(
+                    {
+                        "key": "unknown_projection",
+                        "label": "Unknown projection",
+                        "route": "orders",
+                        "kind": "materialized_projection",
+                        "projection": "not_registered",
+                        "description": "Invalid fixture",
+                    }
+                ),
+                "unknown projection",
+            ),
+            (
+                lambda payload: payload["actions"][0].update(command="missing"),
+                "unknown command",
+            ),
+            (
+                lambda payload: payload["actions"][0].update(confirmation="none"),
+                "confirmation",
+            ),
+            (
+                lambda payload: payload["workspaces"][0].update(complete_navigation="yes"),
+                "complete_navigation",
+            ),
+        ],
+    )
+    def test_workspace_catalog_rejects_drift(change, message):
+        payload = yaml.safe_load(catalogs.config_text("workspace_catalog.yaml"))
+        change(payload)
+>       commands = load_application_catalog()["commands"]
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_application_catalog.py:174: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+src/reality/catalogs.py:1355: in load_application_catalog
+    capability_guidance = validate_capability_guidance(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+guidance = {'graph_format': {'kind': 'read', 'application_tool': 'graph.format', 'purpose': 'Format a checked reporting question ...easure means.', 'use_when': ['Decide which nodes, edges and measures a question can use before asking it.'], ...}, ...}
+commands = [{'name': 'Read reviewed inventory acquisition costs', 'service': 'inventory_cost', 'mode': 'read', 'adapters': ['CLI'...name': 'List Targets', 'service': 'list_targets', 'mode': 'read', 'adapters': ['CLI', 'Web', 'MCP', 'Chat'], ...}, ...]
+agent_coverage = {'change_graph_report': {'classification': 'eligible', 'tools': ['graph_report_change_propose']}, 'record_shipment_not...e_propose']}, 'record_shipment_event': {'classification': 'eligible', 'tools': ['shipment_event_record_propose']}, ...}
+event_types = {'commitment.cancelled', 'commitment.created', 'commitment.fulfilled', 'commitment.held', 'commitment.hold_released', 'commitment.revised', ...}
+projection_names = {'commitment_register', 'document_register', 'exceptions', 'fulfillment_blockers', 'fulfillment_queue', 'inventory', ...}
+read_tool_names = {'business_discover', 'capability_describe', 'commitments', 'cost.evidence.get', 'cost.inventory.get', 'cost.receipt.get', ...}
+mutating_tool_names = {'commitment_hold', 'commitment_hold_release', 'commitment_revise', 'connector_install', 'cost.change', 'credit_note_allocate', ...}
+proposal_targets = {'graph_format': 'graph.format', 'graph_interpret': 'graph.interpret', 'graph_templates': 'graph.templates', 'graph_catalog': 'graph.catalog', ...}
+required_tools = {'business_records_discover', 'commitments_list', 'cost_evidence_get', 'cost_inventory_get', 'cost_receipt_get', 'exception_explain', ...}
+public_tool_names = {'business_records_discover', 'capability_describe', 'commitment_hold_propose', 'commitment_hold_release_propose', 'commitment_revise_propose', 'commitments_list', ...}
+data_basis_names = {'Commitment register', 'Document register', 'Fulfillment blockers', 'Fulfillment queue', 'Inventory', 'Item supply and demand', ...}
+
+    def validate_capability_guidance(
+        guidance: dict[str, Any] | list[dict[str, Any]],
+        *,
+        commands: list[dict[str, Any]],
+        agent_coverage: dict[str, dict[str, Any]],
+        event_types: set[str],
+        projection_names: set[str],
+        read_tool_names: set[str],
+        mutating_tool_names: set[str],
+        proposal_targets: dict[str, str],
+        required_tools: set[str] | None = None,
+        public_tool_names: set[str] | None = None,
+        data_basis_names: set[str] | None = None,
+    ) -> dict[str, dict[str, Any]]:
+        """Validate and normalize non-authoritative guidance for public agent tools."""
+        if isinstance(guidance, list):
+            names = [str(item.get("tool_name", "")) for item in guidance]
+            duplicates = sorted({name for name in names if names.count(name) > 1})
+            if duplicates:
+                raise ValueError(f"Duplicate capability guidance: {duplicates}")
+            guidance = {
+                str(item.get("tool_name", "")): {
+                    key: value for key, value in item.items() if key != "tool_name"
+                }
+                for item in guidance
+            }
+        if not isinstance(guidance, dict):
+            raise TypeError("Capability guidance must be a mapping")
+        required = required_tools or set()
+        missing_required = sorted(required - set(guidance))
+        if missing_required:
+>           raise ValueError(
+                f"Capability guidance missing required tools: {missing_required}"
+            )
+E           ValueError: Capability guidance missing required tools: ['cost_inventory_get']
+
+src/reality/catalogs.py:304: ValueError
+_____ test_workspace_catalog_rejects_actions_without_command_effect[None] ______
+
+effect = None
+
+    @pytest.mark.parametrize("effect", [None, "", "   "])
+    def test_workspace_catalog_rejects_actions_without_command_effect(effect):
+        payload = yaml.safe_load(catalogs.config_text("workspace_catalog.yaml"))
+>       catalog = load_application_catalog()
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_application_catalog.py:186: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+src/reality/catalogs.py:1355: in load_application_catalog
+    capability_guidance = validate_capability_guidance(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+guidance = {'graph_format': {'kind': 'read', 'application_tool': 'graph.format', 'purpose': 'Format a checked reporting question ...easure means.', 'use_when': ['Decide which nodes, edges and measures a question can use before asking it.'], ...}, ...}
+commands = [{'name': 'Read reviewed inventory acquisition costs', 'service': 'inventory_cost', 'mode': 'read', 'adapters': ['CLI'...name': 'List Targets', 'service': 'list_targets', 'mode': 'read', 'adapters': ['CLI', 'Web', 'MCP', 'Chat'], ...}, ...]
+agent_coverage = {'change_graph_report': {'classification': 'eligible', 'tools': ['graph_report_change_propose']}, 'record_shipment_not...e_propose']}, 'record_shipment_event': {'classification': 'eligible', 'tools': ['shipment_event_record_propose']}, ...}
+event_types = {'commitment.cancelled', 'commitment.created', 'commitment.fulfilled', 'commitment.held', 'commitment.hold_released', 'commitment.revised', ...}
+projection_names = {'commitment_register', 'document_register', 'exceptions', 'fulfillment_blockers', 'fulfillment_queue', 'inventory', ...}
+read_tool_names = {'business_discover', 'capability_describe', 'commitments', 'cost.evidence.get', 'cost.inventory.get', 'cost.receipt.get', ...}
+mutating_tool_names = {'commitment_hold', 'commitment_hold_release', 'commitment_revise', 'connector_install', 'cost.change', 'credit_note_allocate', ...}
+proposal_targets = {'graph_format': 'graph.format', 'graph_interpret': 'graph.interpret', 'graph_templates': 'graph.templates', 'graph_catalog': 'graph.catalog', ...}
+required_tools = {'business_records_discover', 'commitments_list', 'cost_evidence_get', 'cost_inventory_get', 'cost_receipt_get', 'exception_explain', ...}
+public_tool_names = {'business_records_discover', 'capability_describe', 'commitment_hold_propose', 'commitment_hold_release_propose', 'commitment_revise_propose', 'commitments_list', ...}
+data_basis_names = {'Commitment register', 'Document register', 'Fulfillment blockers', 'Fulfillment queue', 'Inventory', 'Item supply and demand', ...}
+
+    def validate_capability_guidance(
+        guidance: dict[str, Any] | list[dict[str, Any]],
+        *,
+        commands: list[dict[str, Any]],
+        agent_coverage: dict[str, dict[str, Any]],
+        event_types: set[str],
+        projection_names: set[str],
+        read_tool_names: set[str],
+        mutating_tool_names: set[str],
+        proposal_targets: dict[str, str],
+        required_tools: set[str] | None = None,
+        public_tool_names: set[str] | None = None,
+        data_basis_names: set[str] | None = None,
+    ) -> dict[str, dict[str, Any]]:
+        """Validate and normalize non-authoritative guidance for public agent tools."""
+        if isinstance(guidance, list):
+            names = [str(item.get("tool_name", "")) for item in guidance]
+            duplicates = sorted({name for name in names if names.count(name) > 1})
+            if duplicates:
+                raise ValueError(f"Duplicate capability guidance: {duplicates}")
+            guidance = {
+                str(item.get("tool_name", "")): {
+                    key: value for key, value in item.items() if key != "tool_name"
+                }
+                for item in guidance
+            }
+        if not isinstance(guidance, dict):
+            raise TypeError("Capability guidance must be a mapping")
+        required = required_tools or set()
+        missing_required = sorted(required - set(guidance))
+        if missing_required:
+>           raise ValueError(
+                f"Capability guidance missing required tools: {missing_required}"
+            )
+E           ValueError: Capability guidance missing required tools: ['cost_inventory_get']
+
+src/reality/catalogs.py:304: ValueError
+_______ test_workspace_catalog_rejects_actions_without_command_effect[] ________
+
+effect = ''
+
+    @pytest.mark.parametrize("effect", [None, "", "   "])
+    def test_workspace_catalog_rejects_actions_without_command_effect(effect):
+        payload = yaml.safe_load(catalogs.config_text("workspace_catalog.yaml"))
+>       catalog = load_application_catalog()
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_application_catalog.py:186: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+src/reality/catalogs.py:1355: in load_application_catalog
+    capability_guidance = validate_capability_guidance(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+guidance = {'graph_format': {'kind': 'read', 'application_tool': 'graph.format', 'purpose': 'Format a checked reporting question ...easure means.', 'use_when': ['Decide which nodes, edges and measures a question can use before asking it.'], ...}, ...}
+commands = [{'name': 'Read reviewed inventory acquisition costs', 'service': 'inventory_cost', 'mode': 'read', 'adapters': ['CLI'...name': 'List Targets', 'service': 'list_targets', 'mode': 'read', 'adapters': ['CLI', 'Web', 'MCP', 'Chat'], ...}, ...]
+agent_coverage = {'change_graph_report': {'classification': 'eligible', 'tools': ['graph_report_change_propose']}, 'record_shipment_not...e_propose']}, 'record_shipment_event': {'classification': 'eligible', 'tools': ['shipment_event_record_propose']}, ...}
+event_types = {'commitment.cancelled', 'commitment.created', 'commitment.fulfilled', 'commitment.held', 'commitment.hold_released', 'commitment.revised', ...}
+projection_names = {'commitment_register', 'document_register', 'exceptions', 'fulfillment_blockers', 'fulfillment_queue', 'inventory', ...}
+read_tool_names = {'business_discover', 'capability_describe', 'commitments', 'cost.evidence.get', 'cost.inventory.get', 'cost.receipt.get', ...}
+mutating_tool_names = {'commitment_hold', 'commitment_hold_release', 'commitment_revise', 'connector_install', 'cost.change', 'credit_note_allocate', ...}
+proposal_targets = {'graph_format': 'graph.format', 'graph_interpret': 'graph.interpret', 'graph_templates': 'graph.templates', 'graph_catalog': 'graph.catalog', ...}
+required_tools = {'business_records_discover', 'commitments_list', 'cost_evidence_get', 'cost_inventory_get', 'cost_receipt_get', 'exception_explain', ...}
+public_tool_names = {'business_records_discover', 'capability_describe', 'commitment_hold_propose', 'commitment_hold_release_propose', 'commitment_revise_propose', 'commitments_list', ...}
+data_basis_names = {'Commitment register', 'Document register', 'Fulfillment blockers', 'Fulfillment queue', 'Inventory', 'Item supply and demand', ...}
+
+    def validate_capability_guidance(
+        guidance: dict[str, Any] | list[dict[str, Any]],
+        *,
+        commands: list[dict[str, Any]],
+        agent_coverage: dict[str, dict[str, Any]],
+        event_types: set[str],
+        projection_names: set[str],
+        read_tool_names: set[str],
+        mutating_tool_names: set[str],
+        proposal_targets: dict[str, str],
+        required_tools: set[str] | None = None,
+        public_tool_names: set[str] | None = None,
+        data_basis_names: set[str] | None = None,
+    ) -> dict[str, dict[str, Any]]:
+        """Validate and normalize non-authoritative guidance for public agent tools."""
+        if isinstance(guidance, list):
+            names = [str(item.get("tool_name", "")) for item in guidance]
+            duplicates = sorted({name for name in names if names.count(name) > 1})
+            if duplicates:
+                raise ValueError(f"Duplicate capability guidance: {duplicates}")
+            guidance = {
+                str(item.get("tool_name", "")): {
+                    key: value for key, value in item.items() if key != "tool_name"
+                }
+                for item in guidance
+            }
+        if not isinstance(guidance, dict):
+            raise TypeError("Capability guidance must be a mapping")
+        required = required_tools or set()
+        missing_required = sorted(required - set(guidance))
+        if missing_required:
+>           raise ValueError(
+                f"Capability guidance missing required tools: {missing_required}"
+            )
+E           ValueError: Capability guidance missing required tools: ['cost_inventory_get']
+
+src/reality/catalogs.py:304: ValueError
+______ test_workspace_catalog_rejects_actions_without_command_effect[   ] ______
+
+effect = '   '
+
+    @pytest.mark.parametrize("effect", [None, "", "   "])
+    def test_workspace_catalog_rejects_actions_without_command_effect(effect):
+        payload = yaml.safe_load(catalogs.config_text("workspace_catalog.yaml"))
+>       catalog = load_application_catalog()
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_application_catalog.py:186: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+src/reality/catalogs.py:1355: in load_application_catalog
+    capability_guidance = validate_capability_guidance(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+guidance = {'graph_format': {'kind': 'read', 'application_tool': 'graph.format', 'purpose': 'Format a checked reporting question ...easure means.', 'use_when': ['Decide which nodes, edges and measures a question can use before asking it.'], ...}, ...}
+commands = [{'name': 'Read reviewed inventory acquisition costs', 'service': 'inventory_cost', 'mode': 'read', 'adapters': ['CLI'...name': 'List Targets', 'service': 'list_targets', 'mode': 'read', 'adapters': ['CLI', 'Web', 'MCP', 'Chat'], ...}, ...]
+agent_coverage = {'change_graph_report': {'classification': 'eligible', 'tools': ['graph_report_change_propose']}, 'record_shipment_not...e_propose']}, 'record_shipment_event': {'classification': 'eligible', 'tools': ['shipment_event_record_propose']}, ...}
+event_types = {'commitment.cancelled', 'commitment.created', 'commitment.fulfilled', 'commitment.held', 'commitment.hold_released', 'commitment.revised', ...}
+projection_names = {'commitment_register', 'document_register', 'exceptions', 'fulfillment_blockers', 'fulfillment_queue', 'inventory', ...}
+read_tool_names = {'business_discover', 'capability_describe', 'commitments', 'cost.evidence.get', 'cost.inventory.get', 'cost.receipt.get', ...}
+mutating_tool_names = {'commitment_hold', 'commitment_hold_release', 'commitment_revise', 'connector_install', 'cost.change', 'credit_note_allocate', ...}
+proposal_targets = {'graph_format': 'graph.format', 'graph_interpret': 'graph.interpret', 'graph_templates': 'graph.templates', 'graph_catalog': 'graph.catalog', ...}
+required_tools = {'business_records_discover', 'commitments_list', 'cost_evidence_get', 'cost_inventory_get', 'cost_receipt_get', 'exception_explain', ...}
+public_tool_names = {'business_records_discover', 'capability_describe', 'commitment_hold_propose', 'commitment_hold_release_propose', 'commitment_revise_propose', 'commitments_list', ...}
+data_basis_names = {'Commitment register', 'Document register', 'Fulfillment blockers', 'Fulfillment queue', 'Inventory', 'Item supply and demand', ...}
+
+    def validate_capability_guidance(
+        guidance: dict[str, Any] | list[dict[str, Any]],
+        *,
+        commands: list[dict[str, Any]],
+        agent_coverage: dict[str, dict[str, Any]],
+        event_types: set[str],
+        projection_names: set[str],
+        read_tool_names: set[str],
+        mutating_tool_names: set[str],
+        proposal_targets: dict[str, str],
+        required_tools: set[str] | None = None,
+        public_tool_names: set[str] | None = None,
+        data_basis_names: set[str] | None = None,
+    ) -> dict[str, dict[str, Any]]:
+        """Validate and normalize non-authoritative guidance for public agent tools."""
+        if isinstance(guidance, list):
+            names = [str(item.get("tool_name", "")) for item in guidance]
+            duplicates = sorted({name for name in names if names.count(name) > 1})
+            if duplicates:
+                raise ValueError(f"Duplicate capability guidance: {duplicates}")
+            guidance = {
+                str(item.get("tool_name", "")): {
+                    key: value for key, value in item.items() if key != "tool_name"
+                }
+                for item in guidance
+            }
+        if not isinstance(guidance, dict):
+            raise TypeError("Capability guidance must be a mapping")
+        required = required_tools or set()
+        missing_required = sorted(required - set(guidance))
+        if missing_required:
+>           raise ValueError(
+                f"Capability guidance missing required tools: {missing_required}"
+            )
+E           ValueError: Capability guidance missing required tools: ['cost_inventory_get']
+
+src/reality/catalogs.py:304: ValueError
+__________ test_only_the_reference_workspace_lists_its_whole_surface ___________
+
+    def test_only_the_reference_workspace_lists_its_whole_surface():
+        """Progressive disclosure stays the rule; Data Management is the stated exception."""
+>       workspaces = load_application_catalog()["workspaces"]
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_application_catalog.py:201: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+src/reality/catalogs.py:1355: in load_application_catalog
+    capability_guidance = validate_capability_guidance(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+guidance = {'graph_format': {'kind': 'read', 'application_tool': 'graph.format', 'purpose': 'Format a checked reporting question ...easure means.', 'use_when': ['Decide which nodes, edges and measures a question can use before asking it.'], ...}, ...}
+commands = [{'name': 'Read reviewed inventory acquisition costs', 'service': 'inventory_cost', 'mode': 'read', 'adapters': ['CLI'...name': 'List Targets', 'service': 'list_targets', 'mode': 'read', 'adapters': ['CLI', 'Web', 'MCP', 'Chat'], ...}, ...]
+agent_coverage = {'change_graph_report': {'classification': 'eligible', 'tools': ['graph_report_change_propose']}, 'record_shipment_not...e_propose']}, 'record_shipment_event': {'classification': 'eligible', 'tools': ['shipment_event_record_propose']}, ...}
+event_types = {'commitment.cancelled', 'commitment.created', 'commitment.fulfilled', 'commitment.held', 'commitment.hold_released', 'commitment.revised', ...}
+projection_names = {'commitment_register', 'document_register', 'exceptions', 'fulfillment_blockers', 'fulfillment_queue', 'inventory', ...}
+read_tool_names = {'business_discover', 'capability_describe', 'commitments', 'cost.evidence.get', 'cost.inventory.get', 'cost.receipt.get', ...}
+mutating_tool_names = {'commitment_hold', 'commitment_hold_release', 'commitment_revise', 'connector_install', 'cost.change', 'credit_note_allocate', ...}
+proposal_targets = {'graph_format': 'graph.format', 'graph_interpret': 'graph.interpret', 'graph_templates': 'graph.templates', 'graph_catalog': 'graph.catalog', ...}
+required_tools = {'business_records_discover', 'commitments_list', 'cost_evidence_get', 'cost_inventory_get', 'cost_receipt_get', 'exception_explain', ...}
+public_tool_names = {'business_records_discover', 'capability_describe', 'commitment_hold_propose', 'commitment_hold_release_propose', 'commitment_revise_propose', 'commitments_list', ...}
+data_basis_names = {'Commitment register', 'Document register', 'Fulfillment blockers', 'Fulfillment queue', 'Inventory', 'Item supply and demand', ...}
+
+    def validate_capability_guidance(
+        guidance: dict[str, Any] | list[dict[str, Any]],
+        *,
+        commands: list[dict[str, Any]],
+        agent_coverage: dict[str, dict[str, Any]],
+        event_types: set[str],
+        projection_names: set[str],
+        read_tool_names: set[str],
+        mutating_tool_names: set[str],
+        proposal_targets: dict[str, str],
+        required_tools: set[str] | None = None,
+        public_tool_names: set[str] | None = None,
+        data_basis_names: set[str] | None = None,
+    ) -> dict[str, dict[str, Any]]:
+        """Validate and normalize non-authoritative guidance for public agent tools."""
+        if isinstance(guidance, list):
+            names = [str(item.get("tool_name", "")) for item in guidance]
+            duplicates = sorted({name for name in names if names.count(name) > 1})
+            if duplicates:
+                raise ValueError(f"Duplicate capability guidance: {duplicates}")
+            guidance = {
+                str(item.get("tool_name", "")): {
+                    key: value for key, value in item.items() if key != "tool_name"
+                }
+                for item in guidance
+            }
+        if not isinstance(guidance, dict):
+            raise TypeError("Capability guidance must be a mapping")
+        required = required_tools or set()
+        missing_required = sorted(required - set(guidance))
+        if missing_required:
+>           raise ValueError(
+                f"Capability guidance missing required tools: {missing_required}"
+            )
+E           ValueError: Capability guidance missing required tools: ['cost_inventory_get']
+
+src/reality/catalogs.py:304: ValueError
+_______________ test_event_catalog_contains_every_known_omission _______________
+
+    def test_event_catalog_contains_every_known_omission():
+>       event_types = {entry["type"] for entry in load_application_catalog()["events"]}
+                                                  ^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_application_catalog.py:212: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+src/reality/catalogs.py:1355: in load_application_catalog
+    capability_guidance = validate_capability_guidance(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+guidance = {'graph_format': {'kind': 'read', 'application_tool': 'graph.format', 'purpose': 'Format a checked reporting question ...easure means.', 'use_when': ['Decide which nodes, edges and measures a question can use before asking it.'], ...}, ...}
+commands = [{'name': 'Read reviewed inventory acquisition costs', 'service': 'inventory_cost', 'mode': 'read', 'adapters': ['CLI'...name': 'List Targets', 'service': 'list_targets', 'mode': 'read', 'adapters': ['CLI', 'Web', 'MCP', 'Chat'], ...}, ...]
+agent_coverage = {'change_graph_report': {'classification': 'eligible', 'tools': ['graph_report_change_propose']}, 'record_shipment_not...e_propose']}, 'record_shipment_event': {'classification': 'eligible', 'tools': ['shipment_event_record_propose']}, ...}
+event_types = {'commitment.cancelled', 'commitment.created', 'commitment.fulfilled', 'commitment.held', 'commitment.hold_released', 'commitment.revised', ...}
+projection_names = {'commitment_register', 'document_register', 'exceptions', 'fulfillment_blockers', 'fulfillment_queue', 'inventory', ...}
+read_tool_names = {'business_discover', 'capability_describe', 'commitments', 'cost.evidence.get', 'cost.inventory.get', 'cost.receipt.get', ...}
+mutating_tool_names = {'commitment_hold', 'commitment_hold_release', 'commitment_revise', 'connector_install', 'cost.change', 'credit_note_allocate', ...}
+proposal_targets = {'graph_format': 'graph.format', 'graph_interpret': 'graph.interpret', 'graph_templates': 'graph.templates', 'graph_catalog': 'graph.catalog', ...}
+required_tools = {'business_records_discover', 'commitments_list', 'cost_evidence_get', 'cost_inventory_get', 'cost_receipt_get', 'exception_explain', ...}
+public_tool_names = {'business_records_discover', 'capability_describe', 'commitment_hold_propose', 'commitment_hold_release_propose', 'commitment_revise_propose', 'commitments_list', ...}
+data_basis_names = {'Commitment register', 'Document register', 'Fulfillment blockers', 'Fulfillment queue', 'Inventory', 'Item supply and demand', ...}
+
+    def validate_capability_guidance(
+        guidance: dict[str, Any] | list[dict[str, Any]],
+        *,
+        commands: list[dict[str, Any]],
+        agent_coverage: dict[str, dict[str, Any]],
+        event_types: set[str],
+        projection_names: set[str],
+        read_tool_names: set[str],
+        mutating_tool_names: set[str],
+        proposal_targets: dict[str, str],
+        required_tools: set[str] | None = None,
+        public_tool_names: set[str] | None = None,
+        data_basis_names: set[str] | None = None,
+    ) -> dict[str, dict[str, Any]]:
+        """Validate and normalize non-authoritative guidance for public agent tools."""
+        if isinstance(guidance, list):
+            names = [str(item.get("tool_name", "")) for item in guidance]
+            duplicates = sorted({name for name in names if names.count(name) > 1})
+            if duplicates:
+                raise ValueError(f"Duplicate capability guidance: {duplicates}")
+            guidance = {
+                str(item.get("tool_name", "")): {
+                    key: value for key, value in item.items() if key != "tool_name"
+                }
+                for item in guidance
+            }
+        if not isinstance(guidance, dict):
+            raise TypeError("Capability guidance must be a mapping")
+        required = required_tools or set()
+        missing_required = sorted(required - set(guidance))
+        if missing_required:
+>           raise ValueError(
+                f"Capability guidance missing required tools: {missing_required}"
+            )
+E           ValueError: Capability guidance missing required tools: ['cost_inventory_get']
+
+src/reality/catalogs.py:304: ValueError
+___________ test_command_contracts_are_enriched_from_public_services ___________
+
+    def test_command_contracts_are_enriched_from_public_services():
+>       catalog = load_application_catalog()
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_application_catalog.py:223: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+src/reality/catalogs.py:1355: in load_application_catalog
+    capability_guidance = validate_capability_guidance(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+guidance = {'graph_format': {'kind': 'read', 'application_tool': 'graph.format', 'purpose': 'Format a checked reporting question ...easure means.', 'use_when': ['Decide which nodes, edges and measures a question can use before asking it.'], ...}, ...}
+commands = [{'name': 'Read reviewed inventory acquisition costs', 'service': 'inventory_cost', 'mode': 'read', 'adapters': ['CLI'...name': 'List Targets', 'service': 'list_targets', 'mode': 'read', 'adapters': ['CLI', 'Web', 'MCP', 'Chat'], ...}, ...]
+agent_coverage = {'change_graph_report': {'classification': 'eligible', 'tools': ['graph_report_change_propose']}, 'record_shipment_not...e_propose']}, 'record_shipment_event': {'classification': 'eligible', 'tools': ['shipment_event_record_propose']}, ...}
+event_types = {'commitment.cancelled', 'commitment.created', 'commitment.fulfilled', 'commitment.held', 'commitment.hold_released', 'commitment.revised', ...}
+projection_names = {'commitment_register', 'document_register', 'exceptions', 'fulfillment_blockers', 'fulfillment_queue', 'inventory', ...}
+read_tool_names = {'business_discover', 'capability_describe', 'commitments', 'cost.evidence.get', 'cost.inventory.get', 'cost.receipt.get', ...}
+mutating_tool_names = {'commitment_hold', 'commitment_hold_release', 'commitment_revise', 'connector_install', 'cost.change', 'credit_note_allocate', ...}
+proposal_targets = {'graph_format': 'graph.format', 'graph_interpret': 'graph.interpret', 'graph_templates': 'graph.templates', 'graph_catalog': 'graph.catalog', ...}
+required_tools = {'business_records_discover', 'commitments_list', 'cost_evidence_get', 'cost_inventory_get', 'cost_receipt_get', 'exception_explain', ...}
+public_tool_names = {'business_records_discover', 'capability_describe', 'commitment_hold_propose', 'commitment_hold_release_propose', 'commitment_revise_propose', 'commitments_list', ...}
+data_basis_names = {'Commitment register', 'Document register', 'Fulfillment blockers', 'Fulfillment queue', 'Inventory', 'Item supply and demand', ...}
+
+    def validate_capability_guidance(
+        guidance: dict[str, Any] | list[dict[str, Any]],
+        *,
+        commands: list[dict[str, Any]],
+        agent_coverage: dict[str, dict[str, Any]],
+        event_types: set[str],
+        projection_names: set[str],
+        read_tool_names: set[str],
+        mutating_tool_names: set[str],
+        proposal_targets: dict[str, str],
+        required_tools: set[str] | None = None,
+        public_tool_names: set[str] | None = None,
+        data_basis_names: set[str] | None = None,
+    ) -> dict[str, dict[str, Any]]:
+        """Validate and normalize non-authoritative guidance for public agent tools."""
+        if isinstance(guidance, list):
+            names = [str(item.get("tool_name", "")) for item in guidance]
+            duplicates = sorted({name for name in names if names.count(name) > 1})
+            if duplicates:
+                raise ValueError(f"Duplicate capability guidance: {duplicates}")
+            guidance = {
+                str(item.get("tool_name", "")): {
+                    key: value for key, value in item.items() if key != "tool_name"
+                }
+                for item in guidance
+            }
+        if not isinstance(guidance, dict):
+            raise TypeError("Capability guidance must be a mapping")
+        required = required_tools or set()
+        missing_required = sorted(required - set(guidance))
+        if missing_required:
+>           raise ValueError(
+                f"Capability guidance missing required tools: {missing_required}"
+            )
+E           ValueError: Capability guidance missing required tools: ['cost_inventory_get']
+
+src/reality/catalogs.py:304: ValueError
+________ test_membership_commands_are_internal_and_require_confirmation ________
+
+    def test_membership_commands_are_internal_and_require_confirmation():
+        membership_services = {
+            "create_invitation",
+            "resend_invitation",
+            "revoke_invitation",
+            "remove_member",
+        }
+        commands = [
+            command
+>           for command in load_application_catalog()["commands"]
+                           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+            if command["service"] in membership_services
+        ]
+
+tests/test_application_catalog.py:242: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+src/reality/catalogs.py:1355: in load_application_catalog
+    capability_guidance = validate_capability_guidance(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+guidance = {'graph_format': {'kind': 'read', 'application_tool': 'graph.format', 'purpose': 'Format a checked reporting question ...easure means.', 'use_when': ['Decide which nodes, edges and measures a question can use before asking it.'], ...}, ...}
+commands = [{'name': 'Read reviewed inventory acquisition costs', 'service': 'inventory_cost', 'mode': 'read', 'adapters': ['CLI'...name': 'List Targets', 'service': 'list_targets', 'mode': 'read', 'adapters': ['CLI', 'Web', 'MCP', 'Chat'], ...}, ...]
+agent_coverage = {'change_graph_report': {'classification': 'eligible', 'tools': ['graph_report_change_propose']}, 'record_shipment_not...e_propose']}, 'record_shipment_event': {'classification': 'eligible', 'tools': ['shipment_event_record_propose']}, ...}
+event_types = {'commitment.cancelled', 'commitment.created', 'commitment.fulfilled', 'commitment.held', 'commitment.hold_released', 'commitment.revised', ...}
+projection_names = {'commitment_register', 'document_register', 'exceptions', 'fulfillment_blockers', 'fulfillment_queue', 'inventory', ...}
+read_tool_names = {'business_discover', 'capability_describe', 'commitments', 'cost.evidence.get', 'cost.inventory.get', 'cost.receipt.get', ...}
+mutating_tool_names = {'commitment_hold', 'commitment_hold_release', 'commitment_revise', 'connector_install', 'cost.change', 'credit_note_allocate', ...}
+proposal_targets = {'graph_format': 'graph.format', 'graph_interpret': 'graph.interpret', 'graph_templates': 'graph.templates', 'graph_catalog': 'graph.catalog', ...}
+required_tools = {'business_records_discover', 'commitments_list', 'cost_evidence_get', 'cost_inventory_get', 'cost_receipt_get', 'exception_explain', ...}
+public_tool_names = {'business_records_discover', 'capability_describe', 'commitment_hold_propose', 'commitment_hold_release_propose', 'commitment_revise_propose', 'commitments_list', ...}
+data_basis_names = {'Commitment register', 'Document register', 'Fulfillment blockers', 'Fulfillment queue', 'Inventory', 'Item supply and demand', ...}
+
+    def validate_capability_guidance(
+        guidance: dict[str, Any] | list[dict[str, Any]],
+        *,
+        commands: list[dict[str, Any]],
+        agent_coverage: dict[str, dict[str, Any]],
+        event_types: set[str],
+        projection_names: set[str],
+        read_tool_names: set[str],
+        mutating_tool_names: set[str],
+        proposal_targets: dict[str, str],
+        required_tools: set[str] | None = None,
+        public_tool_names: set[str] | None = None,
+        data_basis_names: set[str] | None = None,
+    ) -> dict[str, dict[str, Any]]:
+        """Validate and normalize non-authoritative guidance for public agent tools."""
+        if isinstance(guidance, list):
+            names = [str(item.get("tool_name", "")) for item in guidance]
+            duplicates = sorted({name for name in names if names.count(name) > 1})
+            if duplicates:
+                raise ValueError(f"Duplicate capability guidance: {duplicates}")
+            guidance = {
+                str(item.get("tool_name", "")): {
+                    key: value for key, value in item.items() if key != "tool_name"
+                }
+                for item in guidance
+            }
+        if not isinstance(guidance, dict):
+            raise TypeError("Capability guidance must be a mapping")
+        required = required_tools or set()
+        missing_required = sorted(required - set(guidance))
+        if missing_required:
+>           raise ValueError(
+                f"Capability guidance missing required tools: {missing_required}"
+            )
+E           ValueError: Capability guidance missing required tools: ['cost_inventory_get']
+
+src/reality/catalogs.py:304: ValueError
+_____________ test_event_drift_fails_with_missing_and_stale_names ______________
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x110d4e9f0>
+
+    def test_event_drift_fails_with_missing_and_stale_names(monkeypatch):
+        monkeypatch.setattr(
+            catalogs,
+            "_literal_business_events",
+            lambda: {"implemented.only"},
+        )
+    
+>       with pytest.raises(
+            ValueError,
+            match=r"Business Event catalog drift: missing=\['implemented.only'\].*stale=",
+        ):
+E       AssertionError: Regex pattern did not match.
+E         Expected regex: "Business Event catalog drift: missing=\\['implemented.only'\\].*stale="
+E         Actual message: "Capability guidance missing required tools: ['cost_inventory_get']"
+
+tests/test_application_catalog.py:260: AssertionError
+___________ test_projection_drift_fails_with_missing_and_stale_names ___________
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x11142fc20>
+
+    def test_projection_drift_fails_with_missing_and_stale_names(monkeypatch):
+        monkeypatch.setattr(
+            catalogs.projection_service_module,
+            "OPERATIONAL_PROJECTIONS",
+            ("implemented_only",),
+        )
+    
+>       with pytest.raises(
+            ValueError,
+            match=r"Projection catalog drift: missing=\['implemented_only'\].*stale=",
+        ):
+E       AssertionError: Regex pattern did not match.
+E         Expected regex: "Projection catalog drift: missing=\\['implemented_only'\\].*stale="
+E         Actual message: "Capability guidance missing required tools: ['cost_inventory_get']"
+
+tests/test_application_catalog.py:274: AssertionError
+________________ test_complete_discovery_and_action_inheritance ________________
+
+    def test_complete_discovery_and_action_inheritance():
+>       catalog = load_application_catalog()
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_action_discovery.py:12: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+src/reality/catalogs.py:1355: in load_application_catalog
+    capability_guidance = validate_capability_guidance(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+guidance = {'graph_format': {'kind': 'read', 'application_tool': 'graph.format', 'purpose': 'Format a checked reporting question ...easure means.', 'use_when': ['Decide which nodes, edges and measures a question can use before asking it.'], ...}, ...}
+commands = [{'name': 'Read reviewed inventory acquisition costs', 'service': 'inventory_cost', 'mode': 'read', 'adapters': ['CLI'...name': 'List Targets', 'service': 'list_targets', 'mode': 'read', 'adapters': ['CLI', 'Web', 'MCP', 'Chat'], ...}, ...]
+agent_coverage = {'change_graph_report': {'classification': 'eligible', 'tools': ['graph_report_change_propose']}, 'record_shipment_not...e_propose']}, 'record_shipment_event': {'classification': 'eligible', 'tools': ['shipment_event_record_propose']}, ...}
+event_types = {'commitment.cancelled', 'commitment.created', 'commitment.fulfilled', 'commitment.held', 'commitment.hold_released', 'commitment.revised', ...}
+projection_names = {'commitment_register', 'document_register', 'exceptions', 'fulfillment_blockers', 'fulfillment_queue', 'inventory', ...}
+read_tool_names = {'business_discover', 'capability_describe', 'commitments', 'cost.evidence.get', 'cost.inventory.get', 'cost.receipt.get', ...}
+mutating_tool_names = {'commitment_hold', 'commitment_hold_release', 'commitment_revise', 'connector_install', 'cost.change', 'credit_note_allocate', ...}
+proposal_targets = {'graph_format': 'graph.format', 'graph_interpret': 'graph.interpret', 'graph_templates': 'graph.templates', 'graph_catalog': 'graph.catalog', ...}
+required_tools = {'business_records_discover', 'commitments_list', 'cost_evidence_get', 'cost_inventory_get', 'cost_receipt_get', 'exception_explain', ...}
+public_tool_names = {'business_records_discover', 'capability_describe', 'commitment_hold_propose', 'commitment_hold_release_propose', 'commitment_revise_propose', 'commitments_list', ...}
+data_basis_names = {'Commitment register', 'Document register', 'Fulfillment blockers', 'Fulfillment queue', 'Inventory', 'Item supply and demand', ...}
+
+    def validate_capability_guidance(
+        guidance: dict[str, Any] | list[dict[str, Any]],
+        *,
+        commands: list[dict[str, Any]],
+        agent_coverage: dict[str, dict[str, Any]],
+        event_types: set[str],
+        projection_names: set[str],
+        read_tool_names: set[str],
+        mutating_tool_names: set[str],
+        proposal_targets: dict[str, str],
+        required_tools: set[str] | None = None,
+        public_tool_names: set[str] | None = None,
+        data_basis_names: set[str] | None = None,
+    ) -> dict[str, dict[str, Any]]:
+        """Validate and normalize non-authoritative guidance for public agent tools."""
+        if isinstance(guidance, list):
+            names = [str(item.get("tool_name", "")) for item in guidance]
+            duplicates = sorted({name for name in names if names.count(name) > 1})
+            if duplicates:
+                raise ValueError(f"Duplicate capability guidance: {duplicates}")
+            guidance = {
+                str(item.get("tool_name", "")): {
+                    key: value for key, value in item.items() if key != "tool_name"
+                }
+                for item in guidance
+            }
+        if not isinstance(guidance, dict):
+            raise TypeError("Capability guidance must be a mapping")
+        required = required_tools or set()
+        missing_required = sorted(required - set(guidance))
+        if missing_required:
+>           raise ValueError(
+                f"Capability guidance missing required tools: {missing_required}"
+            )
+E           ValueError: Capability guidance missing required tools: ['cost_inventory_get']
+
+src/reality/catalogs.py:304: ValueError
+____________________ test_discovery_rejects_drift[missing] _____________________
+
+damage = 'missing'
+
+    @pytest.mark.parametrize(
+        "damage",
+        [
+            "missing",
+            "stale",
+            "group",
+            "duplicate",
+            "service",
+            "destination",
+            "tenant_destination",
+            "access",
+            "empty_category",
+        ],
+    )
+    def test_discovery_rejects_drift(damage):
+>       catalog = load_application_catalog()
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_action_discovery.py:39: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+src/reality/catalogs.py:1355: in load_application_catalog
+    capability_guidance = validate_capability_guidance(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+guidance = {'graph_format': {'kind': 'read', 'application_tool': 'graph.format', 'purpose': 'Format a checked reporting question ...easure means.', 'use_when': ['Decide which nodes, edges and measures a question can use before asking it.'], ...}, ...}
+commands = [{'name': 'Read reviewed inventory acquisition costs', 'service': 'inventory_cost', 'mode': 'read', 'adapters': ['CLI'...name': 'List Targets', 'service': 'list_targets', 'mode': 'read', 'adapters': ['CLI', 'Web', 'MCP', 'Chat'], ...}, ...]
+agent_coverage = {'change_graph_report': {'classification': 'eligible', 'tools': ['graph_report_change_propose']}, 'record_shipment_not...e_propose']}, 'record_shipment_event': {'classification': 'eligible', 'tools': ['shipment_event_record_propose']}, ...}
+event_types = {'commitment.cancelled', 'commitment.created', 'commitment.fulfilled', 'commitment.held', 'commitment.hold_released', 'commitment.revised', ...}
+projection_names = {'commitment_register', 'document_register', 'exceptions', 'fulfillment_blockers', 'fulfillment_queue', 'inventory', ...}
+read_tool_names = {'business_discover', 'capability_describe', 'commitments', 'cost.evidence.get', 'cost.inventory.get', 'cost.receipt.get', ...}
+mutating_tool_names = {'commitment_hold', 'commitment_hold_release', 'commitment_revise', 'connector_install', 'cost.change', 'credit_note_allocate', ...}
+proposal_targets = {'graph_format': 'graph.format', 'graph_interpret': 'graph.interpret', 'graph_templates': 'graph.templates', 'graph_catalog': 'graph.catalog', ...}
+required_tools = {'business_records_discover', 'commitments_list', 'cost_evidence_get', 'cost_inventory_get', 'cost_receipt_get', 'exception_explain', ...}
+public_tool_names = {'business_records_discover', 'capability_describe', 'commitment_hold_propose', 'commitment_hold_release_propose', 'commitment_revise_propose', 'commitments_list', ...}
+data_basis_names = {'Commitment register', 'Document register', 'Fulfillment blockers', 'Fulfillment queue', 'Inventory', 'Item supply and demand', ...}
+
+    def validate_capability_guidance(
+        guidance: dict[str, Any] | list[dict[str, Any]],
+        *,
+        commands: list[dict[str, Any]],
+        agent_coverage: dict[str, dict[str, Any]],
+        event_types: set[str],
+        projection_names: set[str],
+        read_tool_names: set[str],
+        mutating_tool_names: set[str],
+        proposal_targets: dict[str, str],
+        required_tools: set[str] | None = None,
+        public_tool_names: set[str] | None = None,
+        data_basis_names: set[str] | None = None,
+    ) -> dict[str, dict[str, Any]]:
+        """Validate and normalize non-authoritative guidance for public agent tools."""
+        if isinstance(guidance, list):
+            names = [str(item.get("tool_name", "")) for item in guidance]
+            duplicates = sorted({name for name in names if names.count(name) > 1})
+            if duplicates:
+                raise ValueError(f"Duplicate capability guidance: {duplicates}")
+            guidance = {
+                str(item.get("tool_name", "")): {
+                    key: value for key, value in item.items() if key != "tool_name"
+                }
+                for item in guidance
+            }
+        if not isinstance(guidance, dict):
+            raise TypeError("Capability guidance must be a mapping")
+        required = required_tools or set()
+        missing_required = sorted(required - set(guidance))
+        if missing_required:
+>           raise ValueError(
+                f"Capability guidance missing required tools: {missing_required}"
+            )
+E           ValueError: Capability guidance missing required tools: ['cost_inventory_get']
+
+src/reality/catalogs.py:304: ValueError
+_____________________ test_discovery_rejects_drift[stale] ______________________
+
+damage = 'stale'
+
+    @pytest.mark.parametrize(
+        "damage",
+        [
+            "missing",
+            "stale",
+            "group",
+            "duplicate",
+            "service",
+            "destination",
+            "tenant_destination",
+            "access",
+            "empty_category",
+        ],
+    )
+    def test_discovery_rejects_drift(damage):
+>       catalog = load_application_catalog()
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_action_discovery.py:39: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+src/reality/catalogs.py:1355: in load_application_catalog
+    capability_guidance = validate_capability_guidance(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+guidance = {'graph_format': {'kind': 'read', 'application_tool': 'graph.format', 'purpose': 'Format a checked reporting question ...easure means.', 'use_when': ['Decide which nodes, edges and measures a question can use before asking it.'], ...}, ...}
+commands = [{'name': 'Read reviewed inventory acquisition costs', 'service': 'inventory_cost', 'mode': 'read', 'adapters': ['CLI'...name': 'List Targets', 'service': 'list_targets', 'mode': 'read', 'adapters': ['CLI', 'Web', 'MCP', 'Chat'], ...}, ...]
+agent_coverage = {'change_graph_report': {'classification': 'eligible', 'tools': ['graph_report_change_propose']}, 'record_shipment_not...e_propose']}, 'record_shipment_event': {'classification': 'eligible', 'tools': ['shipment_event_record_propose']}, ...}
+event_types = {'commitment.cancelled', 'commitment.created', 'commitment.fulfilled', 'commitment.held', 'commitment.hold_released', 'commitment.revised', ...}
+projection_names = {'commitment_register', 'document_register', 'exceptions', 'fulfillment_blockers', 'fulfillment_queue', 'inventory', ...}
+read_tool_names = {'business_discover', 'capability_describe', 'commitments', 'cost.evidence.get', 'cost.inventory.get', 'cost.receipt.get', ...}
+mutating_tool_names = {'commitment_hold', 'commitment_hold_release', 'commitment_revise', 'connector_install', 'cost.change', 'credit_note_allocate', ...}
+proposal_targets = {'graph_format': 'graph.format', 'graph_interpret': 'graph.interpret', 'graph_templates': 'graph.templates', 'graph_catalog': 'graph.catalog', ...}
+required_tools = {'business_records_discover', 'commitments_list', 'cost_evidence_get', 'cost_inventory_get', 'cost_receipt_get', 'exception_explain', ...}
+public_tool_names = {'business_records_discover', 'capability_describe', 'commitment_hold_propose', 'commitment_hold_release_propose', 'commitment_revise_propose', 'commitments_list', ...}
+data_basis_names = {'Commitment register', 'Document register', 'Fulfillment blockers', 'Fulfillment queue', 'Inventory', 'Item supply and demand', ...}
+
+    def validate_capability_guidance(
+        guidance: dict[str, Any] | list[dict[str, Any]],
+        *,
+        commands: list[dict[str, Any]],
+        agent_coverage: dict[str, dict[str, Any]],
+        event_types: set[str],
+        projection_names: set[str],
+        read_tool_names: set[str],
+        mutating_tool_names: set[str],
+        proposal_targets: dict[str, str],
+        required_tools: set[str] | None = None,
+        public_tool_names: set[str] | None = None,
+        data_basis_names: set[str] | None = None,
+    ) -> dict[str, dict[str, Any]]:
+        """Validate and normalize non-authoritative guidance for public agent tools."""
+        if isinstance(guidance, list):
+            names = [str(item.get("tool_name", "")) for item in guidance]
+            duplicates = sorted({name for name in names if names.count(name) > 1})
+            if duplicates:
+                raise ValueError(f"Duplicate capability guidance: {duplicates}")
+            guidance = {
+                str(item.get("tool_name", "")): {
+                    key: value for key, value in item.items() if key != "tool_name"
+                }
+                for item in guidance
+            }
+        if not isinstance(guidance, dict):
+            raise TypeError("Capability guidance must be a mapping")
+        required = required_tools or set()
+        missing_required = sorted(required - set(guidance))
+        if missing_required:
+>           raise ValueError(
+                f"Capability guidance missing required tools: {missing_required}"
+            )
+E           ValueError: Capability guidance missing required tools: ['cost_inventory_get']
+
+src/reality/catalogs.py:304: ValueError
+_____________________ test_discovery_rejects_drift[group] ______________________
+
+damage = 'group'
+
+    @pytest.mark.parametrize(
+        "damage",
+        [
+            "missing",
+            "stale",
+            "group",
+            "duplicate",
+            "service",
+            "destination",
+            "tenant_destination",
+            "access",
+            "empty_category",
+        ],
+    )
+    def test_discovery_rejects_drift(damage):
+>       catalog = load_application_catalog()
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_action_discovery.py:39: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+src/reality/catalogs.py:1355: in load_application_catalog
+    capability_guidance = validate_capability_guidance(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+guidance = {'graph_format': {'kind': 'read', 'application_tool': 'graph.format', 'purpose': 'Format a checked reporting question ...easure means.', 'use_when': ['Decide which nodes, edges and measures a question can use before asking it.'], ...}, ...}
+commands = [{'name': 'Read reviewed inventory acquisition costs', 'service': 'inventory_cost', 'mode': 'read', 'adapters': ['CLI'...name': 'List Targets', 'service': 'list_targets', 'mode': 'read', 'adapters': ['CLI', 'Web', 'MCP', 'Chat'], ...}, ...]
+agent_coverage = {'change_graph_report': {'classification': 'eligible', 'tools': ['graph_report_change_propose']}, 'record_shipment_not...e_propose']}, 'record_shipment_event': {'classification': 'eligible', 'tools': ['shipment_event_record_propose']}, ...}
+event_types = {'commitment.cancelled', 'commitment.created', 'commitment.fulfilled', 'commitment.held', 'commitment.hold_released', 'commitment.revised', ...}
+projection_names = {'commitment_register', 'document_register', 'exceptions', 'fulfillment_blockers', 'fulfillment_queue', 'inventory', ...}
+read_tool_names = {'business_discover', 'capability_describe', 'commitments', 'cost.evidence.get', 'cost.inventory.get', 'cost.receipt.get', ...}
+mutating_tool_names = {'commitment_hold', 'commitment_hold_release', 'commitment_revise', 'connector_install', 'cost.change', 'credit_note_allocate', ...}
+proposal_targets = {'graph_format': 'graph.format', 'graph_interpret': 'graph.interpret', 'graph_templates': 'graph.templates', 'graph_catalog': 'graph.catalog', ...}
+required_tools = {'business_records_discover', 'commitments_list', 'cost_evidence_get', 'cost_inventory_get', 'cost_receipt_get', 'exception_explain', ...}
+public_tool_names = {'business_records_discover', 'capability_describe', 'commitment_hold_propose', 'commitment_hold_release_propose', 'commitment_revise_propose', 'commitments_list', ...}
+data_basis_names = {'Commitment register', 'Document register', 'Fulfillment blockers', 'Fulfillment queue', 'Inventory', 'Item supply and demand', ...}
+
+    def validate_capability_guidance(
+        guidance: dict[str, Any] | list[dict[str, Any]],
+        *,
+        commands: list[dict[str, Any]],
+        agent_coverage: dict[str, dict[str, Any]],
+        event_types: set[str],
+        projection_names: set[str],
+        read_tool_names: set[str],
+        mutating_tool_names: set[str],
+        proposal_targets: dict[str, str],
+        required_tools: set[str] | None = None,
+        public_tool_names: set[str] | None = None,
+        data_basis_names: set[str] | None = None,
+    ) -> dict[str, dict[str, Any]]:
+        """Validate and normalize non-authoritative guidance for public agent tools."""
+        if isinstance(guidance, list):
+            names = [str(item.get("tool_name", "")) for item in guidance]
+            duplicates = sorted({name for name in names if names.count(name) > 1})
+            if duplicates:
+                raise ValueError(f"Duplicate capability guidance: {duplicates}")
+            guidance = {
+                str(item.get("tool_name", "")): {
+                    key: value for key, value in item.items() if key != "tool_name"
+                }
+                for item in guidance
+            }
+        if not isinstance(guidance, dict):
+            raise TypeError("Capability guidance must be a mapping")
+        required = required_tools or set()
+        missing_required = sorted(required - set(guidance))
+        if missing_required:
+>           raise ValueError(
+                f"Capability guidance missing required tools: {missing_required}"
+            )
+E           ValueError: Capability guidance missing required tools: ['cost_inventory_get']
+
+src/reality/catalogs.py:304: ValueError
+___________________ test_discovery_rejects_drift[duplicate] ____________________
+
+damage = 'duplicate'
+
+    @pytest.mark.parametrize(
+        "damage",
+        [
+            "missing",
+            "stale",
+            "group",
+            "duplicate",
+            "service",
+            "destination",
+            "tenant_destination",
+            "access",
+            "empty_category",
+        ],
+    )
+    def test_discovery_rejects_drift(damage):
+>       catalog = load_application_catalog()
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_action_discovery.py:39: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+src/reality/catalogs.py:1355: in load_application_catalog
+    capability_guidance = validate_capability_guidance(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+guidance = {'graph_format': {'kind': 'read', 'application_tool': 'graph.format', 'purpose': 'Format a checked reporting question ...easure means.', 'use_when': ['Decide which nodes, edges and measures a question can use before asking it.'], ...}, ...}
+commands = [{'name': 'Read reviewed inventory acquisition costs', 'service': 'inventory_cost', 'mode': 'read', 'adapters': ['CLI'...name': 'List Targets', 'service': 'list_targets', 'mode': 'read', 'adapters': ['CLI', 'Web', 'MCP', 'Chat'], ...}, ...]
+agent_coverage = {'change_graph_report': {'classification': 'eligible', 'tools': ['graph_report_change_propose']}, 'record_shipment_not...e_propose']}, 'record_shipment_event': {'classification': 'eligible', 'tools': ['shipment_event_record_propose']}, ...}
+event_types = {'commitment.cancelled', 'commitment.created', 'commitment.fulfilled', 'commitment.held', 'commitment.hold_released', 'commitment.revised', ...}
+projection_names = {'commitment_register', 'document_register', 'exceptions', 'fulfillment_blockers', 'fulfillment_queue', 'inventory', ...}
+read_tool_names = {'business_discover', 'capability_describe', 'commitments', 'cost.evidence.get', 'cost.inventory.get', 'cost.receipt.get', ...}
+mutating_tool_names = {'commitment_hold', 'commitment_hold_release', 'commitment_revise', 'connector_install', 'cost.change', 'credit_note_allocate', ...}
+proposal_targets = {'graph_format': 'graph.format', 'graph_interpret': 'graph.interpret', 'graph_templates': 'graph.templates', 'graph_catalog': 'graph.catalog', ...}
+required_tools = {'business_records_discover', 'commitments_list', 'cost_evidence_get', 'cost_inventory_get', 'cost_receipt_get', 'exception_explain', ...}
+public_tool_names = {'business_records_discover', 'capability_describe', 'commitment_hold_propose', 'commitment_hold_release_propose', 'commitment_revise_propose', 'commitments_list', ...}
+data_basis_names = {'Commitment register', 'Document register', 'Fulfillment blockers', 'Fulfillment queue', 'Inventory', 'Item supply and demand', ...}
+
+    def validate_capability_guidance(
+        guidance: dict[str, Any] | list[dict[str, Any]],
+        *,
+        commands: list[dict[str, Any]],
+        agent_coverage: dict[str, dict[str, Any]],
+        event_types: set[str],
+        projection_names: set[str],
+        read_tool_names: set[str],
+        mutating_tool_names: set[str],
+        proposal_targets: dict[str, str],
+        required_tools: set[str] | None = None,
+        public_tool_names: set[str] | None = None,
+        data_basis_names: set[str] | None = None,
+    ) -> dict[str, dict[str, Any]]:
+        """Validate and normalize non-authoritative guidance for public agent tools."""
+        if isinstance(guidance, list):
+            names = [str(item.get("tool_name", "")) for item in guidance]
+            duplicates = sorted({name for name in names if names.count(name) > 1})
+            if duplicates:
+                raise ValueError(f"Duplicate capability guidance: {duplicates}")
+            guidance = {
+                str(item.get("tool_name", "")): {
+                    key: value for key, value in item.items() if key != "tool_name"
+                }
+                for item in guidance
+            }
+        if not isinstance(guidance, dict):
+            raise TypeError("Capability guidance must be a mapping")
+        required = required_tools or set()
+        missing_required = sorted(required - set(guidance))
+        if missing_required:
+>           raise ValueError(
+                f"Capability guidance missing required tools: {missing_required}"
+            )
+E           ValueError: Capability guidance missing required tools: ['cost_inventory_get']
+
+src/reality/catalogs.py:304: ValueError
+____________________ test_discovery_rejects_drift[service] _____________________
+
+damage = 'service'
+
+    @pytest.mark.parametrize(
+        "damage",
+        [
+            "missing",
+            "stale",
+            "group",
+            "duplicate",
+            "service",
+            "destination",
+            "tenant_destination",
+            "access",
+            "empty_category",
+        ],
+    )
+    def test_discovery_rejects_drift(damage):
+>       catalog = load_application_catalog()
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_action_discovery.py:39: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+src/reality/catalogs.py:1355: in load_application_catalog
+    capability_guidance = validate_capability_guidance(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+guidance = {'graph_format': {'kind': 'read', 'application_tool': 'graph.format', 'purpose': 'Format a checked reporting question ...easure means.', 'use_when': ['Decide which nodes, edges and measures a question can use before asking it.'], ...}, ...}
+commands = [{'name': 'Read reviewed inventory acquisition costs', 'service': 'inventory_cost', 'mode': 'read', 'adapters': ['CLI'...name': 'List Targets', 'service': 'list_targets', 'mode': 'read', 'adapters': ['CLI', 'Web', 'MCP', 'Chat'], ...}, ...]
+agent_coverage = {'change_graph_report': {'classification': 'eligible', 'tools': ['graph_report_change_propose']}, 'record_shipment_not...e_propose']}, 'record_shipment_event': {'classification': 'eligible', 'tools': ['shipment_event_record_propose']}, ...}
+event_types = {'commitment.cancelled', 'commitment.created', 'commitment.fulfilled', 'commitment.held', 'commitment.hold_released', 'commitment.revised', ...}
+projection_names = {'commitment_register', 'document_register', 'exceptions', 'fulfillment_blockers', 'fulfillment_queue', 'inventory', ...}
+read_tool_names = {'business_discover', 'capability_describe', 'commitments', 'cost.evidence.get', 'cost.inventory.get', 'cost.receipt.get', ...}
+mutating_tool_names = {'commitment_hold', 'commitment_hold_release', 'commitment_revise', 'connector_install', 'cost.change', 'credit_note_allocate', ...}
+proposal_targets = {'graph_format': 'graph.format', 'graph_interpret': 'graph.interpret', 'graph_templates': 'graph.templates', 'graph_catalog': 'graph.catalog', ...}
+required_tools = {'business_records_discover', 'commitments_list', 'cost_evidence_get', 'cost_inventory_get', 'cost_receipt_get', 'exception_explain', ...}
+public_tool_names = {'business_records_discover', 'capability_describe', 'commitment_hold_propose', 'commitment_hold_release_propose', 'commitment_revise_propose', 'commitments_list', ...}
+data_basis_names = {'Commitment register', 'Document register', 'Fulfillment blockers', 'Fulfillment queue', 'Inventory', 'Item supply and demand', ...}
+
+    def validate_capability_guidance(
+        guidance: dict[str, Any] | list[dict[str, Any]],
+        *,
+        commands: list[dict[str, Any]],
+        agent_coverage: dict[str, dict[str, Any]],
+        event_types: set[str],
+        projection_names: set[str],
+        read_tool_names: set[str],
+        mutating_tool_names: set[str],
+        proposal_targets: dict[str, str],
+        required_tools: set[str] | None = None,
+        public_tool_names: set[str] | None = None,
+        data_basis_names: set[str] | None = None,
+    ) -> dict[str, dict[str, Any]]:
+        """Validate and normalize non-authoritative guidance for public agent tools."""
+        if isinstance(guidance, list):
+            names = [str(item.get("tool_name", "")) for item in guidance]
+            duplicates = sorted({name for name in names if names.count(name) > 1})
+            if duplicates:
+                raise ValueError(f"Duplicate capability guidance: {duplicates}")
+            guidance = {
+                str(item.get("tool_name", "")): {
+                    key: value for key, value in item.items() if key != "tool_name"
+                }
+                for item in guidance
+            }
+        if not isinstance(guidance, dict):
+            raise TypeError("Capability guidance must be a mapping")
+        required = required_tools or set()
+        missing_required = sorted(required - set(guidance))
+        if missing_required:
+>           raise ValueError(
+                f"Capability guidance missing required tools: {missing_required}"
+            )
+E           ValueError: Capability guidance missing required tools: ['cost_inventory_get']
+
+src/reality/catalogs.py:304: ValueError
+__________________ test_discovery_rejects_drift[destination] ___________________
+
+damage = 'destination'
+
+    @pytest.mark.parametrize(
+        "damage",
+        [
+            "missing",
+            "stale",
+            "group",
+            "duplicate",
+            "service",
+            "destination",
+            "tenant_destination",
+            "access",
+            "empty_category",
+        ],
+    )
+    def test_discovery_rejects_drift(damage):
+>       catalog = load_application_catalog()
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_action_discovery.py:39: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+src/reality/catalogs.py:1355: in load_application_catalog
+    capability_guidance = validate_capability_guidance(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+guidance = {'graph_format': {'kind': 'read', 'application_tool': 'graph.format', 'purpose': 'Format a checked reporting question ...easure means.', 'use_when': ['Decide which nodes, edges and measures a question can use before asking it.'], ...}, ...}
+commands = [{'name': 'Read reviewed inventory acquisition costs', 'service': 'inventory_cost', 'mode': 'read', 'adapters': ['CLI'...name': 'List Targets', 'service': 'list_targets', 'mode': 'read', 'adapters': ['CLI', 'Web', 'MCP', 'Chat'], ...}, ...]
+agent_coverage = {'change_graph_report': {'classification': 'eligible', 'tools': ['graph_report_change_propose']}, 'record_shipment_not...e_propose']}, 'record_shipment_event': {'classification': 'eligible', 'tools': ['shipment_event_record_propose']}, ...}
+event_types = {'commitment.cancelled', 'commitment.created', 'commitment.fulfilled', 'commitment.held', 'commitment.hold_released', 'commitment.revised', ...}
+projection_names = {'commitment_register', 'document_register', 'exceptions', 'fulfillment_blockers', 'fulfillment_queue', 'inventory', ...}
+read_tool_names = {'business_discover', 'capability_describe', 'commitments', 'cost.evidence.get', 'cost.inventory.get', 'cost.receipt.get', ...}
+mutating_tool_names = {'commitment_hold', 'commitment_hold_release', 'commitment_revise', 'connector_install', 'cost.change', 'credit_note_allocate', ...}
+proposal_targets = {'graph_format': 'graph.format', 'graph_interpret': 'graph.interpret', 'graph_templates': 'graph.templates', 'graph_catalog': 'graph.catalog', ...}
+required_tools = {'business_records_discover', 'commitments_list', 'cost_evidence_get', 'cost_inventory_get', 'cost_receipt_get', 'exception_explain', ...}
+public_tool_names = {'business_records_discover', 'capability_describe', 'commitment_hold_propose', 'commitment_hold_release_propose', 'commitment_revise_propose', 'commitments_list', ...}
+data_basis_names = {'Commitment register', 'Document register', 'Fulfillment blockers', 'Fulfillment queue', 'Inventory', 'Item supply and demand', ...}
+
+    def validate_capability_guidance(
+        guidance: dict[str, Any] | list[dict[str, Any]],
+        *,
+        commands: list[dict[str, Any]],
+        agent_coverage: dict[str, dict[str, Any]],
+        event_types: set[str],
+        projection_names: set[str],
+        read_tool_names: set[str],
+        mutating_tool_names: set[str],
+        proposal_targets: dict[str, str],
+        required_tools: set[str] | None = None,
+        public_tool_names: set[str] | None = None,
+        data_basis_names: set[str] | None = None,
+    ) -> dict[str, dict[str, Any]]:
+        """Validate and normalize non-authoritative guidance for public agent tools."""
+        if isinstance(guidance, list):
+            names = [str(item.get("tool_name", "")) for item in guidance]
+            duplicates = sorted({name for name in names if names.count(name) > 1})
+            if duplicates:
+                raise ValueError(f"Duplicate capability guidance: {duplicates}")
+            guidance = {
+                str(item.get("tool_name", "")): {
+                    key: value for key, value in item.items() if key != "tool_name"
+                }
+                for item in guidance
+            }
+        if not isinstance(guidance, dict):
+            raise TypeError("Capability guidance must be a mapping")
+        required = required_tools or set()
+        missing_required = sorted(required - set(guidance))
+        if missing_required:
+>           raise ValueError(
+                f"Capability guidance missing required tools: {missing_required}"
+            )
+E           ValueError: Capability guidance missing required tools: ['cost_inventory_get']
+
+src/reality/catalogs.py:304: ValueError
+_______________ test_discovery_rejects_drift[tenant_destination] _______________
+
+damage = 'tenant_destination'
+
+    @pytest.mark.parametrize(
+        "damage",
+        [
+            "missing",
+            "stale",
+            "group",
+            "duplicate",
+            "service",
+            "destination",
+            "tenant_destination",
+            "access",
+            "empty_category",
+        ],
+    )
+    def test_discovery_rejects_drift(damage):
+>       catalog = load_application_catalog()
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_action_discovery.py:39: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+src/reality/catalogs.py:1355: in load_application_catalog
+    capability_guidance = validate_capability_guidance(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+guidance = {'graph_format': {'kind': 'read', 'application_tool': 'graph.format', 'purpose': 'Format a checked reporting question ...easure means.', 'use_when': ['Decide which nodes, edges and measures a question can use before asking it.'], ...}, ...}
+commands = [{'name': 'Read reviewed inventory acquisition costs', 'service': 'inventory_cost', 'mode': 'read', 'adapters': ['CLI'...name': 'List Targets', 'service': 'list_targets', 'mode': 'read', 'adapters': ['CLI', 'Web', 'MCP', 'Chat'], ...}, ...]
+agent_coverage = {'change_graph_report': {'classification': 'eligible', 'tools': ['graph_report_change_propose']}, 'record_shipment_not...e_propose']}, 'record_shipment_event': {'classification': 'eligible', 'tools': ['shipment_event_record_propose']}, ...}
+event_types = {'commitment.cancelled', 'commitment.created', 'commitment.fulfilled', 'commitment.held', 'commitment.hold_released', 'commitment.revised', ...}
+projection_names = {'commitment_register', 'document_register', 'exceptions', 'fulfillment_blockers', 'fulfillment_queue', 'inventory', ...}
+read_tool_names = {'business_discover', 'capability_describe', 'commitments', 'cost.evidence.get', 'cost.inventory.get', 'cost.receipt.get', ...}
+mutating_tool_names = {'commitment_hold', 'commitment_hold_release', 'commitment_revise', 'connector_install', 'cost.change', 'credit_note_allocate', ...}
+proposal_targets = {'graph_format': 'graph.format', 'graph_interpret': 'graph.interpret', 'graph_templates': 'graph.templates', 'graph_catalog': 'graph.catalog', ...}
+required_tools = {'business_records_discover', 'commitments_list', 'cost_evidence_get', 'cost_inventory_get', 'cost_receipt_get', 'exception_explain', ...}
+public_tool_names = {'business_records_discover', 'capability_describe', 'commitment_hold_propose', 'commitment_hold_release_propose', 'commitment_revise_propose', 'commitments_list', ...}
+data_basis_names = {'Commitment register', 'Document register', 'Fulfillment blockers', 'Fulfillment queue', 'Inventory', 'Item supply and demand', ...}
+
+    def validate_capability_guidance(
+        guidance: dict[str, Any] | list[dict[str, Any]],
+        *,
+        commands: list[dict[str, Any]],
+        agent_coverage: dict[str, dict[str, Any]],
+        event_types: set[str],
+        projection_names: set[str],
+        read_tool_names: set[str],
+        mutating_tool_names: set[str],
+        proposal_targets: dict[str, str],
+        required_tools: set[str] | None = None,
+        public_tool_names: set[str] | None = None,
+        data_basis_names: set[str] | None = None,
+    ) -> dict[str, dict[str, Any]]:
+        """Validate and normalize non-authoritative guidance for public agent tools."""
+        if isinstance(guidance, list):
+            names = [str(item.get("tool_name", "")) for item in guidance]
+            duplicates = sorted({name for name in names if names.count(name) > 1})
+            if duplicates:
+                raise ValueError(f"Duplicate capability guidance: {duplicates}")
+            guidance = {
+                str(item.get("tool_name", "")): {
+                    key: value for key, value in item.items() if key != "tool_name"
+                }
+                for item in guidance
+            }
+        if not isinstance(guidance, dict):
+            raise TypeError("Capability guidance must be a mapping")
+        required = required_tools or set()
+        missing_required = sorted(required - set(guidance))
+        if missing_required:
+>           raise ValueError(
+                f"Capability guidance missing required tools: {missing_required}"
+            )
+E           ValueError: Capability guidance missing required tools: ['cost_inventory_get']
+
+src/reality/catalogs.py:304: ValueError
+_____________________ test_discovery_rejects_drift[access] _____________________
+
+damage = 'access'
+
+    @pytest.mark.parametrize(
+        "damage",
+        [
+            "missing",
+            "stale",
+            "group",
+            "duplicate",
+            "service",
+            "destination",
+            "tenant_destination",
+            "access",
+            "empty_category",
+        ],
+    )
+    def test_discovery_rejects_drift(damage):
+>       catalog = load_application_catalog()
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_action_discovery.py:39: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+src/reality/catalogs.py:1355: in load_application_catalog
+    capability_guidance = validate_capability_guidance(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+guidance = {'graph_format': {'kind': 'read', 'application_tool': 'graph.format', 'purpose': 'Format a checked reporting question ...easure means.', 'use_when': ['Decide which nodes, edges and measures a question can use before asking it.'], ...}, ...}
+commands = [{'name': 'Read reviewed inventory acquisition costs', 'service': 'inventory_cost', 'mode': 'read', 'adapters': ['CLI'...name': 'List Targets', 'service': 'list_targets', 'mode': 'read', 'adapters': ['CLI', 'Web', 'MCP', 'Chat'], ...}, ...]
+agent_coverage = {'change_graph_report': {'classification': 'eligible', 'tools': ['graph_report_change_propose']}, 'record_shipment_not...e_propose']}, 'record_shipment_event': {'classification': 'eligible', 'tools': ['shipment_event_record_propose']}, ...}
+event_types = {'commitment.cancelled', 'commitment.created', 'commitment.fulfilled', 'commitment.held', 'commitment.hold_released', 'commitment.revised', ...}
+projection_names = {'commitment_register', 'document_register', 'exceptions', 'fulfillment_blockers', 'fulfillment_queue', 'inventory', ...}
+read_tool_names = {'business_discover', 'capability_describe', 'commitments', 'cost.evidence.get', 'cost.inventory.get', 'cost.receipt.get', ...}
+mutating_tool_names = {'commitment_hold', 'commitment_hold_release', 'commitment_revise', 'connector_install', 'cost.change', 'credit_note_allocate', ...}
+proposal_targets = {'graph_format': 'graph.format', 'graph_interpret': 'graph.interpret', 'graph_templates': 'graph.templates', 'graph_catalog': 'graph.catalog', ...}
+required_tools = {'business_records_discover', 'commitments_list', 'cost_evidence_get', 'cost_inventory_get', 'cost_receipt_get', 'exception_explain', ...}
+public_tool_names = {'business_records_discover', 'capability_describe', 'commitment_hold_propose', 'commitment_hold_release_propose', 'commitment_revise_propose', 'commitments_list', ...}
+data_basis_names = {'Commitment register', 'Document register', 'Fulfillment blockers', 'Fulfillment queue', 'Inventory', 'Item supply and demand', ...}
+
+    def validate_capability_guidance(
+        guidance: dict[str, Any] | list[dict[str, Any]],
+        *,
+        commands: list[dict[str, Any]],
+        agent_coverage: dict[str, dict[str, Any]],
+        event_types: set[str],
+        projection_names: set[str],
+        read_tool_names: set[str],
+        mutating_tool_names: set[str],
+        proposal_targets: dict[str, str],
+        required_tools: set[str] | None = None,
+        public_tool_names: set[str] | None = None,
+        data_basis_names: set[str] | None = None,
+    ) -> dict[str, dict[str, Any]]:
+        """Validate and normalize non-authoritative guidance for public agent tools."""
+        if isinstance(guidance, list):
+            names = [str(item.get("tool_name", "")) for item in guidance]
+            duplicates = sorted({name for name in names if names.count(name) > 1})
+            if duplicates:
+                raise ValueError(f"Duplicate capability guidance: {duplicates}")
+            guidance = {
+                str(item.get("tool_name", "")): {
+                    key: value for key, value in item.items() if key != "tool_name"
+                }
+                for item in guidance
+            }
+        if not isinstance(guidance, dict):
+            raise TypeError("Capability guidance must be a mapping")
+        required = required_tools or set()
+        missing_required = sorted(required - set(guidance))
+        if missing_required:
+>           raise ValueError(
+                f"Capability guidance missing required tools: {missing_required}"
+            )
+E           ValueError: Capability guidance missing required tools: ['cost_inventory_get']
+
+src/reality/catalogs.py:304: ValueError
+_________________ test_discovery_rejects_drift[empty_category] _________________
+
+damage = 'empty_category'
+
+    @pytest.mark.parametrize(
+        "damage",
+        [
+            "missing",
+            "stale",
+            "group",
+            "duplicate",
+            "service",
+            "destination",
+            "tenant_destination",
+            "access",
+            "empty_category",
+        ],
+    )
+    def test_discovery_rejects_drift(damage):
+>       catalog = load_application_catalog()
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_action_discovery.py:39: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+src/reality/catalogs.py:1355: in load_application_catalog
+    capability_guidance = validate_capability_guidance(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+guidance = {'graph_format': {'kind': 'read', 'application_tool': 'graph.format', 'purpose': 'Format a checked reporting question ...easure means.', 'use_when': ['Decide which nodes, edges and measures a question can use before asking it.'], ...}, ...}
+commands = [{'name': 'Read reviewed inventory acquisition costs', 'service': 'inventory_cost', 'mode': 'read', 'adapters': ['CLI'...name': 'List Targets', 'service': 'list_targets', 'mode': 'read', 'adapters': ['CLI', 'Web', 'MCP', 'Chat'], ...}, ...]
+agent_coverage = {'change_graph_report': {'classification': 'eligible', 'tools': ['graph_report_change_propose']}, 'record_shipment_not...e_propose']}, 'record_shipment_event': {'classification': 'eligible', 'tools': ['shipment_event_record_propose']}, ...}
+event_types = {'commitment.cancelled', 'commitment.created', 'commitment.fulfilled', 'commitment.held', 'commitment.hold_released', 'commitment.revised', ...}
+projection_names = {'commitment_register', 'document_register', 'exceptions', 'fulfillment_blockers', 'fulfillment_queue', 'inventory', ...}
+read_tool_names = {'business_discover', 'capability_describe', 'commitments', 'cost.evidence.get', 'cost.inventory.get', 'cost.receipt.get', ...}
+mutating_tool_names = {'commitment_hold', 'commitment_hold_release', 'commitment_revise', 'connector_install', 'cost.change', 'credit_note_allocate', ...}
+proposal_targets = {'graph_format': 'graph.format', 'graph_interpret': 'graph.interpret', 'graph_templates': 'graph.templates', 'graph_catalog': 'graph.catalog', ...}
+required_tools = {'business_records_discover', 'commitments_list', 'cost_evidence_get', 'cost_inventory_get', 'cost_receipt_get', 'exception_explain', ...}
+public_tool_names = {'business_records_discover', 'capability_describe', 'commitment_hold_propose', 'commitment_hold_release_propose', 'commitment_revise_propose', 'commitments_list', ...}
+data_basis_names = {'Commitment register', 'Document register', 'Fulfillment blockers', 'Fulfillment queue', 'Inventory', 'Item supply and demand', ...}
+
+    def validate_capability_guidance(
+        guidance: dict[str, Any] | list[dict[str, Any]],
+        *,
+        commands: list[dict[str, Any]],
+        agent_coverage: dict[str, dict[str, Any]],
+        event_types: set[str],
+        projection_names: set[str],
+        read_tool_names: set[str],
+        mutating_tool_names: set[str],
+        proposal_targets: dict[str, str],
+        required_tools: set[str] | None = None,
+        public_tool_names: set[str] | None = None,
+        data_basis_names: set[str] | None = None,
+    ) -> dict[str, dict[str, Any]]:
+        """Validate and normalize non-authoritative guidance for public agent tools."""
+        if isinstance(guidance, list):
+            names = [str(item.get("tool_name", "")) for item in guidance]
+            duplicates = sorted({name for name in names if names.count(name) > 1})
+            if duplicates:
+                raise ValueError(f"Duplicate capability guidance: {duplicates}")
+            guidance = {
+                str(item.get("tool_name", "")): {
+                    key: value for key, value in item.items() if key != "tool_name"
+                }
+                for item in guidance
+            }
+        if not isinstance(guidance, dict):
+            raise TypeError("Capability guidance must be a mapping")
+        required = required_tools or set()
+        missing_required = sorted(required - set(guidance))
+        if missing_required:
+>           raise ValueError(
+                f"Capability guidance missing required tools: {missing_required}"
+            )
+E           ValueError: Capability guidance missing required tools: ['cost_inventory_get']
+
+src/reality/catalogs.py:304: ValueError
+_______________ test_frontend_fixture_tracks_canonical_reference _______________
+
+    def test_frontend_fixture_tracks_canonical_reference():
+        import json
+        from pathlib import Path
+    
+        import yaml
+    
+        root = Path(__file__).resolve().parents[3]
+        fixture = json.loads(
+            (root / "apps/web/scripts/fixtures/action-reference.json").read_text()
+        )
+        commands = yaml.safe_load(
+            (root / "packages/reality-core/config/command_catalog.yaml").read_text()
+        )["commands"]
+        fields = {"name", "service", "mode", "adapters", "related_services", "effect"}
+>       assert fixture["commands"] == [
+            {k: v for k, v in c.items() if k in fields} for c in commands
+        ]
+E       AssertionError: assert [{'name': 'Re...'], ...}, ...] == [{'name': 'Re...'], ...}, ...]
+E         
+E         At index 0 diff: {'name': 'Read received acquisition-cost evidence', 'service': 'cost_evidence', 'mode': 'read', 'adapters': ['CLI', 'Web', 'MCP', 'Chat'], 'effect': 'Derive receipt costs from exact received amounts and explicit owner decisions; retain sealed reviewed knowledge and keep incomplete costs unknown.'} != {'name': 'Read reviewed inventory acquisition costs', 'service': 'inventory_cost', 'mode': 'read', 'adapters': ['CLI', 'Web', 'MCP', 'Chat'], 'effect': 'Derive stock acquisition value and consumption from a bounded confirmed ownership/policy scope and exact...
+E         
+E         ...Full output truncated (3 lines hidden), use '-vv' to show
+
+tests/test_action_discovery.py:79: AssertionError
+=========================== short test summary info ============================
+FAILED tests/test_application_catalog.py::test_split_catalog_is_complete_and_composed
+FAILED tests/test_application_catalog.py::test_workspace_catalog_rejects_drift[<lambda>-Duplicate workspace]
+FAILED tests/test_application_catalog.py::test_workspace_catalog_rejects_drift[<lambda>-unknown route]
+FAILED tests/test_application_catalog.py::test_workspace_catalog_rejects_drift[<lambda>-unknown projection]
+FAILED tests/test_application_catalog.py::test_workspace_catalog_rejects_drift[<lambda>-unknown command]
+FAILED tests/test_application_catalog.py::test_workspace_catalog_rejects_drift[<lambda>-confirmation]
+FAILED tests/test_application_catalog.py::test_workspace_catalog_rejects_drift[<lambda>-complete_navigation]
+FAILED tests/test_application_catalog.py::test_workspace_catalog_rejects_actions_without_command_effect[None]
+FAILED tests/test_application_catalog.py::test_workspace_catalog_rejects_actions_without_command_effect[]
+FAILED tests/test_application_catalog.py::test_workspace_catalog_rejects_actions_without_command_effect[   ]
+FAILED tests/test_application_catalog.py::test_only_the_reference_workspace_lists_its_whole_surface
+FAILED tests/test_application_catalog.py::test_event_catalog_contains_every_known_omission
+FAILED tests/test_application_catalog.py::test_command_contracts_are_enriched_from_public_services
+FAILED tests/test_application_catalog.py::test_membership_commands_are_internal_and_require_confirmation
+FAILED tests/test_application_catalog.py::test_event_drift_fails_with_missing_and_stale_names
+FAILED tests/test_application_catalog.py::test_projection_drift_fails_with_missing_and_stale_names
+FAILED tests/test_action_discovery.py::test_complete_discovery_and_action_inheritance
+FAILED tests/test_action_discovery.py::test_discovery_rejects_drift[missing]
+FAILED tests/test_action_discovery.py::test_discovery_rejects_drift[stale] - ...
+FAILED tests/test_action_discovery.py::test_discovery_rejects_drift[group] - ...
+FAILED tests/test_action_discovery.py::test_discovery_rejects_drift[duplicate]
+FAILED tests/test_action_discovery.py::test_discovery_rejects_drift[service]
+FAILED tests/test_action_discovery.py::test_discovery_rejects_drift[destination]
+FAILED tests/test_action_discovery.py::test_discovery_rejects_drift[tenant_destination]
+FAILED tests/test_action_discovery.py::test_discovery_rejects_drift[access]
+FAILED tests/test_action_discovery.py::test_discovery_rejects_drift[empty_category]
+FAILED tests/test_action_discovery.py::test_frontend_fixture_tracks_canonical_reference
+27 failed, 50 passed in 14.42s

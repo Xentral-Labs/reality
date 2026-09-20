@@ -10,15 +10,15 @@ the technical key stands beside each one.
 | ---------------------------------------------------------------- | ----- | ------- | ------------------- |
 | [Analytics report](#resource-analytics)                          | 0     | 1       | 0                   |
 | [Business partner](#resource-party)                              | 1     | 6       | 2                   |
-| [Item](#resource-item)                                           | 5     | 3       | 2                   |
+| [Item](#resource-item)                                           | 5     | 3       | 3                   |
 | [Warehouse location](#resource-location)                         | 3     | 3       | 0                   |
 | [Prices and payment terms](#resource-terms)                      | 2     | 6       | 2                   |
-| [Order](#resource-order)                                         | 8     | 9       | 7                   |
+| [Order](#resource-order)                                         | 8     | 9       | 9                   |
 | [Delivery and goods receipt](#resource-delivery)                 | 2     | 6       | 2                   |
 | [Lot, serial number and pallet](#resource-lot)                   | 0     | 5       | 1                   |
 | [Invoice and credit note](#resource-invoice)                     | 3     | 9       | 14                  |
 | [Payment and settlement](#resource-payment)                      | 2     | 7       | 2                   |
-| [Ledger and accounts](#resource-accounting)                      | 2     | 10      | 1                   |
+| [Ledger and accounts](#resource-accounting)                      | 2     | 11      | 3                   |
 | [Return](#resource-return)                                       | 0     | 2       | 6                   |
 | [Document and source system](#resource-source)                   | 3     | 10      | 2                   |
 | [Company and users](#resource-company)                           | 1     | 4       | 0                   |
@@ -38,6 +38,10 @@ private saved definitions.
 - [Change Private Graph Report](./commands#command-change_graph_report) (`change_graph_report`)
 
 **Underneath:** Tables: `analytics_report` · Agent tools without a command:
+[`graph_company_generation_current`](./commands#tool-graph_company_generation_current),
+[`graph_captured_reports_list`](./commands#tool-graph_captured_reports_list),
+[`graph_contribution_reviews_list`](./commands#tool-graph_contribution_reviews_list),
+[`graph_inventory_reviews_list`](./commands#tool-graph_inventory_reviews_list),
 [`graph_catalog`](./commands#tool-graph_catalog),
 [`graph_templates`](./commands#tool-graph_templates), [`graph_ask`](./commands#tool-graph_ask),
 [`graph_format`](./commands#tool-graph_format),
@@ -114,11 +118,17 @@ derived from movements and reservations at read time, which is why the stock lis
 - [Change master-data lifecycle](./commands#command-set_master_data_active)
   (`set_master_data_active`)
 
+**Look up**
+
+- [Read reviewed inventory acquisition costs](./commands#command-inventory_cost) (`inventory_cost`)
+
 **Exceptions to clear**
 
 - [Units not comparable](./exceptions#exception-units_not_comparable) (`units_not_comparable`)
 - [Reservation exceeds stock](./exceptions#exception-reservation_exceeds_stock)
   (`reservation_exceeds_stock`)
+- [Missing acquisition cost](./exceptions#exception-missing_acquisition_cost)
+  (`missing_acquisition_cost`)
 
 **Appears in processes:** [Procure to pay](./processes#process-procure_to_pay),
 [Master data and sources](./processes#process-master_data)
@@ -127,7 +137,8 @@ derived from movements and reservations at read time, which is why the stock lis
 [`item.updated`](./events#event-item-updated),
 [`master_data.lifecycle_changed`](./events#event-master_data-lifecycle_changed) · Agent tools
 without a command: [`inventory_read`](./commands#tool-inventory_read),
-[`item_supply_demand`](./commands#tool-item_supply_demand)
+[`item_supply_demand`](./commands#tool-item_supply_demand),
+[`graph_inventory_reviews_list`](./commands#tool-graph_inventory_reviews_list)
 
 ## Warehouse location {#resource-location}
 
@@ -257,6 +268,8 @@ Bestellung, Verpflichtung, Lieferverpflichtung, Reservierung, Rückstand, Liefer
 - [Promise hold not lifted](./exceptions#exception-commitment_hold_unreleased)
   (`commitment_hold_unreleased`)
 - [Party hold not lifted](./exceptions#exception-party_hold_unreleased) (`party_hold_unreleased`)
+- [Stale cost review](./exceptions#exception-stale_cost_review) (`stale_cost_review`)
+- [Negative actual DB1](./exceptions#exception-negative_actual_db1) (`negative_actual_db1`)
 
 **Appears in processes:** [Order to cash](./processes#process-order_to_cash),
 [Procure to pay](./processes#process-procure_to_pay)
@@ -490,6 +503,8 @@ Kontenrahmen, Storno, Eröffnungsbilanz, Sachkonto
 
 **Actions**
 
+- [Confirm cost and contribution decision](./commands#command-execute_cost_change)
+  (`execute_cost_change`)
 - [Maintain Target Configuration](./commands#command-maintain_target_configuration)
   (`maintain_target_configuration`)
 - [Set source code mapping](./commands#command-set_source_mapping) (`set_source_mapping`)
@@ -505,6 +520,16 @@ Kontenrahmen, Storno, Eröffnungsbilanz, Sachkonto
 
 **Look up**
 
+- [Read reviewed partial commercial match](./commands#command-commercial_match) (`commercial_match`)
+- [Read cost query context](./commands#command-cost_query) (`cost_query`)
+- [Inspect retained cost record](./commands#command-cost_record) (`cost_record`)
+- [Read reviewed commercial contribution](./commands#command-reviewed_contribution)
+  (`reviewed_contribution`)
+- [Preview current contribution candidate](./commands#command-contribution_preview)
+  (`contribution_preview`)
+- [Read reviewed inventory acquisition costs](./commands#command-inventory_cost) (`inventory_cost`)
+- [Read received acquisition-cost evidence](./commands#command-cost_evidence) (`cost_evidence`)
+- [Read receipt acquisition costs](./commands#command-receipt_cost) (`receipt_cost`)
 - [List Targets](./commands#command-list_targets) (`list_targets`)
 - [List Target References](./commands#command-list_target_references) (`list_target_references`)
 - [List Mappings](./commands#command-list_mappings) (`list_mappings`)
@@ -525,14 +550,36 @@ Kontenrahmen, Storno, Eröffnungsbilanz, Sachkonto
 
 - [Unmatched financial event](./exceptions#exception-unmatched_financial_event)
   (`unmatched_financial_event`)
+- [Unassigned cost component](./exceptions#exception-unassigned_cost_component)
+  (`unassigned_cost_component`)
+- [Stale cost review](./exceptions#exception-stale_cost_review) (`stale_cost_review`)
 
 **Appears in processes:** [Finance set-up and period work](./processes#process-finance_setup)
 
-**Underneath:** Tables: `ledger_entry`, `ledger_reversal`, `subledger_account`,
-`finance_role_destination`, `accounting_target`, `accounting_target_reference`,
-`finance_target_mapping_revision`, `source_classification_mapping_revision`, `financial_component`,
-`component_assignment_revision`, `component_assignment_part`, `finance_reference`, `opening_scope`,
-`opening_item_detail` · Events:
+**Underneath:** Tables: `cost_company_manifest`, `cost_company_inventory_input`,
+`cost_company_contribution_input`, `cost_company_generation`, `cost_company_inventory_result`,
+`cost_company_contribution_result`, `cost_company_publication`, `cost_generation`,
+`cost_inventory_row`, `cost_contribution_row`, `cost_publication`, `cost_captured_basis`,
+`cost_captured_inventory_basis`, `cost_captured_contribution_basis`, `cost_company_census`,
+`cost_company_census_movement`, `cost_company_census_document`, `cost_company_census_line`,
+`cost_company_census_source`, `cost_contribution_generation`, `cost_contribution_snapshot`,
+`cost_inventory_generation`, `cost_inventory_snapshot`, `cost_inventory_publication`,
+`cost_commercial_match_revision`, `cost_commercial_inventory_part`, `cost_commercial_direct_part`,
+`cost_selling_attribution_part`, `cost_selling_review_category`, `cost_selling_review_member`,
+`cost_revenue_match_basis`, `cost_contribution_review`, `cost_policy_revision`,
+`cost_movement_basis`, `cost_ownership_revision`, `cost_inventory_review`, `cost_inventory_member`,
+`cost_valuation_assessment_revision`, `cost_valuation_assessment_part`,
+`cost_conversion_basis_revision`, `cost_attribution_part`, `cost_attribution_revision`,
+`cost_component_basis`, `cost_component_replacement`, `cost_correction_basis`,
+`cost_input_manifest`, `cost_manifest_attribution`, `cost_manifest_component`,
+`cost_manifest_correction`, `cost_manifest_receipt`, `cost_manifest_replacement`,
+`cost_receipt_basis`, `cost_scope_review`, `cost_scope_review_category`, `ledger_entry`,
+`ledger_reversal`, `subledger_account`, `finance_role_destination`, `accounting_target`,
+`accounting_target_reference`, `finance_target_mapping_revision`,
+`source_classification_mapping_revision`, `financial_component`, `component_assignment_revision`,
+`component_assignment_part`, `finance_reference`, `opening_scope`, `opening_item_detail` · Events:
+[`cost.attributed`](./events#event-cost-attributed),
+[`cost.reviewed`](./events#event-cost-reviewed),
 [`finance.target_configuration_changed`](./events#event-finance-target_configuration_changed),
 [`finance.source_mapping_changed`](./events#event-finance-source_mapping_changed),
 [`finance.component_assigned`](./events#event-finance-component_assigned),
@@ -620,6 +667,7 @@ Nachweis, Quelle
 
 **Look up**
 
+- [Read reviewed partial commercial match](./commands#command-commercial_match) (`commercial_match`)
 - [Preview Document](./commands#command-preview_document) (`preview_document`)
 - [Read source code mappings](./commands#command-list_source_mappings) (`list_source_mappings`)
 - [Read source mapping history](./commands#command-source_mapping_history)

@@ -38,7 +38,13 @@ def test_profile_scope_refuses_cross_tenant_and_commit(
         session, scheduled_owner.id, "scope", "Demo", "sandbox", "empty", confirmed=True
     )
     run = session.get(PlaygroundRun, result["run_id"])
-    run.preset_key, run.status = "international-demo", "initializing"
+    from reality.demo.international import PROFILE_VERSION
+
+    run.preset_key, run.preset_version, run.status = (
+        "international-demo",
+        PROFILE_VERSION,
+        "initializing",
+    )
     session.flush()
     with _profile_scope(session, run.id, scheduled_owner.id):
         with pytest.raises(PlaygroundOperationDenied):

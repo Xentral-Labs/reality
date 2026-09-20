@@ -1,0 +1,19 @@
+Reality Film — Story
+
+The film begins with a simple problem: giving an AI agent access to ERP tables, APIs, and hundreds of tools does not give it business context.
+
+Access is not context.
+
+We then follow one concrete order. A customer was promised 60 units. 36 have been fulfilled, leaving 24 open. But subtraction alone is not enough. The agent also needs to know whether inventory is reserved, what commitment exists, what the original document line states, and which source the information came from.
+
+Reality connects that chain: Reservation → Commitment → Document Line → Source Record.
+
+Now the agent can make a safe decision: 24 units are still open, there is no active reservation, and full completion has not been confirmed. So it proposes checking availability instead of inventing certainty or triggering an unsafe action.
+
+The agent uses the same services as the operational product. Actions require confirmation, and every conclusion remains traceable to its source.
+
+The final message is:
+
+Give agents reality, not database access.
+
+Reality does not merely expose business data. It gives autonomous agents the structure they need to act with speed, quality, and accountability.

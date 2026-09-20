@@ -1,0 +1,113 @@
+.........FF.                                                             [100%]
+=================================== FAILURES ===================================
+________________ test_concurrent_builds_publish_one_generation _________________
+
+scheduled_database = (Engine(postgresql+psycopg://costing:***@127.0.0.1:55439/reality_migration_e1c3e8e5b1), sessionmaker(class_='Session',...0.0.1:55439/reality_migration_e1c3e8e5b1), autoflush=True, expire_on_commit=False), 'ten_51e5acedd1', 'usr_a75157e6d1')
+
+        lambda: inventory_cost_snapshot(
+            session, tenant, business.item.id, generation_id=built["generation_id"]
+>       ),
+           
+    ):
+
+tests/test_inventory_generations.py:209: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_inventory_generations.py:198: in prepare_committed
+    review = reviewed(session, business, cost_owner)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src/reality/services/core.py:1855: in create_party
+    _require_business_mutation(session, tenant_id, "create_party")
+src/reality/services/core.py:738: in _require_business_mutation
+    require_core_operation(session, tenant_id, operation)
+src/reality/services/tenant_policy.py:826: in require_core_operation
+    require_business_operation(session, tenant_id, operation)
+src/reality/services/tenant_policy.py:1087: in require_business_operation
+    purpose = session.scalar(select(Tenant.purpose).where(Tenant.id == tenant_id))
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../../.venv/lib/python3.12/site-packages/sqlalchemy/orm/session.py:2421: in scalar
+    return self._execute_internal(
+../../.venv/lib/python3.12/site-packages/sqlalchemy/orm/session.py:2261: in _execute_internal
+    conn = self._connection_for_bind(bind)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../../.venv/lib/python3.12/site-packages/sqlalchemy/orm/session.py:2108: in _connection_for_bind
+    TransactionalContext._trans_ctx_check(self)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+cls = <class 'sqlalchemy.engine.util.TransactionalContext'>
+subject = <sqlalchemy.orm.session.Session object at 0x1117e74a0>
+
+    @classmethod
+    def _trans_ctx_check(cls, subject: _TConsSubject) -> None:
+        trans_context = subject._trans_context_manager
+        if trans_context:
+            if not trans_context._transaction_is_active():
+>               raise exc.InvalidRequestError(
+                    "Can't operate on closed transaction inside context "
+                    "manager.  Please complete the context manager "
+                    "before emitting further commands."
+                )
+E               sqlalchemy.exc.InvalidRequestError: Can't operate on closed transaction inside context manager.  Please complete the context manager before emitting further commands.
+
+../../.venv/lib/python3.12/site-packages/sqlalchemy/engine/util.py:111: InvalidRequestError
+_________ test_real_worker_child_publishes_and_only_reports_reference __________
+
+scheduled_database = (Engine(postgresql+psycopg://costing:***@127.0.0.1:55439/reality_migration_c2b37774a0), sessionmaker(class_='Session',...0.0.1:55439/reality_migration_c2b37774a0), autoflush=True, expire_on_commit=False), 'ten_4a309ab6c9', 'usr_4707fe72d8')
+
+        request_id="cost-build",
+    )
+    assert (
+        scheduled_jobs.create_manual_run(
+>           session,
+                   ^^
+            tenant,
+            cost_owner.id,
+            definition.name,
+            {"review_id": review},
+            request_id="cost-build",
+        ).id
+        == first.id
+    )
+
+tests/test_inventory_generations.py:231: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+tests/test_inventory_generations.py:198: in prepare_committed
+    review = reviewed(session, business, cost_owner)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src/reality/services/core.py:1855: in create_party
+    _require_business_mutation(session, tenant_id, "create_party")
+src/reality/services/core.py:738: in _require_business_mutation
+    require_core_operation(session, tenant_id, operation)
+src/reality/services/tenant_policy.py:826: in require_core_operation
+    require_business_operation(session, tenant_id, operation)
+src/reality/services/tenant_policy.py:1087: in require_business_operation
+    purpose = session.scalar(select(Tenant.purpose).where(Tenant.id == tenant_id))
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../../.venv/lib/python3.12/site-packages/sqlalchemy/orm/session.py:2421: in scalar
+    return self._execute_internal(
+../../.venv/lib/python3.12/site-packages/sqlalchemy/orm/session.py:2261: in _execute_internal
+    conn = self._connection_for_bind(bind)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+../../.venv/lib/python3.12/site-packages/sqlalchemy/orm/session.py:2108: in _connection_for_bind
+    TransactionalContext._trans_ctx_check(self)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+cls = <class 'sqlalchemy.engine.util.TransactionalContext'>
+subject = <sqlalchemy.orm.session.Session object at 0x111542d50>
+
+    @classmethod
+    def _trans_ctx_check(cls, subject: _TConsSubject) -> None:
+        trans_context = subject._trans_context_manager
+        if trans_context:
+            if not trans_context._transaction_is_active():
+>               raise exc.InvalidRequestError(
+                    "Can't operate on closed transaction inside context "
+                    "manager.  Please complete the context manager "
+                    "before emitting further commands."
+                )
+E               sqlalchemy.exc.InvalidRequestError: Can't operate on closed transaction inside context manager.  Please complete the context manager before emitting further commands.
+
+../../.venv/lib/python3.12/site-packages/sqlalchemy/engine/util.py:111: InvalidRequestError
+=========================== short test summary info ============================
+FAILED tests/test_inventory_generations.py::test_concurrent_builds_publish_one_generation
+FAILED tests/test_inventory_generations.py::test_real_worker_child_publishes_and_only_reports_reference
+2 failed, 10 passed in 23.66s

@@ -1,0 +1,23 @@
+F                                                                        [100%]
+=================================== FAILURES ===================================
+___________________ test_review_manifest_detects_member_loss ___________________
+
+session = <sqlalchemy.orm.session.Session object at 0x10facacf0>
+business = Business(tenant=<reality.db.core.Tenant object at 0x10facadb0>, company=<reality.db.core.Party object at 0x10fd07ec0>,...fd075f0>, item=<reality.db.core.Item object at 0x1107bfe00>, location=<reality.db.core.Location object at 0x1107bf860>)
+cost_owner = <reality.db.core.AppUser object at 0x1107bea20>
+
+    def test_review_manifest_detects_member_loss(session, business, cost_owner):
+        from sqlalchemy import delete
+        from reality.db.costing import CostManifestAttribution
+        movement = receipt(session, business)
+        doc = evidence(session, business)
+        execute(session, business, cost_owner, assignment(session, business, movement, doc, "1000"))
+        old = review(session, business, cost_owner, movement, {"goods"})
+        session.execute(delete(CostManifestAttribution).where(CostManifestAttribution.tenant_id == business.tenant.id, CostManifestAttribution.manifest_id == old["manifest_id"]))
+>       with pytest.raises(core.InvalidOperation, match="manifest"):
+E       Failed: DID NOT RAISE InvalidOperation
+
+tests/test_costing_services.py:533: Failed
+=========================== short test summary info ============================
+FAILED tests/test_costing_services.py::test_review_manifest_detects_member_loss
+1 failed in 1.88s

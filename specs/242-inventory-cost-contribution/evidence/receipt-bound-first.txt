@@ -1,0 +1,23 @@
+F                                                                        [100%]
+=================================== FAILURES ===================================
+_________ test_component_bound_refuses_before_adding_unreadable_scope __________
+
+session = <sqlalchemy.orm.session.Session object at 0x10d5ad6d0>
+business = Business(tenant=<reality.db.core.Tenant object at 0x10d78f020>, company=<reality.db.core.Party object at 0x10e480ec0>,...d68f8f0>, item=<reality.db.core.Item object at 0x10d9c6240>, location=<reality.db.core.Location object at 0x10d9c77a0>)
+cost_owner = <reality.db.core.AppUser object at 0x10e483e00>
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x10e4a1760>
+
+    def test_component_bound_refuses_before_adding_unreadable_scope(session, business, cost_owner, monkeypatch):
+        from reality.services import costing
+        monkeypatch.setattr(costing, "LIMIT", 1)
+        movement = receipt(session, business)
+        doc = evidence(session, business)
+        execute(session, business, cost_owner, assignment(session, business, movement, doc, "1000"))
+        freight = evidence(session, business, "100", "0")
+>       with pytest.raises(core.InvalidOperation, match="bound"):
+E       Failed: DID NOT RAISE InvalidOperation
+
+tests/test_costing_services.py:581: Failed
+=========================== short test summary info ============================
+FAILED tests/test_costing_services.py::test_component_bound_refuses_before_adding_unreadable_scope
+1 failed in 3.74s

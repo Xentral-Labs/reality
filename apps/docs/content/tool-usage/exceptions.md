@@ -42,6 +42,10 @@ it, and which agent tools list and explain it.
 | [`commitment_hold_unreleased`](#exception-commitment_hold_unreleased)                     | Promise hold not lifted                  | Orders & fulfilment        | `normal` | Whoever raised the hold, named in the entry, with the reason code saying which team that is |
 | [`party_hold_unreleased`](#exception-party_hold_unreleased)                               | Party hold not lifted                    | Orders & fulfilment        | `high`   | Whoever raised the hold, named in the entry, with the reason code saying which team that is |
 | [`stock_expired`](#exception-stock_expired)                                               | Expired stock on hand                    | Warehouse & logistics      | `high`   | Warehouse control, with quality assurance where the goods are regulated                     |
+| [`missing_acquisition_cost`](#exception-missing_acquisition_cost)                         | Missing acquisition cost                 | Cross-functional           | `high`   | Purchasing or inventory control                                                             |
+| [`unassigned_cost_component`](#exception-unassigned_cost_component)                       | Unassigned cost component                | Finance                    | `high`   | Purchasing or finance operations                                                            |
+| [`stale_cost_review`](#exception-stale_cost_review)                                       | Stale cost review                        | Orders & fulfilment        | `normal` | Finance operations                                                                          |
+| [`negative_actual_db1`](#exception-negative_actual_db1)                                   | Negative actual DB1                      | Cross-functional           | `normal` | Sales management                                                                            |
 
 ## `overdue_outgoing_customer_commitment` — Overdue outgoing customer commitment {#exception-overdue_outgoing_customer_commitment}
 
@@ -1059,6 +1063,101 @@ has never had. So this entry reduces surprise rather than preventing loss.
 | ID                      | Label                   | Authority    |
 | ----------------------- | ----------------------- | ------------ |
 | `reserved_for_delivery` | Reserved for a delivery | `109/FR-008` |
+
+**See also:** projection [`exceptions`](./views#projection-exceptions), agent tool
+[`exceptions_list`](./commands#tool-exceptions_list), agent tool
+[`exception_explain`](./commands#tool-exception_explain)
+
+## `missing_acquisition_cost` — Missing acquisition cost {#exception-missing_acquisition_cost}
+
+A company-generation subject has no supported actual acquisition cost. Missing evidence remains
+unknown and is never treated as zero.
+
+- **Owner:** Purchasing or inventory control
+- **Clears through:** Confirming the missing receipt-cost evidence and publishing a current complete
+  company generation.
+- **Severity:** `high`
+- **Record type:** `item`
+- **Authority:** `234/FR-025`
+- **Evidence:**
+  `tests/test_cost_findings.py::test_missing_acquisition_cost_includes_unsold_inventory_subject`
+
+**Causes**
+
+| ID                                | Label                           | Authority    |
+| --------------------------------- | ------------------------------- | ------------ |
+| `acquisition_cost_unknown`        | Acquisition cost unknown        | `234/FR-014` |
+| `contribution_goods_cost_unknown` | Contribution goods cost unknown | `234/FR-014` |
+
+**See also:** projection [`exceptions`](./views#projection-exceptions), agent tool
+[`exceptions_list`](./commands#tool-exceptions_list), agent tool
+[`exception_explain`](./commands#tool-exception_explain), view [`items`](./views#view-items)
+
+## `unassigned_cost_component` — Unassigned cost component {#exception-unassigned_cost_component}
+
+Received cost evidence belongs to the company basis but has not been assigned to its economic cost
+scope.
+
+- **Owner:** Purchasing or finance operations
+- **Clears through:** Confirming an assignment or an evidenced not-applicable treatment and
+  publishing a current generation.
+- **Severity:** `high`
+- **Record type:** `document_line`
+- **Authority:** `234/FR-025`
+- **Evidence:**
+  `tests/test_cost_findings.py::test_unassigned_component_uses_existing_document_line_subject`
+
+**Causes**
+
+| ID                          | Label                     | Authority    |
+| --------------------------- | ------------------------- | ------------ |
+| `cost_component_unassigned` | Cost component unassigned | `234/FR-003` |
+
+**See also:** projection [`exceptions`](./views#projection-exceptions), agent tool
+[`exceptions_list`](./commands#tool-exceptions_list), agent tool
+[`exception_explain`](./commands#tool-exception_explain)
+
+## `stale_cost_review` — Stale cost review {#exception-stale_cost_review}
+
+Later relevant evidence exists after the retained financial review used by the published company
+basis.
+
+- **Owner:** Finance operations
+- **Clears through:** Reviewing the changed evidence and publishing a current company generation.
+- **Severity:** `normal`
+- **Record type:** `item`
+- **Authority:** `234/FR-025`
+- **Evidence:**
+  `tests/test_cost_findings.py::test_stale_review_identity_is_stable_across_generations`
+
+**Causes**
+
+| ID                        | Label                   | Authority    |
+| ------------------------- | ----------------------- | ------------ |
+| `later_relevant_evidence` | Later relevant evidence | `234/FR-015` |
+
+**See also:** projection [`exceptions`](./views#projection-exceptions), agent tool
+[`exceptions_list`](./commands#tool-exceptions_list), agent tool
+[`exception_explain`](./commands#tool-exception_explain), view [`items`](./views#view-items)
+
+## `negative_actual_db1` — Negative actual DB1 {#exception-negative_actual_db1}
+
+Complete supported actual goods cost exceeds the received net revenue of the reviewed sales line.
+
+- **Owner:** Sales management
+- **Clears through:** Correcting the commercial evidence or accepting and reviewing a non-negative
+  current contribution basis.
+- **Severity:** `normal`
+- **Record type:** `document_line`
+- **Authority:** `234/FR-025`
+- **Evidence:**
+  `tests/test_cost_findings.py::test_negative_actual_db1_requires_complete_supported_db1_not_db2`
+
+**Causes**
+
+| ID                              | Label                         | Authority    |
+| ------------------------------- | ----------------------------- | ------------ |
+| `supported_actual_db1_negative` | Supported actual DB1 negative | `234/FR-011` |
 
 **See also:** projection [`exceptions`](./views#projection-exceptions), agent tool
 [`exceptions_list`](./commands#tool-exceptions_list), agent tool

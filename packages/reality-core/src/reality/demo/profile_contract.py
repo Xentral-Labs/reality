@@ -22,6 +22,7 @@ class ProfileManifest(BaseModel):
     cases: dict[str, dict[str, str]]
     windows: dict[str, str]
     capabilities: dict[str, str]
+    costing_cases: dict[str, dict] = Field(default_factory=dict)
     execution: bool = Field(exclude=True)
 
     @model_validator(mode="after")

@@ -137,10 +137,39 @@ class Existence(QueryModel):
         return self
 
 
+class InventoryCostContext(QueryModel):
+    """One retained joint confirmation, never an implicit latest valuation."""
+
+    action_id: str = Field(min_length=1, max_length=128, pattern=r".*\S.*")
+    mode: Literal["historical"] = "historical"
+
+
+class ContributionCostContext(InventoryCostContext):
+    """One retained joint scope, optionally requiring unchanged knowledge."""
+
+    mode: Literal["historical", "current"] = "historical"
+
+
+class CapturedCostContext(QueryModel):
+    """One sealed captured report generation, never a mutable latest pointer."""
+
+    generation_id: str = Field(min_length=1, max_length=128, pattern=r".*\S.*")
+
+
+class CompanyCostContext(QueryModel):
+    """One verified financial company generation, never an implicit latest pointer."""
+
+    generation_id: str = Field(min_length=1, max_length=128, pattern=r".*\S.*")
+
+
 class Traversal(QueryModel):
     """The whole question."""
 
     from_: str = Field(alias="from")
+    inventory_cost_context: InventoryCostContext | None = None
+    contribution_cost_context: ContributionCostContext | None = None
+    captured_cost_context: CapturedCostContext | None = None
+    company_cost_context: CompanyCostContext | None = None
     as_: str = Field(default="root", alias="as")
     follow: tuple[Hop, ...] = ()
     filter: tuple[Condition, ...] = ()

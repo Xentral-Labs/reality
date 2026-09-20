@@ -1,0 +1,190 @@
+FFFFFFF                                                                  [100%]
+=================================== FAILURES ===================================
+__________________ test_graph_tool_uses_exact_complete_basis ___________________
+
+session = <sqlalchemy.orm.session.Session object at 0x10ef2ecc0>
+business = Business(tenant=<reality.db.core.Tenant object at 0x110862db0>, company=<reality.db.core.Party object at 0x11157e180>,...04b9040>, item=<reality.db.core.Item object at 0x110862e10>, location=<reality.db.core.Location object at 0x11157ed80>)
+cost_owner = <reality.db.core.AppUser object at 0x1115aa270>
+
+    def test_graph_tool_uses_exact_complete_basis(session, business, cost_owner):
+        tenant = business.tenant.id
+        action, ids = fixtures.stored(session, business, cost_owner)
+>       response = invoke(session, tenant, "graph.ask", {"question": question(action)})
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+packages/reality-core/tests/test_inventory_graph_reporting.py:34: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+session = <sqlalchemy.orm.session.Session object at 0x10ef2ecc0>
+tenant_id = 'ten_c2f813c331', name = 'graph.ask'
+arguments = {'question': {'from': 'inventory_valuation', 'inventory_cost_context': {'action_id': 'act_bd5c07958e', 'mode': 'historical'}, 'measures': ['inventory_acquisition_value'], 'group_by': [{'field': 'root.currency'}]}}
+
+    def invoke(session, tenant_id: str, name: str, arguments: dict[str, Any]) -> Any:
+>       request = SCHEMAS[name].model_validate(arguments or {})
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       pydantic_core._pydantic_core.ValidationError: 1 validation error for GraphAskRequest
+E       question.inventory_cost_context
+E         Extra inputs are not permitted [type=extra_forbidden, input_value={'action_id': 'act_bd5c07...', 'mode': 'historical'}, input_type=dict]
+E           For further information visit https://errors.pydantic.dev/2.13/v/extra_forbidden
+
+packages/reality-core/src/reality/tools/graph.py:142: ValidationError
+_ test_invalid_context_or_aggregation_refuses_before_sql[change0-cost_context_required] _
+
+change = {'inventory_cost_context': None}, code = 'cost_context_required'
+
+    @pytest.mark.parametrize("change,code", [
+        ({"inventory_cost_context": None}, "cost_context_required"),
+        ({"group_by": []}, "unit_required"),
+        ({"group_by": [{"field": "root.currency"}, {"field": "root.effective_at", "bucket": "month"}]}, "not_additive"),
+    ])
+    def test_invalid_context_or_aggregation_refuses_before_sql(change, code):
+        with pytest.raises(TraversalRefused) as failure:
+>           plan(Traversal.model_validate(question("action", **change)))
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E           pydantic_core._pydantic_core.ValidationError: 1 validation error for Traversal
+E           inventory_cost_context
+E             Extra inputs are not permitted [type=extra_forbidden, input_value=None, input_type=NoneType]
+E               For further information visit https://errors.pydantic.dev/2.13/v/extra_forbidden
+
+packages/reality-core/tests/test_inventory_graph_reporting.py:63: ValidationError
+_ test_invalid_context_or_aggregation_refuses_before_sql[change1-unit_required] _
+
+change = {'group_by': []}, code = 'unit_required'
+
+    @pytest.mark.parametrize("change,code", [
+        ({"inventory_cost_context": None}, "cost_context_required"),
+        ({"group_by": []}, "unit_required"),
+        ({"group_by": [{"field": "root.currency"}, {"field": "root.effective_at", "bucket": "month"}]}, "not_additive"),
+    ])
+    def test_invalid_context_or_aggregation_refuses_before_sql(change, code):
+        with pytest.raises(TraversalRefused) as failure:
+>           plan(Traversal.model_validate(question("action", **change)))
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E           pydantic_core._pydantic_core.ValidationError: 1 validation error for Traversal
+E           inventory_cost_context
+E             Extra inputs are not permitted [type=extra_forbidden, input_value={'action_id': 'action', 'mode': 'historical'}, input_type=dict]
+E               For further information visit https://errors.pydantic.dev/2.13/v/extra_forbidden
+
+packages/reality-core/tests/test_inventory_graph_reporting.py:63: ValidationError
+_ test_invalid_context_or_aggregation_refuses_before_sql[change2-not_additive] _
+
+change = {'group_by': [{'field': 'root.currency'}, {'field': 'root.effective_at', 'bucket': 'month'}]}
+code = 'not_additive'
+
+    @pytest.mark.parametrize("change,code", [
+        ({"inventory_cost_context": None}, "cost_context_required"),
+        ({"group_by": []}, "unit_required"),
+        ({"group_by": [{"field": "root.currency"}, {"field": "root.effective_at", "bucket": "month"}]}, "not_additive"),
+    ])
+    def test_invalid_context_or_aggregation_refuses_before_sql(change, code):
+        with pytest.raises(TraversalRefused) as failure:
+>           plan(Traversal.model_validate(question("action", **change)))
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E           pydantic_core._pydantic_core.ValidationError: 1 validation error for Traversal
+E           inventory_cost_context
+E             Extra inputs are not permitted [type=extra_forbidden, input_value={'action_id': 'action', 'mode': 'historical'}, input_type=dict]
+E               For further information visit https://errors.pydantic.dev/2.13/v/extra_forbidden
+
+packages/reality-core/tests/test_inventory_graph_reporting.py:63: ValidationError
+___________________ test_context_cannot_be_silently_ignored ____________________
+
+    def test_context_cannot_be_silently_ignored():
+        with pytest.raises(TraversalRefused, match="context"):
+>           plan(Traversal.model_validate(question("action", **{
+                "from": "order", "measures": ["stated_order_amount"],
+            })))
+E           pydantic_core._pydantic_core.ValidationError: 1 validation error for Traversal
+E           inventory_cost_context
+E             Extra inputs are not permitted [type=extra_forbidden, input_value={'action_id': 'action', 'mode': 'historical'}, input_type=dict]
+E               For further information visit https://errors.pydantic.dev/2.13/v/extra_forbidden
+
+packages/reality-core/tests/test_inventory_graph_reporting.py:69: ValidationError
+____________ test_missing_partial_foreign_and_corrupt_basis_refuse _____________
+
+session = <sqlalchemy.orm.session.Session object at 0x111931e80>
+business = Business(tenant=<reality.db.core.Tenant object at 0x111932060>, company=<reality.db.core.Party object at 0x1116b5a30>,...16b5880>, item=<reality.db.core.Item object at 0x111868320>, location=<reality.db.core.Location object at 0x1115aa5d0>)
+cost_owner = <reality.db.core.AppUser object at 0x111765280>
+
+    def test_missing_partial_foreign_and_corrupt_basis_refuse(session, business, cost_owner):
+        tenant = business.tenant.id
+        action, reviews = fixtures.fixtures.confirmed(session, business, cost_owner)
+        for _ in range(2):
+            with pytest.raises(TraversalRefused) as failure:
+>               run_traversal(session, tenant, Traversal.model_validate(question(action)))
+                                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E               pydantic_core._pydantic_core.ValidationError: 1 validation error for Traversal
+E               inventory_cost_context
+E                 Extra inputs are not permitted [type=extra_forbidden, input_value={'action_id': 'act_6edd03...', 'mode': 'historical'}, input_type=dict]
+E                   For further information visit https://errors.pydantic.dev/2.13/v/extra_forbidden
+
+packages/reality-core/tests/test_inventory_graph_reporting.py:79: ValidationError
+____________ test_saved_context_history_empty_filter_and_no_replay _____________
+
+session = <sqlalchemy.orm.session.Session object at 0x111a656a0>
+tenant_id = 'ten_08cd811e48'
+principal = Principal(user_id='usr_595e230c4c', is_platform_admin=False)
+arguments = {'operation': 'create', 'request_id': '2cfc4361-b074-446f-850d-e9ecb6c9348f', 'name': 'Inventory value', 'question': {...f8694c', 'mode': 'historical'}, 'measures': ['inventory_acquisition_value'], 'group_by': [{'field': 'root.currency'}]}}
+contract = <reality.services.analytics.reports.ReportKind object at 0x1116b7530>
+
+    def _change(session, tenant_id, principal, arguments, contract):
+        owner = require_author(session, tenant_id, principal)
+        try:
+>           request = contract.change_model.model_validate(arguments)
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E           pydantic_core._pydantic_core.ValidationError: 1 validation error for GraphReportChange
+E           question.inventory_cost_context
+E             Extra inputs are not permitted [type=extra_forbidden, input_value={'action_id': 'act_c855f8...', 'mode': 'historical'}, input_type=dict]
+E               For further information visit https://errors.pydantic.dev/2.13/v/extra_forbidden
+
+packages/reality-core/src/reality/services/analytics/reports.py:187: ValidationError
+
+The above exception was the direct cause of the following exception:
+
+session = <sqlalchemy.orm.session.Session object at 0x111a656a0>
+business = Business(tenant=<reality.db.core.Tenant object at 0x111767f80>, company=<reality.db.core.Party object at 0x1115f1400>,...1765790>, item=<reality.db.core.Item object at 0x111765820>, location=<reality.db.core.Location object at 0x111765e50>)
+cost_owner = <reality.db.core.AppUser object at 0x1115f0dd0>
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x1119b3e00>
+
+    def test_saved_context_history_empty_filter_and_no_replay(session, business, cost_owner, monkeypatch):
+        tenant = business.tenant.id
+        action, _ = fixtures.stored(session, business, cost_owner)
+        principal = Principal(cost_owner.id)
+>       saved = change_graph_report(session, tenant, principal, {
+            "operation": "create", "request_id": str(uuid4()), "name": "Inventory value",
+            "question": question(action),
+        })
+
+packages/reality-core/tests/test_inventory_graph_reporting.py:99: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+packages/reality-core/src/reality/services/analytics/reports.py:181: in change_graph_report
+    return _change(session, tenant_id, principal, arguments, kind("graph"))
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+session = <sqlalchemy.orm.session.Session object at 0x111a656a0>
+tenant_id = 'ten_08cd811e48'
+principal = Principal(user_id='usr_595e230c4c', is_platform_admin=False)
+arguments = {'operation': 'create', 'request_id': '2cfc4361-b074-446f-850d-e9ecb6c9348f', 'name': 'Inventory value', 'question': {...f8694c', 'mode': 'historical'}, 'measures': ['inventory_acquisition_value'], 'group_by': [{'field': 'root.currency'}]}}
+contract = <reality.services.analytics.reports.ReportKind object at 0x1116b7530>
+
+    def _change(session, tenant_id, principal, arguments, contract):
+        owner = require_author(session, tenant_id, principal)
+        try:
+            request = contract.change_model.model_validate(arguments)
+        except ValidationError as error:
+>           raise AnalyticsError(str(error)) from error
+E           reality.services.analytics.errors.AnalyticsError: 1 validation error for GraphReportChange
+E           question.inventory_cost_context
+E             Extra inputs are not permitted [type=extra_forbidden, input_value={'action_id': 'act_c855f8...', 'mode': 'historical'}, input_type=dict]
+E               For further information visit https://errors.pydantic.dev/2.13/v/extra_forbidden
+
+packages/reality-core/src/reality/services/analytics/reports.py:189: AnalyticsError
+=========================== short test summary info ============================
+FAILED packages/reality-core/tests/test_inventory_graph_reporting.py::test_graph_tool_uses_exact_complete_basis
+FAILED packages/reality-core/tests/test_inventory_graph_reporting.py::test_invalid_context_or_aggregation_refuses_before_sql[change0-cost_context_required]
+FAILED packages/reality-core/tests/test_inventory_graph_reporting.py::test_invalid_context_or_aggregation_refuses_before_sql[change1-unit_required]
+FAILED packages/reality-core/tests/test_inventory_graph_reporting.py::test_invalid_context_or_aggregation_refuses_before_sql[change2-not_additive]
+FAILED packages/reality-core/tests/test_inventory_graph_reporting.py::test_context_cannot_be_silently_ignored
+FAILED packages/reality-core/tests/test_inventory_graph_reporting.py::test_missing_partial_foreign_and_corrupt_basis_refuse
+FAILED packages/reality-core/tests/test_inventory_graph_reporting.py::test_saved_context_history_empty_filter_and_no_replay
+7 failed in 5.47s

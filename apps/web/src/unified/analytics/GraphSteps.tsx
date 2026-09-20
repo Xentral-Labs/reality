@@ -1,3 +1,4 @@
+import { InventoryValuationSelector, InventoryValuationBasis } from "./InventoryValuation";
 import { catalogGroups } from "./catalog";
 import { openAnalysisChat } from "./chatHandoff";
 import "./AnalysisBuilder.css";
@@ -59,6 +60,10 @@ type Block = {
 };
 type Group = { field: string; label: string; bucket?: string };
 export type Plan = {
+  capturedCostContext?: GraphQuestion["captured_cost_context"];
+  companyCostContext?: GraphQuestion["company_cost_context"];
+  contributionCostContext?: GraphQuestion["contribution_cost_context"];
+  inventoryCostContext?: GraphQuestion["inventory_cost_context"];
   blocks: Block[];
   measures: string[];
   groups: Group[];
@@ -89,6 +94,11 @@ export function nextOrder(order: Plan["order"], by: string): Plan["order"] {
 type Refusal = { headline: string; detail: string };
 
 const REFUSALS: Record<string, string> = {
+  cost_basis_pending:
+    "New data arrived after this confirmation. Turn off the freshness requirement to inspect its historical values, or select a newly confirmed basis.",
+  cost_basis_unavailable: "The selected valuation is not fully available yet.",
+  cost_context_required: "Select a confirmed inventory valuation.",
+  cost_context_invalid: "This valuation belongs to a standalone inventory report.",
   fan_out: "Summing this here would multiply the total.",
   unit_mismatch: "These values are not measured in the same unit.",
   not_additive: "This number is a state, not a flow, so it does not add up over time.",
@@ -269,6 +279,12 @@ export function GraphSteps({
 export function question(plan: Plan): GraphQuestion {
   return {
     from: plan.blocks[0].node,
+    ...(plan.capturedCostContext ? { captured_cost_context: plan.capturedCostContext } : {}),
+    ...(plan.companyCostContext ? { company_cost_context: plan.companyCostContext } : {}),
+    ...(plan.contributionCostContext
+      ? { contribution_cost_context: plan.contributionCostContext }
+      : {}),
+    ...(plan.inventoryCostContext ? { inventory_cost_context: plan.inventoryCostContext } : {}),
     as: plan.blocks[0].alias,
     follow: plan.blocks.slice(1).map((block, index) => ({
       edge: block.edge!.key,
@@ -395,6 +411,10 @@ export function planOf(question: GraphQuestion, nodes: Record<string, GraphNode>
     });
   }
   return {
+    capturedCostContext: question.captured_cost_context,
+    companyCostContext: question.company_cost_context,
+    inventoryCostContext: question.inventory_cost_context,
+    contributionCostContext: question.contribution_cost_context,
     blocks,
     measures: [...(question.measures ?? [])],
     groups: (question.group_by ?? []).map((grouping) => ({
@@ -481,6 +501,36 @@ export function listColumns(node: GraphNode, alias = "o"): Group[] {
 
 /** A plan that lists the records of one node and nothing else. */
 export function listPlan(node: GraphNode): Plan {
+  if (node.key === "contribution_valuation")
+    return {
+      blocks: [{ alias: "o", node: node.key, filters: [] }],
+      measures: [
+        "contribution_db1",
+        "contribution_db2",
+        "contribution_db1_rate",
+        "contribution_db2_rate",
+        "contribution_db1_covered",
+        "contribution_db2_covered",
+        "contribution_db2_required",
+      ],
+      groups: ["currency", "base_unit"].map((key) => ({
+        field: `o.${key}`,
+        label: node.properties.find((p) => p.key === key)?.label ?? key,
+      })),
+      limit: 50,
+    };
+  if (node.key === "inventory_valuation")
+    return {
+      blocks: [{ alias: "o", node: node.key, filters: [] }],
+      measures: ["inventory_acquisition_value"],
+      groups: [
+        {
+          field: "o.currency",
+          label: node.properties.find((p) => p.key === "currency")?.label ?? t("Currency"),
+        },
+      ],
+      limit: 50,
+    };
   return {
     blocks: [{ alias: "o", node: node.key, filters: [] }],
     measures: [],
@@ -564,7 +614,14 @@ function Builder({
     }
     if (!planOf(value.question, nodes))
       setNotice(t("This query uses expert clauses. Its full definition is preserved."));
-    if (value.editor?.reason) setNotice(value.editor.reason);
+    if (
+      value.editor?.reason &&
+      !value.question.captured_cost_context &&
+      !value.question.company_cost_context &&
+      !value.question.inventory_cost_context &&
+      !value.question.contribution_cost_context
+    )
+      setNotice(value.editor.reason);
   };
   const fail = (error: unknown, id: number) => {
     if (
@@ -576,6 +633,19 @@ function Builder({
   const execute = async (value: GraphQuestion, keepText = false) => {
     const { id, signal } = start();
     setCanonical(value);
+    if (
+      (value.from === "inventory_valuation" &&
+        !value.inventory_cost_context &&
+        !value.captured_cost_context &&
+        !value.company_cost_context) ||
+      (value.from === "contribution_valuation" &&
+        !value.contribution_cost_context &&
+        !value.captured_cost_context &&
+        !value.company_cost_context)
+    ) {
+      setBusy(false);
+      return;
+    }
     try {
       receive(await graphApi.ask(tenant, value, signal), id, keepText);
     } catch (error) {
@@ -736,6 +806,77 @@ function Builder({
           ) : (
             <Toolbar catalog={catalog} nodes={nodes} plan={plan} change={change} />
           )}
+          {shownPlan.blocks[0].node === "contribution_valuation" && (
+            <InventoryValuationSelector
+              key={`${tenant}:contribution`}
+              contribution
+              tenant={tenant}
+              context={shownPlan.contributionCostContext}
+              capturedContext={shownPlan.capturedCostContext}
+              companyContext={shownPlan.companyCostContext}
+              disabled={controlsLocked}
+              select={(context) =>
+                change({
+                  ...shownPlan,
+                  contributionCostContext: context,
+                  capturedCostContext: undefined,
+                  companyCostContext: undefined,
+                })
+              }
+              selectCaptured={(context) =>
+                change({
+                  ...shownPlan,
+                  capturedCostContext: context,
+                  contributionCostContext: undefined,
+                  companyCostContext: undefined,
+                })
+              }
+              selectCompany={(context) =>
+                change({
+                  ...shownPlan,
+                  companyCostContext: context,
+                  contributionCostContext: undefined,
+                  capturedCostContext: undefined,
+                })
+              }
+            />
+          )}
+          {shownPlan.blocks[0].node === "inventory_valuation" && (
+            <InventoryValuationSelector
+              key={tenant}
+              tenant={tenant}
+              context={shownPlan.inventoryCostContext}
+              capturedContext={shownPlan.capturedCostContext}
+              companyContext={shownPlan.companyCostContext}
+              disabled={controlsLocked}
+              select={(context) =>
+                change({
+                  ...shownPlan,
+                  inventoryCostContext: context
+                    ? { action_id: context.action_id, mode: "historical" }
+                    : undefined,
+                  capturedCostContext: undefined,
+                  companyCostContext: undefined,
+                })
+              }
+              selectCaptured={(context) =>
+                change({
+                  ...shownPlan,
+                  capturedCostContext: context,
+                  inventoryCostContext: undefined,
+                  companyCostContext: undefined,
+                })
+              }
+              selectCompany={(context) =>
+                change({
+                  ...shownPlan,
+                  companyCostContext: context,
+                  inventoryCostContext: undefined,
+                  capturedCostContext: undefined,
+                })
+              }
+            />
+          )}
         </section>
         <div className="flex flex-wrap items-center justify-between gap-2">
           <RegisterHeader title="Analysis views" placement="local">
@@ -783,6 +924,9 @@ function Builder({
         >
           {tab === "result" && (
             <>
+              {answer?.cost_basis && !busy && !draft && (
+                <InventoryValuationBasis tenant={tenant} basis={answer.cost_basis} />
+              )}
               <div className="analysis-metrics">
                 <div>
                   <span>{t("Returned rows")}</span>
@@ -828,77 +972,90 @@ function Builder({
               change={controlsLocked ? undefined : change}
             />
           )}
-          {tab === "cypher" && (
-            <div className="analysis-expert">
-              <div className="analysis-editor-heading">
-                <span>{t("Generated from the interpreted question")}</span>
-                <button
-                  className="br-btn br-btn-primary"
-                  disabled={busy || !path.trim()}
-                  onClick={() => void executePath()}
-                >
-                  {t("Execute query")}
-                </button>
-              </div>
-              <textarea
-                aria-label={t("Cypher query")}
-                className="analysis-code"
-                value={path}
-                spellCheck={false}
-                onChange={(event) => {
-                  setPath(event.target.value);
-                  editDraft();
-                }}
-              />
-              <details>
-                <summary>{t("Query parameters")}</summary>
+          {tab === "cypher" &&
+            ["inventory_valuation", "contribution_valuation"].includes(
+              shownPlan.blocks[0].node,
+            ) && (
+              <p className="analysis-notice">
+                {t(
+                  "Use the valuation selector and report controls. The text editor cannot preserve this valuation basis.",
+                )}
+              </p>
+            )}
+          {tab === "cypher" &&
+            !["inventory_valuation", "contribution_valuation"].includes(
+              shownPlan.blocks[0].node,
+            ) && (
+              <div className="analysis-expert">
+                <div className="analysis-editor-heading">
+                  <span>{t("Generated from the interpreted question")}</span>
+                  <button
+                    className="br-btn br-btn-primary"
+                    disabled={busy || !path.trim()}
+                    onClick={() => void executePath()}
+                  >
+                    {t("Execute query")}
+                  </button>
+                </div>
                 <textarea
-                  aria-label={t("Query parameters")}
-                  className="analysis-code analysis-parameters"
-                  value={parameters}
+                  aria-label={t("Cypher query")}
+                  className="analysis-code"
+                  value={path}
                   spellCheck={false}
                   onChange={(event) => {
-                    setParameters(event.target.value);
+                    setPath(event.target.value);
                     editDraft();
                   }}
                 />
-              </details>
-              <p>
-                {t(
-                  "Expert mode: edits remain in the query and may not translate fully back into the sentence. Only declared read queries are supported.",
-                )}
-              </p>
-              {!path && canonical && (
-                <button
-                  className="br-btn"
-                  disabled={busy}
-                  onClick={async () => {
-                    const id = generation.current;
-                    setBusy(true);
-                    setRefusal(null);
-                    try {
-                      const editor = await graphApi.format(
-                        tenant,
-                        canonical,
-                        controller.current?.signal,
-                      );
-                      if (id === generation.current) {
-                        setPath(editor.path ?? "");
-                        setParameters(JSON.stringify(editor.parameters, null, 2));
-                        if (editor.reason) setNotice(editor.reason);
+                <details>
+                  <summary>{t("Query parameters")}</summary>
+                  <textarea
+                    aria-label={t("Query parameters")}
+                    className="analysis-code analysis-parameters"
+                    value={parameters}
+                    spellCheck={false}
+                    onChange={(event) => {
+                      setParameters(event.target.value);
+                      editDraft();
+                    }}
+                  />
+                </details>
+                <p>
+                  {t(
+                    "Expert mode: edits remain in the query and may not translate fully back into the sentence. Only declared read queries are supported.",
+                  )}
+                </p>
+                {!path && canonical && (
+                  <button
+                    className="br-btn"
+                    disabled={busy}
+                    onClick={async () => {
+                      const id = generation.current;
+                      setBusy(true);
+                      setRefusal(null);
+                      try {
+                        const editor = await graphApi.format(
+                          tenant,
+                          canonical,
+                          controller.current?.signal,
+                        );
+                        if (id === generation.current) {
+                          setPath(editor.path ?? "");
+                          setParameters(JSON.stringify(editor.parameters, null, 2));
+                          if (editor.reason) setNotice(editor.reason);
+                        }
+                      } catch (error) {
+                        fail(error, id);
+                      } finally {
+                        if (id === generation.current) setBusy(false);
                       }
-                    } catch (error) {
-                      fail(error, id);
-                    } finally {
-                      if (id === generation.current) setBusy(false);
-                    }
-                  }}
-                >
-                  {t("Generate query")}
-                </button>
-              )}
-            </div>
-          )}
+                    }}
+                  >
+                    {t("Generate query")}
+                  </button>
+                )}
+              </div>
+            )}
           {tab !== "result" && refusal && (
             <div className="analysis-notice" role="alert">
               <strong>{refusal.headline}</strong>
@@ -1871,7 +2028,13 @@ function Result({
   if (!answer)
     return (
       <div className="erp-empty text-center text-sm text-fg-muted">
-        {busy ? t("Reading data…") : t("Choose at least one number or one axis.")}
+        {busy
+          ? t("Reading data…")
+          : plan.blocks[0].node === "contribution_valuation" && !plan.contributionCostContext
+            ? t("Select a confirmed contribution valuation.")
+            : plan.blocks[0].node === "inventory_valuation" && !plan.inventoryCostContext
+              ? t("Select a confirmed inventory valuation.")
+              : t("Choose at least one number or one axis.")}
       </div>
     );
 

@@ -1,0 +1,30 @@
+{
+  "containers": [
+    {
+      "name": "/reality-costing-234-worker",
+      "image": "sha256:742f40ea20b9ff2ff31db5458d127452988a2164df9e17441e191f3b72252193",
+      "nano_cpus": 2000000000,
+      "memory_bytes": 4294967296,
+      "memory_with_swap_bytes": 4294967296
+    },
+    {
+      "name": "/reality-costing-234-worker-full",
+      "image": "sha256:f1d0fbcd7eb59ef4f85c3b110871b13f441135cd7cb18e7d7d266b49d19a836a",
+      "nano_cpus": 2000000000,
+      "memory_bytes": 2147483648,
+      "memory_with_swap_bytes": 2147483648
+    },
+    {
+      "name": "/reality-costing-234-worker-small",
+      "image": "sha256:f1d0fbcd7eb59ef4f85c3b110871b13f441135cd7cb18e7d7d266b49d19a836a",
+      "nano_cpus": 2000000000,
+      "memory_bytes": 2147483648,
+      "memory_with_swap_bytes": 2147483648
+    }
+  ],
+  "reference_host_qualified": false,
+  "notes": [
+    "Combined active full-run caps: four CPU, six GiB RAM, no swap. Docker VM shared, not dedicated reference host.",
+    "Costing tests and read-only diagnostic queries also ran on this host during the first cycle; results are exploratory."
+  ]
+}

@@ -1,0 +1,23 @@
+{
+  "packages/reality-core/src/reality/tools/costing.py": "de4332dc0ce85c7a69dcb960abf78616ffe1acb1a2d813618ff1b742dee652db",
+  "packages/reality-core/src/reality/db/costing.py": "e4d2e667bd5e9482b9142c5be1666a9afc4ea2c3ac750e7342327df74a48e96c",
+  "packages/reality-core/src/reality/db/inventory_costing.py": "119737bac1687ff7b6a3ac962e61d3a86ecd5709a3e11f85e348b932c4a4aad0",
+  "packages/reality-core/src/reality/db/contribution.py": "fe38cc7926f58c8e39be5efb88616a3c38f60245dfc8d0a9b1d3e96e820d61d4",
+  "packages/reality-core/src/reality/domain/costing.py": "227dd9e1ae32b3aa13b1c82dd35f2f0632c26a1b57d6f9b173a81798e3dcec04",
+  "packages/reality-core/src/reality/domain/inventory_costing.py": "78504111a30e5d3c981000a4acf7e149243b2376a1c83e116e12836af98606df",
+  "packages/reality-core/src/reality/domain/cost_query.py": "ab2b7dd112e51bbb05f675b051ec7fb8a4bcc182b05fd4593e3f5c4f60cf9f60",
+  "packages/reality-core/src/reality/domain/contribution.py": "bcb3946ebacf4610466505691ac95a0baa2560411f836d1c3749d2d173fac8db",
+  "packages/reality-core/src/reality/domain/cost_records.py": "f580408cf7d40b2e4e76cfa515c6d01e48ae14d9cfed3a65fd0873fb7503418a",
+  "packages/reality-core/src/reality/services/costing.py": "4167b3f37ff7dbd8bb69fc5f8c8446d600294fddc02befe8ec43d11634971867",
+  "packages/reality-core/src/reality/services/inventory_costing.py": "8ebdfa398c3d6ded4342261f0042db3c1059378de55ce7ccc09a803821e66c4f",
+  "packages/reality-core/src/reality/services/contribution_reviews.py": "8a3fa4e42ae263a1062530660367dddcc1c88bf85b77bd7614bfa6285b36d859",
+  "packages/reality-core/src/reality/services/cost_query.py": "491786525aa4a1af32fd03a4fabb7e5efe86f519b4453b3fd1a551bf8525c203",
+  "packages/reality-core/src/reality/services/selling_costs.py": "314851ab7fd7918cca6f5013886260cf06e29878243d58c707a29f527e217ed2",
+  "packages/reality-core/src/reality/services/contribution.py": "116cebb148c7cef3480857e09ac77c764d17f2e4b78152d44e43676eced757ca",
+  "packages/reality-core/src/reality/services/cost_records.py": "c93ef2383594600d31585e2d2542b9b457da1c63faf41d609239d4d5f2500b56",
+  "packages/reality-core/src/reality/cli/app.py": "dde99cdcbe39b1d7bd962d54bc2563c7a1871096cc2bf555f61d8218785e25cd",
+  "packages/reality-core/src/reality/tools/application.py": "15ce924cb3e51c69bd2a8d09d65f9a76c13b5d8f8e96d2b40f301a3d75587303",
+  "packages/reality-core/src/reality/mcp/catalog.py": "48f840082aa5cf2ee1a7f4fff320cba787172a863a5c3297329d50b20a403d6e",
+  "packages/reality-core/src/reality/web/api.py": "bc9dede25ca59a948bd47b069b7e8dae8cb6b2f164fe945cdb825e3a0e826efd",
+  "packages/reality-core/tests/test_cost_query.py": "1b2370ffa7e164389b98c7eda132c8dcc0204f92d128453d266d69fc71e30755"
+}

@@ -13,6 +13,14 @@ type Preferences = { language: Language; locale: DisplayLocale; timezone: string
 
 const dictionaries: Record<Exclude<Language, "en">, Record<string, string>> = {
   de: {
+    "Financial company generation": "Finanzielle Unternehmensberechnung",
+    "Select a financial company generation…": "Finanzielle Unternehmensberechnung auswählen …",
+    "Selected company generation is no longer current":
+      "Die ausgewählte Unternehmensberechnung ist nicht mehr aktuell",
+    "One fixed verified company generation over independent member reviews. Missing values remain outside final totals.":
+      "Eine feste, geprüfte Unternehmensberechnung auf Basis unabhängiger Einzelprüfungen. Fehlende Werte bleiben außerhalb endgültiger Summen.",
+    "New company data exists after this fixed calculation. Its values remain historical until a new generation is published.":
+      "Nach dieser festen Berechnung sind neue Unternehmensdaten eingegangen. Die Werte bleiben historisch, bis eine neue Berechnung veröffentlicht wird.",
     Navigate: "Navigieren",
     "Some results are unavailable.": "Einige Ergebnisse sind nicht verfügbar.",
     "Searching\u2026": "Suche läuft…",
@@ -623,9 +631,6 @@ const dictionaries: Record<Exclude<Language, "en">, Record<string, string>> = {
     "Advanced company settings": "Erweiterte Firmeneinstellungen",
     "AI credentials configured": "KI-Zugang eingerichtet",
     "AI credentials not configured": "KI-Zugang nicht eingerichtet",
-    "Anthropic API key (optional)": "Anthropic-API-Schlüssel (optional)",
-    "Optional. Enables AI chat for this company. The temporary installation removes the encrypted credential when you quit.":
-      "Optional. Aktiviert den KI-Chat für dieses Unternehmen. Die temporäre Installation entfernt den verschlüsselten Zugang beim Beenden.",
     "Appearance is saved in this browser. System follows your device.":
       "Die Darstellung wird in diesem Browser gespeichert. System folgt deiner Geräteeinstellung.",
     "Check saved preferences": "Gespeicherte Einstellungen prüfen",
@@ -1947,6 +1952,14 @@ const dictionaries: Record<Exclude<Language, "en">, Record<string, string>> = {
     "Fully Reserved": "Vollständig reserviert",
   },
   nl: {
+    "Financial company generation": "Financiële bedrijfsberekening",
+    "Select a financial company generation…": "Selecteer een financiële bedrijfsberekening…",
+    "Selected company generation is no longer current":
+      "De geselecteerde bedrijfsberekening is niet meer actueel",
+    "One fixed verified company generation over independent member reviews. Missing values remain outside final totals.":
+      "Eén vaste, geverifieerde bedrijfsberekening op basis van onafhankelijke deelbeoordelingen. Ontbrekende waarden blijven buiten definitieve totalen.",
+    "New company data exists after this fixed calculation. Its values remain historical until a new generation is published.":
+      "Na deze vaste berekening zijn nieuwe bedrijfsgegevens ontvangen. De waarden blijven historisch totdat een nieuwe berekening wordt gepubliceerd.",
     Navigate: "Navigeren",
     "Some results are unavailable.": "Sommige resultaten zijn niet beschikbaar.",
     "Searching\u2026": "Zoeken…",
@@ -2558,9 +2571,6 @@ const dictionaries: Record<Exclude<Language, "en">, Record<string, string>> = {
     "Advanced company settings": "Geavanceerde bedrijfsinstellingen",
     "AI credentials configured": "AI-inloggegevens ingesteld",
     "AI credentials not configured": "AI-inloggegevens niet ingesteld",
-    "Anthropic API key (optional)": "Anthropic API-sleutel (optioneel)",
-    "Optional. Enables AI chat for this company. The temporary installation removes the encrypted credential when you quit.":
-      "Optioneel. Schakelt AI-chat in voor dit bedrijf. De tijdelijke installatie verwijdert de versleutelde referentie bij afsluiten.",
     "Appearance is saved in this browser. System follows your device.":
       "De weergave wordt in deze browser opgeslagen. Systeem volgt je apparaatinstelling.",
     "Check saved preferences": "Opgeslagen voorkeuren controleren",
@@ -3578,6 +3588,14 @@ const dictionaries: Record<Exclude<Language, "en">, Record<string, string>> = {
     Customer: "Klant",
   },
   es: {
+    "Financial company generation": "Cálculo financiero de empresa",
+    "Select a financial company generation…": "Seleccionar un cálculo financiero de empresa…",
+    "Selected company generation is no longer current":
+      "El cálculo empresarial seleccionado ya no es actual",
+    "One fixed verified company generation over independent member reviews. Missing values remain outside final totals.":
+      "Un cálculo empresarial fijo y verificado basado en revisiones individuales independientes. Los valores ausentes quedan fuera de los totales finales.",
+    "New company data exists after this fixed calculation. Its values remain historical until a new generation is published.":
+      "Hay nuevos datos empresariales posteriores a este cálculo fijo. Sus valores siguen siendo históricos hasta que se publique un nuevo cálculo.",
     Navigate: "Navegar",
     "Some results are unavailable.": "Algunos resultados no están disponibles.",
     "Searching\u2026": "Buscando…",
@@ -4191,9 +4209,6 @@ const dictionaries: Record<Exclude<Language, "en">, Record<string, string>> = {
     "Advanced company settings": "Configuración avanzada de la empresa",
     "AI credentials configured": "Credenciales de IA configuradas",
     "AI credentials not configured": "Credenciales de IA sin configurar",
-    "Anthropic API key (optional)": "Clave API de Anthropic (opcional)",
-    "Optional. Enables AI chat for this company. The temporary installation removes the encrypted credential when you quit.":
-      "Opcional. Activa el chat con IA para esta empresa. La instalación temporal elimina la credencial cifrada al salir.",
     "Appearance is saved in this browser. System follows your device.":
       "La apariencia se guarda en este navegador. Sistema sigue la configuración del dispositivo.",
     "Check saved preferences": "Comprobar preferencias guardadas",
@@ -5270,6 +5285,82 @@ Object.assign(dictionaries.es, {
     "Los registros del mismo intervalo se combinan en un pulso por nivel.",
   "Scroll left for older history. Click a node to follow its connections.":
     "Desplázate a la izquierda para ver el historial anterior. Haz clic en un nodo para seguir sus conexiones.",
+});
+
+Object.assign(dictionaries.de, {
+  "Acquisition value": "Anschaffungswert",
+  "Calculated by the shared retained cost service; this view records no financial authority.":
+    "Vom gemeinsamen Kostenservice berechnet; diese Ansicht erfasst keine finanzielle Autorität.",
+  "Carrying value": "Buchwert",
+  "Consumed acquisition cost": "Verbrauchte Anschaffungskosten",
+  "Contribution explanation": "Deckungsbeitrag erklären",
+  "Contribution by invoice line": "Deckungsbeitrag je Rechnungsposition",
+  "Cost explanation": "Kostenerklärung",
+  DB1: "DB1 (Deckungsbeitrag 1)",
+  DB2: "DB2 (Deckungsbeitrag 2)",
+  "Exact retained value": "Exakter gespeicherter Wert",
+  "Inspect cost basis": "Kostengrundlage prüfen",
+  "Inventory cost explanation": "Bestandskosten erklären",
+  "Missing basis": "Fehlende Grundlage",
+  "Newer business evidence exists; current values remain unavailable until reviewed.":
+    "Neuere Geschäftsnachweise liegen vor; aktuelle Werte bleiben bis zur Prüfung unverfügbar.",
+  "No reviewed cost basis exists for this scope.":
+    "Für diesen Umfang liegt keine geprüfte Kostengrundlage vor.",
+  "Not evidenced": "Nicht nachgewiesen",
+  "Received net revenue": "Erhaltener Nettoerlös",
+  "Retained basis — not current": "Gespeicherte Grundlage – nicht aktuell",
+  "Reviewed selling costs": "Geprüfte Vertriebskosten",
+  "Unit cost": "Stückkosten",
+});
+Object.assign(dictionaries.nl, {
+  "Acquisition value": "Aanschaffingswaarde",
+  "Calculated by the shared retained cost service; this view records no financial authority.":
+    "Berekend door de gedeelde kostenservice; deze weergave legt geen financiële autoriteit vast.",
+  "Carrying value": "Boekwaarde",
+  "Consumed acquisition cost": "Verbruikte aanschaffingskosten",
+  "Contribution explanation": "Bijdrage verklaren",
+  "Contribution by invoice line": "Bijdrage per factuurregel",
+  "Cost explanation": "Kostenverklaring",
+  DB1: "DB1 (bijdragemarge 1)",
+  DB2: "DB2 (bijdragemarge 2)",
+  "Exact retained value": "Exact opgeslagen bedrag",
+  "Inspect cost basis": "Kostengrondslag inspecteren",
+  "Inventory cost explanation": "Voorraadkosten verklaren",
+  "Missing basis": "Ontbrekende grondslag",
+  "Newer business evidence exists; current values remain unavailable until reviewed.":
+    "Er is nieuwer bedrijfsbewijs; actuele waarden blijven onbeschikbaar tot beoordeling.",
+  "No reviewed cost basis exists for this scope.":
+    "Voor dit bereik bestaat geen beoordeelde kostengrondslag.",
+  "Not evidenced": "Niet onderbouwd",
+  "Received net revenue": "Ontvangen netto-omzet",
+  "Retained basis — not current": "Opgeslagen grondslag — niet actueel",
+  "Reviewed selling costs": "Beoordeelde verkoopkosten",
+  "Unit cost": "Eenheidskosten",
+});
+Object.assign(dictionaries.es, {
+  "Acquisition value": "Valor de adquisición",
+  "Calculated by the shared retained cost service; this view records no financial authority.":
+    "Calculado por el servicio compartido de costes; esta vista no registra autoridad financiera.",
+  "Carrying value": "Valor contable",
+  "Consumed acquisition cost": "Coste de adquisición consumido",
+  "Contribution explanation": "Explicación de contribución",
+  "Contribution by invoice line": "Contribución por línea de factura",
+  "Cost explanation": "Explicación de costes",
+  DB1: "DB1 (margen de contribución 1)",
+  DB2: "DB2 (margen de contribución 2)",
+  "Exact retained value": "Valor exacto conservado",
+  "Inspect cost basis": "Inspeccionar base de costes",
+  "Inventory cost explanation": "Explicación del coste de inventario",
+  "Missing basis": "Base ausente",
+  "Newer business evidence exists; current values remain unavailable until reviewed.":
+    "Existen evidencias empresariales más recientes; los valores actuales no estarán disponibles hasta su revisión.",
+  "No reviewed cost basis exists for this scope.":
+    "No existe una base de costes revisada para este alcance.",
+  "Not evidenced": "Sin evidencia",
+  "Received net revenue": "Ingreso neto recibido",
+  "Retained basis — not current": "Base conservada — no actual",
+  "Reviewed selling costs": "Costes de venta revisados",
+  "Unit cost": "Coste unitario",
 });
 
 Object.assign(dictionaries.de, {
@@ -11826,6 +11917,7 @@ Object.assign(dictionaries.de, {
   "Choose a text, Markdown, CSV or JSON file up to 64 KiB.":
     "Wähle eine Text-, Markdown-, CSV- oder JSON-Datei bis 64 KiB.",
   "Conversation history": "Chatverlauf",
+  "Chat history": "Chatverlauf",
   Dictate: "Diktieren",
   "Dictate using your browser's speech service": "Mit dem Sprachdienst deines Browsers diktieren",
   "Listening… Your words will appear in the draft.":
@@ -11852,6 +11944,7 @@ Object.assign(dictionaries.nl, {
   "Choose a text, Markdown, CSV or JSON file up to 64 KiB.":
     "Kies een tekst-, Markdown-, CSV- of JSON-bestand tot 64 KiB.",
   "Conversation history": "Gespreksgeschiedenis",
+  "Chat history": "Chatgeschiedenis",
   Dictate: "Dicteren",
   "Dictate using your browser's speech service": "Dicteren met de spraakdienst van je browser",
   "Listening… Your words will appear in the draft.":
@@ -11878,6 +11971,7 @@ Object.assign(dictionaries.es, {
   "Choose a text, Markdown, CSV or JSON file up to 64 KiB.":
     "Elige un archivo de texto, Markdown, CSV o JSON de hasta 64 KiB.",
   "Conversation history": "Historial de conversaciones",
+  "Chat history": "Historial",
   Dictate: "Dictar",
   "Dictate using your browser's speech service": "Dictar con el servicio de voz del navegador",
   "Listening… Your words will appear in the draft.":
@@ -15838,7 +15932,7 @@ Object.assign(dictionaries.es, {
 });
 
 /** Format exact decimal text without converting the received value to a float. */
-export function formatExactDecimal(value: string | number): string {
+export function formatExactDecimal(value: string | number, preserveTrailingZeros = false): string {
   const text = String(value);
   const match = /^(-?)(\d+)(?:\.(\d+))?$/.exec(text);
   if (!match) return text;
@@ -15848,7 +15942,7 @@ export function formatExactDecimal(value: string | number): string {
   const separator =
     new Intl.NumberFormat(active.locale).formatToParts(1.1).find((part) => part.type === "decimal")
       ?.value || ".";
-  const fraction = (match[3] || "").replace(/0+$/, "");
+  const fraction = preserveTrailingZeros ? match[3] || "" : (match[3] || "").replace(/0+$/, "");
   return match[1] + integer + (fraction ? separator + fraction : "");
 }
 
@@ -18179,4 +18273,199 @@ Object.assign(dictionaries.es, {
   "Search in": "Buscar en",
   "Filters the search above by record type.": "Filtra la búsqueda de arriba por tipo de registro.",
   "Type a name or number above to search.": "Escribe arriba un nombre o número para buscar.",
+});
+
+Object.assign(dictionaries.de, {
+  "Anthropic API key (optional)": "Anthropic-API-Schlüssel (optional)",
+  "Optional. Enables AI chat for this company. The temporary installation removes the encrypted credential when you quit.":
+    "Optional. Aktiviert den KI-Chat für diese Firma. Die temporäre Installation entfernt den verschlüsselten Zugangsschlüssel beim Beenden.",
+  "sk-ant-…": "sk-ant-…",
+  "Captured review selection": "Gespeicherte Prüfungsauswahl",
+  "Select a captured review selection…": "Gespeicherte Prüfungsauswahl wählen …",
+  "Selected captured report (outside this page)":
+    "Ausgewählter gespeicherter Bericht (außerhalb dieser Seite)",
+  Coverage: "Abdeckung",
+  "Calculation reference": "Berechnungsnachweis",
+  "Known subtotals from one fixed captured review selection. This is not a complete company valuation or financial approval.":
+    "Bekannte Zwischensummen aus einer festen gespeicherten Prüfungsauswahl. Dies ist weder eine vollständige Unternehmensbewertung noch eine finanzielle Freigabe.",
+  "Captured at": "Erfasst am",
+});
+Object.assign(dictionaries.nl, {
+  "Anthropic API key (optional)": "Anthropic-API-sleutel (optioneel)",
+  "Optional. Enables AI chat for this company. The temporary installation removes the encrypted credential when you quit.":
+    "Optioneel. Schakelt AI-chat in voor dit bedrijf. De tijdelijke installatie verwijdert de versleutelde referentie wanneer je afsluit.",
+  "sk-ant-…": "sk-ant-…",
+  "Captured review selection": "Vastgelegde beoordelingsselectie",
+  "Select a captured review selection…": "Selecteer een vastgelegde beoordelingsselectie…",
+  "Selected captured report (outside this page)":
+    "Geselecteerd vastgelegd rapport (buiten deze pagina)",
+  Coverage: "Dekking",
+  "Calculation reference": "Berekeningsreferentie",
+  "Known subtotals from one fixed captured review selection. This is not a complete company valuation or financial approval.":
+    "Bekende subtotalen uit één vaste vastgelegde beoordelingsselectie. Dit is geen volledige bedrijfswaardering of financiële goedkeuring.",
+  "Captured at": "Vastgelegd op",
+});
+Object.assign(dictionaries.es, {
+  "Anthropic API key (optional)": "Clave de API de Anthropic (opcional)",
+  "Optional. Enables AI chat for this company. The temporary installation removes the encrypted credential when you quit.":
+    "Opcional. Activa el chat de IA para esta empresa. La instalación temporal elimina la credencial cifrada al salir.",
+  "sk-ant-…": "sk-ant-…",
+  "Captured review selection": "Selección de revisión registrada",
+  "Select a captured review selection…": "Selecciona una revisión registrada…",
+  "Selected captured report (outside this page)":
+    "Informe registrado seleccionado (fuera de esta página)",
+  Coverage: "Cobertura",
+  "Calculation reference": "Referencia de cálculo",
+  "Known subtotals from one fixed captured review selection. This is not a complete company valuation or financial approval.":
+    "Subtotales conocidos de una selección fija de revisión registrada. Esto no es una valoración completa de la empresa ni una aprobación financiera.",
+  "Captured at": "Registrado el",
+});
+
+Object.assign(dictionaries.de, {
+  "Confirmed inventory valuation": "Bestätigte Lagerbewertung",
+  "Choose a confirmed historical valuation. Its availability is checked when the report runs.":
+    "Wähle eine bestätigte historische Bewertung. Beim Ausführen wird geprüft, ob sie verfügbar ist.",
+  "Valuation basis": "Bewertungsgrundlage",
+  "Select a confirmed valuation…": "Bestätigte Bewertung auswählen…",
+  "Selected valuation (outside this page)": "Ausgewählte Bewertung (auf einer anderen Seite)",
+  "Knowledge cutoff": "Wissensstand",
+  "No confirmed joint inventory valuations on this page.":
+    "Auf dieser Seite gibt es keine bestätigten gemeinsamen Lagerbewertungen.",
+  "Newest valuations": "Neueste Bewertungen",
+  "Older valuations": "Ältere Bewertungen",
+  "Clear valuation selection": "Bewertungsauswahl aufheben",
+  "Historical valuation basis": "Historische Bewertungsgrundlage",
+  "Valuation cutoff": "Bewertungsstichtag",
+  "Covered articles": "Vollständig bewertete Artikel",
+  "Acquisition value for the selected historical scope; no carrying value assessment.":
+    "Anschaffungskosten des ausgewählten historischen Bestands; ohne Niederstwertbewertung.",
+  "Valuation references": "Bewertungsnachweise",
+  "Calculation references": "Berechnungsnachweise",
+  "Economic owner": "Wirtschaftlicher Eigentümer",
+  "The selected valuation is not fully available yet.":
+    "Die ausgewählte Bewertung ist noch nicht vollständig verfügbar.",
+  "Select a confirmed inventory valuation.": "Wähle eine bestätigte Lagerbewertung aus.",
+  "This valuation belongs to a standalone inventory report.":
+    "Diese Bewertung gehört zu einem eigenständigen Lagerbericht.",
+  "Use the valuation selector and report controls. The text editor cannot preserve this valuation basis.":
+    "Nutze die Bewertungsauswahl und die Berichtssteuerung. Der Texteditor kann diese Bewertungsgrundlage nicht erhalten.",
+});
+Object.assign(dictionaries.nl, {
+  "Confirmed inventory valuation": "Bevestigde voorraadwaardering",
+  "Choose a confirmed historical valuation. Its availability is checked when the report runs.":
+    "Kies een bevestigde historische waardering. De beschikbaarheid wordt gecontroleerd wanneer het rapport wordt uitgevoerd.",
+  "Valuation basis": "Waarderingsgrondslag",
+  "Select a confirmed valuation…": "Selecteer een bevestigde waardering…",
+  "Selected valuation (outside this page)": "Geselecteerde waardering (op een andere pagina)",
+  "Knowledge cutoff": "Kennisstand",
+  "No confirmed joint inventory valuations on this page.":
+    "Geen bevestigde gezamenlijke voorraadwaarderingen op deze pagina.",
+  "Newest valuations": "Nieuwste waarderingen",
+  "Older valuations": "Oudere waarderingen",
+  "Clear valuation selection": "Waarderingsselectie wissen",
+  "Historical valuation basis": "Historische waarderingsgrondslag",
+  "Valuation cutoff": "Waarderingsdatum",
+  "Covered articles": "Volledig gewaardeerde artikelen",
+  "Acquisition value for the selected historical scope; no carrying value assessment.":
+    "Aanschafwaarde van de geselecteerde historische voorraad; zonder toets op lagere waarde.",
+  "Valuation references": "Waarderingsreferenties",
+  "Calculation references": "Berekeningsreferenties",
+  "Economic owner": "Economische eigenaar",
+  "The selected valuation is not fully available yet.":
+    "De geselecteerde waardering is nog niet volledig beschikbaar.",
+  "Select a confirmed inventory valuation.": "Selecteer een bevestigde voorraadwaardering.",
+  "This valuation belongs to a standalone inventory report.":
+    "Deze waardering hoort bij een afzonderlijk voorraadrapport.",
+  "Use the valuation selector and report controls. The text editor cannot preserve this valuation basis.":
+    "Gebruik de waarderingsselectie en rapportinstellingen. De teksteditor kan deze waarderingsgrondslag niet behouden.",
+});
+Object.assign(dictionaries.es, {
+  "Confirmed inventory valuation": "Valoración de existencias confirmada",
+  "Choose a confirmed historical valuation. Its availability is checked when the report runs.":
+    "Elige una valoración histórica confirmada. Su disponibilidad se comprueba al ejecutar el informe.",
+  "Valuation basis": "Base de valoración",
+  "Select a confirmed valuation…": "Selecciona una valoración confirmada…",
+  "Selected valuation (outside this page)": "Valoración seleccionada (en otra página)",
+  "Knowledge cutoff": "Fecha de conocimiento",
+  "No confirmed joint inventory valuations on this page.":
+    "No hay valoraciones conjuntas de existencias confirmadas en esta página.",
+  "Newest valuations": "Valoraciones más recientes",
+  "Older valuations": "Valoraciones anteriores",
+  "Clear valuation selection": "Quitar selección de valoración",
+  "Historical valuation basis": "Base de valoración histórica",
+  "Valuation cutoff": "Fecha de valoración",
+  "Covered articles": "Artículos valorados completamente",
+  "Acquisition value for the selected historical scope; no carrying value assessment.":
+    "Coste de adquisición de las existencias históricas seleccionadas; sin evaluación de deterioro.",
+  "Valuation references": "Referencias de valoración",
+  "Calculation references": "Referencias de cálculo",
+  "Economic owner": "Propietario económico",
+  "The selected valuation is not fully available yet.":
+    "La valoración seleccionada aún no está completamente disponible.",
+  "Select a confirmed inventory valuation.": "Selecciona una valoración de existencias confirmada.",
+  "This valuation belongs to a standalone inventory report.":
+    "Esta valoración corresponde a un informe de existencias independiente.",
+  "Use the valuation selector and report controls. The text editor cannot preserve this valuation basis.":
+    "Utiliza el selector de valoración y los controles del informe. El editor de texto no puede conservar esta base de valoración.",
+});
+
+Object.assign(dictionaries.de, { "Valuation reviews": "Bewertungsprüfungen" });
+Object.assign(dictionaries.nl, { "Valuation reviews": "Waarderingsbeoordelingen" });
+Object.assign(dictionaries.es, { "Valuation reviews": "Revisiones de valoración" });
+
+Object.assign(dictionaries.de, {
+  "Confirmed contribution": "Bestätigter Deckungsbeitrag",
+  "Select a confirmed contribution valuation.": "Wähle eine bestätigte Deckungsbeitragsbewertung.",
+  "No confirmed joint contribution valuations on this page.":
+    "Keine gemeinsam bestätigten Deckungsbeitragsbewertungen auf dieser Seite.",
+  "Loaded positions": "Geladene Positionen",
+  positions: "Positionen",
+  "Historical contribution for the selected positions. Missing costs leave final margins unknown; coverage counts show which positions are complete.":
+    "Historischer Deckungsbeitrag der ausgewählten Positionen. Bei fehlenden Kosten bleiben endgültige Margen offen; die Abdeckung zeigt vollständig bewertete Positionen.",
+});
+Object.assign(dictionaries.nl, {
+  "Confirmed contribution": "Bevestigde dekkingsbijdrage",
+  "Select a confirmed contribution valuation.":
+    "Selecteer een bevestigde waardering van de dekkingsbijdrage.",
+  "No confirmed joint contribution valuations on this page.":
+    "Geen gezamenlijk bevestigde waarderingen van de dekkingsbijdrage op deze pagina.",
+  "Loaded positions": "Geladen posities",
+  positions: "posities",
+  "Historical contribution for the selected positions. Missing costs leave final margins unknown; coverage counts show which positions are complete.":
+    "Historische dekkingsbijdrage voor de geselecteerde posities. Bij ontbrekende kosten blijven definitieve marges leeg; de dekking toont welke posities volledig zijn gewaardeerd.",
+});
+Object.assign(dictionaries.es, {
+  "Confirmed contribution": "Margen de contribución confirmado",
+  "Select a confirmed contribution valuation.":
+    "Selecciona una valoración confirmada del margen de contribución.",
+  "No confirmed joint contribution valuations on this page.":
+    "No hay valoraciones conjuntas confirmadas del margen de contribución en esta página.",
+  "Loaded positions": "Posiciones cargadas",
+  positions: "posiciones",
+  "Historical contribution for the selected positions. Missing costs leave final margins unknown; coverage counts show which positions are complete.":
+    "Margen histórico de las posiciones seleccionadas. Si faltan costes, los márgenes definitivos quedan vacíos; la cobertura muestra qué posiciones están completas.",
+});
+
+Object.assign(dictionaries.de, {
+  "Require unchanged data since confirmation":
+    "Nur unveränderte Daten seit der Bestätigung zulassen",
+  "No newer company data at read time. The selected scope and valuation cutoff remain unchanged.":
+    "Beim Abruf lagen keine neueren Unternehmensdaten vor. Auswahl und Bewertungsstichtag bleiben unverändert.",
+  "New data arrived after this confirmation. Turn off the freshness requirement to inspect its historical values, or select a newly confirmed basis.":
+    "Seit dieser Bestätigung sind neue Daten eingegangen. Deaktiviere die Aktualitätsprüfung, um die historischen Werte anzusehen, oder wähle eine neu bestätigte Grundlage.",
+});
+Object.assign(dictionaries.nl, {
+  "Require unchanged data since confirmation":
+    "Alleen ongewijzigde gegevens sinds bevestiging toestaan",
+  "No newer company data at read time. The selected scope and valuation cutoff remain unchanged.":
+    "Bij het ophalen waren er geen nieuwere bedrijfsgegevens. De selectie en waarderingsdatum blijven ongewijzigd.",
+  "New data arrived after this confirmation. Turn off the freshness requirement to inspect its historical values, or select a newly confirmed basis.":
+    "Sinds deze bevestiging zijn nieuwe gegevens ontvangen. Schakel de actualiteitscontrole uit om de historische waarden te bekijken, of kies een nieuw bevestigde basis.",
+});
+Object.assign(dictionaries.es, {
+  "Require unchanged data since confirmation": "Exigir datos sin cambios desde la confirmación",
+  "No newer company data at read time. The selected scope and valuation cutoff remain unchanged.":
+    "No había datos empresariales más recientes al consultar. La selección y la fecha de valoración no cambian.",
+  "New data arrived after this confirmation. Turn off the freshness requirement to inspect its historical values, or select a newly confirmed basis.":
+    "Se recibieron datos nuevos después de esta confirmación. Desactiva el control de actualidad para consultar los valores históricos o selecciona una base recién confirmada.",
 });

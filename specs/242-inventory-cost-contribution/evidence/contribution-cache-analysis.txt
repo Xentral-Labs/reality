@@ -1,0 +1,14 @@
+Scope T141-T144: FR-007/011/012/014/016/018/019/022 mapped to planned tests.
+Constitution/spec/plan/tasks/model review: no critical findings, no unclarified product
+scope; two disposable cache tables refine the explicitly approved production model.
+Received revenue remains linked, derived goods/selling values are replayable observations.
+No separate pointer is needed for one algorithm and one atomic bounded generation.
+No global policy identity is fabricated across item-specific policy revisions.
+Only generation/snapshot rows are locked through both SQL aggregate statements.
+Every query includes tenant scope; absent/foreign selections remain not found.
+Nullable known selling subtotals preserve no-review versus confirmed-zero semantics.
+Cache eviction follows generation-before-snapshot lock ordering, as readers do.
+Shared worker admission/execution revalidates active owner, exact action and deadline.
+No financial approval, auto-schedule activation, graph/UI or current result is added.
+Reviewer checklists remain 40 checked / 6 open under prior staged continuation.
+No extension hooks file present. Full scale and broader release gates remain open.

@@ -1,0 +1,15 @@
+{
+  "packages/reality-core/src/reality/db/inventory_costing.py": "119737bac1687ff7b6a3ac962e61d3a86ecd5709a3e11f85e348b932c4a4aad0",
+  "packages/reality-core/src/reality/domain/costing.py": "b5f98662c586859f8fcfe53d102f2d101a0d04756affdf3573419b8f2ea64ff5",
+  "packages/reality-core/src/reality/domain/inventory_costing.py": "78504111a30e5d3c981000a4acf7e149243b2376a1c83e116e12836af98606df",
+  "packages/reality-core/src/reality/services/costing.py": "68499c482840bb8ff7d23cc6aca07695fc3fcf7828ac24827531835276730d83",
+  "packages/reality-core/src/reality/services/inventory_costing.py": "8ebdfa398c3d6ded4342261f0042db3c1059378de55ce7ccc09a803821e66c4f",
+  "packages/reality-core/src/reality/tools/costing.py": "c274b166c1dc973c1e623dbe4e858fce7fc6186a81b51c3334c1c73841cfae31",
+  "packages/reality-core/migrations/versions/0072_inventory_costing.py": "d747fa3a3d5961c2a247530eb5339070cd2c544e8ea70e1a6d1ec6725240f77b",
+  "packages/reality-core/tests/test_inventory_costing_services.py": "02b0966c490d6e92b5fab8022a84944b2a2e654292efd40547b5f3eec3a2f79b",
+  "packages/reality-core/tests/test_inventory_costing_migration.py": "a8c0d9ff3d671c0a9758801caa4bc7d7860c4efecb983453700d3f754d0f1eb6",
+  "packages/reality-core/config/command_catalog.yaml": "46d6e52fa732884fa76081e60a72bd5d84ed27be2c8619b7b20d1ae590535cdf",
+  "packages/reality-core/config/data_model.yaml": "4f0ae42622033e7f32300cdbd4ed3165569299701574d925248a0b5ffe260f9b",
+  "packages/reality-core/config/tenant_isolation_catalog.yaml": "8a1bb0a1bfd890bdee686855de5268f2d7fd864795c77a080f24240aad1e440a",
+  "packages/reality-core/config/resource_catalog.yaml": "2ddfa7f7825445288784e7a41524f9b7f6aa3e19c13fa9602704a856ec3a9689"
+}

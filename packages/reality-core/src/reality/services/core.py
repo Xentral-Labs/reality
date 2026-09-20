@@ -5274,7 +5274,7 @@ def correct_movement(
                     if open_quantity(session, tenant_id, commitment.id) == ZERO
                     else "open"
                 )
-        emit_business_event(
+        correction_event = emit_business_event(
             session,
             tenant_id,
             "movement.corrected",
@@ -5291,6 +5291,10 @@ def correct_movement(
             action_id=action_id,
             correlation_id=action_id,
         )
+        from reality.services.costing import _capture_correction
+
+        session.flush()
+        _capture_correction(session, tenant_id, correction, correction_event)
         if _commit:
             session.commit()
         return MovementCorrectionResult(
@@ -6948,7 +6952,12 @@ def create_manual_document_with_lines(
             unit_price=row["unit_price"],
             gross_amount=row["gross_amount"],
             promised_at=row["promised_at"],
-            payload="{}",
+            payload=json.dumps(
+                {"reality_finance_v1": row["reality_finance_v1"]},
+                sort_keys=True,
+            )
+            if row["reality_finance_v1"] is not None
+            else "{}",
             unit=row["unit"],
             requested_at=utc_datetime(row["promised_at"]),
             line_type=row["line_type"],
@@ -7385,6 +7394,9 @@ def _normalize_manual_line_input(
         billed_document_line_id = _validate_billed_document_line(
             session, tenant_id, document_type, billed_document_line_id
         )
+    finance_detail = raw.get("reality_finance_v1")
+    if finance_detail is not None and not isinstance(finance_detail, dict):
+        raise InvalidOperation("Received finance line detail must be an object.")
     return {
         "id": str(raw.get("id") or "").strip() or None,
         "source_line_id": str(raw.get("source_line_id") or index).strip(),
@@ -7403,10 +7415,12 @@ def _normalize_manual_line_input(
             str(raw.get("price_list_entry_id") or "").strip() or None
         ),
         "billed_document_line_id": billed_document_line_id,
+        "reality_finance_v1": finance_detail,
     }
 
 
 def _stored_manual_line(line: DocumentLine) -> dict[str, Any]:
+    payload = json.loads(line.payload or "{}")
     return {
         "id": line.id,
         "source_line_id": line.source_line_id or "",
@@ -7421,6 +7435,7 @@ def _stored_manual_line(line: DocumentLine) -> dict[str, Any]:
         "line_type": line.line_type,
         "price_list_entry_id": line.price_list_entry_id,
         "billed_document_line_id": line.billed_document_line_id,
+        "reality_finance_v1": payload.get("reality_finance_v1"),
     }
 
 
@@ -7686,6 +7701,22 @@ def correct_manual_document_lines(
         raise Conflict("The document lines are stale. Reload before saving.")
 
     removed_ids = set(stored_by_id) - set(requested_ids)
+    if removed_ids:
+        from reality.db.cost_census import CostCompanyCensusLine
+
+        retained = session.scalar(
+            select(CostCompanyCensusLine.id)
+            .where(
+                CostCompanyCensusLine.tenant_id == tenant_id,
+                CostCompanyCensusLine.document_line_id.in_(removed_ids),
+            )
+            .limit(1)
+        )
+        if retained is not None:
+            raise InvalidOperation(
+                "Retained census evidence cannot be removed. Correct the existing "
+                "line or add replacement evidence."
+            )
     changed_rows: list[tuple[DocumentLine, dict[str, Any], dict[str, Any]]] = []
     for row in existing_requested:
         before = _stored_manual_line(stored_by_id[row["id"]])
@@ -7704,6 +7735,10 @@ def correct_manual_document_lines(
             "Economic line evidence cannot change after Reality was derived. "
             "Use the owning Reality correction workflow."
         )
+
+    from reality.services.costing import _protect_document
+
+    _protect_document(session, tenant_id, document.id)
 
     try:
         audit = {"added": [], "removed": [], "changed": []}
@@ -7753,7 +7788,12 @@ def correct_manual_document_lines(
                 unit_price=row["unit_price"],
                 gross_amount=row["gross_amount"],
                 promised_at=row["promised_at"],
-                payload="{}",
+                payload=json.dumps(
+                    {"reality_finance_v1": row["reality_finance_v1"]},
+                    sort_keys=True,
+                )
+                if row["reality_finance_v1"] is not None
+                else "{}",
                 unit=row["unit"],
                 requested_at=utc_datetime(row["promised_at"]),
                 line_type=row["line_type"],
@@ -7875,6 +7915,11 @@ def correct_manual_document(
     changed_fields = [
         field for field, value in changes.items() if getattr(document, field) != value
     ]
+    if changed_fields:
+        from reality.services.costing import _protect_document
+
+        _protect_document(session, tenant_id, document.id)
+
     for field, value in changes.items():
         setattr(document, field, value)
     if changed_fields:

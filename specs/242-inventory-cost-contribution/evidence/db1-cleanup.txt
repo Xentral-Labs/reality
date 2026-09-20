@@ -1,0 +1,5 @@
+Full backend session completed with exit 0: 3180 passed, 9 skipped, 1 warning.
+Owned disposable PostgreSQL container: reality-costing-234-reviewed-db1
+Container ID: c0bacb9d67626c0a7c6443bd97df1c17392489299b76e525fa44a9ff31c04e48
+docker rm --force returned that exact container ID with exit 0.
+No existing company database was used or removed.

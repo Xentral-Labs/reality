@@ -1,0 +1,48 @@
+✔ late responses cannot overwrite a newer sentence or update an unmounted company (834.344875ms)
+✔ expert drafts survive tab changes and failed execution and block saving (263.307084ms)
+✔ expert execution passes the full checked definition to saving (175.452125ms)
+✔ catalog previews keep false values false and translate boolean labels (35.614542ms)
+✔ explicitly reopening the same report reloads it while catalog navigation retains the draft (18.591875ms)
+✔ catalog groups preserve objects and search finds both credit kinds (6.026125ms)
+✔ catalog search includes model synonyms, category and field labels (0.348125ms)
+✔ analysis context is tenant-bound, bounded and lossless (2.351292ms)
+✔ templates open an unsaved question without calling a mutation (143.689625ms)
+✔ analysis proposal URLs retain the handoff only in the analysis workspace and clear on company switch (77.908459ms)
+✔ proposal handoff opens the exact checked definition without approving or saving (86.126875ms)
+✔ global chat preserves typed text, isolates context and restores it after a failed send (275.889958ms)
+✔ snapshot input is visible and is not an activity period (65.186959ms)
+✔ editing a snapshot replaces its date and preserves unrelated conditions (2.956667ms)
+✔ sentence groups describe business dimensions without changing identity axes (0.658708ms)
+✔ a period is one line to read and one line to remove (12.709083ms)
+✔ taking a step away takes away what pointed at it (1.119042ms)
+✔ the stack compiles to the question the server checks (0.556958ms)
+✔ one button carries all three states a sort can be in (0.252625ms)
+✔ an axis can be sorted by the name the answer gives it (0.228583ms)
+✔ a sort on a removed axis goes with it (0.172166ms)
+✔ a time axis is bucketed, because one row per instant is a list not an answer (0.164125ms)
+✔ a saved question reopens as the steps that built it (2.905625ms)
+✔ a reopened period is one line again, not two halves (38.906875ms)
+✔ a question naming a record this model does not have reopens as nothing (0.4195ms)
+✔ a second number stands beside the first, not in place of it (0.628834ms)
+✔ taking the last number away puts the records back (0.481542ms)
+✔ a reopened period reads as the day it was picked, not the day before (1.129459ms)
+✔ a connection is offered from everywhere the question has reached (0.428584ms)
+✔ a branching hop says where it starts, and an ordinary one does not (0.278583ms)
+✔ a period reads the same before and after it is saved (0.488ms)
+✔ an axis a number may not be summed across arrives as soon as it is reachable (0.23325ms)
+✔ advanced questions stay in expert mode instead of dropping their clauses (0.16225ms)
+✔ connection diagram uses the declared origin for branches (0.3765ms)
+✔ catalog field and relation transitions produce ordinary unsaved questions (0.341292ms)
+✔ omitted server defaults do not reverse a relationship's multiplicity (0.131959ms)
+✔ the last 30 days covers exactly thirty local calendar dates (0.281458ms)
+✔ question period recognizes only a bounded range on one declared time field (0.441333ms)
+✔ removing the question period preserves other filters and query dimensions (0.369625ms)
+✔ calendar date periods preserve wall-clock days rather than UTC instants (0.117625ms)
+ℹ tests 40
+ℹ suites 0
+ℹ pass 40
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 2211.368917

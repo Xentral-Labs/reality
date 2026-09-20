@@ -1,0 +1,16 @@
+
+==================================== ERRORS ====================================
+_________________ ERROR collecting tests/test_selling_costs.py _________________
+ImportError while importing test module '/Users/benediktsauter/GitHub/reality/packages/reality-core/tests/test_selling_costs.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+/opt/homebrew/Cellar/python@3.12/3.12.4/Frameworks/Python.framework/Versions/3.12/lib/python3.12/importlib/__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests/test_selling_costs.py:5: in <module>
+    from reality.domain.costing import SellingAssign
+E   ImportError: cannot import name 'SellingAssign' from 'reality.domain.costing' (/Users/benediktsauter/GitHub/reality/packages/reality-core/src/reality/domain/costing.py)
+=========================== short test summary info ============================
+ERROR tests/test_selling_costs.py
+!!!!!!!!!!!!!!!!!!!! Interrupted: 1 error during collection !!!!!!!!!!!!!!!!!!!!
+1 error in 0.16s

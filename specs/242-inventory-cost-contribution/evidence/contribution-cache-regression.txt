@@ -1,0 +1,19 @@
+........................................................................ [ 34%]
+............................................................ss.......... [ 68%]
+.................F.................................................      [100%]
+=================================== FAILURES ===================================
+_____ test_production_tenant_isolation_catalog_is_complete_and_resolvable ______
+
+    def test_production_tenant_isolation_catalog_is_complete_and_resolvable():
+        catalog = catalogs.load_tenant_isolation_catalog()
+    
+        assert len(catalog.families) == 30
+>       assert len(catalog.discovered_operations) == 511
+E       AssertionError: assert 513 == 511
+E        +  where 513 = len(('projection:commitment_register', 'projection:document_register', 'projection:exceptions', 'projection:fulfillment_blockers', 'projection:fulfillment_queue', 'projection:inventory', ...))
+E        +    where ('projection:commitment_register', 'projection:document_register', 'projection:exceptions', 'projection:fulfillment_blockers', 'projection:fulfillment_queue', 'projection:inventory', ...) = TenantIsolationCatalog(version=1, discovered_operations=('projection:commitment_register', 'projection:document_regist...reign_manifest_are_bound', 'assertion': 'boundary', 'operations': ['reality.services.costing:execute_cost_change']}]})).discovered_operations
+
+tests/test_application_catalog.py:423: AssertionError
+=========================== short test summary info ============================
+FAILED tests/test_application_catalog.py::test_production_tenant_isolation_catalog_is_complete_and_resolvable
+1 failed, 208 passed, 2 skipped in 175.16s (0:02:55)

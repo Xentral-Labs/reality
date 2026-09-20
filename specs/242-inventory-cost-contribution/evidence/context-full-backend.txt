@@ -1,0 +1,5 @@
+Full collected baseline: 3,229 cases in two disjoint partitions.
+Serial demo/setup: 84 passed in 357.92 seconds.
+Parallel remainder: 3,135 passed, 9 skipped, 1 failed, 1 existing warning in 589.17 seconds.
+Failure: test_repository_spec_policy_passes observed a concurrently added desktop test before its coverage matrix entry was added. Current standalone spec policy passes.
+This is not a clean full-suite pass on an unchanged checkout; see context-concurrent-changes.json and the final focused current-checkout verification.
