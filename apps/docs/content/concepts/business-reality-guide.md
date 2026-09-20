@@ -48,8 +48,9 @@ explains how to begin alongside an existing ERP.
    order is complete, then compare your answer.
 6. [Facts and Open Questions](./business-reality-guide/06-facts-and-open-questions): Where does
    information belong if you would previously have added a custom ERP field?
-
-7. [Summary](./business-reality-guide/07-model-at-a-glance): The shared business journal for people,
+7. [Inventory Cost, DB1 and DB2](./business-reality-guide/08-inventory-cost-and-contribution): How
+   does received cost evidence become a reviewed, explainable contribution margin?
+8. [Summary](./business-reality-guide/07-model-at-a-glance): The shared business journal for people,
    agents and workflows.
 
 Read in order the first time. Collapsible technical sections are optional. Afterwards,

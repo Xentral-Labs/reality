@@ -49,8 +49,9 @@ parallelen Einstieg neben deinem ERP gibt es den [Pilotleitfaden](../integration
    selbst, ob Hubers Auftrag abgeschlossen ist, und vergleiche deine Antwort.
 6. [Facts und offene Fragen](./business-reality-guide/06-facts-and-open-questions): Wo gehört eine
    Zusatzinformation hin, für die du im ERP ein Freifeld angelegt hättest?
-
-7. [Zusammenfassung](./business-reality-guide/07-model-at-a-glance): Das gemeinsame Geschäftsjournal
+7. [Bestandskosten, DB1 und DB2](./business-reality-guide/08-inventory-cost-and-contribution): Wie
+   werden aus empfangenen Kostenbelegen geprüfte und erklärbare Deckungsbeiträge?
+8. [Zusammenfassung](./business-reality-guide/07-model-at-a-glance): Das gemeinsame Geschäftsjournal
    für Menschen, Agenten und Workflows.
 
 Lies beim ersten Durchgang in dieser Reihenfolge. Aufklappbare technische Vertiefungen kannst du
