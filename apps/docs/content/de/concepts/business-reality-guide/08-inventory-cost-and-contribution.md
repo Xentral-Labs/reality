@@ -53,14 +53,14 @@ Services.
 
 ## Welche Werte in die Rechnung eingehen
 
-| Stufe | Was Reality verwendet | Was Reality bewusst nicht ableitet |
-|---|---|---|
-| Erlös | Empfangener Nettoerlös der unterstützten Kundenrechnungsposition und ihrer zugeordneten erfüllten Menge | Erlös aus Zahlung, Brutto minus selbst rekonstruierter Steuer oder fremde Auftragssumme |
-| Warenkosten | Tatsächlich verbrauchte Kosten aus geprüften Wareneingangs- oder Anfangsbestands-Schichten nach bestätigtem FIFO oder spezifischer Identifikation | Aktueller Einkaufspreis, Listenpreis, Lagerort oder erfundener Durchschnitt |
-| Anschaffungsnebenkosten | Zugeordnete Eingangsfracht, Zoll, sonstige Anschaffungskosten und belegte nicht abzugsfähige Vorsteuer | Abzugsfähige Vorsteuer oder nicht zugeordnete Lieferantenbelastung |
-| Einkaufsminderungen | Ausdrücklich belegte und zugeordnete Lieferantenminderungen | Zahlungsdifferenz als Skonto ohne Beleg |
-| Direkte Vertriebskosten | Direkt dieser Verkaufsposition zugeordnete Kostenbelege | Implizite Zuordnung über Betrag, Kunde oder Datum |
-| Zugeordnete Vertriebskosten | Kostenbeleg, der mit einer ausdrücklich gewählten unterstützten Verteilung zugeordnet wurde | Automatisch gewählter Verteilungsschlüssel oder pauschale Gemeinkostenumlage |
+| Stufe                       | Was Reality verwendet                                                                                                                             | Was Reality bewusst nicht ableitet                                                      |
+| --------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------- |
+| Erlös                       | Empfangener Nettoerlös der unterstützten Kundenrechnungsposition und ihrer zugeordneten erfüllten Menge                                           | Erlös aus Zahlung, Brutto minus selbst rekonstruierter Steuer oder fremde Auftragssumme |
+| Warenkosten                 | Tatsächlich verbrauchte Kosten aus geprüften Wareneingangs- oder Anfangsbestands-Schichten nach bestätigtem FIFO oder spezifischer Identifikation | Aktueller Einkaufspreis, Listenpreis, Lagerort oder erfundener Durchschnitt             |
+| Anschaffungsnebenkosten     | Zugeordnete Eingangsfracht, Zoll, sonstige Anschaffungskosten und belegte nicht abzugsfähige Vorsteuer                                            | Abzugsfähige Vorsteuer oder nicht zugeordnete Lieferantenbelastung                      |
+| Einkaufsminderungen         | Ausdrücklich belegte und zugeordnete Lieferantenminderungen                                                                                       | Zahlungsdifferenz als Skonto ohne Beleg                                                 |
+| Direkte Vertriebskosten     | Direkt dieser Verkaufsposition zugeordnete Kostenbelege                                                                                           | Implizite Zuordnung über Betrag, Kunde oder Datum                                       |
+| Zugeordnete Vertriebskosten | Kostenbeleg, der mit einer ausdrücklich gewählten unterstützten Verteilung zugeordnet wurde                                                       | Automatisch gewählter Verteilungsschlüssel oder pauschale Gemeinkostenumlage            |
 
 Anschaffungs- und Vertriebskosten sind getrennte Familien. Derselbe empfangene Kostenbestandteil
 darf nicht in DB1 und erneut in DB2 eingehen. Geprüfte Vertriebskosten-Kategorien sind
@@ -71,24 +71,23 @@ sonstige Vertriebskosten.
 
 Das kanonische vollständige Beispiel umfasst 60 erfüllte und fakturierte Stück:
 
-| Deckungsbeitragsbrücke | Betrag |
-|---|---:|
-| Empfangener Nettoerlös | 1.200 EUR |
-| Verbrauchte Anschaffungskosten | − 630 EUR |
-| **DB1** | **570 EUR** |
-| Direkte Vertriebskosten | − 90 EUR |
-| Zugeordnete Vertriebskosten | − 24 EUR |
-| **DB2** | **456 EUR** |
-| **DB2-Quote** | **38 %** |
+| Deckungsbeitragsbrücke         |      Betrag |
+| ------------------------------ | ----------: |
+| Empfangener Nettoerlös         |   1.200 EUR |
+| Verbrauchte Anschaffungskosten |   − 630 EUR |
+| **DB1**                        | **570 EUR** |
+| Direkte Vertriebskosten        |    − 90 EUR |
+| Zugeordnete Vertriebskosten    |    − 24 EUR |
+| **DB2**                        | **456 EUR** |
+| **DB2-Quote**                  |    **38 %** |
 
 Die 630 EUR sind nicht `60 × heutiger Einkaufspreis`. Es sind die exakt verbrauchten Kosten aus den
 geprüften Bestandsschichten. Die 90 EUR und 24 EUR bleiben getrennt sichtbar, damit prüfbar ist,
 welche Vertriebskosten direkt und welche verteilt zugeordnet wurden.
 
-Ist das Vertriebskosten-Review unvollständig, kann derselbe Fall weiterhin einen belastbaren DB1
-von 570 EUR zeigen, während DB2 unbekannt bleibt. Wurden alle sieben Kategorien ausdrücklich mit
-null oder „nicht anwendbar“ geprüft, darf DB2 gleich DB1 sein. Eine leere Prüfliste bedeutet nie
-null.
+Ist das Vertriebskosten-Review unvollständig, kann derselbe Fall weiterhin einen belastbaren DB1 von
+570 EUR zeigen, während DB2 unbekannt bleibt. Wurden alle sieben Kategorien ausdrücklich mit null
+oder „nicht anwendbar“ geprüft, darf DB2 gleich DB1 sein. Eine leere Prüfliste bedeutet nie null.
 
 ## Wann das Ergebnis berechnet wird
 
@@ -104,20 +103,20 @@ Zwei Zeitpunkte sind immer wichtig:
   zu diesem Zeitpunkt gehören in die Antwort.
 - **Wissensstand:** welche Belege und Reviews beim Versiegeln der Grundlage vorlagen.
 
-Eine spätere Rechnung, Zuordnung, Bewegungskorrektur oder relevante Prüfung überschreibt keine
-alte Antwort. Sie erfordert ein neues Review oder eine neue Generation. Eine historische Auswahl
-stellt die frühere Grundlage exakt wieder her.
+Eine spätere Rechnung, Zuordnung, Bewegungskorrektur oder relevante Prüfung überschreibt keine alte
+Antwort. Sie erfordert ein neues Review oder eine neue Generation. Eine historische Auswahl stellt
+die frühere Grundlage exakt wieder her.
 
 ## Erst den Status verstehen, dann den Betrag lesen
 
-| Status | Geschäftliche Bedeutung | Richtiger Umgang |
-|---|---|---|
-| **Bereit / aktuell** | Mitgliedschaft und erforderliche Reviews sind für die Stichtage vollständig | Ergebnis für den angegebenen Umfang verwenden |
-| **Historisch** | Ein bestimmtes früheres Review oder eine Generation wurde gewählt | Erklärt den damaligen Wissensstand, nicht den heutigen Wert |
-| **Veraltet** | Spätere relevante Evidenz liegt vor | Grundlage prüfen und ein aktualisiertes Review bestätigen |
-| **Ausstehend** | Eine angeforderte Generation ist noch nicht geprüft und veröffentlicht | Auf den gemeinsamen Worker warten; alten Wert nicht als aktuell ausgeben |
-| **Unbekannt / unvollständig** | Beleg, Zuordnung oder Review fehlt | Benannte Lücke schließen; niemals als null interpretieren |
-| **Keine Aktivität** | Der vollständig geprüfte Umfang enthält keinen passenden Vorgang | Geprüfter leerer Umfang, klar getrennt von fehlender Evidenz |
+| Status                        | Geschäftliche Bedeutung                                                     | Richtiger Umgang                                                         |
+| ----------------------------- | --------------------------------------------------------------------------- | ------------------------------------------------------------------------ |
+| **Bereit / aktuell**          | Mitgliedschaft und erforderliche Reviews sind für die Stichtage vollständig | Ergebnis für den angegebenen Umfang verwenden                            |
+| **Historisch**                | Ein bestimmtes früheres Review oder eine Generation wurde gewählt           | Erklärt den damaligen Wissensstand, nicht den heutigen Wert              |
+| **Veraltet**                  | Spätere relevante Evidenz liegt vor                                         | Grundlage prüfen und ein aktualisiertes Review bestätigen                |
+| **Ausstehend**                | Eine angeforderte Generation ist noch nicht geprüft und veröffentlicht      | Auf den gemeinsamen Worker warten; alten Wert nicht als aktuell ausgeben |
+| **Unbekannt / unvollständig** | Beleg, Zuordnung oder Review fehlt                                          | Benannte Lücke schließen; niemals als null interpretieren                |
+| **Keine Aktivität**           | Der vollständig geprüfte Umfang enthält keinen passenden Vorgang            | Geprüfter leerer Umfang, klar getrennt von fehlender Evidenz             |
 
 Summen bewahren ihre Abdeckung. Ein Bericht kann den bekannten DB1 der abgedeckten Positionen zeigen
 und getrennt nennen, wie viele Positionen insgesamt erforderlich sind. Er darf nie unvollständige
@@ -129,8 +128,8 @@ Kostensummen von allen Erlösen abziehen und das Ergebnis als vollständig bezei
    gelangen über die normalen Quellen und Anwendungen in Reality. Quellwerte bleiben unverändert.
 2. **Kostenbestandteile zuordnen.** Ein Owner sieht eine Vorschau und bestätigt, wohin ein
    empfangener Anschaffungs- oder Vertriebskostenbestandteil gehört. Restbeträge bleiben sichtbar.
-3. **Wareneingang prüfen.** Alle Anschaffungskosten-Kategorien erhalten eine begründete
-   Beurteilung. Null und „nicht anwendbar“ sind ausdrückliche Entscheidungen; Fehlen ist keine.
+3. **Wareneingang prüfen.** Alle Anschaffungskosten-Kategorien erhalten eine begründete Beurteilung.
+   Null und „nicht anwendbar“ sind ausdrückliche Entscheidungen; Fehlen ist keine.
 4. **Bestand prüfen.** Der Owner bestätigt wirtschaftliches Eigentum, Währung, Basiseinheit,
    Stichtag, vollständige Bewegungshistorie und FIFO oder spezifische Identifikation. Reality prüft,
    dass im begrenzten Umfang nichts ausgelassen wurde.
@@ -177,8 +176,8 @@ Für ein Management-Review helfen diese Fragen in genau dieser Reihenfolge:
   bis jede Vertriebskosten-Kategorie belegt, ausdrücklich null oder nicht anwendbar ist.
 - **„Die Rechnung existiert, also reicht der Erlös.“** Nein. Finaler DB1 braucht außerdem eine
   kompatible erfüllte Menge und geprüfte verbrauchte Anschaffungskosten.
-- **„Nimm einfach den neuesten Lieferantenpreis.“** Nein. Reality folgt den bestätigten
-  verbrauchten Bestandsschichten.
+- **„Nimm einfach den neuesten Lieferantenpreis.“** Nein. Reality folgt den bestätigten verbrauchten
+  Bestandsschichten.
 - **„Eine Zahlung beweist den Erlös für DB1.“** Nein. Zahlung und Zuordnung beantworten Cash- und
   Forderungsfragen; die unterstützte Rechnungsposition liefert den kaufmännischen Erlös.
 - **„Der Lagerort zeigt, wem der Bestand gehört.“** Nein. Physischer Besitz und wirtschaftliches
@@ -191,8 +190,8 @@ Für ein Management-Review helfen diese Fragen in genau dieser Reihenfolge:
 ## Das Kontrollprinzip
 
 Reality trennt, was eine Quelle ausgesagt hat, was ein Owner entschieden hat und was das System
-daraus ableitet. Deshalb lässt sich der Deckungsbeitrag wiederholen, hinterfragen und erklären,
-ohne die Berechnung zu einer zweiten finanziellen Autorität zu machen.
+daraus ableitet. Deshalb lässt sich der Deckungsbeitrag wiederholen, hinterfragen und erklären, ohne
+die Berechnung zu einer zweiten finanziellen Autorität zu machen.
 
 Weiter: [Zusammenfassung](./07-model-at-a-glance). Die exakten Datensätze und Werkzeuge findest du
 unter [Tools nutzen](../../tool-usage/) und in der [Tabellenübersicht](../../reference/table-map).
