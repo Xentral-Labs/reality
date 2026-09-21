@@ -42,6 +42,7 @@ def test_playground_and_main_migration_heads_converge(
             inspect(engine).get_table_names()
         )
         assert "return_announcement" in inspect(engine).get_table_names()
+        assert "supply_assignment" in inspect(engine).get_table_names()
         assert "sandbox_kind" in {
             column["name"] for column in inspect(engine).get_columns("playground_run")
         }

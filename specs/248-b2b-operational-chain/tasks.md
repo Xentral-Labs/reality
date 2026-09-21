@@ -16,17 +16,17 @@ English. Tests precede the implementation they prove.
 
 ## Phase 1: Specification and Design Gates
 
-- [ ] T001 Confirm the product/domain review accepts scope, priorities, non-goals, assumptions, and zero clarification markers in `specs/248-b2b-operational-chain/spec.md`
-- [ ] T002 Confirm every Constitution Check row is PASS and the SupplyAssignment schema proof is accepted in `specs/248-b2b-operational-chain/plan.md` and `specs/248-b2b-operational-chain/data-model.md`
-- [ ] T003 Run `$speckit-analyze`, resolve every CRITICAL/HIGH finding in `specs/248-b2b-operational-chain/`, and record the clean result in `specs/248-b2b-operational-chain/checklists/requirements.md`
+- [x] T001 Confirm the product/domain review accepts scope, priorities, non-goals, assumptions, and zero clarification markers in `specs/248-b2b-operational-chain/spec.md`
+- [x] T002 Confirm every Constitution Check row is PASS and the SupplyAssignment schema proof is accepted in `specs/248-b2b-operational-chain/plan.md` and `specs/248-b2b-operational-chain/data-model.md`
+- [x] T003 Run `$speckit-analyze`, resolve every CRITICAL/HIGH finding in `specs/248-b2b-operational-chain/`, and record the clean result in `specs/248-b2b-operational-chain/checklists/requirements.md`
 
 ## Phase 2: Foundational Failing Proof and Schema
 
 - [ ] T004 [P] [FR-019] [DR-005] [DR-006] Add cross-tenant not-found, preview/confirmation, replay, and Web/tool/MCP/CLI parity contract tests for the planned mutations in `packages/reality-core/tests/test_b2b_operational_chain_contracts.py` and `packages/reality-core/tests/test_cli.py`
 - [ ] T005 [P] [FR-020] Add failing shared projection-readiness and last-completed-result tests in `packages/reality-core/tests/test_projection_readiness.py`
 - [ ] T006 [P] [DR-008] Add failing model-shape, composite-tenant-FK, append-only, and forbidden-duplicate-link assertions in `packages/reality-core/tests/test_reference_integrity.py` and `packages/reality-core/tests/test_schema_constraints.py`
-- [ ] T007 [DR-003] [DR-005] [DR-008] Add migration 0090 with the tenant-scoped append-only SupplyAssignment table and downgrade in `packages/reality-core/migrations/versions/0090_supply_assignments.py`
-- [ ] T008 [DR-003] [DR-005] [DR-008] Add the SupplyAssignment ORM mapping and constraints without document/line duplication in `packages/reality-core/src/reality/db/core.py`
+- [x] T007 [DR-003] [DR-005] [DR-008] Add migration 0090 with the tenant-scoped append-only SupplyAssignment table and downgrade in `packages/reality-core/migrations/versions/0090_supply_assignments.py`
+- [x] T008 [DR-003] [DR-005] [DR-008] Add the SupplyAssignment ORM mapping and constraints without document/line duplication in `packages/reality-core/src/reality/db/core.py`
 - [ ] T009 [P] [FR-019] Register shared permission vocabulary and German labels for planned actions/reads in `packages/reality-core/config/resource_catalog.yaml` and `packages/reality-core/src/reality/catalogs.py`
 - [ ] T010 [FR-020] Implement the shared projection-due/readiness helper through the existing job registry in `packages/reality-core/src/reality/services/projections.py` and `packages/reality-core/src/reality/services/company_setup.py`
 
@@ -62,10 +62,10 @@ and the uninvoiced remainder.
 partially receive/cancel supply, and reconcile assigned, unassigned, received, open, and shortage
 quantities across purchasing, sales, and inventory.
 
-- [ ] T022 [P] [US2] [FR-007] [FR-008] [DR-003] Add failing domain tests for customer-demand, stock, unassigned, and reversal semantics in `packages/reality-core/tests/test_supply_assignments.py`
+- [x] T022 [P] [US2] [FR-007] [FR-008] [DR-003] Add failing domain tests for customer-demand, stock, unassigned, and reversal semantics in `packages/reality-core/tests/test_supply_assignments.py`
 - [ ] T023 [P] [US2] [FR-009] [DR-005] Add failing concurrency, over-allocation, compatibility, and tenant-isolation service tests in `packages/reality-core/tests/test_supply_assignments.py`
 - [ ] T024 [P] [US2] [FR-010] Add failing three-view reconciliation and no-double-counting tests in `packages/reality-core/tests/test_supply_coverage.py`
-- [ ] T025 [US2] [FR-007] [FR-008] [FR-009] [DR-003] Implement pure effective-assignment/reversal and bound rules in `packages/reality-core/src/reality/domain/supply.py`
+- [x] T025 [US2] [FR-007] [FR-008] [FR-009] [DR-003] Implement pure effective-assignment/reversal and bound rules in `packages/reality-core/src/reality/domain/supply.py`
 - [ ] T026 [US2] [FR-007] [FR-009] [FR-019] [DR-005] Implement tenant-scoped preview/confirm/reverse services with locks and idempotency in `packages/reality-core/src/reality/services/supply_assignments.py`
 - [ ] T027 [US2] [FR-008] [FR-010] Implement purchasing/customer coverage observations separately from receipt/reservation/fulfilment in `packages/reality-core/src/reality/services/supply_assignments.py` and `packages/reality-core/src/reality/services/delivery_reads.py`
 - [ ] T028 [P] [US2] [FR-007] [FR-010] [FR-019] [DR-006] Expose assignment and coverage through shared tools, MCP, API and CLI with adapter tests in `packages/reality-core/src/reality/tools/application.py`, `packages/reality-core/src/reality/mcp/catalog.py`, `packages/reality-core/src/reality/web/api.py`, `packages/reality-core/src/reality/cli/app.py`, and `packages/reality-core/tests/test_b2b_operational_chain_contracts.py`

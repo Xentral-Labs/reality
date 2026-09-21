@@ -1608,3 +1608,9 @@ in test_captured_report.py. Cache publication grants no company financial approv
 | Canonical profile-v9 examples, deterministic settlement and discovery | 247 FR-013–015 | `packages/reality-core/tests/scenarios/test_international_demo.py`; `packages/reality-core/tests/test_demo_costing_profile.py`; `packages/reality-core/tests/test_company_setup_initialization.py` |
 | Additive tenant-scoped schema and account-role migration | 247 DR-003–005 | `packages/reality-core/tests/test_migrations.py`; `packages/reality-core/tests/finance/test_adjustments.py` |
 | Confirmed web dunning action and localized manual fee entry | 247 FR-001–004/FR-012 | `apps/web/scripts/commercial-edge-workflows.test.mjs`; frontend build and i18n audit |
+
+### Spec 248 explainable B2B operational chain
+
+| Verification family | Specification | Tests |
+|---|---|---|
+| Append-only customer-demand and stock-replenishment supply assignments, exact reconciliation, replay and tenant isolation | 248 FR-007–010/FR-019/DR-003/DR-005/DR-008 | `packages/reality-core/tests/test_supply_assignments.py`; `packages/reality-core/tests/test_migrations.py` |
