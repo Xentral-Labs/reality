@@ -9555,6 +9555,8 @@ def allocate_credit_note(
     credit_note_id: str,
     invoice_id: str,
     amount,
+    *,
+    _commit: bool = True,
 ) -> SettlementAllocation:
     """Net a posted credit note against an invoice the customer still owes.
 
@@ -9575,6 +9577,7 @@ def allocate_credit_note(
         _settlement_control_entry(session, tenant_id, note.id).id,
         _settlement_control_entry(session, tenant_id, invoice.id).id,
         amount,
+        _commit=_commit,
     )
 
 
@@ -10088,6 +10091,7 @@ def post_supplier_credit_note(
     credit_note_id: str,
     *,
     effective_at: datetime | None = None,
+    _commit: bool = True,
 ) -> list[LedgerEntry]:
     """Book a credit a supplier sent as the exact reverse of its invoice.
 
@@ -10119,6 +10123,7 @@ def post_supplier_credit_note(
         currency=document.currency,
         source_record_id=document.source_record_id,
         effective_at=effective_at,
+        _commit=_commit,
     )
 
 
@@ -10230,6 +10235,8 @@ def allocate_supplier_credit_note(
     credit_note_id: str,
     invoice_id: str,
     amount,
+    *,
+    _commit: bool = True,
 ) -> SettlementAllocation:
     """Net a posted supplier credit against an invoice the company still owes.
 
@@ -10253,6 +10260,7 @@ def allocate_supplier_credit_note(
         _settlement_control_entry(session, tenant_id, note.id).id,
         _settlement_control_entry(session, tenant_id, invoice.id).id,
         amount,
+        _commit=_commit,
     )
 
 
