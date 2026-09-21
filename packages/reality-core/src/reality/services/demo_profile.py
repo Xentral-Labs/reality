@@ -22,6 +22,7 @@ from reality.demo.international import (
     SUPPLIERS,
     WEEKLY_CUSTOMERS,
     WEEKLY_SETTLEMENT,
+    item_number,
 )
 from reality.integrations.demo_data import demo_invoice_number
 from reality.services import core
@@ -115,6 +116,7 @@ def seed_profile(
 ) -> dict:
     tenant = run.tenant_id
     parties, items, locations, cases = {}, {}, {}, {}
+    sales_order_sequence = 0
     vocabulary = [("company", "Harbor Supply", "company")]
     vocabulary += [(f"C{i}", name, "customer") for i, name in enumerate(CUSTOMERS, 1)]
     vocabulary += [(f"S{i}", name, "supplier") for i, name in enumerate(SUPPLIERS, 1)]
@@ -145,7 +147,7 @@ def seed_profile(
         items[key] = core.create_item(
             session,
             tenant,
-            key,
+            item_number(key),
             name,
             unit,
             source_system="demo_profile",
@@ -194,6 +196,12 @@ def seed_profile(
         due: datetime | None = None,
         purchase: bool = False,
     ):
+        nonlocal sales_order_sequence
+        if purchase:
+            document_number = key
+        else:
+            sales_order_sequence += 1
+            document_number = f"SO-{sales_order_sequence:03}"
         unit = next(row[2] for row in ITEMS if row[0] == item)
         lines = [
             {
@@ -206,7 +214,7 @@ def seed_profile(
             }
         ]
         payload = {
-            "number": key,
+            "number": document_number,
             "date": date.isoformat(),
             "due_at": due.isoformat() if due else None,
             "currency": currency,
@@ -224,7 +232,7 @@ def seed_profile(
             session,
             tenant,
             "purchase_order" if purchase else "sales_order",
-            key,
+            document_number,
             party,
             lines,
             gross,
@@ -257,6 +265,7 @@ def seed_profile(
             "document_id": doc.id,
             "line_id": doc_lines[0].id,
             "commitment_id": commitment.id,
+            "number": document_number,
         }, lines
 
     def movement(
@@ -411,7 +420,7 @@ def seed_profile(
             ]
             src = source(
                 "supplier_invoice",
-                f"SINV-{key}",
+                f"SINV-{index:03}",
                 {
                     "date": invoice_date.isoformat(),
                     "lines": invoice_lines,
@@ -426,7 +435,7 @@ def seed_profile(
                 session,
                 tenant,
                 "supplier_invoice",
-                f"SINV-{key}",
+                f"SINV-{index:03}",
                 parties[SUPPLIER_ITEMS[item]],
                 invoice_lines,
                 invoiced,
@@ -449,7 +458,7 @@ def seed_profile(
                 tenant,
                 supplier_invoice.id,
                 paid,
-                payment_number=f"SPAY-{key}",
+                payment_number=f"SPAY-{index:03}",
                 effective_at=anchor - timedelta(days=5),
                 _commit=False,
             )
@@ -484,13 +493,13 @@ def seed_profile(
         supplier_discount = cases["S02"]
         discount_payment_source = source(
             "supplier_payment",
-            "PAY-SUPPLIER-DISCOUNT",
+            "SPAY-002",
             {
-                "number": "PAY-SUPPLIER-DISCOUNT",
+                "number": "SPAY-002",
                 "date": (anchor - timedelta(days=5)).isoformat(),
                 "amount": "49",
                 "currency": "EUR",
-                "invoice_external_reference": "SINV-S02",
+                "invoice_external_reference": "SINV-002",
             },
         )
         core.post_supplier_payment(
@@ -498,7 +507,7 @@ def seed_profile(
             tenant,
             supplier_discount["supplier_invoice_id"],
             "49",
-            payment_number="PAY-SUPPLIER-DISCOUNT",
+            payment_number="SPAY-002",
             source_record_id=discount_payment_source.id,
             effective_at=anchor - timedelta(days=5),
             _commit=False,
@@ -514,20 +523,20 @@ def seed_profile(
         )
         cases["supplier_discount"] = {
             "invoice_id": supplier_discount["supplier_invoice_id"],
-            "payment_number": "PAY-SUPPLIER-DISCOUNT",
+            "payment_number": "SPAY-002",
             "adjustment_document_id": discount_adjustment["document_id"],
         }
 
         supplier_overpayment = cases["S05"]
         supplier_overpayment_source = source(
             "supplier_payment",
-            "PAY-SUPPLIER-OVERPAYMENT",
+            "SPAY-005",
             {
-                "number": "PAY-SUPPLIER-OVERPAYMENT",
+                "number": "SPAY-005",
                 "date": (anchor - timedelta(days=5)).isoformat(),
                 "amount": "60",
                 "currency": "EUR",
-                "invoice_external_reference": "SINV-S05",
+                "invoice_external_reference": "SINV-005",
             },
         )
         supplier_payment_entries = core.record_supplier_payment(
@@ -535,7 +544,7 @@ def seed_profile(
             tenant,
             parties[SUPPLIER_ITEMS["P16"]],
             "60",
-            payment_number="PAY-SUPPLIER-OVERPAYMENT",
+            payment_number="SPAY-005",
             source_record_id=supplier_overpayment_source.id,
             effective_at=anchor - timedelta(days=5),
             _control_account_id=core._settlement_control_entry(
@@ -555,7 +564,7 @@ def seed_profile(
         )
         cases["supplier_overpayment"] = {
             "invoice_id": supplier_overpayment["supplier_invoice_id"],
-            "payment_number": "PAY-SUPPLIER-OVERPAYMENT",
+            "payment_number": "SPAY-005",
         }
         # Feature 246: ordinary purchase exceptions remain normal source-backed
         # documents and Reality movements, not special fixture state.
@@ -585,9 +594,9 @@ def seed_profile(
             ]
             invoice_source = source(
                 "supplier_invoice",
-                f"SINV-{key}",
+                f"SINV-{int(key[1:]):03}",
                 {
-                    "number": f"SINV-{key}",
+                    "number": f"SINV-{int(key[1:]):03}",
                     "date": invoice_date.isoformat(),
                     "lines": invoice_lines,
                     "currency": "EUR",
@@ -601,7 +610,7 @@ def seed_profile(
                 session,
                 tenant,
                 "supplier_invoice",
-                f"SINV-{key}",
+                f"SINV-{int(key[1:]):03}",
                 parties["S3"],
                 invoice_lines,
                 "50",
@@ -610,7 +619,11 @@ def seed_profile(
                 _commit=False,
             )
             core.post_supplier_invoice(
-                session, tenant, supplier_invoice.id, effective_at=invoice_date, _commit=False
+                session,
+                tenant,
+                supplier_invoice.id,
+                effective_at=invoice_date,
+                _commit=False,
             )
             returned_movement = movement(
                 f"supplier-return-{key}",
@@ -637,9 +650,9 @@ def seed_profile(
                 ]
                 credit_source = source(
                     "supplier_credit_note",
-                    f"SCN-{key}",
+                    f"SCN-{int(key[1:]):03}",
                     {
-                        "number": f"SCN-{key}",
+                        "number": f"SCN-{int(key[1:]):03}",
                         "date": credit_date.isoformat(),
                         "lines": credit_lines,
                         "currency": "EUR",
@@ -650,7 +663,7 @@ def seed_profile(
                     session,
                     tenant,
                     "supplier_credit_note",
-                    f"SCN-{key}",
+                    f"SCN-{int(key[1:]):03}",
                     parties["S3"],
                     credit_lines,
                     credited,
@@ -690,7 +703,15 @@ def seed_profile(
         cases["S09"] = cancel_ref
         history = list(HISTORY)
         history_cost_rows = []
-        for key, item, days, quantity, price, gross, currency in history:
+        for history_index, (
+            key,
+            item,
+            days,
+            quantity,
+            price,
+            gross,
+            currency,
+        ) in enumerate(history, 1):
             # Keep the authored foreign-currency comparison on its own SKU so its
             # retained acquisition basis does not pretend that EUR and USD opening
             # values are interchangeable for one physical stock pool.
@@ -785,7 +806,7 @@ def seed_profile(
                 ]
                 credit_source = source(
                     "credit_note",
-                    "CR-001",
+                    "CN-001",
                     {
                         "invoice_external_reference": f"INV-{key}",
                         "order_external_reference": f"H-{key}",
@@ -802,7 +823,7 @@ def seed_profile(
                     session,
                     tenant,
                     "credit_note",
-                    "CR-001",
+                    "CN-001",
                     parties[customer],
                     credit_lines,
                     "120",
@@ -844,9 +865,9 @@ def seed_profile(
             if key == "decline-current":
                 payment_source = source(
                     "customer_payment",
-                    "PAY-CUSTOMER-SMALL-REMAINDER",
+                    "CPAY-006",
                     {
-                        "number": "PAY-CUSTOMER-SMALL-REMAINDER",
+                        "number": "CPAY-006",
                         "date": min(date + timedelta(days=10), anchor).isoformat(),
                         "amount": "74.50",
                         "currency": currency,
@@ -858,7 +879,7 @@ def seed_profile(
                     tenant,
                     invoice.id,
                     "74.50",
-                    payment_number="PAY-CUSTOMER-SMALL-REMAINDER",
+                    payment_number="CPAY-006",
                     source_record_id=payment_source.id,
                     effective_at=min(date + timedelta(days=10), anchor),
                     _commit=False,
@@ -873,15 +894,15 @@ def seed_profile(
                 )
                 cases["accepted_small_remainder"] = {
                     "invoice_id": invoice.id,
-                    "payment_number": "PAY-CUSTOMER-SMALL-REMAINDER",
+                    "payment_number": "CPAY-006",
                     "adjustment_document_id": adjustment["document_id"],
                 }
             elif key == "outlier-current":
                 payment_source = source(
                     "customer_payment",
-                    "PAY-CUSTOMER-OVERPAYMENT",
+                    "CPAY-009",
                     {
-                        "number": "PAY-CUSTOMER-OVERPAYMENT",
+                        "number": "CPAY-009",
                         "date": min(date + timedelta(days=10), anchor).isoformat(),
                         "amount": "5010",
                         "currency": currency,
@@ -894,7 +915,7 @@ def seed_profile(
                     invoice.party_id,
                     "5010",
                     currency=currency,
-                    payment_number="PAY-CUSTOMER-OVERPAYMENT",
+                    payment_number="CPAY-009",
                     source_record_id=payment_source.id,
                     effective_at=min(date + timedelta(days=10), anchor),
                     _control_account_id=core._settlement_control_entry(
@@ -912,7 +933,7 @@ def seed_profile(
                 )
                 cases["customer_overpayment"] = {
                     "invoice_id": invoice.id,
-                    "payment_number": "PAY-CUSTOMER-OVERPAYMENT",
+                    "payment_number": "CPAY-009",
                 }
             elif settlement != "open":
                 outstanding = core.open_invoice_amount(session, tenant, invoice.id)
@@ -922,7 +943,7 @@ def seed_profile(
                     tenant,
                     invoice.id,
                     paid.quantize(Decimal("0.01")),
-                    payment_number=f"PAY-{key}",
+                    payment_number=f"CPAY-{history_index:03}",
                     effective_at=min(date + timedelta(days=10), anchor),
                     _commit=False,
                 )
@@ -996,9 +1017,7 @@ def seed_profile(
                     {
                         "movement_id": row["receipt"].id,
                         "evidence_source_record_id": row["receipt"].source_record_id,
-                        "acquisition_cost": str(
-                            Decimal(row["quantity"]) * unit_cost
-                        ),
+                        "acquisition_cost": str(Decimal(row["quantity"]) * unit_cost),
                     }
                     for row in rows
                 ],
@@ -1382,9 +1401,9 @@ def seed_profile(
         ]
         credit_source = source(
             "credit_note",
-            "COST-LATE-CREDIT",
+            "CN-002",
             {
-                "number": "COST-LATE-CREDIT",
+                "number": "CN-002",
                 "date": returned.occurred_at.isoformat(),
                 "gross_amount": "200",
                 "currency": "EUR",
@@ -1395,7 +1414,7 @@ def seed_profile(
             session,
             tenant,
             "credit_note",
-            "COST-LATE-CREDIT",
+            "CN-002",
             parties["C1"],
             credit_lines,
             "200",
@@ -1452,7 +1471,7 @@ def seed_profile(
             "supplier_invoice",
             "COST-A-SELLING",
             {
-                "number": "COST-A-SELLING",
+                "number": "SINV-010",
                 "date": fixture_time.isoformat(),
                 "gross_amount": "114",
                 "currency": "EUR",
@@ -1464,7 +1483,7 @@ def seed_profile(
                 session,
                 tenant,
                 "supplier_invoice",
-                "COST-A-SELLING",
+                "SINV-010",
                 parties["S1"],
                 selling_lines,
                 "114",
@@ -1816,7 +1835,7 @@ def seed_profile(
             "supplier_invoice",
             "COST-PORTFOLIO-SELLING",
             {
-                "number": "COST-PORTFOLIO-SELLING",
+                "number": "SINV-011",
                 "date": portfolio_time.isoformat(),
                 "gross_amount": str(portfolio_selling_total),
                 "currency": "EUR",
@@ -1828,7 +1847,7 @@ def seed_profile(
                 session,
                 tenant,
                 "supplier_invoice",
-                "COST-PORTFOLIO-SELLING",
+                "SINV-011",
                 parties["S1"],
                 portfolio_selling_lines,
                 str(portfolio_selling_total),

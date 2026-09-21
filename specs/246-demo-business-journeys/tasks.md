@@ -11,3 +11,5 @@
 - [x] T009 [FR-008..FR-010, DR-001..DR-004] Seed the four settlement cases through shared finance services under bounded profile initialization authority.
 - [x] T010 [FR-006, SC-002] Extend the durable and public English/German catalogs with references, amounts, inspection paths and explanations.
 - [x] T011 [SC-003..SC-005] Run focused finance/profile tests, full required gates and final Constitution review.
+- [x] T012 [FR-011, SC-006] Add canonical human-number regression coverage and replace scenario labels in visible item and document numbers.
+- [x] T013 [FR-012, SC-002] Add a concrete UI path and exact search reference to every English and German catalog table.

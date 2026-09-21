@@ -49,7 +49,9 @@ def test_history_has_authored_comparison_dates_currencies_and_linked_credit(
     )
     assert {row.currency for row in postings} == {"EUR", "USD"}
     assert {
-        (anchor - row.effective_at).days for row in postings if row.debit_credit == "credit"
+        (anchor - row.effective_at).days
+        for row in postings
+        if row.debit_credit == "credit"
     } == {row[2] for row in HISTORY}
     assert all(
         record_by_id(session, SourceRecord, row.source_record_id).received_at >= anchor
@@ -75,7 +77,7 @@ def test_history_has_authored_comparison_dates_currencies_and_linked_credit(
         select(Document).where(
             Document.tenant_id == tenant,
             Document.type == "credit_note",
-            Document.number == "CR-001",
+            Document.number == "CN-001",
         )
     )
     assert credit is not None
@@ -85,9 +87,12 @@ def test_history_has_authored_comparison_dates_currencies_and_linked_credit(
         )
     )
     assert credit_line.billed_document_line_id is None
-    assert json.loads(
-        record_by_id(session, SourceRecord, credit.source_record_id).payload
-    )["invoice_external_reference"] == "INV-credit-origin"
+    assert (
+        json.loads(
+            record_by_id(session, SourceRecord, credit.source_record_id).payload
+        )["invoice_external_reference"]
+        == "INV-credit-origin"
+    )
     credit_posting = session.scalar(
         select(LedgerEntry).where(
             LedgerEntry.tenant_id == tenant,

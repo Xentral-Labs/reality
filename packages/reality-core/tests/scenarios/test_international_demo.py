@@ -46,6 +46,39 @@ def test_canonical_profile_counts_and_cases(session, scheduled_owner, monkeypatc
     )
 
 
+def test_demo_human_numbers_use_canonical_type_families(
+    session, scheduled_owner, monkeypatch
+):
+    """Feature 246: scenario labels never leak into visible business numbers."""
+    import re
+
+    from reality.db.core import Document
+
+    tenant = _demo_company(session, scheduled_owner, "canonical-numbers")
+    assert all(
+        re.fullmatch(r"ITEM-\d{3}", item.sku)
+        for item in session.scalars(select(Item).where(Item.tenant_id == tenant))
+    )
+    patterns = {
+        "sales_order": r"SO-\d{3}",
+        "purchase_order": r"PO-\d{3}",
+        "sales_invoice": r"INV-\d{8}-[0-9A-F]{6}",
+        "supplier_invoice": r"SINV-\d{3}",
+        "credit_note": r"CN-\d{3}",
+        "supplier_credit_note": r"SCN-\d{3}",
+        "customer_payment": r"CPAY-\d{3}",
+        "supplier_payment": r"SPAY-\d{3}",
+    }
+    documents = session.scalars(select(Document).where(Document.tenant_id == tenant))
+    for document in documents:
+        pattern = patterns.get(document.type)
+        if pattern is not None:
+            assert re.fullmatch(pattern, document.number), (
+                document.type,
+                document.number,
+            )
+
+
 def test_operational_stock_and_source_lineage(session, scheduled_owner, monkeypatch):
     from decimal import Decimal
 
@@ -165,7 +198,7 @@ def test_orders_spread_over_the_customer_pool(session, scheduled_owner, monkeypa
     portfolio_orders = {
         number: buyer
         for number, buyer in orders.items()
-        if number.startswith("COST-PORTFOLIO-")
+        if number in {f"SO-{index:03}" for index in range(25, 30)}
     }
     assert len(portfolio_orders) == 5, portfolio_orders
     operational_orders = {
@@ -189,18 +222,20 @@ def test_comparison_windows_and_money_state_one_buyer(
     monkeypatch.setenv("REALITY_PLAYGROUND_ENABLED", "true")
     tenant = _demo_company(session, scheduled_owner, "families")
     orders = _documents(session, tenant, "sales_order")
-    for family in ("volume", "price", "decline", "outlier", "usd"):
-        assert orders[f"H-{family}-prior"] == orders[f"H-{family}-current"], family
+    for prior, current in ((12, 13), (14, 15), (16, 17), (19, 20), (22, 23)):
+        assert orders[f"SO-{prior:03}"] == orders[f"SO-{current:03}"]
     invoices = _documents(session, tenant, "sales_invoice")
     assert invoices
     from reality.db.core import Document, SourceRecord
 
     authored_invoices = session.execute(
-        select(SourceRecord.external_id, Document.party_id).join(
+        select(SourceRecord.external_id, Document.party_id)
+        .join(
             Document,
             (Document.tenant_id == SourceRecord.tenant_id)
             & (Document.source_record_id == SourceRecord.id),
-        ).where(
+        )
+        .where(
             Document.tenant_id == tenant,
             Document.type == "sales_invoice",
             SourceRecord.external_id.like("INV-%"),
@@ -209,8 +244,8 @@ def test_comparison_windows_and_money_state_one_buyer(
     assert len(authored_invoices) == len(HISTORY)
     credits = _documents(session, tenant, "credit_note")
     assert credits == {
-        "CR-001": orders["H-credit-origin"],
-        "COST-LATE-CREDIT": "Northstar Outdoor",
+        "CN-001": orders["SO-018"],
+        "CN-002": "Northstar Outdoor",
     }
 
 
@@ -276,7 +311,7 @@ def test_seeded_invoices_are_settled_in_three_states(
         .select_from(Document)
         .where(Document.tenant_id == tenant, Document.type == "customer_payment")
     )
-    # One fully settled invoice is closed by CR-001 rather than by cash.
+    # One fully settled invoice is closed by CN-001 rather than by cash.
     assert payment_count + 1 == states["paid"] + states["part"]
     receivable = sum(
         open_amount
@@ -300,11 +335,9 @@ def test_purchases_cover_the_whole_chain(session, scheduled_owner, monkeypatch):
     assert len(orders) == 9, orders
     assert len(set(orders.values())) == 3, "every supplier takes part"
     payables = _states(_open_amounts(session, tenant, "supplier_invoice"))
-    assert payables["COST-PORTFOLIO-SELLING"] == "open", payables
+    assert payables["SINV-011"] == "open", payables
     operational_payables = {
-        number: state
-        for number, state in payables.items()
-        if number != "COST-PORTFOLIO-SELLING"
+        number: state for number, state in payables.items() if number != "SINV-011"
     }
     assert sorted(operational_payables.values()) == [
         "open",
@@ -327,11 +360,16 @@ def test_purchases_cover_the_whole_chain(session, scheduled_owner, monkeypatch):
     assert received["S07"] == Decimal(5), received
     assert received["S08"] == Decimal(5), received
     assert received["S09"] == Decimal(0), received
-    assert record_by_id(
-        session, Commitment, run.initialization_progress["cases"]["S09"]["commitment_id"]
-    ).status == "cancelled"
+    assert (
+        record_by_id(
+            session,
+            Commitment,
+            run.initialization_progress["cases"]["S09"]["commitment_id"],
+        ).status
+        == "cancelled"
+    )
     supplier_credits = _open_amounts(session, tenant, "supplier_credit_note")
-    assert supplier_credits["SCN-S07"][0] == Decimal(0)
+    assert supplier_credits["SCN-007"][0] == Decimal(0)
 
 
 def test_settlement_is_authored_not_drawn(session, scheduled_owner, monkeypatch):
@@ -374,12 +412,12 @@ def test_finance_fangfragen_are_deterministic_and_explainable(
     supplier_credit, _ = available_credit_rows(
         session, tenant, side="supplier", status="outstanding"
     )
-    assert {
-        row["number"]: Decimal(row["open"]) for row in customer_credit
-    }["PAY-CUSTOMER-OVERPAYMENT"] == Decimal(10)
-    assert {
-        row["number"]: Decimal(row["open"]) for row in supplier_credit
-    }["PAY-SUPPLIER-OVERPAYMENT"] == Decimal(10)
+    assert {row["number"]: Decimal(row["open"]) for row in customer_credit}[
+        "CPAY-009"
+    ] == Decimal(10)
+    assert {row["number"]: Decimal(row["open"]) for row in supplier_credit}[
+        "SPAY-005"
+    ] == Decimal(10)
 
     adjustments = {
         key: record_by_id(session, Document, cases[key]["adjustment_document_id"])
@@ -387,8 +425,7 @@ def test_finance_fangfragen_are_deterministic_and_explainable(
     }
     assert adjustments["supplier_discount"].type == "supplier_settlement_adjustment"
     assert (
-        adjustments["accepted_small_remainder"].type
-        == "customer_settlement_adjustment"
+        adjustments["accepted_small_remainder"].type == "customer_settlement_adjustment"
     )
     reasons = {
         key: json.loads(
