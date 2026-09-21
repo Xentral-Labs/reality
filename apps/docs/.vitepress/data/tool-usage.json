@@ -7923,6 +7923,8 @@
             "inventory",
             "customer_reduction",
             "supplier_reduction",
+            "bad_debt_expense",
+            "dunning_fee_revenue",
             "opening_counterpart"
           ]
         }
@@ -8176,7 +8178,12 @@
           "required": true,
           "description": "Explicit accepted discount, agreed deduction or small remainder category.",
           "depth": 0,
-          "enum": ["early_payment_discount", "agreed_deduction", "accepted_small_remainder"]
+          "enum": [
+            "early_payment_discount",
+            "agreed_deduction",
+            "accepted_small_remainder",
+            "bad_debt"
+          ]
         },
         {
           "name": "reason",
@@ -8599,7 +8606,12 @@
           "required": true,
           "description": "Explicit accepted discount, agreed deduction or small remainder category.",
           "depth": 1,
-          "enum": ["early_payment_discount", "agreed_deduction", "accepted_small_remainder"]
+          "enum": [
+            "early_payment_discount",
+            "agreed_deduction",
+            "accepted_small_remainder",
+            "bad_debt"
+          ]
         },
         {
           "name": "reduction.reason",

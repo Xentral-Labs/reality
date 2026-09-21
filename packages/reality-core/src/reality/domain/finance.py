@@ -13,6 +13,8 @@ ACCOUNT_ROLES.update(
         "opening_counterpart": "Neutral opening subledger counterpart",
         "customer_reduction": "Accepted customer settlement reduction",
         "supplier_reduction": "Accepted supplier settlement reduction",
+        "bad_debt_expense": "Customer bad-debt expense",
+        "dunning_fee_revenue": "Dunning fee revenue",
     }
 )
 CONTROL_ROLES = frozenset({"accounts_receivable", "accounts_payable"})
@@ -118,6 +120,14 @@ TRANSACTION_MATRIX = (
         "supplier_reduction",
         "Explicitly accepted reduction",
         "original_required",
+    ),
+    (
+        "dunning_fee_charge",
+        "Dunning fee charge",
+        "accounts_receivable",
+        "dunning_fee_revenue",
+        "Stated dunning fee",
+        "configured_default",
     ),
     (
         "opening_customer_debt",

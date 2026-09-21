@@ -111,6 +111,49 @@ def _settlement_adjustment(
         return result
 
 
+def _finance_action(
+    session: Session, run: PlaygroundRun, tool_name: str, arguments: dict
+) -> dict:
+    """Execute one fixed finance action through the normal confirmed dispatcher."""
+    import json
+
+    from reality.services.analytics.reports import caller
+    from reality.services.memberships import Principal
+    from reality.services.tenant_policy import profile_finance_action_scope
+    from reality.tools.application import create_change_proposal
+    from reality.tools.finance import execute_finance_command
+
+    with profile_finance_action_scope(
+        session,
+        run.id,
+        run.owner_user_id,
+        arguments,
+        tool_name=tool_name,
+    ):
+        with caller(Principal(run.owner_user_id)):
+            action = create_change_proposal(
+                session,
+                run.tenant_id,
+                tool_name,
+                arguments,
+                actor_type="system",
+                _commit=False,
+            )
+        result = execute_finance_command(
+            session,
+            run.tenant_id,
+            tool_name,
+            arguments,
+            action_id=action.id,
+            actor_id=run.owner_user_id,
+        )
+        action.status = "executed"
+        action.decided_at = core.now()
+        action.decided_by_user_id = run.owner_user_id
+        action.output = json.dumps(result, sort_keys=True)
+        return result
+
+
 def seed_profile(
     session: Session, run: PlaygroundRun, anchor: datetime, *, execution: bool = False
 ) -> dict:
@@ -470,12 +513,15 @@ def seed_profile(
         # allocation and accepted reductions remain separate evidence.
         from reality.services.finance.accounts import (
             create_account,
+            list_accounts,
             set_default_account,
         )
 
         for role, name in (
             ("customer_reduction", "Customer reductions"),
             ("supplier_reduction", "Supplier reductions"),
+            ("bad_debt_expense", "Customer bad-debt expense"),
+            ("dunning_fee_revenue", "Dunning fee revenue"),
         ):
             account = create_account(
                 session,
@@ -2478,6 +2524,205 @@ def seed_profile(
             "payment_number": "CPAY-010",
             "payment_effective_at": payment_effective_at.isoformat(),
             "shipment_movement_id": prepayment_shipment.id,
+        }
+
+        # Feature 247: the four commercial edge workflows are ordinary confirmed
+        # product actions with exact references, not profile-only records.
+        dunning_ref, dunning_invoices = billed_sale(
+            "DUNNING", "P09", "C9", "2", "100", (("2", "100"),)
+        )
+        dunning_invoice = dunning_invoices[0][0]
+        dunning = _finance_action(
+            session,
+            run,
+            "finance.dunning.record",
+            {
+                "expected_revision": list_accounts(session, tenant)["revision"],
+                "invoice_ids": [dunning_invoice.id],
+                "level": 2,
+                "notice_date": anchor.date().isoformat(),
+                "fee_amount": "5",
+                "reason": "Second reminder in the canonical demo",
+                "number": "DN-2026-0001",
+            },
+        )
+        cases["dunning_with_fee"] = {
+            "order_id": dunning_ref["document_id"],
+            "order_number": dunning_ref["number"],
+            "invoice_id": dunning_invoice.id,
+            "invoice_number": dunning_invoice.number,
+            "notice_id": dunning["id"],
+            "notice_number": dunning["number"],
+            "fee_document_id": dunning["fee_document_id"],
+            "fee_amount": "5",
+        }
+
+        bad_debt_ref, bad_debt_invoices = billed_sale(
+            "BAD-DEBT", "P10", "C10", "2", "100", (("2", "100"),)
+        )
+        bad_debt_invoice = bad_debt_invoices[0][0]
+        core.post_customer_payment(
+            session,
+            tenant,
+            bad_debt_invoice.id,
+            "60",
+            payment_number="CPAY-011",
+            effective_at=anchor - timedelta(days=2),
+            _commit=False,
+        )
+        bad_debt = _settlement_adjustment(
+            session,
+            run,
+            bad_debt_invoice.id,
+            "25",
+            reason_category="bad_debt",
+            reason="Confirmed irrecoverable customer balance",
+        )
+        cases["customer_bad_debt"] = {
+            "order_id": bad_debt_ref["document_id"],
+            "order_number": bad_debt_ref["number"],
+            "invoice_id": bad_debt_invoice.id,
+            "invoice_number": bad_debt_invoice.number,
+            "payment_number": "CPAY-011",
+            "adjustment_document_id": bad_debt["document_id"],
+            "written_off": "25",
+            "remaining": "15",
+        }
+
+        customer_deposit = _finance_action(
+            session,
+            run,
+            "finance.deposit.record",
+            {
+                "expected_revision": list_accounts(session, tenant)["revision"],
+                "side": "customer",
+                "party_id": parties["C11"],
+                "amount": "100",
+                "currency": "EUR",
+                "reference": "CDEP-001",
+                "effective_at": (anchor - timedelta(days=12)).isoformat(),
+            },
+        )
+        customer_final_ref, customer_final_invoices = billed_sale(
+            "CUSTOMER-DEPOSIT-FINAL", "P11", "C11", "4", "80", (("4", "80"),)
+        )
+        customer_final = customer_final_invoices[0][0]
+        customer_clearing = _finance_action(
+            session,
+            run,
+            "finance.deposit.clear",
+            {
+                "expected_revision": list_accounts(session, tenant)["revision"],
+                "deposit_document_id": customer_deposit["document_id"],
+                "invoice_id": customer_final.id,
+                "amount": "80",
+            },
+        )
+        cases["customer_deposit_clearing"] = {
+            "order_number": customer_final_ref["number"],
+            "deposit_number": customer_deposit["number"],
+            "invoice_id": customer_final.id,
+            "invoice_number": customer_final.number,
+            "allocation_id": customer_clearing["allocation_id"],
+            "remaining_credit": "20",
+        }
+
+        supplier_deposit = _finance_action(
+            session,
+            run,
+            "finance.deposit.record",
+            {
+                "expected_revision": list_accounts(session, tenant)["revision"],
+                "side": "supplier",
+                "party_id": parties["S1"],
+                "amount": "120",
+                "currency": "EUR",
+                "reference": "SDEP-001",
+                "effective_at": (anchor - timedelta(days=12)).isoformat(),
+            },
+        )
+        supplier_final_source = source(
+            "supplier_invoice",
+            "SINV-DEPOSIT-FINAL",
+            {"number": "SINV-010", "date": (anchor - timedelta(days=6)).isoformat()},
+        )
+        supplier_final, _ = core.create_manual_document_with_lines(
+            session,
+            tenant,
+            "supplier_invoice",
+            "SINV-010",
+            parties["S1"],
+            [
+                {
+                    "item_id": items["P01"],
+                    "quantity": "5",
+                    "unit_price": "20",
+                    "gross_amount": "100",
+                    "source_line_id": "SINV-DEPOSIT-FINAL-1",
+                }
+            ],
+            "100",
+            document_date=(anchor - timedelta(days=6)).date().isoformat(),
+            source_record_id=supplier_final_source.id,
+            _commit=False,
+        )
+        core.post_supplier_invoice(session, tenant, supplier_final.id, _commit=False)
+        supplier_clearing = _finance_action(
+            session,
+            run,
+            "finance.deposit.clear",
+            {
+                "expected_revision": list_accounts(session, tenant)["revision"],
+                "deposit_document_id": supplier_deposit["document_id"],
+                "invoice_id": supplier_final.id,
+                "amount": "100",
+            },
+        )
+        cases["supplier_deposit_clearing"] = {
+            "deposit_number": supplier_deposit["number"],
+            "invoice_number": supplier_final.number,
+            "allocation_id": supplier_clearing["allocation_id"],
+            "remaining_credit": "20",
+        }
+
+        overdelivery_ref, _ = order(
+            "CONTROLLED-OVERDELIVERY",
+            "P12",
+            counterparty="C12",
+            quantity="10",
+            gross="100",
+            date=anchor - timedelta(days=5),
+        )
+        overdelivery_revision = core.revise_commitment(
+            session,
+            tenant,
+            overdelivery_ref["commitment_id"],
+            quantity="12",
+            note="Customer confirmed two additional pieces",
+            stated_at=anchor - timedelta(days=4),
+            _commit=False,
+        )
+        movement(
+            "CONTROLLED-OVERDELIVERY-OPENING",
+            "P12",
+            "12",
+            "opening_stock",
+            date=anchor - timedelta(days=3),
+        )
+        overdelivery_movement = movement(
+            "CONTROLLED-OVERDELIVERY-SHIPMENT",
+            "P12",
+            "12",
+            "shipment",
+            commitment=overdelivery_ref["commitment_id"],
+            date=anchor - timedelta(days=2),
+        )
+        cases["controlled_overdelivery"] = {
+            "order_number": overdelivery_ref["number"],
+            "original_quantity": "10",
+            "quantity_in_force": "12",
+            "revision_id": overdelivery_revision.id,
+            "shipment_movement_id": overdelivery_movement.id,
         }
 
     session.flush()

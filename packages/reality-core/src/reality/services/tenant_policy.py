@@ -565,8 +565,8 @@ def require_proposal_creation(
         and profile_finance[0] is session
         and profile_finance[1] is session.get_transaction()
         and profile_finance[4] == tenant_id
-        and tool_name == "finance.adjustment.accept"
-        and profile_finance[5] == json.dumps(arguments, sort_keys=True, allow_nan=False)
+        and profile_finance[5] == tool_name
+        and profile_finance[6] == json.dumps(arguments, sort_keys=True, allow_nan=False)
     ):
         require_playground_run(session, profile_finance[2], profile_finance[3])
         return
@@ -995,6 +995,7 @@ _PRACTICE_APP_OPERATIONS = frozenset(
         "emit_business_event",
         "create_commitment",
         "cancel_commitment",
+        "revise_commitment",
         "revise_commitment_due_date",
         "hold_commitment",
         "release_commitment_hold",
@@ -1033,6 +1034,10 @@ _PRACTICE_APP_OPERATIONS = frozenset(
         "record_customer_refund",
         "post_customer_refund",
         "record_supplier_refund",
+        "record_dunning_notice",
+        "reverse_dunning_notice",
+        "record_deposit",
+        "clear_deposit",
         "post_supplier_refund",
         "allocate_credit_note",
         "allocate_supplier_credit_note",
@@ -1171,6 +1176,7 @@ _PROFILE_OPERATIONS = _SEED_OPERATIONS | frozenset(
         "create_document",
         "create_manual_document_with_lines",
         "create_commitment",
+        "revise_commitment",
         "reserve",
         "release_reservation",
         "record_movement",
@@ -1200,6 +1206,10 @@ _PROFILE_OPERATIONS = _SEED_OPERATIONS | frozenset(
         "allocate_settlement",
         "reverse_ledger_posting_group",
         "finance_account_maintain",
+        "record_dunning_notice",
+        "reverse_dunning_notice",
+        "record_deposit",
+        "clear_deposit",
     }
 )
 _INTAKE_OPERATIONS = frozenset(
@@ -1329,7 +1339,12 @@ def profile_cost_owner_active(session: Session, tenant_id: str, actor_id: str) -
 
 @contextmanager
 def profile_finance_action_scope(
-    session: Session, run_id: str, actor_id: str, arguments: dict
+    session: Session,
+    run_id: str,
+    actor_id: str,
+    arguments: dict,
+    *,
+    tool_name: str = "finance.adjustment.accept",
 ):
     """Bind one authored profile settlement decision to setup's confirmation."""
     from reality.demo.international import PROFILE_VERSION
@@ -1345,7 +1360,7 @@ def profile_finance_action_scope(
         raise PlaygroundOperationDenied("Profile finance authority is unavailable.")
     intent = json.dumps(arguments, sort_keys=True, allow_nan=False)
     token = _profile_finance_authority.set(
-        (session, transaction, run.id, actor_id, run.tenant_id, intent)
+        (session, transaction, run.id, actor_id, run.tenant_id, tool_name, intent)
     )
     try:
         yield

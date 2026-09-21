@@ -5,7 +5,7 @@ company. Use it to learn how implemented processes look across Sales, Purchasing
 Warehouse, Finance and the Business Reality Inspector. Every business document has an
 authored document date. A missing due date never means that the document is dateless.
 
-This page describes profile version 8. References are human-facing labels for finding
+This page describes profile version 9. References are human-facing labels for finding
 examples, never database identity.
 
 ## Company and master data
@@ -84,6 +84,11 @@ returned inventory slice, customer credit and selling costs under one reviewed b
 - `SO-033` is shipped and returned; `SO-034` is its separately stated zero-price
   replacement shipment.
 - `SO-035` is invoiced and paid through `CPAY-010` before its later shipment.
+- `DN-2026-0001` is a level-2 reminder with a separately posted EUR 5 fee.
+- `SO-037` retains EUR 15 after EUR 60 cash and a confirmed EUR 25 bad-debt adjustment.
+- `CDEP-001` clears EUR 80 into the final invoice behind `SO-038` and leaves EUR 20 credit.
+- `SDEP-001` clears EUR 100 into `SINV-010` and leaves EUR 20 supplier credit.
+- `SO-039` preserves its original 10-pcs promise, its revision to 12 and the later 12-pcs shipment.
 
 ## Deterministic settlement questions
 
@@ -105,10 +110,7 @@ replenish goods. This keeps the reference journeys stable while the company stay
 
 ## Deliberate limitations
 
-The profile does not yet model overdelivery, dedicated deposit clearing, dunning, bad
-debt, quotations, manufacturing, tax/FX revaluation, payroll, bank reconciliation or
-statutory reporting. The proposed boundaries are: amend the commitment before an
-overdelivery; clear a deposit liability/asset explicitly into the final invoice; record
-a dated levelled dunning notice linked to overdue invoices; and settle bad debt only
-through a confirmed dedicated expense posting. Do not imitate these with unrelated
-documents or infer an absent scenario from a similarly named record.
+The profile does not model automatic dunning runs/delivery, jurisdiction-specific tax
+treatment, quotations, manufacturing, tax/FX revaluation, payroll, bank reconciliation
+or statutory reporting. Manual dunning, explicit deposit clearing, confirmed bad debt
+and commitment-amended overdelivery are present as normal product workflows.

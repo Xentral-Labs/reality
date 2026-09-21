@@ -2119,6 +2119,10 @@ from reality.services.finance.accounts import list_accounts, lock_finance
 from reality.tools.finance import (
     ADJUSTMENT_COMMAND,
     ASSIGNMENT_COMMAND,
+    DEPOSIT_CLEAR_COMMAND,
+    DEPOSIT_RECORD_COMMAND,
+    DUNNING_COMMAND,
+    DUNNING_REVERSE_COMMAND,
     FINANCE_COMMANDS,
     OPENING_COMMAND,
     REFERENCE_COMMANDS,
@@ -2531,6 +2535,44 @@ def create_change_proposal(
         from reality.services.finance.opening import preview_opening
 
         preview["opening"] = preview_opening(session, tenant_id, normalized_arguments)
+    if tool_name == DUNNING_COMMAND:
+        from reality.services.dunning import preview_notice
+
+        preview["dunning"] = preview_notice(session, tenant_id, normalized_arguments)
+    if tool_name == DUNNING_REVERSE_COMMAND:
+        from reality.services.dunning import notice_detail
+
+        preview["dunning_reversal"] = notice_detail(
+            session, tenant_id, normalized_arguments["notice_id"]
+        )
+    if tool_name == DEPOSIT_CLEAR_COMMAND:
+        from reality.services.finance.deposits import preview_clearing
+
+        preview["deposit_clearing"] = preview_clearing(
+            session,
+            tenant_id,
+            **{
+                key: normalized_arguments[key]
+                for key in (
+                    "deposit_document_id",
+                    "invoice_id",
+                    "amount",
+                    "expected_revision",
+                )
+            },
+        )
+    if tool_name == DEPOSIT_RECORD_COMMAND:
+        preview["deposit"] = {
+            key: normalized_arguments[key]
+            for key in (
+                "side",
+                "party_id",
+                "amount",
+                "currency",
+                "reference",
+                "effective_at",
+            )
+        }
     update_families = {
         "party_update": "party",
         "item_update": "item",

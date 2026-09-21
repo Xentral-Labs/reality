@@ -58,6 +58,7 @@ def available_credit_rows(
             Document.type.in_(
                 (
                     f"{side}_payment",
+                    f"{side}_deposit",
                     f"opening_{side}_credit",
                     "credit_note" if customer else "supplier_credit_note",
                 )
@@ -128,6 +129,8 @@ def available_credit_rows(
             "coverage_kind": opening_kinds.get(document.id),
             "origin": "opening"
             if document.type.startswith("opening_")
+            else "deposit"
+            if document.type.endswith("_deposit")
             else "payment"
             if document.type.endswith("_payment")
             else "credit_note",

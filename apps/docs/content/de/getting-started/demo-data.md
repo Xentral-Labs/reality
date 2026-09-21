@@ -200,15 +200,16 @@ Reality fehlende Nachweise bewusst nicht in 0 EUR umgewandelt hat.
 | Mehrere Teilrechnungen je Auftrag                    | Ja        | `SO-032`, Mengen 4 und 6                        | Vertrieb → Aufträge → `SO-032` → Rechnungen                |
 | Endgültige Unterlieferung                            | Ja        | `SO-011`: 2 versendet, Rest storniert           | Vertrieb → Aufträge → `SO-011` → Historie                  |
 | Kundenvorauszahlung vor Versand                      | Ja        | `SO-035`, `CPAY-010`                            | Vertrieb → `SO-035` → Rechnung; Finance → Zahlung          |
-| Überlieferung                                        | Nein      | Benötigt Überlieferungsregel am Auftrag         | Vorschlag unten                                            |
+| Kontrollierte Überlieferung                          | Ja        | `SO-039`: Menge 10 auf 12 erhöht, dann versandt | Vertrieb → Aufträge → `SO-039` → Zusagenhistorie           |
 | Umlagerung                                           | Ja        | `ITEM-017`, 3 Stück Rotterdam → Singapur        | Lager → Artikel → `ITEM-017` → Bewegungen                  |
 | Schaden, Verlust und Verschrottung                   | Ja        | `ITEM-010`, je eine Korrektur                   | Lager → Artikel → `ITEM-010` → Bewegungen                  |
 | Charge und Ablaufdatum                               | Ja        | `ITEM-017`, `LOT-2026-001` abgelaufen           | Lager → Artikel → `ITEM-017` → Chargen/Bewegungen          |
 | Seriennummer                                         | Ja        | `ITEM-018`, `SER-0001`                          | Lager → Artikel → `ITEM-018` → Serien/Bewegungen           |
-| Dedizierte Anzahlung mit Schlussrechnung             | Nein      | Vorauszahlung geht; Anzahlungsverrechnung fehlt | Vorschlag unten                                            |
-| Mahnwesen                                            | Nein      | Noch kein Mahnbeleg                             | Vorschlag unten                                            |
-| Forderungsausfall                                    | Nein      | Kein geprüfter Ausfall-Ausgleichsgrund          | Vorschlag unten                                            |
-| Bankabstimmung, Steuer oder Währungsneubewertung     | Nein      | Nicht in Profilversion 8                        | Nicht vorhanden; siehe Einschränkung                       |
+| Kundenanzahlung mit Schlussrechnung                  | Ja        | `CDEP-001`, `SO-038`; 20 EUR Guthaben bleiben   | Finance → Kundenguthaben → `CDEP-001`; Vertrieb → `SO-038` |
+| Lieferantenanzahlung mit Schlussrechnung             | Ja        | `SDEP-001`, `SINV-010`; 20 EUR bleiben          | Finance → Lieferantenguthaben → `SDEP-001`                 |
+| Mahnung mit angegebener Gebühr                       | Ja        | `DN-2026-0001`; Stufe 2 plus 5 EUR              | Finance → Forderungen → Mahnung/Rechnung suchen            |
+| Teilweiser Forderungsausfall                         | Ja        | `SO-037`; 25 EUR Ausfall, 15 EUR offen          | Vertrieb → `SO-037` → Rechnung → Ausgleichserklärung       |
+| Bankabstimmung, Steuer oder Währungsneubewertung     | Nein      | Nicht in Profilversion 9                        | Nicht vorhanden; siehe Einschränkung                       |
 
 ## Stabile Basis und Live-Daten
 
@@ -216,18 +217,20 @@ Die Fälle oben gehören zur stabilen Basis. Die Live-Simulation ergänzt separa
 und später Rechnungen und Zahlungen. Sie reserviert, versendet, retourniert oder beschafft Waren
 nicht automatisch. Dadurch bleiben die Referenzfälle reproduzierbar.
 
-## Vorgeschlagene nächste Fähigkeiten
+## So funktionieren die vier neuen Vertriebsfälle
 
-- **Überlieferung:** eine ausdrücklich geprüfte Auftragsänderung ergänzt die zugesagte Menge vor der
-  Mehrlieferung. So bleibt Erfüllung aus Zusagen abgeleitet und es gibt keinen versteckten
-  Validierungs-Bypass.
-- **Dedizierte Anzahlungen:** eigener Anzahlungsbeleg auf Verbindlichkeits-/Forderungskonto plus
-  explizite Verrechnung mit der Schlussrechnung. `SO-035` zeigt bereits eine normale vollständige
-  Vorauszahlung; eine Anzahlung darf aber nicht vorzeitig wie Umsatz wirken.
-- **Mahnwesen:** den bestehenden Spec-183-Vorschlag umsetzen: datierter Mahnbeleg mit Stufe,
-  Verknüpfung zu überfälligen Rechnungen und Ereignishistorie; zunächst ohne automatischen Versand.
-- **Forderungsausfall:** bestätigten Ausfallgrund und eigenes Aufwandskonto zum Rechnungsausgleich
-  ergänzen; Rechnung, Entscheidung und Abschreibungsbuchung bleiben getrennt nachvollziehbar.
+- **Kontrollierte Überlieferung:** `SO-039` sagt zuerst 10 Stück zu. Die unveränderliche Historie
+  hält anschließend die bestätigte neue Menge 12 fest. Erst danach akzeptiert dieselbe normale
+  Versandprüfung 12 Stück. Die ursprünglichen 10 bleiben sichtbar.
+- **Dedizierte Anzahlungen:** `CDEP-001` ist Kundengeld vor der Schlussrechnung zu `SO-038`;
+  `SDEP-001` ist die Lieferantenzahlung vor `SINV-010`. Die Verrechnung ist jeweils eine explizite
+  Zuordnung. Nicht verbrauchte 20 EUR bleiben als Guthaben sichtbar.
+- **Mahnwesen:** `DN-2026-0001` mahnt eine überfällige Rechnung auf Stufe 2. Die manuell angegebene
+  Gebühr von 5 EUR ist eine eigene Forderungsposition und verändert die Originalrechnung nicht.
+  Es wird keine E-Mail versendet und weder Eskalation, Einzug noch Steuer automatisch erfunden.
+- **Forderungsausfall:** Die Rechnung zu `SO-037` zeigt 60 EUR Zahlung, 25 EUR separat bestätigten
+  Forderungsausfall und 15 EUR Restforderung. Aus dem Ausfall entsteht kein Kundenguthaben.
 
-Weiterhin nicht enthalten sind Bankabstimmung, Steuer-/Währungsneubewertung, Fertigung,
-Lohnabrechnung und gesetzliche Berichte.
+Weiterhin nicht enthalten sind automatische Mahnläufe/-zustellung, länderspezifische
+Steuerbehandlung, Bankabstimmung, Steuer-/Währungsneubewertung, Fertigung, Lohnabrechnung und
+gesetzliche Berichte.

@@ -2,7 +2,7 @@
 
 **Feature Branch**: `183-dunning-notices`
 **Created**: 2026-09-12
-**Status**: Proposed (stub; scope to be written)
+**Status**: Superseded by [spec 247](../247-commercial-edge-workflows/spec.md)
 **Language**: English
 **Input**: Follow-up from [Storyline mode](../182-storyline-mode/spec.md): the owner's story
 dunns an overdue invoice before the customer pays. Research R7 of spec 182 found no dunning

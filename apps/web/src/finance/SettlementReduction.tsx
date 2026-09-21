@@ -199,6 +199,7 @@ export function SettlementReduction({
                   <option value="early_payment_discount">{t("Early-payment discount")}</option>
                   <option value="agreed_deduction">{t("Agreed deduction")}</option>
                   <option value="accepted_small_remainder">{t("Accepted small remainder")}</option>
+                  {data.side === "customer" && <option value="bad_debt">{t("Bad debt")}</option>}
                 </select>
               </label>
               <label>
