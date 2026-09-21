@@ -9,8 +9,8 @@ import type { CompanySetupResult } from "../api";
 export const SETUP_POLL_MS = 1000;
 /** Three minutes of following, after which the person is offered the explicit retry. */
 export const SETUP_POLL_ATTEMPTS = 180;
-export const SETUP_READY_CURRENT_MS = 1500;
-export const SETUP_READY_DONE_MS = 2000;
+export const SETUP_READY_CURRENT_MS = 2500;
+export const SETUP_READY_DONE_MS = 3000;
 
 export type SetupProgress = "ready" | "failed" | "waiting";
 
