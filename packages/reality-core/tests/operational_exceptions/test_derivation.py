@@ -4,8 +4,6 @@ from types import SimpleNamespace
 
 import pytest
 from conftest import record_by_id
-from sqlalchemy import select
-
 from reality.db.core import (
     Commitment,
     ImportJob,
@@ -55,6 +53,7 @@ from reality.services.core import (
     update_party,
 )
 from reality.services.exceptions import operational_exceptions
+from sqlalchemy import select
 
 AS_OF = datetime(2026, 8, 31, 12, tzinfo=UTC)
 
@@ -204,6 +203,35 @@ def test_unexplained_movement(session, business):
     assert row.record_id == movement.id
     assert row.trace["commitment_absent"] is True
     assert row.trace["source_absent"] is True
+
+
+def test_unexplained_movement_warning_does_not_suppress_exception(session, business):
+    from reality.services.delivery_actions import review_delivery
+
+    review = review_delivery(
+        session,
+        business.tenant.id,
+        "movement_create",
+        {
+            "movement_type": "receipt",
+            "item_id": business.item.id,
+            "quantity": "1",
+            "to_location_id": business.location.id,
+        },
+    )
+    assert review["warnings"][0]["code"] == "unexplained_movement"
+
+    movement = record_movement(
+        session,
+        business.tenant.id,
+        "receipt",
+        business.item.id,
+        1,
+        to_location_id=business.location.id,
+    )
+    assert movement.id in records_of(
+        session, business.tenant.id, "unexplained_movement"
+    )
 
 
 def test_unmatched_financial_event(session, business):

@@ -48,6 +48,19 @@ database access to find business objects.
 
 ## Recorded implementation evidence
 
+### Movement explanations
+
+- `pytest -q packages/reality-core/tests/test_movement_explanations.py packages/reality-core/tests/operational_exceptions/test_derivation.py -k movement`: 8 passed.
+- The read-time explanation selects correction, return, commitment, shipment, source or explicit
+  adjustment evidence without persisting a second authority. Foreign-tenant movement IDs return
+  `NotFound`.
+- An unlinked receipt preview contains the `unexplained_movement` warning; recording the same
+  movement still produces the canonical operational exception.
+- `npm run build` in `apps/web`: production TypeScript/Vite build passed. Warehouse movement detail
+  renders the shared explanation and the unexplained warning.
+- Shared exposure is covered by `test_b2b_operational_chain_contracts.py`: application tool, MCP,
+  API route and CLI `movement explain` use the same service.
+
 ### Supply assignment
 
 - `pytest -q tests/test_supply_assignments.py tests/test_supply_coverage.py tests/test_unified_delivery_reads.py`: 13 passed.

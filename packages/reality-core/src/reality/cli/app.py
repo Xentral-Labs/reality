@@ -450,6 +450,20 @@ def movement_record(
     )
 
 
+@movement_app.command("explain")
+def movement_explain(movement_id: str, tenant: str | None = None):
+    """Explain why a Movement exists from authoritative business links."""
+    from reality.services.movement_explanations import movement_explanation
+
+    with Session() as s:
+        try:
+            selected = selected_tenant(s, tenant)
+            result = movement_explanation(s, selected.id, movement_id)
+        except (NotFound, InvalidOperation) as error:
+            raise typer.BadParameter(str(error)) from error
+    con.print_json(data=result)
+
+
 @movement_app.command("correct")
 def movement_correct(
     movement_id: str,

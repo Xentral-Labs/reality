@@ -2000,6 +2000,15 @@ MCP_TOOL_CATALOG += (
 
 MCP_TOOL_CATALOG += (
     MCPToolDefinition(
+        "movement_explanation",
+        "Movement explanation",
+        "Explain why a stock movement exists through its shortest authoritative links.",
+        "read",
+        "Warehouse",
+        _object_schema({"movement_id": STRING}, required=("movement_id",)),
+        _read("movement_explanation"),
+    ),
+    MCPToolDefinition(
         "return_disposition_summary",
         "Return disposition summary",
         "Read arrived, resolved and unresolved returned-goods quantity by physical outcome.",

@@ -101,8 +101,7 @@ def eligible(tool: str, arguments: dict[str, Any]) -> bool:
         }
         or (
             tool == "movement_create"
-            and arguments.get("movement_type") in {"shipment", "receipt"}
-            and bool(arguments.get("commitment_id"))
+            and arguments.get("movement_type") in {"shipment", "receipt", "return"}
         )
     )
 
@@ -265,9 +264,34 @@ def review_delivery(
         }
     if result.get("lot_id"):
         intent["lot_id"] = result["lot_id"]
-    detail = delivery_case(
-        session, tenant_id, action_commitment(session, tenant_id, tool, intent)
-    )
+    if tool == "movement_create" and not intent.get("commitment_id"):
+        from reality.services.core import active_reserved, stock_at
+
+        location_id = intent.get("to_location_id") or intent.get("from_location_id")
+        physical = stock_at(session, tenant_id, intent["item_id"], location_id)
+        reserved = active_reserved(session, tenant_id, intent["item_id"], location_id)
+        detail = {
+            "case": {
+                "commitment_id": None,
+                "item_id": intent["item_id"],
+                "location_id": location_id,
+                "location": session.scalar(
+                    select(Location.name).where(
+                        Location.tenant_id == tenant_id, Location.id == location_id
+                    )
+                ),
+            },
+            "inventory": {
+                "location_id": location_id,
+                "physical": str(physical),
+                "reserved": str(reserved),
+                "available": str(physical - reserved),
+            },
+        }
+    else:
+        detail = delivery_case(
+            session, tenant_id, action_commitment(session, tenant_id, tool, intent)
+        )
     location_key = (
         "to_location_id"
         if intent.get("movement_type") == "receipt"
@@ -294,6 +318,30 @@ def review_delivery(
             )
         )
     state = {"case": detail["case"], "inventory": detail["inventory"], "effect": effect}
+    warnings = []
+    if (
+        tool == "movement_create"
+        and intent.get("movement_type") in {"shipment", "receipt", "return"}
+        and not any(
+            intent.get(key)
+            for key in (
+                "commitment_id",
+                "source_record_id",
+                "return_announcement_id",
+                "resolves_movement_id",
+                "shipment_package_id",
+            )
+        )
+    ):
+        warnings.append(
+            {
+                "code": "unexplained_movement",
+                "message": (
+                    "No commitment, return, shipment or source explains this movement. "
+                    "Confirming it will create an unexplained-movement exception."
+                ),
+            }
+        )
     if reservation_state is not None:
         state["reservation"] = reservation_state
     if holds_state is not None:
@@ -310,6 +358,7 @@ def review_delivery(
         "intent": intent,
         "effect": effect,
         "state": state,
+        "warnings": warnings,
         "token": fingerprint,
     }
 
@@ -707,6 +756,8 @@ def assert_no_unresolved_action(
 
     assert_no_unresolved(session, tenant_id, tool, arguments, exclude)
     if tool == "movement_correct":
+        return
+    if tool == "movement_create" and not arguments.get("commitment_id"):
         return
     commitment_id = action_commitment(session, tenant_id, tool, arguments)
     assert_no_unresolved_delivery(session, tenant_id, commitment_id, exclude)

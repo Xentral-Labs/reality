@@ -1143,6 +1143,15 @@ export type MovementCorrectionSnapshot = {
     request_fingerprint: string;
   } | null;
 };
+export type MovementExplanationData = {
+  movement_id: string;
+  kind: string;
+  explained: boolean;
+  summary: string;
+  reason: string | null;
+  links: Array<{ kind: string; id: string; label: string }>;
+  source_record_id: string | null;
+};
 export type MovementCorrectionPreview = {
   movement_id: string;
   revision: string;
@@ -2030,6 +2039,8 @@ export const api = {
   releasePartyDeliveryHold: (tenant: string, id: string) =>
     request(`/api/tenants/${tenant}/parties/${id}/delivery-holds/release`, { method: "POST" }),
   movements: (tenant: string) => request<MovementRow[]>(`/api/tenants/${tenant}/movements`),
+  movementExplanation: (tenant: string, id: string) =>
+    request<MovementExplanationData>(`/api/tenants/${tenant}/movements/${id}/explanation`),
   createMovement: (tenant: string, body: Record<string, unknown>) =>
     request<MovementRow>(`/api/tenants/${tenant}/movements`, {
       method: "POST",

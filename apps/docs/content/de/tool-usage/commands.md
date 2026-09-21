@@ -6404,6 +6404,7 @@ oder Projection; Steuerungs-Tools tragen Vorschläge, Erkundung und fehlende Inf
 | [`reality_gap_rule_disable_propose`](#tool-reality_gap_rule_disable_propose)                     | Propose rule disablement                       | `propose` | —                      |
 | [`reality_gap_rule_replay_propose`](#tool-reality_gap_rule_replay_propose)                       | Propose historical replay                      | `propose` | —                      |
 | [`supply_coverage`](#tool-supply_coverage)                                                       | Supply coverage                                | `read`    | —                      |
+| [`movement_explanation`](#tool-movement_explanation)                                             | Movement explanation                           | `read`    | —                      |
 | [`return_disposition_summary`](#tool-return_disposition_summary)                                 | Return disposition summary                     | `read`    | —                      |
 | [`finance_credits`](#tool-finance_credits)                                                       | Available credit                               | `read`    | —                      |
 | [`finance_party_balances`](#tool-finance_party_balances)                                         | Party balances                                 | `read`    | —                      |
@@ -7427,6 +7428,42 @@ assigned quantity and current reversals.
 | ------------------------ | -------- | ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------- |
 | `supplier_commitment_id` | `string` | nein    | Opaque identity of the incoming supplier commitment whose quantity is being assigned.                                                                         | —        |
 | `customer_commitment_id` | `string` | nein    | Optional opaque identity of the outgoing customer commitment that the incoming supply is intended to cover; absence explicitly assigns the quantity to stock. | —        |
+
+### `movement_explanation` — Movement explanation {#tool-movement_explanation}
+
+Explain why a stock movement exists through its shortest authoritative links.
+
+**Aufruf**
+
+```text
+movement_explanation movement_id
+```
+
+**Zugriff:** `read`
+
+**So wird diese Abfrage ausgeführt**
+
+| Konkrete Abfrage           | Art                        | Standard |
+| -------------------------- | -------------------------- | -------- |
+| `MCP movement_explanation` | Live — beim Aufruf gelesen | ja       |
+
+[So wird diese Abfrage ausgeführt](./views#read-execution)
+
+Explain why one physical stock movement exists through its shortest authoritative relationships.
+
+**Verwenden, wenn**
+
+- A user asks for the business reason behind a goods movement.
+
+**Nicht verwenden, wenn**
+
+- A user wants to mutate a movement.
+
+**Parameter**
+
+| Name          | Typ      | Pflicht | Beschreibung                                                                     | Standard |
+| ------------- | -------- | ------- | -------------------------------------------------------------------------------- | -------- |
+| `movement_id` | `string` | ja      | Opaque identity of the immutable physical Movement being inspected or corrected. | —        |
 
 ### `return_disposition_summary` — Return disposition summary {#tool-return_disposition_summary}
 

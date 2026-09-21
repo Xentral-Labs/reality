@@ -4000,6 +4000,24 @@ capability_guidance:
     unknown_when: [The arrival Movement or later physical evidence is absent.]
     next_steps: [Record a reviewed disposition or inspect the independent credit state.]
     examples: {use: [{scenario: Find the unresolved quantity of an arrived return., reason: The read reconciles correcting movements and all supported outcomes.}], do_not_use: [{scenario: Claim the return was refunded., reason: Financial settlement requires separate evidence.}]}
+  movement_explanation:
+    kind: read
+    application_tool: movement_explanation
+    purpose: Explain why one physical stock movement exists through its shortest authoritative relationships.
+    use_when: [A user asks for the business reason behind a goods movement.]
+    do_not_use_when: [A user wants to mutate a movement.]
+    required_context: [tenant, movement_id]
+    data_basis: [movement, movement_correction, commitment, return_announcement, shipment_package, source_record]
+    limitations: [The explanation derives current links and never invents missing evidence.]
+    freshness: Derived from current tenant-scoped Reality and Evidence records at request time.
+    empty_result: An existing movement without an allowed relationship is explicitly returned as unexplained.
+    refusal_behavior: Foreign-company and unknown movements are not disclosed.
+    confirmation: none
+    side_effects: none
+    verification: {role: context, proves: [The displayed relationship or source is linked to the selected movement.], does_not_prove: [An unlinked movement was commercially authorized.]}
+    unknown_when: [The movement has no commitment, return, correction, shipment, source, or explicit adjustment reason.]
+    next_steps: [Open the linked Inspector record or review the unexplained-movement exception.]
+    examples: {use: [{scenario: Explain why a warehouse receipt exists., reason: The read follows its supplier commitment or source record.}], do_not_use: [{scenario: Correct an erroneous receipt., reason: Use the reviewed movement correction workflow.}]}
   return_announcements:
     kind: read
     application_tool: return_announcements

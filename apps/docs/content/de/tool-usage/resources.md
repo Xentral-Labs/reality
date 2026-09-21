@@ -347,7 +347,8 @@ Warenausgang, Lagerbewegung, Umlagerung, Bestandsanpassung, Sendung, Packstück,
 [`movement.recorded`](./events#event-movement-recorded),
 [`movement.corrected`](./events#event-movement-corrected) · Agenten-Tools ohne Geschäftsaktion:
 [`shipments_list`](./commands#tool-shipments_list),
-[`shipment_explain`](./commands#tool-shipment_explain)
+[`shipment_explain`](./commands#tool-shipment_explain),
+[`movement_explanation`](./commands#tool-movement_explanation)
 
 ## Charge, Seriennummer und Palette {#resource-lot}
 

@@ -339,7 +339,8 @@ Lagerbewegung, Umlagerung, Bestandsanpassung, Sendung, Packstück, Tracking
 [`movement.recorded`](./events#event-movement-recorded),
 [`movement.corrected`](./events#event-movement-corrected) · Agent tools without a command:
 [`shipments_list`](./commands#tool-shipments_list),
-[`shipment_explain`](./commands#tool-shipment_explain)
+[`shipment_explain`](./commands#tool-shipment_explain),
+[`movement_explanation`](./commands#tool-movement_explanation)
 
 ## Lot, serial number and pallet {#resource-lot}
 

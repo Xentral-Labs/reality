@@ -417,6 +417,7 @@ families:
       - tool:return_announcements
       - tool:return_disposition
       - tool:return_disposition_summary
+      - tool:movement_explanation
       - tool:exceptions
       - tool:finance_balances
       - tool:finance.deposit.clear

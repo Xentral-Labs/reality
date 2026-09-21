@@ -1,4 +1,4 @@
-from reality.cli.app import app
+from reality.cli.app import app, movement_app
 from reality.mcp.catalog import MCP_TOOL_NAMES
 from reality.tools.application import TOOLS
 from typer.testing import CliRunner
@@ -20,3 +20,10 @@ def test_supply_assignment_cli_commands_are_discoverable():
     assert "return-disposition-propose" in result.stdout
     assert "return-disposition-confirm" in result.stdout
     assert "return-disposition" in result.stdout
+
+
+def test_movement_explanation_is_shared_and_cli_discoverable():
+    assert TOOLS["movement_explanation"].mutating is False
+    assert "movement_explanation" in MCP_TOOL_NAMES
+
+    assert "explain" in {command.name for command in movement_app.registered_commands}
