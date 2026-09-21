@@ -1,10 +1,11 @@
 import pytest
 from conftest import record_by_id, seed_company
+from sqlalchemy import func, select
+
 from reality.db.core import Document, Item, PlaygroundRun, Tenant
 from reality.jobs.registry import JobError
 from reality.services import company_setup
 from reality.services.core import Conflict, InvalidOperation
-from sqlalchemy import func, select
 
 
 def test_empty_creation_replay_and_changed_kind(session, scheduled_owner, monkeypatch):

@@ -3,6 +3,8 @@ from datetime import datetime
 from decimal import Decimal
 
 from conftest import record_by_id, seed_company
+from sqlalchemy import select
+
 from reality.db.core import (
     Document,
     DocumentLine,
@@ -12,7 +14,6 @@ from reality.db.core import (
 )
 from reality.demo.international import HISTORY
 from reality.services import company_setup
-from sqlalchemy import select
 
 
 def test_history_has_authored_comparison_dates_currencies_and_linked_credit(
