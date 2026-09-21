@@ -6,3 +6,4 @@
 - [x] T004 [FR-006] Add the durable demo catalog and link it from `docs/features/company-setup-demo.md`.
 - [x] T005 [FR-007, SC-001..SC-004] Run focused scenario, setup, finance and costing tests plus lint/spec checks.
 - [x] T006 Review the final diff against the Constitution and mark tasks complete only with green evidence.
+- [x] T007 [FR-006] Publish the catalog in both Docs languages and link it from the open newcomer navigation.

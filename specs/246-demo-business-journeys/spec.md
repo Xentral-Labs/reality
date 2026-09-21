@@ -93,7 +93,8 @@ and deliberate limitations.
 - **FR-005**: Added billed sales lines that claim contribution coverage MUST expose a
   reviewed cost basis and calculated DB values; deliberately unresolved cases MUST be
   labelled as such in the catalog.
-- **FR-006**: The durable demo documentation MUST inventory baseline master data,
+- **FR-006**: The durable demo documentation and its discoverable English and German
+  public Docs pages MUST inventory baseline master data,
   purchase-to-pay, order-to-cash, inventory, finance, contribution and exception cases,
   including stable references and expected outcomes.
 - **FR-007**: Static profile creation and replay MUST remain deterministic, tenant
