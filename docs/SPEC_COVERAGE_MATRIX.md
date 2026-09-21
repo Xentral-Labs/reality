@@ -1596,3 +1596,5 @@ in test_captured_report.py. Cache publication grants no company financial approv
 | Stored inventory graph reporting and tenant boundaries | 242 FR-012/014/016/018 | `packages/reality-core/tests/test_inventory_graph_reporting.py` |
 | Tenant-scoped inventory review discovery | 242 FR-012/014/022 | `packages/reality-core/tests/test_inventory_review_options.py` |
 | Current and historical inventory snapshot selection | 242 FR-007/014/018 | `packages/reality-core/tests/test_inventory_snapshot_selection.py` |
+
+| Isolated job children inherit the interpreter's bytecode policy, so a signed or read-only installation is never written into | 240 FR-010 | `packages/reality-core/tests/test_job_runner_process.py` |
