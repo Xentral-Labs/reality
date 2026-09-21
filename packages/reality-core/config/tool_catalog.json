@@ -209,6 +209,7 @@
     }
   },
   "mcp_topics": {
+    "movement_explanation": "shipping",
     "return_disposition_summary": "shipping",
     "supply_coverage": "orders",
     "capability_describe": "evidence",

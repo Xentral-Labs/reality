@@ -1,3 +1,4 @@
+from reality.catalogs import runtime_application_catalog
 from reality.cli.app import app, movement_app
 from reality.mcp.catalog import MCP_TOOL_NAMES
 from reality.tools.application import TOOLS
@@ -27,3 +28,13 @@ def test_movement_explanation_is_shared_and_cli_discoverable():
     assert "movement_explanation" in MCP_TOOL_NAMES
 
     assert "explain" in {command.name for command in movement_app.registered_commands}
+
+
+def test_movement_explanation_loads_in_the_runtime_catalog():
+    catalog = runtime_application_catalog()
+    entry = next(
+        row
+        for row in catalog["tool_catalog"]["entries"]
+        if row["id"] == "mcp:movement_explanation"
+    )
+    assert entry["topic"] == "shipping"
