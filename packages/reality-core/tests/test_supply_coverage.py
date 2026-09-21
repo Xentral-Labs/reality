@@ -1,10 +1,11 @@
 from decimal import Decimal
 
+from sqlalchemy import func, select
+
 from reality.db.core import Reservation
 from reality.services import core
 from reality.services.delivery_reads import delivery_case
 from reality.services.supply_assignments import assign_supply, supply_coverage
-from sqlalchemy import func, select
 
 
 def _commitments(session, business):

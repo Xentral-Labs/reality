@@ -3,6 +3,7 @@ from decimal import Decimal
 
 import pytest
 from conftest import record_by_id
+
 from reality.services.core import (
     InvalidOperation,
     NotFound,
@@ -319,8 +320,9 @@ def test_a_resolution_is_validated(session, business):
     goods_back = came_back(session, business, commitment, 6, area)
 
     # A shipment is a real movement and not a return, so it settles nothing.
-    from reality.db.core import Movement
     from sqlalchemy import select
+
+    from reality.db.core import Movement
 
     shipment = session.scalars(
         select(Movement).where(

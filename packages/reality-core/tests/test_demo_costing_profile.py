@@ -5,6 +5,8 @@ from decimal import Decimal
 
 import pytest
 from conftest import record_by_id, seed_company
+from sqlalchemy import func, select
+
 from reality.db.contribution import (
     CostCommercialMatchRevision,
     CostContributionReview,
@@ -26,7 +28,6 @@ from reality.services.tenant_policy import (
     PlaygroundOperationDenied,
     profile_cost_action_scope,
 )
-from sqlalchemy import func, select
 
 COMPLETE_PORTFOLIO = {
     "fixture_a": {
