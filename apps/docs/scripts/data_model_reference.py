@@ -840,8 +840,11 @@ def build_data_models(entries: list[dict[str, Any]]) -> list[dict[str, Any]]:
                     "nullable": column.nullable,
                     "default": default,
                     "meaning": meaning,
+                    # A set, because since spec 181 FR-005 a company column takes
+                    # part in every composite reference its table makes, and the
+                    # same parent would otherwise be listed once per reference.
                     "references": sorted(
-                        fk.target_fullname for fk in column.foreign_keys
+                        {fk.target_fullname for fk in column.foreign_keys}
                     ),
                 }
             )

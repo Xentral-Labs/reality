@@ -67060,7 +67060,7 @@
             "en": "Company boundary, taken from the application context.",
             "de": "Unternehmensgrenze, aus dem Anwendungskontext übernommen."
           },
-          "references": ["tenant.id"]
+          "references": ["source_artifact.tenant_id", "source_record.tenant_id", "tenant.id"]
         },
         {
           "name": "source_system",
@@ -67282,7 +67282,12 @@
             "en": "Company boundary, taken from the application context.",
             "de": "Unternehmensgrenze, aus dem Anwendungskontext übernommen."
           },
-          "references": ["tenant.id"]
+          "references": [
+            "party.tenant_id",
+            "payment_term.tenant_id",
+            "source_record.tenant_id",
+            "tenant.id"
+          ]
         },
         {
           "name": "source_record_id",
@@ -67552,7 +67557,13 @@
             "en": "Company boundary, taken from the application context.",
             "de": "Unternehmensgrenze, aus dem Anwendungskontext übernommen."
           },
-          "references": ["tenant.id"]
+          "references": [
+            "document.tenant_id",
+            "document_line.tenant_id",
+            "item.tenant_id",
+            "price_list_entry.tenant_id",
+            "tenant.id"
+          ]
         },
         {
           "name": "document_id",
@@ -67837,7 +67848,14 @@
             "en": "Company boundary, taken from the application context.",
             "de": "Unternehmensgrenze, aus dem Anwendungskontext übernommen."
           },
-          "references": ["tenant.id"]
+          "references": [
+            "document.tenant_id",
+            "document_line.tenant_id",
+            "item.tenant_id",
+            "location.tenant_id",
+            "party.tenant_id",
+            "tenant.id"
+          ]
         },
         {
           "name": "type",
@@ -68110,7 +68128,7 @@
             "en": "Company boundary, taken from the application context.",
             "de": "Unternehmensgrenze, aus dem Anwendungskontext übernommen."
           },
-          "references": ["tenant.id"]
+          "references": ["commitment.tenant_id", "source_record.tenant_id", "tenant.id"]
         },
         {
           "name": "commitment_id",
@@ -68273,7 +68291,15 @@
             "en": "Company boundary, taken from the application context.",
             "de": "Unternehmensgrenze, aus dem Anwendungskontext übernommen."
           },
-          "references": ["tenant.id"]
+          "references": [
+            "commitment.tenant_id",
+            "handling_unit.tenant_id",
+            "item.tenant_id",
+            "location.tenant_id",
+            "lot.tenant_id",
+            "serial_unit.tenant_id",
+            "tenant.id"
+          ]
         },
         {
           "name": "commitment_id",
@@ -68471,7 +68497,19 @@
             "en": "Company boundary, taken from the application context.",
             "de": "Unternehmensgrenze, aus dem Anwendungskontext übernommen."
           },
-          "references": ["tenant.id"]
+          "references": [
+            "commitment.tenant_id",
+            "handling_unit.tenant_id",
+            "item.tenant_id",
+            "location.tenant_id",
+            "lot.tenant_id",
+            "movement.tenant_id",
+            "return_announcement.tenant_id",
+            "serial_unit.tenant_id",
+            "shipment_package.tenant_id",
+            "source_record.tenant_id",
+            "tenant.id"
+          ]
         },
         {
           "name": "type",
@@ -68735,7 +68773,13 @@
             "en": "Company boundary. Together, tenant_id and account_id reference the subledger account; the account relationship is one composite key.",
             "de": "Unternehmensgrenze. tenant_id und account_id verweisen gemeinsam auf das Nebenbuchkonto; dieser Kontobezug ist ein zusammengesetzter Schlüssel."
           },
-          "references": ["subledger_account.tenant_id", "tenant.id"]
+          "references": [
+            "document.tenant_id",
+            "party.tenant_id",
+            "source_record.tenant_id",
+            "subledger_account.tenant_id",
+            "tenant.id"
+          ]
         },
         {
           "name": "posting_group_id",
@@ -68936,7 +68980,7 @@
             "en": "Company boundary, taken from the application context.",
             "de": "Unternehmensgrenze, aus dem Anwendungskontext übernommen."
           },
-          "references": ["tenant.id"]
+          "references": ["interpretation_rule.tenant_id", "source_record.tenant_id", "tenant.id"]
         },
         {
           "name": "subject_type",
@@ -69127,7 +69171,7 @@
             "en": "Company boundary, taken from the application context.",
             "de": "Unternehmensgrenze, aus dem Anwendungskontext übernommen."
           },
-          "references": ["tenant.id"]
+          "references": ["payment_term.tenant_id", "source_record.tenant_id", "tenant.id"]
         },
         {
           "name": "type",
@@ -69323,7 +69367,7 @@
             "en": "Company boundary, taken from the application context.",
             "de": "Unternehmensgrenze, aus dem Anwendungskontext übernommen."
           },
-          "references": ["tenant.id"]
+          "references": ["location.tenant_id", "party.tenant_id", "tenant.id"]
         },
         {
           "name": "party_id",
@@ -69422,7 +69466,7 @@
             "en": "Company boundary, taken from the application context.",
             "de": "Unternehmensgrenze, aus dem Anwendungskontext übernommen."
           },
-          "references": ["tenant.id"]
+          "references": ["party.tenant_id", "tenant.id"]
         },
         {
           "name": "party_id",
@@ -69579,7 +69623,7 @@
             "en": "Company boundary, taken from the application context.",
             "de": "Unternehmensgrenze, aus dem Anwendungskontext übernommen."
           },
-          "references": ["tenant.id"]
+          "references": ["location.tenant_id", "source_record.tenant_id", "tenant.id"]
         },
         {
           "name": "sku",
@@ -69791,7 +69835,7 @@
             "en": "Company boundary, taken from the application context.",
             "de": "Unternehmensgrenze, aus dem Anwendungskontext übernommen."
           },
-          "references": ["tenant.id"]
+          "references": ["location.tenant_id", "source_record.tenant_id", "tenant.id"]
         },
         {
           "name": "name",
@@ -69937,7 +69981,7 @@
             "en": "Company boundary, taken from the application context.",
             "de": "Unternehmensgrenze, aus dem Anwendungskontext übernommen."
           },
-          "references": ["tenant.id"]
+          "references": ["source_record.tenant_id", "tenant.id"]
         },
         {
           "name": "code",
@@ -70099,7 +70143,7 @@
             "en": "Company boundary, taken from the application context.",
             "de": "Unternehmensgrenze, aus dem Anwendungskontext übernommen."
           },
-          "references": ["tenant.id"]
+          "references": ["source_record.tenant_id", "tenant.id"]
         },
         {
           "name": "code",
@@ -70283,7 +70327,12 @@
             "en": "Company boundary, taken from the application context.",
             "de": "Unternehmensgrenze, aus dem Anwendungskontext übernommen."
           },
-          "references": ["tenant.id"]
+          "references": [
+            "item.tenant_id",
+            "price_list.tenant_id",
+            "source_record.tenant_id",
+            "tenant.id"
+          ]
         },
         {
           "name": "price_list_id",
@@ -70451,7 +70500,7 @@
             "en": "Company boundary, taken from the application context.",
             "de": "Unternehmensgrenze, aus dem Anwendungskontext übernommen."
           },
-          "references": ["tenant.id"]
+          "references": ["party.tenant_id", "price_list.tenant_id", "tenant.id"]
         },
         {
           "name": "party_id",
@@ -70579,7 +70628,7 @@
             "en": "Company boundary, taken from the application context.",
             "de": "Unternehmensgrenze, aus dem Anwendungskontext übernommen."
           },
-          "references": ["tenant.id"]
+          "references": ["source_record.tenant_id", "tenant.id"]
         },
         {
           "name": "code",
@@ -70705,7 +70754,7 @@
             "en": "Company boundary, taken from the application context.",
             "de": "Unternehmensgrenze, aus dem Anwendungskontext übernommen."
           },
-          "references": ["tenant.id"]
+          "references": ["party.tenant_id", "party_group.tenant_id", "tenant.id"]
         },
         {
           "name": "party_group_id",
@@ -70817,7 +70866,7 @@
             "en": "Company boundary, taken from the application context.",
             "de": "Unternehmensgrenze, aus dem Anwendungskontext übernommen."
           },
-          "references": ["tenant.id"]
+          "references": ["party_group.tenant_id", "price_list.tenant_id", "tenant.id"]
         },
         {
           "name": "party_group_id",
@@ -70943,7 +70992,7 @@
             "en": "Company boundary, taken from the application context.",
             "de": "Unternehmensgrenze, aus dem Anwendungskontext übernommen."
           },
-          "references": ["tenant.id"]
+          "references": ["source_record.tenant_id", "tenant.id"]
         },
         {
           "name": "nve",
@@ -71041,7 +71090,7 @@
             "en": "Company boundary, taken from the application context.",
             "de": "Unternehmensgrenze, aus dem Anwendungskontext übernommen."
           },
-          "references": ["tenant.id"]
+          "references": ["item.tenant_id", "source_record.tenant_id", "tenant.id"]
         },
         {
           "name": "item_id",
@@ -71167,7 +71216,7 @@
             "en": "Company boundary, taken from the application context.",
             "de": "Unternehmensgrenze, aus dem Anwendungskontext übernommen."
           },
-          "references": ["tenant.id"]
+          "references": ["item.tenant_id", "lot.tenant_id", "source_record.tenant_id", "tenant.id"]
         },
         {
           "name": "item_id",
@@ -71294,7 +71343,7 @@
             "en": "Company boundary, taken from the application context.",
             "de": "Unternehmensgrenze, aus dem Anwendungskontext übernommen."
           },
-          "references": ["tenant.id"]
+          "references": ["party.tenant_id", "source_record.tenant_id", "tenant.id"]
         },
         {
           "name": "direction",
@@ -71421,7 +71470,7 @@
             "en": "Company boundary, taken from the application context.",
             "de": "Unternehmensgrenze, aus dem Anwendungskontext übernommen."
           },
-          "references": ["tenant.id"]
+          "references": ["shipment.tenant_id", "source_record.tenant_id", "tenant.id"]
         },
         {
           "name": "shipment_id",
@@ -71549,7 +71598,12 @@
             "en": "Company boundary, taken from the application context.",
             "de": "Unternehmensgrenze, aus dem Anwendungskontext übernommen."
           },
-          "references": ["tenant.id"]
+          "references": [
+            "shipment.tenant_id",
+            "shipment_package.tenant_id",
+            "source_record.tenant_id",
+            "tenant.id"
+          ]
         },
         {
           "name": "shipment_id",
@@ -71735,7 +71789,7 @@
             "en": "Company boundary, taken from the application context.",
             "de": "Unternehmensgrenze, aus dem Anwendungskontext übernommen."
           },
-          "references": ["tenant.id"]
+          "references": ["shipment_event.tenant_id", "source_record.tenant_id", "tenant.id"]
         },
         {
           "name": "superseded_event_id",
@@ -71877,7 +71931,7 @@
             "en": "Company boundary, taken from the application context.",
             "de": "Unternehmensgrenze, aus dem Anwendungskontext übernommen."
           },
-          "references": ["tenant.id"]
+          "references": ["commitment.tenant_id", "source_record.tenant_id", "tenant.id"]
         },
         {
           "name": "commitment_id",
@@ -72087,7 +72141,7 @@
             "en": "Company boundary, taken from the application context.",
             "de": "Unternehmensgrenze, aus dem Anwendungskontext übernommen."
           },
-          "references": ["tenant.id"]
+          "references": ["movement.tenant_id", "tenant.id"]
         },
         {
           "name": "original_movement_id",
@@ -72605,7 +72659,7 @@
             "en": "Company boundary, taken from the application context.",
             "de": "Unternehmensgrenze, aus dem Anwendungskontext übernommen."
           },
-          "references": ["tenant.id"]
+          "references": ["ledger_entry.tenant_id", "tenant.id"]
         },
         {
           "name": "payment_ledger_entry_id",
@@ -72743,7 +72797,7 @@
             "en": "Company boundary, taken from the application context.",
             "de": "Unternehmensgrenze, aus dem Anwendungskontext übernommen."
           },
-          "references": ["tenant.id"]
+          "references": ["commitment.tenant_id", "tenant.id"]
         },
         {
           "name": "commitment_id",
