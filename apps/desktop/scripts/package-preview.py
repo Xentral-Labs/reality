@@ -8,6 +8,15 @@ import shutil
 import subprocess
 from pathlib import Path
 
+UNINSTALL = """#!/bin/sh
+# Erase this Reality Local installation, including every company and document in it.
+# Without --uninstall the same command only reports where the data is kept.
+set -eu
+resources=$(cd "$(dirname "$0")" && pwd)
+exec "$resources/runtime/python/bin/python3.12" -I \\
+    "$resources/probe/installation.py" --uninstall
+"""
+
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
@@ -15,7 +24,12 @@ def main():
     parser.add_argument("--binary", required=True, type=Path)
     parser.add_argument("--output", required=True, type=Path)
     parser.add_argument(
-        "--frontend", type=Path, help="Include the disposable interactive setup runtime"
+        "--frontend", type=Path, help="Include the interactive product runtime"
+    )
+    parser.add_argument(
+        "--disposable",
+        action="store_true",
+        help="Build the fresh-test harness that removes its data on quit",
     )
     args = parser.parse_args()
     if args.output.exists() or args.output.suffix != ".app":
@@ -42,15 +56,30 @@ def main():
             "local-product.py",
             "local-background.py",
             "runtime-smoke.py",
+            "installation.py",
+            "cluster.py",
         ):
             shutil.copy2(Path(__file__).with_name(name), resources / "probe" / name)
+        if args.disposable:
+            (resources / "probe/disposable").write_text(
+                "This build initializes a new database and removes it on quit.\n"
+            )
+        else:
+            erase = resources / "uninstall.command"
+            erase.write_text(UNINSTALL)
+            erase.chmod(0o755)
+    identifier, name = (
+        ("ai.runreality.local.development", "Reality Local Development")
+        if args.disposable
+        else ("ai.runreality.local", "Reality Local")
+    )
     with (contents / "Info.plist").open("wb") as stream:
         plistlib.dump(
             {
                 "CFBundleExecutable": "reality-local",
-                "CFBundleIdentifier": "ai.runreality.local.development",
-                "CFBundleName": "Reality Local Development",
-                "CFBundleDisplayName": "Reality Local Development",
+                "CFBundleIdentifier": identifier,
+                "CFBundleName": name,
+                "CFBundleDisplayName": name,
                 "CFBundleIconFile": "RealityLocal.icns",
                 "CFBundlePackageType": "APPL",
                 "CFBundleShortVersionString": "0.1.0",
@@ -68,7 +97,14 @@ def main():
         ["/usr/bin/codesign", "--verify", "--deep", "--strict", str(args.output)],
         check=True,
     )
-    print(f"Ad-hoc development preview: {args.output}")
+    kind = "fresh-test harness" if args.disposable else "persistent installation"
+    print(f"Ad-hoc {kind} ({identifier}): {args.output}")
+    if not args.disposable:
+        print(
+            "Data is kept in ~/Library/Application Support/"
+            f"{identifier}. Erase it with:\n"
+            f"  '{args.output}/Contents/Resources/uninstall.command'"
+        )
 
 
 if __name__ == "__main__":

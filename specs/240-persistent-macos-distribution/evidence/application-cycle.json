@@ -1,0 +1,11 @@
+{
+  "note": "Packaged application driven through quit, reopen and erasure. Company created through the real service against the application's own live cluster.",
+  "first_launch_identifier": "ba28dfc6-46cd-4d49-8b10-404389d3ac38",
+  "second_launch_identifier": "ba28dfc6-46cd-4d49-8b10-404389d3ac38",
+  "same_installation": true,
+  "seeded": {"owner_id": "usr_283f97acbb", "tenant_id": "ten_2b7cac8108", "migration_revision": "0069_inventory_generations", "tcp_listening": false},
+  "read_back": {"owner_id": "usr_283f97acbb", "tenants": [["ten_2b7cac8108", "Company From The App"]], "tcp_listening": false},
+  "data_directory_after_quit": true,
+  "postgres_running_after_quit": false,
+  "installation_removed": true
+}
