@@ -173,35 +173,35 @@ missing evidence into EUR 0.
 
 ## Coverage and deliberate gaps
 
-| Typical process                             | Included | Evidence or limitation             | How to find it                                     |
-| ------------------------------------------- | -------- | ---------------------------------- | -------------------------------------------------- |
-| Open order, shortage and reservation        | Yes      | `SO-001`–`SO-005`                  | Sales → Orders → search reference                  |
-| Partial/complete delivery and manual hold   | Yes      | `SO-006`–`SO-009`                  | Sales → Orders → search reference                  |
-| Cancellation before/after shipment          | Yes      | `SO-010`, `SO-011`                 | Sales → Orders → reference → history               |
-| Open, partial and paid receivable           | Yes      | `SO-012`–`SO-023`, `CPAY-*`        | Sales → order → invoice; Finance → Receivables     |
-| Discount with separate reduction posting    | Yes      | `SINV-002`, `SPAY-002`             | Finance → Payables → `SINV-002`                    |
-| Customer and supplier overpayment credit    | Yes      | `CPAY-009`, `SPAY-005`             | Finance → Payments → search reference              |
-| Accepted small remainder                    | Yes      | `CPAY-006`                         | Sales → `SO-017` → invoice → settlement            |
-| Complete and partial customer return/credit | Yes      | `CN-001`, `CN-002`                 | Finance → Receivables → search credit number       |
-| No, partial and complete supplier receipt   | Yes      | `PO-001`–`PO-003`                  | Purchasing → Orders → search reference             |
-| Receipt without invoice                     | Yes      | `PO-006`                           | Purchasing → Orders → `PO-006`                     |
-| Open, partial and paid payable              | Yes      | `SINV-005`, `SINV-004`, `SINV-002` | Finance → Payables → search reference              |
-| Supplier return with/without credit         | Yes      | `PO-007`, `PO-008`                 | Purchasing → Orders → open reference               |
-| Purchase cancellation before receipt        | Yes      | `PO-009`                           | Purchasing → Orders → `PO-009`                     |
-| Location shortage and correction            | Yes      | `ITEM-008`, `ITEM-016`             | Warehouse → Items → search reference               |
-| Complete DB1/DB2 explanations               | Yes      | `SO-024`–`SO-029`                  | Sales → order → invoice → contribution explanation |
-| Price-only allowance                        | Yes      | `SO-030`, `CN-003`                 | Sales → Orders → `SO-030`; Finance → search `CN-003` |
-| Exchange or replacement delivery            | No       | Not in profile version 7           | Not present; see limitation                        |
-| Invoice cancellation/reversal               | Yes      | `SO-031`, exact inverse posting     | Sales → Orders → `SO-031` → invoice → ledger explanation |
-| Multiple partial invoices per order         | Yes      | `SO-032`, quantities 4 and 6       | Sales → Orders → `SO-032` → invoices              |
-| Final short-delivery closure                | Yes      | `SO-011`: 2 shipped, remainder cancelled | Sales → Orders → `SO-011` → history          |
-| Overdelivery                                | No       | Not in profile version 7           | Not present; see limitation                        |
-| Warehouse transfer                         | Yes      | `ITEM-017`, 3 pcs Rotterdam → Singapore | Warehouse → Items → `ITEM-017` → movements    |
-| Damage, loss and scrap                      | Yes      | `ITEM-010`, one adjustment each    | Warehouse → Items → `ITEM-010` → movements         |
-| Lot and expiry date                         | Yes      | `ITEM-017`, `LOT-2026-001` expired | Warehouse → Items → `ITEM-017` → lots/movements    |
-| Serial number                               | Yes      | `ITEM-018`, `SER-0001`             | Warehouse → Items → `ITEM-018` → serial/movements  |
-| Deposits, dunning or bad debt               | No       | Not in profile version 7           | Not present; see limitation                        |
-| Bank reconciliation, tax or FX revaluation  | No       | Not in profile version 7           | Not present; see limitation                        |
+| Typical process                             | Included | Evidence or limitation                   | How to find it                                           |
+| ------------------------------------------- | -------- | ---------------------------------------- | -------------------------------------------------------- |
+| Open order, shortage and reservation        | Yes      | `SO-001`–`SO-005`                        | Sales → Orders → search reference                        |
+| Partial/complete delivery and manual hold   | Yes      | `SO-006`–`SO-009`                        | Sales → Orders → search reference                        |
+| Cancellation before/after shipment          | Yes      | `SO-010`, `SO-011`                       | Sales → Orders → reference → history                     |
+| Open, partial and paid receivable           | Yes      | `SO-012`–`SO-023`, `CPAY-*`              | Sales → order → invoice; Finance → Receivables           |
+| Discount with separate reduction posting    | Yes      | `SINV-002`, `SPAY-002`                   | Finance → Payables → `SINV-002`                          |
+| Customer and supplier overpayment credit    | Yes      | `CPAY-009`, `SPAY-005`                   | Finance → Payments → search reference                    |
+| Accepted small remainder                    | Yes      | `CPAY-006`                               | Sales → `SO-017` → invoice → settlement                  |
+| Complete and partial customer return/credit | Yes      | `CN-001`, `CN-002`                       | Finance → Receivables → search credit number             |
+| No, partial and complete supplier receipt   | Yes      | `PO-001`–`PO-003`                        | Purchasing → Orders → search reference                   |
+| Receipt without invoice                     | Yes      | `PO-006`                                 | Purchasing → Orders → `PO-006`                           |
+| Open, partial and paid payable              | Yes      | `SINV-005`, `SINV-004`, `SINV-002`       | Finance → Payables → search reference                    |
+| Supplier return with/without credit         | Yes      | `PO-007`, `PO-008`                       | Purchasing → Orders → open reference                     |
+| Purchase cancellation before receipt        | Yes      | `PO-009`                                 | Purchasing → Orders → `PO-009`                           |
+| Location shortage and correction            | Yes      | `ITEM-008`, `ITEM-016`                   | Warehouse → Items → search reference                     |
+| Complete DB1/DB2 explanations               | Yes      | `SO-024`–`SO-029`                        | Sales → order → invoice → contribution explanation       |
+| Price-only allowance                        | Yes      | `SO-030`, `CN-003`                       | Sales → Orders → `SO-030`; Finance → search `CN-003`     |
+| Exchange or replacement delivery            | No       | Not in profile version 7                 | Not present; see limitation                              |
+| Invoice cancellation/reversal               | Yes      | `SO-031`, exact inverse posting          | Sales → Orders → `SO-031` → invoice → ledger explanation |
+| Multiple partial invoices per order         | Yes      | `SO-032`, quantities 4 and 6             | Sales → Orders → `SO-032` → invoices                     |
+| Final short-delivery closure                | Yes      | `SO-011`: 2 shipped, remainder cancelled | Sales → Orders → `SO-011` → history                      |
+| Overdelivery                                | No       | Not in profile version 7                 | Not present; see limitation                              |
+| Warehouse transfer                          | Yes      | `ITEM-017`, 3 pcs Rotterdam → Singapore  | Warehouse → Items → `ITEM-017` → movements               |
+| Damage, loss and scrap                      | Yes      | `ITEM-010`, one adjustment each          | Warehouse → Items → `ITEM-010` → movements               |
+| Lot and expiry date                         | Yes      | `ITEM-017`, `LOT-2026-001` expired       | Warehouse → Items → `ITEM-017` → lots/movements          |
+| Serial number                               | Yes      | `ITEM-018`, `SER-0001`                   | Warehouse → Items → `ITEM-018` → serial/movements        |
+| Deposits, dunning or bad debt               | No       | Not in profile version 7                 | Not present; see limitation                              |
+| Bank reconciliation, tax or FX revaluation  | No       | Not in profile version 7                 | Not present; see limitation                              |
 
 ## Static baseline and live data
 
@@ -209,5 +209,5 @@ The cases above belong to the stable baseline. Live simulation separately adds c
 later invoices and payments. It does not automatically reserve stock, ship, return or replenish
 goods, so the reference cases remain reproducible.
 
-The demo does not yet include exchanges/replacements, overdelivery, dedicated deposits, dunning,
-bad debt, bank reconciliation, tax/FX revaluation, manufacturing, payroll or statutory reporting.
+The demo does not yet include exchanges/replacements, overdelivery, dedicated deposits, dunning, bad
+debt, bank reconciliation, tax/FX revaluation, manufacturing, payroll or statutory reporting.
