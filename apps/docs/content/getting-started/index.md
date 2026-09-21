@@ -1,7 +1,13 @@
 # Your First Product Journey
 
-Want to ask a business question? [Analytics](../analytics/) walks through “Which customers ordered
-Product X in week 7?”, from the filtered answer to its supporting orders.
+Reality is the operational core for companies where people, applications and autonomous agents work
+from the same explainable business reality. Instead of leaving information isolated in documents and
+source systems, Reality connects commitments, inventory, deliveries and money flows to their
+evidence and original sources.
+
+In this journey, you create a company with sample data, read its current position and trace one
+result back to its origin. This introduces the complete path first: receive business data, derive
+operational reality, identify what needs attention and explain every answer.
 
 ## Open the app
 

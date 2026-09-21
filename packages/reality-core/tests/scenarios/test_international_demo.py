@@ -94,7 +94,16 @@ def test_demo_human_numbers_use_canonical_type_families(
         "customer_payment": r"CPAY-\d{3}",
         "supplier_payment": r"SPAY-\d{3}",
     }
-    documents = session.scalars(select(Document).where(Document.tenant_id == tenant))
+    documents = list(
+        session.scalars(select(Document).where(Document.tenant_id == tenant))
+    )
+    visible_numbers = [
+        document.number for document in documents if document.type in patterns
+    ]
+    duplicates = {
+        number for number in visible_numbers if visible_numbers.count(number) > 1
+    }
+    assert duplicates == set(), duplicates
     for document in documents:
         pattern = patterns.get(document.type)
         if pattern is not None:
@@ -492,6 +501,7 @@ def test_purchases_cover_the_whole_chain(session, scheduled_owner, monkeypatch):
         number: state for number, state in payables.items() if number != "SINV-011"
     }
     assert sorted(operational_payables.values()) == [
+        "open",
         "open",
         "paid",
         "paid",

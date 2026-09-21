@@ -1,7 +1,14 @@
 # Dein erster Produktdurchlauf
 
-Du möchtest eine Geschäftsfrage beantworten? [Auswertungen](../analytics/) führt dich durch „Welche
-Kunden haben Produkt X in KW 7 bestellt?“ – von der Antwort bis zu den Auftragsbelegen.
+Reality ist der operative Kern für Unternehmen, in denen Menschen, Anwendungen und autonome Agenten
+auf derselben nachvollziehbaren Geschäftsrealität arbeiten. Statt Informationen nur in Belegen und
+Einzelsystemen abzulegen, verbindet Reality Zusagen, Bestand, Lieferungen und Geldflüsse mit ihren
+Belegen und ursprünglichen Quellen.
+
+In diesem Rundgang legst du ein Unternehmen mit Beispieldaten an, liest seine aktuelle Lage und
+verfolgst ein Ergebnis bis zu seinem Ursprung zurück. So lernst du zuerst den durchgängigen Ablauf
+kennen: Geschäftsdaten aufnehmen, operative Wirklichkeit ableiten, Handlungsbedarf erkennen und jede
+Antwort erklären können.
 
 ## App öffnen
 
