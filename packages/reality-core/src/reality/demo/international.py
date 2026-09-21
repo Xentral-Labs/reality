@@ -1,6 +1,6 @@
 """Versioned synthetic vocabulary and authored comparison inputs."""
 
-PROFILE_VERSION = 3
+PROFILE_VERSION = 4
 ITEMS = (
     ("P01", "Summit Bottle", "pcs", "Outdoor"),
     ("P02", "Trail Lantern", "pcs", "Outdoor"),
@@ -62,6 +62,7 @@ ORDER_CUSTOMERS = {
     "O08": "C6",
     "O09": "C7",
     "O10": "C8",
+    "O11": "C16",
     "E01": "C1",
     "E02": "C1",
     "volume": "C9",
@@ -100,7 +101,7 @@ SETTLEMENT = {
     "price-current": "part",
     "decline-prior": "paid",
     "decline-current": "open",
-    "credit-origin": "part",
+    "credit-origin": "open",
     "outlier-prior": "paid",
     "outlier-current": "open",
     "zero-current": "open",

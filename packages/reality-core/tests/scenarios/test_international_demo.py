@@ -1,9 +1,8 @@
 from conftest import record_by_id, seed_company
-from sqlalchemy import func, select
-
 from reality.db.core import Commitment, Item, Location, Party, PlaygroundRun
 from reality.demo.international import HISTORY
 from reality.services import company_setup
+from sqlalchemy import func, select
 
 
 def test_canonical_profile_counts_and_cases(session, scheduled_owner, monkeypatch):
@@ -32,7 +31,10 @@ def test_canonical_profile_counts_and_cases(session, scheduled_owner, monkeypatc
         )
     run = record_by_id(session, PlaygroundRun, result["run_id"])
     assert set(run.initialization_progress["cases"]) >= {
-        f"O{i:02}" for i in range(1, 11)
+        *{f"O{i:02}" for i in range(1, 12)},
+        "S07",
+        "S08",
+        "S09",
     }
     assert (
         session.scalar(
@@ -64,7 +66,7 @@ def test_operational_stock_and_source_lineage(session, scheduled_owner, monkeypa
     manifest = record_by_id(
         session, PlaygroundRun, result["run_id"]
     ).initialization_progress
-    for index, stock in enumerate((10, 10, 42, 2, 5, 7, 10, 0, 0, 10), 1):
+    for index, stock in enumerate((13, 14, 42, 2, 5, 5, 10, 0, 0, 10), 1):
         assert core.stock_at(
             session,
             tenant,
@@ -110,6 +112,15 @@ def test_operational_stock_and_source_lineage(session, scheduled_owner, monkeypa
         ).status
         == "cancelled"
     )
+    assert (
+        record_by_id(
+            session, Commitment, manifest["cases"]["O11"]["commitment_id"]
+        ).status
+        == "cancelled"
+    )
+    assert core.fulfilled_quantity(
+        session, tenant, manifest["cases"]["O11"]["commitment_id"]
+    ) == Decimal(2)
 
 
 def _demo_company(session, owner, key: str) -> str:
@@ -162,7 +173,7 @@ def test_orders_spread_over_the_customer_pool(session, scheduled_owner, monkeypa
         for number, buyer in orders.items()
         if number not in portfolio_orders
     }
-    assert len(operational_orders) == 23
+    assert len(operational_orders) == 24
     held = Counter(operational_orders.values())
     assert len(held) >= 15, held
     assert max(held.values()) <= 5, held
@@ -258,16 +269,15 @@ def test_seeded_invoices_are_settled_in_three_states(
     tenant = _demo_company(session, scheduled_owner, "settled")
     states = Counter(_states(_open_amounts(session, tenant, "sales_invoice")).values())
     assert states["paid"] >= 7, states
-    assert states["part"] >= 2, states
+    assert states["part"] >= 1, states
     assert states["open"] >= 9, states
-    assert (
-        session.scalar(
-            select(func.count())
-            .select_from(Document)
-            .where(Document.tenant_id == tenant, Document.type == "customer_payment")
-        )
-        == states["paid"] + states["part"]
+    payment_count = session.scalar(
+        select(func.count())
+        .select_from(Document)
+        .where(Document.tenant_id == tenant, Document.type == "customer_payment")
     )
+    # One fully settled invoice is closed by CR-001 rather than by cash.
+    assert payment_count + 1 == states["paid"] + states["part"]
     receivable = sum(
         open_amount
         for open_amount, _ in _open_amounts(session, tenant, "sales_invoice").values()
@@ -287,7 +297,7 @@ def test_purchases_cover_the_whole_chain(session, scheduled_owner, monkeypatch):
 
     tenant = _demo_company(session, scheduled_owner, "purchases")
     orders = _documents(session, tenant, "purchase_order")
-    assert len(orders) == 6, orders
+    assert len(orders) == 9, orders
     assert len(set(orders.values())) == 3, "every supplier takes part"
     payables = _states(_open_amounts(session, tenant, "supplier_invoice"))
     assert payables["COST-PORTFOLIO-SELLING"] == "open", payables
@@ -296,9 +306,14 @@ def test_purchases_cover_the_whole_chain(session, scheduled_owner, monkeypatch):
         for number, state in payables.items()
         if number != "COST-PORTFOLIO-SELLING"
     }
-    assert sorted(operational_payables.values()) == ["open", "open", "paid", "part"], (
-        payables
-    )
+    assert sorted(operational_payables.values()) == [
+        "open",
+        "open",
+        "open",
+        "paid",
+        "part",
+        "part",
+    ], payables
     run = session.scalar(select(PlaygroundRun).where(PlaygroundRun.tenant_id == tenant))
     received = {}
     for key, case in run.initialization_progress["cases"].items():
@@ -308,7 +323,15 @@ def test_purchases_cover_the_whole_chain(session, scheduled_owner, monkeypatch):
         received[key] = core.fulfilled_quantity(session, tenant, commitment.id)
     assert received["S01"] == Decimal(2), received
     assert received["S03"] == Decimal(0), received
-    assert sum(1 for value in received.values() if value == Decimal(5)) == 4, received
+    assert sum(1 for value in received.values() if value == Decimal(5)) == 6, received
+    assert received["S07"] == Decimal(5), received
+    assert received["S08"] == Decimal(5), received
+    assert received["S09"] == Decimal(0), received
+    assert record_by_id(
+        session, Commitment, run.initialization_progress["cases"]["S09"]["commitment_id"]
+    ).status == "cancelled"
+    supplier_credits = _open_amounts(session, tenant, "supplier_credit_note")
+    assert supplier_credits["SCN-S07"][0] == Decimal(0)
 
 
 def test_settlement_is_authored_not_drawn(session, scheduled_owner, monkeypatch):
@@ -327,15 +350,18 @@ def test_the_profile_may_settle_but_not_decide(session, scheduled_owner):
 
     assert {
         "post_customer_payment",
+        "allocate_credit_note",
         "record_customer_payment",
         "post_supplier_invoice",
+        "post_supplier_credit_note",
+        "allocate_supplier_credit_note",
         "post_supplier_payment",
         "record_supplier_payment",
         "allocate_settlement",
     } <= _PROFILE_OPERATIONS
     for denied in (
         "post_customer_refund",
-        "allocate_credit_note",
+        "record_customer_refund",
         "archive_tenant",
         "create_change_proposal",
     ):

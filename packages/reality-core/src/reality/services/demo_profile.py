@@ -227,9 +227,9 @@ def seed_profile(
             },
         )
         kwargs = {
-            "from_location_id" if kind == "shipment" else "to_location_id": locations[
-                location
-            ]
+            "from_location_id"
+            if kind in {"shipment", "supplier_return"}
+            else "to_location_id": locations[location]
         }
         return core.record_movement(
             session,
@@ -305,6 +305,22 @@ def seed_profile(
                 )
             if index == 10:
                 core.cancel_commitment(session, tenant, commitment, _commit=False)
+        cases["O11"], _ = order(
+            "O11",
+            "P06",
+            counterparty=buyer("O11"),
+            due=anchor + timedelta(days=3),
+        )
+        movement(
+            "shipment-cancelled-remainder",
+            "P06",
+            "2",
+            "shipment",
+            commitment=cases["O11"]["commitment_id"],
+        )
+        core.cancel_commitment(
+            session, tenant, cases["O11"]["commitment_id"], _commit=False
+        )
         movement("wrong-location", "P08", "8", location="B")
         # Feature 204: ordered, received, invoiced and paid in every combination, so a
         # person can follow one purchase all the way to the money.
@@ -382,6 +398,137 @@ def seed_profile(
                 effective_at=anchor - timedelta(days=5),
                 _commit=False,
             )
+        # Feature 246: ordinary purchase exceptions remain normal source-backed
+        # documents and Reality movements, not special fixture state.
+        for key, item, returned, credited in (
+            ("S07", "P01", "2", "20"),
+            ("S08", "P02", "1", None),
+        ):
+            ref, purchase_lines = order(
+                f"PO-{int(key[1:]):03}",
+                item,
+                counterparty="S3",
+                quantity="5",
+                purchase=True,
+                due=anchor + timedelta(days=5),
+                date=anchor - timedelta(days=20),
+            )
+            movement(
+                f"purchase-receipt-{key}",
+                item,
+                "5",
+                commitment=ref["commitment_id"],
+                date=anchor - timedelta(days=12),
+            )
+            invoice_date = anchor - timedelta(days=10)
+            invoice_lines = [
+                {**purchase_lines[0], "billed_document_line_id": ref["line_id"]}
+            ]
+            invoice_source = source(
+                "supplier_invoice",
+                f"SINV-{key}",
+                {
+                    "number": f"SINV-{key}",
+                    "date": invoice_date.isoformat(),
+                    "lines": invoice_lines,
+                    "currency": "EUR",
+                    "gross_amount": "50",
+                    "amount_basis": "gross",
+                    "tax_amount": "0",
+                    "discount_amount": "0",
+                },
+            )
+            supplier_invoice, _ = core.create_manual_document_with_lines(
+                session,
+                tenant,
+                "supplier_invoice",
+                f"SINV-{key}",
+                parties["S3"],
+                invoice_lines,
+                "50",
+                document_date=invoice_date.date().isoformat(),
+                source_record_id=invoice_source.id,
+                _commit=False,
+            )
+            core.post_supplier_invoice(
+                session, tenant, supplier_invoice.id, effective_at=invoice_date, _commit=False
+            )
+            returned_movement = movement(
+                f"supplier-return-{key}",
+                item,
+                returned,
+                "supplier_return",
+                commitment=ref["commitment_id"],
+                date=anchor - timedelta(days=4),
+            )
+            cases[key] = {
+                **ref,
+                "supplier_invoice_id": supplier_invoice.id,
+                "supplier_return_id": returned_movement.id,
+            }
+            if credited is not None:
+                credit_date = anchor - timedelta(days=3)
+                credit_lines = [
+                    {
+                        **purchase_lines[0],
+                        "quantity": returned,
+                        "gross_amount": credited,
+                        "billed_document_line_id": ref["line_id"],
+                    }
+                ]
+                credit_source = source(
+                    "supplier_credit_note",
+                    f"SCN-{key}",
+                    {
+                        "number": f"SCN-{key}",
+                        "date": credit_date.isoformat(),
+                        "lines": credit_lines,
+                        "currency": "EUR",
+                        "gross_amount": credited,
+                    },
+                )
+                credit, _ = core.create_manual_document_with_lines(
+                    session,
+                    tenant,
+                    "supplier_credit_note",
+                    f"SCN-{key}",
+                    parties["S3"],
+                    credit_lines,
+                    credited,
+                    document_date=credit_date.date().isoformat(),
+                    source_record_id=credit_source.id,
+                    _commit=False,
+                )
+                core.post_supplier_credit_note(
+                    session,
+                    tenant,
+                    credit.id,
+                    effective_at=credit_date,
+                    _commit=False,
+                )
+                core.allocate_supplier_credit_note(
+                    session,
+                    tenant,
+                    credit.id,
+                    supplier_invoice.id,
+                    credited,
+                    _commit=False,
+                )
+                cases[key]["supplier_credit_id"] = credit.id
+
+        cancel_ref, _ = order(
+            "PO-009",
+            "P01",
+            counterparty="S3",
+            quantity="5",
+            purchase=True,
+            due=anchor + timedelta(days=5),
+            date=anchor - timedelta(days=20),
+        )
+        core.cancel_commitment(
+            session, tenant, cancel_ref["commitment_id"], _commit=False
+        )
+        cases["S09"] = cancel_ref
         history = list(HISTORY)
         history_cost_rows = []
         for key, item, days, quantity, price, gross, currency in history:
@@ -472,8 +619,8 @@ def seed_profile(
                 credit_lines = [
                     {
                         **invoice_lines[0],
-                        "quantity": "2",
-                        "gross_amount": "24",
+                        "quantity": "10",
+                        "gross_amount": "120",
                         "billed_document_line_id": None,
                     }
                 ]
@@ -484,7 +631,7 @@ def seed_profile(
                         "invoice_external_reference": f"INV-{key}",
                         "order_external_reference": f"H-{key}",
                         "lines": credit_lines,
-                        "gross_amount": "24",
+                        "gross_amount": "120",
                         "currency": "EUR",
                         "amount_basis": "gross",
                         "tax_amount": "0",
@@ -499,7 +646,7 @@ def seed_profile(
                     "CR-001",
                     parties[customer],
                     credit_lines,
-                    "24",
+                    "120",
                     document_date=credit_date.date().isoformat(),
                     source_record_id=credit_source.id,
                     _commit=False,
@@ -507,10 +654,18 @@ def seed_profile(
                 core.post_sales_credit_note(
                     session, tenant, credit.id, effective_at=credit_date, _commit=False
                 )
+                core.allocate_credit_note(
+                    session,
+                    tenant,
+                    credit.id,
+                    invoice.id,
+                    "120",
+                    _commit=False,
+                )
                 returned = movement(
                     "return-001",
                     item,
-                    "2",
+                    "10",
                     "return",
                     date=credit_date,
                 )
