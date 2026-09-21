@@ -133,11 +133,14 @@ def test_demo_documents_are_dated_uniformly_numbered_and_contribution_complete(
                 DocumentLine.document_id.in_(
                     [
                         run.initialization_progress["cases"][key]["invoice_id"]
-                        for key in (
-                            "price_only_credit",
-                            "invoice_reversal",
-                            "customer_prepayment",
-                        )
+                            for key in (
+                                "price_only_credit",
+                                "invoice_reversal",
+                                "customer_prepayment",
+                                "dunning_with_fee",
+                                "customer_bad_debt",
+                                "customer_deposit_clearing",
+                            )
                     ]
                 ),
             )
@@ -170,8 +173,8 @@ def test_canonical_profile_versions_and_replays_one_costing_baseline(
 ):
     run = _seed(session, scheduled_owner)
     manifest = run.initialization_progress
-    assert PROFILE_VERSION == 8
-    assert manifest["profile"] == {"key": "international_demo", "version": 8}
+    assert PROFILE_VERSION == 9
+    assert manifest["profile"] == {"key": "international_demo", "version": 9}
     assert set(manifest["costing_cases"]) == {
         *COMPLETE_PORTFOLIO,
         "late_cost_return",

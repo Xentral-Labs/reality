@@ -1232,6 +1232,59 @@ class DocumentLine(Base):
     billed_document_line_id: Mapped[str | None] = mapped_column(default=None)
 
 
+class DunningNotice(Base):
+    """One immutable, stated reminder of one customer's overdue invoices."""
+
+    __tablename__ = "dunning_notice"
+    __table_args__ = (
+        PrimaryKeyConstraint("tenant_id", "id"),
+        ForeignKeyConstraint(
+            ["tenant_id", "document_id"], ["document.tenant_id", "document.id"]
+        ),
+        ForeignKeyConstraint(
+            ["tenant_id", "source_record_id"],
+            ["source_record.tenant_id", "source_record.id"],
+        ),
+        ForeignKeyConstraint(
+            ["tenant_id", "party_id"], ["party.tenant_id", "party.id"]
+        ),
+        UniqueConstraint("tenant_id", "document_id"),
+        CheckConstraint("level BETWEEN 1 AND 3", name="ck_dunning_notice_level"),
+        CheckConstraint("fee_amount >= 0", name="ck_dunning_notice_fee_nonnegative"),
+    )
+    id: Mapped[str] = mapped_column(String)
+    tenant_id: Mapped[str] = mapped_column(ForeignKey("tenant.id"), index=True)
+    document_id: Mapped[str] = mapped_column(String)
+    source_record_id: Mapped[str | None] = mapped_column(String, default=None)
+    party_id: Mapped[str] = mapped_column(String)
+    currency: Mapped[str] = mapped_column(String, default="EUR")
+    notice_date: Mapped[date] = mapped_column(Date)
+    level: Mapped[int] = mapped_column(Integer)
+    fee_amount: Mapped[Decimal] = mapped_column(Numeric(18, 4), default=0)
+    created_at: Mapped[datetime] = mapped_column(UTCDateTime, default=now)
+
+
+class DunningNoticeInvoice(Base):
+    """Shortest opaque link from one reminder to one reminded invoice."""
+
+    __tablename__ = "dunning_notice_invoice"
+    __table_args__ = (
+        PrimaryKeyConstraint("tenant_id", "id"),
+        ForeignKeyConstraint(
+            ["tenant_id", "notice_id"],
+            ["dunning_notice.tenant_id", "dunning_notice.id"],
+        ),
+        ForeignKeyConstraint(
+            ["tenant_id", "invoice_id"], ["document.tenant_id", "document.id"]
+        ),
+        UniqueConstraint("tenant_id", "notice_id", "invoice_id"),
+    )
+    id: Mapped[str] = mapped_column(String)
+    tenant_id: Mapped[str] = mapped_column(ForeignKey("tenant.id"), index=True)
+    notice_id: Mapped[str] = mapped_column(String)
+    invoice_id: Mapped[str] = mapped_column(String)
+
+
 class Commitment(Base):
     __tablename__ = "commitment"
     __table_args__ = (
@@ -1783,7 +1836,7 @@ class SubledgerAccount(Base):
         UniqueConstraint("tenant_id", "code"),
         CheckConstraint("state IN ('active', 'blocked')"),
         CheckConstraint(
-            "role IN ('accounts_receivable','accounts_payable','cash','sales_revenue','inventory','customer_reduction','supplier_reduction','opening_counterpart')",
+            "role IN ('accounts_receivable','accounts_payable','cash','sales_revenue','inventory','customer_reduction','supplier_reduction','bad_debt_expense','dunning_fee_revenue','opening_counterpart')",
             name="ck_subledger_account_role",
         ),
     )

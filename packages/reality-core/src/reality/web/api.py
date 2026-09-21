@@ -7023,6 +7023,42 @@ def propose_adjustment(
         raise api_error(error) from error
 
 
+@router.get("/finance/dunning")
+def get_dunning_notices(tenant_id: str, session: DatabaseSession):
+    from reality.services.dunning import notices
+
+    try:
+        return {"items": notices(session, tenant_id)}
+    except (NotFound, InvalidOperation) as error:
+        raise api_error(error) from error
+
+
+@router.post("/finance/commercial/proposals")
+def propose_commercial_finance_action(
+    tenant_id: str,
+    body: FinanceAccountProposal,
+    request: Request,
+    session: DatabaseSession,
+):
+    from reality.tools.application import create_change_proposal
+    from reality.tools.finance import EDGE_COMMANDS
+
+    require_company_owner(request, session, tenant_id)
+    if body.tool not in EDGE_COMMANDS:
+        raise HTTPException(status_code=400, detail="Unsupported commercial finance command.")
+    try:
+        proposal = create_change_proposal(
+            session, tenant_id, body.tool, body.arguments, actor_type="human"
+        )
+        return {
+            "id": proposal.id,
+            "status": proposal.status,
+            "preview": json.loads(proposal.output),
+        }
+    except (NotFound, InvalidOperation) as error:
+        raise api_error(error) from error
+
+
 @router.get("/finance/settlements/context/{document_id}")
 def get_settlement_context(
     tenant_id: str, document_id: str, session: DatabaseSession, query: str = ""

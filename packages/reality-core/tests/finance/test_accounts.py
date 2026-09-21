@@ -35,7 +35,7 @@ def test_required_ids_and_explicit_setup(session, business):
     entries = core.post_sales_invoice(session, business.tenant.id, doc.id)
     assert all(e.account_id for e in entries)
     assert "account" not in LedgerEntry.__table__.columns
-    assert len(initialize_accounts(session, business.tenant.id)["accounts"]) == 8
+    assert len(initialize_accounts(session, business.tenant.id)["accounts"]) == 10
 
 
 def test_default_change_preserves_invoice_account_and_blocked_inverse(

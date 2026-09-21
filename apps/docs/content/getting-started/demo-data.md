@@ -196,15 +196,16 @@ missing evidence into EUR 0.
 | Multiple partial invoices per order         | Yes      | `SO-032`, quantities 4 and 6                     | Sales → Orders → `SO-032` → invoices                                    |
 | Final short-delivery closure                | Yes      | `SO-011`: 2 shipped, remainder cancelled         | Sales → Orders → `SO-011` → history                                     |
 | Customer prepayment before shipment         | Yes      | `SO-035`, `CPAY-010`                             | Sales → Orders → `SO-035` → invoice; Finance → payment                  |
-| Overdelivery                                | No       | Requires commitment overdelivery policy          | Proposal below                                                          |
+| Controlled overdelivery                     | Yes      | `SO-039`: quantity 10 revised to 12, then shipped | Sales → Orders → `SO-039` → commitment history                           |
 | Warehouse transfer                          | Yes      | `ITEM-017`, 3 pcs Rotterdam → Singapore          | Warehouse → Items → `ITEM-017` → movements                              |
 | Damage, loss and scrap                      | Yes      | `ITEM-010`, one adjustment each                  | Warehouse → Items → `ITEM-010` → movements                              |
 | Lot and expiry date                         | Yes      | `ITEM-017`, `LOT-2026-001` expired               | Warehouse → Items → `ITEM-017` → lots/movements                         |
 | Serial number                               | Yes      | `ITEM-018`, `SER-0001`                           | Warehouse → Items → `ITEM-018` → serial/movements                       |
-| Dedicated deposit/final-invoice workflow    | No       | Prepayment is supported; deposit clearing is not | Proposal below                                                          |
-| Dunning                                     | No       | No dunning notice record yet                     | Proposal below                                                          |
-| Bad debt                                    | No       | No reviewed bad-debt settlement reason           | Proposal below                                                          |
-| Bank reconciliation, tax or FX revaluation  | No       | Not in profile version 8                         | Not present; see limitation                                             |
+| Customer deposit and final invoice          | Yes      | `CDEP-001`, `SO-038`; EUR 20 credit remains      | Finance → Customer credits → `CDEP-001`; Sales → `SO-038`                |
+| Supplier deposit and final invoice          | Yes      | `SDEP-001`, `SINV-010`; EUR 20 credit remains    | Finance → Supplier credits → `SDEP-001`; Payables → `SINV-010`           |
+| Dunning with a stated fee                   | Yes      | `DN-2026-0001`; level 2 plus EUR 5 fee           | Finance → Receivables → search notice/invoice and open its explanation   |
+| Partial bad-debt write-off                  | Yes      | `SO-037`; EUR 25 written off, EUR 15 remains     | Sales → Orders → `SO-037` → invoice → settlement explanation            |
+| Bank reconciliation, tax or FX revaluation  | No       | Not in profile version 9                         | Not present; see limitation                                             |
 
 ## Static baseline and live data
 
@@ -212,18 +213,20 @@ The cases above belong to the stable baseline. Live simulation separately adds c
 later invoices and payments. It does not automatically reserve stock, ship, return or replenish
 goods, so the reference cases remain reproducible.
 
-## Proposed next capabilities
+## How the four commercial edge cases work
 
-- **Overdelivery:** add an explicit reviewed commitment amendment that raises the promised quantity
-  before the extra shipment. This keeps fulfillment derived from commitments and avoids a hidden
-  validation bypass.
-- **Dedicated deposits:** add a deposit liability/asset document and an explicit clearing allocation
-  into the final invoice. `SO-035` already demonstrates ordinary full prepayment, but a deposit must
-  not masquerade as sales revenue.
-- **Dunning:** implement the existing spec 183 proposal: a dated dunning notice linked to overdue
-  invoices, with level and event history, but no automatic sending in the first version.
-- **Bad debt:** add a confirmed bad-debt reason and dedicated expense account to settlement
-  adjustment, retaining the invoice, decision evidence and write-off posting separately.
+- **Controlled overdelivery:** `SO-039` first promises 10 pcs. Its immutable commitment history then
+  records the customer's revised quantity of 12. Only after that statement does the 12-pcs shipment
+  pass the normal guard. The original 10 remains visible; without the revision, 12 is refused.
+- **Dedicated deposits:** `CDEP-001` is customer money received before the final invoice behind
+  `SO-038`; `SDEP-001` is supplier money paid before `SINV-010`. Each clearing is an explicit
+  allocation, and each EUR 100 deposit against an EUR 80/100 final invoice leaves the documented
+  credit available instead of silently consuming it.
+- **Dunning:** `DN-2026-0001` groups one overdue customer invoice at level 2. The operator-stated
+  EUR 5 fee is a separate receivable charge, not a mutation of the invoice. No email, automatic
+  escalation, automatic collection or invented tax is implied.
+- **Bad debt:** the invoice behind `SO-037` receives EUR 60 cash, a separately confirmed EUR 25
+  bad-debt expense, and retains EUR 15 open. The adjustment creates no reusable customer credit.
 
-The demo still excludes bank reconciliation, tax/FX revaluation, manufacturing, payroll and
-statutory reporting.
+The demo still excludes automatic dunning delivery/runs, jurisdiction-specific tax handling, bank
+reconciliation, tax/FX revaluation, manufacturing, payroll and statutory reporting.

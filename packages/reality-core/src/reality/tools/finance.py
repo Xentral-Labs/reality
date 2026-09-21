@@ -24,6 +24,8 @@ class CreateAccount(AccountRequest):
         "inventory",
         "customer_reduction",
         "supplier_reduction",
+        "bad_debt_expense",
+        "dunning_fee_revenue",
         "opening_counterpart",
     ]
 
@@ -71,7 +73,7 @@ class AdjustmentRequest(AccountRequest):
     invoice_id: str = Field(min_length=1)
     amount: str
     reason_category: Literal[
-        "early_payment_discount", "agreed_deduction", "accepted_small_remainder"
+        "early_payment_discount", "agreed_deduction", "accepted_small_remainder", "bad_debt"
     ]
     reason: str = Field(min_length=1, max_length=4000)
     agreement: str = Field(default="", max_length=4000)
@@ -82,6 +84,51 @@ class AdjustmentRequest(AccountRequest):
 ADJUSTMENT_COMMAND = "finance.adjustment.accept"
 SETTLEMENT_COMMAND = "finance.settlement.apply"
 OPENING_COMMAND = "finance.opening.import"
+DUNNING_COMMAND = "finance.dunning.record"
+DUNNING_REVERSE_COMMAND = "finance.dunning.reverse"
+DEPOSIT_RECORD_COMMAND = "finance.deposit.record"
+DEPOSIT_CLEAR_COMMAND = "finance.deposit.clear"
+
+
+class DunningRequest(AccountRequest):
+    model_config = ConfigDict(extra="forbid", str_strip_whitespace=True)
+    invoice_ids: list[str] = Field(min_length=1, max_length=100)
+    level: Literal[1, 2, 3]
+    notice_date: str
+    fee_amount: str = "0"
+    reason: str = Field(default="", max_length=4000)
+    number: str = Field(default="", max_length=200)
+
+
+class DunningReverseRequest(AccountRequest):
+    model_config = ConfigDict(extra="forbid", str_strip_whitespace=True)
+    notice_id: str = Field(min_length=1)
+    reason: str = Field(min_length=1, max_length=4000)
+
+
+class DepositRecordRequest(AccountRequest):
+    model_config = ConfigDict(extra="forbid", str_strip_whitespace=True)
+    side: Literal["customer", "supplier"]
+    party_id: str = Field(min_length=1)
+    amount: str
+    currency: str = Field(pattern=r"^[A-Z]{3}$")
+    reference: str = Field(min_length=1, max_length=200)
+    effective_at: str
+
+
+class DepositClearRequest(AccountRequest):
+    model_config = ConfigDict(extra="forbid", str_strip_whitespace=True)
+    deposit_document_id: str = Field(min_length=1)
+    invoice_id: str = Field(min_length=1)
+    amount: str
+
+
+EDGE_COMMANDS = {
+    DUNNING_COMMAND: DunningRequest,
+    DUNNING_REVERSE_COMMAND: DunningReverseRequest,
+    DEPOSIT_RECORD_COMMAND: DepositRecordRequest,
+    DEPOSIT_CLEAR_COMMAND: DepositClearRequest,
+}
 
 
 class CreateReference(AccountRequest):
@@ -148,6 +195,7 @@ FINANCE_COMMANDS = {
     ADJUSTMENT_COMMAND,
     SETTLEMENT_COMMAND,
     OPENING_COMMAND,
+    *EDGE_COMMANDS,
 }
 
 
@@ -181,7 +229,7 @@ class StatedReduction(BaseModel):
     model_config = ConfigDict(extra="forbid", str_strip_whitespace=True)
     amount: str
     reason_category: Literal[
-        "early_payment_discount", "agreed_deduction", "accepted_small_remainder"
+        "early_payment_discount", "agreed_deduction", "accepted_small_remainder", "bad_debt"
     ]
     reason: str = Field(min_length=1, max_length=4000)
     agreement: str = Field(default="", max_length=4000)
@@ -250,6 +298,8 @@ def validate_finance_request(name, arguments):
             return OpeningRequest.model_validate(arguments).model_dump()
         if name == SETTLEMENT_COMMAND:
             return SETTLEMENT_REQUEST.validate_python(arguments).model_dump()
+        if name in EDGE_COMMANDS:
+            return EDGE_COMMANDS[name].model_validate(arguments).model_dump()
         return AdjustmentRequest.model_validate(arguments).model_dump()
     except ValidationError as error:
         raise InvalidOperation(str(error)) from error
@@ -336,6 +386,43 @@ def execute_finance_command(
         return execute_account_command(
             session, tenant_id, name, arguments, action_id=action_id
         )
+    if name == DUNNING_COMMAND:
+        from reality.services.dunning import record_notice
+
+        values = validate_finance_request(name, arguments)
+        return record_notice(
+            session,
+            tenant_id,
+            **values,
+            action_id=action_id,
+            actor_id=actor_id,
+        )
+    if name == DUNNING_REVERSE_COMMAND:
+        from reality.services.dunning import reverse_notice
+
+        return reverse_notice(
+            session,
+            tenant_id,
+            **validate_finance_request(name, arguments),
+            action_id=action_id,
+            actor_id=actor_id,
+        )
+    if name == DEPOSIT_RECORD_COMMAND:
+        from reality.services.finance.deposits import record_deposit
+
+        values = validate_finance_request(name, arguments)
+        return record_deposit(
+            session,
+            tenant_id,
+            **values,
+            action_id=action_id,
+            actor_id=actor_id,
+        )
+    if name == DEPOSIT_CLEAR_COMMAND:
+        from reality.services.finance.deposits import clear_deposit
+
+        values = validate_finance_request(name, arguments)
+        return clear_deposit(session, tenant_id, **values, action_id=action_id)
     from reality.services.finance.settlement import accept_adjustment
 
     return accept_adjustment(

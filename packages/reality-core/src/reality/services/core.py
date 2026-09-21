@@ -9785,6 +9785,9 @@ SETTLEMENT_CONTROL = {
     "customer_refund": ("accounts_receivable", "debit"),
     "supplier_credit_note": ("accounts_payable", "debit"),
     "supplier_refund": ("accounts_payable", "credit"),
+    "customer_deposit": ("accounts_receivable", "credit"),
+    "supplier_deposit": ("accounts_payable", "debit"),
+    "dunning_fee_charge": ("accounts_receivable", "debit"),
 }
 
 

@@ -332,11 +332,11 @@ def test_orders_spread_over_the_customer_pool(session, scheduled_owner, monkeypa
         for number, buyer in orders.items()
         if number not in portfolio_orders
     }
-    assert len(operational_orders) == 30
+    assert len(operational_orders) == 34
     held = Counter(operational_orders.values())
     assert len(held) >= 15, held
     assert max(held.values()) <= 5, held
-    assert sum(1 for count in held.values() if count > 2) <= 3, held
+    assert sum(1 for count in held.values() if count > 2) <= 5, held
     suppliers = _documents(session, tenant, "purchase_order")
     assert len(set(suppliers.values())) == 3, suppliers
 
@@ -438,8 +438,9 @@ def test_seeded_invoices_are_settled_in_three_states(
         .select_from(Document)
         .where(Document.tenant_id == tenant, Document.type == "customer_payment")
     )
-    # CN-001, CN-003 and the exact reversal create settlement states without cash.
-    assert payment_count + 3 == states["paid"] + states["part"]
+    # CN-001, CN-003, the exact reversal and the customer-deposit clearing create
+    # settlement states without an ordinary customer-payment document.
+    assert payment_count + 4 == states["paid"] + states["part"]
     receivable = sum(
         open_amount
         for open_amount, _ in _open_amounts(session, tenant, "sales_invoice").values()
@@ -468,7 +469,7 @@ def test_purchases_cover_the_whole_chain(session, scheduled_owner, monkeypatch):
     }
     assert sorted(operational_payables.values()) == [
         "open",
-        "open",
+        "paid",
         "paid",
         "paid",
         "part",
@@ -572,7 +573,7 @@ def test_finance_fangfragen_are_deterministic_and_explainable(
             )
         )
     )
-    assert len(adjustment_actions) == 2
+    assert len(adjustment_actions) == 3
     assert {action.status for action in adjustment_actions} == {"executed"}
 
 

@@ -10,6 +10,7 @@ import { FinancialComponents } from "../finance/FinancialComponents";
 import { OpeningItems } from "../finance/OpeningItems";
 import { SettlementFlow } from "../finance/SettlementFlow";
 import { SettlementReduction } from "../finance/SettlementReduction";
+import { DunningNotice } from "../finance/DunningNotice";
 import { useRegisterQuery } from "./TableContext";
 import { RegisterTable } from "./RegisterTable";
 import { Wallet, Search } from "lucide-react";
@@ -137,6 +138,7 @@ function FinanceRegister({
     mode: "payment" | "allocate_credit";
   } | null>(null);
   const [reductionInvoice, setReductionInvoice] = useState("");
+  const [dunningInvoice, setDunningInvoice] = useState("");
   const creditBalance =
     view === "open-items" && ["customer-balance", "supplier-balance"].includes(flow);
   const table = useRegisterQuery();
@@ -613,6 +615,16 @@ function FinanceRegister({
                                       {t("Accept settlement reduction")}
                                     </button>
                                   )}
+                                {canAcceptReduction &&
+                                  row.document_type === "sales_invoice" &&
+                                  ["open", "partial"].includes(row.status) && (
+                                    <button
+                                      className="br-btn"
+                                      onClick={() => setDunningInvoice(row.document_id)}
+                                    >
+                                      {t("Create dunning notice")}
+                                    </button>
+                                  )}
                                 {credit && row.document_type === "sales_invoice" && (
                                   <button
                                     className="br-btn"
@@ -853,6 +865,17 @@ function FinanceRegister({
           tenant={tenant}
           invoice={reductionInvoice}
           close={() => setReductionInvoice("")}
+        />
+      )}
+      {dunningInvoice && (
+        <DunningNotice
+          key={`${tenant}:${dunningInvoice}`}
+          tenant={tenant}
+          invoice={dunningInvoice}
+          close={() => {
+            setDunningInvoice("");
+            read.refresh();
+          }}
         />
       )}
     </>

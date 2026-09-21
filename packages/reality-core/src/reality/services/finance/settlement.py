@@ -17,7 +17,12 @@ from reality.services.finance.accounts import (
     resolve_account,
 )
 
-REASONS = {"early_payment_discount", "agreed_deduction", "accepted_small_remainder"}
+REASONS = {
+    "early_payment_discount",
+    "agreed_deduction",
+    "accepted_small_remainder",
+    "bad_debt",
+}
 SOURCE_SYSTEM = "internal_settlement_adjustment"
 
 
@@ -73,6 +78,8 @@ def preview_adjustment(session: Session, tenant_id: str, values: dict) -> dict:
         raise core.InvalidOperation("Reduction exceeds the remaining invoice amount.")
     if values["reason_category"] not in REASONS or not values["reason"].strip():
         raise core.InvalidOperation("A supported reason and explanation are required.")
+    if values["reason_category"] == "bad_debt" and context["side"] != "customer":
+        raise core.InvalidOperation("Bad debt is supported for customer receivables only.")
     if context["side"] == "supplier" and not values.get("agreement", "").strip():
         raise core.InvalidOperation("Document the supplier entitlement or agreement.")
     resolve_account(
@@ -81,7 +88,12 @@ def preview_adjustment(session: Session, tenant_id: str, values: dict) -> dict:
         "accounts_receivable" if context["side"] == "customer" else "accounts_payable",
         context["control_account_id"],
     )
-    counterpart = resolve_account(session, tenant_id, f"{context['side']}_reduction")
+    counterpart_role = (
+        "bad_debt_expense"
+        if values["reason_category"] == "bad_debt"
+        else f"{context['side']}_reduction"
+    )
+    counterpart = resolve_account(session, tenant_id, counterpart_role)
     source_id, effect_id = (
         values.get("source_record_id"),
         values.get("source_effect_id"),
@@ -138,6 +150,7 @@ def preview_adjustment(session: Session, tenant_id: str, values: dict) -> dict:
         "cash_change": "0",
         "counterpart_account_id": counterpart.id,
         "counterpart_account_code": counterpart.code,
+        "counterpart_role": counterpart_role,
         "reason_category": values["reason_category"],
         "reason": values["reason"],
         "agreement": values.get("agreement", ""),
@@ -212,7 +225,7 @@ def accept_adjustment(
         control_role = (
             "accounts_receivable" if side == "customer" else "accounts_payable"
         )
-        reduction_role = f"{side}_reduction"
+        reduction_role = preview["counterpart_role"]
         entries = core.post_ledger(
             session,
             tenant_id,

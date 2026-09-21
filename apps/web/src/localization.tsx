@@ -401,6 +401,7 @@ const dictionaries: Record<Exclude<Language, "en">, Record<string, string>> = {
     "Explicitly accepted reduction": "Ausdrücklich anerkannter Minderungsbetrag",
     "Stated opening residual": "Angegebener Eröffnungsrestbetrag",
     "Customer settlement reduction": "Anerkannte Kundenminderung",
+    "Bad debt": "Forderungsausfall",
     "Supplier settlement reduction": "Anerkannte Lieferantenminderung",
     "Opening customer debt": "Eröffnungsforderung an Kunden",
     "Opening customer credit": "Eröffnungsguthaben des Kunden",
@@ -5318,6 +5319,55 @@ Object.assign(dictionaries.es, {
     "Los registros del mismo intervalo se combinan en un pulso por nivel.",
   "Scroll left for older history. Click a node to follow its connections.":
     "Desplázate a la izquierda para ver el historial anterior. Haz clic en un nodo para seguir sus conexiones.",
+});
+
+Object.assign(dictionaries.de, {
+  "Create dunning notice": "Mahnung erstellen",
+  "Dunning level": "Mahnstufe",
+  "Notice date": "Mahndatum",
+  "Dunning fee": "Mahngebühr",
+  "Notice number": "Mahnungsnummer",
+  "Generated automatically": "Wird automatisch erzeugt",
+  "The fee is a separate receivable. No email is sent automatically.":
+    "Die Gebühr wird als eigene Forderung erfasst. Es wird keine E-Mail automatisch versendet.",
+  "Confirm dunning notice": "Mahnung bestätigen",
+  "Dunning notices are available for customer invoices only.":
+    "Mahnungen sind nur für Kundenrechnungen verfügbar.",
+  "Notice number (optional)": "Mahnungsnummer (optional)",
+  "Reason (optional)": "Begründung (optional)",
+  "Review dunning notice": "Mahnung prüfen",
+});
+Object.assign(dictionaries.nl, {
+  "Create dunning notice": "Aanmaning maken",
+  "Dunning level": "Aanmaningsniveau",
+  "Notice date": "Aanmaningsdatum",
+  "Dunning fee": "Aanmaningskosten",
+  "Notice number": "Aanmaningsnummer",
+  "Generated automatically": "Wordt automatisch gegenereerd",
+  "The fee is a separate receivable. No email is sent automatically.":
+    "De kosten worden als afzonderlijke vordering geboekt. Er wordt niet automatisch een e-mail verzonden.",
+  "Confirm dunning notice": "Aanmaning bevestigen",
+  "Dunning notices are available for customer invoices only.":
+    "Aanmaningen zijn alleen beschikbaar voor klantfacturen.",
+  "Notice number (optional)": "Aanmaningsnummer (optioneel)",
+  "Reason (optional)": "Reden (optioneel)",
+  "Review dunning notice": "Aanmaning controleren",
+});
+Object.assign(dictionaries.es, {
+  "Create dunning notice": "Crear reclamación de pago",
+  "Dunning level": "Nivel de reclamación",
+  "Notice date": "Fecha de reclamación",
+  "Dunning fee": "Gastos de reclamación",
+  "Notice number": "Número de reclamación",
+  "Generated automatically": "Se genera automáticamente",
+  "The fee is a separate receivable. No email is sent automatically.":
+    "El gasto se registra como una cuenta por cobrar separada. No se envía ningún correo automáticamente.",
+  "Confirm dunning notice": "Confirmar reclamación",
+  "Dunning notices are available for customer invoices only.":
+    "Las reclamaciones solo están disponibles para facturas de clientes.",
+  "Notice number (optional)": "Número de reclamación (opcional)",
+  "Reason (optional)": "Motivo (opcional)",
+  "Review dunning notice": "Revisar reclamación",
 });
 
 Object.assign(dictionaries.de, {
@@ -13596,6 +13646,7 @@ Object.assign(dictionaries.nl, {
   "Early-payment discount": "Betalingskorting",
   "Agreed deduction": "Overeengekomen inhouding",
   "Accepted small remainder": "Geaccepteerd klein restant",
+  "Bad debt": "Oninbare vordering",
   "Supplier entitlement or agreement": "Recht of overeenkomst met leverancier",
   "External evidence (optional)": "Extern bewijs (optioneel)",
   "Source effect reference": "Referentie in het bewijs",
@@ -13617,6 +13668,7 @@ Object.assign(dictionaries.es, {
   "Early-payment discount": "Descuento por pronto pago",
   "Agreed deduction": "Deducción acordada",
   "Accepted small remainder": "Pequeño saldo aceptado",
+  "Bad debt": "Crédito incobrable",
   "Supplier entitlement or agreement": "Derecho o acuerdo con el proveedor",
   "External evidence (optional)": "Justificante externo (opcional)",
   "Source effect reference": "Referencia del efecto en el justificante",

@@ -1599,3 +1599,12 @@ in test_captured_report.py. Cache publication grants no company financial approv
 | Current and historical inventory snapshot selection | 242 FR-007/014/018 | `packages/reality-core/tests/test_inventory_snapshot_selection.py` |
 
 | Isolated job children inherit the interpreter's bytecode policy, so a signed or read-only installation is never written into | 240 FR-010 | `packages/reality-core/tests/test_job_runner_process.py` |
+
+### Spec 247 commercial edge workflows
+
+| Verification family | Specification | Tests |
+|---|---|---|
+| Dunning with a stated fee and reversal, customer/supplier deposits, customer bad debt, and controlled overdelivery | 247 FR-001–011/DR-001–006 | `packages/reality-core/tests/finance/test_commercial_edges.py`; `packages/reality-core/tests/test_commitment_revisions.py` |
+| Canonical profile-v9 examples, deterministic settlement and discovery | 247 FR-013–015 | `packages/reality-core/tests/scenarios/test_international_demo.py`; `packages/reality-core/tests/test_demo_costing_profile.py`; `packages/reality-core/tests/test_company_setup_initialization.py` |
+| Additive tenant-scoped schema and account-role migration | 247 DR-003–005 | `packages/reality-core/tests/test_migrations.py`; `packages/reality-core/tests/finance/test_adjustments.py` |
+| Confirmed web dunning action and localized manual fee entry | 247 FR-001–004/FR-012 | `apps/web/scripts/commercial-edge-workflows.test.mjs`; frontend build and i18n audit |
