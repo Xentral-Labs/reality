@@ -33,7 +33,10 @@ class DataModelReferenceTests(unittest.TestCase):
                 self.assertTrue(field["meaning"]["de"])
                 self.assertEqual(
                     field["references"],
-                    sorted(fk.target_fullname for fk in column.foreign_keys),
+                    # A set, as the reference itself builds: a company column
+                    # takes part in every composite reference its table makes
+                    # (spec 181 FR-005), and naming a parent twice says no more.
+                    sorted({fk.target_fullname for fk in column.foreign_keys}),
                 )
                 expected = (
                     "none"
