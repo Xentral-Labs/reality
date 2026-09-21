@@ -7,8 +7,6 @@ import pytest
 import test_contribution_services as fixtures
 import test_costing_services as costs
 import test_inventory_costing_services as stock
-from sqlalchemy import func, select
-
 from reality.db.contribution import CostCommercialMatchRevision
 from reality.db.inventory_costing import CostInventoryMember, CostMovementBasis
 from reality.mcp.catalog import MCP_TOOL_REGISTRY
@@ -19,9 +17,14 @@ from reality.services.costing import (
     contribution_preview,
     preview_cost_change,
 )
+from reality.services.exceptions import (
+    explain_operational_exception,
+    operational_exceptions,
+)
 from reality.services.finance import components
 from reality.services.memberships import Principal
 from reality.tools.application import approve_and_execute_proposal, run_read_tool
+from sqlalchemy import func, select
 
 cost_owner = costs.cost_owner
 
@@ -390,6 +393,135 @@ def test_commercial_credit_uses_exact_original_return_portion(
     assert Decimal(observed["stated_net"]) == Decimal(-105)
     assert observed["goods_cost"] == "-105.0000"
     assert observed["db1"] == "0.0000"
+
+
+def test_return_goods_and_credit_lifecycles_remain_independent_and_explainable(
+    session, business
+):
+    tenant_id = business.tenant.id
+    core.record_movement(
+        session,
+        tenant_id,
+        "opening_stock",
+        business.item.id,
+        "10",
+        to_location_id=business.location.id,
+    )
+    _, order, order_lines, commitments = core.create_manual_order(
+        session,
+        tenant_id,
+        "sales",
+        "SO-RETURN-LIFECYCLE",
+        business.company.id,
+        business.customer.id,
+        business.location.id,
+        [
+            {
+                "item_id": business.item.id,
+                "quantity": "5",
+                "unit": business.item.unit,
+                "unit_price": "10",
+                "gross_amount": "50",
+            }
+        ],
+        "50",
+        document_date="2026-09-01",
+    )
+    core.record_movement(
+        session,
+        tenant_id,
+        "shipment",
+        business.item.id,
+        "5",
+        from_location_id=business.location.id,
+        commitment_id=commitments[0].id,
+    )
+    core.create_manual_document_with_lines(
+        session,
+        tenant_id,
+        "sales_invoice",
+        "INV-RETURN-LIFECYCLE",
+        business.customer.id,
+        [
+            {
+                "item_id": business.item.id,
+                "quantity": "5",
+                "unit": business.item.unit,
+                "gross_amount": "50",
+                "billed_document_line_id": order_lines[0].id,
+            }
+        ],
+        "50",
+        document_date="2026-09-02",
+    )
+    core.record_movement(
+        session,
+        tenant_id,
+        "return",
+        business.item.id,
+        "3",
+        to_location_id=business.location.id,
+        commitment_id=commitments[0].id,
+    )
+
+    rows = {row.class_id: row for row in operational_exceptions(session, tenant_id)}
+    short = rows["returned_not_credited"]
+    assert short.causal_values["uncredited_quantity"] == Decimal(3)
+    explained = explain_operational_exception(session, tenant_id, short.id)
+    assert explained["record_id"] == order_lines[0].id
+    assert explained["trace"]["commitment_id"] == commitments[0].id
+    assert explained["trace"]["document_id"] == order.id
+
+    def credit(number: str, quantity: str) -> None:
+        core.create_manual_document_with_lines(
+            session,
+            tenant_id,
+            "credit_note",
+            number,
+            business.customer.id,
+            [
+                {
+                    "item_id": business.item.id,
+                    "quantity": quantity,
+                    "unit": business.item.unit,
+                    "gross_amount": str(Decimal(quantity) * Decimal(10)),
+                    "billed_document_line_id": order_lines[0].id,
+                }
+            ],
+            str(Decimal(quantity) * Decimal(10)),
+            document_date="2026-09-03",
+        )
+
+    credit("CN-RETURN-PARTIAL", "1")
+    rows = {row.class_id: row for row in operational_exceptions(session, tenant_id)}
+    assert rows["returned_not_credited"].causal_values[
+        "uncredited_quantity"
+    ] == Decimal(2)
+
+    credit("CN-RETURN-OVER", "3")
+    rows = {row.class_id: row for row in operational_exceptions(session, tenant_id)}
+    assert "returned_not_credited" not in rows
+    excess = rows["credited_not_returned"]
+    assert excess.causal_values["unreturned_quantity"] == Decimal(1)
+    assert (
+        explain_operational_exception(session, tenant_id, excess.id)["trace"][
+            "document_line_id"
+        ]
+        == order_lines[0].id
+    )
+
+    core.record_movement(
+        session,
+        tenant_id,
+        "return",
+        business.item.id,
+        "1",
+        to_location_id=business.location.id,
+        commitment_id=commitments[0].id,
+    )
+    rows = {row.class_id: row for row in operational_exceptions(session, tenant_id)}
+    assert "returned_not_credited" not in rows
+    assert "credited_not_returned" not in rows
 
 
 def test_commercial_split_lines_share_capacity_without_overlap(
