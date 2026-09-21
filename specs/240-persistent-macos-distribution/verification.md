@@ -19,6 +19,7 @@ covered and are listed as unmet below.
 | Release build with the current core | Passed, migration 0088 | evidence/release-build.json |
 | Code signature after real use | Intact, no bytecode added | evidence/release-build.json |
 | Core job-runner regression | 2 passed | tests/test_job_runner_process.py |
+| Reporting-graph parent resolution | 8 passed, stable in 30 processes | tests/test_reporting_graph_coverage.py |
 | Reopening straight after a quit | Passed | evidence/release-build.json |
 
 ## What the runs actually did
@@ -63,6 +64,22 @@ the parent's flags; the child command now carries `-B` whenever the parent runs 
 That matters beyond the desktop: any read-only or signed deployment would hit it. After
 the fix, creating a company in the running application leaves the signature intact and
 adds no file to the bundle.
+
+## A pre-existing flake this branch had to fix
+
+CI failed on analytics tests with `node order_line: parent needs one unambiguous
+foreign key`, and the same failure appeared once locally. It is not caused by this
+feature. `graph_model._foreign_keys()` collected `column.foreign_keys`, an unordered
+set, into a map keyed by column. Every business table is tenant-scoped, so `tenant_id`
+belongs to each composite constraint and could claim whichever parent the set yielded
+last. `document_line` then looked like it referenced `document` through both
+`document_id` and `tenant_id`, and validation refused.
+
+The order depends on object identity, so it varies per process and no hash seed
+controls it. Measured before the fix: 3 of 30 processes saw the ambiguity; after it,
+0 of 30. CI runs `pytest -n 2 --dist worksteal`, so each worker took that chance on
+every run. Resolution now reads the foreign-key constraints and ignores the tenant
+column, which names the referring column exactly once.
 
 ## Boundary
 

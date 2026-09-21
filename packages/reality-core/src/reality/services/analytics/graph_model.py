@@ -52,6 +52,10 @@ class ReportingGraphError(ValueError):
     """The declaration disagrees with the schema, or with itself."""
 
 
+# Every business table carries it, so it joins each composite constraint.
+TENANT_COLUMN = "tenant_id"
+
+
 def _schema() -> dict[str, set[str]]:
     tables: dict[str, set[str]] = {}
     for mapper in Base.registry.mappers:
@@ -63,12 +67,22 @@ def _schema() -> dict[str, set[str]]:
 
 
 def _foreign_keys() -> dict[str, str]:
-    """Where each foreign key actually points, as table.column -> target table."""
+    """Where each foreign key actually points, as table.column -> target table.
+
+    Every business table is tenant-scoped, so its tenant column takes part in each
+    composite constraint and says nothing about which parent a row refers to. Reading
+    the constraints instead of the columns keeps the answer to the column that carries
+    the reference, and keeps it the same in every process: a column's foreign-key set
+    has no order, so collecting per column made the result depend on the hash seed.
+    """
     targets: dict[str, str] = {}
     for table in Base.metadata.tables.values():
-        for column in table.columns:
-            for key in column.foreign_keys:
-                targets[f"{table.name}.{column.name}"] = key.column.table.name
+        for constraint in table.foreign_key_constraints:
+            referring = [
+                column for column in constraint.columns if column.name != TENANT_COLUMN
+            ] or list(constraint.columns)
+            for column in referring:
+                targets[f"{table.name}.{column.name}"] = constraint.referred_table.name
     return targets
 
 
