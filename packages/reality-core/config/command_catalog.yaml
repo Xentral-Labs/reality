@@ -32,6 +32,9 @@ parameter_descriptions:
   principal: Trusted authenticated user context supplied by the server, never by model arguments.
   cash_entry_ids: Opaque payment-entry identities the caller can still reach, used to select which payments are answered for; absent means every payment of the company. It narrows the rows returned and never how one is derived, because a payment's allocated and unallocated amounts are worked out from its own control entry and its own allocations.
   commitment_ids: Opaque promise identities the caller can still reach, used to select which promises are answered for; absent means every promise of the company. It narrows the rows returned and never how one is derived, because a promise's quantity, due date, reservation and risk are worked out from its own revisions, movements and reservations.
+  supplier_commitment_id: Opaque identity of the incoming supplier commitment whose quantity is being assigned.
+  customer_commitment_id: Optional opaque identity of the outgoing customer commitment that the incoming supply is intended to cover; absence explicitly assigns the quantity to stock.
+  request_id: Stable caller-provided idempotency identity; replay with identical input returns the existing result and conflicting reuse is refused.
   document_ids: Opaque evidence-document identities the caller can still reach, used to select which documents are answered for; absent means every document of the company. It narrows the rows returned and never how one is built, because a document's register row is assembled from its own source record, lines and promises.
   arguments: Strict versioned request object; nested fields are declared by the MCP input schema.
   type: Closed kind of the record where one is stated, such as a party's primary role or a location's type; the roles list, not this field, decides what a party may do.
@@ -1280,6 +1283,15 @@ commands:
     reads: [shipment_event, source_record]
     writes: [shipment_event_supersession, business_event]
     effect: Appends a reasoned correction or retraction without deleting the original event.
+
+  - name: Assign incoming supply to customer demand
+    service: assign_supply
+    mode: mutation
+    adapters: [CLI, Web, API, MCP, Chat]
+    confirmation: required
+    reads: [commitment, supply_assignment, source_record]
+    writes: [supply_assignment, source_record]
+    effect: Assigns an explicit quantity of an incoming supplier commitment to a compatible customer commitment without moving or reserving stock.
 
 capability_guidance:
   graph_format:
@@ -3940,6 +3952,24 @@ capability_guidance:
     unknown_when: [The projection is stale or expected commitments are absent.]
     next_steps: [Read inventory for locations and commitments or order explanation for promises.]
     examples: {use: [{scenario: Find items contributing to shortages., reason: The view combines typed supply and demand.}], do_not_use: [{scenario: Confirm supplier goods arrived., reason: A receiving Movement is required.}]}
+  supply_coverage:
+    kind: read
+    application_tool: supply_coverage
+    purpose: Read explicit links between incoming supplier commitments and customer commitments, including assigned quantity and current reversals.
+    use_when: [A user needs to understand which incoming purchase supply is intended to cover which customer demand.]
+    do_not_use_when: [Physical receipt, stock availability, reservation, or customer shipment must be proven.]
+    required_context: [tenant]
+    data_basis: [commitment, supply_assignment]
+    limitations: [An assignment expresses commercial intent; it does not move stock, reserve goods, or prove supplier delivery.]
+    freshness: Derived from current tenant-scoped commitments, assignments, and reversals at request time.
+    empty_result: No explicit supply assignments exist for the selected company and filters.
+    refusal_behavior: Only tenant-scoped commitments and assignments are returned.
+    confirmation: none
+    side_effects: none
+    verification: {role: context, proves: [The returned supplier commitment quantities are explicitly assigned to the returned customer commitments.], does_not_prove: [Goods arrived, stock is available, or the customer order can ship.]}
+    unknown_when: [Expected commitments or assignment evidence are absent.]
+    next_steps: [Read item supply and demand, inventory, or the relevant commitment details.]
+    examples: {use: [{scenario: Explain which purchase order covers a customer order., reason: The assignment is the shortest explicit relationship.}], do_not_use: [{scenario: Confirm that assigned goods reached the warehouse., reason: A receiving Movement is required.}]}
   return_announcements:
     kind: read
     application_tool: return_announcements
@@ -4090,6 +4120,7 @@ agent_command_coverage:
   record_packaged_execution: {classification: eligible, tools: [shipment_dispatch_propose, shipment_receive_propose]}
   record_shipment_event: {classification: eligible, tools: [shipment_event_record_propose]}
   supersede_shipment_event: {classification: eligible, tools: [shipment_event_supersede_propose]}
+  assign_supply: {classification: eligible, tools: [supply_assign_propose]}
   list_targets:
     classification: eligible
     tools:

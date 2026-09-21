@@ -1133,6 +1133,7 @@ class DeliveryActionPrepare(ApiModel):
         "shipment_receive",
         "shipment_event_record",
         "shipment_event_supersede",
+        "supply_assign",
     ]
     arguments: dict[str, Any]
     session_id: str | None = None
@@ -1187,6 +1188,26 @@ def get_delivery_proposal(tenant_id: str, proposal_id: str, session: DatabaseSes
 
     try:
         return delivery_proposal_detail(session, tenant_id, proposal_id)
+    except (NotFound, InvalidOperation) as error:
+        raise api_error(error) from error
+
+
+@router.get("/supply-coverage")
+def get_supply_coverage(
+    tenant_id: str,
+    session: DatabaseSession,
+    supplier_commitment_id: str | None = None,
+    customer_commitment_id: str | None = None,
+):
+    from reality.services.supply_assignments import supply_coverage
+
+    try:
+        return supply_coverage(
+            session,
+            tenant_id,
+            supplier_commitment_id=supplier_commitment_id,
+            customer_commitment_id=customer_commitment_id,
+        )
     except (NotFound, InvalidOperation) as error:
         raise api_error(error) from error
 
@@ -7045,7 +7066,9 @@ def propose_commercial_finance_action(
 
     require_company_owner(request, session, tenant_id)
     if body.tool not in EDGE_COMMANDS:
-        raise HTTPException(status_code=400, detail="Unsupported commercial finance command.")
+        raise HTTPException(
+            status_code=400, detail="Unsupported commercial finance command."
+        )
     try:
         proposal = create_change_proposal(
             session, tenant_id, body.tool, body.arguments, actor_type="human"

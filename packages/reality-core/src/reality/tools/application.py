@@ -145,6 +145,7 @@ from reality.services.shipments import (
     shipments_list,
     supersede_shipment_event,
 )
+from reality.services.supply_assignments import assign_supply, supply_coverage
 from reality.services.tenant_policy import (
     require_proposal_creation,
     require_proposal_decision,
@@ -1042,6 +1043,23 @@ def _supplier_invoice_record(
     if arguments.get("effective_at") is not None:
         arguments["effective_at"] = utc_datetime(arguments["effective_at"])
     return record_supplier_invoice(session, tenant_id, **arguments)
+
+
+def _supply_assign(session: Session, tenant_id: str, arguments: dict[str, Any]) -> Any:
+    action_id = arguments.pop("_action_id", None)
+    row = assign_supply(
+        session,
+        tenant_id,
+        **arguments,
+        request_id=action_id or uid("supply-request"),
+    )
+    return {"supply_assignment_id": row.id, "source_record_id": row.source_record_id}
+
+
+def _supply_coverage(
+    session: Session, tenant_id: str, arguments: dict[str, Any]
+) -> Any:
+    return supply_coverage(session, tenant_id, **arguments)
 
 
 def _sales_credit_record(
@@ -2004,6 +2022,18 @@ TOOLS = {
         True,
         _supplier_invoice_record,
     ),
+    "supply_assign": Tool(
+        "supply_assign",
+        "Assign supplier supply to customer demand or stock replenishment.",
+        True,
+        _supply_assign,
+    ),
+    "supply_coverage": Tool(
+        "supply_coverage",
+        "Show assigned, replenishment, received, open, and unassigned supply.",
+        False,
+        _supply_coverage,
+    ),
     "sales_credit_record": Tool(
         "sales_credit_record",
         "Record an invoice-linked customer credit with explicit netting, or a legacy return credit; no refund or stock movement.",
@@ -2965,6 +2995,7 @@ def approve_and_execute_proposal(
         "sales_invoice_record",
         "supplier_payment_post",
         "supplier_invoice_record",
+        "supply_assign",
         "sales_credit_record",
         "customer_refund_post",
         "ledger_reverse",

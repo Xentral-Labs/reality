@@ -10,7 +10,7 @@ the technical key stands beside each one.
 | ---------------------------------------------------------------- | ----- | ------- | ------------------- |
 | [Analytics report](#resource-analytics)                          | 0     | 1       | 0                   |
 | [Business partner](#resource-party)                              | 1     | 6       | 2                   |
-| [Item](#resource-item)                                           | 5     | 3       | 3                   |
+| [Item](#resource-item)                                           | 5     | 4       | 3                   |
 | [Warehouse location](#resource-location)                         | 3     | 3       | 0                   |
 | [Prices and payment terms](#resource-terms)                      | 2     | 6       | 2                   |
 | [Order](#resource-order)                                         | 8     | 9       | 9                   |
@@ -118,6 +118,7 @@ derived from movements and reservations at read time, which is why the stock lis
 - [Update item](./commands#command-update_item) (`update_item`)
 - [Change master-data lifecycle](./commands#command-set_master_data_active)
   (`set_master_data_active`)
+- [Assign incoming supply to customer demand](./commands#command-assign_supply) (`assign_supply`)
 
 **Look up**
 
@@ -134,11 +135,12 @@ derived from movements and reservations at read time, which is why the stock lis
 **Appears in processes:** [Procure to pay](./processes#process-procure_to_pay),
 [Master data and sources](./processes#process-master_data)
 
-**Underneath:** Tables: `item` · Events: [`item.created`](./events#event-item-created),
-[`item.updated`](./events#event-item-updated),
+**Underneath:** Tables: `item`, `supply_assignment` · Events:
+[`item.created`](./events#event-item-created), [`item.updated`](./events#event-item-updated),
 [`master_data.lifecycle_changed`](./events#event-master_data-lifecycle_changed) · Agent tools
 without a command: [`inventory_read`](./commands#tool-inventory_read),
 [`item_supply_demand`](./commands#tool-item_supply_demand),
+[`supply_coverage`](./commands#tool-supply_coverage),
 [`graph_inventory_reviews_list`](./commands#tool-graph_inventory_reviews_list)
 
 ## Warehouse location {#resource-location}

@@ -13,6 +13,7 @@ all reach the same operation.
 | [`remove_member`](#command-remove_member)                                         | Remove company member                     | Company & access           | `member_remove_propose`                                                                                                                                                                      | Web · API · MCP · Chat                  |
 | [`resend_invitation`](#command-resend_invitation)                                 | Resend company invitation                 | Company & access           | `invitation_resend_propose`                                                                                                                                                                  | Web · API · MCP · Chat                  |
 | [`revoke_invitation`](#command-revoke_invitation)                                 | Revoke company invitation                 | Company & access           | `invitation_revoke_propose`                                                                                                                                                                  | Web · API · MCP · Chat                  |
+| [`assign_supply`](#command-assign_supply)                                         | Assign incoming supply to customer demand | Cross-functional           | `supply_assign_propose`                                                                                                                                                                      | CLI · Web · API · MCP · Chat            |
 | [`change_graph_report`](#command-change_graph_report)                             | Change Private Graph Report               | Cross-functional           | `graph_report_change_propose`                                                                                                                                                                | Web · MCP · Chat                        |
 | [`execute_cost_change`](#command-execute_cost_change)                             | Confirm cost and contribution decision    | Cross-functional           | `cost_change_propose`                                                                                                                                                                        | CLI · Web · MCP · Chat                  |
 | [`cost_record`](#command-cost_record)                                             | Inspect retained cost record              | Cross-functional           | `cost_record_get`                                                                                                                                                                            | CLI · Web · MCP · Chat                  |
@@ -5564,6 +5565,48 @@ document_create_propose document_type number party_id lines gross_amount [curren
 
 ## Cross-functional
 
+### `assign_supply` — Assign incoming supply to customer demand {#command-assign_supply}
+
+Assigns an explicit quantity of an incoming supplier commitment to a compatible customer commitment
+without moving or reserving stock.
+
+**Synopsis**
+
+```text
+supply_assign_propose supplier_commitment_id [customer_commitment_id] purpose quantity
+```
+
+**Reach via:** CLI · Web · API · MCP · Chat · **Confirmation:** `required`
+
+**Effect:** Reads: `commitment`, `supply_assignment`, `source_record` · Writes: `supply_assignment`,
+`source_record`
+
+**See also:** agent tool [`supply_assign_propose`](./commands#tool-supply_assign_propose)
+
+#### `supply_assign_propose` — Assign supplier supply {#tool-supply_assign_propose}
+
+Prepare this business mutation without changing state. Assign supplier supply. Human confirmation is
+required.
+
+**Synopsis**
+
+```text
+supply_assign_propose supplier_commitment_id [customer_commitment_id] purpose quantity
+```
+
+**Access:** `propose`
+
+**Parameters**
+
+| Name                     | Type     | Required | Description                                                                                                                                                   | Default |
+| ------------------------ | -------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------- |
+| `supplier_commitment_id` | `string` | yes      | Opaque identity of the incoming supplier commitment whose quantity is being assigned.                                                                         | —       |
+| `customer_commitment_id` | `string` | no       | Optional opaque identity of the outgoing customer commitment that the incoming supply is intended to cover; absence explicitly assigns the quantity to stock. | —       |
+| `purpose`                | `string` | yes      | Closed business purpose that determines the shipment's counterparty role and compatible Movement type. `customer_demand`, `stock_replenishment`               | —       |
+| `quantity`               | `string` | yes      | Decimal quantity expressed in the item's relevant unit.                                                                                                       | —       |
+
+**See also:** command [`assign_supply`](./commands#command-assign_supply)
+
 ### `change_graph_report` — Change Private Graph Report {#command-change_graph_report}
 
 Save, rename, duplicate or delete the authenticated user's private graph question, recording the
@@ -6273,6 +6316,7 @@ governance tools carry proposals, discovery and missing information.
 | [`reality_gap_rule_activate_propose`](#tool-reality_gap_rule_activate_propose)                   | Propose rule activation                        | `propose` | —                      |
 | [`reality_gap_rule_disable_propose`](#tool-reality_gap_rule_disable_propose)                     | Propose rule disablement                       | `propose` | —                      |
 | [`reality_gap_rule_replay_propose`](#tool-reality_gap_rule_replay_propose)                       | Propose historical replay                      | `propose` | —                      |
+| [`supply_coverage`](#tool-supply_coverage)                                                       | Supply coverage                                | `read`    | —                      |
 | [`finance_credits`](#tool-finance_credits)                                                       | Available credit                               | `read`    | —                      |
 | [`finance_party_balances`](#tool-finance_party_balances)                                         | Party balances                                 | `read`    | —                      |
 | [`finance_payments`](#tool-finance_payments)                                                     | Recorded payments                              | `read`    | —                      |
@@ -7253,6 +7297,48 @@ reality_gap_rule_replay_propose rule_id [source_ids] [cursor] [limit]
 | `source_ids` | `array`   | no       | —                                                               | —       |
 | `cursor`     | `string`  | no       | —                                                               | —       |
 | `limit`      | `integer` | no       | Maximum number of records or jobs processed by this invocation. | `500`   |
+
+### `supply_coverage` — Supply coverage {#tool-supply_coverage}
+
+Read customer-assigned, stock-replenishment, received, open and unassigned supplier quantity.
+
+**Synopsis**
+
+```text
+supply_coverage [supplier_commitment_id] [customer_commitment_id]
+```
+
+**Access:** `read`
+
+**How this query runs**
+
+| Concrete query        | Kind                        | Default |
+| --------------------- | --------------------------- | ------- |
+| `MCP supply_coverage` | Live — read at request time | yes     |
+
+[How this query runs](./views#read-execution)
+
+Read explicit links between incoming supplier commitments and customer commitments, including
+assigned quantity and current reversals.
+
+**Use when**
+
+- A user needs to understand which incoming purchase supply is intended to cover which customer
+  demand.
+
+**Do not use when**
+
+- Physical receipt
+- stock availability
+- reservation
+- or customer shipment must be proven.
+
+**Parameters**
+
+| Name                     | Type     | Required | Description                                                                                                                                                   | Default |
+| ------------------------ | -------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------- |
+| `supplier_commitment_id` | `string` | no       | Opaque identity of the incoming supplier commitment whose quantity is being assigned.                                                                         | —       |
+| `customer_commitment_id` | `string` | no       | Optional opaque identity of the outgoing customer commitment that the incoming supply is intended to cover; absence explicitly assigns the quantity to stock. | —       |
 
 ### `finance_credits` — Available credit {#tool-finance_credits}
 

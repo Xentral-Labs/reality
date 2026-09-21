@@ -168,6 +168,7 @@
     "record_packaged_execution": "movements",
     "record_shipment_event": "tracking",
     "supersede_shipment_event": "tracking",
+    "assign_supply": "orders",
     "correct_movement": "movements",
     "reverse_ledger_posting_group": "journal",
     "revise_commitment": "orders",

@@ -10,7 +10,7 @@ Namen folgen dem ERP-Sprachgebrauch; der technische Schlüssel steht daneben.
 | -------------------------------------------------------------- | ------ | -------- | --------- |
 | [Auswertung](#resource-analytics)                              | 0      | 1        | 0         |
 | [Geschäftspartner](#resource-party)                            | 1      | 6        | 2         |
-| [Artikel](#resource-item)                                      | 5      | 3        | 3         |
+| [Artikel](#resource-item)                                      | 5      | 4        | 3         |
 | [Lagerort](#resource-location)                                 | 3      | 3        | 0         |
 | [Preise und Zahlungsbedingungen](#resource-terms)              | 2      | 6        | 2         |
 | [Auftrag](#resource-order)                                     | 8      | 9        | 9         |
@@ -123,6 +123,7 @@ hier.
 - [Artikel ändern](./commands#command-update_item) (`update_item`)
 - [Stammdatensatz aktivieren oder deaktivieren](./commands#command-set_master_data_active)
   (`set_master_data_active`)
+- [Zulauf einem Kundenbedarf zuordnen](./commands#command-assign_supply) (`assign_supply`)
 
 **Nachschlagen**
 
@@ -140,11 +141,12 @@ hier.
 **Kommt vor in:** [Purchase-to-Pay](./processes#process-procure_to_pay),
 [Stammdaten und Quellen](./processes#process-master_data)
 
-**Darunter:** Tabellen: `item` · Events: [`item.created`](./events#event-item-created),
-[`item.updated`](./events#event-item-updated),
+**Darunter:** Tabellen: `item`, `supply_assignment` · Events:
+[`item.created`](./events#event-item-created), [`item.updated`](./events#event-item-updated),
 [`master_data.lifecycle_changed`](./events#event-master_data-lifecycle_changed) · Agenten-Tools ohne
 Geschäftsaktion: [`inventory_read`](./commands#tool-inventory_read),
 [`item_supply_demand`](./commands#tool-item_supply_demand),
+[`supply_coverage`](./commands#tool-supply_coverage),
 [`graph_inventory_reviews_list`](./commands#tool-graph_inventory_reviews_list)
 
 ## Lagerort {#resource-location}

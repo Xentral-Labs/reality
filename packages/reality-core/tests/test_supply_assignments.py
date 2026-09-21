@@ -2,11 +2,16 @@ from decimal import Decimal
 
 import pytest
 from reality.services import core
+from reality.services.delivery_actions import (
+    delivery_proposal_detail,
+    prepare_delivery_action,
+)
 from reality.services.supply_assignments import (
     assign_supply,
     reverse_supply_assignment,
     supply_coverage,
 )
+from reality.tools.application import approve_and_execute_proposal, run_read_tool
 
 
 def commitments(session, business):
@@ -179,3 +184,108 @@ def test_partial_reversal_is_append_only_and_idempotent(session, business):
             reason="Too much",
             request_id="assignment-over-reversal",
         )
+
+
+def test_supply_assignment_requires_current_review_and_replays(session, business):
+    customer, supplier = commitments(session, business)
+    proposal = prepare_delivery_action(
+        session,
+        business.tenant.id,
+        "supply_assign",
+        {
+            "supplier_commitment_id": supplier.id,
+            "customer_commitment_id": customer.id,
+            "purpose": "customer_demand",
+            "quantity": "5",
+        },
+        request_id="reviewed-assignment",
+    )
+    detail = delivery_proposal_detail(session, business.tenant.id, proposal.id)
+    assert detail["status"] == "proposed"
+    assert detail["review"]["effect"] == {
+        "assigned": "5",
+        "purpose": "customer_demand",
+        "unassigned_after": "7",
+    }
+    with pytest.raises(core.InvalidOperation, match="confirmation"):
+        approve_and_execute_proposal(session, business.tenant.id, proposal.id)
+    executed = approve_and_execute_proposal(
+        session,
+        business.tenant.id,
+        proposal.id,
+        review_token=detail["review"]["token"],
+        confirmed=True,
+    )
+    assert executed.status == "executed"
+    verified = delivery_proposal_detail(session, business.tenant.id, proposal.id)
+    assert verified["verification"] == "verified"
+    assert verified["observation"]["supplier"]["customer_assigned"] == Decimal(5)
+    assert (
+        approve_and_execute_proposal(
+            session,
+            business.tenant.id,
+            proposal.id,
+            review_token=detail["review"]["token"],
+            confirmed=True,
+        ).id
+        == proposal.id
+    )
+
+
+def test_supply_assignment_http_and_shared_read_use_same_services(session, business):
+    from fastapi.testclient import TestClient
+    from reality.web.api import database_session
+    from reality.web.app import app
+    from sqlalchemy.orm import sessionmaker
+
+    customer, supplier = commitments(session, business)
+    factory = sessionmaker(session.bind, expire_on_commit=False)
+
+    def database():
+        with factory() as connection:
+            yield connection
+
+    app.dependency_overrides[database_session] = database
+    try:
+        with TestClient(app) as client:
+            base = f"/api/tenants/{business.tenant.id}"
+            prepared = client.post(
+                f"{base}/delivery-actions/prepare",
+                json={
+                    "tool": "supply_assign",
+                    "request_id": "http-supply-assignment",
+                    "arguments": {
+                        "supplier_commitment_id": supplier.id,
+                        "customer_commitment_id": customer.id,
+                        "purpose": "customer_demand",
+                        "quantity": "4",
+                    },
+                },
+            )
+            assert prepared.status_code == 200, prepared.text
+            preview = prepared.json()
+            confirmed = client.post(
+                f"{base}/change-proposals/{preview['id']}/approve",
+                json={
+                    "confirmed": True,
+                    "review_token": preview["review"]["token"],
+                },
+            )
+            assert confirmed.status_code == 200, confirmed.text
+            response = client.get(
+                f"{base}/supply-coverage",
+                params={"supplier_commitment_id": supplier.id},
+            )
+            assert response.status_code == 200, response.text
+            assert Decimal(
+                str(response.json()["supplier"]["customer_assigned"])
+            ) == Decimal("4.0000")
+    finally:
+        app.dependency_overrides.clear()
+    shared = run_read_tool(
+        session,
+        business.tenant.id,
+        "supply_coverage",
+        {"supplier_commitment_id": supplier.id},
+    )
+    assert Decimal(shared["supplier"]["customer_assigned"]) == Decimal(4)
