@@ -69,7 +69,7 @@ quantities across purchasing, sales, and inventory.
 - [ ] T026 [US2] [FR-007] [FR-009] [FR-019] [DR-005] Implement tenant-scoped preview/confirm/reverse services with locks and idempotency in `packages/reality-core/src/reality/services/supply_assignments.py`
 - [ ] T027 [US2] [FR-008] [FR-010] Implement purchasing/customer coverage observations separately from receipt/reservation/fulfilment in `packages/reality-core/src/reality/services/supply_assignments.py` and `packages/reality-core/src/reality/services/delivery_reads.py`
 - [x] T028 [P] [US2] [FR-007] [FR-010] [FR-019] [DR-006] Expose assignment and coverage through shared tools, MCP, API and CLI with adapter tests in `packages/reality-core/src/reality/tools/application.py`, `packages/reality-core/src/reality/mcp/catalog.py`, `packages/reality-core/src/reality/web/api.py`, `packages/reality-core/src/reality/cli/app.py`, and `packages/reality-core/tests/test_b2b_operational_chain_contracts.py`
-- [ ] T029 [US2] [FR-007] [FR-008] [FR-010] Add simple Assign supply review and reconciled coverage UI to `apps/web/src/unified/OrdersPage.tsx` and `apps/web/src/unified/DeliveryCase.tsx`
+- [x] T029 [US2] [FR-007] [FR-008] [FR-010] Add simple Assign supply review and reconciled coverage UI to `apps/web/src/unified/OrdersPage.tsx` and `apps/web/src/unified/DeliveryCase.tsx`
 - [ ] T030 [US2] [FR-007] [FR-009] [FR-010] Run the US2 independent acceptance test and record exact evidence in `specs/248-b2b-operational-chain/quickstart.md`
 
 **Checkpoint**: Supply intent is explicit, quantity-safe, tenant-safe, and independently understandable.

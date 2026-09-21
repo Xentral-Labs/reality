@@ -2158,6 +2158,51 @@ export const deliveryApi = {
     ),
 };
 
+export type SupplyCoverage = {
+  items: Array<{
+    id: string;
+    supplier_commitment_id: string;
+    customer_commitment_id: string | null;
+    purpose: "customer_demand" | "stock_replenishment";
+    quantity: string | number;
+    source_record_id: string;
+  }>;
+  supplier?: {
+    commitment_id: string;
+    quantity: string | number;
+    received: string | number;
+    open: string | number;
+    customer_assigned: string | number;
+    stock_replenishment: string | number;
+    unassigned: string | number;
+  };
+  customer?: {
+    commitment_id: string;
+    quantity: string | number;
+    delivered: string | number;
+    open: string | number;
+    protecting_supply: string | number;
+  };
+};
+
+export const supplyApi = {
+  coverage: (tenant: string, supplierCommitment = "", customerCommitment = "") =>
+    request<SupplyCoverage>(
+      `/api/tenants/${encodeURIComponent(tenant)}/supply-coverage?${new URLSearchParams({
+        ...(supplierCommitment ? { supplier_commitment_id: supplierCommitment } : {}),
+        ...(customerCommitment ? { customer_commitment_id: customerCommitment } : {}),
+      })}`,
+    ),
+  prepare: (tenant: string, requestId: string, args: Record<string, unknown>) =>
+    request<DeliveryProposal>(
+      `/api/tenants/${encodeURIComponent(tenant)}/delivery-actions/prepare`,
+      {
+        method: "POST",
+        body: JSON.stringify({ request_id: requestId, tool: "supply_assign", arguments: args }),
+      },
+    ),
+};
+
 export type ShipmentRow = {
   id: string;
   direction: "inbound" | "outbound";
