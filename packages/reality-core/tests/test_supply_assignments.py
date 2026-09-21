@@ -138,6 +138,28 @@ def test_supply_assignment_enforces_bounds_shape_and_tenant(session, business):
             purpose="stock_replenishment",
             request_id="foreign",
         )
+    other_item = core.create_item(session, business.tenant.id, "OTHER", "Other item")
+    mismatched = core.create_commitment(
+        session,
+        business.tenant.id,
+        "customer_delivery",
+        business.company.id,
+        business.customer.id,
+        other_item.id,
+        business.location.id,
+        "1",
+        "2026-09-21",
+    )
+    with pytest.raises(core.InvalidOperation, match="items must match"):
+        assign_supply(
+            session,
+            business.tenant.id,
+            supplier.id,
+            "1",
+            purpose="customer_demand",
+            customer_commitment_id=mismatched.id,
+            request_id="wrong-item",
+        )
 
 
 def test_partial_reversal_is_append_only_and_idempotent(session, business):
@@ -289,3 +311,84 @@ def test_supply_assignment_http_and_shared_read_use_same_services(session, busin
         {"supplier_commitment_id": supplier.id},
     )
     assert Decimal(shared["supplier"]["customer_assigned"]) == Decimal(4)
+
+
+def test_concurrent_assignments_cannot_exceed_supplier_quantity(postgres_database):
+    from concurrent.futures import ThreadPoolExecutor
+    from threading import Barrier
+    from types import SimpleNamespace
+
+    from reality.db.core import Base, SupplyAssignment, build_engine
+    from sqlalchemy import func, select
+    from sqlalchemy.orm import sessionmaker
+
+    engine = build_engine(postgres_database)
+    Base.metadata.create_all(engine)
+    factory = sessionmaker(engine, expire_on_commit=False)
+    try:
+        with factory() as session:
+            tenant = core.create_tenant(session, "Concurrent supply")
+            company = core.create_party(session, tenant.id, "Company", "company")
+            customer_party = core.create_party(
+                session, tenant.id, "Customer", "customer"
+            )
+            supplier_party = core.create_party(
+                session, tenant.id, "Supplier", "supplier"
+            )
+            item = core.create_item(session, tenant.id, "SKU", "Item")
+            location = core.create_location(session, tenant.id, "Warehouse")
+            business = SimpleNamespace(
+                tenant=tenant,
+                company=company,
+                customer=customer_party,
+                supplier=supplier_party,
+                item=item,
+                location=location,
+            )
+            first_customer, supplier = commitments(session, business)
+            second_customer = core.create_commitment(
+                session,
+                tenant.id,
+                "customer_delivery",
+                company.id,
+                customer_party.id,
+                item.id,
+                location.id,
+                "8",
+                "2026-09-21",
+            )
+            tenant_id = tenant.id
+            supplier_id = supplier.id
+            customer_ids = [first_customer.id, second_customer.id]
+        gate = Barrier(2)
+
+        def execute(index: int) -> bool:
+            with factory() as connection:
+                gate.wait(timeout=10)
+                try:
+                    assign_supply(
+                        connection,
+                        tenant_id,
+                        supplier_id,
+                        "7",
+                        purpose="customer_demand",
+                        customer_commitment_id=customer_ids[index],
+                        request_id=f"concurrent-assignment-{index}",
+                    )
+                    return True
+                except core.InvalidOperation as error:
+                    assert "exceeds unassigned supplier quantity" in str(error)
+                    return False
+
+        with ThreadPoolExecutor(max_workers=2) as workers:
+            assert sorted(workers.map(execute, range(2))) == [False, True]
+        with factory() as session:
+            assert session.scalar(
+                select(func.sum(SupplyAssignment.quantity)).where(
+                    SupplyAssignment.tenant_id == tenant_id,
+                    SupplyAssignment.reverses_assignment_id.is_(None),
+                )
+            ) == Decimal(7)
+    finally:
+        Base.metadata.drop_all(engine)
+        engine.dispose()

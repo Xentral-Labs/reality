@@ -2111,6 +2111,7 @@ export type DeliveryDetail = {
       created_at?: string;
     }>;
   };
+  supply_coverage: SupplyCoverage;
   hold_reasons?: string[];
   inventory: {
     item_id: string;

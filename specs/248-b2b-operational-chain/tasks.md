@@ -63,11 +63,11 @@ partially receive/cancel supply, and reconcile assigned, unassigned, received, o
 quantities across purchasing, sales, and inventory.
 
 - [x] T022 [P] [US2] [FR-007] [FR-008] [DR-003] Add failing domain tests for customer-demand, stock, unassigned, and reversal semantics in `packages/reality-core/tests/test_supply_assignments.py`
-- [ ] T023 [P] [US2] [FR-009] [DR-005] Add failing concurrency, over-allocation, compatibility, and tenant-isolation service tests in `packages/reality-core/tests/test_supply_assignments.py`
-- [ ] T024 [P] [US2] [FR-010] Add failing three-view reconciliation and no-double-counting tests in `packages/reality-core/tests/test_supply_coverage.py`
+- [x] T023 [P] [US2] [FR-009] [DR-005] Add failing concurrency, over-allocation, compatibility, and tenant-isolation service tests in `packages/reality-core/tests/test_supply_assignments.py`
+- [x] T024 [P] [US2] [FR-010] Add failing three-view reconciliation and no-double-counting tests in `packages/reality-core/tests/test_supply_coverage.py`
 - [x] T025 [US2] [FR-007] [FR-008] [FR-009] [DR-003] Implement pure effective-assignment/reversal and bound rules in `packages/reality-core/src/reality/domain/supply.py`
 - [ ] T026 [US2] [FR-007] [FR-009] [FR-019] [DR-005] Implement tenant-scoped preview/confirm/reverse services with locks and idempotency in `packages/reality-core/src/reality/services/supply_assignments.py`
-- [ ] T027 [US2] [FR-008] [FR-010] Implement purchasing/customer coverage observations separately from receipt/reservation/fulfilment in `packages/reality-core/src/reality/services/supply_assignments.py` and `packages/reality-core/src/reality/services/delivery_reads.py`
+- [x] T027 [US2] [FR-008] [FR-010] Implement purchasing/customer coverage observations separately from receipt/reservation/fulfilment in `packages/reality-core/src/reality/services/supply_assignments.py` and `packages/reality-core/src/reality/services/delivery_reads.py`
 - [x] T028 [P] [US2] [FR-007] [FR-010] [FR-019] [DR-006] Expose assignment and coverage through shared tools, MCP, API and CLI with adapter tests in `packages/reality-core/src/reality/tools/application.py`, `packages/reality-core/src/reality/mcp/catalog.py`, `packages/reality-core/src/reality/web/api.py`, `packages/reality-core/src/reality/cli/app.py`, and `packages/reality-core/tests/test_b2b_operational_chain_contracts.py`
 - [x] T029 [US2] [FR-007] [FR-008] [FR-010] Add simple Assign supply review and reconciled coverage UI to `apps/web/src/unified/OrdersPage.tsx` and `apps/web/src/unified/DeliveryCase.tsx`
 - [ ] T030 [US2] [FR-007] [FR-009] [FR-010] Run the US2 independent acceptance test and record exact evidence in `specs/248-b2b-operational-chain/quickstart.md`
