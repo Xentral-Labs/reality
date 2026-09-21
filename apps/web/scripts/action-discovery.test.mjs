@@ -66,6 +66,7 @@ test("every supported form is registered and Warehouse placement is specific", (
     "opening_stock",
     "receipt",
     "movement_create",
+    "return_disposition",
     "shipment_dispatch",
     "shipment_receive",
     "movement_correct",
