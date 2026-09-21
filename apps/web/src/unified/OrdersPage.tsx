@@ -169,6 +169,14 @@ export function OrdersPage({
             </div>
           </RegisterHeader>
 
+          {purchasing && view === "deliveries" && (
+            <p className="rounded-lg border border-border-default bg-surface-muted px-4 py-3 text-sm text-fg-muted">
+              {t(
+                "Open an incoming commitment to assign its quantity to customer demand or planned stock.",
+              )}
+            </p>
+          )}
+
           <section className="register-surface">
             <RegisterToolbar
               count={view === "shipments" ? undefined : data?.page.total}

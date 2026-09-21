@@ -10,6 +10,7 @@ import { useRead } from "./useCompanyContext";
 import { ReadState } from "./ReadState";
 import { Inspector } from "./Inspector";
 import type { Selection } from "./routing";
+import { SupplyAssignmentCard } from "./SupplyAssignmentCard";
 
 export function DeliveryCase({
   tenant,
@@ -167,6 +168,9 @@ export function DeliveryCase({
             </div>
           )}
         </article>
+        {detail.type === "supplier_delivery" && detail.status === "open" && (
+          <SupplyAssignmentCard tenant={tenant} supplier={detail} settled={refresh} />
+        )}
         <article className="rounded-xl border border-border-default bg-surface p-6">
           <h3 className="font-semibold text-fg-strong">{t("Inventory at this location")}</h3>
           <a
