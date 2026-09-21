@@ -1,7 +1,13 @@
-"""Disposable onboarding development runtime; no persistent installation is touched."""
+"""Start the installed product; the persistent installation keeps its data until erased.
+
+Setting REALITY_DESKTOP_DISPOSABLE=1 selects the fresh-test harness from spec 239
+instead, which initializes a new cluster and removes it again on exit.
+"""
 
 import importlib.util
 import json
+import os
+import plistlib
 import subprocess
 import sys
 import threading
@@ -11,6 +17,7 @@ from uuid import uuid4
 
 SCRIPTS = Path(__file__).resolve().parent
 RUNTIME = SCRIPTS.parent / "runtime"
+BUNDLE = SCRIPTS.parents[2] / "Info.plist"
 
 
 def serve(configuration, root):
@@ -20,7 +27,7 @@ def serve(configuration, root):
         "core_root": str(RUNTIME / "core"),
         "artifact_root": str(root / "artifacts"),
         "frontend": str(SCRIPTS.parent / "frontend"),
-        "installation_id": str(uuid4()),
+        "installation_id": configuration.get("REALITY_INSTALLATION_ID") or str(uuid4()),
     }
     env = {"PATH": "/usr/bin:/bin", "PYTHONDONTWRITEBYTECODE": "1"}
     # Separate exclusive preparation process; API startup never performs migrations.
@@ -105,7 +112,9 @@ def serve(configuration, root):
     threading.Thread(target=parent_closed, daemon=True).start()
     try:
         while process.poll() is None:
-            if not stopping.is_set() and any(child.poll() is not None for child in roles):
+            if not stopping.is_set() and any(
+                child.poll() is not None for child in roles
+            ):
                 raise RuntimeError("Local background process failed.")
             time.sleep(0.2)
         code = process.returncode
@@ -116,13 +125,52 @@ def serve(configuration, root):
         stop_all()
 
 
-def main():
+def load(name):
     spec = importlib.util.spec_from_file_location(
-        "runtime_smoke", SCRIPTS / "runtime-smoke.py"
+        name.replace("-", "_"), SCRIPTS / f"{name}.py"
     )
     module = importlib.util.module_from_spec(spec)
+    sys.modules.setdefault(spec.name, module)
     spec.loader.exec_module(module)
-    module.smoke(RUNTIME, operation=serve)
+    return module
+
+
+def bundle():
+    """Read the packaged identity; a changed version triggers a checkpoint before migration."""
+    try:
+        with BUNDLE.open("rb") as stream:
+            information = plistlib.load(stream)
+        return (
+            information.get("CFBundleIdentifier"),
+            information.get("CFBundleShortVersionString") or "0.0.0",
+        )
+    except (OSError, ValueError):
+        return None, "0.0.0-development"
+
+
+def disposable():
+    """The native shell clears the environment, so the package marks its own intent."""
+    return (
+        os.environ.get("REALITY_DESKTOP_DISPOSABLE") == "1"
+        or (SCRIPTS / "disposable").exists()
+    )
+
+
+def main():
+    if disposable():
+        load("runtime-smoke").smoke(RUNTIME, operation=serve)
+        return
+    installation = load("installation")
+    identifier, version = bundle()
+    base = installation.base_directory(identifier or installation.DEFAULT_IDENTIFIER)
+    try:
+        with installation.running(RUNTIME, base=base, app_version=version) as (
+            configuration,
+            prepared,
+        ):
+            serve(configuration, prepared.root)
+    except installation.AlreadyRunning as error:
+        raise SystemExit(str(error)) from None
 
 
 if __name__ == "__main__":

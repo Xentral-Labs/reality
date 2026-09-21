@@ -2,7 +2,7 @@
 
 **Feature Branch**: `240-persistent-macos-distribution`  
 **Created**: 2026-09-19  
-**Status**: Proposed  
+**Status**: Increment 1 implemented and verified; later increments proposed  
 **Language**: English  
 **Input**: Turn the disposable Reality Local macOS proof into a persistent application that can be downloaded from the public website and retains all local data when the app closes.
 
@@ -32,6 +32,45 @@ public website download contract.
 - Silently collecting diagnostics, credentials or business payloads.
 - Automatically authorizing real external connections during installation.
 - Replacing the existing company setup, Demo Data, job or AI settings services.
+
+## Clarifications
+
+### Session 2026-09-21
+
+Decisions taken before planning. Each records the chosen option and the boundary it
+leaves open, so a later increment can extend it without reinterpreting this spec.
+
+- **Architecture**: Apple Silicon only, macOS 14 or newer, matching the existing
+  `aarch64-apple-darwin` build lock. Intel/universal support is deferred; macOS 26 is
+  the last release Apple supports on Intel hardware, and FR-011 would otherwise require
+  a second clean-machine qualification matrix.
+- **Installation layout**: `~/Library/Application Support/<bundle identifier>/installations/<installation id>/`
+  with a `current` pointer file beside `installations/`. The directory-per-installation
+  shape is adopted now because FR-009 requires erasure to identify exactly one owned
+  installation.
+- **PostgreSQL socket**: the Unix socket directory is created fresh outside the data
+  root on each start and removed on stop. macOS limits socket paths to about 104 bytes,
+  which an Application Support path plus an installation identifier exceeds.
+- **Database credential**: the generated SCRAM password is retained in a `0600` file
+  inside the installation directory. Keychain custody under FR-006 remains open and
+  replaces that file without changing the cluster.
+- **Upgrade protection in this increment**: a `pg_dump` checkpoint is written before
+  migrations whenever the recorded application version changes. The validated
+  checkpoint/restore contract in FR-007 and FR-008 remains open.
+- **Removal**: moving the application to the Trash preserves data, as FR-009 requires.
+  Full erasure is a separate confirmed command that removes one installation directory.
+- **Disposable testing**: spec 239's fresh-database behavior remains available behind an
+  explicit flag instead of being replaced, so release qualification keeps a clean harness.
+- **Distribution signing**: Developer ID signing, notarization and signed updates
+  (FR-010, FR-012) are not part of this increment. Until they exist, the artifact is
+  ad-hoc signed and may only be handed to named testers, never published for download.
+
+## Implementation Increments
+
+- **Increment 1 (this branch)**: User Story 1 and the part of User Story 3 that keeps
+  application removal non-destructive, plus an explicit erasure command. FR-001 to
+  FR-005 and FR-009 are addressed; FR-006 to FR-008 and FR-010 to FR-016 remain open
+  and are listed as unmet in verification.md.
 
 ## User Scenarios & Testing
 

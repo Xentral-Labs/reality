@@ -1,0 +1,40 @@
+{
+  "after_upgrade": {
+    "migration_revision": "0069_inventory_generations",
+    "owner_id": "usr_12f0eb6db9",
+    "tcp_listening": false,
+    "tenants": [
+      [
+        "ten_12a780060b",
+        "Persistence Proof"
+      ]
+    ]
+  },
+  "base": "/Users/benediktsauter/Library/Application Support/ai.runreality.local.verify",
+  "base_kept": true,
+  "checkpoints_after_upgrade": 1,
+  "checkpoints_before_upgrade": 0,
+  "data_directory": "/Users/benediktsauter/Library/Application Support/ai.runreality.local.verify/installations/605bfeb1-2744-475d-b7f5-9564349d23dd/data",
+  "first_start": {
+    "migration_revision": "0069_inventory_generations",
+    "owner_id": "usr_12f0eb6db9",
+    "tcp_listening": false,
+    "tenant_id": "ten_12a780060b"
+  },
+  "identity_is_stable": true,
+  "installation_id": "605bfeb1-2744-475d-b7f5-9564349d23dd",
+  "installation_removed": true,
+  "second_process_refused": true,
+  "second_start": {
+    "migration_revision": "0069_inventory_generations",
+    "owner_id": "usr_12f0eb6db9",
+    "tcp_listening": false,
+    "tenants": [
+      [
+        "ten_12a780060b",
+        "Persistence Proof"
+      ]
+    ]
+  },
+  "unrelated_file_kept": true
+}

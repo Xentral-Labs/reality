@@ -1,18 +1,88 @@
-# Reality Desktop — interactive development build
+# Reality Desktop
 
-The current development app opens the real Reality company-creation form and then
-the existing product workspace. It supports a disposable empty company, empty Sandbox
-or live international demo and an optional Anthropic API key. Quitting stops the API,
-scheduler, worker and PostgreSQL, then removes that test's data and encrypted secret.
-Persistent storage, Keychain custody and distribution signing remain unfinished.
-Feature/design: [spec 239](../../specs/239-macos-local-app/spec.md).
-Actual results: [verification](../../specs/239-macos-local-app/verification.md).
+The app opens the real Reality company-creation form and then the existing product
+workspace. It supports an empty company, an empty Sandbox or the live international
+demo, plus an optional Anthropic API key.
+
+Two builds come out of the same source and never share a data directory:
+
+| Build | Identifier | On quit |
+|---|---|---|
+| Persistent (default) | `ai.runreality.local` | Keeps everything until an explicit erasure |
+| Fresh-test harness (`--disposable`) | `ai.runreality.local.development` | Removes its database and secret |
+
+Feature/design: [spec 239](../../specs/239-macos-local-app/spec.md) for the package,
+[spec 240](../../specs/240-persistent-macos-distribution/spec.md) for persistence.
+Actual results: [239 verification](../../specs/239-macos-local-app/verification.md),
+[240 verification](../../specs/240-persistent-macos-distribution/verification.md).
+
+Keychain custody, validated backup/restore, Developer ID signing, notarization and
+signed updates remain unfinished. Until they exist the artifact may be handed to named
+testers with the instructions below, never published as a public download.
+
+## The persistent installation
+
+Everything durable lives in one directory per installation:
+
+```
+~/Library/Application Support/ai.runreality.local/
+  current                      # identifier of the active installation
+  installations/<id>/
+    installation.json          # identity, layout and last application version
+    data/                      # PostgreSQL cluster
+    artifacts/                 # artifact backend
+    backups/                   # checkpoint written before a new version migrates
+    secret                     # cluster password, 0600, until Keychain custody lands
+```
+
+The cluster listens on no TCP port. Its Unix socket is created fresh under
+`/private/tmp` on each start, because macOS rejects socket paths beyond about 104 bytes
+and an Application Support path plus an identifier exceeds that.
+
+Moving the application to the Trash keeps the data, so reinstalling or updating never
+costs a company. Erasure is a separate confirmed command inside the bundle:
+
+```sh
+'/Applications/Reality Local.app/Contents/Resources/uninstall.command'
+```
+
+Run the same file's underlying script without `--uninstall` to see where the data is,
+how large it is and which version wrote it:
+
+```sh
+'/Applications/Reality Local.app/Contents/Resources/runtime/python/bin/python3.12' -I \
+  '/Applications/Reality Local.app/Contents/Resources/probe/installation.py'
+```
+
+A second start of the same installation is refused rather than allowed to corrupt the
+cluster. A forced quit leaves the data intact; the next start stops the orphaned
+database process and continues.
+
+## Hand the build to a tester
+
+The package is ad-hoc signed, not notarized. On macOS 15 and newer the old
+right-click-to-open route no longer works, so the instructions are:
+
+1. Apple Silicon Mac, macOS 14 or newer. No Homebrew, Xcode or PostgreSQL required.
+2. Move `Reality Local.app` to `/Applications`.
+3. First launch is refused. Open System Settings → Privacy & Security and choose
+   "Open Anyway", or run once:
+   `xattr -dr com.apple.quarantine '/Applications/Reality Local.app'`.
+4. Data lives in `~/Library/Application Support/ai.runreality.local` and stays there.
+5. There is no update mechanism yet: a new version arrives as a new download. A version
+   change writes a checkpoint into `backups/` before migrating, and the newest three are
+   kept, but restoring one is still a manual `pg_restore` with the bundled tools.
+6. Keep the existing system running in parallel. This build carries no availability or
+   data-loss guarantee.
 
 ## Start a fresh interactive test
 
 ```sh
 .venv/bin/python apps/desktop/scripts/test-preview.py
 ```
+
+This helper accepts only a fresh-test build (`--disposable`); it copies and deletes the
+application, which would be wrong for a persistent installation.
 
 The default artifact is `dist/Reality Local Demo Ready No Scroll.app`. It carries the native
 macOS version of the web LogoMark and opens at 1440 × 960
@@ -36,6 +106,21 @@ node apps/desktop/tests/onboarding-browser.mjs
 That test uses the packaged backend, creates a real company, verifies the workspace,
 and checks that the temporary database directory is absent after shutdown. Browser
 cookies are injected only by the test runner; the native app uses its private pipe.
+
+## Prove that data survives
+
+Against a built runtime, without the native shell:
+
+```sh
+.venv/bin/python apps/desktop/scripts/verify-persistence.py --runtime 'apps/desktop/build/relocated runtime core'
+```
+
+The run creates a company, stops, starts again and reads the same records back, refuses
+a second concurrent start, writes a checkpoint for a changed application version and
+then erases exactly one installation. It uses a temporary base directory unless `--base`
+names another one; point it at a path under Application Support to exercise the real
+location. Recorded results are in
+[240 verification](../../specs/240-persistent-macos-distribution/verification.md).
 
 ## Run the isolated tests
 
@@ -192,10 +277,18 @@ then use the native binary built from `src-tauri`:
   --runtime apps/desktop/build/onboarding-runtime \
   --binary apps/desktop/build/tauri-target/debug/reality-local \
   --frontend apps/web/dist \
-  --output 'apps/desktop/dist/Reality Local Development.app'
+  --output 'apps/desktop/dist/Reality Local.app'
 ```
 
 Choose a new output path when one already exists. The package includes
-`local-runtime.py` (temporary PostgreSQL lifecycle), `local-product.py` (explicit
-migration preparation followed by the authenticated API), and the product frontend.
-No release-ready persistent installation or crash-recovery guarantee is implied.
+`installation.py` and `cluster.py` (durable installation and PostgreSQL lifecycle),
+`local-runtime.py` (process supervision), `local-product.py` (explicit migration
+preparation followed by the authenticated API), the erasure command and the product
+frontend.
+
+Add `--disposable` for the fresh-test harness. That build carries the development
+identifier, marks itself with `probe/disposable`, titles its window "Test Installation"
+and ships no erasure command, because quitting already removes its data.
+
+The signature is ad-hoc. Developer ID signing, notarization, stapling, signed updates
+and clean-machine qualification are not performed here, so no public download is implied.

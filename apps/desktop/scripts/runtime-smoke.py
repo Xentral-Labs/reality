@@ -1,21 +1,36 @@
 """Run the relocated core on a disposable socket-only PostgreSQL cluster.
 
 Uses no existing database, credentials, fixed TCP port, or application configuration.
+This is the fresh-test harness; the persistent installation lives in installation.py.
 """
 
 from __future__ import annotations
 
 import argparse
+import importlib.util
 import json
 import os
-import secrets
 import subprocess
+import sys
 import tempfile
-import time
 from pathlib import Path
-from urllib.parse import quote
 
 SCRIPTS = Path(__file__).resolve().parent
+ROLE = "desktop_probe"
+DATABASE = "postgres"
+
+
+def _cluster():
+    spec = importlib.util.spec_from_file_location(
+        "desktop_cluster", SCRIPTS / "cluster.py"
+    )
+    module = importlib.util.module_from_spec(spec)
+    sys.modules.setdefault(spec.name, module)
+    spec.loader.exec_module(module)
+    return module
+
+
+cluster = _cluster()
 
 
 def smoke(
@@ -23,7 +38,7 @@ def smoke(
 ) -> dict:
     python = runtime / "python/bin/python3.12"
     postgres = runtime / "postgres/bin"
-    env = {"PATH": "/usr/bin:/bin", "LC_ALL": "C", "PYTHONDONTWRITEBYTECODE": "1"}
+    env = cluster.ENVIRONMENT
     with tempfile.TemporaryDirectory(
         prefix="reality-pg-", dir=temporary_parent
     ) as temporary:
@@ -32,83 +47,19 @@ def smoke(
         socket_dir = root / "s"
         socket_dir.mkdir(mode=0o700)
         data = root / "data"
-        password = secrets.token_urlsafe(32)
         password_file = root / "password"
-        descriptor = os.open(password_file, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
-        with os.fdopen(descriptor, "w") as stream:
-            stream.write(password)
-        initialized = subprocess.run(
-            [
-                str(postgres / "initdb"),
-                "-D",
-                str(data),
-                "-U",
-                "desktop_probe",
-                "--auth-local=scram-sha-256",
-                "--auth-host=reject",
-                f"--pwfile={password_file}",
-                "--no-locale",
-                "--encoding=UTF8",
-            ],
-            env=env,
-            capture_output=True,
-            text=True,
-            timeout=60,
-            check=False,
-        )
+        password = cluster.write_password(password_file)
+        cluster.initialize(postgres, data, password_file, role=ROLE)
         password_file.unlink()
-        if initialized.returncode:
-            raise RuntimeError(f"initdb failed: {initialized.stderr}")
         with (root / "postgres.log").open("w+") as log:
-            process = subprocess.Popen(
-                [
-                    str(postgres / "postgres"),
-                    "-D",
-                    str(data),
-                    "-h",
-                    "",
-                    "-k",
-                    str(socket_dir),
-                    "-c",
-                    "unix_socket_permissions=0700",
-                    "-c",
-                    "max_connections=20",
-                ],
-                env=env,
-                stdout=log,
-                stderr=log,
-            )
+            process = cluster.launch(postgres, data, socket_dir, log)
             try:
-                deadline = time.monotonic() + 30
-                while True:
-                    if process.poll() is not None:
-                        log.seek(0)
-                        raise RuntimeError(
-                            f"PostgreSQL exited during startup: {log.read()}"
-                        )
-                    ready = subprocess.run(
-                        [
-                            str(postgres / "pg_isready"),
-                            "-h",
-                            str(socket_dir),
-                            "-U",
-                            "desktop_probe",
-                            "-d",
-                            "postgres",
-                        ],
-                        env=env,
-                        capture_output=True,
-                        timeout=3,
-                        check=False,
-                    )
-                    if ready.returncode == 0:
-                        break
-                    if time.monotonic() >= deadline:
-                        raise RuntimeError("PostgreSQL readiness timed out")
-                    time.sleep(0.1)
+                cluster.wait_until_ready(postgres, socket_dir, process, log, role=ROLE)
                 core_env = dict(
                     env,
-                    REALITY_DATABASE_URL=f"postgresql+psycopg://desktop_probe:{quote(password, safe='')}@/postgres?host={quote(str(socket_dir), safe='')}",
+                    REALITY_DATABASE_URL=cluster.database_url(
+                        ROLE, password, socket_dir, DATABASE
+                    ),
                     REALITY_ROOT=str(runtime / "core"),
                     REALITY_ARTIFACT_DIR=str(root / "artifacts"),
                 )
@@ -128,29 +79,14 @@ def smoke(
                     raise RuntimeError(checked.stderr.replace(password, "[redacted]"))
                 result = json.loads(checked.stdout)
                 dump = root / "smoke.dump"
-                backup_env = dict(env, PGPASSWORD=password)
-                backup = subprocess.run(
-                    [
-                        str(postgres / "pg_dump"),
-                        "-h",
-                        str(socket_dir),
-                        "-U",
-                        "desktop_probe",
-                        "-d",
-                        "postgres",
-                        "--format=custom",
-                        "--compress=0",
-                        "--file",
-                        str(dump),
-                    ],
-                    env=backup_env,
-                    capture_output=True,
-                    text=True,
-                    timeout=60,
-                    check=False,
+                cluster.dump(
+                    postgres,
+                    socket_dir,
+                    password,
+                    role=ROLE,
+                    database=DATABASE,
+                    archive=dump,
                 )
-                if backup.returncode:
-                    raise RuntimeError(backup.stderr.replace(password, "[redacted]"))
                 listed = subprocess.run(
                     [str(postgres / "pg_restore"), "--list", str(dump)],
                     env=env,
@@ -166,13 +102,7 @@ def smoke(
                 result["dump_archive_readable"] = True
                 return result
             finally:
-                if process.poll() is None:
-                    process.terminate()
-                try:
-                    process.wait(timeout=30)
-                except subprocess.TimeoutExpired:
-                    process.kill()
-                    process.wait(timeout=5)
+                cluster.shut_down(process)
 
 
 def main() -> None:

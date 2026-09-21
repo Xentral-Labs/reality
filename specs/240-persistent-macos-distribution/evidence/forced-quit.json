@@ -1,0 +1,9 @@
+{
+  "note": "Shell and every Python supervisor killed with SIGKILL so PostgreSQL was genuinely orphaned, then the application was started again.",
+  "postgres_orphaned": true,
+  "pid_file_present": true,
+  "restarted_after_orphan": true,
+  "new_postmaster": true,
+  "read_back": [["ten_cfac6dd825", "Orphan Recovery"]],
+  "removed": true
+}

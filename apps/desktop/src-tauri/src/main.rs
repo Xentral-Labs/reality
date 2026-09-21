@@ -47,6 +47,8 @@ fn main() {
         .setup(|app| {
             let resources = app.path().resource_dir()?;
             let onboarding = resources.join("probe/local-runtime.py").exists();
+            // A persistent installation must not present itself as a disposable test.
+            let disposable = resources.join("probe/disposable").exists();
             let script = if onboarding { "probe/local-runtime.py" } else { "probe/native-probe.py" };
             let mut child = Command::new(resources.join("runtime/python/bin/python3.12"))
                 .arg("-I")
@@ -95,7 +97,11 @@ fn main() {
                 "preview",
                 tauri::WebviewUrl::External("about:blank".parse()?),
             )
-            .title(if onboarding { "Reality Local — Test Installation" } else { "Reality Local Preview" })
+            .title(match (onboarding, disposable) {
+                (true, true) => "Reality Local — Test Installation",
+                (true, false) => "Reality Local",
+                _ => "Reality Local Preview",
+            })
             .inner_size(1440.0, 960.0)
             .prevent_overflow()
             .center()
