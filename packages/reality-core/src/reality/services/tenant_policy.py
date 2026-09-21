@@ -559,6 +559,18 @@ def _proposal_creation_scope(
 def require_proposal_creation(
     session: Session, tenant_id: str, tool_name: str, arguments: dict
 ) -> None:
+    profile_finance = _profile_finance_authority.get()
+    if (
+        profile_finance is not None
+        and profile_finance[0] is session
+        and profile_finance[1] is session.get_transaction()
+        and profile_finance[4] == tenant_id
+        and tool_name == "finance.adjustment.accept"
+        and profile_finance[5]
+        == json.dumps(arguments, sort_keys=True, allow_nan=False)
+    ):
+        require_playground_run(session, profile_finance[2], profile_finance[3])
+        return
     profile_cost = _profile_cost_authority.get()
     if (
         profile_cost is not None
@@ -1185,6 +1197,7 @@ _PROFILE_OPERATIONS = _SEED_OPERATIONS | frozenset(
         "post_supplier_payment",
         "record_supplier_payment",
         "allocate_settlement",
+        "finance_account_maintain",
     }
 )
 _INTAKE_OPERATIONS = frozenset(
@@ -1266,6 +1279,9 @@ event.listen(Session, "before_flush", _forget_profile_authority)
 _profile_cost_authority: ContextVar[tuple | None] = ContextVar(
     "company_profile_cost_authority", default=None
 )
+_profile_finance_authority: ContextVar[tuple | None] = ContextVar(
+    "company_profile_finance_authority", default=None
+)
 
 
 @contextmanager
@@ -1309,6 +1325,32 @@ def profile_cost_owner_active(
         return False
     run = require_playground_run(session, authority[2], actor_id)
     return run.status == "initializing"
+
+
+@contextmanager
+def profile_finance_action_scope(
+    session: Session, run_id: str, actor_id: str, arguments: dict
+):
+    """Bind one authored profile settlement decision to setup's confirmation."""
+    from reality.demo.international import PROFILE_VERSION
+
+    run = require_playground_run(session, run_id, actor_id)
+    transaction = session.get_transaction()
+    if (
+        transaction is None
+        or run.status != "initializing"
+        or run.preset_key != "international-demo"
+        or run.preset_version != PROFILE_VERSION
+    ):
+        raise PlaygroundOperationDenied("Profile finance authority is unavailable.")
+    intent = json.dumps(arguments, sort_keys=True, allow_nan=False)
+    token = _profile_finance_authority.set(
+        (session, transaction, run.id, actor_id, run.tenant_id, intent)
+    )
+    try:
+        yield
+    finally:
+        _profile_finance_authority.reset(token)
 
 
 @contextmanager

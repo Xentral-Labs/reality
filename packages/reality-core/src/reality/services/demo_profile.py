@@ -55,6 +55,61 @@ def _cost_action(session: Session, run: PlaygroundRun, arguments: dict) -> dict:
         )
 
 
+def _settlement_adjustment(
+    session: Session,
+    run: PlaygroundRun,
+    invoice_id: str,
+    amount: str,
+    *,
+    reason_category: str,
+    reason: str,
+    agreement: str = "",
+) -> dict:
+    """Execute one fixed accepted reduction inside confirmed profile setup."""
+    import json
+
+    from reality.services.analytics.reports import caller
+    from reality.services.finance.settlement import (
+        accept_adjustment,
+        adjustment_context,
+    )
+    from reality.services.memberships import Principal
+    from reality.services.tenant_policy import profile_finance_action_scope
+    from reality.tools.application import create_change_proposal
+
+    context = adjustment_context(session, run.tenant_id, invoice_id)
+    arguments = {
+        "invoice_id": invoice_id,
+        "amount": amount,
+        "expected_revision": context["revision"],
+        "reason_category": reason_category,
+        "reason": reason,
+        "agreement": agreement,
+    }
+    with profile_finance_action_scope(session, run.id, run.owner_user_id, arguments):
+        with caller(Principal(run.owner_user_id)):
+            action = create_change_proposal(
+                session,
+                run.tenant_id,
+                "finance.adjustment.accept",
+                arguments,
+                actor_type="system",
+                _commit=False,
+            )
+        result = accept_adjustment(
+            session,
+            run.tenant_id,
+            action_id=action.id,
+            actor_id=run.owner_user_id,
+            **arguments,
+        )
+        action.status = "executed"
+        action.decided_at = core.now()
+        action.decided_by_user_id = run.owner_user_id
+        action.output = json.dumps(result, sort_keys=True)
+        return result
+
+
 def seed_profile(
     session: Session, run: PlaygroundRun, anchor: datetime, *, execution: bool = False
 ) -> dict:
@@ -398,6 +453,110 @@ def seed_profile(
                 effective_at=anchor - timedelta(days=5),
                 _commit=False,
             )
+        # Feature 246: deterministic settlement examples answer the ordinary
+        # finance questions every demo receives. Cash is recorded as stated;
+        # allocation and accepted reductions remain separate evidence.
+        from reality.services.finance.accounts import (
+            create_account,
+            set_default_account,
+        )
+
+        for role, name in (
+            ("customer_reduction", "Customer reductions"),
+            ("supplier_reduction", "Supplier reductions"),
+        ):
+            account = create_account(
+                session,
+                tenant,
+                code=role,
+                name=name,
+                role=role,
+                _commit=False,
+            )
+            set_default_account(
+                session,
+                tenant,
+                role=role,
+                account_id=account["id"],
+                _commit=False,
+            )
+
+        supplier_discount = cases["S02"]
+        discount_payment_source = source(
+            "supplier_payment",
+            "PAY-SUPPLIER-DISCOUNT",
+            {
+                "number": "PAY-SUPPLIER-DISCOUNT",
+                "date": (anchor - timedelta(days=5)).isoformat(),
+                "amount": "49",
+                "currency": "EUR",
+                "invoice_external_reference": "SINV-S02",
+            },
+        )
+        core.post_supplier_payment(
+            session,
+            tenant,
+            supplier_discount["supplier_invoice_id"],
+            "49",
+            payment_number="PAY-SUPPLIER-DISCOUNT",
+            source_record_id=discount_payment_source.id,
+            effective_at=anchor - timedelta(days=5),
+            _commit=False,
+        )
+        discount_adjustment = _settlement_adjustment(
+            session,
+            run,
+            supplier_discount["supplier_invoice_id"],
+            "1",
+            reason_category="early_payment_discount",
+            reason="2% early-payment discount taken inside the stated seven-day window",
+            agreement="Supplier invoice terms state 2% discount within seven days",
+        )
+        cases["supplier_discount"] = {
+            "invoice_id": supplier_discount["supplier_invoice_id"],
+            "payment_number": "PAY-SUPPLIER-DISCOUNT",
+            "adjustment_document_id": discount_adjustment["document_id"],
+        }
+
+        supplier_overpayment = cases["S05"]
+        supplier_overpayment_source = source(
+            "supplier_payment",
+            "PAY-SUPPLIER-OVERPAYMENT",
+            {
+                "number": "PAY-SUPPLIER-OVERPAYMENT",
+                "date": (anchor - timedelta(days=5)).isoformat(),
+                "amount": "60",
+                "currency": "EUR",
+                "invoice_external_reference": "SINV-S05",
+            },
+        )
+        supplier_payment_entries = core.record_supplier_payment(
+            session,
+            tenant,
+            parties[SUPPLIER_ITEMS["P16"]],
+            "60",
+            payment_number="PAY-SUPPLIER-OVERPAYMENT",
+            source_record_id=supplier_overpayment_source.id,
+            effective_at=anchor - timedelta(days=5),
+            _control_account_id=core._settlement_control_entry(
+                session, tenant, supplier_overpayment["supplier_invoice_id"]
+            ).account_id,
+            _commit=False,
+        )
+        core.allocate_settlement(
+            session,
+            tenant,
+            core._control_entry(supplier_payment_entries, "accounts_payable").id,
+            core._settlement_control_entry(
+                session, tenant, supplier_overpayment["supplier_invoice_id"]
+            ).id,
+            "50",
+            _commit=False,
+        )
+        cases["supplier_overpayment"] = {
+            "invoice_id": supplier_overpayment["supplier_invoice_id"],
+            "payment_number": "PAY-SUPPLIER-OVERPAYMENT",
+        }
         # Feature 246: ordinary purchase exceptions remain normal source-backed
         # documents and Reality movements, not special fixture state.
         for key, item, returned, credited in (
@@ -682,7 +841,80 @@ def seed_profile(
                 if key.startswith("week-")
                 else SETTLEMENT[key]
             )
-            if settlement != "open":
+            if key == "decline-current":
+                payment_source = source(
+                    "customer_payment",
+                    "PAY-CUSTOMER-SMALL-REMAINDER",
+                    {
+                        "number": "PAY-CUSTOMER-SMALL-REMAINDER",
+                        "date": min(date + timedelta(days=10), anchor).isoformat(),
+                        "amount": "74.50",
+                        "currency": currency,
+                        "invoice_external_reference": invoice.number,
+                    },
+                )
+                core.post_customer_payment(
+                    session,
+                    tenant,
+                    invoice.id,
+                    "74.50",
+                    payment_number="PAY-CUSTOMER-SMALL-REMAINDER",
+                    source_record_id=payment_source.id,
+                    effective_at=min(date + timedelta(days=10), anchor),
+                    _commit=False,
+                )
+                adjustment = _settlement_adjustment(
+                    session,
+                    run,
+                    invoice.id,
+                    "0.50",
+                    reason_category="accepted_small_remainder",
+                    reason="Aged fifty-cent customer remainder reviewed and accepted",
+                )
+                cases["accepted_small_remainder"] = {
+                    "invoice_id": invoice.id,
+                    "payment_number": "PAY-CUSTOMER-SMALL-REMAINDER",
+                    "adjustment_document_id": adjustment["document_id"],
+                }
+            elif key == "outlier-current":
+                payment_source = source(
+                    "customer_payment",
+                    "PAY-CUSTOMER-OVERPAYMENT",
+                    {
+                        "number": "PAY-CUSTOMER-OVERPAYMENT",
+                        "date": min(date + timedelta(days=10), anchor).isoformat(),
+                        "amount": "5010",
+                        "currency": currency,
+                        "invoice_external_reference": invoice.number,
+                    },
+                )
+                payment_entries = core.record_customer_payment(
+                    session,
+                    tenant,
+                    invoice.party_id,
+                    "5010",
+                    currency=currency,
+                    payment_number="PAY-CUSTOMER-OVERPAYMENT",
+                    source_record_id=payment_source.id,
+                    effective_at=min(date + timedelta(days=10), anchor),
+                    _control_account_id=core._settlement_control_entry(
+                        session, tenant, invoice.id
+                    ).account_id,
+                    _commit=False,
+                )
+                core.allocate_settlement(
+                    session,
+                    tenant,
+                    core._control_entry(payment_entries, "accounts_receivable").id,
+                    core._settlement_control_entry(session, tenant, invoice.id).id,
+                    "5000",
+                    _commit=False,
+                )
+                cases["customer_overpayment"] = {
+                    "invoice_id": invoice.id,
+                    "payment_number": "PAY-CUSTOMER-OVERPAYMENT",
+                }
+            elif settlement != "open":
                 outstanding = core.open_invoice_amount(session, tenant, invoice.id)
                 paid = outstanding if settlement == "paid" else outstanding / 2
                 core.post_customer_payment(

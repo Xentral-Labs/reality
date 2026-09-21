@@ -270,7 +270,7 @@ def test_seeded_invoices_are_settled_in_three_states(
     states = Counter(_states(_open_amounts(session, tenant, "sales_invoice")).values())
     assert states["paid"] >= 7, states
     assert states["part"] >= 1, states
-    assert states["open"] >= 9, states
+    assert states["open"] >= 7, states
     payment_count = session.scalar(
         select(func.count())
         .select_from(Document)
@@ -309,7 +309,7 @@ def test_purchases_cover_the_whole_chain(session, scheduled_owner, monkeypatch):
     assert sorted(operational_payables.values()) == [
         "open",
         "open",
-        "open",
+        "paid",
         "paid",
         "part",
         "part",
@@ -342,6 +342,74 @@ def test_settlement_is_authored_not_drawn(session, scheduled_owner, monkeypatch)
         assert _states(_open_amounts(session, first, document_type)) == _states(
             _open_amounts(session, second, document_type)
         ), document_type
+
+
+def test_finance_fangfragen_are_deterministic_and_explainable(
+    session, scheduled_owner, monkeypatch
+):
+    """Feature 246: common sales-demo settlement questions have fixed answers."""
+    import json
+    from decimal import Decimal
+
+    from reality.db.core import ChangeProposal, Document, SourceRecord
+    from reality.services import core
+    from reality.services.finance.credits import available_credit_rows
+
+    tenant = _demo_company(session, scheduled_owner, "finance-cases")
+    run = session.scalar(select(PlaygroundRun).where(PlaygroundRun.tenant_id == tenant))
+    cases = run.initialization_progress["cases"]
+
+    for key in (
+        "supplier_discount",
+        "customer_overpayment",
+        "supplier_overpayment",
+        "accepted_small_remainder",
+    ):
+        assert key in cases
+        assert core.open_invoice_amount(session, tenant, cases[key]["invoice_id"]) == 0
+
+    customer_credit, _ = available_credit_rows(
+        session, tenant, side="customer", status="outstanding"
+    )
+    supplier_credit, _ = available_credit_rows(
+        session, tenant, side="supplier", status="outstanding"
+    )
+    assert {
+        row["number"]: Decimal(row["open"]) for row in customer_credit
+    }["PAY-CUSTOMER-OVERPAYMENT"] == Decimal(10)
+    assert {
+        row["number"]: Decimal(row["open"]) for row in supplier_credit
+    }["PAY-SUPPLIER-OVERPAYMENT"] == Decimal(10)
+
+    adjustments = {
+        key: record_by_id(session, Document, cases[key]["adjustment_document_id"])
+        for key in ("supplier_discount", "accepted_small_remainder")
+    }
+    assert adjustments["supplier_discount"].type == "supplier_settlement_adjustment"
+    assert (
+        adjustments["accepted_small_remainder"].type
+        == "customer_settlement_adjustment"
+    )
+    reasons = {
+        key: json.loads(
+            record_by_id(session, SourceRecord, document.source_record_id).payload
+        )["reason_category"]
+        for key, document in adjustments.items()
+    }
+    assert reasons == {
+        "supplier_discount": "early_payment_discount",
+        "accepted_small_remainder": "accepted_small_remainder",
+    }
+    adjustment_actions = list(
+        session.scalars(
+            select(ChangeProposal).where(
+                ChangeProposal.tenant_id == tenant,
+                ChangeProposal.type == "tool:finance.adjustment.accept",
+            )
+        )
+    )
+    assert len(adjustment_actions) == 2
+    assert {action.status for action in adjustment_actions} == {"executed"}
 
 
 def test_the_profile_may_settle_but_not_decide(session, scheduled_owner):

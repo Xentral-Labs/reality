@@ -1,10 +1,8 @@
 import json
-from datetime import datetime, timedelta
+from datetime import datetime
 from decimal import Decimal
 
 from conftest import record_by_id, seed_company
-from sqlalchemy import select
-
 from reality.db.core import (
     Document,
     DocumentLine,
@@ -12,10 +10,12 @@ from reality.db.core import (
     PlaygroundRun,
     SourceRecord,
 )
+from reality.demo.international import HISTORY
 from reality.services import company_setup
+from sqlalchemy import select
 
 
-def test_history_has_twelve_weeks_distinct_currencies_and_linked_credit(
+def test_history_has_authored_comparison_dates_currencies_and_linked_credit(
     session, scheduled_owner, monkeypatch
 ):
     result = company_setup.create_company(
@@ -38,24 +38,30 @@ def test_history_has_twelve_weeks_distinct_currencies_and_linked_credit(
         session.scalars(
             select(LedgerEntry)
             .join(Document, Document.id == LedgerEntry.document_id)
+            .join(SourceRecord, SourceRecord.id == Document.source_record_id)
             .where(
                 LedgerEntry.tenant_id == tenant,
                 LedgerEntry.account == "sales_revenue",
-                ~Document.number.like("COST-%"),
+                SourceRecord.tenant_id == tenant,
+                SourceRecord.external_id.in_({f"INV-{row[0]}" for row in HISTORY}),
             )
         )
     )
     assert {row.currency for row in postings} == {"EUR", "USD"}
     assert {
-        (row.effective_at - (anchor - timedelta(days=84))).days // 7 for row in postings
-    } == set(range(12))
+        (anchor - row.effective_at).days for row in postings if row.debit_credit == "credit"
+    } == {row[2] for row in HISTORY}
     assert all(
         record_by_id(session, SourceRecord, row.source_record_id).received_at >= anchor
         for row in postings
     )
     invoice = session.scalar(
-        select(Document).where(
-            Document.tenant_id == tenant, Document.number == "INV-volume-current"
+        select(Document)
+        .join(SourceRecord, SourceRecord.id == Document.source_record_id)
+        .where(
+            Document.tenant_id == tenant,
+            SourceRecord.tenant_id == tenant,
+            SourceRecord.external_id == "INV-volume-current",
         )
     )
     assert invoice.gross_amount == Decimal(400)
@@ -78,8 +84,17 @@ def test_history_has_twelve_weeks_distinct_currencies_and_linked_credit(
             DocumentLine.tenant_id == tenant, DocumentLine.document_id == credit.id
         )
     )
-    assert credit_line.billed_document_line_id is not None
-    assert any(
-        row.debit_credit == "debit" and row.amount == Decimal(24) for row in postings
+    assert credit_line.billed_document_line_id is None
+    assert json.loads(
+        record_by_id(session, SourceRecord, credit.source_record_id).payload
+    )["invoice_external_reference"] == "INV-credit-origin"
+    credit_posting = session.scalar(
+        select(LedgerEntry).where(
+            LedgerEntry.tenant_id == tenant,
+            LedgerEntry.document_id == credit.id,
+            LedgerEntry.account == "sales_revenue",
+            LedgerEntry.debit_credit == "debit",
+        )
     )
+    assert credit_posting.amount == Decimal(120)
     assert manifest["capabilities"]["cost_basis"] == "bounded_cases"

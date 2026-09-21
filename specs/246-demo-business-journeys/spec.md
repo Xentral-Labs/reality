@@ -1,7 +1,7 @@
 # Feature Specification: Complete Demo Business Journeys
 
-**Feature Branch**: `245-demo-setup-finance-readiness`  
-**Created**: 2026-09-21  
+**Feature Branch**: `245-demo-setup-finance-readiness`
+**Created**: 2026-09-21
 **Status**: Approved
 
 **Language**: English
@@ -69,6 +69,23 @@ and deliberate limitations.
 3. The catalog distinguishes a document date from an optional due date and states that
    every demo business document has a document date.
 
+### User Story 4 - Answer ordinary settlement questions (Priority: P1)
+
+As an evaluator, I can inspect deterministic examples of discount settlement,
+overpayment credit and an accepted immaterial remainder on both sides of Finance,
+instead of waiting for a low-probability live event.
+
+**Acceptance Scenarios**:
+
+1. A supplier invoice is paid inside its stated discount window and the agreed
+   discount is accepted as a separate reduction that closes the payable.
+2. A customer overpays an invoice; the invoice is settled and the excess remains as
+   available customer credit.
+3. The company overpays a supplier invoice; the invoice is settled and the excess
+   remains as available supplier credit.
+4. An old customer invoice is paid slightly short and its remaining amount is closed
+   by an explicit accepted-small-remainder adjustment with its reason and evidence.
+
 ### Edge Cases
 
 - Returns never exceed the quantity delivered or received on their linked commitment.
@@ -76,6 +93,9 @@ and deliberate limitations.
 - Cancelling a partly fulfilled promise preserves its prior movement.
 - Commercial allowances do not fabricate a physical return.
 - Existing demo creation replay remains idempotent and profile-version mismatches fail.
+- Overpayments allocate only the invoice's open amount; the excess remains on the
+  payment and is never silently converted into revenue, expense or a credit note.
+- A short payment remains open until a separate evidenced adjustment is accepted.
 
 ## Requirements
 
@@ -99,6 +119,13 @@ and deliberate limitations.
   including stable references and expected outcomes.
 - **FR-007**: Static profile creation and replay MUST remain deterministic, tenant
   scoped and idempotent; continuous intake MUST remain separate.
+- **FR-008**: The static profile MUST contain one fully settled supplier early-payment
+  discount whose cash payment and separately accepted reduction remain traceable.
+- **FR-009**: The static profile MUST contain customer and supplier overpayments whose
+  invoices are settled and whose excess amounts remain available credit.
+- **FR-010**: The static profile MUST contain an aged customer invoice with a small
+  short payment followed by an explicit `accepted_small_remainder` adjustment that
+  closes the invoice.
 
 ### Domain and Traceability Requirements
 
@@ -120,6 +147,9 @@ and deliberate limitations.
 - **SC-003**: Two companies created from the same profile version have equivalent
   journey expectations and no duplicate effects after retry.
 - **SC-004**: Existing demo, finance, costing and company-setup regression suites pass.
+- **SC-005**: Finance reads identify all four settlement reference cases by stable
+  payment/invoice number and show zero invoice balance plus the expected reduction or
+  unallocated-credit amount.
 
 ## Assumptions and Dependencies
 
@@ -141,3 +171,4 @@ and deliberate limitations.
 | FR-005 | US1 | Canonical costing and contribution regression suite |
 | FR-006 | US3 | Demo Data Catalog review and documentation policy check |
 | FR-007, DR-004 | All | Company-setup replay, profile-version and tenant-scope regression tests |
+| FR-008..FR-010, DR-001..DR-004 | US4 | Canonical profile settlement assertions for accepted reductions and unallocated payment credit |

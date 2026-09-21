@@ -30,10 +30,15 @@ browser business-rule change is required.
    references, balances and exception assertions.
 5. Publish `docs/features/demo-data-catalog.md` and link it from the company setup
    contract.
+6. Seed deterministic settlement cases through the existing payment, allocation and
+   accepted-adjustment services. Record overpayments first, allocate only the open
+   invoice amount, and retain the unallocated control-account balance as credit.
 
 ## Risk and rollback
 
-The extra records increase setup work and change fixture counts. Keep the additions
+The extra records increase setup work and change fixture counts. Accepted adjustments
+also need the ordinary finance account and confirmation boundary during the already
+confirmed profile initialization; keep that authority fixed to authored profile data
+and never expose a general unconfirmed mutation path. Keep the additions
 bounded and verify setup timeout coverage. Rollback is removal of the new versioned
 profile journeys and catalog section; no stored schema needs reversal.
-

@@ -11,4 +11,3 @@
 - **Decision**: Document unresolved examples explicitly.
   **Rationale**: An exception is useful demo evidence and must not be made artificially
   complete merely to produce a green status.
-
