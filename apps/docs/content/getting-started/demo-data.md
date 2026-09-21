@@ -14,24 +14,33 @@ The baseline contains 16 items (`P01`–`P16`), 20 customers, three suppliers an
 Rotterdam and Singapore warehouses. Quantities use pieces, metres or kilograms. Most
 trades use EUR; two invoices deliberately use USD to keep currencies separate.
 
-Search for a reference, then open its order, invoice, movement or Finance entry. From
-an important value you can follow the Reality record to document evidence and the
-original synthetic source payload. The same profile version creates the same cases in
-every fresh company.
+Search each reference in its matching view:
+
+- **Sales → Orders:** search for `O01`, `O11`, `H-decline-current` or `COST-A`.
+- **Purchasing → Orders:** search for `PO-001` through `PO-009`.
+- **Finance → Receivables/Payables:** search for an `INV-*`/`SINV-*` number, party or
+  one of the exact `PAY-*` references below.
+- **Warehouse:** open an item such as `P08` or `P16`, then expand stock and movements.
+- **Analytics/Contribution:** search for `COST-A` or `COST-PORTFOLIO-HEALTHY`, then
+  open the explanation below the invoice line.
+
+When an invoice number differs from its order number, start at the order and follow
+its invoice link. From an important value you can continue through the Reality record,
+document evidence and original synthetic source payload.
 
 ## Sales and fulfilment
 
-| Reference | What to inspect | Expected result |
-| --- | --- | --- |
-| `O01` | Reservation | 5 pcs reserved |
-| `O02` | Stock without reservation | 5 ordered, 10 in stock, nothing reserved |
-| `O03` | Stock shortage | 5 ordered but only 2 available |
-| `O04` | Partial reservation | 2 pcs reserved on an overdue order |
-| `O06` | Partial delivery | 3 of 5 pcs shipped; 2 remain open |
-| `O07`, `O08` | Manual hold | The commitment is held and remains explainable |
-| `O09` | Complete delivery | 5 of 5 pcs shipped |
-| `O10` | Cancellation before shipment | Reservation history remains visible |
-| `O11` | Cancellation after partial shipment | 2 pcs stay shipped; the remainder is cancelled |
+| Reference | What to inspect | Expected result | How to find it |
+| --- | --- | --- | --- |
+| `O01` | Reservation | 5 pcs reserved | Sales → Orders → search `O01` → expand the line |
+| `O02` | Stock without reservation | 5 ordered, 10 in stock, nothing reserved | Sales → Orders → `O02` |
+| `O03` | Stock shortage | 5 ordered but only 2 available | Sales → Orders → `O03` → availability |
+| `O04` | Partial reservation | 2 pcs reserved on an overdue order | Sales → Orders → `O04` → reservations |
+| `O06` | Partial delivery | 3 of 5 pcs shipped; 2 remain open | Sales → Orders → `O06` → deliveries |
+| `O07`, `O08` | Manual hold | The commitment is held and remains explainable | Sales → Orders → reference → commitment |
+| `O09` | Complete delivery | 5 of 5 pcs shipped | Sales → Orders → `O09` → deliveries |
+| `O10` | Cancellation before shipment | Reservation history remains visible | Sales → Orders → `O10` → history |
+| `O11` | Cancellation after partial shipment | 2 pcs stay shipped; the remainder is cancelled | Sales → Orders → `O11` → deliveries/history |
 
 The dated `H-*` orders and invoices provide comparable volume, price, decline,
 outlier, zero-value and USD periods. Their invoices include open, partly paid and paid
@@ -50,10 +59,10 @@ reservations are separate records, and only Movements change physical stock. Can
 | `H-price-prior` | 10 × `P12`, EUR 200 | Paid | Earlier price baseline |
 | `H-price-current` | 10 × `P12`, EUR 250 | Partly paid | Same quantity, higher price |
 | `H-decline-prior` | 20 × `P13`, EUR 300 | Paid | Earlier demand baseline |
-| `H-decline-current` | 5 × `P13`, EUR 75 | Open | Visible sales decline |
+| `H-decline-current` | 5 × `P13`, EUR 75 | EUR 74.50 paid; EUR 0.50 accepted remainder | Sales decline and explicit closure |
 | `H-credit-origin` | 10 × `P14`, EUR 120 | Settled by credit | Complete return origin |
 | `H-outlier-prior` | 10 × `P15`, EUR 50 | Paid | Ordinary comparison value |
-| `H-outlier-current` | 1,000 × `P15`, EUR 5,000 | Open | Deliberate outlier |
+| `H-outlier-current` | 1,000 × `P15`, EUR 5,000 | Paid; EUR 10 customer credit | Deliberate outlier plus overpayment |
 | `H-zero-current` | 8 × `P16`, EUR 80 | Open | Authored comparison, not missing money |
 | `H-usd-prior` | 4 × `P09`, USD 88 | Paid | Earlier foreign-currency evidence |
 | `H-usd-current` | 6 × `P09`, USD 132 | Paid | Current foreign-currency evidence |
@@ -82,10 +91,10 @@ inventing a new acquisition value.
 | Reference | Receipt | Invoice and payment | Purpose |
 | --- | ---: | --- | --- |
 | `PO-001` / `S01` | 2 of 5 | No invoice | Partial receipt |
-| `PO-002` / `S02` | 5 of 5 | Paid | Complete purchase-to-pay |
+| `PO-002` / `S02` | 5 of 5 | EUR 49 paid + EUR 1 discount | Complete discount settlement |
 | `PO-003` / `S03` | 0 of 5 | No invoice | Open purchase order |
 | `PO-004` / `S04` | 5 of 5 | Partly paid | Partial supplier payment |
-| `PO-005` / `S05` | 5 of 5 | Unpaid | Open payable |
+| `PO-005` / `S05` | 5 of 5 | EUR 60 paid against EUR 50 | EUR 10 supplier credit |
 | `PO-006` / `S06` | 5 of 5 | No invoice | Receipt awaiting invoice |
 | `PO-007` / `S07` | 5 received, 2 returned | `SINV-S07`, `SCN-S07` | Supplier return with allocated credit |
 | `PO-008` / `S08` | 5 received, 1 returned | `SINV-S08`, no credit | Return awaiting supplier credit |
@@ -95,6 +104,19 @@ A supplier Commitment records what is expected, a receipt records what arrived, 
 invoice creates the payable, and a payment settles it. `S06` proves why received and
 invoiced are different states. `S08` intentionally remains unresolved so “returned to
 supplier and not credited” has real evidence to explain.
+
+## Discounts, overpayments and accepted small remainders
+
+| Sales-demo question | Guaranteed case | UI path and search | Expected result |
+| --- | --- | --- | --- |
+| Was the discount actually posted? | `SINV-S02` / `PAY-SUPPLIER-DISCOUNT` | Finance → Payables → `SINV-S02`; open payment/allocation details | EUR 49 cash plus a separately evidenced EUR 1 discount adjustment; open EUR 0 |
+| What happens when a customer overpays? | Order `H-outlier-current` / `PAY-CUSTOMER-OVERPAYMENT` | Sales → find order → open invoice; or Finance → Payments → payment reference | EUR 5,000 allocated and EUR 10 available customer credit |
+| What happens when we overpay a supplier? | `SINV-S05` / `PAY-SUPPLIER-OVERPAYMENT` | Finance → Payables → `SINV-S05`; or Finance → Payments → payment reference | EUR 50 allocated and EUR 10 available supplier credit |
+| Can an old immaterial remainder be accepted? | Order `H-decline-current` / `PAY-CUSTOMER-SMALL-REMAINDER` | Sales → find order → open invoice → settlement explanation | EUR 74.50 cash plus a separate EUR 0.50 accepted-small-remainder adjustment; open EUR 0 |
+
+A payment difference is never silently reinterpreted. The payment states only the cash
+that moved. Discount and accepted remainder are separate reasoned postings; an
+overpayment remains available credit for later allocation or refund.
 
 ## Documents in the baseline
 
@@ -107,7 +129,7 @@ supplier and not credited” has real evidence to explain.
 | Customer credit note | `CR-001`, `COST-LATE-CREDIT` | Full and partial customer value reversal |
 | Supplier credit note | `SCN-S07` | Supplier value reversal allocated to its invoice |
 | Customer payment | `PAY-*` | Full or partial receivable settlement |
-| Supplier payment | `SPAY-S02`, `SPAY-S04` | Full or partial payable settlement |
+| Supplier payment | `PAY-SUPPLIER-DISCOUNT`, `SPAY-S04`, `PAY-SUPPLIER-OVERPAYMENT` | Discount, partial and overpayment examples |
 
 All carry a document date. Their readable numbers help search; opaque tenant-scoped IDs
 remain the actual identity.
@@ -160,6 +182,9 @@ Reality refused to turn missing evidence into EUR 0.
 | Partial/complete delivery and manual hold | Yes | `O06`–`O09` |
 | Cancellation before/after shipment | Yes | `O10`, `O11` |
 | Open, partial and paid receivable | Yes | `H-*`, `PAY-*` |
+| Discount with separate reduction posting | Yes | `SINV-S02`, `PAY-SUPPLIER-DISCOUNT` |
+| Customer and supplier overpayment credit | Yes | `PAY-CUSTOMER-OVERPAYMENT`, `PAY-SUPPLIER-OVERPAYMENT` |
+| Accepted small remainder | Yes | `PAY-CUSTOMER-SMALL-REMAINDER` |
 | Complete and partial customer return/credit | Yes | `CR-001`, `COST-LATE-CREDIT` |
 | No, partial and complete supplier receipt | Yes | `S01`–`S03` |
 | Receipt without invoice | Yes | `S06` |
@@ -168,15 +193,15 @@ Reality refused to turn missing evidence into EUR 0.
 | Purchase cancellation before receipt | Yes | `S09` |
 | Location shortage and correction | Yes | `P08`, `P16` |
 | Complete DB1/DB2 explanations | Yes | `COST-A`, `COST-PORTFOLIO-*` |
-| Price-only allowance | No | Not in profile version 4 |
-| Exchange or replacement delivery | No | Not in profile version 4 |
-| Invoice cancellation/reversal | No | Not in profile version 4 |
-| Multiple partial invoices per order | No | Not in profile version 4 |
-| Overdelivery/final short-delivery closure | No | Not in profile version 4 |
-| Warehouse transfer, damage, loss or scrap | No | Not in profile version 4 |
-| Lots, serial numbers or expiry dates | No | Not in profile version 4 |
-| Deposits, dunning or bad debt | No | Not in profile version 4 |
-| Bank reconciliation, tax or FX revaluation | No | Not in profile version 4 |
+| Price-only allowance | No | Not in profile version 5 |
+| Exchange or replacement delivery | No | Not in profile version 5 |
+| Invoice cancellation/reversal | No | Not in profile version 5 |
+| Multiple partial invoices per order | No | Not in profile version 5 |
+| Overdelivery/final short-delivery closure | No | Not in profile version 5 |
+| Warehouse transfer, damage, loss or scrap | No | Not in profile version 5 |
+| Lots, serial numbers or expiry dates | No | Not in profile version 5 |
+| Deposits, dunning or bad debt | No | Not in profile version 5 |
+| Bank reconciliation, tax or FX revaluation | No | Not in profile version 5 |
 
 ## Static baseline and live data
 

@@ -5,7 +5,7 @@ company. Use it to learn how implemented processes look across Sales, Purchasing
 Warehouse, Finance and the Business Reality Inspector. Every business document has an
 authored document date. A missing due date never means that the document is dateless.
 
-This page describes profile version 4. References are human-facing labels for finding
+This page describes profile version 5. References are human-facing labels for finding
 examples, never database identity.
 
 ## Company and master data
@@ -13,6 +13,14 @@ examples, never database identity.
 - 16 items (`P01`–`P16`) in pcs, m and kg
 - 20 customers, 3 suppliers and 2 warehouses
 - EUR and USD sales evidence
+
+## Finding a case in the product
+
+Search `O*`, `H-*` and `COST-*` references under **Sales → Orders**; follow the invoice
+link from the order when its `INV-*` number differs. Search `PO-*` under **Purchasing →
+Orders**, `SINV-*` and `PAY-*` under the matching **Finance** register, and `P*` under
+**Warehouse** or **Master data → Items**. Expand the line or settlement explanation to
+reach the underlying Reality records and source evidence.
 
 ## Sales and fulfillment
 
@@ -46,10 +54,10 @@ returned inventory slice, customer credit and selling costs under one reviewed b
 | Reference | Receipt | Invoice/payment | Purpose |
 |---|---:|---|---|
 | `PO-001` / `S01` | 2 of 5 | None | Partial receipt |
-| `PO-002` / `S02` | 5 of 5 | Paid | Complete purchase-to-pay |
+| `PO-002` / `S02` | 5 of 5 | EUR 49 cash + EUR 1 discount | Complete discount settlement |
 | `PO-003` / `S03` | 0 of 5 | None | Open purchase order |
 | `PO-004` / `S04` | 5 of 5 | Partly paid | Partial payment |
-| `PO-005` / `S05` | 5 of 5 | Unpaid | Open payable |
+| `PO-005` / `S05` | 5 of 5 | EUR 60 paid against EUR 50 | EUR 10 supplier credit |
 | `PO-006` / `S06` | 5 of 5 | No invoice | Receipt awaiting invoice |
 | `PO-007` / `S07` | 5 received, 2 returned | `SINV-S07`, `SCN-S07` | Return with allocated supplier credit |
 | `PO-008` / `S08` | 5 received, 1 returned | `SINV-S08`, no credit | Return awaiting credit; intentional exception |
@@ -66,6 +74,18 @@ returned inventory slice, customer credit and selling costs under one reviewed b
   stated or reviewed.
 - Customer and supplier credits reduce invoices through explicit allocations.
 - Finance projections are prepared during setup; a ready demo needs no initial Refresh.
+
+## Deterministic settlement questions
+
+| Question | Reference and UI path | Expected result |
+|---|---|---|
+| Supplier discount | Finance → Payables → `SINV-S02`; payment `PAY-SUPPLIER-DISCOUNT` | EUR 49 cash plus a separate EUR 1 accepted discount; invoice open EUR 0 |
+| Customer overpayment | Sales → `H-outlier-current` → invoice; or Finance → Payments → `PAY-CUSTOMER-OVERPAYMENT` | EUR 5,000 allocated; EUR 10 available customer credit |
+| Supplier overpayment | Finance → Payables → `SINV-S05`; or Payments → `PAY-SUPPLIER-OVERPAYMENT` | EUR 50 allocated; EUR 10 available supplier credit |
+| Accepted small remainder | Sales → `H-decline-current` → invoice; payment `PAY-CUSTOMER-SMALL-REMAINDER` | EUR 74.50 cash plus a separately evidenced EUR 0.50 accepted remainder; invoice open EUR 0 |
+
+The payment remains evidence of cash only. Accepted reductions are separate postings,
+and overpayment credit remains unallocated until a later reviewed allocation or refund.
 
 ## Live demo data
 

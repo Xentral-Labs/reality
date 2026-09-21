@@ -14,24 +14,35 @@ Die Basis enthält 16 Artikel (`P01`–`P16`), 20 Kunden, drei Lieferanten sowie
 Rotterdam und Singapur. Mengen werden in Stück, Metern oder Kilogramm geführt. Die
 meisten Vorgänge sind in EUR; zwei Rechnungen verwenden bewusst USD.
 
-Suche nach einer Referenz und öffne danach den Auftrag, die Rechnung, Bewegung oder den
-Finance-Eintrag. Von wichtigen Werten gelangst du über den Reality-Datensatz und den
-Beleg bis zur ursprünglichen synthetischen Quelle. Dieselbe Profilversion erzeugt in
-jeder neuen Firma dieselben Fälle.
+Die Referenz muss in der passenden Ansicht gesucht werden. Die wichtigsten Wege sind:
+
+- **Vertrieb → Aufträge:** `O01`, `O11`, `H-decline-current` oder `COST-A` suchen.
+- **Einkauf → Bestellungen:** `PO-001` bis `PO-009` suchen.
+- **Finance → Forderungen/Verbindlichkeiten:** nach einer `INV-*`-/`SINV-*`-Nummer,
+  einem Kunden/Lieferanten oder einer unten genannten `PAY-*`-Zahlung suchen.
+- **Lager:** den Artikel, zum Beispiel `P08` oder `P16`, öffnen und Bestand sowie
+  Bewegungen aufklappen.
+- **Analytics/Deckungsbeitrag:** `COST-A` oder `COST-PORTFOLIO-HEALTHY` suchen und die
+  Erklärung unter der Rechnungsposition öffnen.
+
+Wenn eine Rechnung eine andere Nummer als ihr Auftrag besitzt, beginne im Auftrag und
+folge dem Link zur Rechnung. Von wichtigen Werten gelangst du weiter über den
+Reality-Datensatz und den Beleg bis zur ursprünglichen synthetischen Quelle. Dieselbe
+Profilversion erzeugt in jeder neuen Firma dieselben Fälle.
 
 ## Verkauf und Lieferung
 
-| Referenz | Was du prüfen kannst | Erwartetes Ergebnis |
-| --- | --- | --- |
-| `O01` | Reservierung | 5 Stück reserviert |
-| `O02` | Bestand ohne Reservierung | 5 bestellt, 10 auf Lager, nichts reserviert |
-| `O03` | Bestandsengpass | 5 bestellt, aber nur 2 verfügbar |
-| `O04` | Teilreservierung | 2 Stück eines überfälligen Auftrags reserviert |
-| `O06` | Teillieferung | 3 von 5 Stück versendet; 2 bleiben offen |
-| `O07`, `O08` | Manuelle Sperre | Die Zusage ist gesperrt und weiter erklärbar |
-| `O09` | Vollständige Lieferung | 5 von 5 Stück versendet |
-| `O10` | Storno vor Versand | Die Reservierungshistorie bleibt sichtbar |
-| `O11` | Storno nach Teillieferung | 2 Stück bleiben versendet; der Rest ist storniert |
+| Referenz | Was du prüfen kannst | Erwartetes Ergebnis | So findest du es |
+| --- | --- | --- | --- |
+| `O01` | Reservierung | 5 Stück reserviert | Vertrieb → Aufträge → `O01` suchen → Position aufklappen |
+| `O02` | Bestand ohne Reservierung | 5 bestellt, 10 auf Lager, nichts reserviert | Vertrieb → Aufträge → `O02` |
+| `O03` | Bestandsengpass | 5 bestellt, aber nur 2 verfügbar | Vertrieb → Aufträge → `O03` → Verfügbarkeit |
+| `O04` | Teilreservierung | 2 Stück eines überfälligen Auftrags reserviert | Vertrieb → Aufträge → `O04` → Reservierungen |
+| `O06` | Teillieferung | 3 von 5 Stück versendet; 2 bleiben offen | Vertrieb → Aufträge → `O06` → Lieferungen |
+| `O07`, `O08` | Manuelle Sperre | Die Zusage ist gesperrt und weiter erklärbar | Vertrieb → Aufträge → jeweilige Referenz → Zusage |
+| `O09` | Vollständige Lieferung | 5 von 5 Stück versendet | Vertrieb → Aufträge → `O09` → Lieferungen |
+| `O10` | Storno vor Versand | Die Reservierungshistorie bleibt sichtbar | Vertrieb → Aufträge → `O10` → Historie |
+| `O11` | Storno nach Teillieferung | 2 Stück bleiben versendet; der Rest ist storniert | Vertrieb → Aufträge → `O11` → Lieferungen/Historie |
 
 Die datierten `H-*`-Aufträge und Rechnungen zeigen vergleichbare Mengen-, Preis-,
 Rückgangs-, Ausreißer-, Nullwert- und USD-Zeiträume. Es gibt offene, teilweise und
@@ -51,10 +62,10 @@ Reservierung oder Lieferung.
 | `H-price-prior` | 10 × `P12`, 200 EUR | Bezahlt | Frühere Preisbasis |
 | `H-price-current` | 10 × `P12`, 250 EUR | Teilbezahlt | Gleiche Menge, höherer Preis |
 | `H-decline-prior` | 20 × `P13`, 300 EUR | Bezahlt | Frühere Nachfragebasis |
-| `H-decline-current` | 5 × `P13`, 75 EUR | Offen | Sichtbarer Absatzrückgang |
+| `H-decline-current` | 5 × `P13`, 75 EUR | 74,50 EUR bezahlt; 0,50 EUR akzeptierter Kleinrest | Sichtbarer Absatzrückgang und expliziter Abschluss |
 | `H-credit-origin` | 10 × `P14`, 120 EUR | Durch Gutschrift ausgeglichen | Ursprung der Vollretoure |
 | `H-outlier-prior` | 10 × `P15`, 50 EUR | Bezahlt | Normaler Vergleichswert |
-| `H-outlier-current` | 1.000 × `P15`, 5.000 EUR | Offen | Bewusster Ausreißer |
+| `H-outlier-current` | 1.000 × `P15`, 5.000 EUR | Bezahlt; 10 EUR Kundenguthaben | Bewusster Ausreißer plus Überzahlung |
 | `H-zero-current` | 8 × `P16`, 80 EUR | Offen | Angegebener Vergleich, kein fehlender Wert |
 | `H-usd-prior` | 4 × `P09`, 88 USD | Bezahlt | Frühere Fremdwährungsdaten |
 | `H-usd-current` | 6 × `P09`, 132 USD | Bezahlt | Aktuelle Fremdwährungsdaten |
@@ -83,10 +94,10 @@ ursprüngliche Kostenschicht, statt einen neuen Einkaufspreis zu erfinden.
 | Referenz | Wareneingang | Rechnung und Zahlung | Zweck |
 | --- | ---: | --- | --- |
 | `PO-001` / `S01` | 2 von 5 | Keine Rechnung | Teilwareneingang |
-| `PO-002` / `S02` | 5 von 5 | Bezahlt | Vollständiger Purchase-to-Pay-Ablauf |
+| `PO-002` / `S02` | 5 von 5 | 49 EUR bezahlt + 1 EUR Skonto | Vollständiger Skonto-Ablauf |
 | `PO-003` / `S03` | 0 von 5 | Keine Rechnung | Offene Einkaufsbestellung |
 | `PO-004` / `S04` | 5 von 5 | Teilbezahlt | Teilzahlung an Lieferanten |
-| `PO-005` / `S05` | 5 von 5 | Unbezahlt | Offene Verbindlichkeit |
+| `PO-005` / `S05` | 5 von 5 | 60 EUR bezahlt auf 50 EUR Rechnung | 10 EUR Lieferantenguthaben |
 | `PO-006` / `S06` | 5 von 5 | Keine Rechnung | Wareneingang wartet auf Rechnung |
 | `PO-007` / `S07` | 5 erhalten, 2 retourniert | `SINV-S07`, `SCN-S07` | Lieferantenretoure mit zugeordneter Gutschrift |
 | `PO-008` / `S08` | 5 erhalten, 1 retourniert | `SINV-S08`, keine Gutschrift | Retoure wartet auf Lieferantengutschrift |
@@ -97,6 +108,20 @@ erhaltene Menge, eine Eingangsrechnung die Verbindlichkeit und eine Zahlung dere
 Ausgleich. `S06` zeigt, warum erhalten und berechnet getrennte Zustände sind. `S08`
 bleibt bewusst offen, damit „an Lieferanten retourniert, aber nicht gutgeschrieben“
 echte erklärbare Nachweise hat.
+
+## Skonto, Überzahlungen und akzeptierte Kleinreste
+
+| Fangfrage | Sicherer Demofall | UI-Weg und Suchbegriff | Erwartetes Ergebnis |
+| --- | --- | --- | --- |
+| Wurde Skonto wirklich gebucht? | `SINV-S02` / `PAY-SUPPLIER-DISCOUNT` | Finance → Verbindlichkeiten → `SINV-S02`; danach Zahlung/Zuordnungen öffnen | 49 EUR Bankzahlung plus separat begründete 1-EUR-Skontoanpassung; offen 0 EUR |
+| Was passiert bei Kundenüberzahlung? | Auftrag `H-outlier-current` / `PAY-CUSTOMER-OVERPAYMENT` | Vertrieb → Auftrag suchen → Rechnung öffnen; alternativ Finance → Zahlungen → Zahlungsnummer suchen | 5.000 EUR zugeordnet, 10 EUR als verfügbares Kundenguthaben |
+| Was passiert bei Lieferantenüberzahlung? | `SINV-S05` / `PAY-SUPPLIER-OVERPAYMENT` | Finance → Verbindlichkeiten → `SINV-S05` oder Finance → Zahlungen → Zahlungsnummer | 50 EUR zugeordnet, 10 EUR als verfügbares Lieferantenguthaben |
+| Kann ein alter Kleinrest als erledigt akzeptiert werden? | Auftrag `H-decline-current` / `PAY-CUSTOMER-SMALL-REMAINDER` | Vertrieb → Auftrag suchen → Rechnung öffnen → Ausgleich/Erklärung | 74,50 EUR Zahlung plus eigene 0,50-EUR-Anpassung mit Grund „akzeptierter Kleinrest“; offen 0 EUR |
+
+Eine Unter- oder Überzahlung wird nicht umgedeutet: Die Zahlung zeigt ausschließlich
+das tatsächlich geflossene Geld. Skonto und akzeptierter Kleinrest sind eigene
+begründete Buchungen. Ein Überzahlungsrest bleibt dagegen sichtbar und kann später
+zugeordnet oder erstattet werden.
 
 ## Belege in der Basis
 
@@ -109,7 +134,7 @@ echte erklärbare Nachweise hat.
 | Kundengutschrift | `CR-001`, `COST-LATE-CREDIT` | Vollständige und teilweise Wertkorrektur |
 | Lieferantengutschrift | `SCN-S07` | Einer Eingangsrechnung zugeordnete Wertkorrektur |
 | Kundenzahlung | `PAY-*` | Vollständiger oder teilweiser Forderungsausgleich |
-| Lieferantenzahlung | `SPAY-S02`, `SPAY-S04` | Vollständiger oder teilweiser Verbindlichkeitsausgleich |
+| Lieferantenzahlung | `PAY-SUPPLIER-DISCOUNT`, `SPAY-S04`, `PAY-SUPPLIER-OVERPAYMENT` | Skonto-, Teil- und Überzahlung |
 
 Alle Belege tragen ein Belegdatum. Lesbare Nummern helfen bei der Suche; die echte
 Identität bleibt eine mandantenspezifische, nicht sprechende ID.
@@ -163,6 +188,9 @@ umgewandelt hat.
 | Teil-/Vollauslieferung und Sperre | Ja | `O06`–`O09` |
 | Storno vor/nach Versand | Ja | `O10`, `O11` |
 | Offene, teilweise und bezahlte Forderung | Ja | `H-*`, `PAY-*` |
+| Skonto mit eigener Reduktionsbuchung | Ja | `SINV-S02`, `PAY-SUPPLIER-DISCOUNT` |
+| Kunden- und Lieferantenüberzahlung/Guthaben | Ja | `PAY-CUSTOMER-OVERPAYMENT`, `PAY-SUPPLIER-OVERPAYMENT` |
+| Akzeptierter Kleinrest | Ja | `PAY-CUSTOMER-SMALL-REMAINDER` |
 | Vollständige und teilweise Kundenretoure/-gutschrift | Ja | `CR-001`, `COST-LATE-CREDIT` |
 | Kein, teilweiser und vollständiger Wareneingang | Ja | `S01`–`S03` |
 | Wareneingang ohne Rechnung | Ja | `S06` |
@@ -171,15 +199,15 @@ umgewandelt hat.
 | Einkaufsstorno vor Wareneingang | Ja | `S09` |
 | Lagerortengpass und Korrektur | Ja | `P08`, `P16` |
 | Vollständige DB1-/DB2-Erklärungen | Ja | `COST-A`, `COST-PORTFOLIO-*` |
-| Reine Preisgutschrift | Nein | Nicht in Profilversion 4 |
-| Umtausch oder Ersatzlieferung | Nein | Nicht in Profilversion 4 |
-| Rechnungsstorno/Gegenbuchung | Nein | Nicht in Profilversion 4 |
-| Mehrere Teilrechnungen je Auftrag | Nein | Nicht in Profilversion 4 |
-| Überlieferung/endgültige Unterlieferung | Nein | Nicht in Profilversion 4 |
-| Umlagerung, Schaden, Verlust oder Verschrottung | Nein | Nicht in Profilversion 4 |
-| Chargen, Seriennummern oder Ablaufdaten | Nein | Nicht in Profilversion 4 |
-| Anzahlungen, Mahnungen oder Forderungsausfall | Nein | Nicht in Profilversion 4 |
-| Bankabstimmung, Steuer oder Währungsneubewertung | Nein | Nicht in Profilversion 4 |
+| Reine Preisgutschrift | Nein | Nicht in Profilversion 5 |
+| Umtausch oder Ersatzlieferung | Nein | Nicht in Profilversion 5 |
+| Rechnungsstorno/Gegenbuchung | Nein | Nicht in Profilversion 5 |
+| Mehrere Teilrechnungen je Auftrag | Nein | Nicht in Profilversion 5 |
+| Überlieferung/endgültige Unterlieferung | Nein | Nicht in Profilversion 5 |
+| Umlagerung, Schaden, Verlust oder Verschrottung | Nein | Nicht in Profilversion 5 |
+| Chargen, Seriennummern oder Ablaufdaten | Nein | Nicht in Profilversion 5 |
+| Anzahlungen, Mahnungen oder Forderungsausfall | Nein | Nicht in Profilversion 5 |
+| Bankabstimmung, Steuer oder Währungsneubewertung | Nein | Nicht in Profilversion 5 |
 
 ## Stabile Basis und Live-Daten
 

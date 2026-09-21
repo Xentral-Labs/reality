@@ -6,4 +6,18 @@
    Sales, Purchasing, Warehouse and Finance.
 4. Confirm every document has a document date, completed credits have the expected
    remaining balance, and deliberately open journeys appear as exceptions.
+5. In Finance, verify `PAY-SUPPLIER-DISCOUNT` closes `SINV-S02` with a separate
+   EUR 1 reduction, both `PAY-*-OVERPAYMENT` records retain EUR 10 available credit,
+   and `PAY-CUSTOMER-SMALL-REMAINDER` closes its invoice through a separate EUR 0.50
+   accepted-small-remainder adjustment.
 
+Verified locally on 2026-09-21:
+
+- `tests/scenarios/test_international_demo.py`: 10 passed.
+- `tests/finance/test_adjustments.py`: 18 passed, including migration coverage.
+- `tests/test_company_setup_initialization.py` plus profile history: 15 passed after
+  updating the intentional version-5 document count and source-reference assertions.
+- `make spec-check`, Ruff, `git diff --check`, `make docs-catalog-check` and the Docs
+  production build passed.
+- The rebuilt local stack serves the German guide on port 8083 with all four exact
+  payment references and the “So findest du es” UI-navigation column.

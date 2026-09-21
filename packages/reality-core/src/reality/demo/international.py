@@ -1,6 +1,6 @@
 """Versioned synthetic vocabulary and authored comparison inputs."""
 
-PROFILE_VERSION = 4
+PROFILE_VERSION = 5
 ITEMS = (
     ("P01", "Summit Bottle", "pcs", "Outdoor"),
     ("P02", "Trail Lantern", "pcs", "Outdoor"),
@@ -116,7 +116,7 @@ WEEKLY_SETTLEMENT = ("paid",) * 8 + ("part", "part", "open", "open")
 # ordered, the quantity that arrived, the invoiced amount and the amount paid.
 PURCHASES = (
     ("S01", "P11", "5", "2", None, None),
-    ("S02", "P15", "5", "5", "50", "50"),
+    ("S02", "P15", "5", "5", "50", None),
     ("S03", "P16", "5", "0", None, None),
     ("S04", "P15", "5", "5", "50", "20"),
     ("S05", "P16", "5", "5", "50", None),

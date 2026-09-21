@@ -7,3 +7,7 @@
 - [x] T005 [FR-007, SC-001..SC-004] Run focused scenario, setup, finance and costing tests plus lint/spec checks.
 - [x] T006 Review the final diff against the Constitution and mark tasks complete only with green evidence.
 - [x] T007 [FR-006] Publish the catalog in both Docs languages and link it from the open newcomer navigation.
+- [x] T008 [FR-008..FR-010] Add failing scenario assertions for deterministic discount, customer/supplier overpayment credit and accepted-small-remainder cases.
+- [x] T009 [FR-008..FR-010, DR-001..DR-004] Seed the four settlement cases through shared finance services under bounded profile initialization authority.
+- [x] T010 [FR-006, SC-002] Extend the durable and public English/German catalogs with references, amounts, inspection paths and explanations.
+- [x] T011 [SC-003..SC-005] Run focused finance/profile tests, full required gates and final Constitution review.

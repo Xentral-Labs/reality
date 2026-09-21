@@ -24,4 +24,4 @@
 - [x] Functional requirements have acceptance criteria
 - [x] User scenarios cover the primary flows
 - [x] No unresolved product decision blocks planning
-
+- [x] Settlement additions distinguish cash evidence, allocation, accepted reduction and available credit without inventing authority
