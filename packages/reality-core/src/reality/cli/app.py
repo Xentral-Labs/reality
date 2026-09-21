@@ -1605,6 +1605,87 @@ def supply_assign_confirm(
     con.print_json(data=result, default=str)
 
 
+@app.command("return-disposition")
+def return_disposition_command(
+    return_movement_id: str,
+    tenant_id: str | None = None,
+) -> None:
+    """Read resolved and unresolved quantity for arrived returned goods."""
+    from reality.services.return_dispositions import return_disposition_summary
+
+    with Session() as session:
+        tenant = selected_tenant(session, tenant_id)
+        try:
+            result = return_disposition_summary(session, tenant.id, return_movement_id)
+        except (NotFound, InvalidOperation) as error:
+            raise typer.BadParameter(str(error)) from error
+    con.print_json(data=result, default=str)
+
+
+@app.command("return-disposition-propose")
+def return_disposition_propose(
+    arguments: str,
+    request_id: str,
+    tenant_id: str | None = None,
+) -> None:
+    """Prepare one returned-goods outcome for explicit confirmation."""
+    from reality.services.delivery_actions import (
+        delivery_proposal_detail,
+        prepare_delivery_action,
+    )
+
+    try:
+        values = json.loads(arguments)
+        if not isinstance(values, dict):
+            raise TypeError
+    except (json.JSONDecodeError, TypeError) as error:
+        raise typer.BadParameter("Arguments must be a JSON object.") from error
+    with Session() as session:
+        tenant = selected_tenant(session, tenant_id)
+        try:
+            proposal = prepare_delivery_action(
+                session,
+                tenant.id,
+                "return_disposition",
+                values,
+                request_id=request_id,
+                actor_id="cli",
+            )
+            result = delivery_proposal_detail(session, tenant.id, proposal.id)
+        except (NotFound, InvalidOperation) as error:
+            raise typer.BadParameter(str(error)) from error
+    con.print_json(data=result, default=str)
+
+
+@app.command("return-disposition-confirm")
+def return_disposition_confirm(
+    proposal_id: str,
+    review_token: str,
+    yes: bool = typer.Option(False, "--yes", help="Confirm the reviewed disposition."),
+    tenant_id: str | None = None,
+) -> None:
+    """Explicitly confirm one reviewed returned-goods outcome."""
+    from reality.services.delivery_actions import delivery_proposal_detail
+    from reality.tools.application import approve_and_execute_proposal
+
+    if not yes:
+        typer.confirm("Execute this exact reviewed return disposition?", abort=True)
+    with Session() as session:
+        tenant = selected_tenant(session, tenant_id)
+        try:
+            approve_and_execute_proposal(
+                session,
+                tenant.id,
+                proposal_id,
+                review_token=review_token,
+                confirmed=True,
+            )
+            result = delivery_proposal_detail(session, tenant.id, proposal_id)
+        except (NotFound, InvalidOperation) as error:
+            raise typer.BadParameter(str(error)) from error
+    con.print_json(data=result, default=str)
+
+
 @app.command("finance-adjustment-propose")
 def finance_adjustment_propose(arguments: str, tenant_id: str | None = None) -> None:
     """Prepare an explicit stated reduction for owner confirmation."""

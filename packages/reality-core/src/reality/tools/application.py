@@ -137,6 +137,7 @@ from reality.services.reality_gaps import (
     replay_rule,
     simulate_rule,
 )
+from reality.services.return_dispositions import record_return_disposition
 from reality.services.shipments import (
     record_packaged_execution,
     record_shipment_event,
@@ -1062,6 +1063,22 @@ def _supply_coverage(
     return supply_coverage(session, tenant_id, **arguments)
 
 
+def _return_disposition(
+    session: Session, tenant_id: str, arguments: dict[str, Any]
+) -> Any:
+    arguments["action_id"] = arguments.pop("_action_id", None)
+    row = record_return_disposition(session, tenant_id, **arguments)
+    return {"movement_id": row.id, "source_record_id": row.source_record_id}
+
+
+def _return_disposition_summary(
+    session: Session, tenant_id: str, arguments: dict[str, Any]
+) -> Any:
+    from reality.services.delivery_reads import return_disposition_case
+
+    return return_disposition_case(session, tenant_id, **arguments)
+
+
 def _sales_credit_record(
     session: Session, tenant_id: str, arguments: dict[str, Any]
 ) -> Any:
@@ -1841,6 +1858,18 @@ TOOLS = {
         "Record an immutable physical Movement.",
         True,
         _movement_create,
+    ),
+    "return_disposition": Tool(
+        "return_disposition",
+        "Resolve arrived customer-return quantity through one explicit physical outcome.",
+        True,
+        _return_disposition,
+    ),
+    "return_disposition_summary": Tool(
+        "return_disposition_summary",
+        "Read arrived, resolved and unresolved customer-return quantity by disposition.",
+        False,
+        _return_disposition_summary,
     ),
     "reservation_release": Tool(
         "reservation_release",
@@ -2996,6 +3025,7 @@ def approve_and_execute_proposal(
         "supplier_payment_post",
         "supplier_invoice_record",
         "supply_assign",
+        "return_disposition",
         "sales_credit_record",
         "customer_refund_post",
         "ledger_reverse",

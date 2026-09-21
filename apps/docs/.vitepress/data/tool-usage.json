@@ -882,7 +882,11 @@
       ],
       "tables": ["return_announcement"],
       "lists": [],
-      "actions": ["command:announce_customer_return", "command:withdraw_return_announcement"],
+      "actions": [
+        "command:announce_customer_return",
+        "command:withdraw_return_announcement",
+        "command:record_return_disposition"
+      ],
       "reads": ["command:return_announcements"],
       "exceptions": [
         "exception:returned_not_credited",
@@ -892,7 +896,7 @@
         "exception:return_unresolved",
         "exception:announced_return_not_arrived"
       ],
-      "tools": [],
+      "tools": ["tool:return_disposition_summary"],
       "events": ["event:return.announced", "event:return.announcement_withdrawn"],
       "workspace_actions": []
     },
@@ -7173,6 +7177,62 @@
       "resources": ["item"]
     },
     {
+      "id": "tool:return_disposition_propose",
+      "kind": "tool",
+      "key": "return_disposition_propose",
+      "label": "Resolve returned goods",
+      "area": "orders",
+      "summary": "Prepare this business mutation without changing state. Resolve returned goods. Human confirmation is required.",
+      "access": "propose",
+      "group": "Mutations",
+      "synopsis": "return_disposition_propose return_movement_id disposition quantity [destination_location_id] [reason]",
+      "parameters": [
+        {
+          "name": "return_movement_id",
+          "type": "string",
+          "required": true,
+          "description": "Opaque identity of the arrived customer-return Movement whose physical outcome is being decided.",
+          "depth": 0
+        },
+        {
+          "name": "disposition",
+          "type": "string",
+          "required": true,
+          "description": "Closed physical outcome for returned goods; restock, quarantine or repair, scrap or loss, or return to supplier.",
+          "depth": 0,
+          "enum": ["restock", "quarantine_repair", "scrap_loss", "return_to_supplier"]
+        },
+        {
+          "name": "quantity",
+          "type": "string",
+          "required": true,
+          "description": "Decimal quantity expressed in the item's relevant unit.",
+          "depth": 0
+        },
+        {
+          "name": "destination_location_id",
+          "type": "string",
+          "required": false,
+          "description": "Opaque destination location required when returned goods are transferred to saleable stock or quarantine.",
+          "depth": 0
+        },
+        {
+          "name": "reason",
+          "type": "string",
+          "required": false,
+          "description": "Human-readable explanation for a hold, correction, or lifecycle change.",
+          "depth": 0
+        }
+      ],
+      "guidance": {},
+      "read_modes": [],
+      "command": "record_return_disposition",
+      "projections": [],
+      "links": ["command:record_return_disposition"],
+      "label_de": "Resolve returned goods",
+      "resources": ["return"]
+    },
+    {
       "id": "tool:sales_credit_record_propose",
       "kind": "tool",
       "key": "sales_credit_record_propose",
@@ -7909,6 +7969,48 @@
       "links": [],
       "label_de": "Supply coverage",
       "resources": ["item"]
+    },
+    {
+      "id": "tool:return_disposition_summary",
+      "kind": "tool",
+      "key": "return_disposition_summary",
+      "label": "Return disposition summary",
+      "area": "orders",
+      "summary": "Read arrived, resolved and unresolved returned-goods quantity by physical outcome.",
+      "access": "read",
+      "group": "Returns",
+      "synopsis": "return_disposition_summary return_movement_id",
+      "parameters": [
+        {
+          "name": "return_movement_id",
+          "type": "string",
+          "required": true,
+          "description": "Opaque identity of the arrived customer-return Movement whose physical outcome is being decided.",
+          "depth": 0
+        }
+      ],
+      "guidance": {
+        "purpose": "Read arrived, resolved and unresolved customer-return quantity with append-only physical outcome history.",
+        "use_when": [
+          "Warehouse or customer service needs to decide or explain what happened to returned goods."
+        ],
+        "do_not_use_when": ["A customer credit", "refund or commercial settlement must be proven."],
+        "limitations": ["Physical disposition is independent from credit and refund state."],
+        "empty_result": "The selected return has no disposition movements and its full arrived quantity remains unresolved.",
+        "freshness": "Derived from current tenant-scoped Movements and corrections at request time."
+      },
+      "read_modes": [
+        {
+          "query": "MCP return_disposition_summary",
+          "mode": "live",
+          "default": true
+        }
+      ],
+      "command": null,
+      "projections": [],
+      "links": [],
+      "label_de": "Return disposition summary",
+      "resources": ["return"]
     },
     {
       "id": "tool:finance_accounts",
@@ -13485,7 +13587,7 @@
           "name": "categories[].disposition",
           "type": "string",
           "required": true,
-          "description": "",
+          "description": "Closed physical outcome for returned goods; restock, quarantine or repair, scrap or loss, or return to supplier.",
           "depth": 1,
           "enum": ["evidenced", "confirmed_zero", "not_applicable", "unresolved"]
         },
@@ -14093,7 +14195,7 @@
           "name": "selling_categories[].disposition",
           "type": "string",
           "required": true,
-          "description": "",
+          "description": "Closed physical outcome for returned goods; restock, quarantine or repair, scrap or loss, or return to supplier.",
           "depth": 1,
           "enum": ["evidenced", "confirmed_zero", "not_applicable", "unresolved"]
         },
@@ -14181,7 +14283,7 @@
           "name": "positions[].selling_categories[].disposition",
           "type": "string",
           "required": true,
-          "description": "",
+          "description": "Closed physical outcome for returned goods; restock, quarantine or repair, scrap or loss, or return to supplier.",
           "depth": 2,
           "enum": ["evidenced", "confirmed_zero", "not_applicable", "unresolved"]
         },
@@ -17983,6 +18085,30 @@
       "links": ["tool:supply_assign_propose"],
       "label_de": "Zulauf einem Kundenbedarf zuordnen",
       "resources": ["item"]
+    },
+    {
+      "id": "command:record_return_disposition",
+      "kind": "command",
+      "key": "record_return_disposition",
+      "label": "Resolve arrived customer-return goods",
+      "area": "orders",
+      "summary": "Records one explicit physical outcome for part or all of an arrived customer return without implying a credit.",
+      "mode": "mutation",
+      "adapters": ["CLI", "Web", "API", "MCP", "Chat"],
+      "reads": ["movement", "movement_correction", "source_record", "location"],
+      "writes": ["movement", "source_record", "business_event"],
+      "confirmation": "required",
+      "related_services": [],
+      "tools": ["return_disposition_propose"],
+      "synopses": [
+        "return_disposition_propose return_movement_id disposition quantity [destination_location_id] [reason]"
+      ],
+      "events": [],
+      "actions": [],
+      "guidance": {},
+      "links": ["tool:return_disposition_propose"],
+      "label_de": "Retourenware entscheiden",
+      "resources": ["return"]
     },
     {
       "id": "workspace:company",
@@ -67705,7 +67831,8 @@
         "command:accept_adjustment",
         "command:apply_settlement",
         "command:import_opening",
-        "command:assign_supply"
+        "command:assign_supply",
+        "command:record_return_disposition"
       ]
     },
     {
@@ -69191,7 +69318,8 @@
       "actions": [
         "command:record_movement",
         "command:correct_movement",
-        "command:record_packaged_execution"
+        "command:record_packaged_execution",
+        "command:record_return_disposition"
       ]
     },
     {

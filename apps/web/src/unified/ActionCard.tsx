@@ -814,7 +814,8 @@ export function ActionCard(
     activeTool === "shipment_dispatch" ||
     activeTool === "shipment_receive" ||
     activeTool === "shipment_event_record" ||
-    activeTool === "shipment_event_supersede"
+    activeTool === "shipment_event_supersede" ||
+    activeTool === "return_disposition"
   )
     return <ShipmentActions {...props} tool={activeTool} />;
   if (activeTool === "party_delivery_hold" || activeTool === "party_delivery_hold_release")

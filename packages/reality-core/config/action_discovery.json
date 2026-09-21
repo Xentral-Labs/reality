@@ -169,6 +169,7 @@
     "record_shipment_event": "tracking",
     "supersede_shipment_event": "tracking",
     "assign_supply": "orders",
+    "record_return_disposition": "returns",
     "correct_movement": "movements",
     "reverse_ledger_posting_group": "journal",
     "revise_commitment": "orders",
@@ -301,6 +302,16 @@
         "global",
         "sales.orders",
         "purchasing.orders"
+      ]
+    },
+    {
+      "key": "return_disposition",
+      "label": "Decide returned goods",
+      "command": "record_return_disposition",
+      "form": "return_disposition",
+      "placements": [
+        "global",
+        "warehouse.movements"
       ]
     },
     {

@@ -1134,6 +1134,7 @@ class DeliveryActionPrepare(ApiModel):
         "shipment_event_record",
         "shipment_event_supersede",
         "supply_assign",
+        "return_disposition",
     ]
     arguments: dict[str, Any]
     session_id: str | None = None
@@ -1208,6 +1209,18 @@ def get_supply_coverage(
             supplier_commitment_id=supplier_commitment_id,
             customer_commitment_id=customer_commitment_id,
         )
+    except (NotFound, InvalidOperation) as error:
+        raise api_error(error) from error
+
+
+@router.get("/return-dispositions/{return_movement_id}")
+def get_return_disposition_summary(
+    tenant_id: str, return_movement_id: str, session: DatabaseSession
+):
+    from reality.services.delivery_reads import return_disposition_case
+
+    try:
+        return return_disposition_case(session, tenant_id, return_movement_id)
     except (NotFound, InvalidOperation) as error:
         raise api_error(error) from error
 

@@ -17,3 +17,6 @@ def test_supply_assignment_cli_commands_are_discoverable():
     assert "supply-assign-propose" in result.stdout
     assert "supply-assign-confirm" in result.stdout
     assert "supply-coverage" in result.stdout
+    assert "return-disposition-propose" in result.stdout
+    assert "return-disposition-confirm" in result.stdout
+    assert "return-disposition" in result.stdout

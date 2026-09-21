@@ -415,6 +415,8 @@ families:
       - tool:payment_run_preview
       - tool:expired_lots
       - tool:return_announcements
+      - tool:return_disposition
+      - tool:return_disposition_summary
       - tool:exceptions
       - tool:finance_balances
       - tool:finance.deposit.clear

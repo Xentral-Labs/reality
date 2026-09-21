@@ -20,7 +20,7 @@ the technical key stands beside each one.
 | [Payment and settlement](#resource-payment)                      | 2     | 7       | 2                   |
 | [Ledger and accounts](#resource-accounting)                      | 2     | 11      | 3                   |
 | [Contribution margin](#resource-contribution)                    | 0     | 1       | 4                   |
-| [Return](#resource-return)                                       | 0     | 2       | 6                   |
+| [Return](#resource-return)                                       | 0     | 3       | 6                   |
 | [Document and source system](#resource-source)                   | 3     | 10      | 2                   |
 | [Company and users](#resource-company)                           | 1     | 4       | 0                   |
 | [Approvals, exceptions and open questions](#resource-governance) | 3     | 0       | 0                   |
@@ -650,6 +650,8 @@ Retourenwareneingang, Lieferantenretoure, Wiedereinlagerungsgebühr
   (`announce_customer_return`)
 - [Withdraw return announcement](./commands#command-withdraw_return_announcement)
   (`withdraw_return_announcement`)
+- [Resolve arrived customer-return goods](./commands#command-record_return_disposition)
+  (`record_return_disposition`)
 
 **Look up**
 
@@ -674,7 +676,8 @@ Retourenwareneingang, Lieferantenretoure, Wiedereinlagerungsgebühr
 
 **Underneath:** Tables: `return_announcement` · Events:
 [`return.announced`](./events#event-return-announced),
-[`return.announcement_withdrawn`](./events#event-return-announcement_withdrawn)
+[`return.announcement_withdrawn`](./events#event-return-announcement_withdrawn) · Agent tools
+without a command: [`return_disposition_summary`](./commands#tool-return_disposition_summary)
 
 ## Document and source system {#resource-source}
 

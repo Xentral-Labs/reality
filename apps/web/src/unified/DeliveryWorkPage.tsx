@@ -1,7 +1,8 @@
 import { useEffect } from "react";
 import type { Selection } from "./routing";
 
-// Compatibility for saved links to the retired standalone work list.
+// Compatibility for saved links to the unified work list. Returned-goods
+// disposition is available from the warehouse movement actions there.
 export function DeliveryWorkPage({
   selection,
   navigate,

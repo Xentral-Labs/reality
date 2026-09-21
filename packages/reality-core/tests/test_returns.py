@@ -3,7 +3,6 @@ from decimal import Decimal
 
 import pytest
 from conftest import record_by_id
-
 from reality.services.core import (
     InvalidOperation,
     NotFound,
@@ -15,7 +14,16 @@ from reality.services.core import (
     record_movement,
     returned_quantity,
 )
+from reality.services.delivery_actions import (
+    delivery_proposal_detail,
+    prepare_delivery_action,
+)
 from reality.services.exceptions import operational_exceptions
+from reality.services.return_dispositions import (
+    record_return_disposition,
+    return_disposition_summary,
+)
+from reality.tools.application import approve_and_execute_proposal
 
 
 def stocked(session, business, quantity=50):
@@ -311,9 +319,8 @@ def test_a_resolution_is_validated(session, business):
     goods_back = came_back(session, business, commitment, 6, area)
 
     # A shipment is a real movement and not a return, so it settles nothing.
-    from sqlalchemy import select
-
     from reality.db.core import Movement
+    from sqlalchemy import select
 
     shipment = session.scalars(
         select(Movement).where(
@@ -423,6 +430,156 @@ def test_a_return_may_be_resolved_in_parts(session, business):
     assert scrapped.type == "adjustment"
     assert restocked.resolves_movement_id == goods_back.id
     assert scrapped.resolves_movement_id == goods_back.id
+
+
+def test_return_disposition_reconciles_four_partial_outcomes(session, business):
+    from reality.services.core import create_location
+
+    stocked(session, business)
+    area = returns_area(session, business)
+    quarantine = create_location(session, business.tenant.id, "Quarantine")
+    commitment = delivery(session, business, 5)
+    goods_back = came_back(session, business, commitment, 5, area)
+
+    record_return_disposition(
+        session,
+        business.tenant.id,
+        goods_back.id,
+        "restock",
+        "2",
+        destination_location_id=business.location.id,
+    )
+    record_return_disposition(
+        session,
+        business.tenant.id,
+        goods_back.id,
+        "quarantine_repair",
+        "1",
+        destination_location_id=quarantine.id,
+    )
+    record_return_disposition(
+        session,
+        business.tenant.id,
+        goods_back.id,
+        "scrap_loss",
+        "1",
+        reason="Damaged beyond repair",
+    )
+    record_return_disposition(
+        session,
+        business.tenant.id,
+        goods_back.id,
+        "return_to_supplier",
+        "1",
+        reason="Supplier quality claim",
+    )
+
+    result = return_disposition_summary(session, business.tenant.id, goods_back.id)
+    assert result["arrived"] == Decimal(5)
+    assert result["resolved"] == Decimal(5)
+    assert result["unresolved"] == Decimal(0)
+    assert result["totals"] == {
+        "restock": Decimal(2),
+        "quarantine_repair": Decimal(1),
+        "scrap_loss": Decimal(1),
+        "return_to_supplier": Decimal(1),
+    }
+    assert [row["disposition"] for row in result["history"]] == [
+        "restock",
+        "quarantine_repair",
+        "scrap_loss",
+        "return_to_supplier",
+    ]
+    with pytest.raises(InvalidOperation, match="exceeds unresolved"):
+        record_return_disposition(
+            session,
+            business.tenant.id,
+            goods_back.id,
+            "scrap_loss",
+            "1",
+            reason="Duplicate disposition",
+        )
+
+
+def test_corrected_return_disposition_restores_unresolved_quantity(session, business):
+    stocked(session, business)
+    area = returns_area(session, business)
+    commitment = delivery(session, business, 3)
+    goods_back = came_back(session, business, commitment, 3, area)
+    disposition = record_return_disposition(
+        session,
+        business.tenant.id,
+        goods_back.id,
+        "scrap_loss",
+        "2",
+        reason="Initial inspection",
+    )
+
+    correct_movement(
+        session,
+        business.tenant.id,
+        disposition.id,
+        reason="Inspection decision was wrong",
+    )
+
+    result = return_disposition_summary(session, business.tenant.id, goods_back.id)
+    assert result["resolved"] == Decimal(0)
+    assert result["unresolved"] == Decimal(3)
+    assert result["history"] == [
+        {
+            "id": disposition.id,
+            "disposition": "scrap_loss",
+            "quantity": Decimal(2),
+            "from_location_id": area.id,
+            "to_location_id": None,
+            "reason": "Initial inspection",
+            "occurred_at": disposition.occurred_at,
+            "corrected": True,
+            "correction_id": result["history"][0]["correction_id"],
+        }
+    ]
+
+
+def test_return_disposition_requires_current_review_and_confirms_once(
+    session, business
+):
+    stocked(session, business)
+    area = returns_area(session, business)
+    commitment = delivery(session, business, 4)
+    goods_back = came_back(session, business, commitment, 4, area)
+    proposal = prepare_delivery_action(
+        session,
+        business.tenant.id,
+        "return_disposition",
+        {
+            "return_movement_id": goods_back.id,
+            "disposition": "restock",
+            "quantity": "3",
+            "destination_location_id": business.location.id,
+        },
+        request_id="reviewed-return-disposition",
+    )
+    detail = delivery_proposal_detail(session, business.tenant.id, proposal.id)
+    assert detail["review"]["effect"] == {
+        "disposition": "restock",
+        "resolved": "3",
+        "unresolved_after": "1",
+    }
+    with pytest.raises(InvalidOperation, match="confirmation"):
+        approve_and_execute_proposal(session, business.tenant.id, proposal.id)
+
+    executed = approve_and_execute_proposal(
+        session,
+        business.tenant.id,
+        proposal.id,
+        review_token=detail["review"]["token"],
+        confirmed=True,
+    )
+    assert executed.status == "executed"
+    verified = delivery_proposal_detail(session, business.tenant.id, proposal.id)
+    assert verified["verification"] == "verified"
+    assert verified["observation"]["resolved"] == Decimal(3)
+    assert verified["observation"]["unresolved"] == Decimal(1)
 
 
 def test_a_backdated_resolution_is_accepted(session, business):
