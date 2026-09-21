@@ -64,6 +64,16 @@ def upgrade() -> None:
         ),
     )
     op.create_index("ix_dunning_notice_tenant_id", "dunning_notice", ["tenant_id"])
+    op.create_index(
+        "ix_dunning_notice_source_record_id",
+        "dunning_notice",
+        ["tenant_id", "source_record_id"],
+    )
+    op.create_index(
+        "ix_dunning_notice_party_id",
+        "dunning_notice",
+        ["tenant_id", "party_id"],
+    )
     op.create_table(
         "dunning_notice_invoice",
         sa.Column("id", sa.String(), nullable=False),
@@ -85,6 +95,11 @@ def upgrade() -> None:
         "ix_dunning_notice_invoice_tenant_id",
         "dunning_notice_invoice",
         ["tenant_id"],
+    )
+    op.create_index(
+        "ix_dunning_notice_invoice_invoice_id",
+        "dunning_notice_invoice",
+        ["tenant_id", "invoice_id"],
     )
 
 

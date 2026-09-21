@@ -200,8 +200,11 @@ def test_own_provider_exempt_but_companion_still_uses_managed_allowance(
     assert free_playground._allowance(session, scheduled_owner.id)["used"] == 1
 
 
-def test_failed_entry_retries_same_receipt(session, scheduled_owner, monkeypatch):
-    from reality.services import demo_profile
+def test_failed_entry_explicit_retry_reuses_same_receipt(
+    session, scheduled_owner, monkeypatch
+):
+    from reality.jobs.registry import JobError
+    from reality.services import company_setup, demo_profile
 
     consent(session, scheduled_owner)
     original = demo_profile.seed_profile
@@ -212,13 +215,16 @@ def test_failed_entry_retries_same_receipt(session, scheduled_owner, monkeypatch
     monkeypatch.setattr(demo_profile, "seed_profile", fail)
     failed = free_playground.enter(session, scheduled_owner.id, confirmed=True)
     assert failed["status"] == "initializing"
-    assert seed_company(session, failed["tenant_id"]) == "succeeded"
+    with pytest.raises(JobError, match="setup_profile_incomplete"), session.begin_nested():
+        seed_company(session, failed["tenant_id"])
     assert (
         free_playground.entry_status(session, scheduled_owner.id)["receipt"]["status"]
-        == "initialization_failed"
+        == "initializing"
     )
     monkeypatch.setattr(demo_profile, "seed_profile", original)
-    ready = free_playground.enter(session, scheduled_owner.id, confirmed=True)
+    ready = company_setup.retry_request(
+        session, scheduled_owner.id, free_playground.REQUEST_KEY, confirmed=True
+    )
     assert ready["status"] == "ready"
     assert ready["tenant_id"] == failed["tenant_id"]
     assert ready["run_id"] == failed["run_id"]

@@ -145,16 +145,16 @@ geflossene Geld. Skonto und akzeptierter Kleinrest sind eigene begründete Buchu
 
 ## Belege in der Basis
 
-| Beleg                 | Beispiele                                                                          | Bedeutung                                             | So findest du es                               |
-| --------------------- | ---------------------------------------------------------------------------------- | ----------------------------------------------------- | ---------------------------------------------- |
-| Kundenauftrag         | `SO-001`–`SO-035`                                                                  | Angegebener Kundenbedarf und kaufmännische Positionen | Vertrieb → Aufträge → `SO-…` suchen            |
-| Einkaufsbestellung    | `PO-001`–`PO-009`                                                                  | Bestellung beim Lieferanten                           | Einkauf → Bestellungen → `PO-…` suchen         |
-| Ausgangsrechnung      | `INV-YYYYMMDD-*`                                                                   | Forderung mit Rechnungspositionen                     | Finance → Forderungen → `INV-…` suchen         |
-| Eingangsrechnung      | `SINV-002`, `SINV-004`, `SINV-005`, `SINV-007`, `SINV-008`, `SINV-010`, `SINV-011` | Verbindlichkeit unabhängig vom Wareneingang           | Finance → Verbindlichkeiten → `SINV-…` suchen  |
-| Kundengutschrift      | `CN-001`, `CN-002`                                                                 | Vollständige und teilweise Wertkorrektur              | Finance → Forderungen → `CN-…` suchen          |
-| Lieferantengutschrift | `SCN-007`                                                                          | Einer Eingangsrechnung zugeordnete Wertkorrektur      | Finance → Verbindlichkeiten → `SCN-007` suchen |
-| Kundenzahlung         | `CPAY-001` ff.                                                                     | Vollständiger oder teilweiser Forderungsausgleich     | Finance → Zahlungen → `CPAY-…` suchen          |
-| Lieferantenzahlung    | `SPAY-002`, `SPAY-004`, `SPAY-005`                                                 | Skonto-, Teil- und Überzahlung                        | Finance → Zahlungen → `SPAY-…` suchen          |
+| Beleg                 | Beispiele                                                                                      | Bedeutung                                             | So findest du es                               |
+| --------------------- | ---------------------------------------------------------------------------------------------- | ----------------------------------------------------- | ---------------------------------------------- |
+| Kundenauftrag         | `SO-001`–`SO-035`                                                                              | Angegebener Kundenbedarf und kaufmännische Positionen | Vertrieb → Aufträge → `SO-…` suchen            |
+| Einkaufsbestellung    | `PO-001`–`PO-009`                                                                              | Bestellung beim Lieferanten                           | Einkauf → Bestellungen → `PO-…` suchen         |
+| Ausgangsrechnung      | `INV-YYYYMMDD-*`                                                                               | Forderung mit Rechnungspositionen                     | Finance → Forderungen → `INV-…` suchen         |
+| Eingangsrechnung      | `SINV-002`, `SINV-004`, `SINV-005`, `SINV-007`, `SINV-008`, `SINV-010`, `SINV-011`, `SINV-012` | Verbindlichkeit unabhängig vom Wareneingang           | Finance → Verbindlichkeiten → `SINV-…` suchen  |
+| Kundengutschrift      | `CN-001`, `CN-002`                                                                             | Vollständige und teilweise Wertkorrektur              | Finance → Forderungen → `CN-…` suchen          |
+| Lieferantengutschrift | `SCN-007`                                                                                      | Einer Eingangsrechnung zugeordnete Wertkorrektur      | Finance → Verbindlichkeiten → `SCN-007` suchen |
+| Kundenzahlung         | `CPAY-001` ff.                                                                                 | Vollständiger oder teilweiser Forderungsausgleich     | Finance → Zahlungen → `CPAY-…` suchen          |
+| Lieferantenzahlung    | `SPAY-002`, `SPAY-004`, `SPAY-005`                                                             | Skonto-, Teil- und Überzahlung                        | Finance → Zahlungen → `SPAY-…` suchen          |
 
 Alle Belege tragen ein Belegdatum. Lesbare Nummern helfen bei der Suche; die echte Identität bleibt
 eine mandantenspezifische, nicht sprechende ID.

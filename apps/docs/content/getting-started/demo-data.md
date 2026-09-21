@@ -141,16 +141,16 @@ credit for later allocation or refund.
 
 ## Documents in the baseline
 
-| Document             | Examples                                                                           | Meaning                                          | How to find it                         |
-| -------------------- | ---------------------------------------------------------------------------------- | ------------------------------------------------ | -------------------------------------- |
-| Sales order          | `SO-001`–`SO-035`                                                                  | Stated customer demand and commercial lines      | Sales → Orders → search `SO-…`         |
-| Purchase order       | `PO-001`–`PO-009`                                                                  | Order placed with a supplier                     | Purchasing → Orders → search `PO-…`    |
-| Sales invoice        | `INV-YYYYMMDD-*`                                                                   | Customer receivable backed by invoice lines      | Finance → Receivables → search `INV-…` |
-| Supplier invoice     | `SINV-002`, `SINV-004`, `SINV-005`, `SINV-007`, `SINV-008`, `SINV-010`, `SINV-011` | Payable independent of receipt state             | Finance → Payables → search `SINV-…`   |
-| Customer credit note | `CN-001`, `CN-002`                                                                 | Full and partial customer value reversal         | Finance → Receivables → search `CN-…`  |
-| Supplier credit note | `SCN-007`                                                                          | Supplier value reversal allocated to its invoice | Finance → Payables → search `SCN-007`  |
-| Customer payment     | `CPAY-001` onward                                                                  | Full or partial receivable settlement            | Finance → Payments → search `CPAY-…`   |
-| Supplier payment     | `SPAY-002`, `SPAY-004`, `SPAY-005`                                                 | Discount, partial and overpayment examples       | Finance → Payments → search `SPAY-…`   |
+| Document             | Examples                                                                                       | Meaning                                          | How to find it                         |
+| -------------------- | ---------------------------------------------------------------------------------------------- | ------------------------------------------------ | -------------------------------------- |
+| Sales order          | `SO-001`–`SO-035`                                                                              | Stated customer demand and commercial lines      | Sales → Orders → search `SO-…`         |
+| Purchase order       | `PO-001`–`PO-009`                                                                              | Order placed with a supplier                     | Purchasing → Orders → search `PO-…`    |
+| Sales invoice        | `INV-YYYYMMDD-*`                                                                               | Customer receivable backed by invoice lines      | Finance → Receivables → search `INV-…` |
+| Supplier invoice     | `SINV-002`, `SINV-004`, `SINV-005`, `SINV-007`, `SINV-008`, `SINV-010`, `SINV-011`, `SINV-012` | Payable independent of receipt state             | Finance → Payables → search `SINV-…`   |
+| Customer credit note | `CN-001`, `CN-002`                                                                             | Full and partial customer value reversal         | Finance → Receivables → search `CN-…`  |
+| Supplier credit note | `SCN-007`                                                                                      | Supplier value reversal allocated to its invoice | Finance → Payables → search `SCN-007`  |
+| Customer payment     | `CPAY-001` onward                                                                              | Full or partial receivable settlement            | Finance → Payments → search `CPAY-…`   |
+| Supplier payment     | `SPAY-002`, `SPAY-004`, `SPAY-005`                                                             | Discount, partial and overpayment examples       | Finance → Payments → search `SPAY-…`   |
 
 All carry a document date. Their readable numbers help search; opaque tenant-scoped IDs remain the
 actual identity.
