@@ -14,6 +14,10 @@ from decimal import Decimal
 
 from conftest import record_by_id
 from fastapi.testclient import TestClient
+from sqlalchemy import select
+from sqlalchemy.orm import sessionmaker
+from typer.testing import CliRunner
+
 from reality.cli import app as cli_module
 from reality.db.core import Movement, ReturnAnnouncement
 from reality.mcp.catalog import model_tool_schemas
@@ -26,9 +30,6 @@ from reality.services.core import (
 from reality.tools.application import confirm_tool, propose_tool, run_read_tool
 from reality.web import api as api_module
 from reality.web import app as web_module
-from sqlalchemy import select
-from sqlalchemy.orm import sessionmaker
-from typer.testing import CliRunner
 
 SHIPPED_AT = datetime(2026, 8, 20, 12, tzinfo=UTC)
 ARRIVED_AT = datetime(2026, 8, 28, 12, tzinfo=UTC)

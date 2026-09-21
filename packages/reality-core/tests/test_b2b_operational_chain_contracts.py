@@ -1,8 +1,9 @@
+from typer.testing import CliRunner
+
 from reality.catalogs import runtime_application_catalog
 from reality.cli.app import app, movement_app
 from reality.mcp.catalog import MCP_TOOL_NAMES
 from reality.tools.application import TOOLS
-from typer.testing import CliRunner
 
 
 def test_supply_assignment_is_exposed_through_shared_tools_and_mcp():

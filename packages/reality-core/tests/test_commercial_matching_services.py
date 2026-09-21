@@ -7,6 +7,8 @@ import pytest
 import test_contribution_services as fixtures
 import test_costing_services as costs
 import test_inventory_costing_services as stock
+from sqlalchemy import func, select
+
 from reality.db.contribution import CostCommercialMatchRevision
 from reality.db.inventory_costing import CostInventoryMember, CostMovementBasis
 from reality.mcp.catalog import MCP_TOOL_REGISTRY
@@ -24,7 +26,6 @@ from reality.services.exceptions import (
 from reality.services.finance import components
 from reality.services.memberships import Principal
 from reality.tools.application import approve_and_execute_proposal, run_read_tool
-from sqlalchemy import func, select
 
 cost_owner = costs.cost_owner
 

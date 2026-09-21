@@ -4,6 +4,8 @@ from types import SimpleNamespace
 
 import pytest
 from conftest import record_by_id
+from sqlalchemy import select
+
 from reality.db.core import (
     Commitment,
     ImportJob,
@@ -53,7 +55,6 @@ from reality.services.core import (
     update_party,
 )
 from reality.services.exceptions import operational_exceptions
-from sqlalchemy import select
 
 AS_OF = datetime(2026, 8, 31, 12, tzinfo=UTC)
 

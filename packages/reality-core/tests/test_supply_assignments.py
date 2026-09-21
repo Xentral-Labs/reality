@@ -1,6 +1,7 @@
 from decimal import Decimal
 
 import pytest
+
 from reality.services import core
 from reality.services.delivery_actions import (
     delivery_proposal_detail,
@@ -256,9 +257,10 @@ def test_supply_assignment_requires_current_review_and_replays(session, business
 
 def test_supply_assignment_http_and_shared_read_use_same_services(session, business):
     from fastapi.testclient import TestClient
+    from sqlalchemy.orm import sessionmaker
+
     from reality.web.api import database_session
     from reality.web.app import app
-    from sqlalchemy.orm import sessionmaker
 
     customer, supplier = commitments(session, business)
     factory = sessionmaker(session.bind, expire_on_commit=False)
@@ -318,9 +320,10 @@ def test_concurrent_assignments_cannot_exceed_supplier_quantity(postgres_databas
     from threading import Barrier
     from types import SimpleNamespace
 
-    from reality.db.core import Base, SupplyAssignment, build_engine
     from sqlalchemy import func, select
     from sqlalchemy.orm import sessionmaker
+
+    from reality.db.core import Base, SupplyAssignment, build_engine
 
     engine = build_engine(postgres_database)
     Base.metadata.create_all(engine)

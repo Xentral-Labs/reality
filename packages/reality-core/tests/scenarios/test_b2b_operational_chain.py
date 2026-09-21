@@ -2,6 +2,8 @@ import re
 from decimal import Decimal
 
 from conftest import record_by_id, seed_company
+from sqlalchemy import select
+
 from reality.db.core import Document, PlaygroundRun
 from reality.services import company_setup
 from reality.services.costing import reviewed_contribution
@@ -9,7 +11,6 @@ from reality.services.exceptions import operational_exceptions
 from reality.services.movement_explanations import movement_explanation
 from reality.services.return_dispositions import return_disposition_summary
 from reality.services.supply_assignments import supply_coverage
-from sqlalchemy import select
 
 
 def _company(session, owner, request_id="b2b-operational-chain"):
