@@ -124,18 +124,37 @@ export function DunningNotice({
       {review ? (
         <>
           <p className="mb-4">
-            {read.data?.number} · {t("Open amount")}: {formatMoney(review.invoice_open[invoice], review.currency)}
+            {read.data?.number} · {t("Open amount")}:{" "}
+            {formatMoney(review.invoice_open[invoice], review.currency)}
           </p>
           <dl className="mb-5 grid grid-cols-2 gap-3">
-            <div><dt className="text-xs text-fg-muted">{t("Dunning level")}</dt><dd>{review.level}</dd></div>
-            <div><dt className="text-xs text-fg-muted">{t("Notice date")}</dt><dd>{review.notice_date}</dd></div>
-            <div><dt className="text-xs text-fg-muted">{t("Dunning fee")}</dt><dd>{formatMoney(review.fee_amount, review.currency)}</dd></div>
-            <div><dt className="text-xs text-fg-muted">{t("Notice number")}</dt><dd>{review.number || t("Generated automatically")}</dd></div>
+            <div>
+              <dt className="text-xs text-fg-muted">{t("Dunning level")}</dt>
+              <dd>{review.level}</dd>
+            </div>
+            <div>
+              <dt className="text-xs text-fg-muted">{t("Notice date")}</dt>
+              <dd>{review.notice_date}</dd>
+            </div>
+            <div>
+              <dt className="text-xs text-fg-muted">{t("Dunning fee")}</dt>
+              <dd>{formatMoney(review.fee_amount, review.currency)}</dd>
+            </div>
+            <div>
+              <dt className="text-xs text-fg-muted">{t("Notice number")}</dt>
+              <dd>{review.number || t("Generated automatically")}</dd>
+            </div>
           </dl>
-          <p className="mb-4 text-sm text-fg-muted">{t("The fee is a separate receivable. No email is sent automatically.")}</p>
+          <p className="mb-4 text-sm text-fg-muted">
+            {t("The fee is a separate receivable. No email is sent automatically.")}
+          </p>
           <div className="flex gap-2">
-            <button className="br-btn" disabled={busy} onClick={() => void decide(true)}>{t("Confirm dunning notice")}</button>
-            <button className="br-btn" disabled={busy} onClick={() => void decide(false)}>{t("Reject")}</button>
+            <button className="br-btn" disabled={busy} onClick={() => void decide(true)}>
+              {t("Confirm dunning notice")}
+            </button>
+            <button className="br-btn" disabled={busy} onClick={() => void decide(false)}>
+              {t("Reject")}
+            </button>
           </div>
         </>
       ) : !read.data ? (
@@ -144,13 +163,49 @@ export function DunningNotice({
         <p>{t("Dunning notices are available for customer invoices only.")}</p>
       ) : (
         <form className="grid gap-4" onSubmit={prepare}>
-          <p>{read.data.number} · {t("Open amount")}: {formatMoney(read.data.open, read.data.currency)}</p>
-          <label>{t("Notice date")}<input className="br-control mt-1 w-full" name="date" type="date" defaultValue={new Date().toISOString().slice(0, 10)} required /></label>
-          <label>{t("Dunning level")}<select className="br-control mt-1 w-full" name="level" defaultValue="1"><option value="1">1</option><option value="2">2</option><option value="3">3</option></select></label>
-          <label>{t("Dunning fee")}<input className="br-control mt-1 w-full" name="fee" inputMode="decimal" defaultValue="0" required /></label>
-          <label>{t("Notice number (optional)")}<input className="br-control mt-1 w-full" name="number" /></label>
-          <label>{t("Reason (optional)")}<textarea className="br-control mt-1 w-full" name="reason" /></label>
-          <button className="br-btn" disabled={busy}>{t("Review dunning notice")}</button>
+          <p>
+            {read.data.number} · {t("Open amount")}:{" "}
+            {formatMoney(read.data.open, read.data.currency)}
+          </p>
+          <label>
+            {t("Notice date")}
+            <input
+              className="br-control mt-1 w-full"
+              name="date"
+              type="date"
+              defaultValue={new Date().toISOString().slice(0, 10)}
+              required
+            />
+          </label>
+          <label>
+            {t("Dunning level")}
+            <select className="br-control mt-1 w-full" name="level" defaultValue="1">
+              <option value="1">1</option>
+              <option value="2">2</option>
+              <option value="3">3</option>
+            </select>
+          </label>
+          <label>
+            {t("Dunning fee")}
+            <input
+              className="br-control mt-1 w-full"
+              name="fee"
+              inputMode="decimal"
+              defaultValue="0"
+              required
+            />
+          </label>
+          <label>
+            {t("Notice number (optional)")}
+            <input className="br-control mt-1 w-full" name="number" />
+          </label>
+          <label>
+            {t("Reason (optional)")}
+            <textarea className="br-control mt-1 w-full" name="reason" />
+          </label>
+          <button className="br-btn" disabled={busy}>
+            {t("Review dunning notice")}
+          </button>
         </form>
       )}
     </dialog>
