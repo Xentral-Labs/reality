@@ -61,9 +61,15 @@ def test_history_has_twelve_weeks_distinct_currencies_and_linked_credit(
     assert invoice.gross_amount == Decimal(400)
     source = record_by_id(session, SourceRecord, invoice.source_record_id)
     assert json.loads(source.payload)["gross_amount"] == "400"
+    # The profile seeds two credit notes. COST-LATE-CREDIT is deliberately unlinked,
+    # because pretending it bills an order line would make that sale's fulfillment
+    # scope ambiguous. Name the one this test is about instead of taking whichever
+    # row the database returns first.
     credit = session.scalar(
         select(Document).where(
-            Document.tenant_id == tenant, Document.type == "credit_note"
+            Document.tenant_id == tenant,
+            Document.type == "credit_note",
+            Document.number == "CR-001",
         )
     )
     assert credit is not None

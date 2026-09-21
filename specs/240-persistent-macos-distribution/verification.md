@@ -81,6 +81,13 @@ controls it. Measured before the fix: 3 of 30 processes saw the ambiguity; after
 every run. Resolution now reads the foreign-key constraints and ignores the tenant
 column, which names the referring column exactly once.
 
+A second pre-existing flake surfaced in the same shard.
+`test_demo_profile_history` selected "the" credit note by type, and the profile seeds
+two: `CR-001`, which carries a billed-line link, and `COST-LATE-CREDIT`, which is
+deliberately unlinked so a complete sale's fulfillment scope stays unambiguous. With no
+ordering, which one came back was the database's choice; CI got the unlinked one. The
+test now names `CR-001`.
+
 ## Boundary
 
 The earlier runs used the core wheel built on 2026-09-19, which stops at migration
