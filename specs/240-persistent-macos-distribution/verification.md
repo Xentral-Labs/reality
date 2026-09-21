@@ -79,7 +79,10 @@ three scripted lifecycle runs were. Everything below is not implemented:
   automatically, and a failed migration does not roll back.
 - FR-008 backup and restore as a product surface.
 - FR-010 Developer ID signing, Hardened Runtime, notarization, stapling. The package is
-  ad-hoc signed and requires the tester to clear quarantine manually.
+  ad-hoc signed and requires the reader to approve it in System Settings by hand.
+  `.github/workflows/macos-release.yml` carries the steps and names the Apple secrets
+  they need, and skips them while those secrets are absent. That workflow has never
+  been executed; the published beta was built by hand with the same commands.
 - FR-011 clean-machine qualification. Every run above happened on the development Mac.
 - FR-012 signed updates. A new version is a new download.
 - FR-013 diagnostics, FR-014 the website download contract, FR-016 release manifests.
