@@ -111,6 +111,8 @@ A new international demo company contains searchable, consistently numbered exam
 
 1. **Given** a fresh demo company, **When** setup reports ready, **Then** all four cases and their finance projections are ready to inspect.
 2. **Given** the demo-data guide, **When** a user follows each path and searches its reference, **Then** the named documents, amounts, movements and explanations are present.
+3. **Given** a seeded invoice with payment terms, **When** its due date or discount window is explained, **Then** the invoice carries the exact `DEMO-14-2` term that produced those dates.
+4. **Given** the public demo-data guide, **When** an evaluator looks for master data, live intake, special movements or another demo mode, **Then** the guide names the records and gives a concrete UI or CLI inspection path.
 
 ### Edge Cases
 
@@ -141,6 +143,12 @@ A new international demo company contains searchable, consistently numbered exam
 - **FR-013**: A fresh canonical demo profile MUST include at least one deterministic normal and one boundary example for each of dunning, bad debt, deposit clearing and overdelivery.
 - **FR-014**: Company setup MUST publish all required finance projections before reporting the demo ready.
 - **FR-015**: English and German demo documentation MUST provide each example's exact reference, UI path, expected result and explanation path.
+- **FR-016**: The canonical profile MUST create or reuse `DEMO-14-2` and attach it to every seeded customer and supplier invoice whose due date or discount window is demonstrated.
+- **FR-017**: The English and German operational sales tables MUST enumerate `SO-005` explicitly and MUST NOT use an inclusive range that hides an undocumented case.
+- **FR-018**: The English and German guides MUST inventory all seeded items, customers, suppliers and locations, including the supplier-to-item and recurring-customer relationships used by the profile.
+- **FR-019**: The guides MUST describe continuous Demo Data intake, its timing and authored settlement mix without presenting probabilistic intake as a fixed seeded case.
+- **FR-020**: The guides MUST list each exceptional seeded movement and finance/cost document with its exact reference, purpose and inspection path.
+- **FR-021**: The guides MUST distinguish the canonical international profile, the reduced execution profile and the separately invoked `normal-month` scenario, including how each is started.
 
 ### Domain and Traceability Requirements
 
@@ -168,6 +176,7 @@ A new international demo company contains searchable, consistently numbered exam
 - **SC-004**: All four normal cases and their listed boundary cases have executable service and web-adapter tests.
 - **SC-005**: A fresh demo company exposes every documented example immediately after the setup dialog reaches its final ready step.
 - **SC-006**: Existing payment, settlement, commitment and overdelivery regression suites remain green.
+- **SC-007**: A catalog audit can account for every operational case, master-data member, exceptional movement and supported demo mode without an undocumented numeric range.
 
 ## Assumptions and Dependencies
 
@@ -180,12 +189,13 @@ A new international demo company contains searchable, consistently numbered exam
 
 ## Requirement Traceability
 
-| Requirement | Scenario(s) | Planned evidence |
-| --- | --- | --- |
-| FR-001..FR-004 | US1 | dunning domain, service, reversal and adapter tests |
-| FR-005..FR-006 | US2 | settlement adjustment and finance projection tests |
-| FR-007..FR-009 | US3 | customer/supplier deposit and concurrency tests |
-| FR-010..FR-011 | US4 | revision and overdelivery guard tests |
-| FR-012 | US1..US4 | application tool confirmation and tenant isolation tests |
-| FR-013..FR-015 | US5 | canonical profile, setup and documentation tests |
-| DR-001..DR-006 | US1..US5 | model, migration, source-chain and repository review |
+| Requirement    | Scenario(s) | Planned evidence                                                                      |
+| -------------- | ----------- | ------------------------------------------------------------------------------------- |
+| FR-001..FR-004 | US1         | dunning domain, service, reversal and adapter tests                                   |
+| FR-005..FR-006 | US2         | settlement adjustment and finance projection tests                                    |
+| FR-007..FR-009 | US3         | customer/supplier deposit and concurrency tests                                       |
+| FR-010..FR-011 | US4         | revision and overdelivery guard tests                                                 |
+| FR-012         | US1..US4    | application tool confirmation and tenant isolation tests                              |
+| FR-013..FR-015 | US5         | canonical profile, setup and documentation tests                                      |
+| FR-016..FR-021 | US5         | payment-term binding, catalog completeness and bilingual documentation contract tests |
+| DR-001..DR-006 | US1..US5    | model, migration, source-chain and repository review                                  |

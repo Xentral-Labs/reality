@@ -4,7 +4,7 @@
 
 ## Summary
 
-Add four bounded confirmed workflows by extending existing truthful primitives. Dunning gets a notice and invoice-membership record; its optional fee is a separate posted charge. Bad debt extends confirmed settlement adjustments with a dedicated account role. Deposits use explicit document types but reuse control-account entries and settlement allocations. Overdelivery needs no schema: immutable commitment revisions already support a higher quantity and fulfilment already reads the quantity in force. Shared services feed tools, web and canonical profile v9.
+Add four bounded confirmed workflows by extending existing truthful primitives. Dunning gets a notice and invoice-membership record; its optional fee is a separate posted charge. Bad debt extends confirmed settlement adjustments with a dedicated account role. Deposits use explicit document types but reuse control-account entries and settlement allocations. Overdelivery needs no schema: immutable commitment revisions already support a higher quantity and fulfilment already reads the quantity in force. Shared services feed tools, web and canonical profile v10. The catalog-closure increment binds the existing source-stated `DEMO-14-2` payment term to seeded invoices and makes every seeded case and supported demo mode discoverable.
 
 ## Technical Context
 
@@ -16,18 +16,18 @@ Add four bounded confirmed workflows by extending existing truthful primitives. 
 **Constraints**: Decimal, UTC, opaque links, lossless source, tenant scope, preview/confirm mutations
 **Scale/Scope**: Manual single-notice and clearing actions; no scheduler, delivery provider or tax engine
 
-## Constitution Check *(blocking gate)*
+## Constitution Check _(blocking gate)_
 
-| Principle | Evidence in this plan | Result |
-| --- | --- | --- |
-| Source → Evidence → Reality | SourceRecord and evidence documents precede notice, ledger allocation or revision records | PASS |
-| Reality owns operational state | Balances derive from ledger/allocation/reversal; fulfilment derives from movements and quantity in force | PASS |
-| Proven schema only | Only dunning identity/membership and dedicated financial roles are new | PASS |
-| Tenant + shared service boundaries | Services enforce tenant scope; tools and adapters call them; mutations are confirmed | PASS |
-| Spec/test traceability | FR/DR rows map to test-first tasks and quickstart cases | PASS |
-| Explainable web behavior | Results link to documents, ledger/revision, source and events | PASS |
-| Received values not recomputed | Fee, deposit, write-off, level and quantity are stated; balances are derived | PASS |
-| Smallest coherent design | No scheduler, delivery integration, tax engine, deposit balance table or second fulfilment rule | PASS |
+| Principle                          | Evidence in this plan                                                                                    | Result |
+| ---------------------------------- | -------------------------------------------------------------------------------------------------------- | ------ |
+| Source → Evidence → Reality        | SourceRecord and evidence documents precede notice, ledger allocation or revision records                | PASS   |
+| Reality owns operational state     | Balances derive from ledger/allocation/reversal; fulfilment derives from movements and quantity in force | PASS   |
+| Proven schema only                 | Only dunning identity/membership and dedicated financial roles are new                                   | PASS   |
+| Tenant + shared service boundaries | Services enforce tenant scope; tools and adapters call them; mutations are confirmed                     | PASS   |
+| Spec/test traceability             | FR/DR rows map to test-first tasks and quickstart cases                                                  | PASS   |
+| Explainable web behavior           | Results link to documents, ledger/revision, source and events                                            | PASS   |
+| Received values not recomputed     | Fee, deposit, write-off, level and quantity are stated; balances are derived                             | PASS   |
+| Smallest coherent design           | No scheduler, delivery integration, tax engine, deposit balance table or second fulfilment rule          | PASS   |
 
 ## Repository Structure and Layer Changes
 
@@ -74,14 +74,16 @@ Services lock finance or delivery state before revalidation. Cross-tenant record
 
 ## Test Strategy and Traceability
 
-| Requirement | Test level | Planned test | Expected initial failure |
-| --- | --- | --- | --- |
-| FR-001..FR-004 | service/story/adapter | `tests/finance/test_dunning.py`, API/web tests | no notice or fee service |
-| FR-005..FR-006 | service/story | extend `tests/finance/test_adjustments.py` | unsupported reason/account |
-| FR-007..FR-009 | service/story/adapter | `tests/finance/test_deposits.py` | no explicit deposit workflow |
-| FR-010..FR-011 | domain/story | commitment/shipment tests | missing surface/demo proof |
-| FR-012 | tool/policy | confirmation and isolation tests | tools unregistered |
-| FR-013..FR-015 | scenario/docs/web | demo/docs contract tests | profile cases absent |
+| Requirement    | Test level            | Planned test                                   | Expected initial failure                                               |
+| -------------- | --------------------- | ---------------------------------------------- | ---------------------------------------------------------------------- |
+| FR-001..FR-004 | service/story/adapter | `tests/finance/test_dunning.py`, API/web tests | no notice or fee service                                               |
+| FR-005..FR-006 | service/story         | extend `tests/finance/test_adjustments.py`     | unsupported reason/account                                             |
+| FR-007..FR-009 | service/story/adapter | `tests/finance/test_deposits.py`               | no explicit deposit workflow                                           |
+| FR-010..FR-011 | domain/story          | commitment/shipment tests                      | missing surface/demo proof                                             |
+| FR-012         | tool/policy           | confirmation and isolation tests               | tools unregistered                                                     |
+| FR-013..FR-015 | scenario/docs/web     | demo/docs contract tests                       | profile cases absent                                                   |
+| FR-016         | scenario/read model   | canonical profile payment-term assertions      | seeded invoices lack an exact term link                                |
+| FR-017..FR-021 | docs contract         | bilingual catalog completeness checks          | cases, master data, live intake and modes are only partially described |
 
 ## Rollout and Rollback
 
@@ -94,9 +96,10 @@ Apply migration before application. New document types are ignored by older read
 - Deposit must stay distinguishable while reusing allocation math.
 - Overdelivery remains impossible without a prior revision.
 - Reversal must restore balances exactly once.
+- Catalog wording must distinguish fixed seeded evidence from probabilistic continuous intake.
 
 ## Complexity Tracking
 
 | Constitution exception | Why needed | Simpler alternative rejected | Approval |
-| --- | --- | --- | --- |
-| None | — | — | — |
+| ---------------------- | ---------- | ---------------------------- | -------- |
+| None                   | —          | —                            | —        |

@@ -13,6 +13,20 @@ The baseline contains 18 items (`ITEM-001`–`ITEM-018`), 20 customers, three su
 Rotterdam and Singapore warehouses. Quantities use pieces, metres or kilograms. Most trades use EUR;
 two invoices deliberately use USD to keep currencies separate.
 
+### Master-data inventory
+
+| Type         | Included records                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           | Where they appear                                                                        |
+| ------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------- |
+| Items        | `ITEM-001` Summit Bottle; `ITEM-002` Trail Lantern; `ITEM-003` Ridge Backpack; `ITEM-004` Cedar Desk Lamp; `ITEM-005` Coast Storage Box; `ITEM-006` Harbor Travel Mug; `ITEM-007` Aurora Notebook; `ITEM-008` Vista Monitor Stand; `ITEM-009` Maple Serving Tray; `ITEM-010` Orbit Cable Kit; `ITEM-011` Meadow Picnic Set; `ITEM-012` Beacon Desk Organizer; `ITEM-013` Drift Cushion; `ITEM-014` Cove Glass Set; `ITEM-015` Meridian Fabric; `ITEM-016` Alpine Wax Pellets; `ITEM-017` Willow Batch Balm; `ITEM-018` Atlas Field Scanner | Master data → Items; Warehouse → Items                                                   |
+| Customers    | Northstar Outdoor; Maple Retail; Solstice Living; Pacific Outfitters; Brightwater Home; Juniper Trading Co.; Lakeside Provisions; Fjord Outfitters; Harlow Interiors; Tidewater Sports; Evergreen Studio; Copperline Goods; Granite Peak Gear; Willow & Finch; Northbridge Office Supply; Blue Heron Living; Marlow Home Goods; Silverbirch Design; Cascade Trail Company; Amber Coast Retail                                                                                                                                              | Master data → Business partners; customer names also appear on sales orders and invoices |
+| Suppliers    | Alpine Components (`ITEM-016`); Meridian Textiles (`ITEM-015`); Seabright Goods (`ITEM-011`)                                                                                                                                                                                                                                                                                                                                                                                                                                               | Master data → Business partners; Purchasing → Orders                                     |
+| Warehouses   | Rotterdam Warehouse; Singapore Warehouse                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   | Warehouse → Items → expand stock by location                                             |
+| Payment term | `DEMO-14-2`: 14 days net, 2% discount within 7 days                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        | Open any seeded customer or supplier invoice and inspect its payment term                |
+
+Northstar Outdoor, Maple Retail, Solstice Living and Blue Heron Living occur repeatedly in the dated
+sales series; the other customers provide authored one-off comparisons. Supplier-to-item
+relationships are stated above rather than inferred from a receipt.
+
 Search each reference in its matching view:
 
 - **Sales → Orders:** search for `SO-001`, `SO-011`, `SO-017` or `SO-024`.
@@ -35,6 +49,7 @@ original synthetic source payload.
 | `SO-002`           | Stock without reservation           | 5 ordered, 10 in stock, nothing reserved       | Sales → Orders → `SO-002`                          |
 | `SO-003`           | Stock shortage                      | 5 ordered but only 2 available                 | Sales → Orders → `SO-003` → availability           |
 | `SO-004`           | Partial reservation                 | 2 pcs reserved on an overdue order             | Sales → Orders → `SO-004` → reservations           |
+| `SO-005`           | Overdue full reservation            | 5 pcs reserved; the promise is overdue         | Sales → Orders → `SO-005` → reservations/history   |
 | `SO-006`           | Partial delivery                    | 3 of 5 pcs shipped; 2 remain open              | Sales → Orders → `SO-006` → deliveries             |
 | `SO-007`, `SO-008` | Manual hold                         | The commitment is held and remains explainable | Sales → Orders → reference → commitment            |
 | `SO-009`           | Complete delivery                   | 5 of 5 pcs shipped                             | Sales → Orders → `SO-009` → deliveries             |
@@ -205,13 +220,43 @@ missing evidence into EUR 0.
 | Supplier deposit and final invoice          | Yes      | `SDEP-001`, `SINV-010`; EUR 20 credit remains     | Finance → Supplier credits → `SDEP-001`; Payables → `SINV-010`          |
 | Dunning with a stated fee                   | Yes      | `DN-2026-0001`; level 2 plus EUR 5 fee            | Finance → Receivables → search notice/invoice and open its explanation  |
 | Partial bad-debt write-off                  | Yes      | `SO-037`; EUR 25 written off, EUR 15 remains      | Sales → Orders → `SO-037` → invoice → settlement explanation            |
-| Bank reconciliation, tax or FX revaluation  | No       | Not in profile version 9                          | Not present; see limitation                                             |
+| Bank reconciliation, tax or FX revaluation  | No       | Not in profile version 10                         | Not present; see limitation                                             |
 
 ## Static baseline and live data
 
 The cases above belong to the stable baseline. Live simulation separately adds customer orders and
 later invoices and payments. It does not automatically reserve stock, ship, return or replenish
 goods, so the reference cases remain reproducible.
+
+The live generator creates zero to six orders per scheduled delivery. Each order is invoiced two to
+ten minutes later and carries `DEMO-14-2`. Its deterministic long-run outcome mix is 91% exact, 2%
+short with a stated discount, 1% short with freight withheld, 1% paid in two parts, 1% overpaid or
+duplicated, 1% unmatched, 2% late and 1% never paid. Exact and late payments may arrive through the
+provider or bank path; all exceptions use the bank path. These percentages describe the generator,
+not a promise that every small visible sample contains every outcome. Live orders deliberately do
+not alter the fixed references above.
+
+## Special evidence and movements
+
+| Source reference                                | What it proves                                                                           | How to inspect it                                                                              |
+| ----------------------------------------------- | ---------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------- |
+| `wrong-location`                                | 8 × `ITEM-008` are in Singapore, so Rotterdam can still be short                         | Warehouse → Items → `ITEM-008` → stock by location and source evidence                         |
+| `shipment-cancelled-remainder`                  | The 2 shipped units of `SO-011` remain physical history after the remainder is cancelled | Sales → Orders → `SO-011` → deliveries/history                                                 |
+| `COST-LATE-CLEANUP`                             | A stated 10-unit outbound cleanup leaves 40 × `ITEM-003` in the reviewed layer           | Warehouse → Items → `ITEM-003` → movements; then `SO-024` contribution explanation             |
+| `correction-original`, `correction-replacement` | A wrong `ITEM-016` movement is retained and corrected rather than overwritten            | Warehouse → Items → `ITEM-016` → movements/source evidence                                     |
+| `history-receipt-*`, `history-shipment-*`       | Each historical sale has both inbound acquisition and outbound shipment evidence         | Open `SO-012`–`SO-023`, then follow the item movement evidence                                 |
+| `purchase-receipt-S01`, `S02`, `S04`–`S08`      | Purchase receipts exist only where the scenario says goods arrived                       | Purchasing → Orders → matching `PO-*` → receipts; `PO-003` intentionally has no receipt source |
+| `COST-A-SELLING`                                | EUR 114 selling cost for the complete `SO-024` margin story                              | Finance → Payables → search `COST-A-SELLING`; then compare the order's DB2 explanation         |
+| `COST-PORTFOLIO-SELLING`                        | Selling-cost allocation across the five portfolio margin cases                           | Finance → Payables → search the reference; compare `SO-025`–`SO-029`                           |
+
+## Which demo mode to use
+
+| Mode                                  | Purpose                                                                                | Start path                                                                                   |
+| ------------------------------------- | -------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------- |
+| International demo                    | Complete, deterministic reference company documented on this page                      | Companies → New company → Sandbox → Demo company                                             |
+| International demo with live data     | Same fixed baseline plus continuous synthetic order-to-cash intake                     | Choose Demo company and enable Live simulation during creation                               |
+| Execution fixture (`atlas-execution`) | Small two-item, two-order, one-warehouse practice tenant for bounded execution lessons | Company setup's execution content; intended for guided product exercises, not sales coverage |
+| `normal-month` scenario               | CLI-only compact September 2026 story for engineering and service verification         | `reality scenario run normal-month --tenant TENANT_ID`                                       |
 
 ## How the four commercial edge cases work
 

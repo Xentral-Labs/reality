@@ -1,8 +1,16 @@
 from conftest import record_by_id, seed_company
 from sqlalchemy import func, select
 
-from reality.db.core import Commitment, Item, Location, Party, PlaygroundRun
-from reality.demo.international import HISTORY
+from reality.db.core import (
+    Commitment,
+    Document,
+    Item,
+    Location,
+    Party,
+    PaymentTerm,
+    PlaygroundRun,
+)
+from reality.demo.international import DEMO_DATA_PAYMENT_TERM, HISTORY
 from reality.services import company_setup
 
 
@@ -30,6 +38,22 @@ def test_canonical_profile_counts_and_cases(session, scheduled_owner, monkeypatc
             )
             == count
         )
+    term = session.scalar(
+        select(PaymentTerm).where(
+            PaymentTerm.tenant_id == tenant,
+            PaymentTerm.code == DEMO_DATA_PAYMENT_TERM["code"],
+        )
+    )
+    assert term is not None
+    invoices = list(
+        session.scalars(
+            select(Document).where(
+                Document.tenant_id == tenant,
+                Document.type.in_(("sales_invoice", "supplier_invoice")),
+            )
+        )
+    )
+    assert invoices and all(invoice.payment_term_id == term.id for invoice in invoices)
     run = record_by_id(session, PlaygroundRun, result["run_id"])
     assert set(run.initialization_progress["cases"]) >= {
         *{f"O{i:02}" for i in range(1, 12)},
