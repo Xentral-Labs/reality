@@ -2,12 +2,13 @@
 
 import pytest
 from conftest import record_by_id, seed_company
+from sqlalchemy import func, select
+
 from reality.db.core import Document, PlaygroundRun, ProjectionCheckpoint, ProjectionRow
 from reality.db.scheduled_jobs import ScheduledJobRun
 from reality.services import company_setup
 from reality.services import scheduled_jobs as jobs
 from reality.services.projections import OPEN_FINANCIAL_ITEMS
-from sqlalchemy import func, select
 
 JOB_TYPE = "company_setup.initialize"
 INTERNATIONAL_V8_DOCUMENT_COUNT = 94

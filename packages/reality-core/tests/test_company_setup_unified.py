@@ -1,4 +1,5 @@
 from conftest import seed_company
+
 from reality.services import company_setup, demo_profile
 
 
@@ -93,10 +94,11 @@ def test_sandbox_reports_readable_without_mutation_authority(
     session, scheduled_owner, monkeypatch
 ):
     import pytest
+    from sqlalchemy import event
+
     from reality.services.core import InvalidOperation
     from reality.services.reference_workspace import require_ordinary_workspace
     from reality.tools.application import run_read_tool
-    from sqlalchemy import event
 
     result = company_setup.create_company(
         session,
