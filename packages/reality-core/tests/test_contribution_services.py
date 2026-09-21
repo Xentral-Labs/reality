@@ -6,6 +6,7 @@ import pytest
 import test_costing_services as costs
 import test_inventory_costing_services as stock
 from sqlalchemy import event
+from sqlalchemy.exc import IntegrityError
 
 from reality.db.core import Item
 from reality.mcp.catalog import MCP_TOOL_REGISTRY
@@ -302,17 +303,16 @@ def test_preview_unknown_inventory_and_negative_revenue(session, business, cost_
 
 
 def test_preview_foreign_customer_link_is_not_disclosed(session, business, cost_owner):
-    from reality.db.core import Document
 
-    billed, agreed, invoice, commitment, _, _ = prepared(session, business, cost_owner)
+    _, _, invoice, _, _, _ = prepared(session, business, cost_owner)
     other = core.create_tenant(session, "Other")
     foreign = core.create_party(session, other.id, "Private", "customer")
-    invoice.party_id = foreign.id
-    session.get(Document, agreed.document_id).party_id = foreign.id
-    commitment.to_party_id = foreign.id
-    session.flush()
-    with pytest.raises(core.NotFound):
-        contribution_preview(session, business.tenant.id, billed.id)
+    # The service used to be asked to refuse this; since spec 181 FR-005 the
+    # schema refuses it first, because a reference between two company-scoped
+    # tables carries the company and cannot name another company's party.
+    with pytest.raises(IntegrityError), session.begin_nested():
+        invoice.party_id = foreign.id
+        session.flush()
 
 
 def test_preview_unreviewed_stock_is_unknown(session, business, cost_owner):

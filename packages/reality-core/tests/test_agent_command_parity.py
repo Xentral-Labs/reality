@@ -69,7 +69,10 @@ def test_read_guidance_maps_public_tools_to_non_mutating_application_tools():
 
     assert read_guidance
     assert set(read_guidance) <= MCP_TOOL_NAMES
-    assert all(not TOOLS[entry["application_tool"]].mutating for entry in read_guidance.values())
+    assert all(
+        not TOOLS[entry["application_tool"]].mutating
+        for entry in read_guidance.values()
+    )
 
 
 def test_every_public_business_read_has_guidance():

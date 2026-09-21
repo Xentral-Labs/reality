@@ -10,6 +10,7 @@ import json
 from datetime import UTC, datetime, timedelta
 
 import pytest
+from conftest import record_by_id
 
 from reality.db.analytics import AnalysisRequest
 from reality.db.core import AppUser, TenantMembership, now, uid
@@ -150,7 +151,7 @@ def test_a_question_over_the_limit_is_accepted_for_the_worker(
     # The asker is told which limit sent this to the worker, not left to guess.
     assert "too large" in accepted["message"]
 
-    row = session.get(AnalysisRequest, accepted["id"])
+    row = record_by_id(session, AnalysisRequest, accepted["id"])
     assert row.run_id is not None
     assert row.question == question().model_dump(
         mode="json", by_alias=True, exclude_none=True
@@ -326,7 +327,7 @@ def test_an_uncollected_answer_does_not_linger(session, business, asker, monkeyp
         user_id=asker.id,
         request_id="req-expiring",
     )["request"]
-    row = session.get(AnalysisRequest, accepted["id"])
+    row = record_by_id(session, AnalysisRequest, accepted["id"])
     row.expires_at = datetime.now(UTC) - timedelta(seconds=1)
     session.flush()
 

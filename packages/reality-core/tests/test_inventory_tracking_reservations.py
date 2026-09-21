@@ -219,9 +219,7 @@ def test_confirmed_chat_tool_reserves_exact_serial_unit(session, business):
         "Chat serialized item",
         tracking_type="serial",
     )
-    serial = create_serial_unit(
-        session, business.tenant.id, item.id, "CHAT-SN-0001"
-    )
+    serial = create_serial_unit(session, business.tenant.id, item.id, "CHAT-SN-0001")
     record_movement(
         session,
         business.tenant.id,
@@ -242,7 +240,13 @@ def test_confirmed_chat_tool_reserves_exact_serial_unit(session, business):
         },
     )
 
-    executed = confirm_tool(session, business.tenant.id, proposal.id, review_token=json.loads(proposal.input)["_delivery_review"]["token"], confirmed=True)
+    executed = confirm_tool(
+        session,
+        business.tenant.id,
+        proposal.id,
+        review_token=json.loads(proposal.input)["_delivery_review"]["token"],
+        confirmed=True,
+    )
 
     assert executed.status == "executed"
     assert executed.output is not None
@@ -297,9 +301,7 @@ def test_a_best_before_can_be_stated_afterwards(session, business):
 
     # Goods arrive before somebody reads the label, so the date is statable
     # later rather than forcing the lot to be recreated.
-    stated = state_lot_expiry(
-        session, business.tenant.id, lot.id, "2026-10-15"
-    )
+    stated = state_lot_expiry(session, business.tenant.id, lot.id, "2026-10-15")
     assert stated is lot
     assert lot.expires_at == date(2026, 10, 15)
 
@@ -318,12 +320,9 @@ def test_a_different_best_before_is_refused(session, business):
 
     # Re-stating the same date is accepted and changes nothing, so a retry is
     # safe.
-    assert (
-        state_lot_expiry(
-            session, business.tenant.id, lot.id, "2026-10-15"
-        ).expires_at
-        == date(2026, 10, 15)
-    )
+    assert state_lot_expiry(
+        session, business.tenant.id, lot.id, "2026-10-15"
+    ).expires_at == date(2026, 10, 15)
 
     # A date nobody could read is not a date.
     with pytest.raises(InvalidOperation, match="readable calendar day"):
@@ -380,7 +379,9 @@ def test_expiry_blocks_nothing(session, business):
 
     # Reserving expired stock is not refused: refusing would stop a company
     # recording what it is about to do, and Reality has never chosen a lot.
-    assert reserve(session, business.tenant.id, commitment.id, lot_id=lot.id).reserved == Decimal(2)
+    assert reserve(
+        session, business.tenant.id, commitment.id, lot_id=lot.id
+    ).reserved == Decimal(2)
 
     # Nor is shipping it. The customer has the goods either way; what the
     # product owes is a record and a report.
@@ -465,40 +466,64 @@ def test_a_correction_refuses(session, business):
 
     with pytest.raises(InvalidOperation, match="requires a reason"):
         correct_lot_expiry(
-            session, tenant_id, lot.id, "2026-10-16",
-            expected_expires_at="2026-10-15", reason="   ",
+            session,
+            tenant_id,
+            lot.id,
+            "2026-10-16",
+            expected_expires_at="2026-10-15",
+            reason="   ",
         )
 
     # A correction confirms what it replaces, so it cannot be made by somebody
     # who has not looked.
     with pytest.raises(InvalidOperation, match="no longer matches what is stated"):
         correct_lot_expiry(
-            session, tenant_id, lot.id, "2026-10-16",
-            expected_expires_at="2026-10-14", reason="Guessing",
+            session,
+            tenant_id,
+            lot.id,
+            "2026-10-16",
+            expected_expires_at="2026-10-14",
+            reason="Guessing",
         )
     with pytest.raises(InvalidOperation, match="no longer matches what is stated"):
         correct_lot_expiry(
-            session, tenant_id, lot.id, "2026-10-16",
-            expected_expires_at=None, reason="Pretending none is stated",
+            session,
+            tenant_id,
+            lot.id,
+            "2026-10-16",
+            expected_expires_at=None,
+            reason="Pretending none is stated",
         )
 
     # A correction that corrects nothing is a claim about nothing.
     with pytest.raises(InvalidOperation, match="changes nothing"):
         correct_lot_expiry(
-            session, tenant_id, lot.id, "2026-10-15",
-            expected_expires_at="2026-10-15", reason="No change",
+            session,
+            tenant_id,
+            lot.id,
+            "2026-10-15",
+            expected_expires_at="2026-10-15",
+            reason="No change",
         )
 
     # Unreadable in either position, through the one stated-date rule.
     with pytest.raises(InvalidOperation, match="readable calendar day"):
         correct_lot_expiry(
-            session, tenant_id, lot.id, "next Tuesday",
-            expected_expires_at="2026-10-15", reason="Garbled",
+            session,
+            tenant_id,
+            lot.id,
+            "next Tuesday",
+            expected_expires_at="2026-10-15",
+            reason="Garbled",
         )
     with pytest.raises(InvalidOperation, match="readable calendar day"):
         correct_lot_expiry(
-            session, tenant_id, lot.id, "2026-10-16",
-            expected_expires_at="15.10.2026", reason="Garbled confirmation",
+            session,
+            tenant_id,
+            lot.id,
+            "2026-10-16",
+            expected_expires_at="15.10.2026",
+            reason="Garbled confirmation",
         )
 
     # Nothing above changed anything.
@@ -506,8 +531,12 @@ def test_a_correction_refuses(session, business):
 
     # The positive control: correctly stated, it goes through.
     assert correct_lot_expiry(
-        session, tenant_id, lot.id, "2026-10-16",
-        expected_expires_at="2026-10-15", reason="Misread label",
+        session,
+        tenant_id,
+        lot.id,
+        "2026-10-16",
+        expected_expires_at="2026-10-15",
+        reason="Misread label",
     ).expires_at == date(2026, 10, 16)
 
 
@@ -574,13 +603,21 @@ def test_correcting_expiry_is_tenant_scoped(session, business):
 
     with pytest.raises(NotFound):
         correct_lot_expiry(
-            session, other.id, lot.id, "2026-10-16",
-            expected_expires_at="2026-10-15", reason="Not mine",
+            session,
+            other.id,
+            lot.id,
+            "2026-10-16",
+            expected_expires_at="2026-10-15",
+            reason="Not mine",
         )
     assert lot.expires_at == date(2026, 10, 15)
 
     # The positive control: its own tenant corrects it.
     assert correct_lot_expiry(
-        session, business.tenant.id, lot.id, "2026-10-16",
-        expected_expires_at="2026-10-15", reason="Mine",
+        session,
+        business.tenant.id,
+        lot.id,
+        "2026-10-16",
+        expected_expires_at="2026-10-15",
+        reason="Mine",
     ).expires_at == date(2026, 10, 16)

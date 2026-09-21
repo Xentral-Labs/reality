@@ -4,6 +4,7 @@ from pathlib import Path
 
 import pytest
 import yaml
+from conftest import record_by_id
 from sqlalchemy import select, update
 from sqlalchemy.exc import IntegrityError
 
@@ -111,9 +112,11 @@ def test_scenario_selection_persists_and_restart_preserves_history(
     assert fresh.preset_key == "partial-delivery"
     assert fresh.lesson_key == "partial-delivery"
     assert fresh.tenant_id != original.tenant_id
-    assert session.get(PlaygroundRun, original.id).status == "archived"
+    assert record_by_id(session, PlaygroundRun, original.id).status == "archived"
     session.expire_all()
-    assert session.get(PlaygroundRun, fresh.id).preset_key == "partial-delivery"
+    assert (
+        record_by_id(session, PlaygroundRun, fresh.id).preset_key == "partial-delivery"
+    )
 
 
 def test_selected_scenario_restart_replays_after_lost_response(session, learning_owner):
@@ -149,7 +152,7 @@ def test_unavailable_scenario_does_not_archive_current_run(session, learning_own
             preset_version=1,
             confirmed=True,
         )
-    assert session.get(PlaygroundRun, original.id).status == "active"
+    assert record_by_id(session, PlaygroundRun, original.id).status == "active"
 
 
 @pytest.mark.parametrize(

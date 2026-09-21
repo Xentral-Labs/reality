@@ -4,6 +4,7 @@ import json
 from decimal import Decimal
 
 import pytest
+from conftest import record_by_id
 from sqlalchemy import func, select
 
 from reality.db.core import LedgerEntry, SourceRecord
@@ -76,7 +77,7 @@ def test_confirmed_adjustment_and_independent_inverse(session, business, side):
         "accounts_receivable" if side == "customer" else "accounts_payable",
     }
     assert all(e.amount == Decimal(20) for e in entries)
-    evidence = session.get(SourceRecord, receipt["source_record_id"])
+    evidence = record_by_id(session, SourceRecord, receipt["source_record_id"])
     assert json.loads(evidence.payload)["reason"] == "Agreed stated discount"
     assert (
         json.loads(approve_and_execute_proposal(session, tenant, proposal.id).output)

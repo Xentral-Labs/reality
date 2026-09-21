@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import pytest
 from sqlalchemy import select
+from sqlalchemy.exc import IntegrityError
 
 from reality.db.core import Fact, InterpretationRule, RealityGap
 from reality.services.core import InvalidOperation, ingest_shopify_order
@@ -118,7 +119,9 @@ def test_gap_capture_rejects_explanatory_text_as_the_queue_question(session, bus
         )
 
 
-def test_gap_register_filters_lifecycle_search_and_reports_tenant_counts(session, business):
+def test_gap_register_filters_lifecycle_search_and_reports_tenant_counts(
+    session, business
+):
     open_gap = capture_gap(
         session,
         business.tenant.id,
@@ -266,20 +269,26 @@ def test_rule_state_filter_precedes_paging_and_uses_versions_not_gap_lifecycle(
         )
     )
     other = create_tenant(session, "Other rule company")
-    # Even an inconsistent foreign link must not affect this company's rule filter.
-    session.add(
-        InterpretationRule(
-            id="state-foreign",
-            tenant_id=other.id,
-            gap_id=gaps[2].id,
-            logical_name="Foreign",
-            status="active",
-            source_system="shop",
-            source_type="order",
-            value_path="note",
-            predicate="note",
+    # A rule of another company pointing at this company's gap used to be written
+    # here, so the filter could be shown to ignore it. Since spec 181 FR-005 the
+    # inconsistent link cannot be written at all: a reference between two
+    # company-scoped tables carries the company. The filter is still checked
+    # below for what is genuinely its own.
+    with pytest.raises(IntegrityError), session.begin_nested():
+        session.add(
+            InterpretationRule(
+                id="state-foreign",
+                tenant_id=other.id,
+                gap_id=gaps[2].id,
+                logical_name="Foreign",
+                status="active",
+                source_system="shop",
+                source_type="order",
+                value_path="note",
+                predicate="note",
+            )
         )
-    )
+        session.flush()
     session.commit()
     active = list_gaps(session, business.tenant.id, rule_status="active", size=1)
     assert active["total"] == 1
@@ -296,8 +305,15 @@ def test_rule_state_filter_precedes_paging_and_uses_versions_not_gap_lifecycle(
     from test_http_boundary import client_for
 
     client = client_for(session, monkeypatch)
-    response = client.get(f"/api/tenants/{business.tenant.id}/reality-gaps?rule_status=active&size=1")
+    response = client.get(
+        f"/api/tenants/{business.tenant.id}/reality-gaps?rule_status=active&size=1"
+    )
     assert response.status_code == 200
     assert response.json()["total"] == 1
     assert response.json()["items"][0]["rule_statuses"] == ["active", "draft"]
-    assert client.get(f"/api/tenants/{business.tenant.id}/reality-gaps?rule_status=implemented").status_code == 400
+    assert (
+        client.get(
+            f"/api/tenants/{business.tenant.id}/reality-gaps?rule_status=implemented"
+        ).status_code
+        == 400
+    )

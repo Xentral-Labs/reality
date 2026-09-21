@@ -1,3 +1,4 @@
+from conftest import record_by_id
 from sqlalchemy import select
 
 from reality.db.core import Commitment, Document, DocumentLine, SourceRecord
@@ -44,10 +45,10 @@ def test_sales_order_proposal_is_inert_then_creates_complete_trace(session, busi
         allowed_access=("confirm",),
     )["output"]
 
-    source = session.get(SourceRecord, result["source_record_id"])
-    document = session.get(Document, result["document_id"])
-    line = session.get(DocumentLine, result["document_line_ids"][0])
-    commitment = session.get(Commitment, result["commitment_ids"][0])
+    source = record_by_id(session, SourceRecord, result["source_record_id"])
+    document = record_by_id(session, Document, result["document_id"])
+    line = record_by_id(session, DocumentLine, result["document_line_ids"][0])
+    commitment = record_by_id(session, Commitment, result["commitment_ids"][0])
     assert document.source_record_id == source.id
     assert line.document_id == document.id
     assert commitment.document_id == document.id
@@ -90,7 +91,7 @@ def test_purchase_order_derives_incoming_commitment(session, business):
         },
         allowed_access=("confirm",),
     )["output"]
-    commitment = session.get(Commitment, output["commitment_ids"][0])
+    commitment = record_by_id(session, Commitment, output["commitment_ids"][0])
     assert commitment.type == "supplier_delivery"
     assert commitment.from_party_id == business.supplier.id
     assert commitment.to_party_id == business.company.id

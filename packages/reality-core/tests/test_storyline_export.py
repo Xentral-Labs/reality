@@ -12,6 +12,7 @@ from datetime import UTC, datetime, timedelta
 
 import pytest
 import yaml
+from conftest import record_by_id
 from sqlalchemy import select
 
 from reality.db.core import BusinessEvent, PlaygroundRun
@@ -43,7 +44,9 @@ def confirm(session, tenant_id, tool, arguments):
 
 
 def seed_of(session, run_id):
-    return session.get(PlaygroundRun, run_id).initialization_progress["storyline"]
+    return record_by_id(session, PlaygroundRun, run_id).initialization_progress[
+        "storyline"
+    ]
 
 
 def order_input(seed):

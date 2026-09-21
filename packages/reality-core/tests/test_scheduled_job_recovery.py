@@ -1,6 +1,7 @@
 from datetime import timedelta
 
 import pytest
+from conftest import record_by_id
 from sqlalchemy import select
 
 from reality.db.core import SecurityAuditEvent, now
@@ -156,7 +157,7 @@ def test_committed_effect_survives_lost_acknowledgement(scheduled_database):
             == "succeeded"
         )
         assert jobs.claim_next(s, tenant) is None
-        assert s.get(CompanyInvitation, target_id) is None
+        assert record_by_id(s, CompanyInvitation, target_id) is None
 
 
 def test_unresolved_run_pauses_and_requires_review(session, business, scheduled_owner):
@@ -222,38 +223,89 @@ def test_unknown_version_is_terminal_and_other_work_remains_available(
     )
 
 
-def test_cancel_queued_occurrence_keeps_audit_and_refuses_claimed(session, business, scheduled_owner):
+def test_cancel_queued_occurrence_keeps_audit_and_refuses_claimed(
+    session, business, scheduled_owner
+):
     tenant, actor = business.tenant.id, scheduled_owner.id
-    schedule = jobs.create_schedule(session, tenant, actor, "invitations.cleanup", {}, request_id="cancel-schedule", interval_seconds=60)
-    jobs.control_schedule(session, tenant, actor, schedule.id, "resume", schedule.revision, "enable-cancel")
+    schedule = jobs.create_schedule(
+        session,
+        tenant,
+        actor,
+        "invitations.cleanup",
+        {},
+        request_id="cancel-schedule",
+        interval_seconds=60,
+    )
+    jobs.control_schedule(
+        session,
+        tenant,
+        actor,
+        schedule.id,
+        "resume",
+        schedule.revision,
+        "enable-cancel",
+    )
     schedule.next_run_at = now() - timedelta(seconds=1)
     session.flush()
     jobs.materialize_due(session, tenant)
     from reality.db.scheduled_jobs import ScheduledJobRun
-    run = session.scalar(select(ScheduledJobRun).where(ScheduledJobRun.tenant_id == tenant, ScheduledJobRun.schedule_id == schedule.id))
-    jobs.cancel_queued_run(session, tenant, actor, schedule.id, schedule.revision, "cancel-queued")
+
+    run = session.scalar(
+        select(ScheduledJobRun).where(
+            ScheduledJobRun.tenant_id == tenant,
+            ScheduledJobRun.schedule_id == schedule.id,
+        )
+    )
+    jobs.cancel_queued_run(
+        session, tenant, actor, schedule.id, schedule.revision, "cancel-queued"
+    )
     assert run.status == "cancelled" and not schedule.enabled
     assert run.finished_at is not None
     assert jobs.claim_next(session, tenant) is None
-    jobs.control_schedule(session, tenant, actor, schedule.id, "resume", schedule.revision, "resume-cancel")
+    jobs.control_schedule(
+        session,
+        tenant,
+        actor,
+        schedule.id,
+        "resume",
+        schedule.revision,
+        "resume-cancel",
+    )
     schedule.next_run_at = now() - timedelta(seconds=1)
     session.flush()
     jobs.materialize_due(session, tenant)
     claim = jobs.claim_next(session, tenant)
     assert claim is not None
     with pytest.raises(JobError, match="unfinished_run"):
-        jobs.cancel_queued_run(session, tenant, actor, schedule.id, schedule.revision, "refuse-running")
+        jobs.cancel_queued_run(
+            session, tenant, actor, schedule.id, schedule.revision, "refuse-running"
+        )
     assert schedule.enabled and claim.status == "running"
 
 
-def test_handler_cannot_commit_root_from_nested_scope(session, business, scheduled_owner, monkeypatch):
+def test_handler_cannot_commit_root_from_nested_scope(
+    session, business, scheduled_owner, monkeypatch
+):
     from reality.jobs import registry
+
     definition = definitions()["invitations.cleanup"]
+
     def committing(db, context, config):
         with db.begin_nested():
             db.commit()
         return JobResult()
-    monkeypatch.setitem(registry._REGISTRY, definition.name, JobDefinition(definition.name, 1, definition.config_model, definition.authorize, committing))
+
+    monkeypatch.setitem(
+        registry._REGISTRY,
+        definition.name,
+        JobDefinition(
+            definition.name,
+            1,
+            definition.config_model,
+            definition.authorize,
+            committing,
+        ),
+    )
     run = manual(session, business, scheduled_owner, "nested-commit")
     claim = jobs.claim_next(session, business.tenant.id)
     with pytest.raises(JobError, match="handler_commit_forbidden"):

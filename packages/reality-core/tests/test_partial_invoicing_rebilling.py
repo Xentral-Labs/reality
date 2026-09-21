@@ -5,6 +5,7 @@ from decimal import Decimal
 from uuid import uuid4
 
 import pytest
+from conftest import record_by_id
 from sqlalchemy import func, select
 from test_multi_position_invoices import order, prepare
 from test_unified_financial_reversal import prepare as prepare_reversal
@@ -30,8 +31,10 @@ def invoice(session, b, line, quantity="1", direction="sales"):
         if direction == "sales"
         else core.record_supplier_invoice
     )(session, b.tenant.id, **args(line, quantity))
-    doc = session.get(
-        Document, next(r["id"] for r in result["records"] if r["family"] == "document")
+    doc = record_by_id(
+        session,
+        Document,
+        next(r["id"] for r in result["records"] if r["family"] == "document"),
     )
     return doc, core._settlement_control_entry(
         session, b.tenant.id, doc.id

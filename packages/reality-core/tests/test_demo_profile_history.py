@@ -2,7 +2,7 @@ import json
 from datetime import datetime, timedelta
 from decimal import Decimal
 
-from conftest import seed_company
+from conftest import record_by_id, seed_company
 from sqlalchemy import select
 
 from reality.db.core import (
@@ -30,7 +30,9 @@ def test_history_has_twelve_weeks_distinct_currencies_and_linked_credit(
     assert result["status"] == "initializing"
     tenant = result["tenant_id"]
     assert seed_company(session, tenant) == "succeeded"
-    manifest = session.get(PlaygroundRun, result["run_id"]).initialization_progress
+    manifest = record_by_id(
+        session, PlaygroundRun, result["run_id"]
+    ).initialization_progress
     anchor = datetime.fromisoformat(manifest["anchor"])
     postings = list(
         session.scalars(
@@ -48,7 +50,7 @@ def test_history_has_twelve_weeks_distinct_currencies_and_linked_credit(
         (row.effective_at - (anchor - timedelta(days=84))).days // 7 for row in postings
     } == set(range(12))
     assert all(
-        session.get(SourceRecord, row.source_record_id).received_at >= anchor
+        record_by_id(session, SourceRecord, row.source_record_id).received_at >= anchor
         for row in postings
     )
     invoice = session.scalar(
@@ -57,7 +59,7 @@ def test_history_has_twelve_weeks_distinct_currencies_and_linked_credit(
         )
     )
     assert invoice.gross_amount == Decimal(400)
-    source = session.get(SourceRecord, invoice.source_record_id)
+    source = record_by_id(session, SourceRecord, invoice.source_record_id)
     assert json.loads(source.payload)["gross_amount"] == "400"
     credit = session.scalar(
         select(Document).where(

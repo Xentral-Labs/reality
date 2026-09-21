@@ -4,6 +4,7 @@ from datetime import UTC, datetime
 from decimal import Decimal
 
 import pytest
+from conftest import record_by_id
 from sqlalchemy import select
 
 from reality.db.core import LedgerEntry
@@ -251,7 +252,7 @@ def test_reversal_changes_only_snapshots_on_or_after_reversal(session, business)
     reversal = core.reverse_ledger_posting_group(
         session, tenant, payment[0].posting_group_id, reason="Wrong payment"
     )
-    session.get(LedgerReversal, reversal.reversal_id).reversed_at = datetime(
+    record_by_id(session, LedgerReversal, reversal.reversal_id).reversed_at = datetime(
         2026, 1, 10, tzinfo=UTC
     )
     session.flush()

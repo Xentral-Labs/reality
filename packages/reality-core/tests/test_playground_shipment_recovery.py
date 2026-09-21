@@ -2,6 +2,7 @@
 
 import pytest
 import test_playground_steps
+from conftest import record_by_id
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
@@ -41,7 +42,7 @@ def shipment_case(durable_playground):
 
     execute("stock", "movement_create", opening_arguments(engine, run_id))
     with Session(engine) as s:
-        run = s.get(PlaygroundRun, run_id)
+        run = record_by_id(s, PlaygroundRun, run_id)
         tenant, refs = run.tenant_id, run.initialization_progress
     order = execute(
         "order",
@@ -109,8 +110,8 @@ def test_legacy_overdelivery_can_be_discarded_without_replay(
             )
     else:
         with Session(engine) as s:
-            step = s.get(PlaygroundStep, preview["step_id"])
-            p = s.get(ChangeProposal, step.proposal_id)
+            step = record_by_id(s, PlaygroundStep, preview["step_id"])
+            p = record_by_id(s, ChangeProposal, step.proposal_id)
             step.before_observation = {"state": pg._shipment_state(s, tenant, args)}
             p.status = "executing"
             s.commit()
@@ -139,8 +140,8 @@ def test_unknown_execution_cannot_be_discarded(shipment_case):
         engine, owner, run, "unknown", "movement_create", {**args, "quantity": "1"}
     )
     with Session(engine) as s:
-        step = s.get(PlaygroundStep, preview["step_id"])
-        p = s.get(ChangeProposal, step.proposal_id)
+        step = record_by_id(s, PlaygroundStep, preview["step_id"])
+        p = record_by_id(s, ChangeProposal, step.proposal_id)
         p.status = "executing"
         step.before_observation = {"state": {"open_quantity": "1"}}
         s.commit()
@@ -159,8 +160,8 @@ def test_existing_effect_evidence_prevents_discard(
         m.setattr(pg, "validate_commitment_movement_quantity", lambda *a, **kw: None)
         preview = prepare_step(engine, owner, run, "legacy", "movement_create", args)
     with Session(engine) as s:
-        step = s.get(PlaygroundStep, preview["step_id"])
-        proposal = s.get(ChangeProposal, step.proposal_id)
+        step = record_by_id(s, PlaygroundStep, preview["step_id"])
+        proposal = record_by_id(s, ChangeProposal, step.proposal_id)
         proposal.status = "executing"
         step.before_observation = {"state": pg._shipment_state(s, tenant, args)}
         # Fixture evidence is deliberately ambiguous: it must prevent recovery.

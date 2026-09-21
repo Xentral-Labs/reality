@@ -11,6 +11,7 @@ kept reporting parcels that had arrived. These tests pin each adapter.
 import json
 from datetime import UTC, datetime
 
+from conftest import record_by_id
 from fastapi.testclient import TestClient
 from sqlalchemy import select
 from sqlalchemy.orm import sessionmaker
@@ -104,7 +105,9 @@ def test_an_agent_fulfils_an_announcement_through_the_proposal_boundary(
     )
     assert executed.status == "executed"
     session.expire_all()
-    assert session.get(ReturnAnnouncement, announcement.id).status == "fulfilled"
+    assert (
+        record_by_id(session, ReturnAnnouncement, announcement.id).status == "fulfilled"
+    )
     arrived = session.scalar(
         select(Movement).where(Movement.return_announcement_id == announcement.id)
     )
@@ -133,7 +136,9 @@ def test_the_web_api_carries_both_references(session, business, monkeypatch):
     assert back.status_code == 201, back.text
     assert back.json()["return_announcement_id"] == announcement.id
     session.expire_all()
-    assert session.get(ReturnAnnouncement, announcement.id).status == "fulfilled"
+    assert (
+        record_by_id(session, ReturnAnnouncement, announcement.id).status == "fulfilled"
+    )
 
     restocked = client.post(
         f"{prefix}/movements",
@@ -205,7 +210,9 @@ def test_the_cli_carries_both_references(session, business, monkeypatch):
     )
     assert back.exit_code == 0, back.output
     session.expire_all()
-    assert session.get(ReturnAnnouncement, announcement.id).status == "fulfilled"
+    assert (
+        record_by_id(session, ReturnAnnouncement, announcement.id).status == "fulfilled"
+    )
     arrived = session.scalar(
         select(Movement).where(Movement.return_announcement_id == announcement.id)
     )

@@ -1,4 +1,5 @@
 import pytest
+from conftest import record_by_id
 from fastapi.testclient import TestClient
 from sqlalchemy import select
 from sqlalchemy.orm import sessionmaker
@@ -77,13 +78,13 @@ def test_movement_rejects_pallet_from_another_tenant(session, business):
             handling_unit_id=foreign_pallet.id,
         )
 
-    assert session.scalar(select(Movement).where(Movement.tenant_id == other.id)) is None
-    assert session.get(HandlingUnit, foreign_pallet.id) is foreign_pallet
+    assert (
+        session.scalar(select(Movement).where(Movement.tenant_id == other.id)) is None
+    )
+    assert record_by_id(session, HandlingUnit, foreign_pallet.id) is foreign_pallet
 
 
-def test_api_records_optional_pallet_and_movement(
-    session, business, monkeypatch
-):
+def test_api_records_optional_pallet_and_movement(session, business, monkeypatch):
     factory = sessionmaker(session.bind, expire_on_commit=False)
     monkeypatch.setattr(api_module, "Session", factory)
     client = TestClient(web_module.app)

@@ -68,9 +68,7 @@ def test_stated_amounts_are_stored_verbatim(session, business):
 def test_total_may_differ_from_the_lines(session, business):
     # The paper says something else than the lines add up to. That difference is
     # the finding, so it is kept rather than corrected or refused.
-    document, lines = record(
-        session, business, "ER-4", [line(), line()], "39.95"
-    )
+    document, lines = record(session, business, "ER-4", [line(), line()], "39.95")
 
     assert document.gross_amount == Decimal("39.95")
     assert sum(row.gross_amount for row in lines) == Decimal("40.00")
@@ -220,13 +218,9 @@ def test_invoice_line_reference_is_validated(session, business):
         )
 
     # A sales invoice may not bill a purchase order line, or the reverse.
-    purchase = order_line(
-        session, business, direction="purchase", number="PO-LINK-1"
-    )
+    purchase = order_line(session, business, direction="purchase", number="PO-LINK-1")
     with pytest.raises(InvalidOperation, match="side"):
-        invoice_line(
-            session, business, billed_id=purchase.id, number="RE-WRONG-SIDE"
-        )
+        invoice_line(session, business, billed_id=purchase.id, number="RE-WRONG-SIDE")
     with pytest.raises(InvalidOperation, match="side"):
         invoice_line(
             session,

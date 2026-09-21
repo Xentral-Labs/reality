@@ -1,6 +1,7 @@
 """Source-backed selling decisions preserve conservation and independent DB2 coverage."""
 
 import pytest
+from conftest import record_by_id
 
 from reality.domain.costing import SellingAssign
 
@@ -295,7 +296,9 @@ def test_source_cannot_be_reused_across_acquisition_and_selling(
     session, business, cost_owner
 ):
     _args, data = revenue.prepared(session, business, cost_owner)
-    movement = session.get(Movement, data[5]["receipt_sources"][0]["movement_id"])
+    movement = record_by_id(
+        session, Movement, data[5]["receipt_sources"][0]["movement_id"]
+    )
     doc = costs.evidence(session, business, "24", "0")
     costs.execute(
         session,
@@ -533,8 +536,8 @@ def test_selling_frozen_reads_do_not_write_or_enumerate_live_assignments(
     finally:
         event.remove(conn, "before_cursor_execute", observe)
     assert not writes
-    part = session.get(
-        CostSellingPart, result["trace"]["selling"]["parts"][0]["part"]["id"]
+    part = record_by_id(
+        session, CostSellingPart, result["trace"]["selling"]["parts"][0]["part"]["id"]
     )
     part.source_share += 1
     session.flush()

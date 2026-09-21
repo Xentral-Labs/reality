@@ -43,8 +43,13 @@ for _table in (
 
 
 class CostRecord:
+    # The company first, then the identity, and in that order (spec 181 FR-005):
+    # PostgreSQL will not partition a table unless every unique constraint holds
+    # the partition key, and a key that leads with the company is also the better
+    # index where every read names one. The order is the declaration order, which
+    # is why the company is written first here.
+    tenant_id: Mapped[str] = mapped_column(ForeignKey("tenant.id"), primary_key=True)
     id: Mapped[str] = mapped_column(String, primary_key=True)
-    tenant_id: Mapped[str] = mapped_column(ForeignKey("tenant.id"), index=True)
 
 
 class CostReceiptBasis(CostRecord, Base):
@@ -83,9 +88,7 @@ class CostConversionBasisRevision(CostRecord, Base):
     __tablename__ = "cost_conversion_basis_revision"
     __table_args__ = (
         UniqueConstraint("tenant_id", "id"),
-        UniqueConstraint(
-            "tenant_id", "kind", "from_code", "to_code", "revision"
-        ),
+        UniqueConstraint("tenant_id", "kind", "from_code", "to_code", "revision"),
         UniqueConstraint("tenant_id", "supersedes_id"),
         _link("evidence_source_record_id", "source_record"),
         _link("supersedes_id", "cost_conversion_basis_revision"),
@@ -176,7 +179,7 @@ class CostAttributionPart(CostRecord, Base):
         ),
     )
     attribution_revision_id: Mapped[str] = mapped_column(String, index=True)
-    receipt_basis_id: Mapped[str] = mapped_column(String, index=True)
+    receipt_basis_id: Mapped[str] = mapped_column(String)
     amount_bucket: Mapped[str] = mapped_column(String)
     category: Mapped[str] = mapped_column(String)
     source_share: Mapped[Decimal] = mapped_column(Numeric(18, 4))

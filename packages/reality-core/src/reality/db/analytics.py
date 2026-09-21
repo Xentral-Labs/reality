@@ -5,8 +5,10 @@ from datetime import datetime
 from sqlalchemy import (
     CheckConstraint,
     ForeignKey,
+    ForeignKeyConstraint,
     Index,
     Integer,
+    PrimaryKeyConstraint,
     String,
     UniqueConstraint,
 )
@@ -19,6 +21,7 @@ from reality.db.core import Base, UTCDateTime, now
 class AnalyticsReport(Base):
     __tablename__ = "analytics_report"
     __table_args__ = (
+        PrimaryKeyConstraint("tenant_id", "id"),
         UniqueConstraint("tenant_id", "id", name="uq_analytics_report_tenant"),
         UniqueConstraint(
             "tenant_id",
@@ -37,7 +40,7 @@ class AnalyticsReport(Base):
             "id",
         ),
     )
-    id: Mapped[str] = mapped_column(String, primary_key=True)
+    id: Mapped[str] = mapped_column(String)
     tenant_id: Mapped[str] = mapped_column(ForeignKey("tenant.id"))
     owner_user_id: Mapped[str] = mapped_column(ForeignKey("app_user.id"))
     name: Mapped[str] = mapped_column(String(120))
@@ -73,6 +76,11 @@ class AnalysisRequest(Base):
 
     __tablename__ = "analysis_request"
     __table_args__ = (
+        PrimaryKeyConstraint("tenant_id", "id"),
+        ForeignKeyConstraint(
+            ["tenant_id", "run_id"],
+            ["scheduled_job_run.tenant_id", "scheduled_job_run.id"],
+        ),
         UniqueConstraint("tenant_id", "id", name="uq_analysis_request_tenant"),
         UniqueConstraint(
             "tenant_id",
@@ -92,7 +100,7 @@ class AnalysisRequest(Base):
         ),
         Index("ix_analysis_request_expiry", "expires_at"),
     )
-    id: Mapped[str] = mapped_column(String, primary_key=True)
+    id: Mapped[str] = mapped_column(String)
     tenant_id: Mapped[str] = mapped_column(ForeignKey("tenant.id"))
     requested_by_user_id: Mapped[str] = mapped_column(ForeignKey("app_user.id"))
     # The checked traversal, exactly as it was accepted. The answer means nothing
@@ -103,9 +111,7 @@ class AnalysisRequest(Base):
     # size codes; kept so the asker is told which limit sent it to the worker.
     deferred_reason: Mapped[str] = mapped_column(String)
     state: Mapped[str] = mapped_column(String, default="accepted")
-    run_id: Mapped[str | None] = mapped_column(
-        ForeignKey("scheduled_job_run.id"), default=None
-    )
+    run_id: Mapped[str | None] = mapped_column(default=None)
     rows: Mapped[list | None] = mapped_column(JSONB, default=None)
     row_count: Mapped[int | None] = mapped_column(Integer, default=None)
     statements: Mapped[int | None] = mapped_column(Integer, default=None)

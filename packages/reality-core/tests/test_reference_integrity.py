@@ -113,7 +113,10 @@ def _callees(node: ast.AST) -> set[str]:
 
 
 def _reaches(
-    name: str, functions: dict[str, ast.AST], fields: set[str], seen: set[str] | None = None
+    name: str,
+    functions: dict[str, ast.AST],
+    fields: set[str],
+    seen: set[str] | None = None,
 ) -> set[str]:
     seen = set() if seen is None else seen
     if name in seen:
@@ -305,8 +308,8 @@ def test_every_writer_passes_the_reference_through():
         for module, holder, record, field in exempt
         if (module, holder, record, field) not in used
     )
-    assert not stale, (
-        "Stale writer exemptions hide the next real one: " + "; ".join(stale)
+    assert not stale, "Stale writer exemptions hide the next real one: " + "; ".join(
+        stale
     )
 
 
@@ -492,10 +495,7 @@ def test_the_loader_refuses_a_broken_catalog():
         with pytest.raises(ValueError, match="direction"):
             catalogs.load_reference_catalog(
                 replaced(
-                    consumers={
-                        class_id: "sometimes"
-                        for class_id in entry["consumers"]
-                    }
+                    consumers={class_id: "sometimes" for class_id in entry["consumers"]}
                 )
             )
 
@@ -512,9 +512,7 @@ def test_the_production_reference_catalog_is_the_measured_one():
     """
     load_bearing = _load_bearing()
     consumers = {
-        class_id
-        for entry in load_bearing.values()
-        for class_id in entry["consumers"]
+        class_id for entry in load_bearing.values() for class_id in entry["consumers"]
     }
     directions = [
         direction

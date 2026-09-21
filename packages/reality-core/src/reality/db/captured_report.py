@@ -75,12 +75,12 @@ class CostInventoryRow(CostRecord, Base):
         ),
     )
     generation_id: Mapped[str] = mapped_column(String, index=True)
-    inventory_basis_member_id: Mapped[str] = mapped_column(String, index=True)
+    inventory_basis_member_id: Mapped[str] = mapped_column(String)
     state: Mapped[str] = mapped_column(String)
     currency: Mapped[str | None] = mapped_column(String)
     base_unit: Mapped[str | None] = mapped_column(String)
     method: Mapped[str | None] = mapped_column(String)
-    owner_party_id: Mapped[str | None] = mapped_column(String, index=True)
+    owner_party_id: Mapped[str | None] = mapped_column(String)
     remaining_quantity: Mapped[Decimal | None] = mapped_column(Numeric(18, 4))
     acquisition_value: Mapped[Decimal | None] = mapped_column(Numeric(18, 4))
     carrying_value: Mapped[Decimal | None] = mapped_column(Numeric(18, 4))
@@ -107,7 +107,7 @@ class CostContributionRow(CostRecord, Base):
         CheckConstraint("goods_cost>=0", name="ck_cost_contribution_row_goods"),
     )
     generation_id: Mapped[str] = mapped_column(String, index=True)
-    contribution_basis_member_id: Mapped[str] = mapped_column(String, index=True)
+    contribution_basis_member_id: Mapped[str] = mapped_column(String)
     state: Mapped[str] = mapped_column(String)
     currency: Mapped[str | None] = mapped_column(String)
     base_unit: Mapped[str | None] = mapped_column(String)

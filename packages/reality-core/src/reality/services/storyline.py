@@ -1165,7 +1165,10 @@ def prepare(
             if existing.lesson_step_key != key:
                 raise Conflict("The request key belongs to another chapter.")
             proposal = (
-                session.get(ChangeProposal, existing.proposal_id)
+                session.get(
+                    ChangeProposal,
+                    {"tenant_id": tenant_id, "id": existing.proposal_id},
+                )
                 if existing.proposal_id
                 else None
             )
@@ -1711,7 +1714,9 @@ def delta(
         before = list((step.before_observation or {}).get("exceptions") or [])
         chapter = _package_of(session, run).chapter(step.lesson_step_key or "")
         if chapter is not None and chapter.primary and step.proposal_id:
-            proposal = session.get(ChangeProposal, step.proposal_id)
+            proposal = session.get(
+                ChangeProposal, {"tenant_id": tenant_id, "id": step.proposal_id}
+            )
             if proposal is not None and proposal.status == "executed":
                 try:
                     record_id = dig(

@@ -4,6 +4,7 @@ import io
 import json
 
 import pytest
+from conftest import record_by_id
 from sqlalchemy import func, select
 
 from reality.db.core import BusinessEvent, Item, SourceRecord
@@ -84,10 +85,10 @@ def test_preview_is_inert_confirm_is_traceable_and_replay_safe(
     assert items(session, business) == before + 2
     detail = delivery_proposal_detail(session, business.tenant.id, proposal.id)
     assert detail["verification"] == "verified"
-    source = session.get(SourceRecord, receipt["source_record_id"])
+    source = record_by_id(session, SourceRecord, receipt["source_record_id"])
     assert source.source_artifact_id == config["artifact_id"]
     assert all(
-        session.get(Item, item_id).source_record_id == source.id
+        record_by_id(session, Item, item_id).source_record_id == source.id
         for item_id in receipt["item_ids"]
     )
     assert json.loads(confirm(session, business, proposal).output) == receipt

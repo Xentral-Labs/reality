@@ -61,7 +61,10 @@ def test_incoming_register_uses_supplier_effective_values_and_corrected_receipts
     ]
     assert delivery_work(session, tid)["items"][0]["id"] == outgoing.id
     # Spec 116 adds shared incoming case context for reviewed receipts.
-    assert delivery_case(session, tid, incoming.id)["case"]["party_id"] == business.supplier.id
+    assert (
+        delivery_case(session, tid, incoming.id)["case"]["party_id"]
+        == business.supplier.id
+    )
     preview = preview_movement_correction(
         session, tid, receipt.id, reason="Duplicate receipt"
     )

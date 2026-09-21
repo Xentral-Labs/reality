@@ -4,6 +4,7 @@ import json
 from decimal import Decimal
 
 import pytest
+from conftest import record_by_id
 from sqlalchemy import func, select
 
 from reality.db.core import BusinessEvent, Document, DocumentLine, LedgerEntry, Movement
@@ -87,8 +88,8 @@ def test_invoice_review_atomic_effects_and_unknown_recovery(
     assert detail["verification"] == "verified"
     records = detail["receipt"]["records"]
     assert len(records) == 5
-    invoice = session.get(
-        Document, next(r["id"] for r in records if r["family"] == "document")
+    invoice = record_by_id(
+        session, Document, next(r["id"] for r in records if r["family"] == "document")
     )
     assert invoice.gross_amount == Decimal(301)
     entries = list(
@@ -159,7 +160,7 @@ def test_invalid_invoice_is_inert(session, business, change):
 def test_stale_line_and_unresolved_guard(session, business):
     proposal = prepare(session, business)
     line_id = json.loads(proposal.input)["order_line_id"]
-    line = session.get(DocumentLine, line_id)
+    line = record_by_id(session, DocumentLine, line_id)
     line.gross_amount = Decimal(299)
     session.commit()
     with pytest.raises(InvalidOperation, match="review"):
@@ -211,7 +212,7 @@ def test_historical_invoice_proof_survives_reversal_and_unverified_output(
     entry_id = next(
         r["id"] for r in receipt["records"] if r["family"] == "ledger_entry"
     )
-    group = session.get(LedgerEntry, entry_id).posting_group_id
+    group = record_by_id(session, LedgerEntry, entry_id).posting_group_id
     reverse_ledger_posting_group(
         session, business.tenant.id, group, reason="Invoice entered in error"
     )

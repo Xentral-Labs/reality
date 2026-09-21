@@ -51,9 +51,7 @@ def test_journal_read_is_tenant_scoped_balanced_filterable_and_inspectable(
         payload = response.json()
         assert payload["page"]["size"] == 50
         assert payload["page"]["total"] == 2
-        assert {row["account"] for row in payload["items"]} == {
-            "accounts_receivable"
-        }
+        assert {row["account"] for row in payload["items"]} == {"accounts_receivable"}
         assert all(row["inspect_kind"] == "ledger_entry" for row in payload["items"])
         assert all(row["inspect_id"] == row["id"] for row in payload["items"])
         inspector = client.get(

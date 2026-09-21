@@ -1,4 +1,4 @@
-from conftest import seed_company
+from conftest import record_by_id, seed_company
 from sqlalchemy import func, select
 
 from reality.db.core import Commitment, Item, Location, Party, PlaygroundRun
@@ -29,7 +29,7 @@ def test_canonical_profile_counts_and_cases(session, scheduled_owner, monkeypatc
             )
             == count
         )
-    run = session.get(PlaygroundRun, result["run_id"])
+    run = record_by_id(session, PlaygroundRun, result["run_id"])
     assert set(run.initialization_progress["cases"]) >= {
         f"O{i:02}" for i in range(1, 11)
     }
@@ -60,7 +60,9 @@ def test_operational_stock_and_source_lineage(session, scheduled_owner, monkeypa
     )
     tenant = result["tenant_id"]
     seed_company(session, tenant)
-    manifest = session.get(PlaygroundRun, result["run_id"]).initialization_progress
+    manifest = record_by_id(
+        session, PlaygroundRun, result["run_id"]
+    ).initialization_progress
     for index, stock in enumerate((10, 10, 2, 2, 5, 7, 10, 0, 0, 10), 1):
         assert core.stock_at(
             session,
@@ -69,12 +71,12 @@ def test_operational_stock_and_source_lineage(session, scheduled_owner, monkeypa
             manifest["locations"]["A"],
         ) == Decimal(stock)
         case = manifest["cases"][f"O{index:02}"]
-        commitment = session.get(Commitment, case["commitment_id"])
-        line = session.get(DocumentLine, commitment.document_line_id)
-        document = session.get(Document, line.document_id)
+        commitment = record_by_id(session, Commitment, case["commitment_id"])
+        line = record_by_id(session, DocumentLine, commitment.document_line_id)
+        document = record_by_id(session, Document, line.document_id)
         assert document.id == case["document_id"]
         assert (
-            session.get(SourceRecord, document.source_record_id).source_system
+            record_by_id(session, SourceRecord, document.source_record_id).source_system
             == "demo_profile"
         )
         reserved = session.scalar(
@@ -96,11 +98,15 @@ def test_operational_stock_and_source_lineage(session, scheduled_owner, monkeypa
         == 2
     )
     assert (
-        session.get(Commitment, manifest["cases"]["O09"]["commitment_id"]).status
+        record_by_id(
+            session, Commitment, manifest["cases"]["O09"]["commitment_id"]
+        ).status
         == "fulfilled"
     )
     assert (
-        session.get(Commitment, manifest["cases"]["O10"]["commitment_id"]).status
+        record_by_id(
+            session, Commitment, manifest["cases"]["O10"]["commitment_id"]
+        ).status
         == "cancelled"
     )
 
@@ -151,7 +157,9 @@ def test_orders_spread_over_the_customer_pool(session, scheduled_owner, monkeypa
     }
     assert len(portfolio_orders) == 5, portfolio_orders
     operational_orders = {
-        number: buyer for number, buyer in orders.items() if number not in portfolio_orders
+        number: buyer
+        for number, buyer in orders.items()
+        if number not in portfolio_orders
     }
     assert len(operational_orders) == 36
     held = Counter(operational_orders.values())
@@ -218,7 +226,11 @@ def _open_amounts(session, tenant: str, document_type: str) -> dict:
 
 def _states(amounts: dict) -> dict:
     return {
-        number: "paid" if open_amount == 0 else "part" if open_amount < gross else "open"
+        number: "paid"
+        if open_amount == 0
+        else "part"
+        if open_amount < gross
+        else "open"
         for number, (open_amount, gross) in amounts.items()
     }
 
@@ -233,10 +245,7 @@ def test_seeded_invoices_are_settled_in_three_states(
     from reality.db.core import Document
 
     tenant = _demo_company(session, scheduled_owner, "settled")
-    states = Counter(
-        _states(_open_amounts(session, tenant, "sales_invoice"))
-        .values()
-    )
+    states = Counter(_states(_open_amounts(session, tenant, "sales_invoice")).values())
     assert states["paid"] >= 10, states
     assert states["part"] >= 3, states
     assert states["open"] >= 4, states
@@ -253,8 +262,7 @@ def test_seeded_invoices_are_settled_in_three_states(
         for open_amount, _ in _open_amounts(session, tenant, "sales_invoice").values()
     )
     invoiced = sum(
-        gross
-        for _, gross in _open_amounts(session, tenant, "sales_invoice").values()
+        gross for _, gross in _open_amounts(session, tenant, "sales_invoice").values()
     )
     assert Decimal(0) < receivable < invoiced, (receivable, invoiced)
 
@@ -277,15 +285,15 @@ def test_purchases_cover_the_whole_chain(session, scheduled_owner, monkeypatch):
         for number, state in payables.items()
         if number != "COST-PORTFOLIO-SELLING"
     }
-    assert sorted(operational_payables.values()) == ["open", "open", "paid", "part"], payables
-    run = session.scalar(
-        select(PlaygroundRun).where(PlaygroundRun.tenant_id == tenant)
+    assert sorted(operational_payables.values()) == ["open", "open", "paid", "part"], (
+        payables
     )
+    run = session.scalar(select(PlaygroundRun).where(PlaygroundRun.tenant_id == tenant))
     received = {}
     for key, case in run.initialization_progress["cases"].items():
         if not key.startswith("S"):
             continue
-        commitment = session.get(Commitment, case["commitment_id"])
+        commitment = record_by_id(session, Commitment, case["commitment_id"])
         received[key] = core.fulfilled_quantity(session, tenant, commitment.id)
     assert received["S01"] == Decimal(2), received
     assert received["S03"] == Decimal(0), received

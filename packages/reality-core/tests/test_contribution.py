@@ -100,11 +100,7 @@ def test_partial_commercial_matches_conserve_shared_inventory_capacity():
 def test_commercial_match_revenue_allocation_is_deterministic_read_time_only():
     parts = [commercial_part(f"member-{suffix}", "1") for suffix in ("c", "a", "b")]
     result = admit_commercial_matches(
-        [
-            commercial_line(
-                stated_net="100", stated_quantity="3", inventory_parts=parts
-            )
-        ],
+        [commercial_line(stated_net="100", stated_quantity="3", inventory_parts=parts)],
         {part.key: D(1) for part in parts},
     )[0]
 
@@ -170,9 +166,7 @@ def test_commercial_match_line_refuses_ambiguous_shape(changes, match):
 def test_commercial_match_refuses_overlap_or_foreign_capacity_key():
     line = commercial_line()
     with pytest.raises(ContributionRefusal, match="match_capacity_exceeded"):
-        admit_commercial_matches(
-            [line], {line.inventory_parts[0].key: D("59.9999")}
-        )
+        admit_commercial_matches([line], {line.inventory_parts[0].key: D("59.9999")})
     with pytest.raises(ContributionRefusal, match="match_capacity_missing"):
         admit_commercial_matches([line], {})
 

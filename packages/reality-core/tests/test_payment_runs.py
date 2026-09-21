@@ -262,9 +262,7 @@ def test_the_preview_writes_nothing(session, business):
         len(financial_open_items(session, business.tenant.id)),
         len(business_events(session, business.tenant.id)),
     )
-    first = preview_payment_run(
-        session, business.tenant.id, pay_by=PAY_BY, as_of=AS_OF
-    )
+    first = preview_payment_run(session, business.tenant.id, pay_by=PAY_BY, as_of=AS_OF)
     second = preview_payment_run(
         session, business.tenant.id, pay_by=PAY_BY, as_of=AS_OF
     )
@@ -317,9 +315,7 @@ def test_the_preview_proposes_what_is_due_and_what_is_discountable(session, busi
 def test_the_discount_is_named_never_applied(session, business):
     """The rate and the deadline are stated; what the discount is worth is not."""
     skonto(session, business)
-    invoice = supplier_invoice(
-        session, business, "ER-098-RATE", "2026-08-25", "SK2_10"
-    )
+    invoice = supplier_invoice(session, business, "ER-098-RATE", "2026-08-25", "SK2_10")
 
     preview = preview_payment_run(
         session, business.tenant.id, pay_by=PAY_BY, as_of=AS_OF
@@ -378,17 +374,14 @@ def test_the_preview_totals_per_supplier_and_overall(session, business):
         ("Bike Parts GmbH", "USD", 1, Decimal(90)),
     ]
     assert [
-        (row["currency"], row["count"], row["open_amount"])
-        for row in preview["totals"]
+        (row["currency"], row["count"], row["open_amount"]) for row in preview["totals"]
     ] == [("EUR", 3, Decimal(750)), ("USD", 1, Decimal(90))]
 
 
 def test_the_preview_reads_the_register(session, business):
     """Every figure comes from the aging register, so they cannot disagree."""
     skonto(session, business)
-    invoice = supplier_invoice(
-        session, business, "ER-098-REG", "2026-08-25", "SK2_10"
-    )
+    invoice = supplier_invoice(session, business, "ER-098-REG", "2026-08-25", "SK2_10")
     post_supplier_payment(session, business.tenant.id, invoice.id, "400.00")
 
     (row,) = [
@@ -697,9 +690,10 @@ def test_a_run_is_tenant_scoped(session, business):
     create_party(session, other.id, "Foreign Supplier", "supplier")
 
     # Another tenant can neither see nor pay this invoice.
-    assert preview_payment_run(session, other.id, pay_by=PAY_BY, as_of=AS_OF)[
-        "proposed"
-    ] == []
+    assert (
+        preview_payment_run(session, other.id, pay_by=PAY_BY, as_of=AS_OF)["proposed"]
+        == []
+    )
     with pytest.raises(InvalidOperation, match="this tenant only"):
         execute_payment_run(
             session,

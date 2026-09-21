@@ -13,6 +13,7 @@ from decimal import Decimal
 from uuid import uuid4
 
 import pytest
+from conftest import record_by_id
 from cryptography.fernet import Fernet
 
 from reality.domain.traversal import Traversal
@@ -347,7 +348,7 @@ def test_a_refused_save_releases_the_proposal_instead_of_stranding_it(
     assert refusal.value.code == "idempotency_conflict"
 
     session.expire_all()
-    assert session.get(type(proposal), proposal.id).status == "proposed", (
+    assert record_by_id(session, type(proposal), proposal.id).status == "proposed", (
         "a refusal has to leave the proposal confirmable again"
     )
     # And the refusal is the same one the second time, rather than a dead end.
@@ -406,4 +407,4 @@ def test_a_proposal_that_cannot_be_unsealed_says_so_and_can_be_rejected(
     reject_proposal(
         session, business.tenant.id, proposal.id, confirming_principal=author
     )
-    assert session.get(type(proposal), proposal.id).status == "rejected"
+    assert record_by_id(session, type(proposal), proposal.id).status == "rejected"

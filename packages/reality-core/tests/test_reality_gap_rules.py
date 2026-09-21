@@ -70,7 +70,9 @@ def _prepared_rule(session, business, draft: dict):
     )
 
 
-def test_shared_shopify_gift_wrap_fixtures_match_simulation_and_replay(session, business):
+def test_shared_shopify_gift_wrap_fixtures_match_simulation_and_replay(
+    session, business
+):
     matching_payload = json.loads(
         (FIXTURES / "shopify_gift_wrap_example.json").read_text(encoding="utf-8")
     )
@@ -132,7 +134,9 @@ def test_shared_shopify_gift_wrap_fixtures_match_simulation_and_replay(session, 
     assert result["not_applicable"] == 1
 
 
-def test_all_conditions_create_constant_fact_or_normal_not_applicable(session, business):
+def test_all_conditions_create_constant_fact_or_normal_not_applicable(
+    session, business
+):
     matching, _, _, _ = ingest_shopify_order(
         session,
         business.tenant.id,
@@ -305,7 +309,11 @@ def test_nested_all_any_groups_preserve_reviewed_boolean_semantics(session, busi
             "customer_kind": "b2b",
             "overdue": True,
         },
-        {**_payload("b2b-neither", total="25.00"), "customer_kind": "b2b", "overdue": False},
+        {
+            **_payload("b2b-neither", total="25.00"),
+            "customer_kind": "b2b",
+            "overdue": False,
+        },
         {**_payload("b2c-high-value"), "customer_kind": "b2c", "overdue": False},
         {**_payload("b2b-high-value-overdue-missing"), "customer_kind": "b2b"},
         {
@@ -447,7 +455,9 @@ def test_condition_group_bounds_are_rejected_before_storage(
         )
 
 
-def test_source_path_observation_time_is_timezone_aware_and_normalized(session, business):
+def test_source_path_observation_time_is_timezone_aware_and_normalized(
+    session, business
+):
     source, _, _, _ = ingest_shopify_order(
         session,
         business.tenant.id,
@@ -575,11 +585,14 @@ def test_competing_active_rules_report_conflict_without_silent_precedence(
 
     preview = simulate_rule(session, business.tenant.id, negative.id)
     assert preview["conflicts"] == 1
-    result = replay_rule(session, business.tenant.id, negative.id, source_ids=[source.id])
+    result = replay_rule(
+        session, business.tenant.id, negative.id, source_ids=[source.id]
+    )
     assert result["conflicts"] == 1
-    assert session.scalar(
-        select(Fact).where(Fact.interpretation_rule_id == negative.id)
-    ) is None
+    assert (
+        session.scalar(select(Fact).where(Fact.interpretation_rule_id == negative.id))
+        is None
+    )
 
 
 def test_replay_returns_scope_bound_cursor_and_resumes_without_duplicates(
@@ -637,9 +650,16 @@ def test_replay_returns_scope_bound_cursor_and_resumes_without_duplicates(
     assert second["complete"] is True
     assert second["next_cursor"] is None
     assert second["cumulative"]["facts_created"] == 3
-    assert len(
-        list(session.scalars(select(Fact).where(Fact.interpretation_rule_id == rule.id)))
-    ) == 3
+    assert (
+        len(
+            list(
+                session.scalars(
+                    select(Fact).where(Fact.interpretation_rule_id == rule.id)
+                )
+            )
+        )
+        == 3
+    )
 
 
 @pytest.mark.parametrize(
@@ -819,9 +839,10 @@ def test_invalid_effective_time_creates_failure_outcome_and_no_fact(session, bus
     result = replay_rule(session, business.tenant.id, rule.id, source_ids=[source.id])
 
     assert result["failed"] == 1
-    assert session.scalar(
-        select(Fact).where(Fact.interpretation_rule_id == rule.id)
-    ) is None
+    assert (
+        session.scalar(select(Fact).where(Fact.interpretation_rule_id == rule.id))
+        is None
+    )
 
 
 def test_replay_cursor_cannot_broaden_its_reviewed_source_scope(session, business):

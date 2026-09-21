@@ -103,7 +103,9 @@ def test_quantity_and_equal_drivers_ignore_caller_weights(
         arguments,
         principal=Principal(cost_owner.id),
     )
-    assert [row["source_share"] for row in preview["review"]["allocation"]["shares"]] == [
+    assert [
+        row["source_share"] for row in preview["review"]["allocation"]["shares"]
+    ] == [
         "5.0000",
         "5.0000",
     ]
@@ -199,7 +201,9 @@ def test_weighted_selling_allocation_uses_exact_existing_selling_parts(
         arguments,
         principal=Principal(cost_owner.id),
     )
-    assert [row["source_share"] for row in preview["review"]["allocation"]["shares"]] == [
+    assert [
+        row["source_share"] for row in preview["review"]["allocation"]["shares"]
+    ] == [
         "10.0000",
         "20.0000",
     ]

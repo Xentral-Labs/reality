@@ -2,6 +2,7 @@ from datetime import UTC, date, datetime
 from decimal import Decimal
 
 import pytest
+from conftest import record_by_id
 
 from reality.db.core import Document, SettlementAllocation
 from reality.services.core import (
@@ -74,7 +75,7 @@ def test_sales_invoice_partial_payment_and_credit_are_balanced(session, business
     assert open_invoice_amount(session, business.tenant.id, invoice.id) == Decimal(
         "870.0000"
     )
-    payment_document = session.get(Document, payment_entries[0].document_id)
+    payment_document = record_by_id(session, Document, payment_entries[0].document_id)
     assert payment_document.type == "customer_payment"
     assert payment_document.id != invoice.id
 

@@ -187,7 +187,7 @@ class CostSellingPart(CostRecord, Base):
         ),
     )
     attribution_revision_id: Mapped[str] = mapped_column(String, index=True)
-    document_line_id: Mapped[str] = mapped_column(String, index=True)
+    document_line_id: Mapped[str] = mapped_column(String)
     category: Mapped[str] = mapped_column(String)
     source_share: Mapped[Decimal] = mapped_column(Numeric(18, 4))
     cost_effect: Mapped[int]

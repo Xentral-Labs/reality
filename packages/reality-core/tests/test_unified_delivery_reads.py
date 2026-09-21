@@ -1,6 +1,7 @@
 from decimal import Decimal
 
 import pytest
+from sqlalchemy.exc import IntegrityError
 from unified_fixtures import delivery_fixture
 
 from reality.services.core import (
@@ -198,18 +199,27 @@ def test_source_links_are_bounded_and_tenant_scoped(session, business):
     session.flush()
     empty = delivery_evidence(session, business.tenant.id, "source_record", source.id)
     assert empty["sections"][-1]["title"] == "Linked records"
+    # This used to add a foreign company's event pointing at this company's
+    # source record, so the read could be shown to leave it out. Since spec 181
+    # FR-005 the database will not let such a row exist: a reference between two
+    # company-scoped tables carries the company, so a row cannot name a parent
+    # belonging to somebody else. The guard moved from the read to the schema,
+    # which is the stronger place for it, and the read is still checked below
+    # for the bound it does own.
     other = create_tenant(session, "Other events")
-    session.add(
-        BusinessEvent(
-            id="foreign-event",
-            tenant_id=other.id,
-            sequence=1,
-            event_type="Foreign",
-            subject_type="item",
-            subject_id="foreign-item",
-            source_record_id=source.id,
+    with pytest.raises(IntegrityError), session.begin_nested():
+        session.add(
+            BusinessEvent(
+                id="foreign-event",
+                tenant_id=other.id,
+                sequence=1,
+                event_type="Foreign",
+                subject_type="item",
+                subject_id="foreign-item",
+                source_record_id=source.id,
+            )
         )
-    )
+        session.flush()
     for index in range(101):
         session.add(
             BusinessEvent(

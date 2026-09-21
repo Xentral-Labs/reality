@@ -9,7 +9,9 @@ from sqlalchemy.orm import Session
 from reality.db.core import Base, BusinessEvent
 
 
-def tenant_row_counts(session: Session, tenant_ids: tuple[str, ...]) -> dict[str, dict[str, int]]:
+def tenant_row_counts(
+    session: Session, tenant_ids: tuple[str, ...]
+) -> dict[str, dict[str, int]]:
     """Capture tenant-owned row counts for atomicity assertions."""
     result: dict[str, dict[str, int]] = {}
     for table in sorted(Base.metadata.tables.values(), key=lambda item: item.name):
@@ -19,7 +21,9 @@ def tenant_row_counts(session: Session, tenant_ids: tuple[str, ...]) -> dict[str
         result[table.name] = {
             tenant_id: int(
                 session.scalar(
-                    select(func.count()).select_from(table).where(tenant_column == tenant_id)
+                    select(func.count())
+                    .select_from(table)
+                    .where(tenant_column == tenant_id)
                 )
                 or 0
             )

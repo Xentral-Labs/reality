@@ -73,7 +73,13 @@ def test_chat_mutation_is_visible_as_proposal_before_confirmation(session, busin
         in chat_messages(session, business.tenant.id, chat.id)[-1].content
     )
 
-    confirm_tool(session, business.tenant.id, proposals[0].id, review_token=json.loads(proposals[0].input)["_delivery_review"]["token"], confirmed=True)
+    confirm_tool(
+        session,
+        business.tenant.id,
+        proposals[0].id,
+        review_token=json.loads(proposals[0].input)["_delivery_review"]["token"],
+        confirmed=True,
+    )
     assert active_reserved(session, business.tenant.id, business.item.id) == 5
 
 

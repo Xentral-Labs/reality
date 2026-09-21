@@ -4,6 +4,7 @@ import json
 from decimal import Decimal
 
 import pytest
+from conftest import record_by_id
 from sqlalchemy import create_engine, func, select
 from sqlalchemy.orm import Session
 
@@ -126,7 +127,7 @@ def test_outgoing_payment_is_attributed_and_preserves_currency(outgoing_obligati
             "settlement.allocated",
         ]
         assert all(event.correlation_id == proposal.id for event in events)
-        payment = session.get(Document, events[0].subject_id)
+        payment = record_by_id(session, Document, events[0].subject_id)
         assert payment.currency == "USD"
         assert core.open_invoice_amount(session, tenant_id, document_id) == 175
         confirm_tool(
@@ -373,7 +374,7 @@ def test_failed_standalone_payment_posting_leaves_no_evidence(
 
     monkeypatch.setattr(core, "post_ledger", fail)
     with Session(engine) as session:
-        invoice = session.get(Document, invoice_id)
+        invoice = record_by_id(session, Document, invoice_id)
         before_events = session.scalar(select(func.count()).select_from(BusinessEvent))
         with pytest.raises(RuntimeError, match="ledger failure"):
             core.record_customer_payment(session, tenant_id, invoice.party_id, "125")
@@ -437,10 +438,10 @@ def test_shared_invoice_preserves_stated_amount_and_rolls_back(
         session, business.tenant.id, lines[0].id, "12", "301", "INV-STATED"
     )
     id_ = next(r["id"] for r in result["records"] if r["family"] == "document")
-    invoice = session.get(Document, id_)
+    invoice = record_by_id(session, Document, id_)
     assert invoice.gross_amount == 301
     assert core.open_invoice_amount(session, business.tenant.id, invoice.id) == 301
-    source = session.get(SourceRecord, invoice.source_record_id)
+    source = record_by_id(session, SourceRecord, invoice.source_record_id)
     assert json.loads(source.payload)["gross_amount"] == "301"
     invoice_line = session.scalar(
         select(DocumentLine).where(DocumentLine.document_id == invoice.id)

@@ -1,6 +1,7 @@
 from datetime import timedelta
 
 import pytest
+from conftest import record_by_id
 from sqlalchemy import select
 
 from reality.db.core import CompanyInvitation, now, uid
@@ -41,7 +42,7 @@ def test_cleanup_batch_scope_and_retention(session, business, scheduled_owner):
         )
         == other.id
     )
-    assert session.get(CompanyInvitation, recent.id) is not None
-    assert session.get(CompanyInvitation, pending.id) is not None
+    assert record_by_id(session, CompanyInvitation, recent.id) is not None
+    assert record_by_id(session, CompanyInvitation, pending.id) is not None
     with pytest.raises(ValueError):
         cleanup_terminal_invitations(session, tenant_id=business.tenant.id, limit=101)

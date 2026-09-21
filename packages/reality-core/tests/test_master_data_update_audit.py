@@ -1,5 +1,6 @@
 import json
 
+from conftest import record_by_id
 from sqlalchemy import select
 
 from reality.db.core import BusinessEvent, Item, Party, SourceRecord
@@ -110,8 +111,8 @@ def test_failed_update_does_not_persist_state_or_success_event(session, business
     except InvalidOperation:
         session.rollback()
 
-    assert session.get(Party, business.customer.id) is not None
-    assert session.get(Item, item.id).name == original_name
+    assert record_by_id(session, Party, business.customer.id) is not None
+    assert record_by_id(session, Item, item.id).name == original_name
     assert (
         _latest_event(session, business.tenant.id, item.id).event_type == "item.created"
     )
@@ -145,7 +146,7 @@ def test_sourced_update_versions_changed_payload_and_audits_source_link(
         source_payload={"version": 2},
     )
 
-    source = session.get(SourceRecord, item.source_record_id)
+    source = record_by_id(session, SourceRecord, item.source_record_id)
     event = _latest_event(session, business.tenant.id, item.id)
     assert source.supersedes_source_record_id == first_source_id
     assert event.source_record_id == source.id

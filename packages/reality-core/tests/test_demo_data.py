@@ -1,4 +1,5 @@
 import pytest
+from conftest import record_by_id
 from sqlalchemy import func, select
 
 from reality.db.core import Item, Movement
@@ -168,8 +169,10 @@ def test_connect_adds_the_discount_term_and_controls_manage_both_schedules(
     assert connected["settlement_schedule_id"] is None
 
     def schedules(status):
-        order = session.get(ScheduledJob, status["schedule_id"])
-        settlement = session.get(ScheduledJob, status["settlement_schedule_id"])
+        order = record_by_id(session, ScheduledJob, status["schedule_id"])
+        settlement = record_by_id(
+            session, ScheduledJob, status["settlement_schedule_id"]
+        )
         session.refresh(order)
         session.refresh(settlement)
         return order, settlement
@@ -217,7 +220,7 @@ def test_connect_adds_the_discount_term_and_controls_manage_both_schedules(
     assert not order.enabled and not settlement.enabled
     # A connection that predates the feature carries no settlement schedule; its
     # next start creates one.
-    connection = session.get(DemoDataConnection, stopped["id"])
+    connection = record_by_id(session, DemoDataConnection, stopped["id"])
     connection.settlement_schedule_id = None
     session.flush()
     restarted = demo_data.control(

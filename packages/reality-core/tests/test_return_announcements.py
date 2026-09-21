@@ -204,9 +204,7 @@ def test_an_announcement_refuses(session, business):
     # to say something, so saying nothing in it is refused rather than quietly
     # read as silence. Same call the promise revision makes.
     with pytest.raises(InvalidOperation, match="readable expected day"):
-        announce_customer_return(
-            session, tenant_id, commitment.id, 1, expected_by=""
-        )
+        announce_customer_return(session, tenant_id, commitment.id, 1, expected_by="")
     with pytest.raises(InvalidOperation, match="ISO 8601"):
         announce_customer_return(
             session, tenant_id, commitment.id, 1, expected_by="not a day"
@@ -227,9 +225,7 @@ def test_the_parcel_names_its_announcement(session, business):
         session, tenant_id, commitment.id, 2, announced_at=ANNOUNCED_AT
     )
 
-    movement = comes_back(
-        session, business, commitment, 2, announcement=announcement
-    )
+    movement = comes_back(session, business, commitment, 2, announcement=announcement)
 
     assert movement.return_announcement_id == announcement.id
     # The return still names the delivery it reverses. That link bounds it and
@@ -238,9 +234,9 @@ def test_the_parcel_names_its_announcement(session, business):
     assert movement.commitment_id == commitment.id
     assert movement.type == "return"
     assert returned_quantity(session, tenant_id, commitment.id) == Decimal(2)
-    assert arrived_against_announcement(
-        session, tenant_id, announcement.id
-    ) == Decimal(2)
+    assert arrived_against_announcement(session, tenant_id, announcement.id) == Decimal(
+        2
+    )
 
     # A return naming no announcement is ordinary and unchanged.
     plain = comes_back(session, business, commitment, 1)
@@ -313,9 +309,7 @@ def test_an_announcement_is_finished_when_the_goods_arrive(session, business):
     # Part of it arriving leaves it open for the rest.
     comes_back(session, business, commitment, 1, announcement=announcement)
     assert announcement.status == "open"
-    assert announcement_outstanding(
-        session, tenant_id, announcement
-    ) == Decimal(1)
+    assert announcement_outstanding(session, tenant_id, announcement) == Decimal(1)
 
     # The rest arriving finishes it at that moment, not at some later read:
     # there may be no later event, because the parcel arrived and that is that.
@@ -344,9 +338,9 @@ def test_more_may_arrive_than_was_announced(session, business):
     comes_back(session, business, commitment, 3, announcement=announcement)
 
     assert announcement.status == "fulfilled"
-    assert arrived_against_announcement(
-        session, tenant_id, announcement.id
-    ) == Decimal(3)
+    assert arrived_against_announcement(session, tenant_id, announcement.id) == Decimal(
+        3
+    )
     # Never below nothing: outstanding is zero rather than minus one.
     assert announcement_outstanding(session, tenant_id, announcement) == Decimal(0)
     assert returned_quantity(session, tenant_id, commitment.id) == Decimal(3)
@@ -391,8 +385,7 @@ def test_an_announcement_can_be_withdrawn(session, business):
     # The positive control: a fresh one can still be withdrawn.
     fresh = announce_customer_return(session, tenant_id, commitment.id, 1)
     assert (
-        withdraw_return_announcement(session, tenant_id, fresh.id).status
-        == "withdrawn"
+        withdraw_return_announcement(session, tenant_id, fresh.id).status == "withdrawn"
     )
 
 
@@ -423,7 +416,9 @@ def test_announcements_are_ordered_and_nothing_is_lost(session, business):
     # All three, in the order they were said, including the withdrawn one.
     assert [row.id for row in rows] == [first.id, second.id, third.id]
     assert [row.status for row in rows] == ["open", "withdrawn", "open"]
-    assert [row.id for row in return_announcements(session, tenant_id, status="open")] == [
+    assert [
+        row.id for row in return_announcements(session, tenant_id, status="open")
+    ] == [
         first.id,
         third.id,
     ]

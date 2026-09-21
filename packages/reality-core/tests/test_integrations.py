@@ -51,7 +51,13 @@ def test_contextual_file_intake_streams_previews_and_requires_confirmation(
             "source_type": "bank_statement",
             "external_id": "STATEMENT-1",
         },
-        files={"upload": ("statement.csv", b"date,amount,party\n2026-08-29,10.00,Customer\n", "text/csv")},
+        files={
+            "upload": (
+                "statement.csv",
+                b"date,amount,party\n2026-08-29,10.00,Customer\n",
+                "text/csv",
+            )
+        },
     )
     assert preview.status_code == 200
     assert "Map columns" in preview.text
@@ -67,14 +73,14 @@ def test_contextual_file_intake_streams_previews_and_requires_confirmation(
             "source_system": "bank_export",
             "source_type": "bank_statement",
             "external_id": "STATEMENT-1",
-            "column_mapping": json.dumps({"effective_at": "date", "amount": "amount", "party_name": "party"}),
+            "column_mapping": json.dumps(
+                {"effective_at": "date", "amount": "amount", "party_name": "party"}
+            ),
         },
     )
     assert mapped.status_code == 200
     assert "Confirmation required" in mapped.text
-    proposal = (
-        session.query(ChangeProposal).filter_by(type="tool:source_ingest").one()
-    )
+    proposal = session.query(ChangeProposal).filter_by(type="tool:source_ingest").one()
     assert session.query(SourceRecord).count() == 0
 
     confirmed = client.post(
@@ -185,7 +191,8 @@ def test_mock_connector_shells_install_definitions_only(session, business):
         "order"
     }
     shopify_shell = next(
-        shell for shell in connector_shells(session, business.tenant.id)
+        shell
+        for shell in connector_shells(session, business.tenant.id)
         if shell["code"] == "shopify"
     )
     assert [instance.code for instance in shopify_shell["instances"]] == [
@@ -236,9 +243,7 @@ def test_integrations_page_defines_sources_and_ingests_raw_payload(
         for row in integration_registry(session, tenant)["capabilities"]
         if row["system"].code == "xentral_orders_de"
     ]
-    assert [row["capability"].source_type for row in xentral_capabilities] == [
-        "order"
-    ]
+    assert [row["capability"].source_type for row in xentral_capabilities] == ["order"]
     assert "RAW ONLY" not in page.text
 
     system_id = integration_registry(session, tenant)["systems"][0].id
@@ -282,4 +287,6 @@ def test_integrations_page_defines_sources_and_ingests_raw_payload(
     page = client.get("/integrations", params={"tenant": tenant})
     assert "RAW ONLY" in page.text
     assert "P-42" in page.text
+
+
 import json

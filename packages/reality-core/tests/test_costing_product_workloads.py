@@ -61,7 +61,9 @@ def test_exception_page_and_count_share_tenant(monkeypatch):
 
 def test_mcp_adapter_uses_registered_serialized_cost_query(monkeypatch):
     calls = []
-    handler = lambda session, tenant, arguments: calls.append((tenant, arguments)) or {"ok": True}
+    handler = lambda session, tenant, arguments: (
+        calls.append((tenant, arguments)) or {"ok": True}
+    )
     monkeypatch.setitem(
         subject.MCP_TOOL_REGISTRY,
         "cost_query_get",

@@ -96,10 +96,19 @@ def _scope(
     if node.of:
         parent = graph.nodes[node.of]
         parent_table = _table(parent.table or "").alias()
+        # The company is the scope, not the relationship. Since spec 181 FR-005 a
+        # reference between two company-scoped tables carries the company as its
+        # first column, so `tenant_id` also holds a foreign key to the parent —
+        # counting it would make every ordinary parent look like two and refuse
+        # the traversal. Both sides are held to the same company by `_scope`
+        # below, so the composite is honoured without being counted.
         links = [
             column.name
             for column in _table(node.table or "").columns
-            if any(key.column.table.name == parent.table for key in column.foreign_keys)
+            if column.name != node.tenant
+            and any(
+                key.column.table.name == parent.table for key in column.foreign_keys
+            )
         ]
         if len(links) != 1:
             raise TraversalRefused(

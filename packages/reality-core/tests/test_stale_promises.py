@@ -257,8 +257,11 @@ def test_a_closure_is_tenant_scoped(session, business):
 
     assert mine.status == "cancelled"
     assert theirs.status == "open"
-    assert session.scalar(
-        select(func.count(Commitment.id)).where(
-            Commitment.tenant_id == foreign.id, Commitment.status == "cancelled"
+    assert (
+        session.scalar(
+            select(func.count(Commitment.id)).where(
+                Commitment.tenant_id == foreign.id, Commitment.status == "cancelled"
+            )
         )
-    ) == 0
+        == 0
+    )

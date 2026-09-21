@@ -6,7 +6,9 @@ from decimal import Decimal
 
 import pytest
 import test_costing_services as fixtures
+from conftest import record_by_id
 from sqlalchemy import func, select
+from sqlalchemy.exc import IntegrityError
 
 from reality.db.core import (
     BusinessEvent,
@@ -155,9 +157,10 @@ def test_inventory_ownership_parts_value_only_selected_owner(
         confirmed=True,
     )
     assert json.loads(replay.output) == result
-    assert session.scalar(
-        select(func.count()).select_from(CostInventoryOwnershipPart)
-    ) == 5
+    assert (
+        session.scalar(select(func.count()).select_from(CostInventoryOwnershipPart))
+        == 5
+    )
     retained = session.scalars(
         select(CostInventoryOwnershipPart).order_by(
             CostInventoryOwnershipPart.movement_basis_id,
@@ -551,7 +554,7 @@ def test_inventory_corrected_opening_uses_only_replacement_identity(
             "occurred_at": original.occurred_at.isoformat(),
         },
     )
-    replacement = session.get(Movement, correction.replacement_movement_id)
+    replacement = record_by_id(session, Movement, correction.replacement_movement_id)
     issue = core.record_movement(
         session,
         business.tenant.id,
@@ -848,9 +851,9 @@ def test_inventory_partial_owner_issue_return_and_loss_conserve_cost(
     args.update(
         method=method,
         effective_at=core.now().isoformat(),
-        expected_event_sequence=receipt_cost(
-            session, business.tenant.id, receipt.id
-        )["event_sequence"],
+        expected_event_sequence=receipt_cost(session, business.tenant.id, receipt.id)[
+            "event_sequence"
+        ],
         customer_return_ids=[returned.id],
         loss_movement_ids=[loss.id],
         return_parts=[
@@ -1246,7 +1249,7 @@ def test_inventory_owner_confirmation_stale_and_rollback(
         )
     assert session.scalar(select(func.count()).select_from(CostPolicyRevision)) == 0
     assert session.scalar(select(func.count()).select_from(CostMovementBasis)) == 0
-    assert session.get(ChangeProposal, action.id).status == "proposed"
+    assert record_by_id(session, ChangeProposal, action.id).status == "proposed"
     monkeypatch.setattr(inventory_costing, "_new", original)
     core.record_movement(
         session,
@@ -1363,7 +1366,7 @@ def test_inventory_correction_replacement_is_the_only_effective_issue(
         confirmed=True,
     )
     assert json.loads(replay.output) == result
-    retained = session.get(MovementCorrection, correction.correction_id)
+    retained = record_by_id(session, MovementCorrection, correction.correction_id)
     retained.reason = "tampered"
     session.flush()
     with pytest.raises(core.InvalidOperation, match="integrity"):
@@ -1394,9 +1397,9 @@ def test_inventory_ownership_parts_follow_only_correction_replacement(
     )
     evidence_id = args["receipts"][0]["ownership_source_record_id"]
     args.update(
-        expected_event_sequence=receipt_cost(
-            session, business.tenant.id, receipt.id
-        )["event_sequence"],
+        expected_event_sequence=receipt_cost(session, business.tenant.id, receipt.id)[
+            "event_sequence"
+        ],
         economic_issue_ids=[correction.replacement_movement_id],
         ownership_parts=[
             {
@@ -1440,7 +1443,7 @@ def test_inventory_incomplete_correction_chain_refuses_atomically(
     correction = core.correct_movement(
         session, business.tenant.id, issue.id, reason="Wrong issue"
     )
-    compensation = session.get(Movement, correction.compensating_movement_id)
+    compensation = record_by_id(session, Movement, correction.compensating_movement_id)
     compensation.quantity = Decimal(59)
     session.flush()
     args.update(
@@ -1459,25 +1462,20 @@ def test_inventory_incomplete_correction_chain_refuses_atomically(
 def test_inventory_foreign_tenant_correction_chain_refuses_atomically(
     session, business, cost_owner
 ):
-    args, receipt, issue = prepared(session, business, cost_owner)
+    _args, _receipt, issue = prepared(session, business, cost_owner)
     correction = core.correct_movement(
         session, business.tenant.id, issue.id, reason="Wrong issue"
     )
+    # Moving the correction into another company used to be possible, and the
+    # preview had to refuse the chain it then found. Since spec 181 FR-005 the
+    # correction carries its company in every reference it makes, so the move
+    # itself is refused — atomically, by the database, before any reader has to
+    # reason about a chain that spans two companies.
     other = core.create_tenant(session, "Foreign correction owner")
-    relation = session.get(MovementCorrection, correction.correction_id)
-    relation.tenant_id = other.id
-    session.flush()
-    args.update(
-        expected_event_sequence=receipt_cost(session, business.tenant.id, receipt.id)[
-            "event_sequence"
-        ],
-        economic_issue_ids=[],
-    )
-
-    with pytest.raises(core.InvalidOperation, match="correction chain"):
-        preview_cost_change(
-            session, business.tenant.id, args, principal=Principal(cost_owner.id)
-        )
+    relation = record_by_id(session, MovementCorrection, correction.correction_id)
+    with pytest.raises(IntegrityError), session.begin_nested():
+        relation.tenant_id = other.id
+        session.flush()
 
 
 def test_inventory_corrected_customer_return_uses_replacement_identity(
@@ -1549,7 +1547,7 @@ def test_inventory_corrected_receipt_requires_fresh_cost_and_ownership_evidence(
             "occurred_at": receipt.occurred_at.isoformat(),
         },
     )
-    replacement = session.get(Movement, correction.replacement_movement_id)
+    replacement = record_by_id(session, Movement, correction.replacement_movement_id)
     args.update(
         expected_event_sequence=receipt_cost(
             session, business.tenant.id, replacement.id

@@ -4,6 +4,7 @@ import sys
 from pathlib import Path
 
 import pytest
+from conftest import record_by_id
 
 ROOT = Path(__file__).resolve().parents[3]
 IMAGE_TAG = os.environ.get("REALITY_CONTAINER_IMAGE_TAG", "spec147")
@@ -233,7 +234,7 @@ def test_built_images_deliver_demo_source_without_browser(
             "container-start",
             confirmed=True,
         )
-        schedule = session.get(ScheduledJob, started["schedule_id"])
+        schedule = record_by_id(session, ScheduledJob, started["schedule_id"])
         schedule.next_run_at = now() - timedelta(seconds=1)
         session.commit()
     url = engine.url.set(host="host.docker.internal").render_as_string(
@@ -268,7 +269,7 @@ def test_built_images_deliver_demo_source_without_browser(
         from reality.db.scheduled_jobs import ScheduledJobRun
         from reality.integrations import demo_data as synthetic
 
-        schedule = session.get(ScheduledJob, started["schedule_id"])
+        schedule = record_by_id(session, ScheduledJob, started["schedule_id"])
         run = session.scalar(
             select(ScheduledJobRun).where(
                 ScheduledJobRun.tenant_id == tenant,

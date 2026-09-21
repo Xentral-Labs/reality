@@ -8,6 +8,7 @@ from sqlalchemy import (
     ForeignKey,
     ForeignKeyConstraint,
     Index,
+    PrimaryKeyConstraint,
     String,
     Text,
     UniqueConstraint,
@@ -22,6 +23,7 @@ from reality.db.core import Base, UTCDateTime, now
 class AccountingTarget(Base):
     __tablename__ = "accounting_target"
     __table_args__ = (
+        PrimaryKeyConstraint("tenant_id", "id"),
         UniqueConstraint("tenant_id", "id"),
         UniqueConstraint("tenant_id", "namespace"),
         CheckConstraint(
@@ -29,7 +31,7 @@ class AccountingTarget(Base):
             name="ck_accounting_target_values",
         ),
     )
-    id: Mapped[str] = mapped_column(String, primary_key=True)
+    id: Mapped[str] = mapped_column(String)
     tenant_id: Mapped[str] = mapped_column(ForeignKey("tenant.id"), index=True)
     namespace: Mapped[str] = mapped_column(String(200))
     name: Mapped[str] = mapped_column(String(200))
@@ -42,6 +44,7 @@ class AccountingTarget(Base):
 class AccountingTargetReference(Base):
     __tablename__ = "accounting_target_reference"
     __table_args__ = (
+        PrimaryKeyConstraint("tenant_id", "id"),
         ForeignKeyConstraint(
             ["tenant_id", "target_id"],
             ["accounting_target.tenant_id", "accounting_target.id"],
@@ -53,7 +56,7 @@ class AccountingTargetReference(Base):
             name="ck_accounting_reference_values",
         ),
     )
-    id: Mapped[str] = mapped_column(String, primary_key=True)
+    id: Mapped[str] = mapped_column(String)
     tenant_id: Mapped[str] = mapped_column(ForeignKey("tenant.id"), index=True)
     target_id: Mapped[str] = mapped_column(String)
     kind: Mapped[str] = mapped_column(String)
@@ -68,6 +71,11 @@ class AccountingTargetReference(Base):
 class TargetMapping(Base):
     __tablename__ = "finance_target_mapping_revision"
     __table_args__ = (
+        PrimaryKeyConstraint("tenant_id", "id"),
+        ForeignKeyConstraint(
+            ["tenant_id", "action_id"],
+            ["action.tenant_id", "action.id"],
+        ),
         UniqueConstraint("tenant_id", "id"),
         ForeignKeyConstraint(
             ["tenant_id", "target_id"],
@@ -158,7 +166,7 @@ class TargetMapping(Base):
             for suffix in ("_revision", "_current")
         ],
     )
-    id: Mapped[str] = mapped_column(String, primary_key=True)
+    id: Mapped[str] = mapped_column(String)
     tenant_id: Mapped[str] = mapped_column(ForeignKey("tenant.id"), index=True)
     target_id: Mapped[str] = mapped_column(String)
     mapping_kind: Mapped[str] = mapped_column(String)
@@ -180,5 +188,5 @@ class TargetMapping(Base):
     configuration_snapshot: Mapped[dict] = mapped_column(JSONB)
     reason: Mapped[str] = mapped_column(Text)
     actor_id: Mapped[str | None] = mapped_column(String)
-    action_id: Mapped[str] = mapped_column(ForeignKey("action.id"))
+    action_id: Mapped[str] = mapped_column()
     created_at: Mapped[datetime] = mapped_column(UTCDateTime, default=now)

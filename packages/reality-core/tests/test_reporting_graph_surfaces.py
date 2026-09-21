@@ -274,7 +274,12 @@ def test_the_terminal_accepts_either_syntax(session, business, sales, monkeypatc
 
 def test_a_limit_actually_limits():
     """Found by running it: the keyword pattern consumed the digit it needed."""
-    assert parse("MATCH (o:order) RETURN o.currency, sum(stated_order_amount) LIMIT 4").limit == 4
+    assert (
+        parse(
+            "MATCH (o:order) RETURN o.currency, sum(stated_order_amount) LIMIT 4"
+        ).limit
+        == 4
+    )
     assert (
         parse(
             "MATCH (o:order) RETURN o.currency, sum(stated_order_amount) "
@@ -282,7 +287,10 @@ def test_a_limit_actually_limits():
         ).limit
         == 7
     )
-    assert parse("MATCH (o:order) RETURN o.currency, sum(stated_order_amount)").limit == 200
+    assert (
+        parse("MATCH (o:order) RETURN o.currency, sum(stated_order_amount)").limit
+        == 200
+    )
 
 
 # --- filtering on an aggregate, and on a sub-path -------------------------------
@@ -300,13 +308,15 @@ def test_having_is_read_from_the_text():
 def test_having_on_a_property_is_refused():
     """After grouping, a property no longer exists — only the measure does."""
     with pytest.raises(CypherRefused, match="declared measure"):
-        parse("MATCH (o:order) RETURN o.currency, count(order_count) HAVING o.number >= 3")
+        parse(
+            "MATCH (o:order) RETURN o.currency, count(order_count) HAVING o.number >= 3"
+        )
 
 
 def test_an_existence_block_is_read_as_a_sub_path():
     query = parse(
         "MATCH (k:party)<-[:ordered_by]-(o:order) "
-        'WHERE EXISTS { MATCH <-[:ordered_by]-(x:order)-[:contains]->(l:order_line) '
+        "WHERE EXISTS { MATCH <-[:ordered_by]-(x:order)-[:contains]->(l:order_line) "
         'WHERE l.sku = "P01" } '
         "RETURN k.name, count(order_count)"
     )

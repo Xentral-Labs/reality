@@ -898,7 +898,9 @@ def retry_import(
     )
     if job is None:
         raise core.NotFound("Demo import not found.")
-    source = session.get(SourceRecord, job.source_record_id)
+    source = session.get(
+        SourceRecord, {"tenant_id": job.tenant_id, "id": job.source_record_id}
+    )
     with intake_scope(
         session, tenant_id, actor_id, settlement=source.source_type != "order"
     ):

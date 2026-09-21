@@ -30,29 +30,40 @@ def test_every_foreign_key_leads_an_index_in_the_models():
     assert len(FOREIGN_KEY_INDEXES) >= 80
 
 
-def test_migration_creates_exactly_the_indexes_for_its_schema_generation():
-    path = (
-        Path(__file__).resolve().parents[1]
-        / "migrations"
-        / "versions"
-        / "0059_foreign_key_indexes.py"
-    )
-    spec = importlib.util.spec_from_file_location("fk_indexes_migration", path)
+def _module(name: str):
+    path = Path(__file__).resolve().parents[1] / "migrations" / "versions" / name
+    spec = importlib.util.spec_from_file_location(path.stem, path)
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
-    migrated = {(name, table, column) for name, table, column in module.INDEXES}
+    return module
+
+
+def test_the_migrations_together_create_exactly_the_derived_indexes():
+    """Two revisions own these now, and between them they own all of them.
+
+    0059 gave every foreign key's first column an index. Since spec 181 FR-005 a
+    reference between two company-scoped tables begins with the company, so the
+    rule indexes the whole key instead and 0088 replaced the narrower indexes
+    with composite ones. Neither revision owns the set by itself; what has to
+    hold is that following both of them leaves exactly what the rule derives.
+    """
+    first = _module("0059_foreign_key_indexes.py")
+    second = _module("0088_tenant_scoped_keys.py")
+    after_first = {(name, table, (column,)) for name, table, column in first.INDEXES}
+    after_second = after_first - {
+        (name, table, columns) for name, table, columns, _ in second.INDEX_DROPS
+    } | {(name, table, columns) for name, table, columns, _ in second.INDEX_CREATES}
     derived = {
-        (index.name, index.table.name, next(iter(index.columns)).name)
+        (index.name, index.table.name, tuple(c.name for c in index.columns))
         for index in FOREIGN_KEY_INDEXES
     }
-    # Revision 0059 owns every derived index for tables that existed at 0058.
-    # Tables added by later migrations create their own derived indexes.
+    # Tables added by later migrations bring their own derived indexes with them.
     later_tables = {"analytics_report", "analysis_request"}
-    assert migrated == {
+    assert {entry for entry in after_second if entry[1] not in later_tables} == {
         entry for entry in derived if entry[1] not in later_tables
     }
-    assert {entry[1] for entry in derived - migrated} == later_tables
-    assert all(len(name) <= 63 for name, _, _ in migrated)
+    assert {entry[1] for entry in derived - after_second} <= later_tables
+    assert all(len(name) <= 63 for name, _, _ in derived)
 
 
 def test_migrated_database_indexes_every_foreign_key(postgres_database, monkeypatch):
@@ -82,7 +93,20 @@ def test_migrated_database_indexes_every_foreign_key(postgres_database, monkeypa
             for table in inspect(engine).get_table_names()
             for index in inspect(engine).get_indexes(table)
         }
-        assert not ({index.name for index in FOREIGN_KEY_INDEXES} & remaining)
+        # What a revision creates, its downgrade takes away. Asking instead that
+        # no *derived* index name survives stopped being true under spec 181
+        # FR-005: thirty-six indexes kept their name and changed their columns,
+        # because the rule now derives what the model used to declare on the
+        # column. Those names were already there at 0058, for a reason no
+        # revision here is answerable for, and 0088 hands them back on the way
+        # down — so they are excluded rather than demanded.
+        keys = _module("0088_tenant_scoped_keys.py")
+        created = {
+            name for name, _, _ in _module("0059_foreign_key_indexes.py").INDEXES
+        }
+        created |= {name for name, _, _, _ in keys.INDEX_CREATES}
+        created -= {name for name, _, _, _ in keys.INDEX_DROPS}
+        assert not (created & remaining)
         command.upgrade(config, "head")
     finally:
         engine.dispose()

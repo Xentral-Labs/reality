@@ -1,6 +1,7 @@
 """External destinations never become operational financial authority."""
 
 import pytest
+from conftest import record_by_id
 from sqlalchemy import func, select
 
 from reality.db.core import LedgerEntry
@@ -318,7 +319,7 @@ def test_target_database_rejects_wrong_target_and_kind(session, business):
     other = change(
         session, tenant, "finance.target.create", namespace="other", name="Other"
     )
-    row = session.get(TargetMapping, first["id"])
+    row = record_by_id(session, TargetMapping, first["id"])
     with pytest.raises(IntegrityError), session.begin_nested():
         row.target_id = other["id"]
         session.flush()

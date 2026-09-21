@@ -2,6 +2,7 @@
 
 import pytest
 import test_playground_steps
+from conftest import record_by_id
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
@@ -41,7 +42,7 @@ def test_release_authority_rejects_another_target(monkeypatch):
 def test_reviewed_release_preserves_stock_and_obligation(durable_playground):
     engine, owner, run_id = durable_playground
     with Session(engine) as session:
-        run = session.get(PlaygroundRun, run_id)
+        run = record_by_id(session, PlaygroundRun, run_id)
         tenant, refs = run.tenant_id, run.initialization_progress
     item, location = refs["items"]["BIKE-LIGHT"], refs["locations"]["warehouse"]
     with pytest.raises(NotFound):
@@ -108,7 +109,7 @@ def test_reviewed_release_preserves_stock_and_obligation(durable_playground):
     )
     reject_step(engine, owner, run_id, rejected["step_id"], confirmed=True)
     with Session(engine) as session:
-        assert session.get(Reservation, reservation).status == "active"
+        assert record_by_id(session, Reservation, reservation).status == "active"
     step = prepare_step(
         engine,
         owner,
@@ -118,7 +119,7 @@ def test_reviewed_release_preserves_stock_and_obligation(durable_playground):
         {"reservation_id": reservation},
     )
     with Session(engine) as session:
-        assert session.get(Reservation, reservation).status == "active"
+        assert record_by_id(session, Reservation, reservation).status == "active"
     result = confirm_step(
         engine,
         owner,

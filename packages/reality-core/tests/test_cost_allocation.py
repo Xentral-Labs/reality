@@ -69,7 +69,10 @@ def test_allocation_refuses_invalid_scope(capacity, total, targets, message):
         allocate_weighted(
             D(capacity),
             D(total),
-            [AllocationTarget(target_id=target, weight=D(weight)) for target, weight in targets],
+            [
+                AllocationTarget(target_id=target, weight=D(weight))
+                for target, weight in targets
+            ],
         )
 
 
@@ -81,7 +84,9 @@ def test_conversion_keeps_ratio_precision_and_distinguishes_amount_from_quantity
         convert_quantity(D("1.0000"), D("1"), D("3"))
 
 
-@pytest.mark.parametrize(("numerator", "denominator"), [("0", "1"), ("1", "0"), ("-1", "1")])
+@pytest.mark.parametrize(
+    ("numerator", "denominator"), [("0", "1"), ("1", "0"), ("-1", "1")]
+)
 def test_conversion_refuses_nonpositive_ratio(numerator, denominator):
     with pytest.raises(CostingRefusal, match="positive"):
         convert_amount(D("1"), D(numerator), D(denominator))

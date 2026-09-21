@@ -10,6 +10,7 @@ import time
 from pathlib import Path
 from urllib.request import urlopen
 
+from conftest import record_by_id
 from sqlalchemy import select
 from sqlalchemy.orm import sessionmaker
 
@@ -192,10 +193,10 @@ def test_real_unified_item_csv_import(postgres_database, tmp_path):
                 )
                 == 2
             )
-            source = session.get(SourceRecord, receipt["source_record_id"])
+            source = record_by_id(session, SourceRecord, receipt["source_record_id"])
             assert source.source_artifact_id == receipt["artifact_id"]
             assert all(
-                session.get(Item, identity).source_record_id == source.id
+                record_by_id(session, Item, identity).source_record_id == source.id
                 for identity in receipt["item_ids"]
             )
         print(f"Real item CSV import verified; artifacts: {artifacts}")

@@ -31,9 +31,7 @@ def test_shipment_http_reads_and_reviewed_notice_action(session, business):
             assert listing.json()["items"][0]["id"] == shipment.id
             assert client.get(f"{base}/shipments/{shipment.id}").status_code == 200
             assert client.get(f"{base}/shipments/missing").status_code == 404
-            shipment_inspector = client.get(
-                f"{base}/inspector/shipment/{shipment.id}"
-            )
+            shipment_inspector = client.get(f"{base}/inspector/shipment/{shipment.id}")
             assert shipment_inspector.status_code == 200, shipment_inspector.text
             assert shipment_inspector.json()["id"] == shipment.id
             package_inspector = client.get(

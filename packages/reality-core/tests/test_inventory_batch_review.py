@@ -7,6 +7,7 @@ from types import SimpleNamespace
 
 import pytest
 import test_inventory_costing_services as fixtures
+from conftest import record_by_id
 from pydantic import ValidationError
 from sqlalchemy import func, select
 
@@ -205,7 +206,7 @@ def test_batch_second_execution_failure_rolls_back_all_members(
         )
     assert len(called) == 2
     assert counts(session, tenant) == before
-    assert session.get(ChangeProposal, action.id).status == "proposed"
+    assert record_by_id(session, ChangeProposal, action.id).status == "proposed"
 
 
 def test_batch_foreign_or_absent_member_refuses_without_writes(

@@ -4,6 +4,7 @@ import json
 
 import pytest
 import test_cost_census_resolution as resolution
+from conftest import record_by_id
 from sqlalchemy import select, update
 from test_cost_census import read_session
 
@@ -20,10 +21,12 @@ def prepared(database):
         database, contribution=True
     )
     with factory() as session:
-        inventory = session.get(
-            CostInventoryReview, result["trace"]["inventory_review_id"]
+        inventory = record_by_id(
+            session, CostInventoryReview, result["trace"]["inventory_review_id"]
         )
-        contribution = session.get(CostContributionReview, result["review_id"])
+        contribution = record_by_id(
+            session, CostContributionReview, result["review_id"]
+        )
         return (
             factory,
             business.tenant.id,
@@ -69,7 +72,6 @@ def test_same_line_is_not_exempt_and_other_line_is_disjoint(scheduled_database):
         "event_payload",
         "missing_reviews",
         "wrong_sequence",
-        "foreign_action",
         "wrong_target",
         "extra_review",
     ],
@@ -114,7 +116,7 @@ def test_labels_alone_do_not_prove_non_invalidation(scheduled_database, fault):
                 .values(introduced_event_id=earlier)
             )
         elif fault == "wrong_target":
-            action = session.get(ChangeProposal, action_id)
+            action = record_by_id(session, ChangeProposal, action_id)
             arguments = json.loads(action.input)
             arguments["document_line_id"] = "different-target"
             action.input = json.dumps(arguments)
@@ -138,18 +140,6 @@ def test_labels_alone_do_not_prove_non_invalidation(scheduled_database, fault):
                 update(CostContributionReview)
                 .where(CostContributionReview.action_id == action_id)
                 .values(event_sequence=before)
-            )
-        else:
-            other = core.create_tenant(session, "Other").id
-            foreign = ChangeProposal(
-                id=core.uid("act"), tenant_id=other, type="tool:cost.change", input="{}"
-            )
-            session.add(foreign)
-            session.flush()
-            session.execute(
-                update(BusinessEvent)
-                .where(BusinessEvent.id == event_id)
-                .values(action_id=foreign.id, subject_id=foreign.id)
             )
         session.commit()
     with read_session(factory) as session:
@@ -229,3 +219,31 @@ def test_invalid_intervals_refuse(scheduled_database, after, through):
         pytest.raises(core.InvalidOperation, match="interval"),
     ):
         _unchanged(session, tenant, after, through)
+
+
+def test_an_event_cannot_name_another_company_s_action_at_all(scheduled_database):
+    """The fault this used to stage is no longer possible to stage.
+
+    A `foreign_action` case pointed a business event at another company's change
+    proposal, so the relevance check could be shown to notice. Since spec 181
+    FR-005 a reference between two company-scoped tables carries the company, and
+    the database refuses the write instead — which is the stronger place for it,
+    because no reader has to remember to look.
+    """
+    from sqlalchemy.exc import IntegrityError
+
+    factory, _tenant, _, _, _, event_id, _, _ = prepared(scheduled_database)
+    with factory() as session:
+        other = core.create_tenant(session, "Other").id
+        foreign = ChangeProposal(
+            id=core.uid("act"), tenant_id=other, type="tool:cost.change", input="{}"
+        )
+        session.add(foreign)
+        session.flush()
+        with pytest.raises(IntegrityError):
+            session.execute(
+                update(BusinessEvent)
+                .where(BusinessEvent.id == event_id)
+                .values(action_id=foreign.id, subject_id=foreign.id)
+            )
+            session.flush()

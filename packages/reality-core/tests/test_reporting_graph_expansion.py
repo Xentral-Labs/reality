@@ -4,6 +4,7 @@ from datetime import UTC, datetime
 from decimal import Decimal
 
 import pytest
+from sqlalchemy.exc import IntegrityError
 
 from reality.db.core import Document, DocumentLine
 from reality.domain.traversal import Traversal
@@ -56,7 +57,14 @@ def test_line_root_is_scoped_to_parent_type_and_tenant(session, business):
     foreign = document(session, other.id, "sales_order", "scope-foreign")
     position(session, tenant, sale, "sale-line")
     position(session, tenant, purchase, "purchase-line")
-    position(session, tenant, foreign, "malformed-cross-tenant-line")
+    # A line of this company on another company's document used to be written
+    # here — "malformed", as its own identity said — so the traversal could be
+    # shown to leave it out. Since spec 181 FR-005 the schema will not hold such
+    # a row at all: a reference between two company-scoped tables carries the
+    # company, so it cannot name a parent belonging to somebody else. The
+    # exclusion below is now true by construction, and this is what makes it so.
+    with pytest.raises(IntegrityError), session.begin_nested():
+        position(session, tenant, foreign, "malformed-cross-tenant-line")
     result = ask(
         session,
         tenant,

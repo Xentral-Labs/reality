@@ -67,7 +67,9 @@ def test_baseline_contract_rejects_unknown_evidence_status() -> None:
 
 def test_data_model_catalog_parser_returns_only_table_keys() -> None:
     tables = policy._catalog_table_names(
-        (ROOT / "packages/reality-core/config/data_model.yaml").read_text(encoding="utf-8")
+        (ROOT / "packages/reality-core/config/data_model.yaml").read_text(
+            encoding="utf-8"
+        )
     )
     assert {"tenant", "source_record", "document", "commitment", "movement"} <= tables
     assert "common_columns" not in tables
@@ -227,9 +229,7 @@ def test_feature_directory_without_specification_is_rejected(
     errors: list[str] = []
     policy.validate_feature_numbers(errors)
 
-    assert any(
-        "claims a feature number without a spec.md" in error for error in errors
-    )
+    assert any("claims a feature number without a spec.md" in error for error in errors)
 
 
 def test_browser_catalog_and_runtime_paths_require_a_specification(
@@ -270,9 +270,9 @@ def test_web_ux_matrix_keeps_browser_presentation_only_and_schema_unchanged() ->
     plan = (ROOT / "specs/030-web-ux-matrix-completion/plan.md").read_text(
         encoding="utf-8"
     )
-    manifest = (
-        ROOT / "apps/web/scripts/fixtures/ux-matrix-v1.json"
-    ).read_text(encoding="utf-8")
+    manifest = (ROOT / "apps/web/scripts/fixtures/ux-matrix-v1.json").read_text(
+        encoding="utf-8"
+    )
     assert "no schema/migration planned" in plan
     assert '"authority": "verification_only"' in manifest
 

@@ -112,7 +112,14 @@ def test_canonical_snapshot_ignores_transport_noise_but_not_business_drift():
 
 
 @pytest.mark.parametrize(
-    ("family", "collection", "create_args", "create_body", "update_args", "update_body"),
+    (
+        "family",
+        "collection",
+        "create_args",
+        "create_body",
+        "update_args",
+        "update_body",
+    ),
     [
         (
             "party",
@@ -324,7 +331,9 @@ def test_cli_and_api_produce_equivalent_authoritative_lifecycle_state(
 
 def test_existing_real_adapter_suites_cover_lifecycle_and_tenant_failures():
     cli_tests = (ROOT / "packages/reality-core/tests/test_cli.py").read_text()
-    api_tests = (ROOT / "packages/reality-core/tests/test_master_data_api.py").read_text()
+    api_tests = (
+        ROOT / "packages/reality-core/tests/test_master_data_api.py"
+    ).read_text()
     assert "test_cli_updates_and_changes_master_data_lifecycle" in cli_tests
     assert "test_json_api_master_data_lifecycle" in api_tests
     assert "test_json_api_rejects_invalid_and_cross_tenant_mutations" in api_tests

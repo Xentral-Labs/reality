@@ -2850,7 +2850,7 @@ def approve_and_execute_proposal(
         raise InvalidOperation(
             f"Proposal cannot be confirmed from status {proposal.status}."
         )
-    proposal = session.get(ChangeProposal, claimed_id)
+    proposal = session.get(ChangeProposal, {"tenant_id": tenant_id, "id": claimed_id})
     if REVIEW_KEY in arguments:
         from reality.services.business_locks import lock_delivery_state
 

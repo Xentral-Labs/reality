@@ -2,6 +2,8 @@ import io
 import json
 from pathlib import Path
 
+from conftest import record_by_id
+
 from reality.db.core import SourceArtifact, SourceRecord
 from reality.services.artifacts import (
     artifact_path,
@@ -75,7 +77,7 @@ def test_large_artifact_is_streamed_then_attached_by_confirmed_tool(
     session, business, tmp_path, monkeypatch
 ):
     monkeypatch.setenv("REALITY_ARTIFACT_DIR", str(tmp_path / "artifacts"))
-    content = (b"sku,quantity\nBIKE-LIGHT,20\n" * 100_000)
+    content = b"sku,quantity\nBIKE-LIGHT,20\n" * 100_000
     artifact, sample = stage_artifact(
         session,
         business.tenant.id,
@@ -101,7 +103,7 @@ def test_large_artifact_is_streamed_then_attached_by_confirmed_tool(
     )
     executed = confirm_tool(session, business.tenant.id, proposal.id)
     output = json.loads(executed.output)
-    source = session.get(SourceRecord, output["source_record_id"])
+    source = record_by_id(session, SourceRecord, output["source_record_id"])
     session.refresh(artifact)
 
     assert source.source_artifact_id == artifact.id
@@ -115,10 +117,18 @@ def test_artifact_content_is_deduplicated_per_tenant(
 ):
     monkeypatch.setenv("REALITY_ARTIFACT_DIR", str(tmp_path / "artifacts"))
     first, _ = stage_artifact(
-        session, business.tenant.id, io.BytesIO(b"same"), filename="a.txt", content_type="text/plain"
+        session,
+        business.tenant.id,
+        io.BytesIO(b"same"),
+        filename="a.txt",
+        content_type="text/plain",
     )
     second, _ = stage_artifact(
-        session, business.tenant.id, io.BytesIO(b"same"), filename="b.txt", content_type="text/plain"
+        session,
+        business.tenant.id,
+        io.BytesIO(b"same"),
+        filename="b.txt",
+        content_type="text/plain",
     )
     assert second.id == first.id
     assert session.query(SourceArtifact).count() == 1
@@ -184,7 +194,9 @@ def test_item_csv_file_is_explicitly_mapped_by_worker(
     artifact, _ = stage_artifact(
         session,
         business.tenant.id,
-        io.BytesIO(b"sku,name,unit,item_type,tracking_type\nBELL,Bike Bell,pcs,stocked,none\n"),
+        io.BytesIO(
+            b"sku,name,unit,item_type,tracking_type\nBELL,Bike Bell,pcs,stocked,none\n"
+        ),
         filename="items.csv",
         content_type="text/csv",
     )
@@ -202,7 +214,9 @@ def test_item_csv_file_is_explicitly_mapped_by_worker(
     executed = confirm_tool(session, business.tenant.id, proposal.id)
     output = json.loads(executed.output)
     result = process_import_job(session, business.tenant.id, output["import_job_id"])
-    imported = session.query(Item).filter_by(tenant_id=business.tenant.id, sku="BELL").one()
+    imported = (
+        session.query(Item).filter_by(tenant_id=business.tenant.id, sku="BELL").one()
+    )
 
     assert result["rows"] == 1
     assert imported.name == "Bike Bell"

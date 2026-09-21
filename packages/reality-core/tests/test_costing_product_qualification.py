@@ -75,16 +75,24 @@ def test_reduced_or_prototype_evidence_cannot_pass():
     report["measurements"]["order"]["samples"] = 199
     result = evaluate(report)
     assert result["qualification_passed"] is False
-    assert {"full_profile", "product_entrypoints", "order_samples"} <= set(result["refusals"])
+    assert {"full_profile", "product_entrypoints", "order_samples"} <= set(
+        result["refusals"]
+    )
 
 
 def test_each_budget_and_required_proof_fails_closed():
     cases = []
     for name, budget in WORKLOAD_BUDGETS.items():
-        cases.append((f"{name}_p95_budget", ("measurements", name, "p95_s"), budget + 0.001))
+        cases.append(
+            (f"{name}_p95_budget", ("measurements", name, "p95_s"), budget + 0.001)
+        )
     cases += [
         ("tenant_isolation", ("tenant_isolation", "leaks"), 1),
-        ("reconstruction_equality", ("reconstruction", "runs", 2, "checksum"), "different"),
+        (
+            "reconstruction_equality",
+            ("reconstruction", "runs", 2, "checksum"),
+            "different",
+        ),
         ("refresh_budget", ("refresh", "p95_s"), 30.001),
     ]
     for refusal, path, value in cases:
@@ -100,4 +108,6 @@ def test_missing_resource_and_query_evidence_is_rejected():
     report = complete_report()
     report["environment"]["resource_samples"] = []
     report["measurements"]["exceptions"]["query_evidence"] = {}
-    assert {"resource_samples", "exceptions_query_evidence"} <= set(evaluate(report)["refusals"])
+    assert {"resource_samples", "exceptions_query_evidence"} <= set(
+        evaluate(report)["refusals"]
+    )

@@ -236,9 +236,7 @@ class CostValuationAssessmentPart(CostRecord, Base):
     __tablename__ = "cost_valuation_assessment_part"
     __table_args__ = (
         UniqueConstraint("tenant_id", "id"),
-        UniqueConstraint(
-            "tenant_id", "assessment_revision_id", "inventory_member_id"
-        ),
+        UniqueConstraint("tenant_id", "assessment_revision_id", "inventory_member_id"),
         _link("assessment_revision_id", "cost_valuation_assessment_revision"),
         _link("inventory_member_id", "cost_inventory_member"),
         _link("evidence_source_record_id", "source_record"),

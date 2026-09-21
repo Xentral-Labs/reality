@@ -2,6 +2,7 @@
 
 import pytest
 import test_playground_steps
+from conftest import record_by_id
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
@@ -20,7 +21,7 @@ def test_app_cannot_bypass_playground_confirmation_for_practice(durable_playgrou
 
     engine, owner, run_id = durable_playground
     with Session(engine) as session:
-        run = session.get(PlaygroundRun, run_id)
+        run = record_by_id(session, PlaygroundRun, run_id)
         run.sandbox_kind = "practice"
         tenant_id = run.tenant_id
         session.commit()
@@ -35,7 +36,7 @@ def test_app_cannot_bypass_playground_confirmation_for_practice(durable_playgrou
     with Session(engine) as session:
         from reality.db.core import PlaygroundStep
 
-        proposal_id = session.get(PlaygroundStep, step["step_id"]).proposal_id
+        proposal_id = record_by_id(session, PlaygroundStep, step["step_id"]).proposal_id
         with pytest.raises(PlaygroundOperationDenied):
             require_proposal_decision(
                 session, tenant_id, proposal_id, "proposal_execute"
@@ -97,7 +98,7 @@ def test_master_exact_service_authority(durable_playground, monkeypatch, tamper)
     )
     assert result["status"] != "executed"
     with Session(engine) as session:
-        tenant = session.get(PlaygroundRun, run_id).tenant_id
+        tenant = record_by_id(session, PlaygroundRun, run_id).tenant_id
         assert (
             session.scalar(
                 select(Item.id).where(Item.tenant_id == tenant, Item.sku == "EXPECTED")
@@ -136,7 +137,7 @@ def test_master_create_edit_review_and_stale(durable_playground, family, model, 
 
     engine, owner, run_id = durable_playground
     with Session(engine) as session:
-        tenant = session.get(PlaygroundRun, run_id).tenant_id
+        tenant = record_by_id(session, PlaygroundRun, run_id).tenant_id
         initial = session.scalar(
             select(func.count()).select_from(model).where(model.tenant_id == tenant)
         )
@@ -185,7 +186,7 @@ def test_master_create_edit_review_and_stale(durable_playground, family, model, 
             "item": ("lead_time_days", 7),
             "location": ("allows_stock", False),
         }[family]
-        setattr(session.get(model, target), preserved_field, preserved_value)
+        setattr(record_by_id(session, model, target), preserved_field, preserved_value)
         session.commit()
     changed = {**record, "id": target, "name": "Renamed"}
     stale = prepare("stale", "update", changed)
@@ -196,14 +197,23 @@ def test_master_create_edit_review_and_stale(durable_playground, family, model, 
     reject_step(engine, owner, run_id, stale["step_id"], confirmed=True)
     confirm(prepare("edit", "update", changed))
     with Session(engine) as session:
-        assert session.get(model, target).name == "Renamed"
-        assert getattr(session.get(model, target), preserved_field) == preserved_value
+        assert record_by_id(session, model, target).name == "Renamed"
+        assert (
+            getattr(record_by_id(session, model, target), preserved_field)
+            == preserved_value
+        )
         events = list(
             session.scalars(
-                select(BusinessEvent).where(
+                # In the order the company recorded them. This used to rely on
+                # whatever order PostgreSQL happened to return, which followed
+                # the primary key until spec 181 FR-005 made that key start with
+                # the company — an ordering nobody had ever promised.
+                select(BusinessEvent)
+                .where(
                     BusinessEvent.tenant_id == tenant,
                     BusinessEvent.subject_id == target,
                 )
+                .order_by(BusinessEvent.sequence)
             )
         )
         assert [event.event_type for event in events] == [
@@ -222,6 +232,6 @@ def test_master_create_edit_review_and_stale(durable_playground, family, model, 
     with pytest.raises(NotFound):
         prepare("foreign", "update", {**changed, "id": foreign_id})
     with Session(engine) as session:
-        assert session.get(model, foreign_id).name == record["name"]
+        assert record_by_id(session, model, foreign_id).name == record["name"]
     with pytest.raises(InvalidOperation):
         prepare("extra", "create", {**record, "source_system": "external"})

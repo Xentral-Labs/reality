@@ -7,6 +7,7 @@ from types import SimpleNamespace
 
 import pytest
 import test_inventory_batch_review as fixtures
+from conftest import record_by_id
 from sqlalchemy import delete, event, select
 
 from reality.db.core import AppUser, ChangeProposal, Item, Tenant
@@ -94,7 +95,7 @@ def test_joint_foreign_and_unconfirmed_actions_refuse(session, business, cost_ow
         ):
             with pytest.raises(core.NotFound):
                 fn(session, caller_tenant, identity)
-    args = json.loads(session.get(ChangeProposal, action).input)
+    args = json.loads(record_by_id(session, ChangeProposal, action).input)
     args["expected_event_sequence"] = costing._sequence(session, tenant)
     proposal = fixtures.propose(session, tenant, cost_owner, args)
     with pytest.raises(core.NotFound):
@@ -351,7 +352,7 @@ def test_joint_corrupt_membership_refuses(session, business, cost_owner):
     tenant = business.tenant.id
     action, _ = confirmed(session, business, cost_owner)
     costing.build_inventory_batch_generation(session, tenant, action)
-    row = session.get(ChangeProposal, action)
+    row = record_by_id(session, ChangeProposal, action)
     payload = json.loads(row.output)
     payload["reviews"].pop()
     row.output = json.dumps(payload)

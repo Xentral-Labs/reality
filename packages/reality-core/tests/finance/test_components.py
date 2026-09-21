@@ -5,6 +5,7 @@ import json
 from decimal import Decimal
 
 import pytest
+from conftest import record_by_id
 from sqlalchemy import func, select
 
 from reality.db.core import DocumentLine, LedgerEntry, SourceRecord
@@ -512,7 +513,7 @@ def test_component_migration_preserves_postings_and_guards_history(
         with Session(engine) as db:
             from reality.db.core import Document
 
-            doc = db.get(Document, doc_id)
+            doc = record_by_id(db, Document, doc_id)
             confirm(db, tenant, prepare(db, tenant, doc, basis="gross"))
         with pytest.raises(RuntimeError, match="history"):
             command.downgrade(config, "0051_finance_references")

@@ -75,9 +75,9 @@ def test_a_credit_note_posts_the_reverse_of_an_invoice(session, business):
     assert account_balance(session, tenant, "sales_revenue", note.id) == Decimal(
         "30.0000"
     )
-    assert account_balance(
-        session, tenant, "accounts_receivable", note.id
-    ) == Decimal("-30.0000")
+    assert account_balance(session, tenant, "accounts_receivable", note.id) == Decimal(
+        "-30.0000"
+    )
 
 
 def test_a_paid_invoice_can_still_be_credited(session, business):
@@ -180,7 +180,9 @@ def test_settling_is_refused_beyond_what_is_owed(session, business):
 # --- The credit that comes the other way (spec 089) ------------------------
 
 
-def supplier_invoice(session, business, number, amount, *, post=True, date="2026-08-01"):
+def supplier_invoice(
+    session, business, number, amount, *, post=True, date="2026-08-01"
+):
     document = create_document(
         session,
         business.tenant.id,
@@ -217,7 +219,9 @@ def test_a_supplier_credit_note_posts_the_reverse(session, business):
 
     # The exact opposite of the supplier invoice posting, with the credit note's
     # own gross amount and nothing derived, apportioned or rounded.
-    assert account_balance(session, tenant_id, "accounts_payable", note.id) == Decimal(150)
+    assert account_balance(session, tenant_id, "accounts_payable", note.id) == Decimal(
+        150
+    )
     assert account_balance(session, tenant_id, "inventory", note.id) == Decimal(-150)
 
     # And it is settleable: what it claims from the supplier is its own amount.
@@ -255,8 +259,13 @@ def test_a_supplier_credit_settles_only_its_own_supplier(session, business):
     tenant_id = business.tenant.id
     other = create_party(session, tenant_id, "Other Supplier GmbH", "supplier")
     theirs = create_document(
-        session, tenant_id, "supplier_invoice", "ER-089-OTHER", other.id,
-        "500.00", document_date="2026-08-01",
+        session,
+        tenant_id,
+        "supplier_invoice",
+        "ER-089-OTHER",
+        other.id,
+        "500.00",
+        document_date="2026-08-01",
     )
     post_supplier_invoice(session, tenant_id, theirs.id)
     ours = supplier_invoice(session, business, "ER-089-OURS", "500.00")
@@ -270,7 +279,9 @@ def test_a_supplier_credit_settles_only_its_own_supplier(session, business):
         session, business, "SG-089-UNPOSTED", "100.00", post=False
     )
     with pytest.raises(InvalidOperation):
-        allocate_supplier_credit_note(session, tenant_id, unposted.id, ours.id, "100.00")
+        allocate_supplier_credit_note(
+            session, tenant_id, unposted.id, ours.id, "100.00"
+        )
 
     # The positive control: the same credit against its own supplier's invoice.
     allocate_supplier_credit_note(session, tenant_id, note.id, ours.id, "100.00")
@@ -321,9 +332,14 @@ def test_a_credit_takes_a_payable_off_the_overdue_queue(session, business):
     tenant_id = business.tenant.id
     create_payment_term(session, tenant_id, "NET30", "Net 30 days", 30)
     overdue = create_document(
-        session, tenant_id, "supplier_invoice", "ER-089-OVERDUE",
-        business.supplier.id, "300.00",
-        document_date="2026-07-01", payment_term_code="NET30",
+        session,
+        tenant_id,
+        "supplier_invoice",
+        "ER-089-OVERDUE",
+        business.supplier.id,
+        "300.00",
+        document_date="2026-07-01",
+        payment_term_code="NET30",
     )
     post_supplier_invoice(session, tenant_id, overdue.id)
     as_of = datetime(2026, 8, 31, 12, tzinfo=UTC)

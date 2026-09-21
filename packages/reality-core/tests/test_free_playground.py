@@ -1,7 +1,7 @@
 from datetime import UTC, datetime, timedelta
 
 import pytest
-from conftest import seed_company
+from conftest import record_by_id, seed_company
 from sqlalchemy import func, select
 
 from reality.db.core import PlaygroundRun, Tenant, now, uid
@@ -57,7 +57,8 @@ def test_entry_read_only_replay_preserves_live_pause(
         == "ready"
     )
     assert (
-        session.get(PlaygroundRun, result["run_id"]).owner_user_id == scheduled_owner.id
+        record_by_id(session, PlaygroundRun, result["run_id"]).owner_user_id
+        == scheduled_owner.id
     )
     demo_data.control(
         session,
@@ -300,7 +301,7 @@ def test_entry_creates_the_chosen_start(session, scheduled_owner):
         session, scheduled_owner.id, confirmed=True, content="empty"
     )
     assert result["status"] == "ready"
-    run = session.get(PlaygroundRun, result["run_id"])
+    run = record_by_id(session, PlaygroundRun, result["run_id"])
     assert run.preset_key == "company-empty"
     assert session.get(Tenant, result["tenant_id"]).name == "My company"
     status = free_playground.entry_status(session, scheduled_owner.id)

@@ -238,6 +238,22 @@ def company_setup_login(session):
     return login
 
 
+def record_by_id(session, model, record_id):
+    """Look a record up by its identity alone, which only a test may do.
+
+    Since spec 181 FR-005 every company-scoped table is keyed by `(tenant_id, id)`,
+    so that PostgreSQL will let it be partitioned by company and so that a row can
+    no longer point at a parent belonging to somebody else. `session.get` therefore
+    wants both halves, and a service has both: it always knows the company it is
+    acting for. A test frequently does not have it to hand and does not need it,
+    because identities are unique across the instance — so it asks by identity and
+    says here, once, that this is a test's licence and not a service's.
+    """
+    from sqlalchemy import select
+
+    return session.scalars(select(model).where(model.id == record_id)).one_or_none()
+
+
 def seed_company(session, tenant_id: str) -> str:
     """Run the queued company initialization the worker would run (feature 199).
 

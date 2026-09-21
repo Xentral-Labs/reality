@@ -5,6 +5,7 @@ from decimal import Decimal
 from uuid import uuid4
 
 import pytest
+from conftest import record_by_id
 from sqlalchemy import func, select
 from test_unified_invoice_entry import confirm
 
@@ -82,12 +83,12 @@ def test_stated_values_and_recovery(session, business, direction):
     assert detail["verification"] == "verified"
     records = detail["receipt"]["records"]
     assert len(records) == 6
-    doc = session.get(
-        Document, next(r["id"] for r in records if r["family"] == "document")
+    doc = record_by_id(
+        session, Document, next(r["id"] for r in records if r["family"] == "document")
     )
     assert doc.gross_amount == Decimal("209.1234")
     rows = [
-        session.get(DocumentLine, r["id"])
+        record_by_id(session, DocumentLine, r["id"])
         for r in records
         if r["family"] == "document_line"
     ]
@@ -96,11 +97,13 @@ def test_stated_values_and_recovery(session, business, direction):
         (lines[1].id, Decimal(2), Decimal(102)),
     ]
     assert (
-        json.loads(session.get(SourceRecord, doc.source_record_id).payload)["lines"]
+        json.loads(record_by_id(session, SourceRecord, doc.source_record_id).payload)[
+            "lines"
+        ]
         == args["lines"]
     )
     assert all(
-        session.get(LedgerEntry, r["id"]).amount == Decimal("209.1234")
+        record_by_id(session, LedgerEntry, r["id"]).amount == Decimal("209.1234")
         for r in records
         if r["family"] == "ledger_entry"
     )

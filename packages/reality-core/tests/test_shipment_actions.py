@@ -1,6 +1,7 @@
 import json
 
 import pytest
+from conftest import record_by_id
 from sqlalchemy import func, select
 from unified_fixtures import delivery_fixture
 
@@ -181,8 +182,7 @@ def test_tracking_event_and_supersession_are_separate_reviewed_append_only_actio
         {"event_id": event_id, "reason": "Carrier correction"},
     )
     assert (
-        session.scalar(select(func.count()).select_from(ShipmentEventSupersession))
-        == 0
+        session.scalar(select(func.count()).select_from(ShipmentEventSupersession)) == 0
     )
     correction_token = json.loads(correction_proposal.input)["_delivery_review"][
         "token"
@@ -197,7 +197,7 @@ def test_tracking_event_and_supersession_are_separate_reviewed_append_only_actio
     receipt = json.loads(correction_result.output)
     assert receipt["event_id"] == event_id
     assert receipt["supersession_id"]
-    original = session.get(ShipmentEvent, event_id)
+    original = record_by_id(session, ShipmentEvent, event_id)
     assert original.event_type == "in_transit"
 
 
