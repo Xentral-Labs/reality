@@ -67,7 +67,10 @@ export type CompanySetupResult = {
   error_code: string | null;
   profile: { key: string; version: number } | null;
   /** Feature 201: whether a worker has this company's preparation queued or in hand. */
-  preparation?: "queued" | "preparing" | null;
+  preparation?: "queued" | "preparing" | "retrying" | null;
+  preparation_attempt?: number | null;
+  preparation_max_attempts?: number | null;
+  preparation_next_attempt_at?: string | null;
 };
 
 export type TableQuery = { size?: number; sort?: string; sort_direction?: "asc" | "desc" };
@@ -1282,6 +1285,11 @@ export const api = {
   companySetupOptions: () => request<CompanySetupOptions>("/api/company-setup/options"),
   companySetupRequest: (key: string) =>
     request<CompanySetupResult>(`/api/company-setup/requests/${encodeURIComponent(key)}`),
+  companySetupRetry: (key: string) =>
+    request<CompanySetupResult>(
+      `/api/company-setup/requests/${encodeURIComponent(key)}/retry`,
+      { method: "POST", body: JSON.stringify({ confirmed: true }) },
+    ),
   companySetup: (body: CompanySetupRequest) =>
     request<CompanySetupResult>("/api/company-setup", {
       method: "POST",

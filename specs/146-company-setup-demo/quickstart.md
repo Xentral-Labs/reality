@@ -121,3 +121,67 @@ proxy responds successfully. No frontend change was required. Evidence: local
 ## FR-031 verification
 
 156 web contracts pass; build, four-language audit (1823 strings), formatting, spec policy and whitespace checks pass. `apps/web/scripts/company-setup-progress-browser.mjs` verifies delayed recovery, loading without retry, visible spinner, failed-request recovery and identical retry payload in all four languages at 1440/390 px, light/dark appearances. German desktop/mobile screenshots visually inspected. No real company is created by these fixtures. The empty entry no longer wraps the setup view in a duplicate heading or constrained container.
+
+## Deferred setup retry regression — 2026-09-21
+
+The port-8080 live-demo check exposed a worker run that reported success with
+`initialized=0` after the profile seed had failed. T939 makes both an incomplete
+profile seed and an incomplete requested live start retryable worker failures. The
+worker transaction rolls back the attempted seed/connection, retains the original
+tenant and request identity, and allows either the scheduled retry or the existing
+explicit retry path to finish setup. Focused company-setup, worker and costing tests:
+51 passed; the two directly affected complete test files pass 18/18. Ruff and
+`git diff --check` pass. No schema change or new setup authority is introduced.
+
+The same visible journey then exposed the presentation gap behind FR-031: a
+scheduled retry looked like a frozen three-line checklist. T940 preserves the
+existing bounded worker authority and adds truthful queued/preparing/retrying
+receipt metadata, current-step text, attempt count and next-attempt time while
+keeping completed and remaining steps visible. Verification: 29/29 complete
+company-setup PostgreSQL tests, 9/9 progress contract tests, four-language audit
+2071/2071, production web build, Prettier, Ruff and diff checks pass. The fresh
+`Reality Live Demo Fixed` tenant was visibly verified with 41 sales orders, 16
+stock items, 16 open receivables and a readable 6/6 historical contribution
+generation (DB1 1,000; DB2 701). No database reset or schema change.
+
+### Final live-demo setup verification — 2026-09-21
+
+T941 fixes the remaining first-run failure: the isolated job child exhausted its
+single-connection SQLAlchemy pool while canonical setup published the retained
+contribution generation. The child remains bounded at two connections. A fresh
+`Reality Live Demo Verified` setup then succeeded on worker attempt 1, reached
+`active`, and retained `live_setup_complete=true`. The visible port-8080 company
+showed a ready connection/scheduler/worker, 16 Finance records (EUR 7,803 gross,
+EUR 197 settled, EUR 7,606 open), and retained DB1/DB2 in the invoice explanation.
+The setup screen now has one three-step hierarchy and its exhausted-state button
+uses the explicit confirmed recovery endpoint. Focused PostgreSQL tests pass 35/35;
+setup-progress tests pass 9/9; Ruff and both production builds pass.
+
+### Initial Finance calculation gate — 2026-09-21
+
+T942 adds Finance and margin calculation as a fourth setup outcome. The setup
+worker now rebuilds the shared materialized projections inside the same atomic
+transaction as canonical demo initialization; a calculation failure remains
+retryable and cannot release a partially prepared company. The visible port-8080
+journey created `Reality Demo Finance Ready`, displayed all four setup outcomes,
+and opened tenant `ten_7a6bbfe4b2` automatically. Finance immediately showed its
+calculation timestamp, 16 receivables and EUR 7,803 gross / EUR 197 settled /
+EUR 7,606 open without selecting Refresh. Verification: company setup 14/14,
+setup progress 9/9, localization 2071/2071 and the production web build pass.
+
+### Observable completion handoff — 2026-09-21
+
+T943 makes queued work visibly active, keeps the confirmed final step active for
+at least 1.5 seconds and then leaves all four completed steps visible for at least
+2 seconds before navigation. The dialog is vertically and horizontally centered
+with a safe short-screen inset. The fresh visible `Reality Demo Centered Finish`
+run reached tenant `ten_24b0407190`; Finance immediately showed 16 records and
+EUR 7,803 gross / EUR 197 settled / EUR 7,606 open without Refresh. Setup progress
+passes 10/10, localization 2073/2073, production build, formatting, spec policy and
+whitespace checks pass.
+
+Follow-up visual verification corrected the native dialog positioning itself, not
+only its height: `.company-setup-dialog` is now fixed to all four viewport edges
+with automatic margins and fit-content height. Both the `Create company` form and
+the four-step `Reality Demo Center Check` progress view were visibly inspected on
+port 8080 and are centered in the app viewport rather than attached to its top edge.

@@ -1127,7 +1127,7 @@ def _finish(
     action.status = "executed"
     action.decided_at = now()
     action.decided_by_user_id = actor_id
-    action.output = json.dumps(result, sort_keys=True)
+    action.output = json.dumps(result, sort_keys=True, default=str)
     session.flush()
     return result
 

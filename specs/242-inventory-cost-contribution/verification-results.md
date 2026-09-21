@@ -2497,6 +2497,44 @@ manual-document-correction retry assertions, Storyline chat evidence, two unifie
 assertions and one unified invoice-credit assertion. They are not silently attributed to 234 and
 keep the shared T090 checkbox open until coordinated and followed by a green complete rerun.
 
+2026-09-21 canonical-demo regression: the live browser showed the confirmed
+six-position DB1/DB2 valuation but its selection was unreadable because setup retained
+the confirmation without publishing its disposable generation. T287 adds a failing
+service regression and builds the generation through the shared costing application
+service immediately after the confirmed batch review. The complete demo-costing test
+file passes 6/6; combined directly affected setup and costing files pass 18/18. This
+adds no financial authority: all values continue to derive from retained reviews and
+source evidence, while the generation remains disposable.
+
 Owner-deferred T280 and T285 remain the only unavailable external qualifications. They do not
 invalidate the local 234 implementation evidence, and no moderated-usability or reference-host
 performance result is claimed.
+
+2026-09-21 operational verification: a fresh live-demo invoice became stale as new
+synthetic evidence arrived. The shared response still carried exact retained
+`basis_db1=150.0000` and `basis_db2=125.0000`; the operational component now displays
+those recorded values beneath the existing retained/not-current warning instead of
+incorrectly showing “Not evidenced”. Visible port-8080 verification confirmed DB1
+EUR 150 and DB2 EUR 125 with their exact four-decimal values and Inspector trace.
+
+2026-09-21 stale-inventory follow-up: visible port-8080 verification showed that the
+Warehouse explanation hid the service's retained `basis_acquisition_value` whenever live
+demo events made the current review stale. T289 now displays that exact retained value
+beneath the existing non-current warning, preserves an unsupported carrying value as
+unknown and performs no browser arithmetic. The test-first contract failed before the
+change and passes 5/5 afterward; the dedicated real-Chrome harness passes ready, stale and
+uninitialized cases, exact retained precision, Inspector routing, tenant switching and
+GET-only behavior. The production Web build passes. On the fresh `Reality Live Demo Watch`
+tenant, Coast Storage Box and Ridge Backpack truthfully show retained acquisition value
+EUR 0.00: their selected latest reviewed company-owned scopes had no remaining acquisition
+value, while later operational stock is outside that frozen review. The UI no longer
+misstates that retained zero as absent evidence.
+
+The owner rejected zero-valued retained stock as unsuitable canonical demo behavior. T290
+removes fixture A's synthetic 40-unit supplier-return cleanup: the received acquisition
+evidence remains EUR 1,050 for 100 units, the sale still consumes 60 units at EUR 630, and
+the latest retained inventory context now preserves the intended 40 company-owned units at
+EUR 420. The separate exact signed customer-return story remains. The regression failed
+first because the previous latest basis was stale with zero remaining value; it now proves
+the stale retained basis carries quantity 40.0000 and acquisition value 420.0000. The full
+demo-costing and company-setup set passes 35/35 in 193.43 seconds.

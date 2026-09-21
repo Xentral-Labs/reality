@@ -1,4 +1,4 @@
-import { Building2, LoaderCircle } from "lucide-react";
+import { Building2 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import {
   api,
@@ -10,7 +10,13 @@ import {
 import { t } from "../localization";
 import { CompanySetupForm } from "./CompanySetupForm";
 import { SetupSteps } from "./EntryProgress";
-import { followSetup, setupProgress, setupSteps, type SetupStep } from "../unified/setupProgress";
+import {
+  followSetup,
+  presentReadySetup,
+  setupProgress,
+  setupSteps,
+  type SetupStep,
+} from "../unified/setupProgress";
 
 export function CompanySetup({
   first = false,
@@ -43,6 +49,13 @@ export function CompanySetup({
     };
   }, []);
   const storageKey = (actor: string) => `reality.company-setup.${actor}`;
+  async function settle(receipt: CompanySetupResult | null) {
+    if (!receipt || !mounted.current) return;
+    if (receipt.status === "ready") {
+      await presentReadySetup(setSteps, () => mounted.current);
+    }
+    if (mounted.current) setResult(receipt);
+  }
   useEffect(() => {
     let active = true;
     void api
@@ -56,7 +69,24 @@ export function CompanySetup({
           setPending(request);
           try {
             const recovered = await api.companySetupRequest(request.request_key);
-            if (active) setResult(recovered);
+            if (active && setupProgress(recovered) === "waiting") {
+              setResult(recovered);
+              setSteps(setupSteps(recovered));
+            }
+            if (active && setupProgress(recovered) === "waiting") {
+              const settled = await followSetup(
+                () => api.companySetupRequest(request.request_key),
+                () => active && mounted.current,
+                {
+                  observe: (receipt) => {
+                    if (active && mounted.current) setSteps(setupSteps(receipt));
+                  },
+                },
+              );
+              if (active && settled) await settle(settled);
+            } else if (active) {
+              await settle(recovered);
+            }
           } catch {
             /* Retain the exact request for an explicit retry after a lost response. */
           }
@@ -86,18 +116,50 @@ export function CompanySetup({
       // Feature 199: creation answers once the company exists; its profile is seeded
       // by the worker, so the receipt is followed until it is ready or fails.
       const created = await api.companySetup(request);
-      setResult(created);
-      setSteps(setupSteps(created));
       if (setupProgress(created) === "waiting") {
+        setResult(created);
+        setSteps(setupSteps(created));
         const settled = await followSetup(
           () => api.companySetupRequest(request.request_key),
           () => mounted.current,
-          { observe: (receipt) => mounted.current && setSteps(setupSteps(receipt)) },
+          {
+            observe: (receipt) =>
+              mounted.current && receipt?.status !== "ready" && setSteps(setupSteps(receipt)),
+          },
         );
-        if (settled) setResult(settled);
+        if (settled) await settle(settled);
+      } else {
+        await settle(created);
       }
     } catch {
       setError(t("Creation could not be confirmed. Retry the same request to recover safely."));
+    } finally {
+      if (mounted.current) setBusy(false);
+    }
+  }
+  async function retry() {
+    if (!pending || busy) return;
+    setBusy(true);
+    setError("");
+    try {
+      const recovered = await api.companySetupRetry(pending.request_key);
+      if (setupProgress(recovered) === "waiting") {
+        setResult(recovered);
+        setSteps(setupSteps(recovered));
+        const settled = await followSetup(
+          () => api.companySetupRequest(pending.request_key),
+          () => mounted.current,
+          {
+            observe: (receipt) =>
+              mounted.current && receipt?.status !== "ready" && setSteps(setupSteps(receipt)),
+          },
+        );
+        if (settled) await settle(settled);
+      } else {
+        await settle(recovered);
+      }
+    } catch {
+      setError(t("Company setup could not be completed. Retry when you are ready."));
     } finally {
       if (mounted.current) setBusy(false);
     }
@@ -141,11 +203,7 @@ export function CompanySetup({
       aria-busy={busy}
     >
       <div className="company-setup-symbol" aria-hidden="true">
-        {busy ? (
-          <LoaderCircle className="animate-spin motion-reduce:animate-none" />
-        ) : (
-          <Building2 />
-        )}
+        <Building2 />
       </div>
       <p className="company-setup-brand">Reality</p>
       <h1 id="company-setup-title">
@@ -173,14 +231,24 @@ export function CompanySetup({
               {pending?.name || result?.name}
             </p>
           )}
-          <p>
-            {t(
-              result?.status === "ready"
-                ? "Company created. Opening your company…"
-                : "Please wait. You will continue automatically.",
-            )}
-          </p>
+          <p>{t("You can watch each step. Your company opens automatically when it is ready.")}</p>
           {steps && <SetupSteps steps={steps} />}
+          {result?.preparation === "retrying" && (
+            <p className="company-setup-retry-status">
+              <span>{t("Automatic retry")}</span>
+              {result.preparation_attempt && result.preparation_max_attempts && (
+                <span>
+                  {t("Attempt")} {result.preparation_attempt} / {result.preparation_max_attempts}
+                </span>
+              )}
+              {result.preparation_next_attempt_at && (
+                <span>
+                  {t("Next attempt:")}{" "}
+                  {new Date(result.preparation_next_attempt_at).toLocaleTimeString()}
+                </span>
+              )}
+            </p>
+          )}
         </div>
       )}
       {error && <p role="alert">{error}</p>}
@@ -202,7 +270,7 @@ export function CompanySetup({
             {pending.name}
           </p>
           <p>{t("Your setup is saved. Continue with the same company.")}</p>
-          <button className="primary-button" disabled={busy} onClick={() => void submit(pending)}>
+          <button className="primary-button" disabled={busy} onClick={() => void retry()}>
             {t("Retry company setup")}
           </button>
         </div>

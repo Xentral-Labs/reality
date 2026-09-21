@@ -24,6 +24,21 @@ SAFE_CODES = frozenset(
         "invalid_configuration",
         "handler_timeout",
         "handler_commit_forbidden",
+        "setup_incomplete",
+        "setup_profile_incomplete",
+        "setup_profile_lock_timeout",
+        "setup_profile_statement_timeout",
+        "setup_profile_job_contract",
+        "setup_profile_business_rule",
+        "setup_profile_database",
+        "setup_profile_pool_timeout",
+        "setup_live_incomplete",
+        "setup_live_lock_timeout",
+        "setup_live_statement_timeout",
+        "setup_live_job_contract",
+        "setup_live_business_rule",
+        "setup_live_database",
+        "setup_live_pool_timeout",
         "result_too_large",
         "handler_failed",
     }
@@ -90,7 +105,7 @@ def child_main(
                     "code": error.code
                     if error.code in SAFE_CODES
                     else "handler_failed",
-                    "retryable": error.code == "handler_timeout",
+                    "retryable": error.retryable or error.code == "handler_timeout",
                 }
             )
         )

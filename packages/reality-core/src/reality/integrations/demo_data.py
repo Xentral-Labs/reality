@@ -282,6 +282,12 @@ def invoice_external_id(order_external_id: str) -> str:
     return f"{order_external_id}:invoice"
 
 
+def demo_invoice_number(issued_at: datetime, identity: str) -> str:
+    """One stable human invoice format shared by seeded and continuous demo data."""
+    suffix = hashlib.sha256(identity.encode()).hexdigest()[:6].upper()
+    return f"INV-{issued_at:%Y%m%d}-{suffix}"
+
+
 def payment_external_id(order_external_id: str, index: int) -> str:
     return f"{order_external_id}:payment:{index}"
 
@@ -348,7 +354,7 @@ def settlement_plan(
     ordered_at = datetime.fromisoformat(order["ordered_at"])
     invoice_at = ordered_at + timedelta(minutes=between("invoice", *DELAYS["invoice"]))
     due_at = invoice_at + timedelta(days=PAYMENT_TERM["due_days"])
-    invoice_number = "INV-" + order["number"].removeprefix("DEMO-")
+    invoice_number = demo_invoice_number(invoice_at, order_external_id)
     gross = Decimal(order["gross_amount"])
 
     def first_at() -> datetime:

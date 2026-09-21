@@ -243,7 +243,9 @@ def _candidate(session: Session, tenant: str, billed: DocumentLine) -> dict:
             "customer_id": invoice.party_id,
             "item_id": billed.item_id,
             "sales_channel": order.sales_channel,
-            "invoice_date": invoice.document_date,
+            "invoice_date": (
+                invoice.document_date.isoformat() if invoice.document_date else None
+            ),
             "proposed_economic_at": movement.occurred_at.isoformat(),
             "inventory_effective_at": inventory["effective_at"],
             "inventory_knowledge_at": inventory["knowledge_at"],

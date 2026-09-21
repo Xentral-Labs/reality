@@ -5,17 +5,17 @@ import type { SetupStep } from "../unified/setupProgress";
 /** Feature 201: the steps a company setup is actually at, shared by both screens. */
 export function SetupSteps({ steps }: { steps: SetupStep[] }) {
   return (
-    <ol className="mx-auto w-fit space-y-3 text-left" data-setup-steps>
+    <ol className="setup-steps" data-setup-steps>
       {steps.map((step) => (
         <li
           key={step.key}
-          className="flex items-center gap-3"
+          className="setup-step"
           data-setup-step={step.key}
           data-state={step.state}
           aria-current={step.state === "current" ? "step" : undefined}
         >
           <span
-            className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-border-default"
+            className="setup-step-marker"
             aria-hidden="true"
           >
             {step.state === "done" ? (
@@ -24,9 +24,7 @@ export function SetupSteps({ steps }: { steps: SetupStep[] }) {
               <LoaderCircle className="h-4 w-4 animate-spin motion-reduce:animate-none text-accent" />
             ) : null}
           </span>
-          <span className={`text-sm ${step.state === "waiting" ? "text-fg-muted" : ""}`}>
-            {t(step.label)}
-          </span>
+          <span>{t(step.label)}</span>
         </li>
       ))}
     </ol>

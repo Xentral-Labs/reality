@@ -199,7 +199,7 @@ try {
       await page.getByText("INV-1", { exact: true }).waitFor();
     }
   }
-  const hideChat = page.getByRole("button", { name: "Hide chat", exact: true });
+  const hideChat = page.getByRole("button", { name: "Hide chat", exact: true }).first();
   if (await hideChat.isVisible()) await hideChat.click();
   // Shared notices align with register content, including wrapped mobile states.
   for (const width of [1440, 390]) {
@@ -217,11 +217,17 @@ try {
           left: a.left - b.left - parseFloat(style.borderLeftWidth),
           right: b.right - a.right - parseFloat(style.borderRightWidth),
           overflow: node.scrollWidth > node.clientWidth,
+          paddingLeft: parseFloat(getComputedStyle(node).paddingLeft),
+          borderRadius: parseFloat(getComputedStyle(node).borderTopLeftRadius),
         };
       });
       assert.ok(Math.abs(dimensions.left - 16) < 1, JSON.stringify(dimensions));
       assert.ok(Math.abs(dimensions.right - 16) < 1, JSON.stringify(dimensions));
       assert.equal(dimensions.overflow, false);
+      if (projectionState !== "ready") {
+        assert.ok(dimensions.paddingLeft >= 12, JSON.stringify(dimensions));
+        assert.ok(dimensions.borderRadius >= 8, JSON.stringify(dimensions));
+      }
     }
   }
   // Already-padded and standalone contexts must not gain a second outer inset.

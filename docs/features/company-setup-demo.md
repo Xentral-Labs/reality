@@ -102,6 +102,13 @@ run waits, `preparing` once a worker has claimed it, `null` otherwise — and th
 render three steps from it (feature 201). Nothing about that display is estimated: the
 middle step only claims work is happening once a worker actually holds the run.
 
+FR-033 supersedes that three-step count for canonical demo setup. The setup worker uses
+the shared projection service to publish the initial operational projections after the
+profile and requested live source are prepared, in the same retryable transaction. The
+screen shows a fourth Finance/margin calculation outcome before Ready to explore. A ready
+fresh demo therefore has an initial stored Finance answer and does not depend on a manual
+Refresh click, browser calculation or browser-owned background work.
+
 Spec146 FR-031: company setup distinguishes busy preparation/opening from recoverable interruption. Busy states use one spinner/status and retain the company name without retry actions. First-company entry renders one centered heading/card; existing-company selection remains. Saved request identity and automatic ready navigation are unchanged.
 
 ## Existing Sandbox simulation entry

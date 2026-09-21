@@ -85,6 +85,8 @@ def _result(
         )
         and not run.initialization_progress.get("live_setup_complete")
     )
+    preparation = _preparation(session, tenant_id) if run else None
+    setup_failed = bool(preparation and preparation["state"] == "failed")
     ready = (
         tenant.archived_at is None
         and (run is None or run.status == "active")
@@ -98,11 +100,15 @@ def _result(
         if ready
         else (
             "initialization_failed"
-            if live_pending and run.status == "active"
+            if setup_failed or (live_pending and run.status == "active")
             else (run.status if run else "archived")
         ),
         "environment": "sandbox" if run else "business",
-        "error_code": "live_setup_incomplete"
+        "error_code": None
+        if ready
+        else "setup_incomplete"
+        if setup_failed
+        else "live_setup_incomplete"
         if live_pending
         else (run.initialization_error_code if run else None),
         "destination": (
@@ -117,11 +123,20 @@ def _result(
         "profile": run.initialization_progress.get("profile")
         if ready and run
         else None,
-        "preparation": None if ready else _preparation(session, tenant_id),
+        "preparation": preparation["state"]
+        if not ready and preparation and preparation["state"] != "failed"
+        else None,
+        "preparation_attempt": preparation["attempt"]
+        if not ready and preparation
+        else None,
+        "preparation_max_attempts": 3 if not ready and preparation else None,
+        "preparation_next_attempt_at": preparation["next_attempt_at"]
+        if not ready and preparation
+        else None,
     }
 
 
-def _preparation(session: Session, tenant_id: str) -> str | None:
+def _preparation(session: Session, tenant_id: str) -> dict | None:
     """Whether anyone is seeding this company right now (feature 201).
 
     The worker commits its claim before the seeding process starts, so `preparing`
@@ -130,19 +145,33 @@ def _preparation(session: Session, tenant_id: str) -> str | None:
     from reality.db.scheduled_jobs import ScheduledJobRun
     from reality.services.scheduled_jobs import SETUP_JOB_TYPE
 
-    status = session.scalar(
-        select(ScheduledJobRun.status)
+    run = session.scalar(
+        select(ScheduledJobRun)
         .where(
             ScheduledJobRun.tenant_id == tenant_id,
             ScheduledJobRun.job_type == SETUP_JOB_TYPE,
-            ScheduledJobRun.status.in_(("pending", "retry", "running")),
+            ScheduledJobRun.status.in_(("pending", "retry", "running", "failed")),
         )
         .order_by(ScheduledJobRun.created_at.desc())
         .limit(1)
     )
-    if status is None:
+    if run is None:
         return None
-    return "preparing" if status == "running" else "queued"
+    return {
+        "state": (
+            "preparing"
+            if run.status == "running"
+            else "retrying"
+            if run.status == "retry"
+            else "failed"
+            if run.status == "failed"
+            else "queued"
+        ),
+        "attempt": min(run.attempt_count + (0 if run.status == "running" else 1), 3),
+        "next_attempt_at": run.next_attempt_at.isoformat()
+        if run.status == "retry"
+        else None,
+    }
 
 
 def read_request(session: Session, actor_id: str, request_key: str) -> dict:
@@ -353,11 +382,13 @@ def _finish_live_setup(
             session.flush()
         if _commit:
             session.commit()
-    except Exception:  # noqa: BLE001 - retain baseline and safe explicit retry after atomic rollback
+    except Exception:
         # The nested block already rolled its own writes back. A caller that owns the
         # transaction keeps it; the receipt then reports the incomplete live setup.
         if _commit:
             session.rollback()
+        else:
+            raise
 
 
 def initialize_profile(
@@ -417,13 +448,15 @@ def initialize_profile(
                 None,
             )
             session.flush()
-    except Exception:  # noqa: BLE001 - retain safe setup identity after atomic rollback
+    except Exception:
         run.initialization_progress = initial
         run.status, run.ready_at, run.initialization_error_code = (
             "initialization_failed",
             None,
             "seed_failed",
         )
+        if not _commit:
+            raise
     if _commit:
         session.commit()
     from reality.storyline import recorder

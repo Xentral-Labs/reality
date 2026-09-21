@@ -1304,6 +1304,14 @@ The explanation keeps acquisition value and carrying value separate, names missi
 evidence instead of substituting acquisition value, shows the retained valuation and knowledge
 cutoffs, and distinguishes ready, stale, historical and uninitialized states. A stale current
 read may explain its retained basis but must not present that basis as a current result.
+When a retained contribution basis is stale, its already-recorded basis DB1 and DB2 may
+remain visible under that explicit non-current label; the UI must use the service's
+retained `basis_db1`/`basis_db2` values and must not recompute them or relabel them current.
+When a retained inventory basis is stale, its already-recorded
+`basis_acquisition_value` and retained unit cost must likewise remain visible beneath the
+same explicit non-current label. The UI must not call either value current, substitute the
+acquisition basis for an unsupported carrying value, or turn later unrelated live-demo
+events into an apparent absence of retained cost evidence.
 
 The same presentation contract is reusable for a contribution scope. It separates received net
 revenue, consumed acquisition cost, DB1, reviewed selling costs and DB2, and it never treats an

@@ -31,6 +31,7 @@ test("one explanation component owns freshness, gaps, precision and trace", asyn
   assert.doesNotMatch(component, /Exact retained value"\)\}: \{text\(value\)\}/);
   assert.match(component, /className="mt-1 block text-fg-muted"/);
   assert.match(component, /shown\.unit_cost/);
+  assert.match(component, /shown\.acquisition_value \?\? shown\.basis_acquisition_value/);
 });
 
 test("warehouse item preview uses the shared explanation", async () => {

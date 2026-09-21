@@ -2618,7 +2618,7 @@ def create_change_proposal(
         actor_type=actor_type,
         status="proposed",
         input=json.dumps(normalized_arguments, sort_keys=True),
-        output=json.dumps(preview, sort_keys=True),
+        output=json.dumps(preview, sort_keys=True, default=str),
     )
     if delivery_review:
         proposal.output = json.dumps(_json_value(delivery_review), sort_keys=True)

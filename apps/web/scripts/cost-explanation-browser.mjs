@@ -161,7 +161,10 @@ try {
   costState = "stale";
   await page.reload();
   await cost.getByText("Retained basis — not current", { exact: false }).waitFor();
-  assert.equal(await cost.getByText("€420.00", { exact: true }).count(), 0);
+  await cost.getByText("€420.00", { exact: true }).waitFor();
+  await cost.getByText("Exact retained value: 420.0000", { exact: true }).waitFor();
+  await cost.getByText("10.500000", { exact: true }).waitFor();
+  assert.equal(await cost.getByText("Not evidenced", { exact: true }).count(), 1);
 
   costState = "uninitialized";
   await page.reload();

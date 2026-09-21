@@ -1,6 +1,6 @@
 """Confirmed full-line revenue and consumption, with immutable historical membership."""
 
-from datetime import UTC, datetime
+from datetime import UTC, date, datetime
 from decimal import Decimal
 
 from sqlalchemy import select
@@ -81,7 +81,11 @@ def _check(session, tenant, request):
         "quantity": candidate["quantity"],
         "currency": candidate["currency"],
         "base_unit": candidate["base_unit"],
-        "invoice_date": trace["invoice_date"],
+        "invoice_date": (
+            date.fromisoformat(trace["invoice_date"])
+            if trace["invoice_date"]
+            else None
+        ),
         "sales_channel": trace["sales_channel"],
         "evidence_hash": trace["revenue"]["evidence_hash"],
         "input_schema_version": 1,
