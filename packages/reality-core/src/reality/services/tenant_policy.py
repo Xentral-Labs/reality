@@ -566,8 +566,7 @@ def require_proposal_creation(
         and profile_finance[1] is session.get_transaction()
         and profile_finance[4] == tenant_id
         and tool_name == "finance.adjustment.accept"
-        and profile_finance[5]
-        == json.dumps(arguments, sort_keys=True, allow_nan=False)
+        and profile_finance[5] == json.dumps(arguments, sort_keys=True, allow_nan=False)
     ):
         require_playground_run(session, profile_finance[2], profile_finance[3])
         return
@@ -1179,6 +1178,8 @@ _PROFILE_OPERATIONS = _SEED_OPERATIONS | frozenset(
         "hold_commitment",
         "release_commitment_hold",
         "correct_movement",
+        "create_lot",
+        "create_serial_unit",
         "post_sales_invoice",
         "post_sales_credit_note",
         "allocate_credit_note",
@@ -1197,6 +1198,7 @@ _PROFILE_OPERATIONS = _SEED_OPERATIONS | frozenset(
         "post_supplier_payment",
         "record_supplier_payment",
         "allocate_settlement",
+        "reverse_ledger_posting_group",
         "finance_account_maintain",
     }
 )
@@ -1310,9 +1312,7 @@ def profile_cost_action_scope(
         _profile_cost_authority.reset(token)
 
 
-def profile_cost_owner_active(
-    session: Session, tenant_id: str, actor_id: str
-) -> bool:
+def profile_cost_owner_active(session: Session, tenant_id: str, actor_id: str) -> bool:
     """Recognize only the owner bound to the current fixed profile cost action."""
     authority = _profile_cost_authority.get()
     if (

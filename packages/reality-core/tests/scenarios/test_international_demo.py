@@ -23,7 +23,7 @@ def test_canonical_profile_counts_and_cases(session, scheduled_owner, monkeypatc
         company_setup.read_request(session, scheduled_owner.id, "canonical")["status"]
         == "ready"
     )
-    for model, count in [(Item, 16), (Party, 24), (Location, 2)]:
+    for model, count in [(Item, 18), (Party, 24), (Location, 2)]:
         assert (
             session.scalar(
                 select(func.count()).select_from(model).where(model.tenant_id == tenant)
@@ -100,7 +100,7 @@ def test_operational_stock_and_source_lineage(session, scheduled_owner, monkeypa
     manifest = record_by_id(
         session, PlaygroundRun, result["run_id"]
     ).initialization_progress
-    for index, stock in enumerate((13, 14, 42, 2, 5, 5, 10, 0, 0, 10), 1):
+    for index, stock in enumerate((13, 14, 42, 2, 5, 5, 10, 0, 0, 13), 1):
         assert core.stock_at(
             session,
             tenant,
@@ -157,6 +157,104 @@ def test_operational_stock_and_source_lineage(session, scheduled_owner, monkeypa
     ) == Decimal(2)
 
 
+def test_supported_edge_cases_are_source_backed_and_traceable(
+    session, scheduled_owner, monkeypatch
+):
+    """Feature 246: every fully supported catalog promise exists in Reality."""
+    from datetime import datetime
+    from decimal import Decimal
+
+    from reality.db.core import (
+        DocumentLine,
+        LedgerEntry,
+        Lot,
+        Movement,
+        SerialUnit,
+        SourceRecord,
+    )
+    from reality.services import core
+
+    tenant = _demo_company(session, scheduled_owner, "supported-edge-cases")
+    run = session.scalar(select(PlaygroundRun).where(PlaygroundRun.tenant_id == tenant))
+    cases = run.initialization_progress["cases"]
+
+    price_credit = cases["price_only_credit"]
+    assert core.open_invoice_amount(
+        session, tenant, price_credit["invoice_id"]
+    ) == Decimal(45)
+    assert "return_movement_id" not in price_credit
+
+    reversal = cases["invoice_reversal"]
+    original = list(
+        session.scalars(
+            select(LedgerEntry).where(
+                LedgerEntry.tenant_id == tenant,
+                LedgerEntry.posting_group_id == reversal["original_posting_group_id"],
+            )
+        )
+    )
+    inverse = list(
+        session.scalars(
+            select(LedgerEntry).where(
+                LedgerEntry.tenant_id == tenant,
+                LedgerEntry.posting_group_id == reversal["reversing_posting_group_id"],
+            )
+        )
+    )
+    assert len(original) == len(inverse) == 2
+    assert sum(row.amount for row in original) == sum(row.amount for row in inverse)
+    assert {row.debit_credit for row in original} == {
+        row.debit_credit for row in inverse
+    }
+
+    split = cases["split_invoices"]
+    split_lines = [
+        record_by_id(session, DocumentLine, split[f"invoice_{index}_line_id"])
+        for index in (1, 2)
+    ]
+    assert {line.billed_document_line_id for line in split_lines} == {split["line_id"]}
+    assert sum(line.quantity for line in split_lines) == Decimal(10)
+
+    tracked_lot = record_by_id(session, Lot, cases["lot_expiry_transfer"]["lot_id"])
+    assert tracked_lot.lot_number == "LOT-2026-001"
+    assert (
+        tracked_lot.expires_at
+        < datetime.fromisoformat(run.initialization_progress["windows"]["end"]).date()
+    )
+    transfer = record_by_id(
+        session, Movement, cases["lot_expiry_transfer"]["transfer_movement_id"]
+    )
+    assert transfer.type == "transfer" and transfer.lot_id == tracked_lot.id
+    assert core.stock_at(
+        session, tenant, tracked_lot.item_id, transfer.from_location_id
+    ) == Decimal(7)
+    assert core.stock_at(
+        session, tenant, tracked_lot.item_id, transfer.to_location_id
+    ) == Decimal(3)
+
+    serial = record_by_id(
+        session, SerialUnit, cases["serial_tracking"]["serial_unit_id"]
+    )
+    serial_receipt = record_by_id(
+        session, Movement, cases["serial_tracking"]["receipt_movement_id"]
+    )
+    assert serial.serial_number == "SER-0001"
+    assert serial_receipt.serial_unit_id == serial.id
+
+    adjustments = [
+        record_by_id(session, Movement, movement_id)
+        for movement_id in (
+            cases["stock_adjustments"][f"{reason}_movement_id"]
+            for reason in ("damage", "loss", "scrap")
+        )
+    ]
+    assert all(row.type == "adjustment" for row in adjustments)
+    assert {
+        record_by_id(session, SourceRecord, row.source_record_id).external_id
+        for row in adjustments
+    } == {"ADJUSTMENT-001", "ADJUSTMENT-002", "ADJUSTMENT-003"}
+
+
 def _demo_company(session, owner, key: str) -> str:
     tenant = company_setup.create_company(
         session,
@@ -207,7 +305,7 @@ def test_orders_spread_over_the_customer_pool(session, scheduled_owner, monkeypa
         for number, buyer in orders.items()
         if number not in portfolio_orders
     }
-    assert len(operational_orders) == 24
+    assert len(operational_orders) == 27
     held = Counter(operational_orders.values())
     assert len(held) >= 15, held
     assert max(held.values()) <= 5, held
@@ -247,6 +345,7 @@ def test_comparison_windows_and_money_state_one_buyer(
     assert credits == {
         "CN-001": orders["SO-018"],
         "CN-002": "Northstar Outdoor",
+        "CN-003": orders["SO-030"],
     }
 
 
@@ -312,8 +411,8 @@ def test_seeded_invoices_are_settled_in_three_states(
         .select_from(Document)
         .where(Document.tenant_id == tenant, Document.type == "customer_payment")
     )
-    # One fully settled invoice is closed by CN-001 rather than by cash.
-    assert payment_count + 1 == states["paid"] + states["part"]
+    # CN-001, CN-003 and the exact reversal create settlement states without cash.
+    assert payment_count + 3 == states["paid"] + states["part"]
     receivable = sum(
         open_amount
         for open_amount, _ in _open_amounts(session, tenant, "sales_invoice").values()

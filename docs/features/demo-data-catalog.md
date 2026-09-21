@@ -5,12 +5,12 @@ company. Use it to learn how implemented processes look across Sales, Purchasing
 Warehouse, Finance and the Business Reality Inspector. Every business document has an
 authored document date. A missing due date never means that the document is dateless.
 
-This page describes profile version 5. References are human-facing labels for finding
+This page describes profile version 7. References are human-facing labels for finding
 examples, never database identity.
 
 ## Company and master data
 
-- 16 items (`P01`–`P16`) in pcs, m and kg
+- 18 items (`ITEM-001`–`ITEM-018`) in pcs, m and kg
 - 20 customers, 3 suppliers and 2 warehouses
 - EUR and USD sales evidence
 
@@ -74,6 +74,13 @@ returned inventory slice, customer credit and selling costs under one reviewed b
   stated or reviewed.
 - Customer and supplier credits reduce invoices through explicit allocations.
 - Finance projections are prepared during setup; a ready demo needs no initial Refresh.
+- `SO-030` plus `CN-003` is a price-only allowance without a return movement.
+- `SO-031` has an invoice whose posting group is preserved beside its exact inverse.
+- `SO-032` has two partial invoices for quantities 4 and 6 on one order line.
+- `SO-011` is the final underdelivery: 2 pcs shipped and the remainder cancelled.
+- `ITEM-017` / `LOT-2026-001` shows an expired lot and a 3-pcs warehouse transfer.
+- `ITEM-018` / `SER-0001` shows serial-controlled receipt.
+- `ITEM-010` has separate source-backed damage, loss and scrap adjustments.
 
 ## Deterministic settlement questions
 
@@ -95,7 +102,7 @@ replenish goods. This keeps the reference journeys stable while the company stay
 
 ## Deliberate limitations
 
-The profile does not yet model price-only allowances, exchanges/replacements,
-post-invoice cancellation, overdelivery, quotations, manufacturing, serial/lot
-tracking, tax advice, payroll, bank reconciliation or statutory reporting. Do not
-infer an absent scenario from a similarly named document.
+The profile does not yet model exchanges/replacements, overdelivery, dedicated
+deposits, dunning, bad debt, quotations, manufacturing, tax/FX revaluation, payroll,
+bank reconciliation or statutory reporting. Do not infer an absent scenario from a
+similarly named document.

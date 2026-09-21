@@ -3848,6 +3848,7 @@ def create_lot(
     *,
     expires_at: date | str | None = None,
     source_record_id: str | None = None,
+    _commit: bool = True,
 ) -> Lot:
     _require_business_mutation(session, tenant_id, "create_lot")
     item = _tenant_record(session, Item, tenant_id, item_id)
@@ -3889,7 +3890,10 @@ def create_lot(
         },
         source_record_id=source_record_id,
     )
-    session.commit()
+    if _commit:
+        session.commit()
+    else:
+        session.flush()
     return lot
 
 
@@ -4056,6 +4060,7 @@ def create_serial_unit(
     *,
     lot_id: str | None = None,
     source_record_id: str | None = None,
+    _commit: bool = True,
 ) -> SerialUnit:
     _require_business_mutation(session, tenant_id, "create_serial_unit")
     item = _tenant_record(session, Item, tenant_id, item_id)
@@ -4095,7 +4100,10 @@ def create_serial_unit(
         {"item_id": item_id, "serial_number": number, "lot_id": lot_id},
         source_record_id=source_record_id,
     )
-    session.commit()
+    if _commit:
+        session.commit()
+    else:
+        session.flush()
     return serial
 
 
@@ -8298,6 +8306,7 @@ def reverse_ledger_posting_group(
     action_id: str | None = None,
     expected_revision: str | None = None,
     preview_fingerprint: str | None = None,
+    _commit: bool = True,
 ) -> LedgerReversalResult:
     _require_business_mutation(session, tenant_id, "reverse_ledger_posting_group")
     from reality.services.business_locks import lock_delivery_state
@@ -8399,7 +8408,10 @@ def reverse_ledger_posting_group(
             action_id=action_id,
             correlation_id=action_id,
         )
-        session.commit()
+        if _commit:
+            session.commit()
+        else:
+            session.flush()
         return LedgerReversalResult(
             relation.id,
             posting_group_id,

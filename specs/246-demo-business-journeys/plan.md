@@ -33,6 +33,11 @@ browser business-rule change is required.
 6. Seed deterministic settlement cases through the existing payment, allocation and
    accepted-adjustment services. Record overpayments first, allocate only the open
    invoice amount, and retain the unallocated control-account balance as credit.
+7. Seed the remaining supported cases through existing credit, ledger reversal,
+   document-line billing, commitment cancellation, movement and tracked-inventory
+   services. Extend `create_lot`, `create_serial_unit` and ledger reversal only with
+   the standard `_commit=False` composition option; add no schema or alternative
+   business rule.
 
 ## Risk and rollback
 

@@ -13,3 +13,7 @@
 - [x] T011 [SC-003..SC-005] Run focused finance/profile tests, full required gates and final Constitution review.
 - [x] T012 [FR-011, SC-006] Add canonical human-number regression coverage and replace scenario labels in visible item and document numbers.
 - [x] T013 [FR-012, SC-002] Add a concrete UI path and exact search reference to every English and German catalog table.
+- [x] T014 [FR-013..FR-018, SC-007] Add failing canonical-profile assertions for price-only credit, invoice reversal, split invoicing, final underdelivery, transfer, stock adjustments and tracked inventory.
+- [x] T015 [FR-013..FR-018, DR-001..DR-004] Seed the new source-backed cases exclusively through shared application services and increment the profile version.
+- [x] T016 [FR-019, SC-002] Replace the supported `No` catalog rows with exact references, outcomes and UI inspection paths in both languages and the durable catalog.
+- [x] T017 [SC-003..SC-007] Run focused profile/domain tests, documentation gates and full required CI; review the final diff against the Constitution.

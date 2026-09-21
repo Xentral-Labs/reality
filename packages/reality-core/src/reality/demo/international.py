@@ -1,6 +1,6 @@
 """Versioned synthetic vocabulary and authored comparison inputs."""
 
-PROFILE_VERSION = 6
+PROFILE_VERSION = 7
 
 
 def item_number(key: str) -> str:
@@ -25,6 +25,8 @@ ITEMS = (
     ("P14", "Cove Glass Set", "pcs", "Home"),
     ("P15", "Meridian Fabric", "m", "Materials"),
     ("P16", "Alpine Wax Pellets", "kg", "Materials"),
+    ("P17", "Willow Batch Balm", "pcs", "Health"),
+    ("P18", "Atlas Field Scanner", "pcs", "Electronics"),
 )
 # The whole buyer pool. The profile seeds it and the ongoing Demo Data stream draws
 # from it, so the seeded order book and the arriving one name the same customers.
