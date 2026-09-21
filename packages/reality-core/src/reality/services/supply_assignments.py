@@ -242,6 +242,7 @@ def assign_supply(
     purpose: str,
     customer_commitment_id: str | None = None,
     request_id: str,
+    _commit: bool = True,
 ) -> SupplyAssignment:
     core._require_business_mutation(session, tenant_id, "assign_supply")
     if purpose not in {"customer_demand", "stock_replenishment"}:
@@ -348,7 +349,8 @@ def assign_supply(
         )
         session.add(row)
         session.flush()
-    session.commit()
+    if _commit:
+        session.commit()
     return row
 
 

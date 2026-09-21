@@ -2747,6 +2747,170 @@ def seed_profile(
             "shipment_movement_id": overdelivery_movement.id,
         }
 
+        # Spec 248: one compact, exact supply chain demonstrates that commercial
+        # intent (customer demand versus stock) remains independent from receipt.
+        from reality.services.supply_assignments import assign_supply
+
+        supply_demand, _ = order(
+            "B2B-SUPPLY-DEMAND",
+            "P11",
+            counterparty="C1",
+            quantity="6",
+            price="24",
+            gross="144",
+            date=anchor - timedelta(days=3),
+            due=anchor + timedelta(days=4),
+        )
+        supply_order, _ = order(
+            "PO-010",
+            "P11",
+            counterparty="S3",
+            quantity="10",
+            price="12",
+            gross="120",
+            date=anchor - timedelta(days=2),
+            due=anchor + timedelta(days=3),
+            purchase=True,
+        )
+        customer_assignment = assign_supply(
+            session,
+            tenant,
+            supply_order["commitment_id"],
+            "6",
+            purpose="customer_demand",
+            customer_commitment_id=supply_demand["commitment_id"],
+            request_id="DEMO-SUPPLY-CUSTOMER-001",
+            _commit=False,
+        )
+        stock_assignment = assign_supply(
+            session,
+            tenant,
+            supply_order["commitment_id"],
+            "2",
+            purpose="stock_replenishment",
+            request_id="DEMO-SUPPLY-STOCK-001",
+            _commit=False,
+        )
+        supply_receipt = movement(
+            "purchase-receipt-S10-partial",
+            "P11",
+            "4",
+            commitment=supply_order["commitment_id"],
+            date=anchor - timedelta(days=1),
+        )
+        cases["b2b_supply_chain"] = {
+            "sales_order_number": supply_demand["number"],
+            "sales_commitment_id": supply_demand["commitment_id"],
+            "purchase_order_number": supply_order["number"],
+            "purchase_commitment_id": supply_order["commitment_id"],
+            "customer_assignment_id": customer_assignment.id,
+            "stock_assignment_id": stock_assignment.id,
+            "receipt_movement_id": supply_receipt.id,
+            "ordered": "10",
+            "customer_assigned": "6",
+            "stock_replenishment": "2",
+            "unassigned": "2",
+            "received": "4",
+            "sales_ui_path": f"Sales → Orders → {supply_demand['number']}",
+            "purchasing_ui_path": (
+                f"Purchasing → Orders → {supply_order['number']}"
+            ),
+            "warehouse_ui_path": "Warehouse → Items → ITEM-011",
+        }
+
+        # The five returned units are deliberately resolved through every
+        # supported physical outcome. Credit remains a separate commercial fact.
+        from reality.services.return_dispositions import record_return_disposition
+
+        return_sale, _ = order(
+            "B2B-RETURN-SALE",
+            "P12",
+            counterparty="C2",
+            quantity="5",
+            price="25",
+            gross="125",
+            date=anchor - timedelta(days=8),
+        )
+        movement(
+            "B2B-RETURN-OPENING",
+            "P12",
+            "5",
+            "opening_stock",
+            date=anchor - timedelta(days=7),
+        )
+        movement(
+            "B2B-RETURN-SHIPMENT",
+            "P12",
+            "5",
+            "shipment",
+            commitment=return_sale["commitment_id"],
+            date=anchor - timedelta(days=6),
+        )
+        arrived_return = movement(
+            "B2B-RETURN-ARRIVAL",
+            "P12",
+            "5",
+            "return",
+            location="B",
+            commitment=return_sale["commitment_id"],
+            date=anchor - timedelta(days=4),
+        )
+        dispositions = [
+            record_return_disposition(
+                session,
+                tenant,
+                arrived_return.id,
+                "restock",
+                "2",
+                destination_location_id=locations["A"],
+                _commit=False,
+            ),
+            record_return_disposition(
+                session,
+                tenant,
+                arrived_return.id,
+                "quarantine_repair",
+                "1",
+                destination_location_id=locations["B"],
+                _commit=False,
+            ),
+            record_return_disposition(
+                session,
+                tenant,
+                arrived_return.id,
+                "scrap_loss",
+                "1",
+                reason="Damaged beyond repair",
+                _commit=False,
+            ),
+            record_return_disposition(
+                session,
+                tenant,
+                arrived_return.id,
+                "return_to_supplier",
+                "1",
+                reason="Supplier quality claim",
+                _commit=False,
+            ),
+        ]
+        cases["b2b_return_disposition"] = {
+            "sales_order_number": return_sale["number"],
+            "commitment_id": return_sale["commitment_id"],
+            "return_movement_id": arrived_return.id,
+            "restock_movement_id": dispositions[0].id,
+            "quarantine_movement_id": dispositions[1].id,
+            "scrap_movement_id": dispositions[2].id,
+            "supplier_return_movement_id": dispositions[3].id,
+            "arrived": "5",
+            "restocked": "2",
+            "quarantined": "1",
+            "scrapped": "1",
+            "returned_to_supplier": "1",
+            "unresolved": "0",
+            "sales_ui_path": f"Sales → Orders → {return_sale['number']}",
+            "warehouse_ui_path": "Warehouse → Items → ITEM-012 → Movements",
+        }
+
     session.flush()
     manifest = {
         "parties": parties,

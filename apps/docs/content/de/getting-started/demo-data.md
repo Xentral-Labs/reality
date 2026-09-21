@@ -39,7 +39,7 @@ Lieferanten zu ihren Artikeln ist ausdrücklich angegeben und wird nicht aus War
 Die Referenz muss in der passenden Ansicht gesucht werden. Die wichtigsten Wege sind:
 
 - **Vertrieb → Aufträge:** `SO-001`, `SO-011`, `SO-017` oder `SO-024` suchen.
-- **Einkauf → Bestellungen:** `PO-001` bis `PO-009` suchen.
+- **Einkauf → Bestellungen:** `PO-001` bis `PO-010` suchen.
 - **Finance → Forderungen/Verbindlichkeiten:** nach einer `INV-*`-/`SINV-*`-Nummer, einem
   Kunden/Lieferanten oder einer unten genannten `CPAY-*`-/`SPAY-*`-Zahlung suchen.
 - **Lager:** den Artikel, zum Beispiel `ITEM-008` oder `ITEM-016`, öffnen und Bestand sowie
@@ -147,8 +147,8 @@ geflossene Geld. Skonto und akzeptierter Kleinrest sind eigene begründete Buchu
 
 | Beleg                 | Beispiele                                                                                      | Bedeutung                                             | So findest du es                               |
 | --------------------- | ---------------------------------------------------------------------------------------------- | ----------------------------------------------------- | ---------------------------------------------- |
-| Kundenauftrag         | `SO-001`–`SO-035`                                                                              | Angegebener Kundenbedarf und kaufmännische Positionen | Vertrieb → Aufträge → `SO-…` suchen            |
-| Einkaufsbestellung    | `PO-001`–`PO-009`                                                                              | Bestellung beim Lieferanten                           | Einkauf → Bestellungen → `PO-…` suchen         |
+| Kundenauftrag         | `SO-001`–`SO-041`                                                                              | Angegebener Kundenbedarf und kaufmännische Positionen | Vertrieb → Aufträge → `SO-…` suchen            |
+| Einkaufsbestellung    | `PO-001`–`PO-010`                                                                              | Bestellung beim Lieferanten                           | Einkauf → Bestellungen → `PO-…` suchen         |
 | Ausgangsrechnung      | `INV-YYYYMMDD-*`                                                                               | Forderung mit Rechnungspositionen                     | Finance → Forderungen → `INV-…` suchen         |
 | Eingangsrechnung      | `SINV-002`, `SINV-004`, `SINV-005`, `SINV-007`, `SINV-008`, `SINV-010`, `SINV-011`, `SINV-012` | Verbindlichkeit unabhängig vom Wareneingang           | Finance → Verbindlichkeiten → `SINV-…` suchen  |
 | Kundengutschrift      | `CN-001`, `CN-002`                                                                             | Vollständige und teilweise Wertkorrektur              | Finance → Forderungen → `CN-…` suchen          |
@@ -233,11 +233,13 @@ Reality fehlende Nachweise bewusst nicht in 0 EUR umgewandelt hat.
 | Lieferantenanzahlung mit Schlussrechnung             | `SDEP-001`, `SINV-010`; 20 EUR bleiben          | Finance → Lieferantenguthaben → `SDEP-001`                 |
 | Mahnung mit angegebener Gebühr                       | `DN-2026-0001`; Stufe 2 plus 5 EUR              | Finance → Forderungen → Mahnung/Rechnung suchen            |
 | Teilweiser Forderungsausfall                         | `SO-037`; 25 EUR Ausfall, 15 EUR offen          | Vertrieb → `SO-037` → Rechnung → Ausgleichserklärung       |
+| Kundenbezogener Einkauf und Lagerauffüllung          | `SO-040`, `PO-010`; 6 Kunde, 2 Lager, 2 offen   | Einkauf → Bestellungen → `PO-010` → Bedarfszuordnung       |
+| Vierfache Retourenentscheidung                       | `SO-041`; 2 Lager, 1 Quarantäne, 1 Ausschuss, 1 Lieferantenretoure | Vertrieb → `SO-041`; Lager → `ITEM-012` → Bewegungen |
 
 ### Bewusste Lücken
 
 Bankabstimmung, länderspezifische Steuerbehandlung und Währungsneubewertung sind nicht Bestandteil
-der Profilversion 10. Die Demo stellt dafür keine Belege oder UI-Wege in Aussicht.
+der Profilversion 11. Die Demo stellt dafür keine Belege oder UI-Wege in Aussicht.
 
 ## Stabile Basis und Live-Daten
 

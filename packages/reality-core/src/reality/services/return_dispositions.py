@@ -190,6 +190,7 @@ def record_return_disposition(
     destination_location_id: str | None = None,
     reason: str | None = None,
     action_id: str | None = None,
+    _commit: bool = True,
 ) -> Movement:
     core._require_business_mutation(session, tenant_id, "record_return_disposition")
     with session.begin_nested():
@@ -236,5 +237,6 @@ def record_return_disposition(
             **reviewed["movement"],
         )
         session.flush()
-    session.commit()
+    if _commit:
+        session.commit()
     return movement
