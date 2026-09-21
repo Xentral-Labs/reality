@@ -92,9 +92,10 @@ def test_confirmed_currency_basis_converts_read_observation_and_preserves_source
     assert result["currency"] == "EUR"
     assert result["trace"][0]["source_share"] == "2.5000"
     assert result["trace"][0]["converted_share"] == "2.2500"
-    assert result["trace"][0]["conversion_basis_revision_id"] == converted[
-        "conversion_basis_revision_id"
-    ]
+    assert (
+        result["trace"][0]["conversion_basis_revision_id"]
+        == converted["conversion_basis_revision_id"]
+    )
 
     identity = converted["conversion_basis_revision_id"]
     record = cost_record(
@@ -111,9 +112,10 @@ def test_confirmed_currency_basis_converts_read_observation_and_preserves_source
         "kind": "cost_conversion_basis_revision",
         "record_id": identity,
     }
-    assert run_read_tool(
-        session, business.tenant.id, "cost.record.get", read_args
-    ) == record
+    assert (
+        run_read_tool(session, business.tenant.id, "cost.record.get", read_args)
+        == record
+    )
     schema = json.dumps(MCP_TOOL_REGISTRY["cost_change_propose"].input_schema)
     assert "conversion_basis" in schema
     assert "conversion_basis_revision_id" in schema
@@ -158,9 +160,7 @@ def test_conversion_revision_requires_exact_predecessor_and_unit_basis_cannot_pr
         )
 
 
-def test_selling_conversion_flows_through_reviewed_db2(
-    session, business, cost_owner
-):
+def test_selling_conversion_flows_through_reviewed_db2(session, business, cost_owner):
     contribution_args, data = revenue.prepared(session, business, cost_owner)
     source, document = foreign_evidence(session, business, "30")
     converted = confirm_conversion(session, business, cost_owner, source, document)

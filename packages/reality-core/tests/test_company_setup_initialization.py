@@ -1,7 +1,7 @@
 """Feature 199: the creation request commits the company, the worker seeds it."""
 
 import pytest
-from conftest import seed_company
+from conftest import record_by_id, seed_company
 from sqlalchemy import func, select
 
 from reality.db.core import Document, PlaygroundRun
@@ -58,7 +58,7 @@ def test_creation_answers_before_the_profile_is_seeded(session, scheduled_owner)
     assert _documents(session, tenant) == 0
     assert len(_queued(session, tenant)) == 1
     assert _work(session, tenant) == "succeeded"
-    assert session.get(PlaygroundRun, result["run_id"]).status == "active"
+    assert record_by_id(session, PlaygroundRun, result["run_id"]).status == "active"
     receipt = company_setup.read_request(session, scheduled_owner.id, "deferred")
     assert receipt["status"] == "ready" and receipt["destination"]
     assert _documents(session, tenant) == INTERNATIONAL_V3_DOCUMENT_COUNT
@@ -198,9 +198,7 @@ def test_setup_job_ownership_is_not_weaker_than_the_shared_rule(
             _owner(session, tenant_id, actor, JOB_TYPE)
 
 
-def test_receipt_says_whether_anyone_is_preparing_the_company(
-    session, scheduled_owner
-):
+def test_receipt_says_whether_anyone_is_preparing_the_company(session, scheduled_owner):
     """Feature 201: queued and being prepared are different answers."""
     result = _create(session, scheduled_owner)
     assert result["preparation"] == "queued"

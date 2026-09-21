@@ -1,6 +1,7 @@
 import json
 from decimal import Decimal
 
+from conftest import record_by_id
 from sqlalchemy import select
 from unified_fixtures import delivery_fixture
 
@@ -106,9 +107,13 @@ def test_customer_dispatch_records_exact_package_contents_and_fulfillment(
     corrected_ids = {row["id"] for row in corrected_detail["movements"]}
     assert movements[0].id not in corrected_ids
     assert corrected.replacement_movement_id in corrected_ids
-    assert sum(
-        (Decimal(row["quantity"]) for row in corrected_detail["movements"]), Decimal()
-    ) == 9
+    assert (
+        sum(
+            (Decimal(row["quantity"]) for row in corrected_detail["movements"]),
+            Decimal(),
+        )
+        == 9
+    )
 
 
 def test_supplier_notice_has_zero_effect_then_package_receipt_changes_stock(
@@ -203,10 +208,10 @@ def test_supplier_source_payload_and_carrier_warehouse_discrepancy_remain_distin
     )
 
     detail = shipment_explain(session, business.tenant.id, shipment.id)
-    assert session.get(SourceRecord, source.id).payload == raw_payload
+    assert record_by_id(session, SourceRecord, source.id).payload == raw_payload
     assert detail["quantities"]["announced"] is None
     assert detail["observations"]["externally_delivered"] is True
     assert detail["observations"]["received"] is False
-    assert detail["discrepancies"][
-        "external_delivery_without_warehouse_receipt"
-    ] is True
+    assert (
+        detail["discrepancies"]["external_delivery_without_warehouse_receipt"] is True
+    )

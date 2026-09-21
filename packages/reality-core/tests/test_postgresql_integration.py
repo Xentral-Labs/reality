@@ -8,6 +8,7 @@ from time import monotonic
 import pytest
 from alembic import command
 from alembic.config import Config
+from conftest import record_by_id
 from sqlalchemy import delete, func, insert, inspect, select
 from sqlalchemy.exc import TimeoutError
 from sqlalchemy.orm import sessionmaker
@@ -586,7 +587,7 @@ def test_concurrent_accept_and_owner_action_serialize_without_deadlock(
 
     assert "OperationalError" not in results
     with Session() as session:
-        invitation = session.get(CompanyInvitation, ids[3])
+        invitation = record_by_id(session, CompanyInvitation, ids[3])
         assert invitation.status in (
             {"accepted", "pending"}
             if owner_action == "resend"
@@ -749,7 +750,7 @@ def test_concurrent_remove_and_reinvite_preserve_one_membership_identity() -> No
 
     assert "removed" in results
     with Session() as session:
-        membership = session.get(TenantMembership, ids[3])
+        membership = record_by_id(session, TenantMembership, ids[3])
         assert membership is not None
         assert membership.status == "removed"
         assert (

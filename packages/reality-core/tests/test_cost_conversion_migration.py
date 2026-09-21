@@ -79,7 +79,9 @@ def test_conversion_history_is_immutable_and_blocks_downgrade(
             )
             connection.execute(text(f"ALTER TABLE {TABLE} ENABLE TRIGGER ALL"))
         with engine.begin() as connection, pytest.raises(DBAPIError, match="immutable"):
-            connection.execute(text(f"UPDATE {TABLE} SET reason='changed' WHERE id='r'"))
+            connection.execute(
+                text(f"UPDATE {TABLE} SET reason='changed' WHERE id='r'")
+            )
         with pytest.raises(RuntimeError, match="conversion"):
             command.downgrade(config, "0086_carrying_value")
     finally:

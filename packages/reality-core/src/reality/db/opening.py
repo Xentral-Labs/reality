@@ -7,6 +7,7 @@ from sqlalchemy import (
     Date,
     ForeignKey,
     ForeignKeyConstraint,
+    PrimaryKeyConstraint,
     String,
     UniqueConstraint,
 )
@@ -18,6 +19,7 @@ from reality.db.core import Base, UTCDateTime, now
 class OpeningScope(Base):
     __tablename__ = "opening_scope"
     __table_args__ = (
+        PrimaryKeyConstraint("tenant_id", "id"),
         UniqueConstraint("tenant_id", "id", name="uq_opening_scope_tenant_id"),
         UniqueConstraint(
             "tenant_id",
@@ -40,13 +42,13 @@ class OpeningScope(Base):
             "coverage_kind IN ('individual','summary')", name="ck_opening_scope_kind"
         ),
     )
-    id: Mapped[str] = mapped_column(String, primary_key=True)
+    id: Mapped[str] = mapped_column(String)
     tenant_id: Mapped[str] = mapped_column(ForeignKey("tenant.id"), index=True)
     source_namespace: Mapped[str] = mapped_column(String)
     snapshot_key: Mapped[str] = mapped_column(String)
     cutover_date: Mapped[date] = mapped_column(Date)
     coverage_kind: Mapped[str] = mapped_column(String)
-    party_id: Mapped[str] = mapped_column(String, index=True)
+    party_id: Mapped[str] = mapped_column(String)
     direction: Mapped[str] = mapped_column(String)
     currency: Mapped[str] = mapped_column(String)
     created_at: Mapped[datetime] = mapped_column(UTCDateTime, default=now)
@@ -55,6 +57,7 @@ class OpeningScope(Base):
 class OpeningItem(Base):
     __tablename__ = "opening_item_detail"
     __table_args__ = (
+        PrimaryKeyConstraint("tenant_id", "id"),
         UniqueConstraint(
             "tenant_id",
             "scope_id",
@@ -73,7 +76,7 @@ class OpeningItem(Base):
             name="fk_opening_item_document_tenant",
         ),
     )
-    id: Mapped[str] = mapped_column(String, primary_key=True)
+    id: Mapped[str] = mapped_column(String)
     tenant_id: Mapped[str] = mapped_column(ForeignKey("tenant.id"), index=True)
     scope_id: Mapped[str] = mapped_column(String, index=True)
     document_id: Mapped[str] = mapped_column(String)

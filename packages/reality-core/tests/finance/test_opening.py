@@ -4,6 +4,7 @@ import json
 from decimal import Decimal
 
 import pytest
+from conftest import record_by_id
 from sqlalchemy import func, select
 
 from reality.db.core import Document, LedgerEntry, SettlementAllocation, SourceRecord
@@ -173,9 +174,9 @@ def test_original_total_and_unknown_due_date_never_create_new_authority(
         session, business.tenant.id, prepare(session, business, rows=[row])
     )
     item = receipt["items"][0]
-    document = session.get(Document, item["document_id"])
+    document = record_by_id(session, Document, item["document_id"])
     assert document.gross_amount == 600
-    source = session.get(SourceRecord, document.source_record_id)
+    source = record_by_id(session, SourceRecord, document.source_record_id)
     assert json.loads(source.payload)["item"]["original_total"] == "1000"
     aging = core.aging_register(session, business.tenant.id)
     assert aging[0]["due_date"] is None
@@ -289,7 +290,7 @@ def test_historical_original_and_ambiguous_cash_are_held_for_review(session, bus
     )
     with pytest.raises(core.InvalidOperation, match="opening"):
         core.post_sales_invoice(session, tenant, original.id)
-    assert session.get(SourceRecord, source.id) is not None
+    assert record_by_id(session, SourceRecord, source.id) is not None
     with pytest.raises(core.InvalidOperation, match="cutover|timestamp"):
         core.record_customer_payment(session, tenant, business.customer.id, "10")
     from datetime import UTC, datetime

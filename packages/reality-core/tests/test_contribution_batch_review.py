@@ -8,6 +8,7 @@ from types import SimpleNamespace
 import pytest
 import test_contribution_services as sales
 import test_inventory_costing_services as stock
+from conftest import record_by_id
 from pydantic import ValidationError
 from sqlalchemy import func, select
 
@@ -41,7 +42,7 @@ def prepared(session, business, owner, *, second_unit="kg"):
             )
         sale = sales.prepared(session, current, owner)
         data.append(sale)
-        action = session.get(ChangeProposal, sale[-1]["action_id"])
+        action = record_by_id(session, ChangeProposal, sale[-1]["action_id"])
         scopes.append(
             {
                 key: value
@@ -155,7 +156,7 @@ def test_joint_confirmation_mcp_replay_and_historical_members(
         )
     )
     assert {r.action_id for r in reviews} == {action.id}
-    event = session.get(BusinessEvent, reviews[0].introduced_event_id)
+    event = record_by_id(session, BusinessEvent, reviews[0].introduced_event_id)
     assert event.event_type == "cost.reviewed"
     assert event.action_id == event.subject_id == action.id
     assert json.loads(event.payload)["operation"] == "contribution_batch_review"
@@ -235,7 +236,7 @@ def test_joint_second_failure_rolls_back_every_member(
             confirmed=True,
         )
     assert counts(session, tenant) == before
-    assert session.get(ChangeProposal, action.id).status == "proposed"
+    assert record_by_id(session, ChangeProposal, action.id).status == "proposed"
 
 
 def test_joint_stale_revoked_and_foreign_refuse(session, business, cost_owner):

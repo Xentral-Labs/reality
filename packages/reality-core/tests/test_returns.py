@@ -2,6 +2,7 @@ from datetime import timedelta
 from decimal import Decimal
 
 import pytest
+from conftest import record_by_id
 
 from reality.services.core import (
     InvalidOperation,
@@ -396,9 +397,7 @@ def test_resolutions_may_not_exceed_what_came_back(session, business):
     goods_back = came_back(session, business, commitment, 6, area)
 
     # Everything that came back may be settled.
-    resolve(
-        session, business, goods_back, 6, area=area, to_location=business.location
-    )
+    resolve(session, business, goods_back, 6, area=area, to_location=business.location)
 
     # Nothing beyond it can, which is what makes the acceptance above a rule.
     with pytest.raises(InvalidOperation, match="came back|exceed"):
@@ -505,7 +504,7 @@ def test_goods_go_back_to_the_supplier(session, business):
     # delivery the company kept.
     assert fulfilled_quantity(session, tenant_id, commitment.id) == Decimal(100)
     assert open_quantity(session, tenant_id, commitment.id) == Decimal(0)
-    assert session.get(type(commitment), commitment.id).status == "fulfilled"
+    assert record_by_id(session, type(commitment), commitment.id).status == "fulfilled"
 
     # A customer return is the other direction and stays its own kind.
     assert returned_quantity(session, tenant_id, commitment.id) == Decimal(0)

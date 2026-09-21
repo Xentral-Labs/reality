@@ -5,6 +5,7 @@ from decimal import Decimal
 from uuid import uuid4
 
 import pytest
+from conftest import record_by_id
 from sqlalchemy import func, select
 from test_multi_position_invoices import intent, order
 from test_unified_invoice_entry import confirm
@@ -26,11 +27,13 @@ from reality.services.delivery_actions import (
 
 def fixture(s, b):
     result = core.record_sales_invoice(s, b.tenant.id, **intent(order(s, b)))
-    doc = s.get(
-        Document, next(r["id"] for r in result["records"] if r["family"] == "document")
+    doc = record_by_id(
+        s,
+        Document,
+        next(r["id"] for r in result["records"] if r["family"] == "document"),
     )
     lines = [
-        s.get(DocumentLine, r["id"])
+        record_by_id(s, DocumentLine, r["id"])
         for r in result["records"]
         if r["family"] == "document_line"
     ]
@@ -69,12 +72,12 @@ def test_partial_multi_credit_without_return_and_exact_recovery(session, busines
     assert detail["verification"] == "verified"
     records = detail["receipt"]["records"]
     assert len(records) == 7
-    note = session.get(
-        Document, next(r["id"] for r in records if r["family"] == "document")
+    note = record_by_id(
+        session, Document, next(r["id"] for r in records if r["family"] == "document")
     )
     assert note.gross_amount == Decimal("90.1234")
     credit_lines = [
-        session.get(DocumentLine, r["id"])
+        record_by_id(session, DocumentLine, r["id"])
         for r in records
         if r["family"] == "document_line"
     ]
@@ -85,7 +88,9 @@ def test_partial_multi_credit_without_return_and_exact_recovery(session, busines
     assert core.open_invoice_amount(session, b.tenant.id, doc.id) == Decimal("189.1234")
     assert core.open_invoice_amount(session, b.tenant.id, note.id) == Decimal("70.1234")
     assert (
-        json.loads(session.get(SourceRecord, note.source_record_id).payload)["reason"]
+        json.loads(record_by_id(session, SourceRecord, note.source_record_id).payload)[
+            "reason"
+        ]
         == args["reason"]
     )
     p.status = "executing"
@@ -275,7 +280,8 @@ def test_two_invoices_same_order_have_independent_capacity(session, business):
             session, b.tenant.id, line.id, "1", "100", f"INV-{i}"
         )
         docs.append(
-            session.get(
+            record_by_id(
+                session,
                 Document,
                 next(r["id"] for r in result["records"] if r["family"] == "document"),
             )

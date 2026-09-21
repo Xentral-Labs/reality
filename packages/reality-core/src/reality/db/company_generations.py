@@ -28,7 +28,7 @@ class CostCompanyManifest(CostRecord, Base):
             name="ck_company_manifest_hashes",
         ),
     )
-    census_id: Mapped[str] = mapped_column(String, index=True)
+    census_id: Mapped[str] = mapped_column(String)
     effective_at: Mapped[datetime] = mapped_column(UTCDateTime)
     knowledge_at: Mapped[datetime] = mapped_column(UTCDateTime)
     target_event_sequence: Mapped[int]
@@ -61,8 +61,8 @@ class CostCompanyInventoryInput(CostRecord, Base):
         ),
     )
     manifest_id: Mapped[str] = mapped_column(String, index=True)
-    item_id: Mapped[str] = mapped_column(String, index=True)
-    review_id: Mapped[str | None] = mapped_column(String, index=True)
+    item_id: Mapped[str] = mapped_column(String)
+    review_id: Mapped[str | None] = mapped_column(String)
     input_fingerprint: Mapped[str] = mapped_column(String(64))
     support_state: Mapped[str] = mapped_column(String)
 
@@ -83,9 +83,9 @@ class CostCompanyContributionInput(CostRecord, Base):
         ),
     )
     manifest_id: Mapped[str] = mapped_column(String, index=True)
-    census_line_id: Mapped[str] = mapped_column(String, index=True)
-    review_id: Mapped[str | None] = mapped_column(String, index=True)
-    inventory_review_id: Mapped[str | None] = mapped_column(String, index=True)
+    census_line_id: Mapped[str] = mapped_column(String)
+    review_id: Mapped[str | None] = mapped_column(String)
+    inventory_review_id: Mapped[str | None] = mapped_column(String)
     input_fingerprint: Mapped[str] = mapped_column(String(64))
     db1_state: Mapped[str] = mapped_column(String)
     db2_state: Mapped[str] = mapped_column(String)
@@ -139,8 +139,8 @@ class CostCompanyInventoryResult(CostRecord, Base):
         ),
     )
     generation_id: Mapped[str] = mapped_column(String, index=True)
-    inventory_input_id: Mapped[str] = mapped_column(String, index=True)
-    inventory_generation_id: Mapped[str | None] = mapped_column(String, index=True)
+    inventory_input_id: Mapped[str] = mapped_column(String)
+    inventory_generation_id: Mapped[str | None] = mapped_column(String)
     state: Mapped[str] = mapped_column(String)
     result_fingerprint: Mapped[str] = mapped_column(String(64))
 
@@ -160,9 +160,9 @@ class CostCompanyContributionResult(CostRecord, Base):
         ),
     )
     generation_id: Mapped[str] = mapped_column(String, index=True)
-    contribution_input_id: Mapped[str] = mapped_column(String, index=True)
-    contribution_generation_id: Mapped[str | None] = mapped_column(String, index=True)
-    review_id: Mapped[str | None] = mapped_column(String, index=True)
+    contribution_input_id: Mapped[str] = mapped_column(String)
+    contribution_generation_id: Mapped[str | None] = mapped_column(String)
+    review_id: Mapped[str | None] = mapped_column(String)
     db1_state: Mapped[str] = mapped_column(String)
     db2_state: Mapped[str] = mapped_column(String)
     result_fingerprint: Mapped[str] = mapped_column(String(64))

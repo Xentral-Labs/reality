@@ -9,6 +9,7 @@ from sqlalchemy import (
     ForeignKeyConstraint,
     Index,
     Integer,
+    PrimaryKeyConstraint,
     String,
     UniqueConstraint,
     text,
@@ -22,6 +23,7 @@ from reality.db.core import Base, UTCDateTime, now
 class ScheduledJob(Base):
     __tablename__ = "scheduled_job"
     __table_args__ = (
+        PrimaryKeyConstraint("tenant_id", "id"),
         UniqueConstraint("tenant_id", "id", name="uq_scheduled_job_tenant_id"),
         UniqueConstraint(
             "tenant_id", "create_request_id", name="uq_scheduled_job_request"
@@ -37,7 +39,7 @@ class ScheduledJob(Base):
         ),
         Index("ix_scheduled_job_due", "tenant_id", "enabled", "next_run_at", "id"),
     )
-    id: Mapped[str] = mapped_column(String, primary_key=True)
+    id: Mapped[str] = mapped_column(String)
     tenant_id: Mapped[str] = mapped_column(ForeignKey("tenant.id"))
     actor_id: Mapped[str] = mapped_column(ForeignKey("app_user.id"))
     job_type: Mapped[str] = mapped_column(String)
@@ -62,6 +64,7 @@ class ScheduledJob(Base):
 class ScheduledJobRun(Base):
     __tablename__ = "scheduled_job_run"
     __table_args__ = (
+        PrimaryKeyConstraint("tenant_id", "id"),
         ForeignKeyConstraint(
             ["tenant_id", "schedule_id"],
             ["scheduled_job.tenant_id", "scheduled_job.id"],
@@ -118,7 +121,7 @@ class ScheduledJobRun(Base):
         Index("ix_scheduled_run_due", "tenant_id", "status", "next_attempt_at", "id"),
         Index("ix_scheduled_run_history", "tenant_id", "created_at", "id"),
     )
-    id: Mapped[str] = mapped_column(String, primary_key=True)
+    id: Mapped[str] = mapped_column(String)
     tenant_id: Mapped[str] = mapped_column(ForeignKey("tenant.id"))
     schedule_id: Mapped[str | None] = mapped_column(String, default=None)
     actor_id: Mapped[str | None] = mapped_column(ForeignKey("app_user.id"))

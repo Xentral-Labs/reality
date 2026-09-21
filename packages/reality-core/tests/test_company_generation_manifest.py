@@ -6,6 +6,7 @@ import test_cost_census_storage as census_storage
 import test_costing_services as costs
 from alembic import command
 from alembic.config import Config
+from conftest import record_by_id
 from sqlalchemy import select
 from sqlalchemy.exc import DBAPIError
 from test_cost_census import seed
@@ -52,7 +53,7 @@ def test_committed_cursor_exact_population_fingerprints_and_retry(company_databa
         second = costing.admit_company_cost_manifest(
             session, tenant, census, principal=Principal(owner)
         )
-        manifest = session.get(CostCompanyManifest, first["id"])
+        manifest = record_by_id(session, CostCompanyManifest, first["id"])
         inventory = list(
             session.scalars(
                 select(CostCompanyInventoryInput).where(

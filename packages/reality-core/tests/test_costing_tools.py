@@ -4,6 +4,7 @@ import json
 
 import pytest
 import test_costing_services as cost_fixtures
+from conftest import record_by_id
 from sqlalchemy import func, select
 from test_costing_services import (
     assignment,
@@ -98,7 +99,7 @@ def test_mcp_cost_schema_and_handlers_use_application_services(
     assert result["requires_human_confirmation"]
     assert session.scalar(select(func.count()).select_from(CostAttribution)) == 0
     assert (
-        json.loads(session.get(ChangeProposal, result["proposal_id"]).input)[
+        json.loads(record_by_id(session, ChangeProposal, result["proposal_id"]).input)[
             "operation"
         ]
         == "assign"

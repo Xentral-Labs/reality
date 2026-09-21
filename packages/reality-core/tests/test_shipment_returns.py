@@ -58,9 +58,12 @@ def test_packaged_customer_and_supplier_returns_preserve_original_fulfillment(
     assert fulfilled_quantity(
         session, business.tenant.id, customer_commitment.id
     ) == Decimal(5)
-    assert shipment_explain(
-        session, business.tenant.id, customer_return["shipment_id"]
-    )["purpose"] == "customer_return"
+    assert (
+        shipment_explain(session, business.tenant.id, customer_return["shipment_id"])[
+            "purpose"
+        ]
+        == "customer_return"
+    )
 
     supplier_commitment = create_commitment(
         session,
@@ -103,9 +106,13 @@ def test_packaged_customer_and_supplier_returns_preserve_original_fulfillment(
     assert fulfilled_quantity(
         session, business.tenant.id, supplier_commitment.id
     ) == Decimal(5)
-    assert stock_at(
-        session, business.tenant.id, business.item.id, business.location.id
-    ) == before_return - 2
-    assert shipment_explain(
-        session, business.tenant.id, supplier_return["shipment_id"]
-    )["purpose"] == "supplier_return"
+    assert (
+        stock_at(session, business.tenant.id, business.item.id, business.location.id)
+        == before_return - 2
+    )
+    assert (
+        shipment_explain(session, business.tenant.id, supplier_return["shipment_id"])[
+            "purpose"
+        ]
+        == "supplier_return"
+    )

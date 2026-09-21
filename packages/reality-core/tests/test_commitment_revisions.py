@@ -81,12 +81,8 @@ def test_the_date_in_force_is_the_latest_stated(session, business):
     # stated at another moment decides it instead.
     tied = promise(session, business)
     instant = datetime(2026, 7, 20, 9, tzinfo=UTC)
-    first = revise_commitment(
-        session, tenant_id, tied.id, ORIGINAL, stated_at=instant
-    )
-    second = revise_commitment(
-        session, tenant_id, tied.id, REVISED, stated_at=instant
-    )
+    first = revise_commitment(session, tenant_id, tied.id, ORIGINAL, stated_at=instant)
+    second = revise_commitment(session, tenant_id, tied.id, REVISED, stated_at=instant)
     winner = max((first, second), key=lambda row: row.id)
     assert commitment_due_at(session, tenant_id, tied.id) == winner.due_at
     assert commitment_due_at(session, tenant_id, tied.id) == winner.due_at
@@ -135,9 +131,12 @@ def test_a_revision_is_refused_where_it_makes_no_sense(session, business):
 
     # The positive control: the same promise takes a readable date, and one
     # already past is accepted, because admitted lateness is a real statement.
-    assert revise_commitment(
-        session, tenant_id, open_promise.id, datetime(2026, 6, 1, tzinfo=UTC)
-    ) is not None
+    assert (
+        revise_commitment(
+            session, tenant_id, open_promise.id, datetime(2026, 6, 1, tzinfo=UTC)
+        )
+        is not None
+    )
 
 
 def test_a_hold_does_not_block_recording_what_was_said(session, business):
@@ -147,9 +146,7 @@ def test_a_hold_does_not_block_recording_what_was_said(session, business):
 
     # A hold stops execution. What the other side said is not execution, and
     # refusing it would lose a statement because of an unrelated block.
-    assert revise_commitment(
-        session, tenant_id, commitment.id, REVISED
-    ) is not None
+    assert revise_commitment(session, tenant_id, commitment.id, REVISED) is not None
     assert commitment_due_at(session, tenant_id, commitment.id) == REVISED
 
 
@@ -216,7 +213,9 @@ def test_a_statement_must_restate_something(session, business):
 
     # The positive control: either figure alone is a statement.
     assert revise_commitment(session, tenant_id, commitment.id, quantity=80) is not None
-    assert revise_commitment(session, tenant_id, commitment.id, due_at=REVISED) is not None
+    assert (
+        revise_commitment(session, tenant_id, commitment.id, due_at=REVISED) is not None
+    )
 
 
 def test_the_quantity_in_force_is_the_latest_stated(session, business):
@@ -258,8 +257,13 @@ def test_shrinking_to_what_arrived_finishes_the_promise(session, business):
     tenant_id = business.tenant.id
     commitment = promise(session, business, quantity=100)
     record_movement(
-        session, tenant_id, "receipt", business.item.id, 90,
-        to_location_id=business.location.id, commitment_id=commitment.id,
+        session,
+        tenant_id,
+        "receipt",
+        business.item.id,
+        90,
+        to_location_id=business.location.id,
+        commitment_id=commitment.id,
     )
     assert commitment.status == "open"
 
@@ -274,8 +278,13 @@ def test_a_promise_can_shrink_below_what_arrived(session, business):
     tenant_id = business.tenant.id
     commitment = promise(session, business, quantity=100)
     record_movement(
-        session, tenant_id, "receipt", business.item.id, 90,
-        to_location_id=business.location.id, commitment_id=commitment.id,
+        session,
+        tenant_id,
+        "receipt",
+        business.item.id,
+        90,
+        to_location_id=business.location.id,
+        commitment_id=commitment.id,
     )
 
     # The supplier said eighty and ninety came. Both are true, the ninety is

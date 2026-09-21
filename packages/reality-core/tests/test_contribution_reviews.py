@@ -6,6 +6,7 @@ import pytest
 import test_contribution_services as fixtures
 import test_costing_services as costs
 import test_inventory_costing_services as stock
+from conftest import record_by_id
 from sqlalchemy import func, select
 
 from reality.db.contribution import CostContributionReview, CostRevenueMatchBasis
@@ -140,7 +141,7 @@ def test_review_owner_confirmation_binding_and_rollback(
             confirmed=True,
         )
     assert session.scalar(select(func.count()).select_from(CostRevenueMatchBasis)) == 0
-    assert session.get(ChangeProposal, action.id).status == "proposed"
+    assert record_by_id(session, ChangeProposal, action.id).status == "proposed"
     monkeypatch.setattr(contribution_reviews, "_new", original)
     membership = session.scalar(
         select(TenantMembership).where(TenantMembership.user_id == cost_owner.id)
@@ -197,7 +198,7 @@ def test_admitted_invoice_and_order_protected(session, business, cost_owner):
     stock.commit_review(session, business, cost_owner, args)
     from reality.db.core import Document
 
-    for doc in (data[2], session.get(Document, data[1].document_id)):
+    for doc in (data[2], record_by_id(session, Document, data[1].document_id)):
         with pytest.raises(core.InvalidOperation, match="contribution"):
             core.correct_manual_document(
                 session,
@@ -232,7 +233,7 @@ def test_late_cost_reaffirmation_preserves_old_db1(session, business, cost_owner
     _, first = stock.commit_review(session, business, cost_owner, args)
     prior_inventory = data[5]
     source = prior_inventory["receipt_sources"][0]
-    movement = session.get(Movement, source["movement_id"])
+    movement = record_by_id(session, Movement, source["movement_id"])
     extra = costs.evidence(session, business, "50", "0")
     costs.execute(
         session,

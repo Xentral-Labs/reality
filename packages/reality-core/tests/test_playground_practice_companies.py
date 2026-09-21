@@ -2,6 +2,7 @@
 
 import pytest
 import test_playground_steps
+from conftest import record_by_id
 from sqlalchemy.orm import Session
 
 from reality.db.core import AppUser, Party, PlaygroundRun, Tenant, now, uid
@@ -44,7 +45,7 @@ def test_practice_companies_survive_quick_replacement(durable_playground):
         assert before["company_name"] == "Bike Lab"
         assert s.get(Tenant, a.tenant_id).purpose == "playground"
         assert (
-            s.get(Party, a.initialization_progress["parties"]["company"]).name
+            record_by_id(s, Party, a.initialization_progress["parties"]["company"]).name
             == "Bike Lab"
         )
         summaries = {r["id"]: r for r in list_runs(s, owner)["runs"]}
@@ -72,7 +73,7 @@ def test_practice_companies_survive_quick_replacement(durable_playground):
         with pytest.raises(PlaygroundOperationDenied):
             restart_run(s, owner, a.id, confirmed=True)
         s.rollback()
-        assert s.get(PlaygroundRun, a.id).status == "active"
+        assert record_by_id(s, PlaygroundRun, a.id).status == "active"
         with pytest.raises(Conflict):
             start_run(s, owner, "company-a", confirmed=True)
         s.rollback()
@@ -157,7 +158,7 @@ def test_practice_companies_archive_and_restore_without_deleting(durable_playgro
         # A second session proves the service persisted the change itself; the API
         # session never commits on its own (this is what the danger zone hit live).
         with Session(engine) as fresh:
-            assert fresh.get(PlaygroundRun, run.id).status == "archived"
+            assert record_by_id(fresh, PlaygroundRun, run.id).status == "archived"
             assert run.tenant_id not in practice_company_runs(fresh, owner)
         assert run.tenant_id not in practice_company_runs(s, owner)
         assert s.get(Tenant, run.tenant_id).archived_at is None
@@ -175,7 +176,7 @@ def test_practice_companies_archive_and_restore_without_deleting(durable_playgro
         assert restored.status == "active"
         assert restored.archived_at is None
         with Session(engine) as fresh:
-            assert fresh.get(PlaygroundRun, run.id).status == "active"
+            assert record_by_id(fresh, PlaygroundRun, run.id).status == "active"
             assert run.tenant_id in practice_company_runs(fresh, owner)
         assert run.tenant_id in practice_company_runs(s, owner)
         with pytest.raises(Conflict):

@@ -5,6 +5,7 @@ from decimal import Decimal
 
 import pytest
 import test_inventory_batch_generations as fixtures
+from conftest import record_by_id
 from sqlalchemy import Numeric, delete, func, select
 
 from reality.db.core import Item
@@ -119,7 +120,7 @@ def test_relation_preserves_retained_units_and_exact_ids(session, business, cost
         "generation_id"
     )
     before = session.execute(query).mappings().all()
-    item = session.get(Item, business.item.id)
+    item = record_by_id(session, Item, business.item.id)
     item.unit = "changed-master-unit"
     session.execute(
         delete(CostInventoryPublication).where(

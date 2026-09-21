@@ -128,9 +128,7 @@ def test_new_class_explanation_and_not_found_parity(session, business):
         ]
         == unreserved.id
     )
-    overdue = explain_operational_exception(
-        session, tenant_id, overdue_id, as_of=after
-    )
+    overdue = explain_operational_exception(session, tenant_id, overdue_id, as_of=after)
     assert overdue["record_id"] == unreserved.id
     assert overdue["trace"]["commitment_id"] == unreserved.id
     assert overdue["cause_ids"] == ["insufficient_reservation"]
@@ -142,13 +140,9 @@ def test_new_class_explanation_and_not_found_parity(session, business):
         ("not-an-exception-identity", after),
     ):
         with pytest.raises(NotFound, match="Current operational exception not found"):
-            explain_operational_exception(
-                session, tenant_id, exception_id, as_of=as_of
-            )
+            explain_operational_exception(session, tenant_id, exception_id, as_of=as_of)
     with pytest.raises(NotFound, match="Current operational exception not found"):
-        explain_operational_exception(
-            session, "ten_foreign", stock_id, as_of=before
-        )
+        explain_operational_exception(session, "ten_foreign", stock_id, as_of=before)
 
 
 def test_shared_consumer_parity_includes_new_classes(session, business):
@@ -348,9 +342,7 @@ def test_overdue_receivable_explanation_and_not_found_parity(session, business):
     post_customer_payment(session, tenant_id, invoice.id, "1000.00")
 
     with pytest.raises(NotFound, match="Current operational exception not found"):
-        explain_operational_exception(
-            session, tenant_id, exception_id, as_of=as_of
-        )
+        explain_operational_exception(session, tenant_id, exception_id, as_of=as_of)
 
 
 def test_silent_source_explanation_and_not_found_parity(session, business):
@@ -415,9 +407,7 @@ def test_silent_source_explanation_and_not_found_parity(session, business):
     session.flush()
 
     with pytest.raises(NotFound, match="Current operational exception not found"):
-        explain_operational_exception(
-            session, tenant_id, exception_id, as_of=as_of
-        )
+        explain_operational_exception(session, tenant_id, exception_id, as_of=as_of)
 
 
 # --- The three line classes explain themselves (spec 076) ------------------

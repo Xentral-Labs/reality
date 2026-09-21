@@ -678,12 +678,22 @@ def validate_dataset(session: Session, dataset: DatasetHandle) -> dict[str, int]
     )
     if dates != {dataset.profile.business_date}:
         raise ValueError("Benchmark orders must share one business date.")
-    first_source = session.get(SourceRecord, _id("src", f"b{dataset.profile.seed}", 0))
-    first_document = session.get(Document, _id("doc", f"b{dataset.profile.seed}", 0))
-    first_line = session.get(DocumentLine, _id("dln", f"b{dataset.profile.seed}", 0))
-    first_commitment = session.get(
-        Commitment, _id("com", f"b{dataset.profile.seed}", 0)
-    )
+
+    # Company and identity both, since spec 181 FR-005: a company-scoped table is
+    # keyed by the pair, so that PostgreSQL will let it be partitioned by company.
+    def sample(model, prefix):
+        return session.get(
+            model,
+            {
+                "tenant_id": dataset.tenant_id,
+                "id": _id(prefix, f"b{dataset.profile.seed}", 0),
+            },
+        )
+
+    first_source = sample(SourceRecord, "src")
+    first_document = sample(Document, "doc")
+    first_line = sample(DocumentLine, "dln")
+    first_commitment = sample(Commitment, "com")
     if not all((first_source, first_document, first_line, first_commitment)):
         raise ValueError("Benchmark sample trace is incomplete.")
     if (

@@ -1,5 +1,5 @@
 import pytest
-from conftest import seed_company
+from conftest import record_by_id, seed_company
 from sqlalchemy import func, select
 
 from reality.db.core import Item, PlaygroundRun, Tenant
@@ -94,7 +94,7 @@ def test_pending_empty_sandbox_and_ordinary_refusal(
         )
         == 0
     )
-    assert session.get(PlaygroundRun, result["run_id"]).status == "active"
+    assert record_by_id(session, PlaygroundRun, result["run_id"]).status == "active"
 
 
 def test_failed_seed_rolls_back_all_evidence_and_explicit_retry_reuses_tenant(
@@ -210,7 +210,7 @@ def test_initializing_sandbox_receipt_retains_original_intent(
     monkeypatch.setattr(
         playground,
         "_initialize",
-        lambda db, run_id, actor_id: db.get(PlaygroundRun, run_id),
+        lambda db, run_id, actor_id: record_by_id(db, PlaygroundRun, run_id),
     )
     result = company_setup.create_company(
         session,

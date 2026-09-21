@@ -8,6 +8,7 @@ from sqlalchemy import (
     ForeignKey,
     ForeignKeyConstraint,
     Index,
+    PrimaryKeyConstraint,
     String,
     Text,
     UniqueConstraint,
@@ -22,6 +23,11 @@ from reality.db.core import Base, UTCDateTime, now
 class SourceClassificationMapping(Base):
     __tablename__ = "source_classification_mapping_revision"
     __table_args__ = (
+        PrimaryKeyConstraint("tenant_id", "id"),
+        ForeignKeyConstraint(
+            ["tenant_id", "action_id"],
+            ["action.tenant_id", "action.id"],
+        ),
         UniqueConstraint("tenant_id", "id", name="uq_source_mapping_tenant"),
         UniqueConstraint(
             "tenant_id",
@@ -75,7 +81,7 @@ class SourceClassificationMapping(Base):
             postgresql_where=text("is_current"),
         ),
     )
-    id: Mapped[str] = mapped_column(String, primary_key=True)
+    id: Mapped[str] = mapped_column(String)
     tenant_id: Mapped[str] = mapped_column(ForeignKey("tenant.id"), index=True)
     source_system_id: Mapped[str] = mapped_column(String)
     namespace: Mapped[str] = mapped_column(String(200))
@@ -89,5 +95,5 @@ class SourceClassificationMapping(Base):
     reference_snapshot: Mapped[dict] = mapped_column(JSONB)
     reason: Mapped[str] = mapped_column(Text)
     actor_id: Mapped[str | None] = mapped_column(String)
-    action_id: Mapped[str] = mapped_column(ForeignKey("action.id"))
+    action_id: Mapped[str] = mapped_column()
     created_at: Mapped[datetime] = mapped_column(UTCDateTime, default=now)

@@ -1,6 +1,7 @@
 from decimal import Decimal
 
 import pytest
+from conftest import record_by_id
 from sqlalchemy import select
 
 from reality.db.core import Movement, MovementCorrection
@@ -39,7 +40,7 @@ def test_void_receipt_appends_exact_correction_and_preserves_original(
     )
 
     session.refresh(original)
-    compensation = session.get(Movement, result.compensating_movement_id)
+    compensation = record_by_id(session, Movement, result.compensating_movement_id)
     relation = session.scalar(
         select(MovementCorrection).where(
             MovementCorrection.original_movement_id == original.id
@@ -90,7 +91,7 @@ def test_replacement_is_atomic_and_becomes_the_only_net_effect(session, business
         preview_fingerprint=preview["request_fingerprint"],
     )
 
-    replacement = session.get(Movement, result.replacement_movement_id)
+    replacement = record_by_id(session, Movement, result.replacement_movement_id)
     assert replacement.type == "receipt"
     assert replacement.quantity == Decimal("7.0000")
     assert stock_at(session, business.tenant.id, business.item.id) == Decimal("7.0000")

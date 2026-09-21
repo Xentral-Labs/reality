@@ -492,9 +492,7 @@ def test_diagnostic_services_exclude_foreign_reality(session, business):
     )
 
     foreign = create_tenant(session, "Foreign diagnostic records")
-    foreign_party = create_party(
-        session, foreign.id, "Foreign customer", "customer"
-    )
+    foreign_party = create_party(session, foreign.id, "Foreign customer", "customer")
     foreign_item = create_item(session, foreign.id, "FOREIGN", "Foreign item")
     foreign_location = create_location(session, foreign.id, "Foreign warehouse")
     record_movement(

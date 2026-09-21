@@ -104,13 +104,23 @@ def test_a_discount_rate_and_window_are_validated(session, business):
     for rate in ("0", "-1", "100", "150"):
         with pytest.raises(InvalidOperation, match="discount"):
             create_payment_term(
-                session, tenant_id, f"BAD{rate}", "Bad", 30,
-                discount_percent=rate, discount_days=10,
+                session,
+                tenant_id,
+                f"BAD{rate}",
+                "Bad",
+                30,
+                discount_percent=rate,
+                discount_days=10,
             )
     with pytest.raises(InvalidOperation, match="discount"):
         create_payment_term(
-            session, tenant_id, "BADDAYS", "Bad", 30,
-            discount_percent="2", discount_days=-1,
+            session,
+            tenant_id,
+            "BADDAYS",
+            "Bad",
+            30,
+            discount_percent="2",
+            discount_days=-1,
         )
 
     # Half a discount condition is not a condition. Either half alone leaves
@@ -126,10 +136,18 @@ def test_a_discount_rate_and_window_are_validated(session, business):
 
     # The positive control: the same figures together are accepted, and a term
     # stating neither is accepted as it always was.
-    assert create_payment_term(
-        session, tenant_id, "GOOD", "Good", 30,
-        discount_percent="2", discount_days=10,
-    ).discount_days == 10
+    assert (
+        create_payment_term(
+            session,
+            tenant_id,
+            "GOOD",
+            "Good",
+            30,
+            discount_percent="2",
+            discount_days=10,
+        ).discount_days
+        == 10
+    )
     assert create_payment_term(session, tenant_id, "PLAIN", "Plain", 30) is not None
 
 
@@ -142,8 +160,13 @@ def test_the_discount_deadline_is_one_shared_rule(session, business):
     )
 
     term = create_payment_term(
-        session, business.tenant.id, "SK10", "2% 10", 30,
-        discount_percent="2", discount_days=10,
+        session,
+        business.tenant.id,
+        "SK10",
+        "2% 10",
+        30,
+        discount_percent="2",
+        discount_days=10,
     )
     invoice = create_document(
         session,

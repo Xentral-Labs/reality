@@ -4,6 +4,7 @@ import json
 from decimal import Decimal
 
 import pytest
+from conftest import record_by_id
 from sqlalchemy import func, select
 
 from reality.db.core import (
@@ -103,16 +104,19 @@ def test_multiline_review_trace_and_replay(session, business, direction):
     result = delivery_proposal_detail(session, business.tenant.id, proposal.id)
     assert result["verification"] == "verified"
     receipt = result["receipt"]
-    source = session.get(SourceRecord, receipt["source_record_id"])
+    source = record_by_id(session, SourceRecord, receipt["source_record_id"])
     assert json.loads(source.payload)["gross_amount"] == "98.73"
-    assert json.loads(source.payload)["lines"][1]["external_note"] == "Retained <source> metadata"
-    doc = session.get(Document, receipt["document_id"])
+    assert (
+        json.loads(source.payload)["lines"][1]["external_note"]
+        == "Retained <source> metadata"
+    )
+    doc = record_by_id(session, Document, receipt["document_id"])
     assert doc.gross_amount == Decimal("98.73")
     assert doc.source_record_id == source.id
     assert len(receipt["commitment_ids"]) == 2
     for index, cid in enumerate(receipt["commitment_ids"]):
-        commitment = session.get(Commitment, cid)
-        line = session.get(DocumentLine, receipt["document_line_ids"][index])
+        commitment = record_by_id(session, Commitment, cid)
+        line = record_by_id(session, DocumentLine, receipt["document_line_ids"][index])
         assert commitment.document_line_id == line.id
         assert commitment.type == (
             "customer_delivery" if direction == "sales" else "supplier_delivery"

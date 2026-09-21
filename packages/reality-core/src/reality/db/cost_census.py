@@ -55,7 +55,7 @@ class CostCompanyCensusMovement(CostRecord, Base):
         CheckConstraint("length(content_hash)=64", name="ck_census_movement_hash"),
     )
     census_id: Mapped[str] = mapped_column(String, index=True)
-    movement_id: Mapped[str] = mapped_column(String, index=True)
+    movement_id: Mapped[str] = mapped_column(String)
     observed_values: Mapped[dict] = mapped_column(JSONB)
     content_hash: Mapped[str] = mapped_column(String(64))
 
@@ -71,7 +71,7 @@ class CostCompanyCensusDocument(CostRecord, Base):
         CheckConstraint("length(content_hash)=64", name="ck_census_document_hash"),
     )
     census_id: Mapped[str] = mapped_column(String, index=True)
-    document_id: Mapped[str] = mapped_column(String, index=True)
+    document_id: Mapped[str] = mapped_column(String)
     observed_values: Mapped[dict] = mapped_column(JSONB)
     content_hash: Mapped[str] = mapped_column(String(64))
 
@@ -95,7 +95,7 @@ class CostCompanyCensusLine(CostRecord, Base):
         ),
     )
     census_id: Mapped[str] = mapped_column(String, index=True)
-    document_line_id: Mapped[str] = mapped_column(String, index=True)
+    document_line_id: Mapped[str] = mapped_column(String)
     observed_values: Mapped[dict] = mapped_column(JSONB)
     content_hash: Mapped[str] = mapped_column(String(64))
     document_member_id: Mapped[str] = mapped_column(String, index=True)
@@ -113,7 +113,7 @@ class CostCompanyCensusSource(CostRecord, Base):
         _link("interpretation_outcome_id", "interpretation_outcome"),
     )
     census_id: Mapped[str] = mapped_column(String, index=True)
-    source_record_id: Mapped[str] = mapped_column(String, index=True)
+    source_record_id: Mapped[str] = mapped_column(String)
     observed_values: Mapped[dict] = mapped_column(JSONB)
     content_hash: Mapped[str] = mapped_column(String(64))
-    interpretation_outcome_id: Mapped[str | None] = mapped_column(String, index=True)
+    interpretation_outcome_id: Mapped[str | None] = mapped_column(String)

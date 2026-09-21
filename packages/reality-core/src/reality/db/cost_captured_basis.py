@@ -29,7 +29,7 @@ class CostCapturedBasis(CostRecord, Base):
             name="ck_captured_basis_counts",
         ),
     )
-    census_id: Mapped[str] = mapped_column(String, index=True)
+    census_id: Mapped[str] = mapped_column(String)
     request_id: Mapped[str] = mapped_column(String(128))
     request_hash: Mapped[str] = mapped_column(String(64))
     basis_version: Mapped[str] = mapped_column(String)
@@ -52,8 +52,8 @@ class CostCapturedInventoryBasis(CostRecord, Base):
         CheckConstraint("length(content_hash)=64", name="ck_captured_inventory_hash"),
     )
     basis_id: Mapped[str] = mapped_column(String, index=True)
-    item_id: Mapped[str] = mapped_column(String, index=True)
-    review_id: Mapped[str | None] = mapped_column(String, index=True)
+    item_id: Mapped[str] = mapped_column(String)
+    review_id: Mapped[str | None] = mapped_column(String)
     observations: Mapped[dict] = mapped_column(JSONB)
     content_hash: Mapped[str] = mapped_column(String(64))
 
@@ -71,7 +71,7 @@ class CostCapturedContributionBasis(CostRecord, Base):
         ),
     )
     basis_id: Mapped[str] = mapped_column(String, index=True)
-    document_line_id: Mapped[str] = mapped_column(String, index=True)
-    review_id: Mapped[str | None] = mapped_column(String, index=True)
+    document_line_id: Mapped[str] = mapped_column(String)
+    review_id: Mapped[str | None] = mapped_column(String)
     observations: Mapped[dict] = mapped_column(JSONB)
     content_hash: Mapped[str] = mapped_column(String(64))

@@ -40,21 +40,38 @@ def _import_csv(session, tenant_id: str, filename: str, target: str, source_type
     return process_import_job(session, tenant_id, output["import_job_id"])
 
 
-def test_ordered_import_demo_files_form_one_operational_story(session, tmp_path, monkeypatch):
+def test_ordered_import_demo_files_form_one_operational_story(
+    session, tmp_path, monkeypatch
+):
     monkeypatch.setenv("REALITY_ARTIFACT_DIR", str(tmp_path / "artifacts"))
     tenant = create_tenant(session, "File Import Demo")
 
     _import_csv(session, tenant.id, "01_parties.csv", "party", "party")
     _import_csv(session, tenant.id, "02_locations.csv", "location", "location")
     _import_csv(session, tenant.id, "03_items.csv", "item", "item")
-    _import_csv(session, tenant.id, "04_inventory_snapshot.csv", "inventory_snapshot", "inventory_snapshot")
-    orders = _import_csv(session, tenant.id, "05_sales_orders.csv", "sales_order", "order")
-    payments = _import_csv(session, tenant.id, "06_bank_statement.csv", "bank_statement", "bank_statement")
+    _import_csv(
+        session,
+        tenant.id,
+        "04_inventory_snapshot.csv",
+        "inventory_snapshot",
+        "inventory_snapshot",
+    )
+    orders = _import_csv(
+        session, tenant.id, "05_sales_orders.csv", "sales_order", "order"
+    )
+    payments = _import_csv(
+        session, tenant.id, "06_bank_statement.csv", "bank_statement", "bank_statement"
+    )
 
     assert session.query(Party).filter_by(tenant_id=tenant.id).count() == 3
     assert session.query(Location).filter_by(tenant_id=tenant.id).count() == 2
     assert session.query(Item).filter_by(tenant_id=tenant.id).count() == 3
     assert session.query(Movement).filter_by(tenant_id=tenant.id).count() == 2
-    assert session.query(Document).filter_by(tenant_id=tenant.id, type="sales_order").count() == 2
+    assert (
+        session.query(Document)
+        .filter_by(tenant_id=tenant.id, type="sales_order")
+        .count()
+        == 2
+    )
     assert orders["rows"] == 2
     assert payments["rows"] == 2

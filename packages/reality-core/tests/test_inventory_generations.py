@@ -94,12 +94,8 @@ def test_stored_a_no_replay_and_late_input(session, business, cost_owner, monkey
 def test_generation_binds_assessment_and_serves_carrying_without_replay(
     session, business, cost_owner, monkeypatch
 ):
-    args, inventory = carrying.prepared_assessment(
-        session, business, cost_owner
-    )
-    assessment = carrying.commit_assessment(
-        session, business, cost_owner, args
-    )
+    args, inventory = carrying.prepared_assessment(session, business, cost_owner)
+    assessment = carrying.commit_assessment(session, business, cost_owner, args)
     built = build_inventory_generation(
         session, business.tenant.id, inventory["review_id"]
     )
@@ -109,9 +105,10 @@ def test_generation_binds_assessment_and_serves_carrying_without_replay(
         business.item.id,
         generation_id=built["generation_id"],
     )
-    assert result["context"]["assessment_revision_id"] == assessment[
-        "assessment_revision_id"
-    ]
+    assert (
+        result["context"]["assessment_revision_id"]
+        == assessment["assessment_revision_id"]
+    )
     assert result["result"]["acquisition_value"] == "420.0000"
     assert result["result"]["carrying_value"] == "300.0000"
     assert result["result"]["carrying_value_state"] == "reviewed_assessment"

@@ -1,7 +1,7 @@
 """Spec 195: real chat replies retain exact, owner-scoped call evidence."""
 
 import pytest
-from conftest import seed_company
+from conftest import record_by_id, seed_company
 from sqlalchemy import delete, func, select
 
 from reality.db.core import ChatMessage, StorylineTraceEntry
@@ -203,7 +203,7 @@ def test_trace_failure_does_not_repeat_a_saved_reply(http, session, monkeypatch)
     _, reply = core.send_chat_message(
         session, tenant, conversation.id, "source evidence", actor_user_id=actor.id
     )
-    assert session.get(ChatMessage, reply.id) is not None
+    assert record_by_id(session, ChatMessage, reply.id) is not None
     assert not storyline.chat_evidence(session, actor.id, tenant, reply.id)["available"]
     assert recorder.current_chat_calls() is None
 
@@ -224,7 +224,7 @@ def test_standalone_free_play_is_confirmed_idempotent_and_has_no_story(http, ses
     assert result["status"] == "initializing" and result["environment"] == "sandbox"
     assert seed_company(session, result["tenant_id"]) == "succeeded"
     assert client.get(path).json()["status"] == "ready"
-    run = session.get(PlaygroundRun, result["run_id"])
+    run = record_by_id(session, PlaygroundRun, result["run_id"])
     assert run.storyline_key is None and run.storyline_version is None
     assert (
         client.post(path, json={"confirmed": True}).json()["tenant_id"]
@@ -269,7 +269,7 @@ def test_standalone_free_play_records_real_chat_and_preserves_archive(
     repeated = client.post("/api/storyline/free-play", json={"confirmed": True})
     assert repeated.status_code == 200, repeated.text
     assert repeated.json()["status"] == "archived"
-    assert session.get(PlaygroundRun, result["run_id"]).status == "archived"
+    assert record_by_id(session, PlaygroundRun, result["run_id"]).status == "archived"
 
 
 def test_free_play_never_opens_an_ordinary_company_with_a_conflicting_key(

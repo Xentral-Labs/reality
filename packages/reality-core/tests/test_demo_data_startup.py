@@ -1,5 +1,6 @@
 from datetime import UTC, datetime, timedelta
 
+from conftest import record_by_id
 from sqlalchemy import func, select
 
 from reality.db.core import SourceRecord
@@ -27,7 +28,7 @@ def test_confirmed_live_setup_starts_three_orders_even_when_random_demand_is_zer
     )
     tenant = result["tenant_id"]
     status = demo_data.status(session, tenant, scheduled_owner.id)
-    schedule = session.get(ScheduledJob, status["schedule_id"])
+    schedule = record_by_id(session, ScheduledJob, status["schedule_id"])
     anchor = clock[0]
     assert schedule.next_run_at == anchor
     for offset in [0, 12, 24]:

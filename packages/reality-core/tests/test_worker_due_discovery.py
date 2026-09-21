@@ -2,6 +2,8 @@
 
 from datetime import timedelta
 
+from conftest import record_by_id
+
 from reality.db.core import now
 from reality.db.scheduled_jobs import ScheduledJobRun
 from reality.services import scheduled_jobs as jobs
@@ -18,14 +20,18 @@ def test_discovery_returns_only_tenants_with_claimable_work(
 ):
     tenant = business.tenant.id
     assert jobs.due_tenants(session) == []
-    assert tenant in jobs.tenant_catalog(session), "the scheduler still sees every tenant"
+    assert tenant in jobs.tenant_catalog(session), (
+        "the scheduler still sees every tenant"
+    )
     run = _manual(session, tenant, scheduled_owner, "due-one")
     session.flush()
     assert jobs.due_tenants(session) == [tenant]
     claimed = jobs.claim_next(session, tenant)
     assert claimed.id == run.id
     assert jobs.due_tenants(session) == [], "a claimed run is nobody else's work"
-    session.get(ScheduledJobRun, run.id).lease_expires_at = now() - timedelta(seconds=1)
+    record_by_id(session, ScheduledJobRun, run.id).lease_expires_at = now() - timedelta(
+        seconds=1
+    )
     session.flush()
     assert jobs.due_tenants(session) == [tenant], "an expired lease is work again"
     recovered = jobs.claim_next(session, tenant)

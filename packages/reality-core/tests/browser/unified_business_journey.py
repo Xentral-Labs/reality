@@ -10,6 +10,7 @@ import time
 from pathlib import Path
 from urllib.request import urlopen
 
+from conftest import record_by_id
 from sqlalchemy import select
 from sqlalchemy.orm import sessionmaker
 
@@ -374,21 +375,27 @@ def test_real_unified_business_journey(postgres_database, tmp_path):
             from reality.db.core import SourceRecord
 
             for reduction in json.loads((artifacts / "reductions.json").read_text()):
-                source = session.get(SourceRecord, reduction["source_record_id"])
+                source = record_by_id(
+                    session, SourceRecord, reduction["source_record_id"]
+                )
                 assert json.loads(source.payload)["actor_id"] == owner.id
                 assert json.loads(source.payload)["reason"] == "Agreed stated discount"
                 assert reduction["cash_change"] == "0"
             for settlement in json.loads((artifacts / "settlements.json").read_text()):
                 for family in ("payment", "refund", "reduction"):
                     if settlement.get(family):
-                        source = session.get(
-                            SourceRecord, settlement[family]["source_record_id"]
+                        source = record_by_id(
+                            session,
+                            SourceRecord,
+                            settlement[family]["source_record_id"],
                         )
                         assert json.loads(source.payload)["actor_id"] == owner.id
             opening = json.loads((artifacts / "opening.json").read_text())
             assert len(opening["items"]) == 4
             for position in opening["items"]:
-                source = session.get(SourceRecord, position["source_record_id"])
+                source = record_by_id(
+                    session, SourceRecord, position["source_record_id"]
+                )
                 assert json.loads(source.payload)["actor_id"] == owner.id
                 assert source.source_system == "internal_opening_subledger"
             assert (
@@ -399,8 +406,8 @@ def test_real_unified_business_journey(postgres_database, tmp_path):
             )
             assert core.open_invoice_amount(session, tenant.id, result["invoice"]) == 0
             assert core.open_invoice_amount(session, tenant.id, result["credit"]) == 200
-            invoice_line = session.get(DocumentLine, result["invoiceLine"])
-            credit_line = session.get(DocumentLine, result["creditLine"])
+            invoice_line = record_by_id(session, DocumentLine, result["invoiceLine"])
+            credit_line = record_by_id(session, DocumentLine, result["creditLine"])
             assert invoice_line.billed_document_line_id == result["orderLine"]
             assert credit_line.billed_document_line_id == invoice_line.id
             assert (

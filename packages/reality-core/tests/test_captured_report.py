@@ -358,7 +358,11 @@ def test_migration_schema_parity_and_empty_round_trip(postgres_database, monkeyp
 
     monkeypatch.setenv("REALITY_DATABASE_URL", postgres_database)
     config = Config("alembic.ini")
-    command.upgrade(config, "0079_captured_report")
+    # To the head rather than to the revision that first created these tables:
+    # the models describe the latest schema, and since spec 181 FR-005 these are
+    # keyed by their company, which 0088 does. Comparing today's models against
+    # yesterday's database would fail for a reason that is not a defect.
+    command.upgrade(config, "head")
     engine = create_engine(postgres_database)
     names = {
         "cost_generation",

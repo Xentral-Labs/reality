@@ -61,10 +61,15 @@ def test_both_tools_are_registered_and_read_only():
 
 
 def test_the_catalog_tool_describes_what_can_be_asked(session, business):
-    catalog = run_read_tool(session, business.tenant.id, "graph.catalog", {"node": "order"})
+    catalog = run_read_tool(
+        session, business.tenant.id, "graph.catalog", {"node": "order"}
+    )
     entry = catalog["nodes"][0]
     assert entry["key"] == "order"
-    assert {m["key"] for m in entry["measures"]} >= {"stated_order_amount", "order_count"}
+    assert {m["key"] for m in entry["measures"]} >= {
+        "stated_order_amount",
+        "order_count",
+    }
     assert {e["key"]: e["multiplicity"] for e in entry["edges"]}["contains"] == "1:n"
 
 
@@ -125,7 +130,10 @@ def test_asking_with_both_surfaces_at_once_is_refused(session, business):
         (
             {
                 "from": "order",
-                "follow": [{"edge": "contains", "as": "l"}, {"edge": "of_item", "as": "i"}],
+                "follow": [
+                    {"edge": "contains", "as": "l"},
+                    {"edge": "of_item", "as": "i"},
+                ],
                 "measures": ["stated_order_amount"],
                 "group_by": [{"field": "i.sku"}],
             },
@@ -162,7 +170,11 @@ def test_a_refusal_carries_its_stable_code(session, business, question, code):
 def test_a_refusal_reaches_the_agent_as_an_invalid_operation(session, business):
     """It is not an outage. The question was understood and cannot be answered."""
     with pytest.raises(InvalidOperation) as refusal:
-        ask(session, business.tenant.id, question={"from": "order", "measures": ["profit"]})
+        ask(
+            session,
+            business.tenant.id,
+            question={"from": "order", "measures": ["profit"]},
+        )
     assert error_code(refusal.value) == "invalid_operation"
 
 

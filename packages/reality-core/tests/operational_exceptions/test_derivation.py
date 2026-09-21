@@ -3,6 +3,7 @@ from decimal import Decimal
 from types import SimpleNamespace
 
 import pytest
+from conftest import record_by_id
 from sqlalchemy import select
 
 from reality.db.core import (
@@ -3603,7 +3604,7 @@ def test_the_pricing_entry_orders_longest_first(session, business):
     purchase_price(session, business, "10.00")
     older = sold_at(session, business, "SO-OLD-PRICE", "7.00")
     newer = sold_at(session, business, "SO-NEW-PRICE", "7.00")
-    older_document = session.get(type(older), older.id)
+    older_document = record_by_id(session, type(older), older.id)
     assert older_document is not None
 
     rows = [

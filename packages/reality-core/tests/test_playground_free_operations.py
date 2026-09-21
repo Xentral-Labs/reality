@@ -4,6 +4,7 @@ from decimal import Decimal
 from types import SimpleNamespace
 
 import test_playground_steps
+from conftest import record_by_id
 
 from reality.web import api
 
@@ -19,7 +20,7 @@ def test_mixed_orders_can_be_fulfilled_independently(durable_playground):
 
     engine, owner, run_id = durable_playground
     with Session(engine) as session:
-        run = session.get(PlaygroundRun, run_id)
+        run = record_by_id(session, PlaygroundRun, run_id)
         tenant, refs = run.tenant_id, run.initialization_progress
     item = refs["items"]["BIKE-LIGHT"]
     location = refs["locations"]["warehouse"]

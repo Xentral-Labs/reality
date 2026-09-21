@@ -1,7 +1,7 @@
 import json
 
 import pytest
-from conftest import seed_company
+from conftest import record_by_id, seed_company
 from sqlalchemy import event, select
 
 from reality.db.core import SourceRecord
@@ -64,7 +64,7 @@ def test_bound_interpretation_failure_retains_intake_without_committing(
         )
     finally:
         event.remove(session, "before_commit", deny_root_commit)
-    assert session.get(ImportJob, job.id).status == "failed"
+    assert record_by_id(session, ImportJob, job.id).status == "failed"
     assert (
         session.scalar(
             select(Document.id).where(
@@ -128,7 +128,7 @@ def test_ten_worker_occurrences_create_orders_without_business_execution(
     from reality.db.core import PlaygroundRun
 
     manifest_before = json.dumps(
-        session.get(PlaygroundRun, setup["run_id"]).initialization_progress,
+        record_by_id(session, PlaygroundRun, setup["run_id"]).initialization_progress,
         sort_keys=True,
     )
     preview = demo_data.preview(session, tenant, actor)
@@ -145,7 +145,7 @@ def test_ten_worker_occurrences_create_orders_without_business_execution(
         confirmed=True,
         rate=300,
     )
-    schedule = session.get(ScheduledJob, started["schedule_id"])
+    schedule = record_by_id(session, ScheduledJob, started["schedule_id"])
     for index in range(10):
         schedule.next_run_at = now() - timedelta(seconds=11 - index)
         session.commit()
@@ -179,7 +179,9 @@ def test_ten_worker_occurrences_create_orders_without_business_execution(
 
     assert (
         json.dumps(
-            session.get(PlaygroundRun, setup["run_id"]).initialization_progress,
+            record_by_id(
+                session, PlaygroundRun, setup["run_id"]
+            ).initialization_progress,
             sort_keys=True,
         )
         == manifest_before
@@ -268,7 +270,7 @@ def test_twenty_failed_imports_pause_and_retry_same_sources(
         "pressure-start",
         confirmed=True,
     )
-    schedule = session.get(ScheduledJob, started["schedule_id"])
+    schedule = record_by_id(session, ScheduledJob, started["schedule_id"])
     interpreter = core.SOURCE_INTERPRETERS[("demo_data", "order")]
 
     def unavailable(*args):
@@ -334,7 +336,7 @@ def test_unexpected_interpreter_failure_rolls_back_source_and_retries_same_deliv
         "atomic-start",
         confirmed=True,
     )
-    schedule = session.get(ScheduledJob, started["schedule_id"])
+    schedule = record_by_id(session, ScheduledJob, started["schedule_id"])
     schedule.next_run_at = now() - timedelta(seconds=1)
     session.commit()
     scheduled_jobs.materialize_due(session, tenant)
@@ -406,7 +408,7 @@ def _running_demo(session, monkeypatch, actor, slug):
         f"{slug}-start",
         confirmed=True,
     )
-    return tenant, session.get(ScheduledJob, started["schedule_id"])
+    return tenant, record_by_id(session, ScheduledJob, started["schedule_id"])
 
 
 def test_one_delivery_carries_none_one_or_two_orders_with_stable_identities(
@@ -508,9 +510,9 @@ def test_growing_customer_pool_keeps_the_run_and_start_adds_the_newcomers(
         select(Party).where(Party.tenant_id == tenant, Party.name == newcomer["name"])
     )
     assert party is not None
-    references = session.get(ScheduledJob, restarted["schedule_id"]).configuration[
-        "arguments"
-    ]["references"]
+    references = record_by_id(
+        session, ScheduledJob, restarted["schedule_id"]
+    ).configuration["arguments"]["references"]
     assert references["parties"]["C21"] == party.id
     assert demo_data.preview(session, tenant, actor)["add"]["parties"] == []
 
@@ -530,7 +532,7 @@ def test_bound_processing_accepts_all_synthetic_types(session, business, kind):
         _commit=False,
     )
     assert core.process_import_job_bound(session, business.tenant.id, job.id) is None
-    assert session.get(ImportJob, job.id).status == "failed"
+    assert record_by_id(session, ImportJob, job.id).status == "failed"
     outcome = session.scalar(
         select(InterpretationOutcome).where(
             InterpretationOutcome.tenant_id == business.tenant.id,
@@ -643,7 +645,7 @@ def test_settlement_occurrence_emits_due_records_in_bounded_batches(
         select(func.count()).select_from(Movement).where(Movement.tenant_id == tenant)
     )
     status = demo_data.status(session, tenant, actor)
-    settlement = session.get(ScheduledJob, status["settlement_schedule_id"])
+    settlement = record_by_id(session, ScheduledJob, status["settlement_schedule_id"])
 
     history, totals = _settle_all(session, tenant, settlement)
     assert all(sum(tick.values()) <= 10 for tick in history)
@@ -751,11 +753,13 @@ def test_settlement_uses_each_order_schedule_seed_and_pause_never_bursts(
     restarted = demo_data.control(
         session, tenant, actor, "start", stopped["revision"], "again", confirmed=True
     )
-    second_schedule = session.get(ScheduledJob, restarted["schedule_id"])
+    second_schedule = record_by_id(session, ScheduledJob, restarted["schedule_id"])
     for _ in range(2):
         _tick(session, tenant, second_schedule)
         session.refresh(second_schedule)
-    settlement = session.get(ScheduledJob, restarted["settlement_schedule_id"])
+    settlement = record_by_id(
+        session, ScheduledJob, restarted["settlement_schedule_id"]
+    )
     _settle_all(session, tenant, settlement)
     for schedule in (first_schedule, second_schedule):
         seed = schedule.configuration["arguments"]["seed"]
@@ -788,7 +792,7 @@ def test_settlement_uses_each_order_schedule_seed_and_pause_never_bursts(
     resumed = demo_data.control(
         session, tenant, actor, "resume", paused["revision"], "resume", confirmed=True
     )
-    settlement = session.get(ScheduledJob, resumed["settlement_schedule_id"])
+    settlement = record_by_id(session, ScheduledJob, resumed["settlement_schedule_id"])
     history, _ = _settle_all(session, tenant, settlement)
     assert history[0] == {"invoice": 10, "payment": 0}
     assert all(sum(tick.values()) <= 10 for tick in history)

@@ -1,6 +1,7 @@
 from decimal import Decimal
 
 import pytest
+from conftest import record_by_id
 from sqlalchemy import select
 
 from reality.db.core import LedgerEntry, LedgerReversal, SettlementAllocation
@@ -64,12 +65,14 @@ def test_reversal_appends_exact_inverse_and_preserves_original(session, business
             )
         )
     )
-    relation = session.get(LedgerReversal, result.reversal_id)
+    relation = record_by_id(session, LedgerReversal, result.reversal_id)
     assert [
         (row.id, row.account, row.amount, row.debit_credit, row.document_id)
         for row in entries
     ] == original_values
-    assert sorted((row.account, row.amount, row.debit_credit) for row in inverse) == sorted(
+    assert sorted(
+        (row.account, row.amount, row.debit_credit) for row in inverse
+    ) == sorted(
         (
             row.account,
             row.amount,
@@ -77,7 +80,9 @@ def test_reversal_appends_exact_inverse_and_preserves_original(session, business
         )
         for row in entries
     )
-    assert all(row.document_id is None and row.source_record_id is None for row in inverse)
+    assert all(
+        row.document_id is None and row.source_record_id is None for row in inverse
+    )
     assert relation.reason == "Invoice was posted in error"
     assert account_balance(session, business.tenant.id, "accounts_receivable") == 0
     assert open_invoice_amount(session, business.tenant.id, invoice.id) == 0
@@ -100,10 +105,12 @@ def test_payment_reversal_preserves_allocation_history_and_reopens_invoice(
         reason="Payment belongs to another customer",
     )
 
-    assert session.get(SettlementAllocation, allocation.id) is allocation
+    assert record_by_id(session, SettlementAllocation, allocation.id) is allocation
     assert open_invoice_amount(session, business.tenant.id, invoice.id) == Decimal(100)
     reversed_payment = next(
-        row for row in payment_rows(session, business.tenant.id) if row["document"].id == payment[0].document_id
+        row
+        for row in payment_rows(session, business.tenant.id)
+        if row["document"].id == payment[0].document_id
     )
     assert reversed_payment["allocated"] == 0
     assert reversed_payment["unallocated"] == 0

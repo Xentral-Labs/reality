@@ -1,4 +1,4 @@
-from conftest import seed_company
+from conftest import record_by_id, seed_company
 from test_playground_api import playground_http as _playground_http
 
 playground_http = _playground_http
@@ -162,7 +162,7 @@ def test_free_entry_accepts_only_the_two_offered_starts(session, playground_http
     assert created.status_code == 201, created.text
     assert created.json()["status"] == "ready"
     assert (
-        session.get(PlaygroundRun, created.json()["run_id"]).preset_key
+        record_by_id(session, PlaygroundRun, created.json()["run_id"]).preset_key
         == "company-empty"
     )
     assert (

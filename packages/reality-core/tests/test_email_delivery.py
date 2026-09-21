@@ -1,6 +1,7 @@
 import logging
 from datetime import timedelta
 
+from conftest import record_by_id
 from sqlalchemy import select
 
 from reality.db.core import (
@@ -183,7 +184,7 @@ def test_worker_outage_preserves_pending_intent_and_failure_becomes_terminal_aft
     delivery_id = delivery.id
     session.commit()
     session.expire_all()
-    durable = session.get(InvitationDelivery, delivery_id)
+    durable = record_by_id(session, InvitationDelivery, delivery_id)
     assert durable is not None and durable.status == "pending"
 
     durable.created_at = now() - timedelta(hours=25)
@@ -210,8 +211,8 @@ def test_expired_worker_lease_is_reclaimable_and_old_terminal_rows_are_cleaned(s
         )
     )
     assert cleanup_terminal_invitations(session, tenant_id=tenant.id) == 1
-    assert session.get(type(invitation), invitation.id) is None
-    assert session.get(InvitationDelivery, delivery.id) is None
+    assert record_by_id(session, type(invitation), invitation.id) is None
+    assert record_by_id(session, InvitationDelivery, delivery.id) is None
     assert session.get(SecurityAuditEvent, audit_id) is not None
 
     _, _, recent_terminal, _ = _queued_invitation(session, "-recent")
@@ -220,5 +221,5 @@ def test_expired_worker_lease_is_reclaimable_and_old_terminal_rows_are_cleaned(s
     _, _, old_pending, _ = _queued_invitation(session, "-pending")
     old_pending.created_at = now() - timedelta(days=100)
     assert cleanup_terminal_invitations(session, tenant_id=tenant.id) == 0
-    assert session.get(CompanyInvitation, recent_terminal.id) is not None
-    assert session.get(CompanyInvitation, old_pending.id) is not None
+    assert record_by_id(session, CompanyInvitation, recent_terminal.id) is not None
+    assert record_by_id(session, CompanyInvitation, old_pending.id) is not None

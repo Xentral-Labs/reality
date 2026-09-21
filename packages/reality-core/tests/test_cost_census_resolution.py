@@ -8,6 +8,7 @@ import test_contribution_reviews as commercial
 import test_cost_census_storage as storage
 import test_costing_services as costs
 import test_inventory_costing_services as stock
+from conftest import record_by_id
 from test_cost_census import read_session, seed
 
 from reality.services import core, costing
@@ -34,8 +35,8 @@ def setup_review(database, *, contribution=False):
             _, result = stock.commit_review(session, business, owner, args)
             from reality.db.inventory_costing import CostInventoryReview
 
-            review = session.get(
-                CostInventoryReview, result["trace"]["inventory_review_id"]
+            review = record_by_id(
+                session, CostInventoryReview, result["trace"]["inventory_review_id"]
             )
             cutoff = review.effective_at
         else:
@@ -262,8 +263,8 @@ def test_confirmed_db2_uses_existing_selling_cost_proof(scheduled_database):
             selling.categories("outbound_freight", "payment_fee"),
         )
         _, result = stock.commit_review(session, business, owner, args)
-        cutoff = session.get(
-            CostInventoryReview, result["trace"]["inventory_review_id"]
+        cutoff = record_by_id(
+            session, CostInventoryReview, result["trace"]["inventory_review_id"]
         ).effective_at
         session.commit()
     identity = capture(factory, business.tenant.id, cutoff)

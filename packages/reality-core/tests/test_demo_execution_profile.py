@@ -1,5 +1,5 @@
 import pytest
-from conftest import seed_company
+from conftest import record_by_id, seed_company
 from sqlalchemy import func, select
 
 from reality.db.core import ChangeProposal, PlaygroundRun
@@ -26,7 +26,7 @@ def test_execution_is_fresh_unexecuted_and_uses_real_confirmation(
     )
     assert execution["status"] == "ready", execution
     tenant, run_id = execution["tenant_id"], execution["run_id"]
-    refs = session.get(PlaygroundRun, run_id).initialization_progress
+    refs = record_by_id(session, PlaygroundRun, run_id).initialization_progress
     item, location = refs["items"]["P01"], refs["locations"]["A"]
     assert core.stock_at(session, tenant, item, location) == 1
     assert core.active_reserved(session, tenant, item, location) == 0

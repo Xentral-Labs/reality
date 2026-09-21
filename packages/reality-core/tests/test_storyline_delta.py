@@ -3,6 +3,7 @@
 from datetime import timedelta
 
 import pytest
+from conftest import record_by_id
 from sqlalchemy import select
 
 from reality.db.core import BusinessEvent, Fact
@@ -99,7 +100,7 @@ def test_facts_carry_a_recording_order_independent_of_business_time(session, bus
         idempotency_key="fact-1",
     )
 
-    stored = session.get(Fact, fact.id)
+    stored = record_by_id(session, Fact, fact.id)
     assert stored.recorded_at is not None
     assert stored.recorded_at >= before
     assert stored.observed_at < stored.recorded_at - timedelta(days=29)

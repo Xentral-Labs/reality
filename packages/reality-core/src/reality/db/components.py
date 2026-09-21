@@ -8,6 +8,7 @@ from sqlalchemy import (
     ForeignKey,
     ForeignKeyConstraint,
     Numeric,
+    PrimaryKeyConstraint,
     String,
     Text,
     UniqueConstraint,
@@ -21,6 +22,7 @@ from reality.db.core import Base, UTCDateTime, now
 class FinancialComponent(Base):
     __tablename__ = "financial_component"
     __table_args__ = (
+        PrimaryKeyConstraint("tenant_id", "id"),
         UniqueConstraint("tenant_id", "id", name="uq_financial_component_tenant"),
         UniqueConstraint(
             "tenant_id", "document_id", name="uq_financial_component_document"
@@ -43,7 +45,7 @@ class FinancialComponent(Base):
             name="ck_component_owner",
         ),
     )
-    id: Mapped[str] = mapped_column(String, primary_key=True)
+    id: Mapped[str] = mapped_column(String)
     tenant_id: Mapped[str] = mapped_column(ForeignKey("tenant.id"), index=True)
     document_id: Mapped[str | None] = mapped_column(String)
     document_line_id: Mapped[str | None] = mapped_column(String)
@@ -57,6 +59,7 @@ class FinancialComponent(Base):
 class ComponentAssignment(Base):
     __tablename__ = "component_assignment_revision"
     __table_args__ = (
+        PrimaryKeyConstraint("tenant_id", "id"),
         UniqueConstraint("tenant_id", "id", name="uq_component_assignment_tenant"),
         UniqueConstraint(
             "tenant_id",
@@ -101,7 +104,7 @@ class ComponentAssignment(Base):
             name="ck_assignment_basis_revision",
         ),
     )
-    id: Mapped[str] = mapped_column(String, primary_key=True)
+    id: Mapped[str] = mapped_column(String)
     tenant_id: Mapped[str] = mapped_column(ForeignKey("tenant.id"), index=True)
     component_id: Mapped[str] = mapped_column(String, index=True)
     revision: Mapped[int]
@@ -120,6 +123,7 @@ class ComponentAssignment(Base):
 class ComponentAssignmentPart(Base):
     __tablename__ = "component_assignment_part"
     __table_args__ = (
+        PrimaryKeyConstraint("tenant_id", "id"),
         UniqueConstraint(
             "tenant_id",
             "assignment_revision_id",
@@ -148,7 +152,7 @@ class ComponentAssignmentPart(Base):
             name="ck_assignment_part_amount_kind",
         ),
     )
-    id: Mapped[str] = mapped_column(String, primary_key=True)
+    id: Mapped[str] = mapped_column(String)
     tenant_id: Mapped[str] = mapped_column(ForeignKey("tenant.id"), index=True)
     assignment_revision_id: Mapped[str] = mapped_column(String, index=True)
     cost_center_reference_id: Mapped[str] = mapped_column(String)

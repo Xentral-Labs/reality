@@ -1,6 +1,7 @@
 import json
 
 import pytest
+from conftest import record_by_id
 from sqlalchemy import func, select
 
 from reality.db.core import (
@@ -158,8 +159,8 @@ def test_party_and_location_defaults_and_optional_source_are_preserved(
         {"proposal_id": party_proposal["proposal_id"], "approved": True},
         allowed_access=("confirm",),
     )
-    party = session.get(Party, party_result["output"]["records"][0]["id"])
-    source = session.get(SourceRecord, party.source_record_id)
+    party = record_by_id(session, Party, party_result["output"]["records"][0]["id"])
+    source = record_by_id(session, SourceRecord, party.source_record_id)
     assert json.loads(source.payload)["unknown"] == {"kept": True}
     assert (
         session.scalar(select(PartyRole.role).where(PartyRole.party_id == party.id))
@@ -180,7 +181,9 @@ def test_party_and_location_defaults_and_optional_source_are_preserved(
         {"proposal_id": location_proposal["proposal_id"], "approved": True},
         allowed_access=("confirm",),
     )
-    location = session.get(Location, location_result["output"]["records"][0]["id"])
+    location = record_by_id(
+        session, Location, location_result["output"]["records"][0]["id"]
+    )
     assert location.type == "warehouse"
     assert location.source_record_id is None
 
@@ -270,12 +273,10 @@ def test_location_batch_resolves_local_parent_references(session, business):
         allowed_access=("confirm",),
     )
 
-    warehouse_id, zone_id, shelf_id = [
-        row["id"] for row in result["output"]["records"]
-    ]
-    assert session.get(Location, warehouse_id).parent_location_id is None
-    assert session.get(Location, zone_id).parent_location_id == warehouse_id
-    assert session.get(Location, shelf_id).parent_location_id == zone_id
+    warehouse_id, zone_id, shelf_id = [row["id"] for row in result["output"]["records"]]
+    assert record_by_id(session, Location, warehouse_id).parent_location_id is None
+    assert record_by_id(session, Location, zone_id).parent_location_id == warehouse_id
+    assert record_by_id(session, Location, shelf_id).parent_location_id == zone_id
 
 
 @pytest.mark.parametrize(

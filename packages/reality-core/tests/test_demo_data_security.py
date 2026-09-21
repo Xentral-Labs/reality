@@ -1,4 +1,5 @@
 import pytest
+from conftest import record_by_id
 
 from reality.services import company_setup
 from reality.services.core import InvalidOperation
@@ -37,7 +38,7 @@ def test_profile_scope_refuses_cross_tenant_and_commit(
     result = company_setup.create_company(
         session, scheduled_owner.id, "scope", "Demo", "sandbox", "empty", confirmed=True
     )
-    run = session.get(PlaygroundRun, result["run_id"])
+    run = record_by_id(session, PlaygroundRun, result["run_id"])
     from reality.demo.international import PROFILE_VERSION
 
     run.preset_key, run.preset_version, run.status = (
@@ -124,7 +125,7 @@ def test_demo_rechecks_current_owner_and_profile(
         "empty",
         confirmed=True,
     )
-    run = session.get(PlaygroundRun, result["run_id"])
+    run = record_by_id(session, PlaygroundRun, result["run_id"])
     if restriction == "archived":
         from reality.db.core import now
 
@@ -249,7 +250,7 @@ def test_settlement_job_authorization_is_bound_to_its_schedule(
     started = demo_data.control(
         session, tenant, actor, "start", connected["revision"], "s", confirmed=True
     )
-    settlement = session.get(ScheduledJob, started["settlement_schedule_id"])
+    settlement = record_by_id(session, ScheduledJob, started["settlement_schedule_id"])
     config = SettleConfig(**settlement.configuration["arguments"])
 
     def context(run_id):
@@ -272,7 +273,7 @@ def test_settlement_job_authorization_is_bound_to_its_schedule(
 
     from reality.services import scheduled_jobs
 
-    order_schedule = session.get(ScheduledJob, started["schedule_id"])
+    order_schedule = record_by_id(session, ScheduledJob, started["schedule_id"])
     for schedule in (order_schedule, settlement):
         schedule.next_run_at = now() - timedelta(seconds=1)
     session.flush()

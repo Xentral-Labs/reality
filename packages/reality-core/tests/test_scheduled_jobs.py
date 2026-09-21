@@ -206,7 +206,9 @@ def test_all_operator_boundaries_reject_foreign_scope(
         lambda: jobs.create_manual_run(
             session, "foreign", actor, "invitations.cleanup", {}, request_id="x"
         ),
-        lambda: jobs.cancel_queued_run(session, "foreign", actor, row.id, 1, "foreign-cancel"),
+        lambda: jobs.cancel_queued_run(
+            session, "foreign", actor, row.id, 1, "foreign-cancel"
+        ),
         lambda: jobs.get_run(session, "foreign", actor, "run_unknown"),
         lambda: jobs.list_runs(session, "foreign", actor),
         lambda: jobs.list_schedules(session, "foreign", actor),

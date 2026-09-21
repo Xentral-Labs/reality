@@ -41,9 +41,7 @@ def arguments(session, business, owner):
     }, data
 
 
-def test_commercial_match_confirm_replay_and_revision(
-    session, business, cost_owner
-):
+def test_commercial_match_confirm_replay_and_revision(session, business, cost_owner):
     args, _data = arguments(session, business, cost_owner)
     preview = preview_cost_change(
         session, business.tenant.id, args, principal=Principal(cost_owner.id)
@@ -60,7 +58,10 @@ def test_commercial_match_confirm_replay_and_revision(
         confirmed=True,
     )
     assert json.loads(replay.output) == first
-    assert session.scalar(select(func.count()).select_from(CostCommercialMatchRevision)) == 1
+    assert (
+        session.scalar(select(func.count()).select_from(CostCommercialMatchRevision))
+        == 1
+    )
 
     updated = args | {
         "expected_event_sequence": first["event_sequence"],
@@ -99,8 +100,7 @@ def test_commercial_inventory_match_uses_exact_frozen_portions(
     member = session.scalar(
         select(CostInventoryMember).where(
             CostInventoryMember.tenant_id == business.tenant.id,
-            CostInventoryMember.review_id
-            == candidate["trace"]["inventory_review_id"],
+            CostInventoryMember.review_id == candidate["trace"]["inventory_review_id"],
             CostInventoryMember.movement_basis_id == movement_basis.id,
         )
     )
@@ -136,9 +136,7 @@ def test_commercial_inventory_match_uses_exact_frozen_portions(
         inventory_args,
         principal=Principal(cost_owner.id),
     )
-    _action, result = stock.commit_review(
-        session, business, cost_owner, inventory_args
-    )
+    _action, result = stock.commit_review(session, business, cost_owner, inventory_args)
     assert len(result["inventory_part_ids"]) == len(parts)
     observed = commercial_match(session, business.tenant.id, data[0].id)
     assert observed["goods_cost"] == "630.0000"
@@ -246,9 +244,7 @@ def test_commercial_direct_match_observes_retained_attribution(
             }
         ],
     }
-    _action, result = stock.commit_review(
-        session, business, cost_owner, direct_args
-    )
+    _action, result = stock.commit_review(session, business, cost_owner, direct_args)
     observed = commercial_match(
         session,
         business.tenant.id,
@@ -330,9 +326,7 @@ def test_commercial_credit_uses_exact_original_return_portion(
         "124.95",
     )
     line = lines[0]
-    line.payload = json.dumps(
-        {"reality_finance_v1": {"net": "-105", "tax": "-19.95"}}
-    )
+    line.payload = json.dumps({"reality_finance_v1": {"net": "-105", "tax": "-19.95"}})
     session.flush()
     received = components._received(session, business.tenant.id, credit, line)
     return_basis = session.scalar(
@@ -452,9 +446,7 @@ def test_commercial_split_lines_share_capacity_without_overlap(
         "1428",
     )
     for line in lines:
-        line.payload = json.dumps(
-            {"reality_finance_v1": {"net": "600", "tax": "114"}}
-        )
+        line.payload = json.dumps({"reality_finance_v1": {"net": "600", "tax": "114"}})
     session.flush()
 
     def request(line, quantity):
@@ -510,9 +502,7 @@ def test_commercial_split_lines_share_capacity_without_overlap(
         "11.90",
     )
     excess = excess_lines[0]
-    excess.payload = json.dumps(
-        {"reality_finance_v1": {"net": "10", "tax": "1.90"}}
-    )
+    excess.payload = json.dumps({"reality_finance_v1": {"net": "10", "tax": "1.90"}})
     session.flush()
     excess_received = components._received(
         session, business.tenant.id, excess_invoice, excess
@@ -541,9 +531,7 @@ def test_commercial_split_lines_share_capacity_without_overlap(
         session, business, cost_owner, released
     )
     assert released_result["supersedes_id"] == results[0]["match_revision_id"]
-    excess_request["expected_event_sequence"] = _sequence(
-        session, business.tenant.id
-    )
+    excess_request["expected_event_sequence"] = _sequence(session, business.tenant.id)
     _excess_action, excess_result = stock.commit_review(
         session, business, cost_owner, excess_request
     )
@@ -555,15 +543,14 @@ def test_commercial_split_lines_share_capacity_without_overlap(
         match_revision_id=results[0]["match_revision_id"],
     )
     assert historical["db1"] == "285.0000"
-    assert commercial_match(session, business.tenant.id, lines[0].id)[
-        "review_state"
-    ] == "incomplete"
+    assert (
+        commercial_match(session, business.tenant.id, lines[0].id)["review_state"]
+        == "incomplete"
+    )
     assert len(results) == 2
 
 
-def test_free_goods_keep_inventory_cost_and_zero_revenue(
-    session, business, cost_owner
-):
+def test_free_goods_keep_inventory_cost_and_zero_revenue(session, business, cost_owner):
     _args, data = arguments(session, business, cost_owner)
     inventory = data[5]
     issue_basis = session.scalar(
@@ -678,12 +665,8 @@ def test_shipping_kit_production_direct_cost_and_unresolved_wip_are_explicit(
         ],
         "357",
     )
-    lines[0].payload = json.dumps(
-        {"reality_finance_v1": {"net": "100", "tax": "19"}}
-    )
-    lines[1].payload = json.dumps(
-        {"reality_finance_v1": {"net": "200", "tax": "38"}}
-    )
+    lines[0].payload = json.dumps({"reality_finance_v1": {"net": "100", "tax": "19"}})
+    lines[1].payload = json.dumps({"reality_finance_v1": {"net": "200", "tax": "38"}})
     session.flush()
     shipping_evidence = components._received(
         session, business.tenant.id, sales_document, lines[0]
@@ -730,9 +713,7 @@ def test_shipping_kit_production_direct_cost_and_unresolved_wip_are_explicit(
         "goods_cost_disposition": "unresolved",
         "reason": "Unsupported WIP remains visible instead of receiving inferred cost",
     }
-    _wip_action, wip = stock.commit_review(
-        session, business, cost_owner, wip_request
-    )
+    _wip_action, wip = stock.commit_review(session, business, cost_owner, wip_request)
     observed_wip = commercial_match(
         session,
         business.tenant.id,

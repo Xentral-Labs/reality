@@ -4,6 +4,7 @@ import json
 from decimal import Decimal
 
 import pytest
+from conftest import record_by_id
 from sqlalchemy import select
 
 from reality.db.core import BusinessEvent, ChangeProposal, Movement, Reservation, uid
@@ -25,7 +26,9 @@ def opening_arguments(engine, run_id):
     from reality.db.core import PlaygroundRun
 
     with Session(engine) as session:
-        references = session.get(PlaygroundRun, run_id).initialization_progress
+        references = record_by_id(
+            session, PlaygroundRun, run_id
+        ).initialization_progress
         return {
             "movement_type": "opening_stock",
             "item_id": references["items"]["BIKE-LIGHT"],
@@ -47,7 +50,7 @@ def test_purchase_partial_receipts_continue_in_same_sandbox(
 
     engine, owner, run_id = durable_playground
     with Session(engine) as session:
-        run = session.get(PlaygroundRun, run_id)
+        run = record_by_id(session, PlaygroundRun, run_id)
         tenant_id, refs = run.tenant_id, run.initialization_progress
 
     def execute(key, tool, args):
@@ -324,7 +327,7 @@ def test_invoice_and_payment_learning_steps(durable_playground):
 
     execute("stock", "movement_create", opening_arguments(engine, run_id))
     with Session(engine) as session:
-        run = session.get(PlaygroundRun, run_id)
+        run = record_by_id(session, PlaygroundRun, run_id)
         tenant_id, refs = run.tenant_id, run.initialization_progress
     order, _ = execute(
         "order",
@@ -370,7 +373,7 @@ def test_invoice_and_payment_learning_steps(durable_playground):
     )
     with Session(engine) as session:
         assert open_invoice_amount(session, tenant_id, invoice_id) == 300
-        assert session.get(Document, invoice_id).gross_amount == 300
+        assert record_by_id(session, Document, invoice_id).gross_amount == 300
     replay = confirm_step(
         engine,
         owner,
@@ -458,7 +461,7 @@ def test_invoice_and_payment_learning_steps(durable_playground):
         from reality.services.core import stock_at
         from reality.services.playground import read_run
 
-        assert session.get(PlaygroundRun, run_id).tenant_id == tenant_id
+        assert record_by_id(session, PlaygroundRun, run_id).tenant_id == tenant_id
         assert open_invoice_amount(session, tenant_id, invoice_id) == 175
         assert open_invoice_amount(session, tenant_id, second_invoice_id) == 0
         assert (
@@ -648,7 +651,7 @@ def test_confirm_opening_records_once_with_observation(durable_playground):
             confirmed=True,
         )
     with Session(engine) as session:
-        tenant_id = session.get(PlaygroundRun, run_id).tenant_id
+        tenant_id = record_by_id(session, PlaygroundRun, run_id).tenant_id
         movements = list(
             session.scalars(select(Movement).where(Movement.tenant_id == tenant_id))
         )
@@ -658,7 +661,9 @@ def test_confirm_opening_records_once_with_observation(durable_playground):
             == result["receipt"]
         )
         assert (
-            session.get(ChangeProposal, proposal["proposal_id"]).decided_by_user_id
+            record_by_id(
+                session, ChangeProposal, proposal["proposal_id"]
+            ).decided_by_user_id
             == owner_id
         )
     assert (
@@ -686,7 +691,7 @@ def test_confirm_opening_requires_current_review(durable_playground, change):
     revision = proposal["preview"]["revision"]
     if change == "reference":
         with Session(engine) as session:
-            session.get(Item, args["item_id"]).name = "Changed article"
+            record_by_id(session, Item, args["item_id"]).name = "Changed article"
             session.commit()
     error = PlaygroundOperationDenied if change == "confirmation" else Conflict
     with pytest.raises(error):
@@ -734,7 +739,9 @@ def test_reject_opening_uses_existing_lifecycle(durable_playground):
         )
     with Session(engine) as session:
         assert (
-            session.get(ChangeProposal, proposal["proposal_id"]).decided_by_user_id
+            record_by_id(
+                session, ChangeProposal, proposal["proposal_id"]
+            ).decided_by_user_id
             == owner_id
         )
         assert session.scalar(select(Movement.id)) is None
@@ -1031,7 +1038,7 @@ def test_opening_observation_remains_historical(durable_playground):
     assert Decimal(result["receipt"]["before"]["physical"]) == 20
     assert Decimal(result["receipt"]["after"]["physical"]) == 25
     with Session(engine) as session:
-        run = session.get(PlaygroundRun, run_id)
+        run = record_by_id(session, PlaygroundRun, run_id)
         run.status, run.archived_at = "archived", now()
         session.commit()
         assert (
@@ -1053,9 +1060,9 @@ def test_opening_execution_rechecks_applied_capacity(durable_playground, monkeyp
     engine, owner_id, run_id = durable_playground
     args = opening_arguments(engine, run_id)
     with Session(engine) as session:
-        another_item = session.get(PlaygroundRun, run_id).initialization_progress[
-            "items"
-        ]["HELMET"]
+        another_item = record_by_id(
+            session, PlaygroundRun, run_id
+        ).initialization_progress["items"]["HELMET"]
     first = prepare_step(engine, owner_id, run_id, "first", "movement_create", args)
     second = prepare_step(
         engine,
@@ -1108,7 +1115,7 @@ def test_opening_verification_requires_correlated_evidence(durable_playground):
         confirmed=True,
     )
     with Session(engine) as session:
-        event = session.get(BusinessEvent, result["receipt"]["event_ids"][0])
+        event = record_by_id(session, BusinessEvent, result["receipt"]["event_ids"][0])
         event.action_id = (
             None  # Simulate missing attribution, not a supported domain correction.
         )
@@ -1149,7 +1156,7 @@ def test_prepare_opening_is_atomic_idempotent_and_not_execution(durable_playgrou
     assert result["preview"]["requires_human_confirmation"] is True
     assert result["preview"]["defaults"] == ["occurred_at"]
     with Session(engine) as session:
-        tenant_id = session.get(PlaygroundRun, run_id).tenant_id
+        tenant_id = record_by_id(session, PlaygroundRun, run_id).tenant_id
         for model, count in [
             (PlaygroundStep, 1),
             (ChangeProposal, 1),
@@ -1169,7 +1176,7 @@ def test_prepare_opening_is_atomic_idempotent_and_not_execution(durable_playgrou
                 )
                 == count
             )
-        step = session.get(PlaygroundStep, result["step_id"])
+        step = record_by_id(session, PlaygroundStep, result["step_id"])
         assert step.before_observation is None and step.receipt_observation is None
         assert step.proposal_id == result["proposal_id"]
         with pytest.raises(PlaygroundOperationDenied):
@@ -1264,7 +1271,7 @@ def test_prepare_opening_state_guards(durable_playground, monkeypatch, state):
     engine, owner_id, run_id = durable_playground
     args = opening_arguments(engine, run_id)
     with Session(engine) as setup:
-        tenant_id = setup.get(PlaygroundRun, run_id).tenant_id
+        tenant_id = record_by_id(setup, PlaygroundRun, run_id).tenant_id
         if state in {"executing", "quota"}:
             setup.add(
                 ChangeProposal(
@@ -1276,7 +1283,7 @@ def test_prepare_opening_state_guards(durable_playground, monkeypatch, state):
             )
             monkeypatch.setenv("REALITY_PLAYGROUND_STEP_LIMIT", "1")
         elif state == "inactive":
-            setup.get(Item, args["item_id"]).is_active = False
+            record_by_id(setup, Item, args["item_id"]).is_active = False
         elif state == "foreign":
             production = create_tenant(setup, "Production fixture")
             args["item_id"] = create_item(
@@ -1332,7 +1339,7 @@ def test_proposal_scope_is_exact_and_never_execution(durable_playground, attempt
     engine, owner_id, run_id = durable_playground
     args = opening_arguments(engine, run_id)
     with Session(engine) as session, Session(engine) as other:
-        tenant_id = session.get(PlaygroundRun, run_id).tenant_id
+        tenant_id = record_by_id(session, PlaygroundRun, run_id).tenant_id
         production_id = create_tenant(session, "Production fixture").id
         with _proposal_creation_scope(
             session, run_id, owner_id, "movement_create", args
@@ -1364,7 +1371,7 @@ def test_proposal_scope_is_exact_and_never_execution(durable_playground, attempt
         with pytest.raises(PlaygroundOperationDenied):
             create_change_proposal(
                 session,
-                session.get(PlaygroundRun, run_id).tenant_id,
+                record_by_id(session, PlaygroundRun, run_id).tenant_id,
                 "movement_create",
                 args,
             )
@@ -1479,7 +1486,7 @@ def test_run_lock_checks_current_admission(
 
     engine, owner_id, run_id = durable_playground
     with Session(engine) as session:
-        run = session.get(PlaygroundRun, run_id)
+        run = record_by_id(session, PlaygroundRun, run_id)
         if unavailable == "owner":
             owner_id = "another-owner"
         elif unavailable == "account":
@@ -1601,7 +1608,10 @@ def test_run_lock_rolls_back_uncommitted_metadata(durable_playground):
         run.initialization_error_code = "not_committed"
         session.flush()
     with Session(engine) as reader:
-        assert reader.get(PlaygroundRun, run_id).initialization_error_code is None
+        assert (
+            record_by_id(reader, PlaygroundRun, run_id).initialization_error_code
+            is None
+        )
 
 
 def test_run_lock_is_scoped_to_one_run(durable_playground):
@@ -1762,7 +1772,7 @@ def test_automatic_events_rollback_with_movement(session, business, monkeypatch)
         )
     session.rollback()
     assert stock_at(session, tenant_id, business.item.id) == 1
-    assert session.get(Reservation, original_id).status == "active"
+    assert record_by_id(session, Reservation, original_id).status == "active"
     assert commitment.status == "open"
     assert not session.scalar(
         select(Movement.id).where(
@@ -1782,7 +1792,13 @@ def test_automatic_events_rollback_with_movement(session, business, monkeypatch)
 def execute(session, tenant_id, tool, arguments):
     proposal = propose_tool(session, tenant_id, tool, arguments)
     review = json.loads(proposal.input).get("_delivery_review", {})
-    return confirm_tool(session, tenant_id, proposal.id, review_token=review.get("token"), confirmed=True)
+    return confirm_tool(
+        session,
+        tenant_id,
+        proposal.id,
+        review_token=review.get("token"),
+        confirmed=True,
+    )
 
 
 def events_for(session, tenant_id, proposal_id):

@@ -9,6 +9,7 @@ from types import SimpleNamespace
 
 import pytest
 import test_contribution_batch_review as fixtures
+from conftest import record_by_id
 from sqlalchemy import delete, event, func, select
 
 from reality.db.contribution import CostContributionReview, CostRevenueMatchBasis
@@ -137,7 +138,7 @@ def test_foreign_action_membership_and_corrupt_cache_refuse(
     session.flush()
     with pytest.raises(core.InvalidOperation, match="integrity"):
         costing.contribution_snapshot(session, tenant, action)
-    parent = session.get(ChangeProposal, action)
+    parent = record_by_id(session, ChangeProposal, action)
     payload = json.loads(parent.output)
     payload["reviews"].pop()
     parent.output = json.dumps(payload)
@@ -421,7 +422,9 @@ def test_cached_fixture_a_preserves_direct_and_allocated_selling(
         },
     ]
     fixtures.stock.commit_review(session, business, cost_owner, assignment)
-    inventory_args = json.loads(session.get(ChangeProposal, inventory_action).input)
+    inventory_args = json.loads(
+        record_by_id(session, ChangeProposal, inventory_action).input
+    )
     cutoff = core.now().isoformat()
     for scope in inventory_args["scopes"]:
         scope["effective_at"] = cutoff

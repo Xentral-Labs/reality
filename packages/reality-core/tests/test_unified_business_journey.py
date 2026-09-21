@@ -4,6 +4,7 @@ import json
 from decimal import Decimal
 
 import pytest
+from conftest import record_by_id
 from sqlalchemy import func, select
 
 from reality.db.core import (
@@ -167,7 +168,7 @@ def test_linked_partial_delivery_invoice_credit_refund_and_reversal(
     assert core.open_invoice_amount(session, tenant, credit_id) == Decimal(
         200
     ) - Decimal(refund_amount)
-    entry = session.get(LedgerEntry, record_id(refund, "ledger_entry"))
+    entry = record_by_id(session, LedgerEntry, record_id(refund, "ledger_entry"))
     execute(
         session,
         tenant,
@@ -187,15 +188,18 @@ def test_linked_partial_delivery_invoice_credit_refund_and_reversal(
         delivery_case(session, tenant, cid)["inventory"]["physical"]
         == case["inventory"]["physical"]
     )
-    assert session.get(DocumentLine, invoice_line).billed_document_line_id == order_line
     assert (
-        session.get(
-            DocumentLine, record_id(credit, "document_line")
+        record_by_id(session, DocumentLine, invoice_line).billed_document_line_id
+        == order_line
+    )
+    assert (
+        record_by_id(
+            session, DocumentLine, record_id(credit, "document_line")
         ).billed_document_line_id
         == invoice_line
     )
     assert core._order_line_billing(session, tenant, order_line)["remaining"] == 6
     for result, expected in [(invoice, "400"), (credit, "200")]:
-        document = session.get(Document, record_id(result, "document"))
-        source = session.get(SourceRecord, document.source_record_id)
+        document = record_by_id(session, Document, record_id(result, "document"))
+        source = record_by_id(session, SourceRecord, document.source_record_id)
         assert Decimal(json.loads(source.payload)["gross_amount"]) == Decimal(expected)

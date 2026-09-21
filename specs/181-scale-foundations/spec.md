@@ -460,6 +460,25 @@ builder and class measurements at checkpoints, and compare two commits on the sa
   would not be tokens. The work is seventy keys and nine decisions, and the measurement
   names every constraint rather than leaving the next reader to find them.
 
+  **The first clause is done (2026-09-21).** Every company-scoped table is keyed by
+  `(tenant_id, id)` — 134 of them, in migration `0088_tenant_scoped_keys` — so PostgreSQL
+  would now allow each to be partitioned by company. Nothing is partitioned yet; what was
+  removed is the thing that made it impossible.
+
+  Half of that work was the keys and the other half was worth more. A foreign key binds to
+  an index rather than to columns, so 106 references that named `id` alone had to be made
+  again over `(tenant_id, parent_id)` — and **a row can no longer name a parent belonging
+  to another company, because the database refuses it.** Eight tests existed only to prove
+  that readers caught such rows; their own words say so (*"Exercise a legacy single-column
+  FK; search must not trust its company scope"*). None of those rows can be written now.
+
+  `security_audit_event` is excluded on purpose: a signup, an admission and a failed login
+  happen before there is a company, so its company column is nullable and cannot be part of
+  a key. It is the one company-bearing table that stays unpartitionable, which is right,
+  because it is not a company's table. The nine tables whose uniqueness genuinely cannot
+  name a company — an invitation token and an MCP access token must be unique across all of
+  them — keep those constraints and are unaffected.
+
   **The second clause is not where the bytes are.** The premise was that lossless source
   payloads sit in the hot tables and should move to a tiered store. They do sit there, but
   they are small: a payload averages **691 bytes**, so PostgreSQL never moves one out of

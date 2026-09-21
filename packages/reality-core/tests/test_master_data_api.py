@@ -2,6 +2,7 @@ from datetime import UTC, date, datetime, timedelta
 from decimal import Decimal
 
 import pytest
+from conftest import record_by_id
 from fastapi.testclient import TestClient
 from sqlalchemy import select
 from sqlalchemy.orm import sessionmaker
@@ -236,7 +237,7 @@ def test_copilot_removal_permanently_deletes_only_empty_tenant_session(session):
         )
 
         assert removed.status_code == 204
-        assert session.get(ChatSession, session_id) is None
+        assert record_by_id(session, ChatSession, session_id) is None
         assert (
             client.delete(
                 f"/api/tenants/{tenant.id}/copilot/sessions/{session_id}"

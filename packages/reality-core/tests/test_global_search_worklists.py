@@ -34,7 +34,11 @@ def test_overdue_worklist_uses_aging_and_retains_unknown_due_exclusion(
         business.customer.id,
         100,
     )
-    for document, day in [(old, date(2026, 9, 1)), (today, date(2026, 9, 8)), (unknown, None)]:
+    for document, day in [
+        (old, date(2026, 9, 1)),
+        (today, date(2026, 9, 8)),
+        (unknown, None),
+    ]:
         document.document_date = day
         document.payment_term_id = term.id
         session.flush()

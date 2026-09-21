@@ -100,7 +100,10 @@ def aliases_for(session, tenant_id):
         (Party, lambda row: f"party:{row.type}:{row.name}"),
         (Item, lambda row: f"item:{row.sku}"),
         (Location, lambda row: f"location:{row.name}"),
-        (SourceRecord, lambda row: f"source:{row.source_system}:{row.external_id}:v{row.version}"),
+        (
+            SourceRecord,
+            lambda row: f"source:{row.source_system}:{row.external_id}:v{row.version}",
+        ),
         (SourceStream, lambda row: f"stream:{row.source_system}:{row.external_id}"),
         (Document, lambda row: f"document:{row.type}:{row.number}"),
         (DocumentLine, lambda row: f"line:{row.source_line_id or row.sku}"),
@@ -111,7 +114,14 @@ def aliases_for(session, tenant_id):
     for model, label in rules:
         for row in rows(session, model, tenant_id):
             aliases[row.id] = label(row)
-    for model, prefix in ((ImportJob, "import_job"), (Reservation, "reservation"), (Fact, "fact"), (BusinessEvent, "event"), (ChatMessage, "message"), (LedgerEntry, "ledger")):
+    for model, prefix in (
+        (ImportJob, "import_job"),
+        (Reservation, "reservation"),
+        (Fact, "fact"),
+        (BusinessEvent, "event"),
+        (ChatMessage, "message"),
+        (LedgerEntry, "ledger"),
+    ):
         ordered = sorted(rows(session, model, tenant_id), key=lambda row: row.id)
         for index, row in enumerate(ordered, 1):
             aliases[row.id] = f"{prefix}:{index}"
@@ -131,7 +141,10 @@ def canonical_value(value, aliases, today):
     if isinstance(value, list):
         return [canonical_value(item, aliases, today) for item in value]
     if isinstance(value, dict):
-        return {key: canonical_value(item, aliases, today) for key, item in sorted(value.items())}
+        return {
+            key: canonical_value(item, aliases, today)
+            for key, item in sorted(value.items())
+        }
     if isinstance(value, str):
         if value in aliases:
             return aliases[value]
@@ -174,7 +187,9 @@ def demo_manifest(session, tenant_id):
         "source": {
             "records": canonical_rows(session, SourceRecord, tenant_id, aliases, today),
             "streams": canonical_rows(session, SourceStream, tenant_id, aliases, today),
-            "import_jobs": canonical_rows(session, ImportJob, tenant_id, aliases, today),
+            "import_jobs": canonical_rows(
+                session, ImportJob, tenant_id, aliases, today
+            ),
         },
         "evidence": {
             "documents": canonical_rows(session, Document, tenant_id, aliases, today),
@@ -182,8 +197,12 @@ def demo_manifest(session, tenant_id):
             "facts": canonical_rows(session, Fact, tenant_id, aliases, today),
         },
         "reality": {
-            "commitments": canonical_rows(session, Commitment, tenant_id, aliases, today),
-            "reservations": canonical_rows(session, Reservation, tenant_id, aliases, today),
+            "commitments": canonical_rows(
+                session, Commitment, tenant_id, aliases, today
+            ),
+            "reservations": canonical_rows(
+                session, Reservation, tenant_id, aliases, today
+            ),
             "movements": canonical_rows(session, Movement, tenant_id, aliases, today),
             "events": canonical_rows(session, BusinessEvent, tenant_id, aliases, today),
         },
@@ -223,7 +242,9 @@ def demo_manifest(session, tenant_id):
 def test_guided_demo_inventory_covers_every_produced_business_family(session):
     tenant = create_tenant(session, "Inventory Demo")
     ensure_demo(session, tenant)
-    counts = {model.__tablename__: len(rows(session, model, tenant.id)) for model in MODELS}
+    counts = {
+        model.__tablename__: len(rows(session, model, tenant.id)) for model in MODELS
+    }
     assert counts == {
         "party": 3,
         "item": 1,
@@ -309,7 +330,9 @@ def test_manifest_drift_is_reported_by_section(session):
     item.name = "Drifted Item"
     session.commit()
     actual = demo_manifest(session, tenant.id)
-    mismatches = [section for section in SECTIONS if expected[section] != actual[section]]
+    mismatches = [
+        section for section in SECTIONS if expected[section] != actual[section]
+    ]
     assert mismatches == ["reference_data"]
 
 

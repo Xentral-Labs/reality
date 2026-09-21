@@ -19,9 +19,7 @@ from reality.services.core import (
 
 
 def test_document_and_commitment_operational_fields(session, business):
-    term = create_payment_term(
-        session, business.tenant.id, "NET_30", "Net 30 days", 30
-    )
+    term = create_payment_term(session, business.tenant.id, "NET_30", "Net 30 days", 30)
     document = create_document(
         session,
         business.tenant.id,
@@ -75,9 +73,7 @@ def test_document_line_correction_adds_no_operational_or_revision_state():
 
 
 def test_master_data_fields_roles_and_constraints(session, business):
-    term = create_payment_term(
-        session, business.tenant.id, "NET_30", "Net 30 days", 30
-    )
+    term = create_payment_term(session, business.tenant.id, "NET_30", "Net 30 days", 30)
     party = create_party(
         session,
         business.tenant.id,

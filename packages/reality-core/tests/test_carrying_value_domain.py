@@ -63,7 +63,9 @@ def test_recovery_requires_exact_predecessor_scope_and_respects_cost_ceiling():
     assert result.carrying_value == D("190.0000")
     assert result.adjustment == D("-20.0000")
 
-    with pytest.raises(CarryingValueRefusal, match="recovery_above_acquisition_ceiling"):
+    with pytest.raises(
+        CarryingValueRefusal, match="recovery_above_acquisition_ceiling"
+    ):
         reconcile_assessment(
             "recovery",
             [part("member-a", "20", "210", "211")],
@@ -106,7 +108,9 @@ def test_recovery_requires_exact_predecessor_scope_and_respects_cost_ceiling():
         ),
     ],
 )
-def test_invalid_assessment_directions_and_overlap_refuse(kind, parts, previous, reason):
+def test_invalid_assessment_directions_and_overlap_refuse(
+    kind, parts, previous, reason
+):
     with pytest.raises(CarryingValueRefusal, match=reason):
         reconcile_assessment(kind, parts, previous=previous)
 

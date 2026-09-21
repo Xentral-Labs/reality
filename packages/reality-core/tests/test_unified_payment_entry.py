@@ -5,6 +5,7 @@ from decimal import Decimal
 from types import SimpleNamespace
 
 import pytest
+from conftest import record_by_id
 from sqlalchemy import func, select
 
 from reality.db.core import (
@@ -96,7 +97,10 @@ def test_partial_payment_preview_exact_receipt_recovery_and_remainder(
     assert detail["verification"] == "verified"
     assert len(detail["receipt"]["records"]) == 2
     assert Decimal(detail["observation"]["open"]) == 175
-    entries = [session.get(LedgerEntry, r["id"]) for r in detail["receipt"]["records"]]
+    entries = [
+        record_by_id(session, LedgerEntry, r["id"])
+        for r in detail["receipt"]["records"]
+    ]
     assert {(e.account, e.debit_credit, e.amount, e.currency) for e in entries} == {
         (
             "cash" if direction == "customer" else "accounts_payable",
@@ -197,7 +201,7 @@ def test_stale_allocation_and_historical_reversal(session, business):
         confirm(session, business, stale)
     assert stale.status == "proposed"
     receipt = json.loads(first.output)
-    entry = session.get(LedgerEntry, receipt["records"][0]["id"])
+    entry = record_by_id(session, LedgerEntry, receipt["records"][0]["id"])
     reverse_ledger_posting_group(
         session, business.tenant.id, entry.posting_group_id, reason="Incorrect payment"
     )
@@ -296,9 +300,12 @@ def test_original_payment_source_is_preserved(session, business):
     detail = delivery_proposal_detail(session, business.tenant.id, proposal.id)
     assert detail["verification"] == "verified"
     assert {"kind": "source_record", "id": source.id} in detail["links"]
-    assert json.loads(session.get(SourceRecord, source.id).payload) == payload
+    assert json.loads(record_by_id(session, SourceRecord, source.id).payload) == payload
     for record in detail["receipt"]["records"]:
-        assert session.get(LedgerEntry, record["id"]).source_record_id == source.id
+        assert (
+            record_by_id(session, LedgerEntry, record["id"]).source_record_id
+            == source.id
+        )
 
 
 def test_reversed_invoice_rejects_stale_and_new_payment(session, business):
@@ -401,5 +408,7 @@ def test_supported_payment_precision_is_preserved(session, business, amount):
     detail = delivery_proposal_detail(session, business.tenant.id, proposal.id)
     assert detail["verification"] == "verified"
     for record in detail["receipt"]["records"]:
-        assert session.get(LedgerEntry, record["id"]).amount == Decimal(amount)
+        assert record_by_id(session, LedgerEntry, record["id"]).amount == Decimal(
+            amount
+        )
     assert Decimal(detail["observation"]["open"]) == Decimal(300) - Decimal(amount)

@@ -2,7 +2,7 @@
 
 import pytest
 from sqlalchemy import text
-from sqlalchemy.exc import DBAPIError
+from sqlalchemy.exc import DBAPIError, IntegrityError
 from test_cost_census import read_session, seed
 
 from reality.services import core, costing
@@ -557,29 +557,36 @@ def test_sql_cannot_add_members_after_sealing(scheduled_database):
         )
 
 
-def test_capture_refuses_unavailable_header_instead_of_dropping_line(
+def test_a_line_cannot_name_another_company_s_header_at_all(
     scheduled_database,
 ):
+    """The capture used to have to notice this; now it cannot happen.
+
+    A document line pointing at another company's document was writable, and the
+    capture had to refuse the whole census rather than quietly drop the line.
+    Since spec 181 FR-005 a reference between two company-scoped tables carries
+    the company, so the malformed link is refused where it is written. The
+    service's own guard remains for any other way a header goes missing; this is
+    simply no longer one of them.
+    """
     data = seed(scheduled_database)
-    factory, tenant, cutoff, _, _, _, _, _, line, *_ = data
+    factory, tenant, _cutoff, _, _, _, _, _, line, *_ = data
     with factory() as session:
         other = core.create_tenant(session, "Other").id
         party = core.create_party(session, other, "Other customer", "customer")
         document = core.create_document(
             session, other, "sales_invoice", "PRIVATE", party.id, "0"
         )
-        # Legacy schema permits this malformed cross-tenant link; services must not omit it.
-        session.execute(
-            text(
-                "UPDATE document_line SET document_id=:parent WHERE tenant_id=:tenant AND id=:line"
-            ),
-            {"parent": document.id, "tenant": tenant, "line": line},
-        )
+        # The schema used to permit this malformed cross-tenant link, and the
+        # service had to be careful not to omit the line. Since spec 181 FR-005
+        # it cannot be written at all, which is where such a rule belongs.
+        with pytest.raises(IntegrityError), session.begin_nested():
+            session.execute(
+                text(
+                    "UPDATE document_line SET document_id=:parent "
+                    "WHERE tenant_id=:tenant AND id=:line"
+                ),
+                {"parent": document.id, "tenant": tenant, "line": line},
+            )
+            session.flush()
         session.commit()
-    with (
-        read_session(factory) as session,
-        pytest.raises(core.InvalidOperation, match="unavailable header"),
-    ):
-        costing.retain_company_cost_census(
-            session, tenant, cutoff, request_id="broken-parent"
-        )

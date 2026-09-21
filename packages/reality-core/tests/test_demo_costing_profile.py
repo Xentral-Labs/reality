@@ -3,7 +3,7 @@
 from decimal import Decimal
 
 import pytest
-from conftest import seed_company
+from conftest import record_by_id, seed_company
 from sqlalchemy import func, select
 
 from reality.db.contribution import (
@@ -95,7 +95,7 @@ def _seed(session, owner, key: str = "costing-demo") -> PlaygroundRun:
         confirmed=True,
     )
     assert seed_company(session, result["tenant_id"]) == "succeeded"
-    run = session.get(PlaygroundRun, result["run_id"])
+    run = record_by_id(session, PlaygroundRun, result["run_id"])
     assert run.status == "active", (
         run.initialization_error_code,
         run.initialization_progress,

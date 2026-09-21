@@ -2,6 +2,7 @@ from concurrent.futures import ThreadPoolExecutor
 from datetime import timedelta
 from threading import Barrier
 
+from conftest import record_by_id
 from sqlalchemy import func, select
 from test_scheduled_invitation_cleanup import invitation
 
@@ -38,7 +39,7 @@ def test_separate_scheduler_worker_and_real_child(scheduled_database):
     scheduler = ProcessLoop("scheduler", tenant_id=tenant)
     assert scheduler.sweep(engine, max_runs=100, max_seconds=25)["materialized"] == 1
     with factory() as s:
-        assert s.get(CompanyInvitation, target_id) is not None
+        assert record_by_id(s, CompanyInvitation, target_id) is not None
         assert (
             s.scalar(
                 select(ScheduledJobRun.status).where(
@@ -49,7 +50,7 @@ def test_separate_scheduler_worker_and_real_child(scheduled_database):
         )
     assert worker.sweep(engine, max_runs=10, max_seconds=25)["succeeded"] == 1
     with factory() as s:
-        assert s.get(CompanyInvitation, target_id) is None
+        assert record_by_id(s, CompanyInvitation, target_id) is None
         assert (
             s.scalar(
                 select(ScheduledJobRun.status).where(
@@ -188,7 +189,7 @@ def test_killed_child_recovers_without_effect(scheduled_database, monkeypatch):
     assert monotonic() - started < 6
     assert children[0].poll() is not None
     with factory() as s:
-        run = s.get(ScheduledJobRun, run_id)
+        run = record_by_id(s, ScheduledJobRun, run_id)
         assert run.last_error_code == "handler_timeout"
         assert run.attempt_count == 1 and run.claim_token is None
 

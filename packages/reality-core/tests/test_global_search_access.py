@@ -1,6 +1,7 @@
 """Search authorization applies to aliases, retained versions and owned definitions."""
 
 import pytest
+from sqlalchemy.exc import IntegrityError
 
 from reality.db.analytics import AnalyticsReport
 from reality.db.core import AppUser, PartyRole, SourceRecord, TenantMembership, now
@@ -23,8 +24,16 @@ def test_joined_aliases_are_tenant_scoped_and_dual_roles_do_not_duplicate(
         business.customer.id,
         10,
     )
-    # Exercise a legacy single-column FK; search must not trust its company scope.
-    document.party_id = secret.id
+    # This used to point the document at another company's party — a legacy
+    # single-column foreign key — so that search could be shown not to trust it.
+    # Since spec 181 FR-005 there is no such key left: a reference between two
+    # company-scoped tables carries the company, and the database refuses the
+    # write rather than leaving search to catch it. Search is still asked below
+    # for what remains its own job.
+    with pytest.raises(IntegrityError), session.begin_nested():
+        document.party_id = secret.id
+        session.flush()
+    session.refresh(document)
     session.add(
         PartyRole(
             id="dual_search_role",
@@ -46,7 +55,9 @@ def test_joined_aliases_are_tenant_scoped_and_dual_roles_do_not_duplicate(
         None,
         SearchRequest(provider="orders", query="LOCAL-ONLY"),
     ).items[0]
-    assert hit.secondary == ""
+    # Its own company's partner, and never the foreign one the document can no
+    # longer name.
+    assert hit.secondary == business.customer.name
     partner = search_company(
         session,
         business.tenant.id,

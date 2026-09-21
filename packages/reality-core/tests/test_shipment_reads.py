@@ -30,20 +30,28 @@ def test_notice_is_searchable_without_creating_physical_contents(session, busine
     assert result["items"][0]["packages"][0]["id"] == package.id
     assert result["items"][0]["movements"] == []
     assert result["items"][0]["observations"]["received"] is False
-    assert shipment_explain(session, business.tenant.id, package.id)["id"] == shipment.id
-    assert shipments_list(
-        session,
-        business.tenant.id,
-        tracking="ack-12",
-        created_from=shipment.created_at - timedelta(seconds=1),
-        created_to=shipment.created_at + timedelta(seconds=1),
-        observation="announced",
-    )["page"]["total"] == 1
-    assert shipments_list(
-        session,
-        business.tenant.id,
-        created_from=shipment.created_at + timedelta(seconds=1),
-    )["page"]["total"] == 0
+    assert (
+        shipment_explain(session, business.tenant.id, package.id)["id"] == shipment.id
+    )
+    assert (
+        shipments_list(
+            session,
+            business.tenant.id,
+            tracking="ack-12",
+            created_from=shipment.created_at - timedelta(seconds=1),
+            created_to=shipment.created_at + timedelta(seconds=1),
+            observation="announced",
+        )["page"]["total"]
+        == 1
+    )
+    assert (
+        shipments_list(
+            session,
+            business.tenant.id,
+            created_from=shipment.created_at + timedelta(seconds=1),
+        )["page"]["total"]
+        == 0
+    )
     with pytest.raises(InvalidOperation, match="observation"):
         shipments_list(session, business.tenant.id, observation="invented")
 
@@ -71,9 +79,12 @@ def test_superseded_delivery_event_does_not_claim_current_delivery(session, busi
     assert rendered["event_type"] == "delivered"
     assert rendered["reporter_type"] == "carrier"
     assert rendered["location_text"] == "Bologna hub"
-    assert shipments_list(
-        session, business.tenant.id, observation="externally_delivered"
-    )["page"]["total"] == 1
+    assert (
+        shipments_list(session, business.tenant.id, observation="externally_delivered")[
+            "page"
+        ]["total"]
+        == 1
+    )
 
     supersession = supersede_shipment_event(
         session, business.tenant.id, delivered.id, reason="Carrier correction"
@@ -86,9 +97,12 @@ def test_superseded_delivery_event_does_not_claim_current_delivery(session, busi
     assert historical["superseded"] is True
     assert historical["supersession_id"] == supersession.id
     assert historical["supersession_reason"] == "Carrier correction"
-    assert shipments_list(
-        session, business.tenant.id, observation="externally_delivered"
-    )["page"]["total"] == 0
+    assert (
+        shipments_list(session, business.tenant.id, observation="externally_delivered")[
+            "page"
+        ]["total"]
+        == 0
+    )
 
 
 def test_foreign_shipment_is_not_found(session, business):

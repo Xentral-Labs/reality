@@ -99,7 +99,12 @@ def test_write_down_preview_confirmation_replay_and_atomic_audit(
         "quantity": "40.0000",
     }
     assert preview["review"]["inventory_review_id"] == inventory["review_id"]
-    assert session.scalar(select(func.count()).select_from(CostValuationAssessmentRevision)) == 0
+    assert (
+        session.scalar(
+            select(func.count()).select_from(CostValuationAssessmentRevision)
+        )
+        == 0
+    )
 
     with caller(Principal(cost_owner.id)):
         proposal = create_change_proposal(
@@ -116,8 +121,16 @@ def test_write_down_preview_confirmation_replay_and_atomic_audit(
     assert result["assessment_revision_id"]
     assert result["revision"] == 1
     assert result["assessment"] == preview["review"]["assessment"]
-    assert session.scalar(select(func.count()).select_from(CostValuationAssessmentRevision)) == 1
-    assert session.scalar(select(func.count()).select_from(CostValuationAssessmentPart)) == 1
+    assert (
+        session.scalar(
+            select(func.count()).select_from(CostValuationAssessmentRevision)
+        )
+        == 1
+    )
+    assert (
+        session.scalar(select(func.count()).select_from(CostValuationAssessmentPart))
+        == 1
+    )
     replay = approve_and_execute_proposal(
         session,
         business.tenant.id,
@@ -158,7 +171,12 @@ def test_stale_foreign_member_and_missing_source_refuse_without_partial_rows(
             args,
             principal=Principal(cost_owner.id),
         )
-    assert session.scalar(select(func.count()).select_from(CostValuationAssessmentRevision)) == 0
+    assert (
+        session.scalar(
+            select(func.count()).select_from(CostValuationAssessmentRevision)
+        )
+        == 0
+    )
 
 
 def test_recovery_supersedes_exact_scope_and_member_cannot_approve(
@@ -236,9 +254,10 @@ def test_current_and_historical_inventory_reads_derive_carrying_bridge(
     assert current["carrying_value"] == "300.0000"
     assert current["carrying_adjustment"] == "-120.0000"
     assert current["carrying_value_state"] == "reviewed_assessment"
-    assert current["valuation_assessment"]["assessment_revision_id"] == assessment[
-        "assessment_revision_id"
-    ]
+    assert (
+        current["valuation_assessment"]["assessment_revision_id"]
+        == assessment["assessment_revision_id"]
+    )
 
     historical = inventory_cost(
         session,
@@ -288,7 +307,9 @@ def test_assessment_inspection_and_shared_read_tool_pass_through(
     assert record["member_page"]["total"] == 1
     part_link = record["sections"][2]["rows"][0]["link"]
     assert part_link["kind"] == "cost_valuation_assessment_part"
-    part = cost_record(session, business.tenant.id, kind=part_link["kind"], record_id=part_link["id"])
+    part = cost_record(
+        session, business.tenant.id, kind=part_link["kind"], record_id=part_link["id"]
+    )
     assert part["fields"]["assessed_value"] == "300.0000"
     assert {row["link"]["kind"] for row in part["sections"][1]["rows"]} >= {
         "cost_inventory_member",
@@ -301,9 +322,10 @@ def test_assessment_inspection_and_shared_read_tool_pass_through(
         "assessment_revision_id": revision_id,
     }
     expected = inventory_cost(session, business.tenant.id, **read_args)
-    assert run_read_tool(
-        session, business.tenant.id, "cost.inventory.get", read_args
-    ) == expected
+    assert (
+        run_read_tool(session, business.tenant.id, "cost.inventory.get", read_args)
+        == expected
+    )
     tool = MCP_TOOL_REGISTRY["cost_inventory_get"]
     assert "assessment_revision_id" in tool.input_schema["properties"]
     assert tool.handler(session, business.tenant.id, read_args) == expected

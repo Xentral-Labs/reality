@@ -209,6 +209,9 @@ def test_traces_are_not_exported_without_an_explicit_opt_in(monkeypatch):
     from opentelemetry import trace
 
     provider = trace.get_tracer_provider()
-    assert not isinstance(provider, __import__(
-        "opentelemetry.sdk.trace", fromlist=["TracerProvider"]
-    ).TracerProvider), "a real TracerProvider was installed with no backend to send to"
+    assert not isinstance(
+        provider,
+        __import__(
+            "opentelemetry.sdk.trace", fromlist=["TracerProvider"]
+        ).TracerProvider,
+    ), "a real TracerProvider was installed with no backend to send to"

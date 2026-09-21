@@ -3,6 +3,7 @@ from datetime import timedelta
 from decimal import Decimal
 
 import pytest
+from conftest import record_by_id
 
 from reality.db.core import (
     AppUser,
@@ -61,6 +62,7 @@ def test_read_tool_executes_without_proposal(session, business):
     commitment_with_stock(session, business)
 
     from reality.services.projections import rebuild_projections
+
     rebuild_projections(session, business.tenant.id, ["inventory"])
     result = run_read_tool(session, business.tenant.id, "inventory")
 
@@ -116,7 +118,7 @@ def test_mutation_changes_reality_only_after_confirmation(session, business):
     assert receipt["commitment_id"] == commitment.id
     assert receipt["reservation_id"]
     assert receipt["event_id"]
-    event = session.get(BusinessEvent, receipt["event_id"])
+    event = record_by_id(session, BusinessEvent, receipt["event_id"])
     assert event.action_id == proposal.id
     assert event.subject_id == receipt["reservation_id"]
 
@@ -306,6 +308,7 @@ def test_read_tool_excludes_populated_foreign_tenant(session, business):
     )
 
     from reality.services.projections import rebuild_projections
+
     rebuild_projections(session, business.tenant.id, ["inventory"])
     result = run_read_tool(session, business.tenant.id, "inventory")
 
@@ -466,7 +469,7 @@ def test_membership_proposals_cover_reject_replay_resend_revoke_and_remove(sessi
         {"invitation_id": invitation_id},
     )
     confirm_tool(session, tenant.id, revoked.id, confirming_principal=principal)
-    invitation = session.get(CompanyInvitation, invitation_id)
+    invitation = record_by_id(session, CompanyInvitation, invitation_id)
     assert invitation is not None and invitation.status == "revoked"
 
     stale = propose_tool(

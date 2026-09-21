@@ -2,6 +2,7 @@ import inspect
 import json
 
 import pytest
+from conftest import record_by_id
 from fastapi.testclient import TestClient
 from mcp.server.auth.middleware.auth_context import auth_context_var
 from mcp.server.auth.middleware.bearer_auth import AuthenticatedUser
@@ -200,7 +201,7 @@ def test_ai_key_is_encrypted_and_tenant_scoped(
 
     assert settings.encrypted_api_key == ""
     assert settings.api_key_secret_id
-    stored = session.get(Secret, settings.api_key_secret_id)
+    stored = record_by_id(session, Secret, settings.api_key_secret_id)
     assert stored is not None
     assert "secret-value" not in stored.ciphertext
     assert stored.fingerprint.endswith("alue")
@@ -237,7 +238,7 @@ def test_replacing_and_clearing_ai_key_revokes_old_secrets(
         base_url="https://api.openai.com/v1",
         api_key="second-secret",
     )
-    assert session.get(Secret, first_id).status == "revoked"
+    assert record_by_id(session, Secret, first_id).status == "revoked"
     second_id = settings.api_key_secret_id
     assert second_id != first_id
     assert configured_api_key(settings) == "second-secret"
@@ -251,7 +252,7 @@ def test_replacing_and_clearing_ai_key_revokes_old_secrets(
         clear_api_key=True,
     )
     assert settings.api_key_secret_id is None
-    assert session.get(Secret, second_id).status == "revoked"
+    assert record_by_id(session, Secret, second_id).status == "revoked"
 
 
 def test_company_anthropic_key_overrides_managed_key(
@@ -357,7 +358,11 @@ async def test_mcp_tools_read_and_only_propose_mutations(
         assert proposal.id in str(pending)
         confirmed = await server.call_tool(
             "proposal_approve_and_execute",
-            {"proposal_id": proposal.id, "approved": True, "review_token": json.loads(proposal.input)["_delivery_review"]["token"]},
+            {
+                "proposal_id": proposal.id,
+                "approved": True,
+                "review_token": json.loads(proposal.input)["_delivery_review"]["token"],
+            },
         )
     finally:
         auth_context_var.reset(context)

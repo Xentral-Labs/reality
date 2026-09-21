@@ -7,6 +7,7 @@ from sqlalchemy import (
     ForeignKey,
     ForeignKeyConstraint,
     Integer,
+    PrimaryKeyConstraint,
     String,
 )
 from sqlalchemy.orm import Mapped, mapped_column
@@ -17,6 +18,7 @@ from reality.db.core import Base, UTCDateTime, now
 class DemoDataConnection(Base):
     __tablename__ = "demo_data_connection"
     __table_args__ = (
+        PrimaryKeyConstraint("tenant_id", "id"),
         ForeignKeyConstraint(
             ["tenant_id", "source_system_id"],
             ["source_system.tenant_id", "source_system.id"],
@@ -46,7 +48,7 @@ class DemoDataConnection(Base):
             name="ck_demo_connection_request_pair",
         ),
     )
-    id: Mapped[str] = mapped_column(String, primary_key=True)
+    id: Mapped[str] = mapped_column(String)
     tenant_id: Mapped[str] = mapped_column(ForeignKey("tenant.id"), unique=True)
     source_system_id: Mapped[str] = mapped_column(String)
     current_schedule_id: Mapped[str | None] = mapped_column(String, default=None)

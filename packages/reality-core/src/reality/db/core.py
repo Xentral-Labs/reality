@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import hashlib
 import os
 import uuid
 from collections.abc import Mapping
@@ -165,6 +166,7 @@ class PlaygroundRun(Base):
 
     __tablename__ = "playground_run"
     __table_args__ = (
+        PrimaryKeyConstraint("tenant_id", "id"),
         UniqueConstraint("tenant_id", name="uq_playground_run_tenant"),
         CheckConstraint(
             "sandbox_kind IN ('temporary', 'practice')", name="ck_playground_run_kind"
@@ -217,7 +219,7 @@ class PlaygroundRun(Base):
             postgresql_where=text("status = 'active' AND storyline_key IS NOT NULL"),
         ),
     )
-    id: Mapped[str] = mapped_column(String, primary_key=True)
+    id: Mapped[str] = mapped_column(String)
     tenant_id: Mapped[str] = mapped_column(ForeignKey("tenant.id"), index=True)
     owner_user_id: Mapped[str] = mapped_column(ForeignKey("app_user.id"), index=True)
     preset_key: Mapped[str] = mapped_column(String(80))
@@ -254,6 +256,7 @@ class PlaygroundStep(Base):
 
     __tablename__ = "playground_step"
     __table_args__ = (
+        PrimaryKeyConstraint("tenant_id", "id"),
         ForeignKeyConstraint(
             ["tenant_id", "run_id"],
             ["playground_run.tenant_id", "playground_run.id"],
@@ -284,7 +287,7 @@ class PlaygroundStep(Base):
             name="ck_playground_step_owner",
         ),
     )
-    id: Mapped[str] = mapped_column(String, primary_key=True)
+    id: Mapped[str] = mapped_column(String)
     tenant_id: Mapped[str] = mapped_column(ForeignKey("tenant.id"), index=True)
     run_id: Mapped[str] = mapped_column(String)
     sequence: Mapped[int] = mapped_column(Integer)
@@ -314,6 +317,7 @@ class StorylineTraceEntry(Base):
 
     __tablename__ = "storyline_trace_entry"
     __table_args__ = (
+        PrimaryKeyConstraint("tenant_id", "id"),
         ForeignKeyConstraint(
             ["tenant_id", "run_id"],
             ["playground_run.tenant_id", "playground_run.id"],
@@ -348,7 +352,7 @@ class StorylineTraceEntry(Base):
         Index("ix_storyline_trace_run_ordinal", "tenant_id", "run_id", "ordinal"),
         Index("ix_storyline_trace_step", "tenant_id", "step_id"),
     )
-    id: Mapped[str] = mapped_column(String, primary_key=True)
+    id: Mapped[str] = mapped_column(String)
     tenant_id: Mapped[str] = mapped_column(ForeignKey("tenant.id"), index=True)
     run_id: Mapped[str] = mapped_column(String)
     step_id: Mapped[str | None] = mapped_column(String, default=None)
@@ -492,6 +496,7 @@ class AccessAdmissionCounter(Base):
 class TenantMembership(Base):
     __tablename__ = "tenant_membership"
     __table_args__ = (
+        PrimaryKeyConstraint("tenant_id", "id"),
         UniqueConstraint("tenant_id", "user_id"),
         CheckConstraint(
             "role IN ('owner', 'member')", name="ck_tenant_membership_role"
@@ -500,7 +505,7 @@ class TenantMembership(Base):
             "status IN ('active', 'removed')", name="ck_tenant_membership_status"
         ),
     )
-    id: Mapped[str] = mapped_column(String, primary_key=True)
+    id: Mapped[str] = mapped_column(String)
     tenant_id: Mapped[str] = mapped_column(ForeignKey("tenant.id"), index=True)
     user_id: Mapped[str] = mapped_column(ForeignKey("app_user.id"), index=True)
     role: Mapped[str] = mapped_column(String, default="owner")
@@ -510,6 +515,12 @@ class TenantMembership(Base):
 
 class SecurityAuditEvent(Base):
     __tablename__ = "security_audit_event"
+    # Not keyed by company, unlike every other table that carries a `tenant_id`
+    # (spec 181 FR-005). A signup, an admission and a failed login happen before
+    # there is a company, and this is where they are written down, so the column
+    # is nullable and cannot be part of a key. It is therefore the one
+    # company-bearing table that stays unpartitionable by company — which is
+    # right, because it is not a company's table.
     id: Mapped[str] = mapped_column(String, primary_key=True)
     user_id: Mapped[str | None] = mapped_column(ForeignKey("app_user.id"), index=True)
     actor_user_id: Mapped[str | None] = mapped_column(
@@ -529,6 +540,7 @@ class CompanyInvitation(Base):
 
     __tablename__ = "company_invitation"
     __table_args__ = (
+        PrimaryKeyConstraint("tenant_id", "id"),
         CheckConstraint(
             "status IN ('pending', 'accepted', 'revoked', 'expired')",
             name="ck_company_invitation_status",
@@ -545,7 +557,7 @@ class CompanyInvitation(Base):
         ),
         Index("ix_company_invitation_tenant_status", "tenant_id", "status"),
     )
-    id: Mapped[str] = mapped_column(String, primary_key=True)
+    id: Mapped[str] = mapped_column(String)
     tenant_id: Mapped[str] = mapped_column(ForeignKey("tenant.id"), index=True)
     normalized_email: Mapped[str] = mapped_column(String)
     status: Mapped[str] = mapped_column(String, default="pending")
@@ -572,6 +584,11 @@ class InvitationDelivery(Base):
 
     __tablename__ = "invitation_delivery"
     __table_args__ = (
+        PrimaryKeyConstraint("tenant_id", "id"),
+        ForeignKeyConstraint(
+            ["tenant_id", "invitation_id"],
+            ["company_invitation.tenant_id", "company_invitation.id"],
+        ),
         UniqueConstraint("tenant_id", "invitation_id", "generation"),
         CheckConstraint(
             "status IN ('pending', 'processing', 'retry', 'delivered', 'failed')",
@@ -585,11 +602,9 @@ class InvitationDelivery(Base):
             "claimed_at",
         ),
     )
-    id: Mapped[str] = mapped_column(String, primary_key=True)
+    id: Mapped[str] = mapped_column(String)
     tenant_id: Mapped[str] = mapped_column(ForeignKey("tenant.id"), index=True)
-    invitation_id: Mapped[str] = mapped_column(
-        ForeignKey("company_invitation.id"), index=True
-    )
+    invitation_id: Mapped[str] = mapped_column()
     generation: Mapped[int] = mapped_column(Integer)
     template_key: Mapped[str] = mapped_column(String, default="company_invitation")
     locale: Mapped[str] = mapped_column(String, default="en")
@@ -606,20 +621,27 @@ class InvitationDelivery(Base):
 
 class Party(Base):
     __tablename__ = "party"
-    __table_args__ = (UniqueConstraint("tenant_id", "id", name="uq_party_tenant_id"),)
-    id: Mapped[str] = mapped_column(String, primary_key=True)
+    __table_args__ = (
+        PrimaryKeyConstraint("tenant_id", "id"),
+        ForeignKeyConstraint(
+            ["tenant_id", "source_record_id"],
+            ["source_record.tenant_id", "source_record.id"],
+        ),
+        ForeignKeyConstraint(
+            ["tenant_id", "payment_term_id"],
+            ["payment_term.tenant_id", "payment_term.id"],
+        ),
+        UniqueConstraint("tenant_id", "id", name="uq_party_tenant_id"),
+    )
+    id: Mapped[str] = mapped_column(String)
     tenant_id: Mapped[str] = mapped_column(ForeignKey("tenant.id"), index=True)
     type: Mapped[str] = mapped_column(String)
     name: Mapped[str] = mapped_column(String)
     payload: Mapped[str] = mapped_column(Text, default="{}")
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
-    source_record_id: Mapped[str | None] = mapped_column(
-        ForeignKey("source_record.id"), default=None
-    )
+    source_record_id: Mapped[str | None] = mapped_column(default=None)
     accounting_code: Mapped[str] = mapped_column(String, default="")
-    payment_term_id: Mapped[str | None] = mapped_column(
-        ForeignKey("payment_term.id"), default=None
-    )
+    payment_term_id: Mapped[str | None] = mapped_column(default=None)
     default_currency: Mapped[str] = mapped_column(String, default="EUR")
     credit_limit: Mapped[Decimal] = mapped_column(Numeric(18, 4), default=0)
     tax_identifier: Mapped[str] = mapped_column(String, default="")
@@ -627,21 +649,37 @@ class Party(Base):
 
 class PartyRole(Base):
     __tablename__ = "party_role"
-    __table_args__ = (UniqueConstraint("tenant_id", "party_id", "role"),)
-    id: Mapped[str] = mapped_column(String, primary_key=True)
-    tenant_id: Mapped[str] = mapped_column(ForeignKey("tenant.id"), index=True)
-    party_id: Mapped[str] = mapped_column(ForeignKey("party.id"), index=True)
-    role: Mapped[str] = mapped_column(String)
-    default_location_id: Mapped[str | None] = mapped_column(
-        ForeignKey("location.id"), default=None
+    __table_args__ = (
+        PrimaryKeyConstraint("tenant_id", "id"),
+        ForeignKeyConstraint(
+            ["tenant_id", "party_id"],
+            ["party.tenant_id", "party.id"],
+        ),
+        ForeignKeyConstraint(
+            ["tenant_id", "default_location_id"],
+            ["location.tenant_id", "location.id"],
+        ),
+        UniqueConstraint("tenant_id", "party_id", "role"),
     )
+    id: Mapped[str] = mapped_column(String)
+    tenant_id: Mapped[str] = mapped_column(ForeignKey("tenant.id"), index=True)
+    party_id: Mapped[str] = mapped_column()
+    role: Mapped[str] = mapped_column(String)
+    default_location_id: Mapped[str | None] = mapped_column(default=None)
 
 
 class PartyHold(Base):
     __tablename__ = "party_hold"
-    id: Mapped[str] = mapped_column(String, primary_key=True)
+    __table_args__ = (
+        PrimaryKeyConstraint("tenant_id", "id"),
+        ForeignKeyConstraint(
+            ["tenant_id", "party_id"],
+            ["party.tenant_id", "party.id"],
+        ),
+    )
+    id: Mapped[str] = mapped_column(String)
     tenant_id: Mapped[str] = mapped_column(ForeignKey("tenant.id"), index=True)
-    party_id: Mapped[str] = mapped_column(ForeignKey("party.id"), index=True)
+    party_id: Mapped[str] = mapped_column()
     hold_type: Mapped[str] = mapped_column(String)
     reason_code: Mapped[str] = mapped_column(String)
     note: Mapped[str] = mapped_column(Text, default="")
@@ -652,20 +690,27 @@ class PartyHold(Base):
 
 class Item(Base):
     __tablename__ = "item"
-    id: Mapped[str] = mapped_column(String, primary_key=True)
+    __table_args__ = (
+        PrimaryKeyConstraint("tenant_id", "id"),
+        ForeignKeyConstraint(
+            ["tenant_id", "default_location_id"],
+            ["location.tenant_id", "location.id"],
+        ),
+        ForeignKeyConstraint(
+            ["tenant_id", "source_record_id"],
+            ["source_record.tenant_id", "source_record.id"],
+        ),
+    )
+    id: Mapped[str] = mapped_column(String)
     tenant_id: Mapped[str] = mapped_column(ForeignKey("tenant.id"), index=True)
     sku: Mapped[str] = mapped_column(String)
     name: Mapped[str] = mapped_column(String)
     unit: Mapped[str] = mapped_column(String, default="pcs")
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
-    source_record_id: Mapped[str | None] = mapped_column(
-        ForeignKey("source_record.id"), default=None
-    )
+    source_record_id: Mapped[str | None] = mapped_column(default=None)
     item_type: Mapped[str] = mapped_column(String, default="stocked")
     tracking_type: Mapped[str] = mapped_column(String, default="none")
-    default_location_id: Mapped[str | None] = mapped_column(
-        ForeignKey("location.id"), default=None
-    )
+    default_location_id: Mapped[str | None] = mapped_column(default=None)
     purchase_unit: Mapped[str] = mapped_column(String, default="pcs")
     conversion_factor: Mapped[Decimal] = mapped_column(Numeric(18, 6), default=1)
     lead_time_days: Mapped[int] = mapped_column(Integer, default=0)
@@ -673,27 +718,35 @@ class Item(Base):
 
 class Location(Base):
     __tablename__ = "location"
-    id: Mapped[str] = mapped_column(String, primary_key=True)
+    __table_args__ = (
+        PrimaryKeyConstraint("tenant_id", "id"),
+        ForeignKeyConstraint(
+            ["tenant_id", "source_record_id"],
+            ["source_record.tenant_id", "source_record.id"],
+        ),
+        ForeignKeyConstraint(
+            ["tenant_id", "parent_location_id"],
+            ["location.tenant_id", "location.id"],
+        ),
+    )
+    id: Mapped[str] = mapped_column(String)
     tenant_id: Mapped[str] = mapped_column(ForeignKey("tenant.id"), index=True)
     name: Mapped[str] = mapped_column(String)
     type: Mapped[str] = mapped_column(String, default="warehouse")
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
-    parent_location_id: Mapped[str | None] = mapped_column(
-        ForeignKey("location.id"), default=None
-    )
-    source_record_id: Mapped[str | None] = mapped_column(
-        ForeignKey("source_record.id"), default=None
-    )
+    parent_location_id: Mapped[str | None] = mapped_column(default=None)
+    source_record_id: Mapped[str | None] = mapped_column(default=None)
     allows_stock: Mapped[bool] = mapped_column(Boolean, default=True)
 
 
 class SourceSystem(Base):
     __tablename__ = "source_system"
     __table_args__ = (
+        PrimaryKeyConstraint("tenant_id", "id"),
         UniqueConstraint("tenant_id", "code"),
         UniqueConstraint("tenant_id", "id", name="uq_source_system_tenant_id"),
     )
-    id: Mapped[str] = mapped_column(String, primary_key=True)
+    id: Mapped[str] = mapped_column(String)
     tenant_id: Mapped[str] = mapped_column(ForeignKey("tenant.id"), index=True)
     code: Mapped[str] = mapped_column(String)
     name: Mapped[str] = mapped_column(String)
@@ -712,12 +765,17 @@ class SourceSystem(Base):
 
 class SourceCapability(Base):
     __tablename__ = "source_capability"
-    __table_args__ = (UniqueConstraint("tenant_id", "source_system_id", "source_type"),)
-    id: Mapped[str] = mapped_column(String, primary_key=True)
-    tenant_id: Mapped[str] = mapped_column(ForeignKey("tenant.id"), index=True)
-    source_system_id: Mapped[str] = mapped_column(
-        ForeignKey("source_system.id"), index=True
+    __table_args__ = (
+        PrimaryKeyConstraint("tenant_id", "id"),
+        ForeignKeyConstraint(
+            ["tenant_id", "source_system_id"],
+            ["source_system.tenant_id", "source_system.id"],
+        ),
+        UniqueConstraint("tenant_id", "source_system_id", "source_type"),
     )
+    id: Mapped[str] = mapped_column(String)
+    tenant_id: Mapped[str] = mapped_column(ForeignKey("tenant.id"), index=True)
+    source_system_id: Mapped[str] = mapped_column()
     source_type: Mapped[str] = mapped_column(String)
     target_type: Mapped[str] = mapped_column(String)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
@@ -728,6 +786,11 @@ class SourceCapability(Base):
 class SourceStream(Base):
     __tablename__ = "source_stream"
     __table_args__ = (
+        PrimaryKeyConstraint("tenant_id", "id"),
+        ForeignKeyConstraint(
+            ["tenant_id", "current_source_record_id"],
+            ["source_record.tenant_id", "source_record.id"],
+        ),
         UniqueConstraint(
             "tenant_id",
             "source_system",
@@ -736,22 +799,21 @@ class SourceStream(Base):
             name="uq_source_stream_identity",
         ),
     )
-    id: Mapped[str] = mapped_column(String, primary_key=True)
+    id: Mapped[str] = mapped_column(String)
     tenant_id: Mapped[str] = mapped_column(ForeignKey("tenant.id"), index=True)
     source_system: Mapped[str] = mapped_column(String)
     source_type: Mapped[str] = mapped_column(String)
     external_id: Mapped[str] = mapped_column(String)
-    current_source_record_id: Mapped[str | None] = mapped_column(
-        ForeignKey("source_record.id"), default=None
-    )
+    current_source_record_id: Mapped[str | None] = mapped_column(default=None)
 
 
 class SourceArtifact(Base):
     __tablename__ = "source_artifact"
     __table_args__ = (
+        PrimaryKeyConstraint("tenant_id", "id"),
         UniqueConstraint("tenant_id", "sha256", name="uq_source_artifact_content"),
     )
-    id: Mapped[str] = mapped_column(String, primary_key=True)
+    id: Mapped[str] = mapped_column(String)
     tenant_id: Mapped[str] = mapped_column(ForeignKey("tenant.id"), index=True)
     filename: Mapped[str] = mapped_column(String)
     content_type: Mapped[str] = mapped_column(
@@ -768,6 +830,15 @@ class SourceArtifact(Base):
 class SourceRecord(Base):
     __tablename__ = "source_record"
     __table_args__ = (
+        PrimaryKeyConstraint("tenant_id", "id"),
+        ForeignKeyConstraint(
+            ["tenant_id", "source_artifact_id"],
+            ["source_artifact.tenant_id", "source_artifact.id"],
+        ),
+        ForeignKeyConstraint(
+            ["tenant_id", "supersedes_source_record_id"],
+            ["source_record.tenant_id", "source_record.id"],
+        ),
         UniqueConstraint(
             "tenant_id",
             "source_system",
@@ -785,38 +856,37 @@ class SourceRecord(Base):
             name="uq_source_record_identity_version",
         ),
     )
-    id: Mapped[str] = mapped_column(String, primary_key=True)
+    id: Mapped[str] = mapped_column(String)
     tenant_id: Mapped[str] = mapped_column(ForeignKey("tenant.id"), index=True)
     source_system: Mapped[str] = mapped_column(String)
     source_type: Mapped[str] = mapped_column(String)
     external_id: Mapped[str] = mapped_column(String)
     payload: Mapped[str] = mapped_column(Text)
     payload_hash: Mapped[str] = mapped_column(String(64))
-    source_artifact_id: Mapped[str | None] = mapped_column(
-        ForeignKey("source_artifact.id"), default=None
-    )
+    source_artifact_id: Mapped[str | None] = mapped_column(default=None)
     version: Mapped[int] = mapped_column(Integer)
     source_version_at: Mapped[datetime | None] = mapped_column(
         UTCDateTime, default=None
     )
-    supersedes_source_record_id: Mapped[str | None] = mapped_column(
-        ForeignKey("source_record.id"), default=None
-    )
+    supersedes_source_record_id: Mapped[str | None] = mapped_column(default=None)
     received_at: Mapped[datetime] = mapped_column(UTCDateTime, default=now)
 
 
 class ImportJob(Base):
     __tablename__ = "import_job"
     __table_args__ = (
+        PrimaryKeyConstraint("tenant_id", "id"),
+        ForeignKeyConstraint(
+            ["tenant_id", "source_record_id"],
+            ["source_record.tenant_id", "source_record.id"],
+        ),
         UniqueConstraint(
             "tenant_id", "source_record_id", name="uq_import_job_source_record"
         ),
     )
-    id: Mapped[str] = mapped_column(String, primary_key=True)
+    id: Mapped[str] = mapped_column(String)
     tenant_id: Mapped[str] = mapped_column(ForeignKey("tenant.id"), index=True)
-    source_record_id: Mapped[str] = mapped_column(
-        ForeignKey("source_record.id"), index=True
-    )
+    source_record_id: Mapped[str] = mapped_column()
     status: Mapped[str] = mapped_column(String, default="pending", index=True)
     attempts: Mapped[int] = mapped_column(Integer, default=0)
     input: Mapped[str] = mapped_column(Text, default="{}")
@@ -831,6 +901,15 @@ class InterpretationOutcome(Base):
 
     __tablename__ = "interpretation_outcome"
     __table_args__ = (
+        PrimaryKeyConstraint("tenant_id", "id"),
+        ForeignKeyConstraint(
+            ["tenant_id", "import_job_id"],
+            ["import_job.tenant_id", "import_job.id"],
+        ),
+        ForeignKeyConstraint(
+            ["tenant_id", "source_record_id"],
+            ["source_record.tenant_id", "source_record.id"],
+        ),
         UniqueConstraint(
             "tenant_id",
             "import_job_id",
@@ -839,12 +918,10 @@ class InterpretationOutcome(Base):
         ),
         CheckConstraint("attempt >= 0", name="ck_interpretation_outcome_attempt"),
     )
-    id: Mapped[str] = mapped_column(String, primary_key=True)
+    id: Mapped[str] = mapped_column(String)
     tenant_id: Mapped[str] = mapped_column(ForeignKey("tenant.id"), index=True)
-    source_record_id: Mapped[str] = mapped_column(
-        ForeignKey("source_record.id"), index=True
-    )
-    import_job_id: Mapped[str] = mapped_column(ForeignKey("import_job.id"), index=True)
+    source_record_id: Mapped[str] = mapped_column()
+    import_job_id: Mapped[str] = mapped_column()
     attempt: Mapped[int] = mapped_column(Integer)
     classification: Mapped[str] = mapped_column(String, index=True)
     interpreter_name: Mapped[str] = mapped_column(String, default="")
@@ -859,6 +936,12 @@ class InterpretationRecordReference(Base):
 
     __tablename__ = "interpretation_record_reference"
     __table_args__ = (
+        PrimaryKeyConstraint("tenant_id", "id"),
+        ForeignKeyConstraint(
+            ["tenant_id", "outcome_id"],
+            ["interpretation_outcome.tenant_id", "interpretation_outcome.id"],
+            ondelete="CASCADE",
+        ),
         UniqueConstraint(
             "tenant_id",
             "outcome_id",
@@ -867,19 +950,24 @@ class InterpretationRecordReference(Base):
             name="uq_interpretation_record_reference",
         ),
     )
-    id: Mapped[str] = mapped_column(String, primary_key=True)
+    id: Mapped[str] = mapped_column(String)
     tenant_id: Mapped[str] = mapped_column(ForeignKey("tenant.id"), index=True)
-    outcome_id: Mapped[str] = mapped_column(
-        ForeignKey("interpretation_outcome.id", ondelete="CASCADE"), index=True
-    )
+    outcome_id: Mapped[str] = mapped_column()
     record_type: Mapped[str] = mapped_column(String)
     record_id: Mapped[str] = mapped_column(String)
 
 
 class PaymentTerm(Base):
     __tablename__ = "payment_term"
-    __table_args__ = (UniqueConstraint("tenant_id", "code"),)
-    id: Mapped[str] = mapped_column(String, primary_key=True)
+    __table_args__ = (
+        PrimaryKeyConstraint("tenant_id", "id"),
+        ForeignKeyConstraint(
+            ["tenant_id", "source_record_id"],
+            ["source_record.tenant_id", "source_record.id"],
+        ),
+        UniqueConstraint("tenant_id", "code"),
+    )
+    id: Mapped[str] = mapped_column(String)
     tenant_id: Mapped[str] = mapped_column(ForeignKey("tenant.id"), index=True)
     code: Mapped[str] = mapped_column(String)
     name: Mapped[str] = mapped_column(String)
@@ -892,15 +980,20 @@ class PaymentTerm(Base):
     )
     discount_days: Mapped[int | None] = mapped_column(Integer, default=None)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
-    source_record_id: Mapped[str | None] = mapped_column(
-        ForeignKey("source_record.id"), default=None
-    )
+    source_record_id: Mapped[str | None] = mapped_column(default=None)
 
 
 class PriceList(Base):
     __tablename__ = "price_list"
-    __table_args__ = (UniqueConstraint("tenant_id", "code"),)
-    id: Mapped[str] = mapped_column(String, primary_key=True)
+    __table_args__ = (
+        PrimaryKeyConstraint("tenant_id", "id"),
+        ForeignKeyConstraint(
+            ["tenant_id", "source_record_id"],
+            ["source_record.tenant_id", "source_record.id"],
+        ),
+        UniqueConstraint("tenant_id", "code"),
+    )
+    id: Mapped[str] = mapped_column(String)
     tenant_id: Mapped[str] = mapped_column(ForeignKey("tenant.id"), index=True)
     code: Mapped[str] = mapped_column(String)
     name: Mapped[str] = mapped_column(String)
@@ -910,37 +1003,57 @@ class PriceList(Base):
     valid_until: Mapped[datetime | None] = mapped_column(UTCDateTime, default=None)
     is_default: Mapped[bool] = mapped_column(Boolean, default=False)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
-    source_record_id: Mapped[str | None] = mapped_column(
-        ForeignKey("source_record.id"), default=None
-    )
+    source_record_id: Mapped[str | None] = mapped_column(default=None)
 
 
 class PriceListEntry(Base):
     __tablename__ = "price_list_entry"
     __table_args__ = (
+        PrimaryKeyConstraint("tenant_id", "id"),
+        ForeignKeyConstraint(
+            ["tenant_id", "source_record_id"],
+            ["source_record.tenant_id", "source_record.id"],
+        ),
+        ForeignKeyConstraint(
+            ["tenant_id", "item_id"],
+            ["item.tenant_id", "item.id"],
+        ),
+        ForeignKeyConstraint(
+            ["tenant_id", "price_list_id"],
+            ["price_list.tenant_id", "price_list.id"],
+        ),
         UniqueConstraint("tenant_id", "price_list_id", "item_id", "min_quantity"),
     )
-    id: Mapped[str] = mapped_column(String, primary_key=True)
+    id: Mapped[str] = mapped_column(String)
     tenant_id: Mapped[str] = mapped_column(ForeignKey("tenant.id"), index=True)
-    price_list_id: Mapped[str] = mapped_column(ForeignKey("price_list.id"), index=True)
-    item_id: Mapped[str] = mapped_column(ForeignKey("item.id"), index=True)
+    price_list_id: Mapped[str] = mapped_column()
+    item_id: Mapped[str] = mapped_column()
     min_quantity: Mapped[Decimal] = mapped_column(Numeric(18, 6), default=1)
     unit_price: Mapped[Decimal] = mapped_column(Numeric(18, 4))
     unit: Mapped[str] = mapped_column(String)
     valid_from: Mapped[datetime | None] = mapped_column(UTCDateTime, default=None)
     valid_until: Mapped[datetime | None] = mapped_column(UTCDateTime, default=None)
-    source_record_id: Mapped[str | None] = mapped_column(
-        ForeignKey("source_record.id"), default=None
-    )
+    source_record_id: Mapped[str | None] = mapped_column(default=None)
 
 
 class PartyPriceList(Base):
     __tablename__ = "party_price_list"
-    __table_args__ = (UniqueConstraint("tenant_id", "party_id", "price_list_id"),)
-    id: Mapped[str] = mapped_column(String, primary_key=True)
+    __table_args__ = (
+        PrimaryKeyConstraint("tenant_id", "id"),
+        ForeignKeyConstraint(
+            ["tenant_id", "price_list_id"],
+            ["price_list.tenant_id", "price_list.id"],
+        ),
+        ForeignKeyConstraint(
+            ["tenant_id", "party_id"],
+            ["party.tenant_id", "party.id"],
+        ),
+        UniqueConstraint("tenant_id", "party_id", "price_list_id"),
+    )
+    id: Mapped[str] = mapped_column(String)
     tenant_id: Mapped[str] = mapped_column(ForeignKey("tenant.id"), index=True)
-    party_id: Mapped[str] = mapped_column(ForeignKey("party.id"), index=True)
-    price_list_id: Mapped[str] = mapped_column(ForeignKey("price_list.id"), index=True)
+    party_id: Mapped[str] = mapped_column()
+    price_list_id: Mapped[str] = mapped_column()
     priority: Mapped[int] = mapped_column(Integer, default=100)
     valid_from: Mapped[datetime | None] = mapped_column(UTCDateTime, default=None)
     valid_until: Mapped[datetime | None] = mapped_column(UTCDateTime, default=None)
@@ -948,40 +1061,63 @@ class PartyPriceList(Base):
 
 class PartyGroup(Base):
     __tablename__ = "party_group"
-    __table_args__ = (UniqueConstraint("tenant_id", "code"),)
-    id: Mapped[str] = mapped_column(String, primary_key=True)
+    __table_args__ = (
+        PrimaryKeyConstraint("tenant_id", "id"),
+        ForeignKeyConstraint(
+            ["tenant_id", "source_record_id"],
+            ["source_record.tenant_id", "source_record.id"],
+        ),
+        UniqueConstraint("tenant_id", "code"),
+    )
+    id: Mapped[str] = mapped_column(String)
     tenant_id: Mapped[str] = mapped_column(ForeignKey("tenant.id"), index=True)
     code: Mapped[str] = mapped_column(String)
     name: Mapped[str] = mapped_column(String)
     group_type: Mapped[str] = mapped_column(String, default="pricing")
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
-    source_record_id: Mapped[str | None] = mapped_column(
-        ForeignKey("source_record.id"), default=None
-    )
+    source_record_id: Mapped[str | None] = mapped_column(default=None)
 
 
 class PartyGroupMember(Base):
     __tablename__ = "party_group_member"
-    __table_args__ = (UniqueConstraint("tenant_id", "party_group_id", "party_id"),)
-    id: Mapped[str] = mapped_column(String, primary_key=True)
-    tenant_id: Mapped[str] = mapped_column(ForeignKey("tenant.id"), index=True)
-    party_group_id: Mapped[str] = mapped_column(
-        ForeignKey("party_group.id"), index=True
+    __table_args__ = (
+        PrimaryKeyConstraint("tenant_id", "id"),
+        ForeignKeyConstraint(
+            ["tenant_id", "party_id"],
+            ["party.tenant_id", "party.id"],
+        ),
+        ForeignKeyConstraint(
+            ["tenant_id", "party_group_id"],
+            ["party_group.tenant_id", "party_group.id"],
+        ),
+        UniqueConstraint("tenant_id", "party_group_id", "party_id"),
     )
-    party_id: Mapped[str] = mapped_column(ForeignKey("party.id"), index=True)
+    id: Mapped[str] = mapped_column(String)
+    tenant_id: Mapped[str] = mapped_column(ForeignKey("tenant.id"), index=True)
+    party_group_id: Mapped[str] = mapped_column()
+    party_id: Mapped[str] = mapped_column()
     valid_from: Mapped[datetime | None] = mapped_column(UTCDateTime, default=None)
     valid_until: Mapped[datetime | None] = mapped_column(UTCDateTime, default=None)
 
 
 class PartyGroupPriceList(Base):
     __tablename__ = "party_group_price_list"
-    __table_args__ = (UniqueConstraint("tenant_id", "party_group_id", "price_list_id"),)
-    id: Mapped[str] = mapped_column(String, primary_key=True)
-    tenant_id: Mapped[str] = mapped_column(ForeignKey("tenant.id"), index=True)
-    party_group_id: Mapped[str] = mapped_column(
-        ForeignKey("party_group.id"), index=True
+    __table_args__ = (
+        PrimaryKeyConstraint("tenant_id", "id"),
+        ForeignKeyConstraint(
+            ["tenant_id", "party_group_id"],
+            ["party_group.tenant_id", "party_group.id"],
+        ),
+        ForeignKeyConstraint(
+            ["tenant_id", "price_list_id"],
+            ["price_list.tenant_id", "price_list.id"],
+        ),
+        UniqueConstraint("tenant_id", "party_group_id", "price_list_id"),
     )
-    price_list_id: Mapped[str] = mapped_column(ForeignKey("price_list.id"), index=True)
+    id: Mapped[str] = mapped_column(String)
+    tenant_id: Mapped[str] = mapped_column(ForeignKey("tenant.id"), index=True)
+    party_group_id: Mapped[str] = mapped_column()
+    price_list_id: Mapped[str] = mapped_column()
     priority: Mapped[int] = mapped_column(Integer, default=100)
     valid_from: Mapped[datetime | None] = mapped_column(UTCDateTime, default=None)
     valid_until: Mapped[datetime | None] = mapped_column(UTCDateTime, default=None)
@@ -990,6 +1126,23 @@ class PartyGroupPriceList(Base):
 class Document(Base):
     __tablename__ = "document"
     __table_args__ = (
+        PrimaryKeyConstraint("tenant_id", "id"),
+        ForeignKeyConstraint(
+            ["tenant_id", "party_id"],
+            ["party.tenant_id", "party.id"],
+        ),
+        ForeignKeyConstraint(
+            ["tenant_id", "source_record_id"],
+            ["source_record.tenant_id", "source_record.id"],
+        ),
+        ForeignKeyConstraint(
+            ["tenant_id", "ship_to_party_id"],
+            ["party.tenant_id", "party.id"],
+        ),
+        ForeignKeyConstraint(
+            ["tenant_id", "payment_term_id"],
+            ["payment_term.tenant_id", "payment_term.id"],
+        ),
         UniqueConstraint("tenant_id", "id", name="uq_document_tenant_id"),
         UniqueConstraint(
             "tenant_id",
@@ -1003,12 +1156,12 @@ class Document(Base):
         # type almost always bound or group by it as well.
         Index("ix_document_tenant_type_date", "tenant_id", "type", "document_date"),
     )
-    id: Mapped[str] = mapped_column(String, primary_key=True)
+    id: Mapped[str] = mapped_column(String)
     tenant_id: Mapped[str] = mapped_column(ForeignKey("tenant.id"), index=True)
-    source_record_id: Mapped[str | None] = mapped_column(ForeignKey("source_record.id"))
+    source_record_id: Mapped[str | None] = mapped_column()
     type: Mapped[str] = mapped_column(String)
     number: Mapped[str] = mapped_column(String)
-    party_id: Mapped[str | None] = mapped_column(ForeignKey("party.id"))
+    party_id: Mapped[str | None] = mapped_column()
     currency: Mapped[str] = mapped_column(String, default="EUR")
     gross_amount: Mapped[Decimal] = mapped_column(Numeric(18, 4), default=0)
     status: Mapped[str] = mapped_column(String, default="open")
@@ -1022,17 +1175,30 @@ class Document(Base):
     )
     customer_reference: Mapped[str] = mapped_column(String, default="")
     sales_channel: Mapped[str] = mapped_column(String, default="")
-    payment_term_id: Mapped[str | None] = mapped_column(
-        ForeignKey("payment_term.id"), default=None
-    )
-    ship_to_party_id: Mapped[str | None] = mapped_column(
-        ForeignKey("party.id"), default=None
-    )
+    payment_term_id: Mapped[str | None] = mapped_column(default=None)
+    ship_to_party_id: Mapped[str | None] = mapped_column(default=None)
 
 
 class DocumentLine(Base):
     __tablename__ = "document_line"
     __table_args__ = (
+        PrimaryKeyConstraint("tenant_id", "id"),
+        ForeignKeyConstraint(
+            ["tenant_id", "document_id"],
+            ["document.tenant_id", "document.id"],
+        ),
+        ForeignKeyConstraint(
+            ["tenant_id", "price_list_entry_id"],
+            ["price_list_entry.tenant_id", "price_list_entry.id"],
+        ),
+        ForeignKeyConstraint(
+            ["tenant_id", "item_id"],
+            ["item.tenant_id", "item.id"],
+        ),
+        ForeignKeyConstraint(
+            ["tenant_id", "billed_document_line_id"],
+            ["document_line.tenant_id", "document_line.id"],
+        ),
         UniqueConstraint("tenant_id", "id", name="uq_document_line_tenant_id"),
         UniqueConstraint(
             "tenant_id",
@@ -1045,11 +1211,11 @@ class DocumentLine(Base):
         # line-of-document join, starts here.
         Index("ix_document_line_tenant_document", "tenant_id", "document_id"),
     )
-    id: Mapped[str] = mapped_column(String, primary_key=True)
+    id: Mapped[str] = mapped_column(String)
     tenant_id: Mapped[str] = mapped_column(ForeignKey("tenant.id"), index=True)
-    document_id: Mapped[str] = mapped_column(ForeignKey("document.id"))
+    document_id: Mapped[str] = mapped_column()
     source_line_id: Mapped[str | None] = mapped_column(String)
-    item_id: Mapped[str | None] = mapped_column(ForeignKey("item.id"))
+    item_id: Mapped[str | None] = mapped_column()
     sku: Mapped[str] = mapped_column(String)
     description: Mapped[str] = mapped_column(String, default="")
     quantity: Mapped[Decimal] = mapped_column(Numeric(18, 4))
@@ -1060,19 +1226,40 @@ class DocumentLine(Base):
     unit: Mapped[str] = mapped_column(String, default="pcs")
     requested_at: Mapped[datetime | None] = mapped_column(UTCDateTime, default=None)
     line_type: Mapped[str] = mapped_column(String, default="item")
-    price_list_entry_id: Mapped[str | None] = mapped_column(
-        ForeignKey("price_list_entry.id"), default=None
-    )
+    price_list_entry_id: Mapped[str | None] = mapped_column(default=None)
     # Which agreed line this billed line settles. Null is a statement: the line
     # bills nothing an order promised, such as freight or a one-off service.
-    billed_document_line_id: Mapped[str | None] = mapped_column(
-        ForeignKey("document_line.id"), default=None
-    )
+    billed_document_line_id: Mapped[str | None] = mapped_column(default=None)
 
 
 class Commitment(Base):
     __tablename__ = "commitment"
     __table_args__ = (
+        PrimaryKeyConstraint("tenant_id", "id"),
+        ForeignKeyConstraint(
+            ["tenant_id", "item_id"],
+            ["item.tenant_id", "item.id"],
+        ),
+        ForeignKeyConstraint(
+            ["tenant_id", "document_id"],
+            ["document.tenant_id", "document.id"],
+        ),
+        ForeignKeyConstraint(
+            ["tenant_id", "from_party_id"],
+            ["party.tenant_id", "party.id"],
+        ),
+        ForeignKeyConstraint(
+            ["tenant_id", "to_party_id"],
+            ["party.tenant_id", "party.id"],
+        ),
+        ForeignKeyConstraint(
+            ["tenant_id", "location_id"],
+            ["location.tenant_id", "location.id"],
+        ),
+        ForeignKeyConstraint(
+            ["tenant_id", "document_line_id"],
+            ["document_line.tenant_id", "document_line.id"],
+        ),
         UniqueConstraint(
             "tenant_id",
             "document_line_id",
@@ -1080,20 +1267,20 @@ class Commitment(Base):
             name="uq_commitment_document_line_type",
         ),
     )
-    id: Mapped[str] = mapped_column(String, primary_key=True)
+    id: Mapped[str] = mapped_column(String)
     tenant_id: Mapped[str] = mapped_column(ForeignKey("tenant.id"), index=True)
     type: Mapped[str] = mapped_column(String)
-    from_party_id: Mapped[str | None] = mapped_column(ForeignKey("party.id"))
-    to_party_id: Mapped[str | None] = mapped_column(ForeignKey("party.id"))
-    item_id: Mapped[str | None] = mapped_column(ForeignKey("item.id"))
-    location_id: Mapped[str | None] = mapped_column(ForeignKey("location.id"))
+    from_party_id: Mapped[str | None] = mapped_column()
+    to_party_id: Mapped[str | None] = mapped_column()
+    item_id: Mapped[str | None] = mapped_column()
+    location_id: Mapped[str | None] = mapped_column()
     quantity: Mapped[Decimal] = mapped_column(Numeric(18, 4), default=0)
     amount: Mapped[Decimal] = mapped_column(Numeric(18, 4), default=0)
     currency: Mapped[str] = mapped_column(String, default="EUR")
     due_at: Mapped[datetime | None] = mapped_column(UTCDateTime, default=None)
     status: Mapped[str] = mapped_column(String, default="open")
-    document_id: Mapped[str | None] = mapped_column(ForeignKey("document.id"))
-    document_line_id: Mapped[str | None] = mapped_column(ForeignKey("document_line.id"))
+    document_id: Mapped[str | None] = mapped_column()
+    document_line_id: Mapped[str | None] = mapped_column()
     created_at: Mapped[datetime] = mapped_column(UTCDateTime, default=now)
     cancelled_at: Mapped[datetime | None] = mapped_column(UTCDateTime, default=None)
     priority: Mapped[str] = mapped_column(String, default="normal")
@@ -1109,9 +1296,20 @@ class CommitmentRevision(Base):
     """
 
     __tablename__ = "commitment_revision"
-    id: Mapped[str] = mapped_column(String, primary_key=True)
+    __table_args__ = (
+        PrimaryKeyConstraint("tenant_id", "id"),
+        ForeignKeyConstraint(
+            ["tenant_id", "commitment_id"],
+            ["commitment.tenant_id", "commitment.id"],
+        ),
+        ForeignKeyConstraint(
+            ["tenant_id", "source_record_id"],
+            ["source_record.tenant_id", "source_record.id"],
+        ),
+    )
+    id: Mapped[str] = mapped_column(String)
     tenant_id: Mapped[str] = mapped_column(ForeignKey("tenant.id"), index=True)
-    commitment_id: Mapped[str] = mapped_column(ForeignKey("commitment.id"), index=True)
+    commitment_id: Mapped[str] = mapped_column()
     # Both nullable and at least one required: a statement restates the date,
     # the quantity, or both. "Eighty pieces, two weeks later" is one sentence
     # and belongs in one record with one `stated_at`.
@@ -1119,17 +1317,22 @@ class CommitmentRevision(Base):
     quantity: Mapped[Decimal | None] = mapped_column(Numeric(18, 4), default=None)
     stated_at: Mapped[datetime] = mapped_column(UTCDateTime, default=now)
     note: Mapped[str] = mapped_column(Text, default="")
-    source_record_id: Mapped[str | None] = mapped_column(
-        ForeignKey("source_record.id"), default=None
-    )
+    source_record_id: Mapped[str | None] = mapped_column(default=None)
     created_at: Mapped[datetime] = mapped_column(UTCDateTime, default=now)
 
 
 class CommitmentHold(Base):
     __tablename__ = "commitment_hold"
-    id: Mapped[str] = mapped_column(String, primary_key=True)
+    __table_args__ = (
+        PrimaryKeyConstraint("tenant_id", "id"),
+        ForeignKeyConstraint(
+            ["tenant_id", "commitment_id"],
+            ["commitment.tenant_id", "commitment.id"],
+        ),
+    )
+    id: Mapped[str] = mapped_column(String)
     tenant_id: Mapped[str] = mapped_column(ForeignKey("tenant.id"), index=True)
-    commitment_id: Mapped[str] = mapped_column(ForeignKey("commitment.id"), index=True)
+    commitment_id: Mapped[str] = mapped_column()
     reason_code: Mapped[str] = mapped_column(String)
     note: Mapped[str] = mapped_column(Text, default="")
     created_by: Mapped[str] = mapped_column(String, default="human")
@@ -1139,41 +1342,80 @@ class CommitmentHold(Base):
 
 class Reservation(Base):
     __tablename__ = "reservation"
-    id: Mapped[str] = mapped_column(String, primary_key=True)
+    __table_args__ = (
+        PrimaryKeyConstraint("tenant_id", "id"),
+        ForeignKeyConstraint(
+            ["tenant_id", "handling_unit_id"],
+            ["handling_unit.tenant_id", "handling_unit.id"],
+        ),
+        ForeignKeyConstraint(
+            ["tenant_id", "item_id"],
+            ["item.tenant_id", "item.id"],
+        ),
+        ForeignKeyConstraint(
+            ["tenant_id", "lot_id"],
+            ["lot.tenant_id", "lot.id"],
+        ),
+        ForeignKeyConstraint(
+            ["tenant_id", "commitment_id"],
+            ["commitment.tenant_id", "commitment.id"],
+        ),
+        ForeignKeyConstraint(
+            ["tenant_id", "location_id"],
+            ["location.tenant_id", "location.id"],
+        ),
+        ForeignKeyConstraint(
+            ["tenant_id", "serial_unit_id"],
+            ["serial_unit.tenant_id", "serial_unit.id"],
+        ),
+    )
+    id: Mapped[str] = mapped_column(String)
     tenant_id: Mapped[str] = mapped_column(ForeignKey("tenant.id"), index=True)
-    commitment_id: Mapped[str] = mapped_column(ForeignKey("commitment.id"))
-    item_id: Mapped[str] = mapped_column(ForeignKey("item.id"))
-    location_id: Mapped[str] = mapped_column(ForeignKey("location.id"))
+    commitment_id: Mapped[str] = mapped_column()
+    item_id: Mapped[str] = mapped_column()
+    location_id: Mapped[str] = mapped_column()
     quantity: Mapped[Decimal] = mapped_column(Numeric(18, 4))
     status: Mapped[str] = mapped_column(String, default="active")
     reserved_at: Mapped[datetime] = mapped_column(UTCDateTime, default=now)
-    handling_unit_id: Mapped[str | None] = mapped_column(
-        ForeignKey("handling_unit.id"), default=None
-    )
-    lot_id: Mapped[str | None] = mapped_column(ForeignKey("lot.id"), default=None)
-    serial_unit_id: Mapped[str | None] = mapped_column(
-        ForeignKey("serial_unit.id"), default=None
-    )
+    handling_unit_id: Mapped[str | None] = mapped_column(default=None)
+    lot_id: Mapped[str | None] = mapped_column(default=None)
+    serial_unit_id: Mapped[str | None] = mapped_column(default=None)
 
 
 class HandlingUnit(Base):
     __tablename__ = "handling_unit"
-    __table_args__ = (UniqueConstraint("tenant_id", "nve"),)
-    id: Mapped[str] = mapped_column(String, primary_key=True)
+    __table_args__ = (
+        PrimaryKeyConstraint("tenant_id", "id"),
+        ForeignKeyConstraint(
+            ["tenant_id", "source_record_id"],
+            ["source_record.tenant_id", "source_record.id"],
+        ),
+        UniqueConstraint("tenant_id", "nve"),
+    )
+    id: Mapped[str] = mapped_column(String)
     tenant_id: Mapped[str] = mapped_column(ForeignKey("tenant.id"), index=True)
     nve: Mapped[str | None] = mapped_column(String, default=None)
-    source_record_id: Mapped[str | None] = mapped_column(
-        ForeignKey("source_record.id"), default=None
-    )
+    source_record_id: Mapped[str | None] = mapped_column(default=None)
     created_at: Mapped[datetime] = mapped_column(UTCDateTime, default=now)
 
 
 class Lot(Base):
     __tablename__ = "lot"
-    __table_args__ = (UniqueConstraint("tenant_id", "item_id", "lot_number"),)
-    id: Mapped[str] = mapped_column(String, primary_key=True)
+    __table_args__ = (
+        PrimaryKeyConstraint("tenant_id", "id"),
+        ForeignKeyConstraint(
+            ["tenant_id", "item_id"],
+            ["item.tenant_id", "item.id"],
+        ),
+        ForeignKeyConstraint(
+            ["tenant_id", "source_record_id"],
+            ["source_record.tenant_id", "source_record.id"],
+        ),
+        UniqueConstraint("tenant_id", "item_id", "lot_number"),
+    )
+    id: Mapped[str] = mapped_column(String)
     tenant_id: Mapped[str] = mapped_column(ForeignKey("tenant.id"), index=True)
-    item_id: Mapped[str] = mapped_column(ForeignKey("item.id"), index=True)
+    item_id: Mapped[str] = mapped_column()
     lot_number: Mapped[str] = mapped_column(String)
     # The best-before date somebody read off the goods, never computed from a
     # shelf life. A calendar day rather than an instant, because a best-before
@@ -1183,29 +1425,49 @@ class Lot(Base):
     # label nobody read are indistinguishable here, and pretending otherwise
     # would be worse than the silence.
     expires_at: Mapped[date | None] = mapped_column(Date, default=None)
-    source_record_id: Mapped[str | None] = mapped_column(
-        ForeignKey("source_record.id"), default=None
-    )
+    source_record_id: Mapped[str | None] = mapped_column(default=None)
     created_at: Mapped[datetime] = mapped_column(UTCDateTime, default=now)
 
 
 class SerialUnit(Base):
     __tablename__ = "serial_unit"
-    __table_args__ = (UniqueConstraint("tenant_id", "item_id", "serial_number"),)
-    id: Mapped[str] = mapped_column(String, primary_key=True)
-    tenant_id: Mapped[str] = mapped_column(ForeignKey("tenant.id"), index=True)
-    item_id: Mapped[str] = mapped_column(ForeignKey("item.id"), index=True)
-    serial_number: Mapped[str] = mapped_column(String)
-    lot_id: Mapped[str | None] = mapped_column(ForeignKey("lot.id"), default=None)
-    source_record_id: Mapped[str | None] = mapped_column(
-        ForeignKey("source_record.id"), default=None
+    __table_args__ = (
+        PrimaryKeyConstraint("tenant_id", "id"),
+        ForeignKeyConstraint(
+            ["tenant_id", "lot_id"],
+            ["lot.tenant_id", "lot.id"],
+        ),
+        ForeignKeyConstraint(
+            ["tenant_id", "source_record_id"],
+            ["source_record.tenant_id", "source_record.id"],
+        ),
+        ForeignKeyConstraint(
+            ["tenant_id", "item_id"],
+            ["item.tenant_id", "item.id"],
+        ),
+        UniqueConstraint("tenant_id", "item_id", "serial_number"),
     )
+    id: Mapped[str] = mapped_column(String)
+    tenant_id: Mapped[str] = mapped_column(ForeignKey("tenant.id"), index=True)
+    item_id: Mapped[str] = mapped_column()
+    serial_number: Mapped[str] = mapped_column(String)
+    lot_id: Mapped[str | None] = mapped_column(default=None)
+    source_record_id: Mapped[str | None] = mapped_column(default=None)
     created_at: Mapped[datetime] = mapped_column(UTCDateTime, default=now)
 
 
 class Shipment(Base):
     __tablename__ = "shipment"
     __table_args__ = (
+        PrimaryKeyConstraint("tenant_id", "id"),
+        ForeignKeyConstraint(
+            ["tenant_id", "counterparty_id"],
+            ["party.tenant_id", "party.id"],
+        ),
+        ForeignKeyConstraint(
+            ["tenant_id", "source_record_id"],
+            ["source_record.tenant_id", "source_record.id"],
+        ),
         CheckConstraint(
             "direction IN ('inbound', 'outbound')", name="ck_shipment_direction"
         ),
@@ -1224,20 +1486,27 @@ class Shipment(Base):
         ),
         Index("ix_shipment_tenant_counterparty", "tenant_id", "counterparty_id"),
     )
-    id: Mapped[str] = mapped_column(String, primary_key=True)
+    id: Mapped[str] = mapped_column(String)
     tenant_id: Mapped[str] = mapped_column(ForeignKey("tenant.id"), index=True)
     direction: Mapped[str] = mapped_column(String)
     purpose: Mapped[str] = mapped_column(String)
-    counterparty_id: Mapped[str] = mapped_column(ForeignKey("party.id"))
-    source_record_id: Mapped[str | None] = mapped_column(
-        ForeignKey("source_record.id"), default=None
-    )
+    counterparty_id: Mapped[str] = mapped_column()
+    source_record_id: Mapped[str | None] = mapped_column(default=None)
     created_at: Mapped[datetime] = mapped_column(UTCDateTime, default=now)
 
 
 class ShipmentPackage(Base):
     __tablename__ = "shipment_package"
     __table_args__ = (
+        PrimaryKeyConstraint("tenant_id", "id"),
+        ForeignKeyConstraint(
+            ["tenant_id", "shipment_id"],
+            ["shipment.tenant_id", "shipment.id"],
+        ),
+        ForeignKeyConstraint(
+            ["tenant_id", "source_record_id"],
+            ["source_record.tenant_id", "source_record.id"],
+        ),
         Index("ix_shipment_package_tenant_shipment", "tenant_id", "shipment_id"),
         Index(
             "ix_shipment_package_tenant_carrier_tracking",
@@ -1246,20 +1515,31 @@ class ShipmentPackage(Base):
             "tracking_number",
         ),
     )
-    id: Mapped[str] = mapped_column(String, primary_key=True)
+    id: Mapped[str] = mapped_column(String)
     tenant_id: Mapped[str] = mapped_column(ForeignKey("tenant.id"), index=True)
-    shipment_id: Mapped[str] = mapped_column(ForeignKey("shipment.id"))
+    shipment_id: Mapped[str] = mapped_column()
     carrier: Mapped[str | None] = mapped_column(String, default=None)
     tracking_number: Mapped[str | None] = mapped_column(String, default=None)
-    source_record_id: Mapped[str | None] = mapped_column(
-        ForeignKey("source_record.id"), default=None
-    )
+    source_record_id: Mapped[str | None] = mapped_column(default=None)
     created_at: Mapped[datetime] = mapped_column(UTCDateTime, default=now)
 
 
 class ShipmentEvent(Base):
     __tablename__ = "shipment_event"
     __table_args__ = (
+        PrimaryKeyConstraint("tenant_id", "id"),
+        ForeignKeyConstraint(
+            ["tenant_id", "source_record_id"],
+            ["source_record.tenant_id", "source_record.id"],
+        ),
+        ForeignKeyConstraint(
+            ["tenant_id", "shipment_package_id"],
+            ["shipment_package.tenant_id", "shipment_package.id"],
+        ),
+        ForeignKeyConstraint(
+            ["tenant_id", "shipment_id"],
+            ["shipment.tenant_id", "shipment.id"],
+        ),
         CheckConstraint(
             "event_type IN ('announced', 'handed_over', 'in_transit', 'delivered', 'delivery_exception', 'received')",
             name="ck_shipment_event_type",
@@ -1282,75 +1562,119 @@ class ShipmentEvent(Base):
         ),
         Index("ix_shipment_event_tenant_external", "tenant_id", "external_event_id"),
     )
-    id: Mapped[str] = mapped_column(String, primary_key=True)
+    id: Mapped[str] = mapped_column(String)
     tenant_id: Mapped[str] = mapped_column(ForeignKey("tenant.id"), index=True)
-    shipment_id: Mapped[str] = mapped_column(ForeignKey("shipment.id"))
-    shipment_package_id: Mapped[str | None] = mapped_column(
-        ForeignKey("shipment_package.id"), default=None
-    )
+    shipment_id: Mapped[str] = mapped_column()
+    shipment_package_id: Mapped[str | None] = mapped_column(default=None)
     event_type: Mapped[str] = mapped_column(String)
     reporter_type: Mapped[str] = mapped_column(String)
     occurred_at: Mapped[datetime | None] = mapped_column(UTCDateTime, default=None)
     recorded_at: Mapped[datetime] = mapped_column(UTCDateTime, default=now)
     location_text: Mapped[str | None] = mapped_column(String, default=None)
-    source_record_id: Mapped[str | None] = mapped_column(
-        ForeignKey("source_record.id"), default=None
-    )
+    source_record_id: Mapped[str | None] = mapped_column(default=None)
     external_event_id: Mapped[str | None] = mapped_column(String, default=None)
 
 
 class ShipmentEventSupersession(Base):
     __tablename__ = "shipment_event_supersession"
-    __table_args__ = (UniqueConstraint("tenant_id", "superseded_event_id"),)
-    id: Mapped[str] = mapped_column(String, primary_key=True)
-    tenant_id: Mapped[str] = mapped_column(ForeignKey("tenant.id"), index=True)
-    superseded_event_id: Mapped[str] = mapped_column(ForeignKey("shipment_event.id"))
-    replacement_event_id: Mapped[str | None] = mapped_column(
-        ForeignKey("shipment_event.id"), default=None
+    __table_args__ = (
+        PrimaryKeyConstraint("tenant_id", "id"),
+        ForeignKeyConstraint(
+            ["tenant_id", "source_record_id"],
+            ["source_record.tenant_id", "source_record.id"],
+        ),
+        ForeignKeyConstraint(
+            ["tenant_id", "superseded_event_id"],
+            ["shipment_event.tenant_id", "shipment_event.id"],
+        ),
+        ForeignKeyConstraint(
+            ["tenant_id", "replacement_event_id"],
+            ["shipment_event.tenant_id", "shipment_event.id"],
+        ),
+        UniqueConstraint("tenant_id", "superseded_event_id"),
     )
+    id: Mapped[str] = mapped_column(String)
+    tenant_id: Mapped[str] = mapped_column(ForeignKey("tenant.id"), index=True)
+    superseded_event_id: Mapped[str] = mapped_column()
+    replacement_event_id: Mapped[str | None] = mapped_column(default=None)
     reason: Mapped[str] = mapped_column(Text)
     actor_context: Mapped[str] = mapped_column(Text, default="{}")
-    source_record_id: Mapped[str | None] = mapped_column(
-        ForeignKey("source_record.id"), default=None
-    )
+    source_record_id: Mapped[str | None] = mapped_column(default=None)
     created_at: Mapped[datetime] = mapped_column(UTCDateTime, default=now)
 
 
 class Movement(Base):
     __tablename__ = "movement"
-    id: Mapped[str] = mapped_column(String, primary_key=True)
+    __table_args__ = (
+        PrimaryKeyConstraint("tenant_id", "id"),
+        ForeignKeyConstraint(
+            ["tenant_id", "to_location_id"],
+            ["location.tenant_id", "location.id"],
+        ),
+        ForeignKeyConstraint(
+            ["tenant_id", "source_record_id"],
+            ["source_record.tenant_id", "source_record.id"],
+        ),
+        ForeignKeyConstraint(
+            ["tenant_id", "item_id"],
+            ["item.tenant_id", "item.id"],
+        ),
+        ForeignKeyConstraint(
+            ["tenant_id", "resolves_movement_id"],
+            ["movement.tenant_id", "movement.id"],
+        ),
+        ForeignKeyConstraint(
+            ["tenant_id", "serial_unit_id"],
+            ["serial_unit.tenant_id", "serial_unit.id"],
+        ),
+        ForeignKeyConstraint(
+            ["tenant_id", "handling_unit_id"],
+            ["handling_unit.tenant_id", "handling_unit.id"],
+        ),
+        ForeignKeyConstraint(
+            ["tenant_id", "commitment_id"],
+            ["commitment.tenant_id", "commitment.id"],
+        ),
+        ForeignKeyConstraint(
+            ["tenant_id", "return_announcement_id"],
+            ["return_announcement.tenant_id", "return_announcement.id"],
+        ),
+        ForeignKeyConstraint(
+            ["tenant_id", "shipment_package_id"],
+            ["shipment_package.tenant_id", "shipment_package.id"],
+        ),
+        ForeignKeyConstraint(
+            ["tenant_id", "lot_id"],
+            ["lot.tenant_id", "lot.id"],
+        ),
+        ForeignKeyConstraint(
+            ["tenant_id", "from_location_id"],
+            ["location.tenant_id", "location.id"],
+        ),
+    )
+    id: Mapped[str] = mapped_column(String)
     tenant_id: Mapped[str] = mapped_column(ForeignKey("tenant.id"), index=True)
     type: Mapped[str] = mapped_column(String)
-    item_id: Mapped[str] = mapped_column(ForeignKey("item.id"))
-    from_location_id: Mapped[str | None] = mapped_column(ForeignKey("location.id"))
-    to_location_id: Mapped[str | None] = mapped_column(ForeignKey("location.id"))
+    item_id: Mapped[str] = mapped_column()
+    from_location_id: Mapped[str | None] = mapped_column()
+    to_location_id: Mapped[str | None] = mapped_column()
     quantity: Mapped[Decimal] = mapped_column(Numeric(18, 4))
     occurred_at: Mapped[datetime] = mapped_column(UTCDateTime, default=now)
-    commitment_id: Mapped[str | None] = mapped_column(ForeignKey("commitment.id"))
-    source_record_id: Mapped[str | None] = mapped_column(ForeignKey("source_record.id"))
-    handling_unit_id: Mapped[str | None] = mapped_column(
-        ForeignKey("handling_unit.id"), default=None
-    )
-    lot_id: Mapped[str | None] = mapped_column(ForeignKey("lot.id"), default=None)
-    serial_unit_id: Mapped[str | None] = mapped_column(
-        ForeignKey("serial_unit.id"), default=None
-    )
-    shipment_package_id: Mapped[str | None] = mapped_column(
-        ForeignKey("shipment_package.id"), default=None, index=True
-    )
+    commitment_id: Mapped[str | None] = mapped_column()
+    source_record_id: Mapped[str | None] = mapped_column()
+    handling_unit_id: Mapped[str | None] = mapped_column(default=None)
+    lot_id: Mapped[str | None] = mapped_column(default=None)
+    serial_unit_id: Mapped[str | None] = mapped_column(default=None)
+    shipment_package_id: Mapped[str | None] = mapped_column(default=None)
     # Which return this movement settles. Null is a statement: almost every
     # movement settles none, and what happened to returned goods is what the
     # settling movement is — a transfer back to stock, a write-off, a shipment
     # to the supplier — never a separate label that could disagree.
-    resolves_movement_id: Mapped[str | None] = mapped_column(
-        ForeignKey("movement.id"), default=None
-    )
+    resolves_movement_id: Mapped[str | None] = mapped_column(default=None)
     # Which announced return these goods fulfil. Null is a statement in the same
     # way: almost every movement fulfils none, and a return that arrives without
     # having been announced is ordinary rather than incomplete.
-    return_announcement_id: Mapped[str | None] = mapped_column(
-        ForeignKey("return_announcement.id"), default=None
-    )
+    return_announcement_id: Mapped[str | None] = mapped_column(default=None)
 
 
 class ReturnAnnouncement(Base):
@@ -1371,11 +1695,22 @@ class ReturnAnnouncement(Base):
     """
 
     __tablename__ = "return_announcement"
-    id: Mapped[str] = mapped_column(String, primary_key=True)
+    __table_args__ = (
+        PrimaryKeyConstraint("tenant_id", "id"),
+        ForeignKeyConstraint(
+            ["tenant_id", "source_record_id"],
+            ["source_record.tenant_id", "source_record.id"],
+        ),
+        ForeignKeyConstraint(
+            ["tenant_id", "commitment_id"],
+            ["commitment.tenant_id", "commitment.id"],
+        ),
+    )
+    id: Mapped[str] = mapped_column(String)
     tenant_id: Mapped[str] = mapped_column(ForeignKey("tenant.id"), index=True)
     # The customer delivery the goods went out on. It gives the item, the party
     # and the order line for free, and it is what bounds how much may come back.
-    commitment_id: Mapped[str] = mapped_column(ForeignKey("commitment.id"), index=True)
+    commitment_id: Mapped[str] = mapped_column()
     quantity: Mapped[Decimal] = mapped_column(Numeric(18, 4))
     # The number the parcel will carry, as the customer or the company stated it.
     reference: Mapped[str] = mapped_column(String, default="")
@@ -1390,15 +1725,26 @@ class ReturnAnnouncement(Base):
     status: Mapped[str] = mapped_column(String, default="open")
     closed_at: Mapped[datetime | None] = mapped_column(UTCDateTime, default=None)
     note: Mapped[str] = mapped_column(Text, default="")
-    source_record_id: Mapped[str | None] = mapped_column(
-        ForeignKey("source_record.id"), default=None
-    )
+    source_record_id: Mapped[str | None] = mapped_column(default=None)
     created_at: Mapped[datetime] = mapped_column(UTCDateTime, default=now)
 
 
 class MovementCorrection(Base):
     __tablename__ = "movement_correction"
     __table_args__ = (
+        PrimaryKeyConstraint("tenant_id", "id"),
+        ForeignKeyConstraint(
+            ["tenant_id", "original_movement_id"],
+            ["movement.tenant_id", "movement.id"],
+        ),
+        ForeignKeyConstraint(
+            ["tenant_id", "replacement_movement_id"],
+            ["movement.tenant_id", "movement.id"],
+        ),
+        ForeignKeyConstraint(
+            ["tenant_id", "compensating_movement_id"],
+            ["movement.tenant_id", "movement.id"],
+        ),
         UniqueConstraint("tenant_id", "request_fingerprint"),
         UniqueConstraint("original_movement_id"),
         UniqueConstraint("compensating_movement_id"),
@@ -1418,17 +1764,11 @@ class MovementCorrection(Base):
             name="ck_movement_correction_compensation_replacement_distinct",
         ),
     )
-    id: Mapped[str] = mapped_column(String, primary_key=True)
+    id: Mapped[str] = mapped_column(String)
     tenant_id: Mapped[str] = mapped_column(ForeignKey("tenant.id"), index=True)
-    original_movement_id: Mapped[str] = mapped_column(
-        ForeignKey("movement.id"), index=True
-    )
-    compensating_movement_id: Mapped[str] = mapped_column(
-        ForeignKey("movement.id"), index=True
-    )
-    replacement_movement_id: Mapped[str | None] = mapped_column(
-        ForeignKey("movement.id"), index=True, default=None
-    )
+    original_movement_id: Mapped[str] = mapped_column()
+    compensating_movement_id: Mapped[str] = mapped_column()
+    replacement_movement_id: Mapped[str | None] = mapped_column(default=None)
     reason: Mapped[str] = mapped_column(Text)
     corrected_at: Mapped[datetime] = mapped_column(UTCDateTime, default=now)
     actor_context: Mapped[str] = mapped_column(Text, default="{}")
@@ -1438,6 +1778,7 @@ class MovementCorrection(Base):
 class SubledgerAccount(Base):
     __tablename__ = "subledger_account"
     __table_args__ = (
+        PrimaryKeyConstraint("tenant_id", "id"),
         UniqueConstraint("tenant_id", "id"),
         UniqueConstraint("tenant_id", "code"),
         CheckConstraint("state IN ('active', 'blocked')"),
@@ -1446,7 +1787,7 @@ class SubledgerAccount(Base):
             name="ck_subledger_account_role",
         ),
     )
-    id: Mapped[str] = mapped_column(String, primary_key=True)
+    id: Mapped[str] = mapped_column(String)
     tenant_id: Mapped[str] = mapped_column(ForeignKey("tenant.id"), index=True)
     code: Mapped[str] = mapped_column(String)
     name: Mapped[str] = mapped_column(String)
@@ -1458,13 +1799,14 @@ class SubledgerAccount(Base):
 class FinanceRoleDestination(Base):
     __tablename__ = "finance_role_destination"
     __table_args__ = (
+        PrimaryKeyConstraint("tenant_id", "id"),
         UniqueConstraint("tenant_id", "role"),
         ForeignKeyConstraint(
             ["tenant_id", "account_id"],
             ["subledger_account.tenant_id", "subledger_account.id"],
         ),
     )
-    id: Mapped[str] = mapped_column(String, primary_key=True)
+    id: Mapped[str] = mapped_column(String)
     tenant_id: Mapped[str] = mapped_column(ForeignKey("tenant.id"), index=True)
     role: Mapped[str] = mapped_column(String)
     account_id: Mapped[str] = mapped_column(String)
@@ -1472,7 +1814,8 @@ class FinanceRoleDestination(Base):
 
 class FinanceState(Base):
     __tablename__ = "finance_state"
-    id: Mapped[str] = mapped_column(String, primary_key=True)
+    __table_args__ = (PrimaryKeyConstraint("tenant_id", "id"),)
+    id: Mapped[str] = mapped_column(String)
     tenant_id: Mapped[str] = mapped_column(ForeignKey("tenant.id"), unique=True)
     revision: Mapped[int] = mapped_column(Integer, default=1)
 
@@ -1480,15 +1823,28 @@ class FinanceState(Base):
 class LedgerEntry(Base):
     __tablename__ = "ledger_entry"
     __table_args__ = (
+        PrimaryKeyConstraint("tenant_id", "id"),
+        ForeignKeyConstraint(
+            ["tenant_id", "document_id"],
+            ["document.tenant_id", "document.id"],
+        ),
+        ForeignKeyConstraint(
+            ["tenant_id", "source_record_id"],
+            ["source_record.tenant_id", "source_record.id"],
+        ),
+        ForeignKeyConstraint(
+            ["tenant_id", "party_id"],
+            ["party.tenant_id", "party.id"],
+        ),
         ForeignKeyConstraint(
             ["tenant_id", "account_id"],
             ["subledger_account.tenant_id", "subledger_account.id"],
         ),
     )
-    id: Mapped[str] = mapped_column(String, primary_key=True)
+    id: Mapped[str] = mapped_column(String)
     tenant_id: Mapped[str] = mapped_column(ForeignKey("tenant.id"), index=True)
     posting_group_id: Mapped[str] = mapped_column(String, index=True, default="")
-    account_id: Mapped[str] = mapped_column(String, index=True)
+    account_id: Mapped[str] = mapped_column(String)
     account_record: Mapped[SubledgerAccount] = relationship(
         lazy="joined", innerjoin=True, viewonly=True
     )
@@ -1510,13 +1866,13 @@ class LedgerEntry(Base):
             .scalar_subquery()
         )
 
-    party_id: Mapped[str | None] = mapped_column(ForeignKey("party.id"))
+    party_id: Mapped[str | None] = mapped_column()
     amount: Mapped[Decimal] = mapped_column(Numeric(18, 4))
     currency: Mapped[str] = mapped_column(String, default="EUR")
     debit_credit: Mapped[str] = mapped_column(String)
     effective_at: Mapped[datetime] = mapped_column(UTCDateTime, default=now)
-    document_id: Mapped[str | None] = mapped_column(ForeignKey("document.id"))
-    source_record_id: Mapped[str | None] = mapped_column(ForeignKey("source_record.id"))
+    document_id: Mapped[str | None] = mapped_column()
+    source_record_id: Mapped[str | None] = mapped_column()
 
 
 class LedgerReversal(Base):
@@ -1524,6 +1880,7 @@ class LedgerReversal(Base):
 
     __tablename__ = "ledger_reversal"
     __table_args__ = (
+        PrimaryKeyConstraint("tenant_id", "id"),
         UniqueConstraint("original_posting_group_id"),
         UniqueConstraint("reversing_posting_group_id"),
         UniqueConstraint("tenant_id", "request_fingerprint"),
@@ -1532,7 +1889,7 @@ class LedgerReversal(Base):
             name="ck_ledger_reversal_groups_distinct",
         ),
     )
-    id: Mapped[str] = mapped_column(String, primary_key=True)
+    id: Mapped[str] = mapped_column(String)
     tenant_id: Mapped[str] = mapped_column(ForeignKey("tenant.id"), index=True)
     original_posting_group_id: Mapped[str] = mapped_column(String, index=True)
     reversing_posting_group_id: Mapped[str] = mapped_column(String, index=True)
@@ -1544,14 +1901,21 @@ class LedgerReversal(Base):
 
 class SettlementAllocation(Base):
     __tablename__ = "settlement_allocation"
-    id: Mapped[str] = mapped_column(String, primary_key=True)
+    __table_args__ = (
+        PrimaryKeyConstraint("tenant_id", "id"),
+        ForeignKeyConstraint(
+            ["tenant_id", "payment_ledger_entry_id"],
+            ["ledger_entry.tenant_id", "ledger_entry.id"],
+        ),
+        ForeignKeyConstraint(
+            ["tenant_id", "invoice_ledger_entry_id"],
+            ["ledger_entry.tenant_id", "ledger_entry.id"],
+        ),
+    )
+    id: Mapped[str] = mapped_column(String)
     tenant_id: Mapped[str] = mapped_column(ForeignKey("tenant.id"), index=True)
-    payment_ledger_entry_id: Mapped[str] = mapped_column(
-        ForeignKey("ledger_entry.id"), index=True
-    )
-    invoice_ledger_entry_id: Mapped[str] = mapped_column(
-        ForeignKey("ledger_entry.id"), index=True
-    )
+    payment_ledger_entry_id: Mapped[str] = mapped_column()
+    invoice_ledger_entry_id: Mapped[str] = mapped_column()
     amount: Mapped[Decimal] = mapped_column(Numeric(18, 4))
     currency: Mapped[str] = mapped_column(String, default="EUR")
     allocated_at: Mapped[datetime] = mapped_column(UTCDateTime, default=now)
@@ -1560,10 +1924,19 @@ class SettlementAllocation(Base):
 class Fact(Base):
     __tablename__ = "fact"
     __table_args__ = (
+        PrimaryKeyConstraint("tenant_id", "id"),
+        ForeignKeyConstraint(
+            ["tenant_id", "interpretation_rule_id"],
+            ["interpretation_rule.tenant_id", "interpretation_rule.id"],
+        ),
+        ForeignKeyConstraint(
+            ["tenant_id", "source_record_id"],
+            ["source_record.tenant_id", "source_record.id"],
+        ),
         UniqueConstraint("tenant_id", "request_fingerprint"),
         Index("ix_fact_tenant_recorded", "tenant_id", "recorded_at"),
     )
-    id: Mapped[str] = mapped_column(String, primary_key=True)
+    id: Mapped[str] = mapped_column(String)
     tenant_id: Mapped[str] = mapped_column(ForeignKey("tenant.id"), index=True)
     subject_type: Mapped[str] = mapped_column(String)
     subject_id: Mapped[str] = mapped_column(String)
@@ -1574,20 +1947,19 @@ class Fact(Base):
     # chapter reads "Facts recorded after its marker" (spec 182, FR-005); business
     # time cannot answer that because Facts are routinely backdated.
     recorded_at: Mapped[datetime] = mapped_column(UTCDateTime, default=now)
-    source_record_id: Mapped[str | None] = mapped_column(ForeignKey("source_record.id"))
+    source_record_id: Mapped[str | None] = mapped_column()
     request_fingerprint: Mapped[str | None] = mapped_column(String, default=None)
-    interpretation_rule_id: Mapped[str | None] = mapped_column(
-        ForeignKey("interpretation_rule.id"), default=None, index=True
-    )
+    interpretation_rule_id: Mapped[str | None] = mapped_column(default=None)
 
 
 class RealityGap(Base):
     __tablename__ = "reality_gap"
     __table_args__ = (
+        PrimaryKeyConstraint("tenant_id", "id"),
         UniqueConstraint("tenant_id", "request_fingerprint"),
         CheckConstraint("revision >= 1", name="ck_reality_gap_revision"),
     )
-    id: Mapped[str] = mapped_column(String, primary_key=True)
+    id: Mapped[str] = mapped_column(String)
     tenant_id: Mapped[str] = mapped_column(ForeignKey("tenant.id"), index=True)
     question: Mapped[str] = mapped_column(Text)
     intended_use: Mapped[str] = mapped_column(Text)
@@ -1606,9 +1978,16 @@ class RealityGap(Base):
 
 class RealityGapEntry(Base):
     __tablename__ = "reality_gap_entry"
-    id: Mapped[str] = mapped_column(String, primary_key=True)
+    __table_args__ = (
+        PrimaryKeyConstraint("tenant_id", "id"),
+        ForeignKeyConstraint(
+            ["tenant_id", "gap_id"],
+            ["reality_gap.tenant_id", "reality_gap.id"],
+        ),
+    )
+    id: Mapped[str] = mapped_column(String)
     tenant_id: Mapped[str] = mapped_column(ForeignKey("tenant.id"), index=True)
-    gap_id: Mapped[str] = mapped_column(ForeignKey("reality_gap.id"), index=True)
+    gap_id: Mapped[str] = mapped_column()
     entry_type: Mapped[str] = mapped_column(String, index=True)
     payload: Mapped[str] = mapped_column(Text, default="{}")
     actor_type: Mapped[str] = mapped_column(String, default="human")
@@ -1621,12 +2000,17 @@ class RealityGapEntry(Base):
 class InterpretationRule(Base):
     __tablename__ = "interpretation_rule"
     __table_args__ = (
+        PrimaryKeyConstraint("tenant_id", "id"),
+        ForeignKeyConstraint(
+            ["tenant_id", "gap_id"],
+            ["reality_gap.tenant_id", "reality_gap.id"],
+        ),
         UniqueConstraint("tenant_id", "logical_name", "version"),
         CheckConstraint("version >= 1", name="ck_interpretation_rule_version"),
     )
-    id: Mapped[str] = mapped_column(String, primary_key=True)
+    id: Mapped[str] = mapped_column(String)
     tenant_id: Mapped[str] = mapped_column(ForeignKey("tenant.id"), index=True)
-    gap_id: Mapped[str] = mapped_column(ForeignKey("reality_gap.id"), index=True)
+    gap_id: Mapped[str] = mapped_column()
     logical_name: Mapped[str] = mapped_column(String)
     version: Mapped[int] = mapped_column(Integer, default=1)
     status: Mapped[str] = mapped_column(String, default="draft", index=True)
@@ -1663,6 +2047,19 @@ class InterpretationRule(Base):
 class RuleInterpretationOutcome(Base):
     __tablename__ = "rule_interpretation_outcome"
     __table_args__ = (
+        PrimaryKeyConstraint("tenant_id", "id"),
+        ForeignKeyConstraint(
+            ["tenant_id", "fact_id"],
+            ["fact.tenant_id", "fact.id"],
+        ),
+        ForeignKeyConstraint(
+            ["tenant_id", "source_record_id"],
+            ["source_record.tenant_id", "source_record.id"],
+        ),
+        ForeignKeyConstraint(
+            ["tenant_id", "rule_id"],
+            ["interpretation_rule.tenant_id", "interpretation_rule.id"],
+        ),
         UniqueConstraint(
             "tenant_id",
             "rule_id",
@@ -1671,17 +2068,13 @@ class RuleInterpretationOutcome(Base):
             name="uq_rule_outcome_source_element",
         ),
     )
-    id: Mapped[str] = mapped_column(String, primary_key=True)
+    id: Mapped[str] = mapped_column(String)
     tenant_id: Mapped[str] = mapped_column(ForeignKey("tenant.id"), index=True)
-    rule_id: Mapped[str] = mapped_column(
-        ForeignKey("interpretation_rule.id"), index=True
-    )
-    source_record_id: Mapped[str] = mapped_column(
-        ForeignKey("source_record.id"), index=True
-    )
+    rule_id: Mapped[str] = mapped_column()
+    source_record_id: Mapped[str] = mapped_column()
     element_key: Mapped[str] = mapped_column(String, default="")
     status: Mapped[str] = mapped_column(String, index=True)
-    fact_id: Mapped[str | None] = mapped_column(ForeignKey("fact.id"), default=None)
+    fact_id: Mapped[str | None] = mapped_column(default=None)
     detail: Mapped[str] = mapped_column(Text, default="{}")
     evaluated_at: Mapped[datetime] = mapped_column(UTCDateTime, default=now)
 
@@ -1694,8 +2087,11 @@ class ChangeProposal(Base):
     """
 
     __tablename__ = "action"
-    __table_args__ = (UniqueConstraint("tenant_id", "id", name="uq_action_tenant_id"),)
-    id: Mapped[str] = mapped_column(String, primary_key=True)
+    __table_args__ = (
+        PrimaryKeyConstraint("tenant_id", "id"),
+        UniqueConstraint("tenant_id", "id", name="uq_action_tenant_id"),
+    )
+    id: Mapped[str] = mapped_column(String)
     tenant_id: Mapped[str] = mapped_column(ForeignKey("tenant.id"), index=True)
     type: Mapped[str] = mapped_column(String)
     actor_type: Mapped[str] = mapped_column(String, default="human")
@@ -1719,8 +2115,23 @@ Action = ChangeProposal
 
 class BusinessEvent(Base):
     __tablename__ = "business_event"
-    __table_args__ = (UniqueConstraint("tenant_id", "sequence"),)
-    id: Mapped[str] = mapped_column(String, primary_key=True)
+    __table_args__ = (
+        PrimaryKeyConstraint("tenant_id", "id"),
+        ForeignKeyConstraint(
+            ["tenant_id", "source_record_id"],
+            ["source_record.tenant_id", "source_record.id"],
+        ),
+        ForeignKeyConstraint(
+            ["tenant_id", "causation_id"],
+            ["business_event.tenant_id", "business_event.id"],
+        ),
+        ForeignKeyConstraint(
+            ["tenant_id", "action_id"],
+            ["action.tenant_id", "action.id"],
+        ),
+        UniqueConstraint("tenant_id", "sequence"),
+    )
+    id: Mapped[str] = mapped_column(String)
     tenant_id: Mapped[str] = mapped_column(ForeignKey("tenant.id"), index=True)
     sequence: Mapped[int] = mapped_column(BigInteger)
     event_type: Mapped[str] = mapped_column(String, index=True)
@@ -1730,20 +2141,19 @@ class BusinessEvent(Base):
     occurred_at: Mapped[datetime] = mapped_column(UTCDateTime, default=now)
     recorded_at: Mapped[datetime] = mapped_column(UTCDateTime, default=now)
     payload: Mapped[str] = mapped_column(Text, default="{}")
-    source_record_id: Mapped[str | None] = mapped_column(
-        ForeignKey("source_record.id"), default=None
-    )
-    action_id: Mapped[str | None] = mapped_column(ForeignKey("action.id"), default=None)
-    causation_id: Mapped[str | None] = mapped_column(
-        ForeignKey("business_event.id"), default=None
-    )
+    source_record_id: Mapped[str | None] = mapped_column(default=None)
+    action_id: Mapped[str | None] = mapped_column(default=None)
+    causation_id: Mapped[str | None] = mapped_column(default=None)
     correlation_id: Mapped[str | None] = mapped_column(String, default=None)
 
 
 class ProjectionRow(Base):
     __tablename__ = "projection_row"
-    __table_args__ = (UniqueConstraint("tenant_id", "projection_name", "record_key"),)
-    id: Mapped[str] = mapped_column(String, primary_key=True)
+    __table_args__ = (
+        PrimaryKeyConstraint("tenant_id", "id"),
+        UniqueConstraint("tenant_id", "projection_name", "record_key"),
+    )
+    id: Mapped[str] = mapped_column(String)
     tenant_id: Mapped[str] = mapped_column(ForeignKey("tenant.id"), index=True)
     projection_name: Mapped[str] = mapped_column(String, index=True)
     projection_version: Mapped[int] = mapped_column(Integer, default=1)
@@ -1775,8 +2185,11 @@ class TenantEventProgress(Base):
 
 class ProjectionCheckpoint(Base):
     __tablename__ = "projection_checkpoint"
-    __table_args__ = (UniqueConstraint("tenant_id", "projection_name"),)
-    id: Mapped[str] = mapped_column(String, primary_key=True)
+    __table_args__ = (
+        PrimaryKeyConstraint("tenant_id", "id"),
+        UniqueConstraint("tenant_id", "projection_name"),
+    )
+    id: Mapped[str] = mapped_column(String)
     tenant_id: Mapped[str] = mapped_column(ForeignKey("tenant.id"), index=True)
     projection_name: Mapped[str] = mapped_column(String, index=True)
     projection_version: Mapped[int] = mapped_column(Integer, default=1)
@@ -1806,7 +2219,8 @@ class ProjectionCheckpoint(Base):
 
 class ChatSession(Base):
     __tablename__ = "chat_session"
-    id: Mapped[str] = mapped_column(String, primary_key=True)
+    __table_args__ = (PrimaryKeyConstraint("tenant_id", "id"),)
+    id: Mapped[str] = mapped_column(String)
     tenant_id: Mapped[str] = mapped_column(ForeignKey("tenant.id"), index=True)
     title: Mapped[str] = mapped_column(String)
     created_at: Mapped[datetime] = mapped_column(UTCDateTime, default=now)
@@ -1816,13 +2230,17 @@ class ChatSession(Base):
 
 class AISettings(Base):
     __tablename__ = "ai_settings"
+    __table_args__ = (
+        ForeignKeyConstraint(
+            ["tenant_id", "api_key_secret_id"],
+            ["secret.tenant_id", "secret.id"],
+        ),
+    )
     tenant_id: Mapped[str] = mapped_column(ForeignKey("tenant.id"), primary_key=True)
     provider: Mapped[str] = mapped_column(String, default="local")
     model: Mapped[str] = mapped_column(String, default="")
     base_url: Mapped[str] = mapped_column(String, default="https://api.openai.com/v1")
-    api_key_secret_id: Mapped[str | None] = mapped_column(
-        ForeignKey("secret.id"), default=None
-    )
+    api_key_secret_id: Mapped[str | None] = mapped_column(default=None)
     # Kept temporarily so installations can lazily move an existing key into the
     # generic vault without exposing or manually re-entering it.
     encrypted_api_key: Mapped[str] = mapped_column(Text, default="")
@@ -1833,7 +2251,8 @@ class Secret(Base):
     """Tenant-scoped encrypted material; consumers retain only this opaque ID."""
 
     __tablename__ = "secret"
-    id: Mapped[str] = mapped_column(String, primary_key=True)
+    __table_args__ = (PrimaryKeyConstraint("tenant_id", "id"),)
+    id: Mapped[str] = mapped_column(String)
     tenant_id: Mapped[str] = mapped_column(ForeignKey("tenant.id"), index=True)
     purpose: Mapped[str] = mapped_column(String, index=True)
     provider: Mapped[str] = mapped_column(String, default="")
@@ -1855,16 +2274,24 @@ class SecretAuditEvent(Base):
     """Metadata-only audit trail. Secret values are never written here."""
 
     __tablename__ = "secret_audit_event"
-    id: Mapped[str] = mapped_column(String, primary_key=True)
+    __table_args__ = (
+        PrimaryKeyConstraint("tenant_id", "id"),
+        ForeignKeyConstraint(
+            ["tenant_id", "secret_id"],
+            ["secret.tenant_id", "secret.id"],
+        ),
+    )
+    id: Mapped[str] = mapped_column(String)
     tenant_id: Mapped[str] = mapped_column(ForeignKey("tenant.id"), index=True)
-    secret_id: Mapped[str] = mapped_column(ForeignKey("secret.id"), index=True)
+    secret_id: Mapped[str] = mapped_column()
     event_type: Mapped[str] = mapped_column(String, index=True)
     occurred_at: Mapped[datetime] = mapped_column(UTCDateTime, default=now)
 
 
 class MCPAccessToken(Base):
     __tablename__ = "mcp_access_token"
-    id: Mapped[str] = mapped_column(String, primary_key=True)
+    __table_args__ = (PrimaryKeyConstraint("tenant_id", "id"),)
+    id: Mapped[str] = mapped_column(String)
     tenant_id: Mapped[str] = mapped_column(ForeignKey("tenant.id"), index=True)
     name: Mapped[str] = mapped_column(String)
     token_prefix: Mapped[str] = mapped_column(String, index=True)
@@ -1877,9 +2304,16 @@ class MCPAccessToken(Base):
 
 class ChatMessage(Base):
     __tablename__ = "chat_message"
-    id: Mapped[str] = mapped_column(String, primary_key=True)
+    __table_args__ = (
+        PrimaryKeyConstraint("tenant_id", "id"),
+        ForeignKeyConstraint(
+            ["tenant_id", "session_id"],
+            ["chat_session.tenant_id", "chat_session.id"],
+        ),
+    )
+    id: Mapped[str] = mapped_column(String)
     tenant_id: Mapped[str] = mapped_column(ForeignKey("tenant.id"), index=True)
-    session_id: Mapped[str] = mapped_column(ForeignKey("chat_session.id"))
+    session_id: Mapped[str] = mapped_column()
     role: Mapped[str] = mapped_column(String)
     content: Mapped[str] = mapped_column(Text)
     created_at: Mapped[datetime] = mapped_column(UTCDateTime, default=now)
@@ -1913,9 +2347,33 @@ from reality.db import scheduled_jobs as _scheduled_jobs  # noqa: F401
 from reality.db import source_mappings as _source_mappings  # noqa: F401
 from reality.db import target_mappings as _target_mappings  # noqa: F401
 
+#: PostgreSQL refuses an identifier longer than this, and silently truncating one
+#: would let two indexes collide under the same name.
+MAXIMUM_IDENTIFIER = 63
+
+
+def _index_name(table: str, columns: tuple[str, ...]) -> str:
+    """What to call an index over these columns, within PostgreSQL's limit.
+
+    Named after what the index is *for* rather than everything it holds: the
+    company leads every reference between two company-scoped tables, so spelling
+    it out would say nothing and would push the longest names past the limit. An
+    index that was `ix_x_parent_id` therefore keeps its name and becomes
+    composite underneath, which is also one less rename in the migration.
+
+    Five names are still too long even so, and a plain truncation would have made
+    two of them equal. The digest is of the full name, so it is stable across
+    runs and machines and says which index this is where the name had to stop.
+    """
+    name = f"ix_{table}_{'_'.join(columns)}"
+    if len(name) <= MAXIMUM_IDENTIFIER:
+        return name
+    digest = hashlib.sha256(name.encode()).hexdigest()[:8]
+    return f"{name[: MAXIMUM_IDENTIFIER - 9]}_{digest}"
+
 
 def index_foreign_keys(metadata: MetaData) -> list[Index]:
-    """Give the first column of every foreign key an index unless one already leads with it.
+    """Give every foreign key an index over its own columns, unless one already leads.
 
     Spec 181: a read or a delete of a referenced row must not scan its referrers. Without
     this, matching one payment walked every ledger entry of the company for its document
@@ -1924,22 +2382,43 @@ def index_foreign_keys(metadata: MetaData) -> list[Index]:
     is applied once, here, after every model module has registered its tables, so the
     test schema and the migrations describe the same indexes. Migration 0059 creates
     them with the same names for existing databases.
+
+    It indexes the whole key rather than its first column, because a reference between
+    two company-scoped tables now names the company first (spec 181 FR-005). Asking only
+    about the first column would have found `tenant_id` already indexed and left 73
+    references unindexed — `business_event.causation_id` among them, the one that took a
+    company deletion from thirty-six minutes to under four seconds. An index over
+    `(tenant_id, causation_id)` answers both the foreign key's check and the question a
+    reader actually asks, which is always about one company.
     """
+
+    def leading(columns) -> tuple[str, ...]:
+        return tuple(column.name for column in columns)
+
     created: list[Index] = []
     for table in metadata.sorted_tables:
-        covered = {next(iter(index.columns)).name for index in table.indexes}
+        covered = {leading(index.columns) for index in table.indexes}
         for constraint in table.constraints:
-            columns = list(getattr(constraint, "columns", []))
-            if columns and isinstance(
-                constraint, (PrimaryKeyConstraint, UniqueConstraint)
-            ):
-                covered.add(columns[0].name)
+            if isinstance(constraint, (PrimaryKeyConstraint, UniqueConstraint)):
+                covered.add(leading(constraint.columns))
         for foreign_key in table.foreign_key_constraints:
-            column = next(iter(foreign_key.columns))
-            if column.name in covered or column.index:
+            columns = list(foreign_key.columns)
+            names = leading(columns)
+            # A wider index answers a narrower question: an index on (a, b) already
+            # serves a key on (a), so only a key nothing starts with needs one.
+            if any(existing[: len(names)] == names for existing in covered):
                 continue
-            covered.add(column.name)
-            created.append(Index(f"ix_{table.name}_{column.name}", column))
+            if len(columns) == 1 and columns[0].index:
+                continue
+            # Named after what it is for, not after every column it holds: the
+            # company leads every one of these, so spelling it out would say
+            # nothing and would push the longer names past PostgreSQL's 63
+            # characters. An index that was `ix_x_parent_id` keeps that name and
+            # becomes composite underneath, which is also one less rename in the
+            # migration.
+            distinguishing = names[1:] if names[0] == "tenant_id" else names
+            covered.add(names)
+            created.append(Index(_index_name(table.name, distinguishing), *columns))
     return created
 
 

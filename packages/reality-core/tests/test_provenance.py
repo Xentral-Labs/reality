@@ -143,7 +143,10 @@ def test_origin_of_a_manually_created_record_names_the_deciding_user(
     session.add(proposal)
     session.flush()
     party = create_party(
-        session, business.tenant.id, "Walk-in Customer", "customer",
+        session,
+        business.tenant.id,
+        "Walk-in Customer",
+        "customer",
         action_id=proposal.id,
     )
     assert party.source_record_id is None
@@ -187,8 +190,10 @@ def test_origin_resolution_is_bounded_per_page_not_per_row(session, business):
 
     def collect(conn, cursor, statement, parameters, context, many):
         # Savepoints belong to the surrounding test transaction, not to the read.
-        if not statement.lstrip().upper().startswith(
-            ("SAVEPOINT", "RELEASE", "ROLLBACK", "BEGIN", "COMMIT")
+        if (
+            not statement.lstrip()
+            .upper()
+            .startswith(("SAVEPOINT", "RELEASE", "ROLLBACK", "BEGIN", "COMMIT"))
         ):
             statements.append(statement)
 
@@ -231,7 +236,11 @@ def vendor_sourced_party(session, tenant_id, source_type, external_id):
         session, tenant_id, "shopify_de", source_type, external_id, {"id": external_id}
     )
     return create_party(
-        session, tenant_id, f"From {source_type}", "customer", source_record_id=source.id
+        session,
+        tenant_id,
+        f"From {source_type}",
+        "customer",
+        source_record_id=source.id,
     )
 
 
@@ -524,7 +533,9 @@ def test_the_source_inspection_states_a_terminal_interpretation_outcome(
     session.flush()
     rows = {
         row["label"]: row["value"]
-        for row in section_named(evidence(session, business.tenant.id, source.id), "Recorded values")["rows"]
+        for row in section_named(
+            evidence(session, business.tenant.id, source.id), "Recorded values"
+        )["rows"]
     }
     assert rows["Interpretation"] == "interpreted"
     assert rows["Interpreter"] == "shopify_order 3"
@@ -579,7 +590,9 @@ def test_the_source_inspection_offers_the_configured_external_link(session, busi
     )
     rows = {
         row["label"]: row
-        for row in section_named(evidence(session, business.tenant.id, source.id), "Recorded values")["rows"]
+        for row in section_named(
+            evidence(session, business.tenant.id, source.id), "Recorded values"
+        )["rows"]
     }
     assert (
         rows["Open in source system"]["value"]
@@ -590,7 +603,9 @@ def test_the_source_inspection_offers_the_configured_external_link(session, busi
     )
     other = {
         row["label"]
-        for row in section_named(evidence(session, business.tenant.id, unlinked.id), "Recorded values")["rows"]
+        for row in section_named(
+            evidence(session, business.tenant.id, unlinked.id), "Recorded values"
+        )["rows"]
     }
     assert "Open in source system" not in other
 
@@ -677,7 +692,9 @@ def test_several_contributing_systems_are_disclosed(session, business):
         "2026-10-01",
         "k2",
     )
-    assert contributing_systems(session, business.tenant.id, "document", document.id) == [
+    assert contributing_systems(
+        session, business.tenant.id, "document", document.id
+    ) == [
         "hubspot_main",
         "shopify_de",
     ]

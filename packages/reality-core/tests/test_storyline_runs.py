@@ -3,6 +3,7 @@
 import json
 
 import pytest
+from conftest import record_by_id
 from sqlalchemy import select
 
 from reality.db.core import (
@@ -82,7 +83,7 @@ def play(session, owner, tenant_id, key, request_key=None):
 
 def test_start_seeds_a_practice_company_and_resumes_the_same_run(session, owner):
     view = started(session, owner)
-    run = session.get(PlaygroundRun, view["run_id"])
+    run = record_by_id(session, PlaygroundRun, view["run_id"])
 
     assert (
         run.sandbox_kind,
@@ -127,9 +128,7 @@ def test_start_seeds_a_practice_company_and_resumes_the_same_run(session, owner)
         )
 
 
-def test_start_needs_confirmation_and_a_known_package(
-    session, owner, monkeypatch
-):
+def test_start_needs_confirmation_and_a_known_package(session, owner, monkeypatch):
     with pytest.raises(PlaygroundOperationDenied):
         storyline.start(session, owner.id, key=KEY, version=VERSION, request_key="x")
     with pytest.raises(NotFound):
@@ -173,7 +172,7 @@ def test_a_failing_seed_rolls_the_company_back_and_names_the_entry(session, owne
     assert view["status"] == "initialization_failed"
     assert view["error"]["entry"] == 0
     assert view["error"]["command"] == "movement_create"
-    run = session.get(PlaygroundRun, view["run_id"])
+    run = record_by_id(session, PlaygroundRun, view["run_id"])
     assert run.initialization_error_code == "seed_failed"
     assert (
         session.scalars(select(Party).where(Party.tenant_id == run.tenant_id)).all()
@@ -196,10 +195,10 @@ def test_chapters_play_through_the_ordinary_proposal_path(session, owner):
     assert order["marker"]["sequence"] >= 0
     assert order["receipt"]["records"]
     assert order["receipt"]["event_sequence"] > order["marker"]["sequence"]
-    proposal = session.get(ChangeProposal, order["proposal_id"])
+    proposal = record_by_id(session, ChangeProposal, order["proposal_id"])
     assert proposal.type == "tool:order_create"
     assert proposal.actor_type == "human"
-    step = session.get(PlaygroundStep, order["step_id"])
+    step = record_by_id(session, PlaygroundStep, order["step_id"])
     assert step.lesson_step_key == "order"
     assert {
         identity.split("__")[1] for identity in step.before_observation["exceptions"]
@@ -308,9 +307,9 @@ def test_branches_are_recorded_and_the_default_applies_without_a_choice(session,
     chosen = storyline.choose_branch(session, owner.id, tenant_id, "dispatch", "call")
 
     assert chosen["current_chapter"] == "call-customer"
-    assert session.get(PlaygroundRun, view["run_id"]).storyline_state["branches"] == {
-        "dispatch": "call"
-    }
+    assert record_by_id(session, PlaygroundRun, view["run_id"]).storyline_state[
+        "branches"
+    ] == {"dispatch": "call"}
     call = play(session, owner, tenant_id, "call-customer")
     assert call["status"] == "done"
     assert (
@@ -374,7 +373,7 @@ def test_restart_archives_the_run_and_starts_a_fresh_company(session, owner):
 
     assert fresh["status"] == "active"
     assert fresh["tenant_id"] != view["tenant_id"]
-    old = session.get(PlaygroundRun, view["run_id"])
+    old = record_by_id(session, PlaygroundRun, view["run_id"])
     assert old.status == "archived" and old.archived_at is not None
     assert (
         storyline.state(session, owner.id, fresh["tenant_id"])["current_chapter"]
@@ -533,9 +532,11 @@ def test_a_chapter_whose_precondition_no_longer_holds_says_what_is_missing(
     tenant_id = view["tenant_id"]
     for key in ("order", "reference", "receipt", "reserve", "dispatch"):
         play(session, owner, tenant_id, key)
-    invoice = session.get(PlaygroundRun, view["run_id"]).initialization_progress[
-        "storyline"
-    ]["seed_outputs"]["overdue_invoice"]["document_id"]
+    invoice = record_by_id(
+        session, PlaygroundRun, view["run_id"]
+    ).initialization_progress["storyline"]["seed_outputs"]["overdue_invoice"][
+        "document_id"
+    ]
 
     # Free play: the customer pays the old invoice exactly, so nothing is overdue any more.
     context = run_read_tool(
@@ -558,7 +559,8 @@ def test_a_chapter_whose_precondition_no_longer_holds_says_what_is_missing(
     )
     approve_and_execute_proposal(session, tenant_id, proposal.id, confirmed=True)
     assert (
-        json.loads(session.get(ChangeProposal, proposal.id).output)["mode"] == "payment"
+        json.loads(record_by_id(session, ChangeProposal, proposal.id).output)["mode"]
+        == "payment"
     )
 
     detail = storyline.chapter_detail(session, owner.id, tenant_id, "explain-hold")

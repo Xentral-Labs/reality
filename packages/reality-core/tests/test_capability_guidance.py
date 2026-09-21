@@ -134,8 +134,15 @@ def _valid_read_guidance():
             "unknown_when": ["The projection is stale."],
             "next_steps": ["Read commitments."],
             "examples": {
-                "use": [{"scenario": "Verify reservation.", "reason": "Stock is relevant."}],
-                "do_not_use": [{"scenario": "Prove delivery.", "reason": "External state is absent."}],
+                "use": [
+                    {"scenario": "Verify reservation.", "reason": "Stock is relevant."}
+                ],
+                "do_not_use": [
+                    {
+                        "scenario": "Prove delivery.",
+                        "reason": "External state is absent.",
+                    }
+                ],
             },
         }
     }
@@ -191,9 +198,22 @@ def test_twelve_selection_examples_cover_observation_promise_allocation_and_move
     ]
 
     assert len(examples) >= 12
-    assert all(kind in {"use", "do_not_use"} and scenario and reason for _, kind, scenario, reason in examples)
-    text = " ".join(f"{tool} {kind} {scenario} {reason}" for tool, kind, scenario, reason in examples).lower()
-    for concept in ("source", "fact", "commitment", "reservation", "movement", "physical"):
+    assert all(
+        kind in {"use", "do_not_use"} and scenario and reason
+        for _, kind, scenario, reason in examples
+    )
+    text = " ".join(
+        f"{tool} {kind} {scenario} {reason}"
+        for tool, kind, scenario, reason in examples
+    ).lower()
+    for concept in (
+        "source",
+        "fact",
+        "commitment",
+        "reservation",
+        "movement",
+        "physical",
+    ):
         assert concept in text
 
 
@@ -207,15 +227,24 @@ def _valid_guidance():
             "required_context": ["commitment"],
             "preconditions": ["The commitment exists."],
             "confirmation": "required",
-            "idempotency": {"mode": "unsafe_retry", "guidance": "Reconcile before retry."},
-            "refusals": [{"code": "insufficient_stock", "description": "Stock is unavailable."}],
+            "idempotency": {
+                "mode": "unsafe_retry",
+                "guidance": "Reconcile before retry.",
+            },
+            "refusals": [
+                {"code": "insufficient_stock", "description": "Stock is unavailable."}
+            ],
             "events": ["reservation.created"],
             "verification_reads": [
                 {"name": "inventory", "proves": "Allocation reduces availability."}
             ],
             "examples": {
-                "use": [{"scenario": "Allocate stock.", "reason": "Allocation is intended."}],
-                "do_not_use": [{"scenario": "Ship stock.", "reason": "A Movement is intended."}],
+                "use": [
+                    {"scenario": "Allocate stock.", "reason": "Allocation is intended."}
+                ],
+                "do_not_use": [
+                    {"scenario": "Ship stock.", "reason": "A Movement is intended."}
+                ],
             },
         }
     }
@@ -224,15 +253,24 @@ def _valid_guidance():
 @pytest.mark.parametrize(
     ("mutate", "message"),
     [
-        (lambda value: value["reservation_propose"].pop("use_when"), "missing use_when"),
-        (lambda value: value["reservation_propose"].update(events=["unknown.event"]), "unknown events"),
+        (
+            lambda value: value["reservation_propose"].pop("use_when"),
+            "missing use_when",
+        ),
+        (
+            lambda value: value["reservation_propose"].update(events=["unknown.event"]),
+            "unknown events",
+        ),
         (
             lambda value: value["reservation_propose"].update(
                 verification_reads=[{"name": "unknown", "proves": "Nothing."}]
             ),
             "unknown verification reads",
         ),
-        (lambda value: value["reservation_propose"].update(confirmation="none"), "confirmation mismatch"),
+        (
+            lambda value: value["reservation_propose"].update(confirmation="none"),
+            "confirmation mismatch",
+        ),
     ],
 )
 def test_capability_guidance_rejects_planted_drift(mutate, message):
@@ -243,7 +281,10 @@ def test_capability_guidance_rejects_planted_drift(mutate, message):
             value,
             commands=[{"name": "Reserve stock", "service": "reserve"}],
             agent_coverage={
-                "reserve": {"classification": "eligible", "tools": ["reservation_propose"]}
+                "reserve": {
+                    "classification": "eligible",
+                    "tools": ["reservation_propose"],
+                }
             },
             event_types={"reservation.created"},
             projection_names={"inventory"},
@@ -254,13 +295,19 @@ def test_capability_guidance_rejects_planted_drift(mutate, message):
 
 
 def test_capability_guidance_rejects_duplicate_public_tool_identity():
-    entry = {"tool_name": "reservation_propose", **_valid_guidance()["reservation_propose"]}
+    entry = {
+        "tool_name": "reservation_propose",
+        **_valid_guidance()["reservation_propose"],
+    }
     with pytest.raises(ValueError, match="Duplicate capability guidance"):
         validate_capability_guidance(
             [entry, entry],
             commands=[{"name": "Reserve stock", "service": "reserve"}],
             agent_coverage={
-                "reserve": {"classification": "eligible", "tools": ["reservation_propose"]}
+                "reserve": {
+                    "classification": "eligible",
+                    "tools": ["reservation_propose"],
+                }
             },
             event_types={"reservation.created"},
             projection_names={"inventory"},
@@ -273,7 +320,14 @@ def test_capability_guidance_rejects_duplicate_public_tool_identity():
 def test_capability_describe_is_shared_read_only_and_bounded(session, business):
     before = {
         model.__name__: session.scalar(select(func.count()).select_from(model))
-        for model in (ChangeProposal, Fact, Commitment, Reservation, Movement, BusinessEvent)
+        for model in (
+            ChangeProposal,
+            Fact,
+            Commitment,
+            Reservation,
+            Movement,
+            BusinessEvent,
+        )
     }
 
     application_result = run_read_tool(
@@ -294,7 +348,14 @@ def test_capability_describe_is_shared_read_only_and_bounded(session, business):
     assert application_result["tool_name"] == "reservation_propose"
     after = {
         model.__name__: session.scalar(select(func.count()).select_from(model))
-        for model in (ChangeProposal, Fact, Commitment, Reservation, Movement, BusinessEvent)
+        for model in (
+            ChangeProposal,
+            Fact,
+            Commitment,
+            Reservation,
+            Movement,
+            BusinessEvent,
+        )
     }
     assert after == before
 
@@ -345,8 +406,6 @@ def test_capability_describe_schema_is_read_only_and_strict():
 
     assert schema["required"] == ["tool_name"]
     assert schema["additionalProperties"] is False
-    default_exposed = {
-        entry["function"]["name"] for entry in model_tool_schemas()
-    }
+    default_exposed = {entry["function"]["name"] for entry in model_tool_schemas()}
     assert "proposal_approve_and_execute" not in default_exposed
     assert "proposal_execution_status" in default_exposed

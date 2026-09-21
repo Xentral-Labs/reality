@@ -197,7 +197,9 @@ def test_cancelling_a_promise_releases_its_hold(session, business):
 
     # A promise with no hold behaves exactly as it did.
     other = commitment_for(session, business)
-    assert cancel_commitment(session, business.tenant.id, other.id).status == "cancelled"
+    assert (
+        cancel_commitment(session, business.tenant.id, other.id).status == "cancelled"
+    )
     assert active_commitment_hold(session, business.tenant.id, other.id) is None
 
 
@@ -275,8 +277,12 @@ def test_the_release_is_recorded_by_the_release_operation(session, business):
         (entry.event_type, json.loads(entry.payload))
         for entry in business_events(session, business.tenant.id)
     ]
-    releases = [payload for kind, payload in events if kind == "commitment.hold_released"]
-    cancellations = [payload for kind, payload in events if kind == "commitment.cancelled"]
+    releases = [
+        payload for kind, payload in events if kind == "commitment.hold_released"
+    ]
+    cancellations = [
+        payload for kind, payload in events if kind == "commitment.cancelled"
+    ]
 
     # Emitted by the operation that releases holds, not by a second emitter.
     assert releases == [{"hold_ids": [hold.id]}]
