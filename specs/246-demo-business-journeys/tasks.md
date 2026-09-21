@@ -17,3 +17,7 @@
 - [x] T015 [FR-013..FR-018, DR-001..DR-004] Seed the new source-backed cases exclusively through shared application services and increment the profile version.
 - [x] T016 [FR-019, SC-002] Replace the supported `No` catalog rows with exact references, outcomes and UI inspection paths in both languages and the durable catalog.
 - [x] T017 [SC-003..SC-007] Run focused profile/domain tests, documentation gates and full required CI; review the final diff against the Constitution.
+- [x] T018 [FR-020..FR-022, SC-008] Add failing profile assertions for exchange/replacement, payment-before-shipment and explicit unsupported-workflow boundaries.
+- [x] T019 [FR-020..FR-021] Seed the exchange and prepayment journeys through existing profile-authorized application services and increment the profile version.
+- [x] T020 [FR-022, SC-008] Update English, German and durable catalogs with exact paths plus bounded proposals for overdelivery, dunning and bad debt.
+- [x] T021 Run the complete profile, documentation, lint and Spec Kit gates; update the PR and verify CI.

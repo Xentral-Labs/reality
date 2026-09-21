@@ -121,6 +121,20 @@ invented status field.
 7. Lot-tracked and serial-tracked items have exact identifiers on their movements; the
    lot example includes a source-stated expired best-before date.
 
+### User Story 7 - Answer the remaining sales questions honestly (Priority: P1)
+
+As a salesperson, I can demonstrate an exchange/replacement and a customer prepayment
+with exact references, while the catalog clearly separates workflows that still require
+new product capability.
+
+**Acceptance Scenarios**:
+
+1. A delivered item is returned and a separately numbered, zero-priced replacement
+   order is shipped; neither movement overwrites the other.
+2. A dated customer invoice is posted and paid before its related order is shipped.
+3. Overdelivery, dunning and bad debt remain explicitly unavailable and each has a
+   bounded implementation proposal instead of misleading synthetic records.
+
 ### Edge Cases
 
 - Returns never exceed the quantity delivered or received on their linked commitment.
@@ -184,6 +198,12 @@ invented status field.
   movements carry their exact tracked identities, plus a source-stated expired lot date.
 - **FR-019**: Every newly added example MUST have a canonical human reference and an
   exact UI inspection path in both public catalog languages.
+- **FR-020**: The profile MUST include an original shipment and return plus a separate
+  zero-priced replacement order and shipment.
+- **FR-021**: The profile MUST include a dated customer invoice and payment whose
+  effective times precede the related shipment.
+- **FR-022**: The catalog MUST keep overdelivery, dunning and bad debt marked
+  unsupported and explain the smallest coherent implementation proposed for each.
 
 ### Domain and Traceability Requirements
 
@@ -212,6 +232,8 @@ invented status field.
   labels in human-facing item and business-document number fields.
 - **SC-007**: Automated profile verification identifies every FR-013 through FR-018
   example and proves its financial, quantity, location or tracked-identity outcome.
+- **SC-008**: A salesperson can locate and explain the exchange/replacement and
+  prepayment examples using only canonical references from the catalog.
 
 ## Assumptions and Dependencies
 

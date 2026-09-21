@@ -1,6 +1,6 @@
 """Versioned synthetic vocabulary and authored comparison inputs."""
 
-PROFILE_VERSION = 7
+PROFILE_VERSION = 8
 
 
 def item_number(key: str) -> str:
