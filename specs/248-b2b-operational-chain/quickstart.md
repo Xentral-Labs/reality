@@ -61,6 +61,17 @@ database access to find business objects.
 - Shared exposure is covered by `test_b2b_operational_chain_contracts.py`: application tool, MCP,
   API route and CLI `movement explain` use the same service.
 
+### Integrated B2B reference story
+
+- Profile version 11 adds `SO-040`/`PO-010`: ten ordered units reconcile to six assigned to
+  customer demand, two assigned to stock and two unassigned; four received and six open remain a
+  separate fulfilment dimension.
+- `SO-041` returns five units and resolves them as two restocked, one quarantined, one scrapped and
+  one returned to the supplier, leaving zero unresolved.
+- The retained contribution reference remains exact: DB1 EUR 570 and DB2 EUR 456 with no missing
+  basis. Every document in the story has a business date and each human number matches its type.
+- `pytest -q packages/reality-core/tests/scenarios/test_b2b_operational_chain.py packages/reality-core/tests/scenarios/test_b2b_operational_chain_catalog.py`: 4 passed in 32.30 seconds.
+
 ### Supply assignment
 
 - `pytest -q tests/test_supply_assignments.py tests/test_supply_coverage.py tests/test_unified_delivery_reads.py`: 13 passed.

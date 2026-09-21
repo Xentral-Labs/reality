@@ -5,8 +5,6 @@ from decimal import Decimal
 
 import pytest
 from conftest import record_by_id, seed_company
-from sqlalchemy import func, select
-
 from reality.db.contribution import (
     CostCommercialMatchRevision,
     CostContributionReview,
@@ -28,6 +26,7 @@ from reality.services.tenant_policy import (
     PlaygroundOperationDenied,
     profile_cost_action_scope,
 )
+from sqlalchemy import func, select
 
 COMPLETE_PORTFOLIO = {
     "fixture_a": {
@@ -173,8 +172,8 @@ def test_canonical_profile_versions_and_replays_one_costing_baseline(
 ):
     run = _seed(session, scheduled_owner)
     manifest = run.initialization_progress
-    assert PROFILE_VERSION == 10
-    assert manifest["profile"] == {"key": "international_demo", "version": 10}
+    assert PROFILE_VERSION == 11
+    assert manifest["profile"] == {"key": "international_demo", "version": 11}
     assert set(manifest["costing_cases"]) == {
         *COMPLETE_PORTFOLIO,
         "late_cost_return",

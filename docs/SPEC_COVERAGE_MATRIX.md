@@ -1611,6 +1611,8 @@ in test_captured_report.py. Cache publication grants no company financial approv
 
 ### Spec 248 explainable B2B operational chain
 
+Feature contract: `docs/features/b2b-operational-chain.md`.
+
 | Verification family | Specification | Tests |
 |---|---|---|
 | Append-only customer-demand and stock-replenishment supply assignments, exact reconciliation, replay and tenant isolation | 248 FR-007–010/FR-019/DR-003/DR-005/DR-008 | `packages/reality-core/tests/test_supply_assignments.py`; `packages/reality-core/tests/test_migrations.py` |
@@ -1618,3 +1620,6 @@ in test_captured_report.py. Cache publication grants no company financial approv
 | Shared application-tool, MCP, API and CLI contracts expose reviewed supply and return actions consistently | 248 FR-007/FR-010–011/FR-019/DR-006 | `packages/reality-core/tests/test_b2b_operational_chain_contracts.py`; `packages/reality-core/tests/test_return_announcement_adapters.py` |
 | Arrived customer returns support partial restock, quarantine, scrap and supplier-return outcomes with correction-aware history | 248 FR-011–012/DR-004/DR-007/SC-005 | `packages/reality-core/tests/test_returns.py` |
 | Returned goods and commercial credits remain independent while both mismatch directions retain explanation links | 248 FR-013/SC-003 | `packages/reality-core/tests/test_commercial_matching_services.py`; `packages/reality-core/tests/operational_exceptions/test_derivation.py`; `packages/reality-core/tests/operational_exceptions/test_explanation.py` |
+| Shortest-link movement explanation, precedence, provenance, correction and tenant isolation | 248 FR-014–015/DR-001/DR-004 | `packages/reality-core/tests/test_movement_explanations.py` |
+| Deterministic dated B2B chain, exact contribution/supply/return reconciliation, explained movements and replay | 248 FR-016–019/SC-002–006/SC-008 | `packages/reality-core/tests/scenarios/test_b2b_operational_chain.py` |
+| Exact human references, expected outcomes and UI discovery paths in the profile manifest | 248 FR-018/SC-001/SC-007 | `packages/reality-core/tests/scenarios/test_b2b_operational_chain_catalog.py` |

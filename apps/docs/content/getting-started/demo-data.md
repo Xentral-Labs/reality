@@ -39,7 +39,7 @@ relationships are stated above rather than inferred from a receipt.
 Search each reference in its matching view:
 
 - **Sales → Orders:** search for `SO-001`, `SO-011`, `SO-017` or `SO-024`.
-- **Purchasing → Orders:** search for `PO-001` through `PO-009`.
+- **Purchasing → Orders:** search for `PO-001` through `PO-010`.
 - **Finance → Receivables/Payables:** search for an `INV-*`/`SINV-*` number, party or one of the
   exact `CPAY-*`/`SPAY-*` references below.
 - **Warehouse:** open an item such as `ITEM-008` or `ITEM-016`, then expand stock and movements.
@@ -143,8 +143,8 @@ credit for later allocation or refund.
 
 | Document             | Examples                                                                                       | Meaning                                          | How to find it                         |
 | -------------------- | ---------------------------------------------------------------------------------------------- | ------------------------------------------------ | -------------------------------------- |
-| Sales order          | `SO-001`–`SO-035`                                                                              | Stated customer demand and commercial lines      | Sales → Orders → search `SO-…`         |
-| Purchase order       | `PO-001`–`PO-009`                                                                              | Order placed with a supplier                     | Purchasing → Orders → search `PO-…`    |
+| Sales order          | `SO-001`–`SO-041`                                                                              | Stated customer demand and commercial lines      | Sales → Orders → search `SO-…`         |
+| Purchase order       | `PO-001`–`PO-010`                                                                              | Order placed with a supplier                     | Purchasing → Orders → search `PO-…`    |
 | Sales invoice        | `INV-YYYYMMDD-*`                                                                               | Customer receivable backed by invoice lines      | Finance → Receivables → search `INV-…` |
 | Supplier invoice     | `SINV-002`, `SINV-004`, `SINV-005`, `SINV-007`, `SINV-008`, `SINV-010`, `SINV-011`, `SINV-012` | Payable independent of receipt state             | Finance → Payables → search `SINV-…`   |
 | Customer credit note | `CN-001`, `CN-002`                                                                             | Full and partial customer value reversal         | Finance → Receivables → search `CN-…`  |
@@ -229,11 +229,13 @@ missing evidence into EUR 0.
 | Supplier deposit and final invoice          | `SDEP-001`, `SINV-010`; EUR 20 credit remains     | Finance → Supplier credits → `SDEP-001`; Payables → `SINV-010`          |
 | Dunning with a stated fee                   | `DN-2026-0001`; level 2 plus EUR 5 fee            | Finance → Receivables → search notice/invoice and open its explanation  |
 | Partial bad-debt write-off                  | `SO-037`; EUR 25 written off, EUR 15 remains      | Sales → Orders → `SO-037` → invoice → settlement explanation            |
+| Customer-specific supply and replenishment  | `SO-040`, `PO-010`; 6 customer, 2 stock, 2 open   | Purchasing → Orders → `PO-010` → supply coverage                         |
+| Four-way returned-goods disposition         | `SO-041`; 2 restock, 1 quarantine, 1 scrap, 1 supplier return | Sales → Orders → `SO-041`; Warehouse → `ITEM-012` → movements |
 
 ### Deliberate gaps
 
 Bank reconciliation, jurisdiction-specific tax treatment and FX revaluation are outside profile
-version 10. The demo promises no documents or UI paths for them.
+version 11. The demo promises no documents or UI paths for them.
 
 ## Static baseline and live data
 

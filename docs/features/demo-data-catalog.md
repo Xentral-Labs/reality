@@ -5,7 +5,7 @@ company. Use it to learn how implemented processes look across Sales, Purchasing
 Warehouse, Finance and the Business Reality Inspector. Every business document has an
 authored document date. A missing due date never means that the document is dateless.
 
-This page describes profile version 10. References are human-facing labels for finding
+This page describes profile version 11. References are human-facing labels for finding
 examples, never database identity.
 
 ## Company and master data

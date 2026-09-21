@@ -112,13 +112,13 @@ at most two navigation steps and the story produces zero unexplained-movement ex
 
 ## Phase 7: Integrated B2B Story, Documentation, and UX
 
-- [ ] T047 [P] [FR-016] [FR-017] [DR-006] Add the failing deterministic empty-company multi-day business story with dated, consistently numbered, non-zero commercial evidence in `packages/reality-core/tests/scenarios/test_b2b_operational_chain.py`
-- [ ] T048 [P] [FR-018] Add failing manifest completeness and exact-reference/UI-path contract tests in `packages/reality-core/tests/scenarios/test_b2b_operational_chain_catalog.py`
-- [ ] T049 [P] [SC-002] [SC-003] [SC-004] [SC-005] Add exact invoice/contribution, supply, and return reconciliation assertions in `packages/reality-core/tests/scenarios/test_b2b_operational_chain.py`
-- [ ] T050 [P] [SC-006] [SC-008] Add zero-unexplained-movement and idempotent-replay assertions in `packages/reality-core/tests/scenarios/test_b2b_operational_chain.py`
-- [ ] T051 [FR-016] [FR-017] [DR-006] Implement the deterministic story exclusively through application services in `packages/reality-core/src/reality/services/demo_profile.py` and `packages/reality-core/src/reality/integrations/demo_data.py`
-- [ ] T052 [FR-018] Publish exact story references, expected results, intentional exceptions, and UI paths in `docs/features/b2b-operational-chain.md` and `apps/docs/content/getting-started/demo-data.md`
-- [ ] T053 [FR-019] [DR-006] Regenerate executable command/tool/reference documentation with `make docs-generate` and commit outputs under `apps/docs/content/tool-usage/` and `apps/docs/.vitepress/data/tool-usage.json`
+- [x] T047 [P] [FR-016] [FR-017] [DR-006] Add the failing deterministic empty-company multi-day business story with dated, consistently numbered, non-zero commercial evidence in `packages/reality-core/tests/scenarios/test_b2b_operational_chain.py`
+- [x] T048 [P] [FR-018] Add failing manifest completeness and exact-reference/UI-path contract tests in `packages/reality-core/tests/scenarios/test_b2b_operational_chain_catalog.py`
+- [x] T049 [P] [SC-002] [SC-003] [SC-004] [SC-005] Add exact invoice/contribution, supply, and return reconciliation assertions in `packages/reality-core/tests/scenarios/test_b2b_operational_chain.py`
+- [x] T050 [P] [SC-006] [SC-008] Add zero-unexplained-movement and idempotent-replay assertions in `packages/reality-core/tests/scenarios/test_b2b_operational_chain.py`
+- [x] T051 [FR-016] [FR-017] [DR-006] Implement the deterministic story exclusively through application services in `packages/reality-core/src/reality/services/demo_profile.py` and `packages/reality-core/src/reality/integrations/demo_data.py`
+- [x] T052 [FR-018] Publish exact story references, expected results, intentional exceptions, and UI paths in `docs/features/b2b-operational-chain.md` and `apps/docs/content/getting-started/demo-data.md`
+- [x] T053 [FR-019] [DR-006] Regenerate executable command/tool/reference documentation with `make docs-generate` and commit outputs under `apps/docs/content/tool-usage/` and `apps/docs/.vitepress/data/tool-usage.json`
 - [ ] T054 [P] [SC-001] [SC-007] Add a timed first-user browser acceptance test for finding the key objects without database access in `packages/reality-core/tests/browser/b2b_operational_chain.py`
 - [ ] T055 [SC-001] [SC-007] Refine progress, completion, and navigation copy so the user always knows the current and next step in `apps/web/src/unified/` and `apps/web/src/localization.tsx`
 - [ ] T056 [FR-016] [FR-018] [SC-001] [SC-007] Run the complete fresh-company browser story and record exact references, timing, screenshots, and observed results in `specs/248-b2b-operational-chain/quickstart.md`
