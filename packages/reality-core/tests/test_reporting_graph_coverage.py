@@ -16,7 +16,11 @@ import yaml
 
 from reality.config import config_text
 from reality.db.core import Base
-from reality.services.analytics.graph_model import reporting_graph
+from reality.services.analytics.graph_model import (
+    TENANT_COLUMN,
+    _foreign_keys,
+    reporting_graph,
+)
 
 # Tables that are not business data. Named rather than pattern-matched, so adding
 # one is a decision somebody makes and not a regex that quietly widens.
@@ -317,3 +321,32 @@ def test_declared_nodes_appear_in_the_data_model_catalog(graph):
         f"{sorted(undocumented - known_drift)} is declared as a reporting node but "
         "is not in config/data_model.yaml"
     )
+
+
+def test_a_tenant_column_never_stands_in_for_a_parent_reference():
+    """The graph resolved parents from a column's foreign-key set, which has no order.
+
+    Every business table is tenant-scoped, so its tenant column belongs to each
+    composite constraint. Collecting per column let that column claim whichever parent
+    the set happened to yield last, and `document_line` then looked like it referenced
+    `document` twice. The suite failed or passed depending on the process hash seed.
+    """
+    keys = _foreign_keys()
+    assert keys["document_line.document_id"] == "document"
+    assert keys[f"document_line.{TENANT_COLUMN}"] == "tenant"
+    to_document = sorted(
+        key
+        for key, target in keys.items()
+        if key.startswith("document_line.") and target == "document"
+    )
+    assert to_document == ["document_line.document_id"]
+
+
+def test_every_tenant_column_resolves_to_the_tenant_table():
+    """No table may reach a business parent through its tenant column."""
+    wrong = {
+        key: target
+        for key, target in _foreign_keys().items()
+        if key.endswith(f".{TENANT_COLUMN}") and target != "tenant"
+    }
+    assert wrong == {}
