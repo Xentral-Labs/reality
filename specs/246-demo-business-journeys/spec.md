@@ -86,6 +86,20 @@ instead of waiting for a low-probability live event.
 4. An old customer invoice is paid slightly short and its remaining amount is closed
    by an explicit accepted-small-remainder adjustment with its reason and evidence.
 
+### User Story 5 - Recognize every demo reference (Priority: P1)
+
+As an evaluator, I see one predictable human-number format per business object and can
+use the catalog beside every case table to navigate to the exact record.
+
+**Acceptance Scenarios**:
+
+1. Item, static-document and continuously generated live-order numbers use an English
+   type prefix and a stable canonical suffix; sequences are zero-padded to three
+   digits, while dated invoice numbers retain their shared date-and-token suffix.
+   Descriptive scenario names remain metadata rather than document numbers.
+2. Every case table in the English and German Demo Data catalog includes a direct UI
+   path and exact search reference for each row.
+
 ### Edge Cases
 
 - Returns never exceed the quantity delivered or received on their linked commitment.
@@ -126,6 +140,14 @@ instead of waiting for a low-probability live event.
 - **FR-010**: The static profile MUST contain an aged customer invoice with a small
   short payment followed by an explicit `accepted_small_remainder` adjustment that
   closes the invoice.
+- **FR-011**: Human-facing demo item and business-document numbers MUST use the
+  canonical family for their object type (for example `ITEM-001`, `SO-001`,
+  `PO-001`, `INV-YYYYMMDD-TOKEN`, `SINV-001`, `CN-001`, `SCN-001`, `CPAY-001`,
+  and `SPAY-001`); scenario labels MUST NOT replace those numbers, and continuous
+  Demo Data intake MUST continue the tenant's existing `SO-NNN` sequence.
+- **FR-012**: Every case table in both public Demo Data catalog editions MUST include
+  a `How to find it`/`So findest du es` column with the UI area and exact searchable
+  human reference.
 
 ### Domain and Traceability Requirements
 
@@ -150,6 +172,8 @@ instead of waiting for a low-probability live event.
 - **SC-005**: Finance reads identify all four settlement reference cases by stable
   payment/invoice number and show zero invoice balance plus the expected reduction or
   unallocated-credit amount.
+- **SC-006**: Automated verification rejects legacy shorthand or descriptive scenario
+  labels in human-facing item and business-document number fields.
 
 ## Assumptions and Dependencies
 
@@ -172,3 +196,4 @@ instead of waiting for a low-probability live event.
 | FR-006 | US3 | Demo Data Catalog review and documentation policy check |
 | FR-007, DR-004 | All | Company-setup replay, profile-version and tenant-scope regression tests |
 | FR-008..FR-010, DR-001..DR-004 | US4 | Canonical profile settlement assertions for accepted reductions and unallocated payment credit |
+| FR-011..FR-012 | US5 | Canonical-number assertions plus English/German catalog table review |

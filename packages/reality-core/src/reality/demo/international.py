@@ -1,6 +1,13 @@
 """Versioned synthetic vocabulary and authored comparison inputs."""
 
-PROFILE_VERSION = 5
+PROFILE_VERSION = 6
+
+
+def item_number(key: str) -> str:
+    """Canonical human item number for one stable internal demo vocabulary key."""
+    return f"ITEM-{int(key.removeprefix('P')):03}"
+
+
 ITEMS = (
     ("P01", "Summit Bottle", "pcs", "Outdoor"),
     ("P02", "Trail Lantern", "pcs", "Outdoor"),

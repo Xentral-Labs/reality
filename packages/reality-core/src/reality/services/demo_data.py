@@ -34,6 +34,7 @@ from reality.demo.international import (
     DEMO_DATA_PAYMENT_TERM,
     ITEMS,
     MINIMAL_ITEMS,
+    item_number,
 )
 from reality.services import core
 from reality.services import scheduled_jobs as jobs
@@ -91,7 +92,7 @@ def eligible(session: Session, tenant_id: str, actor_id: str) -> PlaygroundRun:
         or (run.preset_key == "company-empty" and run.preset_version != 1)
         or (
             run.preset_key == "international-demo"
-            and run.preset_version not in {1, 2, 3, 4, 5}
+            and run.preset_version not in {1, 2, 3, 4, 5, 6}
         )
     ):
         raise PlaygroundOperationDenied(
@@ -215,7 +216,7 @@ def preview(session: Session, tenant_id: str, actor_id: str) -> dict:
             return row.id
 
         refs["items"] = {
-            key: match(items, sku=key, name=name, unit=unit)
+            key: match(items, sku=item_number(key), name=name, unit=unit)
             for key, name, unit, _ in ITEMS
             if key in MINIMAL_ITEMS
         }
@@ -290,7 +291,7 @@ def _materialize(session: Session, run: PlaygroundRun, actor_id: str, proposed: 
             core.create_item(
                 session,
                 tenant_id,
-                row["key"],
+                item_number(row["key"]),
                 row["name"],
                 row["unit"],
                 source_system="demo_data",

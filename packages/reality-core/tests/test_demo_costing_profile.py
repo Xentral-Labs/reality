@@ -98,8 +98,7 @@ def test_demo_documents_are_dated_uniformly_numbered_and_contribution_complete(
     invoices = [document for document in documents if document.type == "sales_invoice"]
     assert invoices
     assert all(
-        re.fullmatch(r"INV-\d{8}-[A-Z0-9]{6}", document.number)
-        for document in invoices
+        re.fullmatch(r"INV-\d{8}-[A-Z0-9]{6}", document.number) for document in invoices
     )
     invoice_line_ids = set(
         session.scalars(
@@ -115,10 +114,7 @@ def test_demo_documents_are_dated_uniformly_numbered_and_contribution_complete(
             .join(
                 CostContributionReview,
                 (CostContributionReview.tenant_id == CostRevenueMatchBasis.tenant_id)
-                & (
-                    CostContributionReview.revenue_basis_id
-                    == CostRevenueMatchBasis.id
-                ),
+                & (CostContributionReview.revenue_basis_id == CostRevenueMatchBasis.id),
             )
             .where(CostContributionReview.tenant_id == run.tenant_id)
         )
@@ -150,7 +146,7 @@ def test_canonical_profile_versions_and_replays_one_costing_baseline(
 ):
     run = _seed(session, scheduled_owner)
     manifest = run.initialization_progress
-    assert PROFILE_VERSION == 4
+    assert PROFILE_VERSION == 6
     assert manifest["profile"] == {"key": "international_demo", "version": 4}
     assert set(manifest["costing_cases"]) == {
         *COMPLETE_PORTFOLIO,

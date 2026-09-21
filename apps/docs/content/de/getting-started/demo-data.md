@@ -10,19 +10,19 @@ dass die Quelle keine Fälligkeit genannt hat – nicht, dass der Beleg kein Dat
 
 ## Firma und Verwendung der Referenzen
 
-Die Basis enthält 16 Artikel (`P01`–`P16`), 20 Kunden, drei Lieferanten sowie die Lager
+Die Basis enthält 16 Artikel (`ITEM-001`–`ITEM-016`), 20 Kunden, drei Lieferanten sowie die Lager
 Rotterdam und Singapur. Mengen werden in Stück, Metern oder Kilogramm geführt. Die
 meisten Vorgänge sind in EUR; zwei Rechnungen verwenden bewusst USD.
 
 Die Referenz muss in der passenden Ansicht gesucht werden. Die wichtigsten Wege sind:
 
-- **Vertrieb → Aufträge:** `O01`, `O11`, `H-decline-current` oder `COST-A` suchen.
+- **Vertrieb → Aufträge:** `SO-001`, `SO-011`, `SO-017` oder `SO-024` suchen.
 - **Einkauf → Bestellungen:** `PO-001` bis `PO-009` suchen.
 - **Finance → Forderungen/Verbindlichkeiten:** nach einer `INV-*`-/`SINV-*`-Nummer,
-  einem Kunden/Lieferanten oder einer unten genannten `PAY-*`-Zahlung suchen.
-- **Lager:** den Artikel, zum Beispiel `P08` oder `P16`, öffnen und Bestand sowie
+  einem Kunden/Lieferanten oder einer unten genannten `CPAY-*`-/`SPAY-*`-Zahlung suchen.
+- **Lager:** den Artikel, zum Beispiel `ITEM-008` oder `ITEM-016`, öffnen und Bestand sowie
   Bewegungen aufklappen.
-- **Analytics/Deckungsbeitrag:** `COST-A` oder `COST-PORTFOLIO-HEALTHY` suchen und die
+- **Analytics/Deckungsbeitrag:** `SO-024` oder `SO-025` suchen und die
   Erklärung unter der Rechnungsposition öffnen.
 
 Wenn eine Rechnung eine andere Nummer als ihr Auftrag besitzt, beginne im Auftrag und
@@ -34,41 +34,41 @@ Profilversion erzeugt in jeder neuen Firma dieselben Fälle.
 
 | Referenz | Was du prüfen kannst | Erwartetes Ergebnis | So findest du es |
 | --- | --- | --- | --- |
-| `O01` | Reservierung | 5 Stück reserviert | Vertrieb → Aufträge → `O01` suchen → Position aufklappen |
-| `O02` | Bestand ohne Reservierung | 5 bestellt, 10 auf Lager, nichts reserviert | Vertrieb → Aufträge → `O02` |
-| `O03` | Bestandsengpass | 5 bestellt, aber nur 2 verfügbar | Vertrieb → Aufträge → `O03` → Verfügbarkeit |
-| `O04` | Teilreservierung | 2 Stück eines überfälligen Auftrags reserviert | Vertrieb → Aufträge → `O04` → Reservierungen |
-| `O06` | Teillieferung | 3 von 5 Stück versendet; 2 bleiben offen | Vertrieb → Aufträge → `O06` → Lieferungen |
-| `O07`, `O08` | Manuelle Sperre | Die Zusage ist gesperrt und weiter erklärbar | Vertrieb → Aufträge → jeweilige Referenz → Zusage |
-| `O09` | Vollständige Lieferung | 5 von 5 Stück versendet | Vertrieb → Aufträge → `O09` → Lieferungen |
-| `O10` | Storno vor Versand | Die Reservierungshistorie bleibt sichtbar | Vertrieb → Aufträge → `O10` → Historie |
-| `O11` | Storno nach Teillieferung | 2 Stück bleiben versendet; der Rest ist storniert | Vertrieb → Aufträge → `O11` → Lieferungen/Historie |
+| `SO-001` | Reservierung | 5 Stück reserviert | Vertrieb → Aufträge → `SO-001` suchen → Position aufklappen |
+| `SO-002` | Bestand ohne Reservierung | 5 bestellt, 10 auf Lager, nichts reserviert | Vertrieb → Aufträge → `SO-002` |
+| `SO-003` | Bestandsengpass | 5 bestellt, aber nur 2 verfügbar | Vertrieb → Aufträge → `SO-003` → Verfügbarkeit |
+| `SO-004` | Teilreservierung | 2 Stück eines überfälligen Auftrags reserviert | Vertrieb → Aufträge → `SO-004` → Reservierungen |
+| `SO-006` | Teillieferung | 3 von 5 Stück versendet; 2 bleiben offen | Vertrieb → Aufträge → `SO-006` → Lieferungen |
+| `SO-007`, `SO-008` | Manuelle Sperre | Die Zusage ist gesperrt und weiter erklärbar | Vertrieb → Aufträge → jeweilige Referenz → Zusage |
+| `SO-009` | Vollständige Lieferung | 5 von 5 Stück versendet | Vertrieb → Aufträge → `SO-009` → Lieferungen |
+| `SO-010` | Storno vor Versand | Die Reservierungshistorie bleibt sichtbar | Vertrieb → Aufträge → `SO-010` → Historie |
+| `SO-011` | Storno nach Teillieferung | 2 Stück bleiben versendet; der Rest ist storniert | Vertrieb → Aufträge → `SO-011` → Lieferungen/Historie |
 
-Die datierten `H-*`-Aufträge und Rechnungen zeigen vergleichbare Mengen-, Preis-,
+Die datierten Aufträge `SO-012` bis `SO-023` und ihre Rechnungen zeigen vergleichbare Mengen-, Preis-,
 Rückgangs-, Ausreißer-, Nullwert- und USD-Zeiträume. Es gibt offene, teilweise und
 vollständig bezahlte Rechnungen.
 
 Aufträge sind Nachweise, kein Lieferstatus. Die Lieferzusage ist ein Commitment,
 Reservierungen sind eigene Datensätze und nur Movements verändern den physischen
-Bestand. Ein Storno von `O10` oder `O11` löscht daher keine bereits erfolgte
+Bestand. Ein Storno von `SO-010` oder `SO-011` löscht daher keine bereits erfolgte
 Reservierung oder Lieferung.
 
 ## Historische Verkäufe und Rechnungen
 
-| Referenz | Angegebener Vorgang | Ausgleich | Zweck |
-| --- | --- | --- | --- |
-| `H-volume-prior` | 10 × `P11`, 200 EUR | Bezahlt | Frühere Mengenbasis |
-| `H-volume-current` | 20 × `P11`, 400 EUR | Bezahlt | Aktueller Mengenvergleich |
-| `H-price-prior` | 10 × `P12`, 200 EUR | Bezahlt | Frühere Preisbasis |
-| `H-price-current` | 10 × `P12`, 250 EUR | Teilbezahlt | Gleiche Menge, höherer Preis |
-| `H-decline-prior` | 20 × `P13`, 300 EUR | Bezahlt | Frühere Nachfragebasis |
-| `H-decline-current` | 5 × `P13`, 75 EUR | 74,50 EUR bezahlt; 0,50 EUR akzeptierter Kleinrest | Sichtbarer Absatzrückgang und expliziter Abschluss |
-| `H-credit-origin` | 10 × `P14`, 120 EUR | Durch Gutschrift ausgeglichen | Ursprung der Vollretoure |
-| `H-outlier-prior` | 10 × `P15`, 50 EUR | Bezahlt | Normaler Vergleichswert |
-| `H-outlier-current` | 1.000 × `P15`, 5.000 EUR | Bezahlt; 10 EUR Kundenguthaben | Bewusster Ausreißer plus Überzahlung |
-| `H-zero-current` | 8 × `P16`, 80 EUR | Offen | Angegebener Vergleich, kein fehlender Wert |
-| `H-usd-prior` | 4 × `P09`, 88 USD | Bezahlt | Frühere Fremdwährungsdaten |
-| `H-usd-current` | 6 × `P09`, 132 USD | Bezahlt | Aktuelle Fremdwährungsdaten |
+| Referenz | Angegebener Vorgang | Ausgleich | Zweck | So findest du es |
+| --- | --- | --- | --- | --- |
+| `SO-012` | 10 × `ITEM-011`, 200 EUR | Bezahlt | Frühere Mengenbasis | Vertrieb → Aufträge → `SO-012` |
+| `SO-013` | 20 × `ITEM-011`, 400 EUR | Bezahlt | Aktueller Mengenvergleich | Vertrieb → Aufträge → `SO-013` |
+| `SO-014` | 10 × `ITEM-012`, 200 EUR | Bezahlt | Frühere Preisbasis | Vertrieb → Aufträge → `SO-014` |
+| `SO-015` | 10 × `ITEM-012`, 250 EUR | Teilbezahlt | Gleiche Menge, höherer Preis | Vertrieb → Aufträge → `SO-015` |
+| `SO-016` | 20 × `ITEM-013`, 300 EUR | Bezahlt | Frühere Nachfragebasis | Vertrieb → Aufträge → `SO-016` |
+| `SO-017` | 5 × `ITEM-013`, 75 EUR | 74,50 EUR bezahlt; 0,50 EUR akzeptierter Kleinrest | Sichtbarer Absatzrückgang und expliziter Abschluss | Vertrieb → Aufträge → `SO-017`; Rechnung öffnen |
+| `SO-018` | 10 × `ITEM-014`, 120 EUR | Durch Gutschrift ausgeglichen | Ursprung der Vollretoure | Vertrieb → Aufträge → `SO-018`; Rechnung/Gutschrift öffnen |
+| `SO-019` | 10 × `ITEM-015`, 50 EUR | Bezahlt | Normaler Vergleichswert | Vertrieb → Aufträge → `SO-019` |
+| `SO-020` | 1.000 × `ITEM-015`, 5.000 EUR | Bezahlt; 10 EUR Kundenguthaben | Bewusster Ausreißer plus Überzahlung | Vertrieb → Aufträge → `SO-020`; Rechnung öffnen |
+| `SO-021` | 8 × `ITEM-016`, 80 EUR | Offen | Angegebener Vergleich, kein fehlender Wert | Vertrieb → Aufträge → `SO-021` |
+| `SO-022` | 4 × `ITEM-009`, 88 USD | Bezahlt | Frühere Fremdwährungsdaten | Vertrieb → Aufträge → `SO-022` |
+| `SO-023` | 6 × `ITEM-009`, 132 USD | Bezahlt | Aktuelle Fremdwährungsdaten | Vertrieb → Aufträge → `SO-023` |
 
 Jeder Fall enthält Auftrag, Liefer-Commitment, datierte Rechnung, Anfangsbestand und
 Versandbewegung. Zahlungen sind eigene Belege und Buchungen: Bezahlt bedeutet nicht
@@ -76,47 +76,47 @@ geliefert, und geliefert bedeutet nicht bezahlt.
 
 ## Kundenretouren und Gutschriften
 
-| Referenz | Was du prüfen kannst | Erwartetes Ergebnis |
-| --- | --- | --- |
-| `H-credit-origin` / `CR-001` | Vollständige Retoure und Gutschrift | 10 von 10 Stück retourniert; 120 EUR zugeordnet |
-| `COST-A` / `COST-LATE-CREDIT` | Teilretoure mit Kosten | 10 von 60 Stück retourniert, mit exakter Kostenherkunft |
+| Referenz | Was du prüfen kannst | Erwartetes Ergebnis | So findest du es |
+| --- | --- | --- | --- |
+| `SO-018` / `CN-001` | Vollständige Retoure und Gutschrift | 10 von 10 Stück retourniert; 120 EUR zugeordnet | Vertrieb → Aufträge → `SO-018`; Rechnung und Gutschrift öffnen |
+| `SO-024` / `CN-002` | Teilretoure mit Kosten | 10 von 60 Stück retourniert, mit exakter Kostenherkunft | Vertrieb → Aufträge → `SO-024`; Rechnung → DB-Erklärung |
 
-`COST-A` ist das ausführliche Retouren- und Deckungsbeitragsbeispiel. Der ursprüngliche
+`SO-024` ist das ausführliche Retouren- und Deckungsbeitragsbeispiel. Der ursprüngliche
 Lagerabgang, die retournierte Bestandsschicht, die Kundengutschrift und die
 Vertriebskosten gehören zu einer gemeinsamen geprüften Kostenbasis.
 
-`CR-001` ist ausdrücklich der ursprünglichen Rechnung zugeordnet; die Forderung ist
-danach null. `COST-LATE-CREDIT` behält für die zehn retournierten Stück exakt die
+`CN-001` ist ausdrücklich der ursprünglichen Rechnung zugeordnet; die Forderung ist
+danach null. `CN-002` behält für die zehn retournierten Stück exakt die
 ursprüngliche Kostenschicht, statt einen neuen Einkaufspreis zu erfinden.
 
 ## Einkauf und Verbindlichkeiten
 
-| Referenz | Wareneingang | Rechnung und Zahlung | Zweck |
-| --- | ---: | --- | --- |
-| `PO-001` / `S01` | 2 von 5 | Keine Rechnung | Teilwareneingang |
-| `PO-002` / `S02` | 5 von 5 | 49 EUR bezahlt + 1 EUR Skonto | Vollständiger Skonto-Ablauf |
-| `PO-003` / `S03` | 0 von 5 | Keine Rechnung | Offene Einkaufsbestellung |
-| `PO-004` / `S04` | 5 von 5 | Teilbezahlt | Teilzahlung an Lieferanten |
-| `PO-005` / `S05` | 5 von 5 | 60 EUR bezahlt auf 50 EUR Rechnung | 10 EUR Lieferantenguthaben |
-| `PO-006` / `S06` | 5 von 5 | Keine Rechnung | Wareneingang wartet auf Rechnung |
-| `PO-007` / `S07` | 5 erhalten, 2 retourniert | `SINV-S07`, `SCN-S07` | Lieferantenretoure mit zugeordneter Gutschrift |
-| `PO-008` / `S08` | 5 erhalten, 1 retourniert | `SINV-S08`, keine Gutschrift | Retoure wartet auf Lieferantengutschrift |
-| `PO-009` / `S09` | Keiner | Keine | Einkaufsstorno vor Wareneingang |
+| Referenz | Wareneingang | Rechnung und Zahlung | Zweck | So findest du es |
+| --- | ---: | --- | --- | --- |
+| `PO-001` | 2 von 5 | Keine Rechnung | Teilwareneingang | Einkauf → Bestellungen → `PO-001` |
+| `PO-002` | 5 von 5 | `SINV-002`, `SPAY-002`: 49 EUR + 1 EUR Skonto | Vollständiger Skonto-Ablauf | Einkauf → `PO-002`; Finance → Verbindlichkeiten → `SINV-002` |
+| `PO-003` | 0 von 5 | Keine Rechnung | Offene Einkaufsbestellung | Einkauf → Bestellungen → `PO-003` |
+| `PO-004` | 5 von 5 | `SINV-004`, `SPAY-004`: teilbezahlt | Teilzahlung an Lieferanten | Finance → Verbindlichkeiten → `SINV-004` |
+| `PO-005` | 5 von 5 | `SINV-005`, `SPAY-005`: 60 EUR auf 50 EUR | 10 EUR Lieferantenguthaben | Finance → Verbindlichkeiten → `SINV-005` |
+| `PO-006` | 5 von 5 | Keine Rechnung | Wareneingang wartet auf Rechnung | Einkauf → Bestellungen → `PO-006` |
+| `PO-007` | 5 erhalten, 2 retourniert | `SINV-007`, `SCN-007` | Lieferantenretoure mit zugeordneter Gutschrift | Einkauf → `PO-007`; Finance → `SINV-007` |
+| `PO-008` | 5 erhalten, 1 retourniert | `SINV-008`, keine Gutschrift | Retoure wartet auf Lieferantengutschrift | Einkauf → `PO-008`; Finance → `SINV-008` |
+| `PO-009` | Keiner | Keine | Einkaufsstorno vor Wareneingang | Einkauf → Bestellungen → `PO-009` |
 
 Ein Lieferanten-Commitment beschreibt die Erwartung, ein Wareneingang die tatsächlich
 erhaltene Menge, eine Eingangsrechnung die Verbindlichkeit und eine Zahlung deren
-Ausgleich. `S06` zeigt, warum erhalten und berechnet getrennte Zustände sind. `S08`
+Ausgleich. `PO-006` zeigt, warum erhalten und berechnet getrennte Zustände sind. `PO-008`
 bleibt bewusst offen, damit „an Lieferanten retourniert, aber nicht gutgeschrieben“
 echte erklärbare Nachweise hat.
 
 ## Skonto, Überzahlungen und akzeptierte Kleinreste
 
-| Fangfrage | Sicherer Demofall | UI-Weg und Suchbegriff | Erwartetes Ergebnis |
+| Fangfrage | Sicherer Demofall | So findest du es | Erwartetes Ergebnis |
 | --- | --- | --- | --- |
-| Wurde Skonto wirklich gebucht? | `SINV-S02` / `PAY-SUPPLIER-DISCOUNT` | Finance → Verbindlichkeiten → `SINV-S02`; danach Zahlung/Zuordnungen öffnen | 49 EUR Bankzahlung plus separat begründete 1-EUR-Skontoanpassung; offen 0 EUR |
-| Was passiert bei Kundenüberzahlung? | Auftrag `H-outlier-current` / `PAY-CUSTOMER-OVERPAYMENT` | Vertrieb → Auftrag suchen → Rechnung öffnen; alternativ Finance → Zahlungen → Zahlungsnummer suchen | 5.000 EUR zugeordnet, 10 EUR als verfügbares Kundenguthaben |
-| Was passiert bei Lieferantenüberzahlung? | `SINV-S05` / `PAY-SUPPLIER-OVERPAYMENT` | Finance → Verbindlichkeiten → `SINV-S05` oder Finance → Zahlungen → Zahlungsnummer | 50 EUR zugeordnet, 10 EUR als verfügbares Lieferantenguthaben |
-| Kann ein alter Kleinrest als erledigt akzeptiert werden? | Auftrag `H-decline-current` / `PAY-CUSTOMER-SMALL-REMAINDER` | Vertrieb → Auftrag suchen → Rechnung öffnen → Ausgleich/Erklärung | 74,50 EUR Zahlung plus eigene 0,50-EUR-Anpassung mit Grund „akzeptierter Kleinrest“; offen 0 EUR |
+| Wurde Skonto wirklich gebucht? | `SINV-002` / `SPAY-002` | Finance → Verbindlichkeiten → `SINV-002`; danach Zahlung/Zuordnungen öffnen | 49 EUR Bankzahlung plus separat begründete 1-EUR-Skontoanpassung; offen 0 EUR |
+| Was passiert bei Kundenüberzahlung? | Auftrag `SO-020` / `CPAY-009` | Vertrieb → Aufträge → `SO-020` → Rechnung; alternativ Finance → Zahlungen → `CPAY-009` | 5.000 EUR zugeordnet, 10 EUR als verfügbares Kundenguthaben |
+| Was passiert bei Lieferantenüberzahlung? | `SINV-005` / `SPAY-005` | Finance → Verbindlichkeiten → `SINV-005`; Zahlung/Zuordnungen öffnen | 50 EUR zugeordnet, 10 EUR als verfügbares Lieferantenguthaben |
+| Kann ein alter Kleinrest als erledigt akzeptiert werden? | Auftrag `SO-017` / `CPAY-006` | Vertrieb → Aufträge → `SO-017` → Rechnung → Ausgleich/Erklärung | 74,50 EUR Zahlung plus eigene 0,50-EUR-Anpassung mit Grund „akzeptierter Kleinrest“; offen 0 EUR |
 
 Eine Unter- oder Überzahlung wird nicht umgedeutet: Die Zahlung zeigt ausschließlich
 das tatsächlich geflossene Geld. Skonto und akzeptierter Kleinrest sind eigene
@@ -125,40 +125,40 @@ zugeordnet oder erstattet werden.
 
 ## Belege in der Basis
 
-| Beleg | Beispiele | Bedeutung |
-| --- | --- | --- |
-| Kundenauftrag | `O01`–`O11`, `H-*`, `COST-*` | Angegebener Kundenbedarf und kaufmännische Positionen |
-| Einkaufsbestellung | `PO-001`–`PO-009` | Bestellung beim Lieferanten |
-| Ausgangsrechnung | `INV-YYYYMMDD-*` | Forderung mit Rechnungspositionen |
-| Eingangsrechnung | `SINV-S02`, `SINV-S04`, `SINV-S05`, `SINV-S07`, `SINV-S08` | Verbindlichkeit unabhängig vom Wareneingang |
-| Kundengutschrift | `CR-001`, `COST-LATE-CREDIT` | Vollständige und teilweise Wertkorrektur |
-| Lieferantengutschrift | `SCN-S07` | Einer Eingangsrechnung zugeordnete Wertkorrektur |
-| Kundenzahlung | `PAY-*` | Vollständiger oder teilweiser Forderungsausgleich |
-| Lieferantenzahlung | `PAY-SUPPLIER-DISCOUNT`, `SPAY-S04`, `PAY-SUPPLIER-OVERPAYMENT` | Skonto-, Teil- und Überzahlung |
+| Beleg | Beispiele | Bedeutung | So findest du es |
+| --- | --- | --- | --- |
+| Kundenauftrag | `SO-001`–`SO-029` | Angegebener Kundenbedarf und kaufmännische Positionen | Vertrieb → Aufträge → `SO-…` suchen |
+| Einkaufsbestellung | `PO-001`–`PO-009` | Bestellung beim Lieferanten | Einkauf → Bestellungen → `PO-…` suchen |
+| Ausgangsrechnung | `INV-YYYYMMDD-*` | Forderung mit Rechnungspositionen | Finance → Forderungen → `INV-…` suchen |
+| Eingangsrechnung | `SINV-002`, `SINV-004`, `SINV-005`, `SINV-007`, `SINV-008`, `SINV-010`, `SINV-011` | Verbindlichkeit unabhängig vom Wareneingang | Finance → Verbindlichkeiten → `SINV-…` suchen |
+| Kundengutschrift | `CN-001`, `CN-002` | Vollständige und teilweise Wertkorrektur | Finance → Forderungen → `CN-…` suchen |
+| Lieferantengutschrift | `SCN-007` | Einer Eingangsrechnung zugeordnete Wertkorrektur | Finance → Verbindlichkeiten → `SCN-007` suchen |
+| Kundenzahlung | `CPAY-001` ff. | Vollständiger oder teilweiser Forderungsausgleich | Finance → Zahlungen → `CPAY-…` suchen |
+| Lieferantenzahlung | `SPAY-002`, `SPAY-004`, `SPAY-005` | Skonto-, Teil- und Überzahlung | Finance → Zahlungen → `SPAY-…` suchen |
 
 Alle Belege tragen ein Belegdatum. Lesbare Nummern helfen bei der Suche; die echte
 Identität bleibt eine mandantenspezifische, nicht sprechende ID.
 
 ## Physische Bewegungen in der Basis
 
-| Bewegung | Beispiele | Physischer Effekt |
-| --- | --- | --- |
-| Anfangsbestand | `opening-P01`, historische und Kosten-Anfangsbestände | Fügt eine angegebene Startmenge hinzu |
-| Wareneingang | `purchase-receipt-S01`–`S08` | Fügt erhaltene Lieferantenware hinzu |
-| Versand | `shipment-P06`, `shipment-P09`, `H-*`, `COST-*` | Entfernt an Kunden versendete Ware |
-| Kundenretoure | `return-001`, `COST-LATE-RETURN` | Fügt zuvor versendete Ware wieder hinzu |
-| Lieferantenretoure | `supplier-return-S07`, `supplier-return-S08` | Entfernt an den Lieferanten zurückgesendete Ware |
-| Korrektur | Korrekturpaar bei `P16` | Bewahrt das Original und erfasst die Korrektur |
+| Bewegung | Beispiele | Physischer Effekt | So findest du es |
+| --- | --- | --- | --- |
+| Anfangsbestand | Artikelbestand | Fügt eine angegebene Startmenge hinzu | Lager → Artikel → z. B. `ITEM-001` → Bewegungen |
+| Wareneingang | Zu `PO-001`–`PO-008` | Fügt erhaltene Lieferantenware hinzu | Einkauf → Bestellung öffnen → Wareneingang; alternativ Lager → Artikel |
+| Versand | Zu `SO-006`, `SO-009` und historischen Aufträgen | Entfernt an Kunden versendete Ware | Vertrieb → Auftrag öffnen → Lieferungen |
+| Kundenretoure | Zu `SO-018`, `SO-024` | Fügt zuvor versendete Ware wieder hinzu | Vertrieb → Auftrag → Rechnung/Gutschrift; Lager → Artikelbewegungen |
+| Lieferantenretoure | Zu `PO-007`, `PO-008` | Entfernt an den Lieferanten zurückgesendete Ware | Einkauf → Bestellung → Bewegungen |
+| Korrektur | Bei `ITEM-016` | Bewahrt das Original und erfasst die Korrektur | Lager → Artikel → `ITEM-016` → Bewegungen |
 
 Bestand ist die vorzeichenrichtige Summe dieser Bewegungen je Lagerort. Kein
 Rechnungs- oder Belegstatus besitzt die physische Menge.
 
 ## Lager, Deckungsbeitrag und Finance
 
-- `P08` hat Bestand im anderen Lager und zeigt einen lagerortspezifischen Engpass.
-- `P16` enthält eine nachvollziehbare Bewegungskorrektur.
-- `COST-A` verbindet Einkauf, Bestand, Verkauf, Retoure und Vertriebskosten.
-- Die fünf `COST-PORTFOLIO-*`-Fälle zeigen gesunde, niedrige, negative, explizit null
+- `ITEM-008` hat Bestand im anderen Lager und zeigt einen lagerortspezifischen Engpass.
+- `ITEM-016` enthält eine nachvollziehbare Bewegungskorrektur.
+- `SO-024` verbindet Einkauf, Bestand, Verkauf, Retoure und Vertriebskosten.
+- Die Aufträge `SO-025` bis `SO-029` zeigen gesunde, niedrige, negative, explizit null
   gesetzte und stark durch Umlagen belastete DB2-Ergebnisse.
 - Fehlende Nachweise bleiben als **Nicht nachgewiesen** sichtbar. 0 EUR erscheint nur,
   wenn null ausdrücklich angegeben oder geprüft wurde.
@@ -166,14 +166,14 @@ Rechnungs- oder Belegstatus besitzt die physische Menge.
 
 ### Exakte DB1- und DB2-Beispiele
 
-| Fall | Umsatz | Wareneinsatz | DB1 | Vertriebskosten | DB2 | Quote |
-| --- | ---: | ---: | ---: | ---: | ---: | ---: |
-| `COST-A` | 1.200 EUR | 630 EUR | 570 EUR | 114 EUR | 456 EUR | 38 % |
-| `COST-PORTFOLIO-HEALTHY` | 250 EUR | 100 EUR | 150 EUR | 25 EUR | 125 EUR | 50 % |
-| `COST-PORTFOLIO-LOW` | 150 EUR | 100 EUR | 50 EUR | 40 EUR | 10 EUR | 6,6667 % |
-| `COST-PORTFOLIO-NEGATIVE` | 130 EUR | 100 EUR | 30 EUR | 60 EUR | −30 EUR | −23,0769 % |
-| `COST-PORTFOLIO-ZERO-SELLING` | 180 EUR | 100 EUR | 80 EUR | 0 EUR | 80 EUR | 44,4444 % |
-| `COST-PORTFOLIO-ALLOCATED-HEAVY` | 220 EUR | 100 EUR | 120 EUR | 60 EUR | 60 EUR | 27,2727 % |
+| Fall | Umsatz | Wareneinsatz | DB1 | Vertriebskosten | DB2 | Quote | So findest du es |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | --- |
+| `SO-024` | 1.200 EUR | 630 EUR | 570 EUR | 114 EUR | 456 EUR | 38 % | Vertrieb → Aufträge → `SO-024` → Rechnung → DB-Erklärung |
+| `SO-025` | 250 EUR | 100 EUR | 150 EUR | 25 EUR | 125 EUR | 50 % | Vertrieb → Aufträge → `SO-025` → Rechnung → DB-Erklärung |
+| `SO-026` | 150 EUR | 100 EUR | 50 EUR | 40 EUR | 10 EUR | 6,6667 % | Vertrieb → Aufträge → `SO-026` → Rechnung → DB-Erklärung |
+| `SO-027` | 130 EUR | 100 EUR | 30 EUR | 60 EUR | −30 EUR | −23,0769 % | Vertrieb → Aufträge → `SO-027` → Rechnung → DB-Erklärung |
+| `SO-028` | 180 EUR | 100 EUR | 80 EUR | 0 EUR | 80 EUR | 44,4444 % | Vertrieb → Aufträge → `SO-028` → Rechnung → DB-Erklärung |
+| `SO-029` | 220 EUR | 100 EUR | 120 EUR | 60 EUR | 60 EUR | 27,2727 % | Vertrieb → Aufträge → `SO-029` → Rechnung → DB-Erklärung |
 
 Beim Nullkostenfall wurden 0 EUR ausdrücklich geprüft; der Wert fehlt nicht. Jede
 vorbereitete Ausgangsrechnungsposition besitzt eine geprüfte DB-Basis. **Nicht
@@ -182,32 +182,32 @@ umgewandelt hat.
 
 ## Abdeckung und bewusste Lücken
 
-| Typischer Prozess | Enthalten | Nachweis oder Einschränkung |
-| --- | --- | --- |
-| Offener Auftrag, Engpass und Reservierung | Ja | `O01`–`O05` |
-| Teil-/Vollauslieferung und Sperre | Ja | `O06`–`O09` |
-| Storno vor/nach Versand | Ja | `O10`, `O11` |
-| Offene, teilweise und bezahlte Forderung | Ja | `H-*`, `PAY-*` |
-| Skonto mit eigener Reduktionsbuchung | Ja | `SINV-S02`, `PAY-SUPPLIER-DISCOUNT` |
-| Kunden- und Lieferantenüberzahlung/Guthaben | Ja | `PAY-CUSTOMER-OVERPAYMENT`, `PAY-SUPPLIER-OVERPAYMENT` |
-| Akzeptierter Kleinrest | Ja | `PAY-CUSTOMER-SMALL-REMAINDER` |
-| Vollständige und teilweise Kundenretoure/-gutschrift | Ja | `CR-001`, `COST-LATE-CREDIT` |
-| Kein, teilweiser und vollständiger Wareneingang | Ja | `S01`–`S03` |
-| Wareneingang ohne Rechnung | Ja | `S06` |
-| Offene, teilweise und bezahlte Verbindlichkeit | Ja | `S05`, `S04`, `S02` |
-| Lieferantenretoure mit/ohne Gutschrift | Ja | `S07`, `S08` |
-| Einkaufsstorno vor Wareneingang | Ja | `S09` |
-| Lagerortengpass und Korrektur | Ja | `P08`, `P16` |
-| Vollständige DB1-/DB2-Erklärungen | Ja | `COST-A`, `COST-PORTFOLIO-*` |
-| Reine Preisgutschrift | Nein | Nicht in Profilversion 5 |
-| Umtausch oder Ersatzlieferung | Nein | Nicht in Profilversion 5 |
-| Rechnungsstorno/Gegenbuchung | Nein | Nicht in Profilversion 5 |
-| Mehrere Teilrechnungen je Auftrag | Nein | Nicht in Profilversion 5 |
-| Überlieferung/endgültige Unterlieferung | Nein | Nicht in Profilversion 5 |
-| Umlagerung, Schaden, Verlust oder Verschrottung | Nein | Nicht in Profilversion 5 |
-| Chargen, Seriennummern oder Ablaufdaten | Nein | Nicht in Profilversion 5 |
-| Anzahlungen, Mahnungen oder Forderungsausfall | Nein | Nicht in Profilversion 5 |
-| Bankabstimmung, Steuer oder Währungsneubewertung | Nein | Nicht in Profilversion 5 |
+| Typischer Prozess | Enthalten | Nachweis oder Einschränkung | So findest du es |
+| --- | --- | --- | --- |
+| Offener Auftrag, Engpass und Reservierung | Ja | `SO-001`–`SO-005` | Vertrieb → Aufträge → Referenz suchen |
+| Teil-/Vollauslieferung und Sperre | Ja | `SO-006`–`SO-009` | Vertrieb → Aufträge → Referenz suchen |
+| Storno vor/nach Versand | Ja | `SO-010`, `SO-011` | Vertrieb → Aufträge → Referenz → Historie |
+| Offene, teilweise und bezahlte Forderung | Ja | `SO-012`–`SO-023`, `CPAY-*` | Vertrieb → Auftrag → Rechnung; Finance → Forderungen |
+| Skonto mit eigener Reduktionsbuchung | Ja | `SINV-002`, `SPAY-002` | Finance → Verbindlichkeiten → `SINV-002` |
+| Kunden- und Lieferantenüberzahlung/Guthaben | Ja | `CPAY-009`, `SPAY-005` | Finance → Zahlungen → Referenz suchen |
+| Akzeptierter Kleinrest | Ja | `CPAY-006` | Vertrieb → `SO-017` → Rechnung → Ausgleich |
+| Vollständige und teilweise Kundenretoure/-gutschrift | Ja | `CN-001`, `CN-002` | Finance → Forderungen → Gutschriftnummer suchen |
+| Kein, teilweiser und vollständiger Wareneingang | Ja | `PO-001`–`PO-003` | Einkauf → Bestellungen → Referenz suchen |
+| Wareneingang ohne Rechnung | Ja | `PO-006` | Einkauf → Bestellungen → `PO-006` |
+| Offene, teilweise und bezahlte Verbindlichkeit | Ja | `SINV-005`, `SINV-004`, `SINV-002` | Finance → Verbindlichkeiten → Referenz suchen |
+| Lieferantenretoure mit/ohne Gutschrift | Ja | `PO-007`, `PO-008` | Einkauf → Bestellungen → Referenz öffnen |
+| Einkaufsstorno vor Wareneingang | Ja | `PO-009` | Einkauf → Bestellungen → `PO-009` |
+| Lagerortengpass und Korrektur | Ja | `ITEM-008`, `ITEM-016` | Lager → Artikel → Referenz suchen |
+| Vollständige DB1-/DB2-Erklärungen | Ja | `SO-024`–`SO-029` | Vertrieb → Auftrag → Rechnung → DB-Erklärung |
+| Reine Preisgutschrift | Nein | Nicht in Profilversion 6 | Nicht vorhanden; siehe Einschränkung |
+| Umtausch oder Ersatzlieferung | Nein | Nicht in Profilversion 6 | Nicht vorhanden; siehe Einschränkung |
+| Rechnungsstorno/Gegenbuchung | Nein | Nicht in Profilversion 6 | Nicht vorhanden; siehe Einschränkung |
+| Mehrere Teilrechnungen je Auftrag | Nein | Nicht in Profilversion 6 | Nicht vorhanden; siehe Einschränkung |
+| Überlieferung/endgültige Unterlieferung | Nein | Nicht in Profilversion 6 | Nicht vorhanden; siehe Einschränkung |
+| Umlagerung, Schaden, Verlust oder Verschrottung | Nein | Nicht in Profilversion 6 | Nicht vorhanden; siehe Einschränkung |
+| Chargen, Seriennummern oder Ablaufdaten | Nein | Nicht in Profilversion 6 | Nicht vorhanden; siehe Einschränkung |
+| Anzahlungen, Mahnungen oder Forderungsausfall | Nein | Nicht in Profilversion 6 | Nicht vorhanden; siehe Einschränkung |
+| Bankabstimmung, Steuer oder Währungsneubewertung | Nein | Nicht in Profilversion 6 | Nicht vorhanden; siehe Einschränkung |
 
 ## Stabile Basis und Live-Daten
 

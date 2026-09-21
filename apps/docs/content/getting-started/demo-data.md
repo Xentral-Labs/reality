@@ -10,18 +10,18 @@ that the source stated no due date; it never means that the document is dateless
 
 ## Company and how to use the references
 
-The baseline contains 16 items (`P01`–`P16`), 20 customers, three suppliers and the
+The baseline contains 16 items (`ITEM-001`–`ITEM-016`), 20 customers, three suppliers and the
 Rotterdam and Singapore warehouses. Quantities use pieces, metres or kilograms. Most
 trades use EUR; two invoices deliberately use USD to keep currencies separate.
 
 Search each reference in its matching view:
 
-- **Sales → Orders:** search for `O01`, `O11`, `H-decline-current` or `COST-A`.
+- **Sales → Orders:** search for `SO-001`, `SO-011`, `SO-017` or `SO-024`.
 - **Purchasing → Orders:** search for `PO-001` through `PO-009`.
 - **Finance → Receivables/Payables:** search for an `INV-*`/`SINV-*` number, party or
-  one of the exact `PAY-*` references below.
-- **Warehouse:** open an item such as `P08` or `P16`, then expand stock and movements.
-- **Analytics/Contribution:** search for `COST-A` or `COST-PORTFOLIO-HEALTHY`, then
+  one of the exact `CPAY-*`/`SPAY-*` references below.
+- **Warehouse:** open an item such as `ITEM-008` or `ITEM-016`, then expand stock and movements.
+- **Analytics/Contribution:** search for `SO-024` or `SO-025`, then
   open the explanation below the invoice line.
 
 When an invoice number differs from its order number, start at the order and follow
@@ -32,40 +32,40 @@ document evidence and original synthetic source payload.
 
 | Reference | What to inspect | Expected result | How to find it |
 | --- | --- | --- | --- |
-| `O01` | Reservation | 5 pcs reserved | Sales → Orders → search `O01` → expand the line |
-| `O02` | Stock without reservation | 5 ordered, 10 in stock, nothing reserved | Sales → Orders → `O02` |
-| `O03` | Stock shortage | 5 ordered but only 2 available | Sales → Orders → `O03` → availability |
-| `O04` | Partial reservation | 2 pcs reserved on an overdue order | Sales → Orders → `O04` → reservations |
-| `O06` | Partial delivery | 3 of 5 pcs shipped; 2 remain open | Sales → Orders → `O06` → deliveries |
-| `O07`, `O08` | Manual hold | The commitment is held and remains explainable | Sales → Orders → reference → commitment |
-| `O09` | Complete delivery | 5 of 5 pcs shipped | Sales → Orders → `O09` → deliveries |
-| `O10` | Cancellation before shipment | Reservation history remains visible | Sales → Orders → `O10` → history |
-| `O11` | Cancellation after partial shipment | 2 pcs stay shipped; the remainder is cancelled | Sales → Orders → `O11` → deliveries/history |
+| `SO-001` | Reservation | 5 pcs reserved | Sales → Orders → search `SO-001` → expand the line |
+| `SO-002` | Stock without reservation | 5 ordered, 10 in stock, nothing reserved | Sales → Orders → `SO-002` |
+| `SO-003` | Stock shortage | 5 ordered but only 2 available | Sales → Orders → `SO-003` → availability |
+| `SO-004` | Partial reservation | 2 pcs reserved on an overdue order | Sales → Orders → `SO-004` → reservations |
+| `SO-006` | Partial delivery | 3 of 5 pcs shipped; 2 remain open | Sales → Orders → `SO-006` → deliveries |
+| `SO-007`, `SO-008` | Manual hold | The commitment is held and remains explainable | Sales → Orders → reference → commitment |
+| `SO-009` | Complete delivery | 5 of 5 pcs shipped | Sales → Orders → `SO-009` → deliveries |
+| `SO-010` | Cancellation before shipment | Reservation history remains visible | Sales → Orders → `SO-010` → history |
+| `SO-011` | Cancellation after partial shipment | 2 pcs stay shipped; the remainder is cancelled | Sales → Orders → `SO-011` → deliveries/history |
 
-The dated `H-*` orders and invoices provide comparable volume, price, decline,
+The dated orders `SO-012` through `SO-023` and their invoices provide comparable volume, price, decline,
 outlier, zero-value and USD periods. Their invoices include open, partly paid and paid
 examples.
 
 Orders are evidence, not fulfilment state. A delivery promise is a Commitment,
 reservations are separate records, and only Movements change physical stock. Cancelling
-`O10` or `O11` therefore never erases a reservation or shipment that already happened.
+`SO-010` or `SO-011` therefore never erases a reservation or shipment that already happened.
 
 ## Historical sales and invoices
 
-| Reference | Stated trade | Settlement | Purpose |
-| --- | --- | --- | --- |
-| `H-volume-prior` | 10 × `P11`, EUR 200 | Paid | Earlier quantity baseline |
-| `H-volume-current` | 20 × `P11`, EUR 400 | Paid | Current volume comparison |
-| `H-price-prior` | 10 × `P12`, EUR 200 | Paid | Earlier price baseline |
-| `H-price-current` | 10 × `P12`, EUR 250 | Partly paid | Same quantity, higher price |
-| `H-decline-prior` | 20 × `P13`, EUR 300 | Paid | Earlier demand baseline |
-| `H-decline-current` | 5 × `P13`, EUR 75 | EUR 74.50 paid; EUR 0.50 accepted remainder | Sales decline and explicit closure |
-| `H-credit-origin` | 10 × `P14`, EUR 120 | Settled by credit | Complete return origin |
-| `H-outlier-prior` | 10 × `P15`, EUR 50 | Paid | Ordinary comparison value |
-| `H-outlier-current` | 1,000 × `P15`, EUR 5,000 | Paid; EUR 10 customer credit | Deliberate outlier plus overpayment |
-| `H-zero-current` | 8 × `P16`, EUR 80 | Open | Authored comparison, not missing money |
-| `H-usd-prior` | 4 × `P09`, USD 88 | Paid | Earlier foreign-currency evidence |
-| `H-usd-current` | 6 × `P09`, USD 132 | Paid | Current foreign-currency evidence |
+| Reference | Stated trade | Settlement | Purpose | How to find it |
+| --- | --- | --- | --- | --- |
+| `SO-012` | 10 × `ITEM-011`, EUR 200 | Paid | Earlier quantity baseline | Sales → Orders → `SO-012` |
+| `SO-013` | 20 × `ITEM-011`, EUR 400 | Paid | Current volume comparison | Sales → Orders → `SO-013` |
+| `SO-014` | 10 × `ITEM-012`, EUR 200 | Paid | Earlier price baseline | Sales → Orders → `SO-014` |
+| `SO-015` | 10 × `ITEM-012`, EUR 250 | Partly paid | Same quantity, higher price | Sales → Orders → `SO-015` |
+| `SO-016` | 20 × `ITEM-013`, EUR 300 | Paid | Earlier demand baseline | Sales → Orders → `SO-016` |
+| `SO-017` | 5 × `ITEM-013`, EUR 75 | EUR 74.50 paid; EUR 0.50 accepted remainder | Sales decline and explicit closure | Sales → Orders → `SO-017`; open invoice |
+| `SO-018` | 10 × `ITEM-014`, EUR 120 | Settled by credit | Complete return origin | Sales → Orders → `SO-018`; open invoice/credit |
+| `SO-019` | 10 × `ITEM-015`, EUR 50 | Paid | Ordinary comparison value | Sales → Orders → `SO-019` |
+| `SO-020` | 1,000 × `ITEM-015`, EUR 5,000 | Paid; EUR 10 customer credit | Deliberate outlier plus overpayment | Sales → Orders → `SO-020`; open invoice |
+| `SO-021` | 8 × `ITEM-016`, EUR 80 | Open | Authored comparison, not missing money | Sales → Orders → `SO-021` |
+| `SO-022` | 4 × `ITEM-009`, USD 88 | Paid | Earlier foreign-currency evidence | Sales → Orders → `SO-022` |
+| `SO-023` | 6 × `ITEM-009`, USD 132 | Paid | Current foreign-currency evidence | Sales → Orders → `SO-023` |
 
 Each case has an order, customer delivery Commitment, dated invoice, opening-stock
 Movement and shipment Movement. Payments are separate documents and ledger postings:
@@ -73,46 +73,46 @@ paid does not mean delivered, and delivered does not mean paid.
 
 ## Customer returns and credits
 
-| Reference | What to inspect | Expected result |
-| --- | --- | --- |
-| `H-credit-origin` / `CR-001` | Complete return and credit | 10 of 10 pcs returned; EUR 120 credit allocated |
-| `COST-A` / `COST-LATE-CREDIT` | Partial return with costs | 10 of 60 pcs returned with exact retained cost lineage |
+| Reference | What to inspect | Expected result | How to find it |
+| --- | --- | --- | --- |
+| `SO-018` / `CN-001` | Complete return and credit | 10 of 10 pcs returned; EUR 120 credit allocated | Sales → Orders → `SO-018`; open invoice and credit |
+| `SO-024` / `CN-002` | Partial return with costs | 10 of 60 pcs returned with exact retained cost lineage | Sales → Orders → `SO-024`; invoice → contribution explanation |
 
-`COST-A` is the detailed return-and-margin example. It connects the original inventory
+`SO-024` is the detailed return-and-margin example. It connects the original inventory
 issue, returned inventory slice, customer credit and selling costs under one reviewed
 cost boundary.
 
-`CR-001` is explicitly allocated to its invoice, leaving no receivable. The partial
-`COST-LATE-CREDIT` retains the exact cost slice of the ten returned units instead of
+`CN-001` is explicitly allocated to its invoice, leaving no receivable. The partial
+`CN-002` retains the exact cost slice of the ten returned units instead of
 inventing a new acquisition value.
 
 ## Purchasing and payables
 
-| Reference | Receipt | Invoice and payment | Purpose |
-| --- | ---: | --- | --- |
-| `PO-001` / `S01` | 2 of 5 | No invoice | Partial receipt |
-| `PO-002` / `S02` | 5 of 5 | EUR 49 paid + EUR 1 discount | Complete discount settlement |
-| `PO-003` / `S03` | 0 of 5 | No invoice | Open purchase order |
-| `PO-004` / `S04` | 5 of 5 | Partly paid | Partial supplier payment |
-| `PO-005` / `S05` | 5 of 5 | EUR 60 paid against EUR 50 | EUR 10 supplier credit |
-| `PO-006` / `S06` | 5 of 5 | No invoice | Receipt awaiting invoice |
-| `PO-007` / `S07` | 5 received, 2 returned | `SINV-S07`, `SCN-S07` | Supplier return with allocated credit |
-| `PO-008` / `S08` | 5 received, 1 returned | `SINV-S08`, no credit | Return awaiting supplier credit |
-| `PO-009` / `S09` | None | None | Purchase cancelled before receipt |
+| Reference | Receipt | Invoice and payment | Purpose | How to find it |
+| --- | ---: | --- | --- | --- |
+| `PO-001` | 2 of 5 | No invoice | Partial receipt | Purchasing → Orders → `PO-001` |
+| `PO-002` | 5 of 5 | `SINV-002`, `SPAY-002`: EUR 49 + EUR 1 discount | Complete discount settlement | Purchasing → `PO-002`; Finance → Payables → `SINV-002` |
+| `PO-003` | 0 of 5 | No invoice | Open purchase order | Purchasing → Orders → `PO-003` |
+| `PO-004` | 5 of 5 | `SINV-004`, `SPAY-004`: partly paid | Partial supplier payment | Finance → Payables → `SINV-004` |
+| `PO-005` | 5 of 5 | `SINV-005`, `SPAY-005`: EUR 60 against EUR 50 | EUR 10 supplier credit | Finance → Payables → `SINV-005` |
+| `PO-006` | 5 of 5 | No invoice | Receipt awaiting invoice | Purchasing → Orders → `PO-006` |
+| `PO-007` | 5 received, 2 returned | `SINV-007`, `SCN-007` | Supplier return with allocated credit | Purchasing → `PO-007`; Finance → `SINV-007` |
+| `PO-008` | 5 received, 1 returned | `SINV-008`, no credit | Return awaiting supplier credit | Purchasing → `PO-008`; Finance → `SINV-008` |
+| `PO-009` | None | None | Purchase cancelled before receipt | Purchasing → Orders → `PO-009` |
 
 A supplier Commitment records what is expected, a receipt records what arrived, an
-invoice creates the payable, and a payment settles it. `S06` proves why received and
-invoiced are different states. `S08` intentionally remains unresolved so “returned to
+invoice creates the payable, and a payment settles it. `PO-006` proves why received and
+invoiced are different states. `PO-008` intentionally remains unresolved so “returned to
 supplier and not credited” has real evidence to explain.
 
 ## Discounts, overpayments and accepted small remainders
 
-| Sales-demo question | Guaranteed case | UI path and search | Expected result |
+| Sales-demo question | Guaranteed case | How to find it | Expected result |
 | --- | --- | --- | --- |
-| Was the discount actually posted? | `SINV-S02` / `PAY-SUPPLIER-DISCOUNT` | Finance → Payables → `SINV-S02`; open payment/allocation details | EUR 49 cash plus a separately evidenced EUR 1 discount adjustment; open EUR 0 |
-| What happens when a customer overpays? | Order `H-outlier-current` / `PAY-CUSTOMER-OVERPAYMENT` | Sales → find order → open invoice; or Finance → Payments → payment reference | EUR 5,000 allocated and EUR 10 available customer credit |
-| What happens when we overpay a supplier? | `SINV-S05` / `PAY-SUPPLIER-OVERPAYMENT` | Finance → Payables → `SINV-S05`; or Finance → Payments → payment reference | EUR 50 allocated and EUR 10 available supplier credit |
-| Can an old immaterial remainder be accepted? | Order `H-decline-current` / `PAY-CUSTOMER-SMALL-REMAINDER` | Sales → find order → open invoice → settlement explanation | EUR 74.50 cash plus a separate EUR 0.50 accepted-small-remainder adjustment; open EUR 0 |
+| Was the discount actually posted? | `SINV-002` / `SPAY-002` | Finance → Payables → `SINV-002`; open payment/allocation details | EUR 49 cash plus a separately evidenced EUR 1 discount adjustment; open EUR 0 |
+| What happens when a customer overpays? | Order `SO-020` / `CPAY-009` | Sales → Orders → `SO-020` → invoice; or Finance → Payments → `CPAY-009` | EUR 5,000 allocated and EUR 10 available customer credit |
+| What happens when we overpay a supplier? | `SINV-005` / `SPAY-005` | Finance → Payables → `SINV-005`; open payment/allocation details | EUR 50 allocated and EUR 10 available supplier credit |
+| Can an old immaterial remainder be accepted? | Order `SO-017` / `CPAY-006` | Sales → Orders → `SO-017` → invoice → settlement explanation | EUR 74.50 cash plus a separate EUR 0.50 accepted-small-remainder adjustment; open EUR 0 |
 
 A payment difference is never silently reinterpreted. The payment states only the cash
 that moved. Discount and accepted remainder are separate reasoned postings; an
@@ -120,40 +120,40 @@ overpayment remains available credit for later allocation or refund.
 
 ## Documents in the baseline
 
-| Document | Examples | Meaning |
-| --- | --- | --- |
-| Sales order | `O01`–`O11`, `H-*`, `COST-*` | Stated customer demand and commercial lines |
-| Purchase order | `PO-001`–`PO-009` | Order placed with a supplier |
-| Sales invoice | `INV-YYYYMMDD-*` | Customer receivable backed by invoice lines |
-| Supplier invoice | `SINV-S02`, `SINV-S04`, `SINV-S05`, `SINV-S07`, `SINV-S08` | Payable independent of receipt state |
-| Customer credit note | `CR-001`, `COST-LATE-CREDIT` | Full and partial customer value reversal |
-| Supplier credit note | `SCN-S07` | Supplier value reversal allocated to its invoice |
-| Customer payment | `PAY-*` | Full or partial receivable settlement |
-| Supplier payment | `PAY-SUPPLIER-DISCOUNT`, `SPAY-S04`, `PAY-SUPPLIER-OVERPAYMENT` | Discount, partial and overpayment examples |
+| Document | Examples | Meaning | How to find it |
+| --- | --- | --- | --- |
+| Sales order | `SO-001`–`SO-029` | Stated customer demand and commercial lines | Sales → Orders → search `SO-…` |
+| Purchase order | `PO-001`–`PO-009` | Order placed with a supplier | Purchasing → Orders → search `PO-…` |
+| Sales invoice | `INV-YYYYMMDD-*` | Customer receivable backed by invoice lines | Finance → Receivables → search `INV-…` |
+| Supplier invoice | `SINV-002`, `SINV-004`, `SINV-005`, `SINV-007`, `SINV-008`, `SINV-010`, `SINV-011` | Payable independent of receipt state | Finance → Payables → search `SINV-…` |
+| Customer credit note | `CN-001`, `CN-002` | Full and partial customer value reversal | Finance → Receivables → search `CN-…` |
+| Supplier credit note | `SCN-007` | Supplier value reversal allocated to its invoice | Finance → Payables → search `SCN-007` |
+| Customer payment | `CPAY-001` onward | Full or partial receivable settlement | Finance → Payments → search `CPAY-…` |
+| Supplier payment | `SPAY-002`, `SPAY-004`, `SPAY-005` | Discount, partial and overpayment examples | Finance → Payments → search `SPAY-…` |
 
 All carry a document date. Their readable numbers help search; opaque tenant-scoped IDs
 remain the actual identity.
 
 ## Physical movements in the baseline
 
-| Movement | Examples | Physical effect |
-| --- | --- | --- |
-| Opening stock | `opening-P01`, history and cost openings | Adds a stated starting quantity |
-| Receipt | `purchase-receipt-S01`–`S08` | Adds goods received from a supplier |
-| Shipment | `shipment-P06`, `shipment-P09`, `H-*`, `COST-*` | Removes goods sent to a customer |
-| Customer return | `return-001`, `COST-LATE-RETURN` | Adds previously shipped goods back |
-| Supplier return | `supplier-return-S07`, `supplier-return-S08` | Removes goods sent back to a supplier |
-| Correction | `P16` correction pair | Keeps the original and records its correction |
+| Movement | Examples | Physical effect | How to find it |
+| --- | --- | --- | --- |
+| Opening stock | Item stock | Adds a stated starting quantity | Warehouse → Items → e.g. `ITEM-001` → movements |
+| Receipt | For `PO-001`–`PO-008` | Adds goods received from a supplier | Purchasing → order → receipt; or Warehouse → item |
+| Shipment | For `SO-006`, `SO-009` and historical orders | Removes goods sent to a customer | Sales → order → deliveries |
+| Customer return | For `SO-018`, `SO-024` | Adds previously shipped goods back | Sales → order → invoice/credit; Warehouse → item movements |
+| Supplier return | For `PO-007`, `PO-008` | Removes goods sent back to a supplier | Purchasing → order → movements |
+| Correction | On `ITEM-016` | Keeps the original and records its correction | Warehouse → Items → `ITEM-016` → movements |
 
 Stock is the signed result of these movements per location. No invoice or document
 status owns the physical quantity.
 
 ## Inventory, contribution and finance
 
-- `P08` has stock in the other warehouse and demonstrates a location-specific shortage.
-- `P16` contains a traceable movement correction.
-- `COST-A` is a complete acquisition, inventory, sale, return and selling-cost story.
-- The five `COST-PORTFOLIO-*` cases show healthy, low, negative, explicitly zero and
+- `ITEM-008` has stock in the other warehouse and demonstrates a location-specific shortage.
+- `ITEM-016` contains a traceable movement correction.
+- `SO-024` is a complete acquisition, inventory, sale, return and selling-cost story.
+- Orders `SO-025` through `SO-029` show healthy, low, negative, explicitly zero and
   allocation-heavy DB2 outcomes.
 - Missing evidence remains **Not evidenced**. EUR 0 appears only when zero was stated or
   explicitly reviewed.
@@ -161,14 +161,14 @@ status owns the physical quantity.
 
 ### Exact DB1 and DB2 examples
 
-| Case | Revenue | Goods cost | DB1 | Selling costs | DB2 | Rate |
-| --- | ---: | ---: | ---: | ---: | ---: | ---: |
-| `COST-A` | EUR 1,200 | EUR 630 | EUR 570 | EUR 114 | EUR 456 | 38% |
-| `COST-PORTFOLIO-HEALTHY` | EUR 250 | EUR 100 | EUR 150 | EUR 25 | EUR 125 | 50% |
-| `COST-PORTFOLIO-LOW` | EUR 150 | EUR 100 | EUR 50 | EUR 40 | EUR 10 | 6.6667% |
-| `COST-PORTFOLIO-NEGATIVE` | EUR 130 | EUR 100 | EUR 30 | EUR 60 | EUR −30 | −23.0769% |
-| `COST-PORTFOLIO-ZERO-SELLING` | EUR 180 | EUR 100 | EUR 80 | EUR 0 | EUR 80 | 44.4444% |
-| `COST-PORTFOLIO-ALLOCATED-HEAVY` | EUR 220 | EUR 100 | EUR 120 | EUR 60 | EUR 60 | 27.2727% |
+| Case | Revenue | Goods cost | DB1 | Selling costs | DB2 | Rate | How to find it |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | --- |
+| `SO-024` | EUR 1,200 | EUR 630 | EUR 570 | EUR 114 | EUR 456 | 38% | Sales → Orders → `SO-024` → invoice → contribution explanation |
+| `SO-025` | EUR 250 | EUR 100 | EUR 150 | EUR 25 | EUR 125 | 50% | Sales → Orders → `SO-025` → invoice → contribution explanation |
+| `SO-026` | EUR 150 | EUR 100 | EUR 50 | EUR 40 | EUR 10 | 6.6667% | Sales → Orders → `SO-026` → invoice → contribution explanation |
+| `SO-027` | EUR 130 | EUR 100 | EUR 30 | EUR 60 | EUR −30 | −23.0769% | Sales → Orders → `SO-027` → invoice → contribution explanation |
+| `SO-028` | EUR 180 | EUR 100 | EUR 80 | EUR 0 | EUR 80 | 44.4444% | Sales → Orders → `SO-028` → invoice → contribution explanation |
+| `SO-029` | EUR 220 | EUR 100 | EUR 120 | EUR 60 | EUR 60 | 27.2727% | Sales → Orders → `SO-029` → invoice → contribution explanation |
 
 The zero-selling case is an explicitly reviewed zero, not missing evidence. Every
 seeded sales invoice line has a reviewed contribution basis. **Not evidenced** means
@@ -176,32 +176,32 @@ Reality refused to turn missing evidence into EUR 0.
 
 ## Coverage and deliberate gaps
 
-| Typical process | Included | Evidence or limitation |
-| --- | --- | --- |
-| Open order, shortage and reservation | Yes | `O01`–`O05` |
-| Partial/complete delivery and manual hold | Yes | `O06`–`O09` |
-| Cancellation before/after shipment | Yes | `O10`, `O11` |
-| Open, partial and paid receivable | Yes | `H-*`, `PAY-*` |
-| Discount with separate reduction posting | Yes | `SINV-S02`, `PAY-SUPPLIER-DISCOUNT` |
-| Customer and supplier overpayment credit | Yes | `PAY-CUSTOMER-OVERPAYMENT`, `PAY-SUPPLIER-OVERPAYMENT` |
-| Accepted small remainder | Yes | `PAY-CUSTOMER-SMALL-REMAINDER` |
-| Complete and partial customer return/credit | Yes | `CR-001`, `COST-LATE-CREDIT` |
-| No, partial and complete supplier receipt | Yes | `S01`–`S03` |
-| Receipt without invoice | Yes | `S06` |
-| Open, partial and paid payable | Yes | `S05`, `S04`, `S02` |
-| Supplier return with/without credit | Yes | `S07`, `S08` |
-| Purchase cancellation before receipt | Yes | `S09` |
-| Location shortage and correction | Yes | `P08`, `P16` |
-| Complete DB1/DB2 explanations | Yes | `COST-A`, `COST-PORTFOLIO-*` |
-| Price-only allowance | No | Not in profile version 5 |
-| Exchange or replacement delivery | No | Not in profile version 5 |
-| Invoice cancellation/reversal | No | Not in profile version 5 |
-| Multiple partial invoices per order | No | Not in profile version 5 |
-| Overdelivery/final short-delivery closure | No | Not in profile version 5 |
-| Warehouse transfer, damage, loss or scrap | No | Not in profile version 5 |
-| Lots, serial numbers or expiry dates | No | Not in profile version 5 |
-| Deposits, dunning or bad debt | No | Not in profile version 5 |
-| Bank reconciliation, tax or FX revaluation | No | Not in profile version 5 |
+| Typical process | Included | Evidence or limitation | How to find it |
+| --- | --- | --- | --- |
+| Open order, shortage and reservation | Yes | `SO-001`–`SO-005` | Sales → Orders → search reference |
+| Partial/complete delivery and manual hold | Yes | `SO-006`–`SO-009` | Sales → Orders → search reference |
+| Cancellation before/after shipment | Yes | `SO-010`, `SO-011` | Sales → Orders → reference → history |
+| Open, partial and paid receivable | Yes | `SO-012`–`SO-023`, `CPAY-*` | Sales → order → invoice; Finance → Receivables |
+| Discount with separate reduction posting | Yes | `SINV-002`, `SPAY-002` | Finance → Payables → `SINV-002` |
+| Customer and supplier overpayment credit | Yes | `CPAY-009`, `SPAY-005` | Finance → Payments → search reference |
+| Accepted small remainder | Yes | `CPAY-006` | Sales → `SO-017` → invoice → settlement |
+| Complete and partial customer return/credit | Yes | `CN-001`, `CN-002` | Finance → Receivables → search credit number |
+| No, partial and complete supplier receipt | Yes | `PO-001`–`PO-003` | Purchasing → Orders → search reference |
+| Receipt without invoice | Yes | `PO-006` | Purchasing → Orders → `PO-006` |
+| Open, partial and paid payable | Yes | `SINV-005`, `SINV-004`, `SINV-002` | Finance → Payables → search reference |
+| Supplier return with/without credit | Yes | `PO-007`, `PO-008` | Purchasing → Orders → open reference |
+| Purchase cancellation before receipt | Yes | `PO-009` | Purchasing → Orders → `PO-009` |
+| Location shortage and correction | Yes | `ITEM-008`, `ITEM-016` | Warehouse → Items → search reference |
+| Complete DB1/DB2 explanations | Yes | `SO-024`–`SO-029` | Sales → order → invoice → contribution explanation |
+| Price-only allowance | No | Not in profile version 6 | Not present; see limitation |
+| Exchange or replacement delivery | No | Not in profile version 6 | Not present; see limitation |
+| Invoice cancellation/reversal | No | Not in profile version 6 | Not present; see limitation |
+| Multiple partial invoices per order | No | Not in profile version 6 | Not present; see limitation |
+| Overdelivery/final short-delivery closure | No | Not in profile version 6 | Not present; see limitation |
+| Warehouse transfer, damage, loss or scrap | No | Not in profile version 6 | Not present; see limitation |
+| Lots, serial numbers or expiry dates | No | Not in profile version 6 | Not present; see limitation |
+| Deposits, dunning or bad debt | No | Not in profile version 6 | Not present; see limitation |
+| Bank reconciliation, tax or FX revaluation | No | Not in profile version 6 | Not present; see limitation |
 
 ## Static baseline and live data
 

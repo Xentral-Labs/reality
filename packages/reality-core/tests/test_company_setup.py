@@ -1,11 +1,10 @@
 import pytest
 from conftest import record_by_id, seed_company
-from sqlalchemy import func, select
-
-from reality.db.core import Item, PlaygroundRun, Tenant
+from reality.db.core import Document, Item, PlaygroundRun, Tenant
 from reality.jobs.registry import JobError
 from reality.services import company_setup
 from reality.services.core import Conflict, InvalidOperation
+from sqlalchemy import func, select
 
 
 def test_empty_creation_replay_and_changed_kind(session, scheduled_owner, monkeypatch):
@@ -122,7 +121,10 @@ def test_failed_seed_rolls_back_all_evidence_and_explicit_retry_reuses_tenant(
     )
     assert result["status"] == "initializing" and result["destination"] is None
     tenant = result["tenant_id"]
-    with pytest.raises(JobError, match="setup_profile_incomplete"), session.begin_nested():
+    with (
+        pytest.raises(JobError, match="setup_profile_incomplete"),
+        session.begin_nested(),
+    ):
         seed_company(session, tenant)
     assert (
         company_setup.read_request(session, scheduled_owner.id, "retry")["status"]
@@ -328,6 +330,36 @@ def test_live_creation_provisions_and_starts_once(
         )
 
 
+def test_live_orders_continue_the_canonical_sales_order_sequence(
+    session, scheduled_owner
+):
+    from reality.jobs.handlers.demo_data import _next_sales_order_number
+
+    result = company_setup.create_company(
+        session,
+        scheduled_owner.id,
+        "live-numbering",
+        "Live Numbering",
+        "sandbox",
+        "empty",
+        confirmed=True,
+    )
+    session.add_all(
+        Document(
+            id=f"doc_sequence_{number}",
+            tenant_id=result["tenant_id"],
+            type="sales_order",
+            number=number,
+            currency="EUR",
+            gross_amount="0",
+            status="open",
+        )
+        for number in ("SO-001", "SO-029", "external-order")
+    )
+    session.flush()
+    assert _next_sales_order_number(session, result["tenant_id"]) == 30
+
+
 def test_live_creation_failure_is_retryable_without_partial_connection(
     session, scheduled_owner, monkeypatch
 ):
@@ -358,11 +390,14 @@ def test_live_creation_failure_is_retryable_without_partial_connection(
         company_setup.read_request(session, actor, "live-retry")["status"]
         == "initializing"
     )
-    assert session.scalar(
-        select(func.count())
-        .select_from(DemoDataConnection)
-        .where(DemoDataConnection.tenant_id == result["tenant_id"])
-    ) == 0
+    assert (
+        session.scalar(
+            select(func.count())
+            .select_from(DemoDataConnection)
+            .where(DemoDataConnection.tenant_id == result["tenant_id"])
+        )
+        == 0
+    )
     assert (
         company_setup.read_request(session, actor, "live-retry")["status"]
         == "initializing"

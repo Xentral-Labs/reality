@@ -6,10 +6,13 @@
    Sales, Purchasing, Warehouse and Finance.
 4. Confirm every document has a document date, completed credits have the expected
    remaining balance, and deliberately open journeys appear as exceptions.
-5. In Finance, verify `PAY-SUPPLIER-DISCOUNT` closes `SINV-S02` with a separate
-   EUR 1 reduction, both `PAY-*-OVERPAYMENT` records retain EUR 10 available credit,
-   and `PAY-CUSTOMER-SMALL-REMAINDER` closes its invoice through a separate EUR 0.50
+5. In Finance, verify `SPAY-002` closes `SINV-002` with a separate
+   EUR 1 reduction, `CPAY-009` and `SPAY-005` retain EUR 10 available credit,
+   and `CPAY-006` closes its invoice through a separate EUR 0.50
    accepted-small-remainder adjustment.
+6. Verify visible numbers use their canonical type family (`ITEM-`, `SO-`, `PO-`,
+   `INV-`, `SINV-`, `CN-`, `SCN-`, `CPAY-`, `SPAY-`) and that every catalog table
+   includes an exact UI path under **How to find it** / **So findest du es**.
 
 Verified locally on 2026-09-21:
 

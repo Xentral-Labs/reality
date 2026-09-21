@@ -5,7 +5,7 @@ from typing import Literal
 from pydantic import BaseModel, ConfigDict, Field
 from sqlalchemy import select
 
-from reality.db.core import SourceRecord, SourceSystem
+from reality.db.core import Document, SourceRecord, SourceSystem
 from reality.db.scheduled_jobs import ScheduledJobRun
 from reality.integrations import demo_data as synthetic
 from reality.jobs.registry import JobDefinition, JobError, JobResult, RecordReference
@@ -80,6 +80,23 @@ def _throttle(connection, schedule, counts: dict, settlement=None) -> bool:
     return True
 
 
+def _next_sales_order_number(session, tenant_id: str) -> int:
+    """Return the next tenant-local canonical visible sales-order sequence."""
+    numbers = session.scalars(
+        select(Document.number).where(
+            Document.tenant_id == tenant_id,
+            Document.type == "sales_order",
+            Document.number.like("SO-%"),
+        )
+    )
+    suffixes = [
+        int(number.removeprefix("SO-"))
+        for number in numbers
+        if number.removeprefix("SO-").isdigit()
+    ]
+    return max(suffixes, default=0) + 1
+
+
 def generate(session, context, config):
     import json
 
@@ -105,6 +122,9 @@ def generate(session, context, config):
         if delivery.configuration.get("initial_occurrence")
         else synthetic.plan(*inputs)
     )
+    first_number = _next_sales_order_number(session, context.tenant_id)
+    for offset, payload in enumerate(planned):
+        payload["number"] = f"SO-{first_number + offset:03d}"
     counts = {"generated": 0, "imported": 0, "failed": 0}
     references: list[RecordReference] = []
 
