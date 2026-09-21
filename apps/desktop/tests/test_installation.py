@@ -58,6 +58,29 @@ def test_second_start_of_the_same_installation_is_refused(installation, tmp_path
         pytest.fail("Two live processes must not share one installation")
 
 
+def test_reopening_while_the_previous_process_stops_waits_briefly(
+    installation, tmp_path
+):
+    import threading
+
+    root = installation.resolve(tmp_path).root
+    holder = installation.exclusive(root)
+    holder.__enter__()
+    threading.Timer(0.4, lambda: holder.__exit__(None, None, None)).start()
+    with installation.exclusive(root, wait_seconds=10):
+        pass
+
+
+def test_waiting_still_ends_in_a_clear_refusal(installation, tmp_path):
+    root = installation.resolve(tmp_path).root
+    with (
+        installation.exclusive(root),
+        pytest.raises(installation.AlreadyRunning),
+        installation.exclusive(root, wait_seconds=1),
+    ):
+        pytest.fail("A held installation must not be opened twice")
+
+
 def test_lock_is_released_after_a_normal_stop(installation, tmp_path):
     root = installation.resolve(tmp_path).root
     with installation.exclusive(root):

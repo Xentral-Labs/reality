@@ -42,9 +42,11 @@ struct Endpoint {
     path: String,
 }
 
-fn main() {
-    tauri::Builder::default()
-        .setup(|app| {
+type Setup = Box<dyn std::error::Error>;
+
+/// A failed start must end with a readable reason, never a crash report.
+fn start(app: &mut tauri::App) -> Result<(), Setup> {
+    {
             let resources = app.path().resource_dir()?;
             let onboarding = resources.join("probe/local-runtime.py").exists();
             // A persistent installation must not present itself as a disposable test.
@@ -134,6 +136,17 @@ fn main() {
             window.set_cookie(cookie)?;
             window.navigate(url.join(&endpoint.path)?)?;
             window.show()?;
+            Ok(())
+    }
+}
+
+fn main() {
+    tauri::Builder::default()
+        .setup(|app| {
+            if let Err(error) = start(app) {
+                eprintln!("Reality Local could not start: {error}");
+                std::process::exit(1);
+            }
             Ok(())
         })
         .build(tauri::generate_context!())

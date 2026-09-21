@@ -16,6 +16,8 @@ covered and are listed as unmet below.
 | Lifecycle against the built runtime | Passed | evidence/persistence-run.json |
 | Packaged application quit and reopen | Passed | evidence/application-cycle.json |
 | Recovery from a forced quit | Passed | evidence/forced-quit.json |
+| Release build with the current core | Passed, migration 0088 | evidence/release-build.json |
+| Reopening straight after a quit | Passed | evidence/release-build.json |
 
 ## What the runs actually did
 
@@ -38,12 +40,23 @@ remained, no PostgreSQL process survived, and the next launch reused installatio
 killed with SIGKILL. PostgreSQL was left genuinely orphaned with a live pid file. The
 next launch stopped that process, started a new postmaster and read the company back.
 
+**Release build (evidence/release-build.json)**: the artifact published for testers was
+assembled from the current core wheel, the current web frontend and a release-profile
+shell. Its cluster reaches `0088_tenant_scoped_keys`. The database was serving 1.2 s
+after launch, a quit took 3.8 s and left no database process, and reopening took 0.6 s
+and returned the same company.
+
+Two defects surfaced while verifying that build and were fixed here. Reopening
+immediately after a quit hit the installation lock while the previous process was still
+stopping, so a start now waits up to 60 seconds for that shutdown instead of refusing.
+The native shell turned any failed start into a non-unwinding Rust panic and a macOS
+crash report; it now prints the reason and exits.
+
 ## Boundary
 
-The bundled core wheel is the one built on 2026-09-19 and stops at migration
-`0069_inventory_generations`; current `main` carries `0087_cost_conversion`. This
-increment changes where data lives, not which migrations exist, so a newer wheel needs
-no change here — but no claim is made about running the current core in the package.
+The earlier runs used the core wheel built on 2026-09-19, which stops at migration
+`0069_inventory_generations`. The release build above carries the current
+`0088_tenant_scoped_keys`.
 
 Twenty consecutive cycles under SC-001 were not run; three application launches and
 three scripted lifecycle runs were. Everything below is not implemented:

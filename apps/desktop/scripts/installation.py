@@ -14,6 +14,7 @@ import json
 import os
 import shutil
 import sys
+import time
 from contextlib import contextmanager
 from dataclasses import dataclass
 from datetime import UTC, datetime
@@ -26,6 +27,8 @@ DEFAULT_IDENTIFIER = "ai.runreality.local"
 ROLE = "reality_local"
 DATABASE = "reality"
 CHECKPOINTS_RETAINED = 3
+# A quit stops the API, jobs and PostgreSQL; reopening at once must not look like a clash.
+REOPEN_WAIT_SECONDS = 60
 
 
 def _cluster():
@@ -132,16 +135,25 @@ def recorded_version(root: Path) -> str | None:
 
 
 @contextmanager
-def exclusive(root: Path):
-    """Hold this installation for one process; a second start is refused."""
+def exclusive(root: Path, wait_seconds: float = 0):
+    """Hold this installation for one process; a second start is refused.
+
+    Reopening right after a quit is normal, so a short wait covers the previous
+    process finishing its shutdown instead of refusing a legitimate restart.
+    """
     handle = os.open(root / "run.lock", os.O_RDWR | os.O_CREAT, 0o600)
     try:
-        try:
-            fcntl.flock(handle, fcntl.LOCK_EX | fcntl.LOCK_NB)
-        except OSError as error:
-            raise AlreadyRunning(
-                "Reality Local is already running for this installation."
-            ) from error
+        deadline = time.monotonic() + wait_seconds
+        while True:
+            try:
+                fcntl.flock(handle, fcntl.LOCK_EX | fcntl.LOCK_NB)
+                break
+            except OSError as error:
+                if time.monotonic() >= deadline:
+                    raise AlreadyRunning(
+                        "Reality Local is already running for this installation."
+                    ) from error
+                time.sleep(0.2)
         yield root
     finally:
         os.close(handle)
@@ -231,7 +243,7 @@ def running(runtime: Path, *, base: Path | None = None, app_version: str = "0.0.
     postgres = runtime / "postgres/bin"
     data = prepared.root / "data"
     secret = prepared.root / "secret"
-    with exclusive(prepared.root):
+    with exclusive(prepared.root, wait_seconds=REOPEN_WAIT_SECONDS):
         initialized = (data / "PG_VERSION").exists()
         if not initialized:
             if secret.exists():

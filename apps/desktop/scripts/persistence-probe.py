@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 import os
 import sys
+import time
 
 from reality.db.core import AppUser, Session, engine, init_db
 from sqlalchemy import select, text
@@ -13,9 +14,30 @@ action = sys.argv[1]
 identity = os.environ["REALITY_INSTALLATION_ID"]
 Session.configure(info={"desktop_installation_id": identity})
 
+
+def prepared() -> None:
+    """Wait for the application's own exclusive migration step instead of racing it."""
+    if os.environ.get("REALITY_PROBE_WAIT") != "1":
+        init_db()
+        return
+    deadline = time.monotonic() + 300
+    while time.monotonic() < deadline:
+        with engine.connect() as connection:
+            ready = connection.execute(
+                text(
+                    "SELECT to_regclass('public.alembic_version') IS NOT NULL"
+                    " AND EXISTS (SELECT 1 FROM pg_tables WHERE tablename = 'app_user')"
+                )
+            ).scalar_one()
+        if ready:
+            return
+        time.sleep(1)
+    raise SystemExit("The application did not finish preparing its database")
+
+
 if action == "seed":
     # The same exclusive preparation step the application performs before serving.
-    init_db()
+    prepared()
     from reality.services.core import create_tenant
     from reality.services.desktop_identity import bootstrap_owner
 
@@ -28,7 +50,7 @@ if action == "seed":
         tenant_id = tenant.id
     result = {"owner_id": owner_id, "tenant_id": tenant_id}
 else:
-    init_db()
+    prepared()
     from reality.db.core import Tenant
 
     with Session() as session:
