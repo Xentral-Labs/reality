@@ -31,6 +31,7 @@ from reality.services.core import (
     active_reserved,
     stock_at,
 )
+from reality.services.supply_assignments import supply_coverage
 
 
 def effective_value(field: str):
@@ -380,8 +381,18 @@ def delivery_case(
         }
         for hold, scope in holds
     ]
+    coverage = supply_coverage(
+        session,
+        tenant_id,
+        **(
+            {"supplier_commitment_id": commitment.id}
+            if kind == "supplier_delivery"
+            else {"customer_commitment_id": commitment.id}
+        ),
+    )
     return {
         "case": detail,
+        "supply_coverage": coverage,
         "hold_reasons": sorted(HOLD_REASONS),
         "inventory": {
             "item_id": commitment.item_id,
