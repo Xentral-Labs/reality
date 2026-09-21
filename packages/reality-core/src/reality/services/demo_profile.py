@@ -161,6 +161,9 @@ def seed_profile(
                 "cost_basis": None,
             },
             default_location_id=locations["A"],
+            tracking_type=(
+                "lot" if key == "P17" else "serial" if key == "P18" else "none"
+            ),
             _commit=False,
         ).id
 
@@ -2059,6 +2062,315 @@ def seed_profile(
             },
         }
 
+        # Feature 246: fully supported edge cases use the same document, ledger and
+        # inventory services as ordinary operation. Human references continue the
+        # canonical sequences; opaque IDs remain the actual identity.
+        def billed_sale(
+            case_key: str,
+            item_key: str,
+            customer_key: str,
+            quantity: str,
+            gross: str,
+            invoice_parts: tuple[tuple[str, str], ...],
+        ) -> tuple[dict, list]:
+            ref, lines = order(
+                case_key,
+                item_key,
+                counterparty=customer_key,
+                quantity=quantity,
+                price="10",
+                gross=gross,
+                date=anchor - timedelta(days=8),
+            )
+            invoices = []
+            for part_index, (part_quantity, part_gross) in enumerate(invoice_parts, 1):
+                invoice_date = anchor - timedelta(days=7 - part_index)
+                invoice_number = demo_invoice_number(
+                    invoice_date, f"seed:{case_key}:{part_index}"
+                )
+                invoice_lines = [
+                    {
+                        **lines[0],
+                        "quantity": part_quantity,
+                        "gross_amount": part_gross,
+                        "billed_document_line_id": ref["line_id"],
+                        "reality_finance_v1": {"net": part_gross, "tax": "0"},
+                    }
+                ]
+                invoice_source = source(
+                    "sales_invoice",
+                    f"{case_key}-INV-{part_index}",
+                    {
+                        "number": invoice_number,
+                        "date": invoice_date.isoformat(),
+                        "lines": invoice_lines,
+                        "currency": "EUR",
+                        "gross_amount": part_gross,
+                    },
+                )
+                invoice, invoice_lines_created = core.create_manual_document_with_lines(
+                    session,
+                    tenant,
+                    "sales_invoice",
+                    invoice_number,
+                    parties[customer_key],
+                    invoice_lines,
+                    part_gross,
+                    document_date=invoice_date.date().isoformat(),
+                    source_record_id=invoice_source.id,
+                    _commit=False,
+                )
+                core.post_sales_invoice(
+                    session,
+                    tenant,
+                    invoice.id,
+                    effective_at=invoice_date,
+                    _commit=False,
+                )
+                invoices.append((invoice, invoice_lines_created[0]))
+            return ref, invoices
+
+        price_ref, price_invoices = billed_sale(
+            "PRICE-CREDIT", "P04", "C4", "5", "50", (("5", "50"),)
+        )
+        price_credit_date = anchor - timedelta(days=4)
+        price_credit_number = "CN-003"
+        price_credit_lines = [
+            {
+                "item_id": items["P04"],
+                "quantity": "1",
+                "unit": "pcs",
+                "unit_price": "5",
+                "gross_amount": "5",
+                "source_line_id": "PRICE-CREDIT-1",
+                "billed_document_line_id": None,
+                "description": "Price-only allowance; no goods returned",
+                "reality_finance_v1": {"net": "5", "tax": "0"},
+            }
+        ]
+        price_credit_source = source(
+            "credit_note",
+            price_credit_number,
+            {
+                "number": price_credit_number,
+                "date": price_credit_date.isoformat(),
+                "gross_amount": "5",
+                "currency": "EUR",
+                "lines": price_credit_lines,
+            },
+        )
+        price_credit, _ = core.create_manual_document_with_lines(
+            session,
+            tenant,
+            "credit_note",
+            price_credit_number,
+            parties["C4"],
+            price_credit_lines,
+            "5",
+            document_date=price_credit_date.date().isoformat(),
+            source_record_id=price_credit_source.id,
+            _commit=False,
+        )
+        core.post_sales_credit_note(
+            session,
+            tenant,
+            price_credit.id,
+            effective_at=price_credit_date,
+            _commit=False,
+        )
+        core.allocate_credit_note(
+            session,
+            tenant,
+            price_credit.id,
+            price_invoices[0][0].id,
+            "5",
+            _commit=False,
+        )
+        cases["price_only_credit"] = {
+            **price_ref,
+            "invoice_id": price_invoices[0][0].id,
+            "credit_id": price_credit.id,
+            "credit_number": price_credit_number,
+        }
+
+        reversal_ref, reversal_invoices = billed_sale(
+            "INVOICE-REVERSAL", "P05", "C5", "2", "20", (("2", "20"),)
+        )
+        reversal_invoice = reversal_invoices[0][0]
+        reversal_group = core._settlement_control_entry(
+            session, tenant, reversal_invoice.id
+        ).posting_group_id
+        reversal_reason = "Customer invoice cancelled before settlement"
+        reversal_preview = core.preview_ledger_reversal(
+            session, tenant, reversal_group, reason=reversal_reason
+        )
+        reversal = core.reverse_ledger_posting_group(
+            session,
+            tenant,
+            reversal_group,
+            reason=reversal_reason,
+            actor_context={"source": "canonical_demo_profile"},
+            expected_revision=reversal_preview["revision"],
+            preview_fingerprint=reversal_preview["request_fingerprint"],
+            _commit=False,
+        )
+        cases["invoice_reversal"] = {
+            **reversal_ref,
+            "invoice_id": reversal_invoice.id,
+            "invoice_number": reversal_invoice.number,
+            "reversal_id": reversal.reversal_id,
+            "original_posting_group_id": reversal.original_posting_group_id,
+            "reversing_posting_group_id": reversal.reversing_posting_group_id,
+        }
+
+        split_ref, split_invoices = billed_sale(
+            "SPLIT-INVOICE", "P06", "C6", "10", "100", (("4", "40"), ("6", "60"))
+        )
+        cases["split_invoices"] = {
+            **split_ref,
+            "invoice_1_id": split_invoices[0][0].id,
+            "invoice_1_number": split_invoices[0][0].number,
+            "invoice_1_line_id": split_invoices[0][1].id,
+            "invoice_2_id": split_invoices[1][0].id,
+            "invoice_2_number": split_invoices[1][0].number,
+            "invoice_2_line_id": split_invoices[1][1].id,
+        }
+
+        lot_source = source(
+            "lot_label",
+            "LOT-2026-001",
+            {
+                "item_key": "P17",
+                "lot_number": "LOT-2026-001",
+                "expires_at": (anchor.date() - timedelta(days=1)).isoformat(),
+            },
+        )
+        lot = core.create_lot(
+            session,
+            tenant,
+            items["P17"],
+            "LOT-2026-001",
+            expires_at=anchor.date() - timedelta(days=1),
+            source_record_id=lot_source.id,
+            _commit=False,
+        )
+        lot_receipt_source = source(
+            "movement",
+            "LOT-RECEIPT-001",
+            {"type": "receipt", "quantity": "10", "lot_number": lot.lot_number},
+        )
+        lot_receipt = core.record_movement(
+            session,
+            tenant,
+            "receipt",
+            items["P17"],
+            "10",
+            to_location_id=locations["A"],
+            lot_id=lot.id,
+            source_record_id=lot_receipt_source.id,
+            occurred_at=anchor - timedelta(days=3),
+            _commit=False,
+        )
+        transfer_source = source(
+            "movement",
+            "TRANSFER-001",
+            {
+                "type": "transfer",
+                "quantity": "3",
+                "from": "A",
+                "to": "B",
+                "lot_number": lot.lot_number,
+            },
+        )
+        transfer = core.record_movement(
+            session,
+            tenant,
+            "transfer",
+            items["P17"],
+            "3",
+            from_location_id=locations["A"],
+            to_location_id=locations["B"],
+            lot_id=lot.id,
+            source_record_id=transfer_source.id,
+            occurred_at=anchor - timedelta(days=2),
+            _commit=False,
+        )
+        cases["lot_expiry_transfer"] = {
+            "item_id": items["P17"],
+            "lot_id": lot.id,
+            "receipt_movement_id": lot_receipt.id,
+            "transfer_movement_id": transfer.id,
+        }
+
+        serial_source = source(
+            "serial_label", "SER-0001", {"item_key": "P18", "serial_number": "SER-0001"}
+        )
+        serial = core.create_serial_unit(
+            session,
+            tenant,
+            items["P18"],
+            "SER-0001",
+            source_record_id=serial_source.id,
+            _commit=False,
+        )
+        serial_receipt_source = source(
+            "movement",
+            "SERIAL-RECEIPT-001",
+            {"type": "receipt", "quantity": "1", "serial_number": serial.serial_number},
+        )
+        serial_receipt = core.record_movement(
+            session,
+            tenant,
+            "receipt",
+            items["P18"],
+            "1",
+            to_location_id=locations["A"],
+            serial_unit_id=serial.id,
+            source_record_id=serial_receipt_source.id,
+            occurred_at=anchor - timedelta(days=2),
+            _commit=False,
+        )
+        cases["serial_tracking"] = {
+            "item_id": items["P18"],
+            "serial_unit_id": serial.id,
+            "receipt_movement_id": serial_receipt.id,
+        }
+
+        adjustment_opening = movement(
+            "ADJUSTMENT-OPENING",
+            "P10",
+            "6",
+            "opening_stock",
+            date=anchor - timedelta(days=4),
+        )
+        adjustment_ids = {}
+        for index, reason in enumerate(("damage", "loss", "scrap"), 1):
+            adjustment_source = source(
+                "movement",
+                f"ADJUSTMENT-{index:03}",
+                {"type": "adjustment", "quantity": "1", "reason": reason},
+            )
+            adjusted = core.record_movement(
+                session,
+                tenant,
+                "adjustment",
+                items["P10"],
+                "1",
+                from_location_id=locations["A"],
+                reason=reason,
+                source_record_id=adjustment_source.id,
+                occurred_at=anchor - timedelta(days=3 - index),
+                _commit=False,
+            )
+            adjustment_ids[reason] = adjusted.id
+        cases["stock_adjustments"] = {
+            "item_id": items["P10"],
+            "opening_movement_id": adjustment_opening.id,
+            "damage_movement_id": adjustment_ids["damage"],
+            "loss_movement_id": adjustment_ids["loss"],
+            "scrap_movement_id": adjustment_ids["scrap"],
+        }
+
     session.flush()
     manifest = {
         "parties": parties,
@@ -2086,7 +2398,7 @@ def seed_profile(
     from reality.demo.profile_contract import ProfileManifest
 
     for model, expected in zip(
-        (Party, Item, Location), (2, 2, 1) if execution else (24, 16, 2), strict=True
+        (Party, Item, Location), (2, 2, 1) if execution else (24, 18, 2), strict=True
     ):
         if (
             session.scalar(

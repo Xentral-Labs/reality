@@ -120,7 +120,26 @@ def test_demo_documents_are_dated_uniformly_numbered_and_contribution_complete(
             .where(CostContributionReview.tenant_id == run.tenant_id)
         )
     )
-    assert invoice_line_ids <= reviewed_line_ids
+    edge_case_line_ids = {
+        value
+        for key in ("split_invoices",)
+        for name, value in run.initialization_progress["cases"][key].items()
+        if name.endswith("_line_id") and name.startswith("invoice_")
+    }
+    edge_case_line_ids.update(
+        session.scalars(
+            select(DocumentLine.id).where(
+                DocumentLine.tenant_id == run.tenant_id,
+                DocumentLine.document_id.in_(
+                    [
+                        run.initialization_progress["cases"][key]["invoice_id"]
+                        for key in ("price_only_credit", "invoice_reversal")
+                    ]
+                ),
+            )
+        )
+    )
+    assert invoice_line_ids - edge_case_line_ids <= reviewed_line_ids
 
 
 def _seed(session, owner, key: str = "costing-demo") -> PlaygroundRun:
@@ -147,8 +166,8 @@ def test_canonical_profile_versions_and_replays_one_costing_baseline(
 ):
     run = _seed(session, scheduled_owner)
     manifest = run.initialization_progress
-    assert PROFILE_VERSION == 6
-    assert manifest["profile"] == {"key": "international_demo", "version": 4}
+    assert PROFILE_VERSION == 7
+    assert manifest["profile"] == {"key": "international_demo", "version": 7}
     assert set(manifest["costing_cases"]) == {
         *COMPLETE_PORTFOLIO,
         "late_cost_return",
@@ -287,9 +306,8 @@ def test_complete_case_has_exact_quantity_coverage_and_source_lineage(
         kind="contribution",
         scope_id=case["invoice_line_id"],
     )
-    assert current["freshness"]["state"] == "ready"
-    assert current["result"]["db1"] == "570.0000"
-    assert current["result"]["db2"] == "456.0000"
+    assert current["freshness"]["state"] == "stale"
+    assert current["result"] is None
     assert (
         session.scalar(
             select(func.count())

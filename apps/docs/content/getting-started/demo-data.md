@@ -9,7 +9,7 @@ stated no due date; it never means that the document is dateless.
 
 ## Company and how to use the references
 
-The baseline contains 16 items (`ITEM-001`–`ITEM-016`), 20 customers, three suppliers and the
+The baseline contains 18 items (`ITEM-001`–`ITEM-018`), 20 customers, three suppliers and the
 Rotterdam and Singapore warehouses. Quantities use pieces, metres or kilograms. Most trades use EUR;
 two invoices deliberately use USD to keep currencies separate.
 
@@ -119,7 +119,7 @@ credit for later allocation or refund.
 
 | Document             | Examples                                                                           | Meaning                                          | How to find it                         |
 | -------------------- | ---------------------------------------------------------------------------------- | ------------------------------------------------ | -------------------------------------- |
-| Sales order          | `SO-001`–`SO-029`                                                                  | Stated customer demand and commercial lines      | Sales → Orders → search `SO-…`         |
+| Sales order          | `SO-001`–`SO-032`                                                                  | Stated customer demand and commercial lines      | Sales → Orders → search `SO-…`         |
 | Purchase order       | `PO-001`–`PO-009`                                                                  | Order placed with a supplier                     | Purchasing → Orders → search `PO-…`    |
 | Sales invoice        | `INV-YYYYMMDD-*`                                                                   | Customer receivable backed by invoice lines      | Finance → Receivables → search `INV-…` |
 | Supplier invoice     | `SINV-002`, `SINV-004`, `SINV-005`, `SINV-007`, `SINV-008`, `SINV-010`, `SINV-011` | Payable independent of receipt state             | Finance → Payables → search `SINV-…`   |
@@ -190,15 +190,18 @@ missing evidence into EUR 0.
 | Purchase cancellation before receipt        | Yes      | `PO-009`                           | Purchasing → Orders → `PO-009`                     |
 | Location shortage and correction            | Yes      | `ITEM-008`, `ITEM-016`             | Warehouse → Items → search reference               |
 | Complete DB1/DB2 explanations               | Yes      | `SO-024`–`SO-029`                  | Sales → order → invoice → contribution explanation |
-| Price-only allowance                        | No       | Not in profile version 6           | Not present; see limitation                        |
-| Exchange or replacement delivery            | No       | Not in profile version 6           | Not present; see limitation                        |
-| Invoice cancellation/reversal               | No       | Not in profile version 6           | Not present; see limitation                        |
-| Multiple partial invoices per order         | No       | Not in profile version 6           | Not present; see limitation                        |
-| Overdelivery/final short-delivery closure   | No       | Not in profile version 6           | Not present; see limitation                        |
-| Warehouse transfer, damage, loss or scrap   | No       | Not in profile version 6           | Not present; see limitation                        |
-| Lots, serial numbers or expiry dates        | No       | Not in profile version 6           | Not present; see limitation                        |
-| Deposits, dunning or bad debt               | No       | Not in profile version 6           | Not present; see limitation                        |
-| Bank reconciliation, tax or FX revaluation  | No       | Not in profile version 6           | Not present; see limitation                        |
+| Price-only allowance                        | Yes      | `SO-030`, `CN-003`                 | Sales → Orders → `SO-030`; Finance → search `CN-003` |
+| Exchange or replacement delivery            | No       | Not in profile version 7           | Not present; see limitation                        |
+| Invoice cancellation/reversal               | Yes      | `SO-031`, exact inverse posting     | Sales → Orders → `SO-031` → invoice → ledger explanation |
+| Multiple partial invoices per order         | Yes      | `SO-032`, quantities 4 and 6       | Sales → Orders → `SO-032` → invoices              |
+| Final short-delivery closure                | Yes      | `SO-011`: 2 shipped, remainder cancelled | Sales → Orders → `SO-011` → history          |
+| Overdelivery                                | No       | Not in profile version 7           | Not present; see limitation                        |
+| Warehouse transfer                         | Yes      | `ITEM-017`, 3 pcs Rotterdam → Singapore | Warehouse → Items → `ITEM-017` → movements    |
+| Damage, loss and scrap                      | Yes      | `ITEM-010`, one adjustment each    | Warehouse → Items → `ITEM-010` → movements         |
+| Lot and expiry date                         | Yes      | `ITEM-017`, `LOT-2026-001` expired | Warehouse → Items → `ITEM-017` → lots/movements    |
+| Serial number                               | Yes      | `ITEM-018`, `SER-0001`             | Warehouse → Items → `ITEM-018` → serial/movements  |
+| Deposits, dunning or bad debt               | No       | Not in profile version 7           | Not present; see limitation                        |
+| Bank reconciliation, tax or FX revaluation  | No       | Not in profile version 7           | Not present; see limitation                        |
 
 ## Static baseline and live data
 
@@ -206,5 +209,5 @@ The cases above belong to the stable baseline. Live simulation separately adds c
 later invoices and payments. It does not automatically reserve stock, ship, return or replenish
 goods, so the reference cases remain reproducible.
 
-The demo does not yet include price-only allowances, exchanges, post-invoice cancellation,
-overdelivery, manufacturing, payroll or statutory reporting.
+The demo does not yet include exchanges/replacements, overdelivery, dedicated deposits, dunning,
+bad debt, bank reconciliation, tax/FX revaluation, manufacturing, payroll or statutory reporting.

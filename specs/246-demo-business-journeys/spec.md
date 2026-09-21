@@ -100,6 +100,27 @@ use the catalog beside every case table to navigate to the exact record.
 2. Every case table in the English and German Demo Data catalog includes a direct UI
    path and exact search reference for each row.
 
+### User Story 6 - Inspect every currently supported operational edge case (Priority: P1)
+
+As an evaluator, I can inspect deterministic examples of the remaining business cases
+that the current Reality model already supports, without a roadmap-only label or an
+invented status field.
+
+**Acceptance Scenarios**:
+
+1. A price-only customer credit reduces an invoice without creating a return movement.
+2. An invoice posted in error retains its original entries and exposes an exact linked
+   inverse posting group.
+3. Two separately numbered invoices bill one order line in partial quantities and the
+   combined billed quantity remains traceable to that line.
+4. A partially delivered commitment is explicitly cancelled for its remaining quantity.
+5. A transfer moves stock between the two demo locations without changing company-wide
+   physical stock.
+6. Separate source-backed adjustments demonstrate damaged, lost and scrapped stock with
+   an explicit reason for each quantity reduction.
+7. Lot-tracked and serial-tracked items have exact identifiers on their movements; the
+   lot example includes a source-stated expired best-before date.
+
 ### Edge Cases
 
 - Returns never exceed the quantity delivered or received on their linked commitment.
@@ -148,6 +169,21 @@ use the catalog beside every case table to navigate to the exact record.
 - **FR-012**: Every case table in both public Demo Data catalog editions MUST include
   a `How to find it`/`So findest du es` column with the UI area and exact searchable
   human reference.
+- **FR-013**: The canonical profile MUST include a posted and allocated price-only
+  customer credit with no return movement.
+- **FR-014**: The canonical profile MUST include a posted sales invoice whose ledger
+  posting is reversed through the shared reversal service while preserving the original
+  evidence and entries.
+- **FR-015**: The canonical profile MUST include two sales invoices that bill distinct
+  partial quantities of one sales-order line.
+- **FR-016**: The catalog MUST identify the existing partial-delivery-plus-remainder-
+  cancellation case as the supported final underdelivery example.
+- **FR-017**: The canonical profile MUST include one location transfer and distinct
+  damage, loss and scrap adjustments, each with immutable source evidence and a reason.
+- **FR-018**: The canonical profile MUST include lot and serial tracking examples whose
+  movements carry their exact tracked identities, plus a source-stated expired lot date.
+- **FR-019**: Every newly added example MUST have a canonical human reference and an
+  exact UI inspection path in both public catalog languages.
 
 ### Domain and Traceability Requirements
 
@@ -174,6 +210,8 @@ use the catalog beside every case table to navigate to the exact record.
   unallocated-credit amount.
 - **SC-006**: Automated verification rejects legacy shorthand or descriptive scenario
   labels in human-facing item and business-document number fields.
+- **SC-007**: Automated profile verification identifies every FR-013 through FR-018
+  example and proves its financial, quantity, location or tracked-identity outcome.
 
 ## Assumptions and Dependencies
 
@@ -197,3 +235,4 @@ use the catalog beside every case table to navigate to the exact record.
 | FR-007, DR-004 | All | Company-setup replay, profile-version and tenant-scope regression tests |
 | FR-008..FR-010, DR-001..DR-004 | US4 | Canonical profile settlement assertions for accepted reductions and unallocated payment credit |
 | FR-011..FR-012 | US5 | Canonical-number assertions plus English/German catalog table review |
+| FR-013..FR-019 | US6 | Canonical profile scenario assertions plus English/German catalog inspection paths |

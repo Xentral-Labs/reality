@@ -9,7 +9,7 @@ keine Fälligkeit genannt hat – nicht, dass der Beleg kein Datum hat.
 
 ## Firma und Verwendung der Referenzen
 
-Die Basis enthält 16 Artikel (`ITEM-001`–`ITEM-016`), 20 Kunden, drei Lieferanten sowie die Lager
+Die Basis enthält 18 Artikel (`ITEM-001`–`ITEM-018`), 20 Kunden, drei Lieferanten sowie die Lager
 Rotterdam und Singapur. Mengen werden in Stück, Metern oder Kilogramm geführt. Die meisten Vorgänge
 sind in EUR; zwei Rechnungen verwenden bewusst USD.
 
@@ -123,7 +123,7 @@ geflossene Geld. Skonto und akzeptierter Kleinrest sind eigene begründete Buchu
 
 | Beleg                 | Beispiele                                                                          | Bedeutung                                             | So findest du es                               |
 | --------------------- | ---------------------------------------------------------------------------------- | ----------------------------------------------------- | ---------------------------------------------- |
-| Kundenauftrag         | `SO-001`–`SO-029`                                                                  | Angegebener Kundenbedarf und kaufmännische Positionen | Vertrieb → Aufträge → `SO-…` suchen            |
+| Kundenauftrag         | `SO-001`–`SO-032`                                                                  | Angegebener Kundenbedarf und kaufmännische Positionen | Vertrieb → Aufträge → `SO-…` suchen            |
 | Einkaufsbestellung    | `PO-001`–`PO-009`                                                                  | Bestellung beim Lieferanten                           | Einkauf → Bestellungen → `PO-…` suchen         |
 | Ausgangsrechnung      | `INV-YYYYMMDD-*`                                                                   | Forderung mit Rechnungspositionen                     | Finance → Forderungen → `INV-…` suchen         |
 | Eingangsrechnung      | `SINV-002`, `SINV-004`, `SINV-005`, `SINV-007`, `SINV-008`, `SINV-010`, `SINV-011` | Verbindlichkeit unabhängig vom Wareneingang           | Finance → Verbindlichkeiten → `SINV-…` suchen  |
@@ -194,15 +194,18 @@ Reality fehlende Nachweise bewusst nicht in 0 EUR umgewandelt hat.
 | Einkaufsstorno vor Wareneingang                      | Ja        | `PO-009`                           | Einkauf → Bestellungen → `PO-009`                    |
 | Lagerortengpass und Korrektur                        | Ja        | `ITEM-008`, `ITEM-016`             | Lager → Artikel → Referenz suchen                    |
 | Vollständige DB1-/DB2-Erklärungen                    | Ja        | `SO-024`–`SO-029`                  | Vertrieb → Auftrag → Rechnung → DB-Erklärung         |
-| Reine Preisgutschrift                                | Nein      | Nicht in Profilversion 6           | Nicht vorhanden; siehe Einschränkung                 |
-| Umtausch oder Ersatzlieferung                        | Nein      | Nicht in Profilversion 6           | Nicht vorhanden; siehe Einschränkung                 |
-| Rechnungsstorno/Gegenbuchung                         | Nein      | Nicht in Profilversion 6           | Nicht vorhanden; siehe Einschränkung                 |
-| Mehrere Teilrechnungen je Auftrag                    | Nein      | Nicht in Profilversion 6           | Nicht vorhanden; siehe Einschränkung                 |
-| Überlieferung/endgültige Unterlieferung              | Nein      | Nicht in Profilversion 6           | Nicht vorhanden; siehe Einschränkung                 |
-| Umlagerung, Schaden, Verlust oder Verschrottung      | Nein      | Nicht in Profilversion 6           | Nicht vorhanden; siehe Einschränkung                 |
-| Chargen, Seriennummern oder Ablaufdaten              | Nein      | Nicht in Profilversion 6           | Nicht vorhanden; siehe Einschränkung                 |
-| Anzahlungen, Mahnungen oder Forderungsausfall        | Nein      | Nicht in Profilversion 6           | Nicht vorhanden; siehe Einschränkung                 |
-| Bankabstimmung, Steuer oder Währungsneubewertung     | Nein      | Nicht in Profilversion 6           | Nicht vorhanden; siehe Einschränkung                 |
+| Reine Preisgutschrift                                | Ja        | `SO-030`, `CN-003`                 | Vertrieb → Aufträge → `SO-030`; Finance → `CN-003` suchen |
+| Umtausch oder Ersatzlieferung                        | Nein      | Nicht in Profilversion 7           | Nicht vorhanden; siehe Einschränkung                 |
+| Rechnungsstorno/Gegenbuchung                         | Ja        | `SO-031`, exakte Gegenbuchung      | Vertrieb → Aufträge → `SO-031` → Rechnung → Buchungen |
+| Mehrere Teilrechnungen je Auftrag                    | Ja        | `SO-032`, Mengen 4 und 6           | Vertrieb → Aufträge → `SO-032` → Rechnungen          |
+| Endgültige Unterlieferung                            | Ja        | `SO-011`: 2 versendet, Rest storniert | Vertrieb → Aufträge → `SO-011` → Historie         |
+| Überlieferung                                        | Nein      | Nicht in Profilversion 7           | Nicht vorhanden; siehe Einschränkung                 |
+| Umlagerung                                           | Ja        | `ITEM-017`, 3 Stück Rotterdam → Singapur | Lager → Artikel → `ITEM-017` → Bewegungen       |
+| Schaden, Verlust und Verschrottung                   | Ja        | `ITEM-010`, je eine Korrektur      | Lager → Artikel → `ITEM-010` → Bewegungen            |
+| Charge und Ablaufdatum                               | Ja        | `ITEM-017`, `LOT-2026-001` abgelaufen | Lager → Artikel → `ITEM-017` → Chargen/Bewegungen |
+| Seriennummer                                         | Ja        | `ITEM-018`, `SER-0001`             | Lager → Artikel → `ITEM-018` → Serien/Bewegungen     |
+| Anzahlungen, Mahnungen oder Forderungsausfall        | Nein      | Nicht in Profilversion 7           | Nicht vorhanden; siehe Einschränkung                 |
+| Bankabstimmung, Steuer oder Währungsneubewertung     | Nein      | Nicht in Profilversion 7           | Nicht vorhanden; siehe Einschränkung                 |
 
 ## Stabile Basis und Live-Daten
 
@@ -210,5 +213,6 @@ Die Fälle oben gehören zur stabilen Basis. Die Live-Simulation ergänzt separa
 und später Rechnungen und Zahlungen. Sie reserviert, versendet, retourniert oder beschafft Waren
 nicht automatisch. Dadurch bleiben die Referenzfälle reproduzierbar.
 
-Noch nicht enthalten sind reine Preisnachlässe, Umtausch, Storno nach Rechnungsstellung,
-Überlieferung, Fertigung, Lohnabrechnung und gesetzliche Berichte.
+Noch nicht enthalten sind Umtausch/Ersatzlieferung, Überlieferung, dedizierte Anzahlungen,
+Mahnwesen, Forderungsausfall, Bankabstimmung, Steuer-/Währungsneubewertung, Fertigung,
+Lohnabrechnung und gesetzliche Berichte.
