@@ -226,8 +226,8 @@ nicht automatisch. Dadurch bleiben die Referenzfälle reproduzierbar.
   `SDEP-001` ist die Lieferantenzahlung vor `SINV-010`. Die Verrechnung ist jeweils eine explizite
   Zuordnung. Nicht verbrauchte 20 EUR bleiben als Guthaben sichtbar.
 - **Mahnwesen:** `DN-2026-0001` mahnt eine überfällige Rechnung auf Stufe 2. Die manuell angegebene
-  Gebühr von 5 EUR ist eine eigene Forderungsposition und verändert die Originalrechnung nicht.
-  Es wird keine E-Mail versendet und weder Eskalation, Einzug noch Steuer automatisch erfunden.
+  Gebühr von 5 EUR ist eine eigene Forderungsposition und verändert die Originalrechnung nicht. Es
+  wird keine E-Mail versendet und weder Eskalation, Einzug noch Steuer automatisch erfunden.
 - **Forderungsausfall:** Die Rechnung zu `SO-037` zeigt 60 EUR Zahlung, 25 EUR separat bestätigten
   Forderungsausfall und 15 EUR Restforderung. Aus dem Ausfall entsteht kein Kundenguthaben.
 
