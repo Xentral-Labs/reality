@@ -63,11 +63,13 @@ records:
       meaning: Which return this movement settles. Added by spec 082.
       consumers:
         return_unresolved: reports_absence
+        unexplained_movement: reports_absence
     return_announcement_id:
       classification: load_bearing
       meaning: Which announced customer return these goods fulfil. Added by spec 099.
       consumers:
         announced_return_not_arrived: reports_absence
+        unexplained_movement: reports_absence
     commitment_id:
       classification: trace_only
       meaning: The promise a movement executes, absent for stock movements answering to nobody.

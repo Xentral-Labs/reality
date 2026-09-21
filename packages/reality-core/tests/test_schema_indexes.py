@@ -63,6 +63,7 @@ def test_the_migrations_together_create_exactly_the_derived_indexes():
         "analysis_request",
         "dunning_notice",
         "dunning_notice_invoice",
+        "supply_assignment",
     }
     assert {entry for entry in after_second if entry[1] not in later_tables} == {
         entry for entry in derived if entry[1] not in later_tables

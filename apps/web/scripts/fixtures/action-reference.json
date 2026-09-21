@@ -431,13 +431,6 @@
       "effect": "Gives reserved stock back to whatever needs it next, without touching the promise that held it."
     },
     {
-      "name": "Resolve arrived customer-return goods",
-      "service": "record_return_disposition",
-      "mode": "mutation",
-      "adapters": ["CLI", "Web", "API", "MCP", "Chat"],
-      "effect": "Records one explicit physical outcome for part or all of an arrived customer return without implying a credit."
-    },
-    {
       "name": "Record movement",
       "service": "record_movement",
       "mode": "mutation",
@@ -743,6 +736,20 @@
       "mode": "mutation",
       "adapters": ["CLI", "Web", "API", "MCP", "Chat"],
       "effect": "Appends a reasoned correction or retraction without deleting the original event."
+    },
+    {
+      "name": "Assign incoming supply to customer demand",
+      "service": "assign_supply",
+      "mode": "mutation",
+      "adapters": ["CLI", "Web", "API", "MCP", "Chat"],
+      "effect": "Assigns an explicit quantity of an incoming supplier commitment to a compatible customer commitment without moving or reserving stock."
+    },
+    {
+      "name": "Resolve arrived customer-return goods",
+      "service": "record_return_disposition",
+      "mode": "mutation",
+      "adapters": ["CLI", "Web", "API", "MCP", "Chat"],
+      "effect": "Records one explicit physical outcome for part or all of an arrived customer return without implying a credit."
     }
   ],
   "workspaces": [

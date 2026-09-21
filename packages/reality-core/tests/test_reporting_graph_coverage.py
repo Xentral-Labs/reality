@@ -78,6 +78,15 @@ INFRASTRUCTURE = {
 # Slices this feature deliberately leaves for later. Each names why, so a deferral
 # stays distinguishable from a gap — the distinction the audit was written to make.
 DEFERRED = {
+    "operational_edge_workflows": (
+        "Dunning evidence and explicit supply allocations are operational workflow records. Their reporting measures and graph grain require a separate reviewed analytics design; the operational services and UI remain available independently.",
+        {
+            "dunning_notice",
+            "dunning_notice_invoice",
+            "supply_assignment",
+        },
+        set(),
+    ),
     "stored_inventory_observations": (
         "Spec234 exposes historical snapshot measures through an explicitly confirmed complete selection. Generation metadata and publication pointers remain supporting cache infrastructure. Joint contribution measures use the same explicit historical selection contract.",
         {

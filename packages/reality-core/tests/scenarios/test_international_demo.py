@@ -365,11 +365,12 @@ def test_orders_spread_over_the_customer_pool(session, scheduled_owner, monkeypa
         for number, buyer in orders.items()
         if number not in portfolio_orders
     }
-    assert len(operational_orders) == 34
+    # SO-040 and SO-041 add the connected B2B fulfilment and cancellation cases.
+    assert len(operational_orders) == 36
     held = Counter(operational_orders.values())
     assert len(held) >= 15, held
     assert max(held.values()) <= 5, held
-    assert sum(1 for count in held.values() if count > 2) <= 5, held
+    assert sum(1 for count in held.values() if count > 2) <= 6, held
     suppliers = _documents(session, tenant, "purchase_order")
     assert len(set(suppliers.values())) == 3, suppliers
 
@@ -493,7 +494,8 @@ def test_purchases_cover_the_whole_chain(session, scheduled_owner, monkeypatch):
 
     tenant = _demo_company(session, scheduled_owner, "purchases")
     orders = _documents(session, tenant, "purchase_order")
-    assert len(orders) == 9, orders
+    # PO-010 is the customer-linked procurement case added to the full chain.
+    assert len(orders) == 10, orders
     assert len(set(orders.values())) == 3, "every supplier takes part"
     payables = _states(_open_amounts(session, tenant, "supplier_invoice"))
     assert payables["SINV-011"] == "open", payables

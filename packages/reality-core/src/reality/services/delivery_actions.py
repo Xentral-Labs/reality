@@ -218,6 +218,8 @@ def review_delivery(
             "source_record_id",
             "occurred_at",
             "reason",
+            "resolves_movement_id",
+            "return_announcement_id",
         }
     if tool == "reservation_release":
         allowed = {"reservation_id"}
@@ -294,7 +296,7 @@ def review_delivery(
         )
     location_key = (
         "to_location_id"
-        if intent.get("movement_type") == "receipt"
+        if intent.get("movement_type") in {"receipt", "return"}
         else "from_location_id"
     )
     if (

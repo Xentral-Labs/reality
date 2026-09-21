@@ -11,7 +11,7 @@ from reality.services import scheduled_jobs as jobs
 from reality.services.projections import OPEN_FINANCIAL_ITEMS
 
 JOB_TYPE = "company_setup.initialize"
-INTERNATIONAL_V10_DOCUMENT_COUNT = 108
+INTERNATIONAL_V11_DOCUMENT_COUNT = 111
 
 
 def _create(session, owner, key="deferred", content="international_demo"):
@@ -62,7 +62,7 @@ def test_creation_answers_before_the_profile_is_seeded(session, scheduled_owner)
     assert record_by_id(session, PlaygroundRun, result["run_id"]).status == "active"
     receipt = company_setup.read_request(session, scheduled_owner.id, "deferred")
     assert receipt["status"] == "ready" and receipt["destination"]
-    assert _documents(session, tenant) == INTERNATIONAL_V10_DOCUMENT_COUNT
+    assert _documents(session, tenant) == INTERNATIONAL_V11_DOCUMENT_COUNT
     checkpoint = session.scalar(
         select(ProjectionCheckpoint).where(
             ProjectionCheckpoint.tenant_id == tenant,
@@ -230,9 +230,9 @@ def test_explicit_retry_completes_without_a_worker(session, scheduled_owner):
     )
     assert retried["status"] == "ready"
     assert retried["tenant_id"] == result["tenant_id"]
-    assert _documents(session, result["tenant_id"]) == INTERNATIONAL_V10_DOCUMENT_COUNT
+    assert _documents(session, result["tenant_id"]) == INTERNATIONAL_V11_DOCUMENT_COUNT
     assert _work(session, result["tenant_id"]) == "succeeded"
-    assert _documents(session, result["tenant_id"]) == INTERNATIONAL_V10_DOCUMENT_COUNT
+    assert _documents(session, result["tenant_id"]) == INTERNATIONAL_V11_DOCUMENT_COUNT
 
 
 def test_a_small_profile_is_still_ready_when_the_request_answers(
