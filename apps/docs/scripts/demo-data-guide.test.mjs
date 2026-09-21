@@ -79,6 +79,8 @@ for (const guide of guides) {
     assert.match(content, /zero to six|null bis sechs/);
     assert.match(content, /pageClass: demo-data-page/);
     assert.match(content, /<details class="demo-data-inventory">/);
+    assert.doesNotMatch(content, /\| (Enthalten|Included)\s+\|/);
+    assert.match(content, /### (Bewusste Lücken|Deliberate gaps)/);
   });
 }
 
