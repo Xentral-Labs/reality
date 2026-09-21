@@ -1286,10 +1286,10 @@ export const api = {
   companySetupRequest: (key: string) =>
     request<CompanySetupResult>(`/api/company-setup/requests/${encodeURIComponent(key)}`),
   companySetupRetry: (key: string) =>
-    request<CompanySetupResult>(
-      `/api/company-setup/requests/${encodeURIComponent(key)}/retry`,
-      { method: "POST", body: JSON.stringify({ confirmed: true }) },
-    ),
+    request<CompanySetupResult>(`/api/company-setup/requests/${encodeURIComponent(key)}/retry`, {
+      method: "POST",
+      body: JSON.stringify({ confirmed: true }),
+    }),
   companySetup: (body: CompanySetupRequest) =>
     request<CompanySetupResult>("/api/company-setup", {
       method: "POST",

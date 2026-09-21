@@ -14,10 +14,7 @@ export function SetupSteps({ steps }: { steps: SetupStep[] }) {
           data-state={step.state}
           aria-current={step.state === "current" ? "step" : undefined}
         >
-          <span
-            className="setup-step-marker"
-            aria-hidden="true"
-          >
+          <span className="setup-step-marker" aria-hidden="true">
             {step.state === "done" ? (
               <Check className="h-4 w-4 text-accent" />
             ) : step.state === "current" ? (
