@@ -177,35 +177,35 @@ Reality fehlende Nachweise bewusst nicht in 0 EUR umgewandelt hat.
 
 ## Abdeckung und bewusste Lücken
 
-| Typischer Prozess                                    | Enthalten | Nachweis oder Einschränkung        | So findest du es                                     |
-| ---------------------------------------------------- | --------- | ---------------------------------- | ---------------------------------------------------- |
-| Offener Auftrag, Engpass und Reservierung            | Ja        | `SO-001`–`SO-005`                  | Vertrieb → Aufträge → Referenz suchen                |
-| Teil-/Vollauslieferung und Sperre                    | Ja        | `SO-006`–`SO-009`                  | Vertrieb → Aufträge → Referenz suchen                |
-| Storno vor/nach Versand                              | Ja        | `SO-010`, `SO-011`                 | Vertrieb → Aufträge → Referenz → Historie            |
-| Offene, teilweise und bezahlte Forderung             | Ja        | `SO-012`–`SO-023`, `CPAY-*`        | Vertrieb → Auftrag → Rechnung; Finance → Forderungen |
-| Skonto mit eigener Reduktionsbuchung                 | Ja        | `SINV-002`, `SPAY-002`             | Finance → Verbindlichkeiten → `SINV-002`             |
-| Kunden- und Lieferantenüberzahlung/Guthaben          | Ja        | `CPAY-009`, `SPAY-005`             | Finance → Zahlungen → Referenz suchen                |
-| Akzeptierter Kleinrest                               | Ja        | `CPAY-006`                         | Vertrieb → `SO-017` → Rechnung → Ausgleich           |
-| Vollständige und teilweise Kundenretoure/-gutschrift | Ja        | `CN-001`, `CN-002`                 | Finance → Forderungen → Gutschriftnummer suchen      |
-| Kein, teilweiser und vollständiger Wareneingang      | Ja        | `PO-001`–`PO-003`                  | Einkauf → Bestellungen → Referenz suchen             |
-| Wareneingang ohne Rechnung                           | Ja        | `PO-006`                           | Einkauf → Bestellungen → `PO-006`                    |
-| Offene, teilweise und bezahlte Verbindlichkeit       | Ja        | `SINV-005`, `SINV-004`, `SINV-002` | Finance → Verbindlichkeiten → Referenz suchen        |
-| Lieferantenretoure mit/ohne Gutschrift               | Ja        | `PO-007`, `PO-008`                 | Einkauf → Bestellungen → Referenz öffnen             |
-| Einkaufsstorno vor Wareneingang                      | Ja        | `PO-009`                           | Einkauf → Bestellungen → `PO-009`                    |
-| Lagerortengpass und Korrektur                        | Ja        | `ITEM-008`, `ITEM-016`             | Lager → Artikel → Referenz suchen                    |
-| Vollständige DB1-/DB2-Erklärungen                    | Ja        | `SO-024`–`SO-029`                  | Vertrieb → Auftrag → Rechnung → DB-Erklärung         |
-| Reine Preisgutschrift                                | Ja        | `SO-030`, `CN-003`                 | Vertrieb → Aufträge → `SO-030`; Finance → `CN-003` suchen |
-| Umtausch oder Ersatzlieferung                        | Nein      | Nicht in Profilversion 7           | Nicht vorhanden; siehe Einschränkung                 |
-| Rechnungsstorno/Gegenbuchung                         | Ja        | `SO-031`, exakte Gegenbuchung      | Vertrieb → Aufträge → `SO-031` → Rechnung → Buchungen |
-| Mehrere Teilrechnungen je Auftrag                    | Ja        | `SO-032`, Mengen 4 und 6           | Vertrieb → Aufträge → `SO-032` → Rechnungen          |
-| Endgültige Unterlieferung                            | Ja        | `SO-011`: 2 versendet, Rest storniert | Vertrieb → Aufträge → `SO-011` → Historie         |
-| Überlieferung                                        | Nein      | Nicht in Profilversion 7           | Nicht vorhanden; siehe Einschränkung                 |
-| Umlagerung                                           | Ja        | `ITEM-017`, 3 Stück Rotterdam → Singapur | Lager → Artikel → `ITEM-017` → Bewegungen       |
-| Schaden, Verlust und Verschrottung                   | Ja        | `ITEM-010`, je eine Korrektur      | Lager → Artikel → `ITEM-010` → Bewegungen            |
-| Charge und Ablaufdatum                               | Ja        | `ITEM-017`, `LOT-2026-001` abgelaufen | Lager → Artikel → `ITEM-017` → Chargen/Bewegungen |
-| Seriennummer                                         | Ja        | `ITEM-018`, `SER-0001`             | Lager → Artikel → `ITEM-018` → Serien/Bewegungen     |
-| Anzahlungen, Mahnungen oder Forderungsausfall        | Nein      | Nicht in Profilversion 7           | Nicht vorhanden; siehe Einschränkung                 |
-| Bankabstimmung, Steuer oder Währungsneubewertung     | Nein      | Nicht in Profilversion 7           | Nicht vorhanden; siehe Einschränkung                 |
+| Typischer Prozess                                    | Enthalten | Nachweis oder Einschränkung              | So findest du es                                          |
+| ---------------------------------------------------- | --------- | ---------------------------------------- | --------------------------------------------------------- |
+| Offener Auftrag, Engpass und Reservierung            | Ja        | `SO-001`–`SO-005`                        | Vertrieb → Aufträge → Referenz suchen                     |
+| Teil-/Vollauslieferung und Sperre                    | Ja        | `SO-006`–`SO-009`                        | Vertrieb → Aufträge → Referenz suchen                     |
+| Storno vor/nach Versand                              | Ja        | `SO-010`, `SO-011`                       | Vertrieb → Aufträge → Referenz → Historie                 |
+| Offene, teilweise und bezahlte Forderung             | Ja        | `SO-012`–`SO-023`, `CPAY-*`              | Vertrieb → Auftrag → Rechnung; Finance → Forderungen      |
+| Skonto mit eigener Reduktionsbuchung                 | Ja        | `SINV-002`, `SPAY-002`                   | Finance → Verbindlichkeiten → `SINV-002`                  |
+| Kunden- und Lieferantenüberzahlung/Guthaben          | Ja        | `CPAY-009`, `SPAY-005`                   | Finance → Zahlungen → Referenz suchen                     |
+| Akzeptierter Kleinrest                               | Ja        | `CPAY-006`                               | Vertrieb → `SO-017` → Rechnung → Ausgleich                |
+| Vollständige und teilweise Kundenretoure/-gutschrift | Ja        | `CN-001`, `CN-002`                       | Finance → Forderungen → Gutschriftnummer suchen           |
+| Kein, teilweiser und vollständiger Wareneingang      | Ja        | `PO-001`–`PO-003`                        | Einkauf → Bestellungen → Referenz suchen                  |
+| Wareneingang ohne Rechnung                           | Ja        | `PO-006`                                 | Einkauf → Bestellungen → `PO-006`                         |
+| Offene, teilweise und bezahlte Verbindlichkeit       | Ja        | `SINV-005`, `SINV-004`, `SINV-002`       | Finance → Verbindlichkeiten → Referenz suchen             |
+| Lieferantenretoure mit/ohne Gutschrift               | Ja        | `PO-007`, `PO-008`                       | Einkauf → Bestellungen → Referenz öffnen                  |
+| Einkaufsstorno vor Wareneingang                      | Ja        | `PO-009`                                 | Einkauf → Bestellungen → `PO-009`                         |
+| Lagerortengpass und Korrektur                        | Ja        | `ITEM-008`, `ITEM-016`                   | Lager → Artikel → Referenz suchen                         |
+| Vollständige DB1-/DB2-Erklärungen                    | Ja        | `SO-024`–`SO-029`                        | Vertrieb → Auftrag → Rechnung → DB-Erklärung              |
+| Reine Preisgutschrift                                | Ja        | `SO-030`, `CN-003`                       | Vertrieb → Aufträge → `SO-030`; Finance → `CN-003` suchen |
+| Umtausch oder Ersatzlieferung                        | Nein      | Nicht in Profilversion 7                 | Nicht vorhanden; siehe Einschränkung                      |
+| Rechnungsstorno/Gegenbuchung                         | Ja        | `SO-031`, exakte Gegenbuchung            | Vertrieb → Aufträge → `SO-031` → Rechnung → Buchungen     |
+| Mehrere Teilrechnungen je Auftrag                    | Ja        | `SO-032`, Mengen 4 und 6                 | Vertrieb → Aufträge → `SO-032` → Rechnungen               |
+| Endgültige Unterlieferung                            | Ja        | `SO-011`: 2 versendet, Rest storniert    | Vertrieb → Aufträge → `SO-011` → Historie                 |
+| Überlieferung                                        | Nein      | Nicht in Profilversion 7                 | Nicht vorhanden; siehe Einschränkung                      |
+| Umlagerung                                           | Ja        | `ITEM-017`, 3 Stück Rotterdam → Singapur | Lager → Artikel → `ITEM-017` → Bewegungen                 |
+| Schaden, Verlust und Verschrottung                   | Ja        | `ITEM-010`, je eine Korrektur            | Lager → Artikel → `ITEM-010` → Bewegungen                 |
+| Charge und Ablaufdatum                               | Ja        | `ITEM-017`, `LOT-2026-001` abgelaufen    | Lager → Artikel → `ITEM-017` → Chargen/Bewegungen         |
+| Seriennummer                                         | Ja        | `ITEM-018`, `SER-0001`                   | Lager → Artikel → `ITEM-018` → Serien/Bewegungen          |
+| Anzahlungen, Mahnungen oder Forderungsausfall        | Nein      | Nicht in Profilversion 7                 | Nicht vorhanden; siehe Einschränkung                      |
+| Bankabstimmung, Steuer oder Währungsneubewertung     | Nein      | Nicht in Profilversion 7                 | Nicht vorhanden; siehe Einschränkung                      |
 
 ## Stabile Basis und Live-Daten
 
