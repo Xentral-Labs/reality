@@ -854,6 +854,14 @@ def _movement_create(
     return _entity_result("movement", record_movement(session, tenant_id, **arguments))
 
 
+def _movement_explanation(
+    session: Session, tenant_id: str, arguments: dict[str, Any]
+) -> Any:
+    from reality.services.movement_explanations import movement_explanation
+
+    return movement_explanation(session, tenant_id, arguments["movement_id"])
+
+
 def _reservation_release(
     session: Session, tenant_id: str, arguments: dict[str, Any]
 ) -> Any:
@@ -1858,6 +1866,12 @@ TOOLS = {
         "Record an immutable physical Movement.",
         True,
         _movement_create,
+    ),
+    "movement_explanation": Tool(
+        "movement_explanation",
+        "Explain why an immutable physical Movement exists from its shortest true links.",
+        False,
+        _movement_explanation,
     ),
     "return_disposition": Tool(
         "return_disposition",

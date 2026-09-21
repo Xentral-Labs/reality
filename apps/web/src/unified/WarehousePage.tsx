@@ -12,6 +12,7 @@ import { InlineInspector, PreviewButton, TablePreview } from "./InlinePreview";
 import { useRead } from "./useCompanyContext";
 import type { Selection } from "./routing";
 import { CostExplanation } from "./CostExplanation";
+import { MovementExplanation } from "./MovementExplanation";
 
 const states: Record<WarehouseView, [string, string][]> = {
   stock: [
@@ -270,6 +271,9 @@ export function WarehousePage({
                         open={entry === row.id}
                         columns={5}
                       >
+                        {view === "movements" && (
+                          <MovementExplanation tenant={tenant} movementId={row.id} />
+                        )}
                         {stock && (
                           <CostExplanation tenant={tenant} kind="inventory" scopeId={row.id} />
                         )}

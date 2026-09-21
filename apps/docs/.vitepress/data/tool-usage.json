@@ -473,7 +473,7 @@
       ],
       "reads": [],
       "exceptions": ["exception:return_unresolved", "exception:unexplained_movement"],
-      "tools": ["tool:shipments_list", "tool:shipment_explain"],
+      "tools": ["tool:shipments_list", "tool:shipment_explain", "tool:movement_explanation"],
       "events": [
         "event:shipment.notice_recorded",
         "event:shipment.event_recorded",
@@ -7969,6 +7969,48 @@
       "links": [],
       "label_de": "Supply coverage",
       "resources": ["item"]
+    },
+    {
+      "id": "tool:movement_explanation",
+      "kind": "tool",
+      "key": "movement_explanation",
+      "label": "Movement explanation",
+      "area": "warehouse",
+      "summary": "Explain why a stock movement exists through its shortest authoritative links.",
+      "access": "read",
+      "group": "Warehouse",
+      "synopsis": "movement_explanation movement_id",
+      "parameters": [
+        {
+          "name": "movement_id",
+          "type": "string",
+          "required": true,
+          "description": "Opaque identity of the immutable physical Movement being inspected or corrected.",
+          "depth": 0
+        }
+      ],
+      "guidance": {
+        "purpose": "Explain why one physical stock movement exists through its shortest authoritative relationships.",
+        "use_when": ["A user asks for the business reason behind a goods movement."],
+        "do_not_use_when": ["A user wants to mutate a movement."],
+        "limitations": [
+          "The explanation derives current links and never invents missing evidence."
+        ],
+        "empty_result": "An existing movement without an allowed relationship is explicitly returned as unexplained.",
+        "freshness": "Derived from current tenant-scoped Reality and Evidence records at request time."
+      },
+      "read_modes": [
+        {
+          "query": "MCP movement_explanation",
+          "mode": "live",
+          "default": true
+        }
+      ],
+      "command": null,
+      "projections": [],
+      "links": [],
+      "label_de": "Movement explanation",
+      "resources": ["delivery"]
     },
     {
       "id": "tool:return_disposition_summary",

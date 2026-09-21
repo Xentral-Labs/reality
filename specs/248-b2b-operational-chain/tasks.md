@@ -100,13 +100,13 @@ to the supplier, and verify exact quantity reconciliation plus independent credi
 **Independent test**: Inspect every movement in the B2B story; each reaches an allowed explanation in
 at most two navigation steps and the story produces zero unexplained-movement exceptions.
 
-- [ ] T040 [P] [US4] [FR-014] [DR-001] [DR-004] Add failing precedence, provenance, correction, and Inspector-target tests in `packages/reality-core/tests/test_movement_explanations.py`
-- [ ] T041 [P] [US4] [FR-015] Add failing preview-warning and persistent-exception tests in `packages/reality-core/tests/operational_exceptions/test_derivation.py`
-- [ ] T042 [US4] [FR-014] [DR-001] [DR-004] Implement the non-persisted shortest-link explanation read in `packages/reality-core/src/reality/services/movement_explanations.py`
-- [ ] T043 [US4] [FR-015] Add a clear pre-confirmation warning without suppressing canonical exceptions in `packages/reality-core/src/reality/services/delivery_actions.py`
-- [ ] T044 [P] [US4] [FR-014] [FR-019] [DR-006] Expose movement explanation through shared tools, MCP, API and CLI with parity tests in `packages/reality-core/src/reality/tools/application.py`, `packages/reality-core/src/reality/mcp/catalog.py`, `packages/reality-core/src/reality/web/api.py`, `packages/reality-core/src/reality/cli/app.py`, and `packages/reality-core/tests/test_b2b_operational_chain_contracts.py`
-- [ ] T045 [US4] [FR-014] [FR-015] Add Why did this happen presentation, source/Inspector links, and warning text in `apps/web/src/unified/WarehousePage.tsx` and a focused new `apps/web/src/unified/MovementExplanation.tsx` component
-- [ ] T046 [US4] [FR-014] [FR-015] Run the US4 independent acceptance test and record exact evidence in `specs/248-b2b-operational-chain/quickstart.md`
+- [x] T040 [P] [US4] [FR-014] [DR-001] [DR-004] Add failing precedence, provenance, correction, and Inspector-target tests in `packages/reality-core/tests/test_movement_explanations.py`
+- [x] T041 [P] [US4] [FR-015] Add failing preview-warning and persistent-exception tests in `packages/reality-core/tests/operational_exceptions/test_derivation.py`
+- [x] T042 [US4] [FR-014] [DR-001] [DR-004] Implement the non-persisted shortest-link explanation read in `packages/reality-core/src/reality/services/movement_explanations.py`
+- [x] T043 [US4] [FR-015] Add a clear pre-confirmation warning without suppressing canonical exceptions in `packages/reality-core/src/reality/services/delivery_actions.py`
+- [x] T044 [P] [US4] [FR-014] [FR-019] [DR-006] Expose movement explanation through shared tools, MCP, API and CLI with parity tests in `packages/reality-core/src/reality/tools/application.py`, `packages/reality-core/src/reality/mcp/catalog.py`, `packages/reality-core/src/reality/web/api.py`, `packages/reality-core/src/reality/cli/app.py`, and `packages/reality-core/tests/test_b2b_operational_chain_contracts.py`
+- [x] T045 [US4] [FR-014] [FR-015] Add Why did this happen presentation, source/Inspector links, and warning text in `apps/web/src/unified/WarehousePage.tsx` and a focused new `apps/web/src/unified/MovementExplanation.tsx` component
+- [x] T046 [US4] [FR-014] [FR-015] Run the US4 independent acceptance test and record exact evidence in `specs/248-b2b-operational-chain/quickstart.md`
 
 **Checkpoint**: Movement provenance is shared, concise, and complete without storing a second authority.
 

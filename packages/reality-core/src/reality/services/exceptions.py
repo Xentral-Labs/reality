@@ -2472,6 +2472,9 @@ def _movement_exceptions(
             Movement.type.in_(("shipment", "receipt", "return")),
             Movement.commitment_id.is_(None),
             Movement.source_record_id.is_(None),
+            Movement.return_announcement_id.is_(None),
+            Movement.resolves_movement_id.is_(None),
+            Movement.shipment_package_id.is_(None),
             ~Movement.id.in_(
                 select(MovementCorrection.original_movement_id).where(
                     MovementCorrection.tenant_id == tenant_id

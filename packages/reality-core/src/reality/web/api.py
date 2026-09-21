@@ -291,6 +291,7 @@ def require_tenant_surface_access(
         "/finance/open-items",
         "/evidence-documents",
         "/movements",
+        "/movements/{movement_id}/explanation",
         "/reservations",
         "/timeline",
         "/change-proposals",
@@ -3873,6 +3874,18 @@ def list_movements(
 def get_movement_correction(tenant_id: str, movement_id: str, session: DatabaseSession):
     try:
         return movement_correction_snapshot(session, tenant_id, movement_id)
+    except (NotFound, InvalidOperation) as error:
+        raise api_error(error) from error
+
+
+@router.get("/movements/{movement_id}/explanation")
+def get_movement_explanation(
+    tenant_id: str, movement_id: str, session: DatabaseSession
+):
+    from reality.services.movement_explanations import movement_explanation
+
+    try:
+        return movement_explanation(session, tenant_id, movement_id)
     except (NotFound, InvalidOperation) as error:
         raise api_error(error) from error
 
