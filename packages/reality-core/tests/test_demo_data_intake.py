@@ -2,10 +2,9 @@ import json
 
 import pytest
 from conftest import record_by_id, seed_company
-from sqlalchemy import event, select
-
 from reality.db.core import SourceRecord
 from reality.services import core
+from sqlalchemy import event, select
 
 
 def test_bound_enqueue_does_not_commit_and_rolls_back(session, business):
@@ -93,11 +92,10 @@ def test_ten_worker_occurrences_create_orders_without_business_execution(
 ):
     from datetime import timedelta
 
-    from sqlalchemy import func
-
     from reality.db.core import Commitment, Document, Movement, Reservation, now
     from reality.db.scheduled_jobs import ScheduledJob
     from reality.services import company_setup, demo_data, scheduled_jobs
+    from sqlalchemy import func
 
     monkeypatch.setattr("reality.integrations.demo_data.burst_size", lambda *args: 1)
     if pending:
@@ -457,7 +455,7 @@ def test_one_delivery_carries_none_one_or_two_orders_with_stable_identities(
             )
         )
     )
-    assert len(numbers) == 2 and numbers[1] == f"{numbers[0]}-2"
+    assert numbers == ["SO-001", "SO-002"]
     assert demo_data.status(session, tenant, actor)["imported"] == 2
     # Replaying the same delivery reuses both stored payloads.
     assert scheduled_jobs.execute_claim(session, tenant, run_id, token) == "succeeded"
@@ -558,9 +556,8 @@ def test_bound_processing_accepts_all_synthetic_types(session, business, kind):
 
 def _settle_all(session, tenant, settlement, *, max_ticks=8):
     """Tick the settlement schedule until it emits nothing more; return per-tick counts."""
-    from sqlalchemy import func
-
     from reality.db.core import SourceRecord
+    from sqlalchemy import func
 
     def counts():
         return {
@@ -594,12 +591,11 @@ def test_settlement_occurrence_emits_due_records_in_bounded_batches(
     """Feature 168 FR-018: due invoices and payments, oldest first, at most ten per occurrence."""
     from datetime import timedelta
 
-    from sqlalchemy import func
-
     from reality.db.core import Document, Movement, Reservation, SourceRecord, now
     from reality.db.scheduled_jobs import ScheduledJob
     from reality.integrations import demo_data as synthetic
     from reality.services import demo_data
+    from sqlalchemy import func
 
     monkeypatch.setattr("reality.integrations.demo_data.burst_size", lambda *args: 1)
     # The production bound leaves headroom at 300 orders per hour; the test uses a

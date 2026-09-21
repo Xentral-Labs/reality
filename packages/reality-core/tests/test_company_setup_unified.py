@@ -1,5 +1,4 @@
 from conftest import seed_company
-
 from reality.services import company_setup, demo_profile
 
 
@@ -41,11 +40,10 @@ def test_unified_baseline_uses_current_domain_services(
     from reality.services.exceptions import operational_exception_rows
     from reality.services.projections import EXCEPTIONS, rebuild_projections
 
-    # Spec180: a company nobody has calculated yet is awaiting its first generation,
-    # not empty; the worker publishes it, and only then does the register list rows.
+    # Company setup publishes the first exception generation before it reports ready.
     awaiting = attention_register(session, result["tenant_id"])
-    assert awaiting["items"] == []
-    assert awaiting["metadata"]["state"] == "uninitialized"
+    assert awaiting["items"]
+    assert awaiting["metadata"]["state"] == "ready"
     rebuild_projections(session, result["tenant_id"], [EXCEPTIONS], force=True)
     session.flush()
     findings = attention_register(session, result["tenant_id"])
@@ -95,11 +93,10 @@ def test_sandbox_reports_readable_without_mutation_authority(
     session, scheduled_owner, monkeypatch
 ):
     import pytest
-    from sqlalchemy import event
-
     from reality.services.core import InvalidOperation
     from reality.services.reference_workspace import require_ordinary_workspace
     from reality.tools.application import run_read_tool
+    from sqlalchemy import event
 
     result = company_setup.create_company(
         session,
