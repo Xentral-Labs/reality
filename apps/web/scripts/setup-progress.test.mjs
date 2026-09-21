@@ -140,6 +140,7 @@ test("the steps are taken from real state, never estimated", () => {
     0,
     "a finished setup has no current step",
   );
+  assert.equal(done[1].label, "Orders, deliveries and invoices prepared");
   assert.equal(done[2].label, "Finance and margins calculated");
   for (const steps of [queued, preparing, retrying]) {
     assert.equal(steps.filter((step) => step.state === "current").length <= 1, true);
