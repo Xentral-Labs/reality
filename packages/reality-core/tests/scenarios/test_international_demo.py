@@ -254,6 +254,33 @@ def test_supported_edge_cases_are_source_backed_and_traceable(
         for row in adjustments
     } == {"ADJUSTMENT-001", "ADJUSTMENT-002", "ADJUSTMENT-003"}
 
+    exchange = cases["exchange_replacement"]
+    original_shipment = record_by_id(
+        session, Movement, exchange["original_shipment_id"]
+    )
+    customer_return = record_by_id(session, Movement, exchange["return_movement_id"])
+    replacement_shipment = record_by_id(
+        session, Movement, exchange["replacement_shipment_id"]
+    )
+    assert exchange["original_order_number"] == "SO-033"
+    assert exchange["replacement_order_number"] == "SO-034"
+    assert original_shipment.type == "shipment"
+    assert customer_return.type == "return"
+    assert replacement_shipment.type == "shipment"
+    assert original_shipment.occurred_at < customer_return.occurred_at
+    assert customer_return.occurred_at < replacement_shipment.occurred_at
+
+    prepayment = cases["customer_prepayment"]
+    prepayment_shipment = record_by_id(
+        session, Movement, prepayment["shipment_movement_id"]
+    )
+    assert prepayment["order_number"] == "SO-035"
+    assert core.open_invoice_amount(session, tenant, prepayment["invoice_id"]) == 0
+    assert (
+        datetime.fromisoformat(prepayment["payment_effective_at"])
+        < prepayment_shipment.occurred_at
+    )
+
 
 def _demo_company(session, owner, key: str) -> str:
     tenant = company_setup.create_company(
@@ -305,7 +332,7 @@ def test_orders_spread_over_the_customer_pool(session, scheduled_owner, monkeypa
         for number, buyer in orders.items()
         if number not in portfolio_orders
     }
-    assert len(operational_orders) == 27
+    assert len(operational_orders) == 30
     held = Counter(operational_orders.values())
     assert len(held) >= 15, held
     assert max(held.values()) <= 5, held

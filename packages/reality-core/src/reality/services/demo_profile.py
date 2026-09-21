@@ -2371,6 +2371,115 @@ def seed_profile(
             "scrap_movement_id": adjustment_ids["scrap"],
         }
 
+        exchange_original, _ = order(
+            "EXCHANGE-ORIGINAL",
+            "P07",
+            counterparty="C7",
+            quantity="1",
+            price="20",
+            gross="20",
+            date=anchor - timedelta(days=8),
+        )
+        movement(
+            "EXCHANGE-OPENING",
+            "P07",
+            "1",
+            "opening_stock",
+            date=anchor - timedelta(days=7),
+        )
+        original_shipment = movement(
+            "EXCHANGE-SHIPMENT",
+            "P07",
+            "1",
+            "shipment",
+            commitment=exchange_original["commitment_id"],
+            date=anchor - timedelta(days=6),
+        )
+        customer_return = movement(
+            "EXCHANGE-RETURN",
+            "P07",
+            "1",
+            "return",
+            date=anchor - timedelta(days=5),
+        )
+        exchange_replacement, _ = order(
+            "EXCHANGE-REPLACEMENT",
+            "P07",
+            counterparty="C7",
+            quantity="1",
+            price="0",
+            gross="0",
+            date=anchor - timedelta(days=4),
+        )
+        replacement_shipment = movement(
+            "EXCHANGE-REPLACEMENT-SHIPMENT",
+            "P07",
+            "1",
+            "shipment",
+            commitment=exchange_replacement["commitment_id"],
+            date=anchor - timedelta(days=3),
+        )
+        cases["exchange_replacement"] = {
+            "original_order_id": exchange_original["document_id"],
+            "original_order_number": exchange_original["number"],
+            "original_shipment_id": original_shipment.id,
+            "return_movement_id": customer_return.id,
+            "replacement_order_id": exchange_replacement["document_id"],
+            "replacement_order_number": exchange_replacement["number"],
+            "replacement_shipment_id": replacement_shipment.id,
+        }
+
+        prepayment_ref, prepayment_invoices = billed_sale(
+            "CUSTOMER-PREPAYMENT", "P08", "C8", "2", "40", (("2", "40"),)
+        )
+        prepayment_invoice = prepayment_invoices[0][0]
+        payment_effective_at = anchor - timedelta(days=4)
+        prepayment_source = source(
+            "customer_payment",
+            "CPAY-010",
+            {
+                "number": "CPAY-010",
+                "date": payment_effective_at.isoformat(),
+                "amount": "40",
+                "currency": "EUR",
+                "invoice_external_reference": prepayment_invoice.number,
+            },
+        )
+        core.post_customer_payment(
+            session,
+            tenant,
+            prepayment_invoice.id,
+            "40",
+            payment_number="CPAY-010",
+            source_record_id=prepayment_source.id,
+            effective_at=payment_effective_at,
+            _commit=False,
+        )
+        movement(
+            "PREPAYMENT-OPENING",
+            "P08",
+            "2",
+            "opening_stock",
+            date=anchor - timedelta(days=2),
+        )
+        prepayment_shipment = movement(
+            "PREPAYMENT-SHIPMENT",
+            "P08",
+            "2",
+            "shipment",
+            commitment=prepayment_ref["commitment_id"],
+            date=anchor - timedelta(days=1),
+        )
+        cases["customer_prepayment"] = {
+            "order_id": prepayment_ref["document_id"],
+            "order_number": prepayment_ref["number"],
+            "invoice_id": prepayment_invoice.id,
+            "invoice_number": prepayment_invoice.number,
+            "payment_number": "CPAY-010",
+            "payment_effective_at": payment_effective_at.isoformat(),
+            "shipment_movement_id": prepayment_shipment.id,
+        }
+
     session.flush()
     manifest = {
         "parties": parties,

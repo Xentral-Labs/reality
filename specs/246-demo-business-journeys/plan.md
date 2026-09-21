@@ -38,6 +38,11 @@ browser business-rule change is required.
    services. Extend `create_lot`, `create_serial_unit` and ledger reversal only with
    the standard `_commit=False` composition option; add no schema or alternative
    business rule.
+8. Represent exchange as two ordinary commitments: an original shipment followed by a
+   customer return, and a separately stated zero-price replacement shipment. Represent
+   prepayment as an ordinary posted and paid invoice whose evidence timestamps precede
+   shipment. Do not bypass overdelivery validation or reuse unrelated settlement records
+   to imitate dunning or bad debt.
 
 ## Risk and rollback
 
