@@ -1374,6 +1374,67 @@ class CommitmentRevision(Base):
     created_at: Mapped[datetime] = mapped_column(UTCDateTime, default=now)
 
 
+class SupplyAssignment(Base):
+    """One append-only statement of what supplier supply is intended to serve."""
+
+    __tablename__ = "supply_assignment"
+    __table_args__ = (
+        PrimaryKeyConstraint("tenant_id", "id"),
+        ForeignKeyConstraint(
+            ["tenant_id", "supplier_commitment_id"],
+            ["commitment.tenant_id", "commitment.id"],
+        ),
+        ForeignKeyConstraint(
+            ["tenant_id", "customer_commitment_id"],
+            ["commitment.tenant_id", "commitment.id"],
+        ),
+        ForeignKeyConstraint(
+            ["tenant_id", "source_record_id"],
+            ["source_record.tenant_id", "source_record.id"],
+        ),
+        ForeignKeyConstraint(
+            ["tenant_id", "reverses_assignment_id"],
+            ["supply_assignment.tenant_id", "supply_assignment.id"],
+        ),
+        CheckConstraint(
+            "purpose IN ('customer_demand', 'stock_replenishment')",
+            name="ck_supply_assignment_purpose",
+        ),
+        CheckConstraint("quantity > 0", name="ck_supply_assignment_quantity_positive"),
+        CheckConstraint(
+            "(purpose = 'customer_demand' AND customer_commitment_id IS NOT NULL) "
+            "OR (purpose = 'stock_replenishment' AND customer_commitment_id IS NULL)",
+            name="ck_supply_assignment_customer_purpose",
+        ),
+        CheckConstraint(
+            "reverses_assignment_id IS NULL OR reverses_assignment_id <> id",
+            name="ck_supply_assignment_not_self_reversal",
+        ),
+        Index(
+            "ix_supply_assignment_tenant_supplier",
+            "tenant_id",
+            "supplier_commitment_id",
+        ),
+        Index(
+            "ix_supply_assignment_tenant_customer",
+            "tenant_id",
+            "customer_commitment_id",
+        ),
+        UniqueConstraint(
+            "tenant_id", "source_record_id", name="uq_supply_assignment_source"
+        ),
+    )
+    id: Mapped[str] = mapped_column(String)
+    tenant_id: Mapped[str] = mapped_column(ForeignKey("tenant.id"), index=True)
+    supplier_commitment_id: Mapped[str] = mapped_column(String)
+    customer_commitment_id: Mapped[str | None] = mapped_column(String, default=None)
+    purpose: Mapped[str] = mapped_column(String)
+    quantity: Mapped[Decimal] = mapped_column(Numeric(18, 4))
+    source_record_id: Mapped[str] = mapped_column(String)
+    reverses_assignment_id: Mapped[str | None] = mapped_column(String, default=None)
+    created_at: Mapped[datetime] = mapped_column(UTCDateTime, default=now)
+
+
 class CommitmentHold(Base):
     __tablename__ = "commitment_hold"
     __table_args__ = (

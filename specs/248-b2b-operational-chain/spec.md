@@ -364,7 +364,7 @@ separate from goods and all derived values non-authoritative.
 | Requirement | Scenario(s) | Planned test/evidence |
 |---|---|---|
 | FR-001–FR-006, DR-001–DR-002 | US1 scenarios 1–5 | Service and business-story proofs for full/partial invoice lines, retained cost, DB1/DB2, missing basis and initial readiness |
-| FR-007–FR-010, DR-003, DR-005 | US2 scenarios 1–5 | Tenant-isolated assignment tests plus customer-specific, stock and split-supply business story |
+| FR-007–FR-010, DR-003, DR-005 | US2 scenarios 1–5 | `packages/reality-core/tests/test_supply_assignments.py` tenant-isolated assignment tests plus customer-specific, stock and split-supply business story |
 | FR-011–FR-013, DR-004, DR-007 | US3 scenarios 1–5 | Mixed return-disposition, over-disposition, correction and independent-credit tests |
 | FR-014–FR-015 | US4 scenarios 1–3 | Movement explanation and unexplained-movement warning/exception tests |
 | FR-016–FR-018 | US1–US4 independent tests | Deterministic empty-company B2B scenario and bilingual catalog/UI navigation evidence |
