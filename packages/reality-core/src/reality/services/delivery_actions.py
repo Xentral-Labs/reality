@@ -61,6 +61,12 @@ from reality.services.payment_actions import (
     _payment_detail,
     _review_payment,
 )
+from reality.services.supply_assignment_actions import (
+    SUPPLY_ASSIGNMENT_TOOLS,
+    assert_no_unresolved_supply_assignment,
+    review_supply_assignment,
+    supply_assignment_detail,
+)
 
 REVIEW_KEY = "_delivery_review"
 
@@ -84,6 +90,7 @@ def eligible(tool: str, arguments: dict[str, Any]) -> bool:
             *PAYMENT_TOOLS,
             *HOLD_TOOLS,
             *CUSTOMER_HOLD_TOOLS,
+            *SUPPLY_ASSIGNMENT_TOOLS,
         }
         or (
             tool == "movement_create"
@@ -173,6 +180,8 @@ def review_delivery(
         return _review_payment(session, tenant_id, tool, arguments)
     if tool in INVOICE_TOOLS:
         return _review_invoice(session, tenant_id, tool, arguments)
+    if tool in SUPPLY_ASSIGNMENT_TOOLS:
+        return review_supply_assignment(session, tenant_id, arguments)
     if tool == "order_create":
         from reality.services.order_actions import review_order
 
@@ -449,6 +458,8 @@ def delivery_proposal_detail(
         return _payment_detail(session, tenant_id, proposal)
     if proposal.type.removeprefix("tool:") in INVOICE_TOOLS:
         return _invoice_detail(session, tenant_id, proposal)
+    if proposal.type.removeprefix("tool:") in SUPPLY_ASSIGNMENT_TOOLS:
+        return supply_assignment_detail(session, tenant_id, proposal)
     if proposal.type == "tool:order_create":
         from reality.services.order_actions import order_detail
 
@@ -669,6 +680,10 @@ def assert_no_unresolved_action(
         )
     if tool in INVOICE_TOOLS:
         return _assert_no_unresolved_invoice(session, tenant_id, arguments, exclude)
+    if tool in SUPPLY_ASSIGNMENT_TOOLS:
+        return assert_no_unresolved_supply_assignment(
+            session, tenant_id, arguments, exclude
+        )
     if tool == "order_create":
         from reality.services.order_actions import assert_no_unresolved_order
 
@@ -790,6 +805,7 @@ def reconcile_delivery(
             "sales_credit_record",
             *INVOICE_TOOLS,
             *PAYMENT_TOOLS,
+            *SUPPLY_ASSIGNMENT_TOOLS,
         }:
             proposal.status = "executed"
             proposal.output = _json(detail["recorded_receipt"])

@@ -417,6 +417,10 @@ families:
       - tool:return_announcements
       - tool:exceptions
       - tool:finance_balances
+      - tool:finance.deposit.clear
+      - tool:finance.deposit.record
+      - tool:finance.dunning.record
+      - tool:finance.dunning.reverse
       - tool:fact_observe
       - tool:reality_gap_create
       - tool:reality_gap_decide
@@ -447,6 +451,8 @@ families:
       - tool:item_create
       - tool:item_update
       - tool:item_supply_demand
+      - tool:supply_assign
+      - tool:supply_coverage
       - tool:lot_create
       - tool:master_data_lifecycle
       - tool:ledger_reverse

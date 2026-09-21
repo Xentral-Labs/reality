@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 from decimal import Decimal
 from typing import Any
 
@@ -160,6 +161,78 @@ def supply_coverage(
     return result
 
 
+def preview_supply_assignment(
+    session: Session,
+    tenant_id: str,
+    supplier_commitment_id: str,
+    quantity: Decimal | str,
+    *,
+    purpose: str,
+    customer_commitment_id: str | None = None,
+) -> dict[str, Any]:
+    if purpose not in {"customer_demand", "stock_replenishment"}:
+        raise core.InvalidOperation("Unsupported supply assignment purpose.")
+    if (purpose == "customer_demand") != bool(customer_commitment_id):
+        raise core.InvalidOperation(
+            "Customer demand requires one customer commitment; stock replenishment requires none."
+        )
+    qty = _decimal(quantity)
+    supplier = core._tenant_record(
+        session, Commitment, tenant_id, supplier_commitment_id
+    )
+    if supplier.type != "supplier_delivery" or supplier.status != "open":
+        raise core.InvalidOperation("Select an open supplier commitment.")
+    customer = None
+    if customer_commitment_id:
+        customer = core._tenant_record(
+            session, Commitment, tenant_id, customer_commitment_id
+        )
+        if customer.type != "customer_delivery" or customer.status != "open":
+            raise core.InvalidOperation("Select an open customer commitment.")
+        if supplier.item_id != customer.item_id:
+            raise core.InvalidOperation("Supply and demand items must match.")
+        if (
+            supplier.location_id
+            and customer.location_id
+            and supplier.location_id != customer.location_id
+        ):
+            raise core.InvalidOperation("Supply and demand locations must match.")
+    supplier_view = supply_coverage(
+        session, tenant_id, supplier_commitment_id=supplier.id
+    )["supplier"]
+    customer_view = (
+        supply_coverage(session, tenant_id, customer_commitment_id=customer.id)[
+            "customer"
+        ]
+        if customer
+        else None
+    )
+    try:
+        validate_assignment_quantity(
+            qty,
+            supplier_view["unassigned"],
+            customer_view["open"] if customer_view else None,
+        )
+    except ValueError as error:
+        raise core.InvalidOperation(str(error)) from error
+    return {
+        "supplier_commitment_id": supplier.id,
+        "customer_commitment_id": customer.id if customer else None,
+        "purpose": purpose,
+        "quantity": qty,
+        "supplier_before": supplier_view,
+        "customer_before": customer_view,
+        "supplier_after": {
+            **supplier_view,
+            "customer_assigned": supplier_view["customer_assigned"]
+            + (qty if purpose == "customer_demand" else Decimal(0)),
+            "stock_replenishment": supplier_view["stock_replenishment"]
+            + (qty if purpose == "stock_replenishment" else Decimal(0)),
+            "unassigned": supplier_view["unassigned"] - qty,
+        },
+    }
+
+
 def assign_supply(
     session: Session,
     tenant_id: str,
@@ -229,19 +302,26 @@ def assign_supply(
                 )
             )
             if existing:
+                stated = existing_source.payload
+                expected = {
+                    "supplier_commitment_id": supplier.id,
+                    "customer_commitment_id": customer.id if customer else None,
+                    "purpose": purpose,
+                    "quantity": str(qty),
+                }
+                if json.loads(stated) != expected:
+                    raise core.InvalidOperation(
+                        "Request identity already belongs to another supply assignment."
+                    )
                 return existing
-        coverage = supply_coverage(
-            session, tenant_id, supplier_commitment_id=supplier.id
-        )["supplier"]
-        customer_open = (
-            core.commitment_terms(session, tenant_id, [customer.id])[customer.id].open
-            if customer
-            else None
+        preview_supply_assignment(
+            session,
+            tenant_id,
+            supplier.id,
+            qty,
+            purpose=purpose,
+            customer_commitment_id=customer.id if customer else None,
         )
-        try:
-            validate_assignment_quantity(qty, coverage["unassigned"], customer_open)
-        except ValueError as error:
-            raise core.InvalidOperation(str(error)) from error
         payload = {
             "supplier_commitment_id": supplier.id,
             "customer_commitment_id": customer.id if customer else None,

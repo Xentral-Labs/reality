@@ -219,7 +219,7 @@
         "Lagerbestand",
         "Verfügbarkeit"
       ],
-      "tables": ["item"],
+      "tables": ["item", "supply_assignment"],
       "lists": [
         "view:inventory",
         "view:items",
@@ -227,7 +227,12 @@
         "projection:item_supply_demand",
         "projection:inventory"
       ],
-      "actions": ["command:create_item", "command:update_item", "command:set_master_data_active"],
+      "actions": [
+        "command:create_item",
+        "command:update_item",
+        "command:set_master_data_active",
+        "command:assign_supply"
+      ],
       "reads": ["command:inventory_cost"],
       "exceptions": [
         "exception:units_not_comparable",
@@ -237,6 +242,7 @@
       "tools": [
         "tool:inventory_read",
         "tool:item_supply_demand",
+        "tool:supply_coverage",
         "tool:graph_inventory_reviews_list"
       ],
       "events": ["event:item.created", "event:item.updated", "event:master_data.lifecycle_changed"],
@@ -7118,6 +7124,55 @@
       "resources": ["invoice"]
     },
     {
+      "id": "tool:supply_assign_propose",
+      "kind": "tool",
+      "key": "supply_assign_propose",
+      "label": "Assign supplier supply",
+      "area": "cross_functional",
+      "summary": "Prepare this business mutation without changing state. Assign supplier supply. Human confirmation is required.",
+      "access": "propose",
+      "group": "Mutations",
+      "synopsis": "supply_assign_propose supplier_commitment_id [customer_commitment_id] purpose quantity",
+      "parameters": [
+        {
+          "name": "supplier_commitment_id",
+          "type": "string",
+          "required": true,
+          "description": "Opaque identity of the incoming supplier commitment whose quantity is being assigned.",
+          "depth": 0
+        },
+        {
+          "name": "customer_commitment_id",
+          "type": "string",
+          "required": false,
+          "description": "Optional opaque identity of the outgoing customer commitment that the incoming supply is intended to cover; absence explicitly assigns the quantity to stock.",
+          "depth": 0
+        },
+        {
+          "name": "purpose",
+          "type": "string",
+          "required": true,
+          "description": "Closed business purpose that determines the shipment's counterparty role and compatible Movement type.",
+          "depth": 0,
+          "enum": ["customer_demand", "stock_replenishment"]
+        },
+        {
+          "name": "quantity",
+          "type": "string",
+          "required": true,
+          "description": "Decimal quantity expressed in the item's relevant unit.",
+          "depth": 0
+        }
+      ],
+      "guidance": {},
+      "read_modes": [],
+      "command": "assign_supply",
+      "projections": [],
+      "links": ["command:assign_supply"],
+      "label_de": "Assign supplier supply",
+      "resources": ["item"]
+    },
+    {
       "id": "tool:sales_credit_record_propose",
       "kind": "tool",
       "key": "sales_credit_record_propose",
@@ -7796,6 +7851,64 @@
       "links": ["command:create_source_capability"],
       "label_de": "Change source capability lifecycle",
       "resources": ["source"]
+    },
+    {
+      "id": "tool:supply_coverage",
+      "kind": "tool",
+      "key": "supply_coverage",
+      "label": "Supply coverage",
+      "area": "cross_functional",
+      "summary": "Read customer-assigned, stock-replenishment, received, open and unassigned supplier quantity.",
+      "access": "read",
+      "group": "Purchasing",
+      "synopsis": "supply_coverage [supplier_commitment_id] [customer_commitment_id]",
+      "parameters": [
+        {
+          "name": "supplier_commitment_id",
+          "type": "string",
+          "required": false,
+          "description": "Opaque identity of the incoming supplier commitment whose quantity is being assigned.",
+          "depth": 0
+        },
+        {
+          "name": "customer_commitment_id",
+          "type": "string",
+          "required": false,
+          "description": "Optional opaque identity of the outgoing customer commitment that the incoming supply is intended to cover; absence explicitly assigns the quantity to stock.",
+          "depth": 0
+        }
+      ],
+      "guidance": {
+        "purpose": "Read explicit links between incoming supplier commitments and customer commitments, including assigned quantity and current reversals.",
+        "use_when": [
+          "A user needs to understand which incoming purchase supply is intended to cover which customer demand."
+        ],
+        "do_not_use_when": [
+          "Physical receipt",
+          "stock availability",
+          "reservation",
+          "or customer shipment must be proven."
+        ],
+        "limitations": [
+          "An assignment expresses commercial intent; it does not move stock",
+          "reserve goods",
+          "or prove supplier delivery."
+        ],
+        "empty_result": "No explicit supply assignments exist for the selected company and filters.",
+        "freshness": "Derived from current tenant-scoped commitments, assignments, and reversals at request time."
+      },
+      "read_modes": [
+        {
+          "query": "MCP supply_coverage",
+          "mode": "live",
+          "default": true
+        }
+      ],
+      "command": null,
+      "projections": [],
+      "links": [],
+      "label_de": "Supply coverage",
+      "resources": ["item"]
     },
     {
       "id": "tool:finance_accounts",
@@ -17846,6 +17959,30 @@
       "links": ["tool:shipment_event_supersede_propose", "event:shipment.event_superseded"],
       "label_de": "Sendungsereignis korrigieren",
       "resources": ["delivery"]
+    },
+    {
+      "id": "command:assign_supply",
+      "kind": "command",
+      "key": "assign_supply",
+      "label": "Assign incoming supply to customer demand",
+      "area": "cross_functional",
+      "summary": "Assigns an explicit quantity of an incoming supplier commitment to a compatible customer commitment without moving or reserving stock.",
+      "mode": "mutation",
+      "adapters": ["CLI", "Web", "API", "MCP", "Chat"],
+      "reads": ["commitment", "supply_assignment", "source_record"],
+      "writes": ["supply_assignment", "source_record"],
+      "confirmation": "required",
+      "related_services": [],
+      "tools": ["supply_assign_propose"],
+      "synopses": [
+        "supply_assign_propose supplier_commitment_id [customer_commitment_id] purpose quantity"
+      ],
+      "events": [],
+      "actions": [],
+      "guidance": {},
+      "links": ["tool:supply_assign_propose"],
+      "label_de": "Zulauf einem Kundenbedarf zuordnen",
+      "resources": ["item"]
     },
     {
       "id": "workspace:company",
@@ -67567,7 +67704,8 @@
         "command:post_supplier_payment",
         "command:accept_adjustment",
         "command:apply_settlement",
-        "command:import_opening"
+        "command:import_opening",
+        "command:assign_supply"
       ]
     },
     {

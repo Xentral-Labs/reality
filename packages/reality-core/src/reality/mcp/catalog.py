@@ -1732,6 +1732,23 @@ ADDITIONAL_PROPOSAL_TOOLS: tuple[tuple[str, str, str, dict[str, Any]], ...] = (
         ),
     ),
     (
+        "supply_assign_propose",
+        "Assign supplier supply",
+        "supply_assign",
+        _object_schema(
+            {
+                "supplier_commitment_id": STRING,
+                "customer_commitment_id": OPTIONAL_STRING,
+                "purpose": {
+                    "type": "string",
+                    "enum": ["customer_demand", "stock_replenishment"],
+                },
+                "quantity": DECIMAL_STRING,
+            },
+            required=("supplier_commitment_id", "purpose", "quantity"),
+        ),
+    ),
+    (
         "sales_credit_record_propose",
         "Record customer credit",
         "sales_credit_record",
@@ -1939,6 +1956,23 @@ MCP_TOOL_CATALOG += tuple(
         _propose(application_name),
     )
     for name, label, application_name, schema in ADDITIONAL_PROPOSAL_TOOLS
+)
+
+MCP_TOOL_CATALOG += (
+    MCPToolDefinition(
+        "supply_coverage",
+        "Supply coverage",
+        "Read customer-assigned, stock-replenishment, received, open and unassigned supplier quantity.",
+        "read",
+        "Purchasing",
+        _object_schema(
+            {
+                "supplier_commitment_id": OPTIONAL_STRING,
+                "customer_commitment_id": OPTIONAL_STRING,
+            }
+        ),
+        _read("supply_coverage"),
+    ),
 )
 
 from reality.tools.finance import ACCOUNT_COMMANDS

@@ -209,6 +209,7 @@
     }
   },
   "mcp_topics": {
+    "supply_coverage": "orders",
     "capability_describe": "evidence",
     "business_records_discover": "evidence",
     "interpretation_coverage": "evidence",
