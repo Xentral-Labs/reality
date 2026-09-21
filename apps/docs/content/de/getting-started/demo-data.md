@@ -1,3 +1,7 @@
+---
+pageClass: demo-data-page
+---
+
 # Demo-Datensatz
 
 Die kanonische Demo-Firma ist ein reproduzierbares, synthetisches Handelsunternehmen. Hier siehst du
@@ -13,6 +17,9 @@ Die Basis enthält 18 Artikel (`ITEM-001`–`ITEM-018`), 20 Kunden, drei Liefera
 Rotterdam und Singapur. Mengen werden in Stück, Metern oder Kilogramm geführt. Die meisten Vorgänge
 sind in EUR; zwei Rechnungen verwenden bewusst USD.
 
+<details class="demo-data-inventory">
+<summary><strong>Vollständige Stammdatenübersicht</strong> — 18 Artikel, 20 Kunden, 3 Lieferanten, 2 Lager und die gemeinsame Zahlungsbedingung</summary>
+
 ### Vollständige Stammdatenübersicht
 
 | Art               | Enthaltene Datensätze                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      | Wo du sie findest                                                    |
@@ -26,6 +33,8 @@ sind in EUR; zwei Rechnungen verwenden bewusst USD.
 Northstar Outdoor, Maple Retail, Solstice Living und Blue Heron Living kommen in der datierten
 Verkaufsserie mehrfach vor; die übrigen Kunden liefern gezielte Einzelvergleiche. Die Zuordnung der
 Lieferanten zu ihren Artikeln ist ausdrücklich angegeben und wird nicht aus Wareneingängen geraten.
+
+</details>
 
 Die Referenz muss in der passenden Ansicht gesucht werden. Die wichtigsten Wege sind:
 

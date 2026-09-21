@@ -54,6 +54,7 @@
 - [x] T026 [US5] [FR-019..FR-020] Document continuous live intake plus every exceptional movement and finance/cost record with exact references and UI paths in both languages and the durable catalog.
 - [x] T027 [US5] [FR-021] Document the international, reduced execution and `normal-month` demo modes with their distinct start paths and purposes.
 - [x] T028 Run profile, setup, documentation-format, catalog-generation, spec-policy and PR quality gates; verify a fresh profile exposes the exact payment term on seeded invoice reads.
+- [x] T029 [US5] [FR-022] Give both demo-data guides one compact responsive table grid, collapse the long master-data inventory, verify the rendered docs and restart the local Docs service on port 8083.
 
 ## Dependencies
 
