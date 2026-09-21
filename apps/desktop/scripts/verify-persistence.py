@@ -33,6 +33,7 @@ def probe(runtime: Path, configuration: dict, *arguments: str) -> dict:
         [
             str(runtime / "python/bin/python3.12"),
             "-I",
+            "-B",
             str(SCRIPTS / "persistence-probe.py"),
             *arguments,
         ],

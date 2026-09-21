@@ -1,13 +1,15 @@
 {
-  "note": "Release-profile build with the current core wheel (migration 0088_tenant_scoped_keys), the current web frontend and the release Tauri binary. Company created through the real service against the running application.",
-  "seconds_to_database": 1.2,
-  "seconds_to_quit": 3.8,
-  "seconds_to_reopen": 0.6,
-  "seconds_to_second_quit": 4.1,
+  "note": "Release-profile build with the current core wheel (migration 0088_tenant_scoped_keys), the current web frontend and a release Tauri binary. A company was created through the real service against the running application.",
+  "seconds_to_database": 2.4,
+  "seconds_to_quit": 5.0,
+  "seconds_to_reopen": 0.3,
+  "seconds_to_second_quit": 6.8,
   "database_kept": true,
   "database_process_after_quit": false,
   "same_installation": true,
-  "read_back": {"owner_id": "usr_fafcd688e5", "tenants": [["ten_3b4055b15b", "Company From The App"]], "migration_revision": "0088_tenant_scoped_keys", "tcp_listening": false},
+  "read_back": {"owner_id": "usr_57517f5972", "tenants": [["ten_c269186616", "Company From The App"]], "migration_revision": "0088_tenant_scoped_keys", "tcp_listening": false},
+  "signature_valid_after_use": true,
+  "bytecode_added_after_signing": [],
   "uninstall_status": 0,
   "installation_removed": true
 }

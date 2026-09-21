@@ -104,6 +104,24 @@ def child_main(
     return 1
 
 
+def child_command(tenant_id: str, run_id: str, token: str) -> list[str]:
+    """Build the isolated child command, keeping the parent's bytecode policy.
+
+    A packaged application runs from a signed bundle: a child that writes bytecode
+    beside the installed modules invalidates that signature.
+    """
+    return [
+        sys.executable,
+        *(["-B"] if sys.dont_write_bytecode else []),
+        "-m",
+        "reality.jobs.runner",
+        tenant_id,
+        run_id,
+        token,
+        "--session-info-stdin",
+    ]
+
+
 def execute_process(
     engine: Engine,
     tenant_id: str,
@@ -121,15 +139,7 @@ def execute_process(
 
     # No inherited connection or caller-controlled shell; child uses only shared core.
     child = subprocess.Popen(
-        [
-            sys.executable,
-            "-m",
-            "reality.jobs.runner",
-            tenant_id,
-            run_id,
-            token,
-            "--session-info-stdin",
-        ],
+        child_command(tenant_id, run_id, token),
         stdin=subprocess.PIPE,
         stdout=subprocess.PIPE,
         stderr=subprocess.DEVNULL,

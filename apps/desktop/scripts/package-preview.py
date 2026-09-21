@@ -13,7 +13,7 @@ UNINSTALL = """#!/bin/sh
 # Without --uninstall the same command only reports where the data is kept.
 set -eu
 resources=$(cd "$(dirname "$0")" && pwd)
-exec "$resources/runtime/python/bin/python3.12" -I \\
+exec "$resources/runtime/python/bin/python3.12" -I -B \\
     "$resources/probe/installation.py" --uninstall
 """
 

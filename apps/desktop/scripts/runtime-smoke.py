@@ -66,7 +66,7 @@ def smoke(
                 if operation is not None:
                     return operation(core_env, root)
                 checked = subprocess.run(
-                    [str(python), "-I", str(SCRIPTS / "smoke-core.py")],
+                    [str(python), "-I", "-B", str(SCRIPTS / "smoke-core.py")],
                     env=core_env,
                     cwd=root,
                     capture_output=True,
