@@ -223,6 +223,7 @@ const requiredAreas = [
   ["Reality Core Development", "development/index.md"],
   ["Tool Usage", "tool-usage/index.md"],
   ["Storylines", "storylines/index.md"],
+  ["Demo data guide", "getting-started/demo-data.md"],
   ["Reference", "reference/index.md"],
 ];
 

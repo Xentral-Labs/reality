@@ -55,6 +55,7 @@ type NavigationCopy = {
   learn: string;
   setupAndOperate: string;
   storylines: string;
+  demoData: string;
   environment: string;
   docsUrls: string;
   glossary: string;
@@ -118,6 +119,7 @@ const copy: Record<LocaleKey, NavigationCopy> = {
     learn: "Get to know",
     setupAndOperate: "Set up and operate",
     storylines: "Storylines",
+    demoData: "Demo data guide",
     environment: "Environment",
     docsUrls: "Configure Docs links",
     glossary: "Glossary",
@@ -179,6 +181,7 @@ const copy: Record<LocaleKey, NavigationCopy> = {
     learn: "Kennenlernen",
     setupAndOperate: "Einrichten & Betreiben",
     storylines: "Storylines",
+    demoData: "Demo-Datensatz",
     environment: "Umgebung",
     docsUrls: "Docs-Links konfigurieren",
     glossary: "Glossar",
@@ -227,6 +230,7 @@ const sidebar = (locale: LocaleKey) => {
       collapsed: false,
       items: [
         { text: labels.gettingStarted, link: route(locale, "/getting-started/") },
+        { text: labels.demoData, link: route(locale, "/getting-started/demo-data") },
         { text: labels.storylines, link: route(locale, "/storylines/") },
       ],
     },
