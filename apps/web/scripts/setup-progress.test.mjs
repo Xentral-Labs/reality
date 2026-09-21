@@ -10,8 +10,8 @@ import {
   setupSteps,
 } from "../src/unified/setupProgress.ts";
 
-assert.ok(SETUP_READY_CURRENT_MS >= 1500, "the active final step must be readable");
-assert.ok(SETUP_READY_DONE_MS >= 2000, "all four completed steps must remain readable");
+assert.ok(SETUP_READY_CURRENT_MS >= 2500, "the active final step must be readable");
+assert.ok(SETUP_READY_DONE_MS >= 3000, "all four completed steps must remain readable");
 
 const receipt = (status) => ({
   tenant_id: "ten_1",
