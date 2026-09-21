@@ -50,7 +50,9 @@ export function setupSteps(receipt: CompanySetupResult | null): SetupStep[] | nu
     {
       key: "data",
       label:
-        stage === "preparing"
+        ready
+          ? "Orders, deliveries and invoices prepared"
+          : stage === "preparing"
           ? "Preparing orders, deliveries and invoices"
           : stage === "retrying"
             ? "Trying preparation again automatically"

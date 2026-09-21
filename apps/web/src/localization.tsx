@@ -1009,6 +1009,8 @@ const dictionaries: Record<Exclude<Language, "en">, Record<string, string>> = {
     "Waiting to start": "Wartet auf den Start",
     "Preparing orders, deliveries and invoices":
       "Aufträge, Lieferungen und Rechnungen werden erzeugt",
+    "Orders, deliveries and invoices prepared":
+      "Aufträge, Lieferungen und Rechnungen sind vorbereitet",
     "Calculating finance and margins": "Finanzen und Deckungsbeiträge werden berechnet",
     "Finance and margins calculated": "Finanzen und Deckungsbeiträge sind berechnet",
     "Trying preparation again automatically": "Vorbereitung wird automatisch erneut versucht",
@@ -2962,6 +2964,7 @@ const dictionaries: Record<Exclude<Language, "en">, Record<string, string>> = {
     "Company created": "Bedrijf aangemaakt",
     "Waiting to start": "Wacht op de start",
     "Preparing orders, deliveries and invoices": "Orders, leveringen en facturen worden aangemaakt",
+    "Orders, deliveries and invoices prepared": "Orders, leveringen en facturen zijn voorbereid",
     "Calculating finance and margins": "Financiën en marges worden berekend",
     "Finance and margins calculated": "Financiën en marges zijn berekend",
     "Trying preparation again automatically": "Voorbereiding wordt automatisch opnieuw geprobeerd",
@@ -4614,6 +4617,7 @@ const dictionaries: Record<Exclude<Language, "en">, Record<string, string>> = {
     "Company created": "Empresa creada",
     "Waiting to start": "Esperando el inicio",
     "Preparing orders, deliveries and invoices": "Se están creando pedidos, entregas y facturas",
+    "Orders, deliveries and invoices prepared": "Pedidos, entregas y facturas preparados",
     "Calculating finance and margins": "Se están calculando finanzas y márgenes",
     "Finance and margins calculated": "Finanzas y márgenes calculados",
     "Trying preparation again automatically": "La preparación se reintentará automáticamente",
