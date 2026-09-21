@@ -183,6 +183,105 @@
   color: var(--vp-c-brand-1);
 }
 
+/* The demo catalog is a working reference, not a prose article. Give its many
+   comparison tables one calm grid and enough width to avoid needless wrapping. */
+.VPDoc.demo-data-page .container,
+.VPDoc.demo-data-page .content,
+.VPDoc.demo-data-page .content-container,
+.demo-data-page .VPDoc .container,
+.demo-data-page .VPDoc .content,
+.demo-data-page .VPDoc .content-container {
+  max-width: 1180px;
+}
+
+.demo-data-page .vp-doc table {
+  display: table;
+  width: 100%;
+  table-layout: fixed;
+  margin: 14px 0 24px;
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.demo-data-page .vp-doc th,
+.demo-data-page .vp-doc td {
+  padding: 8px 10px;
+  vertical-align: top;
+  overflow-wrap: anywhere;
+}
+
+.demo-data-page .vp-doc table:has(th:nth-child(3):last-child) th:nth-child(1) {
+  width: 18%;
+}
+
+.demo-data-page .vp-doc table:has(th:nth-child(3):last-child) th:nth-child(2) {
+  width: 52%;
+}
+
+.demo-data-page .vp-doc table:has(th:nth-child(3):last-child) th:nth-child(3) {
+  width: 30%;
+}
+
+.demo-data-page .vp-doc table:has(th:nth-child(4):last-child) th:nth-child(1) {
+  width: 15%;
+}
+
+.demo-data-page .vp-doc table:has(th:nth-child(4):last-child) th:nth-child(2) {
+  width: 24%;
+}
+
+.demo-data-page .vp-doc table:has(th:nth-child(4):last-child) th:nth-child(3) {
+  width: 27%;
+}
+
+.demo-data-page .vp-doc table:has(th:nth-child(4):last-child) th:nth-child(4) {
+  width: 34%;
+}
+
+.demo-data-page .vp-doc table:has(th:nth-child(5):last-child) th:nth-child(1) {
+  width: 12%;
+}
+
+.demo-data-page .vp-doc table:has(th:nth-child(5):last-child) th:nth-child(2) {
+  width: 23%;
+}
+
+.demo-data-page .vp-doc table:has(th:nth-child(5):last-child) th:nth-child(3) {
+  width: 22%;
+}
+
+.demo-data-page .vp-doc table:has(th:nth-child(5):last-child) th:nth-child(4) {
+  width: 18%;
+}
+
+.demo-data-page .vp-doc table:has(th:nth-child(5):last-child) th:nth-child(5) {
+  width: 25%;
+}
+
+.demo-data-inventory {
+  margin: 18px 0 26px;
+  padding: 12px 16px;
+  border: 1px solid var(--vp-c-divider);
+  border-radius: 12px;
+  background: var(--vp-c-bg-soft);
+}
+
+.demo-data-inventory summary {
+  cursor: pointer;
+  color: var(--vp-c-text-1);
+}
+
+@media (max-width: 959px) {
+  .demo-data-page .vp-doc table {
+    display: block;
+    width: max-content;
+    min-width: 760px;
+    max-width: 100%;
+    overflow-x: auto;
+    table-layout: auto;
+  }
+}
+
 /* Show the primary destinations on tablets; the menu keeps every link reachable. */
 @media (min-width: 768px) and (max-width: 1279px) {
   .VPNav .VPNavBarMenu {

@@ -149,6 +149,7 @@ A new international demo company contains searchable, consistently numbered exam
 - **FR-019**: The guides MUST describe continuous Demo Data intake, its timing and authored settlement mix without presenting probabilistic intake as a fixed seeded case.
 - **FR-020**: The guides MUST list each exceptional seeded movement and finance/cost document with its exact reference, purpose and inspection path.
 - **FR-021**: The guides MUST distinguish the canonical international profile, the reduced execution profile and the separately invoked `normal-month` scenario, including how each is started.
+- **FR-022**: The demo-data guides MUST use a consistent compact table grid at desktop widths, preserve readable horizontal overflow on smaller screens and allow the long master-data inventory to be collapsed.
 
 ### Domain and Traceability Requirements
 
@@ -189,13 +190,13 @@ A new international demo company contains searchable, consistently numbered exam
 
 ## Requirement Traceability
 
-| Requirement    | Scenario(s) | Planned evidence                                                                      |
-| -------------- | ----------- | ------------------------------------------------------------------------------------- |
-| FR-001..FR-004 | US1         | dunning domain, service, reversal and adapter tests                                   |
-| FR-005..FR-006 | US2         | settlement adjustment and finance projection tests                                    |
-| FR-007..FR-009 | US3         | customer/supplier deposit and concurrency tests                                       |
-| FR-010..FR-011 | US4         | revision and overdelivery guard tests                                                 |
-| FR-012         | US1..US4    | application tool confirmation and tenant isolation tests                              |
-| FR-013..FR-015 | US5         | canonical profile, setup and documentation tests                                      |
-| FR-016..FR-021 | US5         | payment-term binding, catalog completeness and bilingual documentation contract tests |
-| DR-001..DR-006 | US1..US5    | model, migration, source-chain and repository review                                  |
+| Requirement    | Scenario(s) | Planned evidence                                                                                                 |
+| -------------- | ----------- | ---------------------------------------------------------------------------------------------------------------- |
+| FR-001..FR-004 | US1         | dunning domain, service, reversal and adapter tests                                                              |
+| FR-005..FR-006 | US2         | settlement adjustment and finance projection tests                                                               |
+| FR-007..FR-009 | US3         | customer/supplier deposit and concurrency tests                                                                  |
+| FR-010..FR-011 | US4         | revision and overdelivery guard tests                                                                            |
+| FR-012         | US1..US4    | application tool confirmation and tenant isolation tests                                                         |
+| FR-013..FR-015 | US5         | canonical profile, setup and documentation tests                                                                 |
+| FR-016..FR-022 | US5         | payment-term binding, catalog completeness, compact responsive layout and bilingual documentation contract tests |
+| DR-001..DR-006 | US1..US5    | model, migration, source-chain and repository review                                                             |

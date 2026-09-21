@@ -1,3 +1,7 @@
+---
+pageClass: demo-data-page
+---
+
 # Demo data guide
 
 The canonical demo company is a deterministic synthetic trading company. Use it to see how completed
@@ -13,6 +17,9 @@ The baseline contains 18 items (`ITEM-001`–`ITEM-018`), 20 customers, three su
 Rotterdam and Singapore warehouses. Quantities use pieces, metres or kilograms. Most trades use EUR;
 two invoices deliberately use USD to keep currencies separate.
 
+<details class="demo-data-inventory">
+<summary><strong>Complete master-data inventory</strong> — 18 items, 20 customers, 3 suppliers, 2 warehouses and the shared payment term</summary>
+
 ### Master-data inventory
 
 | Type         | Included records                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           | Where they appear                                                                        |
@@ -26,6 +33,8 @@ two invoices deliberately use USD to keep currencies separate.
 Northstar Outdoor, Maple Retail, Solstice Living and Blue Heron Living occur repeatedly in the dated
 sales series; the other customers provide authored one-off comparisons. Supplier-to-item
 relationships are stated above rather than inferred from a receipt.
+
+</details>
 
 Search each reference in its matching view:
 

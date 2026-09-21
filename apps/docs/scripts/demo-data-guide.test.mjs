@@ -77,5 +77,16 @@ for (const guide of guides) {
     }
     assert.match(content, /91 %|91%/);
     assert.match(content, /zero to six|null bis sechs/);
+    assert.match(content, /pageClass: demo-data-page/);
+    assert.match(content, /<details class="demo-data-inventory">/);
   });
 }
+
+test("the demo catalog uses one compact responsive table grid", async () => {
+  const styles = await readFile(new URL("../.vitepress/theme/custom.css", import.meta.url), "utf8");
+  assert.match(styles, /\.demo-data-page \.vp-doc table/);
+  assert.match(styles, /table:has\(th:nth-child\(3\):last-child\)/);
+  assert.match(styles, /table:has\(th:nth-child\(4\):last-child\)/);
+  assert.match(styles, /table:has\(th:nth-child\(5\):last-child\)/);
+  assert.match(styles, /@media \(max-width: 959px\)/);
+});
