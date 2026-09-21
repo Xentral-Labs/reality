@@ -17,6 +17,8 @@ covered and are listed as unmet below.
 | Packaged application quit and reopen | Passed | evidence/application-cycle.json |
 | Recovery from a forced quit | Passed | evidence/forced-quit.json |
 | Release build with the current core | Passed, migration 0088 | evidence/release-build.json |
+| Code signature after real use | Intact, no bytecode added | evidence/release-build.json |
+| Core job-runner regression | 2 passed | tests/test_job_runner_process.py |
 | Reopening straight after a quit | Passed | evidence/release-build.json |
 
 ## What the runs actually did
@@ -46,11 +48,21 @@ shell. Its cluster reaches `0088_tenant_scoped_keys`. The database was serving 1
 after launch, a quit took 3.8 s and left no database process, and reopening took 0.6 s
 and returned the same company.
 
-Two defects surfaced while verifying that build and were fixed here. Reopening
-immediately after a quit hit the installation lock while the previous process was still
-stopping, so a start now waits up to 60 seconds for that shutdown instead of refusing.
-The native shell turned any failed start into a non-unwinding Rust panic and a macOS
-crash report; it now prints the reason and exits.
+Three defects surfaced while verifying that build and were fixed here.
+
+Reopening immediately after a quit hit the installation lock while the previous process
+was still stopping, so a start now waits up to 60 seconds for that shutdown instead of
+refusing. The native shell turned any failed start into a non-unwinding Rust panic and a
+macOS crash report; it now prints the reason and exits.
+
+The application invalidated its own code signature on first use by writing bytecode into
+its signed bundle. `python -I` ignores `PYTHONDONTWRITEBYTECODE`, so only the `-B` flag
+prevents it, and every bundled interpreter call now passes it. The remaining writer was
+`reality.jobs.runner`, which spawns one child per job through `sys.executable` without
+the parent's flags; the child command now carries `-B` whenever the parent runs with it.
+That matters beyond the desktop: any read-only or signed deployment would hit it. After
+the fix, creating a company in the running application leaves the signature intact and
+adds no file to the bundle.
 
 ## Boundary
 

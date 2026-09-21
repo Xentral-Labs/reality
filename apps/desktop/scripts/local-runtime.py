@@ -29,10 +29,11 @@ def serve(configuration, root):
         "frontend": str(SCRIPTS.parent / "frontend"),
         "installation_id": configuration.get("REALITY_INSTALLATION_ID") or str(uuid4()),
     }
-    env = {"PATH": "/usr/bin:/bin", "PYTHONDONTWRITEBYTECODE": "1"}
+    # -I ignores PYTHON* variables, so -B is what actually keeps the signed bundle clean.
+    env = {"PATH": "/usr/bin:/bin"}
     # Separate exclusive preparation process; API startup never performs migrations.
     prepared = subprocess.run(
-        [str(python), "-I", str(SCRIPTS / "local-product.py"), "--prepare"],
+        [str(python), "-I", "-B", str(SCRIPTS / "local-product.py"), "--prepare"],
         input=json.dumps(config) + "\n",
         text=True,
         env=env,
@@ -49,7 +50,7 @@ def serve(configuration, root):
     roles = []
     for role in ("scheduler", "worker"):
         child = subprocess.Popen(
-            [str(python), "-I", str(SCRIPTS / "local-background.py"), role],
+            [str(python), "-I", "-B", str(SCRIPTS / "local-background.py"), role],
             stdin=subprocess.PIPE,
             stdout=subprocess.DEVNULL,
             stderr=sys.stderr,
@@ -60,7 +61,7 @@ def serve(configuration, root):
         child.stdin.flush()
         roles.append(child)
     process = subprocess.Popen(
-        [str(python), "-I", str(SCRIPTS / "local-product.py")],
+        [str(python), "-I", "-B", str(SCRIPTS / "local-product.py")],
         stdin=subprocess.PIPE,
         stdout=sys.stdout,
         stderr=sys.stderr,

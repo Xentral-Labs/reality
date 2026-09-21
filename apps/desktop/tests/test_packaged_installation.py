@@ -92,3 +92,27 @@ def test_the_two_builds_never_share_a_data_directory(tmp_path, ingredients):
         identity(persistent)["CFBundleIdentifier"]
         != identity(disposable)["CFBundleIdentifier"]
     )
+
+
+def test_the_shell_never_writes_bytecode_into_the_signed_bundle():
+    """Bytecode written beside the bundled scripts invalidates the code signature."""
+    shell = (DESKTOP / "src-tauri/src/main.rs").read_text()
+    assert '"-B"' in shell
+    assert '"PYTHONDONTWRITEBYTECODE", "1"' in shell
+
+
+def test_packaged_scripts_carry_no_bytecode(tmp_path, ingredients):
+    app, _ = build(tmp_path, ingredients)
+    assert not list(app.rglob("__pycache__"))
+
+
+def test_every_bundled_interpreter_call_disables_bytecode():
+    """`python -I` ignores PYTHONDONTWRITEBYTECODE, so only -B keeps the bundle sealed."""
+    for name in ("local-runtime.py", "runtime-smoke.py", "verify-persistence.py"):
+        source = (DESKTOP / "scripts" / name).read_text()
+        isolated = source.count('"-I"')
+        assert isolated, name
+        assert (
+            source.count('"-I", "-B"') + source.count('"-I",\n            "-B",')
+            == isolated
+        ), f"{name} starts the bundled interpreter without -B"
