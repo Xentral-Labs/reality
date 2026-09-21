@@ -1749,6 +1749,29 @@ ADDITIONAL_PROPOSAL_TOOLS: tuple[tuple[str, str, str, dict[str, Any]], ...] = (
         ),
     ),
     (
+        "return_disposition_propose",
+        "Resolve returned goods",
+        "return_disposition",
+        _object_schema(
+            {
+                "return_movement_id": STRING,
+                "disposition": {
+                    "type": "string",
+                    "enum": [
+                        "restock",
+                        "quarantine_repair",
+                        "scrap_loss",
+                        "return_to_supplier",
+                    ],
+                },
+                "quantity": DECIMAL_STRING,
+                "destination_location_id": OPTIONAL_STRING,
+                "reason": OPTIONAL_STRING,
+            },
+            required=("return_movement_id", "disposition", "quantity"),
+        ),
+    ),
+    (
         "sales_credit_record_propose",
         "Record customer credit",
         "sales_credit_record",
@@ -1972,6 +1995,20 @@ MCP_TOOL_CATALOG += (
             }
         ),
         _read("supply_coverage"),
+    ),
+)
+
+MCP_TOOL_CATALOG += (
+    MCPToolDefinition(
+        "return_disposition_summary",
+        "Return disposition summary",
+        "Read arrived, resolved and unresolved returned-goods quantity by physical outcome.",
+        "read",
+        "Returns",
+        _object_schema(
+            {"return_movement_id": STRING}, required=("return_movement_id",)
+        ),
+        _read("return_disposition_summary"),
     ),
 )
 

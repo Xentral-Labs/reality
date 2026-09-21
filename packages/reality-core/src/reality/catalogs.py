@@ -24,6 +24,7 @@ from reality.services import payment_intake as payment_intake_service_module
 from reality.services import playground as playground_service_module
 from reality.services import projection_jobs as projection_job_service_module
 from reality.services import projections as projection_service_module
+from reality.services import return_dispositions as return_disposition_service_module
 from reality.services import scheduled_jobs as scheduled_job_service_module
 from reality.services import shipments as shipment_service_module
 from reality.services import supply_assignments as supply_assignment_service_module
@@ -1053,6 +1054,8 @@ def _service(name: str) -> Any:
         return getattr(shipment_service_module, name)
     if hasattr(supply_assignment_service_module, name):
         return getattr(supply_assignment_service_module, name)
+    if hasattr(return_disposition_service_module, name):
+        return getattr(return_disposition_service_module, name)
     if hasattr(finance_target_mapping_module, name):
         return getattr(finance_target_mapping_module, name)
     if hasattr(finance_source_mapping_module, name):

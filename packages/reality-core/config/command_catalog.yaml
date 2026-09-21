@@ -35,6 +35,9 @@ parameter_descriptions:
   supplier_commitment_id: Opaque identity of the incoming supplier commitment whose quantity is being assigned.
   customer_commitment_id: Optional opaque identity of the outgoing customer commitment that the incoming supply is intended to cover; absence explicitly assigns the quantity to stock.
   request_id: Stable caller-provided idempotency identity; replay with identical input returns the existing result and conflicting reuse is refused.
+  return_movement_id: Opaque identity of the arrived customer-return Movement whose physical outcome is being decided.
+  disposition: Closed physical outcome for returned goods; restock, quarantine or repair, scrap or loss, or return to supplier.
+  destination_location_id: Opaque destination location required when returned goods are transferred to saleable stock or quarantine.
   document_ids: Opaque evidence-document identities the caller can still reach, used to select which documents are answered for; absent means every document of the company. It narrows the rows returned and never how one is built, because a document's register row is assembled from its own source record, lines and promises.
   arguments: Strict versioned request object; nested fields are declared by the MCP input schema.
   type: Closed kind of the record where one is stated, such as a party's primary role or a location's type; the roles list, not this field, decides what a party may do.
@@ -1292,6 +1295,15 @@ commands:
     reads: [commitment, supply_assignment, source_record]
     writes: [supply_assignment, source_record]
     effect: Assigns an explicit quantity of an incoming supplier commitment to a compatible customer commitment without moving or reserving stock.
+
+  - name: Resolve arrived customer-return goods
+    service: record_return_disposition
+    mode: mutation
+    adapters: [CLI, Web, API, MCP, Chat]
+    confirmation: required
+    reads: [movement, movement_correction, source_record, location]
+    writes: [movement, source_record, business_event]
+    effect: Records one explicit physical outcome for part or all of an arrived customer return without implying a credit.
 
 capability_guidance:
   graph_format:
@@ -3970,6 +3982,24 @@ capability_guidance:
     unknown_when: [Expected commitments or assignment evidence are absent.]
     next_steps: [Read item supply and demand, inventory, or the relevant commitment details.]
     examples: {use: [{scenario: Explain which purchase order covers a customer order., reason: The assignment is the shortest explicit relationship.}], do_not_use: [{scenario: Confirm that assigned goods reached the warehouse., reason: A receiving Movement is required.}]}
+  return_disposition_summary:
+    kind: read
+    application_tool: return_disposition_summary
+    purpose: Read arrived, resolved and unresolved customer-return quantity with append-only physical outcome history.
+    use_when: [Warehouse or customer service needs to decide or explain what happened to returned goods.]
+    do_not_use_when: [A customer credit, refund or commercial settlement must be proven.]
+    required_context: [tenant]
+    data_basis: [movement, movement_correction, source_record]
+    limitations: [Physical disposition is independent from credit and refund state.]
+    freshness: Derived from current tenant-scoped Movements and corrections at request time.
+    empty_result: The selected return has no disposition movements and its full arrived quantity remains unresolved.
+    refusal_behavior: Foreign-company or non-return movements are not disclosed.
+    confirmation: none
+    side_effects: none
+    verification: {role: context, proves: [Returned quantity has the displayed physical outcomes.], does_not_prove: [The customer received a credit or refund.]}
+    unknown_when: [The arrival Movement or later physical evidence is absent.]
+    next_steps: [Record a reviewed disposition or inspect the independent credit state.]
+    examples: {use: [{scenario: Find the unresolved quantity of an arrived return., reason: The read reconciles correcting movements and all supported outcomes.}], do_not_use: [{scenario: Claim the return was refunded., reason: Financial settlement requires separate evidence.}]}
   return_announcements:
     kind: read
     application_tool: return_announcements
@@ -4121,6 +4151,7 @@ agent_command_coverage:
   record_shipment_event: {classification: eligible, tools: [shipment_event_record_propose]}
   supersede_shipment_event: {classification: eligible, tools: [shipment_event_supersede_propose]}
   assign_supply: {classification: eligible, tools: [supply_assign_propose]}
+  record_return_disposition: {classification: eligible, tools: [return_disposition_propose]}
   list_targets:
     classification: eligible
     tools:

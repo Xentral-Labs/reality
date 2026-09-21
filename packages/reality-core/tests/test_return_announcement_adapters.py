@@ -10,24 +10,25 @@ kept reporting parcels that had arrived. These tests pin each adapter.
 
 import json
 from datetime import UTC, datetime
+from decimal import Decimal
 
 from conftest import record_by_id
 from fastapi.testclient import TestClient
-from sqlalchemy import select
-from sqlalchemy.orm import sessionmaker
-from typer.testing import CliRunner
-
 from reality.cli import app as cli_module
 from reality.db.core import Movement, ReturnAnnouncement
 from reality.mcp.catalog import model_tool_schemas
 from reality.services.core import (
     announce_customer_return,
     create_commitment,
+    create_tenant,
     record_movement,
 )
-from reality.tools.application import confirm_tool, propose_tool
+from reality.tools.application import confirm_tool, propose_tool, run_read_tool
 from reality.web import api as api_module
 from reality.web import app as web_module
+from sqlalchemy import select
+from sqlalchemy.orm import sessionmaker
+from typer.testing import CliRunner
 
 SHIPPED_AT = datetime(2026, 8, 20, 12, tzinfo=UTC)
 ARRIVED_AT = datetime(2026, 8, 28, 12, tzinfo=UTC)
@@ -75,6 +76,23 @@ def test_the_movement_tool_schema_names_both_references():
     schemas = {s["function"]["name"]: s["function"] for s in model_tool_schemas()}
     properties = schemas["movement_create_propose"]["parameters"]["properties"]
     assert {"resolves_movement_id", "return_announcement_id"} <= set(properties)
+
+
+def test_return_disposition_schema_names_all_four_outcomes():
+    schemas = {s["function"]["name"]: s["function"] for s in model_tool_schemas()}
+    properties = schemas["return_disposition_propose"]["parameters"]["properties"]
+    assert properties["disposition"]["enum"] == [
+        "restock",
+        "quarantine_repair",
+        "scrap_loss",
+        "return_to_supplier",
+    ]
+    assert {
+        "return_movement_id",
+        "quantity",
+        "destination_location_id",
+        "reason",
+    } <= set(properties)
 
 
 def test_an_agent_fulfils_an_announcement_through_the_proposal_boundary(
@@ -240,3 +258,83 @@ def test_the_cli_carries_both_references(session, business, monkeypatch):
         select(Movement).where(Movement.resolves_movement_id == arrived.id)
     )
     assert resolving is not None
+
+
+def test_return_disposition_web_and_shared_read_use_same_service(
+    session, business, monkeypatch
+):
+    from reality.services.core import create_location
+
+    commitment, announcement = announced_delivery(session, business)
+    area = create_location(session, business.tenant.id, "Returns inspection")
+    quarantine = create_location(session, business.tenant.id, "Quarantine")
+    arrived = record_movement(
+        session,
+        business.tenant.id,
+        "return",
+        business.item.id,
+        "5",
+        to_location_id=area.id,
+        commitment_id=commitment.id,
+        return_announcement_id=announcement.id,
+    )
+    factory = sessionmaker(session.bind, expire_on_commit=False)
+    monkeypatch.setattr(api_module, "Session", factory)
+    client = TestClient(web_module.app)
+    prefix = f"/api/tenants/{business.tenant.id}"
+
+    prepared = client.post(
+        f"{prefix}/delivery-actions/prepare",
+        json={
+            "tool": "return_disposition",
+            "request_id": "adapter-return-disposition",
+            "arguments": {
+                "return_movement_id": arrived.id,
+                "disposition": "quarantine_repair",
+                "quantity": "2",
+                "destination_location_id": quarantine.id,
+            },
+        },
+    )
+    assert prepared.status_code == 200, prepared.text
+    preview = prepared.json()
+    confirmed = client.post(
+        f"{prefix}/change-proposals/{preview['id']}/approve",
+        json={"confirmed": True, "review_token": preview["review"]["token"]},
+    )
+    assert confirmed.status_code == 200, confirmed.text
+    response = client.get(f"{prefix}/return-dispositions/{arrived.id}")
+    assert response.status_code == 200, response.text
+    assert Decimal(str(response.json()["resolved"])) == Decimal(2)
+    assert Decimal(str(response.json()["unresolved"])) == Decimal(3)
+
+    shared = run_read_tool(
+        session,
+        business.tenant.id,
+        "return_disposition_summary",
+        {"return_movement_id": arrived.id},
+    )
+    assert Decimal(shared["resolved"]) == Decimal(2)
+    assert Decimal(shared["unresolved"]) == Decimal(3)
+
+
+def test_return_disposition_read_does_not_disclose_foreign_return(
+    session, business, monkeypatch
+):
+    commitment, _ = announced_delivery(session, business, quantity=1)
+    arrived = record_movement(
+        session,
+        business.tenant.id,
+        "return",
+        business.item.id,
+        "1",
+        to_location_id=business.location.id,
+        commitment_id=commitment.id,
+    )
+    foreign = create_tenant(session, "Foreign returns")
+    factory = sessionmaker(session.bind, expire_on_commit=False)
+    monkeypatch.setattr(api_module, "Session", factory)
+    response = TestClient(web_module.app).get(
+        f"/api/tenants/{foreign.id}/return-dispositions/{arrived.id}"
+    )
+    assert response.status_code == 404

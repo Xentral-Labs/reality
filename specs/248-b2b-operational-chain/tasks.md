@@ -81,14 +81,14 @@ quantities across purchasing, sales, and inventory.
 **Independent test**: Receive five returned units, restock two, quarantine one, scrap one, return one
 to the supplier, and verify exact quantity reconciliation plus independent credit state.
 
-- [ ] T031 [P] [US3] [FR-011] [FR-012] [DR-004] [DR-007] Add failing mixed/partial disposition, over-resolution, correction, and history tests in `packages/reality-core/tests/test_returns.py`
+- [x] T031 [P] [US3] [FR-011] [FR-012] [DR-004] [DR-007] Add failing mixed/partial disposition, over-resolution, correction, and history tests in `packages/reality-core/tests/test_returns.py`
 - [ ] T032 [P] [US3] [FR-013] Add failing returned-not-credited and credited-not-returned lifecycle tests in `packages/reality-core/tests/test_commercial_matching_services.py`
-- [ ] T033 [P] [US3] [FR-011] [FR-013] [FR-019] [DR-006] Add failing return-disposition tool/API parity and tenant tests in `packages/reality-core/tests/test_return_announcement_adapters.py`
-- [ ] T034 [US3] [FR-011] [FR-012] [DR-004] [DR-007] Implement preview/confirm disposition orchestration over resolving movements in `packages/reality-core/src/reality/services/delivery_actions.py`
-- [ ] T035 [US3] [FR-011] [FR-012] Implement derived disposition labels and arrived/resolved/unresolved quantity reads in `packages/reality-core/src/reality/services/delivery_reads.py`
+- [x] T033 [P] [US3] [FR-011] [FR-013] [FR-019] [DR-006] Add failing return-disposition tool/API parity and tenant tests in `packages/reality-core/tests/test_return_announcement_adapters.py`
+- [x] T034 [US3] [FR-011] [FR-012] [DR-004] [DR-007] Implement preview/confirm disposition orchestration over resolving movements in `packages/reality-core/src/reality/services/delivery_actions.py`
+- [x] T035 [US3] [FR-011] [FR-012] Implement derived disposition labels and arrived/resolved/unresolved quantity reads in `packages/reality-core/src/reality/services/delivery_reads.py`
 - [ ] T036 [US3] [FR-013] Preserve independent goods/credit mismatch explanations and links in `packages/reality-core/src/reality/services/exceptions.py` and `packages/reality-core/src/reality/services/credit_actions.py`
-- [ ] T037 [P] [US3] [FR-011] [FR-019] [DR-006] Expose return disposition through shared tools, MCP, API and CLI in `packages/reality-core/src/reality/tools/application.py`, `packages/reality-core/src/reality/mcp/catalog.py`, `packages/reality-core/src/reality/web/api.py`, and `packages/reality-core/src/reality/cli/app.py`
-- [ ] T038 [US3] [FR-011] [FR-012] [FR-013] Add the four-choice partial return flow and separate goods/credit sections in `apps/web/src/unified/DeliveryWorkPage.tsx` and `apps/web/src/unified/ShipmentActions.tsx`
+- [x] T037 [P] [US3] [FR-011] [FR-019] [DR-006] Expose return disposition through shared tools, MCP, API and CLI in `packages/reality-core/src/reality/tools/application.py`, `packages/reality-core/src/reality/mcp/catalog.py`, `packages/reality-core/src/reality/web/api.py`, and `packages/reality-core/src/reality/cli/app.py`
+- [x] T038 [US3] [FR-011] [FR-012] [FR-013] Add the four-choice partial return flow and separate goods/credit sections in `apps/web/src/unified/DeliveryWorkPage.tsx` and `apps/web/src/unified/ShipmentActions.tsx`
 - [ ] T039 [US3] [FR-011] [FR-012] [FR-013] Run the US3 independent acceptance test and record exact evidence in `specs/248-b2b-operational-chain/quickstart.md`
 
 **Checkpoint**: Returned goods are completely dispositioned without overstating stock or implying finance.

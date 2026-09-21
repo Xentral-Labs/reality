@@ -10,6 +10,7 @@ type ShipmentTool = Extract<
   | "shipment_receive"
   | "shipment_event_record"
   | "shipment_event_supersede"
+  | "return_disposition"
 >;
 
 export function ShipmentActions({
@@ -44,6 +45,10 @@ export function ShipmentActions({
   const [replacement, setReplacement] = useState("");
   const [reason, setReason] = useState("");
   const [movements, setMovements] = useState("[]");
+  const [returnMovement, setReturnMovement] = useState("");
+  const [disposition, setDisposition] = useState("restock");
+  const [quantity, setQuantity] = useState("");
+  const [destination, setDestination] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
 
@@ -76,7 +81,15 @@ export function ShipmentActions({
   const prepare = () =>
     run(async () => {
       let arguments_: Record<string, unknown>;
-      if (tool === "shipment_event_record") {
+      if (tool === "return_disposition") {
+        arguments_ = {
+          return_movement_id: returnMovement,
+          disposition,
+          quantity,
+          ...(destination ? { destination_location_id: destination } : {}),
+          ...(reason ? { reason } : {}),
+        };
+      } else if (tool === "shipment_event_record") {
         arguments_ = {
           shipment_id: shipment,
           event_type: eventType,
@@ -146,7 +159,36 @@ export function ShipmentActions({
 
       {!proposal && (
         <div className="mt-6 grid gap-4 sm:grid-cols-2">
-          {tool === "shipment_event_record" ? (
+          {tool === "return_disposition" ? (
+            <>
+              <Field label="Return movement ID" value={returnMovement} set={setReturnMovement} />
+              <Select
+                label="Physical outcome"
+                value={disposition}
+                set={setDisposition}
+                options={["restock", "quarantine_repair", "scrap_loss", "return_to_supplier"]}
+              />
+              <Field label="Quantity" value={quantity} set={setQuantity} />
+              {(disposition === "restock" || disposition === "quarantine_repair") && (
+                <Field label="Destination location ID" value={destination} set={setDestination} />
+              )}
+              {(disposition === "scrap_loss" || disposition === "return_to_supplier") && (
+                <label className="text-sm sm:col-span-2">
+                  {t("Reason")}
+                  <textarea
+                    className="br-control mt-2 w-full"
+                    value={reason}
+                    onChange={(e) => setReason(e.target.value)}
+                  />
+                </label>
+              )}
+              <p className="rounded-lg bg-surface-muted p-3 text-sm text-fg-muted sm:col-span-2">
+                {t(
+                  "This decides only what physically happens to the goods. Credit and refund remain separate.",
+                )}
+              </p>
+            </>
+          ) : tool === "shipment_event_record" ? (
             <>
               <Field label="Shipment ID" value={shipment} set={setShipment} />
               <Field label="Package ID (optional)" value={packageId} set={setPackageId} />
@@ -234,16 +276,40 @@ export function ShipmentActions({
           <p className="font-medium text-fg-strong">
             {t(proposal.status === "executed" ? "Recorded" : "Review exact effect")}
           </p>
-          <pre
-            data-original-content
-            className="mt-3 max-h-80 overflow-auto whitespace-pre-wrap rounded-lg bg-surface-muted p-4 text-xs"
-          >
-            {JSON.stringify(
-              proposal.status === "executed" ? proposal.receipt : proposal.review,
-              null,
-              2,
-            )}
-          </pre>
+          {tool === "return_disposition" && proposal.review ? (
+            <div className="mt-4 grid gap-4 sm:grid-cols-2">
+              <section className="rounded-lg bg-surface-muted p-4">
+                <h3 className="font-medium text-fg-strong">{t("Physical goods")}</h3>
+                <p className="mt-2 text-sm">
+                  {t("Outcome")}: {t(String(proposal.review.effect.disposition))}
+                </p>
+                <p className="mt-1 text-sm">
+                  {t("Quantity")}: {String(proposal.review.effect.resolved)}
+                </p>
+                <p className="mt-1 text-sm">
+                  {t("Still unresolved afterward")}:{" "}
+                  {String(proposal.review.effect.unresolved_after)}
+                </p>
+              </section>
+              <section className="rounded-lg border border-border-default p-4">
+                <h3 className="font-medium text-fg-strong">{t("Credit or refund")}</h3>
+                <p className="mt-2 text-sm text-fg-muted">
+                  {t("Not changed here. Review the separate customer credit state in Finance.")}
+                </p>
+              </section>
+            </div>
+          ) : (
+            <pre
+              data-original-content
+              className="mt-3 max-h-80 overflow-auto whitespace-pre-wrap rounded-lg bg-surface-muted p-4 text-xs"
+            >
+              {JSON.stringify(
+                proposal.status === "executed" ? proposal.receipt : proposal.review,
+                null,
+                2,
+              )}
+            </pre>
+          )}
           {proposal.status === "proposed" && (
             <div className="mt-4 flex gap-3">
               <button disabled={busy} className="br-btn br-btn-primary" onClick={confirm}>

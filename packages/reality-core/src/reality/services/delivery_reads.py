@@ -31,6 +31,7 @@ from reality.services.core import (
     active_reserved,
     stock_at,
 )
+from reality.services.return_dispositions import return_disposition_summary
 from reality.services.supply_assignments import supply_coverage
 
 
@@ -422,6 +423,35 @@ def delivery_case(
             "observed_at": datetime.now(UTC),
             "evidence_available": bool(links),
         },
+    }
+
+
+def return_disposition_case(
+    session: Session, tenant_id: str, return_movement_id: str
+) -> dict[str, Any]:
+    """Present physical return outcomes without implying commercial credit."""
+    summary = return_disposition_summary(session, tenant_id, return_movement_id)
+    return {
+        **summary,
+        "links": [
+            {"kind": "movement", "id": return_movement_id, "label": "Return arrival"},
+            *(
+                [
+                    {
+                        "kind": "commitment",
+                        "id": summary["commitment_id"],
+                        "label": "Customer delivery",
+                    }
+                ]
+                if summary["commitment_id"]
+                else []
+            ),
+        ],
+        "credit_state": {
+            "status": "independent",
+            "message": "Physical disposition does not prove a customer credit or refund.",
+        },
+        "observation": {"observed_at": datetime.now(UTC)},
     }
 
 

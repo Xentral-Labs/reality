@@ -20,7 +20,7 @@ Namen folgen dem ERP-Sprachgebrauch; der technische Schlüssel steht daneben.
 | [Zahlung und Ausgleich](#resource-payment)                     | 2      | 7        | 2         |
 | [Buchhaltung und Konten](#resource-accounting)                 | 2      | 11       | 3         |
 | [Deckungsbeitrag](#resource-contribution)                      | 0      | 1        | 4         |
-| [Retoure](#resource-return)                                    | 0      | 2        | 6         |
+| [Retoure](#resource-return)                                    | 0      | 3        | 6         |
 | [Beleg und Quellsystem](#resource-source)                      | 3      | 10       | 2         |
 | [Unternehmen und Benutzer](#resource-company)                  | 1      | 4        | 0         |
 | [Freigaben, Klärfälle und offene Fragen](#resource-governance) | 3      | 0        | 0         |
@@ -657,6 +657,8 @@ Retourenwareneingang, Lieferantenretoure, Wiedereinlagerungsgebühr
 - [Retoure ankündigen](./commands#command-announce_customer_return) (`announce_customer_return`)
 - [Retourenankündigung zurückziehen](./commands#command-withdraw_return_announcement)
   (`withdraw_return_announcement`)
+- [Retourenware entscheiden](./commands#command-record_return_disposition)
+  (`record_return_disposition`)
 
 **Nachschlagen**
 
@@ -681,7 +683,8 @@ Retourenwareneingang, Lieferantenretoure, Wiedereinlagerungsgebühr
 
 **Darunter:** Tabellen: `return_announcement` · Events:
 [`return.announced`](./events#event-return-announced),
-[`return.announcement_withdrawn`](./events#event-return-announcement_withdrawn)
+[`return.announcement_withdrawn`](./events#event-return-announcement_withdrawn) · Agenten-Tools ohne
+Geschäftsaktion: [`return_disposition_summary`](./commands#tool-return_disposition_summary)
 
 ## Beleg und Quellsystem {#resource-source}
 

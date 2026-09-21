@@ -672,6 +672,7 @@ labels:
       record_shipment_event: Sendungsereignis erfassen
       supersede_shipment_event: Sendungsereignis korrigieren
       assign_supply: Zulauf einem Kundenbedarf zuordnen
+      record_return_disposition: Retourenware entscheiden
     views:
       commitments: Verpflichtungen
       inventory: Bestand

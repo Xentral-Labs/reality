@@ -61,6 +61,12 @@ from reality.services.payment_actions import (
     _payment_detail,
     _review_payment,
 )
+from reality.services.return_disposition_actions import (
+    RETURN_DISPOSITION_TOOLS,
+    assert_no_unresolved_return_disposition,
+    return_disposition_detail,
+    review_return_disposition,
+)
 from reality.services.supply_assignment_actions import (
     SUPPLY_ASSIGNMENT_TOOLS,
     assert_no_unresolved_supply_assignment,
@@ -91,6 +97,7 @@ def eligible(tool: str, arguments: dict[str, Any]) -> bool:
             *HOLD_TOOLS,
             *CUSTOMER_HOLD_TOOLS,
             *SUPPLY_ASSIGNMENT_TOOLS,
+            *RETURN_DISPOSITION_TOOLS,
         }
         or (
             tool == "movement_create"
@@ -182,6 +189,8 @@ def review_delivery(
         return _review_invoice(session, tenant_id, tool, arguments)
     if tool in SUPPLY_ASSIGNMENT_TOOLS:
         return review_supply_assignment(session, tenant_id, arguments)
+    if tool in RETURN_DISPOSITION_TOOLS:
+        return review_return_disposition(session, tenant_id, arguments)
     if tool == "order_create":
         from reality.services.order_actions import review_order
 
@@ -460,6 +469,8 @@ def delivery_proposal_detail(
         return _invoice_detail(session, tenant_id, proposal)
     if proposal.type.removeprefix("tool:") in SUPPLY_ASSIGNMENT_TOOLS:
         return supply_assignment_detail(session, tenant_id, proposal)
+    if proposal.type.removeprefix("tool:") in RETURN_DISPOSITION_TOOLS:
+        return return_disposition_detail(session, tenant_id, proposal)
     if proposal.type == "tool:order_create":
         from reality.services.order_actions import order_detail
 
@@ -684,6 +695,10 @@ def assert_no_unresolved_action(
         return assert_no_unresolved_supply_assignment(
             session, tenant_id, arguments, exclude
         )
+    if tool in RETURN_DISPOSITION_TOOLS:
+        return assert_no_unresolved_return_disposition(
+            session, tenant_id, arguments, exclude
+        )
     if tool == "order_create":
         from reality.services.order_actions import assert_no_unresolved_order
 
@@ -806,6 +821,7 @@ def reconcile_delivery(
             *INVOICE_TOOLS,
             *PAYMENT_TOOLS,
             *SUPPLY_ASSIGNMENT_TOOLS,
+            *RETURN_DISPOSITION_TOOLS,
         }:
             proposal.status = "executed"
             proposal.output = _json(detail["recorded_receipt"])
