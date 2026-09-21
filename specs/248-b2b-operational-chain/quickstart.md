@@ -45,3 +45,28 @@ repository's documented commands.
 
 The generated story manifest supplies exact references and UI search paths; validation must not use
 database access to find business objects.
+
+## Recorded implementation evidence
+
+### Supply assignment
+
+- `pytest -q tests/test_supply_assignments.py tests/test_supply_coverage.py tests/test_unified_delivery_reads.py`: 13 passed.
+- The concurrency proof starts two seven-unit assignments against twelve units of supplier supply;
+  exactly one succeeds and the retained assigned total is seven.
+- The three-view proof records four units received, six assigned to customer demand, two assigned to
+  stock and four unassigned. No Reservation is created and physical stock remains a separate four.
+
+### Returned goods and commercial credit
+
+- `pytest -q tests/test_returns.py`: 20 passed.
+- `pytest -q tests/test_return_announcement_adapters.py tests/test_b2b_operational_chain_contracts.py`: 10 passed.
+- `pytest -q tests/test_commercial_matching_services.py`: 11 passed.
+- The independent five-unit story resolves two units to stock, one to quarantine, one to scrap and
+  one to the supplier, leaving zero unresolved. A corrected disposition restores its quantity to
+  unresolved without deleting history.
+- The commercial lifecycle first reports three returned-but-uncredited units, then two after a
+  partial credit, then one credited-but-not-returned unit after an over-credit, and finally clears
+  both exceptions when the remaining goods arrive. Each exception retains document-line,
+  document and commitment trace links.
+- The combined return, adapter, catalog, CLI and operational-exception regression run completed with
+  267 passing tests. The production frontend build also completed successfully.
