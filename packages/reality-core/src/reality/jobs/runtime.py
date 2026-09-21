@@ -27,7 +27,10 @@ def database(*, scheduler: bool = False, child: bool = False) -> Engine:
 
     engine = create_engine(
         resolve_database_url(),
-        pool_size=1 if child else 2,
+        # A handler owns one transaction, while shared generation maintenance may
+        # briefly use a second connection. Keep the child pool bounded, but do not
+        # turn that legitimate work into a two-second pool timeout.
+        pool_size=2,
         max_overflow=0,
         pool_timeout=2,
         connect_args={

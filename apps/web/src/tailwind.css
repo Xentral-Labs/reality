@@ -2734,7 +2734,7 @@ textarea.br-control.rule-draft-editor {
 }
 
 .company-setup-dialog {
-  @apply max-h-[95dvh] w-[min(95vw,36rem)] overflow-y-auto border-0 bg-transparent p-0 text-fg-default;
+  @apply fixed inset-0 m-auto h-fit max-h-[calc(100dvh-2rem)] w-[min(95vw,36rem)] overflow-y-auto border-0 bg-transparent p-0 text-fg-default;
 }
 .company-setup-dialog::backdrop {
   background: rgb(0 0 0 / 45%);
@@ -3162,11 +3162,34 @@ textarea.br-control.rule-draft-editor {
 .company-setup-description,
 .company-setup-progress,
 .company-setup-recovery {
-  @apply w-full space-y-4 text-sm leading-relaxed text-fg-muted;
+  @apply w-full space-y-5 text-sm leading-relaxed text-fg-muted;
 }
 .company-setup-name {
-  @apply rounded-xl border border-border-default bg-surface-sunken px-4 py-3 font-medium text-fg-strong;
+  @apply text-base font-semibold text-fg-strong;
   overflow-wrap: anywhere;
+}
+.company-setup-retry-status {
+  @apply flex flex-wrap items-center justify-center gap-x-2 gap-y-1 text-xs text-fg-muted;
+}
+.company-setup-retry-status span + span::before {
+  content: "\00b7";
+  @apply mr-2 text-fg-quiet;
+}
+.setup-steps {
+  @apply mx-auto grid w-full max-w-xs list-none gap-0 text-left;
+}
+.setup-step {
+  @apply relative flex min-h-11 items-center gap-3 text-sm text-fg-strong;
+}
+.setup-step:not(:last-child)::after {
+  content: "";
+  @apply absolute left-[11px] top-8 h-5 w-px bg-border-default;
+}
+.setup-step[data-state="waiting"] {
+  @apply text-fg-muted;
+}
+.setup-step-marker {
+  @apply flex size-6 shrink-0 items-center justify-center rounded-full border border-border-default bg-surface;
 }
 .company-setup-card > [role="alert"] {
   @apply w-full rounded-xl border border-border-default bg-surface-sunken p-4 text-left text-sm leading-relaxed;
@@ -3988,7 +4011,7 @@ textarea.br-control.rule-draft-editor {
   padding: 32px 16px;
 }
 .register-surface > [data-projection-freshness] {
-  margin-inline: 0;
+  margin-inline: 16px;
 }
 [data-projection-freshness][data-projection-attention="false"] {
   background: transparent;
@@ -4021,6 +4044,13 @@ textarea.br-control.rule-draft-editor {
     .register-table-inset
   ) {
   padding-inline: 0;
+}
+.register-surface
+  > [data-projection-freshness][data-projection-attention="true"]:not(.erp-register):not(
+    .register-toolbar-block
+  ):not(.register-toolbar-form):not(.register-table-inset) {
+  padding: 12px 14px;
+  border-radius: 8px;
 }
 .erp-register[data-table-id^="inspector-records:"][data-density="normal"] td:nth-child(3) .erp-cell,
 .erp-register[data-table-id^="inspector-records:"][data-density="normal"]

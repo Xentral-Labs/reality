@@ -1008,6 +1008,15 @@ const dictionaries: Record<Exclude<Language, "en">, Record<string, string>> = {
     "Waiting to start": "Wartet auf den Start",
     "Preparing orders, deliveries and invoices":
       "Aufträge, Lieferungen und Rechnungen werden erzeugt",
+    "Calculating finance and margins": "Finanzen und Deckungsbeiträge werden berechnet",
+    "Finance and margins calculated": "Finanzen und Deckungsbeiträge sind berechnet",
+    "Trying preparation again automatically": "Vorbereitung wird automatisch erneut versucht",
+    "Current step:": "Aktueller Schritt:",
+    "Automatic retry": "Automatischer Wiederholungsversuch",
+    "You can watch each step. Your company opens automatically when it is ready.":
+      "Du siehst jeden Schritt. Sobald alles bereit ist, öffnet sich deine Firma automatisch.",
+    Attempt: "Versuch",
+    "Next attempt:": "Nächster Versuch:",
     "Ready to explore": "Bereit zum Erkunden",
     "Company created. Opening your company…": "Firma angelegt. Deine Firma wird geöffnet…",
     "Retry opening": "Öffnen erneut versuchen",
@@ -1063,6 +1072,8 @@ const dictionaries: Record<Exclude<Language, "en">, Record<string, string>> = {
       "Firmenangaben und Auftragsvolumen beschreiben deine Zugangsanfrage. Dadurch wird noch keine Firma angelegt.",
     "Company setup could not be loaded. Reload to retry.":
       "Die Firmeneinrichtung konnte nicht geladen werden. Lade die Seite erneut.",
+    "Company setup could not be completed. Retry when you are ready.":
+      "Die Firmeneinrichtung konnte nicht abgeschlossen werden. Versuche es erneut, sobald du bereit bist.",
     "Creation could not be confirmed. Retry the same request to recover safely.":
       "Die Anlage konnte nicht bestätigt werden. Wiederhole dieselbe Anfrage, um den Stand sicher wiederherzustellen.",
     "Keep this request while setup is pending. Retrying will not create another company.":
@@ -2950,6 +2961,15 @@ const dictionaries: Record<Exclude<Language, "en">, Record<string, string>> = {
     "Company created": "Bedrijf aangemaakt",
     "Waiting to start": "Wacht op de start",
     "Preparing orders, deliveries and invoices": "Orders, leveringen en facturen worden aangemaakt",
+    "Calculating finance and margins": "Financiën en marges worden berekend",
+    "Finance and margins calculated": "Financiën en marges zijn berekend",
+    "Trying preparation again automatically": "Voorbereiding wordt automatisch opnieuw geprobeerd",
+    "Current step:": "Huidige stap:",
+    "Automatic retry": "Automatische nieuwe poging",
+    "You can watch each step. Your company opens automatically when it is ready.":
+      "Je ziet elke stap. Zodra alles klaar is, wordt je bedrijf automatisch geopend.",
+    Attempt: "Poging",
+    "Next attempt:": "Volgende poging:",
     "Ready to explore": "Klaar om te verkennen",
     "Company created. Opening your company…": "Bedrijf aangemaakt. Je bedrijf wordt geopend…",
     "Retry opening": "Opnieuw openen",
@@ -3005,6 +3025,8 @@ const dictionaries: Record<Exclude<Language, "en">, Record<string, string>> = {
       "Bedrijfsgegevens en ordervolume beschrijven je toegangsaanvraag. Ze maken nog geen bedrijf aan.",
     "Company setup could not be loaded. Reload to retry.":
       "De bedrijfsinrichting kon niet worden geladen. Laad de pagina opnieuw.",
+    "Company setup could not be completed. Retry when you are ready.":
+      "De bedrijfsinrichting kon niet worden voltooid. Probeer het opnieuw wanneer je klaar bent.",
     "Creation could not be confirmed. Retry the same request to recover safely.":
       "Het aanmaken kon niet worden bevestigd. Herhaal dezelfde aanvraag om de status veilig te herstellen.",
     "Keep this request while setup is pending. Retrying will not create another company.":
@@ -4591,6 +4613,15 @@ const dictionaries: Record<Exclude<Language, "en">, Record<string, string>> = {
     "Company created": "Empresa creada",
     "Waiting to start": "Esperando el inicio",
     "Preparing orders, deliveries and invoices": "Se están creando pedidos, entregas y facturas",
+    "Calculating finance and margins": "Se están calculando finanzas y márgenes",
+    "Finance and margins calculated": "Finanzas y márgenes calculados",
+    "Trying preparation again automatically": "La preparación se reintentará automáticamente",
+    "Current step:": "Paso actual:",
+    "Automatic retry": "Reintento automático",
+    "You can watch each step. Your company opens automatically when it is ready.":
+      "Puedes ver cada paso. La empresa se abrirá automáticamente cuando esté lista.",
+    Attempt: "Intento",
+    "Next attempt:": "Próximo intento:",
     "Ready to explore": "Listo para explorar",
     "Company created. Opening your company…": "Empresa creada. Abriendo tu empresa…",
     "Retry opening": "Reintentar abrir",
@@ -4646,6 +4677,8 @@ const dictionaries: Record<Exclude<Language, "en">, Record<string, string>> = {
       "Los datos de la empresa y el volumen de pedidos describen tu solicitud de acceso. No crean una empresa.",
     "Company setup could not be loaded. Reload to retry.":
       "No se pudo cargar la configuración. Vuelve a cargar la página.",
+    "Company setup could not be completed. Retry when you are ready.":
+      "No se pudo completar la configuración. Vuelve a intentarlo cuando quieras.",
     "Creation could not be confirmed. Retry the same request to recover safely.":
       "No se pudo confirmar la creación. Repite la misma solicitud para recuperar el estado de forma segura.",
     "Keep this request while setup is pending. Retrying will not create another company.":

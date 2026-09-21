@@ -2,15 +2,15 @@
 
 import pytest
 from conftest import record_by_id, seed_company
-from sqlalchemy import func, select
-
-from reality.db.core import Document, PlaygroundRun
+from reality.db.core import Document, PlaygroundRun, ProjectionCheckpoint, ProjectionRow
 from reality.db.scheduled_jobs import ScheduledJobRun
 from reality.services import company_setup
 from reality.services import scheduled_jobs as jobs
+from reality.services.projections import OPEN_FINANCIAL_ITEMS
+from sqlalchemy import func, select
 
 JOB_TYPE = "company_setup.initialize"
-INTERNATIONAL_V3_DOCUMENT_COUNT = 106
+INTERNATIONAL_V3_DOCUMENT_COUNT = 70
 
 
 def _create(session, owner, key="deferred", content="international_demo"):
@@ -62,6 +62,24 @@ def test_creation_answers_before_the_profile_is_seeded(session, scheduled_owner)
     receipt = company_setup.read_request(session, scheduled_owner.id, "deferred")
     assert receipt["status"] == "ready" and receipt["destination"]
     assert _documents(session, tenant) == INTERNATIONAL_V3_DOCUMENT_COUNT
+    checkpoint = session.scalar(
+        select(ProjectionCheckpoint).where(
+            ProjectionCheckpoint.tenant_id == tenant,
+            ProjectionCheckpoint.projection_name == OPEN_FINANCIAL_ITEMS,
+        )
+    )
+    assert checkpoint is not None and checkpoint.status == "ready"
+    assert (
+        session.scalar(
+            select(func.count())
+            .select_from(ProjectionRow)
+            .where(
+                ProjectionRow.tenant_id == tenant,
+                ProjectionRow.projection_name == OPEN_FINANCIAL_ITEMS,
+            )
+        )
+        == 23
+    )
 
 
 def test_repeated_request_queues_one_initialization(session, scheduled_owner):
@@ -70,6 +88,79 @@ def test_repeated_request_queues_one_initialization(session, scheduled_owner):
     assert again["tenant_id"] == first["tenant_id"]
     assert again["status"] == "initializing"
     assert len(_queued(session, first["tenant_id"])) == 1
+
+
+def test_failed_worker_setup_is_retryable_and_rolls_back_for_the_next_attempt(
+    session, scheduled_owner, monkeypatch
+):
+    from reality.services import demo_profile
+
+    result = _create(session, scheduled_owner, key="worker-retry")
+    original = demo_profile.seed_profile
+
+    def fail(*args, **kwargs):
+        raise RuntimeError("injected setup interruption")
+
+    monkeypatch.setattr(demo_profile, "seed_profile", fail)
+    with pytest.raises(jobs.JobError) as raised, session.begin_nested():
+        _work(session, result["tenant_id"])
+    assert raised.value.code == "setup_profile_incomplete"
+    assert raised.value.retryable is True
+    assert record_by_id(session, PlaygroundRun, result["run_id"]).status == "initializing"
+    assert _documents(session, result["tenant_id"]) == 0
+
+    monkeypatch.setattr(demo_profile, "seed_profile", original)
+    assert _work(session, result["tenant_id"]) == "succeeded"
+    assert record_by_id(session, PlaygroundRun, result["run_id"]).status == "active"
+
+
+def test_failed_worker_live_start_is_retryable_and_keeps_setup_incomplete(
+    session, scheduled_owner, monkeypatch
+):
+    from reality.services import demo_data
+
+    result = company_setup.create_company(
+        session,
+        scheduled_owner.id,
+        "worker-live-retry",
+        "Live Retry",
+        "sandbox",
+        "international_demo",
+        live_simulation=True,
+        confirmed=True,
+    )
+
+    def fail(*args, **kwargs):
+        raise RuntimeError("injected live start interruption")
+
+    monkeypatch.setattr(demo_data, "control", fail)
+    with pytest.raises(jobs.JobError) as raised, session.begin_nested():
+        _work(session, result["tenant_id"])
+    assert raised.value.code == "setup_live_incomplete"
+    assert raised.value.retryable is True
+    run = record_by_id(session, PlaygroundRun, result["run_id"])
+    assert run.status == "initializing"
+    assert run.initialization_progress.get("live_setup_complete") is not True
+    assert _documents(session, result["tenant_id"]) == 0
+
+
+def test_failed_initial_calculation_is_retryable_and_keeps_setup_atomic(
+    session, scheduled_owner, monkeypatch
+):
+    from reality.services import projections
+
+    result = _create(session, scheduled_owner, key="calculation-retry")
+
+    def fail(*args, **kwargs):
+        raise RuntimeError("injected initial calculation interruption")
+
+    monkeypatch.setattr(projections, "rebuild_projections", fail)
+    with pytest.raises(jobs.JobError) as raised, session.begin_nested():
+        _work(session, result["tenant_id"])
+    assert raised.value.code == "setup_calculation_incomplete"
+    assert raised.value.retryable is True
+    assert record_by_id(session, PlaygroundRun, result["run_id"]).status == "initializing"
+    assert _documents(session, result["tenant_id"]) == 0
 
 
 def test_seeding_twice_changes_nothing(session, scheduled_owner):
@@ -214,6 +305,40 @@ def test_receipt_says_whether_anyone_is_preparing_the_company(session, scheduled
     jobs.execute_claim(session, result["tenant_id"], run.id, run.claim_token)
     finished = company_setup.read_request(session, scheduled_owner.id, "deferred")
     assert finished["status"] == "ready" and finished["preparation"] is None
+
+
+def test_receipt_explains_an_automatic_setup_retry(session, scheduled_owner):
+    result = _create(session, scheduled_owner, key="retry-progress")
+    run = jobs.claim_next(session, result["tenant_id"])
+    assert (
+        jobs.record_failure(
+            session,
+            result["tenant_id"],
+            run.id,
+            run.claim_token,
+            "setup_incomplete",
+            retryable=True,
+        )
+        == "retry"
+    )
+
+    read = company_setup.read_request(
+        session, scheduled_owner.id, "retry-progress"
+    )
+    assert read["preparation"] == "retrying"
+    assert read["preparation_attempt"] == 2
+    assert read["preparation_max_attempts"] == 3
+    assert read["preparation_next_attempt_at"]
+
+    run.status = "failed"
+    run.attempt_count = 3
+    session.flush()
+    exhausted = company_setup.read_request(
+        session, scheduled_owner.id, "retry-progress"
+    )
+    assert exhausted["status"] == "initialization_failed"
+    assert exhausted["error_code"] == "setup_incomplete"
+    assert exhausted["preparation"] is None
 
 
 def test_a_company_nobody_prepares_reports_no_preparation(session, scheduled_owner):

@@ -9,3 +9,13 @@
 - Manual diff review: one four-line shared CSS rule; no page-specific production changes, copy, runtime logic or business/data changes. Backend tests not needed for this CSS-only correction.
 
 Reproduce the focused browser check with `NOTICE_SPACING_ONLY=1` and the existing UNIFIED_BASE_URL/Playwright environment variables for `apps/web/scripts/unified-finance-browser.mjs`.
+
+## Regression correction — 2026-09-21
+
+A later register-workbench rule reset the direct-child inset and horizontal
+padding. The scoped rule now wins only for direct Finance/register attention
+notices: 16px outer inset, 14px horizontal internal padding and 8px rounded
+corners. The focused port-8080 browser proof passes at desktop and mobile widths
+for ready, pending, failed and uninitialized states; nested and standalone
+notices retain their prior spacing. Production build, Prettier and spec policy
+also pass.

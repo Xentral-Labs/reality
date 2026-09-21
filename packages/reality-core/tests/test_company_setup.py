@@ -1,10 +1,10 @@
 import pytest
 from conftest import record_by_id, seed_company
-from sqlalchemy import func, select
-
 from reality.db.core import Item, PlaygroundRun, Tenant
+from reality.jobs.registry import JobError
 from reality.services import company_setup
 from reality.services.core import Conflict, InvalidOperation
+from sqlalchemy import func, select
 
 
 def test_empty_creation_replay_and_changed_kind(session, scheduled_owner, monkeypatch):
@@ -121,10 +121,11 @@ def test_failed_seed_rolls_back_all_evidence_and_explicit_retry_reuses_tenant(
     )
     assert result["status"] == "initializing" and result["destination"] is None
     tenant = result["tenant_id"]
-    assert seed_company(session, tenant) == "succeeded"
+    with pytest.raises(JobError, match="setup_profile_incomplete"), session.begin_nested():
+        seed_company(session, tenant)
     assert (
         company_setup.read_request(session, scheduled_owner.id, "retry")["status"]
-        == "initialization_failed"
+        == "initializing"
     )
     for model in (Party, Item, SourceRecord):
         assert (
@@ -135,17 +136,11 @@ def test_failed_seed_rolls_back_all_evidence_and_explicit_retry_reuses_tenant(
         )
     assert (
         company_setup.read_request(session, scheduled_owner.id, "retry")["status"]
-        == "initialization_failed"
+        == "initializing"
     )
     monkeypatch.setattr(demo_profile, "seed_profile", original)
-    retried = company_setup.create_company(
-        session,
-        scheduled_owner.id,
-        "retry",
-        "Harbor Supply",
-        "sandbox",
-        "international_demo",
-        confirmed=True,
+    retried = company_setup.retry_request(
+        session, scheduled_owner.id, "retry", confirmed=True
     )
     assert retried["tenant_id"] == tenant and retried["status"] == "ready"
     renamed = session.get(Tenant, tenant)
@@ -335,6 +330,7 @@ def test_live_creation_provisions_and_starts_once(
 def test_live_creation_failure_is_retryable_without_partial_connection(
     session, scheduled_owner, monkeypatch
 ):
+    from reality.db.demo_data import DemoDataConnection
     from reality.services import demo_data
 
     actor = scheduled_owner.id
@@ -355,18 +351,20 @@ def test_live_creation_failure_is_retryable_without_partial_connection(
         confirmed=True,
     )
     assert result["status"] == "initializing" and result["destination"] is None
-    assert seed_company(session, result["tenant_id"]) == "succeeded"
+    with pytest.raises(JobError, match="setup_live_incomplete"), session.begin_nested():
+        seed_company(session, result["tenant_id"])
     assert (
         company_setup.read_request(session, actor, "live-retry")["status"]
-        == "initialization_failed"
+        == "initializing"
     )
-    assert (
-        demo_data.status(session, result["tenant_id"], actor)["state"]
-        == "not_connected"
-    )
+    assert session.scalar(
+        select(func.count())
+        .select_from(DemoDataConnection)
+        .where(DemoDataConnection.tenant_id == result["tenant_id"])
+    ) == 0
     assert (
         company_setup.read_request(session, actor, "live-retry")["status"]
-        == "initialization_failed"
+        == "initializing"
     )
     monkeypatch.setattr(demo_data, "control", original)
     ready = company_setup.retry_request(session, actor, "live-retry", confirmed=True)

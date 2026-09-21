@@ -1,11 +1,17 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import {
+  SETUP_READY_CURRENT_MS,
+  SETUP_READY_DONE_MS,
   followSetup,
+  presentReadySetup,
   setupProgress,
   setupStage,
   setupSteps,
 } from "../src/unified/setupProgress.ts";
+
+assert.ok(SETUP_READY_CURRENT_MS >= 1500, "the active final step must be readable");
+assert.ok(SETUP_READY_DONE_MS >= 2000, "all four completed steps must remain readable");
 
 const receipt = (status) => ({
   tenant_id: "ten_1",
@@ -84,7 +90,7 @@ test("following gives up after its bound instead of polling forever", async () =
 });
 
 test("the steps are taken from real state, never estimated", () => {
-  // Feature 201: nothing here may claim work is happening before a worker has it.
+  // Feature 201: queued work is current but still truthfully says it is waiting.
   assert.equal(setupSteps(null), null);
   assert.equal(setupSteps(receipt("initialization_failed")), null);
 
@@ -93,7 +99,8 @@ test("the steps are taken from real state, never estimated", () => {
     queued.map((step) => [step.key, step.state]),
     [
       ["created", "done"],
-      ["data", "waiting"],
+      ["data", "current"],
+      ["calculation", "waiting"],
       ["ready", "waiting"],
     ],
   );
@@ -105,24 +112,58 @@ test("the steps are taken from real state, never estimated", () => {
     [
       ["created", "done"],
       ["data", "current"],
+      ["calculation", "waiting"],
       ["ready", "waiting"],
     ],
   );
   assert.equal(preparing[1].label, "Preparing orders, deliveries and invoices");
 
+  const retrying = setupSteps({ ...receipt("initializing"), preparation: "retrying" });
+  assert.deepEqual(
+    retrying.map((step) => [step.key, step.state]),
+    [
+      ["created", "done"],
+      ["data", "current"],
+      ["calculation", "waiting"],
+      ["ready", "waiting"],
+    ],
+  );
+  assert.equal(retrying[1].label, "Trying preparation again automatically");
+
   const done = setupSteps(receipt("ready"));
   assert.deepEqual(
     done.map((step) => step.state),
-    ["done", "done", "done"],
+    ["done", "done", "done", "done"],
   );
   assert.equal(
     done.filter((step) => step.state === "current").length,
     0,
     "a finished setup has no current step",
   );
-  for (const steps of [queued, preparing]) {
+  assert.equal(done[2].label, "Finance and margins calculated");
+  for (const steps of [queued, preparing, retrying]) {
     assert.equal(steps.filter((step) => step.state === "current").length <= 1, true);
   }
+});
+
+test("confirmed completion remains visible before automatic navigation", async () => {
+  const seen = [];
+  await presentReadySetup(
+    (steps) => seen.push(steps),
+    () => true,
+    {
+      currentDelay: 0,
+      doneDelay: 0,
+    },
+  );
+  assert.deepEqual(
+    seen.map((steps) => steps.map((step) => step.state)),
+    [
+      ["done", "done", "done", "current"],
+      ["done", "done", "done", "done"],
+    ],
+  );
+  assert.equal(seen[0][2].label, "Finance and margins calculated");
 });
 
 test("a receipt that reports no preparation still shows its steps", () => {
@@ -130,7 +171,7 @@ test("a receipt that reports no preparation still shows its steps", () => {
   const stage = setupSteps(receipt("initializing"));
   assert.deepEqual(
     stage.map((step) => step.state),
-    ["done", "waiting", "waiting"],
+    ["done", "current", "waiting", "waiting"],
   );
 });
 

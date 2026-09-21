@@ -1215,3 +1215,8 @@ weight, tax treatment, skonto, exchange rate, unit ratio or financial posting.
 T276 -> T277 -> T278 -> T279. T280 is an owner-deferred external qualification and does
 not block provisional technical closeout. T279 must not infer a document-line identity
 from a document number or aggregate document. Automated gates cannot complete SC-002.
+
+- [x] T287 [FR-011/012/014/016] Add a canonical-demo regression proving its confirmed six-position contribution batch has a readable historical generation, and publish that disposable generation from the normal profile seed service.
+- [x] T288 [FR-011/014/016] Show retained `basis_db1` and `basis_db2` in stale operational explanations under the existing non-current warning; never derive or present them as current authority.
+- [x] T289 [FR-007/014/016] Add a stale-inventory browser regression and show retained `basis_acquisition_value` and unit cost under the existing non-current warning; keep unsupported carrying value unknown and perform no browser calculation.
+- [x] T290 [FR-007/014/026, SC-007] Add a canonical-demo regression proving the latest inventory context retains fixture A's 40-unit, EUR 420 acquisition basis, then remove the synthetic cleanup that made the demonstrable valued stock disappear while preserving the signed customer-return story.

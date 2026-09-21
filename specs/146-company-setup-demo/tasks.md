@@ -150,3 +150,10 @@ FR-022 → T050; unified-app/local-stack integration → T045–049. Final evide
 - [x] T937 Explain the unsupported Sandbox data setup; verify localized copy and existing navigation.
 
 - [x] T938 Group and format connection preview; verify exact references, disclosure access, responsive layout and confirmation boundary.
+
+- [x] T939 [FR-006/021] Reproduce deferred seed/live-start interruption, make incomplete setup a retryable worker failure with transaction rollback, and verify explicit recovery reuses the same tenant without partial evidence or connection state.
+- [x] T940 [FR-031] Expose bounded automatic setup-retry progress, show the current/completed/remaining steps and next attempt in the shared localized setup screen, then verify frontend, PostgreSQL and visible port-8080 behavior.
+- [x] T941 [FR-031] Simplify setup to one progress hierarchy, route exhausted recovery through the confirmed retry endpoint, remove stale ready-state failure metadata, and give the isolated worker enough bounded connections for the canonical DB1/DB2 generation.
+- [x] T942 [FR-033] Add failing setup and browser-progress regressions for a four-step checklist and a ready initial Finance projection; rebuild shared materialized projections inside confirmed demo initialization, preserve atomic retry, then verify a fresh port-8080 company without manual Finance refresh.
+- [x] T943 [FR-034] Make queued work visibly active and hold the truthful completed four-step state before automatic navigation; verify timing and a fresh visible setup.
+- [x] T944 [FR-035] Enforce dated, uniformly numbered demo invoices and complete retained DB values for every demo sales-invoice line, including continuous live intake; verify a fresh port-8080 company.

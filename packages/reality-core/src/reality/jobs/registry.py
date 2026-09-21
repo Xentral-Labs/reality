@@ -11,8 +11,9 @@ from sqlalchemy.orm import Session
 
 
 class JobError(ValueError):
-    def __init__(self, code: str):
+    def __init__(self, code: str, *, retryable: bool = False):
         self.code = code
+        self.retryable = retryable
         super().__init__(code)
 
 

@@ -19,6 +19,8 @@ Nested notices in Inspector catalogs, payment forms and dialogs retain their cur
 ## Requirements
 - **FR-001**: Centrally inset a direct-child projection freshness notice 16px on both sides of a register surface in all four states.
 - **FR-002**: Preserve existing vertical/internal spacing, refresh behavior, wrapping and layouts in already-padded or standalone contexts.
+- **FR-003**: Attention-state notices inside register cards MUST preserve visible internal
+  padding and rounded corners so neither status line sits against the card edge.
 
 ## Success Criteria
 Browser geometry proves both insets at 390px and desktop; all four states retain a working refresh button; nested/standalone notices receive no new margin. Existing web checks pass.
@@ -31,3 +33,4 @@ User approved a central CSS correction. InspectorCatalog already wraps the Excep
 |---|---|---|
 | FR-001 | T001,T002 | Existing finance browser fixture with geometry assertions |
 | FR-002 | T001,T003 | Nested/standalone geometry check; full web checks |
+| FR-003 | T004 | Computed padding and corner-radius browser assertions |

@@ -102,22 +102,22 @@ export function CostExplanationResult({
             </div>
             <div>
               <dt>{t("DB1")}</dt>
-              <dd>{money(current?.db1)}</dd>
+              <dd>{money(shown.db1 ?? shown.basis_db1)}</dd>
             </div>
             <div>
               <dt>{t("Reviewed selling costs")}</dt>
-              <dd>{money(current?.known_selling_cost)}</dd>
+              <dd>{money(shown.known_selling_cost)}</dd>
             </div>
             <div>
               <dt>{t("DB2")}</dt>
-              <dd>{money(current?.db2)}</dd>
+              <dd>{money(shown.db2 ?? shown.basis_db2)}</dd>
             </div>
           </>
         ) : (
           <>
             <div>
               <dt>{t("Acquisition value")}</dt>
-              <dd>{money(current?.acquisition_value)}</dd>
+              <dd>{money(shown.acquisition_value ?? shown.basis_acquisition_value)}</dd>
             </div>
             <div>
               <dt>{t("Carrying value")}</dt>

@@ -294,6 +294,21 @@ existing `test_attention_reads.py` and `test_unified_operations_api.py`.
 
 **FR-031**: First-company and dialog setup distinguish loading, creation, opening and recoverable failure visually. Busy states show a visible reduced-motion-aware spinner, one status message and the requested company name when known; no retry action or start-choice instructions appear while busy. Idle interrupted requests retain explicit same-request retry, and ready receipts retain automatic navigation. Use shared theme tokens, responsive spacing and en/de/nl/es translations. No API, consent, request identity or company-creation behavior changes.
 
+FR-031 retry clarification: while durable background preparation is queued, running,
+or waiting for an automatic retry, the screen names the current step, keeps completed
+and remaining steps visible, and shows the bounded attempt plus next retry time when
+known. It must not present a scheduled retry as an idle failure or require a manual
+retry while the worker still owns recovery.
+
+FR-031 completion clarification: present one calm hierarchy rather than duplicating the
+same state in a spinner, status card and checklist. The company name, three truthful
+steps and compact retry metadata are sufficient. Once automatic recovery is exhausted,
+the single retry action must invoke the confirmed setup-recovery endpoint, reuse the
+original request identity and clear stale failure metadata after the company is ready.
+Canonical profile preparation must have the bounded database connections required by
+the shared retained-generation services; pool starvation is a retryable setup failure,
+never a successful or partially ready company.
+
 ## Retrospective simulation entry — FR-032
 
 **FR-032**: Owner cards for existing Sandbox/demo companies expose Live simulation, opening the existing company-scoped Demo Data page without mutation or replaying historical fixtures. Existing preview, explicit connection/start controls, rate, pause and resume remain authoritative. Unsupported practice companies, including Storyline companies, explain the limitation and offer a separate Demo Sandbox through normal confirmed company setup with demo/live choices initially selected when allowed. Existing companies remain unchanged. Ordinary company/member cards do not expose the action; server eligibility and admission remain authoritative. All new copy supports en/de/nl/es and mobile.
@@ -313,3 +328,33 @@ supersedes the historical deployment-switch/disabled-entry policy in this featur
 Storyline, Playground, Sandbox setup and requested free-trial entry are regular
 capabilities. Account admission, ownership, confirmation, quotas, archive state,
 source controls and idempotency remain authoritative.
+
+## Initial calculation gate — FR-033
+
+**FR-033**: A demo company is not ready to explore until the setup worker has rebuilt
+the shared materialized operational projections from the completed canonical profile and
+published the initial Finance result in the same setup transaction. The setup checklist
+shows four outcomes: company created; orders, deliveries and invoices prepared; Finance
+and margins calculated; ready to explore. A successful fresh demo must open Finance with
+its first stored result already available, without requiring the user to press Refresh.
+This reuses the shared projection service and adds no browser calculation, timer, second
+queue or financial authority. If the initial calculation fails, the existing bounded
+setup retry keeps the company unready and reuses the same request and tenant.
+
+## Observable completion handoff — FR-034
+
+**FR-034**: Queued setup shows an active current step instead of appearing idle.
+After the backend reports ready, the UI keeps the truthfully completed Finance/margin
+step and final ready step visible long enough to understand before navigating. This
+presentation hold does not delay backend work, invent an intermediate backend state,
+or open a company before its ready receipt exists. Dialog setup is centered in the
+available viewport with a safe edge inset and bounded scrolling on short screens.
+
+## Demo document quality — FR-035
+
+**FR-035**: Every canonical and continuously generated demo document has a real
+document date. Demo sales invoices use one stable `INV-YYYYMMDD-XXXXXX` numbering
+format across seeded history, contribution examples and later live intake. Every
+demo sales-invoice line exposed for exploration has a retained reviewed contribution
+with non-zero acquisition cost and readable DB1/DB2; deliberately incomplete costing
+examples belong in isolated tests or guided storylines, not the general demo company.

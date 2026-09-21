@@ -23,6 +23,7 @@ from reality.demo.international import (
     WEEKLY_CUSTOMERS,
     WEEKLY_SETTLEMENT,
 )
+from reality.integrations.demo_data import demo_invoice_number
 from reality.services import core
 
 
@@ -382,12 +383,15 @@ def seed_profile(
                 _commit=False,
             )
         history = list(HISTORY)
-        history += [
-            (f"week-{week:02}", "P14", 84 - week * 7, "1", "12", "12", "EUR")
-            for week in range(12)
-        ]
+        history_cost_rows = []
         for key, item, days, quantity, price, gross, currency in history:
+            # Keep the authored foreign-currency comparison on its own SKU so its
+            # retained acquisition basis does not pretend that EUR and USD opening
+            # values are interchangeable for one physical stock pool.
+            if currency != "EUR":
+                item = "P09"
             date = anchor - timedelta(days=days)
+            invoice_number = demo_invoice_number(date, f"seed:{key}")
             customer = buyer(key)
             ref, lines = order(
                 f"H-{key}",
@@ -399,11 +403,18 @@ def seed_profile(
                 currency=currency,
                 date=date,
             )
-            invoice_lines = [{**lines[0], "billed_document_line_id": ref["line_id"]}]
+            invoice_lines = [
+                {
+                    **lines[0],
+                    "billed_document_line_id": ref["line_id"],
+                    "reality_finance_v1": {"net": gross, "tax": "0"},
+                }
+            ]
             src = source(
                 "sales_invoice",
                 f"INV-{key}",
                 {
+                    "number": invoice_number,
                     "date": date.isoformat(),
                     "lines": invoice_lines,
                     "currency": currency,
@@ -413,11 +424,11 @@ def seed_profile(
                     "discount_amount": "0",
                 },
             )
-            invoice, _ = core.create_manual_document_with_lines(
+            invoice, created_invoice_lines = core.create_manual_document_with_lines(
                 session,
                 tenant,
                 "sales_invoice",
-                f"INV-{key}",
+                invoice_number,
                 parties[customer],
                 invoice_lines,
                 gross,
@@ -429,8 +440,14 @@ def seed_profile(
             core.post_sales_invoice(
                 session, tenant, invoice.id, effective_at=date, _commit=False
             )
-            movement(f"history-receipt-{key}", item, quantity, date=date)
-            movement(
+            receipt = movement(
+                f"history-receipt-{key}",
+                item,
+                quantity,
+                "opening_stock",
+                date=date,
+            )
+            shipment = movement(
                 f"history-shipment-{key}",
                 item,
                 quantity,
@@ -438,10 +455,27 @@ def seed_profile(
                 commitment=ref["commitment_id"],
                 date=date,
             )
+            history_cost_rows.append(
+                {
+                    "key": key,
+                    "item": item,
+                    "quantity": quantity,
+                    "currency": currency,
+                    "receipt": receipt,
+                    "shipment": shipment,
+                    "invoice": invoice,
+                    "invoice_line": created_invoice_lines[0],
+                }
+            )
             if key == "credit-origin":
                 credit_date = anchor - timedelta(days=10)
                 credit_lines = [
-                    {**invoice_lines[0], "quantity": "2", "gross_amount": "24"}
+                    {
+                        **invoice_lines[0],
+                        "quantity": "2",
+                        "gross_amount": "24",
+                        "billed_document_line_id": None,
+                    }
                 ]
                 credit_source = source(
                     "credit_note",
@@ -478,7 +512,6 @@ def seed_profile(
                     item,
                     "2",
                     "return",
-                    commitment=ref["commitment_id"],
                     date=credit_date,
                 )
                 cases["credit_return"] = {
@@ -536,12 +569,169 @@ def seed_profile(
 
         # FR-026 fixture A: authored source evidence enters the ordinary document,
         # movement and costing services. P03's pre-existing two units stay supplier-
-        # owned for this review; the later cleanup preserves the operational case's
-        # original physical stock without changing the frozen cost observation.
+        # owned for this review, while 40 company-owned units remain as a visibly
+        # valued demo stock position after the sale and signed return story.
         from reality.db.core import Movement
         from reality.db.inventory_costing import CostInventoryMember, CostMovementBasis
         from reality.services.costing import _sequence, contribution_preview
         from reality.services.finance import components
+
+        # Every ordinary sales invoice in the demo is immediately useful for a
+        # margin walkthrough. The receipts above are the retained acquisition
+        # evidence; a conservative, non-zero per-unit cost is reviewed through
+        # the same costing services used by the product UI.
+        history_rows_by_item = {}
+        for selected_row in history_cost_rows:
+            key = (selected_row["item"], selected_row["currency"])
+            history_rows_by_item.setdefault(key, []).append(selected_row)
+        for (item_key, currency), selected_rows in history_rows_by_item.items():
+            rows = [row for row in history_cost_rows if row["item"] == item_key]
+            unit_cost = Decimal(6)
+            inventory_arguments = {
+                "operation": "inventory_review",
+                "expected_event_sequence": _sequence(session, tenant),
+                "item_id": items[item_key],
+                "owner_party_id": parties["company"],
+                "method": "fifo",
+                "currency": currency,
+                "base_unit": next(row[2] for row in ITEMS if row[0] == item_key),
+                "history_start": (
+                    min(row["receipt"].occurred_at for row in rows)
+                    - timedelta(seconds=1)
+                ).isoformat(),
+                "effective_at": max(
+                    row["shipment"].occurred_at for row in rows
+                ).isoformat(),
+                "history_complete_from_zero": True,
+                "receipt_cost_scopes_confirmed": True,
+                "economic_issue_ids": [row["shipment"].id for row in rows],
+                "openings": [
+                    {
+                        "movement_id": row["receipt"].id,
+                        "evidence_source_record_id": row["receipt"].source_record_id,
+                        "acquisition_cost": str(
+                            Decimal(row["quantity"]) * unit_cost
+                        ),
+                    }
+                    for row in rows
+                ],
+                "ownership_parts": [
+                    {
+                        "movement_id": movement_row.id,
+                        "owner_party_id": parties["company"],
+                        "evidence_source_record_id": movement_row.source_record_id,
+                        "quantity": str(movement_row.quantity),
+                    }
+                    for row in rows
+                    for movement_row in (row["receipt"], row["shipment"])
+                ],
+                "reason": (
+                    f"Canonical demo history cost review for {item_key} {currency}"
+                ),
+            }
+            history_inventory = _cost_action(session, run, inventory_arguments)
+            receipt_bases = {
+                row["receipt"].id: session.scalar(
+                    select(CostMovementBasis).where(
+                        CostMovementBasis.tenant_id == tenant,
+                        CostMovementBasis.movement_id == row["receipt"].id,
+                    )
+                )
+                for row in rows
+            }
+            for row in selected_rows:
+                issue_basis = session.scalar(
+                    select(CostMovementBasis).where(
+                        CostMovementBasis.tenant_id == tenant,
+                        CostMovementBasis.movement_id == row["shipment"].id,
+                    )
+                )
+                issue_member = session.scalar(
+                    select(CostInventoryMember).where(
+                        CostInventoryMember.tenant_id == tenant,
+                        CostInventoryMember.review_id == history_inventory["review_id"],
+                        CostInventoryMember.movement_basis_id == issue_basis.id,
+                    )
+                )
+                receipt_basis = receipt_bases[row["receipt"].id]
+                received = components._received(
+                    session, tenant, row["invoice"], row["invoice_line"]
+                )
+                _cost_action(
+                    session,
+                    run,
+                    {
+                        "operation": "commercial_match_review",
+                        "expected_event_sequence": _sequence(session, tenant),
+                        "document_line_id": row["invoice_line"].id,
+                        "expected_evidence_hash": received["evidence_hash"],
+                        "profile": "commercial_v1",
+                        "profile_confirmed": True,
+                        "goods_cost_disposition": "inventory",
+                        "inventory_parts": [
+                            {
+                                "inventory_member_id": issue_member.id,
+                                "entry_movement_basis_id": receipt_basis.id,
+                                "receipt_movement_basis_id": receipt_basis.id,
+                                "quantity": row["quantity"],
+                            }
+                        ],
+                        "reason": f"Canonical demo history match for {row['key']}",
+                    },
+                )
+            refreshed_arguments = inventory_arguments | {
+                "expected_event_sequence": _sequence(session, tenant)
+            }
+            _cost_action(session, run, refreshed_arguments)
+            history_positions = []
+            for row in selected_rows:
+                candidate = contribution_preview(
+                    session, tenant, row["invoice_line"].id
+                )
+                if candidate.get("state") != "candidate":
+                    raise core.InvalidOperation(
+                        f"Demo history contribution incomplete: {candidate}"
+                    )
+                history_positions.append(
+                    {
+                        "document_line_id": row["invoice_line"].id,
+                        "expected_candidate_hash": candidate["candidate_hash"],
+                        "profile": "commercial_v1",
+                        "profile_confirmed": True,
+                        "revenue_complete": True,
+                        "economic_at": candidate["trace"]["proposed_economic_at"],
+                        "selling_categories": [
+                            {
+                                "category": category,
+                                "disposition": "confirmed_zero",
+                                "reason": "Canonical demo history reviewed selling scope",
+                            }
+                            for category in (
+                                "outbound_freight",
+                                "fulfilment",
+                                "packaging",
+                                "payment_fee",
+                                "marketplace_commission",
+                                "sales_commission",
+                                "other_selling",
+                            )
+                        ],
+                    }
+                )
+            contribution_request = {
+                "expected_event_sequence": _sequence(session, tenant),
+                "reason": f"Canonical demo history DB2 review for {item_key}",
+            }
+            if len(history_positions) == 1:
+                contribution_request.update(
+                    operation="contribution_review", **history_positions[0]
+                )
+            else:
+                contribution_request.update(
+                    operation="contribution_batch_review",
+                    positions=history_positions,
+                )
+            _cost_action(session, run, contribution_request)
 
         # Keep the canonical costing case inside the final week of the retained
         # twelve-week demo history while still ordering its events explicitly.
@@ -592,11 +782,13 @@ def seed_profile(
                 "reality_finance_v1": {"net": "1200", "tax": "0"},
             }
         ]
+        fixture_invoice_number = demo_invoice_number(fixture_time, "COST-A-INVOICE")
         invoice_source = source(
             "sales_invoice",
             "COST-A-INVOICE",
             {
-                "number": "COST-A-INVOICE",
+                "number": fixture_invoice_number,
+                "date": fixture_time.isoformat(),
                 "currency": "EUR",
                 "gross_amount": "1200",
                 "amount_basis": "net",
@@ -608,10 +800,11 @@ def seed_profile(
             session,
             tenant,
             "sales_invoice",
-            "COST-A-INVOICE",
+            fixture_invoice_number,
             parties["C1"],
             invoice_lines,
             "1200",
+            document_date=fixture_time.date().isoformat(),
             source_record_id=invoice_source.id,
             _commit=False,
         )
@@ -719,75 +912,6 @@ def seed_profile(
                 "reason": "Canonical fixture A exact commercial match",
             },
         )
-        # Restore P03's original operational physical balance after the frozen review.
-        cleanup_source = source(
-            "movement",
-            "COST-A-CLEANUP",
-            {
-                "type": "supplier_return",
-                "item_key": "P03",
-                "quantity": "40",
-                "unit": "pcs",
-                "location_key": "A",
-                "occurred_at": (fixture_time + timedelta(seconds=2)).isoformat(),
-            },
-        )
-        cleanup = core.record_movement(
-            session,
-            tenant,
-            "supplier_return",
-            items["P03"],
-            "40",
-            from_location_id=locations["A"],
-            source_record_id=cleanup_source.id,
-            occurred_at=fixture_time + timedelta(seconds=2),
-            _commit=False,
-        )
-
-        missing_sale, missing_lines = order(
-            "COST-MISSING-ORDER",
-            "P04",
-            counterparty="C2",
-            quantity="5",
-            price="20",
-            gross="100",
-            date=fixture_time,
-        )
-        missing_invoice_lines = [
-            {
-                **missing_lines[0],
-                "billed_document_line_id": missing_sale["line_id"],
-                "reality_finance_v1": {"net": "100", "tax": "0"},
-            }
-        ]
-        missing_source = source(
-            "sales_invoice",
-            "COST-MISSING-INVOICE",
-            {
-                "number": "COST-MISSING-INVOICE",
-                "gross_amount": "100",
-                "currency": "EUR",
-                "lines": missing_invoice_lines,
-            },
-        )
-        _missing_invoice, missing_billed = core.create_manual_document_with_lines(
-            session,
-            tenant,
-            "sales_invoice",
-            "COST-MISSING-INVOICE",
-            parties["C2"],
-            missing_invoice_lines,
-            "100",
-            source_record_id=missing_source.id,
-            _commit=False,
-        )
-        core.post_sales_invoice(
-            session,
-            tenant,
-            _missing_invoice.id,
-            effective_at=fixture_time,
-            _commit=False,
-        )
         returned = movement(
             "COST-LATE-RETURN",
             "P03",
@@ -796,12 +920,6 @@ def seed_profile(
             date=fixture_time + timedelta(seconds=3),
         )
         late_ownership = ownership + [
-            {
-                "movement_id": cleanup.id,
-                "owner_party_id": parties["company"],
-                "evidence_source_record_id": acquisition_source.id,
-                "quantity": "40",
-            },
             {
                 "movement_id": returned.id,
                 "owner_party_id": parties["company"],
@@ -822,21 +940,12 @@ def seed_profile(
             "history_complete_from_zero": True,
             "receipt_cost_scopes_confirmed": True,
             "economic_issue_ids": [issue.id],
-            "supplier_return_ids": [cleanup.id],
             "customer_return_ids": [returned.id],
             "openings": [
                 {
                     "movement_id": opening.id,
                     "evidence_source_record_id": acquisition_source.id,
                     "acquisition_cost": "1050",
-                }
-            ],
-            "specific_selections": [
-                {
-                    "movement_id": cleanup.id,
-                    "entry_movement_id": opening.id,
-                    "receipt_movement_id": opening.id,
-                    "quantity": "40",
                 }
             ],
             "return_parts": [
@@ -889,6 +998,7 @@ def seed_profile(
             "COST-LATE-CREDIT",
             {
                 "number": "COST-LATE-CREDIT",
+                "date": returned.occurred_at.isoformat(),
                 "gross_amount": "200",
                 "currency": "EUR",
                 "lines": credit_lines,
@@ -902,6 +1012,7 @@ def seed_profile(
             parties["C1"],
             credit_lines,
             "200",
+            document_date=returned.occurred_at.date().isoformat(),
             source_record_id=credit_source.id,
             _commit=False,
         )
@@ -955,6 +1066,7 @@ def seed_profile(
             "COST-A-SELLING",
             {
                 "number": "COST-A-SELLING",
+                "date": fixture_time.isoformat(),
                 "gross_amount": "114",
                 "currency": "EUR",
                 "lines": selling_lines,
@@ -969,6 +1081,7 @@ def seed_profile(
                 parties["S1"],
                 selling_lines,
                 "114",
+                document_date=fixture_time.date().isoformat(),
                 source_record_id=selling_source.id,
                 _commit=False,
             )
@@ -1139,7 +1252,8 @@ def seed_profile(
                 "sales_invoice",
                 f"{reference}-INVOICE",
                 {
-                    "number": f"{reference}-INVOICE",
+                    "number": demo_invoice_number(portfolio_time, reference),
+                    "date": portfolio_time.isoformat(),
                     "currency": "EUR",
                     "gross_amount": revenue,
                     "amount_basis": "net",
@@ -1152,10 +1266,11 @@ def seed_profile(
                     session,
                     tenant,
                     "sales_invoice",
-                    f"{reference}-INVOICE",
+                    demo_invoice_number(portfolio_time, reference),
                     parties[customer],
                     portfolio_invoice_lines,
                     revenue,
+                    document_date=portfolio_time.date().isoformat(),
                     source_record_id=portfolio_invoice_source.id,
                     _commit=False,
                 )
@@ -1315,6 +1430,7 @@ def seed_profile(
             "COST-PORTFOLIO-SELLING",
             {
                 "number": "COST-PORTFOLIO-SELLING",
+                "date": portfolio_time.isoformat(),
                 "gross_amount": str(portfolio_selling_total),
                 "currency": "EUR",
                 "lines": portfolio_selling_lines,
@@ -1329,6 +1445,7 @@ def seed_profile(
                 parties["S1"],
                 portfolio_selling_lines,
                 str(portfolio_selling_total),
+                document_date=portfolio_time.date().isoformat(),
                 source_record_id=portfolio_selling_source.id,
                 _commit=False,
             )
@@ -1487,6 +1604,13 @@ def seed_profile(
                 "positions": portfolio_positions,
             },
         )
+        from reality.services.costing import build_contribution_generation
+
+        build_contribution_generation(
+            session,
+            tenant,
+            portfolio_contributions["action_id"],
+        )
         contributions_by_line = {
             result["document_line_id"]: result
             for result in portfolio_contributions["reviews"]
@@ -1506,10 +1630,6 @@ def seed_profile(
                 "final_inventory_review_id": final_inventory_by_item[items["P03"]][
                     "review_id"
                 ],
-            },
-            "missing_cost": {
-                "invoice_line_id": missing_billed[0].id,
-                "quantity": "5",
             },
             "late_cost_return": {
                 "credit_line_id": credit_billed[0].id,
