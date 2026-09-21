@@ -11,7 +11,7 @@ from reality.services import scheduled_jobs as jobs
 from reality.services.projections import OPEN_FINANCIAL_ITEMS
 
 JOB_TYPE = "company_setup.initialize"
-INTERNATIONAL_V9_DOCUMENT_COUNT = 108
+INTERNATIONAL_V10_DOCUMENT_COUNT = 108
 
 
 def _create(session, owner, key="deferred", content="international_demo"):
@@ -62,7 +62,7 @@ def test_creation_answers_before_the_profile_is_seeded(session, scheduled_owner)
     assert record_by_id(session, PlaygroundRun, result["run_id"]).status == "active"
     receipt = company_setup.read_request(session, scheduled_owner.id, "deferred")
     assert receipt["status"] == "ready" and receipt["destination"]
-    assert _documents(session, tenant) == INTERNATIONAL_V9_DOCUMENT_COUNT
+    assert _documents(session, tenant) == INTERNATIONAL_V10_DOCUMENT_COUNT
     checkpoint = session.scalar(
         select(ProjectionCheckpoint).where(
             ProjectionCheckpoint.tenant_id == tenant,
@@ -107,7 +107,9 @@ def test_failed_worker_setup_is_retryable_and_rolls_back_for_the_next_attempt(
         _work(session, result["tenant_id"])
     assert raised.value.code == "setup_profile_incomplete"
     assert raised.value.retryable is True
-    assert record_by_id(session, PlaygroundRun, result["run_id"]).status == "initializing"
+    assert (
+        record_by_id(session, PlaygroundRun, result["run_id"]).status == "initializing"
+    )
     assert _documents(session, result["tenant_id"]) == 0
 
     monkeypatch.setattr(demo_profile, "seed_profile", original)
@@ -160,7 +162,9 @@ def test_failed_initial_calculation_is_retryable_and_keeps_setup_atomic(
         _work(session, result["tenant_id"])
     assert raised.value.code == "setup_calculation_incomplete"
     assert raised.value.retryable is True
-    assert record_by_id(session, PlaygroundRun, result["run_id"]).status == "initializing"
+    assert (
+        record_by_id(session, PlaygroundRun, result["run_id"]).status == "initializing"
+    )
     assert _documents(session, result["tenant_id"]) == 0
 
 
@@ -226,9 +230,9 @@ def test_explicit_retry_completes_without_a_worker(session, scheduled_owner):
     )
     assert retried["status"] == "ready"
     assert retried["tenant_id"] == result["tenant_id"]
-    assert _documents(session, result["tenant_id"]) == INTERNATIONAL_V9_DOCUMENT_COUNT
+    assert _documents(session, result["tenant_id"]) == INTERNATIONAL_V10_DOCUMENT_COUNT
     assert _work(session, result["tenant_id"]) == "succeeded"
-    assert _documents(session, result["tenant_id"]) == INTERNATIONAL_V9_DOCUMENT_COUNT
+    assert _documents(session, result["tenant_id"]) == INTERNATIONAL_V10_DOCUMENT_COUNT
 
 
 def test_a_small_profile_is_still_ready_when_the_request_answers(
@@ -323,9 +327,7 @@ def test_receipt_explains_an_automatic_setup_retry(session, scheduled_owner):
         == "retry"
     )
 
-    read = company_setup.read_request(
-        session, scheduled_owner.id, "retry-progress"
-    )
+    read = company_setup.read_request(session, scheduled_owner.id, "retry-progress")
     assert read["preparation"] == "retrying"
     assert read["preparation_attempt"] == 2
     assert read["preparation_max_attempts"] == 3

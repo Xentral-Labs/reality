@@ -13,6 +13,20 @@ Die Basis enthält 18 Artikel (`ITEM-001`–`ITEM-018`), 20 Kunden, drei Liefera
 Rotterdam und Singapur. Mengen werden in Stück, Metern oder Kilogramm geführt. Die meisten Vorgänge
 sind in EUR; zwei Rechnungen verwenden bewusst USD.
 
+### Vollständige Stammdatenübersicht
+
+| Art               | Enthaltene Datensätze                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      | Wo du sie findest                                                    |
+| ----------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------- |
+| Artikel           | `ITEM-001` Summit Bottle; `ITEM-002` Trail Lantern; `ITEM-003` Ridge Backpack; `ITEM-004` Cedar Desk Lamp; `ITEM-005` Coast Storage Box; `ITEM-006` Harbor Travel Mug; `ITEM-007` Aurora Notebook; `ITEM-008` Vista Monitor Stand; `ITEM-009` Maple Serving Tray; `ITEM-010` Orbit Cable Kit; `ITEM-011` Meadow Picnic Set; `ITEM-012` Beacon Desk Organizer; `ITEM-013` Drift Cushion; `ITEM-014` Cove Glass Set; `ITEM-015` Meridian Fabric; `ITEM-016` Alpine Wax Pellets; `ITEM-017` Willow Batch Balm; `ITEM-018` Atlas Field Scanner | Stammdaten → Artikel; Lager → Artikel                                |
+| Kunden            | Northstar Outdoor; Maple Retail; Solstice Living; Pacific Outfitters; Brightwater Home; Juniper Trading Co.; Lakeside Provisions; Fjord Outfitters; Harlow Interiors; Tidewater Sports; Evergreen Studio; Copperline Goods; Granite Peak Gear; Willow & Finch; Northbridge Office Supply; Blue Heron Living; Marlow Home Goods; Silverbirch Design; Cascade Trail Company; Amber Coast Retail                                                                                                                                              | Stammdaten → Geschäftspartner; außerdem auf Aufträgen und Rechnungen |
+| Lieferanten       | Alpine Components (`ITEM-016`); Meridian Textiles (`ITEM-015`); Seabright Goods (`ITEM-011`)                                                                                                                                                                                                                                                                                                                                                                                                                                               | Stammdaten → Geschäftspartner; Einkauf → Bestellungen                |
+| Lager             | Rotterdam Warehouse; Singapore Warehouse                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   | Lager → Artikel → Bestand nach Lagerort aufklappen                   |
+| Zahlungsbedingung | `DEMO-14-2`: 14 Tage netto, 2 % Skonto innerhalb 7 Tagen                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   | Eine beliebige vorbereitete Kunden- oder Lieferantenrechnung öffnen  |
+
+Northstar Outdoor, Maple Retail, Solstice Living und Blue Heron Living kommen in der datierten
+Verkaufsserie mehrfach vor; die übrigen Kunden liefern gezielte Einzelvergleiche. Die Zuordnung der
+Lieferanten zu ihren Artikeln ist ausdrücklich angegeben und wird nicht aus Wareneingängen geraten.
+
 Die Referenz muss in der passenden Ansicht gesucht werden. Die wichtigsten Wege sind:
 
 - **Vertrieb → Aufträge:** `SO-001`, `SO-011`, `SO-017` oder `SO-024` suchen.
@@ -37,6 +51,7 @@ dieselben Fälle.
 | `SO-002`           | Bestand ohne Reservierung | 5 bestellt, 10 auf Lager, nichts reserviert       | Vertrieb → Aufträge → `SO-002`                              |
 | `SO-003`           | Bestandsengpass           | 5 bestellt, aber nur 2 verfügbar                  | Vertrieb → Aufträge → `SO-003` → Verfügbarkeit              |
 | `SO-004`           | Teilreservierung          | 2 Stück eines überfälligen Auftrags reserviert    | Vertrieb → Aufträge → `SO-004` → Reservierungen             |
+| `SO-005`           | Überfällige Reservierung  | 5 Stück reserviert; die Zusage ist überfällig     | Vertrieb → Aufträge → `SO-005` → Reservierungen/Historie    |
 | `SO-006`           | Teillieferung             | 3 von 5 Stück versendet; 2 bleiben offen          | Vertrieb → Aufträge → `SO-006` → Lieferungen                |
 | `SO-007`, `SO-008` | Manuelle Sperre           | Die Zusage ist gesperrt und weiter erklärbar      | Vertrieb → Aufträge → jeweilige Referenz → Zusage           |
 | `SO-009`           | Vollständige Lieferung    | 5 von 5 Stück versendet                           | Vertrieb → Aufträge → `SO-009` → Lieferungen                |
@@ -209,13 +224,43 @@ Reality fehlende Nachweise bewusst nicht in 0 EUR umgewandelt hat.
 | Lieferantenanzahlung mit Schlussrechnung             | Ja        | `SDEP-001`, `SINV-010`; 20 EUR bleiben          | Finance → Lieferantenguthaben → `SDEP-001`                 |
 | Mahnung mit angegebener Gebühr                       | Ja        | `DN-2026-0001`; Stufe 2 plus 5 EUR              | Finance → Forderungen → Mahnung/Rechnung suchen            |
 | Teilweiser Forderungsausfall                         | Ja        | `SO-037`; 25 EUR Ausfall, 15 EUR offen          | Vertrieb → `SO-037` → Rechnung → Ausgleichserklärung       |
-| Bankabstimmung, Steuer oder Währungsneubewertung     | Nein      | Nicht in Profilversion 9                        | Nicht vorhanden; siehe Einschränkung                       |
+| Bankabstimmung, Steuer oder Währungsneubertung       | Nein      | Nicht in Profilversion 10                       | Nicht vorhanden; siehe Einschränkung                       |
 
 ## Stabile Basis und Live-Daten
 
 Die Fälle oben gehören zur stabilen Basis. Die Live-Simulation ergänzt separat neue Kundenaufträge
 und später Rechnungen und Zahlungen. Sie reserviert, versendet, retourniert oder beschafft Waren
 nicht automatisch. Dadurch bleiben die Referenzfälle reproduzierbar.
+
+Der Live-Generator erzeugt pro geplantem Lauf null bis sechs Aufträge. Zwei bis zehn Minuten später
+folgt jeweils eine Rechnung mit `DEMO-14-2`. Der deterministische Langzeitmix lautet: 91 % exakt
+bezahlt, 2 % mit angegebenem Skonto gekürzt, je 1 % Frachtabzug, zwei Teilzahlungen, Überzahlung
+oder Doppelzahlung und nicht zuordenbar, 2 % verspätet sowie 1 % nie bezahlt. Exakte und verspätete
+Zahlungen können über Provider oder Bank kommen; Abweichungen laufen über den Bankpfad. Die
+Prozentsätze beschreiben den Generator und garantieren nicht, dass eine kleine sichtbare Stichprobe
+jeden Fall enthält.
+
+## Besondere Nachweise und Bewegungen
+
+| Quellenreferenz                                 | Was sie beweist                                                                    | So findest du es                                                                      |
+| ----------------------------------------------- | ---------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------- |
+| `wrong-location`                                | 8 × `ITEM-008` liegen in Singapur; Rotterdam kann trotzdem Unterbestand haben      | Lager → Artikel → `ITEM-008` → Bestand nach Lagerort und Quellnachweis                |
+| `shipment-cancelled-remainder`                  | Die zwei versendeten Stück von `SO-011` bleiben trotz Reststorno erhalten          | Vertrieb → Aufträge → `SO-011` → Lieferungen/Historie                                 |
+| `COST-LATE-CLEANUP`                             | Ein angegebener Abgang von 10 Stück lässt 40 × `ITEM-003` in der geprüften Schicht | Lager → `ITEM-003` → Bewegungen; danach DB-Erklärung von `SO-024`                     |
+| `correction-original`, `correction-replacement` | Eine falsche `ITEM-016`-Bewegung bleibt erhalten und wird berichtigt               | Lager → `ITEM-016` → Bewegungen/Quellnachweise                                        |
+| `history-receipt-*`, `history-shipment-*`       | Jeder historische Verkauf besitzt Eingangs- und Versandnachweis                    | `SO-012`–`SO-023` öffnen und den Artikelbewegungen folgen                             |
+| `purchase-receipt-S01`, `S02`, `S04`–`S08`      | Wareneingänge gibt es nur dort, wo Ware eingetroffen ist                           | Einkauf → passendes `PO-*` → Wareneingänge; `PO-003` hat bewusst keine Eingangsquelle |
+| `COST-A-SELLING`                                | 114 EUR Vertriebskosten für den vollständigen DB-Fall `SO-024`                     | Finance → Verbindlichkeiten → Referenz suchen; mit DB2 im Auftrag vergleichen         |
+| `COST-PORTFOLIO-SELLING`                        | Vertriebskostenverteilung auf fünf Portfoliofälle                                  | Finance → Verbindlichkeiten → Referenz suchen; `SO-025`–`SO-029` vergleichen          |
+
+## Welchen Demo-Modus verwende ich?
+
+| Modus                                 | Zweck                                                                          | Startweg                                                                               |
+| ------------------------------------- | ------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------- |
+| Internationale Demo                   | Vollständige, reproduzierbare Referenzfirma dieser Seite                       | Firmen → Neue Firma → Sandbox → Demo-Firma                                             |
+| Internationale Demo mit Live-Daten    | Dieselbe feste Basis plus fortlaufender synthetischer Auftragseingang          | Bei der Demo-Firma während der Anlage Live-Simulation aktivieren                       |
+| Ausführungsprofil (`atlas-execution`) | Kleine Übungsfirma mit zwei Artikeln, zwei Aufträgen und einem Lager           | Ausführungsinhalt der Firmenanlage; für geführte Übungen, nicht für Vertriebsabdeckung |
+| Szenario `normal-month`               | Kompakter September-2026-Fall nur für CLI-, Engineering- und Service-Prüfungen | `reality scenario run normal-month --tenant TENANT_ID`                                 |
 
 ## So funktionieren die vier neuen Vertriebsfälle
 

@@ -8,9 +8,10 @@ from decimal import Decimal
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
-from reality.db.core import PlaygroundRun
+from reality.db.core import PaymentTerm, PlaygroundRun
 from reality.demo.international import (
     CUSTOMERS,
+    DEMO_DATA_PAYMENT_TERM,
     HISTORY,
     ITEMS,
     LOCATIONS,
@@ -158,6 +159,29 @@ def seed_profile(
     session: Session, run: PlaygroundRun, anchor: datetime, *, execution: bool = False
 ) -> dict:
     tenant = run.tenant_id
+    payment_term = session.scalar(
+        select(PaymentTerm).where(
+            PaymentTerm.tenant_id == tenant,
+            PaymentTerm.code == DEMO_DATA_PAYMENT_TERM["code"],
+        )
+    )
+    if payment_term is None:
+        payment_term = core.create_payment_term(
+            session,
+            tenant,
+            **DEMO_DATA_PAYMENT_TERM,
+            source_system="demo_profile",
+            external_id=DEMO_DATA_PAYMENT_TERM["code"],
+            source_payload={**DEMO_DATA_PAYMENT_TERM, "synthetic": True},
+            _commit=False,
+        )
+
+    def create_document_with_lines(*args, **kwargs):
+        """Use the normal evidence service and bind invoice terms explicitly."""
+        if len(args) > 2 and args[2] in {"sales_invoice", "supplier_invoice"}:
+            kwargs["payment_term_code"] = payment_term.code
+        return core.create_manual_document_with_lines(*args, **kwargs)
+
     parties, items, locations, cases = {}, {}, {}, {}
     sales_order_sequence = 0
     vocabulary = [("company", "Harbor Supply", "company")]
@@ -274,7 +298,7 @@ def seed_profile(
         }
         src = source("purchase_order" if purchase else "sales_order", key, payload)
         party = parties[counterparty]
-        doc, doc_lines = core.create_manual_document_with_lines(
+        doc, doc_lines = create_document_with_lines(
             session,
             tenant,
             "purchase_order" if purchase else "sales_order",
@@ -477,7 +501,7 @@ def seed_profile(
                     "discount_amount": "0",
                 },
             )
-            supplier_invoice, _ = core.create_manual_document_with_lines(
+            supplier_invoice, _ = create_document_with_lines(
                 session,
                 tenant,
                 "supplier_invoice",
@@ -655,7 +679,7 @@ def seed_profile(
                     "discount_amount": "0",
                 },
             )
-            supplier_invoice, _ = core.create_manual_document_with_lines(
+            supplier_invoice, _ = create_document_with_lines(
                 session,
                 tenant,
                 "supplier_invoice",
@@ -708,7 +732,7 @@ def seed_profile(
                         "gross_amount": credited,
                     },
                 )
-                credit, _ = core.create_manual_document_with_lines(
+                credit, _ = create_document_with_lines(
                     session,
                     tenant,
                     "supplier_credit_note",
@@ -800,7 +824,7 @@ def seed_profile(
                     "discount_amount": "0",
                 },
             )
-            invoice, created_invoice_lines = core.create_manual_document_with_lines(
+            invoice, created_invoice_lines = create_document_with_lines(
                 session,
                 tenant,
                 "sales_invoice",
@@ -868,7 +892,7 @@ def seed_profile(
                         "date": credit_date.isoformat(),
                     },
                 )
-                credit, _ = core.create_manual_document_with_lines(
+                credit, _ = create_document_with_lines(
                     session,
                     tenant,
                     "credit_note",
@@ -1251,7 +1275,7 @@ def seed_profile(
                 "lines": invoice_lines,
             },
         )
-        _invoice, billed_lines = core.create_manual_document_with_lines(
+        _invoice, billed_lines = create_document_with_lines(
             session,
             tenant,
             "sales_invoice",
@@ -1459,7 +1483,7 @@ def seed_profile(
                 "lines": credit_lines,
             },
         )
-        credit, credit_billed = core.create_manual_document_with_lines(
+        credit, credit_billed = create_document_with_lines(
             session,
             tenant,
             "credit_note",
@@ -1527,19 +1551,17 @@ def seed_profile(
                 "lines": selling_lines,
             },
         )
-        selling_document, selling_document_lines = (
-            core.create_manual_document_with_lines(
-                session,
-                tenant,
-                "supplier_invoice",
-                "SINV-010",
-                parties["S1"],
-                selling_lines,
-                "114",
-                document_date=fixture_time.date().isoformat(),
-                source_record_id=selling_source.id,
-                _commit=False,
-            )
+        selling_document, selling_document_lines = create_document_with_lines(
+            session,
+            tenant,
+            "supplier_invoice",
+            "SINV-010",
+            parties["S1"],
+            selling_lines,
+            "114",
+            document_date=fixture_time.date().isoformat(),
+            source_record_id=selling_source.id,
+            _commit=False,
         )
         core.post_supplier_invoice(
             session,
@@ -1716,19 +1738,17 @@ def seed_profile(
                     "lines": portfolio_invoice_lines,
                 },
             )
-            portfolio_invoice, portfolio_billed = (
-                core.create_manual_document_with_lines(
-                    session,
-                    tenant,
-                    "sales_invoice",
-                    demo_invoice_number(portfolio_time, reference),
-                    parties[customer],
-                    portfolio_invoice_lines,
-                    revenue,
-                    document_date=portfolio_time.date().isoformat(),
-                    source_record_id=portfolio_invoice_source.id,
-                    _commit=False,
-                )
+            portfolio_invoice, portfolio_billed = create_document_with_lines(
+                session,
+                tenant,
+                "sales_invoice",
+                demo_invoice_number(portfolio_time, reference),
+                parties[customer],
+                portfolio_invoice_lines,
+                revenue,
+                document_date=portfolio_time.date().isoformat(),
+                source_record_id=portfolio_invoice_source.id,
+                _commit=False,
             )
             core.post_sales_invoice(
                 session,
@@ -1892,7 +1912,7 @@ def seed_profile(
             },
         )
         portfolio_selling_document, portfolio_selling_document_lines = (
-            core.create_manual_document_with_lines(
+            create_document_with_lines(
                 session,
                 tenant,
                 "supplier_invoice",
@@ -2118,6 +2138,8 @@ def seed_profile(
             quantity: str,
             gross: str,
             invoice_parts: tuple[tuple[str, str], ...],
+            *,
+            days_before: int = 8,
         ) -> tuple[dict, list]:
             ref, lines = order(
                 case_key,
@@ -2126,11 +2148,11 @@ def seed_profile(
                 quantity=quantity,
                 price="10",
                 gross=gross,
-                date=anchor - timedelta(days=8),
+                date=anchor - timedelta(days=days_before),
             )
             invoices = []
             for part_index, (part_quantity, part_gross) in enumerate(invoice_parts, 1):
-                invoice_date = anchor - timedelta(days=7 - part_index)
+                invoice_date = anchor - timedelta(days=days_before - 1 - part_index)
                 invoice_number = demo_invoice_number(
                     invoice_date, f"seed:{case_key}:{part_index}"
                 )
@@ -2154,7 +2176,7 @@ def seed_profile(
                         "gross_amount": part_gross,
                     },
                 )
-                invoice, invoice_lines_created = core.create_manual_document_with_lines(
+                invoice, invoice_lines_created = create_document_with_lines(
                     session,
                     tenant,
                     "sales_invoice",
@@ -2205,7 +2227,7 @@ def seed_profile(
                 "lines": price_credit_lines,
             },
         )
-        price_credit, _ = core.create_manual_document_with_lines(
+        price_credit, _ = create_document_with_lines(
             session,
             tenant,
             "credit_note",
@@ -2529,7 +2551,7 @@ def seed_profile(
         # Feature 247: the four commercial edge workflows are ordinary confirmed
         # product actions with exact references, not profile-only records.
         dunning_ref, dunning_invoices = billed_sale(
-            "DUNNING", "P09", "C9", "2", "100", (("2", "100"),)
+            "DUNNING", "P09", "C9", "2", "100", (("2", "100"),), days_before=30
         )
         dunning_invoice = dunning_invoices[0][0]
         dunning = _finance_action(
@@ -2646,7 +2668,7 @@ def seed_profile(
             "SINV-DEPOSIT-FINAL",
             {"number": "SINV-010", "date": (anchor - timedelta(days=6)).isoformat()},
         )
-        supplier_final, _ = core.create_manual_document_with_lines(
+        supplier_final, _ = create_document_with_lines(
             session,
             tenant,
             "supplier_invoice",

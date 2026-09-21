@@ -47,6 +47,14 @@
 - [ ] T022 Create a fresh company in the visible browser, execute all four documented journeys and record discrepancies
 - [ ] T023 Review Source → Evidence → Reality links, tenant isolation, idempotency, rollback and final diff; update task status only with green evidence
 
+## Phase 9: Demo catalog closure
+
+- [x] T024 [US5] [FR-016] Add a failing profile assertion that every seeded sales and supplier invoice carries `DEMO-14-2`, then create/reuse the term and bind it through the normal document service; bump the canonical profile version.
+- [x] T025 [US5] [FR-017..FR-018] Add `SO-005` and complete item, customer, supplier, location and relationship inventories to both public guides.
+- [x] T026 [US5] [FR-019..FR-020] Document continuous live intake plus every exceptional movement and finance/cost record with exact references and UI paths in both languages and the durable catalog.
+- [x] T027 [US5] [FR-021] Document the international, reduced execution and `normal-month` demo modes with their distinct start paths and purposes.
+- [x] T028 Run profile, setup, documentation-format, catalog-generation, spec-policy and PR quality gates; verify a fresh profile exposes the exact payment term on seeded invoice reads.
+
 ## Dependencies
 
 - T001–T003 precede implementation.

@@ -83,6 +83,7 @@ _SEED_OPERATIONS = frozenset(
         "create_party",
         "create_item",
         "create_location",
+        "create_payment_term",
         "create_master_source_record",
         "emit_business_event",
     }
