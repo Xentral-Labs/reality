@@ -633,6 +633,7 @@ labels:
       correct_movement: Lagerbewegung korrigieren
       reverse_ledger_posting_group: Buchung stornieren
       revise_commitment: Verpflichtung ändern
+      cancel_commitment: Verpflichtung stornieren
       hold_commitment: Verpflichtung sperren oder freigeben
       hold_document_commitments: Beleg sperren oder freigeben
       hold_party_delivery: Liefersperre setzen oder aufheben

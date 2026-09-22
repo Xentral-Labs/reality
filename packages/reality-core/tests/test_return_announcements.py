@@ -196,7 +196,7 @@ def test_an_announcement_refuses(session, business):
 
     # A cancelled promise cannot receive one. A *fulfilled* one can, and must:
     # a fully shipped delivery is exactly when returns happen.
-    cancel_commitment(session, tenant_id, unshipped.id)
+    cancel_commitment(session, tenant_id, unshipped.id, reason="Test cancellation")
     with pytest.raises(InvalidOperation, match="cancelled promise"):
         announce_customer_return(session, tenant_id, unshipped.id, 1)
 

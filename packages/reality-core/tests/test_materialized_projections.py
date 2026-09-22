@@ -114,7 +114,7 @@ def test_materialized_projection_removes_stale_rows(session, business):
     )
     assert row_id
 
-    cancel_commitment(session, business.tenant.id, commitment.id)
+    cancel_commitment(session, business.tenant.id, commitment.id, reason="Test cancellation")
     rebuild_projections(session, business.tenant.id, MATERIALIZED_PROJECTIONS)
 
     assert projection_rows(session, business.tenant.id, FULFILLMENT_QUEUE) == []

@@ -2,6 +2,7 @@ import json
 from datetime import datetime
 from pathlib import Path
 from typing import Annotated
+from uuid import uuid4
 
 import typer
 from rich.console import Console
@@ -76,8 +77,13 @@ from reality.services.core import (
     update_location,
     update_party,
 )
+from reality.services.delivery_actions import (
+    delivery_proposal_detail,
+    prepare_delivery_action,
+)
 from reality.services.notifications import deliver_next_invitation
 from reality.services.projections import materialized_resolve_price
+from reality.tools.application import approve_and_execute_proposal
 from reality.web.email import send_company_invitation_email
 
 app = typer.Typer(help="Reality playground")
@@ -1366,6 +1372,42 @@ def commitment_release_hold(commitment_id: str, tenant: str | None = None):
         except (NotFound, InvalidOperation) as error:
             raise typer.BadParameter(str(error)) from error
     con.print(f"✓ Released {len(released)} hold(s): {commitment_id}")
+
+
+@commitment_app.command("cancel")
+def commitment_cancel(
+    commitment_id: str,
+    reason: str,
+    tenant: str | None = None,
+    yes: bool = False,
+):
+    """Review and confirm cancellation of a commitment's open remainder."""
+    with Session() as s:
+        try:
+            selected = selected_tenant(s, tenant)
+            proposal = prepare_delivery_action(
+                s,
+                selected.id,
+                "commitment_cancel",
+                {"commitment_id": commitment_id, "reason": reason},
+                request_id=f"cli-commitment-cancel-{uuid4()}",
+                actor_id="cli",
+            )
+            detail = delivery_proposal_detail(s, selected.id, proposal.id)
+            con.print_json(data=detail["review"])
+            if not yes and not typer.confirm("Cancel this commitment remainder?"):
+                con.print("Cancellation stopped; the commitment remains open.")
+                raise typer.Exit()
+            approve_and_execute_proposal(
+                s,
+                selected.id,
+                proposal.id,
+                review_token=detail["review"]["token"],
+                confirmed=True,
+            )
+        except (NotFound, InvalidOperation) as error:
+            raise typer.BadParameter(str(error)) from error
+    con.print(f"✓ Commitment remainder cancelled: {commitment_id}")
 
 
 @document_app.command("hold")

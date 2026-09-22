@@ -16,6 +16,9 @@ records; no mutable stock balance is authoritative.
   never total more than came back. A movement naming none settles none, which is a statement
   rather than a gap. What happened to the goods is what the settling movement is; no outcome
   is stored.
+- A return disposition inherits the arrival Movement's applicable handling-unit, lot and serial
+  identity. Callers do not restate it, so a balanced company total cannot hide movement or
+  write-off of the wrong stock at location or identity level.
 - Any movement may name the `return` it settles, and only a return: the goods must be the
   same item, must leave the location they came back to, and the settlements of one return may
   never total more than came back. A movement naming none settles none, which is a statement

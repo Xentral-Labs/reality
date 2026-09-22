@@ -438,7 +438,13 @@ def seed_profile(
                     _commit=False,
                 )
             if index == 10:
-                core.cancel_commitment(session, tenant, commitment, _commit=False)
+                core.cancel_commitment(
+                    session,
+                    tenant,
+                    commitment,
+                    reason="Customer cancelled before shipment",
+                    _commit=False,
+                )
         cases["O11"], _ = order(
             "O11",
             "P06",
@@ -453,7 +459,11 @@ def seed_profile(
             commitment=cases["O11"]["commitment_id"],
         )
         core.cancel_commitment(
-            session, tenant, cases["O11"]["commitment_id"], _commit=False
+            session,
+            tenant,
+            cases["O11"]["commitment_id"],
+            reason="Customer cancelled the unshipped remainder",
+            _commit=False,
         )
         movement("wrong-location", "P08", "8", location="B")
         # Feature 204: ordered, received, invoiced and paid in every combination, so a
@@ -771,7 +781,11 @@ def seed_profile(
             date=anchor - timedelta(days=20),
         )
         core.cancel_commitment(
-            session, tenant, cancel_ref["commitment_id"], _commit=False
+            session,
+            tenant,
+            cancel_ref["commitment_id"],
+            reason="Purchase cancelled before supplier delivery",
+            _commit=False,
         )
         cases["S09"] = cancel_ref
         history = list(HISTORY)

@@ -599,7 +599,9 @@ stock.
 **Siehe auch:** Sicht [`inventory`](./views#view-inventory), Agenten-Tool
 [`inventory_read`](./commands#tool-inventory_read), Agenten-Tool
 [`reservation_propose`](./commands#tool-reservation_propose), Agenten-Tool
-[`movement_create_propose`](./commands#tool-movement_create_propose)
+[`movement_create_propose`](./commands#tool-movement_create_propose), Agenten-Tool
+[`commitment_revise_propose`](./commands#tool-commitment_revise_propose), Agenten-Tool
+[`commitment_cancel_propose`](./commands#tool-commitment_cancel_propose)
 
 ### `exceptions` — Operational Exceptions {#projection-exceptions}
 
@@ -704,7 +706,9 @@ status on documents.
 **Siehe auch:** Agenten-Tool [`commitments_list`](./commands#tool-commitments_list), Agenten-Tool
 [`reservation_propose`](./commands#tool-reservation_propose), Agenten-Tool
 [`order_create_propose`](./commands#tool-order_create_propose), Agenten-Tool
-[`movement_create_propose`](./commands#tool-movement_create_propose)
+[`movement_create_propose`](./commands#tool-movement_create_propose), Agenten-Tool
+[`commitment_revise_propose`](./commands#tool-commitment_revise_propose), Agenten-Tool
+[`commitment_cancel_propose`](./commands#tool-commitment_cancel_propose)
 
 ### `document_register` — Document register {#projection-document_register}
 

@@ -201,7 +201,12 @@ def run_normal_month(session: Session, tenant_id: str) -> dict[str, Any]:
         amount=196,
     )
     reserve(session, tenant_id, cancelled.id)
-    cancel_commitment(session, tenant_id, cancelled.id)
+    cancel_commitment(
+        session,
+        tenant_id,
+        cancelled.id,
+        reason="Customer cancelled before shipment",
+    )
     record_movement(
         session,
         tenant_id,

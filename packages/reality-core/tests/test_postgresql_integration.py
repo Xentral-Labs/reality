@@ -16,6 +16,7 @@ from sqlalchemy.orm import sessionmaker
 from reality.db.core import (
     ROOT,
     AppUser,
+    Base,
     BusinessEvent,
     CompanyInvitation,
     FinanceRoleDestination,
@@ -23,6 +24,7 @@ from reality.db.core import (
     ImportJob,
     InterpretationRule,
     InvitationDelivery,
+    Movement,
     RealityGap,
     RealityGapEntry,
     Reservation,
@@ -40,6 +42,7 @@ from reality.db.core import (
 )
 from reality.services.core import (
     InvalidOperation,
+    cancel_commitment,
     create_commitment,
     create_item,
     create_location,
@@ -47,6 +50,8 @@ from reality.services.core import (
     create_tenant,
     enqueue_shopify_order,
     record_movement,
+    reserve,
+    revise_commitment,
 )
 from reality.services.memberships import (
     Principal,
@@ -64,6 +69,7 @@ from reality.services.reality_gaps import (
     prepare_implementation,
     replay_rule,
 )
+from reality.services.return_dispositions import record_return_disposition
 from reality.tools.application import confirm_tool, propose_tool
 
 FIXTURE = Path(__file__).parents[1] / "fixtures" / "shopify" / "order_10473.json"
@@ -896,3 +902,203 @@ def test_remove_does_not_interrupt_authorized_in_flight_work_but_next_read_denie
             session.execute(delete(model).where(model.tenant_id == ids[0]))
         session.execute(delete(Tenant).where(Tenant.id == ids[0]))
         session.commit()
+
+
+@pytest.fixture
+def operational_race_session_factory(postgres_database: str):
+    """Give committed concurrency proofs a database that is dropped after the test."""
+    engine = build_engine(postgres_database)
+    Base.metadata.create_all(engine)
+    factory = sessionmaker(engine, expire_on_commit=False)
+    try:
+        yield factory
+    finally:
+        engine.dispose()
+
+
+def _operational_race_fixture(factory: sessionmaker) -> tuple[str, str, str, str, str, str]:
+    with factory() as session:
+        tenant = create_tenant(session, f"Operational race {uid('run')}")
+        company = create_party(session, tenant.id, "Race Company", "company")
+        customer = create_party(session, tenant.id, "Race Customer", "customer")
+        item = create_item(session, tenant.id, uid("sku"), "Race item")
+        warehouse = create_location(session, tenant.id, "Race warehouse")
+        returns = create_location(session, tenant.id, "Race returns")
+        record_movement(
+            session,
+            tenant.id,
+            "opening_stock",
+            item.id,
+            20,
+            to_location_id=warehouse.id,
+        )
+        return tenant.id, company.id, customer.id, item.id, warehouse.id, returns.id
+
+
+def test_concurrent_return_dispositions_never_exceed_arrived_quantity(
+    operational_race_session_factory: sessionmaker,
+) -> None:
+    factory = operational_race_session_factory
+    tenant, company, customer, item, warehouse, returns = _operational_race_fixture(
+        factory
+    )
+    with factory() as session:
+        commitment = create_commitment(
+            session,
+            tenant,
+            "customer_delivery",
+            company,
+            customer,
+            item,
+            warehouse,
+            5,
+            "2026-12-01",
+        )
+        record_movement(
+            session,
+            tenant,
+            "shipment",
+            item,
+            5,
+            from_location_id=warehouse,
+            commitment_id=commitment.id,
+        )
+        arrived = record_movement(
+            session,
+            tenant,
+            "return",
+            item,
+            5,
+            to_location_id=returns,
+            commitment_id=commitment.id,
+        )
+        return_id = arrived.id
+
+    barrier = Barrier(2)
+
+    def dispose() -> str:
+        with factory() as session:
+            barrier.wait(timeout=5)
+            try:
+                return record_return_disposition(
+                    session,
+                    tenant,
+                    return_id,
+                    "scrap_loss",
+                    4,
+                    reason="Race proof",
+                ).id
+            except InvalidOperation:
+                return "refused"
+
+    with ThreadPoolExecutor(max_workers=2) as executor:
+        outcomes = list(executor.map(lambda _: dispose(), range(2)))
+
+    assert outcomes.count("refused") == 1
+    with factory() as session:
+        resolved = session.scalar(
+            select(func.coalesce(func.sum(Movement.quantity), 0)).where(
+                Movement.tenant_id == tenant,
+                Movement.resolves_movement_id == return_id,
+            )
+        )
+        assert resolved == 4
+
+
+def test_concurrent_revisions_keep_active_reservation_within_latest_open(
+    operational_race_session_factory: sessionmaker,
+) -> None:
+    factory = operational_race_session_factory
+    tenant, company, customer, item, warehouse, _ = _operational_race_fixture(factory)
+    with factory() as session:
+        commitment = create_commitment(
+            session,
+            tenant,
+            "customer_delivery",
+            company,
+            customer,
+            item,
+            warehouse,
+            10,
+            "2026-12-01",
+        )
+        reserve(session, tenant, commitment.id, 10)
+        commitment_id = commitment.id
+
+    barrier = Barrier(2)
+
+    def revise(quantity: int) -> None:
+        with factory() as session:
+            barrier.wait(timeout=5)
+            revise_commitment(
+                session,
+                tenant,
+                commitment_id,
+                quantity=quantity,
+                note="Concurrent customer statement",
+            )
+
+    with ThreadPoolExecutor(max_workers=2) as executor:
+        list(executor.map(revise, (7, 6)))
+
+    with factory() as session:
+        active = session.scalar(
+            select(func.coalesce(func.sum(Reservation.quantity), 0)).where(
+                Reservation.tenant_id == tenant,
+                Reservation.commitment_id == commitment_id,
+                Reservation.status == "active",
+            )
+        )
+        from reality.services.core import open_quantity
+
+        assert active <= open_quantity(session, tenant, commitment_id)
+
+
+def test_concurrent_cancellations_record_one_effect(
+    operational_race_session_factory: sessionmaker,
+) -> None:
+    factory = operational_race_session_factory
+    tenant, company, customer, item, warehouse, _ = _operational_race_fixture(factory)
+    with factory() as session:
+        commitment = create_commitment(
+            session,
+            tenant,
+            "customer_delivery",
+            company,
+            customer,
+            item,
+            warehouse,
+            3,
+            "2026-12-01",
+        )
+        commitment_id = commitment.id
+
+    barrier = Barrier(2)
+
+    def cancel() -> str:
+        with factory() as session:
+            barrier.wait(timeout=5)
+            try:
+                return cancel_commitment(
+                    session,
+                    tenant,
+                    commitment_id,
+                    reason="Concurrent cancellation",
+                ).status
+            except InvalidOperation:
+                return "refused"
+
+    with ThreadPoolExecutor(max_workers=2) as executor:
+        assert sorted(executor.map(lambda _: cancel(), range(2))) == [
+            "cancelled",
+            "refused",
+        ]
+
+    with factory() as session:
+        assert session.scalar(
+            select(func.count(BusinessEvent.id)).where(
+                BusinessEvent.tenant_id == tenant,
+                BusinessEvent.event_type == "commitment.cancelled",
+                BusinessEvent.subject_id == commitment_id,
+            )
+        ) == 1

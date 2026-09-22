@@ -173,6 +173,7 @@
     "correct_movement": "movements",
     "reverse_ledger_posting_group": "journal",
     "revise_commitment": "orders",
+    "cancel_commitment": "orders",
     "hold_commitment": "holds",
     "hold_document_commitments": "holds",
     "hold_party_delivery": "holds",
@@ -385,6 +386,28 @@
       "placements": [
         "global",
         "commitment.customer"
+      ]
+    },
+    {
+      "key": "commitment_revise",
+      "label": "Revise commitment",
+      "command": "revise_commitment",
+      "form": "commitment_revise",
+      "placements": [
+        "global",
+        "commitment.customer",
+        "commitment.supplier"
+      ]
+    },
+    {
+      "key": "commitment_cancel",
+      "label": "Cancel commitment remainder",
+      "command": "cancel_commitment",
+      "form": "commitment_cancel",
+      "placements": [
+        "global",
+        "commitment.customer",
+        "commitment.supplier"
       ]
     },
     {

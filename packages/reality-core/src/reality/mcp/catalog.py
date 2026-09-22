@@ -1909,8 +1909,31 @@ ADDITIONAL_PROPOSAL_TOOLS: tuple[tuple[str, str, str, dict[str, Any]], ...] = (
                 "note": OPTIONAL_STRING,
                 "stated_at": OPTIONAL_STRING,
                 "source_record_id": OPTIONAL_STRING,
+                "retained_allocations": {
+                    "type": ["array", "null"],
+                    "items": _object_schema(
+                        {
+                            "reservation_id": STRING,
+                            "quantity": DECIMAL_STRING,
+                        },
+                        required=("reservation_id", "quantity"),
+                    ),
+                },
             },
             required=("commitment_id",),
+        ),
+    ),
+    (
+        "commitment_cancel_propose",
+        "Cancel commitment remainder",
+        "commitment_cancel",
+        _object_schema(
+            {
+                "commitment_id": STRING,
+                "reason": STRING,
+                "source_record_id": OPTIONAL_STRING,
+            },
+            required=("commitment_id", "reason"),
         ),
     ),
     (

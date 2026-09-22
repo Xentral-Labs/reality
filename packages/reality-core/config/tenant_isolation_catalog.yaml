@@ -391,6 +391,7 @@ families:
       - tool:capability_describe
       - tool:commitment_hold
       - tool:commitment_revise
+      - tool:commitment_cancel
       - tool:commitment_hold_release
       - tool:connector_install
       - tool:credit_note_allocate

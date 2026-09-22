@@ -194,6 +194,7 @@ parameter_descriptions:
   note: Free-text record of what the counterparty said, kept with the statement.
   reason: Human-readable explanation for a hold, correction, or lifecycle change.
   reservation_id: Opaque identity of the reservation being given back.
+  retained_allocations: Exact active reservation identities and quantities the operator chooses to preserve when a reduced promise spans different physical allocations.
   records: Several master-data records stated together, each with the same fields the single-record command takes.
   stated_at: When the counterparty stated the new date, defaulting to now.
   reason_code: Stable machine-readable reason used for filtering and automation.
@@ -972,6 +973,14 @@ commands:
     reads: [tenant, commitment, source_record]
     writes: [commitment_revision, business_event]
     effect: Records that a counterparty now states a different date, a different quantity, or both for a promise, without erasing what it replaces.
+  - name: Cancel commitment remainder
+    service: cancel_commitment
+    mode: mutation
+    adapters: [CLI, Web, API, MCP, Chat]
+    confirmation: required
+    reads: [commitment, reservation, commitment_hold, source_record]
+    writes: [commitment, reservation, commitment_hold, business_event]
+    effect: Cancels only the open remainder for an explicit reason while retaining fulfilment history and releasing active reservations and holds.
   - name: Hold commitment
     service: hold_commitment
     related_services: [release_commitment_hold]
@@ -3632,6 +3641,57 @@ capability_guidance:
     examples:
       use: [{scenario: Preview a Shopify shipping-priority Fact rule., reason: Samples expose matches and normalized values without mutation.}]
       do_not_use: [{scenario: Preview a reservation policy., reason: V1 self-service rules may only derive Facts from SourceRecords.}]
+  commitment_revise_propose:
+    application_tool: commitment_revise
+    purpose: Revise the still-open quantity or due date of an existing commitment while preserving its evidence and fulfillment history.
+    use_when:
+      - A customer or supplier changes the remaining promised quantity or due date and the commitment must stay active.
+    do_not_use_when:
+      - The complete open remainder is cancelled; use commitment_cancel_propose instead.
+      - Goods physically moved or an order document must be rewritten.
+    required_context: [commitment, reservation]
+    preconditions:
+      - The commitment exists in the selected tenant and the requested total is not below the quantity already fulfilled.
+      - When multiple active reservations exist, retained_allocations explicitly identifies the opaque reservation IDs and retained quantities.
+    confirmation: required
+    idempotency: {mode: required, guidance: Reuse one caller-stable request ID only for the identical revision and reconcile the proposal receipt before retrying an unknown outcome.}
+    refusals:
+      - {code: invalid_revision, description: The requested quantity conflicts with fulfillment already recorded or another current constraint.}
+      - {code: allocation_selection_required, description: Multiple reservations require an explicit retained allocation selection.}
+    events: [commitment.revised, reservation.released, reservation.created]
+    verification_reads:
+      - {name: commitment_register, proves: The current open commitment reflects the reviewed revision.}
+      - {name: inventory, proves: Only the reviewed reservation quantities remain allocated.}
+    examples:
+      use:
+        - {scenario: A customer reduces an open order line from ten units to six before shipment., reason: The promise remains active while its open quantity and allocation change.}
+      do_not_use:
+        - {scenario: A customer cancels every unshipped unit., reason: A cancellation needs an explicit reason and cancellation event.}
+  commitment_cancel_propose:
+    application_tool: commitment_cancel
+    purpose: Cancel the complete open remainder of an existing commitment with an explicit business reason while preserving evidence and physical history.
+    use_when:
+      - A customer or supplier withdraws every remaining promised unit and active allocations or holds must be released.
+    do_not_use_when:
+      - Only quantity or due date changes and the commitment remains active; use commitment_revise_propose instead.
+      - Goods physically moved, were returned, or must be scrapped.
+    required_context: [commitment, reservation]
+    preconditions:
+      - The commitment exists in the selected tenant and a non-empty business reason is supplied.
+    confirmation: required
+    idempotency: {mode: required, guidance: Reuse one caller-stable request ID only for the identical cancellation and reconcile the proposal receipt before retrying an unknown outcome.}
+    refusals:
+      - {code: missing_reason, description: Cancellation requires an explicit business reason.}
+      - {code: commitment_closed, description: A fully settled or already cancelled commitment has no open remainder to cancel.}
+    events: [commitment.cancelled, reservation.released]
+    verification_reads:
+      - {name: commitment_register, proves: The commitment is cancelled and no open remainder remains.}
+      - {name: inventory, proves: Released reservations no longer reduce available stock.}
+    examples:
+      use:
+        - {scenario: A customer cancels the unshipped remainder of an order line., reason: The explicit cancellation closes the promise without inventing a physical movement.}
+      do_not_use:
+        - {scenario: A warehouse reports damaged stock., reason: Physical loss requires an exact movement rather than promise cancellation.}
   fact_observe_propose:
     application_tool: fact_observe
     purpose: Record one reviewed, source-supported observation without replacing a typed business transition.
@@ -4260,6 +4320,7 @@ agent_command_coverage:
   correct_movement: {classification: eligible, tools: [movement_correction_propose]}
   reverse_ledger_posting_group: {classification: eligible, tools: [ledger_reversal_propose]}
   revise_commitment: {classification: eligible, tools: [commitment_revise_propose]}
+  cancel_commitment: {classification: eligible, tools: [commitment_cancel_propose]}
   hold_commitment: {classification: eligible, tools: [commitment_hold_propose, commitment_hold_release_propose]}
   hold_document_commitments: {classification: eligible, tools: [document_hold_propose, document_hold_release_propose]}
   hold_party_delivery: {classification: eligible, tools: [party_delivery_hold_propose, party_delivery_hold_release_propose]}

@@ -131,7 +131,7 @@ def test_only_open_dated_promises_match(session, business):
     stock(session, business)
     matching = promise(session, business)
     already_closed = promise(session, business)
-    cancel_commitment(session, business.tenant.id, already_closed.id)
+    cancel_commitment(session, business.tenant.id, already_closed.id, reason="Test cancellation")
     promise(session, business, due_at=None)
 
     # A cancelled promise and a dateless one are somebody else's business.

@@ -149,7 +149,7 @@ def test_cancel_preserves_commitment_and_releases_allocation(session, business):
     commitment = customer_commitment(session, business, 5)
     reserve(session, business.tenant.id, commitment.id)
 
-    cancel_commitment(session, business.tenant.id, commitment.id)
+    cancel_commitment(session, business.tenant.id, commitment.id, reason="Test cancellation")
 
     assert commitment.status == "cancelled"
     assert active_reserved(session, business.tenant.id, business.item.id) == 0

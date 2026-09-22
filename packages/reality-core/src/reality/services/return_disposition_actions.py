@@ -127,7 +127,20 @@ def return_disposition_detail(
         if source
         else None
     )
-    if movement and review:
+    expected_movement = review.get("state", {}).get("movement", {}) if review else {}
+    identity_matches = bool(
+        movement
+        and review
+        and movement.resolves_movement_id == review["intent"]["return_movement_id"]
+        and movement.item_id == expected_movement.get("item_id")
+        and core.decimal(movement.quantity) == core.decimal(review["state"]["quantity"])
+        and movement.from_location_id == expected_movement.get("from_location_id")
+        and movement.to_location_id == expected_movement.get("to_location_id")
+        and movement.handling_unit_id == expected_movement.get("handling_unit_id")
+        and movement.lot_id == expected_movement.get("lot_id")
+        and movement.serial_unit_id == expected_movement.get("serial_unit_id")
+    )
+    if movement and review and identity_matches:
         receipt = {"movement_id": movement.id, "source_record_id": source.id}
         if proposal.status != "executed" or result["receipt"] == receipt:
             result.update(
@@ -136,6 +149,10 @@ def return_disposition_detail(
                 else "recorded_unsettled",
                 recorded_receipt=receipt,
                 links=[
+                    {
+                        "kind": "movement",
+                        "id": review["intent"]["return_movement_id"],
+                    },
                     {"kind": "movement", "id": movement.id},
                     {"kind": "source_record", "id": source.id},
                 ],
@@ -143,4 +160,23 @@ def return_disposition_detail(
                     session, tenant_id, review["intent"]["return_movement_id"]
                 ),
             )
+    result["lifecycle"] = proposal.status
+    result["recorded_effect"] = result.get("recorded_receipt")
+    result["current_observation"] = result["observation"]
+    if proposal.status == "proposed":
+        result["remaining_work"] = ["Confirm the unchanged reviewed action."]
+        result["safe_next_action"] = "confirm"
+    elif result["verification"] == "recorded_unsettled":
+        result["remaining_work"] = [
+            "Settle the proposal receipt from the exact recorded effect."
+        ]
+        result["safe_next_action"] = "reconcile"
+    elif result["verification"] == "verified":
+        result["remaining_work"] = []
+        result["safe_next_action"] = "none"
+    else:
+        result["remaining_work"] = [
+            "Reconcile exact tenant, proposal, and return identity evidence; do not retry blindly."
+        ]
+        result["safe_next_action"] = "reconcile"
     return result

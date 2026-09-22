@@ -381,6 +381,7 @@
         "command:reserve",
         "command:release_reservation",
         "command:revise_commitment",
+        "command:cancel_commitment",
         "command:hold_commitment",
         "command:hold_document_commitments",
         "command:hold_party_delivery",
@@ -7660,7 +7661,7 @@
       "summary": "Prepare this business mutation without changing state. Revise commitment. Human confirmation is required.",
       "access": "propose",
       "group": "Mutations",
-      "synopsis": "commitment_revise_propose commitment_id [due_at] [quantity] [note] [stated_at] [source_record_id]",
+      "synopsis": "commitment_revise_propose commitment_id [due_at] [quantity] [note] [stated_at] [source_record_id] [retained_allocations]",
       "parameters": [
         {
           "name": "commitment_id",
@@ -7703,14 +7704,157 @@
           "required": false,
           "description": "Opaque identity of the immutable source record supporting this typed record.",
           "depth": 0
+        },
+        {
+          "name": "retained_allocations",
+          "type": "array",
+          "required": false,
+          "description": "Exact active reservation identities and quantities the operator chooses to preserve when a reduced promise spans different physical allocations.",
+          "depth": 0
+        },
+        {
+          "name": "retained_allocations[].reservation_id",
+          "type": "string",
+          "required": true,
+          "description": "Opaque identity of the reservation being given back.",
+          "depth": 1
+        },
+        {
+          "name": "retained_allocations[].quantity",
+          "type": "string",
+          "required": true,
+          "description": "Decimal quantity expressed in the item's relevant unit.",
+          "depth": 1
         }
       ],
-      "guidance": {},
+      "guidance": {
+        "purpose": "Revise the still-open quantity or due date of an existing commitment while preserving its evidence and fulfillment history.",
+        "use_when": [
+          "A customer or supplier changes the remaining promised quantity or due date and the commitment must stay active."
+        ],
+        "do_not_use_when": [
+          "The complete open remainder is cancelled; use commitment_cancel_propose instead.",
+          "Goods physically moved or an order document must be rewritten."
+        ],
+        "preconditions": [
+          "The commitment exists in the selected tenant and the requested total is not below the quantity already fulfilled.",
+          "When multiple active reservations exist, retained_allocations explicitly identifies the opaque reservation IDs and retained quantities."
+        ],
+        "refusals": [
+          {
+            "code": "invalid_revision",
+            "description": "The requested quantity conflicts with fulfillment already recorded or another current constraint."
+          },
+          {
+            "code": "allocation_selection_required",
+            "description": "Multiple reservations require an explicit retained allocation selection."
+          }
+        ],
+        "verification_reads": [
+          {
+            "name": "commitment_register",
+            "proves": "The current open commitment reflects the reviewed revision."
+          },
+          {
+            "name": "inventory",
+            "proves": "Only the reviewed reservation quantities remain allocated."
+          }
+        ],
+        "idempotency": {
+          "mode": "required",
+          "guidance": "Reuse one caller-stable request ID only for the identical revision and reconcile the proposal receipt before retrying an unknown outcome."
+        }
+      },
       "read_modes": [],
       "command": "revise_commitment",
-      "projections": [],
-      "links": ["command:revise_commitment"],
+      "projections": ["commitment_register", "inventory"],
+      "links": [
+        "command:revise_commitment",
+        "projection:commitment_register",
+        "projection:inventory"
+      ],
       "label_de": "Revise commitment",
+      "resources": ["order"]
+    },
+    {
+      "id": "tool:commitment_cancel_propose",
+      "kind": "tool",
+      "key": "commitment_cancel_propose",
+      "label": "Cancel commitment remainder",
+      "area": "orders",
+      "summary": "Prepare this business mutation without changing state. Cancel commitment remainder. Human confirmation is required.",
+      "access": "propose",
+      "group": "Mutations",
+      "synopsis": "commitment_cancel_propose commitment_id reason [source_record_id]",
+      "parameters": [
+        {
+          "name": "commitment_id",
+          "type": "string",
+          "required": true,
+          "description": "Opaque identity of the obligation being reserved, held, or executed.",
+          "depth": 0
+        },
+        {
+          "name": "reason",
+          "type": "string",
+          "required": true,
+          "description": "Human-readable explanation for a hold, correction, or lifecycle change.",
+          "depth": 0
+        },
+        {
+          "name": "source_record_id",
+          "type": "string",
+          "required": false,
+          "description": "Opaque identity of the immutable source record supporting this typed record.",
+          "depth": 0
+        }
+      ],
+      "guidance": {
+        "purpose": "Cancel the complete open remainder of an existing commitment with an explicit business reason while preserving evidence and physical history.",
+        "use_when": [
+          "A customer or supplier withdraws every remaining promised unit and active allocations or holds must be released."
+        ],
+        "do_not_use_when": [
+          "Only quantity or due date changes and the commitment remains active; use commitment_revise_propose instead.",
+          "Goods physically moved, were returned, or must be scrapped."
+        ],
+        "preconditions": [
+          "The commitment exists in the selected tenant and a non-empty business reason is supplied."
+        ],
+        "refusals": [
+          {
+            "code": "missing_reason",
+            "description": "Cancellation requires an explicit business reason."
+          },
+          {
+            "code": "commitment_closed",
+            "description": "A fully settled or already cancelled commitment has no open remainder to cancel."
+          }
+        ],
+        "verification_reads": [
+          {
+            "name": "commitment_register",
+            "proves": "The commitment is cancelled and no open remainder remains."
+          },
+          {
+            "name": "inventory",
+            "proves": "Released reservations no longer reduce available stock."
+          }
+        ],
+        "idempotency": {
+          "mode": "required",
+          "guidance": "Reuse one caller-stable request ID only for the identical cancellation and reconcile the proposal receipt before retrying an unknown outcome."
+        }
+      },
+      "read_modes": [],
+      "command": "cancel_commitment",
+      "projections": ["commitment_register", "inventory"],
+      "links": [
+        "command:cancel_commitment",
+        "projection:commitment_register",
+        "projection:inventory"
+      ],
+      "label_de": "Cancel commitment remainder",
       "resources": ["order"]
     },
     {
@@ -16987,13 +17131,108 @@
       "related_services": [],
       "tools": ["commitment_revise_propose"],
       "synopses": [
-        "commitment_revise_propose commitment_id [due_at] [quantity] [note] [stated_at] [source_record_id]"
+        "commitment_revise_propose commitment_id [due_at] [quantity] [note] [stated_at] [source_record_id] [retained_allocations]"
       ],
       "events": ["commitment.revised"],
       "actions": [],
-      "guidance": {},
+      "guidance": {
+        "purpose": "Revise the still-open quantity or due date of an existing commitment while preserving its evidence and fulfillment history.",
+        "use_when": [
+          "A customer or supplier changes the remaining promised quantity or due date and the commitment must stay active."
+        ],
+        "do_not_use_when": [
+          "The complete open remainder is cancelled; use commitment_cancel_propose instead.",
+          "Goods physically moved or an order document must be rewritten."
+        ],
+        "preconditions": [
+          "The commitment exists in the selected tenant and the requested total is not below the quantity already fulfilled.",
+          "When multiple active reservations exist, retained_allocations explicitly identifies the opaque reservation IDs and retained quantities."
+        ],
+        "refusals": [
+          {
+            "code": "invalid_revision",
+            "description": "The requested quantity conflicts with fulfillment already recorded or another current constraint."
+          },
+          {
+            "code": "allocation_selection_required",
+            "description": "Multiple reservations require an explicit retained allocation selection."
+          }
+        ],
+        "verification_reads": [
+          {
+            "name": "commitment_register",
+            "proves": "The current open commitment reflects the reviewed revision."
+          },
+          {
+            "name": "inventory",
+            "proves": "Only the reviewed reservation quantities remain allocated."
+          }
+        ],
+        "idempotency": {
+          "mode": "required",
+          "guidance": "Reuse one caller-stable request ID only for the identical revision and reconcile the proposal receipt before retrying an unknown outcome."
+        }
+      },
       "links": ["tool:commitment_revise_propose", "event:commitment.revised"],
       "label_de": "Verpflichtung ändern",
+      "resources": ["order"]
+    },
+    {
+      "id": "command:cancel_commitment",
+      "kind": "command",
+      "key": "cancel_commitment",
+      "label": "Cancel commitment remainder",
+      "area": "orders",
+      "summary": "Cancels only the open remainder for an explicit reason while retaining fulfilment history and releasing active reservations and holds.",
+      "mode": "mutation",
+      "adapters": ["CLI", "Web", "API", "MCP", "Chat"],
+      "reads": ["commitment", "reservation", "commitment_hold", "source_record"],
+      "writes": ["commitment", "reservation", "commitment_hold", "business_event"],
+      "confirmation": "required",
+      "related_services": [],
+      "tools": ["commitment_cancel_propose"],
+      "synopses": ["commitment_cancel_propose commitment_id reason [source_record_id]"],
+      "events": ["commitment.cancelled"],
+      "actions": [],
+      "guidance": {
+        "purpose": "Cancel the complete open remainder of an existing commitment with an explicit business reason while preserving evidence and physical history.",
+        "use_when": [
+          "A customer or supplier withdraws every remaining promised unit and active allocations or holds must be released."
+        ],
+        "do_not_use_when": [
+          "Only quantity or due date changes and the commitment remains active; use commitment_revise_propose instead.",
+          "Goods physically moved, were returned, or must be scrapped."
+        ],
+        "preconditions": [
+          "The commitment exists in the selected tenant and a non-empty business reason is supplied."
+        ],
+        "refusals": [
+          {
+            "code": "missing_reason",
+            "description": "Cancellation requires an explicit business reason."
+          },
+          {
+            "code": "commitment_closed",
+            "description": "A fully settled or already cancelled commitment has no open remainder to cancel."
+          }
+        ],
+        "verification_reads": [
+          {
+            "name": "commitment_register",
+            "proves": "The commitment is cancelled and no open remainder remains."
+          },
+          {
+            "name": "inventory",
+            "proves": "Released reservations no longer reduce available stock."
+          }
+        ],
+        "idempotency": {
+          "mode": "required",
+          "guidance": "Reuse one caller-stable request ID only for the identical cancellation and reconcile the proposal receipt before retrying an unknown outcome."
+        }
+      },
+      "links": ["tool:commitment_cancel_propose", "event:commitment.cancelled"],
+      "label_de": "Verpflichtung stornieren",
       "resources": ["order"]
     },
     {
@@ -17313,7 +17552,7 @@
       "events": ["promises.closed"],
       "actions": [],
       "guidance": {},
-      "links": ["tool:stale_closure_propose", "event:promises.closed"],
+      "links": ["tool:stale_closure_propose", "event:promises.closed", "command:cancel_commitment"],
       "label_de": "Alte Verpflichtungen schließen",
       "resources": ["order"]
     },
@@ -19329,12 +19568,20 @@
       "reads": ["item", "location", "movement", "reservation", "commitment"],
       "outputs": ["physical", "reserved", "available", "incoming", "projected"],
       "views": ["inventory"],
-      "tools": ["inventory_read", "reservation_propose", "movement_create_propose"],
+      "tools": [
+        "inventory_read",
+        "reservation_propose",
+        "movement_create_propose",
+        "commitment_revise_propose",
+        "commitment_cancel_propose"
+      ],
       "links": [
         "view:inventory",
         "tool:inventory_read",
         "tool:reservation_propose",
-        "tool:movement_create_propose"
+        "tool:movement_create_propose",
+        "tool:commitment_revise_propose",
+        "tool:commitment_cancel_propose"
       ],
       "label_de": "Bestand",
       "resources": ["item", "location"]
@@ -19497,13 +19744,17 @@
         "commitments_list",
         "reservation_propose",
         "order_create_propose",
-        "movement_create_propose"
+        "movement_create_propose",
+        "commitment_revise_propose",
+        "commitment_cancel_propose"
       ],
       "links": [
         "tool:commitments_list",
         "tool:reservation_propose",
         "tool:order_create_propose",
-        "tool:movement_create_propose"
+        "tool:movement_create_propose",
+        "tool:commitment_revise_propose",
+        "tool:commitment_cancel_propose"
       ],
       "label_de": "Verpflichtungsregister",
       "resources": ["order"]
@@ -21451,7 +21702,7 @@
         "Document register",
         "Tenant usage"
       ],
-      "links": [],
+      "links": ["command:cancel_commitment"],
       "label_de": "commitment.cancelled",
       "resources": ["order"]
     },
@@ -68722,6 +68973,7 @@
         "command:record_movement",
         "command:correct_movement",
         "command:revise_commitment",
+        "command:cancel_commitment",
         "command:close_stale_promises"
       ]
     },
@@ -69081,6 +69333,7 @@
         "command:reserve",
         "command:release_reservation",
         "command:record_movement",
+        "command:cancel_commitment",
         "command:close_stale_promises",
         "command:record_packaged_execution"
       ]
@@ -73534,7 +73787,11 @@
           "references": []
         }
       ],
-      "actions": ["command:hold_commitment", "command:hold_document_commitments"]
+      "actions": [
+        "command:cancel_commitment",
+        "command:hold_commitment",
+        "command:hold_document_commitments"
+      ]
     }
   ],
   "storylines": [

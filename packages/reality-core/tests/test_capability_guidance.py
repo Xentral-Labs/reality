@@ -20,6 +20,10 @@ INITIAL_TOOLS = {
     "reservation_propose",
     "movement_create_propose",
 }
+COMMITMENT_ACTION_TOOLS = {
+    "commitment_revise_propose": "commitment_revise",
+    "commitment_cancel_propose": "commitment_cancel",
+}
 READ_TOOLS = {
     "interpretation_coverage",
     "business_records_discover",
@@ -70,6 +74,27 @@ def test_four_initial_capabilities_are_complete_and_distinct():
     assert "document_register" in verification_names["order_create_propose"]
     assert "inventory" in verification_names["reservation_propose"]
     assert "timeline" in verification_names["movement_create_propose"]
+
+
+def test_commitment_action_guidance_distinguishes_revision_from_cancellation():
+    guidance = load_application_catalog()["capability_guidance"]
+
+    for tool_name, application_tool in COMMITMENT_ACTION_TOOLS.items():
+        entry = guidance[tool_name]
+        assert entry["application_tool"] == application_tool
+        assert entry["confirmation"] == "required"
+        assert entry["idempotency"]["mode"] == "required"
+        assert entry["preconditions"]
+        assert entry["refusals"]
+        assert entry["events"]
+        assert entry["verification_reads"]
+
+    assert "retained_allocations" in " ".join(
+        guidance["commitment_revise_propose"]["preconditions"]
+    )
+    assert "reason" in " ".join(
+        guidance["commitment_cancel_propose"]["preconditions"]
+    )
 
 
 def test_all_public_business_read_capabilities_are_complete_and_distinct():

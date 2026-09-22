@@ -1278,12 +1278,34 @@ def _supplier_refund_post(
 def _commitment_revise(
     session: Session, tenant_id: str, arguments: dict[str, Any]
 ) -> Any:
+    arguments["action_id"] = arguments.pop("_action_id", None)
     for field in ("due_at", "stated_at"):
         if arguments.get(field) is not None:
             arguments[field] = utc_datetime(arguments[field])
     return _entity_result(
         "commitment_revision", revise_commitment(session, tenant_id, **arguments)
     )
+
+
+def _commitment_cancel(
+    session: Session, tenant_id: str, arguments: dict[str, Any]
+) -> Any:
+    from reality.db.core import BusinessEvent
+    from reality.services.core import cancel_commitment
+
+    action_id = arguments.pop("_action_id", None)
+    commitment = cancel_commitment(
+        session, tenant_id, action_id=action_id, **arguments
+    )
+    event = session.scalar(
+        select(BusinessEvent).where(
+            BusinessEvent.tenant_id == tenant_id,
+            BusinessEvent.action_id == action_id,
+            BusinessEvent.event_type == "commitment.cancelled",
+            BusinessEvent.subject_id == commitment.id,
+        )
+    )
+    return {"commitment_id": commitment.id, "event_id": event.id if event else None}
 
 
 def _source_system_create(
@@ -1896,6 +1918,12 @@ TOOLS = {
         "Record that a counterparty now states a different date or quantity.",
         True,
         _commitment_revise,
+    ),
+    "commitment_cancel": Tool(
+        "commitment_cancel",
+        "Cancel the open remainder of one commitment for an explicit reason.",
+        True,
+        _commitment_cancel,
     ),
     "commitment_hold": Tool(
         "commitment_hold", "Hold one open commitment.", True, _commitment_hold
@@ -2850,6 +2878,8 @@ def approve_and_execute_proposal(
     from reality.db.core import Tenant
     from reality.services.delivery_actions import REVIEW_KEY, eligible, validate_review
 
+    reviewed_action = REVIEW_KEY in arguments
+
     tenant = session.scalar(select(Tenant).where(Tenant.id == tenant_id))
     if (
         tenant
@@ -3040,6 +3070,8 @@ def approve_and_execute_proposal(
         "supplier_invoice_record",
         "supply_assign",
         "return_disposition",
+        "commitment_revise",
+        "commitment_cancel",
         "sales_credit_record",
         "customer_refund_post",
         "ledger_reverse",
@@ -3085,7 +3117,28 @@ def approve_and_execute_proposal(
         with master_tool_execution(session, tenant_id, tool_name, arguments):
             result = tool.handler(session, tenant_id, arguments)
     else:
-        result = tool.handler(session, tenant_id, arguments)
+        try:
+            result = tool.handler(session, tenant_id, arguments)
+        except (InvalidOperation, NotFound):
+            # A synchronous domain refusal from a reviewed application handler is a
+            # known no-effect outcome: the handler did not return and its current
+            # transaction is rolled back. Restore the reviewed proposal so corrected
+            # input/fresh state can be proposed without pretending an unknown effect.
+            # Unexpected exceptions still leave the durable execution claim intact.
+            if not reviewed_action:
+                raise
+            session.rollback()
+            session.execute(
+                update(ChangeProposal)
+                .where(
+                    ChangeProposal.tenant_id == tenant_id,
+                    ChangeProposal.id == proposal_id,
+                    ChangeProposal.status == "executing",
+                )
+                .values(status="proposed", decided_at=None, decided_by_user_id=None)
+            )
+            session.commit()
+            raise
     proposal.status = "executed"
     proposal.output = json.dumps(_json_value(result), sort_keys=True)
     session.commit()

@@ -3260,6 +3260,8 @@ def revise_commitment(
     note: str = "",
     stated_at: datetime | str | None = None,
     source_record_id: str | None = None,
+    retained_allocations: list[dict[str, Any]] | None = None,
+    action_id: str | None = None,
     _commit: bool = True,
 ) -> CommitmentRevision:
     """Record that the other side now says a promise is due on another day.
@@ -3276,7 +3278,18 @@ def revise_commitment(
     late is a real statement and the most useful kind.
     """
     _require_business_mutation(session, tenant_id, "revise_commitment")
-    commitment = _tenant_record(session, Commitment, tenant_id, commitment_id)
+    commitment = session.scalar(
+        select(Commitment)
+        .where(
+            Commitment.tenant_id == tenant_id,
+            Commitment.id == commitment_id,
+        )
+        .with_for_update()
+    )
+    if commitment is None:
+        raise NotFound("Commitment was not found.")
+    if action_id:
+        _tenant_record(session, ChangeProposal, tenant_id, action_id)
     if commitment.status != "open":
         raise InvalidOperation("Only an open commitment can be revised.")
     stated_due = utc_datetime(due_at) if due_at is not None else None
@@ -3289,6 +3302,82 @@ def revise_commitment(
         raise InvalidOperation("A revision must restate a date, a quantity, or both.")
     if source_record_id:
         _tenant_record(session, SourceRecord, tenant_id, source_record_id)
+    active_allocations: list[Reservation] = []
+    retained_quantity = ZERO
+    retained_specs: list[tuple[Reservation, Decimal]] = []
+    reconcile_allocations = False
+    if stated_quantity is not None and commitment.type == "customer_delivery":
+        active_allocations = list(
+            session.scalars(
+                select(Reservation)
+                .where(
+                    Reservation.tenant_id == tenant_id,
+                    Reservation.commitment_id == commitment.id,
+                    Reservation.status == "active",
+                )
+                .order_by(Reservation.reserved_at, Reservation.id)
+            )
+        )
+        fulfilled = fulfilled_quantity(session, tenant_id, commitment.id)
+        revised_open = max(ZERO, stated_quantity - fulfilled)
+        allocated = sum(
+            (decimal(row.quantity) for row in active_allocations), ZERO
+        )
+        if allocated > revised_open:
+            reconcile_allocations = True
+            identities = {
+                (
+                    row.location_id,
+                    row.handling_unit_id,
+                    row.lot_id,
+                    row.serial_unit_id,
+                )
+                for row in active_allocations
+            }
+            if revised_open > ZERO and len(identities) > 1:
+                if retained_allocations is None:
+                    raise InvalidOperation(
+                        "The revised quantity requires an explicit retained reservation "
+                        "choice because active allocations use different locations or "
+                        "tracking identities."
+                    )
+                by_id = {row.id: row for row in active_allocations}
+                selected_ids: set[str] = set()
+                for selected in retained_allocations:
+                    if set(selected) != {"reservation_id", "quantity"}:
+                        raise InvalidOperation(
+                            "Each retained allocation must name only reservation_id and quantity."
+                        )
+                    reservation_id = str(selected["reservation_id"])
+                    if reservation_id in selected_ids or reservation_id not in by_id:
+                        raise InvalidOperation(
+                            "Retained allocations must name distinct active reservations "
+                            "for this commitment."
+                        )
+                    selected_ids.add(reservation_id)
+                    selected_quantity = positive(
+                        selected["quantity"], "retained allocation quantity"
+                    )
+                    original = by_id[reservation_id]
+                    if selected_quantity > decimal(original.quantity):
+                        raise InvalidOperation(
+                            "A retained allocation cannot exceed its active reservation."
+                        )
+                    retained_specs.append((original, selected_quantity))
+                retained_quantity = sum(
+                    (selected_quantity for _, selected_quantity in retained_specs), ZERO
+                )
+                if retained_quantity > revised_open:
+                    raise InvalidOperation(
+                        "Retained allocation total cannot exceed revised open quantity."
+                    )
+            else:
+                if retained_allocations:
+                    raise InvalidOperation(
+                        "Explicit retained allocations are only accepted when active "
+                        "reservation identities require a choice."
+                    )
+                retained_quantity = revised_open
     revision = CommitmentRevision(
         id=uid("rev"),
         tenant_id=tenant_id,
@@ -3300,6 +3389,63 @@ def revise_commitment(
         source_record_id=source_record_id,
     )
     session.add(revision)
+    if reconcile_allocations:
+        template = active_allocations[0]
+        for reservation in active_allocations:
+            reservation.status = "released"
+            emit_business_event(
+                session,
+                tenant_id,
+                "reservation.released",
+                "reservation",
+                reservation.id,
+                {
+                    "commitment_id": commitment.id,
+                    "cause": "commitment_quantity_revision",
+                },
+                source_record_id=source_record_id,
+                action_id=action_id,
+                correlation_id=action_id,
+            )
+        if retained_quantity > ZERO:
+            allocations_to_create = retained_specs or [(template, retained_quantity)]
+            for retained_from, retained_part in allocations_to_create:
+                retained = Reservation(
+                    id=uid("res"),
+                    tenant_id=tenant_id,
+                    commitment_id=commitment.id,
+                    item_id=retained_from.item_id,
+                    location_id=retained_from.location_id,
+                    quantity=retained_part,
+                    status="active",
+                    handling_unit_id=retained_from.handling_unit_id,
+                    lot_id=retained_from.lot_id,
+                    serial_unit_id=retained_from.serial_unit_id,
+                )
+                session.add(retained)
+                emit_business_event(
+                    session,
+                    tenant_id,
+                    "reservation.created",
+                    "reservation",
+                    retained.id,
+                    {
+                        "commitment_id": commitment.id,
+                        "item_id": retained.item_id,
+                        "location_id": retained.location_id,
+                        "quantity": retained.quantity,
+                        "handling_unit_id": retained.handling_unit_id,
+                        "lot_id": retained.lot_id,
+                        "serial_unit_id": retained.serial_unit_id,
+                        "previous_reservation_ids": [
+                            row.id for row in active_allocations
+                        ],
+                        "cause": "commitment_quantity_revision",
+                    },
+                    source_record_id=source_record_id,
+                    action_id=action_id,
+                    correlation_id=action_id,
+                )
     emit_business_event(
         session,
         tenant_id,
@@ -3315,6 +3461,8 @@ def revise_commitment(
             ),
         },
         source_record_id=source_record_id,
+        action_id=action_id,
+        correlation_id=action_id,
     )
     session.flush()
     # A promise revised down to what has already arrived is finished, and it is
@@ -5324,14 +5472,34 @@ def cancel_commitment(
     tenant_id: str,
     commitment_id: str,
     *,
+    reason: str,
+    source_record_id: str | None = None,
+    action_id: str | None = None,
     _commit: bool = True,
 ) -> Commitment:
     _require_business_mutation(session, tenant_id, "cancel_commitment")
-    commitment = _tenant_record(session, Commitment, tenant_id, commitment_id)
-    if commitment.status == "fulfilled":
-        raise InvalidOperation("A fulfilled commitment cannot be cancelled.")
+    stated_reason = reason.strip()
+    if not stated_reason:
+        raise InvalidOperation("A cancellation requires a reason.")
+    commitment = session.scalar(
+        select(Commitment)
+        .where(
+            Commitment.tenant_id == tenant_id,
+            Commitment.id == commitment_id,
+        )
+        .with_for_update()
+    )
+    if commitment is None:
+        raise NotFound("Commitment was not found.")
+    if source_record_id:
+        _tenant_record(session, SourceRecord, tenant_id, source_record_id)
+    if action_id:
+        _tenant_record(session, ChangeProposal, tenant_id, action_id)
+    if commitment.status != "open":
+        raise InvalidOperation("Only an open commitment can be cancelled.")
     commitment.status = "cancelled"
     commitment.cancelled_at = now()
+    released_reservation_ids = []
     for reservation in session.scalars(
         select(Reservation).where(
             Reservation.tenant_id == tenant_id,
@@ -5340,6 +5508,7 @@ def cancel_commitment(
         )
     ):
         reservation.status = "released"
+        released_reservation_ids.append(reservation.id)
     # A hold says somebody is dealing with this promise. Nobody is: the promise
     # is off. Leaving it active would go on refusing every movement against the
     # promise — including goods coming back against a partial shipment — for a
@@ -5360,8 +5529,13 @@ def cancel_commitment(
         commitment.id,
         {
             "released_reservations": True,
+            "released_reservation_ids": released_reservation_ids,
             "released_hold_ids": [hold.id for hold in released_holds],
+            "reason": stated_reason,
         },
+        source_record_id=source_record_id,
+        action_id=action_id,
+        correlation_id=action_id,
     )
     if _commit:
         session.commit()
@@ -5569,7 +5743,13 @@ def close_stale_promises(
         )
     try:
         for row in matches:
-            cancel_commitment(session, tenant_id, row.id, _commit=False)
+            cancel_commitment(
+                session,
+                tenant_id,
+                row.id,
+                reason=stated_reason,
+                _commit=False,
+            )
         emit_business_event(
             session,
             tenant_id,

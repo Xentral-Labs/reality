@@ -18,7 +18,7 @@ def test_complete_discovery_and_action_inheritance():
     actions = {a["key"]: a for w in catalog["workspaces"] for a in w["actions"]}
     assert len(actions) == 13
     assert all(a["command"] in discovery["command_groups"] for a in actions.values())
-    assert len([e for e in discovery["entries"] if "form" in e]) == 24
+    assert len([e for e in discovery["entries"] if "form" in e]) == 26
 
 
 @pytest.mark.parametrize(

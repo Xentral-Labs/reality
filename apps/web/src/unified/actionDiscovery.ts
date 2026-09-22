@@ -11,6 +11,8 @@ export const formKeys = [
   "reservation_release",
   "commitment_hold",
   "commitment_hold_release",
+  "commitment_revise",
+  "commitment_cancel",
   "movement_correct",
   "shipment_notice_record",
   "shipment_dispatch",

@@ -96,6 +96,13 @@ def test_return_disposition_schema_names_all_four_outcomes():
     } <= set(properties)
 
 
+def test_commitment_cancellation_schema_requires_reason():
+    schemas = {s["function"]["name"]: s["function"] for s in model_tool_schemas()}
+    schema = schemas["commitment_cancel_propose"]["parameters"]
+    assert set(schema["required"]) == {"commitment_id", "reason"}
+    assert "source_record_id" in schema["properties"]
+
+
 def test_an_agent_fulfils_an_announcement_through_the_proposal_boundary(
     session, business
 ):
