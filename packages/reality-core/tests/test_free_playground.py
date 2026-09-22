@@ -2,11 +2,10 @@ from datetime import UTC, datetime, timedelta
 
 import pytest
 from conftest import record_by_id, seed_company
-from sqlalchemy import func, select
-
-from reality.db.core import PlaygroundRun, Tenant, now, uid
+from reality.db.core import PlaygroundRun, SecurityAuditEvent, Tenant, now, uid
 from reality.services import company_setup, free_playground
 from reality.services.core import InvalidOperation
+from sqlalchemy import func, select
 
 
 def consent(session, user):
@@ -105,6 +104,31 @@ def test_allowance_shared_across_companies_and_utc_reset(
     assert (
         free_playground.allowance(session, tenant, scheduled_owner.id)["remaining"]
         == 19
+    )
+
+
+def test_platform_admin_is_exempt_from_managed_allowance(
+    session, scheduled_owner, monkeypatch
+):
+    monkeypatch.setenv("ANTHROPIC_API_KEY", "fake-no-network")
+    tenant = sandbox(session, scheduled_owner)
+    scheduled_owner.is_platform_admin = True
+    session.flush()
+
+    assert free_playground.allowance(session, tenant, scheduled_owner.id) is None
+    for _ in range(free_playground.DAILY_LIMIT + 1):
+        free_playground.reserve_managed_question(session, tenant, scheduled_owner.id)
+
+    assert (
+        session.scalar(
+            select(func.count())
+            .select_from(SecurityAuditEvent)
+            .where(
+                SecurityAuditEvent.user_id == scheduled_owner.id,
+                SecurityAuditEvent.event_type == free_playground.USAGE_EVENT,
+            )
+        )
+        == 0
     )
 
 
@@ -215,7 +239,10 @@ def test_failed_entry_explicit_retry_reuses_same_receipt(
     monkeypatch.setattr(demo_profile, "seed_profile", fail)
     failed = free_playground.enter(session, scheduled_owner.id, confirmed=True)
     assert failed["status"] == "initializing"
-    with pytest.raises(JobError, match="setup_profile_incomplete"), session.begin_nested():
+    with (
+        pytest.raises(JobError, match="setup_profile_incomplete"),
+        session.begin_nested(),
+    ):
         seed_company(session, failed["tenant_id"])
     assert (
         free_playground.entry_status(session, scheduled_owner.id)["receipt"]["status"]
