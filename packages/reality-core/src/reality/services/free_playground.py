@@ -131,18 +131,28 @@ def _account(
             and has_configured_api_key(settings)
         ):
             return None
-    if actor_user_id and session.scalar(
-        select(SecurityAuditEvent.id)
-        .where(
-            SecurityAuditEvent.user_id == actor_user_id,
-            SecurityAuditEvent.event_type.in_(
-                {"account.trial_started", "playground.requested"}
-            ),
+    trial_actor = bool(
+        actor_user_id
+        and session.scalar(
+            select(SecurityAuditEvent.id)
+            .where(
+                SecurityAuditEvent.user_id == actor_user_id,
+                SecurityAuditEvent.event_type.in_(
+                    {"account.trial_started", "playground.requested"}
+                ),
+            )
+            .limit(1)
         )
-        .limit(1)
-    ):
-        return actor_user_id
-    return (actor_user_id or run.owner_user_id) if run else None
+    )
+    account_id = (
+        actor_user_id
+        if trial_actor
+        else (actor_user_id or run.owner_user_id)
+        if run
+        else None
+    )
+    account = session.get(AppUser, account_id) if account_id else None
+    return None if account and account.is_platform_admin else account_id
 
 
 def _allowance(

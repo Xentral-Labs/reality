@@ -93,3 +93,11 @@
 
 ## FR-019
 - [x] T019 Implement and verify verification-mail return links, fresh-tab recovery and resend controls.
+
+## Platform administrator allowance refinement (FR-020)
+
+- [x] T980 Add a failing service regression proving the platform administrator has no
+  bounded allowance or usage events while a regular trial account remains bounded.
+- [x] T981 Implement the exemption in the shared managed-allowance account resolver.
+- [x] T982 Run focused PostgreSQL tests, lint/spec checks and review the diff against
+  tenant, identity and no-schema constraints.

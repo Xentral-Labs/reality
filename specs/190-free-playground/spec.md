@@ -94,6 +94,22 @@ All repository artifacts are written in English; user-facing translations suppor
 | FR-007 | US3.1–3 | PostgreSQL concurrency, reset and provider-boundary tests |
 | FR-008 | US3.2 | Allowance read, draft preservation and composer checks |
 | FR-009 | All | Locale audits, keyboard/narrow-screen review |
+| FR-020 | US3 | Platform-admin exemption and regular-account regression tests |
+
+## Platform administrator allowance refinement (2026-09-22)
+
+- **FR-020**: The authenticated platform administrator MUST be exempt from the
+  managed-AI daily allowance and extension counters across every company. Platform
+  administrator authority MUST come only from the persisted account role established
+  by the deployment-admin bootstrap; localhost, tenant ownership, email supplied by a
+  request, and ordinary company membership MUST NOT grant the exemption. Regular trial
+  accounts retain every existing account-wide limit, audit event and UTC reset rule.
+
+Acceptance: repeated managed chat dispatches by the platform administrator never create
+allowance usage events and never reach an exhausted state, while an otherwise identical
+non-admin account remains limited and recorded. The allowance read returns no bounded
+allowance for the administrator so every chat surface remains usable without special
+browser logic.
 
 ## Loading feedback refinement (2026-09-14)
 
