@@ -19,6 +19,8 @@ import { AnalyticsPage } from "./AnalyticsPage";
 import { MasterDataPage } from "./MasterDataPage";
 import { useEffect, useRef, useState } from "react";
 import { ActionCard } from "./ActionCard";
+import { ProposalReviewCard } from "./ProposalReviewCard";
+import { proposalReviewLocation } from "./proposalRouting";
 import type { DeliveryAction } from "./ActionLauncher";
 import { DecisionsPage } from "./DecisionsPage";
 import type { AuthUser, Bootstrap } from "../api";
@@ -354,18 +356,14 @@ export default function UnifiedApp({
                 ) : (
                   <DecisionsPage
                     tenant={company.id}
-                    select={(proposal, master, imported) =>
-                      navigate(
-                        imported
-                          ? { proposal: "", importProposal: proposal, route: "data-sources" }
-                          : { proposal, route: master ? "master-data" : "decisions" },
-                      )
+                    select={(proposal, reviewKind) =>
+                      navigate(proposalReviewLocation(proposal, reviewKind))
                     }
                   />
                 )}
               </div>
             </TableProvider>
-            {(action || (selection.proposal && selection.route !== "master-data")) && (
+            {action && (
               <ActionCard
                 key={`${company.id}:${selection.proposal}`}
                 tenant={company.id}
@@ -376,8 +374,8 @@ export default function UnifiedApp({
                 creditNote={actionTarget.creditNote}
                 movement={actionTarget.movement}
                 direction={actionTarget.direction}
-                proposalId={selection.proposal}
-                tool={action || "reserve"}
+                proposalId=""
+                tool={action}
                 close={() => {
                   setAction(null);
                   setActionTarget({});
@@ -385,6 +383,13 @@ export default function UnifiedApp({
                 }}
                 prepared={(id) => navigate({ proposal: id })}
                 settled={() => window.dispatchEvent(new Event("reality:delivery-settled"))}
+              />
+            )}
+            {!action && selection.proposal && selection.route !== "master-data" && (
+              <ProposalReviewCard
+                tenant={company.id}
+                proposalId={selection.proposal}
+                close={() => navigate({ proposal: "" })}
               />
             )}
           </Shell>

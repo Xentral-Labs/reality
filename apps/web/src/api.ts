@@ -631,6 +631,29 @@ export type CopilotProposal = {
   // person is absent for one taken without a signed-in principal.
   decided_at: string | null;
   decided_by: string | null;
+  review_kind: ProposalReviewKind;
+  review_destination: "proposal-review";
+  review_label: string;
+  review_purpose: string;
+};
+export type ProposalReviewKind =
+  "import" | "reference" | "analytics_report" | "delivery" | "common" | "retired";
+export type ProposalReview = {
+  id: string;
+  tool: string;
+  label: string;
+  purpose: string;
+  review_kind: ProposalReviewKind;
+  status: string;
+  actor_type: string;
+  created_at: string;
+  decided_at: string | null;
+  input: Record<string, unknown>;
+  preview: Record<string, unknown>;
+  receipt: Record<string, unknown>;
+  confirmable: boolean;
+  rejectable: boolean;
+  message: string;
 };
 export type CopilotSuggestion = {
   category: string;
@@ -1870,6 +1893,10 @@ export const api = {
     request<{ items: CopilotProposal[]; page: Page }>(
       `/api/tenants/${tenant}/change-proposals?status=${status}&page=${page}&size=${size}` +
         `&q=${encodeURIComponent(query)}&tool=${encodeURIComponent(tool)}`,
+    ),
+  proposalReview: (tenant: string, proposalId: string) =>
+    request<ProposalReview>(
+      `/api/tenants/${tenant}/change-proposals/${encodeURIComponent(proposalId)}/review`,
     ),
   sendCopilotMessage: (
     tenant: string,

@@ -284,10 +284,11 @@ test("unified UI has no audited legacy exits", () => {
       /t\("(?:Advanced order operations|Advanced warehouse operations|Advanced finance operations|Advanced settings|Technical Explorer|More workspaces|Open existing workspace|Open practice company)"\)/,
     );
   }
-  assert.match(
+  assert.doesNotMatch(
     source("../src/unified/DecisionsPage.tsx"),
     /This proposal cannot be reviewed in this interface yet/,
   );
+  assert.match(source("../src/unified/UnifiedApp.tsx"), /ProposalReviewCard/);
   assert.doesNotMatch(source("../src/unified/UnifiedApp.tsx"), /Sandbox — practice environment/);
   assert.match(source("../src/unified/CompanySwitcher.tsx"), /Sandbox/);
   assert.match(source("../src/unified/MasterDataCard.tsx"), /inspector_view: "records"/);

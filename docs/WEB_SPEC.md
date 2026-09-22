@@ -3273,3 +3273,11 @@ selection do not execute business mutations. See the
 [command palette contract](features/command-palette.md) for implemented boundaries
 and [spec 237 verification](../specs/237-global-command-palette/verification.md) for
 remaining release gates, including the unpassed ten-user performance qualification.
+## MCP proposal review parity (spec 249)
+
+Every production MCP mutation uses the same tenant-scoped application proposal and
+confirmation boundary as Web. Web derives the review destination from server-owned
+proposal metadata. Existing specialized business reviews remain authoritative; every
+other production proposal has a common exact-input and persisted-preview review. Demo
+companies do not add tools or bypass these services, reviews, permissions, or confirmation
+rules.

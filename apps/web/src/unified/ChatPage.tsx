@@ -38,11 +38,12 @@ const fullFrame = "mx-auto flex h-[calc(100dvh-152px)] min-h-[500px] max-w-5xl f
 import { useEffect, useRef, useState, useId, type ReactNode } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
-import { APIError, api, referenceTools, deliveryApi } from "../api";
+import { APIError, api, deliveryApi } from "../api";
 import { t, formatDateTime } from "../localization";
 import { useRead } from "./useCompanyContext";
 import { ReadState } from "./ReadState";
 import type { Selection } from "./routing";
+import { proposalReviewLocation } from "./proposalRouting";
 
 type RemovableSession = { id: string; title: string; message_count: number };
 
@@ -846,38 +847,9 @@ export function ChatPage({
             <button
               key={proposal.id}
               className="br-btn self-start"
-              onClick={() => {
-                if (proposal.input.import_file) {
-                  navigate({ route: "data-sources", proposal: "", importProposal: proposal.id });
-                } else if (referenceTools.includes(proposal.tool)) {
-                  navigate({ route: "master-data", proposal: proposal.id });
-                } else if (
-                  proposal.tool === "party_delivery_hold" ||
-                  proposal.tool === "party_delivery_hold_release" ||
-                  proposal.tool === "reserve" ||
-                  proposal.tool === "reservation_release" ||
-                  proposal.tool === "commitment_hold" ||
-                  proposal.tool === "commitment_hold_release" ||
-                  proposal.tool === "ledger_reverse" ||
-                  proposal.tool === "movement_correct" ||
-                  proposal.tool === "order_create" ||
-                  (proposal.tool === "sales_credit_record" && !!proposal.input.invoice_id) ||
-                  proposal.tool === "sales_invoice_record" ||
-                  proposal.tool === "supplier_invoice_record" ||
-                  proposal.tool === "customer_refund_post" ||
-                  proposal.tool === "customer_payment_post" ||
-                  proposal.tool === "supplier_payment_post" ||
-                  (proposal.tool === "movement_create" &&
-                    proposal.input.movement_type === "opening_stock") ||
-                  (proposal.tool === "movement_create" &&
-                    ["shipment", "receipt"].includes(String(proposal.input.movement_type)) &&
-                    proposal.input.commitment_id)
-                )
-                  navigate({ route: "decisions", proposal: proposal.id });
-                else navigate({ route: "decisions", proposal: "" });
-              }}
+              onClick={() => navigate(proposalReviewLocation(proposal.id, proposal.review_kind))}
             >
-              {t("Review proposed changes")} · {proposal.tool}
+              {t("Review proposed changes")} · {proposal.review_label}
             </button>
           ),
         )}
