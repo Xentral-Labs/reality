@@ -7,7 +7,7 @@ import pytest
 from sqlalchemy import select
 from test_free_playground import sandbox
 
-from reality.db.core import SecurityAuditEvent
+from reality.db.core import AppUser, SecurityAuditEvent, now, uid
 from reality.services import ai_usage, free_playground
 from reality.services.core import InvalidOperation, NotFound
 
@@ -70,13 +70,22 @@ def test_confirmation_privileges_and_admin(session, scheduled_owner, monkeypatch
         ai_usage.status(session, "missing", actor)
     with pytest.raises(InvalidOperation):
         ai_usage.status(session, tenant, actor, recipient_email="someone@example.com")
-    scheduled_owner.is_platform_admin = True
+    admin = AppUser(
+        id=uid("usr"),
+        email="privilege-admin@example.test",
+        password_hash="unused",
+        status="active",
+        email_verified_at=now(),
+        is_platform_admin=True,
+    )
+    session.add(admin)
     session.commit()
     result = grant(
         session,
         tenant,
-        actor,
+        admin.id,
         "admin",
+        recipient_email=scheduled_owner.email,
         mode="admin",
         questions=100,
         reason="Acceptance testing",
@@ -89,14 +98,24 @@ def test_confirmation_privileges_and_admin(session, scheduled_owner, monkeypatch
         grant(
             session,
             tenant,
-            actor,
+            admin.id,
             "admin",
+            recipient_email=scheduled_owner.email,
             mode="admin",
             questions=20,
             reason="Acceptance testing",
         )
     with pytest.raises(InvalidOperation):
-        grant(session, tenant, actor, "bad", mode="admin", questions=100, reason=" ")
+        grant(
+            session,
+            tenant,
+            admin.id,
+            "bad",
+            recipient_email=scheduled_owner.email,
+            mode="admin",
+            questions=100,
+            reason=" ",
+        )
     for _ in range(21):
         free_playground.reserve_managed_question(session, tenant, actor)
     current = free_playground.allowance(session, tenant, actor)
@@ -176,7 +195,7 @@ def test_usage_api_real_auth_confirmation_and_history(
 def test_admin_target_audit_and_cross_account_isolation(
     session, scheduled_owner, monkeypatch
 ):
-    from reality.db.core import AppUser, TenantMembership, now, uid
+    from reality.db.core import TenantMembership
 
     monkeypatch.setenv("ANTHROPIC_API_KEY", "fake-no-network")
     tenant = sandbox(session, scheduled_owner)
