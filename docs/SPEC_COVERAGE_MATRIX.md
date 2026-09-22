@@ -1623,3 +1623,10 @@ Feature contract: `docs/features/b2b-operational-chain.md`.
 | Shortest-link movement explanation, precedence, provenance, correction and tenant isolation | 248 FR-014–015/DR-001/DR-004 | `packages/reality-core/tests/test_movement_explanations.py` |
 | Deterministic dated B2B chain, exact contribution/supply/return reconciliation, explained movements and replay | 248 FR-016–019/SC-002–006/SC-008 | `packages/reality-core/tests/scenarios/test_b2b_operational_chain.py` |
 | Exact human references, expected outcomes and UI discovery paths in the profile manifest | 248 FR-018/SC-001/SC-007 | `packages/reality-core/tests/scenarios/test_b2b_operational_chain_catalog.py` |
+
+### Spec 249 Web and MCP proposal review parity
+
+| Verification family | Specification | Tests |
+|---|---|---|
+| Complete MCP proposal classification, server-side redaction, tenant scope, rejection and receipt recovery | 249 FR-001/FR-003–010 | `packages/reality-core/tests/test_proposal_review_parity.py` |
+| Shared Chat/Decisions routing and specialized-review delegation | 249 FR-002/FR-009–011 | `apps/web/scripts/proposal-review-parity.test.mjs`; frontend build and i18n audit |

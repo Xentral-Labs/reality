@@ -6383,13 +6383,8 @@ def copilots_payload(
         ],
         "proposals": [
             {
-                "id": row.id,
-                "tool": row.type.removeprefix("tool:"),
-                "actor_type": row.actor_type,
-                "status": row.status,
-                "input": json.loads(row.input),
+                **_proposal_payload(row),
                 "preview": json.loads(row.output),
-                "created_at": row.created_at.isoformat(),
             }
             for row in proposals
         ],
@@ -6451,6 +6446,8 @@ def restore_copilot_conversation(
 def _proposal_payload(
     row: ChangeProposal, decided_by: str | None = None
 ) -> dict[str, object]:
+    from reality.services.proposal_reviews import proposal_routing
+
     return {
         "id": row.id,
         "tool": row.type.removeprefix("tool:"),
@@ -6461,7 +6458,20 @@ def _proposal_payload(
         "created_at": row.created_at.isoformat(),
         "decided_at": row.decided_at.isoformat() if row.decided_at else None,
         "decided_by": decided_by,
+        **proposal_routing(row),
     }
+
+
+@router.get("/change-proposals/{proposal_id}/review")
+def get_change_proposal_review(
+    tenant_id: str, proposal_id: str, session: DatabaseSession
+):
+    from reality.services.proposal_reviews import proposal_review
+
+    try:
+        return proposal_review(session, tenant_id, proposal_id)
+    except (NotFound, InvalidOperation) as error:
+        raise api_error(error) from error
 
 
 @router.get("/change-proposals")
