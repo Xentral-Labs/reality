@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from datetime import UTC, datetime
+from decimal import Decimal
 from typing import Any
 
 from sqlalchemy import and_, case, func, or_, select
@@ -433,6 +434,23 @@ def return_disposition_case(
     summary = return_disposition_summary(session, tenant_id, return_movement_id)
     return {
         **summary,
+        "explanation": {
+            "before": {
+                "arrived": summary["arrived"],
+                "resolved": Decimal(0),
+                "unresolved": summary["arrived"],
+                "arrival_location_id": summary["arrival_location_id"],
+                "handling_unit_id": summary["handling_unit_id"],
+                "lot_id": summary["lot_id"],
+                "serial_unit_id": summary["serial_unit_id"],
+            },
+            "effects": summary["history"],
+            "after": {
+                "resolved": summary["resolved"],
+                "unresolved": summary["unresolved"],
+                "totals": summary["totals"],
+            },
+        },
         "links": [
             {"kind": "movement", "id": return_movement_id, "label": "Return arrival"},
             *(

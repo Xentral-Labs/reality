@@ -78,6 +78,7 @@ all reach the same operation.
 | [`update_location`](#command-update_location)                                     | Update location                           | Master data & pricing      | `location_update_propose`                                                                                                                                                                    | CLI · Web · API · MCP · Chat            |
 | [`update_party`](#command-update_party)                                           | Update party                              | Master data & pricing      | `party_update_propose`                                                                                                                                                                       | CLI · Web · API · MCP · Chat            |
 | [`announce_customer_return`](#command-announce_customer_return)                   | Announce customer return                  | Orders & fulfilment        | `return_announce_propose`                                                                                                                                                                    | Web · API · MCP · Chat                  |
+| [`cancel_commitment`](#command-cancel_commitment)                                 | Cancel commitment remainder               | Orders & fulfilment        | `commitment_cancel_propose`                                                                                                                                                                  | CLI · Web · API · MCP · Chat            |
 | [`close_stale_promises`](#command-close_stale_promises)                           | Close stale promises                      | Orders & fulfilment        | `stale_closure_propose`                                                                                                                                                                      | Web · MCP · Chat                        |
 | [`create_manual_order`](#command-create_manual_order)                             | Create manual sales or purchase order     | Orders & fulfilment        | `order_create_propose`                                                                                                                                                                       | Web · MCP · Chat                        |
 | [`hold_commitment`](#command-hold_commitment)                                     | Hold commitment                           | Orders & fulfilment        | `commitment_hold_propose`, `commitment_hold_release_propose`                                                                                                                                 | CLI · Web · API · MCP · Chat            |
@@ -3681,6 +3682,77 @@ return_announce_propose commitment_id quantity [reference] [reason] [expected_by
 
 **See also:** command [`announce_customer_return`](./commands#command-announce_customer_return)
 
+### `cancel_commitment` — Cancel commitment remainder {#command-cancel_commitment}
+
+Cancels only the open remainder for an explicit reason while retaining fulfilment history and
+releasing active reservations and holds.
+
+**Synopsis**
+
+```text
+commitment_cancel_propose commitment_id reason [source_record_id]
+```
+
+**Reach via:** CLI · Web · API · MCP · Chat · **Confirmation:** `required`
+
+**Effect:** Reads: `commitment`, `reservation`, `commitment_hold`, `source_record` · Writes:
+`commitment`, `reservation`, `commitment_hold`, `business_event` · Emits: `commitment.cancelled`
+
+**See also:** agent tool [`commitment_cancel_propose`](./commands#tool-commitment_cancel_propose),
+event [`commitment.cancelled`](./events#event-commitment-cancelled)
+
+#### `commitment_cancel_propose` — Cancel commitment remainder {#tool-commitment_cancel_propose}
+
+Prepare this business mutation without changing state. Cancel commitment remainder. Human
+confirmation is required.
+
+**Synopsis**
+
+```text
+commitment_cancel_propose commitment_id reason [source_record_id]
+```
+
+**Access:** `propose`
+
+Cancel the complete open remainder of an existing commitment with an explicit business reason while
+preserving evidence and physical history.
+
+**Use when**
+
+- A customer or supplier withdraws every remaining promised unit and active allocations or holds
+  must be released.
+
+**Do not use when**
+
+- Only quantity or due date changes and the commitment remains active; use commitment_revise_propose
+  instead.
+- Goods physically moved, were returned, or must be scrapped.
+
+**Preconditions**
+
+- The commitment exists in the selected tenant and a non-empty business reason is supplied.
+
+**Refused when**
+
+- `missing_reason` — Cancellation requires an explicit business reason.
+- `commitment_closed` — A fully settled or already cancelled commitment has no open remainder to
+  cancel.
+
+**Parameters**
+
+| Name               | Type     | Required | Description                                                                  | Default |
+| ------------------ | -------- | -------- | ---------------------------------------------------------------------------- | ------- |
+| `commitment_id`    | `string` | yes      | Opaque identity of the obligation being reserved, held, or executed.         | —       |
+| `reason`           | `string` | yes      | Human-readable explanation for a hold, correction, or lifecycle change.      | —       |
+| `source_record_id` | `string` | no       | Opaque identity of the immutable source record supporting this typed record. | —       |
+
+**Verify with:** `commitment_register` — The commitment is cancelled and no open remainder remains.;
+`inventory` — Released reservations no longer reduce available stock.
+
+**See also:** command [`cancel_commitment`](./commands#command-cancel_commitment), projection
+[`commitment_register`](./views#projection-commitment_register), projection
+[`inventory`](./views#projection-inventory)
+
 ### `close_stale_promises` — Close stale promises {#command-close_stale_promises}
 
 Closes the promises somebody previewed and counted, releasing their reservations and recording the
@@ -3698,7 +3770,8 @@ stale_closure_propose direction due_before expected_count reason
 Writes: `commitment`, `reservation`, `business_event` · Emits: `promises.closed`
 
 **See also:** agent tool [`stale_closure_propose`](./commands#tool-stale_closure_propose), event
-[`promises.closed`](./events#event-promises-closed)
+[`promises.closed`](./events#event-promises-closed), command
+[`cancel_commitment`](./commands#command-cancel_commitment)
 
 #### `stale_closure_propose` — Close stale promises {#tool-stale_closure_propose}
 
@@ -4226,7 +4299,7 @@ promise, without erasing what it replaces.
 **Synopsis**
 
 ```text
-commitment_revise_propose commitment_id [due_at] [quantity] [note] [stated_at] [source_record_id]
+commitment_revise_propose commitment_id [due_at] [quantity] [note] [stated_at] [source_record_id] [retained_allocations]
 ```
 
 **Reach via:** Web · MCP · Chat
@@ -4245,23 +4318,58 @@ required.
 **Synopsis**
 
 ```text
-commitment_revise_propose commitment_id [due_at] [quantity] [note] [stated_at] [source_record_id]
+commitment_revise_propose commitment_id [due_at] [quantity] [note] [stated_at] [source_record_id] [retained_allocations]
 ```
 
 **Access:** `propose`
 
+Revise the still-open quantity or due date of an existing commitment while preserving its evidence
+and fulfillment history.
+
+**Use when**
+
+- A customer or supplier changes the remaining promised quantity or due date and the commitment must
+  stay active.
+
+**Do not use when**
+
+- The complete open remainder is cancelled; use commitment_cancel_propose instead.
+- Goods physically moved or an order document must be rewritten.
+
+**Preconditions**
+
+- The commitment exists in the selected tenant and the requested total is not below the quantity
+  already fulfilled.
+- When multiple active reservations exist, retained_allocations explicitly identifies the opaque
+  reservation IDs and retained quantities.
+
+**Refused when**
+
+- `invalid_revision` — The requested quantity conflicts with fulfillment already recorded or another
+  current constraint.
+- `allocation_selection_required` — Multiple reservations require an explicit retained allocation
+  selection.
+
 **Parameters**
 
-| Name               | Type     | Required | Description                                                                                   | Default |
-| ------------------ | -------- | -------- | --------------------------------------------------------------------------------------------- | ------- |
-| `commitment_id`    | `string` | yes      | Opaque identity of the obligation being reserved, held, or executed.                          | —       |
-| `due_at`           | `string` | no       | The date the counterparty now states the promise is due on; optional if a quantity is stated. | —       |
-| `quantity`         | `string` | no       | Decimal quantity expressed in the item's relevant unit.                                       | —       |
-| `note`             | `string` | no       | Free-text record of what the counterparty said, kept with the statement.                      | —       |
-| `stated_at`        | `string` | no       | When the counterparty stated the new date, defaulting to now.                                 | —       |
-| `source_record_id` | `string` | no       | Opaque identity of the immutable source record supporting this typed record.                  | —       |
+| Name                                    | Type     | Required | Description                                                                                                                                      | Default |
+| --------------------------------------- | -------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------ | ------- |
+| `commitment_id`                         | `string` | yes      | Opaque identity of the obligation being reserved, held, or executed.                                                                             | —       |
+| `due_at`                                | `string` | no       | The date the counterparty now states the promise is due on; optional if a quantity is stated.                                                    | —       |
+| `quantity`                              | `string` | no       | Decimal quantity expressed in the item's relevant unit.                                                                                          | —       |
+| `note`                                  | `string` | no       | Free-text record of what the counterparty said, kept with the statement.                                                                         | —       |
+| `stated_at`                             | `string` | no       | When the counterparty stated the new date, defaulting to now.                                                                                    | —       |
+| `source_record_id`                      | `string` | no       | Opaque identity of the immutable source record supporting this typed record.                                                                     | —       |
+| `retained_allocations`                  | `array`  | no       | Exact active reservation identities and quantities the operator chooses to preserve when a reduced promise spans different physical allocations. | —       |
+| `retained_allocations[].reservation_id` | `string` | yes      | Opaque identity of the reservation being given back.                                                                                             | —       |
+| `retained_allocations[].quantity`       | `string` | yes      | Decimal quantity expressed in the item's relevant unit.                                                                                          | —       |
 
-**See also:** command [`revise_commitment`](./commands#command-revise_commitment)
+**Verify with:** `commitment_register` — The current open commitment reflects the reviewed
+revision.; `inventory` — Only the reviewed reservation quantities remain allocated.
+
+**See also:** command [`revise_commitment`](./commands#command-revise_commitment), projection
+[`commitment_register`](./views#projection-commitment_register), projection
+[`inventory`](./views#projection-inventory)
 
 ### `hold_party_delivery` — Set party delivery hold {#command-hold_party_delivery}
 

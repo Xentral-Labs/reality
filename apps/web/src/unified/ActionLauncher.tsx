@@ -101,6 +101,8 @@ export function ActionDiscoveryProvider({
           "receipt",
           "commitment_hold",
           "commitment_hold_release",
+          "commitment_revise",
+          "commitment_cancel",
         ].includes(entry.form),
     )
     .filter(

@@ -135,7 +135,7 @@ def test_a_closed_promise_cannot_be_held(session, business):
     assert hold.released_at is None
     release_commitment_hold(session, business.tenant.id, commitment.id)
 
-    cancel_commitment(session, business.tenant.id, commitment.id)
+    cancel_commitment(session, business.tenant.id, commitment.id, reason="Test cancellation")
     with pytest.raises(InvalidOperation, match="Only open commitments"):
         hold_commitment(session, business.tenant.id, commitment.id, "credit_check")
 
@@ -183,7 +183,7 @@ def test_cancelling_a_promise_releases_its_hold(session, business):
     )
     raised_at = hold.created_at
 
-    cancel_commitment(session, business.tenant.id, commitment.id)
+    cancel_commitment(session, business.tenant.id, commitment.id, reason="Test cancellation")
 
     assert hold.released_at is not None
     assert active_commitment_hold(session, business.tenant.id, commitment.id) is None
@@ -198,7 +198,10 @@ def test_cancelling_a_promise_releases_its_hold(session, business):
     # A promise with no hold behaves exactly as it did.
     other = commitment_for(session, business)
     assert (
-        cancel_commitment(session, business.tenant.id, other.id).status == "cancelled"
+        cancel_commitment(
+            session, business.tenant.id, other.id, reason="Test cancellation"
+        ).status
+        == "cancelled"
     )
     assert active_commitment_hold(session, business.tenant.id, other.id) is None
 
@@ -217,7 +220,7 @@ def test_goods_can_come_back_against_a_cancelled_held_promise(session, business)
         commitment_id=commitment.id,
     )
     hold_commitment(session, business.tenant.id, commitment.id, "credit_check")
-    cancel_commitment(session, business.tenant.id, commitment.id)
+    cancel_commitment(session, business.tenant.id, commitment.id, reason="Test cancellation")
 
     # Before this specification the hold stood and this was refused, with a
     # message about a credit check.
@@ -271,7 +274,7 @@ def test_the_release_is_recorded_by_the_release_operation(session, business):
 
     commitment = commitment_for(session, business)
     hold = hold_commitment(session, business.tenant.id, commitment.id, "compliance")
-    cancel_commitment(session, business.tenant.id, commitment.id)
+    cancel_commitment(session, business.tenant.id, commitment.id, reason="Test cancellation")
 
     events = [
         (entry.event_type, json.loads(entry.payload))
@@ -289,7 +292,12 @@ def test_the_release_is_recorded_by_the_release_operation(session, business):
     # And the cancellation says which holds went with it, so a reader of the
     # timeline sees the two facts together.
     assert cancellations == [
-        {"released_reservations": True, "released_hold_ids": [hold.id]}
+        {
+            "released_reservations": True,
+            "released_reservation_ids": [],
+            "released_hold_ids": [hold.id],
+            "reason": "Test cancellation",
+        }
     ]
 
 
@@ -309,8 +317,8 @@ def test_the_release_joins_the_caller_s_transaction(session, business):
         hold_commitment(session, business.tenant.id, second.id, "compliance"),
     ]
 
-    cancel_commitment(session, business.tenant.id, first.id, _commit=False)
-    cancel_commitment(session, business.tenant.id, second.id, _commit=False)
+    cancel_commitment(session, business.tenant.id, first.id, reason="Test cancellation", _commit=False)
+    cancel_commitment(session, business.tenant.id, second.id, reason="Test cancellation", _commit=False)
     assert all(hold.released_at is not None for hold in holds)
     session.rollback()
 
@@ -320,8 +328,8 @@ def test_the_release_joins_the_caller_s_transaction(session, business):
     assert second.status == "open"
 
     # The positive control: committed, both go together.
-    cancel_commitment(session, business.tenant.id, first.id, _commit=False)
-    cancel_commitment(session, business.tenant.id, second.id, _commit=False)
+    cancel_commitment(session, business.tenant.id, first.id, reason="Test cancellation", _commit=False)
+    cancel_commitment(session, business.tenant.id, second.id, reason="Test cancellation", _commit=False)
     session.commit()
     assert all(hold.released_at is not None for hold in holds)
     assert active_commitment_hold(session, business.tenant.id, first.id) is None
@@ -378,7 +386,7 @@ def test_no_closed_promise_carries_an_active_hold(session, business):
     # Cancelled directly.
     cancelled = commitment_for(session, business)
     hold_commitment(session, tenant_id, cancelled.id, "credit_check")
-    cancel_commitment(session, tenant_id, cancelled.id)
+    cancel_commitment(session, tenant_id, cancelled.id, reason="Test cancellation")
 
     # Fulfilled by a revision down to what shipped.
     settled = commitment_for(session, business)

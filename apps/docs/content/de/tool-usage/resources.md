@@ -13,7 +13,7 @@ Namen folgen dem ERP-Sprachgebrauch; der technische Schlüssel steht daneben.
 | [Artikel](#resource-item)                                      | 5      | 4        | 3         |
 | [Lagerort](#resource-location)                                 | 3      | 3        | 0         |
 | [Preise und Zahlungsbedingungen](#resource-terms)              | 2      | 6        | 2         |
-| [Auftrag](#resource-order)                                     | 8      | 9        | 9         |
+| [Auftrag](#resource-order)                                     | 8      | 10       | 9         |
 | [Lieferung und Wareneingang](#resource-delivery)               | 2      | 6        | 2         |
 | [Charge, Seriennummer und Palette](#resource-lot)              | 0      | 5        | 1         |
 | [Rechnung und Gutschrift](#resource-invoice)                   | 3      | 9        | 14        |
@@ -251,6 +251,7 @@ Bestellung, Verpflichtung, Lieferverpflichtung, Reservierung, Rückstand, Liefer
 - [Bestand reservieren](./commands#command-reserve) (`reserve`)
 - [Reservierung aufheben](./commands#command-release_reservation) (`release_reservation`)
 - [Verpflichtung ändern](./commands#command-revise_commitment) (`revise_commitment`)
+- [Verpflichtung stornieren](./commands#command-cancel_commitment) (`cancel_commitment`)
 - [Verpflichtung sperren oder freigeben](./commands#command-hold_commitment) (`hold_commitment`)
 - [Beleg sperren oder freigeben](./commands#command-hold_document_commitments)
   (`hold_document_commitments`)

@@ -15,6 +15,9 @@ document line, but documents are never its lifecycle authority.
 - `open`, `fulfilled`, and `cancelled` are commitment states.
 - Partial movements leave a commitment open; complete movements fulfill it.
 - Cancellation preserves the commitment and releases active reservations.
+- Reviewed cancellation requires an explicit reason, closes only the open remainder, releases
+  active reservations and commitment holds, and retains fulfilled Movements plus event evidence.
+  A Document and a hold never become cancellation authority.
 - Many promises may be closed at once, by a side of the business and a date they were due
   before, and only after somebody has previewed the set and confirmed the count they saw. A
   closure is refused if that count no longer matches, refused without a reason, and applied as
@@ -73,10 +76,11 @@ revision writes, and it is the same field the movement path sets for the same re
 A quantity below what has already moved is accepted: the supplier said eighty and ninety came,
 both are true, and refusing would lose the statement. What is open becomes nothing.
 
-**What this does not do:** stock reserved for the original quantity stays reserved when a promise
-shrinks. Nothing releases it and no class reports it, because over-reserving has never been a
-condition this queue reports. Releasing somebody's stock as a side effect of recording a sentence
-would be the product deciding something it was not asked to.
+When a confirmed quantity revision would leave more stock reserved than the effective open
+quantity, a homogeneous allocation is released and retained at the exact smaller quantity in the
+same operation. Reality never chooses between different locations or tracking identities: that
+case requires an explicit retained-allocation decision. The revision remains the received
+statement; reservation reconciliation is the separately explained operational consequence.
 
 A revision is not a correction. A correction says the record was wrong; a revision says the
 record was right and the world moved. A promise on hold may still be revised — a hold stops

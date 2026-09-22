@@ -55,7 +55,7 @@ def test_document_and_commitment_operational_fields(session, business):
     assert commitment.due_at.isoformat() == "2026-09-05T10:00:00+00:00"
     assert commitment.priority == "urgent"
 
-    cancel_commitment(session, business.tenant.id, commitment.id)
+    cancel_commitment(session, business.tenant.id, commitment.id, reason="Test cancellation")
     assert commitment.cancelled_at is not None
 
 

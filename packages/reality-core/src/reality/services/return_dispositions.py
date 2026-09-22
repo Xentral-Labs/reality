@@ -100,6 +100,9 @@ def return_disposition_summary(
                 "quantity": core.decimal(row.quantity),
                 "from_location_id": row.from_location_id,
                 "to_location_id": row.to_location_id,
+                "handling_unit_id": row.handling_unit_id,
+                "lot_id": row.lot_id,
+                "serial_unit_id": row.serial_unit_id,
                 "reason": payload.get("reason"),
                 "occurred_at": row.occurred_at,
                 "corrected": corrected,
@@ -112,6 +115,9 @@ def return_disposition_summary(
         "commitment_id": arrived.commitment_id,
         "item_id": arrived.item_id,
         "arrival_location_id": arrived.to_location_id,
+        "handling_unit_id": arrived.handling_unit_id,
+        "lot_id": arrived.lot_id,
+        "serial_unit_id": arrived.serial_unit_id,
         "arrived": core.decimal(arrived.quantity),
         "resolved": resolved,
         "unresolved": core.decimal(arrived.quantity) - resolved,
@@ -162,6 +168,9 @@ def preview_return_disposition(
         if disposition in {"scrap_loss", "return_to_supplier"}
         else None,
         "resolves_movement_id": return_movement_id,
+        "handling_unit_id": before["handling_unit_id"],
+        "lot_id": before["lot_id"],
+        "serial_unit_id": before["serial_unit_id"],
     }
     core._append_movement(session, tenant_id, **arguments, validate_only=True)
     return {

@@ -13,7 +13,7 @@ the technical key stands beside each one.
 | [Item](#resource-item)                                           | 5     | 4       | 3                   |
 | [Warehouse location](#resource-location)                         | 3     | 3       | 0                   |
 | [Prices and payment terms](#resource-terms)                      | 2     | 6       | 2                   |
-| [Order](#resource-order)                                         | 8     | 9       | 9                   |
+| [Order](#resource-order)                                         | 8     | 10      | 9                   |
 | [Delivery and goods receipt](#resource-delivery)                 | 2     | 6       | 2                   |
 | [Lot, serial number and pallet](#resource-lot)                   | 0     | 5       | 1                   |
 | [Invoice and credit note](#resource-invoice)                     | 3     | 9       | 14                  |
@@ -244,6 +244,7 @@ Bestellung, Verpflichtung, Lieferverpflichtung, Reservierung, Rückstand, Liefer
 - [Reserve stock](./commands#command-reserve) (`reserve`)
 - [Release reservation](./commands#command-release_reservation) (`release_reservation`)
 - [Revise commitment](./commands#command-revise_commitment) (`revise_commitment`)
+- [Cancel commitment remainder](./commands#command-cancel_commitment) (`cancel_commitment`)
 - [Hold commitment](./commands#command-hold_commitment) (`hold_commitment`)
 - [Hold document commitments](./commands#command-hold_document_commitments)
   (`hold_document_commitments`)

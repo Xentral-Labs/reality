@@ -2,20 +2,26 @@ from datetime import UTC, datetime, timedelta
 from decimal import Decimal
 
 import pytest
+from sqlalchemy import select
 
+from reality.db.core import Reservation
 from reality.services.core import (
     InvalidOperation,
     NotFound,
+    active_reserved,
     cancel_commitment,
     commitment_due_at,
     commitment_quantity,
     commitment_revisions,
     create_commitment,
+    create_item,
+    create_lot,
     create_tenant,
     fulfilled_quantity,
     hold_commitment,
     open_quantity,
     record_movement,
+    reserve,
     revise_commitment,
 )
 
@@ -99,7 +105,7 @@ def test_a_revision_is_refused_where_it_makes_no_sense(session, business):
         revise_commitment(session, tenant_id, "cmt_missing", REVISED)
 
     cancelled = promise(session, business)
-    cancel_commitment(session, tenant_id, cancelled.id)
+    cancel_commitment(session, tenant_id, cancelled.id, reason="Test cancellation")
     with pytest.raises(InvalidOperation, match="open"):
         revise_commitment(session, tenant_id, cancelled.id, REVISED)
 
@@ -207,7 +213,7 @@ def test_a_statement_must_restate_something(session, business):
             revise_commitment(session, tenant_id, commitment.id, quantity=bad)
 
     cancelled = promise(session, business, quantity=10)
-    cancel_commitment(session, tenant_id, cancelled.id)
+    cancel_commitment(session, tenant_id, cancelled.id, reason="Test cancellation")
     with pytest.raises(InvalidOperation, match="open"):
         revise_commitment(session, tenant_id, cancelled.id, quantity=5)
 
@@ -295,3 +301,101 @@ def test_a_promise_can_shrink_below_what_arrived(session, business):
     assert open_quantity(session, tenant_id, commitment.id) == Decimal(0)
     assert fulfilled_quantity(session, tenant_id, commitment.id) == Decimal(90)
     assert commitment.status == "fulfilled"
+
+
+def test_downward_revision_releases_excess_homogeneous_reservation(session, business):
+    tenant_id = business.tenant.id
+    record_movement(
+        session,
+        tenant_id,
+        "opening_stock",
+        business.item.id,
+        100,
+        to_location_id=business.location.id,
+    )
+    commitment = promise(
+        session, business, kind="customer_delivery", quantity=100
+    )
+    original = reserve(session, tenant_id, commitment.id, 100).reservation
+    assert original is not None
+
+    revise_commitment(session, tenant_id, commitment.id, quantity=50)
+
+    session.refresh(original)
+    assert original.status == "released"
+    assert active_reserved(
+        session, tenant_id, business.item.id, business.location.id
+    ) == Decimal(50)
+    assert open_quantity(session, tenant_id, commitment.id) == Decimal(50)
+
+
+def test_downward_revision_requires_and_applies_explicit_heterogeneous_retention(
+    session, business
+):
+    tenant_id = business.tenant.id
+    tracked_item = create_item(
+        session, tenant_id, "TRACKED-REVISION", "Tracked revision item", tracking_type="lot"
+    )
+    first_lot = create_lot(session, tenant_id, tracked_item.id, "LOT-A")
+    second_lot = create_lot(session, tenant_id, tracked_item.id, "LOT-B")
+    for lot in (first_lot, second_lot):
+        record_movement(
+            session,
+            tenant_id,
+            "opening_stock",
+            tracked_item.id,
+            50,
+            to_location_id=business.location.id,
+            lot_id=lot.id,
+        )
+    commitment = create_commitment(
+        session,
+        tenant_id,
+        "customer_delivery",
+        business.company.id,
+        business.customer.id,
+        tracked_item.id,
+        business.location.id,
+        100,
+        ORIGINAL,
+    )
+    first = reserve(
+        session, tenant_id, commitment.id, 50, lot_id=first_lot.id
+    ).reservation
+    second = reserve(
+        session, tenant_id, commitment.id, 50, lot_id=second_lot.id
+    ).reservation
+    assert first is not None and second is not None
+
+    with pytest.raises(InvalidOperation, match="explicit retained reservation"):
+        revise_commitment(session, tenant_id, commitment.id, quantity=60)
+
+    revise_commitment(
+        session,
+        tenant_id,
+        commitment.id,
+        quantity=60,
+        retained_allocations=[
+            {"reservation_id": first.id, "quantity": "40"},
+            {"reservation_id": second.id, "quantity": "20"},
+        ],
+    )
+
+    session.refresh(first)
+    session.refresh(second)
+    assert first.status == "released"
+    assert second.status == "released"
+    active = list(
+        session.scalars(
+            select(Reservation).where(
+                Reservation.tenant_id == tenant_id,
+                Reservation.commitment_id == commitment.id,
+                Reservation.status == "active",
+            )
+        )
+    )
+    assert {(row.lot_id, Decimal(row.quantity)) for row in active} == {
+        (first_lot.id, Decimal(40)),
+        (second_lot.id, Decimal(20)),
+    }
+    assert sum((Decimal(row.quantity) for row in active), Decimal(0)) == Decimal(60)

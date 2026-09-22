@@ -49,6 +49,7 @@ def movement_explanation(
     kind = "unexplained"
     summary = "No business reason or source is linked to this movement."
     reason = None
+    state_change = None
 
     if correction:
         role = (
@@ -86,6 +87,40 @@ def movement_explanation(
                 "label": "Returned goods",
             }
         )
+        from reality.services.return_dispositions import return_disposition_summary
+
+        returned = session.scalar(
+            select(Movement).where(
+                Movement.tenant_id == tenant_id,
+                Movement.id == movement.resolves_movement_id,
+            )
+        )
+        disposition = return_disposition_summary(
+            session, tenant_id, movement.resolves_movement_id
+        )
+        state_change = {
+            "before": {
+                "movement_id": returned.id if returned else None,
+                "location_id": returned.to_location_id if returned else None,
+                "quantity": returned.quantity if returned else None,
+                "handling_unit_id": returned.handling_unit_id if returned else None,
+                "lot_id": returned.lot_id if returned else None,
+                "serial_unit_id": returned.serial_unit_id if returned else None,
+            },
+            "effect": {
+                "movement_id": movement.id,
+                "from_location_id": movement.from_location_id,
+                "to_location_id": movement.to_location_id,
+                "quantity": movement.quantity,
+                "handling_unit_id": movement.handling_unit_id,
+                "lot_id": movement.lot_id,
+                "serial_unit_id": movement.serial_unit_id,
+            },
+            "after": {
+                "resolved": disposition["resolved"],
+                "unresolved": disposition["unresolved"],
+            },
+        }
     elif movement.return_announcement_id:
         announcement = session.scalar(
             select(ReturnAnnouncement).where(
@@ -197,4 +232,5 @@ def movement_explanation(
         "reason": reason,
         "links": links,
         "source_record_id": movement.source_record_id,
+        "state_change": state_change,
     }

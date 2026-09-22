@@ -2830,7 +2830,7 @@ def test_a_cancelled_promise_is_neither_reported_nor_learned_from(session, busin
     history(session, business, lag_days=1, cases=6)
     before, _ = thresholds(session, business)
     abandoned = undated_promise(session, business, age_days=90)
-    cancel_commitment(session, business.tenant.id, abandoned.id)
+    cancel_commitment(session, business.tenant.id, abandoned.id, reason="Test cancellation")
 
     # Nobody is waiting for it, and it teaches the norm nothing.
     assert "order_stalled" not in by_class(session, business.tenant.id)
@@ -5766,7 +5766,7 @@ def test_commitment_hold_unreleased(session, business):
     )
     dangling.created_at = AS_OF - timedelta(days=90)
     session.commit()
-    core.cancel_commitment(session, business.tenant.id, closed.id)
+    core.cancel_commitment(session, business.tenant.id, closed.id, reason="Test cancellation")
     assert dangling.released_at is not None
     assert "commitment_hold_unreleased" not in by_class(session, business.tenant.id)
 

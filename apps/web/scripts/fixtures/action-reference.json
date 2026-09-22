@@ -461,6 +461,13 @@
       "effect": "Records that a counterparty now states a different date, a different quantity, or both for a promise, without erasing what it replaces."
     },
     {
+      "name": "Cancel commitment remainder",
+      "service": "cancel_commitment",
+      "mode": "mutation",
+      "adapters": ["CLI", "Web", "API", "MCP", "Chat"],
+      "effect": "Cancels only the open remainder for an explicit reason while retaining fulfilment history and releasing active reservations and holds."
+    },
+    {
       "name": "Hold commitment",
       "service": "hold_commitment",
       "related_services": ["release_commitment_hold"],

@@ -374,7 +374,7 @@ export default function UnifiedApp({
                 creditNote={actionTarget.creditNote}
                 movement={actionTarget.movement}
                 direction={actionTarget.direction}
-                proposalId=""
+                proposalId={selection.proposal}
                 tool={action}
                 close={() => {
                   setAction(null);

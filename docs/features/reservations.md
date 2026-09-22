@@ -13,6 +13,9 @@ through that commitment.
 - Releasing is idempotent and does not delete history.
 - Shipping consumes active reservations up to the shipped quantity.
 - Availability equals physical stock minus active reservations.
+- A confirmed downward commitment revision releases homogeneous excess and retains the exact
+  smaller allocation. Different locations or tracking identities require an explicit retained
+  allocation decision rather than an automatic choice.
 
 ## Invariants
 

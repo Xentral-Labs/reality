@@ -3281,3 +3281,16 @@ proposal metadata. Existing specialized business reviews remain authoritative; e
 other production proposal has a common exact-input and persisted-preview review. Demo
 companies do not add tools or bypass these services, reviews, permissions, or confirmation
 rules.
+
+## Commitment integrity actions (spec 250)
+
+Open customer and supplier commitments expose Revise commitment and Cancel commitment
+remainder through the unified action launcher and contextual commitment actions. Both forms
+prepare the shared server-owned delivery review before confirmation; neither calls a direct
+mutation endpoint. Revision review shows the current promised, fulfilled, open and reserved
+quantities plus the exact retained and released reservation effect. When different locations or
+tracking identities make automatic retention ambiguous, the form lists the eligible opaque
+reservation identities and requires explicit retained quantities before a fresh review can be
+confirmed. Cancellation requires a reason and shows the open remainder plus reservations and
+holds that will release. Completed results retain proposal verification, current observation and
+Inspector links. An executing result uses reconciliation and is never submitted again blindly.

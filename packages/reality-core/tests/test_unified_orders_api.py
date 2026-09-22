@@ -114,7 +114,7 @@ def test_incoming_register_uses_supplier_effective_values_and_corrected_receipts
         "2",
         None,
     )
-    cancel_commitment(session, tid, cancelled.id)
+    cancel_commitment(session, tid, cancelled.id, reason="Test cancellation")
     assert (
         delivery_work(session, tid, commitment_type="supplier_delivery")["page"][
             "total"

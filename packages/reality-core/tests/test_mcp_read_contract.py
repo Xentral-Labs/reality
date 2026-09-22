@@ -250,7 +250,7 @@ def test_retained_order_explanation_preserves_source_and_effects(
             commitment_id=commitment.id,
         )
     else:
-        cancel_commitment(session, business.tenant.id, commitment.id)
+        cancel_commitment(session, business.tenant.id, commitment.id, reason="Test cancellation")
     result = read(session, business, "order_explain", order_reference=document.id)
     assert result["source"]["source_record_id"] == source.id
     assert result["document_lines"][0]["id"] == lines[0].id
@@ -556,7 +556,7 @@ def test_order_explanation_keeps_closed_and_open_lines_together(session, busines
         "20",
     )
     deliveries = [c for c in commitments if c.type == "customer_delivery"]
-    cancel_commitment(session, business.tenant.id, deliveries[0].id)
+    cancel_commitment(session, business.tenant.id, deliveries[0].id, reason="Test cancellation")
     explained = read(session, business, "order_explain", order_reference=document.id)
     lines = {line["commitment_id"]: line for line in explained["fulfillment"]["lines"]}
     assert set(lines) == {c.id for c in deliveries}

@@ -154,7 +154,6 @@ from reality.services.core import (
     retry_import_job,
     return_announcements,
     reverse_ledger_posting_group,
-    revise_commitment,
     send_chat_message,
     serial_units,
     set_master_data_active,
@@ -1129,6 +1128,8 @@ class DeliveryActionPrepare(ApiModel):
         "party_delivery_hold_release",
         "commitment_hold",
         "commitment_hold_release",
+        "commitment_revise",
+        "commitment_cancel",
         "shipment_notice_record",
         "shipment_dispatch",
         "shipment_receive",
@@ -2574,11 +2575,13 @@ class StaleClosureWrite(ApiModel):
 class CommitmentRevisionWrite(ApiModel):
     # Both optional and at least one required; the service refuses a statement
     # that restates nothing.
+    request_id: str = Field(min_length=1, max_length=200)
     due_at: datetime | None = None
     quantity: Decimal | None = None
     note: str = ""
     stated_at: datetime | None = None
     source_record_id: str | None = None
+    retained_allocations: list[dict[str, str]] | None = None
 
 
 class InvoicePostingWrite(ApiModel):
@@ -4637,11 +4640,26 @@ def revise_commitment_web(
     tenant_id: str,
     record_id: str,
     body: CommitmentRevisionWrite,
+    request: Request,
     session: DatabaseSession,
 ):
+    from reality.services.delivery_actions import (
+        delivery_proposal_detail,
+        prepare_delivery_action,
+    )
+
     try:
-        revision = revise_commitment(session, tenant_id, record_id, **body.model_dump())
-        return {"id": revision.id, "due_at": revision.due_at}
+        values = body.model_dump(exclude={"request_id"}, exclude_none=True)
+        principal = optional_request_principal(request)
+        proposal = prepare_delivery_action(
+            session,
+            tenant_id,
+            "commitment_revise",
+            {"commitment_id": record_id, **values},
+            request_id=body.request_id,
+            actor_id=principal.user_id if principal else "local",
+        )
+        return delivery_proposal_detail(session, tenant_id, proposal.id)
     except (NotFound, InvalidOperation) as error:
         raise api_error(error) from error
 

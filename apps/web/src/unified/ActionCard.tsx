@@ -27,6 +27,7 @@ import {
 import { formatQuantity, t } from "../localization";
 import { ReadLine } from "./ReadState";
 import { ShipmentActions } from "./ShipmentActions";
+import { CommitmentActionCard } from "./CommitmentActionCard";
 
 function DeliveryActionCard({
   tenant,
@@ -820,6 +821,8 @@ export function ActionCard(
     return <ShipmentActions {...props} tool={activeTool} />;
   if (activeTool === "party_delivery_hold" || activeTool === "party_delivery_hold_release")
     return <CustomerHoldCard {...props} tool={activeTool} />;
+  if (activeTool === "commitment_revise" || activeTool === "commitment_cancel")
+    return <CommitmentActionCard {...props} tool={activeTool} />;
   if (props.tool === "opening_stock" || kind.data?.movement_type === "opening_stock")
     return <OpeningStockCard {...props} />;
   if (activeTool === "customer_refund_post") return <RefundCard {...props} />;

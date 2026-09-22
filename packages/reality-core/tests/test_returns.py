@@ -9,17 +9,22 @@ from reality.services.core import (
     NotFound,
     correct_movement,
     create_commitment,
+    create_item,
+    create_lot,
     create_manual_document_with_lines,
     fulfilled_quantity,
     open_quantity,
     record_movement,
     returned_quantity,
+    stock_at,
 )
 from reality.services.delivery_actions import (
     delivery_proposal_detail,
     prepare_delivery_action,
 )
+from reality.services.delivery_reads import return_disposition_case
 from reality.services.exceptions import operational_exceptions
+from reality.services.movement_explanations import movement_explanation
 from reality.services.return_dispositions import (
     record_return_disposition,
     return_disposition_summary,
@@ -503,6 +508,96 @@ def test_return_disposition_reconciles_four_partial_outcomes(session, business):
         )
 
 
+def test_return_disposition_inherits_lot_and_only_changes_arrival_location(
+    session, business
+):
+    item = create_item(
+        session,
+        business.tenant.id,
+        "RETURN-LOT",
+        "Tracked returned item",
+        tracking_type="lot",
+    )
+    lot = create_lot(session, business.tenant.id, item.id, "RETURN-LOT-1")
+    area = returns_area(session, business)
+    record_movement(
+        session,
+        business.tenant.id,
+        "opening_stock",
+        item.id,
+        20,
+        to_location_id=business.location.id,
+        lot_id=lot.id,
+    )
+    commitment = create_commitment(
+        session,
+        business.tenant.id,
+        "customer_delivery",
+        business.company.id,
+        business.customer.id,
+        item.id,
+        business.location.id,
+        5,
+        "2026-12-01",
+    )
+    record_movement(
+        session,
+        business.tenant.id,
+        "shipment",
+        item.id,
+        5,
+        from_location_id=business.location.id,
+        commitment_id=commitment.id,
+        lot_id=lot.id,
+    )
+    returned = record_movement(
+        session,
+        business.tenant.id,
+        "return",
+        item.id,
+        2,
+        to_location_id=area.id,
+        commitment_id=commitment.id,
+        lot_id=lot.id,
+    )
+
+    scrapped = record_return_disposition(
+        session,
+        business.tenant.id,
+        returned.id,
+        "scrap_loss",
+        2,
+        reason="Transport damage",
+    )
+
+    assert scrapped.lot_id == lot.id
+    assert scrapped.from_location_id == area.id
+    assert stock_at(session, business.tenant.id, item.id, area.id) == Decimal(0)
+    assert stock_at(session, business.tenant.id, item.id, business.location.id) == Decimal(15)
+    case = return_disposition_case(session, business.tenant.id, returned.id)
+    assert case["explanation"]["before"] == {
+        "arrived": Decimal(2),
+        "resolved": Decimal(0),
+        "unresolved": Decimal(2),
+        "arrival_location_id": area.id,
+        "handling_unit_id": None,
+        "lot_id": lot.id,
+        "serial_unit_id": None,
+    }
+    assert case["explanation"]["after"]["resolved"] == Decimal(2)
+    assert case["explanation"]["after"]["unresolved"] == Decimal(0)
+    explanation = movement_explanation(
+        session, business.tenant.id, scrapped.id
+    )["state_change"]
+    assert explanation["before"]["lot_id"] == lot.id
+    assert explanation["effect"]["lot_id"] == lot.id
+    assert explanation["effect"]["from_location_id"] == area.id
+    assert explanation["after"] == {
+        "resolved": Decimal(2),
+        "unresolved": Decimal(0),
+    }
+
+
 def test_corrected_return_disposition_restores_unresolved_quantity(session, business):
     stocked(session, business)
     area = returns_area(session, business)
@@ -534,6 +629,9 @@ def test_corrected_return_disposition_restores_unresolved_quantity(session, busi
             "quantity": Decimal(2),
             "from_location_id": area.id,
             "to_location_id": None,
+            "handling_unit_id": None,
+            "lot_id": None,
+            "serial_unit_id": None,
             "reason": "Initial inspection",
             "occurred_at": disposition.occurred_at,
             "corrected": True,
@@ -582,6 +680,11 @@ def test_return_disposition_requires_current_review_and_confirms_once(
     assert verified["verification"] == "verified"
     assert verified["observation"]["resolved"] == Decimal(3)
     assert verified["observation"]["unresolved"] == Decimal(1)
+    assert verified["lifecycle"] == "executed"
+    assert verified["recorded_effect"] == verified["receipt"]
+    assert verified["current_observation"] == verified["observation"]
+    assert verified["remaining_work"] == []
+    assert verified["safe_next_action"] == "none"
 
 
 def test_a_backdated_resolution_is_accepted(session, business):
