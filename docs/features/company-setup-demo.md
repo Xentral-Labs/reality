@@ -146,3 +146,9 @@ throttle. It opens the existing Demo Data overview. It is absent for all other s
 failed reads and unauthorized companies; company switches discard old responses. Visible
 shells refresh every five seconds with bounded cancellation. Reduced motion disables the
 pulse; narrow headers retain an accessible compact link outside the overflow menu.
+## Production tool boundary (spec 249)
+
+Demo profiles and continuous synthetic intake use the production application tools and
+services. They must not register demo-only mutations, write business tables directly, or
+bypass proposal review. A mutation proposed through MCP is reviewed and confirmed in Web
+through the same tenant-scoped production boundary as a mutation in an ordinary company.

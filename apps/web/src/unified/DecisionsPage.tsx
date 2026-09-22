@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { CheckSquare, X } from "lucide-react";
-import { api, referenceTools, type CopilotProposal } from "../api";
+import { api, type CopilotProposal, type ProposalReviewKind } from "../api";
 import { formatDateTime, t } from "../localization";
 import { ReadState } from "./ReadState";
 import { WorkFooter, WorkHeader, WorkRow, WorkSearch, useWorkList } from "./WorkList";
@@ -140,37 +140,12 @@ function DecisionHelp({ close }: { close: () => void }) {
     </dialog>
   );
 }
-/** Proposals this interface can open for review. Anything else is listed, not reviewable. */
-function reviewable(proposal: CopilotProposal): boolean {
-  return (
-    proposal.tool === "party_delivery_hold" ||
-    proposal.tool === "party_delivery_hold_release" ||
-    proposal.tool === "reserve" ||
-    proposal.tool === "reservation_release" ||
-    proposal.tool === "commitment_hold" ||
-    proposal.tool === "commitment_hold_release" ||
-    proposal.tool === "ledger_reverse" ||
-    proposal.tool === "movement_correct" ||
-    proposal.tool === "order_create" ||
-    (proposal.tool === "sales_credit_record" && !!proposal.input.invoice_id) ||
-    proposal.tool === "sales_invoice_record" ||
-    proposal.tool === "supplier_invoice_record" ||
-    proposal.tool === "customer_refund_post" ||
-    proposal.tool === "customer_payment_post" ||
-    proposal.tool === "supplier_payment_post" ||
-    (proposal.tool === "movement_create" && proposal.input.movement_type === "opening_stock") ||
-    (proposal.tool === "movement_create" &&
-      ["shipment", "receipt"].includes(String(proposal.input.movement_type)) &&
-      !!proposal.input.commitment_id)
-  );
-}
-
 export function DecisionsPage({
   tenant,
   select,
 }: {
   tenant: string;
-  select: (id: string, master?: boolean, imported?: boolean) => void;
+  select: (id: string, reviewKind: ProposalReviewKind) => void;
 }) {
   const [query, setQuery] = useState("");
   const [tool, setTool] = useState("");
@@ -182,7 +157,7 @@ export function DecisionsPage({
   const title = (proposal: CopilotProposal) =>
     proposal.input.import_file
       ? t("Import items")
-      : t(actionLabels[proposal.tool] || proposal.tool);
+      : t(actionLabels[proposal.tool] || proposal.review_label);
   const origin = (proposal: CopilotProposal) =>
     t(
       proposal.actor_type === "agent"
@@ -193,7 +168,7 @@ export function DecisionsPage({
     );
   const review = (proposal: CopilotProposal) => {
     setSelected(null);
-    select(proposal.id, referenceTools.includes(proposal.tool), !!proposal.input.import_file);
+    select(proposal.id, proposal.review_kind);
   };
   return (
     <div className="mx-auto max-w-[1200px] space-y-3" data-work-list="decisions">
@@ -276,24 +251,9 @@ export function DecisionsPage({
                     ))}
                   </dl>
                 )}
-                {(proposal.input.import_file ||
-                  referenceTools.includes(proposal.tool) ||
-                  reviewable(proposal)) && (
-                  <button className="br-btn br-btn-primary mt-4" onClick={() => review(proposal)}>
-                    {t("Review proposed changes")}
-                  </button>
-                )}
-                {!(
-                  proposal.input.import_file ||
-                  referenceTools.includes(proposal.tool) ||
-                  reviewable(proposal)
-                ) && (
-                  <p className="mt-4 text-sm text-fg-muted">
-                    {t(
-                      "This proposal cannot be reviewed in this interface yet. No change has been made here.",
-                    )}
-                  </p>
-                )}
+                <button className="br-btn br-btn-primary mt-4" onClick={() => review(proposal)}>
+                  {t("Review proposed changes")}
+                </button>
               </WorkPreview>
             </div>
           ))

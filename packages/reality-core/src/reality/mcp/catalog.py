@@ -104,6 +104,7 @@ def _propose(application_name: str) -> ToolHandler:
             "preview": json.loads(proposal.output),
         }
 
+    handler.application_name = application_name  # type: ignore[attr-defined]
     return handler
 
 
@@ -2586,6 +2587,14 @@ def tool_definitions(
         return MCP_TOOL_CATALOG
     allowed = frozenset(access)
     return tuple(tool for tool in MCP_TOOL_CATALOG if tool.access in allowed)
+
+
+def proposal_bindings() -> dict[str, str]:
+    """Return the public proposal name to canonical application-tool binding."""
+    return {
+        definition.name: str(definition.handler.application_name)  # type: ignore[attr-defined]
+        for definition in tool_definitions(access=("propose",))
+    }
 
 
 def dispatch_tool(
