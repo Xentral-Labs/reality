@@ -37,6 +37,17 @@ Prove explicit consent, active verification and owner-private idempotent entry; 
 ## Migration and Rollback
 No migration. Reverting code stops new entry/allowance behavior and preserves canonical companies and historical audit events. Existing explicit false/zero policy values remain. Deployed services must share PostgreSQL and UTC semantics. No remote rollout or payment settings changed in this work.
 
+## Platform administrator allowance refinement (FR-020)
+
+Resolve the charged account through the existing managed-allowance service, then treat a
+persisted platform-administrator account as outside the bounded allowance. This keeps the
+decision server-side and shared by Web chat, companion and later MCP-backed agent entry
+points. Add the service regression before the implementation and retain all current
+behavior for non-admin accounts. No schema, transport branch, localhost detection or
+environment-email comparison is introduced. Constitution Check: PASS; trusted persisted
+identity is reused, the service remains the single policy boundary and rollback is a code
+revert with no stored-data change.
+
 ## Verification refinements
 
 The implementation review clarified that free-signup account allowance also applies to ordinary companies subsequently created by that account, preventing a company-type bypass. Existing non-trial business accounts are unchanged. Trial entry remains mounted across navigation to preserve first-task state, reads archive state, and recovers incomplete live setup on root reload. The legacy companion rebinds read-only authority after the quota commit; its existing policy tests prove the transaction boundary.
