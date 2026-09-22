@@ -1,5 +1,7 @@
 import pytest
 from fastapi.testclient import TestClient
+from sqlalchemy.orm import sessionmaker
+
 from reality.mcp.catalog import proposal_bindings, tool_definitions
 from reality.services.core import NotFound, create_tenant
 from reality.services.proposal_reviews import classify_proposal, proposal_review
@@ -10,7 +12,6 @@ from reality.tools.application import (
 )
 from reality.web.api import database_session
 from reality.web.app import app
-from sqlalchemy.orm import sessionmaker
 
 
 def test_every_mcp_proposal_has_one_web_review_class():
