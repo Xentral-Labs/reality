@@ -2,10 +2,11 @@ from datetime import UTC, datetime, timedelta
 
 import pytest
 from conftest import record_by_id, seed_company
+from sqlalchemy import func, select
+
 from reality.db.core import PlaygroundRun, SecurityAuditEvent, Tenant, now, uid
 from reality.services import company_setup, free_playground
 from reality.services.core import InvalidOperation
-from sqlalchemy import func, select
 
 
 def consent(session, user):
