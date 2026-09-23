@@ -1213,6 +1213,9 @@ const dictionaries: Record<Exclude<Language, "en">, Record<string, string>> = {
     "Arrivals, order to cash and live activity are shown there.":
       "Eingänge, Order to Cash und Live-Aktivität werden dort gezeigt.",
     Waiting: "Wartet",
+    "Applying your change. This takes a few seconds.":
+      "Deine Änderung wird angewendet. Das dauert ein paar Sekunden.",
+    "Applying…": "Wird angewendet…",
     Attention: "Prüfen",
     Throttled: "Gedrosselt",
     "Background services are not being monitored here, so this cannot be confirmed.":
@@ -3245,6 +3248,9 @@ const dictionaries: Record<Exclude<Language, "en">, Record<string, string>> = {
     "Arrivals, order to cash and live activity are shown there.":
       "Ontvangsten, order to cash en live-activiteit staan daar.",
     Waiting: "Wacht",
+    "Applying your change. This takes a few seconds.":
+      "Je wijziging wordt toegepast. Dat duurt enkele seconden.",
+    "Applying…": "Wordt toegepast…",
     Attention: "Controleren",
     Throttled: "Beperkt",
     "Background services are not being monitored here, so this cannot be confirmed.":
@@ -4978,6 +4984,9 @@ const dictionaries: Record<Exclude<Language, "en">, Record<string, string>> = {
     "Arrivals, order to cash and live activity are shown there.":
       "Las llegadas, el order to cash y la actividad en vivo se muestran allí.",
     Waiting: "Esperando",
+    "Applying your change. This takes a few seconds.":
+      "Se está aplicando tu cambio. Tarda unos segundos.",
+    "Applying…": "Aplicando…",
     Attention: "Revisar",
     Throttled: "Limitado",
     "Background services are not being monitored here, so this cannot be confirmed.":

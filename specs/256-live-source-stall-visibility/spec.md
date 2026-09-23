@@ -55,6 +55,7 @@ Stated as one sentence: a live source can die from a transient infrastructure bl
 
 - **Where a source's settings live** → Each source has one place where that source is configured, and everything settable about it belongs there, including the state, the rate and the controls of a simulation it owns. Sending a person from that place to another page was the wrong reading of FR-016. What the source *observes* — arrivals, order to cash, live activity — is not a setting and stays on the simulation's own page.
 - **A narrow column states the state** → The live state in the source table is one word; the reason travels with it rather than being cut off.
+- **A control that takes seconds says so** → Confirming a control reads the source's state again, which takes a few seconds on a company with history. The surface must show that it is working for as long as it works, instead of looking like the press did not land.
 
 ## User Scenarios & Testing *(mandatory)*
 
@@ -141,6 +142,7 @@ An owner of a stopped live source restarts it in one confirmed action, or is tol
 - **FR-015**: The integrations overview MUST mark every source whose live execution is stopped, suspended or overdue with an attention badge and MUST state its live state there, so that a stalled source is visible without opening it.
 - **FR-016**: The place where a source is configured MUST contain everything settable about that source, including the state, rate and controls of a simulation it owns; it MUST NOT send the person elsewhere to change them. What the source observes MUST NOT be duplicated there, and MUST stay reachable from it in one step.
 - **FR-017**: A failure MUST retain a bounded failure category and human-readable message, free of payloads, credentials and connection detail, so that the reason survives the process boundary that produced it.
+- **FR-018**: While a confirmed control is being applied, the surface MUST show that work is in progress until it completes or fails, and the confirming control MUST state it too; a control whose effect is not yet visible MUST NOT look unpressed.
 
 ### Domain and Traceability Requirements
 
@@ -194,6 +196,7 @@ None. The three questions of the draft were answered on 2026-09-23 and are recor
 | FR-013–FR-014 | US2 scenario 5; edge cases | Payload inspection test and a read-only assertion over the job tables |
 | FR-015–FR-016 | US1 scenario 1; US2 scenario 2 | Integrations overview badge and state tests, settings-to-simulation browser proof |
 | FR-017 | US1 scenarios 1–3 | Failure-category retention test across the process boundary |
+| FR-018 | US3 scenario 1 | Browser proof of the working state over a delayed control response |
 | DR-001–DR-003 | US1–US2 | Derivation-at-read-time assertions; no new stored authority |
 | DR-004–DR-006 | US3 scenario 5; edge cases | Tenant-isolation family and opaque-identity checks |
 | DR-007 | US1–US3 | Schema-stability check |
