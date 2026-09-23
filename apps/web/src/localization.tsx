@@ -16419,19 +16419,38 @@ Object.assign(dictionaries.es, {
   "Until (exclusive)": "Hasta (exclusivo)",
 });
 
+// The proposal card. Its five operations are object values rather than literals
+// the audit can see, so they are translated here by hand or not at all — which
+// is how "Create" reached a German reader unchanged.
 Object.assign(dictionaries.de, {
-  "Change private report": "Privaten Bericht ändern",
+  // "Auswertung" everywhere else in Analytics; this card said "Bericht".
+  "Change private report": "Private Auswertung ändern",
   "Analysis settings": "Auswertungseinstellungen",
+  "Save a new report": "Neue Auswertung speichern",
+  "Replace the report's question": "Frage der Auswertung ersetzen",
+  "Rename the report": "Auswertung umbenennen",
+  "Copy the report": "Auswertung kopieren",
+  "Remove the report": "Auswertung entfernen",
 });
 
 Object.assign(dictionaries.nl, {
   "Change private report": "Privérapport wijzigen",
   "Analysis settings": "Analyse-instellingen",
+  "Save a new report": "Nieuw rapport opslaan",
+  "Replace the report's question": "De vraag van het rapport vervangen",
+  "Rename the report": "Rapport hernoemen",
+  "Copy the report": "Rapport kopiëren",
+  "Remove the report": "Rapport verwijderen",
 });
 
 Object.assign(dictionaries.es, {
   "Change private report": "Cambiar informe privado",
   "Analysis settings": "Configuración del análisis",
+  "Save a new report": "Guardar un informe nuevo",
+  "Replace the report's question": "Sustituir la pregunta del informe",
+  "Rename the report": "Cambiar el nombre del informe",
+  "Copy the report": "Copiar el informe",
+  "Remove the report": "Eliminar el informe",
 });
 
 Object.assign(dictionaries.de, {

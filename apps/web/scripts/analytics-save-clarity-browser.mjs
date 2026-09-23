@@ -203,6 +203,20 @@ async function open(language = "en") {
   return { page, context, state, errors, unmatched };
 }
 
+/** Wait until a control can actually be used.
+ *
+ * A changed question is unsaved the instant it changes, but it cannot be saved
+ * until it has been answered — so the label moves before the button does, and
+ * asserting on the button in that gap is a race, not a finding.
+ */
+async function usable(locator, why) {
+  for (let attempt = 0; attempt < 100; attempt++) {
+    if (!(await locator.isDisabled())) return;
+    await locator.page().waitForTimeout(100);
+  }
+  assert.fail(why);
+}
+
 const analytics = (view = "reports", extra = "") =>
   `${base}/app/analytics?tenant=company&analytics_view=${view}${extra}`;
 
@@ -268,7 +282,7 @@ const analytics = (view = "reports", extra = "") =>
     // there is something to save again.
     await page.getByRole("button", { name: "10", exact: true }).click();
     await identity.getByText("Unsaved changes", { exact: true }).waitFor();
-    assert.equal(await changes.isDisabled(), false, "now there is a change to save");
+    await usable(changes, "an answered change has to be savable");
     assert.equal(
       await identity.getByRole("button", { name: "My reports", exact: true }).count(),
       0,

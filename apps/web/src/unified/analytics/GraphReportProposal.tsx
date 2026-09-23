@@ -80,12 +80,15 @@ export function GraphReportProposal({
         .flatMap((candidate) => candidate.measures)
         .find((measure) => measure.key === key)?.label ?? key,
   );
+  // Named as whole phrases rather than bare verbs: a one-word key is shared
+  // with every other surface that has a Create button, and these five went
+  // untranslated in every edition because nothing here was ever a key at all.
   const OPERATIONS: Record<string, string> = {
-    create: "Create",
-    update: "Update",
-    rename: "Rename",
-    duplicate: "Duplicate",
-    delete: "Delete",
+    create: "Save a new report",
+    update: "Replace the report's question",
+    rename: "Rename the report",
+    duplicate: "Copy the report",
+    delete: "Remove the report",
   };
   return (
     <section className="space-y-3 rounded-xl border border-border-default bg-surface p-4">
