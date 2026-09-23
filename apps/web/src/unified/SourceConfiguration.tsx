@@ -208,7 +208,7 @@ export function SourceConfiguration({
             <>
               <p className="break-all text-xs text-fg-muted">{action.id}</p>
               <p>
-                {t("Registry state")}: {t(action.active ? "Enabled" : "Disabled")}
+                {t("After this change")}: {t(action.active ? "In use" : "Switched off")}
               </p>
             </>
           )}
@@ -263,12 +263,15 @@ export function SourceConfiguration({
               <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg bg-surface-muted p-4">
                 <div className="min-w-0">
                   <p className="text-sm font-medium">
-                    {t("Registry state")}: {t(system.is_active ? "Enabled" : "Disabled")}
+                    {t(
+                      system.is_active ? "This source is in use." : "This source is switched off.",
+                    )}
                   </p>
                   <p className="mt-1 text-xs text-fg-muted">
-                    {t(
-                      "Enabled and disabled are registry states. Changing them does not start or stop imports.",
-                    )}
+                    {t("Everything already received stays as it is. Nothing is deleted.")}
+                    {system.is_active && system.code === "demo_data"
+                      ? ` ${t("Switching it off also stops the simulation, which then has to be started again.")}`
+                      : ""}
                   </p>
                 </div>
                 <button
@@ -283,7 +286,7 @@ export function SourceConfiguration({
                     })
                   }
                 >
-                  {t(system.is_active ? "Disable source definition" : "Enable source definition")}
+                  {t(system.is_active ? "Switch off this source" : "Switch on this source")}
                 </button>
               </div>
               <section data-source-system-settings={system.code} className="space-y-3">
@@ -382,7 +385,7 @@ export function SourceConfiguration({
                         })
                       }
                     >
-                      {t(row.is_active ? "Disable type definition" : "Enable type definition")}
+                      {t(row.is_active ? "Switch off this data type" : "Switch on this data type")}
                     </button>
                   </article>
                 ))}
