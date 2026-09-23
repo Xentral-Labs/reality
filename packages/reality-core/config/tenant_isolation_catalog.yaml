@@ -30,6 +30,7 @@ explicit_operations:
   - reality.services.read_contracts:discovery_page
   - reality.services.read_contracts:finance_balances
   - reality.services.read_contracts:location_inventory_rows
+  - reality.services.read_contracts:location_stock_row
   - reality.services.read_contracts:operational_page
   - reality.services.scheduled_jobs:tenant_catalog
   - reality.services.scheduled_jobs:scheduler_tenants
@@ -59,6 +60,7 @@ families:
       - reality.services.read_contracts:discovery_page
       - reality.services.read_contracts:finance_balances
       - reality.services.read_contracts:location_inventory_rows
+      - reality.services.read_contracts:location_stock_row
       - reality.services.read_contracts:operational_page
       - reality.services.core:business_discovery_statement
       - reality.services.projections:derive_projection_rows
