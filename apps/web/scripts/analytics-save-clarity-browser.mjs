@@ -264,6 +264,20 @@ const analytics = (view = "reports", extra = "") =>
     await changes.waitFor();
     assert.equal(await changes.isDisabled(), true, "nothing changed, so there is nothing to save");
 
+    // US3.4 and US4.3: changing the question withdraws the confirmation and says
+    // there is something to save again.
+    await page.getByRole("button", { name: "10", exact: true }).click();
+    await identity.getByText("Unsaved changes", { exact: true }).waitFor();
+    assert.equal(await changes.isDisabled(), false, "now there is a change to save");
+    assert.equal(
+      await identity.getByRole("button", { name: "My reports", exact: true }).count(),
+      0,
+      "the confirmation and its link go together",
+    );
+    await changes.click();
+    await identity.getByText("Saved", { exact: true }).waitFor();
+    assert.equal(state.reports.size, 1, "saving a change updates the report it belongs to");
+
     // US4.2: reloading reopens the same saved report rather than an empty builder.
     await page.reload();
     await page.getByRole("heading", { name: "Revenue by currency" }).waitFor();

@@ -2610,7 +2610,10 @@ function Save({
           <div className="analysis-identity-actions">
             {report && (
               <button
-                className="br-btn br-btn-primary"
+                // Emphasis follows what can actually be done: a disabled button
+                // that still looks like the primary one is an instruction the
+                // page then refuses.
+                className={`br-btn ${changed ? "br-btn-primary" : ""}`}
                 disabled={disabled || busy || !changed}
                 onClick={() =>
                   void send({
@@ -2632,7 +2635,9 @@ function Save({
             >
               {t(report ? "Save as a new report" : "Save analysis")}
             </button>
-            {saved && onLibrary && (
+            {/* The confirmation and the way onward belong together: once the
+                question moves on, this row is about saving again. */}
+            {saved && !changed && onLibrary && (
               <button className="br-btn" onClick={onLibrary}>
                 {t("My reports")}
               </button>

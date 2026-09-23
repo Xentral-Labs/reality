@@ -39,21 +39,23 @@ export function GraphTemplates({
           .filter((template) => !selectedKey || template.key === selectedKey)
           .map((template) => (
             <article key={template.key} className="flex flex-wrap items-center gap-3 py-3 text-sm">
+              {/* What the template is stays in one column, so a longer sentence
+                  about its period does not push the button onto its own row. */}
               <div className="min-w-0 flex-1">
                 <h3 className="font-medium">{template.label}</h3>
                 <p className="mt-1 text-xs text-fg-muted">{template.about}</p>
+                {template.period && (
+                  <p className="mt-1 text-xs text-fg-muted">
+                    {t("Sets a period")}:{" "}
+                    {t(WINDOWS[template.period.window] ?? template.period.window)}.{" "}
+                    {/* The window is resolved to dates the moment it is adopted,
+                        and the filter then shows those dates. Advertising a
+                        living window and storing a fixed one is the one claim
+                        this card cannot make. */}
+                    {t("Using it fixes this to dates.")}
+                  </p>
+                )}
               </div>
-              {template.period && (
-                <p className="text-xs text-fg-muted">
-                  {t("Sets a period")}:{" "}
-                  {t(WINDOWS[template.period.window] ?? template.period.window)}.{" "}
-                  {/* The window is resolved to dates the moment it is adopted, and
-                      the filter then shows those dates. Advertising a living
-                      window and storing a fixed one is the one claim this card
-                      cannot make. */}
-                  {t("Using it fixes this to dates.")}
-                </p>
-              )}
               {template.snapshot && (
                 <label className="text-xs text-fg-muted">
                   {t("Snapshot date (UTC)")}
