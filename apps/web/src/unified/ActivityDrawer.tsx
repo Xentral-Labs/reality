@@ -525,16 +525,23 @@ export function ActivityDrawer({
           </>
         )}
       </div>
-      {target && <Inspector tenant={tenant} target={target} close={() => setTarget(null)} />}
     </>
+  );
+  // The inspector stays outside the register workbench: its child-position rules
+  // (margin, radius, inline padding) would otherwise override the dialog's own styling.
+  const inspector = target && (
+    <Inspector tenant={tenant} target={target} close={() => setTarget(null)} />
   );
   if (embedded)
     return (
-      <RegisterWorkbench>
-        <section className="register-surface min-w-0 overflow-hidden" data-inline-activity>
-          {content}
-        </section>
-      </RegisterWorkbench>
+      <>
+        <RegisterWorkbench>
+          <section className="register-surface min-w-0 overflow-hidden" data-inline-activity>
+            {content}
+          </section>
+        </RegisterWorkbench>
+        {inspector}
+      </>
     );
   return (
     <dialog
@@ -560,6 +567,7 @@ export function ActivityDrawer({
       className="fixed inset-y-0 right-0 left-auto m-0 h-dvh max-h-dvh w-[min(600px,100vw)] max-w-full overflow-y-auto border-l border-border-default bg-surface p-0 text-fg-default shadow-xl backdrop:bg-black/30"
     >
       {content}
+      {inspector}
     </dialog>
   );
 }
