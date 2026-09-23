@@ -3100,6 +3100,9 @@ active-register-only header count to these work tabs.
 The Inbox orders its queues by who must act: Welcome, Decisions, Exceptions,
 Commitments (Welcome tiles alike). While decisions wait, their tab count and Welcome
 tile carry the accent of the sidebar badge; Exceptions and Commitments stay neutral.
+Welcome leads with those tiles; the activity graph follows with its period control in
+its own header and a quiet Live indicator. Readiness shows only as a caution notice
+when not everything is ready (spec 254 FR-009, supersedes the spec 225 Welcome order).
 
 ### Empty standalone chat history (spec 225)
 

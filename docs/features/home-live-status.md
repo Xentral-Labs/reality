@@ -78,3 +78,16 @@ landing URL. Company activity is its first content, followed by the three existi
 operational queue counts. The activity implementation and its loading, polling,
 readiness, period preferences and inspector links are unchanged. There is no separate
 Home sidebar entry.
+
+## Welcome layout (spec 254 FR-009)
+
+Welcome now leads with what needs a person: the three queue tiles (Decisions,
+Exceptions, Commitments) come first, the activity graph follows. The graph owns its
+header: title with a quiet "Live" indicator (its title attribute states the last
+update) and the minutes-per-bar resolution on the left, the 24 hours / 7 days /
+30 days control on the right. Readiness is quiet while everything is ready (a visually
+hidden status states it) and becomes a caution notice above the tiles, naming each
+component, as soon as a check completes without the combined ready result. The
+"Your company, in motion" heading and the "View all activity" button are removed;
+full history stays in Reality Inspector · Activities. Polling, periods, stale
+handling, readiness semantics and drilldowns are unchanged.

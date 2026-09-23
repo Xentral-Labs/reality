@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { api, type ActivityVolume, type ActivityBucket, type TimelineEvent } from "../api";
 import { formatDateTime, formatNumber, t } from "../localization";
 import { ReadLine } from "./ReadState";
@@ -17,11 +17,14 @@ export function ActivityGraph({
   days,
   tenant,
   stale,
+  controls,
 }: {
   data: ActivityVolume;
   days: number;
   tenant: string;
   stale: boolean;
+  /** The period control; it belongs to the graph, so it sits in the graph's header. */
+  controls?: ReactNode;
 }) {
   const root = useRef<HTMLDivElement>(null);
   const [width, setWidth] = useState(800),
@@ -122,11 +125,26 @@ export function ActivityGraph({
   );
   return (
     <div ref={root} className="min-w-0" data-activity-graph="">
-      <div className="mb-4 flex flex-wrap items-baseline justify-between gap-2">
-        <p className="font-medium">{t("Recorded business activity")}</p>
-        <p className="text-xs text-fg-muted">
-          {formatNumber(groupSize * 30)} {t("minutes per bar")}
-        </p>
+      <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+        <div className="min-w-0">
+          <p className="flex items-center gap-2 font-medium">
+            {t("Recorded business activity")}
+            {!stale && (
+              <span
+                data-activity-live=""
+                className="inline-flex items-center gap-1 text-xs font-normal text-fg-muted"
+                title={`${t("Updated")}: ${formatDateTime(data.observed_at)}`}
+              >
+                <span aria-hidden="true" className="activity-live-dot" />
+                {t("Live")}
+              </span>
+            )}
+          </p>
+          <p className="mt-0.5 text-xs text-fg-muted">
+            {formatNumber(groupSize * 30)} {t("minutes per bar")}
+          </p>
+        </div>
+        {controls}
       </div>
       <svg
         viewBox={`0 0 ${plotWidth} 255`}
