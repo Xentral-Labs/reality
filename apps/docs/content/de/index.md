@@ -9,9 +9,9 @@ description:
 hero:
   name: Reality-Dokumentation
   text: ERP neu denken. Agenten verantwortlich betreiben.
-  tagline:
-    Ein offener, ausführbarer Referenzkern für Source, Evidence, Business Reality und überprüfbare
-    Agentenaktionen.
+  tagline: >-
+    Folge Source → Evidence → Reality: vom ursprünglichen Eingang über den kaufmännischen Beleg bis
+    zu operativen Datensätzen, die Agenten nutzen und erklären können.
   actions:
     - theme: brand
       text: "Hier starten: In 15 Minuten verstehen"
@@ -50,6 +50,23 @@ features:
       Reality als Lernsystem oder als Grundlage für eigene ERP-Anbindungen.
     link: /de/tool-usage/
 ---
+
+## Das Modell in einer Minute
+
+**Source → Evidence → Reality** trennt drei Verantwortlichkeiten, die klassische Statusfelder oft
+vermischen:
+
+| Ebene        | Bedeutung                                                                       | Beispiel                                                |
+| ------------ | ------------------------------------------------------------------------------- | ------------------------------------------------------- |
+| **Source**   | Was ein System oder eine Person ursprünglich angegeben hat, unverändert bewahrt | Ein übermittelter Auftrags-Payload                      |
+| **Evidence** | Der von Reality übernommene kaufmännische Beleg                                 | Der Auftrag und seine Positionen                        |
+| **Reality**  | Was aktuell zugesagt, reserviert, bewegt oder gebucht ist                       | Commitments, Reservations, Movements und Ledger Entries |
+
+Eine bewahrte Quelle ist überprüfbar, aber nicht automatisch richtig. Aktuelle Antworten werden beim
+Lesen aus den operativen Datensätzen abgeleitet, statt sie in ein zweites Statusfeld zu kopieren. So
+können Menschen und Agenten jede wichtige Antwort bis zu ihrer Grundlage zurückverfolgen.
+
+**[Das vollständige Auftragsbeispiel ansehen →](/de/concepts/business-reality-guide/01-from-erp-documents-to-business-reality)**
 
 ## Was Reality ist
 

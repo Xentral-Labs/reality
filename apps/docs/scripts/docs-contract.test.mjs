@@ -1060,6 +1060,21 @@ test("public guidance labels claims and provides recovery content", () => {
   assert.match(notFound, /Back to documentation/u);
 });
 
+test("documentation homes teach Source to Evidence to Reality before the product overview", () => {
+  for (const [locale, heading, caveat] of [
+    ["", "The model in one minute", "checkable, not automatically correct"],
+    ["de", "Das Modell in einer Minute", "überprüfbar, aber nicht automatisch richtig"],
+  ]) {
+    const home = fs.readFileSync(path.join(contentRoot, locale, "index.md"), "utf8");
+    assert.ok(
+      home.indexOf(heading) < home.indexOf(locale ? "## Was Reality ist" : "## What Reality is"),
+    );
+    assert.match(home, /Source → Evidence → Reality/u);
+    assert.ok(home.includes(caveat));
+    assert.match(home, /Commitments, Reservations, Movements (?:and|und) Ledger Entries/u);
+  }
+});
+
 test("theme contracts preserve narrow-screen and keyboard usability", () => {
   const styles = fs.readFileSync(path.join(docsRoot, ".vitepress", "theme", "custom.css"), "utf8");
   assert.match(styles, /:root:not\(\.dark\)[\s\S]*--vp-c-bg:/u);
