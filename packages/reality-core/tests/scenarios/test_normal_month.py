@@ -5,7 +5,7 @@ from sqlalchemy import func, select
 
 from reality.db.core import ChangeProposal, Commitment, Item, Movement, Party
 from reality.demo.normal_month import SCENARIO_ACTION, run_normal_month
-from reality.services.core import create_tenant
+from reality.services.core import aging_register, create_tenant
 from reality.services.exceptions import operational_exceptions
 
 
@@ -63,13 +63,36 @@ def test_the_month_ends_with_exactly_these_exceptions(session):
     tenant = create_tenant(session, "September 2026 Queue")
     run_normal_month(session, tenant.id)
 
+    as_of = datetime(2026, 9, 22, tzinfo=UTC)
+    rows = operational_exceptions(session, tenant.id, as_of=as_of)
     counts: dict[str, int] = {}
-    for row in operational_exceptions(
-        session,
-        tenant.id,
-        as_of=datetime(2026, 9, 22, tzinfo=UTC),
-    ):
+    for row in rows:
         counts[row.class_id] = counts.get(row.class_id, 0) + 1
+
+    def explain() -> str:
+        # This test failed in CI on 2026-09-23 between 06:27 and 08:30 UTC with two
+        # extra overdue items and never reproduced locally, not even with the same
+        # shard, workers and a faked clock. Should it recur, the failure now names
+        # what was derived instead of leaving only the counts behind.
+        aging = [
+            {
+                "type": item["document"].type,
+                "document_date": str(item["document"].document_date),
+                "due_date": str(item["due_date"]),
+                "term_days": getattr(item["payment_term"], "due_days", None),
+                "status": item["status"],
+                "open": str(item["open"]),
+            }
+            for item in aging_register(session, tenant.id, as_of=as_of)
+        ]
+        findings = [
+            {"class": row.class_id, "impact": row.impact, "values": row.causal_values}
+            for row in rows
+        ]
+        return (
+            f"wall clock {datetime.now(UTC).isoformat()}, as_of {as_of.isoformat()}\n"
+            f"findings {findings}\naging {aging}"
+        )
 
     assert counts == {
         # Both Shopify orders ship in full against their commitments, and the
@@ -80,4 +103,4 @@ def test_the_month_ends_with_exactly_these_exceptions(session):
         # refuses to link a return to the delivery it reverses, so the movement
         # can only be recorded orphaned — which is what this class reports.
         "unexplained_movement": 1,
-    }
+    }, explain()
