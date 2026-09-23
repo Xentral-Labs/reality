@@ -2,7 +2,7 @@ import { RegisterHeader, RegisterWorkbench, RegisterToolbar } from "./RegisterWo
 import { PageActionBar } from "./PageActionBar";
 import { IntegrationPreparation } from "./IntegrationPreparation";
 import { DemoDataSource, hasDemoDataSource, useDemoDataStatus } from "./DemoDataSource";
-import { sourceNeedsAttention } from "../components/demoDataSummary";
+import { sourceNeedsAttention, stallHeadline } from "../components/demoDataSummary";
 import { AlertTriangle } from "lucide-react";
 import { useState } from "react";
 import { SourceConfiguration } from "./SourceConfiguration";
@@ -72,11 +72,12 @@ export function DataSourcesPage({
         stopped: "Stopped",
         disconnected: "Disconnected",
         not_connected: "Not connected",
-        suspended: "Waiting to resume",
+        suspended: "Waiting",
         overdue: "No arrivals",
-        error: "Execution needs attention",
-        throttled: "Paused: resolve failed imports",
+        error: "Attention",
+        throttled: "Throttled",
       }[demo.derived_state || demo.state] || "Enabled",
+    detail: demo.stall ? t(stallHeadline(demo.stall)) : "",
   };
   const read = useRead<Data>(async () => {
     if (view === "systems") return { view, ...(await sourceWorkspaceApi.systems(tenant, q, page)) };
@@ -130,6 +131,11 @@ export function DataSourcesPage({
           changed={read.refresh}
           records={(code) =>
             navigate({ dataView: "records", sourceSystem: code, entry: "", q: "", page: 1 })
+          }
+          simulation={
+            hasDemoDataSource(company)
+              ? () => navigate({ route: "demo-data", entry: "", proposal: "", q: "", page: 1 })
+              : undefined
           }
         />
       )}
@@ -293,8 +299,9 @@ export function DataSourcesPage({
                       <td>
                         {row.code === "demo_data" && demoState ? (
                           <span
-                            className="inline-flex items-center gap-1"
+                            className="inline-flex items-center gap-1 whitespace-nowrap"
                             data-demo-source-state={demoState.state}
+                            title={demoState.detail || undefined}
                           >
                             {demoState.attention && (
                               <AlertTriangle size={14} aria-hidden className="text-warning" />
@@ -312,17 +319,7 @@ export function DataSourcesPage({
                             className="br-btn"
                             onClick={() => {
                               setImportOpen(false);
-                              // For the simulation the settings *are* the simulation:
-                              // its rate, its state and its controls live there.
-                              if (row.code === "demo_data")
-                                navigate({
-                                  route: "demo-data",
-                                  entry: "",
-                                  proposal: "",
-                                  q: "",
-                                  page: 1,
-                                });
-                              else navigate({ entry: row.id, importProposal: "" });
+                              navigate({ entry: row.id, importProposal: "" });
                             }}
                           >
                             {t("Settings")}

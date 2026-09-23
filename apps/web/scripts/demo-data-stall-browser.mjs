@@ -133,7 +133,22 @@ await page.route("**/api/**", async (route) => {
       page: { number: 1, size: 50, total: 1, pages: 1, has_next: false, has_previous: false },
     });
   if (path.endsWith("/integrations"))
-    return reply({ systems: [], capabilities: [], recent_records: [] });
+    return reply({
+      systems: [
+        {
+          id: "sys_demo",
+          code: "demo_data",
+          name: "Demo Data",
+          description: "Synthetic incoming orders",
+          is_active: true,
+          base_url: null,
+          connector_code: null,
+          record_count: 2617,
+        },
+      ],
+      capabilities: [],
+      recent_records: [],
+    });
   return reply({ detail: "Fixture unavailable" }, 404);
 });
 const base = process.env.UNIFIED_BASE_URL || "http://127.0.0.1:5177";
@@ -145,7 +160,9 @@ await badge.waitFor();
 assert.match(await badge.innerText(), /Waiting to resume/);
 const cell = page.locator('[data-demo-source-state="suspended"]');
 await cell.waitFor();
-assert.match(await cell.innerText(), /Waiting to resume/);
+// A narrow column carries the state; the reason travels in its title.
+assert.match(await cell.innerText(), /^Waiting$/);
+assert.match(await cell.getAttribute("title"), /interrupted and will resume by itself/);
 
 // FR-001: the reason, and that it comes back by itself.
 const reason = page.locator("[data-demo-source-stall]");
@@ -155,16 +172,25 @@ assert.match(reasonText, /interrupted and will resume by itself/);
 assert.match(reasonText, /database could not be reached/);
 assert.match(reasonText, /Next attempt/);
 
-// FR-016: the source's settings are its simulation.
+// FR-016: what a person sets for this source is set where the source is configured.
 await page
   .locator("[data-source-row]")
   .filter({ hasText: "Demo Data" })
   .getByRole("button", { name: "Settings" })
   .click();
-await page.getByRole("heading", { name: "Live simulation" }).waitFor();
-const panelStall = page.locator("[data-demo-stall]");
-await panelStall.waitFor();
-assert.match(await panelStall.innerText(), /database could not be reached/);
+const dialog = page.locator("[data-source-configuration]");
+await dialog.waitFor();
+const settings = dialog.locator("[data-source-simulation-settings]");
+await settings.waitFor();
+await settings.getByRole("heading", { name: "Live simulation" }).waitFor();
+assert.match(await settings.innerText(), /database could not be reached/);
+// The settable things are here: the state, the rate and the controls.
+await settings.getByLabel("Orders per hour").waitFor();
+await settings.getByRole("button", { name: "Pause" }).waitFor();
+// The observations are not: they belong to the simulation's own page.
+assert.equal(await settings.locator(".demo-data-counts").count(), 0);
+assert.equal(await settings.locator(".demo-live-activity").count(), 0);
+assert.equal(await settings.locator(".demo-order-to-cash").count(), 0);
 
 // FR-004/FR-005: an occurrence that was never executed names the missing role.
 phase = "overdue";

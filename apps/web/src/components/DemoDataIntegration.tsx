@@ -48,6 +48,13 @@ export function DemoDataIntegration(props: {
   tenantId: string;
   runId?: string;
   showCompanyLink?: boolean;
+  /**
+   * `settings` keeps what a person sets — state, reason, rate and controls — and
+   * leaves out what the simulation observes. It is what belongs in the place where
+   * this source is configured; the counters and the live activity stay on its page.
+   */
+  variant?: "full" | "settings";
+  openSimulation?: () => void;
 }) {
   return <DemoDataIntegrationView key={`${props.tenantId}:${props.runId || ""}`} {...props} />;
 }
@@ -56,11 +63,16 @@ function DemoDataIntegrationView({
   tenantId,
   runId,
   showCompanyLink = false,
+  variant = "full",
+  openSimulation,
 }: {
   tenantId: string;
   runId?: string;
   showCompanyLink?: boolean;
+  variant?: "full" | "settings";
+  openSimulation?: () => void;
 }) {
+  const settingsOnly = variant === "settings";
   const scope = runId
     ? `/api/playground/runs/${encodeURIComponent(runId)}/demo-data`
     : `/api/tenants/${encodeURIComponent(tenantId)}/demo-data`;
@@ -372,24 +384,26 @@ function DemoDataIntegrationView({
       ) : (
         state && (
           <>
-            <dl className="demo-data-counts">
-              <div>
-                <dt>{t("Imported orders")}</dt>
-                <dd>{state.imported}</dd>
-              </div>
-              <div>
-                <dt>{t("Generated orders")}</dt>
-                <dd>{state.generated}</dd>
-              </div>
-              <div>
-                <dt>{t("Pending")}</dt>
-                <dd>{state.pending}</dd>
-              </div>
-              <div>
-                <dt>{t("Failed")}</dt>
-                <dd>{state.failed}</dd>
-              </div>
-            </dl>
+            {!settingsOnly && (
+              <dl className="demo-data-counts">
+                <div>
+                  <dt>{t("Imported orders")}</dt>
+                  <dd>{state.imported}</dd>
+                </div>
+                <div>
+                  <dt>{t("Generated orders")}</dt>
+                  <dd>{state.generated}</dd>
+                </div>
+                <div>
+                  <dt>{t("Pending")}</dt>
+                  <dd>{state.pending}</dd>
+                </div>
+                <div>
+                  <dt>{t("Failed")}</dt>
+                  <dd>{state.failed}</dd>
+                </div>
+              </dl>
+            )}
             <p>
               {t("Next scheduled arrival")}:{" "}
               {state.next_arrival ? formatDateTime(state.next_arrival) : "—"}
@@ -398,7 +412,7 @@ function DemoDataIntegrationView({
               {t("Last successful import")}:{" "}
               {state.last_success ? formatDateTime(state.last_success) : "—"}
             </p>
-            {state.order_to_cash && (
+            {!settingsOnly && state.order_to_cash && (
               <section className="demo-order-to-cash" aria-label={t("Order to cash")}>
                 <h4>{t("Order to cash")}</h4>
                 <dl className="demo-data-counts">
@@ -554,97 +568,109 @@ function DemoDataIntegrationView({
                 </div>
               </div>
             )}
-            <section className="demo-live-activity" aria-label={t("Live activity")}>
-              <header className="demo-live-header">
-                <div>
-                  <h3>{t("Live activity")}</h3>
-                  <p className="demo-live-description">
-                    {t("Latest 25 demo orders. Updates automatically while this page is visible.")}
+            {settingsOnly && openSimulation && (
+              <p className="demo-live-open-simulation">
+                <button className="secondary-button" onClick={openSimulation}>
+                  {t("Open simulation")}
+                </button>{" "}
+                {t("Arrivals, order to cash and live activity are shown there.")}
+              </p>
+            )}
+            {!settingsOnly && (
+              <section className="demo-live-activity" aria-label={t("Live activity")}>
+                <header className="demo-live-header">
+                  <div>
+                    <h3>{t("Live activity")}</h3>
+                    <p className="demo-live-description">
+                      {t(
+                        "Latest 25 demo orders. Updates automatically while this page is visible.",
+                      )}
+                    </p>
+                  </div>
+                  <button
+                    className="secondary-button"
+                    disabled={busy}
+                    onClick={() => void refresh().catch(() => {})}
+                  >
+                    {t("Refresh status")}
+                  </button>
+                </header>
+                {updatedAt && (
+                  <p className="demo-live-updated">
+                    {t("Last checked")}: {formatDateTime(updatedAt.toISOString())}
                   </p>
-                </div>
-                <button
-                  className="secondary-button"
-                  disabled={busy}
-                  onClick={() => void refresh().catch(() => {})}
-                >
-                  {t("Refresh status")}
-                </button>
-              </header>
-              {updatedAt && (
-                <p className="demo-live-updated">
-                  {t("Last checked")}: {formatDateTime(updatedAt.toISOString())}
-                </p>
-              )}
-              {page?.items.length === 0 && (
-                <p className="demo-live-empty">{t("Waiting for the first demo order.")}</p>
-              )}
-              <ol className="demo-live-events">
-                {page?.items.map((row) => (
-                  <li key={row.id} className="demo-live-event" data-status={row.status}>
-                    <span className="demo-live-event-dot" aria-hidden="true" />
-                    <div className="demo-live-event-content">
-                      <div className="demo-live-event-title">
-                        <strong>
-                          {t(
-                            row.status === "completed"
-                              ? "Demo order imported"
-                              : row.status === "failed"
-                                ? "Demo import failed"
-                                : "Demo import pending",
+                )}
+                {page?.items.length === 0 && (
+                  <p className="demo-live-empty">{t("Waiting for the first demo order.")}</p>
+                )}
+                <ol className="demo-live-events">
+                  {page?.items.map((row) => (
+                    <li key={row.id} className="demo-live-event" data-status={row.status}>
+                      <span className="demo-live-event-dot" aria-hidden="true" />
+                      <div className="demo-live-event-content">
+                        <div className="demo-live-event-title">
+                          <strong>
+                            {t(
+                              row.status === "completed"
+                                ? "Demo order imported"
+                                : row.status === "failed"
+                                  ? "Demo import failed"
+                                  : "Demo import pending",
+                            )}
+                          </strong>
+                          {row.document_number && (
+                            <span data-localization="original">{row.document_number}</span>
                           )}
-                        </strong>
-                        {row.document_number && (
-                          <span data-localization="original">{row.document_number}</span>
+                        </div>
+                        {(row.completed_at || row.created_at) && (
+                          <p className="demo-live-description">
+                            {t(row.completed_at ? "Completed" : "Received")}:{" "}
+                            <time dateTime={row.completed_at || row.created_at}>
+                              {formatDateTime((row.completed_at || row.created_at)!)}
+                            </time>
+                          </p>
+                        )}
+                        <details>
+                          <summary>{t("Details")}</summary>
+                          <p data-localization="original">{row.id}</p>
+                          <button
+                            className="secondary-button"
+                            disabled={busy}
+                            onClick={() =>
+                              void act(
+                                async () => setIntake(await api.demoDataImport(scope, row.id)),
+                                false,
+                              )
+                            }
+                          >
+                            {t("Original source and interpretation")}
+                          </button>
+                        </details>
+                      </div>
+                      <div className="demo-live-event-actions">
+                        {row.document_id && (
+                          <button
+                            className="secondary-button"
+                            onClick={() => setInspectedOrder(row.document_id!)}
+                          >
+                            {t("Open order")}
+                          </button>
+                        )}
+                        {row.status === "failed" && (
+                          <button
+                            className="secondary-button"
+                            disabled={busy}
+                            onClick={() => void act(() => api.demoDataRetry(scope, row.id))}
+                          >
+                            {t("Confirm import retry")}
+                          </button>
                         )}
                       </div>
-                      {(row.completed_at || row.created_at) && (
-                        <p className="demo-live-description">
-                          {t(row.completed_at ? "Completed" : "Received")}:{" "}
-                          <time dateTime={row.completed_at || row.created_at}>
-                            {formatDateTime((row.completed_at || row.created_at)!)}
-                          </time>
-                        </p>
-                      )}
-                      <details>
-                        <summary>{t("Details")}</summary>
-                        <p data-localization="original">{row.id}</p>
-                        <button
-                          className="secondary-button"
-                          disabled={busy}
-                          onClick={() =>
-                            void act(
-                              async () => setIntake(await api.demoDataImport(scope, row.id)),
-                              false,
-                            )
-                          }
-                        >
-                          {t("Original source and interpretation")}
-                        </button>
-                      </details>
-                    </div>
-                    <div className="demo-live-event-actions">
-                      {row.document_id && (
-                        <button
-                          className="secondary-button"
-                          onClick={() => setInspectedOrder(row.document_id!)}
-                        >
-                          {t("Open order")}
-                        </button>
-                      )}
-                      {row.status === "failed" && (
-                        <button
-                          className="secondary-button"
-                          disabled={busy}
-                          onClick={() => void act(() => api.demoDataRetry(scope, row.id))}
-                        >
-                          {t("Confirm import retry")}
-                        </button>
-                      )}
-                    </div>
-                  </li>
-                ))}
-              </ol>
-            </section>
+                    </li>
+                  ))}
+                </ol>
+              </section>
+            )}
           </>
         )
       )}

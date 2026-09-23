@@ -1210,6 +1210,11 @@ const dictionaries: Record<Exclude<Language, "en">, Record<string, string>> = {
     "Paused: resolve failed imports": "Pausiert: fehlerhafte Importe klären",
     "Execution needs attention": "Ausführung prüfen",
     "Waiting to resume": "Wartet auf Wiederaufnahme",
+    "Arrivals, order to cash and live activity are shown there.":
+      "Eingänge, Order to Cash und Live-Aktivität werden dort gezeigt.",
+    Waiting: "Wartet",
+    Attention: "Prüfen",
+    Throttled: "Gedrosselt",
     "Background services are not being monitored here, so this cannot be confirmed.":
       "Hintergrunddienste werden hier nicht überwacht, das lässt sich also nicht bestätigen.",
     "No arrivals": "Keine Eingänge",
@@ -3237,6 +3242,11 @@ const dictionaries: Record<Exclude<Language, "en">, Record<string, string>> = {
     "Paused: resolve failed imports": "Gepauzeerd: los mislukte imports op",
     "Execution needs attention": "Uitvoering controleren",
     "Waiting to resume": "Wacht op hervatting",
+    "Arrivals, order to cash and live activity are shown there.":
+      "Ontvangsten, order to cash en live-activiteit staan daar.",
+    Waiting: "Wacht",
+    Attention: "Controleren",
+    Throttled: "Beperkt",
     "Background services are not being monitored here, so this cannot be confirmed.":
       "Achtergronddiensten worden hier niet bewaakt, dus dit kan niet worden bevestigd.",
     "No arrivals": "Geen ontvangsten",
@@ -4965,6 +4975,11 @@ const dictionaries: Record<Exclude<Language, "en">, Record<string, string>> = {
     "Paused: resolve failed imports": "En pausa: resuelve las importaciones fallidas",
     "Execution needs attention": "La ejecución requiere atención",
     "Waiting to resume": "Esperando para reanudar",
+    "Arrivals, order to cash and live activity are shown there.":
+      "Las llegadas, el order to cash y la actividad en vivo se muestran allí.",
+    Waiting: "Esperando",
+    Attention: "Revisar",
+    Throttled: "Limitado",
     "Background services are not being monitored here, so this cannot be confirmed.":
       "Los servicios en segundo plano no se supervisan aquí, así que no puede confirmarse.",
     "No arrivals": "Sin llegadas",
