@@ -3084,6 +3084,19 @@ again, once a minute while visible and after any write in this browser. This
 supersedes spec 225's "no aggregate badge" and active-register-only header count for
 this one queue. Commitments and Exceptions keep the active-register-only rule.
 
+### Work counts on workspace tabs (spec 254)
+
+A tab states the open work behind it while another tab is open; the open tab keeps
+its own register count. Work tabs are Inbox Commitments (customer side), Exceptions
+and Decisions; Sales and Purchasing Commitments; Warehouse Stock (overallocated items,
+warning tone, because Stock itself lists every item); and Finance Open items
+(outstanding receivables). Stock tabs (orders, shipments, reservations, movements,
+payments, journal, balances, master data, analytics, integrations, Inspector,
+settings) state no count while inactive. Each count reads its register's own endpoint
+with its default filters, one row wide, in the spec 253 rhythm; zero shows nothing.
+Only Inbox carries a sidebar badge. This extends the spec 253 exception to spec 225's
+active-register-only header count to these work tabs.
+
 ### Empty standalone chat history (spec 225)
 
 Standalone Chat hides its conversation column when no active or archived conversations

@@ -5,6 +5,8 @@ import { useRegisterQuery } from "./TableContext";
 import { RegisterTable } from "./RegisterTable";
 import { Boxes, Search } from "lucide-react";
 import { Fragment } from "react";
+import { useWorkCount } from "./workCounts";
+import { withWorkCount } from "./TabWorkCount";
 import { operationsApi, type Page, type WarehouseView } from "../api";
 import { formatDateTime, formatNumber, formatQuantity, t } from "../localization";
 import { ReadState } from "./ReadState";
@@ -86,6 +88,15 @@ export function WarehousePage({
   const stock = view === "stock";
   const data = read.data?.scope.view === view ? read.data : undefined;
   const warehouseActions = useContextActions(`warehouse.${view}`);
+  // Stock opens every item; its tab warns about shortages only (spec 254).
+  const shortages = useWorkCount(
+    `stock-shortage:${tenant}`,
+    () =>
+      operationsApi
+        .warehouse(tenant, "stock", "", "shortage", "", 1, { size: 1 })
+        .then((result) => result.page.total),
+    view !== "stock",
+  );
   return (
     <RegisterWorkbench>
       <RegisterHeader title="Warehouse">
@@ -96,18 +107,26 @@ export function WarehousePage({
               ["reservations", "Reservations"],
               ["movements", "Movements"],
             ] as const
-          ).map(([value, label]) => (
-            <button
-              key={value}
-              className="br-btn aria-pressed:border-accent aria-pressed:bg-accent-soft"
-              aria-pressed={view === value}
-              onClick={() =>
-                navigate({ warehouseView: value, state: "", entry: "", q: "", page: 1 })
-              }
-            >
-              {t(label)}
-            </button>
-          ))}
+          ).flatMap(([value, label]) =>
+            withWorkCount(
+              <button
+                key={value}
+                className="br-btn aria-pressed:border-accent aria-pressed:bg-accent-soft"
+                aria-pressed={view === value}
+                onClick={() =>
+                  navigate({ warehouseView: value, state: "", entry: "", q: "", page: 1 })
+                }
+              >
+                {t(label)}
+              </button>,
+              {
+                count: value === "stock" ? shortages : null,
+                active: view === value,
+                description: t("Overallocated stock"),
+                tone: "warning",
+              },
+            ),
+          )}
         </div>
       </RegisterHeader>
 

@@ -27,6 +27,8 @@ import {
   type Page,
   type ProjectionMetadata,
 } from "../api";
+import { useWorkCount } from "./workCounts";
+import { withWorkCount } from "./TabWorkCount";
 import { formatDateTime, formatMoney, t } from "../localization";
 import { ProjectionFreshness } from "./ProjectionFreshness";
 import { ReadState } from "./ReadState";
@@ -57,6 +59,15 @@ export function FinancePage(
   props: Parameters<typeof FinanceRegister>[0] & { canManage?: boolean },
 ) {
   const { selection, navigate, canManage = false } = props;
+  // Open items opens outstanding receivables; its tab states how many (spec 254).
+  const outstanding = useWorkCount(
+    `open-items:${selection.tenant}`,
+    () =>
+      api
+        .openItems(selection.tenant, "", "receivable", "outstanding", 1, { size: 1 })
+        .then((result) => result.page.total),
+    selection.financeView !== "open-items",
+  );
   return (
     <RegisterWorkbench>
       <RegisterHeader title="Finance">
@@ -69,16 +80,23 @@ export function FinancePage(
               ["balances", "Balances"],
               ["settings", "Settings"],
             ] as const
-          ).map(([value, label]) => (
-            <button
-              key={value}
-              className="br-btn aria-pressed:border-accent aria-pressed:bg-accent-soft"
-              aria-pressed={selection.financeView === value}
-              onClick={() => navigate({ financeView: value, entry: "", q: "", page: 1 })}
-            >
-              {t(label)}
-            </button>
-          ))}
+          ).flatMap(([value, label]) =>
+            withWorkCount(
+              <button
+                key={value}
+                className="br-btn aria-pressed:border-accent aria-pressed:bg-accent-soft"
+                aria-pressed={selection.financeView === value}
+                onClick={() => navigate({ financeView: value, entry: "", q: "", page: 1 })}
+              >
+                {t(label)}
+              </button>,
+              {
+                count: value === "open-items" ? outstanding : null,
+                active: selection.financeView === value,
+                description: t("Outstanding"),
+              },
+            ),
+          )}
         </div>
       </RegisterHeader>
 

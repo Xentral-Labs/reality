@@ -47,6 +47,9 @@
   --text-inverse: #ffffff;
   /* Text on saturated solid fills (danger buttons): light in both themes. */
   --text-on-solid: #ffffff;
+  /* A tab count that warns rather than counts (spec 254). */
+  --count-warning-bg: #fef0c7;
+  --count-warning-fg: #93370d;
 
   --accent: #4f5ff7;
   --accent-soft: #eef2ff;
@@ -90,6 +93,8 @@
   --text-quiet: #788194;
   --text-inverse: #101828;
   --text-on-solid: #ffffff;
+  --count-warning-bg: #4e1d09;
+  --count-warning-fg: #fedf89;
 
   --accent: #8b83ff;
   --accent-soft: #1f1b4d;
@@ -3445,7 +3450,7 @@ textarea.br-control.rule-draft-editor {
 .page-introduction-count {
   flex-shrink: 0;
 }
-.shell-workspace-header :is([data-page-record-count], [data-tab-pending-count]) {
+.shell-workspace-header :is([data-page-record-count], [data-tab-work-count]) {
   display: inline-flex;
   align-items: center;
   height: 18px;
@@ -3455,6 +3460,10 @@ textarea.br-control.rule-draft-editor {
   font-weight: 400;
   color: var(--color-fg-muted);
   background: var(--shell-surface);
+}
+.shell-workspace-header [data-tab-work-count][data-tone="warning"] {
+  color: var(--count-warning-fg);
+  background: var(--count-warning-bg);
 }
 .shell-icon-button,
 .shell-chat-toggle {
@@ -3887,7 +3896,8 @@ textarea.br-control.rule-draft-editor {
   padding: 0 2px;
   white-space: nowrap;
 }
-.shell-tab-count {
+.shell-tab-count,
+.shell-tab-work-count {
   position: relative;
   flex-shrink: 0;
   margin-left: -12px;
