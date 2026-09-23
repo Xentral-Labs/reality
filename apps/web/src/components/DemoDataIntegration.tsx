@@ -1,4 +1,4 @@
-import { ChevronDown, FlaskConical } from "lucide-react";
+import { ChevronDown, FlaskConical, LoaderCircle } from "lucide-react";
 import { Inspector } from "../unified/Inspector";
 import { useEffect, useRef, useState } from "react";
 import {
@@ -255,6 +255,12 @@ function DemoDataIntegrationView({
             : state.stall.kind === "overdue"
               ? t("The scheduler or worker may be unavailable.")
               : t("Resume the simulation once the cause is resolved.")}
+        </p>
+      )}
+      {busy && (
+        <p className="demo-live-working" role="status">
+          <LoaderCircle aria-hidden className="demo-live-spinner" />
+          {t("Applying your change. This takes a few seconds.")}
         </p>
       )}
       {stale && (
@@ -556,7 +562,8 @@ function DemoDataIntegrationView({
                       })
                     }
                   >
-                    {t("Confirm")}
+                    {busy && <LoaderCircle aria-hidden className="demo-live-spinner" />}
+                    {t(busy ? "Applying…" : "Confirm")}
                   </button>
                   <button
                     className="secondary-button"

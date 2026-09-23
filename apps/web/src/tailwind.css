@@ -2860,6 +2860,16 @@ textarea.br-control.rule-draft-editor {
 .demo-live-confirmation {
   @apply space-y-3;
 }
+.demo-live-working {
+  @apply flex items-center gap-2 text-sm text-fg-muted;
+}
+/* The rotation keyframe is shared with the command search spinner. */
+.demo-live-spinner {
+  width: 14px;
+  height: 14px;
+  flex: none;
+  animation: command-search-spin 1s linear infinite;
+}
 .demo-live-activity {
   @apply space-y-3 pt-2;
 }
