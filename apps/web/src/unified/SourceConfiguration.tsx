@@ -267,17 +267,27 @@ export function SourceConfiguration({
                 <p>
                   {t("Registry state")}: {t(system.is_active ? "Enabled" : "Disabled")}
                 </p>
-                {system.code === "demo_data" && (
-                  // What this source does is set here, beside what it is. The
-                  // simulation's own page keeps the arrivals it observes.
-                  <div data-source-simulation-settings>
-                    <DemoDataIntegration
-                      tenantId={tenant}
-                      variant="settings"
-                      openSimulation={simulation}
-                    />
-                  </div>
-                )}
+                <section
+                  data-source-system-settings={system.code}
+                  className="space-y-3 rounded-lg border border-border-default p-4"
+                >
+                  <h4 className="font-semibold">{t("Settings for this system")}</h4>
+                  {system.code === "demo_data" ? (
+                    // What this source does is set here, beside what it is. Every
+                    // system earns its own part here; the simulation is the first.
+                    <div data-source-simulation-settings>
+                      <DemoDataIntegration
+                        tenantId={tenant}
+                        variant="settings"
+                        openSimulation={simulation}
+                      />
+                    </div>
+                  ) : (
+                    <p className="text-sm text-fg-muted">
+                      {t("This system has no settings of its own yet.")}
+                    </p>
+                  )}
+                </section>
               </div>
               <div className="space-y-2">
                 <label className="block text-sm" htmlFor="source-base-url">
