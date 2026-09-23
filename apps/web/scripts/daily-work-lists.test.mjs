@@ -76,3 +76,8 @@ test("fresh entry and Welcome selection preserve company on reload", async () =>
   assert.equal(restored.route, "home");
   assert.equal(restored.tenant, "one");
 });
+test("Welcome shows an uncalculated stored exception count as unknown, not zero", () => {
+  const home = source("../src/unified/HomePage.tsx");
+  assert.match(home, /data && data\.totals\[total\] != null \?/);
+  assert.match(source("../src/api.ts"), /exceptions: number \| null;/);
+});

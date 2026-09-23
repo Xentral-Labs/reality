@@ -876,7 +876,8 @@ export type Page = {
 export type Dashboard = {
   tenant: Tenant;
   totals: {
-    exceptions: number;
+    /** Stored register total; null until the first generation completes (spec 255). */
+    exceptions: number | null;
     open_commitments: number;
     open_deliveries: number;
     stocked_items: number;

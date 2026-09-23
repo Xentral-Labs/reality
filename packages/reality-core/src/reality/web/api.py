@@ -1382,10 +1382,17 @@ def tenant_dashboard(tenant_id: str, session: DatabaseSession):
         tenant = get_tenant(session, tenant_id)
     except (NotFound, InvalidOperation) as error:
         raise api_error(error) from error
+    from reality.services.attention_reads import attention_register
     from reality.services.delivery_reads import delivery_work
 
     open_deliveries = delivery_work(session, tenant_id, size=1)["page"]["total"]
-    exception_rows, exception_pager = exception_page(session, tenant_id, size=5)
+    # The same stored generation the Exceptions register reads (spec 255), so the
+    # Welcome count agrees with the queue it links to and no derivation runs here.
+    stored = attention_register(session, tenant_id, size=5)
+    exception_rows = stored["items"]
+    exception_total = (
+        stored["page"]["total"] if stored["metadata"]["completed_at"] else None
+    )
     inventory_rows, inventory_pager = inventory_page(session, tenant_id, size=8)
     fact_rows = list(
         session.scalars(
@@ -1418,7 +1425,7 @@ def tenant_dashboard(tenant_id: str, session: DatabaseSession):
         "tenant": {"id": tenant.id, "name": tenant.name},
         "totals": {
             "open_deliveries": open_deliveries,
-            "exceptions": exception_pager.total,
+            "exceptions": exception_total,
             "open_commitments": model_count(
                 session, Commitment, tenant_id, Commitment.status == "open"
             ),
@@ -1442,8 +1449,9 @@ def tenant_dashboard(tenant_id: str, session: DatabaseSession):
         "sample_scope": {
             "exceptions": {
                 "limit": 5,
-                "total": exception_pager.total,
-                "has_more": exception_pager.total > len(exception_rows),
+                "total": exception_total,
+                "has_more": (exception_total or 0) > len(exception_rows),
+                "state": stored["metadata"]["state"],
             },
             "inventory": {
                 "limit": 8,
@@ -1485,7 +1493,7 @@ def tenant_dashboard(tenant_id: str, session: DatabaseSession):
             "warehouse": movement_count > 0 or inventory_pager.total > 0,
             "finance": ledger_count > 0,
             "activity": bool(
-                exception_pager.total
+                exception_total
                 or model_count(session, ChangeProposal, tenant_id)
                 or source_count
                 or fact_count

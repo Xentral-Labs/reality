@@ -28,7 +28,8 @@ export function HomePage({
           <div className="grid divide-y divide-border-default border-y border-border-default sm:grid-cols-3 sm:divide-x sm:divide-y-0">
             {dailyWork.map(({ label, total, selection }) => {
               // A decision waiting for a person is the one tile that asks for attention.
-              const waiting = total === "pending_decisions" && !!data && data.totals[total] > 0;
+              const waiting =
+                total === "pending_decisions" && !!data && (data.totals[total] ?? 0) > 0;
               return (
                 <button
                   key={label}
@@ -39,7 +40,13 @@ export function HomePage({
                 >
                   <p className="text-xs text-fg-muted">{t(label)}</p>
                   <p className="mt-1 min-h-8 text-xl font-medium tabular-nums text-fg-strong">
-                    {data ? formatNumber(data.totals[total]) : loading ? <ReadLine /> : "—"}
+                    {data && data.totals[total] != null ? (
+                      formatNumber(data.totals[total])
+                    ) : loading ? (
+                      <ReadLine />
+                    ) : (
+                      "—"
+                    )}
                   </p>
                   <p className="mt-1 text-xs text-fg-muted">
                     {t(waiting ? "waiting for you" : "open")}
