@@ -152,6 +152,18 @@ def _approve_proposal(
 STRING = {"type": "string"}
 OPTIONAL_STRING = {"type": ["string", "null"]}
 SOURCE_PAYLOAD = {"type": ["object", "null"], "additionalProperties": True}
+PARTY_EMAILS = {
+    "type": "array",
+    "maxItems": 20,
+    "items": _object_schema(
+        {
+            "email": {"type": "string", "maxLength": 320},
+            "label": {"type": "string", "maxLength": 80, "default": ""},
+        },
+        required=("email",),
+    ),
+    "default": [],
+}
 
 
 def _records_schema(record_schema: dict[str, Any]) -> dict[str, Any]:
@@ -185,6 +197,7 @@ PARTY_CREATE_RECORD = _object_schema(
         "default_currency": {"type": "string", "default": "EUR"},
         "credit_limit": {"type": "string", "default": "0"},
         "tax_identifier": {"type": "string", "default": ""},
+        "emails": PARTY_EMAILS,
         "source_system": OPTIONAL_STRING,
         "external_id": OPTIONAL_STRING,
         "source_payload": SOURCE_PAYLOAD,

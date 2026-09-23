@@ -3407,6 +3407,29 @@
           "default": ""
         },
         {
+          "name": "records[].emails",
+          "type": "array",
+          "required": false,
+          "description": "Bounded labelled email addresses recorded for exact Party matching.",
+          "depth": 1,
+          "default": []
+        },
+        {
+          "name": "records[].emails[].email",
+          "type": "string",
+          "required": true,
+          "description": "Email address supplied for the named business purpose.",
+          "depth": 2
+        },
+        {
+          "name": "records[].emails[].label",
+          "type": "string",
+          "required": false,
+          "description": "Optional human-readable description of a value's business purpose.",
+          "depth": 2,
+          "default": ""
+        },
+        {
           "name": "records[].source_system",
           "type": "string",
           "required": false,
@@ -3728,6 +3751,28 @@
           "required": false,
           "description": "External tax or VAT identifier retained when operational matching requires it.",
           "depth": 1
+        },
+        {
+          "name": "records[].emails",
+          "type": "array",
+          "required": false,
+          "description": "Bounded labelled email addresses recorded for exact Party matching.",
+          "depth": 1
+        },
+        {
+          "name": "records[].emails[].email",
+          "type": "string",
+          "required": true,
+          "description": "Email address supplied for the named business purpose.",
+          "depth": 2
+        },
+        {
+          "name": "records[].emails[].label",
+          "type": "string",
+          "required": false,
+          "description": "Optional human-readable description of a value's business purpose.",
+          "depth": 2,
+          "default": ""
         },
         {
           "name": "records[].source_system",
@@ -4647,7 +4692,7 @@
           "name": "email",
           "type": "string",
           "required": true,
-          "description": "Normalized email address of the person invited to the company.",
+          "description": "Email address supplied for the named business purpose.",
           "depth": 0
         },
         {
@@ -16435,11 +16480,11 @@
       "key": "create_party",
       "label": "Create party",
       "area": "master_data",
-      "summary": "Creates a tenant-scoped party, optional immutable source evidence, and its operational roles.",
+      "summary": "Creates a tenant-scoped party, optional immutable source evidence, operational roles, and exact correspondence addresses.",
       "mode": "mutation",
       "adapters": ["CLI", "Web", "API", "MCP", "Chat"],
       "reads": ["tenant", "source_record", "party"],
-      "writes": ["source_record", "party", "party_role"],
+      "writes": ["source_record", "party", "party_role", "party_email_address"],
       "confirmation": null,
       "related_services": ["create_parties"],
       "tools": ["party_create_propose"],
@@ -16457,11 +16502,11 @@
       "key": "update_party",
       "label": "Update party",
       "area": "master_data",
-      "summary": "Changes operational party fields and roles; changed external identity creates new source evidence and every effective change emits an exact before/after audit diff.",
+      "summary": "Changes operational party fields, roles and exact correspondence addresses; changed external identity creates new source evidence and every effective change emits an exact before/after audit diff.",
       "mode": "mutation",
       "adapters": ["CLI", "Web", "API", "MCP", "Chat"],
-      "reads": ["party", "party_role", "source_record"],
-      "writes": ["source_record", "party", "party_role", "business_event"],
+      "reads": ["party", "party_role", "party_email_address", "source_record"],
+      "writes": ["source_record", "party", "party_role", "party_email_address", "business_event"],
       "confirmation": null,
       "related_services": ["update_parties"],
       "tools": ["party_update_propose"],
