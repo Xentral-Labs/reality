@@ -14,4 +14,4 @@ Dependencies: T001 → T002 → T003 → T004.
 - `npm run format:check`, `npm run test:i18n` (336 pass), `npm run i18n:audit` (4 languages PASS), `npm run build`: green.
 - `inbox-decision-badge-browser.mjs` (en/de, expanded/collapsed): pass. `page-title-counts-browser.mjs`: pass.
 - `daily-work-browser.mjs` (8 `search/resolve` POSTs counted as writes) and `refined-shell-browser.mjs` (line 181, action menu searchbox) fail identically with this change's `src` reverted; pre-existing on main.
-- Count cost on the local stack, largest tenants: pending decisions 0.8–1.1 ms, commitments 60–73 ms, exceptions 1.1–1.5 s.
+- Count cost on the local stack, largest tenants: pending decisions 0.8–1.1 ms, commitments 60–73 ms, exceptions from stored rows 59–75 ms (the dashboard's live derivation takes 1.1–1.5 s).
