@@ -1,6 +1,8 @@
 import json
 
 import pytest
+from sqlalchemy import select
+
 from reality.db.core import BusinessEvent
 from reality.mcp.catalog import dispatch_tool
 from reality.services.core import (
@@ -9,7 +11,6 @@ from reality.services.core import (
     create_tenant,
     update_party,
 )
-from sqlalchemy import select
 
 
 def discover(session, tenant_id, query=""):
