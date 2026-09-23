@@ -3097,6 +3097,10 @@ with its default filters, one row wide, in the spec 253 rhythm; zero shows nothi
 Only Inbox carries a sidebar badge. This extends the spec 253 exception to spec 225's
 active-register-only header count to these work tabs.
 
+The Inbox orders its queues by who must act: Welcome, Decisions, Exceptions,
+Commitments (Welcome tiles alike). While decisions wait, their tab count and Welcome
+tile carry the accent of the sidebar badge; Exceptions and Commitments stay neutral.
+
 ### Empty standalone chat history (spec 225)
 
 Standalone Chat hides its conversation column when no active or archived conversations

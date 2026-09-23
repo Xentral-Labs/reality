@@ -3461,6 +3461,16 @@ textarea.br-control.rule-draft-editor {
   color: var(--color-fg-muted);
   background: var(--shell-surface);
 }
+.shell-workspace-header [data-tab-work-count][data-tone="accent"],
+.shell-workspace-header
+  .register-tabs
+  > [data-work-tone="accent"][aria-pressed="true"]
+  + .shell-tab-count
+  [data-page-record-count] {
+  color: var(--color-fg-on-solid);
+  background: var(--color-brand-500);
+  font-weight: 600;
+}
 .shell-workspace-header [data-tab-work-count][data-tone="warning"] {
   color: var(--count-warning-fg);
   background: var(--count-warning-bg);
@@ -5034,4 +5044,13 @@ textarea.br-control.rule-draft-editor {
   margin: 6px 0 0;
   font-size: 12px;
   color: var(--color-fg-muted);
+}
+
+/* The Welcome tile for decisions carries the Inbox badge's colour while any wait (spec 254). */
+[data-home-work][data-waiting] > p:nth-child(2),
+[data-home-work][data-waiting] > p:nth-child(3) {
+  color: var(--accent);
+}
+[data-home-work][data-waiting] > p:nth-child(3) {
+  font-weight: 600;
 }

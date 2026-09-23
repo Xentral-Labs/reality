@@ -3,10 +3,11 @@
 ## Setup
 - [x] T001 Inventory every tab of every main page, measure each candidate count on the local stack, record owner decisions in spec.md; write plan.md.
 ## US1
-- [x] T002 [US1] Write apps/web/scripts/workspace-tab-counts-browser.mjs (FR-001–007).
-- [x] T003 [US1] Generalize apps/web/src/unified/workCounts.ts, add TabWorkCount.tsx, wire Shell.tsx, OrdersPage.tsx, WarehousePage.tsx, FinancePage.tsx and tailwind.css; document in docs/WEB_SPEC.md (FR-001–007).
+- [x] T002 [US1] Write apps/web/scripts/workspace-tab-counts-browser.mjs (FR-001–008).
+- [x] T003 [US1] Generalize apps/web/src/unified/workCounts.ts, add TabWorkCount.tsx, wire Shell.tsx, OrdersPage.tsx, WarehousePage.tsx, FinancePage.tsx and tailwind.css; document in docs/WEB_SPEC.md (FR-001–008).
+- [x] T005 [US1] Reorder `dailyWork` (Decisions, Exceptions, Commitments), accent the Decisions counts and the Welcome tile; update daily-work-browser shortcut order (FR-008).
 ## Verification
-- [x] T004 Run frontend and spec gates, check live against the local stack, prepare a separate PR (FR-001–007).
+- [x] T004 Run frontend and spec gates, check live against the local stack, prepare a separate PR (FR-001–008).
 
 Dependencies: T001 → T002 → T003 → T004. Depends on spec 253 (PR #145).
 

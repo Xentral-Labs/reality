@@ -7,18 +7,14 @@ export const welcomeSelection = {
   q: "",
 } as const satisfies Partial<Selection>;
 
+// Ordered by who must act: a decision waits for a person, an exception asks for
+// attention, a commitment is work already under way (spec 254 FR-008).
 export const dailyWork = [
   {
-    label: "Commitments",
-    total: "open_deliveries",
+    label: "Decisions",
+    total: "pending_decisions",
     selection: {
-      route: "orders-deliveries",
-      ordersView: "commitments",
-      deliveryType: "customer_delivery",
-      deliveryStatus: "open",
-      commitment: "",
-      order: "",
-      entry: "",
+      route: "decisions",
       proposal: "",
       q: "",
       page: 1,
@@ -38,10 +34,16 @@ export const dailyWork = [
     },
   },
   {
-    label: "Decisions",
-    total: "pending_decisions",
+    label: "Commitments",
+    total: "open_deliveries",
     selection: {
-      route: "decisions",
+      route: "orders-deliveries",
+      ordersView: "commitments",
+      deliveryType: "customer_delivery",
+      deliveryStatus: "open",
+      commitment: "",
+      order: "",
+      entry: "",
       proposal: "",
       q: "",
       page: 1,

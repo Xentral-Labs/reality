@@ -68,7 +68,9 @@ try {
           has_archived: false,
         });
       if (p.endsWith("/dashboard"))
-        return reply({ totals: { open_deliveries: 0, exceptions: 0, pending_decisions: 0 } });
+        return reply({
+          totals: { open_deliveries: 7, exceptions: 14, pending_decisions: work.decisions },
+        });
       if (p.endsWith("/activity-volume") || p.endsWith("/readiness"))
         return route.fulfill({ status: 503, body: "Unavailable in tab count fixture" });
       if (p.endsWith("/change-proposals")) return list(work.decisions);
@@ -135,8 +137,38 @@ try {
     );
     await visit("attention", [
       ["Commitments", "7"],
-      [L("Decisions", "Entscheidungen"), "3"],
+      [L("Decisions", "Entscheidungen"), "3", "accent"],
     ]);
+    // Who must act comes first: Welcome, Decisions, Exceptions, Commitments.
+    assert.deepEqual(
+      await tabs.locator("button").allInnerTexts(),
+      de
+        ? ["Willkommen", "Entscheidungen", "Ausnahmen", "Commitments"]
+        : ["Welcome", "Decisions", "Exceptions", "Commitments"],
+    );
+    // The open Decisions tab keeps the accent while decisions wait.
+    await page.goto(`${base}/app/decisions?tenant=demo`);
+    const accent = await page
+      .locator(
+        '[data-work-tone="accent"][aria-pressed="true"] + .shell-tab-count [data-page-record-count]',
+      )
+      .evaluate((node) => getComputedStyle(node).backgroundColor)
+      .catch(() => "");
+    assert.equal(accent, "rgb(99, 91, 255)", "open Decisions count carries the accent");
+
+    // Welcome shows the same order; the decisions tile asks for attention while any wait.
+    await page.goto(`${base}/app/?tenant=demo`);
+    const tiles = page.locator("[data-home-work]");
+    await tiles.first().waitFor({ timeout: 12000 });
+    assert.deepEqual(await tiles.evaluateAll((nodes) => nodes.map((n) => n.dataset.homeWork)), [
+      "pending_decisions",
+      "exceptions",
+      "open_deliveries",
+    ]);
+    const waiting = page.locator("[data-home-work][data-waiting]");
+    await waiting.waitFor({ timeout: 5000 });
+    assert.equal(await waiting.getAttribute("data-home-work"), "pending_decisions");
+    assert.ok((await waiting.innerText()).includes(L("waiting for you", "warten auf dich")));
 
     // Sales and Purchasing: the Commitments tab of each direction; orders and shipments stay quiet.
     await visit(

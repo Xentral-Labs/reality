@@ -7,7 +7,8 @@ import { workCountBadge } from "./dailyWork";
  * The open tab shows its own register count, so the work count appears only
  * while the tab is inactive, and never at zero. The count is described to
  * assistive technology on the tab itself. A warning count states a signal
- * rather than the length of the list the tab opens.
+ * rather than the length of the list the tab opens; an accent count is the one
+ * the sidebar badge repeats.
  */
 export function withWorkCount(
   tab: ReactElement<{ "aria-describedby"?: string }>,
@@ -20,7 +21,7 @@ export function withWorkCount(
     count: number | null;
     active: boolean;
     description: string;
-    tone?: "warning";
+    tone?: "warning" | "accent";
   },
 ): ReactNode[] {
   const badge = workCountBadge(count);
