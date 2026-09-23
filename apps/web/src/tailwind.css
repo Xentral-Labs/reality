@@ -3296,6 +3296,15 @@ textarea.br-control.rule-draft-editor {
     white-space: nowrap;
     border: 0;
   }
+  .app-shell[data-navigation-collapsed="true"] [data-navigation-count] {
+    position: absolute;
+    top: 2px;
+    right: 6px;
+    min-width: 16px;
+    padding: 0 4px;
+    font-size: 10px;
+    line-height: 16px;
+  }
   .app-shell[data-navigation-collapsed="true"] [data-profile-menu] > button {
     justify-content: center;
     padding-inline: 0;
@@ -3436,7 +3445,7 @@ textarea.br-control.rule-draft-editor {
 .page-introduction-count {
   flex-shrink: 0;
 }
-.shell-workspace-header [data-page-record-count] {
+.shell-workspace-header :is([data-page-record-count], [data-tab-pending-count]) {
   display: inline-flex;
   align-items: center;
   height: 18px;
@@ -3571,6 +3580,20 @@ textarea.br-control.rule-draft-editor {
   height: 16px;
   stroke-width: 1.5;
   flex-shrink: 0;
+}
+/* A navigation entry states what waits behind it, and nothing when nothing does. */
+.shell-navigation [data-navigation-count] {
+  margin-left: auto;
+  min-width: 18px;
+  padding: 1px 6px;
+  border-radius: 999px;
+  background: var(--color-brand-500);
+  color: var(--color-fg-on-solid);
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 16px;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
 }
 .shell-navigation-active {
   background: var(--shell-selected);

@@ -65,3 +65,9 @@ export function isInboxSelection(selection: Selection): boolean {
     selection.route === "decisions"
   );
 }
+
+/** The Inbox badge text for a pending-decision count; empty means no badge. */
+export function decisionBadge(count: number | null | undefined): string {
+  if (!count || count < 1) return "";
+  return count > 99 ? "99+" : String(count);
+}
