@@ -225,6 +225,18 @@ def test_recovery_supersedes_exact_scope_and_member_cannot_approve(
     assert second["assessment"]["assessed_value"] == "400.0000"
     assert second["assessment"]["adjustment"] == "-20.0000"
 
+    next_recovery = json.loads(json.dumps(recovery))
+    next_recovery.update(
+        supersedes_id=second["assessment_revision_id"],
+        expected_event_sequence=session.scalar(
+            select(func.max(BusinessEvent.sequence)).where(
+                BusinessEvent.tenant_id == business.tenant.id
+            )
+        ),
+        reason="Prepared recovery awaiting owner confirmation",
+    )
+    next_recovery["parts"][0]["assessed_value"] = "410"
+
     membership = session.scalar(
         select(stock.TenantMembership).where(
             stock.TenantMembership.tenant_id == business.tenant.id,
@@ -233,12 +245,17 @@ def test_recovery_supersedes_exact_scope_and_member_cannot_approve(
     )
     membership.role = "member"
     session.flush()
+    with caller(Principal(cost_owner.id)):
+        prepared = create_change_proposal(
+            session, business.tenant.id, "cost.change", next_recovery
+        )
     with pytest.raises(core.InvalidOperation, match="owner"):
-        preview_cost_change(
+        approve_and_execute_proposal(
             session,
             business.tenant.id,
-            recovery,
-            principal=Principal(cost_owner.id),
+            prepared.id,
+            confirming_principal=Principal(cost_owner.id),
+            confirmed=True,
         )
 
 

@@ -221,11 +221,14 @@ resources:
       en: >-
         A payment is evidence with a balanced posting behind it. Allocating it to invoices or
         credits is the settlement; a short payment is accepted as an agreed deduction or left open.
-        Payment runs pay suppliers in bulk.
+        Payment runs pay suppliers in bulk. Public payment reads filter direction only as incoming
+        or outgoing; customer or supplier is a party-balance side, not a payment direction.
       de: >-
         Eine Zahlung ist ein Beleg mit einer ausgeglichenen Buchung dahinter. Die Zuordnung zu
         Rechnungen oder Gutschriften ist der Ausgleich; eine Minderzahlung wird als vereinbarter
-        Abzug akzeptiert oder bleibt offen. Zahlläufe bezahlen Lieferanten gesammelt.
+        Abzug akzeptiert oder bleibt offen. Zahlläufe bezahlen Lieferanten gesammelt. Öffentliche
+        Zahlungsabfragen filtern die Richtung nur als eingehend oder ausgehend; Kunde oder
+        Lieferant ist eine Saldo-Seite und keine Zahlungsrichtung.
     synonyms: [payment receipt, allocation, matching, short payment, refund, payment run, Zahlungseingang, zuordnen, Minderzahlung, Abzug, Skontoabzug, Erstattung, Zahllauf, Saldo]
     tables: [settlement_allocation]
     match: "payment(?!_term)|refund|settlement|adjustment|balances|unmatched_financial"
@@ -650,6 +653,13 @@ labels:
       post_supplier_invoice: Eingangsrechnung buchen
       record_sales_credit: Retourengutschrift erfassen
       record_supplier_invoice: Eingangsrechnung erfassen
+      record_free_supplier_invoice: Freie Eingangsrechnung erfassen
+      invoice_credit_context: Gutschriftfähige Rechnungspositionen anzeigen
+      dunning_context: Mahnkontext anzeigen
+      notices: Mahnungen anzeigen
+      notice_detail: Mahnung anzeigen
+      record_notice: Mahnung erfassen
+      reverse_notice: Mahnung stornieren
       record_sales_invoice: Ausgangsrechnung erfassen
       post_sales_credit_note: Gutschrift buchen
       allocate_credit_note: Gutschrift mit Rechnung verrechnen

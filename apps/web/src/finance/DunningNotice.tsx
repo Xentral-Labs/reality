@@ -148,6 +148,12 @@ export function DunningNotice({
           <p className="mb-4 text-sm text-fg-muted">
             {t("The fee is a separate receivable. No email is sent automatically.")}
           </p>
+          <p className="mb-4 text-sm text-fg-muted">
+            {t("An authenticated company owner must approve or reject this finance proposal.")}{" "}
+            {t(
+              "After confirmation, verify the retained notice and fee through the dunning notice read.",
+            )}
+          </p>
           <div className="flex gap-2">
             <button className="br-btn" disabled={busy} onClick={() => void decide(true)}>
               {t("Confirm dunning notice")}

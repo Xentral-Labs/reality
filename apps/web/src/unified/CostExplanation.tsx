@@ -41,6 +41,7 @@ export function CostExplanationResult({
   envelope: CostQueryEnvelope;
 }) {
   const { freshness, resolved } = envelope;
+  const { guidance } = envelope;
   const current = envelope.result;
   const basis = envelope.basis_result || {};
   const shown = current || basis;
@@ -89,6 +90,20 @@ export function CostExplanationResult({
       {freshness.state === "uninitialized" && (
         <p role="status">{t("No reviewed cost basis exists for this scope.")}</p>
       )}
+      <section className="rounded-xl border border-border-default bg-surface p-3 text-sm">
+        <strong>{t("Cost readiness")}: </strong>
+        <span>{guidance.stage}</span>
+        <p className="mt-1 text-fg-muted">{guidance.reason}</p>
+        {guidance.next_action && (
+          <p className="mt-2">
+            <strong>{t("Next authorized action")}:</strong> <code>{guidance.next_action.tool}</code>{" "}
+            · {guidance.next_action.operation}
+            {guidance.next_action.required_principal === "authenticated_active_owner" && (
+              <> · {t("Authenticated company owner required")}</>
+            )}
+          </p>
+        )}
+      </section>
       <dl className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
         {contribution ? (
           <>
@@ -157,6 +172,15 @@ export function CostExplanationResult({
           {t("Inspect cost basis")}
         </a>
       )}
+      {guidance.explanation_links.map((link) => (
+        <a
+          key={`${link.kind}:${link.id}`}
+          className="br-btn inline-flex"
+          href={inspector(link.kind, link.id)}
+        >
+          {t("Inspect guidance evidence")}
+        </a>
+      ))}
     </CostExplanationFrame>
   );
 }

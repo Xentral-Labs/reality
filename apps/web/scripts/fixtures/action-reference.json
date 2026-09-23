@@ -588,6 +588,56 @@
       "effect": "Records stated supplier invoice evidence linked to a purchase order line and posts its payable atomically."
     },
     {
+      "name": "Record free supplier invoice",
+      "service": "record_free_supplier_invoice",
+      "mode": "mutation",
+      "adapters": ["Web", "MCP", "Chat"],
+      "effect": "Records stated supplier invoice evidence without a purchase-order line and posts its payable atomically without inventing a commitment or Movement."
+    },
+    {
+      "name": "Read invoice credit context",
+      "service": "invoice_credit_context",
+      "mode": "query",
+      "adapters": ["Web", "MCP", "Chat"],
+      "effect": "Shows exact customer-invoice positions and remaining credit capacity without recording a credit."
+    },
+    {
+      "name": "Read dunning context",
+      "service": "dunning_context",
+      "related_services": ["preview_notice"],
+      "mode": "query",
+      "adapters": ["Web", "MCP", "Chat"],
+      "effect": "Validates one selected reminder scope and returns the finance revision without recording or sending anything."
+    },
+    {
+      "name": "List dunning notices",
+      "service": "notices",
+      "mode": "query",
+      "adapters": ["Web", "MCP", "Chat"],
+      "effect": "Lists retained manual reminders with their invoice membership, optional fee and reversal trace."
+    },
+    {
+      "name": "Read dunning notice",
+      "service": "notice_detail",
+      "mode": "query",
+      "adapters": ["Web", "MCP", "Chat"],
+      "effect": "Reads one retained manual reminder with its exact invoice membership, optional fee and reversal trace."
+    },
+    {
+      "name": "Record dunning notice",
+      "service": "record_notice",
+      "mode": "mutation",
+      "adapters": ["Web", "MCP", "Chat"],
+      "effect": "Records one explicitly reviewed manual reminder and optional exact stated fee without sending a message."
+    },
+    {
+      "name": "Reverse dunning notice",
+      "service": "reverse_notice",
+      "mode": "mutation",
+      "adapters": ["Web", "MCP", "Chat"],
+      "effect": "Retains the original reminder and explicitly reverses its fee effect and reminder state."
+    },
+    {
       "name": "Record sales invoice",
       "service": "record_sales_invoice",
       "mode": "mutation",

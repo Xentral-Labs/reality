@@ -94,6 +94,7 @@ def test_copilot_schema_is_derived_from_registry_without_confirmation_tools():
     exposed = {schema["function"]["name"]: schema for schema in schemas}
 
     assert "proposal_approve_and_execute" not in exposed
+    assert "proposal_reject" not in exposed
     assert {
         "member_invite",
         "invitation_resend",
@@ -106,6 +107,40 @@ def test_copilot_schema_is_derived_from_registry_without_confirmation_tools():
     for tool in MCP_TOOL_CATALOG:
         if tool.name in exposed:
             assert exposed[tool.name]["function"]["parameters"] == tool.input_schema
+
+
+def test_proposal_result_names_review_principal_and_verification(session, business):
+    commitment = create_commitment(
+        session,
+        business.tenant.id,
+        "customer_delivery",
+        business.company.id,
+        business.customer.id,
+        business.item.id,
+        business.location.id,
+        2,
+        "2026-09-24",
+    )
+
+    result = dispatch_tool(
+        session,
+        business.tenant.id,
+        "reservation_propose",
+        {"commitment_id": commitment.id},
+        allowed_access=("propose",),
+    )
+
+    assert result["proposal_id"].startswith("act_")
+    assert result["next_step"] == {
+        "review_required": True,
+        "review_read": "proposal_review",
+        "decision_handoff": "proposal-review",
+        "required_principal": "authenticated_active_member",
+        "explicit_confirmation": True,
+        "confirmation_tool": "proposal_approve_and_execute",
+        "reconciliation_read": "proposal_execution_status",
+        "verification_reads": ["inventory", "commitment_register"],
+    }
 
 
 def test_master_data_proposal_schemas_expose_required_fields_defaults_and_optional_source():
@@ -139,6 +174,323 @@ def test_master_data_proposal_schemas_expose_required_fields_defaults_and_option
     assert {"ref", "parent_ref", "parent_location_id"} <= set(location_properties)
     assert "opaque" in location_properties["parent_location_id"]["description"].lower()
     assert "same batch" in location_properties["parent_ref"]["description"]
+
+
+def test_manual_document_and_movement_schemas_publish_closed_values():
+    schemas = {
+        schema["function"]["name"]: schema["function"]["parameters"]
+        for schema in model_tool_schemas(access=("propose",))
+    }
+    assert schemas["document_create_propose"]["properties"]["document_type"][
+        "enum"
+    ] == [
+        "sales_order",
+        "purchase_order",
+        "sales_invoice",
+        "supplier_invoice",
+        "credit_note",
+        "supplier_credit_note",
+    ]
+    assert schemas["movement_create_propose"]["properties"]["movement_type"][
+        "enum"
+    ] == [
+        "opening_stock",
+        "receipt",
+        "shipment",
+        "transfer",
+        "return",
+        "supplier_return",
+        "adjustment",
+    ]
+
+
+def test_credit_dunning_and_free_supplier_invoice_have_public_contracts():
+    definitions = {tool.name: tool for tool in MCP_TOOL_CATALOG}
+    assert definitions["invoice_credit_context"].access == "read"
+    assert definitions["invoice_credit_context"].input_schema["required"] == [
+        "invoice_id"
+    ]
+    assert definitions["supplier_invoice_free_record_propose"].access == "propose"
+    assert {
+        "supplier_id",
+        "number",
+        "currency",
+        "gross_amount",
+        "lines",
+    } <= set(
+        definitions["supplier_invoice_free_record_propose"].input_schema["required"]
+    )
+    assert definitions["finance_dunning_context"].access == "read"
+    assert definitions["finance_dunning_notices"].access == "read"
+    assert definitions["finance_dunning_notice"].access == "read"
+    assert definitions["finance_dunning_record_propose"].access == "propose"
+    assert definitions["finance_dunning_reverse_propose"].access == "propose"
+
+
+def test_customer_credit_schema_distinguishes_invoice_and_legacy_shapes():
+    schema = next(
+        tool.input_schema
+        for tool in MCP_TOOL_CATALOG
+        if tool.name == "sales_credit_record_propose"
+    )
+
+    assert schema["additionalProperties"] is False
+    assert schema["required"] == ["gross_amount", "number"]
+    assert schema["properties"]["lines"]["items"]["required"] == [
+        "invoice_line_id",
+        "quantity",
+        "gross_amount",
+    ]
+    assert schema["oneOf"] == [
+        {
+            "title": "Invoice-linked financial credit",
+            "required": [
+                "invoice_id",
+                "lines",
+                "reason",
+                "allocation_amount",
+            ],
+            "not": {
+                "anyOf": [{"required": ["order_line_id"]}, {"required": ["quantity"]}]
+            },
+        },
+        {
+            "title": "Legacy return credit",
+            "required": ["order_line_id", "quantity"],
+            "not": {
+                "anyOf": [
+                    {"required": ["invoice_id"]},
+                    {"required": ["lines"]},
+                    {"required": ["reason"]},
+                    {"required": ["allocation_amount"]},
+                ]
+            },
+        },
+    ]
+
+
+def test_canonical_schema_contract_keeps_required_enums_and_nested_shapes():
+    definitions = {tool.name: tool for tool in MCP_TOOL_CATALOG}
+    assert definitions["document_create_propose"].input_schema["properties"][
+        "document_type"
+    ]["enum"] == [
+        "sales_order",
+        "purchase_order",
+        "sales_invoice",
+        "supplier_invoice",
+        "credit_note",
+        "supplier_credit_note",
+    ]
+    assert definitions["movement_create_propose"].input_schema["properties"][
+        "movement_type"
+    ]["enum"] == [
+        "opening_stock",
+        "receipt",
+        "shipment",
+        "transfer",
+        "return",
+        "supplier_return",
+        "adjustment",
+    ]
+    free_invoice = definitions["supplier_invoice_free_record_propose"].input_schema
+    assert set(free_invoice["required"]) == {
+        "supplier_id",
+        "number",
+        "currency",
+        "gross_amount",
+        "lines",
+    }
+    assert set(free_invoice["properties"]["lines"]["items"]["required"]) == {
+        "quantity",
+        "unit_price",
+        "gross_amount",
+    }
+    credit = definitions["sales_credit_record_propose"].input_schema
+    assert set(credit["properties"]["lines"]["items"]["required"]) == {
+        "invoice_line_id",
+        "quantity",
+        "gross_amount",
+    }
+
+
+def test_operational_and_finance_closed_schemas_are_complete_without_probing():
+    definitions = {tool.name: tool.input_schema for tool in MCP_TOOL_CATALOG}
+    assert definitions["shipment_notice_record_propose"]["properties"]["direction"][
+        "enum"
+    ] == ["inbound", "outbound"]
+    assert definitions["shipment_notice_record_propose"]["properties"]["purpose"][
+        "enum"
+    ] == [
+        "customer_delivery",
+        "supplier_delivery",
+        "customer_return",
+        "supplier_return",
+    ]
+    assert definitions["shipment_dispatch_propose"]["properties"]["purpose"][
+        "enum"
+    ] == ["customer_delivery", "supplier_return"]
+    assert definitions["shipment_receive_propose"]["properties"]["purpose"]["enum"] == [
+        "supplier_delivery",
+        "customer_return",
+    ]
+    assert definitions["supply_assign_propose"]["properties"]["purpose"]["enum"] == [
+        "customer_demand",
+        "stock_replenishment",
+    ]
+    assert definitions["return_disposition_propose"]["properties"]["disposition"][
+        "enum"
+    ] == ["restock", "quarantine_repair", "scrap_loss", "return_to_supplier"]
+    settlement = definitions["finance_settlement_propose"]
+    assert settlement["properties"]["mode"]["enum"] == [
+        "payment",
+        "allocate_credit",
+        "refund_credit",
+    ]
+    assert set(settlement["required"]) == {
+        "mode",
+        "document_id",
+        "expected_revision",
+        "amount",
+    }
+    assert "allocation_amount" in settlement["properties"]["mode"]["description"]
+    assert "invoice_id" in settlement["properties"]["mode"]["description"]
+
+
+def test_new_external_agent_surfaces_use_opaque_ids_and_refuse_foreign_records(
+    session, business
+):
+    from reality.services import core
+    from reality.services.finance.accounts import list_accounts
+    from reality.tools.application import approve_and_execute_proposal
+
+    definitions = {tool.name: tool for tool in MCP_TOOL_CATALOG}
+    identity_fields = {
+        "invoice_credit_context": ["invoice_id"],
+        "supplier_invoice_free_record_propose": ["supplier_id"],
+        "finance_dunning_context": ["invoice_ids"],
+        "finance_dunning_notice": ["notice_id"],
+        "finance_dunning_record_propose": ["invoice_ids"],
+        "finance_dunning_reverse_propose": ["notice_id"],
+        "proposal_reject": ["proposal_id"],
+    }
+    for tool_name, field_names in identity_fields.items():
+        properties = definitions[tool_name].input_schema["properties"]
+        for field_name in field_names:
+            identity_schema = properties[field_name]
+            if identity_schema["type"] == "array":
+                assert identity_schema["items"]["type"] == "string"
+            else:
+                assert identity_schema["type"] == "string"
+
+    tenant = business.tenant.id
+    foreign = create_tenant(session, "Foreign external-agent boundary")
+    invoice = core.create_document(
+        session,
+        tenant,
+        "sales_invoice",
+        "INV-OPAQUE-257",
+        business.customer.id,
+        "50.00",
+        document_date="2026-01-01",
+    )
+    core.post_sales_invoice(session, tenant, invoice.id)
+    with pytest.raises(NotFound):
+        dispatch_tool(
+            session,
+            foreign.id,
+            "invoice_credit_context",
+            {"invoice_id": invoice.id},
+            allowed_access=("read",),
+        )
+    with pytest.raises(NotFound):
+        dispatch_tool(
+            session,
+            foreign.id,
+            "finance_dunning_context",
+            {
+                "invoice_ids": [invoice.id],
+                "level": 1,
+                "notice_date": "2026-09-23",
+                "fee_amount": "0",
+                "reason": "Boundary proof",
+                "number": "DN-OPAQUE-257",
+            },
+            allowed_access=("read",),
+        )
+    assert (
+        dispatch_tool(
+            session,
+            foreign.id,
+            "finance_dunning_notices",
+            {},
+            allowed_access=("read",),
+        )
+        == []
+    )
+    with pytest.raises(NotFound):
+        dispatch_tool(
+            session,
+            foreign.id,
+            "supplier_invoice_free_record_propose",
+            {
+                "supplier_id": business.supplier.id,
+                "number": "FOREIGN-SINV-257",
+                "currency": "EUR",
+                "gross_amount": "1.00",
+                "lines": [
+                    {
+                        "description": "Foreign refusal",
+                        "quantity": "1",
+                        "unit_price": "1.00",
+                        "gross_amount": "1.00",
+                    }
+                ],
+            },
+            allowed_access=("propose",),
+        )
+
+    prepared = dispatch_tool(
+        session,
+        tenant,
+        "finance_dunning_record_propose",
+        {
+            "invoice_ids": [invoice.id],
+            "level": 1,
+            "notice_date": "2026-09-23",
+            "fee_amount": "0",
+            "reason": "Boundary proof",
+            "number": "DN-OPAQUE-257",
+            "expected_revision": list_accounts(session, tenant)["revision"],
+        },
+        allowed_access=("propose",),
+    )
+    executed = approve_and_execute_proposal(session, tenant, prepared["proposal_id"])
+    notice_id = json.loads(executed.output)["id"]
+    for tool_name, arguments, access in (
+        ("finance_dunning_notice", {"notice_id": notice_id}, "read"),
+        (
+            "finance_dunning_reverse_propose",
+            {
+                "notice_id": notice_id,
+                "reason": "Foreign refusal",
+                "expected_revision": list_accounts(session, foreign.id)["revision"],
+            },
+            "propose",
+        ),
+        (
+            "proposal_reject",
+            {"proposal_id": prepared["proposal_id"], "rejected": True},
+            "confirm",
+        ),
+    ):
+        with pytest.raises(NotFound):
+            dispatch_tool(
+                session,
+                foreign.id,
+                tool_name,
+                arguments,
+                allowed_access=(access,),
+            )
 
 
 def test_copilot_module_has_no_stdio_or_subprocess_dependency():
@@ -183,6 +535,77 @@ def test_copilot_dispatch_cannot_execute_confirmation_tool(session, business):
             {"proposal_id": "act_unknown", "approved": True},
             allowed_access=("read", "propose"),
         )
+
+
+def test_proposal_rejection_is_a_controlled_non_model_tool():
+    definitions = {tool.name: tool for tool in MCP_TOOL_CATALOG}
+    rejection = definitions["proposal_reject"]
+
+    assert rejection.access == "confirm"
+    assert rejection.input_schema["required"] == ["proposal_id", "rejected"]
+    assert rejection.input_schema["properties"]["rejected"] == {
+        "type": "boolean",
+        "const": True,
+    }
+
+
+def test_mcp_rejection_requires_explicit_decision_and_preserves_tenant_scope(
+    session, business
+):
+    commitment = create_commitment(
+        session,
+        business.tenant.id,
+        "customer_delivery",
+        business.company.id,
+        business.customer.id,
+        business.item.id,
+        business.location.id,
+        1,
+        "2026-09-24",
+    )
+    prepared = dispatch_tool(
+        session,
+        business.tenant.id,
+        "reservation_propose",
+        {"commitment_id": commitment.id},
+        allowed_access=("propose",),
+    )
+    values = {"proposal_id": prepared["proposal_id"], "rejected": True}
+
+    with pytest.raises(ValueError, match="explicit human decision"):
+        dispatch_tool(
+            session,
+            business.tenant.id,
+            "proposal_reject",
+            {**values, "rejected": False},
+            allowed_access=("confirm",),
+        )
+    with pytest.raises(NotFound):
+        dispatch_tool(
+            session,
+            "ten_other",
+            "proposal_reject",
+            values,
+            allowed_access=("confirm",),
+        )
+
+    rejected = dispatch_tool(
+        session,
+        business.tenant.id,
+        "proposal_reject",
+        values,
+        allowed_access=("confirm",),
+    )
+    replay = dispatch_tool(
+        session,
+        business.tenant.id,
+        "proposal_reject",
+        values,
+        allowed_access=("confirm",),
+    )
+    assert rejected == replay
+    assert rejected["status"] == "rejected"
+    assert rejected["business_effect"] == "none"
 
 
 def test_ai_key_is_encrypted_and_tenant_scoped(

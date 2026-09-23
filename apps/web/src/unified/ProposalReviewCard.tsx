@@ -82,6 +82,12 @@ export function ProposalReviewCard({
         {t(data.actor_type === "agent" ? "Proposed by an agent" : "Prepared for review")} ·{" "}
         {formatDateTime(data.created_at)}
       </p>
+      {data.next_step.required_principal === "authenticated_active_owner" && (
+        <p className="mt-4 rounded-xl bg-surface-muted p-4 text-sm">
+          {t("Owner decision required")}.{" "}
+          {t("An authenticated company owner must approve or reject this finance proposal.")}
+        </p>
+      )}
       {data.message && (
         <p role="alert" className="mt-4 rounded-xl bg-surface-muted p-4">
           {t(data.message)}
@@ -93,6 +99,17 @@ export function ProposalReviewCard({
           {JSON.stringify(data.input, null, 2)}
         </pre>
       </section>
+      {data.status !== "proposed" && (
+        <p className="mt-4 text-sm text-fg-muted">
+          {t("Reconcile with")} <code>{data.next_step.reconciliation_read}</code>
+          {data.next_step.verification_reads.length > 0 && (
+            <>
+              {" "}
+              · {t("Verify with")} <code>{data.next_step.verification_reads.join(", ")}</code>
+            </>
+          )}
+        </p>
+      )}
       <section className="mt-5">
         <h3 className="font-semibold">
           {t(data.status === "proposed" ? "Prepared preview" : "Stored receipt")}

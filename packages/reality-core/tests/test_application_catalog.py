@@ -13,8 +13,8 @@ from reality.services.projections import OPERATIONAL_PROJECTIONS
 def test_split_catalog_is_complete_and_composed():
     catalog = load_application_catalog()
 
-    assert catalog["command_count"] == 104
-    assert catalog["event_count"] == 62
+    assert catalog["command_count"] == 111
+    assert catalog["event_count"] == 64
     assert catalog["projection_count"] == len(OPERATIONAL_PROJECTIONS) == 13
     assert catalog["fact_predicate_count"] == 7
     assert catalog["operational_exception_classes"] == [
@@ -135,6 +135,39 @@ def test_split_catalog_is_complete_and_composed():
         if "Web" not in command["adapters"]
     }
     assert web_missing == set()
+
+
+def test_external_agent_closure_bindings_share_application_services():
+    from reality.mcp.catalog import MCP_TOOL_CATALOG
+    from reality.tools.application import TOOLS
+
+    catalog = load_application_catalog()
+    commands = {command["service"]: command for command in catalog["commands"]}
+    public_tools = {tool.name: tool for tool in MCP_TOOL_CATALOG}
+    expected = {
+        "invoice_credit_context": ("invoice_credit_context", "read"),
+        "supplier_invoice_free_record_propose": (
+            "supplier_invoice_free_record",
+            "propose",
+        ),
+        "finance_dunning_context": ("finance.dunning.context", "read"),
+        "finance_dunning_notices": ("finance.dunning.notices", "read"),
+        "finance_dunning_notice": ("finance.dunning.notice", "read"),
+        "finance_dunning_record_propose": ("finance.dunning.record", "propose"),
+        "finance_dunning_reverse_propose": ("finance.dunning.reverse", "propose"),
+    }
+    for public_name, (application_name, access) in expected.items():
+        assert public_tools[public_name].access == access
+        assert application_name in TOOLS
+        guidance = catalog["capability_guidance"][public_name]
+        assert guidance["application_tool"] == application_name
+
+    assert commands["record_free_supplier_invoice"]["adapters"] == [
+        "Web",
+        "MCP",
+        "Chat",
+    ]
+    assert commands["record_notice"]["adapters"] == ["Web", "MCP", "Chat"]
 
 
 @pytest.mark.parametrize(
@@ -424,13 +457,13 @@ def test_production_tenant_isolation_catalog_is_complete_and_resolvable():
     catalog = catalogs.load_tenant_isolation_catalog()
 
     assert len(catalog.families) == 32
-    assert len(catalog.discovered_operations) == 564
+    assert len(catalog.discovered_operations) == 569
     assert (
         "reality.services.projections:refresh_projection"
         in catalog.discovered_operations
     )
     assert "reality.services.playground:start_run" in catalog.discovered_operations
-    assert sum(len(family["operations"]) for family in catalog.families) == 564
+    assert sum(len(family["operations"]) for family in catalog.families) == 569
     assert (
         "reality.services.core:validate_commitment_movement_quantity"
         in catalog.discovered_operations

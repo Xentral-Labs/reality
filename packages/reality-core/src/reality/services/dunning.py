@@ -17,6 +17,7 @@ from reality.db.core import (
     uid,
 )
 from reality.services import core
+from reality.services.core import emit_business_event
 from reality.services.finance.accounts import lock_finance, resolve_account
 from reality.services.finance.worklists import overdue_document_ids
 
@@ -78,6 +79,18 @@ def preview_notice(session: Session, tenant_id: str, values: dict) -> dict[str, 
             invoice.id: str(core.open_invoice_amount(session, tenant_id, invoice.id))
             for invoice in invoices
         },
+    }
+
+
+def dunning_context(
+    session: Session, tenant_id: str, arguments: dict[str, Any]
+) -> dict[str, Any]:
+    """Return the current finance revision and a validated reminder preview."""
+    from reality.services.finance.accounts import list_accounts
+
+    return {
+        "revision": list_accounts(session, tenant_id)["revision"],
+        "preview": preview_notice(session, tenant_id, arguments),
     }
 
 
@@ -207,7 +220,7 @@ def record_notice(
                 "posting_group_id": entries[0].posting_group_id,
                 "ledger_entry_ids": [entry.id for entry in entries],
             }
-        core.emit_business_event(
+        emit_business_event(
             session,
             tenant_id,
             "dunning.notice_recorded",
@@ -335,7 +348,7 @@ def reverse_notice(
             _commit=False,
         )
         reversal_id = reversal.reversal_id
-    core.emit_business_event(
+    emit_business_event(
         session,
         tenant_id,
         "dunning.notice_reversed",

@@ -179,7 +179,7 @@
         "command:create_party_group",
         "command:hold_party_delivery"
       ],
-      "reads": [],
+      "reads": ["command:dunning_context"],
       "exceptions": ["exception:credit_limit_exceeded", "exception:party_hold_unreleased"],
       "tools": ["tool:finance_party_balances"],
       "events": [
@@ -571,13 +571,14 @@
         "command:post_supplier_invoice",
         "command:record_sales_credit",
         "command:record_supplier_invoice",
+        "command:record_free_supplier_invoice",
         "command:record_sales_invoice",
         "command:post_sales_credit_note",
         "command:allocate_credit_note",
         "command:post_supplier_credit_note",
         "command:allocate_supplier_credit_note"
       ],
-      "reads": [],
+      "reads": ["command:invoice_credit_context"],
       "exceptions": [
         "exception:shipped_not_billed",
         "exception:billed_not_received",
@@ -609,8 +610,8 @@
         "de": "Zahlungseingänge und -ausgänge, Zuordnung, Minderzahlungen und Erstattungen"
       },
       "description": {
-        "en": "A payment is evidence with a balanced posting behind it. Allocating it to invoices or credits is the settlement; a short payment is accepted as an agreed deduction or left open. Payment runs pay suppliers in bulk.",
-        "de": "Eine Zahlung ist ein Beleg mit einer ausgeglichenen Buchung dahinter. Die Zuordnung zu Rechnungen oder Gutschriften ist der Ausgleich; eine Minderzahlung wird als vereinbarter Abzug akzeptiert oder bleibt offen. Zahlläufe bezahlen Lieferanten gesammelt."
+        "en": "A payment is evidence with a balanced posting behind it. Allocating it to invoices or credits is the settlement; a short payment is accepted as an agreed deduction or left open. Payment runs pay suppliers in bulk. Public payment reads filter direction only as incoming or outgoing; customer or supplier is a party-balance side, not a payment direction.",
+        "de": "Eine Zahlung ist ein Beleg mit einer ausgeglichenen Buchung dahinter. Die Zuordnung zu Rechnungen oder Gutschriften ist der Ausgleich; eine Minderzahlung wird als vereinbarter Abzug akzeptiert oder bleibt offen. Zahlläufe bezahlen Lieferanten gesammelt. Öffentliche Zahlungsabfragen filtern die Richtung nur als eingehend oder ausgehend; Kunde oder Lieferant ist eine Saldo-Seite und keine Zahlungsrichtung."
       },
       "synonyms": [
         "payment receipt",
@@ -641,6 +642,7 @@
       ],
       "reads": [
         "command:preview_payment_run",
+        "command:dunning_context",
         "command:adjustment_context",
         "command:settlement_context"
       ],
@@ -759,6 +761,8 @@
         "command:update_account",
         "command:set_default_account",
         "command:reverse_ledger_posting_group",
+        "command:record_notice",
+        "command:reverse_notice",
         "command:import_opening"
       ],
       "reads": [
@@ -782,6 +786,9 @@
         "command:reference_history",
         "command:transaction_matrix",
         "command:list_accounts",
+        "command:dunning_context",
+        "command:notices",
+        "command:notice_detail",
         "command:opening_context"
       ],
       "exceptions": [
@@ -798,6 +805,8 @@
         "event:finance.component_assigned",
         "event:finance.reference_changed",
         "event:finance.account_changed",
+        "event:dunning.notice_recorded",
+        "event:dunning.notice_reversed",
         "event:ledger.posted",
         "event:ledger.reversed"
       ],
@@ -940,18 +949,23 @@
         "command:correct_manual_document",
         "command:record_corrected_document_source",
         "command:hold_document_commitments",
-        "command:create_manual_document_with_lines"
+        "command:create_manual_document_with_lines",
+        "command:record_notice"
       ],
       "reads": [
         "command:commercial_match",
         "command:preview_document",
         "command:list_source_mappings",
-        "command:source_mapping_history"
+        "command:source_mapping_history",
+        "command:dunning_context",
+        "command:notices",
+        "command:notice_detail"
       ],
       "exceptions": ["exception:silent_source", "exception:source_interpretation_failure"],
       "tools": ["tool:interpretation_coverage"],
       "events": [
         "event:finance.source_mapping_changed",
+        "event:dunning.notice_recorded",
         "event:source_record.stored",
         "event:fact.observed",
         "event:source_record.received",
@@ -1040,6 +1054,7 @@
         "tool:proposals_awaiting_approval",
         "tool:proposal_execution_status",
         "tool:proposal_approve_and_execute",
+        "tool:proposal_reject",
         "tool:reality_gaps",
         "tool:reality_gap_get",
         "tool:reality_gap_simulate",
@@ -3116,6 +3131,40 @@
       "projections": [],
       "links": [],
       "label_de": "Approve and execute a proposal",
+      "resources": ["governance"]
+    },
+    {
+      "id": "tool:proposal_reject",
+      "kind": "tool",
+      "key": "proposal_reject",
+      "label": "Reject a proposal",
+      "area": "agent_governance",
+      "summary": "Carry out an explicit human rejection of one pending proposal without business effect.",
+      "access": "confirm",
+      "group": "Exceptions & proposals",
+      "synopsis": "proposal_reject proposal_id rejected",
+      "parameters": [
+        {
+          "name": "proposal_id",
+          "type": "string",
+          "required": true,
+          "description": "",
+          "depth": 0
+        },
+        {
+          "name": "rejected",
+          "type": "boolean",
+          "required": true,
+          "description": "",
+          "depth": 0
+        }
+      ],
+      "guidance": {},
+      "read_modes": [],
+      "command": null,
+      "projections": [],
+      "links": [],
+      "label_de": "Reject a proposal",
       "resources": ["governance"]
     },
     {
@@ -5493,7 +5542,16 @@
           "type": "string",
           "required": true,
           "description": "Physical event kind — opening_stock, receipt, shipment, transfer, adjustment, return (goods back from a customer), or supplier_return (goods back to a supplier).",
-          "depth": 0
+          "depth": 0,
+          "enum": [
+            "opening_stock",
+            "receipt",
+            "shipment",
+            "transfer",
+            "return",
+            "supplier_return",
+            "adjustment"
+          ]
         },
         {
           "name": "item_id",
@@ -6757,7 +6815,15 @@
           "type": "string",
           "required": true,
           "description": "Evidence kind, such as sales order, purchase order, or invoice.",
-          "depth": 0
+          "depth": 0,
+          "enum": [
+            "sales_order",
+            "purchase_order",
+            "sales_invoice",
+            "supplier_invoice",
+            "credit_note",
+            "supplier_credit_note"
+          ]
         },
         {
           "name": "number",
@@ -7225,11 +7291,50 @@
           "depth": 0
         }
       ],
-      "guidance": {},
+      "guidance": {
+        "purpose": "Resolve arrived customer-return goods through one of the four canonical physical outcomes without changing credit evidence.",
+        "use_when": [
+          "A return Movement has arrived and a human has chosen restock",
+          "quarantine_repair",
+          "scrap_loss or return_to_supplier for an exact quantity."
+        ],
+        "do_not_use_when": [
+          "A financial credit must be recorded; use the invoice-linked or legacy customer-credit action separately."
+        ],
+        "preconditions": [
+          "The return Movement retains its customer-delivery commitment",
+          "arrival location and any handling-unit",
+          "lot or serial identity."
+        ],
+        "refusals": [
+          {
+            "code": "invalid_return_relationship",
+            "description": "Return Movement",
+            "commitment": null,
+            "arrival location": null,
+            "tracking identity": null,
+            "destination or unresolved quantity is missing or incompatible.": null
+          }
+        ],
+        "verification_reads": [
+          {
+            "name": "return_disposition_summary",
+            "proves": "Each resolving Movement preserves the arrived return identity and reconciles the remaining quantity."
+          },
+          {
+            "name": "inventory",
+            "proves": "The resulting exact-location stock effect is visible independently."
+          }
+        ],
+        "idempotency": {
+          "mode": "supported",
+          "guidance": "Reconcile the proposal identity; confirmed replay returns the retained resolving Movement."
+        }
+      },
       "read_modes": [],
       "command": "record_return_disposition",
-      "projections": [],
-      "links": ["command:record_return_disposition"],
+      "projections": ["inventory"],
+      "links": ["command:record_return_disposition", "projection:inventory"],
       "label_de": "Resolve returned goods",
       "resources": ["return"]
     },
@@ -7329,12 +7434,201 @@
           "depth": 0
         }
       ],
-      "guidance": {},
+      "guidance": {
+        "purpose": "Record either an invoice-linked financial credit or the retained legacy order-line return credit shape.",
+        "use_when": [
+          "A human has stated the exact credit amount and selected one complete supported evidence shape."
+        ],
+        "do_not_use_when": [
+          "Returned goods need a physical disposition; use the return disposition action separately."
+        ],
+        "preconditions": [
+          "Invoice-linked and legacy fields are mutually exclusive and every opaque identity belongs to the tenant."
+        ],
+        "refusals": [
+          {
+            "code": "invalid_credit_shape",
+            "description": "Required fields are missing",
+            "shapes are mixed": null,
+            "capacity changed or evidence is unavailable.": null
+          }
+        ],
+        "verification_reads": [
+          {
+            "name": "invoice_credit_context",
+            "proves": "Remaining invoice-linked position and amount capacity derives independently after execution."
+          },
+          {
+            "name": "document_register",
+            "proves": "The retained credit and its shortest line links exist."
+          }
+        ],
+        "idempotency": {
+          "mode": "supported",
+          "guidance": "Reconcile the proposal identity; confirmed replay returns its stored receipt."
+        }
+      },
       "read_modes": [],
       "command": "record_sales_credit",
-      "projections": [],
-      "links": ["command:record_sales_credit"],
+      "projections": ["document_register"],
+      "links": ["command:record_sales_credit", "projection:document_register"],
       "label_de": "Record customer credit",
+      "resources": ["invoice"]
+    },
+    {
+      "id": "tool:supplier_invoice_free_record_propose",
+      "kind": "tool",
+      "key": "supplier_invoice_free_record_propose",
+      "label": "Record free supplier invoice",
+      "area": "finance",
+      "summary": "Prepare this business mutation without changing state. Record free supplier invoice. Human confirmation is required.",
+      "access": "propose",
+      "group": "Mutations",
+      "synopsis": "supplier_invoice_free_record_propose supplier_id number currency gross_amount [document_date] [effective_at] lines",
+      "parameters": [
+        {
+          "name": "supplier_id",
+          "type": "string",
+          "required": true,
+          "description": "Opaque same-tenant identity of the supplier Party stated on the invoice.",
+          "depth": 0
+        },
+        {
+          "name": "number",
+          "type": "string",
+          "required": true,
+          "description": "Human-facing document or transaction number; it is not internal identity.",
+          "depth": 0
+        },
+        {
+          "name": "currency",
+          "type": "string",
+          "required": true,
+          "description": "ISO 4217 currency code for monetary values.",
+          "depth": 0
+        },
+        {
+          "name": "gross_amount",
+          "type": "string",
+          "required": true,
+          "description": "Total the source states for the document; recorded as received and never calculated.",
+          "depth": 0
+        },
+        {
+          "name": "document_date",
+          "type": "string",
+          "required": false,
+          "description": "Business date printed on or asserted by the evidence document.",
+          "depth": 0
+        },
+        {
+          "name": "effective_at",
+          "type": "string",
+          "required": false,
+          "description": "UTC instant from which the observation or rule takes effect.",
+          "depth": 0
+        },
+        {
+          "name": "lines",
+          "type": "array",
+          "required": true,
+          "description": "Complete intended normalized DocumentLine Evidence snapshot for an atomic manual correction.",
+          "depth": 0
+        },
+        {
+          "name": "lines[].item_id",
+          "type": "string",
+          "required": false,
+          "description": "Opaque identity of the operational item reference.",
+          "depth": 1
+        },
+        {
+          "name": "lines[].sku",
+          "type": "string",
+          "required": false,
+          "description": "Human-facing stock-keeping code used to find an item; internal joins use item_id.",
+          "depth": 1
+        },
+        {
+          "name": "lines[].description",
+          "type": "string",
+          "required": false,
+          "description": "Human-readable explanation of the record or rule.",
+          "depth": 1
+        },
+        {
+          "name": "lines[].quantity",
+          "type": "string",
+          "required": true,
+          "description": "Decimal quantity expressed in the item's relevant unit.",
+          "depth": 1
+        },
+        {
+          "name": "lines[].unit",
+          "type": "string",
+          "required": false,
+          "description": "Unit of measure in which the quantity is expressed.",
+          "depth": 1
+        },
+        {
+          "name": "lines[].unit_price",
+          "type": "string",
+          "required": true,
+          "description": "Decimal monetary amount for one unit before quantity multiplication.",
+          "depth": 1
+        },
+        {
+          "name": "lines[].gross_amount",
+          "type": "string",
+          "required": true,
+          "description": "Total the source states for the document; recorded as received and never calculated.",
+          "depth": 1
+        },
+        {
+          "name": "lines[].line_type",
+          "type": "string",
+          "required": false,
+          "description": "Closed kind of a document line, such as goods or a charge, taken from the source statement.",
+          "depth": 1
+        }
+      ],
+      "guidance": {
+        "purpose": "Record source-stated supplier invoice evidence and post its payable without inventing a purchase order.",
+        "use_when": [
+          "A supplier invoice contains supported free goods",
+          "service or charge positions with no purchase-order line."
+        ],
+        "do_not_use_when": ["The invoice positions belong to existing purchase-order lines."],
+        "preconditions": [
+          "The Party has supplier role and every stated line is valid tenant evidence."
+        ],
+        "refusals": [
+          {
+            "code": "invalid_supplier_invoice",
+            "description": "Supplier",
+            "position or stated amount is invalid or outside the tenant.": null
+          }
+        ],
+        "verification_reads": [
+          {
+            "name": "document_register",
+            "proves": "The supplier invoice and stated lines are retained."
+          },
+          {
+            "name": "finance_balances",
+            "proves": "The payable derives from posted LedgerEntries."
+          }
+        ],
+        "idempotency": {
+          "mode": "supported",
+          "guidance": "Reconcile the proposal identity; confirmed replay returns its stored receipt."
+        }
+      },
+      "read_modes": [],
+      "command": "record_free_supplier_invoice",
+      "projections": ["document_register"],
+      "links": ["command:record_free_supplier_invoice", "projection:document_register"],
+      "label_de": "Record free supplier invoice",
       "resources": ["invoice"]
     },
     {
@@ -8863,6 +9157,52 @@
       "resources": ["payment"]
     },
     {
+      "id": "tool:invoice_credit_context",
+      "kind": "tool",
+      "key": "invoice_credit_context",
+      "label": "Invoice credit context",
+      "area": "finance",
+      "summary": "Read eligible customer-invoice positions, remaining quantities, amount capacity and blockers.",
+      "access": "read",
+      "group": "Finance",
+      "synopsis": "invoice_credit_context invoice_id",
+      "parameters": [
+        {
+          "name": "invoice_id",
+          "type": "string",
+          "required": true,
+          "description": "Opaque identity of the invoice evidence associated with a payment or allocation.",
+          "depth": 0
+        }
+      ],
+      "guidance": {
+        "purpose": "Read one customer invoice's eligible opaque line identities and remaining credit capacity.",
+        "use_when": [
+          "An invoice-linked customer credit must be prepared from current posted evidence."
+        ],
+        "do_not_use_when": [
+          "A return-only legacy credit or a physical return disposition is required."
+        ],
+        "limitations": [
+          "Capacity is current and does not authorize a credit or imply returned goods."
+        ],
+        "empty_result": "An invoice with no eligible remaining position returns positions with zero remaining capacity.",
+        "freshness": "Derived from committed invoice, credit and settlement evidence at request time."
+      },
+      "read_modes": [
+        {
+          "query": "MCP invoice_credit_context",
+          "mode": "live",
+          "default": true
+        }
+      ],
+      "command": "invoice_credit_context",
+      "projections": [],
+      "links": ["command:invoice_credit_context"],
+      "label_de": "Invoice credit context",
+      "resources": ["invoice"]
+    },
+    {
       "id": "tool:finance_settlement_context",
       "kind": "tool",
       "key": "finance_settlement_context",
@@ -9083,6 +9423,326 @@
       "links": ["command:apply_settlement"],
       "label_de": "Record payment or use credit",
       "resources": ["payment"]
+    },
+    {
+      "id": "tool:finance_dunning_context",
+      "kind": "tool",
+      "key": "finance_dunning_context",
+      "label": "Dunning context",
+      "area": "finance",
+      "summary": "Preview one manual notice from currently overdue invoices and return the finance revision required for confirmation.",
+      "access": "read",
+      "group": "Finance",
+      "synopsis": "finance_dunning_context invoice_ids level notice_date [fee_amount] [reason] [number]",
+      "parameters": [
+        {
+          "name": "invoice_ids",
+          "type": "array",
+          "required": true,
+          "description": "Opaque same-tenant customer-invoice identities explicitly selected for one reminder.",
+          "depth": 0
+        },
+        {
+          "name": "level",
+          "type": "integer",
+          "required": true,
+          "description": "Explicit manual reminder level; only the closed levels 1, 2, and 3 are accepted.",
+          "depth": 0,
+          "enum": [1, 2, 3]
+        },
+        {
+          "name": "notice_date",
+          "type": "string",
+          "required": true,
+          "description": "Calendar date explicitly stated for the manual reminder and its overdue check.",
+          "depth": 0
+        },
+        {
+          "name": "fee_amount",
+          "type": "string",
+          "required": false,
+          "description": "Exact non-negative reminder fee stated by the confirming human; zero records no fee posting.",
+          "depth": 0,
+          "default": "0"
+        },
+        {
+          "name": "reason",
+          "type": "string",
+          "required": false,
+          "description": "Human-readable explanation for a hold, correction, or lifecycle change.",
+          "depth": 0,
+          "default": ""
+        },
+        {
+          "name": "number",
+          "type": "string",
+          "required": false,
+          "description": "Human-facing document or transaction number; it is not internal identity.",
+          "depth": 0,
+          "default": ""
+        }
+      ],
+      "guidance": {
+        "purpose": "Validate one manual reminder against current overdue invoices and expose its finance revision.",
+        "use_when": [
+          "A person has selected overdue invoices",
+          "level",
+          "date and optional exact fee for review."
+        ],
+        "do_not_use_when": ["A reminder should be generated", "escalated or sent automatically."],
+        "limitations": ["The fee is source-stated and no message is sent."],
+        "empty_result": "An empty invoice selection is refused rather than treated as no reminder.",
+        "freshness": "Derived from current open amounts, due dates and finance configuration."
+      },
+      "read_modes": [
+        {
+          "query": "MCP finance_dunning_context",
+          "mode": "live",
+          "default": true
+        }
+      ],
+      "command": "dunning_context",
+      "projections": [],
+      "links": ["command:dunning_context"],
+      "label_de": "Dunning context",
+      "resources": ["accounting", "party", "payment", "source"]
+    },
+    {
+      "id": "tool:finance_dunning_notices",
+      "kind": "tool",
+      "key": "finance_dunning_notices",
+      "label": "Dunning notices",
+      "area": "finance",
+      "summary": "List recorded manual dunning notices with fee and reversal trace.",
+      "access": "read",
+      "group": "Finance",
+      "synopsis": "finance_dunning_notices",
+      "parameters": [],
+      "guidance": {
+        "purpose": "List recorded manual reminder evidence with invoice, fee and reversal trace.",
+        "use_when": ["Recorded reminders must be reconciled or selected for reversal."],
+        "do_not_use_when": ["Overdue invoices must first be selected for a new reminder."],
+        "limitations": ["The list proves internal evidence", "not external delivery."],
+        "empty_result": "No manual reminder has been recorded for the tenant.",
+        "freshness": "Derived from committed reminder, fee and reversal records."
+      },
+      "read_modes": [
+        {
+          "query": "MCP finance_dunning_notices",
+          "mode": "live",
+          "default": true
+        }
+      ],
+      "command": "notices",
+      "projections": [],
+      "links": ["command:notices"],
+      "label_de": "Dunning notices",
+      "resources": ["accounting", "source"]
+    },
+    {
+      "id": "tool:finance_dunning_notice",
+      "kind": "tool",
+      "key": "finance_dunning_notice",
+      "label": "Dunning notice",
+      "area": "finance",
+      "summary": "Read one recorded manual dunning notice with fee and reversal trace.",
+      "access": "read",
+      "group": "Finance",
+      "synopsis": "finance_dunning_notice notice_id",
+      "parameters": [
+        {
+          "name": "notice_id",
+          "type": "string",
+          "required": true,
+          "description": "Opaque same-tenant identity of the retained manual reminder.",
+          "depth": 0
+        }
+      ],
+      "guidance": {
+        "purpose": "Read one retained manual reminder with its exact invoice membership, fee and reversal.",
+        "use_when": ["One known notice identity needs authoritative reconciliation."],
+        "do_not_use_when": ["A notice has not yet been discovered or recorded."],
+        "limitations": ["Internal evidence does not prove external message delivery."],
+        "empty_result": "Unknown and foreign identities are refused as not found.",
+        "freshness": "Derived from the selected tenant-owned notice and current reversal evidence."
+      },
+      "read_modes": [
+        {
+          "query": "MCP finance_dunning_notice",
+          "mode": "live",
+          "default": true
+        }
+      ],
+      "command": "notice_detail",
+      "projections": [],
+      "links": ["command:notice_detail"],
+      "label_de": "Dunning notice",
+      "resources": ["accounting", "source"]
+    },
+    {
+      "id": "tool:finance_dunning_record_propose",
+      "kind": "tool",
+      "key": "finance_dunning_record_propose",
+      "label": "Record dunning notice",
+      "area": "finance",
+      "summary": "Prepare a manual dunning notice and optional exact stated fee for owner confirmation.",
+      "access": "propose",
+      "group": "Finance",
+      "synopsis": "finance_dunning_record_propose expected_revision invoice_ids level notice_date [fee_amount] [reason] [number]",
+      "parameters": [
+        {
+          "name": "expected_revision",
+          "type": "integer",
+          "required": true,
+          "description": "Canonical revision of the Evidence snapshot on which a correction is based.",
+          "depth": 0
+        },
+        {
+          "name": "invoice_ids",
+          "type": "array",
+          "required": true,
+          "description": "Opaque same-tenant customer-invoice identities explicitly selected for one reminder.",
+          "depth": 0
+        },
+        {
+          "name": "level",
+          "type": "integer",
+          "required": true,
+          "description": "Explicit manual reminder level; only the closed levels 1, 2, and 3 are accepted.",
+          "depth": 0,
+          "enum": [1, 2, 3]
+        },
+        {
+          "name": "notice_date",
+          "type": "string",
+          "required": true,
+          "description": "Calendar date explicitly stated for the manual reminder and its overdue check.",
+          "depth": 0
+        },
+        {
+          "name": "fee_amount",
+          "type": "string",
+          "required": false,
+          "description": "Exact non-negative reminder fee stated by the confirming human; zero records no fee posting.",
+          "depth": 0,
+          "default": "0"
+        },
+        {
+          "name": "reason",
+          "type": "string",
+          "required": false,
+          "description": "Human-readable explanation for a hold, correction, or lifecycle change.",
+          "depth": 0,
+          "default": ""
+        },
+        {
+          "name": "number",
+          "type": "string",
+          "required": false,
+          "description": "Human-facing document or transaction number; it is not internal identity.",
+          "depth": 0,
+          "default": ""
+        }
+      ],
+      "guidance": {
+        "purpose": "Record one owner-confirmed manual reminder and optional exact stated fee.",
+        "use_when": [
+          "A person has reviewed eligible overdue invoices and explicitly chosen the level and fee."
+        ],
+        "do_not_use_when": ["A reminder should be calculated", "escalated or sent automatically."],
+        "preconditions": [
+          "Invoices belong to one customer and currency and remain open and overdue."
+        ],
+        "refusals": [
+          {
+            "code": "invalid_dunning_scope",
+            "description": "Invoice eligibility",
+            "account configuration or finance revision changed.": null
+          }
+        ],
+        "verification_reads": [
+          {
+            "name": "finance.dunning.notice",
+            "proves": "Exact notice membership and fee effect are retained."
+          }
+        ],
+        "idempotency": {
+          "mode": "supported",
+          "guidance": "Reconcile the same proposal identity before retrying."
+        }
+      },
+      "read_modes": [],
+      "command": "record_notice",
+      "projections": [],
+      "links": ["command:record_notice"],
+      "label_de": "Record dunning notice",
+      "resources": ["accounting", "source"]
+    },
+    {
+      "id": "tool:finance_dunning_reverse_propose",
+      "kind": "tool",
+      "key": "finance_dunning_reverse_propose",
+      "label": "Reverse dunning notice",
+      "area": "finance",
+      "summary": "Prepare reversal of one manual dunning notice and any posted fee for owner confirmation.",
+      "access": "propose",
+      "group": "Finance",
+      "synopsis": "finance_dunning_reverse_propose expected_revision notice_id reason",
+      "parameters": [
+        {
+          "name": "expected_revision",
+          "type": "integer",
+          "required": true,
+          "description": "Canonical revision of the Evidence snapshot on which a correction is based.",
+          "depth": 0
+        },
+        {
+          "name": "notice_id",
+          "type": "string",
+          "required": true,
+          "description": "Opaque same-tenant identity of the retained manual reminder.",
+          "depth": 0
+        },
+        {
+          "name": "reason",
+          "type": "string",
+          "required": true,
+          "description": "Human-readable explanation for a hold, correction, or lifecycle change.",
+          "depth": 0
+        }
+      ],
+      "guidance": {
+        "purpose": "Reverse one owner-confirmed manual reminder and its fee effect without deleting evidence.",
+        "use_when": [
+          "A recorded notice was issued in error and a person explicitly decides to reverse it."
+        ],
+        "do_not_use_when": ["The notice is correct or only its external message needs correction."],
+        "preconditions": ["The tenant-owned notice exists and is not already reversed."],
+        "refusals": [
+          {
+            "code": "invalid_dunning_reversal",
+            "description": "Notice is foreign",
+            "unknown": null,
+            "stale or already reversed.": null
+          }
+        ],
+        "verification_reads": [
+          {
+            "name": "finance.dunning.notice",
+            "proves": "Reversal identity and fee outcome are retained."
+          }
+        ],
+        "idempotency": {
+          "mode": "supported",
+          "guidance": "Reconcile the original proposal identity before retrying."
+        }
+      },
+      "read_modes": [],
+      "command": "reverse_notice",
+      "projections": [],
+      "links": ["command:reverse_notice"],
+      "label_de": "Reverse dunning notice",
+      "resources": ["accounting"]
     },
     {
       "id": "tool:finance_opening_context",
@@ -17658,7 +18318,40 @@
       ],
       "events": ["credit.recorded"],
       "actions": [],
-      "guidance": {},
+      "guidance": {
+        "purpose": "Record either an invoice-linked financial credit or the retained legacy order-line return credit shape.",
+        "use_when": [
+          "A human has stated the exact credit amount and selected one complete supported evidence shape."
+        ],
+        "do_not_use_when": [
+          "Returned goods need a physical disposition; use the return disposition action separately."
+        ],
+        "preconditions": [
+          "Invoice-linked and legacy fields are mutually exclusive and every opaque identity belongs to the tenant."
+        ],
+        "refusals": [
+          {
+            "code": "invalid_credit_shape",
+            "description": "Required fields are missing",
+            "shapes are mixed": null,
+            "capacity changed or evidence is unavailable.": null
+          }
+        ],
+        "verification_reads": [
+          {
+            "name": "invoice_credit_context",
+            "proves": "Remaining invoice-linked position and amount capacity derives independently after execution."
+          },
+          {
+            "name": "document_register",
+            "proves": "The retained credit and its shortest line links exist."
+          }
+        ],
+        "idempotency": {
+          "mode": "supported",
+          "guidance": "Reconcile the proposal identity; confirmed replay returns its stored receipt."
+        }
+      },
       "links": ["tool:sales_credit_record_propose", "event:credit.recorded"],
       "label_de": "Retourengutschrift erfassen",
       "resources": ["invoice"]
@@ -17686,6 +18379,292 @@
       "links": ["tool:supplier_invoice_record_propose"],
       "label_de": "Eingangsrechnung erfassen",
       "resources": ["invoice"]
+    },
+    {
+      "id": "command:record_free_supplier_invoice",
+      "kind": "command",
+      "key": "record_free_supplier_invoice",
+      "label": "Record free supplier invoice",
+      "area": "finance",
+      "summary": "Records stated supplier invoice evidence without a purchase-order line and posts its payable atomically without inventing a commitment or Movement.",
+      "mode": "mutation",
+      "adapters": ["Web", "MCP", "Chat"],
+      "reads": ["party", "item"],
+      "writes": ["source_record", "document", "document_line", "ledger_entry", "business_event"],
+      "confirmation": null,
+      "related_services": [],
+      "tools": ["supplier_invoice_free_record_propose"],
+      "synopses": [
+        "supplier_invoice_free_record_propose supplier_id number currency gross_amount [document_date] [effective_at] lines"
+      ],
+      "events": [],
+      "actions": [],
+      "guidance": {
+        "purpose": "Record source-stated supplier invoice evidence and post its payable without inventing a purchase order.",
+        "use_when": [
+          "A supplier invoice contains supported free goods",
+          "service or charge positions with no purchase-order line."
+        ],
+        "do_not_use_when": ["The invoice positions belong to existing purchase-order lines."],
+        "preconditions": [
+          "The Party has supplier role and every stated line is valid tenant evidence."
+        ],
+        "refusals": [
+          {
+            "code": "invalid_supplier_invoice",
+            "description": "Supplier",
+            "position or stated amount is invalid or outside the tenant.": null
+          }
+        ],
+        "verification_reads": [
+          {
+            "name": "document_register",
+            "proves": "The supplier invoice and stated lines are retained."
+          },
+          {
+            "name": "finance_balances",
+            "proves": "The payable derives from posted LedgerEntries."
+          }
+        ],
+        "idempotency": {
+          "mode": "supported",
+          "guidance": "Reconcile the proposal identity; confirmed replay returns its stored receipt."
+        }
+      },
+      "links": ["tool:supplier_invoice_free_record_propose"],
+      "label_de": "Freie Eingangsrechnung erfassen",
+      "resources": ["invoice"]
+    },
+    {
+      "id": "command:invoice_credit_context",
+      "kind": "command",
+      "key": "invoice_credit_context",
+      "label": "Read invoice credit context",
+      "area": "finance",
+      "summary": "Shows exact customer-invoice positions and remaining credit capacity without recording a credit.",
+      "mode": "query",
+      "adapters": ["Web", "MCP", "Chat"],
+      "reads": [
+        "document",
+        "document_line",
+        "ledger_entry",
+        "ledger_reversal",
+        "settlement_allocation"
+      ],
+      "writes": [],
+      "confirmation": null,
+      "related_services": [],
+      "tools": ["invoice_credit_context"],
+      "synopses": ["invoice_credit_context invoice_id"],
+      "events": [],
+      "actions": [],
+      "guidance": {
+        "purpose": "Read one customer invoice's eligible opaque line identities and remaining credit capacity.",
+        "use_when": [
+          "An invoice-linked customer credit must be prepared from current posted evidence."
+        ],
+        "do_not_use_when": [
+          "A return-only legacy credit or a physical return disposition is required."
+        ],
+        "limitations": [
+          "Capacity is current and does not authorize a credit or imply returned goods."
+        ],
+        "empty_result": "An invoice with no eligible remaining position returns positions with zero remaining capacity.",
+        "freshness": "Derived from committed invoice, credit and settlement evidence at request time."
+      },
+      "links": ["tool:invoice_credit_context"],
+      "label_de": "Gutschriftfähige Rechnungspositionen anzeigen",
+      "resources": ["invoice"]
+    },
+    {
+      "id": "command:dunning_context",
+      "kind": "command",
+      "key": "dunning_context",
+      "label": "Read dunning context",
+      "area": "cross_functional",
+      "summary": "Validates one selected reminder scope and returns the finance revision without recording or sending anything.",
+      "mode": "query",
+      "adapters": ["Web", "MCP", "Chat"],
+      "reads": ["document", "ledger_entry", "settlement_allocation", "party"],
+      "writes": [],
+      "confirmation": null,
+      "related_services": ["preview_notice"],
+      "tools": ["finance_dunning_context"],
+      "synopses": [
+        "finance_dunning_context invoice_ids level notice_date [fee_amount] [reason] [number]"
+      ],
+      "events": [],
+      "actions": [],
+      "guidance": {
+        "purpose": "Validate one manual reminder against current overdue invoices and expose its finance revision.",
+        "use_when": [
+          "A person has selected overdue invoices",
+          "level",
+          "date and optional exact fee for review."
+        ],
+        "do_not_use_when": ["A reminder should be generated", "escalated or sent automatically."],
+        "limitations": ["The fee is source-stated and no message is sent."],
+        "empty_result": "An empty invoice selection is refused rather than treated as no reminder.",
+        "freshness": "Derived from current open amounts, due dates and finance configuration."
+      },
+      "links": ["tool:finance_dunning_context"],
+      "label_de": "Mahnkontext anzeigen",
+      "resources": ["accounting", "party", "payment", "source"]
+    },
+    {
+      "id": "command:notices",
+      "kind": "command",
+      "key": "notices",
+      "label": "List dunning notices",
+      "area": "cross_functional",
+      "summary": "Lists retained manual reminders with their invoice membership, optional fee and reversal trace.",
+      "mode": "query",
+      "adapters": ["Web", "MCP", "Chat"],
+      "reads": ["source_record", "document", "ledger_entry", "business_event"],
+      "writes": [],
+      "confirmation": null,
+      "related_services": [],
+      "tools": ["finance_dunning_notices"],
+      "synopses": ["finance_dunning_notices"],
+      "events": [],
+      "actions": [],
+      "guidance": {
+        "purpose": "List recorded manual reminder evidence with invoice, fee and reversal trace.",
+        "use_when": ["Recorded reminders must be reconciled or selected for reversal."],
+        "do_not_use_when": ["Overdue invoices must first be selected for a new reminder."],
+        "limitations": ["The list proves internal evidence", "not external delivery."],
+        "empty_result": "No manual reminder has been recorded for the tenant.",
+        "freshness": "Derived from committed reminder, fee and reversal records."
+      },
+      "links": ["tool:finance_dunning_notices"],
+      "label_de": "Mahnungen anzeigen",
+      "resources": ["accounting", "source"]
+    },
+    {
+      "id": "command:notice_detail",
+      "kind": "command",
+      "key": "notice_detail",
+      "label": "Read dunning notice",
+      "area": "cross_functional",
+      "summary": "Reads one retained manual reminder with its exact invoice membership, optional fee and reversal trace.",
+      "mode": "query",
+      "adapters": ["Web", "MCP", "Chat"],
+      "reads": ["source_record", "document", "ledger_entry", "business_event"],
+      "writes": [],
+      "confirmation": null,
+      "related_services": [],
+      "tools": ["finance_dunning_notice"],
+      "synopses": ["finance_dunning_notice notice_id"],
+      "events": [],
+      "actions": [],
+      "guidance": {
+        "purpose": "Read one retained manual reminder with its exact invoice membership, fee and reversal.",
+        "use_when": ["One known notice identity needs authoritative reconciliation."],
+        "do_not_use_when": ["A notice has not yet been discovered or recorded."],
+        "limitations": ["Internal evidence does not prove external message delivery."],
+        "empty_result": "Unknown and foreign identities are refused as not found.",
+        "freshness": "Derived from the selected tenant-owned notice and current reversal evidence."
+      },
+      "links": ["tool:finance_dunning_notice"],
+      "label_de": "Mahnung anzeigen",
+      "resources": ["accounting", "source"]
+    },
+    {
+      "id": "command:record_notice",
+      "kind": "command",
+      "key": "record_notice",
+      "label": "Record dunning notice",
+      "area": "cross_functional",
+      "summary": "Records one explicitly reviewed manual reminder and optional exact stated fee without sending a message.",
+      "mode": "mutation",
+      "adapters": ["Web", "MCP", "Chat"],
+      "reads": ["document", "ledger_entry", "settlement_allocation", "party"],
+      "writes": ["source_record", "document", "ledger_entry", "business_event"],
+      "confirmation": null,
+      "related_services": [],
+      "tools": ["finance_dunning_record_propose"],
+      "synopses": [
+        "finance_dunning_record_propose expected_revision invoice_ids level notice_date [fee_amount] [reason] [number]"
+      ],
+      "events": ["dunning.notice_recorded"],
+      "actions": [],
+      "guidance": {
+        "purpose": "Record one owner-confirmed manual reminder and optional exact stated fee.",
+        "use_when": [
+          "A person has reviewed eligible overdue invoices and explicitly chosen the level and fee."
+        ],
+        "do_not_use_when": ["A reminder should be calculated", "escalated or sent automatically."],
+        "preconditions": [
+          "Invoices belong to one customer and currency and remain open and overdue."
+        ],
+        "refusals": [
+          {
+            "code": "invalid_dunning_scope",
+            "description": "Invoice eligibility",
+            "account configuration or finance revision changed.": null
+          }
+        ],
+        "verification_reads": [
+          {
+            "name": "finance.dunning.notice",
+            "proves": "Exact notice membership and fee effect are retained."
+          }
+        ],
+        "idempotency": {
+          "mode": "supported",
+          "guidance": "Reconcile the same proposal identity before retrying."
+        }
+      },
+      "links": ["tool:finance_dunning_record_propose", "event:dunning.notice_recorded"],
+      "label_de": "Mahnung erfassen",
+      "resources": ["accounting", "source"]
+    },
+    {
+      "id": "command:reverse_notice",
+      "kind": "command",
+      "key": "reverse_notice",
+      "label": "Reverse dunning notice",
+      "area": "cross_functional",
+      "summary": "Retains the original reminder and explicitly reverses its fee effect and reminder state.",
+      "mode": "mutation",
+      "adapters": ["Web", "MCP", "Chat"],
+      "reads": ["source_record", "document", "ledger_entry", "business_event"],
+      "writes": ["ledger_reversal", "ledger_entry", "business_event"],
+      "confirmation": null,
+      "related_services": [],
+      "tools": ["finance_dunning_reverse_propose"],
+      "synopses": ["finance_dunning_reverse_propose expected_revision notice_id reason"],
+      "events": ["dunning.notice_reversed"],
+      "actions": [],
+      "guidance": {
+        "purpose": "Reverse one owner-confirmed manual reminder and its fee effect without deleting evidence.",
+        "use_when": [
+          "A recorded notice was issued in error and a person explicitly decides to reverse it."
+        ],
+        "do_not_use_when": ["The notice is correct or only its external message needs correction."],
+        "preconditions": ["The tenant-owned notice exists and is not already reversed."],
+        "refusals": [
+          {
+            "code": "invalid_dunning_reversal",
+            "description": "Notice is foreign",
+            "unknown": null,
+            "stale or already reversed.": null
+          }
+        ],
+        "verification_reads": [
+          {
+            "name": "finance.dunning.notice",
+            "proves": "Reversal identity and fee outcome are retained."
+          }
+        ],
+        "idempotency": {
+          "mode": "supported",
+          "guidance": "Reconcile the original proposal identity before retrying."
+        }
+      },
+      "links": ["tool:finance_dunning_reverse_propose", "event:dunning.notice_reversed"],
+      "label_de": "Mahnung stornieren",
+      "resources": ["accounting"]
     },
     {
       "id": "command:record_sales_invoice",
@@ -18386,7 +19365,46 @@
       ],
       "events": [],
       "actions": [],
-      "guidance": {},
+      "guidance": {
+        "purpose": "Resolve arrived customer-return goods through one of the four canonical physical outcomes without changing credit evidence.",
+        "use_when": [
+          "A return Movement has arrived and a human has chosen restock",
+          "quarantine_repair",
+          "scrap_loss or return_to_supplier for an exact quantity."
+        ],
+        "do_not_use_when": [
+          "A financial credit must be recorded; use the invoice-linked or legacy customer-credit action separately."
+        ],
+        "preconditions": [
+          "The return Movement retains its customer-delivery commitment",
+          "arrival location and any handling-unit",
+          "lot or serial identity."
+        ],
+        "refusals": [
+          {
+            "code": "invalid_return_relationship",
+            "description": "Return Movement",
+            "commitment": null,
+            "arrival location": null,
+            "tracking identity": null,
+            "destination or unresolved quantity is missing or incompatible.": null
+          }
+        ],
+        "verification_reads": [
+          {
+            "name": "return_disposition_summary",
+            "proves": "Each resolving Movement preserves the arrived return identity and reconciles the remaining quantity."
+          },
+          {
+            "name": "inventory",
+            "proves": "The resulting exact-location stock effect is visible independently."
+          }
+        ],
+        "idempotency": {
+          "mode": "supported",
+          "guidance": "Reconcile the proposal identity; confirmed replay returns the retained resolving Movement."
+        }
+      },
       "links": ["tool:return_disposition_propose"],
       "label_de": "Retourenware entscheiden",
       "resources": ["return"]
@@ -19443,6 +20461,8 @@
         "finance.account_changed",
         "credit.recorded",
         "invoice.recorded",
+        "dunning.notice_recorded",
+        "dunning.notice_reversed",
         "order.recorded",
         "source_record.stored",
         "commitment.fulfilled",
@@ -19572,6 +20592,7 @@
         "inventory_read",
         "reservation_propose",
         "movement_create_propose",
+        "return_disposition_propose",
         "commitment_revise_propose",
         "commitment_cancel_propose"
       ],
@@ -19580,6 +20601,7 @@
         "tool:inventory_read",
         "tool:reservation_propose",
         "tool:movement_create_propose",
+        "tool:return_disposition_propose",
         "tool:commitment_revise_propose",
         "tool:commitment_cancel_propose"
       ],
@@ -19795,8 +20817,16 @@
       "reads": ["document", "document_line", "commitment", "source_record"],
       "outputs": ["document", "line_count", "commitment_count", "source"],
       "views": [],
-      "tools": ["order_create_propose"],
-      "links": ["tool:order_create_propose"],
+      "tools": [
+        "order_create_propose",
+        "sales_credit_record_propose",
+        "supplier_invoice_free_record_propose"
+      ],
+      "links": [
+        "tool:order_create_propose",
+        "tool:sales_credit_record_propose",
+        "tool:supplier_invoice_free_record_propose"
+      ],
       "label_de": "Belegregister",
       "resources": ["source"]
     },
@@ -19820,6 +20850,8 @@
       "refresh_events": [
         "credit.recorded",
         "invoice.recorded",
+        "dunning.notice_recorded",
+        "dunning.notice_reversed",
         "party.updated",
         "payment_term.updated",
         "document.recorded",
@@ -19940,6 +20972,8 @@
         "finance.component_assigned",
         "credit.recorded",
         "invoice.recorded",
+        "dunning.notice_recorded",
+        "dunning.notice_reversed",
         "order.recorded",
         "source_record.stored",
         "commitment.fulfilled",
@@ -21145,6 +22179,34 @@
       "links": ["command:record_sales_invoice"],
       "label_de": "invoice.recorded",
       "resources": ["invoice"]
+    },
+    {
+      "id": "event:dunning.notice_recorded",
+      "kind": "event",
+      "key": "dunning.notice_recorded",
+      "label": "dunning.notice_recorded",
+      "area": "cross_functional",
+      "summary": "",
+      "producer": "record_notice",
+      "subject": "dunning_notice",
+      "invalidates": ["Open financial items", "Timeline", "Tenant usage"],
+      "links": ["command:record_notice"],
+      "label_de": "dunning.notice_recorded",
+      "resources": ["accounting", "source"]
+    },
+    {
+      "id": "event:dunning.notice_reversed",
+      "kind": "event",
+      "key": "dunning.notice_reversed",
+      "label": "dunning.notice_reversed",
+      "area": "cross_functional",
+      "summary": "",
+      "producer": "reverse_notice",
+      "subject": "dunning_notice",
+      "invalidates": ["Open financial items", "Timeline", "Tenant usage"],
+      "links": ["command:reverse_notice"],
+      "label_de": "dunning.notice_reversed",
+      "resources": ["accounting"]
     },
     {
       "id": "event:order.recorded",
@@ -68117,6 +69179,8 @@
         "command:execute_payment_run",
         "command:record_sales_credit",
         "command:record_supplier_invoice",
+        "command:record_free_supplier_invoice",
+        "command:record_notice",
         "command:record_sales_invoice",
         "command:post_customer_refund",
         "command:post_supplier_refund",
@@ -68394,6 +69458,8 @@
         "command:create_manual_document_with_lines",
         "command:record_sales_credit",
         "command:record_supplier_invoice",
+        "command:record_free_supplier_invoice",
+        "command:record_notice",
         "command:record_sales_invoice",
         "command:post_customer_refund",
         "command:post_supplier_refund",
@@ -68682,6 +69748,7 @@
         "command:create_manual_document_with_lines",
         "command:record_sales_credit",
         "command:record_supplier_invoice",
+        "command:record_free_supplier_invoice",
         "command:record_sales_invoice"
       ]
     },
@@ -69819,6 +70886,9 @@
         "command:post_supplier_invoice",
         "command:record_sales_credit",
         "command:record_supplier_invoice",
+        "command:record_free_supplier_invoice",
+        "command:record_notice",
+        "command:reverse_notice",
         "command:record_sales_invoice",
         "command:post_sales_credit_note",
         "command:post_customer_refund",
@@ -73508,7 +74578,7 @@
           "references": []
         }
       ],
-      "actions": ["command:reverse_ledger_posting_group"]
+      "actions": ["command:reverse_ledger_posting_group", "command:reverse_notice"]
     },
     {
       "key": "settlement_allocation",

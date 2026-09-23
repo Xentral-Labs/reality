@@ -12,6 +12,7 @@ import json
 from datetime import UTC, datetime
 from decimal import Decimal
 
+import pytest
 from conftest import record_by_id
 from fastapi.testclient import TestClient
 from sqlalchemy import select
@@ -24,6 +25,7 @@ from reality.mcp.catalog import model_tool_schemas
 from reality.services.core import (
     announce_customer_return,
     create_commitment,
+    create_lot,
     create_tenant,
     record_movement,
 )
@@ -35,7 +37,7 @@ SHIPPED_AT = datetime(2026, 8, 20, 12, tzinfo=UTC)
 ARRIVED_AT = datetime(2026, 8, 28, 12, tzinfo=UTC)
 
 
-def announced_delivery(session, business, quantity=5):
+def announced_delivery(session, business, quantity=5, *, lot_id=None):
     """A shipped customer delivery with an open announcement for all of it."""
     tenant_id = business.tenant.id
     record_movement(
@@ -45,6 +47,7 @@ def announced_delivery(session, business, quantity=5):
         business.item.id,
         50,
         to_location_id=business.location.id,
+        lot_id=lot_id,
     )
     commitment = create_commitment(
         session,
@@ -65,6 +68,7 @@ def announced_delivery(session, business, quantity=5):
         quantity,
         from_location_id=business.location.id,
         commitment_id=commitment.id,
+        lot_id=lot_id,
         occurred_at=SHIPPED_AT,
     )
     announcement = announce_customer_return(
@@ -268,8 +272,12 @@ def test_the_cli_carries_both_references(session, business, monkeypatch):
     assert resolving is not None
 
 
+@pytest.mark.parametrize(
+    "disposition",
+    ["restock", "quarantine_repair", "scrap_loss", "return_to_supplier"],
+)
 def test_return_disposition_web_and_shared_read_use_same_service(
-    session, business, monkeypatch
+    session, business, monkeypatch, disposition
 ):
     from reality.services.core import create_location
 
@@ -291,17 +299,23 @@ def test_return_disposition_web_and_shared_read_use_same_service(
     client = TestClient(web_module.app)
     prefix = f"/api/tenants/{business.tenant.id}"
 
+    arguments = {
+        "return_movement_id": arrived.id,
+        "disposition": disposition,
+        "quantity": "2",
+    }
+    if disposition in {"restock", "quarantine_repair"}:
+        arguments["destination_location_id"] = (
+            business.location.id if disposition == "restock" else quarantine.id
+        )
+    if disposition in {"scrap_loss", "return_to_supplier"}:
+        arguments["reason"] = "Reviewed return outcome"
     prepared = client.post(
         f"{prefix}/delivery-actions/prepare",
         json={
             "tool": "return_disposition",
             "request_id": "adapter-return-disposition",
-            "arguments": {
-                "return_movement_id": arrived.id,
-                "disposition": "quarantine_repair",
-                "quantity": "2",
-                "destination_location_id": quarantine.id,
-            },
+            "arguments": arguments,
         },
     )
     assert prepared.status_code == 200, prepared.text
@@ -324,6 +338,57 @@ def test_return_disposition_web_and_shared_read_use_same_service(
     )
     assert Decimal(shared["resolved"]) == Decimal(2)
     assert Decimal(shared["unresolved"]) == Decimal(3)
+    assert shared["history"][0]["disposition"] == disposition
+
+
+def test_public_return_disposition_preserves_exact_tracking_identity(session, business):
+    business.item.tracking_type = "lot"
+    session.flush()
+    lot = create_lot(
+        session, business.tenant.id, business.item.id, "PUBLIC-RETURN-LOT-1"
+    )
+    commitment, announcement = announced_delivery(
+        session, business, quantity=1, lot_id=lot.id
+    )
+    arrived = record_movement(
+        session,
+        business.tenant.id,
+        "return",
+        business.item.id,
+        "1",
+        to_location_id=business.location.id,
+        commitment_id=commitment.id,
+        return_announcement_id=announcement.id,
+        lot_id=lot.id,
+    )
+    proposal = propose_tool(
+        session,
+        business.tenant.id,
+        "return_disposition",
+        {
+            "return_movement_id": arrived.id,
+            "disposition": "scrap_loss",
+            "quantity": "1",
+            "reason": "Tracked item damaged",
+        },
+    )
+    review = json.loads(proposal.input)["_delivery_review"]
+    executed = confirm_tool(
+        session,
+        business.tenant.id,
+        proposal.id,
+        review_token=review["token"],
+        confirmed=True,
+    )
+
+    assert executed.status == "executed"
+    resolving = session.scalar(
+        select(Movement).where(Movement.resolves_movement_id == arrived.id)
+    )
+    assert resolving is not None
+    assert resolving.lot_id == lot.id
+    assert resolving.item_id == arrived.item_id
+    assert resolving.from_location_id == arrived.to_location_id
 
 
 def test_return_disposition_read_does_not_disclose_foreign_return(

@@ -5637,6 +5637,13 @@ Object.assign(dictionaries.de, {
   "Notice number (optional)": "Mahnungsnummer (optional)",
   "Reason (optional)": "Begründung (optional)",
   "Review dunning notice": "Mahnung prüfen",
+  "Owner decision required": "Entscheidung durch Unternehmenseigentümer erforderlich",
+  "An authenticated company owner must approve or reject this finance proposal.":
+    "Ein authentifizierter Unternehmenseigentümer muss diesen Finanzvorschlag bestätigen oder ablehnen.",
+  "Reconcile with": "Abgleichen mit",
+  "Verify with": "Prüfen mit",
+  "After confirmation, verify the retained notice and fee through the dunning notice read.":
+    "Prüfe nach der Bestätigung die gespeicherte Mahnung und Gebühr über die Mahnungsabfrage.",
 });
 Object.assign(dictionaries.nl, {
   "Create dunning notice": "Aanmaning maken",
@@ -5653,6 +5660,13 @@ Object.assign(dictionaries.nl, {
   "Notice number (optional)": "Aanmaningsnummer (optioneel)",
   "Reason (optional)": "Reden (optioneel)",
   "Review dunning notice": "Aanmaning controleren",
+  "Owner decision required": "Beslissing van bedrijfseigenaar vereist",
+  "An authenticated company owner must approve or reject this finance proposal.":
+    "Een geauthenticeerde bedrijfseigenaar moet dit financiële voorstel goedkeuren of afwijzen.",
+  "Reconcile with": "Afstemmen met",
+  "Verify with": "Controleren met",
+  "After confirmation, verify the retained notice and fee through the dunning notice read.":
+    "Controleer na bevestiging de vastgelegde aanmaning en kosten via de aanmaningsweergave.",
 });
 Object.assign(dictionaries.es, {
   "Create dunning notice": "Crear reclamación de pago",
@@ -5669,6 +5683,13 @@ Object.assign(dictionaries.es, {
   "Notice number (optional)": "Número de reclamación (opcional)",
   "Reason (optional)": "Motivo (opcional)",
   "Review dunning notice": "Revisar reclamación",
+  "Owner decision required": "Se requiere la decisión del propietario",
+  "An authenticated company owner must approve or reject this finance proposal.":
+    "Un propietario autenticado de la empresa debe aprobar o rechazar esta propuesta financiera.",
+  "Reconcile with": "Conciliar con",
+  "Verify with": "Verificar con",
+  "After confirmation, verify the retained notice and fee through the dunning notice read.":
+    "Después de confirmar, verifica el aviso y el cargo registrados mediante la consulta de reclamación.",
 });
 
 Object.assign(dictionaries.de, {
@@ -5695,6 +5716,10 @@ Object.assign(dictionaries.de, {
   "Retained basis — not current": "Gespeicherte Grundlage – nicht aktuell",
   "Reviewed selling costs": "Geprüfte Vertriebskosten",
   "Unit cost": "Stückkosten",
+  "Cost readiness": "Kostenbereitschaft",
+  "Next authorized action": "Nächste zulässige Aktion",
+  "Authenticated company owner required": "Authentifizierter Unternehmenseigentümer erforderlich",
+  "Inspect guidance evidence": "Nachweise der Anleitung prüfen",
 });
 Object.assign(dictionaries.nl, {
   "Acquisition value": "Aanschaffingswaarde",
@@ -5720,6 +5745,10 @@ Object.assign(dictionaries.nl, {
   "Retained basis — not current": "Opgeslagen grondslag — niet actueel",
   "Reviewed selling costs": "Beoordeelde verkoopkosten",
   "Unit cost": "Eenheidskosten",
+  "Cost readiness": "Kostenstatus",
+  "Next authorized action": "Volgende toegestane actie",
+  "Authenticated company owner required": "Geauthenticeerde bedrijfseigenaar vereist",
+  "Inspect guidance evidence": "Bewijs voor begeleiding inspecteren",
 });
 Object.assign(dictionaries.es, {
   "Acquisition value": "Valor de adquisición",
@@ -5745,6 +5774,10 @@ Object.assign(dictionaries.es, {
   "Retained basis — not current": "Base conservada — no actual",
   "Reviewed selling costs": "Costes de venta revisados",
   "Unit cost": "Coste unitario",
+  "Cost readiness": "Estado de costes",
+  "Next authorized action": "Siguiente acción autorizada",
+  "Authenticated company owner required": "Se requiere un propietario autenticado",
+  "Inspect guidance evidence": "Inspeccionar evidencia de orientación",
 });
 
 Object.assign(dictionaries.de, {

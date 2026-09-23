@@ -408,6 +408,7 @@ families:
       - tool:customer_payment_post
       - tool:sales_invoice_record
       - tool:supplier_invoice_record
+      - tool:supplier_invoice_free_record
       - tool:sales_credit_record
       - tool:customer_refund_post
       - tool:demo_seed
@@ -421,6 +422,9 @@ families:
       - tool:movement_explanation
       - tool:exceptions
       - tool:finance_balances
+      - tool:finance.dunning.context
+      - tool:finance.dunning.notice
+      - tool:finance.dunning.notices
       - tool:finance.deposit.clear
       - tool:finance.deposit.record
       - tool:finance.dunning.record
@@ -440,6 +444,7 @@ families:
       - tool:fulfillment_blockers
       - tool:fulfillment_queue
       - tool:inventory
+      - tool:invoice_credit_context
       - tool:interpretation_coverage
       - tool:proposals_awaiting_approval
       - tool:proposal_execution_status

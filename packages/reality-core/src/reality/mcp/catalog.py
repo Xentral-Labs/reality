@@ -7,10 +7,16 @@ from typing import Any, Literal
 
 from sqlalchemy.orm import Session
 
-from reality.services.core import InvalidOperation, NotFound
+from reality.services.core import (
+    MANUAL_OPERATIONAL_DOCUMENT_TYPES,
+    InvalidOperation,
+    NotFound,
+)
+from reality.services.delivery_actions import PUBLIC_MOVEMENT_TYPES
 from reality.tools.application import (
     approve_and_execute_proposal,
     create_change_proposal,
+    reject_proposal,
     run_read_tool,
 )
 
@@ -96,12 +102,15 @@ def _propose(application_name: str) -> ToolHandler:
         proposal = create_change_proposal(
             session, tenant_id, application_name, normalized
         )
+        from reality.services.proposal_reviews import proposal_next_step
+
         return {
             "proposal_id": proposal.id,
             "status": proposal.status,
             "requires_human_confirmation": True,
             "arguments": normalized,
             "preview": json.loads(proposal.output),
+            "next_step": proposal_next_step(proposal),
         }
 
     handler.application_name = application_name  # type: ignore[attr-defined]
@@ -146,6 +155,25 @@ def _approve_proposal(
         "tool": proposal.type.removeprefix("tool:"),
         "output": receipt,
         "receipt": receipt,
+    }
+
+
+def _reject_proposal(
+    session: Session, tenant_id: str, arguments: dict[str, Any]
+) -> Any:
+    if arguments.get("rejected") is not True:
+        raise ValueError("Set rejected=true only after an explicit human decision.")
+    proposal = reject_proposal(
+        session,
+        tenant_id,
+        arguments["proposal_id"],
+        confirming_principal=_analytics_caller(),
+    )
+    return {
+        "proposal_id": proposal.id,
+        "status": proposal.status,
+        "decided_by_user_id": proposal.decided_by_user_id,
+        "business_effect": "none",
     }
 
 
@@ -737,6 +765,21 @@ MCP_TOOL_CATALOG = (
         _approve_proposal,
     ),
     MCPToolDefinition(
+        "proposal_reject",
+        "Reject a proposal",
+        "Carry out an explicit human rejection of one pending proposal without business effect.",
+        "confirm",
+        "Exceptions & proposals",
+        _object_schema(
+            {
+                "proposal_id": STRING,
+                "rejected": {"type": "boolean", "const": True},
+            },
+            required=("proposal_id", "rejected"),
+        ),
+        _reject_proposal,
+    ),
+    MCPToolDefinition(
         "finance_balances",
         "Read finance balances",
         "Read balances per recorded currency with metadata. Never converts or adds different currencies; returns balances, not legacy EUR fields.",
@@ -1300,7 +1343,10 @@ ADDITIONAL_PROPOSAL_TOOLS: tuple[tuple[str, str, str, dict[str, Any]], ...] = (
         "movement_create",
         _object_schema(
             {
-                "movement_type": STRING,
+                "movement_type": {
+                    "type": "string",
+                    "enum": list(PUBLIC_MOVEMENT_TYPES),
+                },
                 "item_id": STRING,
                 "quantity": DECIMAL_STRING,
                 "from_location_id": OPTIONAL_STRING,
@@ -1618,7 +1664,10 @@ ADDITIONAL_PROPOSAL_TOOLS: tuple[tuple[str, str, str, dict[str, Any]], ...] = (
         "document_create",
         _object_schema(
             {
-                "document_type": STRING,
+                "document_type": {
+                    "type": "string",
+                    "enum": list(MANUAL_OPERATIONAL_DOCUMENT_TYPES),
+                },
                 "number": STRING,
                 "party_id": STRING,
                 "lines": {
@@ -1776,30 +1825,100 @@ ADDITIONAL_PROPOSAL_TOOLS: tuple[tuple[str, str, str, dict[str, Any]], ...] = (
         "sales_credit_record_propose",
         "Record customer credit",
         "sales_credit_record",
+        {
+            **_object_schema(
+                {
+                    "order_line_id": STRING,
+                    "quantity": DECIMAL_STRING,
+                    "invoice_id": STRING,
+                    "reason": STRING,
+                    "allocation_amount": DECIMAL_STRING,
+                    "lines": {
+                        "type": "array",
+                        "minItems": 1,
+                        "items": _object_schema(
+                            {
+                                "invoice_line_id": STRING,
+                                "quantity": DECIMAL_STRING,
+                                "gross_amount": DECIMAL_STRING,
+                            },
+                            required=("invoice_line_id", "quantity", "gross_amount"),
+                        ),
+                    },
+                    "gross_amount": DECIMAL_STRING,
+                    "number": STRING,
+                    "effective_at": OPTIONAL_STRING,
+                },
+                required=("gross_amount", "number"),
+            ),
+            "oneOf": [
+                {
+                    "title": "Invoice-linked financial credit",
+                    "required": [
+                        "invoice_id",
+                        "lines",
+                        "reason",
+                        "allocation_amount",
+                    ],
+                    "not": {
+                        "anyOf": [
+                            {"required": ["order_line_id"]},
+                            {"required": ["quantity"]},
+                        ]
+                    },
+                },
+                {
+                    "title": "Legacy return credit",
+                    "required": ["order_line_id", "quantity"],
+                    "not": {
+                        "anyOf": [
+                            {"required": ["invoice_id"]},
+                            {"required": ["lines"]},
+                            {"required": ["reason"]},
+                            {"required": ["allocation_amount"]},
+                        ]
+                    },
+                },
+            ],
+        },
+    ),
+    (
+        "supplier_invoice_free_record_propose",
+        "Record free supplier invoice",
+        "supplier_invoice_free_record",
         _object_schema(
             {
-                "order_line_id": STRING,
-                "quantity": DECIMAL_STRING,
-                "invoice_id": STRING,
-                "reason": STRING,
-                "allocation_amount": DECIMAL_STRING,
+                "supplier_id": STRING,
+                "number": STRING,
+                "currency": STRING,
+                "gross_amount": DECIMAL_STRING,
+                "document_date": OPTIONAL_STRING,
+                "effective_at": OPTIONAL_STRING,
                 "lines": {
                     "type": "array",
                     "minItems": 1,
                     "items": _object_schema(
                         {
-                            "invoice_line_id": STRING,
+                            "item_id": OPTIONAL_STRING,
+                            "sku": OPTIONAL_STRING,
+                            "description": OPTIONAL_STRING,
                             "quantity": DECIMAL_STRING,
+                            "unit": OPTIONAL_STRING,
+                            "unit_price": DECIMAL_STRING,
                             "gross_amount": DECIMAL_STRING,
+                            "line_type": OPTIONAL_STRING,
                         },
-                        required=("invoice_line_id", "quantity", "gross_amount"),
+                        required=("quantity", "unit_price", "gross_amount"),
                     ),
                 },
-                "gross_amount": DECIMAL_STRING,
-                "number": STRING,
-                "effective_at": OPTIONAL_STRING,
             },
-            required=("gross_amount", "number"),
+            required=(
+                "supplier_id",
+                "number",
+                "currency",
+                "gross_amount",
+                "lines",
+            ),
         ),
     ),
     (
@@ -2148,6 +2267,15 @@ MCP_TOOL_CATALOG += (
 
 MCP_TOOL_CATALOG += (
     MCPToolDefinition(
+        "invoice_credit_context",
+        "Invoice credit context",
+        "Read eligible customer-invoice positions, remaining quantities, amount capacity and blockers.",
+        "read",
+        "finance",
+        _object_schema({"invoice_id": STRING}, required=("invoice_id",)),
+        _read("invoice_credit_context"),
+    ),
+    MCPToolDefinition(
         "finance_settlement_context",
         "Payment and credit context",
         "Read an invoice or original credit and matching invoice choices.",
@@ -2166,6 +2294,64 @@ MCP_TOOL_CATALOG += (
         "finance",
         settlement_input_schema(),
         _propose("finance.settlement.apply"),
+    ),
+)
+
+from reality.tools.finance import DunningRequest, DunningReverseRequest
+
+_DUNNING_CONTEXT_SCHEMA = DunningRequest.model_json_schema()
+_DUNNING_CONTEXT_SCHEMA["properties"].pop("expected_revision", None)
+_DUNNING_CONTEXT_SCHEMA["required"] = [
+    name
+    for name in _DUNNING_CONTEXT_SCHEMA.get("required", [])
+    if name != "expected_revision"
+]
+
+MCP_TOOL_CATALOG += (
+    MCPToolDefinition(
+        "finance_dunning_context",
+        "Dunning context",
+        "Preview one manual notice from currently overdue invoices and return the finance revision required for confirmation.",
+        "read",
+        "finance",
+        _DUNNING_CONTEXT_SCHEMA,
+        _read("finance.dunning.context"),
+    ),
+    MCPToolDefinition(
+        "finance_dunning_notices",
+        "Dunning notices",
+        "List recorded manual dunning notices with fee and reversal trace.",
+        "read",
+        "finance",
+        _object_schema(),
+        _read("finance.dunning.notices"),
+    ),
+    MCPToolDefinition(
+        "finance_dunning_notice",
+        "Dunning notice",
+        "Read one recorded manual dunning notice with fee and reversal trace.",
+        "read",
+        "finance",
+        _object_schema({"notice_id": STRING}, required=("notice_id",)),
+        _read("finance.dunning.notice"),
+    ),
+    MCPToolDefinition(
+        "finance_dunning_record_propose",
+        "Record dunning notice",
+        "Prepare a manual dunning notice and optional exact stated fee for owner confirmation.",
+        "propose",
+        "finance",
+        DunningRequest.model_json_schema(),
+        _propose("finance.dunning.record"),
+    ),
+    MCPToolDefinition(
+        "finance_dunning_reverse_propose",
+        "Reverse dunning notice",
+        "Prepare reversal of one manual dunning notice and any posted fee for owner confirmation.",
+        "propose",
+        "finance",
+        DunningReverseRequest.model_json_schema(),
+        _propose("finance.dunning.reverse"),
     ),
 )
 

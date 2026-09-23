@@ -137,6 +137,21 @@ def _owner(session, tenant, principal, *, lock=False):
         raise core.InvalidOperation("An active company owner is required.")
 
 
+def _tenant_member(session, tenant, principal):
+    """Reject a cross-company human caller without granting confirmation authority."""
+    if principal is None:
+        return
+    membership_id = session.scalar(
+        select(TenantMembership.id).where(
+            TenantMembership.tenant_id == tenant,
+            TenantMembership.user_id == principal.user_id,
+            TenantMembership.status == "active",
+        )
+    )
+    if membership_id is None:
+        raise core.NotFound("Company not found.")
+
+
 def _request(arguments):
     try:
         return CHANGE.validate_python(arguments)
@@ -976,14 +991,15 @@ def preview_cost_change(
     *,
     principal: Principal | None = None,
 ) -> dict:
-    """Validate the exact owner's decision without creating financial records."""
+    """Validate proposed cost intent without granting or exercising owner authority."""
     with session.no_autoflush:
-        _owner(session, tenant_id, principal)
+        _tenant_member(session, tenant_id, principal)
         request = _request(arguments)
         return {
             "request": request.model_dump(mode="json"),
             "review": _check_change(session, tenant_id, request),
             "requires_human_confirmation": True,
+            "required_principal": "authenticated_active_owner",
         }
 
 

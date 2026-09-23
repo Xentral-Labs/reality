@@ -89,6 +89,7 @@ await page.route("**/api/**", async (route) => {
     assert.equal(url.searchParams.get("kind"), "inventory");
     assert.equal(url.searchParams.get("scope_id"), item);
     const initialized = costState !== "uninitialized";
+    const stage = costState === "ready" ? "complete" : costState;
     const basis = {
       item_id: item,
       review_id: initialized ? "inventory_review_fixture" : null,
@@ -121,6 +122,29 @@ await page.route("**/api/**", async (route) => {
       },
       result: costState === "ready" ? basis : null,
       basis_result: basis,
+      guidance: {
+        stage,
+        scope: { kind: "inventory", id: item },
+        review_state: stage,
+        missing_basis: basis.missing_basis,
+        reason:
+          stage === "complete"
+            ? "The retained cost basis is current for this bounded scope."
+            : stage === "stale"
+              ? "Newer relevant business evidence exists after the retained review."
+              : "No retained owner-reviewed cost basis exists for this scope.",
+        next_action:
+          stage === "complete"
+            ? null
+            : {
+                tool: "cost_change_propose",
+                operation: "inventory_review",
+                required_principal: "authenticated_active_owner",
+              },
+        explanation_links: initialized
+          ? [{ kind: "cost_inventory_review", id: "inventory_review_fixture" }]
+          : [],
+      },
       persistence: { business_writes: false, projection_writes: false },
     });
   }

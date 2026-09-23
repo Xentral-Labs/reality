@@ -556,16 +556,16 @@ Change Proposal, and chat activity without loading business rows or querying onc
 **Hintergrundaktualisierung nach:** `cost.attributed`, `cost.reviewed`, `shipment.notice_recorded`,
 `shipment.event_recorded`, `shipment.event_superseded`, `finance.target_configuration_changed`,
 `finance.source_mapping_changed`, `finance.component_assigned`, `finance.reference_changed`,
-`finance.account_changed`, `credit.recorded`, `invoice.recorded`, `order.recorded`,
-`source_record.stored`, `commitment.fulfilled`, `reservation.consumed`, `fact.observed`,
-`source_record.received`, `source_record.unmapped`, `source_record.interpreted`, `party.created`,
-`party.updated`, `party.delivery_hold_placed`, `party.delivery_hold_released`, `item.created`,
-`item.updated`, `location.created`, `location.updated`, `master_data.lifecycle_changed`,
-`payment_term.updated`, `payment_term.created`, `price_list.updated`, `price_list.created`,
-`price_list_entry.created`, `party_price_list.assigned`, `party_group.updated`,
-`party_group.created`, `party_group_member.added`, `party_group_price_list.assigned`,
-`document.recorded`, `document.corrected`, `commitment.created`, `commitment.cancelled`,
-`commitment.revised`, `promises.closed`, `payments.run`, `return.announced`,
+`finance.account_changed`, `credit.recorded`, `invoice.recorded`, `dunning.notice_recorded`,
+`dunning.notice_reversed`, `order.recorded`, `source_record.stored`, `commitment.fulfilled`,
+`reservation.consumed`, `fact.observed`, `source_record.received`, `source_record.unmapped`,
+`source_record.interpreted`, `party.created`, `party.updated`, `party.delivery_hold_placed`,
+`party.delivery_hold_released`, `item.created`, `item.updated`, `location.created`,
+`location.updated`, `master_data.lifecycle_changed`, `payment_term.updated`, `payment_term.created`,
+`price_list.updated`, `price_list.created`, `price_list_entry.created`, `party_price_list.assigned`,
+`party_group.updated`, `party_group.created`, `party_group_member.added`,
+`party_group_price_list.assigned`, `document.recorded`, `document.corrected`, `commitment.created`,
+`commitment.cancelled`, `commitment.revised`, `promises.closed`, `payments.run`, `return.announced`,
 `return.announcement_withdrawn`, `commitment.held`, `commitment.hold_released`,
 `reservation.created`, `reservation.released`, `handling_unit.created`, `lot.created`,
 `lot.expiry_stated`, `lot.expiry_corrected`, `serial_unit.created`, `movement.recorded`,
@@ -600,6 +600,7 @@ stock.
 [`inventory_read`](./commands#tool-inventory_read), Agenten-Tool
 [`reservation_propose`](./commands#tool-reservation_propose), Agenten-Tool
 [`movement_create_propose`](./commands#tool-movement_create_propose), Agenten-Tool
+[`return_disposition_propose`](./commands#tool-return_disposition_propose), Agenten-Tool
 [`commitment_revise_propose`](./commands#tool-commitment_revise_propose), Agenten-Tool
 [`commitment_cancel_propose`](./commands#tool-commitment_cancel_propose)
 
@@ -731,7 +732,10 @@ Presents evidence and counts its shortest links into operational Reality.
 `source_record.interpreted`, `party.created`, `party.updated`, `payment_term.updated`,
 `document.recorded`, `document.corrected`, `commitment.created`, `commitment.cancelled`
 
-**Siehe auch:** Agenten-Tool [`order_create_propose`](./commands#tool-order_create_propose)
+**Siehe auch:** Agenten-Tool [`order_create_propose`](./commands#tool-order_create_propose),
+Agenten-Tool [`sales_credit_record_propose`](./commands#tool-sales_credit_record_propose),
+Agenten-Tool
+[`supplier_invoice_free_record_propose`](./commands#tool-supplier_invoice_free_record_propose)
 
 ### `open_financial_items` — Open financial items {#projection-open_financial_items}
 
@@ -752,9 +756,10 @@ payment truth.
 
 [So wird diese Abfrage ausgeführt](./views#read-execution)
 
-**Hintergrundaktualisierung nach:** `credit.recorded`, `invoice.recorded`, `party.updated`,
-`payment_term.updated`, `document.recorded`, `document.corrected`, `payments.run`, `ledger.posted`,
-`ledger.reversed`, `settlement.allocated`
+**Hintergrundaktualisierung nach:** `credit.recorded`, `invoice.recorded`,
+`dunning.notice_recorded`, `dunning.notice_reversed`, `party.updated`, `payment_term.updated`,
+`document.recorded`, `document.corrected`, `payments.run`, `ledger.posted`, `ledger.reversed`,
+`settlement.allocated`
 
 **Siehe auch:** Sicht [`open_items`](./views#view-open_items)
 
@@ -818,16 +823,16 @@ Normalizes important evidence and reality timestamps into one chronological oper
 
 **Hintergrundaktualisierung nach:** `cost.attributed`, `cost.reviewed`, `shipment.notice_recorded`,
 `shipment.event_recorded`, `shipment.event_superseded`, `finance.component_assigned`,
-`credit.recorded`, `invoice.recorded`, `order.recorded`, `source_record.stored`,
-`commitment.fulfilled`, `reservation.consumed`, `fact.observed`, `source_record.received`,
-`source_record.unmapped`, `source_record.interpreted`, `party.created`, `party.updated`,
-`item.created`, `item.updated`, `location.created`, `location.updated`, `document.recorded`,
-`document.corrected`, `commitment.created`, `commitment.cancelled`, `commitment.revised`,
-`promises.closed`, `payments.run`, `return.announced`, `return.announcement_withdrawn`,
-`commitment.held`, `commitment.hold_released`, `reservation.created`, `reservation.released`,
-`handling_unit.created`, `lot.created`, `lot.expiry_stated`, `lot.expiry_corrected`,
-`serial_unit.created`, `movement.recorded`, `movement.corrected`, `ledger.posted`,
-`ledger.reversed`, `settlement.allocated`
+`credit.recorded`, `invoice.recorded`, `dunning.notice_recorded`, `dunning.notice_reversed`,
+`order.recorded`, `source_record.stored`, `commitment.fulfilled`, `reservation.consumed`,
+`fact.observed`, `source_record.received`, `source_record.unmapped`, `source_record.interpreted`,
+`party.created`, `party.updated`, `item.created`, `item.updated`, `location.created`,
+`location.updated`, `document.recorded`, `document.corrected`, `commitment.created`,
+`commitment.cancelled`, `commitment.revised`, `promises.closed`, `payments.run`, `return.announced`,
+`return.announcement_withdrawn`, `commitment.held`, `commitment.hold_released`,
+`reservation.created`, `reservation.released`, `handling_unit.created`, `lot.created`,
+`lot.expiry_stated`, `lot.expiry_corrected`, `serial_unit.created`, `movement.recorded`,
+`movement.corrected`, `ledger.posted`, `ledger.reversed`, `settlement.allocated`
 
 **Siehe auch:** Agenten-Tool [`fact_observe_propose`](./commands#tool-fact_observe_propose),
 Agenten-Tool [`movement_create_propose`](./commands#tool-movement_create_propose), Agenten-Tool

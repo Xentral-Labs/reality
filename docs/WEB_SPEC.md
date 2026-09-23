@@ -544,6 +544,19 @@ exceptions never grants proposal approval. Public Web, MCP, CLI, documentation,
 and projection names use these terms consistently; `issue` remains reserved for
 the warehouse meaning of issuing goods where needed.
 
+Proposal preparation returns a structured next step shared by Web and MCP. It names the stored
+proposal, the server-side review read, the required confirming principal, explicit-confirmation
+requirements, `proposal_execution_status` for lost-response reconciliation and authoritative
+verification reads. This metadata describes the decision boundary; it never grants an agent
+approval authority. Owner-governed finance and costing remain owner decisions. Ordinary mutating
+actions, including a free supplier invoice, require an authorized human but do not acquire a new
+owner-only rule.
+
+Explicit rejection uses the same tenant-scoped proposal lifecycle. The controlled rejection
+surface requires a true human decision, is excluded from default model-selected tools, has no
+business effect and returns stable rejected state on replay. Executing or executed proposals are
+reconciled rather than rewritten.
+
 Progressive disclosure in workspace navigation is the rule, not a reflex. A workspace
 lists five Views and two Actions directly and keeps the rest behind its searchable
 launcher, except where it declares complete navigation in the catalog, in which case it
@@ -1745,6 +1758,13 @@ line/posting/allocation snapshots and receipt; lost responses reconcile without 
 Later credit reversal does not invalidate the original proof. Chat and Decisions share the same
 editor and recovery card. Returned-not-credited observations include invoice-linked credits;
 financial credits without return links do not imply missing returned goods.
+
+Return review remains a separate operational decision. The shared Web and MCP action exposes only
+`restock`, `quarantine_repair`, `scrap_loss`, and `return_to_supplier`; it requires the arrived
+return Movement, its customer-delivery commitment and arrival location. Review inherits any
+handling-unit, lot, or serial identity instead of asking the operator to restate it. The Inspector
+shows each resolving Movement and remaining quantity, while the invoice-credit context separately
+shows the financial positions and capacity.
 
 ## Unified customer refunds (Spec 126)
 

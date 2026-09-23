@@ -5,13 +5,49 @@ import test_cost_records as fixtures
 from pydantic import ValidationError
 from sqlalchemy import event
 
-from reality.domain.cost_query import CostQueryRequest, compatible_contexts
+from reality.domain.cost_query import (
+    CostQueryRequest,
+    compatible_contexts,
+    cost_guidance,
+)
 from reality.mcp.catalog import MCP_TOOL_REGISTRY
 from reality.services import core
 from reality.services.costing import cost_query
 from reality.tools.application import run_read_tool
 
 cost_owner = fixtures.cost_owner
+
+
+@pytest.mark.parametrize(
+    ("stage", "tool", "principal"),
+    [
+        ("uninitialized", "cost_change_propose", "authenticated_active_owner"),
+        ("pending", "cost_query_get", "authorized_reader"),
+        ("stale", "cost_change_propose", "authenticated_active_owner"),
+        ("failed", "cost_evidence_get", "authorized_reader"),
+        ("complete", None, None),
+    ],
+)
+def test_cost_guidance_stages_name_bounded_next_authority(stage, tool, principal):
+    guidance = cost_guidance(
+        kind="inventory",
+        scope_id="item_opaque",
+        stage=stage,
+        missing_basis=["acquisition_evidence"] if stage != "complete" else [],
+        review_state="test_state",
+        explanation_links=[{"kind": "movement", "id": "mov_opaque"}],
+    )
+
+    assert guidance["scope"] == {"kind": "inventory", "id": "item_opaque"}
+    assert guidance["stage"] == stage
+    assert guidance["review_state"] == "test_state"
+    assert guidance["reason"]
+    assert guidance["explanation_links"] == [{"kind": "movement", "id": "mov_opaque"}]
+    if tool is None:
+        assert guidance["next_action"] is None
+    else:
+        assert guidance["next_action"]["tool"] == tool
+        assert guidance["next_action"]["required_principal"] == principal
 
 
 def test_request_is_strict_and_timezone_aware():
@@ -98,6 +134,12 @@ def test_stale_context_keeps_only_retained_result_and_history_is_stable(
     )
     stale = cost_query(session, business.tenant.id, **args)
     assert stale["freshness"]["state"] == "stale"
+    assert stale["guidance"]["stage"] == "stale"
+    assert stale["guidance"]["next_action"] == {
+        "tool": "cost_change_propose",
+        "operation": "contribution_review",
+        "required_principal": "authenticated_active_owner",
+    }
     assert stale["result"] is None and stale["basis_result"]["basis_db2"] == "456.0000"
     statements = []
 
@@ -124,6 +166,11 @@ def test_inventory_context_and_unreviewed_scope(session, business, cost_owner):
         session, business.tenant.id, kind="inventory", scope_id=business.item.id
     )
     assert empty["freshness"]["state"] == "uninitialized"
+    assert empty["guidance"]["stage"] == "uninitialized"
+    assert empty["guidance"]["scope"] == {
+        "kind": "inventory",
+        "id": business.item.id,
+    }
     assert empty["resolved"] is None and empty["context_id"] is None
     assert not compatible_contexts(empty, empty)
     review, data, _ = fixtures.prepared(session, business, cost_owner)

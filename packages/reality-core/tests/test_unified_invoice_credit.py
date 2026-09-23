@@ -23,6 +23,7 @@ from reality.services.delivery_actions import (
     prepare_delivery_action,
     reconcile_delivery,
 )
+from reality.tools.application import run_read_tool
 
 
 def fixture(s, b):
@@ -38,6 +39,67 @@ def fixture(s, b):
         if r["family"] == "document_line"
     ]
     return doc, lines
+
+
+def test_invoice_credit_context_is_public_and_independent_of_creation_receipt(
+    session, business
+):
+    doc, lines = fixture(session, business)
+
+    context = run_read_tool(
+        session,
+        business.tenant.id,
+        "invoice_credit_context",
+        {"invoice_id": doc.id},
+    )
+
+    assert context["invoice"]["id"] == doc.id
+    assert [row["id"] for row in context["positions"]] == [line.id for line in lines]
+    assert all(row["remaining"] == row["quantity"] for row in context["positions"])
+    with pytest.raises(core.NotFound):
+        run_read_tool(
+            session,
+            "ten_other",
+            "invoice_credit_context",
+            {"invoice_id": doc.id},
+        )
+
+
+def test_invoice_credit_context_names_ineligible_invoice_state(session, business):
+    unposted = core.create_document(
+        session,
+        business.tenant.id,
+        "sales_invoice",
+        "INV-UNPOSTED-CREDIT",
+        business.customer.id,
+        "10",
+    )
+    with pytest.raises(
+        core.InvalidOperation,
+        match="posted invoice without reversed posting groups",
+    ):
+        run_read_tool(
+            session,
+            business.tenant.id,
+            "invoice_credit_context",
+            {"invoice_id": unposted.id},
+        )
+
+    wrong_type = core.create_document(
+        session,
+        business.tenant.id,
+        "supplier_invoice",
+        "SUP-NOT-CREDITABLE",
+        business.supplier.id,
+        "10",
+    )
+    with pytest.raises(core.InvalidOperation, match="customer invoice"):
+        run_read_tool(
+            session,
+            business.tenant.id,
+            "invoice_credit_context",
+            {"invoice_id": wrong_type.id},
+        )
 
 
 def arguments(doc, lines, **changes):

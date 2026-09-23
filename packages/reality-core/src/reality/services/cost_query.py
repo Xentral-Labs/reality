@@ -9,7 +9,7 @@ from sqlalchemy.orm import Session
 from reality.db.contribution import CostContributionReview
 from reality.db.inventory_costing import CostInventoryReview, CostPolicyRevision
 from reality.domain.contribution import ALGORITHM_VERSION
-from reality.domain.cost_query import CostQueryRequest, context_envelope
+from reality.domain.cost_query import CostQueryRequest, context_envelope, cost_guidance
 from reality.services import core
 from reality.services.costing import (
     _row,
@@ -125,6 +125,27 @@ def _read(session: Session, tenant: str, arguments: dict[str, Any]) -> dict[str,
             "processed_event_sequence": sequence,
             "target_event_sequence": target,
         }
+        missing_basis = list(result.get("missing_basis") or ())
+        guidance_stage = (
+            "uninitialized"
+            if state == "uninitialized"
+            else "stale"
+            if state == "stale"
+            else "pending"
+            if missing_basis
+            or result.get("review_state") in {"unreviewed", "incomplete"}
+            else "complete"
+        )
+        explanation_links = []
+        if resolved:
+            explanation_links.append(
+                {
+                    "kind": "cost_inventory_review"
+                    if request.kind == "inventory"
+                    else "cost_contribution_review",
+                    "id": str(result["review_id"]),
+                }
+            )
         return {
             **context_envelope(
                 requested=requested, resolved=resolved, freshness=freshness
@@ -134,5 +155,13 @@ def _read(session: Session, tenant: str, arguments: dict[str, Any]) -> dict[str,
             },
             "result": result if state in {"ready", "historical"} else None,
             "basis_result": result,
+            "guidance": cost_guidance(
+                kind=request.kind,
+                scope_id=request.scope_id,
+                stage=guidance_stage,
+                missing_basis=missing_basis,
+                review_state=result.get("review_state"),
+                explanation_links=explanation_links,
+            ),
             "persistence": {"business_writes": False, "projection_writes": False},
         }

@@ -1,9 +1,50 @@
 import pytest
 from alembic import command
+from alembic.autogenerate import compare_metadata
 from alembic.config import Config
+from alembic.runtime.migration import MigrationContext
 from alembic.script import ScriptDirectory
 from sqlalchemy import create_engine, inspect, text
 from sqlalchemy.exc import IntegrityError
+
+from reality.db.core import Base
+
+
+def test_external_agent_closure_requires_no_schema_change(
+    postgres_database: str,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Spec 257 reuses existing records; metadata and the migration head must match."""
+    monkeypatch.setenv("REALITY_DATABASE_URL", postgres_database)
+    config = Config("alembic.ini")
+    config.set_main_option("sqlalchemy.url", postgres_database)
+    command.upgrade(config, "head")
+    engine = create_engine(postgres_database)
+    try:
+        with engine.connect() as connection:
+            context = MigrationContext.configure(connection)
+            schema_diffs = compare_metadata(context, Base.metadata)
+            flat_diffs = [
+                nested
+                for diff in schema_diffs
+                for nested in (diff if isinstance(diff, list) else [diff])
+            ]
+            table_or_column_diffs = [
+                diff
+                for diff in flat_diffs
+                if isinstance(diff, tuple)
+                and isinstance(diff[0], str)
+                and diff[0]
+                in {
+                    "add_table",
+                    "remove_table",
+                    "add_column",
+                    "remove_column",
+                }
+            ]
+            assert table_or_column_diffs == []
+    finally:
+        engine.dispose()
 
 
 @pytest.mark.parametrize(

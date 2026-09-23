@@ -6,7 +6,13 @@ from decimal import Decimal
 import pytest
 from sqlalchemy import func, select
 
-from reality.db.core import Document, LedgerEntry, SettlementAllocation, SourceRecord
+from reality.db.core import (
+    Document,
+    FinanceRoleDestination,
+    LedgerEntry,
+    SettlementAllocation,
+    SourceRecord,
+)
 from reality.services import core
 from reality.services.finance.accounts import initialize_accounts, list_accounts
 from reality.services.finance.settlement_flows import settlement_context
@@ -332,6 +338,50 @@ def test_supplier_reduction_requires_agreement_and_combined_limit(session, busin
             allocation_amount="99",
             reduction=reduction | {"agreement": "Supplier approval"},
         )
+
+
+def test_payment_diagnostics_name_missing_cash_account_role(session, business):
+    tenant = business.tenant.id
+    invoice = invoice_for(session, business, "customer")
+    session.query(FinanceRoleDestination).filter_by(
+        tenant_id=tenant, role="cash"
+    ).delete()
+    session.flush()
+
+    with pytest.raises(
+        core.InvalidOperation,
+        match="Missing account default for cash. Configure finance accounts first",
+    ):
+        propose(
+            session,
+            tenant,
+            invoice.id,
+            amount="100",
+            allocation_amount="100",
+        )
+
+
+def test_payment_without_reduction_does_not_require_reduction_account(
+    session, business
+):
+    tenant = business.tenant.id
+    invoice = invoice_for(session, business, "customer")
+    session.query(FinanceRoleDestination).filter_by(
+        tenant_id=tenant, role="customer_reduction"
+    ).delete()
+    session.flush()
+
+    proposal = propose(
+        session,
+        tenant,
+        invoice.id,
+        amount="100",
+        allocation_amount="100",
+    )
+    review = json.loads(proposal.output)["settlement"]
+    assert review["reduction"] is None
+    assert review["cash_account_code"] == "cash"
+    assert Decimal(execute(session, tenant, proposal)["remaining_claim"]) == 0
 
 
 def test_http_and_mcp_proposals_share_service_without_early_effects(session, business):

@@ -16,12 +16,12 @@ Namen folgen dem ERP-Sprachgebrauch; der technische Schlüssel steht daneben.
 | [Auftrag](#resource-order)                                     | 8      | 10       | 9         |
 | [Lieferung und Wareneingang](#resource-delivery)               | 2      | 6        | 2         |
 | [Charge, Seriennummer und Palette](#resource-lot)              | 0      | 5        | 1         |
-| [Rechnung und Gutschrift](#resource-invoice)                   | 3      | 9        | 14        |
+| [Rechnung und Gutschrift](#resource-invoice)                   | 3      | 10       | 14        |
 | [Zahlung und Ausgleich](#resource-payment)                     | 2      | 7        | 2         |
-| [Buchhaltung und Konten](#resource-accounting)                 | 2      | 11       | 3         |
+| [Buchhaltung und Konten](#resource-accounting)                 | 2      | 13       | 3         |
 | [Deckungsbeitrag](#resource-contribution)                      | 0      | 1        | 4         |
 | [Retoure](#resource-return)                                    | 0      | 3        | 6         |
-| [Beleg und Quellsystem](#resource-source)                      | 3      | 10       | 2         |
+| [Beleg und Quellsystem](#resource-source)                      | 3      | 11       | 2         |
 | [Unternehmen und Benutzer](#resource-company)                  | 1      | 4        | 0         |
 | [Freigaben, Klärfälle und offene Fragen](#resource-governance) | 3      | 0        | 0         |
 
@@ -77,6 +77,10 @@ Preisgruppen hängen hier.
 - [Preisgruppe anlegen und zuweisen](./commands#command-create_party_group) (`create_party_group`)
 - [Liefersperre setzen oder aufheben](./commands#command-hold_party_delivery)
   (`hold_party_delivery`)
+
+**Nachschlagen**
+
+- [Mahnkontext anzeigen](./commands#command-dunning_context) (`dunning_context`)
 
 **Klärfälle**
 
@@ -407,6 +411,8 @@ Eingangsrechnung, Forderung, Verbindlichkeit, Offene Posten, Rechnungsprüfung, 
 - [Retourengutschrift erfassen](./commands#command-record_sales_credit) (`record_sales_credit`)
 - [Eingangsrechnung erfassen](./commands#command-record_supplier_invoice)
   (`record_supplier_invoice`)
+- [Freie Eingangsrechnung erfassen](./commands#command-record_free_supplier_invoice)
+  (`record_free_supplier_invoice`)
 - [Ausgangsrechnung erfassen](./commands#command-record_sales_invoice) (`record_sales_invoice`)
 - [Gutschrift buchen](./commands#command-post_sales_credit_note) (`post_sales_credit_note`)
 - [Gutschrift mit Rechnung verrechnen](./commands#command-allocate_credit_note)
@@ -415,6 +421,11 @@ Eingangsrechnung, Forderung, Verbindlichkeit, Offene Posten, Rechnungsprüfung, 
   (`post_supplier_credit_note`)
 - [Lieferantengutschrift mit Rechnung verrechnen](./commands#command-allocate_supplier_credit_note)
   (`allocate_supplier_credit_note`)
+
+**Nachschlagen**
+
+- [Gutschriftfähige Rechnungspositionen anzeigen](./commands#command-invoice_credit_context)
+  (`invoice_credit_context`)
 
 **Klärfälle**
 
@@ -455,7 +466,9 @@ _Zahlungseingänge und -ausgänge, Zuordnung, Minderzahlungen und Erstattungen_
 
 Eine Zahlung ist ein Beleg mit einer ausgeglichenen Buchung dahinter. Die Zuordnung zu Rechnungen
 oder Gutschriften ist der Ausgleich; eine Minderzahlung wird als vereinbarter Abzug akzeptiert oder
-bleibt offen. Zahlläufe bezahlen Lieferanten gesammelt.
+bleibt offen. Zahlläufe bezahlen Lieferanten gesammelt. Öffentliche Zahlungsabfragen filtern die
+Richtung nur als eingehend oder ausgehend; Kunde oder Lieferant ist eine Saldo-Seite und keine
+Zahlungsrichtung.
 
 **Auch genannt:** payment receipt, allocation, matching, short payment, refund, payment run,
 Zahlungseingang, zuordnen, Minderzahlung, Abzug, Skontoabzug, Erstattung, Zahllauf, Saldo
@@ -479,6 +492,7 @@ Zahlungseingang, zuordnen, Minderzahlung, Abzug, Skontoabzug, Erstattung, Zahlla
 **Nachschlagen**
 
 - [Zahllauf vorschauen](./commands#command-preview_payment_run) (`preview_payment_run`)
+- [Mahnkontext anzeigen](./commands#command-dunning_context) (`dunning_context`)
 - [Kontext für Abzug anzeigen](./commands#command-adjustment_context) (`adjustment_context`)
 - [Kontext für Zahlung und Gutschrift anzeigen](./commands#command-settlement_context)
   (`settlement_context`)
@@ -530,6 +544,8 @@ Kontenrahmen, Storno, Eröffnungsbilanz, Sachkonto
 - [Standardkonto festlegen](./commands#command-set_default_account) (`set_default_account`)
 - [Buchung stornieren](./commands#command-reverse_ledger_posting_group)
   (`reverse_ledger_posting_group`)
+- [Mahnung erfassen](./commands#command-record_notice) (`record_notice`)
+- [Mahnung stornieren](./commands#command-reverse_notice) (`reverse_notice`)
 - [Eröffnungsposten importieren](./commands#command-import_opening) (`import_opening`)
 
 **Nachschlagen**
@@ -557,6 +573,9 @@ Kontenrahmen, Storno, Eröffnungsbilanz, Sachkonto
 - [Verlauf der Finanzreferenz](./commands#command-reference_history) (`reference_history`)
 - [Buchungsmatrix anzeigen](./commands#command-transaction_matrix) (`transaction_matrix`)
 - [Operative Konten anzeigen](./commands#command-list_accounts) (`list_accounts`)
+- [Mahnkontext anzeigen](./commands#command-dunning_context) (`dunning_context`)
+- [Mahnungen anzeigen](./commands#command-notices) (`notices`)
+- [Mahnung anzeigen](./commands#command-notice_detail) (`notice_detail`)
 - [Kontext der Eröffnungsposten anzeigen](./commands#command-opening_context) (`opening_context`)
 
 **Klärfälle**
@@ -598,6 +617,8 @@ Kontenrahmen, Storno, Eröffnungsbilanz, Sachkonto
 [`finance.component_assigned`](./events#event-finance-component_assigned),
 [`finance.reference_changed`](./events#event-finance-reference_changed),
 [`finance.account_changed`](./events#event-finance-account_changed),
+[`dunning.notice_recorded`](./events#event-dunning-notice_recorded),
+[`dunning.notice_reversed`](./events#event-dunning-notice_reversed),
 [`ledger.posted`](./events#event-ledger-posted), [`ledger.reversed`](./events#event-ledger-reversed)
 
 ## Deckungsbeitrag {#resource-contribution}
@@ -723,6 +744,7 @@ Nachweis, Quelle
   (`hold_document_commitments`)
 - [Manuellen Beleg erfassen](./commands#command-create_manual_document_with_lines)
   (`create_manual_document_with_lines`)
+- [Mahnung erfassen](./commands#command-record_notice) (`record_notice`)
 
 **Nachschlagen**
 
@@ -731,6 +753,9 @@ Nachweis, Quelle
 - [Quellcode-Zuordnungen anzeigen](./commands#command-list_source_mappings) (`list_source_mappings`)
 - [Verlauf der Quellcode-Zuordnung](./commands#command-source_mapping_history)
   (`source_mapping_history`)
+- [Mahnkontext anzeigen](./commands#command-dunning_context) (`dunning_context`)
+- [Mahnungen anzeigen](./commands#command-notices) (`notices`)
+- [Mahnung anzeigen](./commands#command-notice_detail) (`notice_detail`)
 
 **Klärfälle**
 
@@ -742,6 +767,7 @@ Nachweis, Quelle
 
 **Darunter:** Tabellen: `source_system`, `source_capability`, `document`, `document_line`, `fact` ·
 Events: [`finance.source_mapping_changed`](./events#event-finance-source_mapping_changed),
+[`dunning.notice_recorded`](./events#event-dunning-notice_recorded),
 [`source_record.stored`](./events#event-source_record-stored),
 [`fact.observed`](./events#event-fact-observed),
 [`source_record.received`](./events#event-source_record-received),
@@ -800,6 +826,7 @@ Freigabe, Abweichung, Klärfall, Timeline, Verlauf
 [`proposals_awaiting_approval`](./commands#tool-proposals_awaiting_approval),
 [`proposal_execution_status`](./commands#tool-proposal_execution_status),
 [`proposal_approve_and_execute`](./commands#tool-proposal_approve_and_execute),
+[`proposal_reject`](./commands#tool-proposal_reject),
 [`reality_gaps`](./commands#tool-reality_gaps),
 [`reality_gap_get`](./commands#tool-reality_gap_get),
 [`reality_gap_simulate`](./commands#tool-reality_gap_simulate),

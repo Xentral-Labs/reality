@@ -23,6 +23,58 @@ class CostQueryRequest(BaseModel):
         return value.astimezone(UTC) if value is not None else None
 
 
+CostGuidanceStage = Literal["uninitialized", "pending", "stale", "failed", "complete"]
+
+
+def cost_guidance(
+    *,
+    kind: Literal["inventory", "contribution"],
+    scope_id: str,
+    stage: CostGuidanceStage,
+    missing_basis: list[str] | tuple[str, ...] = (),
+    review_state: str | None = None,
+    explanation_links: list[dict[str, str]] | tuple[dict[str, str], ...] = (),
+) -> dict[str, Any]:
+    """Describe a supported next step without calculating or authorizing cost."""
+    operation = "inventory_review" if kind == "inventory" else "contribution_review"
+    reasons = {
+        "uninitialized": "No retained owner-reviewed cost basis exists for this scope.",
+        "pending": "Required evidence or owner review is incomplete.",
+        "stale": "Newer relevant business evidence exists after the retained review.",
+        "failed": "The last supported cost preparation did not produce a usable retained basis.",
+        "complete": "The retained cost basis is current for this bounded scope.",
+    }
+    if stage == "complete":
+        next_action = None
+    elif stage == "pending":
+        next_action = {
+            "tool": "cost_query_get",
+            "operation": "reconcile_pending_review",
+            "required_principal": "authorized_reader",
+        }
+    elif stage == "failed":
+        next_action = {
+            "tool": "cost_evidence_get",
+            "operation": "inspect_failed_basis",
+            "required_principal": "authorized_reader",
+        }
+    else:
+        next_action = {
+            "tool": "cost_change_propose",
+            "operation": operation,
+            "required_principal": "authenticated_active_owner",
+        }
+    return {
+        "stage": stage,
+        "scope": {"kind": kind, "id": scope_id},
+        "review_state": review_state or stage,
+        "missing_basis": list(missing_basis),
+        "reason": reasons[stage],
+        "next_action": next_action,
+        "explanation_links": list(explanation_links),
+    }
+
+
 def compatible_contexts(left: dict[str, Any], right: dict[str, Any]) -> bool:
     """Compare initialized retained bases, not claims of current completeness."""
     return bool(

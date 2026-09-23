@@ -11,7 +11,7 @@ from reality.db.core import (
     Reservation,
 )
 from reality.mcp.catalog import dispatch_tool, model_tool_schemas
-from reality.services.core import NotFound
+from reality.services.core import InvalidOperation, NotFound
 from reality.tools.application import run_read_tool
 
 INITIAL_TOOLS = {
@@ -39,6 +39,57 @@ READ_TOOLS = {
     "proposal_execution_status",
     "finance_balances",
 }
+
+
+def test_capability_lookup_resolves_public_and_unique_application_names(session, business):
+    public = run_read_tool(
+        session,
+        business.tenant.id,
+        "capability_describe",
+        {"tool_name": "reservation_propose"},
+    )
+    application = run_read_tool(
+        session,
+        business.tenant.id,
+        "capability_describe",
+        {"tool_name": "reserve"},
+    )
+
+    assert public == application
+    assert public["canonical_public_name"] == "reservation_propose"
+
+    with pytest.raises(NotFound, match="Capability not found"):
+        run_read_tool(
+            session,
+            business.tenant.id,
+            "capability_describe",
+            {"tool_name": "not_a_capability"},
+        )
+
+
+def test_capability_lookup_refuses_ambiguous_application_identity(
+    session, business, monkeypatch
+):
+    from reality import catalogs
+
+    monkeypatch.setattr(
+        catalogs,
+        "load_application_catalog",
+        lambda: {
+            "capability_guidance": {
+                "first_public": {"application_tool": "shared"},
+                "second_public": {"application_tool": "shared"},
+            }
+        },
+    )
+
+    with pytest.raises(InvalidOperation, match="ambiguous.*first_public.*second_public"):
+        run_read_tool(
+            session,
+            business.tenant.id,
+            "capability_describe",
+            {"tool_name": "shared"},
+        )
 
 
 def test_four_initial_capabilities_are_complete_and_distinct():

@@ -7,6 +7,7 @@ import pytest
 from sqlalchemy import select
 
 from reality.db.core import DunningNotice, LedgerEntry
+from reality.mcp.catalog import dispatch_tool
 from reality.services import core
 from reality.services.finance.accounts import (
     create_account,
@@ -114,6 +115,75 @@ def test_dunning_notice_keeps_invoice_and_posts_optional_fee(session, business):
     )
     assert reversed_notice["reversal_id"]
     assert core.open_invoice_amount(session, tenant, result["fee_document_id"]) == 0
+
+
+def test_mcp_dunning_context_record_detail_list_and_reverse(session, business):
+    tenant = business.tenant.id
+    _account(session, tenant, "dunning_fee_revenue")
+    invoice = _invoice(session, business, number="INV-MCP-DUNNING")
+    values = {
+        "invoice_ids": [invoice.id],
+        "level": 1,
+        "notice_date": "2026-09-23",
+        "fee_amount": "2.50",
+        "reason": "Explicit reminder",
+        "number": "DN-MCP-257",
+    }
+    context = dispatch_tool(
+        session, tenant, "finance_dunning_context", values, allowed_access=("read",)
+    )
+    prepared = dispatch_tool(
+        session,
+        tenant,
+        "finance_dunning_record_propose",
+        {**values, "expected_revision": context["revision"]},
+        allowed_access=("propose",),
+    )
+    assert prepared["next_step"]["required_principal"] == "authenticated_active_owner"
+    executed = approve_and_execute_proposal(session, tenant, prepared["proposal_id"])
+    notice_id = json.loads(executed.output)["id"]
+
+    detail = dispatch_tool(
+        session,
+        tenant,
+        "finance_dunning_notice",
+        {"notice_id": notice_id},
+        allowed_access=("read",),
+    )
+    listed = dispatch_tool(
+        session, tenant, "finance_dunning_notices", {}, allowed_access=("read",)
+    )
+    assert detail["fee_amount"] == "2.5000"
+    assert [row["id"] for row in listed] == [notice_id]
+    with pytest.raises(core.NotFound):
+        dispatch_tool(
+            session,
+            "ten_other",
+            "finance_dunning_notice",
+            {"notice_id": notice_id},
+            allowed_access=("read",),
+        )
+
+    revision = list_accounts(session, tenant)["revision"]
+    reversal = dispatch_tool(
+        session,
+        tenant,
+        "finance_dunning_reverse_propose",
+        {
+            "notice_id": notice_id,
+            "reason": "Entered in error",
+            "expected_revision": revision,
+        },
+        allowed_access=("propose",),
+    )
+    approve_and_execute_proposal(session, tenant, reversal["proposal_id"])
+    assert dispatch_tool(
+        session,
+        tenant,
+        "finance_dunning_notice",
+        {"notice_id": notice_id},
+        allowed_access=("read",),
+    )["reversed"] is True
 
 
 @pytest.mark.parametrize("side", ["customer", "supplier"])
