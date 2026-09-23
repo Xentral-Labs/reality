@@ -114,7 +114,9 @@ parameter_descriptions:
   document_type: Evidence kind, such as sales order, purchase order, or invoice.
   due_days: Number of calendar days from the document date until payment is due.
   effective_at: UTC instant from which the observation or rule takes effect.
-  email: Normalized email address of the person invited to the company.
+  email: Email address supplied for the named business purpose.
+  emails: Bounded labelled email addresses recorded for exact Party matching.
+  label: Optional human-readable description of a value's business purpose.
   external_id: Identifier assigned by the named external source system; never internal identity.
   gross_amount: Total the source states for the document; recorded as received and never calculated.
   resolves_movement_id: Opaque identity of the return this movement settles; absent means it settles none.
@@ -797,16 +799,16 @@ commands:
     mode: mutation
     adapters: [CLI, Web, API, MCP, Chat]
     reads: [tenant, source_record, party]
-    writes: [source_record, party, party_role]
-    effect: Creates a tenant-scoped party, optional immutable source evidence, and its operational roles.
+    writes: [source_record, party, party_role, party_email_address]
+    effect: Creates a tenant-scoped party, optional immutable source evidence, operational roles, and exact correspondence addresses.
   - name: Update party
     service: update_party
     related_services: [update_parties]
     mode: mutation
     adapters: [CLI, Web, API, MCP, Chat]
-    reads: [party, party_role, source_record]
-    writes: [source_record, party, party_role, business_event]
-    effect: Changes operational party fields and roles; changed external identity creates new source evidence and every effective change emits an exact before/after audit diff.
+    reads: [party, party_role, party_email_address, source_record]
+    writes: [source_record, party, party_role, party_email_address, business_event]
+    effect: Changes operational party fields, roles and exact correspondence addresses; changed external identity creates new source evidence and every effective change emits an exact before/after audit diff.
   - name: Create item
     service: create_item
     related_services: [create_items]

@@ -28,7 +28,7 @@ sections:
     tables: [tenant, source_system, source_capability, source_artifact, source_stream, source_record, import_job, interpretation_outcome, interpretation_record_reference]
   - name: Master Data
     description: Operational identities and settings needed for joins and decisions.
-    tables: [accounting_target, accounting_target_reference, finance_target_mapping_revision, source_classification_mapping_revision, finance_reference, party, party_role, party_hold, payment_term, item, location, price_list, price_list_entry, party_price_list, party_group, party_group_member, party_group_price_list]
+    tables: [accounting_target, accounting_target_reference, finance_target_mapping_revision, source_classification_mapping_revision, finance_reference, party, party_role, party_email_address, party_hold, payment_term, item, location, price_list, price_list_entry, party_price_list, party_group, party_group_member, party_group_price_list]
   - name: Evidence
     description: Normalized business documents that connect source evidence to reality.
     tables: [financial_component, document, document_line, opening_scope, opening_item_detail]
@@ -479,6 +479,15 @@ tables:
       party_id: {description: Party that performs the role.}
       role: {description: Operational role such as customer, supplier, or company.}
       default_location_id: {description: Default operational location associated with this role.}
+  party_email_address:
+    description: Exact tenant-scoped email address used to identify one Party from business correspondence.
+    columns:
+      id: {}
+      tenant_id: {}
+      party_id: {description: Direct owning Party; no Document or Source link is duplicated.}
+      email: {description: Trimmed display value supplied by the source or operator.}
+      normalized_email: {description: Case-normalized exact-match key; not a second business assertion.}
+      label: {description: Optional bounded business label such as Orders or Accounts payable.}
   party_hold:
     description: Time-bounded operational restriction applying to a party, including delivery holds.
     columns:

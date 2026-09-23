@@ -150,7 +150,7 @@ member_invite_propose email [locale]
 
 | Name     | Type     | Required | Description                                                                                                    | Default |
 | -------- | -------- | -------- | -------------------------------------------------------------------------------------------------------------- | ------- |
-| `email`  | `string` | yes      | Normalized email address of the person invited to the company.                                                 | —       |
+| `email`  | `string` | yes      | Email address supplied for the named business purpose.                                                         | —       |
 | `locale` | `string` | no       | Preferred supported language for invitation delivery, with the documented fallback when absent or unsupported. | `en`    |
 
 **See also:** command [`create_invitation`](./commands#command-create_invitation)
@@ -616,7 +616,8 @@ location_create_propose records
 
 ### `create_party` — Create party {#command-create_party}
 
-Creates a tenant-scoped party, optional immutable source evidence, and its operational roles.
+Creates a tenant-scoped party, optional immutable source evidence, operational roles, and exact
+correspondence addresses.
 
 **Synopsis**
 
@@ -627,7 +628,7 @@ party_create_propose records
 **Reach via:** CLI · Web · API · MCP · Chat
 
 **Effect:** Reads: `tenant`, `source_record`, `party` · Writes: `source_record`, `party`,
-`party_role` · Emits: `party.created`
+`party_role`, `party_email_address` · Emits: `party.created`
 
 **See also:** agent tool [`party_create_propose`](./commands#tool-party_create_propose), event
 [`party.created`](./events#event-party-created)
@@ -658,6 +659,9 @@ party_create_propose records
 | `records[].default_currency`  | `string` | no       | ISO 4217 currency used when an operation provides no explicit currency.                                                                                                                            | `EUR`   |
 | `records[].credit_limit`      | `string` | no       | Optional monetary exposure limit used by operational credit checks.                                                                                                                                | `0`     |
 | `records[].tax_identifier`    | `string` | no       | External tax or VAT identifier retained when operational matching requires it.                                                                                                                     | —       |
+| `records[].emails`            | `array`  | no       | Bounded labelled email addresses recorded for exact Party matching.                                                                                                                                | `[]`    |
+| `records[].emails[].email`    | `string` | yes      | Email address supplied for the named business purpose.                                                                                                                                             | —       |
+| `records[].emails[].label`    | `string` | no       | Optional human-readable description of a value's business purpose.                                                                                                                                 | —       |
 | `records[].source_system`     | `string` | no       | Tenant-scoped code naming the external origin of a record.                                                                                                                                         | —       |
 | `records[].external_id`       | `string` | no       | Identifier assigned by the named external source system; never internal identity.                                                                                                                  | —       |
 | `records[].source_payload`    | `object` | no       | Lossless external JSON evidence from which typed operational fields were selected.                                                                                                                 | —       |
@@ -982,8 +986,9 @@ location_update_propose records
 
 ### `update_party` — Update party {#command-update_party}
 
-Changes operational party fields and roles; changed external identity creates new source evidence
-and every effective change emits an exact before/after audit diff.
+Changes operational party fields, roles and exact correspondence addresses; changed external
+identity creates new source evidence and every effective change emits an exact before/after audit
+diff.
 
 **Synopsis**
 
@@ -993,8 +998,9 @@ party_update_propose records
 
 **Reach via:** CLI · Web · API · MCP · Chat
 
-**Effect:** Reads: `party`, `party_role`, `source_record` · Writes: `source_record`, `party`,
-`party_role`, `business_event` · Emits: `party.updated`
+**Effect:** Reads: `party`, `party_role`, `party_email_address`, `source_record` · Writes:
+`source_record`, `party`, `party_role`, `party_email_address`, `business_event` · Emits:
+`party.updated`
 
 **See also:** agent tool [`party_update_propose`](./commands#tool-party_update_propose), event
 [`party.updated`](./events#event-party-updated)
@@ -1026,6 +1032,9 @@ party_update_propose records
 | `records[].default_currency`  | `string` | no       | ISO 4217 currency used when an operation provides no explicit currency.                                                                                                                            | —       |
 | `records[].credit_limit`      | `string` | no       | Optional monetary exposure limit used by operational credit checks.                                                                                                                                | —       |
 | `records[].tax_identifier`    | `string` | no       | External tax or VAT identifier retained when operational matching requires it.                                                                                                                     | —       |
+| `records[].emails`            | `array`  | no       | Bounded labelled email addresses recorded for exact Party matching.                                                                                                                                | —       |
+| `records[].emails[].email`    | `string` | yes      | Email address supplied for the named business purpose.                                                                                                                                             | —       |
+| `records[].emails[].label`    | `string` | no       | Optional human-readable description of a value's business purpose.                                                                                                                                 | —       |
 | `records[].source_system`     | `string` | no       | Tenant-scoped code naming the external origin of a record.                                                                                                                                         | —       |
 | `records[].external_id`       | `string` | no       | Identifier assigned by the named external source system; never internal identity.                                                                                                                  | —       |
 | `records[].source_payload`    | `object` | no       | Lossless external JSON evidence from which typed operational fields were selected.                                                                                                                 | —       |
