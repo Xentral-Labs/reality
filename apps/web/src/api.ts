@@ -3649,6 +3649,9 @@ export const graphApi = {
       name: string | null;
       definition: GraphQuestion | null;
       expected_revision: number | null;
+      /** The report this change concerns, once one exists to open: the report it
+       *  changes, or — for a confirmed create or duplicate — the row it wrote. */
+      report_id: string | null;
       kind: string;
     }>(`/api/tenants/${tenant}/analytics/reports/proposals/${encodeURIComponent(id)}`),
   templates: (tenant: string, language: string) =>

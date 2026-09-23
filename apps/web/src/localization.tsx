@@ -18005,7 +18005,6 @@ Object.assign(dictionaries.de, {
   "Each one is a question, not an answer: taking it over runs it against your records and gives you your own copy to change.":
     "Jede ist eine Frage, keine Antwort: beim Übernehmen läuft sie gegen deine Datensätze und du bekommst deine eigene Fassung zum Ändern.",
   "Take this over": "Übernehmen",
-  "Comes with a period": "Mit Zeitraum",
 });
 Object.assign(dictionaries.nl, {
   Templates: "Sjablonen",
@@ -18013,7 +18012,6 @@ Object.assign(dictionaries.nl, {
   "Each one is a question, not an answer: taking it over runs it against your records and gives you your own copy to change.":
     "Elk is een vraag, geen antwoord: bij overnemen loopt hij tegen je records en krijg je je eigen versie om aan te passen.",
   "Take this over": "Overnemen",
-  "Comes with a period": "Met periode",
 });
 Object.assign(dictionaries.es, {
   Templates: "Plantillas",
@@ -18021,7 +18019,49 @@ Object.assign(dictionaries.es, {
   "Each one is a question, not an answer: taking it over runs it against your records and gives you your own copy to change.":
     "Cada una es una pregunta, no una respuesta: al adoptarla se ejecuta contra tus registros y obtienes tu propia copia para cambiar.",
   "Take this over": "Adoptar",
-  "Comes with a period": "Con periodo",
+});
+
+// Saving an analysis: where it is, what it is called, and whether it is saved
+// yet. The one step that turns a question into a report of your own used to be
+// the one step nothing on the page mentioned.
+Object.assign(dictionaries.de, {
+  "Draft · not saved yet": "Entwurf · noch nicht gespeichert",
+  "Saved report": "Gespeicherte Auswertung",
+  "Unsaved changes": "Nicht gespeicherte Änderungen",
+  "Saved to your reports.": "In deinen Auswertungen gespeichert.",
+  "Open the saved report": "Gespeicherte Auswertung öffnen",
+  "An unsaved preview. Nothing is saved until you confirm here.":
+    "Nur eine Vorschau. Gespeichert wird erst, wenn du hier bestätigst.",
+  "This report was removed.": "Diese Auswertung wurde entfernt.",
+  "This report is no longer available.": "Diese Auswertung gibt es nicht mehr.",
+  "Sets a period": "Setzt einen Zeitraum",
+  "Using it fixes this to dates.": "Beim Übernehmen wird er auf feste Daten gesetzt.",
+});
+Object.assign(dictionaries.nl, {
+  "Draft · not saved yet": "Concept · nog niet opgeslagen",
+  "Saved report": "Opgeslagen rapport",
+  "Unsaved changes": "Niet-opgeslagen wijzigingen",
+  "Saved to your reports.": "Opgeslagen bij je rapporten.",
+  "Open the saved report": "Het opgeslagen rapport openen",
+  "An unsaved preview. Nothing is saved until you confirm here.":
+    "Een voorbeeld dat niet is opgeslagen. Er wordt pas opgeslagen als je hier bevestigt.",
+  "This report was removed.": "Dit rapport is verwijderd.",
+  "This report is no longer available.": "Dit rapport bestaat niet meer.",
+  "Sets a period": "Stelt een periode in",
+  "Using it fixes this to dates.": "Bij overnemen wordt hij op vaste datums gezet.",
+});
+Object.assign(dictionaries.es, {
+  "Draft · not saved yet": "Borrador · sin guardar todavía",
+  "Saved report": "Informe guardado",
+  "Unsaved changes": "Cambios sin guardar",
+  "Saved to your reports.": "Guardado en tus informes.",
+  "Open the saved report": "Abrir el informe guardado",
+  "An unsaved preview. Nothing is saved until you confirm here.":
+    "Una vista previa sin guardar. No se guarda nada hasta que lo confirmes aquí.",
+  "This report was removed.": "Este informe se eliminó.",
+  "This report is no longer available.": "Este informe ya no está disponible.",
+  "Sets a period": "Fija un periodo",
+  "Using it fixes this to dates.": "Al adoptarla se fija en fechas.",
 });
 
 // A proposal that cannot be shown still has to be dismissible; "try again" on
@@ -18399,7 +18439,9 @@ Object.assign(dictionaries.de, {
   "Create with chat": "Mit Chat erstellen",
   "Adapt with chat": "Mit Chat anpassen",
   "Use a template": "Vorlage verwenden",
-  "Use template": "Vorlage verwenden",
+  // The toggle above and this button used to be the same three words, so
+  // pressing the second one looked like pressing the first one again.
+  "Use template": "Diese Vorlage übernehmen",
   "Build it yourself": "Selbst zusammenstellen",
   "How would you like to create your analysis?": "Wie möchtest du deine Auswertung erstellen?",
   "Describe your question in chat or choose the data yourself. Both lead to the same analysis.":

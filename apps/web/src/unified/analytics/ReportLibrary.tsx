@@ -51,6 +51,9 @@ export function ReportLibrary({
     <section className="register-surface">
       {create && (
         <PageActionBar
+          // Flat, not folded into "More actions": starting an analysis is the
+          // only thing this page is for.
+          presentation="inline"
           actions={[{ key: "new-analysis", label: "New analysis", onClick: create }]}
         />
       )}
