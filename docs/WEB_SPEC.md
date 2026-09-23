@@ -3273,6 +3273,9 @@ count links. Trial questions, the open-work hero, duplicate decision explanation
 and analytics shortcut are removed from this surface. Activity/readiness services,
 polling, periods, errors, drilldowns and independent dashboard loading are preserved.
 This supersedes the separate Home entry and Commitments default above.
+The Exceptions count reads the same stored generation as the Exceptions register
+(spec255), so both show one number; before the first generation completes it shows
+the unknown placeholder, never zero.
 
 Welcome styling (spec225 FR-019) follows the flat register surface: compact heading
 and readiness row, neutral local period controls, an unfilled stable graph summary
