@@ -157,8 +157,20 @@ def _settlement_schedule(
     return session.scalar(query)
 
 
-def preview(session: Session, tenant_id: str, actor_id: str) -> dict:
+def preview(
+    session: Session, tenant_id: str, actor_id: str, *, established: bool | None = None
+) -> dict:
+    """Resolve the references Demo Data needs in this company.
+
+    A company that already runs a live source is judged by the references that source
+    uses, not by the whole current catalog: entries added to the canonical profile
+    after the company was created are simply absent here, and their absence must not
+    end a running simulation (spec 256 FR-011). A company connecting for the first
+    time is still established against the full catalog.
+    """
     eligible(session, tenant_id, actor_id)
+    if established is None:
+        established = _connection(session, tenant_id) is not None
     items = list(session.scalars(select(Item).where(Item.tenant_id == tenant_id)))
     parties = list(session.scalars(select(Party).where(Party.tenant_id == tenant_id)))
     locations = list(
@@ -199,6 +211,11 @@ def preview(session: Session, tenant_id: str, actor_id: str) -> dict:
             if not matches and not required:
                 return None
             if len(matches) != 1:
+                if established:
+                    # Unresolved here means "this company does not have it", which is
+                    # only a problem if its live source actually uses it. That is
+                    # decided against the schedule's captured references, not here.
+                    return None
                 raise core.InvalidOperation(
                     "Existing company references are not compatible with Demo Data."
                 )
@@ -215,8 +232,11 @@ def preview(session: Session, tenant_id: str, actor_id: str) -> dict:
                 )
             return row.id
 
+        # Matched by name and unit, never by the human item number: that number
+        # changed shape (P01 -> ITEM-001) while companies seeded under the old one
+        # kept theirs, and a display number was never the identity anyway.
         refs["items"] = {
-            key: match(items, sku=item_number(key), name=name, unit=unit)
+            key: match(items, name=name, unit=unit)
             for key, name, unit, _ in ITEMS
             if key in MINIMAL_ITEMS
         }
@@ -230,6 +250,10 @@ def preview(session: Session, tenant_id: str, actor_id: str) -> dict:
             else:
                 refs["parties"][key] = party_id
         refs["locations"] = {"A": match(locations, name="Rotterdam Warehouse")}
+        refs = {
+            kind: {key: value for key, value in rows.items() if value is not None}
+            for kind, rows in refs.items()
+        }
     # The invoices' payment term is a prerequisite in every company: matched by
     # code when present, added otherwise (feature 168).
     term = session.scalar(
@@ -633,6 +657,50 @@ def _counts(
     }
 
 
+def _stall(schedule, latest, pressure: dict) -> dict | None:
+    """Why this source is not producing, derived from what the records already say.
+
+    Nothing here is stored: the kind follows from the schedule's timing and its last
+    occurrence, so a source can never claim a state its own records do not show.
+    """
+
+    def stall(kind: str, *, recovery_at=None, from_run: bool = False) -> dict:
+        return {
+            "kind": kind,
+            "code": latest.last_error_code if from_run and latest else None,
+            "stopped_at": latest.finished_at if from_run and latest else None,
+            "attempts": latest.attempt_count if from_run and latest else 0,
+            "recovery_at": recovery_at,
+            "automatic": recovery_at is not None,
+        }
+
+    if pressure["pending"] + pressure["failed"] >= 20:
+        return stall("throttled")
+    if schedule is None:
+        return None
+    if schedule.resume_after is not None:
+        return stall("suspended", recovery_at=schedule.resume_after, from_run=True)
+    if latest is not None and latest.status in {"failed", "unresolved"}:
+        kind = "unresolved" if latest.status == "unresolved" else "stopped"
+        return stall(kind, from_run=True)
+    if _overdue_since(schedule) is not None:
+        return stall("overdue")
+    return None
+
+
+def _overdue_since(schedule):
+    """The expected moment an enabled schedule has passed without being executed.
+
+    Three intervals, and never less than two minutes, so a busy sweep or a clock a
+    few seconds apart is not reported as an outage.
+    """
+    expected = schedule.next_run_at
+    if expected is None or not schedule.enabled:
+        return None
+    grace = max((schedule.interval_seconds or 60) * 3, 120)
+    return expected if expected + timedelta(seconds=grace) <= now() else None
+
+
 def status(session: Session, tenant_id: str, actor_id: str) -> dict:
     eligible(session, tenant_id, actor_id)
     connection = _connection(session, tenant_id)
@@ -673,14 +741,17 @@ def status(session: Session, tenant_id: str, actor_id: str) -> dict:
         else None
     )
     pressure = _counts(session, tenant_id, source_types=SYNTHETIC_TYPES)
+    stall = _stall(schedule, latest, pressure)
     derived = (
-        "throttled"
-        if pressure["pending"] + pressure["failed"] >= 20
-        else (
-            "error"
-            if latest and latest.status in {"failed", "unresolved"}
-            else connection.state
-        )
+        {
+            "throttled": "throttled",
+            "suspended": "suspended",
+            "overdue": "overdue",
+            "stopped": "error",
+            "unresolved": "error",
+        }[stall["kind"]]
+        if stall
+        else connection.state
     )
     return {
         "id": connection.id,
@@ -688,6 +759,7 @@ def status(session: Session, tenant_id: str, actor_id: str) -> dict:
         "derived_state": derived,
         "last_success": last_success,
         "scheduler_error": latest.last_error_code if latest else None,
+        "stall": stall,
         "revision": connection.revision,
         "rate": schedule.configuration["arguments"]["rate"] if schedule else 60,
         "schedule_id": connection.current_schedule_id,

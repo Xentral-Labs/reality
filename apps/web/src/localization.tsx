@@ -1209,6 +1209,31 @@ const dictionaries: Record<Exclude<Language, "en">, Record<string, string>> = {
     Disconnected: "Getrennt",
     "Paused: resolve failed imports": "Pausiert: fehlerhafte Importe klären",
     "Execution needs attention": "Ausführung prüfen",
+    "Waiting to resume": "Wartet auf Wiederaufnahme",
+    "Background services are not being monitored here, so this cannot be confirmed.":
+      "Hintergrunddienste werden hier nicht überwacht, das lässt sich also nicht bestätigen.",
+    "No arrivals": "Keine Eingänge",
+    "Next attempt": "Nächster Versuch",
+    "Execution was interrupted and will resume by itself":
+      "Ausführung wurde unterbrochen und läuft von selbst weiter",
+    "Execution stopped and will not resume by itself":
+      "Ausführung gestoppt und läuft nicht von selbst weiter",
+    "The last run ended with an unknown outcome": "Der letzte Lauf endete mit unklarem Ergebnis",
+    "No arrival has been executed as scheduled": "Es wurde kein Eingang wie geplant ausgeführt",
+    "The database could not be reached.": "Die Datenbank war nicht erreichbar.",
+    "The run exceeded its time budget.": "Der Lauf hat sein Zeitbudget überschritten.",
+    "The run ended unexpectedly.": "Der Lauf endete unerwartet.",
+    "Whether the work completed is unknown.": "Ob die Arbeit abgeschlossen wurde, ist unklar.",
+    "This company's references no longer match the simulation.":
+      "Die Referenzen dieser Firma passen nicht mehr zur Simulation.",
+    "The simulation is no longer authorized for this company.":
+      "Die Simulation ist für diese Firma nicht mehr freigegeben.",
+    "The source system was switched off.": "Das Quellsystem wurde abgeschaltet.",
+    "The scheduler reported an error.": "Der Scheduler hat einen Fehler gemeldet.",
+    "The scheduler or worker may be unavailable.":
+      "Scheduler oder Worker sind möglicherweise nicht erreichbar.",
+    "Resume the simulation once the cause is resolved.":
+      "Setze die Simulation fort, sobald die Ursache behoben ist.",
     "Not connected": "Nicht verbunden",
     completed: "abgeschlossen",
     failed: "fehlgeschlagen",
@@ -3211,6 +3236,31 @@ const dictionaries: Record<Exclude<Language, "en">, Record<string, string>> = {
     Disconnected: "Niet verbonden",
     "Paused: resolve failed imports": "Gepauzeerd: los mislukte imports op",
     "Execution needs attention": "Uitvoering controleren",
+    "Waiting to resume": "Wacht op hervatting",
+    "Background services are not being monitored here, so this cannot be confirmed.":
+      "Achtergronddiensten worden hier niet bewaakt, dus dit kan niet worden bevestigd.",
+    "No arrivals": "Geen ontvangsten",
+    "Next attempt": "Volgende poging",
+    "Execution was interrupted and will resume by itself":
+      "Uitvoering werd onderbroken en hervat vanzelf",
+    "Execution stopped and will not resume by itself": "Uitvoering gestopt en hervat niet vanzelf",
+    "The last run ended with an unknown outcome":
+      "De laatste uitvoering eindigde met een onbekende uitkomst",
+    "No arrival has been executed as scheduled": "Er is geen ontvangst uitgevoerd zoals gepland",
+    "The database could not be reached.": "De database was niet bereikbaar.",
+    "The run exceeded its time budget.": "De uitvoering overschreed haar tijdsbudget.",
+    "The run ended unexpectedly.": "De uitvoering eindigde onverwacht.",
+    "Whether the work completed is unknown.": "Of het werk is voltooid, is onbekend.",
+    "This company's references no longer match the simulation.":
+      "De referenties van dit bedrijf passen niet meer bij de simulatie.",
+    "The simulation is no longer authorized for this company.":
+      "De simulatie is niet langer toegestaan voor dit bedrijf.",
+    "The source system was switched off.": "Het bronsysteem is uitgeschakeld.",
+    "The scheduler reported an error.": "De planner meldde een fout.",
+    "The scheduler or worker may be unavailable.":
+      "De planner of worker is mogelijk niet beschikbaar.",
+    "Resume the simulation once the cause is resolved.":
+      "Hervat de simulatie zodra de oorzaak is verholpen.",
     "Not connected": "Niet verbonden",
     completed: "voltooid",
     failed: "mislukt",
@@ -4914,6 +4964,33 @@ const dictionaries: Record<Exclude<Language, "en">, Record<string, string>> = {
     Disconnected: "Desconectado",
     "Paused: resolve failed imports": "En pausa: resuelve las importaciones fallidas",
     "Execution needs attention": "La ejecución requiere atención",
+    "Waiting to resume": "Esperando para reanudar",
+    "Background services are not being monitored here, so this cannot be confirmed.":
+      "Los servicios en segundo plano no se supervisan aquí, así que no puede confirmarse.",
+    "No arrivals": "Sin llegadas",
+    "Next attempt": "Próximo intento",
+    "Execution was interrupted and will resume by itself":
+      "La ejecución se interrumpió y se reanudará por sí sola",
+    "Execution stopped and will not resume by itself":
+      "La ejecución se detuvo y no se reanudará por sí sola",
+    "The last run ended with an unknown outcome":
+      "La última ejecución terminó con un resultado desconocido",
+    "No arrival has been executed as scheduled":
+      "No se ha ejecutado ninguna llegada según lo previsto",
+    "The database could not be reached.": "No se pudo acceder a la base de datos.",
+    "The run exceeded its time budget.": "La ejecución superó su tiempo disponible.",
+    "The run ended unexpectedly.": "La ejecución terminó de forma inesperada.",
+    "Whether the work completed is unknown.": "Se desconoce si el trabajo se completó.",
+    "This company's references no longer match the simulation.":
+      "Las referencias de esta empresa ya no coinciden con la simulación.",
+    "The simulation is no longer authorized for this company.":
+      "La simulación ya no está autorizada para esta empresa.",
+    "The source system was switched off.": "El sistema de origen se desactivó.",
+    "The scheduler reported an error.": "El planificador informó un error.",
+    "The scheduler or worker may be unavailable.":
+      "El planificador o el worker pueden no estar disponibles.",
+    "Resume the simulation once the cause is resolved.":
+      "Reanuda la simulación cuando se resuelva la causa.",
     "Not connected": "Sin conexión",
     completed: "completado",
     failed: "fallido",

@@ -22,6 +22,15 @@ export type DemoDataStatus = {
   failed: number;
   pending: number;
   settlement_schedule_id?: string | null;
+  scheduler_error?: string | null;
+  stall?: {
+    kind: "suspended" | "stopped" | "unresolved" | "overdue" | "throttled";
+    code: string | null;
+    stopped_at: string | null;
+    attempts: number;
+    recovery_at: string | null;
+    automatic: boolean;
+  } | null;
   order_to_cash?: import("./components/demoDataSummary").OrderToCash;
 };
 export type DemoDataPreview = {

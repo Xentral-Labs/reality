@@ -2,7 +2,8 @@
 
 **Feature Branch**: `256-live-source-stall-visibility`
 **Created**: 2026-09-23
-**Status**: Draft
+**Status**: Approved
+**Approved**: 2026-09-23
 **Language**: English
 **Input**: "A live source that has stopped producing must say so, say why, and be recoverable by its owner. A missing scheduler or worker must be visible where the source is operated, not only inferable from a timestamp that stopped moving."
 
@@ -41,6 +42,14 @@ Stated as one sentence: a live source can die from a transient infrastructure bl
 - [Company setup and demo profiles](../../docs/features/company-setup-demo.md)
 - [Home activity and readiness](../../docs/features/home-live-status.md)
 - [Web product](../../docs/WEB_SPEC.md)
+
+## Clarifications
+
+### Session 2026-09-23
+
+- **Q1 (retry budget)** → A transient infrastructure failure never ends a live source. After the fast attempts are exhausted the source is suspended and retried on a recovery attempt every four to eight hours until the failure has cleared, then it continues on its own.
+- **Q2 (incompatible references)** → Existing companies must run again. Compatibility is judged by the references the live source actually uses, taken together with the profile version the company was created with; catalog entries added afterwards are not required of an existing company.
+- **Q3 (signal outside the source page)** → The integrations overview carries the signal: an attention badge on a source whose live execution is stopped or overdue, plus its live state in the overview itself, and the source's settings lead to the live simulation controls.
 
 ## User Scenarios & Testing *(mandatory)*
 
@@ -113,15 +122,19 @@ An owner of a stopped live source restarts it in one confirmed action, or is tol
 - **FR-003**: Every interface that presents a live source — Web, MCP, Chat, CLI and API — MUST present the stall reason and MUST NOT present a source as merely needing attention without it.
 - **FR-004**: A live source whose next occurrence is overdue by more than a bounded multiple of its own interval MUST be stated as overdue, with expected and observed times, in place of a normal running state.
 - **FR-005**: Where a live source is operated, the readiness of the background roles that execute it MUST be presented, reusing the existing readiness service; an unconfigured probe MUST be presented as unknown and MUST NOT be presented as healthy.
-- **FR-006**: The policy that disables a schedule MUST distinguish a transient infrastructure failure from a permanent refusal; the retry budget for a transient failure MUST be sufficient to survive a bounded infrastructure interruption, and the chosen budget MUST be stated in the plan and provable in a test.
-- **FR-007**: A disabled schedule MUST never be re-enabled by any automatic process; recovery MUST remain an explicit confirmed owner action.
+- **FR-006**: The policy that halts a schedule MUST distinguish a transient infrastructure failure from a permanent refusal. A transient infrastructure failure MUST NOT end a live source: after its immediate attempts are exhausted the schedule MUST be suspended rather than stopped, and MUST carry the next recovery attempt.
+- **FR-007**: A suspended schedule MUST attempt recovery every four to eight hours; when the transient failure has cleared the schedule MUST continue production by itself without any user action, and when it has not the suspension MUST persist with a new recovery attempt. A schedule stopped by an authorization refusal or by an owner control MUST NEVER be re-enabled automatically.
+- **FR-007a**: While a schedule is suspended it MUST NOT accumulate missed occurrences; recovery MUST resume production from the moment it succeeds rather than replaying the suspended interval.
 - **FR-008**: An owner MUST be able to restart a stopped live source in one confirmed action, regardless of the connection state the stop left behind, without a preparatory pause.
 - **FR-009**: A refused restart MUST return a specific reason naming the failed precondition and the affected reference scope, and MUST NOT alter connection state, schedule state or revision.
 - **FR-010**: A restart that spans several schedules of one source MUST be all-or-nothing; a partial result MUST be refused and MUST state which schedule could not be restarted.
-- **FR-011**: Reference compatibility for an existing company MUST be evaluated against the profile version that company was created with; a catalog that grew afterwards MUST NOT by itself make an existing live source unrecoverable.
+- **FR-011**: Reference compatibility for an existing company MUST be judged by the references its live source actually uses together with the profile version the company was created with. A catalog entry added after the company was created MUST NOT be required of that company and MUST NOT make its live source unrecoverable. A newly connected source is unaffected and MUST still be established against the current catalog.
 - **FR-012**: When compatibility cannot be established, the system MUST state the options available to the owner and MUST NOT silently modify the company's references.
 - **FR-013**: Readiness and stall information presented to a tenant MUST NOT contain probe URLs, credentials, host names, stack traces or other deployment detail.
 - **FR-014**: Reads introduced by this feature MUST NOT execute, materialize, claim or repair any job.
+- **FR-015**: The integrations overview MUST mark every source whose live execution is stopped, suspended or overdue with an attention badge and MUST state its live state there, so that a stalled source is visible without opening it.
+- **FR-016**: Opening the settings of a source that owns a live simulation MUST lead to that simulation's state and controls; settings and simulation MUST NOT be two unrelated places.
+- **FR-017**: A failure MUST retain a bounded failure category and human-readable message, free of payloads, credentials and connection detail, so that the reason survives the process boundary that produced it.
 
 ### Domain and Traceability Requirements
 
@@ -146,9 +159,9 @@ An owner of a stopped live source restarts it in one confirmed action, or is tol
 - **SC-001**: For each of the four stall kinds in FR-002, a planted occurrence produces a stall reason that names the kind, its times and its recovery statement in Web, MCP, CLI and API, with no interface omitting it.
 - **SC-002**: With the worker stopped, an enabled live source is stated as overdue within one permitted interval multiple, and is never presented as running normally while no occurrence is executed.
 - **SC-003**: With readiness probes unconfigured, no interface presents a background role as healthy.
-- **SC-004**: An infrastructure interruption of the duration stated in the plan does not disable a schedule; an interruption beyond it disables the schedule and states the exhausted retry budget as the reason.
+- **SC-004**: An infrastructure interruption never ends a live source: the schedule is suspended, its recovery attempt lies between four and eight hours ahead, and once the failure clears the source produces again without user action and without replaying the suspended interval.
 - **SC-005**: A live source stopped by a failed occurrence is restarted by its owner in one confirmed action in 100% of acceptance runs, and a repeated identical restart produces no second effect.
-- **SC-006**: A company created under an earlier profile version, on a system whose canonical catalog has since grown, either restarts its live source or is refused with a reason naming the changed catalog and the incompatible scope; a bare generic refusal fails the criterion.
+- **SC-006**: A company created under an earlier profile version, on a system whose canonical catalog has since grown, restarts its live source and produces again; a refusal for a reference the source does not use fails the criterion.
 - **SC-007**: A planted cross-tenant source, schedule or restart is refused without revealing whether the foreign identity exists, and no tenant-visible payload contains deployment detail.
 - **SC-008**: Every FR and DR has an acceptance scenario and executable proof.
 
@@ -161,9 +174,7 @@ An owner of a stopped live source restarts it in one confirmed action, or is tol
 
 ## Open Questions
 
-- **Q1**: What retry budget should a transient infrastructure failure receive before a schedule is disabled (FR-006), expressed as a duration an outage may last rather than as an attempt count?
-- **Q2**: When a company's references no longer match the current catalog (FR-011, FR-012), what options does the product offer its owner: run the live source against the company's original profile version, offer an explicit confirmed re-alignment of the company, or state that this company's live simulation has ended?
-- **Q3**: Does a stopped live source warrant any signal outside its own page — for example on Home or in the company's work counts — or is the page the only place this is reported?
+None. The three questions of the draft were answered on 2026-09-23 and are recorded under Clarifications.
 
 ## Requirement Traceability
 
@@ -175,6 +186,8 @@ An owner of a stopped live source restarts it in one confirmed action, or is tol
 | FR-008–FR-010 | US3 scenarios 1, 3, 4 | One-action restart story, idempotent replay test, all-or-nothing multi-schedule test |
 | FR-011–FR-012 | US3 scenario 2 | Creation-time profile-version compatibility test against a grown catalog |
 | FR-013–FR-014 | US2 scenario 5; edge cases | Payload inspection test and a read-only assertion over the job tables |
+| FR-015–FR-016 | US1 scenario 1; US2 scenario 2 | Integrations overview badge and state tests, settings-to-simulation browser proof |
+| FR-017 | US1 scenarios 1–3 | Failure-category retention test across the process boundary |
 | DR-001–DR-003 | US1–US2 | Derivation-at-read-time assertions; no new stored authority |
 | DR-004–DR-006 | US3 scenario 5; edge cases | Tenant-isolation family and opaque-identity checks |
 | DR-007 | US1–US3 | Schema-stability check |

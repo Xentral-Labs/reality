@@ -38,6 +38,14 @@ class ScheduledJob(Base):
             name="ck_scheduled_job_configuration",
         ),
         Index("ix_scheduled_job_due", "tenant_id", "enabled", "next_run_at", "id"),
+        # A suspended schedule is found by its own recovery moment, never by scanning
+        # every disabled schedule of a company (spec 256 FR-007).
+        Index(
+            "ix_scheduled_job_recovery",
+            "tenant_id",
+            "resume_after",
+            postgresql_where="resume_after IS NOT NULL",
+        ),
     )
     id: Mapped[str] = mapped_column(String)
     tenant_id: Mapped[str] = mapped_column(ForeignKey("tenant.id"))
@@ -48,6 +56,9 @@ class ScheduledJob(Base):
     cron_expression: Mapped[str | None] = mapped_column(String, default=None)
     enabled: Mapped[bool] = mapped_column(Boolean, default=False)
     next_run_at: Mapped[datetime | None] = mapped_column(UTCDateTime, default=None)
+    #: When an infrastructure failure suspended this schedule, the moment it may try
+    #: again. Timing, not an observation: nothing here says why it was suspended.
+    resume_after: Mapped[datetime | None] = mapped_column(UTCDateTime, default=None)
     revision: Mapped[int] = mapped_column(Integer, default=1)
     create_request_id: Mapped[str] = mapped_column(String(128))
     create_fingerprint: Mapped[str] = mapped_column(String(64))
@@ -96,6 +107,10 @@ class ScheduledJobRun(Base):
             "result IS NULL OR (jsonb_typeof(result) = 'object' AND octet_length(result::text) <= 4096)",
             name="ck_scheduled_run_result",
         ),
+        CheckConstraint(
+            "failure_detail IS NULL OR length(failure_detail) <= 400",
+            name="ck_scheduled_run_failure_detail",
+        ),
         Index(
             "uq_scheduled_run_unfinished",
             "tenant_id",
@@ -140,4 +155,7 @@ class ScheduledJobRun(Base):
     started_at: Mapped[datetime | None] = mapped_column(UTCDateTime, default=None)
     finished_at: Mapped[datetime | None] = mapped_column(UTCDateTime, default=None)
     last_error_code: Mapped[str | None] = mapped_column(String(80), default=None)
+    #: A bounded operator-readable cause behind the code: exception class and a
+    #: truncated message. Never a payload, credential or connection string.
+    failure_detail: Mapped[str | None] = mapped_column(String(400), default=None)
     result: Mapped[dict | None] = mapped_column(JSONB(none_as_null=True), default=None)

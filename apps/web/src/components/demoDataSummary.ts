@@ -50,3 +50,39 @@ export function financeLink(tenantId: string, view: FinanceView): string {
   const query = new URLSearchParams({ tenant: tenantId, finance_view: view, source: "demo_data" });
   return `/app/finance?${query.toString()}`;
 }
+
+// Feature 256: why a live source is not producing, said once for every surface.
+
+export type Stall = NonNullable<import("../api").DemoDataStatus["stall"]>;
+
+/** The headline of a stall, as an English source string for t(). */
+export function stallHeadline(stall: Stall): string {
+  return {
+    suspended: "Execution was interrupted and will resume by itself",
+    stopped: "Execution stopped and will not resume by itself",
+    unresolved: "The last run ended with an unknown outcome",
+    overdue: "No arrival has been executed as scheduled",
+    throttled: "Paused: resolve failed imports",
+  }[stall.kind];
+}
+
+/** The cause behind the error code, as an English source string for t(). */
+export function stallCause(code: string | null): string {
+  if (!code) return "";
+  return (
+    {
+      database_error: "The database could not be reached.",
+      handler_timeout: "The run exceeded its time budget.",
+      child_exited: "The run ended unexpectedly.",
+      outcome_unresolved: "Whether the work completed is unknown.",
+      incompatible_references: "This company's references no longer match the simulation.",
+      not_authorized: "The simulation is no longer authorized for this company.",
+      inactive_source: "The source system was switched off.",
+    }[code] || "The scheduler reported an error."
+  );
+}
+
+/** A live source the person should look at, rather than one quietly at work. */
+export function sourceNeedsAttention(derivedState: string | undefined): boolean {
+  return ["suspended", "overdue", "error", "throttled"].includes(derivedState || "");
+}

@@ -60,6 +60,18 @@ def _session_info_from_stdin() -> dict[str, str]:
     )
 
 
+def _safe_detail(error: BaseException) -> str:
+    """Class and first line only, cut before any statement or bound parameters.
+
+    A database message carries the failing SQL and its values; the point here is to
+    keep the cause of a failure, not to move the payload across the boundary.
+    """
+    message = str(error).split("\n", 1)[0]
+    for marker in ("[SQL:", "[parameters:", "(Background on this error"):
+        message = message.split(marker, 1)[0]
+    return f"{type(error).__name__}: {message.strip()}"[:300]
+
+
 def child_main(
     tenant_id: str,
     run_id: str,
@@ -109,10 +121,26 @@ def child_main(
                 }
             )
         )
-    except SQLAlchemyError:
-        print(json.dumps({"code": "database_error", "retryable": True}))
-    except Exception:  # noqa: BLE001 - child boundary must not expose payloads or secrets
-        print(json.dumps({"code": "handler_failed", "retryable": False}))
+    except SQLAlchemyError as error:
+        print(
+            json.dumps(
+                {
+                    "code": "database_error",
+                    "retryable": True,
+                    "detail": _safe_detail(error),
+                }
+            )
+        )
+    except Exception as error:  # noqa: BLE001 - boundary must not expose payloads or secrets
+        print(
+            json.dumps(
+                {
+                    "code": "handler_failed",
+                    "retryable": False,
+                    "detail": _safe_detail(error),
+                }
+            )
+        )
     finally:
         if engine is not None:
             engine.dispose()
@@ -199,6 +227,7 @@ def execute_process(
     # Even a successful child is re-read under the claim lock. A lost response never
     # redispatches a committed effect; a dead transaction must settle before this lock.
     with Session(engine) as session, session.begin():
+        detail = payload.get("detail")
         return record_failure(
             session,
             tenant_id,
@@ -206,6 +235,7 @@ def execute_process(
             token,
             code,
             retryable=timed_out or bool(payload.get("retryable")),
+            detail=detail if isinstance(detail, str) else "",
         )
 
 

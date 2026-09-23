@@ -9,6 +9,7 @@ from __future__ import annotations
 import base64
 import hashlib
 import json
+import random
 from datetime import datetime, timedelta
 from uuid import uuid4
 
@@ -35,6 +36,21 @@ from reality.scheduling.timing import (
 
 UNFINISHED = ("pending", "running", "retry", "unresolved")
 QUEUE_LIMIT = 1000
+#: Failures where the work never reached a business verdict: the database was away,
+#: the child process died, or the handler ran out of its budget. None of these say
+#: that the work must not happen, so they suspend a schedule instead of ending it
+#: (spec 256 FR-006).
+INFRASTRUCTURE_CODES = frozenset({"database_error", "child_exited", "handler_timeout"})
+#: The window a suspended schedule waits before it tries again. Drawn per suspension
+#: so that many companies interrupted by one outage do not all wake up together.
+RECOVERY_MIN_SECONDS = 4 * 3600
+RECOVERY_MAX_SECONDS = 8 * 3600
+
+
+def _recovery_moment() -> datetime:
+    return now() + timedelta(
+        seconds=random.uniform(RECOVERY_MIN_SECONDS, RECOVERY_MAX_SECONDS)
+    )
 
 
 def _key(value: str) -> str:
@@ -385,6 +401,9 @@ def control_schedule(
         )
     else:
         raise JobError("invalid_control")
+    # An owner control settles the question a suspension left open: what a person
+    # paused, resumed or changed is no longer a source waiting for its own recovery.
+    row.resume_after = None
     row.revision += 1
     row.updated_at = now()
     row.last_control_request_id, row.last_control_fingerprint = request_id, fingerprint
@@ -464,13 +483,40 @@ def create_manual_run(
     return run
 
 
+def _revive_suspended(session: Session, tenant_id: str) -> int:
+    """Return suspended schedules whose recovery moment has come to production.
+
+    Production resumes from the moment recovery succeeds. The interval a schedule
+    spent suspended is not replayed: a live source that was away owes no backlog.
+    """
+    rows = list(
+        session.scalars(
+            select(ScheduledJob)
+            .where(
+                ScheduledJob.tenant_id == tenant_id,
+                ScheduledJob.resume_after.is_not(None),
+                ScheduledJob.resume_after <= now(),
+            )
+            .with_for_update(skip_locked=True)
+            .execution_options(populate_existing=True)
+        )
+    )
+    for row in rows:
+        row.enabled, row.resume_after, row.next_run_at = True, None, now()
+        row.updated_at = now()
+    if rows:
+        session.flush()
+    return len(rows)
+
+
 def materialize_due(
     session: Session, tenant_id: str, *, outcomes: dict[str, int] | None = None
 ) -> int:
     """One occurrence per tenant per sweep; never execute or claim a handler."""
-    if _tenant_lock(session, tenant_id, skip=True) is None or not _capacity(
-        session, tenant_id
-    ):
+    if _tenant_lock(session, tenant_id, skip=True) is None:
+        return 0
+    _revive_suspended(session, tenant_id)
+    if not _capacity(session, tenant_id):
         return 0
     unfinished = (
         select(ScheduledJobRun.id)
@@ -499,7 +545,8 @@ def materialize_due(
     try:
         _authorize_run_or_schedule(session, row)
     except JobError as error:
-        row.enabled = False
+        # A refusal is a verdict, not an interruption: this one stays stopped.
+        row.enabled, row.resume_after = False, None
         session.add(
             ScheduledJobRun(
                 id=f"run_{uuid4().hex}",
@@ -568,13 +615,21 @@ def _failed(
     schedule: ScheduledJob | None,
     code: str,
     status: str = "failed",
+    detail: str = "",
 ) -> None:
     run.status, run.last_error_code = status, code
+    run.failure_detail = detail[:400] or None
     run.finished_at = now() if status == "failed" else None
     run.claim_token = None
     run.lease_expires_at = None
     if schedule:
+        # An infrastructure failure interrupts a source; it does not decide that the
+        # source should stop existing. Suspending keeps the owner's intent and stops
+        # occurrences from accumulating while the cause persists (spec 256 FR-007a).
         schedule.enabled = False
+        schedule.resume_after = (
+            _recovery_moment() if code in INFRASTRUCTURE_CODES else None
+        )
     session.flush()
 
 
@@ -702,22 +757,24 @@ def record_failure(
     *,
     retryable: bool = False,
     uncertain: bool = False,
+    detail: str = "",
 ) -> str:
     schedule, run = _locked_claim(session, tenant_id, run_id)
     if run.status != "running" or run.claim_token != claim_token:
         return run.status
     if uncertain:
-        _failed(session, run, schedule, "outcome_unresolved", "unresolved")
+        _failed(session, run, schedule, "outcome_unresolved", "unresolved", detail)
     elif retryable and run.attempt_count < 3:
         run.status = "retry"
         run.next_attempt_at = now() + timedelta(
             seconds=(30, 120)[run.attempt_count - 1]
         )
         run.last_error_code = code
+        run.failure_detail = detail[:400] or None
         run.claim_token, run.lease_expires_at = None, None
         session.flush()
     else:
-        _failed(session, run, schedule, code)
+        _failed(session, run, schedule, code, detail=detail)
     return run.status
 
 
