@@ -2,32 +2,34 @@
 
 [Back to the guide overview](../business-reality-guide)
 
-## “Can Huber's order ship today?” {#process-owner}
+## “Can Northstar's order ship today?” {#process-owner}
 
-Return to the point where LightWorks has delivered the first ten lamps. The eight opening-stock
-lamps are allocated to Huber; the ten new arrivals are not. Acme still owes Huber all 30 lamps.
+Return to the point where Alpine Components has delivered the first ten lamps. The eight
+opening-stock lamps are allocated to Northstar; the ten new arrivals are not. Acme still owes
+Northstar all 30 lamps.
 
 An agent is asked whether a partial shipment of 18 can leave today. An answer needs more than the
 order header. It must separate four questions:
 
-| Check                       | Result at this point                                                     |
-| --------------------------- | ------------------------------------------------------------------------ |
-| What is still promised?     | Thirty lamps remain open.                                                |
-| What is physically present? | Eighteen lamps are in Augsburg.                                          |
-| What is allocated to Huber? | Eight; ten still need allocation for the intended partial shipment.      |
-| What might block execution? | Current holds, permissions and other execution conditions need checking. |
+| Check                           | Result at this point                                                     |
+| ------------------------------- | ------------------------------------------------------------------------ |
+| What is still promised?         | Thirty lamps remain open.                                                |
+| What is physically present?     | Eighteen lamps are in Augsburg.                                          |
+| What is allocated to Northstar? | Eight; ten still need allocation for the intended partial shipment.      |
+| What might block execution?     | Current holds, permissions and other execution conditions need checking. |
 
 The agent can explain the missing allocation and propose reserving the ten available lamps. It
 cannot yet claim a completed reservation or shipment. A proposal does not change stock.
 
 ### What you check
 
-Compare the preview with the intent. Is this Huber's correct delivery promise? Is it the right item,
-Augsburg and ten units? Are the goods still available? Is there a hold?
+Compare the preview with the intent. Is this Northstar's correct delivery promise? Is it the right
+item, Augsburg and ten units? Are the goods still available? Is there a hold?
 
 After authorised confirmation, the application service executes the reservation and rechecks the
-current conditions. Only the subsequent read establishes that 18 lamps are now allocated to Huber.
-That still proves no shipment. The physical warehouse event and its recording happen later.
+current conditions. Only the subsequent read establishes that 18 lamps are now allocated to
+Northstar. That still proves no shipment. The physical warehouse event and its recording happen
+later.
 
 ## The Process Owner Role
 
@@ -64,8 +66,8 @@ in chapter 3 follows its own limited intake rules; it grants an agent no extra r
 permissions and server checks govern the action, not a sentence in a prompt.
 
 An agent may say “18 reserved” after checking active reservations. “18 shipped” requires the
-corresponding recorded shipment movements. “Arrived at Huber” needs suitable delivery evidence in
-turn. The same order supports different statements with different limits.
+corresponding recorded shipment movements. “Arrived at Northstar” needs suitable delivery evidence
+in turn. The same order supports different statements with different limits.
 
 ## Exceptions, Approvals and Responsibility {#exceptions-and-approvals}
 
@@ -83,8 +85,8 @@ risk. The specific condition is explained and documented in the
 An exception is not a ticket you can close independently of its cause. A proposal is not proof that
 a problem has been resolved. Either can exist without the other.
 
-After the ten new lamps are reserved for Huber, twelve still remain unreserved. A warning about that
-remaining gap does not disappear just because you approved the first reservation. Read the
+After the ten new lamps are reserved for Northstar, twelve still remain unreserved. A warning about
+that remaining gap does not disappear just because you approved the first reservation. Read the
 quantities and the exact derivation condition again. When the next twelve arrive and are allocated,
 that allocation gap can be closed.
 

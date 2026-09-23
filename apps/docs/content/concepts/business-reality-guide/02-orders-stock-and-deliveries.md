@@ -2,11 +2,11 @@
 
 [Back to the guide overview](../business-reality-guide)
 
-## Follow Huber's order through warehouse and purchasing {#orders-and-inventory}
+## Follow Northstar's order through warehouse and purchasing {#orders-and-inventory}
 
-Huber orders 30 lamps. Eight are in Augsburg; Acme buys the missing 22 from LightWorks. We follow
-which actions create records and which figures are derived from them. Invoice and payment come in
-the next chapter.
+Northstar orders 30 lamps. Eight are in Augsburg; Acme buys the missing 22 from Alpine Components.
+We follow which actions create records and which figures are derived from them. Invoice and payment
+come in the next chapter.
 
 The base case has one item, one location and no other orders, movements or holds. Here, “stock”
 means physical stock calculated from recorded goods movements. “Available” is the part not already
@@ -22,10 +22,10 @@ balances, not a second independently entered authority.
 
 ### 2. Entering a sales order
 
-**In the business:** Huber orders 30 lamps. **In Reality:** The supported manual order operation
+**In the business:** Northstar orders 30 lamps. **In Reality:** The supported manual order operation
 preserves the input as a **SourceRecord**, records order `SO-1001` as a **Document** with its
-**DocumentLine**, and explicitly creates a **delivery promise (Commitment)** from Acme to Huber for
-30 units.
+**DocumentLine**, and explicitly creates a **delivery promise (Commitment)** from Acme to Northstar
+for 30 units.
 
 **The result:** Thirty remain to deliver. Warehouse stock remains eight. The order alone does not
 reserve goods. An arbitrary document does not create a promise either; that belongs to the supported
@@ -33,49 +33,49 @@ order operation or importer.
 
 ### 3. Allocate existing stock
 
-**In the business:** Acme wants to set aside available lamps for Huber. **In Reality:** An explicit
-reservation action requests 30 against the promise. The service checks open demand and available
-stock, then creates a **Reservation** for the eight available units.
+**In the business:** Acme wants to set aside available lamps for Northstar. **In Reality:** An
+explicit reservation action requests 30 against the promise. The service checks open demand and
+available stock, then creates a **Reservation** for the eight available units.
 
-**The result:** Eight are allocated to Huber, 22 remain unreserved, and none are free. All 30 still
-remain to deliver. Allocating stock does not fulfil a promise.
+**The result:** Eight are allocated to Northstar, 22 remain unreserved, and none are free. All 30
+still remain to deliver. Allocating stock does not fulfil a promise.
 
 The shortfall is a calculated answer. If nothing is available, no Reservation is created. The
 shortfall does not automatically create a purchase order.
 
 ### 4. Order the missing lamps
 
-**In the business:** Acme orders 22 lamps from LightWorks. **In Reality:** The supported purchase
-order operation creates `PO-2001`, its line and a supplier promise for 22. This is also a
-**Commitment**, this time from LightWorks to Acme.
+**In the business:** Acme orders 22 lamps from Alpine Components. **In Reality:** The supported
+purchase order operation creates `PO-2001`, its line and a supplier promise for 22. This is also a
+**Commitment**, this time from Alpine Components to Acme.
 
-**The result:** We expect 22 lamps. Eight remain in the warehouse, all reserved for Huber. Promised
-supply is planning information. It is not existing stock and cannot be shipped as such.
+**The result:** We expect 22 lamps. Eight remain in the warehouse, all reserved for Northstar.
+Promised supply is planning information. It is not existing stock and cannot be shipped as such.
 
 ### 5. A partial goods receipt: ten lamps
 
-**In the business:** LightWorks delivers ten. **In Reality:** Acme records the actual receipt as a
-**Movement** of type `receipt`, linked to the supplier promise.
+**In the business:** Alpine Components delivers ten. **In Reality:** Acme records the actual receipt
+as a **Movement** of type `receipt`, linked to the supplier promise.
 
-**The result:** Eighteen are in stock; eight are reserved and ten are free. LightWorks still owes
-twelve. Receipt does not automatically assign the new stock to Huber.
+**The result:** Eighteen are in stock; eight are reserved and ten are free. Alpine Components still
+owes twelve. Receipt does not automatically assign the new stock to Northstar.
 
-Acme therefore reserves the ten newly available lamps for Huber with a separate action. This creates
-an additional Reservation. Eighteen are now allocated and none are free.
+Acme therefore reserves the ten newly available lamps for Northstar with a separate action. This
+creates an additional Reservation. Eighteen are now allocated and none are free.
 
 ### 6. Receive and reserve the remaining twelve
 
-The second receipt creates another Movement for twelve. LightWorks has now delivered all 22. Thirty
-lamps are in the warehouse; 18 are already allocated to Huber. Another explicit reservation action
-allocates the remaining twelve.
+The second receipt creates another Movement for twelve. Alpine Components has now delivered all 22.
+Thirty lamps are in the warehouse; 18 are already allocated to Northstar. Another explicit
+reservation action allocates the remaining twelve.
 
-All 30 are now present and reserved. None has yet shipped to Huber.
+All 30 are now present and reserved. None has yet shipped to Northstar.
 
 ### 7. Ship in two parts
 
-**In the business:** Acme first ships 18 lamps to Huber. **In Reality:** Acme records that shipment
-as a **Movement** of type `shipment` against Huber's Commitment. The operation consumes the matching
-active reservations automatically; no separate release of their allocation is needed.
+**In the business:** Acme first ships 18 lamps to Northstar. **In Reality:** Acme records that
+shipment as a **Movement** of type `shipment` against Northstar's Commitment. The operation consumes
+the matching active reservations automatically; no separate release of their allocation is needed.
 
 **The result:** Eighteen delivered, twelve still to deliver. Twelve remain in the warehouse and stay
 reserved. The second shipment of twelve creates another Movement and completes the delivery promise.
@@ -86,19 +86,19 @@ goods were physically issued and the record is correct remains an operational re
 
 ### The quantities together
 
-Every value refers to the same item and location. “Open” means Huber's outstanding delivery.
+Every value refers to the same item and location. “Open” means Northstar's outstanding delivery.
 
-| After this step          | Physical | Reserved for Huber | Available | Shipped to Huber | Open |
-| ------------------------ | -------: | -----------------: | --------: | ---------------: | ---: |
-| Opening stock            |        8 |                  0 |         8 |                0 |    0 |
-| Order for 30             |        8 |                  0 |         8 |                0 |   30 |
-| First reservation        |        8 |                  8 |         0 |                0 |   30 |
-| Receipt of ten           |       18 |                  8 |        10 |                0 |   30 |
-| Another ten reserved     |       18 |                 18 |         0 |                0 |   30 |
-| Receipt of twelve        |       30 |                 18 |        12 |                0 |   30 |
-| Another twelve reserved  |       30 |                 30 |         0 |                0 |   30 |
-| Shipment of 18           |       12 |                 12 |         0 |               18 |   12 |
-| Final shipment of twelve |        0 |                  0 |         0 |               30 |    0 |
+| After this step          | Physical | Reserved for Northstar | Available | Shipped to Northstar | Open |
+| ------------------------ | -------: | ---------------------: | --------: | -------------------: | ---: |
+| Opening stock            |        8 |                      0 |         8 |                    0 |    0 |
+| Order for 30             |        8 |                      0 |         8 |                    0 |   30 |
+| First reservation        |        8 |                      8 |         0 |                    0 |   30 |
+| Receipt of ten           |       18 |                      8 |        10 |                    0 |   30 |
+| Another ten reserved     |       18 |                     18 |         0 |                    0 |   30 |
+| Receipt of twelve        |       30 |                     18 |        12 |                    0 |   30 |
+| Another twelve reserved  |       30 |                     30 |         0 |                    0 |   30 |
+| Shipment of 18           |       12 |                     12 |         0 |                   18 |   12 |
+| Final shipment of twelve |        0 |                      0 |         0 |                   30 |    0 |
 
 The order remains the document for what was ordered. “Partially delivered” or “fully delivered”
 comes from the Commitment and linked shipment movements. No delivery status is held on the Document.
@@ -106,13 +106,13 @@ comes from the Commitment and linked shipment movements. No delivery status is h
 ### Check your understanding
 
 The supplier's first ten lamps have arrived but have not yet been reserved. How much is physically
-present, how much is allocated to Huber, and how much remains to deliver to Huber?
+present, how much is allocated to Northstar, and how much remains to deliver to Northstar?
 
 <details>
 <summary>Show answer</summary>
 
-Eighteen physically present, eight reserved for Huber, and 30 still to deliver. Receipt, allocation
-and customer shipment answer three different questions.
+Eighteen physically present, eight reserved for Northstar, and 30 still to deliver. Receipt,
+allocation and customer shipment answer three different questions.
 
 </details>
 
@@ -143,7 +143,7 @@ before each confirmation. These actions really change records there.
 
 The following cases do not change the table above. They show what to do when the business case
 changes. On a first reading, skip this detail and continue to
-[Huber's invoice and payment](./03-invoices-and-payments).
+[Northstar's invoice and payment](./03-invoices-and-payments).
 
 <details>
 <summary>Cancellation, returns, recording errors and changed orders</summary>
@@ -156,9 +156,9 @@ Velo Store orders ten helmets and six are reserved. The customer cancels before 
 the Commitment records its cancellation time and releases active Reservations. It creates no
 Movement because nothing moved. Physical stock is unchanged; available stock rises by six.
 
-In a separate variant, Huber later returns two shipped lamps. A `return` Movement into the Returns
-Area increases stock there. It does not erase the historical shipment or reopen the fulfilled
-delivery promise. A commercial credit is a separate financial event.
+In a separate variant, Northstar later returns two shipped lamps. A `return` Movement into the
+Returns Area increases stock there. It does not erase the historical shipment or reopen the
+fulfilled delivery promise. A commercial credit is a separate financial event.
 
 A count then finds one missing light. An outbound `adjustment` from Augsburg with a reason records
 the difference. It does not edit a stock balance.

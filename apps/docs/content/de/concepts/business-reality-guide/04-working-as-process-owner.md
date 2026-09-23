@@ -2,11 +2,11 @@
 
 [Zurück zur Handbuchübersicht](../business-reality-guide)
 
-## „Kann Hubers Auftrag heute raus?“ {#process-owner}
+## „Kann Northstars Auftrag heute raus?“ {#process-owner}
 
-Gehen wir in unserem Beispiel kurz zurück: LightWorks hat die ersten zehn Lampen geliefert. Die acht
-Lampen aus dem Anfangsbestand sind Huber zugeordnet, die zehn neuen noch nicht. Insgesamt schuldet
-Acme Huber weiterhin 30 Lampen.
+Gehen wir in unserem Beispiel kurz zurück: Alpine Components hat die ersten zehn Lampen geliefert.
+Die acht Lampen aus dem Anfangsbestand sind Northstar zugeordnet, die zehn neuen noch nicht.
+Insgesamt schuldet Acme Northstar weiterhin 30 Lampen.
 
 Ein Agent soll erklären, ob eine Teillieferung von 18 heute möglich ist. Die Antwort braucht mehr
 als den Auftragskopf. Sie muss vier Fragen auseinanderhalten:
@@ -15,7 +15,7 @@ als den Auftragskopf. Sie muss vier Fragen auseinanderhalten:
 | ------------------------------------- | ------------------------------------------------------------------------------------------ |
 | Was ist noch zugesagt?                | 30 Lampen sind offen.                                                                      |
 | Was ist vorhanden?                    | 18 Lampen liegen im Lager Augsburg.                                                        |
-| Was ist Huber zugeordnet?             | Acht; für die geplante Teillieferung fehlen zehn in der Zuordnung.                         |
+| Was ist Northstar zugeordnet?         | Acht; für die geplante Teillieferung fehlen zehn in der Zuordnung.                         |
 | Was könnte die Ausführung verhindern? | Aktuelle Sperren, Berechtigungen und weitere Ausführungsbedingungen müssen geprüft werden. |
 
 Der Agent kann die fehlende Zuordnung erklären und eine Reservierung der zehn verfügbaren Lampen
@@ -24,11 +24,11 @@ den Bestand nicht.
 
 ### Was du prüfst
 
-Du vergleichst die Vorschau mit der Absicht: Ist es Hubers richtige Lieferzusage? Geht es um den
+Du vergleichst die Vorschau mit der Absicht: Ist es Northstars richtige Lieferzusage? Geht es um den
 richtigen Artikel, Augsburg und zehn Stück? Ist die Ware noch verfügbar? Gibt es eine Sperre?
 
 Nach berechtigter Bestätigung führt der Anwendungsdienst die Reservierung aus und prüft dabei die
-aktuellen Bedingungen erneut. Erst die anschließende Leseprüfung zeigt, dass nun 18 Lampen Huber
+aktuellen Bedingungen erneut. Erst die anschließende Leseprüfung zeigt, dass nun 18 Lampen Northstar
 zugeordnet sind. Das belegt weiterhin keinen Versand. Der tatsächliche Lagervorgang und seine
 Erfassung kommen später.
 
@@ -70,7 +70,7 @@ Importregeln; sie erteilt dem Agenten keine zusätzlichen Rechte. Maßgeblich si
 Werkzeugfreigabe und die serverseitigen Prüfungen, nicht ein Satz im Prompt.
 
 „18 reserviert“ darf der Agent nach Prüfung der aktiven Reservierungen sagen. „18 versendet“
-erfordert die entsprechenden erfassten Lieferbewegungen. „Bei Huber angekommen“ braucht wiederum
+erfordert die entsprechenden erfassten Lieferbewegungen. „Bei Northstar angekommen“ braucht wiederum
 einen passenden Zustellnachweis. Derselbe Auftrag kann also mehrere zutreffende, aber verschieden
 weit reichende Aussagen haben.
 
@@ -91,7 +91,7 @@ Eine Ausnahme ist kein Ticket, das du unabhängig von seiner Ursache schließen 
 ist kein Beweis, dass ein Problem bereits behoben wurde. Beides kann unabhängig voneinander
 auftreten.
 
-Bei Huber bleibt nach Reservierung der zehn neu eingegangenen Lampen noch ein nicht reservierter
+Bei Northstar bleibt nach Reservierung der zehn neu eingegangenen Lampen noch ein nicht reservierter
 Bedarf von zwölf. Eine Warnung über diese verbleibende Lücke verschwindet nicht deshalb, weil du die
 erste Reservierung freigegeben hast. Du liest die Mengen und die konkrete Ableitungsbedingung
 erneut. Sind die nächsten zwölf angekommen und zugeordnet, kann die entsprechende Lücke geschlossen

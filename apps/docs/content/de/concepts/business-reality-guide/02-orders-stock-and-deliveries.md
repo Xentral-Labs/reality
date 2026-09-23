@@ -2,11 +2,11 @@
 
 [Zurück zur Handbuchübersicht](../business-reality-guide)
 
-## Hubers Auftrag durch Lager und Einkauf verfolgen {#orders-and-inventory}
+## Northstars Auftrag durch Lager und Einkauf verfolgen {#orders-and-inventory}
 
-Huber bestellt 30 Lampen. Acht liegen in Augsburg; Acme kauft die fehlenden 22 bei LightWorks ein.
-Wir verfolgen jetzt, welche Aktionen neue Einträge anlegen und welche Zahlen sich daraus ergeben.
-Rechnung und Zahlung folgen erst im nächsten Kapitel.
+Northstar bestellt 30 Lampen. Acht liegen in Augsburg; Acme kauft die fehlenden 22 bei Alpine
+Components ein. Wir verfolgen jetzt, welche Aktionen neue Einträge anlegen und welche Zahlen sich
+daraus ergeben. Rechnung und Zahlung folgen erst im nächsten Kapitel.
 
 Im Grundablauf gibt es einen Artikel, einen Lagerort und keine weiteren Aufträge, Bewegungen oder
 Sperren. „Bestand“ bedeutet hier den aus den erfassten Warenbewegungen ermittelten physischen
@@ -22,10 +22,10 @@ berechnete Salden; sie werden nicht als zweite, unabhängige Wahrheit eingetrage
 
 ### 2. Den Kundenauftrag erfassen
 
-**Im Geschäft:** Huber bestellt 30 Lampen. **In Reality:** Die unterstützte manuelle Auftragsaktion
-hält die ursprüngliche Eingabe als **SourceRecord**, den Auftrag `SO-1001` als **Document** und die
-Position als **DocumentLine** fest. Sie legt ausdrücklich die **Lieferzusage (Commitment)** von Acme
-an Huber über 30 Stück an.
+**Im Geschäft:** Northstar bestellt 30 Lampen. **In Reality:** Die unterstützte manuelle
+Auftragsaktion hält die ursprüngliche Eingabe als **SourceRecord**, den Auftrag `SO-1001` als
+**Document** und die Position als **DocumentLine** fest. Sie legt ausdrücklich die **Lieferzusage
+(Commitment)** von Acme an Northstar über 30 Stück an.
 
 **Daraus ergibt sich:** 30 sind noch zu liefern. Der Lagerbestand bleibt acht. Der Auftrag allein
 reserviert keine Ware. Ein beliebiger Beleg erzeugt auch keine Zusage; dafür ist die vorgesehene
@@ -33,49 +33,49 @@ Auftragsaktion oder ein unterstützter Import zuständig.
 
 ### 3. Vorhandene Ware zuordnen
 
-**Im Geschäft:** Acme möchte vorhandene Lampen für Huber vorsehen. **In Reality:** Eine
+**Im Geschäft:** Acme möchte vorhandene Lampen für Northstar vorsehen. **In Reality:** Eine
 ausdrückliche Reservierungsaktion fordert 30 Stück für diese Zusage an. Der Dienst prüft den offenen
 Bedarf und den verfügbaren Bestand. Er legt eine **Reservation** über die verfügbaren acht an.
 
-**Daraus ergibt sich:** Acht sind Huber zugeordnet, 22 sind noch nicht reserviert, null sind frei.
-Noch immer sind alle 30 zu liefern. Eine Zuordnung erfüllt keine Zusage.
+**Daraus ergibt sich:** Acht sind Northstar zugeordnet, 22 sind noch nicht reserviert, null sind
+frei. Noch immer sind alle 30 zu liefern. Eine Zuordnung erfüllt keine Zusage.
 
 Die Fehlmenge ist eine berechnete Antwort. Ist nichts verfügbar, wird keine Reservation angelegt.
 Die Fehlmenge erzeugt nicht automatisch eine Bestellung.
 
 ### 4. Die fehlenden Lampen bestellen
 
-**Im Geschäft:** Acme bestellt 22 Lampen bei LightWorks. **In Reality:** Die vorgesehene
+**Im Geschäft:** Acme bestellt 22 Lampen bei Alpine Components. **In Reality:** Die vorgesehene
 Bestellaktion legt `PO-2001`, seine Position und eine Lieferantenzusage über 22 an. Das ist
-ebenfalls ein **Commitment**, diesmal von LightWorks an Acme.
+ebenfalls ein **Commitment**, diesmal von Alpine Components an Acme.
 
-**Daraus ergibt sich:** Wir erwarten 22 Lampen. Im Lager liegen weiterhin acht, alle für Huber
+**Daraus ergibt sich:** Wir erwarten 22 Lampen. Im Lager liegen weiterhin acht, alle für Northstar
 reserviert. Eine zugesagte Lieferung ist Planungsinformation. Sie ist noch kein vorhandener Bestand
 und darf nicht als solcher versendet werden.
 
 ### 5. Teil-Wareneingang: zehn Lampen
 
-**Im Geschäft:** LightWorks liefert zehn. **In Reality:** Acme erfasst den tatsächlichen
+**Im Geschäft:** Alpine Components liefert zehn. **In Reality:** Acme erfasst den tatsächlichen
 Wareneingang als **Movement** vom Typ `receipt`, verknüpft mit der Lieferantenzusage.
 
-**Daraus ergibt sich:** 18 liegen im Lager; acht sind reserviert, zehn sind frei. LightWorks
-schuldet noch zwölf. Der Eingang ordnet die neue Ware nicht automatisch Huber zu.
+**Daraus ergibt sich:** 18 liegen im Lager; acht sind reserviert, zehn sind frei. Alpine Components
+schuldet noch zwölf. Der Eingang ordnet die neue Ware nicht automatisch Northstar zu.
 
-Acme reserviert deshalb die zehn neu verfügbaren Lampen mit einer eigenen Aktion für Huber. Es
+Acme reserviert deshalb die zehn neu verfügbaren Lampen mit einer eigenen Aktion für Northstar. Es
 entsteht eine zusätzliche Reservation. Jetzt sind 18 zugeordnet und null frei.
 
 ### 6. Die übrigen zwölf annehmen und reservieren
 
-Der zweite Wareneingang erzeugt ein weiteres Movement über zwölf. LightWorks hat damit alle 22
-geliefert. Im Lager liegen 30 Lampen; 18 sind Huber bereits zugeordnet. Eine weitere ausdrückliche
-Reservierungsaktion ordnet auch die restlichen zwölf zu.
+Der zweite Wareneingang erzeugt ein weiteres Movement über zwölf. Alpine Components hat damit alle
+22 geliefert. Im Lager liegen 30 Lampen; 18 sind Northstar bereits zugeordnet. Eine weitere
+ausdrückliche Reservierungsaktion ordnet auch die restlichen zwölf zu.
 
-Alle 30 sind nun vorhanden und reserviert. Noch keine Lampe wurde an Huber geliefert.
+Alle 30 sind nun vorhanden und reserviert. Noch keine Lampe wurde an Northstar geliefert.
 
 ### 7. In zwei Teilen liefern
 
-**Im Geschäft:** Acme versendet zunächst 18 Lampen an Huber. **In Reality:** Acme erfasst diesen
-Versand als **Movement** vom Typ `shipment` gegen Hubers Commitment. Die Aktion verbraucht die
+**Im Geschäft:** Acme versendet zunächst 18 Lampen an Northstar. **In Reality:** Acme erfasst diesen
+Versand als **Movement** vom Typ `shipment` gegen Northstars Commitment. Die Aktion verbraucht die
 passenden aktiven Reservierungen automatisch; dafür ist keine gesonderte Freigabe der Zuordnung
 nötig.
 
@@ -88,19 +88,20 @@ Ware physisch ausgegeben wurde und ob der Eintrag stimmt, bleibt eine betrieblic
 
 ### Die Mengen im Zusammenhang
 
-Alle Werte beziehen sich auf denselben Artikel und Lagerort. „Offen“ meint Hubers offene Lieferung.
+Alle Werte beziehen sich auf denselben Artikel und Lagerort. „Offen“ meint Northstars offene
+Lieferung.
 
-| Nach diesem Schritt      | Physisch | Für Huber reserviert | Verfügbar | An Huber geliefert | Offen |
-| ------------------------ | -------: | -------------------: | --------: | -----------------: | ----: |
-| Anfangsbestand           |        8 |                    0 |         8 |                  0 |     0 |
-| Auftrag über 30          |        8 |                    0 |         8 |                  0 |    30 |
-| Erste Reservierung       |        8 |                    8 |         0 |                  0 |    30 |
-| Eingang von zehn         |       18 |                    8 |        10 |                  0 |    30 |
-| Weitere zehn reserviert  |       18 |                   18 |         0 |                  0 |    30 |
-| Eingang von zwölf        |       30 |                   18 |        12 |                  0 |    30 |
-| Weitere zwölf reserviert |       30 |                   30 |         0 |                  0 |    30 |
-| Versand von 18           |       12 |                   12 |         0 |                 18 |    12 |
-| Restversand von zwölf    |        0 |                    0 |         0 |                 30 |     0 |
+| Nach diesem Schritt      | Physisch | Für Northstar reserviert | Verfügbar | An Northstar geliefert | Offen |
+| ------------------------ | -------: | -----------------------: | --------: | ---------------------: | ----: |
+| Anfangsbestand           |        8 |                        0 |         8 |                      0 |     0 |
+| Auftrag über 30          |        8 |                        0 |         8 |                      0 |    30 |
+| Erste Reservierung       |        8 |                        8 |         0 |                      0 |    30 |
+| Eingang von zehn         |       18 |                        8 |        10 |                      0 |    30 |
+| Weitere zehn reserviert  |       18 |                       18 |         0 |                      0 |    30 |
+| Eingang von zwölf        |       30 |                       18 |        12 |                      0 |    30 |
+| Weitere zwölf reserviert |       30 |                       30 |         0 |                      0 |    30 |
+| Versand von 18           |       12 |                       12 |         0 |                     18 |    12 |
+| Restversand von zwölf    |        0 |                        0 |         0 |                     30 |     0 |
 
 Der Auftrag bleibt der Beleg für die Bestellung. „Teilgeliefert“ oder „vollständig geliefert“ ergibt
 sich aus Commitment und den verknüpften Lieferbewegungen. Auf dem Document wird dafür kein
@@ -109,13 +110,13 @@ Lieferstatus geführt.
 ### Prüfe dein Verständnis
 
 Die ersten zehn Lampen vom Lieferanten sind eingegangen, aber noch nicht reserviert. Wie viel ist
-physisch vorhanden, wie viel für Huber vorgesehen und wie viel noch an ihn zu liefern?
+physisch vorhanden, wie viel für Northstar vorgesehen und wie viel noch an ihn zu liefern?
 
 <details>
 <summary>Antwort anzeigen</summary>
 
-Physisch 18, für Huber reserviert acht, an Huber noch zu liefern 30. Wareneingang, Zuordnung und
-Kundenlieferung beantworten drei verschiedene Fragen.
+Physisch 18, für Northstar reserviert acht, an Northstar noch zu liefern 30. Wareneingang, Zuordnung
+und Kundenlieferung beantworten drei verschiedene Fragen.
 
 </details>
 
@@ -146,7 +147,7 @@ prüfe es vor jeder Bestätigung. Die Aktionen verändern dort tatsächlich Date
 
 Die folgenden Fälle verändern die obige Rechnung nicht. Sie zeigen, wie du vorgehst, wenn der
 Geschäftsfall anders verläuft. Überspringe die Vertiefung beim ersten Lesen und fahre mit
-[Hubers Rechnung und Zahlung](./03-invoices-and-payments) fort.
+[Northstars Rechnung und Zahlung](./03-invoices-and-payments) fort.
 
 <details>
 <summary>Storno, Retoure, Erfassungsfehler und geänderte Aufträge</summary>
@@ -160,10 +161,10 @@ Commitment zu stornieren hält den Stornozeitpunkt fest und gibt aktive Reservat
 entsteht kein Movement, weil nichts bewegt wurde. Der physische Bestand bleibt unverändert; der
 verfügbare Bestand steigt um sechs.
 
-In einer eigenen Variante sendet Huber später zwei gelieferte Lampen zurück. Ein `return`-Movement
-in den Retourenbereich erhöht dort den Bestand. Es löscht nicht die historische Lieferung und öffnet
-nicht die erfüllte Lieferzusage erneut. Eine kaufmännische Gutschrift ist ein eigener finanzieller
-Vorfall.
+In einer eigenen Variante sendet Northstar später zwei gelieferte Lampen zurück. Ein
+`return`-Movement in den Retourenbereich erhöht dort den Bestand. Es löscht nicht die historische
+Lieferung und öffnet nicht die erfüllte Lieferzusage erneut. Eine kaufmännische Gutschrift ist ein
+eigener finanzieller Vorfall.
 
 Eine Zählung findet dann eine fehlende Lampe. Ein ausgehendes `adjustment` aus Augsburg mit
 Begründung hält die Differenz fest. Es bearbeitet keinen Bestandssaldo.

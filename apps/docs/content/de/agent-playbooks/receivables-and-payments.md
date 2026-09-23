@@ -33,8 +33,8 @@ Abweichungen dieses Bereichs: `shipped_not_billed`, `sales_invoice_unposted`, `o
 erklären), `unmatched_financial_event`, `credit_limit_exceeded`, `credit_note_unposted`,
 `credit_note_unsettled`.
 
-Die Beispiele nutzen einen Kunden, die Müller GmbH, und kleine runde Zahlen, damit die Schritte
-sichtbar bleiben.
+Die Beispiele nutzen Maple Retail als Kunden und kleine runde Zahlen, damit die Schritte sichtbar
+bleiben.
 
 ## Situationen
 
@@ -43,7 +43,7 @@ sichtbar bleiben.
 Versandt, aber noch keine Rechnung. Reality listet, stellt nicht selbst Rechnungen.
 
 1. **Liste:** „Zeig mir versandt und nicht abgerechnet." → `exceptions_list` · `shipped_not_billed`
-   · App: Abweichungen SO-1042 Müller, 5/5 versandt, 240,00 · SO-1043 Müller, 3/5 versandt, 150,00
+   · App: Abweichungen SO-1042 Maple, 5/5 versandt, 240,00 · SO-1043 Maple, 3/5 versandt, 150,00
 2. **Sagen:** „Rechne SO-1042 komplett ab, SO-1043 für die drei versandten." Versandmenge wird
    vorher geprüft → `order_explain`
 3. **Agent:** zwei Rechnungsentwürfe, RE-0917 240,00 und RE-0918 150,00, Preise aus dem Auftrag,
@@ -58,7 +58,7 @@ Versandt, aber noch keine Rechnung. Reality listet, stellt nicht selbst Rechnung
 Geld für genau das, was offen ist. Eine Bankzeile, die die Rechnung nennt, ordnet Reality selbst zu;
 hier geht es um eine von Hand gemeldete Zahlung.
 
-1. **Sagen:** „Müller hat 240,00 für RE-0917 gezahlt, heute eingegangen." →
+1. **Sagen:** „Maple hat 240,00 für RE-0917 gezahlt, heute eingegangen." →
    `finance_settlement_context(invoice)`: offen 240,00
 2. **Agent:** ein Zahlungseingang 240,00, voll zugeordnet; Vorschau eingegangen 240,00, zugeordnet
    240,00, Rest 0,00 → `finance_settlement_propose` Modus `payment`
@@ -95,26 +95,26 @@ Rechnung 1.000,00, Kunde schickt 1.020,00. Rechnung bezahlt; 20,00 sind Kundengu
    `finance_settlement_context(payment)`. Von Hand: „1.020,00 für RE-0921 eingegangen", Agent ordnet
    1.000,00 zu und lässt 20,00 als Guthaben → `finance_settlement_propose` Modus `payment`,
    `allocation_amount` < `amount`
-2. **Fragen:** „Wer hat zu viel gezahlt?" → eine Zeile je Kunde: Müller, Guthaben 20,00, Saldo
-   −20,00 → `finance_party_balances` `credit_only` · App: Finanzen → Salden · je Zahlungseingang →
+2. **Fragen:** „Wer hat zu viel gezahlt?" → eine Zeile je Kunde: Maple, Guthaben 20,00, Saldo −20,00
+   → `finance_party_balances` `credit_only` · App: Finanzen → Salden · je Zahlungseingang →
    `finance_credits`
-3. **Später nutzen:** RE-0930 offen 300,00. „Nutze Müllers 20,00 auf RE-0930." →
+3. **Später nutzen:** RE-0930 offen 300,00. „Nutze Maples 20,00 auf RE-0930." →
    `finance_settlement_propose` Modus `allocate_credit`. Freigeben; RE-0930 280,00 offen, Guthaben
    0,00.
-4. **Oder erstatten:** erst überweisen, dann „wir haben Müller 20,00 erstattet, Referenz RF-77" →
+4. **Oder erstatten:** erst überweisen, dann „wir haben Maple 20,00 erstattet, Referenz RF-77" →
    Modus `refund_credit`. Reality erfasst, dass Geld floss; es überweist nie.
-5. **Prüfen:** Müller weg von der Guthabenliste.
+5. **Prüfen:** Maple weg von der Guthabenliste.
 
 ### Eine Zahlung, die niemand zuordnen kann
 
-Bankzeile 1.250,00 von Müller, Text „Zahlung Rechnungen September". Erfasst, nichts zugeordnet.
+Bankzeile 1.250,00 von Maple, Text „Zahlung Rechnungen September". Erfasst, nichts zugeordnet.
 
 1. **Liste:** „Welche Zahlungen sind nicht zugeordnet?" → `finance_payments` unzugeordnet ·
    `exceptions_list` · `unmatched_financial_event`
 2. **Fragen:** „Wofür könnte das sein?" → Kandidaten mit Grund: RE-0925 offen 1.250,00, _Betrag
    gleich offen_; RE-0922 + RE-0923, 800 + 450, _Summe gleich Betrag_ →
    `finance_settlement_context(payment)` `candidates`
-3. **Sagen:** „Ordne sie RE-0925 zu." Oder: „Als Guthaben stehen lassen, ich frage Müller." Nur das
+3. **Sagen:** „Ordne sie RE-0925 zu." Oder: „Als Guthaben stehen lassen, ich frage Maple." Nur das
    Erste ändert die Bücher.
 4. **Agent:** Zuordnung 1.250,00 auf RE-0925, Grund steht im Vorschlag →
    `finance_settlement_propose` Modus `allocate_credit`
@@ -129,7 +129,7 @@ Kunden.
 Einmal 1.000,00, Avis nennt RE-0926 400,00, RE-0927 350,00, RE-0928 250,00. Heute ein Schritt je
 Rechnung.
 
-1. **Sagen:** „Müller hat 1.000,00 für RE-0926, 0927, 0928 gezahlt."
+1. **Sagen:** „Maple hat 1.000,00 für RE-0926, 0927, 0928 gezahlt."
 2. **Agent:** Zahlungseingang gegen RE-0926: 400,00 zugeordnet, 600,00 Guthaben →
    `finance_settlement_propose` Modus `payment`. Freigeben.
 3. **Agent:** bietet 350,00 auf RE-0927, dann 250,00 auf RE-0928 an → Modus `allocate_credit`, je
@@ -144,7 +144,7 @@ Schritte.
 
 1. **Sehen:** _zurück und nicht gutgeschrieben_ für SO-1042: 2 von 5 zurück, abgerechnet auf RE-0917
    zu 48,00 → `exceptions_list` · `returned_not_credited`
-2. **Sagen:** „Schreib Müller die zwei zurückgekommenen Einheiten auf RE-0917 gut."
+2. **Sagen:** „Schreib Maple die zwei zurückgekommenen Einheiten auf RE-0917 gut."
 3. **Agent:** Gutschrift GS-0041, 96,00, Position nennt die Rechnungsposition →
    `sales_credit_record_propose`. Rücknahmegebühr: eine Gebührenzeile, Ware voll gutgeschrieben
    ([Retouren](./returns)).

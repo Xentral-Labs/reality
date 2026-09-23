@@ -4,7 +4,7 @@
 
 ## “I would have added a custom ERP field” {#facts}
 
-Huber adds a note: “Deliver in the morning only; use the side entrance.” The order for 30 lamps
+Northstar adds a note: “Deliver in the morning only; use the side entrance.” The order for 30 lamps
 stays the same. Stock and receivables do not change either. Yet the instruction should be available
 to the people handling delivery, with its origin traceable.
 
@@ -13,8 +13,8 @@ of information this is. Do you need an additional supported observation, an exis
 record, or just the original input?
 
 A **Fact** records a supported, source-backed observation about an existing business record. Here,
-it describes Huber's delivery promise: the source states a delivery instruction. It does not move a
-due date, reserve goods or grant execution authority.
+it describes Northstar's delivery promise: the source states a delivery instruction. It does not
+move a due date, reserve goods or grant execution authority.
 
 ### An observation has a defined meaning
 
@@ -22,20 +22,20 @@ Each supported observation has a defined meaning so every caller understands it 
 contract is a **predicate**. It defines what the observation says, what record it may describe and
 which values are allowed.
 
-Huber's note fits `order.delivery_instruction`: a text delivery instruction on a Commitment. The
+Northstar's note fits `order.delivery_instruction`: a text delivery instruction on a Commitment. The
 technical name helps you look it up. For now, the business question is enough: **Who supplied which
 information about which delivery promise?**
 
-“Huber wrote this” is the supported statement. It does not establish that the driver will arrive in
-the morning. A recorded promise to pay does not establish receipt of money either.
+“Northstar wrote this” is the supported statement. It does not establish that the driver will arrive
+in the morning. A recorded promise to pay does not establish receipt of money either.
 
 ### Fact, operational record or original source?
 
 | Everyday information                      | Appropriate home                                                                     | Business effect                                                 |
 | ----------------------------------------- | ------------------------------------------------------------------------------------ | --------------------------------------------------------------- |
-| Huber states a delivery instruction       | Fact on the delivery promise                                                         | Additional supported context                                    |
+| Northstar states a delivery instruction   | Fact on the delivery promise                                                         | Additional supported context                                    |
 | Acme promises a different delivery date   | Date revision (`CommitmentRevision`) on the existing delivery promise (`Commitment`) | The effective date comes from the latest recorded date revision |
-| Ten lamps are allocated to Huber          | Reservation                                                                          | Stock is assigned to the promise                                |
+| Ten lamps are allocated to Northstar      | Reservation                                                                          | Stock is assigned to the promise                                |
 | Lamps actually leave the warehouse        | Movement                                                                             | Recorded stock and, where applicable, fulfilment change         |
 | A payment is posted                       | LedgerEntry                                                                          | Financial posting                                               |
 | An external field is not currently needed | Original SourceRecord                                                                | Input is preserved without an extra field                       |
@@ -57,7 +57,7 @@ announces an executed change; it does not replace that change's records.
 Every Fact needs an existing target record and a stored source. The source is a **SourceRecord**;
 the described object is technically called its **subject**.
 
-1. **The source already exists.** If a supported connection imported Huber's instruction, select
+1. **The source already exists.** If a supported connection imported Northstar's instruction, select
    that source and the appropriate Commitment. The Web action **Record source-backed Fact** uses a
    registered predicate. An agent prepares the same operation with `fact_observe_propose`; the
    change requires authorised approval.
@@ -139,7 +139,7 @@ need a catalog entry.
 
 ### Check your understanding
 
-Huber promises by telephone to pay the remaining EUR 870 next week. Can that close the invoice?
+Northstar promises by telephone to pay the remaining EUR 870 next week. Can that close the invoice?
 
 <details>
 <summary>Show answer</summary>

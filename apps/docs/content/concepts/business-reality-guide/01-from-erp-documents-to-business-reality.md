@@ -16,17 +16,17 @@ current position is derived from those records. This separation matters more tha
 
 ### One order, several questions
 
-Huber orders 30 bicycle lamps from Acme. The order is recorded and Acme has created a delivery
+Northstar orders 30 bicycle lamps from Acme. The order is recorded and Acme has created a delivery
 promise for 30. Eight lamps are in stock. Nothing has been reserved or shipped yet.
 
 “Is the order open?” now needs a more precise answer:
 
-| Business question                   | Answer in this case | Basis                                            |
-| ----------------------------------- | ------------------- | ------------------------------------------------ |
-| What did Huber order?               | 30 lamps            | Recorded order and line                          |
-| What must Acme still deliver?       | 30 lamps            | Delivery promise with no fulfilling shipment yet |
-| Which goods are allocated to Huber? | None yet            | No active reservation                            |
-| What has shipped?                   | Nothing             | No recorded shipment                             |
+| Business question                       | Answer in this case | Basis                                            |
+| --------------------------------------- | ------------------- | ------------------------------------------------ |
+| What did Northstar order?               | 30 lamps            | Recorded order and line                          |
+| What must Acme still deliver?           | 30 lamps            | Delivery promise with no fulfilling shipment yet |
+| Which goods are allocated to Northstar? | None yet            | No active reservation                            |
+| What has shipped?                       | Nothing             | No recorded shipment                             |
 
 The **delivery promise** is a **Commitment**: who should supply what quantity to whom. A
 **Reservation** allocates existing stock to that promise. A **Movement** records a physical goods
@@ -42,7 +42,7 @@ The document answers another question: “Which commercial statement did we reco
 document a **Document** and its line a **DocumentLine**. The document and promise are linked. You
 can follow an outstanding delivery back to the line that supports it.
 
-This matters when something changes. If Huber later requests a different quantity, a recorded
+This matters when something changes. If Northstar later requests a different quantity, a recorded
 shipment does not disappear. The changed request and the work already done need a business
 resolution. Chapter 2 explains those paths.
 
@@ -121,8 +121,8 @@ is enough for this first pass.
 
 ### Check your understanding
 
-Huber's 30 lamps are ordered. Eight are reserved and none have shipped. How many remain to deliver,
-and how many of those are already allocated?
+Northstar's 30 lamps are ordered. Eight are reserved and none have shipped. How many remain to
+deliver, and how many of those are already allocated?
 
 <details>
 <summary>Show answer</summary>
@@ -132,4 +132,4 @@ requires a recorded actual shipment against the Commitment.
 
 </details>
 
-Next: [Follow Huber's order through warehouse and purchasing](./02-orders-stock-and-deliveries).
+Next: [Follow Northstar's order through warehouse and purchasing](./02-orders-stock-and-deliveries).

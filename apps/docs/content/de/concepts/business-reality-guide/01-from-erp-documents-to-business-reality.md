@@ -17,17 +17,17 @@ Aufteilung, nicht die Zahl der Tabellen.
 
 ### Ein Auftrag, mehrere Fragen
 
-Huber bestellt 30 Fahrradlampen bei Acme. Der Auftrag ist erfasst und Acme hat eine Lieferzusage
+Northstar bestellt 30 Fahrradlampen bei Acme. Der Auftrag ist erfasst und Acme hat eine Lieferzusage
 über 30 Stück angelegt. Acht Lampen liegen im Lager. Noch ist nichts reserviert oder versendet.
 
 Auf die Frage „Ist der Auftrag offen?“ brauchst du jetzt eine genauere Antwort:
 
-| Geschäftsfrage                        | Antwort im Beispiel | Grundlage                                      |
-| ------------------------------------- | ------------------- | ---------------------------------------------- |
-| Was hat Huber bestellt?               | 30 Lampen           | Erfasster Auftrag mit Position                 |
-| Was soll Acme noch liefern?           | 30 Lampen           | Lieferzusage, bisher ohne erfüllende Lieferung |
-| Welche Ware ist für Huber vorgesehen? | Noch keine          | Noch keine aktive Reservierung                 |
-| Was wurde bereits versendet?          | Nichts              | Noch keine erfasste Lieferung                  |
+| Geschäftsfrage                            | Antwort im Beispiel | Grundlage                                      |
+| ----------------------------------------- | ------------------- | ---------------------------------------------- |
+| Was hat Northstar bestellt?               | 30 Lampen           | Erfasster Auftrag mit Position                 |
+| Was soll Acme noch liefern?               | 30 Lampen           | Lieferzusage, bisher ohne erfüllende Lieferung |
+| Welche Ware ist für Northstar vorgesehen? | Noch keine          | Noch keine aktive Reservierung                 |
+| Was wurde bereits versendet?              | Nichts              | Noch keine erfasste Lieferung                  |
 
 Die **Lieferzusage** heißt im Modell **Commitment**. Sie beschreibt, wer wem welche Menge liefern
 soll. Die **Reservierung** heißt **Reservation**: Sie ordnet vorhandene Ware einer solchen Zusage
@@ -45,7 +45,7 @@ Reality heißt der Beleg **Document**, seine Position **DocumentLine**. Beleg un
 verknüpft. Du kannst von der offenen Lieferung zur Position zurückgehen und prüfen, worauf die
 Zusage beruht.
 
-Diese Trennung hilft bei Änderungen. Meldet Huber später eine andere Menge, verschwindet dadurch
+Diese Trennung hilft bei Änderungen. Meldet Northstar später eine andere Menge, verschwindet dadurch
 kein bereits erfasster Versand. Die neue Bestellung und die bereits erfolgte Abwicklung müssen
 fachlich miteinander abgestimmt werden. Die Wege dafür folgen in Kapitel 2.
 
@@ -128,7 +128,7 @@ zunächst ihre fachliche Verantwortung.
 
 ### Prüfe dein Verständnis
 
-Hubers 30 Lampen sind bestellt. Acht sind reserviert, noch keine versendet. Wie viel ist noch zu
+Northstars 30 Lampen sind bestellt. Acht sind reserviert, noch keine versendet. Wie viel ist noch zu
 liefern, und wie viel dieser Menge ist schon zugeordnet?
 
 <details>
@@ -139,4 +139,4 @@ Dafür braucht es die erfasste tatsächliche Lieferung gegen das Commitment.
 
 </details>
 
-Weiter: [Hubers Auftrag durch Lager und Einkauf verfolgen](./02-orders-stock-and-deliveries).
+Weiter: [Northstars Auftrag durch Lager und Einkauf verfolgen](./02-orders-stock-and-deliveries).

@@ -13,10 +13,10 @@ beurteilen. Dafür musst du weder JSON lesen noch die Datenbanktabellen auswendi
 
 ## Unser roter Faden
 
-Die Acme Bikes GmbH verkauft Fahrradteile. Huber Handel bestellt **30 Fahrradlampen**. Im Lager
-Augsburg liegen acht; Acme bestellt 22 weitere bei LightWorks. Die Ware kommt in zwei Teilen an und
-geht in zwei Teilen an Huber. Zur Lieferung gehört eine Rechnung über **1.470 EUR**. Huber zahlt 500
-EUR; später werden 100 EUR gutgeschrieben und auf diese Rechnung angerechnet.
+Die Acme Bikes GmbH verkauft Fahrradteile. Northstar Outdoor bestellt **30 Fahrradlampen**. Im Lager
+Augsburg liegen acht; Acme bestellt 22 weitere bei Alpine Components. Die Ware kommt in zwei Teilen
+an und geht in zwei Teilen an Northstar. Zur Lieferung gehört eine Rechnung über **1.470 EUR**.
+Northstar zahlt 500 EUR; später werden 100 EUR gutgeschrieben und auf diese Rechnung angerechnet.
 
 Wir verwenden diese Beziehungen durchgehend: Auftrag `SO-1001`, Bestellung `PO-2001` und Rechnung
 `INV-1001`. Es sind lesbare Beispielnummern, keine technischen Identitäten. Varianten wie eine
@@ -40,13 +40,13 @@ parallelen Einstieg neben deinem ERP gibt es den [Pilotleitfaden](../integration
 1. [Von ERP-Belegen zur Business Reality](./business-reality-guide/01-from-erp-documents-to-business-reality):
    Welche Fragen beantwortet der Auftrag, welche beantworten Zusage, Reservierung und Bewegung?
 2. [Aufträge, Bestand und Lieferungen](./business-reality-guide/02-orders-stock-and-deliveries):
-   Verfolge Hubers 30 Lampen und rechne Bestand, Zuordnung und offene Lieferung mit.
+   Verfolge Northstars 30 Lampen und rechne Bestand, Zuordnung und offene Lieferung mit.
 3. [Rechnungen und Zahlungen](./business-reality-guide/03-invoices-and-payments): Warum sind
    Rechnungserfassung, Buchung und Zahlungszuordnung getrennte Schritte?
 4. [Als Prozessverantwortliche/r arbeiten](./business-reality-guide/04-working-as-process-owner):
    Was prüfst du, wenn ein Agent einen Auftrag erklärt oder eine Änderung vorschlägt?
 5. [Ein Auftrag von Anfang bis Ende](./business-reality-guide/05-one-order-end-to-end): Beantworte
-   selbst, ob Hubers Auftrag abgeschlossen ist, und vergleiche deine Antwort.
+   selbst, ob Northstars Auftrag abgeschlossen ist, und vergleiche deine Antwort.
 6. [Facts und offene Fragen](./business-reality-guide/06-facts-and-open-questions): Wo gehört eine
    Zusatzinformation hin, für die du im ERP ein Freifeld angelegt hättest?
 7. [Bestandskosten, DB1 und DB2](./business-reality-guide/08-inventory-cost-and-contribution): Wie

@@ -35,7 +35,8 @@ Exceptions that belong to this area: `outgoing_commitment_at_risk`,
 `commitment_hold_unreleased`, `party_hold_unreleased`, `stock_expired`, and, once goods left,
 `shipped_not_billed` (handled in the receivables playbook).
 
-The examples use one customer, Müller GmbH, one item, the desk lamp LAMP-01, and small quantities.
+The examples use one customer, Maple Retail, one item, Cedar Desk Lamp (`ITEM-004`), and small
+quantities.
 
 ## Situations
 
@@ -44,7 +45,7 @@ The examples use one customer, Müller GmbH, one item, the desk lamp LAMP-01, an
 The morning list for the warehouse: stock present, nothing in the way. Reality keeps it current.
 
 1. **List:** "What can ship today?" → `fulfillment_queue`, `ship_ready` true, no `blocking_reasons`
-   · App: Work SO-1042 Müller due today, 5 lamps reserved, ready · SO-1045 due tomorrow, ready ·
+   · App: Work SO-1042 Maple due today, 5 lamps reserved, ready · SO-1045 due tomorrow, ready ·
    SO-1044 not ready, 3 short
 2. **Doubt one:** "Show me SO-1042." → promised 5, reserved 5, shipped 0 → `order_explain`
 3. **You:** tell the warehouse what to pick. The queue is a list, not an instruction; nothing
@@ -56,8 +57,8 @@ The morning list for the warehouse: stock present, nothing in the way. Reality k
 An order that could ship but has no stock set aside, or one listed as short while the item shows
 available stock.
 
-1. **See:** "Why is SO-1044 not ready?" → shortage 3 → `fulfillment_blockers` · LAMP-01 physical 20,
-   reserved 17, available 3, incoming 50 next week → `item_supply_demand`
+1. **See:** "Why is SO-1044 not ready?" → shortage 3 → `fulfillment_blockers` · ITEM-004 physical
+   20, reserved 17, available 3, incoming 50 next week → `item_supply_demand`
 2. **Say:** "Reserve the three available lamps for SO-1044." Another order with a better claim:
    reserve for that one; the agent will not choose.
 3. **Agent:** reservation of 3 for the promise on SO-1044; without a quantity it takes the whole
@@ -72,9 +73,9 @@ available stock.
 The warehouse reports the goods left. Reality knows nothing until somebody says so.
 
 1. **Say:** "SO-1042 shipped complete this morning, 5 lamps from the main warehouse."
-2. **Agent:** one outgoing Package for Müller, carrier and tracking number when known, plus the
-   exact shipment Movement for quantity 5, location, promise and time; lot or serial when inventory
-   is tracked → `shipment_dispatch_propose` `purpose="customer_delivery"`
+2. **Agent:** one outgoing Package for Maple, carrier and tracking number when known, plus the exact
+   shipment Movement for quantity 5, location, promise and time; lot or serial when inventory is
+   tracked → `shipment_dispatch_propose` `purpose="customer_delivery"`
 3. **You:** approve what physically happened; four left, say four.
 4. **Check:** Package, tracking number and Movement contents → `shipment_explain` · shipped 5, open
    0 → `order_explain` · left the queue · tonight on the billing list → `shipped_not_billed`,
@@ -96,7 +97,7 @@ The warehouse reports the goods left. Reality knows nothing until somebody says 
 The carrier reference exists before the warehouse reports dispatch, or the carrier later reports a
 scan. Keep those statements separate from physical stock.
 
-1. **Notice:** "DHL announced package 00340434161094000001 for Müller." →
+1. **Notice:** "DHL announced package 00340434161094000001 for Maple." →
    `shipment_notice_record_propose` `direction="outbound"`, `purpose="customer_delivery"`, carrier
    and tracking number. Approve; `shipment_explain` shows an announced Package and no Movement.
 2. **Dispatch:** when the warehouse reports that the goods left, record the Package and exact
@@ -116,8 +117,8 @@ The remaining 2 cannot be covered soon; the customer agreed to 3 only, or to wai
 
 1. **See:** promise at risk, no incoming before due → `exceptions_list` ·
    `outgoing_commitment_at_risk` · `item_supply_demand`
-2. **Agree outside Reality:** call Müller; they accept 3.
-3. **Say:** "Müller accepts 3 on SO-1043, agreed by phone with Ms Weber today."
+2. **Agree outside Reality:** call Maple; they accept 3.
+3. **Say:** "Maple accepts 3 on SO-1043, agreed by phone with Ms Weber today."
 4. **Agent:** revision to 3 with who and when; `due_at` instead when the date moves; never below
    what shipped → `commitment_revise_propose`
 5. **You:** approve only with the agreement in hand.
@@ -130,9 +131,9 @@ The remaining 2 cannot be covered soon; the customer agreed to 3 only, or to wai
 "Do not ship this yet": credit limit, undeliverable address, compliance. A hold blocks shipment;
 orders and reservations stay.
 
-1. **See:** Müller over the credit limit → `exceptions_list` · `credit_limit_exceeded`; or a
+1. **See:** Maple over the credit limit → `exceptions_list` · `credit_limit_exceeded`; or a
    colleague reports a wrong address.
-2. **Say:** "Hold SO-1045 until the address is clarified." · "Delivery hold on Müller GmbH, credit
+2. **Say:** "Hold SO-1045 until the address is clarified." · "Delivery hold on Maple Retail, credit
    check."
 3. **Agent:** hold on the promise → `commitment_hold_propose`, `reason_code` in `credit_check`,
    `customer_request`, `address_clarification`, `compliance`, `manual_review`, `other` · or on the
@@ -162,7 +163,7 @@ reason.
 
 "Can my order ship today?" "Why is SO-1044 late?" A read; nothing is decided.
 
-1. **Find:** "Find Müller's order from 8 September." → SO-1044 → `business_records_discover`
+1. **Find:** "Find Maple's order from 8 September." → SO-1044 → `business_records_discover`
    `family="document"`
 2. **Trace:** 5 promised, 3 reserved, 0 shipped, short 2, 50 incoming on the 18th → `order_explain`
    · why an exception is reported → `exception_explain`

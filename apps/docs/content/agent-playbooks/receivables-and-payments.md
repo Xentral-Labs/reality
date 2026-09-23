@@ -32,7 +32,7 @@ Exceptions that belong to this area: `shipped_not_billed`, `sales_invoice_unpost
 short payment), `unmatched_financial_event`, `credit_limit_exceeded`, `credit_note_unposted`,
 `credit_note_unsettled`.
 
-The examples use one customer, Müller GmbH, and small round numbers so the steps stay visible.
+The examples use one customer, Maple Retail, and small round numbers so the steps stay visible.
 
 ## Situations
 
@@ -42,7 +42,7 @@ Goods left the warehouse, no invoice names them yet. Reality lists what is billa
 invoice.
 
 1. **List:** "Show me everything shipped and not billed." → `exceptions_list` · `shipped_not_billed`
-   · App: Exceptions SO-1042 Müller, 5/5 shipped, 240.00 · SO-1043 Müller, 3/5 shipped, 150.00
+   · App: Exceptions SO-1042 Maple, 5/5 shipped, 240.00 · SO-1043 Maple, 3/5 shipped, 150.00
 2. **Say:** "Bill SO-1042 in full, SO-1043 for the three that shipped." Shipped quantity checked
    first → `order_explain`
 3. **Agent:** two invoice drafts, RE-0917 240.00 and RE-0918 150.00, prices from the order lines,
@@ -56,7 +56,7 @@ invoice.
 Money for exactly what is open. A bank line or provider that names the invoice is allocated by
 Reality itself; this is for a payment that reached you by hand.
 
-1. **Say:** "Müller paid 240.00 for RE-0917, received today." →
+1. **Say:** "Maple paid 240.00 for RE-0917, received today." →
    `finance_settlement_context(invoice)`: open 240.00
 2. **Agent:** one payment of 240.00, allocated in full; preview received 240.00, allocated 240.00,
    remaining 0.00 → `finance_settlement_propose` mode `payment`
@@ -92,25 +92,25 @@ Invoice 1,000.00, customer sent 1,020.00. Invoice paid; 20.00 is customer credit
    `finance_settlement_context(payment)`. By hand: "1,020.00 arrived for RE-0921", agent allocates
    1,000.00 and keeps 20.00 as credit → `finance_settlement_propose` mode `payment`,
    `allocation_amount` < `amount`
-2. **Ask:** "Who paid too much?" → one row per customer: Müller, credit 20.00, balance −20.00 →
+2. **Ask:** "Who paid too much?" → one row per customer: Maple, credit 20.00, balance −20.00 →
    `finance_party_balances` `credit_only` · App: Finance → Balances · per receipt →
    `finance_credits`
-3. **Use later:** RE-0930 open 300.00. "Use Müller's 20.00 on RE-0930." →
+3. **Use later:** RE-0930 open 300.00. "Use Maple's 20.00 on RE-0930." →
    `finance_settlement_propose` mode `allocate_credit`. Approve; RE-0930 280.00 open, credit 0.00.
-4. **Or refund:** transfer first, then "we refunded Müller 20.00, reference RF-77" → mode
+4. **Or refund:** transfer first, then "we refunded Maple 20.00, reference RF-77" → mode
    `refund_credit`. Reality records that money left; it never sends it.
-5. **Check:** Müller gone from the credit list.
+5. **Check:** Maple gone from the credit list.
 
 ### A payment nobody can match
 
-Bank line 1,250.00 from Müller, text "payment invoices September". Recorded, allocated to nothing.
+Bank line 1,250.00 from Maple, text "payment invoices September". Recorded, allocated to nothing.
 
 1. **List:** "Which payments are unmatched?" → `finance_payments` unallocated · `exceptions_list` ·
    `unmatched_financial_event`
 2. **Ask:** "What could it be for?" → candidates with reasons: RE-0925 open 1,250.00, _amount equals
    open_; RE-0922 + RE-0923, 800 + 450, _sum equals amount_ → `finance_settlement_context(payment)`
    `candidates`
-3. **Say:** "Match it to RE-0925." Or: "Leave it as credit, I'll ask Müller." Only the first changes
+3. **Say:** "Match it to RE-0925." Or: "Leave it as credit, I'll ask Maple." Only the first changes
    the books.
 4. **Agent:** allocation 1,250.00 to RE-0925, reason written into the proposal →
    `finance_settlement_propose` mode `allocate_credit`
@@ -125,7 +125,7 @@ customer.
 1,000.00 once, advice lists RE-0926 400.00, RE-0927 350.00, RE-0928 250.00. One step per invoice
 today.
 
-1. **Say:** "Müller paid 1,000.00 for RE-0926, 0927, 0928."
+1. **Say:** "Maple paid 1,000.00 for RE-0926, 0927, 0928."
 2. **Agent:** receipt against RE-0926: 400.00 allocated, 600.00 credit →
    `finance_settlement_propose` mode `payment`. Approve.
 3. **Agent:** offers 350.00 to RE-0927, then 250.00 to RE-0928 → mode `allocate_credit`, one
@@ -139,7 +139,7 @@ three steps.
 
 1. **See:** _Returned and not credited_ for SO-1042: 2 of 5 back, invoiced on RE-0917 at 48.00 →
    `exceptions_list` · `returned_not_credited`
-2. **Say:** "Credit Müller the two returned units on RE-0917."
+2. **Say:** "Credit Maple the two returned units on RE-0917."
 3. **Agent:** credit note GS-0041, 96.00, line names the invoice line →
    `sales_credit_record_propose`. Restocking fee: a charge line, goods credited in full
    ([Returns](./returns)).

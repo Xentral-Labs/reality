@@ -13,10 +13,10 @@ memorise the database schema first.
 
 ## One case throughout
 
-Acme Bikes sells bicycle parts. Huber Handel orders **30 bicycle lamps**. Eight are in the Augsburg
-warehouse; Acme orders another 22 from LightWorks. Goods arrive in two parts and ship to Huber in
-two parts. The invoice for this order states **EUR 1,470**. Huber pays EUR 500; a later EUR 100
-credit is applied to that invoice.
+Acme Bikes sells bicycle parts. Northstar Outdoor orders **30 bicycle lamps**. Eight are in the
+Augsburg warehouse; Acme orders another 22 from Alpine Components. Goods arrive in two parts and
+ship to Northstar in two parts. The invoice for this order states **EUR 1,470**. Northstar pays EUR
+500; a later EUR 100 credit is applied to that invoice.
 
 We use the same relationships throughout: sales order `SO-1001`, purchase order `PO-2001` and
 invoice `INV-1001`. These are readable example numbers, not technical identities. Variants such as a
@@ -39,13 +39,13 @@ explains how to begin alongside an existing ERP.
 1. [From ERP Documents to Business Reality](./business-reality-guide/01-from-erp-documents-to-business-reality):
    Which questions belong to the order, promise, reservation and movement?
 2. [Orders, Stock and Deliveries](./business-reality-guide/02-orders-stock-and-deliveries): Follow
-   Huber's 30 lamps and work out stock, allocation and outstanding delivery.
+   Northstar's 30 lamps and work out stock, allocation and outstanding delivery.
 3. [Invoices and Payments](./business-reality-guide/03-invoices-and-payments): Why are invoice
    entry, posting and payment allocation separate steps?
 4. [Working as a Process Owner](./business-reality-guide/04-working-as-process-owner): What do you
    check when an agent explains an order or proposes a change?
-5. [One Order End to End](./business-reality-guide/05-one-order-end-to-end): Decide whether Huber's
-   order is complete, then compare your answer.
+5. [One Order End to End](./business-reality-guide/05-one-order-end-to-end): Decide whether
+   Northstar's order is complete, then compare your answer.
 6. [Facts and Open Questions](./business-reality-guide/06-facts-and-open-questions): Where does
    information belong if you would previously have added a custom ERP field?
 7. [Inventory Cost, DB1 and DB2](./business-reality-guide/08-inventory-cost-and-contribution): How

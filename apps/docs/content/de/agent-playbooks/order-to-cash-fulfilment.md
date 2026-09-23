@@ -30,8 +30,8 @@ Abweichungen dieses Bereichs: `outgoing_commitment_at_risk`, `overdue_outgoing_c
 `stock_expired` und, sobald Ware das Haus verlassen hat, `shipped_not_billed` (im Playbook
 Forderungen behandelt).
 
-Die Beispiele nutzen einen Kunden, die Müller GmbH, einen Artikel, die Schreibtischlampe LAMP-01,
-und kleine Mengen.
+Die Beispiele nutzen Maple Retail als Kunden, den Artikel Cedar Desk Lamp (`ITEM-004`) und kleine
+Mengen.
 
 ## Situationen
 
@@ -40,7 +40,7 @@ und kleine Mengen.
 Die Morgenliste fürs Lager: Bestand da, nichts im Weg. Reality hält sie aktuell.
 
 1. **Liste:** „Was kann heute raus?" → `fulfillment_queue`, `ship_ready` wahr, keine
-   `blocking_reasons` · App: Arbeit SO-1042 Müller heute fällig, 5 Lampen reserviert, bereit ·
+   `blocking_reasons` · App: Arbeit SO-1042 Maple heute fällig, 5 Lampen reserviert, bereit ·
    SO-1045 morgen fällig, bereit · SO-1044 nicht bereit, 3 fehlen
 2. **Bei Zweifel:** „Zeig mir SO-1042." → zugesagt 5, reserviert 5, versandt 0 → `order_explain`
 3. **Du:** dem Lager sagen, was gepickt wird. Die Warteschlange ist eine Liste, keine Anweisung;
@@ -52,7 +52,7 @@ Die Morgenliste fürs Lager: Bestand da, nichts im Weg. Reality hält sie aktuel
 Ein Auftrag, der raus könnte, aber keinen Bestand zurückgelegt hat, oder einer, der als fehlend
 gilt, obwohl der Artikel verfügbar ist.
 
-1. **Sehen:** „Warum ist SO-1044 nicht bereit?" → Fehlmenge 3 → `fulfillment_blockers` · LAMP-01
+1. **Sehen:** „Warum ist SO-1044 nicht bereit?" → Fehlmenge 3 → `fulfillment_blockers` · ITEM-004
    physisch 20, reserviert 17, verfügbar 3, 50 im Zulauf nächste Woche → `item_supply_demand`
 2. **Sagen:** „Reserviere die drei verfügbaren Lampen für SO-1044." Hat ein anderer Auftrag den
    besseren Anspruch, für den; der Agent wählt nicht.
@@ -92,8 +92,8 @@ Die restlichen 2 sind so bald nicht zu decken; der Kunde nimmt nur 3, oder warte
 
 1. **Sehen:** Verpflichtung gefährdet, kein Zulauf vor Fälligkeit → `exceptions_list` ·
    `outgoing_commitment_at_risk` · `item_supply_demand`
-2. **Außerhalb von Reality einigen:** Müller anrufen; sie nehmen 3.
-3. **Sagen:** „Müller akzeptiert 3 auf SO-1043, telefonisch mit Frau Weber heute vereinbart."
+2. **Außerhalb von Reality einigen:** Maple anrufen; sie nehmen 3.
+3. **Sagen:** „Maple akzeptiert 3 auf SO-1043, telefonisch mit Frau Weber heute vereinbart."
 4. **Agent:** Revision auf 3 mit wer und wann; `due_at` stattdessen, wenn der Termin wandert; nie
    unter dem Versandten → `commitment_revise_propose`
 5. **Du:** nur mit der Vereinbarung in der Hand freigeben.
@@ -106,9 +106,9 @@ Die restlichen 2 sind so bald nicht zu decken; der Kunde nimmt nur 3, oder warte
 „Das noch nicht versenden": Kreditlimit, unzustellbare Adresse, Compliance. Eine Liefersperre
 blockiert den Versand; Aufträge und Reservierungen bleiben.
 
-1. **Sehen:** Müller über dem Kreditlimit → `exceptions_list` · `credit_limit_exceeded`; oder ein
+1. **Sehen:** Maple über dem Kreditlimit → `exceptions_list` · `credit_limit_exceeded`; oder ein
    Kollege meldet eine falsche Adresse.
-2. **Sagen:** „Halte SO-1045 an, bis die Adresse geklärt ist." · „Liefersperre für die Müller GmbH,
+2. **Sagen:** „Halte SO-1045 an, bis die Adresse geklärt ist." · „Liefersperre für Maple Retail,
    Kreditprüfung."
 3. **Agent:** Sperre auf der Verpflichtung → `commitment_hold_propose`, `reason_code` aus
    `credit_check`, `customer_request`, `address_clarification`, `compliance`, `manual_review`,
@@ -139,7 +139,7 @@ gesammelt, mit Grund.
 
 „Kann mein Auftrag heute raus?" „Warum ist SO-1044 spät?" Ein Lesezugriff; nichts wird entschieden.
 
-1. **Finden:** „Such Müllers Auftrag vom 8. September." → SO-1044 → `business_records_discover`
+1. **Finden:** „Such Maples Auftrag vom 8. September." → SO-1044 → `business_records_discover`
    `family="document"`
 2. **Verfolgen:** 5 zugesagt, 3 reserviert, 0 versandt, 2 fehlen, 50 im Zulauf am 18. →
    `order_explain` · warum eine Abweichung gemeldet wird → `exception_explain`
