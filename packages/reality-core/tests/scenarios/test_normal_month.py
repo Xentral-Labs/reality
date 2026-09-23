@@ -71,6 +71,28 @@ def test_the_month_ends_with_exactly_these_exceptions(session):
     ):
         counts[row.class_id] = counts.get(row.class_id, 0) + 1
 
+    if "overdue_receivable" in counts or "overdue_payable" in counts:
+        from reality.services.core import aging_register
+        import reality.services.exceptions as ex
+        rows = [
+            {
+                "type": r["document"].type,
+                "document_date": str(r["document"].document_date),
+                "due": str(r["due_date"]),
+                "term": getattr(r.get("payment_term"), "due_days", None),
+                "party_term": r.get("party_payment_term_id"),
+                "status": r["status"],
+                "open": str(r["open"]),
+                "origin": r.get("origin"),
+            }
+            for r in aging_register(session, tenant.id, as_of=datetime(2026, 9, 22, tzinfo=UTC))
+        ]
+        details = [
+            (row.class_id, row.values if hasattr(row, "values") else None)
+            for row in operational_exceptions(session, tenant.id, as_of=datetime(2026, 9, 22, tzinfo=UTC))
+            if row.class_id.startswith("overdue")
+        ]
+        raise AssertionError(f"DIAG rows={rows} details={details!r}")
     assert counts == {
         # Both Shopify orders ship in full against their commitments, and the
         # month's only sales invoice is a header with no lines, so no invoice
