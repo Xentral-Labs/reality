@@ -4,6 +4,28 @@ Reality stellt kompatiblen externen Agenten mandantengebundene Geschäftswerkzeu
 authentifiziertes Streamable HTTP bereit. Mit dieser Anleitung verbindest du einen Client nur mit
 den Funktionen, die er tatsächlich benötigt.
 
+## Einmal durch einen Menschen einrichten, danach arbeitet der Agent
+
+Die aktuelle Verbindung beginnt mit einer kurzen, einmaligen Einrichtung durch einen Menschen im
+Browser. Der Mensch erstellt und bestätigt ein Reality-Konto, erstellt oder wählt das Unternehmen
+und erzeugt für den Client ein mandantengebundenes MCP-Zugriffstoken. Nach dieser Übergabe verwendet
+der Agent MCP-Endpunkt und Token direkt; er benötigt weder die Browser-Session noch das Passwort des
+Menschen.
+
+```text
+Einmal durch einen Menschen im Browser:
+Konto → E-Mail-Bestätigung → Unternehmen → eingeschränktes MCP-Token
+
+Danach durch den Agenten:
+MCP-Endpunkt + Token → erlaubte Werkzeuge finden und verwenden
+```
+
+Ein Agent oder angebundenes System darf Registrierung, E-Mail-Bestätigung oder interaktiven Login
+nicht automatisieren. Hat noch kein Mensch die Browser-Einrichtung abgeschlossen, muss der Agent
+darum bitten und anschließend den angezeigten MCP-Endpunkt und das einmal sichtbare Token erhalten.
+Dieser Einstieg gilt für jedes externe Agenten- oder Erkenntnissystem; einen produktspezifischen
+Provisionierungsweg gibt es derzeit nicht.
+
 ## Was ein Agent tun kann
 
 Ein berechtigter Agent kann Aufträge und Commitments untersuchen, Bestand lesen,
@@ -18,7 +40,8 @@ generierte [Tool-Referenz](../tool-usage/commands) enthält aktuelle Namen und P
 
 ## Voraussetzungen
 
-- Ein aktives Reality-Konto und die Mitgliedschaft in einem Unternehmen.
+- Ein Mensch hat Registrierung und E-Mail-Bestätigung in der Reality-Browseranwendung abgeschlossen.
+- Dieser Mensch hat das Unternehmen erstellt oder ausgewählt, das der Agent verwenden soll.
 - Inhaberzugriff auf **Unternehmenseinstellungen → Agenten → MCP Server** für die Tokenverwaltung.
 - Ein kompatibler MCP-Client, der einen entfernten Streamable-HTTP-Endpunkt und einen
   Authorization-Bearer-Header akzeptiert.
@@ -108,6 +131,10 @@ aktuell keinen OAuth-2.1-Autorisierungsablauf, PKCE, dynamische Client-Registrie
 Refresh-Tokens. Die Verbindung wird daher konfiguriert und erfolgt nicht per One-Click. Prüfe vor
 der Annahme eines clientspezifischen Logins immer die aktuellen Produkteinstellungen und
 Dokumentation.
+
+Reality bietet damit derzeit auch keine unbeaufsichtigte Unternehmensbereitstellung für ein externes
+System. Die Browser-Einrichtung begründet menschliche Identität, Unternehmensmitgliedschaft und die
+bewusste Zugriffsfreigabe; danach ist das MCP-Token der Zugang des Agenten.
 
 Was ein Agent mit diesen Werkzeugen je Geschäftsbereich tun soll und was beim Menschen bleibt, steht
 in den [Agenten-Playbooks](../agent-playbooks/).

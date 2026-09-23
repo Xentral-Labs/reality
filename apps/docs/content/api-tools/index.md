@@ -15,6 +15,10 @@ To use these capabilities from an external agent, follow [Connect an MCP client]
 guide covers the current HTTPS and bearer-token setup, least-privilege permissions, a first read,
 governed changes, verification, and revocation.
 
+The current setup has one deliberate human step: a person signs up in the browser, selects or
+creates the company, and creates a scoped MCP token. The agent works directly through MCP after that
+handoff and must not automate the human signup or email-verification flow.
+
 ## Authentication and tenant context
 
 Product Web uses a secure browser session. API calls validate membership before business access. MCP
