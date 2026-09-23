@@ -55,6 +55,10 @@ records; no mutable stock balance is authoritative.
 - A compensation cannot be corrected. A replacement is a normal Movement and may start
   its own later correction chain.
 - A referenced handling unit belongs to the same tenant as the movement.
+- A movement belongs to a place through either side of its route, so a place scope
+  lists it under its origin and under its destination (spec 262). The quantity is
+  attributed to the exact location recorded on the movement; a parent location does
+  not sum its children.
 - Outbound movement cannot exceed physical stock in V0.
 
 ## Acceptance stories

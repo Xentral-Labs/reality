@@ -3361,3 +3361,19 @@ reservation identities and requires explicit retained quantities before a fresh 
 confirmed. Cancellation requires a reason and shows the open remainder plus reservations and
 holds that will release. Completed results retain proposal verification, current observation and
 Inspector links. An executing result uses reconciliation and is never submitted again blindly.
+
+## Stock at a location (spec 262)
+
+A quantity shown for an item at a location leads to that item at that location: what is
+held, reserved and available there, the movements that carried it in and out, and the
+reservations that hold it. The pair is addressed by the key the shared inventory read
+contract already uses, so the web and `inventory_read` in location view answer the same
+quantities; no quantity is derived a second time for the browser.
+
+Warehouse takes a place scope beside its item scope on Stock, Reservations and Movements.
+Under a place scope the quantities are the ones recorded at that location, the register
+says so in words, a scoped stock list answers for the items with records there, and a
+movement row states which side of the place it is on. The scope is a clearing chip and
+lives in the address. Quantities stay at the exact location: a parent location does not
+sum its children. The location inspector names its quantity in its section title, carries
+the item's unit and leads to the pair rather than to the item across all locations.

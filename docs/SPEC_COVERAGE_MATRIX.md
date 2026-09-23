@@ -1658,3 +1658,12 @@ Feature contract: `docs/features/b2b-operational-chain.md`.
 | A report proposal names the report its change concerns, for a confirmed create, duplicate, update and a since-deleted report | 261 FR-009 | `packages/reality-core/tests/test_reporting_graph_lifecycle.py` |
 | Suggested report names from the catalog's own labels, and whether the question on screen is still the saved one | 261 FR-004/FR-006 | `apps/web/scripts/analytics-report-naming.test.mjs` |
 | Visible save controls, carried names, draft and saved states, saving into the address, and a confirmed proposal opening its report | 261 FR-001–FR-003/FR-005/FR-007/FR-008/FR-010–FR-012 | `apps/web/scripts/analytics-save-clarity-browser.mjs`; frontend build and i18n audit |
+
+### Spec 262 stock at a location
+
+| Verification family | Specification | Tests |
+|---|---|---|
+| One item in one place: quantities equal the shared read contract, zero and negative pairs, an unknown pair, a location that stopped allowing stock, and no roll-up from a child to its parent | 262 FR-002/FR-003/FR-012 | `packages/reality-core/tests/test_stock_at_location.py` |
+| A place scope on stock, reservations and movements, combined with the item scope, its state filters, its item set and its query shape | 262 FR-005–FR-007/FR-010 | `packages/reality-core/tests/test_stock_at_location.py` |
+| The item preview and the location inspector address the pair, with the quantity named and the unit carried | 262 FR-001/FR-011 | `packages/reality-core/tests/test_stock_at_location.py`; `packages/reality-core/tests/test_operational_previews.py` |
+| The click path: a location quantity opens the item there, reaches both scoped registers, states and clears its scope in both editions | 262 FR-004/FR-008/FR-009/FR-014 | `apps/web/scripts/stock-at-location-browser.mjs`; `apps/web/scripts/stock-at-location-contract.test.mjs`; frontend build and i18n audit |
