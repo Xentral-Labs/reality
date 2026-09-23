@@ -176,11 +176,6 @@ export function SourceConfiguration({
           "Source definitions describe origins. They do not connect an account or synchronize data.",
         )}
       </p>
-      <p className="rounded-lg bg-surface-muted p-4 text-sm">
-        {t(
-          "Enabled and disabled are registry states. Changing them does not start or stop imports.",
-        )}
-      </p>
       {notice && (
         <p role="status" className="text-sm">
           {t(notice)}
@@ -256,74 +251,26 @@ export function SourceConfiguration({
         !action &&
         (selected ? (
           system ? (
-            <div className="space-y-5">
-              <div className="space-y-2">
+            <div className="space-y-6">
+              {/* What this source is, with the one control that changes it. */}
+              <div className="space-y-1">
                 <h3 className="break-words text-lg font-semibold">{system.name}</h3>
-                <p className="break-all text-sm">{system.code}</p>
-                <p className="break-all text-xs text-fg-muted">{system.id}</p>
-                <p className="break-words text-sm">{system.description}</p>
-                <p>
-                  {t("Registry state")}: {t(system.is_active ? "Enabled" : "Disabled")}
+                <p className="break-words text-sm text-fg-muted">{system.description}</p>
+                <p className="break-all text-xs text-fg-muted">
+                  {system.code} · {system.id}
                 </p>
-                <section
-                  data-source-system-settings={system.code}
-                  className="space-y-3 rounded-lg border border-border-default p-4"
-                >
-                  <h4 className="font-semibold">{t("Settings for this system")}</h4>
-                  {system.code === "demo_data" ? (
-                    // What this source does is set here, beside what it is. Every
-                    // system earns its own part here; the simulation is the first.
-                    <div data-source-simulation-settings>
-                      <DemoDataIntegration tenantId={tenant} variant="settings" />
-                    </div>
-                  ) : (
-                    <p className="text-sm text-fg-muted">
-                      {t("This system has no settings of its own yet.")}
-                    </p>
-                  )}
-                </section>
               </div>
-              <div className="space-y-2">
-                <label className="block text-sm" htmlFor="source-base-url">
-                  {t("Address of the source system")}
-                </label>
-                <p className="text-xs text-fg-muted">
-                  {t(
-                    "Where this system's records can be opened, for example https://acme.myshopify.com/admin. Configuration only: the address is never called and holds no credentials.",
-                  )}
-                </p>
-                <input
-                  id="source-base-url"
-                  data-source-base-url
-                  className="br-input w-full"
-                  type="url"
-                  inputMode="url"
-                  placeholder="https://"
-                  value={baseUrl ?? system.base_url ?? ""}
-                  onChange={(event) => setBaseUrl(event.target.value)}
-                />
-                <button
-                  className="br-btn"
-                  disabled={busy || baseUrl === null}
-                  onClick={async () => {
-                    setBusy(true);
-                    setError("");
-                    try {
-                      await api.setSourceSystemBaseUrl(tenant, system.id, baseUrl ?? "");
-                      setBaseUrl(null);
-                      setNotice(t("Address of the source system saved."));
-                      await load();
-                    } catch (e) {
-                      setError((e as Error).message);
-                    } finally {
-                      setBusy(false);
-                    }
-                  }}
-                >
-                  {t("Save address")}
-                </button>
-              </div>
-              <div className="flex flex-wrap gap-3">
+              <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg bg-surface-muted p-4">
+                <div className="min-w-0">
+                  <p className="text-sm font-medium">
+                    {t("Registry state")}: {t(system.is_active ? "Enabled" : "Disabled")}
+                  </p>
+                  <p className="mt-1 text-xs text-fg-muted">
+                    {t(
+                      "Enabled and disabled are registry states. Changing them does not start or stop imports.",
+                    )}
+                  </p>
+                </div>
                 <button
                   className="br-btn"
                   disabled={busy || unknown}
@@ -338,74 +285,134 @@ export function SourceConfiguration({
                 >
                   {t(system.is_active ? "Disable source definition" : "Enable source definition")}
                 </button>
+              </div>
+              <section data-source-system-settings={system.code} className="space-y-3">
+                <h3 className="font-semibold">{t("Settings for this system")}</h3>
+                {system.code === "demo_data" ? (
+                  // What this source does is set here, beside what it is. Every
+                  // system earns its own part here; the simulation is the first.
+                  <div data-source-simulation-settings>
+                    <DemoDataIntegration tenantId={tenant} variant="settings" />
+                  </div>
+                ) : (
+                  <p className="text-sm text-fg-muted">
+                    {t("This system has no settings of its own yet.")}
+                  </p>
+                )}
+              </section>
+              <section className="space-y-2">
+                <label className="block font-semibold" htmlFor="source-base-url">
+                  {t("Address of the source system")}
+                </label>
+                <p className="text-xs text-fg-muted">
+                  {t(
+                    "Where this system's records can be opened, for example https://acme.myshopify.com/admin. Configuration only: the address is never called and holds no credentials.",
+                  )}
+                </p>
+                <div className="flex flex-wrap items-center gap-2">
+                  <input
+                    id="source-base-url"
+                    data-source-base-url
+                    className="br-control min-w-0 flex-1"
+                    type="url"
+                    inputMode="url"
+                    placeholder="https://"
+                    value={baseUrl ?? system.base_url ?? ""}
+                    onChange={(event) => setBaseUrl(event.target.value)}
+                  />
+                  <button
+                    className="br-btn"
+                    disabled={busy || baseUrl === null}
+                    onClick={async () => {
+                      setBusy(true);
+                      setError("");
+                      try {
+                        await api.setSourceSystemBaseUrl(tenant, system.id, baseUrl ?? "");
+                        setBaseUrl(null);
+                        setNotice(t("Address of the source system saved."));
+                        await load();
+                      } catch (e) {
+                        setError((e as Error).message);
+                      } finally {
+                        setBusy(false);
+                      }
+                    }}
+                  >
+                    {t("Save address")}
+                  </button>
+                </div>
+              </section>
+              <section className="space-y-3">
+                <h3 className="font-semibold">{t("Declared data types")}</h3>
+                <p className="text-sm text-fg-muted">
+                  {t(
+                    "A declared target describes intended interpretation. An available interpreter does not prove a live connection.",
+                  )}
+                </p>
+                {!types.length && (
+                  <p className="text-sm text-fg-muted">{t("No declared data types.")}</p>
+                )}
+                {types.slice((page - 1) * 25, page * 25).map((row) => (
+                  <article
+                    key={row.id}
+                    className="flex flex-wrap items-center justify-between gap-4 rounded-lg border border-border-default p-4"
+                  >
+                    <div className="min-w-0 space-y-1">
+                      <p className="break-all font-medium">
+                        {row.source_type} → {row.target_type}
+                      </p>
+                      <p className="text-sm text-fg-muted">
+                        {t(
+                          row.interpreter_available
+                            ? "Interpreter available"
+                            : "No registered interpreter",
+                        )}{" "}
+                        · {t(row.is_active ? "Enabled" : "Disabled")}
+                      </p>
+                    </div>
+                    <button
+                      className="br-btn"
+                      disabled={busy || unknown}
+                      onClick={() =>
+                        choose({
+                          kind: "capability",
+                          id: row.id,
+                          name: `${system.name} · ${row.source_type} → ${row.target_type}`,
+                          active: !row.is_active,
+                        })
+                      }
+                    >
+                      {t(row.is_active ? "Disable type definition" : "Enable type definition")}
+                    </button>
+                  </article>
+                ))}
+                {types.length > 25 && (
+                  <div className="flex items-center gap-3">
+                    <button
+                      className="br-btn"
+                      disabled={page === 1}
+                      onClick={() => setPage(page - 1)}
+                    >
+                      {t("Previous")}
+                    </button>
+                    <span>
+                      {page} / {Math.ceil(types.length / 25)}
+                    </span>
+                    <button
+                      className="br-btn"
+                      disabled={page * 25 >= types.length}
+                      onClick={() => setPage(page + 1)}
+                    >
+                      {t("Next")}
+                    </button>
+                  </div>
+                )}
+              </section>
+              <div className="flex flex-wrap justify-end gap-3 border-t border-border-default pt-4">
                 <button className="br-btn" onClick={() => records(system.code)}>
                   {t("View received records")}
                 </button>
               </div>
-              <h3 className="font-semibold">{t("Declared data types")}</h3>
-              <p className="text-sm text-fg-muted">
-                {t(
-                  "A declared target describes intended interpretation. An available interpreter does not prove a live connection.",
-                )}
-              </p>
-              {!types.length && (
-                <p className="text-sm text-fg-muted">{t("No declared data types.")}</p>
-              )}
-              {types.slice((page - 1) * 25, page * 25).map((row) => (
-                <article
-                  key={row.id}
-                  className="flex flex-wrap items-center justify-between gap-4 rounded-lg border border-border-default p-4"
-                >
-                  <div className="min-w-0 space-y-1">
-                    <p className="break-all font-medium">
-                      {row.source_type} → {row.target_type}
-                    </p>
-                    <p className="text-sm text-fg-muted">
-                      {t(
-                        row.interpreter_available
-                          ? "Interpreter available"
-                          : "No registered interpreter",
-                      )}{" "}
-                      · {t(row.is_active ? "Enabled" : "Disabled")}
-                    </p>
-                  </div>
-                  <button
-                    className="br-btn"
-                    disabled={busy || unknown}
-                    onClick={() =>
-                      choose({
-                        kind: "capability",
-                        id: row.id,
-                        name: `${system.name} · ${row.source_type} → ${row.target_type}`,
-                        active: !row.is_active,
-                      })
-                    }
-                  >
-                    {t(row.is_active ? "Disable type definition" : "Enable type definition")}
-                  </button>
-                </article>
-              ))}
-              {types.length > 25 && (
-                <div className="flex items-center gap-3">
-                  <button
-                    className="br-btn"
-                    disabled={page === 1}
-                    onClick={() => setPage(page - 1)}
-                  >
-                    {t("Previous")}
-                  </button>
-                  <span>
-                    {page} / {Math.ceil(types.length / 25)}
-                  </span>
-                  <button
-                    className="br-btn"
-                    disabled={page * 25 >= types.length}
-                    onClick={() => setPage(page + 1)}
-                  >
-                    {t("Next")}
-                  </button>
-                </div>
-              )}
             </div>
           ) : (
             <p role="alert">{t("Source definition not found.")}</p>
