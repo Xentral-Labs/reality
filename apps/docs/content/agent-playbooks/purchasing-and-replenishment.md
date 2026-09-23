@@ -33,7 +33,7 @@ Exceptions that belong to this area: `overdue_incoming_supplier_commitment`, `bi
 `purchase_discount_available`, `supplier_credit_unposted`, `supplier_credit_unclaimed`,
 `supplier_return_not_credited`, `supplier_credit_not_returned`, `stock_expired`.
 
-The examples use one supplier, Nordlicht Leuchten GmbH, one item, the desk lamp LAMP-01, and small
+The examples use one supplier, Alpine Components, one item, Cedar Desk Lamp (`ITEM-004`), and small
 quantities.
 
 ## Situations
@@ -44,7 +44,7 @@ Customer demand that stock and open supplier promises do not cover. Reality show
 quantity is your rule.
 
 1. **List:** "What do we need to buy this week?" → `item_supply_demand` · `fulfillment_blockers`
-   LAMP-01 available 0, demand 12, incoming 0, uncovered 12, 2 orders blocked · CABLE-2M uncovered
+   ITEM-004 available 0, demand 12, incoming 0, uncovered 12, 2 orders blocked · CABLE-2M uncovered
    40, 50 incoming 18th
 2. **Rule:** "Boxes of 12, keep 20 on the shelf; propose 36." The agent does your arithmetic and
    names supplier and price → `business_records_discover`
@@ -55,7 +55,7 @@ quantity is your rule.
 The purchase order is evidence of what you ordered; the supplier's promise becomes an incoming
 promise per line.
 
-1. **Say:** "Order 36 LAMP-01 from Nordlicht at list price, to the main warehouse by the 18th."
+1. **Say:** "Order 36 ITEM-004 from Alpine at list price, to the main warehouse by the 18th."
 2. **Agent:** PO-0210, one line 36 × 30.00, `promised_at` 18th, supplier's payment term; amounts
    from the price list, never computed → `order_create_propose` `direction="purchase"`
 3. **You:** approve; then send the order through your own channel.
@@ -66,11 +66,11 @@ promise per line.
 
 The truck is at the door with 3 boxes. A receipt states what was counted, not what was ordered.
 
-1. **See:** "What is due from Nordlicht?" → PO-0210, 36 LAMP-01, due 18th → `commitments_list` ·
-   late ones → `overdue_incoming_supplier_commitment`
-2. **Say:** "Received 36 LAMP-01 into the main warehouse." Damaged box: "Received 24, 12 go back."
-3. **Agent:** inbound Package for Nordlicht with carrier/tracking when known and a receipt Movement
-   of 36 against the promise; lot or serial when inventory is tracked → `shipment_receive_propose`
+1. **See:** "What is due from Alpine?" → PO-0210, 36 ITEM-004, due 18th → `commitments_list` · late
+   ones → `overdue_incoming_supplier_commitment`
+2. **Say:** "Received 36 ITEM-004 into the main warehouse." Damaged box: "Received 24, 12 go back."
+3. **Agent:** inbound Package for Alpine with carrier/tracking when known and a receipt Movement of
+   36 against the promise; lot or serial when inventory is tracked → `shipment_receive_propose`
    `purpose="supplier_delivery"` · damaged goods sent back use an outbound Package with
    `shipment_dispatch_propose` `purpose="supplier_return"` (credit situation below)
 4. **You:** approve the count. A partial receipt leaves the rest open.
@@ -83,7 +83,7 @@ The truck is at the door with 3 boxes. A receipt states what was counted, not wh
 
 ER-4471 arrived: 36 lamps, 1,080.00. Record, then book; only the booked invoice is a payable.
 
-1. **Say:** "Record Nordlicht's ER-4471, 1,080.00, for PO-0210, 36 at 30.00."
+1. **Say:** "Record Alpine's ER-4471, 1,080.00, for PO-0210, 36 at 30.00."
 2. **Agent:** invoice with its line naming the PO line; amounts as the invoice states them →
    `supplier_invoice_record_propose`
 3. **You:** approve the record; the booking is offered next → `supplier_invoice_post_propose`. Look
@@ -113,7 +113,7 @@ supplier.
 Friday: what to pay by next week, which discounts are worth taking, what is withheld and why. The
 bank transfer is yours.
 
-1. **Preview:** "Payment run, pay by next Friday." → ER-4471 Nordlicht 1,080.00 due 20th · ER-4460
+1. **Preview:** "Payment run, pay by next Friday." → ER-4471 Alpine 1,080.00 due 20th · ER-4460
    Kabelwerk 640.00, 2 % by Tuesday = 12.80 · withheld ER-4402, duplicate · total 1,720.00 →
    `payment_run_preview` `pay_by` · `overdue_payable`, `purchase_discount_available`
 2. **Select:** "Pay both, take the discount on ER-4460, so 627.20." Leaving one out is the only hold
@@ -129,13 +129,13 @@ bank transfer is yours.
 
 Mirror of the customer side: paid less with the supplier's agreement, or paid too much.
 
-1. **Paid less, agreed:** "We paid 1,026.00 on ER-4471; Nordlicht waived 54.00, mail of the 19th." →
+1. **Paid less, agreed:** "We paid 1,026.00 on ER-4471; Alpine waived 54.00, mail of the 19th." →
    payment 1,026.00 → `finance_settlement_propose` mode `payment` · reduction 54.00 with the mail as
    `agreement` → `finance_adjustment_context`, `finance_adjustment_propose`. Approve both. Our wish
    to withhold reduces nothing; their agreement does.
 2. **Paid too much:** "We paid 1,180.00 on ER-4471 by mistake." → 1,080.00 allocated, 100.00
    supplier credit → mode `payment`, `allocation_amount` < `amount` · later "use the 100.00 on
-   ER-4490" → mode `allocate_credit` · or "Nordlicht refunded 100.00" → mode `refund_credit`
+   ER-4490" → mode `allocate_credit` · or "Alpine refunded 100.00" → mode `refund_credit`
 3. **Check:** paid, reduction and remaining payable shown separately in Open items · credit listed
    until used → `finance_credits` side supplier
 
@@ -144,16 +144,15 @@ Mirror of the customer side: paid less with the supplier's agreement, or paid to
 Goods go back, or the supplier corrects a price. Three facts: goods left, a credit exists, the
 credit is used.
 
-1. **Send back:** "12 damaged LAMP-01 went back to Nordlicht against PO-0210, DHL tracking
+1. **Send back:** "12 damaged ITEM-004 went back to Alpine against PO-0210, DHL tracking
    00340434161094000002." → `shipment_dispatch_propose` `purpose="supplier_return"` with a
    `supplier_return` Movement. Approve; the Package carries the tracking number and the return now
    waits for its credit → `shipment_explain` · `supplier_return_not_credited`
-2. **Record the credit:** "Record Nordlicht's credit note GS-N-118, 360.00, for the 12 returned
-   lamps." → line names the PO line → `document_create_propose`
-   `document_type="supplier_credit_note"` · booking → `supplier_credit_note_post_propose`. Approve
-   both.
+2. **Record the credit:** "Record Alpine's credit note GS-N-118, 360.00, for the 12 returned lamps."
+   → line names the PO line → `document_create_propose` `document_type="supplier_credit_note"` ·
+   booking → `supplier_credit_note_post_propose`. Approve both.
 3. **Use it:** "Net GS-N-118 against ER-4471" → `supplier_credit_note_allocate_propose` · money
-   back: "Nordlicht refunded 360.00, NL-2211" → `supplier_refund_post_propose`
+   back: "Alpine refunded 360.00, NL-2211" → `supplier_refund_post_propose`
 4. **Check:** return, unposted and unclaimed entries gone → `supplier_credit_unposted`,
    `supplier_credit_unclaimed` · netting or refund in Open items. A credit note moves no goods; a
    return creates no credit.

@@ -2,10 +2,10 @@
 
 [Zurück zur Handbuchübersicht](../business-reality-guide)
 
-## 1. Deine Verständnisprobe: Ist Hubers Auftrag erledigt?
+## 1. Deine Verständnisprobe: Ist Northstars Auftrag erledigt?
 
-Alle 30 Lampen sind als von Acme an Huber versendet erfasst. Zur Rechnung `INV-1001` über 1.470 EUR
-sind 500 EUR Zahlung zugeordnet und 100 EUR Gutschrift angerechnet. Es gibt keine weiteren
+Alle 30 Lampen sind als von Acme an Northstar versendet erfasst. Zur Rechnung `INV-1001` über 1.470
+EUR sind 500 EUR Zahlung zugeordnet und 100 EUR Gutschrift angerechnet. Es gibt keine weiteren
 Bewegungen, Reservierungen oder finanziellen Einträge in diesem Grundablauf.
 
 Formuliere vor dem Weiterlesen eine Antwort auf „Ist Auftrag `SO-1001` abgeschlossen?“ Welche
@@ -32,18 +32,18 @@ dass eine heutige Produktansicht genau diese Tabelle liefert. Sie verbindet den 
 [Kapitel 3](./03-invoices-and-payments).
 
 Die ursprüngliche Auftragsinformation ist als **SourceRecord** bewahrt. **Document** und
-**DocumentLine** halten `SO-1001` fest. Das **Commitment** von Acme an Huber führt die Lieferzusage;
-jede **Reservation** ordnet ihr Bestand zu und jedes erfüllende **Movement** belegt erfassten
-Versand.
+**DocumentLine** halten `SO-1001` fest. Das **Commitment** von Acme an Northstar führt die
+Lieferzusage; jede **Reservation** ordnet ihr Bestand zu und jedes erfüllende **Movement** belegt
+erfassten Versand.
 
 | Geschäftsfall                                | Maßgebliche Einträge                               | Ergebnis im Grundablauf                                 |
 | -------------------------------------------- | -------------------------------------------------- | ------------------------------------------------------- |
 | Acht Lampen zu Beginn                        | Anfangsbestands-Movement                           | Acht vorhanden                                          |
-| Huber bestellt 30                            | Auftrag, Position und Kunden-Commitment            | 30 zu liefern                                           |
+| Northstar bestellt 30                        | Auftrag, Position und Kunden-Commitment            | 30 zu liefern                                           |
 | Vorhandene acht zuordnen                     | Reservation                                        | Acht reserviert, 22 nicht reserviert                    |
-| 22 bei LightWorks bestellen                  | PO-2001 und Lieferanten-Commitment                 | 22 erwartet                                             |
+| 22 bei Alpine Components bestellen           | PO-2001 und Lieferanten-Commitment                 | 22 erwartet                                             |
 | Zehn und zwölf annehmen, jeweils reservieren | Zwei Eingangs-Movement und zusätzliche Reservation | 30 vorhanden und zugeordnet                             |
-| 18 und zwölf an Huber versenden              | Zwei Versand-Movement gegen das Kunden-Commitment  | 30 erfüllt, null offen; passende Reservation verbraucht |
+| 18 und zwölf an Northstar versenden          | Zwei Versand-Movement gegen das Kunden-Commitment  | 30 erfüllt, null offen; passende Reservation verbraucht |
 
 Das Lager hat am Ende null Lampen aus diesem Grundablauf, null aktive Reservierungen und null
 verfügbaren Bestand. Die Rechnung ist mit der abgerechneten Auftragsposition verknüpft; diese
@@ -62,17 +62,17 @@ angerechneten Ausgleichen. Für diese Antworten wird kein zusätzlicher „bezah
 
 ## 4. So könnte der Agent antworten
 
-> Die Lieferung zu Hubers Auftrag SO-1001 ist vollständig als versendet erfasst: 18 und zwölf Lampen
-> gegen die Zusage über 30. Es bleibt keine aktive Reservierung für diesen Auftrag. Auf der
+> Die Lieferung zu Northstars Auftrag SO-1001 ist vollständig als versendet erfasst: 18 und zwölf
+> Lampen gegen die Zusage über 30. Es bleibt keine aktive Reservierung für diesen Auftrag. Auf der
 > verknüpften Rechnung INV-1001 sind 870 EUR offen: 1.470 EUR Rechnungsbetrag abzüglich 500 EUR
 > zugeordneter Zahlung und 100 EUR angerechneter Gutschrift. Ob der Rest überfällig ist, kann ich
 > ohne Prüfung der Fälligkeit nicht sagen. Als Nächstes würde ich Fälligkeit und weitere
 > Zahlungseingänge prüfen. Ich habe keine Daten verändert.
 
-In einer echten Antwort müssen Lieferung und Reservierung zu Hubers Commitment und seinen Einträgen
-führen. Der offene Betrag muss zu Rechnungsbuchung, Zahlung, SettlementAllocation und Gutschrift
-führen. Soweit vorhanden, lässt sich die Herkunft bis zur ursprünglichen Eingabe prüfen. Lesbare
-Beispielnummern ersetzen diese technischen Verknüpfungen nicht.
+In einer echten Antwort müssen Lieferung und Reservierung zu Northstars Commitment und seinen
+Einträgen führen. Der offene Betrag muss zu Rechnungsbuchung, Zahlung, SettlementAllocation und
+Gutschrift führen. Soweit vorhanden, lässt sich die Herkunft bis zur ursprünglichen Eingabe prüfen.
+Lesbare Beispielnummern ersetzen diese technischen Verknüpfungen nicht.
 
 Der Agent liest den aktuellen Stand und nennt seine Grenzen. Ein Vorschlag für einen nächsten
 Schritt ist noch keine ausgeführte Aktion. Eine Änderung in Reality ändert nicht automatisch ein

@@ -4,9 +4,9 @@
 
 ## Rechnung, Teilzahlung und Gutschrift {#payments-walkthrough}
 
-Hubers Lieferung aus Auftrag `SO-1001` ist vollständig. Finanziell ist damit noch nichts erledigt.
-Die zugehörige Rechnung `INV-1001` nennt **1.470 EUR**. Ihre Position ist mit der abgerechneten
-Auftragsposition verknüpft. Diese Beziehung gilt von Anfang an in unserem Beispiel.
+Northstars Lieferung aus Auftrag `SO-1001` ist vollständig. Finanziell ist damit noch nichts
+erledigt. Die zugehörige Rechnung `INV-1001` nennt **1.470 EUR**. Ihre Position ist mit der
+abgerechneten Auftragsposition verknüpft. Diese Beziehung gilt von Anfang an in unserem Beispiel.
 
 Den Betrag übernehmen wir aus der Rechnung. Wir rechnen ihn nicht aus Menge und Stückpreis neu aus.
 Für das vereinfachte Buchungsbeispiel bleiben Steueraufteilungen außerhalb der Darstellung; es ist
@@ -15,7 +15,7 @@ keine Vorlage zur Erstellung einer Rechnung.
 ### 1. Rechnung erfassen: die Aussage festhalten
 
 Eine Rechnung kommt aus dem System, das sie stellt, oder wird mit einer unterstützten Aktion in
-Reality erfasst. Der Rechnungsbeleg hält die kaufmännische Aussage fest: Huber werden 1.470 EUR
+Reality erfasst. Der Rechnungsbeleg hält die kaufmännische Aussage fest: Northstar werden 1.470 EUR
 berechnet. Wie beim Auftrag heißen Beleg und Position **Document** und **DocumentLine**.
 
 Die Rechnung zu erfassen ist noch keine Buchung. Dass die Lieferung vollständig ist, erzeugt auch
@@ -35,8 +35,8 @@ finanzielle Aussage ändert weder die gelieferte Menge noch den Lagerbestand.
 
 ### 3. Zahlung erfassen: das eingegangene Geld festhalten
 
-Huber zahlt 500 EUR. Die übernommene Zahlungsinformation führt zu einem eigenen Zahlungsbeleg und
-einer Buchung Bank im Soll, Forderungen im Haben. Reality hält den tatsächlich genannten Eingang
+Northstar zahlt 500 EUR. Die übernommene Zahlungsinformation führt zu einem eigenen Zahlungsbeleg
+und einer Buchung Bank im Soll, Forderungen im Haben. Reality hält den tatsächlich genannten Eingang
 fest. Eine Zahlung kann bereits erfasst sein, obwohl noch unklar ist, zu welcher Rechnung sie
 gehört.
 
@@ -61,7 +61,7 @@ Acme erfasst und bucht eine Gutschrift über 100 EUR und rechnet sie auf `INV-10
 diesem Bezug ergibt sich für diese Rechnung: **970 EUR − 100 EUR = 870 EUR offen.** Eine ungenutzte
 Gutschrift wäre zunächst Guthaben; sie würde nicht beliebig eine einzelne Rechnung schließen.
 
-Die Gutschrift verändert die Forderung. Sie nimmt keine Lampe ins Lager zurück. Gibt Huber Ware
+Die Gutschrift verändert die Forderung. Sie nimmt keine Lampe ins Lager zurück. Gibt Northstar Ware
 zurück, wird der tatsächliche Eingang separat als Retoure erfasst.
 
 ### Die Antworten auseinanderhalten
@@ -160,7 +160,7 @@ ist eine eigene, bestätigte Buchung mit Grund, nie Teil der Zuordnung.
 | weniger             | der gezahlte Betrag | Rechnung _teilbezahlt_; `overdue_receivable` nach Fälligkeit, markiert, wenn die Bedingungen den Rest erklären | offen lassen, einen genannten Abzug akzeptieren oder ihn erklären        |
 | mehr                | der offene Betrag   | Rechnung _bezahlt_; der Überschuss ist Kundenguthaben, gemeldet als `unmatched_financial_event`                | das Guthaben einer anderen Rechnung zuordnen oder eine Erstattung buchen |
 
-Der [Grundablauf am Anfang dieses Kapitels](#payments-walkthrough) zeigt die Schritte an Hubers
+Der [Grundablauf am Anfang dieses Kapitels](#payments-walkthrough) zeigt die Schritte an Northstars
 Rechnung; das [Playbook Forderungen](../../agent-playbooks/receivables-and-payments) zeigt die
 Schreibtischarbeit hinter jedem Ergebnis.
 

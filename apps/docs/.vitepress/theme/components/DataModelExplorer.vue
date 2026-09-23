@@ -46,7 +46,7 @@ const t = computed(() =>
         source: "Original bleibt erhalten",
         sourceText:
           "Ungenutzte ERP-Felder bleiben im SourceRecord. Nicht jedes externe Feld muss ein eigenes Feld oder Fact werden.",
-        example: "Beispiel aus Hubers Lampenauftrag",
+        example: "Beispiel aus Northstars Lampenauftrag",
         excerpt:
           "Vereinfachter Datensatzausschnitt – keine vollständige Tool-Eingabe. IDs und weitere Pflichtwerte sind hier ausgelassen.",
         derived: "Daraus gelesen – nicht zusätzlich hier gespeichert",
@@ -97,7 +97,7 @@ const t = computed(() =>
         source: "Keep the original",
         sourceText:
           "Unused ERP fields stay in SourceRecord. Not every external field needs a dedicated field or Fact.",
-        example: "Example from Huber's lamp order",
+        example: "Example from Northstar's lamp order",
         excerpt:
           "Illustrative record excerpt, not a complete tool input. IDs and other required values are omitted here.",
         derived: "Read from records — not additionally stored here",

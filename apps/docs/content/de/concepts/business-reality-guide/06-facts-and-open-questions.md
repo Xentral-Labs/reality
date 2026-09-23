@@ -4,16 +4,16 @@
 
 ## „Dafür hätte ich im ERP ein Zusatzfeld angelegt“ {#facts}
 
-Huber ergänzt seinen Auftrag: „Bitte nur vormittags liefern, Seiteneingang benutzen.“ Der Auftrag
-über 30 Lampen bleibt gleich. Bestand und Forderung ändern sich ebenfalls nicht. Trotzdem soll die
-Lieferanweisung bei der Bearbeitung sichtbar und ihre Herkunft nachvollziehbar sein.
+Northstar ergänzt seinen Auftrag: „Bitte nur vormittags liefern, Seiteneingang benutzen.“ Der
+Auftrag über 30 Lampen bleibt gleich. Bestand und Forderung ändern sich ebenfalls nicht. Trotzdem
+soll die Lieferanweisung bei der Bearbeitung sichtbar und ihre Herkunft nachvollziehbar sein.
 
 Im ERP würdest du vielleicht ein Zusatzfeld oder einen Hinweis an der Auftragsposition vorsehen. In
 Reality prüfst du zuerst, welche Art von Information vorliegt. Brauchst du eine zusätzliche belegte
 Beobachtung, einen bestehenden operativen Vorgang oder nur die ursprüngliche Eingabe?
 
 Ein **Fact** hält eine unterstützte, durch eine Quelle belegte Beobachtung zu einem bestehenden
-Geschäftsdatensatz fest. Hier beschreibt er Hubers Lieferzusage: Die Quelle nennt eine
+Geschäftsdatensatz fest. Hier beschreibt er Northstars Lieferzusage: Die Quelle nennt eine
 Lieferanweisung. Er verschiebt keinen Liefertermin, reserviert keine Ware und erteilt keine
 Ausführungsberechtigung.
 
@@ -23,20 +23,20 @@ Damit alle Aufrufer dasselbe verstehen, besitzt jede unterstützte Beobachtung e
 Bedeutung. Dieser Vertrag heißt **Predicate**. Er legt fest, was die Beobachtung aussagt, welchen
 Datensatz sie beschreiben darf und welche Werte erlaubt sind.
 
-Für Hubers Hinweis gibt es `order.delivery_instruction`: eine Lieferanweisung als Text am
+Für Northstars Hinweis gibt es `order.delivery_instruction`: eine Lieferanweisung als Text am
 Commitment. Der technische Name hilft beim Nachschlagen. Für das Verständnis genügt zunächst: **Wer
 hat welche Information über welche Lieferzusage mitgeteilt?**
 
-„Huber hat das so geschrieben“ ist die belegte Aussage. Ob der Fahrer tatsächlich vormittags kommt,
-ist damit nicht belegt. Auch eine notierte Zahlungszusage ist noch kein Geldeingang.
+„Northstar hat das so geschrieben“ ist die belegte Aussage. Ob der Fahrer tatsächlich vormittags
+kommt, ist damit nicht belegt. Auch eine notierte Zahlungszusage ist noch kein Geldeingang.
 
 ### Fact, operativer Datensatz oder ursprüngliche Quelle?
 
 | Information im Alltag                         | Passender Ort                                                                        | Fachliche Wirkung                                                       |
 | --------------------------------------------- | ------------------------------------------------------------------------------------ | ----------------------------------------------------------------------- |
-| Huber nennt eine Lieferanweisung              | Fact an der Lieferzusage                                                             | Zusätzlicher belegter Kontext                                           |
+| Northstar nennt eine Lieferanweisung          | Fact an der Lieferzusage                                                             | Zusätzlicher belegter Kontext                                           |
 | Acme sagt einen anderen Liefertermin zu       | Terminänderung (`CommitmentRevision`) an der bestehenden Lieferzusage (`Commitment`) | Der gültige Termin ergibt sich aus der zuletzt erfassten Terminänderung |
-| Zehn Lampen werden Huber zugeordnet           | Reservation                                                                          | Ware wird für die Zusage gebunden                                       |
+| Zehn Lampen werden Northstar zugeordnet       | Reservation                                                                          | Ware wird für die Zusage gebunden                                       |
 | Lampen verlassen tatsächlich das Lager        | Movement                                                                             | Der erfasste Bestand und gegebenenfalls die Erfüllung ändern sich       |
 | Eine Zahlung wird gebucht                     | LedgerEntry                                                                          | Finanzielle Buchung                                                     |
 | Ein externes Feld wird derzeit nicht benötigt | Original-SourceRecord                                                                | Eingabe bleibt erhalten, ohne zusätzliches Feld                         |
@@ -58,10 +58,10 @@ Ein weiterer Fact „zehn reserviert“ würde den bereits vorhandenen Zuordnung
 Für jeden Fact braucht Reality einen vorhandenen Bezugsdatensatz und eine gespeicherte Quelle. Die
 Quelle heißt **SourceRecord**; das beschriebene Objekt wird technisch **Subjekt** genannt.
 
-1. **Die Quelle ist schon vorhanden.** Hat eine unterstützte Anbindung Hubers Hinweis übernommen,
-   wählst du diese Quelle und das passende Commitment. Die Web-Aktion **Quellengestützten Fakt
-   erfassen** nutzt ein registriertes Predicate. Ein Agent bereitet denselben Vorgang mit
-   `fact_observe_propose` vor; die Änderung braucht eine berechtigte Freigabe.
+1. **Die Quelle ist schon vorhanden.** Hat eine unterstützte Anbindung Northstars Hinweis
+   übernommen, wählst du diese Quelle und das passende Commitment. Die Web-Aktion
+   **Quellengestützten Fakt erfassen** nutzt ein registriertes Predicate. Ein Agent bereitet
+   denselben Vorgang mit `fact_observe_propose` vor; die Änderung braucht eine berechtigte Freigabe.
 2. **Die Information kommt per Telefon, Mail oder Papier.** Zuerst wird die Aussage als manuelle
    Quelle gespeichert, mit Inhalt und nachvollziehbarer Herkunft. Danach kann ein unterstützter Fact
    daran anknüpfen. Ohne gespeicherte Quelle gibt es keinen Fact.
@@ -145,7 +145,8 @@ selbst mit und braucht keinen Katalogeintrag.
 
 ### Prüfe dein Verständnis
 
-Huber sagt am Telefon, die offenen 870 EUR nächste Woche zu zahlen. Darf das die Rechnung schließen?
+Northstar sagt am Telefon, die offenen 870 EUR nächste Woche zu zahlen. Darf das die Rechnung
+schließen?
 
 <details>
 <summary>Antwort anzeigen</summary>

@@ -49,8 +49,8 @@ Abweichungen, die zu diesem Bereich gehören: `units_not_comparable`, `silent_so
 `source_interpretation_failure`. Stammdatenlücken zeigen sich sonst als Ablehnung in dem Moment, in
 dem jemand den Datensatz braucht, und dort beginnt der größte Teil dieses Playbooks.
 
-Die Beispiele nutzen den Shop Nordshop als Quelle, den Artikel LAMP-01, den Kunden Müller GmbH und
-den Lieferanten Nordlicht Leuchten GmbH.
+Die Beispiele nutzen den Shop Nordshop als Quelle, den Artikel Cedar Desk Lamp (`ITEM-004`), den
+Kunden Maple Retail und den Lieferanten Alpine Components.
 
 ## Situationen
 
@@ -91,10 +91,10 @@ die Quelle, auf die jeder Artikel zeigt.
 
 ### Kunden, Lieferanten und Artikel aktuell halten
 
-Müller bekommt ein höheres Kreditlimit und eine neue Standardbedingung; ein Lieferant geht in den
+Maple bekommt ein höheres Kreditlimit und eine neue Standardbedingung; ein Lieferant geht in den
 Ruhestand. Vorschläge zeigen Vorher und Nachher; gelöscht wird nichts.
 
-1. **Finden:** „Such die Müller GmbH." → Kreditlimit 5.000, Bedingung NET14 →
+1. **Finden:** „Such Maple Retail." → Kreditlimit 5.000, Bedingung NET14 →
    `business_records_discover` `family="party"`
 2. **Sagen:** „Kreditlimit 8.000, Zahlungsbedingung NET30."
 3. **Agent:** Änderung genau dieser Felder per opaker Id → `party_update_propose` · Artikel und
@@ -108,15 +108,15 @@ Ruhestand. Vorschläge zeigen Vorher und Nachher; gelöscht wird nichts.
 
 ### Einheiten in Beziehung setzen
 
-LAMP-01 wird in Kartons zu 12 gekauft, stückweise verkauft. Bis der Artikel das sagt, überspringen
+ITEM-004 wird in Kartons zu 12 gekauft, stückweise verkauft. Bis der Artikel das sagt, überspringen
 sechs Prüfungen diese Zeilen stillschweigend.
 
-1. **Liste:** „Welche Artikel haben Einheiten, die wir nicht vergleichen können?" → LAMP-01, keine
+1. **Liste:** „Welche Artikel haben Einheiten, die wir nicht vergleichen können?" → ITEM-004, keine
    Umrechnung, 14 Zeilen auf 3 Belegen → `exceptions_list` · `units_not_comparable` ·
    `exception_explain`
 2. **Welches von zwei:** keine Beziehung genannt → eine Aussage am Artikel · Beziehung teilt nicht
    glatt (107 Stück sind keine Kartons) → die Zeile korrigieren, nicht den Artikel
-3. **Sagen:** „LAMP-01 wird in Kartons zu 12 gekauft."
+3. **Sagen:** „ITEM-004 wird in Kartons zu 12 gekauft."
 4. **Agent:** `purchase_unit="box"`, `conversion_factor="12"` → `item_update_propose`
 5. **Du:** freigeben. Kein Einheitensystem; Reality rechnet nur mit diesem Faktor um, beim Lesen.
 6. **Prüfen:** Eintrag weg · sechs Klassen beurteilen die Zeilen wieder. Preise werden nie
@@ -124,26 +124,26 @@ sechs Prüfungen diese Zeilen stillschweigend.
 
 ### Preise: Listen, Staffeln und wer welche bekommt
 
-Müller hat 45,00 je Lampe ab 10 Stück verhandelt, gültig dieses Jahr. Listen mit Staffeln;
+Maple hat 45,00 je Lampe ab 10 Stück verhandelt, gültig dieses Jahr. Listen mit Staffeln;
 Zuordnungen entscheiden, wer welche bekommt.
 
-1. **Sagen:** „Verkaufsliste KEY-2026, EUR, bis 31. Dezember: LAMP-01 45,00 ab 10, 48,00 darunter.
-   Müller zuordnen, erste Priorität."
+1. **Sagen:** „Verkaufsliste KEY-2026, EUR, bis 31. Dezember: ITEM-004 45,00 ab 10, 48,00 darunter.
+   Maple zuordnen, erste Priorität."
 2. **Agent:** Liste → `price_list_create_propose` · Staffeln → `price_tier_create_propose` ·
    Zuordnung → `party_price_list_assign_propose` · Gruppen → `party_group_create_propose`,
    `party_group_member_add_propose`, `group_price_list_assign_propose`. Preise genannt, nie
    gerechnet.
 3. **Du:** jeden freigeben. Reihenfolge bei mehreren: Partnerlisten nach Priorität, dann
    Gruppenlisten, dann Standard.
-4. **Prüfen:** Müllers nächster vom Agenten vorbereiteter Auftrag trägt die Staffel
+4. **Prüfen:** Maples nächster vom Agenten vorbereiteter Auftrag trägt die Staffel
    (`price_list_entry_id`) · Einkaufsseite: `invoice_price_differs`, `sold_below_purchase_price`
 
 ### Zahlungsbedingungen
 
-Nordlicht bietet 2 % innerhalb 10 Tagen, 30 netto. Ein Code mit Fälligkeitstagen und Skonto;
-Rechnungen nennen ihn.
+Alpine bietet 2 % innerhalb 10 Tagen, 30 netto. Ein Code mit Fälligkeitstagen und Skonto; Rechnungen
+nennen ihn.
 
-1. **Sagen:** „Leg NET30-2 an: 30 Tage, 2 % innerhalb 10, Nordlichts Standard."
+1. **Sagen:** „Leg NET30-2 an: 30 Tage, 2 % innerhalb 10, Alpines Standard."
 2. **Agent:** Bedingung → `payment_term_create_propose` `due_days=30`, `discount_percent=2`,
    `discount_days=10` · Lieferantenstandard → `party_update_propose` · bestehende ändern →
    `payment_term_update_propose`

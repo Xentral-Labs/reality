@@ -4,8 +4,8 @@
 
 ## Invoice, partial payment and credit {#payments-walkthrough}
 
-Huber's delivery on order `SO-1001` is complete. Financially, that settles nothing yet. The related
-invoice `INV-1001` states **EUR 1,470**. Its line is linked to the order line it bills. This
+Northstar's delivery on order `SO-1001` is complete. Financially, that settles nothing yet. The
+related invoice `INV-1001` states **EUR 1,470**. Its line is linked to the order line it bills. This
 relationship is part of our example from the outset.
 
 We take the amount from the invoice. We do not recalculate it from quantity and unit price. Tax
@@ -14,7 +14,7 @@ splits are outside this simplified posting example; it is not an invoice-authori
 ### 1. Record the invoice: preserve the statement
 
 An invoice arrives from the system issuing it or is entered through a supported Reality operation.
-The invoice records the commercial statement that Huber is being billed EUR 1,470. As with the
+The invoice records the commercial statement that Northstar is being billed EUR 1,470. As with the
 order, the document and line are **Document** and **DocumentLine** records.
 
 Recording an invoice is not posting it. Completing delivery does not create that invoice by itself
@@ -34,9 +34,9 @@ changes neither delivered quantity nor stock.
 
 ### 3. Record the payment: preserve the money received
 
-Huber pays EUR 500. The received payment information produces its own payment document and a posting
-debiting bank and crediting receivables. Reality records the stated actual receipt. A payment can
-already be recorded while its intended invoice is still unclear.
+Northstar pays EUR 500. The received payment information produces its own payment document and a
+posting debiting bank and crediting receivables. Reality records the stated actual receipt. A
+payment can already be recorded while its intended invoice is still unclear.
 
 The payment alone therefore does not establish that `INV-1001` is settled.
 
@@ -59,8 +59,8 @@ Acme records and posts a EUR 100 credit note and applies it to `INV-1001`. With 
 this invoice now has **EUR 970 − EUR 100 = EUR 870 open.** An unused credit note would remain
 available credit rather than closing an arbitrary invoice.
 
-The credit changes the receivable. It does not return a lamp to stock. If Huber sends goods back,
-the actual receipt is recorded separately as a return.
+The credit changes the receivable. It does not return a lamp to stock. If Northstar sends goods
+back, the actual receipt is recorded separately as a return.
 
 ### Keep the answers separate
 
@@ -157,9 +157,9 @@ separate, confirmed posting with a reason, never part of matching.
 | less             | the paid amount | invoice _partially paid_; `overdue_receivable` after the due date, tagged when the terms explain the residual | leave open, accept a stated deduction, or explain it       |
 | more             | the open amount | invoice _paid_; the excess is customer credit, reported as `unmatched_financial_event`                        | allocate the credit to another invoice, or record a refund |
 
-The [base sequence at the start of this chapter](#payments-walkthrough) follows Huber’s invoice; the
-[receivables playbook](../../agent-playbooks/receivables-and-payments) shows the desk work behind
-each outcome.
+The [base sequence at the start of this chapter](#payments-walkthrough) follows Northstar’s invoice;
+the [receivables playbook](../../agent-playbooks/receivables-and-payments) shows the desk work
+behind each outcome.
 
 ### Balances per customer and supplier
 

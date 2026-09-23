@@ -41,17 +41,17 @@ Read [Run a business on Reality with agents](./) first for the loop and the rule
 Exceptions that belong to this area: `announced_return_not_arrived`, `return_unresolved`,
 `returned_not_credited`, `credited_not_returned`, `credit_note_unposted`, `credit_note_unsettled`.
 
-The examples continue with Müller GmbH, order SO-1042, 5 desk lamps LAMP-01 shipped and invoiced on
-RE-2026-0917 at 48.00 each.
+The examples continue with Maple Retail, order SO-1042, 5 Cedar Desk Lamps (`ITEM-004`) shipped and
+invoiced on RE-2026-0917 at 48.00 each.
 
 ## Situations
 
 ### A customer announces a return
 
-Müller writes: two lamps are the wrong colour, they are coming back. Nothing has arrived; the
+Maple writes: two lamps are the wrong colour, they are coming back. Nothing has arrived; the
 announcement is not stock.
 
-1. **Find:** "Müller wants to return 2 lamps from SO-1042." → the delivery promise → `order_explain`
+1. **Find:** "Maple wants to return 2 lamps from SO-1042." → the delivery promise → `order_explain`
 2. **Terms, outside Reality:** full credit, fee or exchange; label and reply through your own
    channel.
 3. **Say:** "Record the announcement: 2 lamps, RMA-M-31, wrong colour, expected by the 20th."
@@ -66,10 +66,10 @@ announcement is not stock.
 The parcel is at the door, RMA-M-31 on the label. Inspection shelf first; where it ends up is the
 next decision.
 
-1. **Match:** "A return from Müller arrived, RMA-M-31, 2 lamps." → open announcement and its
-   delivery → `return_announcements`
+1. **Match:** "A return from Maple arrived, RMA-M-31, 2 lamps." → open announcement and its delivery
+   → `return_announcements`
 2. **Say:** "Record 2 lamps returned to the inspection location."
-3. **Agent:** inbound Package from Müller, with carrier/tracking when stated, and a return Movement
+3. **Agent:** inbound Package from Maple, with carrier/tracking when stated, and a return Movement
    of 2 to inspection naming delivery and announcement; naming the announcement fulfils it →
    `shipment_receive_propose` `purpose="customer_return"`, Movement `type="return"`,
    `commitment_id`, `return_announcement_id`
@@ -103,7 +103,7 @@ Two came back, RE-0917 billed five. 96.00 owed. Credit note, booking, settlement
 
 1. **List:** "Which returns are not credited?" → SO-1042, 2 returned, 5 billed, 0 credited →
    `exceptions_list` · `returned_not_credited`
-2. **Say:** "Credit Müller the two returned lamps on RE-0917."
+2. **Say:** "Credit Maple the two returned lamps on RE-0917."
 3. **Agent:** GS-0041, 96.00, line names the invoice line for 2 at the invoice's price →
    `sales_credit_record_propose` `invoice_id`, `lines`
 4. **You:** approve the note, then the booking → `credit_note_post_propose`
@@ -135,7 +135,7 @@ customer wants the money.
 1. **See:** "Which credit notes are unsettled?" → GS-0041 96.00 available, RE-0917 open 240.00 →
    `exceptions_list` · `credit_note_unsettled` · `finance_credits`
 2. **Say:** "Net it against RE-0917" → `credit_note_allocate_propose` · after your transfer:
-   "Refunded Müller 96.00, RF-78" → `customer_refund_post_propose` · or leave it for the next
+   "Refunded Maple 96.00, RF-78" → `customer_refund_post_propose` · or leave it for the next
    invoice.
 3. **You:** approve; a refund only after the money left.
 4. **Check:** RE-0917 144.00 open, or the refund once in the journal → `finance_settlement_context`

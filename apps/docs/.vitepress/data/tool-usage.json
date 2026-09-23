@@ -68142,8 +68142,8 @@
         "gross_amount": "1470.0000"
       },
       "note": {
-        "en": "The order from Huber is evidence. Its status is a document lifecycle state, never the delivery, reservation or payment balance.",
-        "de": "Hubers Auftrag ist ein Beleg. Sein Status beschreibt den Beleglebenszyklus, niemals Lieferstand, Reservierung oder Zahlungssaldo."
+        "en": "The order from Northstar is evidence. Its status is a document lifecycle state, never the delivery, reservation or payment balance.",
+        "de": "Northstars Auftrag ist ein Beleg. Sein Status beschreibt den Beleglebenszyklus, niemals Lieferstand, Reservierung oder Zahlungssaldo."
       },
       "derived": {
         "en": "Delivered, reserved and paid are read through commitments, movements, postings and allocations. They are not document fields.",
@@ -68411,8 +68411,8 @@
         "de": "Was wurde für eine Position genannt?"
       },
       "example": {
-        "sku": "LAMP-01",
-        "description": "Lamp",
+        "sku": "ITEM-004",
+        "description": "Cedar Desk Lamp",
         "quantity": "30.0000",
         "unit": "pcs"
       },
@@ -68699,8 +68699,8 @@
         "status": "open"
       },
       "note": {
-        "en": "The promise to Huber starts with 30 lamps and an original date. Use revise_commitment for a newly stated date or quantity; original fields remain. Tools also control lifecycle state.",
-        "de": "Die Zusage an Huber beginnt mit 30 Lampen und einem ursprünglichen Termin. Einen neu genannten Termin oder eine Menge erfasst revise_commitment; die ursprünglichen Felder bleiben. Tools führen auch den Lebenszyklusstatus."
+        "en": "The promise to Northstar starts with 30 lamps and an original date. Use revise_commitment for a newly stated date or quantity; original fields remain. Tools also control lifecycle state.",
+        "de": "Die Zusage an Northstar beginnt mit 30 Lampen und einem ursprünglichen Termin. Einen neu genannten Termin oder eine Menge erfasst revise_commitment; die ursprünglichen Felder bleiben. Tools führen auch den Lebenszyklusstatus."
       },
       "derived": {
         "en": "Effective date and quantity use the latest revision stating each value, otherwise the original. Open quantity uses effective quantity and net fulfilment. Reserved stock belongs to Reservation; execution belongs to Movement.",
@@ -68986,7 +68986,7 @@
       },
       "example": {
         "due_at": "2026-09-21T12:00:00Z",
-        "note": "Huber agreed a later delivery"
+        "note": "Northstar agreed a later delivery"
       },
       "note": {
         "en": "revise_commitment adds the newly stated date, quantity or both. At least one is needed even though both storage columns allow null. It can also update the promise's lifecycle state.",
@@ -69144,8 +69144,8 @@
         "status": "active"
       },
       "note": {
-        "en": "Eight available lamps are allocated to Huber's promise. The shortest evidence path is Reservation → Commitment → DocumentLine. Releasing a reservation changes its status through a tool.",
-        "de": "Acht vorhandene Lampen werden Hubers Zusage zugeordnet. Der kürzeste Nachweisweg ist Reservation → Commitment → DocumentLine. Freigeben ändert den Reservierungsstatus über ein Tool."
+        "en": "Eight available lamps are allocated to Northstar's promise. The shortest evidence path is Reservation → Commitment → DocumentLine. Releasing a reservation changes its status through a tool.",
+        "de": "Acht vorhandene Lampen werden Northstars Zusage zugeordnet. Der kürzeste Nachweisweg ist Reservation → Commitment → DocumentLine. Freigeben ändert den Reservierungsstatus über ein Tool."
       },
       "derived": {
         "en": "A reservation does not move goods. Reserved and available totals are derived from active allocations and stock movements.",
@@ -69351,8 +69351,8 @@
         "occurred_at": "2026-09-18T12:00:00Z"
       },
       "note": {
-        "en": "Eighteen lamps left the warehouse for Huber. Corrections use correct_movement with correction evidence, not an untracked overwrite. Returns have their own meaning; they do not simply reopen a kept promise.",
-        "de": "18 Lampen haben das Lager für Huber verlassen. Korrekturen erfolgen mit correct_movement und Korrekturbeleg, ohne unprotokolliertes Überschreiben. Retouren haben eine eigene Bedeutung; sie öffnen eine erfüllte Zusage nicht einfach wieder."
+        "en": "Eighteen lamps left the warehouse for Northstar. Corrections use correct_movement with correction evidence, not an untracked overwrite. Returns have their own meaning; they do not simply reopen a kept promise.",
+        "de": "18 Lampen haben das Lager für Northstar verlassen. Korrekturen erfolgen mit correct_movement und Korrekturbeleg, ohne unprotokolliertes Überschreiben. Retouren haben eine eigene Bedeutung; sie öffnen eine erfüllte Zusage nicht einfach wieder."
       },
       "derived": {
         "en": "Stock comes from movements. Fulfilment comes from the relevant movements net of corrections. Neither needs a duplicate 'shipped' Fact.",
@@ -69843,8 +69843,8 @@
         "value": "Side entrance"
       },
       "note": {
-        "en": "Use supported predicates and their value contracts. Huber's delivery instruction adds context; a changed operational date belongs to a commitment revision. Not every extra ERP field automatically becomes a Fact.",
-        "de": "Verwende unterstützte Prädikate und deren Werteformat. Hubers Lieferanweisung ergänzt Kontext; ein geänderter operativer Termin gehört in eine Zusagenrevision. Nicht jedes zusätzliche ERP-Feld wird automatisch ein Fact."
+        "en": "Use supported predicates and their value contracts. Northstar's delivery instruction adds context; a changed operational date belongs to a commitment revision. Not every extra ERP field automatically becomes a Fact.",
+        "de": "Verwende unterstützte Prädikate und deren Werteformat. Northstars Lieferanweisung ergänzt Kontext; ein geänderter operativer Termin gehört in eine Zusagenrevision. Nicht jedes zusätzliche ERP-Feld wird automatisch ein Fact."
       },
       "derived": {
         "en": "subject_type and subject_id jointly identify the observed record; this is a validated business link, not a database foreign key. Facts do not duplicate reserved quantities, deliveries or payments.",
@@ -70022,7 +70022,7 @@
         "de": "Mit wem machen wir Geschäfte?"
       },
       "example": {
-        "name": "Huber",
+        "name": "Northstar",
         "type": "customer",
         "default_currency": "EUR"
       },
@@ -70230,8 +70230,8 @@
         "role": "customer"
       },
       "note": {
-        "en": "Huber's customer role points to the existing Party. Adding a supplier role does not create a second address book.",
-        "de": "Hubers Kundenrolle verweist auf den vorhandenen Party-Datensatz. Eine zusätzliche Lieferantenrolle erzeugt kein zweites Adressbuch."
+        "en": "Northstar's customer role points to the existing Party. Adding a supplier role does not create a second address book.",
+        "de": "Northstars Kundenrolle verweist auf den vorhandenen Party-Datensatz. Eine zusätzliche Lieferantenrolle erzeugt kein zweites Adressbuch."
       },
       "derived": {
         "en": "A role classifies the partner; it does not establish stock, credit or open balances.",
@@ -70480,8 +70480,8 @@
         "de": "Was kaufen, lagern und verkaufen wir?"
       },
       "example": {
-        "sku": "LAMP-01",
-        "name": "Lamp",
+        "sku": "ITEM-004",
+        "name": "Cedar Desk Lamp",
         "unit": "pcs",
         "item_type": "stocked"
       },
@@ -71363,8 +71363,8 @@
         "priority": 100
       },
       "note": {
-        "en": "The assignment connects Huber to a price list with priority and optional validity. It does not copy the list's prices.",
-        "de": "Die Zuordnung verbindet Huber mit einer Preisliste samt Priorität und optionaler Gültigkeit. Sie kopiert nicht deren Preise."
+        "en": "The assignment connects Northstar to a price list with priority and optional validity. It does not copy the list's prices.",
+        "de": "Die Zuordnung verbindet Northstar mit einer Preisliste samt Priorität und optionaler Gültigkeit. Sie kopiert nicht deren Preise."
       },
       "derived": {
         "en": "The applicable price is selected using assignments and entries at read time.",
@@ -72206,8 +72206,8 @@
         "purpose": "customer_delivery"
       },
       "note": {
-        "en": "A shipment groups the transport to Huber. Packages hold tracking details; transport events report progress. Goods are linked through package movements.",
-        "de": "Eine Sendung bündelt den Transport zu Huber. Packstücke halten Trackingangaben; Transportereignisse melden den Verlauf. Die Ware ist über Packstückbewegungen verknüpft."
+        "en": "A shipment groups the transport to Northstar. Packages hold tracking details; transport events report progress. Goods are linked through package movements.",
+        "de": "Eine Sendung bündelt den Transport zu Northstar. Packstücke halten Trackingangaben; Transportereignisse melden den Verlauf. Die Ware ist über Packstückbewegungen verknüpft."
       },
       "derived": {
         "en": "Shipment progress is read from events. Movement remains the authority for physical stock; a delivered report does not post stock again.",

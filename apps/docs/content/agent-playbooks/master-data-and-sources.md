@@ -47,8 +47,8 @@ Exceptions that belong to this area: `units_not_comparable`, `silent_source`,
 `source_interpretation_failure`. Master data gaps otherwise show up as refusals at the moment
 somebody needs the record, and that is where most of this playbook starts.
 
-The examples use the shop Nordshop as source, the item LAMP-01, the customer Müller GmbH and the
-supplier Nordlicht Leuchten GmbH.
+The examples use the shop Nordshop as source, the item Cedar Desk Lamp (`ITEM-004`), the customer
+Maple Retail and the supplier Alpine Components.
 
 ## Situations
 
@@ -87,10 +87,10 @@ every item points to.
 
 ### Keep customers, suppliers and items current
 
-Müller gets a higher credit limit and a new default term; a supplier retires. Proposals show before
+Maple gets a higher credit limit and a new default term; a supplier retires. Proposals show before
 and after; nothing is deleted.
 
-1. **Find:** "Find Müller GmbH." → credit limit 5,000, term NET14 → `business_records_discover`
+1. **Find:** "Find Maple Retail." → credit limit 5,000, term NET14 → `business_records_discover`
    `family="party"`
 2. **Say:** "Credit limit 8,000, payment term NET30."
 3. **Agent:** update of exactly those fields by opaque id → `party_update_propose` · items and
@@ -103,39 +103,39 @@ and after; nothing is deleted.
 
 ### State how units relate
 
-LAMP-01 is bought in boxes of 12, sold by the piece. Until the item says so, six checks skip those
+ITEM-004 is bought in boxes of 12, sold by the piece. Until the item says so, six checks skip those
 lines silently.
 
-1. **List:** "Which items have units we cannot compare?" → LAMP-01, no conversion, 14 lines on 3
+1. **List:** "Which items have units we cannot compare?" → ITEM-004, no conversion, 14 lines on 3
    documents → `exceptions_list` · `units_not_comparable` · `exception_explain`
 2. **Which of two:** no relation stated → one statement on the item · relation does not divide
    evenly (107 pieces are not boxes) → correct the line, not the item
-3. **Say:** "LAMP-01 is bought in boxes of 12."
+3. **Say:** "ITEM-004 is bought in boxes of 12."
 4. **Agent:** `purchase_unit="box"`, `conversion_factor="12"` → `item_update_propose`
 5. **You:** approve. No unit system; Reality converts only with this factor, at read time.
 6. **Check:** entry gone · six classes judge the lines again. Prices are never converted.
 
 ### Prices: lists, tiers and who gets which
 
-Müller negotiated 45.00 per lamp from 10 pieces, valid this year. Lists with tiers; assignments
+Maple negotiated 45.00 per lamp from 10 pieces, valid this year. Lists with tiers; assignments
 decide who gets which.
 
-1. **Say:** "Sales list KEY-2026, EUR, until 31 December: LAMP-01 45.00 from 10, 48.00 below. Assign
-   to Müller, first priority."
+1. **Say:** "Sales list KEY-2026, EUR, until 31 December: ITEM-004 45.00 from 10, 48.00 below.
+   Assign to Maple, first priority."
 2. **Agent:** list → `price_list_create_propose` · tiers → `price_tier_create_propose` · assignment
    → `party_price_list_assign_propose` · groups → `party_group_create_propose`,
    `party_group_member_add_propose`, `group_price_list_assign_propose`. Prices stated, never
    computed.
 3. **You:** approve each. Order when several apply: party lists by priority, then group lists, then
    defaults.
-4. **Check:** Müller's next agent-prepared order carries the tier (`price_list_entry_id`) · purchase
+4. **Check:** Maple's next agent-prepared order carries the tier (`price_list_entry_id`) · purchase
    side: `invoice_price_differs`, `sold_below_purchase_price`
 
 ### Payment terms
 
-Nordlicht offers 2 % within 10 days, 30 net. A code with due days and discount; invoices name it.
+Alpine offers 2 % within 10 days, 30 net. A code with due days and discount; invoices name it.
 
-1. **Say:** "Create NET30-2: 30 days, 2 % within 10, Nordlicht's default."
+1. **Say:** "Create NET30-2: 30 days, 2 % within 10, Alpine's default."
 2. **Agent:** term → `payment_term_create_propose` `due_days=30`, `discount_percent=2`,
    `discount_days=10` · supplier default → `party_update_propose` · change an existing one →
    `payment_term_update_propose`

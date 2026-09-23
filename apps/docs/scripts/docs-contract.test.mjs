@@ -110,7 +110,7 @@ test("closing agent recap is bilingual, linked and honest about its illustrative
     assert.ok(previous.includes(slug));
     for (const term of [
       "Reality-Timeline",
-      "Huber",
+      "Northstar",
       "SettlementAllocation",
       "870",
       "970",
@@ -140,7 +140,7 @@ test("inventory walkthrough separates explicit records, automatic effects and de
       ),
       "utf8",
     );
-    for (const term of ["SO-1001", "PO-2001", "Huber", "LightWorks", "30", "22"])
+    for (const term of ["SO-1001", "PO-2001", "Northstar", "Alpine Components", "30", "22"])
       assert.ok(text.includes(term), `Missing shared order context: ${term}`);
     const prose = text.replace(/\s+/gu, " ");
     assert.match(prose, /explicit reservation action|ausdrückliche Reservierungsaktion/u);
@@ -1123,7 +1123,7 @@ test("handbook teaches the business model before integration details", () => {
       path.join(root, "01-from-erp-documents-to-business-reality.md"),
       "utf8",
     );
-    assert.ok(intro.indexOf("Huber") < intro.indexOf("SourceRecord"));
+    assert.ok(intro.indexOf("Northstar") < intro.indexOf("SourceRecord"));
     assert.doesNotMatch(
       intro,
       /Shopify-JSON|Shopify JSON|projection_checkpoint|source_capability/u,
@@ -1131,7 +1131,7 @@ test("handbook teaches the business model before integration details", () => {
     assert.ok(intro.includes("../../reference/table-map"));
     const finance = fs.readFileSync(path.join(root, "03-invoices-and-payments.md"), "utf8");
     assert.ok(
-      finance.includes("INV-1001") && finance.includes("SO-1001") && finance.includes("Huber"),
+      finance.includes("INV-1001") && finance.includes("SO-1001") && finance.includes("Northstar"),
     );
     assert.doesNotMatch(
       finance,

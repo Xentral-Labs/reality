@@ -36,16 +36,16 @@ Die Reservierung gehört zur Lieferzusage, die Lieferzusage zum betreffenden Auf
 hat ihre eigene Buchung; eine **SettlementAllocation** ordnet sie einer Rechnung zu. Diese
 Beziehungen machen aus einer Folge von Einträgen einen erklärbaren Geschäftsfall.
 
-## Ein kurzer Streifen aus Hubers Geschäft
+## Ein kurzer Streifen aus Northstars Geschäft
 
 ```text
-Huber bestellt 30 Lampen
+Northstar bestellt 30 Lampen
   → Eingabe und Auftrag werden erfasst; die Lieferzusage entsteht.
 
-Acht Lampen werden für Huber vorgesehen
+Acht Lampen werden für Northstar vorgesehen
   → Eine Reservierung wird erfasst. Noch ist nichts geliefert.
 
-Huber schreibt: „Seiteneingang benutzen“
+Northstar schreibt: „Seiteneingang benutzen“
   → Die Quelle bleibt erhalten; ein unterstützter Fact ergänzt die Lieferzusage.
 
 Acme versendet Ware und erfasst den Versand
@@ -62,10 +62,10 @@ Agent braucht dafür die relevanten Einträge zum Vorgang, nicht die gesamte Dat
 
 ## Was wichtig wird, bekommt den passenden Platz
 
-Ist dir eine zusätzliche Auftragsinformation wichtig, beginnt die Frage bei ihrer Bedeutung. Hubers
-Lieferanweisung kann als Fact an der Zusage sichtbar werden, weil ein passendes Predicate diese
-Beobachtung unterstützt. Ein bislang ungenutztes Quellfeld bleibt zunächst in der Originaleingabe
-erhalten.
+Ist dir eine zusätzliche Auftragsinformation wichtig, beginnt die Frage bei ihrer Bedeutung.
+Northstars Lieferanweisung kann als Fact an der Zusage sichtbar werden, weil ein passendes Predicate
+diese Beobachtung unterstützt. Ein bislang ungenutztes Quellfeld bleibt zunächst in der
+Originaleingabe erhalten.
 
 Ein neuer operativer Liefertermin, eine Reservierung oder ein Zahlungsausgleich gehört dagegen in
 den jeweiligen dafür vorgesehenen Datensatz. Facts sind ergänzender Kontext, kein zweiter Ort für

@@ -34,16 +34,16 @@ belongs to the delivery promise, and the promise to the relevant order. A paymen
 posting; a **SettlementAllocation** applies it to an invoice. Those relationships turn a sequence of
 entries into an explainable business case.
 
-## A short strip of Huber's business
+## A short strip of Northstar's business
 
 ```text
-Huber orders 30 lamps
+Northstar orders 30 lamps
   → Input and order are recorded; the delivery promise is created.
 
-Eight lamps are set aside for Huber
+Eight lamps are set aside for Northstar
   → A reservation is recorded. Nothing has shipped yet.
 
-Huber writes: “Use the side entrance”
+Northstar writes: “Use the side entrance”
   → The source is preserved; a supported Fact adds context to the promise.
 
 Acme ships goods and records the shipment
@@ -60,9 +60,9 @@ the entire database.
 
 ## Important information gets the appropriate home
 
-When an additional order field matters to you, start with its meaning. Huber's delivery instruction
-can become a Fact on the promise because a suitable predicate supports that observation. An unused
-source field initially remains preserved in the original input.
+When an additional order field matters to you, start with its meaning. Northstar's delivery
+instruction can become a Fact on the promise because a suitable predicate supports that observation.
+An unused source field initially remains preserved in the original input.
 
 A new operational delivery date, reservation or payment settlement belongs in the respective
 purpose-built record. Facts add context; they are not a second home for stock or delivery state

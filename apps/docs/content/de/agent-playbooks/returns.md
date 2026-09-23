@@ -41,17 +41,17 @@ Lies zuerst [Ein Unternehmen auf Reality mit Agenten führen](./) für den Kreis
 Abweichungen, die zu diesem Bereich gehören: `announced_return_not_arrived`, `return_unresolved`,
 `returned_not_credited`, `credited_not_returned`, `credit_note_unposted`, `credit_note_unsettled`.
 
-Die Beispiele führen die Müller GmbH weiter: Auftrag SO-1042, 5 Schreibtischlampen LAMP-01, versandt
+Die Beispiele führen Maple Retail weiter: Auftrag SO-1042, 5 Cedar Desk Lamps (`ITEM-004`), versandt
 und abgerechnet auf RE-2026-0917 zu je 48,00.
 
 ## Situationen
 
 ### Ein Kunde kündigt eine Retoure an
 
-Müller schreibt: zwei Lampen haben die falsche Farbe, sie kommen zurück. Angekommen ist nichts; die
+Maple schreibt: zwei Lampen haben die falsche Farbe, sie kommen zurück. Angekommen ist nichts; die
 Ankündigung ist kein Bestand.
 
-1. **Finden:** „Müller will 2 Lampen aus SO-1042 zurückgeben." → die Lieferverpflichtung →
+1. **Finden:** „Maple will 2 Lampen aus SO-1042 zurückgeben." → die Lieferverpflichtung →
    `order_explain`
 2. **Bedingungen, außerhalb von Reality:** volle Gutschrift, Gebühr oder Umtausch; Label und Antwort
    über deinen Kanal.
@@ -68,7 +68,7 @@ Ankündigung ist kein Bestand.
 Das Paket steht an der Tür, RMA-M-31 auf dem Label. Erst Prüfplatz; wo sie landet, ist die nächste
 Entscheidung.
 
-1. **Zuordnen:** „Retoure von Müller ist da, RMA-M-31, 2 Lampen." → offene Ankündigung und ihre
+1. **Zuordnen:** „Retoure von Maple ist da, RMA-M-31, 2 Lampen." → offene Ankündigung und ihre
    Lieferung → `return_announcements`
 2. **Sagen:** „Erfass 2 Lampen zurück auf den Prüfplatz."
 3. **Agent:** Retourenbuchung über 2 auf den Prüfplatz, mit Lieferung und Ankündigung; die
@@ -106,7 +106,7 @@ Ausgleich: drei Schritte.
 
 1. **Liste:** „Welche Retouren sind nicht gutgeschrieben?" → SO-1042, 2 zurück, 5 abgerechnet, 0
    gutgeschrieben → `exceptions_list` · `returned_not_credited`
-2. **Sagen:** „Schreib Müller die zwei zurückgekommenen Lampen auf RE-0917 gut."
+2. **Sagen:** „Schreib Maple die zwei zurückgekommenen Lampen auf RE-0917 gut."
 3. **Agent:** GS-0041, 96,00, Position nennt die Rechnungsposition über 2 zum Rechnungspreis →
    `sales_credit_record_propose` `invoice_id`, `lines`
 4. **Du:** Gutschrift freigeben, dann Buchung → `credit_note_post_propose`
@@ -138,7 +138,7 @@ will das Geld.
 1. **Sehen:** „Welche Gutschriften sind nicht ausgeglichen?" → GS-0041 96,00 verfügbar, RE-0917
    offen 240,00 → `exceptions_list` · `credit_note_unsettled` · `finance_credits`
 2. **Sagen:** „Verrechne sie mit RE-0917" → `credit_note_allocate_propose` · nach deiner
-   Überweisung: „Müller 96,00 erstattet, RF-78" → `customer_refund_post_propose` · oder für die
+   Überweisung: „Maple 96,00 erstattet, RF-78" → `customer_refund_post_propose` · oder für die
    nächste Rechnung stehen lassen.
 3. **Du:** freigeben; eine Erstattung erst, nachdem das Geld floss.
 4. **Prüfen:** RE-0917 144,00 offen, oder die Erstattung einmal im Journal →
