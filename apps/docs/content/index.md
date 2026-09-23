@@ -8,9 +8,9 @@ description:
 hero:
   name: Reality Documentation
   text: Rethink ERP. Operate agents responsibly.
-  tagline:
-    An open, executable reference core for Source, Evidence, Business Reality, and verifiable agent
-    actions.
+  tagline: >-
+    Follow Source → Evidence → Reality: from original input, through recorded commercial evidence,
+    to operational records agents can use and explain.
   actions:
     - theme: brand
       text: "Start here: Understand it in 15 minutes"
@@ -49,6 +49,23 @@ features:
       Use Reality as a learning system or a foundation for ERP integration.
     link: /tool-usage/
 ---
+
+## The model in one minute
+
+**Source → Evidence → Reality** separates three responsibilities that conventional status fields
+often mix together:
+
+| Layer        | What it means                                                  | Example                                                 |
+| ------------ | -------------------------------------------------------------- | ------------------------------------------------------- |
+| **Source**   | What a system or person originally stated, preserved unchanged | A submitted order payload                               |
+| **Evidence** | The commercial record Reality accepted                         | The order and its lines                                 |
+| **Reality**  | What is currently promised, reserved, moved or posted          | Commitments, Reservations, Movements and Ledger Entries |
+
+A preserved source is checkable, not automatically correct. Current answers are derived from the
+operational records at read time rather than copied into a second status field. This gives people
+and agents a path from every important answer back to its basis.
+
+**[See the complete order example →](/concepts/business-reality-guide/01-from-erp-documents-to-business-reality)**
 
 ## What Reality is
 
