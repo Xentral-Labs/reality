@@ -1,7 +1,9 @@
 import { RegisterHeader, RegisterWorkbench, RegisterToolbar } from "./RegisterWorkbench";
 import { PageActionBar } from "./PageActionBar";
 import { IntegrationPreparation } from "./IntegrationPreparation";
-import { DemoDataSource, hasDemoDataSource } from "./DemoDataSource";
+import { DemoDataSource, hasDemoDataSource, useDemoDataStatus } from "./DemoDataSource";
+import { sourceNeedsAttention } from "../components/demoDataSummary";
+import { AlertTriangle } from "lucide-react";
 import { useState } from "react";
 import { SourceConfiguration } from "./SourceConfiguration";
 import { ItemImportPanel } from "./ItemImportPanel";
@@ -59,6 +61,23 @@ export function DataSourcesPage({
     entry,
   } = selection;
   const table = useRegisterQuery();
+  const demo = useDemoDataStatus(hasDemoDataSource(company) ? company.id : "");
+  const demoState = demo && {
+    state: demo.derived_state || demo.state,
+    attention: sourceNeedsAttention(demo.derived_state),
+    label:
+      {
+        running: "Running",
+        paused: "Paused",
+        stopped: "Stopped",
+        disconnected: "Disconnected",
+        not_connected: "Not connected",
+        suspended: "Waiting to resume",
+        overdue: "No arrivals",
+        error: "Execution needs attention",
+        throttled: "Paused: resolve failed imports",
+      }[demo.derived_state || demo.state] || "Enabled",
+  };
   const read = useRead<Data>(async () => {
     if (view === "systems") return { view, ...(await sourceWorkspaceApi.systems(tenant, q, page)) };
     if (view === "records")
@@ -271,7 +290,21 @@ export function DataSourcesPage({
                         )}
                       </td>
                       <td>{row.code}</td>
-                      <td>{t(row.is_active ? "Enabled" : "Disabled")}</td>
+                      <td>
+                        {row.code === "demo_data" && demoState ? (
+                          <span
+                            className="inline-flex items-center gap-1"
+                            data-demo-source-state={demoState.state}
+                          >
+                            {demoState.attention && (
+                              <AlertTriangle size={14} aria-hidden className="text-warning" />
+                            )}
+                            {t(demoState.label)}
+                          </span>
+                        ) : (
+                          t(row.is_active ? "Enabled" : "Disabled")
+                        )}
+                      </td>
                       <td>{formatNumber(row.record_count)}</td>
                       <td>
                         <div className="flex gap-2">
@@ -279,7 +312,17 @@ export function DataSourcesPage({
                             className="br-btn"
                             onClick={() => {
                               setImportOpen(false);
-                              navigate({ entry: row.id, importProposal: "" });
+                              // For the simulation the settings *are* the simulation:
+                              // its rate, its state and its controls live there.
+                              if (row.code === "demo_data")
+                                navigate({
+                                  route: "demo-data",
+                                  entry: "",
+                                  proposal: "",
+                                  q: "",
+                                  page: 1,
+                                });
+                              else navigate({ entry: row.id, importProposal: "" });
                             }}
                           >
                             {t("Settings")}

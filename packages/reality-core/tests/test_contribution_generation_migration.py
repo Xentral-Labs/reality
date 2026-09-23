@@ -66,7 +66,6 @@ def test_cache_downgrade_refuses_unfinished_worker_run(postgres_database, monkey
     from sqlalchemy.orm import Session
 
     from reality.db.core import AppUser
-    from reality.db.scheduled_jobs import ScheduledJobRun
     from reality.services import core
 
     monkeypatch.setenv("REALITY_DATABASE_URL", postgres_database)
@@ -86,20 +85,29 @@ def test_cache_downgrade_refuses_unfinished_worker_run(postgres_database, monkey
             )
             session.add(actor)
             session.flush()
-            run = ScheduledJobRun(
-                id="cache-run",
-                request_id="cache-migration-request",
-                request_fingerprint="0" * 64,
-                tenant_id=tenant.id,
-                actor_id=actor.id,
-                job_type="costing.contribution.refresh",
-                configuration={
-                    "version": 1,
-                    "arguments": {"action_id": "retained-action"},
+            tenant_id, actor_id = tenant.id, actor.id
+            session.commit()
+        with engine.begin() as conn:
+            # Written as SQL, not through the ORM: this test pins an older schema on
+            # purpose, and a column the model gains later must not break its subject.
+            conn.execute(
+                text(
+                    "INSERT INTO scheduled_job_run"
+                    " (id, tenant_id, actor_id, job_type, configuration, request_id,"
+                    "  request_fingerprint, status, attempt_count, next_attempt_at, created_at)"
+                    " VALUES (:id, :tenant, :actor, :job_type, cast(:configuration as jsonb),"
+                    "  :request_id, :fingerprint, 'pending', 0, now(), now())"
+                ),
+                {
+                    "id": "cache-run",
+                    "tenant": tenant_id,
+                    "actor": actor_id,
+                    "job_type": "costing.contribution.refresh",
+                    "configuration": '{"version": 1, "arguments": {"review_id": "retained-review"}}',
+                    "request_id": "cache-migration-request",
+                    "fingerprint": "0" * 64,
                 },
             )
-            session.add(run)
-            session.commit()
         with pytest.raises(RuntimeError, match="unfinished costing jobs"):
             command.downgrade(config, "0075_inventory_generations")
         assert TABLES <= set(inspect(engine).get_table_names())

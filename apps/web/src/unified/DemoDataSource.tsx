@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
-import { FlaskConical } from "lucide-react";
+import { AlertTriangle, FlaskConical } from "lucide-react";
 import { api, type DemoDataStatus, type Tenant } from "../api";
 import { formatDateTime, t } from "../localization";
+import { sourceNeedsAttention, stallCause, stallHeadline } from "../components/demoDataSummary";
 import { selectionUrl, type Selection } from "./routing";
 
 const stateLabels: Record<string, string> = {
@@ -10,6 +11,10 @@ const stateLabels: Record<string, string> = {
   stopped: "Stopped",
   disconnected: "Disconnected",
   not_connected: "Not connected",
+  suspended: "Waiting to resume",
+  overdue: "No arrivals",
+  error: "Execution needs attention",
+  throttled: "Paused: resolve failed imports",
 };
 
 /** A company that may run the simulation: practice companies and the demo company. */
@@ -26,32 +31,29 @@ export function hasDemoDataSource(company: Tenant): boolean {
  * The simulation writes orders into the company like any connected system, so it belongs
  * beside the other integrations instead of carrying its own place in the navigation.
  */
-export function DemoDataSource({
-  company,
-  selection,
-  navigate,
-}: {
-  company: Tenant;
-  selection: Selection;
-  navigate: (changes: Partial<Selection>) => void;
-}) {
+/**
+ * The live state of this company's simulation, read from the same service the
+ * simulation page uses. One read, so the card and the source row cannot disagree.
+ */
+export function useDemoDataStatus(companyId: string): DemoDataStatus | null {
   const [status, setStatus] = useState<DemoDataStatus | null>(null);
   useEffect(() => {
+    if (!companyId) return;
     let disposed = false;
     const controller = new AbortController();
     async function refresh() {
       try {
         const next = await api.demoDataStatus(
-          `/api/tenants/${encodeURIComponent(company.id)}/demo-data`,
+          `/api/tenants/${encodeURIComponent(companyId)}/demo-data`,
           controller.signal,
         );
         if (!disposed) setStatus(next);
       } catch {
-        // The card falls back to the state the company carries in the bootstrap.
+        // The surface falls back to the state the company carries in the bootstrap.
       }
     }
     const changed = (event: Event) => {
-      if ((event as CustomEvent<{ tenantId: string }>).detail?.tenantId === company.id)
+      if ((event as CustomEvent<{ tenantId: string }>).detail?.tenantId === companyId)
         void refresh();
     };
     void refresh();
@@ -61,10 +63,26 @@ export function DemoDataSource({
       controller.abort();
       window.removeEventListener("reality:demo-data-changed", changed);
     };
-  }, [company.id]);
+  }, [companyId]);
+  return status;
+}
+
+export function DemoDataSource({
+  company,
+  selection,
+  navigate,
+}: {
+  company: Tenant;
+  selection: Selection;
+  navigate: (changes: Partial<Selection>) => void;
+}) {
+  const status = useDemoDataStatus(company.id);
   const state = status?.state || company.demo_data_state || "not_connected";
-  const running =
-    state === "running" && (!status?.derived_state || status.derived_state === "running");
+  const derived = status?.derived_state;
+  const attention = sourceNeedsAttention(derived);
+  const running = state === "running" && (!derived || derived === "running");
+  // A stalled source says so here, so that nobody has to open it to find out.
+  const badgeState = attention ? derived : running ? "running" : state;
   const target: Partial<Selection> = {
     route: "demo-data",
     entry: "",
@@ -90,10 +108,25 @@ export function DemoDataSource({
             </p>
           </div>
         </div>
-        <span className="demo-live-badge" data-state={running ? "running" : state}>
-          {t(stateLabels[state] || "Not connected")}
+        <span
+          className="demo-live-badge"
+          data-state={badgeState}
+          data-demo-attention={attention || undefined}
+        >
+          {attention && (
+            <AlertTriangle size={13} aria-hidden className="mr-1 inline align-[-2px]" />
+          )}
+          {t(stateLabels[badgeState || state] || "Not connected")}
         </span>
       </div>
+      {status?.stall && (
+        <p className="mt-4 text-sm text-fg-muted" data-demo-source-stall={status.stall.kind}>
+          <strong>{t(stallHeadline(status.stall))}</strong> {t(stallCause(status.stall.code))}
+          {status.stall.recovery_at
+            ? ` ${t("Next attempt")}: ${formatDateTime(status.stall.recovery_at)}.`
+            : ""}
+        </p>
+      )}
       <p className="mt-4 text-sm">
         {status && state !== "not_connected"
           ? `${status.rate} ${t("orders per hour")} · ${t("Last successful import")}: ${

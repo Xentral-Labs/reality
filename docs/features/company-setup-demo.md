@@ -153,3 +153,22 @@ Demo profiles and continuous synthetic intake use the production application too
 services. They must not register demo-only mutations, write business tables directly, or
 bypass proposal review. A mutation proposed through MCP is reviewed and confirmed in Web
 through the same tenant-scoped production boundary as a mutation in an ordinary company.
+
+## A live source that stopped (spec 256)
+
+`services.demo_data.status` derives a `stall` beside its counters: the kind
+(`suspended`, `stopped`, `unresolved`, `overdue`, `throttled`), the error code, when it
+stopped, how many attempts were made, the recovery moment when one is pending, and
+whether recovery happens by itself. Nothing of this is stored; it follows from the
+schedule and its last occurrence. `overdue` reports an enabled schedule whose next
+occurrence has passed by three intervals, never less than two minutes — the state that
+shows a scheduler or worker that is not running at all.
+
+Reference compatibility follows the source, not the catalog. A company that already
+has a connection resolves its references leniently: an entry the canonical profile
+gained after that company was created is simply absent, and the references the running
+schedule captured are still compared, so a reference that truly disappeared refuses
+with `incompatible_references`. Items are matched by name and unit, never by their
+human item number, which changed shape from `P01` to `ITEM-001` while existing
+companies kept theirs. A first connection is still established against the full
+current catalog.

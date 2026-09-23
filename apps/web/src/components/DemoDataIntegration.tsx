@@ -7,9 +7,16 @@ import {
   type DemoDataStatus,
   type DemoDataPreview,
   type DemoImportPage,
+  type SystemReadiness,
 } from "../api";
 import { t, formatDateTime, formatNumber } from "../localization";
-import { financeLink, needsAttention, orderToCashRows } from "./demoDataSummary";
+import {
+  financeLink,
+  needsAttention,
+  orderToCashRows,
+  stallCause,
+  stallHeadline,
+} from "./demoDataSummary";
 
 type Change = {
   action: string;
@@ -32,6 +39,8 @@ const labels: Record<string, string> = {
   disconnected: "Disconnected",
   throttled: "Paused: resolve failed imports",
   error: "Execution needs attention",
+  suspended: "Waiting to resume",
+  overdue: "No arrivals",
   not_connected: "Not connected",
 };
 
@@ -67,6 +76,7 @@ function DemoDataIntegrationView({
   const [unavailable, setUnavailable] = useState(false);
   const [error, setError] = useState("");
   const [updatedAt, setUpdatedAt] = useState<Date>();
+  const [readiness, setReadiness] = useState<SystemReadiness>();
   const [stale, setStale] = useState(false);
   const active = useRef(true);
   const working = useRef(false);
@@ -221,6 +231,20 @@ function DemoDataIntegrationView({
           </span>
         )}
       </header>
+      {state?.stall?.kind === "overdue" && !runId && (
+        <ReadinessNotice tenantId={tenantId} readiness={readiness} report={setReadiness} />
+      )}
+      {state?.stall && (
+        <p role="status" className="demo-live-warning" data-demo-stall={state.stall.kind}>
+          <strong>{t(stallHeadline(state.stall))}</strong> {t(stallCause(state.stall.code))}{" "}
+          {state.stall.stopped_at && `${t("Stopped")}: ${formatDateTime(state.stall.stopped_at)}. `}
+          {state.stall.recovery_at
+            ? `${t("Next attempt")}: ${formatDateTime(state.stall.recovery_at)}.`
+            : state.stall.kind === "overdue"
+              ? t("The scheduler or worker may be unavailable.")
+              : t("Resume the simulation once the cause is resolved.")}
+        </p>
+      )}
       {stale && (
         <p role="alert" className="demo-live-warning">
           {t("Live updates are unavailable. Showing the last known information.")}
@@ -625,5 +649,51 @@ function DemoDataIntegrationView({
         )
       )}
     </section>
+  );
+}
+
+/**
+ * Which background role is missing, named rather than guessed. Readiness is volatile
+ * infrastructure observation: it is read here only while the source reports that an
+ * arrival did not happen, and it never becomes part of the source's own state.
+ */
+function ReadinessNotice({
+  tenantId,
+  readiness,
+  report,
+}: {
+  tenantId: string;
+  readiness?: SystemReadiness;
+  report: (value: SystemReadiness) => void;
+}) {
+  useEffect(() => {
+    const controller = new AbortController();
+    api
+      .readiness(tenantId, controller.signal)
+      .then(report)
+      .catch(() => {
+        // Without an answer the panel keeps the source's own overdue statement.
+      });
+    return () => controller.abort();
+  }, [tenantId]);
+  if (!readiness) return null;
+  const roles = (
+    [
+      ["scheduler", "Automatic scheduling"],
+      ["worker", "Background processing"],
+    ] as const
+  ).filter(([key]) => readiness.components[key] !== "ready");
+  if (!roles.length) return null;
+  const unknown = roles.every(([key]) => readiness.components[key] === "unknown");
+  return (
+    <p
+      role="status"
+      className="demo-live-warning"
+      data-demo-readiness={unknown ? "unknown" : "unavailable"}
+    >
+      {unknown
+        ? t("Background services are not being monitored here, so this cannot be confirmed.")
+        : `${roles.map(([, name]) => t(name)).join(", ")}: ${t("Currently unavailable")}`}
+    </p>
   );
 }
