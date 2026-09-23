@@ -6,7 +6,7 @@ from typing import Any
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from reality.db.core import Commitment, Item
+from reality.db.core import Commitment, Item, Location
 from reality.services.core import (
     NotFound,
     _movement_correction_relation_for_member,
@@ -38,6 +38,7 @@ def warehouse_register(
     query: str = "",
     state: str = "",
     item_id: str | None = None,
+    location_id: str | None = None,
     page: int = 1,
     size: int = 50,
     sort: str = "",
@@ -53,9 +54,19 @@ def warehouse_register(
         )
         if selected_item is None:
             raise NotFound("Item not found.")
+    selected_location = None
+    if location_id:
+        selected_location = session.scalar(
+            select(Location).where(
+                Location.tenant_id == tenant_id, Location.id == location_id
+            )
+        )
+        if selected_location is None:
+            raise NotFound("Location not found.")
     options = {
         "query": query,
         "item_id": item_id,
+        "location_id": location_id,
         "page": page,
         "size": size,
         "sort": sort,
@@ -148,6 +159,8 @@ def warehouse_register(
             "state": state,
             "item_id": item_id,
             "item": selected_item.name if selected_item else None,
+            "location_id": location_id,
+            "location": selected_location.name if selected_location else None,
         },
         "observed_at": datetime.now(UTC),
     }

@@ -2529,8 +2529,11 @@ export type WarehouseRow = {
   type?: string;
   at?: string;
   location?: string;
+  location_id?: string;
   from_location?: string;
+  from_location_id?: string;
   to_location?: string;
+  to_location_id?: string;
   commitment_id?: string;
   delivery_id?: string;
   correction_role?: string;
@@ -2560,14 +2563,21 @@ export const operationsApi = {
     item: string,
     page: number,
     table: TableQuery = {},
+    location = "",
   ) =>
     request<{
       items: WarehouseRow[];
       page: Page;
-      scope: { view: WarehouseView; item_id: string | null; item: string | null };
+      scope: {
+        view: WarehouseView;
+        item_id: string | null;
+        item: string | null;
+        location_id: string | null;
+        location: string | null;
+      };
       observed_at: string;
     }>(
-      `/api/tenants/${tenant}/warehouse/${view}?${new URLSearchParams({ q, state, page: String(page), ...(item ? { item_id: item } : {}) })}${"&" + tableSearch(table)}`,
+      `/api/tenants/${tenant}/warehouse/${view}?${new URLSearchParams({ q, state, page: String(page), ...(item ? { item_id: item } : {}), ...(location ? { location_id: location } : {}) })}${"&" + tableSearch(table)}`,
     ),
   attention: (
     tenant: string,

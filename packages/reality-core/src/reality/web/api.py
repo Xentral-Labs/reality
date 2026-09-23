@@ -304,6 +304,7 @@ def require_tenant_surface_access(
         "party",
         "item",
         "location",
+        "stock",
         "reservation",
         "movement",
         "shipment",
@@ -832,6 +833,7 @@ def get_warehouse_register(
     q: str = Query("", max_length=500),
     state: str = "",
     item_id: str | None = None,
+    location_id: str | None = None,
     page: int = Query(1, ge=1),
     size: int = Query(50, ge=1, le=100),
     sort: Literal[
@@ -858,6 +860,7 @@ def get_warehouse_register(
             query=q,
             state=state,
             item_id=item_id,
+            location_id=location_id,
             page=page,
             size=size,
             sort=sort,
@@ -5574,13 +5577,18 @@ def location_inspector(session: OrmSession, tenant_id: str, record_id: str):
         ],
         "sections": [
             {
-                "title": "Current stock",
+                # The title names the quantity: an Inspector row cannot carry a
+                # translated word beside its number, and a bare figure here was
+                # read as the available stock the item view shows.
+                "title": "Physical stock by item",
                 "rows": [
                     inspector_row(
                         row["item"].name,
-                        row["physical"],
-                        kind="item",
-                        record_id=row["item"].id,
+                        display_text(row["physical"], f" {row['item'].unit}")
+                        if row["item"].unit
+                        else row["physical"],
+                        kind="stock",
+                        record_id=f"{row['item'].id}:{location.id}",
                     )
                     for row in detail["stock"]
                 ],
@@ -5599,6 +5607,45 @@ def location_inspector(session: OrmSession, tenant_id: str, record_id: str):
             },
         ],
         "events": inspector_events(session, tenant_id, [location.id]),
+        "source_payload": None,
+    }
+
+
+def stock_inspector(session: OrmSession, tenant_id: str, record_id: str):
+    """One item in one place: what is held there and which records put it there."""
+    from reality.services.operational_previews import stock_at_location
+    from reality.services.read_contracts import location_stock_row
+
+    row = location_stock_row(session, tenant_id, record_id)
+    sections = stock_at_location(session, tenant_id, record_id, row)
+    unit = row["unit"] or ""
+    return {
+        "kind": "stock",
+        "id": record_id,
+        "eyebrow": "Operational Reality / stock at a location",
+        "title": row["item"],
+        "subtitle": display_text(row["location"], f" · {unit}" if unit else ""),
+        "status": "Held" if Decimal(row["physical"]) else "Empty",
+        "metrics": [
+            inspector_row("Physical", Decimal(row["physical"])),
+            inspector_row("Reserved", Decimal(row["reserved"])),
+            inspector_row(
+                "Available",
+                Decimal(row["available"]),
+                tone="danger" if Decimal(row["available"]) < 0 else "",
+            ),
+            inspector_row("Incoming", Decimal(row["incoming"])),
+        ],
+        "trail": [
+            {"label": "Reference", "value": record_id, "active": True},
+            {
+                "label": "Reality",
+                "value": f"{len(sections[1]['rows'])} movements",
+                "active": bool(sections[1]["rows"]),
+            },
+        ],
+        "sections": sections,
+        "events": inspector_events(session, tenant_id, [row["item_id"]]),
         "source_payload": None,
     }
 
@@ -6175,6 +6222,8 @@ def get_inspector(
             payload = item_inspector(session, tenant_id, record_id)
         if kind == "location":
             payload = location_inspector(session, tenant_id, record_id)
+        if kind == "stock":
+            payload = stock_inspector(session, tenant_id, record_id)
         if kind == "reservation":
             payload = reservation_inspector(session, tenant_id, record_id)
         if kind == "movement":
@@ -6334,6 +6383,7 @@ def get_inspector(
             "party",
             "item",
             "location",
+            "stock",
             "reservation",
             "movement",
             "shipment",

@@ -69,6 +69,7 @@ export type Selection = {
   account: string;
   warehouseView: "stock" | "reservations" | "movements";
   item: string;
+  location: string;
   entry: string;
   state: string;
   severity: string;
@@ -220,6 +221,7 @@ export function readSelection(url: URL): Selection {
       ? (url.searchParams.get("warehouse_view") as Selection["warehouseView"])
       : "stock",
     item: url.searchParams.get("item") || "",
+    location: url.searchParams.get("location") || "",
     entry: url.searchParams.get("entry") || "",
     state: [
       "available",
@@ -369,7 +371,7 @@ export function selectionUrl(selection: Selection): string {
   }
   if (selection.route === "warehouse") {
     query.set("warehouse_view", selection.warehouseView);
-    for (const key of ["item", "entry", "state"] as const)
+    for (const key of ["item", "location", "entry", "state"] as const)
       if (selection[key]) query.set(key, selection[key]);
   }
   if (selection.route === "attention") {
@@ -422,6 +424,7 @@ export function companySelection(selection: Selection, tenant: string): Selectio
     direction: "",
     account: "",
     item: "",
+    location: "",
     entry: "",
     state: "",
     severity: "",

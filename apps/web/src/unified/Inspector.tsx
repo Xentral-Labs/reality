@@ -1,6 +1,6 @@
 import { recordOpened } from "./usePaletteHistory";
 import { inspectorValue } from "./inspectorFormat";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { api } from "../api";
 import type { InspectorData } from "../api";
 import { currentLanguage, t } from "../localization";
@@ -15,10 +15,12 @@ export function Inspector({
   tenant,
   target,
   close,
+  actions,
 }: {
   tenant: string;
   target: { kind: string; id: string };
   close: () => void;
+  actions?: (target: { kind: string; id: string }) => ReactNode;
 }) {
   const dialog = useRef<HTMLDialogElement>(null);
   const [selected, select] = useState(target);
@@ -104,6 +106,9 @@ export function Inspector({
           />
           {data.member_page && data.member_page.total > 0 && (
             <RegisterPager page={data.member_page} change={setMemberPage} />
+          )}
+          {actions && (
+            <div className="mt-5 flex flex-wrap justify-end gap-2">{actions(selected)}</div>
           )}
         </>
       )}

@@ -30,6 +30,7 @@ from reality.db.core import (
 )
 from reality.db.query_order import query_order
 from reality.domain.calendar import as_day
+from reality.domain.stock_scope import movement_at, reservation_at
 from reality.services.delivery_reads import effective_value, fulfillment_expressions
 from reality.services.projections import (
     MATERIALIZED_PROJECTIONS,
@@ -213,6 +214,7 @@ def inventory_page(
     size: int = DEFAULT_PAGE_SIZE,
     query: str = "",
     item_id: str | None = None,
+    location_id: str | None = None,
     stock_state: str = "",
     available_min: Decimal | None = None,
     available_max: Decimal | None = None,
@@ -221,11 +223,18 @@ def inventory_page(
     sort: str = "",
     sort_direction: str = "asc",
 ):
+    # A place scope narrows each side of the position to that exact location; without
+    # one, every movement that names a location on its side is counted, as before.
     incoming = (
         select(
             Movement.item_id.label("item_id"), func.sum(Movement.quantity).label("qty")
         )
-        .where(Movement.tenant_id == tenant_id, Movement.to_location_id.is_not(None))
+        .where(
+            Movement.tenant_id == tenant_id,
+            Movement.to_location_id == location_id
+            if location_id
+            else Movement.to_location_id.is_not(None),
+        )
         .group_by(Movement.item_id)
         .subquery()
     )
@@ -233,7 +242,12 @@ def inventory_page(
         select(
             Movement.item_id.label("item_id"), func.sum(Movement.quantity).label("qty")
         )
-        .where(Movement.tenant_id == tenant_id, Movement.from_location_id.is_not(None))
+        .where(
+            Movement.tenant_id == tenant_id,
+            Movement.from_location_id == location_id
+            if location_id
+            else Movement.from_location_id.is_not(None),
+        )
         .group_by(Movement.item_id)
         .subquery()
     )
@@ -242,7 +256,11 @@ def inventory_page(
             Reservation.item_id.label("item_id"),
             func.sum(Reservation.quantity).label("qty"),
         )
-        .where(Reservation.tenant_id == tenant_id, Reservation.status == "active")
+        .where(
+            Reservation.tenant_id == tenant_id,
+            Reservation.status == "active",
+            *([Reservation.location_id == location_id] if location_id else []),
+        )
         .group_by(Reservation.item_id)
         .subquery()
     )
@@ -255,6 +273,7 @@ def inventory_page(
             Commitment.tenant_id == tenant_id,
             Commitment.type == "supplier_delivery",
             Commitment.status == "open",
+            *([Commitment.location_id == location_id] if location_id else []),
         )
         .group_by(Commitment.item_id)
         .subquery()
@@ -262,6 +281,22 @@ def inventory_page(
     criteria = [Item.tenant_id == tenant_id]
     if item_id:
         criteria.append(Item.id == item_id)
+    if location_id:
+        # Under a place scope the register answers for what is recorded there, not for
+        # the whole catalogue: one set-based membership test, never a pass per item.
+        criteria.append(
+            Item.id.in_(
+                select(Movement.item_id)
+                .where(Movement.tenant_id == tenant_id, movement_at(location_id))
+                .union(
+                    select(Reservation.item_id).where(
+                        Reservation.tenant_id == tenant_id,
+                        reservation_at(location_id),
+                        Reservation.status == "active",
+                    )
+                )
+            )
+        )
     if query:
         pattern = f"%{query.strip().lower()}%"
         criteria.append(
@@ -540,6 +575,7 @@ def reservation_page(
     size: int = DEFAULT_PAGE_SIZE,
     query: str = "",
     item_id: str | None = None,
+    location_id: str | None = None,
     status: str = "",
     date_from: str = "",
     date_to: str = "",
@@ -549,6 +585,8 @@ def reservation_page(
     criteria = []
     if item_id:
         criteria.append(Reservation.item_id == item_id)
+    if location_id:
+        criteria.append(reservation_at(location_id))
     if status:
         criteria.append(Reservation.status == status)
     if date_from:
@@ -624,6 +662,7 @@ def movement_page(
     size: int = DEFAULT_PAGE_SIZE,
     query: str = "",
     item_id: str | None = None,
+    location_id: str | None = None,
     movement_type: str = "",
     date_from: str = "",
     date_to: str = "",
@@ -633,6 +672,8 @@ def movement_page(
     criteria = []
     if item_id:
         criteria.append(Movement.item_id == item_id)
+    if location_id:
+        criteria.append(movement_at(location_id))
     if movement_type:
         criteria.append(Movement.type == movement_type)
     if date_from:

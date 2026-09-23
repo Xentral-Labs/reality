@@ -82,7 +82,7 @@ A clerk looking at Rotterdam sees which items lie there and, for any of them, re
 ### Edge Cases
 - **Pair with no stock**: an item that once lay at a location and netted to zero stays reachable and shows zero with the movements that cancel out. Zero is an answer, not an absence.
 - **Overallocated pair**: available below zero at one location is shown as a negative quantity and is found by the `shortage` state under that scope. It is never clamped to zero.
-- **Location that forbids stock**: a location with `allows_stock` false that nevertheless carries movements remains listed and openable from the item; the register's location scope accepts it. Records are not hidden because configuration disagrees with them.
+- **Location that stopped allowing stock**: `record_movement` refuses a location with `allows_stock` false, so the case arises when the flag is turned off after records exist. Those records stay readable and the place scope keeps accepting the location. Configuration changes later than history and does not erase it.
 - **Parent and child locations**: quantities are recorded at the exact location. A parent location shows what is recorded at the parent, not the sum of its children, and the panel says so where a hierarchy exists.
 - **Transfer inside the scope**: a movement whose origin and destination are both the scoped location appears once, and its direction line names both.
 - **Unknown identity**: an unknown item or location in a scope is a not-found, distinct from an empty result.

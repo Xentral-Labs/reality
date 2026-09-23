@@ -110,6 +110,7 @@ export function InlineInspector({
   openFull,
   reveal = false,
   supplement,
+  followActions,
   children,
 }: {
   tenant: string;
@@ -117,6 +118,7 @@ export function InlineInspector({
   openFull?: () => void;
   reveal?: boolean;
   supplement?: (detail: InspectorData) => ReactNode;
+  followActions?: (target: { kind: string; id: string }, close: () => void) => ReactNode;
   children?: ReactNode;
 }) {
   const [full, setFull] = useState<{ kind: string; id: string } | null>(null);
@@ -153,7 +155,14 @@ export function InlineInspector({
         </button>
         {children}
       </div>
-      {full && <Inspector tenant={tenant} target={full} close={() => setFull(null)} />}
+      {full && (
+        <Inspector
+          tenant={tenant}
+          target={full}
+          close={() => setFull(null)}
+          actions={followActions ? (shown) => followActions(shown, () => setFull(null)) : undefined}
+        />
+      )}
     </div>
   );
 }
