@@ -45,6 +45,10 @@ Dependencies: T001 → T002 → T003 → T004; T005 → T006 → T007 → T008; 
 - SC-004, measured back to back on a quiet machine, 2,000 items × 20 locations × 12,000 movements:
   unscoped stock page 145 ms for 2,000 rows, scoped 28 ms for 200 rows (0.19×). The scoped page is
   cheaper because FR-007 narrows the item set; the shape is the same single query.
+- Full backend suite: 4,113 pass, 9 skipped. One failure, `test_application_catalog`, came from
+  editing that file's pinned counts while the run was in flight; the catalog entry for the new pair
+  read raises them from 565 to 566. Re-run afterwards: every suite that reads the isolation catalog,
+  627 pass. A second branch adding a discovered operation will conflict on that number.
 - `make docs-catalog-check` is red on plain `origin/main` (19 generated files differ, storylines
   and German pages included). Baseline-checked in a detached worktree at `origin/main`: the same
   19 files, so it is not this change. Not repaired here.
