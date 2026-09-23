@@ -264,9 +264,9 @@ try {
           });
         }
         for (const [index, kind] of [
-          [0, "commitments"],
+          [0, "decisions"],
           [1, "exceptions"],
-          [2, "decisions"],
+          [2, "commitments"],
         ]) {
           await page
             .locator("[data-shell-header] .register-tabs button")
@@ -297,9 +297,9 @@ try {
         const shortcuts = page.locator("main .grid > button");
         assert.equal(await shortcuts.count(), 3);
         for (const [index, kind] of [
-          [0, "commitments"],
+          [0, "decisions"],
           [1, "exceptions"],
-          [2, "decisions"],
+          [2, "commitments"],
         ]) {
           await shortcuts.nth(index).click();
           await page.locator(`[data-work-list="${kind}"]`).waitFor();

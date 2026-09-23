@@ -685,6 +685,9 @@ export function Shell({
                           <button
                             key={item.label}
                             aria-pressed={pressed}
+                            data-work-tone={
+                              item.label === "Decisions" && inboxBadge ? "accent" : undefined
+                            }
                             onClick={() => navigate(item.selection)}
                           >
                             {t(item.label)}
@@ -693,6 +696,9 @@ export function Shell({
                             count: inboxCounts[item.label],
                             active: pressed,
                             description: t(inboxCountLabels[item.label]),
+                            // Decisions wait for a person: their count carries the
+                            // sidebar badge's colour on the tab too (spec 254 FR-008).
+                            tone: item.label === "Decisions" ? "accent" : undefined,
                           },
                         );
                       })}
