@@ -9,6 +9,7 @@ import type { CompanySetupResult } from "../api";
 export const SETUP_POLL_MS = 1000;
 /** Three minutes of following, after which the person is offered the explicit retry. */
 export const SETUP_POLL_ATTEMPTS = 180;
+export const SETUP_CALCULATION_DONE_MS = 1500;
 export const SETUP_READY_CURRENT_MS = 2500;
 export const SETUP_READY_DONE_MS = 3000;
 
@@ -71,10 +72,21 @@ export function setupSteps(receipt: CompanySetupResult | null): SetupStep[] | nu
 export async function presentReadySetup(
   observe: (steps: SetupStep[]) => void,
   active: () => boolean,
-  options: { currentDelay?: number; doneDelay?: number } = {},
+  options: { calculationDelay?: number; currentDelay?: number; doneDelay?: number } = {},
 ): Promise<void> {
   if (!active()) return;
   const done = setupSteps({ status: "ready" } as CompanySetupResult)!;
+  observe(
+    done.map((step) =>
+      step.key === "calculation"
+        ? { ...step, state: "current" }
+        : step.key === "ready"
+          ? { ...step, state: "waiting" }
+          : step,
+    ),
+  );
+  await wait(options.calculationDelay ?? SETUP_CALCULATION_DONE_MS);
+  if (!active()) return;
   observe(done.map((step) => (step.key === "ready" ? { ...step, state: "current" } : step)));
   await wait(options.currentDelay ?? SETUP_READY_CURRENT_MS);
   if (!active()) return;

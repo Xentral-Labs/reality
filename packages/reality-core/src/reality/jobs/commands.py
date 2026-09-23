@@ -211,7 +211,7 @@ def list_jobs(json_output: JsonOption = False):
                 "name": d.name,
                 "version": d.version,
                 "configuration_schema": d.config_model.model_json_schema(),
-                "timeout_seconds": 30,
+                "timeout_seconds": d.timeout_seconds,
                 "max_attempts": 3,
                 "effect_contract": "transaction_bound_database",
                 "authorization": "current_handler_policy",

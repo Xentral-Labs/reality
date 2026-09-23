@@ -235,7 +235,7 @@ missing evidence into EUR 0.
 ### Deliberate gaps
 
 Bank reconciliation, jurisdiction-specific tax treatment and FX revaluation are outside profile
-version 11. The demo promises no documents or UI paths for them.
+version 12. The demo promises no documents or UI paths for them.
 
 ## Static baseline and live data
 

@@ -15,6 +15,7 @@ from reality.demo.international import (
     HISTORY,
     ITEMS,
     LOCATIONS,
+    OPENING_UNIT_COSTS,
     ORDER_CUSTOMERS,
     PROFILE_VERSION,
     PURCHASES,
@@ -358,6 +359,14 @@ def seed_profile(
                 "unit": next(row[2] for row in ITEMS if row[0] == item),
                 "location_key": location,
                 "occurred_at": date.isoformat(),
+                **(
+                    {
+                        "acquisition_unit_cost": OPENING_UNIT_COSTS[item],
+                        "currency": "EUR",
+                    }
+                    if kind == "opening_stock"
+                    else {}
+                ),
             },
         )
         kwargs = {
@@ -410,7 +419,17 @@ def seed_profile(
                 due=anchor + timedelta(days=-2 if index in {4, 5, 8} else 3),
             )
             if quantity != "0":
-                movement(f"opening-{item}", item, quantity)
+                movement(
+                    f"opening-{item}",
+                    item,
+                    quantity,
+                    "opening_stock",
+                    date=(
+                        anchor - timedelta(days=85)
+                        if item in {"P06", "P07"}
+                        else anchor
+                    ),
+                )
             commitment = cases[key]["commitment_id"]
             if index in {1, 4, 5, 10}:
                 core.reserve(
@@ -465,7 +484,7 @@ def seed_profile(
             reason="Customer cancelled the unshipped remainder",
             _commit=False,
         )
-        movement("wrong-location", "P08", "8", location="B")
+        movement("wrong-location", "P08", "8", "opening_stock", location="B")
         # Feature 204: ordered, received, invoiced and paid in every combination, so a
         # person can follow one purchase all the way to the money.
         for index, (key, item, ordered, received, invoiced, paid) in enumerate(
@@ -2826,9 +2845,7 @@ def seed_profile(
             "unassigned": "2",
             "received": "4",
             "sales_ui_path": f"Sales → Orders → {supply_demand['number']}",
-            "purchasing_ui_path": (
-                f"Purchasing → Orders → {supply_order['number']}"
-            ),
+            "purchasing_ui_path": (f"Purchasing → Orders → {supply_order['number']}"),
             "warehouse_ui_path": "Warehouse → Items → ITEM-011",
         }
 
@@ -2925,6 +2942,776 @@ def seed_profile(
             "warehouse_ui_path": "Warehouse → Items → ITEM-012 → Movements",
         }
 
+        from reality.db.core import Commitment, Document, DocumentLine
+        from reality.services.costing import cost_evidence, receipt_cost
+
+        def reviewed_receipt(movement_row, item_key):
+            """Retain the invoice-backed acquisition basis for one demo receipt."""
+            current_receipt = receipt_cost(session, tenant, movement_row.id)
+            if (
+                current_receipt["actual_cost"] is not None
+                and current_receipt["manifest_id"] is not None
+                and not set(current_receipt["missing_basis"]) - {"review_stale"}
+            ):
+                return {
+                    "movement_id": movement_row.id,
+                    "manifest_id": current_receipt["manifest_id"],
+                    "ownership_source_record_id": movement_row.source_record_id,
+                }
+            commitment = session.scalar(
+                select(Commitment).where(
+                    Commitment.tenant_id == tenant,
+                    Commitment.id == movement_row.commitment_id,
+                )
+            )
+            invoice_line = (
+                session.scalar(
+                    select(DocumentLine)
+                    .join(
+                        Document,
+                        (Document.tenant_id == DocumentLine.tenant_id)
+                        & (Document.id == DocumentLine.document_id),
+                    )
+                    .where(
+                        DocumentLine.tenant_id == tenant,
+                        DocumentLine.billed_document_line_id
+                        == commitment.document_line_id,
+                        Document.type == "supplier_invoice",
+                    )
+                    .order_by(Document.document_date, DocumentLine.id)
+                    .limit(1)
+                )
+                if commitment is not None
+                else None
+            )
+            if invoice_line is None:
+                purchase_document = (
+                    session.scalar(
+                        select(Document).where(
+                            Document.tenant_id == tenant,
+                            Document.id == commitment.document_id,
+                        )
+                    )
+                    if commitment is not None
+                    else None
+                )
+                purchase_invoice_numbers = {
+                    "PO-010": "SINV-014",
+                    "PO-011": "SINV-015",
+                    "PO-012": "SINV-016",
+                    "PO-013": "SINV-017",
+                }
+                invoice_number = (
+                    purchase_invoice_numbers.get(
+                        purchase_document.number,
+                        purchase_document.number.replace("PO-", "SINV-", 1),
+                    )
+                    if purchase_document is not None
+                    else {"P16": "SINV-018", "P17": "SINV-019", "P18": "SINV-020"}[
+                        item_key
+                    ]
+                )
+                invoice_date = movement_row.occurred_at + timedelta(days=1)
+                amount = movement_row.quantity * Decimal(OPENING_UNIT_COSTS[item_key])
+                invoice_lines = [
+                    {
+                        "item_id": items[item_key],
+                        "quantity": str(movement_row.quantity),
+                        "unit_price": OPENING_UNIT_COSTS[item_key],
+                        "gross_amount": str(amount),
+                        "unit": next(row[2] for row in ITEMS if row[0] == item_key),
+                        "source_line_id": f"{invoice_number}-1",
+                        "reality_finance_v1": {"net": str(amount), "tax": "0"},
+                        **(
+                            {"billed_document_line_id": commitment.document_line_id}
+                            if commitment is not None
+                            else {}
+                        ),
+                    }
+                ]
+                invoice_source = source(
+                    "supplier_invoice",
+                    invoice_number,
+                    {
+                        "number": invoice_number,
+                        "date": invoice_date.isoformat(),
+                        "currency": "EUR",
+                        "gross_amount": str(amount),
+                        "amount_basis": "net",
+                        "tax_amount": "0",
+                        "lines": invoice_lines,
+                    },
+                )
+                supplier_invoice, invoice_lines_created = create_document_with_lines(
+                    session,
+                    tenant,
+                    "supplier_invoice",
+                    invoice_number,
+                    (
+                        commitment.from_party_id
+                        if commitment is not None
+                        else parties[SUPPLIER_ITEMS.get(item_key, "S1")]
+                    ),
+                    invoice_lines,
+                    str(amount),
+                    document_date=invoice_date.date().isoformat(),
+                    source_record_id=invoice_source.id,
+                    _commit=False,
+                )
+                core.post_supplier_invoice(
+                    session,
+                    tenant,
+                    supplier_invoice.id,
+                    effective_at=invoice_date,
+                    _commit=False,
+                )
+                invoice_line = invoice_lines_created[0]
+                session.flush()
+            evidence = cost_evidence(
+                session, tenant, invoice_line.document_id, invoice_line.id
+            )
+            basis = "net" if evidence["amounts"]["net"] is not None else "gross"
+            source_share = evidence["amounts"][basis]
+            _cost_action(
+                session,
+                run,
+                {
+                    "operation": "assign",
+                    "document_id": invoice_line.document_id,
+                    "document_line_id": invoice_line.id,
+                    "expected_event_sequence": evidence["event_sequence"],
+                    "expected_evidence_hash": evidence["evidence_hash"],
+                    "basis": basis,
+                    "selected_basis_tax_inclusion": (
+                        "excluded" if basis == "net" else "included"
+                    ),
+                    "tax_treatment": "not_applicable",
+                    "parts": [
+                        {
+                            "movement_id": movement_row.id,
+                            "category": "goods",
+                            "source_share": source_share,
+                            "cost_effect": 1,
+                        }
+                    ],
+                    "reason": "Canonical supplier invoice assigned to goods receipt",
+                },
+            )
+            reviewed = receipt_cost(session, tenant, movement_row.id)
+            result = _cost_action(
+                session,
+                run,
+                {
+                    "operation": "review",
+                    "movement_id": movement_row.id,
+                    "expected_event_sequence": reviewed["event_sequence"],
+                    "categories": [
+                        {
+                            "category": category,
+                            "disposition": (
+                                "evidenced" if category == "goods" else "not_applicable"
+                            ),
+                            "reason": "Canonical receipt scope reviewed",
+                        }
+                        for category in (
+                            "goods",
+                            "inbound_freight",
+                            "duty",
+                            "nonrecoverable_tax",
+                            "purchase_reduction",
+                            "other_acquisition",
+                        )
+                    ],
+                    "reason": "Canonical acquisition categories reviewed",
+                },
+            )
+            return {
+                "movement_id": movement_row.id,
+                "manifest_id": result["manifest_id"],
+                "ownership_source_record_id": movement_row.source_record_id,
+            }
+
+        for item_key in ("P01", "P02"):
+            item_movements = list(
+                session.scalars(
+                    select(Movement)
+                    .where(
+                        Movement.tenant_id == tenant,
+                        Movement.item_id == items[item_key],
+                    )
+                    .order_by(Movement.occurred_at, Movement.id)
+                )
+            )
+            receipts = [
+                reviewed_receipt(row, item_key)
+                for row in item_movements
+                if row.type == "receipt"
+            ]
+            _cost_action(
+                session,
+                run,
+                {
+                    "operation": "inventory_review",
+                    "expected_event_sequence": _sequence(session, tenant),
+                    "item_id": items[item_key],
+                    "owner_party_id": parties["company"],
+                    "method": "fifo",
+                    "currency": "EUR",
+                    "base_unit": "pcs",
+                    "history_start": (
+                        min(row.occurred_at for row in item_movements)
+                        - timedelta(seconds=1)
+                    ).isoformat(),
+                    "effective_at": max(
+                        row.occurred_at for row in item_movements
+                    ).isoformat(),
+                    "history_complete_from_zero": True,
+                    "receipt_cost_scopes_confirmed": True,
+                    "economic_issue_ids": [],
+                    "supplier_return_ids": [
+                        row.id
+                        for row in item_movements
+                        if row.type == "supplier_return"
+                    ],
+                    "receipts": receipts,
+                    "specific_selections": [
+                        {
+                            "movement_id": returned.id,
+                            "entry_movement_id": received.id,
+                            "receipt_movement_id": received.id,
+                            "quantity": str(returned.quantity),
+                        }
+                        for returned in item_movements
+                        if returned.type == "supplier_return"
+                        for received in item_movements
+                        if received.type == "receipt"
+                    ],
+                    "openings": [
+                        {
+                            "movement_id": row.id,
+                            "evidence_source_record_id": row.source_record_id,
+                            "acquisition_cost": str(
+                                row.quantity * Decimal(OPENING_UNIT_COSTS[item_key])
+                            ),
+                        }
+                        for row in item_movements
+                        if row.type == "opening_stock"
+                    ],
+                    "reason": f"Canonical invoice-backed receipt review for {item_key}",
+                },
+            )
+
+        # Complete the ordinary opening-stock cases through the same retained
+        # inventory review used by interactive costing. Receipt and return cases
+        # are intentionally excluded: they require their own exact invoice and
+        # return lineage rather than an opening-stock shortcut.
+        opening_review_scopes = []
+        for item_key in ("P04", "P05", "P06", "P08", "P10"):
+            item_movements = list(
+                session.scalars(
+                    select(Movement)
+                    .where(
+                        Movement.tenant_id == tenant,
+                        Movement.item_id == items[item_key],
+                    )
+                    .order_by(Movement.occurred_at, Movement.id)
+                )
+            )
+            opening_review_scopes.append(
+                {
+                    "item_id": items[item_key],
+                    "owner_party_id": parties["company"],
+                    "method": "fifo",
+                    "currency": "EUR",
+                    "base_unit": next(row[2] for row in ITEMS if row[0] == item_key),
+                    "history_start": (
+                        min(row.occurred_at for row in item_movements)
+                        - timedelta(seconds=1)
+                    ).isoformat(),
+                    "effective_at": anchor.isoformat(),
+                    "history_complete_from_zero": True,
+                    "receipt_cost_scopes_confirmed": True,
+                    "economic_issue_ids": [
+                        row.id for row in item_movements if row.type == "shipment"
+                    ],
+                    "loss_movement_ids": [
+                        row.id for row in item_movements if row.type == "adjustment"
+                    ],
+                    "openings": [
+                        {
+                            "movement_id": row.id,
+                            "evidence_source_record_id": row.source_record_id,
+                            "acquisition_cost": str(
+                                row.quantity * Decimal(OPENING_UNIT_COSTS[item_key])
+                            ),
+                        }
+                        for row in item_movements
+                        if row.type == "opening_stock"
+                    ],
+                }
+            )
+
+        for item_key in ("P07", "P14"):
+            item_movements = list(
+                session.scalars(
+                    select(Movement)
+                    .where(
+                        Movement.tenant_id == tenant,
+                        Movement.item_id == items[item_key],
+                    )
+                    .order_by(Movement.occurred_at, Movement.id)
+                )
+            )
+            customer_returns = [row for row in item_movements if row.type == "return"]
+            return_parts = []
+            for returned_movement in customer_returns:
+                issue_movement = next(
+                    row
+                    for row in reversed(item_movements)
+                    if row.type == "shipment"
+                    and row.occurred_at <= returned_movement.occurred_at
+                )
+                entry_movement = next(
+                    row
+                    for row in item_movements
+                    if row.type == "opening_stock"
+                    and row.occurred_at <= issue_movement.occurred_at
+                )
+                return_parts.append(
+                    {
+                        "movement_id": returned_movement.id,
+                        "issue_movement_id": issue_movement.id,
+                        "entry_movement_id": entry_movement.id,
+                        "receipt_movement_id": entry_movement.id,
+                        "quantity": str(returned_movement.quantity),
+                    }
+                )
+            opening_review_scopes.append(
+                {
+                    "item_id": items[item_key],
+                    "owner_party_id": parties["company"],
+                    "method": "fifo",
+                    "currency": "EUR",
+                    "base_unit": next(row[2] for row in ITEMS if row[0] == item_key),
+                    "history_start": (
+                        min(row.occurred_at for row in item_movements)
+                        - timedelta(seconds=1)
+                    ).isoformat(),
+                    "effective_at": anchor.isoformat(),
+                    "history_complete_from_zero": True,
+                    "receipt_cost_scopes_confirmed": True,
+                    "economic_issue_ids": [
+                        row.id for row in item_movements if row.type == "shipment"
+                    ],
+                    "customer_return_ids": [row.id for row in customer_returns],
+                    "openings": [
+                        {
+                            "movement_id": row.id,
+                            "evidence_source_record_id": row.source_record_id,
+                            "acquisition_cost": str(
+                                row.quantity * Decimal(OPENING_UNIT_COSTS[item_key])
+                            ),
+                        }
+                        for row in item_movements
+                        if row.type == "opening_stock"
+                    ],
+                    "return_parts": return_parts,
+                }
+            )
+        _cost_action(
+            session,
+            run,
+            {
+                "operation": "inventory_batch_review",
+                "expected_event_sequence": _sequence(session, tenant),
+                "scopes": opening_review_scopes,
+                "reason": "Canonical demo opening-stock and customer-return review",
+            },
+        )
+
+        from reality.db.core import MovementCorrection
+        from reality.db.inventory_costing import CostMovementBasis, CostOpeningBasis
+
+        receipt_review_scopes = []
+        receipt_review_cutoff = core.now()
+        for item_key in ("P11", "P15", "P16", "P17", "P18"):
+            item_movements = list(
+                session.scalars(
+                    select(Movement)
+                    .where(
+                        Movement.tenant_id == tenant,
+                        Movement.item_id == items[item_key],
+                    )
+                    .order_by(Movement.occurred_at, Movement.id)
+                )
+            )
+            corrections = list(
+                session.scalars(
+                    select(MovementCorrection).where(
+                        MovementCorrection.tenant_id == tenant,
+                        MovementCorrection.original_movement_id.in_(
+                            [row.id for row in item_movements]
+                        ),
+                    )
+                )
+            )
+            excluded_ids = {
+                identity
+                for correction in corrections
+                for identity in (
+                    correction.original_movement_id,
+                    correction.compensating_movement_id,
+                )
+            }
+            effective_movements = [
+                row for row in item_movements if row.id not in excluded_ids
+            ]
+            receipts = [
+                reviewed_receipt(row, item_key)
+                for row in effective_movements
+                if row.type == "receipt"
+            ]
+            openings = []
+            for row in effective_movements:
+                if row.type != "opening_stock":
+                    continue
+                movement_basis = session.scalar(
+                    select(CostMovementBasis).where(
+                        CostMovementBasis.tenant_id == tenant,
+                        CostMovementBasis.movement_id == row.id,
+                    )
+                )
+                admitted = (
+                    session.scalar(
+                        select(CostOpeningBasis).where(
+                            CostOpeningBasis.tenant_id == tenant,
+                            CostOpeningBasis.movement_basis_id == movement_basis.id,
+                        )
+                    )
+                    if movement_basis is not None
+                    else None
+                )
+                openings.append(
+                    {
+                        "movement_id": row.id,
+                        "evidence_source_record_id": (
+                            admitted.evidence_source_record_id
+                            if admitted is not None
+                            else row.source_record_id
+                        ),
+                        "acquisition_cost": str(
+                            admitted.acquisition_cost
+                            if admitted is not None
+                            else row.quantity * Decimal(OPENING_UNIT_COSTS[item_key])
+                        ),
+                    }
+                )
+            receipt_review_scopes.append(
+                {
+                    "item_id": items[item_key],
+                    "owner_party_id": parties["company"],
+                    "method": "fifo",
+                    "currency": "EUR",
+                    "base_unit": next(row[2] for row in ITEMS if row[0] == item_key),
+                    "history_start": (
+                        min(row.occurred_at for row in effective_movements)
+                        - timedelta(seconds=1)
+                    ).isoformat(),
+                    "effective_at": receipt_review_cutoff.isoformat(),
+                    "history_complete_from_zero": True,
+                    "receipt_cost_scopes_confirmed": True,
+                    "economic_issue_ids": [
+                        row.id for row in effective_movements if row.type == "shipment"
+                    ],
+                    "receipts": receipts,
+                    "openings": openings,
+                }
+            )
+        _cost_action(
+            session,
+            run,
+            {
+                "operation": "inventory_batch_review",
+                "expected_event_sequence": _sequence(session, tenant),
+                "scopes": receipt_review_scopes,
+                "reason": "Canonical demo invoice-backed receipt inventory review",
+            },
+        )
+
+        from reality.db.core import BusinessEvent
+
+        p12_movements = list(
+            session.scalars(
+                select(Movement).where(
+                    Movement.tenant_id == tenant,
+                    Movement.item_id == items["P12"],
+                    Movement.occurred_at <= receipt_review_cutoff,
+                )
+            )
+        )
+        p12_sequences = dict(
+            session.execute(
+                select(BusinessEvent.subject_id, BusinessEvent.sequence).where(
+                    BusinessEvent.tenant_id == tenant,
+                    BusinessEvent.event_type == "movement.recorded",
+                    BusinessEvent.subject_type == "movement",
+                    BusinessEvent.subject_id.in_([row.id for row in p12_movements]),
+                )
+            )
+            .tuples()
+            .all()
+        )
+        p12_movements.sort(
+            key=lambda row: (row.occurred_at, p12_sequences.get(row.id, 0))
+        )
+        p12_layers: list[dict] = []
+        p12_issue_parts: dict[str, list[dict]] = {}
+        p12_selections = []
+        p12_return_parts = []
+
+        p12_return_ids: set[str] = set()
+
+        def consume_p12(movement_row, *, returned_id=None, exclude_return_layers=False):
+            left = movement_row.quantity
+            selected = []
+            for layer in p12_layers:
+                if left <= 0:
+                    break
+                if (
+                    returned_id is not None
+                    and layer["entry_movement_id"] != returned_id
+                ):
+                    continue
+                if (
+                    exclude_return_layers
+                    and layer["entry_movement_id"] in p12_return_ids
+                ):
+                    continue
+                quantity = min(left, layer["quantity"])
+                if quantity <= 0:
+                    continue
+                selected.append(
+                    {
+                        "movement_id": movement_row.id,
+                        "entry_movement_id": layer["entry_movement_id"],
+                        "receipt_movement_id": layer["receipt_movement_id"],
+                        "quantity": str(quantity),
+                    }
+                )
+                layer["quantity"] -= quantity
+                left -= quantity
+            if left:
+                raise core.InvalidOperation(
+                    "Canonical P12 disposition exceeds its exact retained layer."
+                )
+            return selected
+
+        for movement_row in p12_movements:
+            if movement_row.type == "opening_stock":
+                p12_layers.append(
+                    {
+                        "entry_movement_id": movement_row.id,
+                        "receipt_movement_id": movement_row.id,
+                        "quantity": movement_row.quantity,
+                    }
+                )
+            elif movement_row.type == "shipment":
+                selected = consume_p12(movement_row, exclude_return_layers=True)
+                p12_selections.extend(selected)
+                p12_issue_parts[movement_row.id] = selected
+            elif movement_row.type == "return":
+                p12_return_ids.add(movement_row.id)
+                issue = next(
+                    row
+                    for row in reversed(p12_movements)
+                    if row.type == "shipment"
+                    and row.commitment_id == movement_row.commitment_id
+                    and row.occurred_at <= movement_row.occurred_at
+                )
+                restored = []
+                left = movement_row.quantity
+                for part in p12_issue_parts[issue.id]:
+                    if left <= 0:
+                        break
+                    quantity = min(left, Decimal(part["quantity"]))
+                    p12_return_parts.append(
+                        {
+                            "movement_id": movement_row.id,
+                            "issue_movement_id": issue.id,
+                            "entry_movement_id": part["entry_movement_id"],
+                            "receipt_movement_id": part["receipt_movement_id"],
+                            "quantity": str(quantity),
+                        }
+                    )
+                    restored.append(
+                        {
+                            "entry_movement_id": movement_row.id,
+                            "receipt_movement_id": part["receipt_movement_id"],
+                            "quantity": quantity,
+                        }
+                    )
+                    left -= quantity
+                if left:
+                    raise core.InvalidOperation(
+                        "Canonical P12 return exceeds its exact original issue."
+                    )
+                p12_layers.extend(restored)
+            elif movement_row.type in {"adjustment", "supplier_return"}:
+                p12_selections.extend(
+                    consume_p12(
+                        movement_row,
+                        returned_id=movement_row.resolves_movement_id,
+                    )
+                )
+
+        p12_openings = []
+        for movement_row in p12_movements:
+            if movement_row.type != "opening_stock":
+                continue
+            movement_basis = session.scalar(
+                select(CostMovementBasis).where(
+                    CostMovementBasis.tenant_id == tenant,
+                    CostMovementBasis.movement_id == movement_row.id,
+                )
+            )
+            admitted = (
+                session.scalar(
+                    select(CostOpeningBasis).where(
+                        CostOpeningBasis.tenant_id == tenant,
+                        CostOpeningBasis.movement_basis_id == movement_basis.id,
+                    )
+                )
+                if movement_basis is not None
+                else None
+            )
+            p12_openings.append(
+                {
+                    "movement_id": movement_row.id,
+                    "evidence_source_record_id": (
+                        admitted.evidence_source_record_id
+                        if admitted is not None
+                        else movement_row.source_record_id
+                    ),
+                    "acquisition_cost": str(
+                        admitted.acquisition_cost
+                        if admitted is not None
+                        else movement_row.quantity * Decimal(OPENING_UNIT_COSTS["P12"])
+                    ),
+                }
+            )
+        _cost_action(
+            session,
+            run,
+            {
+                "operation": "inventory_review",
+                "expected_event_sequence": _sequence(session, tenant),
+                "item_id": items["P12"],
+                "owner_party_id": parties["company"],
+                "method": "specific",
+                "currency": "EUR",
+                "base_unit": "pcs",
+                "history_start": (
+                    min(row.occurred_at for row in p12_movements) - timedelta(seconds=1)
+                ).isoformat(),
+                "effective_at": receipt_review_cutoff.isoformat(),
+                "history_complete_from_zero": True,
+                "receipt_cost_scopes_confirmed": True,
+                "economic_issue_ids": [
+                    row.id for row in p12_movements if row.type == "shipment"
+                ],
+                "loss_movement_ids": [
+                    row.id for row in p12_movements if row.type == "adjustment"
+                ],
+                "supplier_return_ids": [
+                    row.id for row in p12_movements if row.type == "supplier_return"
+                ],
+                "customer_return_ids": [
+                    row.id for row in p12_movements if row.type == "return"
+                ],
+                "openings": p12_openings,
+                "specific_selections": p12_selections,
+                "return_parts": p12_return_parts,
+                "reason": "Canonical exact customer-return disposition review for P12",
+            },
+        )
+
+        # Feature 251: declare the exact opaque contribution scope. Read freshness is
+        # scoped to later evidence for the same item/line, so unrelated finance and
+        # warehouse events no longer invalidate this retained review portfolio.
+        declared_lines = sorted(
+            case["invoice_line_id"]
+            for name, case in costing_cases.items()
+            if name == "fixture_a" or name.startswith("portfolio_")
+        )
+        from reality.db.core import Item
+        from reality.services.core import stock_at
+        from reality.services.costing import cost_query
+
+        session.flush()
+        stocked_items = [
+            item
+            for item in session.scalars(
+                select(Item).where(Item.tenant_id == tenant).order_by(Item.sku)
+            )
+            if stock_at(session, tenant, item.id) > 0
+        ]
+        diagnostics = []
+        inventory_current = 0
+        for item in stocked_items:
+            outcome = cost_query(session, tenant, kind="inventory", scope_id=item.id)
+            result = outcome["result"]
+            if (
+                outcome["freshness"]["state"] == "ready"
+                and result is not None
+                and Decimal(result["acquisition_value"]) > 0
+            ):
+                inventory_current += 1
+            elif len(diagnostics) < 20:
+                diagnostics.append(
+                    {
+                        "kind": "inventory",
+                        "scope_id": item.id,
+                        "state": outcome["freshness"]["state"],
+                    }
+                )
+        contribution_current = 0
+        for line_id in declared_lines:
+            outcome = cost_query(session, tenant, kind="contribution", scope_id=line_id)
+            result = outcome["result"]
+            if (
+                outcome["freshness"]["state"] == "ready"
+                and result is not None
+                and result["db1"] is not None
+                and result["db2"] is not None
+            ):
+                contribution_current += 1
+            elif len(diagnostics) < 20:
+                diagnostics.append(
+                    {
+                        "kind": "contribution",
+                        "scope_id": line_id,
+                        "state": outcome["freshness"]["state"],
+                    }
+                )
+        readiness_complete = inventory_current == len(
+            stocked_items
+        ) and contribution_current == len(declared_lines)
+        cost_readiness = {
+            "version": 1,
+            "state": "ready" if readiness_complete else "incomplete",
+            "event_sequence": _sequence(session, tenant),
+            "inventory": {
+                "expected": len(stocked_items),
+                "current": inventory_current,
+            },
+            "contribution": {
+                "expected": len(declared_lines),
+                "current": contribution_current,
+            },
+            "contribution_line_ids": declared_lines,
+            "diagnostics": diagnostics,
+        }
+
     session.flush()
     manifest = {
         "parties": parties,
@@ -2946,6 +3733,7 @@ def seed_profile(
             "marketing": "another_source",
         },
         "costing_cases": {} if execution else costing_cases,
+        "cost_readiness": {} if execution else cost_readiness,
     }
 
     from reality.db.core import Item, Location, Party

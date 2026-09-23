@@ -5,7 +5,8 @@ from dataclasses import asdict
 from datetime import UTC, datetime
 from decimal import Decimal
 
-from sqlalchemy import or_, select
+from sqlalchemy import cast, func, or_, select
+from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Session
 
 from reality.db.core import (
@@ -52,6 +53,39 @@ KINDS = {
     "opening_stock": "opening",
 }
 KERNEL_KINDS = {**KINDS, "opening_stock": "receipt"}
+
+
+def _relevant_event_sequence(
+    session: Session, tenant: str, item_id: str, reviewed_sequence: int
+) -> int:
+    """Latest physical event for one item, never an unrelated company cursor.
+
+    A retained review already captures every event up to ``reviewed_sequence``. A later
+    payment, dunning notice or movement of another item cannot invalidate its physical
+    basis. Later movement/correction events for this item still make it stale.
+    """
+    payload_item_id = cast(BusinessEvent.payload, JSONB)["item_id"].astext
+    latest = session.scalar(
+        select(func.max(BusinessEvent.sequence)).where(
+            BusinessEvent.tenant_id == tenant,
+            BusinessEvent.sequence > reviewed_sequence,
+            or_(
+                (
+                    (BusinessEvent.event_type == "item.updated")
+                    & (BusinessEvent.subject_type == "item")
+                    & (BusinessEvent.subject_id == item_id)
+                ),
+                (
+                    BusinessEvent.event_type.in_(
+                        ("movement.recorded", "movement.corrected")
+                    )
+                    & (BusinessEvent.subject_type == "movement")
+                    & (payload_item_id == item_id)
+                ),
+            ),
+        )
+    )
+    return max(reviewed_sequence, latest or 0)
 
 
 def _check(
@@ -240,11 +274,31 @@ def _check(
             raise core.InvalidOperation(
                 f"Inventory history contains unsupported movement classification: every {movement_type} must be explicit."
             )
+    movement_by_id = {movement.id: movement for movement in movements}
+    resolved_quantities: dict[str, Decimal] = {}
+    for movement in movements:
+        if not movement.resolves_movement_id:
+            continue
+        arrived = movement_by_id.get(movement.resolves_movement_id)
+        if (
+            movement.type not in {"transfer", "adjustment", "supplier_return"}
+            or arrived is None
+            or arrived.type != "return"
+            or arrived.id not in request.customer_return_ids
+        ):
+            raise core.InvalidOperation(
+                "Inventory settlement must resolve one reviewed customer return."
+            )
+        resolved_quantities[arrived.id] = (
+            resolved_quantities.get(arrived.id, Decimal(0)) + movement.quantity
+        )
     if any(
-        m.resolves_movement_id and m.type not in ("return", "supplier_return")
-        for m in movements
+        quantity > movement_by_id[return_id].quantity
+        for return_id, quantity in resolved_quantities.items()
     ):
-        raise core.InvalidOperation("Unsupported settlement link in inventory history.")
+        raise core.InvalidOperation(
+            "Inventory settlement exceeds its reviewed customer return."
+        )
     received = {}
     for chosen in request.receipts:
         _row(session, SourceRecord, tenant, chosen.ownership_source_record_id)
@@ -683,9 +737,10 @@ def _inputs(
         grouped_parts.setdefault(basis.id, []).append(part)
         retained_ownership.append({"part": _values(part), "movement": _values(basis)})
     for basis_id, parts in grouped_parts.items():
-        if sum((part.quantity for part in parts), Decimal(0)) != basis_by_id[
-            basis_id
-        ].base_quantity:
+        if (
+            sum((part.quantity for part in parts), Decimal(0))
+            != basis_by_id[basis_id].base_quantity
+        ):
             raise core.InvalidOperation("Inventory ownership integrity mismatch.")
     stored_requested = sorted(
         [
@@ -820,7 +875,10 @@ def _inputs(
             )
             if (
                 opening is None
-                or (not ownership_parts and opening.owner_party_id != policy.owner_party_id)
+                or (
+                    not ownership_parts
+                    and opening.owner_party_id != policy.owner_party_id
+                )
                 or opening.currency != policy.currency
                 or opening.input_schema_version != 1
             ):
@@ -915,7 +973,13 @@ def _read(
         if _hash(payload) != review.content_hash:
             raise core.InvalidOperation("Inventory input integrity mismatch.")
         result = _calculate(inputs, policy.method)
-        cursor = review.target_event_sequence if review_id else _sequence(session, tenant)
+        cursor = (
+            review.target_event_sequence
+            if review_id
+            else _relevant_event_sequence(
+                session, tenant, item_id, review.target_event_sequence
+            )
+        )
         stale = cursor > review.target_event_sequence
         if stale:
             from reality.services.carrying_value import (

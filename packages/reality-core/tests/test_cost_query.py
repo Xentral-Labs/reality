@@ -34,6 +34,14 @@ def test_context_current_history_constraints_and_shared_tools(
 ):
     review, data, _ = fixtures.prepared(session, business, cost_owner)
     args = {"kind": "contribution", "scope_id": data[0].id}
+    core.emit_business_event(
+        session,
+        business.tenant.id,
+        "payment.recorded",
+        "tenant",
+        business.tenant.id,
+        {"amount": "1"},
+    )
     current = cost_query(session, business.tenant.id, **args)
     assert current["freshness"]["state"] == "ready"
     assert current["result"]["db2"] == "456.0000"

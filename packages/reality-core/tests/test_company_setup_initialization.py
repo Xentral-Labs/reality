@@ -11,7 +11,7 @@ from reality.services import scheduled_jobs as jobs
 from reality.services.projections import OPEN_FINANCIAL_ITEMS
 
 JOB_TYPE = "company_setup.initialize"
-INTERNATIONAL_V11_DOCUMENT_COUNT = 111
+INTERNATIONAL_V12_DOCUMENT_COUNT = 117
 
 
 def _create(session, owner, key="deferred", content="international_demo"):
@@ -62,7 +62,7 @@ def test_creation_answers_before_the_profile_is_seeded(session, scheduled_owner)
     assert record_by_id(session, PlaygroundRun, result["run_id"]).status == "active"
     receipt = company_setup.read_request(session, scheduled_owner.id, "deferred")
     assert receipt["status"] == "ready" and receipt["destination"]
-    assert _documents(session, tenant) == INTERNATIONAL_V11_DOCUMENT_COUNT
+    assert _documents(session, tenant) == INTERNATIONAL_V12_DOCUMENT_COUNT
     checkpoint = session.scalar(
         select(ProjectionCheckpoint).where(
             ProjectionCheckpoint.tenant_id == tenant,
@@ -79,8 +79,22 @@ def test_creation_answers_before_the_profile_is_seeded(session, scheduled_owner)
                 ProjectionRow.projection_name == OPEN_FINANCIAL_ITEMS,
             )
         )
-        == 34
+        == 40
     )
+
+
+def test_setup_claim_uses_its_registered_timeout_and_matching_lease(
+    session, scheduled_owner
+):
+    from reality.jobs.registry import get_definition
+
+    result = _create(session, scheduled_owner, key="setup-timeout")
+    definition = get_definition(JOB_TYPE)
+    assert definition.timeout_seconds == 120
+    run = jobs.claim_next(session, result["tenant_id"])
+    assert run is not None and run.started_at is not None
+    assert run.lease_expires_at is not None
+    assert (run.lease_expires_at - run.started_at).total_seconds() >= 149
 
 
 def test_repeated_request_queues_one_initialization(session, scheduled_owner):
@@ -150,13 +164,27 @@ def test_failed_worker_live_start_is_retryable_and_keeps_setup_incomplete(
 def test_failed_initial_calculation_is_retryable_and_keeps_setup_atomic(
     session, scheduled_owner, monkeypatch
 ):
-    from reality.services import projections
+    from reality.services import demo_data, projections
 
-    result = _create(session, scheduled_owner, key="calculation-retry")
+    result = company_setup.create_company(
+        session,
+        scheduled_owner.id,
+        "calculation-retry",
+        "Calculation Retry",
+        "sandbox",
+        "international_demo",
+        live_simulation=True,
+        confirmed=True,
+    )
+    live_calls = []
+
+    def start_live(*args, **kwargs):
+        live_calls.append((args, kwargs))
 
     def fail(*args, **kwargs):
         raise RuntimeError("injected initial calculation interruption")
 
+    monkeypatch.setattr(demo_data, "control", start_live)
     monkeypatch.setattr(projections, "rebuild_projections", fail)
     with pytest.raises(jobs.JobError) as raised, session.begin_nested():
         _work(session, result["tenant_id"])
@@ -166,6 +194,7 @@ def test_failed_initial_calculation_is_retryable_and_keeps_setup_atomic(
         record_by_id(session, PlaygroundRun, result["run_id"]).status == "initializing"
     )
     assert _documents(session, result["tenant_id"]) == 0
+    assert live_calls == []
 
 
 def test_seeding_twice_changes_nothing(session, scheduled_owner):
@@ -230,9 +259,9 @@ def test_explicit_retry_completes_without_a_worker(session, scheduled_owner):
     )
     assert retried["status"] == "ready"
     assert retried["tenant_id"] == result["tenant_id"]
-    assert _documents(session, result["tenant_id"]) == INTERNATIONAL_V11_DOCUMENT_COUNT
+    assert _documents(session, result["tenant_id"]) == INTERNATIONAL_V12_DOCUMENT_COUNT
     assert _work(session, result["tenant_id"]) == "succeeded"
-    assert _documents(session, result["tenant_id"]) == INTERNATIONAL_V11_DOCUMENT_COUNT
+    assert _documents(session, result["tenant_id"]) == INTERNATIONAL_V12_DOCUMENT_COUNT
 
 
 def test_a_small_profile_is_still_ready_when_the_request_answers(

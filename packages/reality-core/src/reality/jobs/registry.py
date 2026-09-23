@@ -77,6 +77,7 @@ class JobDefinition:
     config_model: type[BaseModel]
     authorize: Callable[[Session, JobContext, BaseModel], None]
     handler: Callable[[Session, JobContext, BaseModel], JobResult]
+    timeout_seconds: int = 30
 
     def validate(self, arguments: dict) -> BaseModel:
         if (
@@ -100,6 +101,7 @@ def register(definition: JobDefinition) -> None:
     if (
         definition.config_model.model_config.get("extra") != "forbid"
         or definition.version < 1
+        or not 1 <= definition.timeout_seconds <= 120
     ):
         raise JobError("invalid_job_definition")
     _REGISTRY[definition.name] = definition

@@ -115,6 +115,31 @@ def initialize(session: Session, context: JobContext, config: SetupConfig) -> Jo
             )
         )
         raise JobError(_interruption_code("profile", error), retryable=True) from error
+    progress = run.initialization_progress
+    if (
+        run.preset_key == "international-demo"
+        and progress.get("cost_readiness", {}).get("state") != "ready"
+    ):
+        raise JobError("setup_calculation_incomplete", retryable=True)
+    try:
+        rebuild_projections(
+            session,
+            context.tenant_id,
+            MATERIALIZED_PROJECTIONS,
+            force=True,
+        )
+    except Exception as error:
+        logger.warning(
+            json.dumps(
+                {
+                    "event": "company_setup_interrupted",
+                    "stage": "calculation",
+                    "exception_type": type(error).__name__,
+                    "sqlstate": getattr(getattr(error, "orig", None), "sqlstate", None),
+                }
+            )
+        )
+        raise JobError(_interruption_code("calculation", error), retryable=True) from error
     try:
         _finish_live_setup(session, run, context.actor_id, _commit=False)
     except Exception as error:
@@ -135,25 +160,6 @@ def initialize(session: Session, context: JobContext, config: SetupConfig) -> Jo
         and not progress.get("live_setup_complete")
     ):
         raise JobError("setup_live_incomplete", retryable=True)
-    try:
-        rebuild_projections(
-            session,
-            context.tenant_id,
-            MATERIALIZED_PROJECTIONS,
-            force=True,
-        )
-    except Exception as error:
-        logger.warning(
-            json.dumps(
-                {
-                    "event": "company_setup_interrupted",
-                    "stage": "calculation",
-                    "exception_type": type(error).__name__,
-                    "sqlstate": getattr(getattr(error, "orig", None), "sqlstate", None),
-                }
-            )
-        )
-        raise JobError(_interruption_code("calculation", error), retryable=True) from error
     return JobResult(
         counts={"initialized": 1},
         references=[{"record_type": "playground_run", "id": run.id}],
@@ -166,4 +172,5 @@ INITIALIZE = JobDefinition(
     config_model=SetupConfig,
     authorize=authorize,
     handler=initialize,
+    timeout_seconds=120,
 )

@@ -14,7 +14,7 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from sqlalchemy import Engine
 
-from reality.jobs.registry import JobError
+from reality.jobs.registry import JobError, get_definition
 
 logger = logging.getLogger("reality.background")
 
@@ -158,7 +158,15 @@ class ProcessLoop:
                         processed += result
                     else:
                         run = jobs.claim_next(session, tenant_id, outcomes=outcomes)
-                        claim = (run.id, run.claim_token) if run else None
+                        claim = (
+                            (
+                                run.id,
+                                run.claim_token,
+                                get_definition(run.job_type).timeout_seconds,
+                            )
+                            if run
+                            else None
+                        )
                 counts["failed"] += outcomes["failed"]
                 processed += outcomes["failed"]
                 if outcomes["failed"]:
@@ -177,8 +185,10 @@ class ProcessLoop:
                     status = execute_process(
                         engine,
                         tenant_id,
-                        *claim,
+                        claim[0],
+                        claim[1],
                         stop=self.stop,
+                        timeout=claim[2],
                         session_info=self.session_info,
                     )
                     logger.info(

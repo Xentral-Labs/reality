@@ -825,6 +825,52 @@ def test_inventory_customer_return_restores_original_issue_cost(
     assert result["acquisition_value"] == "525.0000"
 
 
+def test_inventory_accepts_transfer_that_resolves_reviewed_customer_return(
+    session, business, cost_owner
+):
+    args, receipt, issue = prepared(session, business, cost_owner)
+    returned = core.record_movement(
+        session,
+        business.tenant.id,
+        "return",
+        business.item.id,
+        "10",
+        to_location_id=business.location.id,
+    )
+    core.record_movement(
+        session,
+        business.tenant.id,
+        "transfer",
+        business.item.id,
+        "10",
+        from_location_id=business.location.id,
+        to_location_id=business.location.id,
+        resolves_movement_id=returned.id,
+    )
+    args.update(
+        effective_at=core.now().isoformat(),
+        expected_event_sequence=receipt_cost(session, business.tenant.id, receipt.id)[
+            "event_sequence"
+        ],
+        customer_return_ids=[returned.id],
+        return_parts=[
+            {
+                "movement_id": returned.id,
+                "issue_movement_id": issue.id,
+                "entry_movement_id": receipt.id,
+                "receipt_movement_id": receipt.id,
+                "quantity": "10",
+            }
+        ],
+        reason="Reviewed return remains valued after its physical transfer",
+    )
+
+    _, result = commit_review(session, business, cost_owner, args)
+
+    assert result["remaining_quantity"] == "50.0000"
+    assert result["acquisition_value"] == "525.0000"
+
+
 @pytest.mark.parametrize("method", ["fifo", "specific"])
 def test_inventory_partial_owner_issue_return_and_loss_conserve_cost(
     session, business, cost_owner, method
@@ -1210,6 +1256,27 @@ def test_inventory_foreign_scope_and_actual_read_tool(session, business, cost_ow
         inventory_cost(
             session, other.id, business.item.id, review_id=result["review_id"]
         )
+
+
+def test_unrelated_finance_event_does_not_stale_reviewed_inventory(
+    session, business, cost_owner
+):
+    arguments, _, _ = prepared(session, business, cost_owner)
+    _, reviewed = commit_review(session, business, cost_owner, arguments)
+    core.emit_business_event(
+        session,
+        business.tenant.id,
+        "payment.recorded",
+        "tenant",
+        business.tenant.id,
+        {"amount": "1"},
+    )
+
+    current = inventory_cost(session, business.tenant.id, business.item.id)
+
+    assert current["review_id"] == reviewed["review_id"]
+    assert current["acquisition_value"] == reviewed["acquisition_value"]
+    assert current["missing_basis"] == []
 
 
 def test_inventory_owner_confirmation_stale_and_rollback(

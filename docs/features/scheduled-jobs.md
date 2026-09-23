@@ -96,7 +96,7 @@ because it materializes schedules that no run represents yet.
 
 ## Limits and failure handling
 
-Defaults: five-second poll, one child at a time, 30-second child timeout, 60-second lease, three total attempts, retry delays 30s and 120s. A worker once claims at most ten runs and stops new claims after 25 seconds; including in-flight termination it exits within 60 seconds under healthy OS/database response. A child receives termination, then is killed after two seconds if needed. No lease renewal is required for these short bounded jobs.
+Defaults: five-second poll, one child at a time, 30-second child timeout, a lease 30 seconds longer than the registered timeout, three total attempts, and retry delays of 30s and 120s. The bounded canonical company-setup job declares a 120-second timeout because it seeds and verifies the complete profile in one transaction; its lease is therefore 150 seconds. Other registered jobs retain the 30-second timeout and 60-second lease. The worker derives both its child deadline and claim lease from the same registered definition so they cannot contradict each other. A worker once claims at most ten runs and stops new claims after 25 seconds. A child receives termination, then is killed after two seconds if needed. No lease renewal is required for these bounded jobs.
 
 Use database statement timeout 20s, lock timeout 2s and connection timeout 5s. Open fresh child connections; never reuse inherited session/pool connections. Child failure affects its run, not registry availability or other jobs. Retry only classified transient failures. Unknown job/configuration is a visible permanent error. Database uncertainty is reconciled by reading run state before any redispatch; if it cannot be settled, leave it unresolved.
 
