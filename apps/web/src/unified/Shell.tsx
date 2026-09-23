@@ -4,13 +4,14 @@ import { PageActionTarget, PageCountTarget } from "./PageHeading";
 import { pageIntroduction } from "./pageIntroduction";
 import {
   dailyWork,
-  decisionBadge,
+  workCountBadge,
   isCommitmentsSelection,
   isInboxSelection,
   welcomeSelection,
 } from "./dailyWork";
 import { ProfileMenu } from "./ProfileMenu";
-import { usePendingDecisions } from "./pendingDecisions";
+import { usePendingDecisions, useWorkCount } from "./workCounts";
+import { withWorkCount } from "./TabWorkCount";
 import { RegisterHeader, RegisterHeaderTarget } from "./RegisterWorkbench";
 import { inspectorSections, inspectorSection, inspectorTabs } from "./inspectorSections";
 import { CompanySwitcher } from "./CompanySwitcher";
@@ -44,7 +45,7 @@ import {
   X,
   Info,
 } from "lucide-react";
-import type { AuthUser, Tenant } from "../api";
+import { deliveryApi, operationsApi, type AuthUser, type Tenant } from "../api";
 import { readThemePreference, applyTheme, watchSystemTheme } from "../theme";
 import { t } from "../localization";
 import { selectionUrl, type Selection } from "./routing";
@@ -120,8 +121,33 @@ export function Shell({
   }, []);
   const inbox = isInboxSelection(selection);
   const pendingDecisions = usePendingDecisions(company.id);
-  const inboxBadge = decisionBadge(pendingDecisions);
+  const inboxBadge = workCountBadge(pendingDecisions);
   const inboxBadgeId = useId();
+  // The Inbox tabs state the open work behind them; each reads what its own
+  // register lists by default, and only while the Inbox is open (spec 254).
+  const openCommitments = useWorkCount(
+    `inbox-commitments:${company.id}`,
+    () =>
+      deliveryApi
+        .register(company.id, "", 1, "open", "customer_delivery", "", { size: 1 })
+        .then((result) => result.page.total),
+    inbox && !isCommitmentsSelection(selection),
+  );
+  const openFindings = useWorkCount(
+    `inbox-exceptions:${company.id}`,
+    () => operationsApi.attention(company.id, "", "", 1, "", 1).then((result) => result.page.total),
+    inbox && selection.route !== "attention",
+  );
+  const inboxCounts: Record<(typeof dailyWork)[number]["label"], number | null> = {
+    Commitments: openCommitments,
+    Exceptions: openFindings,
+    Decisions: pendingDecisions,
+  };
+  const inboxCountLabels = {
+    Commitments: "Open commitments",
+    Exceptions: "Open exceptions",
+    Decisions: "Pending decisions",
+  } as const;
   const inspectorIcons = [Waypoints, FileText, History, Zap];
   const destinations = [
     {
@@ -655,34 +681,20 @@ export function Shell({
                           item.label === "Commitments"
                             ? isCommitmentsSelection(selection)
                             : selection.route === item.selection.route;
-                        const tab = (
+                        return withWorkCount(
                           <button
                             key={item.label}
                             aria-pressed={pressed}
-                            aria-describedby={
-                              !pressed && item.label === "Decisions" && inboxBadge
-                                ? inboxBadgeId
-                                : undefined
-                            }
                             onClick={() => navigate(item.selection)}
                           >
                             {t(item.label)}
-                          </button>
+                          </button>,
+                          {
+                            count: inboxCounts[item.label],
+                            active: pressed,
+                            description: t(inboxCountLabels[item.label]),
+                          },
                         );
-                        // The open tab shows its own register count; Decisions keeps
-                        // the waiting count visible from the other tabs too.
-                        return !pressed && item.label === "Decisions" && inboxBadge
-                          ? [
-                              tab,
-                              <span
-                                key="pending-decisions"
-                                className="page-introduction-count shell-tab-count"
-                                aria-hidden="true"
-                              >
-                                <span data-tab-pending-count>{inboxBadge}</span>
-                              </span>,
-                            ]
-                          : [tab];
                       })}
                     </nav>
                   </RegisterHeader>

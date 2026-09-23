@@ -123,7 +123,7 @@ try {
 
       // The Decisions tab keeps the waiting count visible from the other Inbox tabs.
       await page.goto(`${base}/app/attention?tenant=demo`);
-      const tabCount = page.locator("[data-shell-header] [data-tab-pending-count]");
+      const tabCount = page.locator("[data-shell-header] [data-tab-work-count]");
       await tabCount.waitFor({ timeout: 5000 });
       assert.equal(await tabCount.innerText(), "2");
       const [decisionsTab, tabBadge] = await Promise.all([

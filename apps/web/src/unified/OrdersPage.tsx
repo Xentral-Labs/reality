@@ -8,6 +8,8 @@ import { RegisterWorkbench, RegisterHeader, RegisterToolbar } from "./RegisterWo
 import { DocumentContributionExplanations } from "./DocumentContributionExplanations";
 import { useRegisterQuery } from "./TableContext";
 import { RegisterTable } from "./RegisterTable";
+import { useWorkCount } from "./workCounts";
+import { withWorkCount } from "./TabWorkCount";
 import { api, deliveryApi, type DeliveryRow, type DocumentRow, type Page } from "../api";
 import { Inspector } from "./Inspector";
 import { SourceBadge } from "./SourceBadge";
@@ -109,6 +111,16 @@ export function OrdersPage({
     table.sort_direction,
   ]);
   const data = read.data?.view === view ? read.data : null;
+  // The Commitments tab states the open commitments it opens (spec 254).
+  const side = purchasing ? "supplier_delivery" : "customer_delivery";
+  const openCommitments = useWorkCount(
+    `commitments:${side}:${tenant}`,
+    () =>
+      deliveryApi
+        .register(tenant, "", 1, "open", side, "", { size: 1 })
+        .then((result) => result.page.total),
+    view !== "deliveries",
+  );
   const change = (values: Partial<Selection>) =>
     navigate({ ...values, page: 1, entry: "", commitment: "" });
   return (
@@ -149,23 +161,30 @@ export function OrdersPage({
                   ["deliveries", "Commitments"],
                   ["shipments", "Shipments"],
                 ] as const
-              ).map(([value, label]) => (
-                <button
-                  key={value}
-                  className="br-btn aria-pressed:border-accent aria-pressed:bg-accent-soft"
-                  aria-pressed={view === value}
-                  onClick={() =>
-                    change({
-                      ordersView: value,
-                      deliveryType: purchasing ? "supplier_delivery" : "customer_delivery",
-                      order: "",
-                      q: "",
-                    })
-                  }
-                >
-                  {t(label)}
-                </button>
-              ))}
+              ).flatMap(([value, label]) =>
+                withWorkCount(
+                  <button
+                    key={value}
+                    className="br-btn aria-pressed:border-accent aria-pressed:bg-accent-soft"
+                    aria-pressed={view === value}
+                    onClick={() =>
+                      change({
+                        ordersView: value,
+                        deliveryType: purchasing ? "supplier_delivery" : "customer_delivery",
+                        order: "",
+                        q: "",
+                      })
+                    }
+                  >
+                    {t(label)}
+                  </button>,
+                  {
+                    count: value === "deliveries" ? openCommitments : null,
+                    active: view === value,
+                    description: t("Open commitments"),
+                  },
+                ),
+              )}
             </div>
           </RegisterHeader>
 
