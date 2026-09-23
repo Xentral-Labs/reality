@@ -218,6 +218,7 @@ function DemoDataIntegrationView({
   return (
     <section
       className="panel integration-section demo-data-integration"
+      data-variant={variant}
       aria-labelledby={`demo-data-${tenantId}`}
       aria-busy={busy}
     >
