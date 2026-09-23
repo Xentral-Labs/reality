@@ -1216,6 +1216,18 @@ const dictionaries: Record<Exclude<Language, "en">, Record<string, string>> = {
     "Applying your change. This takes a few seconds.":
       "Deine Änderung wird angewendet. Das dauert ein paar Sekunden.",
     "Applying…": "Wird angewendet…",
+    "Switch off this data type": "Diesen Datentyp ausschalten",
+    "Switch on this data type": "Diesen Datentyp einschalten",
+    "After this change": "Nach dieser Änderung",
+    "Switched off": "Ausgeschaltet",
+    "This source is in use.": "Diese Quelle ist in Betrieb.",
+    "This source is switched off.": "Diese Quelle ist ausgeschaltet.",
+    "Everything already received stays as it is. Nothing is deleted.":
+      "Alles bereits Empfangene bleibt, wie es ist. Es wird nichts gelöscht.",
+    "Switching it off also stops the simulation, which then has to be started again.":
+      "Ausschalten stoppt außerdem die Simulation; sie muss dann neu gestartet werden.",
+    "Switch off this source": "Diese Quelle ausschalten",
+    "Switch on this source": "Diese Quelle einschalten",
     "Settings for this system": "Einstellungen für dieses System",
     "This system has no settings of its own yet.":
       "Für dieses System gibt es noch keine eigenen Einstellungen.",
@@ -3254,6 +3266,18 @@ const dictionaries: Record<Exclude<Language, "en">, Record<string, string>> = {
     "Applying your change. This takes a few seconds.":
       "Je wijziging wordt toegepast. Dat duurt enkele seconden.",
     "Applying…": "Wordt toegepast…",
+    "Switch off this data type": "Dit gegevenstype uitschakelen",
+    "Switch on this data type": "Dit gegevenstype inschakelen",
+    "After this change": "Na deze wijziging",
+    "Switched off": "Uitgeschakeld",
+    "This source is in use.": "Deze bron is in gebruik.",
+    "This source is switched off.": "Deze bron is uitgeschakeld.",
+    "Everything already received stays as it is. Nothing is deleted.":
+      "Alles wat al is ontvangen blijft zoals het is. Er wordt niets verwijderd.",
+    "Switching it off also stops the simulation, which then has to be started again.":
+      "Uitschakelen stopt ook de simulatie; die moet daarna opnieuw worden gestart.",
+    "Switch off this source": "Deze bron uitschakelen",
+    "Switch on this source": "Deze bron inschakelen",
     "Settings for this system": "Instellingen voor dit systeem",
     "This system has no settings of its own yet.": "Dit systeem heeft nog geen eigen instellingen.",
     Attention: "Controleren",
@@ -4992,6 +5016,18 @@ const dictionaries: Record<Exclude<Language, "en">, Record<string, string>> = {
     "Applying your change. This takes a few seconds.":
       "Se está aplicando tu cambio. Tarda unos segundos.",
     "Applying…": "Aplicando…",
+    "Switch off this data type": "Desactivar este tipo de datos",
+    "Switch on this data type": "Activar este tipo de datos",
+    "After this change": "Después de este cambio",
+    "Switched off": "Desactivada",
+    "This source is in use.": "Esta fuente está en uso.",
+    "This source is switched off.": "Esta fuente está desactivada.",
+    "Everything already received stays as it is. Nothing is deleted.":
+      "Todo lo ya recibido permanece igual. No se elimina nada.",
+    "Switching it off also stops the simulation, which then has to be started again.":
+      "Desactivarla también detiene la simulación, que luego habrá que iniciar de nuevo.",
+    "Switch off this source": "Desactivar esta fuente",
+    "Switch on this source": "Activar esta fuente",
     "Settings for this system": "Ajustes de este sistema",
     "This system has no settings of its own yet.": "Este sistema aún no tiene ajustes propios.",
     Attention: "Revisar",
