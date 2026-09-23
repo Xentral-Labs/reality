@@ -1204,6 +1204,18 @@ export class APIError extends Error {
   }
 }
 
+/** Dispatched after a write succeeds, so counts that a write can move re-read themselves. */
+export const recordsChanged = "reality:records-changed";
+
+// Searches and previews travel as POST but change nothing.
+const readingPost = /\/search(\/[a-z-]+)?$|[/-]preview$/;
+
+function announceWrite(path: string, init: RequestInit) {
+  const method = (init.method || "GET").toUpperCase();
+  if (method === "GET" || method === "HEAD" || readingPost.test(path.split("?")[0])) return;
+  if (typeof window !== "undefined") window.dispatchEvent(new Event(recordsChanged));
+}
+
 async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
   const response = await fetch(path, {
     ...init,
@@ -1230,6 +1242,7 @@ async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
       payload?.code || payload?.detail?.code,
     );
   }
+  announceWrite(path, init);
   if (response.status === 204) return undefined as T;
   return response.json() as Promise<T>;
 }
@@ -1256,8 +1269,14 @@ async function sendChatRequest(
     );
   }
   // Older servers can still complete this explicitly sent request as JSON.
-  if (response.headers.get("content-type")?.includes("application/json")) return response.json();
-  return readChatStream(response, onEvent);
+  if (response.headers.get("content-type")?.includes("application/json")) {
+    const reply = await response.json();
+    announceWrite(path, init);
+    return reply;
+  }
+  const reply = await readChatStream(response, onEvent);
+  announceWrite(path, init);
+  return reply;
 }
 
 export const api = {

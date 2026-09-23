@@ -3074,6 +3074,16 @@ counts remain local; the main header count belongs only to the active register. 
 and Chat remain independent. No AI behavior, authorization or confirmation changes.
 This supersedes the three individual sidebar entries and their former primary tabs.
 
+### Inbox decision badge (spec 253)
+
+The Inbox entry shows the number of pending decisions in the current company (99+
+above 99, nothing at zero); on the collapsed rail it sits on the icon. While another
+Inbox tab is open, the Decisions tab shows the same count. Both read the Decisions
+register's own queue count one row wide, on company change, when the tab is shown
+again, once a minute while visible and after any write in this browser. This
+supersedes spec 225's "no aggregate badge" and active-register-only header count for
+this one queue. Commitments and Exceptions keep the active-register-only rule.
+
 ### Empty standalone chat history (spec 225)
 
 Standalone Chat hides its conversation column when no active or archived conversations

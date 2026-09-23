@@ -2,8 +2,15 @@ import { SidebarTooltip } from "./SidebarTooltip";
 import { isPurchasing } from "./pageIntroduction";
 import { PageActionTarget, PageCountTarget } from "./PageHeading";
 import { pageIntroduction } from "./pageIntroduction";
-import { dailyWork, isCommitmentsSelection, isInboxSelection, welcomeSelection } from "./dailyWork";
+import {
+  dailyWork,
+  decisionBadge,
+  isCommitmentsSelection,
+  isInboxSelection,
+  welcomeSelection,
+} from "./dailyWork";
 import { ProfileMenu } from "./ProfileMenu";
+import { usePendingDecisions } from "./pendingDecisions";
 import { RegisterHeader, RegisterHeaderTarget } from "./RegisterWorkbench";
 import { inspectorSections, inspectorSection, inspectorTabs } from "./inspectorSections";
 import { CompanySwitcher } from "./CompanySwitcher";
@@ -112,6 +119,9 @@ export function Shell({
     };
   }, []);
   const inbox = isInboxSelection(selection);
+  const pendingDecisions = usePendingDecisions(company.id);
+  const inboxBadge = decisionBadge(pendingDecisions);
+  const inboxBadgeId = useId();
   const inspectorIcons = [Waypoints, FileText, History, Zap];
   const destinations = [
     {
@@ -119,12 +129,14 @@ export function Shell({
       target: welcomeSelection,
       Icon: Inbox,
       active: inbox,
+      badge: inboxBadge,
     },
     {
       label: "Chat",
       target: { route: "chat", commitment: "", proposal: "", page: 1, q: "" } as Partial<Selection>,
       Icon: MessageSquare,
       active: selection.route === "chat",
+      badge: "",
     },
   ];
   const introduction = pageIntroduction(selection);
@@ -347,11 +359,14 @@ export function Shell({
                 <div className="shell-navigation-scroll">
                   <nav aria-label={t("Daily work")}>
                     <div className="space-y-0.5">
-                      {destinations.map(({ label, target, Icon, active }) => (
+                      {destinations.map(({ label, target, Icon, active, badge }) => (
                         <a
                           data-navigation-item
                           aria-label={t(label)}
-                          data-sidebar-tooltip={t(label)}
+                          aria-describedby={badge ? inboxBadgeId : undefined}
+                          data-sidebar-tooltip={
+                            badge ? `${t(label)} · ${t("Pending decisions")}: ${badge}` : t(label)
+                          }
                           key={label}
                           href={selectionUrl({ ...selection, ...target })}
                           aria-current={active ? "page" : undefined}
@@ -364,6 +379,16 @@ export function Shell({
                         >
                           <Icon size={17} />
                           <span data-navigation-label>{t(label)}</span>
+                          {badge && (
+                            <span data-navigation-count aria-hidden="true">
+                              {badge}
+                            </span>
+                          )}
+                          {badge && (
+                            <span id={inboxBadgeId} hidden>
+                              {`${t("Pending decisions")}: ${badge}`}
+                            </span>
+                          )}
                         </a>
                       ))}
                     </div>
@@ -625,19 +650,40 @@ export function Shell({
                       >
                         {t("Welcome")}
                       </button>
-                      {dailyWork.map((item) => (
-                        <button
-                          key={item.label}
-                          aria-pressed={
-                            item.label === "Commitments"
-                              ? isCommitmentsSelection(selection)
-                              : selection.route === item.selection.route
-                          }
-                          onClick={() => navigate(item.selection)}
-                        >
-                          {t(item.label)}
-                        </button>
-                      ))}
+                      {dailyWork.flatMap((item) => {
+                        const pressed =
+                          item.label === "Commitments"
+                            ? isCommitmentsSelection(selection)
+                            : selection.route === item.selection.route;
+                        const tab = (
+                          <button
+                            key={item.label}
+                            aria-pressed={pressed}
+                            aria-describedby={
+                              !pressed && item.label === "Decisions" && inboxBadge
+                                ? inboxBadgeId
+                                : undefined
+                            }
+                            onClick={() => navigate(item.selection)}
+                          >
+                            {t(item.label)}
+                          </button>
+                        );
+                        // The open tab shows its own register count; Decisions keeps
+                        // the waiting count visible from the other tabs too.
+                        return !pressed && item.label === "Decisions" && inboxBadge
+                          ? [
+                              tab,
+                              <span
+                                key="pending-decisions"
+                                className="page-introduction-count shell-tab-count"
+                                aria-hidden="true"
+                              >
+                                <span data-tab-pending-count>{inboxBadge}</span>
+                              </span>,
+                            ]
+                          : [tab];
+                      })}
                     </nav>
                   </RegisterHeader>
                 )}
