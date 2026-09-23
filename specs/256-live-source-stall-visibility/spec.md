@@ -141,6 +141,8 @@ An owner of a stopped live source restarts it in one confirmed action, or is tol
 - **FR-014**: Reads introduced by this feature MUST NOT execute, materialize, claim or repair any job.
 - **FR-015**: The integrations overview MUST mark every source whose live execution is stopped, suspended or overdue with an attention badge and MUST state its live state there, so that a stalled source is visible without opening it.
 - **FR-016**: The place where a source is configured MUST contain everything settable about that source, including the state, rate and controls of a simulation it owns; it MUST NOT send the person elsewhere to change them. What the source observes MUST NOT be duplicated there, and MUST stay reachable from it in one step.
+- **FR-016a**: A source's configuration MUST present what belongs to that system as its own named part, so that every system — a shop, an ERP or the simulation — has one place of its own; a system without such settings MUST say so rather than leave the place unexplained.
+- **FR-016b**: A connected simulation MUST be operated through its registered source and MUST NOT occupy a second place in the overview. An entry point outside the source list MUST exist only while no source is connected yet.
 - **FR-017**: A failure MUST retain a bounded failure category and human-readable message, free of payloads, credentials and connection detail, so that the reason survives the process boundary that produced it.
 - **FR-018**: While a confirmed control is being applied, the surface MUST show that work is in progress until it completes or fails, and the confirming control MUST state it too; a control whose effect is not yet visible MUST NOT look unpressed.
 
@@ -194,7 +196,7 @@ None. The three questions of the draft were answered on 2026-09-23 and are recor
 | FR-008–FR-010 | US3 scenarios 1, 3, 4 | One-action restart story, idempotent replay test, all-or-nothing multi-schedule test |
 | FR-011–FR-012 | US3 scenario 2 | Creation-time profile-version compatibility test against a grown catalog |
 | FR-013–FR-014 | US2 scenario 5; edge cases | Payload inspection test and a read-only assertion over the job tables |
-| FR-015–FR-016 | US1 scenario 1; US2 scenario 2 | Integrations overview badge and state tests, settings-to-simulation browser proof |
+| FR-015–FR-016b | US1 scenario 1; US2 scenario 2; US3 scenario 3 | Overview badge and state tests; browser proof that the settings hold the simulation and that a connected source has no second place |
 | FR-017 | US1 scenarios 1–3 | Failure-category retention test across the process boundary |
 | FR-018 | US3 scenario 1 | Browser proof of the working state over a delayed control response |
 | DR-001–DR-003 | US1–US2 | Derivation-at-read-time assertions; no new stored authority |

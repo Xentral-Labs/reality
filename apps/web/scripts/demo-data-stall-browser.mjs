@@ -161,22 +161,15 @@ const base = process.env.UNIFIED_BASE_URL || "http://127.0.0.1:5177";
 await page.goto(`${base}/app/data-sources?tenant=${tenant}&data_view=systems`);
 
 // FR-015: the overview says the simulation is not producing, and marks it.
-const badge = page.locator("[data-demo-attention]");
-await badge.waitFor();
-assert.match(await badge.innerText(), /Waiting to resume/);
 const cell = page.locator('[data-demo-source-state="suspended"]');
 await cell.waitFor();
 // A narrow column carries the state; the reason travels in its title.
 assert.match(await cell.innerText(), /^Waiting$/);
 assert.match(await cell.getAttribute("title"), /interrupted and will resume by itself/);
+await page.locator("[data-demo-attention]").waitFor();
 
-// FR-001: the reason, and that it comes back by itself.
-const reason = page.locator("[data-demo-source-stall]");
-await reason.waitFor();
-const reasonText = await reason.innerText();
-assert.match(reasonText, /interrupted and will resume by itself/);
-assert.match(reasonText, /database could not be reached/);
-assert.match(reasonText, /Next attempt/);
+// A connected simulation is a registered source like any other: no second place.
+assert.equal(await page.locator("[data-demo-data-source]").count(), 0);
 
 // FR-016: what a person sets for this source is set where the source is configured.
 await page
@@ -186,7 +179,10 @@ await page
   .click();
 const dialog = page.locator("[data-source-configuration]");
 await dialog.waitFor();
-const settings = dialog.locator("[data-source-simulation-settings]");
+const systemSettings = dialog.locator('[data-source-system-settings="demo_data"]');
+await systemSettings.waitFor();
+assert.match(await systemSettings.innerText(), /Settings for this system/);
+const settings = systemSettings.locator("[data-source-simulation-settings]");
 await settings.waitFor();
 await settings.getByRole("heading", { name: "Live simulation" }).waitFor();
 assert.match(await settings.innerText(), /database could not be reached/);
