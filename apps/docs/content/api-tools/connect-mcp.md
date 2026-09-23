@@ -3,6 +3,26 @@
 Reality exposes tenant-scoped business tools to compatible external agents through authenticated
 Streamable HTTP. Use this guide to connect one client with only the capabilities it needs.
 
+## One human setup, then the agent works
+
+The current connection starts with a short, one-time browser setup by a person. The person creates
+and verifies a Reality account, creates or selects the company, and issues a tenant-scoped MCP
+access token for the client. After that handoff, the agent uses the MCP endpoint and token directly;
+it does not need the person's browser session or password.
+
+```text
+Human in the browser, once:
+account → email verification → company → scoped MCP token
+
+Agent afterwards:
+MCP endpoint + token → discover and use permitted tools
+```
+
+An agent or integrating system must not automate signup, email verification, or an interactive
+login. If no person has completed the browser setup, ask one to do so and provide the displayed MCP
+endpoint and the token shown once. This is the same starting contract for every third-party agent or
+knowledge system; there is no product-specific provisioning path today.
+
 ## What an agent can do
 
 An authorized agent can inspect orders and commitments, read inventory, find fulfillment blockers,
@@ -16,7 +36,8 @@ the generated [Tool Usage reference](../tool-usage/commands) for current names a
 
 ## Prerequisites
 
-- An active Reality account and company membership.
+- A person has completed signup and email verification in the Reality browser application.
+- That person has created or selected the company the agent should use.
 - Company-owner access to **Company settings → Agents → MCP Server** for token management.
 - A compatible MCP client that accepts a remote Streamable HTTP endpoint and an Authorization bearer
   header.
@@ -103,6 +124,10 @@ Reality currently uses manually created, tenant-scoped bearer access tokens. It 
 provide an OAuth 2.1 authorization flow, PKCE, dynamic client registration, or refresh-token
 rotation. Therefore connection is configured rather than one-click. Check the product's current
 settings and documentation before assuming a client-specific login flow is available.
+
+This also means Reality does not currently offer unattended company provisioning for an external
+agent. Browser setup establishes the human identity, company membership, and deliberate grant of
+access; the MCP token is the agent credential after that point.
 
 ## Read response migration (contract v2)
 
