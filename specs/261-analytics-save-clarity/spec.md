@@ -46,7 +46,7 @@ A person who has an answer in front of them can see how to keep it.
 **Acceptance Scenarios**:
 
 1. **Given** an executed analysis, **When** it is shown, **Then** a "Save analysis" button is visible next to it without opening a menu, and it is the primary action.
-2. **Given** a saved report is open, **When** it is shown, **Then** the visible primary action is `Save "<name>"` and "Save as a new report" is offered beside it.
+2. **Given** a saved report is open, **When** it is shown, **Then** "Save changes" and "Save as a new report" are both visible beside it; "Save changes" is available and emphasized only while there is a change to save.
 3. **Given** the report library, **When** it is shown, **Then** "New analysis" is visible without opening a menu.
 4. **Given** the data catalog, **When** an object is selected, **Then** "Use in analysis" is visible without opening a menu.
 5. **Given** the save control is pressed, **When** the name field appears, **Then** it appears in the same place as the control that was pressed, focused.
@@ -122,8 +122,9 @@ A person who asked the copilot for a report and confirmed it is taken to that re
 **Acceptance Scenarios**:
 
 1. **Given** the German edition, **When** the analysis choice screen and the template list are shown, **Then** the toggle and the per-template action read differently.
-2. **Given** a template with a period, **When** it is shown, **Then** it states the window it will set and that adoption fixes it to dates.
-3. **Given** an adopted template with a period, **When** the filter is shown, **Then** it names the resolved dates, as today.
+2. **Given** the German edition, **When** a report proposal card is shown, **Then** nothing on it is in English.
+3. **Given** a template with a period, **When** it is shown, **Then** it states the window it will set and that adoption fixes it to dates.
+4. **Given** an adopted template with a period, **When** the filter is shown, **Then** it names the resolved dates, as today.
 
 ### Edge Cases
 
@@ -148,7 +149,7 @@ A person who asked the copilot for a report and confirmed it is taken to that re
 - **FR-008**: A failed save keeps the entered name and the analysis, and states the reason.
 - **FR-009**: A private report proposal's preview names the report the change concerns: the report it changes for an existing-report operation, and for a confirmed create or duplicate the row written under that change's retry key. No field is added to the report; the existing `create_request_id` is the link.
 - **FR-010**: The chat proposal card distinguishes its states. Awaiting confirmation it offers "Open in analysis" and states that this is an unsaved preview of the proposal. Confirmed, it states that the report was saved and offers to open the saved report, which opens it as a saved report. Rejected, or when the named report no longer exists, it offers no open action.
-- **FR-011**: The German edition distinguishes the template toggle from the per-template action.
+- **FR-011**: The German edition distinguishes the template toggle from the per-template action. The report proposal card's operations are named as phrases and translated in every edition; German says "Auswertung" there as it does elsewhere in Analytics.
 - **FR-012**: A template with a period states the window it sets and that adopting it fixes that window to dates. The resolved dates continue to be shown in the adopted filter.
 
 ## Key Entities
