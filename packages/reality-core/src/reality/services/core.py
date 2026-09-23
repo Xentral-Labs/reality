@@ -2075,7 +2075,8 @@ def create_party(
         PartyRole(id=uid("pro"), tenant_id=tenant_id, party_id=party.id, role=role)
         for role in selected_roles
     )
-    _replace_party_emails(session, tenant_id, party.id, emails or [])
+    if emails:
+        _replace_party_emails(session, tenant_id, party.id, emails)
     emit_business_event(
         session,
         tenant_id,
