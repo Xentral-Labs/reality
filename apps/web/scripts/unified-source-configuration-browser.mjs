@@ -247,7 +247,14 @@ try {
     .first()
     .click();
   const panel = page.locator("[data-source-configuration]");
-  await panel.getByRole("button", { name: "View received records", exact: true }).click();
+  // The dialog is settings only: it offers no navigation of its own.
+  assert.equal(await panel.getByRole("button", { name: "View received records" }).count(), 0);
+  await panel.getByRole("button", { name: "Close", exact: true }).click();
+  await page
+    .locator("tbody")
+    .getByRole("button", { name: "Received data", exact: true })
+    .first()
+    .click();
   assert.equal(new URL(page.url()).searchParams.get("source_system"), "shopify");
   await go();
   capabilities.push(
