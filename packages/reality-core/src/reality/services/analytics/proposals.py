@@ -114,8 +114,39 @@ def preview(session, tenant_id, principal, proposal_id):
         or arguments.get("question")
         or (report.definition if report else None),
         "expected_revision": arguments.get("expected_revision"),
+        "report_id": _written(session, tenant_id, principal, arguments, report),
         "kind": report_kind,
     }
+
+
+def _written(session, tenant_id, principal, arguments, report):
+    """The report this proposal concerns, once there is one to open.
+
+    A create carries no report ID, because the report does not exist while the
+    proposal waits. Confirming writes one, and the row records the retry key the
+    change was made under — so the link is already there and needs no new field.
+    Offering to open a report that was since deleted is a dead end, so a deleted
+    row names nothing.
+    """
+    from sqlalchemy import select
+
+    from reality.db.analytics import AnalyticsReport
+
+    if arguments["operation"] in {"create", "duplicate"}:
+        # A duplicate names its source, but what confirming produced is the copy,
+        # and the copy is what the reader asked for.
+        owner = require_author(session, tenant_id, principal)
+        return session.scalar(
+            select(AnalyticsReport.id).where(
+                AnalyticsReport.tenant_id == tenant_id,
+                AnalyticsReport.owner_user_id == owner,
+                AnalyticsReport.create_request_id == str(arguments["request_id"]),
+                AnalyticsReport.deleted_at.is_(None),
+            )
+        )
+    if report is None:
+        return None
+    return None if report.deleted_at is not None else report.id
 
 
 # --- a requested analysis ------------------------------------------------------

@@ -842,6 +842,15 @@ export function ChatPage({
                   proposal: "",
                 })
               }
+              openReport={(reportId) =>
+                navigate({
+                  route: "analytics",
+                  analyticsView: "graph",
+                  analyticsReport: reportId,
+                  analyticsProposal: "",
+                  proposal: "",
+                })
+              }
             />
           ) : (
             <button

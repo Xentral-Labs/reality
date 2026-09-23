@@ -19,7 +19,7 @@ export function GraphTemplates({
 }: {
   tenant: string;
   selectedKey?: string;
-  onAdopted: (question: GraphQuestion) => void;
+  onAdopted: (question: GraphQuestion, name: string) => void;
 }) {
   const [snapshots, setSnapshots] = useState<Record<string, string>>({});
   const language = currentLanguage();
@@ -45,8 +45,13 @@ export function GraphTemplates({
               </div>
               {template.period && (
                 <p className="text-xs text-fg-muted">
-                  {t("Comes with a period")}:{" "}
-                  {t(WINDOWS[template.period.window] ?? template.period.window)}
+                  {t("Sets a period")}:{" "}
+                  {t(WINDOWS[template.period.window] ?? template.period.window)}.{" "}
+                  {/* The window is resolved to dates the moment it is adopted, and
+                      the filter then shows those dates. Advertising a living
+                      window and storing a fixed one is the one claim this card
+                      cannot make. */}
+                  {t("Using it fixes this to dates.")}
                 </p>
               )}
               {template.snapshot && (
@@ -66,7 +71,7 @@ export function GraphTemplates({
               <button
                 className="br-btn"
                 disabled={Boolean(template.snapshot && !snapshots[template.key])}
-                onClick={() => onAdopted(dated(template, snapshots[template.key]))}
+                onClick={() => onAdopted(dated(template, snapshots[template.key]), template.label)}
               >
                 {t("Use template")}
               </button>

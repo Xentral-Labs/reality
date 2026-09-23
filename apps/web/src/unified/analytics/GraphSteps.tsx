@@ -3,7 +3,6 @@ import { catalogGroups } from "./catalog";
 import { openAnalysisChat } from "./chatHandoff";
 import "./AnalysisBuilder.css";
 import { RegisterHeader } from "../RegisterWorkbench";
-import { PageActionBar } from "../PageActionBar";
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
   APIError,
@@ -26,6 +25,7 @@ import { ReadState } from "../ReadState";
 import { useRead } from "../useCompanyContext";
 import { chip } from "./chips";
 import { analyticsError } from "./errors";
+import { sameQuestion, suggestedName } from "./reportName";
 
 /** The result is the question.
  *
@@ -246,14 +246,21 @@ export function GraphSteps({
   tenant,
   report,
   onSaved,
+  onLibrary,
   initialQuestion,
+  initialName,
   active = true,
   onNew,
 }: {
   tenant: string;
   active?: boolean;
   onNew?: () => void;
+  onLibrary?: () => void;
   initialQuestion?: GraphQuestion;
+  /** The name this analysis arrived with: a template's label, or the name the
+   *  copilot proposed. Without it the naming field opened blank on exactly the
+   *  two paths that already knew what this report is called. */
+  initialName?: string;
   report?: GraphReport | null;
   onSaved?: (report: GraphReport) => void;
 }) {
@@ -268,8 +275,10 @@ export function GraphSteps({
       catalog={read.data}
       report={report ?? null}
       initialQuestion={initialQuestion}
+      initialName={initialName}
       active={active}
       onNew={onNew}
+      onLibrary={onLibrary}
       onSaved={onSaved}
     />
   );
@@ -544,16 +553,20 @@ function Builder({
   catalog,
   report,
   onSaved,
+  onLibrary,
   initialQuestion,
+  initialName,
   active = true,
   onNew,
 }: {
   tenant: string;
   active?: boolean;
   onNew?: () => void;
+  onLibrary?: () => void;
   catalog: GraphCatalog;
   report: GraphReport | null;
   initialQuestion?: GraphQuestion;
+  initialName?: string;
   onSaved?: (report: GraphReport) => void;
 }) {
   const nodes = useMemo(
@@ -578,6 +591,12 @@ function Builder({
     report?.definition ?? initialQuestion ?? null,
   );
   const [activeReport, setActiveReport] = useState(report);
+  // The question as it stands saved, so "unsaved changes" is a comparison and
+  // not a guess. The server answers canonicalized, so what is compared is the
+  // canonical form of the first answer after a load or a save, never the text
+  // that was stored.
+  const [baseline, setBaseline] = useState<GraphQuestion | null>(null);
+  const capture = useRef(Boolean(report));
   const [answer, setAnswer] = useState<GraphAnswer | null>(null);
   const [refusal, setRefusal] = useState<Refusal | null>(null);
   const [busy, setBusy] = useState(false);
@@ -608,6 +627,10 @@ function Builder({
     setPlan(planOf(value.question, nodes));
     setReadAt(new Date().toISOString());
     setDraft(false);
+    if (capture.current) {
+      capture.current = false;
+      setBaseline(value.question);
+    }
     if (!keepText) {
       setPath(value.editor?.path ?? "");
       setParameters(JSON.stringify(value.editor?.parameters ?? {}, null, 2));
@@ -736,9 +759,20 @@ function Builder({
           <Save
             tenant={tenant}
             plan={shownPlan}
+            nodes={nodes}
             definition={canonical ?? undefined}
             report={activeReport}
-            onSaved={onSaved}
+            draftName={initialName ?? ""}
+            changed={!activeReport || !sameQuestion(baseline, canonical)}
+            onSaved={(stored) => {
+              // Without this the builder never learned that it had been saved:
+              // it kept offering to create, and a second save wrote a second
+              // report with the same question.
+              setActiveReport(stored);
+              setBaseline(canonical);
+              onSaved?.(stored);
+            }}
+            onLibrary={onLibrary}
             active={active}
             onNew={onNew}
             disabled={busy || draft || !answer}
@@ -2458,22 +2492,38 @@ function AddGroup({ fields, add }: { fields: Field[]; add: (group: Group) => voi
  * Reopening re-executes it, so what comes back is a fresh observation rather
  * than a preserved number — the only honest thing a report can be when the
  * records underneath it keep changing.
+ *
+ * It renders where the analysis is, rather than portalling its buttons into the
+ * page header. There they collapsed into a generic "More actions" menu, so the
+ * one step that turns a question into a report of your own was the one step
+ * nothing on the page mentioned — and the naming field then appeared somewhere
+ * else entirely from the control that opened it.
  */
 function Save({
   tenant,
   plan,
+  nodes,
   report,
   onSaved,
+  onLibrary,
   definition,
   active = true,
   onNew,
   disabled = false,
+  changed = false,
+  draftName = "",
 }: {
   tenant: string;
   active?: boolean;
   onNew?: () => void;
+  onLibrary?: () => void;
   disabled?: boolean;
+  /** True when the question on screen is no longer the one that was saved. */
+  changed?: boolean;
+  /** The name this analysis arrived with — a template's, or a proposal's. */
+  draftName?: string;
   plan: Plan;
+  nodes: Record<string, GraphNode>;
   definition?: GraphQuestion;
   report: GraphReport | null;
   onSaved?: (report: GraphReport) => void;
@@ -2482,7 +2532,7 @@ function Save({
   const [name, setName] = useState("");
   const [busy, setBusy] = useState(false);
   const [failed, setFailed] = useState("");
-  const [saved, setSaved] = useState<string>("");
+  const [saved, setSaved] = useState(false);
 
   const send = async (change: Parameters<typeof graphApi.change>[1]) => {
     setBusy(true);
@@ -2491,85 +2541,115 @@ function Save({
       const stored = await graphApi.change(tenant, change);
       setNaming(false);
       setName("");
-      setSaved(stored.name);
+      setSaved(true);
       onSaved?.(stored);
     } catch (failure) {
+      // The entered name stays: a refused save is not a reason to make somebody
+      // type it again.
       setFailed(failure instanceof Error ? failure.message : analyticsError(failure));
     } finally {
       setBusy(false);
     }
   };
+  const create = () =>
+    void send({
+      operation: "create",
+      request_id: crypto.randomUUID(),
+      name: name.trim(),
+      question: definition ?? question(plan),
+    });
+  const open = () => {
+    setName(draftName || suggestedName(plan, nodes, groupCaptions(plan, nodes)));
+    setFailed("");
+    setNaming(true);
+  };
 
-  if (naming)
-    return (
-      <div className="flex flex-wrap items-center gap-2">
-        <input
-          className="br-control"
-          aria-label={t("Report name")}
-          autoFocus
-          value={name}
-          onChange={(event) => setName(event.target.value)}
-          onKeyDown={(event) => {
-            if (event.key === "Enter" && name.trim())
-              void send({
-                operation: "create",
-                request_id: crypto.randomUUID(),
-                name: name.trim(),
-                question: definition ?? question(plan),
-              });
-          }}
-        />
-        <button
-          className="br-btn"
-          disabled={busy || !name.trim()}
-          onClick={() =>
-            void send({
-              operation: "create",
-              request_id: crypto.randomUUID(),
-              name: name.trim(),
-              question: definition ?? question(plan),
-            })
-          }
-        >
-          {busy ? t("Saving…") : t("Save")}
-        </button>
-        <button className="br-btn" onClick={() => setNaming(false)}>
-          {t("Cancel")}
-        </button>
-        {failed && <span className="text-xs text-warning-600">{failed}</span>}
-      </div>
-    );
-
+  const state = report
+    ? changed
+      ? t("Unsaved changes")
+      : saved
+        ? t("Saved")
+        : t("Saved report")
+    : t("Draft · not saved yet");
   return (
-    <div className="flex flex-wrap items-center gap-3 text-sm">
-      {active && (
-        <PageActionBar
-          actions={[
-            onNew && { key: "new", label: "New analysis", onClick: onNew },
-            report && {
-              key: "save",
-              label: `${t("Save")} „${report.name}“`,
-              disabled: disabled || busy,
-              onClick: () =>
-                void send({
-                  operation: "update",
-                  request_id: crypto.randomUUID(),
-                  report_id: report.id,
-                  expected_revision: report.revision,
-                  question: definition ?? question(plan),
-                }),
-            },
-            {
-              key: "save-as",
-              label: report ? "Save as a new report" : "Save analysis",
-              disabled: disabled || busy,
-              onClick: () => setNaming(true),
-            },
-          ]}
-        />
+    <div className="analysis-identity">
+      <div className="analysis-identity-name">
+        <h2>{report?.name || draftName || t("New analysis")}</h2>
+        <p className={report && !changed ? "analysis-identity-saved" : undefined}>{state}</p>
+      </div>
+      {naming ? (
+        <div className="analysis-identity-actions">
+          <input
+            className="br-control"
+            aria-label={t("Report name")}
+            autoFocus
+            maxLength={120}
+            value={name}
+            // Selected, so the suggestion is a starting point and not something
+            // to delete before typing.
+            onFocus={(event) => event.currentTarget.select()}
+            onChange={(event) => setName(event.target.value)}
+            onKeyDown={(event) => {
+              if (event.key === "Enter" && name.trim()) create();
+              if (event.key === "Escape") setNaming(false);
+            }}
+          />
+          <button
+            className="br-btn br-btn-primary"
+            disabled={busy || !name.trim()}
+            onClick={create}
+          >
+            {busy ? t("Saving…") : t("Save")}
+          </button>
+          <button className="br-btn" disabled={busy} onClick={() => setNaming(false)}>
+            {t("Cancel")}
+          </button>
+        </div>
+      ) : (
+        active && (
+          <div className="analysis-identity-actions">
+            {report && (
+              <button
+                className="br-btn br-btn-primary"
+                disabled={disabled || busy || !changed}
+                onClick={() =>
+                  void send({
+                    operation: "update",
+                    request_id: crypto.randomUUID(),
+                    report_id: report.id,
+                    expected_revision: report.revision,
+                    question: definition ?? question(plan),
+                  })
+                }
+              >
+                {busy ? t("Saving…") : t("Save changes")}
+              </button>
+            )}
+            <button
+              className={`br-btn ${report ? "" : "br-btn-primary"}`}
+              disabled={disabled || busy}
+              onClick={open}
+            >
+              {t(report ? "Save as a new report" : "Save analysis")}
+            </button>
+            {saved && onLibrary && (
+              <button className="br-btn" onClick={onLibrary}>
+                {t("My reports")}
+              </button>
+            )}
+            {onNew && (
+              <button className="br-btn" onClick={onNew}>
+                {t("New analysis")}
+              </button>
+            )}
+          </div>
+        )
       )}
-      {saved && <span className="text-xs text-fg-muted">{t("Saved")}</span>}
-      {failed && <span className="text-xs text-warning-600">{failed}</span>}
+      {failed && (
+        <p role="alert" className="analysis-identity-failure">
+          {failed}
+        </p>
+      )}
     </div>
   );
 }

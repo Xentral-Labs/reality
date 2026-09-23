@@ -43,6 +43,60 @@
 .analysis-save:disabled {
   opacity: 0.5;
 }
+/* What this analysis is, and what it would take to keep it — on the analysis,
+   where the reader is looking, rather than portalled into the page header and
+   folded into a generic actions menu. */
+.analysis-identity {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--analysis-border);
+}
+.analysis-identity-name {
+  min-width: 0;
+}
+.analysis-identity-name h2 {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 20px;
+  color: var(--analysis-ink);
+  overflow-wrap: anywhere;
+}
+.analysis-identity-name p {
+  margin: 2px 0 0;
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--analysis-muted);
+}
+.analysis-identity-saved {
+  color: var(--positive-text);
+}
+.analysis-identity-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+.analysis-identity-actions .br-control {
+  min-width: 220px;
+}
+.analysis-identity-failure {
+  flex-basis: 100%;
+  margin: 0;
+  font-size: 12px;
+  color: var(--critical-text);
+}
+@media (max-width: 640px) {
+  .analysis-identity-actions,
+  .analysis-identity-actions .br-control {
+    width: 100%;
+    min-width: 0;
+  }
+}
 .analysis-interpretation {
   padding: 12px 0;
 }
