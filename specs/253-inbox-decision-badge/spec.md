@@ -13,7 +13,7 @@ Pending decisions wait silently in the Inbox's Decisions tab. Nothing in the nav
 A count badge on the Inbox sidebar entry, showing the number of change proposals awaiting a decision in the current company, and the same count next to the Decisions tab while another Inbox tab is open.
 This supersedes spec 225 FR-013 in two places, by the owner's decision: the Inbox entry carries a badge (a single queue, not an aggregate of all three), and the Decisions tab states its count while inactive.
 ### Non-Goals
-No new API, service, index or schema; no push channel; no badge on other entries; no change to the Decisions register itself. Always-visible counts for the Commitments and Exceptions tabs, or for tabs of other registers, are out of scope: their counts cost about 60 ms and 1.1–1.5 s on a large local tenant (measured 2026-09-23), where the pending-decision count costs about 1 ms.
+No new API, service, index or schema; no push channel; no badge on other entries; no change to the Decisions register itself. Always-visible counts for the Commitments and Exceptions tabs, or for tabs of other registers, are out of scope here and specified in spec 254 (work counts on workspace tabs).
 
 ## User Scenarios & Testing
 ### User Story 1 — See that decisions are waiting (P1)
