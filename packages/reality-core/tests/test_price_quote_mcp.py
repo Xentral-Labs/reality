@@ -1,4 +1,5 @@
 import pytest
+
 from reality.mcp.catalog import dispatch_tool
 from reality.services.core import (
     NotFound,
