@@ -164,6 +164,7 @@ PARTY_EMAILS = {
     ),
     "default": [],
 }
+DECIMAL_STRING = {"type": "string", "pattern": "^-?[0-9]+(?:\\.[0-9]+)?$"}
 
 
 def _records_schema(record_schema: dict[str, Any]) -> dict[str, Any]:
@@ -366,6 +367,33 @@ MCP_TOOL_CATALOG = (
             required=("family",),
         ),
         _read("business_discover"),
+    ),
+    MCPToolDefinition(
+        "price_quote_read",
+        "Read authoritative price quote",
+        "Resolve the applicable party-aware quantity tier and explain its assignment path; returns an explicit no-match result when no price applies.",
+        "read",
+        "Master data",
+        _object_schema(
+            {
+                "party_id": STRING,
+                "item_id": STRING,
+                "quantity": DECIMAL_STRING,
+                "direction": {"type": "string", "enum": ["sales", "purchase"]},
+                "currency": STRING,
+                "unit": STRING,
+                "at": OPTIONAL_STRING,
+            },
+            required=(
+                "party_id",
+                "item_id",
+                "quantity",
+                "direction",
+                "currency",
+                "unit",
+            ),
+        ),
+        _read("price_quote"),
     ),
     MCPToolDefinition(
         "inventory_read",
@@ -1090,7 +1118,6 @@ MCP_TOOL_CATALOG = (
     ),
 )
 
-DECIMAL_STRING = {"type": "string", "pattern": "^-?[0-9]+(?:\\.[0-9]+)?$"}
 BOOLEAN = {"type": "boolean"}
 INTEGER = {"type": "integer"}
 STRING_ARRAY = {"type": "array", "items": STRING, "minItems": 1, "uniqueItems": True}
