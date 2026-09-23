@@ -154,12 +154,12 @@ try {
     .first()
     .click();
   await page.getByText("Declared data types", { exact: true }).waitFor();
-  await button("Disable source definition").click();
+  await button("Switch off this source").click();
   assert.equal(writes.length, 1);
   await button("Confirm").click();
   await page.getByText("Registry state saved.", { exact: true }).waitFor();
   assert.equal(systems[0].is_active, false);
-  await button("Disable type definition").click();
+  await button("Switch off this data type").click();
   await button("Confirm").click();
   assert.equal(capabilities[0].is_active, false);
   await page.getByText("Declared data types", { exact: true }).waitFor();
@@ -299,11 +299,11 @@ try {
   assert.equal(writes.length, beforeHeld + 1);
   await page.goto(base + "/app/data-sources?tenant=other&entry=sys1");
   await page.getByText("Source definition not found.", { exact: true }).waitFor();
-  assert.equal(await button("Disable source definition").count(), 0);
+  assert.equal(await button("Switch off this source").count(), 0);
   failRead = true;
   await page.goto(base + "/app/data-sources?tenant=main&entry=sys1");
   await page.getByText("Could not load this view", { exact: true }).waitFor();
-  assert.equal(await button("Enable source definition").count(), 0);
+  assert.equal(await button("Switch on this source").count(), 0);
   failRead = false;
   await button("Retry").click();
   await button("Check current configuration").waitFor();
