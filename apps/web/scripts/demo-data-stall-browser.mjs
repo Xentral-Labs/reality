@@ -72,25 +72,29 @@ await page.route("**/api/**", async (route) => {
     });
   if (path.endsWith("/demo-data"))
     return reply(
-      phase === "overdue"
+      phase !== "suspended"
         ? {
             id: "ddc_1",
             state: phase === "paused" ? "paused" : "running",
-            derived_state: phase === "paused" ? "paused" : "overdue",
+            derived_state:
+              phase === "paused" ? "paused" : phase === "running" ? "running" : "overdue",
             revision: 3,
             rate: 60,
             schedule_id: "sch_1",
             next_arrival: "2026-09-23T06:00:00Z",
             last_success: "2026-09-23T06:00:00Z",
             scheduler_error: null,
-            stall: {
-              kind: "overdue",
-              code: null,
-              stopped_at: null,
-              attempts: 0,
-              recovery_at: null,
-              automatic: false,
-            },
+            stall:
+              phase !== "overdue"
+                ? null
+                : {
+                    kind: "overdue",
+                    code: null,
+                    stopped_at: null,
+                    attempts: 0,
+                    recovery_at: null,
+                    automatic: false,
+                  },
             generated: 883,
             imported: 883,
             failed: 0,
@@ -167,6 +171,7 @@ await cell.waitFor();
 assert.match(await cell.innerText(), /^Waiting$/);
 assert.match(await cell.getAttribute("title"), /interrupted and will resume by itself/);
 await page.locator("[data-demo-attention]").waitFor();
+assert.equal(await page.locator(".source-state-dot").count(), 0);
 
 // A connected simulation is a registered source like any other: no second place.
 assert.equal(await page.locator("[data-demo-data-source]").count(), 0);
@@ -184,7 +189,6 @@ await systemSettings.waitFor();
 assert.match(await systemSettings.innerText(), /Settings for this system/);
 const settings = systemSettings.locator("[data-source-simulation-settings]");
 await settings.waitFor();
-await settings.getByRole("heading", { name: "Live simulation" }).waitFor();
 assert.match(await settings.innerText(), /database could not be reached/);
 // The settable things are here: the state, the rate and the controls.
 await settings.getByLabel("Orders per hour").waitFor();
@@ -197,7 +201,7 @@ assert.equal(await settings.locator(".demo-order-to-cash").count(), 0);
 // FR-004/FR-005: an occurrence that was never executed names the missing role.
 phase = "overdue";
 await page.reload();
-await page.getByRole("heading", { name: "Live simulation" }).waitFor();
+await page.locator("[data-source-simulation-settings]").waitFor();
 const overdue = page.locator('[data-demo-stall="overdue"]');
 await overdue.waitFor();
 assert.match(await overdue.innerText(), /No arrival has been executed as scheduled/);
@@ -214,6 +218,14 @@ await working.waitFor();
 assert.match(await working.innerText(), /takes a few seconds/);
 await settingsPanel.getByRole("button", { name: "Applying…" }).waitFor();
 await working.waitFor({ state: "detached" });
+
+// A source that is simply working says so with one small light.
+phase = "running";
+await page.goto(`${base}/app/data-sources?tenant=${tenant}&data_view=systems`);
+const dot = page.locator('.source-state-dot[data-state="running"]');
+await page.locator("[data-demo-source-state]").waitFor();
+await dot.waitFor();
+assert.equal(await page.locator("[data-demo-attention]").count(), 0);
 
 assert.deepEqual(errors, [], `page errors: ${errors.join(" | ")}`);
 await browser.close();

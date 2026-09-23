@@ -178,8 +178,8 @@ system; the separate card on the integrations page appears only while nothing is
 connected, because there is no source row to open yet.
 
 Where the simulation is set: the source's own configuration dialog carries the
-simulation's state, reason, rate and controls (`DemoDataIntegration` with
-`variant="settings"`), because that is the one place a person configures this source.
-Its observations — counters, order to cash and live activity — stay on the simulation
-page, one step away. The source row in the integrations table states the live state in
+simulation's state, the reason it is not producing, the rate and the controls
+(`DemoDataIntegration` with `variant="settings"`) — and nothing else. Counters, arrival
+times, order to cash and the list of arrivals are observations shared by every source
+and are not repeated per source. The source row in the integrations table states the live state in
 a single word and carries the full reason in its title.
