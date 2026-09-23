@@ -2848,6 +2848,13 @@ textarea.br-control.rule-draft-editor {
 .source-state-dot[data-state="running"] {
   @apply bg-success-500 shadow-[0_0_0_3px_rgba(18,183,106,.12)];
 }
+/* Inside a source's settings the panel is already framed by that section. */
+.demo-data-integration[data-variant="settings"] {
+  border: 0;
+  padding: 0;
+  background: transparent;
+  box-shadow: none;
+}
 .demo-live-badge {
   @apply rounded-full bg-surface-muted px-3 py-1 text-xs font-semibold;
 }
