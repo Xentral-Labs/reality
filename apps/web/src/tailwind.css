@@ -2833,6 +2833,21 @@ textarea.br-control.rule-draft-editor {
 .demo-live-description {
   @apply mt-1 text-sm text-fg-muted;
 }
+/* One small light per source row: running, or quiet. Attention keeps its icon. */
+.source-state-dot {
+  @apply inline-block shrink-0 rounded-full;
+  width: 8px;
+  height: 8px;
+  background: var(--color-border-strong, #98a2b3);
+}
+/* The compact register cell flattens every span to display:inline, which would
+   leave the light without a box of its own. */
+.erp-cell .source-state-dot {
+  display: inline-block;
+}
+.source-state-dot[data-state="running"] {
+  @apply bg-success-500 shadow-[0_0_0_3px_rgba(18,183,106,.12)];
+}
 .demo-live-badge {
   @apply rounded-full bg-surface-muted px-3 py-1 text-xs font-semibold;
 }
