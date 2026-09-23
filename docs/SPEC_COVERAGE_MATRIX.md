@@ -1646,3 +1646,11 @@ Feature contract: `docs/features/b2b-operational-chain.md`.
 | Reservation consistency after commitment quantity revision | 250 FR-005–008/DR-003–004/SC-002 | `packages/reality-core/tests/test_commitment_revisions.py` |
 | Reviewed commitment cancellation, released allocations and verified receipt | 250 FR-009–012/FR-018/DR-003–006/SC-003/SC-007 | `packages/reality-core/tests/test_commitment_actions.py` |
 | Cross-story tracked stock, revision, cancellation and historical no-silent-repair reconciliation | 250 FR-001–019/DR-001–008/SC-001–003/SC-007 | `packages/reality-core/tests/scenarios/test_b2b_operational_integrity.py` |
+
+### Spec 261 saving an analysis is visible and named
+
+| Verification family | Specification | Tests |
+|---|---|---|
+| A report proposal names the report its change concerns, for a confirmed create, duplicate, update and a since-deleted report | 261 FR-009 | `packages/reality-core/tests/test_reporting_graph_lifecycle.py` |
+| Suggested report names from the catalog's own labels, and whether the question on screen is still the saved one | 261 FR-004/FR-006 | `apps/web/scripts/analytics-report-naming.test.mjs` |
+| Visible save controls, carried names, draft and saved states, saving into the address, and a confirmed proposal opening its report | 261 FR-001–FR-003/FR-005/FR-007/FR-008/FR-010–FR-012 | `apps/web/scripts/analytics-save-clarity-browser.mjs`; frontend build and i18n audit |
