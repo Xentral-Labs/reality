@@ -187,6 +187,7 @@ await dialog.waitFor();
 const systemSettings = dialog.locator('[data-source-system-settings="demo_data"]');
 await systemSettings.waitFor();
 assert.match(await systemSettings.innerText(), /Settings for this system/);
+assert.equal(await dialog.getByRole("button", { name: /Switch (off|on) this source/ }).count(), 0);
 const settings = systemSettings.locator("[data-source-simulation-settings]");
 await settings.waitFor();
 assert.match(await settings.innerText(), /database could not be reached/);

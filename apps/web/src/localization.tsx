@@ -1216,6 +1216,8 @@ const dictionaries: Record<Exclude<Language, "en">, Record<string, string>> = {
     "Applying your change. This takes a few seconds.":
       "Deine Änderung wird angewendet. Das dauert ein paar Sekunden.",
     "Applying…": "Wird angewendet…",
+    "Its own controls below decide this. Everything already received stays.":
+      "Das entscheiden die Steuerungen darunter. Alles bereits Empfangene bleibt erhalten.",
     "Switch off this data type": "Diesen Datentyp ausschalten",
     "Switch on this data type": "Diesen Datentyp einschalten",
     "After this change": "Nach dieser Änderung",
@@ -3266,6 +3268,8 @@ const dictionaries: Record<Exclude<Language, "en">, Record<string, string>> = {
     "Applying your change. This takes a few seconds.":
       "Je wijziging wordt toegepast. Dat duurt enkele seconden.",
     "Applying…": "Wordt toegepast…",
+    "Its own controls below decide this. Everything already received stays.":
+      "Dat bepalen de bedieningen hieronder. Alles wat al is ontvangen blijft behouden.",
     "Switch off this data type": "Dit gegevenstype uitschakelen",
     "Switch on this data type": "Dit gegevenstype inschakelen",
     "After this change": "Na deze wijziging",
@@ -5016,6 +5020,8 @@ const dictionaries: Record<Exclude<Language, "en">, Record<string, string>> = {
     "Applying your change. This takes a few seconds.":
       "Se está aplicando tu cambio. Tarda unos segundos.",
     "Applying…": "Aplicando…",
+    "Its own controls below decide this. Everything already received stays.":
+      "Lo deciden los controles de abajo. Todo lo ya recibido se conserva.",
     "Switch off this data type": "Desactivar este tipo de datos",
     "Switch on this data type": "Activar este tipo de datos",
     "After this change": "Después de este cambio",

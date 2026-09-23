@@ -148,6 +148,9 @@ export function SourceConfiguration({
       changed();
     });
   const system = data?.systems.find((row) => row.id === selected);
+  // Sources whose settings carry start/stop controls of their own; their lifecycle,
+  // not the registry switch, decides whether the source is in use.
+  const operated = system?.code === "demo_data";
   const types = data?.capabilities.filter((row) => row.system_id === selected) || [];
   return (
     <dialog
@@ -266,30 +269,34 @@ export function SourceConfiguration({
                     )}
                   </p>
                   <p className="mt-1 text-xs text-fg-muted">
-                    {t("Everything already received stays as it is. Nothing is deleted.")}
-                    {system.is_active && system.code === "demo_data"
-                      ? ` ${t("Switching it off also stops the simulation, which then has to be started again.")}`
-                      : ""}
+                    {operated
+                      ? t("Its own controls below decide this. Everything already received stays.")
+                      : t("Everything already received stays as it is. Nothing is deleted.")}
                   </p>
                 </div>
-                <button
-                  className="br-btn"
-                  disabled={busy || unknown}
-                  onClick={() =>
-                    choose({
-                      kind: "system",
-                      id: system.id,
-                      name: `${system.name} · ${system.code}`,
-                      active: !system.is_active,
-                    })
-                  }
-                >
-                  {t(system.is_active ? "Switch off this source" : "Switch on this source")}
-                </button>
+                {/* A system that operates itself owns this state. A second switch beside
+                    its own controls would write the same flag behind their back, leaving
+                    a connection that believes it runs while every job is refused. */}
+                {!operated && (
+                  <button
+                    className="br-btn"
+                    disabled={busy || unknown}
+                    onClick={() =>
+                      choose({
+                        kind: "system",
+                        id: system.id,
+                        name: `${system.name} · ${system.code}`,
+                        active: !system.is_active,
+                      })
+                    }
+                  >
+                    {t(system.is_active ? "Switch off this source" : "Switch on this source")}
+                  </button>
+                )}
               </div>
               <section data-source-system-settings={system.code} className="space-y-3">
                 <h3 className="font-semibold">{t("Settings for this system")}</h3>
-                {system.code === "demo_data" ? (
+                {operated ? (
                   // What this source does is set here, beside what it is. Every
                   // system earns its own part here; the simulation is the first.
                   <div data-source-simulation-settings>
