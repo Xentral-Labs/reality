@@ -5054,3 +5054,11 @@ textarea.br-control.rule-draft-editor {
 [data-home-work][data-waiting] > p:nth-child(3) {
   font-weight: 600;
 }
+
+/* A live graph says so quietly; the dot is the only colour it needs. */
+.activity-live-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  background: var(--color-success-500, #12b76a);
+}

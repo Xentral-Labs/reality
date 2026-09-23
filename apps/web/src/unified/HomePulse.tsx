@@ -1,18 +1,18 @@
-import { useEffect, useState } from "react";
-import { CheckCircle2, LoaderCircle, TriangleAlert, History } from "lucide-react";
+import { useEffect, useState, type ReactNode } from "react";
+import { TriangleAlert } from "lucide-react";
 import { api, type ActivityVolume, type SystemReadiness } from "../api";
 import { formatDateTime, t } from "../localization";
-import { ActivityDrawer } from "./ActivityDrawer";
 import { ActivityGraph } from "./ActivityGraph";
 
 export function HomePulse({
   user,
   tenant,
-  companyName,
+  lead,
 }: {
   user: string;
   tenant: string;
-  companyName: string;
+  /** What needs a person comes first, between readiness and the activity graph. */
+  lead?: ReactNode;
 }) {
   const storageKey = `reality.home.activity-days.${user}`;
   const [days, updateDays] = useState(() => {
@@ -35,7 +35,7 @@ export function HomePulse({
     <HomePulseBody
       key={`${tenant}-${days}`}
       tenant={tenant}
-      companyName={companyName}
+      lead={lead}
       days={days}
       setDays={setDays}
     />
@@ -43,20 +43,19 @@ export function HomePulse({
 }
 function HomePulseBody({
   tenant,
-  companyName,
+  lead,
   days,
   setDays,
 }: {
   tenant: string;
-  companyName: string;
+  lead?: ReactNode;
   days: number;
   setDays: (value: number) => void;
 }) {
   const [data, setData] = useState<ActivityVolume | null>(null),
     [readiness, setReadiness] = useState<SystemReadiness | null>(null);
   const [stale, setStale] = useState(false),
-    [checked, setChecked] = useState(false),
-    [history, setHistory] = useState(false);
+    [checked, setChecked] = useState(false);
   useEffect(() => {
     let disposed = false,
       busy = false;
@@ -118,83 +117,67 @@ function HomePulseBody({
         : !checked
           ? t("Checking…")
           : t("Currently unavailable");
-  return (
-    <section data-home-pulse="" className="min-w-0 space-y-4 text-[13px]">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <h2 className="text-sm font-medium text-fg-strong">{t("Your company, in motion")}</h2>
-          <p className="mt-1 text-xs text-fg-muted">
-            {t("Recorded activity · updates every 10 seconds")}
-          </p>
-        </div>
-        <button className="br-btn text-xs" onClick={() => setHistory(true)}>
-          <History size={16} />
-          {t("View all activity")}
-        </button>
-      </div>
-      <div
-        className="flex flex-wrap items-center gap-x-5 gap-y-2 text-xs"
-        aria-label={t("System status")}
-      >
-        <p className="flex items-center gap-2 font-medium" role="status">
-          {ready ? (
-            <CheckCircle2 size={16} className="shrink-0 text-fg-muted" aria-hidden="true" />
-          ) : !checked ? (
-            <LoaderCircle size={16} className="shrink-0 text-fg-muted" aria-hidden="true" />
-          ) : (
-            <TriangleAlert size={16} className="shrink-0 text-caution-text" aria-hidden="true" />
-          )}{" "}
-          {ready
-            ? t("Everything is ready")
-            : !checked
-              ? t("Checking…")
-              : t("Availability is not fully confirmed")}
-        </p>
+  const components = (
+    [
+      ["connection", "Connection"],
+      ["scheduler", "Automatic scheduling"],
+      ["worker", "Background processing"],
+    ] as const
+  ).map(([key, name]) => `${t(name)}: ${label(readiness?.components[key])}`);
+  const period = (
+    <div className="inbox-local-controls">
+      <div className="register-tabs" aria-label={t("Time range")}>
         {(
           [
-            ["connection", "Connection"],
-            ["scheduler", "Automatic scheduling"],
-            ["worker", "Background processing"],
+            [1, "24 hours"],
+            [7, "7 days"],
+            [30, "30 days"],
           ] as const
-        ).map(([key, name]) => (
-          <span key={key} className="text-fg-muted">
-            {t(name)}: {label(readiness?.components[key])}
-          </span>
+        ).map(([value, name]) => (
+          <button key={value} aria-pressed={days === value} onClick={() => setDays(value)}>
+            {t(name)}
+          </button>
         ))}
       </div>
-      <div>
-        <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-          <div className="inbox-local-controls">
-            <div className="register-tabs" aria-label={t("Time range")}>
-              {(
-                [
-                  [1, "24 hours"],
-                  [7, "7 days"],
-                  [30, "30 days"],
-                ] as const
-              ).map(([value, name]) => (
-                <button key={value} aria-pressed={days === value} onClick={() => setDays(value)}>
-                  {t(name)}
-                </button>
-              ))}
-            </div>
-          </div>
-          <p className="text-xs text-fg-muted">
-            {data ? `${t("Updated")}: ${formatDateTime(data.observed_at)}` : t("Loading…")}
-          </p>
+    </div>
+  );
+  return (
+    <section data-home-pulse="" className="min-w-0 space-y-5 text-[13px]">
+      {/* Readiness is quiet while everything works and speaks up only when it does not. */}
+      {ready || !checked ? (
+        <p role="status" className="sr-only">
+          {ready ? t("Everything is ready") : t("Checking…")}
+        </p>
+      ) : (
+        <div
+          role="status"
+          aria-label={t("System status")}
+          className="flex flex-wrap items-center gap-x-4 gap-y-1 rounded-lg bg-caution-bg px-3 py-2 text-xs text-caution-text"
+        >
+          <span className="flex items-center gap-1.5 font-medium">
+            <TriangleAlert size={14} className="shrink-0" aria-hidden="true" />
+            {t("Availability is not fully confirmed")}
+          </span>
+          {components.map((text) => (
+            <span key={text}>{text}</span>
+          ))}
         </div>
-        {data ? (
-          <ActivityGraph data={data} days={days} tenant={tenant} stale={stale} />
-        ) : (
+      )}
+      {lead}
+      {data ? (
+        <ActivityGraph data={data} days={days} tenant={tenant} stale={stale} controls={period} />
+      ) : (
+        <div>
+          <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+            <p className="font-medium">{t("Recorded business activity")}</p>
+            {period}
+          </div>
           <p className="py-16 text-center text-fg-muted" role="status">
             {stale
               ? t("Activity is currently unavailable. We will retry automatically.")
               : t("Loading…")}
           </p>
-        )}
-      </div>
-      {history && (
-        <ActivityDrawer tenant={tenant} companyName={companyName} close={() => setHistory(false)} />
+        </div>
       )}
     </section>
   );

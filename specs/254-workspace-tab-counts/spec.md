@@ -55,6 +55,7 @@ Acceptance: on Inbox · Commitments, the Exceptions and Decisions tabs show thei
 - **FR-006**: Zero shows nothing; above 99 reads 99+. The tab's accessible description states the count.
 - **FR-007**: The sidebar keeps a single badge (Inbox, spec 253); workspaces carry no sidebar badge.
 - **FR-008**: The Inbox orders its queues by who must act: Welcome, Decisions, Exceptions, Commitments; the Welcome tiles follow the same order. While decisions wait, the Decisions count carries the sidebar badge's accent on the tab (inactive and open) and the Welcome tile shows its number in the accent with "waiting for you"; at zero it looks like the other tiles. Exceptions and Commitments stay neutral.
+- **FR-009**: Welcome leads with the queue tiles, followed by the activity graph. The graph's header carries its title, a "Live" indicator and its resolution on the left and the period control on the right. Readiness is not shown while everything is ready and appears as a caution notice above the tiles when it is not. The page heading "Your company, in motion", its subtitle and the "View all activity" button are removed; full history remains in Reality Inspector · Activities.
 
 ## Decisions (owner, 2026-09-23)
 1. Warehouse · Stock shows the overallocation warning count.
@@ -62,6 +63,7 @@ Acceptance: on Inbox · Commitments, the Exceptions and Decisions tabs show thei
 3. No sidebar badges for Sales, Purchasing, Warehouse or Finance.
 4. The dashboard's live exception total is fixed separately (moved to the stored rows in its own pull request).
 5. Decisions are the most important Inbox queue: they come right after Welcome and carry the accent (owner, 2026-09-23).
+6. Welcome is decluttered as in FR-009 (owner, 2026-09-23).
 
 ## Assumptions and Dependencies
 Builds on spec 253 (Inbox decision badge, refresh rhythm, `reality:records-changed`; its hook is generalized to `useWorkCount`) and spec 180 (stored exceptions, ~2 min staleness accepted by the owner). Measurements are local; a large production tenant may differ, so FR-005 is mandatory.
@@ -70,4 +72,4 @@ Builds on spec 253 (Inbox decision badge, refresh rhythm, `reality:records-chang
 A person can tell from any main page which neighbouring tabs hold open work. A page adds at most one one-row read per work tab per minute while visible: about 135 ms of server time per minute on the Inbox, under 75 ms elsewhere.
 
 ## Requirement Traceability
-FR-001–008 → US1 → T002–T004. Verified by `apps/web/scripts/workspace-tab-counts-browser.mjs`, `apps/web/scripts/inbox-decision-badge-browser.mjs`, `apps/web/scripts/pending-decisions.test.mjs`, frontend build and i18n audit.
+FR-001–009 → US1 → T002–T004. Verified by `apps/web/scripts/workspace-tab-counts-browser.mjs`, `apps/web/scripts/inbox-decision-badge-browser.mjs`, `apps/web/scripts/pending-decisions.test.mjs`, frontend build and i18n audit.

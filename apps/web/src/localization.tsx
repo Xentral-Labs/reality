@@ -17131,9 +17131,9 @@ Object.assign(dictionaries.de, { "Ctrl K": "Strg K" });
 Object.assign(dictionaries.de, { Inbox: "Inbox" });
 Object.assign(dictionaries.nl, { Inbox: "Inbox" });
 Object.assign(dictionaries.es, { Inbox: "Inbox" });
-Object.assign(dictionaries.de, { "waiting for you": "warten auf dich" });
-Object.assign(dictionaries.nl, { "waiting for you": "wachten op jou" });
-Object.assign(dictionaries.es, { "waiting for you": "esperan tu decisión" });
+Object.assign(dictionaries.de, { "waiting for you": "warten auf dich", Live: "Live" });
+Object.assign(dictionaries.nl, { "waiting for you": "wachten op jou", Live: "Live" });
+Object.assign(dictionaries.es, { "waiting for you": "esperan tu decisión", Live: "En vivo" });
 
 Object.assign(dictionaries.de, {
   "What Reality and your agents can do.": "Was Reality und deine Agenten können.",
