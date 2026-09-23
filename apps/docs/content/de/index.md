@@ -146,12 +146,11 @@ verfolgen. Der Kern bleibt bewusst klein: Er soll die kürzesten wahren Beziehun
 verständlich machen, nicht möglichst viele ERP-Funktionen vortäuschen. Reality steht unter der
 [MIT-Lizenz](/de/reference/license).
 
-## Reality kommerziell einsetzen
+## Reality ohne eigene Installation testen
 
-Du möchtest den offenen Kern nicht selbst installieren und betreiben? Auf
-[runreality.ai](https://runreality.ai) findest du das kommerzielle Angebot für bereitgestellte
-Infrastruktur, Betrieb, Einführung und Unterstützung. Der MIT-lizenzierte Kern bleibt unabhängig
-davon frei kommerziell nutzbar.
+Du möchtest Reality ausprobieren, ohne den offenen Kern selbst zu installieren und zu betreiben? Auf
+[runreality.ai](https://runreality.ai) kannst du einen Account erstellen und direkt loslegen. Der
+MIT-lizenzierte Kern bleibt unabhängig davon frei kommerziell nutzbar.
 
-- [Kommerzielles Angebot ansehen](https://runreality.ai)
+- [Account erstellen und Reality testen](https://runreality.ai)
 - [Open-Source-Kern installieren](/de/operations/installation)

@@ -135,12 +135,11 @@ from the worked example through an executable catalog to its service and test. T
 on purpose: it proves and teaches the shortest true relationships instead of pretending to cover
 every ERP feature. Reality is available under the [MIT License](/reference/license).
 
-## Use Reality commercially
+## Try Reality without installing it yourself
 
-Do you prefer not to install and operate the open core yourself? Visit
-[runreality.ai](https://runreality.ai) for the commercial offering around managed infrastructure,
-operations, implementation and support. The MIT-licensed core remains independently available for
-commercial use.
+Want to try Reality without installing and operating the open core yourself? Create an account at
+[runreality.ai](https://runreality.ai) and get started right away. The MIT-licensed core remains
+independently available for commercial use.
 
-- [View the commercial offering](https://runreality.ai)
+- [Create an account and try Reality](https://runreality.ai)
 - [Install the open-source core](/operations/installation)
