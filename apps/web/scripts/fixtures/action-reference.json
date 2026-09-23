@@ -405,6 +405,14 @@
       "effect": "Gives a customer or supplier a directly prioritized price list."
     },
     {
+      "name": "Resolve authoritative price quote",
+      "service": "resolve_price",
+      "related_services": ["materialized_resolve_price"],
+      "mode": "read",
+      "adapters": ["CLI", "Web", "API", "MCP", "Chat"],
+      "effect": "Selects the currently applicable quantity tier and exposes the direct, group, or default assignment path without copying a price."
+    },
+    {
       "name": "Create and assign pricing group",
       "service": "create_party_group",
       "related_services": [
