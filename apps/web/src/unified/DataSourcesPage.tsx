@@ -140,11 +140,6 @@ export function DataSourcesPage({
           records={(code) =>
             navigate({ dataView: "records", sourceSystem: code, entry: "", q: "", page: 1 })
           }
-          simulation={
-            hasDemoDataSource(company)
-              ? () => navigate({ route: "demo-data", entry: "", proposal: "", q: "", page: 1 })
-              : undefined
-          }
         />
       )}
       {(importOpen || selection.importProposal) && (
@@ -312,8 +307,14 @@ export function DataSourcesPage({
                             data-demo-attention={demoState.attention || undefined}
                             title={demoState.detail || undefined}
                           >
-                            {demoState.attention && (
+                            {demoState.attention ? (
                               <AlertTriangle size={14} aria-hidden className="text-warning" />
+                            ) : (
+                              <span
+                                className="source-state-dot"
+                                aria-hidden
+                                data-state={demoState.state}
+                              />
                             )}
                             {t(demoState.label)}
                           </span>

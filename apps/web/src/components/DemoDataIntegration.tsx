@@ -54,7 +54,6 @@ export function DemoDataIntegration(props: {
    * this source is configured; the counters and the live activity stay on its page.
    */
   variant?: "full" | "settings";
-  openSimulation?: () => void;
 }) {
   return <DemoDataIntegrationView key={`${props.tenantId}:${props.runId || ""}`} {...props} />;
 }
@@ -64,13 +63,11 @@ function DemoDataIntegrationView({
   runId,
   showCompanyLink = false,
   variant = "full",
-  openSimulation,
 }: {
   tenantId: string;
   runId?: string;
   showCompanyLink?: boolean;
   variant?: "full" | "settings";
-  openSimulation?: () => void;
 }) {
   const settingsOnly = variant === "settings";
   const scope = runId
@@ -226,7 +223,7 @@ function DemoDataIntegrationView({
     >
       <header className="demo-live-header">
         <div>
-          <h2 id={`demo-data-${tenantId}`}>{t("Live simulation")}</h2>
+          {!settingsOnly && <h2 id={`demo-data-${tenantId}`}>{t("Live simulation")}</h2>}
           <p className="demo-live-description">
             {t(
               (state?.derived_state || state?.state) === "running"
@@ -410,14 +407,18 @@ function DemoDataIntegrationView({
                 </div>
               </dl>
             )}
-            <p>
-              {t("Next scheduled arrival")}:{" "}
-              {state.next_arrival ? formatDateTime(state.next_arrival) : "—"}
-            </p>
-            <p>
-              {t("Last successful import")}:{" "}
-              {state.last_success ? formatDateTime(state.last_success) : "—"}
-            </p>
+            {!settingsOnly && (
+              <>
+                <p>
+                  {t("Next scheduled arrival")}:{" "}
+                  {state.next_arrival ? formatDateTime(state.next_arrival) : "—"}
+                </p>
+                <p>
+                  {t("Last successful import")}:{" "}
+                  {state.last_success ? formatDateTime(state.last_success) : "—"}
+                </p>
+              </>
+            )}
             {!settingsOnly && state.order_to_cash && (
               <section className="demo-order-to-cash" aria-label={t("Order to cash")}>
                 <h4>{t("Order to cash")}</h4>
@@ -574,14 +575,6 @@ function DemoDataIntegrationView({
                   </button>
                 </div>
               </div>
-            )}
-            {settingsOnly && openSimulation && (
-              <p className="demo-live-open-simulation">
-                <button className="secondary-button" onClick={openSimulation}>
-                  {t("Open simulation")}
-                </button>{" "}
-                {t("Arrivals, order to cash and live activity are shown there.")}
-              </p>
             )}
             {!settingsOnly && (
               <section className="demo-live-activity" aria-label={t("Live activity")}>

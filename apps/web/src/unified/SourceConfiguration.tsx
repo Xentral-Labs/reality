@@ -13,14 +13,12 @@ export function SourceConfiguration({
   close,
   changed,
   records,
-  simulation,
 }: {
   tenant: string;
   id: string;
   close: () => void;
   changed: () => void;
   records: (code: string) => void;
-  simulation?: () => void;
 }) {
   const storageKey = `reality.source-configuration.pending:${tenant}`;
   const [pending] = useState<Action | null>(() => {
@@ -276,11 +274,7 @@ export function SourceConfiguration({
                     // What this source does is set here, beside what it is. Every
                     // system earns its own part here; the simulation is the first.
                     <div data-source-simulation-settings>
-                      <DemoDataIntegration
-                        tenantId={tenant}
-                        variant="settings"
-                        openSimulation={simulation}
-                      />
+                      <DemoDataIntegration tenantId={tenant} variant="settings" />
                     </div>
                   ) : (
                     <p className="text-sm text-fg-muted">
