@@ -3,7 +3,7 @@
 **Feature Branch**: `262-stock-at-location`
 **Language**: English
 **Created**: 2026-09-23
-**Status**: Draft
+**Status**: Approved (scope accepted by the owner 2026-09-23, with the three decisions below)
 **Input**: In Warehouse, clicking a quantity on an item never arrives at that item in that place. It arrives at the whole warehouse. Decide what a warehouse clerk expects behind each number and let the clicks lead there.
 
 ## Context and Intent
@@ -15,7 +15,7 @@ The item stock preview lists one quantity per location (`operational_previews.py
 
 The register cannot repair it either. `warehouse_register` takes a search term, a state and an item scope, and no place scope at all (`web/api.py:827-846`, `web/warehouse_reads.py:33-45`); Stock, Reservations and Movements are company-wide in all three tabs. A clerk who works in one warehouse has no way to ask for it.
 
-The two views also disagree about what their numbers mean, without saying so. The item preview shows **available** stock per location (`held - assigned`, `operational_previews.py:312-325`); the location inspector shows **physical** stock per item, without a unit (`web/api.py:5577-5586`). Today both read 2 for ITEM-012 in Rotterdam because nothing is reserved. The first reservation makes them disagree silently, and nothing on either screen says which quantity it is.
+The two views also show different quantities, and only one of them says so. The item preview shows **available** stock per location and names it, in the section title and again under each location (`held - assigned`, `operational_previews.py:312-327`). The location inspector shows **physical** stock per item under the neutral title "Current stock", with no quantity name and no unit (`web/api.py:5577-5586`). Today both read 2 for ITEM-012 in Rotterdam because nothing is reserved. The first reservation makes them differ, and the location side gives the reader nothing to notice it by.
 
 The intersection is not missing from the system — only from the web. `location_inventory_rows` already derives physical, reserved, available, incoming and projected for one item at one location from Movements and Reservations (`services/read_contracts.py:194-246`), and `inventory_read` exposes it to the agent in location view (`command_catalog.yaml:3960-3982`). An agent can already ask what a clerk cannot.
 
@@ -33,7 +33,7 @@ No new entity, table, column or projection: the pair is derived at read time fro
 | Where | Click | What a clerk expects | What happens today |
 |---|---|---|---|
 | Warehouse · Stock, item preview | location row "Rotterdam Warehouse · 2 pcs" | this item in Rotterdam: what is held, what is reserved, which movements and reservations produce it | the location inspector: 15 other items, the warehouse's last movements; the item context is dropped |
-| Warehouse · Stock, item preview | the per-location quantity itself | a labelled quantity in the item's unit | one unlabelled number, always *available*, headed "Available stock by location" |
+| Warehouse · Stock, item preview | the per-location quantity itself | available here, and what it is made of | available only; physical and reserved at that location are nowhere |
 | Warehouse · Stock, item preview | "Reservations" / "Movements" | from a location row: this item, here | the register scoped to the item across all locations |
 | Warehouse, any tab | scope to one warehouse | list only what is in my warehouse | not possible; `warehouse_register` has no location filter |
 | Reality Inspector · location | stock row "Aurora Notebook 10" | this item here | the item inspector across all locations; the number has no unit and no quantity name |
@@ -44,10 +44,10 @@ No new entity, table, column or projection: the pair is derived at read time fro
 ### User Story 1 — The pair, from the item (Priority: P1)
 A clerk opens an item in Warehouse · Stock, reads that two of three pieces are in Rotterdam, clicks that quantity and sees the item in Rotterdam: what is held there, what is reserved there, what is available there, which movements carried it in and out, and which reservations hold it. One click returns to the item.
 
-**Independent Test**: seed one item with movements into two locations and one active reservation in one of them; open the item preview; every location row names its three quantities; opening a location row shows only that item's records at that location, and the three quantities equal what `inventory_read` returns for the same pair.
+**Independent Test**: seed one item with movements into two locations and one active reservation in one of them; open the item preview; opening a location row shows only that item's records at that location, and its three quantities equal what `inventory_read` returns for the same pair.
 
 **Acceptance Scenarios**:
-1. **Given** an item with 2 pcs in Rotterdam and 1 pc in Singapore, **When** the clerk opens its stock preview, **Then** each location row states physical, reserved and available for that location, each in the item's unit and each named.
+1. **Given** an item with 2 pcs in Rotterdam and 1 pc in Singapore, **When** the clerk opens its stock preview, **Then** each location row shows the available quantity at that location, named as available, in the item's unit.
 2. **Given** that preview, **When** the clerk opens the Rotterdam row, **Then** the panel shows this item at Rotterdam only: the three quantities there, the movements of this item into and out of Rotterdam newest first, and the active reservations of this item at Rotterdam — no other item appears.
 3. **Given** that panel, **When** the clerk goes back, **Then** they are in the item preview they came from, with the same row open.
 4. **Given** the same pair, **When** `inventory_read` is called with that `item_id` and `location_id`, **Then** its physical, reserved and available equal the ones on screen.
@@ -75,9 +75,9 @@ A clerk looking at Rotterdam sees which items lie there and, for any of them, re
 **Independent Test**: open a location in Reality Inspector; each stock row states its quantity kind and unit and leads to the pair panel of US1.
 
 **Acceptance Scenarios**:
-1. **Given** a location inspector, **When** the clerk reads the current stock section, **Then** every row states that the quantity is physical stock and shows the item's unit.
+1. **Given** a location inspector, **When** the clerk reads the stock section, **Then** its title names the quantity as physical stock and every row shows the item's unit.
 2. **Given** a stock row, **When** the clerk opens it, **Then** the item-at-location panel of US1 opens for that item and this location.
-3. **Given** a location inspector, **When** the clerk wants the full list, **Then** one link opens Warehouse · Stock scoped to this location.
+3. **Given** a location in Master data, **When** the clerk wants the full list, **Then** Open warehouse opens Warehouse · Stock scoped to that location.
 
 ### Edge Cases
 - **Pair with no stock**: an item that once lay at a location and netted to zero stays reachable and shows zero with the movements that cancel out. Zero is an answer, not an absence.
@@ -93,7 +93,7 @@ A clerk looking at Rotterdam sees which items lie there and, for any of them, re
 
 ### Functional Requirements
 
-- **FR-001**: The item stock preview states, per location, the physical, reserved and available quantity at that location, each labelled and in the item's unit. The section is titled for stock at a location, not for available stock alone.
+- **FR-001**: The item stock preview keeps available stock as its per-location headline and keeps naming it; physical and reserved at that location are reached through FR-002. A quantity inside an Inspector row cannot carry a translated word, so three named quantities per location would mean three rows per location against a twenty-row section; the pair panel is where they belong.
 - **FR-002**: Opening a location row from the item stock preview opens an item-at-location explanation: the three quantities at that location, the movements of that item with that location as origin or destination newest first, and the active reservations of that item at that location. No record of another item appears. It opens where the location inspector opens today, and one action returns to the item preview with the same row open.
 - **FR-003**: The item-at-location quantities come from the existing shared read contract for the pair (`location_inventory_rows`), the same rows `inventory_read` returns in location view. No second derivation rule is written.
 - **FR-004**: The item-at-location panel offers one action each to Warehouse · Movements and Warehouse · Reservations scoped to that item **and** that location.
@@ -103,7 +103,7 @@ A clerk looking at Rotterdam sees which items lie there and, for any of them, re
 - **FR-008**: The location scope is shown as a named chip that clears it, it is written to the URL like the item scope, and it is restored on reload and from a shared link.
 - **FR-009**: Every screen carrying the location scope states it in words, so a location quantity is never read as a company quantity.
 - **FR-010**: The location-scoped stock list is derived set-based, in the query shape the unscoped list already uses. Deriving a register page pair by pair is not acceptable: the shared pair contract issues at least three statements per (item, location) pair, which is right for one pinned pair and wrong for a page of them.
-- **FR-011**: In the location inspector, each current-stock row states that its quantity is physical stock, shows the item's unit, and leads to the item-at-location explanation for that item and this location instead of the item across all locations. The section offers one link to Warehouse · Stock scoped to this location.
+- **FR-011**: The location inspector's stock section names its quantity in its title, each row carries the item's unit, and each row leads to the item-at-location explanation for that item and this location instead of the item across all locations. Master data · Locations offers Open warehouse scoped to that location, where the item family offers it today.
 - **FR-012**: Quantities are attributed to the exact location recorded on the movement or reservation. No screen sums a parent location's children or implies that it does.
 - **FR-013**: No new MCP tool, projection, table or column is added. The agent reaches the same rows through `inventory_read` in location view, and the web reads the same contract, so both answer the same three quantities for the same pair.
 - **FR-014**: New wording exists in both editions, in the agreed German ERP vocabulary (Lagerort, Bestand, physischer Bestand, reserviert, verfügbar, Warenbewegung, Reservierung), and passes the i18n audit.
@@ -115,15 +115,15 @@ No new entity. The feature reads `Movement`, `Reservation`, `Item` and `Location
 
 ### Measurable Outcomes
 - **SC-001**: From any quantity shown for an item at a location, a clerk reaches the movements and reservations that produce it in at most two actions, without leaving the item.
-- **SC-002**: No screen in scope shows a location quantity without naming which quantity it is and in which unit; the item view and the location view state the same number for the same pair and the same quantity kind.
+- **SC-002**: No screen in scope shows a location quantity without naming which quantity it is and in which unit; where the item view and the location view show the same pair, a reader can tell from the screen why the two numbers differ.
 - **SC-003**: The web and `inventory_read` return identical physical, reserved and available for the same pair on the same tenant, proven by a test that calls both.
 - **SC-004**: A location-scoped stock page costs the same query shape as the unscoped page and stays within twice its server time on the same tenant, measured back to back on a quiet machine before merge.
 - **SC-005**: Every acceptance scenario of US1–US3 is proven by an automated test; the click path of US1 and US3 is proven in a browser script.
 
-## Decisions taken in this draft (for scope acceptance)
+## Decisions (owner, 2026-09-23)
 1. A location row opens the pair **in place**, in the panel that opens the location today, rather than navigating to the register. The scoped register is one action further (FR-002, FR-004). Reason: the clerk is answering a question about an item and should not lose it.
 2. Under a location scope, Stock lists only items with records at that location (FR-007). Reason: the symmetric rule to the existing one on the item side — locations are discovered from the item's own records, never from an unrelated default.
-3. Per-location rows show three named quantities instead of one unnamed one (FR-001). Reason: it is the change that makes the item view and the location view stop contradicting each other.
+3. The item view keeps one named quantity per location; the location view gains the name and the unit it lacks (FR-001, FR-011). Reason: an Inspector row can compose numbers but not translated words, so the three-way breakdown belongs in the pair panel rather than in three rows per location.
 
 ## Assumptions and Dependencies
 - Builds on spec 109 (Warehouse registers and their item filter), spec 225 (register workbench, chips, URL state) and spec 254 (Stock lists every item; its shortage warning count). The location scope follows the item scope's existing pattern in all three.
