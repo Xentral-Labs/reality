@@ -78,6 +78,11 @@ INFRASTRUCTURE = {
 # Slices this feature deliberately leaves for later. Each names why, so a deferral
 # stays distinguishable from a gap — the distinction the audit was written to make.
 DEFERRED = {
+    "party_correspondence": (
+        "Party email addresses support exact operational sender matching. Exposing personal correspondence data to analytics requires a separate reviewed privacy and reporting-grain design.",
+        {"party_email_address"},
+        set(),
+    ),
     "operational_edge_workflows": (
         "Dunning evidence and explicit supply allocations are operational workflow records. Their reporting measures and graph grain require a separate reviewed analytics design; the operational services and UI remain available independently.",
         {
