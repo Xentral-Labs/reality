@@ -1,3 +1,4 @@
+from datetime import UTC, datetime
 from decimal import Decimal
 
 from sqlalchemy import func, select
@@ -63,7 +64,11 @@ def test_the_month_ends_with_exactly_these_exceptions(session):
     run_normal_month(session, tenant.id)
 
     counts: dict[str, int] = {}
-    for row in operational_exceptions(session, tenant.id):
+    for row in operational_exceptions(
+        session,
+        tenant.id,
+        as_of=datetime(2026, 9, 22, tzinfo=UTC),
+    ):
         counts[row.class_id] = counts.get(row.class_id, 0) + 1
 
     assert counts == {

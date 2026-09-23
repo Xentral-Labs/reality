@@ -42,7 +42,23 @@ def _read(session: Session, tenant: str, arguments: dict[str, Any]) -> dict[str,
         requested = request.model_dump(mode="json")
         resolved = None
         sequence = result.get("event_sequence")
-        target = None if historical else _sequence(session, tenant)
+        if historical:
+            target = None
+        elif result["review_id"] is not None:
+            from reality.services.inventory_costing import _relevant_event_sequence
+
+            target = _relevant_event_sequence(
+                session,
+                tenant,
+                (
+                    request.scope_id
+                    if request.kind == "inventory"
+                    else result["trace"]["item_id"]
+                ),
+                int(sequence),
+            )
+        else:
+            target = _sequence(session, tenant)
         if result["review_id"] is not None:
             inventory_id = (
                 result["review_id"]

@@ -1,6 +1,36 @@
 """Versioned synthetic vocabulary and authored comparison inputs."""
 
-PROFILE_VERSION = 11
+PROFILE_VERSION = 12
+
+# Authored acquisition assumptions for opening stock in the canonical synthetic
+# company. These are source values in the demo profile, not values inferred from
+# sales prices or later accounting documents.
+OPENING_UNIT_COSTS = {
+    f"P{index:02}": value
+    for index, value in enumerate(
+        (
+            "6",
+            "12",
+            "10.5",
+            "18",
+            "10",
+            "7",
+            "3",
+            "22",
+            "9",
+            "5",
+            "14",
+            "8",
+            "11",
+            "6",
+            "6",
+            "9",
+            "15",
+            "80",
+        ),
+        1,
+    )
+}
 
 
 def item_number(key: str) -> str:

@@ -6,8 +6,14 @@ from decimal import Decimal
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from reality.db.contribution import CostContributionReview, CostRevenueMatchBasis
+from reality.db.contribution import (
+    CostContributionReview,
+    CostRevenueMatchBasis,
+    CostSellingPart,
+    CostSellingReviewMember,
+)
 from reality.db.core import DocumentLine, now
+from reality.db.costing import CostAttribution
 from reality.db.inventory_costing import (
     CostInventoryMember,
     CostInventoryReview,
@@ -32,6 +38,47 @@ from reality.services.costing import (
     inventory_cost,
 )
 from reality.services.inventory_costing import _values
+
+
+def _selling_basis_stale(session, tenant: str, action_id: str) -> bool:
+    """Whether any frozen selling attribution in one review action was superseded."""
+    frozen = list(
+        session.execute(
+            select(CostAttribution.id, CostAttribution.component_basis_id)
+            .join(
+                CostSellingPart,
+                (CostSellingPart.tenant_id == tenant)
+                & (CostSellingPart.attribution_revision_id == CostAttribution.id),
+            )
+            .join(
+                CostSellingReviewMember,
+                (CostSellingReviewMember.tenant_id == tenant)
+                & (CostSellingReviewMember.part_id == CostSellingPart.id),
+            )
+            .join(
+                CostContributionReview,
+                (CostContributionReview.tenant_id == tenant)
+                & (CostContributionReview.id == CostSellingReviewMember.review_id),
+            )
+            .where(
+                CostAttribution.tenant_id == tenant,
+                CostContributionReview.action_id == action_id,
+            )
+        )
+    )
+    for attribution_id, component_basis_id in frozen:
+        latest = session.scalar(
+            select(CostAttribution)
+            .where(
+                CostAttribution.tenant_id == tenant,
+                CostAttribution.component_basis_id == component_basis_id,
+            )
+            .order_by(CostAttribution.revision.desc())
+            .limit(1)
+        )
+        if latest is None or latest.id != attribution_id or latest.state != "assigned":
+            return True
+    return False
 
 
 def _check(session, tenant, request):
@@ -335,7 +382,35 @@ def _read(
             ),
         )
         result = aggregate_contribution([row], context=context).groups[0]
-        stale = not review_id and _sequence(session, tenant) > review.event_sequence
+        if review_id:
+            stale = False
+        else:
+            from reality.services.inventory_costing import _relevant_event_sequence
+
+            reviewed_item_ids = set(
+                session.scalars(
+                    select(CostRevenueMatchBasis.item_id)
+                    .join(
+                        CostContributionReview,
+                        (CostContributionReview.tenant_id == tenant)
+                        & (
+                            CostContributionReview.revenue_basis_id
+                            == CostRevenueMatchBasis.id
+                        ),
+                    )
+                    .where(
+                        CostRevenueMatchBasis.tenant_id == tenant,
+                        CostContributionReview.action_id == review.action_id,
+                    )
+                )
+            )
+            stale = any(
+                _relevant_event_sequence(
+                    session, tenant, reviewed_item_id, review.event_sequence
+                )
+                > review.event_sequence
+                for reviewed_item_id in reviewed_item_ids
+            ) or _selling_basis_stale(session, tenant, review.action_id)
         return {
             "document_line_id": document_line_id,
             "review_id": review.id,

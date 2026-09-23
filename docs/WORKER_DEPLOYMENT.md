@@ -83,7 +83,7 @@ Docker Compose services, Kubernetes Deployments and ordinary container platforms
 
 - Stopping scheduler stops new timed occurrences; worker can drain existing work. Stopping worker leaves queued work durable. Repeated scheduler sweeps do not create an unbounded backlog for a blocked schedule.
 - Scheduler stops new materialization on SIGTERM/SIGINT, uses 2s statement timeouts and a 25s tick budget, and exits within 30s under healthy host/database response. Give it at least 5s graceful termination for a current bounded transaction.
-- Worker stops new claims on signal. Give it at least 35s grace for a 30s child and cleanup. Worker once stops claims after 25s and exits within 60s including in-flight termination under healthy OS/database response.
+- Worker stops new claims on signal. Give it at least 125s grace for the longest registered child (the 120s canonical company setup) and cleanup. Ordinary jobs retain a 30s child timeout. Worker once stops new claims after 25s; an already claimed setup may finish within its registered bound before the process exits.
 - Neither command runs Alembic. Missing schema is an explicit startup failure. Help and registry metadata listing need no database; status is read-only.
 - Queue cap is 1,000 unfinished runs per tenant, one unfinished scheduled occurrence per schedule. At the cap, scheduler reports deferral and preserves the due occurrence instead of dropping it.
 - Pause schedules before intentionally stopping future intake. Roll back code by stopping both services first, keeping additive tables/history intact. Unsupported handler/version remains visibly suspended. Do not reset business data or drop the queue as recovery.

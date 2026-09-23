@@ -50,14 +50,18 @@ def _fingerprint(value: dict) -> str:
 
 
 def _context(
-    tenant_id: str, actor_id: str | None, run: ScheduledJobRun | None = None
+    tenant_id: str,
+    actor_id: str | None,
+    run: ScheduledJobRun | None = None,
+    *,
+    timeout_seconds: int = 30,
 ) -> JobContext:
     return JobContext(
         tenant_id,
         actor_id,
         run.id if run else "",
         run.scheduled_for if run else None,
-        now() + timedelta(seconds=30),
+        now() + timedelta(seconds=timeout_seconds),
     )
 
 
@@ -614,7 +618,7 @@ def claim_next(
         if run is None or not _eligible(run):
             continue
         try:
-            _authorize_run_or_schedule(session, run)
+            definition, _ = _authorize_run_or_schedule(session, run)
         except JobError as error:
             _failed(session, run, schedule, error.code)
             if outcomes is not None:
@@ -627,7 +631,9 @@ def claim_next(
             return None
         run.attempt_count += 1
         run.claim_token = uuid4().hex
-        run.lease_expires_at = now() + timedelta(seconds=60)
+        run.lease_expires_at = now() + timedelta(
+            seconds=definition.timeout_seconds + 30
+        )
         run.status, run.started_at = "running", now()
         session.flush()
         return run
@@ -670,7 +676,12 @@ def execute_claim(
         run.lease_expires_at = None
         return "retry"
     definition, parsed = _authorize_run_or_schedule(session, run)
-    context = _context(tenant_id, run.actor_id, run)
+    context = _context(
+        tenant_id,
+        run.actor_id,
+        run,
+        timeout_seconds=definition.timeout_seconds,
+    )
 
     def reject_commit(_session):
         if _session.in_nested_transaction():

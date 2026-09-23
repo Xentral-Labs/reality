@@ -239,7 +239,7 @@ Reality fehlende Nachweise bewusst nicht in 0 EUR umgewandelt hat.
 ### Bewusste Lücken
 
 Bankabstimmung, länderspezifische Steuerbehandlung und Währungsneubewertung sind nicht Bestandteil
-der Profilversion 11. Die Demo stellt dafür keine Belege oder UI-Wege in Aussicht.
+der Profilversion 12. Die Demo stellt dafür keine Belege oder UI-Wege in Aussicht.
 
 ## Stabile Basis und Live-Daten
 

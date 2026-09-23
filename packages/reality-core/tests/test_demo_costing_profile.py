@@ -13,7 +13,14 @@ from reality.db.contribution import (
     CostRevenueMatchBasis,
     CostSellingPart,
 )
-from reality.db.core import Document, DocumentLine, PlaygroundRun, SourceRecord
+from reality.db.core import (
+    Document,
+    DocumentLine,
+    Item,
+    Movement,
+    PlaygroundRun,
+    SourceRecord,
+)
 from reality.db.inventory_costing import CostInventoryReview
 from reality.demo.international import PROFILE_VERSION
 from reality.services import company_setup
@@ -173,8 +180,8 @@ def test_canonical_profile_versions_and_replays_one_costing_baseline(
 ):
     run = _seed(session, scheduled_owner)
     manifest = run.initialization_progress
-    assert PROFILE_VERSION == 11
-    assert manifest["profile"] == {"key": "international_demo", "version": 11}
+    assert PROFILE_VERSION == 12
+    assert manifest["profile"] == {"key": "international_demo", "version": 12}
     assert set(manifest["costing_cases"]) == {
         *COMPLETE_PORTFOLIO,
         "late_cost_return",
@@ -258,6 +265,131 @@ def test_canonical_profile_versions_and_replays_one_costing_baseline(
         pass
 
 
+def test_canonical_profile_declares_current_contribution_readiness(
+    session, scheduled_owner
+):
+    run = _seed(session, scheduled_owner, "costing-readiness")
+    manifest = run.initialization_progress
+    coverage = manifest["cost_readiness"]
+
+    declared = coverage["contribution_line_ids"]
+    assert declared == sorted(
+        case["invoice_line_id"]
+        for name, case in manifest["costing_cases"].items()
+        if name in COMPLETE_PORTFOLIO
+    )
+    assert coverage["contribution"] == {
+        "expected": len(COMPLETE_PORTFOLIO),
+        "current": len(COMPLETE_PORTFOLIO),
+    }
+    assert coverage["state"] == "ready"
+    assert coverage["event_sequence"] > 0
+
+    for line_id in declared:
+        result = cost_query(
+            session,
+            run.tenant_id,
+            kind="contribution",
+            scope_id=line_id,
+        )
+        assert result["freshness"]["state"] == "ready"
+        assert result["result"] is not None
+        assert result["result"]["db1"] is not None
+        assert result["result"]["db2"] is not None
+
+
+def test_fresh_demo_cost_context_is_identical_for_web_tool_and_mcp(
+    session, scheduled_owner
+):
+    from reality.mcp.catalog import MCP_TOOL_REGISTRY
+    from reality.tools.application import run_read_tool
+    from reality.web.api import get_cost_query
+
+    run = _seed(session, scheduled_owner, "costing-interface-parity")
+    manifest = run.initialization_progress
+    inventory_ids = [manifest["items"][sku] for sku in ("P01", "P02", "P03")]
+    contribution_ids = manifest["cost_readiness"]["contribution_line_ids"][:3]
+    assert len(set(inventory_ids)) == len(contribution_ids) == 3
+
+    for kind, scope_ids in (
+        ("inventory", inventory_ids),
+        ("contribution", contribution_ids),
+    ):
+        for scope_id in scope_ids:
+            arguments = {"kind": kind, "scope_id": scope_id}
+            shared = cost_query(session, run.tenant_id, **arguments)
+            assert shared["freshness"]["state"] == "ready"
+            assert (
+                get_cost_query(
+                    tenant_id=run.tenant_id,
+                    session=session,
+                    kind=kind,
+                    scope_id=scope_id,
+                )
+                == shared
+            )
+            assert (
+                run_read_tool(
+                    session, run.tenant_id, "cost.query.get", arguments
+                )
+                == shared
+            )
+            assert (
+                MCP_TOOL_REGISTRY["cost_query_get"].handler(
+                    session, run.tenant_id, arguments
+                )
+                == shared
+            )
+
+
+def test_every_positively_stocked_demo_item_has_current_positive_acquisition_basis(
+    session, scheduled_owner
+):
+    from reality.services.core import stock_at
+
+    run = _seed(session, scheduled_owner, "costing-stock-readiness")
+    stocked = [
+        item
+        for item in session.scalars(
+            select(Item).where(Item.tenant_id == run.tenant_id).order_by(Item.sku)
+        )
+        if stock_at(session, run.tenant_id, item.id) > 0
+    ]
+    assert stocked
+    assert run.initialization_progress["cost_readiness"]["inventory"] == {
+        "expected": len(stocked),
+        "current": len(stocked),
+    }
+    assert run.initialization_progress["cost_readiness"]["diagnostics"] == []
+
+    unavailable = {}
+    non_positive = {}
+    for item in stocked:
+        result = cost_query(session, run.tenant_id, kind="inventory", scope_id=item.id)
+        if result["freshness"]["state"] != "ready" or result["result"] is None:
+            unavailable[item.sku] = result["freshness"]["state"]
+            continue
+        if Decimal(result["result"]["acquisition_value"]) <= 0:
+            non_positive[item.sku] = result["result"]["acquisition_value"]
+    movement_summary = {
+        item.sku: [
+            (row.type, str(row.quantity), row.id, row.resolves_movement_id)
+            for row in session.scalars(
+                select(Movement)
+                .where(
+                    Movement.tenant_id == run.tenant_id,
+                    Movement.item_id == item.id,
+                )
+                .order_by(Movement.occurred_at, Movement.id)
+            )
+        ]
+        for item in stocked
+        if item.sku in unavailable or item.sku in non_positive
+    }
+    assert not unavailable, repr(movement_summary)
+    assert not non_positive, repr(non_positive)
+
+
 def test_complete_case_has_exact_quantity_coverage_and_source_lineage(
     session, scheduled_owner
 ):
@@ -283,10 +415,9 @@ def test_complete_case_has_exact_quantity_coverage_and_source_lineage(
         kind="inventory",
         scope_id=case["item_id"],
     )
-    assert current_inventory["freshness"]["state"] == "stale"
-    assert current_inventory["result"] is None
-    assert current_inventory["basis_result"]["basis_remaining_quantity"] == "40.0000"
-    assert current_inventory["basis_result"]["basis_acquisition_value"] == "420.0000"
+    assert current_inventory["freshness"]["state"] == "ready"
+    assert current_inventory["result"]["remaining_quantity"] == "40.0000"
+    assert current_inventory["result"]["acquisition_value"] == "420.0000"
     assert margin["stated_quantity"] == "60.0000"
     assert margin["goods_cost"] == "630.0000"
     assert margin["db1"] == "570.0000"
@@ -313,8 +444,9 @@ def test_complete_case_has_exact_quantity_coverage_and_source_lineage(
         kind="contribution",
         scope_id=case["invoice_line_id"],
     )
-    assert current["freshness"]["state"] == "stale"
-    assert current["result"] is None
+    assert current["freshness"]["state"] == "ready"
+    assert current["result"]["db1"] == "570.0000"
+    assert current["result"]["db2"] == "456.0000"
     assert (
         session.scalar(
             select(func.count())

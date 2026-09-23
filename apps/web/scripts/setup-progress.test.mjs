@@ -3,6 +3,7 @@ import test from "node:test";
 import {
   SETUP_READY_CURRENT_MS,
   SETUP_READY_DONE_MS,
+  SETUP_CALCULATION_DONE_MS,
   followSetup,
   presentReadySetup,
   setupProgress,
@@ -12,6 +13,7 @@ import {
 
 assert.ok(SETUP_READY_CURRENT_MS >= 2500, "the active final step must be readable");
 assert.ok(SETUP_READY_DONE_MS >= 3000, "all four completed steps must remain readable");
+assert.ok(SETUP_CALCULATION_DONE_MS >= 1500, "the completed calculation must be readable");
 
 const receipt = (status) => ({
   tenant_id: "ten_1",
@@ -153,6 +155,7 @@ test("confirmed completion remains visible before automatic navigation", async (
     (steps) => seen.push(steps),
     () => true,
     {
+      calculationDelay: 0,
       currentDelay: 0,
       doneDelay: 0,
     },
@@ -160,6 +163,7 @@ test("confirmed completion remains visible before automatic navigation", async (
   assert.deepEqual(
     seen.map((steps) => steps.map((step) => step.state)),
     [
+      ["done", "done", "current", "waiting"],
       ["done", "done", "done", "current"],
       ["done", "done", "done", "done"],
     ],

@@ -3320,9 +3320,7 @@ def revise_commitment(
         )
         fulfilled = fulfilled_quantity(session, tenant_id, commitment.id)
         revised_open = max(ZERO, stated_quantity - fulfilled)
-        allocated = sum(
-            (decimal(row.quantity) for row in active_allocations), ZERO
-        )
+        allocated = sum((decimal(row.quantity) for row in active_allocations), ZERO)
         if allocated > revised_open:
             reconcile_allocations = True
             identities = {
@@ -5438,6 +5436,7 @@ def correct_movement(
             original.id,
             {
                 "correction_id": correction.id,
+                "item_id": original.item_id,
                 "compensating_movement_id": compensation.id,
                 "replacement_movement_id": correction.replacement_movement_id,
                 "reason": normalized_reason,

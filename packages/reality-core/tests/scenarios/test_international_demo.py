@@ -500,7 +500,18 @@ def test_purchases_cover_the_whole_chain(session, scheduled_owner, monkeypatch):
     payables = _states(_open_amounts(session, tenant, "supplier_invoice"))
     assert payables["SINV-011"] == "open", payables
     operational_payables = {
-        number: state for number, state in payables.items() if number != "SINV-011"
+        number: state
+        for number, state in payables.items()
+        if number
+        in {
+            "SINV-002",
+            "SINV-004",
+            "SINV-005",
+            "SINV-007",
+            "SINV-008",
+            "SINV-010",
+            "SINV-012",
+        }
     }
     assert sorted(operational_payables.values()) == [
         "open",
