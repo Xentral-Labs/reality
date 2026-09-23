@@ -52,15 +52,15 @@ focused rerun passed (`2 passed in 12.32s`), and the complete suite then passed 
   reference.
 - `node --test apps/docs/scripts/docs-contract.test.mjs`: `47 passed`, including the live MCP
   comparator contract for names, required fields, enums, and nested input shapes.
-- `make docs-catalog-check`: generation passed, but its final `git diff --exit-code` remains red
-  because the required generated artifacts are intentionally uncommitted. T073 is therefore open.
+- `make docs-catalog-check`: passed after commit `1026c84b`; regeneration produced no diff in the
+  checked generated documentation paths.
 - Deployed MCP comparison was not run because no redacted deployed `tools/list` capture was
   supplied. T074 remains open.
 
 ## Remaining external gates
 
-- T073: commit generated documentation; no commit was authorized in this session.
 - T074: compare a redacted deployed `tools/list` capture with the generated reference.
 - T075–T076: execute the fresh public-surface CanisPro workflow and populate the final closure
   matrix from its mutation receipts and independent reads.
-- T081–T082: final Spec Kit analysis and release/diff review after the external evidence exists.
+- T081 found no CRITICAL cross-artifact or Constitution issue. The final release decision remains
+  dependent on the external evidence above.

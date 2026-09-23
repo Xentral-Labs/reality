@@ -184,7 +184,7 @@ unsupported operational types; verify queue and persistence remain clean.
 
 ## Phase 8: Cross-Cutting Qualification and Review
 
-- [ ] T073 [P] [FR-030] Run `make docs-generate` and commit the generated English/German Tool Usage pages and `apps/docs/.vitepress/data/tool-usage.json`
+- [X] T073 [P] [FR-030] Run `make docs-generate` and commit the generated English/German Tool Usage pages and `apps/docs/.vitepress/data/tool-usage.json`
 - [ ] T074 [P] [FR-030] Run `make docs-catalog-check` and the deployed MCP catalog comparison from `apps/docs/scripts/verify-live-mcp-catalog.py`
 - [ ] T075 [FR-028] Execute the complete fresh CanisPro public-surface workflow and save a redacted Markdown protocol under `specs/257-external-agent-closure/evidence/`
 - [ ] T076 [FR-029] Populate the final F1–F13 closure matrix with fixed/guided/regression/accepted/superseded status and exact evidence links in `specs/257-external-agent-closure/evidence/audit-closure.md`
@@ -193,7 +193,7 @@ unsupported operational types; verify queue and persistence remain clean.
 - [X] T079 Run focused tests named in T005–T067, then run Ruff and the complete required backend/PostgreSQL suite; record commands and results in `specs/257-external-agent-closure/evidence/verification.md`
 - [X] T080 Run Web contracts, focused browser journeys, `make web-build`, and `cd apps/web && npm run i18n:audit`; record results in `specs/257-external-agent-closure/evidence/verification.md`
 - [X] T081 Run `make spec-check`, audit all FR/DR coverage, and rerun `$speckit-analyze`; resolve every CRITICAL finding before marking any completion in `specs/257-external-agent-closure/tasks.md`
-- [ ] T082 Review the final diff, rollout/rollback and compatibility impact against the Constitution; update durable docs and `docs/V0_CHECKLIST.md` only for evidence-backed completed behavior
+- [X] T082 Review the final diff, rollout/rollback and compatibility impact against the Constitution; update durable docs and `docs/V0_CHECKLIST.md` only for evidence-backed completed behavior
 
 ## Dependencies
 

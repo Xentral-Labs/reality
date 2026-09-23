@@ -60,3 +60,16 @@ The local implementation satisfies DR-001 through DR-008 with automated evidence
 lineage, shortest relationships, no recomputation, shared-service parity, tenant isolation,
 separate owner authority, and no schema migration. This review does not substitute for T075's
 fresh external public-surface run or T081's final cross-artifact analysis.
+
+## Compatibility, rollout, and rollback
+
+- No migration or stored-field change is present; rollback is application-code and generated-doc
+  rollback only.
+- Existing legacy customer-credit input remains supported as a distinct shape. New invoice-linked
+  credit, free supplier invoice, dunning, rejection, and cost-guidance surfaces are additive.
+- The intentionally stricter document, movement, and payment vocabularies fail before persistence;
+  lossless source intake remains unchanged.
+- Generated Tool Usage documentation is committed with the runtime catalogs and passed the
+  post-commit catalog check.
+- `docs/V0_CHECKLIST.md` was not changed because the fresh deployed CanisPro qualification and
+  final F1–F13 closure matrix remain open release evidence rather than completed V0 proof.
