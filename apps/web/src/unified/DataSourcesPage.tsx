@@ -137,9 +137,6 @@ export function DataSourcesPage({
           id={entry}
           close={() => navigate({ entry: "" })}
           changed={read.refresh}
-          records={(code) =>
-            navigate({ dataView: "records", sourceSystem: code, entry: "", q: "", page: 1 })
-          }
         />
       )}
       {(importOpen || selection.importProposal) && (

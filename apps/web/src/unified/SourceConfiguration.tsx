@@ -12,13 +12,11 @@ export function SourceConfiguration({
   id,
   close,
   changed,
-  records,
 }: {
   tenant: string;
   id: string;
   close: () => void;
   changed: () => void;
-  records: (code: string) => void;
 }) {
   const storageKey = `reality.source-configuration.pending:${tenant}`;
   const [pending] = useState<Action | null>(() => {
@@ -411,11 +409,6 @@ export function SourceConfiguration({
                   </div>
                 )}
               </section>
-              <div className="flex flex-wrap justify-end gap-3 border-t border-border-default pt-4">
-                <button className="br-btn" onClick={() => records(system.code)}>
-                  {t("View received records")}
-                </button>
-              </div>
             </div>
           ) : (
             <p role="alert">{t("Source definition not found.")}</p>
