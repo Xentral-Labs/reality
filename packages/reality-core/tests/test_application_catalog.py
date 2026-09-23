@@ -3,6 +3,7 @@ import re
 
 import pytest
 import yaml
+
 from reality import catalogs
 from reality.catalogs import load_application_catalog, validate_tenant_isolation_catalog
 from reality.config import config_text
