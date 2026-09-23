@@ -1216,6 +1216,9 @@ const dictionaries: Record<Exclude<Language, "en">, Record<string, string>> = {
     "Applying your change. This takes a few seconds.":
       "Deine Änderung wird angewendet. Das dauert ein paar Sekunden.",
     "Applying…": "Wird angewendet…",
+    "Settings for this system": "Einstellungen für dieses System",
+    "This system has no settings of its own yet.":
+      "Für dieses System gibt es noch keine eigenen Einstellungen.",
     Attention: "Prüfen",
     Throttled: "Gedrosselt",
     "Background services are not being monitored here, so this cannot be confirmed.":
@@ -3251,6 +3254,8 @@ const dictionaries: Record<Exclude<Language, "en">, Record<string, string>> = {
     "Applying your change. This takes a few seconds.":
       "Je wijziging wordt toegepast. Dat duurt enkele seconden.",
     "Applying…": "Wordt toegepast…",
+    "Settings for this system": "Instellingen voor dit systeem",
+    "This system has no settings of its own yet.": "Dit systeem heeft nog geen eigen instellingen.",
     Attention: "Controleren",
     Throttled: "Beperkt",
     "Background services are not being monitored here, so this cannot be confirmed.":
@@ -4987,6 +4992,8 @@ const dictionaries: Record<Exclude<Language, "en">, Record<string, string>> = {
     "Applying your change. This takes a few seconds.":
       "Se está aplicando tu cambio. Tarda unos segundos.",
     "Applying…": "Aplicando…",
+    "Settings for this system": "Ajustes de este sistema",
+    "This system has no settings of its own yet.": "Este sistema aún no tiene ajustes propios.",
     Attention: "Revisar",
     Throttled: "Limitado",
     "Background services are not being monitored here, so this cannot be confirmed.":

@@ -173,6 +173,10 @@ human item number, which changed shape from `P01` to `ITEM-001` while existing
 companies kept theirs. A first connection is still established against the full
 current catalog.
 
+A connected simulation is operated through its registered source, like any other
+system; the separate card on the integrations page appears only while nothing is
+connected, because there is no source row to open yet.
+
 Where the simulation is set: the source's own configuration dialog carries the
 simulation's state, reason, rate and controls (`DemoDataIntegration` with
 `variant="settings"`), because that is the one place a person configures this source.

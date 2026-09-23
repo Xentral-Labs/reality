@@ -62,6 +62,14 @@ export function DataSourcesPage({
   } = selection;
   const table = useRegisterQuery();
   const demo = useDemoDataStatus(hasDemoDataSource(company) ? company.id : "");
+  // Once the simulation is connected it is a registered source like any other, and
+  // is operated through that source. Only an unconnected company still needs a way
+  // in, because a source that does not exist yet has no row to open.
+  const demoConnected = demo
+    ? demo.state !== "not_connected"
+    : company.demo_data_state
+      ? true
+      : null;
   const demoState = demo && {
     state: demo.derived_state || demo.state,
     attention: sourceNeedsAttention(demo.derived_state),
@@ -150,7 +158,7 @@ export function DataSourcesPage({
           }}
         />
       )}
-      {view === "systems" && hasDemoDataSource(company) && (
+      {view === "systems" && hasDemoDataSource(company) && demoConnected === false && (
         <DemoDataSource company={company} selection={selection} navigate={navigate} />
       )}
       {view === "systems" && (
@@ -301,6 +309,7 @@ export function DataSourcesPage({
                           <span
                             className="inline-flex items-center gap-1 whitespace-nowrap"
                             data-demo-source-state={demoState.state}
+                            data-demo-attention={demoState.attention || undefined}
                             title={demoState.detail || undefined}
                           >
                             {demoState.attention && (
