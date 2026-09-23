@@ -74,6 +74,7 @@ all reach the same operation.
 | [`create_payment_term`](#command-create_payment_term)                             | Create payment term                       | Master data & pricing      | `payment_term_create_propose`, `payment_term_update_propose`                                                                                                                                 | CLI · Web · API · MCP · Chat            |
 | [`create_price_list`](#command-create_price_list)                                 | Create price list                         | Master data & pricing      | `price_list_create_propose`, `price_list_update_propose`                                                                                                                                     | CLI · Web · API · MCP · Chat            |
 | [`commercial_match`](#command-commercial_match)                                   | Read reviewed partial commercial match    | Master data & pricing      | `cost_commercial_match_get`                                                                                                                                                                  | CLI · Web · MCP · Chat                  |
+| [`resolve_price`](#command-resolve_price)                                         | Resolve authoritative price quote         | Master data & pricing      | `price_quote_read`                                                                                                                                                                           | CLI · Web · API · MCP · Chat            |
 | [`update_item`](#command-update_item)                                             | Update item                               | Master data & pricing      | `item_update_propose`                                                                                                                                                                        | CLI · Web · API · MCP · Chat            |
 | [`update_location`](#command-update_location)                                     | Update location                           | Master data & pricing      | `location_update_propose`                                                                                                                                                                    | CLI · Web · API · MCP · Chat            |
 | [`update_party`](#command-update_party)                                           | Update party                              | Master data & pricing      | `party_update_propose`                                                                                                                                                                       | CLI · Web · API · MCP · Chat            |
@@ -881,6 +882,71 @@ references.
 | `match_revision_id` | `string` | no       | Exact retained commercial match revision identity; absence selects the latest revision for the sold line. | `None`  |
 
 **See also:** command [`commercial_match`](./commands#command-commercial_match)
+
+### `resolve_price` — Resolve authoritative price quote {#command-resolve_price}
+
+Selects the currently applicable quantity tier and exposes the direct, group, or default assignment
+path without copying a price.
+
+**Synopsis**
+
+```text
+price_quote_read party_id item_id quantity direction currency unit [at]
+```
+
+**Reach via:** CLI · Web · API · MCP · Chat
+
+**Effect:** Reads: `party`, `item`, `party_price_list`, `party_group`, `party_group_member`,
+`party_group_price_list`, `price_list`, `price_list_entry` · Writes: —
+
+**See also:** agent tool [`price_quote_read`](./commands#tool-price_quote_read)
+
+#### `price_quote_read` — Read authoritative price quote {#tool-price_quote_read}
+
+Resolve the applicable party-aware quantity tier and explain its assignment path; returns an
+explicit no-match result when no price applies.
+
+**Synopsis**
+
+```text
+price_quote_read party_id item_id quantity direction currency unit [at]
+```
+
+**Access:** `read`
+
+**How this query runs**
+
+| Concrete query         | Kind                        | Default |
+| ---------------------- | --------------------------- | ------- |
+| `MCP price_quote_read` | Live — read at request time | yes     |
+
+[How this query runs](./views#read-execution)
+
+Read the authoritative price tier for one party, item, quantity and commercial context, including
+why that list won.
+
+**Use when**
+
+- A quote or order needs the currently applicable sales or purchase unit price.
+
+**Do not use when**
+
+- A price list or assignment must be changed
+- or an already agreed document price must be reconstructed.
+
+**Parameters**
+
+| Name        | Type     | Required | Description                                                                                   | Default |
+| ----------- | -------- | -------- | --------------------------------------------------------------------------------------------- | ------- |
+| `party_id`  | `string` | yes      | Opaque identity of the customer, supplier, or other operational party.                        | —       |
+| `item_id`   | `string` | yes      | Opaque identity of the operational item reference.                                            | —       |
+| `quantity`  | `string` | yes      | Decimal quantity expressed in the item's relevant unit.                                       | —       |
+| `direction` | `string` | yes      | Business flow direction, such as sales or purchase, incoming or outgoing. `sales`, `purchase` | —       |
+| `currency`  | `string` | yes      | ISO 4217 currency code for monetary values.                                                   | —       |
+| `unit`      | `string` | yes      | Unit of measure in which the quantity is expressed.                                           | —       |
+| `at`        | `string` | no       | UTC instant at which the projection or rule should be evaluated.                              | —       |
+
+**See also:** command [`resolve_price`](./commands#command-resolve_price)
 
 ### `update_item` — Update item {#command-update_item}
 

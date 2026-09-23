@@ -321,7 +321,7 @@
         "command:assign_party_price_list",
         "command:create_party_group"
       ],
-      "reads": [],
+      "reads": ["command:resolve_price"],
       "exceptions": ["exception:invoice_price_differs", "exception:sold_below_purchase_price"],
       "tools": [],
       "events": [
@@ -1651,6 +1651,100 @@
       "links": [],
       "label_de": "Discover business records",
       "resources": ["governance"]
+    },
+    {
+      "id": "tool:price_quote_read",
+      "kind": "tool",
+      "key": "price_quote_read",
+      "label": "Read authoritative price quote",
+      "area": "master_data",
+      "summary": "Resolve the applicable party-aware quantity tier and explain its assignment path; returns an explicit no-match result when no price applies.",
+      "access": "read",
+      "group": "Master data",
+      "synopsis": "price_quote_read party_id item_id quantity direction currency unit [at]",
+      "parameters": [
+        {
+          "name": "party_id",
+          "type": "string",
+          "required": true,
+          "description": "Opaque identity of the customer, supplier, or other operational party.",
+          "depth": 0
+        },
+        {
+          "name": "item_id",
+          "type": "string",
+          "required": true,
+          "description": "Opaque identity of the operational item reference.",
+          "depth": 0
+        },
+        {
+          "name": "quantity",
+          "type": "string",
+          "required": true,
+          "description": "Decimal quantity expressed in the item's relevant unit.",
+          "depth": 0
+        },
+        {
+          "name": "direction",
+          "type": "string",
+          "required": true,
+          "description": "Business flow direction, such as sales or purchase, incoming or outgoing.",
+          "depth": 0,
+          "enum": ["sales", "purchase"]
+        },
+        {
+          "name": "currency",
+          "type": "string",
+          "required": true,
+          "description": "ISO 4217 currency code for monetary values.",
+          "depth": 0
+        },
+        {
+          "name": "unit",
+          "type": "string",
+          "required": true,
+          "description": "Unit of measure in which the quantity is expressed.",
+          "depth": 0
+        },
+        {
+          "name": "at",
+          "type": "string",
+          "required": false,
+          "description": "UTC instant at which the projection or rule should be evaluated.",
+          "depth": 0
+        }
+      ],
+      "guidance": {
+        "purpose": "Read the authoritative price tier for one party, item, quantity and commercial context, including why that list won.",
+        "use_when": [
+          "A quote or order needs the currently applicable sales or purchase unit price."
+        ],
+        "do_not_use_when": [
+          "A price list or assignment must be changed",
+          "or an already agreed document price must be reconstructed."
+        ],
+        "limitations": [
+          "The result answers one complete pricing context and does not infer missing currency",
+          "unit",
+          "quantity",
+          "party",
+          "or item values."
+        ],
+        "empty_result": "matched false means no eligible tier exists for the supplied context; it does not authorize an invented or copied price.",
+        "freshness": "Reads current committed pricing records at the requested effective instant without projection or business writes; authentication telemetry may persist."
+      },
+      "read_modes": [
+        {
+          "query": "MCP price_quote_read",
+          "mode": "live",
+          "default": true
+        }
+      ],
+      "command": "resolve_price",
+      "projections": [],
+      "links": ["command:resolve_price"],
+      "label_de": "Read authoritative price quote",
+      "resources": ["terms"]
     },
     {
       "id": "tool:inventory_read",
@@ -16890,6 +16984,55 @@
       "links": ["tool:party_price_list_assign_propose", "event:party_price_list.assigned"],
       "label_de": "Preisliste zuweisen",
       "resources": ["party", "terms"]
+    },
+    {
+      "id": "command:resolve_price",
+      "kind": "command",
+      "key": "resolve_price",
+      "label": "Resolve authoritative price quote",
+      "area": "master_data",
+      "summary": "Selects the currently applicable quantity tier and exposes the direct, group, or default assignment path without copying a price.",
+      "mode": "read",
+      "adapters": ["CLI", "Web", "API", "MCP", "Chat"],
+      "reads": [
+        "party",
+        "item",
+        "party_price_list",
+        "party_group",
+        "party_group_member",
+        "party_group_price_list",
+        "price_list",
+        "price_list_entry"
+      ],
+      "writes": [],
+      "confirmation": null,
+      "related_services": ["materialized_resolve_price"],
+      "tools": ["price_quote_read"],
+      "synopses": ["price_quote_read party_id item_id quantity direction currency unit [at]"],
+      "events": [],
+      "actions": [],
+      "guidance": {
+        "purpose": "Read the authoritative price tier for one party, item, quantity and commercial context, including why that list won.",
+        "use_when": [
+          "A quote or order needs the currently applicable sales or purchase unit price."
+        ],
+        "do_not_use_when": [
+          "A price list or assignment must be changed",
+          "or an already agreed document price must be reconstructed."
+        ],
+        "limitations": [
+          "The result answers one complete pricing context and does not infer missing currency",
+          "unit",
+          "quantity",
+          "party",
+          "or item values."
+        ],
+        "empty_result": "matched false means no eligible tier exists for the supplied context; it does not authorize an invented or copied price.",
+        "freshness": "Reads current committed pricing records at the requested effective instant without projection or business writes; authentication telemetry may persist."
+      },
+      "links": ["tool:price_quote_read"],
+      "label_de": "Gültigen Preis ermitteln",
+      "resources": ["terms"]
     },
     {
       "id": "command:create_party_group",

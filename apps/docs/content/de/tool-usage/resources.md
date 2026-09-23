@@ -201,6 +201,10 @@ Skonto, Zahlungsziel
 - [Preisliste zuweisen](./commands#command-assign_party_price_list) (`assign_party_price_list`)
 - [Preisgruppe anlegen und zuweisen](./commands#command-create_party_group) (`create_party_group`)
 
+**Nachschlagen**
+
+- [Gültigen Preis ermitteln](./commands#command-resolve_price) (`resolve_price`)
+
 **Klärfälle**
 
 - [Rechnungspreis weicht von der Vereinbarung ab](./exceptions#exception-invoice_price_differs)

@@ -74,6 +74,7 @@ Web, API, Chat und MCP erreichen dieselbe Operation.
 | [`create_payment_term`](#command-create_payment_term)                             | Create payment term                       | Stammdaten & Preise     | `payment_term_create_propose`, `payment_term_update_propose`                                                                                                                                 | CLI · Web · API · MCP · Chat            |
 | [`create_price_list`](#command-create_price_list)                                 | Create price list                         | Stammdaten & Preise     | `price_list_create_propose`, `price_list_update_propose`                                                                                                                                     | CLI · Web · API · MCP · Chat            |
 | [`commercial_match`](#command-commercial_match)                                   | Read reviewed partial commercial match    | Stammdaten & Preise     | `cost_commercial_match_get`                                                                                                                                                                  | CLI · Web · MCP · Chat                  |
+| [`resolve_price`](#command-resolve_price)                                         | Resolve authoritative price quote         | Stammdaten & Preise     | `price_quote_read`                                                                                                                                                                           | CLI · Web · API · MCP · Chat            |
 | [`update_item`](#command-update_item)                                             | Update item                               | Stammdaten & Preise     | `item_update_propose`                                                                                                                                                                        | CLI · Web · API · MCP · Chat            |
 | [`update_location`](#command-update_location)                                     | Update location                           | Stammdaten & Preise     | `location_update_propose`                                                                                                                                                                    | CLI · Web · API · MCP · Chat            |
 | [`update_party`](#command-update_party)                                           | Update party                              | Stammdaten & Preise     | `party_update_propose`                                                                                                                                                                       | CLI · Web · API · MCP · Chat            |
@@ -891,6 +892,71 @@ references.
 | `match_revision_id` | `string` | nein    | Exact retained commercial match revision identity; absence selects the latest revision for the sold line. | `None`   |
 
 **Siehe auch:** Geschäftsaktion [`commercial_match`](./commands#command-commercial_match)
+
+### `resolve_price` — Resolve authoritative price quote {#command-resolve_price}
+
+Selects the currently applicable quantity tier and exposes the direct, group, or default assignment
+path without copying a price.
+
+**Aufruf**
+
+```text
+price_quote_read party_id item_id quantity direction currency unit [at]
+```
+
+**Erreichbar über:** CLI · Web · API · MCP · Chat
+
+**Wirkung:** Liest: `party`, `item`, `party_price_list`, `party_group`, `party_group_member`,
+`party_group_price_list`, `price_list`, `price_list_entry` · Schreibt: —
+
+**Siehe auch:** Agenten-Tool [`price_quote_read`](./commands#tool-price_quote_read)
+
+#### `price_quote_read` — Read authoritative price quote {#tool-price_quote_read}
+
+Resolve the applicable party-aware quantity tier and explain its assignment path; returns an
+explicit no-match result when no price applies.
+
+**Aufruf**
+
+```text
+price_quote_read party_id item_id quantity direction currency unit [at]
+```
+
+**Zugriff:** `read`
+
+**So wird diese Abfrage ausgeführt**
+
+| Konkrete Abfrage       | Art                        | Standard |
+| ---------------------- | -------------------------- | -------- |
+| `MCP price_quote_read` | Live — beim Aufruf gelesen | ja       |
+
+[So wird diese Abfrage ausgeführt](./views#read-execution)
+
+Read the authoritative price tier for one party, item, quantity and commercial context, including
+why that list won.
+
+**Verwenden, wenn**
+
+- A quote or order needs the currently applicable sales or purchase unit price.
+
+**Nicht verwenden, wenn**
+
+- A price list or assignment must be changed
+- or an already agreed document price must be reconstructed.
+
+**Parameter**
+
+| Name        | Typ      | Pflicht | Beschreibung                                                                                  | Standard |
+| ----------- | -------- | ------- | --------------------------------------------------------------------------------------------- | -------- |
+| `party_id`  | `string` | ja      | Opaque identity of the customer, supplier, or other operational party.                        | —        |
+| `item_id`   | `string` | ja      | Opaque identity of the operational item reference.                                            | —        |
+| `quantity`  | `string` | ja      | Decimal quantity expressed in the item's relevant unit.                                       | —        |
+| `direction` | `string` | ja      | Business flow direction, such as sales or purchase, incoming or outgoing. `sales`, `purchase` | —        |
+| `currency`  | `string` | ja      | ISO 4217 currency code for monetary values.                                                   | —        |
+| `unit`      | `string` | ja      | Unit of measure in which the quantity is expressed.                                           | —        |
+| `at`        | `string` | nein    | UTC instant at which the projection or rule should be evaluated.                              | —        |
+
+**Siehe auch:** Geschäftsaktion [`resolve_price`](./commands#command-resolve_price)
 
 ### `update_item` — Update item {#command-update_item}
 

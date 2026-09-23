@@ -1298,6 +1298,9 @@ class PriceResult:
     price_list_id: str
     price_list_entry_id: str
     source: str
+    assignment_id: str | None
+    party_group_id: str | None
+    evaluated_at: datetime
 
 
 def price_lists(session: OrmSession, tenant_id: str) -> list[PriceList]:
@@ -1752,8 +1755,10 @@ def resolve_price(
             .order_by(PartyGroupPriceList.priority)
         )
     )
-    candidates = [(link.price_list_id, "party") for link in direct if valid(link)] + [
-        (link.price_list_id, "group")
+    candidates = [
+        (link.price_list_id, "party", link.id, None) for link in direct if valid(link)
+    ] + [
+        (link.price_list_id, "group", link.id, link.party_group_id)
         for link, membership in group_links
         if valid(link) and valid(membership)
     ]
@@ -1768,8 +1773,10 @@ def resolve_price(
             )
         )
     )
-    candidates.extend((price_list.id, "default") for price_list in defaults)
-    for price_list_id, source in candidates:
+    candidates.extend(
+        (price_list.id, "default", None, None) for price_list in defaults
+    )
+    for price_list_id, source, assignment_id, party_group_id in candidates:
         price_list = _tenant_record(session, PriceList, tenant_id, price_list_id)
         if (
             not price_list.is_active
@@ -1800,6 +1807,9 @@ def resolve_price(
                 price_list.id,
                 entry.id,
                 source,
+                assignment_id,
+                party_group_id,
+                moment,
             )
     return None
 
