@@ -172,3 +172,10 @@ with `incompatible_references`. Items are matched by name and unit, never by the
 human item number, which changed shape from `P01` to `ITEM-001` while existing
 companies kept theirs. A first connection is still established against the full
 current catalog.
+
+Where the simulation is set: the source's own configuration dialog carries the
+simulation's state, reason, rate and controls (`DemoDataIntegration` with
+`variant="settings"`), because that is the one place a person configures this source.
+Its observations — counters, order to cash and live activity — stay on the simulation
+page, one step away. The source row in the integrations table states the live state in
+a single word and carries the full reason in its title.

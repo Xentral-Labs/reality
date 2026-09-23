@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { api, APIError, type IntegrationData } from "../api";
 import { t } from "../localization";
+import { DemoDataIntegration } from "../components/DemoDataIntegration";
 import { ReadState } from "./ReadState";
 
 type Action =
@@ -12,12 +13,14 @@ export function SourceConfiguration({
   close,
   changed,
   records,
+  simulation,
 }: {
   tenant: string;
   id: string;
   close: () => void;
   changed: () => void;
   records: (code: string) => void;
+  simulation?: () => void;
 }) {
   const storageKey = `reality.source-configuration.pending:${tenant}`;
   const [pending] = useState<Action | null>(() => {
@@ -264,6 +267,17 @@ export function SourceConfiguration({
                 <p>
                   {t("Registry state")}: {t(system.is_active ? "Enabled" : "Disabled")}
                 </p>
+                {system.code === "demo_data" && (
+                  // What this source does is set here, beside what it is. The
+                  // simulation's own page keeps the arrivals it observes.
+                  <div data-source-simulation-settings>
+                    <DemoDataIntegration
+                      tenantId={tenant}
+                      variant="settings"
+                      openSimulation={simulation}
+                    />
+                  </div>
+                )}
               </div>
               <div className="space-y-2">
                 <label className="block text-sm" htmlFor="source-base-url">

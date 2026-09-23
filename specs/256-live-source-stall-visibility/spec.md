@@ -51,6 +51,11 @@ Stated as one sentence: a live source can die from a transient infrastructure bl
 - **Q2 (incompatible references)** → Existing companies must run again. Compatibility is judged by the references the live source actually uses, taken together with the profile version the company was created with; catalog entries added afterwards are not required of an existing company.
 - **Q3 (signal outside the source page)** → The integrations overview carries the signal: an attention badge on a source whose live execution is stopped or overdue, plus its live state in the overview itself, and the source's settings lead to the live simulation controls.
 
+### Session 2026-09-23 (after first delivery)
+
+- **Where a source's settings live** → Each source has one place where that source is configured, and everything settable about it belongs there, including the state, the rate and the controls of a simulation it owns. Sending a person from that place to another page was the wrong reading of FR-016. What the source *observes* — arrivals, order to cash, live activity — is not a setting and stays on the simulation's own page.
+- **A narrow column states the state** → The live state in the source table is one word; the reason travels with it rather than being cut off.
+
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 - Learn why a live source stopped (Priority: P1)
@@ -97,6 +102,7 @@ An owner of a stopped live source restarts it in one confirmed action, or is tol
 
 1. **Given** a live source stopped by a failed occurrence while every precondition still holds, **When** the owner confirms the restart, **Then** the source resumes production and the next expected occurrence is shown, without requiring a preparatory pause.
 2. **Given** a restart is refused because the company's references no longer match the current profile catalog, **When** the refusal is presented, **Then** it names the changed catalog as the cause, identifies the incompatible reference scope, and states the available options.
+3. **Given** a source that owns a live simulation, **When** its configuration is opened, **Then** its state, reason, rate and controls are there and can be changed there, while its arrivals and activity remain one step away.
 3. **Given** a restart is refused, **When** the same restart is attempted again unchanged, **Then** the refusal is identical and no state, revision or schedule was altered by the attempt.
 4. **Given** a live source is restarted, **When** the restart is confirmed, **Then** every schedule belonging to that source is re-enabled together, or none is and the refusal states the incomplete scope.
 5. **Given** a live source owned by another tenant, **When** a restart is attempted against it, **Then** it is refused without revealing whether that source exists.
@@ -133,7 +139,7 @@ An owner of a stopped live source restarts it in one confirmed action, or is tol
 - **FR-013**: Readiness and stall information presented to a tenant MUST NOT contain probe URLs, credentials, host names, stack traces or other deployment detail.
 - **FR-014**: Reads introduced by this feature MUST NOT execute, materialize, claim or repair any job.
 - **FR-015**: The integrations overview MUST mark every source whose live execution is stopped, suspended or overdue with an attention badge and MUST state its live state there, so that a stalled source is visible without opening it.
-- **FR-016**: Opening the settings of a source that owns a live simulation MUST lead to that simulation's state and controls; settings and simulation MUST NOT be two unrelated places.
+- **FR-016**: The place where a source is configured MUST contain everything settable about that source, including the state, rate and controls of a simulation it owns; it MUST NOT send the person elsewhere to change them. What the source observes MUST NOT be duplicated there, and MUST stay reachable from it in one step.
 - **FR-017**: A failure MUST retain a bounded failure category and human-readable message, free of payloads, credentials and connection detail, so that the reason survives the process boundary that produced it.
 
 ### Domain and Traceability Requirements
