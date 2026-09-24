@@ -37,6 +37,15 @@ const states: Record<WarehouseView, [string, string][]> = {
     ["correction", "Correction"],
   ],
 };
+function scopeSide(row: { from_location_id?: string; to_location_id?: string }, location: string) {
+  const arriving = row.to_location_id === location;
+  const leaving = row.from_location_id === location;
+  return arriving && leaving
+    ? "Within this location"
+    : arriving
+      ? "Into this location"
+      : "Out of this location";
+}
 export function RegisterPager({ page, change }: { page: Page; change: (page: number) => void }) {
   return (
     <div className="mt-5 flex flex-wrap items-center justify-between gap-3">
@@ -78,11 +87,11 @@ export function WarehousePage({
   selection: Selection;
   navigate: (changes: Partial<Selection>) => void;
 }) {
-  const { tenant, warehouseView: view, q, state, item, page, entry } = selection;
+  const { tenant, warehouseView: view, q, state, item, location, page, entry } = selection;
   const table = useRegisterQuery();
   const read = useRead(
-    () => operationsApi.warehouse(tenant, view, q, state, item, page, table),
-    [tenant, view, q, state, item, page, table.size, table.sort, table.sort_direction],
+    () => operationsApi.warehouse(tenant, view, q, state, item, page, table, location),
+    [tenant, view, q, state, item, location, page, table.size, table.sort, table.sort_direction],
   );
   const kind = view === "stock" ? "item" : view === "reservations" ? "reservation" : "movement";
   const stock = view === "stock";
@@ -169,11 +178,30 @@ export function WarehousePage({
           }
         />
         <PageActionBar actions={warehouseActions} />
-        <div className="warehouse-scope-filter my-5 flex flex-wrap items-center justify-between gap-3">
+        <div className="warehouse-scope-filter my-5 flex flex-wrap items-center gap-3">
           {item && (
             <button className="br-btn" onClick={() => navigate({ item: "", entry: "", page: 1 })}>
               {data?.scope.item || item} · {t("Clear item filter")}
             </button>
+          )}
+          {location && (
+            <button
+              className="br-btn"
+              onClick={() => navigate({ location: "", entry: "", page: 1 })}
+            >
+              {data?.scope.location || location} · {t("Clear location filter")}
+            </button>
+          )}
+          {location && (
+            <p className="basis-full text-sm text-fg-muted">
+              {t(
+                stock
+                  ? "Quantities are what lies at this location, not the whole company."
+                  : view === "reservations"
+                    ? "Reservations held at this location."
+                    : "Movements into and out of this location.",
+              )}
+            </p>
           )}
         </div>
         {!data ? (
@@ -225,7 +253,30 @@ export function WarehousePage({
                                 <button
                                   className="rounded px-2 py-1 hover:bg-surface-muted"
                                   aria-label={`${t(field === "physical" ? "Physical" : field === "reserved" ? "Reserved" : "Available")} · ${row.name}`}
-                                  onClick={() => navigate({ entry: row.id })}
+                                  title={t(
+                                    field === "physical"
+                                      ? "Movements that make this quantity"
+                                      : field === "reserved"
+                                        ? "Reservations that hold this quantity"
+                                        : "How this quantity is composed",
+                                  )}
+                                  onClick={() =>
+                                    // Each quantity answers its own question (spec 262 FR-015);
+                                    // an active place scope is kept by the merge.
+                                    navigate(
+                                      field === "available"
+                                        ? { entry: row.id }
+                                        : {
+                                            warehouseView:
+                                              field === "physical" ? "movements" : "reservations",
+                                            item: row.id,
+                                            entry: "",
+                                            q: "",
+                                            state: "",
+                                            page: 1,
+                                          },
+                                    )
+                                  }
                                 >
                                   {formatQuantity(row[field]!)}{" "}
                                   <span className="text-xs text-fg-muted">{row.unit}</span>
@@ -248,6 +299,7 @@ export function WarehousePage({
                                     )}
                                   </span>
                                   <span className="mt-1 block text-xs text-fg-muted">
+                                    {location ? `${t(scopeSide(row, location))} · ` : ""}
                                     {row.from_location || "—"} → {row.to_location || "—"}
                                   </span>
                                 </>
@@ -296,7 +348,40 @@ export function WarehousePage({
                         {stock && (
                           <CostExplanation tenant={tenant} kind="inventory" scopeId={row.id} />
                         )}
-                        <InlineInspector tenant={tenant} target={{ kind, id: row.id }}>
+                        <InlineInspector
+                          tenant={tenant}
+                          target={{ kind, id: row.id }}
+                          followActions={(shown, close) =>
+                            shown.kind === "stock"
+                              ? (["reservations", "movements"] as const).map((target) => (
+                                  <button
+                                    key={target}
+                                    className="br-btn"
+                                    data-action-meaning="filter"
+                                    onClick={() => {
+                                      const [itemId, locationId] = shown.id.split(":");
+                                      close();
+                                      navigate({
+                                        warehouseView: target,
+                                        item: itemId,
+                                        location: locationId,
+                                        entry: "",
+                                        q: "",
+                                        state: "",
+                                        page: 1,
+                                      });
+                                    }}
+                                  >
+                                    {t(
+                                      target === "movements"
+                                        ? "Movements here"
+                                        : "Reservations here",
+                                    )}
+                                  </button>
+                                ))
+                              : null
+                          }
+                        >
                           {view === "reservations" && row.status === "active" && release && (
                             <button
                               className="br-btn"

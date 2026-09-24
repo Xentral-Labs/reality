@@ -23,6 +23,8 @@ through that commitment.
 - Reservations are allowed only for outgoing customer commitments.
 - Quantity is positive and uses Decimal application values.
 - Total active reservation may not exceed the commitment's open quantity.
+- A reservation holds stock at exactly one place, so a place scope partitions the
+  active reservations completely (spec 262).
 
 ## Acceptance stories
 

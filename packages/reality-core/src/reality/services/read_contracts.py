@@ -245,6 +245,19 @@ def location_inventory_rows(
     return result
 
 
+def location_stock_row(
+    session: Session, tenant_id: str, pair_key: str
+) -> dict[str, Any]:
+    """Read one item's position at one place, keyed as the shared rows key it."""
+    item_id, separator, location_id = pair_key.partition(":")
+    if not (item_id and separator and location_id):
+        raise NotFound("Inventory reference not found.")
+    rows = location_inventory_rows(
+        session, tenant_id, item_id=item_id, location_id=location_id
+    )
+    return rows[pair_key]
+
+
 def operational_page(
     session: Session, tenant_id: str, name: str, arguments: dict[str, Any]
 ) -> dict[str, Any]:

@@ -21,6 +21,7 @@ from reality.db.core import (
     SubledgerAccount,
     now,
 )
+from reality.domain.stock_scope import movement_at, reservation_at
 from reality.services.core import (
     NotFound,
     _financial_open_items,
@@ -317,8 +318,8 @@ def _stock(session: Session, tenant: str, record_id: str) -> list[Section]:
             _row(
                 location.name,
                 _quantity(held - assigned, item.unit),
-                "location",
-                location.id,
+                "stock",
+                f"{item.id}:{location.id}",
                 hint="Available stock",
                 original_label=True,
             )
@@ -337,6 +338,83 @@ def _stock(session: Session, tenant: str, record_id: str) -> list[Section]:
         ),
         scope,
     ]
+
+
+def stock_at_location(
+    session: Session, tenant: str, record_id: str, row: dict[str, Any] | None = None
+) -> list[Section]:
+    """Explain one item in one place from the records that put it there."""
+    from reality.services.read_contracts import location_stock_row
+
+    row = row or location_stock_row(session, tenant, record_id)
+    unit = row["unit"] or ""
+    movements = session.scalars(
+        select(Movement)
+        .where(
+            Movement.tenant_id == tenant,
+            Movement.item_id == row["item_id"],
+            movement_at(row["location_id"]),
+        )
+        .order_by(Movement.occurred_at.desc(), Movement.id.desc())
+        .limit(LIMIT + 1)
+    ).all()
+    reservations = session.scalars(
+        select(Reservation)
+        .where(
+            Reservation.tenant_id == tenant,
+            Reservation.item_id == row["item_id"],
+            reservation_at(row["location_id"]),
+            Reservation.status == "active",
+        )
+        .order_by(Reservation.reserved_at.desc(), Reservation.id.desc())
+        .limit(LIMIT + 1)
+    ).all()
+    movement_rows = []
+    for movement in movements[:LIMIT]:
+        # Signed against this place, so the column adds up to what is held here.
+        arriving = movement.to_location_id == row["location_id"]
+        leaving = movement.from_location_id == row["location_id"]
+        signed = movement.quantity if arriving else -movement.quantity
+        movement_rows.append(
+            _row(
+                movement.type.replace("_", " ").capitalize(),
+                display_text(
+                    signed if not (arriving and leaving) else Decimal(0),
+                    f" {unit} · " if unit else " · ",
+                    movement.occurred_at,
+                ),
+                "movement",
+                movement.id,
+            )
+        )
+    reservation_rows = [
+        _row(
+            "Reserved",
+            display_text(
+                reservation.quantity,
+                f" {unit} · " if unit else " · ",
+                reservation.reserved_at,
+            ),
+            "reservation",
+            reservation.id,
+        )
+        for reservation in reservations[:LIMIT]
+    ]
+    held = _section(
+        "Held here",
+        [
+            _row("Item", f"{row['sku']} · {row['item']}", "item", row["item_id"]),
+            _row("Location", row["location"], "location", row["location_id"]),
+            _row("Physical", _quantity(row["physical"], unit)),
+            _row("Reserved", _quantity(row["reserved"], unit)),
+            _row("Available", _quantity(row["available"], unit)),
+        ],
+    )
+    carried = _section("Movements here", movement_rows)
+    carried["has_more"] = len(movements) > LIMIT
+    holding = _section("Reservations here", reservation_rows)
+    holding["has_more"] = len(reservations) > LIMIT
+    return [held, carried, holding]
 
 
 def _warehouse(
@@ -565,6 +643,8 @@ def operational_preview(
         )
     if kind == "item":
         return _stock(session, tenant_id, record_id)
+    if kind == "stock":
+        return stock_at_location(session, tenant_id, record_id)
     if kind in {"reservation", "movement"}:
         return _warehouse(session, tenant_id, kind, record_id)
     if kind in {"shipment", "shipment_package"}:

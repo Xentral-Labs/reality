@@ -18973,3 +18973,64 @@ Object.assign(dictionaries.es, {
   "New data arrived after this confirmation. Turn off the freshness requirement to inspect its historical values, or select a newly confirmed basis.":
     "Se recibieron datos nuevos después de esta confirmación. Desactiva el control de actualidad para consultar los valores históricos o selecciona una base recién confirmada.",
 });
+Object.assign(dictionaries.de, {
+  "Clear location filter": "Lagerortfilter entfernen",
+  "Into this location": "Zugang",
+  "Out of this location": "Abgang",
+  "Within this location": "Intern",
+  "Movements here": "Movements hier",
+  "Reservations here": "Reservations hier",
+  "Quantities are what lies at this location, not the whole company.":
+    "Die Mengen sind, was an diesem Lagerort liegt, nicht der Bestand des Unternehmens.",
+  "Reservations held at this location.": "Reservations, die an diesem Lagerort gehalten werden.",
+  "Movements into and out of this location.": "Movements in diesen Lagerort und aus ihm heraus.",
+  "Held here": "Bestand hier",
+  "Physical stock by item": "Physischer Bestand je Artikel",
+  "Operational Reality / stock at a location": "Operative Realität / Bestand an einem Lagerort",
+});
+Object.assign(dictionaries.nl, {
+  "Clear location filter": "Locatiefilter wissen",
+  "Into this location": "Inkomend",
+  "Out of this location": "Uitgaand",
+  "Within this location": "Intern",
+  "Movements here": "Movements hier",
+  "Reservations here": "Reservations hier",
+  "Quantities are what lies at this location, not the whole company.":
+    "De aantallen zijn wat op deze locatie ligt, niet de voorraad van het hele bedrijf.",
+  "Reservations held at this location.": "Reservations die op deze locatie worden gehouden.",
+  "Movements into and out of this location.": "Movements naar en vanaf deze locatie.",
+  "Held here": "Voorraad hier",
+  "Physical stock by item": "Fysieke voorraad per artikel",
+  "Operational Reality / stock at a location":
+    "Operationele werkelijkheid / voorraad op een locatie",
+});
+Object.assign(dictionaries.es, {
+  "Clear location filter": "Quitar filtro de ubicación",
+  "Into this location": "Entrada",
+  "Out of this location": "Salida",
+  "Within this location": "Interno",
+  "Movements here": "Movements aquí",
+  "Reservations here": "Reservations aquí",
+  "Quantities are what lies at this location, not the whole company.":
+    "Las cantidades son las que hay en esta ubicación, no las de toda la empresa.",
+  "Reservations held at this location.": "Reservations retenidas en esta ubicación.",
+  "Movements into and out of this location.": "Movements de entrada y salida de esta ubicación.",
+  "Held here": "Existencias aquí",
+  "Physical stock by item": "Existencias físicas por artículo",
+  "Operational Reality / stock at a location": "Realidad operativa / existencias en una ubicación",
+});
+Object.assign(dictionaries.de, {
+  "Movements that make this quantity": "Movements, aus denen diese Menge entsteht",
+  "Reservations that hold this quantity": "Reservations, die diese Menge halten",
+  "How this quantity is composed": "Woraus sich diese Menge zusammensetzt",
+});
+Object.assign(dictionaries.nl, {
+  "Movements that make this quantity": "Movements waaruit deze hoeveelheid ontstaat",
+  "Reservations that hold this quantity": "Reservations die deze hoeveelheid vasthouden",
+  "How this quantity is composed": "Hoe deze hoeveelheid is opgebouwd",
+});
+Object.assign(dictionaries.es, {
+  "Movements that make this quantity": "Movements que forman esta cantidad",
+  "Reservations that hold this quantity": "Reservations que retienen esta cantidad",
+  "How this quantity is composed": "Cómo se compone esta cantidad",
+});

@@ -129,14 +129,15 @@ export function MasterDataPage({
         <button className="br-btn br-btn-primary" onClick={() => setEditor(detail)}>
           {t("Edit details")}
         </button>
-        {family === "item" && (
+        {(family === "item" || family === "location") && (
           <button
             className="br-btn"
             onClick={() =>
               navigate({
                 route: "warehouse",
                 warehouseView: "stock",
-                item: detail.id,
+                item: family === "item" ? detail.id : "",
+                location: family === "location" ? detail.id : "",
                 entry: "",
                 state: "",
                 q: "",

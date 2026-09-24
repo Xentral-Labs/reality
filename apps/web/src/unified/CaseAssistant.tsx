@@ -55,6 +55,7 @@ export function CaseAssistant({
     account: "",
     warehouseView: "stock",
     item: "",
+    location: "",
     entry: "",
     state: "",
     severity: "",
