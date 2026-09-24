@@ -37,6 +37,7 @@ export type Selection = {
   deliveryStatus: "open" | "all";
   order: string;
   settingsView: "personal" | "company" | "new" | "access" | "ai" | "agents" | "usage";
+  decisionsView?: "pending" | "history";
   tenant: string;
   commitment: string;
   proposal: string;
@@ -151,6 +152,7 @@ export function readSelection(url: URL): Selection {
         : "customer_delivery",
     deliveryStatus: url.searchParams.get("delivery_status") === "all" ? "all" : "open",
     order: url.searchParams.get("order") || "",
+    decisionsView: url.searchParams.get("decisions_view") === "history" ? "history" : "pending",
     settingsView: ["personal", "company", "new", "access", "ai", "agents", "usage"].includes(
       url.searchParams.get("settings_view") || "",
     )
@@ -334,6 +336,8 @@ export function selectionUrl(selection: Selection): string {
   if (selection.route === "data-sources" && selection.importProposal)
     query.set("import_proposal", selection.importProposal);
   if (selection.route === "settings") query.set("settings_view", selection.settingsView);
+  if (selection.route === "decisions" && selection.decisionsView === "history")
+    query.set("decisions_view", "history");
   if (selection.route === "analytics") {
     if (!selection.analyticsReport && !selection.analyticsTemplate && selection.analyticsProposal)
       query.set("analysis_proposal", selection.analyticsProposal);

@@ -19034,3 +19034,64 @@ Object.assign(dictionaries.es, {
   "Reservations that hold this quantity": "Reservations que retienen esta cantidad",
   "How this quantity is composed": "Cómo se compone esta cantidad",
 });
+// Spec 263: who settled a decision. A token names its issuer, never as the confirmer.
+Object.assign(dictionaries.de, {
+  Pending: "Offen",
+  History: "Verlauf",
+  "No settled decisions": "Keine entschiedenen Entscheidungen",
+  "Open the decision": "Entscheidung öffnen",
+  "Token revoked": "Token widerrufen",
+  "Not decided yet": "Noch nicht entschieden",
+  "Confirmed by {name}": "Bestätigt von {name}",
+  "Rejected by {name}": "Abgelehnt von {name}",
+  "Confirmed through token {token}, issued by {issuer}":
+    "Bestätigt über MCP-Token {token}, ausgestellt von {issuer}",
+  "Rejected through token {token}, issued by {issuer}":
+    "Abgelehnt über MCP-Token {token}, ausgestellt von {issuer}",
+  "Confirmed through token {token}, issuer unknown":
+    "Bestätigt über MCP-Token {token}, Aussteller unbekannt",
+  "Rejected through token {token}, issuer unknown":
+    "Abgelehnt über MCP-Token {token}, Aussteller unbekannt",
+  "Confirmed, decided by an unrecorded person": "Bestätigt, entscheidende Person nicht erfasst",
+  "Rejected, decided by an unrecorded person": "Abgelehnt, entscheidende Person nicht erfasst",
+});
+Object.assign(dictionaries.nl, {
+  Pending: "Open",
+  History: "Geschiedenis",
+  "No settled decisions": "Geen genomen beslissingen",
+  "Open the decision": "Beslissing openen",
+  "Token revoked": "Token ingetrokken",
+  "Not decided yet": "Nog niet beslist",
+  "Confirmed by {name}": "Bevestigd door {name}",
+  "Rejected by {name}": "Afgewezen door {name}",
+  "Confirmed through token {token}, issued by {issuer}":
+    "Bevestigd via MCP-token {token}, uitgegeven door {issuer}",
+  "Rejected through token {token}, issued by {issuer}":
+    "Afgewezen via MCP-token {token}, uitgegeven door {issuer}",
+  "Confirmed through token {token}, issuer unknown":
+    "Bevestigd via MCP-token {token}, uitgever onbekend",
+  "Rejected through token {token}, issuer unknown":
+    "Afgewezen via MCP-token {token}, uitgever onbekend",
+  "Confirmed, decided by an unrecorded person": "Bevestigd, beslisser niet vastgelegd",
+  "Rejected, decided by an unrecorded person": "Afgewezen, beslisser niet vastgelegd",
+});
+Object.assign(dictionaries.es, {
+  Pending: "Pendientes",
+  History: "Historial",
+  "No settled decisions": "No hay decisiones tomadas",
+  "Open the decision": "Abrir la decisión",
+  "Token revoked": "Token revocado",
+  "Not decided yet": "Aún sin decidir",
+  "Confirmed by {name}": "Confirmado por {name}",
+  "Rejected by {name}": "Rechazado por {name}",
+  "Confirmed through token {token}, issued by {issuer}":
+    "Confirmado mediante el token MCP {token}, emitido por {issuer}",
+  "Rejected through token {token}, issued by {issuer}":
+    "Rechazado mediante el token MCP {token}, emitido por {issuer}",
+  "Confirmed through token {token}, issuer unknown":
+    "Confirmado mediante el token MCP {token}, emisor desconocido",
+  "Rejected through token {token}, issuer unknown":
+    "Rechazado mediante el token MCP {token}, emisor desconocido",
+  "Confirmed, decided by an unrecorded person": "Confirmado, persona que decidió no registrada",
+  "Rejected, decided by an unrecorded person": "Rechazado, persona que decidió no registrada",
+});

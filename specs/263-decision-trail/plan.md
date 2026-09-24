@@ -109,8 +109,9 @@ No Complexity Tracking entry is required.
   `actor` for compatibility.
 - `services/core.timeline_activity` adds `decision` per event in one batched call.
 - `tools/application._proposal_execution_status` adds `decision`.
-- Web: `DecisionsPage.tsx` gains Pending / History tabs (`tab` URL parameter) and a
-  `decision` URL parameter that opens one decision via the review endpoint; a shared
+- Web: `DecisionsPage.tsx` gains Pending / History tabs (`decisions_view` URL
+  parameter); one decision opens through the existing `proposal` parameter and
+  `ProposalReviewCard`, which already reads any status via the review endpoint; a shared
   `DecisionLine` component renders the `decision` object in `SourceBadge`,
   `ActivityDrawer` and the register's decider column. German ERP terms: "Entscheidung",
   "bestätigt von", "bestätigt über Token", "ausgestellt von", "unbekannt".

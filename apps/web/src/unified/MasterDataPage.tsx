@@ -75,7 +75,7 @@ export function MasterDataPage({
   ) : (
     <div ref={preview} className="w-full" data-master-preview>
       <div className="mb-4 text-sm">
-        <SourceBadge origin={detail.origin} inspect={setTarget} />
+        <SourceBadge origin={detail.origin} inspect={setTarget} tenant={tenant} />
         <ContributingSystems systems={detail.contributing_systems} />
       </div>
       <InspectorContent
@@ -339,7 +339,7 @@ export function MasterDataPage({
                           </>
                         )}
                         <td>
-                          <SourceBadge origin={row.origin} inspect={setTarget} />
+                          <SourceBadge origin={row.origin} inspect={setTarget} tenant={tenant} />
                         </td>
                         <td>{t(row.is_active ? "Active" : "Inactive")}</td>
                         <td>

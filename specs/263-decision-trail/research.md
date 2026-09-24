@@ -67,7 +67,9 @@ served by `GET /change-proposals/{id}/review`. The MCP/CLI read for one decision
 `proposal_execution_status` tool.
 
 **Decision**: add the attribution read model to both, and deep-link with
-`/app/decisions?decision=<id>`.
+`/app/decisions?decisions_view=history&proposal=<id>`: the unified app already opens
+`ProposalReviewCard` for any `proposal` outside master data, and that card shows a
+settled decision's stored receipt, so no new parameter is needed.
 
 ## R5 — Record origin and activities
 

@@ -580,6 +580,18 @@ before attribution existed — the record leaves the person blank rather than su
 one, and the register renders that blank as unknown. Only a person who actually decided
 for the company being read is resolved to a name.
 
+A decision settled through MCP names the access token that settled it and the owner who
+issued that token (spec 263). It reads "confirmed through token ‹name›, issued by
+‹owner›", never "confirmed by ‹owner›": Reality sees the token, not the person at the
+agent client. A token issued before this attribution existed reads with an unknown
+issuer, and a revoked token keeps naming itself on its past decisions. The Decisions page
+offers Pending and History as tabs (`decisions_view=history`); any decision, pending or
+settled, opens through `proposal=<id>` with who settled it and when. A record created
+through a decision states that decision in its origin — "Created here", the decider and
+the moment, linked to the decision — and so does every activity entry a decision caused.
+Only a record's first event can name the decision that created it; a later decision is
+never presented as the reason a record exists.
+
 Decision history is a register, not a stack of cards. It only grows, so it is counted,
 filtered and sliced in the database and read one bounded page at a time under a
 deterministic order, with a row per decision stating time, action, scope, requester and

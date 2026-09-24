@@ -32,9 +32,10 @@ The MCP input schemas do not change. Output additions are documented by
 
 ## Browser
 
-- `/app/decisions?tab=history` renders the register; `/app/decisions?decision=<id>`
-  opens that decision's detail.
+- `/app/decisions?decisions_view=history` renders the register;
+  `/app/decisions?decisions_view=history&proposal=<id>` opens that decision through the
+  existing `ProposalReviewCard`, which reads a proposal of any status.
 - `SourceBadge` and `ActivityDrawer` render `decision` as
   "‹action› · confirmed by ‹name›" or "‹action› · confirmed through token ‹name› (issued
-  by ‹issuer | unknown›)" with a link to `/app/decisions?decision=<id>`, and nothing
+  by ‹issuer | unknown›)" with a link to that address, and nothing
   when `decision` is absent.
