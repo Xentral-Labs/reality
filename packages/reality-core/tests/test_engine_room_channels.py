@@ -130,7 +130,7 @@ def test_a_web_write_links_the_events_it_committed(web):
     )
     assert response.status_code == 201, response.text
     [row] = rows(web.db, web.tenant_id)
-    assert row.operation == "POST /items"
+    assert (row.operation, row.kind) == ("POST /items", "write")
     assert row.event_ranges and row.event_first_sequence is not None
     # FR-003: nothing the caller sent reaches the row.
     stored = json.dumps(

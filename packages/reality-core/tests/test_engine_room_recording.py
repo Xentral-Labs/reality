@@ -136,6 +136,8 @@ def test_committed_events_are_linked_by_their_sequence(session, business, record
         second = emit(session, tenant, "b")
         session.commit()
     [row] = rows(session, tenant)
+    # Committed events without a proposal make a read boundary a write.
+    assert row.kind == "write"
     assert row.event_ranges == [[first.sequence, second.sequence]]
     assert (row.event_first_sequence, row.event_last_sequence) == (
         first.sequence,

@@ -37,6 +37,7 @@ const channelLabels: Record<string, string> = {
 };
 const kindLabels: Record<string, string> = {
   read: "Read",
+  write: "Write",
   propose: "Proposal",
   decide: "Decision",
   job: "Job",
@@ -58,7 +59,7 @@ const stageLabels: Record<Stage, string> = {
   master_data: "Master data",
 };
 const stageTone: Record<"read" | "written" | "none", string> = {
-  written: "border-accent bg-accent text-fg-on-solid",
+  written: "border-accent bg-accent text-fg-inverse",
   read: "border-accent bg-surface text-fg-strong",
   none: "border-border-subtle bg-surface-muted text-fg-muted",
 };

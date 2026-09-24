@@ -67,6 +67,17 @@ Nothing is inferred (DR-004).
 
 The storyline middleware already performs one threadpool write per GET, for storyline tenants only. The engine room adds one small insert per boundary for every tenant. The budget is ≤ 5 ms at p95 (SC-003), measured in quickstart step 5. The write runs after the response body is produced (middleware) and in its own session.
 
+## Implementation decisions (2026-09-24)
+
+- **I1 — Recorder module.** The recorder lives in `services/interaction_recorder.py`, not `telemetry/`. It calls services lazily, and `telemetry/` stays a leaf.
+- **I2 — Retention without a new job type.** The job registry has no per-company system schedule that would run a purge for every company. The established rule is that the work which makes a history tidies it (`projections.refresh` forgets job runs, spec 181 FR-005). The recorder therefore deletes at most 500 expired rows of its company after a write, at most every 10 minutes per process and company. Reads already hide expired rows.
+- **I3 — `write` kind.** A web request that commits events without a proposal (for example `POST /items`) was shown as "Read". It is now recorded as `write`. Found during the live browser check.
+- **I4 — CLI boundary.** CLI commands call services directly as well as tools. The whole command is the boundary. It learns its company from the first tool call or event, and a command that touches no company records nothing.
+- **I5 — Worker boundary.** The observation wraps the child's claim transaction in `jobs/runner.py`, so it ends after the commit that keeps the job's events.
+- **I6 — MCP defaults.** The MCP server fills in every declared default, so only arguments whose value differs from the declared default count as used.
+- **I7 — Test harness.** Recording through the test connection from the request thread and the recorder thread at once loses rows, and psycopg connections are not thread-safe. Web, catalog-wide and worker tests therefore run on a committed database with separate connections, as in production. Tests default to `REALITY_INTERACTIONS=off`; the engine-room tests switch it on.
+- **I8 — Replay.** The time axis of `FlightRecorder.tsx` was not reused. Replay is a filtered window with step controls over the same list, which needed no second layout.
+
 ## Analysis (2026-09-24)
 
 A consistency pass over `spec.md`, `plan.md`, `data-model.md`, `contracts/` and `tasks.md`, checked against the code on `origin/main`. No CRITICAL finding. Every HIGH finding is resolved in the artifacts.

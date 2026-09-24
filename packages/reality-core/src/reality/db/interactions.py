@@ -30,7 +30,7 @@ from sqlalchemy.orm import Mapped, mapped_column
 from reality.db.core import Base, UTCDateTime, now
 
 CHANNELS = ("web", "mcp", "chat", "cli", "worker")
-KINDS = ("read", "propose", "decide", "job")
+KINDS = ("read", "write", "propose", "decide", "job")
 OUTCOMES = ("ok", "refused", "failed", "awaiting_decision")
 SUMMARY_BYTES = 1024
 

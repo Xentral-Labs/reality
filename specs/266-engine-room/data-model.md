@@ -14,7 +14,7 @@ Operational telemetry (DR-001). No business read, projection, exception rule or 
 | `started_at`, `recorded_at` | UTC | time axis, replay window (FR-015), retention (FR-011) |
 | `duration_ms` | int | shown and filtered |
 | `channel` | check: `web`, `mcp`, `chat`, `cli`, `worker` | filter (FR-006) |
-| `kind` | check: `read`, `propose`, `decide`, `job` | filter, lane |
+| `kind` | check: `read`, `write`, `propose`, `decide`, `job` | filter, lane; `write` = committed events without a proposal |
 | `operation` | string ≤ 200 | tool/command name or route template; never a raw path |
 | `outcome` | check: `ok`, `refused`, `failed`, `awaiting_decision` | filter |
 | `error_code` | string null | refused/failed reason code, no message text |
@@ -37,6 +37,6 @@ Operational telemetry (DR-001). No business read, projection, exception rule or 
 
 **Check constraints**: the enumerations above, and `octet_length(summary::text) <= 1024`.
 
-**Lifecycle**: append-only. Rows are deleted after 7 days by the `interactions.retention` job, and removed with the company by the existing generic tenant purge (`services/core.py` walks `Base.metadata.sorted_tables`). A revoked token or removed user stays referenced. FKs are `ON DELETE SET NULL` for `actor_user_id` (account deletion, spec 186) and `mcp_token_id`.
+**Lifecycle**: append-only. Rows older than 7 days are hidden from reads and deleted in bounded batches by the recorder's tidy step (research I2). They are removed with the company by the existing generic tenant purge (`services/core.py` walks `Base.metadata.sorted_tables`). Account deletion nulls `actor_user_id` through its generic walk over every `app_user` reference. MCP tokens are revoked, never deleted, so `mcp_token_id` stays referenced and reads mark it revoked.
 
 **Migration**: `0094_engine_room_interaction.py` creates the table. Downgrade drops it. There is no backfill: history before deployment never existed.

@@ -6,4 +6,17 @@
 4. Ask the chat a question that uses tools. Choose "Show in engine room" on the answer. The filter shows the chat request and its tool calls.
 5. **Overhead (SC-003)**: on a quiet machine, time 500 identical `GET /api/tenants/{t}/inventory` requests, once with `REALITY_INTERACTIONS=off` and once with it on, back to back. The p95 difference must be ≤ 5 ms.
 6. Sign in as a member and open `/app/inspector?inspector_view=live`. The page reports "not found".
-7. Run `interactions.retention` with a clock 8 days ahead. Rows older than 7 days are gone, and business events are untouched.
+7. Retention: reads never return rows older than 7 days, and the next recorded interaction of the company deletes up to 500 of them (at most every 10 minutes per process). Business events are untouched.
+
+## Live browser check
+
+`apps/web/scripts/engine-room-live-browser.mjs` runs against a real API (not fixtures). Seed a database with an owner `owner@example.test`, a member `member@example.test` (password `a-long-account-password`), one company and one MCP token. Run the API with `REALITY_AUTH_MODE=enabled`, Vite on `127.0.0.1:5266` proxying to it, then:
+
+```bash
+TENANT=<id> TOKEN=<mcp token id> SHOTS=/tmp/shots \
+PLAYWRIGHT_MODULE=<path>/playwright/index.mjs \
+ENGINE_ROOM_MCP_CALL='<command that calls one MCP read tool with that token>' \
+node apps/web/scripts/engine-room-live-browser.mjs
+```
+
+Result on 2026-09-24: 24/24 checks passed, covering live arrival, member attribution, route template, written stage, MCP token and issuer, linked events, pause and resume, URL filter and reload, replay, owner-only access, the token entry point, 390 px width in dark mode and zero console errors.

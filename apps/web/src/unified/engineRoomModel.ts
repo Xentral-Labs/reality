@@ -2,7 +2,7 @@
 // cause and carrying the filter through the URL. Pure, so it is tested alone.
 
 export const CHANNELS = ["web", "mcp", "chat", "cli", "worker"] as const;
-export const KINDS = ["read", "propose", "decide", "job"] as const;
+export const KINDS = ["read", "write", "propose", "decide", "job"] as const;
 export const OUTCOMES = ["ok", "refused", "failed", "awaiting_decision"] as const;
 export const STAGES = [
   "source",

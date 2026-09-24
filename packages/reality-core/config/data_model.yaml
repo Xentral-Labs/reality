@@ -237,7 +237,7 @@ tables:
       recorded_at: {description: When the interaction was recorded; retention and replay windows use it.}
       duration_ms: {description: Wall-clock duration of the observed call.}
       channel: {description: web, mcp, chat, cli or worker.}
-      kind: {description: read, propose, decide or job.}
+      kind: {description: read, write (committed events without a proposal), propose, decide or job.}
       operation: {description: Tool or command name, or route template; never a raw path or query.}
       outcome: {description: ok, refused, failed or awaiting_decision.}
       error_code: {description: Bounded refusal or failure code; never a message.}

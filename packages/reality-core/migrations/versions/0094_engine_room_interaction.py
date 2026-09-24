@@ -71,7 +71,7 @@ def upgrade() -> None:
             name="ck_interaction_channel",
         ),
         sa.CheckConstraint(
-            "kind IN ('read', 'propose', 'decide', 'job')",
+            "kind IN ('read', 'write', 'propose', 'decide', 'job')",
             name="ck_interaction_kind",
         ),
         sa.CheckConstraint(

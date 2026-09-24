@@ -39,12 +39,11 @@ The design reuses the contextvar technique of the Storyline trace (spec 182), bu
 packages/reality-core/src/reality/
   db/core.py                          # + Interaction model
   ../../migrations/versions/<next>_engine_room_interaction.py   # migration (number per T004)
-  telemetry/interactions.py           # NEW: Observation contextvar, observe(), note_*()
-  services/interactions.py            # NEW: record(), list_interactions(), events_of(), pulse(), purge_expired(), stage map
+  services/interaction_recorder.py    # NEW: Observation contextvar, begin/end/observe, note_*(), record, tidy (research I1, I2)
+  services/interactions.py            # NEW: list_interactions(), events_of(), pulse(), purge_expired(), stage map
   services/core.py                    # emit_business_event → note_event(event.id)
   tools/application.py                # wrap run_read_tool / create_change_proposal / approve / reject: note kind & proposal
-  jobs/handlers/interactions.py       # NEW: interactions.retention JobDefinition; registered in jobs/registry.py
-  services/scheduled_jobs.py          # observe(channel="worker") around definition.handler
+  jobs/runner.py                      # observe(channel="worker") around the child's claim transaction (research I5)
   mcp/server.py                       # observe(channel="mcp") in _handler.invoke
   agent/mcp_chat.py                   # observe(channel="chat") in _call_tool
   cli/app.py                          # observe(channel="cli") in the command callback
@@ -136,7 +135,7 @@ Web: `apps/web/scripts/engine-room-model.test.mjs` and `engine-room-browser.mjs`
 | FR-008 | unit | `::test_stages_from_events_and_catalog_reads`, `::test_unknown_operation_marks_no_stage` | missing |
 | FR-009 | browser | `engine-room-browser.mjs` entry points (header, Home, palette, MCP token, chat, Inspector) | missing UI |
 | FR-010 | adapter | `test_engine_room_recording.py::test_engine_room_routes_not_recorded`, `::test_refresh_header_hidden_by_default` | recorded / shown |
-| FR-011 | service | `::test_retention_job_deletes_older_than_seven_days` | missing job |
+| FR-011 | service | `test_engine_room_recording.py::test_recording_tidies_expired_rows_of_its_company_at_most_every_interval`; `test_engine_room_reads.py::test_retention_hides_rows_older_than_seven_days`, `::test_purge_removes_only_expired_rows` | missing tidy |
 | FR-012 | service | `::test_recorder_failure_does_not_fail_call` with a raising writer, plus a positive control that a normal write lands | exception propagates |
 | FR-013 | API | `test_engine_room_reads.py::test_member_and_foreign_owner_get_404` | missing route |
 | FR-014 | node | `engine-room-model.test.mjs` pause buffer and resume merge | missing module |

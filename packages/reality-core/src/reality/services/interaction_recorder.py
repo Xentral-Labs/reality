@@ -34,7 +34,7 @@ logger = logging.getLogger(__name__)
 CORRELATION = re.compile(r"^[A-Za-z0-9_-]{1,64}$")
 ARGUMENT_LIMIT = 32
 _EVENT_CHUNK = 1000
-_KIND_RANK = {"read": 0, "job": 1, "propose": 2, "decide": 3}
+_KIND_RANK = {"read": 0, "write": 1, "job": 2, "propose": 3, "decide": 4}
 
 
 @dataclass
@@ -375,6 +375,10 @@ def _write(observation: Observation, outcome: str, error_code: str | None) -> No
         ):
             token_id = None
         ranges = _ranges(sequences)
+        kind = observation.kind
+        if kind == "read" and ranges:
+            # Committed events without a proposal: a direct write, not a read.
+            kind = "write"
         summary: dict[str, Any] = {}
         if observation.arguments:
             summary["arguments"] = list(observation.arguments)
@@ -388,7 +392,7 @@ def _write(observation: Observation, outcome: str, error_code: str | None) -> No
                 recorded_at=_now(),
                 duration_ms=int((time.perf_counter() - observation.started) * 1000),
                 channel=observation.channel,
-                kind=observation.kind,
+                kind=kind,
                 operation=observation.operation,
                 outcome=outcome,
                 error_code=error_code,

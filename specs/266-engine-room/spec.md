@@ -61,7 +61,7 @@ As an owner I open Inspector → Activities → Live and see every interaction w
 **Acceptance Scenarios**:
 
 1. **Given** the Live tab is open, **When** an MCP client calls a read tool, **Then** a row appears within 2 seconds naming channel MCP, the token (and person, where spec 265 supplies one), the tool, outcome and duration.
-2. **Given** a chat turn calls three tools, **When** it completes, **Then** the three calls appear under that chat turn and link to the chat session.
+2. **Given** a chat turn calls three tools, **When** it completes, **Then** the three calls appear grouped with the request that carried the turn.
 3. **Given** a person opens a register page in the web, **When** its requests complete, **Then** they appear as channel Web under that person, named by their operation, not by raw URL.
 4. **Given** a tool call is refused (missing scope, cross-tenant, validation), **When** it happens, **Then** it appears as refused with the error code, without the refused values.
 5. **Given** the connection drops, **When** it resumes, **Then** interactions missed in between are filled in, in order, without duplicates.
@@ -134,16 +134,16 @@ As an owner I move back on a time axis and play a past window, for example one a
 ### Functional Requirements
 
 - **FR-001**: The system MUST record one interaction for every tool invocation through MCP, Chat and CLI, every tenant-scoped web API request, every proposal decision, every scheduled job run that read or wrote company data, per company. Source intake is recorded as the interaction that carried it (web upload, MCP tool, worker job) and is recognizable by the Source stage it wrote. Empty scheduler sweeps and idle worker polls are not interactions.
-- **FR-002**: Each interaction MUST state recorded time, channel, actor, operation (a bounded name from the tool/command catalog or route template, never a raw URL or query), kind (read, propose, decide, job), outcome with error code where applicable, and duration.
+- **FR-002**: Each interaction MUST state recorded time, channel, actor, operation (a bounded name from the tool/command catalog or route template, never a raw URL or query), kind (read; write — committed events without a proposal; propose; decide; job), outcome with error code where applicable, and duration.
 - **FR-003**: Interactions MUST NOT contain argument values, result values, payloads, tokens, secrets or free text; at most a bounded summary (argument names, result count).
 - **FR-004**: Interactions that share a cause MUST share a correlation: the web client sends one per user action, a chat turn inherits the correlation of the request that carried it, and each MCP call and job run carries its own. An interaction MUST link to exactly the business events it caused and that were committed; events of a rolled-back transaction are not linked.
 - **FR-005**: The Live tab MUST show new interactions of the company within 2 seconds of completion, in recorded order, and resume without gaps or duplicates after a disconnect.
 - **FR-006**: The Live tab MUST offer filters by channel, actor, kind, outcome and correlation, and a subject filter; filters are part of the URL.
-- **FR-007**: The Live tab MUST link each interaction to the Reality it produced (business events, proposal, source record, chat session) through the existing Inspector, and state when an interaction produced nothing.
+- **FR-007**: The Live tab MUST link each interaction to the Reality it produced (business events, the records they concern, and the proposal) through the existing Inspector and Decisions page, and state when an interaction produced nothing. A chat turn is reached through its correlation, which groups the carrying request and its tool calls.
 - **FR-008**: The model map MUST mark only stages the interaction is known to have read or written, distinguish read from write, and respect reduced-motion preferences.
 - **FR-009**: The system MUST offer the entry points of US4: header indicator, Home, command palette, MCP token, chat turn and Inspector record.
 - **FR-010**: The Live tab's own requests and routine background refresh MUST be excluded from the default view.
-- **FR-011**: Interactions MUST be kept for 7 days and then removed by a scheduled job through the shared job registry.
+- **FR-011**: Interactions MUST be kept for 7 days. Reads never return older rows, and the work that records interactions removes its company's expired rows in bounded batches (the spec 181 FR-005 rule: the work that makes the history tidies it), so a company cannot accumulate rows without also forgetting old ones.
 - **FR-012**: Recording MUST NOT fail the observed interaction; a recording failure is counted in metrics and the interaction proceeds.
 - **FR-013**: The Live tab and its data MUST be available only to active owners of the company; members and other companies receive not found.
 - **FR-014**: The Live tab MUST let the viewer pause and resume the stream without losing interactions.
