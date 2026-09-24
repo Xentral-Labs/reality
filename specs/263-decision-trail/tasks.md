@@ -129,9 +129,9 @@ or documentation task. Test tasks precede the code they prove and are observed f
 - [X] T046 [P] [FR-004] Add a browser script `web/scripts/decision-trail-browser.mjs`: Pending/History tabs, history read 25 rows, token and person deciders in en/de, a settled decision opened from the register and by its link, no issuer presented as confirmer
 - [X] T047 [P] Update `docs/WEB_SPEC.md` (Decisions history, decision line on origin and activities) and the MCP attribution note in `docs/features/` where MCP tokens are described
 - [X] T048 Run `make docs-generate` and commit generated Tool Usage output; run `make docs-catalog-check` (no generated change: MCP input schemas are unchanged)
-- [ ] T049 Run `make spec-check`, `make lint` (ruff from `core/` with `--no-cache`), `make test`, `make web-build`, `cd web && npm run test:contracts`
+- [X] T049 Run `make spec-check`, `make lint` (ruff from `core/` with `--no-cache`), `make test`, `make web-build`, `cd web && npm run test:contracts`
 - [ ] T050 [SC-001] [SC-002] (owner: needs the agent run against a stack built from this branch) Re-run the agent setup against a fresh company and record the `quickstart.md` query results in `specs/263-decision-trail/quickstart.md`
-- [ ] T051 Review the final diff against spec, Constitution and wording rule ("confirmed through token", never "confirmed by" the issuer); mark tasks complete only with green evidence
+- [X] T051 Review the final diff against spec, Constitution and wording rule ("confirmed through token", never "confirmed by" the issuer); mark tasks complete only with green evidence
 
 ## Dependencies
 
@@ -165,3 +165,17 @@ or documentation task. Test tasks precede the code they prove and are observed f
 | SC-004 | T006, T039 | T010 |
 | SC-005 | T005 | T009 |
 | SC-006 | T045, T049 | — |
+
+## Verification record (2026-09-24)
+
+- Full backend suite in an isolated venv: 4192 passed, 9 skipped, 5 failed. Three were
+  fixed on this branch (MCP runtime reading a token without `client_id`; the scope helper
+  reclassified as an application boundary, twice parametrized). The remaining two
+  (`test_b2b_operational_chain_catalog::test_story_manifest_has_exact_references_results_and_ui_paths`,
+  `test_demo_costing_profile::test_canonical_profile_versions_and_replays_one_costing_baseline`)
+  hit the 30 s job handler budget under parallel load and pass when run alone.
+- After rebasing onto `9c942d18`: spec check, ruff, 762 targeted backend tests, web build,
+  370 web contract tests, format check and the i18n audit are green.
+- Browser: `decision-trail-browser.mjs` passes in en and de.
+- T050 remains open: it needs the owner's agent run against a stack built from this branch.
+
