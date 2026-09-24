@@ -5,10 +5,11 @@ Streamable HTTP. Use this guide to connect one client with only the capabilities
 
 ## One human setup, then the agent works
 
-The recommended connection starts with a short, one-time browser setup and authorization by a person. The person signs
-in, creates or selects the company, chooses the exact tool allowlist, and approves the client. The
-client then exchanges the authorization code for a tenant-scoped access and refresh token. The agent
-uses those tokens directly; it does not receive the person's browser session or password.
+The recommended connection starts with a short, one-time browser setup and authorization by a
+person. The person signs in, creates or selects the company, chooses the exact tool allowlist, and
+approves the client. The client then exchanges the authorization code for a tenant-scoped access and
+refresh token. The agent uses those tokens directly; it does not receive the person's browser
+session or password.
 
 ```text
 Human in the browser, once:
@@ -18,9 +19,9 @@ Agent afterwards:
 MCP endpoint + access token → discover and use permitted tools
 ```
 
-An agent or integrating system must not automate signup, email verification, or human approval. If no
-person has completed authorization, open the client's OAuth login flow and ask the person to finish it
-in the browser. This is the same starting contract for every third-party agent.
+An agent or integrating system must not automate signup, email verification, or human approval. If
+no person has completed authorization, open the client's OAuth login flow and ask the person to
+finish it in the browser. This is the same starting contract for every third-party agent.
 
 ## What an agent can do
 
@@ -117,9 +118,10 @@ create a separate replacement token instead of sharing one token between clients
 Reality provides OAuth authorization-code flow with S256 PKCE, exact resource and redirect
 validation, browser consent, tenant-scoped tool grants, access-token expiry, refresh-token rotation,
 and revocation. The resulting tenant-scoped MCP access token is the agent credential. OAuth is a
-permanent part of the MCP product boundary. Client registration is explicit through `MCP_OAUTH_CLIENTS` or a bounded HTTPS CIMD
-document; there is no open registration endpoint. Company creation remains a human-confirmed browser
-operation and is never performed by an agent without that consent.
+permanent part of the MCP product boundary. Client registration is explicit through
+`MCP_OAUTH_CLIENTS` or a bounded HTTPS CIMD document; there is no open registration endpoint.
+Company creation remains a human-confirmed browser operation and is never performed by an agent
+without that consent.
 
 ## Read response migration (contract v2)
 

@@ -12,8 +12,8 @@ fits the actor, not a different business behavior.
 | Chat / Ask Reality | Conversational queries and confirmed proposals |
 
 To use these capabilities from an external agent, follow [Connect an MCP client](./connect-mcp). The
-guide covers the current HTTPS and OAuth setup, least-privilege permissions, a first read,
-governed changes, verification, and revocation.
+guide covers the current HTTPS and OAuth setup, least-privilege permissions, a first read, governed
+changes, verification, and revocation.
 
 The current setup has one deliberate human step: a person signs in through the browser, selects or
 creates the company, and approves a scoped OAuth grant. The agent works directly through MCP after

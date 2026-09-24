@@ -6,11 +6,11 @@ den Funktionen, die er tatsächlich benötigt.
 
 ## Einmal durch einen Menschen einrichten, danach arbeitet der Agent
 
-Die empfohlene Verbindung beginnt mit einer kurzen, einmaligen Einrichtung und OAuth-Freigabe durch einen Menschen im Browser.
-Der Mensch meldet sich an, erstellt oder wählt das Unternehmen, wählt die genaue Tool-Allowlist und
-bestätigt den Client. Der Client tauscht den Authorization Code anschließend gegen mandantengebundene
-Access- und Refresh-Tokens. Der Agent verwendet diese Tokens direkt und erhält weder Browser-Session
-noch Passwort des Menschen.
+Die empfohlene Verbindung beginnt mit einer kurzen, einmaligen Einrichtung und OAuth-Freigabe durch
+einen Menschen im Browser. Der Mensch meldet sich an, erstellt oder wählt das Unternehmen, wählt die
+genaue Tool-Allowlist und bestätigt den Client. Der Client tauscht den Authorization Code
+anschließend gegen mandantengebundene Access- und Refresh-Tokens. Der Agent verwendet diese Tokens
+direkt und erhält weder Browser-Session noch Passwort des Menschen.
 
 ```text
 Einmal durch einen Menschen im Browser:
@@ -22,8 +22,8 @@ MCP-Endpunkt + Access-Token → erlaubte Werkzeuge finden und verwenden
 
 Ein Agent oder angebundenes System darf Registrierung, E-Mail-Bestätigung oder die menschliche
 Freigabe nicht automatisieren. Hat noch kein Mensch autorisiert, öffnet der Client den OAuth-Login
-und bittet den Menschen, ihn im Browser abzuschließen.
-Dieser Einstieg gilt für jedes externe Agenten- oder Erkenntnissystem.
+und bittet den Menschen, ihn im Browser abzuschließen. Dieser Einstieg gilt für jedes externe
+Agenten- oder Erkenntnissystem.
 
 ## Was ein Agent tun kann
 
@@ -120,10 +120,10 @@ zwischen Clients zu teilen.
 Reality bietet Authorization-Code-Flow mit S256-PKCE, exakte Prüfung von Resource und Redirect,
 Browser-Consent, mandantengebundene Tool-Rechte, Ablauf, Refresh-Token-Rotation und Widerruf. Das
 entstehende mandantengebundenes MCP-Zugriffstoken ist der Zugang des Agenten. OAuth ist fester
-Bestandteil der MCP-Produktgrenze. Die Client-Registrierung erfolgt explizit über `MCP_OAUTH_CLIENTS` oder ein begrenztes HTTPS-CIMD-
-Dokument; einen offenen Registrierungsendpunkt gibt es nicht. Die Unternehmensanlage bleibt eine
-menschlich bestätigte Browser-Aktion und wird niemals ohne diese Zustimmung durch einen Agenten
-ausgeführt.
+Bestandteil der MCP-Produktgrenze. Die Client-Registrierung erfolgt explizit über
+`MCP_OAUTH_CLIENTS` oder ein begrenztes HTTPS-CIMD- Dokument; einen offenen Registrierungsendpunkt
+gibt es nicht. Die Unternehmensanlage bleibt eine menschlich bestätigte Browser-Aktion und wird
+niemals ohne diese Zustimmung durch einen Agenten ausgeführt.
 
 Was ein Agent mit diesen Werkzeugen je Geschäftsbereich tun soll und was beim Menschen bleibt, steht
 in den [Agenten-Playbooks](../agent-playbooks/).

@@ -57,6 +57,21 @@ def test_authorization_metadata_advertises_only_supported_public_flows(monkeypat
     assert "registration_endpoint" not in metadata
 
 
+def test_a_leftover_disable_setting_no_longer_switches_authorization_off(monkeypatch):
+    """FR-023: interactive authorization is a permanent part of the MCP boundary.
+
+    An existing deployment may still carry the removed setting; it must not bring the
+    old 503 back.
+    """
+    monkeypatch.setenv("MCP_INTERACTIVE_AUTH_ENABLED", "false")
+    monkeypatch.setenv("API_URL", "https://api.example.test")
+    monkeypatch.setenv("MCP_URL", "https://mcp.example.test/")
+    with TestClient(app) as client:
+        metadata = client.get("/.well-known/oauth-authorization-server")
+    assert metadata.status_code == 200
+    assert metadata.json()["issuer"] == "https://api.example.test"
+
+
 def test_authorization_outage_unsupported_client_and_issuer_change_fail_safely(
     session, monkeypatch
 ):
