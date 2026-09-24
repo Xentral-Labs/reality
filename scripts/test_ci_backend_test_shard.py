@@ -22,18 +22,38 @@ class BackendTestShardTests(unittest.TestCase):
     def setUpClass(cls) -> None:
         cls.sharder = load_sharder()
 
-    def test_shards_cover_every_test_file_once_and_balance_weight(self) -> None:
+    def test_shards_cover_every_test_file_once_and_hold_the_same_count(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
-            sizes = {"test_large.py": 100, "test_medium.py": 60, "test_small.py": 40}
-            for name, size in sizes.items():
-                (root / name).write_text("x" * size)
+            names = [f"test_{letter}.py" for letter in "abcdef"]
+            for name in names:
+                (root / name).write_text("x")
             shards = self.sharder.shard_files(root, 2)
             paths = [path.name for shard in shards for path in shard]
-            self.assertCountEqual(paths, sizes)
+            self.assertCountEqual(paths, names)
             self.assertEqual(len(paths), len(set(paths)))
-            weights = [sum(path.stat().st_size for path in shard) for shard in shards]
-            self.assertEqual(weights, [100, 100])
+            self.assertEqual([len(shard) for shard in shards], [3, 3])
+
+    def test_neighbours_in_the_tree_land_in_different_shards(self) -> None:
+        """Files that sit together tend to cost alike; splitting them spreads the load."""
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            for letter in "abcd":
+                (root / f"test_{letter}.py").write_text("x")
+            first, second = self.sharder.shard_files(root, 2)
+            self.assertEqual([path.name for path in first], ["test_a.py", "test_c.py"])
+            self.assertEqual([path.name for path in second], ["test_b.py", "test_d.py"])
+
+    def test_the_recorded_durations_do_not_decide_the_split(self) -> None:
+        """They are a diagnostic: weighing them measured 20% slower than counting."""
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            for letter in "ab":
+                (root / f"test_{letter}.py").write_text("x")
+            import inspect
+
+            signature = inspect.signature(self.sharder.shard_files)
+            self.assertEqual(list(signature.parameters), ["root", "total"])
 
     def test_invalid_or_empty_input_fails_safe(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
