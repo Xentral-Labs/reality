@@ -13,12 +13,12 @@ zum Akteur passt – nicht ein anderes Geschäftsverhalten.
 
 Um diese Funktionen mit einem externen Agenten zu nutzen, folge der Anleitung
 [Einen MCP-Client verbinden](./connect-mcp). Sie beschreibt die aktuelle Einrichtung über HTTPS und
-Bearer-Token, minimale Berechtigungen, einen ersten Lesezugriff, kontrollierte Änderungen,
+OAuth, minimale Berechtigungen, einen ersten Lesezugriff, kontrollierte Änderungen,
 Verifikation und Widerruf.
 
-Die aktuelle Einrichtung enthält bewusst einen menschlichen Schritt: Ein Mensch registriert sich im
-Browser, erstellt oder wählt das Unternehmen und erzeugt ein eingeschränktes MCP-Token. Nach dieser
-Übergabe arbeitet der Agent direkt über MCP und darf Registrierung oder E-Mail-Bestätigung des
+Die aktuelle Einrichtung enthält bewusst einen menschlichen Schritt: Ein Mensch meldet sich im
+Browser an, erstellt oder wählt das Unternehmen und bestätigt einen eingeschränkten OAuth-Grant.
+Nach dieser Übergabe arbeitet der Agent direkt über MCP und darf Registrierung oder Freigabe des
 Menschen nicht automatisieren.
 
 ## Authentifizierung und Mandantenkontext

@@ -243,9 +243,9 @@ browser layouts, `make spec-check`, `make docs-generate`, and
 
 1. Ship additive migration, inactive service code and configuration validation. Manual
    tokens remain the only working path.
-2. Deploy API/account authorization endpoints and discovery metadata behind an
-   explicit disabled-by-default interactive authorization setting. Verify issuer,
-   resource, PKCE, CIMD and company/setup journeys without advertising them from MCP.
+2. Deploy API/account authorization endpoints and discovery metadata as a permanent
+   MCP boundary. Verify issuer, resource, PKCE, CIMD and company/setup journeys
+   before release; there is no runtime disable switch.
 3. Deploy the matching MCP resource-server release, then advertise the authorization
    issuer and enable supported clients. API and MCP must run the same core revision.
 4. Add connected-client management and security telemetry: authorization starts,
