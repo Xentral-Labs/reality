@@ -508,6 +508,54 @@ def test_return_disposition_reconciles_four_partial_outcomes(session, business):
         )
 
 
+def test_return_disposition_refuses_missing_or_incompatible_relationships(
+    session, business
+):
+    stocked(session, business)
+    area = returns_area(session, business)
+    commitment = delivery(session, business, 4)
+
+    with pytest.raises(NotFound, match="Movement"):
+        return_disposition_summary(
+            session, business.tenant.id, "mov_missing_return_for_disposition"
+        )
+
+    missing_commitment = came_back(session, business, commitment, 1, area)
+    missing_commitment.commitment_id = None
+    session.flush()
+    with pytest.raises(InvalidOperation, match="customer-delivery commitment"):
+        return_disposition_summary(session, business.tenant.id, missing_commitment.id)
+
+    missing_destination = came_back(session, business, commitment, 1, area)
+    missing_destination.to_location_id = None
+    session.flush()
+    with pytest.raises(InvalidOperation, match="destination location"):
+        return_disposition_summary(session, business.tenant.id, missing_destination.id)
+
+    incompatible_tracking = came_back(session, business, commitment, 1, area)
+    tracked_item = create_item(
+        session,
+        business.tenant.id,
+        "OTHER-RETURN-LOT",
+        "Other tracked return item",
+        tracking_type="lot",
+    )
+    other_lot = create_lot(
+        session, business.tenant.id, tracked_item.id, "OTHER-RETURN-LOT-1"
+    )
+    incompatible_tracking.lot_id = other_lot.id
+    session.flush()
+    with pytest.raises(InvalidOperation, match="Lot does not belong"):
+        record_return_disposition(
+            session,
+            business.tenant.id,
+            incompatible_tracking.id,
+            "restock",
+            "1",
+            destination_location_id=business.location.id,
+        )
+
+
 def test_return_disposition_inherits_lot_and_only_changes_arrival_location(
     session, business
 ):
@@ -573,7 +621,9 @@ def test_return_disposition_inherits_lot_and_only_changes_arrival_location(
     assert scrapped.lot_id == lot.id
     assert scrapped.from_location_id == area.id
     assert stock_at(session, business.tenant.id, item.id, area.id) == Decimal(0)
-    assert stock_at(session, business.tenant.id, item.id, business.location.id) == Decimal(15)
+    assert stock_at(
+        session, business.tenant.id, item.id, business.location.id
+    ) == Decimal(15)
     case = return_disposition_case(session, business.tenant.id, returned.id)
     assert case["explanation"]["before"] == {
         "arrived": Decimal(2),
@@ -586,9 +636,9 @@ def test_return_disposition_inherits_lot_and_only_changes_arrival_location(
     }
     assert case["explanation"]["after"]["resolved"] == Decimal(2)
     assert case["explanation"]["after"]["unresolved"] == Decimal(0)
-    explanation = movement_explanation(
-        session, business.tenant.id, scrapped.id
-    )["state_change"]
+    explanation = movement_explanation(session, business.tenant.id, scrapped.id)[
+        "state_change"
+    ]
     assert explanation["before"]["lot_id"] == lot.id
     assert explanation["effect"]["lot_id"] == lot.id
     assert explanation["effect"]["from_location_id"] == area.id

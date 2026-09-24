@@ -2387,6 +2387,51 @@ def test_returned_not_credited(session, business):
     assert "returned_not_credited" not in by_class(session, business.tenant.id)
 
 
+def test_invoice_linked_credit_clears_returned_not_credited_through_shortest_links(
+    session, business
+):
+    stock(session, business)
+    _, order_line, commitment = order(session, business, number="SO-RET-LINKED")
+    ship(session, business, commitment, 10)
+    _, invoice_line = bill(
+        session,
+        business,
+        order_line,
+        number="RE-RET-LINKED",
+        quantity="10",
+    )
+    send_back(session, business, commitment, 4)
+
+    before = by_class(session, business.tenant.id)["returned_not_credited"]
+    assert before.record_id == order_line.id
+    assert before.trace["document_line_id"] == order_line.id
+    assert before.causal_values["uncredited_quantity"] == Decimal("4.0000")
+
+    _, credit_lines = create_manual_document_with_lines(
+        session,
+        business.tenant.id,
+        "credit_note",
+        "GS-RET-LINKED",
+        business.customer.id,
+        [
+            {
+                "item_id": business.item.id,
+                "quantity": "4",
+                "unit": "pcs",
+                "unit_price": "9.00",
+                "gross_amount": "36.00",
+                "billed_document_line_id": invoice_line.id,
+            }
+        ],
+        "36.00",
+        document_date="2026-08-25",
+    )
+
+    assert invoice_line.billed_document_line_id == order_line.id
+    assert credit_lines[0].billed_document_line_id == invoice_line.id
+    assert "returned_not_credited" not in by_class(session, business.tenant.id)
+
+
 def test_goods_that_were_never_billed_need_no_credit(session, business):
     stock(session, business)
     _, line, commitment = order(session, business, number="SO-RET-3")
@@ -2830,7 +2875,9 @@ def test_a_cancelled_promise_is_neither_reported_nor_learned_from(session, busin
     history(session, business, lag_days=1, cases=6)
     before, _ = thresholds(session, business)
     abandoned = undated_promise(session, business, age_days=90)
-    cancel_commitment(session, business.tenant.id, abandoned.id, reason="Test cancellation")
+    cancel_commitment(
+        session, business.tenant.id, abandoned.id, reason="Test cancellation"
+    )
 
     # Nobody is waiting for it, and it teaches the norm nothing.
     assert "order_stalled" not in by_class(session, business.tenant.id)
@@ -5766,7 +5813,9 @@ def test_commitment_hold_unreleased(session, business):
     )
     dangling.created_at = AS_OF - timedelta(days=90)
     session.commit()
-    core.cancel_commitment(session, business.tenant.id, closed.id, reason="Test cancellation")
+    core.cancel_commitment(
+        session, business.tenant.id, closed.id, reason="Test cancellation"
+    )
     assert dangling.released_at is not None
     assert "commitment_hold_unreleased" not in by_class(session, business.tenant.id)
 

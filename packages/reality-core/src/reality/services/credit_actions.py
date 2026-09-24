@@ -187,6 +187,13 @@ def _credit_context(session: Session, tenant: str, invoice_id: str) -> dict[str,
     }
 
 
+def invoice_credit_context(
+    session: Session, tenant_id: str, invoice_id: str
+) -> dict[str, Any]:
+    """Public tenant-scoped read contract for preparing an invoice-linked credit."""
+    return _credit_context(session, tenant_id, invoice_id)
+
+
 def _exact(value: Any, label: str, *, zero: bool = False) -> Decimal:
     try:
         amount = core.decimal(value)

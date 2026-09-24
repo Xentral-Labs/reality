@@ -1340,9 +1340,18 @@ def test_inventory_owner_confirmation_stale_and_rollback(
     )
     membership.role = "member"
     session.flush()
-    with pytest.raises(core.InvalidOperation, match="owner"):
+    with pytest.raises(core.Conflict, match="stale"):
         preview_cost_change(
             session, business.tenant.id, args, principal=Principal(cost_owner.id)
+        )
+    with pytest.raises(core.InvalidOperation, match="owner"):
+        execute_cost_change(
+            session,
+            business.tenant.id,
+            arguments=args,
+            action_id=action.id,
+            actor_id=cost_owner.id,
+            confirmed=True,
         )
 
 

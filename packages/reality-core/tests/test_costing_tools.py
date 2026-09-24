@@ -104,6 +104,7 @@ def test_mcp_cost_schema_and_handlers_use_application_services(
         ]
         == "assign"
     )
+    assert result["next_step"]["required_principal"] == "authenticated_active_owner"
     read = MCP_TOOL_REGISTRY["cost_evidence_get"].handler(
         session, business.tenant.id, {"document_id": doc.id}
     )
@@ -129,7 +130,7 @@ def test_mcp_cost_schema_and_handlers_use_application_services(
         )
 
 
-def test_company_mcp_token_does_not_impersonate_a_human_owner(
+def test_company_mcp_token_prepares_but_does_not_impersonate_a_human_owner(
     session, business, cost_owner, monkeypatch
 ):
     from contextlib import nullcontext
@@ -147,10 +148,25 @@ def test_company_mcp_token_does_not_impersonate_a_human_owner(
     monkeypatch.setattr(server, "Session", lambda: nullcontext(session))
     read = server._handler(MCP_TOOL_REGISTRY["cost_evidence_get"])(document_id=doc.id)
     assert read["amounts"]["net"] == "1000"
-    with pytest.raises(
-        core.InvalidOperation, match="authenticated active company owner"
-    ):
-        server._handler(MCP_TOOL_REGISTRY["cost_change_propose"])(
-            **assignment(session, business, movement, doc, "1000")
+    prepared = server._handler(MCP_TOOL_REGISTRY["cost_change_propose"])(
+        **assignment(session, business, movement, doc, "1000")
+    )
+    assert prepared["status"] == "proposed"
+    assert prepared["next_step"]["required_principal"] == "authenticated_active_owner"
+    assert session.scalar(select(func.count()).select_from(CostAttribution)) == 0
+    with pytest.raises(core.InvalidOperation, match="active company owner"):
+        approve_and_execute_proposal(
+            session,
+            business.tenant.id,
+            prepared["proposal_id"],
+            confirmed=True,
         )
-    assert session.scalar(select(func.count()).select_from(ChangeProposal)) == 0
+    done = approve_and_execute_proposal(
+        session,
+        business.tenant.id,
+        prepared["proposal_id"],
+        confirming_principal=Principal(cost_owner.id),
+        confirmed=True,
+    )
+    assert done.status == "executed"
+    assert session.scalar(select(func.count()).select_from(CostAttribution)) == 1

@@ -88,6 +88,14 @@ from reality.integrations.catalog import connector_catalog, connector_shell
 from reality.storyline.recorder import wrap_chat
 
 ZERO = Decimal(0)
+MANUAL_OPERATIONAL_DOCUMENT_TYPES = (
+    "sales_order",
+    "purchase_order",
+    "sales_invoice",
+    "supplier_invoice",
+    "credit_note",
+    "supplier_credit_note",
+)
 HOLD_REASONS = {
     "credit_check",
     "customer_request",
@@ -112,6 +120,18 @@ INTERPRETATION_RECORD_TYPES = {
     "ledger_entry",
     "settlement_allocation",
 }
+
+
+def validate_manual_operational_document_type(document_type: object) -> str:
+    """Validate the closed public operational vocabulary without constraining intake."""
+    normalized = str(document_type).strip()
+    if normalized not in MANUAL_OPERATIONAL_DOCUMENT_TYPES:
+        raise InvalidOperation(
+            "Unsupported operational document type. Expected one of: "
+            + ", ".join(MANUAL_OPERATIONAL_DOCUMENT_TYPES)
+            + "."
+        )
+    return normalized
 
 AGENT_DISCOVERY_MODELS: dict[str, tuple[type[Base], tuple[str, ...]]] = {
     "party": (Party, ("id", "name", "type", "is_active", "default_currency")),

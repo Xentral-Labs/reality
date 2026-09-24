@@ -306,6 +306,19 @@ export type CostQueryEnvelope = {
   };
   result: Record<string, unknown> | null;
   basis_result: Record<string, unknown>;
+  guidance: {
+    stage: "uninitialized" | "pending" | "stale" | "failed" | "complete";
+    scope: { kind: "inventory" | "contribution"; id: string };
+    review_state: string;
+    missing_basis: string[];
+    reason: string;
+    next_action: null | {
+      tool: string;
+      operation: string;
+      required_principal: "authorized_reader" | "authenticated_active_owner";
+    };
+    explanation_links: { kind: string; id: string }[];
+  };
   persistence: { business_writes: false; projection_writes: false };
 };
 export type CommitmentRow = {
@@ -660,6 +673,13 @@ export type ProposalReview = {
   input: Record<string, unknown>;
   preview: Record<string, unknown>;
   receipt: Record<string, unknown>;
+  next_step: {
+    review_required: boolean;
+    required_principal:
+      "authorized_human" | "authenticated_active_member" | "authenticated_active_owner";
+    reconciliation_read: string;
+    verification_reads: string[];
+  };
   confirmable: boolean;
   rejectable: boolean;
   message: string;

@@ -8,13 +8,17 @@ from conftest import record_by_id
 from reality.db.core import (
     AppUser,
     BusinessEvent,
+    ChangeProposal,
     CompanyInvitation,
+    Document,
     InvitationDelivery,
+    Movement,
     Reservation,
     TenantMembership,
     now,
     uid,
 )
+from reality.mcp.catalog import MCP_TOOL_REGISTRY
 from reality.services.core import (
     Conflict,
     InvalidOperation,
@@ -68,6 +72,165 @@ def test_read_tool_executes_without_proposal(session, business):
 
     assert result[0]["physical"] == "5.0000"
     assert result[0]["item_id"] == business.item.id
+
+
+def test_capability_discovery_accepts_public_or_unique_application_name(
+    session, business
+):
+    public = run_read_tool(
+        session,
+        business.tenant.id,
+        "capability_describe",
+        {"tool_name": "reservation_propose"},
+    )
+    application = run_read_tool(
+        session,
+        business.tenant.id,
+        "capability_describe",
+        {"tool_name": "reserve"},
+    )
+
+    assert public["canonical_public_name"] == "reservation_propose"
+    assert application == public
+
+
+def test_reservation_receipts_classify_none_partial_and_complete(session, business):
+    commitment = create_commitment(
+        session,
+        business.tenant.id,
+        "customer_delivery",
+        business.company.id,
+        business.customer.id,
+        business.item.id,
+        business.location.id,
+        5,
+        "2026-09-24",
+    )
+
+    none = propose_tool(
+        session, business.tenant.id, "reserve", {"commitment_id": commitment.id}
+    )
+    none = confirm_tool(
+        session,
+        business.tenant.id,
+        none.id,
+        review_token=json.loads(none.input)["_delivery_review"]["token"],
+        confirmed=True,
+    )
+    none_receipt = json.loads(none.output)
+    assert none_receipt["effect"] == "none"
+    assert Decimal(none_receipt["remaining_work"]) == 5
+    assert none_receipt["verification_reads"] == [
+        "proposal_execution_status",
+        "inventory",
+        "commitment_register",
+    ]
+
+    record_movement(
+        session,
+        business.tenant.id,
+        "opening_stock",
+        business.item.id,
+        2,
+        to_location_id=business.location.id,
+    )
+    partial = propose_tool(
+        session, business.tenant.id, "reserve", {"commitment_id": commitment.id}
+    )
+    partial = confirm_tool(
+        session,
+        business.tenant.id,
+        partial.id,
+        review_token=json.loads(partial.input)["_delivery_review"]["token"],
+        confirmed=True,
+    )
+    partial_receipt = json.loads(partial.output)
+    assert partial_receipt["effect"] == "partial"
+    assert Decimal(partial_receipt["remaining_work"]) == 3
+
+    record_movement(
+        session,
+        business.tenant.id,
+        "opening_stock",
+        business.item.id,
+        3,
+        to_location_id=business.location.id,
+    )
+    complete = propose_tool(
+        session, business.tenant.id, "reserve", {"commitment_id": commitment.id}
+    )
+    complete = confirm_tool(
+        session,
+        business.tenant.id,
+        complete.id,
+        review_token=json.loads(complete.input)["_delivery_review"]["token"],
+        confirmed=True,
+    )
+    complete_receipt = json.loads(complete.output)
+    assert complete_receipt["effect"] == "complete"
+    assert Decimal(complete_receipt["remaining_work"]) == 0
+
+
+def test_public_manual_document_type_is_validated_before_proposal_persistence(
+    session, business
+):
+    before_proposals = session.query(ChangeProposal).count()
+    before_documents = session.query(Document).count()
+    arguments = {
+        "document_type": "delivery_note_probe",
+        "number": "PROBE-257",
+        "party_id": business.customer.id,
+        "gross_amount": "10.00",
+        "lines": [
+            {
+                "item_id": business.item.id,
+                "quantity": "1",
+                "unit_price": "10.00",
+                "gross_amount": "10.00",
+            }
+        ],
+    }
+
+    with pytest.raises(InvalidOperation, match="Unsupported operational document type"):
+        propose_tool(session, business.tenant.id, "document_create", arguments)
+
+    assert session.query(ChangeProposal).count() == before_proposals
+    assert session.query(Document).count() == before_documents
+
+
+def test_public_manual_document_schema_exposes_exact_closed_vocabulary():
+    document_types = MCP_TOOL_REGISTRY["document_create_propose"].input_schema[
+        "properties"
+    ]["document_type"]["enum"]
+
+    assert document_types == [
+        "sales_order",
+        "purchase_order",
+        "sales_invoice",
+        "supplier_invoice",
+        "credit_note",
+        "supplier_credit_note",
+    ]
+    assert len(document_types) == len(set(document_types)) == 6
+
+
+def test_invalid_movement_type_creates_no_proposal(session, business):
+    before_proposals = session.query(ChangeProposal).count()
+    before_movements = session.query(Movement).count()
+    with pytest.raises(InvalidOperation, match="Unsupported movement type"):
+        propose_tool(
+            session,
+            business.tenant.id,
+            "movement_create",
+            {
+                "movement_type": "teleport",
+                "item_id": business.item.id,
+                "quantity": "1",
+                "to_location_id": business.location.id,
+            },
+        )
+    assert session.query(ChangeProposal).count() == before_proposals
+    assert session.query(Movement).count() == before_movements
 
 
 def test_exception_explain_reads_one_current_derived_exception(session, business):
@@ -293,6 +456,38 @@ def test_rejection_and_tenant_scope_prevent_mutation(session, business):
     assert active_reserved(session, business.tenant.id, business.item.id) == 0
 
 
+def test_rejection_replay_is_stable_and_non_pending(session, business):
+    commitment = commitment_with_stock(session, business)
+    proposal = propose_tool(
+        session, business.tenant.id, "reserve", {"commitment_id": commitment.id}
+    )
+
+    first = reject_tool(session, business.tenant.id, proposal.id)
+    replay = reject_tool(session, business.tenant.id, proposal.id)
+
+    assert replay.id == first.id
+    assert replay.status == "rejected"
+    assert proposal.id not in {
+        row["proposal_id"]
+        for row in run_read_tool(
+            session, business.tenant.id, "proposals_awaiting_approval"
+        )
+    }
+
+
+@pytest.mark.parametrize("status", ["executing", "executed"])
+def test_rejection_cannot_rewrite_execution_lifecycle(session, business, status):
+    commitment = commitment_with_stock(session, business)
+    proposal = propose_tool(
+        session, business.tenant.id, "reserve", {"commitment_id": commitment.id}
+    )
+    proposal.status = status
+    session.commit()
+
+    with pytest.raises(InvalidOperation, match=f"status {status}"):
+        reject_tool(session, business.tenant.id, proposal.id)
+
+
 def test_read_tool_excludes_populated_foreign_tenant(session, business):
     commitment_with_stock(session, business)
     other = create_tenant(session, "Tool Boundary Other")
@@ -497,6 +692,40 @@ def test_membership_proposals_cover_reject_replay_resend_revoke_and_remove(sessi
     assert membership.status == "removed"
 
 
+def test_agent_prepares_finance_but_only_authenticated_owner_confirms(
+    session, business, scheduled_owner, monkeypatch
+):
+    from reality.services.finance.accounts import list_accounts
+
+    monkeypatch.setenv("REALITY_AUTH_MODE", "required")
+    proposal = propose_tool(
+        session,
+        business.tenant.id,
+        "finance.account.create",
+        {
+            "code": "AGENT-PREPARED",
+            "name": "Agent prepared owner decision",
+            "role": "cash",
+            "expected_revision": list_accounts(session, business.tenant.id)["revision"],
+        },
+    )
+    assert proposal.status == "proposed"
+
+    with pytest.raises(InvalidOperation, match="confirming company owner"):
+        confirm_tool(session, business.tenant.id, proposal.id)
+
+    executed = confirm_tool(
+        session,
+        business.tenant.id,
+        proposal.id,
+        confirming_principal=Principal(scheduled_owner.id),
+    )
+    assert executed.status == "executed"
+    assert executed.decided_by_user_id == scheduled_owner.id
+    assert any(
+        account["code"] == "AGENT-PREPARED"
+        for account in list_accounts(session, business.tenant.id)["accounts"]
+    )
 # --- An invoice somebody can actually book (spec 091) ----------------------
 
 

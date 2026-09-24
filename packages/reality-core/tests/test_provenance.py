@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import json
+
 import pytest
 
 from reality.services.core import connector_shells, install_connector_shell
@@ -67,6 +69,28 @@ def test_a_hand_created_system_is_listed_under_no_connector(session, business):
         session, business.tenant.id, "legacy_ftp", "Legacy FTP drop", "Nightly export"
     )
     assert shells_containing(session, business.tenant.id, "legacy_ftp") == []
+
+
+def test_unknown_upstream_document_label_remains_lossless_source_evidence(
+    session, business
+):
+    from reality.db.core import Document
+    from reality.services.core import enqueue_source
+
+    payload = {"type": "delivery_note_probe", "vendor_field": {"raw": "kept"}}
+    source, job = enqueue_source(
+        session,
+        business.tenant.id,
+        "external_audit",
+        "delivery_note_probe",
+        "probe-257",
+        payload,
+    )
+
+    assert job.status == "unmapped"
+    assert source.source_type == "delivery_note_probe"
+    assert json.loads(source.payload) == payload
+    assert session.query(Document).filter_by(source_record_id=source.id).count() == 0
 
 
 # --- T004: origin resolution -------------------------------------------------

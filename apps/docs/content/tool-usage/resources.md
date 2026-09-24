@@ -16,12 +16,12 @@ the technical key stands beside each one.
 | [Order](#resource-order)                                         | 8     | 10      | 9                   |
 | [Delivery and goods receipt](#resource-delivery)                 | 2     | 6       | 2                   |
 | [Lot, serial number and pallet](#resource-lot)                   | 0     | 5       | 1                   |
-| [Invoice and credit note](#resource-invoice)                     | 3     | 9       | 14                  |
+| [Invoice and credit note](#resource-invoice)                     | 3     | 10      | 14                  |
 | [Payment and settlement](#resource-payment)                      | 2     | 7       | 2                   |
-| [Ledger and accounts](#resource-accounting)                      | 2     | 11      | 3                   |
+| [Ledger and accounts](#resource-accounting)                      | 2     | 13      | 3                   |
 | [Contribution margin](#resource-contribution)                    | 0     | 1       | 4                   |
 | [Return](#resource-return)                                       | 0     | 3       | 6                   |
-| [Document and source system](#resource-source)                   | 3     | 10      | 2                   |
+| [Document and source system](#resource-source)                   | 3     | 11      | 2                   |
 | [Company and users](#resource-company)                           | 1     | 4       | 0                   |
 | [Approvals, exceptions and open questions](#resource-governance) | 3     | 0       | 0                   |
 
@@ -75,6 +75,10 @@ the partner, not by keeping two address books. Delivery holds and pricing groups
 - [Assign party price list](./commands#command-assign_party_price_list) (`assign_party_price_list`)
 - [Create and assign pricing group](./commands#command-create_party_group) (`create_party_group`)
 - [Set party delivery hold](./commands#command-hold_party_delivery) (`hold_party_delivery`)
+
+**Look up**
+
+- [Read dunning context](./commands#command-dunning_context) (`dunning_context`)
 
 **Exceptions to clear**
 
@@ -401,6 +405,8 @@ Eingangsrechnung, Forderung, Verbindlichkeit, Offene Posten, Rechnungsprüfung, 
 - [Post supplier invoice](./commands#command-post_supplier_invoice) (`post_supplier_invoice`)
 - [Record return credit](./commands#command-record_sales_credit) (`record_sales_credit`)
 - [Record supplier invoice](./commands#command-record_supplier_invoice) (`record_supplier_invoice`)
+- [Record free supplier invoice](./commands#command-record_free_supplier_invoice)
+  (`record_free_supplier_invoice`)
 - [Record sales invoice](./commands#command-record_sales_invoice) (`record_sales_invoice`)
 - [Post credit note](./commands#command-post_sales_credit_note) (`post_sales_credit_note`)
 - [Net credit note against invoice](./commands#command-allocate_credit_note)
@@ -409,6 +415,11 @@ Eingangsrechnung, Forderung, Verbindlichkeit, Offene Posten, Rechnungsprüfung, 
   (`post_supplier_credit_note`)
 - [Net supplier credit against invoice](./commands#command-allocate_supplier_credit_note)
   (`allocate_supplier_credit_note`)
+
+**Look up**
+
+- [Read invoice credit context](./commands#command-invoice_credit_context)
+  (`invoice_credit_context`)
 
 **Exceptions to clear**
 
@@ -450,7 +461,8 @@ _Incoming and outgoing payments, allocation, short payments and refunds_
 
 A payment is evidence with a balanced posting behind it. Allocating it to invoices or credits is the
 settlement; a short payment is accepted as an agreed deduction or left open. Payment runs pay
-suppliers in bulk.
+suppliers in bulk. Public payment reads filter direction only as incoming or outgoing; customer or
+supplier is a party-balance side, not a payment direction.
 
 **Also called:** payment receipt, allocation, matching, short payment, refund, payment run,
 Zahlungseingang, zuordnen, Minderzahlung, Abzug, Skontoabzug, Erstattung, Zahllauf, Saldo
@@ -473,6 +485,7 @@ Zahlungseingang, zuordnen, Minderzahlung, Abzug, Skontoabzug, Erstattung, Zahlla
 **Look up**
 
 - [Preview payment run](./commands#command-preview_payment_run) (`preview_payment_run`)
+- [Read dunning context](./commands#command-dunning_context) (`dunning_context`)
 - [Read settlement reduction context](./commands#command-adjustment_context) (`adjustment_context`)
 - [Read payment and credit context](./commands#command-settlement_context) (`settlement_context`)
 
@@ -525,6 +538,8 @@ Kontenrahmen, Storno, Eröffnungsbilanz, Sachkonto
 - [Set operational account default](./commands#command-set_default_account) (`set_default_account`)
 - [Reverse ledger posting group](./commands#command-reverse_ledger_posting_group)
   (`reverse_ledger_posting_group`)
+- [Record dunning notice](./commands#command-record_notice) (`record_notice`)
+- [Reverse dunning notice](./commands#command-reverse_notice) (`reverse_notice`)
 - [Import opening positions](./commands#command-import_opening) (`import_opening`)
 
 **Look up**
@@ -553,6 +568,9 @@ Kontenrahmen, Storno, Eröffnungsbilanz, Sachkonto
 - [Read operational transaction matrix](./commands#command-transaction_matrix)
   (`transaction_matrix`)
 - [Read operational accounts](./commands#command-list_accounts) (`list_accounts`)
+- [Read dunning context](./commands#command-dunning_context) (`dunning_context`)
+- [List dunning notices](./commands#command-notices) (`notices`)
+- [Read dunning notice](./commands#command-notice_detail) (`notice_detail`)
 - [Read opening position context](./commands#command-opening_context) (`opening_context`)
 
 **Exceptions to clear**
@@ -594,6 +612,8 @@ Kontenrahmen, Storno, Eröffnungsbilanz, Sachkonto
 [`finance.component_assigned`](./events#event-finance-component_assigned),
 [`finance.reference_changed`](./events#event-finance-reference_changed),
 [`finance.account_changed`](./events#event-finance-account_changed),
+[`dunning.notice_recorded`](./events#event-dunning-notice_recorded),
+[`dunning.notice_reversed`](./events#event-dunning-notice_reversed),
 [`ledger.posted`](./events#event-ledger-posted), [`ledger.reversed`](./events#event-ledger-reversed)
 
 ## Contribution margin {#resource-contribution}
@@ -720,6 +740,7 @@ Nachweis, Quelle
   (`hold_document_commitments`)
 - [Record manual document](./commands#command-create_manual_document_with_lines)
   (`create_manual_document_with_lines`)
+- [Record dunning notice](./commands#command-record_notice) (`record_notice`)
 
 **Look up**
 
@@ -728,6 +749,9 @@ Nachweis, Quelle
 - [Read source code mappings](./commands#command-list_source_mappings) (`list_source_mappings`)
 - [Read source mapping history](./commands#command-source_mapping_history)
   (`source_mapping_history`)
+- [Read dunning context](./commands#command-dunning_context) (`dunning_context`)
+- [List dunning notices](./commands#command-notices) (`notices`)
+- [Read dunning notice](./commands#command-notice_detail) (`notice_detail`)
 
 **Exceptions to clear**
 
@@ -739,6 +763,7 @@ Nachweis, Quelle
 
 **Underneath:** Tables: `source_system`, `source_capability`, `document`, `document_line`, `fact` ·
 Events: [`finance.source_mapping_changed`](./events#event-finance-source_mapping_changed),
+[`dunning.notice_recorded`](./events#event-dunning-notice_recorded),
 [`source_record.stored`](./events#event-source_record-stored),
 [`fact.observed`](./events#event-fact-observed),
 [`source_record.received`](./events#event-source_record-received),
@@ -795,6 +820,7 @@ Abweichung, Klärfall, Timeline, Verlauf
 [`proposals_awaiting_approval`](./commands#tool-proposals_awaiting_approval),
 [`proposal_execution_status`](./commands#tool-proposal_execution_status),
 [`proposal_approve_and_execute`](./commands#tool-proposal_approve_and_execute),
+[`proposal_reject`](./commands#tool-proposal_reject),
 [`reality_gaps`](./commands#tool-reality_gaps),
 [`reality_gap_get`](./commands#tool-reality_gap_get),
 [`reality_gap_simulate`](./commands#tool-reality_gap_simulate),

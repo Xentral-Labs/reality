@@ -23,6 +23,10 @@ test("one explanation component owns freshness, gaps, precision and trace", asyn
     "Retained basis — not current",
     "Missing basis",
     "Exact retained value",
+    "Cost readiness",
+    "Next authorized action",
+    "Authenticated company owner required",
+    "guidance.explanation_links",
     "inspector_target_kind",
   ])
     assert.match(component, new RegExp(contract.replace(/[—]/g, "—")));

@@ -1,0 +1,118 @@
+# Data Model: External Agent Audit Closure
+
+## Model decision
+
+No new business table, column, foreign key or migration is planned. This feature changes
+public contracts, adds one atomic composition of existing records and derives additional
+guidance from current tenant-scoped state.
+
+## Existing authoritative entities
+
+### ChangeProposal
+
+- Holds the exact prepared tool identity, normalized input, preview, lifecycle and receipt.
+- Remains the single handoff from agent preparation to authenticated human decision.
+- States remain `proposed`, `executing`, `executed` and `rejected`.
+- Only `proposed` may transition to `executing` through confirmation or to `rejected` through
+  explicit rejection. Executed or indeterminate execution is never rewritten as rejected.
+
+### SourceRecord
+
+- Immutable lossless statement behind free supplier invoices, payments, credits, dunning and
+  cost evidence where a source applies.
+- Unknown upstream labels remain payload values and do not become typed operational document
+  values without a proven mapping.
+
+### Document and DocumentLine
+
+- Evidence for invoices, credit notes, payments and dunning artifacts.
+- A free supplier invoice uses the existing supplier-invoice type and supported lines without
+  inventing a purchase order or commitment.
+- An invoice-linked credit line retains the existing direct link to the credited invoice line,
+  which in turn retains its order evidence relationship.
+- Documents do not gain reservation, fulfilment, return, payment or cost status.
+
+### LedgerEntry and SettlementAllocation
+
+- Existing financial authority for receivables/payables, actual cash, bounded invoice
+  allocation, reductions and reusable credit.
+- Overpayment remains the unallocated part of an actual payment; it is not a fabricated credit
+  note.
+
+### DunningNotice and DunningNoticeInvoice
+
+- Existing dated, levelled notice and immutable membership of overdue customer invoices.
+- Optional fee retains its existing separate financial evidence and posting semantics.
+
+### Commitment, Reservation and BusinessEvent
+
+- Commitment supplies the exact item and location scope for reservation.
+- Reservation is created only for applied quantity above zero.
+- `none`, `partial` and `complete` are receipt observations derived from requested/applied/
+  shortage and are not stored lifecycle fields.
+- BusinessEvent remains correlated proof when an operational effect occurs.
+
+### Movement and return disposition evidence
+
+- The arrived customer-return Movement is the physical subject of disposition.
+- Resolving movements retain the applicable location, lot, serial and handling-unit identity
+  and their existing direct resolution link.
+- Credit evidence remains separate and does not create or resolve a physical movement.
+
+### Cost evidence, basis, review and generation records
+
+- Existing cost records retain admitted components, ownership/method/completeness decisions,
+  inventory/commercial/contribution reviews and published results.
+- Cost guidance is derived at read time from their presence, state and gaps.
+- Actual acquisition cost, inventory value, DB1 and DB2 remain unavailable until their own
+  required evidence and review are complete.
+
+## Derived read contracts
+
+### Proposal next step
+
+- Proposal identity and current lifecycle.
+- Whether a current server review is required.
+- Canonical review read and Web handoff.
+- Required principal and explicit confirmation rule.
+- Named verification/reconciliation read.
+
+### Reservation effect
+
+- `none`: applied is zero and no Reservation/event is claimed.
+- `partial`: applied is positive and shortage is positive.
+- `complete`: requested equals applied and shortage is zero.
+- Remaining work equals shortage at execution; current state is re-read separately.
+
+### Invoice credit context
+
+- One tenant-owned posted customer invoice.
+- Eligible invoice lines with opaque identity, billed/credited/remaining quantity and amount
+  capacity.
+- Invoice open amount and explicit blockers.
+- Read-only; it grants no credit authority.
+
+### Cost guidance
+
+- Bounded tenant/scope identity and freshness.
+- Completed and missing stages.
+- Exact missing basis/review reason.
+- Next permitted owner-reviewed action and explanation links.
+- Read-only; it is not persisted as workflow state.
+
+## Validation invariants
+
+- Every opaque relationship resolves inside the selected tenant or behaves as not found.
+- Closed operational types are accepted only from the canonical shared vocabulary.
+- Free supplier-invoice header and lines reconcile to the source-stated total under existing
+  invoice rules; all evidence and posting effects commit atomically.
+- A credit position belongs to the selected invoice and does not exceed remaining capacity.
+- A return disposition cannot exceed unresolved arrived quantity or change unrelated tracked
+  stock.
+- Owner-governed finance/cost effects require an active authenticated owner at confirmation.
+- Derived guidance and effect classifications perform no writes.
+
+## Migration and rollback
+
+No migration or backfill. Rollback removes code-level contracts while leaving every existing
+record valid. A later proposal for persistence must return to Constitution/schema review.

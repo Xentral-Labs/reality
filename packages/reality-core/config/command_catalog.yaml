@@ -6,6 +6,12 @@ principle: CLI, Web, API, and Chat are adapters. Shared application services are
 # untyped until it is operationally relevant; once exposed here, explain its business
 # meaning rather than merely repeating its data type.
 parameter_descriptions:
+  supplier_id: Opaque same-tenant identity of the supplier Party stated on the invoice.
+  invoice_ids: Opaque same-tenant customer-invoice identities explicitly selected for one reminder.
+  notice_id: Opaque same-tenant identity of the retained manual reminder.
+  level: Explicit manual reminder level; only the closed levels 1, 2, and 3 are accepted.
+  notice_date: Calendar date explicitly stated for the manual reminder and its overdue check.
+  fee_amount: Exact non-negative reminder fee stated by the confirming human; zero records no fee posting.
   knowledge_at: Optional exact retained knowledge cutoff in UTC; mismatches refuse instead of reinterpreting current evidence as historical.
   scope_id: Exact item identity for inventory or received invoice-line identity for contribution.
   policy_revision_id: Optional exact retained valuation-policy constraint; mismatches refuse without activating policy.
@@ -1111,6 +1117,56 @@ commands:
     reads: [document, document_line]
     writes: [source_record, document, document_line, ledger_entry, business_event]
     effect: Records stated supplier invoice evidence linked to a purchase order line and posts its payable atomically.
+  - name: Record free supplier invoice
+    service: record_free_supplier_invoice
+    mode: mutation
+    adapters: [Web, MCP, Chat]
+    reads: [party, item]
+    writes: [source_record, document, document_line, ledger_entry, business_event]
+    effect: Records stated supplier invoice evidence without a purchase-order line and posts its payable atomically without inventing a commitment or Movement.
+  - name: Read invoice credit context
+    service: invoice_credit_context
+    mode: query
+    adapters: [Web, MCP, Chat]
+    reads: [document, document_line, ledger_entry, ledger_reversal, settlement_allocation]
+    writes: []
+    effect: Shows exact customer-invoice positions and remaining credit capacity without recording a credit.
+  - name: Read dunning context
+    service: dunning_context
+    related_services: [preview_notice]
+    mode: query
+    adapters: [Web, MCP, Chat]
+    reads: [document, ledger_entry, settlement_allocation, party]
+    writes: []
+    effect: Validates one selected reminder scope and returns the finance revision without recording or sending anything.
+  - name: List dunning notices
+    service: notices
+    mode: query
+    adapters: [Web, MCP, Chat]
+    reads: [source_record, document, ledger_entry, business_event]
+    writes: []
+    effect: Lists retained manual reminders with their invoice membership, optional fee and reversal trace.
+  - name: Read dunning notice
+    service: notice_detail
+    mode: query
+    adapters: [Web, MCP, Chat]
+    reads: [source_record, document, ledger_entry, business_event]
+    writes: []
+    effect: Reads one retained manual reminder with its exact invoice membership, optional fee and reversal trace.
+  - name: Record dunning notice
+    service: record_notice
+    mode: mutation
+    adapters: [Web, MCP, Chat]
+    reads: [document, ledger_entry, settlement_allocation, party]
+    writes: [source_record, document, ledger_entry, business_event]
+    effect: Records one explicitly reviewed manual reminder and optional exact stated fee without sending a message.
+  - name: Reverse dunning notice
+    service: reverse_notice
+    mode: mutation
+    adapters: [Web, MCP, Chat]
+    reads: [source_record, document, ledger_entry, business_event]
+    writes: [ledger_reversal, ledger_entry, business_event]
+    effect: Retains the original reminder and explicitly reverses its fee effect and reminder state.
   - name: Record sales invoice
     service: record_sales_invoice
     mode: mutation
@@ -4237,6 +4293,143 @@ capability_guidance:
     unknown_when: [Expected postings are absent or an external finance system is unreconciled.]
     next_steps: [Inspect journal and payment evidence through bounded reads.]
     examples: {use: [{scenario: Verify a recorded payment reduced receivables., reason: The balance derives from LedgerEntries.}], do_not_use: [{scenario: Assert cash settled at the bank., reason: Settlement requires external evidence.}]}
+  invoice_credit_context:
+    kind: read
+    application_tool: invoice_credit_context
+    purpose: Read one customer invoice's eligible opaque line identities and remaining credit capacity.
+    use_when: [An invoice-linked customer credit must be prepared from current posted evidence.]
+    do_not_use_when: [A return-only legacy credit or a physical return disposition is required.]
+    required_context: [invoice_id]
+    data_basis: [document, document_line, ledger_entry, settlement_allocation]
+    limitations: [Capacity is current and does not authorize a credit or imply returned goods.]
+    freshness: Derived from committed invoice, credit and settlement evidence at request time.
+    empty_result: An invoice with no eligible remaining position returns positions with zero remaining capacity.
+    refusal_behavior: Unknown, foreign, unposted or reversed invoices are refused explicitly.
+    confirmation: none
+    side_effects: none
+    verification: {role: context, proves: [Which exact invoice positions can currently support a credit.], does_not_prove: [Approval, posting, allocation or physical return.]}
+    unknown_when: [Credit or reversal evidence changes concurrently.]
+    next_steps: [Prepare sales_credit_record_propose with returned opaque line identities.]
+    examples: {use: [{scenario: Prepare a partial credit for two invoice positions., reason: The read supplies current capacity and identities.}], do_not_use: [{scenario: Restock returned goods., reason: Physical disposition is a separate Movement decision.}]}
+  finance_dunning_context:
+    kind: read
+    application_tool: finance.dunning.context
+    purpose: Validate one manual reminder against current overdue invoices and expose its finance revision.
+    use_when: [A person has selected overdue invoices, level, date and optional exact fee for review.]
+    do_not_use_when: [A reminder should be generated, escalated or sent automatically.]
+    required_context: [invoice_ids, level, notice_date]
+    data_basis: [document, ledger_entry, settlement_allocation]
+    limitations: [The fee is source-stated and no message is sent.]
+    freshness: Derived from current open amounts, due dates and finance configuration.
+    empty_result: An empty invoice selection is refused rather than treated as no reminder.
+    refusal_behavior: Settled, non-overdue, mixed-party, mixed-currency or foreign invoices are refused.
+    confirmation: none
+    side_effects: none
+    verification: {role: context, proves: [The selected invoices are currently eligible for the stated reminder.], does_not_prove: [Human approval or delivery to the customer.]}
+    unknown_when: [Invoice settlement or finance revision changes after the read.]
+    next_steps: [Prepare finance_dunning_record_propose with the returned revision.]
+    examples: {use: [{scenario: Review a second reminder with an exact five-euro fee., reason: Eligibility and fee-account prerequisites are shown before proposal.}], do_not_use: [{scenario: Send a reminder email., reason: Message delivery is outside this action.}]}
+  finance_dunning_notices:
+    kind: read
+    application_tool: finance.dunning.notices
+    purpose: List recorded manual reminder evidence with invoice, fee and reversal trace.
+    use_when: [Recorded reminders must be reconciled or selected for reversal.]
+    do_not_use_when: [Overdue invoices must first be selected for a new reminder.]
+    required_context: [tenant]
+    data_basis: [document, source_record, ledger_entry]
+    limitations: [The list proves internal evidence, not external delivery.]
+    freshness: Derived from committed reminder, fee and reversal records.
+    empty_result: No manual reminder has been recorded for the tenant.
+    refusal_behavior: Only tenant-owned notices are returned.
+    confirmation: none
+    side_effects: none
+    verification: {role: independent, proves: [Which reminders and fee effects Reality retains.], does_not_prove: [That the customer received a message.]}
+    unknown_when: [External delivery evidence is absent.]
+    next_steps: [Read one notice detail or prepare its explicit reversal.]
+    examples: {use: [{scenario: Reconcile a recorded fee and notice identity., reason: The list exposes both traces.}], do_not_use: [{scenario: Calculate the next reminder level., reason: Escalation is not automatic.}]}
+  finance_dunning_notice:
+    kind: read
+    application_tool: finance.dunning.notice
+    purpose: Read one retained manual reminder with its exact invoice membership, fee and reversal.
+    use_when: [One known notice identity needs authoritative reconciliation.]
+    do_not_use_when: [A notice has not yet been discovered or recorded.]
+    required_context: [notice_id]
+    data_basis: [document, source_record, ledger_entry]
+    limitations: [Internal evidence does not prove external message delivery.]
+    freshness: Derived from the selected tenant-owned notice and current reversal evidence.
+    empty_result: Unknown and foreign identities are refused as not found.
+    refusal_behavior: Cross-tenant identities disclose nothing.
+    confirmation: none
+    side_effects: none
+    verification: {role: independent, proves: [Exact retained notice, invoice membership, fee and reversal state.], does_not_prove: [External receipt by the customer.]}
+    unknown_when: [External delivery evidence is absent.]
+    next_steps: [Prepare finance_dunning_reverse_propose when a human decides the notice was wrong.]
+    examples: {use: [{scenario: Verify a notice after a lost confirmation response., reason: Opaque identity reaches retained evidence.}], do_not_use: [{scenario: Find every notice without an identity., reason: Use the list read first.}]}
+  sales_credit_record_propose:
+    application_tool: sales_credit_record
+    purpose: Record either an invoice-linked financial credit or the retained legacy order-line return credit shape.
+    use_when: [A human has stated the exact credit amount and selected one complete supported evidence shape.]
+    do_not_use_when: [Returned goods need a physical disposition; use the return disposition action separately.]
+    required_context: [For invoice-linked credit use invoice_id, lines with invoice_line_id, reason and allocation_amount; for legacy credit use order_line_id and quantity. Both shapes require number and gross_amount.]
+    preconditions: [Invoice-linked and legacy fields are mutually exclusive and every opaque identity belongs to the tenant.]
+    confirmation: required
+    idempotency: {mode: supported, guidance: Reconcile the proposal identity; confirmed replay returns its stored receipt.}
+    refusals: [{code: invalid_credit_shape, description: Required fields are missing, shapes are mixed, capacity changed or evidence is unavailable.}]
+    events: [source_record.stored, document.recorded, ledger.posted, credit.recorded]
+    verification_reads: [{name: invoice_credit_context, proves: Remaining invoice-linked position and amount capacity derives independently after execution.}, {name: document_register, proves: The retained credit and its shortest line links exist.}]
+    examples: {use: [{scenario: Credit two selected invoice positions and explicitly allocate part of the amount., reason: The invoice-linked shape carries exact positions, reason and allocation.}, {scenario: Retain an established order-line return credit integration., reason: The legacy shape remains distinct and supported.}], do_not_use: [{scenario: Combine order_line_id with invoice_id and invoice positions., reason: Mixed evidence shapes are ambiguous and refused.}]}
+  return_disposition_propose:
+    application_tool: return_disposition
+    purpose: Resolve arrived customer-return goods through one of the four canonical physical outcomes without changing credit evidence.
+    use_when: [A return Movement has arrived and a human has chosen restock, quarantine_repair, scrap_loss or return_to_supplier for an exact quantity.]
+    do_not_use_when: [A financial credit must be recorded; use the invoice-linked or legacy customer-credit action separately.]
+    required_context: [return_movement_id, disposition, quantity; destination_location_id for restock or quarantine_repair; reason for scrap_loss]
+    preconditions: [The return Movement retains its customer-delivery commitment, arrival location and any handling-unit, lot or serial identity.]
+    confirmation: required
+    idempotency: {mode: supported, guidance: Reconcile the proposal identity; confirmed replay returns the retained resolving Movement.}
+    refusals: [{code: invalid_return_relationship, description: Return Movement, commitment, arrival location, tracking identity, destination or unresolved quantity is missing or incompatible.}]
+    events: [movement.recorded]
+    verification_reads: [{name: return_disposition_summary, proves: Each resolving Movement preserves the arrived return identity and reconciles the remaining quantity.}, {name: inventory, proves: The resulting exact-location stock effect is visible independently.}]
+    examples: {use: [{scenario: Split five lot-tracked returned units across all four outcomes., reason: Each result is an explicit resolving Movement with inherited tracking identity.}], do_not_use: [{scenario: Treat a credit note as proof that goods were restocked., reason: Financial and physical outcomes remain separate.}]}
+  supplier_invoice_free_record_propose:
+    application_tool: supplier_invoice_free_record
+    purpose: Record source-stated supplier invoice evidence and post its payable without inventing a purchase order.
+    use_when: [A supplier invoice contains supported free goods, service or charge positions with no purchase-order line.]
+    do_not_use_when: [The invoice positions belong to existing purchase-order lines.]
+    required_context: [supplier, source-stated number, currency, total, positions]
+    preconditions: [The Party has supplier role and every stated line is valid tenant evidence.]
+    confirmation: required
+    idempotency: {mode: supported, guidance: Reconcile the proposal identity; confirmed replay returns its stored receipt.}
+    refusals: [{code: invalid_supplier_invoice, description: Supplier, position or stated amount is invalid or outside the tenant.}]
+    events: [source_record.stored, document.recorded, ledger.posted, invoice.recorded]
+    verification_reads: [{name: document_register, proves: The supplier invoice and stated lines are retained.}, {name: finance_balances, proves: The payable derives from posted LedgerEntries.}]
+    examples: {use: [{scenario: Record a freight invoice without a purchase order., reason: The action preserves evidence and payable without inventing commitments.}], do_not_use: [{scenario: Receive physical goods., reason: A supplier invoice does not create a Movement.}]}
+  finance_dunning_record_propose:
+    application_tool: finance.dunning.record
+    purpose: Record one owner-confirmed manual reminder and optional exact stated fee.
+    use_when: [A person has reviewed eligible overdue invoices and explicitly chosen the level and fee.]
+    do_not_use_when: [A reminder should be calculated, escalated or sent automatically.]
+    required_context: [invoice_ids, level, notice_date, expected_revision]
+    preconditions: [Invoices belong to one customer and currency and remain open and overdue.]
+    confirmation: required
+    idempotency: {mode: supported, guidance: Reconcile the same proposal identity before retrying.}
+    refusals: [{code: invalid_dunning_scope, description: Invoice eligibility, account configuration or finance revision changed.}]
+    events: [dunning.notice_recorded, ledger.posted]
+    verification_reads: [{name: finance.dunning.notice, proves: Exact notice membership and fee effect are retained.}]
+    examples: {use: [{scenario: Record a reviewed reminder with a stated fee., reason: Both notice and fee retain explicit authority.}], do_not_use: [{scenario: Send the reminder., reason: Delivery is outside this action.}]}
+  finance_dunning_reverse_propose:
+    application_tool: finance.dunning.reverse
+    purpose: Reverse one owner-confirmed manual reminder and its fee effect without deleting evidence.
+    use_when: [A recorded notice was issued in error and a person explicitly decides to reverse it.]
+    do_not_use_when: [The notice is correct or only its external message needs correction.]
+    required_context: [notice_id, reason, expected_revision]
+    preconditions: [The tenant-owned notice exists and is not already reversed.]
+    confirmation: required
+    idempotency: {mode: supported, guidance: Reconcile the original proposal identity before retrying.}
+    refusals: [{code: invalid_dunning_reversal, description: Notice is foreign, unknown, stale or already reversed.}]
+    events: [dunning.notice_reversed, ledger.reversed]
+    verification_reads: [{name: finance.dunning.notice, proves: Reversal identity and fee outcome are retained.}]
+    examples: {use: [{scenario: Reverse a reminder entered for the wrong invoices., reason: Evidence remains while the fee effect is inverted.}], do_not_use: [{scenario: Delete reminder history., reason: Retained evidence is immutable.}]}
 
 # Executable parity contract. Keys are canonical service names above. A command is
 # either eligible with all public agent tools that cover its service family, or is
@@ -4256,6 +4449,13 @@ reachable_mutations_that_are_not_commands:
   set_source_system_base_url: Records where a configured source system can be opened in a browser. Integration configuration, not something an operator asks the business to do; it changes no business record.
 
 agent_command_coverage:
+  invoice_credit_context: {classification: eligible, tools: [invoice_credit_context]}
+  dunning_context: {classification: eligible, tools: [finance_dunning_context]}
+  notices: {classification: eligible, tools: [finance_dunning_notices]}
+  notice_detail: {classification: eligible, tools: [finance_dunning_notice]}
+  record_free_supplier_invoice: {classification: eligible, tools: [supplier_invoice_free_record_propose]}
+  record_notice: {classification: eligible, tools: [finance_dunning_record_propose]}
+  reverse_notice: {classification: eligible, tools: [finance_dunning_reverse_propose]}
   change_graph_report: {classification: eligible, tools: [graph_report_change_propose]}
   record_shipment_notice: {classification: eligible, tools: [shipment_notice_record_propose]}
   record_packaged_execution: {classification: eligible, tools: [shipment_dispatch_propose, shipment_receive_propose]}

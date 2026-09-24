@@ -17,9 +17,17 @@ DISPOSITIONS = {"restock", "quarantine_repair", "scrap_loss", "return_to_supplie
 
 def _return_movement(session: Session, tenant_id: str, movement_id: str) -> Movement:
     movement = core._tenant_record(session, Movement, tenant_id, movement_id)
-    if movement.type != "return" or not movement.to_location_id:
+    if movement.type != "return":
         raise core.InvalidOperation(
-            "Return disposition requires arrived customer-return goods."
+            "Return disposition requires a customer-return Movement with type return."
+        )
+    if not movement.commitment_id:
+        raise core.InvalidOperation(
+            "Return disposition requires the arrived return's customer-delivery commitment."
+        )
+    if not movement.to_location_id:
+        raise core.InvalidOperation(
+            "Return disposition requires the arrived return's destination location."
         )
     return movement
 

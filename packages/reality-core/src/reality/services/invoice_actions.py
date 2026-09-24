@@ -18,8 +18,10 @@ from reality.db.core import (
     Item,
     LedgerEntry,
     Party,
+    PartyRole,
     SourceRecord,
 )
+from reality.services import core
 from reality.services.core import (
     InvalidOperation,
     _order_line_billing,
@@ -29,6 +31,133 @@ from reality.services.core import (
 from reality.services.order_actions import _json
 
 INVOICE_TOOLS = {"sales_invoice_record", "supplier_invoice_record"}
+
+
+def preview_free_supplier_invoice(
+    session: Session, tenant_id: str, arguments: dict[str, Any]
+) -> dict[str, Any]:
+    """Validate one source-stated supplier invoice without inventing an order."""
+    required = {"supplier_id", "number", "currency", "gross_amount", "lines"}
+    optional = {"document_date", "effective_at"}
+    if required - arguments.keys() or arguments.keys() - required - optional:
+        raise InvalidOperation("Free supplier invoice fields are incomplete or unsupported.")
+    supplier = _tenant_record(session, Party, tenant_id, arguments["supplier_id"])
+    roles = set(
+        session.scalars(
+            select(PartyRole.role).where(
+                PartyRole.tenant_id == tenant_id,
+                PartyRole.party_id == supplier.id,
+            )
+        )
+    )
+    if "supplier" not in roles:
+        raise InvalidOperation("Free supplier invoice requires a supplier Party.")
+    effective = core.utc_datetime(arguments.get("effective_at")) or core.now()
+    document_date = str(arguments.get("document_date") or effective.date().isoformat())
+    values, lines = core._preview_manual_document_input(
+        session,
+        tenant_id,
+        "supplier_invoice",
+        arguments["number"],
+        supplier.id,
+        arguments["lines"],
+        arguments["gross_amount"],
+        currency=arguments["currency"],
+        document_date=document_date,
+    )
+    return json.loads(
+        _json(
+            {
+                "supplier_id": supplier.id,
+                "effective_at": effective,
+                "document": values,
+                "lines": lines,
+            }
+        )
+    )
+
+
+def record_free_supplier_invoice(
+    session: Session,
+    tenant_id: str,
+    *,
+    supplier_id: str,
+    number: str,
+    currency: str,
+    gross_amount: Decimal | str,
+    lines: list[dict[str, Any]],
+    document_date: str = "",
+    effective_at: str | None = None,
+    action_id: str | None = None,
+) -> dict[str, Any]:
+    """Atomically retain free invoice evidence and post its stated payable."""
+    arguments = {
+        "supplier_id": supplier_id,
+        "number": number,
+        "currency": currency,
+        "gross_amount": str(gross_amount),
+        "lines": lines,
+        **({"document_date": document_date} if document_date else {}),
+        **({"effective_at": effective_at} if effective_at else {}),
+    }
+    creation = preview_free_supplier_invoice(session, tenant_id, arguments)
+    with session.begin_nested():
+        source = core.create_master_source_record(
+            session,
+            tenant_id,
+            "supplier_invoice",
+            "manual",
+            action_id or core.uid("invoice"),
+            arguments,
+            action_id=action_id,
+            _commit=False,
+        )
+        document, created_lines = core.create_manual_document_with_lines(
+            session,
+            tenant_id,
+            "supplier_invoice",
+            number,
+            supplier_id,
+            lines,
+            gross_amount,
+            currency=currency,
+            document_date=creation["document"]["document_date"],
+            source_record_id=source.id,
+            action_id=action_id,
+            _commit=False,
+        )
+        entries = core.post_supplier_invoice(
+            session,
+            tenant_id,
+            document.id,
+            effective_at=core.utc_datetime(creation["effective_at"]),
+            action_id=action_id,
+            _commit=False,
+        )
+        receipt = {
+            "records": [
+                {"family": "source_record", "id": source.id},
+                {"family": "document", "id": document.id},
+                *[
+                    {"family": "document_line", "id": line.id}
+                    for line in created_lines
+                ],
+                *[{"family": "ledger_entry", "id": entry.id} for entry in entries],
+            ]
+        }
+        core.emit_business_event(
+            session,
+            tenant_id,
+            "invoice.recorded",
+            "document",
+            document.id,
+            {"creation": creation, "receipt": receipt},
+            source_record_id=source.id,
+            action_id=action_id,
+            correlation_id=action_id,
+        )
+    session.commit()
+    return receipt
 
 
 def _review_invoice(

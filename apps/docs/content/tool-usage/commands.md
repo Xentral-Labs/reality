@@ -17,11 +17,16 @@ all reach the same operation.
 | [`change_graph_report`](#command-change_graph_report)                             | Change Private Graph Report               | Cross-functional           | `graph_report_change_propose`                                                                                                                                                                | Web · MCP · Chat                        |
 | [`execute_cost_change`](#command-execute_cost_change)                             | Confirm cost and contribution decision    | Cross-functional           | `cost_change_propose`                                                                                                                                                                        | CLI · Web · MCP · Chat                  |
 | [`cost_record`](#command-cost_record)                                             | Inspect retained cost record              | Cross-functional           | `cost_record_get`                                                                                                                                                                            | CLI · Web · MCP · Chat                  |
+| [`notices`](#command-notices)                                                     | List dunning notices                      | Cross-functional           | `finance_dunning_notices`                                                                                                                                                                    | Web · MCP · Chat                        |
 | [`contribution_preview`](#command-contribution_preview)                           | Preview current contribution candidate    | Cross-functional           | `cost_contribution_preview`                                                                                                                                                                  | CLI · Web · MCP · Chat                  |
 | [`cost_query`](#command-cost_query)                                               | Read cost query context                   | Cross-functional           | `cost_query_get`                                                                                                                                                                             | CLI · Web · MCP · Chat                  |
+| [`dunning_context`](#command-dunning_context)                                     | Read dunning context                      | Cross-functional           | `finance_dunning_context`                                                                                                                                                                    | Web · MCP · Chat                        |
+| [`notice_detail`](#command-notice_detail)                                         | Read dunning notice                       | Cross-functional           | `finance_dunning_notice`                                                                                                                                                                     | Web · MCP · Chat                        |
 | [`receipt_cost`](#command-receipt_cost)                                           | Read receipt acquisition costs            | Cross-functional           | `cost_receipt_get`                                                                                                                                                                           | CLI · Web · MCP · Chat                  |
 | [`cost_evidence`](#command-cost_evidence)                                         | Read received acquisition-cost evidence   | Cross-functional           | `cost_evidence_get`                                                                                                                                                                          | CLI · Web · MCP · Chat                  |
 | [`reviewed_contribution`](#command-reviewed_contribution)                         | Read reviewed commercial contribution     | Cross-functional           | `cost_contribution_get`                                                                                                                                                                      | CLI · Web · MCP · Chat                  |
+| [`record_notice`](#command-record_notice)                                         | Record dunning notice                     | Cross-functional           | `finance_dunning_record_propose`                                                                                                                                                             | Web · MCP · Chat                        |
+| [`reverse_notice`](#command-reverse_notice)                                       | Reverse dunning notice                    | Cross-functional           | `finance_dunning_reverse_propose`                                                                                                                                                            | Web · MCP · Chat                        |
 | [`accept_adjustment`](#command-accept_adjustment)                                 | Accept settlement reduction               | Finance                    | `finance_adjustment_propose`                                                                                                                                                                 | CLI · Web · MCP · Chat                  |
 | [`assign_component`](#command-assign_component)                                   | Assign received financial component       | Finance                    | `finance_component_assign_propose`                                                                                                                                                           | CLI · Web · MCP · Chat                  |
 | [`create_account`](#command-create_account)                                       | Create operational account                | Finance                    | `finance_create_account_propose`                                                                                                                                                             | CLI · Web · MCP · Chat                  |
@@ -47,6 +52,7 @@ all reach the same operation.
 | [`preview_payment_run`](#command-preview_payment_run)                             | Preview payment run                       | Finance                    | `payment_run_preview`                                                                                                                                                                        | Web · MCP · Chat                        |
 | [`component_history`](#command-component_history)                                 | Read component assignment history         | Finance                    | `finance_component_history`                                                                                                                                                                  | CLI · Web · MCP · Chat                  |
 | [`list_references`](#command-list_references)                                     | Read finance references                   | Finance                    | `finance_references`                                                                                                                                                                         | CLI · Web · MCP · Chat                  |
+| [`invoice_credit_context`](#command-invoice_credit_context)                       | Read invoice credit context               | Finance                    | `invoice_credit_context`                                                                                                                                                                     | Web · MCP · Chat                        |
 | [`opening_context`](#command-opening_context)                                     | Read opening position context             | Finance                    | `finance_opening_context`                                                                                                                                                                    | CLI · Web · MCP · Chat                  |
 | [`list_accounts`](#command-list_accounts)                                         | Read operational accounts                 | Finance                    | `finance_accounts`                                                                                                                                                                           | CLI · Web · MCP · Chat                  |
 | [`transaction_matrix`](#command-transaction_matrix)                               | Read operational transaction matrix       | Finance                    | `finance_matrix`                                                                                                                                                                             | CLI · Web · MCP · Chat                  |
@@ -56,6 +62,7 @@ all reach the same operation.
 | [`adjustment_context`](#command-adjustment_context)                               | Read settlement reduction context         | Finance                    | `finance_adjustment_context`                                                                                                                                                                 | CLI · Web · MCP · Chat                  |
 | [`list_source_mappings`](#command-list_source_mappings)                           | Read source code mappings                 | Finance                    | `finance_source_mappings`                                                                                                                                                                    | CLI · Web · MCP · Chat                  |
 | [`source_mapping_history`](#command-source_mapping_history)                       | Read source mapping history               | Finance                    | `finance_source_mapping_history`                                                                                                                                                             | CLI · Web · MCP · Chat                  |
+| [`record_free_supplier_invoice`](#command-record_free_supplier_invoice)           | Record free supplier invoice              | Finance                    | `supplier_invoice_free_record_propose`                                                                                                                                                       | Web · MCP · Chat                        |
 | [`apply_settlement`](#command-apply_settlement)                                   | Record payment or use existing credit     | Finance                    | `finance_settlement_propose`                                                                                                                                                                 | CLI · Web · MCP · Chat                  |
 | [`record_sales_credit`](#command-record_sales_credit)                             | Record return credit                      | Finance                    | `sales_credit_record_propose`                                                                                                                                                                | Web · API · MCP · Chat                  |
 | [`record_sales_invoice`](#command-record_sales_invoice)                           | Record sales invoice                      | Finance                    | `sales_invoice_record_propose`                                                                                                                                                               | Web · API · MCP · Chat                  |
@@ -2734,6 +2741,61 @@ Read defined internal cost centers, case codes and coding groups.
 
 **See also:** command [`list_references`](./commands#command-list_references)
 
+### `invoice_credit_context` — Read invoice credit context {#command-invoice_credit_context}
+
+Shows exact customer-invoice positions and remaining credit capacity without recording a credit.
+
+**Synopsis**
+
+```text
+invoice_credit_context invoice_id
+```
+
+**Reach via:** Web · MCP · Chat
+
+**Effect:** Reads: `document`, `document_line`, `ledger_entry`, `ledger_reversal`,
+`settlement_allocation` · Writes: —
+
+**See also:** agent tool [`invoice_credit_context`](./commands#tool-invoice_credit_context)
+
+#### `invoice_credit_context` — Invoice credit context {#tool-invoice_credit_context}
+
+Read eligible customer-invoice positions, remaining quantities, amount capacity and blockers.
+
+**Synopsis**
+
+```text
+invoice_credit_context invoice_id
+```
+
+**Access:** `read`
+
+**How this query runs**
+
+| Concrete query               | Kind                        | Default |
+| ---------------------------- | --------------------------- | ------- |
+| `MCP invoice_credit_context` | Live — read at request time | yes     |
+
+[How this query runs](./views#read-execution)
+
+Read one customer invoice's eligible opaque line identities and remaining credit capacity.
+
+**Use when**
+
+- An invoice-linked customer credit must be prepared from current posted evidence.
+
+**Do not use when**
+
+- A return-only legacy credit or a physical return disposition is required.
+
+**Parameters**
+
+| Name         | Type     | Required | Description                                                                      | Default |
+| ------------ | -------- | -------- | -------------------------------------------------------------------------------- | ------- |
+| `invoice_id` | `string` | yes      | Opaque identity of the invoice evidence associated with a payment or allocation. | —       |
+
+**See also:** command [`invoice_credit_context`](./commands#command-invoice_credit_context)
+
 ### `opening_context` — Read opening position context {#command-opening_context}
 
 Reads permitted opening counterpart, tenant parties and confirmation revision.
@@ -3244,6 +3306,85 @@ Read or propose exact source-code classification with separate source and intern
 
 **See also:** command [`source_mapping_history`](./commands#command-source_mapping_history)
 
+### `record_free_supplier_invoice` — Record free supplier invoice {#command-record_free_supplier_invoice}
+
+Records stated supplier invoice evidence without a purchase-order line and posts its payable
+atomically without inventing a commitment or Movement.
+
+**Synopsis**
+
+```text
+supplier_invoice_free_record_propose supplier_id number currency gross_amount [document_date] [effective_at] lines
+```
+
+**Reach via:** Web · MCP · Chat
+
+**Effect:** Reads: `party`, `item` · Writes: `source_record`, `document`, `document_line`,
+`ledger_entry`, `business_event`
+
+**See also:** agent tool
+[`supplier_invoice_free_record_propose`](./commands#tool-supplier_invoice_free_record_propose)
+
+#### `supplier_invoice_free_record_propose` — Record free supplier invoice {#tool-supplier_invoice_free_record_propose}
+
+Prepare this business mutation without changing state. Record free supplier invoice. Human
+confirmation is required.
+
+**Synopsis**
+
+```text
+supplier_invoice_free_record_propose supplier_id number currency gross_amount [document_date] [effective_at] lines
+```
+
+**Access:** `propose`
+
+Record source-stated supplier invoice evidence and post its payable without inventing a purchase
+order.
+
+**Use when**
+
+- A supplier invoice contains supported free goods
+- service or charge positions with no purchase-order line.
+
+**Do not use when**
+
+- The invoice positions belong to existing purchase-order lines.
+
+**Preconditions**
+
+- The Party has supplier role and every stated line is valid tenant evidence.
+
+**Refused when**
+
+- `invalid_supplier_invoice` — Supplier
+
+**Parameters**
+
+| Name                   | Type     | Required | Description                                                                                  | Default |
+| ---------------------- | -------- | -------- | -------------------------------------------------------------------------------------------- | ------- |
+| `supplier_id`          | `string` | yes      | Opaque same-tenant identity of the supplier Party stated on the invoice.                     | —       |
+| `number`               | `string` | yes      | Human-facing document or transaction number; it is not internal identity.                    | —       |
+| `currency`             | `string` | yes      | ISO 4217 currency code for monetary values.                                                  | —       |
+| `gross_amount`         | `string` | yes      | Total the source states for the document; recorded as received and never calculated.         | —       |
+| `document_date`        | `string` | no       | Business date printed on or asserted by the evidence document.                               | —       |
+| `effective_at`         | `string` | no       | UTC instant from which the observation or rule takes effect.                                 | —       |
+| `lines`                | `array`  | yes      | Complete intended normalized DocumentLine Evidence snapshot for an atomic manual correction. | —       |
+| `lines[].item_id`      | `string` | no       | Opaque identity of the operational item reference.                                           | —       |
+| `lines[].sku`          | `string` | no       | Human-facing stock-keeping code used to find an item; internal joins use item_id.            | —       |
+| `lines[].description`  | `string` | no       | Human-readable explanation of the record or rule.                                            | —       |
+| `lines[].quantity`     | `string` | yes      | Decimal quantity expressed in the item's relevant unit.                                      | —       |
+| `lines[].unit`         | `string` | no       | Unit of measure in which the quantity is expressed.                                          | —       |
+| `lines[].unit_price`   | `string` | yes      | Decimal monetary amount for one unit before quantity multiplication.                         | —       |
+| `lines[].gross_amount` | `string` | yes      | Total the source states for the document; recorded as received and never calculated.         | —       |
+| `lines[].line_type`    | `string` | no       | Closed kind of a document line, such as goods or a charge, taken from the source statement.  | —       |
+
+**Verify with:** `document_register` — The supplier invoice and stated lines are retained.;
+`finance_balances` — The payable derives from posted LedgerEntries.
+
+**See also:** command
+[`record_free_supplier_invoice`](./commands#command-record_free_supplier_invoice), projection
+[`document_register`](./views#projection-document_register)
+
 ### `apply_settlement` — Record payment or use existing credit {#command-apply_settlement}
 
 Atomically records stated cash, explicit allocation and optional reduction, or consumes existing
@@ -3356,6 +3497,26 @@ sales_credit_record_propose [order_line_id] [quantity] [invoice_id] [reason] [al
 
 **Access:** `propose`
 
+Record either an invoice-linked financial credit or the retained legacy order-line return credit
+shape.
+
+**Use when**
+
+- A human has stated the exact credit amount and selected one complete supported evidence shape.
+
+**Do not use when**
+
+- Returned goods need a physical disposition; use the return disposition action separately.
+
+**Preconditions**
+
+- Invoice-linked and legacy fields are mutually exclusive and every opaque identity belongs to the
+  tenant.
+
+**Refused when**
+
+- `invalid_credit_shape` — Required fields are missing
+
 **Parameters**
 
 | Name                      | Type     | Required | Description                                                                                      | Default |
@@ -3373,7 +3534,12 @@ sales_credit_record_propose [order_line_id] [quantity] [invoice_id] [reason] [al
 | `number`                  | `string` | yes      | Human-facing document or transaction number; it is not internal identity.                        | —       |
 | `effective_at`            | `string` | no       | UTC instant from which the observation or rule takes effect.                                     | —       |
 
-**See also:** command [`record_sales_credit`](./commands#command-record_sales_credit)
+**Verify with:** `invoice_credit_context` — Remaining invoice-linked position and amount capacity
+derives independently after execution.; `document_register` — The retained credit and its shortest
+line links exist.
+
+**See also:** command [`record_sales_credit`](./commands#command-record_sales_credit), projection
+[`document_register`](./views#projection-document_register)
 
 ### `record_sales_invoice` — Record sales invoice {#command-record_sales_invoice}
 
@@ -4354,6 +4520,30 @@ return_disposition_propose return_movement_id disposition quantity [destination_
 
 **Access:** `propose`
 
+Resolve arrived customer-return goods through one of the four canonical physical outcomes without
+changing credit evidence.
+
+**Use when**
+
+- A return Movement has arrived and a human has chosen restock
+- quarantine_repair
+- scrap_loss or return_to_supplier for an exact quantity.
+
+**Do not use when**
+
+- A financial credit must be recorded; use the invoice-linked or legacy customer-credit action
+  separately.
+
+**Preconditions**
+
+- The return Movement retains its customer-delivery commitment
+- arrival location and any handling-unit
+- lot or serial identity.
+
+**Refused when**
+
+- `invalid_return_relationship` — Return Movement
+
 **Parameters**
 
 | Name                      | Type     | Required | Description                                                                                                                                                                         | Default |
@@ -4364,7 +4554,12 @@ return_disposition_propose return_movement_id disposition quantity [destination_
 | `destination_location_id` | `string` | no       | Opaque destination location required when returned goods are transferred to saleable stock or quarantine.                                                                           | —       |
 | `reason`                  | `string` | no       | Human-readable explanation for a hold, correction, or lifecycle change.                                                                                                             | —       |
 
-**See also:** command [`record_return_disposition`](./commands#command-record_return_disposition)
+**Verify with:** `return_disposition_summary` — Each resolving Movement preserves the arrived return
+identity and reconciles the remaining quantity.; `inventory` — The resulting exact-location stock
+effect is visible independently.
+
+**See also:** command [`record_return_disposition`](./commands#command-record_return_disposition),
+projection [`inventory`](./views#projection-inventory)
 
 ### `revise_commitment` — Revise commitment {#command-revise_commitment}
 
@@ -5029,22 +5224,22 @@ Record an immutable physical receipt, transfer, shipment, return, or adjustment.
 
 **Parameters**
 
-| Name                     | Type     | Required | Description                                                                                                                                                       | Default |
-| ------------------------ | -------- | -------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------- |
-| `movement_type`          | `string` | yes      | Physical event kind — opening_stock, receipt, shipment, transfer, adjustment, return (goods back from a customer), or supplier_return (goods back to a supplier). | —       |
-| `item_id`                | `string` | yes      | Opaque identity of the operational item reference.                                                                                                                | —       |
-| `quantity`               | `string` | yes      | Decimal quantity expressed in the item's relevant unit.                                                                                                           | —       |
-| `from_location_id`       | `string` | no       | Opaque identity of the location from which physical stock leaves.                                                                                                 | —       |
-| `to_location_id`         | `string` | no       | Opaque identity of the location into which physical stock arrives.                                                                                                | —       |
-| `commitment_id`          | `string` | no       | Opaque identity of the obligation being reserved, held, or executed.                                                                                              | —       |
-| `source_record_id`       | `string` | no       | Opaque identity of the immutable source record supporting this typed record.                                                                                      | —       |
-| `handling_unit_id`       | `string` | no       | Optional pallet or handling-unit identity, for example an NVE/SSCC-labelled pallet.                                                                               | —       |
-| `lot_id`                 | `string` | no       | Exact batch or lot identity to reserve or move.                                                                                                                   | —       |
-| `serial_unit_id`         | `string` | no       | Exact serial-unit identity to reserve or move; serialized quantities are always one.                                                                              | —       |
-| `occurred_at`            | `string` | no       | UTC instant at which the physical or business event occurred.                                                                                                     | —       |
-| `reason`                 | `string` | no       | Human-readable explanation for a hold, correction, or lifecycle change.                                                                                           | —       |
-| `resolves_movement_id`   | `string` | no       | Opaque identity of the return this movement settles; absent means it settles none.                                                                                | —       |
-| `return_announcement_id` | `string` | no       | Opaque identity of the announced return these goods fulfil; absent means they were not announced.                                                                 | —       |
+| Name                     | Type     | Required | Description                                                                                                                                                                                                                                                     | Default |
+| ------------------------ | -------- | -------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------- |
+| `movement_type`          | `string` | yes      | Physical event kind — opening_stock, receipt, shipment, transfer, adjustment, return (goods back from a customer), or supplier_return (goods back to a supplier). `opening_stock`, `receipt`, `shipment`, `transfer`, `return`, `supplier_return`, `adjustment` | —       |
+| `item_id`                | `string` | yes      | Opaque identity of the operational item reference.                                                                                                                                                                                                              | —       |
+| `quantity`               | `string` | yes      | Decimal quantity expressed in the item's relevant unit.                                                                                                                                                                                                         | —       |
+| `from_location_id`       | `string` | no       | Opaque identity of the location from which physical stock leaves.                                                                                                                                                                                               | —       |
+| `to_location_id`         | `string` | no       | Opaque identity of the location into which physical stock arrives.                                                                                                                                                                                              | —       |
+| `commitment_id`          | `string` | no       | Opaque identity of the obligation being reserved, held, or executed.                                                                                                                                                                                            | —       |
+| `source_record_id`       | `string` | no       | Opaque identity of the immutable source record supporting this typed record.                                                                                                                                                                                    | —       |
+| `handling_unit_id`       | `string` | no       | Optional pallet or handling-unit identity, for example an NVE/SSCC-labelled pallet.                                                                                                                                                                             | —       |
+| `lot_id`                 | `string` | no       | Exact batch or lot identity to reserve or move.                                                                                                                                                                                                                 | —       |
+| `serial_unit_id`         | `string` | no       | Exact serial-unit identity to reserve or move; serialized quantities are always one.                                                                                                                                                                            | —       |
+| `occurred_at`            | `string` | no       | UTC instant at which the physical or business event occurred.                                                                                                                                                                                                   | —       |
+| `reason`                 | `string` | no       | Human-readable explanation for a hold, correction, or lifecycle change.                                                                                                                                                                                         | —       |
+| `resolves_movement_id`   | `string` | no       | Opaque identity of the return this movement settles; absent means it settles none.                                                                                                                                                                              | —       |
+| `return_announcement_id` | `string` | no       | Opaque identity of the announced return these goods fulfil; absent means they were not announced.                                                                                                                                                               | —       |
 
 **Verify with:** `inventory` — Physical stock reflects the immutable Movement.;
 `commitment_register` — Fulfillment derives from Movements linked to the Commitment.; `timeline` —
@@ -5765,27 +5960,27 @@ document_create_propose document_type number party_id lines gross_amount [curren
 
 **Parameters**
 
-| Name                              | Type     | Required | Description                                                                                                                                | Default |
-| --------------------------------- | -------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------ | ------- |
-| `document_type`                   | `string` | yes      | Evidence kind, such as sales order, purchase order, or invoice.                                                                            | —       |
-| `number`                          | `string` | yes      | Human-facing document or transaction number; it is not internal identity.                                                                  | —       |
-| `party_id`                        | `string` | yes      | Opaque identity of the customer, supplier, or other operational party.                                                                     | —       |
-| `lines`                           | `array`  | yes      | Complete intended normalized DocumentLine Evidence snapshot for an atomic manual correction.                                               | —       |
-| `lines[].item_id`                 | `string` | no       | Opaque identity of the operational item reference.                                                                                         | —       |
-| `lines[].sku`                     | `string` | no       | Human-facing stock-keeping code used to find an item; internal joins use item_id.                                                          | —       |
-| `lines[].description`             | `string` | no       | Human-readable explanation of the record or rule.                                                                                          | —       |
-| `lines[].quantity`                | `string` | yes      | Decimal quantity expressed in the item's relevant unit.                                                                                    | —       |
-| `lines[].unit`                    | `string` | no       | Unit of measure in which the quantity is expressed.                                                                                        | —       |
-| `lines[].unit_price`              | `string` | yes      | Decimal monetary amount for one unit before quantity multiplication.                                                                       | —       |
-| `lines[].gross_amount`            | `string` | yes      | Total the source states for the document; recorded as received and never calculated.                                                       | —       |
-| `lines[].line_type`               | `string` | no       | Closed kind of a document line, such as goods or a charge, taken from the source statement.                                                | —       |
-| `lines[].promised_at`             | `string` | no       | UTC instant by which the line's quantity is promised; it becomes the due time of the derived Commitment.                                   | —       |
-| `lines[].price_list_entry_id`     | `string` | no       | Opaque identity of the price tier the line price came from, when a list price was applied; provenance, not a recalculation.                | —       |
-| `lines[].billed_document_line_id` | `string` | no       | Opaque identity of the billed order line, or selected invoice line for an invoice-linked credit; the shortest typed evidence relationship. | —       |
-| `gross_amount`                    | `string` | yes      | Total the source states for the document; recorded as received and never calculated.                                                       | —       |
-| `currency`                        | `string` | no       | ISO 4217 currency code for monetary values.                                                                                                | —       |
-| `document_date`                   | `string` | no       | Business date printed on or asserted by the evidence document.                                                                             | —       |
-| `payment_term_code`               | `string` | no       | Tenant-scoped code of the payment condition to apply.                                                                                      | —       |
+| Name                              | Type     | Required | Description                                                                                                                                                                 | Default |
+| --------------------------------- | -------- | -------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------- |
+| `document_type`                   | `string` | yes      | Evidence kind, such as sales order, purchase order, or invoice. `sales_order`, `purchase_order`, `sales_invoice`, `supplier_invoice`, `credit_note`, `supplier_credit_note` | —       |
+| `number`                          | `string` | yes      | Human-facing document or transaction number; it is not internal identity.                                                                                                   | —       |
+| `party_id`                        | `string` | yes      | Opaque identity of the customer, supplier, or other operational party.                                                                                                      | —       |
+| `lines`                           | `array`  | yes      | Complete intended normalized DocumentLine Evidence snapshot for an atomic manual correction.                                                                                | —       |
+| `lines[].item_id`                 | `string` | no       | Opaque identity of the operational item reference.                                                                                                                          | —       |
+| `lines[].sku`                     | `string` | no       | Human-facing stock-keeping code used to find an item; internal joins use item_id.                                                                                           | —       |
+| `lines[].description`             | `string` | no       | Human-readable explanation of the record or rule.                                                                                                                           | —       |
+| `lines[].quantity`                | `string` | yes      | Decimal quantity expressed in the item's relevant unit.                                                                                                                     | —       |
+| `lines[].unit`                    | `string` | no       | Unit of measure in which the quantity is expressed.                                                                                                                         | —       |
+| `lines[].unit_price`              | `string` | yes      | Decimal monetary amount for one unit before quantity multiplication.                                                                                                        | —       |
+| `lines[].gross_amount`            | `string` | yes      | Total the source states for the document; recorded as received and never calculated.                                                                                        | —       |
+| `lines[].line_type`               | `string` | no       | Closed kind of a document line, such as goods or a charge, taken from the source statement.                                                                                 | —       |
+| `lines[].promised_at`             | `string` | no       | UTC instant by which the line's quantity is promised; it becomes the due time of the derived Commitment.                                                                    | —       |
+| `lines[].price_list_entry_id`     | `string` | no       | Opaque identity of the price tier the line price came from, when a list price was applied; provenance, not a recalculation.                                                 | —       |
+| `lines[].billed_document_line_id` | `string` | no       | Opaque identity of the billed order line, or selected invoice line for an invoice-linked credit; the shortest typed evidence relationship.                                  | —       |
+| `gross_amount`                    | `string` | yes      | Total the source states for the document; recorded as received and never calculated.                                                                                        | —       |
+| `currency`                        | `string` | no       | ISO 4217 currency code for monetary values.                                                                                                                                 | —       |
+| `document_date`                   | `string` | no       | Business date printed on or asserted by the evidence document.                                                                                                              | —       |
+| `payment_term_code`               | `string` | no       | Tenant-scoped code of the payment condition to apply.                                                                                                                       | —       |
 
 **See also:** command
 [`create_manual_document_with_lines`](./commands#command-create_manual_document_with_lines)
@@ -6204,6 +6399,58 @@ same reader as the web Inspector and CLI.
 
 **See also:** command [`cost_record`](./commands#command-cost_record)
 
+### `notices` — List dunning notices {#command-notices}
+
+Lists retained manual reminders with their invoice membership, optional fee and reversal trace.
+
+**Synopsis**
+
+```text
+finance_dunning_notices
+```
+
+**Reach via:** Web · MCP · Chat
+
+**Effect:** Reads: `source_record`, `document`, `ledger_entry`, `business_event` · Writes: —
+
+**See also:** agent tool [`finance_dunning_notices`](./commands#tool-finance_dunning_notices)
+
+#### `finance_dunning_notices` — Dunning notices {#tool-finance_dunning_notices}
+
+List recorded manual dunning notices with fee and reversal trace.
+
+**Synopsis**
+
+```text
+finance_dunning_notices
+```
+
+**Access:** `read`
+
+**How this query runs**
+
+| Concrete query                | Kind                        | Default |
+| ----------------------------- | --------------------------- | ------- |
+| `MCP finance_dunning_notices` | Live — read at request time | yes     |
+
+[How this query runs](./views#read-execution)
+
+List recorded manual reminder evidence with invoice, fee and reversal trace.
+
+**Use when**
+
+- Recorded reminders must be reconciled or selected for reversal.
+
+**Do not use when**
+
+- Overdue invoices must first be selected for a new reminder.
+
+**Parameters**
+
+No parameters.
+
+**See also:** command [`notices`](./commands#command-notices)
+
 ### `contribution_preview` — Preview current contribution candidate {#command-contribution_preview}
 
 Follow an exact whole invoice/order/shipment scope to received net revenue and reviewed consumption;
@@ -6329,6 +6576,125 @@ independent freshness.
 | `policy_revision_id` | `string` | no       | Optional exact retained valuation-policy constraint; mismatches refuse without activating policy.                            | `None`  |
 
 **See also:** command [`cost_query`](./commands#command-cost_query)
+
+### `dunning_context` — Read dunning context {#command-dunning_context}
+
+Validates one selected reminder scope and returns the finance revision without recording or sending
+anything.
+
+**Synopsis**
+
+```text
+finance_dunning_context invoice_ids level notice_date [fee_amount] [reason] [number]
+```
+
+**Reach via:** Web · MCP · Chat
+
+**Effect:** Reads: `document`, `ledger_entry`, `settlement_allocation`, `party` · Writes: —
+
+**See also:** agent tool [`finance_dunning_context`](./commands#tool-finance_dunning_context)
+
+#### `finance_dunning_context` — Dunning context {#tool-finance_dunning_context}
+
+Preview one manual notice from currently overdue invoices and return the finance revision required
+for confirmation.
+
+**Synopsis**
+
+```text
+finance_dunning_context invoice_ids level notice_date [fee_amount] [reason] [number]
+```
+
+**Access:** `read`
+
+**How this query runs**
+
+| Concrete query                | Kind                        | Default |
+| ----------------------------- | --------------------------- | ------- |
+| `MCP finance_dunning_context` | Live — read at request time | yes     |
+
+[How this query runs](./views#read-execution)
+
+Validate one manual reminder against current overdue invoices and expose its finance revision.
+
+**Use when**
+
+- A person has selected overdue invoices
+- level
+- date and optional exact fee for review.
+
+**Do not use when**
+
+- A reminder should be generated
+- escalated or sent automatically.
+
+**Parameters**
+
+| Name          | Type      | Required | Description                                                                                    | Default |
+| ------------- | --------- | -------- | ---------------------------------------------------------------------------------------------- | ------- |
+| `invoice_ids` | `array`   | yes      | Opaque same-tenant customer-invoice identities explicitly selected for one reminder.           | —       |
+| `level`       | `integer` | yes      | Explicit manual reminder level; only the closed levels 1, 2, and 3 are accepted. `1`, `2`, `3` | —       |
+| `notice_date` | `string`  | yes      | Calendar date explicitly stated for the manual reminder and its overdue check.                 | —       |
+| `fee_amount`  | `string`  | no       | Exact non-negative reminder fee stated by the confirming human; zero records no fee posting.   | `0`     |
+| `reason`      | `string`  | no       | Human-readable explanation for a hold, correction, or lifecycle change.                        | —       |
+| `number`      | `string`  | no       | Human-facing document or transaction number; it is not internal identity.                      | —       |
+
+**See also:** command [`dunning_context`](./commands#command-dunning_context)
+
+### `notice_detail` — Read dunning notice {#command-notice_detail}
+
+Reads one retained manual reminder with its exact invoice membership, optional fee and reversal
+trace.
+
+**Synopsis**
+
+```text
+finance_dunning_notice notice_id
+```
+
+**Reach via:** Web · MCP · Chat
+
+**Effect:** Reads: `source_record`, `document`, `ledger_entry`, `business_event` · Writes: —
+
+**See also:** agent tool [`finance_dunning_notice`](./commands#tool-finance_dunning_notice)
+
+#### `finance_dunning_notice` — Dunning notice {#tool-finance_dunning_notice}
+
+Read one recorded manual dunning notice with fee and reversal trace.
+
+**Synopsis**
+
+```text
+finance_dunning_notice notice_id
+```
+
+**Access:** `read`
+
+**How this query runs**
+
+| Concrete query               | Kind                        | Default |
+| ---------------------------- | --------------------------- | ------- |
+| `MCP finance_dunning_notice` | Live — read at request time | yes     |
+
+[How this query runs](./views#read-execution)
+
+Read one retained manual reminder with its exact invoice membership, fee and reversal.
+
+**Use when**
+
+- One known notice identity needs authoritative reconciliation.
+
+**Do not use when**
+
+- A notice has not yet been discovered or recorded.
+
+**Parameters**
+
+| Name        | Type     | Required | Description                                                  | Default |
+| ----------- | -------- | -------- | ------------------------------------------------------------ | ------- |
+| `notice_id` | `string` | yes      | Opaque same-tenant identity of the retained manual reminder. | —       |
+
+**See also:** command [`notice_detail`](./commands#command-notice_detail)
 
 ### `receipt_cost` — Read receipt acquisition costs {#command-receipt_cost}
 
@@ -6508,6 +6874,134 @@ retained inputs.
 
 **See also:** command [`reviewed_contribution`](./commands#command-reviewed_contribution)
 
+### `record_notice` — Record dunning notice {#command-record_notice}
+
+Records one explicitly reviewed manual reminder and optional exact stated fee without sending a
+message.
+
+**Synopsis**
+
+```text
+finance_dunning_record_propose expected_revision invoice_ids level notice_date [fee_amount] [reason] [number]
+```
+
+**Reach via:** Web · MCP · Chat
+
+**Effect:** Reads: `document`, `ledger_entry`, `settlement_allocation`, `party` · Writes:
+`source_record`, `document`, `ledger_entry`, `business_event` · Emits: `dunning.notice_recorded`
+
+**See also:** agent tool
+[`finance_dunning_record_propose`](./commands#tool-finance_dunning_record_propose), event
+[`dunning.notice_recorded`](./events#event-dunning-notice_recorded)
+
+#### `finance_dunning_record_propose` — Record dunning notice {#tool-finance_dunning_record_propose}
+
+Prepare a manual dunning notice and optional exact stated fee for owner confirmation.
+
+**Synopsis**
+
+```text
+finance_dunning_record_propose expected_revision invoice_ids level notice_date [fee_amount] [reason] [number]
+```
+
+**Access:** `propose`
+
+Record one owner-confirmed manual reminder and optional exact stated fee.
+
+**Use when**
+
+- A person has reviewed eligible overdue invoices and explicitly chosen the level and fee.
+
+**Do not use when**
+
+- A reminder should be calculated
+- escalated or sent automatically.
+
+**Preconditions**
+
+- Invoices belong to one customer and currency and remain open and overdue.
+
+**Refused when**
+
+- `invalid_dunning_scope` — Invoice eligibility
+
+**Parameters**
+
+| Name                | Type      | Required | Description                                                                                    | Default |
+| ------------------- | --------- | -------- | ---------------------------------------------------------------------------------------------- | ------- |
+| `expected_revision` | `integer` | yes      | Canonical revision of the Evidence snapshot on which a correction is based.                    | —       |
+| `invoice_ids`       | `array`   | yes      | Opaque same-tenant customer-invoice identities explicitly selected for one reminder.           | —       |
+| `level`             | `integer` | yes      | Explicit manual reminder level; only the closed levels 1, 2, and 3 are accepted. `1`, `2`, `3` | —       |
+| `notice_date`       | `string`  | yes      | Calendar date explicitly stated for the manual reminder and its overdue check.                 | —       |
+| `fee_amount`        | `string`  | no       | Exact non-negative reminder fee stated by the confirming human; zero records no fee posting.   | `0`     |
+| `reason`            | `string`  | no       | Human-readable explanation for a hold, correction, or lifecycle change.                        | —       |
+| `number`            | `string`  | no       | Human-facing document or transaction number; it is not internal identity.                      | —       |
+
+**Verify with:** `finance.dunning.notice` — Exact notice membership and fee effect are retained.
+
+**See also:** command [`record_notice`](./commands#command-record_notice)
+
+### `reverse_notice` — Reverse dunning notice {#command-reverse_notice}
+
+Retains the original reminder and explicitly reverses its fee effect and reminder state.
+
+**Synopsis**
+
+```text
+finance_dunning_reverse_propose expected_revision notice_id reason
+```
+
+**Reach via:** Web · MCP · Chat
+
+**Effect:** Reads: `source_record`, `document`, `ledger_entry`, `business_event` · Writes:
+`ledger_reversal`, `ledger_entry`, `business_event` · Emits: `dunning.notice_reversed`
+
+**See also:** agent tool
+[`finance_dunning_reverse_propose`](./commands#tool-finance_dunning_reverse_propose), event
+[`dunning.notice_reversed`](./events#event-dunning-notice_reversed)
+
+#### `finance_dunning_reverse_propose` — Reverse dunning notice {#tool-finance_dunning_reverse_propose}
+
+Prepare reversal of one manual dunning notice and any posted fee for owner confirmation.
+
+**Synopsis**
+
+```text
+finance_dunning_reverse_propose expected_revision notice_id reason
+```
+
+**Access:** `propose`
+
+Reverse one owner-confirmed manual reminder and its fee effect without deleting evidence.
+
+**Use when**
+
+- A recorded notice was issued in error and a person explicitly decides to reverse it.
+
+**Do not use when**
+
+- The notice is correct or only its external message needs correction.
+
+**Preconditions**
+
+- The tenant-owned notice exists and is not already reversed.
+
+**Refused when**
+
+- `invalid_dunning_reversal` — Notice is foreign
+
+**Parameters**
+
+| Name                | Type      | Required | Description                                                                 | Default |
+| ------------------- | --------- | -------- | --------------------------------------------------------------------------- | ------- |
+| `expected_revision` | `integer` | yes      | Canonical revision of the Evidence snapshot on which a correction is based. | —       |
+| `notice_id`         | `string`  | yes      | Opaque same-tenant identity of the retained manual reminder.                | —       |
+| `reason`            | `string`  | yes      | Human-readable explanation for a hold, correction, or lifecycle change.     | —       |
+
+**Verify with:** `finance.dunning.notice` — Reversal identity and fee outcome are retained.
+
+**See also:** command [`reverse_notice`](./commands#command-reverse_notice)
+
 ## Agent tools without a business command
 
 These agent tools do not stand for one business command. Read tools answer a view or projection;
@@ -6531,6 +7025,7 @@ governance tools carry proposals, discovery and missing information.
 | [`proposals_awaiting_approval`](#tool-proposals_awaiting_approval)                               | List proposals awaiting approval               | `read`    | —                      |
 | [`proposal_execution_status`](#tool-proposal_execution_status)                                   | Reconcile proposal execution                   | `read`    | —                      |
 | [`proposal_approve_and_execute`](#tool-proposal_approve_and_execute)                             | Approve and execute a proposal                 | `confirm` | —                      |
+| [`proposal_reject`](#tool-proposal_reject)                                                       | Reject a proposal                              | `confirm` | —                      |
 | [`finance_balances`](#tool-finance_balances)                                                     | Read finance balances                          | `read`    | —                      |
 | [`reality_gaps`](#tool-reality_gaps)                                                             | List missing information                       | `read`    | —                      |
 | [`reality_gap_get`](#tool-reality_gap_get)                                                       | Inspect missing information                    | `read`    | —                      |
@@ -7213,6 +7708,25 @@ execution boundary.
 **Verify with:** `proposal_execution_status` — Correlated execution evidence and current
 Reservation/Commitment values match the stored receipt.; `business_records_discover` — Named
 operational records remain visible with current tenant-scoped values.
+
+### `proposal_reject` — Reject a proposal {#tool-proposal_reject}
+
+Carry out an explicit human rejection of one pending proposal without business effect.
+
+**Synopsis**
+
+```text
+proposal_reject proposal_id rejected
+```
+
+**Access:** `confirm`
+
+**Parameters**
+
+| Name          | Type      | Required | Description | Default |
+| ------------- | --------- | -------- | ----------- | ------- |
+| `proposal_id` | `string`  | yes      | —           | —       |
+| `rejected`    | `boolean` | yes      | —           | —       |
 
 ### `finance_balances` — Read finance balances {#tool-finance_balances}
 

@@ -293,6 +293,25 @@ def _finance_balances(
     return finance_balances(session, tenant_id)
 
 
+def _dunning_context(session: Session, tenant_id: str, arguments: dict[str, Any]) -> Any:
+    from reality.services.dunning import dunning_context
+
+    return dunning_context(session, tenant_id, arguments)
+
+
+def _dunning_notices(session: Session, tenant_id: str, arguments: dict[str, Any]) -> Any:
+    del arguments
+    from reality.services.dunning import notices
+
+    return notices(session, tenant_id)
+
+
+def _dunning_notice(session: Session, tenant_id: str, arguments: dict[str, Any]) -> Any:
+    from reality.services.dunning import notice_detail
+
+    return notice_detail(session, tenant_id, arguments["notice_id"])
+
+
 def _fulfillment_queue(
     session: Session, tenant_id: str, arguments: dict[str, Any]
 ) -> Any:
@@ -370,6 +389,13 @@ def _reserve(session: Session, tenant_id: str, arguments: dict[str, Any]) -> Any
         serial_unit_id=arguments.get("serial_unit_id"),
         action_id=arguments.get("_action_id"),
     )
+    effect = (
+        "none"
+        if result.reserved == 0
+        else "complete"
+        if result.shortage == 0
+        else "partial"
+    )
     return {
         "proposal_id": arguments.get("_action_id"),
         "capability": "reserve",
@@ -379,6 +405,13 @@ def _reserve(session: Session, tenant_id: str, arguments: dict[str, Any]) -> Any
         "applied": result.reserved,
         "reserved": result.reserved,
         "shortage": result.shortage,
+        "effect": effect,
+        "remaining_work": result.shortage,
+        "verification_reads": [
+            "proposal_execution_status",
+            "inventory",
+            "commitment_register",
+        ],
         "event_id": result.event.id if result.event else None,
         "handling_unit_id": (
             result.reservation.handling_unit_id if result.reservation else None
@@ -1123,6 +1156,23 @@ def _sales_credit_record(
     return record_sales_credit(session, tenant_id, **arguments)
 
 
+def _invoice_credit_context(
+    session: Session, tenant_id: str, arguments: dict[str, Any]
+) -> Any:
+    from reality.services.credit_actions import invoice_credit_context
+
+    return invoice_credit_context(session, tenant_id, arguments["invoice_id"])
+
+
+def _supplier_invoice_free_record(
+    session: Session, tenant_id: str, arguments: dict[str, Any]
+) -> Any:
+    from reality.services.invoice_actions import record_free_supplier_invoice
+
+    arguments["action_id"] = arguments.pop("_action_id", None)
+    return record_free_supplier_invoice(session, tenant_id, **arguments)
+
+
 def _payment(kind: str) -> ToolHandler:
     service = post_customer_payment if kind == "customer" else post_supplier_payment
 
@@ -1382,11 +1432,26 @@ def _capability_describe(
     del session, tenant_id
     from reality.catalogs import load_application_catalog
 
-    tool_name = str(arguments.get("tool_name", "")).strip()
-    guidance = load_application_catalog()["capability_guidance"].get(tool_name)
+    requested_name = str(arguments.get("tool_name", "")).strip()
+    catalog = load_application_catalog()["capability_guidance"]
+    canonical_name = requested_name if requested_name in catalog else ""
+    if not canonical_name:
+        candidates = [
+            name
+            for name, entry in catalog.items()
+            if entry.get("application_tool") == requested_name
+        ]
+        if len(candidates) > 1:
+            raise InvalidOperation(
+                "Capability identity is ambiguous; use one canonical public name: "
+                + ", ".join(sorted(candidates))
+            )
+        if candidates:
+            canonical_name = candidates[0]
+    guidance = catalog.get(canonical_name)
     if guidance is None:
         raise NotFound("Capability not found.")
-    return guidance
+    return {"canonical_public_name": canonical_name, **guidance}
 
 
 def _proposals_awaiting_approval(
@@ -1686,6 +1751,24 @@ TOOLS = {
         "Read balances derived from the journal.",
         False,
         _finance_balances,
+    ),
+    "finance.dunning.context": Tool(
+        "finance.dunning.context",
+        "Preview one manual dunning notice and return its finance revision.",
+        False,
+        _dunning_context,
+    ),
+    "finance.dunning.notices": Tool(
+        "finance.dunning.notices",
+        "List manual dunning notices with fee and reversal trace.",
+        False,
+        _dunning_notices,
+    ),
+    "finance.dunning.notice": Tool(
+        "finance.dunning.notice",
+        "Read one manual dunning notice with fee and reversal trace.",
+        False,
+        _dunning_notice,
     ),
     "fulfillment_queue": Tool(
         "fulfillment_queue",
@@ -2144,6 +2227,18 @@ TOOLS = {
         True,
         _sales_credit_record,
     ),
+    "invoice_credit_context": Tool(
+        "invoice_credit_context",
+        "Read eligible invoice positions and remaining customer-credit capacity.",
+        False,
+        _invoice_credit_context,
+    ),
+    "supplier_invoice_free_record": Tool(
+        "supplier_invoice_free_record",
+        "Record source-stated supplier invoice evidence and its payable without an order.",
+        True,
+        _supplier_invoice_free_record,
+    ),
     "credit_note_post": Tool(
         "credit_note_post",
         "Post a credit note as the reverse of a sales invoice.",
@@ -2351,7 +2446,16 @@ def _payments_read(session, tenant_id, arguments):
     """Recorded payments with allocated and unallocated amounts (feature 169)."""
     from reality.services.core import payment_rows
 
-    direction = str(arguments.get("direction") or "")
+    supported_arguments = {"direction", "only_unallocated", "query", "limit"}
+    unsupported_arguments = sorted(set(arguments) - supported_arguments)
+    if unsupported_arguments:
+        raise InvalidOperation(
+            "Unsupported payment filter: " + ", ".join(unsupported_arguments) + "."
+        )
+    raw_direction = arguments.get("direction")
+    direction = str(raw_direction) if raw_direction is not None else ""
+    if raw_direction is not None and direction not in {"incoming", "outgoing"}:
+        raise InvalidOperation("Payment direction must be incoming or outgoing.")
     only_unallocated = bool(arguments.get("only_unallocated") or False)
     query = str(arguments.get("query") or "").strip().lower()
     limit = max(1, min(int(arguments.get("limit") or 50), 200))
@@ -2585,6 +2689,28 @@ def create_change_proposal(
         raise NotFound("Tool not found.")
     if not tool.mutating:
         raise InvalidOperation("Read tools do not need a proposal.")
+    if tool_name == "document_create":
+        from reality.services.core import validate_manual_operational_document_type
+
+        arguments = {
+            **arguments,
+            "document_type": validate_manual_operational_document_type(
+                arguments.get("document_type")
+            ),
+        }
+    if tool_name == "supplier_invoice_free_record":
+        from reality.services.invoice_actions import preview_free_supplier_invoice
+
+        preview_free_supplier_invoice(session, tenant_id, arguments)
+    if tool_name == "movement_create":
+        from reality.services.delivery_actions import validate_public_movement_type
+
+        arguments = {
+            **arguments,
+            "movement_type": validate_public_movement_type(
+                arguments.get("movement_type")
+            ),
+        }
     from reality.db.core import Tenant
     from reality.services.delivery_actions import REVIEW_KEY, eligible, review_delivery
 
@@ -3101,6 +3227,7 @@ def approve_and_execute_proposal(
         "sales_invoice_record",
         "supplier_payment_post",
         "supplier_invoice_record",
+        "supplier_invoice_free_record",
         "supply_assign",
         "return_disposition",
         "commitment_revise",
@@ -3185,8 +3312,22 @@ def reject_proposal(
     *,
     confirming_principal: Principal | None = None,
 ) -> ChangeProposal:
+    existing = session.scalar(
+        select(ChangeProposal).where(
+            ChangeProposal.tenant_id == tenant_id,
+            ChangeProposal.id == proposal_id,
+        )
+    )
+    if existing is None:
+        raise NotFound("Proposal not found.")
+    if existing.status == "rejected":
+        return existing
+    if existing.status != "proposed":
+        raise InvalidOperation(
+            f"Proposal cannot be rejected from status {existing.status}."
+        )
     require_proposal_decision(session, tenant_id, proposal_id, "proposal_reject")
-    proposal = _proposal(session, tenant_id, proposal_id)
+    proposal = existing
     proposal.status = "rejected"
     _record_decision(proposal, confirming_principal)
     session.commit()

@@ -81,6 +81,26 @@ from reality.services.supply_assignment_actions import (
 )
 
 REVIEW_KEY = "_delivery_review"
+PUBLIC_MOVEMENT_TYPES = (
+    "opening_stock",
+    "receipt",
+    "shipment",
+    "transfer",
+    "return",
+    "supplier_return",
+    "adjustment",
+)
+
+
+def validate_public_movement_type(movement_type: object) -> str:
+    normalized = str(movement_type).strip()
+    if normalized not in PUBLIC_MOVEMENT_TYPES:
+        raise InvalidOperation(
+            "Unsupported movement type. Expected one of: "
+            + ", ".join(PUBLIC_MOVEMENT_TYPES)
+            + "."
+        )
+    return normalized
 
 
 def eligible(tool: str, arguments: dict[str, Any]) -> bool:

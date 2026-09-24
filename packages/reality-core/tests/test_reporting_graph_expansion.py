@@ -10,6 +10,7 @@ from reality.db.core import Document, DocumentLine
 from reality.domain.traversal import Traversal
 from reality.services.analytics.graph_model import reporting_catalog
 from reality.services.analytics.traversal import run_traversal
+from reality.services.core import MANUAL_OPERATIONAL_DOCUMENT_TYPES
 
 
 def ask(session, tenant, **query):
@@ -117,6 +118,23 @@ DOCUMENT_TYPES = {
     "customer_settlement_adjustment": "customer_settlement_adjustment",
     "supplier_settlement_adjustment": "supplier_settlement_adjustment",
 }
+
+
+def test_reporting_vocabulary_does_not_expand_public_manual_document_creation():
+    assert set(MANUAL_OPERATIONAL_DOCUMENT_TYPES) == {
+        "sales_order",
+        "purchase_order",
+        "sales_invoice",
+        "supplier_invoice",
+        "credit_note",
+        "supplier_credit_note",
+    }
+    assert {
+        "customer_payment",
+        "supplier_payment",
+        "customer_refund",
+        "supplier_refund",
+    }.isdisjoint(MANUAL_OPERATIONAL_DOCUMENT_TYPES)
 
 
 @pytest.mark.parametrize("node,kind", DOCUMENT_TYPES.items())

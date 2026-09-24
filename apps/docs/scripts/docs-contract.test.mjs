@@ -1,5 +1,7 @@
 import assert from "node:assert/strict";
+import { execFileSync } from "node:child_process";
 import fs from "node:fs";
+import os from "node:os";
 import path from "node:path";
 import test from "node:test";
 import { fileURLToPath } from "node:url";
@@ -8,6 +10,93 @@ const docsRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), ".."
 const contentRoot = path.join(docsRoot, "content");
 const repositoryRoot = path.resolve(docsRoot, "..", "..");
 const translatedLocales = ["de"];
+
+test("live MCP verifier compares names, required fields, enums and nested shapes", () => {
+  const temporary = fs.mkdtempSync(path.join(os.tmpdir(), "reality-mcp-catalog-"));
+  const tools = {
+    tools: [
+      {
+        name: "example_tool",
+        inputSchema: {
+          type: "object",
+          required: ["mode", "lines"],
+          properties: {
+            mode: { type: "string", enum: ["one", "two"] },
+            lines: {
+              type: "array",
+              items: {
+                type: "object",
+                required: ["record_id"],
+                properties: { record_id: { type: "string" } },
+              },
+            },
+          },
+        },
+      },
+    ],
+  };
+  const reference = {
+    entries: [
+      {
+        kind: "tool",
+        key: "example_tool",
+        parameters: [
+          { name: "mode", type: "string", required: true, enum: ["one", "two"] },
+          { name: "lines", type: "array", required: true },
+          { name: "lines[].record_id", type: "string", required: true },
+        ],
+      },
+    ],
+  };
+  const toolsFile = path.join(temporary, "tools.json");
+  const referenceFile = path.join(temporary, "reference.json");
+  fs.writeFileSync(toolsFile, JSON.stringify(tools));
+  fs.writeFileSync(referenceFile, JSON.stringify(reference));
+  const output = execFileSync(
+    "python3",
+    [
+      path.join(repositoryRoot, "apps/docs/scripts/verify-live-mcp-catalog.py"),
+      toolsFile,
+      "--reference",
+      referenceFile,
+    ],
+    { encoding: "utf8" },
+  );
+  assert.match(output, /matches generated reference/u);
+});
+
+test("generated MCP reference preserves canonical enums and nested required fields", () => {
+  const reference = JSON.parse(
+    fs.readFileSync(path.join(docsRoot, ".vitepress/data/tool-usage.json"), "utf8"),
+  );
+  const entries = Object.fromEntries(reference.entries.map((entry) => [entry.key, entry]));
+  const parameter = (tool, name) =>
+    entries[tool].parameters.find((candidate) => candidate.name === name);
+
+  assert.deepEqual(parameter("document_create_propose", "document_type").enum, [
+    "sales_order",
+    "purchase_order",
+    "sales_invoice",
+    "supplier_invoice",
+    "credit_note",
+    "supplier_credit_note",
+  ]);
+  assert.deepEqual(parameter("movement_create_propose", "movement_type").enum, [
+    "opening_stock",
+    "receipt",
+    "shipment",
+    "transfer",
+    "return",
+    "supplier_return",
+    "adjustment",
+  ]);
+  for (const field of ["supplier_id", "number", "currency", "gross_amount", "lines"])
+    assert.equal(parameter("supplier_invoice_free_record_propose", field).required, true);
+  for (const field of ["lines[].quantity", "lines[].unit_price", "lines[].gross_amount"])
+    assert.equal(parameter("supplier_invoice_free_record_propose", field).required, true);
+  for (const field of ["lines[].invoice_line_id", "lines[].quantity", "lines[].gross_amount"])
+    assert.equal(parameter("sales_credit_record_propose", field).required, true);
+});
 
 test("contribution agent playbook maps common DB1 and DB2 situations to governed tools", () => {
   const config = fs.readFileSync(path.join(docsRoot, ".vitepress/config.mts"), "utf8");

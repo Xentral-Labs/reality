@@ -16,8 +16,11 @@ from reality.config import config_text
 from reality.db.core import ROOT, Base
 from reality.services import artifacts as artifact_service_module
 from reality.services import core as service_module
+from reality.services import credit_actions as credit_action_service_module
 from reality.services import demo_data as demo_data_service_module
+from reality.services import dunning as dunning_service_module
 from reality.services import file_interpreters as interpreter_service_module
+from reality.services import invoice_actions as invoice_action_service_module
 from reality.services import memberships as membership_service_module
 from reality.services import notifications as notification_service_module
 from reality.services import payment_intake as payment_intake_service_module
@@ -1046,6 +1049,12 @@ def load_tenant_isolation_catalog() -> TenantIsolationCatalog:
 def _service(name: str) -> Any:
     if hasattr(costing_service_module, name):
         return getattr(costing_service_module, name)
+    if hasattr(credit_action_service_module, name):
+        return getattr(credit_action_service_module, name)
+    if hasattr(dunning_service_module, name):
+        return getattr(dunning_service_module, name)
+    if hasattr(invoice_action_service_module, name):
+        return getattr(invoice_action_service_module, name)
     if name == "change_graph_report":
         from reality.services.analytics import reports
 
@@ -1224,6 +1233,7 @@ def _literal_business_events() -> set[str]:
         service_module,
         costing_service_module,
         credit_actions,
+        dunning_service_module,
         finance_account_service_module,
         finance_reference_service_module,
         finance_component_service_module,

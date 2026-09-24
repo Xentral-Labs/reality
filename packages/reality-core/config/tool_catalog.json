@@ -227,6 +227,7 @@
     "exception_explain": "review",
     "proposals_awaiting_approval": "review",
     "proposal_execution_status": "review",
+    "proposal_reject": "review",
     "proposal_approve_and_execute": "review",
     "reality_gaps": "review",
     "reality_gap_get": "review",
