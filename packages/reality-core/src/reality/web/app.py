@@ -86,7 +86,13 @@ app.add_middleware(
     allow_origins=allowed_origins,
     allow_credentials=True,
     allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
-    allow_headers=["Authorization", "Content-Type", "Idempotency-Key"],
+    allow_headers=[
+        "Authorization",
+        "Content-Type",
+        "Idempotency-Key",
+        "X-Reality-Correlation",
+        "X-Reality-Refresh",
+    ],
 )
 
 
@@ -124,6 +130,67 @@ async def record_storyline_views(request: Request, call_next):
             duration_ms=int((time.perf_counter() - started) * 1000),
         )
     return response
+
+
+@app.middleware("http")
+async def record_interactions(request: Request, call_next):
+    """Spec 266: every company request the web makes is one engine-room interaction.
+
+    Declared after the storyline middleware and before `protect_application_api`,
+    which makes it run inside the admission check: a request refused because the
+    caller is not a member of that company never reaches this point, so it is
+    recorded in neither company. The engine room's own reads are not recorded;
+    watching must not become something to watch.
+    """
+    from reality.services import interaction_recorder as interactions
+
+    path = request.url.path
+    parts = path.split("/")
+    if (
+        not path.startswith("/api/tenants/")
+        or len(parts) < 4
+        or not parts[3]
+        or (len(parts) > 4 and parts[4] == "interactions")
+        or not interactions.enabled()
+    ):
+        return await call_next(request)
+    user = getattr(request.state, "user", None)
+    observation, token = interactions.begin(
+        parts[3],
+        "web",
+        f"{request.method} (unmatched)",
+        correlation_id=request.headers.get("x-reality-correlation"),
+        actor_user_id=getattr(user, "id", None),
+        refresh=request.headers.get("x-reality-refresh") == "1",
+    )
+    error: BaseException | None = None
+    try:
+        response = await call_next(request)
+    except BaseException as exc:
+        error = exc
+        raise
+    else:
+        if observation is not None:
+            observation.http_status = response.status_code
+        return response
+    finally:
+        if observation is not None:
+            route = request.scope.get("route")
+            if route is not None:
+                observation.operation = (
+                    f"{request.method} "
+                    + route.path.removeprefix("/api/tenants/{tenant_id}")
+                )[:200]
+                dependant = getattr(route, "dependant", None)
+                declared = {
+                    parameter.name
+                    for parameter in getattr(dependant, "query_params", ())
+                }
+                observation.arguments = tuple(
+                    sorted(declared & set(request.query_params))
+                )[: interactions.ARGUMENT_LIMIT]
+        interactions.release(token)
+        await run_in_threadpool(interactions.end, observation, None, error)
 
 
 @app.middleware("http")

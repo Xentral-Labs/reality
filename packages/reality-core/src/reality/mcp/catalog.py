@@ -2987,6 +2987,26 @@ def dispatch_mcp_tool(
     )
 
 
+def schema_argument_names(tool_name: str, arguments: dict[str, Any] | None) -> list[str]:
+    """The argument names a call used that its tool declares (spec 266 FR-003).
+
+    Only declared names can reach the engine room, so a caller cannot smuggle
+    text into it by inventing a key.
+    """
+    definition = MCP_TOOL_REGISTRY.get(tool_name)
+    if definition is None or not arguments:
+        return []
+    declared = definition.input_schema.get("properties", {})
+    # The MCP server fills in every default; only what the caller chose counts.
+    return sorted(
+        name
+        for name, value in arguments.items()
+        if name in declared
+        and value is not None
+        and value != declared[name].get("default")
+    )
+
+
 def model_tool_schemas(
     *, access: Iterable[ToolAccess] = ("read", "propose")
 ) -> list[dict[str, Any]]:

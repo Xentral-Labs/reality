@@ -103,7 +103,14 @@ def child_main(
             if job_type in {"projections.refresh", "costing.captured_report.refresh"}
             else engine
         )
+        from reality.services import interaction_recorder as interactions
+
+        # Spec 266: the run is one engine-room interaction, and it ends after the
+        # commit so that the events it links to are the ones that were kept.
         with (
+            interactions.observe(
+                tenant_id, "worker", job_type or "job", kind="job", job_id=run_id
+            ),
             Session(execution_engine, info=session_info or {}) as session,
             session.begin(),
         ):

@@ -10,6 +10,10 @@ from sqlalchemy.engine import make_url
 from sqlalchemy.orm import sessionmaker
 
 os.environ.setdefault("REALITY_AUTH_MODE", "disabled")
+# The engine room (spec 266) writes in a session of its own, which cannot see a
+# test's uncommitted company. Its own tests switch it on and bind it to their
+# connection; everywhere else it would only log failed writes.
+os.environ.setdefault("REALITY_INTERACTIONS", "off")
 
 POSTGRES_ADMIN_URL = os.getenv(
     "TEST_POSTGRES_ADMIN_URL",

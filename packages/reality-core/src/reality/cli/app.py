@@ -1,4 +1,5 @@
 import json
+import sys
 from datetime import datetime
 from pathlib import Path
 from typing import Annotated
@@ -287,6 +288,38 @@ def selected_tenant(session, explicit_id: str | None = None):
 def boot(ctx: typer.Context):
     if ctx.invoked_subcommand not in {"cost-record", "cost-query"}:
         init_db()
+    _observe_command(ctx)
+
+
+def _command_path(argv: list[str]) -> str:
+    """The subcommand names of this invocation, never its options or values."""
+    command = typer.main.get_command(app)
+    names = ["reality"]
+    for token in argv:
+        commands = getattr(command, "commands", None)
+        if not commands or token not in commands:
+            break
+        names.append(token)
+        command = commands[token]
+    return " ".join(names)
+
+
+def _observe_command(ctx: typer.Context) -> None:
+    """Spec 266: one CLI command is one engine-room interaction.
+
+    The company is not known yet; the first tool call or event settles it, and a
+    command that never touches a company records nothing.
+    """
+    from reality.services import interaction_recorder as interactions
+
+    observation, token = interactions.begin(None, "cli", _command_path(sys.argv[1:]))
+    if observation is None:
+        return
+
+    def finish() -> None:
+        interactions.end(observation, token, sys.exc_info()[1])
+
+    ctx.call_on_close(finish)
 
 
 @app.command()

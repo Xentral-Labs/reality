@@ -2494,6 +2494,7 @@ from reality.db import cost_generations as _cost_generations  # noqa: F401
 from reality.db import costing as _costing  # noqa: F401
 from reality.db import demo_data as _demo_data  # noqa: F401
 from reality.db import finance_references as _finance_references  # noqa: F401
+from reality.db import interactions as _interactions  # noqa: F401
 from reality.db import inventory_costing as _inventory_costing  # noqa: F401
 from reality.db import mcp_authorization as _mcp_authorization  # noqa: F401
 from reality.db import opening as _opening  # noqa: F401
