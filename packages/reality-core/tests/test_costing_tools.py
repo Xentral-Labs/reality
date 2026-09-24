@@ -89,7 +89,10 @@ def test_mcp_cost_schema_and_handlers_use_application_services(
     doc = evidence(session, business)
     command = MCP_TOOL_REGISTRY["cost_change_propose"]
     assert command.input_schema["type"] == "object"
-    assert "parts" in command.input_schema["properties"]
+    assert any(
+        "parts" in branch["properties"]
+        for branch in command.input_schema["oneOf"]
+    )
     with caller(Principal(cost_owner.id)):
         result = command.handler(
             session,

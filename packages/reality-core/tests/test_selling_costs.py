@@ -614,11 +614,15 @@ def test_selling_schema_preserves_existing_receipt_tax_and_parts():
     from reality.tools.costing import change_input_schema
 
     schema = change_input_schema()
-    assert "mixed" in schema["properties"]["tax_treatment"]["enum"]
-    assert schema["properties"]["parts"]["items"]["anyOf"] == [
-        {"$ref": "#/$defs/CostPart"},
-        {"$ref": "#/$defs/SellingPart"},
-    ]
+    assignment = next(
+        branch
+        for branch in schema["oneOf"]
+        if branch["properties"]["operation"]["const"] == "assign"
+    )
+    assert "mixed" in assignment["properties"]["tax_treatment"]["enum"]
+    assert {"category", "amount_bucket"} <= set(
+        assignment["properties"]["parts"]["items"]["properties"]
+    )
 
 
 def test_missing_net_is_not_recomputed_and_assignment_bound_refuses(

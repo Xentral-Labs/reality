@@ -119,11 +119,13 @@ def test_joint_confirmation_mcp_replay_and_historical_members(
     args, data, inventory_action = prepared(session, business, cost_owner)
     tenant = business.tenant.id
     command = MCP_TOOL_REGISTRY["cost_change_propose"]
-    assert (
-        "contribution_batch_review"
-        in command.input_schema["properties"]["operation"]["enum"]
+    branch = next(
+        branch
+        for branch in command.input_schema["oneOf"]
+        if branch["properties"]["operation"]["const"]
+        == "contribution_batch_review"
     )
-    assert command.input_schema["properties"]["positions"]["maxItems"] == 10
+    assert branch["properties"]["positions"]["maxItems"] == 10
     before = counts(session, tenant)
     with caller(Principal(cost_owner.id)):
         proposal = command.handler(session, tenant, args)
