@@ -245,6 +245,8 @@ def build_remote_server(
     authorization_issuer: str | None = None,
 ) -> MCPServer:
     """Build the authenticated HTTP MCP resource server."""
+    # Spec 266: the serving process records interactions off the call path.
+    interactions.start_background_writer()
     return build_server(
         host=host,
         port=port,

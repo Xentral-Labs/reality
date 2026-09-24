@@ -14,9 +14,12 @@ events an interaction links to are only those that were committed.
 
 from __future__ import annotations
 
+import atexit
 import logging
 import os
+import queue
 import re
+import threading
 import time
 import uuid
 from collections.abc import Callable, Iterable, Iterator
@@ -54,6 +57,8 @@ class Observation:
     proposal_status: str | None = None
     event_ids: list[str] = field(default_factory=list)
     http_status: int | None = None
+    duration_ms: int = 0
+    finished_at: datetime | None = None
     outcome: str | None = None
     error_code: str | None = None
     started_at: datetime | None = None
@@ -311,24 +316,104 @@ def _classify(
     return "ok", None
 
 
+#: Server processes hand rows to one writer thread, so recording costs the request
+#: nothing but a queue put (SC-003). Short-lived processes — a CLI command, a worker
+#: child — write in line, because they exit right after and would lose the queue.
+QUEUE_SIZE = 10_000
+QUEUED_CHANNELS = frozenset({"web", "mcp", "chat"})
+_queue: queue.Queue | None = None
+_writer_lock = threading.Lock()
+
+
+def start_background_writer() -> None:
+    """Start this process's writer thread once; flushed at interpreter exit."""
+    global _queue
+    with _writer_lock:
+        if _queue is not None:
+            return
+        _queue = queue.Queue(maxsize=QUEUE_SIZE)
+        threading.Thread(
+            target=_drain, args=(_queue,), name="engine-room-writer", daemon=True
+        ).start()
+        atexit.register(flush)
+
+
+def queued() -> bool:
+    """Whether this process hands rows to the writer thread (a put, never a wait)."""
+    return _queue is not None
+
+
+def flush() -> None:
+    """Wait until every queued interaction is written (tests, shutdown)."""
+    if _queue is not None:
+        _queue.join()
+
+
+#: How many queued interactions one transaction writes at most.
+BATCH = 200
+
+
+def _drain(pending: queue.Queue) -> None:
+    while True:
+        batch = [pending.get()]
+        while len(batch) < BATCH:
+            try:
+                batch.append(pending.get_nowait())
+            except queue.Empty:
+                break
+        try:
+            _record_batch(batch)
+        finally:
+            for _ in batch:
+                pending.task_done()
+
+
 def _finish(observation: Observation, error: BaseException | None) -> None:
     if observation.tenant_id is None:
         # A command that never touched a company is not a company interaction.
         return
-    started = time.perf_counter()
+    observation.duration_ms = int((time.perf_counter() - observation.started) * 1000)
+    observation.finished_at = _now()
     try:
         outcome, error_code = _classify(observation, error)
-        _write(observation, outcome, error_code)
     except Exception:  # the engine room never breaks the call it watches
-        logger.exception("Interaction could not be recorded")
-        from reality.telemetry import metrics
+        logger.exception("Interaction could not be classified")
+        outcome, error_code = "failed", None
+    pending = _queue
+    if pending is not None and observation.channel in QUEUED_CHANNELS:
+        try:
+            pending.put_nowait((observation, outcome, error_code))
+            return
+        except queue.Full:
+            # Better one missing row than a request that waits for telemetry.
+            _failed(observation)
+            return
+    _record(observation, outcome, error_code)
 
-        metrics.record_interaction_failure(observation.channel)
+
+def _failed(observation: Observation) -> None:
+    from reality.telemetry import metrics
+
+    metrics.record_interaction_failure(observation.channel)
+
+
+def _record(observation: Observation, outcome: str, error_code: str | None) -> None:
+    _record_batch([(observation, outcome, error_code)])
+
+
+def _record_batch(batch: list) -> None:
+    started = time.perf_counter()
+    try:
+        _write_batch(batch)
+    except Exception:  # the engine room never breaks the call it watches
+        logger.exception("Interactions could not be recorded")
+        for observation, _, _ in batch:
+            _failed(observation)
     finally:
         from reality.telemetry import metrics
 
         metrics.record_interaction_duration(
-            observation.channel, (time.perf_counter() - started) * 1000
+            batch[0][0].channel, (time.perf_counter() - started) * 1000 / len(batch)
         )
 
 
@@ -342,74 +427,119 @@ def _ranges(sequences: list[int]) -> list[list[int]]:
     return ranges
 
 
+Pending = tuple[Observation, str, str | None]
+
+
 def _write(observation: Observation, outcome: str, error_code: str | None) -> None:
+    _write_batch([(observation, outcome, error_code)])
+
+
+def _write_batch(batch: list[Pending]) -> None:
+    """Write several interactions in one transaction: one query per kind of link.
+
+    Only what exists now is linked: a rolled-back event's sequence may already
+    belong to somebody else's event, and a proposal or token that was never
+    committed is left out rather than failing the row.
+    """
+    from sqlalchemy import insert, tuple_
+
     from reality.db.core import BusinessEvent, ChangeProposal, MCPAccessToken, uid
     from reality.db.interactions import Interaction
 
-    tenant_id = observation.tenant_id
-    assert tenant_id is not None
     with _factory()() as session:
-        sequences: list[int] = []
-        ids = list(dict.fromkeys(observation.event_ids))
-        for start in range(0, len(ids), _EVENT_CHUNK):
-            # Only events that exist now were committed; a rolled-back event's
-            # sequence may already belong to somebody else's event.
-            sequences.extend(
-                session.scalars(
-                    select(BusinessEvent.sequence).where(
-                        BusinessEvent.tenant_id == tenant_id,
-                        BusinessEvent.id.in_(ids[start : start + _EVENT_CHUNK]),
+        event_keys = list(
+            dict.fromkeys(
+                (observation.tenant_id, event_id)
+                for observation, _, _ in batch
+                for event_id in observation.event_ids
+            )
+        )
+        sequence_of: dict[tuple[str, str], int] = {}
+        for start in range(0, len(event_keys), _EVENT_CHUNK):
+            chunk = event_keys[start : start + _EVENT_CHUNK]
+            sequence_of.update(
+                ((tenant, event_id), sequence)
+                for tenant, event_id, sequence in session.execute(
+                    select(
+                        BusinessEvent.tenant_id,
+                        BusinessEvent.id,
+                        BusinessEvent.sequence,
+                    ).where(
+                        tuple_(BusinessEvent.tenant_id, BusinessEvent.id).in_(chunk)
                     )
                 )
             )
-        proposal_id = observation.proposal_id
-        if (
-            proposal_id is not None
-            and session.get(ChangeProposal, (tenant_id, proposal_id)) is None
-        ):
-            proposal_id = None
-        token_id = observation.mcp_token_id
-        if (
-            token_id is not None
-            and session.get(MCPAccessToken, (tenant_id, token_id)) is None
-        ):
-            token_id = None
-        ranges = _ranges(sequences)
-        kind = observation.kind
-        if kind == "read" and ranges:
-            # Committed events without a proposal: a direct write, not a read.
-            kind = "write"
-        summary: dict[str, Any] = {}
-        if observation.arguments:
-            summary["arguments"] = list(observation.arguments)
-        if observation.result_count is not None:
-            summary["result_count"] = observation.result_count
-        session.add(
-            Interaction(
-                id=uid("int"),
-                tenant_id=tenant_id,
-                started_at=observation.started_at or _now(),
-                recorded_at=_now(),
-                duration_ms=int((time.perf_counter() - observation.started) * 1000),
-                channel=observation.channel,
-                kind=kind,
-                operation=observation.operation,
-                outcome=outcome,
-                error_code=error_code,
-                actor_user_id=observation.actor_user_id,
-                mcp_token_id=token_id,
-                job_id=observation.job_id,
-                correlation_id=observation.correlation_id,
-                proposal_id=proposal_id,
-                event_first_sequence=ranges[0][0] if ranges else None,
-                event_last_sequence=ranges[-1][1] if ranges else None,
-                event_ranges=ranges or None,
-                refresh=observation.refresh,
-                summary=summary,
+
+        def existing(model, pairs: set[tuple[str, str]]) -> set[tuple[str, str]]:
+            if not pairs:
+                return set()
+            return set(
+                session.execute(
+                    select(model.tenant_id, model.id).where(
+                        tuple_(model.tenant_id, model.id).in_(list(pairs))
+                    )
+                ).tuples()
             )
+
+        proposals = existing(
+            ChangeProposal,
+            {(o.tenant_id, o.proposal_id) for o, _, _ in batch if o.proposal_id},
         )
+        tokens = existing(
+            MCPAccessToken,
+            {(o.tenant_id, o.mcp_token_id) for o, _, _ in batch if o.mcp_token_id},
+        )
+        rows = []
+        for observation, outcome, error_code in batch:
+            tenant_id = observation.tenant_id
+            ranges = _ranges(
+                [
+                    sequence_of[(tenant_id, event_id)]
+                    for event_id in dict.fromkeys(observation.event_ids)
+                    if (tenant_id, event_id) in sequence_of
+                ]
+            )
+            kind = observation.kind
+            if kind == "read" and ranges:
+                # Committed events without a proposal: a direct write, not a read.
+                kind = "write"
+            summary: dict[str, Any] = {}
+            if observation.arguments:
+                summary["arguments"] = list(observation.arguments)
+            if observation.result_count is not None:
+                summary["result_count"] = observation.result_count
+            rows.append(
+                {
+                    "id": uid("int"),
+                    "tenant_id": tenant_id,
+                    "started_at": observation.started_at or _now(),
+                    "recorded_at": observation.finished_at or _now(),
+                    "duration_ms": observation.duration_ms,
+                    "channel": observation.channel,
+                    "kind": kind,
+                    "operation": observation.operation,
+                    "outcome": outcome,
+                    "error_code": error_code,
+                    "actor_user_id": observation.actor_user_id,
+                    "mcp_token_id": observation.mcp_token_id
+                    if (tenant_id, observation.mcp_token_id) in tokens
+                    else None,
+                    "job_id": observation.job_id,
+                    "correlation_id": observation.correlation_id,
+                    "proposal_id": observation.proposal_id
+                    if (tenant_id, observation.proposal_id) in proposals
+                    else None,
+                    "event_first_sequence": ranges[0][0] if ranges else None,
+                    "event_last_sequence": ranges[-1][1] if ranges else None,
+                    "event_ranges": ranges or None,
+                    "refresh": observation.refresh,
+                    "summary": summary,
+                }
+            )
+        session.execute(insert(Interaction), rows)
         session.commit()
-        _tidy(session, tenant_id)
+        for tenant_id in dict.fromkeys(o.tenant_id for o, _, _ in batch):
+            _tidy(session, tenant_id)
 
 
 def _tidy(session: Session, tenant_id: str) -> None:

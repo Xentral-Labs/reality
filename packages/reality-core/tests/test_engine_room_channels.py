@@ -89,6 +89,8 @@ def web(committed_engine, monkeypatch):
     monkeypatch.setattr(api_module, "Session", factory)
     monkeypatch.setenv("REALITY_AUTH_MODE", "enabled")
     monkeypatch.setenv("REALITY_INTERACTIONS", "on")
+    # In line, whatever writer an earlier test's app lifespan started.
+    monkeypatch.setattr(interactions, "_queue", None)
 
     def sign_in(user):
         client = TestClient(web_module.app)

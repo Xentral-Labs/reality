@@ -124,10 +124,10 @@ carry positive controls.
 ## Final Phase: Cross-Cutting Review
 
 - [X] T900 Run the spec/traceability audit (`make spec-check`) and confirm the Requirement Coverage table below
-- [ ] T901 Run Ruff from `core/` with `--no-cache` and the complete backend PostgreSQL suite in file order (as CI does), including `test_storyline_trace.py`, `test_home_readiness.py`, `test_ai_mcp.py` and `tenant_isolation`
+- [ ] T901 Run Ruff from `core/` with `--no-cache` and the complete backend PostgreSQL suite in file order (as CI does), including `test_storyline_trace.py`, `test_home_readiness.py`, `test_ai_mcp.py` and `tenant_isolation` — **partly done**: Ruff is clean. The full serial run (file order, 2 h, loaded machine) gave 4261 passed and 7 failed in demo-profile and free-playground seed tests. All 7 pass alone and in the 214-test file-order slice around them on a quiet run, which fits the known seed-under-load effect. A clean full serial run on a quiet machine, or CI, is still owed.
 - [X] T902 Run `make web-build`, `npm run i18n:audit`, `engine-room-model.test.mjs`, `engine-room-browser.mjs` and `home-live-browser.mjs`
 - [X] T903 Review the migration chain against `origin/main` at merge time (T004) and the rollback (downgrade drops only `interaction`)
-- [ ] T904 Measure SC-002 and SC-003 per `quickstart.md` step 5 on a quiet machine, back to back, and record the numbers in `quickstart.md`
+- [ ] T904 Measure SC-002 and SC-003 per `quickstart.md` step 5 on a quiet machine, back to back, and record the numbers in `quickstart.md` — **open**: measured only on a loaded machine (see quickstart step 5); the median overhead is at most +4 ms, p95 is inconclusive.
 - [X] T905 Write `docs/features/engine-room.md` (contract, noise rules, retention, operator switch), link it from `docs/WEB_SPEC.md`, and run `make docs-catalog-check`
 - [ ] T906 Review the final diff against the Constitution and every FR/DR. Update `docs/V0_CHECKLIST.md` only after all checks are green
 

@@ -78,6 +78,13 @@ The storyline middleware already performs one threadpool write per GET, for stor
 - **I7 — Test harness.** Recording through the test connection from the request thread and the recorder thread at once loses rows, and psycopg connections are not thread-safe. Web, catalog-wide and worker tests therefore run on a committed database with separate connections, as in production. Tests default to `REALITY_INTERACTIONS=off`; the engine-room tests switch it on.
 - **I8 — Replay.** The time axis of `FlightRecorder.tsx` was not reused. Replay is a filtered window with step controls over the same list, which needed no second layout.
 
+- **I9 — Recording off the response path.** The first measurement added about 6 ms (median) and 10 ms (p95) per web request: one session, INSERT and COMMIT per row, over Docker Desktop's network. Three changes followed:
+  - **Background writer.** The serving processes (API lifespan, `build_remote_server`) start one writer thread, and web, MCP and chat rows are queued with a non-blocking put. CLI and worker children still write in line, because they exit right after.
+  - **Batched writes.** The writer writes everything queued in one transaction, with one query per kind of link.
+  - **Pure ASGI middleware.** The web boundary is now a pure ASGI middleware instead of `@app.middleware`, so the observation also covers a streamed body.
+
+  Turning off `synchronous_commit` showed no gain and was dropped.
+
 ## Analysis (2026-09-24)
 
 A consistency pass over `spec.md`, `plan.md`, `data-model.md`, `contracts/` and `tasks.md`, checked against the code on `origin/main`. No CRITICAL finding. Every HIGH finding is resolved in the artifacts.

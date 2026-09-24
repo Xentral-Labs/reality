@@ -371,3 +371,14 @@ def seed_company(session, tenant_id: str) -> str:
 @pytest.fixture
 def seeded(session):
     return lambda tenant_id: seed_company(session, tenant_id)
+
+
+@pytest.fixture(autouse=True)
+def no_leaked_engine_room_observation():
+    """Spec 266: an observation left open would silently swallow later recordings."""
+    from reality.services import interaction_recorder
+
+    yield
+    leaked = interaction_recorder.current()
+    interaction_recorder._current.set(None)
+    assert leaked is None, f"This test left an engine-room observation open: {leaked.operation}"

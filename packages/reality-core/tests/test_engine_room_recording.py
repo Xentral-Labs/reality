@@ -19,6 +19,8 @@ from reality.services.core import NotFound, emit_business_event
 def recording(session, monkeypatch):
     """Switch the engine room on and let it write through this test's connection."""
     monkeypatch.setenv("REALITY_INTERACTIONS", "on")
+    # In line, whatever writer an earlier test's app lifespan started.
+    monkeypatch.setattr(interactions, "_queue", None)
     factory = sessionmaker(
         bind=session.connection(),
         expire_on_commit=False,
@@ -227,6 +229,7 @@ def test_a_proposal_that_waits_for_a_decision_says_so(session, business, recordi
 
 def test_a_recorder_failure_never_fails_the_call(session, business, monkeypatch):
     monkeypatch.setenv("REALITY_INTERACTIONS", "on")
+    monkeypatch.setattr(interactions, "_queue", None)
     failures = []
     monkeypatch.setattr(
         "reality.telemetry.metrics.record_interaction_failure", failures.append
@@ -336,11 +339,14 @@ def test_a_streamed_chat_turn_keeps_the_request_correlation_after_it_closed(
                 pass
 
         task = asyncio.create_task(asyncio.to_thread(work))
-        # The middleware closes the request before the body has streamed.
-        interactions.end(observation, token)
+        # The middleware writes the request's row before the body has streamed.
+        interactions.end(observation, None)
         await task
 
     asyncio.run(stream())
+    # ...and releases it in the context that opened it, as the middleware does.
+    interactions.release(token)
+    assert interactions.current() is None
     recorded = rows(session, tenant)
     assert sorted((row.channel, row.correlation_id) for row in recorded) == [
         ("chat", "turn_7"),
@@ -361,3 +367,81 @@ def test_a_long_error_code_is_cut_to_fit_rather_than_losing_the_row(
         raise Verbose("gone")
     [row] = rows(session, tenant)
     assert row.error_code == "x" * 64
+
+
+@pytest.fixture
+def background_writer(monkeypatch):
+    """A writer thread for this test only; the process-wide one is left alone."""
+    import queue as queue_module
+    import threading
+
+    pending = queue_module.Queue(maxsize=interactions.QUEUE_SIZE)
+    threading.Thread(target=interactions._drain, args=(pending,), daemon=True).start()
+    monkeypatch.setattr(interactions, "_queue", pending)
+    return pending
+
+
+def test_server_channels_queue_their_rows_and_keep_the_call_duration(
+    session, business, recording, background_writer
+):
+    import time
+
+    tenant = business.tenant.id
+    with interactions.observe(tenant, "web", "GET /items"):
+        time.sleep(0.02)
+    interactions.flush()
+    [row] = rows(session, tenant)
+    # The duration is the call's, measured before the row waited in the queue.
+    assert 20 <= row.duration_ms < 1000
+    assert row.recorded_at >= row.started_at
+
+
+def test_a_full_queue_drops_the_row_instead_of_waiting(
+    session, business, recording, monkeypatch
+):
+    import queue as queue_module
+
+    full = queue_module.Queue(maxsize=1)
+    full.put(("occupied", "ok", None))
+    monkeypatch.setattr(interactions, "_queue", full)
+    failures = []
+    monkeypatch.setattr(
+        "reality.telemetry.metrics.record_interaction_failure", failures.append
+    )
+    with interactions.observe(business.tenant.id, "web", "GET /items"):
+        pass
+    assert failures == ["web"]
+    # Positive control: a short-lived channel still writes in line.
+    with interactions.observe(business.tenant.id, "cli", "reality inventory"):
+        pass
+    assert [row.channel for row in rows(session, business.tenant.id)] == ["cli"]
+
+
+def test_one_batch_writes_each_company_with_its_own_links(session, business, recording):
+    from reality.services.core import create_tenant
+
+    other = create_tenant(session, "Batch Elsewhere GmbH")
+    mine = emit(session, business.tenant.id, "mine")
+    theirs = emit(session, other.id, "theirs")
+    session.flush()
+
+    def observed(tenant_id, event_id):
+        observation, token = interactions.begin(tenant_id, "web", "POST /parties")
+        interactions.note_event(tenant_id, event_id)
+        interactions.release(token)
+        observation.finished_at = observation.started_at
+        return (observation, "ok", None)
+
+    interactions._write_batch(
+        [
+            observed(business.tenant.id, mine.id),
+            observed(other.id, theirs.id),
+            # An event id of the other company never links across companies.
+            observed(business.tenant.id, theirs.id),
+        ]
+    )
+    first, crossed = rows(session, business.tenant.id)
+    [second] = rows(session, other.id)
+    assert first.event_ranges == [[mine.sequence, mine.sequence]]
+    assert second.event_ranges == [[theirs.sequence, theirs.sequence]]
+    assert crossed.event_ranges is None and crossed.kind == "read"
