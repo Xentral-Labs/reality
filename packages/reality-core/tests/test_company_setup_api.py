@@ -82,7 +82,6 @@ def test_oauth_consent_reuses_confirmed_company_setup_and_resumes_exact_ready_te
     from reality.web.app import app
 
     client, _tenant, user, _run, login = playground_http
-    monkeypatch.setenv("MCP_INTERACTIVE_AUTH_ENABLED", "true")
 
     def oauth_database():
         yield session
@@ -165,7 +164,6 @@ def test_oauth_consent_lists_ready_business_and_sandbox_with_equal_eligibility(
     from reality.web.app import app
 
     client, _tenant, user, _run, login = playground_http
-    monkeypatch.setenv("MCP_INTERACTIVE_AUTH_ENABLED", "true")
 
     def oauth_database():
         yield session

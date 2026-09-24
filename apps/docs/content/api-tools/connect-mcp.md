@@ -5,23 +5,23 @@ Streamable HTTP. Use this guide to connect one client with only the capabilities
 
 ## One human setup, then the agent works
 
-The current connection starts with a short, one-time browser setup by a person. The person creates
-and verifies a Reality account, creates or selects the company, and issues a tenant-scoped MCP
-access token for the client. After that handoff, the agent uses the MCP endpoint and token directly;
-it does not need the person's browser session or password.
+The recommended connection starts with a short, one-time browser setup and authorization by a
+person. The person signs in, creates or selects the company, chooses the exact tool allowlist, and
+approves the client. The client then exchanges the authorization code for a tenant-scoped access and
+refresh token. The agent uses those tokens directly; it does not receive the person's browser
+session or password.
 
 ```text
 Human in the browser, once:
-account → email verification → company → scoped MCP token
+account → company → tool allowlist → OAuth approval
 
 Agent afterwards:
-MCP endpoint + token → discover and use permitted tools
+MCP endpoint + access token → discover and use permitted tools
 ```
 
-An agent or integrating system must not automate signup, email verification, or an interactive
-login. If no person has completed the browser setup, ask one to do so and provide the displayed MCP
-endpoint and the token shown once. This is the same starting contract for every third-party agent or
-knowledge system; there is no product-specific provisioning path today.
+An agent or integrating system must not automate signup, email verification, or human approval. If
+no person has completed authorization, open the client's OAuth login flow and ask the person to
+finish it in the browser. This is the same starting contract for every third-party agent.
 
 ## What an agent can do
 
@@ -38,12 +38,9 @@ the generated [Tool Usage reference](../tool-usage/commands) for current names a
 
 - A person has completed signup and email verification in the Reality browser application.
 - That person has created or selected the company the agent should use.
-- Company-owner access to **Company settings → Agents → MCP Server** for token management.
-- A compatible MCP client that accepts a remote Streamable HTTP endpoint and an Authorization bearer
-  header.
-
-Some MCP clients currently require an OAuth login and do not accept a manually configured bearer
-token. Those clients cannot yet connect directly to Reality using this flow.
+- A compatible MCP client that supports OAuth authorization-code flow with PKCE and Streamable HTTP.
+- An HTTPS redirect URI registered for the client. Reality also supports bounded HTTPS client
+  metadata documents (CIMD) when a client is not pre-registered.
 
 ## 1. Find the endpoint
 
@@ -57,14 +54,12 @@ https://mcp.example.com/
 Do not append `/mcp` unless the displayed deployment URL includes it. The displayed URL is the
 authority.
 
-## 2. Create a restricted token
+## 2. Authorize the client
 
-Create a named token for one client, for example `Warehouse analyst in Claude`. Select the smallest
-tool allowlist that supports its job. A read-only analyst normally needs discovery and relevant read
-tools, not every current and future tool.
-
-Reality shows the clear token once. Copy it into the client immediately. Reality stores only its
-hash and a short display prefix.
+Start the client's connection flow at the advertised MCP endpoint. Reality redirects the browser to
+the sign-in and consent screen. Select one ready company and the smallest tool allowlist that
+supports the client's job, then confirm. A read-only analyst normally needs discovery and relevant
+read tools, not every current and future tool.
 
 ## 3. Configure the client
 
@@ -73,12 +68,11 @@ Client interfaces differ, but the connection contract is the same:
 ```text
 Transport: Streamable HTTP
 URL:       <the displayed MCP_URL>
-Header:    Authorization: Bearer <the token shown once>
+Auth:      OAuth 2.1 authorization code + PKCE
 ```
 
-Use the client's secure credential storage. Do not put the token in a repository, prompt,
-screenshot, shared document, or source payload. Product-specific menu names and configuration syntax
-belong to the client and may change independently of Reality.
+The client stores access and refresh tokens in its secure credential storage. Do not put tokens in a
+repository, prompt, screenshot, shared document, or source payload.
 
 ## 4. Verify a first read
 
@@ -108,7 +102,8 @@ verification read rather than trusting a success sentence alone.
   token was lost.
 - **Tool forbidden**: add the required tool deliberately or use a separate token with the
   appropriate tool allowlist.
-- **Client asks for OAuth**: the client may not support manually configured bearer authentication.
+- **Client asks for OAuth**: continue through the browser flow; OAuth is the supported interactive
+  connection path.
 - **Empty result**: verify the business reference, tenant, source coverage, filters, and freshness.
 - **Unknown execution result**: inspect the proposal execution status and do not retry blindly.
 
@@ -120,14 +115,13 @@ create a separate replacement token instead of sharing one token between clients
 
 ## Current authentication boundary
 
-Reality currently uses manually created, tenant-scoped bearer access tokens. It does not currently
-provide an OAuth 2.1 authorization flow, PKCE, dynamic client registration, or refresh-token
-rotation. Therefore connection is configured rather than one-click. Check the product's current
-settings and documentation before assuming a client-specific login flow is available.
-
-This also means Reality does not currently offer unattended company provisioning for an external
-agent. Browser setup establishes the human identity, company membership, and deliberate grant of
-access; the MCP token is the agent credential after that point.
+Reality provides OAuth authorization-code flow with S256 PKCE, exact resource and redirect
+validation, browser consent, tenant-scoped tool grants, access-token expiry, refresh-token rotation,
+and revocation. The resulting tenant-scoped MCP access token is the agent credential. OAuth is a
+permanent part of the MCP product boundary. Client registration is explicit through
+`MCP_OAUTH_CLIENTS` or a bounded HTTPS CIMD document; there is no open registration endpoint.
+Company creation remains a human-confirmed browser operation and is never performed by an agent
+without that consent.
 
 ## Read response migration (contract v2)
 

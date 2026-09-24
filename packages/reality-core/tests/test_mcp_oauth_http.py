@@ -43,7 +43,6 @@ def _overrides(session, user):
 
 
 def test_authorization_metadata_advertises_only_supported_public_flows(monkeypatch):
-    monkeypatch.setenv("MCP_INTERACTIVE_AUTH_ENABLED", "true")
     monkeypatch.setenv("API_URL", "https://api.example.test")
     monkeypatch.setenv("MCP_URL", "https://mcp.example.test/")
     with TestClient(app) as client:
@@ -58,13 +57,28 @@ def test_authorization_metadata_advertises_only_supported_public_flows(monkeypat
     assert "registration_endpoint" not in metadata
 
 
+def test_a_leftover_disable_setting_no_longer_switches_authorization_off(monkeypatch):
+    """FR-023: interactive authorization is a permanent part of the MCP boundary.
+
+    An existing deployment may still carry the removed setting; it must not bring the
+    old 503 back.
+    """
+    monkeypatch.setenv("MCP_INTERACTIVE_AUTH_ENABLED", "false")
+    monkeypatch.setenv("API_URL", "https://api.example.test")
+    monkeypatch.setenv("MCP_URL", "https://mcp.example.test/")
+    with TestClient(app) as client:
+        metadata = client.get("/.well-known/oauth-authorization-server")
+    assert metadata.status_code == 200
+    assert metadata.json()["issuer"] == "https://api.example.test"
+
+
 def test_authorization_outage_unsupported_client_and_issuer_change_fail_safely(
     session, monkeypatch
 ):
-    monkeypatch.setenv("MCP_INTERACTIVE_AUTH_ENABLED", "false")
     before = session.query(MCPAuthorizationInteraction).count()
+    monkeypatch.setenv("MCP_OAUTH_CLIENTS", "{}")
+    monkeypatch.setenv("MCP_URL", "https://mcp.example.test/")
     with TestClient(app) as client:
-        disabled = client.get("/.well-known/oauth-authorization-server")
         authorize = client.get(
             "/oauth/authorize",
             params={
@@ -77,12 +91,10 @@ def test_authorization_outage_unsupported_client_and_issuer_change_fail_safely(
                 "scope": "reality:read",
             },
         )
-    assert disabled.status_code == authorize.status_code == 503
+    assert authorize.status_code == 400
+    assert authorize.json()["error"] == "invalid_request"
     assert session.query(MCPAuthorizationInteraction).count() == before
 
-    monkeypatch.setenv("MCP_INTERACTIVE_AUTH_ENABLED", "true")
-    monkeypatch.setenv("MCP_OAUTH_CLIENTS", "{}")
-    monkeypatch.setenv("MCP_URL", "https://mcp.example.test/")
     with TestClient(app) as client:
         unsupported = client.get(
             "/oauth/authorize",
@@ -112,7 +124,6 @@ def test_authorization_outage_unsupported_client_and_issuer_change_fail_safely(
 def test_cimd_metadata_change_is_revalidated_without_stale_authorization(
     session, scheduled_owner, monkeypatch
 ):
-    monkeypatch.setenv("MCP_INTERACTIVE_AUTH_ENABLED", "true")
     monkeypatch.setenv("MCP_OAUTH_CLIENTS", "{}")
     monkeypatch.setenv("MCP_URL", "https://mcp.example.test/")
     _overrides(session, scheduled_owner)
@@ -223,7 +234,6 @@ def test_authorize_consent_exchange_and_revoke_http_contract(
     session, business, scheduled_owner, monkeypatch
 ):
     verifier = "v" * 64
-    monkeypatch.setenv("MCP_INTERACTIVE_AUTH_ENABLED", "true")
     monkeypatch.setenv("API_URL", "https://api.example.test")
     monkeypatch.setenv("APP_URL", "https://app.example.test")
     monkeypatch.setenv("MCP_URL", "https://mcp.example.test/")
@@ -318,7 +328,6 @@ def test_authorize_consent_exchange_and_revoke_http_contract(
 def test_browser_decisions_expose_only_same_origin_completion_path(
     session, business, scheduled_owner, monkeypatch
 ):
-    monkeypatch.setenv("MCP_INTERACTIVE_AUTH_ENABLED", "true")
     monkeypatch.setenv("API_URL", "https://api.example.test")
     monkeypatch.setenv(
         "MCP_OAUTH_CLIENTS",
@@ -375,7 +384,6 @@ def test_personal_and_company_grant_inventory_revoke_and_redact(
     session, business, scheduled_owner, monkeypatch
 ):
     verifier = "v" * 64
-    monkeypatch.setenv("MCP_INTERACTIVE_AUTH_ENABLED", "true")
     _overrides(session, scheduled_owner)
     interaction = create_interaction(
         session,
@@ -457,7 +465,6 @@ def test_personal_and_company_grant_inventory_revoke_and_redact(
 
 
 def test_authorize_rejects_redirect_resource_and_pkce_mismatch(monkeypatch):
-    monkeypatch.setenv("MCP_INTERACTIVE_AUTH_ENABLED", "true")
     monkeypatch.setenv("MCP_URL", "https://mcp.example.test/")
     monkeypatch.setenv(
         "MCP_OAUTH_CLIENTS",
@@ -488,7 +495,6 @@ def test_authorize_rejects_redirect_resource_and_pkce_mismatch(monkeypatch):
 def test_authorize_accepts_exact_pre_registered_and_cimd_clients(
     session, scheduled_owner, monkeypatch
 ):
-    monkeypatch.setenv("MCP_INTERACTIVE_AUTH_ENABLED", "true")
     monkeypatch.setenv("MCP_URL", "https://mcp.example.test/")
     monkeypatch.setenv(
         "MCP_OAUTH_CLIENTS",
@@ -575,7 +581,6 @@ def test_authorize_rejects_unsafe_cimd_without_creating_interaction(
     client_id,
     expected,
 ):
-    monkeypatch.setenv("MCP_INTERACTIVE_AUTH_ENABLED", "true")
     monkeypatch.setenv("MCP_URL", "https://mcp.example.test/")
     monkeypatch.setenv("MCP_OAUTH_CLIENTS", "{}")
     _overrides(session, scheduled_owner)
@@ -669,7 +674,6 @@ def test_consent_includes_only_ready_sandbox_memberships(
         )
     )
     session.commit()
-    monkeypatch.setenv("MCP_INTERACTIVE_AUTH_ENABLED", "true")
     monkeypatch.setenv("MCP_URL", "https://mcp.example.test/")
     monkeypatch.setenv(
         "MCP_OAUTH_CLIENTS",
@@ -712,7 +716,6 @@ def test_consent_includes_only_ready_sandbox_memberships(
 def test_interaction_expiry_denial_same_name_companies_and_account_switch(
     session, business, scheduled_owner, monkeypatch
 ):
-    monkeypatch.setenv("MCP_INTERACTIVE_AUTH_ENABLED", "true")
     monkeypatch.setenv("API_URL", "https://api.example.test")
     interaction = create_interaction(
         session,

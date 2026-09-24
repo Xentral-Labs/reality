@@ -36,7 +36,7 @@ _COMPLETION_COOKIE = "reality_oauth_completion"
 
 
 def _enabled() -> bool:
-    return os.environ.get("MCP_INTERACTIVE_AUTH_ENABLED", "false").lower() == "true"
+    return True
 
 
 def _issuer() -> str:

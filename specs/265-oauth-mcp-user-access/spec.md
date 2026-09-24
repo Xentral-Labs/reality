@@ -35,6 +35,7 @@ confirmed company setup rather than a second MCP-specific creation implementatio
 - Q: Should a new grant automatically include all tools that belong to the OAuth access classes requested by the client, including proposal and confirmation tools? → A: Preselect every currently eligible tool within the requested access classes; the user may deselect tools before consent, and consent never confirms a concrete business action.
 - Q: Should a Sandbox receive the same complete MCP access as an ordinary company, including read, proposal and confirmation tools? → A: Yes. Remove the blanket Sandbox MCP prohibition; the same user, tenant, tool, proposal and explicit-confirmation controls apply.
 - Q: Should the removed Sandbox restriction apply to both interactive OAuth grants and manually issued MCP tokens? → A: Yes. Both credential kinds may address a Sandbox under their otherwise unchanged authority and controls.
+- Q: Should interactive authorization stay behind a runtime disable switch after release? → A: No. It is a permanent part of the MCP boundary: the `MCP_INTERACTIVE_AUTH_ENABLED` setting is removed and a leftover value has no effect; the authorization issuer is derived from `API_URL`.
 
 ### Scope
 
@@ -374,6 +375,10 @@ results, and verify that an unsupported client receives a safe actionable failur
 - **FR-022**: The feature MUST define an explicit compatibility baseline for supported
   MCP clients and a migration path for client registration approaches during planning;
   a compatibility fallback MUST never weaken FR-005, FR-007, FR-010 or FR-021.
+- **FR-023**: Interactive authorization MUST be available whenever the API and MCP
+  runtimes run; there is no runtime switch that disables it, and a leftover
+  `MCP_INTERACTIVE_AUTH_ENABLED` setting MUST have no effect. The authorization issuer
+  is the configured `API_URL`.
 
 ### Domain and Traceability Requirements
 
@@ -503,4 +508,5 @@ separation between connection consent and mutation confirmation before planning.
 | FR-019 | US2 scenario 1; US4 scenarios 1–3 | Security attribution, redaction and audit lifecycle tests |
 | FR-020 | US1 scenarios 4–5; US3 scenarios 4–6; US5 scenarios 4–5 | Cancellation, outage, unsupported-client and interrupted-setup journeys |
 | FR-021–FR-022 | US1 scenarios 1–5; US5 scenarios 3–5 | Protocol/security conformance matrix across supported client-registration modes |
+| FR-023 | Clarification 2026-09-24 (always available) | `test_mcp_oauth_http.py::test_a_leftover_disable_setting_no_longer_switches_authorization_off` |
 | DR-001–DR-005 | US2 scenarios 1–6; US3 scenarios 2–6; US5 scenario 2 | Domain-boundary review, tenant tests, traceability regression and persistence audit |
