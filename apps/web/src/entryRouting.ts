@@ -48,9 +48,25 @@ const aliases: Record<string, [string, Record<string, string>]> = {
   chat: ["chat", {}],
   "free-play": ["chat", {}],
 };
-export type Entry = { kind: "app" | "retired" | "missing" } | { kind: "redirect"; href: string };
+export type Entry =
+  { kind: "app" | "oauth" | "retired" | "missing" } | { kind: "redirect"; href: string };
+export function oauthInteraction(url: URL): string | null {
+  const path = url.pathname.replace(/\/+$/, "") || "/";
+  const values = url.searchParams.getAll("interaction");
+  if (
+    path !== "/oauth/authorize" ||
+    values.length !== 1 ||
+    !/^oai_[A-Za-z0-9_-]{8,128}$/.test(values[0]) ||
+    [...url.searchParams.keys()].some((key) => key !== "interaction") ||
+    url.hash
+  )
+    return null;
+  return values[0];
+}
 export function resolveEntry(url: URL): Entry {
   const path = url.pathname.replace(/\/+$/, "") || "/";
+  if (path === "/oauth/authorize")
+    return oauthInteraction(url) ? { kind: "oauth" } : { kind: "missing" };
   if (path === "/playground" || path.startsWith("/playground/") || path === "/app/playground")
     return { kind: "retired" };
   if (path === "/") return { kind: "redirect", href: `/app${url.search}` };

@@ -130,6 +130,43 @@ export type AuthUser = {
     reviewed_at: string | null;
   };
 };
+export type OAuthAuthorizationInteraction = {
+  id: string;
+  client: { id: string; name: string; uri: string | null };
+  requested_scopes: string[];
+  eligible_tools: Array<{
+    name: string;
+    label: string;
+    access: "read" | "propose" | "confirm";
+  }>;
+  selected_tools: string[];
+  companies: Array<{
+    id: string;
+    name: string;
+    role: "owner" | "member";
+    ready: true;
+  }>;
+  company_setup: {
+    eligible: boolean;
+    external_mcp_requires_business_company: false;
+  };
+  expires_at: string;
+  status: "pending" | "approved" | "denied" | "consumed" | "expired";
+};
+export type OAuthCompletion = { completion_path: string };
+export type MCPClientGrantView = {
+  id: string;
+  client: { id: string; name: string; uri: string | null };
+  company: { id: string; name: string };
+  tools: Array<{ name: string; label: string; access: "read" | "propose" | "confirm" }>;
+  scopes: string[];
+  created_at: string;
+  last_used_at: string | null;
+  revoked_at: string | null;
+  effective_state: "active" | "inactive" | "revoked";
+  effective_reason: string | null;
+  authorized_by?: { id: string; display_name: string; email: string | null };
+};
 export type AccessCapacity = { used: number; limit: number | null };
 export type DeletionPreview = {
   user_id: string;
@@ -253,6 +290,7 @@ export type AIConfiguration = {
   tools: { name: string; label: string; description: string; access: string; group: string }[];
   tokens: {
     id: string;
+    credential_kind: "manual";
     name: string;
     token_prefix: string;
     allowed_tools: string[];
@@ -840,6 +878,8 @@ export type InspectorRow = {
   original_label?: boolean;
   translate_value?: boolean;
   display_parts?: import("./unified/inspectorPresentation").InspectorPart[];
+  meta?: string;
+  meta_parts?: import("./unified/inspectorPresentation").InspectorPart[];
   label: string;
   value: unknown;
   tone: string;
@@ -1096,6 +1136,16 @@ export type ProjectionMetadata = {
   projection_version: number | null;
   upstream_freshness: "unknown";
   consistency: "completed_snapshot";
+  pending_changes?: {
+    from_event_sequence: number;
+    to_event_sequence: number;
+    event_count: number;
+    affected_record_kind: string | null;
+    affected_record_count: number;
+    affected_record_ids: string[];
+    truncated: boolean;
+    reason: string | null;
+  };
 };
 export type ProjectionSnapshot = {
   items: Record<string, unknown>[];
@@ -1382,6 +1432,37 @@ export const api = {
     }),
 
   me: () => request<AuthUser>("/api/auth/me"),
+  oauthInteraction: (interaction: string) =>
+    request<OAuthAuthorizationInteraction>(
+      `/api/oauth/interactions/${encodeURIComponent(interaction)}`,
+    ),
+  approveOAuthInteraction: (interaction: string, companyId: string, allowedTools: string[]) =>
+    request<OAuthCompletion>(`/api/oauth/interactions/${encodeURIComponent(interaction)}/approve`, {
+      method: "POST",
+      body: JSON.stringify({
+        company_id: companyId,
+        allowed_tools: allowedTools,
+        confirmed: true,
+      }),
+    }),
+  denyOAuthInteraction: (interaction: string) =>
+    request<OAuthCompletion>(`/api/oauth/interactions/${encodeURIComponent(interaction)}/deny`, {
+      method: "POST",
+      body: JSON.stringify({ confirmed: true }),
+    }),
+  personalMCPGrants: () => request<{ grants: MCPClientGrantView[] }>("/api/auth/mcp-grants"),
+  companyMCPGrants: (tenant: string) =>
+    request<{ grants: MCPClientGrantView[] }>(`/api/tenants/${tenant}/settings/mcp/grants`),
+  revokePersonalMCPGrant: (id: string) =>
+    request<void>(`/api/auth/mcp-grants/${id}/revoke`, {
+      method: "POST",
+      body: JSON.stringify({ confirmed: true }),
+    }),
+  revokeCompanyMCPGrant: (tenant: string, id: string) =>
+    request<void>(`/api/tenants/${tenant}/settings/mcp/grants/${id}/revoke`, {
+      method: "POST",
+      body: JSON.stringify({ confirmed: true }),
+    }),
   exceptionCatalog: () =>
     request<{
       version: number;
@@ -1528,6 +1609,7 @@ export const api = {
   createMCPToken: (tenant: string, name: string, allowedTools: string[]) =>
     request<{
       id: string;
+      credential_kind: "manual";
       name: string;
       token: string;
       token_prefix: string;

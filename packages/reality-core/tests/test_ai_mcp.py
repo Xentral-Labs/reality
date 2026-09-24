@@ -1,5 +1,6 @@
 import inspect
 import json
+from dataclasses import FrozenInstanceError, replace
 
 import pytest
 from conftest import record_by_id
@@ -7,7 +8,7 @@ from fastapi.testclient import TestClient
 from mcp.server.auth.middleware.auth_context import auth_context_var
 from mcp.server.auth.middleware.bearer_auth import AuthenticatedUser
 from mcp.server.auth.provider import AccessToken
-from mcp.server.fastmcp.exceptions import ToolError
+from mcp.server.mcpserver.exceptions import ToolError
 from sqlalchemy.orm import sessionmaker
 
 from reality.agent import settings as settings_module
@@ -15,6 +16,7 @@ from reality.agent.settings import configured_api_key, copilot_api_key, save_ai_
 from reality.db.core import (
     ChangeProposal,
     MCPAccessToken,
+    Party,
     Secret,
     SecretAuditEvent,
     now,
@@ -25,9 +27,12 @@ from reality.mcp.auth import DatabaseTokenVerifier, create_mcp_access_token
 from reality.mcp.catalog import (
     MCP_TOOL_CATALOG,
     MCP_TOOL_NAMES,
+    MCP_TOOL_REGISTRY,
+    dispatch_mcp_tool,
     dispatch_tool,
     model_tool_schemas,
 )
+from reality.mcp.principal import MCPPrincipal, current_mcp_principal
 from reality.security.secrets import resolve_secret
 from reality.services.core import (
     NotFound,
@@ -41,18 +46,66 @@ from reality.services.core import (
 async def test_mcp_tool_list_publishes_nested_argument_schemas():
     server = mcp_module.build_server()
     tools = {tool.name: tool for tool in await server.list_tools()}
-    payments = tools["payment_run_propose"].inputSchema["properties"]["payments"]
+    payments = tools["payment_run_propose"].input_schema["properties"]["payments"]
     assert payments["type"] == "array"
     assert payments["minItems"] == 1
     assert payments["items"]["required"] == ["invoice_id", "amount"]
     assert payments["items"]["properties"]["amount"]["type"] == "string"
-    settlement = tools["finance_settlement_propose"].inputSchema
+    settlement = tools["finance_settlement_propose"].input_schema
     assert "$ref" not in json.dumps(settlement)
     for name, tool in tools.items():
-        for property_name, schema in tool.inputSchema["properties"].items():
+        if "oneOf" in tool.input_schema:
+            continue
+        for property_name, schema in tool.input_schema["properties"].items():
             assert "type" in schema or "anyOf" in schema or "oneOf" in schema, (
                 f"{name}.{property_name} is published without a type"
             )
+
+
+@pytest.mark.anyio
+async def test_credit_union_transport_retains_common_and_shape_arguments(monkeypatch):
+    from contextlib import nullcontext
+    from types import SimpleNamespace
+
+    captured = []
+    monkeypatch.setattr(
+        mcp_module,
+        "get_access_token",
+        lambda: SimpleNamespace(
+            subject="ten_schema",
+            client_id="schema_test",
+            scopes=["reality:tool:*"],
+        ),
+    )
+    monkeypatch.setattr(mcp_module, "Session", lambda: nullcontext(object()))
+
+    def capture(_session, principal, _tool_name, arguments):
+        assert isinstance(principal, MCPPrincipal)
+        captured.append(arguments)
+        return arguments
+
+    monkeypatch.setattr(mcp_module, "dispatch_mcp_tool", capture)
+    server = mcp_module.build_server()
+    tool = server._tool_manager.get_tool("sales_credit_record_propose")
+    assert tool is not None
+    supplied = {
+        "number": "GS-1",
+        "gross_amount": "10.00",
+        "invoice_id": "doc_invoice",
+        "lines": [
+            {
+                "invoice_line_id": "lin_invoice",
+                "quantity": "1",
+                "gross_amount": "10.00",
+            }
+        ],
+        "reason": "Agreed correction",
+        "allocation_amount": "0",
+    }
+
+    await tool.run(supplied, None)
+
+    assert captured[-1] == supplied
 
 
 @pytest.mark.anyio
@@ -65,12 +118,12 @@ async def test_mcp_tool_list_publishes_access_as_annotations():
     assert set(tools) == set(access)
     for name, tool in tools.items():
         assert tool.annotations is not None, name
-        assert tool.annotations.readOnlyHint is (access[name] == "read"), name
-        assert tool.annotations.destructiveHint is (access[name] == "confirm"), name
-    assert tools["exceptions_list"].annotations.readOnlyHint is True
-    assert tools["reservation_propose"].annotations.readOnlyHint is False
-    assert tools["reservation_propose"].annotations.destructiveHint is False
-    assert tools["proposal_approve_and_execute"].annotations.destructiveHint is True
+        assert tool.annotations.read_only_hint is (access[name] == "read"), name
+        assert tool.annotations.destructive_hint is (access[name] == "confirm"), name
+    assert tools["exceptions_list"].annotations.read_only_hint is True
+    assert tools["reservation_propose"].annotations.read_only_hint is False
+    assert tools["reservation_propose"].annotations.destructive_hint is False
+    assert tools["proposal_approve_and_execute"].annotations.destructive_hint is True
 
 
 def test_canonical_mcp_registry_has_unique_bound_structured_tools():
@@ -83,10 +136,196 @@ def test_canonical_mcp_registry_has_unique_bound_structured_tools():
     for tool in MCP_TOOL_CATALOG:
         assert callable(tool.handler)
         assert tool.input_schema["type"] == "object"
-        assert tool.input_schema["additionalProperties"] is False
-        assert set(tool.input_schema["required"]) <= set(
-            tool.input_schema["properties"]
+        branches = tool.input_schema.get("oneOf", [tool.input_schema])
+        for branch in branches:
+            if "properties" not in branch:
+                continue
+            assert branch["additionalProperties"] is False
+            assert set(branch["required"]) <= set(branch["properties"])
+
+
+def test_mcp_principal_is_immutable_and_authority_is_not_public_input():
+    principal = MCPPrincipal(
+        "interactive",
+        "credential_1",
+        "grant_1",
+        "user_1",
+        "tenant_1",
+        "client_1",
+        frozenset({"mcp:tools"}),
+        frozenset({"exceptions_list"}),
+    )
+
+    with pytest.raises(FrozenInstanceError):
+        principal.tenant_id = "tenant_forged"  # type: ignore[misc]
+
+    forbidden = {"tenant_id", "user_id", "_confirming_user_id"}
+    for tool in MCP_TOOL_CATALOG:
+        assert forbidden.isdisjoint(json.dumps(tool.input_schema).split('"'))
+
+
+def test_canonical_dispatch_propagates_only_server_owned_mcp_principal(monkeypatch):
+    principal = MCPPrincipal(
+        "interactive",
+        "credential_1",
+        "grant_1",
+        "user_1",
+        "tenant_1",
+        "client_1",
+        frozenset({"mcp:tools"}),
+        frozenset({"exceptions_list"}),
+    )
+    observed = []
+    definition = MCP_TOOL_REGISTRY["exceptions_list"]
+
+    def capture(_session, tenant_id, arguments):
+        observed.append((tenant_id, arguments, current_mcp_principal()))
+        return {"ok": True}
+
+    monkeypatch.setitem(
+        MCP_TOOL_REGISTRY,
+        definition.name,
+        replace(definition, handler=capture),
+    )
+
+    assert dispatch_tool(
+        object(),
+        "tenant_1",
+        definition.name,
+        {},
+        principal=principal,
+    ) == {"ok": True}
+    assert observed == [("tenant_1", {}, principal)]
+    assert current_mcp_principal() is None
+
+    with pytest.raises(PermissionError, match="does not match"):
+        dispatch_tool(
+            object(),
+            "tenant_forged",
+            definition.name,
+            {},
+            principal=principal,
         )
+
+
+def test_manual_and_interactive_principals_share_dispatch_but_keep_attribution(
+    monkeypatch,
+):
+    definition = MCP_TOOL_REGISTRY["exceptions_list"]
+
+    def identify(_session, tenant_id, _arguments):
+        principal = current_mcp_principal()
+        assert principal is not None
+        return {
+            "tenant_id": tenant_id,
+            "kind": principal.authentication_kind,
+            "credential_id": principal.credential_id,
+            "user_id": principal.user_id,
+        }
+
+    monkeypatch.setitem(
+        MCP_TOOL_REGISTRY, definition.name, replace(definition, handler=identify)
+    )
+    manual = MCPPrincipal(
+        "manual",
+        "manual_credential",
+        None,
+        None,
+        "tenant_1",
+        "manual_client",
+        frozenset({"reality:read", "reality:tool:*"}),
+        frozenset({"*"}),
+    )
+    interactive = MCPPrincipal(
+        "interactive",
+        "user_credential",
+        "grant_1",
+        "user_1",
+        "tenant_1",
+        "interactive_client",
+        frozenset({"reality:read"}),
+        frozenset({"exceptions_list"}),
+    )
+
+    assert dispatch_mcp_tool(object(), manual, definition.name, {}) == {
+        "tenant_id": "tenant_1",
+        "kind": "manual",
+        "credential_id": "manual_credential",
+        "user_id": None,
+    }
+    assert dispatch_mcp_tool(object(), interactive, definition.name, {}) == {
+        "tenant_id": "tenant_1",
+        "kind": "interactive",
+        "credential_id": "user_credential",
+        "user_id": "user_1",
+    }
+    with pytest.raises(PermissionError, match="does not allow tool"):
+        dispatch_mcp_tool(object(), interactive, "inventory_read", {})
+
+
+def test_interactive_mcp_proposal_requires_separate_confirmation_and_records_actor(
+    session, business, scheduled_owner
+):
+    principal = MCPPrincipal(
+        "interactive",
+        "credential_1",
+        "grant_1",
+        scheduled_owner.id,
+        business.tenant.id,
+        "client_1",
+        frozenset({"reality:propose", "reality:confirm"}),
+        frozenset({"party_create_propose", "proposal_approve_and_execute"}),
+    )
+    before = session.query(Party).filter_by(tenant_id=business.tenant.id).count()
+
+    proposed = dispatch_mcp_tool(
+        session,
+        principal,
+        "party_create_propose",
+        {"records": [{"name": "MCP Customer", "roles": ["customer"]}]},
+    )
+    proposal = session.get(
+        ChangeProposal, (business.tenant.id, proposed["proposal_id"])
+    )
+    assert proposal is not None
+    assert proposal.status == "proposed"
+    assert proposal.decided_by_user_id is None
+    assert (
+        session.query(Party).filter_by(tenant_id=business.tenant.id).count() == before
+    )
+
+    confirmed = dispatch_mcp_tool(
+        session,
+        principal,
+        "proposal_approve_and_execute",
+        {"proposal_id": proposal.id, "approved": True},
+    )
+
+    session.refresh(proposal)
+    assert confirmed["status"] == "executed"
+    assert proposal.decided_by_user_id == scheduled_owner.id
+    assert (
+        session.query(Party).filter_by(tenant_id=business.tenant.id).count()
+        == before + 1
+    )
+
+
+def test_interactive_mcp_dispatch_intersects_access_scope_and_exact_tool():
+    principal = MCPPrincipal(
+        "interactive",
+        "credential_1",
+        "grant_1",
+        "user_1",
+        "tenant_1",
+        "client_1",
+        frozenset({"reality:read"}),
+        frozenset({"party_create_propose"}),
+    )
+
+    with pytest.raises(PermissionError, match="propose access"):
+        dispatch_mcp_tool(object(), principal, "party_create_propose", {})
+    with pytest.raises(PermissionError, match="does not allow tool"):
+        dispatch_mcp_tool(object(), principal, "exceptions_list", {})
 
 
 def test_copilot_schema_is_derived_from_registry_without_confirmation_tools():
@@ -758,7 +997,7 @@ async def test_mcp_tools_read_and_only_propose_mutations(
     try:
         inventory = await server.call_tool("inventory_read", {})
         assert "Bike Light" in str(inventory)
-        inventory_page = json.loads(inventory[0].text)
+        inventory_page = json.loads(inventory.content[0].text)
         assert inventory_page["records"][0]["item_id"] == business.item.id
         assert inventory_page["has_more"] is False
         assert inventory_page["metadata"]["contract_version"] == 2
@@ -854,6 +1093,7 @@ async def test_mcp_bearer_tokens_are_hashed_tenant_scoped_and_revocable(
     assert verified is not None
     assert verified.subject == business.tenant.id
     assert "reality:tool:*" in verified.scopes
+    assert verified.claims["reality_principal"].authentication_kind == "manual"
     assert await DatabaseTokenVerifier().verify_token("ros_mcp_invalid") is None
 
     record.revoked_at = now()

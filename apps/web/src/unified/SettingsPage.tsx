@@ -3,6 +3,7 @@ import { RegisterHeader } from "./RegisterWorkbench";
 import { AISettings } from "./AISettings";
 import { CompanySettings } from "./CompanySettings";
 import { MemberAccess } from "./MemberAccess";
+import { ConnectedClients } from "./MCPAccess";
 import { useEffect, useRef, useState } from "react";
 import { api, APIError, type AuthUser, type Tenant, type Bootstrap } from "../api";
 import { t } from "../localization";
@@ -72,6 +73,11 @@ export function SettingsPage({
           />
         )}
       </section>
+      {view === "personal" && (
+        <section className="min-w-0 rounded-xl border border-border-default bg-surface p-5 sm:p-7">
+          <ConnectedClients />
+        </section>
+      )}
       {view === "personal" && (
         <section
           data-settings-usage

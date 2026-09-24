@@ -10,10 +10,13 @@ from sqlalchemy import select
 
 from reality.db.core import MCPAccessToken, Session, now, uid
 from reality.mcp.catalog import validate_tool_permissions
+from reality.mcp.principal import MCPPrincipal
+from reality.services.mcp_authorization import resolve_interactive_principal
 from reality.services.tenant_policy import (
     PlaygroundOperationDenied,
     require_business_operation,
 )
+from reality.telemetry.metrics import mcp_authentication
 
 TOKEN_PREFIX = "ros_mcp_"
 
@@ -76,6 +79,8 @@ def revoke_mcp_access_token(session, tenant_id: str, token_id: str) -> None:
 
 @dataclass
 class DatabaseTokenVerifier:
+    resource: str | None = None
+
     async def verify_token(self, token: str) -> AccessToken | None:
         digest = _token_hash(token)
         with Session() as session:
@@ -86,10 +91,29 @@ class DatabaseTokenVerifier:
                 )
             )
             if record is None:
-                return None
+                principal = resolve_interactive_principal(session, token)
+                if principal is None:
+                    mcp_authentication(
+                        "manual" if token.startswith(TOKEN_PREFIX) else "interactive",
+                        "denied",
+                    )
+                    return None
+                mcp_authentication("interactive", "accepted")
+                return AccessToken(
+                    token=token,
+                    client_id=principal.client_id,
+                    scopes=[
+                        *principal.scopes,
+                        *[f"reality:tool:{name}" for name in principal.allowed_tools],
+                    ],
+                    subject=principal.tenant_id,
+                    resource=self.resource,
+                    claims={"reality_principal": principal},
+                )
             try:
                 require_business_operation(session, record.tenant_id, "mcp_token_use")
             except PlaygroundOperationDenied:
+                mcp_authentication("manual", "denied")
                 return None
             record.last_used_at = now()
             session.commit()
@@ -101,9 +125,21 @@ class DatabaseTokenVerifier:
                 if "*" in allowed_tools
                 else [f"reality:tool:{name}" for name in allowed_tools]
             )
+            principal = MCPPrincipal(
+                authentication_kind="manual",
+                credential_id=record.id,
+                grant_id=None,
+                user_id=None,
+                tenant_id=record.tenant_id,
+                client_id=record.id,
+                scopes=frozenset({"reality:read", *tool_scopes}),
+                allowed_tools=frozenset(allowed_tools),
+            )
+            mcp_authentication("manual", "accepted")
             return AccessToken(
                 token=token,
                 client_id=record.id,
                 scopes=["reality:read", *tool_scopes],
                 subject=record.tenant_id,
+                claims={"reality_principal": principal},
             )

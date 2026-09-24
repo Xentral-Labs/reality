@@ -13,6 +13,7 @@ class MCPRuntimeSettings:
     public_url: str
     bind_host: str
     bind_port: int
+    authorization_issuer: str = "http://127.0.0.1:8000"
 
     @classmethod
     def from_environ(
@@ -30,6 +31,20 @@ class MCPRuntimeSettings:
         ):
             raise ValueError("MCP_URL must use HTTPS in production.")
 
+        authorization_issuer = (
+            environ.get("MCP_AUTHORIZATION_ISSUER") or "http://127.0.0.1:8000"
+        ).strip().rstrip("/")
+        issuer = urlparse(authorization_issuer)
+        if issuer.scheme not in {"http", "https"} or not issuer.netloc:
+            raise ValueError("MCP_AUTHORIZATION_ISSUER must be an absolute HTTP URL.")
+        if issuer.path not in {"", "/"} or issuer.query or issuer.fragment:
+            raise ValueError("MCP_AUTHORIZATION_ISSUER must use the origin root.")
+        if (
+            environ.get("REALITY_ENV", "").lower() in {"production", "prod"}
+            and issuer.scheme != "https"
+        ):
+            raise ValueError("MCP_AUTHORIZATION_ISSUER must use HTTPS in production.")
+
         bind_host = (environ.get("MCP_BIND_HOST") or "127.0.0.1").strip()
         if not bind_host:
             raise ValueError("MCP_BIND_HOST must not be empty.")
@@ -44,6 +59,7 @@ class MCPRuntimeSettings:
             public_url=public_url.rstrip("/") + "/",
             bind_host=bind_host,
             bind_port=bind_port,
+            authorization_issuer=authorization_issuer,
         )
 
 

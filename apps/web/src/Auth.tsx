@@ -33,6 +33,8 @@ function rememberPreferences(user: AuthUser) {
 
 function localizedAccountDestination(fallback: string): string {
   const destination = new URL(accountDestination(fallback), location.origin);
+  if (destination.pathname === "/oauth/authorize")
+    return `${destination.pathname}${destination.search}`;
   return languageHref(destination.href, readLanguage() ?? "en");
 }
 
@@ -167,6 +169,7 @@ export function AuthGate({
     );
   if (
     path === "/login" ||
+    path === "/oauth/authorize" ||
     path === "/app" ||
     path.startsWith("/app/") ||
     (path !== "/" && resolveEntry(new URL(location.href)).kind === "redirect")

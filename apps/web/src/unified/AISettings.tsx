@@ -488,6 +488,7 @@ export function AISettings({
           )}
           {tokensOnly && (
             <MCPAccess
+              tenant={tenant}
               data={data}
               disabled={disabled}
               revision={revision}

@@ -3,6 +3,8 @@ import { lazy, Suspense } from "react";
 import { AuthGate } from "./Auth";
 import { LocalizationProvider, t } from "./localization";
 import { resolveEntry } from "./entryRouting";
+import { oauthInteraction } from "./entryRouting";
+import { OAuthAuthorization } from "./OAuthAuthorization";
 import "./tailwind.css";
 
 const UnifiedApp = lazy(() => import("./unified/UnifiedApp"));
@@ -30,6 +32,8 @@ function Entry(props: {
     return <UnifiedApp {...props} />;
   }
   if (result.kind === "app") return <UnifiedApp {...props} />;
+  if (result.kind === "oauth")
+    return <OAuthAuthorization interaction={oauthInteraction(new URL(location.href))!} />;
   return (
     <main className="mx-auto max-w-2xl p-8">
       <h1 className="text-xl font-semibold">

@@ -65,6 +65,22 @@ test("account returns reject external and malformed destinations", () => {
     assert.equal(safeAccountReturn(path), null, path);
 });
 
+test("OAuth login returns retain only one opaque interaction identifier", () => {
+  const safe = "/oauth/authorize?interaction=oai_opaque_123";
+  assert.equal(entry(safe).kind, "oauth");
+  assert.equal(safeAccountReturn(safe), safe);
+  for (const path of [
+    "/oauth/authorize",
+    "/oauth/authorize?interaction=short",
+    "/oauth/authorize?interaction=oai_opaque_123&redirect_uri=https://evil.example",
+    "/oauth/authorize?interaction=oai_opaque_123&code=secret",
+    "/oauth/authorize?interaction=oai_opaque_123#token=secret",
+  ]) {
+    assert.equal(entry(path).kind, "missing", path);
+    assert.equal(safeAccountReturn(path), null, path);
+  }
+});
+
 test("object prototype names are never routes", () => {
   for (const path of ["/app/__proto__", "/app/constructor", "/app/toString"])
     assert.equal(entry(path).kind, "missing");

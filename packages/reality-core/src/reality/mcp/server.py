@@ -2,26 +2,20 @@ from __future__ import annotations
 
 import inspect
 import json
-from collections.abc import Sequence
 from typing import Annotated, Any
-from urllib.parse import urlparse
 
 from mcp.server.auth.middleware.auth_context import get_access_token
 from mcp.server.auth.settings import AuthSettings
-from mcp.server.fastmcp import FastMCP
-from mcp.server.fastmcp.exceptions import ToolError
-from mcp.server.transport_security import TransportSecuritySettings
-from mcp.types import ContentBlock, ToolAnnotations
+from mcp.server.mcpserver import MCPServer
+from mcp.server.mcpserver.context import Context
+from mcp.server.mcpserver.exceptions import ToolError
+from mcp.types import CallToolResult, ToolAnnotations
 from pydantic import WithJsonSchema
 
 from reality.db.core import Session
 from reality.mcp.auth import DatabaseTokenVerifier
-from reality.mcp.catalog import (
-    SETTLING_TOKEN,
-    MCPToolDefinition,
-    dispatch_tool,
-    tool_definitions,
-)
+from reality.mcp.catalog import MCPToolDefinition, dispatch_mcp_tool, tool_definitions
+from reality.mcp.principal import MCPPrincipal
 from reality.services.core import (
     Conflict,
     InterpretationNeedsReview,
@@ -47,12 +41,15 @@ def tool_error_payload(tool_name: str, error: RealityError) -> dict[str, str]:
     return {"code": error_code(error), "message": str(error), "tool": tool_name}
 
 
-class RealityServer(FastMCP):
+class RealityServer(MCPServer):
     async def call_tool(
-        self, name: str, arguments: dict[str, Any]
-    ) -> Sequence[ContentBlock] | dict[str, Any]:
+        self,
+        name: str,
+        arguments: dict[str, Any],
+        context: Context | None = None,
+    ) -> CallToolResult:
         try:
-            return await super().call_tool(name, arguments)
+            return await super().call_tool(name, arguments, context)
         except ToolError as error:
             cause = error.__cause__
             if isinstance(cause, RealityError):
@@ -89,31 +86,75 @@ def _inline_refs(schema: Any, defs: dict[str, Any], depth: int = 0) -> Any:
 
 
 def _handler(definition: MCPToolDefinition):
+    union_branches = definition.input_schema.get("oneOf", ())
+
     def invoke(**arguments: Any) -> Any:
         access_token = get_access_token()
         if access_token is None or not access_token.subject:
             raise RuntimeError("Authenticated tenant context is required.")
-        scopes = set(access_token.scopes)
-        if (
-            "reality:tool:*" not in scopes
-            and f"reality:tool:{definition.name}" not in scopes
-        ):
-            raise PermissionError(f"MCP token does not allow tool: {definition.name}")
-        token = SETTLING_TOKEN.set(getattr(access_token, "client_id", None))
-        try:
-            with Session() as session:
-                return dispatch_tool(
-                    session, access_token.subject, definition.name, arguments
-                )
-        finally:
-            SETTLING_TOKEN.reset(token)
+        principal = (getattr(access_token, "claims", None) or {}).get(
+            "reality_principal"
+        )
+        if not isinstance(principal, MCPPrincipal):
+            scopes = set(access_token.scopes)
+            allowed = frozenset(
+                {"*"}
+                if "reality:tool:*" in scopes
+                else {
+                    scope.removeprefix("reality:tool:")
+                    for scope in scopes
+                    if scope.startswith("reality:tool:")
+                }
+            )
+            principal = MCPPrincipal(
+                "manual",
+                access_token.client_id,
+                None,
+                None,
+                access_token.subject,
+                access_token.client_id,
+                frozenset(scopes),
+                allowed,
+            )
+        if not principal.permits(definition.name):
+            raise ToolError(f"MCP token does not allow tool: {definition.name}")
+        with Session() as session:
+            if union_branches:
+                arguments = {
+                    name: value
+                    for name, value in arguments.items()
+                    if value is not None
+                }
+            return dispatch_mcp_tool(session, principal, definition.name, arguments)
 
     invoke.__name__ = definition.name
     invoke.__doc__ = definition.description
-    required = set(definition.input_schema.get("required", ()))
+    signature_schema = definition.input_schema
+    if union_branches:
+        properties = {
+            **definition.input_schema.get("properties", {}),
+            **{
+                name: schema
+                for branch in union_branches
+                for name, schema in branch.get("properties", {}).items()
+            },
+        }
+        required_sets = [set(branch.get("required", ())) for branch in union_branches]
+        required = set(definition.input_schema.get("required", ()))
+        if required_sets:
+            required.update(set.intersection(*required_sets))
+        signature_schema = {"properties": properties}
+    else:
+        required = set(definition.input_schema.get("required", ()))
     parameters = []
-    for name, schema in definition.input_schema.get("properties", {}).items():
-        default = inspect.Parameter.empty if name in required else schema.get("default")
+    for name, schema in signature_schema.get("properties", {}).items():
+        default = (
+            inspect.Parameter.empty
+            if name in required
+            else None
+            if union_branches
+            else schema.get("default")
+        )
         parameters.append(
             inspect.Parameter(
                 name,
@@ -142,29 +183,23 @@ def build_server(
     port: int = 8001,
     token_verifier: DatabaseTokenVerifier | None = None,
     public_url: str | None = None,
-) -> FastMCP:
+    authorization_issuer: str | None = None,
+) -> MCPServer:
     endpoint_url = (public_url or f"http://{host}:{port}/").rstrip("/") + "/"
-    parsed_url = urlparse(endpoint_url)
     server = RealityServer(
         "Reality",
         instructions=(
             "Inspect operational reality through shared application services. "
             "Mutations are proposals and require separate human approval."
         ),
-        host=host,
-        port=port,
-        stateless_http=True,
-        json_response=True,
-        streamable_http_path="/",
-        token_verifier=token_verifier or DatabaseTokenVerifier(),
+        token_verifier=token_verifier or DatabaseTokenVerifier(resource=endpoint_url),
         auth=AuthSettings(
-            issuer_url=endpoint_url,
+            issuer_url=authorization_issuer or "http://127.0.0.1:8000",
             resource_server_url=endpoint_url,
             required_scopes=["reality:read"],
-        ),
-        transport_security=TransportSecuritySettings(
-            allowed_hosts=[parsed_url.netloc],
-            allowed_origins=[f"{parsed_url.scheme}://{parsed_url.netloc}"],
+            # Manual tokens intentionally have no RFC 8707 audience. Interactive
+            # credentials are resource-bound by Reality's verifier instead.
+            validate_token_resource=False,
         ),
     )
     for definition in tool_definitions():
@@ -173,6 +208,11 @@ def build_server(
             name=definition.name,
             annotations=_annotations(definition),
         )
+        if "oneOf" in definition.input_schema:
+            registered = server._tool_manager.get_tool(definition.name)
+            if registered is None:  # pragma: no cover - registration invariant
+                raise RuntimeError(f"MCP tool registration failed: {definition.name}")
+            registered.parameters = definition.input_schema
     return server
 
 
@@ -181,6 +221,12 @@ def build_remote_server(
     *,
     host: str = "127.0.0.1",
     port: int = 8001,
-) -> FastMCP:
+    authorization_issuer: str | None = None,
+) -> MCPServer:
     """Build the authenticated HTTP MCP resource server."""
-    return build_server(host=host, port=port, public_url=public_url)
+    return build_server(
+        host=host,
+        port=port,
+        public_url=public_url,
+        authorization_issuer=authorization_issuer,
+    )

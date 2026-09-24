@@ -1,7 +1,9 @@
 from __future__ import annotations
 
 from collections.abc import Callable
+from urllib.parse import urlparse
 
+from mcp.server.transport_security import TransportSecuritySettings
 from sqlalchemy import text
 from sqlalchemy.exc import SQLAlchemyError
 from starlette.applications import Starlette
@@ -26,6 +28,7 @@ def create_mcp_app(
         runtime_settings.public_url,
         host=runtime_settings.bind_host,
         port=runtime_settings.bind_port,
+        authorization_issuer=runtime_settings.authorization_issuer,
     )
 
     @server.custom_route("/healthz", methods=["GET"], include_in_schema=False)
@@ -43,7 +46,17 @@ def create_mcp_app(
             return JSONResponse({"status": "not_ready"}, status_code=503)
         return JSONResponse({"status": "ready"})
 
-    return server.streamable_http_app()
+    parsed_url = urlparse(runtime_settings.public_url)
+    return server.streamable_http_app(
+        streamable_http_path="/",
+        stateless_http=True,
+        json_response=True,
+        host=runtime_settings.bind_host,
+        transport_security=TransportSecuritySettings(
+            allowed_hosts=[parsed_url.netloc],
+            allowed_origins=[f"{parsed_url.scheme}://{parsed_url.netloc}"],
+        ),
+    )
 
 
 from reality import telemetry as _telemetry

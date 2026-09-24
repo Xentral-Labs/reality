@@ -8,6 +8,11 @@ from typing import Any, Literal
 
 from sqlalchemy.orm import Session
 
+from reality.mcp.principal import (
+    MCPPrincipal,
+    current_mcp_principal,
+    mcp_principal_context,
+)
 from reality.services.core import (
     MANUAL_OPERATIONAL_DOCUMENT_TYPES,
     InvalidOperation,
@@ -147,14 +152,19 @@ def _approve_proposal(
             "preview": json.loads(reviewed.output),
             "requires_human_confirmation": True,
         }
+    mcp_principal = current_mcp_principal()
+    confirming_principal = _analytics_caller()
+    if mcp_principal is not None and mcp_principal.user_id is not None:
+        from reality.services.memberships import Principal
+
+        confirming_principal = Principal(mcp_principal.user_id)
     proposal = approve_and_execute_proposal(
         session,
         tenant_id,
         arguments["proposal_id"],
         review_token=arguments.get("review_token"),
         confirmed=True,
-        confirming_principal=_analytics_caller(),
-        settling_token_id=_settling_token(session, tenant_id),
+        confirming_principal=confirming_principal,
     )
     receipt = json.loads(proposal.output)
     return {
@@ -231,8 +241,6 @@ PARTY_EMAILS = {
     "default": [],
 }
 DECIMAL_STRING = {"type": "string", "pattern": "^-?[0-9]+(?:\\.[0-9]+)?$"}
-
-
 def _records_schema(record_schema: dict[str, Any]) -> dict[str, Any]:
     return _object_schema(
         {
@@ -2891,6 +2899,7 @@ def dispatch_tool(
     arguments: dict[str, Any] | None = None,
     *,
     allowed_access: Iterable[ToolAccess] | None = None,
+    principal: MCPPrincipal | None = None,
 ) -> Any:
     """Dispatch through the canonical binding with caller-owned tenant authority."""
     definition = MCP_TOOL_REGISTRY.get(tool_name)
@@ -2902,7 +2911,46 @@ def dispatch_tool(
         raise PermissionError(
             f"Caller does not allow MCP {definition.access} tool: {tool_name}"
         )
+    if principal is not None:
+        if principal.tenant_id != tenant_id:
+            raise PermissionError(
+                "MCP principal tenant does not match dispatch tenant."
+            )
+        if not principal.permits(tool_name):
+            raise PermissionError(f"MCP principal does not allow tool: {tool_name}")
+        with mcp_principal_context(principal):
+            return definition.handler(session, tenant_id, arguments or {})
     return definition.handler(session, tenant_id, arguments or {})
+
+
+def dispatch_mcp_tool(
+    session: Session,
+    principal: MCPPrincipal,
+    tool_name: str,
+    arguments: dict[str, Any] | None = None,
+) -> Any:
+    """Dispatch one MCP call using only server-verified principal authority."""
+    definition = MCP_TOOL_REGISTRY.get(tool_name)
+    if definition is None:
+        raise ValueError(f"Unknown MCP tool: {tool_name}")
+    if not principal.permits(tool_name):
+        raise PermissionError(f"MCP principal does not allow tool: {tool_name}")
+    required_scope = f"reality:{definition.access}"
+    if (
+        principal.authentication_kind == "interactive"
+        and required_scope not in principal.scopes
+    ):
+        raise PermissionError(
+            f"MCP principal does not allow {definition.access} access."
+        )
+    return dispatch_tool(
+        session,
+        principal.tenant_id,
+        tool_name,
+        arguments,
+        allowed_access=(definition.access,),
+        principal=principal,
+    )
 
 
 def model_tool_schemas(

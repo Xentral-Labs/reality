@@ -817,7 +817,10 @@ def test_company_settings_api_exposes_commercial_and_agent_configuration(
         )
         assert token.status_code == 201
         assert token.json()["token"].startswith("ros_mcp_")
+        assert token.json()["credential_kind"] == "manual"
         token_id = token.json()["id"]
+        listed = client.get(f"/api/tenants/{tenant_id}/settings/ai")
+        assert listed.json()["tokens"][0]["credential_kind"] == "manual"
         revoked = client.post(
             f"/api/tenants/{tenant_id}/settings/mcp/tokens/{token_id}/revoke"
         )
