@@ -1,15 +1,15 @@
 """Record every interaction with a company's model for the engine room (spec 266).
 
-Revision ID: 0094_engine_room_interaction
-Revises: 0093_decision_trail
+Revision ID: 0096_engine_room_interaction
+Revises: 0095_mcp_authorization_indexes
 """
 
 import sqlalchemy as sa
 from alembic import op
 from sqlalchemy.dialects import postgresql
 
-revision = "0094_engine_room_interaction"
-down_revision = "0093_decision_trail"
+revision = "0096_engine_room_interaction"
+down_revision = "0095_mcp_authorization_indexes"
 branch_labels = None
 depends_on = None
 

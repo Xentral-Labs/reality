@@ -93,7 +93,7 @@ The subject filter looks up the subject's event sequences through the existing `
 
 ### Data and migration impact
 
-See [data-model.md](data-model.md). Migration `0094` adds only the new table. **Collision risk**: the spec 265 branch currently carries `0093_mcp_user_authorization`, which collides with main's `0093_decision_trail`. Whichever merges second renumbers; this plan takes the next free number at implementation time.
+See [data-model.md](data-model.md). Migration `0096` (after spec 265's `0094`/`0095`) adds only the new table.
 
 ### Failure, security, and tenant behavior
 
@@ -152,7 +152,7 @@ Existing suites that must stay green: `test_storyline_trace.py`, `test_home_read
 
 - The migration is additive. Old code ignores the table.
 - The recorder can be disabled by setting `REALITY_INTERACTIONS=off`. That is an operator switch for an incident, not a product setting. It skips recording entirely, and the Live tab then states that recording is off.
-- Rollback: revert the code and downgrade `0094` (drops the table). No business data is affected.
+- Rollback: revert the code and downgrade `0096` (drops the table). No business data is affected.
 - Observability: a record-failure counter and a record-duration histogram (bounded labels: channel, outcome).
 
 ## Review Risks

@@ -39,4 +39,4 @@ Operational telemetry (DR-001). No business read, projection, exception rule or 
 
 **Lifecycle**: append-only. Rows older than 7 days are hidden from reads and deleted in bounded batches by the recorder's tidy step (research I2). They are removed with the company by the existing generic tenant purge (`services/core.py` walks `Base.metadata.sorted_tables`). Account deletion nulls `actor_user_id` through its generic walk over every `app_user` reference. MCP tokens are revoked, never deleted, so `mcp_token_id` stays referenced and reads mark it revoked.
 
-**Migration**: `0094_engine_room_interaction.py` creates the table. Downgrade drops it. There is no backfill: history before deployment never existed.
+**Migration**: `0096_engine_room_interaction.py` creates the table. Downgrade drops it. There is no backfill: history before deployment never existed.

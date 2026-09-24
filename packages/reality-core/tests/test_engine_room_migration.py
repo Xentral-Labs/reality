@@ -70,7 +70,7 @@ def test_interaction_table_matches_the_model_and_downgrades(
         assert "interaction" in Base.metadata.tables
         assert [diff for diff in flat if _about_interaction(diff)] == []
 
-        command.downgrade(config, "0093_decision_trail")
+        command.downgrade(config, "0095_mcp_authorization_indexes")
         assert "interaction" not in set(inspect(engine).get_table_names())
     finally:
         engine.dispose()

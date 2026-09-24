@@ -29,7 +29,7 @@ carry positive controls.
 - [X] T001 Confirm owner approval of scope, placement (Activities → Live plus entry points) and the three clarifications (7 days, owners only, job runs with effect), and absence of clarification markers, in `specs/266-engine-room/spec.md`
 - [X] T002 Confirm every Constitution Check row is PASS and the one-table schema is justified column by column in `specs/266-engine-room/plan.md` and `data-model.md`
 - [X] T003 Run the analysis pass and resolve every CRITICAL or HIGH finding across `specs/266-engine-room/` (findings A1–A12 in `research.md`)
-- [X] T004 Before the first migration commit, re-derive the next free migration number against `origin/main` and every open branch that adds a revision (spec 265 carries a `0093`), and record it in `plan.md` — `0094_engine_room_interaction`; no remote branch carries 0094+; the local spec 265 branch has its own `0093` and renumbers when it rebases.
+- [X] T004 Before the first migration commit, re-derive the next free migration number against `origin/main` and every open branch that adds a revision (spec 265 carries a `0093`), and record it in `plan.md` — first `0094`; spec 265 merged first with `0094`/`0095`, so this revision is `0096_engine_room_interaction` after the rebase onto main (2026-09-24).
 
 ## Phase 2: Foundational — Table, Recorder, Event Link
 

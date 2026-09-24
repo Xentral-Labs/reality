@@ -19275,6 +19275,7 @@ Object.assign(dictionaries.es, {
   "Created by decision": "Creado por decisión",
   "Changed by decision": "Modificado por decisión",
   "Caused by decision": "Originado por decisión",
+});
 // The engine room (spec 266).
 Object.assign(dictionaries.de, {
   "{count} events": "{count} Ereignisse",
