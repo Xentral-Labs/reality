@@ -152,13 +152,17 @@ try {
     // Opening a settled decision states who settled it and how.
     await tokenRow.click();
     await page
-      .getByRole("button", { name: language === "de" ? "Entscheidung öffnen" : "Open the decision" })
+      .getByRole("button", {
+        name: language === "de" ? "Entscheidung öffnen" : "Open the decision",
+      })
       .click();
     const dialog = page.locator("dialog[open]");
     await dialog.waitFor();
     await dialog.locator("[data-decision-attribution]").filter({ hasText: words.token }).waitFor();
     assert.equal(
-      await dialog.getByRole("button", { name: language === "de" ? "Bestätigen" : "Confirm" }).count(),
+      await dialog
+        .getByRole("button", { name: language === "de" ? "Bestätigen" : "Confirm" })
+        .count(),
       0,
       "a settled decision cannot be confirmed again",
     );
