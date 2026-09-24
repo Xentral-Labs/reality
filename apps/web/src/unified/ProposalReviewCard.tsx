@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { api } from "../api";
 import { formatDateTime, t } from "../localization";
+import { DecisionLine } from "./DecisionLine";
 import { ActionCard } from "./ActionCard";
 import { ReadLine } from "./ReadState";
 import { useRead } from "./useCompanyContext";
@@ -82,6 +83,19 @@ export function ProposalReviewCard({
         {t(data.actor_type === "agent" ? "Proposed by an agent" : "Prepared for review")} ·{" "}
         {formatDateTime(data.created_at)}
       </p>
+      {data.status !== "proposed" && (
+        <p className="mt-1 text-sm" data-decision-attribution>
+          <DecisionLine
+            decision={{
+              id: data.id,
+              outcome: data.status,
+              decided_at: data.decided_at,
+              decider: data.decider || { kind: "unknown" },
+            }}
+            link={false}
+          />
+        </p>
+      )}
       {data.next_step.required_principal === "authenticated_active_owner" && (
         <p className="mt-4 rounded-xl bg-surface-muted p-4 text-sm">
           {t("Owner decision required")}.{" "}

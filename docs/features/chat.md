@@ -97,6 +97,15 @@ document evidence, warehouse identities/movements, reservations/holds, payments 
 pricing, source configuration/ingestion, and membership. Membership execution still
 requires a current human owner; an MCP token grant alone is insufficient.
 
+A token is a company credential, and since spec 263 it records the owner who issued it
+in the web. When a client settles a proposal with `proposal_approve_and_execute` or
+`proposal_reject`, the proposal records that token (`action.decided_via_token_id`) beside
+the moment, never the issuer as the deciding person. Every business event the proposal
+writes references it through `business_event.action_id`, for every mutating tool.
+Approve, reject and `proposal_execution_status` return the resulting `decider`/`decision`:
+a signed-in person, a token with its issuer (or an unknown issuer for older tokens), or
+unknown.
+
 ## MCP read response contracts
 
 See [MCP read contracts](mcp_reads.md) for currency-separated balances, quantity

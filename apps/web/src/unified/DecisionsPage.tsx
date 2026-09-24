@@ -5,6 +5,8 @@ import { formatDateTime, t } from "../localization";
 import { ReadState } from "./ReadState";
 import { WorkFooter, WorkHeader, WorkRow, WorkSearch, useWorkList } from "./WorkList";
 import { WorkPreview } from "./InlinePreview";
+import { DecisionLine } from "./DecisionLine";
+import { RegisterHeader } from "./RegisterWorkbench";
 const actionLabels: Record<string, string> = {
   reserve: "Reserve stock",
   reservation_release: "Release reservation",
@@ -143,17 +145,32 @@ function DecisionHelp({ close }: { close: () => void }) {
 export function DecisionsPage({
   tenant,
   select,
+  view = "pending",
+  setView,
+  openDecision,
 }: {
   tenant: string;
   select: (id: string, reviewKind: ProposalReviewKind) => void;
+  view?: "pending" | "history";
+  setView?: (view: "pending" | "history") => void;
+  openDecision?: (id: string) => void;
 }) {
   const [query, setQuery] = useState("");
   const [tool, setTool] = useState("");
   const [selected, setSelected] = useState<CopilotProposal | null>(null);
   const [aboutOpen, setAboutOpen] = useState(false);
-  const list = useWorkList<CopilotProposal>(JSON.stringify([tenant, query, tool]), (page) =>
-    api.changeProposals(tenant, "pending", page, query, 50, tool),
+  const history = view === "history";
+  // Spec 054: history is looked up, 25 rows at a time; the pending queue keeps its bound.
+  const size = history ? 25 : 50;
+  const list = useWorkList<CopilotProposal>(JSON.stringify([tenant, view, query, tool]), (page) =>
+    api.changeProposals(tenant, view, page, query, size, tool),
   );
+  const decision = (proposal: CopilotProposal) => ({
+    id: proposal.id,
+    outcome: proposal.status,
+    decided_at: proposal.decided_at,
+    decider: proposal.decider || { kind: "unknown" as const },
+  });
   const title = (proposal: CopilotProposal) =>
     proposal.input.import_file
       ? t("Import items")
@@ -172,6 +189,34 @@ export function DecisionsPage({
   };
   return (
     <div className="mx-auto max-w-[1200px] space-y-3" data-work-list="decisions">
+      {setView && (
+        <RegisterHeader title="Decisions">
+          <div className="register-tabs">
+            <button
+              key="pending"
+              className="br-btn aria-pressed:border-accent aria-pressed:bg-accent-soft"
+              aria-pressed={view === "pending"}
+              onClick={() => {
+                setSelected(null);
+                setView("pending");
+              }}
+            >
+              {t("Pending")}
+            </button>
+            <button
+              key="history"
+              className="br-btn aria-pressed:border-accent aria-pressed:bg-accent-soft"
+              aria-pressed={view === "history"}
+              onClick={() => {
+                setSelected(null);
+                setView("history");
+              }}
+            >
+              {t("History")}
+            </button>
+          </div>
+        </RegisterHeader>
+      )}
       <WorkHeader title="Decisions" total={list.page?.total} />
       <div className="work-list-toolbar grid gap-2">
         <WorkSearch
@@ -213,7 +258,13 @@ export function DecisionsPage({
           <ReadState loading rows={8} />
         ) : !list.items.length && !list.error ? (
           <p className="px-5 py-14 text-center text-sm text-fg-muted">
-            {t(query || tool ? "No results" : "No pending decisions")}
+            {t(
+              query || tool
+                ? "No results"
+                : history
+                  ? "No settled decisions"
+                  : "No pending decisions",
+            )}
           </p>
         ) : (
           list.items.map((proposal) => (
@@ -221,11 +272,15 @@ export function DecisionsPage({
               <WorkRow
                 title={title(proposal)}
                 context={
-                  statedFields(proposal).length
-                    ? statedFields(proposal)
-                        .map(([key, value]) => `${t(proposalFields[key])}: ${String(value)}`)
-                        .join(" · ")
-                    : origin(proposal)
+                  history ? (
+                    <DecisionLine decision={decision(proposal)} link={false} />
+                  ) : statedFields(proposal).length ? (
+                    statedFields(proposal)
+                      .map(([key, value]) => `${t(proposalFields[key])}: ${String(value)}`)
+                      .join(" · ")
+                  ) : (
+                    origin(proposal)
+                  )
                 }
                 meta={formatDateTime(proposal.created_at)}
                 icon={<CheckSquare size={18} />}
@@ -241,6 +296,11 @@ export function DecisionsPage({
                 <p className="mt-2 text-sm text-fg-muted">
                   {origin(proposal)} · {formatDateTime(proposal.created_at)}
                 </p>
+                {history && (
+                  <p className="mt-1 text-sm">
+                    <DecisionLine decision={decision(proposal)} link={false} />
+                  </p>
+                )}
                 {statedFields(proposal).length > 0 && (
                   <dl className="mt-4 divide-y divide-border-default">
                     {statedFields(proposal).map(([key, value]) => (
@@ -251,9 +311,21 @@ export function DecisionsPage({
                     ))}
                   </dl>
                 )}
-                <button className="br-btn br-btn-primary mt-4" onClick={() => review(proposal)}>
-                  {t("Review proposed changes")}
-                </button>
+                {history ? (
+                  <button
+                    className="br-btn mt-4"
+                    onClick={() => {
+                      setSelected(null);
+                      openDecision?.(proposal.id);
+                    }}
+                  >
+                    {t("Open the decision")}
+                  </button>
+                ) : (
+                  <button className="br-btn br-btn-primary mt-4" onClick={() => review(proposal)}>
+                    {t("Review proposed changes")}
+                  </button>
+                )}
               </WorkPreview>
             </div>
           ))

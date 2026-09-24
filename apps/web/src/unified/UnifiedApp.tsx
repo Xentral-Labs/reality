@@ -359,6 +359,11 @@ export default function UnifiedApp({
                     select={(proposal, reviewKind) =>
                       navigate(proposalReviewLocation(proposal, reviewKind))
                     }
+                    view={selection.decisionsView || "pending"}
+                    setView={(decisionsView) =>
+                      navigate({ route: "decisions", decisionsView, proposal: "", page: 1 })
+                    }
+                    openDecision={(proposal) => navigate({ route: "decisions", proposal })}
                   />
                 )}
               </div>

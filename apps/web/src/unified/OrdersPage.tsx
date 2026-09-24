@@ -404,7 +404,11 @@ export function OrdersPage({
                             </td>
                             <td className={`${cell} text-right`}>{formatNumber(row.line_count)}</td>
                             <td className={cell}>
-                              <SourceBadge origin={row.origin} inspect={setTarget} />
+                              <SourceBadge
+                                origin={row.origin}
+                                inspect={setTarget}
+                                tenant={tenant}
+                              />
                             </td>
                             <td className={cell}>
                               <PreviewButton

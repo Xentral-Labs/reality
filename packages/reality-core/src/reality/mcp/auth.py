@@ -27,6 +27,8 @@ def create_mcp_access_token(
     tenant_id: str,
     name: str,
     allowed_tools: list[str] | tuple[str, ...] = ("*",),
+    *,
+    issued_by_user_id: str | None = None,
 ) -> tuple[MCPAccessToken, str]:
     require_business_operation(session, tenant_id, "mcp_token_create")
     permissions = validate_tool_permissions(allowed_tools)
@@ -38,6 +40,7 @@ def create_mcp_access_token(
         token_prefix=clear_token[:16],
         token_hash=_token_hash(clear_token),
         allowed_tools=json.dumps(permissions),
+        created_by_user_id=issued_by_user_id,
     )
     session.add(record)
     session.commit()

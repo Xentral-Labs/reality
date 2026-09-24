@@ -5,7 +5,9 @@ import json
 import logging
 import os
 import time
-from collections.abc import Callable, Collection, Iterable
+from collections.abc import Callable, Collection, Iterable, Iterator
+from contextlib import contextmanager
+from contextvars import ContextVar
 from dataclasses import dataclass
 from datetime import UTC, date, datetime, timedelta
 from decimal import Decimal
@@ -518,6 +520,29 @@ def utc_datetime(value: datetime | str | None) -> datetime | None:
     return parsed.astimezone(UTC)
 
 
+#: The proposal whose confirmed execution is writing events right now, as
+#: (tenant id, proposal id). Set only by `approve_and_execute_proposal`.
+_executing: ContextVar[tuple[str, str] | None] = ContextVar(
+    "executing_proposal", default=None
+)
+
+
+@contextmanager
+def executing_proposal(tenant_id: str, proposal_id: str) -> Iterator[None]:
+    """Let every event written in this block reference the proposal executing it.
+
+    Spec 263 FR-005. The proposal id used to reach a handler only when the tool
+    was on a list, and four families of master data never made it onto that list,
+    so a price or a payment term could not say which decision created it. The one
+    function that writes events now fills the reference itself, for every tool.
+    """
+    token = _executing.set((tenant_id, proposal_id))
+    try:
+        yield
+    finally:
+        _executing.reset(token)
+
+
 def emit_business_event(
     session: OrmSession,
     tenant_id: str,
@@ -535,6 +560,12 @@ def emit_business_event(
     # Lock the tenant row so tenant-local sequence allocation remains deterministic
     # without making the sequence event identity.
     _require_business_mutation(session, tenant_id, "emit_business_event")
+    if action_id is None:
+        # An explicit reference always wins: costing and commercial matching thread
+        # the action they were handed, and overriding it would misattribute them.
+        executing = _executing.get()
+        if executing is not None and executing[0] == tenant_id:
+            action_id = executing[1]
     from reality.services.tenant_policy import require_decision_action
 
     require_decision_action(session, tenant_id, action_id, event_type=event_type)
@@ -13730,6 +13761,14 @@ def timeline_activity(
             "status": event_status(event.event_type, payload),
         }
         events.append(event_view)
+    from reality.services.decision_attribution import decision_attributions
+
+    # Which decision caused each change, and who settled it (spec 263 FR-010).
+    decisions = decision_attributions(
+        session, tenant_id, {event["action_id"] for event in events}
+    )
+    for event in events:
+        event["decision"] = decisions.get(event["action_id"] or "")
 
     party_ids = {
         str(event["payload"]["party_id"])

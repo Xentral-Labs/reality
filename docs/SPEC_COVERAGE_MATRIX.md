@@ -1667,3 +1667,14 @@ Feature contract: `docs/features/b2b-operational-chain.md`.
 | A place scope on stock, reservations and movements, combined with the item scope, its state filters, its item set and its query shape | 262 FR-005–FR-007/FR-010 | `packages/reality-core/tests/test_stock_at_location.py` |
 | The item preview and the location inspector address the pair, with the quantity named and the unit carried | 262 FR-001/FR-011 | `packages/reality-core/tests/test_stock_at_location.py`; `packages/reality-core/tests/test_operational_previews.py` |
 | The click path: a location quantity opens the item there, reaches both scoped registers, states and clears its scope in both editions | 262 FR-004/FR-008/FR-009/FR-014 | `apps/web/scripts/stock-at-location-browser.mjs`; `apps/web/scripts/stock-at-location-contract.test.mjs`; frontend build and i18n audit |
+
+### Spec 263 decision trail
+
+| Verification family | Specification | Tests |
+|---|---|---|
+| Token and issuer attribution columns: additive, reversible, no backfill, derived foreign-key index | 263 DR-002/SC-005 | `packages/reality-core/tests/test_decision_trail_migration.py`; `packages/reality-core/tests/test_schema_indexes.py` |
+| One tenant-scoped reader names a person, a token with its issuer, or unknown, in a constant number of statements | 263 FR-004/DR-003/DR-004/SC-004 | `packages/reality-core/tests/test_decision_attribution.py` |
+| MCP approval and rejection record the calling token, web issuance records the owner, signed-in decisions record the person only, restored proposals forget their token | 263 FR-001–FR-004/DR-005 | `packages/reality-core/tests/test_decision_trail_mcp.py` |
+| Every event a confirmed proposal writes references it, on the generic, master-data and finance paths; explicit references win; a structural guard fails for any unscoped execution path | 263 FR-005/FR-006/DR-001/SC-002 | `packages/reality-core/tests/test_decision_trail_events.py` |
+| History, single-decision review, agent status read and activities name the same decider; a record's origin names only the decision behind its first event | 263 FR-004/FR-007–FR-011 | `packages/reality-core/tests/test_decision_trail_surfaces.py`; `packages/reality-core/tests/test_provenance.py` |
+| Decider sentences, Pending/History tabs, decision links on origin and activities | 263 FR-004/FR-007–FR-012 | `apps/web/scripts/decision-trail.test.mjs`; frontend build and i18n audit |

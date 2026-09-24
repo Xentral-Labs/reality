@@ -53,6 +53,8 @@ def test_the_migrations_together_create_exactly_the_derived_indexes():
     after_second = after_first - {
         (name, table, columns) for name, table, columns, _ in second.INDEX_DROPS
     } | {(name, table, columns) for name, table, columns, _ in second.INDEX_CREATES}
+    # References added to existing tables later name their index in their revision.
+    after_second |= set(_module("0093_decision_trail.py").INDEXES)
     derived = {
         (index.name, index.table.name, tuple(c.name for c in index.columns))
         for index in FOREIGN_KEY_INDEXES

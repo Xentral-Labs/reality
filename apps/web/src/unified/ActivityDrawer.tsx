@@ -2,6 +2,7 @@ import { RegisterTable } from "./RegisterTable";
 import { useEffect, useRef, useState } from "react";
 import { ArrowUpRight, History, RefreshCw, X } from "lucide-react";
 import { api, type TimelineEvent } from "../api";
+import { DecisionLine } from "./DecisionLine";
 import { formatDateTime, t } from "../localization";
 import { Inspector } from "./Inspector";
 import { RegisterToolbar, RegisterWorkbench } from "./RegisterWorkbench";
@@ -394,7 +395,14 @@ export function ActivityDrawer({
                   {events.map((event) => (
                     <tr key={event.id} data-activity-event={event.id}>
                       <td>{formatDateTime(event.recorded_at)}</td>
-                      <td data-original-content="">{eventTitle(event)}</td>
+                      <td data-original-content="">
+                        {eventTitle(event)}
+                        {event.decision && (
+                          <span className="block text-xs" data-activity-decision>
+                            <DecisionLine decision={event.decision} tenant={tenant} />
+                          </span>
+                        )}
+                      </td>
                       <td data-original-content="">
                         {event.subject_type} · {event.subject_id}
                       </td>
@@ -437,6 +445,11 @@ export function ActivityDrawer({
                       </span>
                     )}
                     <BusinessContext event={event} />
+                    {event.decision && (
+                      <p className="mt-2 text-sm" data-activity-decision>
+                        <DecisionLine decision={event.decision} tenant={tenant} />
+                      </p>
+                    )}
                     <div className="mt-4 flex flex-wrap gap-2">
                       <button
                         className="br-btn text-sm"

@@ -509,6 +509,8 @@ export type TimelineEvent = {
   payload: Record<string, unknown>;
   source_record_id: string | null;
   action_id: string | null;
+  /** The decision that caused this change and who settled it (spec 263). */
+  decision?: import("./unified/decisionTrail").DecisionAttribution | null;
   correlation_id: string | null;
   causation_id: string | null;
   area: string;
@@ -653,6 +655,7 @@ export type CopilotProposal = {
   // person is absent for one taken without a signed-in principal.
   decided_at: string | null;
   decided_by: string | null;
+  decider: import("./unified/decisionTrail").Decider;
   review_kind: ProposalReviewKind;
   review_destination: "proposal-review";
   review_label: string;
@@ -670,6 +673,7 @@ export type ProposalReview = {
   actor_type: string;
   created_at: string;
   decided_at: string | null;
+  decider: import("./unified/decisionTrail").Decider;
   input: Record<string, unknown>;
   preview: Record<string, unknown>;
   receipt: Record<string, unknown>;
