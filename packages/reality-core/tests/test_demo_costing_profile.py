@@ -4,7 +4,7 @@ import re
 from decimal import Decimal
 
 import pytest
-from conftest import record_by_id, seed_company
+from conftest import record_by_id
 from sqlalchemy import func, select
 
 from reality.db.contribution import (
@@ -94,10 +94,8 @@ COMPLETE_PORTFOLIO = {
 }
 
 
-def test_demo_documents_are_dated_uniformly_numbered_and_contribution_complete(
-    session, scheduled_owner
-):
-    run = _seed(session, scheduled_owner, "demo-document-quality")
+def test_demo_documents_are_dated_uniformly_numbered_and_contribution_complete(seeded):
+    session, run = seeded
     documents = list(
         session.scalars(select(Document).where(Document.tenant_id == run.tenant_id))
     )
@@ -156,29 +154,33 @@ def test_demo_documents_are_dated_uniformly_numbered_and_contribution_complete(
     assert invoice_line_ids - edge_case_line_ids <= reviewed_line_ids
 
 
-def _seed(session, owner, key: str = "costing-demo") -> PlaygroundRun:
-    result = company_setup.create_company(
-        session,
-        owner.id,
-        key,
-        "Harbor Supply",
-        "sandbox",
-        "international_demo",
-        confirmed=True,
-    )
-    assert seed_company(session, result["tenant_id"]) == "succeeded"
-    run = record_by_id(session, PlaygroundRun, result["run_id"])
+@pytest.fixture
+def seeded(demo_baseline):
+    """The canonical company, seeded once for this module.
+
+    Every test here asserts about that baseline and never changes it, so paying the
+    twenty-second profile seed ten times proved nothing the first one had not.
+    """
+    session = demo_baseline.session
+    run = record_by_id(session, PlaygroundRun, demo_baseline.run_id)
     assert run.status == "active", (
         run.initialization_error_code,
         run.initialization_progress,
     )
-    return run
+    return session, run
+
+
+def test_the_module_seeds_its_baseline_once(seeded):
+    """Load-independent proof of the saving: one company, however many tests read it."""
+    session, _ = seeded
+    assert session.scalar(select(func.count()).select_from(PlaygroundRun)) == 1
 
 
 def test_canonical_profile_versions_and_replays_one_costing_baseline(
-    session, scheduled_owner
+    seeded, demo_baseline
 ):
-    run = _seed(session, scheduled_owner)
+    """Replaying initialization changes nothing; the fixture rolls the replay back."""
+    session, run = seeded
     manifest = run.initialization_progress
     assert PROFILE_VERSION == 12
     assert manifest["profile"] == {"key": "international_demo", "version": 12}
@@ -218,7 +220,7 @@ def test_canonical_profile_versions_and_replays_one_costing_baseline(
         ),
     )
     assert (
-        company_setup.initialize_profile(session, run.id, scheduled_owner.id).id
+        company_setup.initialize_profile(session, run.id, demo_baseline.owner_id).id
         == run.id
     )
     assert counts == (
@@ -258,17 +260,15 @@ def test_canonical_profile_versions_and_replays_one_costing_baseline(
         profile_cost_action_scope(
             session,
             run.id,
-            scheduled_owner.id,
+            demo_baseline.owner_id,
             {"operation": "inventory_review"},
         ),
     ):
         pass
 
 
-def test_canonical_profile_declares_current_contribution_readiness(
-    session, scheduled_owner
-):
-    run = _seed(session, scheduled_owner, "costing-readiness")
+def test_canonical_profile_declares_current_contribution_readiness(seeded):
+    session, run = seeded
     manifest = run.initialization_progress
     coverage = manifest["cost_readiness"]
 
@@ -298,14 +298,12 @@ def test_canonical_profile_declares_current_contribution_readiness(
         assert result["result"]["db2"] is not None
 
 
-def test_fresh_demo_cost_context_is_identical_for_web_tool_and_mcp(
-    session, scheduled_owner
-):
+def test_fresh_demo_cost_context_is_identical_for_web_tool_and_mcp(seeded):
     from reality.mcp.catalog import MCP_TOOL_REGISTRY
     from reality.tools.application import run_read_tool
     from reality.web.api import get_cost_query
 
-    run = _seed(session, scheduled_owner, "costing-interface-parity")
+    session, run = seeded
     manifest = run.initialization_progress
     inventory_ids = [manifest["items"][sku] for sku in ("P01", "P02", "P03")]
     contribution_ids = manifest["cost_readiness"]["contribution_line_ids"][:3]
@@ -342,12 +340,10 @@ def test_fresh_demo_cost_context_is_identical_for_web_tool_and_mcp(
             )
 
 
-def test_every_positively_stocked_demo_item_has_current_positive_acquisition_basis(
-    session, scheduled_owner
-):
+def test_every_positively_stocked_demo_item_has_current_positive_acquisition_basis(seeded):
     from reality.services.core import stock_at
 
-    run = _seed(session, scheduled_owner, "costing-stock-readiness")
+    session, run = seeded
     stocked = [
         item
         for item in session.scalars(
@@ -390,10 +386,8 @@ def test_every_positively_stocked_demo_item_has_current_positive_acquisition_bas
     assert not non_positive, repr(non_positive)
 
 
-def test_complete_case_has_exact_quantity_coverage_and_source_lineage(
-    session, scheduled_owner
-):
-    run = _seed(session, scheduled_owner, "costing-complete")
+def test_complete_case_has_exact_quantity_coverage_and_source_lineage(seeded):
+    session, run = seeded
     case = run.initialization_progress["costing_cases"]["fixture_a"]
     stock = inventory_cost(
         session,
@@ -461,8 +455,8 @@ def test_complete_case_has_exact_quantity_coverage_and_source_lineage(
     )
 
 
-def test_complete_portfolio_has_varied_exact_outcomes(session, scheduled_owner):
-    run = _seed(session, scheduled_owner, "costing-portfolio")
+def test_complete_portfolio_has_varied_exact_outcomes(seeded):
+    session, run = seeded
     cases = run.initialization_progress["costing_cases"]
     observed = {}
     for name, expected in COMPLETE_PORTFOLIO.items():
@@ -494,10 +488,8 @@ def test_complete_portfolio_has_varied_exact_outcomes(session, scheduled_owner):
     assert Decimal(observed["portfolio_negative"]["db2"]) < 0
 
 
-def test_complete_portfolio_publishes_its_confirmed_contribution_generation(
-    session, scheduled_owner
-):
-    run = _seed(session, scheduled_owner, "costing-generation")
+def test_complete_portfolio_publishes_its_confirmed_contribution_generation(seeded):
+    session, run = seeded
     action_id = session.scalar(
         select(CostContributionReview.action_id)
         .where(CostContributionReview.tenant_id == run.tenant_id)
@@ -515,10 +507,8 @@ def test_complete_portfolio_publishes_its_confirmed_contribution_generation(
     assert len(result["rows"]) == 6
 
 
-def test_portfolio_selling_costs_reconcile_and_remain_source_backed(
-    session, scheduled_owner
-):
-    run = _seed(session, scheduled_owner, "costing-portfolio-selling")
+def test_portfolio_selling_costs_reconcile_and_remain_source_backed(seeded):
+    session, run = seeded
     cases = run.initialization_progress["costing_cases"]
     compositions = set()
     for name in COMPLETE_PORTFOLIO:
@@ -549,8 +539,8 @@ def test_portfolio_selling_costs_reconcile_and_remain_source_backed(
     )
 
 
-def test_late_return_case_remains_truthful(session, scheduled_owner):
-    run = _seed(session, scheduled_owner, "costing-gaps")
+def test_late_return_case_remains_truthful(seeded):
+    session, run = seeded
     cases = run.initialization_progress["costing_cases"]
     late = commercial_match(
         session,

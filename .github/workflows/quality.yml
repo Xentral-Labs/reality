@@ -103,7 +103,15 @@ jobs:
           )
           test "${#test_files[@]}" -gt 0
           cd packages/reality-core
-          pytest -n 2 --dist worksteal --durations=20 "${test_files[@]}"
+          pytest -n 2 --dist worksteal --durations=20 \
+            --junitxml "$RUNNER_TEMP/backend-durations-$SHARD.xml" "${test_files[@]}"
+      - name: Upload test durations
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-durations-${{ matrix.shard }}
+          path: ${{ runner.temp }}/backend-durations-${{ matrix.shard }}.xml
+          if-no-files-found: warn
 
   backend-quality:
     needs: [backend-changes, backend-tests]
