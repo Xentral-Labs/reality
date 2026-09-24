@@ -973,6 +973,9 @@ It also restores canonical customer-credit attribution under the existing spec.
   no-effect preparation, stale-state refusal, confirmation replay and lost-response recovery.
 - `packages/reality-core/tests/test_shipment_story.py`: FR-004–FR-008; exact outbound Package
   contents, fulfillment, zero-effect inbound notice and partial supplier receipt.
+- `packages/reality-core/tests/test_mcp_read_optional_arguments.py`: FR-017 and FR-024
+  (with spec 267 FR-014); every MCP read tool called with its optional arguments left out
+  behaves like its default, and `shipments_list` reads the register instead of failing.
 - `packages/reality-core/tests/test_shipment_api.py`: FR-017 and FR-023; HTTP read, not-found,
   preparation and explicit state-bound confirmation parity.
 - `packages/reality-core/tests/test_shipment_cli.py`: FR-017 and FR-022; tenant-scoped CLI list
