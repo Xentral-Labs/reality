@@ -1671,6 +1671,15 @@ Feature contract: `docs/features/b2b-operational-chain.md`.
 | The item preview and the location inspector address the pair, with the quantity named and the unit carried | 262 FR-001/FR-011 | `packages/reality-core/tests/test_stock_at_location.py`; `packages/reality-core/tests/test_operational_previews.py` |
 | The click path: a location quantity opens the item there, reaches both scoped registers, states and clears its scope in both editions | 262 FR-004/FR-008/FR-009/FR-014 | `apps/web/scripts/stock-at-location-browser.mjs`; `apps/web/scripts/stock-at-location-contract.test.mjs`; frontend build and i18n audit |
 
+### Spec 268 an Inspector row states one measure
+
+| Verification family | Specification | Tests |
+|---|---|---|
+| A row carries its measure apart from the qualifier beside it, typed the same way, and a row without a qualifier grows no fields | 268 FR-001–FR-003/FR-008–FR-010 | `packages/reality-core/tests/test_inspector_presentation.py`; `packages/reality-core/tests/test_stock_at_location.py` |
+| A clock that carries nothing is stated as a day, and any other instant is carried whole | 268 FR-004 | `packages/reality-core/tests/test_inspector_presentation.py`; `packages/reality-core/tests/test_stock_at_location.py` |
+| Measures form one column in the full panel and stack in the narrow preview; the row is the click target and only the measure is marked as the link | 268 FR-005/FR-006 | `apps/web/scripts/inspector-row-shape.test.mjs`; frontend build and i18n audit |
+| Where there is room for one string only, measure and qualifier recompose, so no view loses what the panel gained a column for | 268 FR-007 | `apps/web/scripts/inspector-row-shape.test.mjs` |
+
 ### Spec 263 decision trail
 
 | Verification family | Specification | Tests |

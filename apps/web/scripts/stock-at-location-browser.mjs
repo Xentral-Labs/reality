@@ -195,8 +195,20 @@ try {
             {
               title: "Movements here",
               rows: [
-                { label: "Receipt", value: "3 pcs · 21 Sept 2026", link: null },
-                { label: "Transfer", value: "-1 pcs · 21 Sept 2026", link: null },
+                {
+                  label: "Receipt",
+                  value: "3 pcs",
+                  meta: "2026-09-21T19:38:00+00:00",
+                  meta_parts: [{ type: "datetime", value: "2026-09-21T19:38:00+00:00" }],
+                  link: null,
+                },
+                {
+                  label: "Transfer",
+                  value: "-1 pcs",
+                  meta: "2026-09-21",
+                  meta_parts: [{ type: "date", value: "2026-09-21" }],
+                  link: null,
+                },
               ],
             },
             { title: "Reservations here", rows: [] },

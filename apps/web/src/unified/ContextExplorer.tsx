@@ -1,4 +1,4 @@
-import { inspectorValue } from "./inspectorFormat";
+import { inspectorMeta, inspectorValue } from "./inspectorFormat";
 import { useEffect, useState } from "react";
 import { GraphStartingPoints, useGraphStartingPoint } from "./graphStartingPoints";
 import { api, type InspectorRow } from "../api";
@@ -89,19 +89,26 @@ export function ContextExplorer({
       className="flex flex-wrap justify-between gap-2 border-b border-border-default py-2 text-sm"
     >
       <span className="text-fg-muted">{t(row.label)}</span>
-      {row.link ? (
-        <button
-          className="max-w-full break-all text-left text-accent underline"
-          onClick={() => choose(row.link!)}
-          data-localization="original"
-        >
-          {inspectorValue(row.value, row.display_parts)}
-        </button>
-      ) : (
-        <span className="max-w-full break-all" data-localization="original">
-          {inspectorValue(row.value, row.display_parts)}
-        </span>
-      )}
+      <span className="flex max-w-full flex-col items-end gap-0.5">
+        {row.link ? (
+          <button
+            className="max-w-full break-all text-left text-accent underline"
+            onClick={() => choose(row.link!)}
+            data-localization="original"
+          >
+            {inspectorValue(row.value, row.display_parts)}
+          </button>
+        ) : (
+          <span className="max-w-full break-all" data-localization="original">
+            {inspectorValue(row.value, row.display_parts)}
+          </span>
+        )}
+        {inspectorMeta(row) && (
+          <span className="text-xs text-fg-muted" data-localization="original">
+            {inspectorMeta(row)}
+          </span>
+        )}
+      </span>
     </div>
   );
   return (

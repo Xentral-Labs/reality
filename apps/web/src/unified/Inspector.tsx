@@ -1,5 +1,5 @@
 import { recordOpened } from "./usePaletteHistory";
-import { inspectorValue } from "./inspectorFormat";
+import { inspectorMeta, inspectorValue } from "./inspectorFormat";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { api } from "../api";
 import type { InspectorData } from "../api";
@@ -10,6 +10,18 @@ import { ReadState } from "./ReadState";
 
 const compactGrid = "grid gap-4 md:grid-cols-2";
 const compactSection = "rounded-lg border border-border-default bg-surface p-4";
+// A row states one measure and, beside it, the qualifier that measure carries.
+const rowInner = "flex items-baseline justify-between gap-4 text-sm";
+const rowLink = "-mx-2 w-[calc(100%+1rem)] rounded px-2 py-2 text-left hover:bg-surface-muted";
+const rowPlain = "py-2";
+const linkText = "text-accent underline";
+const valueBeside = "flex min-w-0 items-baseline gap-x-4";
+const valueStacked = "flex min-w-0 flex-col items-end gap-y-0.5";
+const measure = "shrink-0 tabular-nums";
+const wholeValue = "max-w-[65%] break-words text-right";
+const wholeValueLink = "max-w-[65%] shrink-0 break-words text-right";
+const qualifier = "text-xs text-fg-muted";
+const qualifierColumn = "min-w-[9.5rem] text-right";
 
 export function Inspector({
   tenant,
@@ -167,11 +179,9 @@ export function InspectorContent({
       ].map((section) => (
         <section key={section.title} className={compact ? compactSection : "mt-6"}>
           <h3 className="mb-3 font-medium">{t(section.title)}</h3>
-          {section.rows.map((row, index) => (
-            <div
-              key={index}
-              className="flex justify-between gap-4 border-b border-border-default py-2 text-sm"
-            >
+          {section.rows.map((row, index) => {
+            const linked = !!row.link && !!follow;
+            const label = (
               <span className="min-w-0 break-words">
                 <span data-original-content={row.original_label ? "" : undefined}>
                   {row.original_label ? row.label : t(row.label)}
@@ -180,44 +190,72 @@ export function InspectorContent({
                   <span className="mt-1 block text-xs text-fg-muted">{t(row.hint)}</span>
                 )}
               </span>
-              {row.link && follow ? (
-                <button
-                  data-original-content={
-                    selectedKind === "fact" || (businessPreview && !row.translate_value)
-                      ? ""
-                      : undefined
-                  }
-                  className="max-w-[65%] shrink-0 break-words text-right text-accent underline"
-                  onClick={() => follow(row.link!)}
-                >
-                  {row.translate_value
-                    ? t(String(row.value))
-                    : inspectorValue(row.value, row.display_parts)}
-                </button>
-              ) : (
+            );
+            const meta = inspectorMeta(row);
+            // The measure stands in its own column so a section reads as one;
+            // the qualifier it carries sits beside it, never inside it.
+            const value = (
+              <span
+                className={
+                  meta
+                    ? compact
+                      ? valueStacked
+                      : valueBeside
+                    : linked
+                      ? wholeValueLink
+                      : wholeValue
+                }
+              >
                 <span
                   data-original-content={
-                    (businessPreview && !row.translate_value) ||
-                    (selectedKind === "fact" &&
-                      [
-                        "Value",
-                        "Exact predicate",
-                        "Subject ID",
-                        "Fact ID",
-                        "Source record ID",
-                      ].includes(row.label))
-                      ? ""
-                      : undefined
+                    linked
+                      ? selectedKind === "fact" || (businessPreview && !row.translate_value)
+                        ? ""
+                        : undefined
+                      : (businessPreview && !row.translate_value) ||
+                          (selectedKind === "fact" &&
+                            [
+                              "Value",
+                              "Exact predicate",
+                              "Subject ID",
+                              "Fact ID",
+                              "Source record ID",
+                            ].includes(row.label))
+                        ? ""
+                        : undefined
                   }
-                  className="max-w-[65%] break-words text-right"
+                  className={`${linked ? linkText : ""} ${meta ? measure : ""}`}
                 >
                   {row.translate_value
                     ? t(String(row.value))
                     : inspectorValue(row.value, row.display_parts)}
                 </span>
-              )}
-            </div>
-          ))}
+                {meta && (
+                  <span
+                    data-original-content=""
+                    className={`${qualifier} ${compact ? "" : qualifierColumn}`}
+                  >
+                    {meta}
+                  </span>
+                )}
+              </span>
+            );
+            return (
+              <div key={index} className="border-b border-border-default">
+                {linked ? (
+                  <button className={`${rowInner} ${rowLink}`} onClick={() => follow(row.link!)}>
+                    {label}
+                    {value}
+                  </button>
+                ) : (
+                  <div className={`${rowInner} ${rowPlain}`}>
+                    {label}
+                    {value}
+                  </div>
+                )}
+              </div>
+            );
+          })}
           {businessPreview && section.rows.length === 0 && (
             <p className="text-sm text-fg-muted">{t("No recorded details.")}</p>
           )}

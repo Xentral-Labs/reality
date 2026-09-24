@@ -175,7 +175,12 @@ from reality.services.core import (
     update_price_list,
     withdraw_return_announcement,
 )
-from reality.services.inspector_presentation import display_parts, display_text, money
+from reality.services.inspector_presentation import (
+    display_parts,
+    display_text,
+    moment,
+    money,
+)
 from reality.services.inspector_register import inspector_records
 from reality.services.memberships import (
     Principal,
@@ -4868,14 +4873,24 @@ def inspector_row(
     kind: str = "",
     record_id: str = "",
     presentation=None,
+    meta=None,
 ):
     parts = display_parts(value if presentation is None else presentation)
+    meta_parts = display_parts(meta) if meta is not None else None
     return {
         "label": label,
         "value": explorer_value(value),
         **({"display_parts": parts} if parts else {}),
         "tone": tone,
         "link": {"kind": kind, "id": record_id} if kind and record_id else None,
+        # A qualifier the value is not: when it happened, what state it is in,
+        # where it sits. Carried apart so the measures read as one column.
+        **(
+            {"meta": str(explorer_value(meta))}
+            if meta is not None and meta != ""
+            else {}
+        ),
+        **({"meta_parts": meta_parts} if meta_parts else {}),
     }
 
 
@@ -5190,9 +5205,10 @@ def commitment_inspector(
                 "rows": [
                     inspector_row(
                         row.status,
-                        display_text(row.quantity, f" · {row.location_id}"),
+                        row.quantity,
                         kind="reservation",
                         record_id=row.id,
+                        meta=row.location_id,
                     )
                     for row in reservations
                 ],
@@ -5202,9 +5218,10 @@ def commitment_inspector(
                 "rows": [
                     inspector_row(
                         row.type,
-                        display_text(row.quantity, f" · {row.occurred_at.isoformat()}"),
+                        row.quantity,
                         kind="movement",
                         record_id=row.id,
+                        meta=moment(row.occurred_at),
                     )
                     for row in movements
                 ],
@@ -5373,9 +5390,10 @@ def document_inspector(session: OrmSession, tenant_id: str, record_id: str):
                 "rows": [
                     inspector_row(
                         humanize_api(row.type),
-                        display_text(row.quantity, f" · {humanize_api(row.status)}"),
+                        row.quantity,
                         kind="commitment",
                         record_id=row.id,
+                        meta=humanize_api(row.status),
                     )
                     for row in detail["commitments"]
                 ],
@@ -5385,9 +5403,8 @@ def document_inspector(session: OrmSession, tenant_id: str, record_id: str):
                 "rows": [
                     inspector_row(
                         row.account,
-                        display_text(
-                            f"{row.debit_credit} · ", money(row.amount, row.currency)
-                        ),
+                        money(row.amount, row.currency),
+                        meta=row.debit_credit,
                     )
                     for row in detail["ledger_entries"]
                 ],
@@ -5456,9 +5473,10 @@ def party_inspector(session: OrmSession, tenant_id: str, record_id: str):
                 "rows": [
                     inspector_row(
                         humanize_api(row.type),
-                        display_text(row.quantity, f" · {humanize_api(row.status)}"),
+                        row.quantity,
                         kind="commitment",
                         record_id=row.id,
+                        meta=humanize_api(row.status),
                     )
                     for row in detail["commitments"]
                 ],
@@ -5534,9 +5552,10 @@ def item_inspector(session: OrmSession, tenant_id: str, record_id: str):
                 "rows": [
                     inspector_row(
                         humanize_api(row.type),
-                        display_text(row.quantity, f" · {humanize_api(row.status)}"),
+                        row.quantity,
                         kind="commitment",
                         record_id=row.id,
+                        meta=humanize_api(row.status),
                     )
                     for row in detail["commitments"]
                 ],
@@ -5546,9 +5565,10 @@ def item_inspector(session: OrmSession, tenant_id: str, record_id: str):
                 "rows": [
                     inspector_row(
                         humanize_api(row.type),
-                        display_text(row.quantity, " · ", row.occurred_at),
+                        row.quantity,
                         kind="movement",
                         record_id=row.id,
+                        meta=moment(row.occurred_at),
                     )
                     for row in detail["movements"][:20]
                 ],
@@ -5633,15 +5653,19 @@ def location_inspector(session: OrmSession, tenant_id: str, record_id: str):
                 "rows": [
                     inspector_row(
                         humanize_api(row.type),
-                        # Named and signed against this place: what moved, how much,
-                        # and which way, so the column reads like the position does.
+                        # Signed against this place, so the column reads like the
+                        # position does; what moved and when qualify it beside.
                         display_text(
                             _at_location(row, location.id),
-                            f" {moved[row.item_id].unit} · " if moved[row.item_id].unit else " · ",
-                            f"{moved[row.item_id].name} · {row.occurred_at.isoformat()}",
+                            f" {moved[row.item_id].unit}"
+                            if moved[row.item_id].unit
+                            else "",
                         ),
                         kind="movement",
                         record_id=row.id,
+                        meta=display_text(
+                            moved[row.item_id].name, " · ", moment(row.occurred_at)
+                        ),
                     )
                     for row in detail["movements"]
                     if row.item_id in moved
@@ -5996,9 +6020,10 @@ def shipment_inspector(
                 "rows": [
                     inspector_row(
                         row["type"],
-                        f"{row['quantity']} · {row['item_id']}",
+                        row["quantity"],
                         kind="movement",
                         record_id=row["id"],
+                        meta=row["item_id"],
                     )
                     for row in movements
                 ],
@@ -6093,10 +6118,8 @@ def payment_inspector(session: OrmSession, tenant_id: str, record_id: str):
     allocation_rows = [
         inspector_row(
             "Inactive allocation",
-            display_text(
-                money(allocation["amount"], allocation["currency"]),
-                f" · {allocation['id']}",
-            ),
+            money(allocation["amount"], allocation["currency"]),
+            meta=allocation["id"],
         )
         for allocation in reversal["affected_allocations"]
     ]
