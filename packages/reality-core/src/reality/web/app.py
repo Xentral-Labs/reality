@@ -28,6 +28,7 @@ from reality.web.company_setup_api import is_account_setup_path
 from reality.web.company_setup_api import router as company_setup_router
 from reality.web.demo_data_api import router as demo_data_router
 from reality.web.mcp_authorization import router as mcp_authorization_router
+from reality.web.interactions_api import router as interactions_router
 from reality.web.playground import router as playground_router
 from reality.web.storyline_api import account_router as storyline_account_router
 from reality.web.storyline_api import tenant_router as storyline_tenant_router
@@ -262,6 +263,7 @@ async def protect_application_api(request: Request, call_next):
 
 app.include_router(auth_router)
 app.include_router(auth_admin_router)
+app.include_router(interactions_router)
 app.include_router(api_router)
 app.include_router(public_api_router)
 app.include_router(playground_router)

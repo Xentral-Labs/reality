@@ -194,7 +194,10 @@ def test_a_refusal_is_recorded_with_its_code_and_travels_on(
     [row] = rows(session, tenant)
     assert (row.outcome, row.error_code) == ("refused", "not_found")
     assert "secret-sku-4711" not in repr(
-        {column.name: getattr(row, column.name) for column in Interaction.__table__.columns}
+        {
+            column.name: getattr(row, column.name)
+            for column in Interaction.__table__.columns
+        }
     )
 
 
@@ -261,3 +264,48 @@ def test_switched_off_records_nothing(session, business, recording, monkeypatch)
     with interactions.observe(business.tenant.id, "web", "GET /items"):
         pass
     assert rows(session, business.tenant.id) == []
+
+
+def test_recording_tidies_expired_rows_of_its_company_at_most_every_interval(
+    session, business, recording, monkeypatch
+):
+    from datetime import timedelta
+
+    from reality.db.core import now, uid
+
+    tenant = business.tenant.id
+    monkeypatch.setattr(interactions, "_last_tidy", {})
+
+    def expired_row():
+        moment = now() - timedelta(days=8)
+        session.add(
+            Interaction(
+                id=uid("int"),
+                tenant_id=tenant,
+                started_at=moment,
+                recorded_at=moment,
+                duration_ms=1,
+                channel="web",
+                kind="read",
+                operation="GET /old",
+                outcome="ok",
+                correlation_id="old",
+                refresh=False,
+                summary={},
+            )
+        )
+        session.flush()
+
+    expired_row()
+    with interactions.observe(tenant, "web", "GET /items"):
+        pass
+    assert [row.operation for row in rows(session, tenant)] == ["GET /items"]
+    # Within the interval a second write does not tidy again.
+    expired_row()
+    with interactions.observe(tenant, "web", "GET /items"):
+        pass
+    assert sorted(row.operation for row in rows(session, tenant)) == [
+        "GET /items",
+        "GET /items",
+        "GET /old",
+    ]

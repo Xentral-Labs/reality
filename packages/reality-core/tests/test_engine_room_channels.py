@@ -332,3 +332,57 @@ def test_a_worker_run_is_one_interaction_and_empty_sweeps_are_none(
             "ok",
         )
         assert row.job_id == run_id
+
+
+SENTINEL = "zz-sentinel-9f3c"
+
+
+def _sentinel_arguments(schema):
+    arguments = {}
+    for name, spec in schema.get("properties", {}).items():
+        kind = spec.get("type")
+        if "enum" in spec:
+            arguments[name] = spec["enum"][0]
+        elif kind == "string" or (isinstance(kind, list) and "string" in kind):
+            arguments[name] = f"{SENTINEL}-{name}"
+        elif kind == "integer":
+            arguments[name] = 1
+        elif kind == "boolean":
+            arguments[name] = False
+    return arguments
+
+
+def test_no_argument_value_reaches_any_row_across_the_read_catalog(web):
+    from reality.mcp.catalog import MCP_TOOL_REGISTRY
+
+    tenant = web.tenant_id
+    factory = sessionmaker(web.db.get_bind(), expire_on_commit=False)
+    read_tools = [
+        definition
+        for definition in MCP_TOOL_REGISTRY.values()
+        if definition.access == "read"
+    ]
+    # Positive control: the catalog is the real one, not an empty stand-in.
+    assert len(read_tools) > 50
+    for definition in read_tools:
+        with factory() as db:
+            try:
+                mcp_chat._call_tool(
+                    db,
+                    tenant,
+                    definition.name,
+                    _sentinel_arguments(definition.input_schema),
+                    ("read",),
+                )
+            except (
+                Exception
+            ):  # a crash is still an interaction; values are the question
+                pass
+            db.rollback()
+    recorded = rows(web.db, tenant)
+    assert len(recorded) == len(read_tools)
+    for row in recorded:
+        values = repr(
+            {c.name: getattr(row, c.name) for c in Interaction.__table__.columns}
+        )
+        assert SENTINEL not in values, row.operation

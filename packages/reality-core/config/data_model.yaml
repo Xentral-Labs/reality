@@ -37,7 +37,7 @@ sections:
     tables: [component_assignment_revision, component_assignment_part, subledger_account, finance_role_destination, finance_state, commitment, commitment_hold, reservation, handling_unit, lot, serial_unit, movement, ledger_entry, ledger_reversal, settlement_allocation, fact, business_event]
   - name: Interaction
     description: Auditable Change Proposals, approvals, executions, and chat history.
-    tables: [secret, secret_audit_event, ai_settings, mcp_access_token, action, chat_session, chat_message, playground_run, playground_step, storyline_trace_entry, storyline_package]
+    tables: [secret, secret_audit_event, ai_settings, mcp_access_token, action, chat_session, chat_message, playground_run, playground_step, storyline_trace_entry, storyline_package, interaction]
   - name: Modeling Workflow
     description: Tenant-scoped missing-information investigation and safe declarative Fact interpretation.
     tables: [reality_gap, reality_gap_entry, interpretation_rule, rule_interpretation_outcome]
@@ -227,6 +227,30 @@ tables:
       result: {description: Bounded call result or error text.}
       duration_ms: {description: Wall-clock duration of the call.}
       recorded_at: {}
+  interaction:
+    description: One observed use of a company's model through one channel (spec 266, the engine room); operational telemetry kept seven days, value-free, never a business record.
+    columns:
+      id: {}
+      tenant_id: {}
+      cursor: {description: Global insertion order; the engine room polls after it.}
+      started_at: {}
+      recorded_at: {description: When the interaction was recorded; retention and replay windows use it.}
+      duration_ms: {description: Wall-clock duration of the observed call.}
+      channel: {description: web, mcp, chat, cli or worker.}
+      kind: {description: read, propose, decide or job.}
+      operation: {description: Tool or command name, or route template; never a raw path or query.}
+      outcome: {description: ok, refused, failed or awaiting_decision.}
+      error_code: {description: Bounded refusal or failure code; never a message.}
+      actor_user_id: {description: The signed-in person; null for token-only MCP calls and jobs.}
+      mcp_token_id: {description: Same-tenant MCP access token that made the call.}
+      job_id: {description: Scheduled job run the interaction was.}
+      correlation_id: {description: The shared cause (one click, one chat turn, one call, one run).}
+      proposal_id: {description: Same-tenant ChangeProposal the interaction requested or decided.}
+      event_first_sequence: {description: First committed business event sequence it caused.}
+      event_last_sequence: {description: Last committed business event sequence it caused.}
+      event_ranges: {description: Exact contiguous ranges of committed event sequences it caused.}
+      refresh: {description: Timer-driven background refresh; hidden by default.}
+      summary: {description: Declared argument names and a result count; no values.}
   storyline_package:
     description: An imported Storyline package owned by an account; never joined by business reads.
     columns:

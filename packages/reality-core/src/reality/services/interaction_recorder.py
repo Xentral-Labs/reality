@@ -65,6 +65,14 @@ _current: ContextVar[Observation | None] = ContextVar(
 )
 _session_factory: Callable[[], Session] | None = None
 
+#: How often one process tidies one company's expired interactions, and how many
+#: rows one tidy removes. The work that makes the history is the work that tidies
+#: it (the spec 181 FR-005 rule for job runs): a company cannot add rows without
+#: also forgetting old ones, and a quiet company costs nothing.
+TIDY_INTERVAL_SECONDS = 600.0
+TIDY_BATCH = 500
+_last_tidy: dict[str, float] = {}
+
 
 def enabled() -> bool:
     return os.environ.get("REALITY_INTERACTIONS", "on").lower() != "off"
@@ -397,3 +405,16 @@ def _write(observation: Observation, outcome: str, error_code: str | None) -> No
             )
         )
         session.commit()
+        _tidy(session, tenant_id)
+
+
+def _tidy(session: Session, tenant_id: str) -> None:
+    moment = time.monotonic()
+    last = _last_tidy.get(tenant_id)
+    if last is not None and moment - last < TIDY_INTERVAL_SECONDS:
+        return
+    _last_tidy[tenant_id] = moment
+    from reality.services.interactions import purge_expired
+
+    purge_expired(session, tenant_id, batch=TIDY_BATCH, batches=1)
+    session.commit()
