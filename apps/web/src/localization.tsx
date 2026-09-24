@@ -11772,6 +11772,7 @@ Object.assign(dictionaries.de, {
   "Review token": "Token prüfen",
   "Review token revocation": "Token-Widerruf prüfen",
   "Search tools": "Werkzeuge suchen",
+  "Select full access": "Vollzugriff auswählen",
   "Select read tools": "Lesewerkzeuge auswählen",
   "selected tools": "ausgewählte Werkzeuge",
   "The result needs checking. No change will be sent again automatically.":
@@ -11837,6 +11838,7 @@ Object.assign(dictionaries.nl, {
   "Review token": "Token controleren",
   "Review token revocation": "Intrekking van token controleren",
   "Search tools": "Tools zoeken",
+  "Select full access": "Volledige toegang selecteren",
   "Select read tools": "Leestools selecteren",
   "selected tools": "geselecteerde tools",
   "The result needs checking. No change will be sent again automatically.":
@@ -11903,6 +11905,7 @@ Object.assign(dictionaries.es, {
   "Review token": "Revisar token",
   "Review token revocation": "Revisar revocación del token",
   "Search tools": "Buscar herramientas",
+  "Select full access": "Seleccionar acceso completo",
   "Select read tools": "Seleccionar herramientas de lectura",
   "selected tools": "herramientas seleccionadas",
   "The result needs checking. No change will be sent again automatically.":
