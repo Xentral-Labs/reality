@@ -79,6 +79,21 @@ make spec-check
 - Expected: complete fixture is explainable; incomplete results remain unavailable with exact
   missing basis. No purchase/list price is promoted to actual cost.
 
+Additional qualification checks:
+
+- After one receipt review, create an unrelated payment term and payment; the review must remain
+  current. Change one linked attribution; only affected reviews become stale and name that scope.
+- Transfer reviewed stock internally, then value and consume it; ownership and cost trace must
+  still lead to the original supplier receipt and the destination transfer must not require a
+  second acquisition review.
+- Record a sales invoice whose source states net, tax and gross, and confirm DB1/DB2 use the stated
+  net. Repeat with gross only and confirm `received_net_missing` without recomputation.
+- Submit both supported customer-credit shapes and an empty/mixed shape; valid inputs must survive
+  the MCP wrapper and invalid inputs must create no proposal.
+- Trigger a deterministic confirmation refusal and verify terminal `failed` with
+  `business_effect: none`; separately simulate an indeterminate outcome and verify it remains
+  `executing`.
+
 ### 8. Full CanisPro qualification
 
 - Repeat this numbered required coverage on the fresh tenant:

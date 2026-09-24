@@ -294,13 +294,17 @@ def _finance_balances(
     return finance_balances(session, tenant_id)
 
 
-def _dunning_context(session: Session, tenant_id: str, arguments: dict[str, Any]) -> Any:
+def _dunning_context(
+    session: Session, tenant_id: str, arguments: dict[str, Any]
+) -> Any:
     from reality.services.dunning import dunning_context
 
     return dunning_context(session, tenant_id, arguments)
 
 
-def _dunning_notices(session: Session, tenant_id: str, arguments: dict[str, Any]) -> Any:
+def _dunning_notices(
+    session: Session, tenant_id: str, arguments: dict[str, Any]
+) -> Any:
     del arguments
     from reality.services.dunning import notices
 
@@ -1372,9 +1376,7 @@ def _commitment_cancel(
     from reality.services.core import cancel_commitment
 
     action_id = arguments.pop("_action_id", None)
-    commitment = cancel_commitment(
-        session, tenant_id, action_id=action_id, **arguments
-    )
+    commitment = cancel_commitment(session, tenant_id, action_id=action_id, **arguments)
     event = session.scalar(
         select(BusinessEvent).where(
             BusinessEvent.tenant_id == tenant_id,
@@ -1450,6 +1452,24 @@ def _capability_describe(
         if candidates:
             canonical_name = candidates[0]
     guidance = catalog.get(canonical_name)
+    if guidance is None and canonical_name:
+        from reality.mcp.catalog import MCP_TOOL_REGISTRY
+
+        definition = MCP_TOOL_REGISTRY[canonical_name]
+        application_name = getattr(
+            definition.handler, "application_name", canonical_name
+        )
+        return {
+            "canonical_public_name": canonical_name,
+            "tool_name": canonical_name,
+            "application_tool": application_name,
+            "kind": "proposal" if definition.access == "propose" else definition.access,
+            "purpose": definition.description,
+            "input_schema": definition.input_schema,
+            "confirmation": "required"
+            if definition.access in {"propose", "confirm"}
+            else "not_required",
+        }
     if guidance is None:
         raise NotFound("Capability not found.")
     return {"canonical_public_name": canonical_name, **guidance}
@@ -1552,6 +1572,20 @@ def _proposal_execution_receipt(
     )
     if proposal is None:
         raise NotFound("Proposal not found.")
+    if proposal.status == "failed":
+        failure = json.loads(proposal.output)
+        return {
+            "proposal_id": proposal.id,
+            "status": proposal.status,
+            "capability": proposal.type.removeprefix("tool:"),
+            "receipt": None,
+            "verification": {
+                "execution": "failed",
+                "operational_state": "no_effect",
+                "business_outcome": "not_proven",
+            },
+            "failure": failure,
+        }
     if (
         "_delivery_review" in json.loads(proposal.input)
         and proposal.type != "tool:reserve"
@@ -3329,11 +3363,11 @@ def approve_and_execute_proposal(
         try:
             with executing_proposal(tenant_id, proposal.id):
                 result = tool.handler(session, tenant_id, arguments)
-        except (InvalidOperation, NotFound):
+        except (InvalidOperation, NotFound) as error:
             # A synchronous domain refusal from a reviewed application handler is a
             # known no-effect outcome: the handler did not return and its current
-            # transaction is rolled back. Restore the reviewed proposal so corrected
-            # input/fresh state can be proposed without pretending an unknown effect.
+            # transaction is rolled back. Retain that terminal fact instead of
+            # stranding the action in `executing` or making rejected input retryable.
             # Unexpected exceptions still leave the durable execution claim intact.
             if not reviewed_action:
                 raise
@@ -3345,7 +3379,17 @@ def approve_and_execute_proposal(
                     ChangeProposal.id == proposal_id,
                     ChangeProposal.status == "executing",
                 )
-                .values(status="proposed", **UNDECIDED)
+                .values(
+                    status="failed",
+                    output=json.dumps(
+                        {
+                            "business_effect": "none",
+                            "error_type": type(error).__name__,
+                            "message": str(error),
+                        },
+                        sort_keys=True,
+                    ),
+                )
             )
             session.commit()
             raise

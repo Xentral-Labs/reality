@@ -12,9 +12,14 @@ guidance from current tenant-scoped state.
 
 - Holds the exact prepared tool identity, normalized input, preview, lifecycle and receipt.
 - Remains the single handoff from agent preparation to authenticated human decision.
-- States remain `proposed`, `executing`, `executed` and `rejected`.
+- States remain `proposed`, `executing`, `executed` and `rejected`; terminal `failed` records a
+  deterministic, rolled-back refusal with no business effect. `executing` remains reserved for an
+  outcome whose commit state is genuinely indeterminate.
 - Only `proposed` may transition to `executing` through confirmation or to `rejected` through
-  explicit rejection. Executed or indeterminate execution is never rewritten as rejected.
+  explicit rejection. `executing` may transition to `executed` after a committed effect or to
+  `failed` only after the attempted transaction rolled back and reconciliation proves that no
+  business record, event or ledger effect exists for the action identity. Executed, failed or
+  indeterminate execution is never rewritten as rejected.
 
 ### SourceRecord
 
@@ -66,6 +71,17 @@ guidance from current tenant-scoped state.
 - Cost guidance is derived at read time from their presence, state and gaps.
 - Actual acquisition cost, inventory value, DB1 and DB2 remain unavailable until their own
   required evidence and review are complete.
+- A receipt review's freshness is the equality of its retained canonical evidence fingerprint,
+  not equality with the tenant's latest unrelated event sequence.
+- An internal transfer consumes and recreates location-scoped quantity while preserving the
+  original acquisition layer, owner and receipt trace.
+
+### Received invoice finance detail
+
+- Existing `DocumentLine.payload.reality_finance_v1` retains only source-stated `net`, `tax`,
+  `gross`, currency and source codes.
+- Absent net or tax remains absent. Gross and ledger postings are not used to manufacture it.
+- Contribution reads use stated net evidence and name `received_net_missing` otherwise.
 
 ## Derived read contracts
 
@@ -111,6 +127,10 @@ guidance from current tenant-scoped state.
   stock.
 - Owner-governed finance/cost effects require an active authenticated owner at confirmation.
 - Derived guidance and effect classifications perform no writes.
+- An unrelated tenant event does not change a receipt evidence fingerprint; a related component,
+  attribution, correction, receipt or category decision does.
+- A deterministic failed proposal has no retained domain record, event or ledger effect for its
+  action identity and exposes a redacted failure receipt.
 
 ## Migration and rollback
 

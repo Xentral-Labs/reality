@@ -2208,8 +2208,7 @@
           "type": "string",
           "required": true,
           "description": "Closed business purpose that determines the shipment's counterparty role and compatible Movement type.",
-          "depth": 0,
-          "enum": ["customer_delivery", "supplier_return"]
+          "depth": 0
         },
         {
           "name": "counterparty_id",
@@ -2224,6 +2223,76 @@
           "required": true,
           "description": "Exact existing Movement command inputs to record atomically as the physical contents of one Package.",
           "depth": 0
+        },
+        {
+          "name": "movements[].movement_type",
+          "type": "string",
+          "required": false,
+          "description": "Physical event kind — opening_stock, receipt, shipment, transfer, adjustment, return (goods back from a customer), or supplier_return (goods back to a supplier).",
+          "depth": 1
+        },
+        {
+          "name": "movements[].item_id",
+          "type": "string",
+          "required": true,
+          "description": "Opaque identity of the operational item reference.",
+          "depth": 1
+        },
+        {
+          "name": "movements[].quantity",
+          "type": "string",
+          "required": true,
+          "description": "Decimal quantity expressed in the item's relevant unit.",
+          "depth": 1
+        },
+        {
+          "name": "movements[].from_location_id",
+          "type": "string",
+          "required": false,
+          "description": "Opaque identity of the location from which physical stock leaves.",
+          "depth": 1
+        },
+        {
+          "name": "movements[].to_location_id",
+          "type": "string",
+          "required": false,
+          "description": "Opaque identity of the location into which physical stock arrives.",
+          "depth": 1
+        },
+        {
+          "name": "movements[].commitment_id",
+          "type": "string",
+          "required": false,
+          "description": "Opaque identity of the obligation being reserved, held, or executed.",
+          "depth": 1
+        },
+        {
+          "name": "movements[].handling_unit_id",
+          "type": "string",
+          "required": false,
+          "description": "Optional pallet or handling-unit identity, for example an NVE/SSCC-labelled pallet.",
+          "depth": 1
+        },
+        {
+          "name": "movements[].lot_id",
+          "type": "string",
+          "required": false,
+          "description": "Exact batch or lot identity to reserve or move.",
+          "depth": 1
+        },
+        {
+          "name": "movements[].serial_unit_id",
+          "type": "string",
+          "required": false,
+          "description": "Exact serial-unit identity to reserve or move; serialized quantities are always one.",
+          "depth": 1
+        },
+        {
+          "name": "movements[].reason",
+          "type": "string",
+          "required": false,
+          "description": "Human-readable explanation for a hold, correction, or lifecycle change.",
+          "depth": 1
         },
         {
           "name": "carrier",
@@ -2278,8 +2347,7 @@
           "type": "string",
           "required": true,
           "description": "Closed business purpose that determines the shipment's counterparty role and compatible Movement type.",
-          "depth": 0,
-          "enum": ["supplier_delivery", "customer_return"]
+          "depth": 0
         },
         {
           "name": "counterparty_id",
@@ -2294,6 +2362,76 @@
           "required": true,
           "description": "Exact existing Movement command inputs to record atomically as the physical contents of one Package.",
           "depth": 0
+        },
+        {
+          "name": "movements[].movement_type",
+          "type": "string",
+          "required": false,
+          "description": "Physical event kind — opening_stock, receipt, shipment, transfer, adjustment, return (goods back from a customer), or supplier_return (goods back to a supplier).",
+          "depth": 1
+        },
+        {
+          "name": "movements[].item_id",
+          "type": "string",
+          "required": true,
+          "description": "Opaque identity of the operational item reference.",
+          "depth": 1
+        },
+        {
+          "name": "movements[].quantity",
+          "type": "string",
+          "required": true,
+          "description": "Decimal quantity expressed in the item's relevant unit.",
+          "depth": 1
+        },
+        {
+          "name": "movements[].from_location_id",
+          "type": "string",
+          "required": false,
+          "description": "Opaque identity of the location from which physical stock leaves.",
+          "depth": 1
+        },
+        {
+          "name": "movements[].to_location_id",
+          "type": "string",
+          "required": false,
+          "description": "Opaque identity of the location into which physical stock arrives.",
+          "depth": 1
+        },
+        {
+          "name": "movements[].commitment_id",
+          "type": "string",
+          "required": false,
+          "description": "Opaque identity of the obligation being reserved, held, or executed.",
+          "depth": 1
+        },
+        {
+          "name": "movements[].handling_unit_id",
+          "type": "string",
+          "required": false,
+          "description": "Optional pallet or handling-unit identity, for example an NVE/SSCC-labelled pallet.",
+          "depth": 1
+        },
+        {
+          "name": "movements[].lot_id",
+          "type": "string",
+          "required": false,
+          "description": "Exact batch or lot identity to reserve or move.",
+          "depth": 1
+        },
+        {
+          "name": "movements[].serial_unit_id",
+          "type": "string",
+          "required": false,
+          "description": "Exact serial-unit identity to reserve or move; serialized quantities are always one.",
+          "depth": 1
+        },
+        {
+          "name": "movements[].reason",
+          "type": "string",
+          "required": false,
+          "description": "Human-readable explanation for a hold, correction, or lifecycle change.",
+          "depth": 1
         },
         {
           "name": "carrier",
@@ -7221,6 +7359,63 @@
           "depth": 1
         },
         {
+          "name": "lines[].reality_finance_v1",
+          "type": "object",
+          "required": false,
+          "description": "",
+          "depth": 1
+        },
+        {
+          "name": "lines[].reality_finance_v1.version",
+          "type": "integer",
+          "required": false,
+          "description": "",
+          "depth": 2,
+          "enum": [1]
+        },
+        {
+          "name": "lines[].reality_finance_v1.net",
+          "type": "string",
+          "required": false,
+          "description": "",
+          "depth": 2
+        },
+        {
+          "name": "lines[].reality_finance_v1.tax",
+          "type": "string",
+          "required": false,
+          "description": "",
+          "depth": 2
+        },
+        {
+          "name": "lines[].reality_finance_v1.base",
+          "type": "string",
+          "required": false,
+          "description": "",
+          "depth": 2
+        },
+        {
+          "name": "lines[].reality_finance_v1.gross",
+          "type": "string",
+          "required": false,
+          "description": "",
+          "depth": 2
+        },
+        {
+          "name": "lines[].reality_finance_v1.currency",
+          "type": "string",
+          "required": false,
+          "description": "ISO 4217 currency code for monetary values.",
+          "depth": 2
+        },
+        {
+          "name": "lines[].reality_finance_v1.codes",
+          "type": "object",
+          "required": false,
+          "description": "",
+          "depth": 2
+        },
+        {
           "name": "gross_amount",
           "type": "string",
           "required": true,
@@ -7302,6 +7497,63 @@
           "required": true,
           "description": "Total the source states for the document; recorded as received and never calculated.",
           "depth": 1
+        },
+        {
+          "name": "lines[].reality_finance_v1",
+          "type": "object",
+          "required": false,
+          "description": "",
+          "depth": 1
+        },
+        {
+          "name": "lines[].reality_finance_v1.version",
+          "type": "integer",
+          "required": false,
+          "description": "",
+          "depth": 2,
+          "enum": [1]
+        },
+        {
+          "name": "lines[].reality_finance_v1.net",
+          "type": "string",
+          "required": false,
+          "description": "",
+          "depth": 2
+        },
+        {
+          "name": "lines[].reality_finance_v1.tax",
+          "type": "string",
+          "required": false,
+          "description": "",
+          "depth": 2
+        },
+        {
+          "name": "lines[].reality_finance_v1.base",
+          "type": "string",
+          "required": false,
+          "description": "",
+          "depth": 2
+        },
+        {
+          "name": "lines[].reality_finance_v1.gross",
+          "type": "string",
+          "required": false,
+          "description": "",
+          "depth": 2
+        },
+        {
+          "name": "lines[].reality_finance_v1.currency",
+          "type": "string",
+          "required": false,
+          "description": "ISO 4217 currency code for monetary values.",
+          "depth": 2
+        },
+        {
+          "name": "lines[].reality_finance_v1.codes",
+          "type": "object",
+          "required": false,
+          "description": "",
+          "depth": 2
         },
         {
           "name": "gross_amount",
@@ -14436,7 +14688,7 @@
       "summary": "Prepare explicit received-cost attribution, replacement, withdrawal, inventory scope or whole-line contribution review. An active owner must explicitly confirm the unchanged proposal.",
       "access": "propose",
       "group": "Finance",
-      "synopsis": "cost_change_propose expected_event_sequence reason operation [document_id] [document_line_id] [expected_evidence_hash] [basis] [selected_basis_tax_inclusion] [tax_treatment] [nonrecoverable_tax_amount] [parts] [previous_component_basis_id] [movement_id] [categories] [component_basis_id] [item_id] [owner_party_id] [method] [currency] [base_unit] [history_start] [effective_at] [history_complete_from_zero] [receipt_cost_scopes_confirmed] [economic_issue_ids] [loss_movement_ids] [supplier_return_ids] [customer_return_ids] [receipts] [openings] [specific_selections] [return_parts] [ownership_parts] [scopes] [expected_candidate_hash] [profile] [profile_confirmed] [revenue_complete] [economic_at] [selling_categories] [positions] [goods_cost_disposition] [inventory_parts] [direct_parts] [direct_cost_complete] [selling_expense_confirmed]",
+      "synopsis": "cost_change_propose expected_event_sequence reason operation [document_id] [document_line_id] [expected_evidence_hash] [basis] [selected_basis_tax_inclusion] [tax_treatment] [nonrecoverable_tax_amount] [parts] [allocation_total] [category] [cost_effect] [amount_bucket] [driver_kind] [conversion_basis_revision_id] [targets] [movement_id] [categories] [previous_component_basis_id] [component_basis_id] [item_id] [owner_party_id] [method] [currency] [base_unit] [history_start] [effective_at] [history_complete_from_zero] [receipt_cost_scopes_confirmed] [economic_issue_ids] [loss_movement_ids] [supplier_return_ids] [customer_return_ids] [receipts] [openings] [specific_selections] [return_parts] [ownership_parts] [scopes] [expected_candidate_hash] [profile] [profile_confirmed] [revenue_complete] [economic_at] [selling_categories] [positions] [goods_cost_disposition] [inventory_parts] [direct_parts] [direct_cost_complete] [selling_expense_confirmed] [evidence_source_record_id] [kind] [from_code] [to_code] [numerator] [denominator] [supersedes_id] [inventory_review_id]",
       "parameters": [
         {
           "name": "expected_event_sequence",
@@ -14456,20 +14708,8 @@
           "name": "operation",
           "type": "string",
           "required": true,
-          "description": "Assign received shares; replace requires fresh evidence and predecessor ID; review requires movement and all six categories; withdraw requires component basis ID. Inventory review requires an explicit FIFO policy, full history and ownership evidence, exact receipt reviews and economic issue identities. Inventory batch review requires 2–10 distinct scopes with the same cutoff, economic owner and currency, within 100 movements and 20 receipts in total; it confirms all scopes atomically. Contribution review requires the exact candidate hash, explicit commercial_v1/profile and revenue completeness confirmation, and the exact shipment economic time. Contribution batch review requires 2–10 distinct positions on one common confirmed inventory action, cutoff, economic owner and currency; all positions are confirmed atomically with independent selling coverage. Selling assign requires received supplier net evidence, recoverable/no-tax treatment, explicit selling-expense confirmation excluding acquisition/inventory/overhead, and exact sold-line shares. Contribution selling_categories optionally reviews all seven categories to finalize DB2. Every operation requires the current event sequence and a reason.",
-          "depth": 0,
-          "enum": [
-            "assign",
-            "replace",
-            "review",
-            "withdraw",
-            "inventory_review",
-            "inventory_batch_review",
-            "contribution_review",
-            "contribution_batch_review",
-            "commercial_match_review",
-            "selling_assign"
-          ]
+          "description": "",
+          "depth": 0
         },
         {
           "name": "document_id",
@@ -14533,11 +14773,143 @@
           "depth": 0
         },
         {
-          "name": "previous_component_basis_id",
+          "name": "parts[].movement_id",
+          "type": "string",
+          "required": true,
+          "description": "Opaque identity of the immutable physical Movement being inspected or corrected.",
+          "depth": 1
+        },
+        {
+          "name": "parts[].category",
+          "type": "string",
+          "required": true,
+          "description": "",
+          "depth": 1,
+          "enum": [
+            "goods",
+            "inbound_freight",
+            "duty",
+            "other_acquisition",
+            "purchase_reduction",
+            "nonrecoverable_tax"
+          ]
+        },
+        {
+          "name": "parts[].source_share",
+          "type": "number | string",
+          "required": true,
+          "description": "Explicit signed share of the selected received amount; total shares cannot exceed that source bucket.",
+          "depth": 1
+        },
+        {
+          "name": "parts[].cost_effect",
+          "type": "integer",
+          "required": true,
+          "description": "Explicit economic cost direction, separate from the retained source sign.",
+          "depth": 1,
+          "enum": [-1, 1]
+        },
+        {
+          "name": "parts[].amount_bucket",
           "type": "string",
           "required": false,
           "description": "",
+          "depth": 1,
+          "default": "selected_basis",
+          "enum": ["selected_basis", "nonrecoverable_tax"]
+        },
+        {
+          "name": "parts[].assignment_kind",
+          "type": "string",
+          "required": false,
+          "description": "Direct cost attribution or explicitly allocated share, kept separate in contribution output.",
+          "depth": 1,
+          "default": "direct",
+          "enum": ["direct", "allocated"]
+        },
+        {
+          "name": "parts[].conversion_basis_revision_id",
+          "type": "string",
+          "required": false,
+          "description": "",
+          "depth": 1,
+          "default": null
+        },
+        {
+          "name": "allocation_total",
+          "type": "number | string",
+          "required": false,
+          "description": "",
           "depth": 0
+        },
+        {
+          "name": "category",
+          "type": "string",
+          "required": false,
+          "description": "",
+          "depth": 0,
+          "enum": [
+            "goods",
+            "inbound_freight",
+            "duty",
+            "other_acquisition",
+            "purchase_reduction",
+            "nonrecoverable_tax"
+          ]
+        },
+        {
+          "name": "cost_effect",
+          "type": "integer",
+          "required": false,
+          "description": "Explicit economic cost direction, separate from the retained source sign.",
+          "depth": 0,
+          "enum": [-1, 1]
+        },
+        {
+          "name": "amount_bucket",
+          "type": "string",
+          "required": false,
+          "description": "",
+          "depth": 0,
+          "enum": ["selected_basis", "nonrecoverable_tax"]
+        },
+        {
+          "name": "driver_kind",
+          "type": "string",
+          "required": false,
+          "description": "",
+          "depth": 0,
+          "enum": ["quantity", "equal", "manual"]
+        },
+        {
+          "name": "conversion_basis_revision_id",
+          "type": "string",
+          "required": false,
+          "description": "",
+          "depth": 0,
+          "default": null
+        },
+        {
+          "name": "targets",
+          "type": "array",
+          "required": false,
+          "description": "",
+          "depth": 0
+        },
+        {
+          "name": "targets[].movement_id",
+          "type": "string",
+          "required": true,
+          "description": "Opaque identity of the immutable physical Movement being inspected or corrected.",
+          "depth": 1
+        },
+        {
+          "name": "targets[].weight",
+          "type": "number | string",
+          "required": false,
+          "description": "",
+          "depth": 1,
+          "default": null
         },
         {
           "name": "movement_id",
@@ -14582,6 +14954,13 @@
           "required": true,
           "description": "Human-readable explanation for a hold, correction, or lifecycle change.",
           "depth": 1
+        },
+        {
+          "name": "previous_component_basis_id",
+          "type": "string",
+          "required": false,
+          "description": "",
+          "depth": 0
         },
         {
           "name": "component_basis_id",
@@ -15366,6 +15745,64 @@
           "required": false,
           "description": "Explicit owner confirmation of selling expense, excluding acquisition costs, inventory purchases, general overhead and already included manufacturing cost.",
           "depth": 0
+        },
+        {
+          "name": "evidence_source_record_id",
+          "type": "string",
+          "required": false,
+          "description": "",
+          "depth": 0
+        },
+        {
+          "name": "kind",
+          "type": "string",
+          "required": false,
+          "description": "Explicit internal or target reference kind; no inferred tax or country meaning.",
+          "depth": 0,
+          "enum": ["unit", "currency"]
+        },
+        {
+          "name": "from_code",
+          "type": "string",
+          "required": false,
+          "description": "",
+          "depth": 0
+        },
+        {
+          "name": "to_code",
+          "type": "string",
+          "required": false,
+          "description": "",
+          "depth": 0
+        },
+        {
+          "name": "numerator",
+          "type": "number | string",
+          "required": false,
+          "description": "",
+          "depth": 0
+        },
+        {
+          "name": "denominator",
+          "type": "number | string",
+          "required": false,
+          "description": "",
+          "depth": 0
+        },
+        {
+          "name": "supersedes_id",
+          "type": "string",
+          "required": false,
+          "description": "",
+          "depth": 0,
+          "default": null
+        },
+        {
+          "name": "inventory_review_id",
+          "type": "string",
+          "required": false,
+          "description": "",
+          "depth": 0
         }
       ],
       "guidance": {
@@ -15897,7 +16334,7 @@
       "related_services": [],
       "tools": ["cost_change_propose"],
       "synopses": [
-        "cost_change_propose expected_event_sequence reason operation [document_id] [document_line_id] [expected_evidence_hash] [basis] [selected_basis_tax_inclusion] [tax_treatment] [nonrecoverable_tax_amount] [parts] [previous_component_basis_id] [movement_id] [categories] [component_basis_id] [item_id] [owner_party_id] [method] [currency] [base_unit] [history_start] [effective_at] [history_complete_from_zero] [receipt_cost_scopes_confirmed] [economic_issue_ids] [loss_movement_ids] [supplier_return_ids] [customer_return_ids] [receipts] [openings] [specific_selections] [return_parts] [ownership_parts] [scopes] [expected_candidate_hash] [profile] [profile_confirmed] [revenue_complete] [economic_at] [selling_categories] [positions] [goods_cost_disposition] [inventory_parts] [direct_parts] [direct_cost_complete] [selling_expense_confirmed]"
+        "cost_change_propose expected_event_sequence reason operation [document_id] [document_line_id] [expected_evidence_hash] [basis] [selected_basis_tax_inclusion] [tax_treatment] [nonrecoverable_tax_amount] [parts] [allocation_total] [category] [cost_effect] [amount_bucket] [driver_kind] [conversion_basis_revision_id] [targets] [movement_id] [categories] [previous_component_basis_id] [component_basis_id] [item_id] [owner_party_id] [method] [currency] [base_unit] [history_start] [effective_at] [history_complete_from_zero] [receipt_cost_scopes_confirmed] [economic_issue_ids] [loss_movement_ids] [supplier_return_ids] [customer_return_ids] [receipts] [openings] [specific_selections] [return_parts] [ownership_parts] [scopes] [expected_candidate_hash] [profile] [profile_confirmed] [revenue_complete] [economic_at] [selling_categories] [positions] [goods_cost_disposition] [inventory_parts] [direct_parts] [direct_cost_complete] [selling_expense_confirmed] [evidence_source_record_id] [kind] [from_code] [to_code] [numerator] [denominator] [supersedes_id] [inventory_review_id]"
       ],
       "events": ["cost.attributed", "cost.reviewed"],
       "actions": [],

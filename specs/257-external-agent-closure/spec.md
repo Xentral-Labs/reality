@@ -267,6 +267,15 @@ unavailable.
 6. **Given** a canonical live-demo company, **When** setup reports calculation readiness,
    **Then** it satisfies the coverage and freshness requirements of spec 251 rather than
    creating a separate audit-only costing path.
+7. **Given** a receipt has a completed cost review, **When** an unrelated tenant mutation occurs,
+   **Then** the review remains current; only a change to the bounded evidence or decision scope
+   can invalidate it, and the invalidating relationship is named.
+8. **Given** owned stock is moved internally, **When** inventory value is reviewed, **Then** the
+   transfer preserves the incoming value history rather than requiring independent acquisition
+   evidence at the destination; any genuinely incomplete receipt is identified individually.
+9. **Given** a source states sales net, tax and gross amounts, **When** the invoice is recorded and
+   contribution is reviewed, **Then** those received values remain distinguishable and DB1/DB2
+   consume the stated net basis without recomputing it from gross.
 
 ---
 
@@ -304,6 +313,10 @@ document types. Verify exact queue, read and persistence outcomes.
 6. **Given** a low-level generic document action, **When** it receives external evidence with
    an unknown upstream label, **Then** the label may remain losslessly preserved in the source
    payload but is not accepted as a supported operational document type.
+7. **Given** confirmation encounters a deterministic domain refusal and its transaction rolls
+   back with no retained business effect, **When** the proposal is reconciled, **Then** it reaches
+   terminal `failed`, reports `business_effect: none` and names a safe recovery; a timeout, lost
+   response or otherwise unknown commit outcome remains `executing` and is never auto-replayed.
 
 ### Edge Cases
 
@@ -324,6 +337,14 @@ document types. Verify exact queue, read and persistence outcomes.
 - Generated documentation is newer or older than the deployed MCP registry.
 - A rejected proposal contains secrets or malformed legacy input; inspection and rejection
   must not disclose protected values.
+- A deterministic execution refusal occurs after confirmation but before any business effect.
+- An unrelated tenant event occurs after a cost review, or several independent receipts are
+  reviewed without changing one another's evidence.
+- An internal transfer creates an inbound movement at its destination without creating a second
+  acquisition event or owner.
+- A source states gross only, net only, tax separately, or an internally inconsistent combination;
+  the product retains stated values and refuses unsupported completeness claims without deriving
+  a replacement authority.
 - Cross-tenant IDs in reads, proposals, confirmation, rejection or verification behave as
   unavailable and cause no partial effect.
 
@@ -418,6 +439,30 @@ document types. Verify exact queue, read and persistence outcomes.
   accepted limitation, or superseded claim with evidence.
 - **FR-030**: Generated Tool Usage documentation MUST be regenerated and verified whenever a
   command, tool, read, projection, exception, event or MCP input contract changes.
+- **FR-031**: The advertised customer-credit proposal MUST retain and validate every supplied
+  argument for each supported credit shape; an empty or incomplete shape MUST be refused before a
+  durable proposal exists, and a supported invoice-linked credit MUST complete without a generic
+  document workaround.
+- **FR-032**: Cost-review freshness MUST be derived from the bounded evidence and owner-decision
+  scope of the reviewed receipt. Unrelated tenant activity MUST NOT invalidate the review, while
+  a relevant change MUST invalidate it and identify the changed evidence relationship.
+- **FR-033**: Relationship, required-input and closed-value validation that can be determined at
+  preparation time MUST occur before proposal persistence; confirmation MUST NOT be the first
+  point at which an invalid billed line or missing credit line is discovered.
+- **FR-034**: A deterministic confirmation failure with no committed business effect MUST leave a
+  terminal, inspectable failed outcome that states `business_effect: none` and permits safe
+  recovery. It MUST NOT remain indefinitely in `executing` or be replayed as unknown execution.
+- **FR-035**: Internal stock transfers MUST preserve the item's existing ownership and value
+  history without treating the destination movement as a new acquisition receipt. Inventory
+  review refusals MUST identify every exact movement or evidence scope that remains incomplete.
+- **FR-036**: Every operation-specific public action MUST publish a machine-readable union of its
+  accepted shapes, required fields, meanings and closed values. Cost amounts and sign semantics,
+  review dispositions, tax treatments and shipment-purpose movement types MUST be discoverable
+  without deliberate invalid calls.
+- **FR-037**: Invoice evidence MUST retain source-stated net, tax and gross amounts when supplied,
+  without deriving one received value from another. Contribution review MUST consume the stated
+  net revenue basis and remain explicitly unavailable when the source did not state an accepted
+  basis.
 
 ### Domain and Traceability Requirements
 
@@ -489,6 +534,13 @@ document types. Verify exact queue, read and persistence outcomes.
 - **SC-010**: F1 through F13 each map to at least one accepted scenario and executable proof or
   to an explicit approved non-goal with regression evidence.
 - **SC-011**: Every FR and DR has an acceptance scenario and executable proof.
+- **SC-012**: One unrelated tenant mutation leaves 100% of previously current receipt reviews
+  current, while each relevant evidence mutation invalidates exactly the affected reviews.
+- **SC-013**: A complete purchase, internal transfer and sale fixture yields the same explainable
+  remaining inventory value before and after the transfer, and its invoice-linked DB1/DB2 result
+  uses source-stated revenue evidence.
+- **SC-014**: Every deterministic execution refusal in the qualification reaches a terminal
+  inspectable state with no business effect; zero proposals remain indefinitely `executing`.
 
 ## Assumptions and Dependencies
 
@@ -526,11 +578,13 @@ audit dispositions above.
 | FR-014–FR-016, FR-025 | US3.1–US3.4, US5.5 | Invoice-credit context and canonical multi-position credit story |
 | FR-017–FR-018 | US3.5–US3.6 | Tracked return disposition and actionable-refusal stories |
 | FR-019 | US5.4, US5.6 | Closed document/movement validation and lossless source preservation |
-| FR-020–FR-023 | US4.1–US4.6 | Complete and incomplete ordinary costing plus spec-251 demo regression |
+| FR-020–FR-023, FR-032, FR-035, FR-037 | US4.1–US4.9 | Complete and incomplete ordinary costing, scoped freshness, transfer continuity, stated revenue and spec-251 demo regression |
 | FR-024 | US5.1–US5.2 | Proposal rejection, replay and cross-tenant lifecycle tests |
 | FR-026 | US5.3 | Customer/supplier and incoming/outgoing payment-filter contract tests |
 | FR-027 | US3.7 | Canonical linked credit versus unlinked generic-credit exception story |
 | FR-028–FR-029 | All stories | Fresh CanisPro qualification protocol and F1–F13 closure matrix |
+| FR-031, FR-033–FR-034 | US3.1–US3.4, US5.4 | Credit input retention, propose-time relationship validation and terminal failure recovery |
+| FR-036 | US1.1–US1.2, US1.5 | Operation-specific schema and guidance parity |
 | DR-001–DR-004 | US2–US4 | Source/evidence/Reality and shortest-link review with business-story proofs |
 | DR-005–DR-007 | All stories | Cross-surface parity, tenant-isolation and owner-authority tests |
 | DR-008 | All stories | Plan Constitution Check and schema proof |
@@ -544,11 +598,11 @@ audit dispositions above.
 | F3 | FR-005–FR-006 | Exact-location zero/partial/full reservation receipts |
 | F4 | FR-007–FR-008, DR-007 | Agent refusal and authenticated-owner confirmation |
 | F5 | FR-009–FR-011 | Overpayment and settlement-difference stories |
-| F6 | FR-014–FR-016, FR-025 | Invoice-line discovery and canonical credit story |
-| F7 | FR-001–FR-002, FR-030 | Catalog/runtime/reference parity |
+| F6 | FR-014–FR-016, FR-025, FR-031 | Invoice-line discovery, retained proposal input and canonical credit story |
+| F7 | FR-001–FR-002, FR-030, FR-036 | Catalog/runtime/reference parity including operation-specific unions |
 | F8 | FR-017 | Missing-relationship refusal tests |
 | F9 | FR-018 | Four-disposition public regression |
-| F10 | FR-019 | Early closed-type validation |
+| F10 | FR-019, FR-033–FR-034 | Early closed-type/relationship validation and terminal effect-free failure |
 | F11 | FR-012 | MCP dunning and reversal story |
-| F12 | FR-020–FR-023, DR-003, DR-007 | Truthful guided costing and demo-readiness regression |
-| F13 | FR-001–FR-005, FR-014, FR-019, FR-024–FR-030 | Schema, read, filtering, lifecycle, exception and release qualification |
+| F12 | FR-020–FR-023, FR-032, FR-035, FR-037, DR-003, DR-007 | Truthful guided costing, scoped freshness, transfer continuity, stated revenue and demo-readiness regression |
+| F13 | FR-001–FR-005, FR-014, FR-019, FR-024–FR-036 | Schema, read, filtering, lifecycle, exception and release qualification |

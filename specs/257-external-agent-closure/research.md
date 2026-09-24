@@ -159,3 +159,69 @@ new behavior. Persisting derived onboarding or audit state would add a second au
 
 **Alternatives considered**: New onboarding tables; background repair jobs; automatic deletion
 of probe documents/proposals; another demo queue.
+
+## Decision 14: Scope receipt-review freshness to canonical evidence
+
+**Decision**: Retain optimistic concurrency for cost mutations, but decide whether an existing
+receipt review remains current from a canonical fingerprint of its receipt basis, admitted
+components, attributions, corrections and category decisions. Return the exact changed evidence
+scope when it becomes stale.
+
+**Rationale**: A global tenant sequence is safe but semantically false: payment terms, unrelated
+payments and another item's movements cannot change one receipt's reviewed acquisition cost. The
+existing retained manifest and evidence hashes provide the correct bounded inputs without a new
+authority record.
+
+**Alternatives considered**: Keep global invalidation; never invalidate reviews; copy a mutable
+`current` flag onto the receipt; batch all tenant reviews after every mutation.
+
+## Decision 15: Transfers move cost layers; they do not acquire stock
+
+**Decision**: Model an internal transfer as continuity of the existing owner and cost layer from
+source to destination. Inventory review names exact movements whose origin cannot be resolved.
+
+**Rationale**: The transfer changes location, not ownership or acquisition evidence. Requiring new
+invoice evidence at the destination double-counts the physical receipt and breaks the shortest
+trace to the supplier acquisition.
+
+**Alternatives considered**: Attribute the supplier invoice twice; ignore transfer destinations;
+require an owner to confirm zero cost for every internal transfer.
+
+## Decision 16: Use the existing lossless invoice finance envelope
+
+**Decision**: Invoice actions accept and retain only source-stated net, tax, gross, currency and
+codes in `reality_finance_v1` within the existing line payload. Missing values remain absent;
+contribution consumes stated net only.
+
+**Rationale**: The finance-component service already validates this envelope and hashes it as
+evidence. Adding typed columns would duplicate received evidence, while deriving net from gross
+would violate the no-recomputation rule.
+
+**Alternatives considered**: New net/tax columns; compute net from tax rate; treat gross as net;
+manual full-line correction after posting.
+
+## Decision 17: Distinguish deterministic failure from indeterminate execution
+
+**Decision**: Validate knowable relationships before proposal persistence. If confirmation still
+encounters a deterministic domain refusal and rollback proves no business effect, retain a
+terminal `failed` result with a bounded error receipt. Preserve `executing` for timeouts, lost
+responses or any outcome whose commit state is unknown.
+
+**Rationale**: Permanently `executing` deterministic validation errors are neither truthful nor
+recoverable, but automatically marking all exceptions failed could enable unsafe replay after a
+committed effect.
+
+**Alternatives considered**: Revert every error to `proposed`; mark every exception failed;
+automatically retry; allow rejection of indeterminate execution.
+
+## Decision 18: Derive public unions from typed operation contracts
+
+**Decision**: Publish each cost operation and shipment-purpose combination as a complete
+machine-readable branch derived from runtime request types, with capability guidance for fields
+whose cross-field meaning cannot be expressed structurally.
+
+**Rationale**: A schema that is locally rich but empty after live wrapper conversion is not a
+public contract. Derivation plus deployed comparison prevents registry, SDK and docs drift.
+
+**Alternatives considered**: Prose-only documentation; validation-error probing; a separately
+maintained JSON schema.

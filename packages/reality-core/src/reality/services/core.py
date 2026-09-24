@@ -136,6 +136,7 @@ def validate_manual_operational_document_type(document_type: object) -> str:
         )
     return normalized
 
+
 AGENT_DISCOVERY_MODELS: dict[str, tuple[type[Base], tuple[str, ...]]] = {
     "party": (Party, ("id", "name", "type", "is_active", "default_currency")),
     "item": (
@@ -393,9 +394,7 @@ def business_discovery_record(
                     PartyEmailAddress.tenant_id == row.tenant_id,
                     PartyEmailAddress.party_id == row.id,
                 )
-                .order_by(
-                    PartyEmailAddress.normalized_email, PartyEmailAddress.id
-                )
+                .order_by(PartyEmailAddress.normalized_email, PartyEmailAddress.id)
             )
         ]
     return result
@@ -458,7 +457,9 @@ def _party_email_values(values: list[dict[str, Any]] | None) -> list[dict[str, s
         normalized = _normalize_party_email(email)
         label = str(value.get("label") or "").strip()
         if len(label) > 80:
-            raise InvalidOperation("Party email labels can contain at most 80 characters.")
+            raise InvalidOperation(
+                "Party email labels can contain at most 80 characters."
+            )
         if normalized in seen:
             raise InvalidOperation("A Party cannot contain duplicate email addresses.")
         seen.add(normalized)
@@ -1825,9 +1826,7 @@ def resolve_price(
             )
         )
     )
-    candidates.extend(
-        (price_list.id, "default", None, None) for price_list in defaults
-    )
+    candidates.extend((price_list.id, "default", None, None) for price_list in defaults)
     for price_list_id, source, assignment_id, party_group_id in candidates:
         price_list = _tenant_record(session, PriceList, tenant_id, price_list_id)
         if (
@@ -9016,11 +9015,22 @@ def _preview_order_invoice(
         previews = []
         seen = set()
         for selection in selections:
-            if not isinstance(selection, dict) or set(selection) != {
-                "order_line_id",
-                "quantity",
-                "gross_amount",
-            }:
+            if (
+                not isinstance(selection, dict)
+                or not {
+                    "order_line_id",
+                    "quantity",
+                    "gross_amount",
+                }
+                <= set(selection)
+                or set(selection)
+                - {
+                    "order_line_id",
+                    "quantity",
+                    "gross_amount",
+                    "reality_finance_v1",
+                }
+            ):
                 raise InvalidOperation(
                     "Invoice position fields are incomplete or unsupported."
                 )
@@ -9093,7 +9103,8 @@ def _preview_order_invoice(
         }
     required = {"order_line_id", "quantity", "gross_amount", "number"}
     if not required <= arguments.keys() or arguments.keys() - required - {
-        "effective_at"
+        "effective_at",
+        "reality_finance_v1",
     }:
         raise InvalidOperation("Invoice fields are incomplete or unsupported.")
     line = _tenant_record(session, DocumentLine, tenant_id, arguments["order_line_id"])
@@ -9128,6 +9139,7 @@ def _preview_order_invoice(
                 "unit_price": line.unit_price,
                 "gross_amount": amount,
                 "billed_document_line_id": line.id,
+                "reality_finance_v1": arguments.get("reality_finance_v1"),
             }
         ],
         amount,

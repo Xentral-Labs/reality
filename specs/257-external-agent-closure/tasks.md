@@ -186,8 +186,8 @@ unsupported operational types; verify queue and persistence remain clean.
 
 - [X] T073 [P] [FR-030] Run `make docs-generate` and commit the generated English/German Tool Usage pages and `apps/docs/.vitepress/data/tool-usage.json`
 - [ ] T074 [P] [FR-030] Run `make docs-catalog-check` and the deployed MCP catalog comparison from `apps/docs/scripts/verify-live-mcp-catalog.py`
-- [ ] T075 [FR-028] Execute the complete fresh CanisPro public-surface workflow and save a redacted Markdown protocol under `specs/257-external-agent-closure/evidence/`
-- [ ] T076 [FR-029] Populate the final F1–F13 closure matrix with fixed/guided/regression/accepted/superseded status and exact evidence links in `specs/257-external-agent-closure/evidence/audit-closure.md`
+- [X] T075 [FR-028] Execute the complete fresh CanisPro public-surface workflow and save a redacted Markdown protocol under `specs/257-external-agent-closure/evidence/`
+- [X] T076 [FR-029] Populate the final F1–F13 closure matrix with fixed/guided/regression/accepted/superseded status and exact evidence links in `specs/257-external-agent-closure/evidence/audit-closure.md`
 - [X] T077 [DR-001] [DR-002] [DR-003] [DR-004] Review the final story evidence for Source → Evidence → Reality, shortest links, opaque identity and no recomputation in `specs/257-external-agent-closure/evidence/architecture-review.md`
 - [X] T078 [DR-005] [DR-006] [DR-007] [DR-008] Review shared-service parity, tenant isolation, owner authority and no-schema evidence in `specs/257-external-agent-closure/evidence/architecture-review.md`
 - [X] T079 Run focused tests named in T005–T067, then run Ruff and the complete required backend/PostgreSQL suite; record commands and results in `specs/257-external-agent-closure/evidence/verification.md`
@@ -278,41 +278,72 @@ next increment is called ready.
 
 | Requirement | Test task(s) | Implementation/documentation task(s) | Status |
 |---|---|---|---|
-| FR-001 | T005, T016 | T021, T023 | Pending |
-| FR-002 | T005, T016 | T021, T023 | Pending |
-| FR-003 | T013 | T018, T024 | Pending |
-| FR-004 | T014 | T019 | Pending |
-| FR-005 | T015 | T020, T024 | Pending |
-| FR-006 | T015 | T020, T025 | Pending |
-| FR-007 | T026 | T032, T039, T040 | Pending |
-| FR-008 | T026 | T032, T040 | Pending |
-| FR-009 | T027 | T033, T040 | Pending |
-| FR-010 | T027 | T033, T040 | Pending |
-| FR-011 | T028 | T034 | Pending |
-| FR-012 | T029 | T035, T039, T040 | Pending |
-| FR-013 | T030 | T036, T037, T040 | Pending |
-| FR-014 | T041 | T046, T051 | Pending |
-| FR-015 | T042 | T047 | Pending |
-| FR-016 | T043 | T048, T052 | Pending |
-| FR-017 | T044 | T049, T051 | Pending |
-| FR-018 | T045 | T050, T052 | Pending |
-| FR-019 | T064, T067 | T069, T070, T072 | Pending |
-| FR-020 | T053, T057 | T058, T060, T062 | Pending |
-| FR-021 | T054, T057 | T059, T062 | Pending |
-| FR-022 | T055 | T060, T062 | Pending |
-| FR-023 | T056 | T061, T062 | Pending |
-| FR-024 | T063 | T068, T072 | Pending |
-| FR-025 | T041, T065 | T046, T071, T072 | Pending |
-| FR-026 | T031, T066 | T038, T071, T072 | Pending |
-| FR-027 | T043 | T048, T052 | Pending |
-| FR-028 | T006, T012 | T075 | Pending |
-| FR-029 | T006, T012 | T076 | Pending |
-| FR-030 | T005, T017 | T022, T023, T073-T074 | Pending |
-| DR-001 | T007, T030 | T036, T077 | Pending |
-| DR-002 | T007 | T077 | Pending |
-| DR-003 | T007, T067 | T036, T077 | Pending |
-| DR-004 | T008 | T077 | Pending |
-| DR-005 | T009 | T078 | Pending |
-| DR-006 | T008 | T078 | Pending |
-| DR-007 | T010, T054 | T032, T059, T078 | Pending |
-| DR-008 | T011 | T078 | Pending |
+| FR-001 | T005, T016 | T021, T023 | Implemented; deployed union parity remains under FR-036 |
+| FR-002 | T005, T016 | T021, T023 | Implemented; deployed union parity remains under FR-036 |
+| FR-003 | T013 | T018, T024 | Complete |
+| FR-004 | T014 | T019 | Complete |
+| FR-005 | T015 | T020, T024 | Complete |
+| FR-006 | T015 | T020, T025 | Complete |
+| FR-007 | T026 | T032, T039, T040 | Complete |
+| FR-008 | T026 | T032, T040 | Complete |
+| FR-009 | T027 | T033, T040 | Complete |
+| FR-010 | T027 | T033, T040 | Complete |
+| FR-011 | T028 | T034 | Complete |
+| FR-012 | T029 | T035, T039, T040 | Complete; fee read-parity observation remains outside this closure slice |
+| FR-013 | T030 | T036, T037, T040 | Complete |
+| FR-014 | T041 | T046, T051 | Complete |
+| FR-015 | T042 | T047 | Implemented; live adapter defect remains under FR-031 |
+| FR-016 | T043 | T048, T052 | Implemented; live adapter defect remains under FR-031 |
+| FR-017 | T044 | T049, T051 | Complete |
+| FR-018 | T045 | T050, T052 | Complete |
+| FR-019 | T064, T067 | T069, T070, T072 | Implemented; relationship/lifecycle gap remains under FR-033–FR-034 |
+| FR-020 | T053, T057 | T058, T060, T062 | Implemented; qualification gaps remain under FR-032, FR-035 and FR-037 |
+| FR-021 | T054, T057 | T059, T062 | Implemented; SC-007 remains open |
+| FR-022 | T055 | T060, T062 | Complete |
+| FR-023 | T056 | T061, T062 | Complete |
+| FR-024 | T063 | T068, T072 | Complete for pending rejection; failed execution remains under FR-034 |
+| FR-025 | T041, T065 | T046, T071, T072 | Complete |
+| FR-026 | T031, T066 | T038, T071, T072 | Complete |
+| FR-027 | T043 | T048, T052 | Complete |
+| FR-028 | T006, T012 | T075 | Qualification executed; success criteria failed and follow-up is pending |
+| FR-029 | T006, T012 | T076 | Matrix complete with explicit open findings |
+| FR-030 | T005, T017 | T022, T023, T073-T074, T100 | Pending deployed catalog check and follow-up regeneration |
+| FR-031 | T089 | T095 | Qualified: complete customer-credit arguments retained |
+| FR-032 | T090 | T096 | Qualified: unrelated events remain fresh and related evidence invalidates with IDs |
+| FR-033–FR-034 | T093 | T099 | Regression tests pass; external qualification found additional handler families still stuck in `executing`, carried to spec 267 FR-001–FR-003 |
+| FR-035 | T091 | T097 | Qualified: exact missing movement IDs returned |
+| FR-036 | T094 | T100 | Partially qualified: capability branches exist, but deployed top-level tool schema and strict unknown-field behavior remain open in spec 267 FR-008, FR-011–FR-013 |
+| FR-037 | T092 | T098 | Qualified for order-backed invoices; free invoices and credit documents remain open in spec 267 FR-009–FR-010 |
+| DR-001 | T007, T030 | T036, T077 | Complete; follow-up must preserve it |
+| DR-002 | T007 | T077 | Complete; follow-up must preserve it |
+| DR-003 | T007, T067 | T036, T077 | Complete; follow-up must preserve it |
+| DR-004 | T008 | T077 | Complete; follow-up must preserve it |
+| DR-005 | T009 | T078 | Complete; follow-up must preserve it |
+| DR-006 | T008 | T078 | Complete; follow-up must preserve it |
+| DR-007 | T010, T054 | T032, T059, T078 | Complete; follow-up must preserve it |
+| DR-008 | T011 | T078 | Complete; follow-up uses existing storage |
+
+## Phase 9: Convergence
+
+- [X] T083 CRITICAL: Replace the flattened `cost_change_propose` input contract with an operation-discriminated schema that omits fields from unrelated variants, includes the complete `allocate` contract, and add live-wrapper regression coverage for every supported cost operation per FR-001, FR-002, FR-021, SC-002, and SC-007 (contradicts)
+- [X] T084 Repair `capability_describe` so every documented public MCP tool identity resolves deterministically to its canonical capability, and prove it through the deployed MCP transport rather than only direct application calls per FR-004 and SC-001 (contradicts)
+- [X] T085 Add actionable descendant-location inventory guidance to zero-effect and shortage reservation previews/receipts while preserving exact-location allocation, with regression coverage for parent commitments and stocked child locations per FR-006 (partial)
+- [X] T086 Execute the complete fresh-tenant CanisPro qualification with an authenticated active owner performing the documented Web decisions for account initialization, settlement/overpayment, dunning fee, and costing; retain exact proposal reconciliation evidence and the redacted protocol per FR-028, SC-004, SC-005, and SC-007 (partial; qualification executed, SC-007 failed and is carried by T089–T101)
+- [X] T087 Make the Web open-items projection catch up after canonical finance writes or explain its exact outstanding source events and affected business records, then prove parity with the live MCP finance reads per DR-005 (partial)
+
+## Phase 10: Qualification Follow-up — Confirmed Open Findings
+
+- [X] T088 Re-run `$speckit-analyze` for FR-031–FR-037 and resolve every CRITICAL finding before starting T089 in `specs/257-external-agent-closure/spec.md`, `specs/257-external-agent-closure/plan.md` and `specs/257-external-agent-closure/tasks.md`
+- [X] T089 [P] [US3] [FR-031] Add failing adapter and business-story regressions for complete `sales_credit_record_propose` argument retention, pre-persistence empty-shape refusal and canonical invoice credit in `packages/reality-core/tests/test_ai_mcp.py` and `packages/reality-core/tests/test_unified_invoice_credit.py`
+- [X] T090 [P] [US4] [FR-032] Add failing cost-service regressions for unrelated-event stability and affected-only invalidation with named evidence in `packages/reality-core/tests/test_costing_services.py`
+- [X] T091 [P] [US4] [FR-035] Add a failing purchase-transfer-sale valuation story for ownership/acquisition continuity and exact incomplete movement IDs in `packages/reality-core/tests/test_inventory_costing_services.py`
+- [X] T092 [P] [US4] [FR-037] Add failing invoice, finance-component and contribution stories for stated net/tax/gross, gross-only unavailability and no recomputation in `packages/reality-core/tests/test_unified_invoice_entry.py`, `packages/reality-core/tests/finance/test_components.py` and `packages/reality-core/tests/test_contribution_services.py`
+- [X] T093 [P] [US5] [FR-033] [FR-034] Add failing lifecycle regressions for invalid billed relationships, empty credit shapes, rollback, terminal `failed` with `business_effect: none` and genuinely indeterminate `executing` in `packages/reality-core/tests/test_application_tools.py` and `packages/reality-core/tests/test_unified_invoice_credit.py`
+- [X] T094 [P] [US1] [FR-036] Add failing live-schema and capability regressions for the complete `cost_change_propose` operation union and purpose-specific shipment movement values in `packages/reality-core/tests/test_ai_mcp.py` and `packages/reality-core/tests/test_capability_guidance.py`
+- [X] T095 [US3] [FR-031] Repair the customer-credit public adapter by retaining union-level MCP arguments in `packages/reality-core/src/reality/mcp/server.py`; existing shared credit services reject invalid/empty input before persistence
+- [X] T096 [US4] [FR-032] Replace global-sequence receipt-review freshness with a canonical bounded evidence fingerprint and named invalidation scope in `packages/reality-core/src/reality/services/costing.py`
+- [X] T097 [US4] [FR-035] Verify preserved acquisition/ownership continuity through internal transfers and return exact incomplete scopes in `packages/reality-core/src/reality/services/inventory_costing.py`
+- [X] T098 [US4] [FR-037] Retain source-stated net/tax/gross invoice evidence without derivation in `packages/reality-core/src/reality/services/core.py` and expose it in the public MCP invoice schema
+- [X] T099 [US5] [FR-033] [FR-034] Persist effect-free terminal failure for synchronous reviewed-handler refusals while preserving indeterminate execution in `packages/reality-core/src/reality/tools/application.py`
+- [X] T100 [US1] [FR-036] Publish operation-specific MCP schema branches and capability guidance in `packages/reality-core/src/reality/mcp/catalog.py`, then regenerate `apps/docs/content/tool-usage/` and `apps/docs/.vitepress/data/tool-usage.json`
+- [X] T101 Run the focused T089–T094 regressions, full backend/Web/docs/spec gates and a new fresh-tenant qualification; record results in `specs/257-external-agent-closure/evidence/verification.md` and update `specs/257-external-agent-closure/evidence/audit-closure.md` only from observed public-surface evidence (qualification completed; confirmed follow-up gaps are specified in spec 267)

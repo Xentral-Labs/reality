@@ -194,8 +194,44 @@ def test_receipt_a_and_retained_review_survive_late_cost(session, business, cost
         and current["actual_cost"] is None
         and current["review_state"] == "stale"
     )
+    assert set(current["review_invalidation"]) == {"attribution", "component"}
+    assert all(
+        change["added_ids"] and not change["removed_ids"]
+        for change in current["review_invalidation"].values()
+    )
     old = receipt_cost(session, business.tenant.id, movement.id, manifest_id=manifest)
     assert old["actual_cost"] == "1050.0000"
+
+
+def test_unrelated_tenant_event_does_not_stale_receipt_review(
+    session, business, cost_owner
+):
+    movement = receipt(session, business)
+    doc = evidence(session, business, "1000", "0")
+    execute(
+        session,
+        business,
+        cost_owner,
+        assignment(session, business, movement, doc, "1000"),
+    )
+    reviewed = review(session, business, cost_owner, movement, {"goods"})
+    core.emit_business_event(
+        session,
+        business.tenant.id,
+        "payment_term.created",
+        "tenant",
+        business.tenant.id,
+        {"code": "NET60"},
+    )
+    session.flush()
+
+    current = receipt_cost(session, business.tenant.id, movement.id)
+
+    assert current["manifest_id"] == reviewed["manifest_id"]
+    assert current["review_state"] == "reviewed_complete_at_cutoff"
+    assert current["actual_cost"] == "1000.0000"
+    assert current["missing_basis"] == []
+    assert current["review_invalidation"] is None
 
 
 def test_missing_net_and_recoverable_gross_never_become_final(

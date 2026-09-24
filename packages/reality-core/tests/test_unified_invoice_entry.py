@@ -14,7 +14,13 @@ from reality.services.delivery_actions import (
     prepare_delivery_action,
     reconcile_delivery,
 )
-from reality.tools.application import approve_and_execute_proposal
+from reality.services.finance import components
+from reality.tools.application import (
+    TOOLS,
+    Tool,
+    approve_and_execute_proposal,
+    run_read_tool,
+)
 
 
 def prepare(
@@ -135,6 +141,75 @@ def test_invoice_review_atomic_effects_and_unknown_recovery(
             )
             == 0
         )
+
+
+def test_invoice_line_retains_source_stated_finance_detail(session, business):
+    order = create_manual_order(
+        session,
+        business.tenant.id,
+        "sales",
+        "ORDER-FINANCE-DETAIL",
+        business.company.id,
+        business.customer.id,
+        business.location.id,
+        [
+            {
+                "item_id": business.item.id,
+                "quantity": "2",
+                "unit_price": "59.50",
+                "gross_amount": "119.00",
+            }
+        ],
+        gross_amount="119.00",
+    )
+    proposal = prepare_delivery_action(
+        session,
+        business.tenant.id,
+        "sales_invoice_record",
+        {
+            "lines": [
+                {
+                    "order_line_id": order[2][0].id,
+                    "quantity": "2",
+                    "gross_amount": "119.00",
+                    "reality_finance_v1": {
+                        "net": "100.00",
+                        "tax": "19.00",
+                        "gross": "119.00",
+                        "currency": "EUR",
+                    },
+                }
+            ],
+            "gross_amount": "119.00",
+            "number": "INV-FINANCE-DETAIL",
+            "effective_at": "2026-09-24T08:00:00Z",
+        },
+        request_id="invoice-finance-detail",
+    )
+
+    confirm(session, business, proposal)
+
+    invoice_line_id = next(
+        row["id"]
+        for row in json.loads(proposal.output)["records"]
+        if row["family"] == "document_line"
+    )
+    invoice_line = record_by_id(session, DocumentLine, invoice_line_id)
+    assert json.loads(invoice_line.payload)["reality_finance_v1"] == {
+        "net": "100.00",
+        "tax": "19.00",
+        "gross": "119.00",
+        "currency": "EUR",
+    }
+    finance = components.component_context(
+        session, business.tenant.id, invoice_line.document_id
+    )["items"][0]
+    assert finance["amounts"] == {
+        "net": "100",
+        "tax": "19",
+        "base": None,
+        "gross": "119",
+    }
 
 
 @pytest.mark.parametrize(
@@ -288,6 +363,41 @@ def test_default_effective_time_and_two_proposals_for_same_line(session, busines
         confirm(session, business, second)
     assert second.status == "proposed"
     assert session.scalar(select(func.count()).select_from(LedgerEntry)) == 2
+
+
+def test_reviewed_deterministic_handler_refusal_is_terminal_and_effect_free(
+    session, business, monkeypatch
+):
+    proposal = prepare(session, business)
+    original = TOOLS["sales_invoice_record"]
+
+    def refuse(_session, _tenant_id, _arguments):
+        raise InvalidOperation("Deterministic relationship refusal.")
+
+    monkeypatch.setitem(
+        TOOLS,
+        "sales_invoice_record",
+        Tool(original.name, original.description, original.mutating, refuse),
+    )
+    with pytest.raises(InvalidOperation, match="relationship refusal"):
+        confirm(session, business, proposal)
+
+    session.refresh(proposal)
+    assert proposal.status == "failed"
+    assert json.loads(proposal.output) == {
+        "business_effect": "none",
+        "error_type": "InvalidOperation",
+        "message": "Deterministic relationship refusal.",
+    }
+    status = run_read_tool(
+        session,
+        business.tenant.id,
+        "proposal_execution_status",
+        {"proposal_id": proposal.id},
+    )
+    assert status["verification"]["execution"] == "failed"
+    assert status["verification"]["operational_state"] == "no_effect"
+    assert session.scalar(select(func.count()).select_from(LedgerEntry)) == 0
 
 
 @pytest.mark.parametrize("tool", ["sales_invoice_record", "supplier_invoice_record"])
