@@ -36,9 +36,12 @@ All business events are written by one function, `services/core.emit_business_ev
 which already accepts `action_id`.
 
 **Decision**: while a proposal executes, a scoped context names it, and
-`emit_business_event` uses that id when the caller passes none. A caller passing a
-*different* id inside the scope raises `InvalidOperation` (a handler must not
-substitute its causal identity). Explicit threading stays where it exists.
+`emit_business_event` uses that id when the caller passes none. An explicit id always
+wins and is never rejected: services such as costing and commercial matching thread an
+`action` they were handed, and a production refusal on mismatch would turn an
+attribution improvement into an execution failure for flows this feature does not
+otherwise touch. The existing playground guard keeps enforcing identity where it
+already does. Explicit threading stays where it exists.
 **Rejected**: extending the allowlist (it drifted once and would drift again);
 threading `_action_id` into every handler signature (dozens of services changed for
 no additional truth).
@@ -75,3 +78,18 @@ served by `GET /change-proposals/{id}/review`. The MCP/CLI read for one decision
 
 **Decision**: both call one batched attribution reader and return a `decision`
 object; the browser only renders it (spec DR-004).
+
+## Analysis pass (2026-09-24)
+
+| ID | Severity | Finding | Resolution |
+|---|---|---|---|
+| A1 | HIGH | Plan D2 rejected a mismatching explicit `action_id`; costing and commercial matching thread their own `action` argument, so the refusal could fail executions this feature does not otherwise change. | Explicit id always wins (R2, plan D2, T023, T029). |
+| A2 | HIGH | `_deciding_actors` takes the first event *with* an `action_id`, so a record created without a decision and later updated through one would be shown as created by that decision (violates FR-011, SC-004). | Use the record's first event only (plan D4, T039, T042). |
+| A3 | MEDIUM | FR-007 inherits 054 FR-006 (≤ 25 rows per page); the API default is 50 and T033 did not pin it. | T033 pins 25 rows per page. |
+| A4 | MEDIUM | New public helpers in discovered modules (`executing_proposal` in `services/core`) and the explicit reader need isolation classification, or `test_application_catalog.py` fails in CI only. | T011, T027 classify; Phase 2 checkpoint runs the catalog gates. |
+| A5 | LOW | Assumption names a CLI token path that does not exist; `create_mcp_access_token` is only called from the web. | Harmless: the no-issuer branch still covers tests and future paths. |
+| A6 | LOW | MCP output additions may not appear in generated Tool Usage (inputs only). | T048 regenerates and the catalog check confirms either way. |
+
+Coverage: every FR-001–FR-012 and DR-001–DR-005 has at least one test task and one
+implementation task (tasks.md, Requirement Coverage). No CRITICAL finding; no
+unmapped requirement; no task without a requirement or gate.

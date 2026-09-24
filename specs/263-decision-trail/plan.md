@@ -82,9 +82,9 @@ No Complexity Tracking entry is required.
 - `services/core.py`: `_executing_proposal: ContextVar[tuple[str, str] | None]`
   (tenant id, proposal id) and a context manager `executing_proposal(tenant_id, id)`.
 - `emit_business_event`: when `action_id is None` and the scope matches the tenant, use
-  the scoped id; when a different non-null id is passed inside the scope, raise
-  `InvalidOperation("Event must reference the executing proposal.")`. Resolve this
-  before `require_decision_action` so the playground guard is unchanged.
+  the scoped id; an explicit non-null id always wins and is never rejected (research
+  R2). Resolve this before `require_decision_action` so the playground guard is
+  unchanged.
 - `approve_and_execute_proposal`: wrap every handler invocation (finance command,
   analytics, master tools, generic handler) in the scope. The `_action_id` allowlist
   stays for handlers that also persist the id on their own rows (e.g. shipments).
@@ -103,7 +103,9 @@ No Complexity Tracking entry is required.
 
 - `web/api._proposal_payload` and `proposal_reviews.proposal_review` embed `decider`.
 - `services/provenance._deciding_actors` becomes `_creating_decisions` returning the
-  creating proposal id per record; `record_origins` adds `decision` from D3 and keeps
+  `action_id` of each record's *first* event, and none when that first event has no
+  decision (today it takes the first event *with* an `action_id`, which names a later
+  update as the creator of a record created without a decision); `record_origins` adds `decision` from D3 and keeps
   `actor` for compatibility.
 - `services/core.timeline_activity` adds `decision` per event in one batched call.
 - `tools/application._proposal_execution_status` adds `decision`.
