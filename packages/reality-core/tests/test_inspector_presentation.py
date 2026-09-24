@@ -1,7 +1,12 @@
 from datetime import UTC, date, datetime
 from decimal import Decimal
 
-from reality.services.inspector_presentation import display_parts, display_text, money
+from reality.services.inspector_presentation import (
+    display_parts,
+    display_text,
+    moment,
+    money,
+)
 
 
 def test_composite_preserves_received_values_and_marks_only_numeric_parts():
@@ -34,6 +39,39 @@ def test_dates_and_instants_keep_exact_values_with_typed_presentation():
     combined = display_text(Decimal(2), " · ", instant)
     assert str(combined) == "2 · 2026-09-09 19:09:54+00:00"
     assert display_parts(combined)[2]["type"] == "datetime"
+
+
+def test_a_clock_that_carries_nothing_is_stated_as_a_day():
+    """An import without a time writes midnight; a reader must not read one."""
+    imported = datetime(2026, 9, 18, tzinfo=UTC)
+    recorded = datetime(2026, 9, 21, 21, 38, tzinfo=UTC)
+    assert moment(imported) == date(2026, 9, 18)
+    assert display_parts(moment(imported)) == [{"type": "date", "value": "2026-09-18"}]
+    assert moment(recorded) == recorded
+    assert display_parts(moment(recorded))[0]["type"] == "datetime"
+    assert moment(None) is None
+
+
+def test_an_inspector_row_states_its_measure_apart_from_its_qualifier():
+    """The qualifier is a field of its own, typed like the value it stands beside."""
+    from reality.web.api import inspector_row
+
+    row = inspector_row(
+        "Transfer",
+        Decimal("-12.0000"),
+        kind="movement",
+        record_id="mov_1",
+        meta=moment(datetime(2026, 9, 19, 14, 5, tzinfo=UTC)),
+    )
+    assert row["value"] == "-12.0000"
+    assert row["display_parts"] == [{"type": "number", "value": "-12.0000"}]
+    assert row["meta_parts"] == [
+        {"type": "datetime", "value": "2026-09-19T14:05:00+00:00"}
+    ]
+    assert "\u00b7" not in row["value"]
+    # A row without a qualifier keeps the shape every other Inspector row has.
+    plain = inspector_row("Physical", Decimal("2.0000"))
+    assert "meta" not in plain and "meta_parts" not in plain
 
 
 def test_unit_price_preserves_four_decimal_precision():

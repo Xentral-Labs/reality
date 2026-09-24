@@ -34,7 +34,12 @@ from reality.services.core import (
     with_invoice_aging,
 )
 from reality.services.delivery_reads import delivery_case
-from reality.services.inspector_presentation import display_parts, display_text, money
+from reality.services.inspector_presentation import (
+    display_parts,
+    display_text,
+    moment,
+    money,
+)
 from reality.services.shipments import shipment_explain
 
 Section = dict[str, Any]
@@ -65,6 +70,7 @@ def _row(
     record_id: str | None = None,
     *,
     hint: str | None = None,
+    meta: Any = None,
     original_label: bool = False,
 ) -> dict[str, Any]:
     translated = label in {"Status", "Direction", "Type", "Debit / credit"}
@@ -73,6 +79,7 @@ def _row(
             str(value), str(value).replace("_", " ").capitalize()
         )
     parts = display_parts(value)
+    meta_parts = display_parts(meta) if meta is not None else None
     return {
         "label": label,
         "original_label": original_label,
@@ -81,6 +88,10 @@ def _row(
         **({"display_parts": parts} if parts else {}),
         "link": {"kind": kind, "id": record_id} if kind and record_id else None,
         **({"hint": hint} if hint else {}),
+        # A qualifier the value is not: when it happened, what state it is in.
+        # Carried apart so a reader can scan the measures as one column.
+        **({"meta": str(meta)} if meta is not None and meta != "" else {}),
+        **({"meta_parts": meta_parts} if meta_parts else {}),
     }
 
 
@@ -380,23 +391,20 @@ def stock_at_location(
                 movement.type.replace("_", " ").capitalize(),
                 display_text(
                     signed if not (arriving and leaving) else Decimal(0),
-                    f" {unit} · " if unit else " · ",
-                    movement.occurred_at,
+                    f" {unit}" if unit else "",
                 ),
                 "movement",
                 movement.id,
+                meta=moment(movement.occurred_at),
             )
         )
     reservation_rows = [
         _row(
             "Reserved",
-            display_text(
-                reservation.quantity,
-                f" {unit} · " if unit else " · ",
-                reservation.reserved_at,
-            ),
+            display_text(reservation.quantity, f" {unit}" if unit else ""),
             "reservation",
             reservation.id,
+            meta=moment(reservation.reserved_at),
         )
         for reservation in reservations[:LIMIT]
     ]

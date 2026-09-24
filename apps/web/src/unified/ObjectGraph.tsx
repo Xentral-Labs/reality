@@ -1,4 +1,4 @@
-import { inspectorValue } from "./inspectorFormat";
+import { inspectorRowText, inspectorValue } from "./inspectorFormat";
 import { useEffect, useRef, useState } from "react";
 import { api } from "../api";
 import { t } from "../localization";
@@ -191,7 +191,7 @@ export function ObjectGraph({
                             setTarget(row.link!);
                             onNavigate?.(row.link!);
                           }}
-                          title={`${t(row.label)} · ${inspectorValue(row.value, row.display_parts)}`}
+                          title={`${t(row.label)} · ${inspectorRowText(row)}`}
                         >
                           <strong
                             className="block max-w-full truncate"
@@ -203,7 +203,7 @@ export function ObjectGraph({
                             className="mt-1 block max-w-full truncate text-fg-muted"
                             data-localization="original"
                           >
-                            {inspectorValue(row.value, row.display_parts)}
+                            {inspectorRowText(row)}
                           </span>
                         </button>
                       </foreignObject>
@@ -276,7 +276,7 @@ export function ObjectGraph({
                           {row.link!.kind}
                         </span>
                         <span className="block truncate" data-localization="original">
-                          {inspectorValue(row.value, row.display_parts)}
+                          {inspectorRowText(row)}
                         </span>
                         <span className="block truncate text-fg-muted" data-localization="original">
                           {row.link!.id}

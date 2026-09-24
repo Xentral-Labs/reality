@@ -54,7 +54,10 @@ function harness() {
         if (name === "./WarehousePage") return { RegisterPager: Pager };
         if (name === "./ReadState") return { ReadState };
         if (name === "./inspectorFormat")
-          return { inspectorValue: (v) => (v == null ? "—" : String(v)) };
+          return {
+            inspectorValue: (v) => (v == null ? "—" : String(v)),
+            inspectorMeta: (row) => row.meta || "",
+          };
         if (name === "./usePaletteHistory") return { recordOpened() {} };
         if (name === "./useCompanyContext")
           return {

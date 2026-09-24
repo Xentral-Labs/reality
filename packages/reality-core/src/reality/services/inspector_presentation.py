@@ -1,6 +1,6 @@
 """Optional locale-aware presentation parts; original Inspector values stay compatible."""
 
-from datetime import date, datetime
+from datetime import date, datetime, time
 from decimal import Decimal
 from typing import Any
 
@@ -49,3 +49,10 @@ def money(
             }
         ],
     )
+
+
+def moment(value: datetime | None) -> datetime | date | None:
+    """A recorded instant, reduced to its day when the clock carries nothing."""
+    if value is None:
+        return None
+    return value.date() if value.timetz().replace(tzinfo=None) == time.min else value
