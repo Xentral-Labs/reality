@@ -17,6 +17,11 @@
 ## US3 — The pair, from the location
 - [x] T009 [US3] Retitle and retarget the location inspector's stock section, carry the item's unit, and add Open warehouse for the location family in apps/web/src/unified/MasterDataPage.tsx (FR-011); cover the rows in packages/reality-core/tests/test_inspector_register.py.
 
+## US4 — Each number answers its own question (added 2026-09-24)
+- [x] T014 [US4] Extend test_stock_at_location.py: the location read's query count at two item counts, the record endpoint, named and signed movement rows, the counts, the movement that stayed here (FR-015–FR-017).
+- [x] T015 [US4] Give each stock quantity its own destination in apps/web/src/unified/WarehousePage.tsx, with a title that says where it leads (FR-015).
+- [x] T016 [US4] Name and sign the location inspector's movement rows; derive `location_detail` set-based, bound what it lists, count what it only counts; read the location record directly in `GET /locations/{id}` (FR-016, FR-017).
+
 ## Verification
 - [x] T010 Write apps/web/scripts/stock-at-location-browser.mjs for the click path in both editions and themes (SC-001, SC-005).
 - [x] T011 German wording in apps/web/src/localization.tsx in the agreed ERP vocabulary; `npm run test:i18n` and `npm run i18n:audit` (FR-014).
@@ -52,3 +57,22 @@ Dependencies: T001 → T002 → T003 → T004; T005 → T006 → T007 → T008; 
 - `make docs-catalog-check` is red on plain `origin/main` (19 generated files differ, storylines
   and German pages included). Baseline-checked in a detached worktree at `origin/main`: the same
   19 files, so it is not this change. Not repaired here.
+
+## Verification record, US4 (2026-09-24)
+
+- `test_stock_at_location.py` now 22 pass, including the four US4 cases.
+- SC-006, same synthetic company as SC-004 (2,000 items, 20 locations): reading one location
+  **before** 4,551 ms and 8,002 statements, **after** 12 ms and 6 statements. The statement count
+  no longer grows with the item count, which is what the automated test pins; the endpoint
+  `GET /locations/{id}` issues 2.
+- Live against the local stack: the location explanation reads
+  `Supplier Return = -1.0000 pcs · Beacon Desk Organizer · 2026-09-21T19:42:55`, and the demo
+  company's transfer whose origin and destination are the same location shows 0 — it changed
+  nothing there.
+- `stock-at-location-browser.mjs` extended: each of the three quantities is clicked in both
+  editions and lands on its own answer. `stock-at-location-contract.test.mjs` 8 pass,
+  `npm run test:i18n` 361 pass, i18n audit 4 × PASS, build and prettier green.
+- A throwaway measurement company cannot be deleted by removing its business rows alone: the
+  scheduler and worker create `projection_row`, `projection_checkpoint`, `scheduled_job` and
+  `scheduled_job_run` for it within seconds, and psql runs a multi-statement `-c` as one
+  transaction, so one foreign-key error rolls the whole cleanup back.

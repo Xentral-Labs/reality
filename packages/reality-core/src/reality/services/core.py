@@ -84,6 +84,7 @@ from reality.db.core import (
     uid,
 )
 from reality.domain.calendar import InvalidDay, as_day
+from reality.domain.stock_scope import movement_at
 from reality.integrations.catalog import connector_catalog, connector_shell
 from reality.storyline.recorder import wrap_chat
 
@@ -11432,14 +11433,36 @@ def item_detail(session: OrmSession, tenant_id: str, item_id: str) -> dict[str, 
     }
 
 
+LOCATION_DETAIL_ROWS = 20
+
+
 def location_detail(
     session: OrmSession, tenant_id: str, location_id: str
 ) -> dict[str, Any]:
+    """What lies at one place, derived per company rather than per item (spec 262)."""
     location = _tenant_record(session, Location, tenant_id, location_id)
-    stock = [
-        {"item": item, "physical": stock_at(session, tenant_id, item.id, location.id)}
-        for item in items(session, tenant_id)
-    ]
+    arriving = func.sum(
+        case((Movement.to_location_id == location.id, Movement.quantity), else_=ZERO)
+    )
+    leaving = func.sum(
+        case((Movement.from_location_id == location.id, Movement.quantity), else_=ZERO)
+    )
+    held = arriving - leaving
+    positions = (
+        select(Item, held.label("physical"))
+        .join(
+            Movement,
+            and_(Movement.tenant_id == Item.tenant_id, Movement.item_id == Item.id),
+        )
+        .where(Item.tenant_id == tenant_id, movement_at(location.id))
+        .group_by(Item.tenant_id, Item.id)
+        .having(held != ZERO)
+    )
+    at_location = (
+        select(Movement)
+        .where(Movement.tenant_id == tenant_id, movement_at(location.id))
+        .order_by(Movement.occurred_at.desc(), Movement.id.desc())
+    )
     return {
         "location": location,
         "source": (
@@ -11447,26 +11470,30 @@ def location_detail(
             if location.source_record_id
             else None
         ),
-        "stock": [row for row in stock if row["physical"] != ZERO],
-        "commitments": list(
-            session.scalars(
-                select(Commitment).where(
-                    Commitment.tenant_id == tenant_id,
-                    Commitment.location_id == location.id,
-                )
+        "stock": [
+            {"item": item, "physical": decimal(physical)}
+            for item, physical in session.execute(
+                positions.order_by(Item.name, Item.id).limit(LOCATION_DETAIL_ROWS)
             )
-        ),
-        "movements": list(
-            session.scalars(
-                select(Movement)
-                .where(
-                    Movement.tenant_id == tenant_id,
-                    (Movement.from_location_id == location.id)
-                    | (Movement.to_location_id == location.id),
-                )
-                .order_by(Movement.occurred_at.desc())
+        ],
+        "stock_count": session.scalar(
+            select(func.count()).select_from(positions.subquery())
+        )
+        or 0,
+        "movements": list(session.scalars(at_location.limit(LOCATION_DETAIL_ROWS))),
+        "movement_count": session.scalar(
+            select(func.count()).where(
+                Movement.tenant_id == tenant_id, movement_at(location.id)
             )
-        ),
+        )
+        or 0,
+        "commitment_count": session.scalar(
+            select(func.count()).where(
+                Commitment.tenant_id == tenant_id,
+                Commitment.location_id == location.id,
+            )
+        )
+        or 0,
     }
 
 

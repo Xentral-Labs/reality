@@ -19016,3 +19016,18 @@ Object.assign(dictionaries.es, {
   "Physical stock by item": "Existencias físicas por artículo",
   "Operational Reality / stock at a location": "Realidad operativa / existencias en una ubicación",
 });
+Object.assign(dictionaries.de, {
+  "Movements that make this quantity": "Movements, aus denen diese Menge entsteht",
+  "Reservations that hold this quantity": "Reservations, die diese Menge halten",
+  "How this quantity is composed": "Woraus sich diese Menge zusammensetzt",
+});
+Object.assign(dictionaries.nl, {
+  "Movements that make this quantity": "Movements waaruit deze hoeveelheid ontstaat",
+  "Reservations that hold this quantity": "Reservations die deze hoeveelheid vasthouden",
+  "How this quantity is composed": "Hoe deze hoeveelheid is opgebouwd",
+});
+Object.assign(dictionaries.es, {
+  "Movements that make this quantity": "Movements que forman esta cantidad",
+  "Reservations that hold this quantity": "Reservations que retienen esta cantidad",
+  "How this quantity is composed": "Cómo se compone esta cantidad",
+});

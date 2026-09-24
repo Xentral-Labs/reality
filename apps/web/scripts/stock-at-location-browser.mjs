@@ -253,6 +253,29 @@ try {
       return reply({ detail: "Fixture endpoint unavailable" }, 404);
     });
 
+    // Each quantity in the table answers its own question.
+    const quantity = (english, german_) => (german ? german_ : english);
+    const stock = `${base}/app/warehouse?tenant=${tenant}&warehouse_view=stock`;
+    for (const [label, expected] of [
+      [quantity("Physical", "Physischer Bestand"), "movements"],
+      [quantity("Reserved", "Reserviert"), "reservations"],
+    ]) {
+      await page.goto(stock);
+      await page
+        .getByRole("button", { name: `${label} · Beacon Desk Organizer`, exact: true })
+        .click();
+      await page.waitForURL(new RegExp(`warehouse_view=${expected}`));
+      assert.equal(new URL(page.url()).searchParams.get("item"), item);
+    }
+    await page.goto(stock);
+    await page
+      .getByRole("button", {
+        name: `${quantity("Available", "Verfügbar")} · Beacon Desk Organizer`,
+        exact: true,
+      })
+      .click();
+    await page.waitForURL(new RegExp(`entry=${item}`));
+
     await page.goto(`${base}/app/warehouse?tenant=${tenant}&warehouse_view=stock&entry=${item}`);
 
     // The item preview carries the quantity per location, and it opens the pair.
@@ -324,7 +347,7 @@ try {
     await page.close();
   }
   console.log(
-    "PASS: a location quantity opens the item in that place, reaches both scoped registers, states its scope in both editions and clears it.",
+    "PASS: each quantity answers its own question, a location quantity opens the item in that place, the pair reaches both scoped registers, and the scope is stated and cleared in both editions.",
   );
 } catch (error) {
   throw error;

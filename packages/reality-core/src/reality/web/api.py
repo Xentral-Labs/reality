@@ -3644,9 +3644,15 @@ def post_location(tenant_id: str, body: LocationWrite, session: DatabaseSession)
 @router.get("/locations/{record_id}", response_model=LocationRead)
 def get_location(tenant_id: str, record_id: str, session: DatabaseSession):
     try:
-        return location_response(
-            session, location_detail(session, tenant_id, record_id)["location"]
+        # Reading one record never derives the company's stock (spec 262 FR-017).
+        location = session.scalar(
+            select(Location).where(
+                Location.tenant_id == tenant_id, Location.id == record_id
+            )
         )
+        if location is None:
+            raise NotFound("Location not found.")
+        return location_response(session, location)
     except (NotFound, InvalidOperation) as error:
         raise api_error(error) from error
 
@@ -5546,9 +5552,27 @@ def item_inspector(session: OrmSession, tenant_id: str, record_id: str):
     }
 
 
+def _at_location(movement, location_id: str) -> Decimal:
+    """A movement's effect on this place: arriving adds, leaving takes, internal is zero."""
+    arriving = movement.to_location_id == location_id
+    leaving = movement.from_location_id == location_id
+    if arriving and leaving:
+        return Decimal(0)
+    return movement.quantity if arriving else -movement.quantity
+
+
 def location_inspector(session: OrmSession, tenant_id: str, record_id: str):
     detail = location_detail(session, tenant_id, record_id)
     location = detail["location"]
+    moved = {
+        item.id: item
+        for item in session.scalars(
+            select(Item).where(
+                Item.tenant_id == tenant_id,
+                Item.id.in_({row.item_id for row in detail["movements"]}),
+            )
+        )
+    }
     return {
         "kind": "location",
         "id": location.id,
@@ -5557,21 +5581,25 @@ def location_inspector(session: OrmSession, tenant_id: str, record_id: str):
         "subtitle": humanize_api(location.type),
         "status": "Active" if location.is_active else "Inactive",
         "metrics": [
-            inspector_row("Stocked items", len(detail["stock"])),
-            inspector_row("Commitments", len(detail["commitments"])),
-            inspector_row("Movements", len(detail["movements"])),
+            inspector_row("Stocked items", detail["stock_count"]),
+            inspector_row("Commitments", detail["commitment_count"]),
+            inspector_row("Movements", detail["movement_count"]),
             inspector_row("Allows stock", location.allows_stock),
         ],
+        "coverage": {
+            "movements_has_more": detail["movement_count"] > len(detail["movements"]),
+            "reservations_has_more": False,
+        },
         "trail": [
             {"label": "Reference", "value": location.id, "active": True},
             {
                 "label": "Inventory",
-                "value": f"{len(detail['stock'])} items",
+                "value": f"{detail['stock_count']} items",
                 "active": bool(detail["stock"]),
             },
             {
                 "label": "Reality",
-                "value": f"{len(detail['movements'])} movements",
+                "value": f"{detail['movement_count']} movements",
                 "active": bool(detail["movements"]),
             },
         ],
@@ -5598,11 +5626,18 @@ def location_inspector(session: OrmSession, tenant_id: str, record_id: str):
                 "rows": [
                     inspector_row(
                         humanize_api(row.type),
-                        display_text(row.quantity, f" · {row.occurred_at.isoformat()}"),
+                        # Named and signed against this place: what moved, how much,
+                        # and which way, so the column reads like the position does.
+                        display_text(
+                            _at_location(row, location.id),
+                            f" {moved[row.item_id].unit} · " if moved[row.item_id].unit else " · ",
+                            f"{moved[row.item_id].name} · {row.occurred_at.isoformat()}",
+                        ),
                         kind="movement",
                         record_id=row.id,
                     )
-                    for row in detail["movements"][:20]
+                    for row in detail["movements"]
+                    if row.item_id in moved
                 ],
             },
         ],

@@ -72,3 +72,17 @@ test("the new wording is translated in every edition", async () => {
     assert.ok(entries >= 3, `${key} is translated ${entries} times`);
   }
 });
+
+test("each stock quantity answers its own question", async () => {
+  const page = await source("unified/WarehousePage.tsx");
+  assert.match(page, /Movements that make this quantity/);
+  assert.match(page, /Reservations that hold this quantity/);
+  assert.match(page, /How this quantity is composed/);
+  assert.match(page, /field === "available"\s*\?\s*\{ entry: row\.id \}/);
+  assert.match(page, /field === "physical" \? "movements" : "reservations"/);
+  // The place scope survives because navigate merges; the three never share one target.
+  assert.doesNotMatch(
+    page,
+    /aria-label=\{`\$\{t\(field[\s\S]{0,400}onClick=\{\(\) => navigate\(\{ entry: row\.id \}\)\}/,
+  );
+});

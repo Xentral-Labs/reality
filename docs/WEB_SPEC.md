@@ -3375,5 +3375,10 @@ Under a place scope the quantities are the ones recorded at that location, the r
 says so in words, a scoped stock list answers for the items with records there, and a
 movement row states which side of the place it is on. The scope is a clearing chip and
 lives in the address. Quantities stay at the exact location: a parent location does not
-sum its children. The location inspector names its quantity in its section title, carries
-the item's unit and leads to the pair rather than to the item across all locations.
+sum its children. In the stock table each quantity answers its own question: the physical
+quantity leads to that item's movements, the reserved quantity to its reservations, the
+available quantity to the stock explanation, each keeping an active place scope. The location inspector names its quantity in its section title, carries
+the item's unit and leads to the pair rather than to the item across all locations. Its
+movement rows name the item they moved and sign the quantity against this location. Reading
+one location never derives the company's stock: the record endpoint reads the record, and the
+explanation derives its positions in one query, lists at most what it shows and counts the rest.

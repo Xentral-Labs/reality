@@ -337,3 +337,88 @@ def test_a_scoped_stock_page_keeps_the_unscoped_query_shape(session, places):
     scoped = count(location_id=places["rotterdam"].id)
     # One extra statement is the location itself; a per-pair derivation would be many.
     assert scoped <= unscoped + 1
+
+
+def location_queries(session, places, item_count):
+    """Statements one location read issues, with the company grown by item_count."""
+    for index in range(item_count):
+        extra = create_item(session, places["tenant"], f"EXTRA-{index}", f"Extra {index}")
+        record_movement(
+            session,
+            places["tenant"],
+            "receipt",
+            extra.id,
+            1,
+            to_location_id=places["rotterdam"].id,
+        )
+    session.flush()
+    statements = []
+
+    def listener(conn, cursor, statement, *rest):
+        statements.append(statement)
+
+    event.listen(session.bind, "before_cursor_execute", listener)
+    try:
+        location_inspector(session, places["tenant"], places["rotterdam"].id)
+    finally:
+        event.remove(session.bind, "before_cursor_execute", listener)
+    return len(statements)
+
+
+def test_reading_a_location_does_not_grow_with_the_item_count(session, places):
+    small = location_queries(session, places, 5)
+    large = location_queries(session, places, 40)
+    assert large == small
+
+
+def test_the_location_record_endpoint_derives_no_stock(session, places):
+    from reality.services.core import location_detail
+    from reality.web.api import get_location
+
+    statements = []
+
+    def listener(conn, cursor, statement, *rest):
+        statements.append(statement)
+
+    event.listen(session.bind, "before_cursor_execute", listener)
+    try:
+        location_detail(session, places["tenant"], places["rotterdam"].id)
+        explanation = len(statements)
+        statements.clear()
+        get_location(places["tenant"], places["rotterdam"].id, session)
+    finally:
+        event.remove(session.bind, "before_cursor_execute", listener)
+    assert len(statements) < explanation
+    assert len(statements) <= 2
+
+
+def test_location_movements_name_their_item_and_their_direction(session, places):
+    payload = location_inspector(session, places["tenant"], places["rotterdam"].id)
+    rows = section(payload["sections"], "Recent movements")["rows"]
+    assert rows, "the location holds movements"
+    for row in rows:
+        assert places["item"].name in row["value"]
+        assert places["item"].unit in row["value"]
+    arriving = next(row for row in rows if row["label"] == "Receipt")
+    leaving = next(row for row in rows if row["label"] == "Transfer")
+    assert "3" in arriving["value"] and "-" not in arriving["value"].split(" ")[0]
+    assert leaving["value"].startswith("-")
+    record_movement(
+        session,
+        places["tenant"],
+        "transfer",
+        places["item"].id,
+        1,
+        from_location_id=places["rotterdam"].id,
+        to_location_id=places["rotterdam"].id,
+    )
+    internal = location_inspector(session, places["tenant"], places["rotterdam"].id)
+    stayed = section(internal["sections"], "Recent movements")["rows"][0]
+    assert stayed["value"].startswith("0")  # it changed nothing here
+
+
+def test_location_stock_counts_what_it_only_counts(session, places):
+    payload = location_inspector(session, places["tenant"], places["rotterdam"].id)
+    shown = {row["label"]: row["value"] for row in payload["metrics"]}
+    assert shown["Stocked items"] == 1
+    assert shown["Movements"] == 2

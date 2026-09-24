@@ -253,7 +253,30 @@ export function WarehousePage({
                                 <button
                                   className="rounded px-2 py-1 hover:bg-surface-muted"
                                   aria-label={`${t(field === "physical" ? "Physical" : field === "reserved" ? "Reserved" : "Available")} · ${row.name}`}
-                                  onClick={() => navigate({ entry: row.id })}
+                                  title={t(
+                                    field === "physical"
+                                      ? "Movements that make this quantity"
+                                      : field === "reserved"
+                                        ? "Reservations that hold this quantity"
+                                        : "How this quantity is composed",
+                                  )}
+                                  onClick={() =>
+                                    // Each quantity answers its own question (spec 262 FR-015);
+                                    // an active place scope is kept by the merge.
+                                    navigate(
+                                      field === "available"
+                                        ? { entry: row.id }
+                                        : {
+                                            warehouseView:
+                                              field === "physical" ? "movements" : "reservations",
+                                            item: row.id,
+                                            entry: "",
+                                            q: "",
+                                            state: "",
+                                            page: 1,
+                                          },
+                                    )
+                                  }
                                 >
                                   {formatQuantity(row[field]!)}{" "}
                                   <span className="text-xs text-fg-muted">{row.unit}</span>
