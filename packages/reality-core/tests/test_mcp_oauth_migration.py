@@ -44,7 +44,7 @@ def _config(database_url: str) -> Config:
 def test_mcp_authorization_migration_empty_up_down_up(postgres_database, monkeypatch):
     monkeypatch.setenv("REALITY_DATABASE_URL", postgres_database)
     config = _config(postgres_database)
-    command.upgrade(config, "0093_mcp_user_authorization")
+    command.upgrade(config, "0094_mcp_user_authorization")
     engine = create_engine(postgres_database)
     try:
         inspector = inspect(engine)
@@ -56,9 +56,9 @@ def test_mcp_authorization_migration_empty_up_down_up(postgres_database, monkeyp
                 for constraint in model.constraints
                 if isinstance(constraint, CheckConstraint)
             }
-        command.downgrade(config, "0092_party_email_addresses")
+        command.downgrade(config, "0093_decision_trail")
         assert not TABLES & set(inspect(engine).get_table_names())
-        command.upgrade(config, "0093_mcp_user_authorization")
+        command.upgrade(config, "0094_mcp_user_authorization")
         assert TABLES <= set(inspect(engine).get_table_names())
     finally:
         engine.dispose()
@@ -69,7 +69,7 @@ def test_mcp_authorization_populated_downgrade_refuses(
 ):
     monkeypatch.setenv("REALITY_DATABASE_URL", postgres_database)
     config = _config(postgres_database)
-    command.upgrade(config, "0093_mcp_user_authorization")
+    command.upgrade(config, "0094_mcp_user_authorization")
     engine = create_engine(postgres_database)
     try:
         with engine.begin() as connection:
@@ -90,7 +90,7 @@ def test_mcp_authorization_populated_downgrade_refuses(
                 )
             )
         with pytest.raises(RuntimeError, match="Refusing to remove populated"):
-            command.downgrade(config, "0092_party_email_addresses")
+            command.downgrade(config, "0093_decision_trail")
         assert TABLES <= set(inspect(engine).get_table_names())
     finally:
         engine.dispose()

@@ -1,15 +1,15 @@
 """Add interactive MCP user authorization authority.
 
-Revision ID: 0093_mcp_user_authorization
-Revises: 0092_party_email_addresses
+Revision ID: 0094_mcp_user_authorization
+Revises: 0093_decision_trail
 """
 
 import sqlalchemy as sa
 from alembic import op
 from sqlalchemy.dialects import postgresql
 
-revision = "0093_mcp_user_authorization"
-down_revision = "0092_party_email_addresses"
+revision = "0094_mcp_user_authorization"
+down_revision = "0093_decision_trail"
 branch_labels = None
 depends_on = None
 

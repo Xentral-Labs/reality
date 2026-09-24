@@ -81,7 +81,7 @@ packages/reality-core/src/reality/web/mcp_authorization.py      # OAuth and brow
 packages/reality-core/src/reality/web/app.py                    # router/public-boundary registration
 packages/reality-core/src/reality/web/api.py                    # no OAuth logic; existing manual-token routes retained
 packages/reality-core/pyproject.toml                            # proven MCP SDK compatibility/version bound
-packages/reality-core/migrations/versions/0093_mcp_user_authorization.py
+packages/reality-core/migrations/versions/0094_mcp_user_authorization.py
 packages/reality-core/tests/test_mcp_oauth_service.py
 packages/reality-core/tests/test_mcp_oauth_http.py
 packages/reality-core/tests/test_mcp_oauth_migration.py
@@ -159,7 +159,7 @@ preserves its established provenance.
 
 ### Data and migration impact
 
-Migration `0093_mcp_user_authorization` adds only the three account/security models
+Migration `0094_mcp_user_authorization` adds only the three account/security models
 defined in [data-model.md](data-model.md): `mcp_client_grant`,
 `mcp_authorization_interaction`, and `mcp_user_credential`. They are necessary to
 prove explicit grant identity, PKCE single use, lossless protocol retry/rejection,
