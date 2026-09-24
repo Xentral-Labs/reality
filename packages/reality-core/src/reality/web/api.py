@@ -794,9 +794,14 @@ def post_mcp_token(
     session: DatabaseSession,
 ):
     require_company_owner(request, session, tenant_id)
+    issuer: AppUser | None = getattr(request.state, "user", None)
     try:
         record, clear_token = create_mcp_access_token(
-            session, tenant_id, body.name, body.allowed_tools
+            session,
+            tenant_id,
+            body.name,
+            body.allowed_tools,
+            issued_by_user_id=issuer.id if issuer else None,
         )
     except (NotFound, ValueError) as error:
         raise HTTPException(status_code=400, detail=str(error)) from error

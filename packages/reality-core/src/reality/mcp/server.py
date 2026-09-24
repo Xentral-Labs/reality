@@ -16,7 +16,12 @@ from pydantic import WithJsonSchema
 
 from reality.db.core import Session
 from reality.mcp.auth import DatabaseTokenVerifier
-from reality.mcp.catalog import MCPToolDefinition, dispatch_tool, tool_definitions
+from reality.mcp.catalog import (
+    SETTLING_TOKEN,
+    MCPToolDefinition,
+    dispatch_tool,
+    tool_definitions,
+)
 from reality.services.core import (
     Conflict,
     InterpretationNeedsReview,
@@ -94,10 +99,14 @@ def _handler(definition: MCPToolDefinition):
             and f"reality:tool:{definition.name}" not in scopes
         ):
             raise PermissionError(f"MCP token does not allow tool: {definition.name}")
-        with Session() as session:
-            return dispatch_tool(
-                session, access_token.subject, definition.name, arguments
-            )
+        token = SETTLING_TOKEN.set(access_token.client_id)
+        try:
+            with Session() as session:
+                return dispatch_tool(
+                    session, access_token.subject, definition.name, arguments
+                )
+        finally:
+            SETTLING_TOKEN.reset(token)
 
     invoke.__name__ = definition.name
     invoke.__doc__ = definition.description

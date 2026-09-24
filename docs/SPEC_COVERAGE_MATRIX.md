@@ -1674,3 +1674,4 @@ Feature contract: `docs/features/b2b-operational-chain.md`.
 |---|---|---|
 | Token and issuer attribution columns: additive, reversible, no backfill, derived foreign-key index | 263 DR-002/SC-005 | `packages/reality-core/tests/test_decision_trail_migration.py`; `packages/reality-core/tests/test_schema_indexes.py` |
 | One tenant-scoped reader names a person, a token with its issuer, or unknown, in a constant number of statements | 263 FR-004/DR-003/DR-004/SC-004 | `packages/reality-core/tests/test_decision_attribution.py` |
+| MCP approval and rejection record the calling token, web issuance records the owner, signed-in decisions record the person only, restored proposals forget their token | 263 FR-001–FR-004/DR-005 | `packages/reality-core/tests/test_decision_trail_mcp.py` |

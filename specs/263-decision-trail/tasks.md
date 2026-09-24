@@ -54,18 +54,18 @@ or documentation task. Test tasks precede the code they prove and are observed f
 
 ### Tests
 
-- [ ] T014 [P] [US1] [FR-001] Add a failing test that `POST /settings/mcp/tokens` records the signed-in owner as issuer, and that a token created without a user (CLI/test path) records none, in `core/tests/test_decision_trail_mcp.py`
-- [ ] T015 [P] [US1] [FR-002] [FR-003] Add failing MCP runtime tests (`proposal_approve_and_execute`, `proposal_reject`) asserting `decided_via_token_id` is the calling token, `decided_by_user_id` stays null, and `decided_at` is set, for a web-issued and a legacy token, in `core/tests/test_decision_trail_mcp.py`
-- [ ] T016 [P] [US1] [FR-002] Add failing tests that every reset to `proposed` (review failure, analytics refusal, reviewed-handler refusal) clears `decided_via_token_id`, in `core/tests/test_decision_trail_mcp.py`
-- [ ] T017 [P] [US1] [FR-004] Add a failing test that the MCP approve/reject results carry `decider` with `kind: "mcp_token"`, and that revoking the token afterwards yields `revoked: true` on re-read, in `core/tests/test_decision_trail_mcp.py`
-- [ ] T018 [US1] [DR-005] Keep the web approval path as an unchanged control: signed-in approval records the person and no token; existing approval-permission tests in `core/tests/test_application_tools.py` stay green unmodified
+- [X] T014 [P] [US1] [FR-001] Add a failing test that `POST /settings/mcp/tokens` records the signed-in owner as issuer, and that a token created without a user (CLI/test path) records none, in `core/tests/test_decision_trail_mcp.py`
+- [X] T015 [P] [US1] [FR-002] [FR-003] Add failing MCP runtime tests (`proposal_approve_and_execute`, `proposal_reject`) asserting `decided_via_token_id` is the calling token, `decided_by_user_id` stays null, and `decided_at` is set, for a web-issued and a legacy token, in `core/tests/test_decision_trail_mcp.py`
+- [X] T016 [P] [US1] [FR-002] Add failing tests that every reset to `proposed` (review failure, analytics refusal, reviewed-handler refusal) clears `decided_via_token_id`, in `core/tests/test_decision_trail_mcp.py`
+- [X] T017 [P] [US1] [FR-004] Add a failing test that the MCP approve/reject results carry `decider` with `kind: "mcp_token"`, and that revoking the token afterwards yields `revoked: true` on re-read, in `core/tests/test_decision_trail_mcp.py`
+- [X] T018 [US1] [DR-005] Keep the web approval path as an unchanged control: signed-in approval records the person and no token; existing approval-permission tests in `core/tests/test_application_tools.py` stay green unmodified
 
 ### Implementation
 
-- [ ] T019 [US1] [FR-001] Add `issued_by_user_id` to `create_mcp_access_token` in `core/src/reality/mcp/auth.py` and pass the owner from `post_mcp_token` in `core/src/reality/web/api.py`
-- [ ] T020 [US1] [FR-002] Add the `SETTLING_TOKEN` ContextVar in `core/src/reality/mcp/catalog.py`, set and reset it around `dispatch_tool` in `core/src/reality/mcp/server.py` from `access_token.client_id`
-- [ ] T021 [US1] [FR-002] [FR-003] Add `settling_token_id` to `approve_and_execute_proposal` and `reject_proposal`, record it in `_record_decision`, the finance branch and the claim `UPDATE`, and clear it in every reset, in `core/src/reality/tools/application.py`; pass it from `_approve_proposal` / `_reject_proposal` in `core/src/reality/mcp/catalog.py`
-- [ ] T022 [US1] [FR-004] Return `decider` from the MCP approve/reject handlers via `decision_attributions` in `core/src/reality/mcp/catalog.py`
+- [X] T019 [US1] [FR-001] Add `issued_by_user_id` to `create_mcp_access_token` in `core/src/reality/mcp/auth.py` and pass the owner from `post_mcp_token` in `core/src/reality/web/api.py`
+- [X] T020 [US1] [FR-002] Add the `SETTLING_TOKEN` ContextVar in `core/src/reality/mcp/catalog.py`, set and reset it around `dispatch_tool` in `core/src/reality/mcp/server.py` from `access_token.client_id`
+- [X] T021 [US1] [FR-002] [FR-003] Add `settling_token_id` to `approve_and_execute_proposal` and `reject_proposal`, record it in `_record_decision`, the finance branch and the claim `UPDATE`, and clear it in every reset, in `core/src/reality/tools/application.py`; pass it from `_approve_proposal` / `_reject_proposal` in `core/src/reality/mcp/catalog.py`
+- [X] T022 [US1] [FR-004] Return `decider` from the MCP approve/reject handlers via `decision_attributions` in `core/src/reality/mcp/catalog.py`; pass the calling token only when it belongs to the company, so an approval never fails on its attribution
 
 **Checkpoint**: US1 tests green; MCP runtime suite `core/tests/test_mcp_http_runtime.py` and `core/tests/test_ai_mcp.py` green.
 

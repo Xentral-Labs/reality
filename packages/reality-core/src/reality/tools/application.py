@@ -293,13 +293,17 @@ def _finance_balances(
     return finance_balances(session, tenant_id)
 
 
-def _dunning_context(session: Session, tenant_id: str, arguments: dict[str, Any]) -> Any:
+def _dunning_context(
+    session: Session, tenant_id: str, arguments: dict[str, Any]
+) -> Any:
     from reality.services.dunning import dunning_context
 
     return dunning_context(session, tenant_id, arguments)
 
 
-def _dunning_notices(session: Session, tenant_id: str, arguments: dict[str, Any]) -> Any:
+def _dunning_notices(
+    session: Session, tenant_id: str, arguments: dict[str, Any]
+) -> Any:
     del arguments
     from reality.services.dunning import notices
 
@@ -1371,9 +1375,7 @@ def _commitment_cancel(
     from reality.services.core import cancel_commitment
 
     action_id = arguments.pop("_action_id", None)
-    commitment = cancel_commitment(
-        session, tenant_id, action_id=action_id, **arguments
-    )
+    commitment = cancel_commitment(session, tenant_id, action_id=action_id, **arguments)
     event = session.scalar(
         select(BusinessEvent).where(
             BusinessEvent.tenant_id == tenant_id,
@@ -2960,18 +2962,46 @@ def proposals_awaiting_approval(
     )
 
 
-def _record_decision(
-    proposal: ChangeProposal, principal: Principal | None
-) -> ChangeProposal:
-    """Attribute a settled proposal to the moment and person that settled it.
+def _decider_values(
+    principal: Principal | None, settling_token_id: str | None
+) -> dict[str, Any]:
+    """Who settled a proposal, as the columns that record it.
 
-    A decision reached without a signed-in principal, such as one taken through
-    the CLI, still records when it happened and leaves the person unnamed rather
-    than inventing one.
+    A signed-in person is the strongest statement Reality can make and wins. A
+    decision that arrived through MCP names the token that sent it and never a
+    person: the token's issuer answers for it, but Reality did not see them decide
+    (spec 263 FR-003). A decision with neither, such as one taken through the CLI,
+    still records when it happened and leaves the rest unnamed.
     """
-    proposal.decided_at = now()
-    proposal.decided_by_user_id = principal.user_id if principal else None
+    return {
+        "decided_at": now(),
+        "decided_by_user_id": principal.user_id if principal else None,
+        "decided_via_token_id": None if principal else settling_token_id,
+    }
+
+
+#: The attribution a proposal loses when it returns to `proposed`.
+UNDECIDED = {
+    "decided_at": None,
+    "decided_by_user_id": None,
+    "decided_via_token_id": None,
+}
+
+
+def _record_decision(
+    proposal: ChangeProposal,
+    principal: Principal | None,
+    settling_token_id: str | None = None,
+) -> ChangeProposal:
+    """Attribute a settled proposal to the moment and to whoever settled it."""
+    for column, value in _decider_values(principal, settling_token_id).items():
+        setattr(proposal, column, value)
     return proposal
+
+
+def _undecide(proposal: ChangeProposal) -> None:
+    for column, value in UNDECIDED.items():
+        setattr(proposal, column, value)
 
 
 def approve_and_execute_proposal(
@@ -2982,6 +3012,7 @@ def approve_and_execute_proposal(
     confirming_principal: Principal | None = None,
     review_token: str | None = None,
     confirmed: bool = False,
+    settling_token_id: str | None = None,
 ) -> ChangeProposal:
     candidate = session.scalar(
         select(ChangeProposal).where(
@@ -3108,10 +3139,7 @@ def approve_and_execute_proposal(
                 actor_id=confirming_principal.user_id if confirming_principal else None,
             )
             proposal.status = "executed"
-            proposal.decided_at = now()
-            proposal.decided_by_user_id = (
-                confirming_principal.user_id if confirming_principal else None
-            )
+            _record_decision(proposal, confirming_principal, settling_token_id)
             proposal.output = json.dumps(_json_value(result), sort_keys=True)
             session.commit()
             return proposal
@@ -3128,10 +3156,7 @@ def approve_and_execute_proposal(
         )
         .values(
             status="executing",
-            decided_at=now(),
-            decided_by_user_id=(
-                confirming_principal.user_id if confirming_principal else None
-            ),
+            **_decider_values(confirming_principal, settling_token_id),
         )
         .returning(ChangeProposal.id)
     )
@@ -3172,8 +3197,7 @@ def approve_and_execute_proposal(
         except (InvalidOperation, NotFound):
             # The handler has not been called: restoring review cannot replay an effect.
             proposal.status = "proposed"
-            proposal.decided_at = None
-            proposal.decided_by_user_id = None
+            _undecide(proposal)
             session.commit()
             raise
     if tool_name in {
@@ -3202,8 +3226,7 @@ def approve_and_execute_proposal(
         except (InvalidOperation, NotFound):
             # No handler ran, so a stale review can safely remain proposed.
             proposal.status = "proposed"
-            proposal.decided_at = None
-            proposal.decided_by_user_id = None
+            _undecide(proposal)
             session.commit()
             raise
     if tool_name in {
@@ -3269,7 +3292,7 @@ def approve_and_execute_proposal(
                     ChangeProposal.id == proposal_id,
                     ChangeProposal.status == "executing",
                 )
-                .values(status="proposed", decided_at=None, decided_by_user_id=None)
+                .values(status="proposed", **UNDECIDED)
             )
             session.commit()
             raise
@@ -3295,7 +3318,7 @@ def approve_and_execute_proposal(
                     ChangeProposal.id == proposal_id,
                     ChangeProposal.status == "executing",
                 )
-                .values(status="proposed", decided_at=None, decided_by_user_id=None)
+                .values(status="proposed", **UNDECIDED)
             )
             session.commit()
             raise
@@ -3311,6 +3334,7 @@ def reject_proposal(
     proposal_id: str,
     *,
     confirming_principal: Principal | None = None,
+    settling_token_id: str | None = None,
 ) -> ChangeProposal:
     existing = session.scalar(
         select(ChangeProposal).where(
@@ -3329,7 +3353,7 @@ def reject_proposal(
     require_proposal_decision(session, tenant_id, proposal_id, "proposal_reject")
     proposal = existing
     proposal.status = "rejected"
-    _record_decision(proposal, confirming_principal)
+    _record_decision(proposal, confirming_principal, settling_token_id)
     session.commit()
     return proposal
 

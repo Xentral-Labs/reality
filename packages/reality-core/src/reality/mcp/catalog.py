@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 from collections.abc import Callable, Iterable
+from contextvars import ContextVar
 from dataclasses import dataclass
 from typing import Any, Literal
 
@@ -117,6 +118,12 @@ def _propose(application_name: str) -> ToolHandler:
     return handler
 
 
+#: The MCP access token of the call being served, set by the MCP runtime for the
+#: duration of one tool call. A decision it settles records this token (spec 263).
+#: Chat and other callers of `dispatch_tool` leave it unset.
+SETTLING_TOKEN: ContextVar[str | None] = ContextVar("mcp_settling_token", default=None)
+
+
 def _approve_proposal(
     session: Session, tenant_id: str, arguments: dict[str, Any]
 ) -> Any:
@@ -147,6 +154,7 @@ def _approve_proposal(
         review_token=arguments.get("review_token"),
         confirmed=True,
         confirming_principal=_analytics_caller(),
+        settling_token_id=_settling_token(session, tenant_id),
     )
     receipt = json.loads(proposal.output)
     return {
@@ -155,6 +163,7 @@ def _approve_proposal(
         "tool": proposal.type.removeprefix("tool:"),
         "output": receipt,
         "receipt": receipt,
+        "decider": _decider(session, tenant_id, proposal.id),
     }
 
 
@@ -168,13 +177,42 @@ def _reject_proposal(
         tenant_id,
         arguments["proposal_id"],
         confirming_principal=_analytics_caller(),
+        settling_token_id=_settling_token(session, tenant_id),
     )
     return {
         "proposal_id": proposal.id,
         "status": proposal.status,
         "decided_by_user_id": proposal.decided_by_user_id,
+        "decider": _decider(session, tenant_id, proposal.id),
         "business_effect": "none",
     }
+
+
+def _settling_token(session: Session, tenant_id: str) -> str | None:
+    """The calling token, when it is one this company issued.
+
+    The runtime only admits stored tokens, but a decision must never fail because
+    its attribution cannot be recorded; an unknown token leaves the decider unknown.
+    """
+    token_id = SETTLING_TOKEN.get()
+    if token_id is None:
+        return None
+    from sqlalchemy import select
+
+    from reality.db.core import MCPAccessToken
+
+    return session.scalar(
+        select(MCPAccessToken.id).where(
+            MCPAccessToken.tenant_id == tenant_id, MCPAccessToken.id == token_id
+        )
+    )
+
+
+def _decider(session: Session, tenant_id: str, proposal_id: str) -> dict[str, Any]:
+    from reality.services.decision_attribution import UNKNOWN, decision_attributions
+
+    attribution = decision_attributions(session, tenant_id, [proposal_id])
+    return attribution.get(proposal_id, {}).get("decider", dict(UNKNOWN))
 
 
 STRING = {"type": "string"}
