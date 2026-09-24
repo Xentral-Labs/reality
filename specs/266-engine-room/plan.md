@@ -38,7 +38,7 @@ The design reuses the contextvar technique of the Storyline trace (spec 182), bu
 ```text
 packages/reality-core/src/reality/
   db/core.py                          # + Interaction model
-packages/reality-core/migrations/versions/0094_engine_room_interaction.py
+  ../../migrations/versions/<next>_engine_room_interaction.py   # migration (number per T004)
   telemetry/interactions.py           # NEW: Observation contextvar, observe(), note_*()
   services/interactions.py            # NEW: record(), list_interactions(), events_of(), pulse(), purge_expired(), stage map
   services/core.py                    # emit_business_event → note_event(event.id)

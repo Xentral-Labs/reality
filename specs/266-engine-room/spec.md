@@ -23,7 +23,7 @@ The engine room is observation, not authority. It shows who touched which part o
 
 ### Scope
 
-- Record, per company, every interaction with the data model: tool reads and proposals through MCP, Chat and CLI; tenant API requests from the web; decisions (approve/reject); background work by scheduler and worker; source intake.
+- Record, per company, every interaction with the data model: tool reads and proposals through MCP, Chat and CLI; tenant API requests from the web; decisions (approve/reject); worker job runs that touched company data; source intake through whichever of these carried it.
 - Group interactions that belong to one cause (one web click, one chat turn, one MCP request, one job run) and connect them to the business events they caused.
 - A live "Live" tab beside Activities in the Inspector that streams these interactions in three lanes — access, intent, reality — with filters and pause.
 - A model map that shows which stage of Source → Evidence → Reality was read or written as it happens.
@@ -52,7 +52,7 @@ The engine room is observation, not authority. It shows who touched which part o
 
 ### User Story 1 - Watch interactions live (Priority: P1)
 
-As an owner I open Inspector → Activities → Live and see every interaction with my company's model as it happens: when, channel (MCP, Chat, Web, CLI, Scheduler, Worker, Source intake), actor (person, MCP token/client, job), what was asked (tool or operation), outcome (ok, refused, failed, awaiting decision) and duration.
+As an owner I open Inspector → Activities → Live and see every interaction with my company's model as it happens: when, channel (MCP, Chat, Web, CLI, Worker), actor (person, MCP token/client, job), what was asked (tool or operation), outcome (ok, refused, failed, awaiting decision) and duration.
 
 **Why this priority**: It is the feature. Everything else refines it.
 
@@ -120,11 +120,12 @@ As an owner I move back on a time axis and play a past window, for example one a
 ### Edge Cases
 
 - **Self-observation**: the Live tab's own requests and routine background refresh (Home polling, work counts, readiness) must not flood the view; they are either excluded or collapsed and hidden by default.
-- **Volume**: a company under continuous demo intake produces many interactions per second; the view must stay responsive and say when it aggregates.
-- **Tenant boundary**: an interaction is visible only in its own company; a request refused for a foreign company is not shown to that foreign company.
+- **Volume**: a company under continuous demo intake produces many interactions per second; the view must stay responsive and say when it shows only the newest rows.
+- **Tenant boundary**: an interaction is visible only in its own company; a request refused at company admission (not a member) is recorded in neither company.
+- **Sandbox**: the owner of a sandbox run sees that sandbox's interactions like a company owner.
 - **Unauthenticated or pre-tenant requests** (sign-in, OAuth authorization, company list) are not company interactions.
 - **Failure of recording** must never fail or slow the interaction being recorded beyond a small bound.
-- **Company archive or delete** removes its interactions with the company.
+- **Company delete** removes its interactions with the company; an archived company keeps them until they expire.
 - **Clock**: order is recorded order, not client time.
 - **Deleted person or revoked token**: past interactions keep naming them as revoked/removed.
 
@@ -132,8 +133,8 @@ As an owner I move back on a time axis and play a past window, for example one a
 
 ### Functional Requirements
 
-- **FR-001**: The system MUST record one interaction for every tool invocation through MCP, Chat and CLI, every tenant-scoped web API request, every proposal decision, every scheduled job run that read or wrote company data and every source intake, per company. Empty scheduler sweeps and idle worker polls are not interactions.
-- **FR-002**: Each interaction MUST state recorded time, channel, actor, operation (a bounded name from the tool/command catalog or route template, never a raw URL or query), kind (read, propose, decide, job, intake), outcome with error code where applicable, and duration.
+- **FR-001**: The system MUST record one interaction for every tool invocation through MCP, Chat and CLI, every tenant-scoped web API request, every proposal decision, every scheduled job run that read or wrote company data, per company. Source intake is recorded as the interaction that carried it (web upload, MCP tool, worker job) and is recognizable by the Source stage it wrote. Empty scheduler sweeps and idle worker polls are not interactions.
+- **FR-002**: Each interaction MUST state recorded time, channel, actor, operation (a bounded name from the tool/command catalog or route template, never a raw URL or query), kind (read, propose, decide, job), outcome with error code where applicable, and duration.
 - **FR-003**: Interactions MUST NOT contain argument values, result values, payloads, tokens, secrets or free text; at most a bounded summary (argument names, result count).
 - **FR-004**: Interactions that share a cause MUST share a correlation: the web client sends one per user action, a chat turn inherits the correlation of the request that carried it, and each MCP call and job run carries its own. An interaction MUST link to exactly the business events it caused and that were committed; events of a rolled-back transaction are not linked.
 - **FR-005**: The Live tab MUST show new interactions of the company within 2 seconds of completion, in recorded order, and resume without gaps or duplicates after a disconnect.
@@ -152,7 +153,7 @@ As an owner I move back on a time axis and play a past window, for example one a
 
 - **DR-001**: Interactions are operational telemetry, not business records. No service, projection, exception rule or business decision may read them. Source → Evidence → Reality is unchanged; the engine room only links to it.
 - **DR-002**: The link runs from the interaction to the business events it caused (their tenant sequence), never the other way: business events gain no column, and `business_event.correlation_id` keeps its existing meaning. The proposal link reuses the proposal id; document and source links are reached through the events.
-- **DR-003**: Interactions are tenant-scoped; every read enforces the tenant. Recording happens at the shared dispatcher, the tenant API boundary, the decision service, the job runtime and source intake — never inside individual adapters' business logic.
+- **DR-003**: Interactions are tenant-scoped; every read enforces the tenant. Recording happens at the shared boundaries — tenant API middleware, MCP tool invocation, chat tool call, CLI command and job handler — with the tool layer and event emission only annotating the open interaction, never inside individual adapters' business logic.
 - **DR-004**: Actor attribution reuses the principal the channel already establishes (session user, MCP token and person per specs 263/265, job identity); it never infers a person.
 
 ### Key Entities

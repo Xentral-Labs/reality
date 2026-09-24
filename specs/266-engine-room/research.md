@@ -66,3 +66,25 @@ Nothing is inferred (DR-004).
 ## R8 — Cost
 
 The storyline middleware already performs one threadpool write per GET, for storyline tenants only. The engine room adds one small insert per boundary for every tenant. The budget is ≤ 5 ms at p95 (SC-003), measured in quickstart step 5. The write runs after the response body is produced (middleware) and in its own session.
+
+## Analysis (2026-09-24)
+
+A consistency pass over `spec.md`, `plan.md`, `data-model.md`, `contracts/` and `tasks.md`, checked against the code on `origin/main`. No CRITICAL finding. Every HIGH finding is resolved in the artifacts.
+
+| ID | Severity | Finding | Resolution |
+|---|---|---|---|
+| A1 | HIGH | FR-002 listed kind `intake`, but the data model has no such kind, and no boundary observes intake on its own | Kind removed. Intake is recorded as its carrier (web, MCP, worker) and recognized by the Source stage its `source_record.*` events write (FR-001) |
+| A2 | HIGH | US1 named channels Scheduler and Source intake, which the model and the clarification (no empty sweeps) exclude | US1 lists MCP, Chat, Web, CLI, Worker |
+| A3 | HIGH | Draft FR-004 had business events carry the request correlation, but `business_event.correlation_id` already holds the proposal id | FR-004/DR-002 rewritten: interaction → committed event sequences (R3); no business column changes; T030 asserts it |
+| A4 | HIGH | US4-3 "known read subject" needs argument values, which FR-003 forbids | Renamed "Who changed this"; limited to events |
+| A5 | MEDIUM | The edge case removed interactions on archive, while the generic purge only runs on delete | Delete removes them; archive keeps them until they expire |
+| A6 | HIGH | Recording before admission would store a refused foreign-tenant request in that foreign tenant | The middleware sits inside `protect_application_api` (T022); T017 proves no row in either tenant |
+| A7 | MEDIUM | Owner-only (FR-013) did not say what applies to sandbox runs | The sandbox run owner counts as owner (edge case, T021) |
+| A8 | MEDIUM | The plan omitted repository completeness gates: reporting-graph coverage exclusions, `data_model.yaml`, pinned isolation counts, migration test | T005, T011 |
+| A9 | MEDIUM | Migration number `0094` may collide with the spec 265 branch | T004 re-derives the number before commit; T903 checks at merge |
+| A10 | MEDIUM | DR-003 named "decision service" and "source intake" as recording points, unlike the plan's boundaries | DR-003 aligned: boundaries record; the tool layer and event emission annotate |
+| A11 | LOW | The header pulse polls every 10 s, so the indicator can lag up to 10 s | Accepted; FR-005's 2 s applies to the Live tab |
+| A12 | LOW | SC-001 is proven only by the manual quickstart | Accepted; quickstart steps 2–4 |
+| A13 | LOW | Owner check under `REALITY_AUTH_MODE=disabled` was unspecified | Follows existing owner routes; T021 |
+
+Coverage: all 15 FR and 4 DR appear in at least one test task and one implementation task (`tasks.md` Requirement Coverage). There are no orphan tasks: every task in phases 2–8 cites a requirement.
