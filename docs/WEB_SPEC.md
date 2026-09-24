@@ -587,10 +587,12 @@ agent client. A token issued before this attribution existed reads with an unkno
 issuer, and a revoked token keeps naming itself on its past decisions. The Decisions page
 offers Pending and History as tabs (`decisions_view=history`); any decision, pending or
 settled, opens through `proposal=<id>` with who settled it and when. A record created
-through a decision states that decision in its origin — "Created here", the decider and
-the moment, linked to the decision — and so does every activity entry a decision caused.
-Only a record's first event can name the decision that created it; a later decision is
-never presented as the reason a record exists.
+through a decision names it in its detail view, never in a register row: the detail view
+of every record lists the decision that created it and the latest decisions that changed
+it, and the detail view of an activity entry names the decision that caused it, each with
+its decider, its moment and a link. The Source column keeps its short "Created here" and
+Activities rows stay one line. Only a record's first event can name the decision that
+created it; a later decision is never presented as the reason a record exists.
 
 Decision history is a register, not a stack of cards. It only grows, so it is counted,
 filtered and sliced in the database and read one bounded page at a time under a

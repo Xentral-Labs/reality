@@ -53,6 +53,7 @@ function harness() {
         if (name === "../localization") return { t: (x) => x, currentLanguage: () => "de" };
         if (name === "./WarehousePage") return { RegisterPager: Pager };
         if (name === "./ReadState") return { ReadState };
+        if (name === "./DecisionLine") return { DecisionLine: () => null };
         if (name === "./inspectorFormat")
           return {
             inspectorValue: (v) => (v == null ? "—" : String(v)),

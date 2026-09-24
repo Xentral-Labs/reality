@@ -133,6 +133,14 @@ or documentation task. Test tasks precede the code they prove and are observed f
 - [ ] T050 [SC-001] [SC-002] (owner: needs the agent run against a stack built from this branch) Re-run the agent setup against a fresh company and record the `quickstart.md` query results in `specs/263-decision-trail/quickstart.md`
 - [X] T051 Review the final diff against spec, Constitution and wording rule ("confirmed through token", never "confirmed by" the issuer); mark tasks complete only with green evidence
 
+## Phase 8: Amendment — decisions in detail views only (2026-09-24)
+
+- [X] T052 [US4] [FR-013] Add failing tests for created, changed and caused decisions, hand-entered records, foreign companies and the inspector payload in `core/tests/test_decision_trail_details.py`
+- [X] T053 [US4] [FR-013] Implement `record_decisions` in `core/src/reality/services/decision_attribution.py`, register it in `core/config/tenant_isolation_catalog.yaml`, and attach `decisions` to every `GET /inspector/{kind}/{id}` read in `core/src/reality/web/api.py`
+- [X] T054 [US4] [FR-010] [FR-013] Rewrite the web contract in `web/scripts/decision-trail.test.mjs`: no decision line in `SourceBadge` or `ActivityDrawer`; the Inspector lists them with links
+- [X] T055 [US4] [FR-010] [FR-013] Remove the decision line from `web/src/unified/SourceBadge.tsx`, `ActivityDrawer.tsx`, `MasterDataPage.tsx`, `OrdersPage.tsx`; render the Decisions section in `web/src/unified/Inspector.tsx`; translate the three role labels
+- [X] T056 [FR-013] Verify against the live local company "Decision Trail Testlauf 2026-09-24": customer register, customer detail, Activities table and an event detail
+
 ## Dependencies
 
 - Phase 2 blocks all stories. US1 and US2 are independent of each other.

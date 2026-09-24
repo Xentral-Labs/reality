@@ -78,18 +78,21 @@ test("the decision line renders the server's attribution and translates it", () 
   assert.match(line, /Token revoked/);
 });
 
-test("a record created here names the decision behind it and links to it", () => {
+test("registers and lists stay short: no decision line in a table row", () => {
   const badge = source("SourceBadge.tsx");
-  assert.match(badge, /<DecisionLine/);
-  assert.match(badge, /origin\.decision/);
-  assert.match(source("MasterDataPage.tsx"), /<SourceBadge[^>]*tenant=\{tenant\}/);
-  assert.match(source("OrdersPage.tsx"), /<SourceBadge[^>]*tenant=\{tenant\}/);
+  const drawer = source("ActivityDrawer.tsx");
+  assert.doesNotMatch(badge, /DecisionLine/);
+  assert.doesNotMatch(drawer, /DecisionLine|event\.decision/);
 });
 
-test("an activity states its decision instead of a bare identifier", () => {
-  const drawer = source("ActivityDrawer.tsx");
-  const statements = drawer.match(/event\.decision && \(/g) || [];
-  // Both the list and the table presentation carry the decision line.
-  assert.equal(statements.length, 2);
-  assert.match(drawer, /<DecisionLine decision=\{event\.decision\} tenant=\{tenant\}/);
+test("every detail view names the decisions behind its record, linked", () => {
+  const inspector = source("Inspector.tsx");
+  assert.match(inspector, /data\.decisions/);
+  assert.match(inspector, /<DecisionLine/);
+  assert.match(inspector, /tenant=\{tenant\}/);
+  assert.match(inspector, /Created by decision/);
+  assert.match(inspector, /Changed by decision/);
+  assert.match(inspector, /Caused by decision/);
+  // The compact preview keeps its three business sections only.
+  assert.match(inspector, /!compact && decisions\.length/);
 });

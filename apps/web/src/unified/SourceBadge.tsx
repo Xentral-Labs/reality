@@ -1,6 +1,5 @@
 import { ExternalLink } from "lucide-react";
 import { t } from "../localization";
-import { DecisionLine } from "./DecisionLine";
 import type { DecisionAttribution } from "./decisionTrail";
 
 export type RecordOrigin =
@@ -31,24 +30,17 @@ export function SourceBadge({
   origin,
   inspect,
   showLink = true,
-  tenant,
 }: {
   origin?: RecordOrigin | null;
   inspect?: (target: { kind: string; id: string }) => void;
   showLink?: boolean;
-  /** The company, so a record created by a decision can link to that decision. */
-  tenant?: string;
 }) {
   if (!origin || origin.kind === "application")
     return (
       <span className="text-fg-muted" data-source-origin="application">
-        {origin?.kind === "application" && origin.decision ? (
-          <DecisionLine decision={origin.decision} tenant={tenant} label={t("Created here")} />
-        ) : origin?.kind === "application" && origin.actor ? (
-          `${t("Created here")} · ${origin.actor}`
-        ) : (
-          t("Created here")
-        )}
+        {origin?.kind === "application" && origin.actor
+          ? `${t("Created here")} · ${origin.actor}`
+          : t("Created here")}
       </span>
     );
   const reference = origin.external_id || origin.source_record_id;
