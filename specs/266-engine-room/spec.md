@@ -104,7 +104,7 @@ As an owner I reach the Live tab from where I am, already filtered.
 
 1. **Given** Settings → MCP access, **When** I choose "Calls of this client" on a token, **Then** the Live tab opens filtered to that token.
 2. **Given** a chat answer in the dock, **When** I choose "Show in engine room", **Then** the Live tab opens filtered to that chat turn.
-3. **Given** a record in the Inspector, **When** I choose "Who touched this", **Then** the Live tab opens filtered to interactions whose outcome or known read subject is that record.
+3. **Given** a record in the Inspector, **When** I choose "Who changed this", **Then** the Live tab opens filtered to interactions whose business events concern that record. Reads of a single record are not attributed, because that would require recording argument values (FR-003).
 4. **Given** the shell header, **When** interactions occur, **Then** a small activity indicator pulses, and choosing it opens the Live tab; Home and the command palette offer the same entry.
 5. **Given** a filter in the URL, **When** the page is reloaded or the link shared with another owner of the same company, **Then** the same filter applies.
 
@@ -135,7 +135,7 @@ As an owner I move back on a time axis and play a past window, for example one a
 - **FR-001**: The system MUST record one interaction for every tool invocation through MCP, Chat and CLI, every tenant-scoped web API request, every proposal decision, every scheduled job run that read or wrote company data and every source intake, per company. Empty scheduler sweeps and idle worker polls are not interactions.
 - **FR-002**: Each interaction MUST state recorded time, channel, actor, operation (a bounded name from the tool/command catalog or route template, never a raw URL or query), kind (read, propose, decide, job, intake), outcome with error code where applicable, and duration.
 - **FR-003**: Interactions MUST NOT contain argument values, result values, payloads, tokens, secrets or free text; at most a bounded summary (argument names, result count).
-- **FR-004**: Interactions that share a cause MUST share a correlation: the web client sends one per user action, each chat turn, MCP request and job run carries one, and business events written in that cause carry the same correlation.
+- **FR-004**: Interactions that share a cause MUST share a correlation: the web client sends one per user action, a chat turn inherits the correlation of the request that carried it, and each MCP call and job run carries its own. An interaction MUST link to exactly the business events it caused and that were committed; events of a rolled-back transaction are not linked.
 - **FR-005**: The Live tab MUST show new interactions of the company within 2 seconds of completion, in recorded order, and resume without gaps or duplicates after a disconnect.
 - **FR-006**: The Live tab MUST offer filters by channel, actor, kind, outcome and correlation, and a subject filter; filters are part of the URL.
 - **FR-007**: The Live tab MUST link each interaction to the Reality it produced (business events, proposal, source record, chat session) through the existing Inspector, and state when an interaction produced nothing.
@@ -151,7 +151,7 @@ As an owner I move back on a time axis and play a past window, for example one a
 ### Domain and Traceability Requirements
 
 - **DR-001**: Interactions are operational telemetry, not business records. No service, projection, exception rule or business decision may read them. Source → Evidence → Reality is unchanged; the engine room only links to it.
-- **DR-002**: An interaction links to business events through the shared correlation, not by duplicating event, document or source identifiers; the proposal link reuses `business_event.action_id`.
+- **DR-002**: The link runs from the interaction to the business events it caused (their tenant sequence), never the other way: business events gain no column, and `business_event.correlation_id` keeps its existing meaning. The proposal link reuses the proposal id; document and source links are reached through the events.
 - **DR-003**: Interactions are tenant-scoped; every read enforces the tenant. Recording happens at the shared dispatcher, the tenant API boundary, the decision service, the job runtime and source intake — never inside individual adapters' business logic.
 - **DR-004**: Actor attribution reuses the principal the channel already establishes (session user, MCP token and person per specs 263/265, job identity); it never infers a person.
 
