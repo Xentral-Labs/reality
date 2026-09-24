@@ -22,18 +22,42 @@ class BackendTestShardTests(unittest.TestCase):
     def setUpClass(cls) -> None:
         cls.sharder = load_sharder()
 
-    def test_shards_cover_every_test_file_once_and_balance_weight(self) -> None:
+    def test_shards_cover_every_test_file_once(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
-            sizes = {"test_large.py": 100, "test_medium.py": 60, "test_small.py": 40}
-            for name, size in sizes.items():
-                (root / name).write_text("x" * size)
-            shards = self.sharder.shard_files(root, 2)
+            names = [f"test_{letter}.py" for letter in "abcdef"]
+            for name in names:
+                (root / name).write_text("x")
+            shards = self.sharder.shard_files(root, 2, {})
             paths = [path.name for shard in shards for path in shard]
-            self.assertCountEqual(paths, sizes)
+            self.assertCountEqual(paths, names)
             self.assertEqual(len(paths), len(set(paths)))
-            weights = [sum(path.stat().st_size for path in shard) for shard in shards]
-            self.assertEqual(weights, [100, 100])
+
+    def test_recorded_seconds_decide_the_shard(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            for name in ("test_slow.py", "test_a.py", "test_b.py", "test_c.py"):
+                (root / name).write_text("x")
+            shards = self.sharder.shard_files(
+                root,
+                2,
+                {"test_slow.py": 30.0, "test_a.py": 10.0, "test_b.py": 10.0, "test_c.py": 10.0},
+            )
+            heavy = next(shard for shard in shards if any(p.name == "test_slow.py" for p in shard))
+            light = next(shard for shard in shards if shard is not heavy)
+            self.assertEqual(len(heavy), 1)
+            self.assertEqual(len(light), 3)
+
+    def test_an_unmeasured_file_weighs_the_median_of_the_measured_ones(self) -> None:
+        """A new test file must not weigh nothing, or it all lands in one shard."""
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            for name in ("test_known.py", "test_new_one.py", "test_new_two.py"):
+                (root / name).write_text("x")
+            weights = self.sharder.weigh(
+                sorted(root.rglob("test_*.py")), root, {"test_known.py": 8.0}
+            )
+            self.assertEqual({round(value, 1) for value in weights.values()}, {8.0})
 
     def test_invalid_or_empty_input_fails_safe(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
