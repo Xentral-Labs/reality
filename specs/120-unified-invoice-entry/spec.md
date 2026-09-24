@@ -65,3 +65,21 @@ No clarification or schema exception remains.
 | FR-002/004 | T001/T002 | test_unified_invoice_entry.py |
 | FR-003/005 | T001/T003 | test_unified_invoice_entry.py |
 | FR-001–007 | T006 | Full regression gates and final review |
+
+## Delivered-quantity approval guard
+
+The authorized Atlas integration correction adds an optional `delivery_guard` to single-position
+sales invoices. Ordinary invoice entry retains its existing ability to invoice before delivery.
+
+- **FR-008**: A caller billing a delivered condition MUST be able to bind its condition identity,
+  unit and unbilled quantity to the reviewed invoice intent. The shared service MUST compare
+  that guard with current retained delivery less billed quantity while holding the same tenant
+  delivery lock as shipment, return, correction and invoice writes through invoice commit.
+  Missing, ambiguous, foreign, changed or insufficient delivery evidence MUST refuse the
+  guarded invoice before any source, invoice or posting is created. Unguarded billing is unchanged.
+
+Acceptance: prepare a guarded invoice for delivered goods, read the unchanged condition, then
+return goods before confirmation. Confirmation must fail without invoice effects. A return
+started during invoice confirmation must wait on the shared lock. A stable guard permits one
+invoice and replay returns the same receipt. A server without guard support must not be used
+by a client relying on this invariant.

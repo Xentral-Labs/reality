@@ -1869,6 +1869,14 @@ ADDITIONAL_PROPOSAL_TOOLS: tuple[tuple[str, str, str, dict[str, Any]], ...] = (
                 "gross_amount": DECIMAL_STRING,
                 "number": STRING,
                 "effective_at": OPTIONAL_STRING,
+                "delivery_guard": _object_schema(
+                    {
+                        "condition_id": STRING,
+                        "unbilled_quantity": DECIMAL_STRING,
+                        "unit": STRING,
+                    },
+                    required=("condition_id", "unbilled_quantity", "unit"),
+                ),
             },
             required=("gross_amount", "number"),
         ),

@@ -8798,9 +8798,12 @@ def record_sales_invoice(
     lines: list[dict[str, Any]] | None = None,
     effective_at: datetime | None = None,
     action_id: str | None = None,
+    delivery_guard: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     """Record stated invoice evidence and its receivable, never generate a total."""
     _require_business_mutation(session, tenant_id, "record_sales_invoice")
+    if lines is not None and delivery_guard is not None:
+        raise InvalidOperation("A delivery guard requires a single sales order line.")
     if lines is not None:
         arguments = {
             "lines": lines,
@@ -8821,6 +8824,7 @@ def record_sales_invoice(
         gross_amount,
         number,
         direction="sales",
+        delivery_guard=delivery_guard,
         effective_at=effective_at,
         action_id=action_id,
     )
@@ -8999,6 +9003,53 @@ def _order_line_billing(
     }
 
 
+def _validate_invoice_delivery_guard(
+    session: OrmSession,
+    tenant_id: str,
+    line: DocumentLine,
+    quantity: Decimal,
+    guard: Any,
+) -> None:
+    from reality.services.exceptions import (
+        _invoice_lines,
+        _kept_quantity,
+        _quantity_in_agreed_unit,
+    )
+
+    if (
+        not isinstance(guard, dict)
+        or set(guard) != {"condition_id", "unbilled_quantity", "unit"}
+        or guard["condition_id"] != f"exc__shipped_not_billed__{line.id}"
+        or guard["unit"] != line.unit
+        or not isinstance(guard["unbilled_quantity"], str)
+    ):
+        raise InvalidOperation("The invoice delivery guard is invalid.")
+    commitments = list(
+        session.scalars(
+            select(Commitment.id).where(
+                Commitment.tenant_id == tenant_id,
+                Commitment.document_line_id == line.id,
+                Commitment.type == "customer_delivery",
+            )
+        )
+    )
+    if len(commitments) != 1:
+        raise InvalidOperation("The invoice delivery evidence is missing or ambiguous.")
+    kept = _kept_quantity(session, tenant_id, commitments[0])
+    billed = _quantity_in_agreed_unit(
+        session, tenant_id, line, _invoice_lines(session, tenant_id, line.id)
+    )
+    if billed is None:
+        raise InvalidOperation("The invoice delivery unit cannot be verified.")
+    unbilled = kept - billed
+    if (
+        unbilled <= ZERO
+        or quantity > unbilled
+        or unbilled != positive(guard["unbilled_quantity"], "delivery quantity")
+    ):
+        raise InvalidOperation("The delivery changed. Prepare a fresh invoice review.")
+
+
 def _preview_order_invoice(
     session: OrmSession, tenant_id: str, direction: str, arguments: dict[str, Any]
 ) -> dict[str, Any]:
@@ -9105,6 +9156,7 @@ def _preview_order_invoice(
     if not required <= arguments.keys() or arguments.keys() - required - {
         "effective_at",
         "reality_finance_v1",
+        "delivery_guard",
     }:
         raise InvalidOperation("Invoice fields are incomplete or unsupported.")
     line = _tenant_record(session, DocumentLine, tenant_id, arguments["order_line_id"])
@@ -9124,6 +9176,11 @@ def _preview_order_invoice(
         raise InvalidOperation(
             "Invoice quantity exceeds the remaining billable quantity."
         )
+    guard = arguments.get("delivery_guard")
+    if "delivery_guard" in arguments:
+        if direction != "sales":
+            raise InvalidOperation("A delivery guard requires a sales invoice.")
+        _validate_invoice_delivery_guard(session, tenant_id, line, quantity, guard)
     effective = utc_datetime(arguments.get("effective_at"))
     document, lines = _preview_manual_document_input(
         session,
@@ -9148,6 +9205,7 @@ def _preview_order_invoice(
     )
     return {
         "direction": direction,
+        **({"delivery_guard": guard} if guard is not None else {}),
         "order_line_id": line.id,
         "quantity": quantity,
         "gross_amount": amount,
@@ -9285,6 +9343,7 @@ def _record_order_invoice(
     effective_at: datetime | None,
     action_id: str | None,
     credit: bool = False,
+    delivery_guard: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     from reality.services.tenant_policy import require_decision_finance
 
@@ -9300,6 +9359,9 @@ def _record_order_invoice(
         tenant_id,
         "sales_credit_record" if credit else f"{invoice_type}_record",
         {
+            **(
+                {"delivery_guard": delivery_guard} if delivery_guard is not None else {}
+            ),
             "order_line_id": order_line_id,
             "quantity": quantity,
             "gross_amount": gross_amount,
@@ -9326,6 +9388,11 @@ def _record_order_invoice(
                 tenant_id,
                 direction,
                 {
+                    **(
+                        {"delivery_guard": delivery_guard}
+                        if delivery_guard is not None
+                        else {}
+                    ),
                     "order_line_id": order_line_id,
                     "quantity": quantity,
                     "gross_amount": gross_amount,
@@ -9350,6 +9417,9 @@ def _record_order_invoice(
             )
         effective_at = effective_at or now()
         payload = {
+            **(
+                {"delivery_guard": delivery_guard} if delivery_guard is not None else {}
+            ),
             "order_line_id": line.id,
             "quantity": str(quantity),
             "gross_amount": str(gross_amount),

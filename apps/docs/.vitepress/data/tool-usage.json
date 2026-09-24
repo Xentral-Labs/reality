@@ -7314,7 +7314,7 @@
       "summary": "Prepare this business mutation without changing state. Record sales invoice. Human confirmation is required.",
       "access": "propose",
       "group": "Mutations",
-      "synopsis": "sales_invoice_record_propose [order_line_id] [quantity] [lines] gross_amount number [effective_at]",
+      "synopsis": "sales_invoice_record_propose [order_line_id] [quantity] [lines] gross_amount number [effective_at] [delivery_guard]",
       "parameters": [
         {
           "name": "order_line_id",
@@ -7435,6 +7435,34 @@
           "required": false,
           "description": "UTC instant from which the observation or rule takes effect.",
           "depth": 0
+        },
+        {
+          "name": "delivery_guard",
+          "type": "object",
+          "required": false,
+          "description": "Optional single-line sales-invoice precondition binding a shipped-not-billed condition identity, unit and unbilled quantity; rechecked under the delivery lock before recording.",
+          "depth": 0
+        },
+        {
+          "name": "delivery_guard.condition_id",
+          "type": "string",
+          "required": true,
+          "description": "",
+          "depth": 1
+        },
+        {
+          "name": "delivery_guard.unbilled_quantity",
+          "type": "string",
+          "required": true,
+          "description": "",
+          "depth": 1
+        },
+        {
+          "name": "delivery_guard.unit",
+          "type": "string",
+          "required": true,
+          "description": "Unit of measure in which the quantity is expressed.",
+          "depth": 1
         }
       ],
       "guidance": {},
@@ -19306,7 +19334,7 @@
       "related_services": [],
       "tools": ["sales_invoice_record_propose"],
       "synopses": [
-        "sales_invoice_record_propose [order_line_id] [quantity] [lines] gross_amount number [effective_at]"
+        "sales_invoice_record_propose [order_line_id] [quantity] [lines] gross_amount number [effective_at] [delivery_guard]"
       ],
       "events": ["invoice.recorded"],
       "actions": [],

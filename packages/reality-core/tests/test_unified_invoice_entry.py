@@ -444,3 +444,244 @@ def test_invoice_prepare_http_uses_shared_review(session, business, tool):
             )
     finally:
         app.dependency_overrides.clear()
+
+
+def delivered_invoice(session, business):
+    from reality.db.core import Commitment
+    from reality.services.core import record_movement
+
+    seed = prepare(session, business, request="delivery-seed")
+    line_id = json.loads(seed.input)["order_line_id"]
+    line = record_by_id(session, DocumentLine, line_id)
+    commitment = session.scalar(
+        select(Commitment).where(
+            Commitment.tenant_id == business.tenant.id,
+            Commitment.document_line_id == line_id,
+            Commitment.type == "customer_delivery",
+        )
+    )
+    assert commitment is not None
+    record_movement(
+        session,
+        business.tenant.id,
+        "opening_stock",
+        business.item.id,
+        "3",
+        to_location_id=business.location.id,
+    )
+    record_movement(
+        session,
+        business.tenant.id,
+        "shipment",
+        business.item.id,
+        "3",
+        from_location_id=business.location.id,
+        commitment_id=commitment.id,
+    )
+    guard = {
+        "condition_id": f"exc__shipped_not_billed__{line_id}",
+        "unbilled_quantity": "3",
+        "unit": line.unit,
+    }
+    return line_id, commitment.id, guard
+
+
+@pytest.mark.parametrize("returned", ["1", "2", "3"])
+def test_return_after_delivery_read_refuses_guarded_invoice_atomically(
+    session, business, returned
+):
+    from reality.services.core import record_movement
+    from reality.services.exceptions import explain_operational_exception
+
+    line_id, commitment_id, guard = delivered_invoice(session, business)
+    proposal = prepare(
+        session, business, line=line_id, request="guarded", delivery_guard=guard
+    )
+    assert explain_operational_exception(
+        session, business.tenant.id, guard["condition_id"]
+    )["causal_values"]["unbilled_quantity"] == Decimal(3)
+    before = session.scalar(select(func.count()).select_from(LedgerEntry))
+    record_movement(
+        session,
+        business.tenant.id,
+        "return",
+        business.item.id,
+        returned,
+        to_location_id=business.location.id,
+        commitment_id=commitment_id,
+    )
+    with pytest.raises(InvalidOperation, match="delivery"):
+        confirm(session, business, proposal)
+    assert session.scalar(select(func.count()).select_from(LedgerEntry)) == before
+    assert (
+        session.scalar(
+            select(func.count())
+            .select_from(Document)
+            .where(Document.type == "sales_invoice")
+        )
+        == 0
+    )
+    assert (
+        delivery_proposal_detail(session, business.tenant.id, proposal.id)["status"]
+        == "proposed"
+    )
+
+
+def test_guarded_invoice_retains_exact_guard_and_replays_one_receipt(session, business):
+    line_id, _, guard = delivered_invoice(session, business)
+    proposal = prepare(
+        session, business, line=line_id, request="guarded", delivery_guard=guard
+    )
+    review = json.loads(proposal.input)["_delivery_review"]
+    assert review["intent"]["delivery_guard"] == guard
+    assert review["state"]["creation"]["delivery_guard"] == guard
+    confirm(session, business, proposal)
+    receipt = delivery_proposal_detail(session, business.tenant.id, proposal.id)[
+        "receipt"
+    ]
+    confirm(session, business, proposal)
+    detail = delivery_proposal_detail(session, business.tenant.id, proposal.id)
+    assert detail["verification"] == "verified"
+    assert detail["receipt"] == receipt
+    assert (
+        session.scalar(
+            select(func.count())
+            .select_from(Document)
+            .where(Document.type == "sales_invoice")
+        )
+        == 1
+    )
+
+
+@pytest.mark.parametrize(
+    "change",
+    [
+        {"condition_id": "exc__shipped_not_billed__foreign"},
+        {"unbilled_quantity": "4"},
+        {"unit": "foreign"},
+    ],
+)
+def test_delivery_guard_refuses_wrong_or_changed_evidence(session, business, change):
+    line_id, _, guard = delivered_invoice(session, business)
+    with pytest.raises(InvalidOperation, match="delivery"):
+        prepare(
+            session,
+            business,
+            line=line_id,
+            request="guarded",
+            delivery_guard={**guard, **change},
+        )
+
+
+def test_guard_validation_and_invoice_commit_serialize_a_concurrent_return(
+    postgres_database, monkeypatch
+):
+    import time
+    from concurrent.futures import ThreadPoolExecutor
+    from queue import Queue
+    from threading import Event
+
+    from conftest import Business
+    from sqlalchemy import text
+    from sqlalchemy.orm import sessionmaker
+
+    from reality.db.core import Base, build_engine
+    from reality.services import core
+
+    engine = build_engine(postgres_database)
+    Base.metadata.create_all(engine)
+    factory = sessionmaker(engine, expire_on_commit=False)
+    checked, release = Event(), Event()
+    returning = Queue()
+    try:
+        with factory() as session:
+            tenant = core.create_tenant(session, "Invoice guard concurrency")
+            b = Business(
+                tenant=tenant,
+                company=core.create_party(session, tenant.id, "Company", "company"),
+                customer=core.create_party(session, tenant.id, "Customer", "customer"),
+                supplier=core.create_party(session, tenant.id, "Supplier", "supplier"),
+                item=core.create_item(session, tenant.id, "GUARD", "Guard item"),
+                location=core.create_location(session, tenant.id, "Warehouse"),
+            )
+            line_id, commitment_id, guard = delivered_invoice(session, b)
+            proposal = prepare(
+                session, b, line=line_id, request="guarded", delivery_guard=guard
+            )
+            proposal_id = proposal.id
+            token = json.loads(proposal.input)["_delivery_review"]["token"]
+            tenant_id, item_id, location_id = tenant.id, b.item.id, b.location.id
+
+        original = core._validate_invoice_delivery_guard
+
+        def hold_after_validation(*args, **kwargs):
+            original(*args, **kwargs)
+            if not checked.is_set():
+                checked.set()
+                assert release.wait(10)
+
+        monkeypatch.setattr(
+            core, "_validate_invoice_delivery_guard", hold_after_validation
+        )
+
+        def invoice():
+            with factory() as session:
+                return approve_and_execute_proposal(
+                    session, tenant_id, proposal_id, review_token=token, confirmed=True
+                )
+
+        def send_return():
+            with factory() as session:
+                returning.put(session.scalar(text("select pg_backend_pid()")))
+                return core.record_movement(
+                    session,
+                    tenant_id,
+                    "return",
+                    item_id,
+                    "2",
+                    to_location_id=location_id,
+                    commitment_id=commitment_id,
+                )
+
+        with ThreadPoolExecutor(max_workers=2) as workers:
+            writing = workers.submit(invoice)
+            assert checked.wait(10)
+            movement = workers.submit(send_return)
+            pid = returning.get(timeout=10)
+            try:
+                deadline = time.monotonic() + 5
+                with engine.connect() as observer:
+                    while time.monotonic() < deadline:
+                        blocked = observer.scalar(
+                            text(
+                                "select count(*) from pg_locks where pid=:pid and not granted"
+                            ),
+                            {"pid": pid},
+                        )
+                        if blocked:
+                            break
+                        time.sleep(0.01)
+                    assert blocked == 1
+                assert not movement.done()
+            finally:
+                release.set()
+            writing.result(timeout=10)
+            movement.result(timeout=10)
+        with factory() as session:
+            assert (
+                delivery_proposal_detail(session, tenant_id, proposal_id)[
+                    "verification"
+                ]
+                == "verified"
+            )
+            assert (
+                session.scalar(
+                    select(func.count())
+                    .select_from(Document)
+                    .where(Document.type == "sales_invoice")
+                )
+                == 1
+            )
+    finally:
+        release.set()
+        engine.dispose()
