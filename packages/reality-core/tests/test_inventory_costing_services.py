@@ -1279,6 +1279,21 @@ def test_unrelated_finance_event_does_not_stale_reviewed_inventory(
     assert current["missing_basis"] == []
 
 
+def test_inventory_review_names_receipt_missing_exact_cost_evidence(
+    session, business, cost_owner
+):
+    arguments, receipt, _ = prepared(session, business, cost_owner)
+    arguments["receipts"] = []
+
+    with pytest.raises(core.InvalidOperation, match=receipt.id):
+        preview_cost_change(
+            session,
+            business.tenant.id,
+            arguments,
+            principal=Principal(cost_owner.id),
+        )
+
+
 def test_inventory_owner_confirmation_stale_and_rollback(
     session, business, cost_owner, monkeypatch
 ):

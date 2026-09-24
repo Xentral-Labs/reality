@@ -249,9 +249,13 @@ def _check(
     receipt_ids = {m.id for m in owned_movements if m.type == "receipt"}
     if len(receipt_ids) > receipt_limit:
         raise core.InvalidOperation("Inventory receipt bound exceeded.")
-    if receipt_ids != {r.movement_id for r in request.receipts}:
+    reviewed_receipt_ids = {row.movement_id for row in request.receipts}
+    if receipt_ids != reviewed_receipt_ids:
+        missing = sorted(receipt_ids - reviewed_receipt_ids)
+        unexpected = sorted(reviewed_receipt_ids - receipt_ids)
         raise core.InvalidOperation(
-            "Every receipt requires exact cost and ownership evidence."
+            "Every receipt requires exact cost and ownership evidence; "
+            f"missing movement IDs: {missing}; unexpected movement IDs: {unexpected}."
         )
     opening_ids = {m.id for m in owned_movements if m.type == "opening_stock"}
     if opening_ids != {row.movement_id for row in request.openings}:

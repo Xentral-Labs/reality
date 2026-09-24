@@ -3,22 +3,13 @@
 from pydantic import ValidationError
 
 from reality.domain.costing import (
-    Assign,
+    CHANGE,
     CommercialMatchRead,
-    CommercialMatchReview,
-    ContributionBatchReview,
     ContributionRead,
-    ContributionReview,
     EvidenceRead,
-    InventoryBatchReview,
     InventoryRead,
-    InventoryReview,
     ReceiptRead,
-    Replace,
-    Review,
     ReviewedContributionRead,
-    SellingAssign,
-    Withdraw,
 )
 from reality.services import costing
 from reality.services.core import InvalidOperation
@@ -41,66 +32,27 @@ def evidence(session, tenant_id, arguments):
 
 
 def change_input_schema() -> dict:
-    """Expose a tool object; the discriminated domain model validates each operation."""
-    schemas = [
-        model.model_json_schema()
-        for model in (
-            Assign,
-            Replace,
-            Review,
-            Withdraw,
-            InventoryReview,
-            InventoryBatchReview,
-            ContributionReview,
-            ContributionBatchReview,
-            CommercialMatchReview,
-            SellingAssign,
-        )
-    ]
-    properties = {
-        key: value for schema in schemas for key, value in schema["properties"].items()
-    }
-    properties["document_line_id"] = Assign.model_json_schema()["properties"][
-        "document_line_id"
-    ]
-    properties["tax_treatment"] = Assign.model_json_schema()["properties"][
-        "tax_treatment"
-    ]
-    properties["parts"] = {
-        "type": "array",
-        "minItems": 1,
-        "maxItems": 100,
-        "items": {
-            "anyOf": [{"$ref": "#/$defs/CostPart"}, {"$ref": "#/$defs/SellingPart"}]
-        },
-    }
-    properties["operation"] = {
-        "type": "string",
-        "enum": [
-            "assign",
-            "replace",
-            "review",
-            "withdraw",
-            "inventory_review",
-            "inventory_batch_review",
-            "contribution_review",
-            "contribution_batch_review",
-            "commercial_match_review",
-            "selling_assign",
-        ],
-        "description": "Assign received shares; replace requires fresh evidence and predecessor ID; review requires movement and all six categories; withdraw requires component basis ID. Inventory review requires an explicit FIFO policy, full history and ownership evidence, exact receipt reviews and economic issue identities. Inventory batch review requires 2–10 distinct scopes with the same cutoff, economic owner and currency, within 100 movements and 20 receipts in total; it confirms all scopes atomically. Contribution review requires the exact candidate hash, explicit commercial_v1/profile and revenue completeness confirmation, and the exact shipment economic time. Contribution batch review requires 2–10 distinct positions on one common confirmed inventory action, cutoff, economic owner and currency; all positions are confirmed atomically with independent selling coverage. Selling assign requires received supplier net evidence, recoverable/no-tax treatment, explicit selling-expense confirmation excluding acquisition/inventory/overhead, and exact sold-line shares. Contribution selling_categories optionally reviews all seven categories to finalize DB2. Every operation requires the current event sequence and a reason.",
-    }
-    return {
-        "type": "object",
-        "properties": properties,
-        "required": ["operation", "expected_event_sequence", "reason"],
-        "additionalProperties": False,
-        "$defs": {
-            key: value
-            for schema in schemas
-            for key, value in schema.get("$defs", {}).items()
-        },
-    }
+    """Expose the exact discriminated domain union without cross-variant defaults."""
+    schema = CHANGE.json_schema()
+    definitions = schema.get("$defs", {})
+
+    def inline(value):
+        if isinstance(value, dict):
+            reference = value.get("$ref")
+            if isinstance(reference, str) and reference.startswith("#/$defs/"):
+                return inline(definitions[reference.rsplit("/", 1)[-1]])
+            return {
+                key: inline(item)
+                for key, item in value.items()
+                if key != "$defs"
+            }
+        if isinstance(value, list):
+            return [inline(item) for item in value]
+        return value
+
+    result = inline(schema)
+    result["type"] = "object"
+    return result
 
 
 def inventory(session, tenant_id, arguments):

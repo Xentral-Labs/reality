@@ -62,3 +62,15 @@ identity and reads the resulting balances, credit, notice, invoice or cost obser
 Runtime schema, capability guidance and generated Tool Usage publish the same closed values,
 required fields and nested shapes. The deployed release qualification compares these properties,
 not merely tool names.
+
+Operation-specific actions publish a discriminated union whose branches retain all nested fields
+through the live wrapper. Cost amount/sign semantics, categories, tax treatments and dispositions,
+and shipment-purpose movement types are discoverable without invalid probe calls.
+
+## Deterministic execution failure
+
+Knowable input and relationship errors are refused before proposal persistence. If an unchanged
+proposal reaches confirmation and a deterministic domain refusal occurs before any effect commits,
+its terminal status is `failed`; the result states `business_effect: none`, a bounded error code
+and the permitted recovery. `executing` continues to mean that commit outcome is unknown and is
+never automatically retried or rejected.

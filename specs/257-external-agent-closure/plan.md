@@ -13,7 +13,12 @@ tighten closed-type validation and return refusals; and add a derived costing-gu
 envelope over the existing owner-confirmed cost workflow. Existing settlement,
 invoice-credit, return-disposition and demo-cost capabilities receive regression and
 end-to-end proof rather than replacement implementations. No business table or migration
-is planned.
+is planned. The fresh 2026-09-24 qualification adds a sixth bounded follow-up: repair the
+advertised customer-credit adapter, replace tenant-global cost freshness with evidence-scoped
+freshness, preserve acquisition history across internal transfers, retain source-stated invoice
+net/tax evidence, make effect-free execution failures terminal, and publish complete
+operation-specific MCP contracts. Existing JSON evidence payloads, cost manifests and proposal
+records are sufficient; no new business table or migration is planned.
 
 ## Technical Context
 
@@ -23,7 +28,7 @@ is planned.
 **Testing**: pytest unit/service/business-story/PostgreSQL/adapter tests; generated-catalog contracts; focused Web contracts/browser journeys
 **Project Type**: shared domain/services/tools with MCP, API, CLI, Chat and Web adapters
 **Constraints**: Decimal; UTC; opaque IDs; immutable source evidence; strict tenant scope; explicit owner confirmation; no inferred actual cost
-**Scale/Scope**: One proposal/action at a time; complete public MCP catalog parity; one fresh CanisPro qualification tenant; no bulk workflow engine
+**Scale/Scope**: One proposal/action at a time; bounded independent receipt reviews; complete public MCP catalog parity; fresh CanisPro qualification tenants; no bulk workflow engine
 
 ## Constitution Check *(blocking gate)*
 
@@ -31,7 +36,7 @@ is planned.
 |---|---|---|
 | Source → Evidence → Reality | Free supplier invoices create immutable SourceRecord and Document/DocumentLine evidence before ledger effects; credits retain invoice-line links; return and cost actions reuse their existing evidence chains. | PASS |
 | Reality owns operational state | Reservation effect, return resolution, settlement, credit and cost readiness remain derived from Reservation, Movement, LedgerEntry/allocation and reviewed cost records; no document status is introduced. | PASS |
-| Proven schema only | Existing records express every accepted scenario; all new guidance is read-time and no schema or migration is planned. | PASS |
+| Proven schema only | Existing line payloads already retain `reality_finance_v1` stated net/tax/gross evidence; cost manifests/hashes and proposal status/output express the remaining scenarios. No column or migration is planned. | PASS |
 | Tenant + shared service boundaries | Shared tenant-scoped services feed MCP and Web; owner confirmation continues through the existing proposal execution boundary. | PASS |
 | Spec/test traceability | FR/DR groups map below to tests added before their implementation slice and to a final fresh-tenant qualification. | PASS |
 | Explainable web behavior | Owner review, no/partial/full effects, cost prerequisites and final receipts expose current evidence and next reads. | PASS |
@@ -46,6 +51,9 @@ Planning may proceed. No Constitution exception or unresolved clarification exis
 packages/reality-core/src/reality/domain/cost_query.py
 packages/reality-core/src/reality/services/core.py
 packages/reality-core/src/reality/services/cost_query.py
+packages/reality-core/src/reality/services/costing.py
+packages/reality-core/src/reality/services/inventory_costing.py
+packages/reality-core/src/reality/services/finance/components.py
 packages/reality-core/src/reality/services/credit_actions.py
 packages/reality-core/src/reality/services/dunning.py
 packages/reality-core/src/reality/services/invoice_actions.py
@@ -61,6 +69,10 @@ packages/reality-core/config/resource_catalog.yaml
 packages/reality-core/tests/
 packages/reality-core/tests/finance/
 packages/reality-core/tests/scenarios/
+packages/reality-core/tests/test_costing_services.py
+packages/reality-core/tests/test_inventory_costing_services.py
+packages/reality-core/tests/test_unified_invoice_credit.py
+packages/reality-core/tests/test_contribution_services.py
 apps/web/src/api.ts
 apps/web/src/unified/CostExplanation.tsx
 apps/web/src/unified/ProposalReviewCard.tsx
@@ -143,13 +155,34 @@ authority. Demo readiness continues through spec 251's existing profile/setup pa
     semantically incorrect alias. Add regression coverage for every public filter.
 12. Generate Tool Usage reference from the canonical catalogs and run a release qualification
     that compares the deployed MCP `tools/list` projection with the checked-in reference.
+13. Keep optimistic concurrency for cost mutations, but bind retained receipt-review freshness to
+    a canonical fingerprint of the receipt basis, admitted financial components, attributions,
+    corrections and retained category decisions. Unrelated business events do not alter that
+    fingerprint. Relevant changes report the changed evidence scope.
+14. Treat transfer movements as physical continuity in inventory costing. The transfer-out and
+    transfer-in legs move the existing cost layer and owner; they do not create an independently
+    valued acquisition receipt. Refusals enumerate exact missing movement or receipt identities.
+15. Retain source-stated `net`, `tax`, `gross`, currency and codes in the existing
+    `DocumentLine.payload.reality_finance_v1` envelope during invoice recording. Never derive a
+    missing received value; gross-only invoices remain valid evidence but unavailable for a net
+    contribution basis.
+16. Validate customer-credit shape and billed relationships while preparing the proposal. The MCP
+    adapter forwards the complete normalized input rather than flattening it to an empty mapping.
+17. When confirmation reaches a deterministic domain refusal and the transaction proves no
+    business effect, persist a terminal `failed` proposal outcome with a bounded error receipt.
+    Unknown commit outcomes remain `executing`; the implementation must not misclassify them.
+18. Publish operation-discriminated schemas for costing and purpose-specific shipment contracts
+    from the same typed request models used at runtime, and verify the live MCP projection.
 
 ### Data and migration impact
 
-No schema change, migration or backfill is planned. Existing SourceRecord, Document,
+No column/table schema change, migration or backfill is planned. Existing SourceRecord, Document,
 DocumentLine, LedgerEntry, SettlementAllocation, ChangeProposal, DunningNotice, Movement,
 Reservation and retained cost records express all accepted behavior. Review handoff,
 capability aliasing, effect classification and costing guidance are derived read contracts.
+Source-stated invoice finance detail is retained in the existing lossless line payload contract.
+The proposal lifecycle adds the terminal semantic value `failed` to the existing status field and
+stores only a bounded non-secret failure receipt in existing output; no persistence shape changes.
 
 Historical CanisPro records remain untouched. Its pending probes may be rejected later through
 the new public lifecycle action, but no rollout task silently cleans them. If implementation
@@ -173,6 +206,13 @@ return to specification/Constitution review with a proven schema use case.
   proposal/document creation. No adapter silently ignores an unknown field or filter.
 - Cost guidance performs no writes and grants no authority. Incomplete evidence keeps actual
   values unavailable; DB1 and DB2 retain independent coverage.
+- Receipt-review freshness ignores unrelated tenant events but rejects a changed bounded evidence
+  fingerprint. Prepare-time optimistic concurrency remains required for the mutation itself.
+- Internal transfers preserve quantity, owner and cost-layer continuity; they cannot manufacture
+  new acquisition value or erase the trace to the original supplier receipt.
+- A deterministic validated refusal may become terminal `failed` only after rollback proves no
+  business effect. Transport loss, timeout or ambiguous commit remains `executing` and requires
+  reconciliation.
 - Server-side proposal review remains responsible for redacting sensitive input before Web
   presentation.
 
@@ -194,6 +234,12 @@ Tests are written or extended first and observed failing where practical.
 | FR-020–FR-023 | cost read/service/Web story | Extend `test_cost_query.py`, costing tool tests and CostExplanation contracts; add ordinary-company complete/incomplete story | Cost reads expose raw missing codes but no coherent next authorized stage |
 | FR-024 | application/MCP lifecycle | Extend proposal tests for explicit human rejection, default-model exclusion, replay, executed/executing refusal and cross-tenant scope | Rejection exists only through Web/application, not MCP; replay is not public |
 | FR-028–FR-029, SC-001–SC-010 | end-to-end qualification | Fresh CanisPro public MCP + owner Web review protocol with artifacted F1–F13 closure matrix | Original run required invalid probes/workarounds and mixed real gaps with expected boundaries |
+| FR-031 | application/MCP/business story | Extend `test_unified_invoice_credit.py` and `test_ai_mcp.py` for full argument retention, empty-shape refusal and canonical invoice credit | Live wrapper discarded supplied arguments and retained `{}` |
+| FR-032, SC-012 | cost service | Extend `test_costing_services.py` for unrelated-event stability and targeted invalidation with named evidence | Global tenant input sequence invalidates every review |
+| FR-033–FR-034, SC-014 | proposal service/application | Extend proposal, invoice and credit execution tests for prepare-time validation, rollback, terminal `failed` and genuinely indeterminate `executing` | Deterministic refusals remain permanently `executing` |
+| FR-035, SC-013 | inventory domain/service | Extend `test_inventory_costing_services.py` with purchase-transfer-sale continuity and exact missing-scope refusal | Transfer destination is treated as an unsupported new receipt |
+| FR-036 | registry/MCP/docs/release | Extend `test_ai_mcp.py`, capability guidance and deployed catalog comparison for complete union/purpose contracts | Live cost schema was empty and shipment movement values required probing |
+| FR-037, SC-013 | invoice evidence/contribution | Extend invoice, finance-component and contribution tests for stated net/tax/gross and gross-only unavailability | Regular invoice intake omitted the retained net basis |
 | DR-001–DR-008, SC-011 | architecture/full gates | Source/evidence trace assertions, tenant suites, schema-diff review, full required checks | Cross-slice regression and no-schema proof are not yet gathered together |
 
 Required final gates include focused pytest suites, PostgreSQL concurrency where applicable,
@@ -226,6 +272,14 @@ added public tools; never replay executing actions or delete audit history autom
 - Cost guidance must not become stored workflow state, automatic financial authority or a
   second calculation implementation.
 - A live endpoint comparison needs release credentials without storing secrets in evidence.
+- Evidence-scoped freshness must include every authoritative cost input without falling back to a
+  global cursor or persisting a second cost authority.
+- Adding `failed` must not convert genuinely indeterminate executions into safe failures; rollback
+  and absence-of-effect proof are mandatory.
+- Invoice finance detail must preserve exactly what the source stated and must not infer net or tax
+  from gross, rates or account postings.
+- Transfer valuation must preserve shortest links to the original acquisition receipt and must not
+  duplicate acquisition attribution on the destination movement.
 
 ## Post-Design Constitution Check
 

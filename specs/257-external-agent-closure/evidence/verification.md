@@ -1,8 +1,30 @@
 # Verification Evidence
 
-**Date**: 2026-09-23
-**Scope**: Local Spec 257 implementation and regression qualification
-**External qualification**: Not included; the fresh deployed CanisPro run remains T075.
+**Date**: 2026-09-24
+**Scope**: Local Spec 257 implementation, regression verification and fresh external qualification
+**External qualification**: Completed twice; the final follow-up run is recorded in
+[final qualification follow-up](final-qualification-follow-up-2026-09-24.md).
+
+## Qualification follow-up gates — 2026-09-24
+
+- Focused affected backend suites: `219 passed, 2 skipped`.
+- PostgreSQL migration verification: passed from the package working directory.
+- Web contracts and production build: `363 passed`; build passed.
+- Documentation contracts and production build: `85 passed`; build passed.
+- Spec policy, Ruff, generated documentation freshness and `git diff --check`: passed.
+- The API and MCP services were rebuilt from the current worktree and reported healthy on the new
+  images before the fresh tenant was created.
+- Fresh tenant: `ten_e19e802603`, company
+  `CanisPro Tiernahrung Finalqualifikation 2026-09-24`.
+- The external agent first verified the exact tenant with one read-only call, then used public MCP
+  tools and authenticated Web owner review only.
+- External protocol:
+  `/Users/benediktsauter/Downloads/reality-mcp-testprotokoll-canispro-2026-09-24-finalqualifikation.md`.
+
+The run qualifies FR-031, FR-032 and FR-035. FR-037 is qualified for order-backed purchase and
+sales invoices. It also proves that additional deterministic failure families, the deployed schema
+surface and free/credit-document finance evidence remain incomplete. These are not hidden as spec
+257 completion; they are bounded by spec 267.
 
 ## Backend and PostgreSQL
 
@@ -57,10 +79,9 @@ focused rerun passed (`2 passed in 12.32s`), and the complete suite then passed 
 - Deployed MCP comparison was not run because no redacted deployed `tools/list` capture was
   supplied. T074 remains open.
 
-## Remaining external gates
+## Remaining product work
 
-- T074: compare a redacted deployed `tools/list` capture with the generated reference.
-- T075–T076: execute the fresh public-surface CanisPro workflow and populate the final closure
-  matrix from its mutation receipts and independent reads.
-- T081 found no CRITICAL cross-artifact or Constitution issue. The final release decision remains
-  dependent on the external evidence above.
+The external gate is complete. Reproducible residual findings are specified in
+`specs/267-agent-qualification-gaps/spec.md`; they include proposal failure recovery, contribution
+approval, shipment occurrence semantics, complete finance evidence, deployed schema fidelity and
+read/Web explainability. Spec 257 requires no further implementation task.

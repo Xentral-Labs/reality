@@ -30,6 +30,15 @@ Invoice-linked credit uses `invoice_id` plus positions containing invoice-line i
 and stated amount, a header amount/number, reason and explicit allocation amount. Legacy return
 credit retains its separate order-line shape. Invalid mixing is refused before approval.
 
+The public proposal adapter retains the complete selected shape. It never replaces supplied input
+with an empty object, and an empty or incomplete credit request creates no durable proposal.
+
+## Received invoice amounts
+
+Invoice positions may state net, tax and gross evidence through the existing finance-detail
+contract. Each supplied value is retained exactly and contradictions are refused. Missing net or
+tax remains missing; neither is derived from gross, a rate or ledger postings.
+
 ## Return disposition
 
 Closed values are `restock`, `quarantine_repair`, `scrap_loss` and `return_to_supplier`.

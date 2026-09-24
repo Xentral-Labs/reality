@@ -20,6 +20,15 @@ For the bounded requested inventory or contribution scope, the read identifies:
 The envelope performs no writes and does not promise that the next proposal will be accepted if
 state changes before review.
 
+## Freshness and transfer continuity
+
+- A receipt review remains current across unrelated tenant activity.
+- A relevant change identifies the affected receipt and changed evidence scope.
+- Internal transfers move the existing cost layer and ownership; the destination is not a new
+  acquisition receipt.
+- Inventory refusal names exact unresolved movement or receipt identities rather than returning
+  only a generic ownership-evidence message.
+
 ## Authority
 
 Agents may inspect guidance and prepare existing cost-change proposals. Only an authenticated

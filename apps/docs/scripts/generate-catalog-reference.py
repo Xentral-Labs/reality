@@ -127,6 +127,23 @@ def parameters(
     `parent.field` and `parent[].field` rows so a reader sees every field a tool takes."""
     if depth == 0 and schema.get("$defs"):
         schema = inline_refs(schema, schema.get("$defs", {}))
+    branches = [
+        branch
+        for branch in schema.get("oneOf", [])
+        if isinstance(branch, dict) and branch.get("properties")
+    ]
+    if branches:
+        properties = dict(schema.get("properties", {}))
+        for branch in branches:
+            for name, value in branch["properties"].items():
+                properties.setdefault(name, value)
+        branch_required = [set(branch.get("required", [])) for branch in branches]
+        common_required = set.intersection(*branch_required) if branch_required else set()
+        schema = {
+            **schema,
+            "properties": properties,
+            "required": sorted(set(schema.get("required", [])) | common_required),
+        }
     required = set(schema.get("required", []))
     rows = []
     for name, raw_spec in schema.get("properties", {}).items():

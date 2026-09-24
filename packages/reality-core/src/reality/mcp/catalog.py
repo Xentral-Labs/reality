@@ -241,6 +241,19 @@ PARTY_EMAILS = {
     "default": [],
 }
 DECIMAL_STRING = {"type": "string", "pattern": "^-?[0-9]+(?:\\.[0-9]+)?$"}
+RECEIVED_FINANCE_DETAIL = _object_schema(
+    {
+        "version": {"type": "integer", "enum": [1]},
+        "net": DECIMAL_STRING,
+        "tax": DECIMAL_STRING,
+        "base": DECIMAL_STRING,
+        "gross": DECIMAL_STRING,
+        "currency": STRING,
+        "codes": {"type": "object", "additionalProperties": True},
+    }
+)
+
+
 def _records_schema(record_schema: dict[str, Any]) -> dict[str, Any]:
     return _object_schema(
         {
@@ -252,6 +265,45 @@ def _records_schema(record_schema: dict[str, Any]) -> dict[str, Any]:
         },
         required=("records",),
     )
+
+
+def _shipment_execution_schema(purposes: dict[str, str]) -> dict[str, Any]:
+    branches = []
+    for purpose, movement_type in purposes.items():
+        movement = _object_schema(
+            {
+                "movement_type": {"type": "string", "const": movement_type},
+                "item_id": STRING,
+                "quantity": DECIMAL_STRING,
+                "from_location_id": OPTIONAL_STRING,
+                "to_location_id": OPTIONAL_STRING,
+                "commitment_id": OPTIONAL_STRING,
+                "handling_unit_id": OPTIONAL_STRING,
+                "lot_id": OPTIONAL_STRING,
+                "serial_unit_id": OPTIONAL_STRING,
+                "reason": OPTIONAL_STRING,
+            },
+            required=("item_id", "quantity"),
+        )
+        branches.append(
+            _object_schema(
+                {
+                    "purpose": {"type": "string", "const": purpose},
+                    "counterparty_id": STRING,
+                    "movements": {
+                        "type": "array",
+                        "minItems": 1,
+                        "items": movement,
+                    },
+                    "carrier": OPTIONAL_STRING,
+                    "tracking_number": OPTIONAL_STRING,
+                    "source_record_id": OPTIONAL_STRING,
+                    "occurred_at": OPTIONAL_STRING,
+                },
+                required=("purpose", "counterparty_id", "movements"),
+            )
+        )
+    return {"type": "object", "oneOf": branches}
 
 
 PARTY_CREATE_RECORD = _object_schema(
@@ -599,24 +651,8 @@ MCP_TOOL_CATALOG = (
         "Prepare one outgoing package and its exact physical Movements; execution requires explicit confirmation.",
         "propose",
         "Operations",
-        _object_schema(
-            {
-                "purpose": {
-                    "type": "string",
-                    "enum": ["customer_delivery", "supplier_return"],
-                },
-                "counterparty_id": STRING,
-                "movements": {
-                    "type": "array",
-                    "minItems": 1,
-                    "items": {"type": "object"},
-                },
-                "carrier": OPTIONAL_STRING,
-                "tracking_number": OPTIONAL_STRING,
-                "source_record_id": OPTIONAL_STRING,
-                "occurred_at": OPTIONAL_STRING,
-            },
-            required=("purpose", "counterparty_id", "movements"),
+        _shipment_execution_schema(
+            {"customer_delivery": "shipment", "supplier_return": "supplier_return"}
         ),
         _propose("shipment_dispatch"),
     ),
@@ -626,24 +662,8 @@ MCP_TOOL_CATALOG = (
         "Prepare one incoming package and its exact physical Movements; execution requires explicit confirmation.",
         "propose",
         "Operations",
-        _object_schema(
-            {
-                "purpose": {
-                    "type": "string",
-                    "enum": ["supplier_delivery", "customer_return"],
-                },
-                "counterparty_id": STRING,
-                "movements": {
-                    "type": "array",
-                    "minItems": 1,
-                    "items": {"type": "object"},
-                },
-                "carrier": OPTIONAL_STRING,
-                "tracking_number": OPTIONAL_STRING,
-                "source_record_id": OPTIONAL_STRING,
-                "occurred_at": OPTIONAL_STRING,
-            },
-            required=("purpose", "counterparty_id", "movements"),
+        _shipment_execution_schema(
+            {"supplier_delivery": "receipt", "customer_return": "return"}
         ),
         _propose("shipment_receive"),
     ),
@@ -1829,6 +1849,7 @@ ADDITIONAL_PROPOSAL_TOOLS: tuple[tuple[str, str, str, dict[str, Any]], ...] = (
                             "order_line_id": STRING,
                             "quantity": DECIMAL_STRING,
                             "gross_amount": DECIMAL_STRING,
+                            "reality_finance_v1": RECEIVED_FINANCE_DETAIL,
                         },
                         required=("order_line_id", "quantity", "gross_amount"),
                     ),
@@ -1856,6 +1877,7 @@ ADDITIONAL_PROPOSAL_TOOLS: tuple[tuple[str, str, str, dict[str, Any]], ...] = (
                             "order_line_id": STRING,
                             "quantity": DECIMAL_STRING,
                             "gross_amount": DECIMAL_STRING,
+                            "reality_finance_v1": RECEIVED_FINANCE_DETAIL,
                         },
                         required=("order_line_id", "quantity", "gross_amount"),
                     ),

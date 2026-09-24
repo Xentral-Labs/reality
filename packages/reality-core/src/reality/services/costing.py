@@ -504,15 +504,9 @@ def _calculate(session, tenant, basis, attributions, corrections):
     return known, currency, categories, trace, missing
 
 
-def _verify_manifest(
+def _manifest_members(
     session: Session, tenant: str, manifest: CostInputManifest
-) -> None:
-    if (
-        manifest.state != "sealed"
-        or manifest.algorithm_version != "receipt-v1"
-        or manifest.input_schema_version != 1
-    ):
-        raise core.InvalidOperation("Unsupported receipt cost manifest.")
+) -> dict[str, list[str]]:
     members = {}
     for model, field, key in (
         (CostManifestReceipt, "receipt_basis_id", "receipt"),
@@ -532,10 +526,40 @@ def _verify_manifest(
             raise core.InvalidOperation(
                 "Receipt cost manifest exceeds the supported scope."
             )
+    return members
+
+
+def _verify_manifest(
+    session: Session, tenant: str, manifest: CostInputManifest
+) -> None:
+    if (
+        manifest.state != "sealed"
+        or manifest.algorithm_version != "receipt-v1"
+        or manifest.input_schema_version != 1
+    ):
+        raise core.InvalidOperation("Unsupported receipt cost manifest.")
+    members = _manifest_members(session, tenant, manifest)
     if _hash(members) != manifest.content_hash:
         raise core.InvalidOperation(
             "Retained receipt cost manifest is incomplete or corrupt."
         )
+
+
+def _current_receipt_manifest_members(
+    session: Session, tenant: str, basis: CostReceiptBasis, cursor: int
+) -> dict[str, list[str]]:
+    attributions = _attributions(session, tenant, basis.id, cursor)
+    corrections = _corrections(session, tenant, basis.movement_id, cursor)
+    components_set = sorted({row.component_basis_id for row in attributions})
+    return {
+        "receipt": [basis.id],
+        "attribution": sorted(row.id for row in attributions),
+        "component": components_set,
+        "correction": sorted(row.id for row in corrections),
+        "replacement": sorted(
+            _replacement_ids(session, tenant, components_set, cursor)
+        ),
+    }
 
 
 def receipt_cost(
@@ -648,15 +672,29 @@ def receipt_cost(
             session, tenant_id, basis, attributions, corrections
         )
         review_state = "unreviewed"
+        review_invalidation = None
         if review:
             review_state = "reviewed_complete_at_cutoff"
+            current_members = (
+                _current_receipt_manifest_members(session, tenant_id, basis, cursor)
+                if not manifest_id
+                else None
+            )
             if (
-                not manifest_id
-                and _sequence(session, tenant_id, inputs_only=True, cutoff=cursor)
-                > manifest.target_event_sequence
+                current_members is not None
+                and _hash(current_members) != manifest.content_hash
             ):
                 review_state = "stale"
                 missing.add("review_stale")
+                retained_members = _manifest_members(session, tenant_id, manifest)
+                review_invalidation = {
+                    key: {
+                        "added_ids": sorted(set(current_members[key]) - set(values)),
+                        "removed_ids": sorted(set(values) - set(current_members[key])),
+                    }
+                    for key, values in retained_members.items()
+                    if set(current_members[key]) != set(values)
+                }
             reviewed = list(
                 session.scalars(
                     select(CostReviewCategory).where(
@@ -697,6 +735,7 @@ def receipt_cost(
             if complete
             else None,
             "review_state": review_state,
+            "review_invalidation": review_invalidation,
             "missing_basis": sorted(missing),
             "trace": trace,
             "persistence": {"business_writes": False, "projection_writes": False},

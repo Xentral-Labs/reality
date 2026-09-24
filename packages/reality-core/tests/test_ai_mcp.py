@@ -53,6 +53,18 @@ async def test_mcp_tool_list_publishes_nested_argument_schemas():
     assert payments["items"]["properties"]["amount"]["type"] == "string"
     settlement = tools["finance_settlement_propose"].input_schema
     assert "$ref" not in json.dumps(settlement)
+    costing = tools["cost_change_propose"].input_schema
+    assert "oneOf" in costing
+    assert {
+        branch["properties"]["operation"]["const"] for branch in costing["oneOf"]
+    } >= {
+        "assign",
+        "allocate",
+        "review",
+        "inventory_review",
+        "contribution_review",
+        "commercial_match_review",
+    }
     for name, tool in tools.items():
         if "oneOf" in tool.input_schema:
             continue
@@ -565,13 +577,28 @@ def test_operational_and_finance_closed_schemas_are_complete_without_probing():
         "customer_return",
         "supplier_return",
     ]
-    assert definitions["shipment_dispatch_propose"]["properties"]["purpose"][
-        "enum"
-    ] == ["customer_delivery", "supplier_return"]
-    assert definitions["shipment_receive_propose"]["properties"]["purpose"]["enum"] == [
-        "supplier_delivery",
-        "customer_return",
-    ]
+    dispatch = {
+        branch["properties"]["purpose"]["const"]: branch
+        for branch in definitions["shipment_dispatch_propose"]["oneOf"]
+    }
+    receive = {
+        branch["properties"]["purpose"]["const"]: branch
+        for branch in definitions["shipment_receive_propose"]["oneOf"]
+    }
+    assert set(dispatch) == {"customer_delivery", "supplier_return"}
+    assert set(receive) == {"supplier_delivery", "customer_return"}
+    assert dispatch["customer_delivery"]["properties"]["movements"]["items"][
+        "properties"
+    ]["movement_type"] == {"type": "string", "const": "shipment"}
+    assert dispatch["supplier_return"]["properties"]["movements"]["items"][
+        "properties"
+    ]["movement_type"] == {"type": "string", "const": "supplier_return"}
+    assert receive["supplier_delivery"]["properties"]["movements"]["items"][
+        "properties"
+    ]["movement_type"] == {"type": "string", "const": "receipt"}
+    assert receive["customer_return"]["properties"]["movements"]["items"]["properties"][
+        "movement_type"
+    ] == {"type": "string", "const": "return"}
     assert definitions["supply_assign_propose"]["properties"]["purpose"]["enum"] == [
         "customer_demand",
         "stock_replenishment",
