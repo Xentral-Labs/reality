@@ -99,7 +99,7 @@ def _handler(definition: MCPToolDefinition):
             and f"reality:tool:{definition.name}" not in scopes
         ):
             raise PermissionError(f"MCP token does not allow tool: {definition.name}")
-        token = SETTLING_TOKEN.set(access_token.client_id)
+        token = SETTLING_TOKEN.set(getattr(access_token, "client_id", None))
         try:
             with Session() as session:
                 return dispatch_tool(

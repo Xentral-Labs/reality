@@ -56,6 +56,7 @@ from reality.services.core import (
     enqueue_source,
     ensure_demo,
     execute_payment_run,
+    executing_proposal,
     expired_lots,
     get_tenant,
     hold_commitment,
@@ -293,17 +294,13 @@ def _finance_balances(
     return finance_balances(session, tenant_id)
 
 
-def _dunning_context(
-    session: Session, tenant_id: str, arguments: dict[str, Any]
-) -> Any:
+def _dunning_context(session: Session, tenant_id: str, arguments: dict[str, Any]) -> Any:
     from reality.services.dunning import dunning_context
 
     return dunning_context(session, tenant_id, arguments)
 
 
-def _dunning_notices(
-    session: Session, tenant_id: str, arguments: dict[str, Any]
-) -> Any:
+def _dunning_notices(session: Session, tenant_id: str, arguments: dict[str, Any]) -> Any:
     del arguments
     from reality.services.dunning import notices
 
@@ -1375,7 +1372,9 @@ def _commitment_cancel(
     from reality.services.core import cancel_commitment
 
     action_id = arguments.pop("_action_id", None)
-    commitment = cancel_commitment(session, tenant_id, action_id=action_id, **arguments)
+    commitment = cancel_commitment(
+        session, tenant_id, action_id=action_id, **arguments
+    )
     event = session.scalar(
         select(BusinessEvent).where(
             BusinessEvent.tenant_id == tenant_id,
@@ -1528,6 +1527,21 @@ def _opening_movement_evidence(
 
 
 def _proposal_execution_status(
+    session: Session, tenant_id: str, arguments: dict[str, Any]
+) -> Any:
+    """The receipt and reconciliation of one proposal, with who settled it."""
+    from reality.services.decision_attribution import decision_attributions
+
+    status = _proposal_execution_receipt(session, tenant_id, arguments)
+    return {
+        **status,
+        "decision": decision_attributions(
+            session, tenant_id, [status["proposal_id"]]
+        ).get(status["proposal_id"]),
+    }
+
+
+def _proposal_execution_receipt(
     session: Session, tenant_id: str, arguments: dict[str, Any]
 ) -> Any:
     proposal = session.scalar(
@@ -3130,14 +3144,17 @@ def approve_and_execute_proposal(
                 raise InvalidOperation(
                     "Proposal is no longer available for confirmation."
                 )
-            result = execute_finance_command(
-                session,
-                tenant_id,
-                tool_name,
-                arguments,
-                action_id=proposal.id,
-                actor_id=confirming_principal.user_id if confirming_principal else None,
-            )
+            with executing_proposal(tenant_id, proposal.id):
+                result = execute_finance_command(
+                    session,
+                    tenant_id,
+                    tool_name,
+                    arguments,
+                    action_id=proposal.id,
+                    actor_id=(
+                        confirming_principal.user_id if confirming_principal else None
+                    ),
+                )
             proposal.status = "executed"
             _record_decision(proposal, confirming_principal, settling_token_id)
             proposal.output = json.dumps(_json_value(result), sort_keys=True)
@@ -3273,12 +3290,18 @@ def approve_and_execute_proposal(
     if tool_name == "graph.requests.create":
         from reality.services.analytics.proposals import execute_request
 
-        result = execute_request(session, tenant_id, confirming_principal, arguments)
+        with executing_proposal(tenant_id, proposal.id):
+            result = execute_request(
+                session, tenant_id, confirming_principal, arguments
+            )
     elif tool_name == "graph.reports.change":
         from reality.services.analytics.proposals import execute_change
 
         try:
-            result = execute_change(session, tenant_id, confirming_principal, arguments)
+            with executing_proposal(tenant_id, proposal.id):
+                result = execute_change(
+                    session, tenant_id, confirming_principal, arguments
+                )
         except (InvalidOperation, NotFound):
             # A refused save wrote nothing, so the outcome is known, not unknown.
             # Leaving the claim in place would strand the proposal: every further
@@ -3297,11 +3320,15 @@ def approve_and_execute_proposal(
             session.commit()
             raise
     elif tool_name in MASTER_TOOLS:
-        with master_tool_execution(session, tenant_id, tool_name, arguments):
+        with (
+            master_tool_execution(session, tenant_id, tool_name, arguments),
+            executing_proposal(tenant_id, proposal.id),
+        ):
             result = tool.handler(session, tenant_id, arguments)
     else:
         try:
-            result = tool.handler(session, tenant_id, arguments)
+            with executing_proposal(tenant_id, proposal.id):
+                result = tool.handler(session, tenant_id, arguments)
         except (InvalidOperation, NotFound):
             # A synchronous domain refusal from a reviewed application handler is a
             # known no-effect outcome: the handler did not return and its current

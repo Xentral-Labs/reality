@@ -751,3 +751,147 @@ def test_contributing_systems_are_bounded_and_tenant_scoped(session, business):
     )
     other = create_tenant(session, "Unrelated company")
     assert contributing_systems(session, other.id, "document", document.id) == []
+
+
+# --- Spec 263: the origin names the decision that created a record -------------
+
+
+def _executed_decision(session, tenant_id, **values):
+    from reality.db.core import ChangeProposal, now, uid
+
+    proposal = ChangeProposal(
+        id=uid("act"),
+        tenant_id=tenant_id,
+        type="tool:party_create",
+        status="executed",
+        decided_at=now(),
+        **values,
+    )
+    session.add(proposal)
+    session.flush()
+    return proposal
+
+
+def test_origin_links_the_decision_that_created_a_record(
+    session, business, scheduled_owner
+):
+    from reality.services.core import create_party
+    from reality.services.provenance import record_origins
+
+    proposal = _executed_decision(
+        session, business.tenant.id, decided_by_user_id=scheduled_owner.id
+    )
+    party = create_party(
+        session, business.tenant.id, "Decided", "customer", action_id=proposal.id
+    )
+
+    origin = record_origins(session, business.tenant.id, [party], subject_type="party")[
+        party.id
+    ]
+
+    assert origin["actor"] == scheduled_owner.email
+    assert origin["decision"]["id"] == proposal.id
+    assert origin["decision"]["tool"] == "party_create"
+    assert origin["decision"]["outcome"] == "executed"
+    assert origin["decision"]["decider"] == {
+        "kind": "person",
+        "name": scheduled_owner.email,
+    }
+
+
+def test_origin_of_an_agent_confirmed_record_names_the_token_not_a_person(
+    session, business, scheduled_owner
+):
+    from reality.mcp.auth import create_mcp_access_token
+    from reality.services.core import create_party
+    from reality.services.provenance import record_origins
+
+    token, _ = create_mcp_access_token(
+        session, business.tenant.id, "Claude", issued_by_user_id=scheduled_owner.id
+    )
+    proposal = _executed_decision(
+        session, business.tenant.id, decided_via_token_id=token.id
+    )
+    party = create_party(
+        session, business.tenant.id, "Agent made", "customer", action_id=proposal.id
+    )
+
+    origin = record_origins(session, business.tenant.id, [party], subject_type="party")[
+        party.id
+    ]
+
+    assert "actor" not in origin
+    assert origin["decision"]["decider"]["kind"] == "mcp_token"
+    assert origin["decision"]["decider"]["issuer"] == scheduled_owner.email
+
+
+def test_a_later_decision_is_not_presented_as_the_creating_one(
+    session, business, scheduled_owner
+):
+    """Spec 263 A2: only a record's first event can name the decision that made it."""
+    from reality.services.core import create_party, emit_business_event
+    from reality.services.provenance import record_origins
+
+    party = create_party(session, business.tenant.id, "Hand entered", "customer")
+    later = _executed_decision(
+        session, business.tenant.id, decided_by_user_id=scheduled_owner.id
+    )
+    emit_business_event(
+        session,
+        business.tenant.id,
+        "party.updated",
+        "party",
+        party.id,
+        {},
+        action_id=later.id,
+    )
+
+    origin = record_origins(session, business.tenant.id, [party], subject_type="party")[
+        party.id
+    ]
+
+    assert origin == {"kind": "application"}
+
+
+def test_decision_origins_stay_bounded_per_page(session, business, scheduled_owner):
+    from sqlalchemy import event
+
+    from reality.services.core import create_party
+    from reality.services.provenance import record_origins
+
+    proposal = _executed_decision(
+        session, business.tenant.id, decided_by_user_id=scheduled_owner.id
+    )
+    parties = [
+        create_party(
+            session, business.tenant.id, f"P{index}", "customer", action_id=proposal.id
+        )
+        for index in range(40)
+    ]
+    statements: list[str] = []
+
+    def collect(conn, cursor, statement, parameters, context, many):
+        if (
+            not statement.lstrip()
+            .upper()
+            .startswith(("SAVEPOINT", "RELEASE", "ROLLBACK", "BEGIN", "COMMIT"))
+        ):
+            statements.append(statement)
+
+    counts = []
+    for records in (parties[:2], parties):
+        statements.clear()
+        event.listen(session.get_bind(), "before_cursor_execute", collect)
+        try:
+            origins = record_origins(
+                session, business.tenant.id, records, subject_type="party"
+            )
+        finally:
+            event.remove(session.get_bind(), "before_cursor_execute", collect)
+        assert all(
+            origin["decision"]["id"] == proposal.id for origin in origins.values()
+        )
+        counts.append(len(statements))
+
+    assert counts[0] == counts[1]
+    assert counts[1] <= 7

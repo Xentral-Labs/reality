@@ -377,6 +377,7 @@ families:
     authority: 003/FR-010, 019/FR-007, 038/DR-003, 041/DR-003, 059/DR-003
     reason: Registries expose shared services indirectly rather than as public service callables.
     operations: &boundary_operations
+      - reality.services.core:executing_proposal
       - projection:commitment_register
       - projection:document_register
       - projection:exceptions

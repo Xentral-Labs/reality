@@ -16,14 +16,13 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from reality.db.core import (
-    AppUser,
     BusinessEvent,
-    ChangeProposal,
     Fact,
     SourceRecord,
     SourceStream,
     SourceSystem,
 )
+from reality.services.decision_attribution import decision_attributions
 
 APPLICATION_ORIGIN: dict[str, Any] = {"kind": "application"}
 
@@ -57,21 +56,24 @@ def record_origins(
     manual = [
         record_id for record_id, source_id in wanted.items() if source_id not in sources
     ]
-    actors = (
-        _deciding_actors(session, tenant_id, subject_type, manual)
+    creating = (
+        _creating_decisions(session, tenant_id, subject_type, manual)
         if with_actor and manual
         else {}
     )
+    decisions = decision_attributions(session, tenant_id, creating.values())
     origins: dict[str, dict[str, Any]] = {}
     for record_id, source_id in wanted.items():
         source = sources.get(source_id) if source_id else None
         if source is None:
-            actor = actors.get(record_id)
-            origins[record_id] = (
-                {**APPLICATION_ORIGIN, "actor": actor}
-                if actor
-                else dict(APPLICATION_ORIGIN)
-            )
+            origin = dict(APPLICATION_ORIGIN)
+            decision = decisions.get(creating.get(record_id, ""))
+            if decision is not None:
+                origin["decision"] = decision
+                if decision["decider"]["kind"] == "person":
+                    # Kept for readers of spec 211, which named only a person.
+                    origin["actor"] = decision["decider"]["name"]
+            origins[record_id] = origin
             continue
         system = systems.get(source.source_system)
         origins[record_id] = {
@@ -224,13 +226,18 @@ def _systems(
     return {row.code: row for row in rows}
 
 
-def _deciding_actors(
+def _creating_decisions(
     session: Session, tenant_id: str, subject_type: str, record_ids: list[str]
 ) -> dict[str, str]:
-    """The user who decided the change proposal that first recorded each record."""
+    """The decision that created each record, read from its first event only.
+
+    A record's first event is its creation. Taking the first event that happens to
+    carry a decision instead would name a later update as the reason a record exists
+    when the record itself was entered without one (spec 263, analysis A2).
+    """
     if not record_ids:
         return {}
-    creating = dict(
+    first = dict(
         session.execute(
             select(BusinessEvent.subject_id, BusinessEvent.action_id)
             .distinct(BusinessEvent.subject_id)
@@ -238,34 +245,10 @@ def _deciding_actors(
                 BusinessEvent.tenant_id == tenant_id,
                 BusinessEvent.subject_type == subject_type,
                 BusinessEvent.subject_id.in_(record_ids),
-                BusinessEvent.action_id.is_not(None),
             )
             .order_by(BusinessEvent.subject_id, BusinessEvent.sequence)
         ).all()
     )
-    if not creating:
-        return {}
-    deciders = dict(
-        session.execute(
-            select(ChangeProposal.id, ChangeProposal.decided_by_user_id).where(
-                ChangeProposal.tenant_id == tenant_id,
-                ChangeProposal.id.in_(set(creating.values())),
-                ChangeProposal.decided_by_user_id.is_not(None),
-            )
-        ).all()
-    )
-    if not deciders:
-        return {}
-    names = {
-        row.id: (row.display_name or row.email)
-        for row in session.execute(
-            select(AppUser.id, AppUser.display_name, AppUser.email).where(
-                AppUser.id.in_(set(deciders.values()))
-            )
-        ).all()
-    }
     return {
-        record_id: names[deciders[action_id]]
-        for record_id, action_id in creating.items()
-        if action_id in deciders and deciders[action_id] in names
+        record_id: action_id for record_id, action_id in first.items() if action_id
     }

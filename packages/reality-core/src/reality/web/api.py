@@ -6560,7 +6560,9 @@ def restore_copilot_conversation(
 
 
 def _proposal_payload(
-    row: ChangeProposal, decided_by: str | None = None
+    row: ChangeProposal,
+    decided_by: str | None = None,
+    decider: dict[str, object] | None = None,
 ) -> dict[str, object]:
     from reality.services.proposal_reviews import proposal_routing
 
@@ -6574,6 +6576,7 @@ def _proposal_payload(
         "created_at": row.created_at.isoformat(),
         "decided_at": row.decided_at.isoformat() if row.decided_at else None,
         "decided_by": decided_by,
+        "decider": decider or {"kind": "unknown"},
         **proposal_routing(row),
     }
 
@@ -6617,9 +6620,17 @@ def get_change_proposals(
     deciders = decision_maker_names(
         session, tenant_id, [row.decided_by_user_id for row in rows]
     )
+    from reality.services.decision_attribution import decision_attributions
+
+    attributions = decision_attributions(session, tenant_id, [row.id for row in rows])
     return {
         "items": [
-            _proposal_payload(row, deciders.get(row.decided_by_user_id)) for row in rows
+            _proposal_payload(
+                row,
+                deciders.get(row.decided_by_user_id),
+                attributions.get(row.id, {}).get("decider"),
+            )
+            for row in rows
         ],
         "page": _page_response(pager),
     }

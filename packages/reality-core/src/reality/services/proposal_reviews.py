@@ -141,6 +141,9 @@ def proposal_review(
     malformed = arguments is None or output is None
     kind: ReviewKind = "retired" if malformed else classify_proposal(tool, arguments)
     label, purpose = _presentation(tool)
+    from reality.services.decision_attribution import UNKNOWN, decision_attributions
+
+    attribution = decision_attributions(session, tenant_id, [proposal.id])
     return {
         "id": proposal.id,
         "tool": tool,
@@ -151,6 +154,7 @@ def proposal_review(
         "actor_type": proposal.actor_type,
         "created_at": proposal.created_at.isoformat(),
         "decided_at": proposal.decided_at.isoformat() if proposal.decided_at else None,
+        "decider": attribution.get(proposal.id, {}).get("decider", dict(UNKNOWN)),
         "input": _safe(arguments or {}),
         "preview": _safe(output or {}) if proposal.status == "proposed" else {},
         "receipt": _safe(output or {}) if proposal.status != "proposed" else {},
