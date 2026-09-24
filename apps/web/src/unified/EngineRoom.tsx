@@ -454,7 +454,7 @@ export function EngineRoom({
   if (state === "forbidden")
     return (
       <div role="status" className="rounded-lg border border-border-subtle p-6 text-sm">
-        {t("Only company owners can open the engine room.")}
+        {t("Only company owners can open the live monitor.")}
       </div>
     );
 
@@ -471,7 +471,7 @@ export function EngineRoom({
         <div>
           <h2 id="engine-room-title" className="flex items-center gap-2 text-base font-semibold">
             <Radio size={16} aria-hidden />
-            {t("Engine room")}
+            {t("Live monitor")}
           </h2>
           <div className="text-sm text-fg-muted">
             {t(
@@ -480,7 +480,7 @@ export function EngineRoom({
           </div>
         </div>
         <div className="flex items-center gap-2">
-          <nav className="register-tabs" aria-label={t("Engine room mode")}>
+          <nav className="register-tabs" aria-label={t("Live monitor mode")}>
             <button aria-pressed={mode === "live"} onClick={() => setMode("live")}>
               {t("Live")}
             </button>
@@ -650,7 +650,7 @@ export function EngineRoom({
 
       {state === "stale" && (
         <div role="status" className="text-xs text-caution-text">
-          {t("The engine room could not be refreshed. It keeps trying.")}
+          {t("The live monitor could not be refreshed. It keeps trying.")}
         </div>
       )}
       {truncated && (
@@ -772,8 +772,8 @@ export function EngineRoomPulse({ tenant, open }: { tenant: string; open: () => 
     <button
       type="button"
       className="shell-chat-toggle relative"
-      title={t("Engine room")}
-      aria-label={t("Engine room")}
+      title={t("Live monitor")}
+      aria-label={t("Live monitor")}
       data-engine-room-pulse={active || undefined}
       onClick={open}
     >

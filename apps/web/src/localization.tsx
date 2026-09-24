@@ -19276,7 +19276,7 @@ Object.assign(dictionaries.es, {
   "Changed by decision": "Modificado por decisión",
   "Caused by decision": "Originado por decisión",
 });
-// The engine room (spec 266).
+// The live monitor (spec 266, internally the engine room).
 Object.assign(dictionaries.de, {
   "{count} events": "{count} Ereignisse",
   "{count} results": "{count} Ergebnisse",
@@ -19284,8 +19284,8 @@ Object.assign(dictionaries.de, {
   "Background job": "Hintergrundjob",
   "Calls of this client": "Aufrufe dieses Clients",
   Channel: "Kanal",
-  "Engine room": "Motorraum",
-  "Engine room mode": "Ansicht des Motorraums",
+  "Live monitor": "Live-Monitor",
+  "Live monitor mode": "Ansicht des Live-Monitors",
   "Events could not be loaded.": "Die Ereignisse konnten nicht geladen werden.",
   "Every access to this company's model, as it happens: who, through which channel, what was asked, and what it changed.":
     "Jeder Zugriff auf das Modell dieses Unternehmens, während er passiert: wer, über welchen Kanal, was angefragt wurde und was es verändert hat.",
@@ -19301,21 +19301,21 @@ Object.assign(dictionaries.de, {
   "Nothing has touched the model yet. Open a page, ask the chat or call a tool, and it appears here.":
     "Noch hat nichts das Modell berührt. Öffne eine Seite, frag den Chat oder ruf ein Tool auf, dann erscheint es hier.",
   "One action": "Eine Aktion",
-  "Only company owners can open the engine room.":
-    "Nur Unternehmenseigentümer können den Motorraum öffnen.",
+  "Only company owners can open the live monitor.":
+    "Nur Unternehmenseigentümer können den Live-Monitor öffnen.",
   Operator: "Betrieb",
   Person: "Benutzer",
   "Previous step": "Vorheriger Schritt",
   Replay: "Wiedergabe",
   "Resume ({count} new)": "Fortsetzen ({count} neu)",
   "Show background refresh": "Hintergrundaktualisierungen zeigen",
-  "Show in engine room": "Im Motorraum zeigen",
+  "Show in live monitor": "Im Live-Monitor zeigen",
   "Show only this actor": "Nur diesen Akteur zeigen",
   "Show only this channel": "Nur diesen Kanal zeigen",
   "Showing the newest interactions only.": "Es werden nur die neuesten Zugriffe gezeigt.",
   "Step {step} of {total}": "Schritt {step} von {total}",
-  "The engine room could not be refreshed. It keeps trying.":
-    "Der Motorraum konnte nicht aktualisiert werden. Er versucht es weiter.",
+  "The live monitor could not be refreshed. It keeps trying.":
+    "Der Live-Monitor konnte nicht aktualisiert werden. Er versucht es weiter.",
   "Token {token}": "MCP-Token {token}",
   "Token {token}, issued by {issuer}": "Token {token}, ausgestellt von {issuer}",
   "Unknown person": "Unbekannte Person",
@@ -19339,8 +19339,8 @@ Object.assign(dictionaries.nl, {
   "Background job": "Achtergrondtaak",
   "Calls of this client": "Aanroepen van deze client",
   Channel: "Kanaal",
-  "Engine room": "Machinekamer",
-  "Engine room mode": "Weergave van de machinekamer",
+  "Live monitor": "Live-monitor",
+  "Live monitor mode": "Weergave van de live-monitor",
   "Events could not be loaded.": "De gebeurtenissen konden niet worden geladen.",
   "Every access to this company's model, as it happens: who, through which channel, what was asked, and what it changed.":
     "Elke toegang tot het model van dit bedrijf, terwijl het gebeurt: wie, via welk kanaal, wat er gevraagd werd en wat het veranderde.",
@@ -19356,21 +19356,21 @@ Object.assign(dictionaries.nl, {
   "Nothing has touched the model yet. Open a page, ask the chat or call a tool, and it appears here.":
     "Nog niets heeft het model aangeraakt. Open een pagina, vraag het de chat of roep een tool aan, dan verschijnt het hier.",
   "One action": "Eén actie",
-  "Only company owners can open the engine room.":
-    "Alleen bedrijfseigenaren kunnen de machinekamer openen.",
+  "Only company owners can open the live monitor.":
+    "Alleen bedrijfseigenaren kunnen de live-monitor openen.",
   Operator: "Beheer",
   Person: "Persoon",
   "Previous step": "Vorige stap",
   Replay: "Terugspelen",
   "Resume ({count} new)": "Hervatten ({count} nieuw)",
   "Show background refresh": "Achtergrondverversing tonen",
-  "Show in engine room": "In de machinekamer tonen",
+  "Show in live monitor": "In de live-monitor tonen",
   "Show only this actor": "Alleen deze actor tonen",
   "Show only this channel": "Alleen dit kanaal tonen",
   "Showing the newest interactions only.": "Alleen de nieuwste toegangen worden getoond.",
   "Step {step} of {total}": "Stap {step} van {total}",
-  "The engine room could not be refreshed. It keeps trying.":
-    "De machinekamer kon niet worden ververst. Ze blijft het proberen.",
+  "The live monitor could not be refreshed. It keeps trying.":
+    "De live-monitor kon niet worden ververst. Hij blijft het proberen.",
   "Token {token}": "MCP-token {token}",
   "Token {token}, issued by {issuer}": "Token {token}, uitgegeven door {issuer}",
   "Unknown person": "Onbekende persoon",
@@ -19398,8 +19398,8 @@ Object.assign(dictionaries.es, {
   "Background job": "Tarea en segundo plano",
   "Calls of this client": "Llamadas de este cliente",
   Channel: "Canal",
-  "Engine room": "Sala de máquinas",
-  "Engine room mode": "Vista de la sala de máquinas",
+  "Live monitor": "Monitor en directo",
+  "Live monitor mode": "Vista del monitor en directo",
   "Events could not be loaded.": "No se pudieron cargar los eventos.",
   "Every access to this company's model, as it happens: who, through which channel, what was asked, and what it changed.":
     "Cada acceso al modelo de esta empresa, mientras ocurre: quién, por qué canal, qué se pidió y qué cambió.",
@@ -19415,21 +19415,21 @@ Object.assign(dictionaries.es, {
   "Nothing has touched the model yet. Open a page, ask the chat or call a tool, and it appears here.":
     "Nada ha tocado el modelo todavía. Abre una página, pregunta al chat o llama a una herramienta y aparecerá aquí.",
   "One action": "Una acción",
-  "Only company owners can open the engine room.":
-    "Solo los propietarios pueden abrir la sala de máquinas.",
+  "Only company owners can open the live monitor.":
+    "Solo los propietarios pueden abrir el monitor en directo.",
   Operator: "Operación",
   Person: "Persona",
   "Previous step": "Paso anterior",
   Replay: "Reproducir",
   "Resume ({count} new)": "Reanudar ({count} nuevos)",
   "Show background refresh": "Mostrar actualizaciones en segundo plano",
-  "Show in engine room": "Mostrar en la sala de máquinas",
+  "Show in live monitor": "Mostrar en el monitor en directo",
   "Show only this actor": "Mostrar solo este actor",
   "Show only this channel": "Mostrar solo este canal",
   "Showing the newest interactions only.": "Solo se muestran los accesos más recientes.",
   "Step {step} of {total}": "Paso {step} de {total}",
-  "The engine room could not be refreshed. It keeps trying.":
-    "No se pudo actualizar la sala de máquinas. Sigue intentándolo.",
+  "The live monitor could not be refreshed. It keeps trying.":
+    "No se pudo actualizar el monitor en directo. Sigue intentándolo.",
   "Token {token}": "Token MCP {token}",
   "Token {token}, issued by {issuer}": "Token {token}, emitido por {issuer}",
   "Unknown person": "Persona desconocida",

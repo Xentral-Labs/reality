@@ -841,7 +841,7 @@ export function ChatPage({
                   href={engineRoomHref(selection.tenant, { correlation: turnCorrelation })}
                   data-chat-engine-room
                 >
-                  {t("Show in engine room")}
+                  {t("Show in live monitor")}
                 </a>
               )}
           </article>

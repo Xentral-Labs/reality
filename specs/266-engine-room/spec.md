@@ -6,6 +6,8 @@
 **Status**: Draft
 **Input**: Owner: I want a live monitor of everything that happens — via MCP, chat, the API and the web — where I can look into the engine room: every access, every proposal, every click that interacts with the data model, and how it could be shown. Placement agreed in conversation: a "Live" tab next to Activities in the Inspector, plus contextual entry points.
 
+**Product name**: shown as **Live monitor** (DE "Live-Monitor", NL "Live-monitor", ES "Monitor en directo"), decided by the owner on 2026-09-24; "engine room" remains the internal and code name.
+
 ## Context and Intent
 
 ### Problem

@@ -149,7 +149,7 @@ await page.screenshot({ path: `${SHOTS}/04-replay.png` });
 // Header pulse exists for owners and opens the Live tab.
 check(
   "header pulse for owners",
-  (await page.locator('button[aria-label="Engine room"]').count()) === 1,
+  (await page.locator('button[aria-label="Live monitor"]').count()) === 1,
 );
 
 // Member: no Live tab, direct URL refuses.
@@ -162,13 +162,13 @@ check(
 );
 check(
   "member has no header pulse",
-  (await memberPage.locator('button[aria-label="Engine room"]').count()) === 0,
+  (await memberPage.locator('button[aria-label="Live monitor"]').count()) === 0,
 );
 await memberPage.goto(`${BASE}/app/inspector?tenant=${TENANT}&inspector_view=live`);
 await memberPage.waitForTimeout(2500);
 check(
   "member direct URL says owners only",
-  (await memberPage.getByText("Only company owners can open the engine room.").count()) === 1,
+  (await memberPage.getByText("Only company owners can open the live monitor.").count()) === 1,
 );
 
 // Entry point: MCP token link.

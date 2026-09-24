@@ -137,7 +137,7 @@ const pages: Page[] = [
   },
   {
     key: "engine-room",
-    label: "Engine room",
+    label: "Live monitor",
     access: "owner",
     destination: { route: "inspector", inspectorView: "live", liveFilter: "" },
   },

@@ -1,8 +1,8 @@
-# Engine room
+# Live monitor (engine room)
 
 Authority: [spec 266](../../specs/266-engine-room/spec.md).
 
-The engine room shows company owners every interaction with their company's model as
+The live monitor (German "Live-Monitor", internally the engine room) shows company owners every interaction with their company's model as
 it happens: who, through which channel, what was asked, and what it changed. It lives
 under **Inspector → Activities → Live**. It is observation, never business authority.
 What happened to the business stays in `business_event`. An interaction only records
