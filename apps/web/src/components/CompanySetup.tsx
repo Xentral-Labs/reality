@@ -176,9 +176,11 @@ export function CompanySetup({
         });
         setApiKey("");
       }
+      // Readiness is authoritative at this point. Clear the recovery marker before
+      // yielding to a caller that may navigate immediately (for example OAuth consent).
+      sessionStorage.removeItem(storageKey(options.actor_id));
       if (created) await created(result);
       else window.location.assign(result.destination);
-      sessionStorage.removeItem(storageKey(options.actor_id));
     } catch {
       setError(t("Company setup could not be loaded. Reload to retry."));
     } finally {

@@ -2495,6 +2495,7 @@ from reality.db import costing as _costing  # noqa: F401
 from reality.db import demo_data as _demo_data  # noqa: F401
 from reality.db import finance_references as _finance_references  # noqa: F401
 from reality.db import inventory_costing as _inventory_costing  # noqa: F401
+from reality.db import mcp_authorization as _mcp_authorization  # noqa: F401
 from reality.db import opening as _opening  # noqa: F401
 from reality.db import scheduled_jobs as _scheduled_jobs  # noqa: F401
 from reality.db import source_mappings as _source_mappings  # noqa: F401

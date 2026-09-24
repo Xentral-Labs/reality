@@ -263,6 +263,16 @@ def email_sent(provider: str, result: str, kind: str) -> None:
     )
 
 
+def mcp_authentication(credential_kind: str, outcome: str) -> None:
+    """Count MCP credential decisions without recording identifying material."""
+    count(
+        "reality.mcp.authentications",
+        "MCP credential verification decisions",
+        credential_kind=credential_kind,
+        outcome=outcome,
+    )
+
+
 # ---------------------------------------------------------------------------
 # Background jobs
 # ---------------------------------------------------------------------------

@@ -4,9 +4,6 @@ from decimal import Decimal
 import pytest
 from conftest import record_by_id
 from fastapi.testclient import TestClient
-from sqlalchemy import select
-from sqlalchemy.orm import sessionmaker
-
 from reality.db.core import (
     AppUser,
     ChatMessage,
@@ -52,6 +49,8 @@ from reality.tools.application import (
 from reality.web import api as api_module
 from reality.web import app as web_module
 from reality.web import auth as auth_module
+from sqlalchemy import select
+from sqlalchemy.orm import sessionmaker
 
 app = web_module.app
 
@@ -817,7 +816,10 @@ def test_company_settings_api_exposes_commercial_and_agent_configuration(
         )
         assert token.status_code == 201
         assert token.json()["token"].startswith("ros_mcp_")
+        assert token.json()["credential_kind"] == "manual"
         token_id = token.json()["id"]
+        listed = client.get(f"/api/tenants/{tenant_id}/settings/ai")
+        assert listed.json()["tokens"][0]["credential_kind"] == "manual"
         revoked = client.post(
             f"/api/tenants/{tenant_id}/settings/mcp/tokens/{token_id}/revoke"
         )

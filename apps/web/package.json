@@ -50,6 +50,7 @@
     "test:integrations-browser": "node scripts/integrations-catalog-browser.mjs",
     "test:journey-browser": "node scripts/order-journey-browser.mjs",
     "test:proposal-review-browser": "node scripts/proposal-review-browser.mjs",
+    "test:mcp-oauth-browser": "node scripts/mcp-oauth-browser.mjs",
     "test:analytics-save-browser": "node scripts/analytics-save-clarity-browser.mjs"
   },
   "dependencies": {

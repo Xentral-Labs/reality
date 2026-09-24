@@ -7,8 +7,6 @@ from unittest.mock import Mock
 
 import pytest
 import yaml
-from sqlalchemy import func, select
-
 from reality.agent import settings
 from reality.db.core import (
     AISettings,
@@ -16,6 +14,7 @@ from reality.db.core import (
     CompanyInvitation,
     InvitationDelivery,
     MCPAccessToken,
+    PlaygroundRun,
     Secret,
     Tenant,
     TenantMembership,
@@ -26,6 +25,7 @@ from reality.mcp.auth import DatabaseTokenVerifier, create_mcp_access_token
 from reality.security import secrets
 from reality.services import memberships, notifications
 from reality.services.core import InvalidOperation
+from sqlalchemy import func, select
 
 
 def core_mutation_names():
@@ -382,6 +382,49 @@ async def test_even_preexisting_sandbox_mcp_token_is_rejected(
     assert record.last_used_at is None
 
 
+@pytest.mark.anyio
+async def test_ready_practice_sandbox_can_issue_and_use_mcp_token(
+    session, sandbox, monkeypatch
+):
+    tenant, user = sandbox
+    if tenant.archived_at is not None:
+        pytest.skip("Archived Sandboxes remain ineligible.")
+    session.add(
+        PlaygroundRun(
+            id=uid("pgr"),
+            tenant_id=tenant.id,
+            owner_user_id=user.id,
+            preset_key="trading",
+            preset_version=1,
+            lesson_key="order-stock",
+            lesson_version=1,
+            client_request_key=uid("request"),
+            sandbox_kind="practice",
+            status="active",
+            ready_at=now(),
+        )
+    )
+    session.commit()
+    record, clear_token = create_mcp_access_token(
+        session, tenant.id, "Sandbox client", ["inventory_read"]
+    )
+
+    class SessionContext:
+        def __enter__(self):
+            return session
+
+        def __exit__(self, *_args):
+            return None
+
+    from reality.mcp import auth
+
+    monkeypatch.setattr(auth, "Session", SessionContext)
+    verified = await DatabaseTokenVerifier().verify_token(clear_token)
+    assert verified is not None
+    assert verified.subject == tenant.id
+    assert verified.client_id == record.id
+
+
 def invitation_fixture(session, sandbox):
     tenant, user = sandbox
     invitation = CompanyInvitation(
@@ -517,7 +560,6 @@ def test_generic_http_rejects_sandbox_egress_with_auth_disabled(
     session, sandbox, monkeypatch, path, payload
 ):
     from fastapi.testclient import TestClient
-
     from reality.web import api
     from reality.web import app as web
 
@@ -549,11 +591,10 @@ def test_business_only_policy_is_fail_closed_without_flushing(session, sandbox):
 
 
 def test_cli_cannot_create_items_in_sandbox(session, sandbox, monkeypatch):
-    from sqlalchemy.orm import sessionmaker
-    from typer.testing import CliRunner
-
     from reality.cli import app as cli
     from reality.db.core import Item
+    from sqlalchemy.orm import sessionmaker
+    from typer.testing import CliRunner
 
     tenant, _ = sandbox
     monkeypatch.setattr(

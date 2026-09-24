@@ -1091,6 +1091,8 @@ _PRACTICE_APP_OPERATIONS = frozenset(
         "replay_rule",
         "evaluate_active_rules",
         "ensure_demo",
+        "mcp_token_create",
+        "mcp_token_use",
     ]
 )
 

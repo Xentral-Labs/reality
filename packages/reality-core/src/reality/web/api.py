@@ -621,6 +621,7 @@ def get_ai_configuration(tenant_id: str, request: Request, session: DatabaseSess
         "tokens": [
             {
                 "id": token.id,
+                "credential_kind": "manual",
                 "name": token.name,
                 "token_prefix": token.token_prefix,
                 "allowed_tools": validate_tool_permissions(
@@ -807,6 +808,7 @@ def post_mcp_token(
         raise HTTPException(status_code=400, detail=str(error)) from error
     return {
         "id": record.id,
+        "credential_kind": "manual",
         "name": record.name,
         "token": clear_token,
         "token_prefix": record.token_prefix,

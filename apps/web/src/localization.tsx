@@ -19095,3 +19095,168 @@ Object.assign(dictionaries.es, {
   "Confirmed, decided by an unrecorded person": "Confirmado, persona que decidió no registrada",
   "Rejected, decided by an unrecorded person": "Rechazado, persona que decidió no registrada",
 });
+Object.assign(dictionaries.de, {
+  "Loading authorization…": "Autorisierung wird geladen …",
+  "Authorization unavailable": "Autorisierung nicht verfügbar",
+  "This authorization is no longer available.": "Diese Autorisierung ist nicht mehr verfügbar.",
+  "Authorization could not be loaded.": "Die Autorisierung konnte nicht geladen werden.",
+  "Authorization could not be completed.": "Die Autorisierung konnte nicht abgeschlossen werden.",
+  "Authorization could not be cancelled.": "Die Autorisierung konnte nicht abgebrochen werden.",
+  "Connected client": "Verbundener Client",
+  "Authorize {client}": "{client} autorisieren",
+  "Choose one company and the exact tools this client may use. This does not approve any business change.":
+    "Wähle eine Firma und exakt die Tools, die dieser Client verwenden darf. Dadurch wird keine Geschäftsänderung freigegeben.",
+  Company: "Firma",
+  "Choose a company": "Firma auswählen",
+  "Allowed tools": "Erlaubte Tools",
+  read: "Lesen",
+  propose: "Vorschlagen",
+  confirm: "Bestätigen",
+  "No ready company is available. Create or finish setting up a company first.":
+    "Es ist keine bereite Firma verfügbar. Erstelle oder vervollständige zuerst eine Firma.",
+  "Cancel authorization": "Autorisierung abbrechen",
+  "Allow selected access": "Ausgewählten Zugriff erlauben",
+});
+Object.assign(dictionaries.nl, {
+  "Loading authorization…": "Autorisatie laden…",
+  "Authorization unavailable": "Autorisatie niet beschikbaar",
+  "This authorization is no longer available.": "Deze autorisatie is niet meer beschikbaar.",
+  "Authorization could not be loaded.": "De autorisatie kon niet worden geladen.",
+  "Authorization could not be completed.": "De autorisatie kon niet worden voltooid.",
+  "Authorization could not be cancelled.": "De autorisatie kon niet worden geannuleerd.",
+  "Connected client": "Verbonden client",
+  "Authorize {client}": "{client} autoriseren",
+  "Choose one company and the exact tools this client may use. This does not approve any business change.":
+    "Kies één bedrijf en precies de tools die deze client mag gebruiken. Hiermee wordt geen bedrijfswijziging goedgekeurd.",
+  Company: "Bedrijf",
+  "Choose a company": "Kies een bedrijf",
+  "Allowed tools": "Toegestane tools",
+  read: "Lezen",
+  propose: "Voorstellen",
+  confirm: "Bevestigen",
+  "No ready company is available. Create or finish setting up a company first.":
+    "Er is geen gereed bedrijf beschikbaar. Maak eerst een bedrijf aan of voltooi de inrichting.",
+  "Cancel authorization": "Autorisatie annuleren",
+  "Allow selected access": "Geselecteerde toegang toestaan",
+});
+Object.assign(dictionaries.es, {
+  "Loading authorization…": "Cargando autorización…",
+  "Authorization unavailable": "Autorización no disponible",
+  "This authorization is no longer available.": "Esta autorización ya no está disponible.",
+  "Authorization could not be loaded.": "No se pudo cargar la autorización.",
+  "Authorization could not be completed.": "No se pudo completar la autorización.",
+  "Authorization could not be cancelled.": "No se pudo cancelar la autorización.",
+  "Connected client": "Cliente conectado",
+  "Authorize {client}": "Autorizar a {client}",
+  "Choose one company and the exact tools this client may use. This does not approve any business change.":
+    "Elige una empresa y las herramientas exactas que puede usar este cliente. Esto no aprueba ningún cambio empresarial.",
+  Company: "Empresa",
+  "Choose a company": "Elige una empresa",
+  "Allowed tools": "Herramientas permitidas",
+  read: "Lectura",
+  propose: "Propuesta",
+  confirm: "Confirmación",
+  "No ready company is available. Create or finish setting up a company first.":
+    "No hay ninguna empresa preparada. Crea una empresa o termina primero su configuración.",
+  "Cancel authorization": "Cancelar autorización",
+  "Allow selected access": "Permitir el acceso seleccionado",
+});
+Object.assign(dictionaries.de, {
+  "Connected clients": "Verbundene Clients",
+  "Access authorized through a user sign-in. No credentials are shown here.":
+    "Zugriff, der durch eine Benutzeranmeldung autorisiert wurde. Anmeldedaten werden hier nicht angezeigt.",
+  "Reload connected clients": "Verbundene Clients neu laden",
+  "No connected clients.": "Keine verbundenen Clients.",
+  "Authorized by": "Autorisiert von",
+  active: "Aktiv",
+  inactive: "Inaktiv",
+  revoked: "Widerrufen",
+  "Effective state reason": "Grund des effektiven Status",
+  reconsent: "Erneute Autorisierung",
+  user: "Durch Benutzer widerrufen",
+  company_owner: "Durch Firmeninhaber widerrufen",
+  company_unavailable: "Firma nicht verfügbar",
+  account_ineligible: "Benutzerkonto nicht berechtigt",
+  membership_inactive: "Firmenmitgliedschaft inaktiv",
+  company_not_ready: "Firma nicht bereit",
+  "Revoke connected client": "Verbundenen Client widerrufen",
+  "Confirm revocation": "Widerruf bestätigen",
+  "Revoke connected client?": "Verbundenen Client widerrufen?",
+  "Future MCP requests from this connection will be denied immediately.":
+    "Künftige MCP-Anfragen dieser Verbindung werden sofort abgelehnt.",
+  "Connected client access revoked.": "Zugriff des verbundenen Clients widerrufen.",
+  "The revoke result is unknown. Review the current access before trying again.":
+    "Das Ergebnis des Widerrufs ist unbekannt. Prüfe den aktuellen Zugriff vor einem erneuten Versuch.",
+  "The revoke result is unknown. Reload connected clients before trying again.":
+    "Das Ergebnis des Widerrufs ist unbekannt. Lade die verbundenen Clients vor einem erneuten Versuch neu.",
+  "Connected clients could not be loaded. Reload to try again.":
+    "Verbundene Clients konnten nicht geladen werden. Lade sie erneut.",
+  "Manual API tokens": "Manuelle API-Tokens",
+  "Manual integration": "Manuelle Integration",
+});
+Object.assign(dictionaries.nl, {
+  "Connected clients": "Verbonden clients",
+  "Access authorized through a user sign-in. No credentials are shown here.":
+    "Toegang die via een gebruikersaanmelding is toegestaan. Er worden hier geen inloggegevens getoond.",
+  "Reload connected clients": "Verbonden clients opnieuw laden",
+  "No connected clients.": "Geen verbonden clients.",
+  "Authorized by": "Geautoriseerd door",
+  active: "Actief",
+  inactive: "Inactief",
+  revoked: "Ingetrokken",
+  "Effective state reason": "Reden van effectieve status",
+  reconsent: "Opnieuw geautoriseerd",
+  user: "Door gebruiker ingetrokken",
+  company_owner: "Door bedrijfseigenaar ingetrokken",
+  company_unavailable: "Bedrijf niet beschikbaar",
+  account_ineligible: "Account niet bevoegd",
+  membership_inactive: "Bedrijfslidmaatschap inactief",
+  company_not_ready: "Bedrijf niet gereed",
+  "Revoke connected client": "Verbonden client intrekken",
+  "Confirm revocation": "Intrekking bevestigen",
+  "Revoke connected client?": "Verbonden client intrekken?",
+  "Future MCP requests from this connection will be denied immediately.":
+    "Toekomstige MCP-verzoeken van deze verbinding worden onmiddellijk geweigerd.",
+  "Connected client access revoked.": "Toegang van verbonden client ingetrokken.",
+  "The revoke result is unknown. Review the current access before trying again.":
+    "Het resultaat van de intrekking is onbekend. Controleer de huidige toegang voordat je het opnieuw probeert.",
+  "The revoke result is unknown. Reload connected clients before trying again.":
+    "Het resultaat van de intrekking is onbekend. Laad verbonden clients opnieuw voordat je het opnieuw probeert.",
+  "Connected clients could not be loaded. Reload to try again.":
+    "Verbonden clients konden niet worden geladen. Laad opnieuw om het nogmaals te proberen.",
+  "Manual API tokens": "Handmatige API-tokens",
+  "Manual integration": "Handmatige integratie",
+});
+Object.assign(dictionaries.es, {
+  "Connected clients": "Clientes conectados",
+  "Access authorized through a user sign-in. No credentials are shown here.":
+    "Acceso autorizado mediante el inicio de sesión de un usuario. Aquí no se muestran credenciales.",
+  "Reload connected clients": "Recargar clientes conectados",
+  "No connected clients.": "No hay clientes conectados.",
+  "Authorized by": "Autorizado por",
+  active: "Activo",
+  inactive: "Inactivo",
+  revoked: "Revocado",
+  "Effective state reason": "Motivo del estado efectivo",
+  reconsent: "Nueva autorización",
+  user: "Revocado por el usuario",
+  company_owner: "Revocado por el propietario de la empresa",
+  company_unavailable: "Empresa no disponible",
+  account_ineligible: "Cuenta no autorizada",
+  membership_inactive: "Membresía de empresa inactiva",
+  company_not_ready: "Empresa no preparada",
+  "Revoke connected client": "Revocar cliente conectado",
+  "Confirm revocation": "Confirmar revocación",
+  "Revoke connected client?": "¿Revocar el cliente conectado?",
+  "Future MCP requests from this connection will be denied immediately.":
+    "Las futuras solicitudes MCP de esta conexión se rechazarán inmediatamente.",
+  "Connected client access revoked.": "Acceso del cliente conectado revocado.",
+  "The revoke result is unknown. Review the current access before trying again.":
+    "Se desconoce el resultado de la revocación. Revisa el acceso actual antes de volver a intentarlo.",
+  "The revoke result is unknown. Reload connected clients before trying again.":
+    "Se desconoce el resultado de la revocación. Recarga los clientes conectados antes de volver a intentarlo.",
+  "Connected clients could not be loaded. Reload to try again.":
+    "No se pudieron cargar los clientes conectados. Recarga para volver a intentarlo.",
+  "Manual API tokens": "Tokens de API manuales",
+  "Manual integration": "Integración manual",
+});
