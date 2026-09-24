@@ -347,3 +347,17 @@ def test_a_streamed_chat_turn_keeps_the_request_correlation_after_it_closed(
         ("web", "turn_7"),
     ]
     assert {row.actor_user_id for row in recorded} == {scheduled_owner.id}
+
+
+def test_a_long_error_code_is_cut_to_fit_rather_than_losing_the_row(
+    session, business, recording
+):
+    tenant = business.tenant.id
+
+    class Verbose(NotFound):
+        code = "x" * 200
+
+    with pytest.raises(Verbose), interactions.observe(tenant, "mcp", "item.read"):
+        raise Verbose("gone")
+    [row] = rows(session, tenant)
+    assert row.error_code == "x" * 64

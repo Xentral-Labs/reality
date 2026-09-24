@@ -6,6 +6,7 @@ path under `/interactions`, so watching does not become something to watch.
 
 from __future__ import annotations
 
+import os
 from datetime import datetime
 from typing import Annotated, Any
 
@@ -28,6 +29,13 @@ router = APIRouter(
 
 
 def _owner(request: Request, session: DatabaseSession, tenant_id: str) -> None:
+    if (
+        getattr(request.state, "user", None) is None
+        and os.environ.get("REALITY_AUTH_MODE", "enabled").lower() == "disabled"
+    ):
+        # Development without sign-in opens every company surface; the engine room
+        # follows it rather than answering 401, which the web reads as a lost session.
+        return
     principal = request_principal(request)
     try:
         interactions.require_engine_room_access(session, tenant_id, principal.user_id)

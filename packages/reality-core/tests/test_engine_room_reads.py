@@ -295,3 +295,21 @@ def test_the_owner_sees_what_a_member_did_through_the_api(web):  # noqa: F811
         f"/api/tenants/{web.tenant_id}/interactions/{row['id']}/events"
     )
     assert events.status_code == 200 and events.json() == {"events": []}
+
+
+def test_development_without_sign_in_opens_the_engine_room(web, monkeypatch):  # noqa: F811
+    from fastapi.testclient import TestClient
+
+    from reality.web import app as web_module
+
+    monkeypatch.setenv("REALITY_AUTH_MODE", "disabled")
+    response = TestClient(web_module.app).get(
+        f"/api/tenants/{web.tenant_id}/interactions"
+    )
+    assert response.status_code == 200, response.text
+    # Positive control: with sign-in required, an anonymous caller is refused.
+    monkeypatch.setenv("REALITY_AUTH_MODE", "enabled")
+    anonymous = TestClient(web_module.app).get(
+        f"/api/tenants/{web.tenant_id}/interactions"
+    )
+    assert anonymous.status_code == 401

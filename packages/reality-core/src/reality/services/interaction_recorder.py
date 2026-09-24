@@ -253,7 +253,7 @@ def note_outcome(outcome: str, error_code: str | None) -> None:
     observation = _current.get()
     if observation is not None:
         observation.outcome = outcome
-        observation.error_code = error_code
+        observation.error_code = error_code[:64] if error_code else None
 
 
 def note_status(status: int) -> None:
@@ -293,7 +293,7 @@ def _classify(
             (ValueError, "invalid_argument"),
         ):
             if isinstance(error, kind):
-                return "refused", getattr(error, "code", None) or code
+                return "refused", str(getattr(error, "code", None) or code)[:64]
         return "failed", type(error).__name__[:64]
     if observation.outcome is not None:
         return observation.outcome, observation.error_code
