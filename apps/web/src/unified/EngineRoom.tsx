@@ -178,12 +178,25 @@ function RealityCell({
   openProposal: (id: string) => void;
 }) {
   const [expanded, setExpanded] = useState(false);
-  if (!row.events.count && !row.proposal)
-    // A read changes nothing; saying so on every row only hides the rows that did.
-    return <span aria-hidden />;
+  const written = new Set(row.stages.written);
+  // What part of the model this touched: filled where it wrote, outlined where it read.
+  const touched = STAGES.filter((stage) => written.has(stage) || row.stages.read.includes(stage));
   return (
     <div className="min-w-0">
-      <div className="flex flex-wrap items-center gap-2 text-xs">
+      {touched.length > 0 && (
+        <div className="flex flex-wrap gap-1" data-interaction-stages>
+          {touched.map((stage) => (
+            <span
+              key={stage}
+              data-stage-touch={written.has(stage) ? "written" : "read"}
+              className={`rounded-full border px-2 py-0.5 text-xs ${stageTone[written.has(stage) ? "written" : "read"]}`}
+            >
+              {t(stageLabels[stage])}
+            </span>
+          ))}
+        </div>
+      )}
+      <div className="mt-1 flex flex-wrap items-center gap-2 text-xs">
         {row.proposal && (
           <button
             className="text-accent underline-offset-2 hover:underline"
@@ -269,23 +282,27 @@ function InteractionRow({
         </button>
       </div>
       <div className="min-w-0">
-        <div className="flex flex-wrap items-center gap-2">
+        <div className="flex min-w-0 items-baseline gap-2">
           {row.label && (
-            <span className="truncate font-medium" data-interaction-label>
+            <span className="min-w-0 truncate font-medium" data-interaction-label>
               {t(row.label)}
             </span>
           )}
           <span
-            className={`truncate font-mono text-xs ${row.label ? "text-fg-muted" : ""}`}
+            className={`min-w-0 shrink truncate font-mono text-xs ${row.label ? "text-fg-muted" : ""}`}
             data-original-content=""
           >
             {row.operation}
           </span>
-          <span className={`rounded px-1.5 py-0.5 text-xs ${outcomeTone[row.outcome] || ""}`}>
+        </div>
+        <div className="mt-0.5 text-xs text-fg-muted">
+          {/* The outcome always opens the second line, so the eye finds it in one place. */}
+          <span
+            className={`mr-1.5 inline-block rounded px-1.5 py-0.5 ${outcomeTone[row.outcome] || ""}`}
+            data-interaction-outcome
+          >
             {t(outcomeLabels[row.outcome] || row.outcome)}
           </span>
-        </div>
-        <div className="text-xs text-fg-muted">
           {t(kindLabels[row.kind] || row.kind)} · {formatNumber(row.duration_ms)} ms
           {row.error_code && (
             <>
