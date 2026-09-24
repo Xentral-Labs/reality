@@ -83,7 +83,7 @@ object; the browser only renders it (spec DR-004).
 
 | ID | Severity | Finding | Resolution |
 |---|---|---|---|
-| A1 | HIGH | Plan D2 rejected a mismatching explicit `action_id`; costing and commercial matching thread their own `action` argument, so the refusal could fail executions this feature does not otherwise change. | Explicit id always wins (R2, plan D2, T023, T029). |
+| A1 | HIGH | Plan D2 rejected a mismatching explicit `action_id`; costing and commercial matching thread their own `action` argument, so the refusal could fail executions this feature does not otherwise change. | Explicit id always wins (R2, plan D2 and test plan, T023, T029). |
 | A2 | HIGH | `_deciding_actors` takes the first event *with* an `action_id`, so a record created without a decision and later updated through one would be shown as created by that decision (violates FR-011, SC-004). | Use the record's first event only (plan D4, T039, T042). |
 | A3 | MEDIUM | FR-007 inherits 054 FR-006 (≤ 25 rows per page); the API default is 50 and T033 did not pin it. | T033 pins 25 rows per page. |
 | A4 | MEDIUM | New public helpers in discovered modules (`executing_proposal` in `services/core`) and the explicit reader need isolation classification, or `test_application_catalog.py` fails in CI only. | T011, T027 classify; Phase 2 checkpoint runs the catalog gates. |

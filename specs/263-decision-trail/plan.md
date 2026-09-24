@@ -122,7 +122,7 @@ No Complexity Tracking entry is required.
 | US1 | `tests/test_decision_trail_mcp.py`: approve and reject through the MCP runtime with a web-issued token and a legacy token, then revoke the token and re-read; web approval as unchanged control case | FR-001–FR-004 | yes |
 | US1 | `tests/test_decision_trail_migration.py` upgrade/downgrade, following `test_*_migration.py` | DR-002, SC-005 | yes |
 | US1 | Cross-tenant token/issuer resolution returns nothing | DR-003 | yes |
-| US2 | `tests/test_decision_trail_events.py`: unit test of the scope default and the mismatch refusal | FR-005 | yes |
+| US2 | `tests/test_decision_trail_events.py`: unit test of the scope default and that an explicit id is kept | FR-005 | yes |
 | US2 | Regression: payment term, price list, price tier, price-list assignment through a confirmed proposal all reference it | FR-005, SC-002 | yes |
 | US2 | Catalog guard: every handler invocation in `approve_and_execute_proposal` goes through one `_run_handler` helper inside the scope; a test registers a temporary mutating tool whose handler emits an event without `action_id` and asserts it is linked, for the generic, master-tool and finance branches; a second test walks every mutating tool in `TOOLS` and asserts it is routed through a branch covered by the first; a positive control emitting outside the scope stays unlinked | FR-006 | yes |
 | US3 | History payload with person, MCP and unknown deciders | FR-007, FR-004 | yes |
