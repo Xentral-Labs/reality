@@ -298,7 +298,7 @@ def test_cli_cancellation_previews_and_confirms_shared_action(
     assert commitment.status == "cancelled"
 
 
-def test_known_reviewed_handler_refusal_restores_proposal_without_effect(
+def test_known_reviewed_handler_refusal_records_terminal_failure_without_effect(
     session, business, monkeypatch
 ):
     commitment = create_commitment(
@@ -344,7 +344,12 @@ def test_known_reviewed_handler_refusal_restores_proposal_without_effect(
 
     session.refresh(proposal)
     session.refresh(commitment)
-    assert proposal.status == "proposed"
+    assert proposal.status == "failed"
+    assert json.loads(proposal.output) == {
+        "business_effect": "none",
+        "error_type": "InvalidOperation",
+        "message": "Known refusal before effect",
+    }
     assert commitment.status == "open"
 
 

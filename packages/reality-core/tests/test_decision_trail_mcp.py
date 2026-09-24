@@ -88,7 +88,7 @@ async def _as_token(session, monkeypatch, token: MCPAccessToken, tool: str, argu
         result = await mcp_module.build_server().call_tool(tool, arguments)
     finally:
         auth_context_var.reset(context)
-    return json.loads(result[0].text)
+    return json.loads(result.content[0].text)
 
 
 def test_issuing_a_token_in_the_web_records_the_owner(session, business, monkeypatch):

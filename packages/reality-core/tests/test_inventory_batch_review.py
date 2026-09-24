@@ -72,11 +72,13 @@ def test_batch_mcp_confirmation_shared_basis_replay_and_snapshots(
     tenant = business.tenant.id
     args = prepared(session, business, cost_owner)
     command = MCP_TOOL_REGISTRY["cost_change_propose"]
-    assert (
-        "inventory_batch_review"
-        in command.input_schema["properties"]["operation"]["enum"]
+    branch = next(
+        branch
+        for branch in command.input_schema["oneOf"]
+        if branch["properties"]["operation"]["const"]
+        == "inventory_batch_review"
     )
-    assert command.input_schema["properties"]["scopes"]["maxItems"] == 10
+    assert branch["properties"]["scopes"]["maxItems"] == 10
     before = counts(session, tenant)
     with caller(Principal(cost_owner.id)):
         proposed = command.handler(session, tenant, args)

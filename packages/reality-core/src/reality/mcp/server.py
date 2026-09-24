@@ -97,6 +97,7 @@ def _handler(definition: MCPToolDefinition):
         )
         if not isinstance(principal, MCPPrincipal):
             scopes = set(access_token.scopes)
+            client_id = getattr(access_token, "client_id", None) or "manual-token"
             allowed = frozenset(
                 {"*"}
                 if "reality:tool:*" in scopes
@@ -108,11 +109,11 @@ def _handler(definition: MCPToolDefinition):
             )
             principal = MCPPrincipal(
                 "manual",
-                access_token.client_id,
+                client_id,
                 None,
                 None,
                 access_token.subject,
-                access_token.client_id,
+                client_id,
                 frozenset(scopes),
                 allowed,
             )

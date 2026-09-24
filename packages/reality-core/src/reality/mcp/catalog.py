@@ -165,6 +165,7 @@ def _approve_proposal(
         review_token=arguments.get("review_token"),
         confirmed=True,
         confirming_principal=confirming_principal,
+        settling_token_id=_settling_token(session, tenant_id),
     )
     receipt = json.loads(proposal.output)
     return {
@@ -182,11 +183,17 @@ def _reject_proposal(
 ) -> Any:
     if arguments.get("rejected") is not True:
         raise ValueError("Set rejected=true only after an explicit human decision.")
+    mcp_principal = current_mcp_principal()
+    confirming_principal = _analytics_caller()
+    if mcp_principal is not None and mcp_principal.user_id is not None:
+        from reality.services.memberships import Principal
+
+        confirming_principal = Principal(mcp_principal.user_id)
     proposal = reject_proposal(
         session,
         tenant_id,
         arguments["proposal_id"],
-        confirming_principal=_analytics_caller(),
+        confirming_principal=confirming_principal,
         settling_token_id=_settling_token(session, tenant_id),
     )
     return {
@@ -204,7 +211,12 @@ def _settling_token(session: Session, tenant_id: str) -> str | None:
     The runtime only admits stored tokens, but a decision must never fail because
     its attribution cannot be recorded; an unknown token leaves the decider unknown.
     """
-    token_id = SETTLING_TOKEN.get()
+    principal = current_mcp_principal()
+    token_id = (
+        principal.credential_id
+        if principal is not None and principal.authentication_kind == "manual"
+        else SETTLING_TOKEN.get()
+    )
     if token_id is None:
         return None
     from sqlalchemy import select
