@@ -23,11 +23,27 @@ TESTS = Path("packages/reality-core/tests")
 TARGET = Path(__file__).with_name("backend_test_durations.json")
 
 
-def durations(reports: list[Path]) -> dict[str, float]:
+def test_file(classname: str, tests: Path) -> str | None:
+    """Map a JUnit classname to its file.
+
+    pytest's default report carries no file attribute, and a class-based test puts
+    the class into the same dotted name, so the longest prefix that exists on disk
+    is the file.
+    """
+    parts = classname.split(".")
+    while parts:
+        candidate = tests.parent.joinpath(*parts).with_suffix(".py")
+        if candidate.exists():
+            return str(candidate.relative_to(tests))
+        parts.pop()
+    return None
+
+
+def durations(reports: list[Path], tests: Path) -> dict[str, float]:
     seconds: dict[str, float] = defaultdict(float)
     for report in reports:
         for case in ElementTree.parse(report).getroot().iter("testcase"):
-            path = case.get("file")
+            path = case.get("file") or test_file(case.get("classname", ""), tests)
             if path:
                 seconds[path] += float(case.get("time", 0.0))
     return dict(seconds)
@@ -39,7 +55,7 @@ def main() -> int:
     parser.add_argument("--target", type=Path, default=TARGET)
     parser.add_argument("--tests", type=Path, default=TESTS)
     args = parser.parse_args()
-    measured = durations(args.reports)
+    measured = durations(args.reports, args.tests)
     if not measured:
         print("no test cases in the reports", file=sys.stderr)
         return 1
