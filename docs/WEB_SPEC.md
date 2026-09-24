@@ -1886,11 +1886,16 @@ No remote provider request is made by configuration save.
 External agents live in a separate expandable MCP section. The endpoint and active
 opaque token IDs, prefixes, creation/last-use times and scopes remain inspectable. New
 tokens start with no permissions and require explicit tool names; read-only bulk
-selection never adds propose/confirm. Review distinguishes reading, preparation and
-approval/execution, and names all selected tools. Existing wildcard grants remain
-visible and revocable; new UI does not grant wildcard access. Tool search and display
-pagination retain the selection; token/tool displays are bounded at 25 per page.
-The underlying settings endpoint still returns the complete catalog/token list.
+selection never adds propose/confirm. A separate full-access preset selects every
+tool in the current catalog, including change-capable tools, while still submitting
+their explicit names rather than a wildcard. Either preset replaces the prior
+selection; owners can clear or individually adjust it before review. Review
+distinguishes reading, preparation and approval/execution, and names all selected
+tools. Existing wildcard grants remain visible and revocable; new UI does not grant
+wildcard access. Tool search and display pagination retain the selection; presets
+apply to the complete catalog rather than only the visible page, and token/tool
+displays are bounded at 25 per page. The underlying settings endpoint still returns
+the complete catalog/token list.
 
 The full token appears only from a successful creation response, with copy/manual-copy
 fallback and explicit hide. It is never persisted or recovered. Revocation reviews the

@@ -98,6 +98,19 @@ await page.route("**/api/**", async (route) => {
       default_tenant_id: "main",
     });
   if (p.endsWith("/application-reference")) return reply({ workspaces: [] });
+  if (p === "/api/v1/companies") return reply([]);
+  if (p.endsWith("/analytics/graph/templates")) return reply({ templates: [] });
+  if (p.endsWith("/copilot"))
+    return reply({
+      sessions: [],
+      messages: [],
+      proposals: [],
+      suggestions: [],
+      has_archived: false,
+      active_session_id: null,
+    });
+  if (p.endsWith("/change-proposals"))
+    return reply({ items: [], page: { page: 1, size: 50, total: 0, pages: 0 } });
   if (p.includes("/member/settings/ai")) throw new Error("Member requested privileged AI settings");
   if (p.endsWith("/settings/ai") && req.method() === "GET")
     return failRead
@@ -112,6 +125,7 @@ await page.route("**/api/**", async (route) => {
     const b = req.postDataJSON();
     writes.push({ p, body: b });
     if (mode === "reject") return reply({ detail: fakeKey }, 400);
+    let result = {};
     if (p.endsWith("/settings/ai"))
       config = {
         ...config,
@@ -121,7 +135,13 @@ await page.route("**/api/**", async (route) => {
         model: b.provider_preset === "managed" ? "" : "fixed-model",
         base_url: b.provider_preset === "managed" ? "" : "https://api.anthropic.com",
       };
-    let result = {};
+    if (p.endsWith("/settings/ai"))
+      result = {
+        copilot: { ...config, presets },
+        tokens,
+        tools,
+        mcp_url: "https://mcp.example.test/mcp",
+      };
     if (p.endsWith("/tokens")) {
       const row = {
         id: "token" + writes.length,
@@ -145,6 +165,8 @@ await page.route("**/api/**", async (route) => {
 });
 const base = process.env.UNIFIED_APP_URL || "http://127.0.0.1:5177";
 const go = (tenant = "main") => page.goto(`${base}/app/settings?tenant=${tenant}&settings_view=ai`);
+const goAgents = (tenant = "main") =>
+  page.goto(`${base}/app/settings?tenant=${tenant}&settings_view=agents`);
 const button = (name) => page.getByRole("button", { name, exact: true });
 const storage = () =>
   page.evaluate(() =>
@@ -178,12 +200,35 @@ try {
     .waitFor();
   await button("Confirm").click();
   await page.getByText("AI setup saved.", { exact: true }).waitFor();
-  await page.getByText("External agents · MCP", { exact: true }).click();
+  await goAgents();
   await button("New MCP token").click();
   await page.getByLabel("Token name", { exact: true }).fill("Same name");
   assert.equal(await button("Review token").isDisabled(), true);
-  await page.getByRole("checkbox", { name: "Read orders", exact: true }).check();
-  await page.getByRole("checkbox", { name: "Approve proposal", exact: true }).check();
+  await button("Select full access").click();
+  assert.equal(
+    await page.getByRole("checkbox", { name: "Read orders", exact: true }).isChecked(),
+    true,
+  );
+  assert.equal(
+    await page.getByRole("checkbox", { name: "Prepare order", exact: true }).isChecked(),
+    true,
+  );
+  assert.equal(
+    await page.getByRole("checkbox", { name: "Approve proposal", exact: true }).isChecked(),
+    true,
+  );
+  await button("Select read tools").click();
+  assert.equal(
+    await page.getByRole("checkbox", { name: "Read orders", exact: true }).isChecked(),
+    true,
+  );
+  assert.equal(
+    await page.getByRole("checkbox", { name: "Prepare order", exact: true }).isChecked(),
+    false,
+  );
+  await button("Clear selection").click();
+  assert.equal(await button("Review token").isDisabled(), true);
+  await button("Select full access").click();
   await button("Review token").click();
   await page
     .getByText("This token may approve and execute changes through its selected tools.", {
@@ -194,7 +239,11 @@ try {
   await button("Review token").click();
   await button("Confirm").click();
   await page.getByLabel("New MCP token secret", { exact: true }).waitFor();
-  assert.deepEqual(writes.at(-1).body.allowed_tools, ["read_orders", "approve_proposal"]);
+  assert.deepEqual(writes.at(-1).body.allowed_tools, [
+    "read_orders",
+    "prepare_order",
+    "approve_proposal",
+  ]);
   assert.ok(!(await storage()).includes(fakeToken));
   await page.evaluate(() =>
     Object.defineProperty(navigator, "clipboard", {
@@ -250,7 +299,6 @@ try {
     })
     .waitFor();
   assert.equal(writes.length, count);
-  await page.getByText("External agents · MCP", { exact: true }).click();
   await page.getByText("Lost response", { exact: true }).waitFor();
   assert.equal(await page.getByLabel("New MCP token secret", { exact: true }).count(), 0);
   const lostToken = tokens.find((t) => t.name === "Lost response");
@@ -269,6 +317,7 @@ try {
     })
     .waitFor();
   assert.ok(!tokens.some((t) => t.id === lostToken.id));
+  await go();
   await button("Change AI setup").click();
   await page.getByLabel("AI credential source", { exact: true }).selectOption("anthropic");
   await page.getByLabel("API key", { exact: true }).fill(fakeKey);
@@ -320,7 +369,7 @@ try {
   await page.getByLabel("AI credential source", { exact: true }).selectOption("anthropic");
   assert.equal(await button("Review AI setup").isDisabled(), true);
   await button("Close").click();
-  await page.getByText("External agents · MCP", { exact: true }).click();
+  await goAgents();
   await button("New MCP token").click();
   await page.getByLabel("Token name", { exact: true }).fill("Delayed token");
   await page.getByRole("checkbox", { name: "Read orders", exact: true }).check();
@@ -343,7 +392,7 @@ try {
   assert.equal(await page.getByLabel("New MCP token secret", { exact: true }).count(), 0);
   assert.equal(new URL(page.url()).searchParams.get("tenant"), "other");
   assert.ok(!(await storage()).includes(fakeToken));
-  await go();
+  await goAgents();
   for (const lang of ["en", "de", "nl", "es"])
     for (const theme of ["light", "dark"])
       for (const width of [390, 1440]) {
@@ -351,7 +400,6 @@ try {
         await page.setViewportSize({ width, height: 1000 });
         await page.reload();
         await page.locator("[data-ai-settings]").waitFor();
-        await page.locator("[data-mcp-access] > summary").click();
         await page.locator("[data-token-id]").first().waitFor();
         await page.evaluate(
           (theme) => document.documentElement.setAttribute("data-theme", theme),
@@ -387,8 +435,7 @@ try {
       last_used_at: null,
     })),
   );
-  await go();
-  await page.locator("[data-mcp-access] > summary").click();
+  await goAgents();
   assert.equal(await page.locator("[data-token-id]").count(), 25);
   await button("Next").click();
   assert.equal(await page.locator("[data-token-id]").count(), 5);
@@ -410,10 +457,9 @@ try {
   assert.equal(await page.locator("[data-ai-review] li").count(), 29);
   assert.ok(!(await page.locator("[data-ai-review]").innerText()).includes("approve_proposal"));
   await button("Cancel").click();
-  await go("other");
-  await page.locator("[data-mcp-access] > summary").click();
+  await goAgents("other");
   await page.getByText("No active MCP tokens.", { exact: true }).waitFor();
-  await go("member");
+  await goAgents("member");
   await page.getByText("Only company owners can view these settings.", { exact: true }).waitFor();
   assert.equal(await button("Change AI setup").count(), 0);
   assert.deepEqual(errors, []);
