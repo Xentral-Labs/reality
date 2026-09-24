@@ -52,6 +52,7 @@ def change_input_schema() -> dict:
 
     result = inline(schema)
     result["type"] = "object"
+    result["additionalProperties"] = False
     return result
 
 

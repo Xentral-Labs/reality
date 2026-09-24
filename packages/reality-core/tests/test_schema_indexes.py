@@ -55,6 +55,16 @@ def test_the_migrations_together_create_exactly_the_derived_indexes():
     } | {(name, table, columns) for name, table, columns, _ in second.INDEX_CREATES}
     # References added to existing tables later name their index in their revision.
     after_second |= set(_module("0093_decision_trail.py").INDEXES)
+    oauth = _module("0095_mcp_authorization_indexes.py")
+    after_second |= {
+        (
+            "ix_mcp_user_credential_grant_id",
+            "mcp_user_credential",
+            ("tenant_id", "grant_id"),
+        )
+    }
+    after_second -= set(oauth.INDEX_DROPS)
+    after_second |= set(oauth.INDEX_CREATES)
     derived = {
         (index.name, index.table.name, tuple(c.name for c in index.columns))
         for index in FOREIGN_KEY_INDEXES

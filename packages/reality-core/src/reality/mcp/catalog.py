@@ -315,7 +315,7 @@ def _shipment_execution_schema(purposes: dict[str, str]) -> dict[str, Any]:
                 required=("purpose", "counterparty_id", "movements"),
             )
         )
-    return {"type": "object", "oneOf": branches}
+    return {"type": "object", "oneOf": branches, "additionalProperties": False}
 
 
 PARTY_CREATE_RECORD = _object_schema(
