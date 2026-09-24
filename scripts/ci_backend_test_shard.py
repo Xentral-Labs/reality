@@ -73,7 +73,11 @@ def main() -> int:
             seconds = sum(weights[path] for path in shard)
             print(f"shard {index}: {len(shard)} files, {seconds:.0f}s predicted")
         return 0
-    for path in shards[args.shard]:
+    # Handed to pytest in path order, not heaviest first: the weights decide which
+    # shard a file belongs to, never the order it runs in. Running the heavy files
+    # first puts both xdist workers on the seeding tests at the same time, and they
+    # then fight over the one PostgreSQL service.
+    for path in sorted(shards[args.shard]):
         print(path.relative_to(args.relative_to))
     return 0
 
