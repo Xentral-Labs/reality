@@ -94,11 +94,7 @@ test("generated MCP reference preserves canonical enums and nested required fiel
     assert.equal(parameter("supplier_invoice_free_record_propose", field).required, true);
   for (const field of ["lines[].quantity", "lines[].unit_price", "lines[].gross_amount"])
     assert.equal(parameter("supplier_invoice_free_record_propose", field).required, true);
-  for (const field of [
-    "lines[].invoice_line_id",
-    "lines[].quantity",
-    "lines[].gross_amount",
-  ])
+  for (const field of ["lines[].invoice_line_id", "lines[].quantity", "lines[].gross_amount"])
     assert.equal(parameter("sales_credit_record_propose", field).required, true);
 });
 
