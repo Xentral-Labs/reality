@@ -7,6 +7,7 @@ import { currentLanguage, t } from "../localization";
 import { RegisterPager } from "./WarehousePage";
 import { useRead } from "./useCompanyContext";
 import { ReadState } from "./ReadState";
+import { DecisionLine } from "./DecisionLine";
 
 const compactGrid = "grid gap-4 md:grid-cols-2";
 const compactSection = "rounded-lg border border-border-default bg-surface p-4";
@@ -109,6 +110,7 @@ export function Inspector({
         <>
           <InspectorContent
             data={data}
+            tenant={tenant}
             selectedKind={selected.kind}
             follow={(target) => {
               setMemberPage(1);
@@ -128,18 +130,28 @@ export function Inspector({
   );
 }
 
+const decisionRoles = {
+  created: "Created by decision",
+  changed: "Changed by decision",
+  caused: "Caused by decision",
+} as const;
+
 export function InspectorContent({
   data,
   selectedKind,
   follow,
   compact = false,
+  tenant,
 }: {
   data: Pick<InspectorData, "title" | "sections"> & Partial<InspectorData>;
   selectedKind: string;
   follow?: (target: { kind: string; id: string }) => void;
   compact?: boolean;
+  /** The company, so a decision behind the record can be opened. */
+  tenant?: string;
 }) {
   const sections = compact ? (data.preview_sections ?? data.sections.slice(0, 3)) : data.sections;
+  const decisions = data.decisions ?? [];
   const businessPreview = compact && !!data.preview_sections;
   const title = inspectorValue(data.title, data.title_parts);
   const subtitle = inspectorValue(data.subtitle, data.subtitle_parts);
@@ -175,97 +187,120 @@ export function InspectorContent({
       )}
       {[
         ...sections,
+        // Spec 263 FR-013: every detail view names the decisions behind its record;
+        // registers and lists stay short and never carry them.
+        ...(!compact && decisions.length
+          ? [{ title: "Decisions", rows: [], decisions: true }]
+          : []),
         ...(compact ? [] : [{ title: "Technical details", rows: data.technical_rows || [] }]),
-      ].map((section) => (
-        <section key={section.title} className={compact ? compactSection : "mt-6"}>
-          <h3 className="mb-3 font-medium">{t(section.title)}</h3>
-          {section.rows.map((row, index) => {
-            const linked = !!row.link && !!follow;
-            const label = (
-              <span className="min-w-0 break-words">
-                <span data-original-content={row.original_label ? "" : undefined}>
-                  {row.original_label ? row.label : t(row.label)}
-                </span>
-                {row.hint && (
-                  <span className="mt-1 block text-xs text-fg-muted">{t(row.hint)}</span>
-                )}
-              </span>
-            );
-            const meta = inspectorMeta(row);
-            // The measure stands in its own column so a section reads as one;
-            // the qualifier it carries sits beside it, never inside it.
-            const value = (
-              <span
-                className={
-                  meta
-                    ? compact
-                      ? valueStacked
-                      : valueBeside
-                    : linked
-                      ? wholeValueLink
-                      : wholeValue
-                }
+      ].map((section) =>
+        "decisions" in section ? (
+          <section key="decisions" className="mt-6" data-record-decisions>
+            <h3 className="mb-3 font-medium">{t("Decisions")}</h3>
+            {decisions.map((decision) => (
+              <div
+                key={`${decision.role}:${decision.id}`}
+                className={`${rowInner} ${rowPlain} border-b border-border-default`}
+                data-record-decision={decision.id}
               >
-                <span
-                  data-original-content={
-                    linked
-                      ? selectedKind === "fact" || (businessPreview && !row.translate_value)
-                        ? ""
-                        : undefined
-                      : (businessPreview && !row.translate_value) ||
-                          (selectedKind === "fact" &&
-                            [
-                              "Value",
-                              "Exact predicate",
-                              "Subject ID",
-                              "Fact ID",
-                              "Source record ID",
-                            ].includes(row.label))
-                        ? ""
-                        : undefined
-                  }
-                  className={`${linked ? linkText : ""} ${meta ? measure : ""}`}
-                >
-                  {row.translate_value
-                    ? t(String(row.value))
-                    : inspectorValue(row.value, row.display_parts)}
+                <span className="min-w-0 break-words">{t(decisionRoles[decision.role])}</span>
+                <span className={wholeValue}>
+                  <DecisionLine decision={decision} tenant={tenant} />
                 </span>
-                {meta && (
-                  <span
-                    data-original-content=""
-                    className={`${qualifier} ${compact ? "" : qualifierColumn}`}
-                  >
-                    {meta}
-                  </span>
-                )}
-              </span>
-            );
-            return (
-              <div key={index} className="border-b border-border-default">
-                {linked ? (
-                  <button className={`${rowInner} ${rowLink}`} onClick={() => follow(row.link!)}>
-                    {label}
-                    {value}
-                  </button>
-                ) : (
-                  <div className={`${rowInner} ${rowPlain}`}>
-                    {label}
-                    {value}
-                  </div>
-                )}
               </div>
-            );
-          })}
-          {businessPreview && section.rows.length === 0 && (
-            <p className="text-sm text-fg-muted">{t("No recorded details.")}</p>
-          )}
-          {"has_more" in section && section.has_more === true && (
-            <p className="mt-3 text-sm text-fg-muted">
-              {t("More records are available in the full explanation.")}
-            </p>
-          )}
-        </section>
-      ))}
+            ))}
+          </section>
+        ) : (
+          <section key={section.title} className={compact ? compactSection : "mt-6"}>
+            <h3 className="mb-3 font-medium">{t(section.title)}</h3>
+            {section.rows.map((row, index) => {
+              const linked = !!row.link && !!follow;
+              const label = (
+                <span className="min-w-0 break-words">
+                  <span data-original-content={row.original_label ? "" : undefined}>
+                    {row.original_label ? row.label : t(row.label)}
+                  </span>
+                  {row.hint && (
+                    <span className="mt-1 block text-xs text-fg-muted">{t(row.hint)}</span>
+                  )}
+                </span>
+              );
+              const meta = inspectorMeta(row);
+              // The measure stands in its own column so a section reads as one;
+              // the qualifier it carries sits beside it, never inside it.
+              const value = (
+                <span
+                  className={
+                    meta
+                      ? compact
+                        ? valueStacked
+                        : valueBeside
+                      : linked
+                        ? wholeValueLink
+                        : wholeValue
+                  }
+                >
+                  <span
+                    data-original-content={
+                      linked
+                        ? selectedKind === "fact" || (businessPreview && !row.translate_value)
+                          ? ""
+                          : undefined
+                        : (businessPreview && !row.translate_value) ||
+                            (selectedKind === "fact" &&
+                              [
+                                "Value",
+                                "Exact predicate",
+                                "Subject ID",
+                                "Fact ID",
+                                "Source record ID",
+                              ].includes(row.label))
+                          ? ""
+                          : undefined
+                    }
+                    className={`${linked ? linkText : ""} ${meta ? measure : ""}`}
+                  >
+                    {row.translate_value
+                      ? t(String(row.value))
+                      : inspectorValue(row.value, row.display_parts)}
+                  </span>
+                  {meta && (
+                    <span
+                      data-original-content=""
+                      className={`${qualifier} ${compact ? "" : qualifierColumn}`}
+                    >
+                      {meta}
+                    </span>
+                  )}
+                </span>
+              );
+              return (
+                <div key={index} className="border-b border-border-default">
+                  {linked ? (
+                    <button className={`${rowInner} ${rowLink}`} onClick={() => follow(row.link!)}>
+                      {label}
+                      {value}
+                    </button>
+                  ) : (
+                    <div className={`${rowInner} ${rowPlain}`}>
+                      {label}
+                      {value}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+            {businessPreview && section.rows.length === 0 && (
+              <p className="text-sm text-fg-muted">{t("No recorded details.")}</p>
+            )}
+            {"has_more" in section && section.has_more === true && (
+              <p className="mt-3 text-sm text-fg-muted">
+                {t("More records are available in the full explanation.")}
+              </p>
+            )}
+          </section>
+        ),
+      )}
       {!compact && data.source_payload && (
         <details className="mt-5" data-source-payload>
           <summary>{t("Original source")}</summary>

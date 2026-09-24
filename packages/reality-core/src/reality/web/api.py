@@ -6251,6 +6251,29 @@ def get_inspector(
     member_page: int = Query(default=1, ge=1, le=10000),
     language: str = "en",
 ):
+    payload = _inspector(
+        kind, record_id, tenant_id, session, preview, member_page, language
+    )
+    if not isinstance(payload, dict):
+        return payload
+    from reality.services.decision_attribution import record_decisions
+
+    # Every detail view names the decisions behind its record (spec 263 FR-013).
+    return {
+        **payload,
+        "decisions": record_decisions(session, tenant_id, kind, record_id),
+    }
+
+
+def _inspector(
+    kind: str,
+    record_id: str,
+    tenant_id: str,
+    session: OrmSession,
+    preview: bool,
+    member_page: int,
+    language: str,
+):
     try:
         from reality.domain.cost_records import RECORDS
         from reality.tools.application import run_read_tool

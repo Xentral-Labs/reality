@@ -906,6 +906,10 @@ export type BillingAvailability = {
   }[];
 };
 export type InspectorData = {
+  /** The decisions behind this record, for its detail view only (spec 263 FR-013). */
+  decisions?: (import("./unified/decisionTrail").DecisionAttribution & {
+    role: "created" | "changed" | "caused";
+  })[];
   member_page?: Page;
   fields?: Record<string, unknown>;
   preview_sections?: { title: string; rows: InspectorRow[]; has_more?: boolean }[];

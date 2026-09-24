@@ -113,3 +113,52 @@ def _names(
         )
     ).all()
     return {row.id: (row.display_name or "").strip() or row.email for row in rows}
+
+
+#: How many later decisions a detail view lists beside the creating one.
+CHANGE_LIMIT = 10
+
+
+def record_decisions(
+    session: Session, tenant_id: str, kind: str, record_id: str
+) -> list[dict[str, Any]]:
+    """The decisions behind one record, for its detail view (spec 263 FR-013).
+
+    A business event names the one decision that caused it. Any other record names
+    the decision behind its first event as the one that created it, and the latest
+    distinct decisions of its later events as the ones that changed it. Nothing is
+    listed for a record whose events carry no decision.
+    """
+    from reality.db.core import BusinessEvent
+
+    if kind == "business_event":
+        caused = session.scalar(
+            select(BusinessEvent.action_id).where(
+                BusinessEvent.tenant_id == tenant_id, BusinessEvent.id == record_id
+            )
+        )
+        roles = [("caused", caused)] if caused else []
+    else:
+        events = session.execute(
+            select(BusinessEvent.action_id)
+            .where(
+                BusinessEvent.tenant_id == tenant_id,
+                BusinessEvent.subject_type == kind,
+                BusinessEvent.subject_id == record_id,
+            )
+            .order_by(BusinessEvent.sequence)
+        ).scalars()
+        ordered = list(events)
+        creating = ordered[0] if ordered else None
+        later: list[str] = []
+        for action_id in reversed(ordered[1:]):
+            if action_id and action_id != creating and action_id not in later:
+                later.append(action_id)
+        roles = [("created", creating)] if creating else []
+        roles += [("changed", action_id) for action_id in reversed(later[:CHANGE_LIMIT])]
+    attributions = decision_attributions(session, tenant_id, [a for _, a in roles])
+    return [
+        {**attributions[action_id], "role": role}
+        for role, action_id in roles
+        if action_id in attributions
+    ]

@@ -94,20 +94,23 @@ As an operator, I can open the Decisions page after confirming and still find wh
 2. **Given** a decision was settled through MCP, **When** its row renders, **Then** the decider column names the token and its issuer as in story 1, distinct from a signed-in decider and from an unknown one.
 3. **Given** a decision's link is opened from a record or an activity, **When** the page loads, **Then** that decision is shown with its arguments and result, whether it is pending or settled.
 
-### User Story 4 - See the decision on the record and in Activities (Priority: P2)
+### User Story 4 - See the decisions behind a record in its detail view (Priority: P2)
 
-As an owner looking at an item, party, price list or any other record, I can see which decision created it and who settled that decision, and each entry in Activities says the same for the change it shows.
+As an owner looking at an item, party, price list, order or any other record, I open its detail view and see which decision created it, which decisions changed it, and who settled each, with a link to every one. Opening an activity entry shows the decision that caused it. Registers and lists stay short: they carry no decision line.
 
 **Why this priority**: This is where the question is actually asked; but it only becomes truthful once stories 1 and 2 record what it displays.
 
-**Independent Test**: Open a record created through an MCP-confirmed decision and one created through a web-confirmed decision, and read their origin and their activity entries.
+**Amendment (2026-09-24, owner review of the live result)**: The first delivery rendered the decider sentence inside register cells (the Source column of master data and orders) and in every Activities row. The owner judged that too heavy for a table: the Source column keeps its short origin, Activities rows keep one line, and the decisions move into the detail view of every record and every event, by one rule.
+
+**Independent Test**: Open the detail view of a record created through an MCP-confirmed decision and later changed through another, the detail view of an activity entry, and the registers that list them.
 
 **Acceptance Scenarios**:
 
-1. **Given** a record without a source was created through a decision, **When** its origin is displayed, **Then** it names the decision's action, the decider (person, or token and issuer) and the moment, and links to the decision.
-2. **Given** an activity entry was caused by a decision, **When** it is shown, **Then** it names the decision's action and decider and links to the decision instead of showing a bare identifier.
-3. **Given** a record or activity has no decision, **When** it is displayed, **Then** no decision line is shown and nothing is guessed.
-4. **Given** a record was created before this feature through a decision without an attributed decider, **When** its origin is displayed, **Then** it still links to the decision and reads the decider as unknown.
+1. **Given** a record was created through a decision, **When** its detail view opens, **Then** a Decisions section names that decision as the one that created it, with its decider (person, or token and issuer) and moment, linked to the decision.
+2. **Given** later decisions changed the record, **When** its detail view opens, **Then** they are listed as having changed it, the most recent last, and a record created without a decision names no creating decision.
+3. **Given** an activity entry was caused by a decision, **When** the entry's detail view opens, **Then** it names that decision as its cause, linked.
+4. **Given** a register or list shows records or activities, **When** it renders, **Then** no row carries a decision line; the Source column states only the short origin.
+5. **Given** a record has no decision, **When** its detail view opens, **Then** no Decisions section is shown and nothing is guessed.
 
 ### Edge Cases
 
@@ -131,9 +134,10 @@ As an owner looking at an item, party, price list or any other record, I can see
 - **FR-006**: The suite MUST prove FR-005 for the whole mutating-tool catalog, failing for any tool, present or future, whose events do not reference the proposal.
 - **FR-007**: The Decisions page MUST offer the settled-decision register specified by spec 054 FR-001–FR-010 and spec 055 FR-006–FR-008, extended by FR-004.
 - **FR-008**: A single decision MUST be openable by its identifier from the Decisions page, whether pending or settled, showing its arguments, result, requester, outcome and decider.
-- **FR-009**: The origin of a record without a source that was created through a decision MUST name the decision's action, its decider per FR-004 and the moment, and MUST link to the decision (extending spec 211 FR-002).
-- **FR-010**: An activity entry whose event references a decision MUST name the decision's action and decider and MUST link to the decision, replacing the bare identifier as the primary presentation.
+- **FR-009**: The read contracts of a record's origin and of an activity entry MUST carry the decision behind it (origin: the decision of the record's first event only), so any surface can state it without deriving it.
+- **FR-010**: *(amended 2026-09-24)* Registers and lists — including the Source column and the Activities rows — MUST NOT render a decision line; they keep their short origin and one-line entries.
 - **FR-011**: A record or activity without a decision MUST show no decision statement, and an unattributed decision MUST read as unknown, never as a guessed person.
+- **FR-013**: *(added 2026-09-24)* The detail view of every record MUST list the decision that created it (from its first event only) and the latest distinct decisions that changed it (at most ten), and the detail view of a business event MUST name the decision that caused it; each entry states its decider per FR-004 and its moment and links to the decision. One server read serves every record kind.
 - **FR-012**: Every English string added by this feature MUST carry German, Dutch and Spanish translations, using the agreed German ERP vocabulary.
 
 ### Domain and Traceability Requirements
@@ -179,7 +183,7 @@ None. The two product decisions above were taken by the owner; the absence of hi
 | FR-001-FR-004 | US1 scenarios 1-5 | Service tests for MCP approve/reject with new, legacy and revoked tokens; web-confirmed control case; attribution read-model test |
 | FR-005-FR-006 | US2 scenarios 1-3 | Catalog-wide test executing every mutating tool through a proposal and asserting every written event references it; targeted regression for payment term, price list, price tier, price-list assignment |
 | FR-007-FR-008 | US3 scenarios 1-3 | History payload tests with MCP attribution; web contract tests for the register and single-decision view |
-| FR-009-FR-011 | US4 scenarios 1-4 | Provenance service tests; Activities and origin rendering contracts; negative control for records without a decision |
+| FR-009-FR-011, FR-013 | US4 scenarios 1-5 | Provenance and timeline read tests; `test_decision_trail_details.py` for created/changed/caused decisions and the inspector payload; web contracts that registers carry no decision line and the detail view lists them |
 | FR-012 | US1-US4 | Localization audit across English, German, Dutch and Spanish |
 | DR-001-DR-002 | US1, US2 | Migration upgrade/downgrade test; diff review for no new record-table columns |
 | DR-003-DR-005 | US1 scenario 5, US3 | Tenant isolation catalog coverage, cross-tenant token/issuer test, unchanged approval-permission tests |

@@ -19260,3 +19260,19 @@ Object.assign(dictionaries.es, {
   "Manual API tokens": "Tokens de API manuales",
   "Manual integration": "Integración manual",
 });
+// Spec 263 FR-013: the decisions a detail view names behind its record.
+Object.assign(dictionaries.de, {
+  "Created by decision": "Angelegt durch Entscheidung",
+  "Changed by decision": "Geändert durch Entscheidung",
+  "Caused by decision": "Ausgelöst durch Entscheidung",
+});
+Object.assign(dictionaries.nl, {
+  "Created by decision": "Aangemaakt door beslissing",
+  "Changed by decision": "Gewijzigd door beslissing",
+  "Caused by decision": "Veroorzaakt door beslissing",
+});
+Object.assign(dictionaries.es, {
+  "Created by decision": "Creado por decisión",
+  "Changed by decision": "Modificado por decisión",
+  "Caused by decision": "Originado por decisión",
+});
