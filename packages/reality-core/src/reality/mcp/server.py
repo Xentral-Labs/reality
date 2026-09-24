@@ -126,7 +126,13 @@ def _handler(definition: MCPToolDefinition):
             )
         if not principal.permits(definition.name):
             raise ToolError(f"MCP token does not allow tool: {definition.name}")
-        if union_branches:
+        # The signature gives every optional property without a declared default a
+        # `None`, so a caller who leaves a filter out sends `None` for it. For a read
+        # that means "no filter", which is what the service's own default already
+        # says; passing `None` on made services that expect "" fail (`shipments_list`,
+        # `finance_opening_context`). Proposals keep an explicit `None`, which can
+        # mean "clear this field".
+        if union_branches or definition.access == "read":
             arguments = {
                 name: value for name, value in arguments.items() if value is not None
             }
