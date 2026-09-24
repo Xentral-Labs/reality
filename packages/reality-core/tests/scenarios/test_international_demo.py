@@ -1,3 +1,4 @@
+import pytest
 from conftest import record_by_id, seed_company
 from sqlalchemy import func, select
 
@@ -71,15 +72,13 @@ def test_canonical_profile_counts_and_cases(session, scheduled_owner, monkeypatc
     )
 
 
-def test_demo_human_numbers_use_canonical_type_families(
-    session, scheduled_owner, monkeypatch
-):
+def test_demo_human_numbers_use_canonical_type_families(demo_tenant):
     """Feature 246: scenario labels never leak into visible business numbers."""
     import re
 
     from reality.db.core import Document
 
-    tenant = _demo_company(session, scheduled_owner, "canonical-numbers")
+    session, tenant = demo_tenant
     assert all(
         re.fullmatch(r"ITEM-\d{3}", item.sku)
         for item in session.scalars(select(Item).where(Item.tenant_id == tenant))
@@ -190,9 +189,7 @@ def test_operational_stock_and_source_lineage(session, scheduled_owner, monkeypa
     ) == Decimal(2)
 
 
-def test_supported_edge_cases_are_source_backed_and_traceable(
-    session, scheduled_owner, monkeypatch
-):
+def test_supported_edge_cases_are_source_backed_and_traceable(demo_tenant):
     """Feature 246: every fully supported catalog promise exists in Reality."""
     from datetime import datetime
     from decimal import Decimal
@@ -207,7 +204,7 @@ def test_supported_edge_cases_are_source_backed_and_traceable(
     )
     from reality.services import core
 
-    tenant = _demo_company(session, scheduled_owner, "supported-edge-cases")
+    session, tenant = demo_tenant
     run = session.scalar(select(PlaygroundRun).where(PlaygroundRun.tenant_id == tenant))
     cases = run.initialization_progress["cases"]
 
@@ -315,6 +312,17 @@ def test_supported_edge_cases_are_source_backed_and_traceable(
     )
 
 
+@pytest.fixture
+def demo_tenant(demo_baseline):
+    """The canonical company, seeded once for this module.
+
+    These tests only read the seeded baseline. The tests that stayed with
+    `_demo_company` need their own: two of them seed a second company to prove the
+    profile is deterministic, and two assert on the creation flow itself.
+    """
+    return demo_baseline.session, demo_baseline.tenant_id
+
+
 def _demo_company(session, owner, key: str) -> str:
     tenant = company_setup.create_company(
         session,
@@ -347,12 +355,11 @@ def _documents(session, tenant: str, document_type: str):
     }
 
 
-def test_orders_spread_over_the_customer_pool(session, scheduled_owner, monkeypatch):
+def test_orders_spread_over_the_customer_pool(demo_tenant):
     """Feature 200: every order states its own buyer, a few regulars order more."""
     from collections import Counter
 
-    monkeypatch.setenv("REALITY_PLAYGROUND_ENABLED", "true")
-    tenant = _demo_company(session, scheduled_owner, "spread")
+    session, tenant = demo_tenant
     orders = _documents(session, tenant, "sales_order")
     portfolio_orders = {
         number: buyer
@@ -375,12 +382,9 @@ def test_orders_spread_over_the_customer_pool(session, scheduled_owner, monkeypa
     assert len(set(suppliers.values())) == 3, suppliers
 
 
-def test_comparison_windows_and_money_state_one_buyer(
-    session, scheduled_owner, monkeypatch
-):
+def test_comparison_windows_and_money_state_one_buyer(demo_tenant):
     """Feature 200: a family compares one customer; its money follows the order."""
-    monkeypatch.setenv("REALITY_PLAYGROUND_ENABLED", "true")
-    tenant = _demo_company(session, scheduled_owner, "families")
+    session, tenant = demo_tenant
     orders = _documents(session, tenant, "sales_order")
     for prior, current in ((12, 13), (14, 15), (16, 17), (19, 20), (22, 23)):
         assert orders[f"SO-{prior:03}"] == orders[f"SO-{current:03}"]
@@ -453,16 +457,14 @@ def _states(amounts: dict) -> dict:
     }
 
 
-def test_seeded_invoices_are_settled_in_three_states(
-    session, scheduled_owner, monkeypatch
-):
+def test_seeded_invoices_are_settled_in_three_states(demo_tenant):
     """Feature 204: the company gets paid, so open items mean something."""
     from collections import Counter
     from decimal import Decimal
 
     from reality.db.core import Document
 
-    tenant = _demo_company(session, scheduled_owner, "settled")
+    session, tenant = demo_tenant
     states = Counter(_states(_open_amounts(session, tenant, "sales_invoice")).values())
     assert states["paid"] >= 7, states
     assert states["part"] >= 1, states
@@ -485,14 +487,14 @@ def test_seeded_invoices_are_settled_in_three_states(
     assert Decimal(0) < receivable < invoiced, (receivable, invoiced)
 
 
-def test_purchases_cover_the_whole_chain(session, scheduled_owner, monkeypatch):
+def test_purchases_cover_the_whole_chain(demo_tenant):
     """Feature 204: ordered, received, invoiced and paid in every combination."""
     from decimal import Decimal
 
     from reality.db.core import Commitment, PlaygroundRun
     from reality.services import core
 
-    tenant = _demo_company(session, scheduled_owner, "purchases")
+    session, tenant = demo_tenant
     orders = _documents(session, tenant, "purchase_order")
     # PO-010 is the customer-linked procurement case added to the full chain.
     assert len(orders) == 10, orders
@@ -557,9 +559,7 @@ def test_settlement_is_authored_not_drawn(session, scheduled_owner, monkeypatch)
         ), document_type
 
 
-def test_finance_fangfragen_are_deterministic_and_explainable(
-    session, scheduled_owner, monkeypatch
-):
+def test_finance_fangfragen_are_deterministic_and_explainable(demo_tenant):
     """Feature 246: common sales-demo settlement questions have fixed answers."""
     import json
     from decimal import Decimal
@@ -568,7 +568,7 @@ def test_finance_fangfragen_are_deterministic_and_explainable(
     from reality.services import core
     from reality.services.finance.credits import available_credit_rows
 
-    tenant = _demo_company(session, scheduled_owner, "finance-cases")
+    session, tenant = demo_tenant
     run = session.scalar(select(PlaygroundRun).where(PlaygroundRun.tenant_id == tenant))
     cases = run.initialization_progress["cases"]
 

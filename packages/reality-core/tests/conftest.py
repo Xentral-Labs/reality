@@ -166,6 +166,102 @@ def scheduled_owner(session, business):
     return user
 
 
+@dataclass
+class DemoBaseline:
+    """One seeded demo company, shared by a module of tests that only read it."""
+
+    session: object
+    tenant_id: str
+    run_id: str
+    owner_id: str
+
+
+@pytest.fixture(scope="module")
+def _demo_baseline_connection():
+    """One transaction per module; the seeded company lives in it and never commits."""
+    with test_engine.connect() as connection:
+        transaction = connection.begin()
+        try:
+            yield connection
+        finally:
+            transaction.rollback()
+
+
+@pytest.fixture(scope="module")
+def _demo_baseline(_demo_baseline_connection):
+    """Seed the canonical profile once instead of once per test.
+
+    Seeding a demo company runs the real profile through the worker's own job and
+    costs about twenty seconds. A module whose tests only assert about that company
+    pays it once here; a test that needs its own company keeps using `session`.
+    """
+    from reality.db.core import AppUser, now, uid
+    from reality.services import company_setup
+
+    previous = os.environ.get("REALITY_PLAYGROUND_ENABLED")
+    os.environ["REALITY_PLAYGROUND_ENABLED"] = "true"
+    factory = sessionmaker(
+        bind=_demo_baseline_connection,
+        expire_on_commit=False,
+        join_transaction_mode="create_savepoint",
+    )
+    try:
+        # The seeding session is closed before any test runs: two open sessions on one
+        # connection fight over its nested transaction, and every test after the first
+        # fails in setup.
+        with factory() as setup:
+            owner = AppUser(
+                id=uid("usr"),
+                email=f"{uid('mail')}@example.test",
+                password_hash="unused",
+                status="active",
+                email_verified_at=now(),
+            )
+            setup.add(owner)
+            setup.flush()
+            created = company_setup.create_company(
+                setup,
+                owner.id,
+                "shared-demo-baseline",
+                "Harbor Supply",
+                "sandbox",
+                "international_demo",
+                confirmed=True,
+            )
+            assert seed_company(setup, created["tenant_id"]) == "succeeded"
+            setup.commit()
+            baseline = {
+                "tenant_id": created["tenant_id"],
+                "run_id": created["run_id"],
+                "owner_id": owner.id,
+            }
+        yield baseline
+    finally:
+        if previous is None:
+            os.environ.pop("REALITY_PLAYGROUND_ENABLED", None)
+        else:
+            os.environ["REALITY_PLAYGROUND_ENABLED"] = previous
+
+
+@pytest.fixture
+def demo_baseline(_demo_baseline, _demo_baseline_connection):
+    """A session on the shared company; everything this test does is rolled back."""
+    savepoint = _demo_baseline_connection.begin_nested()
+    factory = sessionmaker(
+        bind=_demo_baseline_connection,
+        expire_on_commit=False,
+        join_transaction_mode="create_savepoint",
+    )
+    try:
+        with factory() as db_session:
+            yield DemoBaseline(session=db_session, **_demo_baseline)
+    finally:
+        # Held outside the session, so a service that commits cannot leak into the
+        # next test of the module.
+        if savepoint.is_active:
+            savepoint.rollback()
+
+
 @pytest.fixture
 def scheduled_database(postgres_database, monkeypatch):
     """Committed isolated fixture for real subprocess and concurrent connection proofs."""
