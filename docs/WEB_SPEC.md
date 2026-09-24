@@ -2709,6 +2709,20 @@ and are never overwritten. See [the shared contract](features/analytics.md),
 [spec224](../specs/224-native-reporting-platform/spec.md) and
 [spec228](../specs/228-guided-analysis-builder/spec.md).
 
+Spec261 makes that explicit save visible and named. The save controls render on the
+analysis rather than in the page header's "More actions" menu, and the naming field
+opens where the control that opened it was, focused, with a suggested name selected:
+a template's own label, the name the copilot proposed, or one composed from the
+analysis in the reader's language (records, measures, axes). New analysis and Use in
+analysis are likewise shown flat. The analysis states which report it is and whether it
+is saved — saved report, unsaved changes, or draft — and a successful save shows the
+analysis as that saved report, records it in the address so a reload reopens it, and
+links to My reports. A report proposal's preview resolves the report its change
+concerns, through the retry key the report row already records, so a confirmed proposal
+offers the saved report instead of an unsaved copy of its question. A template states
+that adopting it fixes its window to dates. No stored field, endpoint or business rule
+changes. See [spec261](../specs/261-analytics-save-clarity/spec.md).
+
 ## Public-site privacy and language handoff
 
 Public-site privacy (static legal pages, navigation-only language) is owned by the
@@ -3293,6 +3307,9 @@ count links. Trial questions, the open-work hero, duplicate decision explanation
 and analytics shortcut are removed from this surface. Activity/readiness services,
 polling, periods, errors, drilldowns and independent dashboard loading are preserved.
 This supersedes the separate Home entry and Commitments default above.
+The Exceptions count reads the same stored generation as the Exceptions register
+(spec255), so both show one number; before the first generation completes it shows
+the unknown placeholder, never zero.
 
 Welcome styling (spec225 FR-019) follows the flat register surface: compact heading
 and readiness row, neutral local period controls, an unfilled stable graph summary

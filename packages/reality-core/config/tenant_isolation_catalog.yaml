@@ -388,6 +388,7 @@ families:
       - projection:timeline
       - tool:commitments
       - tool:business_discover
+      - tool:price_quote
       - tool:capability_describe
       - tool:commitment_hold
       - tool:commitment_revise

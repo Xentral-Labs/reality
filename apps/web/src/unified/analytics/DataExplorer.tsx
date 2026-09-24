@@ -60,6 +60,7 @@ function Catalog({
   return (
     <section className="analysis-builder analysis-catalog">
       <PageActionBar
+        presentation="inline"
         actions={[
           {
             key: "use-analysis",

@@ -668,6 +668,31 @@ class PartyRole(Base):
     default_location_id: Mapped[str | None] = mapped_column(default=None)
 
 
+class PartyEmailAddress(Base):
+    __tablename__ = "party_email_address"
+    __table_args__ = (
+        PrimaryKeyConstraint("tenant_id", "id"),
+        ForeignKeyConstraint(
+            ["tenant_id", "party_id"],
+            ["party.tenant_id", "party.id"],
+            ondelete="CASCADE",
+        ),
+        UniqueConstraint(
+            "tenant_id",
+            "party_id",
+            "normalized_email",
+            name="uq_party_email_address_party_email",
+        ),
+        CheckConstraint("length(label) <= 80", name="ck_party_email_address_label"),
+    )
+    id: Mapped[str] = mapped_column(String)
+    tenant_id: Mapped[str] = mapped_column(ForeignKey("tenant.id"), index=True)
+    party_id: Mapped[str] = mapped_column(String)
+    email: Mapped[str] = mapped_column(String(320))
+    normalized_email: Mapped[str] = mapped_column(String(320), index=True)
+    label: Mapped[str] = mapped_column(String(80), default="")
+
+
 class PartyHold(Base):
     __tablename__ = "party_hold"
     __table_args__ = (

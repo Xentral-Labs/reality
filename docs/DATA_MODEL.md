@@ -14,6 +14,7 @@ All business tables have `id`, `tenant_id`, `created_at`.
 | invitation_delivery | retryable token-free invitation notification intent | invitation_id, generation, locale, retry/lease/delivery state, sanitized provider result |
 | security_audit_event | immutable global or tenant-scoped access audit | tenant_id?, subject type/ID?, actor/user IDs?, event type, outcome?, redacted detail |
 | party | customer/supplier/company | type, name, source_record_id? |
+| party_email_address | exact correspondence address for one Party | party_id, email, normalized_email, label |
 | item | product/service | sku, name, base_unit, source_record_id? |
 | location | warehouse/bin/virtual | type, name, parent_location_id?, external_refs_json |
 | source_system | one configured origin | code, name, description, connector_code?, base_url?, is_active |

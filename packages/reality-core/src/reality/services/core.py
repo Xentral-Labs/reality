@@ -55,6 +55,7 @@ from reality.db.core import (
     Movement,
     MovementCorrection,
     Party,
+    PartyEmailAddress,
     PartyGroup,
     PartyGroupMember,
     PartyGroupPriceList,
@@ -307,7 +308,8 @@ def business_discovery_statement(
     if record_id:
         statement = statement.where(model.id == record_id)
     elif query.strip():
-        needle = f"%{query.strip()}%"
+        raw_query = query.strip()
+        needle = f"%{raw_query}%"
         searchable = [
             getattr(model, name)
             for name in (
@@ -323,9 +325,19 @@ def business_discovery_statement(
             if hasattr(model, name)
         ]
         if searchable:
-            statement = statement.where(
-                or_(*(column.ilike(needle) for column in searchable))
-            )
+            predicates = [column.ilike(needle) for column in searchable]
+            if model is Party and "@" in raw_query:
+                normalized = _normalize_party_email(raw_query)
+                predicates.append(
+                    select(PartyEmailAddress.id)
+                    .where(
+                        PartyEmailAddress.tenant_id == tenant_id,
+                        PartyEmailAddress.party_id == Party.id,
+                        PartyEmailAddress.normalized_email == normalized,
+                    )
+                    .exists()
+                )
+            statement = statement.where(or_(*predicates))
     return statement.order_by(model.id), model, fields
 
 
@@ -369,6 +381,20 @@ def business_discovery_record(
         )
     if isinstance(row, LedgerEntry):
         result["side"] = result["debit_credit"]
+    if isinstance(row, Party):
+        result["emails"] = [
+            {"email": address.email, "label": address.label}
+            for address in session.scalars(
+                select(PartyEmailAddress)
+                .where(
+                    PartyEmailAddress.tenant_id == row.tenant_id,
+                    PartyEmailAddress.party_id == row.id,
+                )
+                .order_by(
+                    PartyEmailAddress.normalized_email, PartyEmailAddress.id
+                )
+            )
+        ]
     return result
 
 
@@ -398,6 +424,73 @@ def decimal(value: Decimal | float | str) -> Decimal:
     if not result.is_finite():
         raise InvalidOperation("Quantity and amount values must be finite.")
     return result
+
+
+def _normalize_party_email(value: str) -> str:
+    normalized = value.strip().casefold()
+    if (
+        len(normalized) > 320
+        or "@" not in normalized
+        or normalized.startswith("@")
+        or normalized.endswith("@")
+        or "." not in normalized.rsplit("@", 1)[1]
+    ):
+        raise InvalidOperation("Enter a valid email address.")
+    try:
+        normalized.encode("ascii")
+    except UnicodeEncodeError as error:
+        raise InvalidOperation("Email addresses must use an ASCII domain.") from error
+    return normalized
+
+
+def _party_email_values(values: list[dict[str, Any]] | None) -> list[dict[str, str]]:
+    if values is None:
+        return []
+    if len(values) > 20:
+        raise InvalidOperation("A Party can have at most 20 email addresses.")
+    normalized_values: list[dict[str, str]] = []
+    seen: set[str] = set()
+    for value in values:
+        email = str(value.get("email") or "").strip()
+        normalized = _normalize_party_email(email)
+        label = str(value.get("label") or "").strip()
+        if len(label) > 80:
+            raise InvalidOperation("Party email labels can contain at most 80 characters.")
+        if normalized in seen:
+            raise InvalidOperation("A Party cannot contain duplicate email addresses.")
+        seen.add(normalized)
+        normalized_values.append(
+            {"email": email, "normalized_email": normalized, "label": label}
+        )
+    return sorted(normalized_values, key=lambda item: item["normalized_email"])
+
+
+def _replace_party_emails(
+    session: OrmSession,
+    tenant_id: str,
+    party_id: str,
+    values: list[dict[str, Any]],
+) -> None:
+    normalized = _party_email_values(values)
+    for existing in session.scalars(
+        select(PartyEmailAddress).where(
+            PartyEmailAddress.tenant_id == tenant_id,
+            PartyEmailAddress.party_id == party_id,
+        )
+    ):
+        session.delete(existing)
+    session.flush()
+    session.add_all(
+        PartyEmailAddress(
+            id=uid("pem"),
+            tenant_id=tenant_id,
+            party_id=party_id,
+            email=value["email"],
+            normalized_email=value["normalized_email"],
+            label=value["label"],
+        )
+        for value in normalized
+    )
 
 
 def positive(value: Decimal | float | str, field: str = "quantity") -> Decimal:
@@ -1225,6 +1318,9 @@ class PriceResult:
     price_list_id: str
     price_list_entry_id: str
     source: str
+    assignment_id: str | None
+    party_group_id: str | None
+    evaluated_at: datetime
 
 
 def price_lists(session: OrmSession, tenant_id: str) -> list[PriceList]:
@@ -1679,8 +1775,10 @@ def resolve_price(
             .order_by(PartyGroupPriceList.priority)
         )
     )
-    candidates = [(link.price_list_id, "party") for link in direct if valid(link)] + [
-        (link.price_list_id, "group")
+    candidates = [
+        (link.price_list_id, "party", link.id, None) for link in direct if valid(link)
+    ] + [
+        (link.price_list_id, "group", link.id, link.party_group_id)
         for link, membership in group_links
         if valid(link) and valid(membership)
     ]
@@ -1695,8 +1793,10 @@ def resolve_price(
             )
         )
     )
-    candidates.extend((price_list.id, "default") for price_list in defaults)
-    for price_list_id, source in candidates:
+    candidates.extend(
+        (price_list.id, "default", None, None) for price_list in defaults
+    )
+    for price_list_id, source, assignment_id, party_group_id in candidates:
         price_list = _tenant_record(session, PriceList, tenant_id, price_list_id)
         if (
             not price_list.is_active
@@ -1727,6 +1827,9 @@ def resolve_price(
                 price_list.id,
                 entry.id,
                 source,
+                assignment_id,
+                party_group_id,
+                moment,
             )
     return None
 
@@ -1947,6 +2050,7 @@ def create_party(
     default_currency: str = "EUR",
     credit_limit: Decimal | float | str = ZERO,
     tax_identifier: str = "",
+    emails: list[dict[str, Any]] | None = None,
     source_record_id: str | None = None,
     _commit: bool = True,
 ) -> Party:
@@ -1971,7 +2075,8 @@ def create_party(
             "party",
             source_system,
             external_id,
-            source_payload or {"name": name, "type": party_type},
+            source_payload
+            or {"name": name, "type": party_type, "emails": emails or []},
             _commit=_commit,
             action_id=action_id,
         )
@@ -2000,6 +2105,8 @@ def create_party(
         PartyRole(id=uid("pro"), tenant_id=tenant_id, party_id=party.id, role=role)
         for role in selected_roles
     )
+    if emails:
+        _replace_party_emails(session, tenant_id, party.id, emails)
     emit_business_event(
         session,
         tenant_id,
@@ -2195,6 +2302,7 @@ def create_parties(
                     default_currency=record.get("default_currency", "EUR"),
                     credit_limit=record.get("credit_limit", "0"),
                     tax_identifier=record.get("tax_identifier", ""),
+                    emails=record.get("emails", []),
                     _commit=False,
                     action_id=action_id,
                 )
@@ -2346,6 +2454,17 @@ def _party_update_snapshot(
         "credit_limit": _decimal_audit_value(party.credit_limit),
         "tax_identifier": party.tax_identifier,
         "source_record_id": party.source_record_id,
+        "emails": [
+            {"email": row.email, "label": row.label}
+            for row in session.scalars(
+                select(PartyEmailAddress)
+                .where(
+                    PartyEmailAddress.tenant_id == tenant_id,
+                    PartyEmailAddress.party_id == party.id,
+                )
+                .order_by(PartyEmailAddress.normalized_email, PartyEmailAddress.id)
+            )
+        ],
     }
 
 
@@ -2435,6 +2554,11 @@ def preview_master_data_updates(
                 after["credit_limit"] = _decimal_audit_value(record["credit_limit"])
             if "tax_identifier" in record:
                 after["tax_identifier"] = str(record["tax_identifier"]).strip()
+            if "emails" in record:
+                after["emails"] = [
+                    {"email": item["email"], "label": item["label"]}
+                    for item in _party_email_values(record["emails"])
+                ]
         elif family == "item":
             after.update(
                 {
@@ -2494,6 +2618,7 @@ def update_party(
     default_currency: str | None = None,
     credit_limit: Decimal | float | str | None = None,
     tax_identifier: str | None = None,
+    emails: list[dict[str, Any]] | None = None,
     action_id: str | None = None,
     _commit: bool = True,
 ) -> Party:
@@ -2515,7 +2640,12 @@ def update_party(
         "party",
         source_system,
         external_id,
-        source_payload or {"name": name, "type": party_type},
+        source_payload
+        or {
+            "name": name,
+            "type": party_type,
+            "emails": emails if emails is not None else before["emails"],
+        },
         payload_was_provided=source_payload is not None,
     )
     party.name, party.type = name, party_type
@@ -2557,6 +2687,8 @@ def update_party(
             raise InvalidOperation("Credit limit cannot be negative.")
     if tax_identifier is not None:
         party.tax_identifier = tax_identifier.strip()
+    if emails is not None:
+        _replace_party_emails(session, tenant_id, party.id, emails)
     session.flush()
     changes = _field_changes(before, _party_update_snapshot(session, tenant_id, party))
     if changes:
@@ -2757,6 +2889,7 @@ def update_parties(
                     default_currency=record.get("default_currency"),
                     credit_limit=record.get("credit_limit"),
                     tax_identifier=record.get("tax_identifier"),
+                    emails=record.get("emails"),
                     action_id=action_id,
                     _commit=False,
                 )

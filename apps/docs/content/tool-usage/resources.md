@@ -198,6 +198,10 @@ Zahlungsziel
 - [Assign party price list](./commands#command-assign_party_price_list) (`assign_party_price_list`)
 - [Create and assign pricing group](./commands#command-create_party_group) (`create_party_group`)
 
+**Look up**
+
+- [Resolve authoritative price quote](./commands#command-resolve_price) (`resolve_price`)
+
 **Exceptions to clear**
 
 - [Invoice price differs from the agreement](./exceptions#exception-invoice_price_differs)

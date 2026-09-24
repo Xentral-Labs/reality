@@ -122,6 +122,7 @@ from reality.services.projections import (
     INVENTORY,
     ITEM_SUPPLY_DEMAND,
     explain_order_projection,
+    materialized_resolve_price,
     projection_rows,
 )
 from reality.services.reality_gaps import (
@@ -765,6 +766,32 @@ def _discover(session: Session, tenant_id: str, arguments: dict[str, Any]) -> An
         limit=arguments.get("limit", 25),
         record_id=arguments.get("record_id"),
     )
+
+
+def _price_quote(session: Session, tenant_id: str, arguments: dict[str, Any]) -> Any:
+    evaluated_at = utc_datetime(arguments.get("at")) or now()
+    quantity = Decimal(str(arguments["quantity"]))
+    context = {
+        "party_id": str(arguments["party_id"]),
+        "item_id": str(arguments["item_id"]),
+        "quantity": str(quantity),
+        "direction": str(arguments["direction"]).lower(),
+        "currency": str(arguments["currency"]).upper(),
+        "unit": str(arguments["unit"]),
+        "evaluated_at": evaluated_at.isoformat(),
+    }
+    result = materialized_resolve_price(
+        session,
+        tenant_id,
+        context["party_id"],
+        context["item_id"],
+        quantity,
+        context["direction"],
+        context["currency"],
+        context["unit"],
+        at=evaluated_at,
+    )
+    return {"matched": result is not None, **context, **(result or {})}
 
 
 def _entity_result(family: str, value: Any) -> dict[str, Any]:
@@ -1699,6 +1726,12 @@ TOOLS = {
         "Discover tenant business records and opaque IDs.",
         False,
         _discover,
+    ),
+    "price_quote": Tool(
+        "price_quote",
+        "Read the authoritative party-aware price and its selection provenance.",
+        False,
+        _price_quote,
     ),
     "inventory": Tool("inventory", "Read derived inventory.", False, _inventory),
     "exceptions": Tool(

@@ -81,6 +81,7 @@ all reach the same operation.
 | [`create_payment_term`](#command-create_payment_term)                             | Create payment term                       | Master data & pricing      | `payment_term_create_propose`, `payment_term_update_propose`                                                                                                                                 | CLI · Web · API · MCP · Chat            |
 | [`create_price_list`](#command-create_price_list)                                 | Create price list                         | Master data & pricing      | `price_list_create_propose`, `price_list_update_propose`                                                                                                                                     | CLI · Web · API · MCP · Chat            |
 | [`commercial_match`](#command-commercial_match)                                   | Read reviewed partial commercial match    | Master data & pricing      | `cost_commercial_match_get`                                                                                                                                                                  | CLI · Web · MCP · Chat                  |
+| [`resolve_price`](#command-resolve_price)                                         | Resolve authoritative price quote         | Master data & pricing      | `price_quote_read`                                                                                                                                                                           | CLI · Web · API · MCP · Chat            |
 | [`update_item`](#command-update_item)                                             | Update item                               | Master data & pricing      | `item_update_propose`                                                                                                                                                                        | CLI · Web · API · MCP · Chat            |
 | [`update_location`](#command-update_location)                                     | Update location                           | Master data & pricing      | `location_update_propose`                                                                                                                                                                    | CLI · Web · API · MCP · Chat            |
 | [`update_party`](#command-update_party)                                           | Update party                              | Master data & pricing      | `party_update_propose`                                                                                                                                                                       | CLI · Web · API · MCP · Chat            |
@@ -157,7 +158,7 @@ member_invite_propose email [locale]
 
 | Name     | Type     | Required | Description                                                                                                    | Default |
 | -------- | -------- | -------- | -------------------------------------------------------------------------------------------------------------- | ------- |
-| `email`  | `string` | yes      | Normalized email address of the person invited to the company.                                                 | —       |
+| `email`  | `string` | yes      | Email address supplied for the named business purpose.                                                         | —       |
 | `locale` | `string` | no       | Preferred supported language for invitation delivery, with the documented fallback when absent or unsupported. | `en`    |
 
 **See also:** command [`create_invitation`](./commands#command-create_invitation)
@@ -623,7 +624,8 @@ location_create_propose records
 
 ### `create_party` — Create party {#command-create_party}
 
-Creates a tenant-scoped party, optional immutable source evidence, and its operational roles.
+Creates a tenant-scoped party, optional immutable source evidence, operational roles, and exact
+correspondence addresses.
 
 **Synopsis**
 
@@ -634,7 +636,7 @@ party_create_propose records
 **Reach via:** CLI · Web · API · MCP · Chat
 
 **Effect:** Reads: `tenant`, `source_record`, `party` · Writes: `source_record`, `party`,
-`party_role` · Emits: `party.created`
+`party_role`, `party_email_address` · Emits: `party.created`
 
 **See also:** agent tool [`party_create_propose`](./commands#tool-party_create_propose), event
 [`party.created`](./events#event-party-created)
@@ -665,6 +667,9 @@ party_create_propose records
 | `records[].default_currency`  | `string` | no       | ISO 4217 currency used when an operation provides no explicit currency.                                                                                                                            | `EUR`   |
 | `records[].credit_limit`      | `string` | no       | Optional monetary exposure limit used by operational credit checks.                                                                                                                                | `0`     |
 | `records[].tax_identifier`    | `string` | no       | External tax or VAT identifier retained when operational matching requires it.                                                                                                                     | —       |
+| `records[].emails`            | `array`  | no       | Bounded labelled email addresses recorded for exact Party matching.                                                                                                                                | `[]`    |
+| `records[].emails[].email`    | `string` | yes      | Email address supplied for the named business purpose.                                                                                                                                             | —       |
+| `records[].emails[].label`    | `string` | no       | Optional human-readable description of a value's business purpose.                                                                                                                                 | —       |
 | `records[].source_system`     | `string` | no       | Tenant-scoped code naming the external origin of a record.                                                                                                                                         | —       |
 | `records[].external_id`       | `string` | no       | Identifier assigned by the named external source system; never internal identity.                                                                                                                  | —       |
 | `records[].source_payload`    | `object` | no       | Lossless external JSON evidence from which typed operational fields were selected.                                                                                                                 | —       |
@@ -885,6 +890,71 @@ references.
 
 **See also:** command [`commercial_match`](./commands#command-commercial_match)
 
+### `resolve_price` — Resolve authoritative price quote {#command-resolve_price}
+
+Selects the currently applicable quantity tier and exposes the direct, group, or default assignment
+path without copying a price.
+
+**Synopsis**
+
+```text
+price_quote_read party_id item_id quantity direction currency unit [at]
+```
+
+**Reach via:** CLI · Web · API · MCP · Chat
+
+**Effect:** Reads: `party`, `item`, `party_price_list`, `party_group`, `party_group_member`,
+`party_group_price_list`, `price_list`, `price_list_entry` · Writes: —
+
+**See also:** agent tool [`price_quote_read`](./commands#tool-price_quote_read)
+
+#### `price_quote_read` — Read authoritative price quote {#tool-price_quote_read}
+
+Resolve the applicable party-aware quantity tier and explain its assignment path; returns an
+explicit no-match result when no price applies.
+
+**Synopsis**
+
+```text
+price_quote_read party_id item_id quantity direction currency unit [at]
+```
+
+**Access:** `read`
+
+**How this query runs**
+
+| Concrete query         | Kind                        | Default |
+| ---------------------- | --------------------------- | ------- |
+| `MCP price_quote_read` | Live — read at request time | yes     |
+
+[How this query runs](./views#read-execution)
+
+Read the authoritative price tier for one party, item, quantity and commercial context, including
+why that list won.
+
+**Use when**
+
+- A quote or order needs the currently applicable sales or purchase unit price.
+
+**Do not use when**
+
+- A price list or assignment must be changed
+- or an already agreed document price must be reconstructed.
+
+**Parameters**
+
+| Name        | Type     | Required | Description                                                                                   | Default |
+| ----------- | -------- | -------- | --------------------------------------------------------------------------------------------- | ------- |
+| `party_id`  | `string` | yes      | Opaque identity of the customer, supplier, or other operational party.                        | —       |
+| `item_id`   | `string` | yes      | Opaque identity of the operational item reference.                                            | —       |
+| `quantity`  | `string` | yes      | Decimal quantity expressed in the item's relevant unit.                                       | —       |
+| `direction` | `string` | yes      | Business flow direction, such as sales or purchase, incoming or outgoing. `sales`, `purchase` | —       |
+| `currency`  | `string` | yes      | ISO 4217 currency code for monetary values.                                                   | —       |
+| `unit`      | `string` | yes      | Unit of measure in which the quantity is expressed.                                           | —       |
+| `at`        | `string` | no       | UTC instant at which the projection or rule should be evaluated.                              | —       |
+
+**See also:** command [`resolve_price`](./commands#command-resolve_price)
+
 ### `update_item` — Update item {#command-update_item}
 
 Updates operational item fields while preserving external evidence versions and emitting an exact
@@ -989,8 +1059,9 @@ location_update_propose records
 
 ### `update_party` — Update party {#command-update_party}
 
-Changes operational party fields and roles; changed external identity creates new source evidence
-and every effective change emits an exact before/after audit diff.
+Changes operational party fields, roles and exact correspondence addresses; changed external
+identity creates new source evidence and every effective change emits an exact before/after audit
+diff.
 
 **Synopsis**
 
@@ -1000,8 +1071,9 @@ party_update_propose records
 
 **Reach via:** CLI · Web · API · MCP · Chat
 
-**Effect:** Reads: `party`, `party_role`, `source_record` · Writes: `source_record`, `party`,
-`party_role`, `business_event` · Emits: `party.updated`
+**Effect:** Reads: `party`, `party_role`, `party_email_address`, `source_record` · Writes:
+`source_record`, `party`, `party_role`, `party_email_address`, `business_event` · Emits:
+`party.updated`
 
 **See also:** agent tool [`party_update_propose`](./commands#tool-party_update_propose), event
 [`party.updated`](./events#event-party-updated)
@@ -1033,6 +1105,9 @@ party_update_propose records
 | `records[].default_currency`  | `string` | no       | ISO 4217 currency used when an operation provides no explicit currency.                                                                                                                            | —       |
 | `records[].credit_limit`      | `string` | no       | Optional monetary exposure limit used by operational credit checks.                                                                                                                                | —       |
 | `records[].tax_identifier`    | `string` | no       | External tax or VAT identifier retained when operational matching requires it.                                                                                                                     | —       |
+| `records[].emails`            | `array`  | no       | Bounded labelled email addresses recorded for exact Party matching.                                                                                                                                | —       |
+| `records[].emails[].email`    | `string` | yes      | Email address supplied for the named business purpose.                                                                                                                                             | —       |
+| `records[].emails[].label`    | `string` | no       | Optional human-readable description of a value's business purpose.                                                                                                                                 | —       |
 | `records[].source_system`     | `string` | no       | Tenant-scoped code naming the external origin of a record.                                                                                                                                         | —       |
 | `records[].external_id`       | `string` | no       | Identifier assigned by the named external source system; never internal identity.                                                                                                                  | —       |
 | `records[].source_payload`    | `object` | no       | Lossless external JSON evidence from which typed operational fields were selected.                                                                                                                 | —       |

@@ -16,6 +16,11 @@ Um diese Funktionen mit einem externen Agenten zu nutzen, folge der Anleitung
 Bearer-Token, minimale Berechtigungen, einen ersten Lesezugriff, kontrollierte Änderungen,
 Verifikation und Widerruf.
 
+Die aktuelle Einrichtung enthält bewusst einen menschlichen Schritt: Ein Mensch registriert sich im
+Browser, erstellt oder wählt das Unternehmen und erzeugt ein eingeschränktes MCP-Token. Nach dieser
+Übergabe arbeitet der Agent direkt über MCP und darf Registrierung oder E-Mail-Bestätigung des
+Menschen nicht automatisieren.
+
 ## Authentifizierung und Mandantenkontext
 
 Product Web nutzt eine sichere Browser-Session. API-Aufrufe prüfen die Mitgliedschaft vor jedem

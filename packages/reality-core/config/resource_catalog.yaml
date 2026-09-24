@@ -629,6 +629,7 @@ labels:
       create_price_list: Preisliste anlegen
       create_price_list_entry: Staffelpreis anlegen
       assign_party_price_list: Preisliste zuweisen
+      resolve_price: Gültigen Preis ermitteln
       create_party_group: Preisgruppe anlegen und zuweisen
       reserve: Bestand reservieren
       release_reservation: Reservierung aufheben

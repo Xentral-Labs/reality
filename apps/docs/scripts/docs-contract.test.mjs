@@ -282,6 +282,22 @@ test("the original product journey retains a bounded illustrative case", () => {
   assert.match(trace.replace(/\s+/gu, " "), /missing evidence/iu);
 });
 
+test("MCP onboarding clearly requires one human browser setup before agent access", () => {
+  for (const locale of ["", "de/"]) {
+    const guide = fs.readFileSync(
+      path.join(contentRoot, locale, "api-tools/connect-mcp.md"),
+      "utf8",
+    );
+    const overview = fs.readFileSync(path.join(contentRoot, locale, "api-tools/index.md"), "utf8");
+    const prose = `${guide} ${overview}`.replace(/\s+/gu, " ");
+    assert.match(prose, /one-time browser setup|einmaligen Einrichtung.*Browser/u);
+    assert.match(prose, /email verification|E-Mail-Bestätigung/u);
+    assert.match(prose, /tenant-scoped MCP access token|mandantengebundenes MCP-Zugriffstoken/u);
+    assert.match(prose, /must not automate signup|darf Registrierung.*nicht automatisieren/u);
+    assert.match(prose, /every third-party agent|jedes externe Agenten-/u);
+  }
+});
+
 test("missing-information guidance separates facts, warnings and actions", () => {
   const guidance = fs.readFileSync(
     path.join(contentRoot, "concepts/business-reality-guide/06-facts-and-open-questions.md"),

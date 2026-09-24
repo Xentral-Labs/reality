@@ -292,3 +292,38 @@ def test_two_findings_of_one_class_are_ordered_by_date_and_not_by_record_id(
         for row in stored
         if row["class_id"] == "overdue_outgoing_customer_commitment"
     ][:2] == overdue[:2]
+
+
+def test_welcome_dashboard_counts_the_stored_register(session, business, monkeypatch):
+    """Spec 255: Welcome's Exceptions count is the register's, from one generation."""
+    from reality.web.api import tenant_dashboard
+
+    tenant_id = business.tenant.id
+    fixture = delivery_fixture(session, business)
+    unknown = tenant_dashboard(tenant_id, session)
+    assert unknown["totals"]["exceptions"] is None
+    assert unknown["sample_scope"]["exceptions"]["total"] is None
+    assert unknown["sample_scope"]["exceptions"]["state"] == "uninitialized"
+    assert unknown["exceptions"] == []
+
+    _publish(session, tenant_id)
+    # The finding clears in Reality before the worker publishes the next generation:
+    # a live count would now disagree with the register the Welcome link opens.
+    reserve(session, tenant_id, fixture.commitment.id, "12")
+    live = len(operational_exception_rows(session, tenant_id))
+    _forbid_derivation(monkeypatch)
+
+    register = attention_register(session, tenant_id, size=5)
+    dashboard = tenant_dashboard(tenant_id, session)
+    assert register["page"]["total"] != live
+    assert dashboard["totals"]["exceptions"] == register["page"]["total"]
+    assert dashboard["sample_scope"]["exceptions"] == {
+        "limit": 5,
+        "total": register["page"]["total"],
+        "has_more": register["page"]["total"] > len(register["items"]),
+        "state": register["metadata"]["state"],
+    }
+    assert [row["id"] for row in dashboard["exceptions"]] == [
+        row["id"] for row in register["items"]
+    ]
+    assert dashboard["capabilities"]["activity"] is True

@@ -283,7 +283,7 @@
       "related_services": ["create_parties"],
       "mode": "mutation",
       "adapters": ["CLI", "Web", "API", "MCP", "Chat"],
-      "effect": "Creates a tenant-scoped party, optional immutable source evidence, and its operational roles."
+      "effect": "Creates a tenant-scoped party, optional immutable source evidence, operational roles, and exact correspondence addresses."
     },
     {
       "name": "Update party",
@@ -291,7 +291,7 @@
       "related_services": ["update_parties"],
       "mode": "mutation",
       "adapters": ["CLI", "Web", "API", "MCP", "Chat"],
-      "effect": "Changes operational party fields and roles; changed external identity creates new source evidence and every effective change emits an exact before/after audit diff."
+      "effect": "Changes operational party fields, roles and exact correspondence addresses; changed external identity creates new source evidence and every effective change emits an exact before/after audit diff."
     },
     {
       "name": "Create item",
@@ -403,6 +403,14 @@
       "mode": "mutation",
       "adapters": ["CLI", "Web", "API", "MCP", "Chat"],
       "effect": "Gives a customer or supplier a directly prioritized price list."
+    },
+    {
+      "name": "Resolve authoritative price quote",
+      "service": "resolve_price",
+      "related_services": ["materialized_resolve_price"],
+      "mode": "read",
+      "adapters": ["CLI", "Web", "API", "MCP", "Chat"],
+      "effect": "Selects the currently applicable quantity tier and exposes the direct, group, or default assignment path without copying a price."
     },
     {
       "name": "Create and assign pricing group",

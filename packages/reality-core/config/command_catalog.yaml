@@ -120,7 +120,9 @@ parameter_descriptions:
   document_type: Evidence kind, such as sales order, purchase order, or invoice.
   due_days: Number of calendar days from the document date until payment is due.
   effective_at: UTC instant from which the observation or rule takes effect.
-  email: Normalized email address of the person invited to the company.
+  email: Email address supplied for the named business purpose.
+  emails: Bounded labelled email addresses recorded for exact Party matching.
+  label: Optional human-readable description of a value's business purpose.
   external_id: Identifier assigned by the named external source system; never internal identity.
   gross_amount: Total the source states for the document; recorded as received and never calculated.
   resolves_movement_id: Opaque identity of the return this movement settles; absent means it settles none.
@@ -803,16 +805,16 @@ commands:
     mode: mutation
     adapters: [CLI, Web, API, MCP, Chat]
     reads: [tenant, source_record, party]
-    writes: [source_record, party, party_role]
-    effect: Creates a tenant-scoped party, optional immutable source evidence, and its operational roles.
+    writes: [source_record, party, party_role, party_email_address]
+    effect: Creates a tenant-scoped party, optional immutable source evidence, operational roles, and exact correspondence addresses.
   - name: Update party
     service: update_party
     related_services: [update_parties]
     mode: mutation
     adapters: [CLI, Web, API, MCP, Chat]
-    reads: [party, party_role, source_record]
-    writes: [source_record, party, party_role, business_event]
-    effect: Changes operational party fields and roles; changed external identity creates new source evidence and every effective change emits an exact before/after audit diff.
+    reads: [party, party_role, party_email_address, source_record]
+    writes: [source_record, party, party_role, party_email_address, business_event]
+    effect: Changes operational party fields, roles and exact correspondence addresses; changed external identity creates new source evidence and every effective change emits an exact before/after audit diff.
   - name: Create item
     service: create_item
     related_services: [create_items]
@@ -924,6 +926,14 @@ commands:
     reads: [party, price_list]
     writes: [party_price_list]
     effect: Gives a customer or supplier a directly prioritized price list.
+  - name: Resolve authoritative price quote
+    service: resolve_price
+    related_services: [materialized_resolve_price]
+    mode: read
+    adapters: [CLI, Web, API, MCP, Chat]
+    reads: [party, item, party_price_list, party_group, party_group_member, party_group_price_list, price_list, price_list_entry]
+    writes: []
+    effect: Selects the currently applicable quantity tier and exposes the direct, group, or default assignment path without copying a price.
   - name: Create and assign pricing group
     service: create_party_group
     related_services: [update_party_group, add_party_group_member, assign_group_price_list]
@@ -1371,6 +1381,29 @@ commands:
     effect: Records one explicit physical outcome for part or all of an arrived customer return without implying a credit.
 
 capability_guidance:
+  price_quote_read:
+    kind: read
+    application_tool: price_quote
+    purpose: Read the authoritative price tier for one party, item, quantity and commercial context, including why that list won.
+    use_when: [A quote or order needs the currently applicable sales or purchase unit price.]
+    do_not_use_when: [A price list or assignment must be changed, or an already agreed document price must be reconstructed.]
+    required_context: [tenant, party ID, item ID, quantity, direction, currency, unit, and optional effective instant]
+    data_basis: [party, item, party_price_list, party_group_member, party_group_price_list, price_list, price_list_entry]
+    limitations: [The result answers one complete pricing context and does not infer missing currency, unit, quantity, party, or item values.]
+    freshness: Reads current committed pricing records at the requested effective instant without projection or business writes; authentication telemetry may persist.
+    empty_result: matched false means no eligible tier exists for the supplied context; it does not authorize an invented or copied price.
+    refusal_behavior: Invalid quantities and unknown or foreign opaque IDs are refused without disclosure.
+    confirmation: none
+    side_effects: none
+    verification:
+      role: independent
+      proves: [The returned tier is the winner under the canonical priority, validity, quantity, direction, currency and unit rules.]
+      does_not_prove: [That a price was agreed on a document or accepted by a counterparty.]
+    unknown_when: [The needed party, item, unit, currency, direction or quantity is unknown.]
+    next_steps: [Use the returned entry ID when recording agreed document Evidence, or prepare a governed pricing assignment change.]
+    examples:
+      use: [{scenario: Quote 12 pieces to a known customer in EUR., reason: The complete context can be resolved deterministically.}]
+      do_not_use: [{scenario: Explain the historical price printed on an invoice., reason: Read the retained document line and historical pricing explanation.}]
   graph_format:
     kind: read
     application_tool: graph.format
@@ -4513,6 +4546,7 @@ agent_command_coverage:
   create_price_list: {classification: eligible, tools: [price_list_create_propose, price_list_update_propose]}
   create_price_list_entry: {classification: eligible, tools: [price_tier_create_propose]}
   assign_party_price_list: {classification: eligible, tools: [party_price_list_assign_propose]}
+  resolve_price: {classification: eligible, tools: [price_quote_read]}
   create_party_group: {classification: eligible, tools: [party_group_create_propose, party_group_update_propose, party_group_member_add_propose, group_price_list_assign_propose]}
   reserve: {classification: eligible, tools: [reservation_propose]}
   release_reservation: {classification: eligible, tools: [reservation_release_propose]}

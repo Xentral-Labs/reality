@@ -26,7 +26,13 @@ function AnalyticsWorkspace({
   navigate: (changes: Partial<Selection>) => void;
 }) {
   const [report, setReport] = useState<GraphReport | null>(null);
-  const [draft, setDraft] = useState<{ question?: GraphQuestion; revision: number } | null>(null);
+  const [draft, setDraft] = useState<{
+    question?: GraphQuestion;
+    /** The name this analysis arrived with, so the naming field is never blank
+     *  on the two paths that already know what the report is called. */
+    name?: string;
+    revision: number;
+  } | null>(null);
   const [templates, setTemplates] = useState(selection.analyticsView === "templates");
   const targetKey = `${selection.analyticsReport || ""}:${selection.analyticsTemplate || ""}`;
   const currentTarget = useRef(targetKey);
@@ -39,10 +45,10 @@ function AnalyticsWorkspace({
   }, [targetKey, selection.analyticsView]);
   const view =
     selection.analyticsView === "templates" ? "graph" : selection.analyticsView || "reports";
-  const open = (question?: GraphQuestion, saved: GraphReport | null = null) => {
+  const open = (question?: GraphQuestion, saved: GraphReport | null = null, name?: string) => {
     currentTarget.current = ":";
     setReport(saved);
-    setDraft((previous) => ({ question, revision: (previous?.revision ?? 0) + 1 }));
+    setDraft((previous) => ({ question, name, revision: (previous?.revision ?? 0) + 1 }));
     setTemplates(false);
     navigate({
       analyticsView: "graph",
@@ -135,8 +141,8 @@ function AnalyticsWorkspace({
               <GraphTemplates
                 tenant={selection.tenant}
                 selectedKey={selection.analyticsTemplate}
-                onAdopted={(question) => {
-                  setDraft({ question, revision: 1 });
+                onAdopted={(question, name) => {
+                  setDraft({ question, name, revision: 1 });
                   setTemplates(false);
                   navigate({ analyticsView: "graph" });
                 }}
@@ -158,12 +164,20 @@ function AnalyticsWorkspace({
             tenant={selection.tenant}
             report={report}
             initialQuestion={draft.question}
+            initialName={draft.name}
             active={
               view === "graph" &&
               !selection.analyticsProposal &&
               selection.analyticsView !== "templates"
             }
-            onSaved={setReport}
+            onSaved={(stored) => {
+              // Record it in the address so a reload reopens the same report,
+              // without letting the target effect below tear the draft down or
+              // Builder's key change: the answer on screen stays where it is.
+              currentTarget.current = `${stored.id}:`;
+              navigate({ analyticsView: "graph", analyticsReport: stored.id });
+            }}
+            onLibrary={() => navigate({ analyticsView: "reports", page: 1 })}
             onNew={start}
           />
         </div>
@@ -187,7 +201,7 @@ function ProposalAnalysis({
 }: {
   tenant: string;
   id: string;
-  open: (question: GraphQuestion) => void;
+  open: (question: GraphQuestion, saved: GraphReport | null, name?: string) => void;
 }) {
   const read = useRead(() => graphApi.proposal(tenant, id), [tenant, id]);
   const proposal = read.data;
@@ -196,7 +210,11 @@ function ProposalAnalysis({
     ["create", "update"].includes(proposal.operation) &&
     !!proposal.definition;
   useEffect(() => {
-    if (supported && proposal?.definition) open(proposal.definition);
+    // The copilot already named this report. Carrying that name in is what
+    // keeps the naming field from opening blank on the one path where somebody
+    // else has done the naming.
+    if (supported && proposal?.definition)
+      open(proposal.definition, null, proposal.name ?? undefined);
   }, [proposal, supported]);
   if (!proposal)
     return <ReadState loading={read.loading} error={read.error} retry={read.refresh} />;

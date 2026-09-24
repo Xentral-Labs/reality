@@ -160,6 +160,7 @@
     "create_price_list": "terms",
     "create_price_list_entry": "terms",
     "assign_party_price_list": "terms",
+    "resolve_price": "terms",
     "create_party_group": "terms",
     "reserve": "reservations",
     "release_reservation": "reservations",

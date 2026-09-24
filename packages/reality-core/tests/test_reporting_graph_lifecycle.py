@@ -408,3 +408,146 @@ def test_a_proposal_that_cannot_be_unsealed_says_so_and_can_be_rejected(
         session, business.tenant.id, proposal.id, confirming_principal=author
     )
     assert record_by_id(session, type(proposal), proposal.id).status == "rejected"
+
+
+# --- what a confirmed proposal points at -----------------------------------------
+#
+# A create proposal carries no report ID, because the report does not exist when
+# the proposal is prepared. Once it is confirmed one does, and the surface that
+# offered "open this" had no way to name it: it reopened the proposal's question
+# as a fresh unsaved draft, so confirming and then opening produced a second
+# report. The link was always there — the row records the retry key the change
+# was made under — it was simply never returned.
+
+
+def _propose(session, business, author, **changes):
+    from reality.services.analytics.reports import caller
+    from reality.tools.application import create_change_proposal
+
+    with caller(author):
+        return create_change_proposal(
+            session,
+            business.tenant.id,
+            "graph.reports.change",
+            {
+                "operation": "create",
+                "request_id": str(uuid4()),
+                "name": "Umsatz je Währung",
+                "question": QUESTION,
+                **changes,
+            },
+        )
+
+
+def test_an_unconfirmed_create_names_no_report_because_none_was_written(
+    session, business, author
+):
+    from reality.services.analytics.proposals import preview
+
+    proposal = _propose(session, business, author)
+    shown = preview(session, business.tenant.id, author, proposal.id)
+    assert shown["status"] == "proposed"
+    assert shown["report_id"] is None, (
+        "nothing is saved yet, so there is nothing to open"
+    )
+
+
+def test_a_confirmed_create_names_the_report_it_wrote(session, business, author):
+    from reality.services.analytics.proposals import preview
+    from reality.tools.application import approve_and_execute_proposal
+
+    proposal = _propose(session, business, author)
+    approve_and_execute_proposal(
+        session,
+        business.tenant.id,
+        proposal.id,
+        confirming_principal=author,
+        confirmed=True,
+    )
+    shown = preview(session, business.tenant.id, author, proposal.id)
+    saved = list_reports(session, business.tenant.id, author, report_kind="graph")
+    assert shown["report_id"] == saved["records"][0]["id"]
+    assert len(saved["records"]) == 1, "confirming writes exactly one report"
+
+
+def test_a_confirmed_create_whose_report_was_deleted_names_nothing(
+    session, business, author
+):
+    from reality.services.analytics.proposals import preview
+    from reality.tools.application import approve_and_execute_proposal
+
+    proposal = _propose(session, business, author)
+    approve_and_execute_proposal(
+        session,
+        business.tenant.id,
+        proposal.id,
+        confirming_principal=author,
+        confirmed=True,
+    )
+    written = list_reports(session, business.tenant.id, author, report_kind="graph")[
+        "records"
+    ][0]
+    change_graph_report(
+        session,
+        business.tenant.id,
+        author,
+        {
+            "operation": "delete",
+            "request_id": str(uuid4()),
+            "report_id": written["id"],
+            "expected_revision": written["revision"],
+        },
+    )
+    shown = preview(session, business.tenant.id, author, proposal.id)
+    assert shown["report_id"] is None, "offering to open a deleted report is a dead end"
+
+
+def test_a_change_to_an_existing_report_names_that_report(session, business, author):
+    from reality.services.analytics.proposals import preview
+
+    written = save(session, business.tenant.id, author)
+    proposal = _propose(
+        session,
+        business,
+        author,
+        operation="update",
+        name=None,
+        report_id=written["id"],
+        expected_revision=written["revision"],
+    )
+    shown = preview(session, business.tenant.id, author, proposal.id)
+    assert shown["report_id"] == written["id"]
+
+
+def test_a_confirmed_duplicate_names_the_copy_not_its_source(session, business, author):
+    """A duplicate names its source, but confirming produced the copy."""
+    from reality.services.analytics.proposals import preview
+    from reality.tools.application import approve_and_execute_proposal
+
+    source = save(session, business.tenant.id, author)
+    proposal = _propose(
+        session,
+        business,
+        author,
+        operation="duplicate",
+        name="Zweite Fassung",
+        question=None,
+        report_id=source["id"],
+        expected_revision=source["revision"],
+    )
+    approve_and_execute_proposal(
+        session,
+        business.tenant.id,
+        proposal.id,
+        confirming_principal=author,
+        confirmed=True,
+    )
+    shown = preview(session, business.tenant.id, author, proposal.id)
+    copy = next(
+        row
+        for row in list_reports(
+            session, business.tenant.id, author, report_kind="graph"
+        )["records"]
+        if row["id"] != source["id"]
+    )
+    assert shown["report_id"] == copy["id"]

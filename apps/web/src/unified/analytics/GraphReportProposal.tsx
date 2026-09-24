@@ -17,11 +17,15 @@ export function GraphReportProposal({
   id,
   refresh,
   open,
+  openReport,
 }: {
   tenant: string;
   id: string;
   refresh: () => void;
+  /** Open the proposal's question as an unsaved preview. Only while it waits. */
   open?: () => void;
+  /** Open the report this change concerns, once it exists. */
+  openReport?: (reportId: string) => void;
 }) {
   const language = currentLanguage();
   const read = useRead(() => graphApi.proposal(tenant, id), [tenant, id]);
@@ -76,12 +80,15 @@ export function GraphReportProposal({
         .flatMap((candidate) => candidate.measures)
         .find((measure) => measure.key === key)?.label ?? key,
   );
+  // Named as whole phrases rather than bare verbs: a one-word key is shared
+  // with every other surface that has a Create button, and these five went
+  // untranslated in every edition because nothing here was ever a key at all.
   const OPERATIONS: Record<string, string> = {
-    create: "Create",
-    update: "Update",
-    rename: "Rename",
-    duplicate: "Duplicate",
-    delete: "Delete",
+    create: "Save a new report",
+    update: "Replace the report's question",
+    rename: "Rename the report",
+    duplicate: "Copy the report",
+    delete: "Remove the report",
   };
   return (
     <section className="space-y-3 rounded-xl border border-border-default bg-surface p-4">
@@ -99,14 +106,43 @@ export function GraphReportProposal({
           {JSON.stringify(proposal.definition, null, 2)}
         </pre>
       </details>
-      {open &&
+      {/* Confirming wrote a report, and the card used to go on offering to open
+          the proposal's question instead. That opened an unsaved copy with a
+          blank name, so confirming and then opening produced a second report of
+          the same question. What was saved is what is offered. */}
+      {proposal.status === "executed" ? (
+        proposal.report_id && openReport ? (
+          <div className="space-y-2">
+            <p className="text-sm">{t("Saved to your reports.")}</p>
+            <button className="br-btn" onClick={() => openReport(proposal.report_id as string)}>
+              {t("Open the saved report")}
+            </button>
+          </div>
+        ) : (
+          <p className="text-sm">
+            {t(
+              proposal.operation === "delete"
+                ? "This report was removed."
+                : "This report is no longer available.",
+            )}
+          </p>
+        )
+      ) : (
+        proposal.status === "proposed" &&
+        open &&
         proposal.kind === "graph" &&
         question &&
         ["create", "update"].includes(proposal.operation) && (
-          <button className="br-btn" onClick={open}>
-            {t("Open in analysis")}
-          </button>
-        )}
+          <div className="space-y-2">
+            <button className="br-btn" onClick={open}>
+              {t("Open in analysis")}
+            </button>
+            <p className="text-xs text-fg-muted">
+              {t("An unsaved preview. Nothing is saved until you confirm here.")}
+            </p>
+          </div>
+        )
+      )}
       {error && (
         <p role="alert" className="text-sm text-critical-text">
           {error}

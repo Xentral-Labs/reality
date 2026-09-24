@@ -2524,6 +2524,9 @@ def materialized_resolve_price(
                 "price_list_id": result.price_list_id,
                 "price_list_entry_id": result.price_list_entry_id,
                 "source": result.source,
+                "assignment_id": result.assignment_id,
+                "party_group_id": result.party_group_id,
+                "evaluated_at": result.evaluated_at,
             }
         )
     )

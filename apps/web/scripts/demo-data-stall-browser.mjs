@@ -54,6 +54,12 @@ await page.route("**/api/**", async (route) => {
       default_tenant_id: tenant,
     });
   if (path.endsWith("/application-reference")) return reply({ workspaces: [] });
+  if (path.endsWith("/demo-data/control")) {
+    // A real control takes seconds; the page must say so while it waits.
+    await new Promise((resolve) => setTimeout(resolve, 1500));
+    phase = "paused";
+    return reply({ state: "paused", derived_state: "paused", revision: 4 });
+  }
   if (path.endsWith("/readiness"))
     return reply({
       status: workerReady ? "ready" : "unavailable",
@@ -66,11 +72,12 @@ await page.route("**/api/**", async (route) => {
     });
   if (path.endsWith("/demo-data"))
     return reply(
-      phase === "overdue" || phase === "running"
+      phase !== "suspended"
         ? {
             id: "ddc_1",
-            state: "running",
-            derived_state: phase === "running" ? "running" : "overdue",
+            state: phase === "paused" ? "paused" : "running",
+            derived_state:
+              phase === "paused" ? "paused" : phase === "running" ? "running" : "overdue",
             revision: 3,
             rate: 60,
             schedule_id: "sch_1",
@@ -78,7 +85,7 @@ await page.route("**/api/**", async (route) => {
             last_success: "2026-09-23T06:00:00Z",
             scheduler_error: null,
             stall:
-              phase === "running"
+              phase !== "overdue"
                 ? null
                 : {
                     kind: "overdue",
@@ -199,9 +206,19 @@ await page.locator("[data-source-simulation-settings]").waitFor();
 const overdue = page.locator('[data-demo-stall="overdue"]');
 await overdue.waitFor();
 assert.match(await overdue.innerText(), /No arrival has been executed as scheduled/);
+const settingsPanel = page.locator("[data-source-simulation-settings]");
 const roles = page.locator('[data-demo-readiness="unavailable"]');
 await roles.waitFor();
 assert.match(await roles.innerText(), /Background processing/);
+
+// A control that takes seconds must show that it is working, not look unpressed.
+await settingsPanel.getByRole("button", { name: "Pause" }).click();
+await settingsPanel.getByRole("button", { name: "Confirm" }).click();
+const working = settingsPanel.locator(".demo-live-working");
+await working.waitFor();
+assert.match(await working.innerText(), /takes a few seconds/);
+await settingsPanel.getByRole("button", { name: "Applying…" }).waitFor();
+await working.waitFor({ state: "detached" });
 
 // A source that is simply working says so with one small light.
 phase = "running";

@@ -3441,9 +3441,14 @@ textarea.br-control.rule-draft-editor {
   --shell-selected: #eaeae8;
   background: var(--color-surface);
 }
+/* Dark: the navigation shares the workspace and chat ground, separated by a
+   hairline like the chat dock, instead of a second, greyer dark. */
 [data-theme="dark"] .app-shell {
-  --shell-surface: #151a23;
-  --shell-selected: #272e3b;
+  --shell-surface: var(--color-surface);
+  --shell-selected: var(--color-surface-muted);
+}
+[data-theme="dark"] .shell-navigation {
+  border-right: 1px solid var(--color-border-subtle);
 }
 .shell-workspace-header {
   position: sticky;
