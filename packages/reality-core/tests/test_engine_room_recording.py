@@ -311,3 +311,39 @@ def test_recording_tidies_expired_rows_of_its_company_at_most_every_interval(
         "GET /items",
         "GET /old",
     ]
+
+
+def test_a_streamed_chat_turn_keeps_the_request_correlation_after_it_closed(
+    session, business, scheduled_owner, recording
+):
+    """`web/chat_stream.py` runs the turn with `asyncio.to_thread` while the response
+    streams, after the middleware has already written the request's row. The copied
+    context still names that request, so the turn's tool calls share its correlation."""
+    import asyncio
+
+    tenant = business.tenant.id
+    observation, token = interactions.begin(
+        tenant,
+        "web",
+        "POST /chat",
+        correlation_id="turn_7",
+        actor_user_id=scheduled_owner.id,
+    )
+
+    async def stream():
+        def work():
+            with interactions.observe(tenant, "chat", "inventory.read"):
+                pass
+
+        task = asyncio.create_task(asyncio.to_thread(work))
+        # The middleware closes the request before the body has streamed.
+        interactions.end(observation, token)
+        await task
+
+    asyncio.run(stream())
+    recorded = rows(session, tenant)
+    assert sorted((row.channel, row.correlation_id) for row in recorded) == [
+        ("chat", "turn_7"),
+        ("web", "turn_7"),
+    ]
+    assert {row.actor_user_id for row in recorded} == {scheduled_owner.id}

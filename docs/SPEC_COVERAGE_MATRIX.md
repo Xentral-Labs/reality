@@ -826,6 +826,7 @@ Spec 146 FR-026–028: `test_company_setup_unified.py`, `test_playground_api.py`
 
 | `packages/reality-core/tests/test_home_readiness.py` | Spec 149 | Volatile health freshness, private probes and scoped Home readiness |
 | `docs/features/home-live-status.md` | Spec 149 | Home activity, volatile process readiness and portable deployment contract |
+| `docs/features/engine-room.md` | Spec 266 | Live, value-free interactions per channel, owner-only reads, retention by the recording work |
 
 Spec146 FR-030: `test_company_setup_unified.py` verifies seeded Sandbox exception
 register/detail against canonical findings; `test_playground_api.py` verifies the
