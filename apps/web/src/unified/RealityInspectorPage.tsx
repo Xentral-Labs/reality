@@ -15,6 +15,7 @@ import { TableProvider } from "./TableContext";
 import { type GraphTarget } from "./ObjectGraph";
 import { RulesWorkbench } from "./RulesWorkbench";
 import { ActivityDrawer } from "./ActivityDrawer";
+import { EngineRoom } from "./EngineRoom";
 import { useRead } from "./useCompanyContext";
 import { ReadState } from "./ReadState";
 import { navigationSelection, selectionUrl, type Selection } from "./routing";
@@ -97,10 +98,10 @@ export function RealityInspectorPage({
   };
   return (
     <div className="min-w-0 space-y-4" data-reality-inspector>
-      {inspectorTabs(tab).length > 1 && (
+      {inspectorTabs(tab, owner).length > 1 && (
         <RegisterHeader title="Reality Inspector" originalTitle>
           <nav className="register-tabs" aria-label={t("Reality Inspector sections")}>
-            {inspectorTabs(tab).map(([key, label]) => (
+            {inspectorTabs(tab, owner).map(([key, label]) => (
               <button
                 key={key}
                 aria-pressed={tab === key}
@@ -288,6 +289,7 @@ export function RealityInspectorPage({
       {tab === "history" && (
         <ActivityDrawer embedded tenant={tenant} companyName={companyName} close={() => {}} />
       )}
+      {tab === "live" && <EngineRoom selection={selection} navigate={navigate} />}
     </div>
   );
 }

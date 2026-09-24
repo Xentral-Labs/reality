@@ -826,6 +826,7 @@ Spec 146 FR-026–028: `test_company_setup_unified.py`, `test_playground_api.py`
 
 | `packages/reality-core/tests/test_home_readiness.py` | Spec 149 | Volatile health freshness, private probes and scoped Home readiness |
 | `docs/features/home-live-status.md` | Spec 149 | Home activity, volatile process readiness and portable deployment contract |
+| `docs/features/engine-room.md` | Spec 266 | Live, value-free interactions per channel, owner-only reads, retention by the recording work |
 
 Spec146 FR-030: `test_company_setup_unified.py` verifies seeded Sandbox exception
 register/detail against canonical findings; `test_playground_api.py` verifies the
@@ -1691,3 +1692,16 @@ Feature contract: `docs/features/b2b-operational-chain.md`.
 | History, single-decision review, agent status read and activities name the same decider; a record's origin names only the decision behind its first event | 263 FR-004/FR-007–FR-011 | `packages/reality-core/tests/test_decision_trail_surfaces.py`; `packages/reality-core/tests/test_provenance.py` |
 | Decider sentences, Pending/History tabs; registers and Activities rows carry no decision line | 263 FR-004/FR-007/FR-008/FR-010/FR-012 | `apps/web/scripts/decision-trail.test.mjs`; frontend build and i18n audit |
 | Every detail view lists the decisions that created and changed its record, an event's detail names the decision that caused it | 263 FR-013 | `packages/reality-core/tests/test_decision_trail_details.py`; `apps/web/scripts/decision-trail.test.mjs` |
+
+### Spec 266 engine room
+
+`interaction` is operational telemetry: one value-free row per crossing into the application, kept seven days, never a business record.
+
+| Verification family | Specification | Tests |
+|---|---|---|
+| The interaction table: columns, checks, named indexes, reversible revision, derived foreign-key index rule | 266 DR-003 | `packages/reality-core/tests/test_engine_room_migration.py`; `packages/reality-core/tests/test_schema_indexes.py` |
+| One boundary records one row; nesting joins; chat inside a request shares its correlation; committed events only, exact ranges; refusals and failures keep a code; a failing recorder never fails the call; expired rows are tidied by the work that records | 266 FR-002–FR-004/FR-011/FR-012/DR-002 | `packages/reality-core/tests/test_engine_room_recording.py` |
+| Web (inside admission), MCP token, chat, CLI and worker child each record at their own boundary; no argument value reaches any row across the read catalog; the engine room's own reads are not recorded; refresh is flagged | 266 FR-001/FR-003/FR-010/DR-004 | `packages/reality-core/tests/test_engine_room_channels.py` |
+| Cursor with late commits, every filter, truncation, retention, windows, stages from events and catalog, who-changed-this, linked events, owner-only access | 266 FR-005–FR-008/FR-013/FR-015/DR-003 | `packages/reality-core/tests/test_engine_room_reads.py` |
+| Only the engine-room modules import the telemetry table or its reader; business code only annotates through the recorder | 266 DR-001 | `packages/reality-core/tests/test_engine_room_architecture.py` |
+| Server processes queue rows to one writer and batch them; a full queue drops a row instead of waiting; the call's own duration is kept | 266 FR-012/SC-003 | `packages/reality-core/tests/test_engine_room_recording.py` |

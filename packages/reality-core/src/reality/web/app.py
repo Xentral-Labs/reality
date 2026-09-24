@@ -27,6 +27,7 @@ from reality.web.auth import router as auth_router
 from reality.web.company_setup_api import is_account_setup_path
 from reality.web.company_setup_api import router as company_setup_router
 from reality.web.demo_data_api import router as demo_data_router
+from reality.web.interactions_api import router as interactions_router
 from reality.web.mcp_authorization import router as mcp_authorization_router
 from reality.web.playground import router as playground_router
 from reality.web.storyline_api import account_router as storyline_account_router
@@ -44,7 +45,11 @@ APP_URL = configured_url("APP_URL", "http://localhost:8080")
 
 @asynccontextmanager
 async def app_lifespan(_app: FastAPI):
+    from reality.services.interaction_recorder import start_background_writer
+
     runtime_application_catalog()
+    # Spec 266: record interactions off the response path in the serving process.
+    start_background_writer()
     with Session() as session:
         bootstrap_empty_database(session)
         bootstrap_platform_admin(session)
@@ -86,7 +91,13 @@ app.add_middleware(
     allow_origins=allowed_origins,
     allow_credentials=True,
     allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
-    allow_headers=["Authorization", "Content-Type", "Idempotency-Key"],
+    allow_headers=[
+        "Authorization",
+        "Content-Type",
+        "Idempotency-Key",
+        "X-Reality-Correlation",
+        "X-Reality-Refresh",
+    ],
 )
 
 
@@ -124,6 +135,95 @@ async def record_storyline_views(request: Request, call_next):
             duration_ms=int((time.perf_counter() - started) * 1000),
         )
     return response
+
+
+class RecordInteractions:
+    """Spec 266: every company request the web makes is one engine-room interaction.
+
+    Pure ASGI rather than `@app.middleware`, which costs a task group and a stream
+    per layer on every request. Added after the storyline middleware and before
+    `protect_application_api`, so it runs inside the admission check: a request
+    refused because the caller is not a member of that company never reaches this
+    point and is recorded in neither company. The engine room's own reads are not
+    recorded; watching must not become something to watch. The observation stays
+    open until the body has been sent, so a streamed chat turn is inside it.
+    """
+
+    def __init__(self, app):
+        self.app = app
+
+    async def __call__(self, scope, receive, send):
+        from reality.services import interaction_recorder as interactions
+
+        path = scope.get("path", "") if scope["type"] == "http" else ""
+        parts = path.split("/")
+        if (
+            not path.startswith("/api/tenants/")
+            or len(parts) < 4
+            or not parts[3]
+            or (len(parts) > 4 and parts[4] == "interactions")
+            or not interactions.enabled()
+        ):
+            await self.app(scope, receive, send)
+            return
+        headers = {
+            key.decode("latin-1"): value.decode("latin-1")
+            for key, value in scope["headers"]
+        }
+        user = (scope.get("state") or {}).get("user")
+        method = scope["method"]
+        observation, token = interactions.begin(
+            parts[3],
+            "web",
+            f"{method} (unmatched)",
+            correlation_id=headers.get("x-reality-correlation"),
+            actor_user_id=getattr(user, "id", None),
+            refresh=headers.get("x-reality-refresh") == "1",
+        )
+
+        async def observed_send(message):
+            if observation is not None and message["type"] == "http.response.start":
+                observation.http_status = message["status"]
+            await send(message)
+
+        error: BaseException | None = None
+        try:
+            await self.app(scope, receive, observed_send)
+        except BaseException as exc:
+            error = exc
+            raise
+        finally:
+            if observation is not None:
+                route = scope.get("route")
+                if route is not None:
+                    observation.operation = (
+                        f"{method} "
+                        + route.path.removeprefix("/api/tenants/{tenant_id}")
+                    )[:200]
+                    declared = {
+                        parameter.name
+                        for parameter in getattr(
+                            getattr(route, "dependant", None), "query_params", ()
+                        )
+                    }
+                    given = {
+                        pair.split("=", 1)[0]
+                        for pair in scope.get("query_string", b"")
+                        .decode("latin-1")
+                        .split("&")
+                        if pair
+                    }
+                    observation.arguments = tuple(sorted(declared & given))[
+                        : interactions.ARGUMENT_LIMIT
+                    ]
+            interactions.release(token)
+            if interactions.queued():
+                interactions.end(observation, None, error)
+            else:
+                await run_in_threadpool(interactions.end, observation, None, error)
+
+
+app.add_middleware(RecordInteractions)
 
 
 @app.middleware("http")
@@ -195,6 +295,7 @@ async def protect_application_api(request: Request, call_next):
 
 app.include_router(auth_router)
 app.include_router(auth_admin_router)
+app.include_router(interactions_router)
 app.include_router(api_router)
 app.include_router(public_api_router)
 app.include_router(playground_router)

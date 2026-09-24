@@ -3441,6 +3441,59 @@ approve_and_execute_proposal = _storyline_recorder.wrap_decision(
 )
 reject_proposal = _storyline_recorder.wrap_decision(reject_proposal, "reject")
 
+# The engine room (spec 266): the tool layer tells the open interaction what it
+# did. It opens one itself only where no boundary is above it (the CLI).
+from reality.services import interaction_recorder as _interactions
+
+
+def _observed_read(function):
+    def run_read_tool(session, tenant_id, tool_name, arguments=None):
+        with _interactions.tool_boundary(tenant_id, tool_name):
+            result = function(session, tenant_id, tool_name, arguments)
+            _interactions.note_result(result)
+            return result
+
+    run_read_tool.__wrapped__ = function  # type: ignore[attr-defined]
+    return run_read_tool
+
+
+def _observed_proposal(function):
+    def create_change_proposal(session, tenant_id, tool_name, arguments, **kwargs):
+        with _interactions.tool_boundary(tenant_id, tool_name):
+            _interactions.note_kind("propose")
+            proposal = function(session, tenant_id, tool_name, arguments, **kwargs)
+            _interactions.note_proposal(
+                getattr(proposal, "id", None), getattr(proposal, "status", None)
+            )
+            return proposal
+
+    create_change_proposal.__wrapped__ = function  # type: ignore[attr-defined]
+    return create_change_proposal
+
+
+def _observed_decision(function, name):
+    def decide(session, tenant_id, proposal_id, **kwargs):
+        with _interactions.tool_boundary(tenant_id, name):
+            _interactions.note_kind("decide")
+            _interactions.note_proposal(proposal_id, None)
+            result = function(session, tenant_id, proposal_id, **kwargs)
+            _interactions.note_proposal(
+                proposal_id, getattr(result, "status", None) or "decided"
+            )
+            return result
+
+    decide.__name__ = function.__name__
+    decide.__wrapped__ = function  # type: ignore[attr-defined]
+    return decide
+
+
+run_read_tool = _observed_read(run_read_tool)
+create_change_proposal = _observed_proposal(create_change_proposal)
+approve_and_execute_proposal = _observed_decision(
+    approve_and_execute_proposal, "proposal.approve"
+)
+reject_proposal = _observed_decision(reject_proposal, "proposal.reject")
+
 # Compatibility aliases for adapters migrating from the previous terminology.
 propose_tool = create_change_proposal
 proposed_tools = proposals_awaiting_approval

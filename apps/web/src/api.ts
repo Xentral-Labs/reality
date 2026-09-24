@@ -1,6 +1,7 @@
 import { readChatStream, type ChatReply, type ChatStreamEvent } from "./chatStream";
 import { clearPalettePreferences } from "./unified/commandPalettePreferences";
 import type { SignupPreferences } from "./signupPreferences";
+import type { Interaction, InteractionPage } from "./unified/engineRoomModel";
 
 export type CompanyProfileManifest = {
   tenant_id: string;
@@ -535,6 +536,18 @@ export type SystemReadiness = {
   components: Record<"connection" | "scheduler" | "worker", "ready" | "unknown" | "unavailable">;
 };
 
+export type { Interaction, InteractionPage };
+export type InteractionEvent = {
+  id: string;
+  sequence: number;
+  type: string;
+  subject_type: string;
+  subject_id: string;
+  occurred_at: string;
+  recorded_at: string;
+  action_id: string | null;
+  source_record_id: string | null;
+};
 export type TimelineEvent = {
   business_context?: Record<string, unknown>;
   id: string;
@@ -1304,11 +1317,50 @@ function announceWrite(path: string, init: RequestInit) {
   if (typeof window !== "undefined") window.dispatchEvent(new Event(recordsChanged));
 }
 
+// The engine room (spec 266) groups the requests of one user action. A click or a
+// key press starts a new action; every request until the next one shares its id.
+const newCorrelation = () =>
+  `w_${(globalThis.crypto?.randomUUID?.() || `${Date.now()}${Math.random()}`).replace(/[^A-Za-z0-9]/g, "").slice(0, 24)}`;
+let correlation = newCorrelation();
+if (typeof window !== "undefined")
+  for (const type of ["pointerdown", "keydown"])
+    window.addEventListener(type, () => (correlation = newCorrelation()), { capture: true });
+
+/** The correlation the next request carries — the user action in progress. */
+export const currentCorrelation = () => correlation;
+
+let refreshing = 0;
+/**
+ * Mark the requests `call` starts synchronously as timer-driven background refresh.
+ * `request` builds its headers before its first await, so this holds for every api
+ * call made directly inside `call`. The engine room hides such rows by default.
+ */
+export function asRefresh<T>(call: () => T): T {
+  refreshing += 1;
+  try {
+    return call();
+  } finally {
+    refreshing -= 1;
+  }
+}
+
+function observedHeaders(): Record<string, string> {
+  return {
+    "X-Reality-Correlation": correlation,
+    ...(refreshing > 0 ? { "X-Reality-Refresh": "1" } : {}),
+  };
+}
+
 async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
   const response = await fetch(path, {
     ...init,
     credentials: "include",
-    headers: { Accept: "application/json", "Content-Type": "application/json", ...init.headers },
+    headers: {
+      Accept: "application/json",
+      "Content-Type": "application/json",
+      ...observedHeaders(),
+      ...init.headers,
+    },
   });
   if (!response.ok) {
     if (response.status === 401) {
@@ -1344,7 +1396,11 @@ async function sendChatRequest(
   const response = await fetch(`${path}?stream=true`, {
     ...init,
     credentials: "include",
-    headers: { Accept: "application/x-ndjson", "Content-Type": "application/json" },
+    headers: {
+      Accept: "application/x-ndjson",
+      "Content-Type": "application/json",
+      ...observedHeaders(),
+    },
   });
   if (!response.ok) {
     const payload = await response.json().catch(() => null);
@@ -1905,6 +1961,17 @@ export const api = {
     ),
   readiness: (tenant: string, signal?: AbortSignal) =>
     request<SystemReadiness>(`/api/tenants/${tenant}/readiness`, { signal }),
+  interactions: (tenant: string, query: URLSearchParams, signal?: AbortSignal) =>
+    request<InteractionPage>(`/api/tenants/${tenant}/interactions?${query}`, { signal }),
+  interactionEvents: (tenant: string, interaction: string) =>
+    request<{ events: InteractionEvent[] }>(
+      `/api/tenants/${tenant}/interactions/${encodeURIComponent(interaction)}/events`,
+    ),
+  interactionsPulse: (tenant: string, signal?: AbortSignal) =>
+    request<{ latest_cursor: number | null; latest_at: string | null }>(
+      `/api/tenants/${tenant}/interactions/pulse`,
+      { signal },
+    ),
   timeline: (
     tenant: string,
     query = "",

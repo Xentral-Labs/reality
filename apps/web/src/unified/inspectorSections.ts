@@ -1,7 +1,7 @@
 export const inspectorSections = [
   { label: "Business Graph", tabs: ["overview", "graph"] },
   { label: "Business Facts", tabs: ["facts", "rules"] },
-  { label: "Activities", tabs: ["history"] },
+  { label: "Activities", tabs: ["history", "live"] },
   { label: "Tools", tabs: ["commands", "views"] },
 ];
 const labels: Record<string, string> = {
@@ -12,12 +12,16 @@ const labels: Record<string, string> = {
   exceptions: "Exception rules",
   views: "Calculated views",
   history: "Activities",
+  live: "Live",
   commands: "Actions",
 };
 export const inspectorSection = (view = "overview") =>
   inspectorSections.find((section) => section.tabs.includes(view === "records" ? "facts" : view)) ||
   inspectorSections[0];
-export const inspectorTabs = (view: string) =>
+/** The engine room (spec 266) is for company owners only. */
+export const inspectorTabs = (view: string, owner = true) =>
   ["commands", "views"].includes(view)
     ? [["commands", "Tools"] as const]
-    : inspectorSection(view).tabs.map((key) => [key, labels[key]] as const);
+    : inspectorSection(view)
+        .tabs.filter((key) => owner || key !== "live")
+        .map((key) => [key, labels[key]] as const);

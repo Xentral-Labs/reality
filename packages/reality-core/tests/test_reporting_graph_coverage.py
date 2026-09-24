@@ -48,6 +48,9 @@ INFRASTRUCTURE = {
     "playground_step",
     "storyline_trace_entry",
     "storyline_package",
+    # Who used the model through which channel, kept seven days (spec 266): how the
+    # model was used, never something the model describes.
+    "interaction",
     "analytics_report",
     "analytics_report_draft",
     # A requested analysis holds a question and the answer it was given, which is

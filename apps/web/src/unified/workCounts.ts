@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { api, recordsChanged } from "../api";
+import { api, asRefresh, recordsChanged } from "../api";
 
 /** While a tab stays visible a work count is re-read at most this often. */
 export const WORK_COUNT_REFRESH_MS = 60_000;
@@ -33,8 +33,8 @@ export function useWorkCount(
         return;
       }
       busy = true;
-      current
-        .current()
+      // A count reads itself on a timer: background refresh for the engine room.
+      asRefresh(() => current.current())
         .then((value) => {
           if (!disposed) setCount({ key, value });
         })

@@ -220,6 +220,33 @@ def access_review(decision: str) -> None:
 
 
 # ---------------------------------------------------------------------------
+# Engine room (spec 266)
+# ---------------------------------------------------------------------------
+# Recording an interaction must never fail the call it watches, so a failure is
+# swallowed where it happens. Counting it here is how an operator still learns
+# that the engine room has gone blind.
+
+
+def record_interaction_failure(channel: str) -> None:
+    count(
+        "reality.interactions.record_failures",
+        "Interactions that could not be recorded",
+        channel=channel,
+    )
+
+
+def record_interaction_duration(channel: str, milliseconds: float) -> None:
+    record(
+        "reality.interactions.record_duration",
+        "Time spent recording one interaction",
+        "ms",
+        milliseconds,
+        boundaries=(0.5, 1, 2, 5, 10, 25, 50, 100),
+        channel=channel,
+    )
+
+
+# ---------------------------------------------------------------------------
 # Copilot
 # ---------------------------------------------------------------------------
 # A Copilot turn is the slowest and most expensive thing the API does, and it is

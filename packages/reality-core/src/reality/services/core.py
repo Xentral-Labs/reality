@@ -88,6 +88,7 @@ from reality.db.core import (
 from reality.domain.calendar import InvalidDay, as_day
 from reality.domain.stock_scope import movement_at
 from reality.integrations.catalog import connector_catalog, connector_shell
+from reality.services.interaction_recorder import note_event as note_interaction_event
 from reality.storyline.recorder import wrap_chat
 
 ZERO = Decimal(0)
@@ -598,6 +599,7 @@ def emit_business_event(
         correlation_id=correlation_id,
     )
     session.add(event)
+    note_interaction_event(tenant_id, event.id)
     if progress is not None:
         # The company's progress and the event that moved it are written in one
         # transaction, so a reader that sees one sees the other (spec 181 FR-004).

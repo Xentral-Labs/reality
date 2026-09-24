@@ -2319,6 +2319,9 @@ FR-026–028: the shell labels Sandbox beside the company name. Reports and cont
 
 FR-029 moves the controls/live widget to `/app/demo-data?tenant=…`, reached by Demo Data immediately below Companies in the Company group for demo-profile companies or those with a Demo Data connection state. Integrations no longer embeds this panel. The dedicated route preserves service eligibility and tenant scope. This supersedes earlier descriptions placing the widget inside Integrations.
 
+The live monitor (internally the engine room; Inspector → Activities → Live, owners only) follows [spec 266](../specs/266-engine-room/spec.md)
+and [its contract](features/engine-room.md): every interaction with the model, live, value-free, linked to the events it committed.
+
 Home activity and nontechnical service availability follow [spec149](../specs/149-home-live-status/spec.md)
 and [the durable contract](features/home-live-status.md). Readiness never implies
 success of every import/action; stale or missing signals cannot produce all-ready.

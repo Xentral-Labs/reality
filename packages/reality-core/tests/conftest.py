@@ -10,6 +10,10 @@ from sqlalchemy.engine import make_url
 from sqlalchemy.orm import sessionmaker
 
 os.environ.setdefault("REALITY_AUTH_MODE", "disabled")
+# The engine room (spec 266) writes in a session of its own, which cannot see a
+# test's uncommitted company. Its own tests switch it on and bind it to their
+# connection; everywhere else it would only log failed writes.
+os.environ.setdefault("REALITY_INTERACTIONS", "off")
 
 POSTGRES_ADMIN_URL = os.getenv(
     "TEST_POSTGRES_ADMIN_URL",
@@ -367,3 +371,14 @@ def seed_company(session, tenant_id: str) -> str:
 @pytest.fixture
 def seeded(session):
     return lambda tenant_id: seed_company(session, tenant_id)
+
+
+@pytest.fixture(autouse=True)
+def no_leaked_engine_room_observation():
+    """Spec 266: an observation left open would silently swallow later recordings."""
+    from reality.services import interaction_recorder
+
+    yield
+    leaked = interaction_recorder.current()
+    interaction_recorder._current.set(None)
+    assert leaked is None, f"This test left an engine-room observation open: {leaked.operation}"

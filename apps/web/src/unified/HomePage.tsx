@@ -9,11 +9,13 @@ import { useRead } from "./useCompanyContext";
 export function HomePage({
   user,
   tenant,
+  owner = false,
   navigate,
 }: {
   user: string;
   tenant: string;
   companyName: string;
+  owner?: boolean;
   navigate: (changes: Partial<Selection>) => void;
 }) {
   const { data, loading, error, refresh } = useRead(() => api.dashboard(tenant), [tenant]);
@@ -24,6 +26,11 @@ export function HomePage({
         key={`${user}:${tenant}`}
         user={user}
         tenant={tenant}
+        watchLive={
+          owner
+            ? () => navigate({ route: "inspector", inspectorView: "live", liveFilter: "" })
+            : undefined
+        }
         lead={
           <div className="grid divide-y divide-border-default border-y border-border-default sm:grid-cols-3 sm:divide-x sm:divide-y-0">
             {dailyWork.map(({ label, total, selection }) => {

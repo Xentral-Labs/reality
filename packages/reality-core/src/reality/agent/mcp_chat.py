@@ -10,7 +10,13 @@ from pydantic import ValidationError
 from sqlalchemy.orm import Session
 
 from reality.agent.streaming import ChatEventSink, streamed_message
-from reality.mcp.catalog import dispatch_tool, model_tool_schemas
+from reality.mcp.catalog import (
+    dispatch_tool,
+    model_tool_schemas,
+    schema_argument_names,
+    schema_choices,
+)
+from reality.services import interaction_recorder as interactions
 from reality.services.core import InvalidOperation, NotFound
 from reality.services.tenant_policy import (
     playground_chat_active,
@@ -38,13 +44,34 @@ def _call_tool(session, tenant_id, name, arguments, access) -> tuple[Any, bool]:
     needed was one sentence to correct itself with. Anything that is not about
     the request — a database that is gone — still travels up.
     """
+    # Spec 266: the model crossing into the application is one interaction; it
+    # shares the correlation of the web request that carries the chat turn.
+    with interactions.observe(
+        tenant_id,
+        "chat",
+        name,
+        arguments=schema_argument_names(name, arguments),
+        choices=schema_choices(name, arguments),
+    ):
+        return _dispatch(session, tenant_id, name, arguments, access)
+
+
+def _dispatch(session, tenant_id, name, arguments, access) -> tuple[Any, bool]:
     try:
-        return dispatch_tool(
+        result = dispatch_tool(
             session, tenant_id, name, arguments, allowed_access=access
-        ), False
+        )
+        interactions.note_result(result)
+        return result, False
     except ValidationError as error:
+        interactions.note_outcome("refused", "validation_error")
         return {"error": error.errors(include_url=False, include_context=False)}, True
     except (InvalidOperation, NotFound) as error:
+        interactions.note_outcome(
+            "refused",
+            getattr(error, "code", None)
+            or ("not_found" if isinstance(error, NotFound) else "invalid_operation"),
+        )
         return {
             "error": str(error),
             **({"code": error.code} if getattr(error, "code", None) else {}),

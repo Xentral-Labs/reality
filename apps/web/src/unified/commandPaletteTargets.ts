@@ -136,6 +136,12 @@ const pages: Page[] = [
     destination: { route: "inspector", inspectorView: "history" },
   },
   {
+    key: "engine-room",
+    label: "Live monitor",
+    access: "owner",
+    destination: { route: "inspector", inspectorView: "live", liveFilter: "" },
+  },
+  {
     key: "integrations",
     label: "Integrations",
     destination: { route: "data-sources", dataView: "systems" },

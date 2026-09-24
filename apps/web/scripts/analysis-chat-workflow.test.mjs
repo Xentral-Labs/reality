@@ -241,6 +241,8 @@ test("global chat preserves typed text, isolates context and restores it after a
             : {
                 t: (key) => key,
                 api,
+                currentCorrelation: () => "w_test",
+                engineRoomHref: () => "#engine-room",
                 ChatComposer,
                 useRead: () => ({ data, refresh: () => {} }),
                 messageContext: (content) => ({ text: exports.analysisMessageText(content) }),

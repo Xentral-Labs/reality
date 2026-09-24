@@ -14,8 +14,15 @@ from pydantic import WithJsonSchema
 
 from reality.db.core import Session
 from reality.mcp.auth import DatabaseTokenVerifier
-from reality.mcp.catalog import MCPToolDefinition, dispatch_mcp_tool, tool_definitions
+from reality.mcp.catalog import (
+    MCPToolDefinition,
+    dispatch_mcp_tool,
+    schema_argument_names,
+    schema_choices,
+    tool_definitions,
+)
 from reality.mcp.principal import MCPPrincipal
+from reality.services import interaction_recorder as interactions
 from reality.services.core import (
     Conflict,
     InterpretationNeedsReview,
@@ -119,14 +126,29 @@ def _handler(definition: MCPToolDefinition):
             )
         if not principal.permits(definition.name):
             raise ToolError(f"MCP token does not allow tool: {definition.name}")
-        with Session() as session:
-            if union_branches:
-                arguments = {
-                    name: value
-                    for name, value in arguments.items()
-                    if value is not None
-                }
-            return dispatch_mcp_tool(session, principal, definition.name, arguments)
+        if union_branches:
+            arguments = {
+                name: value for name, value in arguments.items() if value is not None
+            }
+        # Spec 266: one engine-room interaction per MCP tool call, attributed to the
+        # person an interactive grant names, or else to the manual token.
+        with (
+            interactions.observe(
+                principal.tenant_id,
+                "mcp",
+                definition.name,
+                actor_user_id=principal.user_id,
+                mcp_token_id=principal.credential_id
+                if principal.authentication_kind == "manual"
+                else None,
+                arguments=schema_argument_names(definition.name, arguments),
+                choices=schema_choices(definition.name, arguments),
+            ),
+            Session() as session,
+        ):
+            result = dispatch_mcp_tool(session, principal, definition.name, arguments)
+            interactions.note_result(result)
+            return result
 
     invoke.__name__ = definition.name
     invoke.__doc__ = definition.description
@@ -225,6 +247,8 @@ def build_remote_server(
     authorization_issuer: str | None = None,
 ) -> MCPServer:
     """Build the authenticated HTTP MCP resource server."""
+    # Spec 266: the serving process records interactions off the call path.
+    interactions.start_background_writer()
     return build_server(
         host=host,
         port=port,
