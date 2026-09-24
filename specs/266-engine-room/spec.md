@@ -135,18 +135,19 @@ As an owner I move back on a time axis and play a past window, for example one a
 
 - **FR-001**: The system MUST record one interaction for every tool invocation through MCP, Chat and CLI, every tenant-scoped web API request, every proposal decision, every scheduled job run that read or wrote company data, per company. Source intake is recorded as the interaction that carried it (web upload, MCP tool, worker job) and is recognizable by the Source stage it wrote. Empty scheduler sweeps and idle worker polls are not interactions.
 - **FR-002**: Each interaction MUST state recorded time, channel, actor, operation (a bounded name from the tool/command catalog or route template, never a raw URL or query), kind (read; write — committed events without a proposal; propose; decide; job), outcome with error code where applicable, and duration.
-- **FR-003**: Interactions MUST NOT contain argument values, result values, payloads, tokens, secrets or free text; at most a bounded summary (argument names, result count).
+- **FR-003**: Interactions MUST NOT contain argument values, result values, payloads, tokens, secrets or free text. They hold at most a bounded summary: argument names, a result count, and arguments whose value is one of the tool's declared enum values (for example `family: party`). A closed-list choice is vocabulary, not content. Free text, undeclared keys and server-filled defaults never qualify.
 - **FR-004**: Interactions that share a cause MUST share a correlation: the web client sends one per user action, a chat turn inherits the correlation of the request that carried it, and each MCP call and job run carries its own. An interaction MUST link to exactly the business events it caused and that were committed; events of a rolled-back transaction are not linked.
 - **FR-005**: The Live tab MUST show new interactions of the company within 2 seconds of completion, in recorded order, and resume without gaps or duplicates after a disconnect.
-- **FR-006**: The Live tab MUST offer filters by channel, actor, kind, outcome and correlation, and a subject filter; filters are part of the URL.
+- **FR-006**: The Live tab MUST offer filters by channel, actor, kind, outcome and correlation, and a subject filter; filters are part of the URL. The viewer's own interactions MUST be hidden by default and shown on request, and the header indicator MUST NOT react to them.
 - **FR-007**: The Live tab MUST link each interaction to the Reality it produced (business events, the records they concern, and the proposal) through the existing Inspector and Decisions page, and state when an interaction produced nothing. A chat turn is reached through its correlation, which groups the carrying request and its tool calls.
-- **FR-008**: The model map MUST mark only stages the interaction is known to have read or written, distinguish read from write, and respect reduced-motion preferences.
+- **FR-008**: The model map MUST mark only stages the interaction is known to have read or written, distinguish read from write, and respect reduced-motion preferences. A declared choice that names a stage (such as `family: commitment`) is known.
 - **FR-009**: The system MUST offer the entry points of US4: header indicator, Home, command palette, MCP token, chat turn and Inspector record.
 - **FR-010**: The Live tab's own requests and routine background refresh MUST be excluded from the default view.
 - **FR-011**: Interactions MUST be kept for 7 days. Reads never return older rows, and the work that records interactions removes its company's expired rows in bounded batches (the spec 181 FR-005 rule: the work that makes the history tidies it), so a company cannot accumulate rows without also forgetting old ones.
 - **FR-012**: Recording MUST NOT fail the observed interaction; a recording failure is counted in metrics and the interaction proceeds.
 - **FR-013**: The Live tab and its data MUST be available only to active owners of the company; members and other companies receive not found.
 - **FR-014**: The Live tab MUST let the viewer pause and resume the stream without losing interactions.
+- **FR-016**: A tool call MUST show a reader's label (the catalog's label in the viewer's language where one exists, else the tool's own label) next to its technical name. A read that changed nothing shows nothing in the reality lane.
 - **FR-015**: Replay MUST show interactions of a selected past window within retention in recorded order with step controls.
 
 ### Domain and Traceability Requirements
@@ -204,6 +205,7 @@ As an owner I move back on a time axis and play a past window, for example one a
 | FR-013 | — | role test: member and foreign owner get not found |
 | FR-014 | US1 6 | browser test |
 | FR-015 | US5 1 | browser test |
+| FR-016 | Owner review 2026-09-24 | reads test for labels; live browser check |
 | DR-001 | — | architecture test: no business import of interactions |
 | DR-002 | US2 1 | business story |
 | DR-003 | Edge: tenant boundary | isolation catalog |

@@ -85,6 +85,12 @@ The storyline middleware already performs one threadpool write per GET, for stor
 
   Turning off `synchronous_commit` showed no gain and was dropped.
 
+- **I10 — Owner review of the live view (2026-09-24).**
+  - The model map stayed dark for most reads because no argument values were kept. Declared enum values are now kept as `summary.choices` and name their stage (FR-003, FR-008).
+  - "Changed nothing" on every read hid the rows that did change something, so the lane is now empty for such reads.
+  - Tool calls show a label (FR-016). Only 4 of 179 tools have a German catalog label, and the web dictionary translates 49 of the 172 English tool labels. The rest show English next to the technical name; translating them is follow-up work.
+  - The owner's own page loads dominated the list, so they are hidden by default (FR-006).
+
 ## Analysis (2026-09-24)
 
 A consistency pass over `spec.md`, `plan.md`, `data-model.md`, `contracts/` and `tasks.md`, checked against the code on `origin/main`. No CRITICAL finding. Every HIGH finding is resolved in the artifacts.

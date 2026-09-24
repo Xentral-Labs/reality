@@ -28,19 +28,21 @@ router = APIRouter(
 )
 
 
-def _owner(request: Request, session: DatabaseSession, tenant_id: str) -> None:
+def _owner(request: Request, session: DatabaseSession, tenant_id: str) -> str | None:
+    """The viewing owner's id, or None in development without sign-in."""
     if (
         getattr(request.state, "user", None) is None
         and os.environ.get("REALITY_AUTH_MODE", "enabled").lower() == "disabled"
     ):
         # Development without sign-in opens every company surface; the engine room
         # follows it rather than answering 401, which the web reads as a lost session.
-        return
+        return None
     principal = request_principal(request)
     try:
         interactions.require_engine_room_access(session, tenant_id, principal.user_id)
     except NotFound as error:
         raise api_error(error) from error
+    return principal.user_id
 
 
 @router.get("")
@@ -60,9 +62,11 @@ def list_interactions(
     subject_type: str | None = Query(None, max_length=64),
     subject_id: str | None = Query(None, max_length=64),
     include_refresh: bool = False,
+    hide_own: bool = False,
+    language: str = Query("en", pattern="^[a-z]{2}$"),
     limit: int = Query(200, ge=1, le=interactions.LIMIT_MAX),
 ) -> dict[str, Any]:
-    _owner(request, session, tenant_id)
+    viewer = _owner(request, session, tenant_id)
     try:
         return interactions.list_interactions(
             session,
@@ -79,6 +83,8 @@ def list_interactions(
             subject_type=subject_type,
             subject_id=subject_id,
             include_refresh=include_refresh,
+            exclude_actor_user_id=viewer if hide_own else None,
+            language=language,
             limit=limit,
         )
     except (NotFound, InvalidOperation) as error:
@@ -87,10 +93,13 @@ def list_interactions(
 
 @router.get("/pulse")
 def interaction_pulse(
-    tenant_id: str, request: Request, session: DatabaseSession
+    tenant_id: str, request: Request, session: DatabaseSession, hide_own: bool = True
 ) -> dict[str, Any]:
-    _owner(request, session, tenant_id)
-    return interactions.pulse(session, tenant_id)
+    viewer = _owner(request, session, tenant_id)
+    # The owner's own navigation must not make the indicator blink at them.
+    return interactions.pulse(
+        session, tenant_id, exclude_actor_user_id=viewer if hide_own else None
+    )
 
 
 @router.get("/{interaction_id}/events")

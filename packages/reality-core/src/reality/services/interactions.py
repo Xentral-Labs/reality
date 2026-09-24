@@ -91,14 +91,20 @@ def _resource_tables() -> tuple[tuple[re.Pattern[str], tuple[str, ...]], ...]:
     )
 
 
-def read_stages(channel: str, operation: str) -> list[str]:
+def read_stages(
+    channel: str, operation: str, choices: dict[str, str] | None = None
+) -> list[str]:
     """Stages a tool reads, by the resource catalog's membership rule.
 
-    Web operations are route templates the catalog does not describe; they mark
-    no read stage rather than a guessed one.
+    A declared choice names its stage directly (`family: party` reads master
+    data). Web operations are route templates the catalog does not describe; they
+    mark no read stage rather than a guessed one.
     """
     if channel == "web":
         return []
+    chosen = {stage_of(value) for value in (choices or {}).values()} - {None}
+    if chosen:
+        return [stage for stage in STAGES if stage in chosen]
     found = {
         stage
         for pattern, tables in _resource_tables()
@@ -148,6 +154,8 @@ def list_interactions(
     subject_type: str | None = None,
     subject_id: str | None = None,
     include_refresh: bool = False,
+    exclude_actor_user_id: str | None = None,
+    language: str = "en",
     limit: int = 200,
     as_of: datetime | None = None,
 ) -> dict[str, Any]:
@@ -189,6 +197,13 @@ def list_interactions(
             conditions.append(field == value)
     if not include_refresh:
         conditions.append(Interaction.refresh.is_(False))
+    if exclude_actor_user_id:
+        conditions.append(
+            or_(
+                Interaction.actor_user_id.is_(None),
+                Interaction.actor_user_id != exclude_actor_user_id,
+            )
+        )
     if subject_type is not None:
         sequences = list(
             session.scalars(
@@ -235,7 +250,7 @@ def list_interactions(
         )
         page = [row for row in page if _covers(row.event_ranges, wanted)]
     return {
-        "interactions": _present(session, tenant_id, page),
+        "interactions": _present(session, tenant_id, page, language),
         "cursor": max((row.cursor for row in page), default=after),
         "retention_starts_at": retention_starts_at,
         "truncated": truncated,
@@ -283,7 +298,38 @@ def _written_stages(
     return {key: [s for s in STAGES if s in stages] for key, stages in found.items()}
 
 
-def _present(session: Session, tenant_id: str, rows: list[Interaction]) -> list[dict]:
+@cache
+def _operation_labels() -> dict[str, dict[str, str]]:
+    """Tool name -> language -> label, from the MCP registry and catalog labels.
+
+    The German label comes the way the storyline names a tool: MCP name, its
+    application tool in the capability guidance, the command label for it.
+    """
+    from reality.catalogs import load_catalog_labels, runtime_application_catalog
+    from reality.mcp.catalog import MCP_TOOL_REGISTRY
+
+    commands = load_catalog_labels()["commands"]
+    guidance = runtime_application_catalog().get("capability_guidance") or {}
+    labels: dict[str, dict[str, str]] = {}
+    for name, definition in MCP_TOOL_REGISTRY.items():
+        application = (guidance.get(name) or {}).get("application_tool") or name
+        labels[name] = {"en": definition.label, **commands.get(application, {})}
+    return labels
+
+
+def operation_label(channel: str, operation: str, language: str) -> str | None:
+    """A reader's name for a tool call; web routes keep their template."""
+    if channel == "web":
+        return None
+    names = _operation_labels().get(operation)
+    if not names:
+        return None
+    return names.get(language) or names.get("en")
+
+
+def _present(
+    session: Session, tenant_id: str, rows: list[Interaction], language: str = "en"
+) -> list[dict]:
     user_ids = {row.actor_user_id for row in rows if row.actor_user_id}
     token_ids = {row.mcp_token_id for row in rows if row.mcp_token_id}
     proposal_ids = {row.proposal_id for row in rows if row.proposal_id}
@@ -323,7 +369,7 @@ def _present(session: Session, tenant_id: str, rows: list[Interaction]) -> list[
         else {}
     )
     written = _written_stages(session, tenant_id, rows)
-    return [_view(row, users, tokens, proposals, written) for row in rows]
+    return [_view(row, users, tokens, proposals, written, language) for row in rows]
 
 
 def _actor(row: Interaction, users: dict, tokens: dict) -> dict[str, Any] | None:
@@ -348,7 +394,7 @@ def _actor(row: Interaction, users: dict, tokens: dict) -> dict[str, Any] | None
     return None
 
 
-def _view(row, users, tokens, proposals, written) -> dict[str, Any]:
+def _view(row, users, tokens, proposals, written, language="en") -> dict[str, Any]:
     proposal = proposals.get(row.proposal_id) if row.proposal_id else None
     count = sum(last - first + 1 for first, last in row.event_ranges or ())
     return {
@@ -360,6 +406,7 @@ def _view(row, users, tokens, proposals, written) -> dict[str, Any]:
         "channel": row.channel,
         "kind": row.kind,
         "operation": row.operation,
+        "label": operation_label(row.channel, row.operation, language),
         "outcome": row.outcome,
         "error_code": row.error_code,
         "actor": _actor(row, users, tokens),
@@ -377,7 +424,9 @@ def _view(row, users, tokens, proposals, written) -> dict[str, Any]:
             "last_sequence": row.event_last_sequence,
         },
         "stages": {
-            "read": read_stages(row.channel, row.operation),
+            "read": read_stages(
+                row.channel, row.operation, (row.summary or {}).get("choices")
+            ),
             "written": written.get(row.id, []),
         },
         "summary": row.summary or {},
@@ -411,10 +460,20 @@ def events_of(
     )
 
 
-def pulse(session: Session, tenant_id: str) -> dict[str, Any]:
+def pulse(
+    session: Session, tenant_id: str, exclude_actor_user_id: str | None = None
+) -> dict[str, Any]:
+    conditions = [Interaction.tenant_id == tenant_id, Interaction.refresh.is_(False)]
+    if exclude_actor_user_id:
+        conditions.append(
+            or_(
+                Interaction.actor_user_id.is_(None),
+                Interaction.actor_user_id != exclude_actor_user_id,
+            )
+        )
     latest = session.execute(
         select(Interaction.cursor, Interaction.recorded_at)
-        .where(Interaction.tenant_id == tenant_id, Interaction.refresh.is_(False))
+        .where(*conditions)
         .order_by(Interaction.cursor.desc())
         .limit(1)
     ).first()

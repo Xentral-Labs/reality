@@ -240,6 +240,7 @@ async def test_an_mcp_call_is_attributed_to_its_token(
         token.id,
     )
     assert row.summary.get("arguments") == ["family", "limit"]
+    assert row.summary.get("choices") == {"family": "item"}
 
 
 def test_a_chat_tool_call_is_recorded_and_a_refusal_keeps_its_code(

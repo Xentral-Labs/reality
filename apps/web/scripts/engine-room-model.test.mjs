@@ -94,13 +94,17 @@ test("a filter survives the URL and becomes the API query", () => {
   assert.equal(params.get("live_channel"), "mcp");
   assert.equal(params.get("live_correlation"), null);
   const back = liveFilterFromParams(params);
-  assert.deepEqual(back, { ...filter, actor: "", kind: "", outcome: "" });
+  assert.deepEqual(back, { ...filter, actor: "", kind: "", outcome: "", own: false });
   const query = liveFilterQuery(back);
   assert.equal(query.get("channel"), "mcp");
   assert.equal(query.get("mcp_token_id"), "mcpt_1");
   assert.equal(query.get("subject_type"), "party");
   assert.equal(query.get("include_refresh"), "true");
   assert.equal(query.get("correlation_id"), null);
+  // The viewer's own interactions are hidden unless they ask for them.
+  assert.equal(query.get("hide_own"), "true");
+  assert.equal(liveFilterQuery({ ...back, own: true }).get("hide_own"), null);
+  assert.equal(liveFilterToParams({ ...back, own: true }).get("live_own"), "1");
 });
 
 test("an unknown channel in the URL is ignored rather than sent", () => {

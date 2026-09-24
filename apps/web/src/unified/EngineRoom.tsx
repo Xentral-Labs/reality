@@ -1,7 +1,7 @@
 import { Pause, Play, Radio, Rewind, SkipBack, SkipForward, X } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { APIError, api, type Interaction, type InteractionEvent } from "../api";
-import { formatDateTime, formatNumber, formatTime, t } from "../localization";
+import { currentLanguage, formatDateTime, formatNumber, formatTime, t } from "../localization";
 import { Inspector } from "./Inspector";
 import {
   CHANNELS,
@@ -179,7 +179,8 @@ function RealityCell({
 }) {
   const [expanded, setExpanded] = useState(false);
   if (!row.events.count && !row.proposal)
-    return <span className="text-xs text-fg-quiet">{t("Changed nothing")}</span>;
+    // A read changes nothing; saying so on every row only hides the rows that did.
+    return <span aria-hidden />;
   return (
     <div className="min-w-0">
       <div className="flex flex-wrap items-center gap-2 text-xs">
@@ -225,7 +226,12 @@ function InteractionRow({
   openProposal: (id: string) => void;
   filterBy: (change: Partial<LiveFilter>) => void;
 }) {
-  const args = row.summary.arguments || [];
+  const choices = row.summary.choices || {};
+  // Arguments with a declared choice show the choice; the rest show their name only.
+  const args = [
+    ...Object.entries(choices).map(([name, value]) => `${name}: ${value}`),
+    ...(row.summary.arguments || []).filter((name) => !(name in choices)),
+  ];
   return (
     <li
       className={`grid gap-x-4 gap-y-1 px-3 py-2 text-sm md:grid-cols-[minmax(0,1.1fr)_minmax(0,1.4fr)_minmax(0,1fr)] ${
@@ -264,7 +270,15 @@ function InteractionRow({
       </div>
       <div className="min-w-0">
         <div className="flex flex-wrap items-center gap-2">
-          <span className="truncate font-mono text-xs" data-original-content="">
+          {row.label && (
+            <span className="truncate font-medium" data-interaction-label>
+              {t(row.label)}
+            </span>
+          )}
+          <span
+            className={`truncate font-mono text-xs ${row.label ? "text-fg-muted" : ""}`}
+            data-original-content=""
+          >
             {row.operation}
           </span>
           <span className={`rounded px-1.5 py-0.5 text-xs ${outcomeTone[row.outcome] || ""}`}>
@@ -347,6 +361,7 @@ export function EngineRoom({
       const controller = new AbortController();
       const timeout = window.setTimeout(() => controller.abort(), TIMEOUT_MS);
       const params = new URLSearchParams(query);
+      params.set("language", currentLanguage());
       if (cursorRef.current !== null) params.set("after", String(cursorRef.current));
       try {
         const page = await api.interactions(tenant, params, controller.signal);
@@ -382,6 +397,7 @@ export function EngineRoom({
 
   const loadReplay = async () => {
     const params = new URLSearchParams(query);
+    params.set("language", currentLanguage());
     params.set("from", window_.from.toISOString());
     params.set("to", window_.to.toISOString());
     params.set("limit", "500");
@@ -517,6 +533,15 @@ export function EngineRoom({
             onChange={(event) => setFilter({ refresh: event.target.checked })}
           />
           {t("Show background refresh")}
+        </label>
+        <label className="flex items-center gap-2">
+          <input
+            type="checkbox"
+            checked={filter.own}
+            onChange={(event) => setFilter({ own: event.target.checked })}
+            data-engine-room-own
+          />
+          {t("Show my own access")}
         </label>
         {chips
           .filter(({ key }) => filter[key])

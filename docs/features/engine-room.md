@@ -26,7 +26,9 @@ outer one. The one exception is chat inside a web request.
 
 Rows carry no argument or result values. They hold the operation name (tool name or route
 template), the kind (`read`, `write`, `propose`, `decide`, `job`), the outcome and error
-code, the duration, the declared argument names and a result count. Links run from the
+code, the duration, the declared argument names, a result count, and arguments whose value
+is one of the tool's declared enum values (`family: party`). A closed-list choice is
+vocabulary, not content, and it names the stage the model map marks as read. Links run from the
 interaction to the committed event sequences it caused. Events of a rolled-back
 transaction are not linked, and `business_event` gains no column.
 

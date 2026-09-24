@@ -2987,7 +2987,9 @@ def dispatch_mcp_tool(
     )
 
 
-def schema_argument_names(tool_name: str, arguments: dict[str, Any] | None) -> list[str]:
+def schema_argument_names(
+    tool_name: str, arguments: dict[str, Any] | None
+) -> list[str]:
     """The argument names a call used that its tool declares (spec 266 FR-003).
 
     Only declared names can reach the engine room, so a caller cannot smuggle
@@ -3005,6 +3007,31 @@ def schema_argument_names(tool_name: str, arguments: dict[str, Any] | None) -> l
         and value is not None
         and value != declared[name].get("default")
     )
+
+
+def schema_choices(tool_name: str, arguments: dict[str, Any] | None) -> dict[str, str]:
+    """Arguments whose value is one of the tool's declared enum values (spec 266).
+
+    A choice from a closed list is vocabulary, not content — `family: party` says
+    what was asked without carrying anything a caller wrote. Free text never
+    qualifies, and neither does a default the server filled in.
+    """
+    definition = MCP_TOOL_REGISTRY.get(tool_name)
+    if definition is None or not arguments:
+        return {}
+    declared = definition.input_schema.get("properties", {})
+    choices: dict[str, str] = {}
+    for name, value in sorted(arguments.items()):
+        spec = declared.get(name)
+        if (
+            isinstance(spec, dict)
+            and isinstance(value, str)
+            and value in (spec.get("enum") or ())
+            and value != spec.get("default")
+            and len(value) <= 64
+        ):
+            choices[name] = value
+    return dict(list(choices.items())[:8])
 
 
 def model_tool_schemas(

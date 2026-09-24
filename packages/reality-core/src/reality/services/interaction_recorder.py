@@ -52,6 +52,7 @@ class Observation:
     job_id: str | None = None
     refresh: bool = False
     arguments: tuple[str, ...] = ()
+    choices: dict[str, str] = field(default_factory=dict)
     result_count: int | None = None
     proposal_id: str | None = None
     proposal_status: str | None = None
@@ -126,6 +127,7 @@ def begin(
     job_id: str | None = None,
     refresh: bool = False,
     arguments: Iterable[str] = (),
+    choices: dict[str, str] | None = None,
 ) -> tuple[Observation | None, Any]:
     """Open an observation, or join the one already open.
 
@@ -156,6 +158,7 @@ def begin(
         job_id=job_id,
         refresh=refresh,
         arguments=tuple(sorted(set(arguments)))[:ARGUMENT_LIMIT],
+        choices=dict(choices or {}),
         started_at=_now(),
         started=time.perf_counter(),
     )
@@ -417,6 +420,22 @@ def _record_batch(batch: list) -> None:
         )
 
 
+def _bounded(summary: dict[str, Any]) -> dict[str, Any]:
+    """Keep the summary under the column's 1 KiB check rather than lose the row."""
+    import json
+
+    from reality.db.interactions import SUMMARY_BYTES
+
+    while len(json.dumps(summary).encode()) > SUMMARY_BYTES - 16:
+        if summary.get("arguments"):
+            summary["arguments"] = summary["arguments"][:-1]
+        elif summary.get("choices"):
+            summary["choices"] = dict(list(summary["choices"].items())[:-1])
+        else:
+            return {}
+    return summary
+
+
 def _ranges(sequences: list[int]) -> list[list[int]]:
     ranges: list[list[int]] = []
     for sequence in sorted(sequences):
@@ -506,6 +525,8 @@ def _write_batch(batch: list[Pending]) -> None:
             summary: dict[str, Any] = {}
             if observation.arguments:
                 summary["arguments"] = list(observation.arguments)
+            if observation.choices:
+                summary["choices"] = observation.choices
             if observation.result_count is not None:
                 summary["result_count"] = observation.result_count
             rows.append(
@@ -533,7 +554,7 @@ def _write_batch(batch: list[Pending]) -> None:
                     "event_last_sequence": ranges[-1][1] if ranges else None,
                     "event_ranges": ranges or None,
                     "refresh": observation.refresh,
-                    "summary": summary,
+                    "summary": _bounded(summary),
                 }
             )
         session.execute(insert(Interaction), rows)

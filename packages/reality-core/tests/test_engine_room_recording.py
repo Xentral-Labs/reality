@@ -445,3 +445,40 @@ def test_one_batch_writes_each_company_with_its_own_links(session, business, rec
     assert first.event_ranges == [[mine.sequence, mine.sequence]]
     assert second.event_ranges == [[theirs.sequence, theirs.sequence]]
     assert crossed.event_ranges is None and crossed.kind == "read"
+
+
+def test_only_declared_enum_values_are_kept_as_choices():
+    from reality.mcp.catalog import schema_choices
+
+    choices = schema_choices(
+        "business_records_discover",
+        {"family": "party", "limit": 5, "cursor": "Müller GmbH", "invented": "party"},
+    )
+    # Positive control: the tool declares `family` as an enum and the value is in it.
+    assert choices == {"family": "party"}
+    assert schema_choices("business_records_discover", {"family": "Müller GmbH"}) == {}
+    assert schema_choices("no.such.tool", {"family": "party"}) == {}
+
+
+def test_choices_reach_the_summary_and_an_oversized_summary_is_cut(
+    session, business, recording
+):
+    tenant = business.tenant.id
+    with interactions.observe(
+        tenant, "mcp", "business_records_discover", choices={"family": "party"}
+    ):
+        pass
+    with interactions.observe(
+        tenant,
+        "mcp",
+        "wide.read",
+        arguments=[f"argument_{index:02d}_{'x' * 40}" for index in range(32)],
+        choices={f"c{index}": "v" * 64 for index in range(8)},
+    ):
+        pass
+    narrow, wide = rows(session, tenant)
+    assert narrow.summary["choices"] == {"family": "party"}
+    import json
+
+    assert len(json.dumps(wide.summary).encode()) <= 1024
+    assert wide.operation == "wide.read"  # the row was kept, not rejected

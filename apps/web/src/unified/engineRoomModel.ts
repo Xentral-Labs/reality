@@ -35,6 +35,8 @@ export type Interaction = {
   channel: Channel;
   kind: (typeof KINDS)[number];
   operation: string;
+  /** A reader's name for a tool call; null for web routes. */
+  label: string | null;
   outcome: (typeof OUTCOMES)[number];
   error_code: string | null;
   actor: InteractionActor | null;
@@ -42,7 +44,7 @@ export type Interaction = {
   proposal: { id: string; status: string; type: string } | null;
   events: { count: number; first_sequence: number | null; last_sequence: number | null };
   stages: { read: Stage[]; written: Stage[] };
-  summary: { arguments?: string[]; result_count?: number };
+  summary: { arguments?: string[]; choices?: Record<string, string>; result_count?: number };
   refresh: boolean;
 };
 
@@ -131,6 +133,8 @@ export type LiveFilter = {
   subjectType: string;
   subjectId: string;
   refresh: boolean;
+  /** Show the viewer's own interactions; hidden by default. */
+  own: boolean;
 };
 
 export const emptyLiveFilter: LiveFilter = {
@@ -143,10 +147,11 @@ export const emptyLiveFilter: LiveFilter = {
   subjectType: "",
   subjectId: "",
   refresh: false,
+  own: false,
 };
 
 const opaque = /^[A-Za-z0-9_-]{1,64}$/;
-const urlKeys: Record<Exclude<keyof LiveFilter, "refresh">, string> = {
+const urlKeys: Record<Exclude<keyof LiveFilter, "refresh" | "own">, string> = {
   channel: "live_channel",
   kind: "live_kind",
   outcome: "live_outcome",
@@ -165,6 +170,7 @@ export function liveFilterToParams(filter: LiveFilter): URLSearchParams {
     if (value) params.set(name, value);
   }
   if (filter.refresh) params.set("live_refresh", "1");
+  if (filter.own) params.set("live_own", "1");
   return params;
 }
 
@@ -184,6 +190,7 @@ export function liveFilterFromParams(params: URLSearchParams): LiveFilter {
     subjectType: read("live_subject_type"),
     subjectId: read("live_subject_id"),
     refresh: params.get("live_refresh") === "1",
+    own: params.get("live_own") === "1",
   };
 }
 
@@ -204,11 +211,14 @@ export function liveFilterQuery(filter: LiveFilter): URLSearchParams {
     query.set("subject_id", filter.subjectId);
   }
   if (filter.refresh) query.set("include_refresh", "true");
+  if (!filter.own) query.set("hide_own", "true");
   return query;
 }
 
 export const isFiltered = (filter: LiveFilter) =>
-  Object.entries(filter).some(([key, value]) => key !== "refresh" && Boolean(value));
+  Object.entries(filter).some(
+    ([key, value]) => key !== "refresh" && key !== "own" && Boolean(value),
+  );
 
 /** A link into the engine room with a filter, for the contextual entry points (US4). */
 export function engineRoomHref(tenant: string, filter: Partial<LiveFilter> = {}): string {

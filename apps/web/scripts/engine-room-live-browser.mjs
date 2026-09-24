@@ -78,6 +78,30 @@ check(
   mcpText.replace(/\s+/g, " ").slice(0, 160),
 );
 
+check("MCP row shows the choice, not only argument names", mcpText.includes("family: item"), "");
+check(
+  "MCP row carries a reader's label",
+  /Discover business records|Geschäftsdaten/.test(mcpText),
+  "",
+);
+const mcpRows = await owner.request
+  .get(`${BASE}/api/tenants/${TENANT}/interactions?channel=mcp`)
+  .then((response) => response.json());
+const mcpStages = mcpRows.interactions.at(-1)?.stages?.read || [];
+check("a choice names the stage it read", mcpStages.includes("master_data"), mcpStages.join(","));
+check(
+  "the owner's own page loads are hidden by default",
+  (await page.locator('[data-interaction-channel="web"]', { hasText: "Olga Owner" }).count()) === 0,
+);
+await page.locator("[data-engine-room-own]").check();
+await page
+  .locator("[data-interaction]", { hasText: "Olga Owner" })
+  .first()
+  .waitFor({ timeout: 5000 });
+check("showing own access brings them back", page.url().includes("live_own=1"));
+await page.locator("[data-engine-room-own]").uncheck();
+await page.waitForTimeout(1500);
+
 // Events of the write open.
 await page.locator("[data-engine-room-events-toggle]").first().click();
 await page.waitForSelector("[data-engine-room-events] li", { timeout: 5000 });

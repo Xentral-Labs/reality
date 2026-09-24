@@ -313,3 +313,39 @@ def test_development_without_sign_in_opens_the_engine_room(web, monkeypatch):  #
         f"/api/tenants/{web.tenant_id}/interactions"
     )
     assert anonymous.status_code == 401
+
+
+def test_a_declared_choice_names_the_stage_that_was_read(session, business):
+    tenant = business.tenant.id
+    add(
+        session,
+        tenant,
+        channel="mcp",
+        operation="business_records_discover",
+        summary={"choices": {"family": "commitment"}},
+    )
+    add(session, tenant, channel="mcp", operation="business_records_discover")
+    chosen, unchosen = listed(session, tenant)["interactions"]
+    assert chosen["stages"]["read"] == ["commitment"]
+    # Without a choice the catalog membership applies, which names no stage here.
+    assert "commitment" not in unchosen["stages"]["read"]
+
+
+def test_tool_calls_carry_a_readers_label_and_web_routes_do_not(session, business):
+    tenant = business.tenant.id
+    add(session, tenant, channel="mcp", operation="business_records_discover")
+    add(session, tenant, channel="web", operation="GET /items")
+    tool, route = listed(session, tenant, language="de")["interactions"]
+    assert tool["label"] and tool["label"] != "business_records_discover"
+    assert route["label"] is None
+
+
+def test_hiding_own_interactions_keeps_everyone_elses(session, business, scheduled_owner):
+    tenant = business.tenant.id
+    mine = add(session, tenant, actor_user_id=scheduled_owner.id)
+    agent = add(session, tenant, channel="mcp")
+    shown = ids(listed(session, tenant, exclude_actor_user_id=scheduled_owner.id))
+    assert shown == [agent.id]
+    # Positive control: without the filter the owner's own row is there.
+    assert mine.id in ids(listed(session, tenant))
+    assert interactions.pulse(session, tenant, scheduled_owner.id)["latest_cursor"] == agent.cursor

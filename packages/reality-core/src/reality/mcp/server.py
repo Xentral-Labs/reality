@@ -18,6 +18,7 @@ from reality.mcp.catalog import (
     MCPToolDefinition,
     dispatch_mcp_tool,
     schema_argument_names,
+    schema_choices,
     tool_definitions,
 )
 from reality.mcp.principal import MCPPrincipal
@@ -141,6 +142,7 @@ def _handler(definition: MCPToolDefinition):
                 if principal.authentication_kind == "manual"
                 else None,
                 arguments=schema_argument_names(definition.name, arguments),
+                choices=schema_choices(definition.name, arguments),
             ),
             Session() as session,
         ):

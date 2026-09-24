@@ -10,7 +10,12 @@ from pydantic import ValidationError
 from sqlalchemy.orm import Session
 
 from reality.agent.streaming import ChatEventSink, streamed_message
-from reality.mcp.catalog import dispatch_tool, model_tool_schemas, schema_argument_names
+from reality.mcp.catalog import (
+    dispatch_tool,
+    model_tool_schemas,
+    schema_argument_names,
+    schema_choices,
+)
 from reality.services import interaction_recorder as interactions
 from reality.services.core import InvalidOperation, NotFound
 from reality.services.tenant_policy import (
@@ -46,13 +51,16 @@ def _call_tool(session, tenant_id, name, arguments, access) -> tuple[Any, bool]:
         "chat",
         name,
         arguments=schema_argument_names(name, arguments),
+        choices=schema_choices(name, arguments),
     ):
         return _dispatch(session, tenant_id, name, arguments, access)
 
 
 def _dispatch(session, tenant_id, name, arguments, access) -> tuple[Any, bool]:
     try:
-        result = dispatch_tool(session, tenant_id, name, arguments, allowed_access=access)
+        result = dispatch_tool(
+            session, tenant_id, name, arguments, allowed_access=access
+        )
         interactions.note_result(result)
         return result, False
     except ValidationError as error:
