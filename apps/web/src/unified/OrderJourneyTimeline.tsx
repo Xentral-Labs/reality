@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ChevronDown, Search, X } from "lucide-react";
 import {
   api,
+  asRefresh,
   type JourneyEdge,
   type JourneyOrder,
   type JourneyRef,
@@ -192,7 +193,8 @@ function JourneyBody({ tenant, order }: { tenant: string; order: JourneyOrder | 
             ? { after: Math.max(...sequences) }
             : {};
       try {
-        const page = await api.journey(tenant, order?.id || "", cursor, abort.signal);
+        const read = () => api.journey(tenant, order?.id || "", cursor, abort.signal);
+        const page = await (requestMode === "refresh" ? asRefresh(read) : read());
         if (!alive.current || abort.signal.aborted) return;
         const merged = mergeJourneyEvents(held.current, page.events);
         held.current = merged;

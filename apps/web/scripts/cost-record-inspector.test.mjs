@@ -60,6 +60,7 @@ function harness() {
             inspectorMeta: (row) => row.meta || "",
           };
         if (name === "./usePaletteHistory") return { recordOpened() {} };
+        if (name === "./engineRoomModel") return { engineRoomHref: () => "#engine-room" };
         if (name === "./useCompanyContext")
           return {
             useRead(fn) {

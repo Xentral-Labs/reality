@@ -10,6 +10,7 @@ import {
   welcomeSelection,
 } from "./dailyWork";
 import { ProfileMenu } from "./ProfileMenu";
+import { EngineRoomPulse } from "./EngineRoom";
 import { usePendingDecisions, useWorkCount } from "./workCounts";
 import { withWorkCount } from "./TabWorkCount";
 import { RegisterHeader, RegisterHeaderTarget } from "./RegisterWorkbench";
@@ -312,6 +313,14 @@ export function Shell({
                 </div>
               </div>
               <div className="page-introduction-actions" ref={setPageActions} />
+              {company.role === "owner" && (
+                <EngineRoomPulse
+                  tenant={company.id}
+                  open={() =>
+                    navigate({ route: "inspector", inspectorView: "live", liveFilter: "" })
+                  }
+                />
+              )}
               {selection.route !== "chat" && selection.route !== "storyline" && (
                 <button
                   className="shell-chat-toggle"

@@ -1,6 +1,6 @@
 import { useEffect, useState, type ReactNode } from "react";
-import { TriangleAlert } from "lucide-react";
-import { api, type ActivityVolume, type SystemReadiness } from "../api";
+import { Radio, TriangleAlert } from "lucide-react";
+import { api, asRefresh, type ActivityVolume, type SystemReadiness } from "../api";
 import { formatDateTime, t } from "../localization";
 import { ActivityGraph } from "./ActivityGraph";
 
@@ -8,9 +8,12 @@ export function HomePulse({
   user,
   tenant,
   lead,
+  watchLive,
 }: {
   user: string;
   tenant: string;
+  /** Owners open the engine room from the activity graph (spec 266 US4). */
+  watchLive?: () => void;
   /** What needs a person comes first, between readiness and the activity graph. */
   lead?: ReactNode;
 }) {
@@ -38,6 +41,7 @@ export function HomePulse({
       lead={lead}
       days={days}
       setDays={setDays}
+      watchLive={watchLive}
     />
   );
 }
@@ -46,11 +50,13 @@ function HomePulseBody({
   lead,
   days,
   setDays,
+  watchLive,
 }: {
   tenant: string;
   lead?: ReactNode;
   days: number;
   setDays: (value: number) => void;
+  watchLive?: () => void;
 }) {
   const [data, setData] = useState<ActivityVolume | null>(null),
     [readiness, setReadiness] = useState<SystemReadiness | null>(null);
@@ -66,8 +72,7 @@ function HomePulseBody({
       controller = new AbortController();
       const timeout = window.setTimeout(() => controller?.abort(), 8000);
       await Promise.allSettled([
-        api
-          .activityVolume(tenant, days, controller.signal)
+        asRefresh(() => api.activityVolume(tenant, days, controller?.signal))
           .then((result) => {
             if (!disposed) {
               setData(result);
@@ -77,8 +82,7 @@ function HomePulseBody({
           .catch(() => {
             if (!disposed) setStale(true);
           }),
-        api
-          .readiness(tenant, controller.signal)
+        asRefresh(() => api.readiness(tenant, controller?.signal))
           .then((result) => {
             if (!disposed) {
               setReadiness(result);
@@ -139,6 +143,12 @@ function HomePulseBody({
           </button>
         ))}
       </div>
+      {watchLive && (
+        <button className="br-btn" onClick={watchLive} data-home-engine-room>
+          <Radio size={15} />
+          {t("Watch live")}
+        </button>
+      )}
     </div>
   );
   return (

@@ -20,6 +20,8 @@ export type Selection = {
   route: Destination;
   storylineChapter?: string;
   inspectorView?: string;
+  /** The engine room's filter, as its `live_*` URL parameters (spec 266). */
+  liveFilter?: string;
   attentionView?: "findings" | "rules";
   inspectorRecordKind?: string;
   inspectorTargetKind?: string;
@@ -121,9 +123,13 @@ export function readSelection(url: URL): Selection {
       "commands",
       "views",
       "history",
+      "live",
     ].includes(url.searchParams.get("inspector_view") || "")
       ? url.searchParams.get("inspector_view")!
       : "overview",
+    liveFilter: new URLSearchParams(
+      [...url.searchParams].filter(([key]) => key.startsWith("live_")),
+    ).toString(),
     inspectorRecordKind: url.searchParams.get("inspector_record_kind") || undefined,
     inspectorTargetKind: url.searchParams.get("inspector_target_kind") || "",
     inspectorTargetId: url.searchParams.get("inspector_target_id") || "",
@@ -292,6 +298,9 @@ export function selectionUrl(selection: Selection): string {
     if (!selection.analyticsReport && selection.analyticsTemplate)
       query.set("analytics_template", selection.analyticsTemplate);
   }
+  if (selection.route === "inspector" && selection.inspectorView === "live" && selection.liveFilter)
+    for (const [key, value] of new URLSearchParams(selection.liveFilter))
+      if (key.startsWith("live_")) query.set(key, value);
   if (selection.route === "inspector") {
     if (selection.calculatedReport) query.set("calculated_report", selection.calculatedReport);
     if (selection.toolCapability) query.set("tool_capability", selection.toolCapability);
@@ -397,6 +406,7 @@ export function companySelection(selection: Selection, tenant: string): Selectio
     tableDirection: "asc",
     inspectorTargetKind: "",
     inspectorTargetId: "",
+    liveFilter: "",
     factSubjectType: "",
     factSubject: "",
     factSource: "",

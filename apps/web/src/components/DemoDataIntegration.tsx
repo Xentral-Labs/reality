@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import {
   api,
   APIError,
+  asRefresh,
   type DemoDataStatus,
   type DemoDataPreview,
   type DemoImportPage,
@@ -135,7 +136,8 @@ function DemoDataIntegrationView({
   useEffect(() => {
     active.current = true;
     const poll = () => {
-      if (!working.current && document.visibilityState !== "hidden") void refresh().catch(() => {});
+      if (!working.current && document.visibilityState !== "hidden")
+        void asRefresh(() => refresh()).catch(() => {});
     };
     poll();
     const timer = window.setInterval(poll, 5000);

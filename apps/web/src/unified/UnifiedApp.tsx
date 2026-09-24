@@ -253,6 +253,7 @@ export default function UnifiedApp({
                     user={user.id}
                     tenant={company.id}
                     companyName={company.name}
+                    owner={company.role === "owner"}
                     navigate={navigate}
                   />
                 ) : selection.route === "analytics" ? (
@@ -351,6 +352,7 @@ export default function UnifiedApp({
                     user={user.id}
                     tenant={company.id}
                     companyName={company.name}
+                    owner={company.role === "owner"}
                     navigate={navigate}
                   />
                 ) : (

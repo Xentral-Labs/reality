@@ -1,3 +1,4 @@
+import { engineRoomHref } from "./engineRoomModel";
 import { useEffect, useState } from "react";
 import { api, type AIConfiguration, type MCPClientGrantView } from "../api";
 import { formatDateTime, t } from "../localization";
@@ -400,6 +401,15 @@ export function MCPAccess({
               {t("Created")}: {formatDateTime(token.created_at)} · {t("Last used")}:{" "}
               {token.last_used_at ? formatDateTime(token.last_used_at) : t("Never")}
             </p>
+            {tenant && (
+              <a
+                className="inline-block text-xs text-accent hover:underline"
+                href={engineRoomHref(tenant, { mcpToken: token.id })}
+                data-token-engine-room
+              >
+                {t("Calls of this client")}
+              </a>
+            )}
             <details>
               <summary className="cursor-pointer text-sm">
                 {token.allowed_tools.includes("*")
