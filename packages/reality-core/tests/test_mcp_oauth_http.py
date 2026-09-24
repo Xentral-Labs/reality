@@ -10,6 +10,7 @@ import httpx
 import pytest
 from fastapi.testclient import TestClient
 from mcp.server.auth.provider import AccessToken
+
 from reality.db.core import AppUser, PlaygroundRun, Tenant, TenantMembership, now, uid
 from reality.db.mcp_authorization import MCPAuthorizationInteraction
 from reality.mcp.server import build_server

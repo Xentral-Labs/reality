@@ -51,8 +51,9 @@ def test_setup_routes_pending_isolation_and_exact_destination(
 def test_options_prefill_is_application_metadata_without_company_creation(
     session, playground_http
 ):
-    from reality.db.core import AccessApplication, Tenant, uid
     from sqlalchemy import func, select
+
+    from reality.db.core import AccessApplication, Tenant, uid
 
     client, _tenant, user, _run, login = playground_http
     session.add(
@@ -73,11 +74,12 @@ def test_oauth_consent_reuses_confirmed_company_setup_and_resumes_exact_ready_te
     session, playground_http, monkeypatch
 ):
     """OAuth consent observes setup; it never creates through a parallel write path."""
+    from sqlalchemy import func, select
+
     from reality.db.core import Tenant
     from reality.services.mcp_authorization import create_interaction
     from reality.web import auth as auth_module
     from reality.web.app import app
-    from sqlalchemy import func, select
 
     client, _tenant, user, _run, login = playground_http
     monkeypatch.setenv("MCP_INTERACTIVE_AUTH_ENABLED", "true")
@@ -258,9 +260,10 @@ def test_live_creation_api_connects_and_starts_without_extra_requests(
 def test_free_entry_requires_explicit_signup_consent_and_reads_do_not_create(
     session, playground_http
 ):
+    from sqlalchemy import func, select
+
     from reality.db.core import Tenant
     from reality.services.free_playground import request_entry
-    from sqlalchemy import func, select
 
     client, _, user, _, login = playground_http
     login(user)

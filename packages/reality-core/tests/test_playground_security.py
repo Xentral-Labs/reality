@@ -7,6 +7,8 @@ from unittest.mock import Mock
 
 import pytest
 import yaml
+from sqlalchemy import func, select
+
 from reality.agent import settings
 from reality.db.core import (
     AISettings,
@@ -25,7 +27,6 @@ from reality.mcp.auth import DatabaseTokenVerifier, create_mcp_access_token
 from reality.security import secrets
 from reality.services import memberships, notifications
 from reality.services.core import InvalidOperation
-from sqlalchemy import func, select
 
 
 def core_mutation_names():
@@ -560,6 +561,7 @@ def test_generic_http_rejects_sandbox_egress_with_auth_disabled(
     session, sandbox, monkeypatch, path, payload
 ):
     from fastapi.testclient import TestClient
+
     from reality.web import api
     from reality.web import app as web
 
@@ -591,10 +593,11 @@ def test_business_only_policy_is_fail_closed_without_flushing(session, sandbox):
 
 
 def test_cli_cannot_create_items_in_sandbox(session, sandbox, monkeypatch):
-    from reality.cli import app as cli
-    from reality.db.core import Item
     from sqlalchemy.orm import sessionmaker
     from typer.testing import CliRunner
+
+    from reality.cli import app as cli
+    from reality.db.core import Item
 
     tenant, _ = sandbox
     monkeypatch.setattr(

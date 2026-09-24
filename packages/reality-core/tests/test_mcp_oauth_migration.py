@@ -3,8 +3,9 @@ from pathlib import Path
 import pytest
 from alembic import command
 from alembic.config import Config
-from reality.db.core import Base
 from sqlalchemy import CheckConstraint, create_engine, inspect, text
+
+from reality.db.core import Base
 
 TABLES = {
     "mcp_client_grant",

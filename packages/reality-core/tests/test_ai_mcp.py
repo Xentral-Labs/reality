@@ -9,6 +9,8 @@ from mcp.server.auth.middleware.auth_context import auth_context_var
 from mcp.server.auth.middleware.bearer_auth import AuthenticatedUser
 from mcp.server.auth.provider import AccessToken
 from mcp.server.mcpserver.exceptions import ToolError
+from sqlalchemy.orm import sessionmaker
+
 from reality.agent import settings as settings_module
 from reality.agent.settings import configured_api_key, copilot_api_key, save_ai_settings
 from reality.db.core import (
@@ -38,7 +40,6 @@ from reality.services.core import (
     create_tenant,
     record_movement,
 )
-from sqlalchemy.orm import sessionmaker
 
 
 @pytest.mark.anyio
