@@ -1,27 +1,16 @@
-"""Build deterministic backend test-file shards.
+"""Build deterministic backend test-file shards, balanced by measured duration.
 
-The shards are balanced by file count, which measured better than anything
-cleverer. Weighing the recorded seconds instead balanced the shards perfectly on
-paper — 1401s against 1401s — and made CI 20% slower twice over, because a
-shard's real time is not the sum of its files' times: the demo-seeding tests
-queue on the one PostgreSQL service, so co-locating them inflates exactly the
-number the model trusted. `--dist worksteal` already balances inside a shard;
-what matters here is only that the database-heavy files stay spread across both.
-
-    critical path, two samples each
-    by file count                    742s, 788s
-    by recorded seconds, heavy first 921s, 920s
-    by recorded seconds, path order  888s
-
-`scripts/backend_test_durations.json` stays as the record of where the time
-goes — it is how the twenty-second demo seed per test was found — and
-`--report` prints it. It does not decide the split.
+File size is a poor predictor of test time: one file that seeds a demo company
+costs more than a hundred unit-test files. The shards are therefore weighted by
+recorded seconds from `scripts/backend_test_durations.json`, refreshed with
+`scripts/record_backend_test_durations.py` from a JUnit report.
 """
 
 from __future__ import annotations
 
 import argparse
 import json
+import statistics
 from pathlib import Path
 
 DURATIONS = Path(__file__).with_name("backend_test_durations.json")
@@ -34,18 +23,30 @@ def load_durations(path: Path) -> dict[str, float]:
     return {key: float(value) for key, value in recorded.get("files", {}).items()}
 
 
-def shard_files(root: Path, total: int) -> list[list[Path]]:
+def weigh(files: list[Path], root: Path, durations: dict[str, float]) -> dict[Path, float]:
+    """Seconds where they are known, the median of the known ones where they are not."""
+    known = [durations[str(path.relative_to(root))] for path in files if str(path.relative_to(root)) in durations]
+    fallback = statistics.median(known) if known else 1.0
+    return {
+        path: durations.get(str(path.relative_to(root)), fallback) for path in files
+    }
+
+
+def shard_files(root: Path, total: int, durations: dict[str, float] | None = None) -> list[list[Path]]:
     if total < 1:
         raise ValueError("total must be positive")
     files = sorted(root.rglob("test_*.py"))
     if not files:
         raise ValueError(f"no test files found below {root}")
-    # Round robin over the path order: every shard gets the same count, and files
-    # that sit together in the tree — which tend to share a cost profile — land in
-    # different shards.
+    weights_by_file = weigh(files, root, durations if durations is not None else load_durations(DURATIONS))
+    # Longest first, each file to the lightest shard: the classic greedy balance.
+    files.sort(key=lambda path: (-weights_by_file[path], str(path)))
     shards: list[list[Path]] = [[] for _ in range(total)]
-    for index, path in enumerate(files):
-        shards[index % total].append(path)
+    loads = [0.0] * total
+    for path in files:
+        target = min(range(total), key=lambda index: (loads[index], index))
+        shards[target].append(path)
+        loads[target] += weights_by_file[path]
     return shards
 
 
@@ -59,19 +60,18 @@ def main() -> int:
     parser.add_argument(
         "--report",
         action="store_true",
-        help="print each shard's file count and its recorded seconds, if any",
+        help="print each shard's file count and predicted seconds instead of one shard",
     )
     args = parser.parse_args()
     if not 0 <= args.shard < args.total:
         parser.error("shard must be between zero and total minus one")
-    shards = shard_files(args.root, args.total)
+    recorded = load_durations(args.durations)
+    shards = shard_files(args.root, args.total, recorded)
     if args.report:
-        recorded = load_durations(args.durations)
+        weights = weigh(sorted(args.root.rglob("test_*.py")), args.root, recorded)
         for index, shard in enumerate(shards):
-            seconds = sum(
-                recorded.get(str(path.relative_to(args.root)), 0.0) for path in shard
-            )
-            print(f"shard {index}: {len(shard)} files, {seconds:.0f}s recorded")
+            seconds = sum(weights[path] for path in shard)
+            print(f"shard {index}: {len(shard)} files, {seconds:.0f}s predicted")
         return 0
     for path in shards[args.shard]:
         print(path.relative_to(args.relative_to))
