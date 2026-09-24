@@ -1667,3 +1667,10 @@ Feature contract: `docs/features/b2b-operational-chain.md`.
 | A place scope on stock, reservations and movements, combined with the item scope, its state filters, its item set and its query shape | 262 FR-005–FR-007/FR-010 | `packages/reality-core/tests/test_stock_at_location.py` |
 | The item preview and the location inspector address the pair, with the quantity named and the unit carried | 262 FR-001/FR-011 | `packages/reality-core/tests/test_stock_at_location.py`; `packages/reality-core/tests/test_operational_previews.py` |
 | The click path: a location quantity opens the item there, reaches both scoped registers, states and clears its scope in both editions | 262 FR-004/FR-008/FR-009/FR-014 | `apps/web/scripts/stock-at-location-browser.mjs`; `apps/web/scripts/stock-at-location-contract.test.mjs`; frontend build and i18n audit |
+
+### Spec 263 decision trail
+
+| Verification family | Specification | Tests |
+|---|---|---|
+| Token and issuer attribution columns: additive, reversible, no backfill, derived foreign-key index | 263 DR-002/SC-005 | `packages/reality-core/tests/test_decision_trail_migration.py`; `packages/reality-core/tests/test_schema_indexes.py` |
+| One tenant-scoped reader names a person, a token with its issuer, or unknown, in a constant number of statements | 263 FR-004/DR-003/DR-004/SC-004 | `packages/reality-core/tests/test_decision_attribution.py` |

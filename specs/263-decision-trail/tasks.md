@@ -31,18 +31,18 @@ or documentation task. Test tasks precede the code they prove and are observed f
 
 ### Tests
 
-- [ ] T005 [P] [DR-002] Add a failing upgrade/downgrade test for `0093_decision_trail` asserting both columns, the composite FK and both indexes, and no data rewrite, in `core/tests/test_decision_trail_migration.py`
-- [ ] T006 [P] [DR-003] Add failing tests for `decision_attributions`: person, MCP token with issuer, legacy token (issuer unknown), revoked token, pre-055 decision, pending decision; plus a cross-tenant case where a token or user of another company is never resolved, in `core/tests/test_decision_attribution.py`
-- [ ] T007 [P] [DR-003] Add a statement-count assertion (≤ 3 statements for 1 and for 100 proposals) in `core/tests/test_decision_attribution.py`
+- [X] T005 [P] [DR-002] Add a failing upgrade/downgrade test for `0093_decision_trail` asserting both columns, the composite FK and both indexes, and no data rewrite, in `core/tests/test_decision_trail_migration.py`
+- [X] T006 [P] [DR-003] Add failing tests for `decision_attributions`: person, MCP token with issuer, legacy token (issuer unknown), revoked token, pre-055 decision, pending decision; plus a cross-tenant case where a token or user of another company is never resolved, in `core/tests/test_decision_attribution.py`
+- [X] T007 [P] [DR-003] Add a statement-count assertion (≤ 3 statements for 1 and for 100 proposals) in `core/tests/test_decision_attribution.py`
 
 ### Implementation
 
-- [ ] T008 [DR-002] Add `MCPAccessToken.created_by_user_id` and `ChangeProposal.decided_via_token_id` with composite FK `(tenant_id, decided_via_token_id)` → `mcp_access_token(tenant_id, id)` in `core/src/reality/db/core.py`
-- [ ] T009 [DR-002] Write migration `core/migrations/versions/0093_decision_trail.py` (additive, nullable, one index per FK first column, reversible, no backfill)
-- [ ] T010 [DR-003] [DR-004] Implement `decision_attributions(session, tenant_id, proposal_ids)` in `core/src/reality/services/decision_attribution.py`, resolving names only for users who decided a proposal or issued a token of the tenant
-- [ ] T011 [DR-003] Register `reality.services.decision_attribution:decision_attributions` under `explicit_operations` and classify it in `core/config/tenant_isolation_catalog.yaml`; bump the pinned count in `core/tests/test_application_catalog.py` only if the test requires it
-- [ ] T012 [P] Add the new FK columns to `later_tables` handling in `core/tests/test_schema_indexes.py` as required by the FK-index gate
-- [ ] T013 [P] Mention `test_decision_trail_migration.py`, `test_decision_attribution.py`, `test_decision_trail_mcp.py`, `test_decision_trail_events.py` under a spec 263 section of `docs/SPEC_COVERAGE_MATRIX.md`
+- [X] T008 [DR-002] Add `MCPAccessToken.created_by_user_id` and `ChangeProposal.decided_via_token_id` with composite FK `(tenant_id, decided_via_token_id)` → `mcp_access_token(tenant_id, id)` in `core/src/reality/db/core.py`
+- [X] T009 [DR-002] Write migration `core/migrations/versions/0093_decision_trail.py` (additive, nullable, one index per FK first column, reversible, no backfill)
+- [X] T010 [DR-003] [DR-004] Implement `decision_attributions(session, tenant_id, proposal_ids)` in `core/src/reality/services/decision_attribution.py`, resolving names only for users who decided a proposal or issued a token of the tenant
+- [X] T011 [DR-003] Register `reality.services.decision_attribution:decision_attributions` under `explicit_operations` and classify it in `core/config/tenant_isolation_catalog.yaml`; bump the pinned count in `core/tests/test_application_catalog.py` only if the test requires it
+- [X] T012 [P] Account for the derived `ix_action_decided_via_token_id` through `0093_decision_trail.INDEXES` in `core/tests/test_schema_indexes.py` (the table stays fully checked rather than being listed in `later_tables`)
+- [X] T013 [P] Mention `test_decision_trail_migration.py`, `test_decision_attribution.py`, `test_decision_trail_mcp.py`, `test_decision_trail_events.py` under a spec 263 section of `docs/SPEC_COVERAGE_MATRIX.md`
 
 **Checkpoint**: T005–T007 green; `pytest core/tests/test_application_catalog.py core/tests/tenant_isolation core/tests/test_schema_indexes.py core/tests/test_reporting_graph_coverage.py` green.
 

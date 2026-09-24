@@ -27,6 +27,7 @@ explicit_operations:
   - reality.services.analytics.requests:expire
   - reality.services.analytics.reports:change_graph_report
   - reality.services.read_contracts:read_metadata
+  - reality.services.decision_attribution:decision_attributions
   - reality.services.read_contracts:discovery_page
   - reality.services.read_contracts:finance_balances
   - reality.services.read_contracts:location_inventory_rows
@@ -167,6 +168,7 @@ families:
       - reality.services.core:commitments
       - reality.services.core:connector_shells
       - reality.services.core:decision_maker_names
+      - reality.services.decision_attribution:decision_attributions
       - reality.services.core:document_rows
       - reality.services.core:discover_business_records
       - reality.services.core:announceable_quantity

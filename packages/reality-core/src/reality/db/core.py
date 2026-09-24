@@ -2229,6 +2229,11 @@ class ChangeProposal(Base):
     __table_args__ = (
         PrimaryKeyConstraint("tenant_id", "id"),
         UniqueConstraint("tenant_id", "id", name="uq_action_tenant_id"),
+        ForeignKeyConstraint(
+            ["tenant_id", "decided_via_token_id"],
+            ["mcp_access_token.tenant_id", "mcp_access_token.id"],
+            name="fk_action_decided_via_token",
+        ),
     )
     id: Mapped[str] = mapped_column(String)
     tenant_id: Mapped[str] = mapped_column(ForeignKey("tenant.id"), index=True)
@@ -2245,6 +2250,10 @@ class ChangeProposal(Base):
     decided_by_user_id: Mapped[str | None] = mapped_column(
         ForeignKey("app_user.id"), index=True, default=None
     )
+    # A decision settled through MCP names the access token that sent it (spec 263).
+    # It is never copied into `decided_by_user_id`: Reality sees the token, not the
+    # person at the agent client, and the record must not claim more than that.
+    decided_via_token_id: Mapped[str | None] = mapped_column(String, default=None)
 
 
 # Transitional import alias for older adapters. New domain code uses
@@ -2436,6 +2445,11 @@ class MCPAccessToken(Base):
     token_prefix: Mapped[str] = mapped_column(String, index=True)
     token_hash: Mapped[str] = mapped_column(String, unique=True)
     allowed_tools: Mapped[str] = mapped_column(Text, default='["*"]')
+    # The owner who issued the token, so a decision it settles has someone to answer
+    # for it. Tokens issued before spec 263 have none, and none is invented.
+    created_by_user_id: Mapped[str | None] = mapped_column(
+        ForeignKey("app_user.id"), index=True, default=None
+    )
     created_at: Mapped[datetime] = mapped_column(UTCDateTime, default=now)
     last_used_at: Mapped[datetime | None] = mapped_column(UTCDateTime, default=None)
     revoked_at: Mapped[datetime | None] = mapped_column(UTCDateTime, default=None)

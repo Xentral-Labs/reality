@@ -43,7 +43,7 @@ item (FR-004, FR-007, FR-009, FR-010).
 
 ```text
 decision = {
-  id, tool, label, outcome: executed | rejected | executing | proposed,
+  id, tool, outcome: executed | rejected | executing | proposed,
   decided_at: timestamp | null,
   decider: { kind: "person", name }
          | { kind: "mcp_token", token_name, token_prefix, revoked, issuer: name | null }
@@ -51,6 +51,7 @@ decision = {
 }
 ```
 
+The browser labels `tool` with its existing action labels.
 `kind: "unknown"` covers decisions settled before spec 055, CLI decisions, and
 decisions that are still pending. Names resolve only for users who decided a proposal
 or issued a token of the same tenant.
