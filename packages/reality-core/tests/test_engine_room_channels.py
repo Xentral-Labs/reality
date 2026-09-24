@@ -374,9 +374,7 @@ def test_no_argument_value_reaches_any_row_across_the_read_catalog(web):
                     _sentinel_arguments(definition.input_schema),
                     ("read",),
                 )
-            except (
-                Exception
-            ):  # a crash is still an interaction; values are the question
+            except Exception:  # noqa: BLE001, S110 - a crash is still an interaction
                 pass
             db.rollback()
     recorded = rows(web.db, tenant)

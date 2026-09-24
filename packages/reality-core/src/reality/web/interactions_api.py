@@ -7,7 +7,7 @@ path under `/interactions`, so watching does not become something to watch.
 from __future__ import annotations
 
 from datetime import datetime
-from typing import Any
+from typing import Annotated, Any
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Request
 
@@ -41,11 +41,11 @@ def list_interactions(
     request: Request,
     session: DatabaseSession,
     after: int | None = Query(None, ge=0),
-    window_from: datetime | None = Query(None, alias="from"),
-    window_to: datetime | None = Query(None, alias="to"),
-    channel: list[str] | None = Query(None),
-    kind: list[str] | None = Query(None),
-    outcome: list[str] | None = Query(None),
+    window_from: Annotated[datetime | None, Query(alias="from")] = None,
+    window_to: Annotated[datetime | None, Query(alias="to")] = None,
+    channel: Annotated[list[str] | None, Query()] = None,
+    kind: Annotated[list[str] | None, Query()] = None,
+    outcome: Annotated[list[str] | None, Query()] = None,
     actor_user_id: str | None = Query(None, max_length=64),
     mcp_token_id: str | None = Query(None, max_length=64),
     correlation_id: str | None = Query(None, max_length=64),
