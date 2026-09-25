@@ -165,7 +165,9 @@ none is discovered by a red pipeline (research R6).
 - [X] T028 [FR-007] Widen the capability-guidance exemption in `core/src/reality/catalogs.py` from
   the single literal `capability_describe` to a named set of catalog-about-capability tools, and add
   a test asserting the set holds only those two, so the exemption cannot become a hole a business
-  read slips through, in `core/tests/test_application_catalog.py`
+  read slips through — written in `core/tests/test_agent_command_parity.py`, which is where the rule
+  is asserted, rather than `core/tests/test_application_catalog.py`. That test carried a second copy
+  of the literal and failed in the full suite until it read the same named set
 - [X] T029 [P] [FR-008] Add `core/tests/test_capability_catalog.py` to `docs/SPEC_COVERAGE_MATRIX.md`
   under this spec's section
 - [X] T030 [FR-008] Run `make docs-generate` and commit the regenerated Tool Usage pages and
@@ -230,4 +232,8 @@ Recorded while the work landed, so the record matches what was built.
 - **Pinned count.** `tests/test_application_catalog.py` moved from 574 to 575 discovered
   operations, in both places. A parallel branch that also adds a public operation will conflict
   there on the second merge.
-- **T012 and T027** deviate as noted on those lines.
+- **T012, T020, T027 and T028** deviate as noted on those lines.
+- **The exemption literal existed twice.** `test_agent_command_parity.py` repeated the
+  `capability_describe` comparison, so the targeted suites were green while the full suite was red.
+  It now reads `CATALOG_READ_TOOLS`, and a new test pins that set to exactly the two catalog reads.
+  Only a complete run found this; the focused suites could not.
