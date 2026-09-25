@@ -75,8 +75,19 @@ Manual tokens model no access-class scopes at all: `DatabaseTokenVerifier` build
 `reality:read` plus one `reality:tool:<name>` per permission, and the interactive scope check is
 skipped for them. `scope_excluded` cannot occur for a manual token.
 
-**Consequence**: the service reads the grant row once per call for interactive credentials, and
-reports `not_in_token` for manual ones.
+A second rule decides which reason is the useful one. `approve_interaction` refuses an approval whose
+tools exceed the requested scopes, so no grant can hold a tool of an access class its scopes exclude.
+An excluded class is therefore always *absent* from the grant, and the actionable distinction is not
+"named but out of scope" against "not named" but rather: is the whole access class out of scope, so
+that selecting the tool would not have been possible, or is the class in scope and the tool merely
+unselected? The first calls for a broader scope, the second for a wider tool list.
+
+**Consequence**: the service reads the grant row once per call for interactive credentials, decides
+the reason from whether the access class is in scope, and reports `not_in_token` for manual ones.
+
+**Correction**: an earlier reading of this plan assumed a grant could name a tool its scopes exclude,
+and would report `scope_excluded` for that case alone. Consent makes that state unreachable, so the
+rule was inverted during implementation and the contract updated with it.
 
 ## R5 — Catalog access cost
 

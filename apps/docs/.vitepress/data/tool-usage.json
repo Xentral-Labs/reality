@@ -1047,6 +1047,7 @@
       "reads": [],
       "exceptions": [],
       "tools": [
+        "tool:capability_catalog",
         "tool:capability_describe",
         "tool:business_records_discover",
         "tool:exceptions_list",
@@ -1530,6 +1531,39 @@
     }
   ],
   "entries": [
+    {
+      "id": "tool:capability_catalog",
+      "kind": "tool",
+      "key": "capability_catalog",
+      "label": "Discover business capabilities",
+      "area": "cross_functional",
+      "summary": "Start here. Without arguments it lists the business areas this company's Reality covers; with one topic it lists that area's capabilities, the tools behind each, and whether this credential may call them.",
+      "access": "read",
+      "group": "Discovery",
+      "synopsis": "capability_catalog [topic]",
+      "parameters": [
+        {
+          "name": "topic",
+          "type": "string",
+          "required": false,
+          "description": "",
+          "depth": 0
+        }
+      ],
+      "guidance": {},
+      "read_modes": [
+        {
+          "query": "MCP capability_catalog",
+          "mode": "live",
+          "default": true
+        }
+      ],
+      "command": null,
+      "projections": [],
+      "links": [],
+      "label_de": "Discover business capabilities",
+      "resources": ["governance"]
+    },
     {
       "id": "tool:capability_describe",
       "kind": "tool",

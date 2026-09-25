@@ -813,6 +813,7 @@ Abweichung, Klärfall, Timeline, Verlauf
 - [Timeline](./views#projection-timeline) (`timeline`)
 
 **Underneath:** Agent tools without a command:
+[`capability_catalog`](./commands#tool-capability_catalog),
 [`capability_describe`](./commands#tool-capability_describe),
 [`business_records_discover`](./commands#tool-business_records_discover),
 [`exceptions_list`](./commands#tool-exceptions_list),

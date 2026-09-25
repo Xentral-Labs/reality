@@ -3,7 +3,7 @@
 **Feature Branch**: `270-mcp-capability-discovery`
 **Language**: English
 **Created**: 2026-09-25
-**Status**: Draft
+**Status**: Approved
 **Input**: A connected agent has no way to ask what Reality can do, and reads a permission refusal as a missing capability. The classification that answers both already exists and never leaves the process.
 
 ## Context and Intent

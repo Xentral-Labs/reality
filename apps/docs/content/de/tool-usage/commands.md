@@ -7114,6 +7114,7 @@ oder Projection; Steuerungs-Tools tragen Vorschläge, Erkundung und fehlende Inf
 
 | Schlüssel                                                                                        | Bezeichnung                                    | Zugriff   | Beantwortet            |
 | ------------------------------------------------------------------------------------------------ | ---------------------------------------------- | --------- | ---------------------- |
+| [`capability_catalog`](#tool-capability_catalog)                                                 | Discover business capabilities                 | `read`    | —                      |
 | [`capability_describe`](#tool-capability_describe)                                               | Describe an agent capability                   | `read`    | —                      |
 | [`business_records_discover`](#tool-business_records_discover)                                   | Discover business records                      | `read`    | —                      |
 | [`inventory_read`](#tool-inventory_read)                                                         | Read inventory                                 | `read`    | `inventory`            |
@@ -7163,6 +7164,34 @@ oder Projection; Steuerungs-Tools tragen Vorschläge, Erkundung und fehlende Inf
 | [`graph_requests_list`](#tool-graph_requests_list)                                               | List my requested analyses                     | `read`    | —                      |
 | [`graph_request_get`](#tool-graph_request_get)                                                   | Collect a requested analysis                   | `read`    | —                      |
 | [`graph_request_propose`](#tool-graph_request_propose)                                           | Request an analysis                            | `propose` | —                      |
+
+### `capability_catalog` — Discover business capabilities {#tool-capability_catalog}
+
+Start here. Without arguments it lists the business areas this company's Reality covers; with one
+topic it lists that area's capabilities, the tools behind each, and whether this credential may call
+them.
+
+**Aufruf**
+
+```text
+capability_catalog [topic]
+```
+
+**Zugriff:** `read`
+
+**So wird diese Abfrage ausgeführt**
+
+| Konkrete Abfrage         | Art                        | Standard |
+| ------------------------ | -------------------------- | -------- |
+| `MCP capability_catalog` | Live — beim Aufruf gelesen | ja       |
+
+[So wird diese Abfrage ausgeführt](./views#read-execution)
+
+**Parameter**
+
+| Name    | Typ      | Pflicht | Beschreibung | Standard |
+| ------- | -------- | ------- | ------------ | -------- |
+| `topic` | `string` | nein    | —            | —        |
 
 ### `capability_describe` — Describe an agent capability {#tool-capability_describe}
 

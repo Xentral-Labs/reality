@@ -823,6 +823,7 @@ Freigabe, Abweichung, Klärfall, Timeline, Verlauf
 - [Verlauf](./views#projection-timeline) (`timeline`)
 
 **Darunter:** Agenten-Tools ohne Geschäftsaktion:
+[`capability_catalog`](./commands#tool-capability_catalog),
 [`capability_describe`](./commands#tool-capability_describe),
 [`business_records_discover`](./commands#tool-business_records_discover),
 [`exceptions_list`](./commands#tool-exceptions_list),

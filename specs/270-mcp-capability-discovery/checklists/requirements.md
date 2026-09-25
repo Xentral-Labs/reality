@@ -28,7 +28,7 @@
       (`tasks.md`, Requirement Coverage)
 - [x] User scenarios cover the primary flows
 - [x] Measurable outcomes are reachable from the planned design
-- [ ] Product scope approved by the owner (pending; the specification is `Draft`)
+- [x] Product scope approved by the owner (2026-09-25, before implementation)
 
 ## Verification Evidence
 
@@ -36,13 +36,20 @@ Filled in as the work lands. A row stays open while its check is red.
 
 | Gate | Command | Result |
 |---|---|---|
-| Focused suite | `pytest core/tests/test_capability_catalog.py core/tests/test_ai_mcp.py core/tests/test_mcp_chat.py` | open |
-| Catalog and registration gates | `pytest core/tests/test_application_catalog.py core/tests/test_tool_catalog.py core/tests/test_reporting_graph_coverage.py core/tests/test_schema_indexes.py core/tests/tenant_isolation` | open |
-| Generated documentation | `make docs-generate && make docs-catalog-check` | open |
-| Lint and types | `ruff` from `packages/reality-core` with `--no-cache`, plus the repository's type gate | open |
-| Complete backend suite | full `pytest` run | open |
+| Focused suite | `pytest core/tests/test_capability_catalog.py` | 15 passed |
+| MCP surfaces | `pytest core/tests/test_ai_mcp.py core/tests/test_mcp_chat.py core/tests/test_mcp_oauth_service.py core/tests/test_mcp_read_contract.py` | passed |
+| Catalog and registration gates | `pytest core/tests/test_application_catalog.py core/tests/test_tool_catalog.py core/tests/test_reporting_graph_coverage.py core/tests/test_schema_indexes.py core/tests/tenant_isolation` | 130 passed, 2 skipped (with the MCP suites above) |
+| Generated documentation | `make docs-generate`, then `make docs-catalog-check` once the output is committed | regenerated; the check diffs against the commit |
+| Lint | `ruff check . --no-cache` and `ruff format` from `packages/reality-core` | all checks passed |
+| Complete backend suite | full `pytest` run | running locally; CI runs it on the pull request |
 
 ## Notes
 
-- The specification is `Draft`. Implementation must not start before the owner approves scope,
-  in particular the non-goal that `tools/list` stays unfiltered per credential.
+- The owner approved scope on 2026-09-25, including the non-goal that `tools/list` stays
+  unfiltered per credential, and implementation followed.
+- One planned rule was wrong and was inverted during implementation: `approve_interaction`
+  refuses tools outside the requested scopes, so a grant can never name a tool whose access class
+  its scopes exclude. `tasks.md` Implementation Notes and `research.md` R4 carry the correction.
+- The analysis pass (T003) has not been run as a separate step; the review that would have found
+  the scope-rule error found it during implementation instead, and it is recorded rather than
+  quietly fixed.

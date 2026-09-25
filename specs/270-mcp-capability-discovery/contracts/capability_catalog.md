@@ -67,8 +67,14 @@ then the only name.
 |---|---|
 | `null` | The credential may call the tool. A call will not be refused for permission reasons. |
 | `not_in_token` | A manual token whose tool list does not name it. |
-| `not_in_grant` | An interactive grant whose tool list does not name it. |
-| `scope_excluded` | An interactive grant that names it, but whose granted scopes exclude its access class. |
+| `not_in_grant` | An interactive grant whose scopes cover the tool's access class, but whose tool list does not name it. |
+| `scope_excluded` | An interactive grant whose scopes exclude the tool's whole access class. |
+
+The two interactive reasons are actionable in different ways, which is why they are
+separate. `not_in_grant` is fixed by selecting the tool at consent. `scope_excluded` is
+not: `approve_interaction` refuses tools outside the requested scopes, so no tool of an
+unrequested access class can be in any grant, and the client must ask for the scope
+before the tool can be selected at all.
 
 `scope_excluded` cannot occur for a manual token, which models no access-class scopes.
 
