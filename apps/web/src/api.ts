@@ -3363,6 +3363,21 @@ export type StorylineTraceItem = {
   duration_ms: number | null;
   recorded_at: string;
 };
+export type ChatAnswerBasisRow = {
+  label: string;
+  value: string;
+  status?: string;
+  role: "recorded" | "derived";
+  record_type: string | null;
+  record_id: string | null;
+};
+export type ChatAnswerBasis = {
+  available: boolean;
+  rows: ChatAnswerBasisRow[];
+  additional_count: number;
+  calls: number;
+  has_more: boolean;
+};
 export type StorylineDelta = {
   range: {
     after_sequence: number;
@@ -3465,9 +3480,12 @@ export const storylineApi = {
       body: JSON.stringify({ confirmed: true }),
     }),
   chatEvidence: (tenant: string, messageId: string) =>
-    request<{ available: boolean; items: StorylineTraceItem[]; has_more: boolean }>(
-      `/api/tenants/${tenant}/storyline/chat/${encodeURIComponent(messageId)}`,
-    ),
+    request<{
+      available: boolean;
+      items: StorylineTraceItem[];
+      has_more: boolean;
+      basis: ChatAnswerBasis;
+    }>(`/api/tenants/${tenant}/storyline/chat/${encodeURIComponent(messageId)}`),
   library: () =>
     request<{ items: StorylineLibraryItem[]; enabled: boolean }>("/api/storyline/library"),
   start: (key: string, version: number, requestKey: string) =>
