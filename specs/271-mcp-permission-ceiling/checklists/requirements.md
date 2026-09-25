@@ -41,7 +41,8 @@ Filled in as the work lands. A row stays open while its check is red.
 | Focused suite observed failing first | the bound lowered to 5 and the `ValueError` arm removed | 4 failed for the two intended reasons, then restored |
 | Catalog, isolation and MCP gates | `pytest core/tests/test_mcp_oauth_service.py core/tests/test_application_catalog.py core/tests/test_tool_catalog.py core/tests/tenant_isolation core/tests/test_ai_mcp.py core/tests/test_decision_trail_mcp.py` (with the focused suite) | 135 passed, 2 skipped |
 | Lint | `ruff check . --no-cache` and `ruff format` from `packages/reality-core` | all checks passed |
-| Complete backend suite | full `pytest` run | running; CI runs it on the pull request |
+| Complete backend suite | CI `backend-tests` shards on the pull request | both pass (17m24s and 12m55s, run 36110089386) |
+| Complete backend suite, unsharded | local full `pytest -p no:randomly` | running |
 | No second literal | repository search for a permission-length bound (T021) | none; the only nearby bound caps the scope string |
 
 ## Notes
