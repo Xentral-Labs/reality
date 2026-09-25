@@ -10,9 +10,11 @@ import httpx
 import pytest
 from fastapi.testclient import TestClient
 from mcp.server.auth.provider import AccessToken
+from sqlalchemy import select
 
 from reality.db.core import AppUser, PlaygroundRun, Tenant, TenantMembership, now, uid
 from reality.db.mcp_authorization import MCPAuthorizationInteraction
+from reality.mcp.catalog import MCP_TOOL_NAMES
 from reality.mcp.server import build_server
 from reality.services import mcp_authorization as authorization_service
 from reality.services.mcp_authorization import create_interaction
@@ -794,3 +796,225 @@ def test_interaction_expiry_denial_same_name_companies_and_account_switch(
         response = client.get(f"/api/oauth/interactions/{expired.id}")
     assert response.status_code == 200
     assert response.json()["status"] == "expired"
+
+
+def _consent_interaction(client, *, scope: str, verifier: str = "v" * 64) -> str:
+    """Drive the authorize redirect and return the pending interaction's id."""
+    authorize = client.get(
+        "/oauth/authorize",
+        params={
+            "response_type": "code",
+            "client_id": "client-a",
+            "redirect_uri": "https://client.example/callback",
+            "code_challenge": _challenge(verifier),
+            "code_challenge_method": "S256",
+            "resource": "https://mcp.example.test/",
+            "scope": scope,
+            "state": "client-state",
+        },
+        follow_redirects=False,
+    )
+    assert authorize.status_code == 303
+    location = authorize.headers["location"]
+    return parse_qs(urlparse(location).query)["interaction"][0]
+
+
+def _consent_environment(monkeypatch) -> None:
+    monkeypatch.setenv("API_URL", "https://api.example.test")
+    monkeypatch.setenv("APP_URL", "https://app.example.test")
+    monkeypatch.setenv("MCP_URL", "https://mcp.example.test/")
+    monkeypatch.setenv(
+        "MCP_OAUTH_CLIENTS",
+        json.dumps(
+            {
+                "client-a": {
+                    "client_name": "Client A",
+                    "redirect_uris": ["https://client.example/callback"],
+                }
+            }
+        ),
+    )
+
+
+@pytest.mark.parametrize(
+    "scope",
+    [
+        "reality:read",
+        "reality:read reality:propose",
+        "reality:read reality:propose reality:confirm",
+    ],
+)
+def test_approval_accepts_every_eligible_tool_however_large_the_catalog(
+    session, business, scheduled_owner, monkeypatch, scope
+):
+    """Spec 271 FR-001/FR-006/FR-007: the default selection must stay submittable.
+
+    The expected size is read from the catalog, so this fails the moment any layer
+    reintroduces a bound the catalog has outgrown.
+    """
+    from reality.db.mcp_authorization import MCPClientGrant
+
+    _consent_environment(monkeypatch)
+    _overrides(session, scheduled_owner)
+
+    with TestClient(app) as client:
+        interaction_id = _consent_interaction(client, scope=scope)
+        body = client.get(f"/api/oauth/interactions/{interaction_id}").json()
+        selected = body["selected_tools"]
+        approval = client.post(
+            f"/api/oauth/interactions/{interaction_id}/approve",
+            json={
+                "company_id": business.tenant.id,
+                "allowed_tools": selected,
+                "confirmed": True,
+            },
+            follow_redirects=False,
+        )
+
+    assert approval.status_code == 303, approval.text
+    assert selected == [tool["name"] for tool in body["eligible_tools"]]
+    grant = session.scalars(
+        select(MCPClientGrant).where(MCPClientGrant.tenant_id == business.tenant.id)
+    ).one()
+    assert sorted(grant.allowed_tools) == sorted(selected)
+    if scope.count("reality:") == 3:
+        assert len(selected) == len(MCP_TOOL_NAMES)
+
+
+def test_a_refused_approval_names_its_cause_and_keeps_the_interaction_pending(
+    session, business, scheduled_owner, monkeypatch
+):
+    """Spec 271 FR-004/FR-005: an unknown name answered 500 before this."""
+    _consent_environment(monkeypatch)
+    _overrides(session, scheduled_owner)
+
+    with TestClient(app) as client:
+        interaction_id = _consent_interaction(client, scope="reality:read")
+        known = client.get(f"/api/oauth/interactions/{interaction_id}").json()[
+            "selected_tools"
+        ][0]
+
+        unknown = client.post(
+            f"/api/oauth/interactions/{interaction_id}/approve",
+            json={
+                "company_id": business.tenant.id,
+                "allowed_tools": ["no_such_tool"],
+                "confirmed": True,
+            },
+            follow_redirects=False,
+        )
+        empty = client.post(
+            f"/api/oauth/interactions/{interaction_id}/approve",
+            json={
+                "company_id": business.tenant.id,
+                "allowed_tools": [],
+                "confirmed": True,
+            },
+            follow_redirects=False,
+        )
+        out_of_scope = client.post(
+            f"/api/oauth/interactions/{interaction_id}/approve",
+            json={
+                "company_id": business.tenant.id,
+                "allowed_tools": ["order_create_propose"],
+                "confirmed": True,
+            },
+            follow_redirects=False,
+        )
+        still_pending = session.get(MCPAuthorizationInteraction, interaction_id).status
+        # Positive control: the same interaction still accepts a valid selection.
+        accepted = client.post(
+            f"/api/oauth/interactions/{interaction_id}/approve",
+            json={
+                "company_id": business.tenant.id,
+                "allowed_tools": [known],
+                "confirmed": True,
+            },
+            follow_redirects=False,
+        )
+
+    assert unknown.status_code == 400
+    assert "no_such_tool" in unknown.json()["detail"]
+    # The browser only shows `detail` when it is a sentence, not a validation list.
+    assert isinstance(unknown.json()["detail"], str)
+    assert empty.status_code == 400
+    assert "at least one" in empty.json()["detail"]
+    assert out_of_scope.status_code == 409
+    assert isinstance(out_of_scope.json()["detail"], str)
+    assert "scopes" in out_of_scope.json()["detail"]
+    assert still_pending == "pending"
+    assert accepted.status_code == 303
+
+
+def test_approval_normalizes_before_it_judges(
+    session, business, scheduled_owner, monkeypatch
+):
+    """Spec 271 FR-002: duplicates and legacy aliases must not be counted as extra."""
+    from reality.db.mcp_authorization import MCPClientGrant
+    from reality.mcp.catalog import LEGACY_TOOL_NAMES
+
+    _consent_environment(monkeypatch)
+    _overrides(session, scheduled_owner)
+
+    with TestClient(app) as client:
+        interaction_id = _consent_interaction(client, scope="reality:read")
+        eligible = client.get(f"/api/oauth/interactions/{interaction_id}").json()[
+            "selected_tools"
+        ]
+        alias = next(
+            (old for old, new in LEGACY_TOOL_NAMES.items() if new in eligible), None
+        )
+        submitted = [eligible[0], eligible[0], *([alias] if alias else [])]
+        approval = client.post(
+            f"/api/oauth/interactions/{interaction_id}/approve",
+            json={
+                "company_id": business.tenant.id,
+                "allowed_tools": submitted,
+                "confirmed": True,
+            },
+            follow_redirects=False,
+        )
+
+    assert approval.status_code == 303, approval.text
+    grant = session.scalars(
+        select(MCPClientGrant).where(MCPClientGrant.tenant_id == business.tenant.id)
+    ).one()
+    expected = {eligible[0]} | ({LEGACY_TOOL_NAMES[alias]} if alias else set())
+    assert set(grant.allowed_tools) == expected
+    assert len(grant.allowed_tools) == len(expected)
+
+
+def test_a_wildcard_is_still_refused_for_an_interactive_grant(
+    session, business, scheduled_owner, monkeypatch
+):
+    """Deleting the length bound must not read as relaxing what a grant may hold."""
+    _consent_environment(monkeypatch)
+    _overrides(session, scheduled_owner)
+
+    with TestClient(app) as client:
+        interaction_id = _consent_interaction(client, scope="reality:read")
+        known = client.get(f"/api/oauth/interactions/{interaction_id}").json()[
+            "selected_tools"
+        ][0]
+        wildcard = client.post(
+            f"/api/oauth/interactions/{interaction_id}/approve",
+            json={
+                "company_id": business.tenant.id,
+                "allowed_tools": ["*"],
+                "confirmed": True,
+            },
+            follow_redirects=False,
+        )
+        # Positive control: the explicit equivalent is accepted.
+        explicit = client.post(
+            f"/api/oauth/interactions/{interaction_id}/approve",
+            json={
+                "company_id": business.tenant.id,
+                "allowed_tools": [known],
+                "confirmed": True,
+            },
+            follow_redirects=False,
+        )
+
+    assert wildcard.status_code == 409
+    assert explicit.status_code == 303

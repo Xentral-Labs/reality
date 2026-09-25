@@ -1720,3 +1720,13 @@ use of it. It transmits the existing capability classification and reads no busi
 | The topic index and one topic answer their documented shape within their size bounds; an unknown topic is refused by naming the known ones; two calls reach the dunning tools through the MCP runtime; the server instructions name the entry point | 270 FR-001/FR-002/FR-006/SC-001 | `packages/reality-core/tests/test_capability_catalog.py` |
 | Grant state per credential kind: no credential, a manual token, a grant that omits a tool, a grant whose scopes exclude an access class; a tool reported callable is dispatched and not refused; a foreign company's grant is never read | 270 FR-004 | `packages/reality-core/tests/test_capability_catalog.py` |
 | A capability carries its German business label or falls back to English; chat inherits the tool and reports no credential limit | 270 FR-005/FR-007 | `packages/reality-core/tests/test_capability_catalog.py` |
+
+### Spec 271 MCP permission ceiling
+
+A permission list is bounded by the catalog it draws from, and both grant paths refuse alike.
+
+| Verification family | Specification | Tests |
+|---|---|---|
+| Approval accepts every eligible tool for each scope combination, counted from the catalog; a duplicate-laden or alias-bearing list normalizes before it is judged; a wildcard stays refused for an interactive grant | 271 FR-001/FR-002/FR-006/FR-007 | `packages/reality-core/tests/test_mcp_oauth_http.py` |
+| An unknown name, an empty selection and tools outside the requested scopes each answer a stated sentence the browser can show, and a refused approval leaves the interaction pending | 271 FR-004/FR-005 | `packages/reality-core/tests/test_mcp_oauth_http.py` |
+| Interactive approval and manual token creation accept and refuse the same lists with the same message; the wildcard is the one deliberate difference | 271 FR-003 | `packages/reality-core/tests/test_mcp_permission_parity.py` |
