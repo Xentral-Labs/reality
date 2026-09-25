@@ -1,6 +1,6 @@
 # Feature Specification: MCP Permission Ceiling Follows the Catalog
 
-**Feature Branch**: `269-mcp-permission-ceiling`
+**Feature Branch**: `271-mcp-permission-ceiling`
 **Language**: English
 **Created**: 2026-09-25
 **Status**: Draft

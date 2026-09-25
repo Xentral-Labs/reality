@@ -1,6 +1,6 @@
 # Implementation Plan: MCP Permission Ceiling Follows the Catalog
 
-**Branch**: `269-permission-ceiling-plan` | **Date**: 2026-09-25 | **Spec**: [spec.md](spec.md)
+**Branch**: `271-mcp-permission-ceiling` | **Date**: 2026-09-25 | **Spec**: [spec.md](spec.md)
 
 **Language**: English for all repository artifacts and review evidence.
 

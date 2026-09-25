@@ -20,15 +20,15 @@ prove and are observed failing first. Every negative test carries a positive con
 
 ## Phase 1: Specification and Design Gates
 
-- [ ] T001 Confirm owner approval of scope in `specs/269-mcp-permission-ceiling/spec.md`, and that
+- [ ] T001 Confirm owner approval of scope in `specs/271-mcp-permission-ceiling/spec.md`, and that
   deleting the ceiling rather than raising it is the accepted reading of FR-001
 - [X] T002 Correct the specification: the consent screen shows `Reality API returned 422`, not the
   generic "Authorization could not be completed" the Context section claimed (research R4); the
   unhandled `ValueError` behind an unknown tool name is now stated in Context; the catalog count and
   the headroom moved from 179/21 to 180/20 after spec 270 merged
 - [ ] T003 Confirm every Constitution Check row is PASS and that no schema or migration is
-  introduced, in `specs/269-mcp-permission-ceiling/plan.md`
-- [ ] T004 Run the analysis pass across `specs/269-mcp-permission-ceiling/` and resolve every
+  introduced, in `specs/271-mcp-permission-ceiling/plan.md`
+- [ ] T004 Run the analysis pass across `specs/271-mcp-permission-ceiling/` and resolve every
   CRITICAL or HIGH finding
 
 ## Phase 2: User Story 1 — Connecting survives catalog growth (P1)
@@ -102,7 +102,7 @@ prove and are observed failing first. Every negative test carries a positive con
   core/tests/test_tool_catalog.py core/tests/tenant_isolation`
 - [ ] T019 Run `ruff check . --no-cache` and `ruff format` from `packages/reality-core`
 - [ ] T020 Run the complete backend suite and record the evidence in
-  `specs/269-mcp-permission-ceiling/checklists/requirements.md`. Spec 270 showed that a second copy
+  `specs/271-mcp-permission-ceiling/checklists/requirements.md`. Spec 270 showed that a second copy
   of a literal can keep the focused suites green while the full run is red, so this is not optional
 - [ ] T021 Search the repository for any other permission-length literal before calling the feature
   done, so the ceiling cannot survive in a layer this plan did not read
