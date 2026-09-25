@@ -1708,3 +1708,15 @@ Feature contract: `docs/features/b2b-operational-chain.md`.
 | Cursor with late commits, every filter, truncation, retention, windows, stages from events and catalog, who-changed-this, linked events, owner-only access | 266 FR-005–FR-008/FR-013/FR-015/DR-003 | `packages/reality-core/tests/test_engine_room_reads.py` |
 | Only the engine-room modules import the telemetry table or its reader; business code only annotates through the recorder | 266 DR-001 | `packages/reality-core/tests/test_engine_room_architecture.py` |
 | Server processes queue rows to one writer and batch them; a full queue drops a row instead of waiting; the call's own duration is kept | 266 FR-012/SC-003 | `packages/reality-core/tests/test_engine_room_recording.py` |
+
+### Spec 270 capability discovery
+
+`capability_catalog` answers what the company's Reality can do and what the calling credential may
+use of it. It transmits the existing capability classification and reads no business record.
+
+| Verification family | Specification | Tests |
+|---|---|---|
+| Every MCP tool is reachable through exactly the known topics, duplicates counted once; the narrow catalog accessor is isolated and reads one section | 270 FR-003/FR-007/FR-008 | `packages/reality-core/tests/test_capability_catalog.py` |
+| The topic index and one topic answer their documented shape within their size bounds; an unknown topic is refused by naming the known ones; two calls reach the dunning tools through the MCP runtime; the server instructions name the entry point | 270 FR-001/FR-002/FR-006/SC-001 | `packages/reality-core/tests/test_capability_catalog.py` |
+| Grant state per credential kind: no credential, a manual token, a grant that omits a tool, a grant whose scopes exclude an access class; a tool reported callable is dispatched and not refused; a foreign company's grant is never read | 270 FR-004 | `packages/reality-core/tests/test_capability_catalog.py` |
+| A capability carries its German business label or falls back to English; chat inherits the tool and reports no credential limit | 270 FR-005/FR-007 | `packages/reality-core/tests/test_capability_catalog.py` |

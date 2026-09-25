@@ -1,4 +1,4 @@
-from reality.catalogs import load_application_catalog
+from reality.catalogs import CATALOG_READ_TOOLS, load_application_catalog
 from reality.mcp.catalog import MCP_TOOL_CATALOG, MCP_TOOL_NAMES, model_tool_schemas
 from reality.tools.application import TOOLS
 
@@ -80,9 +80,24 @@ def test_every_public_business_read_has_guidance():
     public_business_reads = {
         tool.name
         for tool in MCP_TOOL_CATALOG
-        if tool.access == "read" and tool.name != "capability_describe"
+        if tool.access == "read" and tool.name not in CATALOG_READ_TOOLS
     }
 
     assert public_business_reads == {
         name for name, entry in guidance.items() if entry["kind"] == "read"
     }
+
+
+def test_only_catalog_reads_are_exempt_from_guidance():
+    """The exemption must not become a hole a business read can slip through.
+
+    These two answer from the capability catalog, so they have no `data_basis` of
+    real tables to declare. Every other read does, and must carry a guidance block.
+    """
+    assert CATALOG_READ_TOOLS == {"capability_describe", "capability_catalog"}
+    assert CATALOG_READ_TOOLS <= MCP_TOOL_NAMES
+    assert all(
+        tool.access == "read"
+        for tool in MCP_TOOL_CATALOG
+        if tool.name in CATALOG_READ_TOOLS
+    )

@@ -129,6 +129,11 @@ OPERATIONAL_EXCEPTION_CAUSE_VOCABULARY = (
     "later_relevant_evidence",
     "supported_actual_db1_negative",
 )
+#: Reads that answer from the capability catalog rather than from tenant business
+#: records. Guidance blocks demand a `data_basis` of real tables, which these have
+#: none of, so they are the only reads exempt from carrying one (spec 270).
+CATALOG_READ_TOOLS = frozenset({"capability_describe", "capability_catalog"})
+
 CAPABILITY_GUIDANCE_REQUIRED_TOOLS = {
     "business_records_discover",
     "commitments_list",
@@ -1331,7 +1336,7 @@ def load_application_catalog() -> dict[str, Any]:
     public_business_read_names = {
         tool.name
         for tool in MCP_TOOL_CATALOG
-        if tool.access == "read" and tool.name != "capability_describe"
+        if tool.access == "read" and tool.name not in CATALOG_READ_TOOLS
     }
 
     mapped_tools: list[str] = []
@@ -1511,6 +1516,17 @@ def _runtime_catalog_snapshot() -> dict[str, Any]:
 def runtime_application_catalog() -> dict[str, Any]:
     """Return an isolated copy of the process's validated global metadata."""
     return deepcopy(_runtime_catalog_snapshot())
+
+
+def runtime_tool_catalog() -> dict[str, Any]:
+    """Return an isolated copy of the capability classification alone.
+
+    Copying all nineteen catalog sections costs roughly twice as much as copying
+    this one, which a capability discovery call should not pay for eighteen
+    sections it never reads. The isolation is unchanged; only the amount copied
+    is (spec 270).
+    """
+    return deepcopy(_runtime_catalog_snapshot()["tool_catalog"])
 
 
 def clear_runtime_application_catalog() -> None:

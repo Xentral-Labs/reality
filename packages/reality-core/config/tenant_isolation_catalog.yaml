@@ -397,6 +397,7 @@ families:
       - tool:business_discover
       - tool:price_quote
       - tool:capability_describe
+      - tool:capability_catalog
       - tool:commitment_hold
       - tool:commitment_revise
       - tool:commitment_cancel

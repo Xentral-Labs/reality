@@ -212,6 +212,7 @@
     "movement_explanation": "shipping",
     "return_disposition_summary": "shipping",
     "supply_coverage": "orders",
+    "capability_catalog": "evidence",
     "capability_describe": "evidence",
     "business_records_discover": "evidence",
     "interpretation_coverage": "evidence",
@@ -256,6 +257,7 @@
     "graph_interpret": "analytics"
   },
   "understand_tools": [
+    "capability_catalog",
     "capability_describe",
     "shipment_explain",
     "order_explain",

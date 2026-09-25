@@ -1475,6 +1475,18 @@ def _capability_describe(
     return {"canonical_public_name": canonical_name, **guidance}
 
 
+def _capability_catalog(
+    session: Session, tenant_id: str, arguments: dict[str, Any]
+) -> Any:
+    """Answer the topic index, or one topic's capabilities (spec 270)."""
+    from reality.services.capability_catalog import topic_capabilities, topic_index
+
+    topic = str(arguments.get("topic") or "").strip()
+    if not topic:
+        return topic_index(session, tenant_id)
+    return topic_capabilities(session, tenant_id, topic)
+
+
 def _proposals_awaiting_approval(
     session: Session, tenant_id: str, arguments: dict[str, Any]
 ) -> Any:
@@ -1752,6 +1764,12 @@ TOOLS = {
         "Describe the safe use and verification path of one public agent capability.",
         False,
         _capability_describe,
+    ),
+    "capability_catalog": Tool(
+        "capability_catalog",
+        "Discover the business areas this Reality covers and which of them this credential may use.",
+        False,
+        _capability_catalog,
     ),
     "proposals_awaiting_approval": Tool(
         "proposals_awaiting_approval",
