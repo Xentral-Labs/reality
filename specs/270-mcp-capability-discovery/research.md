@@ -91,10 +91,18 @@ rule was inverted during implementation and the contract updated with it.
 
 ## R5 — Catalog access cost
 
-`runtime_application_catalog()` deep-copies all nineteen sections: **45.5 ms per call**, measured
-over five calls after warm-up. The tool-catalog slice alone is 263 KB.
+`runtime_application_catalog()` deep-copies all nineteen sections. Measured alternating with the
+narrow accessor, twenty calls each, five rounds, median of medians: **16.0 ms** for the full copy
+against **6.8 ms** for the tool-catalog slice, a **57%** saving. The slice alone is 263 KB.
+
+An earlier reading of 45.5 ms, taken over five calls just after warm-up, was too high; it is kept
+here only as a caution that a first reading is not a measurement. Absolute numbers on this machine
+move with its load, so the ratio is the durable finding, and both sides were measured back to back
+for that reason.
 
 **Consequence**: a narrow accessor for the slice. Isolation is kept; only the amount copied changes.
+A whole discovery call — copy, grouping and grant state — measures 7.6 ms for the index and 8.1 ms
+for the largest topic.
 
 ## R6 — The gates a new read tool must pass
 

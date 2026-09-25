@@ -1521,9 +1521,10 @@ def runtime_application_catalog() -> dict[str, Any]:
 def runtime_tool_catalog() -> dict[str, Any]:
     """Return an isolated copy of the capability classification alone.
 
-    Copying all nineteen catalog sections costs about 45 ms, which a capability
-    discovery call should not pay for eighteen sections it never reads. The
-    isolation is unchanged; only the amount copied is (spec 270).
+    Copying all nineteen catalog sections costs roughly twice as much as copying
+    this one, which a capability discovery call should not pay for eighteen
+    sections it never reads. The isolation is unchanged; only the amount copied
+    is (spec 270).
     """
     return deepcopy(_runtime_catalog_snapshot()["tool_catalog"])
 

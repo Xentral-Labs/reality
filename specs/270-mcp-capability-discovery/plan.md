@@ -98,10 +98,10 @@ truthful per-kind outcome of FR-004, not a gap.
 
 ### Catalog access
 
-`runtime_application_catalog()` deep-copies all nineteen catalog sections on every call, measured at
-45.5 ms. For a tool meant to be an agent's first call that is unacceptable, so `catalogs.py` gains a
-narrow accessor returning only the tool-catalog entries. It still returns a copy; the saving is in
-what is copied, not in giving up isolation.
+`runtime_application_catalog()` deep-copies all nineteen catalog sections on every call. For a tool
+meant to be an agent's first call that is waste, so `catalogs.py` gains a narrow accessor returning
+only the tool-catalog slice. It still returns a copy; the saving is in what is copied, not in giving
+up isolation. Measured back to back: 16.0 ms against 6.8 ms, a 57% saving (research R5).
 
 ### Guidance exemption
 

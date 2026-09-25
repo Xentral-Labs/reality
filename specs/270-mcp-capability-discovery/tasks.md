@@ -51,7 +51,7 @@ so it cannot pass merely because the code under test does not exist yet.
 
 - [X] T007 [FR-007] Add a narrow accessor for the tool-catalog slice beside
   `runtime_application_catalog()` in `core/src/reality/catalogs.py`, so a discovery call does not pay
-  the measured 45.5 ms full-catalog deep copy (research R5)
+  the full-catalog deep copy (research R5; 16.0 ms against 6.8 ms measured back to back)
 - [X] T008 [FR-001] [FR-002] [FR-003] Add `core/src/reality/services/capability_catalog.py` with
   `topics()` and `capabilities(topic)`, shaped exactly as `contracts/capability_catalog.md`. The
   module reads the built classification and defines no vocabulary of its own; an unknown topic is
