@@ -59,6 +59,7 @@ As an owner, I open History and can tell from each row what happened, to which b
 ### Edge Cases
 
 - Long names truncate with the full value in the tooltip; a row never widens the register.
+- On a wide screen the spare width goes to the event, record and area columns, in proportion to their minimum widths; the status column stays narrow.
 - The German, Dutch and Spanish editions label every new element.
 
 ## Requirements *(mandatory)*
@@ -66,7 +67,7 @@ As an owner, I open History and can tell from each row what happened, to which b
 ### Functional Requirements
 
 - **FR-001**: The History register MUST name each event's record by the business name the timeline returns (name with SKU, or party, item, SKU, reference), and fall back to a short id when no name is known.
-- **FR-002**: The register MUST show each event's title (its technical type as the tooltip), its area as a chip, and a labelled badge for attention events only; a completed event, the norm, carries none. The recording time is compact (day, month, time) with the full value as the tooltip, and the register fits its width without horizontal scrolling next to the chat dock.
+- **FR-002**: The register MUST show each event's title (its technical type as the tooltip), its area as a chip, and a labelled badge for attention events only; a completed event, the norm, carries none. The recording time is compact (day, month, time) with the full value as the tooltip, and the register fits its width without horizontal scrolling next to the chat dock; when there is more room, the event, record and area columns take it rather than an empty filler.
 - **FR-003**: Each row MUST open an inline preview with the business context, the event, subject and source ids, the payload, and actions to inspect the event and, where inspectable, to open the record.
 - **FR-004**: Every new English string MUST carry German, Dutch and Spanish translations.
 
@@ -89,7 +90,7 @@ As an owner, I open History and can tell from each row what happened, to which b
 | Requirement | Scenario(s) | Planned test/evidence |
 |---|---|---|
 | FR-001 | US1 1–2 | `history-table.test.mjs` (record naming, SKU fallback, short id); `history-table-browser.mjs` |
-| FR-002 | US1 1, 4 | `history-table-browser.mjs` (tooltip, area chip, no completed badge, no table overflow) |
+| FR-002 | US1 1, 4 | `history-table-browser.mjs` (tooltip, area chip, no completed badge, no table overflow at 1200px beside the dock, spare width to the grow columns at 1800px) |
 | FR-003 | US1 3 | `history-table-browser.mjs` (preview ids and actions) |
 | FR-004 | Edge case | i18n audit |
 | DR-001 | — | no server change in the diff; the rows carry no decision (browser check) |

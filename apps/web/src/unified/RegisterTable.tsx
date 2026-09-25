@@ -181,7 +181,8 @@ export function RegisterTable({
   empty,
 }: {
   children: ReactNode;
-  cursorView?: { id: string; widths: number[] };
+  /** `grow` names columns that share spare width; the register then needs no filler column. */
+  cursorView?: { id: string; widths: number[]; grow?: number[] };
   footer?: ReactNode;
   filterControl?: boolean;
   actionWidth?: number;
@@ -243,6 +244,16 @@ export function RegisterTable({
   const [layout, setLayout] = useState<TableLayout>(() => validateLayout(null, count));
   const [loaded, setLoaded] = useState("");
   const container = useRef<HTMLDivElement>(null);
+  const growing = Boolean(cursorView?.grow?.length);
+  const [available, setAvailable] = useState(0);
+  useLayoutEffect(() => {
+    const scroll = container.current;
+    if (!growing || !scroll) return;
+    const observer = new ResizeObserver(() => setAvailable(scroll.clientWidth));
+    observer.observe(scroll);
+    setAvailable(scroll.clientWidth);
+    return () => observer.disconnect();
+  }, [growing]);
   useLayoutEffect(() => {
     const scroll = container.current;
     const register = scroll?.parentElement;
@@ -300,6 +311,14 @@ export function RegisterTable({
   const widths = visible.map((i) =>
     i === count - 1 ? actionWidth : current.widths[i] || profile.widths[i] || 150,
   );
+  const grow = cursorView?.grow?.filter((i) => visible.includes(i)) || [];
+  const filler = grow.length === 0;
+  // Grow columns split the spare width in proportion to their minimum widths.
+  const total = widths.reduce((sum, w) => sum + w, selectable ? 40 : 0);
+  const growWidth = widths.reduce((sum, w, n) => (grow.includes(visible[n]) ? sum + w : sum), 0);
+  const spare = Math.max(0, available - total);
+  const columnWidth = (i: number, n: number) =>
+    grow.includes(i) ? Math.floor(widths[n] + (spare * widths[n]) / growWidth) : widths[n];
   const openRow = (row: HTMLTableRowElement) => {
     const button =
       row.querySelector<HTMLButtonElement>("td:last-child button, td:last-child a") ||
@@ -385,8 +404,8 @@ export function RegisterTable({
             {selectable && <col style={{ width: 40 }} />}
             {visible.map((i, n) => (
               <Fragment key={i}>
-                {i === count - 1 && <col />}
-                <col style={{ width: widths[n] }} />
+                {filler && i === count - 1 && <col />}
+                <col style={{ width: columnWidth(i, n) }} />
               </Fragment>
             ))}
           </colgroup>
@@ -414,7 +433,7 @@ export function RegisterTable({
                   active = sort && context?.query.sort === sort;
                 return (
                   <Fragment key={i}>
-                    {i === count - 1 && <th aria-hidden="true" className="erp-fill" />}
+                    {filler && i === count - 1 && <th aria-hidden="true" className="erp-fill" />}
                     <th
                       key={i}
                       title={text(headers[i].props.children)}
@@ -546,8 +565,9 @@ export function RegisterTable({
               <tr className="erp-empty-row">
                 <td
                   colSpan={
-                    visible.length + (selectable ? 1 : 0) + (visible.includes(count - 1) ? 1 : 0) ||
-                    1
+                    visible.length +
+                      (selectable ? 1 : 0) +
+                      (filler && visible.includes(count - 1) ? 1 : 0) || 1
                   }
                 >
                   <div className="erp-empty" role="status">
@@ -562,7 +582,9 @@ export function RegisterTable({
                 return cloneElement(row, {
                   key: row.key || `preview-${r}`,
                   columns:
-                    visible.length + (selectable ? 1 : 0) + (visible.includes(count - 1) ? 1 : 0),
+                    visible.length +
+                    (selectable ? 1 : 0) +
+                    (filler && visible.includes(count - 1) ? 1 : 0),
                 } as object);
               const dataIndex = rows
                 .slice(0, r)
@@ -608,7 +630,9 @@ export function RegisterTable({
                     if (!cell) return <td key={i} />;
                     return (
                       <Fragment key={i}>
-                        {i === count - 1 && <td aria-hidden="true" className="erp-fill" />}
+                        {filler && i === count - 1 && (
+                          <td aria-hidden="true" className="erp-fill" />
+                        )}
                         <td
                           {...cell.props}
                           className={`${cell.props.className || ""}${i === count - 1 ? " erp-actions-cell" : ""}`}

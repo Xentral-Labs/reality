@@ -405,7 +405,11 @@ export function ActivityDrawer({
           <>
             {embedded ? (
               <RegisterTable
-                cursorView={{ id: "inspector:history", widths: [112, 136, 146, 110, 96, 44] }}
+                cursorView={{
+                  id: "inspector:history",
+                  widths: [112, 108, 112, 88, 80, 80],
+                  grow: [1, 2, 3],
+                }}
                 footer={olderControls}
               >
                 <thead>

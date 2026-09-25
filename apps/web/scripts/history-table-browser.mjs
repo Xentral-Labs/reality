@@ -52,6 +52,35 @@ for (const [scheme, width] of [
       "no decision line in rows",
       (await page.locator("[data-activity-event] [data-activity-decision]").count()) === 0,
     );
+    const layout = () =>
+      page.evaluate(() => {
+        const table = document.querySelector("[data-table-id='inspector:history'] table");
+        const cells = [...table.querySelectorAll("thead th")];
+        return {
+          filler: table.querySelectorAll(".erp-fill").length,
+          event: cells[1].getBoundingClientRect().width,
+          record: cells[2].getBoundingClientRect().width,
+          overflow: table.scrollWidth - table.parentElement.clientWidth,
+        };
+      });
+    // Beside the open chat dock at 1200px the register has about 600px.
+    await page.setViewportSize({ width: 1200, height: 900 });
+    await page.waitForTimeout(300);
+    const narrow = await layout();
+    check(
+      "no filler column, minimum widths hold",
+      narrow.filler === 0 && narrow.event >= 107 && narrow.record >= 111 && narrow.overflow <= 0,
+      `event ${Math.round(narrow.event)}px, record ${Math.round(narrow.record)}px, overflow ${narrow.overflow}px`,
+    );
+    await page.setViewportSize({ width: 1800, height: 900 });
+    await page.waitForTimeout(300);
+    const wide = await layout();
+    check(
+      "spare width goes to event, record and area",
+      wide.event > narrow.event + 40 && wide.record > narrow.record + 40 && wide.overflow <= 0,
+      `event ${Math.round(wide.event)}px, record ${Math.round(wide.record)}px`,
+    );
+    await page.setViewportSize({ width, height: 900 });
     await row.locator("button[aria-controls^='history-preview-']").click();
     const details = await page.locator("[data-history-details]").first().innerText();
     check(
