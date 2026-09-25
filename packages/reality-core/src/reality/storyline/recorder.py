@@ -82,6 +82,7 @@ def trace_scope(
 class ChatCalls:
     tenant_id: str
     ids: list[str]
+    reads: list[dict[str, Any]]
 
 
 _chat_calls: ContextVar[ChatCalls | None] = ContextVar(
@@ -95,7 +96,7 @@ def current_chat_calls() -> ChatCalls | None:
 
 @contextmanager
 def chat_call_scope(tenant_id: str) -> Iterator[ChatCalls]:
-    calls = ChatCalls(tenant_id, [])
+    calls = ChatCalls(tenant_id, [], [])
     token = _chat_calls.set(calls)
     try:
         yield calls
@@ -109,16 +110,18 @@ def wrap_chat(function: Callable[..., Any]) -> Callable[..., Any]:
     @wraps(function)
     def send(session: Session, tenant_id: str, *args: Any, **kwargs: Any) -> Any:
         target = _target(session, tenant_id)
-        if target is None:
-            return function(session, tenant_id, *args, **kwargs)
-        with (
-            chat_call_scope(tenant_id) as calls,
-            trace_scope(tenant_id, target.run_id, actor="chat") as scope,
-        ):
-            result = function(session, tenant_id, *args, **kwargs)
+        with chat_call_scope(tenant_id) as calls:
+            if target is None:
+                result = function(session, tenant_id, *args, **kwargs)
+            else:
+                with trace_scope(tenant_id, target.run_id, actor="chat"):
+                    result = function(session, tenant_id, *args, **kwargs)
+            _attach_answer_basis(session, result[1], calls)
+            if target is None:
+                return result
             _safe_record(
                 session,
-                scope,
+                TraceScope(tenant_id, target.run_id, actor="chat"),
                 kind="read",
                 name="chat.reply",
                 input={"message_id": result[1].id},
@@ -128,6 +131,25 @@ def wrap_chat(function: Callable[..., Any]) -> Callable[..., Any]:
             return result
 
     return send
+
+
+def _attach_answer_basis(session: Session, message: Any, calls: ChatCalls) -> None:
+    """Attach support after reply persistence; failure never repeats the reply."""
+    if not calls.reads:
+        return
+    try:
+        message.answer_basis = bounded(
+            {
+                "version": 1,
+                "calls": calls.reads[:128],
+                "has_more": len(calls.reads) > 128,
+            }
+        )
+        session.commit()
+    except Exception:
+        logger.exception("Chat answer basis could not be recorded")
+        if session.get_nested_transaction() is None:
+            session.rollback()
 
 
 def current_scope() -> TraceScope | None:
@@ -406,36 +428,45 @@ def _safe_record(session: Session, *args: Any, commit: bool, **kwargs: Any) -> N
 
 def wrap_read(function: Callable[..., Any]) -> Callable[..., Any]:
     def run_read_tool(session: Session, tenant_id: str, tool_name: str, arguments=None):
-        if tool_name.startswith("analytics.reports."):
-            return function(session, tenant_id, tool_name, arguments)
         target = _target(session, tenant_id)
-        if target is None:
-            return function(session, tenant_id, tool_name, arguments)
         started = time.perf_counter()
         try:
             result = function(session, tenant_id, tool_name, arguments)
         except Exception as exc:
+            if target is not None and not tool_name.startswith("analytics.reports."):
+                _safe_record(
+                    session,
+                    target,
+                    kind="error",
+                    name=tool_name,
+                    input=arguments or {},
+                    error=f"{type(exc).__name__}: {exc}",
+                    duration_ms=_elapsed(started),
+                    commit=False,
+                )
+            raise
+        calls = current_chat_calls()
+        if calls is not None and calls.tenant_id == tenant_id:
+            snapshot = bounded(
+                {
+                    "operation": tool_name[:120],
+                    "input": bounded(arguments or {}),
+                    "result": bounded(result),
+                }
+            )
+            if isinstance(snapshot, dict):
+                calls.reads.append(snapshot)
+        if target is not None and not tool_name.startswith("analytics.reports."):
             _safe_record(
                 session,
                 target,
-                kind="error",
+                kind="read",
                 name=tool_name,
                 input=arguments or {},
-                error=f"{type(exc).__name__}: {exc}",
+                result=result,
                 duration_ms=_elapsed(started),
-                commit=False,
+                commit=True,
             )
-            raise
-        _safe_record(
-            session,
-            target,
-            kind="read",
-            name=tool_name,
-            input=arguments or {},
-            result=result,
-            duration_ms=_elapsed(started),
-            commit=True,
-        )
         return result
 
     run_read_tool.__wrapped__ = function  # type: ignore[attr-defined]
