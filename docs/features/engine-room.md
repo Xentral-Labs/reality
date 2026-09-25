@@ -68,7 +68,9 @@ Live shows the last minute only:
 - who is active now
 - a ticker of that minute, where an access that changed something carries a change marker that opens the change in the Inspector
 
-Nothing older appears there, and there is no history of accesses on screen. The derivation is pure presentation (`cockpit()` in `apps/web/src/unified/engineRoomModel.ts`). Narrowing comes from a meter click or an entry point (a client's calls from its MCP token) and shows as removable chips.
+Below the meters, four curves show the trend over 5, 15 or 60 minutes: load by channel, response time, errors, and reads against changes. They come from `GET /interactions/series`, aggregated per step at read time.
+
+Nothing older than the chosen window appears there, and there is no history of accesses on screen. The derivation is pure presentation (`cockpit()` in `apps/web/src/unified/engineRoomModel.ts`). Narrowing comes from a meter click or an entry point (a client's calls from its MCP token) and shows as removable chips.
 
 ## Retention and operation
 

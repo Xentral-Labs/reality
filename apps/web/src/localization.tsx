@@ -19561,3 +19561,40 @@ Object.assign(dictionaries.es, {
   "1 change": "1 cambio",
   "{count} changes": "{count} cambios",
 });
+// The live monitor curves (spec 266).
+Object.assign(dictionaries.de, {
+  "{count} min": "{count} Min.",
+  "Accesses per minute by channel": "Zugriffe pro Minute nach Kanal",
+  "Reads and changes per minute": "Lesen und Ändern pro Minute",
+  "Refused or failed per minute": "Abgelehnt oder fehlgeschlagen pro Minute",
+  "Response time": "Antwortzeit",
+  Trend: "Entwicklung",
+  Window: "Zeitfenster",
+  Reads: "Lesen",
+  Changes: "Änderungen",
+  "Refused or failed": "Abgelehnt oder fehlgeschlagen",
+});
+Object.assign(dictionaries.nl, {
+  "{count} min": "{count} min.",
+  "Accesses per minute by channel": "Toegangen per minuut per kanaal",
+  "Reads and changes per minute": "Lezen en wijzigen per minuut",
+  "Refused or failed per minute": "Geweigerd of mislukt per minuut",
+  "Response time": "Reactietijd",
+  Trend: "Ontwikkeling",
+  Window: "Tijdvenster",
+  Reads: "Lezen",
+  Changes: "Wijzigingen",
+  "Refused or failed": "Geweigerd of mislukt",
+});
+Object.assign(dictionaries.es, {
+  "{count} min": "{count} min.",
+  "Accesses per minute by channel": "Accesos por minuto por canal",
+  "Reads and changes per minute": "Lecturas y cambios por minuto",
+  "Refused or failed per minute": "Rechazados o fallidos por minuto",
+  "Response time": "Tiempo de respuesta",
+  Trend: "Tendencia",
+  Window: "Ventana",
+  Reads: "Lecturas",
+  Changes: "Cambios",
+  "Refused or failed": "Rechazados o fallidos",
+});

@@ -279,6 +279,9 @@ def test_owners_read_everyone_else_gets_not_found(web):  # noqa: F811
         "truncated",
     }
     assert web.sign_in(owner).get(path + "/pulse").status_code == 200
+    series = web.sign_in(owner).get(path + "/series?minutes=15")
+    assert series.status_code == 200 and len(series.json()["buckets"]) == 90
+    assert web.sign_in(plain).get(path + "/series").status_code == 404
     assert web.sign_in(plain).get(path).status_code == 404
     assert web.sign_in(foreign_owner).get(path).status_code in {403, 404}
     assert web.sign_in(admin).get(path).status_code == 404
@@ -340,7 +343,9 @@ def test_tool_calls_carry_a_readers_label_and_web_routes_do_not(session, busines
     assert route["label"] is None
 
 
-def test_hiding_own_interactions_keeps_everyone_elses(session, business, scheduled_owner):
+def test_hiding_own_interactions_keeps_everyone_elses(
+    session, business, scheduled_owner
+):
     tenant = business.tenant.id
     mine = add(session, tenant, actor_user_id=scheduled_owner.id)
     agent = add(session, tenant, channel="mcp")
@@ -348,4 +353,95 @@ def test_hiding_own_interactions_keeps_everyone_elses(session, business, schedul
     assert shown == [agent.id]
     # Positive control: without the filter the owner's own row is there.
     assert mine.id in ids(listed(session, tenant))
-    assert interactions.pulse(session, tenant, scheduled_owner.id)["latest_cursor"] == agent.cursor
+    assert (
+        interactions.pulse(session, tenant, scheduled_owner.id)["latest_cursor"]
+        == agent.cursor
+    )
+
+
+def test_series_counts_each_bucket_by_channel_with_errors_writes_and_latency(
+    session, business, scheduled_owner
+):
+    tenant = business.tenant.id
+    moment = now().replace(microsecond=0)
+    # Two buckets of ten seconds: one busy, one with a write and an error.
+    add(
+        session,
+        tenant,
+        channel="mcp",
+        duration_ms=10,
+        recorded_at=moment - timedelta(seconds=25),
+    )
+    add(
+        session,
+        tenant,
+        channel="mcp",
+        duration_ms=30,
+        recorded_at=moment - timedelta(seconds=24),
+    )
+    add(
+        session,
+        tenant,
+        channel="web",
+        duration_ms=50,
+        recorded_at=moment - timedelta(seconds=23),
+    )
+    add(
+        session,
+        tenant,
+        channel="web",
+        outcome="failed",
+        duration_ms=90,
+        recorded_at=moment - timedelta(seconds=5),
+        event_first_sequence=1,
+        event_last_sequence=1,
+        event_ranges=[[1, 1]],
+    )
+    # Outside the window and a refresh row: neither counts.
+    add(session, tenant, channel="web", recorded_at=moment - timedelta(minutes=10))
+    add(
+        session,
+        tenant,
+        channel="web",
+        refresh=True,
+        recorded_at=moment - timedelta(seconds=5),
+    )
+    series = interactions.series(session, tenant, minutes=5, as_of=moment)
+    assert series["step_seconds"] == 10
+    assert len(series["buckets"]) == 30
+    counts = [bucket for bucket in series["buckets"] if bucket["total"]]
+    busy, later = counts
+    assert busy["channels"] == {"web": 1, "mcp": 2, "chat": 0, "cli": 0, "worker": 0}
+    assert (busy["errors"], busy["writes"], busy["reads"]) == (0, 0, 3)
+    assert busy["p50_ms"] == 30 and busy["p95_ms"] >= 45
+    assert (later["errors"], later["writes"], later["reads"]) == (1, 1, 0)
+    # A quiet bucket is zero, not missing, so a curve is flat where nothing happened.
+    assert series["buckets"][0]["total"] == 0 and series["buckets"][0]["p95_ms"] is None
+
+
+def test_series_hides_the_viewer_and_respects_filters(
+    session, business, scheduled_owner
+):
+    tenant = business.tenant.id
+    moment = now().replace(microsecond=0)
+    add(
+        session,
+        tenant,
+        actor_user_id=scheduled_owner.id,
+        recorded_at=moment - timedelta(seconds=3),
+    )
+    add(session, tenant, channel="mcp", recorded_at=moment - timedelta(seconds=3))
+    mine_hidden = interactions.series(
+        session,
+        tenant,
+        minutes=5,
+        as_of=moment,
+        exclude_actor_user_id=scheduled_owner.id,
+    )
+    assert sum(bucket["total"] for bucket in mine_hidden["buckets"]) == 1
+    only_web = interactions.series(
+        session, tenant, minutes=5, as_of=moment, channels=["web"]
+    )
+    assert sum(bucket["total"] for bucket in only_web["buckets"]) == 1
+    with pytest.raises(InvalidOperation):
+        interactions.series(session, tenant, minutes=7, as_of=moment)

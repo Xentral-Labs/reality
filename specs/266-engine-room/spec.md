@@ -151,6 +151,7 @@ As an owner I move back on a time axis and play a past window, for example one a
 - **FR-012**: Recording MUST NOT fail the observed interaction; a recording failure is counted in metrics and the interaction proceeds.
 - **FR-013**: The Live tab and its data MUST be available only to active owners of the company; members and other companies receive not found.
 - **FR-014**: The Live tab MUST be a cockpit of the last minute only: a status (active with a count, or all quiet), a meter per channel with its rate, a five-second trace and its errors, the model stages with their reads and writes, who is active now, and the interactions of that minute newest first. Nothing older than a minute appears there; history is a separate, explicit view (FR-015).
+- **FR-017**: The Live tab MUST show the trend behind the minute as four curves over a rolling window of 5, 15 or 60 minutes: accesses per minute stacked by channel, response time (median and 95th percentile), refused or failed per minute, and reads against changes per minute. Each curve has one axis, a legend with values, a shared crosshair on hover and a table for screen readers. The counts are aggregated at read time per time step (10 s, or 60 s for an hour), quiet steps are zero rather than missing, and the viewer's own interactions and timer-driven refresh are left out. A channel keeps one colour everywhere on the page.
 - **FR-016**: A tool call MUST show a reader's label (the catalog's label in the viewer's language where one exists, else the tool's own label) next to its technical name. A read that changed nothing shows nothing in the reality lane.
 - **FR-015**: *(Withdrawn 2026-09-25.)* The Activities section names its tabs by time: **History** (what changed, the business events) and **Live** (who is accessing the model now). An access in the Live ticker that changed something MUST carry a change marker that opens that change in the Inspector.
 
@@ -209,6 +210,7 @@ As an owner I move back on a time axis and play a past window, for example one a
 | FR-013 | — | role test: member and foreign owner get not found |
 | FR-014 | US1 6; owner review 2026-09-25 | `engine-room-model.test.mjs` cockpit derivation; live browser check (status, channel meters, quiet) |
 | FR-015 | Owner review 2026-09-25 | live browser check (change opens in the Inspector; no history controls); `inspector-navigation.test.mjs` (tab names) |
+| FR-017 | Owner request 2026-09-25 | `test_engine_room_reads.py::test_series_*`, owner-only route test; live browser check (four charts, crosshair) |
 | FR-016 | Owner review 2026-09-24 | reads test for labels; live browser check |
 | DR-001 | — | architecture test: no business import of interactions |
 | DR-002 | US2 1 | business story |

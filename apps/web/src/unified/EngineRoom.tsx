@@ -1,8 +1,9 @@
 import { Radio, X } from "lucide-react";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { APIError, api, type Interaction, type InteractionEvent } from "../api";
 import { currentLanguage, formatNumber, formatTime, t } from "../localization";
 import { Inspector } from "./Inspector";
+import { LiveCharts } from "./LiveCharts";
 import {
   CHANNELS,
   COCKPIT_WINDOW_MS,
@@ -200,15 +201,19 @@ function InteractionDetails({
   );
 }
 
-function Trace({ values }: { values: number[] }) {
+function Trace({ values, color }: { values: number[]; color: string }) {
   const peak = Math.max(1, ...values);
   return (
     <span className="flex h-6 w-full items-end gap-0.5" aria-hidden data-cockpit-trace>
       {values.map((value, index) => (
         <span
           key={index}
-          className={`min-w-0 flex-1 rounded-sm ${value ? "bg-accent" : "bg-border-subtle"}`}
-          style={{ height: `${Math.max(8, (value / peak) * 100)}%` }}
+          className={`min-w-0 flex-1 rounded-sm ${value ? "" : "bg-border-subtle"}`}
+          // The channel keeps its colour on the whole page, here and in the curves.
+          style={{
+            height: `${Math.max(8, (value / peak) * 100)}%`,
+            background: value ? color : undefined,
+          }}
         />
       ))}
     </span>
@@ -224,6 +229,7 @@ function LiveCockpit({
   open,
   openProposal,
   filterBy,
+  trend,
 }: {
   tenant: string;
   rows: Interaction[];
@@ -232,6 +238,8 @@ function LiveCockpit({
   open: (target: { kind: string; id: string }) => void;
   openProposal: (id: string) => void;
   filterBy: (change: Partial<LiveFilter>) => void;
+  /** The curves behind the minute, placed between the meters and the machine. */
+  trend?: ReactNode;
 }) {
   const view = useMemo(() => cockpit(rows, now), [rows, now]);
   const [selected, setSelected] = useState("");
@@ -303,15 +311,17 @@ function LiveCockpit({
               </span>
               <span className="ml-1 text-xs text-fg-muted">{t("/ min")}</span>
             </span>
-            <Trace values={channel.trace} />
+            <Trace values={channel.trace} color={`var(--series-${channel.channel})`} />
           </button>
         ))}
       </div>
 
-      <div className="rounded-lg border border-border-subtle p-3" data-cockpit-machine>
+      {trend}
+
+      <div className="@container rounded-lg border border-border-subtle p-3" data-cockpit-machine>
         <div className="mb-2 text-xs font-medium text-fg-muted">{t("Model")}</div>
         <ol
-          className="grid gap-2 [grid-template-columns:repeat(auto-fit,minmax(6.5rem,1fr))]"
+          className="grid grid-cols-2 gap-2 @md:grid-cols-4 @4xl:grid-cols-8"
           data-engine-room-map
         >
           {STAGES.map((stage) => {
@@ -598,6 +608,7 @@ export function EngineRoom({
           open={setTarget}
           openProposal={openProposal}
           filterBy={setFilter}
+          trend={<LiveCharts tenant={tenant} filter={filter} />}
         />
       </section>
       {target && <Inspector tenant={tenant} target={target} close={() => setTarget(null)} />}

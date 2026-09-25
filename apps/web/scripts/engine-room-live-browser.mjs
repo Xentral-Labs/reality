@@ -121,6 +121,18 @@ await page
 await page.waitForSelector("[data-engine-room-events] li", { timeout: 5000 });
 check("linked events list", (await page.locator("[data-engine-room-events] li").count()) >= 1);
 
+// The curves: four charts, one axis each, a crosshair on hover.
+await page.waitForSelector("[data-live-charts] figure svg path", { timeout: 15000 });
+check("four trend charts", (await page.locator("[data-live-charts] figure").count()) === 4);
+const chart = page.locator("[data-live-charts] figure svg").first();
+const box = await chart.boundingBox();
+await page.mouse.move(box.x + box.width * 0.9, box.y + box.height / 2);
+check(
+  "hover draws a crosshair",
+  (await page.locator("[data-live-charts] svg line[stroke*='fg-muted']").count()) >= 1,
+);
+await page.mouse.move(0, 0);
+
 // The cockpit shows the last minute only: the status names what is happening now.
 const status = await page.locator("[data-cockpit-status]").getAttribute("data-cockpit-status");
 check("the cockpit reports activity while it happens", status === "active", status || "none");
