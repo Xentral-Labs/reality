@@ -10141,6 +10141,11 @@ export const formatDateTime = (value: string | null | undefined) =>
         minute: "2-digit",
       })
     : "—";
+/** Day, month and time without the year: for dense registers, with the full value as a tooltip. */
+export const formatShortDateTime = (value: string | null | undefined) =>
+  value
+    ? date(value, { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" })
+    : "—";
 export const formatTime = (value: string | null | undefined, seconds = false) =>
   value
     ? date(value, { hour: "2-digit", minute: "2-digit", ...(seconds ? { second: "2-digit" } : {}) })
@@ -19449,4 +19454,17 @@ Object.assign(dictionaries.es, {
   proposed: "propuesta",
   rejected: "rechazada",
   executing: "en ejecución",
+});
+// The History register (spec 269).
+Object.assign(dictionaries.de, {
+  "Business partner": "Geschäftspartner",
+  Event: "Ereignis",
+});
+Object.assign(dictionaries.nl, {
+  "Business partner": "Zakenpartner",
+  Event: "Gebeurtenis",
+});
+Object.assign(dictionaries.es, {
+  "Business partner": "Socio comercial",
+  Event: "Evento",
 });
