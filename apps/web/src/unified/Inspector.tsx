@@ -131,6 +131,7 @@ export function Inspector({
               href={engineRoomHref(tenant, {
                 subjectType: selected.kind,
                 subjectId: selected.id,
+                period: "7d",
               })}
               data-inspector-engine-room
             >

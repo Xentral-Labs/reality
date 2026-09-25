@@ -404,7 +404,7 @@ export function MCPAccess({
             {tenant && (
               <a
                 className="inline-block text-xs text-accent hover:underline"
-                href={engineRoomHref(tenant, { mcpToken: token.id })}
+                href={engineRoomHref(tenant, { mcpToken: token.id, period: "24h" })}
                 data-token-engine-room
               >
                 {t("Calls of this client")}

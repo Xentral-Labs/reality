@@ -78,7 +78,15 @@ check(
   mcpText.replace(/\s+/g, " ").slice(0, 160),
 );
 
-check("MCP row shows the choice, not only argument names", mcpText.includes("family: item"), "");
+const mcpRow = page.locator('[data-interaction-channel="mcp"]').first();
+await mcpRow.locator("button").click();
+const mcpDetails = await page.locator("[data-cockpit-details]").innerText();
+check(
+  "MCP details show the choice, not only argument names",
+  mcpDetails.includes("family: item"),
+  "",
+);
+await mcpRow.locator("button").click();
 check(
   "MCP row carries a reader's label",
   /Discover business records|Geschäftsdaten/.test(mcpText),
@@ -103,24 +111,20 @@ await page.locator("[data-engine-room-own]").uncheck();
 await page.waitForTimeout(1500);
 
 // Events of the write open.
-await page.locator("[data-engine-room-events-toggle]").first().click();
+await page
+  .locator("[data-interaction]", { hasText: "POST /items" })
+  .first()
+  .locator("button")
+  .click();
 await page.waitForSelector("[data-engine-room-events] li", { timeout: 5000 });
 check("linked events list", (await page.locator("[data-engine-room-events] li").count()) >= 1);
 
-// Pause holds arrivals and counts them.
-await page.locator("[data-engine-room-pause]").click();
-const before = await page.locator("[data-interaction]").count();
-await memberRequests.get(`${BASE}/api/tenants/${TENANT}/parties`);
-await page.waitForTimeout(2500);
-const pausedLabel = await page.locator("[data-engine-room-pause]").innerText();
-check("paused list stays still", (await page.locator("[data-interaction]").count()) === before);
-check("paused button counts new rows", /1/.test(pausedLabel), pausedLabel);
-await page.locator("[data-engine-room-pause]").click();
-await page.waitForTimeout(500);
-check("resume inserts them", (await page.locator("[data-interaction]").count()) === before + 1);
+// The cockpit shows the last minute only: the status names what is happening now.
+const status = await page.locator("[data-cockpit-status]").getAttribute("data-cockpit-status");
+check("the cockpit reports activity while it happens", status === "active", status || "none");
 
 // Filter by channel through a row badge; the URL carries it.
-await page.locator('[data-interaction-channel="mcp"] button', { hasText: "MCP" }).first().click();
+await page.locator('[data-cockpit-channel="mcp"]').click();
 await page.waitForTimeout(1500);
 check("channel filter in the URL", page.url().includes("live_channel=mcp"), page.url());
 check(
@@ -134,7 +138,7 @@ check("filter survives reload", page.url().includes("live_channel=mcp"));
 await page.getByText("Clear filters").click();
 
 // Replay steps through a window.
-await page.getByRole("button", { name: "Replay" }).click();
+await page.locator("[data-engine-room-period]").selectOption("1h");
 await page.waitForSelector("[data-engine-room-step]");
 await page.waitForTimeout(800);
 const stepText = await page.locator("[data-engine-room-step]").innerText();

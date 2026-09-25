@@ -91,6 +91,15 @@ The storyline middleware already performs one threadpool write per GET, for stor
   - Tool calls show a label (FR-016). Only 4 of 179 tools have a German catalog label, and the web dictionary translates 49 of the 172 English tool labels. The rest show English next to the technical name; translating them is follow-up work.
   - The owner's own page loads dominated the list, so they are hidden by default (FR-006).
 
+- **I11 — Cockpit instead of a list (owner review, 2026-09-25).** The owner wants a control room: what happens now, a calm screen when nothing does, like an activity monitor. The Live tab therefore derives a one-minute cockpit in the browser from the rows it polls:
+  - status line
+  - channel meters with a 12 × 5 s trace
+  - model stages with read and write counts
+  - who is active now
+  - a ticker of the last minute
+
+  This is presentation of telemetry, not a business rule. Pause was dropped, because a view of "now" has nothing to hold. The register layout, aligned with the other Inspector registers, became the history view behind the Period chip, and the entry points about the past lead there. Page title and description moved into the page introduction (the ⓘ popover), where every other page keeps them; before that, the Live tab's popover showed the Timeline text.
+
 ## Analysis (2026-09-24)
 
 A consistency pass over `spec.md`, `plan.md`, `data-model.md`, `contracts/` and `tasks.md`, checked against the code on `origin/main`. No CRITICAL finding. Every HIGH finding is resolved in the artifacts.

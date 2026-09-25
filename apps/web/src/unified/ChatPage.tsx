@@ -838,7 +838,10 @@ export function ChatPage({
               message.id === lastAssistantId && (
                 <a
                   className="mt-1 inline-block text-xs text-accent hover:underline"
-                  href={engineRoomHref(selection.tenant, { correlation: turnCorrelation })}
+                  href={engineRoomHref(selection.tenant, {
+                    correlation: turnCorrelation,
+                    period: "1h",
+                  })}
                   data-chat-engine-room
                 >
                   {t("Show in live monitor")}

@@ -67,7 +67,7 @@ As an owner I open Inspector → Activities → Live and see every interaction w
 3. **Given** a person opens a register page in the web, **When** its requests complete, **Then** they appear as channel Web under that person, named by their operation, not by raw URL.
 4. **Given** a tool call is refused (missing scope, cross-tenant, validation), **When** it happens, **Then** it appears as refused with the error code, without the refused values.
 5. **Given** the connection drops, **When** it resumes, **Then** interactions missed in between are filled in, in order, without duplicates.
-6. **Given** the viewer pauses the stream, **When** interactions continue, **Then** the list stays still, a counter shows how many arrived, and resume inserts them.
+6. **Given** nothing has touched the model in the last minute, **When** the owner opens the Live tab, **Then** it says all is quiet and shows no earlier interactions, however recent the last one was.
 
 ### User Story 2 - Follow a cause to its effect (Priority: P1)
 
@@ -148,9 +148,9 @@ As an owner I move back on a time axis and play a past window, for example one a
 - **FR-011**: Interactions MUST be kept for 7 days. Reads never return older rows, and the work that records interactions removes its company's expired rows in bounded batches (the spec 181 FR-005 rule: the work that makes the history tidies it), so a company cannot accumulate rows without also forgetting old ones.
 - **FR-012**: Recording MUST NOT fail the observed interaction; a recording failure is counted in metrics and the interaction proceeds.
 - **FR-013**: The Live tab and its data MUST be available only to active owners of the company; members and other companies receive not found.
-- **FR-014**: The Live tab MUST let the viewer pause and resume the stream without losing interactions.
+- **FR-014**: The Live tab MUST be a cockpit of the last minute only: a status (active with a count, or all quiet), a meter per channel with its rate, a five-second trace and its errors, the model stages with their reads and writes, who is active now, and the interactions of that minute newest first. Nothing older than a minute appears there; history is a separate, explicit view (FR-015).
 - **FR-016**: A tool call MUST show a reader's label (the catalog's label in the viewer's language where one exists, else the tool's own label) next to its technical name. A read that changed nothing shows nothing in the reality lane.
-- **FR-015**: Replay MUST show interactions of a selected past window within retention in recorded order with step controls.
+- **FR-015**: A history view MUST show interactions of a chosen past period within retention (last hour, 24 hours, 7 days) as a register with search, filters and step controls. Entry points that ask about the past ("who changed this", a client's calls) and any period other than live open it.
 
 ### Domain and Traceability Requirements
 
@@ -205,8 +205,8 @@ As an owner I move back on a time axis and play a past window, for example one a
 | FR-011 | US5 2 | job test |
 | FR-012 | Edge: recording failure | service test with failing recorder |
 | FR-013 | — | role test: member and foreign owner get not found |
-| FR-014 | US1 6 | browser test |
-| FR-015 | US5 1 | browser test |
+| FR-014 | US1 6; owner review 2026-09-25 | `engine-room-model.test.mjs` cockpit derivation; live browser check (status, channel meters, quiet) |
+| FR-015 | US5 1 | live browser check (period, steps) |
 | FR-016 | Owner review 2026-09-24 | reads test for labels; live browser check |
 | DR-001 | — | architecture test: no business import of interactions |
 | DR-002 | US2 1 | business story |

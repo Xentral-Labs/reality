@@ -1,23 +1,31 @@
-import { Pause, Play, Radio, Rewind, SkipBack, SkipForward, X } from "lucide-react";
+import { Pause, Play, Radio, RefreshCw, SkipBack, SkipForward, X } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { APIError, api, type Interaction, type InteractionEvent } from "../api";
-import { currentLanguage, formatDateTime, formatNumber, formatTime, t } from "../localization";
+import { currentLanguage, formatNumber, formatTime, t } from "../localization";
 import { Inspector } from "./Inspector";
+import { PreviewButton, TablePreview } from "./InlinePreview";
+import { RegisterTable } from "./RegisterTable";
+import { filterChips } from "./FilterChip";
+import { RegisterToolbar, RegisterWorkbench } from "./RegisterWorkbench";
 import {
   CHANNELS,
   KINDS,
   OUTCOMES,
   STAGES,
   emptyLiveFilter,
+  COCKPIT_WINDOW_MS,
+  cockpit,
   emptyStream,
-  groupByCorrelation,
   isFiltered,
   liveFilterFromParams,
   liveFilterQuery,
   liveFilterToParams,
+  matchesSearch,
+  periodWindow,
   receive,
   setPaused,
   type LiveFilter,
+  type Period,
   type Stage,
   type Stream,
 } from "./engineRoomModel";
@@ -88,14 +96,14 @@ function actorLine(row: Interaction): string {
 function StageMap({ marks }: { marks: Map<Stage, "read" | "written"> }) {
   return (
     <ol
-      className="flex flex-wrap items-center gap-1.5 text-xs"
+      className="flex flex-wrap items-center gap-1 text-xs"
       aria-label={t("Model stages")}
       data-engine-room-map
     >
       {STAGES.map((stage, index) => {
         const mark = marks.get(stage);
         return (
-          <li key={stage} className="flex items-center gap-1.5">
+          <li key={stage} className="flex items-center gap-1">
             {index > 0 && index < 7 && (
               <span aria-hidden className="text-fg-quiet">
                 →
@@ -104,7 +112,7 @@ function StageMap({ marks }: { marks: Map<Stage, "read" | "written"> }) {
             <span
               data-stage={stage}
               data-stage-mark={mark || "none"}
-              className={`rounded-full border px-2.5 py-1 transition-colors motion-reduce:transition-none ${stageTone[mark || "none"]}`}
+              className={`rounded-full border px-2 py-0.5 transition-colors motion-reduce:transition-none ${stageTone[mark || "none"]}`}
             >
               {t(stageLabels[stage])}
               {mark && (
@@ -166,168 +174,331 @@ function EventsOf({
   );
 }
 
-function RealityCell({
-  tenant,
-  row,
-  open,
-  openProposal,
-}: {
-  tenant: string;
-  row: Interaction;
-  open: (target: { kind: string; id: string }) => void;
-  openProposal: (id: string) => void;
-}) {
-  const [expanded, setExpanded] = useState(false);
+function StageChips({ row }: { row: Interaction }) {
   const written = new Set(row.stages.written);
-  // What part of the model this touched: filled where it wrote, outlined where it read.
+  // Filled where the call wrote, outlined where it read.
   const touched = STAGES.filter((stage) => written.has(stage) || row.stages.read.includes(stage));
+  if (!touched.length) return null;
   return (
-    <div className="min-w-0">
-      {touched.length > 0 && (
-        <div className="flex flex-wrap gap-1" data-interaction-stages>
-          {touched.map((stage) => (
-            <span
-              key={stage}
-              data-stage-touch={written.has(stage) ? "written" : "read"}
-              className={`rounded-full border px-2 py-0.5 text-xs ${stageTone[written.has(stage) ? "written" : "read"]}`}
-            >
-              {t(stageLabels[stage])}
-            </span>
-          ))}
-        </div>
-      )}
-      <div className="mt-1 flex flex-wrap items-center gap-2 text-xs">
-        {row.proposal && (
-          <button
-            className="text-accent underline-offset-2 hover:underline"
-            onClick={() => openProposal(row.proposal!.id)}
-            data-engine-room-proposal
-          >
-            {t("Decision")} · {t(row.proposal.status)}
-          </button>
-        )}
-        {row.events.count > 0 && (
-          <button
-            className="text-accent underline-offset-2 hover:underline"
-            aria-expanded={expanded}
-            onClick={() => setExpanded((value) => !value)}
-            data-engine-room-events-toggle
-          >
-            {row.events.count === 1
-              ? t("1 event")
-              : t("{count} events").replace("{count}", formatNumber(row.events.count))}
-          </button>
-        )}
-      </div>
-      {expanded && <EventsOf tenant={tenant} row={row} open={open} />}
-    </div>
+    <span className="flex flex-wrap gap-1" data-interaction-stages>
+      {touched.map((stage) => (
+        <span
+          key={stage}
+          data-stage-touch={written.has(stage) ? "written" : "read"}
+          className={`rounded-full border px-2 py-0.5 text-xs ${stageTone[written.has(stage) ? "written" : "read"]}`}
+        >
+          {t(stageLabels[stage])}
+        </span>
+      ))}
+    </span>
   );
 }
 
-function InteractionRow({
+function argumentsOf(row: Interaction): string[] {
+  const choices = row.summary.choices || {};
+  // Arguments with a declared choice show the choice; the rest show their name only.
+  return [
+    ...Object.entries(choices).map(([name, value]) => `${name}: ${value}`),
+    ...(row.summary.arguments || []).filter((name) => !(name in choices)),
+  ];
+}
+
+function InteractionDetails({
   tenant,
   row,
-  current,
   open,
   openProposal,
   filterBy,
 }: {
   tenant: string;
   row: Interaction;
-  current: boolean;
   open: (target: { kind: string; id: string }) => void;
   openProposal: (id: string) => void;
   filterBy: (change: Partial<LiveFilter>) => void;
 }) {
-  const choices = row.summary.choices || {};
-  // Arguments with a declared choice show the choice; the rest show their name only.
-  const args = [
-    ...Object.entries(choices).map(([name, value]) => `${name}: ${value}`),
-    ...(row.summary.arguments || []).filter((name) => !(name in choices)),
-  ];
+  const args = argumentsOf(row);
   return (
-    <li
-      className={`grid gap-x-4 gap-y-1 px-3 py-2 text-sm md:grid-cols-[minmax(0,1.1fr)_minmax(0,1.4fr)_minmax(0,1fr)] ${
-        current ? "bg-accent-soft" : ""
-      }`}
-      data-interaction={row.id}
-      data-interaction-channel={row.channel}
-      aria-current={current || undefined}
-    >
-      <div className="min-w-0">
-        <div className="flex items-center gap-2">
-          <span className="font-mono text-xs text-fg-muted">
-            {formatTime(row.recorded_at, true)}
-          </span>
+    <div className="max-w-3xl space-y-3 text-sm">
+      <dl className="grid grid-cols-[max-content_1fr] gap-x-4 gap-y-1">
+        <dt className="text-fg-muted">{t("Kind")}</dt>
+        <dd>{t(kindLabels[row.kind] || row.kind)}</dd>
+        {args.length > 0 && (
+          <>
+            <dt className="text-fg-muted">{t("Arguments")}</dt>
+            <dd className="font-mono text-xs" data-original-content="">
+              {args.join(", ")}
+            </dd>
+          </>
+        )}
+        {row.summary.result_count !== undefined && (
+          <>
+            <dt className="text-fg-muted">{t("Results")}</dt>
+            <dd>{formatNumber(row.summary.result_count)}</dd>
+          </>
+        )}
+        {row.error_code && (
+          <>
+            <dt className="text-fg-muted">{t("Error code")}</dt>
+            <dd className="font-mono text-xs" data-original-content="">
+              {row.error_code}
+            </dd>
+          </>
+        )}
+      </dl>
+      <div className="flex flex-wrap gap-2">
+        {row.proposal && (
           <button
-            className="rounded bg-surface-muted px-1.5 py-0.5 text-xs font-medium hover:bg-surface-sunken"
-            onClick={() => filterBy({ channel: row.channel })}
-            title={t("Show only this channel")}
+            className="br-btn"
+            onClick={() => openProposal(row.proposal!.id)}
+            data-engine-room-proposal
           >
-            {channelLabels[row.channel] || row.channel}
+            {t("Decision")} · {t(row.proposal.status)}
           </button>
-        </div>
-        <button
-          className="block max-w-full truncate text-left text-xs text-fg-secondary hover:underline"
-          onClick={() =>
-            row.actor?.kind === "mcp_token"
-              ? filterBy({ mcpToken: row.actor.id })
-              : row.actor?.kind === "user"
-                ? filterBy({ actor: row.actor.id })
-                : undefined
-          }
-          title={t("Show only this actor")}
-        >
-          {actorLine(row)}
+        )}
+        <button className="br-btn" onClick={() => filterBy({ correlation: row.correlation_id })}>
+          {t("All steps of this action")}
         </button>
       </div>
-      <div className="min-w-0">
-        <div className="flex min-w-0 items-baseline gap-2">
-          {row.label && (
-            <span className="min-w-0 truncate font-medium" data-interaction-label>
-              {t(row.label)}
-            </span>
-          )}
-          <span
-            className={`min-w-0 shrink truncate font-mono text-xs ${row.label ? "text-fg-muted" : ""}`}
-            data-original-content=""
-          >
-            {row.operation}
-          </span>
-        </div>
-        <div className="mt-0.5 text-xs text-fg-muted">
-          {/* The outcome always opens the second line, so the eye finds it in one place. */}
-          <span
-            className={`mr-1.5 inline-block rounded px-1.5 py-0.5 ${outcomeTone[row.outcome] || ""}`}
-            data-interaction-outcome
-          >
-            {t(outcomeLabels[row.outcome] || row.outcome)}
-          </span>
-          {t(kindLabels[row.kind] || row.kind)} · {formatNumber(row.duration_ms)} ms
-          {row.error_code && (
-            <>
-              {" "}
-              · <span data-original-content="">{row.error_code}</span>
-            </>
-          )}
-          {row.summary.result_count !== undefined && (
-            <>
-              {" "}
-              · {t("{count} results").replace("{count}", formatNumber(row.summary.result_count))}
-            </>
-          )}
-          {args.length > 0 && (
-            <>
-              {" "}
-              · <span data-original-content="">{args.join(", ")}</span>
-            </>
-          )}
-        </div>
-      </div>
-      <RealityCell tenant={tenant} row={row} open={open} openProposal={openProposal} />
-    </li>
+      {row.events.count > 0 && <EventsOf tenant={tenant} row={row} open={open} />}
+    </div>
   );
 }
+
+function Trace({ values }: { values: number[] }) {
+  const peak = Math.max(1, ...values);
+  return (
+    <span className="flex h-6 w-full items-end gap-0.5" aria-hidden data-cockpit-trace>
+      {values.map((value, index) => (
+        <span
+          key={index}
+          className={`min-w-0 flex-1 rounded-sm ${value ? "bg-accent" : "bg-border-subtle"}`}
+          style={{ height: `${Math.max(8, (value / peak) * 100)}%` }}
+        />
+      ))}
+    </span>
+  );
+}
+
+/** The live monitor: one minute of the company's model, like an activity monitor. */
+function LiveCockpit({
+  tenant,
+  rows,
+  now,
+  marks,
+  open,
+  openProposal,
+  filterBy,
+}: {
+  tenant: string;
+  rows: Interaction[];
+  now: number;
+  marks: Map<Stage, "read" | "written">;
+  open: (target: { kind: string; id: string }) => void;
+  openProposal: (id: string) => void;
+  filterBy: (change: Partial<LiveFilter>) => void;
+}) {
+  const view = useMemo(() => cockpit(rows, now), [rows, now]);
+  const [selected, setSelected] = useState("");
+  const chosen = view.ticker.find((row) => row.id === selected);
+  const age = (row: Interaction) => Math.max(0, now - Date.parse(row.recorded_at));
+  return (
+    <div className="register-table-inset space-y-4 py-4" data-engine-room-cockpit>
+      <div
+        className="flex flex-wrap items-center gap-3 rounded-lg border border-border-subtle bg-surface-muted px-4 py-3"
+        data-cockpit-status={view.quiet ? "quiet" : "active"}
+        aria-live="polite"
+      >
+        <span className="relative flex h-3 w-3" aria-hidden>
+          {!view.quiet && (
+            <span className="absolute inline-flex h-full w-full rounded-full bg-accent opacity-60 motion-safe:animate-ping" />
+          )}
+          <span
+            className={`relative inline-flex h-3 w-3 rounded-full ${view.quiet ? "bg-border-strong" : "bg-accent"}`}
+          />
+        </span>
+        <span className="font-medium text-fg-strong">
+          {view.quiet
+            ? t("All quiet")
+            : t("{count} accesses in the last minute").replace("{count}", formatNumber(view.total))}
+        </span>
+        <span className="text-sm text-fg-muted">
+          {view.quiet
+            ? t("Nothing has touched the model in the last minute.")
+            : view.errors
+              ? t("{count} refused or failed").replace("{count}", formatNumber(view.errors))
+              : t("No errors")}
+        </span>
+      </div>
+
+      <div
+        className="grid gap-2 [grid-template-columns:repeat(auto-fit,minmax(7.5rem,1fr))]"
+        data-cockpit-channels
+      >
+        {view.channels.map((channel) => (
+          <button
+            key={channel.channel}
+            className={`flex min-w-0 flex-col gap-2 rounded-lg border p-3 text-left transition-colors hover:bg-surface-muted ${
+              channel.count ? "border-accent" : "border-border-subtle"
+            }`}
+            onClick={() => filterBy({ channel: channel.channel })}
+            title={t("Show only this channel")}
+            data-cockpit-channel={channel.channel}
+          >
+            <span className="flex items-center justify-between gap-2 text-xs text-fg-muted">
+              {channelLabels[channel.channel]}
+              {channel.errors > 0 && (
+                <span className={`rounded px-1.5 py-0.5 ${outcomeTone.failed}`}>
+                  {formatNumber(channel.errors)}
+                </span>
+              )}
+            </span>
+            <span className="whitespace-nowrap">
+              <span className="text-2xl font-semibold tabular-nums text-fg-strong">
+                {formatNumber(channel.count)}
+              </span>
+              <span className="ml-1 text-xs text-fg-muted">{t("/ min")}</span>
+            </span>
+            <Trace values={channel.trace} />
+          </button>
+        ))}
+      </div>
+
+      <div className="rounded-lg border border-border-subtle p-3" data-cockpit-machine>
+        <div className="mb-2 text-xs font-medium text-fg-muted">{t("Model")}</div>
+        <ol
+          className="grid gap-2 [grid-template-columns:repeat(auto-fit,minmax(6.5rem,1fr))]"
+          data-engine-room-map
+        >
+          {STAGES.map((stage) => {
+            const mark = marks.get(stage);
+            const counts = view.stages[stage];
+            return (
+              <li
+                key={stage}
+                data-stage={stage}
+                data-stage-mark={mark || "none"}
+                className={`flex flex-col gap-1 rounded-md border px-2.5 py-2 transition-colors motion-reduce:transition-none ${stageTone[mark || "none"]}`}
+              >
+                <span className="truncate text-xs font-medium">{t(stageLabels[stage])}</span>
+                <span className="flex flex-col text-xs tabular-nums opacity-80">
+                  <span>
+                    {t("read")} {formatNumber(counts.read)}
+                  </span>
+                  <span>
+                    {t("written")} {formatNumber(counts.written)}
+                  </span>
+                </span>
+              </li>
+            );
+          })}
+        </ol>
+      </div>
+
+      <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.6fr)]">
+        <section className="min-w-0" aria-labelledby="cockpit-actors">
+          <h3 id="cockpit-actors" className="mb-2 text-xs font-medium text-fg-muted">
+            {t("Active now")}
+          </h3>
+          {view.actors.length ? (
+            <ul className="space-y-1" data-cockpit-actors>
+              {view.actors.slice(0, 8).map((actor) => (
+                <li key={actor.key}>
+                  <button
+                    className="flex w-full min-w-0 items-center gap-2 rounded-md px-2 py-1.5 text-left text-sm hover:bg-surface-muted"
+                    onClick={() =>
+                      actor.kind === "mcp_token"
+                        ? filterBy({ mcpToken: actor.key.split(":")[1] })
+                        : actor.kind === "user"
+                          ? filterBy({ actor: actor.key.split(":")[1] })
+                          : filterBy({ channel: actor.channel })
+                    }
+                  >
+                    <span className="shrink-0 rounded bg-surface-muted px-1.5 py-0.5 text-xs">
+                      {channelLabels[actor.channel]}
+                    </span>
+                    <span className="min-w-0 flex-1">
+                      <span className="block truncate">
+                        {actor.label || (actor.kind === "job" ? t("Background job") : t("Unknown"))}
+                      </span>
+                      <span className="block truncate text-xs text-fg-muted">
+                        {actor.lastLabel ? t(actor.lastLabel) : actor.last}
+                      </span>
+                    </span>
+                    <span className="shrink-0 text-sm font-semibold tabular-nums">
+                      {formatNumber(actor.count)}
+                    </span>
+                  </button>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="px-2 py-1.5 text-sm text-fg-muted">{t("Nobody right now.")}</p>
+          )}
+        </section>
+        <section className="min-w-0" aria-labelledby="cockpit-ticker">
+          <h3 id="cockpit-ticker" className="mb-2 text-xs font-medium text-fg-muted">
+            {t("Happening now")}
+          </h3>
+          {view.ticker.length ? (
+            <ol className="space-y-1" data-engine-room-list>
+              {view.ticker.slice(0, 12).map((row) => (
+                <li
+                  key={row.id}
+                  data-interaction={row.id}
+                  data-interaction-channel={row.channel}
+                  // Older lines fade: the ticker is about now, not about a while ago.
+                  style={{ opacity: Math.max(0.35, 1 - age(row) / COCKPIT_WINDOW_MS) }}
+                >
+                  <button
+                    className={`grid w-full grid-cols-[4.5rem_minmax(0,1fr)_auto] items-center gap-2 rounded-md px-2 py-1 text-left text-sm hover:bg-surface-muted ${
+                      selected === row.id ? "bg-surface-muted" : ""
+                    }`}
+                    aria-expanded={selected === row.id}
+                    onClick={() => setSelected(selected === row.id ? "" : row.id)}
+                  >
+                    <span className="font-mono text-xs text-fg-muted">
+                      {formatTime(row.recorded_at, true)}
+                    </span>
+                    <span className="min-w-0 truncate">
+                      <span className="mr-1.5 rounded bg-surface-muted px-1.5 py-0.5 text-xs">
+                        {channelLabels[row.channel]}
+                      </span>
+                      <span data-interaction-label>{row.label ? t(row.label) : row.operation}</span>
+                      <span className="ml-1.5 text-xs text-fg-muted">{actorLine(row)}</span>
+                    </span>
+                    <span
+                      className={`rounded px-1.5 py-0.5 text-xs ${outcomeTone[row.outcome] || ""}`}
+                      data-interaction-outcome
+                    >
+                      {t(outcomeLabels[row.outcome] || row.outcome)}
+                    </span>
+                  </button>
+                </li>
+              ))}
+            </ol>
+          ) : (
+            <p className="px-2 py-1.5 text-sm text-fg-muted" data-cockpit-quiet>
+              {t("All quiet. New accesses appear here the moment they happen.")}
+            </p>
+          )}
+          {chosen && (
+            <div className="mt-2 rounded-lg border border-border-subtle p-3" data-cockpit-details>
+              <InteractionDetails
+                tenant={tenant}
+                row={chosen}
+                open={open}
+                openProposal={openProposal}
+                filterBy={filterBy}
+              />
+            </div>
+          )}
+        </section>
+      </div>
+    </div>
+  );
+}
+
+const COLUMNS = 7;
 
 export function EngineRoom({
   selection,
@@ -343,17 +514,15 @@ export function EngineRoom({
   );
   const setFilter = (change: Partial<LiveFilter>) =>
     navigate({ liveFilter: liveFilterToParams({ ...filter, ...change }).toString() });
+  const live = !filter.period;
   const [stream, setStream] = useState<Stream<Interaction>>(emptyStream);
+  const [windowRows, setWindowRows] = useState<Interaction[]>([]);
   const [cursor, setCursor] = useState<number | null>(null);
   const [truncated, setTruncated] = useState(false);
-  const [retention, setRetention] = useState<string | null>(null);
   const [state, setState] = useState<"loading" | "ready" | "stale" | "forbidden">("loading");
-  const [mode, setMode] = useState<"live" | "replay">("live");
-  const [window_, setWindow] = useState(() => {
-    const end = new Date();
-    return { from: new Date(end.getTime() - 3600_000), to: end };
-  });
-  const [replay, setReplay] = useState<Interaction[]>([]);
+  const [revision, setRevision] = useState(0);
+  const [draft, setDraft] = useState(filter.search);
+  const [expanded, setExpanded] = useState("");
   const [step, setStep] = useState(0);
   const [target, setTarget] = useState<{ kind: string; id: string } | null>(null);
   const [clock, setClock] = useState(Date.now());
@@ -361,15 +530,18 @@ export function EngineRoom({
   const cursorRef = useRef<number | null>(null);
   cursorRef.current = cursor;
 
-  // A new filter starts a new stream.
+  useEffect(() => setDraft(filter.search), [filter.search]);
+  // A new filter or period starts a new read.
   useEffect(() => {
     setStream(emptyStream());
+    setWindowRows([]);
     setCursor(null);
+    setStep(0);
     setState("loading");
-  }, [tenant, query]);
+  }, [tenant, query, filter.period]);
 
   useEffect(() => {
-    if (mode !== "live") return;
+    if (!live) return;
     let disposed = false;
     let busy = false;
     const poll = async () => {
@@ -386,7 +558,6 @@ export function EngineRoom({
         setStream((current) => receive(current, page.interactions));
         if (page.cursor !== null) setCursor((value) => Math.max(value ?? 0, page.cursor!));
         if (cursorRef.current === null) setTruncated(page.truncated);
-        setRetention(page.retention_starts_at);
         setState("ready");
       } catch (error) {
         if (disposed) return;
@@ -405,51 +576,66 @@ export function EngineRoom({
       window.clearInterval(timer);
       document.removeEventListener("visibilitychange", visible);
     };
-  }, [tenant, query, mode]);
+  }, [tenant, query, live]);
+
+  // A past period is read once, and again on Refresh.
+  useEffect(() => {
+    const range = periodWindow(filter.period);
+    if (!range) return;
+    let disposed = false;
+    const params = new URLSearchParams(query);
+    params.set("language", currentLanguage());
+    params.set("from", range.from.toISOString());
+    params.set("to", range.to.toISOString());
+    params.set("limit", "500");
+    api
+      .interactions(tenant, params)
+      .then((page) => {
+        if (disposed) return;
+        setWindowRows(page.interactions);
+        setTruncated(page.truncated);
+        setState("ready");
+      })
+      .catch((error) => {
+        if (!disposed)
+          setState(error instanceof APIError && error.status === 404 ? "forbidden" : "stale");
+      });
+    return () => {
+      disposed = true;
+    };
+  }, [tenant, query, filter.period, revision]);
 
   useEffect(() => {
     const timer = window.setInterval(() => setClock(Date.now()), 1000);
     return () => window.clearInterval(timer);
   }, []);
 
-  const loadReplay = async () => {
-    const params = new URLSearchParams(query);
-    params.set("language", currentLanguage());
-    params.set("from", window_.from.toISOString());
-    params.set("to", window_.to.toISOString());
-    params.set("limit", "500");
-    try {
-      const page = await api.interactions(tenant, params);
-      setReplay(page.interactions);
-      setRetention(page.retention_starts_at);
-      setTruncated(page.truncated);
-      setStep(0);
-      setState("ready");
-    } catch (error) {
-      setState(error instanceof APIError && error.status === 404 ? "forbidden" : "stale");
-    }
-  };
-
-  const rows = mode === "live" ? stream.visible : replay;
+  // Newest first, as every register reads; the search narrows what is shown.
+  const rows = useMemo(
+    () =>
+      [...(live ? stream.visible : windowRows)]
+        .reverse()
+        .filter((row) => matchesSearch(row, filter.search, t)),
+    [live, stream.visible, windowRows, filter.search],
+  );
+  // In a past period, the steps run oldest to newest.
+  const steps = useMemo(() => [...rows].reverse(), [rows]);
+  const current = !live ? steps[Math.min(step, steps.length - 1)] : undefined;
   const marks = useMemo(() => {
     const result = new Map<Stage, "read" | "written">();
-    const touching =
-      mode === "replay"
-        ? replay.slice(step, step + 1)
-        : stream.visible.filter((row) => clock - Date.parse(row.recorded_at) < MARK_MS);
+    const touching = live
+      ? rows.filter((row) => clock - Date.parse(row.recorded_at) < MARK_MS)
+      : current
+        ? [current]
+        : [];
     for (const row of touching) {
       for (const stage of row.stages.read) if (!result.has(stage)) result.set(stage, "read");
       for (const stage of row.stages.written) result.set(stage, "written");
     }
     return result;
-  }, [mode, replay, step, stream.visible, clock]);
-  const groups = useMemo(
-    () => (mode === "live" ? groupByCorrelation(rows).slice(0, 100) : []),
-    [mode, rows],
-  );
+  }, [live, rows, current, clock]);
   const openProposal = (id: string) =>
     navigate({ route: "decisions", decisionsView: "history", proposal: id });
-  const beyondRetention = retention !== null && window_.from < new Date(retention);
 
   if (state === "forbidden")
     return (
@@ -464,156 +650,80 @@ export function EngineRoom({
     { key: "correlation", label: t("One action") },
     { key: "subjectId", label: t("Record") },
   ];
+  const submitSearch = () => setFilter({ search: draft.trim() });
+  const footer = (
+    <p className="text-xs text-fg-muted" data-engine-room-footer>
+      {live
+        ? stream.paused
+          ? t("Paused · {count} new").replace("{count}", formatNumber(stream.pending))
+          : state === "stale"
+            ? t("The live monitor could not be refreshed. It keeps trying.")
+            : t("Live · refreshed every second")
+        : t("Interactions are kept for seven days.")}
+      {truncated && <> · {t("Showing the newest interactions only.")}</>}
+    </p>
+  );
 
-  return (
-    <section className="space-y-3" data-engine-room aria-labelledby="engine-room-title">
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <div>
-          <h2 id="engine-room-title" className="flex items-center gap-2 text-base font-semibold">
-            <Radio size={16} aria-hidden />
-            {t("Live monitor")}
-          </h2>
-          <div className="text-sm text-fg-muted">
-            {t(
-              "Every access to this company's model, as it happens: who, through which channel, what was asked, and what it changed.",
-            )}
-          </div>
-        </div>
-        <div className="flex items-center gap-2">
-          <nav className="register-tabs" aria-label={t("Live monitor mode")}>
-            <button aria-pressed={mode === "live"} onClick={() => setMode("live")}>
-              {t("Live")}
-            </button>
-            <button
-              aria-pressed={mode === "replay"}
-              onClick={() => {
-                setMode("replay");
-                void loadReplay();
-              }}
-            >
-              {t("Replay")}
-            </button>
-          </nav>
-          {mode === "live" && (
-            <button
-              className="br-btn"
-              onClick={() => setStream((current) => setPaused(current, !current.paused))}
-              aria-pressed={stream.paused}
-              data-engine-room-pause
-            >
-              {stream.paused ? <Play size={15} /> : <Pause size={15} />}
-              {stream.paused
-                ? stream.pending
-                  ? t("Resume ({count} new)").replace("{count}", formatNumber(stream.pending))
-                  : t("Resume")
-                : t("Pause")}
-            </button>
-          )}
-        </div>
-      </div>
-
-      <div className="rounded-lg border border-border-subtle bg-surface p-3">
-        <StageMap marks={marks} />
-      </div>
-
-      <div className="flex flex-wrap items-center gap-3 text-sm">
-        {(
-          [
-            ["channel", t("Channel"), CHANNELS, channelLabels],
-            ["kind", t("Kind"), KINDS, kindLabels],
-            ["outcome", t("Outcome"), OUTCOMES, outcomeLabels],
-          ] as const
-        ).map(([key, label, values, labels]) => (
-          <label key={key} className="flex items-center gap-2">
-            {label}
-            <select
-              aria-label={label}
-              className="rounded-lg border border-border-default bg-surface px-2 py-1.5"
-              value={filter[key]}
-              onChange={(event) => setFilter({ [key]: event.target.value })}
-            >
-              <option value="">{t("All")}</option>
-              {values.map((value) => (
-                <option key={value} value={value}>
-                  {key === "channel"
-                    ? channelLabels[value]
-                    : t((labels as Record<string, string>)[value] || value)}
-                </option>
-              ))}
-            </select>
-          </label>
-        ))}
-        <label className="flex items-center gap-2">
-          <input
-            type="checkbox"
-            checked={filter.refresh}
-            onChange={(event) => setFilter({ refresh: event.target.checked })}
-          />
-          {t("Show background refresh")}
-        </label>
-        <label className="flex items-center gap-2">
-          <input
-            type="checkbox"
-            checked={filter.own}
-            onChange={(event) => setFilter({ own: event.target.checked })}
-            data-engine-room-own
-          />
-          {t("Show my own access")}
-        </label>
-        {chips
-          .filter(({ key }) => filter[key])
-          .map(({ key, label }) => (
-            <span
-              key={key}
-              className="inline-flex items-center gap-1 rounded-full bg-accent-soft px-2.5 py-1 text-xs"
-              data-engine-room-chip={key}
-            >
-              {label}: <span data-original-content="">{String(filter[key])}</span>
-              <button
-                aria-label={t("Remove filter")}
-                onClick={() =>
-                  setFilter(
-                    key === "subjectId" ? { subjectId: "", subjectType: "" } : { [key]: "" },
-                  )
-                }
-              >
-                <X size={12} />
-              </button>
-            </span>
+  const filterControls = (
+    <>
+      <select
+        aria-label={t("Period")}
+        value={filter.period}
+        onChange={(event) => setFilter({ period: event.target.value as Period })}
+        data-engine-room-period
+      >
+        <option value="">{t("Live")}</option>
+        <option value="1h">{t("Last hour")}</option>
+        <option value="24h">{t("Last 24 hours")}</option>
+        <option value="7d">{t("Last 7 days")}</option>
+      </select>
+      {(
+        [
+          ["channel", t("Channel"), CHANNELS, channelLabels],
+          ["kind", t("Kind"), KINDS, kindLabels],
+          ["outcome", t("Outcome"), OUTCOMES, outcomeLabels],
+        ] as const
+      ).map(([key, label, values, labels]) => (
+        <select
+          key={key}
+          aria-label={label}
+          value={filter[key]}
+          onChange={(event) => setFilter({ [key]: event.target.value })}
+        >
+          <option value="">{t("All")}</option>
+          {values.map((value) => (
+            <option key={value} value={value}>
+              {key === "channel"
+                ? channelLabels[value]
+                : t((labels as Record<string, string>)[value] || value)}
+            </option>
           ))}
-        {isFiltered(filter) && (
-          <button
-            className="text-xs text-accent hover:underline"
-            onClick={() => navigate({ liveFilter: "" })}
-          >
-            {t("Clear filters")}
+        </select>
+      ))}
+      <label className="flex items-center gap-2 text-sm">
+        <input
+          type="checkbox"
+          checked={filter.refresh}
+          onChange={(event) => setFilter({ refresh: event.target.checked })}
+        />
+        {t("Show background refresh")}
+      </label>
+      <label className="flex items-center gap-2 text-sm">
+        <input
+          type="checkbox"
+          checked={filter.own}
+          onChange={(event) => setFilter({ own: event.target.checked })}
+          data-engine-room-own
+        />
+        {t("Show my own access")}
+      </label>
+      {!live && (
+        <>
+          <button className="br-btn" onClick={() => setRevision((value) => value + 1)}>
+            <RefreshCw size={15} />
+            {t("Refresh")}
           </button>
-        )}
-      </div>
-
-      {mode === "replay" && (
-        <div className="flex flex-wrap items-end gap-3 rounded-lg border border-border-subtle p-3 text-sm">
-          {(["from", "to"] as const).map((edge) => (
-            <label key={edge} className="flex flex-col gap-1">
-              {edge === "from" ? t("From") : t("To")}
-              <input
-                type="datetime-local"
-                className="rounded-lg border border-border-default bg-surface px-2 py-1.5"
-                value={new Date(window_[edge].getTime() - window_[edge].getTimezoneOffset() * 60000)
-                  .toISOString()
-                  .slice(0, 16)}
-                onChange={(event) =>
-                  event.target.value &&
-                  setWindow((value) => ({ ...value, [edge]: new Date(event.target.value) }))
-                }
-              />
-            </label>
-          ))}
-          <button className="br-btn" onClick={() => void loadReplay()}>
-            <Rewind size={15} />
-            {t("Load window")}
-          </button>
-          <div className="flex items-center gap-1">
+          <span className="inline-flex items-center gap-1">
             <button
               className="br-btn"
               aria-label={t("Previous step")}
@@ -623,116 +733,227 @@ export function EngineRoom({
               <SkipBack size={15} />
             </button>
             <span className="min-w-20 text-center text-xs text-fg-muted" data-engine-room-step>
-              {replay.length
+              {steps.length
                 ? t("Step {step} of {total}")
-                    .replace("{step}", formatNumber(step + 1))
-                    .replace("{total}", formatNumber(replay.length))
+                    .replace("{step}", formatNumber(Math.min(step, steps.length - 1) + 1))
+                    .replace("{total}", formatNumber(steps.length))
                 : "—"}
             </span>
             <button
               className="br-btn"
               aria-label={t("Next step")}
-              disabled={step >= replay.length - 1}
-              onClick={() => setStep((value) => Math.min(replay.length - 1, value + 1))}
+              disabled={step >= steps.length - 1}
+              onClick={() => setStep((value) => Math.min(steps.length - 1, value + 1))}
             >
               <SkipForward size={15} />
             </button>
-          </div>
-          {beyondRetention && retention && (
-            <div className="w-full text-xs text-fg-muted" role="note" data-engine-room-retention>
-              {t(
-                "Interactions are kept for seven days, since {date}. Business events stay in Activities.",
-              ).replace("{date}", formatDateTime(retention))}
-            </div>
-          )}
-        </div>
+          </span>
+        </>
       )}
-
-      {state === "stale" && (
-        <div role="status" className="text-xs text-caution-text">
-          {t("The live monitor could not be refreshed. It keeps trying.")}
-        </div>
+      {chips
+        .filter(({ key }) => filter[key])
+        .map(({ key, label }) => (
+          <span
+            key={key}
+            className="inline-flex items-center gap-1 rounded-full bg-accent-soft px-2.5 py-1 text-xs"
+            data-engine-room-chip={key}
+          >
+            {label}: <span data-original-content="">{String(filter[key])}</span>
+            <button
+              aria-label={t("Remove filter")}
+              onClick={() =>
+                setFilter(key === "subjectId" ? { subjectId: "", subjectType: "" } : { [key]: "" })
+              }
+            >
+              <X size={12} />
+            </button>
+          </span>
+        ))}
+      {isFiltered(filter) && (
+        <button className="br-btn" onClick={() => navigate({ liveFilter: "" })}>
+          {t("Clear filters")}
+        </button>
       )}
-      {truncated && (
-        <div role="note" className="text-xs text-fg-muted">
-          {t("Showing the newest interactions only.")}
-        </div>
-      )}
-
-      <div className="hidden gap-4 px-3 text-xs font-medium text-fg-muted md:grid md:grid-cols-[minmax(0,1.1fr)_minmax(0,1.4fr)_minmax(0,1fr)]">
-        <span>{t("Access")}</span>
-        <span>{t("Intent")}</span>
-        <span>{t("Reality")}</span>
-      </div>
-      {state === "loading" ? (
-        <div role="status" className="py-8 text-sm text-fg-muted">
-          {t("Listening…")}
-        </div>
-      ) : !rows.length ? (
-        <div
-          role="status"
-          className="rounded-lg border border-dashed border-border-subtle p-6 text-sm text-fg-muted"
-        >
-          {mode === "live"
-            ? t(
-                "Nothing has touched the model yet. Open a page, ask the chat or call a tool, and it appears here.",
-              )
-            : t("No interactions in this window.")}
-        </div>
-      ) : mode === "live" ? (
-        <ol
-          className="divide-y divide-border-subtle rounded-lg border border-border-subtle"
-          data-engine-room-list
-        >
-          {groups.map((group) => (
-            <li key={group.correlation} data-correlation={group.correlation}>
-              {group.rows.length > 1 && (
-                <button
-                  className="w-full px-3 pt-2 text-left text-xs text-fg-muted hover:underline"
-                  onClick={() => setFilter({ correlation: group.correlation })}
-                >
-                  {t("{count} steps of one action").replace(
-                    "{count}",
-                    formatNumber(group.rows.length),
-                  )}
-                </button>
-              )}
-              <ol>
-                {group.rows.map((row) => (
-                  <InteractionRow
-                    key={row.id}
-                    tenant={tenant}
-                    row={row}
-                    current={false}
-                    open={setTarget}
-                    openProposal={openProposal}
-                    filterBy={setFilter}
+    </>
+  );
+  return (
+    <>
+      <RegisterWorkbench>
+        <section className="register-surface min-w-0 overflow-hidden" data-engine-room>
+          {live ? (
+            <>
+              <div className="register-toolbar-block">
+                <div className="register-filter-row">{filterChips(filterControls)}</div>
+              </div>
+              <LiveCockpit
+                tenant={tenant}
+                rows={stream.visible}
+                now={clock}
+                marks={marks}
+                open={setTarget}
+                openProposal={openProposal}
+                filterBy={setFilter}
+              />
+            </>
+          ) : (
+            <>
+              <RegisterToolbar
+                count={rows.length}
+                search={
+                  <input
+                    aria-label={t("Search access")}
+                    placeholder={t("Tool, route or client")}
+                    className="br-control"
+                    value={draft}
+                    onChange={(event) => setDraft(event.target.value)}
+                    onKeyDown={(event) => event.key === "Enter" && submitSearch()}
                   />
-                ))}
-              </ol>
-            </li>
-          ))}
-        </ol>
-      ) : (
-        <ol
-          className="divide-y divide-border-subtle rounded-lg border border-border-subtle"
-          data-engine-room-list
-        >
-          {replay.map((row, index) => (
-            <InteractionRow
-              key={row.id}
-              tenant={tenant}
-              row={row}
-              current={index === step}
-              open={setTarget}
-              openProposal={openProposal}
-              filterBy={setFilter}
-            />
-          ))}
-        </ol>
-      )}
+                }
+                submit={
+                  <button className="br-btn" onClick={submitSearch}>
+                    {t("Search")}
+                  </button>
+                }
+                filters={filterControls}
+              />
+              <div className="register-table-inset pt-3">
+                <StageMap marks={marks} />
+              </div>
+              <div className="register-table-inset py-4" data-engine-room-list>
+                {state === "loading" ? (
+                  <p role="status" className="py-8 text-sm text-fg-muted">
+                    {t("Listening…")}
+                  </p>
+                ) : (
+                  <RegisterTable
+                    cursorView={{ id: "inspector:live", widths: [90, 260, 100, 230, 190, 80, 50] }}
+                    footer={footer}
+                    empty={{
+                      title: live
+                        ? t("Nothing has touched the model yet.")
+                        : t("No interactions in this window."),
+                      hint: live
+                        ? t("Open a page, ask the chat or call a tool, and it appears here.")
+                        : undefined,
+                    }}
+                  >
+                    <thead>
+                      <tr>
+                        <th>{t("Time")}</th>
+                        <th>{t("Request")}</th>
+                        <th>{t("Outcome")}</th>
+                        <th>{t("Who")}</th>
+                        <th>{t("Model")}</th>
+                        <th>{t("Duration")}</th>
+                        <th>{t("Actions")}</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {rows.flatMap((row) => {
+                        const open = expanded === row.id;
+                        // A flat list with its own keys: the register flattens fragments,
+                        // and their children would share the keys ".0" and ".1".
+                        return [
+                          <tr
+                            key={row.id}
+                            data-interaction={row.id}
+                            data-interaction-channel={row.channel}
+                            aria-current={current?.id === row.id || undefined}
+                          >
+                            <td className="font-mono text-xs">
+                              {formatTime(row.recorded_at, true)}
+                            </td>
+                            <td>
+                              <span className="block truncate" data-interaction-label>
+                                {row.label ? t(row.label) : row.operation}
+                              </span>
+                              {row.label && (
+                                <span
+                                  className="block truncate font-mono text-xs text-fg-muted"
+                                  data-original-content=""
+                                >
+                                  {row.operation}
+                                </span>
+                              )}
+                            </td>
+                            <td>
+                              <span
+                                className={`inline-block rounded px-1.5 py-0.5 text-xs ${outcomeTone[row.outcome] || ""}`}
+                                data-interaction-outcome
+                              >
+                                {t(outcomeLabels[row.outcome] || row.outcome)}
+                              </span>
+                            </td>
+                            <td>
+                              <span className="flex min-w-0 items-center gap-2">
+                                <button
+                                  className="shrink-0 rounded bg-surface-muted px-1.5 py-0.5 text-xs font-medium hover:bg-surface-sunken"
+                                  onClick={() => setFilter({ channel: row.channel })}
+                                  title={t("Show only this channel")}
+                                >
+                                  {channelLabels[row.channel] || row.channel}
+                                </button>
+                                <button
+                                  className="min-w-0 truncate text-left hover:underline"
+                                  title={actorLine(row)}
+                                  onClick={() =>
+                                    row.actor?.kind === "mcp_token"
+                                      ? setFilter({ mcpToken: row.actor.id })
+                                      : row.actor?.kind === "user"
+                                        ? setFilter({ actor: row.actor.id })
+                                        : undefined
+                                  }
+                                >
+                                  {actorLine(row)}
+                                </button>
+                              </span>
+                            </td>
+                            <td>
+                              <StageChips row={row} />
+                            </td>
+                            <td className="tabular-nums">{formatNumber(row.duration_ms)} ms</td>
+                            <td>
+                              <span data-engine-room-events-toggle>
+                                <PreviewButton
+                                  open={open}
+                                  controls={`interaction-preview-${row.id}`}
+                                  label={row.label ? t(row.label) : row.operation}
+                                  toggle={() => {
+                                    setExpanded(open ? "" : row.id);
+                                    if (!live)
+                                      setStep(steps.findIndex((item) => item.id === row.id));
+                                  }}
+                                />
+                              </span>
+                            </td>
+                          </tr>,
+                          <TablePreview
+                            key={`preview-${row.id}`}
+                            id={`interaction-preview-${row.id}`}
+                            open={open}
+                            columns={COLUMNS}
+                          >
+                            <InteractionDetails
+                              tenant={tenant}
+                              row={row}
+                              open={setTarget}
+                              openProposal={openProposal}
+                              filterBy={setFilter}
+                            />
+                          </TablePreview>,
+                        ];
+                      })}
+                    </tbody>
+                  </RegisterTable>
+                )}
+              </div>
+            </>
+          )}
+        </section>
+      </RegisterWorkbench>
+      {/* Outside the workbench: its child-position rules would restyle the dialog. */}
       {target && <Inspector tenant={tenant} target={target} close={() => setTarget(null)} />}
-    </section>
+    </>
   );
 }
 

@@ -19450,3 +19450,101 @@ Object.assign(dictionaries.es, {
   rejected: "rechazada",
   executing: "en ejecución",
 });
+// The live monitor as a register (spec 266).
+Object.assign(dictionaries.de, {
+  "All steps of this action": "Alle Schritte dieser Aktion",
+  Arguments: "Argumente",
+  Duration: "Dauer",
+  "Error code": "Fehlercode",
+  "Interactions are kept for seven days.": "Zugriffe werden sieben Tage aufbewahrt.",
+  "Last hour": "Letzte Stunde",
+  "Live · refreshed every second": "Live · jede Sekunde aktualisiert",
+  "Nothing has touched the model yet.": "Noch hat nichts das Modell berührt.",
+  "Open a page, ask the chat or call a tool, and it appears here.":
+    "Öffne eine Seite, frag den Chat oder ruf ein Tool auf, dann erscheint es hier.",
+  "Paused · {count} new": "Pausiert · {count} neu",
+  Results: "Ergebnisse",
+  "Search access": "Zugriffe durchsuchen",
+  Time: "Zeit",
+  "Tool, route or client": "Tool, Route oder Client",
+  Who: "Wer",
+});
+Object.assign(dictionaries.nl, {
+  "All steps of this action": "Alle stappen van deze actie",
+  Arguments: "Argumenten",
+  Duration: "Duur",
+  "Error code": "Foutcode",
+  "Interactions are kept for seven days.": "Toegangen worden zeven dagen bewaard.",
+  "Last hour": "Afgelopen uur",
+  "Live · refreshed every second": "Live · elke seconde ververst",
+  "Nothing has touched the model yet.": "Nog niets heeft het model aangeraakt.",
+  "Open a page, ask the chat or call a tool, and it appears here.":
+    "Open een pagina, vraag het de chat of roep een tool aan, dan verschijnt het hier.",
+  "Paused · {count} new": "Gepauzeerd · {count} nieuw",
+  Results: "Resultaten",
+  "Search access": "Toegangen doorzoeken",
+  Time: "Tijd",
+  "Tool, route or client": "Tool, route of client",
+  Who: "Wie",
+});
+Object.assign(dictionaries.es, {
+  "All steps of this action": "Todos los pasos de esta acción",
+  Arguments: "Argumentos",
+  Duration: "Duración",
+  "Error code": "Código de error",
+  "Interactions are kept for seven days.": "Los accesos se conservan siete días.",
+  "Last hour": "Última hora",
+  "Live · refreshed every second": "En directo · actualizado cada segundo",
+  "Nothing has touched the model yet.": "Nada ha tocado el modelo todavía.",
+  "Open a page, ask the chat or call a tool, and it appears here.":
+    "Abre una página, pregunta al chat o llama a una herramienta y aparecerá aquí.",
+  "Paused · {count} new": "En pausa · {count} nuevos",
+  Results: "Resultados",
+  "Search access": "Buscar accesos",
+  Time: "Hora",
+  "Tool, route or client": "Herramienta, ruta o cliente",
+  Who: "Quién",
+});
+// The live monitor cockpit (spec 266).
+Object.assign(dictionaries.de, {
+  "{count} accesses in the last minute": "{count} Zugriffe in der letzten Minute",
+  "{count} refused or failed": "{count} abgelehnt oder fehlgeschlagen",
+  "/ min": "/ Min.",
+  "Active now": "Gerade aktiv",
+  "All quiet": "Alles ruhig",
+  "All quiet. New accesses appear here the moment they happen.":
+    "Alles ruhig. Neue Zugriffe erscheinen hier, sobald sie passieren.",
+  "Happening now": "Passiert gerade",
+  "No errors": "Keine Fehler",
+  "Nobody right now.": "Gerade niemand.",
+  "Nothing has touched the model in the last minute.":
+    "In der letzten Minute hat nichts das Modell berührt.",
+});
+Object.assign(dictionaries.nl, {
+  "{count} accesses in the last minute": "{count} toegangen in de afgelopen minuut",
+  "{count} refused or failed": "{count} geweigerd of mislukt",
+  "/ min": "per min.",
+  "Active now": "Nu actief",
+  "All quiet": "Alles rustig",
+  "All quiet. New accesses appear here the moment they happen.":
+    "Alles rustig. Nieuwe toegangen verschijnen hier zodra ze gebeuren.",
+  "Happening now": "Gebeurt nu",
+  "No errors": "Geen fouten",
+  "Nobody right now.": "Op dit moment niemand.",
+  "Nothing has touched the model in the last minute.":
+    "In de afgelopen minuut heeft niets het model aangeraakt.",
+});
+Object.assign(dictionaries.es, {
+  "{count} accesses in the last minute": "{count} accesos en el último minuto",
+  "{count} refused or failed": "{count} rechazados o fallidos",
+  "/ min": "por min.",
+  "Active now": "Activos ahora",
+  "All quiet": "Todo tranquilo",
+  "All quiet. New accesses appear here the moment they happen.":
+    "Todo tranquilo. Los nuevos accesos aparecen aquí en cuanto ocurren.",
+  "Happening now": "Ocurriendo ahora",
+  "No errors": "Sin errores",
+  "Nobody right now.": "Nadie en este momento.",
+  "Nothing has touched the model in the last minute.":
+    "Nada ha tocado el modelo en el último minuto.",
+});

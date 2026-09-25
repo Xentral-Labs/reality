@@ -55,6 +55,19 @@ The browser polls every second while the tab is visible. Rows recorded in the la
 seconds are always returned again, so an insert that committed late from another process
 still arrives. The client deduplicates by id.
 
+## The Live tab is a cockpit
+
+The Live tab shows the last minute only:
+- a status: active with a count, or all quiet
+- a meter per channel with its rate, a trace of twelve five-second buckets and its errors
+- the model stages with their reads and writes
+- who is active now
+- a ticker of that minute
+
+Nothing older appears there, so a quiet company looks quiet. The derivation is pure presentation (`cockpit()` in `apps/web/src/unified/engineRoomModel.ts`).
+
+The history view is the register behind the Period chip (last hour, 24 hours, 7 days). It has search, filters, the model map and step controls. The entry points that ask about the past open it.
+
 ## Retention and operation
 
 Interactions older than seven days are hidden from reads. The recorder deletes up to 500
