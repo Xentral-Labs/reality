@@ -1,3 +1,4 @@
+import json
 from decimal import Decimal
 
 import pytest
@@ -543,3 +544,155 @@ def test_transaction_guard_releases_on_rollback_and_blocks_direct_writer(
             assert stock_at(session, tenant.id, item.id, location.id) == 1
     finally:
         engine.dispose()
+
+
+def _review(proposal):
+    import json
+
+    return json.loads(proposal.input)["_delivery_review"]
+
+
+def test_reviewing_again_renews_a_review_the_previous_decision_staled(
+    session, business
+):
+    """Spec 273 FR-001, FR-006: a batch of decisions stays approvable one by one."""
+    from reality.services.delivery_actions import review_existing
+
+    fixture = delivery_fixture(session, business)
+    tid, cid = business.tenant.id, fixture.commitment.id
+    first = prepare_delivery_action(
+        session,
+        tid,
+        "reserve",
+        {"commitment_id": cid, "quantity": "5"},
+        request_id="one",
+    )
+    second = prepare_delivery_action(
+        session,
+        tid,
+        "reserve",
+        {"commitment_id": cid, "quantity": "4"},
+        request_id="two",
+    )
+    staled_token = _review(second)["token"]
+    approve_and_execute_proposal(
+        session, tid, first.id, review_token=_review(first)["token"], confirmed=True
+    )
+    with pytest.raises(InvalidOperation, match="delivery changed"):
+        approve_and_execute_proposal(
+            session, tid, second.id, review_token=staled_token, confirmed=True
+        )
+
+    renewed = review_existing(session, tid, second.id)
+    assert _review(renewed)["token"] != staled_token
+
+    # The token the operator held before the renewal no longer executes anything.
+    with pytest.raises(InvalidOperation):
+        approve_and_execute_proposal(
+            session, tid, second.id, review_token=staled_token, confirmed=True
+        )
+    assert renewed.status == "proposed"
+
+    executed = approve_and_execute_proposal(
+        session, tid, second.id, review_token=_review(renewed)["token"], confirmed=True
+    )
+    assert executed.status == "executed"
+    assert Decimal(json.loads(executed.output)["applied"]) == 4
+
+
+def test_reviewing_again_changes_nothing_while_state_holds(session, business):
+    """Spec 273 FR-002: an unchanged review is not rewritten."""
+    from reality.services.delivery_actions import review_existing
+
+    fixture = delivery_fixture(session, business)
+    tid = business.tenant.id
+    proposal = prepare_delivery_action(
+        session,
+        tid,
+        "reserve",
+        {"commitment_id": fixture.commitment.id, "quantity": "3"},
+        request_id="steady",
+    )
+    before = proposal.input
+    assert review_existing(session, tid, proposal.id).input == before
+    assert review_existing(session, tid, proposal.id).input == before
+
+
+def test_renewal_keeps_the_request_identity_reusable(session, business):
+    """Spec 273 FR-003: a prepared identity keeps its stated request arguments."""
+    from reality.services.delivery_actions import review_existing
+
+    fixture = delivery_fixture(session, business)
+    tid, cid = business.tenant.id, fixture.commitment.id
+    arguments = {"commitment_id": cid, "quantity": "4"}
+    proposal = prepare_delivery_action(
+        session, tid, "reserve", arguments, request_id="identity"
+    )
+    record_movement(
+        session,
+        tid,
+        "receipt",
+        business.item.id,
+        "7",
+        to_location_id=business.location.id,
+    )
+    renewed = review_existing(session, tid, proposal.id)
+    assert _review(renewed)["request_arguments"] == arguments
+    again = prepare_delivery_action(
+        session, tid, "reserve", arguments, request_id="identity"
+    )
+    assert again.id == proposal.id
+
+
+def test_renewal_leaves_a_settled_decision_alone(session, business):
+    """Spec 273 FR-004: only a pending proposal is reviewed again."""
+    from reality.services.delivery_actions import review_existing
+
+    fixture = delivery_fixture(session, business)
+    tid = business.tenant.id
+    proposal = prepare_delivery_action(
+        session,
+        tid,
+        "reserve",
+        {"commitment_id": fixture.commitment.id, "quantity": "6"},
+        request_id="settled",
+    )
+    approve_and_execute_proposal(
+        session,
+        tid,
+        proposal.id,
+        review_token=_review(proposal)["token"],
+        confirmed=True,
+    )
+    receipt, stored = proposal.output, proposal.input
+    unchanged = review_existing(session, tid, proposal.id)
+    assert unchanged.status == "executed"
+    assert (unchanged.output, unchanged.input) == (receipt, stored)
+
+
+def test_approval_never_renews_the_review_it_checks(session, business):
+    """Spec 273 FR-005: confirmation measures against the stored review only."""
+    fixture = delivery_fixture(session, business)
+    tid, cid = business.tenant.id, fixture.commitment.id
+    proposal = prepare_delivery_action(
+        session,
+        tid,
+        "reserve",
+        {"commitment_id": cid, "quantity": "5"},
+        request_id="strict",
+    )
+    token = _review(proposal)["token"]
+    record_movement(
+        session,
+        tid,
+        "shipment",
+        business.item.id,
+        "6",
+        from_location_id=business.location.id,
+    )
+    with pytest.raises(InvalidOperation, match="delivery changed"):
+        approve_and_execute_proposal(
+            session, tid, proposal.id, review_token=token, confirmed=True
+        )
+    assert _review(proposal)["token"] == token
+    assert proposal.status == "proposed"

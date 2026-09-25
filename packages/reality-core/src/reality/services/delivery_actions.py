@@ -512,13 +512,32 @@ def review_existing(
     lock_delivery_state(session, tenant_id)
     proposal = get_delivery_proposal(session, tenant_id, proposal_id)
     arguments = json.loads(proposal.input)
-    if proposal.status == "proposed" and REVIEW_KEY not in arguments:
+    if proposal.status != "proposed":
+        return proposal
+    stored = arguments.get(REVIEW_KEY)
+    intent = {key: value for key, value in arguments.items() if key != REVIEW_KEY}
+    # A stored review fingerprints the delivery state of the moment it was made, so a
+    # decision approved since then leaves every other pending review stale. Reviewing
+    # again is the operator asking what is true now; confirmation still measures against
+    # exactly this stored review, never against one approval computes for itself.
+    try:
         review = review_delivery(
-            session, tenant_id, proposal.type.removeprefix("tool:"), arguments
+            session, tenant_id, proposal.type.removeprefix("tool:"), intent
         )
-        proposal.input = _json({**arguments, REVIEW_KEY: review})
-        proposal.output = _json(review)
-        session.commit()
+    except (InvalidOperation, NotFound):
+        # The intent cannot be reviewed against current state at all. Keeping the stored
+        # review leaves the decision exactly as reviewable — and as rejectable — as it was
+        # before renewal existed; confirmation still refuses it.
+        if stored:
+            return proposal
+        raise
+    if stored and stored["token"] == review["token"]:
+        return proposal
+    if stored and "request_arguments" in stored:
+        review["request_arguments"] = stored["request_arguments"]
+    proposal.input = _json({**intent, REVIEW_KEY: review})
+    proposal.output = _json(review)
+    session.commit()
     return proposal
 
 
