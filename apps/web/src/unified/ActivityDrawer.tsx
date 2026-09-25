@@ -1,8 +1,10 @@
 import { RegisterTable } from "./RegisterTable";
+import { PreviewButton, TablePreview } from "./InlinePreview";
+import { historyRecord, shortId } from "./historyRows";
 import { useEffect, useRef, useState } from "react";
 import { ArrowUpRight, History, RefreshCw, X } from "lucide-react";
 import { api, type TimelineEvent } from "../api";
-import { formatDateTime, t } from "../localization";
+import { formatDateTime, formatShortDateTime, t } from "../localization";
 import { Inspector } from "./Inspector";
 import { RegisterToolbar, RegisterWorkbench } from "./RegisterWorkbench";
 
@@ -37,6 +39,30 @@ export function eventTitle(event: TimelineEvent): string {
   return titles[event.type] || event.business_title || event.type;
 }
 
+// The History register names areas and record kinds for a reader (spec 269).
+const areaLabels: Record<string, string> = {
+  sources: "Sources & intake",
+  operations: "Operations",
+  finance: "Finance",
+  master_data: "Master data",
+};
+const statusTone: Record<string, string> = {
+  attention: "bg-caution-bg text-caution-text",
+  completed: "bg-positive-bg text-positive-text",
+};
+const subjectLabels: Record<string, string> = {
+  party: "Business partner",
+  item: "Item",
+  location: "Location",
+  document: "Document",
+  document_line: "Document line",
+  source_record: "Source record",
+  commitment: "Commitment",
+  reservation: "Reservation",
+  movement: "Movement",
+  fact: "Fact",
+  payment: "Payment",
+};
 const embeddedActivityBody = "register-table-inset py-4";
 const drawerActivityBody = "px-5 py-5 sm:px-7";
 const inspectableSubjects = new Set([
@@ -112,6 +138,7 @@ export function ActivityDrawer({
   const [error, setError] = useState(false),
     [olderError, setOlderError] = useState(false);
   const [target, setTarget] = useState<{ kind: string; id: string } | null>(null);
+  const [previewed, setPreviewed] = useState("");
   useEffect(() => {
     if (embedded) return;
     const previous = document.activeElement as HTMLElement | null,
@@ -378,39 +405,135 @@ export function ActivityDrawer({
           <>
             {embedded ? (
               <RegisterTable
-                cursorView={{ id: "inspector:history", widths: [170, 260, 240, 120, 60] }}
+                cursorView={{
+                  id: "inspector:history",
+                  widths: [112, 108, 112, 88, 80, 80],
+                  grow: [1, 2, 3],
+                }}
                 footer={olderControls}
               >
                 <thead>
                   <tr>
                     <th>{t("Recorded at")}</th>
-                    <th>{t("Event type")}</th>
-                    <th>{t("Subject")}</th>
+                    <th>{t("Event")}</th>
+                    <th>{t("Record")}</th>
+                    <th>{t("Area")}</th>
                     <th>{t("Status")}</th>
                     <th>{t("Actions")}</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {events.map((event) => (
-                    <tr key={event.id} data-activity-event={event.id}>
-                      <td>{formatDateTime(event.recorded_at)}</td>
-                      <td data-original-content="">{eventTitle(event)}</td>
-                      <td data-original-content="">
-                        {event.subject_type} · {event.subject_id}
-                      </td>
-                      <td>
-                        {event.status === "attention" ? t("Attention event") : t("Completed")}
-                      </td>
-                      <td>
-                        <button
-                          className="br-btn"
-                          onClick={() => setTarget({ kind: "business_event", id: event.id })}
-                        >
-                          {t("Inspect event")}
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
+                  {events.flatMap((event) => {
+                    const record = historyRecord(event);
+                    const open = previewed === event.id;
+                    // A flat list with its own keys: the register flattens fragments.
+                    return [
+                      <tr key={event.id} data-activity-event={event.id}>
+                        <td className="tabular-nums" title={formatDateTime(event.recorded_at)}>
+                          {formatShortDateTime(event.recorded_at)}
+                        </td>
+                        <td>
+                          <span
+                            className="block truncate"
+                            title={event.type}
+                            data-original-content=""
+                          >
+                            {eventTitle(event)}
+                          </span>
+                        </td>
+                        <td>
+                          <span
+                            className="block truncate"
+                            title={record.name || record.id}
+                            data-history-record
+                            data-original-content=""
+                          >
+                            {record.name || shortId(record.id)}
+                          </span>
+                        </td>
+                        <td>
+                          <span
+                            className="inline-block rounded-full border border-border-subtle bg-surface-muted px-2 py-0.5 text-xs"
+                            data-history-area={event.area}
+                          >
+                            {t(areaLabels[event.area] || event.area)}
+                          </span>
+                        </td>
+                        <td>
+                          {/* Completed is the norm; only what needs attention carries a badge. */}
+                          {event.status === "attention" && (
+                            <span
+                              className={`inline-block rounded px-1.5 py-0.5 text-xs ${statusTone.attention}`}
+                              data-history-status={event.status}
+                            >
+                              {t("Attention event")}
+                            </span>
+                          )}
+                        </td>
+                        <td>
+                          <PreviewButton
+                            open={open}
+                            controls={`history-preview-${event.id}`}
+                            label={eventTitle(event)}
+                            toggle={() => setPreviewed(open ? "" : event.id)}
+                          />
+                        </td>
+                      </tr>,
+                      <TablePreview
+                        key={`preview-${event.id}`}
+                        id={`history-preview-${event.id}`}
+                        open={open}
+                        columns={6}
+                      >
+                        <div className="max-w-3xl space-y-3 text-sm" data-history-details>
+                          <BusinessContext event={event} />
+                          <dl className="grid grid-cols-[max-content_1fr] gap-x-4 gap-y-1 break-all text-xs">
+                            <dt className="text-fg-muted">{t("Event ID")}</dt>
+                            <dd data-original-content="">{event.id}</dd>
+                            <dt className="text-fg-muted">{t("Subject")}</dt>
+                            <dd data-original-content="">
+                              {event.subject_type} · {event.subject_id}
+                            </dd>
+                            {event.source_record_id && (
+                              <>
+                                <dt className="text-fg-muted">{t("Source record ID")}</dt>
+                                <dd data-original-content="">{event.source_record_id}</dd>
+                              </>
+                            )}
+                            <dt className="text-fg-muted">{t("Recorded sequence")}</dt>
+                            <dd>{event.sequence}</dd>
+                          </dl>
+                          <div className="flex flex-wrap gap-2">
+                            <button
+                              className="br-btn"
+                              onClick={() => setTarget({ kind: "business_event", id: event.id })}
+                            >
+                              {t("Inspect event")}
+                            </button>
+                            {inspectableSubjects.has(event.subject_type) && (
+                              <button
+                                className="br-btn"
+                                onClick={() =>
+                                  setTarget({ kind: event.subject_type, id: event.subject_id })
+                                }
+                              >
+                                {t("Open related record")}
+                              </button>
+                            )}
+                          </div>
+                          <details className="text-xs text-fg-muted">
+                            <summary className="cursor-pointer">{t("Technical details")}</summary>
+                            <pre
+                              data-original-content=""
+                              className="mt-2 max-h-64 overflow-auto whitespace-pre-wrap break-all rounded-lg bg-surface-muted p-3"
+                            >
+                              {JSON.stringify(event.payload, null, 2)}
+                            </pre>
+                          </details>
+                        </div>
+                      </TablePreview>,
+                    ];
+                  })}
                 </tbody>
               </RegisterTable>
             ) : (
