@@ -4,11 +4,10 @@ from reality.agent import mcp_chat
 
 
 class FakeResponse:
+    is_error = False
+
     def __init__(self, payload):
         self.payload = payload
-
-    def raise_for_status(self):
-        return None
 
     def json(self):
         return self.payload
@@ -303,3 +302,135 @@ async def test_running_out_of_steps_says_what_was_tried(monkeypatch, session, bu
     assert "graph_ask" in reply, "name the tool it kept reaching for"
     assert "cannot be expressed" in reply, "and why another attempt will not help"
     assert "maximum number of tool steps" not in reply
+
+
+UNION_SCHEMA = {
+    "type": "object",
+    "additionalProperties": False,
+    "discriminator": {"propertyName": "operation"},
+    "properties": {"reason": {"type": "string"}},
+    "required": ["reason"],
+    "oneOf": [
+        {
+            "type": "object",
+            "title": "Assign",
+            "properties": {
+                "operation": {"type": "string", "const": "assign"},
+                "document_id": {"type": "string"},
+                "parts": {"type": "array", "items": {"type": "string"}},
+            },
+            "required": ["operation", "reason", "document_id", "parts"],
+        },
+        {
+            "type": "object",
+            "title": "Withdraw",
+            "properties": {
+                "operation": {"type": "string", "const": "withdraw"},
+                "basis_id": {"type": "string"},
+                "parts": {"type": "object"},
+            },
+            "required": ["operation", "reason", "basis_id"],
+        },
+    ],
+}
+
+
+def test_a_top_level_union_is_folded_into_one_object_schema():
+    """Found by asking it: "Welche Kundenaufträge sind noch offen?" answered nothing.
+
+    Four propose tools declare their arguments as a discriminated union, and the
+    Messages API refuses oneOf, allOf and anyOf at the top level of an input
+    schema. One such tool in the catalog rejected the whole request, so every
+    question reached the user as "could not answer right now".
+    """
+    branches = mcp_chat._union_branches(UNION_SCHEMA)
+    flattened = mcp_chat._flattened_schema(UNION_SCHEMA, branches)
+
+    assert not {"oneOf", "allOf", "anyOf", "discriminator"} & set(flattened)
+    assert flattened["type"] == "object"
+    # The discriminator reads as the set of values that select a branch.
+    assert flattened["properties"]["operation"]["enum"] == ["assign", "withdraw"]
+    # Every branch's own fields stay reachable.
+    assert {"reason", "operation", "document_id", "basis_id", "parts"} == set(
+        flattened["properties"]
+    )
+    # Only what every branch demands survives as required.
+    assert flattened["required"] == ["reason", "operation"]
+    # A field the branches disagree about keeps both readings, which is legal
+    # one level down.
+    assert flattened["properties"]["parts"]["anyOf"] == [
+        {"type": "array", "items": {"type": "string"}},
+        {"type": "object"},
+    ]
+
+
+def test_the_branches_the_flattened_schema_cannot_enforce_are_described():
+    guidance = mcp_chat._union_guidance(mcp_chat._union_branches(UNION_SCHEMA))
+
+    assert 'Assign (operation="assign"): also requires document_id, parts' in guidance
+    assert 'Withdraw (operation="withdraw"): also requires basis_id' in guidance
+
+
+def test_a_schema_without_a_union_is_handed_over_unchanged():
+    schema = {"type": "object", "properties": {"item_id": {"type": "string"}}}
+
+    branches = mcp_chat._union_branches(schema)
+
+    assert branches == []
+    assert mcp_chat._flattened_schema(schema, branches) is schema
+    assert mcp_chat._union_guidance(branches) == ""
+
+
+def test_no_catalog_tool_reaches_the_provider_with_a_top_level_union():
+    offenders = {
+        tool["name"]: sorted({"oneOf", "allOf", "anyOf"} & set(tool["input_schema"]))
+        for tool in mcp_chat._anthropic_tool_schemas(("read", "propose"))
+        if {"oneOf", "allOf", "anyOf"} & set(tool["input_schema"])
+    }
+
+    assert offenders == {}
+
+
+@pytest.mark.anyio
+async def test_a_rejected_request_reports_what_the_provider_objected_to():
+    """raise_for_status() reports only the status line.
+
+    On a streamed response the body has not been read yet either, so the reason
+    the request was refused never reached the log and the 400 had to be
+    reproduced by hand to find out which tool the provider had objected to.
+    """
+    import httpx
+
+    from reality.agent import streaming
+
+    class Rejected:
+        is_error = True
+        status_code = 400
+        request = httpx.Request("POST", "https://api.anthropic.com/v1/messages")
+
+        def __init__(self):
+            self.text = ""
+
+        async def aread(self):
+            self.text = (
+                '{"type":"error","error":{"type":"invalid_request_error",'
+                '"message":"tools.9.custom.input_schema: input_schema does not '
+                'support oneOf, allOf, or anyOf at the top level"}}'
+            )
+
+    with pytest.raises(httpx.HTTPStatusError) as rejection:
+        await streaming.raise_for_status(Rejected(), "anthropic")
+
+    message = str(rejection.value)
+    assert "anthropic rejected the request with 400" in message
+    assert "does not support oneOf, allOf, or anyOf at the top level" in message
+
+
+@pytest.mark.anyio
+async def test_an_accepted_response_passes_through():
+    from reality.agent import streaming
+
+    class Accepted:
+        is_error = False
+
+    assert await streaming.raise_for_status(Accepted(), "anthropic") is None
