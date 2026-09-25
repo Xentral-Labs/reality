@@ -4,18 +4,23 @@
 **Language**: English
 **Created**: 2026-09-25
 **Status**: Draft
-**Input**: The interactive consent flow refuses more than 200 tool permissions while the catalog holds 179. Make the accepted length a consequence of the catalog instead of a literal that expires without warning.
+**Input**: The interactive consent flow refuses more than 200 tool permissions while the catalog holds 180. Make the accepted length a consequence of the catalog instead of a literal that expires without warning.
 
 ## Context and Intent
 
 ### Problem
 
 Interactive MCP authorization preselects every tool the requested scopes make eligible, and the
-approval endpoint accepts at most 200 tool names. The catalog holds 179 tools. Twenty-one
-additions from now the default selection is refused by input validation before any business rule
-runs: the consent page shows its generic completion failure, the interaction expires ten minutes
-later, and no external client can complete a connection at all. Nothing fails earlier, because no
-test compares the accepted length with the catalog it is meant to bound.
+approval endpoint accepts at most 200 tool names. The catalog holds 180 tools. Twenty additions
+from now the default selection is refused by input validation before any business rule runs: the
+consent page shows `Reality API returned 422`, because the validation error's body is a list the
+browser cannot read as a sentence; the interaction expires ten minutes later, and no external
+client can complete a connection at all. Nothing fails earlier, because no test compares the
+accepted length with the catalog it is meant to bound.
+
+A second refusal on the same endpoint is worse. An unknown tool name raises from the shared
+validation as a `ValueError`, which the handler does not catch, so it reaches the owner as a server
+error. The manual token path answers the same input with a stated sentence.
 
 The two paths that grant the same permissions also disagree. Manual company tokens accept any list
 the shared permission validation accepts, with no length bound; interactive grants are capped at
@@ -72,8 +77,9 @@ written into the test.
 As the owner, when an authorization is refused I am told which part of the request was rejected,
 instead of a generic failure on a page whose interaction is about to expire.
 
-**Why this priority**: The current failure is indistinguishable from a network error, an expired
-interaction, or a revoked client, so it cannot be acted on.
+**Why this priority**: The current failures read as a status code or a server fault, which is
+indistinguishable from a network error, an expired interaction, or a revoked client, so neither can
+be acted on.
 
 **Independent Test**: Submit a permission list containing an unknown name and a list longer than the
 catalog, and verify each response names its cause and that the consent screen renders that text.
@@ -85,8 +91,8 @@ catalog, and verify each response names its cause and that the consent screen re
 2. **Given** a permission list longer than the catalog after normalization, **When** it is approved,
    **Then** the refusal states that more permissions were requested than exist.
 3. **Given** any refused approval, **When** the consent screen handles it, **Then** it shows the
-   stated reason rather than its generic completion failure, and the authorization remains pending
-   until it expires on its own.
+   stated reason rather than a bare status code or a server error, and the authorization remains
+   pending until it expires on its own.
 
 ---
 
@@ -152,7 +158,7 @@ over-long or unknown list with the same stated reason.
 
 ### Measurable Outcomes
 
-- **SC-001**: An owner can approve an interactive authorization with all 179 currently eligible
+- **SC-001**: An owner can approve an interactive authorization with all 180 currently eligible
   tools selected, and the proof reads that number from the catalog rather than stating it.
 - **SC-002**: Adding a tool to the catalog requires no edit to any permission-length limit, in any
   layer, for either grant path.
