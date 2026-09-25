@@ -23,6 +23,25 @@ async def _events(response: httpx.Response) -> AsyncIterator[str]:
     # An unterminated frame is not a completed provider response.
 
 
+async def raise_for_status(response: httpx.Response, provider: str) -> None:
+    """Fail with the provider's own explanation attached.
+
+    raise_for_status() reports only the status line, and on a streamed response
+    the body has not been read yet, so a rejected request used to reach the log
+    as a bare 400 with nothing saying which part of the payload was refused.
+    """
+    try:
+        response.raise_for_status()
+    except httpx.HTTPStatusError as rejection:
+        await response.aread()
+        detail = response.text.strip()[:1000]
+        raise httpx.HTTPStatusError(
+            f"{provider} rejected the request with {response.status_code}: {detail}",
+            request=rejection.request,
+            response=rejection.response,
+        ) from rejection
+
+
 async def streamed_message(
     client: httpx.AsyncClient,
     url: str,
@@ -40,7 +59,7 @@ async def streamed_message(
     async with client.stream(
         "POST", url, headers=headers, json={**payload, "stream": True}
     ) as response:
-        response.raise_for_status()
+        await raise_for_status(response, provider)
         async for raw in _events(response):
             if provider == "openai" and raw == "[DONE]":
                 complete = True

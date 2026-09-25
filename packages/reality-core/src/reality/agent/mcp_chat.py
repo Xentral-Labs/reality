@@ -9,7 +9,11 @@ import httpx
 from pydantic import ValidationError
 from sqlalchemy.orm import Session
 
-from reality.agent.streaming import ChatEventSink, streamed_message
+from reality.agent.streaming import (
+    ChatEventSink,
+    raise_for_status,
+    streamed_message,
+)
 from reality.mcp.catalog import (
     dispatch_tool,
     model_tool_schemas,
@@ -245,7 +249,7 @@ async def reply_via_tools(
                 )
             else:
                 response = await client.post(url, headers=headers, json=payload)
-                response.raise_for_status()
+                await raise_for_status(response, "openai")
                 data = response.json()
                 assistant = data["choices"][0]["message"]
                 usage = data.get("usage", {})
@@ -280,14 +284,118 @@ async def reply_via_tools(
     return _exhausted(attempted)
 
 
+# The Messages API rejects oneOf, allOf and anyOf at the top level of a tool's
+# input schema. Four propose tools are declared as a discriminated union there,
+# so the union is folded into one object schema for this provider only. Nested
+# combinators are accepted and stay untouched.
+_COMBINATORS = ("oneOf", "anyOf", "allOf")
+_DROPPED = (*_COMBINATORS, "discriminator", "not", "properties", "required")
+
+
+def _union_branches(schema: dict[str, Any]) -> list[dict[str, Any]]:
+    return [
+        branch
+        for combinator in _COMBINATORS
+        for branch in schema.get(combinator, ())
+        if isinstance(branch, dict)
+    ]
+
+
+def _shared_requirements(branches: list[dict[str, Any]]) -> set[str]:
+    """Return what every branch demands, which is all a merged schema can ask."""
+    return set.intersection(*(set(branch.get("required") or ()) for branch in branches))
+
+
+def _widened_property(declarations: list[dict[str, Any]]) -> dict[str, Any]:
+    """Merge one property's declarations from every branch that declares it."""
+    unique: list[dict[str, Any]] = []
+    for declaration in declarations:
+        if declaration not in unique:
+            unique.append(declaration)
+    if len(unique) == 1:
+        return unique[0]
+    constants = [item["const"] for item in unique if "const" in item]
+    # A discriminator reads as the set of values that select a branch.
+    if len(constants) == len(unique):
+        widened = {key: value for key, value in unique[0].items() if key != "const"}
+        widened["enum"] = list(dict.fromkeys(constants))
+        return widened
+    # Anything else keeps both readings, which is legal one level down.
+    return {"anyOf": unique}
+
+
+def _flattened_schema(
+    schema: dict[str, Any], branches: list[dict[str, Any]]
+) -> dict[str, Any]:
+    """Collapse a top-level union into a single object schema.
+
+    The branches survive as a description the model can read, and the MCP server
+    still validates the original union, so a branch mix-up comes back as a
+    refusal the model can correct rather than as a change made on a wrong shape.
+    """
+    if not branches:
+        return schema
+    declared: dict[str, list[dict[str, Any]]] = {}
+    for source in (schema, *branches):
+        for name, declaration in (source.get("properties") or {}).items():
+            declared.setdefault(name, []).append(declaration)
+    required = list(
+        dict.fromkeys(
+            [*(schema.get("required") or ()), *sorted(_shared_requirements(branches))]
+        )
+    )
+    flattened = {key: value for key, value in schema.items() if key not in _DROPPED}
+    flattened["type"] = "object"
+    flattened["properties"] = {
+        name: _widened_property(declarations) for name, declarations in declared.items()
+    }
+    if required:
+        flattened["required"] = required
+    return flattened
+
+
+def _branch_label(branch: dict[str, Any], position: int) -> str:
+    title = branch.get("title")
+    for name, declaration in (branch.get("properties") or {}).items():
+        if isinstance(declaration, dict) and "const" in declaration:
+            selector = f'{name}="{declaration["const"]}"'
+            return f"{title} ({selector})" if title else selector
+    return title or f"variant {position}"
+
+
+def _union_guidance(branches: list[dict[str, Any]]) -> str:
+    """Describe the branches that the flattened schema can no longer enforce."""
+    if not branches:
+        return ""
+    shared = _shared_requirements(branches)
+    lines = []
+    for position, branch in enumerate(branches, start=1):
+        distinct = [
+            field for field in (branch.get("required") or ()) if field not in shared
+        ]
+        label = _branch_label(branch, position)
+        lines.append(
+            f"- {label}: also requires {', '.join(distinct)}"
+            if distinct
+            else f"- {label}"
+        )
+    return "\n\nExactly one of these variants applies:\n" + "\n".join(lines)
+
+
+def _anthropic_tool_schema(schema: dict[str, Any]) -> dict[str, Any]:
+    function = schema["function"]
+    parameters = function["parameters"]
+    branches = _union_branches(parameters)
+    return {
+        "name": function["name"],
+        "description": function.get("description", "") + _union_guidance(branches),
+        "input_schema": _flattened_schema(parameters, branches),
+    }
+
+
 def _anthropic_tool_schemas(access=("read", "propose")) -> list[dict[str, Any]]:
     return [
-        {
-            "name": schema["function"]["name"],
-            "description": schema["function"].get("description", ""),
-            "input_schema": schema["function"]["parameters"],
-        }
-        for schema in model_tool_schemas(access=access)
+        _anthropic_tool_schema(schema) for schema in model_tool_schemas(access=access)
     ]
 
 
@@ -343,7 +451,7 @@ async def reply_via_anthropic_tools(
                 )
             else:
                 response = await client.post(url, headers=headers, json=payload)
-                response.raise_for_status()
+                await raise_for_status(response, "anthropic")
                 data = response.json()
                 content = data.get("content") or []
                 usage = data.get("usage", {})
