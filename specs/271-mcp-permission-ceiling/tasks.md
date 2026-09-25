@@ -12,7 +12,7 @@ English. Paths are relative to the repository root; `core/` abbreviates `package
 
 ## Format
 
-`- [ ] T001 [P?] [US1] [FR-001] Action with exact file path`
+`- [X] T001 [P?] [US1] [FR-001] Action with exact file path`
 
 `[P]` marks tasks that touch different files and may run in parallel. Every functional requirement
 appears in at least one test task and one implementation task. Test tasks precede the code they
@@ -20,15 +20,16 @@ prove and are observed failing first. Every negative test carries a positive con
 
 ## Phase 1: Specification and Design Gates
 
-- [ ] T001 Confirm owner approval of scope in `specs/271-mcp-permission-ceiling/spec.md`, and that
-  deleting the ceiling rather than raising it is the accepted reading of FR-001
+- [X] T001 Confirm owner approval of scope in `specs/271-mcp-permission-ceiling/spec.md`, and that
+  deleting the ceiling rather than raising it is the accepted reading of FR-001 — the owner approved
+  implementation on 2026-09-25 with the plan's reasoning in hand
 - [X] T002 Correct the specification: the consent screen shows `Reality API returned 422`, not the
   generic "Authorization could not be completed" the Context section claimed (research R4); the
   unhandled `ValueError` behind an unknown tool name is now stated in Context; the catalog count and
   the headroom moved from 179/21 to 180/20 after spec 270 merged
-- [ ] T003 Confirm every Constitution Check row is PASS and that no schema or migration is
+- [X] T003 Confirm every Constitution Check row is PASS and that no schema or migration is
   introduced, in `specs/271-mcp-permission-ceiling/plan.md`
-- [ ] T004 Run the analysis pass across `specs/271-mcp-permission-ceiling/` and resolve every
+- [X] T004 Run the analysis pass across `specs/271-mcp-permission-ceiling/` and resolve every
   CRITICAL or HIGH finding
 
 ## Phase 2: User Story 1 — Connecting survives catalog growth (P1)
@@ -37,23 +38,25 @@ prove and are observed failing first. Every negative test carries a positive con
 
 ### Tests
 
-- [ ] T005 [P] [US1] [FR-001] [FR-006] [FR-007] Add a failing HTTP test that approves an
+- [X] T005 [P] [US1] [FR-001] [FR-006] [FR-007] Add a failing HTTP test that approves an
   authorization with every tool the requested scopes make eligible, for each combination of
   supported scopes, taking the expected count from `MCP_TOOL_NAMES` rather than writing it, in
   `core/tests/test_mcp_oauth_http.py`
-- [ ] T006 [US1] Observe T005 failing for the right reason before the change: temporarily lower the
-  bound below the catalog size, confirm the refusal, and restore it. Record the observation in
-  `tasks.md` rather than only asserting it happened
-- [ ] T007 [P] [US1] [FR-002] Add a failing test that a list repeating a name and using one of the
+- [X] T006 [US1] Observe T005 failing for the right reason before the change: temporarily lower the
+  bound below the catalog size, confirm the refusal, and restore it — done with `max_length=5` and
+  the `ValueError` arm removed. Four tests failed, three on `approval.status_code == 303` for the
+  full selection and one on the unknown name surfacing as the raw
+  `ValueError: Unknown MCP tools: no_such_tool`. Restored; 24 pass
+- [X] T007 [P] [US1] [FR-002] Add a failing test that a list repeating a name and using one of the
   four legacy aliases is accepted and stored once. Positive control: the de-duplicated equivalent
   produces the same grant, in `core/tests/test_mcp_oauth_service.py`
-- [ ] T008 [P] [US1] [FR-001] Add a test that a wildcard is still refused for an interactive grant,
+- [X] T008 [P] [US1] [FR-001] Add a test that a wildcard is still refused for an interactive grant,
   so deleting the length bound cannot be read as relaxing what a grant may contain. Positive
   control: the explicit equivalent list is accepted, in `core/tests/test_mcp_oauth_service.py`
 
 ### Implementation
 
-- [ ] T009 [US1] [FR-001] [FR-002] Remove `max_length` from `Approval.allowed_tools` in
+- [X] T009 [US1] [FR-001] [FR-002] Remove `max_length` from `Approval.allowed_tools` in
   `core/src/reality/web/mcp_authorization.py`, keeping `min_length=1`, so the bound is the
   membership rule in `validate_tool_permissions` and nothing else
 
@@ -63,23 +66,23 @@ prove and are observed failing first. Every negative test carries a positive con
 
 ### Tests
 
-- [ ] T010 [P] [US2] [FR-004] Add a failing HTTP test that approving with an unknown tool name
+- [X] T010 [P] [US2] [FR-004] Add a failing HTTP test that approving with an unknown tool name
   answers 400 and names the tool in the body, where it answers 500 today (research R3). Positive
   control: a valid list in the same test is accepted, in `core/tests/test_mcp_oauth_http.py`
-- [ ] T011 [P] [US2] [FR-004] Add a failing HTTP test that an empty permission list stays refused
+- [X] T011 [P] [US2] [FR-004] Add a failing HTTP test that an empty permission list stays refused
   with a stated reason, and that tools outside the requested scopes keep their existing sentence, in
   `core/tests/test_mcp_oauth_http.py`
-- [ ] T012 [P] [US2] [FR-005] Add a test that every refusal of this endpoint carries `detail` as a
+- [X] T012 [P] [US2] [FR-005] Add a test that every refusal of this endpoint carries `detail` as a
   string, which is the shape `apps/web/src/api.ts` surfaces; a refusal whose `detail` is a list
   cannot reach the owner. Positive control: assert the accepted case returns no `detail`, in
   `core/tests/test_mcp_oauth_http.py`
-- [ ] T013 [P] [US2] [FR-005] Add a test that a refused approval leaves the interaction `pending`,
+- [X] T013 [P] [US2] [FR-005] Add a test that a refused approval leaves the interaction `pending`,
   so the owner can correct the selection instead of restarting the client, in
   `core/tests/test_mcp_oauth_http.py`
 
 ### Implementation
 
-- [ ] T014 [US2] [FR-004] [FR-005] Add a `ValueError` arm to `approve()` in
+- [X] T014 [US2] [FR-004] [FR-005] Add a `ValueError` arm to `approve()` in
   `core/src/reality/web/mcp_authorization.py` answering 400 with `str(error)`, matching what
   `post_mcp_token` already answers for the same exception
 
@@ -87,25 +90,28 @@ prove and are observed failing first. Every negative test carries a positive con
 
 ### Tests
 
-- [ ] T015 [US3] [FR-003] Add `core/tests/test_mcp_permission_parity.py`: the same four lists — the
+- [X] T015 [US3] [FR-003] Add `core/tests/test_mcp_permission_parity.py`: the same four lists — the
   complete catalog, a duplicate-laden list, an unknown name, an empty list — submitted to
   interactive approval and to manual token creation produce the same acceptance and the same
   message. Positive control: both accept the complete catalog
-- [ ] T016 [US3] [FR-003] Add the new test file to `docs/SPEC_COVERAGE_MATRIX.md` under this spec's
+- [X] T016 [US3] [FR-003] Add the new test file to `docs/SPEC_COVERAGE_MATRIX.md` under this spec's
   section
 
 ## Phase 5: Verification
 
-- [ ] T017 Run the focused suite: `pytest core/tests/test_mcp_oauth_http.py
+- [X] T017 Run the focused suite: `pytest core/tests/test_mcp_oauth_http.py
   core/tests/test_mcp_oauth_service.py core/tests/test_mcp_permission_parity.py`
-- [ ] T018 Run the catalog and gate suite: `pytest core/tests/test_application_catalog.py
+- [X] T018 Run the catalog and gate suite: `pytest core/tests/test_application_catalog.py
   core/tests/test_tool_catalog.py core/tests/tenant_isolation`
-- [ ] T019 Run `ruff check . --no-cache` and `ruff format` from `packages/reality-core`
+- [X] T019 Run `ruff check . --no-cache` and `ruff format` from `packages/reality-core`
 - [ ] T020 Run the complete backend suite and record the evidence in
   `specs/271-mcp-permission-ceiling/checklists/requirements.md`. Spec 270 showed that a second copy
   of a literal can keep the focused suites green while the full run is red, so this is not optional
-- [ ] T021 Search the repository for any other permission-length literal before calling the feature
-  done, so the ceiling cannot survive in a layer this plan did not read
+- [X] T021 Search the repository for any other permission-length literal before calling the feature
+  done, so the ceiling cannot survive in a layer this plan did not read — none. The only nearby
+  bound is `scope: str = Query(max_length=200)` on `/oauth/authorize`, which caps the scope *string*
+  (three scopes are about 46 characters) and is unrelated. `mcp_client_grant.allowed_tools` carries
+  only a non-empty check constraint
 
 ## Requirement Coverage
 
@@ -125,3 +131,14 @@ Phase 1 precedes everything; T002 corrects the specification before anything is 
 wrong sentence. Phases 2 and 3 are independent: the ceiling and the unhandled `ValueError` are
 separate defects in the same handler, and either can ship alone. Phase 4 depends on both, since it
 compares what they produce. Phase 5 depends on all of them.
+
+## Implementation Notes
+
+- **The empty list was a third asymmetry.** Writing the parity proof showed that an empty selection
+  was a pydantic 422 on the interactive path and a stated 400 on the manual one. `min_length=1` came
+  off `Approval.allowed_tools` too, so the shared validation gives both paths the same sentence.
+  The plan had only foreseen the length bound and the unknown name.
+- **T006's observation** is recorded on that line rather than asserted in passing.
+- **The wildcard stays the one deliberate difference** between the two paths: a manual token may
+  hold `*`, an interactive grant must name its tools. A parity test states that as intended rather
+  than leaving it to look like an oversight.

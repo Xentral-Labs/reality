@@ -202,7 +202,15 @@ def revoke(session: DatabaseSession, token: str = Form()):
 class Approval(BaseModel):
     model_config = ConfigDict(extra="forbid")
     company_id: str = Field(min_length=1)
-    allowed_tools: list[str] = Field(min_length=1, max_length=200)
+    # No bound in either direction. `validate_tool_permissions` normalizes the list
+    # and refuses any name outside the catalog, so what survives is a set of distinct
+    # catalog names whose length is bounded by the catalog itself; a separate cap
+    # could only fire for a list the membership rule already rejects, and the one
+    # that stood here would have refused the preselected full selection once the
+    # catalog passed it. An empty list is refused by the same shared validation, in
+    # the same sentence the manual token path gives, rather than as a validation
+    # error the browser cannot read (spec 271).
+    allowed_tools: list[str]
     confirmed: StrictBool = False
 
 
@@ -328,6 +336,11 @@ def approve(
         raise HTTPException(status_code=404, detail=str(error)) from error
     except InvalidOperation as error:
         raise HTTPException(status_code=409, detail=str(error)) from error
+    except ValueError as error:
+        # `validate_tool_permissions` refuses an unknown or empty selection this way.
+        # Without this arm it left the endpoint as a server error, while the manual
+        # token path answered the same input with the sentence (spec 271).
+        raise HTTPException(status_code=400, detail=str(error)) from error
     return _browser_completion(request, interaction, code)
 
 

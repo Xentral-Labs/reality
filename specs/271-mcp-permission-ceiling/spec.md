@@ -3,7 +3,7 @@
 **Feature Branch**: `271-mcp-permission-ceiling`
 **Language**: English
 **Created**: 2026-09-25
-**Status**: Draft
+**Status**: Approved
 **Input**: The interactive consent flow refuses more than 200 tool permissions while the catalog holds 180. Make the accepted length a consequence of the catalog instead of a literal that expires without warning.
 
 ## Context and Intent
