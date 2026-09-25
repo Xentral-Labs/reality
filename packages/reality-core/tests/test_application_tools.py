@@ -264,9 +264,13 @@ def test_mutation_changes_reality_only_after_confirmation(session, business):
         proposal.id,
         review_token=json.loads(proposal.input)["_delivery_review"]["token"],
         confirmed=True,
+        settling_channel="chat",
     )
 
     assert executed.status == "executed"
+    assert executed.decided_via_channel == "chat"
+    assert executed.decided_by_user_id is None
+    assert executed.decided_via_token_id is None
     assert Decimal(json.loads(executed.output)["reserved"]) == Decimal(5)
     assert active_reserved(session, business.tenant.id, business.item.id) == 5
     replayed = confirm_tool(session, business.tenant.id, proposal.id)
@@ -544,7 +548,7 @@ def test_membership_invite_proposal_is_effect_free_and_reauthorizes_owner(sessio
     assert json.loads(proposal.output) == {
         "action": "member_invite",
         "company_id": tenant.id,
-        "requires_human_confirmation": True,
+        "requires_confirmation": True,
         "target": {"email": "chat-member@example.com"},
     }
 

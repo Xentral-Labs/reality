@@ -63,6 +63,17 @@ def test_a_person_without_display_name_falls_back_to_the_address(session):
     assert result["decider"] == {"kind": "person", "name": "nameless@example.com"}
 
 
+def test_a_chat_agent_decision_names_the_observed_channel(session):
+    tenant = create_tenant(session, "Chat company")
+    decision = _decision(
+        session, tenant.id, decided_at=now(), decided_via_channel="chat"
+    )
+
+    result = decision_attributions(session, tenant.id, [decision.id])[decision.id]
+
+    assert result["decider"] == {"kind": "chat_agent"}
+
+
 def test_an_mcp_decision_names_the_token_and_its_issuer(session):
     tenant = create_tenant(session, "Token company")
     owner = _person(session, "owner@example.com", "Olga Owner")

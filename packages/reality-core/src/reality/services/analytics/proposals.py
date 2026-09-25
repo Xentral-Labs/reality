@@ -37,7 +37,7 @@ def prepare(session, tenant_id, principal, arguments, report_kind="graph"):
     token = _master_key().encrypt(json.dumps(sealed).encode()).decode()
     return {"private_report_change": token}, {
         "effect": "Change a private analytics report.",
-        "requires_human_confirmation": True,
+        "requires_confirmation": True,
         "private": True,
     }
 
@@ -189,7 +189,7 @@ def prepare_request(session, tenant_id, principal, arguments):
             "Ask an analysis question. It is answered now if the company is small "
             "enough, and otherwise recorded and answered by the worker."
         ),
-        "requires_human_confirmation": True,
+        "requires_confirmation": True,
         "private": True,
     }
 

@@ -8,6 +8,7 @@
  */
 export type Decider =
   | { kind: "person"; name: string }
+  | { kind: "chat_agent" }
   | {
       kind: "mcp_token";
       token_name: string;
@@ -34,6 +35,11 @@ export function deciderSentence(outcome: string, decider: Decider): DeciderSente
     return {
       template: rejected ? "Rejected by {name}" : "Confirmed by {name}",
       values: { name: decider.name },
+    };
+  if (decider.kind === "chat_agent")
+    return {
+      template: rejected ? "Rejected by Chat agent" : "Confirmed by Chat agent",
+      values: {},
     };
   if (decider.kind === "mcp_token")
     return decider.issuer

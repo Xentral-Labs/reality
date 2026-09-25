@@ -61,5 +61,5 @@ def test_shipment_mcp_mutations_are_proposal_only_and_notice_has_no_effect(
 
     assert result["status"] == "proposed"
     assert result["proposal_id"]
-    assert result["requires_human_confirmation"] is True
+    assert result["requires_confirmation"] is True
     assert session.scalar(select(func.count()).select_from(Shipment)) == before

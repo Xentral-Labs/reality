@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 from collections.abc import Callable, Iterable
+from contextlib import contextmanager
 from contextvars import ContextVar
 from dataclasses import dataclass
 from typing import Any, Literal
@@ -113,7 +114,7 @@ def _propose(application_name: str) -> ToolHandler:
         return {
             "proposal_id": proposal.id,
             "status": proposal.status,
-            "requires_human_confirmation": True,
+            "requires_confirmation": True,
             "arguments": normalized,
             "preview": json.loads(proposal.output),
             "next_step": proposal_next_step(proposal),
@@ -127,13 +128,26 @@ def _propose(application_name: str) -> ToolHandler:
 #: duration of one tool call. A decision it settles records this token (spec 263).
 #: Chat and other callers of `dispatch_tool` leave it unset.
 SETTLING_TOKEN: ContextVar[str | None] = ContextVar("mcp_settling_token", default=None)
+SETTLING_CHANNEL: ContextVar[str | None] = ContextVar(
+    "decision_settling_channel", default=None
+)
+
+
+@contextmanager
+def decision_channel(channel: str):
+    """Attach a server-observed decision channel to one adapter dispatch."""
+    token = SETTLING_CHANNEL.set(channel)
+    try:
+        yield
+    finally:
+        SETTLING_CHANNEL.reset(token)
 
 
 def _approve_proposal(
     session: Session, tenant_id: str, arguments: dict[str, Any]
 ) -> Any:
     if arguments.get("approved") is not True:
-        raise ValueError("Set approved=true only after explicit human approval.")
+        raise ValueError("Set approved=true only for an explicit authorized decision.")
     from reality.services.delivery_actions import get_delivery_proposal, review_existing
 
     try:
@@ -150,7 +164,7 @@ def _approve_proposal(
             "proposal_id": reviewed.id,
             "status": reviewed.status,
             "preview": json.loads(reviewed.output),
-            "requires_human_confirmation": True,
+            "requires_confirmation": True,
         }
     mcp_principal = current_mcp_principal()
     confirming_principal = _analytics_caller()
@@ -166,6 +180,7 @@ def _approve_proposal(
         confirmed=True,
         confirming_principal=confirming_principal,
         settling_token_id=_settling_token(session, tenant_id),
+        settling_channel=SETTLING_CHANNEL.get(),
     )
     receipt = json.loads(proposal.output)
     return {
@@ -182,7 +197,7 @@ def _reject_proposal(
     session: Session, tenant_id: str, arguments: dict[str, Any]
 ) -> Any:
     if arguments.get("rejected") is not True:
-        raise ValueError("Set rejected=true only after an explicit human decision.")
+        raise ValueError("Set rejected=true only for an explicit authorized decision.")
     mcp_principal = current_mcp_principal()
     confirming_principal = _analytics_caller()
     if mcp_principal is not None and mcp_principal.user_id is not None:
@@ -195,6 +210,7 @@ def _reject_proposal(
         arguments["proposal_id"],
         confirming_principal=confirming_principal,
         settling_token_id=_settling_token(session, tenant_id),
+        settling_channel=SETTLING_CHANNEL.get(),
     )
     return {
         "proposal_id": proposal.id,
@@ -883,7 +899,7 @@ MCP_TOOL_CATALOG = (
     MCPToolDefinition(
         "proposal_approve_and_execute",
         "Approve and execute a proposal",
-        "Approve one exact proposal and execute it through the shared application boundary.",
+        "Settle one exact proposal by explicit authorized decision and execute it through the shared application boundary.",
         "confirm",
         "Exceptions & proposals",
         _object_schema(
@@ -899,7 +915,7 @@ MCP_TOOL_CATALOG = (
     MCPToolDefinition(
         "proposal_reject",
         "Reject a proposal",
-        "Carry out an explicit human rejection of one pending proposal without business effect.",
+        "Reject one pending proposal by explicit authorized decision without business effect.",
         "confirm",
         "Exceptions & proposals",
         _object_schema(
@@ -941,7 +957,7 @@ MCP_TOOL_CATALOG = (
     MCPToolDefinition(
         "movement_correction_propose",
         "Propose Movement correction",
-        "Preview an exact compensating Movement and optional replacement without executing before human approval.",
+        "Preview an exact compensating Movement and optional replacement without executing before a separate decision.",
         "propose",
         "Mutations",
         _object_schema(
@@ -960,7 +976,7 @@ MCP_TOOL_CATALOG = (
     MCPToolDefinition(
         "ledger_reversal_propose",
         "Propose Ledger reversal",
-        "Preview a complete inverse posting group without executing before human approval.",
+        "Preview a complete inverse posting group without executing before a separate decision.",
         "propose",
         "Mutations",
         _object_schema(
@@ -999,7 +1015,7 @@ MCP_TOOL_CATALOG = (
     MCPToolDefinition(
         "party_update_propose",
         "Propose Party update",
-        "Prepare updates to existing Parties identified only by opaque ID. Exact changes are previewed and human confirmation is required.",
+        "Prepare updates to existing Parties identified only by opaque ID. Exact changes are previewed and a separate decision is required.",
         "propose",
         "Mutations",
         _records_schema(PARTY_UPDATE_RECORD),
@@ -1008,7 +1024,7 @@ MCP_TOOL_CATALOG = (
     MCPToolDefinition(
         "item_update_propose",
         "Propose Item update",
-        "Prepare updates to existing Items identified only by opaque ID. Exact changes are previewed and human confirmation is required.",
+        "Prepare updates to existing Items identified only by opaque ID. Exact changes are previewed and a separate decision is required.",
         "propose",
         "Mutations",
         _records_schema(ITEM_UPDATE_RECORD),
@@ -1017,7 +1033,7 @@ MCP_TOOL_CATALOG = (
     MCPToolDefinition(
         "location_update_propose",
         "Propose Location update",
-        "Prepare updates to existing Locations identified only by opaque ID. Parent locations also use opaque IDs. Exact changes are previewed and human confirmation is required.",
+        "Prepare updates to existing Locations identified only by opaque ID. Parent locations also use opaque IDs. Exact changes are previewed and a separate decision is required.",
         "propose",
         "Mutations",
         _records_schema(LOCATION_UPDATE_RECORD),

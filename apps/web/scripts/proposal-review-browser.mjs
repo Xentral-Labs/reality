@@ -23,7 +23,7 @@ const proposals = new Map(
       created_at: "2026-09-22T08:00:00Z",
       decided_at: null,
       input: { reference: `TEST-${index}`, amount: "125.50" },
-      preview: { effect: `Review ${tool}`, requires_human_confirmation: true },
+      preview: { effect: `Review ${tool}`, requires_confirmation: true },
       receipt: {},
       confirmable: true,
       rejectable: true,

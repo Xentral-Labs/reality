@@ -1,7 +1,8 @@
 """Which decision caused a change, and who settled it (spec 263).
 
-A decision is settled in one of three ways that the record can tell apart: by a
-signed-in person, through an MCP access token, or by nobody the record can name. This
+A decision is settled in one of four ways that the record can tell apart: by a
+signed-in person, through an MCP access token, through the built-in Chat agent, or
+by nobody the record can name. This
 module states exactly that, for a bounded set of decisions in at most three
 statements, and never guesses: a token names the owner who issued it only as its
 issuer, because Reality sees the token, not the person at the agent client.
@@ -39,6 +40,7 @@ def decision_attributions(
             ChangeProposal.decided_at,
             ChangeProposal.decided_by_user_id,
             ChangeProposal.decided_via_token_id,
+            ChangeProposal.decided_via_channel,
             MCPAccessToken.name,
             MCPAccessToken.token_prefix,
             MCPAccessToken.revoked_at,
@@ -84,6 +86,8 @@ def _decider(row: Any, names: dict[str, str]) -> dict[str, Any]:
             if row.created_by_user_id
             else None,
         }
+    if row.decided_via_channel == "chat":
+        return {"kind": "chat_agent"}
     return dict(UNKNOWN)
 
 

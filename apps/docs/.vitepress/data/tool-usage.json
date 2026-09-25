@@ -3231,7 +3231,7 @@
       "synopsis": "proposals_awaiting_approval",
       "parameters": [],
       "guidance": {
-        "purpose": "List tenant change proposals that still await explicit human approval.",
+        "purpose": "List tenant change proposals that still await an explicit authorized decision.",
         "use_when": ["The current governed review queue is needed before approval or rejection."],
         "do_not_use_when": [
           "Executed Reality",
@@ -3317,7 +3317,7 @@
       "key": "proposal_approve_and_execute",
       "label": "Approve and execute a proposal",
       "area": "agent_governance",
-      "summary": "Approve one exact proposal and execute it through the shared application boundary.",
+      "summary": "Settle one exact proposal by explicit authorized decision and execute it through the shared application boundary.",
       "access": "confirm",
       "group": "Exceptions & proposals",
       "synopsis": "proposal_approve_and_execute proposal_id [approved] [review_token]",
@@ -3346,9 +3346,9 @@
         }
       ],
       "guidance": {
-        "purpose": "Apply one exact prepared mutation after explicit human approval through a single-use Reality execution boundary.",
+        "purpose": "Apply one exact prepared mutation after an explicit authorized decision through a single-use Reality execution boundary.",
         "use_when": [
-          "An accountable human has reviewed and approved the exact pending proposal preview."
+          "An authorized person or agent explicitly decides the exact pending proposal preview."
         ],
         "do_not_use_when": [
           "Approval is inferred from model output, credentials, connection, or prior similar decisions.",
@@ -3362,7 +3362,7 @@
         "refusals": [
           {
             "code": "approval_required",
-            "description": "approved=true was not supplied after explicit human approval."
+            "description": "approved=true was not supplied for an explicit authorized decision."
           },
           {
             "code": "execution_unknown",
@@ -3405,7 +3405,7 @@
       "key": "proposal_reject",
       "label": "Reject a proposal",
       "area": "agent_governance",
-      "summary": "Carry out an explicit human rejection of one pending proposal without business effect.",
+      "summary": "Reject one pending proposal by explicit authorized decision without business effect.",
       "access": "confirm",
       "group": "Exceptions & proposals",
       "synopsis": "proposal_reject proposal_id rejected",
@@ -3571,7 +3571,7 @@
       "key": "movement_correction_propose",
       "label": "Propose Movement correction",
       "area": "warehouse",
-      "summary": "Preview an exact compensating Movement and optional replacement without executing before human approval.",
+      "summary": "Preview an exact compensating Movement and optional replacement without executing before a separate decision.",
       "access": "propose",
       "group": "Mutations",
       "synopsis": "movement_correction_propose movement_id reason [replacement]",
@@ -3612,7 +3612,7 @@
       "key": "ledger_reversal_propose",
       "label": "Propose Ledger reversal",
       "area": "finance",
-      "summary": "Preview a complete inverse posting group without executing before human approval.",
+      "summary": "Preview a complete inverse posting group without executing before a separate decision.",
       "access": "propose",
       "group": "Mutations",
       "synopsis": "ledger_reversal_propose posting_group_id reason",
@@ -3990,7 +3990,7 @@
       "key": "party_update_propose",
       "label": "Propose Party update",
       "area": "master_data",
-      "summary": "Prepare updates to existing Parties identified only by opaque ID. Exact changes are previewed and human confirmation is required.",
+      "summary": "Prepare updates to existing Parties identified only by opaque ID. Exact changes are previewed and a separate decision is required.",
       "access": "propose",
       "group": "Mutations",
       "synopsis": "party_update_propose records",
@@ -4125,7 +4125,7 @@
       "key": "item_update_propose",
       "label": "Propose Item update",
       "area": "master_data",
-      "summary": "Prepare updates to existing Items identified only by opaque ID. Exact changes are previewed and human confirmation is required.",
+      "summary": "Prepare updates to existing Items identified only by opaque ID. Exact changes are previewed and a separate decision is required.",
       "access": "propose",
       "group": "Mutations",
       "synopsis": "item_update_propose records",
@@ -4245,7 +4245,7 @@
       "key": "location_update_propose",
       "label": "Propose Location update",
       "area": "master_data",
-      "summary": "Prepare updates to existing Locations identified only by opaque ID. Parent locations also use opaque IDs. Exact changes are previewed and human confirmation is required.",
+      "summary": "Prepare updates to existing Locations identified only by opaque ID. Parent locations also use opaque IDs. Exact changes are previewed and a separate decision is required.",
       "access": "propose",
       "group": "Mutations",
       "synopsis": "location_update_propose records",

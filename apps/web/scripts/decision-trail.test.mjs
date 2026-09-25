@@ -13,13 +13,15 @@ const token = (issuer) => ({
   issuer,
 });
 
-test("a person, a token and nobody read as three different sentences", () => {
+test("a person, Chat agent, token and nobody read as distinct sentences", () => {
   const person = deciderSentence("executed", { kind: "person", name: "Anna" });
+  const chat = deciderSentence("executed", { kind: "chat_agent" });
   const viaToken = deciderSentence("executed", token("Olga"));
   const legacy = deciderSentence("executed", token(null));
   const nobody = deciderSentence("executed", { kind: "unknown" });
 
   assert.equal(fillSentence(person.template, person.values), "Confirmed by Anna");
+  assert.equal(chat.template, "Confirmed by Chat agent");
   assert.equal(
     fillSentence(viaToken.template, viaToken.values),
     "Confirmed through token Claude Desktop, issued by Olga",
@@ -37,6 +39,10 @@ test("a rejection is attributed like an approval, and a pending one is undecided
   assert.equal(
     deciderSentence("rejected", { kind: "person", name: "Anna" }).template,
     "Rejected by {name}",
+  );
+  assert.equal(
+    deciderSentence("rejected", { kind: "chat_agent" }).template,
+    "Rejected by Chat agent",
   );
   assert.equal(
     deciderSentence("rejected", token("Olga")).template,

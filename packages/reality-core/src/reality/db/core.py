@@ -2229,6 +2229,10 @@ class ChangeProposal(Base):
     __table_args__ = (
         PrimaryKeyConstraint("tenant_id", "id"),
         UniqueConstraint("tenant_id", "id", name="uq_action_tenant_id"),
+        CheckConstraint(
+            "decided_via_channel IS NULL OR decided_via_channel = 'chat'",
+            name="ck_action_decided_via_channel",
+        ),
         ForeignKeyConstraint(
             ["tenant_id", "decided_via_token_id"],
             ["mcp_access_token.tenant_id", "mcp_access_token.id"],
@@ -2254,6 +2258,8 @@ class ChangeProposal(Base):
     # It is never copied into `decided_by_user_id`: Reality sees the token, not the
     # person at the agent client, and the record must not claim more than that.
     decided_via_token_id: Mapped[str | None] = mapped_column(String, default=None)
+    # A built-in Chat confirmation observes an agent channel, not a human identity.
+    decided_via_channel: Mapped[str | None] = mapped_column(String(16), default=None)
 
 
 # Transitional import alias for older adapters. New domain code uses

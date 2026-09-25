@@ -1037,7 +1037,7 @@ def preview_cost_change(
         return {
             "request": request.model_dump(mode="json"),
             "review": _check_change(session, tenant_id, request),
-            "requires_human_confirmation": True,
+            "requires_confirmation": True,
             "required_principal": "authenticated_active_owner",
         }
 

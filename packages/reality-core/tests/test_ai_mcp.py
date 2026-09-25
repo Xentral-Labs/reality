@@ -838,7 +838,7 @@ def test_mcp_rejection_requires_explicit_decision_and_preserves_tenant_scope(
     )
     values = {"proposal_id": prepared["proposal_id"], "rejected": True}
 
-    with pytest.raises(ValueError, match="explicit human decision"):
+    with pytest.raises(ValueError, match="explicit authorized decision"):
         dispatch_tool(
             session,
             business.tenant.id,
@@ -1042,7 +1042,7 @@ async def test_mcp_tools_read_and_only_propose_mutations(
         assert proposal.status == "proposed"
         assert proposal.type == "tool:reserve"
         assert commitment.id in json.loads(proposal.input).values()
-        assert "requires_human_confirmation" in str(proposal_result)
+        assert "requires_confirmation" in str(proposal_result)
         pending = await server.call_tool("proposals_awaiting_approval", {})
         assert proposal.id in str(pending)
         confirmed = await server.call_tool(

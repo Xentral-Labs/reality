@@ -160,6 +160,50 @@ def test_web_approval_is_a_decision_linked_to_its_proposal(web):
     assert row.event_ranges
 
 
+def test_chat_approval_is_a_decision_linked_to_its_proposal(
+    session, business, scheduled_owner, recording  # noqa: F811
+):
+    tenant = business.tenant.id
+    proposal = create_change_proposal(
+        session,
+        tenant,
+        "payment_term_create",
+        {"code": "CHAT14", "name": "Chat Net 14", "due_days": 14},
+    )
+
+    with interactions.observe(
+        tenant,
+        "web",
+        "POST /chat",
+        correlation_id="turn_decide",
+        actor_user_id=scheduled_owner.id,
+    ):
+        result, refused = mcp_chat._call_tool(
+            session,
+            tenant,
+            "proposal_approve_and_execute",
+            {"proposal_id": proposal.id, "approved": True},
+            ("read", "propose", "confirm"),
+        )
+
+    assert refused is False
+    assert result["status"] == "executed"
+    session.refresh(proposal)
+    assert proposal.decided_via_channel == "chat"
+    decision = next(
+        row
+        for row in rows(session, tenant)
+        if row.operation == "proposal_approve_and_execute"
+    )
+    assert (decision.channel, decision.kind, decision.proposal_id) == (
+        "chat",
+        "decide",
+        proposal.id,
+    )
+    assert decision.event_ranges
+    assert decision.correlation_id == "turn_decide"
+
+
 def test_refresh_requests_are_stored_but_flagged(web):
     owner = member(web.db, web.tenant_id)
     web.sign_in(owner).get(
