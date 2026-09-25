@@ -135,38 +135,7 @@ export type LiveFilter = {
   refresh: boolean;
   /** Show the viewer's own interactions; hidden by default. */
   own: boolean;
-  /** "" is live; anything else is a window ending now, read once. */
-  period: Period;
-  /** Narrows the loaded rows by what the reader sees; never sent to the API. */
-  search: string;
 };
-
-export const PERIODS = ["", "1h", "24h", "7d"] as const;
-export type Period = (typeof PERIODS)[number];
-const PERIOD_MS: Record<Exclude<Period, "">, number> = {
-  "1h": 3_600_000,
-  "24h": 86_400_000,
-  "7d": 604_800_000,
-};
-
-/** The window a period reads, ending now; live has none. */
-export function periodWindow(period: Period, now = Date.now()): { from: Date; to: Date } | null {
-  if (!period) return null;
-  return { from: new Date(now - PERIOD_MS[period]), to: new Date(now) };
-}
-
-/** Whether a row shows the searched text: its label as read, its technical name, its actor. */
-export function matchesSearch(
-  row: Pick<Interaction, "label" | "operation" | "actor">,
-  search: string,
-  translate: (text: string) => string,
-): boolean {
-  const needle = search.trim().toLowerCase();
-  if (!needle) return true;
-  return [row.label ? translate(row.label) : "", row.operation, row.actor?.label || ""].some(
-    (text) => text.toLowerCase().includes(needle),
-  );
-}
 
 export const emptyLiveFilter: LiveFilter = {
   channel: "",
@@ -179,15 +148,10 @@ export const emptyLiveFilter: LiveFilter = {
   subjectId: "",
   refresh: false,
   own: false,
-  period: "",
-  search: "",
 };
 
 const opaque = /^[A-Za-z0-9_-]{1,64}$/;
-const urlKeys: Record<
-  Exclude<keyof LiveFilter, "refresh" | "own" | "period" | "search">,
-  string
-> = {
+const urlKeys: Record<Exclude<keyof LiveFilter, "refresh" | "own">, string> = {
   channel: "live_channel",
   kind: "live_kind",
   outcome: "live_outcome",
@@ -207,9 +171,6 @@ export function liveFilterToParams(filter: LiveFilter): URLSearchParams {
   }
   if (filter.refresh) params.set("live_refresh", "1");
   if (filter.own) params.set("live_own", "1");
-  if (filter.period) params.set("live_period", filter.period);
-  const search = (filter.search || "").trim();
-  if (search) params.set("live_q", search.slice(0, 100));
   return params;
 }
 
@@ -230,10 +191,6 @@ export function liveFilterFromParams(params: URLSearchParams): LiveFilter {
     subjectId: read("live_subject_id"),
     refresh: params.get("live_refresh") === "1",
     own: params.get("live_own") === "1",
-    period: (PERIODS as readonly string[]).includes(params.get("live_period") || "")
-      ? ((params.get("live_period") || "") as Period)
-      : "",
-    search: (params.get("live_q") || "").slice(0, 100),
   };
 }
 
@@ -260,7 +217,7 @@ export function liveFilterQuery(filter: LiveFilter): URLSearchParams {
 
 export const isFiltered = (filter: LiveFilter) =>
   Object.entries(filter).some(
-    ([key, value]) => !["refresh", "own", "period", "search"].includes(key) && Boolean(value),
+    ([key, value]) => !["refresh", "own"].includes(key) && Boolean(value),
   );
 
 /** A link into the engine room with a filter, for the contextual entry points (US4). */

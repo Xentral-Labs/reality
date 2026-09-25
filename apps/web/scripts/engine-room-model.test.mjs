@@ -100,8 +100,6 @@ test("a filter survives the URL and becomes the API query", () => {
     kind: "",
     outcome: "",
     own: false,
-    period: "",
-    search: "",
   });
   const query = liveFilterQuery(back);
   assert.equal(query.get("channel"), "mcp");
@@ -126,45 +124,6 @@ test("an entry point links to the Live tab with its filter", () => {
   assert.equal(href.searchParams.get("inspector_view"), "live");
   assert.equal(href.searchParams.get("tenant"), "ten_1");
   assert.equal(href.searchParams.get("live_token"), "mcpt_9");
-});
-
-test("a period is a window ending now; live has none", async () => {
-  const { periodWindow } = await import("../src/unified/engineRoomModel.ts");
-  const now = Date.parse("2026-09-25T10:00:00Z");
-  assert.equal(periodWindow("", now), null);
-  const hour = periodWindow("1h", now);
-  assert.equal(hour.to.toISOString(), "2026-09-25T10:00:00.000Z");
-  assert.equal(hour.from.toISOString(), "2026-09-25T09:00:00.000Z");
-  assert.equal(periodWindow("7d", now).from.toISOString(), "2026-09-18T10:00:00.000Z");
-});
-
-test("the search finds a row by its shown label, technical name or actor", async () => {
-  const { matchesSearch } = await import("../src/unified/engineRoomModel.ts");
-  const row = {
-    label: "List physical shipments",
-    operation: "shipments_list",
-    actor: { kind: "mcp_token", id: "mcp_1", label: "Claude Desktop" },
-  };
-  const german = (text) => (text === "List physical shipments" ? "Sendungen anzeigen" : text);
-  assert.equal(matchesSearch(row, "sendungen", german), true);
-  assert.equal(matchesSearch(row, "shipments_", german), true);
-  assert.equal(matchesSearch(row, "claude", german), true);
-  assert.equal(matchesSearch(row, "", german), true);
-  assert.equal(matchesSearch(row, "rechnung", german), false);
-});
-
-test("period and search travel in the URL but never reach the API query", () => {
-  const filter = { ...liveFilterFromParams(new URLSearchParams()), period: "24h", search: "lager" };
-  const params = liveFilterToParams(filter);
-  assert.equal(params.get("live_period"), "24h");
-  assert.equal(params.get("live_q"), "lager");
-  const back = liveFilterFromParams(params);
-  assert.equal(back.period, "24h");
-  assert.equal(back.search, "lager");
-  const query = liveFilterQuery(back);
-  assert.equal(query.get("live_period"), null);
-  assert.equal(query.get("q"), null);
-  assert.equal(liveFilterFromParams(new URLSearchParams("live_period=forever")).period, "");
 });
 
 const at = (seconds, extra = {}) => ({

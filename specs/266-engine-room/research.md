@@ -100,6 +100,12 @@ The storyline middleware already performs one threadpool write per GET, for stor
 
   This is presentation of telemetry, not a business rule. Pause was dropped, because a view of "now" has nothing to hold. The register layout, aligned with the other Inspector registers, became the history view behind the Period chip, and the entry points about the past lead there. Page title and description moved into the page introduction (the ⓘ popover), where every other page keeps them; before that, the Live tab's popover showed the Timeline text.
 
+- **I12 — One question, one place (owner review, 2026-09-25).** Two similar tables (interactions over a period, business events in Activities) confused the owner, although they count different things. The split is now by time:
+  - **History** is the Activities tab, the business events: what changed, kept for good.
+  - **Live** is the cockpit only: who accesses the model now, one minute, no filter bar and no table.
+
+  A change marker in the ticker bridges the two. The interaction history view, the period and search controls, the pause, and the chat and "who changed this" entry points were removed from the UI. The API keeps its window read.
+
 ## Analysis (2026-09-24)
 
 A consistency pass over `spec.md`, `plan.md`, `data-model.md`, `contracts/` and `tasks.md`, checked against the code on `origin/main`. No CRITICAL finding. Every HIGH finding is resolved in the artifacts.

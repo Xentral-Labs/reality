@@ -1,31 +1,20 @@
-import { Pause, Play, Radio, RefreshCw, SkipBack, SkipForward, X } from "lucide-react";
+import { Radio, X } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { APIError, api, type Interaction, type InteractionEvent } from "../api";
 import { currentLanguage, formatNumber, formatTime, t } from "../localization";
 import { Inspector } from "./Inspector";
-import { PreviewButton, TablePreview } from "./InlinePreview";
-import { RegisterTable } from "./RegisterTable";
-import { filterChips } from "./FilterChip";
-import { RegisterToolbar, RegisterWorkbench } from "./RegisterWorkbench";
 import {
   CHANNELS,
-  KINDS,
-  OUTCOMES,
-  STAGES,
-  emptyLiveFilter,
   COCKPIT_WINDOW_MS,
+  STAGES,
   cockpit,
   emptyStream,
   isFiltered,
   liveFilterFromParams,
   liveFilterQuery,
   liveFilterToParams,
-  matchesSearch,
-  periodWindow,
   receive,
-  setPaused,
   type LiveFilter,
-  type Period,
   type Stage,
   type Stream,
 } from "./engineRoomModel";
@@ -93,39 +82,6 @@ function actorLine(row: Interaction): string {
   return actor.label || t("Unknown person");
 }
 
-function StageMap({ marks }: { marks: Map<Stage, "read" | "written"> }) {
-  return (
-    <ol
-      className="flex flex-wrap items-center gap-1 text-xs"
-      aria-label={t("Model stages")}
-      data-engine-room-map
-    >
-      {STAGES.map((stage, index) => {
-        const mark = marks.get(stage);
-        return (
-          <li key={stage} className="flex items-center gap-1">
-            {index > 0 && index < 7 && (
-              <span aria-hidden className="text-fg-quiet">
-                →
-              </span>
-            )}
-            <span
-              data-stage={stage}
-              data-stage-mark={mark || "none"}
-              className={`rounded-full border px-2 py-0.5 transition-colors motion-reduce:transition-none ${stageTone[mark || "none"]}`}
-            >
-              {t(stageLabels[stage])}
-              {mark && (
-                <span className="sr-only"> {mark === "written" ? t("written") : t("read")}</span>
-              )}
-            </span>
-          </li>
-        );
-      })}
-    </ol>
-  );
-}
-
 function EventsOf({
   tenant,
   row,
@@ -171,26 +127,6 @@ function EventsOf({
         </li>
       ))}
     </ul>
-  );
-}
-
-function StageChips({ row }: { row: Interaction }) {
-  const written = new Set(row.stages.written);
-  // Filled where the call wrote, outlined where it read.
-  const touched = STAGES.filter((stage) => written.has(stage) || row.stages.read.includes(stage));
-  if (!touched.length) return null;
-  return (
-    <span className="flex flex-wrap gap-1" data-interaction-stages>
-      {touched.map((stage) => (
-        <span
-          key={stage}
-          data-stage-touch={written.has(stage) ? "written" : "read"}
-          className={`rounded-full border px-2 py-0.5 text-xs ${stageTone[written.has(stage) ? "written" : "read"]}`}
-        >
-          {t(stageLabels[stage])}
-        </span>
-      ))}
-    </span>
   );
 }
 
@@ -301,6 +237,15 @@ function LiveCockpit({
   const [selected, setSelected] = useState("");
   const chosen = view.ticker.find((row) => row.id === selected);
   const age = (row: Interaction) => Math.max(0, now - Date.parse(row.recorded_at));
+  const openChange = async (row: Interaction) => {
+    try {
+      const { events } = await api.interactionEvents(tenant, row.id);
+      if (events.length === 1) open({ kind: "business_event", id: events[0].id });
+      else setSelected(row.id);
+    } catch {
+      setSelected(row.id);
+    }
+  };
   return (
     <div className="register-table-inset space-y-4 py-4" data-engine-room-cockpit>
       <div
@@ -448,9 +393,10 @@ function LiveCockpit({
                   data-interaction-channel={row.channel}
                   // Older lines fade: the ticker is about now, not about a while ago.
                   style={{ opacity: Math.max(0.35, 1 - age(row) / COCKPIT_WINDOW_MS) }}
+                  className="flex items-center gap-1"
                 >
                   <button
-                    className={`grid w-full grid-cols-[4.5rem_minmax(0,1fr)_auto] items-center gap-2 rounded-md px-2 py-1 text-left text-sm hover:bg-surface-muted ${
+                    className={`grid min-w-0 flex-1 grid-cols-[4.5rem_minmax(0,1fr)_auto] items-center gap-2 rounded-md px-2 py-1 text-left text-sm hover:bg-surface-muted ${
                       selected === row.id ? "bg-surface-muted" : ""
                     }`}
                     aria-expanded={selected === row.id}
@@ -473,6 +419,19 @@ function LiveCockpit({
                       {t(outcomeLabels[row.outcome] || row.outcome)}
                     </span>
                   </button>
+                  {row.events.count > 0 && (
+                    // The bridge to the history: what this access changed, opened where
+                    // the history opens it.
+                    <button
+                      className="shrink-0 rounded border border-accent px-1.5 py-0.5 text-xs text-accent hover:bg-accent-soft"
+                      onClick={() => void openChange(row)}
+                      data-cockpit-change
+                    >
+                      {row.events.count === 1
+                        ? t("1 change")
+                        : t("{count} changes").replace("{count}", formatNumber(row.events.count))}
+                    </button>
+                  )}
                 </li>
               ))}
             </ol>
@@ -498,8 +457,6 @@ function LiveCockpit({
   );
 }
 
-const COLUMNS = 7;
-
 export function EngineRoom({
   selection,
   navigate,
@@ -514,34 +471,23 @@ export function EngineRoom({
   );
   const setFilter = (change: Partial<LiveFilter>) =>
     navigate({ liveFilter: liveFilterToParams({ ...filter, ...change }).toString() });
-  const live = !filter.period;
   const [stream, setStream] = useState<Stream<Interaction>>(emptyStream);
-  const [windowRows, setWindowRows] = useState<Interaction[]>([]);
   const [cursor, setCursor] = useState<number | null>(null);
-  const [truncated, setTruncated] = useState(false);
   const [state, setState] = useState<"loading" | "ready" | "stale" | "forbidden">("loading");
-  const [revision, setRevision] = useState(0);
-  const [draft, setDraft] = useState(filter.search);
-  const [expanded, setExpanded] = useState("");
-  const [step, setStep] = useState(0);
   const [target, setTarget] = useState<{ kind: string; id: string } | null>(null);
   const [clock, setClock] = useState(Date.now());
   const query = liveFilterQuery(filter).toString();
   const cursorRef = useRef<number | null>(null);
   cursorRef.current = cursor;
 
-  useEffect(() => setDraft(filter.search), [filter.search]);
-  // A new filter or period starts a new read.
+  // A new filter starts a new stream.
   useEffect(() => {
     setStream(emptyStream());
-    setWindowRows([]);
     setCursor(null);
-    setStep(0);
     setState("loading");
-  }, [tenant, query, filter.period]);
+  }, [tenant, query]);
 
   useEffect(() => {
-    if (!live) return;
     let disposed = false;
     let busy = false;
     const poll = async () => {
@@ -557,7 +503,6 @@ export function EngineRoom({
         if (disposed) return;
         setStream((current) => receive(current, page.interactions));
         if (page.cursor !== null) setCursor((value) => Math.max(value ?? 0, page.cursor!));
-        if (cursorRef.current === null) setTruncated(page.truncated);
         setState("ready");
       } catch (error) {
         if (disposed) return;
@@ -576,64 +521,22 @@ export function EngineRoom({
       window.clearInterval(timer);
       document.removeEventListener("visibilitychange", visible);
     };
-  }, [tenant, query, live]);
-
-  // A past period is read once, and again on Refresh.
-  useEffect(() => {
-    const range = periodWindow(filter.period);
-    if (!range) return;
-    let disposed = false;
-    const params = new URLSearchParams(query);
-    params.set("language", currentLanguage());
-    params.set("from", range.from.toISOString());
-    params.set("to", range.to.toISOString());
-    params.set("limit", "500");
-    api
-      .interactions(tenant, params)
-      .then((page) => {
-        if (disposed) return;
-        setWindowRows(page.interactions);
-        setTruncated(page.truncated);
-        setState("ready");
-      })
-      .catch((error) => {
-        if (!disposed)
-          setState(error instanceof APIError && error.status === 404 ? "forbidden" : "stale");
-      });
-    return () => {
-      disposed = true;
-    };
-  }, [tenant, query, filter.period, revision]);
+  }, [tenant, query]);
 
   useEffect(() => {
     const timer = window.setInterval(() => setClock(Date.now()), 1000);
     return () => window.clearInterval(timer);
   }, []);
 
-  // Newest first, as every register reads; the search narrows what is shown.
-  const rows = useMemo(
-    () =>
-      [...(live ? stream.visible : windowRows)]
-        .reverse()
-        .filter((row) => matchesSearch(row, filter.search, t)),
-    [live, stream.visible, windowRows, filter.search],
-  );
-  // In a past period, the steps run oldest to newest.
-  const steps = useMemo(() => [...rows].reverse(), [rows]);
-  const current = !live ? steps[Math.min(step, steps.length - 1)] : undefined;
   const marks = useMemo(() => {
     const result = new Map<Stage, "read" | "written">();
-    const touching = live
-      ? rows.filter((row) => clock - Date.parse(row.recorded_at) < MARK_MS)
-      : current
-        ? [current]
-        : [];
-    for (const row of touching) {
+    for (const row of stream.visible) {
+      if (clock - Date.parse(row.recorded_at) >= MARK_MS) continue;
       for (const stage of row.stages.read) if (!result.has(stage)) result.set(stage, "read");
       for (const stage of row.stages.written) result.set(stage, "written");
     }
     return result;
-  }, [live, rows, current, clock]);
+  }, [stream.visible, clock]);
   const openProposal = (id: string) =>
     navigate({ route: "decisions", decisionsView: "history", proposal: id });
 
@@ -644,314 +547,59 @@ export function EngineRoom({
       </div>
     );
 
-  const chips: { key: keyof LiveFilter; label: string }[] = [
-    { key: "actor", label: t("Person") },
-    { key: "mcpToken", label: t("MCP client") },
-    { key: "correlation", label: t("One action") },
-    { key: "subjectId", label: t("Record") },
+  // What narrows the cockpit arrives from a meter click or an entry point, and says so.
+  const chips: { key: keyof LiveFilter; label: string; value: string }[] = [
+    { key: "channel", label: t("Channel"), value: channelLabels[filter.channel] || filter.channel },
+    { key: "kind", label: t("Kind"), value: filter.kind },
+    { key: "outcome", label: t("Outcome"), value: filter.outcome },
+    { key: "actor", label: t("Person"), value: filter.actor },
+    { key: "mcpToken", label: t("MCP client"), value: filter.mcpToken },
+    { key: "correlation", label: t("One action"), value: filter.correlation },
   ];
-  const submitSearch = () => setFilter({ search: draft.trim() });
-  const footer = (
-    <p className="text-xs text-fg-muted" data-engine-room-footer>
-      {live
-        ? stream.paused
-          ? t("Paused · {count} new").replace("{count}", formatNumber(stream.pending))
-          : state === "stale"
-            ? t("The live monitor could not be refreshed. It keeps trying.")
-            : t("Live · refreshed every second")
-        : t("Interactions are kept for seven days.")}
-      {truncated && <> · {t("Showing the newest interactions only.")}</>}
-    </p>
-  );
+  const active = chips.filter(({ key }) => filter[key]);
 
-  const filterControls = (
-    <>
-      <select
-        aria-label={t("Period")}
-        value={filter.period}
-        onChange={(event) => setFilter({ period: event.target.value as Period })}
-        data-engine-room-period
-      >
-        <option value="">{t("Live")}</option>
-        <option value="1h">{t("Last hour")}</option>
-        <option value="24h">{t("Last 24 hours")}</option>
-        <option value="7d">{t("Last 7 days")}</option>
-      </select>
-      {(
-        [
-          ["channel", t("Channel"), CHANNELS, channelLabels],
-          ["kind", t("Kind"), KINDS, kindLabels],
-          ["outcome", t("Outcome"), OUTCOMES, outcomeLabels],
-        ] as const
-      ).map(([key, label, values, labels]) => (
-        <select
-          key={key}
-          aria-label={label}
-          value={filter[key]}
-          onChange={(event) => setFilter({ [key]: event.target.value })}
-        >
-          <option value="">{t("All")}</option>
-          {values.map((value) => (
-            <option key={value} value={value}>
-              {key === "channel"
-                ? channelLabels[value]
-                : t((labels as Record<string, string>)[value] || value)}
-            </option>
-          ))}
-        </select>
-      ))}
-      <label className="flex items-center gap-2 text-sm">
-        <input
-          type="checkbox"
-          checked={filter.refresh}
-          onChange={(event) => setFilter({ refresh: event.target.checked })}
-        />
-        {t("Show background refresh")}
-      </label>
-      <label className="flex items-center gap-2 text-sm">
-        <input
-          type="checkbox"
-          checked={filter.own}
-          onChange={(event) => setFilter({ own: event.target.checked })}
-          data-engine-room-own
-        />
-        {t("Show my own access")}
-      </label>
-      {!live && (
-        <>
-          <button className="br-btn" onClick={() => setRevision((value) => value + 1)}>
-            <RefreshCw size={15} />
-            {t("Refresh")}
-          </button>
-          <span className="inline-flex items-center gap-1">
-            <button
-              className="br-btn"
-              aria-label={t("Previous step")}
-              disabled={step <= 0}
-              onClick={() => setStep((value) => Math.max(0, value - 1))}
-            >
-              <SkipBack size={15} />
-            </button>
-            <span className="min-w-20 text-center text-xs text-fg-muted" data-engine-room-step>
-              {steps.length
-                ? t("Step {step} of {total}")
-                    .replace("{step}", formatNumber(Math.min(step, steps.length - 1) + 1))
-                    .replace("{total}", formatNumber(steps.length))
-                : "—"}
-            </span>
-            <button
-              className="br-btn"
-              aria-label={t("Next step")}
-              disabled={step >= steps.length - 1}
-              onClick={() => setStep((value) => Math.min(steps.length - 1, value + 1))}
-            >
-              <SkipForward size={15} />
-            </button>
-          </span>
-        </>
-      )}
-      {chips
-        .filter(({ key }) => filter[key])
-        .map(({ key, label }) => (
-          <span
-            key={key}
-            className="inline-flex items-center gap-1 rounded-full bg-accent-soft px-2.5 py-1 text-xs"
-            data-engine-room-chip={key}
-          >
-            {label}: <span data-original-content="">{String(filter[key])}</span>
-            <button
-              aria-label={t("Remove filter")}
-              onClick={() =>
-                setFilter(key === "subjectId" ? { subjectId: "", subjectType: "" } : { [key]: "" })
-              }
-            >
-              <X size={12} />
-            </button>
-          </span>
-        ))}
-      {isFiltered(filter) && (
-        <button className="br-btn" onClick={() => navigate({ liveFilter: "" })}>
-          {t("Clear filters")}
-        </button>
-      )}
-    </>
-  );
   return (
     <>
-      <RegisterWorkbench>
-        <section className="register-surface min-w-0 overflow-hidden" data-engine-room>
-          {live ? (
-            <>
-              <div className="register-toolbar-block">
-                <div className="register-filter-row">{filterChips(filterControls)}</div>
-              </div>
-              <LiveCockpit
-                tenant={tenant}
-                rows={stream.visible}
-                now={clock}
-                marks={marks}
-                open={setTarget}
-                openProposal={openProposal}
-                filterBy={setFilter}
-              />
-            </>
-          ) : (
-            <>
-              <RegisterToolbar
-                count={rows.length}
-                search={
-                  <input
-                    aria-label={t("Search access")}
-                    placeholder={t("Tool, route or client")}
-                    className="br-control"
-                    value={draft}
-                    onChange={(event) => setDraft(event.target.value)}
-                    onKeyDown={(event) => event.key === "Enter" && submitSearch()}
-                  />
-                }
-                submit={
-                  <button className="br-btn" onClick={submitSearch}>
-                    {t("Search")}
-                  </button>
-                }
-                filters={filterControls}
-              />
-              <div className="register-table-inset pt-3">
-                <StageMap marks={marks} />
-              </div>
-              <div className="register-table-inset py-4" data-engine-room-list>
-                {state === "loading" ? (
-                  <p role="status" className="py-8 text-sm text-fg-muted">
-                    {t("Listening…")}
-                  </p>
-                ) : (
-                  <RegisterTable
-                    cursorView={{ id: "inspector:live", widths: [90, 260, 100, 230, 190, 80, 50] }}
-                    footer={footer}
-                    empty={{
-                      title: live
-                        ? t("Nothing has touched the model yet.")
-                        : t("No interactions in this window."),
-                      hint: live
-                        ? t("Open a page, ask the chat or call a tool, and it appears here.")
-                        : undefined,
-                    }}
-                  >
-                    <thead>
-                      <tr>
-                        <th>{t("Time")}</th>
-                        <th>{t("Request")}</th>
-                        <th>{t("Outcome")}</th>
-                        <th>{t("Who")}</th>
-                        <th>{t("Model")}</th>
-                        <th>{t("Duration")}</th>
-                        <th>{t("Actions")}</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {rows.flatMap((row) => {
-                        const open = expanded === row.id;
-                        // A flat list with its own keys: the register flattens fragments,
-                        // and their children would share the keys ".0" and ".1".
-                        return [
-                          <tr
-                            key={row.id}
-                            data-interaction={row.id}
-                            data-interaction-channel={row.channel}
-                            aria-current={current?.id === row.id || undefined}
-                          >
-                            <td className="font-mono text-xs">
-                              {formatTime(row.recorded_at, true)}
-                            </td>
-                            <td>
-                              <span className="block truncate" data-interaction-label>
-                                {row.label ? t(row.label) : row.operation}
-                              </span>
-                              {row.label && (
-                                <span
-                                  className="block truncate font-mono text-xs text-fg-muted"
-                                  data-original-content=""
-                                >
-                                  {row.operation}
-                                </span>
-                              )}
-                            </td>
-                            <td>
-                              <span
-                                className={`inline-block rounded px-1.5 py-0.5 text-xs ${outcomeTone[row.outcome] || ""}`}
-                                data-interaction-outcome
-                              >
-                                {t(outcomeLabels[row.outcome] || row.outcome)}
-                              </span>
-                            </td>
-                            <td>
-                              <span className="flex min-w-0 items-center gap-2">
-                                <button
-                                  className="shrink-0 rounded bg-surface-muted px-1.5 py-0.5 text-xs font-medium hover:bg-surface-sunken"
-                                  onClick={() => setFilter({ channel: row.channel })}
-                                  title={t("Show only this channel")}
-                                >
-                                  {channelLabels[row.channel] || row.channel}
-                                </button>
-                                <button
-                                  className="min-w-0 truncate text-left hover:underline"
-                                  title={actorLine(row)}
-                                  onClick={() =>
-                                    row.actor?.kind === "mcp_token"
-                                      ? setFilter({ mcpToken: row.actor.id })
-                                      : row.actor?.kind === "user"
-                                        ? setFilter({ actor: row.actor.id })
-                                        : undefined
-                                  }
-                                >
-                                  {actorLine(row)}
-                                </button>
-                              </span>
-                            </td>
-                            <td>
-                              <StageChips row={row} />
-                            </td>
-                            <td className="tabular-nums">{formatNumber(row.duration_ms)} ms</td>
-                            <td>
-                              <span data-engine-room-events-toggle>
-                                <PreviewButton
-                                  open={open}
-                                  controls={`interaction-preview-${row.id}`}
-                                  label={row.label ? t(row.label) : row.operation}
-                                  toggle={() => {
-                                    setExpanded(open ? "" : row.id);
-                                    if (!live)
-                                      setStep(steps.findIndex((item) => item.id === row.id));
-                                  }}
-                                />
-                              </span>
-                            </td>
-                          </tr>,
-                          <TablePreview
-                            key={`preview-${row.id}`}
-                            id={`interaction-preview-${row.id}`}
-                            open={open}
-                            columns={COLUMNS}
-                          >
-                            <InteractionDetails
-                              tenant={tenant}
-                              row={row}
-                              open={setTarget}
-                              openProposal={openProposal}
-                              filterBy={setFilter}
-                            />
-                          </TablePreview>,
-                        ];
-                      })}
-                    </tbody>
-                  </RegisterTable>
-                )}
-              </div>
-            </>
-          )}
-        </section>
-      </RegisterWorkbench>
-      {/* Outside the workbench: its child-position rules would restyle the dialog. */}
+      <section className="min-w-0" data-engine-room>
+        {active.length > 0 && (
+          <div className="register-table-inset flex flex-wrap items-center gap-2 pt-3">
+            {active.map(({ key, label, value }) => (
+              <span
+                key={key}
+                className="inline-flex items-center gap-1 rounded-full bg-accent-soft px-2.5 py-1 text-xs"
+                data-engine-room-chip={key}
+              >
+                {label}: <span data-original-content="">{value}</span>
+                <button aria-label={t("Remove filter")} onClick={() => setFilter({ [key]: "" })}>
+                  <X size={12} />
+                </button>
+              </span>
+            ))}
+            {isFiltered(filter) && (
+              <button
+                className="text-xs text-accent hover:underline"
+                onClick={() => navigate({ liveFilter: "" })}
+              >
+                {t("Clear filters")}
+              </button>
+            )}
+          </div>
+        )}
+        {state === "stale" && (
+          <p role="status" className="register-table-inset pt-3 text-xs text-caution-text">
+            {t("The live monitor could not be refreshed. It keeps trying.")}
+          </p>
+        )}
+        <LiveCockpit
+          tenant={tenant}
+          rows={stream.visible}
+          now={clock}
+          marks={marks}
+          open={setTarget}
+          openProposal={openProposal}
+          filterBy={setFilter}
+        />
+      </section>
       {target && <Inspector tenant={tenant} target={target} close={() => setTarget(null)} />}
     </>
   );

@@ -101,20 +101,22 @@ check(
   "the owner's own page loads are hidden by default",
   (await page.locator('[data-interaction-channel="web"]', { hasText: "Olga Owner" }).count()) === 0,
 );
-await page.locator("[data-engine-room-own]").check();
-await page
-  .locator("[data-interaction]", { hasText: "Olga Owner" })
-  .first()
-  .waitFor({ timeout: 5000 });
-check("showing own access brings them back", page.url().includes("live_own=1"));
-await page.locator("[data-engine-room-own]").uncheck();
-await page.waitForTimeout(1500);
 
-// Events of the write open.
+// The bridge: an access that changed something opens that change in the Inspector.
+await page
+  .locator("[data-interaction]", { hasText: "POST /items" })
+  .first()
+  .locator("[data-cockpit-change]")
+  .click();
+await page.waitForSelector("dialog[open]", { timeout: 5000 });
+check("a change opens in the Inspector", (await page.locator("dialog[open]").count()) === 1);
+await page.getByRole("button", { name: "Close" }).click();
+// The details of a write list its events.
 await page
   .locator("[data-interaction]", { hasText: "POST /items" })
   .first()
   .locator("button")
+  .first()
   .click();
 await page.waitForSelector("[data-engine-room-events] li", { timeout: 5000 });
 check("linked events list", (await page.locator("[data-engine-room-events] li").count()) >= 1);
@@ -137,18 +139,11 @@ await page.waitForSelector('[data-interaction-channel="mcp"]', { timeout: 8000 }
 check("filter survives reload", page.url().includes("live_channel=mcp"));
 await page.getByText("Clear filters").click();
 
-// Replay steps through a window.
-await page.locator("[data-engine-room-period]").selectOption("1h");
-await page.waitForSelector("[data-engine-room-step]");
-await page.waitForTimeout(800);
-const stepText = await page.locator("[data-engine-room-step]").innerText();
-check("replay loads the window", /of/.test(stepText), stepText);
-await page.getByRole("button", { name: "Next step" }).click();
+// The live monitor shows no history: there is no period or step control.
 check(
-  "replay marks the current row",
-  (await page.locator("[data-interaction][aria-current]").count()) === 1,
+  "no history controls",
+  (await page.locator("[data-engine-room-period], [data-engine-room-step]").count()) === 0,
 );
-await page.screenshot({ path: `${SHOTS}/04-replay.png` });
 
 // Header pulse exists for owners and opens the Live tab.
 check(

@@ -57,16 +57,18 @@ still arrives. The client deduplicates by id.
 
 ## The Live tab is a cockpit
 
-The Live tab shows the last minute only:
+Activities has two tabs, named by time:
+- **History**: what changed, the business events.
+- **Live**: who is accessing the model now.
+
+Live shows the last minute only:
 - a status: active with a count, or all quiet
-- a meter per channel with its rate, a trace of twelve five-second buckets and its errors
+- a meter per channel with its rate, a trace of twelve five-second buckets and its errors; choosing a meter narrows by channel
 - the model stages with their reads and writes
 - who is active now
-- a ticker of that minute
+- a ticker of that minute, where an access that changed something carries a change marker that opens the change in the Inspector
 
-Nothing older appears there, so a quiet company looks quiet. The derivation is pure presentation (`cockpit()` in `apps/web/src/unified/engineRoomModel.ts`).
-
-The history view is the register behind the Period chip (last hour, 24 hours, 7 days). It has search, filters, the model map and step controls. The entry points that ask about the past open it.
+Nothing older appears there, and there is no history of accesses on screen. The derivation is pure presentation (`cockpit()` in `apps/web/src/unified/engineRoomModel.ts`). Narrowing comes from a meter click or an entry point (a client's calls from its MCP token) and shows as removable chips.
 
 ## Retention and operation
 

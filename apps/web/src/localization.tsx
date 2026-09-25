@@ -19548,3 +19548,16 @@ Object.assign(dictionaries.es, {
   "Nothing has touched the model in the last minute.":
     "Nada ha tocado el modelo en el último minuto.",
 });
+// The live monitor: what an access changed (spec 266).
+Object.assign(dictionaries.de, {
+  "1 change": "1 Änderung",
+  "{count} changes": "{count} Änderungen",
+});
+Object.assign(dictionaries.nl, {
+  "1 change": "1 wijziging",
+  "{count} changes": "{count} wijzigingen",
+});
+Object.assign(dictionaries.es, {
+  "1 change": "1 cambio",
+  "{count} changes": "{count} cambios",
+});

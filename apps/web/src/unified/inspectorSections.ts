@@ -11,7 +11,7 @@ const labels: Record<string, string> = {
   rules: "Fact rules",
   exceptions: "Exception rules",
   views: "Calculated views",
-  history: "Activities",
+  history: "History",
   live: "Live",
   commands: "Actions",
 };
