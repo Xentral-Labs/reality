@@ -123,6 +123,22 @@ The web application combines two modes without creating two products:
 
 The web UI must never create its own business logic. CLI, chat, demo and web all call the same application services/tools.
 
+### Compact chat answer basis — Spec 272
+
+Each new assistant reply can expose a collapsed **Basis for this answer** below its
+text. It is built from the exact successful canonical reads used for that reply,
+including ordinary companies without a Storyline run. The primary view contains at
+most four business-facing rows: recognizable records and returned values first, then
+any explicitly labeled read-time derivation. Supported rows link by opaque identity to
+the existing tenant-scoped operational detail or Inspector, which provides the onward
+Reality → Evidence → Source path. Raw JSON, internal tool names and latency do not
+appear in this compact view. Eligible Storyline call and proposal traces remain
+available as secondary technical activity and are not presented as the cause of later
+changes. Historical, no-read, pruned or failed-capture replies show no empty disclosure;
+the reply itself remains readable and is never retried merely because optional support
+could not be recorded. The stored bounded support snapshot is explanatory metadata,
+not a Fact, source payload or operational authority.
+
 Sales and Purchasing distinguish Delivery Commitments from physical Shipments. Commitments are
 promises; Shipments are real consignments with Package tracking observations and linked Movement
 contents. Sales defaults to outbound customer shipments and Purchasing to inbound supplier ones.

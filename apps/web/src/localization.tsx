@@ -19616,3 +19616,41 @@ Object.assign(dictionaries.es, {
   Changes: "Cambios",
   "Refused or failed": "Rechazados o fallidos",
 });
+
+// Compact, business-facing support for a chat answer (spec 272).
+Object.assign(dictionaries.de, {
+  "Basis for this answer": "Grundlage dieser Antwort",
+  "Technical activity": "Technische Aktivität",
+  "Customer order": "Kundenauftrag",
+  Requested: "Angefordert",
+  Reserved: "Reserviert",
+  Derived: "Daraus abgeleitet",
+  blocked: "blockiert",
+  ready: "bereit",
+  "Additional supporting records are not shown in this compact view.":
+    "Weitere zugrunde liegende Datensätze werden in dieser kompakten Ansicht nicht angezeigt.",
+});
+Object.assign(dictionaries.nl, {
+  "Basis for this answer": "Basis voor dit antwoord",
+  "Technical activity": "Technische activiteit",
+  "Customer order": "Klantorder",
+  Requested: "Gevraagd",
+  Reserved: "Gereserveerd",
+  Derived: "Daaruit afgeleid",
+  blocked: "geblokkeerd",
+  ready: "gereed",
+  "Additional supporting records are not shown in this compact view.":
+    "Aanvullende onderliggende records worden niet getoond in deze compacte weergave.",
+});
+Object.assign(dictionaries.es, {
+  "Basis for this answer": "Base de esta respuesta",
+  "Technical activity": "Actividad técnica",
+  "Customer order": "Pedido de cliente",
+  Requested: "Solicitado",
+  Reserved: "Reservado",
+  Derived: "Derivado",
+  blocked: "bloqueado",
+  ready: "listo",
+  "Additional supporting records are not shown in this compact view.":
+    "Los registros de respaldo adicionales no se muestran en esta vista compacta.",
+});
