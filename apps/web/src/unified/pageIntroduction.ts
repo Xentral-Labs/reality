@@ -84,6 +84,11 @@ const introductions = {
     title: "Reality Inspector",
     description: "See what was recorded across your company, newest first.",
   },
+  live: {
+    title: "Reality Inspector",
+    description:
+      "Every access to this company's model, as it happens: who, through which channel, what was asked, and what it changed.",
+  },
   commands: {
     title: "Reality Inspector",
     description: "Find what Reality can retrieve, explain or change, with its Web and MCP tools.",
@@ -173,9 +178,16 @@ export function pageIntroduction(
       key =
         view === "facts" || view === "records"
           ? "all-records"
-          : ["overview", "graph", "views", "rules", "exceptions", "history", "commands"].includes(
-                view,
-              )
+          : [
+                "overview",
+                "graph",
+                "views",
+                "rules",
+                "exceptions",
+                "history",
+                "live",
+                "commands",
+              ].includes(view)
             ? (view as keyof typeof introductions)
             : "overview";
       break;

@@ -67,7 +67,7 @@ As an owner I open Inspector → Activities → Live and see every interaction w
 3. **Given** a person opens a register page in the web, **When** its requests complete, **Then** they appear as channel Web under that person, named by their operation, not by raw URL.
 4. **Given** a tool call is refused (missing scope, cross-tenant, validation), **When** it happens, **Then** it appears as refused with the error code, without the refused values.
 5. **Given** the connection drops, **When** it resumes, **Then** interactions missed in between are filled in, in order, without duplicates.
-6. **Given** the viewer pauses the stream, **When** interactions continue, **Then** the list stays still, a counter shows how many arrived, and resume inserts them.
+6. **Given** nothing has touched the model in the last minute, **When** the owner opens the Live tab, **Then** it says all is quiet and shows no earlier interactions, however recent the last one was.
 
 ### User Story 2 - Follow a cause to its effect (Priority: P1)
 
@@ -105,12 +105,14 @@ As an owner I reach the Live tab from where I am, already filtered.
 **Acceptance Scenarios**:
 
 1. **Given** Settings → MCP access, **When** I choose "Calls of this client" on a token, **Then** the Live tab opens filtered to that token.
-2. **Given** a chat answer in the dock, **When** I choose "Show in engine room", **Then** the Live tab opens filtered to that chat turn.
-3. **Given** a record in the Inspector, **When** I choose "Who changed this", **Then** the Live tab opens filtered to interactions whose business events concern that record. Reads of a single record are not attributed, because that would require recording argument values (FR-003).
+2. *(Withdrawn 2026-09-25: a chat turn is over within the minute the Live tab shows; its changes are in the History tab.)*
+3. *(Withdrawn 2026-09-25: who changed a record is answered in the Inspector by the decisions behind it, spec 263.)*
 4. **Given** the shell header, **When** interactions occur, **Then** a small activity indicator pulses, and choosing it opens the Live tab; Home and the command palette offer the same entry.
 5. **Given** a filter in the URL, **When** the page is reloaded or the link shared with another owner of the same company, **Then** the same filter applies.
 
-### User Story 5 - Replay a window (Priority: P3)
+### User Story 5 - Replay a window (Priority: P3) — withdrawn 2026-09-25
+
+*The owner reviewed the live monitor and needs "now" only. Looking back is the History tab (business events). The interactions API still accepts a window (`from`/`to`), but no screen uses it.*
 
 As an owner I move back on a time axis and play a past window, for example one agent run, step by step.
 
@@ -140,17 +142,18 @@ As an owner I move back on a time axis and play a past window, for example one a
 - **FR-003**: Interactions MUST NOT contain argument values, result values, payloads, tokens, secrets or free text. They hold at most a bounded summary: argument names, a result count, and arguments whose value is one of the tool's declared enum values (for example `family: party`). A closed-list choice is vocabulary, not content. Free text, undeclared keys and server-filled defaults never qualify.
 - **FR-004**: Interactions that share a cause MUST share a correlation: the web client sends one per user action, a chat turn inherits the correlation of the request that carried it, and each MCP call and job run carries its own. An interaction MUST link to exactly the business events it caused and that were committed; events of a rolled-back transaction are not linked.
 - **FR-005**: The Live tab MUST show new interactions of the company within 2 seconds of completion, in recorded order, and resume without gaps or duplicates after a disconnect.
-- **FR-006**: The Live tab MUST offer filters by channel, actor, kind, outcome and correlation, and a subject filter; filters are part of the URL. The viewer's own interactions MUST be hidden by default and shown on request, and the header indicator MUST NOT react to them.
+- **FR-006**: The Live tab MUST narrow by channel when a channel meter is chosen, and by client, person or action when an entry point asks for it; every active narrowing shows as a removable chip, and it is part of the URL. The viewer's own interactions and timer-driven refresh MUST be left out, and the header indicator MUST NOT react to the viewer's own interactions.
 - **FR-007**: The Live tab MUST link each interaction to the Reality it produced (business events, the records they concern, and the proposal) through the existing Inspector and Decisions page, and state when an interaction produced nothing. A chat turn is reached through its correlation, which groups the carrying request and its tool calls.
 - **FR-008**: The model map MUST mark only stages the interaction is known to have read or written, distinguish read from write, and respect reduced-motion preferences. A declared choice that names a stage (such as `family: commitment`) is known.
-- **FR-009**: The system MUST offer the entry points of US4: header indicator, Home, command palette, MCP token, chat turn and Inspector record.
+- **FR-009**: The system MUST offer the entry points of US4: header indicator, Home, command palette and MCP token (the client's calls, now).
 - **FR-010**: The Live tab's own requests and routine background refresh MUST be excluded from the default view.
 - **FR-011**: Interactions MUST be kept for 7 days. Reads never return older rows, and the work that records interactions removes its company's expired rows in bounded batches (the spec 181 FR-005 rule: the work that makes the history tidies it), so a company cannot accumulate rows without also forgetting old ones.
 - **FR-012**: Recording MUST NOT fail the observed interaction; a recording failure is counted in metrics and the interaction proceeds.
 - **FR-013**: The Live tab and its data MUST be available only to active owners of the company; members and other companies receive not found.
-- **FR-014**: The Live tab MUST let the viewer pause and resume the stream without losing interactions.
+- **FR-014**: The Live tab MUST be a cockpit of the last minute only: a status (active with a count, or all quiet), a meter per channel with its rate, a five-second trace and its errors, the model stages with their reads and writes, who is active now, and the interactions of that minute newest first. Nothing older than a minute appears there; history is a separate, explicit view (FR-015).
+- **FR-017**: The Live tab MUST show the trend behind the minute as four curves over a rolling window of 5, 15 or 60 minutes: accesses per minute stacked by channel, response time (median and 95th percentile), refused or failed per minute, and reads against changes per minute. Each curve has one axis, a legend with values, a shared crosshair on hover and a table for screen readers. The counts are aggregated at read time per time step (10 s, or 60 s for an hour), quiet steps are zero rather than missing, and the viewer's own interactions and timer-driven refresh are left out. A channel keeps one colour everywhere on the page.
 - **FR-016**: A tool call MUST show a reader's label (the catalog's label in the viewer's language where one exists, else the tool's own label) next to its technical name. A read that changed nothing shows nothing in the reality lane.
-- **FR-015**: Replay MUST show interactions of a selected past window within retention in recorded order with step controls.
+- **FR-015**: *(Withdrawn 2026-09-25.)* The Activities section names its tabs by time: **History** (what changed, the business events) and **Live** (who is accessing the model now). An access in the Live ticker that changed something MUST carry a change marker that opens that change in the Inspector.
 
 ### Domain and Traceability Requirements
 
@@ -205,8 +208,9 @@ As an owner I move back on a time axis and play a past window, for example one a
 | FR-011 | US5 2 | job test |
 | FR-012 | Edge: recording failure | service test with failing recorder |
 | FR-013 | — | role test: member and foreign owner get not found |
-| FR-014 | US1 6 | browser test |
-| FR-015 | US5 1 | browser test |
+| FR-014 | US1 6; owner review 2026-09-25 | `engine-room-model.test.mjs` cockpit derivation; live browser check (status, channel meters, quiet) |
+| FR-015 | Owner review 2026-09-25 | live browser check (change opens in the Inspector; no history controls); `inspector-navigation.test.mjs` (tab names) |
+| FR-017 | Owner request 2026-09-25 | `test_engine_room_reads.py::test_series_*`, owner-only route test; live browser check (four charts, crosshair) |
 | FR-016 | Owner review 2026-09-24 | reads test for labels; live browser check |
 | DR-001 | — | architecture test: no business import of interactions |
 | DR-002 | US2 1 | business story |

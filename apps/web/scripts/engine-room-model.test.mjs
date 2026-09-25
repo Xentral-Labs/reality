@@ -94,7 +94,13 @@ test("a filter survives the URL and becomes the API query", () => {
   assert.equal(params.get("live_channel"), "mcp");
   assert.equal(params.get("live_correlation"), null);
   const back = liveFilterFromParams(params);
-  assert.deepEqual(back, { ...filter, actor: "", kind: "", outcome: "", own: false });
+  assert.deepEqual(back, {
+    ...filter,
+    actor: "",
+    kind: "",
+    outcome: "",
+    own: false,
+  });
   const query = liveFilterQuery(back);
   assert.equal(query.get("channel"), "mcp");
   assert.equal(query.get("mcp_token_id"), "mcpt_1");
@@ -118,4 +124,71 @@ test("an entry point links to the Live tab with its filter", () => {
   assert.equal(href.searchParams.get("inspector_view"), "live");
   assert.equal(href.searchParams.get("tenant"), "ten_1");
   assert.equal(href.searchParams.get("live_token"), "mcpt_9");
+});
+
+const at = (seconds, extra = {}) => ({
+  id: `int_${seconds}_${extra.channel || "web"}_${extra.op || ""}`,
+  cursor: 1000 + seconds,
+  recorded_at: new Date(Date.parse("2026-09-25T10:00:00Z") + seconds * 1000).toISOString(),
+  channel: "web",
+  outcome: "ok",
+  operation: extra.op || "GET /items",
+  actor: { kind: "user", id: "usr_1", label: "Anna" },
+  stages: { read: [], written: [] },
+  ...extra,
+});
+const NOW = Date.parse("2026-09-25T10:01:00Z");
+
+test("the cockpit only counts what happened in the last minute", async () => {
+  const { cockpit } = await import("../src/unified/engineRoomModel.ts");
+  // 65 s and a day before "now" are outside the minute; 30 s and 1 s before are inside.
+  const rows = [at(-86_400), at(-5), at(30), at(59)];
+  const view = cockpit(rows, NOW);
+  assert.equal(view.total, 2);
+  assert.equal(view.quiet, false);
+  // Yesterday's row is gone; nothing old keeps a quiet company busy.
+  assert.equal(cockpit([at(-86_400)], NOW).quiet, true);
+  assert.equal(cockpit([], NOW).total, 0);
+});
+
+test("channels get a rate, a 12-bucket trace of five seconds each, and errors", async () => {
+  const { cockpit } = await import("../src/unified/engineRoomModel.ts");
+  const rows = [
+    at(1, { channel: "mcp" }),
+    at(2, { channel: "mcp", outcome: "failed" }),
+    at(58, { channel: "mcp" }),
+    at(58, { channel: "worker" }),
+  ];
+  const view = cockpit(rows, NOW);
+  const mcp = view.channels.find((c) => c.channel === "mcp");
+  assert.equal(mcp.count, 3);
+  assert.equal(mcp.errors, 1);
+  assert.equal(mcp.trace.length, 12);
+  assert.equal(mcp.trace[0], 2); // seconds 0-5 of the minute
+  assert.equal(mcp.trace[11], 1); // the newest five seconds
+  assert.deepEqual(
+    view.channels.map((c) => c.channel),
+    ["web", "mcp", "chat", "cli", "worker"],
+  );
+});
+
+test("stages count reads and writes; actors are the ones active now, busiest first", async () => {
+  const { cockpit } = await import("../src/unified/engineRoomModel.ts");
+  const token = { kind: "mcp_token", id: "mcp_1", label: "Claude Desktop" };
+  const rows = [
+    at(10, { actor: token, op: "inventory_read", stages: { read: ["movement"], written: [] } }),
+    at(20, {
+      actor: token,
+      op: "fulfillment_queue",
+      stages: { read: ["commitment"], written: [] },
+    }),
+    at(30, { stages: { read: [], written: ["master_data"] } }),
+  ];
+  const view = cockpit(rows, NOW);
+  assert.deepEqual(view.stages.movement, { read: 1, written: 0 });
+  assert.deepEqual(view.stages.master_data, { read: 0, written: 1 });
+  assert.equal(view.actors[0].label, "Claude Desktop");
+  assert.equal(view.actors[0].count, 2);
+  assert.equal(view.actors[0].last, "fulfillment_queue");
+  assert.equal(view.ticker[0].operation, "GET /items"); // newest first
 });

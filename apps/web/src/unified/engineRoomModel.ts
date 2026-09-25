@@ -217,7 +217,7 @@ export function liveFilterQuery(filter: LiveFilter): URLSearchParams {
 
 export const isFiltered = (filter: LiveFilter) =>
   Object.entries(filter).some(
-    ([key, value]) => key !== "refresh" && key !== "own" && Boolean(value),
+    ([key, value]) => !["refresh", "own"].includes(key) && Boolean(value),
   );
 
 /** A link into the engine room with a filter, for the contextual entry points (US4). */
@@ -226,4 +226,89 @@ export function engineRoomHref(tenant: string, filter: Partial<LiveFilter> = {})
   params.set("tenant", tenant);
   params.set("inspector_view", "live");
   return `/app/inspector?${params}`;
+}
+
+/** The cockpit looks at one minute: what is happening now, never what happened. */
+export const COCKPIT_WINDOW_MS = 60_000;
+const BUCKETS = 12;
+
+export type CockpitChannel = {
+  channel: Channel;
+  count: number;
+  errors: number;
+  /** Twelve five-second buckets, oldest first. */
+  trace: number[];
+};
+export type CockpitActor = {
+  key: string;
+  kind: InteractionActor["kind"] | "none";
+  label: string | null;
+  channel: Channel;
+  count: number;
+  last: string;
+  lastLabel: string | null;
+};
+export type Cockpit = {
+  total: number;
+  errors: number;
+  quiet: boolean;
+  channels: CockpitChannel[];
+  stages: Record<Stage, { read: number; written: number }>;
+  actors: CockpitActor[];
+  /** The last minute's interactions, newest first. */
+  ticker: Interaction[];
+};
+
+/** Everything the cockpit shows, from the interactions of the last minute only. */
+export function cockpit(rows: Interaction[], now = Date.now()): Cockpit {
+  const start = now - COCKPIT_WINDOW_MS;
+  const recent = rows
+    .filter((row) => {
+      const at = Date.parse(row.recorded_at);
+      return at > start && at <= now + 1000;
+    })
+    .sort((a, b) => b.cursor - a.cursor);
+  const failed = (row: Interaction) => row.outcome === "failed" || row.outcome === "refused";
+  const channels = CHANNELS.map((channel) => {
+    const own = recent.filter((row) => row.channel === channel);
+    const trace = Array.from({ length: BUCKETS }, () => 0);
+    for (const row of own) {
+      const index = Math.floor(
+        ((Date.parse(row.recorded_at) - start) / COCKPIT_WINDOW_MS) * BUCKETS,
+      );
+      trace[Math.max(0, Math.min(BUCKETS - 1, index))] += 1;
+    }
+    return { channel, count: own.length, errors: own.filter(failed).length, trace };
+  });
+  const stages = Object.fromEntries(
+    STAGES.map((stage) => [stage, { read: 0, written: 0 }]),
+  ) as Record<Stage, { read: number; written: number }>;
+  const actors = new Map<string, CockpitActor>();
+  for (const row of recent) {
+    for (const stage of row.stages.read) stages[stage].read += 1;
+    for (const stage of row.stages.written) stages[stage].written += 1;
+    const key = row.actor ? `${row.actor.kind}:${row.actor.id}` : `none:${row.channel}`;
+    const actor = actors.get(key);
+    if (actor) actor.count += 1;
+    else
+      // `recent` is newest first, so the first sighting is the latest request.
+      actors.set(key, {
+        key,
+        kind: row.actor?.kind || "none",
+        label: row.actor?.label || null,
+        channel: row.channel,
+        count: 1,
+        last: row.operation,
+        lastLabel: row.label,
+      });
+  }
+  return {
+    total: recent.length,
+    errors: recent.filter(failed).length,
+    quiet: recent.length === 0,
+    channels,
+    stages,
+    actors: [...actors.values()].sort((a, b) => b.count - a.count),
+    ticker: recent,
+  };
 }

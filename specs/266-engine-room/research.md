@@ -91,6 +91,27 @@ The storyline middleware already performs one threadpool write per GET, for stor
   - Tool calls show a label (FR-016). Only 4 of 179 tools have a German catalog label, and the web dictionary translates 49 of the 172 English tool labels. The rest show English next to the technical name; translating them is follow-up work.
   - The owner's own page loads dominated the list, so they are hidden by default (FR-006).
 
+- **I11 — Cockpit instead of a list (owner review, 2026-09-25).** The owner wants a control room: what happens now, a calm screen when nothing does, like an activity monitor. The Live tab therefore derives a one-minute cockpit in the browser from the rows it polls:
+  - status line
+  - channel meters with a 12 × 5 s trace
+  - model stages with read and write counts
+  - who is active now
+  - a ticker of the last minute
+
+  This is presentation of telemetry, not a business rule. Pause was dropped, because a view of "now" has nothing to hold. The register layout, aligned with the other Inspector registers, became the history view behind the Period chip, and the entry points about the past lead there. Page title and description moved into the page introduction (the ⓘ popover), where every other page keeps them; before that, the Live tab's popover showed the Timeline text.
+
+- **I12 — One question, one place (owner review, 2026-09-25).** Two similar tables (interactions over a period, business events in Activities) confused the owner, although they count different things. The split is now by time:
+  - **History** is the Activities tab, the business events: what changed, kept for good.
+  - **Live** is the cockpit only: who accesses the model now, one minute, no filter bar and no table.
+
+  A change marker in the ticker bridges the two. The interaction history view, the period and search controls, the pause, and the chat and "who changed this" entry points were removed from the UI. The API keeps its window read.
+
+- **I13 — Curves (owner request, 2026-09-25).** The owner asked for Grafana-like curves of the most important things. There are four: load by channel, latency p50/p95, errors, and reads against changes, over 5/15/60 minutes.
+  - **Data.** `GET /interactions/series` aggregates per step in SQL (`count … filter`, `percentile_cont`) over `(tenant_id, recorded_at)`. The browser does not load thousands of rows to count them itself, and a curve is complete the moment the tab opens.
+  - **Drawing.** Plain SVG like the Home activity graph, because the app has no chart library and four line charts do not need one.
+  - **Colour.** The five channels take the reference categorical order, validated with the dataviz palette validator against the app surfaces: every hard check passes in both modes. The light-mode contrast warning for three slots is relieved by the legend values and by the channel meters, which show each value as text.
+  - **Errors** use the reserved critical status colour.
+
 ## Analysis (2026-09-24)
 
 A consistency pass over `spec.md`, `plan.md`, `data-model.md`, `contracts/` and `tasks.md`, checked against the code on `origin/main`. No CRITICAL finding. Every HIGH finding is resolved in the artifacts.

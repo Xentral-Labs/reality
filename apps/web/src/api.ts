@@ -537,6 +537,20 @@ export type SystemReadiness = {
 };
 
 export type { Interaction, InteractionPage };
+export type InteractionSeries = {
+  minutes: number;
+  step_seconds: number;
+  buckets: {
+    at: string;
+    channels: Record<"web" | "mcp" | "chat" | "cli" | "worker", number>;
+    total: number;
+    errors: number;
+    writes: number;
+    reads: number;
+    p50_ms: number | null;
+    p95_ms: number | null;
+  }[];
+};
 export type InteractionEvent = {
   id: string;
   sequence: number;
@@ -1967,6 +1981,8 @@ export const api = {
     request<{ events: InteractionEvent[] }>(
       `/api/tenants/${tenant}/interactions/${encodeURIComponent(interaction)}/events`,
     ),
+  interactionSeries: (tenant: string, query: URLSearchParams, signal?: AbortSignal) =>
+    request<InteractionSeries>(`/api/tenants/${tenant}/interactions/series?${query}`, { signal }),
   interactionsPulse: (tenant: string, signal?: AbortSignal) =>
     request<{ latest_cursor: number | null; latest_at: string | null }>(
       `/api/tenants/${tenant}/interactions/pulse`,

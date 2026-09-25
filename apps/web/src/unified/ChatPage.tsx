@@ -32,7 +32,6 @@ const dockFrame = "reality-chat flex h-full min-h-0 min-w-0 flex-col";
 const criticalButtonClass = "br-btn br-btn-critical";
 const primaryButtonClass = "br-btn br-btn-primary";
 import { messageContext } from "./context";
-import { engineRoomHref } from "./engineRoomModel";
 import { GraphReportProposal } from "./analytics/GraphReportProposal";
 const compactFrame = "flex h-[min(720px,75dvh)] min-w-0 flex-col gap-4";
 const fullFrame = "mx-auto flex h-[calc(100dvh-152px)] min-h-[500px] max-w-5xl flex-col gap-4";
@@ -151,8 +150,6 @@ export function ChatPage({
   const [startingChat, setStartingChat] = useState(false);
 
   const [sending, setSending] = useState(false);
-  // The engine room groups one chat turn under the correlation it was sent with.
-  const [turnCorrelation, setTurnCorrelation] = useState("");
   const [liveReply, setLiveReply] = useState<{
     session: string;
     text: string;
@@ -329,7 +326,6 @@ export function ChatPage({
       return;
     restoreComposerFocus.current = true;
     setSending(true);
-    setTurnCorrelation(currentCorrelation());
     setFailure("");
     setEcho({ text, before: data?.messages.map((row) => row.id) || [] });
     setQuestion("");
@@ -482,9 +478,6 @@ export function ChatPage({
     </div>
   );
   const frame = dock ? dockFrame : compact ? compactFrame : fullFrame;
-  const lastAssistantId = [...(data?.messages || [])]
-    .reverse()
-    .find((row) => row.role === "assistant")?.id;
   return (
     <div className={frame}>
       {standaloneActions && (
@@ -832,18 +825,6 @@ export function ChatPage({
               </ReactMarkdown>
             </div>
             {message.id && message.role === "assistant" && renderMessageEvidence?.(message.id)}
-            {message.id &&
-              message.role === "assistant" &&
-              turnCorrelation &&
-              message.id === lastAssistantId && (
-                <a
-                  className="mt-1 inline-block text-xs text-accent hover:underline"
-                  href={engineRoomHref(selection.tenant, { correlation: turnCorrelation })}
-                  data-chat-engine-room
-                >
-                  {t("Show in live monitor")}
-                </a>
-              )}
           </article>
         ))}
         {data.proposals.map((proposal) =>
