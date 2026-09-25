@@ -370,7 +370,7 @@ resources:
         die die Daten noch nicht beantworten.
     synonyms: [proposal, approval, exception, attention, missing information, Vorschlag, Freigabe, Abweichung, Klärfall, Timeline, Verlauf]
     tables: []
-    match: "proposal|reality_gap|capability_describe|business_records_discover|^exception|activity|timeline"
+    match: "proposal|reality_gap|capability_describe|capability_catalog|business_records_discover|^exception|activity|timeline"
     views: [activity]
     projections: [exceptions, timeline]
     exceptions: []

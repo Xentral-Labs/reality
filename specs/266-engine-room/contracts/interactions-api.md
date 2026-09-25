@@ -50,6 +50,10 @@ Returns the committed business events linked to one interaction, in sequence ord
 
 `{"latest_cursor": 1842, "latest_at": "…Z"}`. The shell header indicator reads it every 10 s (owners only).
 
+## `GET /interactions/series`
+
+`minutes` is one of 5, 15 or 60, with steps of 10 s, 10 s and 60 s. Optional parameters: `channel` (repeatable), `actor_user_id`, `mcp_token_id`, and `hide_own` (default `true`). The response is `{minutes, step_seconds, buckets: [{at, channels: {web, mcp, chat, cli, worker}, total, errors, writes, reads, p50_ms, p95_ms}]}`. Every step of the window is present, and a quiet one is zero with `null` latencies. Owners only, and not recorded.
+
 ## Request headers accepted from the web client
 
 - `X-Reality-Correlation`: 1–64 characters `[A-Za-z0-9_-]`. Anything else is replaced by a server-generated id.

@@ -69,6 +69,14 @@
   --lane-reality: #2f9e44;
   --lane-events: #344054;
 
+  /* Live monitor curves (spec 266): five channels in the validated categorical order
+     (blue, orange, aqua, yellow, magenta), checked against --surface in each mode. */
+  --series-web: #2a78d6;
+  --series-mcp: #eb6834;
+  --series-chat: #1baf7a;
+  --series-cli: #eda100;
+  --series-worker: #e87ba4;
+
   /* Base for every shadow and scrim; each rule keeps its own alpha. */
   --shade-rgb: 16 24 40;
 }
@@ -76,6 +84,11 @@
 [data-theme="dark"] {
   color-scheme: dark;
   --bg: #0c111d;
+  --series-web: #3987e5;
+  --series-mcp: #d95926;
+  --series-chat: #199e70;
+  --series-cli: #c98500;
+  --series-worker: #d55181;
   --surface: #101828;
   --surface-muted: #1d2939;
   --surface-sunken: #0c111d;

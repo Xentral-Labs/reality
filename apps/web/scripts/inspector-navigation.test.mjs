@@ -17,11 +17,11 @@ test("Inspector sections match their contents and default destinations", () => {
     ],
   );
   assert.deepEqual(inspectorTabs("history"), [
-    ["history", "Activities"],
+    ["history", "History"],
     ["live", "Live"],
   ]);
   // The engine room (spec 266) is for company owners only.
-  assert.deepEqual(inspectorTabs("history", false), [["history", "Activities"]]);
+  assert.deepEqual(inspectorTabs("history", false), [["history", "History"]]);
   assert.deepEqual(
     inspectorTabs("rules").map((t) => t[1]),
     ["All records", "Fact rules"],

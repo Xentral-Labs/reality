@@ -91,6 +91,32 @@ def list_interactions(
         raise api_error(error) from error
 
 
+@router.get("/series")
+def interaction_series(
+    tenant_id: str,
+    request: Request,
+    session: DatabaseSession,
+    minutes: int = Query(15),
+    channel: Annotated[list[str] | None, Query()] = None,
+    actor_user_id: str | None = Query(None, max_length=64),
+    mcp_token_id: str | None = Query(None, max_length=64),
+    hide_own: bool = True,
+) -> dict[str, Any]:
+    viewer = _owner(request, session, tenant_id)
+    try:
+        return interactions.series(
+            session,
+            tenant_id,
+            minutes=minutes,
+            channels=channel,
+            actor_user_id=actor_user_id,
+            mcp_token_id=mcp_token_id,
+            exclude_actor_user_id=viewer if hide_own else None,
+        )
+    except InvalidOperation as error:
+        raise api_error(error) from error
+
+
 @router.get("/pulse")
 def interaction_pulse(
     tenant_id: str, request: Request, session: DatabaseSession, hide_own: bool = True

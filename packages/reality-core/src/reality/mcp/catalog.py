@@ -453,6 +453,19 @@ PAGE_PROPERTIES = {
 
 MCP_TOOL_CATALOG = (
     MCPToolDefinition(
+        "capability_catalog",
+        "Discover business capabilities",
+        (
+            "Start here. Without arguments it lists the business areas this company's "
+            "Reality covers; with one topic it lists that area's capabilities, the "
+            "tools behind each, and whether this credential may call them."
+        ),
+        "read",
+        "Discovery",
+        _object_schema({"topic": OPTIONAL_STRING}),
+        _read("capability_catalog"),
+    ),
+    MCPToolDefinition(
         "capability_describe",
         "Describe an agent capability",
         "Read when one public mutation should or should not be used, its expected refusals, and how to verify its outcome.",

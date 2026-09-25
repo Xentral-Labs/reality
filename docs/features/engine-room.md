@@ -55,6 +55,23 @@ The browser polls every second while the tab is visible. Rows recorded in the la
 seconds are always returned again, so an insert that committed late from another process
 still arrives. The client deduplicates by id.
 
+## The Live tab is a cockpit
+
+Activities has two tabs, named by time:
+- **History**: what changed, the business events.
+- **Live**: who is accessing the model now.
+
+Live shows the last minute only:
+- a status: active with a count, or all quiet
+- a meter per channel with its rate, a trace of twelve five-second buckets and its errors; choosing a meter narrows by channel
+- the model stages with their reads and writes
+- who is active now
+- a ticker of that minute, where an access that changed something carries a change marker that opens the change in the Inspector
+
+Below the meters, four curves show the trend over 5, 15 or 60 minutes: load by channel, response time, errors, and reads against changes. They come from `GET /interactions/series`, aggregated per step at read time.
+
+Nothing older than the chosen window appears there, and there is no history of accesses on screen. The derivation is pure presentation (`cockpit()` in `apps/web/src/unified/engineRoomModel.ts`). Narrowing comes from a meter click or an entry point (a client's calls from its MCP token) and shows as removable chips.
+
 ## Retention and operation
 
 Interactions older than seven days are hidden from reads. The recorder deletes up to 500

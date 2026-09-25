@@ -7069,6 +7069,7 @@ governance tools carry proposals, discovery and missing information.
 
 | Key                                                                                              | Label                                          | Access    | Answers                |
 | ------------------------------------------------------------------------------------------------ | ---------------------------------------------- | --------- | ---------------------- |
+| [`capability_catalog`](#tool-capability_catalog)                                                 | Discover business capabilities                 | `read`    | —                      |
 | [`capability_describe`](#tool-capability_describe)                                               | Describe an agent capability                   | `read`    | —                      |
 | [`business_records_discover`](#tool-business_records_discover)                                   | Discover business records                      | `read`    | —                      |
 | [`inventory_read`](#tool-inventory_read)                                                         | Read inventory                                 | `read`    | `inventory`            |
@@ -7118,6 +7119,34 @@ governance tools carry proposals, discovery and missing information.
 | [`graph_requests_list`](#tool-graph_requests_list)                                               | List my requested analyses                     | `read`    | —                      |
 | [`graph_request_get`](#tool-graph_request_get)                                                   | Collect a requested analysis                   | `read`    | —                      |
 | [`graph_request_propose`](#tool-graph_request_propose)                                           | Request an analysis                            | `propose` | —                      |
+
+### `capability_catalog` — Discover business capabilities {#tool-capability_catalog}
+
+Start here. Without arguments it lists the business areas this company's Reality covers; with one
+topic it lists that area's capabilities, the tools behind each, and whether this credential may call
+them.
+
+**Synopsis**
+
+```text
+capability_catalog [topic]
+```
+
+**Access:** `read`
+
+**How this query runs**
+
+| Concrete query           | Kind                        | Default |
+| ------------------------ | --------------------------- | ------- |
+| `MCP capability_catalog` | Live — read at request time | yes     |
+
+[How this query runs](./views#read-execution)
+
+**Parameters**
+
+| Name    | Type     | Required | Description | Default |
+| ------- | -------- | -------- | ----------- | ------- |
+| `topic` | `string` | no       | —           | —       |
 
 ### `capability_describe` — Describe an agent capability {#tool-capability_describe}
 

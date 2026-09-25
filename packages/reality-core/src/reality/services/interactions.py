@@ -515,3 +515,102 @@ def purge_expired(
         if count < batch:
             break
     return removed
+
+
+#: The windows the live monitor draws, and the width of one point in each.
+SERIES_STEPS = {5: 10, 15: 10, 60: 60}
+
+
+def series(
+    session: Session,
+    tenant_id: str,
+    *,
+    minutes: int = 15,
+    channels: list[str] | None = None,
+    actor_user_id: str | None = None,
+    mcp_token_id: str | None = None,
+    exclude_actor_user_id: str | None = None,
+    as_of: datetime | None = None,
+) -> dict[str, Any]:
+    """Counts per time step for the live monitor's curves, derived at read time.
+
+    Each step says how many interactions each channel made, how many were refused
+    or failed, how many wrote events and how many only read, and the median and
+    95th percentile of their duration. Quiet steps are zero rather than missing,
+    so a curve is flat where nothing happened.
+    """
+    from sqlalchemy import extract, func
+
+    step = SERIES_STEPS.get(int(minutes))
+    if step is None:
+        raise InvalidOperation("Choose a window of 5, 15 or 60 minutes.")
+    moment = as_of or now()
+    end_epoch = int(moment.timestamp()) // step * step + step
+    start_epoch = end_epoch - minutes * 60
+    conditions = [
+        Interaction.tenant_id == tenant_id,
+        Interaction.refresh.is_(False),
+        Interaction.recorded_at
+        >= datetime.fromtimestamp(start_epoch, tz=moment.tzinfo),
+        Interaction.recorded_at < datetime.fromtimestamp(end_epoch, tz=moment.tzinfo),
+    ]
+    chosen = _enumerated(channels, CHANNELS, "channel")
+    if chosen:
+        conditions.append(Interaction.channel.in_(chosen))
+    if actor_user_id:
+        conditions.append(Interaction.actor_user_id == actor_user_id)
+    if mcp_token_id:
+        conditions.append(Interaction.mcp_token_id == mcp_token_id)
+    if exclude_actor_user_id:
+        conditions.append(
+            or_(
+                Interaction.actor_user_id.is_(None),
+                Interaction.actor_user_id != exclude_actor_user_id,
+            )
+        )
+    bucket = func.floor(extract("epoch", Interaction.recorded_at) / step).label(
+        "bucket"
+    )
+    failed = Interaction.outcome.in_(("refused", "failed"))
+    wrote = Interaction.event_first_sequence.is_not(None)
+    rows = session.execute(
+        select(
+            bucket,
+            *(
+                func.count().filter(Interaction.channel == channel).label(channel)
+                for channel in CHANNELS
+            ),
+            func.count().filter(failed).label("errors"),
+            func.count().filter(wrote).label("writes"),
+            func.percentile_cont(0.5)
+            .within_group(Interaction.duration_ms)
+            .label("p50"),
+            func.percentile_cont(0.95)
+            .within_group(Interaction.duration_ms)
+            .label("p95"),
+        )
+        .where(*conditions)
+        .group_by(bucket)
+    ).all()
+    by_bucket = {int(row.bucket): row for row in rows}
+    buckets = []
+    for index in range(start_epoch // step, end_epoch // step):
+        row = by_bucket.get(index)
+        counts = {
+            channel: int(getattr(row, channel)) if row else 0 for channel in CHANNELS
+        }
+        total = sum(counts.values())
+        writes = int(row.writes) if row else 0
+        buckets.append(
+            {
+                "at": datetime.fromtimestamp(index * step, tz=moment.tzinfo),
+                "channels": counts,
+                "total": total,
+                "errors": int(row.errors) if row else 0,
+                "writes": writes,
+                "reads": total - writes,
+                "p50_ms": round(row.p50) if row and row.p50 is not None else None,
+                "p95_ms": round(row.p95) if row and row.p95 is not None else None,
+            }
+        )
+    return {"minutes": minutes, "step_seconds": step, "buckets": buckets}
