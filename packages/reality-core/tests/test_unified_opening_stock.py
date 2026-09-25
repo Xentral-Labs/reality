@@ -437,3 +437,50 @@ def test_failure_before_commit_has_no_partial_movement(session, business, monkey
         ]
         == "unresolved"
     )
+
+
+@pytest.mark.parametrize(
+    "tracking,item_type",
+    [("lot", "stocked"), ("serial", "stocked"), ("none", "service")],
+)
+def test_raw_opening_refuses_an_unsupported_item_when_proposed(
+    session, business, tracking, item_type
+):
+    """Spec 132 FR-002: an item opening stock cannot accept is refused as it is proposed.
+
+    The refusal used to wait for confirmation, so an agent asked to prepare opening stock
+    created a decision a person could open, read and never approve.
+    """
+    from reality.db.core import ChangeProposal
+    from reality.services.core import create_item
+
+    tid = business.tenant.id
+    item = create_item(
+        session, tid, "OTHER", "Other", tracking_type=tracking, item_type=item_type
+    )
+    decisions = (
+        select(func.count())
+        .select_from(ChangeProposal)
+        .where(ChangeProposal.tenant_id == tid)
+    )
+    before = session.scalar(decisions)
+    with pytest.raises(InvalidOperation):
+        create_change_proposal(
+            session, tid, "movement_create", args(business, item_id=item.id)
+        )
+    assert session.scalar(decisions) == before
+    assert stock_at(session, tid, item.id, business.location.id) == 0
+
+
+def test_raw_opening_refuses_a_destination_that_holds_no_stock_when_proposed(
+    session, business
+):
+    """Spec 132 FR-002: the destination is proved as the decision is proposed."""
+    from reality.services.core import create_location
+
+    tid = business.tenant.id
+    location = create_location(session, tid, "Group", allows_stock=False)
+    with pytest.raises(InvalidOperation):
+        create_change_proposal(
+            session, tid, "movement_create", args(business, to_location_id=location.id)
+        )

@@ -2784,16 +2784,24 @@ def create_change_proposal(
 
     tenant = session.scalar(select(Tenant).where(Tenant.id == tenant_id))
     delivery_review = None
-    # Raw opening proposals keep the established general-tool contract. The unified
-    # opening adapter attaches its stricter, state-bound review explicitly.
+    raw_opening = (
+        tool_name == "movement_create"
+        and arguments.get("movement_type") == "opening_stock"
+    )
+    # Raw opening proposals keep the established general-tool contract: no state-bound
+    # review is attached here, and the unified opening adapter attaches its stricter one
+    # explicitly. The intent is still proved now, because confirmation demands that same
+    # review — a decision nobody could ever approve should not be created for a person to
+    # find.
+    if tenant and tenant.purpose != "playground" and raw_opening:
+        from reality.services.opening_stock_actions import review_opening
+
+        review_opening(session, tenant_id, arguments)
     if (
         tenant
         and tenant.purpose != "playground"
         and eligible(tool_name, arguments)
-        and not (
-            tool_name == "movement_create"
-            and arguments.get("movement_type") == "opening_stock"
-        )
+        and not raw_opening
         and tool_name not in {"party_delivery_hold", "party_delivery_hold_release"}
     ):
         from reality.services.business_locks import lock_delivery_state
