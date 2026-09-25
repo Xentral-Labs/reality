@@ -2463,12 +2463,19 @@ class ChatMessage(Base):
             ["tenant_id", "session_id"],
             ["chat_session.tenant_id", "chat_session.id"],
         ),
+        CheckConstraint(
+            "answer_basis IS NULL OR octet_length(answer_basis::text) <= 16384",
+            name="ck_chat_message_answer_basis_size",
+        ),
     )
     id: Mapped[str] = mapped_column(String)
     tenant_id: Mapped[str] = mapped_column(ForeignKey("tenant.id"), index=True)
     session_id: Mapped[str] = mapped_column()
     role: Mapped[str] = mapped_column(String)
     content: Mapped[str] = mapped_column(Text)
+    answer_basis: Mapped[dict | None] = mapped_column(
+        JSONB(none_as_null=True), default=None
+    )
     created_at: Mapped[datetime] = mapped_column(UTCDateTime, default=now)
 
 

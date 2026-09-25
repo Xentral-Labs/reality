@@ -1603,12 +1603,20 @@ def trace(
 def chat_evidence(
     session: Session, user_id: str, tenant_id: str, message_id: str
 ) -> dict[str, Any]:
-    """Recorded calls for one reply and later decisions on the same proposals."""
+    """Business support for one reply plus eligible Storyline call detail."""
     from sqlalchemy import or_
 
     from reality.db.core import ChatMessage, StorylineTraceEntry
 
-    run = _evidence_run(session, user_id, tenant_id)
+    membership = session.scalar(
+        select(TenantMembership.id).where(
+            TenantMembership.tenant_id == tenant_id,
+            TenantMembership.user_id == user_id,
+            TenantMembership.status == "active",
+        )
+    )
+    if membership is None:
+        raise NotFound("Chat message not found.")
     message = session.scalar(
         select(ChatMessage).where(
             ChatMessage.id == message_id,
@@ -1618,6 +1626,16 @@ def chat_evidence(
     )
     if message is None:
         raise NotFound("Chat message not found.")
+    basis = _present_chat_basis(message.answer_basis)
+    run = session.scalar(
+        select(PlaygroundRun).where(
+            PlaygroundRun.tenant_id == tenant_id,
+            PlaygroundRun.owner_user_id == user_id,
+            recorder.evidence_run_condition(),
+        )
+    )
+    if run is None:
+        return {"available": False, "items": [], "has_more": False, "basis": basis}
     base = (
         StorylineTraceEntry.tenant_id == tenant_id,
         StorylineTraceEntry.run_id == run.id,
@@ -1633,7 +1651,7 @@ def chat_evidence(
         .limit(1)
     )
     if association is None:
-        return {"available": False, "items": [], "has_more": False}
+        return {"available": False, "items": [], "has_more": False, "basis": basis}
     saved = association.result or {}
     ids = saved.get("trace_ids", [])[:128]
     direct = list(
@@ -1667,7 +1685,90 @@ def chat_evidence(
         "has_more": bool(
             saved.get("has_more") or len(direct) != len(ids) or len(rows) > 500
         ),
+        "basis": basis,
     }
+
+
+def _present_chat_basis(saved: dict[str, Any] | None) -> dict[str, Any]:
+    calls = saved.get("calls", []) if isinstance(saved, dict) else []
+    rows: list[dict[str, Any]] = []
+    seen: set[tuple[str, str]] = set()
+    for call in calls:
+        if not isinstance(call, dict):
+            continue
+        if call.get("operation") == "fulfillment_queue":
+            result = call.get("result")
+            records = (
+                result
+                if isinstance(result, list)
+                else result.get("records", [])
+                if isinstance(result, dict)
+                else []
+            )
+            for order in records:
+                if not isinstance(order, dict):
+                    continue
+                document_id = order.get("document_id")
+                reference = order.get("document_number") or order.get("order_key")
+                key = ("document", str(document_id or reference or ""))
+                if key in seen:
+                    continue
+                seen.add(key)
+                rows.extend(_fulfillment_basis_rows(order))
+    visible = rows[:4]
+    return {
+        "available": bool(visible),
+        "rows": visible,
+        "additional_count": max(0, len(rows) - len(visible)),
+        "calls": len(calls),
+        "has_more": bool(saved.get("has_more")) if isinstance(saved, dict) else False,
+    }
+
+
+def _quantity_text(value: Any, unit: Any) -> str:
+    return f"{value} {unit}".strip()
+
+
+def _fulfillment_basis_rows(order: dict[str, Any]) -> list[dict[str, Any]]:
+    lines = [line for line in order.get("lines", []) if isinstance(line, dict)]
+    line = lines[0] if lines else {}
+    requested = line.get("quantity", line.get("open_quantity", "—"))
+    reserved = line.get("reserved_quantity", "—")
+    shortage = line.get("shortage_quantity", "—")
+    unit = line.get("unit", line.get("quantity_unit", ""))
+    document_id = order.get("document_id")
+    rows = [
+        {
+            "label": "Customer order",
+            "value": str(order.get("document_number") or order.get("order_key") or "—"),
+            "role": "recorded",
+            "record_type": "document" if document_id else None,
+            "record_id": str(document_id) if document_id else None,
+        },
+        {
+            "label": "Requested",
+            "value": _quantity_text(requested, unit),
+            "role": "recorded",
+            "record_type": None,
+            "record_id": None,
+        },
+        {
+            "label": "Reserved",
+            "value": f"{_quantity_text(reserved, unit)} / {_quantity_text(requested, unit)}",
+            "role": "recorded",
+            "record_type": None,
+            "record_id": None,
+        },
+        {
+            "label": "Derived",
+            "value": _quantity_text(shortage, unit),
+            "status": str(order.get("readiness") or ""),
+            "role": "derived",
+            "record_type": None,
+            "record_id": None,
+        },
+    ]
+    return rows
 
 
 def delta(

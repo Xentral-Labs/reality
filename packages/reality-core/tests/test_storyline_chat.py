@@ -90,6 +90,13 @@ def test_old_and_foreign_messages_do_not_gain_evidence(http, session):
         "available": False,
         "items": [],
         "has_more": False,
+        "basis": {
+            "available": False,
+            "rows": [],
+            "additional_count": 0,
+            "calls": 0,
+            "has_more": False,
+        },
     }
     for message in [user.id, "unknown"]:
         assert (
@@ -127,6 +134,98 @@ def test_chat_collection_is_context_local_and_resets_on_error():
             raise RuntimeError("provider failure")
         assert recorder.current_chat_calls() is outer
     assert recorder.current_chat_calls() is None
+
+
+def test_ordinary_company_reply_keeps_exact_read_support(http, session, monkeypatch):
+    from reality.agent import mcp_chat
+    from reality.services.company_setup import create_company
+
+    client, actor = http
+    tenant = create_company(
+        session,
+        actor.id,
+        "ordinary-chat-basis",
+        "Ordinary",
+        "business",
+        "empty",
+        confirmed=True,
+    )["tenant_id"]
+    chat = core.create_chat_session(session, tenant)
+    monkeypatch.setenv("ANTHROPIC_API_KEY", "test-no-network")
+
+    async def provider(**kwargs):
+        run_read_tool(kwargs["session"], tenant, "exceptions", {})
+        return "No current findings."
+
+    monkeypatch.setattr(mcp_chat, "reply_via_anthropic_tools", provider)
+    _, reply = core.send_chat_message(
+        session, tenant, chat.id, "What is open?", actor_user_id=actor.id
+    )
+    session.expire_all()
+    saved = record_by_id(session, ChatMessage, reply.id)
+
+    assert saved.answer_basis["version"] == 1
+    assert saved.answer_basis["calls"] == [
+        {"operation": "exceptions", "input": {}, "result": []}
+    ]
+    response = client.get(f"/api/tenants/{tenant}/storyline/chat/{reply.id}")
+    assert response.status_code == 200, response.text
+    assert response.json()["basis"]["calls"] == 1
+    assert response.json()["basis"]["available"] is False
+
+
+def test_fulfillment_basis_is_compact_linked_and_marks_derivation():
+    basis = storyline._present_chat_basis(
+        {
+            "version": 1,
+            "calls": [
+                {
+                    "operation": "fulfillment_queue",
+                    "input": {},
+                    "result": {
+                        "records": [
+                            {
+                                "order_key": "doc-1",
+                                "document_id": "doc-1",
+                                "document_number": "AB-1002",
+                                "readiness": "blocked",
+                                "lines": [
+                                    {
+                                        "quantity": "10",
+                                        "reserved_quantity": "0",
+                                        "shortage_quantity": "10",
+                                        "unit": "pcs",
+                                    }
+                                ],
+                            }
+                        ],
+                        "has_more": False,
+                    },
+                }
+            ],
+            "has_more": False,
+        }
+    )
+
+    assert basis["available"] is True
+    assert len(basis["rows"]) == 4
+    assert basis["rows"][0] == {
+        "label": "Customer order",
+        "value": "AB-1002",
+        "role": "recorded",
+        "record_type": "document",
+        "record_id": "doc-1",
+    }
+    assert basis["rows"][1]["value"] == "10 pcs"
+    assert basis["rows"][2]["value"] == "0 pcs / 10 pcs"
+    assert basis["rows"][3] == {
+        "label": "Derived",
+        "value": "10 pcs",
+        "status": "blocked",
+        "role": "derived",
+        "record_type": None,
+        "record_id": None,
+    }
 
 
 def test_proposed_change_is_not_execution_and_later_decision_is_linked(

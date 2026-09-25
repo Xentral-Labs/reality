@@ -364,6 +364,7 @@ def test_series_counts_each_bucket_by_channel_with_errors_writes_and_latency(
 ):
     tenant = business.tenant.id
     moment = now().replace(microsecond=0)
+    moment -= timedelta(seconds=moment.second % 10)
     # Two buckets of ten seconds: one busy, one with a write and an error.
     add(
         session,
