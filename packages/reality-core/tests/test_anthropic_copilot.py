@@ -4,10 +4,11 @@ from reality.agent import mcp_chat
 
 
 class FakeResponse:
-    is_error = False
-
     def __init__(self, payload):
         self.payload = payload
+
+    def raise_for_status(self):
+        return None
 
     def json(self):
         return self.payload
@@ -404,12 +405,16 @@ async def test_a_rejected_request_reports_what_the_provider_objected_to():
     from reality.agent import streaming
 
     class Rejected:
-        is_error = True
         status_code = 400
         request = httpx.Request("POST", "https://api.anthropic.com/v1/messages")
 
         def __init__(self):
             self.text = ""
+
+        def raise_for_status(self):
+            raise httpx.HTTPStatusError(
+                "Client error '400 Bad Request'", request=self.request, response=self
+            )
 
         async def aread(self):
             self.text = (
@@ -431,6 +436,7 @@ async def test_an_accepted_response_passes_through():
     from reality.agent import streaming
 
     class Accepted:
-        is_error = False
+        def raise_for_status(self):
+            return None
 
     assert await streaming.raise_for_status(Accepted(), "anthropic") is None

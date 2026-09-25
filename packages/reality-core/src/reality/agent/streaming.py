@@ -30,15 +30,16 @@ async def raise_for_status(response: httpx.Response, provider: str) -> None:
     the body has not been read yet, so a rejected request used to reach the log
     as a bare 400 with nothing saying which part of the payload was refused.
     """
-    if not response.is_error:
-        return
-    await response.aread()
-    detail = response.text.strip()[:1000]
-    raise httpx.HTTPStatusError(
-        f"{provider} rejected the request with {response.status_code}: {detail}",
-        request=response.request,
-        response=response,
-    )
+    try:
+        response.raise_for_status()
+    except httpx.HTTPStatusError as rejection:
+        await response.aread()
+        detail = response.text.strip()[:1000]
+        raise httpx.HTTPStatusError(
+            f"{provider} rejected the request with {response.status_code}: {detail}",
+            request=rejection.request,
+            response=rejection.response,
+        ) from rejection
 
 
 async def streamed_message(
