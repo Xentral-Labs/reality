@@ -50,7 +50,9 @@ def test_catalog_is_served_with_the_application_catalog():
         lambda c: c["steps"]["record_receipt"].update(form="no_such_form"),
         lambda c: c["steps"]["inventory_review"].update(role="admin"),
         lambda c: c["steps"]["inventory_review"].update(path="email"),
-        lambda c: c["steps"]["inventory_review"].update(chat_prompt="No scope here."),
+        lambda c: c["steps"]["inventory_review"]["alternative"].update(
+            chat_prompt="No scope here."
+        ),
         lambda c: c["steps"]["receipt_cost_evidence"]["alternative"].update(
             form="no_such_form"
         ),
@@ -113,3 +115,20 @@ def test_every_gap_a_service_emits_is_listed():
         assert codes, f"{name}: the pattern no longer finds any gap"
         found |= codes
     assert found - EMITTED_CODES == set(), sorted(found - EMITTED_CODES)
+
+
+def test_every_draft_open_input_has_catalog_wording():
+    """Spec 282: the review dialog shows open inputs in words, never as codes."""
+    from reality.domain.cost_review_draft import OPEN_INPUT_CODES
+
+    reasons = set(load_resolution_guidance()["reasons"])
+    assert OPEN_INPUT_CODES <= reasons, sorted(OPEN_INPUT_CODES - reasons)
+    assert {
+        "inventory_history_empty",
+        "inputs_changed",
+        "specific_selection_required",
+    } <= reasons
+    steps = load_resolution_guidance()["steps"]
+    for code in ("inventory_review", "inventory_review_renew", "contribution_review"):
+        assert steps[code]["path"] == "review_draft"
+        assert steps[code]["alternative"]["path"] == "chat"

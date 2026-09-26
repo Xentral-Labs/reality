@@ -50,7 +50,8 @@ def test_item_without_receipts_starts_at_the_inventory_review(session, business)
         ("owner_confirmation", "blocked"),
     ]
     step = first_open(result)
-    assert step["role"] == "member" and step["path"] == "chat"
+    # Spec 282: the review step opens the drafted review; chat is its alternative.
+    assert step["role"] == "member" and step["path"] == "review_draft"
 
 
 def test_receipt_without_cost_is_the_first_open_step(session, business):

@@ -97,10 +97,19 @@ def _contribution(session: Session, tenant: str, line_id: str) -> dict[str, Any]
             "role": "goods_cost",
         },
     ]
+    revenue = (trace.get("revenue") or {}).get("amounts") or {}
     return draft(
         kind="contribution",
         scope_id=line_id,
         event_sequence=sequence,
+        summary={
+            "currency": preview.get("currency"),
+            "quantity": preview.get("quantity"),
+            "base_unit": preview.get("base_unit"),
+            "received_net": revenue.get("net"),
+            "goods_cost": (trace.get("consumption") or {}).get("cost"),
+            "known_db1": preview.get("known_db1"),
+        },
         arguments={
             "operation": "contribution_review",
             "expected_event_sequence": sequence,
@@ -388,6 +397,16 @@ def _inventory(
         else None
     )
     basis += [{"kind": "movement", "id": m.id, "role": m.type} for m in movements]
+    counts: dict[str, int] = {}
+    for movement in movements:
+        counts[movement.type] = counts.get(movement.type, 0) + 1
+    names = dict(
+        session.execute(
+            select(Party.id, Party.name).where(
+                Party.tenant_id == tenant, Party.id.in_(candidates)
+            )
+        ).all()
+    )
     return draft(
         kind="inventory",
         scope_id=item_id,
@@ -395,4 +414,21 @@ def _inventory(
         arguments=arguments,
         open_inputs=open_inputs,
         basis=basis,
+        summary={
+            "item_name": item.name,
+            "item_sku": item.sku,
+            "base_unit": item.unit,
+            "owner_name": names.get(owner) if owner else None,
+            "party_names": names,
+            "currency": currency,
+            "movement_counts": counts,
+            "openings": [
+                {
+                    "amount": row["acquisition_cost"],
+                    "currency": currency,
+                    "movement_id": row["movement_id"],
+                }
+                for row in opening_rows
+            ],
+        },
     )
