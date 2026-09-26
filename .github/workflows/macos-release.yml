@@ -9,6 +9,8 @@
 #   APPLE_CERTIFICATE_P12       Developer ID Application certificate, base64 of the .p12
 #   APPLE_CERTIFICATE_PASSWORD  password of that .p12
 #   APPLE_SIGNING_IDENTITY      e.g. "Developer ID Application: Example GmbH (ABCDE12345)"
+#   APPLE_TEAM_ID               ten-character Apple developer team identifier
+#   APPLE_PROVISIONING_PROFILE  base64 Developer ID profile authorizing the app identifier
 #   APPLE_API_KEY_ID            App Store Connect API key id used by notarytool
 #   APPLE_API_ISSUER_ID         its issuer id
 #   APPLE_API_PRIVATE_KEY       base64 of the .p8 private key
@@ -28,6 +30,10 @@ on:
         default: 0.1.0
       publish:
         description: Attach the result to a pre-release
+        type: boolean
+        default: false
+      tester_beta:
+        description: Build a private unsigned artifact for named testers only
         type: boolean
         default: false
   push:
@@ -63,6 +69,12 @@ jobs:
           version="${VERSION#mac-v}"
           echo "RELEASE_VERSION=$version" >> "$GITHUB_ENV"
           echo "Building Reality Local $version"
+
+      - name: Refuse public unsigned tester beta
+        if: inputs.tester_beta && (startsWith(github.ref, 'refs/tags/mac-v') || inputs.publish)
+        run: |
+          echo "::error::Unsigned tester betas cannot be published or built from release tags."
+          exit 1
 
       # The runtime is pinned by SHA-256 in the lock; a cache hit skips the long build.
       - name: Cache the bundled runtime base
@@ -132,10 +144,16 @@ jobs:
 
       - name: Package the application
         run: |
+          beta=()
+          if [ "${{ inputs.tester_beta }}" = "true" ]; then
+            beta=("--unsigned-tester-beta")
+          fi
           .venv/bin/python apps/desktop/scripts/package-preview.py \
             --runtime apps/desktop/build/runtime \
             --binary apps/desktop/src-tauri/target/release/reality-local \
             --frontend apps/web/dist \
+            --version "$RELEASE_VERSION" \
+            "${beta[@]}" \
             --output "apps/desktop/dist/Reality Local.app"
 
       - name: Verify that data survives a restart
@@ -143,15 +161,61 @@ jobs:
           .venv/bin/python apps/desktop/scripts/verify-persistence.py \
             --runtime apps/desktop/build/runtime
 
+      - name: Record the packaged application inputs
+        run: |
+          beta=()
+          if [ "${{ inputs.tester_beta }}" = "true" ]; then
+            beta=("--unsigned-tester-beta")
+          fi
+          python3 apps/desktop/scripts/release-manifest.py \
+            --root "apps/desktop/dist/Reality Local.app" \
+            --version "$RELEASE_VERSION" \
+            --artifact app-inputs \
+            --output apps/desktop/dist/Reality-Local-app-inputs.json
+          .venv/bin/python apps/desktop/scripts/package-preview.py \
+            --runtime apps/desktop/build/runtime \
+            --binary apps/desktop/src-tauri/target/release/reality-local \
+            --frontend apps/web/dist \
+            --version "$RELEASE_VERSION" \
+            "${beta[@]}" \
+            --output "$RUNNER_TEMP/Reality Local reproducibility.app"
+          python3 apps/desktop/scripts/release-manifest.py \
+            --root "$RUNNER_TEMP/Reality Local reproducibility.app" \
+            --version "$RELEASE_VERSION" \
+            --artifact app-inputs \
+            --compare-to apps/desktop/dist/Reality-Local-app-inputs.json \
+            --output "$RUNNER_TEMP/Reality-Local-app-inputs-second.json"
+
       - name: Decide whether this build can be signed
         id: signing
+        env:
+          CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE_P12 }}
+          CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
+          SIGNING_IDENTITY: ${{ secrets.APPLE_SIGNING_IDENTITY }}
+          TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          PROFILE: ${{ secrets.APPLE_PROVISIONING_PROFILE }}
+          API_KEY_ID: ${{ secrets.APPLE_API_KEY_ID }}
+          API_ISSUER_ID: ${{ secrets.APPLE_API_ISSUER_ID }}
+          API_PRIVATE_KEY: ${{ secrets.APPLE_API_PRIVATE_KEY }}
         run: |
-          if [ -n "${{ secrets.APPLE_SIGNING_IDENTITY }}" ]; then
+          if [ "${{ inputs.tester_beta }}" = "true" ]; then
+            echo "signed=false" >> "$GITHUB_OUTPUT"
+            echo "Unsigned tester beta selected; signing and notarization are intentionally disabled."
+          elif [ -n "$CERTIFICATE" ] && [ -n "$CERTIFICATE_PASSWORD" ] && \
+             [ -n "$SIGNING_IDENTITY" ] && [ -n "$TEAM_ID" ] && \
+             [ -n "$PROFILE" ] && [ -n "$API_KEY_ID" ] && \
+             [ -n "$API_ISSUER_ID" ] && [ -n "$API_PRIVATE_KEY" ]; then
             echo "signed=true" >> "$GITHUB_OUTPUT"
           else
             echo "signed=false" >> "$GITHUB_OUTPUT"
             echo "::warning::No Apple credentials configured. The artifact stays ad-hoc signed and is not notarized."
           fi
+
+      - name: Refuse an unsigned publication
+        if: (startsWith(github.ref, 'refs/tags/mac-v') || inputs.publish) && steps.signing.outputs.signed != 'true'
+        run: |
+          echo "::error::Published macOS artifacts require the complete Apple signing and notarization credential set."
+          exit 1
 
       - name: Import the Developer ID certificate
         if: steps.signing.outputs.signed == 'true'
@@ -161,6 +225,7 @@ jobs:
         run: |
           keychain="$RUNNER_TEMP/release.keychain-db"
           password="$(python3 -c 'import secrets; print(secrets.token_urlsafe(24))')"
+          trap 'rm -f "$RUNNER_TEMP/certificate.p12"' EXIT
           security create-keychain -p "$password" "$keychain"
           security set-keychain-settings -lut 3600 "$keychain"
           security unlock-keychain -p "$password" "$keychain"
@@ -169,15 +234,30 @@ jobs:
             -T /usr/bin/codesign
           security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "$password" "$keychain"
           security list-keychain -d user -s "$keychain" login.keychain-db
-          rm -f "$RUNNER_TEMP/certificate.p12"
 
       - name: Sign the application with Developer ID
         if: steps.signing.outputs.signed == 'true'
+        env:
+          TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          PROFILE: ${{ secrets.APPLE_PROVISIONING_PROFILE }}
         run: |
-          codesign --force --deep --timestamp --options runtime \
+          printf '%s' "$PROFILE" | base64 --decode > \
+            "apps/desktop/dist/Reality Local.app/Contents/embedded.provisionprofile"
+          python3 apps/desktop/scripts/release-signing.py prepare \
+            --team-id "$TEAM_ID" \
+            --bundle-id ai.runreality.local \
+            --output "$RUNNER_TEMP/release.entitlements"
+          python3 apps/desktop/scripts/release-signing.py sign-nested \
+            --identity "${{ secrets.APPLE_SIGNING_IDENTITY }}" \
+            --app "apps/desktop/dist/Reality Local.app"
+          codesign --force --timestamp --options runtime \
+            --entitlements "$RUNNER_TEMP/release.entitlements" \
             --sign "${{ secrets.APPLE_SIGNING_IDENTITY }}" \
             "apps/desktop/dist/Reality Local.app"
-          codesign --verify --deep --strict --verbose=2 "apps/desktop/dist/Reality Local.app"
+          python3 apps/desktop/scripts/release-signing.py verify \
+            --team-id "$TEAM_ID" \
+            --bundle-id ai.runreality.local \
+            --app "apps/desktop/dist/Reality Local.app"
 
       - name: Build the disk image
         run: |
@@ -192,6 +272,7 @@ jobs:
       - name: Notarize and staple
         if: steps.signing.outputs.signed == 'true'
         run: |
+          trap 'rm -f "$RUNNER_TEMP/api.p8"' EXIT
           printf '%s' "${{ secrets.APPLE_API_PRIVATE_KEY }}" | base64 --decode > "$RUNNER_TEMP/api.p8"
           codesign --force --timestamp --sign "${{ secrets.APPLE_SIGNING_IDENTITY }}" \
             "apps/desktop/dist/Reality-Local.dmg"
@@ -201,34 +282,37 @@ jobs:
             --issuer "${{ secrets.APPLE_API_ISSUER_ID }}" \
             --wait --timeout 45m
           xcrun stapler staple "apps/desktop/dist/Reality-Local.dmg"
-          xcrun stapler validate "apps/desktop/dist/Reality-Local.dmg"
-          rm -f "$RUNNER_TEMP/api.p8"
+          python3 apps/desktop/scripts/release-signing.py verify-dmg \
+            --dmg "apps/desktop/dist/Reality-Local.dmg"
 
       - name: Write the checksum
         run: |
+          python3 apps/desktop/scripts/release-manifest.py \
+            --root apps/desktop/dist/Reality-Local.dmg \
+            --version "$RELEASE_VERSION" \
+            --artifact dmg \
+            --output apps/desktop/dist/Reality-Local-dmg.json
           cd apps/desktop/dist
           shasum -a 256 Reality-Local.dmg > SHA256SUMS.txt
           cat SHA256SUMS.txt
 
       - uses: actions/upload-artifact@v4
         with:
-          name: reality-local-${{ env.RELEASE_VERSION }}
+          name: ${{ inputs.tester_beta && 'reality-local-unsigned-tester-beta-' || 'reality-local-' }}${{ env.RELEASE_VERSION }}
           path: |
             apps/desktop/dist/Reality-Local.dmg
+            apps/desktop/dist/Reality-Local-app-inputs.json
+            apps/desktop/dist/Reality-Local-dmg.json
             apps/desktop/dist/SHA256SUMS.txt
 
       # Always a pre-release: the self-hosted installer reads the "latest release" API.
       - name: Attach to the pre-release
-        if: startsWith(github.ref, 'refs/tags/mac-v') || inputs.publish
+        if: ${{ !inputs.tester_beta && (startsWith(github.ref, 'refs/tags/mac-v') || inputs.publish) }}
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           tag="mac-v${RELEASE_VERSION}"
-          signed="${{ steps.signing.outputs.signed }}"
           note="Notarized by Apple."
-          if [ "$signed" != "true" ]; then
-            note="**Not notarized.** macOS refuses the first launch; approve it in System Settings under Privacy and Security."
-          fi
           if ! gh release view "$tag" >/dev/null 2>&1; then
             gh release create "$tag" --prerelease \
               --title "Reality Local for macOS ${RELEASE_VERSION} (beta)" \
@@ -236,4 +320,6 @@ jobs:
           fi
           gh release upload "$tag" \
             "apps/desktop/dist/Reality-Local.dmg" \
+            "apps/desktop/dist/Reality-Local-app-inputs.json" \
+            "apps/desktop/dist/Reality-Local-dmg.json" \
             "apps/desktop/dist/SHA256SUMS.txt" --clobber

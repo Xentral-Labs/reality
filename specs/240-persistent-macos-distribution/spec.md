@@ -65,6 +65,23 @@ leaves open, so a later increment can extend it without reinterpreting this spec
   (FR-010, FR-012) are not part of this increment. Until they exist, the artifact is
   ad-hoc signed and may only be handed to named testers, never published for download.
 
+### Session 2026-09-26
+
+- **Unsigned tester build**: Before Apple Developer Program enrollment is available,
+  the owner may distribute an explicitly labelled, ad-hoc-signed beta to named testers.
+  It is not a public release and must explain the required macOS manual-open step. Its
+  visible product name, version channel and build metadata distinguish it from a release;
+  it retains the production bundle identifier solely so the signed successor can adopt
+  the same installation without copying business data between application identities.
+- **Temporary credential custody**: That beta may use one installation-owned local
+  credential file solely because Data Protection Keychain access requires the missing
+  distribution entitlement. The file is private to the current user, never enters the
+  app bundle, backup, logs, arguments, browser storage or diagnostics, and contains only
+  generated database/vault material—not upstream integration credentials.
+- **Migration boundary**: A later signed build must move the temporary values into its
+  exact Keychain entries, verify them by reading them back, and only then remove the
+  temporary file. It must never generate replacements for readable existing values.
+
 ## Implementation Increments
 
 - **Increment 1 (this branch)**: User Story 1 and the part of User Story 3 that keeps
@@ -120,6 +137,18 @@ diagnostic bundle that excludes credentials and business contents by default.
 reject corrupt, wrong-version and wrong-key backups; scan diagnostics for secrets and
 business payloads.
 
+### User Story 6 — Test before Apple enrollment (Priority: P1)
+
+The owner gives a clearly labelled unsigned beta to named testers, who can install it
+through macOS's manual-open flow and exercise the persistent product without possessing
+developer tools or Apple signing credentials.
+
+**Independent Test**: On a clean supported Mac, a tester follows the bundled instructions,
+opens the unsigned beta, creates and reopens a company, confirms the beta warning remains
+visible, and verifies generated local custody material is private and absent from the app
+bundle, process arguments, logs, browser storage, backups and diagnostics. A simulated
+signed successor migrates those exact values to Keychain without changing business data.
+
 ## Requirements
 
 ### Functional Requirements
@@ -159,6 +188,12 @@ business payloads.
   setup from spec 239; it MUST NOT introduce desktop-only business services.
 - **FR-016**: Release CI MUST produce reproducible manifests for bundled PostgreSQL,
   Python, native extensions, frontend and app resources and fail on undeclared input.
+- **FR-017**: CI MAY produce an explicitly labelled ad-hoc-signed tester beta before
+  Apple enrollment only for named-test distribution. It MUST use a distinct visible beta channel,
+  display its untrusted status and manual-open instructions, refuse public-release channels,
+  protect generated local custody material with current-user-only access, exclude upstream
+  credentials from that store, and provide a verified one-way migration into the production
+  Keychain path. This exception MUST NOT weaken FR-006 or FR-010 for a published release.
 
 ## Edge Cases
 
@@ -170,6 +205,8 @@ business payloads.
 - Two copies of the same installation are started concurrently.
 - The backup is corrupt, newer than the app, incomplete or belongs to another identity.
 - The user removes the app, retains data and reinstalls a newer compatible version.
+- A tester copies the temporary custody file, changes its permissions or upgrades to a
+  signed build while Keychain access is denied or interrupted.
 
 ### Data and Architecture Requirements
 
@@ -194,6 +231,10 @@ business payloads.
   signature, notarization, stapling and checksum checks pass.
 - **SC-005**: Automated secret scanning finds no configured credential or sampled
   business payload in logs, arguments, browser storage or default diagnostics.
+- **SC-006**: Every unsigned beta qualification run shows the beta warning before company
+  creation, preserves data through ten restarts, stores generated custody material with
+  current-user-only access, and either completes exact Keychain migration or leaves the
+  original beta installation recoverable without altered business records.
 
 ## Requirement Traceability
 
@@ -205,11 +246,14 @@ business payloads.
 | FR-010, FR-011, FR-014, FR-016 | US4 | Clean-Mac download, signature, notarization, manifest and update checks |
 | FR-008, FR-013 | US5 | Backup/restore integrity and diagnostic secret-scanning tests |
 | FR-015 | US1, US4 | Shared company/demo/live/AI setup regression suite |
+| FR-017 | US6 | Clean-Mac unsigned install, warning, custody scan and signed-successor migration tests |
 
 ## Assumptions and Dependencies
 
 - The owner supplies an active Apple Developer account, final product name, bundle ID,
   supported architecture decision and public HTTPS download location before release.
+- Named beta testing may precede Apple Developer Program enrollment, but no unsigned build
+  is advertised as trusted, published through the public release channel or auto-updated.
 - Spec 239's disposable package remains the fresh-test harness and is never relabeled
   as the persistent release.
 - The existing PostgreSQL, migration, job, company setup, Demo Data and AI settings

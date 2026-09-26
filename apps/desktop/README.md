@@ -225,6 +225,23 @@ rustup run 1.98.1 cargo build --locked --manifest-path apps/desktop/src-tauri/Ca
   --output 'apps/desktop/dist/Reality Local Preview.app'
 ```
 
+An installed persistent application exposes maintenance through its native executable,
+so database and vault credentials still come from the exact installation-scoped macOS
+Keychain entries rather than shell arguments:
+
+```sh
+'/Applications/Reality Local.app/Contents/MacOS/reality-local' \
+  --backup "$HOME/Desktop/company.reality-backup"
+
+'/Applications/Reality Local.app/Contents/MacOS/reality-local' \
+  --restore "$HOME/Desktop/company.reality-backup" --confirm-restore
+```
+
+Backup is read-only. Restore replaces the active logical database state and therefore
+requires the explicit `--confirm-restore` flag; without it the native shell exits before
+opening Keychain custody or PostgreSQL. Neither command places secret values in process
+arguments.
+
 The output directory must not already exist. The package is ad-hoc signed and
 verified locally; it is not notarized or ready for distribution. Startup is bounded
 by a ten-second endpoint handshake. Closing the private parent pipe stops the proof
