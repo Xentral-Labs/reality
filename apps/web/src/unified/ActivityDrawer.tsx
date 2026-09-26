@@ -35,6 +35,10 @@ export function eventTitle(event: TimelineEvent): string {
     "ledger.posted": t("Financial posting recorded"),
     "ledger.reversed": t("Financial posting reversed"),
     "settlement.allocated": t("Payment allocation recorded"),
+    "decision.raised": t("Decision raised"),
+    "decision.accepted": t("Decision accepted"),
+    "decision.rejected": t("Decision rejected"),
+    "decision.settled": t("Decision settled"),
   };
   return titles[event.type] || event.business_title || event.type;
 }

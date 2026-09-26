@@ -3330,7 +3330,7 @@ codes and units while the full grouping remains in the query and advanced contro
 Snapshot inputs sit inside the sentence, with accessible labels and a UTC explanation.
 The filter row explicitly shows an unrestricted state when no additional filters apply.
 
-## Order journey timeline (spec 233)
+## Order journey timeline (spec 233, extended by spec 277)
 
 Business Graph's Timeline now uses Facts, Commitments, Reservations, Movements and
 Ledger entries lanes. Each point is a recorded change; same-position collisions expose
@@ -3340,6 +3340,13 @@ customer, item, location, source or correlation never expands order membership.
 Directly attached facts and ledger entries are included; invoice/payment traversal
 is outside this first scope. Source/evidence history remains readable in the journey
 and Inspector rather than being plotted as business reality.
+
+The all-activity view also has a Decisions lane (spec 277). A proposal creates one
+point when it arises and, when settled, another accepted or rejected point. These
+points are not connected. They read the bounded, tenant-scoped decision register and
+link to its history. An order-filtered journey omits tenant-wide decision points until
+the model holds an explicit proposal-to-order relationship; payload or time proximity
+never establishes membership.
 
 The recording-time axis initially fits loaded business events, with explicit short
 periods, user-local Today and Fit history. Loaded counts and partial-history notices

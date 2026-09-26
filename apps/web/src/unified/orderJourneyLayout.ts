@@ -1,4 +1,4 @@
-import type { TimelineEvent } from "../api";
+import type { CopilotProposal, TimelineEvent } from "../api";
 
 export const journeyLanes = [
   { kind: "fact", label: "Facts", caption: "Recorded observations", color: "var(--journey-fact)" },
@@ -7,6 +7,12 @@ export const journeyLanes = [
     label: "Commitments",
     caption: "What was promised",
     color: "var(--journey-commitment)",
+  },
+  {
+    kind: "decision",
+    label: "Decisions",
+    caption: "What was decided",
+    color: "var(--journey-decision)",
   },
   {
     kind: "reservation",
@@ -32,6 +38,45 @@ export type JourneyRange = { start: number; end: number };
 export type JourneyPoint = { key: string; lane: number; x: number; events: TimelineEvent[] };
 export const mergeJourneyEvents = (a: TimelineEvent[], b: TimelineEvent[]) =>
   [...new Map([...a, ...b].map((e) => [e.id, e])).values()].sort((a, b) => a.sequence - b.sequence);
+
+export function decisionTimelineEvents(proposals: CopilotProposal[]): TimelineEvent[] {
+  return proposals.flatMap((proposal, index) => {
+    const marker = (stage: "raised" | "accepted" | "rejected" | "settled", at: string) => ({
+      id: `decision:${proposal.id}:${stage}`,
+      sequence: -(index * 2 + (stage === "raised" ? 2 : 1)),
+      type: `decision.${stage}`,
+      subject_type: "decision",
+      subject_id: proposal.id,
+      occurred_at: at,
+      recorded_at: at,
+      payload: { stage, outcome: proposal.status },
+      source_record_id: null,
+      action_id: proposal.id,
+      correlation_id: null,
+      causation_id: null,
+      area: "decisions",
+      status: proposal.status === "rejected" ? ("attention" as const) : ("completed" as const),
+      business_title:
+        stage === "raised"
+          ? "Decision raised"
+          : stage === "accepted"
+            ? "Decision accepted"
+            : stage === "rejected"
+              ? "Decision rejected"
+              : "Decision settled",
+      business_detail: proposal.review_label,
+    });
+    const raised = marker("raised", proposal.created_at);
+    if (!proposal.decided_at) return [raised];
+    const stage =
+      proposal.status === "rejected"
+        ? "rejected"
+        : proposal.status === "executed"
+          ? "accepted"
+          : "settled";
+    return [raised, marker(stage, proposal.decided_at)];
+  });
+}
 export function journeyRange(events: TimelineEvent[], fallback = Date.now()): JourneyRange {
   const eligible = events.filter((e) =>
     journeyLanes.some((l) => l.kind === journeyLaneKind(e.subject_type)),

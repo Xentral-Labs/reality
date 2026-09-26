@@ -81,6 +81,54 @@ await page.route("**/api/**", async (route) => {
       ],
       has_more: false,
     });
+  if (path.endsWith("/change-proposals")) {
+    const history = url.searchParams.get("status") === "history";
+    const items = history
+      ? [
+          {
+            id: "p-accepted",
+            tool: "reservation_create",
+            actor_type: "human",
+            status: "executed",
+            input: {},
+            created_at: "2026-09-18T10:42:00Z",
+            decided_at: "2026-09-18T10:44:00Z",
+            decided_by: "Owner",
+            decider: { kind: "person", name: "Owner" },
+            review_kind: "common",
+            review_destination: "proposal-review",
+            review_label: "Reserve inventory",
+            review_purpose: "Review the exact change",
+          },
+          {
+            id: "p-rejected",
+            tool: "movement_create",
+            actor_type: "agent",
+            status: "rejected",
+            input: {},
+            created_at: "2026-09-18T10:44:00Z",
+            decided_at: "2026-09-18T10:45:00Z",
+            decided_by: "Owner",
+            decider: { kind: "person", name: "Owner" },
+            review_kind: "common",
+            review_destination: "proposal-review",
+            review_label: "Record movement",
+            review_purpose: "Review the exact change",
+          },
+        ]
+      : [];
+    return reply({
+      items,
+      page: {
+        number: 1,
+        size: 100,
+        total: items.length,
+        pages: 1,
+        has_previous: false,
+        has_next: false,
+      },
+    });
+  }
   if (path.endsWith("/timeline") || path.includes("/order-journeys/")) {
     if (fail) return reply({ detail: "Temporarily unavailable" }, 503);
     if (delayed && path.endsWith("/d1")) await new Promise((r) => setTimeout(r, 700));
@@ -153,9 +201,12 @@ try {
   console.log("Timeline ready");
   await page.getByRole("button", { name: "Hide chat", exact: true }).first().click();
   await page.locator('[data-journey-event="e3"]').waitFor();
-  assert.equal(await page.locator("[data-journey-lane]").count(), 5);
+  assert.equal(await page.locator("[data-journey-lane]").count(), 6);
+  await page.locator('[data-journey-lane="decision"]').waitFor();
+  assert.equal(await page.locator('[data-journey-event^="decision:"]').count(), 4);
   await page.getByRole("button", { name: "Choose sales order", exact: true }).click();
   await page.getByRole("button", { name: /SO-10484.*Klara Foods/ }).click();
+  assert.equal(await page.locator('[data-journey-event^="decision:"]').count(), 0);
   await page.locator("[data-journey-edge]").first().waitFor();
   await page.locator('[data-journey-event="e3"]').click();
   await page.getByRole("button", { name: "Inspect record", exact: true }).click();

@@ -20,7 +20,9 @@ import { Inspector } from "./Inspector";
 import { ReadLine, ReadState } from "./ReadState";
 import { eventTitle } from "./ActivityDrawer";
 import { kindLabels } from "./flightRecorderGraph";
+import { decisionHref } from "./decisionTrail";
 import {
+  decisionTimelineEvents,
   journeyLanes,
   journeyLaneKind,
   journeyRange,
@@ -163,6 +165,7 @@ function JourneyBody({ tenant, order }: { tenant: string; order: JourneyOrder | 
   const [more, setMore] = useState(false);
   const [newer, setNewer] = useState(false);
   const [linksTruncated, setLinksTruncated] = useState(false);
+  const [decisionsTruncated, setDecisionsTruncated] = useState(false);
   const [range, setRange] = useState<JourneyRange | null>(null);
   const [mode, setMode] = useState("fit");
   const [selected, select] = useState<string | null>(null);
@@ -185,7 +188,9 @@ function JourneyBody({ tenant, order }: { tenant: string; order: JourneyOrder | 
       failedMode.current = requestMode;
       const abort = new AbortController();
       controller.current = abort;
-      const sequences = held.current.map((e) => e.sequence);
+      const sequences = held.current
+        .filter((event) => event.subject_type !== "decision")
+        .map((e) => e.sequence);
       const cursor =
         requestMode === "older" && sequences.length
           ? { before: Math.min(...sequences) }
@@ -196,7 +201,23 @@ function JourneyBody({ tenant, order }: { tenant: string; order: JourneyOrder | 
         const read = () => api.journey(tenant, order?.id || "", cursor, abort.signal);
         const page = await (requestMode === "refresh" ? asRefresh(read) : read());
         if (!alive.current || abort.signal.aborted) return;
-        const merged = mergeJourneyEvents(held.current, page.events);
+        let decisionEvents: TimelineEvent[] = [];
+        if (!order && requestMode !== "older") {
+          const [pending, history] = await Promise.all([
+            api.changeProposals(tenant, "pending", 1, "", 100),
+            api.changeProposals(tenant, "history", 1, "", 100),
+          ]);
+          if (!alive.current || abort.signal.aborted) return;
+          decisionEvents = decisionTimelineEvents([...pending.items, ...history.items]);
+          setDecisionsTruncated(
+            pending.page.total > pending.items.length || history.page.total > history.items.length,
+          );
+        }
+        const retained =
+          requestMode === "older"
+            ? held.current
+            : held.current.filter((event) => event.subject_type !== "decision");
+        const merged = mergeJourneyEvents(retained, [...page.events, ...decisionEvents]);
         held.current = merged;
         setEvents(merged);
         if (page.links_truncated) setLinksTruncated(true);
@@ -354,7 +375,7 @@ function JourneyBody({ tenant, order }: { tenant: string; order: JourneyOrder | 
               </span>
             </div>
             <div className="journey-chart-scroll">
-              <div className="journey-paper" style={{ width: width + 140, height: 430 }}>
+              <div className="journey-paper" style={{ width: width + 140, height: 500 }}>
                 <div className="journey-axis" style={{ left: 140, width }}>
                   {Array.from({ length: 5 }, (_, i) => {
                     const time =
@@ -389,7 +410,7 @@ function JourneyBody({ tenant, order }: { tenant: string; order: JourneyOrder | 
                   className="journey-lines"
                   style={{ left: 140 }}
                   width={width}
-                  height={430}
+                  height={500}
                   aria-hidden="true"
                 >
                   {Array.from({ length: 5 }, (_, i) => (
@@ -398,7 +419,7 @@ function JourneyBody({ tenant, order }: { tenant: string; order: JourneyOrder | 
                       x1={20 + ((width - 40) * i) / 4}
                       x2={20 + ((width - 40) * i) / 4}
                       y1={44}
-                      y2={424}
+                      y2={500}
                       className="journey-gridline"
                     />
                   ))}
@@ -479,6 +500,11 @@ function JourneyBody({ tenant, order }: { tenant: string; order: JourneyOrder | 
               )}
             </p>
           )}
+          {decisionsTruncated && !order && (
+            <p className="text-xs text-fg-muted mt-2">
+              {t("Partial decision history. Open Decisions to see all entries.")}
+            </p>
+          )}
           {cluster.length > 0 && (
             <section className="journey-group" aria-label={t("Grouped changes")}>
               <div className="flex justify-between gap-2">
@@ -545,17 +571,23 @@ function JourneyBody({ tenant, order }: { tenant: string; order: JourneyOrder | 
                 </p>
               )}
               <div className="flex flex-wrap gap-2 mt-3">
-                {kindLabels[chosen.subject_type] && chosen.subject_type !== "business_event" && (
+                {chosen.subject_type === "decision" ? (
+                  <a className="br-btn" href={decisionHref(tenant, chosen.subject_id)}>
+                    {t("Open decision")}
+                  </a>
+                ) : kindLabels[chosen.subject_type] && chosen.subject_type !== "business_event" ? (
                   <button className="br-btn" onClick={() => setTarget(eventRef(chosen))}>
                     {t("Inspect record")}
                   </button>
+                ) : null}
+                {chosen.subject_type !== "decision" && (
+                  <button
+                    className="br-btn"
+                    onClick={() => setTarget({ kind: "business_event", id: chosen.id })}
+                  >
+                    {t("Inspect event")}
+                  </button>
                 )}
-                <button
-                  className="br-btn"
-                  onClick={() => setTarget({ kind: "business_event", id: chosen.id })}
-                >
-                  {t("Inspect event")}
-                </button>
               </div>
               {connections.length > 0 && (
                 <div className="journey-connections">
