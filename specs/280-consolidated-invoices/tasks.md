@@ -4,22 +4,22 @@ Tests come before the implementation they prove. Paths are relative to the repos
 
 ## Foundation — failing proofs
 
-- [ ] T001 [US1][US2] Write failing FR-001/FR-002 service proofs in
+- [x] T001 [US1][US2] Write failing FR-001/FR-002 service proofs in
   `packages/reality-core/tests/test_consolidated_invoices.py`: supplier invoice over two
   purchase orders and sales invoice over three orders record one source, one invoice, one line
   per position and one posting group at the stated total; another party, another currency and
   another direction are refused before any write; a failing later position leaves nothing;
   201 positions are refused (FR-010).
-- [ ] T002 [US1][US2] Rewrite `test_invalid_is_inert[mixed]` in
+- [x] T002 [US1][US2] Rewrite `test_invalid_is_inert[mixed]` in
   `packages/reality-core/tests/test_multi_position_invoices.py` to the new rule (same party,
   other order accepted; other party refused).
-- [ ] T003 [US1] Write failing FR-003 proofs in `test_consolidated_invoices.py`: per order line,
+- [x] T003 [US1] Write failing FR-003 proofs in `test_consolidated_invoices.py`: per order line,
   billed + remaining equals ordered before and after the invoice and after its reversal;
   `shipped_not_billed` and `billed_not_received` clear per line.
 
 ## US1/US2 — Core entry
 
-- [ ] T004 [US1][US2] Implement FR-001/FR-002 in
+- [x] T004 [US1][US2] Implement FR-001/FR-002 in
   `packages/reality-core/src/reality/services/core.py` `_preview_order_invoice`: replace the
   same-order refusal with direction/party/currency refusals and the FR-010 bound; add
   `orders[]` to the preview; declare `maxItems: 200` for `lines` in `mcp/catalog.py`.
@@ -82,7 +82,7 @@ Tests come before the implementation they prove. Paths are relative to the repos
 
 ## Verification and review
 
-- [ ] T018 Update `tests/scenarios/test_catalog_purchasing.py` I05 to the guided path and add E02
+- [ ] T018 (I05 guided path done with T004) Add E02
   to `tests/scenarios/test_catalog_finance.py` (#203 is on main); update
   `docs/scenarios/coverage.md`, `docs/features/order_to_cash.md`,
   `docs/features/procure_to_pay.md` and `docs/SPEC_COVERAGE_MATRIX.md`.
