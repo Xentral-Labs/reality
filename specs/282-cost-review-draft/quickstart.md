@@ -33,4 +33,22 @@ the owner signed in with `?lang=de`.
 
 | Check | Result | Date |
 |---|---|---|
-| Checks 1–5 (T905) | — | — |
+| Check 1–3, inventory: opening with value → draft → proposal → owner confirms → 480,00 € (`cost-review-draft-live.mjs`) | PASS | 2026-09-26 |
+| Renewal after a goods issue of 2 pcs → 456,00 € (`RENEW=1`) | PASS | 2026-09-26 |
+| Check 4, contribution DB1 | BLOCKED: the web invoice form states only gross, so `received_net_missing` | 2026-09-26 |
+| Check 5, chat: plain request → one question (method) → proposal linked in the panel | PASS after FR-012 | 2026-09-26 |
+
+## Live findings (2026-09-26, isolated stack)
+
+- **Company party missing.** A new business company has no business partner with role
+  `company`. The draft names it, and the clerk records it in master data.
+- **Web invoices without a net amount.** Sales invoices recorded through the web form state
+  only a gross amount. The contribution preview reports `received_net_missing`, so DB1
+  cannot be proven for them. This is a follow-up spec (invoice form states net and tax as
+  received).
+- **Chat.** Before FR-012 the agent asked for IDs, mistyped copied identifiers and lost them
+  between turns. With `cost_review_propose` and item names it drafts, asks only for the
+  method and proposes. It still shows opaque IDs in its answer text; that is a chat output
+  follow-up, not a draft issue.
+- **Demo seed.** The demo seed fixes its opening cost at 6 per unit in code. No source states
+  it, so the draft leaves those openings open (SC-003).

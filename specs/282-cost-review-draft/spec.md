@@ -265,6 +265,14 @@ item. The proposal is created with arguments equal to the draft.
 - **FR-011**: The inventory draft MUST ask for the valuation method in every draft: FIFO
   preselected, specific selection offered only for serial- or lot-tracked items. No
   company-wide default is stored.
+- **FR-012**: Chat MUST propose a drafted review without copying identifiers or arguments.
+  A proposal tool takes only the kind, the scope and the answers; the server drafts again
+  and proposes exactly that, through the same shared service as the web. An item scope
+  MAY be named by its ID, its SKU, its exact name or a unique part of its name. An
+  ambiguous name MUST be refused with the candidates named, and a human reference MUST
+  never become identity. (Added during implementation: the live chat walk-through showed
+  an agent mistyping copied identifiers and losing them between turns, because chat
+  history carries only answer text.)
 - **FR-009**: The draft MUST be available through MCP and chat as a read tool. The capability
   guidance for `cost_change_propose` and the spec 279 chat prompts MUST direct the agent to
   it first.
@@ -344,6 +352,7 @@ None. Decided by the owner on 2026-09-26:
 | FR-009 | US4 1–3 | MCP parity and agent tool-sequence test |
 | FR-010 | Edge case bounds | bound test |
 | FR-011 | US2 | method input: FIFO preselected, specific only when tracked |
+| FR-012 | US4 | chat proposal tool without copying; item named by SKU/name; live chat |
 | DR-001 | all | no-write assertion |
 | DR-002 | US2 1 | references by opaque ID |
 | DR-003 | US4 | Web, MCP and chat call the same service |
