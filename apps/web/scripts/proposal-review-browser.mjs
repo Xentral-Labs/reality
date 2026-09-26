@@ -25,6 +25,12 @@ const proposals = new Map(
       input: { reference: `TEST-${index}`, amount: "125.50" },
       preview: { effect: `Review ${tool}`, requires_confirmation: true },
       receipt: {},
+      next_step: {
+        review_required: true,
+        required_principal: "authenticated_active_owner",
+        reconciliation_read: "proposal_execution_status",
+        verification_reads: [],
+      },
       confirmable: true,
       rejectable: true,
       message: "",

@@ -15,6 +15,7 @@ from pydantic import WithJsonSchema
 from reality.db.core import Session
 from reality.mcp.auth import DatabaseTokenVerifier
 from reality.mcp.catalog import (
+    MCP_TOOL_REGISTRY,
     MCPToolDefinition,
     dispatch_mcp_tool,
     schema_argument_names,
@@ -56,12 +57,50 @@ class RealityServer(MCPServer):
         context: Context | None = None,
     ) -> CallToolResult:
         try:
+            definition = MCP_TOOL_REGISTRY.get(name)
+            if definition is not None:
+                _reject_unknown_fields(definition.input_schema, arguments)
             return await super().call_tool(name, arguments, context)
         except ToolError as error:
             cause = error.__cause__
             if isinstance(cause, RealityError):
                 raise ToolError(json.dumps(tool_error_payload(name, cause))) from cause
             raise
+
+
+def _reject_unknown_fields(schema: dict[str, Any], value: Any, path: str = "$") -> None:
+    """Enforce the published closed-object contract before SDK argument binding."""
+    branches = schema.get("oneOf", ())
+    if branches and isinstance(value, dict):
+        matching = [
+            branch
+            for branch in branches
+            if all(
+                value.get(field) == property_schema["const"]
+                for field, property_schema in branch.get("properties", {}).items()
+                if "const" in property_schema
+            )
+        ]
+        if len(matching) == 1:
+            _reject_unknown_fields(matching[0], value, path)
+            return
+    schema_type = schema.get("type")
+    if schema_type == "object" and isinstance(value, dict):
+        properties = schema.get("properties", {})
+        if schema.get("additionalProperties") is False:
+            unknown = sorted(set(value) - set(properties))
+            if unknown:
+                fields = ", ".join(f"{path}.{field}" for field in unknown)
+                raise ToolError(f"Unknown field(s): {fields}")
+        for field, child in value.items():
+            child_schema = properties.get(field)
+            if isinstance(child_schema, dict):
+                _reject_unknown_fields(child_schema, child, f"{path}.{field}")
+    elif schema_type == "array" and isinstance(value, list):
+        item_schema = schema.get("items")
+        if isinstance(item_schema, dict):
+            for index, child in enumerate(value):
+                _reject_unknown_fields(item_schema, child, f"{path}[{index}]")
 
 
 def _annotation(schema: dict[str, Any]) -> Any:

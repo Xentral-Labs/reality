@@ -229,8 +229,10 @@ values are rejected before review.
   information and a safe next action.
 - **FR-016**: Shipment proposal tools MUST publish complete discriminated input contracts
   for every supported purpose, including required nested movement shapes and enum values.
-- **FR-017**: Public proposal preparation MUST reject unknown fields and invalid enum values
-  before review and return permitted values.
+- **FR-017**: Public proposal preparation MUST reject unknown fields, including undeclared
+  nested fields, and invalid enum values before review and return permitted values. MCP
+  transports MUST enforce the published closed-object contract before permissive SDK argument
+  binding can discard undeclared fields or invoke domain dispatch.
 - **FR-018**: Capability discovery and description MUST resolve the canonical public names
   of the affected shipment tools and return prerequisites, refusals and verification reads.
 - **FR-019**: Generated tool-usage documentation MUST reflect the executable schemas and

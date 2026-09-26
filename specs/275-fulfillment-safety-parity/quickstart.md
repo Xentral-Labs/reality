@@ -69,3 +69,17 @@ No task or acceptance criterion is complete while a required gate is red.
 - Pull-request CI also passed `docs-quality`, `frontend-quality`, `end-to-end`, `script`,
   `spec-policy`, and `backend-changes` for commit `9d70e57e`.
 - No known implementation or verification limitation remains for the Spec 275 scope.
+
+## Post-merge regression proof
+
+The HTTP MCP runtime must reject undeclared top-level and nested shipment arguments before
+dispatch. This preserves FR-017 even when an MCP SDK binds arguments permissively.
+
+```bash
+.venv/bin/pytest -q \
+  packages/reality-core/tests/test_mcp_http_runtime.py::test_http_runtime_rejects_unknown_shipment_fields_before_dispatch
+```
+
+The live proof rebuilds the MCP container, opens an authenticated MCP HTTP session, submits an
+undeclared shipment field and confirms that the schema error names that field before any party,
+item or fulfillment lookup. Its temporary access token is revoked immediately after the check.
