@@ -91,11 +91,11 @@ invalid fields/enums refuse before review and capability description resolves ca
 - [X] T043 Update durable contracts in `docs/features/order_to_cash.md`, `docs/features/shipments.md`, and the applicable payment-term/master-data contract
 - [X] T044 Run `make spec-check` and audit every FR-001–FR-021 against tests and implementation
 - [X] T045 Run focused Ruff and pytest suites for every changed backend module
-- [ ] T046 Run the complete PostgreSQL backend test suite required by `make test`
+- [X] T046 Run the complete PostgreSQL backend test suite required by `make test`
 - [X] T047 Run frontend tests/build, `npm run i18n:audit`, and `make web-build`
 - [X] T048 Review migration upgrade/downgrade, false-default compatibility and tenant isolation
 - [X] T049 Review the final diff against Source → Evidence → Reality, shortest links, no recomputation and transport parity
-- [ ] T050 Mark tasks complete only for green evidence and record any remaining limitation in `quickstart.md`
+- [X] T050 Mark tasks complete only for green evidence and record any remaining limitation in `quickstart.md`
 
 ## Dependencies
 

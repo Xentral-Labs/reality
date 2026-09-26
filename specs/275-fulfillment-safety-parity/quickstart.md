@@ -63,8 +63,9 @@ No task or acceptance criterion is complete while a required gate is red.
 - `make lint`, `make spec-check` and `git diff --check` passed.
 - `make web-build` passed all 394 frontend tests, formatting, the four-language i18n audit,
   TypeScript compilation and the production Vite build.
-- `make docs-generate` completed. `make docs-catalog-check` is run after the generated
-  artifacts are committed because the check intentionally compares them with Git.
-- The serial full backend suite exposed two contract expectation changes before it was stopped
-  for runtime at 23%; both were repaired and their 44 focused tests passed. The pull-request CI
-  remains the authoritative complete 4,415-test run.
+- `make docs-generate` and the post-commit `make docs-catalog-check` passed.
+- Pull-request CI completed the authoritative 4,415-test PostgreSQL backend suite in two
+  shards; both shards and the aggregate `backend-quality` gate passed.
+- Pull-request CI also passed `docs-quality`, `frontend-quality`, `end-to-end`, `script`,
+  `spec-policy`, and `backend-changes` for commit `9d70e57e`.
+- No known implementation or verification limitation remains for the Spec 275 scope.
