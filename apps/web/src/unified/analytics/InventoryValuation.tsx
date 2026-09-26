@@ -1,4 +1,6 @@
 import { useState } from "react";
+import { useActionDiscovery } from "../ActionLauncher";
+import { reasonText } from "../guidanceActions";
 import { graphApi, type GraphAnswer, type GraphQuestion } from "../../api";
 import { formatDateTime, formatNumber, t } from "../../localization";
 import { ReadState } from "../ReadState";
@@ -75,6 +77,11 @@ function CompanyValuationPage(props: {
     [props.tenant, family],
   );
   const option = read.data?.item;
+  // Spec 279 FR-014: say why the list is empty and who builds valuations.
+  const unavailable = reasonText(
+    useActionDiscovery()?.data?.resolution_guidance,
+    "inventory_valuation_unavailable",
+  );
   return (
     <label className="mt-3 flex flex-col gap-1">
       <span>{t("Financial company generation")}</span>
@@ -102,6 +109,11 @@ function CompanyValuationPage(props: {
         )}
       </select>
       {read.error && <ReadState loading={false} error={read.error} retry={read.refresh} />}
+      {read.data && !read.data.item && (
+        <small className="text-fg-muted" data-valuation-unavailable>
+          {unavailable.label}. {unavailable.explanation}
+        </small>
+      )}
     </label>
   );
 }

@@ -54,7 +54,7 @@ def test_catalog_is_served_with_the_application_catalog():
         ),
         lambda c: c["blockers"].update(insufficient_stock="no_such_step"),
         lambda c: c["reasons"]["cost_stale"].update(label=""),
-        lambda c: c["steps"]["configure_source"].pop("page"),
+        lambda c: c["steps"]["review_open_items"].pop("page"),
     ],
 )
 def test_invalid_catalog_entries_are_rejected(break_catalog):

@@ -22,7 +22,8 @@ test("the shared component renders catalog wording, never codes", async () => {
 test("each path type reuses an existing route and never acts on its own", async () => {
   const component = await source("unified/ResolutionGuidance.tsx");
   const actions = await source("unified/guidanceActions.ts");
-  assert.match(component, /context\.open\(form\)/);
+  // Forms open through the shared launcher; only fields a form accepts are prefilled.
+  assert.match(component, /context\.open\(form, prefill \? paletteActionPrefill\(form, prefill\)/);
   assert.match(component, /route: "decisions", proposal/);
   assert.match(component, /route: "home"/);
   assert.match(component, /prepareChat\(/);
@@ -50,4 +51,21 @@ test("a viewer without the role sees who must act instead of a control", async (
 test("the service result is re-read after any write", async () => {
   const component = await source("unified/ResolutionGuidance.tsx");
   assert.match(component, /addEventListener\(recordsChanged/);
+});
+
+test("delivery blockers read as words and offer the form that resolves them", async () => {
+  const table = await source("unified/ReportDataTable.tsx");
+  assert.match(table, /blockerKeys = new Set\(\["blocker_codes", "blocking_reasons"\]\)/);
+  assert.match(table, /<BlockerGuidance/);
+  const component = await source("unified/ResolutionGuidance.tsx");
+  // A customer delivery is never prefilled into a receipt form.
+  assert.match(component, /\["reserve", "commitment_hold_release"\]\.includes/);
+});
+
+test("storyline checks and the empty valuation list explain themselves", async () => {
+  const narrator = await source("unified/StorylineNarrator.tsx");
+  assert.doesNotMatch(narrator, /`\$\{check\.kind\}: \$\{check\.name\}`/);
+  assert.match(narrator, /operational_exception_guidance/);
+  const valuation = await source("unified/analytics/InventoryValuation.tsx");
+  assert.match(valuation, /"inventory_valuation_unavailable"/);
 });

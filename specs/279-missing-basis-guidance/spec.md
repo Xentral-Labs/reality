@@ -72,6 +72,10 @@ Good existing patterns to reuse:
   health). The guidance says it is operator work and points to system status.
 - Automatic sending of chat requests or any mutation without the existing confirmation.
 - Storing guidance. It is derived at read time.
+- Data sources "No import job". Found during implementation (2026-09-26): records
+  written directly through the API never have an import job, so the label is
+  information, not a missing prerequisite, and a "set up the source" step would
+  mislead.
 - Translating the per-finding impact sentence on the Exceptions page. Several are
   composed with quantities in the services (for example "3 remain overdue"), and
   localizing them needs structured impact values. That is a follow-up.
@@ -210,8 +214,7 @@ existing path exists:
 - the Inventory valuation page;
 - the Price determination report, which gets an input for partner and item;
 - delivery blocker entries;
-- Storyline step checks;
-- Data sources without an import job.
+- Storyline step checks.
 
 **Why this priority**: Each is less frequent. Together they complete "no dead ends".
 
@@ -285,8 +288,8 @@ existing path exists, a working control.
   for the finding's scope.
 - **FR-013**: The Price determination report MUST let the user choose a business partner
   and an item, and resolve them through the existing pricing service.
-- **FR-014**: Delivery blocker entries, Storyline step checks and Data sources without an
-  import job MUST use the shared guidance presentation.
+- **FR-014**: Delivery blocker entries and Storyline step checks MUST use the shared
+  guidance presentation.
 
 ### Domain and Traceability Requirements
 

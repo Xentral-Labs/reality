@@ -6,6 +6,7 @@ import { useActionDiscovery } from "./ActionLauncher";
 import { isActionForm } from "./actionDiscovery";
 import { prepareChat, reasonText, stepBarrier } from "./guidanceActions";
 import type { Destination } from "./routing";
+import { paletteActionPrefill, type PaletteActionTarget } from "./commandPaletteTargets";
 
 /**
  * Spec 279: why a value is missing and the ordered steps that would make it available.
@@ -107,12 +108,15 @@ function StepControl({
   scopeLabel,
   primary = false,
   label,
+  prefill,
 }: {
   action: { path: string; form?: string; page?: string; chat_prompt?: string };
   proposal?: string;
   scopeLabel: string;
   primary?: boolean;
   label?: string;
+  /** Record the form may preselect; only fields the form accepts pass through. */
+  prefill?: PaletteActionTarget;
 }) {
   const context = useActionDiscovery();
   if (!context) return null;
@@ -124,7 +128,11 @@ function StepControl({
   );
   const form = action.form || "";
   if (action.path === "web_form" && isActionForm(form))
-    return button(t("Open form"), () => context.open(form), action.path);
+    return button(
+      t("Open form"),
+      () => context.open(form, prefill ? paletteActionPrefill(form, prefill) : undefined),
+      action.path,
+    );
   if (action.path === "chat" && action.chat_prompt)
     return button(
       t("Prepare with Reality"),
@@ -146,4 +154,48 @@ function StepControl({
       action.path,
     );
   return null;
+}
+
+/**
+ * Spec 279 FR-014: what resolves each delivery blocker, with the existing form that
+ * addresses it. Blockers are static codes, so their wording and step come from the
+ * catalog; whether the order is blocked is decided by the readiness service.
+ */
+export function BlockerGuidance({ codes, commitment }: { codes: string[]; commitment?: string }) {
+  const catalog = useActionDiscovery()?.data?.resolution_guidance;
+  if (!catalog || !codes.length) return null;
+  return (
+    <div data-blocker-guidance className="mb-4 space-y-2 text-sm">
+      <div className="font-semibold text-fg-strong">{t("What resolves it")}</div>
+      <ul className="space-y-2">
+        {codes.map((code) => {
+          const reason = reasonText(catalog, code);
+          const entry = catalog.steps[catalog.blockers[code] || ""];
+          return (
+            <li key={code} data-blocker={code} className="rounded-lg bg-surface p-2">
+              <div className="font-medium">{reason.label}</div>
+              <div className="text-fg-muted">{reason.explanation}</div>
+              {entry && (
+                <div className="mt-2">
+                  <StepControl
+                    action={entry}
+                    scopeLabel=""
+                    label={t(entry.label)}
+                    prefill={
+                      // Only forms that act on this customer delivery take it; a receipt
+                      // form's commitment is a supplier delivery, never this one.
+                      commitment &&
+                      ["reserve", "commitment_hold_release"].includes(entry.form || "")
+                        ? { commitment }
+                        : undefined
+                    }
+                  />
+                </div>
+              )}
+            </li>
+          );
+        })}
+      </ul>
+    </div>
+  );
 }

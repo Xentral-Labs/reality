@@ -177,10 +177,6 @@
       "label": "No company valuation has been published yet",
       "explanation": "Company valuations are built in the background by the operator once item cost reviews exist."
     },
-    "no_import_job": {
-      "label": "No import has run for this source",
-      "explanation": "Set up the source so its records can be imported."
-    },
     "insufficient_stock": {
       "label": "Not enough stock",
       "explanation": "Record the incoming goods or wait for the next receipt."
@@ -265,12 +261,6 @@
       "label": "An administrator maintains price lists",
       "role": "operator",
       "path": "none"
-    },
-    "configure_source": {
-      "label": "Set up the source",
-      "role": "member",
-      "path": "page",
-      "page": "data-sources"
     },
     "record_sales_invoice": {
       "label": "Record the invoice",

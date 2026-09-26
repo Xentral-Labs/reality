@@ -3,6 +3,9 @@ import { formatDateTime, formatExactDecimal, t } from "../localization";
 import { RegisterTable } from "./RegisterTable";
 import { TablePreview } from "./InlinePreview";
 import { reportColumns, reportFieldLabel } from "./reportPresentation";
+import { useActionDiscovery } from "./ActionLauncher";
+import { BlockerGuidance } from "./ResolutionGuidance";
+import { reasonText } from "./guidanceActions";
 
 const quantities = new Set([
   "quantity",
@@ -74,8 +77,11 @@ function RecordFields({ row }: { row: Record<string, unknown> }) {
     </dl>
   );
 }
+// Spec 279: blocker codes read as words in the table cell.
+const blockerKeys = new Set(["blocker_codes", "blocking_reasons"]);
 export function ReportDataTable({ name, rows }: { name: string; rows: Record<string, unknown>[] }) {
   const columns = reportColumns(name, rows);
+  const catalog = useActionDiscovery()?.data?.resolution_guidance;
   const [expanded, setExpanded] = useState<number | null>(null);
   const prefix = useId();
   return (
@@ -106,9 +112,13 @@ export function ReportDataTable({ name, rows }: { name: string; rows: Record<str
               <tr>
                 {columns.map((key) => (
                   <td key={key} data-localization="original">
-                    {row[key] !== null &&
-                    typeof row[key] === "object" &&
-                    (!Array.isArray(row[key]) || (row[key] as unknown[]).length > 0) ? (
+                    {blockerKeys.has(key) && Array.isArray(row[key]) && catalog ? (
+                      (row[key] as unknown[])
+                        .map((code) => reasonText(catalog, String(code)).label)
+                        .join(", ") || "—"
+                    ) : row[key] !== null &&
+                      typeof row[key] === "object" &&
+                      (!Array.isArray(row[key]) || (row[key] as unknown[]).length > 0) ? (
                       <button
                         type="button"
                         className="text-primary underline-offset-4 hover:underline"
@@ -139,6 +149,14 @@ export function ReportDataTable({ name, rows }: { name: string; rows: Record<str
                 open={expanded === index}
                 columns={columns.length + 1}
               >
+                {Array.isArray(row.blocker_codes) && (
+                  <BlockerGuidance
+                    codes={(row.blocker_codes as unknown[]).map(String)}
+                    commitment={
+                      typeof row.commitment_id === "string" ? row.commitment_id : undefined
+                    }
+                  />
+                )}
                 <RecordFields row={row} />
                 <details className="mt-5 border-t border-border-default pt-3">
                   <summary className="cursor-pointer text-sm text-fg-muted">
