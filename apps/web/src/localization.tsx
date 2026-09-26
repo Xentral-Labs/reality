@@ -11310,18 +11310,54 @@ Object.assign(dictionaries.es, {
 });
 
 Object.assign(dictionaries.de, {
+  "Collect positions": "Positionen sammeln",
+  "From one order": "Aus einem Auftrag",
+  "From a party's deliveries": "Aus den Lieferungen eines Geschäftspartners",
+  "Search parties": "Geschäftspartner suchen",
+  Party: "Geschäftspartner",
+  "Billable positions": "Abrechenbare Positionen",
+  "Nothing delivered is waiting to be invoiced for this party.":
+    "Für diesen Geschäftspartner wartet keine Lieferung auf eine Rechnung.",
+  "Showing {shown} of {total} billable positions.":
+    "{shown} von {total} abrechenbaren Positionen angezeigt.",
+  Include: "Übernehmen",
+  billable: "abrechenbar",
   "Billed orders": "Abgerechnete Aufträge",
   "Referenced position": "Bezogene Position",
   "Referenced positions": "Bezogene Positionen",
 });
 
 Object.assign(dictionaries.nl, {
+  "Collect positions": "Regels verzamelen",
+  "From one order": "Uit één order",
+  "From a party's deliveries": "Uit de leveringen van een relatie",
+  "Search parties": "Relaties zoeken",
+  Party: "Relatie",
+  "Billable positions": "Factureerbare regels",
+  "Nothing delivered is waiting to be invoiced for this party.":
+    "Voor deze relatie wacht geen levering op een factuur.",
+  "Showing {shown} of {total} billable positions.":
+    "{shown} van {total} factureerbare regels getoond.",
+  Include: "Opnemen",
+  billable: "factureerbaar",
   "Billed orders": "Gefactureerde orders",
   "Referenced position": "Gekoppelde regel",
   "Referenced positions": "Gekoppelde regels",
 });
 
 Object.assign(dictionaries.es, {
+  "Collect positions": "Reunir líneas",
+  "From one order": "De un pedido",
+  "From a party's deliveries": "De las entregas de un tercero",
+  "Search parties": "Buscar terceros",
+  Party: "Tercero",
+  "Billable positions": "Líneas facturables",
+  "Nothing delivered is waiting to be invoiced for this party.":
+    "No hay entregas pendientes de facturar para este tercero.",
+  "Showing {shown} of {total} billable positions.":
+    "Se muestran {shown} de {total} líneas facturables.",
+  Include: "Incluir",
+  billable: "facturable",
   "Billed orders": "Pedidos facturados",
   "Referenced position": "Línea referenciada",
   "Referenced positions": "Líneas referenciadas",

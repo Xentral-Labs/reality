@@ -1118,7 +1118,7 @@ commands:
     adapters: [Web, API, MCP, Chat]
     reads: [document, document_line]
     writes: [source_record, document, document_line, ledger_entry, business_event]
-    effect: Records stated supplier invoice evidence linked to a purchase order line and posts its payable atomically.
+    effect: Records stated supplier invoice evidence linked to one or more purchase order lines of one supplier and posts its payable atomically.
   - name: Record free supplier invoice
     service: record_free_supplier_invoice
     mode: mutation
@@ -1182,7 +1182,7 @@ commands:
     adapters: [Web, API, MCP, Chat]
     reads: [document, document_line]
     writes: [source_record, document, document_line, ledger_entry]
-    effect: Records a stated invoice against one order line and posts its receivable atomically.
+    effect: Records a stated invoice against one or more order lines of one customer and posts its receivable atomically.
   - name: Post credit note
     service: post_sales_credit_note
     mode: mutation

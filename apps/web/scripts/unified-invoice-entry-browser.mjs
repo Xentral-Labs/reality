@@ -32,6 +32,41 @@ const availability = {
   exhausted: billing("exhausted", "1", "1", "0"),
 };
 const pager = { number: 1, size: 50, total: 1, pages: 1, has_previous: false, has_next: false };
+// Spec 283: one party's billable positions over two orders.
+const partyLines = new Set(["pa", "pb"]);
+const position = (id, label, billable) => ({
+  order_line_id: id,
+  label,
+  unit: "pcs",
+  ordered: "5",
+  delivered: billable,
+  invoiced: "0",
+  remaining: "5",
+  billable,
+  unit_price: "10",
+  order_line_amount: "50",
+});
+const billablePositions = {
+  direction: "sales",
+  party: { id: "customer", name: "Müller" },
+  currency: "EUR",
+  limit: 200,
+  total: 2,
+  orders: [
+    {
+      id: "order-a",
+      number: "ORDER-A",
+      document_date: null,
+      positions: [position("pa", "Desk lamp", "3")],
+    },
+    {
+      id: "order-b",
+      number: "ORDER-B",
+      document_date: null,
+      positions: [position("pb", "Office chair", "2")],
+    },
+  ],
+};
 await page.route("**/api/**", async (route) => {
   const req = route.request(),
     u = new URL(req.url()),
@@ -50,6 +85,12 @@ await page.route("**/api/**", async (route) => {
   if (p === "/api/v1/bootstrap")
     return reply({ tenants: [{ id: "company", name: "Northstar" }], default_tenant_id: "company" });
   if (p.endsWith("/application-reference")) return reply(discoveryReference);
+  if (p.endsWith("/master-data"))
+    return reply({ items: [{ id: "customer", name: "Müller" }], page: pager });
+  if (p.endsWith("/invoice-billable-positions")) {
+    assert.equal(u.searchParams.get("party_id"), "customer");
+    return reply(billablePositions);
+  }
   if (p.endsWith("/evidence-documents"))
     return reply({
       items: [
@@ -96,6 +137,7 @@ await page.route("**/api/**", async (route) => {
   if (p.endsWith("/delivery-actions/prepare")) {
     prepared = req.postDataJSON();
     const a = prepared.arguments;
+    const consolidated = a.lines?.every((row) => partyLines.has(row.order_line_id));
     proposal = {
       id: "invoice",
       tool: prepared.tool,
@@ -109,10 +151,11 @@ await page.route("**/api/**", async (route) => {
         effect: { debit: "accounts_receivable", credit: "sales_revenue" },
         state: {
           billing: a.lines?.map((row) => ({
-            ...availability[row.order_line_id],
+            ...(availability[row.order_line_id] ?? billing(row.order_line_id, "5", "0", "5")),
             requested: row.quantity,
             remaining_after: String(
-              Number(availability[row.order_line_id].remaining) - Number(row.quantity),
+              Number((availability[row.order_line_id] ?? { remaining: "5" }).remaining) -
+                Number(row.quantity),
             ),
           })),
           positions: a.lines?.map((row) => ({
@@ -126,9 +169,19 @@ await page.route("**/api/**", async (route) => {
             currency: "EUR",
             unit: "pcs",
           },
-          order: { id: "order", number: "ORDER-120" },
-          party: { name: "Müller" },
-          item: { name: "Desk lamp" },
+          ...(consolidated
+            ? {
+                orders: [
+                  { id: "order-a", number: "ORDER-A" },
+                  { id: "order-b", number: "ORDER-B" },
+                ],
+                party: { id: "customer", name: "Müller" },
+              }
+            : {
+                order: { id: "order", number: "ORDER-120" },
+                party: { name: "Müller" },
+                item: { name: "Desk lamp" },
+              }),
         },
       },
     };
@@ -287,9 +340,44 @@ try {
   await page.locator("#invoice-title").waitFor();
   await page.getByRole("button", { name: "Reject", exact: true }).click();
   await page.getByRole("dialog").getByText("Rejected", { exact: true }).waitFor();
+  // Spec 283: a consolidated invoice from one party's deliveries over two orders.
+  await page.goto(
+    (process.env.UNIFIED_BASE_URL || "http://localhost:5177") + "/app/finance?tenant=company",
+  );
+  if (await page.locator(".register-actions:not([open]) > summary").count())
+    await page.locator(".register-actions > summary").click();
+  await page.getByRole("button", { name: "New customer invoice", exact: true }).click();
+  await page.getByLabel("Collect positions", { exact: true }).selectOption("party");
+  await page.getByLabel("Party", { exact: true }).selectOption("customer");
+  await page.getByText("Order: ORDER-B", { exact: true }).waitFor();
+  await page.getByLabel("Include Desk lamp", { exact: true }).check();
+  await page.getByLabel("Include Office chair", { exact: true }).check();
+  assert.equal(await page.getByLabel("Quantity", { exact: true }).nth(1).inputValue(), "2");
+  await page.getByLabel("Stated line amount", { exact: true }).first().fill("30");
+  await page.getByLabel("Stated line amount", { exact: true }).nth(1).fill("20");
+  await page.getByLabel("Invoice number", { exact: true }).fill("INV-283");
+  await page.getByLabel("Stated invoice amount", { exact: true }).fill("50");
+  await page.screenshot({ path: "/private/tmp/reality-124-invoice-browser/party-entry-1440.png" });
+  await page.getByRole("button", { name: "Review change", exact: true }).click();
+  await page.getByRole("button", { name: "Confirm change", exact: true }).waitFor();
+  assert.deepEqual(prepared.arguments.lines, [
+    { order_line_id: "pa", quantity: "3", gross_amount: "30" },
+    { order_line_id: "pb", quantity: "2", gross_amount: "20" },
+  ]);
+  await page.getByRole("button", { name: "Order: ORDER-A", exact: true }).waitFor();
+  await page.getByRole("button", { name: "Order: ORDER-B", exact: true }).waitFor();
+  await page.getByRole("button", { name: "Edit", exact: true }).click();
+  await page.getByLabel("Include Office chair", { exact: true }).waitFor();
+  assert.equal(await page.getByLabel("Collect positions", { exact: true }).inputValue(), "party");
+  assert.equal(await page.getByLabel("Include Desk lamp", { exact: true }).isChecked(), true);
+  assert.equal(await page.getByLabel("Include Office chair", { exact: true }).isChecked(), true);
+  assert.equal(
+    await page.getByLabel("Stated line amount", { exact: true }).nth(1).inputValue(),
+    "20",
+  );
   assert.deepEqual(errors, []);
   console.log(
-    "PASS invoice entry, stated amount, localized responsive review and lost-response recovery",
+    "PASS invoice entry, stated amount, localized responsive review, lost-response recovery and consolidated party entry",
   );
 } catch (error) {
   console.error(errors);

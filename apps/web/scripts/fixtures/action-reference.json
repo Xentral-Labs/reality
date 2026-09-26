@@ -593,7 +593,7 @@
       "service": "record_supplier_invoice",
       "mode": "mutation",
       "adapters": ["Web", "API", "MCP", "Chat"],
-      "effect": "Records stated supplier invoice evidence linked to a purchase order line and posts its payable atomically."
+      "effect": "Records stated supplier invoice evidence linked to one or more purchase order lines of one supplier and posts its payable atomically."
     },
     {
       "name": "Record free supplier invoice",
@@ -657,7 +657,7 @@
       "service": "record_sales_invoice",
       "mode": "mutation",
       "adapters": ["Web", "API", "MCP", "Chat"],
-      "effect": "Records a stated invoice against one order line and posts its receivable atomically."
+      "effect": "Records a stated invoice against one or more order lines of one customer and posts its receivable atomically."
     },
     {
       "name": "Post credit note",

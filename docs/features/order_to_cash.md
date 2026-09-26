@@ -29,6 +29,20 @@ Missing invoice evidence, ambiguous cross-order invoice attribution, or an unpai
 dispatch blockers. Tenant, customer and currency must agree. Reversed posting groups do not
 qualify. Ordinary net-term orders are not blocked merely because they are unpaid.
 
+A consolidated invoice that also bills other orders of the same customer in the same currency is
+not ambiguous (spec 283). It counts for the order only once it is settled in full, by what its own
+lines state for this order; while it is open, `prepayment_consolidated_invoice_open` names the
+invoice and its open amount. No payment is split across orders.
+
+## Consolidated invoices
+
+One customer invoice may bill delivered positions of several orders of one customer in one
+currency (spec 283). The guided entry collects them from `invoice_billable_positions`: what the
+customer kept (shipped less returned) and is not yet billed, grouped by order. Each invoice line
+links to its own order line, so billing, `shipped_not_billed` and the Inspector stay per line. A
+payment that names only one of those orders is not allocated to the whole invoice; it becomes a
+candidate with a stated reason, while the invoice number still allocates.
+
 ## Done when
 
 A deterministic test proves full and partial fulfillment, partial payment, credit,

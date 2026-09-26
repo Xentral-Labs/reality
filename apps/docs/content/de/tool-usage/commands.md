@@ -3631,7 +3631,8 @@ Projection [`document_register`](./views#projection-document_register)
 
 ### `record_sales_invoice` — Record sales invoice {#command-record_sales_invoice}
 
-Records a stated invoice against one order line and posts its receivable atomically.
+Records a stated invoice against one or more order lines of one customer and posts its receivable
+atomically.
 
 **Aufruf**
 
@@ -3690,8 +3691,8 @@ sales_invoice_record_propose [order_line_id] [quantity] [lines] gross_amount num
 
 ### `record_supplier_invoice` — Record supplier invoice {#command-record_supplier_invoice}
 
-Records stated supplier invoice evidence linked to a purchase order line and posts its payable
-atomically.
+Records stated supplier invoice evidence linked to one or more purchase order lines of one supplier
+and posts its payable atomically.
 
 **Aufruf**
 

@@ -8,7 +8,7 @@ start with `packages/`, `specs/` or `docs/`. Re-measure a row before building on
 
 ## Summary
 
-228 scenarios: 69 covered, 82 partial, 0 missing, 74 gap, 3 out.
+228 scenarios: 70 covered, 81 partial, 0 missing, 74 gap, 3 out.
 
 | Section | covered | partial | missing | gap | out |
 |---|---|---|---|---|---|
@@ -16,7 +16,7 @@ start with `packages/`, `specs/` or `docs/`. Re-measure a row before building on
 | B Availability and reservation | 5 | 7 |  | 6 |  |
 | C Payment and release | 9 | 5 |  | 4 |  |
 | D Shipment, split and merge | 3 | 4 |  | 12 |  |
-| E Customer invoice and credit | 7 | 5 |  |  |  |
+| E Customer invoice and credit | 8 | 4 |  |  |  |
 | F Returns and complaints | 6 | 6 |  | 1 |  |
 | G Purchase demand and order | 5 | 7 |  | 5 |  |
 | H Receipt and supplier deviations | 9 | 3 |  | 7 |  |
@@ -208,7 +208,7 @@ scenario tests from existing pieces. Each will show whether the pieces reconcile
 | ID | Status | Evidence | Note |
 |---|---|---|---|
 | E01 | covered | tests/operational_exceptions/test_derivation.py::test_shipped_not_billed; ::test_billing_sums_across_invoices | Unbilled quantity per order line falls to zero as partial invoices arrive. |
-| E02 | partial | specs/122-multi-position-invoices/spec.md (multi-order consolidation is a non-goal); tests/test_multi_position_invoices.py::test_invalid_is_inert[mixed] | Line-level `billed_document_line_id` could express it, but the shared invoice entry refuses lines from several orders; there is no collective-invoice test. |
+| E02 | covered | tests/scenarios/test_catalog_finance.py::test_one_monthly_invoice_bills_the_deliveries_of_three_orders | The month's deliveries of three orders are read from `invoice_billable_positions` and billed on one guided invoice; `shipped_not_billed` clears and nothing remains billable (spec 283). |
 | E03 | partial | tests/test_fulfillment_readiness.py::test_prepayment_readiness_uses_stated_order_and_active_allocation | Invoicing before shipment works; there is no sales-side "billed not shipped" observation (only purchase-side `billed_not_received`) and no pro-forma document type. |
 | E04 | covered | tests/test_partial_invoicing_rebilling.py::test_partial_reversal_rebilling_and_historical_proof; tests/test_ledger_reversals.py::test_reversal_appends_exact_inverse_and_preserves_original | The exact inverse is appended and the original stays; billing becomes available again for the new invoice. |
 | E05 | covered | tests/test_unified_invoice_credit.py::test_partial_multi_credit_without_return_and_exact_recovery; ::test_financial_credit_does_not_require_return_exception | The receivable drops with zero Movements and no `credited_not_returned`. |
@@ -292,7 +292,7 @@ scenario tests from existing pieces. Each will show whether the pieces reconcile
 | I02 | covered | tests/operational_exceptions/test_derivation.py::test_received_but_not_yet_billed_is_not_reported; tests/scenarios/test_storyline_purchase_to_pay.py (billed_not_received raised/cleared) | |
 | I03 | covered | tests/scenarios/test_storyline_purchase_to_pay.py::test_the_default_path_raises_and_clears_every_finding_by_rule | `invoice_price_differs` on the supplier invoice remains at month end. |
 | I04 | covered | tests/operational_exceptions/test_derivation.py::test_billed_not_received | Billed 6, received 0, clears on receipt. |
-| I05 | covered | tests/scenarios/test_catalog_purchasing.py::test_one_supplier_invoice_bills_lines_of_two_purchase_orders | Only the free supplier invoice path accepts lines of two POs; the order-line invoice command refuses them ("Invoice positions must belong to the same order."). |
+| I05 | covered | tests/scenarios/test_catalog_purchasing.py::test_one_supplier_invoice_bills_lines_of_two_purchase_orders | One guided supplier invoice bills lines of two purchase orders, allocated per purchase (spec 283). |
 | I06 | partial | tests/operational_exceptions/test_derivation.py::test_billing_sums_across_invoices | Summing across invoices is tested on the sales side only. |
 | I07 | partial | tests/test_costing_services.py (inbound_freight attribution) | Freight is attributed to a receipt, but the evidence is from the goods supplier; a third-party carrier invoice is untested. |
 | I08 | covered | tests/test_credit_notes.py::test_netting_leaves_the_remainder_open; tests/scenarios/test_storyline_purchase_to_pay.py::test_the_credit_branch_pays_less_and_keeps_the_quantity_finding | |
