@@ -77,13 +77,13 @@ All task descriptions, paths, review notes and repository artifacts are written 
 ## Final Phase: Cross-Cutting Review
 
 - [x] T900 `make spec-check`; add the new test families to `docs/SPEC_COVERAGE_MATRIX.md`.
-- [ ] T901 Ruff (`packages/reality-core`, `--no-cache`) and the complete backend suite from a clean detached worktree.
+- [x] T901 Ruff (`packages/reality-core`, `--no-cache`) and the complete backend suite from a clean detached worktree. (2026-09-26: 4513 passed, 10 skipped, 2 failed, 2 errors. Both failures were real and fixed in later commits: proposal review parity binding, and the frontend action reference fixture. Both errors were PostgreSQL "out of shared memory" during parallel schema setup; those tests pass alone.)
 - [x] T902 Run the completeness gates: `test_application_catalog.py` (isolation count), `test_tool_catalog.py`, `tests/tenant_isolation`, `test_reporting_graph_coverage.py`, `test_schema_indexes.py`.
 - [x] T903 `make web-build`, i18n audit, node contracts, `cost-review-draft-browser.mjs`, `cost-explanation-browser.mjs`.
 - [x] T904 `make docs-generate`; commit the regenerated Tool Usage output.
 - [x] T905 [SC-001] (Inventory path live-proven 2026-09-26; DB1 blocked by web invoices without a stated net, see `quickstart.md`.) Re-run `apps/web/scripts/missing-basis-walkthrough-live.mjs` in a business company on an isolated stack, extended with the dialog path. Record in `quickstart.md`.
 - [x] T906 Update `docs/features/receipt-costing.md` (draft and opening cost statement) and `docs/WEB_SPEC.md` (review dialog) after the checks are green.
-- [ ] T907 Review the final diff against the Constitution and every FR and DR.
+- [x] T907 Review the final diff against the Constitution and every FR and DR. (Fixed: literal wildcards in item references; an accidental repo-wide reformat was reverted before merge.)
 
 ## Requirement Coverage
 
