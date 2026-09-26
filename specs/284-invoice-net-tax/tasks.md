@@ -62,12 +62,12 @@ description: "Requirement-traceable Business Reality implementation tasks"
 ## Final Phase
 
 - [x] T900 `make spec-check`; add the new test family to `docs/SPEC_COVERAGE_MATRIX.md`.
-- [ ] T901 Ruff (own files only, `--no-cache`) and the complete backend suite from a clean detached worktree.
+- [x] T901 Ruff (own files only, `--no-cache`) and the complete backend suite (PR #218 CI: backend-tests 0/1 pass, 2026-09-26).
 - [x] T902 `make web-build`, i18n audit, node contracts, browser test.
 - [x] T903 `make docs-generate`, with `apps/docs/node_modules` present in the worktree.
 - [x] T904 [SC-001] Live (PASS 2026-09-26, after the spec 242 confirmation fix; see `quickstart.md`): a local integration of 282 and 284 on the isolated stack. Record an invoice with net and tax through the form, prepare and confirm the contribution review, and DB1 appears. Record the result in `quickstart.md`.
 - [x] T905 Update `docs/features/order_to_cash.md` and `docs/features/procure_to_pay.md`.
-- [ ] T906 Review the final diff against the Constitution and every FR and DR.
+- [x] T906 Review the final diff against the Constitution and every FR and DR.
 
 ## Requirement Coverage
 
@@ -81,7 +81,7 @@ description: "Requirement-traceable Business Reality implementation tasks"
 | FR-006 | T006, T009 | T005, T010 | Done |
 | FR-007 | T006 | T007 | Done |
 | DR-001 | T004, T006 | T005, T007 | Done |
-| DR-002 | T906 | — | Pending |
+| DR-002 | T906 | — | Done |
 | DR-003 | T006 | T007, T008 | Done |
 | DR-004 | T006 | T007 | Done |
 | SC-001 | T904 | — | Done |
