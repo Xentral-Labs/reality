@@ -47,8 +47,9 @@ should name only what a person genuinely has to decide or state.
   review" steps. It shows the draft in business language, collects only the open inputs,
   and creates the proposal through the existing proposal path. The owner confirms in
   Decisions as today.
-- A way to state an opening's acquisition cost together with its evidence, so that an
-  opening stock can be reviewed at all.
+- The opening stock form also takes the opening's acquisition cost and an evidence
+  reference. It records them as a SourceRecord linked to the movement, so that an opening
+  stock can be reviewed at all.
 
 ### Non-Goals
 
@@ -61,7 +62,11 @@ should name only what a person genuinely has to decide or state.
 - Batch reviews across several items or lines. The single-scope draft comes first.
 - Selling-cost (DB2) reviews. The contribution draft covers DB1; selling categories stay
   unreviewed, as the review allows today.
-- A cost policy editor. The valuation method is an input to one review, not a new setting.
+- A cost policy editor or a company-wide default method. The valuation method is asked in
+  each draft.
+- A separate "opening cost statement" document. An opening recorded earlier without cost
+  gets its cost through the existing movement correction: the opening is replaced by one
+  recorded with cost.
 
 ### Existing Contracts
 
@@ -123,8 +128,9 @@ review" and sees the draft:
 - every movement classified (receipts, shipments, returns, losses);
 - the receipt cost manifests it will use.
 
-The only question left is the valuation method, if the company has none on record. The clerk
-confirms the draft, and the owner confirms the proposal.
+The only question is the valuation method. FIFO is preselected; specific selection is offered
+only for items tracked by serial or lot. The clerk confirms the draft, and the owner confirms
+the proposal.
 
 **Why this priority**: It is the step the walk-through could not complete, and it blocks both
 stock value and DB1.
@@ -158,28 +164,31 @@ filled.
 
 ### User Story 3 - Opening stock can carry evidenced cost (Priority: P1)
 
-A company started with opening stock recorded through the form. To review the item, the
-clerk states the opening's acquisition cost together with its evidence, for example a
-closing inventory list or an import document. Reality records that statement as evidence,
-and the draft uses it.
+A company starts with opening stock. When recording it, the clerk enters the acquisition cost
+and what it is based on, for example "closing inventory list 2025-12-31". Reality records
+that statement as a source, links it to the opening movement, and the draft uses it.
 
 **Why this priority**: Without it no opening stock can ever be reviewed, which is the typical
 state of a new company.
 
-**Independent Test**: Record opening stock, state its cost with evidence, request the draft.
-The opening appears with `evidence_source_record_id` and the stated acquisition cost, and the
-inventory check accepts it.
+**Independent Test**: Record opening stock with cost and evidence through the form's
+service, then request the draft. The opening appears with `evidence_source_record_id` and the
+stated acquisition cost, and the inventory check accepts it.
 
 **Acceptance Scenarios**:
 
 1. **Given** an opening stock without cost evidence, **When** the draft is requested,
    **Then** the open input says the opening's acquisition cost and its evidence are
    missing. It never proposes a value.
-2. **Given** that the clerk states the opening cost with evidence through the
-   shared service, **When** the draft is requested again, **Then** the opening carries that
+2. **Given** an opening recorded through the form with acquisition cost and an evidence
+   reference, **When** the draft is requested, **Then** the opening carries the created
    evidence record and the stated amount unchanged.
-3. **Given** that another company's evidence is referenced, **When** it is stated, **Then**
-   it behaves as not found.
+3. **Given** an opening recorded earlier without cost, **When** the clerk corrects it with
+   the existing movement correction to a replacement opening with cost, **Then** the draft
+   uses the replacement and ignores the corrected original.
+4. **Given** the opening form without a cost, **When** it is submitted, **Then** it still
+   records the opening as today. Cost stays optional, and the draft lists it as an open
+   input.
 
 ---
 
@@ -248,9 +257,13 @@ item. The proposal is created with arguments equal to the draft.
   section.
 - **FR-007**: A stale draft MUST be refused by the existing checks. The dialog MUST re-draft
   and explain the change.
-- **FR-008**: A person MUST be able to state an opening stock's acquisition cost together
-  with its evidence through a shared service. The statement is recorded as evidence, and the
-  inventory draft uses it unchanged.
+- **FR-008**: The opening stock form and its shared service MUST accept an optional
+  acquisition cost with a required evidence reference when a cost is given. The service
+  records them as a SourceRecord linked to the opening movement, and the inventory draft uses
+  the amount unchanged. Openings without cost MUST keep working as today.
+- **FR-011**: The inventory draft MUST ask for the valuation method in every draft: FIFO
+  preselected, specific selection offered only for serial- or lot-tracked items. No
+  company-wide default is stored.
 - **FR-009**: The draft MUST be available through MCP and chat as a read tool. The capability
   guidance for `cost_change_propose` and the spec 279 chat prompts MUST direct the agent to
   it first.
@@ -304,15 +317,12 @@ item. The proposal is created with arguments equal to the draft.
 
 ## Open Questions
 
-- [NEEDS CLARIFICATION: How is opening cost evidence stated? (a) The opening stock form also
-  takes the acquisition cost and an evidence reference, and records them as a SourceRecord
-  linked to the movement; (b) a separate "opening cost statement" document through manual
-  evidence entry, which the draft finds by the item; (c) both. This changes the form, the
-  evidence chain and FR-008's tests.]
-- [NEEDS CLARIFICATION: Where does the valuation method come from? (a) The draft always asks
-  (FIFO preselected, specific selection only for serial or lot items); (b) a company-level
-  default recorded once and reused by every draft. (b) adds a setting, which the Non-Goals
-  currently exclude.]
+None. Decided by the owner on 2026-09-26:
+
+- Opening cost evidence is entered in the opening stock form (option a). Openings recorded
+  earlier without cost use the existing movement correction.
+- The draft asks for the valuation method every time (FIFO preselected). There is no
+  company-wide default.
 
 ## Requirement Traceability
 
@@ -325,9 +335,10 @@ item. The proposal is created with arguments equal to the draft.
 | FR-005 | US1 1, US2 1 | draft arguments pass `preview_cost_change` |
 | FR-006 | US1 2 | browser test of the review dialog |
 | FR-007 | US1 4 | stale draft refused and re-drafted |
-| FR-008 | US3 2 | opening cost evidence service test |
+| FR-008 | US3 1–4 | opening form service with cost and evidence; without cost unchanged |
 | FR-009 | US4 1–3 | MCP parity and agent tool-sequence test |
 | FR-010 | Edge case bounds | bound test |
+| FR-011 | US2 | method input: FIFO preselected, specific only when tracked |
 | DR-001 | all | no-write assertion |
 | DR-002 | US2 1 | references by opaque ID |
 | DR-003 | US4 | Web, MCP and chat call the same service |
