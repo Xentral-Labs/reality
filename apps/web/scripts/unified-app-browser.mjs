@@ -2,6 +2,7 @@
 import assert from "node:assert/strict";
 import { mkdir } from "node:fs/promises";
 import { pathToFileURL } from "node:url";
+import { reference as discoveryReference } from "./action-discovery-fixture.mjs";
 if (!process.env.PLAYWRIGHT_MODULE)
   throw new Error("Set PLAYWRIGHT_MODULE; browser acceptance must not be silently skipped.");
 const { chromium } = await import(pathToFileURL(process.env.PLAYWRIGHT_MODULE));
@@ -12,7 +13,10 @@ const browser = await chromium.launch({
 const context = await browser.newContext();
 const page = await context.newPage();
 const errors = [];
-page.on("pageerror", (error) => errors.push(error.message));
+page.on("pageerror", (error) => {
+  errors.push(error.message);
+  console.error(`Browser page error: ${error.message}`);
+});
 const tenants = [
   { id: "tenant_a", name: "Northstar Commerce" },
   { id: "tenant_b", name: "Second company" },
@@ -35,10 +39,7 @@ await page.route("**/api/**", async (route) => {
   requests.push(url.pathname);
   const respond = (body, status = 200) =>
     route.fulfill({ status, contentType: "application/json", body: JSON.stringify(body) });
-  if (url.pathname.endsWith("/application-reference"))
-    return respond({
-      workspaces: [{ actions: [{ command: "reserve" }, { command: "record_movement" }] }],
-    });
+  if (url.pathname.endsWith("/application-reference")) return respond(discoveryReference);
   if (url.pathname === "/api/auth/me") return respond(user);
   if (url.pathname === "/api/v1/bootstrap")
     return respond({ tenants, default_tenant_id: "tenant_a" });
@@ -99,7 +100,7 @@ await mkdir(out, { recursive: true });
 try {
   await page.setViewportSize({ width: 1440, height: 1000 });
   await page.goto(`${base}/app?tenant=tenant_a`);
-  await page.getByRole("heading", { name: "Your business, in focus." }).waitFor();
+  await page.locator("[data-home-pulse]").waitFor();
   await page.screenshot({ path: `${out}/home-desktop.png`, fullPage: true });
   await page.getByRole("button", { name: "Switch company", exact: true }).click();
   await page.locator('[data-company-option="tenant_b"]').click();
@@ -117,7 +118,7 @@ try {
   assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
   await page.getByRole("button", { name: "Navigation", exact: true }).click();
   await page.getByRole("link", { name: "Home", exact: true }).click();
-  await page.getByRole("heading", { name: "Your business, in focus." }).waitFor();
+  await page.locator("[data-home-pulse]").waitFor();
   await page.goto(`${base}/app?tenant=foreign`);
   await page.getByRole("heading", { name: "Company unavailable" }).waitFor();
   assert.equal(

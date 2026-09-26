@@ -2,6 +2,7 @@
 import assert from "node:assert/strict";
 import { pathToFileURL } from "node:url";
 import { mkdir } from "node:fs/promises";
+import { reference as discoveryReference } from "./action-discovery-fixture.mjs";
 if (!process.env.PLAYWRIGHT_MODULE) throw new Error("Set PLAYWRIGHT_MODULE.");
 const { chromium } = await import(pathToFileURL(process.env.PLAYWRIGHT_MODULE));
 const browser = await chromium.launch({
@@ -92,10 +93,7 @@ await page.route("**/api/**", async (route) => {
     path = url.pathname;
   const reply = (body, status = 200) =>
     route.fulfill({ status, contentType: "application/json", body: JSON.stringify(body) });
-  if (url.pathname.endsWith("/application-reference"))
-    return reply({
-      workspaces: [{ actions: [{ command: "reserve" }, { command: "record_movement" }] }],
-    });
+  if (url.pathname.endsWith("/application-reference")) return reply(discoveryReference);
   if (path === "/api/auth/me")
     return reply({
       id: "operator",
@@ -234,7 +232,7 @@ try {
       messages = [];
       confirmed = 0;
       await page.goto(`${base}/app?tenant=${tenant}`);
-      await page.getByRole("heading", { name: "Your business, in focus." }).waitFor();
+      await page.locator("[data-home-pulse]").waitFor();
       const action = tool === "reserve" ? "Reserve stock" : "Record shipment";
       if (entry === "case") {
         await page.getByRole("link", { name: "Orders & deliveries", exact: true }).click();

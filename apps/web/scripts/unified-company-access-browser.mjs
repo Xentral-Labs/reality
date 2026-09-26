@@ -260,7 +260,7 @@ try {
   await page.goto(`${base}/invitation#token=fixture-secret`);
   await page.getByRole("button", { name: "Accept invitation", exact: true }).click();
   await page.waitForURL(/\/app\?tenant=other/);
-  await page.getByRole("heading", { name: "Your business, in focus.", exact: true }).waitFor();
+  await page.locator("[data-home-pulse]").waitFor();
   await page.getByRole("button", { name: "Open analytics", exact: true }).waitFor();
   assert.equal(
     await page

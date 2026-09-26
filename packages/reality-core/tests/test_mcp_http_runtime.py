@@ -1,12 +1,11 @@
 from __future__ import annotations
 
 from fastapi.testclient import TestClient
-from sqlalchemy.orm import sessionmaker
-
 from reality.mcp import auth as auth_module
 from reality.mcp.app import create_mcp_app
 from reality.mcp.auth import create_mcp_access_token
 from reality.mcp.config import MCPRuntimeSettings
+from sqlalchemy.orm import sessionmaker
 
 
 def test_sdk_supports_target_protocol_revision():
@@ -102,7 +101,9 @@ def test_http_tools_list_serializes_complete_shipment_execution_contracts(
 ):
     factory = sessionmaker(session.bind, expire_on_commit=False)
     monkeypatch.setattr(auth_module, "Session", factory)
-    _, clear_token = create_mcp_access_token(session, business.tenant.id, "Schema client")
+    _, clear_token = create_mcp_access_token(
+        session, business.tenant.id, "Schema client"
+    )
     runtime = create_mcp_app(
         settings=MCPRuntimeSettings(
             public_url="http://localhost:8001/",
@@ -138,7 +139,9 @@ def test_http_tools_list_serializes_complete_shipment_execution_contracts(
             json={"jsonrpc": "2.0", "id": 2, "method": "tools/list", "params": {}},
         )
 
-    tools = {row["name"]: row["inputSchema"] for row in response.json()["result"]["tools"]}
+    tools = {
+        row["name"]: row["inputSchema"] for row in response.json()["result"]["tools"]
+    }
     for name, purposes in {
         "shipment_dispatch_propose": {"customer_delivery", "supplier_return"},
         "shipment_receive_propose": {"supplier_delivery", "customer_return"},
@@ -154,6 +157,72 @@ def test_http_tools_list_serializes_complete_shipment_execution_contracts(
             <= set(row["properties"]["movements"]["items"]["required"])
             for row in branches
         )
+
+
+def test_http_runtime_rejects_unknown_shipment_fields_before_dispatch(
+    session, business, monkeypatch
+):
+    factory = sessionmaker(session.bind, expire_on_commit=False)
+    monkeypatch.setattr(auth_module, "Session", factory)
+    _, clear_token = create_mcp_access_token(
+        session, business.tenant.id, "Strict client"
+    )
+    runtime = create_mcp_app(
+        settings=MCPRuntimeSettings(
+            public_url="http://localhost:8001/",
+            bind_host="127.0.0.1",
+            bind_port=8001,
+        ),
+        session_factory=factory,
+    )
+    headers = {
+        "Authorization": f"Bearer {clear_token}",
+        "Accept": "application/json, text/event-stream",
+        "Host": "localhost:8001",
+    }
+    arguments = {
+        "purpose": "customer_delivery",
+        "counterparty_id": business.customer.id,
+        "movements": [
+            {
+                "item_id": business.item.id,
+                "quantity": "1",
+            }
+        ],
+    }
+
+    with TestClient(runtime) as client:
+        for field, invalid_arguments in (
+            ("unexpected_top_level", arguments | {"unexpected_top_level": True}),
+            (
+                "unexpected_nested",
+                arguments
+                | {
+                    "movements": [
+                        arguments["movements"][0] | {"unexpected_nested": True}
+                    ]
+                },
+            ),
+        ):
+            response = client.post(
+                "/",
+                headers=headers,
+                json={
+                    "jsonrpc": "2.0",
+                    "id": 1,
+                    "method": "tools/call",
+                    "params": {
+                        "name": "shipment_dispatch_propose",
+                        "arguments": invalid_arguments,
+                    },
+                },
+            )
+
+            result = response.json()["result"]
+            assert result["isError"] is True
+            message = result["content"][0]["text"]
+            assert field in message
+            assert "Party not found" not in message
 
 
 def test_readiness_is_safe_when_database_is_unavailable():
