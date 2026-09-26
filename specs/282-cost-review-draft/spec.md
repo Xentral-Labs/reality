@@ -206,9 +206,10 @@ item. The proposal is created with arguments equal to the draft.
 
 **Acceptance Scenarios**:
 
-1. **Given** a derivable scope, **When** the chat agent handles the prepared request,
-   **Then** it calls the draft, proposes exactly the drafted arguments, and asks no
-   question.
+1. **Given** a derivable contribution scope, **When** the chat agent handles the prepared
+   request, **Then** it calls the draft, proposes exactly the drafted arguments, and asks no
+   question. For a derivable inventory scope, it asks only for the valuation method, unless
+   the person already named it (FR-011).
 2. **Given** a scope with one open input, **When** the agent handles the request, **Then**
    it asks one business-language question for that input, and nothing else.
 3. **Given** the capability guidance for `cost_change_propose`, **When** the agent prepares
@@ -298,8 +299,9 @@ item. The proposal is created with arguments equal to the draft.
 - **SC-001**: Re-running the spec 279 walk-through
   (`apps/web/scripts/missing-basis-walkthrough-live.mjs`) in a business company reaches a
   proven acquisition value and DB1. No one types an ID, a field name or a tool name.
-- **SC-002**: For derivable scopes, the chat path creates the proposal without asking the
-  person anything. For a scope with one open input, it asks exactly one question.
+- **SC-002**: For a derivable contribution scope, the chat path creates the proposal without
+  asking the person anything. For a derivable inventory scope, it asks only for the
+  valuation method, and for any other scope one question per open input.
 - **SC-003**: Every drafted "complete" argument set in the demo profile's reviewed scopes
   equals, or is accepted in place of, the arguments the demo seed builds today.
 - **SC-004**: Every FR and DR has an acceptance scenario and executable proof.
