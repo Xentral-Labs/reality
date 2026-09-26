@@ -386,8 +386,13 @@ def test_reviewed_deterministic_handler_refusal_is_terminal_and_effect_free(
     assert proposal.status == "failed"
     assert json.loads(proposal.output) == {
         "business_effect": "none",
-        "error_type": "InvalidOperation",
-        "message": "Deterministic relationship refusal.",
+        "error": {
+            "code": "invalid_operation",
+            "message": "Deterministic relationship refusal.",
+            "type": "InvalidOperation",
+        },
+        "safe_next_action": "correct_input_or_prepare_new_proposal",
+        "verification": "verified_no_effect",
     }
     status = run_read_tool(
         session,

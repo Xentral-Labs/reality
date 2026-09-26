@@ -165,7 +165,9 @@ def test_purchase_partial_receipts_continue_in_same_sandbox(
             preview["preview"]["revision"],
             confirmed=True,
         )
-        assert denied["status"] == "executing"
+        assert denied["status"] == "failed"
+        assert denied["receipt"] is None
+        assert denied["verification"]["operational_state"] == "no_effect"
         with Session(engine) as session:
             assert (
                 session.scalar(
@@ -951,7 +953,14 @@ def test_opening_execution_permission_is_narrow(
         proposal["preview"]["revision"],
         confirmed=True,
     )
-    assert result["status"] == "executing"
+    assert result["status"] == ("executing" if attempt == "duplicate" else "failed")
+    assert result["receipt"] is None
+    if attempt == "duplicate":
+        assert result["verification"]["execution"] == (
+            "effect_observed_proposal_unsettled"
+        )
+    else:
+        assert result["verification"]["operational_state"] == "no_effect"
     with Session(engine) as session:
         movements = list(session.scalars(select(Movement)))
         assert len(movements) == int(attempt == "duplicate")

@@ -3128,8 +3128,20 @@ def _finalize_known_no_effect_failure(
     proposal_id: str,
     error: InvalidOperation | NotFound,
 ) -> None:
-    """Persist a terminal receipt after a synchronous domain refusal rolled back."""
+    """Persist a terminal receipt only when no action-attributed effect survived."""
     session.rollback()
+    if session.scalar(
+        select(BusinessEvent.id)
+        .where(
+            BusinessEvent.tenant_id == tenant_id,
+            BusinessEvent.action_id == proposal_id,
+        )
+        .limit(1)
+    ):
+        # Some legacy handlers commit internally. If a later validation refuses
+        # the call, the outcome is not a verified no-effect refusal: retain the
+        # durable execution claim so reconciliation can expose the observed effect.
+        return
     session.execute(
         update(ChangeProposal)
         .where(
