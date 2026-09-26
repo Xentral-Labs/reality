@@ -299,6 +299,7 @@ Events: [`order.recorded`](./events#event-order-recorded),
 [`reservation.released`](./events#event-reservation-released) · Agent tools without a command:
 [`commitments_list`](./commands#tool-commitments_list),
 [`fulfillment_queue`](./commands#tool-fulfillment_queue),
+[`fulfillment_readiness`](./commands#tool-fulfillment_readiness),
 [`fulfillment_blockers`](./commands#tool-fulfillment_blockers),
 [`order_explain`](./commands#tool-order_explain)
 

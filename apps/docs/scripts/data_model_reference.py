@@ -309,6 +309,7 @@ lead_time_days|Lead time recorded in the item master, in days.|In den Artikelsta
 parent_location_id|Parent in the location hierarchy, if any.|Übergeordneter Ort in der Ortshierarchie, sofern vorhanden.
 allows_stock|Whether physical stock may be held at this location.|Ob an diesem Ort physischer Bestand geführt werden darf.
 due_days|Agreed number of days until payment is due.|Vereinbarte Anzahl Tage bis zur Zahlungsfälligkeit.
+requires_prepayment|Explicit policy requiring qualifying allocated payment before customer dispatch.|Explizite Regel, die vor dem Kundenversand eine qualifizierende zugeordnete Zahlung verlangt.
 discount_percent|Stated early-payment discount percentage; empty means no such offer is recorded.|Genannter Skontosatz; leer bedeutet, dass kein solches Angebot erfasst ist.
 discount_days|Stated time window for the early-payment discount, in days.|Genannte Skontofrist in Tagen.
 direction|Business direction of the record; the object explains which directions apply.|Fachliche Richtung des Eintrags; das Objekt erläutert die jeweiligen Richtungen.

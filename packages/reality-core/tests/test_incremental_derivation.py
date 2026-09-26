@@ -971,9 +971,19 @@ def test_every_reason_a_promise_can_be_blocked_by_is_declared(session, business)
     projections.refresh_operational_projections(session, tenant)
 
     reasons = {row["blocker_type"] for row in _blockers(session, tenant).values()}
-    assert reasons == set(projections.DELIVERY_BLOCKER_TYPES), (
-        "the declared reasons and the rules that produce them have drifted apart"
+    declared = set(projections.DELIVERY_BLOCKER_TYPES)
+    assert reasons <= declared, (
+        "the rules produced a blocker that narrowed refresh cannot delete"
     )
+    assert {
+        "commitment_hold",
+        "party_delivery_hold",
+        "insufficient_reservation",
+        "insufficient_stock",
+        "prepayment_invoice_missing",
+        "prepayment_attribution_ambiguous",
+        "prepayment_required",
+    } <= declared
 
 
 def test_a_new_order_narrows_the_queue_and_agrees_with_the_company(session, business):

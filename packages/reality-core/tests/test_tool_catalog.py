@@ -3,6 +3,7 @@ from copy import deepcopy
 from reality.catalogs import load_application_catalog
 from reality.mcp.catalog import tool_definitions
 from reality.tool_catalog import build_tool_catalog
+from reality.tools.application import run_read_tool
 
 
 def test_catalog_covers_every_existing_definition_without_changing_mcp():
@@ -47,6 +48,22 @@ def test_catalog_metadata_cannot_mutate_mcp_schema():
     result = build_tool_catalog(load_application_catalog())
     result["mcp_tools"][0]["input_schema"].clear()
     assert before == [tool.public_metadata() for tool in tool_definitions()]
+
+
+def test_capability_describe_resolves_canonical_shipment_proposal_names(
+    session, business
+):
+    detail = run_read_tool(
+        session,
+        business.tenant.id,
+        "capability_describe",
+        {"tool_name": "shipment_dispatch_propose"},
+    )
+
+    assert detail["canonical_public_name"] == "shipment_dispatch_propose"
+    assert detail["application_tool"] == "shipment_dispatch"
+    assert detail["input_schema"]["oneOf"]
+    assert detail["confirmation"] == "required"
 
 
 def test_contribution_capabilities_share_one_business_topic():

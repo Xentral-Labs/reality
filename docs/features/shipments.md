@@ -19,6 +19,17 @@ Notice, dispatch, receive, event append and supersession use state-bound proposa
 confirmation, replay-safe execution and reconciliation. CLI, HTTP, Web, MCP and Chat call the same
 application tools. Reads are `shipments_list` and `shipment_explain`.
 
+Customer dispatch review and execution also call the canonical fulfillment-readiness service.
+The review snapshot contains blocker codes, stated required/received/remaining payment amounts
+and opaque evidence IDs, so any relevant allocation, reversal or hold change invalidates the old
+review token. A blocked review creates no Shipment, Package or Movement. Deterministic handler
+refusals with a rolled-back transaction become terminal `failed` proposals with a no-effect
+receipt; only an outcome that cannot be proven remains `executing` for reconciliation.
+
+The MCP `shipment_dispatch_propose` and `shipment_receive_propose` input schemas are
+purpose-discriminated closed contracts. Their four branches publish the allowed purpose,
+compatible Movement type, required counterparty and movement fields, and reject unknown fields.
+
 The shared register filters before pagination by direction, purpose, counterparty, recorded date,
 carrier, tracking text and a derived observation. Detail accepts a Shipment or Package opaque ID
 and returns effective Movement contents, current and superseded event history, derived times,

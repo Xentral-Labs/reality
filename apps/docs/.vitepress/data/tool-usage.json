@@ -403,6 +403,7 @@
       "tools": [
         "tool:commitments_list",
         "tool:fulfillment_queue",
+        "tool:fulfillment_readiness",
         "tool:fulfillment_blockers",
         "tool:order_explain"
       ],
@@ -2701,6 +2702,52 @@
       "projections": ["fulfillment_queue"],
       "links": ["projection:fulfillment_queue"],
       "label_de": "Read fulfillment queue",
+      "resources": ["order"]
+    },
+    {
+      "id": "tool:fulfillment_readiness",
+      "kind": "tool",
+      "key": "fulfillment_readiness",
+      "label": "Read fulfillment readiness",
+      "area": "orders",
+      "summary": "Canonical blockers, payment amounts, and evidence for one delivery commitment.",
+      "access": "read",
+      "group": "Operations",
+      "synopsis": "fulfillment_readiness commitment_id",
+      "parameters": [
+        {
+          "name": "commitment_id",
+          "type": "string",
+          "required": true,
+          "description": "Opaque identity of the obligation being reserved, held, or executed.",
+          "depth": 0
+        }
+      ],
+      "guidance": {
+        "purpose": "Read the canonical current fulfillment decision for one customer-delivery commitment.",
+        "use_when": [
+          "A shipment decision needs exact blocker codes",
+          "prepayment amounts",
+          "and opaque evidence identifiers."
+        ],
+        "do_not_use_when": ["A shipment or payment should be created or changed."],
+        "limitations": [
+          "It derives only from committed Reality records and does not claim external bank or carrier state."
+        ],
+        "empty_result": "Not applicable; an unknown or ineligible commitment is refused.",
+        "freshness": "Derived from tenant-scoped committed records at request time."
+      },
+      "read_modes": [
+        {
+          "query": "MCP fulfillment_readiness",
+          "mode": "live",
+          "default": true
+        }
+      ],
+      "command": null,
+      "projections": [],
+      "links": [],
+      "label_de": "Read fulfillment readiness",
       "resources": ["order"]
     },
     {
@@ -6297,7 +6344,7 @@
       "summary": "Prepare this business mutation without changing state. Create payment term. Human confirmation is required.",
       "access": "propose",
       "group": "Mutations",
-      "synopsis": "payment_term_create_propose code name due_days [discount_percent] [discount_days] [source_system] [external_id] [source_payload]",
+      "synopsis": "payment_term_create_propose code name due_days [discount_percent] [discount_days] [requires_prepayment] [source_system] [external_id] [source_payload]",
       "parameters": [
         {
           "name": "code",
@@ -6332,6 +6379,13 @@
           "type": "integer",
           "required": false,
           "description": "Days from the invoice date within which an early-payment discount applies; stated together with the rate or not at all.",
+          "depth": 0
+        },
+        {
+          "name": "requires_prepayment",
+          "type": "boolean",
+          "required": false,
+          "description": "Whether customer delivery requires qualifying allocated payment evidence before dispatch.",
           "depth": 0
         },
         {
@@ -6375,7 +6429,7 @@
       "summary": "Prepare this business mutation without changing state. Update payment term. Human confirmation is required.",
       "access": "propose",
       "group": "Mutations",
-      "synopsis": "payment_term_update_propose payment_term_id code name due_days [discount_percent] [discount_days]",
+      "synopsis": "payment_term_update_propose payment_term_id code name due_days [discount_percent] [discount_days] [requires_prepayment]",
       "parameters": [
         {
           "name": "payment_term_id",
@@ -6417,6 +6471,13 @@
           "type": "integer",
           "required": false,
           "description": "Days from the invoice date within which an early-payment discount applies; stated together with the rate or not at all.",
+          "depth": 0
+        },
+        {
+          "name": "requires_prepayment",
+          "type": "boolean",
+          "required": false,
+          "description": "Whether customer delivery requires qualifying allocated payment evidence before dispatch.",
           "depth": 0
         }
       ],
@@ -18027,8 +18088,8 @@
       "related_services": ["update_payment_term"],
       "tools": ["payment_term_create_propose", "payment_term_update_propose"],
       "synopses": [
-        "payment_term_create_propose code name due_days [discount_percent] [discount_days] [source_system] [external_id] [source_payload]",
-        "payment_term_update_propose payment_term_id code name due_days [discount_percent] [discount_days]"
+        "payment_term_create_propose code name due_days [discount_percent] [discount_days] [requires_prepayment] [source_system] [external_id] [source_payload]",
+        "payment_term_update_propose payment_term_id code name due_days [discount_percent] [discount_days] [requires_prepayment]"
       ],
       "events": ["payment_term.created"],
       "actions": [],
@@ -41776,6 +41837,11 @@
               "key": "name",
               "label": "Name",
               "kind": "text"
+            },
+            {
+              "key": "requires_prepayment",
+              "label": "Requires prepayment",
+              "kind": "boolean"
             }
           ],
           "evidence": "source_record_id",
@@ -42212,6 +42278,16 @@
                 "label": {
                   "en": "Due days",
                   "de": "Zahlungsziel in Tagen"
+                },
+                "enumerated": false,
+                "temporal": null,
+                "input": null
+              },
+              "requires_prepayment": {
+                "column": "requires_prepayment",
+                "label": {
+                  "en": "Requires prepayment",
+                  "de": "Vorkasse erforderlich"
                 },
                 "enumerated": false,
                 "temporal": null,
@@ -65092,6 +65168,11 @@
               "key": "name",
               "label": "Name",
               "kind": "text"
+            },
+            {
+              "key": "requires_prepayment",
+              "label": "Requires prepayment",
+              "kind": "boolean"
             }
           ],
           "evidence": "source_record_id",
@@ -65533,6 +65614,16 @@
                 "temporal": null,
                 "input": null
               },
+              "requires_prepayment": {
+                "column": "requires_prepayment",
+                "label": {
+                  "en": "Requires prepayment",
+                  "de": "Vorkasse erforderlich"
+                },
+                "enumerated": false,
+                "temporal": null,
+                "input": null
+              },
               "discount_percent": {
                 "column": "discount_percent",
                 "label": {
@@ -65590,6 +65681,7 @@
             "Kennung",
             "Aktiv",
             "Name",
+            "Vorkasse erforderlich",
             "Anzahl Datensätze",
             "Quelldatensatz (Version)",
             "Zahlungsbedingung",
@@ -72682,6 +72774,20 @@
           "meaning": {
             "en": "Stated time window for the early-payment discount, in days.",
             "de": "Genannte Skontofrist in Tagen."
+          },
+          "references": []
+        },
+        {
+          "name": "requires_prepayment",
+          "type": "BOOLEAN",
+          "nullable": false,
+          "default": {
+            "kind": "scalar",
+            "value": false
+          },
+          "meaning": {
+            "en": "Explicit policy requiring qualifying allocated payment before customer dispatch.",
+            "de": "Explizite Regel, die vor dem Kundenversand eine qualifizierende zugeordnete Zahlung verlangt."
           },
           "references": []
         },

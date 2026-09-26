@@ -1,8 +1,11 @@
+import pytest
 from sqlalchemy import func, select
 
 from reality.db.core import Shipment
 from reality.mcp.catalog import MCP_TOOL_REGISTRY, dispatch_tool
+from reality.services.core import InvalidOperation
 from reality.services.shipments import record_shipment_notice
+from reality.tools.application import create_change_proposal
 
 
 def test_shipment_mcp_reads_match_shared_service_and_need_no_confirmation(
@@ -63,3 +66,45 @@ def test_shipment_mcp_mutations_are_proposal_only_and_notice_has_no_effect(
     assert result["proposal_id"]
     assert result["requires_confirmation"] is True
     assert session.scalar(select(func.count()).select_from(Shipment)) == before
+
+
+@pytest.mark.parametrize(
+    "extra,match",
+    [
+        ({"unexpected": True}, "Unsupported shipment field"),
+        (
+            {"movements": [{"item_id": "ignored", "quantity": "1", "oops": 1}]},
+            "Unsupported shipment movement field",
+        ),
+    ],
+)
+def test_shipment_preparation_rejects_unknown_fields_before_review(
+    session, business, extra, match
+):
+    arguments = {
+        "purpose": "customer_delivery",
+        "counterparty_id": business.customer.id,
+        "movements": [{"item_id": business.item.id, "quantity": "1"}],
+        **extra,
+    }
+    with pytest.raises(InvalidOperation, match=match):
+        create_change_proposal(
+            session, business.tenant.id, "shipment_dispatch", arguments
+        )
+
+
+def test_shipment_preparation_names_permitted_enum_values(session, business):
+    with pytest.raises(
+        InvalidOperation,
+        match="permitted values: customer_delivery.*supplier_return",
+    ):
+        create_change_proposal(
+            session,
+            business.tenant.id,
+            "shipment_dispatch",
+            {
+                "purpose": "delivery",
+                "counterparty_id": business.customer.id,
+                "movements": [{"item_id": business.item.id, "quantity": "1"}],
+            },
+        )

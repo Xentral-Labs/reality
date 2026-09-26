@@ -2362,6 +2362,7 @@ class PaymentTermWrite(ApiModel):
     # Both or neither: half a discount condition is refused by the service.
     discount_percent: Decimal | None = None
     discount_days: int | None = None
+    requires_prepayment: bool = False
     source_system: str | None = None
     external_id: str | None = None
     source_payload: dict | None = None
@@ -3189,6 +3190,7 @@ def post_payment_term(tenant_id: str, body: PaymentTermWrite, session: DatabaseS
             source_payload=body.source_payload,
             discount_percent=body.discount_percent,
             discount_days=body.discount_days,
+            requires_prepayment=body.requires_prepayment,
         )
     except (NotFound, InvalidOperation) as error:
         raise api_error(error) from error
@@ -3208,6 +3210,7 @@ def put_payment_term(
             body.due_days,
             discount_percent=body.discount_percent,
             discount_days=body.discount_days,
+            requires_prepayment=body.requires_prepayment,
         )
     except (NotFound, InvalidOperation) as error:
         raise api_error(error) from error

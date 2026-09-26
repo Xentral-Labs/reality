@@ -2141,6 +2141,32 @@ def test_payment_term_api_records_an_early_payment_discount(session, business):
         app.dependency_overrides.clear()
 
 
+def test_payment_term_api_round_trips_explicit_prepayment_policy(session, business):
+    client = api_client(session)
+    tenant_id = business.tenant.id
+    try:
+        created = client.post(
+            f"/api/tenants/{tenant_id}/payment-terms",
+            json={
+                "code": "PREPAY",
+                "name": "Pay before dispatch",
+                "due_days": 0,
+                "requires_prepayment": True,
+            },
+        )
+        assert created.status_code == 201
+        assert created.json()["requires_prepayment"] is True
+
+        plain = client.post(
+            f"/api/tenants/{tenant_id}/payment-terms",
+            json={"code": "VORKASSE", "name": "Vorkasse", "due_days": 0},
+        )
+        assert plain.status_code == 201
+        assert plain.json()["requires_prepayment"] is False
+    finally:
+        app.dependency_overrides.clear()
+
+
 # --- An invoice somebody can actually book (spec 091) ----------------------
 
 

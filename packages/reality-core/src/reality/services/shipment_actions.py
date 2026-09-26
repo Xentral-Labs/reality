@@ -24,6 +24,7 @@ from reality.db.core import (
 )
 from reality.domain.shipments import (
     EVENT_TYPES,
+    PURPOSES,
     REPORTER_TYPES,
     required_party_role,
     validate_shipment_direction,
@@ -34,6 +35,7 @@ from reality.services.core import (
     _append_movement,
     active_party_delivery_hold,
 )
+from reality.services.fulfillment_readiness import fulfillment_readiness
 
 SHIPMENT_TOOLS = {
     "shipment_notice_record",
@@ -41,6 +43,28 @@ SHIPMENT_TOOLS = {
     "shipment_receive",
     "shipment_event_record",
     "shipment_event_supersede",
+}
+
+SHIPMENT_EXECUTION_FIELDS = {
+    "purpose",
+    "counterparty_id",
+    "movements",
+    "carrier",
+    "tracking_number",
+    "source_record_id",
+    "occurred_at",
+}
+SHIPMENT_MOVEMENT_FIELDS = {
+    "movement_type",
+    "item_id",
+    "quantity",
+    "from_location_id",
+    "to_location_id",
+    "commitment_id",
+    "handling_unit_id",
+    "lot_id",
+    "serial_unit_id",
+    "reason",
 }
 
 
@@ -93,6 +117,12 @@ def review_shipment_action(
             direction = "inbound"
             intent.pop("direction", None)
         purpose = str(intent.get("purpose", ""))
+        if purpose not in PURPOSES:
+            raise InvalidOperation(
+                "Unsupported shipment purpose; permitted values: "
+                + ", ".join(sorted(PURPOSES))
+                + "."
+            )
         try:
             validate_shipment_direction(purpose, str(direction))
         except ValueError as error:
@@ -113,24 +143,33 @@ def review_shipment_action(
         state["counterparty"] = {"id": party.id, "roles": roles}
         state["direction"] = direction
         if tool in {"shipment_dispatch", "shipment_receive"}:
+            unknown = set(arguments) - SHIPMENT_EXECUTION_FIELDS
+            if unknown:
+                raise InvalidOperation(
+                    "Unsupported shipment field(s): " + ", ".join(sorted(unknown))
+                )
             movements = intent.get("movements")
             if not isinstance(movements, list) or not movements:
                 raise InvalidOperation(
                     "Packaged execution requires at least one movement."
                 )
-            expected = {
-                "customer_delivery": "shipment",
-                "supplier_delivery": "receipt",
-                "customer_return": "return",
-                "supplier_return": "supplier_return",
-            }[purpose]
+            expected = PURPOSES[purpose][1]
             previews = []
             for raw in movements:
+                if not isinstance(raw, dict):
+                    raise InvalidOperation("Each shipment movement must be an object.")
+                unknown = set(raw) - SHIPMENT_MOVEMENT_FIELDS
+                if unknown:
+                    raise InvalidOperation(
+                        "Unsupported shipment movement field(s): "
+                        + ", ".join(sorted(unknown))
+                    )
                 movement = dict(raw)
                 movement_type = movement.pop("movement_type", expected)
                 if movement_type != expected:
                     raise InvalidOperation(
-                        "Movement type does not match the shipment purpose."
+                        "Movement type does not match the shipment purpose; "
+                        f"permitted value: {expected}."
                     )
                 movement.pop("shipment_package_id", None)
                 movement.pop("source_record_id", None)
@@ -142,6 +181,19 @@ def review_shipment_action(
                     validate_only=True,
                     **movement,
                 )
+                readiness = None
+                if purpose == "customer_delivery":
+                    readiness = fulfillment_readiness(
+                        session, tenant_id, preview["commitment_id"]
+                    )
+                    if not readiness.ship_ready:
+                        raise InvalidOperation(
+                            "Shipment blocked: "
+                            + ", ".join(readiness.blocker_codes)
+                            + f" (required {readiness.required_amount} "
+                            + f"{readiness.currency}, received "
+                            + f"{readiness.received_amount} {readiness.currency})."
+                        )
                 locations = {
                     value
                     for value in (
@@ -196,6 +248,9 @@ def review_shipment_action(
                             active_party_delivery_hold(session, tenant_id, party.id)
                             if purpose == "customer_delivery"
                             else False
+                        ),
+                        "fulfillment_readiness": (
+                            readiness.as_dict() if readiness is not None else None
                         ),
                     }
                 )
@@ -277,10 +332,16 @@ def shipment_proposal_detail(
         "status": proposal.status,
         "review": review,
         "receipt": json.loads(proposal.output)
-        if proposal.status == "executed"
+        if proposal.status in {"executed", "failed"}
         else None,
         "recorded_receipt": None,
-        "verification": "pending" if proposal.status == "proposed" else "unresolved",
+        "verification": (
+            "pending"
+            if proposal.status == "proposed"
+            else "verified_no_effect"
+            if proposal.status == "failed"
+            else "unresolved"
+        ),
         "links": [],
     }
     if proposal.status not in {"executing", "executed"}:

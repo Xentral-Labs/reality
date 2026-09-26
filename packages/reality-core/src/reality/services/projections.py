@@ -24,6 +24,7 @@ from reality.db.core import (
     Movement,
     Party,
     PartyHold,
+    PaymentTerm,
     ProjectionCheckpoint,
     ProjectionRow,
     Reservation,
@@ -440,6 +441,10 @@ DELIVERY_BLOCKER_TYPES = (
     "commitment_hold",
     "party_delivery_hold",
     "insufficient_reservation",
+    "insufficient_stock",
+    "prepayment_invoice_missing",
+    "prepayment_attribution_ambiguous",
+    "prepayment_required",
 )
 
 
@@ -520,6 +525,8 @@ def _open_work_rows(
     customer promise; a narrowed refresh hands it the promises of the orders that
     changed (FR-002). Neither reads a company's finished history (FR-003).
     """
+    from reality.services.fulfillment_readiness import fulfillment_readiness
+
     document_ids = {row.document_id for row in commitments} - {None}
     documents = (
         {
@@ -532,6 +539,25 @@ def _open_work_rows(
         }
         if document_ids
         else {}
+    )
+    prepayment_document_ids = (
+        set(
+            session.scalars(
+                select(Document.id)
+                .join(
+                    PaymentTerm,
+                    (PaymentTerm.tenant_id == Document.tenant_id)
+                    & (PaymentTerm.id == Document.payment_term_id),
+                )
+                .where(
+                    Document.tenant_id == tenant_id,
+                    Document.id.in_(document_ids),
+                    PaymentTerm.requires_prepayment.is_(True),
+                )
+            )
+        )
+        if document_ids
+        else set()
     )
     source_ids = {row.source_record_id for row in documents.values()} - {None}
     sources = (
@@ -564,6 +590,28 @@ def _open_work_rows(
         else {}
     )
     item_ids = {row.item_id for row in commitments} - {None}
+    location_ids = {row.location_id for row in commitments} - {None}
+    physical_by_item_location: dict[tuple[str, str], Decimal] = defaultdict(Decimal)
+    if item_ids and location_ids:
+        for item_id, from_location_id, to_location_id, quantity in session.execute(
+            select(
+                Movement.item_id,
+                Movement.from_location_id,
+                Movement.to_location_id,
+                Movement.quantity,
+            ).where(
+                Movement.tenant_id == tenant_id,
+                Movement.item_id.in_(item_ids),
+                or_(
+                    Movement.from_location_id.in_(location_ids),
+                    Movement.to_location_id.in_(location_ids),
+                ),
+            )
+        ):
+            if to_location_id:
+                physical_by_item_location[(item_id, to_location_id)] += quantity
+            if from_location_id:
+                physical_by_item_location[(item_id, from_location_id)] -= quantity
     items = (
         {
             row.id: row
@@ -646,6 +694,33 @@ def _open_work_rows(
             reasons = _open_delivery_reasons(
                 commitment, shortage, commitment_holds, party_holds
             )
+            physical = physical_by_item_location[
+                (commitment.item_id, commitment.location_id or "")
+            ]
+            if physical < open_value:
+                reasons.append(("insufficient_stock", "physical stock is insufficient"))
+            payment_readiness = (
+                fulfillment_readiness(session, tenant_id, commitment.id)
+                if commitment.document_id in prepayment_document_ids
+                else None
+            )
+            if payment_readiness is not None:
+                existing_reasons = {reason for reason, _ in reasons}
+                reasons.extend(
+                    (
+                        blocker,
+                        " ".join(
+                            (
+                                f"required {payment_readiness.required_amount}",
+                                f"{payment_readiness.currency}; received",
+                                f"{payment_readiness.received_amount}",
+                                payment_readiness.currency,
+                            )
+                        ),
+                    )
+                    for blocker in payment_readiness.blocker_codes
+                    if blocker not in existing_reasons
+                )
             if shortage > 0:
                 uncovered_by_item[commitment.item_id] += shortage
             item = items.get(commitment.item_id or "")
@@ -663,6 +738,11 @@ def _open_work_rows(
                 "original_due_at": commitment.due_at,
                 "location_id": commitment.location_id,
                 "blocking_reasons": [reason for reason, _ in reasons],
+                "fulfillment_readiness": (
+                    payment_readiness.as_dict()
+                    if payment_readiness is not None
+                    else None
+                ),
                 **quantity_unit(item, document_lines.get(commitment.document_line_id)),
             }
             lines.append(line)

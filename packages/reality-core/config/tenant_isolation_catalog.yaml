@@ -452,6 +452,7 @@ families:
       - tool:reality_gaps
       - tool:fulfillment_blockers
       - tool:fulfillment_queue
+      - tool:fulfillment_readiness
       - tool:inventory
       - tool:invoice_credit_context
       - tool:interpretation_coverage

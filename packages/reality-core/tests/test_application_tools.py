@@ -27,6 +27,7 @@ from reality.services.core import (
     create_commitment,
     create_item,
     create_location,
+    create_payment_term,
     create_tenant,
     record_movement,
     reserve,
@@ -334,6 +335,36 @@ def test_executing_proposal_requires_reconciliation_without_reexecution(
     )
     assert status["status"] == "executing"
     assert status["verification"]["execution"] == "unknown"
+
+
+def test_deterministic_unreviewed_refusal_is_terminal_and_retryable_as_new_proposal(
+    session, business
+):
+    create_payment_term(session, business.tenant.id, "DUP", "Existing", 30)
+    proposal = propose_tool(
+        session,
+        business.tenant.id,
+        "payment_term_create",
+        {"code": "DUP", "name": "Duplicate", "due_days": 30},
+    )
+
+    with pytest.raises(InvalidOperation, match="already exists"):
+        confirm_tool(session, business.tenant.id, proposal.id)
+
+    status = run_read_tool(
+        session,
+        business.tenant.id,
+        "proposal_execution_status",
+        {"proposal_id": proposal.id},
+    )
+    assert status["status"] == "failed"
+    assert status["verification"]["execution"] == "failed"
+    assert status["failure"]["business_effect"] == "none"
+    assert status["failure"]["verification"] == "verified_no_effect"
+    assert status["failure"]["error"]["code"] == "invalid_operation"
+    assert status["failure"]["safe_next_action"] == (
+        "correct_input_or_prepare_new_proposal"
+    )
 
 
 def test_reconciliation_finds_effect_committed_before_proposal_receipt(

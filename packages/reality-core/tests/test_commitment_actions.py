@@ -347,8 +347,13 @@ def test_known_reviewed_handler_refusal_records_terminal_failure_without_effect(
     assert proposal.status == "failed"
     assert json.loads(proposal.output) == {
         "business_effect": "none",
-        "error_type": "InvalidOperation",
-        "message": "Known refusal before effect",
+        "error": {
+            "code": "invalid_operation",
+            "type": "InvalidOperation",
+            "message": "Known refusal before effect",
+        },
+        "verification": "verified_no_effect",
+        "safe_next_action": "correct_input_or_prepare_new_proposal",
     }
     assert commitment.status == "open"
 

@@ -212,7 +212,10 @@ AGENT_DISCOVERY_MODELS: dict[str, tuple[type[Base], tuple[str, ...]]] = {
         SerialUnit,
         ("id", "item_id", "serial_number", "lot_id", "source_record_id"),
     ),
-    "payment_term": (PaymentTerm, ("id", "code", "name", "due_days", "is_active")),
+    "payment_term": (
+        PaymentTerm,
+        ("id", "code", "name", "due_days", "requires_prepayment", "is_active"),
+    ),
     "price_list": (
         PriceList,
         ("id", "code", "name", "direction", "currency", "is_default", "is_active"),
@@ -1252,6 +1255,7 @@ def create_payment_term(
     source_payload: dict[str, Any] | None = None,
     discount_percent: Decimal | float | str | None = None,
     discount_days: int | None = None,
+    requires_prepayment: bool = False,
     _commit: bool = True,
 ) -> PaymentTerm:
     _require_business_mutation(session, tenant_id, "create_payment_term")
@@ -1274,7 +1278,16 @@ def create_payment_term(
         "payment_term",
         source_system,
         external_id,
-        source_payload or {"code": code, "name": name, "due_days": due_days},
+        (
+            source_payload
+            if source_payload is not None
+            else {
+                "code": code,
+                "name": name,
+                "due_days": due_days,
+                "requires_prepayment": requires_prepayment,
+            }
+        ),
         _commit=False,
     )
     term = PaymentTerm(
@@ -1285,6 +1298,7 @@ def create_payment_term(
         due_days=due_days,
         discount_percent=rate,
         discount_days=window,
+        requires_prepayment=requires_prepayment,
         source_record_id=source.id if source else None,
     )
     session.add(term)
@@ -1294,7 +1308,11 @@ def create_payment_term(
         "payment_term.created",
         "payment_term",
         term.id,
-        {"code": term.code, "due_days": term.due_days},
+        {
+            "code": term.code,
+            "due_days": term.due_days,
+            "requires_prepayment": term.requires_prepayment,
+        },
         source_record_id=term.source_record_id,
     )
     if _commit:
@@ -1312,6 +1330,7 @@ def update_payment_term(
     *,
     discount_percent: Decimal | float | str | None = None,
     discount_days: int | None = None,
+    requires_prepayment: bool = False,
 ) -> PaymentTerm:
     _require_business_mutation(session, tenant_id, "update_payment_term")
     term = _tenant_record(session, PaymentTerm, tenant_id, payment_term_id)
@@ -1332,13 +1351,19 @@ def update_payment_term(
     rate, window = _early_payment_discount(discount_percent, discount_days)
     term.code, term.name, term.due_days = code, name, due_days
     term.discount_percent, term.discount_days = rate, window
+    term.requires_prepayment = requires_prepayment
     emit_business_event(
         session,
         tenant_id,
         "payment_term.updated",
         "payment_term",
         term.id,
-        {"code": code, "name": name, "due_days": due_days},
+        {
+            "code": code,
+            "name": name,
+            "due_days": due_days,
+            "requires_prepayment": requires_prepayment,
+        },
         source_record_id=term.source_record_id,
     )
     session.commit()
