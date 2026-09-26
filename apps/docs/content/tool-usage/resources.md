@@ -18,8 +18,8 @@ the technical key stands beside each one.
 | [Lot, serial number and pallet](#resource-lot)                   | 0     | 5       | 1                   |
 | [Invoice and credit note](#resource-invoice)                     | 3     | 10      | 14                  |
 | [Payment and settlement](#resource-payment)                      | 2     | 7       | 2                   |
-| [Ledger and accounts](#resource-accounting)                      | 2     | 13      | 3                   |
-| [Contribution margin](#resource-contribution)                    | 0     | 1       | 4                   |
+| [Ledger and accounts](#resource-accounting)                      | 2     | 14      | 3                   |
+| [Contribution margin](#resource-contribution)                    | 0     | 2       | 4                   |
 | [Return](#resource-return)                                       | 0     | 3       | 6                   |
 | [Document and source system](#resource-source)                   | 3     | 11      | 2                   |
 | [Company and users](#resource-company)                           | 1     | 4       | 0                   |
@@ -526,6 +526,7 @@ Kontenrahmen, Storno, Eröffnungsbilanz, Sachkonto
 
 **Actions**
 
+- [Propose a drafted cost review](./commands#command-propose_cost_review) (`propose_cost_review`)
 - [Confirm cost and contribution decision](./commands#command-execute_cost_change)
   (`execute_cost_change`)
 - [Maintain Target Configuration](./commands#command-maintain_target_configuration)
@@ -630,6 +631,7 @@ confirmed result retains its review and knowledge boundary.
 
 **Actions**
 
+- [Propose a drafted cost review](./commands#command-propose_cost_review) (`propose_cost_review`)
 - [Confirm cost and contribution decision](./commands#command-execute_cost_change)
   (`execute_cost_change`)
 

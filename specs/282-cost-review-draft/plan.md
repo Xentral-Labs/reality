@@ -289,3 +289,15 @@ Negative tests are paired with positive controls (memory: vacuous negatives).
   fields.
 - **Demo seed finding:** the demo seed fixes the opening cost at 6 per unit in code. No source
   states it, so the draft keeps those openings open (SC-003 reworded).
+- **Chat proposals (FR-012).** The live chat run first showed the agent not calling the
+  draft. After the tool descriptions were sharpened, it drafted but then mistyped copied
+  identifiers, and it lost them between turns (chat history carries only answer text).
+  The fix is `propose_drafted_review` in `services/cost_review_draft.py`, shared by
+  `POST /cost-review-proposals` and the MCP propose tool `cost_review_propose`, which
+  takes kind, scope and answers only. Inventory scopes resolve by ID, SKU, exact name or
+  unique partial name. Idempotency ignores the draft's "now" cutoff at an unchanged event
+  sequence.
+- **Live finding outside this spec.** Sales invoices recorded through the web form state
+  only a gross amount. The contribution preview then reports `received_net_missing`, so
+  DB1 cannot be proven for them. It needs its own spec: the invoice form should state net
+  and tax as received.

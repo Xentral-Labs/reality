@@ -20,6 +20,7 @@ Web, API, Chat und MCP erreichen dieselbe Operation.
 | [`cost_record`](#command-cost_record)                                             | Inspect retained cost record              | Bereichsübergreifend    | `cost_record_get`                                                                                                                                                                            | CLI · Web · MCP · Chat                  |
 | [`notices`](#command-notices)                                                     | List dunning notices                      | Bereichsübergreifend    | `finance_dunning_notices`                                                                                                                                                                    | Web · MCP · Chat                        |
 | [`contribution_preview`](#command-contribution_preview)                           | Preview current contribution candidate    | Bereichsübergreifend    | `cost_contribution_preview`                                                                                                                                                                  | CLI · Web · MCP · Chat                  |
+| [`propose_cost_review`](#command-propose_cost_review)                             | Propose a drafted cost review             | Bereichsübergreifend    | `cost_review_propose`                                                                                                                                                                        | Web · MCP · Chat                        |
 | [`cost_query`](#command-cost_query)                                               | Read cost query context                   | Bereichsübergreifend    | `cost_query_get`                                                                                                                                                                             | CLI · Web · MCP · Chat                  |
 | [`dunning_context`](#command-dunning_context)                                     | Read dunning context                      | Bereichsübergreifend    | `finance_dunning_context`                                                                                                                                                                    | Web · MCP · Chat                        |
 | [`notice_detail`](#command-notice_detail)                                         | Read dunning notice                       | Bereichsübergreifend    | `finance_dunning_notice`                                                                                                                                                                     | Web · MCP · Chat                        |
@@ -6246,7 +6247,9 @@ cost_change_propose expected_event_sequence reason operation [document_id] [docu
 #### `cost_change_propose` — Review cost and contribution decision {#tool-cost_change_propose}
 
 Prepare explicit received-cost attribution, replacement, withdrawal, inventory scope or whole-line
-contribution review. An active owner must explicitly confirm the unchanged proposal.
+contribution review. For inventory_review and contribution_review use cost_review_draft and
+cost_review_propose instead; they need no identifiers or arguments to be copied. This only creates a
+proposal; it never executes. A company owner then confirms it in Decisions.
 
 **Aufruf**
 
@@ -6258,7 +6261,7 @@ cost_change_propose expected_event_sequence reason operation [document_id] [docu
 
 Prepare acquisition or selling-cost decisions, bounded inventory reviews and explicitly confirmed
 whole-line DB1/DB2 reviews. For inventory_review and contribution_review, call cost_review_draft
-first and propose its arguments unchanged.
+first and then cost_review_propose.
 
 **Verwenden, wenn**
 
@@ -6462,8 +6465,11 @@ cost_review_draft kind scope_id [answers]
 
 #### `cost_review_draft` — Draft a cost review {#tool-cost_review_draft}
 
-Draft the inventory or contribution review the held records support: complete cost_change_propose
-arguments, or the open inputs a person must decide. Call it before cost_change_propose.
+Call this first whenever someone asks to prepare, draft or start a cost review (Kostenprüfung) for
+an item or an invoice line. Use kind inventory with the item ID, or kind contribution with the
+invoice line ID. It derives owner, currency, unit, history and every movement from held records and
+returns the few open inputs to ask the person, by their labels. Never ask the person for IDs or
+technical fields. Then call cost_review_propose with the same kind and scope_id and the answers.
 
 **Aufruf**
 
@@ -6499,7 +6505,7 @@ identifiers.
 | Name                     | Typ      | Pflicht | Beschreibung                                                                                                | Standard |
 | ------------------------ | -------- | ------- | ----------------------------------------------------------------------------------------------------------- | -------- |
 | `kind`                   | `string` | ja      | Explicit internal or target reference kind; no inferred tax or country meaning. `inventory`, `contribution` | —        |
-| `scope_id`               | `string` | ja      | Exact item identity for inventory or received invoice-line identity for contribution.                       | —        |
+| `scope_id`               | `string` | ja      | Inventory: the item's ID, SKU or exact name. Contribution: the invoice line ID.                             | —        |
 | `answers`                | `object` | nein    | What a person decided for the open inputs; nothing else is accepted.                                        | `None`   |
 | `answers.method`         | `string` | nein    | `fifo`, `specific`                                                                                          | `None`   |
 | `answers.owner_party_id` | `string` | nein    | —                                                                                                           | `None`   |
@@ -6691,6 +6697,76 @@ basis.
 | `document_line_id` | `string` | ja      | Opaque same-tenant received document line identity; must belong to the selected document. | —        |
 
 **Siehe auch:** Geschäftsaktion [`contribution_preview`](./commands#command-contribution_preview)
+
+### `propose_cost_review` — Propose a drafted cost review {#command-propose_cost_review}
+
+Draft the review again from held records and create one proposal for it; a company owner confirms it
+in Decisions. Nothing else changes.
+
+**Aufruf**
+
+```text
+cost_review_propose kind scope_id [answers]
+```
+
+**Erreichbar über:** Web · MCP · Chat
+
+**Wirkung:** Liest: `item`, `movement`, `movement_correction`, `party`, `party_role`,
+`source_record`, `document`, `document_line`, `financial_component`, `cost_input_manifest`,
+`cost_receipt_basis`, `cost_attribution_revision`, `cost_attribution_part`, `cost_component_basis`,
+`cost_scope_review`, `cost_inventory_review` · Schreibt: `action`
+
+**Siehe auch:** Agenten-Tool [`cost_review_propose`](./commands#tool-cost_review_propose)
+
+#### `cost_review_propose` — Propose a drafted cost review {#tool-cost_review_propose}
+
+Propose the inventory or contribution review cost_review_draft showed, once its open inputs are
+answered. Pass only kind, scope_id and the answers (for example method fifo); the server drafts
+again and proposes exactly that, so never copy identifiers or arguments. It only creates a proposal;
+a company owner confirms it in Decisions.
+
+**Aufruf**
+
+```text
+cost_review_propose kind scope_id [answers]
+```
+
+**Zugriff:** `propose`
+
+Propose the inventory or contribution review the draft showed, without copying identifiers or
+arguments.
+
+**Verwenden, wenn**
+
+- After cost_review_draft, once its open inputs are answered, for example the valuation method.
+
+**Nicht verwenden, wenn**
+
+- Receipt cost assignments, selling costs or any review the draft does not cover; use
+  cost_change_propose for those.
+
+**Voraussetzungen**
+
+- The draft has no remaining open inputs; otherwise the tool returns them instead of proposing.
+
+**Abgelehnt, wenn**
+
+- `draft_changed` — The draft still has open inputs; they are returned for the person to answer.
+
+**Parameter**
+
+| Name                     | Typ      | Pflicht | Beschreibung                                                                                                | Standard |
+| ------------------------ | -------- | ------- | ----------------------------------------------------------------------------------------------------------- | -------- |
+| `kind`                   | `string` | ja      | Explicit internal or target reference kind; no inferred tax or country meaning. `inventory`, `contribution` | —        |
+| `scope_id`               | `string` | ja      | Inventory: the item's ID, SKU or exact name. Contribution: the invoice line ID.                             | —        |
+| `answers`                | `object` | nein    | What a person decided for the open inputs; nothing else is accepted.                                        | `None`   |
+| `answers.method`         | `string` | nein    | `fifo`, `specific`                                                                                          | `None`   |
+| `answers.owner_party_id` | `string` | nein    | —                                                                                                           | `None`   |
+
+**Prüfen mit:** `cost.query.get` — The guidance then shows the owner's confirmation step linked to
+the proposal.
+
+**Siehe auch:** Geschäftsaktion [`propose_cost_review`](./commands#command-propose_cost_review)
 
 ### `cost_query` — Read cost query context {#command-cost_query}
 
