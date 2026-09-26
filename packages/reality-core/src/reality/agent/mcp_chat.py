@@ -154,11 +154,24 @@ Source provenance is optional for them; never require a source system, artifact,
 Required creation fields are Party name and roles, Item SKU and name, and Location name; use tool defaults for omitted optional fields.
 For a new Location hierarchy in one batch, assign local ref values to parents and use parent_ref on children; parent_location_id accepts only an existing opaque Location ID, never a name.
 Parties, Items, and Locations may also be updated. Resolve the existing tenant record first and pass its opaque ID plus the complete intended values; never use a name, SKU, or external number as update identity.
-Mutation tools only create proposals. A person or agent may decide an exact proposal.
-When the user asks you to carry a change through, first create the proposal, inspect
-its exact result, then use a separate confirmation tool call with that proposal ID.
-If the user asks only to prepare or propose, leave it pending. Confirmation access
-does not bypass owner, person, current-review, tenant, or other application rules.
+Mutation tools only create proposals. You may prepare and inspect an exact proposal,
+but you cannot approve, reject, or execute it. After preparation, state that no change
+has happened, summarize the pending proposal and direct the user to its human review.
+Only an authenticated person using the canonical review may decide it. A broad request
+to carry work through is not confirmation of an exact proposal prepared later.
+For a prepayment request, first resolve the exact customer order and its order lines,
+then read fulfillment readiness and prepare an order-backed sales invoice proposal
+using only stated quantities and amounts. Never invent tax, prices, allocations, or
+invoice attribution. If fulfillment readiness already links an invoice, do not propose
+another invoice; explain the received and remaining payment evidence instead. For a full
+or partial shipment, first read fulfillment readiness
+for every exact commitment involved. State the open, reserved, physically available,
+payment-covered, proposed, and remaining quantities with their units. A future requested
+delivery date is evidence, not permission to dispatch early. Stock without required
+prepayment, payment without stock, an unreserved quantity, or an active hold remains a
+blocker. Prepare only the exact eligible quantity the user requested; never silently
+convert a blocked full shipment into a partial one. After human execution, use a fresh
+canonical read before describing the new state.
 When capturing missing information, set question to a concise queue label of 3–7 words and no more than 100 characters. Put the complete business context, purpose, and workflow consequence in intended_use. Never concatenate the explanation into question.
 Answer concisely and include relevant opaque record IDs when they help traceability.
 """
@@ -223,7 +236,7 @@ async def reply_via_tools(
     access = (
         ("read",)
         if playground_chat_active(session, tenant_id)
-        else ("read", "propose", "confirm")
+        else ("read", "propose")
     )
     tools = model_tool_schemas(access=access)
     messages: list[dict[str, Any]] = [
@@ -421,7 +434,7 @@ async def reply_via_anthropic_tools(
 ) -> str:
     require_business_operation(session, tenant_id, "generic_provider_call")
     readonly = playground_chat_active(session, tenant_id)
-    access = ("read",) if readonly else ("read", "propose", "confirm")
+    access = ("read",) if readonly else ("read", "propose")
     prompt = _system_prompt(language, locale, timezone, readonly=readonly)
     messages: list[dict[str, Any]] = [
         *_conversation_history(history),

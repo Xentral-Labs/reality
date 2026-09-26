@@ -49,6 +49,11 @@ export default function UnifiedApp({
     reservation?: string;
     movement?: string;
     direction?: string;
+    order?: string;
+    shipmentInput?: {
+      counterparty_id: string;
+      movements: Record<string, string>[];
+    };
   }>({});
   const [action, setAction] = useState<DeliveryAction | null>(null);
   const [createdCompany, setCreatedCompany] = useState<string | null>(null);
@@ -216,6 +221,14 @@ export default function UnifiedApp({
                   />
                 ) : selection.route === "orders-deliveries" ? (
                   <OrdersPage
+                    prepareInvoice={(order) => {
+                      setActionTarget({ order });
+                      setAction("sales_invoice_record");
+                    }}
+                    prepareShipment={(shipmentInput) => {
+                      setActionTarget({ shipmentInput });
+                      setAction("shipment_dispatch");
+                    }}
                     create={(direction) => {
                       setActionTarget({ direction });
                       setAction("order_create");
@@ -381,6 +394,8 @@ export default function UnifiedApp({
                 creditNote={actionTarget.creditNote}
                 movement={actionTarget.movement}
                 direction={actionTarget.direction}
+                order={actionTarget.order}
+                shipmentInput={actionTarget.shipmentInput}
                 proposalId={selection.proposal}
                 tool={action}
                 close={() => {

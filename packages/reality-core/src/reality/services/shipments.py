@@ -289,7 +289,18 @@ def record_packaged_execution(
                 raise InvalidOperation(
                     "Customer dispatch requires a delivery commitment."
                 )
-            readiness = fulfillment_readiness(session, tenant_id, commitment_id)
+            try:
+                proposed_quantity = Decimal(str(movement_arguments["quantity"]))
+            except (KeyError, ValueError, ArithmeticError):
+                raise InvalidOperation(
+                    "Customer dispatch requires a valid movement quantity."
+                ) from None
+            readiness = fulfillment_readiness(
+                session,
+                tenant_id,
+                commitment_id,
+                proposed_quantity=proposed_quantity,
+            )
             if not readiness.ship_ready:
                 raise InvalidOperation(
                     "Shipment blocked: "

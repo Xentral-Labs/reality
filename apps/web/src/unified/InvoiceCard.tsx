@@ -22,6 +22,7 @@ export function InvoiceCard({
   close,
   prepared,
   settled,
+  order = "",
 }: {
   tenant: string;
   proposalId?: string;
@@ -29,6 +30,7 @@ export function InvoiceCard({
   close: () => void;
   prepared?: (id: string) => void;
   settled: () => void;
+  order?: string;
 }) {
   const dialog = useRef<HTMLDialogElement>(null),
     alive = useRef(true),
@@ -47,7 +49,7 @@ export function InvoiceCard({
   const [inspection, inspect] = useState<{ kind: string; id: string } | null>(null);
   const [query, setQuery] = useState(""),
     [page, setPage] = useState(1),
-    [orderId, setOrderId] = useState("");
+    [orderId, setOrderId] = useState(order);
   const orders = useRead(
     () =>
       api.documents(
