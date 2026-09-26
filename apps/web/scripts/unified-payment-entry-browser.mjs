@@ -3,7 +3,6 @@ import { reference as discoveryReference } from "./action-discovery-fixture.mjs"
 import assert from "node:assert/strict";
 import { pathToFileURL } from "node:url";
 import { mkdir } from "node:fs/promises";
-import { openPageActions } from "./page-actions.mjs";
 const { chromium } = await import(pathToFileURL(process.env.PLAYWRIGHT_MODULE));
 const browser = await chromium.launch({
   headless: true,
@@ -200,10 +199,17 @@ try {
   await page.locator("#payment-title").waitFor({ state: "detached" });
   assert.equal(confirmations, 1);
   assert.equal(proposal.status, "executed");
-  // Start the next payment from the page actions. (Searching the command palette for
-  // "Record customer payment" currently finds nothing in this fixture; see the PR.)
-  await openPageActions(page);
-  await page.getByRole("button", { name: "Record customer payment", exact: true }).first().click();
+  // The global launcher is the command palette: search for the action and start it.
+  await page.locator("[data-action-launcher] > button").click();
+  await page
+    .getByRole("combobox", { name: "Search or start an action" })
+    .or(page.getByRole("textbox", { name: "Search or start an action" }))
+    .first()
+    .fill("Record customer payment");
+  await page
+    .getByRole("option", { name: /^Record customer payment/ })
+    .first()
+    .click();
   await page.getByLabel("Payment direction", { exact: true }).selectOption("supplier_payment_post");
   await page.getByLabel("Invoice", { exact: true }).selectOption("invoice-doc");
   await page.getByLabel("Payment amount", { exact: true }).fill("100");
