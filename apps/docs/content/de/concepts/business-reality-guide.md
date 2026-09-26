@@ -77,7 +77,7 @@ Lieferungen? Im [Datenmodell unter Tools nutzen](/de/tool-usage/#model:commitmen
 zentralen Bausteine mit Beispielen, allen gespeicherten Feldern und passenden Aktionen. Die
 Übersicht trennt operative Felder, ergänzende Facts, Originalquellen und berechnete Angaben.
 
-Direkt zu den ERP-Bausteinen: [Geschäftspartner (Party)](/de/tool-usage/#model:party),
+Direkt zu den Bausteinen: [Geschäftspartner (Party)](/de/tool-usage/#model:party),
 [Artikel (Item)](/de/tool-usage/#model:item), [Sendung (Shipment)](/de/tool-usage/#model:shipment),
 [Preisliste](/de/tool-usage/#model:price_list) und
 [Zahlungszuordnung](/de/tool-usage/#model:settlement_allocation).

@@ -7308,8 +7308,8 @@ Object.assign(dictionaries.de, {
     "Stabil innerhalb dieses Unternehmens, z.B. shopify_de.",
   "Start in observation mode": "Im Beobachtungsmodus starten",
   "Stock enabled": "Lagerbestand aktiviert",
-  "Supports traceable and verifiable ERP processes aligned with GoBD principles. Actual compliance also depends on operations, internal controls, retention and process documentation.":
-    "Unterstützt nachvollziehbare und überprüfbare ERP-Prozesse, die mit GoBD-Prinzipien übereinstimmen. Die tatsächliche Einhaltung hängt auch von den Abläufen, internen Kontrollen, der Aufbewahrung und der Prozessdokumentation ab.",
+  "Supports traceable and verifiable business processes aligned with GoBD principles. Actual compliance also depends on operations, internal controls, retention and process documentation.":
+    "Unterstützt nachvollziehbare und überprüfbare Geschäftsprozesse, die mit GoBD-Prinzipien übereinstimmen. Die tatsächliche Einhaltung hängt auch von den Abläufen, internen Kontrollen, der Aufbewahrung und der Prozessdokumentation ab.",
   "System template": "Systemvorlage",
   "Systeme bleiben führend": "Systeme bleiben führend",
   "Systems remain authoritative": "Systeme bleiben autoritativ",
@@ -8184,8 +8184,8 @@ Object.assign(dictionaries.nl, {
   "Stock enabled": "Voorraad ingeschakeld",
   "Supplier invoice": "Leveranciersfactuur",
   "Supplier reliability": "Leveranciersbetrouwbaarheid",
-  "Supports traceable and verifiable ERP processes aligned with GoBD principles. Actual compliance also depends on operations, internal controls, retention and process documentation.":
-    "Ondersteunt traceerbare en verifieerbare ERP-processen die zijn afgestemd op de GoBD-principes. Echte naleving hangt ook af van de operaties, interne controles, opslag en procesdocumentatie.",
+  "Supports traceable and verifiable business processes aligned with GoBD principles. Actual compliance also depends on operations, internal controls, retention and process documentation.":
+    "Ondersteunt traceerbare en verifieerbare bedrijfsprocessen die zijn afgestemd op de GoBD-principes. Echte naleving hangt ook af van de operaties, interne controles, opslag en procesdocumentatie.",
   "Switch company": "Bedrijf overstappen",
   System: "Systeem",
   "System template": "Systeemtemplate",
@@ -9117,8 +9117,8 @@ Object.assign(dictionaries.es, {
   "Stock enabled": "Inventario habilitado",
   "Supplier invoice": "Factura del proveedor",
   "Supplier reliability": "Fiabilidad del proveedor",
-  "Supports traceable and verifiable ERP processes aligned with GoBD principles. Actual compliance also depends on operations, internal controls, retention and process documentation.":
-    "Soporta procesos ERP rastreables y verificables alineados con los principios de GoBD. El cumplimiento real también depende de las operaciones, los controles internos, la retención y la documentación de los procesos.",
+  "Supports traceable and verifiable business processes aligned with GoBD principles. Actual compliance also depends on operations, internal controls, retention and process documentation.":
+    "Soporta procesos de negocio rastreables y verificables alineados con los principios de GoBD. El cumplimiento real también depende de las operaciones, los controles internos, la retención y la documentación de los procesos.",
   "Switch company": "Cambiar empresa",
   System: "Sistema",
   "System template": "Plantilla de sistema",
@@ -12640,8 +12640,8 @@ Object.assign(dictionaries.de, {
     "Eine Projektion ist eine berechnete Übersicht, ähnlich einem ERP-Bestandsbericht. Beispiel: 100 Stück auf Lager minus 30 reservierte Stück ergeben 70 verfügbare Stück. Sie nutzt vorhandene Datensätze und erzeugt keine neue Lagerbuchung.",
   "A view is a screen or list you work with in the application, like an ERP stock list. It can show a calculated projection or stored records such as items. Several views can use the same projection.":
     "Ein View ist eine Bildschirmansicht oder Liste, mit der du in der Anwendung arbeitest, etwa eine ERP-Bestandsliste. Er zeigt eine berechnete Projektion oder gespeicherte Datensätze wie Artikel. Mehrere Views können dieselbe Projektion nutzen.",
-  "An action is a task you want to carry out in the ERP, such as reserving stock for an order. It guides you through the required inputs and confirmation, then uses a command to perform the task.":
-    "Eine Action ist eine Aufgabe, die du im ERP erledigen möchtest, zum Beispiel Bestand für einen Auftrag reservieren. Sie führt dich durch die nötigen Eingaben und die Bestätigung und verwendet dann einen Command zur Ausführung.",
+  "An action is a task you want to carry out in Reality, such as reserving stock for an order. It guides you through the required inputs and confirmation, then uses a command to perform the task.":
+    "Eine Action ist eine Aufgabe, die du in Reality erledigen möchtest, zum Beispiel Bestand für einen Auftrag reservieren. Sie führt dich durch die nötigen Eingaben und die Bestätigung und verwendet dann einen Command zur Ausführung.",
   "A command is the application operation behind a task. Example: after you confirm Reserve stock, the reserve command receives the order commitment and quantity and creates the reservation. This catalog describes the inputs and results; some commands only read data.":
     "Ein Command ist die Anwendungsoperation hinter einer Aufgabe. Beispiel: Nach der Bestätigung von „Bestand reservieren“ erhält der Command „reserve“ die Lieferzusage und Menge und legt die Reservierung an. Hier sind Eingaben und Ergebnisse beschrieben; manche Commands lesen nur Daten.",
   "Actions describe business tasks, including prerequisites and confirmation. An action uses an application command; supported actions can open a form here.":
@@ -12826,8 +12826,8 @@ Object.assign(dictionaries.nl, {
     "Een projectie is een berekend overzicht, zoals een ERP-voorraadrapport. Voorbeeld: 100 stuks op voorraad min 30 gereserveerd geeft 70 beschikbaar. Ze gebruikt bestaande records en maakt geen nieuwe voorraadboeking.",
   "A view is a screen or list you work with in the application, like an ERP stock list. It can show a calculated projection or stored records such as items. Several views can use the same projection.":
     "Een view is een scherm of lijst waarmee je in de toepassing werkt, zoals een ERP-voorraadlijst. Hij toont een berekende projectie of opgeslagen records zoals artikelen. Meerdere views kunnen dezelfde projectie gebruiken.",
-  "An action is a task you want to carry out in the ERP, such as reserving stock for an order. It guides you through the required inputs and confirmation, then uses a command to perform the task.":
-    "Een actie is een taak die je in het ERP wilt uitvoeren, zoals voorraad reserveren voor een order. Ze begeleidt je bij de invoer en bevestiging en gebruikt daarna een opdracht om de taak uit te voeren.",
+  "An action is a task you want to carry out in Reality, such as reserving stock for an order. It guides you through the required inputs and confirmation, then uses a command to perform the task.":
+    "Een actie is een taak die je in Reality wilt uitvoeren, zoals voorraad reserveren voor een order. Ze begeleidt je bij de invoer en bevestiging en gebruikt daarna een opdracht om de taak uit te voeren.",
   "A command is the application operation behind a task. Example: after you confirm Reserve stock, the reserve command receives the order commitment and quantity and creates the reservation. This catalog describes the inputs and results; some commands only read data.":
     "Een opdracht is de toepassingsbewerking achter een taak. Voorbeeld: na bevestiging van Voorraad reserveren ontvangt reserve de leverbelofte en hoeveelheid en maakt de reservering. Deze catalogus beschrijft invoer en resultaten; sommige opdrachten lezen alleen gegevens.",
   "Actions describe business tasks, including prerequisites and confirmation. An action uses an application command; supported actions can open a form here.":
@@ -13011,8 +13011,8 @@ Object.assign(dictionaries.es, {
     "Una proyección es un resumen calculado, como un informe de stock del ERP. Ejemplo: 100 unidades en stock menos 30 reservadas dan 70 disponibles. Usa registros existentes y no crea un nuevo movimiento de stock.",
   "A view is a screen or list you work with in the application, like an ERP stock list. It can show a calculated projection or stored records such as items. Several views can use the same projection.":
     "Una vista es una pantalla o lista de la aplicación, como una lista de stock del ERP. Puede mostrar una proyección calculada o registros guardados, como artículos. Varias vistas pueden usar la misma proyección.",
-  "An action is a task you want to carry out in the ERP, such as reserving stock for an order. It guides you through the required inputs and confirmation, then uses a command to perform the task.":
-    "Una acción es una tarea que quieres realizar en el ERP, como reservar stock para un pedido. Te guía por los datos necesarios y la confirmación, y después usa un comando para ejecutar la tarea.",
+  "An action is a task you want to carry out in Reality, such as reserving stock for an order. It guides you through the required inputs and confirmation, then uses a command to perform the task.":
+    "Una acción es una tarea que quieres realizar en Reality, como reservar stock para un pedido. Te guía por los datos necesarios y la confirmación, y después usa un comando para ejecutar la tarea.",
   "A command is the application operation behind a task. Example: after you confirm Reserve stock, the reserve command receives the order commitment and quantity and creates the reservation. This catalog describes the inputs and results; some commands only read data.":
     "Un comando es la operación de la aplicación detrás de una tarea. Ejemplo: al confirmar Reservar stock, reserve recibe el compromiso de entrega y la cantidad y crea la reserva. Este catálogo describe entradas y resultados; algunos comandos solo leen datos.",
   "Actions describe business tasks, including prerequisites and confirmation. An action uses an application command; supported actions can open a form here.":
