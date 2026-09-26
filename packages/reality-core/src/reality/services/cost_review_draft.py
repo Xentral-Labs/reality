@@ -80,12 +80,22 @@ def _item_scope(session: Session, tenant: str, reference: str) -> str:
                 "More than one item matches; name the item by its SKU."
             )
     # Last, a unique partial match on SKU or name ("282" for "Stehlampe 282").
-    needle = f"%{reference.strip().lower()}%"
+    escaped = (
+        reference.strip()
+        .lower()
+        .replace("\\", "\\\\")
+        .replace("%", "\\%")
+        .replace("_", "\\_")
+    )
+    needle = f"%{escaped}%"
     candidates = session.execute(
         select(Item.id, Item.sku, Item.name)
         .where(
             Item.tenant_id == tenant,
-            or_(func.lower(Item.sku).like(needle), func.lower(Item.name).like(needle)),
+            or_(
+                func.lower(Item.sku).like(needle, escape="\\"),
+                func.lower(Item.name).like(needle, escape="\\"),
+            ),
         )
         .limit(6)
     ).all()
