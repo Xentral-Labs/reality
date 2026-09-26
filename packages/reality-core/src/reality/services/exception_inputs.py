@@ -18,6 +18,8 @@ from reality.db.core import (
     Document,
     DocumentLine,
     Item,
+    LedgerEntry,
+    LedgerReversal,
     Movement,
     Reservation,
     SourceRecord,
@@ -136,6 +138,30 @@ class _ExceptionInputs:
             for row in self.session.scalars(
                 select(Item).where(Item.tenant_id == self.tenant_id)
             )
+        }
+
+    @cached_property
+    def released_invoices(self) -> set[str]:
+        """Documents whose every posting group is reversed (spec 124 FR-004)."""
+        groups: dict[str, set[str]] = defaultdict(set)
+        for document_id, group in self.session.execute(
+            select(LedgerEntry.document_id, LedgerEntry.posting_group_id).where(
+                LedgerEntry.tenant_id == self.tenant_id,
+                LedgerEntry.document_id.is_not(None),
+            )
+        ):
+            groups[document_id].add(group)
+        reversed_groups = set(
+            self.session.scalars(
+                select(LedgerReversal.original_posting_group_id).where(
+                    LedgerReversal.tenant_id == self.tenant_id
+                )
+            )
+        )
+        return {
+            document_id
+            for document_id, values in groups.items()
+            if values <= reversed_groups
         }
 
     @cached_property
