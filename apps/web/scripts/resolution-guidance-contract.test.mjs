@@ -41,7 +41,7 @@ test("a viewer without the role sees who must act instead of a control", async (
   for (const sentence of [
     "A company owner must confirm this.",
     "An administrator takes care of this.",
-    "This company is read-only. Nothing can be changed here.",
+    "Cost decisions cannot be confirmed in this company.",
   ])
     assert.match(actions, new RegExp(sentence.replace(/\./g, "\\.")));
   const component = await source("unified/ResolutionGuidance.tsx");

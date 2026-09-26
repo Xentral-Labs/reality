@@ -20365,8 +20365,8 @@ Object.assign(dictionaries.de, {
   "Review in Decisions": "In Entscheidungen prüfen",
   "Something this value needs is still missing": "Für diesen Wert fehlt noch etwas",
   "Steps to a proven value": "Schritte zu einem nachgewiesenen Wert",
-  "This company is read-only. Nothing can be changed here.":
-    "Dieses Unternehmen ist schreibgeschützt. Hier lässt sich nichts ändern.",
+  "Cost decisions cannot be confirmed in this company.":
+    "In diesem Unternehmen lassen sich keine Kostenentscheidungen bestätigen.",
   "Step done": "Schritt erledigt",
   "Step open": "Schritt offen",
   "Step waits for the one before": "Schritt wartet auf den vorherigen",
@@ -20382,8 +20382,8 @@ Object.assign(dictionaries.nl, {
   "Review in Decisions": "Bekijken in Beslissingen",
   "Something this value needs is still missing": "Voor deze waarde ontbreekt nog iets",
   "Steps to a proven value": "Stappen naar een aangetoonde waarde",
-  "This company is read-only. Nothing can be changed here.":
-    "Dit bedrijf is alleen-lezen. Hier kan niets worden gewijzigd.",
+  "Cost decisions cannot be confirmed in this company.":
+    "In dit bedrijf kunnen geen kostenbeslissingen worden bevestigd.",
   "Step done": "Stap afgerond",
   "Step open": "Stap open",
   "Step waits for the one before": "Stap wacht op de vorige",
@@ -20399,8 +20399,8 @@ Object.assign(dictionaries.es, {
   "Review in Decisions": "Revisar en Decisiones",
   "Something this value needs is still missing": "A este valor todavía le falta algo",
   "Steps to a proven value": "Pasos hacia un valor demostrado",
-  "This company is read-only. Nothing can be changed here.":
-    "Esta empresa es de solo lectura. Aquí no se puede cambiar nada.",
+  "Cost decisions cannot be confirmed in this company.":
+    "En esta empresa no se pueden confirmar decisiones de costes.",
   "Step done": "Paso completado",
   "Step open": "Paso pendiente",
   "Step waits for the one before": "El paso espera al anterior",
