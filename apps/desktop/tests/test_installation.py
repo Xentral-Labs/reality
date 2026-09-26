@@ -117,14 +117,69 @@ def test_checkpoints_keep_only_the_newest_three(installation, tmp_path):
     for index in range(6):
         archive = backups / f"2026-01-0{index}T00-00-00.dump"
         archive.write_text(str(index))
+        archive.with_suffix(".dump.json").write_text("{}")
         os.utime(archive, (index, index))
     installation.retain_checkpoints(backups, keep=3)
     remaining = sorted(item.name for item in backups.iterdir())
     assert remaining == [
         "2026-01-03T00-00-00.dump",
+        "2026-01-03T00-00-00.dump.json",
         "2026-01-04T00-00-00.dump",
+        "2026-01-04T00-00-00.dump.json",
         "2026-01-05T00-00-00.dump",
+        "2026-01-05T00-00-00.dump.json",
     ]
+
+
+def test_checkpoint_path_is_unique_within_the_same_second(installation, tmp_path):
+    first = installation.checkpoint_path(tmp_path)
+    second = installation.checkpoint_path(tmp_path)
+
+    assert first != second
+    assert first.parent == tmp_path / "backups"
+    assert first.suffix == ".dump"
+
+
+def test_checkpoint_is_published_only_after_dump_completes(
+    installation, tmp_path, monkeypatch
+):
+    def interrupted_dump(*args, archive, **kwargs):
+        archive.write_bytes(b"partial archive")
+        raise RuntimeError("pg_dump was terminated")
+
+    monkeypatch.setattr(installation.cluster, "dump", interrupted_dump)
+
+    with pytest.raises(RuntimeError, match="terminated"):
+        installation.checkpoint(
+            tmp_path,
+            tmp_path / "postgres",
+            tmp_path / "socket",
+            "secret",
+            installation_id="installation-a",
+            generation_id="generation-a",
+            application_version="0.1.0",
+            schema_revision="0099_example",
+        )
+
+    backups = tmp_path / "backups"
+    assert not list(backups.glob("*.dump"))
+    assert len(list(backups.glob("*.partial"))) == 1
+
+
+def test_incomplete_checkpoint_files_are_removed_without_touching_archives(
+    installation, tmp_path
+):
+    backups = tmp_path / "backups"
+    backups.mkdir()
+    complete = backups / "complete.dump"
+    partial = backups / ".checkpoint-deadbeef.partial"
+    complete.write_bytes(b"complete")
+    partial.write_bytes(b"incomplete")
+
+    installation.remove_incomplete_checkpoints(tmp_path)
+
+    assert complete.read_bytes() == b"complete"
+    assert not partial.exists()
 
 
 def test_erasure_removes_one_installation_and_leaves_its_sibling(
@@ -169,3 +224,78 @@ def test_erasing_the_active_installation_clears_the_pointer(installation, tmp_pa
     replacement = installation.resolve(tmp_path)
     assert replacement.identifier != prepared.identifier
     assert replacement.created
+
+
+def test_erasure_quarantine_blocks_replacement_and_can_roll_back(
+    installation, tmp_path
+):
+    prepared = installation.resolve(tmp_path)
+    (prepared.root / "artifacts/evidence").parent.mkdir(exist_ok=True)
+    (prepared.root / "artifacts/evidence").write_text("must survive rollback")
+
+    quarantined = installation.prepare_erasure(tmp_path, prepared.identifier)
+
+    assert not prepared.root.exists()
+    assert quarantined.is_dir()
+    assert not (tmp_path / "current").exists()
+    with pytest.raises(installation.ErasureInProgress):
+        installation.resolve(tmp_path)
+
+    restored = installation.rollback_erasure(tmp_path, prepared.identifier)
+    assert restored == prepared.root
+    assert (restored / "artifacts/evidence").read_text() == "must survive rollback"
+    assert installation.resolve(tmp_path).identifier == prepared.identifier
+
+
+def test_erasure_commit_removes_only_quarantine_and_preserves_sibling(
+    installation, tmp_path
+):
+    selected = installation.resolve(tmp_path)
+    sibling = installation.create(tmp_path)
+    (tmp_path / "current").write_text(selected.identifier + "\n")
+
+    quarantined = installation.prepare_erasure(tmp_path, selected.identifier)
+    removed = installation.commit_erasure(tmp_path, selected.identifier)
+
+    assert removed == quarantined
+    assert not quarantined.exists()
+    assert (tmp_path / "installations" / sibling.identifier).is_dir()
+    assert not (tmp_path / "erasure.json").exists()
+
+
+def test_erasure_quarantine_rejects_wrong_identity_and_second_operation(
+    installation, tmp_path
+):
+    prepared = installation.resolve(tmp_path)
+    installation.prepare_erasure(tmp_path, prepared.identifier)
+
+    with pytest.raises(installation.ErasureInProgress):
+        installation.prepare_erasure(tmp_path, prepared.identifier)
+    with pytest.raises(installation.ErasureInProgress):
+        installation.rollback_erasure(tmp_path, "00000000-0000-0000-0000-000000000001")
+
+
+def test_erasure_crash_before_move_clears_preparing_journal(installation, tmp_path):
+    prepared = installation.resolve(tmp_path)
+    installation._atomic_installation_json(
+        tmp_path / "erasure.json",
+        {"installation_id": prepared.identifier, "state": "preparing"},
+    )
+
+    assert installation.resolve(tmp_path).identifier == prepared.identifier
+    assert not (tmp_path / "erasure.json").exists()
+
+
+def test_erasure_crash_after_move_recovers_quarantine_state(installation, tmp_path):
+    prepared = installation.resolve(tmp_path)
+    quarantine = installation._private(tmp_path / "erasing") / prepared.identifier
+    installation._atomic_installation_json(
+        tmp_path / "erasure.json",
+        {"installation_id": prepared.identifier, "state": "preparing"},
+    )
+    installation.os.replace(prepared.root, quarantine)
+
+    with pytest.raises(installation.ErasureInProgress):
+        installation.resolve(tmp_path)
+    journal = json.loads((tmp_path / "erasure.json").read_text())
+    assert journal["state"] == "quarantined"

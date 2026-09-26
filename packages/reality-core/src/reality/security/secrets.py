@@ -9,6 +9,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from reality.db.core import ROOT, Secret, SecretAuditEvent, now, uid
+from reality.security import key_provider
 from reality.services.core import NotFound, get_tenant
 from reality.services.tenant_policy import require_business_operation
 
@@ -18,23 +19,7 @@ KEY_VERSION = 1
 
 def _master_key() -> Fernet:
     """Resolve the key-encryption key without ever storing it in the database."""
-    configured = (
-        os.environ.get("REALITY_MASTER_KEY", "").strip()
-        or os.environ.get("REALITY_SETTINGS_KEY", "").strip()
-    )
-    if configured:
-        try:
-            return Fernet(configured.encode())
-        except (TypeError, ValueError) as error:
-            raise RuntimeError(
-                "REALITY_MASTER_KEY must be a valid URL-safe base64 Fernet key."
-            ) from error
-    if os.environ.get("REALITY_ENV", "").lower() in {"production", "prod"}:
-        raise RuntimeError("REALITY_MASTER_KEY must be configured in production.")
-    if not KEY_PATH.exists():
-        KEY_PATH.write_bytes(Fernet.generate_key())
-        KEY_PATH.chmod(0o600)
-    return Fernet(KEY_PATH.read_bytes().strip())
+    return Fernet(key_provider.master_key(key_path=KEY_PATH))
 
 
 def _encoded(value: bytes) -> str:

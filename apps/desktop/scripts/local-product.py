@@ -15,6 +15,12 @@ def main():
         REALITY_ROOT=config["core_root"],
         REALITY_ARTIFACT_DIR=config["artifact_root"],
         REALITY_AUTH_MODE="enabled",
+        REALITY_DESKTOP="1",
+    )
+    from reality.security.key_provider import install_process_key
+
+    install_process_key(
+        config["vault_master_key"], installation_id=config["installation_id"]
     )
     from reality.db.core import AppUser, Session, init_db
 

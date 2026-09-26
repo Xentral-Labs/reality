@@ -6,6 +6,7 @@ from cryptography.fernet import Fernet, InvalidToken
 from sqlalchemy.orm import Session, object_session
 
 from reality.db.core import ROOT, AISettings, now
+from reality.security import key_provider
 from reality.security import secrets as secret_store
 from reality.services.core import NotFound, get_tenant
 from reality.services.tenant_policy import require_business_operation
@@ -84,13 +85,12 @@ def ai_provider_preset(provider: str, base_url: str) -> str:
 
 
 def _fernet() -> Fernet:
-    configured = os.environ.get("REALITY_SETTINGS_KEY", "").encode()
-    if configured:
-        return Fernet(configured)
-    if not KEY_PATH.exists():
-        KEY_PATH.write_bytes(Fernet.generate_key())
-        KEY_PATH.chmod(0o600)
-    return Fernet(KEY_PATH.read_bytes().strip())
+    return Fernet(
+        key_provider.master_key(
+            key_path=KEY_PATH,
+            environment_names=("REALITY_SETTINGS_KEY", "REALITY_MASTER_KEY"),
+        )
+    )
 
 
 def encrypt_secret(value: str) -> str:

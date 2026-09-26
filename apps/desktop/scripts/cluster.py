@@ -196,6 +196,74 @@ def dump(
         raise RuntimeError(written.stderr.replace(password, "[redacted]"))
 
 
+def restore(
+    postgres: Path,
+    socket_directory: Path,
+    password: str,
+    *,
+    role: str,
+    database: str,
+    archive: Path,
+) -> None:
+    """Restore one validated custom-format archive into an empty database."""
+    restored = subprocess.run(
+        [
+            str(postgres / "pg_restore"),
+            "-h",
+            str(socket_directory),
+            "-U",
+            role,
+            "-d",
+            database,
+            "--exit-on-error",
+            "--no-owner",
+            str(archive),
+        ],
+        env=dict(ENVIRONMENT, PGPASSWORD=password),
+        capture_output=True,
+        text=True,
+        timeout=600,
+        check=False,
+    )
+    if restored.returncode:
+        raise RuntimeError(restored.stderr.replace(password, "[redacted]"))
+
+
+def schema_revision(
+    postgres: Path,
+    socket_directory: Path,
+    password: str,
+    *,
+    role: str,
+    database: str,
+) -> str:
+    """Read the authoritative Alembic revision from a running cluster."""
+    queried = subprocess.run(
+        [
+            str(postgres / "psql"),
+            "-h",
+            str(socket_directory),
+            "-U",
+            role,
+            "-d",
+            database,
+            "--no-align",
+            "--tuples-only",
+            "--command",
+            "SELECT version_num FROM alembic_version",
+        ],
+        env=dict(ENVIRONMENT, PGPASSWORD=password),
+        capture_output=True,
+        text=True,
+        timeout=60,
+        check=False,
+    )
+    revision = queried.stdout.strip()
+    if queried.returncode or not revision or "\n" in revision:
+        raise RuntimeError(queried.stderr.replace(password, "[redacted]"))
+    return revision
+
+
 def shut_down(process) -> None:
     if process.poll() is None:
         process.terminate()

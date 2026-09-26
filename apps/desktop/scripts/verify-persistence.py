@@ -75,7 +75,7 @@ def main() -> None:
             evidence["first_start"] = probe(
                 runtime, configuration, "seed", "Persistence Proof"
             )
-            evidence["data_directory"] = str(prepared.root / "data")
+            evidence["data_directory"] = configuration["REALITY_DATA_DIR"]
 
         with installation.running(runtime, base=base, app_version="0.1.0") as (
             configuration,
@@ -92,11 +92,18 @@ def main() -> None:
                 evidence["second_process_refused"] = True
 
         before = len(list((prepared.root / "backups").glob("*.dump")))
+        generation_before_upgrade = Path(evidence["data_directory"])
         with installation.running(runtime, base=base, app_version="0.2.0") as (
             configuration,
             prepared,
         ):
             evidence["after_upgrade"] = probe(runtime, configuration, "read")
+            generation_after_upgrade = Path(configuration["REALITY_DATA_DIR"])
+        evidence["generation_changed_on_upgrade"] = (
+            generation_after_upgrade != generation_before_upgrade
+        )
+        evidence["previous_generation_retained"] = generation_before_upgrade.is_dir()
+        evidence["active_generation"] = generation_after_upgrade.name
         evidence["checkpoints_before_upgrade"] = before
         evidence["checkpoints_after_upgrade"] = len(
             list((prepared.root / "backups").glob("*.dump"))

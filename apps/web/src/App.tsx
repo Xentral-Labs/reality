@@ -14,12 +14,28 @@ export default function App() {
     <AuthGate>
       {(user, updateUser) => (
         <LocalizationProvider preferences={user}>
+          <UnsignedTesterBetaWarning />
           <Suspense fallback={<EntryProgress title="Loading your workspace" />}>
             <Entry user={user} updateUser={updateUser} />
           </Suspense>
         </LocalizationProvider>
       )}
     </AuthGate>
+  );
+}
+
+function UnsignedTesterBetaWarning() {
+  const channel = document
+    .querySelector('meta[name="reality-distribution-channel"]')
+    ?.getAttribute("content");
+  if (channel !== "unsigned-tester-beta") return null;
+  return (
+    <aside
+      aria-label={t("Unsigned tester beta")}
+      className="border-b border-amber-400 bg-amber-100 px-4 py-2 text-center text-sm font-semibold text-amber-950"
+    >
+      {t("Unsigned tester beta — for named testers only. This is not a trusted public release.")}
+    </aside>
   );
 }
 function Entry(props: {
