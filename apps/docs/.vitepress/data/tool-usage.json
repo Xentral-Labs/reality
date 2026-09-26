@@ -579,7 +579,7 @@
         "command:post_supplier_credit_note",
         "command:allocate_supplier_credit_note"
       ],
-      "reads": ["command:invoice_credit_context"],
+      "reads": ["command:invoice_credit_context", "command:billable_positions"],
       "exceptions": [
         "exception:shipped_not_billed",
         "exception:billed_not_received",
@@ -9707,6 +9707,74 @@
       "projections": [],
       "links": ["command:invoice_credit_context"],
       "label_de": "Invoice credit context",
+      "resources": ["invoice"]
+    },
+    {
+      "id": "tool:invoice_billable_positions",
+      "kind": "tool",
+      "key": "invoice_billable_positions",
+      "label": "Billable order positions",
+      "area": "finance",
+      "summary": "Read one party's delivered or received order positions that are not yet fully billed, grouped by order, for one consolidated invoice.",
+      "access": "read",
+      "group": "Finance",
+      "synopsis": "invoice_billable_positions direction party_id currency [limit]",
+      "parameters": [
+        {
+          "name": "direction",
+          "type": "string",
+          "required": true,
+          "description": "Business flow direction, such as sales or purchase, incoming or outgoing.",
+          "depth": 0,
+          "enum": ["sales", "purchase"]
+        },
+        {
+          "name": "party_id",
+          "type": "string",
+          "required": true,
+          "description": "Opaque identity of the customer, supplier, or other operational party.",
+          "depth": 0
+        },
+        {
+          "name": "currency",
+          "type": "string",
+          "required": true,
+          "description": "ISO 4217 currency code for monetary values.",
+          "depth": 0
+        },
+        {
+          "name": "limit",
+          "type": "integer",
+          "required": false,
+          "description": "Maximum number of records or jobs processed by this invocation.",
+          "depth": 0
+        }
+      ],
+      "guidance": {
+        "purpose": "List one party's order positions that were delivered or received and are not yet fully billed, grouped by order, for one consolidated invoice.",
+        "use_when": [
+          "One customer or supplier invoice over several orders of one party must be prepared."
+        ],
+        "do_not_use_when": [
+          "A single order's billing is needed; read that order's billing availability instead."
+        ],
+        "limitations": [
+          "At most 200 positions are returned; total counts all billable positions. Amounts are the order's stated values for reference; the invoice states its own."
+        ],
+        "empty_result": "A party with nothing delivered and unbilled returns no orders and total 0.",
+        "freshness": "Derived from committed order, movement, invoice and reversal evidence at request time."
+      },
+      "read_modes": [
+        {
+          "query": "MCP invoice_billable_positions",
+          "mode": "live",
+          "default": true
+        }
+      ],
+      "command": "billable_positions",
+      "projections": [],
+      "links": ["command:billable_positions"],
+      "label_de": "Billable order positions",
       "resources": ["invoice"]
     },
     {
@@ -19215,6 +19283,49 @@
       },
       "links": ["tool:invoice_credit_context"],
       "label_de": "Gutschriftfähige Rechnungspositionen anzeigen",
+      "resources": ["invoice"]
+    },
+    {
+      "id": "command:billable_positions",
+      "kind": "command",
+      "key": "billable_positions",
+      "label": "Read billable invoice positions",
+      "area": "finance",
+      "summary": "Lists one party's delivered or received order positions not yet fully billed, grouped by order, without recording an invoice.",
+      "mode": "query",
+      "adapters": ["Web", "API", "MCP", "Chat"],
+      "reads": [
+        "party",
+        "document",
+        "document_line",
+        "commitment",
+        "movement",
+        "ledger_entry",
+        "ledger_reversal"
+      ],
+      "writes": [],
+      "confirmation": null,
+      "related_services": [],
+      "tools": ["invoice_billable_positions"],
+      "synopses": ["invoice_billable_positions direction party_id currency [limit]"],
+      "events": [],
+      "actions": [],
+      "guidance": {
+        "purpose": "List one party's order positions that were delivered or received and are not yet fully billed, grouped by order, for one consolidated invoice.",
+        "use_when": [
+          "One customer or supplier invoice over several orders of one party must be prepared."
+        ],
+        "do_not_use_when": [
+          "A single order's billing is needed; read that order's billing availability instead."
+        ],
+        "limitations": [
+          "At most 200 positions are returned; total counts all billable positions. Amounts are the order's stated values for reference; the invoice states its own."
+        ],
+        "empty_result": "A party with nothing delivered and unbilled returns no orders and total 0.",
+        "freshness": "Derived from committed order, movement, invoice and reversal evidence at request time."
+      },
+      "links": ["tool:invoice_billable_positions"],
+      "label_de": "Abrechenbare Auftragspositionen anzeigen",
       "resources": ["invoice"]
     },
     {

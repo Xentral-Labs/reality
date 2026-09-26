@@ -610,6 +610,13 @@
       "effect": "Shows exact customer-invoice positions and remaining credit capacity without recording a credit."
     },
     {
+      "name": "Read billable invoice positions",
+      "service": "billable_positions",
+      "mode": "query",
+      "adapters": ["Web", "API", "MCP", "Chat"],
+      "effect": "Lists one party's delivered or received order positions not yet fully billed, grouped by order, without recording an invoice."
+    },
+    {
       "name": "Read dunning context",
       "service": "dunning_context",
       "related_services": ["preview_notice"],

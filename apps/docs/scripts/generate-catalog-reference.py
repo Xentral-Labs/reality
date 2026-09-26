@@ -37,7 +37,7 @@ AREAS: list[tuple[str, str, str, str]] = [
     ("agent_governance", "Agent governance", "Agentensteuerung", r"proposal|capability_describe|business_records_discover"),
     ("company", "Company & access", "Unternehmen & Zugang", r"invitation|remove_member|member_invite|member_remove|tenant"),
     ("master_data", "Master data & pricing", "Stammdaten & Preise", r"payment_term|price|party_group|group_price|master_data|^(?:create|update)_(?:party|item|location)|^(?:party|item|location)_(?:create|update)|^parties$|^items$|^locations$|commercial|assign_party"),
-    ("finance", "Finance", "Finanzen", r"financ|payment|invoice|credit|refund|ledger|account|settlement|adjustment|opening|component|reference|mapping|target|matrix|balance|journal|open_items|billed|receivable|payable|discount"),
+    ("finance", "Finance", "Finanzen", r"financ|payment|invoice|credit|refund|ledger|account|settlement|adjustment|opening|component|reference|mapping|target|matrix|balance|journal|open_items|billed|billable|receivable|payable|discount"),
     ("orders", "Orders & fulfilment", "Aufträge & Erfüllung", r"commitment|reserv|fulfillment|order|return|stale|promise|hold|shipped|delivery"),
     ("warehouse", "Warehouse & logistics", "Lager & Logistik", r"movement|inventory|lot|serial|handling_unit|stock|supply_demand|expired|shipment|package|received|warehouse"),
     ("sources", "Documents, sources & facts", "Belege, Quellen & Facts", r"source|connector|interpretation|document|fact|ingest|import|integration"),

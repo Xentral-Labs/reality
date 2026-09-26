@@ -1230,6 +1230,30 @@ def get_supply_coverage(
         raise api_error(error) from error
 
 
+@router.get("/invoice-billable-positions")
+def get_invoice_billable_positions(
+    tenant_id: str,
+    session: DatabaseSession,
+    direction: str,
+    party_id: str,
+    currency: str,
+    limit: int = 200,
+):
+    from reality.services.invoice_billing import billable_positions
+
+    try:
+        return billable_positions(
+            session,
+            tenant_id,
+            direction=direction,
+            party_id=party_id,
+            currency=currency,
+            limit=limit,
+        )
+    except (NotFound, InvalidOperation) as error:
+        raise api_error(error) from error
+
+
 @router.get("/return-dispositions/{return_movement_id}")
 def get_return_disposition_summary(
     tenant_id: str, return_movement_id: str, session: DatabaseSession
@@ -5270,6 +5294,31 @@ def document_inspector(session: OrmSession, tenant_id: str, record_id: str):
 
     detail = document_detail(session, tenant_id, record_id)
     document = detail["document"]
+    referenced = [
+        line.billed_document_line_id
+        for line in detail["lines"]
+        if line.billed_document_line_id
+    ]
+    billed_orders = (
+        dict(
+            session.execute(
+                select(DocumentLine.id, DocumentLine.document_id).where(
+                    DocumentLine.tenant_id == tenant_id,
+                    DocumentLine.id.in_(referenced),
+                )
+            ).all()
+        )
+        if referenced
+        else {}
+    )
+    billed_order_documents = [
+        record
+        for order_id in dict.fromkeys(
+            billed_orders[line_id] for line_id in referenced if line_id in billed_orders
+        )
+        if (record := session.get(Document, (tenant_id, order_id))) is not None
+        and record.type in {"sales_order", "purchase_order"}
+    ]
     source = detail["source"]
     correction = manual_document_line_snapshot(session, tenant_id, record_id)
     pricing = {
@@ -5359,6 +5408,31 @@ def document_inspector(session: OrmSession, tenant_id: str, record_id: str):
                     for line in detail["lines"]
                 ],
             },
+            *(
+                [
+                    {
+                        # Spec 283: an invoice may bill several orders; each is
+                        # reached through its own line links, never a header FK.
+                        "title": "Billed orders",
+                        "rows": [
+                            inspector_row(
+                                order.number,
+                                sum(
+                                    1
+                                    for line in detail["lines"]
+                                    if billed_orders.get(line.billed_document_line_id)
+                                    == order.id
+                                ),
+                                kind="document",
+                                record_id=order.id,
+                            )
+                            for order in billed_order_documents
+                        ],
+                    }
+                ]
+                if billed_order_documents
+                else []
+            ),
             *(
                 [
                     {

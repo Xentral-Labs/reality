@@ -455,6 +455,7 @@ families:
       - tool:fulfillment_readiness
       - tool:inventory
       - tool:invoice_credit_context
+      - tool:invoice_billable_positions
       - tool:interpretation_coverage
       - tool:proposals_awaiting_approval
       - tool:proposal_execution_status

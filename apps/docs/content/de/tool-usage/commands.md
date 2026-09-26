@@ -50,6 +50,7 @@ Web, API, Chat und MCP erreichen dieselbe Operation.
 | [`post_supplier_payment`](#command-post_supplier_payment)                         | Post supplier payment                     | Finanzen                | `supplier_payment_post_propose`                                                                                                                                                              | CLI · Web · MCP · Chat                  |
 | [`post_supplier_refund`](#command-post_supplier_refund)                           | Post supplier refund                      | Finanzen                | `supplier_refund_post_propose`                                                                                                                                                               | Web · MCP · Chat                        |
 | [`preview_payment_run`](#command-preview_payment_run)                             | Preview payment run                       | Finanzen                | `payment_run_preview`                                                                                                                                                                        | Web · MCP · Chat                        |
+| [`billable_positions`](#command-billable_positions)                               | Read billable invoice positions           | Finanzen                | `invoice_billable_positions`                                                                                                                                                                 | Web · API · MCP · Chat                  |
 | [`component_history`](#command-component_history)                                 | Read component assignment history         | Finanzen                | `finance_component_history`                                                                                                                                                                  | CLI · Web · MCP · Chat                  |
 | [`list_references`](#command-list_references)                                     | Read finance references                   | Finanzen                | `finance_references`                                                                                                                                                                         | CLI · Web · MCP · Chat                  |
 | [`invoice_credit_context`](#command-invoice_credit_context)                       | Read invoice credit context               | Finanzen                | `invoice_credit_context`                                                                                                                                                                     | Web · MCP · Chat                        |
@@ -2640,6 +2641,68 @@ per currency, and what was withheld.
 | `pay_by` | `string` | ja      | The day the payment run is being made for; invoices due on or before it are proposed, as is any invoice whose early-payment window is still open. | —        |
 
 **Siehe auch:** Geschäftsaktion [`preview_payment_run`](./commands#command-preview_payment_run)
+
+### `billable_positions` — Read billable invoice positions {#command-billable_positions}
+
+Lists one party's delivered or received order positions not yet fully billed, grouped by order,
+without recording an invoice.
+
+**Aufruf**
+
+```text
+invoice_billable_positions direction party_id currency [limit]
+```
+
+**Erreichbar über:** Web · API · MCP · Chat
+
+**Wirkung:** Liest: `party`, `document`, `document_line`, `commitment`, `movement`, `ledger_entry`,
+`ledger_reversal` · Schreibt: —
+
+**Siehe auch:** Agenten-Tool
+[`invoice_billable_positions`](./commands#tool-invoice_billable_positions)
+
+#### `invoice_billable_positions` — Billable order positions {#tool-invoice_billable_positions}
+
+Read one party's delivered or received order positions that are not yet fully billed, grouped by
+order, for one consolidated invoice.
+
+**Aufruf**
+
+```text
+invoice_billable_positions direction party_id currency [limit]
+```
+
+**Zugriff:** `read`
+
+**So wird diese Abfrage ausgeführt**
+
+| Konkrete Abfrage                 | Art                        | Standard |
+| -------------------------------- | -------------------------- | -------- |
+| `MCP invoice_billable_positions` | Live — beim Aufruf gelesen | ja       |
+
+[So wird diese Abfrage ausgeführt](./views#read-execution)
+
+List one party's order positions that were delivered or received and are not yet fully billed,
+grouped by order, for one consolidated invoice.
+
+**Verwenden, wenn**
+
+- One customer or supplier invoice over several orders of one party must be prepared.
+
+**Nicht verwenden, wenn**
+
+- A single order's billing is needed; read that order's billing availability instead.
+
+**Parameter**
+
+| Name        | Typ       | Pflicht | Beschreibung                                                                                  | Standard |
+| ----------- | --------- | ------- | --------------------------------------------------------------------------------------------- | -------- |
+| `direction` | `string`  | ja      | Business flow direction, such as sales or purchase, incoming or outgoing. `sales`, `purchase` | —        |
+| `party_id`  | `string`  | ja      | Opaque identity of the customer, supplier, or other operational party.                        | —        |
+| `currency`  | `string`  | ja      | ISO 4217 currency code for monetary values.                                                   | —        |
+| `limit`     | `integer` | nein    | Maximum number of records or jobs processed by this invocation.                               | —        |
+
+**Siehe auch:** Geschäftsaktion [`billable_positions`](./commands#command-billable_positions)
 
 ### `component_history` — Read component assignment history {#command-component_history}
 

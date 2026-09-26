@@ -11310,16 +11310,19 @@ Object.assign(dictionaries.es, {
 });
 
 Object.assign(dictionaries.de, {
+  "Billed orders": "Abgerechnete Aufträge",
   "Referenced position": "Bezogene Position",
   "Referenced positions": "Bezogene Positionen",
 });
 
 Object.assign(dictionaries.nl, {
+  "Billed orders": "Gefactureerde orders",
   "Referenced position": "Gekoppelde regel",
   "Referenced positions": "Gekoppelde regels",
 });
 
 Object.assign(dictionaries.es, {
+  "Billed orders": "Pedidos facturados",
   "Referenced position": "Línea referenciada",
   "Referenced positions": "Líneas referenciadas",
 });

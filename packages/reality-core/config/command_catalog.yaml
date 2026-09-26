@@ -1133,6 +1133,13 @@ commands:
     reads: [document, document_line, ledger_entry, ledger_reversal, settlement_allocation]
     writes: []
     effect: Shows exact customer-invoice positions and remaining credit capacity without recording a credit.
+  - name: Read billable invoice positions
+    service: billable_positions
+    mode: query
+    adapters: [Web, API, MCP, Chat]
+    reads: [party, document, document_line, commitment, movement, ledger_entry, ledger_reversal]
+    writes: []
+    effect: Lists one party's delivered or received order positions not yet fully billed, grouped by order, without recording an invoice.
   - name: Read dunning context
     service: dunning_context
     related_services: [preview_notice]
@@ -4331,6 +4338,24 @@ capability_guidance:
     unknown_when: [Credit or reversal evidence changes concurrently.]
     next_steps: [Prepare sales_credit_record_propose with returned opaque line identities.]
     examples: {use: [{scenario: Prepare a partial credit for two invoice positions., reason: The read supplies current capacity and identities.}], do_not_use: [{scenario: Restock returned goods., reason: Physical disposition is a separate Movement decision.}]}
+  invoice_billable_positions:
+    kind: read
+    application_tool: invoice_billable_positions
+    purpose: List one party's order positions that were delivered or received and are not yet fully billed, grouped by order, for one consolidated invoice.
+    use_when: [One customer or supplier invoice over several orders of one party must be prepared.]
+    do_not_use_when: [A single order's billing is needed; read that order's billing availability instead.]
+    required_context: [direction, party_id, currency]
+    data_basis: [document, document_line, commitment, movement, ledger_entry, ledger_reversal]
+    limitations: [At most 200 positions are returned; total counts all billable positions. Amounts are the order's stated values for reference; the invoice states its own.]
+    freshness: Derived from committed order, movement, invoice and reversal evidence at request time.
+    empty_result: A party with nothing delivered and unbilled returns no orders and total 0.
+    refusal_behavior: Unknown or foreign parties, an unsupported direction or a limit outside 1 to 200 are refused explicitly.
+    confirmation: none
+    side_effects: none
+    verification: {role: context, proves: [Which exact order positions can currently be billed and by how much.], does_not_prove: [Approval, posting or payment.]}
+    unknown_when: [Deliveries, invoices or reversals change concurrently.]
+    next_steps: [Prepare sales_invoice_record_propose or supplier_invoice_record_propose with the returned order line identities.]
+    examples: {use: [{scenario: Bill a customer's deliveries of the month on one invoice., reason: The read lists every delivered and unbilled position by order.}], do_not_use: [{scenario: Decide what a customer owes., reason: Open receivables derive from postings and allocations.}]}
   finance_dunning_context:
     kind: read
     application_tool: finance.dunning.context
@@ -4470,6 +4495,7 @@ reachable_mutations_that_are_not_commands:
 
 agent_command_coverage:
   invoice_credit_context: {classification: eligible, tools: [invoice_credit_context]}
+  billable_positions: {classification: eligible, tools: [invoice_billable_positions]}
   dunning_context: {classification: eligible, tools: [finance_dunning_context]}
   notices: {classification: eligible, tools: [finance_dunning_notices]}
   notice_detail: {classification: eligible, tools: [finance_dunning_notice]}
