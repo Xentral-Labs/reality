@@ -242,6 +242,10 @@ requires the explicit `--confirm-restore` flag; without it the native shell exit
 opening Keychain custody or PostgreSQL. Neither command places secret values in process
 arguments.
 
+The complete future Apple Developer ID certificate, provisioning-profile, App Store
+Connect API-key, GitHub-secret and first signed-release procedure is recorded in
+[`specs/240-persistent-macos-distribution/apple-release-setup.md`](../../specs/240-persistent-macos-distribution/apple-release-setup.md).
+
 The output directory must not already exist. The package is ad-hoc signed and
 verified locally; it is not notarized or ready for distribution. Startup is bounded
 by a ten-second endpoint handshake. Closing the private parent pipe stops the proof

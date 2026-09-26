@@ -6,6 +6,7 @@
 # steps are skipped and the artifact stays ad-hoc signed and clearly labelled unsigned.
 #
 # Required repository secrets for a signed release:
+# Setup and rotation runbook: specs/240-persistent-macos-distribution/apple-release-setup.md
 #   APPLE_CERTIFICATE_P12       Developer ID Application certificate, base64 of the .p12
 #   APPLE_CERTIFICATE_PASSWORD  password of that .p12
 #   APPLE_SIGNING_IDENTITY      e.g. "Developer ID Application: Example GmbH (ABCDE12345)"
