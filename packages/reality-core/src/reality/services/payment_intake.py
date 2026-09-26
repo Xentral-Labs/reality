@@ -447,7 +447,7 @@ def resolve_references(
             )
             continue
         if orders:
-            # Naming an order names a consolidated invoice only in part (spec 280):
+            # Naming an order names a consolidated invoice only in part (spec 283):
             # the payment may be for this order alone, so it is not allocated.
             order_ids = {order.id for order in orders}
             partial = [

@@ -9238,7 +9238,7 @@ def _preview_order_invoice(
                     },
                 )
             )
-        # A consolidated invoice may bill several orders (spec 280), but only of one
+        # A consolidated invoice may bill several orders (spec 283), but only of one
         # party in one currency: the invoice states one debtor and one amount.
         if len({row["party_id"] for row in previews}) != 1:
             raise InvalidOperation("Invoice positions must belong to one party.")

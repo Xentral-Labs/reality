@@ -207,7 +207,7 @@ def test_invoice_line_of_another_partys_order_blocks_without_guessing(
 def test_a_consolidated_invoice_releases_prepayment_only_when_settled_in_full(
     session, business
 ):
-    """Spec 280 FR-004: no split of a payment; the whole invoice must be settled."""
+    """Spec 283 FR-004: no split of a payment; the whole invoice must be settled."""
     tenant_id = business.tenant.id
     _order, line, commitment = _prepayment_order(session, business)
     _other, other_lines = create_manual_document_with_lines(

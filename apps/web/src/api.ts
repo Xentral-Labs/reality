@@ -3016,9 +3016,9 @@ export type InvoiceProposal = Omit<DeliveryProposal, "review" | "observation"> &
         item: { name: string };
         line: { unit: string };
       }[];
-      /** One-order review; absent for a consolidated invoice (spec 280). */
+      /** One-order review; absent for a consolidated invoice (spec 283). */
       order?: { id: string; number: string };
-      /** Every order a consolidated invoice bills (spec 280). */
+      /** Every order a consolidated invoice bills (spec 283). */
       orders?: { id: string; number: string }[];
       party: { name: string };
       item: { name: string };

@@ -1,6 +1,6 @@
 # Implementation Plan: Consolidated invoices across orders
 
-**Branch**: `280-consolidated-invoices` | **Date**: 2026-09-26 | **Spec**: [spec.md](spec.md)
+**Branch**: `283-consolidated-invoices` | **Date**: 2026-09-26 | **Spec**: [spec.md](spec.md)
 
 ## Summary
 

@@ -1,7 +1,7 @@
 # Feature Specification: Consolidated invoices across orders
 
 **Language**: English
-**Created**: 2026-09-26
+**Created**: 2026-09-26 (merged as 280 in #207; renumbered to 283 because #210 also merged a spec 280)
 **Status**: Accepted by the owner on 2026-09-26 (see Clarifications).
 
 ## Context and Intent

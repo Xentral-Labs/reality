@@ -795,7 +795,7 @@ def _consolidated_invoice(session, business):
 def test_an_order_reference_does_not_allocate_to_a_consolidated_invoice(
     session, business
 ):
-    """Spec 280 FR-005: naming one order is not naming an invoice that bills two."""
+    """Spec 283 FR-005: naming one order is not naming an invoice that bills two."""
     _consolidated_invoice(session, business)
 
     _, _, _, allocation, resolution = _pay(
@@ -811,7 +811,7 @@ def test_an_order_reference_does_not_allocate_to_a_consolidated_invoice(
 
 
 def test_the_consolidated_invoice_number_still_allocates(session, business):
-    """Spec 280 FR-005 positive control: the invoice reference itself is unambiguous."""
+    """Spec 283 FR-005 positive control: the invoice reference itself is unambiguous."""
     _consolidated_invoice(session, business)
 
     _, _, _, allocation, resolution = _pay(

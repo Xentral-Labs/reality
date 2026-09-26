@@ -50,7 +50,7 @@ class FulfillmentReadiness:
     commitment_hold_ids: tuple[str, ...]
     party_hold_ids: tuple[str, ...]
     #: Consolidated invoices billing this order that are still open, as
-    #: (invoice id, invoice number, open amount); spec 280 FR-004.
+    #: (invoice id, invoice number, open amount); spec 283 FR-004.
     consolidated_open: tuple[tuple[str, str, Decimal], ...] = ()
 
     def as_dict(self) -> dict[str, object]:
@@ -327,7 +327,7 @@ def fulfillment_readiness(
     )
     candidate_invoice_ids = {row.document_id for row in invoice_rows}
     # An invoice that also bills other orders of this party in this currency is a
-    # consolidated invoice (spec 280), not ambiguous: it counts for this order only
+    # consolidated invoice (spec 283), not ambiguous: it counts for this order only
     # once it is settled in full, by what its own lines state for this order. A
     # line billing another party's or currency's order cannot be attributed.
     ambiguous = False

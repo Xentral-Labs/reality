@@ -129,7 +129,7 @@ def test_invalid_is_inert(session, business, bad):
     if bad == "duplicate":
         args["lines"][1]["order_line_id"] = lines[0].id
     if bad == "mixed":
-        # Spec 280: another order of the same party is a consolidated invoice; another
+        # Spec 283: another order of the same party is a consolidated invoice; another
         # party's order stays refused.
         other = core.create_party(session, business.tenant.id, "Other KG", "customer")
         foreign = core.create_manual_order(

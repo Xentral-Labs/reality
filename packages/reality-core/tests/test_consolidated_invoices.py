@@ -1,4 +1,4 @@
-"""Spec 280: one invoice over several orders of one party and one currency."""
+"""Spec 283: one invoice over several orders of one party and one currency."""
 
 import json
 from datetime import UTC, datetime
@@ -383,7 +383,7 @@ def test_a_consolidated_receipt_is_recovered_exactly(session, business):
 
 
 def test_a_single_order_review_keeps_its_shape(session, business):
-    """FR-009: a one-order proposal has the review it had before spec 280."""
+    """FR-009: a one-order proposal has the review it had before spec 283."""
     lines = order(session, business, lines=2)
     proposal = prepare(session, business, [position(lines[0]), position(lines[1])])
     state = review_of(session, business, proposal)["state"]
@@ -425,7 +425,7 @@ def cancelled_line(session, b, number):
 def test_a_cancelled_promise_changes_nothing_as_for_a_single_order_invoice(
     session, business
 ):
-    """Spec 280 edge case: billing is order-line based; cancellation does not block it."""
+    """Spec 283 edge case: billing is order-line based; cancellation does not block it."""
     first, first_promise = cancelled_line(session, business, "ORDER-280-CANCEL")
     single_line, single_promise = cancelled_line(session, business, "ORDER-280-SINGLE")
     second = order(session, business)[0]

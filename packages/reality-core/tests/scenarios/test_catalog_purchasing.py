@@ -292,7 +292,7 @@ def test_one_supplier_invoice_bills_lines_of_two_purchase_orders(session, busine
     _, second_line, _ = _order(
         session, business, "purchase", "PO-I05-B", business.supplier.id, "3", "20"
     )
-    # Spec 280: the guided invoice command bills positions of several purchase
+    # Spec 283: the guided invoice command bills positions of several purchase
     # orders of one supplier on one invoice.
     core.record_supplier_invoice(
         session,

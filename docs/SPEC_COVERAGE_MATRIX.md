@@ -1743,6 +1743,6 @@ A permission list is bounded by the catalog it draws from, and both grant paths 
 | The resolution guidance catalog validates against action discovery forms, rejects unknown roles, paths, pages, scope-less chat prompts and dangling blocker steps, covers every code a service can emit, and is served with the application catalog | 279 FR-001/FR-004 | `packages/reality-core/tests/test_resolution_guidance.py` |
 | Cost guidance derives the ordered steps to a proven inventory or contribution value at read time: receipt cost, item review, contribution review and the owner's confirmation linked to the waiting proposal; it names the upstream blocker, writes nothing, stays tenant-scoped and is identical over MCP | 279 FR-001/FR-002/FR-003/FR-009, DR-001–DR-004 | `packages/reality-core/tests/test_cost_resolution.py` |
 
-## Consolidated invoices — Spec 280
+## Consolidated invoices — Spec 283
 
-- `packages/reality-core/tests/test_consolidated_invoices.py`: spec 280 FR-001–003 and FR-010; one invoice over several orders of one party in both directions, refusal of another party, currency or direction, atomicity, per-line billing before, after and after reversal, and the 200-position bound in core and the MCP schema.
+- `packages/reality-core/tests/test_consolidated_invoices.py`: spec 283 FR-001–003 and FR-010; one invoice over several orders of one party in both directions, refusal of another party, currency or direction, atomicity, per-line billing before, after and after reversal, and the 200-position bound in core and the MCP schema.

@@ -174,7 +174,7 @@ def _review_invoice(
         )
     )
     if len(order_ids) > 1:
-        # A consolidated invoice (spec 280) has no single order, line or item to
+        # A consolidated invoice (spec 283) has no single order, line or item to
         # name; every order it bills is part of what the review binds. A review of
         # one order keeps exactly the shape it had, so its token does not change.
         party = _tenant_record(session, Party, tenant_id, creation["party_id"])
