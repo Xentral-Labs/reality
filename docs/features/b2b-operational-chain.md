@@ -14,6 +14,10 @@ receipt, physical stock and reservation remain separate facts.
 Expected reconciliation: ordered 10 = customer-assigned 6 + stock 2 + unassigned 2. Received 4 and
 open 6 are an independent fulfilment dimension. The profile manifest case is `b2b_supply_chain`.
 
+Cancelling either promise ends its assignments without rewriting them: coverage stops counting an
+assignment whose customer or supplier commitment is cancelled, so the supplier quantity is
+unassigned again and the customer shows no protecting supply from it.
+
 ## Mixed returned-goods disposition
 
 Search Sales for `SO-041`, then open `ITEM-012` movements in Warehouse. Five shipped units return
