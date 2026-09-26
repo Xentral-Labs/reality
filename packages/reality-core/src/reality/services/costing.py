@@ -1544,6 +1544,20 @@ def cost_record(
     return _read(session, tenant_id, kind, record_id, page=page, language=language)
 
 
+def cost_review_draft(
+    session: Session,
+    tenant_id: str,
+    *,
+    kind: str,
+    scope_id: str,
+    answers: dict | None = None,
+) -> dict:
+    """Draft the review the held records support for one scope (spec 282)."""
+    from reality.services.cost_review_draft import cost_review_draft as draft
+
+    return draft(session, tenant_id, kind=kind, scope_id=scope_id, answers=answers)
+
+
 def cost_query(
     session: Session,
     tenant_id: str,
