@@ -15,6 +15,7 @@ from reality.services import core
 from reality.services.delivery_actions import (
     delivery_proposal_detail,
     prepare_delivery_action,
+    reconcile_delivery,
 )
 from reality.services.exceptions import operational_exceptions
 
@@ -325,3 +326,130 @@ async def test_the_mcp_schema_declares_the_position_bound():
     for name in ("sales_invoice_record_propose", "supplier_invoice_record_propose"):
         lines = tools[name].input_schema["properties"]["lines"]
         assert (lines["minItems"], lines["maxItems"]) == (1, 200)
+
+
+# --- FR-007/FR-009: review, stale detection, recovery -------------------------
+
+
+def review_of(session, b, proposal):
+    return delivery_proposal_detail(session, b.tenant.id, proposal.id)["review"]
+
+
+def test_the_review_lists_every_order_and_names_none_as_the_order(session, business):
+    """FR-007, SC-003: a consolidated review has orders, not one order."""
+    a, b = order(session, business)[0], order(session, business)[0]
+    proposal = prepare(session, business, [position(a), position(b)])
+
+    state = review_of(session, business, proposal)["state"]
+    assert [row["id"] for row in state["orders"]] == [a.document_id, b.document_id]
+    assert all(row["number"].startswith("ORDER-280-") for row in state["orders"])
+    assert "order" not in state and "line" not in state and "item" not in state
+    assert state["party"] == {
+        "id": business.customer.id,
+        "name": business.customer.name,
+    }
+    assert [row["line"]["id"] for row in state["positions"]] == [a.id, b.id]
+    assert "orders" not in state["creation"]
+
+
+def test_a_change_to_the_second_order_makes_the_review_stale(session, business):
+    """FR-007: billing a selected position elsewhere invalidates the review."""
+    a, b = order(session, business)[0], order(session, business)[0]
+    proposal = prepare(session, business, [position(a), position(b)])
+    core.record_sales_invoice(session, business.tenant.id, b.id, "1", "10", "INV-ELSE")
+    before = session.scalar(select(func.count()).select_from(LedgerEntry))
+
+    with pytest.raises(core.InvalidOperation, match="fresh review"):
+        confirm(session, business, proposal)
+    assert session.scalar(select(func.count()).select_from(LedgerEntry)) == before
+
+
+def test_a_consolidated_receipt_is_recovered_exactly(session, business):
+    """FR-007: an unknown outcome is recovered from the recorded N-line proof."""
+    a, b = order(session, business)[0], order(session, business)[0]
+    proposal = prepare(session, business, [position(a), position(b)])
+    confirm(session, business, proposal)
+    detail = delivery_proposal_detail(session, business.tenant.id, proposal.id)
+    assert detail["verification"] == "verified"
+    assert len(detail["receipt"]["records"]) == 2 + 4
+
+    proposal.status = "executing"
+    proposal.output = "{}"
+    session.commit()
+    assert (
+        reconcile_delivery(session, business.tenant.id, proposal.id)["receipt"]
+        == detail["receipt"]
+    )
+
+
+def test_a_single_order_review_keeps_its_shape(session, business):
+    """FR-009: a one-order proposal has the review it had before spec 280."""
+    lines = order(session, business, lines=2)
+    proposal = prepare(session, business, [position(lines[0]), position(lines[1])])
+    state = review_of(session, business, proposal)["state"]
+    assert set(state) == {
+        "creation",
+        "order",
+        "line",
+        "party",
+        "item",
+        "positions",
+        "billing",
+    }
+    assert state["order"]["id"] == lines[0].document_id
+    assert "orders" not in state["creation"]
+
+
+def cancelled_line(session, b, number):
+    _, _, lines, promises = core.create_manual_order(
+        session,
+        b.tenant.id,
+        "sales",
+        number,
+        b.company.id,
+        b.customer.id,
+        b.location.id,
+        [
+            {
+                "item_id": b.item.id,
+                "quantity": "3",
+                "unit_price": "10",
+                "gross_amount": "30",
+            }
+        ],
+        gross_amount="30",
+    )
+    return lines[0], promises[0]
+
+
+def test_a_cancelled_promise_changes_nothing_as_for_a_single_order_invoice(
+    session, business
+):
+    """Spec 280 edge case: billing is order-line based; cancellation does not block it."""
+    first, first_promise = cancelled_line(session, business, "ORDER-280-CANCEL")
+    single_line, single_promise = cancelled_line(session, business, "ORDER-280-SINGLE")
+    second = order(session, business)[0]
+    consolidated = prepare(session, business, [position(first), position(second)])
+    single = prepare(
+        session,
+        business,
+        [position(single_line, quantity="1", gross_amount="10")],
+        total="10",
+        request="single-after-cancel",
+    )
+    for promise in (first_promise, single_promise):
+        core.cancel_commitment(
+            session,
+            business.tenant.id,
+            promise.id,
+            reason="Customer cancelled the rest",
+        )
+
+    confirm(session, business, consolidated)
+    confirm(session, business, single)
+    assert core._order_line_billing(session, business.tenant.id, first.id)[
+        "invoiced"
+    ] == Decimal(2)
+    assert core._order_line_billing(session, business.tenant.id, single_line.id)[
+        "invoiced"
+    ] == Decimal(1)

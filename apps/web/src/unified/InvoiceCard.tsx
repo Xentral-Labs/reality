@@ -184,7 +184,7 @@ export function InvoiceCard({
         ],
       });
       setActiveTool(proposal.tool as InvoiceTool);
-      setOrderId(proposal.review.state.order.id);
+      if (proposal.review.state.order) setOrderId(proposal.review.state.order.id);
       request.current = crypto.randomUUID();
       setEditing(true);
       setProposal(null);
@@ -438,12 +438,17 @@ export function InvoiceCard({
                 </p>
                 <h3 className="mt-2 text-xl font-semibold">{review.state.creation.number}</h3>
                 <p className="mt-2">{review.state.party.name}</p>
-                <button
-                  className="mt-2 text-accent underline"
-                  onClick={() => inspect({ kind: "document", id: review.state.order.id })}
-                >
-                  {t("Order")}: {review.state.order.number}
-                </button>
+                {(review.state.orders ?? (review.state.order ? [review.state.order] : [])).map(
+                  (order) => (
+                    <button
+                      key={order.id}
+                      className="mt-2 mr-3 text-accent underline"
+                      onClick={() => inspect({ kind: "document", id: order.id })}
+                    >
+                      {t("Order")}: {order.number}
+                    </button>
+                  ),
+                )}
               </section>
               {review.state.positions ? (
                 <div className="divide-y divide-border-default rounded-lg border border-border-default px-4">
@@ -539,7 +544,7 @@ export function InvoiceCard({
                     settled();
                   })
                 }
-                edit={edit}
+                edit={review?.state.orders ? undefined : edit}
                 confirm={confirm}
               />
             )}

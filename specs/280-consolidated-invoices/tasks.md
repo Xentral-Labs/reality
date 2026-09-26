@@ -23,12 +23,13 @@ Tests come before the implementation they prove. Paths are relative to the repos
   `packages/reality-core/src/reality/services/core.py` `_preview_order_invoice`: replace the
   same-order refusal with direction/party/currency refusals and the FR-010 bound; add
   `orders[]` to the preview; declare `maxItems: 200` for `lines` in `mcp/catalog.py`.
-- [ ] T005 [US3] Write failing FR-007/FR-009 review proofs in
+- [x] T005 [US3] Write failing FR-007/FR-009 review proofs in
   `packages/reality-core/tests/test_consolidated_invoices.py`: review lists every order; a
   change to any selected position makes the review stale; recovery verifies the exact N-line
   receipt; a legacy single-order proposal hashes and verifies unchanged; a commitment
-  cancelled between review and confirmation makes the review stale and nothing is written.
-- [ ] T006 [US3] Implement FR-007/FR-009 in
+  cancelled between review and confirmation changes nothing, exactly as for a single-order
+  invoice (billing is order-line based; see analysis A2).
+- [x] T006 [US3] Implement FR-007/FR-009 in
   `packages/reality-core/src/reality/services/invoice_actions.py` `_review_invoice`
   (`state.orders`, `state.party` from the preview, per-position item; `state.order` kept for
   the single shape).

@@ -108,7 +108,8 @@ order and from each order back to the invoice.
 - An order whose ship-to party differs from the orderer (bill-to stays the order party).
 - A consolidated invoice reversed later: every order line becomes billable again by its own
   quantity.
-- A cancelled commitment on one of the orders between review and confirmation.
+- A cancelled commitment on one of the orders between review and confirmation: billing is
+  order-line based, so the review stays valid, as for a single-order invoice.
 - 50 or more positions from 12 or more orders (spec 076 SC-002 example); more than 200
   positions are refused (FR-010).
 

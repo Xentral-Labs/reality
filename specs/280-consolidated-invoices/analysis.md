@@ -25,7 +25,7 @@ Every requirement has a test task before its implementation; every task maps to 
 | ID | Severity | Finding | Resolution |
 |---|---|---|---|
 | A1 | MEDIUM | FR-007 requires CLI parity, but no CLI invoice command exists and the plan adds none. | FR-007 reworded: CLI only where an invoice command exists (none today). |
-| A2 | MEDIUM | Edge case "a cancelled commitment between review and confirmation" has no test. | Added to T005: the review goes stale and confirmation writes nothing. |
+| A2 | MEDIUM | Edge case "a cancelled commitment between review and confirmation" has no test. | Added to T005. Corrected during T005: billing is order-line based and ignores commitment status on purpose (a cancelled remainder must not block billing what shipped), as for a single-order invoice today; the review therefore stays valid and the invoice records. The test proves the consolidated invoice behaves exactly like the single-order one. |
 | A3 | MEDIUM | The spec relies on "existing input bounds", but `lines` has no upper bound in the MCP schema or in core. A 12-order collective invoice makes the unbounded list a real input. | New FR-010: at most 200 positions per invoice, the same bound as the billable-positions read; enforced in core and declared as `maxItems` in the MCP schema; proven in T001. |
 | A4 | LOW | `billable_positions` built on `_order_line_billing` per line would issue queries per line. | T011 adds a statement-count proof that the read does not grow per order line. |
 | A5 | LOW | The new blocker detail is server text; the web translates server strings by their English key. | T017 covers the detail string in four languages; no blocker code label exists in the web today. |
