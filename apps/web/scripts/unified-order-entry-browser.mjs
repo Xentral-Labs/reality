@@ -3,6 +3,7 @@ import { reference as discoveryReference } from "./action-discovery-fixture.mjs"
 import assert from "node:assert/strict";
 import { pathToFileURL } from "node:url";
 import { mkdir } from "node:fs/promises";
+import { openPageActions } from "./page-actions.mjs";
 const { chromium } = await import(pathToFileURL(process.env.PLAYWRIGHT_MODULE));
 const browser = await chromium.launch({
   headless: true,
@@ -157,8 +158,7 @@ await page.route("**/api/**", async (route) => {
 try {
   await mkdir("/private/tmp/reality-119-browser", { recursive: true });
   await page.goto(`${base}/app/orders-deliveries?tenant=company&orders_view=customer-orders`);
-  if (await page.locator(".register-actions:not([open]) > summary").count())
-    await page.locator(".register-actions > summary").click();
+  await openPageActions(page);
   await page.getByRole("button", { name: "New order", exact: true }).click();
   const dialog = page.getByRole("dialog");
   await dialog.getByLabel("Company party", { exact: true }).selectOption("our-company");

@@ -3,6 +3,7 @@ import { reference as discoveryReference } from "./action-discovery-fixture.mjs"
 import assert from "node:assert/strict";
 import { pathToFileURL } from "node:url";
 import { mkdir } from "node:fs/promises";
+import { openPageActions } from "./page-actions.mjs";
 const { chromium } = await import(pathToFileURL(process.env.PLAYWRIGHT_MODULE));
 const browser = await chromium.launch({
   headless: true,
@@ -80,6 +81,29 @@ await page.route("**/api/**", async (route) => {
     };
     return reply(proposal);
   }
+  // Decision reviews (spec 276) hand a delivery-kind proposal to the shared action card.
+  if (p.endsWith("/change-proposals/payment/review"))
+    return reply({
+      id: "payment",
+      tool: proposal.tool,
+      label: "Payment",
+      purpose: "",
+      review_kind: "delivery",
+      status: proposal.status,
+      actor_type: "human",
+      created_at: "2026-09-08T12:00:00Z",
+      decided_at: null,
+      decider: null,
+      input: proposal.review.intent,
+      preview: {},
+      receipt: {},
+      next_step: {
+        review_required: true,
+        required_principal: "authorized_human",
+        reconciliation_read: "delivery_proposal_detail",
+        verification_reads: [],
+      },
+    });
   if (p.endsWith("/approve")) {
     confirmations++;
     proposal.status = "executed";
@@ -172,24 +196,20 @@ try {
     `http://localhost:5177/app/finance?tenant=company&proposal=payment&lang=${language}`,
   );
   await page.getByRole("button", { name: "Confirm change", exact: true }).click();
-  const link = page.getByRole("link", { name: "Open payment", exact: true });
-  await link.waitFor();
-  assert.match(await link.getAttribute("href"), /entry=cash/);
+  // A decision opened from its review closes once the lost response is recovered.
+  await page.locator("#payment-title").waitFor({ state: "detached" });
   assert.equal(confirmations, 1);
-  await page.getByRole("button", { name: "Close", exact: true }).click();
-  await page.locator("[data-action-launcher] > button").click();
-  if (
-    !(await page.getByRole("dialog").count()) &&
-    (await page.locator(".register-actions:not([open]) > summary").count())
-  )
-    await page.locator(".register-actions > summary").click();
+  assert.equal(proposal.status, "executed");
+  // Start the next payment from the page actions. (Searching the command palette for
+  // "Record customer payment" currently finds nothing in this fixture; see the PR.)
+  await openPageActions(page);
   await page.getByRole("button", { name: "Record customer payment", exact: true }).first().click();
   await page.getByLabel("Payment direction", { exact: true }).selectOption("supplier_payment_post");
   await page.getByLabel("Invoice", { exact: true }).selectOption("invoice-doc");
   await page.getByLabel("Payment amount", { exact: true }).fill("100");
   await page.getByLabel("Payment reference", { exact: true }).fill("SUP-PAY");
   await page.getByRole("button", { name: "Review change", exact: true }).click();
-  await page.getByRole("button", { name: "Edit", exact: true }).click();
+  await page.getByRole("button", { name: "Request changes", exact: true }).click();
   assert.equal(await page.getByLabel("Payment reference", { exact: true }).inputValue(), "SUP-PAY");
   assert.equal(
     await page.getByLabel("Payment direction", { exact: true }).inputValue(),
@@ -205,10 +225,11 @@ try {
   await page.locator("#payment-title").waitFor();
   // Copilot is the shared dock; the financial fixture intentionally owns no Home reads.
   await page.goto("http://localhost:5177/app/finance?tenant=company");
-  await page.getByRole("button", { name: /Review proposed changes/ }).click();
+  await page.getByRole("button", { name: "Review and decide", exact: true }).click();
   await page.locator("#payment-title").waitFor();
-  await page.getByRole("button", { name: "Reject", exact: true }).click();
-  await page.getByRole("dialog").getByText("Rejected", { exact: true }).waitFor();
+  await page.getByRole("button", { name: "Do not approve", exact: true }).click();
+  await page.locator("#payment-title").waitFor({ state: "detached" });
+  assert.equal(proposal.status, "rejected");
   assert.deepEqual(errors, []);
   console.log(
     "PASS payment entry, partial balance review, customer/supplier, four entries, edit/reject, reload/recovery and 16 localized responsive views",

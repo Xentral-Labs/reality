@@ -2,6 +2,7 @@
 import assert from "node:assert/strict";
 import { pathToFileURL } from "node:url";
 import { mkdir, writeFile, readFile } from "node:fs/promises";
+import { openPageActions } from "./page-actions.mjs";
 const { chromium } = await import(pathToFileURL(process.env.PLAYWRIGHT_MODULE));
 const base = process.env.JOURNEY_BASE_URL;
 assert.ok(base && !["5177", "8007", "8080"].includes(new URL(base).port));
@@ -31,8 +32,7 @@ try {
   });
   assert.equal(login.status(), 200);
   await page.goto(`${base}/app/data-sources?tenant=${fixture.tenant}`);
-  if (await page.locator(".register-actions:not([open]) > summary").count())
-    await page.locator(".register-actions > summary").click();
+  await openPageActions(page);
   await page.getByRole("button", { name: "Import items", exact: true }).click();
   await panel
     .getByLabel("CSV file", { exact: true })
@@ -57,8 +57,7 @@ try {
   );
   await page.unroute(preparation);
   await page.reload();
-  if (await page.locator(".register-actions:not([open]) > summary").count())
-    await page.locator(".register-actions > summary").click();
+  await openPageActions(page);
   await page.getByRole("button", { name: "Import items", exact: true }).click();
   await panel.getByRole("button", { name: "Recover import review", exact: true }).click();
   await panel.getByRole("button", { name: "Confirm import", exact: true }).waitFor();
@@ -135,8 +134,7 @@ try {
     data: { display_name: "Import member", language: "en", locale: "en-GB", timezone: "UTC" },
   });
   await page.goto(`${base}/app/data-sources?tenant=${fixture.tenant}`);
-  if (await page.locator(".register-actions:not([open]) > summary").count())
-    await page.locator(".register-actions > summary").click();
+  await openPageActions(page);
   await page.getByRole("button", { name: "Import items", exact: true }).click();
   await panel.getByLabel("CSV file", { exact: true }).setInputFiles({
     name: "cancel.csv",
