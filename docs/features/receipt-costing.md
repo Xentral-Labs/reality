@@ -786,3 +786,30 @@ guards preserve published output and all retained selection/evidence. Sealed row
 be edited or gain members. Graph/saved-report adapters, shared-worker orchestration and
 company-scale qualification remain pending. These internal services add no public report
 UI and do not complete historical company financial admission.
+
+## Drafted cost reviews (spec 282)
+
+`cost.review.draft` (MCP `cost_review_draft`, also offered to chat) drafts the
+`inventory_review` or `contribution_review` arguments that held records support, at read time
+and without storing anything.
+
+- **Contribution drafts** copy the current preview: candidate hash, economic date, event
+  sequence and the fixed `commercial_v1` profile.
+- **Inventory drafts** derive the following by the rules of the inventory check:
+  - the owner (the party with role `company`);
+  - currency, unit and history;
+  - the class of every effective movement;
+  - each receipt's current manifest and ownership evidence (the receipt's source, else the
+    source of the document behind its goods cost).
+- **Open inputs:** whatever no source states becomes an open input with catalog wording:
+  - the valuation method, always asked with FIFO preselected;
+  - an absent company party;
+  - an incomplete receipt;
+  - an opening without a stated cost;
+  - customer return portions and specific selections.
+- **Web path:** the web proposes through `POST /cost-review-proposals`, which re-drafts on the
+  server and refuses a drifted draft with `409 draft_changed`.
+- **Opening cost:** opening stock may carry `opening_cost` (the total value as its evidence
+  states it, the currency and the evidence reference). It is recorded as an
+  `opening_cost_statement` SourceRecord that the opening movement points to, and the draft
+  copies that amount unchanged.

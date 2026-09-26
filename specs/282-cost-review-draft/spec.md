@@ -183,9 +183,9 @@ stated acquisition cost, and the inventory check accepts it.
 2. **Given** an opening recorded through the form with acquisition cost and an evidence
    reference, **When** the draft is requested, **Then** the opening carries the created
    evidence record and the stated amount unchanged.
-3. **Given** an opening recorded earlier without cost, **When** the clerk corrects it with
-   the existing movement correction to a replacement opening with cost, **Then** the draft
-   uses the replacement and ignores the corrected original.
+3. **Given** an opening recorded earlier without cost, **When** the clerk corrects it away
+   with the existing movement correction and records it again with cost, **Then** the draft
+   uses the new opening and ignores the corrected original.
 4. **Given** the opening form without a cost, **When** it is submitted, **Then** it still
    records the opening as today. Cost stays optional, and the draft lists it as an open
    input.
@@ -302,8 +302,11 @@ item. The proposal is created with arguments equal to the draft.
 - **SC-002**: For a derivable contribution scope, the chat path creates the proposal without
   asking the person anything. For a derivable inventory scope, it asks only for the
   valuation method, and for any other scope one question per open input.
-- **SC-003**: Every drafted "complete" argument set in the demo profile's reviewed scopes
-  equals, or is accepted in place of, the arguments the demo seed builds today.
+- **SC-003**: Over every stocked demo item, the draft is either accepted by the existing
+  check or names only inputs no held source states: an opening without a stated cost, a
+  customer return portion, a specific selection. It never returns a wrong argument set.
+  (Reworded during implementation: the demo seed fixes its opening cost in code, so no
+  source states it and the draft rightly keeps it open.)
 - **SC-004**: Every FR and DR has an acceptance scenario and executable proof.
 
 ## Assumptions and Dependencies
