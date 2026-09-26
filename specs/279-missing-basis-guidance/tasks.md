@@ -114,15 +114,15 @@ written in English. Paths below are relative to the repository root; `core/` sta
 ## Final Phase: Cross-Cutting Review
 
 - [x] T900 Run the spec and traceability audit (`make spec-check`).
-- [ ] T901 Run Ruff (from `packages/reality-core`, `--no-cache`) and the complete backend PostgreSQL suite from a clean detached worktree.
+- [x] T901 Run Ruff (from `packages/reality-core`, `--no-cache`) and the complete backend PostgreSQL suite from a clean detached worktree. (2026-09-26: 4438 passed, 10 skipped, 3 failed under `-n 6`: the coverage-matrix check, fixed by the next commit, and two wall-clock budgets outside this feature, `test_reality_gap_replay_resumes_ten_thousand_sources_without_duplicates` and `test_live_creation_api_connects_and_starts_without_extra_requests`; all three pass alone on the final commit.)
 - [x] T902 Run `make web-build`, `npm run i18n:audit`, `npm run test:contracts`, `test:cost-explanation-browser` and `projection-freshness-browser.mjs`.
 - [x] T903 Confirm there is no migration (DR-005).
 - [ ] T908 [SC-001] Add a German no-raw-code sweep to `apps/web/scripts/unified-operations-browser.mjs` covering Exceptions, Finance open items, Orders, Inventory valuation and the Dispatch/blockers report (the cost panel is covered by T015).
 - [ ] T909 [SC-003] Walk quickstart check 3 for a contribution line (member → chat → owner → value) and record the result in `quickstart.md`.
 - [x] T904 Measure the cost query statement count before and after on the scale fixture, and record it in `quickstart.md`.
-- [ ] T905 Run `make docs-generate` and `make docs-catalog-check`, and commit any regenerated output.
+- [x] T905 Run `make docs-generate` and `make docs-catalog-check`, and commit any regenerated output. (Generated Tool Usage output is identical to `origin/main`'s; nothing to commit.)
 - [x] T906 Update `docs/WEB_SPEC.md` (a missing-basis guidance section) and `docs/features/receipt-costing.md` (the guidance steps) after the checks are green.
-- [ ] T907 Review the final diff against the Constitution and every FR and DR.
+- [x] T907 Review the final diff against the Constitution and every FR and DR. (Found and fixed: a moving-input conflict in the contribution preview failed the whole cost read.)
 
 ## Requirement Coverage
 
