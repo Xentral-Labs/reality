@@ -2308,6 +2308,22 @@ def projection_state_expressions(tenant_id: str, name: str) -> dict[str, Any]:
         )
         .scalar_subquery()
     )
+    failure_code = (
+        select(ScheduledJobRun.last_error_code)
+        .where(
+            ScheduledJobRun.tenant_id == tenant_id,
+            ScheduledJobRun.job_type == "projections.refresh",
+            ScheduledJobRun.status.in_(("failed", "unresolved")),
+            ScheduledJobRun.configuration["arguments"]["names"].contains([name]),
+        )
+        .order_by(
+            func.coalesce(
+                ScheduledJobRun.finished_at, ScheduledJobRun.created_at
+            ).desc()
+        )
+        .limit(1)
+        .scalar_subquery()
+    )
     return {
         "processed_event_sequence": checkpoint(
             ProjectionCheckpoint.last_event_sequence
@@ -2316,6 +2332,7 @@ def projection_state_expressions(tenant_id: str, name: str) -> dict[str, Any]:
         "projection_version": checkpoint(ProjectionCheckpoint.projection_version),
         "target_event_sequence": relevant_event_target(tenant_id, name),
         "failed_at": failed,
+        "failure_code": failure_code,
         "clock_due_at": checkpoint(ProjectionCheckpoint.clock_due_at),
     }
 
@@ -2358,6 +2375,26 @@ def projection_metadata(name: str, values: dict[str, Any]) -> dict[str, Any]:
         "projection_version": values["projection_version"],
         "upstream_freshness": "unknown",
         "consistency": "completed_snapshot",
+        "failure_code": values.get("failure_code") if state == "failed" else None,
+        "guidance": _projection_guidance(
+            state, values.get("failure_code") if state == "failed" else None
+        ),
+    }
+
+
+def _projection_guidance(state: str, failure_code: str | None) -> dict | None:
+    """Spec 279: explain a stored result that is not current; operators act on it."""
+    from reality.catalogs import load_resolution_guidance
+    from reality.domain.resolution_guidance import guidance_step
+
+    if state == "ready":
+        return None
+    reason = f"projection_{state}"
+    if state == "failed" and failure_code in load_resolution_guidance()["reasons"]:
+        reason = failure_code
+    return {
+        "reason_code": reason,
+        "steps": [guidance_step("system_status", "open")],
     }
 
 

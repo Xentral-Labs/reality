@@ -676,3 +676,41 @@ def test_commitment_hold_invalidates_supply_demand(session, business):
         )["metadata"]["state"]
         == "pending"
     )
+
+
+def test_metadata_explains_each_state_with_catalog_guidance(session, business):
+    """Spec 279 FR-011: the reason is a catalog code; the operator step names system status."""
+    tenant = business.tenant.id
+
+    def metadata(name=projections.INVENTORY):
+        return projections.projection_snapshot(session, tenant, name)["metadata"]
+
+    first = metadata()
+    assert first["state"] == "uninitialized" and first["failure_code"] is None
+    assert first["guidance"]["reason_code"] == "projection_uninitialized"
+    assert first["guidance"]["steps"] == [
+        {
+            "code": "system_status",
+            "state": "open",
+            "role": "operator",
+            "path": "system_status",
+            "targets": [],
+            "target_count": 0,
+        }
+    ]
+    dispatch(session, tenant)
+    complete_all(session, tenant)
+    # Positive control: a current result carries no guidance.
+    assert metadata()["state"] == "ready" and metadata()["guidance"] is None
+
+    create_item(session, tenant, "LATER", "Later")
+    dispatch(session, tenant)
+    run = scheduled_jobs.claim_next(session, tenant)
+    broken = run.configuration["arguments"]["names"][0]
+    scheduled_jobs.record_failure(
+        session, tenant, run.id, run.claim_token, "handler_timeout", retryable=False
+    )
+    failed = metadata(broken)
+    assert failed["state"] == "failed"
+    assert failed["failure_code"] == "handler_timeout"
+    assert failed["guidance"]["reason_code"] == "handler_timeout"
