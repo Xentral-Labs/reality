@@ -34,6 +34,7 @@ def cost_guidance(
     missing_basis: list[str] | tuple[str, ...] = (),
     review_state: str | None = None,
     explanation_links: list[dict[str, str]] | tuple[dict[str, str], ...] = (),
+    resolution: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     """Describe a supported next step without calculating or authorizing cost."""
     operation = "inventory_review" if kind == "inventory" else "contribution_review"
@@ -72,6 +73,12 @@ def cost_guidance(
         "reason": reasons[stage],
         "next_action": next_action,
         "explanation_links": list(explanation_links),
+        # Spec 279: catalog reason, ordered steps, writability and value reasons.
+        "reason_code": f"cost_{stage}",
+        "steps": [],
+        "writable": None,
+        "value_reasons": {},
+        **(resolution or {}),
     }
 
 

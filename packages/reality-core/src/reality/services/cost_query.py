@@ -11,6 +11,7 @@ from reality.db.inventory_costing import CostInventoryReview, CostPolicyRevision
 from reality.domain.contribution import ALGORITHM_VERSION
 from reality.domain.cost_query import CostQueryRequest, context_envelope, cost_guidance
 from reality.services import core
+from reality.services.cost_resolution import cost_resolution
 from reality.services.costing import (
     _row,
     _sequence,
@@ -162,6 +163,15 @@ def _read(session: Session, tenant: str, arguments: dict[str, Any]) -> dict[str,
                 missing_basis=missing_basis,
                 review_state=result.get("review_state"),
                 explanation_links=explanation_links,
+                resolution=cost_resolution(
+                    session,
+                    tenant,
+                    kind=request.kind,
+                    scope_id=request.scope_id,
+                    stage=guidance_stage,
+                    result=result,
+                    historical=historical,
+                ),
             ),
             "persistence": {"business_writes": False, "projection_writes": False},
         }

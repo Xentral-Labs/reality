@@ -1130,6 +1130,17 @@ def practice_company_runs(
         return dict(session.execute(query).all())
 
 
+def business_operation_allowed(
+    session: Session, tenant_id: str, operation: str
+) -> bool:
+    """Answer `require_business_operation` without raising, for read-only guidance."""
+    try:
+        require_business_operation(session, tenant_id, operation)
+    except PlaygroundOperationDenied:
+        return False
+    return True
+
+
 def require_business_operation(
     session: Session, tenant_id: str, operation: str
 ) -> None:
