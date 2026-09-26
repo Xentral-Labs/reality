@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { APIError, api, deliveryActions, openingActions, type OpeningProposal } from "../api";
-import { formatDateTime, formatQuantity, t } from "../localization";
+import { formatDateTime, formatMoney, formatQuantity, t } from "../localization";
 import { ReadLine } from "./ReadState";
 import { useRead } from "./useCompanyContext";
 import { RecordReference } from "./RecordReference";
@@ -35,6 +35,10 @@ export function OpeningStockCard({
     [location, setLocation] = useState(""),
     [quantity, setQuantity] = useState(""),
     [occurred, setOccurred] = useState(""),
+    // Spec 282: the total value the evidence states, recorded as received.
+    [costAmount, setCostAmount] = useState(""),
+    [costCurrency, setCostCurrency] = useState("EUR"),
+    [costEvidence, setCostEvidence] = useState(""),
     [proposal, setProposal] = useState<OpeningProposal | null>(null),
     [busy, setBusy] = useState(false),
     [uncertain, setUncertain] = useState(false),
@@ -101,6 +105,15 @@ export function OpeningStockCard({
           to_location_id: location,
           quantity,
           ...(occurred ? { occurred_at: new Date(occurred).toISOString() } : {}),
+          ...(costAmount.trim()
+            ? {
+                opening_cost: {
+                  amount: costAmount.trim(),
+                  currency: costCurrency.trim().toUpperCase(),
+                  evidence_reference: costEvidence.trim(),
+                },
+              }
+            : {}),
         },
       };
       // Save before transport, so a lost response can recover this exact request.
@@ -155,6 +168,8 @@ export function OpeningStockCard({
     });
   const review = proposal?.review;
   const intent = review?.intent || proposal?.intent;
+  const openingCost = intent?.opening_cost as
+    { amount: string; currency: string; evidence_reference: string } | undefined;
   return (
     <dialog
       ref={dialog}
@@ -221,6 +236,48 @@ export function OpeningStockCard({
             <p className="text-sm text-fg-muted">
               {t("Time uses this device’s timezone. Leave blank to use the booking time.")}
             </p>
+            <fieldset
+              className="space-y-3 rounded-lg border border-border-default p-3"
+              data-opening-cost
+            >
+              <legend className="px-1 text-sm font-medium">
+                {t("Acquisition value (optional)")}
+              </legend>
+              <p className="text-sm text-fg-muted">
+                {t(
+                  "Enter the total value exactly as your evidence states it, for example an inventory list. It is needed for the cost review.",
+                )}
+              </p>
+              <div className="grid gap-3 sm:grid-cols-[1fr_7rem]">
+                <label className="block text-sm">
+                  {t("Total value per evidence")}
+                  <input
+                    className="br-control mt-2 w-full"
+                    inputMode="decimal"
+                    value={costAmount}
+                    onChange={(e) => setCostAmount(e.target.value)}
+                  />
+                </label>
+                <label className="block text-sm">
+                  {t("Currency")}
+                  <input
+                    className="br-control mt-2 w-full"
+                    maxLength={3}
+                    value={costCurrency}
+                    onChange={(e) => setCostCurrency(e.target.value.toUpperCase())}
+                  />
+                </label>
+              </div>
+              <label className="block text-sm">
+                {t("Evidence")}
+                <input
+                  className="br-control mt-2 w-full"
+                  required={!!costAmount.trim()}
+                  value={costEvidence}
+                  onChange={(e) => setCostEvidence(e.target.value)}
+                />
+              </label>
+            </fieldset>
             <p className="text-sm text-fg-muted">
               {t("For stocked items without lot or serial tracking.")}
             </p>
@@ -267,6 +324,15 @@ export function OpeningStockCard({
                 ? formatDateTime(String(intent.occurred_at))
                 : t("At confirmation")}
             </dd>
+            {openingCost && (
+              <>
+                <dt>{t("Total value per evidence")}</dt>
+                <dd data-opening-cost-review>
+                  {formatMoney(openingCost.amount, openingCost.currency)} ·{" "}
+                  {openingCost.evidence_reference}
+                </dd>
+              </>
+            )}
           </dl>
           {review && (
             <section className="rounded-xl border border-border-default p-4">
