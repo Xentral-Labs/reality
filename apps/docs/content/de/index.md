@@ -1,14 +1,14 @@
 ---
 layout: home
 title: Reality-Dokumentation
-titleTemplate: Offener Referenzkern für ERP und Agent Operations
+titleTemplate: Offener Referenzkern für Business Reality und Agent Operations
 description:
   Lerne, wie ERP-Fachleute nachvollziehbare Business Reality und sichere Agentenoperationen
   gestalten.
 
 hero:
   name: Reality-Dokumentation
-  text: ERP neu denken. Agenten verantwortlich betreiben.
+  text: Den operativen Kern neu denken. Agenten verantwortlich betreiben.
   tagline: >-
     Folge Source → Evidence → Reality: vom ursprünglichen Eingang über den kaufmännischen Beleg bis
     zu operativen Datensätzen, die Agenten nutzen und erklären können.

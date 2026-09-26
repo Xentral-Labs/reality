@@ -1,13 +1,13 @@
 ---
 layout: home
 title: Reality Documentation
-titleTemplate: Open reference core for ERP and Agent Operations
+titleTemplate: Open reference core for Business Reality and Agent Operations
 description:
   Learn how ERP professionals design explainable Business Reality and safe agent operations.
 
 hero:
   name: Reality Documentation
-  text: Rethink ERP. Operate agents responsibly.
+  text: Rethink the operations core. Operate agents responsibly.
   tagline: >-
     Follow Source → Evidence → Reality: from original input, through recorded commercial evidence,
     to operational records agents can use and explain.

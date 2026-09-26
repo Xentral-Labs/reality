@@ -75,7 +75,7 @@ The [Data Model in Tool Usage](/tool-usage/#model:commitment) shows the central 
 examples, every stored field and relevant actions. It distinguishes operational fields, additional
 Facts, original sources and derived observations.
 
-Go directly to the ERP records: [Business partner (Party)](/tool-usage/#model:party),
+Go directly to the records: [Business partner (Party)](/tool-usage/#model:party),
 [Item](/tool-usage/#model:item), [Shipment](/tool-usage/#model:shipment),
 [Price list](/tool-usage/#model:price_list) and
 [Settlement allocation](/tool-usage/#model:settlement_allocation).
