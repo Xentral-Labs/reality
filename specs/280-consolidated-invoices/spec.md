@@ -109,8 +109,8 @@ order and from each order back to the invoice.
 - A consolidated invoice reversed later: every order line becomes billable again by its own
   quantity.
 - A cancelled commitment on one of the orders between review and confirmation.
-- 50 or more positions from 12 or more orders (spec 076 SC-002 example) within the existing
-  input bounds.
+- 50 or more positions from 12 or more orders (spec 076 SC-002 example); more than 200
+  positions are refused (FR-010).
 
 ## Requirements
 
@@ -133,12 +133,15 @@ order and from each order back to the invoice.
 - **FR-006**: The guided entry MUST let the clerk choose a party and currency and pick
   positions from a party-wide list of billable order positions (delivered or received and not
   yet fully billed), grouped by order. The existing one-order entry remains available.
-- **FR-007**: Review, stale-review detection, recovery, Chat, MCP input schema, CLI and the
-  Decision trail MUST use the same shared services; the MCP schema declares the nested
+- **FR-007**: Review, stale-review detection, recovery, Chat, MCP input schema, the Decision
+  trail and the CLI where an invoice command exists (none today) MUST use the same shared
+  services; the MCP schema declares the nested
   positions; `make docs-generate` output is updated.
 - **FR-008**: The Inspector MUST lead from a consolidated invoice to every order it bills and
   from each order to the invoice, through the line links only.
 - **FR-009**: Existing one-order proposals, receipts and tools MUST keep their contracts.
+- **FR-010**: One invoice MUST carry at most 200 positions, the same bound as the
+  billable-positions read; core refuses more before any write and the MCP schema declares it.
 
 ## Key Entities
 
@@ -187,3 +190,4 @@ BusinessEvent. No new entity, field or status.
 | FR-006 | US1, US2 | web invoice entry tests |
 | FR-007, FR-009 | US3 | review/stale/recovery, MCP, CLI and legacy-proposal tests |
 | FR-008 | US3 | Inspector link tests |
+| FR-010 | US1, US2 | position bound test in core and MCP schema |

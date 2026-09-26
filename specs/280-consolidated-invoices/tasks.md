@@ -8,7 +8,8 @@ Tests come before the implementation they prove. Paths are relative to the repos
   `packages/reality-core/tests/test_consolidated_invoices.py`: supplier invoice over two
   purchase orders and sales invoice over three orders record one source, one invoice, one line
   per position and one posting group at the stated total; another party, another currency and
-  another direction are refused before any write; a failing later position leaves nothing.
+  another direction are refused before any write; a failing later position leaves nothing;
+  201 positions are refused (FR-010).
 - [ ] T002 [US1][US2] Rewrite `test_invalid_is_inert[mixed]` in
   `packages/reality-core/tests/test_multi_position_invoices.py` to the new rule (same party,
   other order accepted; other party refused).
@@ -20,11 +21,13 @@ Tests come before the implementation they prove. Paths are relative to the repos
 
 - [ ] T004 [US1][US2] Implement FR-001/FR-002 in
   `packages/reality-core/src/reality/services/core.py` `_preview_order_invoice`: replace the
-  same-order refusal with direction/party/currency refusals; add `orders[]` to the preview.
+  same-order refusal with direction/party/currency refusals and the FR-010 bound; add
+  `orders[]` to the preview; declare `maxItems: 200` for `lines` in `mcp/catalog.py`.
 - [ ] T005 [US3] Write failing FR-007/FR-009 review proofs in
   `packages/reality-core/tests/test_consolidated_invoices.py`: review lists every order; a
   change to any selected position makes the review stale; recovery verifies the exact N-line
-  receipt; a legacy single-order proposal hashes and verifies unchanged.
+  receipt; a legacy single-order proposal hashes and verifies unchanged; a commitment
+  cancelled between review and confirmation makes the review stale and nothing is written.
 - [ ] T006 [US3] Implement FR-007/FR-009 in
   `packages/reality-core/src/reality/services/invoice_actions.py` `_review_invoice`
   (`state.orders`, `state.party` from the preview, per-position item; `state.order` kept for
@@ -53,7 +56,8 @@ Tests come before the implementation they prove. Paths are relative to the repos
 - [ ] T011 [US1][US2] Write failing read proofs in
   `packages/reality-core/tests/test_invoice_billable_positions.py`: grouping by order,
   exclusion of fully billed and cancelled lines, party/currency scope, tenant isolation,
-  limit with truthful total, HTTP and MCP parity.
+  limit with truthful total, HTTP and MCP parity, and a statement count that does not grow
+  per order line.
 - [ ] T012 [US1][US2] Implement `billable_positions` in
   `packages/reality-core/src/reality/services/invoice_billing.py` (move `_order_line_billing`
   there, re-export from core); register MCP read `invoice_billable_positions` in
@@ -73,8 +77,8 @@ Tests come before the implementation they prove. Paths are relative to the repos
 - [ ] T016 [US1][US3] Extend `apps/web/scripts/unified-invoice-entry-browser.mjs` with the party
   mode (pick positions of two orders, review lists both orders, edit restores) before the UI.
 - [ ] T017 [US1][US3] Implement FR-006/FR-007 in `apps/web/src/unified/InvoiceCard.tsx`,
-  `apps/web/src/api.ts` and `apps/web/src/localization.tsx` (en/de/nl/es), including the
-  new blocker label.
+  `apps/web/src/api.ts` and `apps/web/src/localization.tsx` (en/de/nl/es, German
+  "Sammelrechnung"), including the new blocker detail string.
 
 ## Verification and review
 
