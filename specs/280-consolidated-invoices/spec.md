@@ -2,7 +2,7 @@
 
 **Language**: English
 **Created**: 2026-09-26
-**Status**: Draft — four owner questions are open (see Clarifications).
+**Status**: Accepted by the owner on 2026-09-26 (see Clarifications).
 
 ## Context and Intent
 
@@ -40,8 +40,8 @@ read that follows an invoice to its order truthful when there is more than one.
   deliveries" job).
 - No new document type, status field or schema; the existing line link carries the relation.
 - No change to credit notes; crediting across orders is already line-based (spec 079).
-- [NEEDS CLARIFICATION: Q4 — which further non-goals the owner wants to keep, e.g. whether
-  an e-invoice (XRechnung) interpreter for consolidated supplier invoices is in scope.]
+- No XRechnung/ZUGFeRD interpreter; received e-invoices stay lossless source artifacts
+  (catalog E10).
 
 ## User Scenarios & Testing
 
@@ -66,9 +66,6 @@ with one position from each order is recorded through the guided tool.
 
 ### US2 — Record one monthly customer invoice over several orders (P1)
 
-[NEEDS CLARIFICATION: Q1 — whether the sales direction ships together with the supplier
-direction or in a later slice.]
-
 A clerk bills all of a customer's delivered positions of the month on one invoice. They pick
 positions from several sales orders of that customer and confirm once.
 
@@ -78,12 +75,15 @@ positions from several sales orders of that customer and confirm once.
    three is confirmed, **Then** `shipped_not_billed` clears for each order line by its own
    quantity.
 2. **Given** a prepayment order whose positions are billed on a consolidated invoice, **When**
-   fulfilment readiness is read, **Then** the prepayment is judged by the payment allocated to
-   that invoice for this order's positions, and the invoice is not treated as ambiguous
-   merely because it bills another order too.
+   fulfilment readiness is read, **Then** the order is released only once the consolidated
+   invoice is settled in full, and the invoice is not treated as ambiguous merely because it
+   bills another order too.
 3. **Given** a payment naming one of the orders, **When** it is interpreted, **Then** it is
    not silently allocated to the whole consolidated invoice; it becomes a candidate with a
    reason, or allocates by the invoice reference.
+4. **Given** that consolidated invoice paid in part, **When** readiness is read, **Then** every
+   prepayment order it bills stays blocked with a reason naming the invoice and its open
+   amount.
 
 ### US3 — Review, recover and explain consistently (P1)
 
@@ -116,8 +116,7 @@ order and from each order back to the invoice.
 
 - **FR-001**: The shared invoice preview MUST accept positions from several orders when they
   share direction, party and currency, and MUST refuse mixed parties, currencies, directions
-  or tenants before any write. [NEEDS CLARIFICATION: Q2 — confirm "same party and same
-  currency" as the only grouping rule.]
+  or tenants before any write.
 - **FR-002**: Confirmation MUST record one lossless manual source, one invoice, one line per
   position linked by `billed_document_line_id`, and one balanced posting group at the stated
   total, atomically, without recomputing any received value.
@@ -125,17 +124,15 @@ order and from each order back to the invoice.
   `billed_not_received`, `invoice_price_differs`) MUST attribute each invoice line to its own
   order line only.
 - **FR-004**: Fulfilment readiness for prepayment MUST NOT treat an invoice as ambiguous only
-  because it also bills another order of the same party; it MUST judge the order by the
-  allocation to that invoice. [NEEDS CLARIFICATION: Q2 follow-up — how a partial payment of a
-  consolidated invoice is attributed to one order for release: proportionally is a
-  recomputation and is excluded; the owner decides between "released only when the invoice is
-  settled in full" and "released by an explicit allocation per order".]
+  because it also bills another order of the same party. A prepayment order billed on a
+  consolidated invoice is released only when that invoice is settled in full; while it is
+  open, the blocker names the invoice and its open amount. No payment is split across orders.
 - **FR-005**: Payment interpretation by order reference MUST NOT allocate to a consolidated
   invoice on the order reference alone; it MUST produce a candidate with a stated reason.
   Allocation by the invoice reference is unchanged.
-- **FR-006**: The guided entry MUST let the clerk add positions from more than one order of
-  the chosen party. [NEEDS CLARIFICATION: Q3 — order-by-order selection inside the invoice
-  form, or a party-wide list of billable positions to pick from.]
+- **FR-006**: The guided entry MUST let the clerk choose a party and currency and pick
+  positions from a party-wide list of billable order positions (delivered or received and not
+  yet fully billed), grouped by order. The existing one-order entry remains available.
 - **FR-007**: Review, stale-review detection, recovery, Chat, MCP input schema, CLI and the
   Decision trail MUST use the same shared services; the MCP schema declares the nested
   positions; `make docs-generate` output is updated.
@@ -171,18 +168,13 @@ BusinessEvent. No new entity, field or status.
 
 ## Clarifications
 
-Open questions for the owner, 2026-09-26:
+### Session 2026-09-26 (owner)
 
-- **Q1 Scope**: both directions in one feature, or supplier first? Recommendation: both;
-  the service change is shared, and E02 is the more frequent B2B case.
-- **Q2 Grouping**: only positions of one party in one currency? Recommendation: yes. Also
-  decide the prepayment release rule in FR-004.
-- **Q3 Entry**: pick orders one by one inside the invoice form, or pick from a party-wide
-  list of billable positions? Recommendation: party-wide list, because it matches how a
-  collective invoice is prepared.
-- **Q4 Non-goals**: confirm the list above; decide whether an XRechnung/ZUGFeRD interpreter
-  for received consolidated supplier invoices is in scope (catalog E10 has lossless storage
-  only).
+- Q1 Scope: both directions in one feature → **Both**; the service change is shared.
+- Q2 Grouping: → **One party and one currency per invoice.** Prepayment release: →
+  **Released only when the consolidated invoice is settled in full**; no proportional split.
+- Q3 Entry: → **Party-wide list of billable positions**, grouped by order.
+- Q4 Non-goals: → **List confirmed**; an XRechnung/ZUGFeRD interpreter stays out of scope.
 
 ## Requirement Traceability
 
@@ -190,7 +182,7 @@ Open questions for the owner, 2026-09-26:
 |---|---|---|
 | FR-001, FR-002 | US1, US2 | shared invoice preview/confirmation service tests, both directions |
 | FR-003 | US1 scenario 2, US2 scenario 1 | billing and exception derivation tests per order line |
-| FR-004 | US2 scenario 2 | fulfilment readiness prepayment test with a consolidated invoice |
+| FR-004 | US2 scenarios 2, 4 | fulfilment readiness prepayment tests with a consolidated invoice, full and partial payment |
 | FR-005 | US2 scenario 3 | payment intake order-reference test |
 | FR-006 | US1, US2 | web invoice entry tests |
 | FR-007, FR-009 | US3 | review/stale/recovery, MCP, CLI and legacy-proposal tests |
