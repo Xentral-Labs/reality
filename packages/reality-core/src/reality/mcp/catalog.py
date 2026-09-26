@@ -131,6 +131,10 @@ def _cost_review_propose(
         }
 
 
+# The proposal it creates is an ordinary cost decision with its existing web review.
+_cost_review_propose.application_name = "cost.change"  # type: ignore[attr-defined]
+
+
 def _propose(application_name: str) -> ToolHandler:
     def handler(session: Session, tenant_id: str, arguments: dict[str, Any]) -> Any:
         normalized = {
