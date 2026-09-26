@@ -924,8 +924,26 @@ def _movement_create(
 ) -> Any:
     arguments = dict(arguments)
     arguments["action_id"] = arguments.pop("_action_id", None)
+    opening_cost = arguments.pop("opening_cost", None)
     if arguments.get("occurred_at") is not None:
         arguments["occurred_at"] = utc_datetime(arguments["occurred_at"])
+    if opening_cost is not None:
+        from reality.services.opening_cost import record_opening_cost_statement
+
+        if (
+            arguments.get("movement_type") != "opening_stock"
+            or not arguments["action_id"]
+        ):
+            raise InvalidOperation("Only a confirmed opening stock carries a cost.")
+        # Spec 282: the opening points to the statement of its stated cost.
+        arguments["source_record_id"] = record_opening_cost_statement(
+            session,
+            tenant_id,
+            action_id=arguments["action_id"],
+            item_id=arguments["item_id"],
+            quantity=str(arguments["quantity"]),
+            opening_cost=opening_cost,
+        ).id
     return _entity_result("movement", record_movement(session, tenant_id, **arguments))
 
 
@@ -1540,6 +1558,14 @@ def _proposals_awaiting_approval(
     ]
 
 
+def _opening_statement_of(
+    session: Session, tenant_id: str, movement: Movement, proposal: ChangeProposal
+) -> bool:
+    from reality.services.opening_cost import is_statement_of
+
+    return is_statement_of(session, tenant_id, movement.source_record_id, proposal.id)
+
+
 def _opening_movement_evidence(
     session: Session, tenant_id: str, proposal: ChangeProposal
 ) -> dict | None:
@@ -1574,7 +1600,10 @@ def _opening_movement_evidence(
         or movement.quantity != Decimal(str(expected.get("quantity")))
         or movement.from_location_id is not None
         or movement.commitment_id is not None
-        or movement.source_record_id is not None
+        or (
+            movement.source_record_id is not None
+            and not _opening_statement_of(session, tenant_id, movement, proposal)
+        )
         or movement.handling_unit_id is not None
         or movement.lot_id is not None
         or movement.serial_unit_id is not None
