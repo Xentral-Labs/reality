@@ -57,6 +57,16 @@ the aging register, `overdue_receivable`, `credit_limit_exceeded`, netting a cre
 a payment — sees an invoice until it is booked. See [the ledger](./ledger.md) for why the two
 acts stay apart.
 
+### Stated net and tax
+
+Each invoice position may state its net and tax as the invoice prints them (spec 284), in the
+web form, through MCP and in chat, as `reality_finance_v1` on the position (or top-level for a
+single-position invoice). They are received evidence: stored unchanged on the invoice line and
+in its source, never derived from gross or a rate. When net, tax and gross are all stated and
+net plus tax differs from gross, the invoice is refused rather than adjusted. Posting stays on
+gross. A stated net is what lets the contribution review prove DB1 for the line; an invoice
+with gross only is recorded as before and reports `received_net_missing`.
+
 ## Payment matching
 
 Step 7 records payments on explicit command or through a source. Source-delivered payments pass

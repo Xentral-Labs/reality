@@ -57,6 +57,10 @@ one currency (spec 283). The guided entry collects them from `invoice_billable_p
 company still holds (received less sent back) and is not yet billed, grouped by purchase order.
 Each invoice line links to its own order line, so `billed_not_received` stays per line.
 
+A supplier invoice position may state its net and tax as received (spec 284; the contract is
+described under [Order to Cash](./order_to_cash.md#stated-net-and-tax)). Receipt cost evidence
+then reads the stated net instead of a gross whose tax treatment is unknown.
+
 ## Supplier Acknowledgements
 
 A supplier that acknowledges an order with a different date is the ordinary event in every

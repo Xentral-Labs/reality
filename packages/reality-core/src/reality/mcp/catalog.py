@@ -1909,6 +1909,7 @@ ADDITIONAL_PROPOSAL_TOOLS: tuple[tuple[str, str, str, dict[str, Any]], ...] = (
                     ),
                 },
                 "gross_amount": DECIMAL_STRING,
+                "reality_finance_v1": RECEIVED_FINANCE_DETAIL,
                 "number": STRING,
                 "effective_at": OPTIONAL_STRING,
                 "delivery_guard": _object_schema(
@@ -1945,6 +1946,7 @@ ADDITIONAL_PROPOSAL_TOOLS: tuple[tuple[str, str, str, dict[str, Any]], ...] = (
                     ),
                 },
                 "gross_amount": DECIMAL_STRING,
+                "reality_finance_v1": RECEIVED_FINANCE_DETAIL,
                 "number": STRING,
                 "effective_at": OPTIONAL_STRING,
             },

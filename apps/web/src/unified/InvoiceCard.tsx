@@ -18,6 +18,7 @@ import { Inspector } from "./Inspector";
 import { DecisionActionBar } from "./DecisionReview";
 import { ReadLine, ReadState } from "./ReadState";
 import { RegisterPager } from "./WarehousePage";
+import { type StatedAmounts, withStatedDetail } from "./statedAmounts";
 type InvoiceTool = "sales_invoice_record" | "supplier_invoice_record";
 type InvoiceSource = "order" | "party";
 const emptyPosition = () => [{ order_line_id: "", quantity: "", gross_amount: "" }];
@@ -173,14 +174,12 @@ export function InvoiceCard({
   ) => change({ lines: draft.lines?.map((row, i) => (i === index ? { ...row, ...next } : row)) });
   const prepare = () =>
     run(async () => {
-      const result = await invoiceActions.prepare(
-        tenant,
-        request.current,
-        activeTool,
-        Object.fromEntries(
+      const result = await invoiceActions.prepare(tenant, request.current, activeTool, {
+        ...Object.fromEntries(
           Object.entries(draft).filter(([key, value]) => key !== "effective_at" || !!value),
-        ) as InvoiceInput,
-      );
+        ),
+        lines: draft.lines?.map(withStatedDetail),
+      } as InvoiceInput);
       if (alive.current) {
         setProposal(result);
         setEditing(false);
@@ -216,7 +215,7 @@ export function InvoiceCard({
       if (!proposal?.review) return;
       await api.rejectProposal(tenant, proposal.id, null);
       const original = structuredClone(proposal.review.intent);
-      const { order_line_id, quantity, ...rest } = original;
+      const { order_line_id, quantity, reality_finance_v1, ...rest } = original;
       setDraft({
         ...rest,
         lines: original.lines || [
@@ -224,6 +223,7 @@ export function InvoiceCard({
             order_line_id: order_line_id || "",
             quantity: quantity || "",
             gross_amount: original.gross_amount,
+            ...(reality_finance_v1 ? { reality_finance_v1 } : {}),
           },
         ],
       });
@@ -467,6 +467,12 @@ export function InvoiceCard({
                           />
                         </label>
                       </div>
+                      <StatedAmountFields
+                        value={position.reality_finance_v1}
+                        change={(reality_finance_v1) =>
+                          changePosition(index, { reality_finance_v1 })
+                        }
+                      />
                       {lines.data?.evidence_lines
                         ?.filter((row) => row.id === position.order_line_id && row.billing)
                         .map((row) => (
@@ -572,17 +578,27 @@ export function InvoiceCard({
                           {formatQuantity(row.quantity)} {row.line.unit}
                         </p>
                       </div>
-                      <span>
+                      <span className="text-right">
                         {formatMoney(row.gross_amount, review.state.creation.currency, 4)}
+                        <StatedAmountsLine
+                          value={row.reality_finance_v1}
+                          currency={review.state.creation.currency}
+                        />
                       </span>
                     </div>
                   ))}
                 </div>
               ) : (
-                <p>
-                  {review.state.item?.name} · {formatQuantity(review.state.creation.quantity)}{" "}
-                  {review.state.creation.unit}
-                </p>
+                <div>
+                  <p>
+                    {review.state.item?.name} · {formatQuantity(review.state.creation.quantity)}{" "}
+                    {review.state.creation.unit}
+                  </p>
+                  <StatedAmountsLine
+                    value={review.state.creation.reality_finance_v1}
+                    currency={review.state.creation.currency}
+                  />
+                </div>
               )}
               {review.state.billing?.map((row) => (
                 <InvoiceAvailability
@@ -916,6 +932,14 @@ function PartyPositions({
                       </label>
                     </div>
                   )}
+                  {chosen && (
+                    <StatedAmountFields
+                      value={chosen.reality_finance_v1}
+                      change={(reality_finance_v1) =>
+                        changeSelected(row.order_line_id, { reality_finance_v1 })
+                      }
+                    />
+                  )}
                 </div>
               );
             })}
@@ -923,5 +947,62 @@ function PartyPositions({
         ))}
       </section>
     </>
+  );
+}
+
+/** The net and tax a position states, shown beside its gross for confirmation (spec 284). */
+function StatedAmountsLine({
+  value,
+  currency,
+}: {
+  value?: StatedAmounts | null;
+  currency: string;
+}) {
+  if (!value || (!value.net && !value.tax)) return null;
+  return (
+    <span className="block text-xs text-fg-muted" data-stated-amounts>
+      {value.net && (
+        <span>
+          {t("Net")} {formatMoney(value.net, currency, 4)}
+        </span>
+      )}
+      {value.net && value.tax && " · "}
+      {value.tax && (
+        <span>
+          {t("Tax")} {formatMoney(value.tax, currency, 4)}
+        </span>
+      )}
+    </span>
+  );
+}
+
+/** Net and tax as the invoice states them for one position; optional, never derived. */
+function StatedAmountFields({
+  value,
+  change,
+}: {
+  value?: StatedAmounts;
+  change: (next: StatedAmounts) => void;
+}) {
+  return (
+    <div className="mt-3 grid gap-3 sm:grid-cols-2">
+      {(
+        [
+          ["net", t("Net (as stated on the invoice)")],
+          ["tax", t("Tax (as stated on the invoice)")],
+        ] as [keyof StatedAmounts, string][]
+      ).map(([key, label]) => (
+        <label key={key} className="min-w-0 text-sm">
+          {label}
+          <input
+            className="br-control mt-2 w-full"
+            aria-label={label}
+            inputMode="decimal"
+            value={value?.[key] || ""}
+            onChange={(e) => change({ ...value, [key]: e.target.value })}
+          />
+        </label>
+      ))}
+    </div>
   );
 }
