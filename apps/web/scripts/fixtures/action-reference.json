@@ -15,6 +15,20 @@
       "effect": "Read one admitted inventory or contribution scope with exact retained cutoffs and explicit current or historical freshness; no global generation claim."
     },
     {
+      "name": "Propose a drafted cost review",
+      "service": "propose_cost_review",
+      "mode": "mutation",
+      "adapters": ["Web", "MCP", "Chat"],
+      "effect": "Draft the review again from held records and create one proposal for it; a company owner confirms it in Decisions. Nothing else changes."
+    },
+    {
+      "name": "Draft a cost review",
+      "service": "cost_review_draft",
+      "mode": "read",
+      "adapters": ["Web", "MCP", "Chat"],
+      "effect": "Draft the inventory or contribution review the held records support, or name the inputs a person must provide; nothing is stored or proposed."
+    },
+    {
       "name": "Inspect retained cost record",
       "service": "cost_record",
       "mode": "read",
