@@ -33,8 +33,10 @@ values from retained evidence, not what Reality knew then.
   grain, retaining null identities and current active-reservation semantics; reuse
   shared movement-leg arithmetic and verify aggregation parity with current inventory.
 - **FR-003**: Add optional effective-before cutoffs to canonical numeric settlement
-  readers and physical stock derivation. Respect both allocation endpoint timestamps,
-  allocation time and reversal time; no use of today's aging terms for history.
+  readers and physical stock derivation. An allocation takes effect when the later of its
+  two endpoint ledger entries is effective; its recording time is knowledge time and is not
+  a cutoff (amended 2026-09-26). Respect reversal time; no use of today's aging terms for
+  history.
 - **FR-004**: Historical nodes require one equal snapshot_date filter. It selects the
   entire UTC day, rejects future dates and missing/conflicting inputs. Refuse historical
   finance/stock before imported opening coverage. Unsupported historical measures are
@@ -44,6 +46,15 @@ values from retained evidence, not what Reality knew then.
   effective-date/current-label limits. No hidden default cutoff or automatic saving.
 - **FR-006**: Preserve tenant, Decimal, currency/unit, row grain, fanout, timeout, input
   bounds and truthful read counts across forward/reverse joins and multiple positions.
+
+### Amendment 2026-09-26 — allocation effective time
+`SettlementAllocation.allocated_at` is always the recording instant, so using it as a
+cutoff contradicted US3: a refund effective 12 September and recorded on 26 September left
+a balance of −119 as of 13 September instead of 0, and an invoice matched late to an
+earlier payment stayed open with an equal credit beside it. The owner decided that an
+allocation is effective from its later endpoint. A historical balance may therefore change
+when a settlement is recorded later, as it already does for a backdated posting. A stated
+settlement date would need a new field and was not chosen.
 
 ## Assumptions and Dependencies
 Existing movements and financial allocation/reversal events retain effective times.

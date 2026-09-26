@@ -11147,14 +11147,15 @@ def active_settlement_allocations(
     caller measuring one invoice or one payment passes them; reading every
     allocation of the company for one document made payment matching grow with the
     company's history (spec 181, ingest cost).
+
+    With `effective_before`, an allocation counts once both of its endpoint entries
+    are effective. `allocated_at` is when it was recorded, which is knowledge time,
+    so it is no cutoff (spec 232 FR-003).
     """
     if entry_ids is not None and not entry_ids:
         return []
     query = select(SettlementAllocation).where(
         SettlementAllocation.tenant_id == tenant_id,
-        SettlementAllocation.allocated_at < effective_before
-        if effective_before
-        else True,
     )
     if entry_ids is not None:
         query = query.where(
