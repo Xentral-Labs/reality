@@ -3573,7 +3573,7 @@ Records a stated invoice against one order line and posts its receivable atomica
 **Aufruf**
 
 ```text
-sales_invoice_record_propose [order_line_id] [quantity] [lines] gross_amount number [effective_at]
+sales_invoice_record_propose [order_line_id] [quantity] [lines] gross_amount number [effective_at] [delivery_guard]
 ```
 
 **Erreichbar über:** Web · API · MCP · Chat
@@ -3593,32 +3593,35 @@ required.
 **Aufruf**
 
 ```text
-sales_invoice_record_propose [order_line_id] [quantity] [lines] gross_amount number [effective_at]
+sales_invoice_record_propose [order_line_id] [quantity] [lines] gross_amount number [effective_at] [delivery_guard]
 ```
 
 **Zugriff:** `propose`
 
 **Parameter**
 
-| Name                                  | Typ       | Pflicht | Beschreibung                                                                                 | Standard |
-| ------------------------------------- | --------- | ------- | -------------------------------------------------------------------------------------------- | -------- |
-| `order_line_id`                       | `string`  | nein    | Opaque sales-order line identity linked by invoice billing evidence.                         | —        |
-| `quantity`                            | `string`  | nein    | Decimal quantity expressed in the item's relevant unit.                                      | —        |
-| `lines`                               | `array`   | nein    | Complete intended normalized DocumentLine Evidence snapshot for an atomic manual correction. | —        |
-| `lines[].order_line_id`               | `string`  | ja      | Opaque sales-order line identity linked by invoice billing evidence.                         | —        |
-| `lines[].quantity`                    | `string`  | ja      | Decimal quantity expressed in the item's relevant unit.                                      | —        |
-| `lines[].gross_amount`                | `string`  | ja      | Total the source states for the document; recorded as received and never calculated.         | —        |
-| `lines[].reality_finance_v1`          | `object`  | nein    | —                                                                                            | —        |
-| `lines[].reality_finance_v1.version`  | `integer` | nein    | `1`                                                                                          | —        |
-| `lines[].reality_finance_v1.net`      | `string`  | nein    | —                                                                                            | —        |
-| `lines[].reality_finance_v1.tax`      | `string`  | nein    | —                                                                                            | —        |
-| `lines[].reality_finance_v1.base`     | `string`  | nein    | —                                                                                            | —        |
-| `lines[].reality_finance_v1.gross`    | `string`  | nein    | —                                                                                            | —        |
-| `lines[].reality_finance_v1.currency` | `string`  | nein    | ISO 4217 currency code for monetary values.                                                  | —        |
-| `lines[].reality_finance_v1.codes`    | `object`  | nein    | —                                                                                            | —        |
-| `gross_amount`                        | `string`  | ja      | Total the source states for the document; recorded as received and never calculated.         | —        |
-| `number`                              | `string`  | ja      | Human-facing document or transaction number; it is not internal identity.                    | —        |
-| `effective_at`                        | `string`  | nein    | UTC instant from which the observation or rule takes effect.                                 | —        |
+| Name                                  | Typ       | Pflicht | Beschreibung                                                                                                                                                                 | Standard |
+| ------------------------------------- | --------- | ------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------- |
+| `order_line_id`                       | `string`  | nein    | Opaque sales-order line identity linked by invoice billing evidence.                                                                                                         | —        |
+| `quantity`                            | `string`  | nein    | Decimal quantity expressed in the item's relevant unit.                                                                                                                      | —        |
+| `lines`                               | `array`   | nein    | Complete intended normalized DocumentLine Evidence snapshot for an atomic manual correction.                                                                                 | —        |
+| `lines[].order_line_id`               | `string`  | ja      | Opaque sales-order line identity linked by invoice billing evidence.                                                                                                         | —        |
+| `lines[].quantity`                    | `string`  | ja      | Decimal quantity expressed in the item's relevant unit.                                                                                                                      | —        |
+| `lines[].gross_amount`                | `string`  | ja      | Total the source states for the document; recorded as received and never calculated.                                                                                         | —        |
+| `lines[].reality_finance_v1`          | `object`  | nein    | —                                                                                                                                                                            | —        |
+| `lines[].reality_finance_v1.version`  | `integer` | nein    | `1`                                                                                                                                                                          | —        |
+| `lines[].reality_finance_v1.net`      | `string`  | nein    | —                                                                                                                                                                            | —        |
+| `lines[].reality_finance_v1.tax`      | `string`  | nein    | —                                                                                                                                                                            | —        |
+| `lines[].reality_finance_v1.base`     | `string`  | nein    | —                                                                                                                                                                            | —        |
+| `lines[].reality_finance_v1.gross`    | `string`  | nein    | —                                                                                                                                                                            | —        |
+| `lines[].reality_finance_v1.currency` | `string`  | nein    | ISO 4217 currency code for monetary values.                                                                                                                                  | —        |
+| `lines[].reality_finance_v1.codes`    | `object`  | nein    | —                                                                                                                                                                            | —        |
+| `gross_amount`                        | `string`  | ja      | Total the source states for the document; recorded as received and never calculated.                                                                                         | —        |
+| `number`                              | `string`  | ja      | Human-facing document or transaction number; it is not internal identity.                                                                                                    | —        |
+| `effective_at`                        | `string`  | nein    | UTC instant from which the observation or rule takes effect.                                                                                                                 | —        |
+| `delivery_guard`                      | `object`  | nein    | Optional single-line sales-invoice precondition binding the unit and unbilled quantity read for the invoiced order line; rechecked under the delivery lock before recording. | —        |
+| `delivery_guard.unbilled_quantity`    | `string`  | ja      | —                                                                                                                                                                            | —        |
+| `delivery_guard.unit`                 | `string`  | ja      | Unit of measure in which the quantity is expressed.                                                                                                                          | —        |
 
 **Siehe auch:** Geschäftsaktion [`record_sales_invoice`](./commands#command-record_sales_invoice)
 

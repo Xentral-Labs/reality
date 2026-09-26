@@ -6,6 +6,7 @@ principle: CLI, Web, API, and Chat are adapters. Shared application services are
 # untyped until it is operationally relevant; once exposed here, explain its business
 # meaning rather than merely repeating its data type.
 parameter_descriptions:
+  delivery_guard: Optional single-line sales-invoice precondition binding the unit and unbilled quantity read for the invoiced order line; rechecked under the delivery lock before recording.
   supplier_id: Opaque same-tenant identity of the supplier Party stated on the invoice.
   invoice_ids: Opaque same-tenant customer-invoice identities explicitly selected for one reminder.
   notice_id: Opaque same-tenant identity of the retained manual reminder.
