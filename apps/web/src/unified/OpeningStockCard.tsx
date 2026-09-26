@@ -269,7 +269,7 @@ export function OpeningStockCard({
                 </label>
               </div>
               <label className="block text-sm">
-                {t("Evidence")}
+                {t("Source of the value")}
                 <input
                   className="br-control mt-2 w-full"
                   required={!!costAmount.trim()}

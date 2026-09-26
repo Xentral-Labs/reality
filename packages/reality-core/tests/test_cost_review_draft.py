@@ -302,6 +302,7 @@ def test_agent_guidance_names_the_draft_first():
         "capability_guidance"
     ]
     assert "cost_review_draft first" in guidance["cost_change_propose"]["purpose"]
+    assert "cost_review_propose" in guidance["cost_change_propose"]["purpose"]
     draft_block = guidance["cost_review_draft"]
     assert (
         draft_block["confirmation"] == "none" and draft_block["side_effects"] == "none"
@@ -319,3 +320,80 @@ def test_summaries_carry_held_values_for_people(session, business, cost_owner):
     )["summary"]
     assert item["owner_name"] == business.company.name
     assert item["movement_counts"] == {"receipt": 1, "shipment": 1}
+
+
+def test_chat_proposes_the_drafted_review_without_copying(
+    session, business, cost_owner
+):
+    """Found live (2026-09-26): an agent mistyped copied identifiers. The chat tool takes
+    only the scope and the answers; the server drafts again and proposes exactly that."""
+    import json
+
+    from reality.mcp.catalog import MCP_TOOL_REGISTRY
+    from reality.services.costing import _request
+
+    stock.prepared(session, business, cost_owner)
+    tool = MCP_TOOL_REGISTRY["cost_review_propose"]
+    scope = {"kind": "inventory", "scope_id": business.item.id}
+    unanswered = tool.handler(session, business.tenant.id, scope)
+    assert unanswered["proposal_id"] is None
+    assert [e["code"] for e in unanswered["open_inputs"]] == ["valuation_method"]
+    answered = tool.handler(
+        session, business.tenant.id, {**scope, "answers": {"method": "fifo"}}
+    )
+    proposal = session.get(
+        ChangeProposal, (business.tenant.id, answered["proposal_id"])
+    )
+    assert proposal.type == "tool:cost.change" and proposal.status == "proposed"
+    drafted = inventory(session, business, method="fifo")["arguments"]
+    assert _request(json.loads(proposal.input)).model_dump(mode="json") == {
+        **_request(drafted).model_dump(mode="json"),
+        "effective_at": _request(json.loads(proposal.input)).model_dump(mode="json")[
+            "effective_at"
+        ],
+    }
+    again = tool.handler(
+        session, business.tenant.id, {**scope, "answers": {"method": "fifo"}}
+    )
+    assert again["proposal_id"] == proposal.id and again["created"] is False
+    other = core.create_tenant(session, "Neighbor")
+    with pytest.raises(core.NotFound):
+        tool.handler(session, other.id, {**scope, "answers": {"method": "fifo"}})
+
+
+def test_an_item_may_be_named_by_its_sku_or_exact_name(session, business, cost_owner):
+    """Chat keeps only answer text between turns, so an agent may name the item."""
+    stock.prepared(session, business, cost_owner)
+    by_id = inventory(session, business, method="fifo")
+    for reference in (business.item.sku, business.item.name.upper()):
+        named = cost_review_draft(
+            session,
+            business.tenant.id,
+            kind="inventory",
+            scope_id=reference,
+            answers={"method": "fifo"},
+        )
+        assert named["scope_id"] == business.item.id
+        assert named["arguments"]["item_id"] == by_id["arguments"]["item_id"]
+    # A unique part of the name also resolves; several matches name the candidates.
+    fragment = business.item.name.split()[-1]
+    assert (
+        cost_review_draft(
+            session, business.tenant.id, kind="inventory", scope_id=fragment
+        )["scope_id"]
+        == business.item.id
+    )
+    core.create_item(session, business.tenant.id, "TWIN-1", business.item.name)
+    with pytest.raises(core.InvalidOperation):
+        cost_review_draft(
+            session, business.tenant.id, kind="inventory", scope_id=business.item.name
+        )
+    with pytest.raises(core.InvalidOperation, match="Several items match"):
+        cost_review_draft(
+            session, business.tenant.id, kind="inventory", scope_id=fragment
+        )
+    other = core.create_tenant(session, "Neighbor")
+    with pytest.raises(core.NotFound):
+        cost_review_draft(
+            session, other.id, kind="inventory", scope_id=business.item.sku
+        )

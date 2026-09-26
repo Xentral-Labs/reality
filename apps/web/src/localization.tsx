@@ -21235,3 +21235,14 @@ Object.assign(dictionaries.nl, {
 Object.assign(dictionaries.es, {
   "Goods issues": "Salidas de mercancía",
 });
+
+// Spec 282: opening value source label.
+Object.assign(dictionaries.de, {
+  "Source of the value": "Grundlage des Werts",
+});
+Object.assign(dictionaries.nl, {
+  "Source of the value": "Basis van de waarde",
+});
+Object.assign(dictionaries.es, {
+  "Source of the value": "Base del valor",
+});

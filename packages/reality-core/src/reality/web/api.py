@@ -6919,60 +6919,32 @@ def post_cost_review_proposal(
     session: DatabaseSession,
 ):
     """Propose exactly what the shared draft derives now; a drifted draft is refused."""
-    from reality.db.core import ChangeProposal
     from reality.services.analytics.reports import caller
-    from reality.tools.application import create_change_proposal, run_read_tool
+    from reality.services.cost_review_draft import DraftChanged, propose_drafted_review
 
     try:
-        draft = run_read_tool(
-            session,
-            tenant_id,
-            "cost.review.draft",
-            {
-                "kind": body.kind,
-                "scope_id": body.scope_id,
-                **({"answers": body.answers} if body.answers else {}),
-            },
-        )
-        if draft["event_sequence"] != body.event_sequence or draft["open_inputs"]:
-            raise HTTPException(
-                status_code=409, detail={"code": "draft_changed", "draft": draft}
+        with caller(optional_request_principal(request)):
+            proposal, created = propose_drafted_review(
+                session,
+                tenant_id,
+                kind=body.kind,
+                scope_id=body.scope_id,
+                answers=body.answers,
+                event_sequence=body.event_sequence,
             )
-        arguments = draft["arguments"]
-        from reality.services.costing import _request as cost_request
-
-        # The same draft submitted twice is the same decision, not a second one.
-        wanted = cost_request(arguments).model_dump(mode="json")
-        existing = next(
-            (
-                row
-                for row in session.scalars(
-                    select(ChangeProposal).where(
-                        ChangeProposal.tenant_id == tenant_id,
-                        ChangeProposal.type == "tool:cost.change",
-                        ChangeProposal.status == "proposed",
-                    )
-                )
-                if cost_request(json.loads(row.input or "{}")).model_dump(mode="json")
-                == wanted
-            ),
-            None,
-        )
-        if existing is not None:
-            response.status_code = status.HTTP_200_OK
-            proposal = existing
-        else:
-            with caller(optional_request_principal(request)):
-                proposal = create_change_proposal(
-                    session, tenant_id, "cost.change", arguments, actor_type="human"
-                )
-        return {
-            "id": proposal.id,
-            "status": proposal.status,
-            "preview": json.loads(proposal.output),
-        }
+    except DraftChanged as error:
+        raise HTTPException(
+            status_code=409, detail={"code": "draft_changed", "draft": error.draft}
+        ) from error
     except (NotFound, InvalidOperation) as error:
         raise api_error(error) from error
+    if not created:
+        response.status_code = status.HTTP_200_OK
+    return {
+        "id": proposal.id,
+        "status": proposal.status,
+        "preview": json.loads(proposal.output),
+    }
 
 
 @router.get("/cost-query")

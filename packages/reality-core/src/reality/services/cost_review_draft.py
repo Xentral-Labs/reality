@@ -10,7 +10,7 @@ import json
 from datetime import timedelta
 from typing import Any
 
-from sqlalchemy import or_, select
+from sqlalchemy import func, or_, select
 from sqlalchemy.orm import Session
 
 from reality.db.components import FinancialComponent
@@ -52,7 +52,49 @@ def cost_review_draft(
         core.get_tenant(session, tenant)
         if kind == "contribution":
             return _contribution(session, tenant, scope_id)
-        return _inventory(session, tenant, scope_id, answers or {})
+        return _inventory(
+            session, tenant, _item_scope(session, tenant, scope_id), answers or {}
+        )
+
+
+def _item_scope(session: Session, tenant: str, reference: str) -> str:
+    """The item's opaque ID, from itself or from an unambiguous SKU or exact name.
+
+    Chat carries only earlier answers' text between turns, so an agent may name the
+    item as the person did. A human reference resolves only when exactly one item of
+    this company matches; it never becomes identity itself.
+    """
+    if session.scalar(
+        select(Item.id).where(Item.tenant_id == tenant, Item.id == reference)
+    ):
+        return reference
+    for column in (Item.sku, func.lower(Item.name)):
+        value = reference.strip() if column is Item.sku else reference.strip().lower()
+        matches = session.scalars(
+            select(Item.id).where(Item.tenant_id == tenant, column == value).limit(2)
+        ).all()
+        if len(matches) == 1:
+            return matches[0]
+        if len(matches) > 1:
+            raise core.InvalidOperation(
+                "More than one item matches; name the item by its SKU."
+            )
+    # Last, a unique partial match on SKU or name ("282" for "Stehlampe 282").
+    needle = f"%{reference.strip().lower()}%"
+    candidates = session.execute(
+        select(Item.id, Item.sku, Item.name)
+        .where(
+            Item.tenant_id == tenant,
+            or_(func.lower(Item.sku).like(needle), func.lower(Item.name).like(needle)),
+        )
+        .limit(6)
+    ).all()
+    if len(candidates) == 1:
+        return candidates[0].id
+    if candidates:
+        names = ", ".join(f"{row.name} ({row.sku})" for row in candidates[:5])
+        raise core.InvalidOperation(f"Several items match: {names}. Ask which one.")
+    raise core.NotFound("Item not found.")
 
 
 def _row(session: Session, model, tenant: str, identity: str):
@@ -426,9 +468,78 @@ def _inventory(
                 {
                     "amount": row["acquisition_cost"],
                     "currency": currency,
+                    "quantity": format(
+                        next(
+                            m.quantity for m in movements if m.id == row["movement_id"]
+                        ),
+                        "f",
+                    ),
                     "movement_id": row["movement_id"],
                 }
                 for row in opening_rows
             ],
         },
     )
+
+
+class DraftChanged(core.Conflict):
+    """The draft moved or still needs answers; the caller re-drafts instead of proposing."""
+
+    code = "draft_changed"
+
+    def __init__(self, current: dict[str, Any]):
+        super().__init__("The cost review draft changed or still has open inputs.")
+        self.draft = current
+
+
+def propose_drafted_review(
+    session: Session,
+    tenant: str,
+    *,
+    kind: str,
+    scope_id: str,
+    answers: dict[str, Any] | None = None,
+    event_sequence: int | None = None,
+    actor_type: str = "human",
+):
+    """Re-draft now and propose exactly that decision; one path for Web, MCP and chat.
+
+    Nobody copies review arguments: the caller names the scope and the answers, and the
+    server derives the arguments again. A draft that moved since the caller saw it, or
+    that still has open inputs, is refused so a stale decision is never proposed. The
+    same drafted decision submitted twice returns the waiting proposal.
+    """
+    from reality.db.core import ChangeProposal
+    from reality.services.costing import _request as cost_request
+    from reality.tools.application import create_change_proposal
+
+    current = cost_review_draft(
+        session, tenant, kind=kind, scope_id=scope_id, answers=answers
+    )
+    if current["open_inputs"] or (
+        event_sequence is not None and current["event_sequence"] != event_sequence
+    ):
+        raise DraftChanged(current)
+    arguments = current["arguments"]
+
+    def decision(values: dict[str, Any]) -> dict[str, Any]:
+        # The draft's valuation cutoff is "now"; at the same event sequence and with
+        # the same content it is the same decision, whatever second it was drafted.
+        normalized = cost_request(values).model_dump(mode="json")
+        normalized.pop("effective_at", None)
+        return normalized
+
+    wanted = decision(arguments)
+    for row in session.scalars(
+        select(ChangeProposal).where(
+            ChangeProposal.tenant_id == tenant,
+            ChangeProposal.type == "tool:cost.change",
+            ChangeProposal.status == "proposed",
+        )
+    ):
+        if decision(json.loads(row.input or "{}")) == wanted:
+            return row, False
+    proposal = create_change_proposal(
+        session, tenant, "cost.change", arguments, actor_type=actor_type
+    )
+    return proposal, True

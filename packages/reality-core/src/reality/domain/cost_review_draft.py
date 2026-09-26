@@ -43,7 +43,22 @@ class DraftAnswers(BaseModel):
 class CostReviewDraftRequest(BaseModel):
     model_config = ConfigDict(extra="forbid")
     kind: DraftKind
-    scope_id: str = Field(min_length=1)
+    scope_id: str = Field(
+        min_length=1,
+        description="Inventory: the item's ID, SKU or exact name. Contribution: the invoice line ID.",
+    )
+    answers: DraftAnswers | None = None
+
+
+class CostReviewProposeRequest(BaseModel):
+    """Name the scope and the answers; the server re-drafts and proposes (spec 282)."""
+
+    model_config = ConfigDict(extra="forbid")
+    kind: DraftKind
+    scope_id: str = Field(
+        min_length=1,
+        description="Inventory: the item's ID, SKU or exact name. Contribution: the invoice line ID.",
+    )
     answers: DraftAnswers | None = None
 
 
