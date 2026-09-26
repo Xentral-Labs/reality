@@ -204,6 +204,38 @@
     "party_delivery_hold": {
       "label": "The customer is on delivery hold",
       "explanation": "Release the customer's delivery hold when shipping may resume."
+    },
+    "ambiguous_billing": {
+      "label": "The invoice line cannot be matched to one billing clearly",
+      "explanation": "More than one billing could belong to this order line, so the contribution cannot be attributed automatically."
+    },
+    "ambiguous_fulfilment": {
+      "label": "The shipment cannot be matched to this invoice line clearly",
+      "explanation": "More than one shipment could belong to this invoice line, so its goods cost cannot be attributed automatically."
+    },
+    "customer_scope_mismatch": {
+      "label": "Invoice and order name different customers",
+      "explanation": "The invoice line and the order line it bills belong to different business partners."
+    },
+    "item_scope_mismatch": {
+      "label": "Invoice and order name different items",
+      "explanation": "The invoice line bills a different item than the order line it names."
+    },
+    "revised_fulfilment_unsupported": {
+      "label": "The shipment was revised",
+      "explanation": "Contributions for revised shipments are not supported yet."
+    },
+    "unsupported_fulfilment": {
+      "label": "This shipment has no contribution",
+      "explanation": "The shipment behind this invoice line is not a supported delivery for contributions."
+    },
+    "commercial_goods_cost_unresolved": {
+      "label": "The goods cost of the sale is not resolved",
+      "explanation": "The shipment's goods cost could not be taken from the item's confirmed cost review."
+    },
+    "commercial_inventory_cost_unknown": {
+      "label": "The item's cost is not known for this sale",
+      "explanation": "The item's cost review does not provide a cost for the shipped quantity."
     }
   },
   "steps": {

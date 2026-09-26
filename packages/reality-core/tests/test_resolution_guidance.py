@@ -2,6 +2,8 @@
 
 import copy
 import json
+import re
+from pathlib import Path
 
 import pytest
 
@@ -87,3 +89,27 @@ def test_step_carries_catalog_role_and_path():
         guidance_step("owner_confirmation", "maybe")
     with pytest.raises(ValueError):
         guidance_step("not_a_step", "open")
+
+
+def test_every_gap_a_service_emits_is_listed():
+    """Found live (2026-09-26): `ambiguous_fulfilment` reached the web uncatalogued.
+
+    Read the codes straight from the services that produce missing-basis gaps, so a new
+    gap cannot bypass `EMITTED_CODES` and fall back to the generic sentence unnoticed.
+    """
+    services = Path(__file__).resolve().parents[1] / "src" / "reality" / "services"
+    patterns = {
+        "contribution.py": r'gap\("([a-z_]+)"\)',
+        "costing.py": r'missing\.add\("([a-z_]+):?"',
+        "commercial_matching.py": r'missing\.append\("([a-z_]+)"',
+        "selling_costs.py": r'"(selling_costs_unknown|selling_category):?',
+        "inventory_costing.py": r'"missing_basis": \["([a-z_]+)"\]',
+        "contribution_reviews.py": r'"(contribution_review_stale|commercial_match_not_reviewed)"',
+    }
+    found = set()
+    for name, pattern in patterns.items():
+        codes = set(re.findall(pattern, (services / name).read_text()))
+        # Positive control: each pattern still matches something in its file.
+        assert codes, f"{name}: the pattern no longer finds any gap"
+        found |= codes
+    assert found - EMITTED_CODES == set(), sorted(found - EMITTED_CODES)

@@ -49,6 +49,15 @@ EMITTED_CODES = frozenset(
         "currency_scope_mismatch",
         "unit_scope_mismatch",
         "quantity_scope_mismatch",
+        "ambiguous_billing",
+        "ambiguous_fulfilment",
+        "customer_scope_mismatch",
+        "item_scope_mismatch",
+        "revised_fulfilment_unsupported",
+        "unsupported_fulfilment",
+        # Commercial matching (services/commercial_matching.py).
+        "commercial_goods_cost_unresolved",
+        "commercial_inventory_cost_unknown",
         # Receipt cost missing basis (services/costing.py receipt_cost).
         "not_admitted",
         "no_attributed_cost",
