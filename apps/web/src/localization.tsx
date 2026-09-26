@@ -13195,6 +13195,9 @@ Object.assign(dictionaries.es, {
 });
 
 Object.assign(dictionaries.de, {
+  "Unsigned tester beta": "Unsignierte Tester-Beta",
+  "Unsigned tester beta — for named testers only. This is not a trusted public release.":
+    "Unsignierte Tester-Beta — nur für benannte Tester. Dies ist keine vertrauenswürdige öffentliche Version.",
   "Playground has been retired": "Der Playground wurde eingestellt",
   "Page unavailable": "Seite nicht verfügbar",
   "Use the Reality app for your work. Existing records have been preserved.":
@@ -13205,6 +13208,9 @@ Object.assign(dictionaries.de, {
 });
 
 Object.assign(dictionaries.nl, {
+  "Unsigned tester beta": "Niet-ondertekende testbèta",
+  "Unsigned tester beta — for named testers only. This is not a trusted public release.":
+    "Niet-ondertekende testbèta — alleen voor aangewezen testers. Dit is geen vertrouwde openbare release.",
   "Playground has been retired": "De Playground is beëindigd",
   "Page unavailable": "Pagina niet beschikbaar",
   "Use the Reality app for your work. Existing records have been preserved.":
@@ -13215,6 +13221,9 @@ Object.assign(dictionaries.nl, {
 });
 
 Object.assign(dictionaries.es, {
+  "Unsigned tester beta": "Beta de prueba sin firmar",
+  "Unsigned tester beta — for named testers only. This is not a trusted public release.":
+    "Beta de prueba sin firmar — solo para probadores designados. No es una versión pública de confianza.",
   "Playground has been retired": "El Playground se ha retirado",
   "Page unavailable": "Página no disponible",
   "Use the Reality app for your work. Existing records have been preserved.":

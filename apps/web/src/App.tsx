@@ -31,10 +31,10 @@ function UnsignedTesterBetaWarning() {
   if (channel !== "unsigned-tester-beta") return null;
   return (
     <aside
-      aria-label="Unsigned tester beta"
+      aria-label={t("Unsigned tester beta")}
       className="border-b border-amber-400 bg-amber-100 px-4 py-2 text-center text-sm font-semibold text-amber-950"
     >
-      Unsigned tester beta — for named testers only. This is not a trusted public release.
+      {t("Unsigned tester beta — for named testers only. This is not a trusted public release.")}
     </aside>
   );
 }
