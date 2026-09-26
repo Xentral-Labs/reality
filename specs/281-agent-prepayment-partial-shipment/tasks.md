@@ -1,0 +1,21 @@
+# Tasks: Agent-Guided Prepayment and Partial Shipment
+
+- [x] T001 Specify and clarify the bounded orchestration behavior.
+- [x] T002 Pass the Constitution Check and cross-artifact analysis.
+- [x] T003 Add failing Chat prompt and provider-tool contract tests.
+- [x] T004 Add readiness-first prepayment and partial-shipment guidance.
+- [x] T005 Run focused tests, lint, spec and catalog checks.
+- [x] T006 Review against FR-001–FR-010 and record remaining browser-story work.
+- [x] T007 Add multi-customer future-date, partial-stock and prepayment browser fixtures.
+- [x] T008 Execute the headless browser acceptance when Playwright is available.
+- [x] T009 Permit an exact reserved and stocked partial quantity through shared shipment readiness while retaining all payment and hold blockers.
+- [x] T010 Prove the public MCP proposal path creates no invoice or movement before human confirmation and preserves the future-dated order remainder.
+- [x] T011 Prove an agent can distinguish ready, unpaid-prepayment and partially reserved future orders across multiple customers from canonical reads.
+- [x] T012 Add readiness-row handoffs into the existing reviewed invoice and shipment proposal dialogs without executing a mutation.
+- [x] T013 Verify both readiness-row handoffs in localhost Chrome with exact prefilled identities and zero business mutation on open.
+- [x] T014 Make the existing post-confirmation Readiness reload visible without claiming that a pending projection is current.
+- [x] T015 Replace raw readiness blocker codes with localized evidence-bearing explanations.
+- [x] T016 Offer prepayment-invoice preparation only when canonical readiness says invoice evidence is missing; never suggest a duplicate invoice.
+- [x] T017 Withhold readiness-row action handoffs unless the stored projection is current, while preserving stale evidence and warnings.
+- [x] T018 Prove later goods receipt, reservation and a second human-confirmed agent proposal complete the exact six-unit remainder without early effect.
+- [x] T019 Run the complete backend and Web regression suites and record the final verification evidence.

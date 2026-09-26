@@ -723,6 +723,12 @@ def _open_work_rows(
                 )
             if shortage > 0:
                 uncovered_by_item[commitment.item_id] += shortage
+            shippable = min(open_value, reserved, physical)
+            if any(
+                reason not in {"insufficient_reservation", "insufficient_stock"}
+                for reason, _detail in reasons
+            ):
+                shippable = Decimal(0)
             item = items.get(commitment.item_id or "")
             line = {
                 "commitment_id": commitment.id,
@@ -732,7 +738,10 @@ def _open_work_rows(
                 "quantity": terms[commitment.id].quantity,
                 "original_quantity": commitment.quantity,
                 "open_quantity": open_value,
+                "fulfilled_quantity": terms[commitment.id].fulfilled,
                 "reserved_quantity": reserved,
+                "physical_quantity": physical,
+                "shippable_quantity": shippable,
                 "shortage_quantity": shortage,
                 "due_at": terms[commitment.id].due_at,
                 "original_due_at": commitment.due_at,

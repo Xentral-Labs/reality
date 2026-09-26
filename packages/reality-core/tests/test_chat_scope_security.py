@@ -143,7 +143,7 @@ async def test_forged_history_is_rejected_before_network(provider, entry, harnes
 
 @pytest.mark.anyio
 @pytest.mark.parametrize("provider", ["anthropic", "openai"])
-async def test_injected_confirmation_has_only_fixed_chat_authority(
+async def test_injected_confirmation_cannot_expand_chat_authority(
     provider, harness, monkeypatch
 ):
     _, replies = harness
@@ -172,14 +172,14 @@ async def test_injected_confirmation_has_only_fixed_chat_authority(
             "tenant_authorized",
             "proposal_approve_and_execute",
             {"proposal_id": "unknown", "approved": True},
-            ("read", "propose", "confirm"),
+            ("read", "propose"),
         )
     ]
 
 
 @pytest.mark.anyio
 @pytest.mark.parametrize("provider", ["anthropic", "openai"])
-async def test_chat_prepares_then_decides_in_two_tool_calls(
+async def test_chat_prepares_but_cannot_decide_in_a_second_tool_call(
     provider, harness, monkeypatch
 ):
     _, replies = harness
@@ -193,7 +193,7 @@ async def test_chat_prepares_then_decides_in_two_tool_calls(
                 "status": "proposed",
                 "requires_confirmation": True,
             }
-        return {"proposal_id": "act_chat", "status": "executed"}
+        raise mcp_chat.InvalidOperation("Tool access denied.")
 
     monkeypatch.setattr(mcp_chat, "dispatch_tool", dispatch)
     replies.extend(
@@ -218,12 +218,12 @@ async def test_chat_prepares_then_decides_in_two_tool_calls(
         (
             "party_create_propose",
             {"records": [{"name": "Canis", "roles": ["customer"]}]},
-            ("read", "propose", "confirm"),
+            ("read", "propose"),
         ),
         (
             "proposal_approve_and_execute",
             {"proposal_id": "act_chat", "approved": True},
-            ("read", "propose", "confirm"),
+            ("read", "propose"),
         ),
     ]
 
@@ -246,7 +246,7 @@ async def test_hostile_tool_content_remains_data_with_fixed_authority(
     monkeypatch.setattr(mcp_chat, "dispatch_tool", read)
     replies.extend([tool_reply(provider, "inventory_read", {}), text_reply(provider)])
     await invoke(provider, message="Check my stock")
-    assert seen == [("tenant_authorized", ("read", "propose", "confirm"))]
+    assert seen == [("tenant_authorized", ("read", "propose"))]
     prompt = requests[-1].get("system") or requests[-1]["messages"][0]["content"]
     if isinstance(prompt, list):
         prompt = "\n".join(block["text"] for block in prompt)

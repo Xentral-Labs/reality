@@ -52,6 +52,98 @@ await page.route("**/api/**", async (route) => {
       suggestions: [],
       has_archived: false,
     });
+  if (path.endsWith("/projection-views/fulfillment_queue"))
+    return reply({
+      metadata: {
+        projection: "fulfillment_queue",
+        calculation_mode: "stored",
+        state: u.searchParams.get("q") === "stale" ? "pending" : "ready",
+        processed_event_sequence: u.searchParams.get("q") === "stale" ? 40 : 42,
+        target_event_sequence: 42,
+        completed_at: "2026-09-25T10:00:00Z",
+        projection_version: 1,
+        upstream_freshness: "unknown",
+        consistency: "completed_snapshot",
+      },
+      items: [
+        {
+          order_key: "doc-future",
+          document_id: "doc-future",
+          document_number: "SO-FUTURE",
+          party_id: "customer-a",
+          party: "Müller Maschinenbau",
+          due_at: "2026-11-15T00:00:00Z",
+          readiness: "blocked",
+          ship_ready: false,
+          blocking_reasons: ["insufficient_reservation", "insufficient_stock"],
+          lines: [
+            {
+              commitment_id: "commitment-partial",
+              item_id: "item-a",
+              item: "Drive assembly",
+              sku: "DRV-1",
+              unit: "pcs",
+              quantity: "10",
+              open_quantity: "10",
+              fulfilled_quantity: "0",
+              reserved_quantity: "4",
+              physical_quantity: "4",
+              shippable_quantity: "4",
+              shortage_quantity: "6",
+              location_id: "warehouse-a",
+              due_at: "2026-11-15T00:00:00Z",
+              blocking_reasons: ["insufficient_reservation", "insufficient_stock"],
+              fulfillment_readiness: null,
+            },
+          ],
+        },
+        {
+          order_key: "doc-prepay",
+          document_id: "doc-prepay",
+          document_number: "SO-PREPAY",
+          party_id: "customer-b",
+          party: "Schmidt Handel",
+          due_at: "2026-12-01T00:00:00Z",
+          readiness: "blocked",
+          ship_ready: false,
+          blocking_reasons: ["prepayment_invoice_missing", "prepayment_required"],
+          lines: [
+            {
+              commitment_id: "commitment-prepay",
+              item_id: "item-b",
+              item: "Control cabinet",
+              sku: "CAB-1",
+              unit: "pcs",
+              quantity: "2",
+              open_quantity: "2",
+              fulfilled_quantity: "0",
+              reserved_quantity: "2",
+              physical_quantity: "2",
+              shippable_quantity: "0",
+              shortage_quantity: "0",
+              location_id: "warehouse-a",
+              due_at: "2026-12-01T00:00:00Z",
+              blocking_reasons: ["prepayment_invoice_missing", "prepayment_required"],
+              fulfillment_readiness: {
+                currency: "EUR",
+                required_amount: "2000.00",
+                received_amount: "0.00",
+                remaining_amount: "2000.00",
+                requires_prepayment: true,
+              },
+            },
+          ],
+        },
+      ],
+      page: {
+        number: 1,
+        size: 50,
+        total: 2,
+        pages: 1,
+        has_next: false,
+        has_previous: false,
+      },
+    });
   if (path === "/api/auth/me")
     return reply({
       id: "operator",
@@ -149,6 +241,103 @@ const go = async (view = "deliveries", extra = "") => {
   await page.goto(`${base}/app/orders-deliveries?tenant=orders&orders_view=${view}${extra}`);
   await page.locator("[data-orders-row]").first().waitFor();
 };
+if (process.env.READINESS_ONLY === "1") {
+  try {
+    await mkdir(out, { recursive: true });
+    await go("readiness");
+    if (process.env.READINESS_DEBUG === "1")
+      console.log(page.url(), await page.locator("body").innerText());
+    await page.getByText("SO-FUTURE", { exact: true }).waitFor();
+    await page.getByText("SO-PREPAY", { exact: true }).waitFor();
+    await page.getByText("4 pcs of 10 pcs reserved", { exact: true }).waitFor();
+    await page.getByText("4 pcs of 10 pcs physically available", { exact: true }).waitFor();
+    await page.getByText("Prepayment invoice evidence is missing", { exact: true }).waitFor();
+    await page.getByText(/2,000.*prepayment remaining/).waitFor();
+    await page.getByText(/Readiness observed at/).waitFor();
+    await page
+      .locator('[data-orders-row="doc-prepay"]')
+      .getByRole("button", { name: /SO-PREPAY/ })
+      .click();
+    await page.getByText("€0.00 / €2,000.00", { exact: true }).waitFor();
+    await page.getByRole("button", { name: "Prepare prepayment invoice", exact: true }).click();
+    await page.getByRole("dialog").getByRole("heading", { name: "New invoice" }).waitFor();
+    assert.equal(
+      await page.getByRole("combobox", { name: "Order", exact: true }).inputValue(),
+      "doc-prepay",
+    );
+    await page.getByRole("dialog").getByRole("button", { name: "Close" }).click();
+    await page.getByRole("button", { name: "Inspect commitment", exact: true }).last().click();
+    await page.getByRole("dialog").waitFor();
+    assert.ok(requests.some((r) => r.path.endsWith("/inspector/commitment/commitment-prepay")));
+    await page.keyboard.press("Escape");
+    await page
+      .locator('[data-orders-row="doc-future"]')
+      .getByRole("button", { name: /SO-FUTURE/ })
+      .click();
+    await page.getByRole("button", { name: "Prepare available shipment", exact: true }).click();
+    const shipmentDialog = page.getByRole("dialog");
+    assert.equal(
+      await shipmentDialog.getByRole("textbox", { name: "Counterparty ID" }).inputValue(),
+      "customer-a",
+    );
+    assert.match(
+      await shipmentDialog.getByRole("textbox", { name: "Movement inputs (JSON)" }).inputValue(),
+      /"commitment_id":"commitment-partial".*"quantity":"4"/,
+    );
+    await shipmentDialog.getByRole("button", { name: "Close" }).click();
+    await go("readiness", "&q=stale");
+    if (process.env.READINESS_DEBUG === "1")
+      console.log(
+        requests.filter((r) => r.path.endsWith("/projection-views/fulfillment_queue")),
+        await page.locator("body").innerText(),
+      );
+    await page
+      .locator('[data-orders-row="doc-future"]')
+      .getByRole("button", { name: /SO-FUTURE/ })
+      .click();
+    await page
+      .getByText("Actions are unavailable until the readiness projection is current.", {
+        exact: true,
+      })
+      .first()
+      .waitFor();
+    assert.equal(
+      await page.getByRole("button", { name: "Prepare available shipment", exact: true }).count(),
+      0,
+    );
+    assert.equal(
+      await page.getByRole("button", { name: "Prepare prepayment invoice", exact: true }).count(),
+      0,
+    );
+    await go("readiness");
+    const reloaded = page.waitForResponse((response) =>
+      response.url().includes("/projection-views/fulfillment_queue"),
+    );
+    await page.evaluate(() => window.dispatchEvent(new Event("reality:delivery-settled")));
+    await reloaded;
+    await page
+      .getByRole("status")
+      .getByText(/Readiness was reloaded/)
+      .waitFor();
+    for (const width of [390, 1440]) {
+      await page.setViewportSize({ width, height: width === 390 ? 844 : 1000 });
+      await go("readiness");
+      assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
+      await page.screenshot({ path: `${out}/readiness-${width}.png`, fullPage: true });
+    }
+    const mutations = requests.filter(
+      (r) => r.method !== "GET" && !r.path.endsWith("/search/resolve"),
+    );
+    assert.equal(mutations.length, 0, JSON.stringify(mutations));
+    assert.deepEqual(errors, []);
+    console.log(
+      "PASS: multi-customer readiness, exact invoice/shipment handoffs, future dates, partial stock, prepayment evidence, Inspector trace, responsive layout and no writes.",
+    );
+  } finally {
+    await browser.close();
+  }
+  process.exit(0);
+}
 try {
   await mkdir(out, { recursive: true });
   await go("deliveries", "&q=Muller&page=2");
@@ -185,6 +374,19 @@ try {
         r.path.endsWith("/evidence-documents") && r.query.includes("document_type=sales_order"),
     ),
   );
+  await go("readiness");
+  await page.getByText("SO-FUTURE", { exact: true }).waitFor();
+  await page.getByText("SO-PREPAY", { exact: true }).waitFor();
+  await page.getByText(/2.*40.*42/).waitFor();
+  await page
+    .locator('[data-orders-row="doc-prepay"]')
+    .getByRole("button", { name: /SO-PREPAY/ })
+    .click();
+  await page.getByText(/€500.00.*€2,000.00/).waitFor();
+  await page.getByRole("button", { name: "Inspect commitment", exact: true }).last().click();
+  await page.getByRole("dialog").waitFor();
+  assert.ok(requests.some((r) => r.path.endsWith("/inspector/commitment/commitment-prepay")));
+  await page.keyboard.press("Escape");
   const inspect = page.locator("tbody").getByRole("button", { name: "Explain", exact: true });
   await inspect.focus();
   await page.keyboard.press("Enter");
@@ -267,7 +469,7 @@ try {
       for (const width of [390, 1440]) {
         await page.setViewportSize({ width, height: width === 390 ? 844 : 1000 });
         await page.evaluate((theme) => localStorage.setItem("reality.theme", theme), theme);
-        for (const view of ["deliveries", "customer-orders", "supplier-orders"]) {
+        for (const view of ["deliveries", "customer-orders", "supplier-orders", "readiness"]) {
           await go(view);
           assert.ok(
             await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth),
@@ -282,7 +484,7 @@ try {
   assert.equal(requests.filter((r) => r.method !== "GET").length, 0);
   assert.deepEqual(errors, []);
   console.log(
-    "PASS: exact customer/supplier order drilldown, existing customer case, incoming Inspector, keyboard/reload, filters/paging, empty/retry/foreign/company reset, no writes and 48 localized screenshots.",
+    "PASS: exact customer/supplier order drilldown, multi-customer readiness with future dates, partial stock and prepayment evidence, Inspector, keyboard/reload, filters/paging, empty/retry/foreign/company reset, no writes and 64 localized screenshots.",
   );
 } finally {
   await browser.close();

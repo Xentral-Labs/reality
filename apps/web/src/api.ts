@@ -1229,6 +1229,43 @@ export type ProjectionSnapshot = {
   metadata?: ProjectionMetadata;
 };
 export type SpecializedProjectionRow = Record<string, unknown>;
+export type FulfillmentReadinessPayment = {
+  currency: string;
+  required_amount: string;
+  received_amount: string;
+  remaining_amount: string;
+  requires_prepayment: boolean;
+};
+export type FulfillmentQueueLine = {
+  commitment_id: string;
+  item_id: string;
+  item: string;
+  sku: string;
+  unit: string;
+  quantity: string;
+  open_quantity: string;
+  fulfilled_quantity: string;
+  reserved_quantity: string;
+  physical_quantity: string;
+  shippable_quantity: string;
+  shortage_quantity: string;
+  due_at: string | null;
+  location_id: string | null;
+  blocking_reasons: string[];
+  fulfillment_readiness: FulfillmentReadinessPayment | null;
+};
+export type FulfillmentQueueRow = {
+  order_key: string;
+  document_id: string | null;
+  document_number: string | null;
+  party_id: string | null;
+  party: string | null;
+  due_at: string | null;
+  readiness: "ready" | "blocked";
+  ship_ready: boolean;
+  blocking_reasons: string[];
+  lines: FulfillmentQueueLine[];
+};
 export type SpecializedProjectionData = {
   metadata?: ProjectionMetadata;
   items: SpecializedProjectionRow[];
@@ -1859,14 +1896,14 @@ export const api = {
     const params = new URLSearchParams({ kind, scope_id: scopeId });
     return request<CostQueryEnvelope>(`/api/tenants/${tenant}/cost-query?${params}`);
   },
-  specializedProjection: (
+  specializedProjection: <Row extends SpecializedProjectionRow = SpecializedProjectionRow>(
     tenant: string,
     projection: "fulfillment_queue" | "fulfillment_blockers" | "item_supply_demand",
     query = "",
     page = 1,
   ) => {
     const params = new URLSearchParams({ q: query, page: String(page), size: "50" });
-    return request<SpecializedProjectionData>(
+    return request<Omit<SpecializedProjectionData, "items"> & { items: Row[] }>(
       `/api/tenants/${tenant}/projection-views/${projection}?${params}`,
     );
   },

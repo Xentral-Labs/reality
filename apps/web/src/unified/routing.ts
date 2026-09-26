@@ -34,7 +34,13 @@ export type Selection = {
   factSubject: string;
   factSource: string;
   factTarget: "fact" | "source_record";
-  ordersView: "commitments" | "deliveries" | "shipments" | "customer-orders" | "supplier-orders";
+  ordersView:
+    | "commitments"
+    | "deliveries"
+    | "shipments"
+    | "customer-orders"
+    | "supplier-orders"
+    | "readiness";
   deliveryType: "customer_delivery" | "supplier_delivery";
   deliveryStatus: "open" | "all";
   order: string;
@@ -149,6 +155,7 @@ export function readSelection(url: URL): Selection {
       "shipments",
       "customer-orders",
       "supplier-orders",
+      "readiness",
     ].includes(url.searchParams.get("orders_view") || "")
       ? (url.searchParams.get("orders_view") as Selection["ordersView"])
       : "deliveries",
