@@ -58,3 +58,10 @@ The rate is stored to three decimal places, which is past anything trade quotes,
 rate is never a rounded version of the rate somebody stated. Nothing in the product ever
 multiplies it out into a money figure — see
 [operational exceptions](./operational_exceptions.md) for why.
+
+# Explicit prepayment policy
+
+Payment terms carry `requires_prepayment` as an explicit tenant-scoped boolean. Existing and newly
+created terms default to false unless the caller states otherwise; no migration or service infers
+the policy from the term code, translated name or due days. The policy is available through the
+shared service, HTTP API, CLI, application tools and MCP schema.

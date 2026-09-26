@@ -691,8 +691,8 @@ Creates a reusable payment condition identified by an opaque ID.
 **Aufruf**
 
 ```text
-payment_term_create_propose code name due_days [discount_percent] [discount_days] [source_system] [external_id] [source_payload]
-payment_term_update_propose payment_term_id code name due_days [discount_percent] [discount_days]
+payment_term_create_propose code name due_days [discount_percent] [discount_days] [requires_prepayment] [source_system] [external_id] [source_payload]
+payment_term_update_propose payment_term_id code name due_days [discount_percent] [discount_days] [requires_prepayment]
 ```
 
 **Erreichbar über:** CLI · Web · API · MCP · Chat
@@ -713,23 +713,24 @@ required.
 **Aufruf**
 
 ```text
-payment_term_create_propose code name due_days [discount_percent] [discount_days] [source_system] [external_id] [source_payload]
+payment_term_create_propose code name due_days [discount_percent] [discount_days] [requires_prepayment] [source_system] [external_id] [source_payload]
 ```
 
 **Zugriff:** `propose`
 
 **Parameter**
 
-| Name               | Typ       | Pflicht | Beschreibung                                                                                                            | Standard |
-| ------------------ | --------- | ------- | ----------------------------------------------------------------------------------------------------------------------- | -------- |
-| `code`             | `string`  | ja      | Short tenant-scoped business code used to find the record operationally.                                                | —        |
-| `name`             | `string`  | ja      | Human-readable display name; it is not used as internal identity.                                                       | —        |
-| `due_days`         | `integer` | ja      | Number of calendar days from the document date until payment is due.                                                    | —        |
-| `discount_percent` | `string`  | nein    | Early-payment discount rate the term grants, above zero and below 100; stated together with the days or not at all.     | —        |
-| `discount_days`    | `integer` | nein    | Days from the invoice date within which an early-payment discount applies; stated together with the rate or not at all. | —        |
-| `source_system`    | `string`  | nein    | Tenant-scoped code naming the external origin of a record.                                                              | —        |
-| `external_id`      | `string`  | nein    | Identifier assigned by the named external source system; never internal identity.                                       | —        |
-| `source_payload`   | `object`  | nein    | Lossless external JSON evidence from which typed operational fields were selected.                                      | —        |
+| Name                  | Typ       | Pflicht | Beschreibung                                                                                                            | Standard |
+| --------------------- | --------- | ------- | ----------------------------------------------------------------------------------------------------------------------- | -------- |
+| `code`                | `string`  | ja      | Short tenant-scoped business code used to find the record operationally.                                                | —        |
+| `name`                | `string`  | ja      | Human-readable display name; it is not used as internal identity.                                                       | —        |
+| `due_days`            | `integer` | ja      | Number of calendar days from the document date until payment is due.                                                    | —        |
+| `discount_percent`    | `string`  | nein    | Early-payment discount rate the term grants, above zero and below 100; stated together with the days or not at all.     | —        |
+| `discount_days`       | `integer` | nein    | Days from the invoice date within which an early-payment discount applies; stated together with the rate or not at all. | —        |
+| `requires_prepayment` | `boolean` | nein    | Whether customer delivery requires qualifying allocated payment evidence before dispatch.                               | —        |
+| `source_system`       | `string`  | nein    | Tenant-scoped code naming the external origin of a record.                                                              | —        |
+| `external_id`         | `string`  | nein    | Identifier assigned by the named external source system; never internal identity.                                       | —        |
+| `source_payload`      | `object`  | nein    | Lossless external JSON evidence from which typed operational fields were selected.                                      | —        |
 
 **Siehe auch:** Geschäftsaktion [`create_payment_term`](./commands#command-create_payment_term)
 
@@ -741,21 +742,22 @@ required.
 **Aufruf**
 
 ```text
-payment_term_update_propose payment_term_id code name due_days [discount_percent] [discount_days]
+payment_term_update_propose payment_term_id code name due_days [discount_percent] [discount_days] [requires_prepayment]
 ```
 
 **Zugriff:** `propose`
 
 **Parameter**
 
-| Name               | Typ       | Pflicht | Beschreibung                                                                                                            | Standard |
-| ------------------ | --------- | ------- | ----------------------------------------------------------------------------------------------------------------------- | -------- |
-| `payment_term_id`  | `string`  | ja      | Opaque identity of the payment condition whose lifecycle is changed.                                                    | —        |
-| `code`             | `string`  | ja      | Short tenant-scoped business code used to find the record operationally.                                                | —        |
-| `name`             | `string`  | ja      | Human-readable display name; it is not used as internal identity.                                                       | —        |
-| `due_days`         | `integer` | ja      | Number of calendar days from the document date until payment is due.                                                    | —        |
-| `discount_percent` | `string`  | nein    | Early-payment discount rate the term grants, above zero and below 100; stated together with the days or not at all.     | —        |
-| `discount_days`    | `integer` | nein    | Days from the invoice date within which an early-payment discount applies; stated together with the rate or not at all. | —        |
+| Name                  | Typ       | Pflicht | Beschreibung                                                                                                            | Standard |
+| --------------------- | --------- | ------- | ----------------------------------------------------------------------------------------------------------------------- | -------- |
+| `payment_term_id`     | `string`  | ja      | Opaque identity of the payment condition whose lifecycle is changed.                                                    | —        |
+| `code`                | `string`  | ja      | Short tenant-scoped business code used to find the record operationally.                                                | —        |
+| `name`                | `string`  | ja      | Human-readable display name; it is not used as internal identity.                                                       | —        |
+| `due_days`            | `integer` | ja      | Number of calendar days from the document date until payment is due.                                                    | —        |
+| `discount_percent`    | `string`  | nein    | Early-payment discount rate the term grants, above zero and below 100; stated together with the days or not at all.     | —        |
+| `discount_days`       | `integer` | nein    | Days from the invoice date within which an early-payment discount applies; stated together with the rate or not at all. | —        |
+| `requires_prepayment` | `boolean` | nein    | Whether customer delivery requires qualifying allocated payment evidence before dispatch.                               | —        |
 
 **Siehe auch:** Geschäftsaktion [`create_payment_term`](./commands#command-create_payment_term)
 
@@ -7122,6 +7124,7 @@ oder Projection; Steuerungs-Tools tragen Vorschläge, Erkundung und fehlende Inf
 | [`shipments_list`](#tool-shipments_list)                                                         | List physical shipments                        | `read`    | —                      |
 | [`shipment_explain`](#tool-shipment_explain)                                                     | Explain a physical shipment                    | `read`    | —                      |
 | [`fulfillment_queue`](#tool-fulfillment_queue)                                                   | Read fulfillment queue                         | `read`    | `fulfillment_queue`    |
+| [`fulfillment_readiness`](#tool-fulfillment_readiness)                                           | Read fulfillment readiness                     | `read`    | —                      |
 | [`fulfillment_blockers`](#tool-fulfillment_blockers)                                             | Read fulfillment blockers                      | `read`    | `fulfillment_blockers` |
 | [`item_supply_demand`](#tool-item_supply_demand)                                                 | Read item supply and demand                    | `read`    | `item_supply_demand`   |
 | [`order_explain`](#tool-order_explain)                                                           | Explain an order                               | `read`    | —                      |
@@ -7487,6 +7490,44 @@ Read the derived open-order work queue with readiness, shortages, holds, and sou
 | `cursor`          | `string`  | nein    | Continuation for the same tenant, read and filters. Live pages are not a snapshot.                     | `None`   |
 
 **Siehe auch:** Projection [`fulfillment_queue`](./views#projection-fulfillment_queue)
+
+### `fulfillment_readiness` — Read fulfillment readiness {#tool-fulfillment_readiness}
+
+Canonical blockers, payment amounts, and evidence for one delivery commitment.
+
+**Aufruf**
+
+```text
+fulfillment_readiness commitment_id
+```
+
+**Zugriff:** `read`
+
+**So wird diese Abfrage ausgeführt**
+
+| Konkrete Abfrage            | Art                        | Standard |
+| --------------------------- | -------------------------- | -------- |
+| `MCP fulfillment_readiness` | Live — beim Aufruf gelesen | ja       |
+
+[So wird diese Abfrage ausgeführt](./views#read-execution)
+
+Read the canonical current fulfillment decision for one customer-delivery commitment.
+
+**Verwenden, wenn**
+
+- A shipment decision needs exact blocker codes
+- prepayment amounts
+- and opaque evidence identifiers.
+
+**Nicht verwenden, wenn**
+
+- A shipment or payment should be created or changed.
+
+**Parameter**
+
+| Name            | Typ      | Pflicht | Beschreibung                                                         | Standard |
+| --------------- | -------- | ------- | -------------------------------------------------------------------- | -------- |
+| `commitment_id` | `string` | ja      | Opaque identity of the obligation being reserved, held, or executed. | —        |
 
 ### `fulfillment_blockers` — Read fulfillment blockers {#tool-fulfillment_blockers}
 

@@ -119,6 +119,7 @@ parameter_descriptions:
   document_id: Opaque identity of the evidence document to inspect or correct.
   document_type: Evidence kind, such as sales order, purchase order, or invoice.
   due_days: Number of calendar days from the document date until payment is due.
+  requires_prepayment: Whether customer delivery requires qualifying allocated payment evidence before dispatch.
   effective_at: UTC instant from which the observation or rule takes effect.
   email: Email address supplied for the named business purpose.
   emails: Bounded labelled email addresses recorded for exact Party matching.
@@ -4077,6 +4078,24 @@ capability_guidance:
     unknown_when: [The projection is stale, an expected order is absent, or a source remains uninterpreted.]
     next_steps: [Read fulfillment blockers or explain one selected order.]
     examples: {use: [{scenario: Prioritize ready versus held orders., reason: This is the bounded work view.}], do_not_use: [{scenario: Assert carrier delivery., reason: External delivery needs separate evidence.}]}
+  fulfillment_readiness:
+    kind: read
+    application_tool: fulfillment_readiness
+    purpose: Read the canonical current fulfillment decision for one customer-delivery commitment.
+    use_when: [A shipment decision needs exact blocker codes, prepayment amounts, and opaque evidence identifiers.]
+    do_not_use_when: [A shipment or payment should be created or changed.]
+    required_context: [tenant, commitment_id]
+    data_basis: [commitment, document, document_line, payment_term, ledger_entry, settlement_allocation, reservation, commitment_hold, party_hold]
+    limitations: [It derives only from committed Reality records and does not claim external bank or carrier state.]
+    freshness: Derived from tenant-scoped committed records at request time.
+    empty_result: Not applicable; an unknown or ineligible commitment is refused.
+    refusal_behavior: Refuses unknown, cross-tenant, or non-customer-delivery commitments.
+    confirmation: none
+    side_effects: none
+    verification: {role: independent, proves: [Whether the named commitment satisfies every modeled dispatch prerequisite now.], does_not_prove: [That dispatch occurred or external payment exists without allocation evidence.]}
+    unknown_when: [Required order-backed payment attribution is ambiguous or evidence is absent.]
+    next_steps: [Resolve each blocker and request a fresh shipment review.]
+    examples: {use: [{scenario: Check whether a prepaid order can ship., reason: The result exposes required, received, remaining, and evidence links.}], do_not_use: [{scenario: Infer payment from a bank memo., reason: Only allocated ledger evidence qualifies.}]}
   fulfillment_blockers:
     kind: read
     application_tool: fulfillment_blockers

@@ -323,6 +323,16 @@ def _fulfillment_queue(
     return _projection_read(session, tenant_id, FULFILLMENT_QUEUE, arguments)
 
 
+def _fulfillment_readiness(
+    session: Session, tenant_id: str, arguments: dict[str, Any]
+) -> Any:
+    from reality.services.fulfillment_readiness import fulfillment_readiness
+
+    return fulfillment_readiness(
+        session, tenant_id, arguments["commitment_id"]
+    ).as_dict()
+
+
 def _fulfillment_blockers(
     session: Session, tenant_id: str, arguments: dict[str, Any]
 ) -> Any:
@@ -1451,6 +1461,25 @@ def _capability_describe(
             )
         if candidates:
             canonical_name = candidates[0]
+    if not canonical_name:
+        from reality.mcp.catalog import MCP_TOOL_REGISTRY
+
+        if requested_name in MCP_TOOL_REGISTRY:
+            canonical_name = requested_name
+        else:
+            candidates = [
+                name
+                for name, definition in MCP_TOOL_REGISTRY.items()
+                if getattr(definition.handler, "application_name", name)
+                == requested_name
+            ]
+            if len(candidates) > 1:
+                raise InvalidOperation(
+                    "Capability identity is ambiguous; use one canonical public name: "
+                    + ", ".join(sorted(candidates))
+                )
+            if candidates:
+                canonical_name = candidates[0]
     guidance = catalog.get(canonical_name)
     if guidance is None and canonical_name:
         from reality.mcp.catalog import MCP_TOOL_REGISTRY
@@ -1843,6 +1872,12 @@ TOOLS = {
         "Read the materialized order fulfillment queue.",
         False,
         _fulfillment_queue,
+    ),
+    "fulfillment_readiness": Tool(
+        "fulfillment_readiness",
+        "Read the canonical fulfillment decision for one commitment.",
+        False,
+        _fulfillment_readiness,
     ),
     "fulfillment_blockers": Tool(
         "fulfillment_blockers",
@@ -3087,6 +3122,57 @@ def _undecide(proposal: ChangeProposal) -> None:
         setattr(proposal, column, value)
 
 
+def _finalize_known_no_effect_failure(
+    session: Session,
+    tenant_id: str,
+    proposal_id: str,
+    error: InvalidOperation | NotFound,
+) -> None:
+    """Persist a terminal receipt only when no action-attributed effect survived."""
+    session.rollback()
+    if session.scalar(
+        select(BusinessEvent.id)
+        .where(
+            BusinessEvent.tenant_id == tenant_id,
+            BusinessEvent.action_id == proposal_id,
+        )
+        .limit(1)
+    ):
+        # Some legacy handlers commit internally. If a later validation refuses
+        # the call, the outcome is not a verified no-effect refusal: retain the
+        # durable execution claim so reconciliation can expose the observed effect.
+        return
+    session.execute(
+        update(ChangeProposal)
+        .where(
+            ChangeProposal.tenant_id == tenant_id,
+            ChangeProposal.id == proposal_id,
+            ChangeProposal.status.in_(("proposed", "executing")),
+        )
+        .values(
+            status="failed",
+            output=json.dumps(
+                {
+                    "business_effect": "none",
+                    "error": {
+                        "code": (
+                            "not_found"
+                            if isinstance(error, NotFound)
+                            else "invalid_operation"
+                        ),
+                        "type": type(error).__name__,
+                        "message": str(error),
+                    },
+                    "verification": "verified_no_effect",
+                    "safe_next_action": "correct_input_or_prepare_new_proposal",
+                },
+                sort_keys=True,
+            ),
+        )
+    )
+    session.commit()
+
+
 def approve_and_execute_proposal(
     session: Session,
     tenant_id: str,
@@ -3151,8 +3237,6 @@ def approve_and_execute_proposal(
 
     from reality.db.core import Tenant
     from reality.services.delivery_actions import REVIEW_KEY, eligible, validate_review
-
-    reviewed_action = REVIEW_KEY in arguments
 
     tenant = session.scalar(select(Tenant).where(Tenant.id == tenant_id))
     if (
@@ -3232,6 +3316,11 @@ def approve_and_execute_proposal(
             proposal.output = json.dumps(_json_value(result), sort_keys=True)
             session.commit()
             return proposal
+        except (InvalidOperation, NotFound) as error:
+            _finalize_known_no_effect_failure(
+                session, tenant_id, proposal_id, error
+            )
+            raise
         except Exception:
             session.rollback()
             raise
@@ -3409,29 +3498,9 @@ def approve_and_execute_proposal(
             # transaction is rolled back. Retain that terminal fact instead of
             # stranding the action in `executing` or making rejected input retryable.
             # Unexpected exceptions still leave the durable execution claim intact.
-            if not reviewed_action:
-                raise
-            session.rollback()
-            session.execute(
-                update(ChangeProposal)
-                .where(
-                    ChangeProposal.tenant_id == tenant_id,
-                    ChangeProposal.id == proposal_id,
-                    ChangeProposal.status == "executing",
-                )
-                .values(
-                    status="failed",
-                    output=json.dumps(
-                        {
-                            "business_effect": "none",
-                            "error_type": type(error).__name__,
-                            "message": str(error),
-                        },
-                        sort_keys=True,
-                    ),
-                )
+            _finalize_known_no_effect_failure(
+                session, tenant_id, proposal_id, error
             )
-            session.commit()
             raise
     proposal.status = "executed"
     proposal.output = json.dumps(_json_value(result), sort_keys=True)

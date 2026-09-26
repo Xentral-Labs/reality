@@ -97,6 +97,65 @@ def test_dedicated_runtime_is_http_only_authenticated_and_has_probes(
     assert response.json()["result"]["serverInfo"]["name"] == "Reality"
 
 
+def test_http_tools_list_serializes_complete_shipment_execution_contracts(
+    session, business, monkeypatch
+):
+    factory = sessionmaker(session.bind, expire_on_commit=False)
+    monkeypatch.setattr(auth_module, "Session", factory)
+    _, clear_token = create_mcp_access_token(session, business.tenant.id, "Schema client")
+    runtime = create_mcp_app(
+        settings=MCPRuntimeSettings(
+            public_url="http://localhost:8001/",
+            bind_host="127.0.0.1",
+            bind_port=8001,
+        ),
+        session_factory=factory,
+    )
+    headers = {
+        "Authorization": f"Bearer {clear_token}",
+        "Accept": "application/json, text/event-stream",
+        "Host": "localhost:8001",
+    }
+    with TestClient(runtime) as client:
+        initialized = client.post(
+            "/",
+            headers=headers,
+            json={
+                "jsonrpc": "2.0",
+                "id": 1,
+                "method": "initialize",
+                "params": {
+                    "protocolVersion": "2026-07-28",
+                    "capabilities": {},
+                    "clientInfo": {"name": "schema", "version": "1"},
+                },
+            },
+        )
+        assert initialized.status_code == 200
+        response = client.post(
+            "/",
+            headers=headers,
+            json={"jsonrpc": "2.0", "id": 2, "method": "tools/list", "params": {}},
+        )
+
+    tools = {row["name"]: row["inputSchema"] for row in response.json()["result"]["tools"]}
+    for name, purposes in {
+        "shipment_dispatch_propose": {"customer_delivery", "supplier_return"},
+        "shipment_receive_propose": {"supplier_delivery", "customer_return"},
+    }.items():
+        branches = tools[name]["oneOf"]
+        assert {row["properties"]["purpose"]["const"] for row in branches} == purposes
+        assert all(
+            {"purpose", "counterparty_id", "movements"} == set(row["required"])
+            for row in branches
+        )
+        assert all(
+            {"item_id", "quantity"}
+            <= set(row["properties"]["movements"]["items"]["required"])
+            for row in branches
+        )
+
+
 def test_readiness_is_safe_when_database_is_unavailable():
     class BrokenSession:
         def __enter__(self):

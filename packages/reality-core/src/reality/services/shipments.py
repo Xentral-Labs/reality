@@ -280,6 +280,24 @@ def record_packaged_execution(
     action_id: str | None = None,
     commit: bool = True,
 ) -> dict[str, Any]:
+    if purpose == "customer_delivery":
+        from reality.services.fulfillment_readiness import fulfillment_readiness
+
+        for movement_arguments in movements:
+            commitment_id = movement_arguments.get("commitment_id")
+            if not commitment_id:
+                raise InvalidOperation(
+                    "Customer dispatch requires a delivery commitment."
+                )
+            readiness = fulfillment_readiness(session, tenant_id, commitment_id)
+            if not readiness.ship_ready:
+                raise InvalidOperation(
+                    "Shipment blocked: "
+                    + ", ".join(readiness.blocker_codes)
+                    + f" (required {readiness.required_amount} "
+                    + f"{readiness.currency}, received "
+                    + f"{readiness.received_amount} {readiness.currency})."
+                )
     shipment, package, notice = record_shipment_notice(
         session,
         tenant_id,

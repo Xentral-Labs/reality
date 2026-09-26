@@ -58,6 +58,36 @@ def test_payment_term_validates_code_and_due_days(session, business):
         create_payment_term(session, business.tenant.id, "BAD", "Bad", -1)
 
 
+def test_prepayment_is_an_explicit_policy_not_a_name_or_due_day_inference(
+    session, business
+):
+    explicit = create_payment_term(
+        session,
+        business.tenant.id,
+        "ADVANCE",
+        "Advance payment",
+        0,
+        requires_prepayment=True,
+    )
+    misleading = create_payment_term(
+        session, business.tenant.id, "VORKASSE", "Prepayment", 0
+    )
+
+    assert explicit.requires_prepayment is True
+    assert misleading.requires_prepayment is False
+
+    updated = update_payment_term(
+        session,
+        business.tenant.id,
+        explicit.id,
+        explicit.code,
+        explicit.name,
+        explicit.due_days,
+        requires_prepayment=False,
+    )
+    assert updated.requires_prepayment is False
+
+
 # --- The early-payment discount (spec 088) ---------------------------------
 
 

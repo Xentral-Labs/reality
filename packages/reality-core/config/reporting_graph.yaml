@@ -846,6 +846,7 @@ nodes:
       code: {column: code, label: {en: Code, de: Code}}
       name: {column: name, label: {en: Name, de: Name}}
       due_days: {column: due_days, label: {en: Due days, de: Zahlungsziel in Tagen}}
+      requires_prepayment: {column: requires_prepayment, label: {en: Requires prepayment, de: Vorkasse erforderlich}}
       discount_percent: {column: discount_percent, label: {en: Discount percent, de: Skonto in Prozent}}
       discount_days: {column: discount_days, label: {en: Discount days, de: Skontofrist in Tagen}}
       is_active: {column: is_active, label: {en: Is active, de: Aktiv}}

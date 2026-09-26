@@ -10,6 +10,7 @@ from reality.services.core import (
     correct_movement,
     create_commitment,
     fulfilled_quantity,
+    reserve,
     stock_at,
 )
 from reality.services.shipments import (
@@ -39,6 +40,7 @@ def test_customer_dispatch_records_exact_package_contents_and_fulfillment(
     session, business
 ):
     fixture = delivery_fixture(session, business, quantity="10")
+    reserve(session, business.tenant.id, fixture.commitment.id)
     proposal = _execute(
         session,
         business.tenant.id,

@@ -532,6 +532,7 @@ tables:
       code: {description: Stable human-facing lookup code such as NET_30; never used as technical identity.}
       name: {description: Human-readable payment-term name.}
       due_days: {description: Calendar days added to the relevant document date to calculate the due date.}
+      requires_prepayment: {description: Explicit policy requiring qualifying allocated payment evidence before customer dispatch.}
       is_active: {description: Whether the term may be assigned to new transactions.}
       source_record_id: {}
   item:

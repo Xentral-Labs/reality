@@ -1057,6 +1057,7 @@ export type PaymentTermRow = {
   code: string;
   name: string;
   due_days: number;
+  requires_prepayment: boolean;
   is_active: boolean;
   source_record_id: string | null;
 };

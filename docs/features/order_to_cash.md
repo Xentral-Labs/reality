@@ -17,6 +17,18 @@
 Financial evidence links through the invoice Document to its LedgerEntries. Delivery
 status and financial status are independently derived.
 
+## Prepayment fulfillment policy
+
+`PaymentTerm.requires_prepayment` is the explicit commercial policy. Codes, names and zero due
+days never imply prepayment. For a customer-delivery Commitment, fulfillment readiness follows
+the shortest evidence path from its sales-order line to billed invoice lines, the invoice's
+receivable LedgerEntry and active SettlementAllocations. It reports the order's stated gross as
+required, qualifying allocated payment as received, and their non-negative remainder.
+
+Missing invoice evidence, ambiguous cross-order invoice attribution, or an unpaid remainder are
+dispatch blockers. Tenant, customer and currency must agree. Reversed posting groups do not
+qualify. Ordinary net-term orders are not blocked merely because they are unpaid.
+
 ## Done when
 
 A deterministic test proves full and partial fulfillment, partial payment, credit,

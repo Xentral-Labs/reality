@@ -1004,6 +1004,7 @@ class PaymentTerm(Base):
         Numeric(6, 3), default=None
     )
     discount_days: Mapped[int | None] = mapped_column(Integer, default=None)
+    requires_prepayment: Mapped[bool] = mapped_column(Boolean, default=False)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
     source_record_id: Mapped[str | None] = mapped_column(default=None)
 

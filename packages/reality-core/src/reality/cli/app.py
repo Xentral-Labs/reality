@@ -968,6 +968,7 @@ def payment_term_create(
     external_id: str = "",
     discount_percent: str = "",
     discount_days: int = -1,
+    requires_prepayment: bool = False,
 ):
     with Session() as s:
         try:
@@ -984,6 +985,7 @@ def payment_term_create(
                 # A negative default is how "not stated" reaches a typed CLI
                 # flag that cannot carry None.
                 discount_days=None if discount_days < 0 else discount_days,
+                requires_prepayment=requires_prepayment,
             )
         except (NotFound, InvalidOperation) as error:
             raise typer.BadParameter(str(error)) from error
@@ -998,13 +1000,16 @@ def payment_term_list(tenant: str | None = None):
             rows = payment_terms(s, selected.id)
         except (NotFound, InvalidOperation) as error:
             raise typer.BadParameter(str(error)) from error
-    table = Table("ID", "Code", "Name", "Due days", "Discount", "Status")
+    table = Table(
+        "ID", "Code", "Name", "Due days", "Prepayment", "Discount", "Status"
+    )
     for term in rows:
         table.add_row(
             term.id,
             term.code,
             term.name,
             str(term.due_days),
+            "yes" if term.requires_prepayment else "no",
             "—"
             if term.discount_percent is None
             else f"{term.discount_percent.normalize():g}% / {term.discount_days}d",
