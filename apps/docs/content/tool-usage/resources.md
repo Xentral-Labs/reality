@@ -421,6 +421,7 @@ Eingangsrechnung, Forderung, Verbindlichkeit, Offene Posten, Rechnungsprüfung, 
 
 - [Read invoice credit context](./commands#command-invoice_credit_context)
   (`invoice_credit_context`)
+- [Read billable invoice positions](./commands#command-billable_positions) (`billable_positions`)
 
 **Exceptions to clear**
 

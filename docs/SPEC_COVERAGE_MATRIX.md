@@ -1746,3 +1746,5 @@ A permission list is bounded by the catalog it draws from, and both grant paths 
 ## Consolidated invoices — Spec 283
 
 - `packages/reality-core/tests/test_consolidated_invoices.py`: spec 283 FR-001–003 and FR-010; one invoice over several orders of one party in both directions, refusal of another party, currency or direction, atomicity, per-line billing before, after and after reversal, and the 200-position bound in core and the MCP schema.
+- `packages/reality-core/tests/test_invoice_billable_positions.py`: spec 283 FR-006/FR-007; delivered or received and unbilled positions of one party and currency grouped by order, returns and reversals, purchase direction, limit with truthful total, tenant scope, statement count independent of billed history, read tool and HTTP parity.
+- `packages/reality-core/tests/test_consolidated_invoice_inspector.py`: spec 283 FR-008; an invoice lists every order it bills through its line links, each order names the invoice, and an order has no billed-orders section.

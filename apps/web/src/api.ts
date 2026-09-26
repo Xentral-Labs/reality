@@ -3020,11 +3020,37 @@ export type InvoiceProposal = Omit<DeliveryProposal, "review" | "observation"> &
       order?: { id: string; number: string };
       /** Every order a consolidated invoice bills (spec 283). */
       orders?: { id: string; number: string }[];
-      party: { name: string };
-      item: { name: string };
+      party: { id?: string; name: string };
+      item?: { name: string };
     };
   };
   observation: null;
+};
+/** One party's delivered or received order positions not yet fully billed (spec 283). */
+export type BillablePosition = {
+  order_line_id: string;
+  label: string;
+  unit: string;
+  ordered: string;
+  delivered: string;
+  invoiced: string;
+  remaining: string;
+  billable: string;
+  unit_price: string | null;
+  order_line_amount: string | null;
+};
+export type BillablePositions = {
+  direction: "sales" | "purchase";
+  party: { id: string; name: string };
+  currency: string;
+  limit: number;
+  total: number;
+  orders: {
+    id: string;
+    number: string;
+    document_date: string | null;
+    positions: BillablePosition[];
+  }[];
 };
 export const invoiceActions = {
   prepare: (tenant: string, request: string, tool: string, args: InvoiceInput) =>
@@ -3035,6 +3061,10 @@ export const invoiceActions = {
     deliveryActions.review(tenant, id) as unknown as Promise<InvoiceProposal>,
   reconcile: (tenant: string, id: string) =>
     deliveryActions.reconcile(tenant, id) as unknown as Promise<InvoiceProposal>,
+  billable: (tenant: string, direction: "sales" | "purchase", party: string, currency: string) =>
+    request<BillablePositions>(
+      `/api/tenants/${encodeURIComponent(tenant)}/invoice-billable-positions?${new URLSearchParams({ direction, party_id: party, currency })}`,
+    ),
 };
 
 export type PaymentInput = {

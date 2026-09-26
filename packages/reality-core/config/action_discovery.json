@@ -190,6 +190,7 @@
     "record_supplier_invoice": "supplier-invoices",
     "record_free_supplier_invoice": "supplier-invoices",
     "invoice_credit_context": "customer-invoices",
+    "billable_positions": "customer-invoices",
     "dunning_context": "customer-invoices",
     "notices": "customer-invoices",
     "notice_detail": "customer-invoices",

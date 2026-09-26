@@ -21,6 +21,7 @@ from reality.services import demo_data as demo_data_service_module
 from reality.services import dunning as dunning_service_module
 from reality.services import file_interpreters as interpreter_service_module
 from reality.services import invoice_actions as invoice_action_service_module
+from reality.services import invoice_billing as invoice_billing_service_module
 from reality.services import memberships as membership_service_module
 from reality.services import notifications as notification_service_module
 from reality.services import payment_intake as payment_intake_service_module
@@ -1071,6 +1072,8 @@ def _service(name: str) -> Any:
         return getattr(dunning_service_module, name)
     if hasattr(invoice_action_service_module, name):
         return getattr(invoice_action_service_module, name)
+    if hasattr(invoice_billing_service_module, name):
+        return getattr(invoice_billing_service_module, name)
     if name == "change_graph_report":
         from reality.services.analytics import reports
 
