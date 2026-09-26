@@ -271,3 +271,22 @@ def test_practice_company_without_run_is_not_writable(session):
     assert result["guidance"]["writable"] is False
     # The steps stay visible: people still learn what would resolve the gap.
     assert result["guidance"]["steps"]
+
+
+def test_moving_inputs_fall_back_to_contribution_steps(
+    session, business, cost_owner, monkeypatch
+):
+    from reality.services import costing
+
+    billed, *_ = revenue.prepared(session, business, cost_owner, reviewed=False)
+
+    def moved(*args, **kwargs):
+        raise core.Conflict(
+            "Contribution inputs changed during preview; retry the read."
+        )
+
+    monkeypatch.setattr(costing, "contribution_preview", moved)
+    result = guidance(session, business, "contribution", billed.id)
+    # The read still answers; guidance names the contribution-level step it can prove.
+    assert result["reason_code"] == "commercial_match_not_reviewed"
+    assert first_open(result)["code"] == "contribution_review"

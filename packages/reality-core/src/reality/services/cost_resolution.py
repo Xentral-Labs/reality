@@ -13,6 +13,7 @@ from sqlalchemy.orm import Session
 
 from reality.db.core import ChangeProposal, DocumentLine, Movement, MovementCorrection
 from reality.domain.resolution_guidance import catalog_key, guidance_step
+from reality.services import core
 from reality.services.inventory_costing import MAX_RECEIPTS
 
 #: How many incomplete receipts a step names; the count still covers all of them.
@@ -150,7 +151,12 @@ def _contribution(
 ) -> tuple[str, list[dict[str, Any]]]:
     from reality.services.costing import _row, contribution_preview, inventory_cost
 
-    preview = contribution_preview(session, tenant, line_id)
+    try:
+        preview = contribution_preview(session, tenant, line_id)
+    except core.Conflict:
+        # Inputs moved during the read. The cost answer itself stays valid; guidance
+        # falls back to the contribution-level gaps instead of failing the whole read.
+        preview = {"state": "candidate", "missing_basis": []}
     upstream = list(preview.get("missing_basis") or ())
     if preview["state"] == "unavailable" and upstream:
         gap = upstream[0]
