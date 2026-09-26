@@ -129,7 +129,28 @@ def test_invalid_is_inert(session, business, bad):
     if bad == "duplicate":
         args["lines"][1]["order_line_id"] = lines[0].id
     if bad == "mixed":
-        args["lines"][1]["order_line_id"] = order(session, business)[0].id
+        # Spec 283: another order of the same party is a consolidated invoice; another
+        # party's order stays refused.
+        other = core.create_party(session, business.tenant.id, "Other KG", "customer")
+        foreign = core.create_manual_order(
+            session,
+            business.tenant.id,
+            "sales",
+            "ORDER-122-" + uuid4().hex,
+            business.company.id,
+            other.id,
+            business.location.id,
+            [
+                {
+                    "item_id": business.item.id,
+                    "quantity": "3",
+                    "unit_price": "100",
+                    "gross_amount": "300",
+                }
+            ],
+            gross_amount="300",
+        )[2]
+        args["lines"][1]["order_line_id"] = foreign[0].id
     if bad == "quantity":
         args["lines"][1]["quantity"] = "99"
     if bad == "precision":

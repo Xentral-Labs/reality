@@ -444,6 +444,7 @@ DELIVERY_BLOCKER_TYPES = (
     "insufficient_stock",
     "prepayment_invoice_missing",
     "prepayment_attribution_ambiguous",
+    "prepayment_consolidated_invoice_open",
     "prepayment_required",
 )
 

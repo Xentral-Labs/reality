@@ -40,7 +40,9 @@ def preview_free_supplier_invoice(
     required = {"supplier_id", "number", "currency", "gross_amount", "lines"}
     optional = {"document_date", "effective_at"}
     if required - arguments.keys() or arguments.keys() - required - optional:
-        raise InvalidOperation("Free supplier invoice fields are incomplete or unsupported.")
+        raise InvalidOperation(
+            "Free supplier invoice fields are incomplete or unsupported."
+        )
     supplier = _tenant_record(session, Party, tenant_id, arguments["supplier_id"])
     roles = set(
         session.scalars(
@@ -138,10 +140,7 @@ def record_free_supplier_invoice(
             "records": [
                 {"family": "source_record", "id": source.id},
                 {"family": "document", "id": document.id},
-                *[
-                    {"family": "document_line", "id": line.id}
-                    for line in created_lines
-                ],
+                *[{"family": "document_line", "id": line.id} for line in created_lines],
                 *[{"family": "ledger_entry", "id": entry.id} for entry in entries],
             ]
         }
@@ -166,27 +165,61 @@ def _review_invoice(
     session.expire_all()
     direction = "sales" if tool == "sales_invoice_record" else "purchase"
     creation = _preview_order_invoice(session, tenant_id, direction, arguments)
-    line = _tenant_record(session, DocumentLine, tenant_id, creation["order_line_id"])
-    order = _tenant_record(session, Document, tenant_id, line.document_id)
-    party = _tenant_record(session, Party, tenant_id, order.party_id)
-    item = _tenant_record(session, Item, tenant_id, line.item_id)
-    state = json.loads(
-        _json(
-            {
-                "creation": creation,
-                "order": {
-                    column.name: getattr(order, column.name)
-                    for column in Document.__table__.columns
-                },
-                "line": {
-                    column.name: getattr(line, column.name)
-                    for column in DocumentLine.__table__.columns
-                },
-                "party": {"id": party.id, "name": party.name},
-                "item": {"id": item.id, "name": item.name},
-            }
+    order_ids = list(
+        dict.fromkeys(
+            _tenant_record(
+                session, DocumentLine, tenant_id, selected["order_line_id"]
+            ).document_id
+            for selected in creation.get("selections", [creation])
         )
     )
+    if len(order_ids) > 1:
+        # A consolidated invoice (spec 283) has no single order, line or item to
+        # name; every order it bills is part of what the review binds. A review of
+        # one order keeps exactly the shape it had, so its token does not change.
+        party = _tenant_record(session, Party, tenant_id, creation["party_id"])
+        state = json.loads(
+            _json(
+                {
+                    "creation": creation,
+                    "orders": [
+                        {
+                            column.name: getattr(order, column.name)
+                            for column in Document.__table__.columns
+                        }
+                        for order in (
+                            _tenant_record(session, Document, tenant_id, order_id)
+                            for order_id in order_ids
+                        )
+                    ],
+                    "party": {"id": party.id, "name": party.name},
+                }
+            )
+        )
+    else:
+        line = _tenant_record(
+            session, DocumentLine, tenant_id, creation["order_line_id"]
+        )
+        order = _tenant_record(session, Document, tenant_id, line.document_id)
+        party = _tenant_record(session, Party, tenant_id, order.party_id)
+        item = _tenant_record(session, Item, tenant_id, line.item_id)
+        state = json.loads(
+            _json(
+                {
+                    "creation": creation,
+                    "order": {
+                        column.name: getattr(order, column.name)
+                        for column in Document.__table__.columns
+                    },
+                    "line": {
+                        column.name: getattr(line, column.name)
+                        for column in DocumentLine.__table__.columns
+                    },
+                    "party": {"id": party.id, "name": party.name},
+                    "item": {"id": item.id, "name": item.name},
+                }
+            )
+        )
     if "selections" in creation:
         state["positions"] = []
         for selected in creation["selections"]:

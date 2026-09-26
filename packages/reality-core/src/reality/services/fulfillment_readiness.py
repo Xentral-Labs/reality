@@ -23,6 +23,7 @@ from reality.services.core import (
     active_settlement_allocations,
     commitment_quantity,
     movement_quantity,
+    open_invoice_amount,
     stock_at,
 )
 
@@ -48,6 +49,9 @@ class FulfillmentReadiness:
     physical_quantity: Decimal
     commitment_hold_ids: tuple[str, ...]
     party_hold_ids: tuple[str, ...]
+    #: Consolidated invoices billing this order that are still open, as
+    #: (invoice id, invoice number, open amount); spec 283 FR-004.
+    consolidated_open: tuple[tuple[str, str, Decimal], ...] = ()
 
     def as_dict(self) -> dict[str, object]:
         payment_policy = "prepayment" if self.requires_prepayment else "standard"
@@ -110,7 +114,10 @@ class FulfillmentReadiness:
             "links": [
                 {"kind": kind, "id": identity}
                 for kind, identities in (
-                    ("payment_term", (self.payment_term_id,) if self.payment_term_id else ()),
+                    (
+                        "payment_term",
+                        (self.payment_term_id,) if self.payment_term_id else (),
+                    ),
                     ("invoice", self.invoice_ids),
                     ("settlement_allocation", self.allocation_ids),
                     ("commitment_hold", self.commitment_hold_ids),
@@ -127,6 +134,12 @@ def _blocker_detail(code: str, result: FulfillmentReadiness) -> str:
             f"{result.required_amount} {result.currency} is required; "
             f"{result.received_amount} {result.currency} is allocated."
         )
+    if code == "prepayment_consolidated_invoice_open":
+        return "; ".join(
+            f"Consolidated invoice {number} is open by {amount} {result.currency}; "
+            "the order is released once it is settled in full."
+            for _, number, amount in result.consolidated_open
+        )
     return {
         "prepayment_invoice_missing": "No posted order-backed customer receivable proves the payment basis.",
         "prepayment_attribution_ambiguous": "Invoice evidence covers more than this order and cannot be attributed automatically.",
@@ -138,10 +151,17 @@ def _blocker_detail(code: str, result: FulfillmentReadiness) -> str:
 
 
 def _blocker_links(code: str, result: FulfillmentReadiness) -> list[dict[str, str]]:
+    if code == "prepayment_consolidated_invoice_open":
+        return [
+            {"kind": "invoice", "id": identity}
+            for identity, _, _ in result.consolidated_open
+        ]
     if code.startswith("prepayment") and result.payment_term_id:
         return [{"kind": "payment_term", "id": result.payment_term_id}]
     if code == "commitment_hold":
-        return [{"kind": "commitment_hold", "id": row} for row in result.commitment_hold_ids]
+        return [
+            {"kind": "commitment_hold", "id": row} for row in result.commitment_hold_ids
+        ]
     if code == "party_delivery_hold":
         return [{"kind": "party_hold", "id": row} for row in result.party_hold_ids]
     return [{"kind": "commitment", "id": result.commitment_id}]
@@ -306,19 +326,39 @@ def fulfillment_readiness(
         )
     )
     candidate_invoice_ids = {row.document_id for row in invoice_rows}
+    # An invoice that also bills other orders of this party in this currency is a
+    # consolidated invoice (spec 283), not ambiguous: it counts for this order only
+    # once it is settled in full, by what its own lines state for this order. A
+    # line billing another party's or currency's order cannot be attributed.
     ambiguous = False
+    consolidated: set[str] = set()
     for invoice_id in candidate_invoice_ids:
-        billed_ids = set(
-            session.scalars(
-                select(DocumentLine.billed_document_line_id).where(
-                    DocumentLine.tenant_id == tenant_id,
-                    DocumentLine.document_id == invoice_id,
-                    DocumentLine.billed_document_line_id.is_not(None),
-                )
+        billed_orders = session.execute(
+            select(Document.party_id, Document.currency, DocumentLine.document_id)
+            .select_from(DocumentLine)
+            .join(
+                Document,
+                (Document.tenant_id == DocumentLine.tenant_id)
+                & (Document.id == DocumentLine.document_id),
             )
-        )
-        if not billed_ids.issubset(order_line_ids):
+            .where(
+                DocumentLine.tenant_id == tenant_id,
+                DocumentLine.id.in_(
+                    select(DocumentLine.billed_document_line_id).where(
+                        DocumentLine.tenant_id == tenant_id,
+                        DocumentLine.document_id == invoice_id,
+                        DocumentLine.billed_document_line_id.is_not(None),
+                    )
+                ),
+            )
+        ).all()
+        if any(
+            (party, currency) != (order.party_id, order.currency)
+            for party, currency, _ in billed_orders
+        ):
             ambiguous = True
+        elif any(document_id != order.id for _, _, document_id in billed_orders):
+            consolidated.add(invoice_id)
 
     invoice_entries = list(
         session.scalars(
@@ -333,9 +373,7 @@ def fulfillment_readiness(
     )
     invoice_ids = {entry.document_id for entry in invoice_entries if entry.document_id}
     entry_ids = {entry.id for entry in invoice_entries}
-    allocations = active_settlement_allocations(
-        session, tenant_id, entry_ids=entry_ids
-    )
+    allocations = active_settlement_allocations(session, tenant_id, entry_ids=entry_ids)
     payment_entry_ids = {row.payment_ledger_entry_id for row in allocations}
     valid_payments = {
         row.id
@@ -348,20 +386,54 @@ def fulfillment_readiness(
             )
         )
     }
-    qualifying = [] if ambiguous else [
-        row
-        for row in allocations
-        if row.invoice_ledger_entry_id in entry_ids
-        and row.payment_ledger_entry_id in valid_payments
-        and row.currency == order.currency
-    ]
+    consolidated_entries = {
+        entry.id for entry in invoice_entries if entry.document_id in consolidated
+    }
+    qualifying = (
+        []
+        if ambiguous
+        else [
+            row
+            for row in allocations
+            if row.invoice_ledger_entry_id in entry_ids
+            and row.invoice_ledger_entry_id not in consolidated_entries
+            and row.payment_ledger_entry_id in valid_payments
+            and row.currency == order.currency
+        ]
+    )
     received = sum((Decimal(row.amount) for row in qualifying), ZERO)
+    consolidated_open = []
+    if not ambiguous:
+        for invoice in session.scalars(
+            select(Document)
+            .where(Document.tenant_id == tenant_id, Document.id.in_(consolidated))
+            .order_by(Document.number, Document.id)
+        ):
+            open_amount = open_invoice_amount(session, tenant_id, invoice.id)
+            if open_amount > ZERO:
+                consolidated_open.append((invoice.id, invoice.number, open_amount))
+                continue
+            received += sum(
+                (
+                    Decimal(line.gross_amount)
+                    for line in session.scalars(
+                        select(DocumentLine).where(
+                            DocumentLine.tenant_id == tenant_id,
+                            DocumentLine.document_id == invoice.id,
+                            DocumentLine.billed_document_line_id.in_(order_line_ids),
+                        )
+                    )
+                ),
+                ZERO,
+            )
     remaining = max(required - received, ZERO)
     blockers = list(operational_blockers)
     if not invoice_ids:
         blockers.append("prepayment_invoice_missing")
     if ambiguous:
         blockers.append("prepayment_attribution_ambiguous")
+    if consolidated_open:
+        blockers.append("prepayment_consolidated_invoice_open")
     if remaining > ZERO:
         blockers.append("prepayment_required")
     return FulfillmentReadiness(
@@ -382,4 +454,5 @@ def fulfillment_readiness(
         physical_quantity,
         commitment_hold_ids,
         party_hold_ids,
+        tuple(consolidated_open),
     )

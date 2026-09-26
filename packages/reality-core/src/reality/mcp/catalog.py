@@ -16,6 +16,7 @@ from reality.mcp.principal import (
 )
 from reality.services.core import (
     MANUAL_OPERATIONAL_DOCUMENT_TYPES,
+    MAX_INVOICE_POSITIONS,
     InvalidOperation,
     NotFound,
 )
@@ -1896,6 +1897,7 @@ ADDITIONAL_PROPOSAL_TOOLS: tuple[tuple[str, str, str, dict[str, Any]], ...] = (
                 "lines": {
                     "type": "array",
                     "minItems": 1,
+                    "maxItems": MAX_INVOICE_POSITIONS,
                     "items": _object_schema(
                         {
                             "order_line_id": STRING,
@@ -1931,6 +1933,7 @@ ADDITIONAL_PROPOSAL_TOOLS: tuple[tuple[str, str, str, dict[str, Any]], ...] = (
                 "lines": {
                     "type": "array",
                     "minItems": 1,
+                    "maxItems": MAX_INVOICE_POSITIONS,
                     "items": _object_schema(
                         {
                             "order_line_id": STRING,

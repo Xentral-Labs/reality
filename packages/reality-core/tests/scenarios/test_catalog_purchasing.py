@@ -15,9 +15,7 @@ from reality.services.shipments import shipment_explain
 from reality.services.supply_assignments import assign_supply, supply_coverage
 from reality.tools.application import (
     approve_and_execute_proposal,
-    confirm_tool,
     create_change_proposal,
-    propose_tool,
 )
 
 AS_OF = datetime(2026, 9, 25, 12, tzinfo=UTC)
@@ -294,63 +292,21 @@ def test_one_supplier_invoice_bills_lines_of_two_purchase_orders(session, busine
     _, second_line, _ = _order(
         session, business, "purchase", "PO-I05-B", business.supplier.id, "3", "20"
     )
-    # The order-line invoice command keeps one invoice to one order.
-    with pytest.raises(core.InvalidOperation, match="same order"):
-        core.record_supplier_invoice(
-            session,
-            business.tenant.id,
-            lines=[
-                {
-                    "order_line_id": first_line.id,
-                    "quantity": "5",
-                    "gross_amount": "50",
-                },
-                {
-                    "order_line_id": second_line.id,
-                    "quantity": "2",
-                    "gross_amount": "40",
-                },
-            ],
-            gross_amount="90",
-            number="SINV-I05-REFUSED",
-        )
-
-    proposal = propose_tool(
+    # Spec 283: the guided invoice command bills positions of several purchase
+    # orders of one supplier on one invoice.
+    core.record_supplier_invoice(
         session,
         business.tenant.id,
-        "supplier_invoice_free_record",
-        {
-            "supplier_id": business.supplier.id,
-            "number": "SINV-I05",
-            "currency": "EUR",
-            "gross_amount": "90",
-            "document_date": "2026-09-15",
-            "lines": [
-                {
-                    "item_id": business.item.id,
-                    "description": "PO-I05-A goods",
-                    "quantity": "5",
-                    "unit_price": "10",
-                    "gross_amount": "50",
-                    "billed_document_line_id": first_line.id,
-                },
-                {
-                    "item_id": business.item.id,
-                    "description": "PO-I05-B goods",
-                    "quantity": "2",
-                    "unit_price": "20",
-                    "gross_amount": "40",
-                    "billed_document_line_id": second_line.id,
-                },
-            ],
-        },
+        lines=[
+            {"order_line_id": first_line.id, "quantity": "5", "gross_amount": "50"},
+            {"order_line_id": second_line.id, "quantity": "2", "gross_amount": "40"},
+        ],
+        gross_amount="90",
+        number="SINV-I05",
     )
-    executed = confirm_tool(session, business.tenant.id, proposal.id, confirmed=True)
-    invoice_id = next(
-        row["id"]
-        for row in json.loads(executed.output)["records"]
-        if row["family"] == "document"
-    )
+    invoice_id = core._order_line_billing(session, business.tenant.id, first_line.id)[
+        "evidence"
+    ][0]["invoice_id"]
 
     first_billing = core._order_line_billing(session, business.tenant.id, first_line.id)
     second_billing = core._order_line_billing(

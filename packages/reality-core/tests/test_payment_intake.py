@@ -754,3 +754,74 @@ def test_the_candidate_search_does_not_read_more_as_the_history_settles(
     assert large <= small + 10, (
         f"twenty more settled invoices cost {large - small} more rows to search"
     )
+
+
+def _consolidated_invoice(session, business):
+    lines = []
+    for number in ("SO-280-A", "SO-280-B"):
+        lines.append(
+            core.create_manual_order(
+                session,
+                business.tenant.id,
+                "sales",
+                number,
+                business.company.id,
+                business.customer.id,
+                business.location.id,
+                [
+                    {
+                        "item_id": business.item.id,
+                        "quantity": "1",
+                        "unit_price": "50",
+                        "gross_amount": "50",
+                    }
+                ],
+                "50",
+            )[2][0]
+        )
+    core.record_sales_invoice(
+        session,
+        business.tenant.id,
+        lines=[
+            {"order_line_id": line.id, "quantity": "1", "gross_amount": "50"}
+            for line in lines
+        ],
+        gross_amount="100",
+        number="INV-280",
+        effective_at=AT,
+    )
+
+
+def test_an_order_reference_does_not_allocate_to_a_consolidated_invoice(
+    session, business
+):
+    """Spec 283 FR-005: naming one order is not naming an invoice that bills two."""
+    _consolidated_invoice(session, business)
+
+    _, _, _, allocation, resolution = _pay(
+        session,
+        business,
+        "100",
+        (Reference(type="shop_order_number", value="SO-280-A"),),
+    )
+
+    assert allocation is None
+    assert resolution.unambiguous is None
+    assert "invoice INV-280 also bills other orders" in resolution.reasons
+
+
+def test_the_consolidated_invoice_number_still_allocates(session, business):
+    """Spec 283 FR-005 positive control: the invoice reference itself is unambiguous."""
+    _consolidated_invoice(session, business)
+
+    _, _, _, allocation, resolution = _pay(
+        session,
+        business,
+        "100",
+        (Reference(type="invoice_number", value="INV-280"),),
+        external_id="sch:run:payment:280",
+    )
+
+    assert allocation is not None
+    assert allocation.amount == Decimal(100)
+    assert resolution.reasons == ()

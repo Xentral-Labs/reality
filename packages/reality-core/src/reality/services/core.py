@@ -9178,6 +9178,9 @@ def _validate_invoice_delivery_guard(
         raise InvalidOperation("The delivery changed. Prepare a fresh invoice review.")
 
 
+MAX_INVOICE_POSITIONS = 200
+
+
 def _preview_order_invoice(
     session: OrmSession, tenant_id: str, direction: str, arguments: dict[str, Any]
 ) -> dict[str, Any]:
@@ -9191,6 +9194,10 @@ def _preview_order_invoice(
         selections = arguments["lines"]
         if not isinstance(selections, list) or not selections:
             raise InvalidOperation("Select at least one invoice position.")
+        if len(selections) > MAX_INVOICE_POSITIONS:
+            raise InvalidOperation(
+                f"An invoice carries at most {MAX_INVOICE_POSITIONS} positions."
+            )
         previews = []
         seen = set()
         for selection in selections:
@@ -9231,14 +9238,12 @@ def _preview_order_invoice(
                     },
                 )
             )
-        orders = {
-            _tenant_record(
-                session, DocumentLine, tenant_id, row["order_line_id"]
-            ).document_id
-            for row in previews
-        }
-        if len(orders) != 1:
-            raise InvalidOperation("Invoice positions must belong to the same order.")
+        # A consolidated invoice may bill several orders (spec 283), but only of one
+        # party in one currency: the invoice states one debtor and one amount.
+        if len({row["party_id"] for row in previews}) != 1:
+            raise InvalidOperation("Invoice positions must belong to one party.")
+        if len({row["currency"] for row in previews}) != 1:
+            raise InvalidOperation("Invoice positions must share one currency.")
         first = previews[0]
         amount = positive(arguments["gross_amount"], "gross_amount")
         for value in [
