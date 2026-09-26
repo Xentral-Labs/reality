@@ -12,7 +12,15 @@ from typing import Any
 
 ROLES = frozenset({"member", "owner", "operator"})
 PATHS = frozenset(
-    {"web_form", "chat", "decision_review", "system_status", "page", "none"}
+    {
+        "web_form",
+        "chat",
+        "decision_review",
+        "system_status",
+        "page",
+        "none",
+        "review_draft",
+    }
 )
 STATES = frozenset({"done", "open", "blocked"})
 PAGES = frozenset({"data-sources", "finance", "decisions", "home"})

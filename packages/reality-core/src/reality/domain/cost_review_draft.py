@@ -83,9 +83,15 @@ def draft(
     arguments: dict[str, Any] | None,
     open_inputs: list[dict[str, Any]],
     basis: list[dict[str, str]],
+    summary: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
-    """Arguments are complete only when nothing remains open."""
+    """Arguments are complete only when nothing remains open.
+
+    `summary` holds held or previewed business values for people to read; it is never
+    part of the proposal.
+    """
     return {
+        "summary": summary or {},
         "kind": kind,
         "scope_id": scope_id,
         "event_sequence": event_sequence,

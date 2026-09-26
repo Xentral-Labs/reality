@@ -306,3 +306,16 @@ def test_agent_guidance_names_the_draft_first():
     assert (
         draft_block["confirmation"] == "none" and draft_block["side_effects"] == "none"
     )
+
+
+def test_summaries_carry_held_values_for_people(session, business, cost_owner):
+    billed, *_ = revenue.prepared(session, business, cost_owner)
+    line = cost_review_draft(
+        session, business.tenant.id, kind="contribution", scope_id=billed.id
+    )["summary"]
+    assert line["received_net"] == "1200" and line["known_db1"] is not None
+    item = cost_review_draft(
+        session, business.tenant.id, kind="inventory", scope_id=business.item.id
+    )["summary"]
+    assert item["owner_name"] == business.company.name
+    assert item["movement_counts"] == {"receipt": 1, "shipment": 1}
