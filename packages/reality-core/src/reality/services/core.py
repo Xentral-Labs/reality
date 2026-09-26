@@ -4051,6 +4051,7 @@ def _consume_reservations(
     commitment: Commitment,
     shipped: Decimal,
     *,
+    from_location_id: str,
     action_id: str | None = None,
     causation_id: str | None = None,
     handling_unit_id: str | None = None,
@@ -4064,6 +4065,7 @@ def _consume_reservations(
             Reservation.tenant_id == commitment.tenant_id,
             Reservation.commitment_id == commitment.id,
             Reservation.status == "active",
+            Reservation.location_id == from_location_id,
             Reservation.handling_unit_id == handling_unit_id,
             Reservation.lot_id == lot_id,
             Reservation.serial_unit_id == serial_unit_id,
@@ -4127,6 +4129,108 @@ def _consume_reservations(
                 causation_id=causation_id,
             )
         remaining -= min(remaining, allocated)
+    _release_reservations_beyond_open(
+        session,
+        commitment,
+        from_location_id,
+        action_id=action_id,
+        causation_id=causation_id,
+    )
+
+
+def _release_reservations_beyond_open(
+    session: OrmSession,
+    commitment: Commitment,
+    from_location_id: str,
+    *,
+    action_id: str | None,
+    causation_id: str | None,
+) -> None:
+    """Release what a shipment from elsewhere left reserved beyond the open quantity.
+
+    Stock held at another location was not taken, so its Reservation is not
+    consumed; the promise simply no longer needs all of it.
+    """
+    elsewhere = session.scalars(
+        select(Reservation)
+        .where(
+            Reservation.tenant_id == commitment.tenant_id,
+            Reservation.commitment_id == commitment.id,
+            Reservation.status == "active",
+            Reservation.location_id != from_location_id,
+        )
+        .order_by(Reservation.reserved_at.desc())
+    ).all()
+    if not elsewhere:
+        return
+    held = decimal(
+        session.scalar(
+            select(func.coalesce(func.sum(Reservation.quantity), 0)).where(
+                Reservation.tenant_id == commitment.tenant_id,
+                Reservation.commitment_id == commitment.id,
+                Reservation.status == "active",
+            )
+        )
+        or ZERO
+    )
+    excess = held - open_quantity(session, commitment.tenant_id, commitment.id)
+    for reservation in elsewhere:
+        if excess <= ZERO:
+            break
+        allocated = decimal(reservation.quantity)
+        released = min(excess, allocated)
+        reservation.status = "released"
+        emit_business_event(
+            session,
+            commitment.tenant_id,
+            "reservation.released",
+            "reservation",
+            reservation.id,
+            {
+                "commitment_id": commitment.id,
+                "released_quantity": released,
+                "cause": "shipped_from_another_location",
+            },
+            action_id=action_id,
+            correlation_id=action_id,
+            causation_id=causation_id,
+        )
+        if allocated > released:
+            remainder = Reservation(
+                id=uid("res"),
+                tenant_id=reservation.tenant_id,
+                commitment_id=reservation.commitment_id,
+                item_id=reservation.item_id,
+                location_id=reservation.location_id,
+                quantity=allocated - released,
+                status="active",
+                handling_unit_id=reservation.handling_unit_id,
+                lot_id=reservation.lot_id,
+                serial_unit_id=reservation.serial_unit_id,
+            )
+            session.add(remainder)
+            emit_business_event(
+                session,
+                commitment.tenant_id,
+                "reservation.created",
+                "reservation",
+                remainder.id,
+                {
+                    "commitment_id": commitment.id,
+                    "quantity": remainder.quantity,
+                    "item_id": remainder.item_id,
+                    "location_id": remainder.location_id,
+                    "handling_unit_id": remainder.handling_unit_id,
+                    "lot_id": remainder.lot_id,
+                    "serial_unit_id": remainder.serial_unit_id,
+                    "previous_reservation_id": reservation.id,
+                    "cause": "shipped_from_another_location",
+                },
+                action_id=action_id,
+                correlation_id=action_id,
+                causation_id=causation_id,
+            )
+        excess -= released
 
 
 def create_handling_unit(
@@ -5086,6 +5190,7 @@ def _append_movement(
                 session,
                 commitment,
                 qty,
+                from_location_id=from_location_id,
                 action_id=action_id,
                 causation_id=recorded_event.id if recorded_event else None,
                 handling_unit_id=handling_unit_id,

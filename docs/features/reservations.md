@@ -11,7 +11,10 @@ through that commitment.
 - Reserve up to currently available quantity and report any shortage explicitly.
 - Support `active`, `released`, and `consumed` states.
 - Releasing is idempotent and does not delete history.
-- Shipping consumes active reservations up to the shipped quantity.
+- Shipping consumes active reservations at the shipment's own location up to the shipped
+  quantity. Shipping from another location consumes nothing held elsewhere; what stays
+  reserved there beyond the open quantity is released with cause
+  `shipped_from_another_location`, keeping the remainder.
 - Availability equals physical stock minus active reservations.
 - A confirmed downward commitment revision releases homogeneous excess and retains the exact
   smaller allocation. Different locations or tracking identities require an explicit retained
