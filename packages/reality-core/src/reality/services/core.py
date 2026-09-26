@@ -9010,16 +9010,13 @@ def _validate_invoice_delivery_guard(
     quantity: Decimal,
     guard: Any,
 ) -> None:
-    from reality.services.exceptions import (
-        _invoice_lines,
-        _kept_quantity,
-        _quantity_in_agreed_unit,
-    )
+    from reality.services.exceptions import kept_and_billed_quantity
 
+    # The guard names no line of its own: the invoice's order line already is
+    # the condition's subject, so a guard cannot point anywhere else.
     if (
         not isinstance(guard, dict)
-        or set(guard) != {"condition_id", "unbilled_quantity", "unit"}
-        or guard["condition_id"] != f"exc__shipped_not_billed__{line.id}"
+        or set(guard) != {"unbilled_quantity", "unit"}
         or guard["unit"] != line.unit
         or not isinstance(guard["unbilled_quantity"], str)
     ):
@@ -9035,10 +9032,9 @@ def _validate_invoice_delivery_guard(
     )
     if len(commitments) != 1:
         raise InvalidOperation("The invoice delivery evidence is missing or ambiguous.")
-    kept = _kept_quantity(session, tenant_id, commitments[0])
-    billed = _quantity_in_agreed_unit(
-        session, tenant_id, line, _invoice_lines(session, tenant_id, line.id)
-    )
+    kept, billed = kept_and_billed_quantity(session, tenant_id, commitments[0], line)
+    if kept <= ZERO:
+        raise InvalidOperation("The delivery changed. Prepare a fresh invoice review.")
     if billed is None:
         raise InvalidOperation("The invoice delivery unit cannot be verified.")
     unbilled = kept - billed

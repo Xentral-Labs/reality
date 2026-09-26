@@ -7440,15 +7440,8 @@
           "name": "delivery_guard",
           "type": "object",
           "required": false,
-          "description": "Optional single-line sales-invoice precondition binding a shipped-not-billed condition identity, unit and unbilled quantity; rechecked under the delivery lock before recording.",
+          "description": "Optional single-line sales-invoice precondition binding the unit and unbilled quantity read for the invoiced order line; rechecked under the delivery lock before recording.",
           "depth": 0
-        },
-        {
-          "name": "delivery_guard.condition_id",
-          "type": "string",
-          "required": true,
-          "description": "",
-          "depth": 1
         },
         {
           "name": "delivery_guard.unbilled_quantity",

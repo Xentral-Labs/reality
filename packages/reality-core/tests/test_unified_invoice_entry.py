@@ -479,7 +479,6 @@ def delivered_invoice(session, business):
         commitment_id=commitment.id,
     )
     guard = {
-        "condition_id": f"exc__shipped_not_billed__{line_id}",
         "unbilled_quantity": "3",
         "unit": line.unit,
     }
@@ -498,7 +497,7 @@ def test_return_after_delivery_read_refuses_guarded_invoice_atomically(
         session, business, line=line_id, request="guarded", delivery_guard=guard
     )
     assert explain_operational_exception(
-        session, business.tenant.id, guard["condition_id"]
+        session, business.tenant.id, f"exc__shipped_not_billed__{line_id}"
     )["causal_values"]["unbilled_quantity"] == Decimal(3)
     before = session.scalar(select(func.count()).select_from(LedgerEntry))
     record_movement(
@@ -557,6 +556,7 @@ def test_guarded_invoice_retains_exact_guard_and_replays_one_receipt(session, bu
     "change",
     [
         {"condition_id": "exc__shipped_not_billed__foreign"},
+        {"order_line_id": "foreign"},
         {"unbilled_quantity": "4"},
         {"unit": "foreign"},
     ],

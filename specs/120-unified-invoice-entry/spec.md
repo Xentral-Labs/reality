@@ -71,8 +71,10 @@ No clarification or schema exception remains.
 The authorized Atlas integration correction adds an optional `delivery_guard` to single-position
 sales invoices. Ordinary invoice entry retains its existing ability to invoice before delivery.
 
-- **FR-008**: A caller billing a delivered condition MUST be able to bind its condition identity,
-  unit and unbilled quantity to the reviewed invoice intent. The shared service MUST compare
+- **FR-008**: A caller billing a delivered condition MUST be able to bind the unit and unbilled
+  quantity it read for the invoiced order line to the reviewed invoice intent. The guard names no
+  condition or line of its own; the order line is the condition's subject. The service MUST derive
+  the unbilled quantity with the same rule as shipped-not-billed, not with a second copy of it. The shared service MUST compare
   that guard with current retained delivery less billed quantity while holding the same tenant
   delivery lock as shipment, return, correction and invoice writes through invoice commit.
   Missing, ambiguous, foreign, changed or insufficient delivery evidence MUST refuse the

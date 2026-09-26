@@ -1888,16 +1888,13 @@ def _shipped_not_billed_exceptions(
     for commitment, line, document in _order_line_promises(
         session, tenant_id, "customer_delivery"
     ):
-        # What the customer kept, not what went out: goods that came back are
-        # not something anybody should be invoiced for.
-        delivered = _kept_quantity(session, tenant_id, commitment.id)
+        delivered, billed = kept_and_billed_quantity(
+            session, tenant_id, commitment.id, line
+        )
         # A line with nothing delivered says nothing, whatever has been billed:
         # an invoice ahead of the goods is a prepayment, not a finding.
         if delivered <= ZERO:
             continue
-        billed = _quantity_in_agreed_unit(
-            session, tenant_id, line, _invoice_lines(session, tenant_id, line.id)
-        )
         if billed is None:
             continue
         unbilled = delivered - billed
@@ -1924,6 +1921,25 @@ def _shipped_not_billed_exceptions(
             )
         )
     return result
+
+
+def kept_and_billed_quantity(
+    session: Session, tenant_id: str, commitment_id: str, line: DocumentLine
+) -> tuple[Decimal, Decimal | None]:
+    """What the customer kept of one order line, and what has been billed for it.
+
+    Kept, not shipped: goods that came back are not something anybody should be
+    invoiced for. Billed is None when the invoice lines cannot be stated in the
+    order line's unit. Shipped and not billed reports the difference, and a
+    guarded sales invoice rechecks the same difference, so both read it here.
+    """
+    kept = _kept_quantity(session, tenant_id, commitment_id)
+    if kept <= ZERO:
+        return kept, None
+    billed = _quantity_in_agreed_unit(
+        session, tenant_id, line, _invoice_lines(session, tenant_id, line.id)
+    )
+    return kept, billed
 
 
 def _kept_quantity(session: Session, tenant_id: str, commitment_id: str) -> Decimal:

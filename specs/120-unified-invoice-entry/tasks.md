@@ -20,6 +20,7 @@ edits during full-suite execution. Deliver both stories together before exposing
 ## Delivered-quantity correction
 - [x] T007 [FR-008] Add return-race, serialization and guard-validation regressions in `packages/reality-core/tests/test_unified_invoice_entry.py`.
 - [x] T008 [FR-008] Validate optional guard in shared invoice preview/execution under the delivery lock and advertise MCP input.
+- [x] T010 [FR-008] Drop the guard's condition identity (redundant with the order line) and read kept/billed through the shared `kept_and_billed_quantity` rule instead of private exception helpers.
 - [ ] T009 [FR-008] Regenerate tool docs, run affected service/adapter/lint/spec checks and hand off exact heads for independent review.
 
 FR-008 verification: 125 affected invoice, multi-position, return, MCP, command-parity and
