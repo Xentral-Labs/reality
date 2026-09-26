@@ -46,3 +46,44 @@ contribution panel per invoice line (`DocumentContributionExplanations`). An unr
 30-line invoice therefore costs about 1,500 statements instead of 120. A batch variant of the
 receipt check, or deriving steps only for the first line of an item, is the follow-up if that
 shows up in practice.
+
+## Live results (2026-09-26, isolated stack `reality279`)
+
+### T908 German sweep — PASS
+
+`missing-basis-sweep-live.mjs` against a demo company found no raw code in four invoices'
+contribution panels, the Warehouse cost panel, the Exceptions list and detail, or the
+Delivery blockers table and guidance. The first runs failed on two real gaps, both fixed:
+
+- eight contribution gaps were missing from the catalog (`ambiguous_fulfilment`,
+  `ambiguous_billing`, `customer_scope_mismatch`, `item_scope_mismatch`,
+  `revised_fulfilment_unsupported`, `unsupported_fulfilment`,
+  `commercial_goods_cost_unresolved`, `commercial_inventory_cost_unknown`). A test now reads
+  the gap codes from the service sources.
+- the Delivery blockers report carries one `blocker_type` per row, not `blocker_codes`.
+
+The report's `detail` column is still English text from the service ("stock not fully
+reserved"); it is data, not a code, and is left for the impact-sentence follow-up.
+
+### T909 walk-through — SC-003 not met
+
+1. **Demo company:** the guidance correctly says cost decisions cannot be confirmed there.
+   Demo and practice companies refuse `execute_cost_change` and admit no invited members.
+   The first wording, "This company is read-only", was wrong and was changed.
+2. **Business company** (item with 40 pcs opening stock): the panel shows "Nobody has
+   confirmed the acquisition cost for this item yet" and the step "Prepare the item's cost
+   review". "Mit Reality vorbereiten" fills the chat. The person sends it, and the agent
+   answers in German.
+3. **The agent cannot prepare the review.** It asks for `owner_party_id`, manifest IDs and
+   seven other technical parameters. After a plain-language answer (own company, FIFO, EUR,
+   pcs, 40 pcs at 12 EUR, no receipts) it still asks for the company party's ID and the
+   opening movement's ID, and offers to create the opening stock again. No proposal is
+   created, so the owner step is never reached.
+4. **An opening stock recorded through the form has no evidence source record.** Even a
+   well-prepared request could not name the opening cost evidence that an inventory review
+   requires.
+
+**Follow-up (separate spec):** a shared read that drafts a cost review from held records,
+covering the company party, the item's movements and the receipt manifests, so neither the
+person nor the agent has to supply IDs. Also a way to record evidence-backed opening cost.
+Until then the chat handoff is a correct first step, but not a finished path for a clerk.

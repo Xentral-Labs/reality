@@ -319,7 +319,7 @@ try {
   scenario = "readonly";
   await page.goto(url());
   await page
-    .getByText("Dieses Unternehmen ist schreibgeschützt. Hier lässt sich nichts ändern.", {
+    .getByText("In diesem Unternehmen lassen sich keine Kostenentscheidungen bestätigen.", {
       exact: true,
     })
     .waitFor();

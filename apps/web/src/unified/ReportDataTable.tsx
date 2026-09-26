@@ -40,7 +40,10 @@ function valueText(key: string, value: unknown): string {
 }
 function RecordFields({ row }: { row: Record<string, unknown> }) {
   return (
-    <dl className="grid min-w-0 gap-x-6 gap-y-3 sm:grid-cols-2 lg:grid-cols-3">
+    <dl
+      data-report-record-fields
+      className="grid min-w-0 gap-x-6 gap-y-3 sm:grid-cols-2 lg:grid-cols-3"
+    >
       {Object.entries(row).map(([key, value]) => (
         <div
           key={key}
@@ -78,7 +81,14 @@ function RecordFields({ row }: { row: Record<string, unknown> }) {
   );
 }
 // Spec 279: blocker codes read as words in the table cell.
-const blockerKeys = new Set(["blocker_codes", "blocking_reasons"]);
+const blockerKeys = new Set(["blocker_codes", "blocking_reasons", "blocker_type"]);
+// Queue rows carry a list of codes; blocker report rows carry one `blocker_type`.
+const blockerCodes = (row: Record<string, unknown>): string[] =>
+  Array.isArray(row.blocker_codes)
+    ? row.blocker_codes.map(String)
+    : typeof row.blocker_type === "string"
+      ? [row.blocker_type]
+      : [];
 export function ReportDataTable({ name, rows }: { name: string; rows: Record<string, unknown>[] }) {
   const columns = reportColumns(name, rows);
   const catalog = useActionDiscovery()?.data?.resolution_guidance;
@@ -112,8 +122,9 @@ export function ReportDataTable({ name, rows }: { name: string; rows: Record<str
               <tr>
                 {columns.map((key) => (
                   <td key={key} data-localization="original">
-                    {blockerKeys.has(key) && Array.isArray(row[key]) && catalog ? (
-                      (row[key] as unknown[])
+                    {blockerKeys.has(key) && row[key] && catalog ? (
+                      ([] as unknown[])
+                        .concat(row[key])
                         .map((code) => reasonText(catalog, String(code)).label)
                         .join(", ") || "—"
                     ) : row[key] !== null &&
@@ -149,9 +160,9 @@ export function ReportDataTable({ name, rows }: { name: string; rows: Record<str
                 open={expanded === index}
                 columns={columns.length + 1}
               >
-                {Array.isArray(row.blocker_codes) && (
+                {blockerCodes(row).length > 0 && (
                   <BlockerGuidance
-                    codes={(row.blocker_codes as unknown[]).map(String)}
+                    codes={blockerCodes(row)}
                     commitment={
                       typeof row.commitment_id === "string" ? row.commitment_id : undefined
                     }

@@ -30,7 +30,7 @@ export function stepBarrier(
   if (step.state !== "open") return null;
   if (step.role === "operator") return t("An administrator takes care of this.");
   if (guidance.writable === false && step.path !== "none")
-    return t("This company is read-only. Nothing can be changed here.");
+    return t("Cost decisions cannot be confirmed in this company.");
   if (step.role === "owner" && !viewer.owner) return t("A company owner must confirm this.");
   return null;
 }

@@ -41,7 +41,7 @@ test("a viewer without the role sees who must act instead of a control", async (
   for (const sentence of [
     "A company owner must confirm this.",
     "An administrator takes care of this.",
-    "This company is read-only. Nothing can be changed here.",
+    "Cost decisions cannot be confirmed in this company.",
   ])
     assert.match(actions, new RegExp(sentence.replace(/\./g, "\\.")));
   const component = await source("unified/ResolutionGuidance.tsx");
@@ -55,7 +55,12 @@ test("the service result is re-read after any write", async () => {
 
 test("delivery blockers read as words and offer the form that resolves them", async () => {
   const table = await source("unified/ReportDataTable.tsx");
-  assert.match(table, /blockerKeys = new Set\(\["blocker_codes", "blocking_reasons"\]\)/);
+  // Queue rows carry blocker_codes; the blocker report carries one blocker_type per row.
+  assert.match(
+    table,
+    /blockerKeys = new Set\(\["blocker_codes", "blocking_reasons", "blocker_type"\]\)/,
+  );
+  assert.match(table, /typeof row\.blocker_type === "string"/);
   assert.match(table, /<BlockerGuidance/);
   const component = await source("unified/ResolutionGuidance.tsx");
   // A customer delivery is never prefilled into a receipt form.

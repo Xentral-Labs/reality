@@ -87,7 +87,7 @@ written in English. Paths below are relative to the repository root; `core/` sta
   - the chat step fills the composer and sends no request;
   - the owner step links to Decisions with the proposal;
   - a member sees "A company owner must confirm this" and no confirm control;
-  - a read-only company shows no write path;
+  - a company that cannot confirm cost decisions shows no write path;
   - after the owner confirms, the panel re-reads and shows the value (edge case: state changes);
   - with AI not configured, the chat step opens chat showing the existing configuration notice.
 - [x] T025 [P] [US3] [DR-002] Add `test_owner_step_links_proposal_id` to `core/tests/test_cost_resolution.py`.
@@ -117,8 +117,8 @@ written in English. Paths below are relative to the repository root; `core/` sta
 - [x] T901 Run Ruff (from `packages/reality-core`, `--no-cache`) and the complete backend PostgreSQL suite from a clean detached worktree. (2026-09-26: 4438 passed, 10 skipped, 3 failed under `-n 6`: the coverage-matrix check, fixed by the next commit, and two wall-clock budgets outside this feature, `test_reality_gap_replay_resumes_ten_thousand_sources_without_duplicates` and `test_live_creation_api_connects_and_starts_without_extra_requests`; all three pass alone on the final commit.)
 - [x] T902 Run `make web-build`, `npm run i18n:audit`, `npm run test:contracts`, `test:cost-explanation-browser` and `projection-freshness-browser.mjs`.
 - [x] T903 Confirm there is no migration (DR-005).
-- [ ] T908 [SC-001] Add a German no-raw-code sweep to `apps/web/scripts/unified-operations-browser.mjs` covering Exceptions, Finance open items, Orders, Inventory valuation and the Dispatch/blockers report (the cost panel is covered by T015).
-- [ ] T909 [SC-003] Walk quickstart check 3 for a contribution line (member → chat → owner → value) and record the result in `quickstart.md`.
+- [x] T908 [SC-001] German no-raw-code sweep over live pages: `apps/web/scripts/missing-basis-sweep-live.mjs` covers Finance open-items contribution panels, the Warehouse cost panel, the Exceptions list and detail, and the Delivery blockers table and guidance (2026-09-26, isolated stack, demo company: PASS). It found two real gaps, both fixed: eight uncatalogued contribution gaps (`ambiguous_fulfilment` among them) and the blocker report's `blocker_type`. The company valuation selector is reachable only inside an analysis and stays covered by its contract test.
+- [x] T909 [SC-003] Live walk-through with `apps/web/scripts/missing-basis-walkthrough-live.mjs` (2026-09-26). Result: SC-003 is **not** met. Guidance, German wording and the chat handoff work, but the agent cannot prepare the cost review from the handoff: it asks for opaque IDs and technical parameters a clerk cannot give. Demo and practice companies refuse cost decisions and admit no members. Details and follow-up in `quickstart.md`.
 - [x] T904 Measure the cost query statement count before and after on the scale fixture, and record it in `quickstart.md`.
 - [x] T905 Run `make docs-generate` and `make docs-catalog-check`, and commit any regenerated output. (Generated Tool Usage output is identical to `origin/main`'s; nothing to commit.)
 - [x] T906 Update `docs/WEB_SPEC.md` (a missing-basis guidance section) and `docs/features/receipt-costing.md` (the guidance steps) after the checks are green.
