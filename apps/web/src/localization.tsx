@@ -21021,3 +21021,352 @@ Object.assign(dictionaries.es, {
   "Step open": "Paso pendiente",
   "Step waits for the one before": "El paso espera al anterior",
 });
+
+// Spec 279: operational exception class titles and resolution texts.
+Object.assign(dictionaries.de, {
+  "Overdue outgoing customer commitment": "Lieferverzug an Kunden",
+  "Shipping the outstanding quantity, or cancelling the commitment.":
+    "Die offene Menge liefern oder die Verpflichtung stornieren.",
+  "Customer commitment at risk": "Lieferverpflichtung gefährdet",
+  "Reserving the remaining quantity, shipping it, or cancelling the commitment.":
+    "Die Restmenge reservieren, liefern oder die Verpflichtung stornieren.",
+  "Order stalled": "Auftrag hängt",
+  "Shipping the outstanding quantity, cancelling the order, or agreeing a date with the customer.":
+    "Die offene Menge liefern, den Auftrag stornieren oder mit dem Kunden einen Termin vereinbaren.",
+  "Overdue incoming supplier commitment": "Lieferverzug des Lieferanten",
+  "Receiving the outstanding quantity, or cancelling the commitment.":
+    "Die offene Menge als Wareneingang buchen oder die Verpflichtung stornieren.",
+  "Shipped and not billed": "Geliefert, nicht fakturiert",
+  "Billing the outstanding quantity on an invoice line that names the order line.":
+    "Die offene Menge auf einer Rechnungsposition berechnen, die die Auftragsposition nennt.",
+  "Billed and not received": "Fakturiert, nicht geliefert",
+  "Receiving the outstanding quantity, or correcting the invoice.":
+    "Die offene Menge als Wareneingang buchen oder die Rechnung korrigieren.",
+  "Invoice price differs from the agreement": "Rechnungspreis weicht von der Vereinbarung ab",
+  "Correcting the invoice line, or agreeing the new price on the order line.":
+    "Die Rechnungsposition korrigieren oder den neuen Preis auf der Auftragsposition vereinbaren.",
+  "Sold below the purchase price": "Unter Einkaufspreis verkauft",
+  "Agreeing a price at or above the purchase price, or correcting the purchase price if that is what is wrong.":
+    "Einen Preis in Höhe des Einkaufspreises oder darüber vereinbaren oder den Einkaufspreis korrigieren, falls er falsch ist.",
+  "Returned and not credited": "Retourniert, nicht gutgeschrieben",
+  "Crediting the returned quantity on a credit note line that names the order line.":
+    "Die retournierte Menge auf einer Gutschriftsposition gutschreiben, die die Auftragsposition nennt.",
+  "Credited and not returned": "Gutgeschrieben, nicht retourniert",
+  "The outstanding goods arriving, or correcting the credit note.":
+    "Die offene Ware trifft ein, oder die Gutschrift wird korrigiert.",
+  "Returned to supplier and not credited": "Lieferantenretoure nicht gutgeschrieben",
+  "The supplier's credit note naming the order line, or the goods coming back again.":
+    "Die Gutschrift des Lieferanten, die die Bestellposition nennt, oder die Ware kommt zurück.",
+  "Supplier credited more than went back": "Lieferant hat mehr gutgeschrieben als zurückging",
+  "The remaining goods going back, or the supplier correcting its credit note.":
+    "Die restliche Ware geht zurück, oder der Lieferant korrigiert seine Gutschrift.",
+  "Return not dealt with": "Retoure nicht bearbeitet",
+  "Restocking, writing off, or sending the goods back to the supplier, saying which return it settles.":
+    "Die Ware wieder einlagern, ausbuchen oder an den Lieferanten zurückschicken und dabei angeben, welche Retoure das erledigt.",
+  "Receipt not invoiced": "Wareneingang ohne Rechnung",
+  "The supplier invoice arriving and an invoice line naming the order line.":
+    "Die Lieferantenrechnung trifft ein, mit einer Rechnungsposition, die die Bestellposition nennt.",
+  "Units not comparable": "Einheiten nicht vergleichbar",
+  "Stating the item's purchase unit and conversion factor, or recording the lines in a unit that reconciles.":
+    "Die Einkaufseinheit und den Umrechnungsfaktor des Artikels angeben oder die Positionen in einer abgleichbaren Einheit erfassen.",
+  "Reservation exceeds stock": "Reservierung übersteigt Bestand",
+  "Receiving stock, or releasing reservations until they fit what is there.":
+    "Wareneingang buchen oder Reservierungen freigeben, bis sie zum vorhandenen Bestand passen.",
+  "Silent source": "Quelle verstummt",
+  "A record arriving from that source.": "Ein Datensatz trifft aus dieser Quelle ein.",
+  "Source interpretation failure": "Quelle nicht interpretierbar",
+  "A successful retry once the cause of the failure is removed.":
+    "Ein erfolgreicher neuer Versuch, sobald die Fehlerursache behoben ist.",
+  "Unexplained movement": "Unerklärte Lagerbewegung",
+  "Nothing. The movement stays part of history; only a correction changes what follows from it.":
+    "Nichts. Die Bewegung bleibt Teil der Historie; nur eine Korrektur ändert, was daraus folgt.",
+  "Sales invoice not booked": "Ausgangsrechnung nicht gebucht",
+  "Booking the invoice, or correcting it if it should never have been raised.":
+    "Die Rechnung buchen oder korrigieren, falls sie nie hätte erstellt werden sollen.",
+  "Supplier invoice not booked": "Eingangsrechnung nicht gebucht",
+  "Booking the invoice, or rejecting it if the supplier should never have sent it.":
+    "Die Rechnung buchen oder ablehnen, falls der Lieferant sie nie hätte schicken sollen.",
+  "Credit note not booked": "Gutschrift nicht gebucht",
+  "Booking the credit note, or cancelling it if it should never have been raised.":
+    "Die Gutschrift buchen oder stornieren, falls sie nie hätte erstellt werden sollen.",
+  "Credit note not given back": "Gutschrift nicht ausgeglichen",
+  "Netting the credit against an open invoice, or refunding the customer.":
+    "Die Gutschrift mit einer offenen Rechnung verrechnen oder dem Kunden erstatten.",
+  "Supplier credit not booked": "Lieferantengutschrift nicht gebucht",
+  "Booking the supplier credit note, or rejecting it if the supplier should never have sent it.":
+    "Die Lieferantengutschrift buchen oder ablehnen, falls der Lieferant sie nie hätte schicken sollen.",
+  "Supplier credit not claimed": "Lieferantengutschrift nicht eingefordert",
+  "Netting the credit against an open supplier invoice, or having the supplier refund it.":
+    "Die Gutschrift mit einer offenen Lieferantenrechnung verrechnen oder vom Lieferanten erstatten lassen.",
+  "Overdue receivable": "Überfällige Forderung",
+  "Settling the outstanding amount, or reversing the invoice.":
+    "Den offenen Betrag ausgleichen oder die Rechnung stornieren.",
+  "Credit limit exceeded": "Kreditlimit überschritten",
+  "Settling enough of the open invoices, or agreeing and recording a higher limit.":
+    "Genug offene Rechnungen ausgleichen oder ein höheres Limit vereinbaren und erfassen.",
+  "Overdue payable": "Überfällige Verbindlichkeit",
+  "Paying the outstanding amount, or reversing the invoice.":
+    "Den offenen Betrag bezahlen oder die Rechnung stornieren.",
+  "Early payment discount still available": "Skonto noch möglich",
+  "Paying the invoice, on its own or in a payment run. It also stops appearing once the deadline passes, which is the loss rather than the fix.":
+    "Die Rechnung bezahlen, einzeln oder in einem Zahllauf. Nach Ablauf der Frist verschwindet der Hinweis ebenfalls, dann ist das Skonto aber verloren.",
+  "Duplicate supplier invoice": "Doppelte Eingangsrechnung",
+  "Reversing whichever posting was made in error, or confirming the numbers differ.":
+    "Die irrtümliche Buchung stornieren oder bestätigen, dass die Nummern verschieden sind.",
+  "Unmatched financial event": "Nicht zugeordneter Finanzvorgang",
+  "Allocating the remainder to the invoices it pays.":
+    "Den Rest den Rechnungen zuordnen, die er bezahlt.",
+  "Announced return has not arrived": "Angekündigte Retoure nicht eingetroffen",
+  "The goods arriving against the announcement, or the customer withdrawing it.":
+    "Die Ware trifft zur Ankündigung ein, oder der Kunde zieht sie zurück.",
+  "Promise hold not lifted": "Sperre der Verpflichtung nicht aufgehoben",
+  "Lifting the hold, or doing the thing it was raised for and then lifting it.":
+    "Die Sperre aufheben, oder erst das erledigen, wofür sie gesetzt wurde, und sie dann aufheben.",
+  "Party hold not lifted": "Liefersperre nicht aufgehoben",
+  "Expired stock on hand": "Abgelaufener Bestand",
+  "Writing the stock off with an adjustment, sending it back to the supplier, or otherwise moving it out of stock.":
+    "Den Bestand per Bestandsanpassung ausbuchen, an den Lieferanten zurückschicken oder anderweitig aus dem Lager nehmen.",
+  "Missing acquisition cost": "Anschaffungskosten fehlen",
+  "Confirming the missing receipt-cost evidence and publishing a current complete company generation.":
+    "Die fehlenden Kostennachweise der Wareneingänge bestätigen und eine aktuelle, vollständige Unternehmensbewertung veröffentlichen.",
+  "Unassigned cost component": "Kostenkomponente nicht zugeordnet",
+  "Confirming an assignment or an evidenced not-applicable treatment and publishing a current generation.":
+    "Eine Zuordnung oder eine belegte Nicht-Anwendbarkeit bestätigen und eine aktuelle Unternehmensbewertung veröffentlichen.",
+  "Stale cost review": "Kostenprüfung veraltet",
+  "Reviewing the changed evidence and publishing a current company generation.":
+    "Die geänderten Nachweise prüfen und eine aktuelle Unternehmensbewertung veröffentlichen.",
+  "Negative actual DB1": "Tatsächlicher DB1 negativ",
+  "Correcting the commercial evidence or accepting and reviewing a non-negative current contribution basis.":
+    "Die kaufmännischen Nachweise korrigieren oder eine nicht negative, aktuelle Deckungsbeitragsgrundlage annehmen und prüfen.",
+});
+Object.assign(dictionaries.nl, {
+  "Overdue outgoing customer commitment": "Achterstallige levering aan klant",
+  "Shipping the outstanding quantity, or cancelling the commitment.":
+    "De openstaande hoeveelheid leveren of de verplichting annuleren.",
+  "Customer commitment at risk": "Leververplichting aan klant in gevaar",
+  "Reserving the remaining quantity, shipping it, or cancelling the commitment.":
+    "De resterende hoeveelheid reserveren, leveren of de verplichting annuleren.",
+  "Order stalled": "Order staat stil",
+  "Shipping the outstanding quantity, cancelling the order, or agreeing a date with the customer.":
+    "De openstaande hoeveelheid leveren, de order annuleren of een datum met de klant afspreken.",
+  "Overdue incoming supplier commitment": "Achterstallige levering van leverancier",
+  "Receiving the outstanding quantity, or cancelling the commitment.":
+    "De openstaande hoeveelheid ontvangen of de verplichting annuleren.",
+  "Shipped and not billed": "Geleverd, niet gefactureerd",
+  "Billing the outstanding quantity on an invoice line that names the order line.":
+    "De openstaande hoeveelheid factureren op een factuurregel die de orderregel noemt.",
+  "Billed and not received": "Gefactureerd, niet ontvangen",
+  "Receiving the outstanding quantity, or correcting the invoice.":
+    "De openstaande hoeveelheid ontvangen of de factuur corrigeren.",
+  "Invoice price differs from the agreement": "Factuurprijs wijkt af van de afspraak",
+  "Correcting the invoice line, or agreeing the new price on the order line.":
+    "De factuurregel corrigeren of de nieuwe prijs op de orderregel afspreken.",
+  "Sold below the purchase price": "Verkocht onder de inkoopprijs",
+  "Agreeing a price at or above the purchase price, or correcting the purchase price if that is what is wrong.":
+    "Een prijs op of boven de inkoopprijs afspreken, of de inkoopprijs corrigeren als die niet klopt.",
+  "Returned and not credited": "Geretourneerd, niet gecrediteerd",
+  "Crediting the returned quantity on a credit note line that names the order line.":
+    "De geretourneerde hoeveelheid crediteren op een creditnotaregel die de orderregel noemt.",
+  "Credited and not returned": "Gecrediteerd, niet geretourneerd",
+  "The outstanding goods arriving, or correcting the credit note.":
+    "De openstaande goederen komen binnen, of de creditnota wordt gecorrigeerd.",
+  "Returned to supplier and not credited": "Teruggestuurd naar leverancier, niet gecrediteerd",
+  "The supplier's credit note naming the order line, or the goods coming back again.":
+    "De creditnota van de leverancier die de orderregel noemt, of de goederen komen terug.",
+  "Supplier credited more than went back": "Leverancier crediteerde meer dan teruggestuurd",
+  "The remaining goods going back, or the supplier correcting its credit note.":
+    "De resterende goederen gaan terug, of de leverancier corrigeert zijn creditnota.",
+  "Return not dealt with": "Retour niet afgehandeld",
+  "Restocking, writing off, or sending the goods back to the supplier, saying which return it settles.":
+    "De goederen weer op voorraad nemen, afboeken of terugsturen naar de leverancier, met vermelding van de retour die daarmee wordt afgehandeld.",
+  "Receipt not invoiced": "Ontvangst niet gefactureerd",
+  "The supplier invoice arriving and an invoice line naming the order line.":
+    "De inkoopfactuur komt binnen met een factuurregel die de orderregel noemt.",
+  "Units not comparable": "Eenheden niet vergelijkbaar",
+  "Stating the item's purchase unit and conversion factor, or recording the lines in a unit that reconciles.":
+    "De inkoopeenheid en omrekenfactor van het artikel vastleggen, of de regels in een vergelijkbare eenheid registreren.",
+  "Reservation exceeds stock": "Reservering overschrijdt voorraad",
+  "Receiving stock, or releasing reservations until they fit what is there.":
+    "Voorraad ontvangen of reserveringen vrijgeven tot ze passen bij wat er is.",
+  "Silent source": "Bron zwijgt",
+  "A record arriving from that source.": "Er komt een record uit die bron binnen.",
+  "Source interpretation failure": "Bron niet te interpreteren",
+  "A successful retry once the cause of the failure is removed.":
+    "Een geslaagde nieuwe poging zodra de oorzaak van de fout is weggenomen.",
+  "Unexplained movement": "Onverklaarde voorraadmutatie",
+  "Nothing. The movement stays part of history; only a correction changes what follows from it.":
+    "Niets. De mutatie blijft deel van de geschiedenis; alleen een correctie verandert wat eruit volgt.",
+  "Sales invoice not booked": "Verkoopfactuur niet geboekt",
+  "Booking the invoice, or correcting it if it should never have been raised.":
+    "De factuur boeken, of corrigeren als die nooit had mogen worden opgemaakt.",
+  "Supplier invoice not booked": "Inkoopfactuur niet geboekt",
+  "Booking the invoice, or rejecting it if the supplier should never have sent it.":
+    "De factuur boeken, of afwijzen als de leverancier die nooit had mogen sturen.",
+  "Credit note not booked": "Creditnota niet geboekt",
+  "Booking the credit note, or cancelling it if it should never have been raised.":
+    "De creditnota boeken, of annuleren als die nooit had mogen worden opgemaakt.",
+  "Credit note not given back": "Creditnota niet terugbetaald",
+  "Netting the credit against an open invoice, or refunding the customer.":
+    "Het tegoed verrekenen met een openstaande factuur of de klant terugbetalen.",
+  "Supplier credit not booked": "Creditnota van leverancier niet geboekt",
+  "Booking the supplier credit note, or rejecting it if the supplier should never have sent it.":
+    "De creditnota van de leverancier boeken, of afwijzen als de leverancier die nooit had mogen sturen.",
+  "Supplier credit not claimed": "Tegoed bij leverancier niet opgeëist",
+  "Netting the credit against an open supplier invoice, or having the supplier refund it.":
+    "Het tegoed verrekenen met een openstaande inkoopfactuur of het door de leverancier laten terugbetalen.",
+  "Overdue receivable": "Achterstallige vordering",
+  "Settling the outstanding amount, or reversing the invoice.":
+    "Het openstaande bedrag voldoen of de factuur tegenboeken.",
+  "Credit limit exceeded": "Kredietlimiet overschreden",
+  "Settling enough of the open invoices, or agreeing and recording a higher limit.":
+    "Voldoende openstaande facturen voldoen, of een hogere limiet afspreken en vastleggen.",
+  "Overdue payable": "Achterstallige schuld",
+  "Paying the outstanding amount, or reversing the invoice.":
+    "Het openstaande bedrag betalen of de factuur tegenboeken.",
+  "Early payment discount still available": "Betalingskorting nog mogelijk",
+  "Paying the invoice, on its own or in a payment run. It also stops appearing once the deadline passes, which is the loss rather than the fix.":
+    "De factuur betalen, los of in een betaalrun. Na de termijn verdwijnt de melding ook, maar dan is de korting verloren.",
+  "Duplicate supplier invoice": "Dubbele inkoopfactuur",
+  "Reversing whichever posting was made in error, or confirming the numbers differ.":
+    "De foutieve boeking tegenboeken of bevestigen dat de nummers verschillen.",
+  "Unmatched financial event": "Niet gekoppelde financiële gebeurtenis",
+  "Allocating the remainder to the invoices it pays.":
+    "Het restant toewijzen aan de facturen die het betaalt.",
+  "Announced return has not arrived": "Aangekondigde retour niet ontvangen",
+  "The goods arriving against the announcement, or the customer withdrawing it.":
+    "De goederen komen binnen op de aankondiging, of de klant trekt die in.",
+  "Promise hold not lifted": "Blokkade van verplichting niet opgeheven",
+  "Lifting the hold, or doing the thing it was raised for and then lifting it.":
+    "De blokkade opheffen, of eerst doen waarvoor die is ingesteld en haar dan opheffen.",
+  "Party hold not lifted": "Leveringsblokkade niet opgeheven",
+  "Expired stock on hand": "Verlopen voorraad aanwezig",
+  "Writing the stock off with an adjustment, sending it back to the supplier, or otherwise moving it out of stock.":
+    "De voorraad afboeken met een correctie, terugsturen naar de leverancier of op een andere manier uit voorraad halen.",
+  "Missing acquisition cost": "Aanschafkosten ontbreken",
+  "Confirming the missing receipt-cost evidence and publishing a current complete company generation.":
+    "Het ontbrekende kostenbewijs van de ontvangsten bevestigen en een actuele, volledige bedrijfswaardering publiceren.",
+  "Unassigned cost component": "Kostencomponent niet toegewezen",
+  "Confirming an assignment or an evidenced not-applicable treatment and publishing a current generation.":
+    "Een toewijzing of een onderbouwde niet-van-toepassing bevestigen en een actuele bedrijfswaardering publiceren.",
+  "Stale cost review": "Kostencontrole verouderd",
+  "Reviewing the changed evidence and publishing a current company generation.":
+    "Het gewijzigde bewijs controleren en een actuele bedrijfswaardering publiceren.",
+  "Negative actual DB1": "Werkelijke DB1 negatief",
+  "Correcting the commercial evidence or accepting and reviewing a non-negative current contribution basis.":
+    "Het commerciële bewijs corrigeren, of een niet-negatieve actuele bijdragebasis accepteren en controleren.",
+});
+Object.assign(dictionaries.es, {
+  "Overdue outgoing customer commitment": "Entrega a cliente vencida",
+  "Shipping the outstanding quantity, or cancelling the commitment.":
+    "Enviar la cantidad pendiente o cancelar el compromiso.",
+  "Customer commitment at risk": "Compromiso con el cliente en riesgo",
+  "Reserving the remaining quantity, shipping it, or cancelling the commitment.":
+    "Reservar la cantidad restante, enviarla o cancelar el compromiso.",
+  "Order stalled": "Pedido estancado",
+  "Shipping the outstanding quantity, cancelling the order, or agreeing a date with the customer.":
+    "Enviar la cantidad pendiente, cancelar el pedido o acordar una fecha con el cliente.",
+  "Overdue incoming supplier commitment": "Entrega de proveedor vencida",
+  "Receiving the outstanding quantity, or cancelling the commitment.":
+    "Recibir la cantidad pendiente o cancelar el compromiso.",
+  "Shipped and not billed": "Enviado y no facturado",
+  "Billing the outstanding quantity on an invoice line that names the order line.":
+    "Facturar la cantidad pendiente en una línea de factura que indique la línea de pedido.",
+  "Billed and not received": "Facturado y no recibido",
+  "Receiving the outstanding quantity, or correcting the invoice.":
+    "Recibir la cantidad pendiente o corregir la factura.",
+  "Invoice price differs from the agreement": "El precio de la factura difiere del acuerdo",
+  "Correcting the invoice line, or agreeing the new price on the order line.":
+    "Corregir la línea de factura o acordar el nuevo precio en la línea de pedido.",
+  "Sold below the purchase price": "Vendido por debajo del precio de compra",
+  "Agreeing a price at or above the purchase price, or correcting the purchase price if that is what is wrong.":
+    "Acordar un precio igual o superior al de compra, o corregir el precio de compra si es el que está mal.",
+  "Returned and not credited": "Devuelto y no abonado",
+  "Crediting the returned quantity on a credit note line that names the order line.":
+    "Abonar la cantidad devuelta en una línea de abono que indique la línea de pedido.",
+  "Credited and not returned": "Abonado y no devuelto",
+  "The outstanding goods arriving, or correcting the credit note.":
+    "Que llegue la mercancía pendiente o corregir el abono.",
+  "Returned to supplier and not credited": "Devuelto al proveedor y no abonado",
+  "The supplier's credit note naming the order line, or the goods coming back again.":
+    "El abono del proveedor que indique la línea de pedido, o que la mercancía vuelva.",
+  "Supplier credited more than went back": "El proveedor abonó más de lo devuelto",
+  "The remaining goods going back, or the supplier correcting its credit note.":
+    "Que se devuelva la mercancía restante o que el proveedor corrija su abono.",
+  "Return not dealt with": "Devolución sin tramitar",
+  "Restocking, writing off, or sending the goods back to the supplier, saying which return it settles.":
+    "Reponer, dar de baja o devolver la mercancía al proveedor, indicando qué devolución se liquida.",
+  "Receipt not invoiced": "Entrada sin factura",
+  "The supplier invoice arriving and an invoice line naming the order line.":
+    "Que llegue la factura del proveedor con una línea que indique la línea de pedido.",
+  "Units not comparable": "Unidades no comparables",
+  "Stating the item's purchase unit and conversion factor, or recording the lines in a unit that reconciles.":
+    "Indicar la unidad de compra y el factor de conversión del artículo, o registrar las líneas en una unidad conciliable.",
+  "Reservation exceeds stock": "La reserva supera el stock",
+  "Receiving stock, or releasing reservations until they fit what is there.":
+    "Recibir stock o liberar reservas hasta que encajen con lo disponible.",
+  "Silent source": "Fuente en silencio",
+  "A record arriving from that source.": "Que llegue un registro de esa fuente.",
+  "Source interpretation failure": "Error al interpretar la fuente",
+  "A successful retry once the cause of the failure is removed.":
+    "Un reintento correcto una vez eliminada la causa del error.",
+  "Unexplained movement": "Movimiento sin explicar",
+  "Nothing. The movement stays part of history; only a correction changes what follows from it.":
+    "Nada. El movimiento sigue formando parte del historial; solo una corrección cambia lo que se deriva de él.",
+  "Sales invoice not booked": "Factura de venta no contabilizada",
+  "Booking the invoice, or correcting it if it should never have been raised.":
+    "Contabilizar la factura o corregirla si nunca debió emitirse.",
+  "Supplier invoice not booked": "Factura de proveedor no contabilizada",
+  "Booking the invoice, or rejecting it if the supplier should never have sent it.":
+    "Contabilizar la factura o rechazarla si el proveedor nunca debió enviarla.",
+  "Credit note not booked": "Abono no contabilizado",
+  "Booking the credit note, or cancelling it if it should never have been raised.":
+    "Contabilizar el abono o anularlo si nunca debió emitirse.",
+  "Credit note not given back": "Abono no devuelto",
+  "Netting the credit against an open invoice, or refunding the customer.":
+    "Compensar el abono con una factura abierta o reembolsar al cliente.",
+  "Supplier credit not booked": "Abono de proveedor no contabilizado",
+  "Booking the supplier credit note, or rejecting it if the supplier should never have sent it.":
+    "Contabilizar el abono del proveedor o rechazarlo si el proveedor nunca debió enviarlo.",
+  "Supplier credit not claimed": "Abono de proveedor no reclamado",
+  "Netting the credit against an open supplier invoice, or having the supplier refund it.":
+    "Compensar el abono con una factura de proveedor abierta o pedir al proveedor que lo reembolse.",
+  "Overdue receivable": "Cobro vencido",
+  "Settling the outstanding amount, or reversing the invoice.":
+    "Liquidar el importe pendiente o anular la factura.",
+  "Credit limit exceeded": "Límite de crédito superado",
+  "Settling enough of the open invoices, or agreeing and recording a higher limit.":
+    "Liquidar suficientes facturas abiertas, o acordar y registrar un límite mayor.",
+  "Overdue payable": "Pago vencido",
+  "Paying the outstanding amount, or reversing the invoice.":
+    "Pagar el importe pendiente o anular la factura.",
+  "Early payment discount still available": "Descuento por pronto pago aún disponible",
+  "Paying the invoice, on its own or in a payment run. It also stops appearing once the deadline passes, which is the loss rather than the fix.":
+    "Pagar la factura, sola o en una remesa de pagos. También desaparece al vencer el plazo, pero entonces el descuento se pierde.",
+  "Duplicate supplier invoice": "Factura de proveedor duplicada",
+  "Reversing whichever posting was made in error, or confirming the numbers differ.":
+    "Anular el asiento hecho por error o confirmar que los números son distintos.",
+  "Unmatched financial event": "Movimiento financiero sin asignar",
+  "Allocating the remainder to the invoices it pays.": "Asignar el resto a las facturas que paga.",
+  "Announced return has not arrived": "La devolución anunciada no ha llegado",
+  "The goods arriving against the announcement, or the customer withdrawing it.":
+    "Que llegue la mercancía anunciada o que el cliente retire el aviso.",
+  "Promise hold not lifted": "Retención del compromiso sin levantar",
+  "Lifting the hold, or doing the thing it was raised for and then lifting it.":
+    "Levantar la retención, o hacer primero aquello por lo que se puso y después levantarla.",
+  "Party hold not lifted": "Bloqueo del socio sin levantar",
+  "Expired stock on hand": "Stock caducado en almacén",
+  "Writing the stock off with an adjustment, sending it back to the supplier, or otherwise moving it out of stock.":
+    "Dar de baja el stock con un ajuste, devolverlo al proveedor o sacarlo del almacén de otra forma.",
+  "Missing acquisition cost": "Falta el coste de adquisición",
+  "Confirming the missing receipt-cost evidence and publishing a current complete company generation.":
+    "Confirmar los justificantes de coste que faltan en las entradas y publicar una valoración de empresa actual y completa.",
+  "Unassigned cost component": "Componente de coste sin asignar",
+  "Confirming an assignment or an evidenced not-applicable treatment and publishing a current generation.":
+    "Confirmar una asignación o un tratamiento justificado como no aplicable y publicar una valoración actual.",
+  "Stale cost review": "Revisión de costes desactualizada",
+  "Reviewing the changed evidence and publishing a current company generation.":
+    "Revisar los justificantes modificados y publicar una valoración de empresa actual.",
+  "Negative actual DB1": "MC1 real negativo",
+  "Correcting the commercial evidence or accepting and reviewing a non-negative current contribution basis.":
+    "Corregir los justificantes comerciales o aceptar y revisar una base de contribución actual no negativa.",
+});
