@@ -21,6 +21,7 @@ from reality.services.core import (
     stock_at,
     utc_datetime,
 )
+from reality.services.opening_cost import is_statement_of
 
 
 def _json(value: Any) -> str:
@@ -38,10 +39,18 @@ def is_opening(tool: str, arguments: dict[str, Any]) -> bool:
 
 
 def _intent(arguments: dict[str, Any]) -> dict[str, Any]:
-    allowed = {"movement_type", "item_id", "to_location_id", "quantity", "occurred_at"}
+    allowed = {
+        "movement_type",
+        "item_id",
+        "to_location_id",
+        "quantity",
+        "occurred_at",
+        "opening_cost",
+    }
     if set(arguments) - allowed or arguments.get("movement_type") != "opening_stock":
         raise InvalidOperation(
-            "Opening stock accepts only item, destination, quantity and optional time."
+            "Opening stock accepts only item, destination, quantity, optional time "
+            "and optional acquisition cost."
         )
     for name in ("item_id", "to_location_id"):
         if not isinstance(arguments.get(name), str) or not arguments[name]:
@@ -65,6 +74,11 @@ def _intent(arguments: dict[str, Any]) -> dict[str, Any]:
         if not isinstance(arguments["occurred_at"], str):
             raise InvalidOperation("Enter a valid occurrence time.")
         intent["occurred_at"] = utc_datetime(arguments["occurred_at"]).isoformat()
+    if arguments.get("opening_cost") is not None:
+        from reality.services.opening_cost import normalize_opening_cost
+
+        # Spec 282: the stated value is part of the reviewed, confirmed intent.
+        intent["opening_cost"] = normalize_opening_cost(arguments["opening_cost"])
     return intent
 
 
@@ -79,7 +93,8 @@ def review_opening(
         raise InvalidOperation(
             "This opening stock form supports items without lot or serial tracking."
         )
-    _append_movement(session, tenant_id, **intent, validate_only=True)
+    movement = {key: value for key, value in intent.items() if key != "opening_cost"}
+    _append_movement(session, tenant_id, **movement, validate_only=True)
     physical = stock_at(session, tenant_id, item.id, location.id)
     reserved = active_reserved(session, tenant_id, item.id, location.id)
     state = {
@@ -216,7 +231,12 @@ def opening_detail(
     if (
         any(payload.get(key) != value for key, value in expected.items())
         or set(expected) - set(payload)
-        or event.source_record_id is not None
+        or (
+            event.source_record_id is not None
+            and not is_statement_of(
+                session, tenant_id, event.source_record_id, proposal.id
+            )
+        )
         or event.occurred_at != movement.occurred_at
         or movement.resolves_movement_id is not None
         or movement.return_announcement_id is not None

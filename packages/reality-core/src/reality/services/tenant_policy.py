@@ -709,6 +709,20 @@ def _profile_authority_holds(session: Session, profile: tuple, tenant_id: str) -
     return False
 
 
+def _opening_with_cost(session: Session, tenant_id: str, proposal_id: str) -> bool:
+    row = session.execute(
+        select(ChangeProposal.type, ChangeProposal.input).where(
+            ChangeProposal.tenant_id == tenant_id, ChangeProposal.id == proposal_id
+        )
+    ).first()
+    if row is None or row.type != "tool:movement_create":
+        return False
+    saved = json.loads(row.input or "{}")
+    return saved.get("movement_type") == "opening_stock" and bool(
+        saved.get("opening_cost")
+    )
+
+
 def require_core_operation(session: Session, tenant_id: str, operation: str) -> None:
     """Permit only private initial reference setup; egress has no such exception."""
     profile_cost = _profile_cost_authority.get()
@@ -753,6 +767,11 @@ def require_core_operation(session: Session, tenant_id: str, operation: str) -> 
                     )
                 )
                 == "tool:movement_create"
+            )
+            or (
+                # Spec 282: an opening with a stated cost records that statement.
+                operation == "store_source_record"
+                and _opening_with_cost(session, tenant_id, decision.proposal_id)
             )
         )
     ):
