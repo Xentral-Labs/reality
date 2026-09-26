@@ -200,6 +200,16 @@ export function ChatPage({
   useEffect(() => {
     if (initialDraft) onInitialDraftUsed?.();
   }, []);
+  useEffect(() => {
+    // Spec 279: a guidance step hands over a prepared request. It only fills the
+    // composer; sending, proposing and confirming stay with the person.
+    const prepare = (event: Event) => {
+      const draft = (event as CustomEvent<{ draft?: unknown }>).detail?.draft;
+      if (typeof draft === "string" && draft.trim()) setQuestion(draft);
+    };
+    window.addEventListener("reality:open-chat", prepare);
+    return () => window.removeEventListener("reality:open-chat", prepare);
+  }, []);
   const creatingSession = useRef(false);
   const [startingChat, setStartingChat] = useState(false);
 

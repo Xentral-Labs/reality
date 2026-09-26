@@ -324,6 +324,38 @@ export type InventoryRow = {
   incoming: string;
   projected: string;
 };
+/** Spec 279: one step toward a missing basis; wording comes from the catalog. */
+export type GuidanceStep = {
+  code: string;
+  state: "done" | "open" | "blocked";
+  role: "member" | "owner" | "operator";
+  path: "web_form" | "chat" | "decision_review" | "system_status" | "page" | "none";
+  targets: string[];
+  target_count: number;
+  proposal_id?: string;
+};
+export type ResolutionGuidance = {
+  reason_code: string;
+  steps: GuidanceStep[];
+  writable?: boolean | null;
+  value_reasons?: Record<string, string>;
+};
+type GuidanceAction = {
+  label: string;
+  path: GuidanceStep["path"];
+  form?: string;
+  page?: string;
+  chat_prompt?: string;
+};
+export type ResolutionGuidanceCatalog = {
+  version: number;
+  reasons: Record<string, { label: string; explanation: string }>;
+  steps: Record<
+    string,
+    GuidanceAction & { role: GuidanceStep["role"]; alternative?: GuidanceAction }
+  >;
+  blockers: Record<string, string>;
+};
 export type CostQueryEnvelope = {
   requested: {
     kind: "inventory" | "contribution";
@@ -357,7 +389,7 @@ export type CostQueryEnvelope = {
       required_principal: "authorized_reader" | "authenticated_active_owner";
     };
     explanation_links: { kind: string; id: string }[];
-  };
+  } & ResolutionGuidance;
   persistence: { business_writes: false; projection_writes: false };
 };
 export type CommitmentRow = {
@@ -1051,6 +1083,17 @@ export type LocationRow = {
 };
 export type SuggestionRow = { value: string; label: string; description: string; status: string };
 export type SuggestionData = { items: SuggestionRow[]; allow_custom: boolean };
+export type ResolvedPrice = {
+  unit_price: string;
+  currency: string;
+  unit: string;
+  price_list_id: string | null;
+  price_list_entry_id: string | null;
+  source: string;
+  assignment_id: string | null;
+  party_group_id: string | null;
+  evaluated_at: string;
+};
 export type PaymentTermRow = {
   id: string;
   tenant_id: string;
@@ -1168,6 +1211,8 @@ export type ProjectionMetadata = {
   projection_version: number | null;
   upstream_freshness: "unknown";
   consistency: "completed_snapshot";
+  failure_code?: string | null;
+  guidance?: ResolutionGuidance | null;
   pending_changes?: {
     from_event_sequence: number;
     to_event_sequence: number;
@@ -1234,6 +1279,8 @@ export type ApplicationReference = {
   fact_predicate_count: number;
   projections: ProjectionDefinition[];
   workspaces: WorkspaceDefinition[];
+  resolution_guidance?: ResolutionGuidanceCatalog;
+  operational_exception_guidance?: { id: string; label: string; clears_through: string }[];
 };
 export type ReservationRow = {
   id: string;
@@ -1894,6 +1941,19 @@ export const api = {
       `/api/tenants/${tenant}/documents/${id}/line-correction`,
       { method: "PUT", body: JSON.stringify(body) },
     ),
+  /** Spec 279 FR-013: the existing live price read for one partner and item. */
+  resolvePrice: (
+    tenant: string,
+    query: {
+      party_id: string;
+      item_id: string;
+      quantity: string;
+      direction: "sales" | "purchase";
+      currency: string;
+      unit: string;
+    },
+  ) =>
+    request<ResolvedPrice>(`/api/tenants/${tenant}/prices/resolve?${new URLSearchParams(query)}`),
   suggestions: (tenant: string, kind: string, query = "") =>
     request<SuggestionData>(
       `/api/tenants/${tenant}/suggestions/${encodeURIComponent(kind)}?q=${encodeURIComponent(query)}`,
@@ -2726,6 +2786,8 @@ export type AttentionRow = {
   trace: Record<string, string | null>;
   target: { kind: string; id: string; delivery_id?: string };
   guidance?: string;
+  resolution?:
+    (ResolutionGuidance & { kind: "inventory" | "contribution"; scope_id: string }) | null;
   observed_at?: string;
 };
 export const operationsApi = {

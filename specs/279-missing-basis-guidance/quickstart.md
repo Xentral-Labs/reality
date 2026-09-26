@@ -35,5 +35,14 @@ is verified.
 
 | Check | Result | Date |
 |---|---|---|
-| Statement count, cost query before/after (T904) | — | — |
+| Statement count, current inventory cost query, item not reviewed (T904) | main 4; branch 12 with 1 receipt, 28 with 5 (8 + 4 per receipt, capped by the 20-receipt review bound, so at most about 90) | 2026-09-26 |
+| Statement count, current contribution cost query, item not reviewed (T904) | main 4; branch 50 (current preview plus the item's receipt check) | 2026-09-26 |
 | Checks 1–5 | — | — |
+
+### Measured risk
+
+The cost panel loads only for an expanded row, but an expanded document shows one
+contribution panel per invoice line (`DocumentContributionExplanations`). An unreviewed
+30-line invoice therefore costs about 1,500 statements instead of 120. A batch variant of the
+receipt check, or deriving steps only for the first line of an item, is the follow-up if that
+shows up in practice.

@@ -346,7 +346,12 @@ export function WarehousePage({
                           <MovementExplanation tenant={tenant} movementId={row.id} />
                         )}
                         {stock && (
-                          <CostExplanation tenant={tenant} kind="inventory" scopeId={row.id} />
+                          <CostExplanation
+                            tenant={tenant}
+                            kind="inventory"
+                            scopeId={row.id}
+                            scopeLabel={row.name || row.item || undefined}
+                          />
                         )}
                         <InlineInspector
                           tenant={tenant}

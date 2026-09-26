@@ -19762,3 +19762,1074 @@ Object.assign(dictionaries.es, {
   Email: "Correo electrónico",
   Label: "Etiqueta",
 });
+
+// Spec 279: resolution guidance catalog wording.
+Object.assign(dictionaries.de, {
+  "No confirmed cost basis yet": "Noch keine bestätigte Kostengrundlage",
+  "The value appears once the underlying costs are confirmed and a company owner has approved the review.":
+    "Der Wert erscheint, sobald die zugrunde liegenden Kosten bestätigt sind und ein Inhaber die Prüfung freigegeben hat.",
+  "Cost basis is incomplete": "Kostengrundlage ist unvollständig",
+  "Some evidence or a confirmation is still missing. The steps below show what is open.":
+    "Es fehlen noch Nachweise oder eine Bestätigung. Die Schritte unten zeigen, was offen ist.",
+  "Newer business activity since the last confirmation":
+    "Neue Geschäftsvorfälle seit der letzten Bestätigung",
+  "The last confirmed value is shown for reference only until the review is renewed.":
+    "Der zuletzt bestätigte Wert wird nur zur Orientierung angezeigt, bis die Prüfung erneuert ist.",
+  "The last cost preparation could not be used":
+    "Die letzte Kostenvorbereitung war nicht verwendbar",
+  "Inspect the evidence of the last preparation and prepare it again.":
+    "Prüfe die Nachweise der letzten Vorbereitung und bereite sie neu vor.",
+  "Cost basis is confirmed and current": "Kostengrundlage ist bestätigt und aktuell",
+  "The value is based on the confirmed review for this scope.":
+    "Der Wert beruht auf der bestätigten Prüfung für diesen Umfang.",
+  "Nobody has confirmed the acquisition cost for this item yet":
+    "Für diesen Artikel hat noch niemand die Anschaffungskosten bestätigt",
+  "Stock value appears once every receipt carries confirmed cost and a company owner has confirmed the item's cost review.":
+    "Der Bestandswert erscheint, sobald jeder Wareneingang bestätigte Kosten trägt und ein Inhaber die Kostenprüfung des Artikels bestätigt hat.",
+  "The item's cost review is out of date": "Die Kostenprüfung des Artikels ist veraltet",
+  "Stock movements or cost evidence changed after the last confirmation. The review needs to be renewed.":
+    "Nach der letzten Bestätigung haben sich Lagerbewegungen oder Kostennachweise geändert. Die Prüfung muss erneuert werden.",
+  "Revenue and goods cost have not been confirmed together":
+    "Erlös und Wareneinsatz wurden noch nicht gemeinsam bestätigt",
+  "DB1 appears once the invoice line, its shipment and the item's confirmed cost are reviewed as one contribution.":
+    "DB1 erscheint, sobald Rechnungsposition, Lieferung und die bestätigten Artikelkosten als ein Deckungsbeitrag geprüft sind.",
+  "The contribution method has not been confirmed":
+    "Die Deckungsbeitragsmethode ist noch nicht bestätigt",
+  "The contribution review confirms which method applies to this invoice line.":
+    "Die Deckungsbeitragsprüfung bestätigt, welche Methode für diese Rechnungsposition gilt.",
+  "Selling costs are not known yet": "Vertriebskosten sind noch nicht bekannt",
+  "DB2 needs the direct and allocated selling costs, such as freight or fees, to be assigned and reviewed. DB1 does not depend on them.":
+    "Für DB2 müssen direkte und umgelegte Vertriebskosten wie Fracht oder Gebühren zugeordnet und geprüft sein. DB1 hängt nicht davon ab.",
+  "A selling cost category is still open": "Eine Vertriebskostenart ist noch offen",
+  "One category of selling costs has not been reviewed. DB2 stays unknown until it is.":
+    "Eine Vertriebskostenart ist noch nicht geprüft. Bis dahin bleibt DB2 unbekannt.",
+  "The contribution review is out of date": "Die Deckungsbeitragsprüfung ist veraltet",
+  "Newer evidence exists for this invoice line. The contribution review needs to be renewed.":
+    "Für diese Rechnungsposition gibt es neuere Nachweise. Die Deckungsbeitragsprüfung muss erneuert werden.",
+  "The invoice line has no stated net amount":
+    "Die Rechnungsposition hat keinen angegebenen Nettobetrag",
+  "Reality records amounts as the source states them and never computes them. The source must supply the net amount.":
+    "Reality übernimmt Beträge so, wie die Quelle sie angibt, und rechnet sie nie selbst aus. Die Quelle muss den Nettobetrag liefern.",
+  "The invoice line is not linked to an order line":
+    "Die Rechnungsposition ist mit keiner Auftragsposition verknüpft",
+  "A contribution needs to know which order line was billed. The link must come from the source or the invoice entry.":
+    "Für einen Deckungsbeitrag muss feststehen, welche Auftragsposition berechnet wurde. Die Verknüpfung muss aus der Quelle oder der Rechnungserfassung kommen.",
+  "The shipment's goods cost is not confirmed":
+    "Der Wareneinsatz der Lieferung ist nicht bestätigt",
+  "The item's cost review does not yet cover this shipment. Renew the item's cost review.":
+    "Die Kostenprüfung des Artikels umfasst diese Lieferung noch nicht. Erneuere die Kostenprüfung des Artikels.",
+  "The shipment happened after the last cost confirmation":
+    "Die Lieferung erfolgte nach der letzten Kostenbestätigung",
+  "Renew the item's cost review so it includes this shipment.":
+    "Erneuere die Kostenprüfung des Artikels, damit sie diese Lieferung einschließt.",
+  "This line type has no contribution": "Für diese Positionsart gibt es keinen Deckungsbeitrag",
+  "Contributions are calculated for item lines of sales invoices only.":
+    "Deckungsbeiträge gibt es nur für Artikelpositionen von Kundenrechnungen.",
+  "The billed line is not a sales order item":
+    "Die berechnete Position ist keine Artikelposition eines Kundenauftrags",
+  "Contributions are calculated for invoice lines that bill a sales order item.":
+    "Deckungsbeiträge gibt es für Rechnungspositionen, die eine Artikelposition eines Kundenauftrags berechnen.",
+  "The shipment was corrected": "Die Lieferung wurde korrigiert",
+  "Contributions for corrected shipments are not supported yet.":
+    "Deckungsbeiträge für korrigierte Lieferungen werden noch nicht unterstützt.",
+  "Negative revenue needs a matching credit": "Negativer Erlös braucht eine passende Gutschrift",
+  "A negative invoice amount can only be reviewed against the credit it belongs to.":
+    "Ein negativer Rechnungsbetrag lässt sich nur zusammen mit der zugehörigen Gutschrift prüfen.",
+  "Stock owner and seller differ": "Bestandseigentümer und Verkäufer sind verschieden",
+  "The confirmed stock belongs to a different party than the one that sold it.":
+    "Der bestätigte Bestand gehört einem anderen Geschäftspartner als dem, der ihn verkauft hat.",
+  "Invoice and cost use different currencies": "Rechnung und Kosten haben verschiedene Währungen",
+  "The item's confirmed cost is in a different currency than the invoice.":
+    "Die bestätigten Artikelkosten sind in einer anderen Währung als die Rechnung.",
+  "Invoice and cost use different units": "Rechnung und Kosten haben verschiedene Einheiten",
+  "The item's confirmed cost uses a different unit than the invoice line.":
+    "Die bestätigten Artikelkosten beziehen sich auf eine andere Einheit als die Rechnungsposition.",
+  "Invoiced and shipped quantities differ": "Berechnete und gelieferte Menge weichen ab",
+  "The invoice line and the confirmed shipment cost cover different quantities.":
+    "Rechnungsposition und bestätigte Lieferkosten umfassen unterschiedliche Mengen.",
+  "No cost has been assigned to this receipt": "Diesem Wareneingang sind keine Kosten zugeordnet",
+  "Assign the supplier invoice lines that belong to this receipt.":
+    "Ordne die Positionen der Lieferantenrechnung zu, die zu diesem Wareneingang gehören.",
+  "No cost is attributed to this receipt": "Diesem Wareneingang sind keine Kosten zugerechnet",
+  "The receipt's cost has not been reviewed": "Die Kosten des Wareneingangs sind nicht geprüft",
+  "Review the assigned costs of this receipt.":
+    "Prüfe die zugeordneten Kosten dieses Wareneingangs.",
+  "The receipt's cost review is out of date": "Die Kostenprüfung des Wareneingangs ist veraltet",
+  "Cost evidence changed after the review. Review the receipt again.":
+    "Die Kostennachweise haben sich nach der Prüfung geändert. Prüfe den Wareneingang erneut.",
+  "Not every cost category of the receipt is reviewed":
+    "Nicht jede Kostenart des Wareneingangs ist geprüft",
+  "Each category, such as goods or inbound freight, needs a decision.":
+    "Jede Kostenart, etwa Ware oder Eingangsfracht, braucht eine Entscheidung.",
+  "A cost category of the receipt is still open": "Eine Kostenart des Wareneingangs ist noch offen",
+  "Decide whether this category applies and confirm its evidence.":
+    "Entscheide, ob diese Kostenart zutrifft, und bestätige ihre Nachweise.",
+  "The tax basis of the cost evidence is incomplete":
+    "Die Steuerbasis der Kostennachweise ist unvollständig",
+  "The supplier invoice must state whether its amounts include tax.":
+    "Die Lieferantenrechnung muss angeben, ob ihre Beträge Steuer enthalten.",
+  "The receipt was corrected": "Der Wareneingang wurde korrigiert",
+  "Review the cost of the corrected receipt.": "Prüfe die Kosten des korrigierten Wareneingangs.",
+  "No carrying value assessment exists": "Es gibt keine Bewertung für den Buchwert",
+  "A carrying value needs a confirmed valuation assessment for this item.":
+    "Ein Buchwert braucht eine bestätigte Bewertung für diesen Artikel.",
+  "Carrying value is not assessed for this item": "Für diesen Artikel wird kein Buchwert bewertet",
+  "Only the acquisition value is available for this item.":
+    "Für diesen Artikel ist nur der Anschaffungswert verfügbar.",
+  "Waiting for the first calculation": "Warten auf die erste Berechnung",
+  "Calculations run in the background. They start once background processing is running.":
+    "Berechnungen laufen im Hintergrund. Sie starten, sobald die Hintergrundverarbeitung läuft.",
+  "A newer calculation is on its way": "Eine neuere Berechnung läuft",
+  "The last completed result is shown until the background calculation finishes.":
+    "Bis die Berechnung im Hintergrund fertig ist, wird das letzte abgeschlossene Ergebnis angezeigt.",
+  "The last calculation failed": "Die letzte Berechnung ist fehlgeschlagen",
+  "The last completed result is shown. The operator can see the cause in the system status.":
+    "Das letzte abgeschlossene Ergebnis wird angezeigt. Der Administrator sieht die Ursache im Systemstatus.",
+  "The calculation took too long": "Die Berechnung hat zu lange gedauert",
+  "It will be retried automatically. Large companies may need more processing time.":
+    "Sie wird automatisch wiederholt. Große Unternehmen brauchen unter Umständen mehr Rechenzeit.",
+  "The calculation stopped with an error": "Die Berechnung wurde mit einem Fehler abgebrochen",
+  "The operator can see the cause in the system status.":
+    "Der Administrator sieht die Ursache im Systemstatus.",
+  "The database was not reachable during the calculation":
+    "Die Datenbank war während der Berechnung nicht erreichbar",
+  "It will be retried automatically once the database is reachable again.":
+    "Sie wird automatisch wiederholt, sobald die Datenbank wieder erreichbar ist.",
+  "Background processing stopped during the calculation":
+    "Die Hintergrundverarbeitung wurde während der Berechnung beendet",
+  "It will be retried automatically once background processing runs again.":
+    "Sie wird automatisch wiederholt, sobald die Hintergrundverarbeitung wieder läuft.",
+  "It is unclear whether the last calculation finished":
+    "Es ist unklar, ob die letzte Berechnung abgeschlossen wurde",
+  "The operator needs to check the calculation in the system status.":
+    "Der Administrator muss die Berechnung im Systemstatus prüfen.",
+  "No price applies to this business partner and item":
+    "Für diesen Geschäftspartner und Artikel gilt kein Preis",
+  "Price lists and their assignments are maintained by an administrator.":
+    "Preislisten und ihre Zuordnungen pflegt ein Administrator.",
+  "No company valuation has been published yet":
+    "Es wurde noch keine Unternehmensbewertung veröffentlicht",
+  "Company valuations are built in the background by the operator once item cost reviews exist.":
+    "Unternehmensbewertungen erstellt der Administrator im Hintergrund, sobald Kostenprüfungen für Artikel vorliegen.",
+  "Not enough stock": "Nicht genug Bestand",
+  "Record the incoming goods or wait for the next receipt.":
+    "Buche den Wareneingang oder warte auf die nächste Lieferung.",
+  "Not enough stock reserved": "Nicht genug Bestand reserviert",
+  "Reserve available stock for this order.": "Reserviere verfügbaren Bestand für diesen Auftrag.",
+  "Prepayment required": "Vorkasse erforderlich",
+  "This order ships only after the prepayment is invoiced and paid.":
+    "Dieser Auftrag wird erst geliefert, wenn die Vorkasse berechnet und bezahlt ist.",
+  "Prepayment invoice missing": "Vorkasserechnung fehlt",
+  "Record the prepayment invoice for this order.":
+    "Erfasse die Vorkasserechnung für diesen Auftrag.",
+  "Prepayment cannot be matched clearly": "Vorkasse lässt sich nicht eindeutig zuordnen",
+  "More than one invoice or payment could belong to this order. Check the open items.":
+    "Mehr als eine Rechnung oder Zahlung könnte zu diesem Auftrag gehören. Prüfe die Offenen Posten.",
+  "The order is on hold": "Der Auftrag ist gesperrt",
+  "Release the hold when the order may ship.":
+    "Hebe die Sperre auf, sobald der Auftrag geliefert werden darf.",
+  "The customer is on delivery hold": "Für den Kunden besteht eine Liefersperre",
+  "Release the customer's delivery hold when shipping may resume.":
+    "Hebe die Liefersperre des Kunden auf, sobald wieder geliefert werden darf.",
+  "Confirm the cost of each receipt": "Kosten jedes Wareneingangs bestätigen",
+  "Prepare the receipt cost review for {scope}: assign the supplier invoice lines to each open receipt and review its cost categories.":
+    "Bereite die Kostenprüfung der Wareneingänge für {scope} vor: Ordne jedem offenen Wareneingang die Positionen der Lieferantenrechnung zu und prüfe seine Kostenarten.",
+  "Record the supplier invoice first": "Zuerst die Lieferantenrechnung erfassen",
+  "Prepare the item's cost review": "Kostenprüfung des Artikels vorbereiten",
+  "Prepare the inventory cost review for {scope} so a company owner can confirm it.":
+    "Bereite die Kostenprüfung des Bestands für {scope} vor, damit ein Inhaber sie bestätigen kann.",
+  "Renew the item's cost review": "Kostenprüfung des Artikels erneuern",
+  "Renew the inventory cost review for {scope} with the current evidence so a company owner can confirm it.":
+    "Erneuere die Kostenprüfung des Bestands für {scope} mit den aktuellen Nachweisen, damit ein Inhaber sie bestätigen kann.",
+  "Prepare the contribution review": "Deckungsbeitragsprüfung vorbereiten",
+  "Prepare the contribution review for {scope} so a company owner can confirm it.":
+    "Bereite die Deckungsbeitragsprüfung für {scope} vor, damit ein Inhaber sie bestätigen kann.",
+  "Review the selling costs": "Vertriebskosten prüfen",
+  "Prepare the selling cost review for {scope}: assign freight, fees and other selling costs and review each category.":
+    "Bereite die Vertriebskostenprüfung für {scope} vor: Ordne Fracht, Gebühren und andere Vertriebskosten zu und prüfe jede Kostenart.",
+  "A company owner confirms the proposal": "Ein Inhaber bestätigt den Vorschlag",
+  "The source data does not allow this yet": "Die Quelldaten lassen das noch nicht zu",
+  "Check background processing": "Hintergrundverarbeitung prüfen",
+  "An administrator maintains price lists": "Preislisten pflegt ein Administrator",
+  "Record the invoice": "Rechnung erfassen",
+  "Record the incoming goods": "Wareneingang buchen",
+  "Release the order hold": "Auftragssperre aufheben",
+  "Release the customer's delivery hold": "Liefersperre des Kunden aufheben",
+  "Check the open items": "Offene Posten prüfen",
+});
+Object.assign(dictionaries.nl, {
+  "No confirmed cost basis yet": "Nog geen bevestigde kostenbasis",
+  "The value appears once the underlying costs are confirmed and a company owner has approved the review.":
+    "De waarde verschijnt zodra de onderliggende kosten zijn bevestigd en een eigenaar de controle heeft goedgekeurd.",
+  "Cost basis is incomplete": "Kostenbasis is onvolledig",
+  "Some evidence or a confirmation is still missing. The steps below show what is open.":
+    "Er ontbreekt nog bewijs of een bevestiging. De stappen hieronder laten zien wat openstaat.",
+  "Newer business activity since the last confirmation":
+    "Nieuwe bedrijfsactiviteit sinds de laatste bevestiging",
+  "The last confirmed value is shown for reference only until the review is renewed.":
+    "De laatst bevestigde waarde wordt alleen ter referentie getoond tot de controle is vernieuwd.",
+  "The last cost preparation could not be used":
+    "De laatste kostenvoorbereiding was niet bruikbaar",
+  "Inspect the evidence of the last preparation and prepare it again.":
+    "Bekijk het bewijs van de laatste voorbereiding en bereid die opnieuw voor.",
+  "Cost basis is confirmed and current": "Kostenbasis is bevestigd en actueel",
+  "The value is based on the confirmed review for this scope.":
+    "De waarde is gebaseerd op de bevestigde controle voor deze reikwijdte.",
+  "Nobody has confirmed the acquisition cost for this item yet":
+    "Niemand heeft de aanschafkosten van dit artikel al bevestigd",
+  "Stock value appears once every receipt carries confirmed cost and a company owner has confirmed the item's cost review.":
+    "De voorraadwaarde verschijnt zodra elke goederenontvangst bevestigde kosten heeft en een eigenaar de kostencontrole van het artikel heeft bevestigd.",
+  "The item's cost review is out of date": "De kostencontrole van het artikel is verouderd",
+  "Stock movements or cost evidence changed after the last confirmation. The review needs to be renewed.":
+    "Na de laatste bevestiging zijn voorraadmutaties of kostenbewijzen gewijzigd. De controle moet worden vernieuwd.",
+  "Revenue and goods cost have not been confirmed together":
+    "Omzet en inkoopwaarde zijn nog niet samen bevestigd",
+  "DB1 appears once the invoice line, its shipment and the item's confirmed cost are reviewed as one contribution.":
+    "DB1 verschijnt zodra de factuurregel, de levering en de bevestigde artikelkosten samen als één bijdrage zijn gecontroleerd.",
+  "The contribution method has not been confirmed": "De bijdragemethode is nog niet bevestigd",
+  "The contribution review confirms which method applies to this invoice line.":
+    "De bijdragecontrole bevestigt welke methode voor deze factuurregel geldt.",
+  "Selling costs are not known yet": "Verkoopkosten zijn nog niet bekend",
+  "DB2 needs the direct and allocated selling costs, such as freight or fees, to be assigned and reviewed. DB1 does not depend on them.":
+    "Voor DB2 moeten directe en toegerekende verkoopkosten, zoals vracht of vergoedingen, zijn toegewezen en gecontroleerd. DB1 hangt daar niet van af.",
+  "A selling cost category is still open": "Een verkoopkostencategorie staat nog open",
+  "One category of selling costs has not been reviewed. DB2 stays unknown until it is.":
+    "Eén categorie verkoopkosten is nog niet gecontroleerd. Tot dan blijft DB2 onbekend.",
+  "The contribution review is out of date": "De bijdragecontrole is verouderd",
+  "Newer evidence exists for this invoice line. The contribution review needs to be renewed.":
+    "Er is nieuwer bewijs voor deze factuurregel. De bijdragecontrole moet worden vernieuwd.",
+  "The invoice line has no stated net amount": "De factuurregel heeft geen vermeld nettobedrag",
+  "Reality records amounts as the source states them and never computes them. The source must supply the net amount.":
+    "Reality legt bedragen vast zoals de bron ze vermeldt en berekent ze nooit zelf. De bron moet het nettobedrag leveren.",
+  "The invoice line is not linked to an order line":
+    "De factuurregel is niet gekoppeld aan een orderregel",
+  "A contribution needs to know which order line was billed. The link must come from the source or the invoice entry.":
+    "Voor een bijdrage moet vaststaan welke orderregel is gefactureerd. De koppeling moet uit de bron of de factuurinvoer komen.",
+  "The shipment's goods cost is not confirmed": "De inkoopwaarde van de levering is niet bevestigd",
+  "The item's cost review does not yet cover this shipment. Renew the item's cost review.":
+    "De kostencontrole van het artikel dekt deze levering nog niet. Vernieuw de kostencontrole van het artikel.",
+  "The shipment happened after the last cost confirmation":
+    "De levering vond plaats na de laatste kostenbevestiging",
+  "Renew the item's cost review so it includes this shipment.":
+    "Vernieuw de kostencontrole van het artikel zodat deze levering erin valt.",
+  "This line type has no contribution": "Dit regeltype heeft geen bijdrage",
+  "Contributions are calculated for item lines of sales invoices only.":
+    "Bijdragen worden alleen berekend voor artikelregels van verkoopfacturen.",
+  "The billed line is not a sales order item":
+    "De gefactureerde regel is geen artikel van een verkooporder",
+  "Contributions are calculated for invoice lines that bill a sales order item.":
+    "Bijdragen worden berekend voor factuurregels die een artikel van een verkooporder factureren.",
+  "The shipment was corrected": "De levering is gecorrigeerd",
+  "Contributions for corrected shipments are not supported yet.":
+    "Bijdragen voor gecorrigeerde leveringen worden nog niet ondersteund.",
+  "Negative revenue needs a matching credit":
+    "Negatieve omzet heeft een bijpassende creditnota nodig",
+  "A negative invoice amount can only be reviewed against the credit it belongs to.":
+    "Een negatief factuurbedrag kan alleen samen met de bijbehorende creditnota worden gecontroleerd.",
+  "Stock owner and seller differ": "Voorraadeigenaar en verkoper verschillen",
+  "The confirmed stock belongs to a different party than the one that sold it.":
+    "De bevestigde voorraad is van een andere partij dan de partij die hem heeft verkocht.",
+  "Invoice and cost use different currencies": "Factuur en kosten gebruiken verschillende valuta",
+  "The item's confirmed cost is in a different currency than the invoice.":
+    "De bevestigde artikelkosten staan in een andere valuta dan de factuur.",
+  "Invoice and cost use different units": "Factuur en kosten gebruiken verschillende eenheden",
+  "The item's confirmed cost uses a different unit than the invoice line.":
+    "De bevestigde artikelkosten gebruiken een andere eenheid dan de factuurregel.",
+  "Invoiced and shipped quantities differ": "Gefactureerde en geleverde hoeveelheden verschillen",
+  "The invoice line and the confirmed shipment cost cover different quantities.":
+    "De factuurregel en de bevestigde leveringskosten dekken verschillende hoeveelheden.",
+  "No cost has been assigned to this receipt":
+    "Aan deze goederenontvangst zijn geen kosten toegewezen",
+  "Assign the supplier invoice lines that belong to this receipt.":
+    "Wijs de regels van de inkoopfactuur toe die bij deze goederenontvangst horen.",
+  "No cost is attributed to this receipt":
+    "Aan deze goederenontvangst zijn geen kosten toegerekend",
+  "The receipt's cost has not been reviewed":
+    "De kosten van de goederenontvangst zijn niet gecontroleerd",
+  "Review the assigned costs of this receipt.":
+    "Controleer de toegewezen kosten van deze goederenontvangst.",
+  "The receipt's cost review is out of date":
+    "De kostencontrole van de goederenontvangst is verouderd",
+  "Cost evidence changed after the review. Review the receipt again.":
+    "Het kostenbewijs is na de controle gewijzigd. Controleer de goederenontvangst opnieuw.",
+  "Not every cost category of the receipt is reviewed":
+    "Niet elke kostencategorie van de goederenontvangst is gecontroleerd",
+  "Each category, such as goods or inbound freight, needs a decision.":
+    "Elke categorie, zoals goederen of inkomende vracht, heeft een beslissing nodig.",
+  "A cost category of the receipt is still open":
+    "Een kostencategorie van de goederenontvangst staat nog open",
+  "Decide whether this category applies and confirm its evidence.":
+    "Beslis of deze categorie van toepassing is en bevestig het bewijs.",
+  "The tax basis of the cost evidence is incomplete":
+    "De belastinggrondslag van het kostenbewijs is onvolledig",
+  "The supplier invoice must state whether its amounts include tax.":
+    "De inkoopfactuur moet vermelden of de bedragen inclusief belasting zijn.",
+  "The receipt was corrected": "De goederenontvangst is gecorrigeerd",
+  "Review the cost of the corrected receipt.":
+    "Controleer de kosten van de gecorrigeerde goederenontvangst.",
+  "No carrying value assessment exists": "Er is geen waardering voor de boekwaarde",
+  "A carrying value needs a confirmed valuation assessment for this item.":
+    "Een boekwaarde heeft een bevestigde waardering voor dit artikel nodig.",
+  "Carrying value is not assessed for this item":
+    "Voor dit artikel wordt geen boekwaarde gewaardeerd",
+  "Only the acquisition value is available for this item.":
+    "Voor dit artikel is alleen de aanschafwaarde beschikbaar.",
+  "Waiting for the first calculation": "Wachten op de eerste berekening",
+  "Calculations run in the background. They start once background processing is running.":
+    "Berekeningen lopen op de achtergrond. Ze starten zodra de achtergrondverwerking draait.",
+  "A newer calculation is on its way": "Een nieuwere berekening is onderweg",
+  "The last completed result is shown until the background calculation finishes.":
+    "Het laatst voltooide resultaat wordt getoond tot de achtergrondberekening klaar is.",
+  "The last calculation failed": "De laatste berekening is mislukt",
+  "The last completed result is shown. The operator can see the cause in the system status.":
+    "Het laatst voltooide resultaat wordt getoond. De beheerder ziet de oorzaak in de systeemstatus.",
+  "The calculation took too long": "De berekening duurde te lang",
+  "It will be retried automatically. Large companies may need more processing time.":
+    "Deze wordt automatisch opnieuw geprobeerd. Grote bedrijven hebben soms meer verwerkingstijd nodig.",
+  "The calculation stopped with an error": "De berekening is gestopt met een fout",
+  "The operator can see the cause in the system status.":
+    "De beheerder ziet de oorzaak in de systeemstatus.",
+  "The database was not reachable during the calculation":
+    "De database was tijdens de berekening niet bereikbaar",
+  "It will be retried automatically once the database is reachable again.":
+    "Deze wordt automatisch opnieuw geprobeerd zodra de database weer bereikbaar is.",
+  "Background processing stopped during the calculation":
+    "De achtergrondverwerking stopte tijdens de berekening",
+  "It will be retried automatically once background processing runs again.":
+    "Deze wordt automatisch opnieuw geprobeerd zodra de achtergrondverwerking weer draait.",
+  "It is unclear whether the last calculation finished":
+    "Het is onduidelijk of de laatste berekening is voltooid",
+  "The operator needs to check the calculation in the system status.":
+    "De beheerder moet de berekening in de systeemstatus controleren.",
+  "No price applies to this business partner and item":
+    "Voor deze relatie en dit artikel geldt geen prijs",
+  "Price lists and their assignments are maintained by an administrator.":
+    "Prijslijsten en hun toewijzingen worden door een beheerder onderhouden.",
+  "No company valuation has been published yet": "Er is nog geen bedrijfswaardering gepubliceerd",
+  "Company valuations are built in the background by the operator once item cost reviews exist.":
+    "Bedrijfswaarderingen worden door de beheerder op de achtergrond opgebouwd zodra er kostencontroles voor artikelen zijn.",
+  "Not enough stock": "Niet genoeg voorraad",
+  "Record the incoming goods or wait for the next receipt.":
+    "Boek de ontvangen goederen of wacht op de volgende levering.",
+  "Not enough stock reserved": "Niet genoeg voorraad gereserveerd",
+  "Reserve available stock for this order.": "Reserveer beschikbare voorraad voor deze order.",
+  "Prepayment required": "Vooruitbetaling vereist",
+  "This order ships only after the prepayment is invoiced and paid.":
+    "Deze order wordt pas geleverd als de vooruitbetaling is gefactureerd en betaald.",
+  "Prepayment invoice missing": "Factuur voor vooruitbetaling ontbreekt",
+  "Record the prepayment invoice for this order.":
+    "Leg de factuur voor de vooruitbetaling van deze order vast.",
+  "Prepayment cannot be matched clearly": "Vooruitbetaling kan niet eenduidig worden gekoppeld",
+  "More than one invoice or payment could belong to this order. Check the open items.":
+    "Meer dan één factuur of betaling kan bij deze order horen. Controleer de openstaande posten.",
+  "The order is on hold": "De order staat on hold",
+  "Release the hold when the order may ship.":
+    "Hef de blokkade op zodra de order mag worden geleverd.",
+  "The customer is on delivery hold": "De klant heeft een leveringsblokkade",
+  "Release the customer's delivery hold when shipping may resume.":
+    "Hef de leveringsblokkade van de klant op zodra er weer mag worden geleverd.",
+  "Confirm the cost of each receipt": "Kosten van elke goederenontvangst bevestigen",
+  "Prepare the receipt cost review for {scope}: assign the supplier invoice lines to each open receipt and review its cost categories.":
+    "Bereid de kostencontrole van de goederenontvangsten voor {scope} voor: wijs de regels van de inkoopfactuur toe aan elke open ontvangst en controleer de kostencategorieën.",
+  "Record the supplier invoice first": "Eerst de inkoopfactuur vastleggen",
+  "Prepare the item's cost review": "Kostencontrole van het artikel voorbereiden",
+  "Prepare the inventory cost review for {scope} so a company owner can confirm it.":
+    "Bereid de kostencontrole van de voorraad voor {scope} voor, zodat een eigenaar die kan bevestigen.",
+  "Renew the item's cost review": "Kostencontrole van het artikel vernieuwen",
+  "Renew the inventory cost review for {scope} with the current evidence so a company owner can confirm it.":
+    "Vernieuw de kostencontrole van de voorraad voor {scope} met het actuele bewijs, zodat een eigenaar die kan bevestigen.",
+  "Prepare the contribution review": "Bijdragecontrole voorbereiden",
+  "Prepare the contribution review for {scope} so a company owner can confirm it.":
+    "Bereid de bijdragecontrole voor {scope} voor, zodat een eigenaar die kan bevestigen.",
+  "Review the selling costs": "Verkoopkosten controleren",
+  "Prepare the selling cost review for {scope}: assign freight, fees and other selling costs and review each category.":
+    "Bereid de verkoopkostencontrole voor {scope} voor: wijs vracht, vergoedingen en andere verkoopkosten toe en controleer elke categorie.",
+  "A company owner confirms the proposal": "Een eigenaar bevestigt het voorstel",
+  "The source data does not allow this yet": "De brongegevens laten dit nog niet toe",
+  "Check background processing": "Achtergrondverwerking controleren",
+  "An administrator maintains price lists": "Een beheerder onderhoudt prijslijsten",
+  "Record the invoice": "Factuur vastleggen",
+  "Record the incoming goods": "Ontvangen goederen boeken",
+  "Release the order hold": "Orderblokkade opheffen",
+  "Release the customer's delivery hold": "Leveringsblokkade van de klant opheffen",
+  "Check the open items": "Openstaande posten controleren",
+});
+Object.assign(dictionaries.es, {
+  "No confirmed cost basis yet": "Aún no hay una base de costes confirmada",
+  "The value appears once the underlying costs are confirmed and a company owner has approved the review.":
+    "El valor aparece cuando los costes subyacentes están confirmados y un propietario ha aprobado la revisión.",
+  "Cost basis is incomplete": "La base de costes está incompleta",
+  "Some evidence or a confirmation is still missing. The steps below show what is open.":
+    "Aún falta algún justificante o una confirmación. Los pasos de abajo muestran lo que queda pendiente.",
+  "Newer business activity since the last confirmation":
+    "Hay actividad más reciente desde la última confirmación",
+  "The last confirmed value is shown for reference only until the review is renewed.":
+    "El último valor confirmado se muestra solo como referencia hasta que se renueve la revisión.",
+  "The last cost preparation could not be used": "La última preparación de costes no se pudo usar",
+  "Inspect the evidence of the last preparation and prepare it again.":
+    "Revisa los justificantes de la última preparación y prepárala de nuevo.",
+  "Cost basis is confirmed and current": "La base de costes está confirmada y al día",
+  "The value is based on the confirmed review for this scope.":
+    "El valor se basa en la revisión confirmada para este alcance.",
+  "Nobody has confirmed the acquisition cost for this item yet":
+    "Nadie ha confirmado todavía el coste de adquisición de este artículo",
+  "Stock value appears once every receipt carries confirmed cost and a company owner has confirmed the item's cost review.":
+    "El valor del stock aparece cuando cada entrada de mercancía tiene costes confirmados y un propietario ha confirmado la revisión de costes del artículo.",
+  "The item's cost review is out of date": "La revisión de costes del artículo está desactualizada",
+  "Stock movements or cost evidence changed after the last confirmation. The review needs to be renewed.":
+    "Tras la última confirmación cambiaron movimientos de stock o justificantes de costes. Hay que renovar la revisión.",
+  "Revenue and goods cost have not been confirmed together":
+    "Los ingresos y el coste de la mercancía aún no se han confirmado juntos",
+  "DB1 appears once the invoice line, its shipment and the item's confirmed cost are reviewed as one contribution.":
+    "El MC1 aparece cuando la línea de factura, su envío y el coste confirmado del artículo se revisan como una sola contribución.",
+  "The contribution method has not been confirmed":
+    "El método de contribución aún no está confirmado",
+  "The contribution review confirms which method applies to this invoice line.":
+    "La revisión de la contribución confirma qué método se aplica a esta línea de factura.",
+  "Selling costs are not known yet": "Los costes de venta aún no se conocen",
+  "DB2 needs the direct and allocated selling costs, such as freight or fees, to be assigned and reviewed. DB1 does not depend on them.":
+    "El MC2 necesita que los costes de venta directos y repartidos, como portes o comisiones, estén asignados y revisados. El MC1 no depende de ellos.",
+  "A selling cost category is still open": "Una categoría de costes de venta sigue abierta",
+  "One category of selling costs has not been reviewed. DB2 stays unknown until it is.":
+    "Una categoría de costes de venta no se ha revisado. Hasta entonces el MC2 sigue siendo desconocido.",
+  "The contribution review is out of date": "La revisión de la contribución está desactualizada",
+  "Newer evidence exists for this invoice line. The contribution review needs to be renewed.":
+    "Hay justificantes más recientes para esta línea de factura. Hay que renovar la revisión de la contribución.",
+  "The invoice line has no stated net amount": "La línea de factura no indica un importe neto",
+  "Reality records amounts as the source states them and never computes them. The source must supply the net amount.":
+    "Reality registra los importes tal como los indica la fuente y nunca los calcula. La fuente debe aportar el importe neto.",
+  "The invoice line is not linked to an order line":
+    "La línea de factura no está vinculada a una línea de pedido",
+  "A contribution needs to know which order line was billed. The link must come from the source or the invoice entry.":
+    "Una contribución necesita saber qué línea de pedido se facturó. El vínculo debe venir de la fuente o del registro de la factura.",
+  "The shipment's goods cost is not confirmed":
+    "El coste de la mercancía del envío no está confirmado",
+  "The item's cost review does not yet cover this shipment. Renew the item's cost review.":
+    "La revisión de costes del artículo aún no cubre este envío. Renueva la revisión de costes del artículo.",
+  "The shipment happened after the last cost confirmation":
+    "El envío se produjo después de la última confirmación de costes",
+  "Renew the item's cost review so it includes this shipment.":
+    "Renueva la revisión de costes del artículo para que incluya este envío.",
+  "This line type has no contribution": "Este tipo de línea no tiene contribución",
+  "Contributions are calculated for item lines of sales invoices only.":
+    "Las contribuciones solo se calculan para líneas de artículo de facturas de venta.",
+  "The billed line is not a sales order item":
+    "La línea facturada no es un artículo de un pedido de cliente",
+  "Contributions are calculated for invoice lines that bill a sales order item.":
+    "Las contribuciones se calculan para líneas de factura que facturan un artículo de un pedido de cliente.",
+  "The shipment was corrected": "El envío se corrigió",
+  "Contributions for corrected shipments are not supported yet.":
+    "Las contribuciones de envíos corregidos aún no se admiten.",
+  "Negative revenue needs a matching credit":
+    "Un ingreso negativo necesita un abono correspondiente",
+  "A negative invoice amount can only be reviewed against the credit it belongs to.":
+    "Un importe de factura negativo solo se puede revisar junto con el abono al que pertenece.",
+  "Stock owner and seller differ": "El propietario del stock y el vendedor son distintos",
+  "The confirmed stock belongs to a different party than the one that sold it.":
+    "El stock confirmado pertenece a otra parte distinta de la que lo vendió.",
+  "Invoice and cost use different currencies": "La factura y el coste usan monedas distintas",
+  "The item's confirmed cost is in a different currency than the invoice.":
+    "El coste confirmado del artículo está en una moneda distinta de la factura.",
+  "Invoice and cost use different units": "La factura y el coste usan unidades distintas",
+  "The item's confirmed cost uses a different unit than the invoice line.":
+    "El coste confirmado del artículo usa una unidad distinta de la línea de factura.",
+  "Invoiced and shipped quantities differ": "Las cantidades facturada y enviada no coinciden",
+  "The invoice line and the confirmed shipment cost cover different quantities.":
+    "La línea de factura y el coste confirmado del envío cubren cantidades distintas.",
+  "No cost has been assigned to this receipt":
+    "No se han asignado costes a esta entrada de mercancía",
+  "Assign the supplier invoice lines that belong to this receipt.":
+    "Asigna las líneas de la factura de proveedor que corresponden a esta entrada.",
+  "No cost is attributed to this receipt": "No hay costes atribuidos a esta entrada de mercancía",
+  "The receipt's cost has not been reviewed":
+    "Los costes de la entrada de mercancía no se han revisado",
+  "Review the assigned costs of this receipt.":
+    "Revisa los costes asignados de esta entrada de mercancía.",
+  "The receipt's cost review is out of date":
+    "La revisión de costes de la entrada de mercancía está desactualizada",
+  "Cost evidence changed after the review. Review the receipt again.":
+    "Los justificantes de costes cambiaron tras la revisión. Revisa de nuevo la entrada de mercancía.",
+  "Not every cost category of the receipt is reviewed":
+    "No todas las categorías de coste de la entrada están revisadas",
+  "Each category, such as goods or inbound freight, needs a decision.":
+    "Cada categoría, como mercancía o portes de entrada, necesita una decisión.",
+  "A cost category of the receipt is still open":
+    "Una categoría de coste de la entrada sigue abierta",
+  "Decide whether this category applies and confirm its evidence.":
+    "Decide si esta categoría aplica y confirma sus justificantes.",
+  "The tax basis of the cost evidence is incomplete":
+    "La base fiscal de los justificantes de costes está incompleta",
+  "The supplier invoice must state whether its amounts include tax.":
+    "La factura de proveedor debe indicar si sus importes incluyen impuestos.",
+  "The receipt was corrected": "La entrada de mercancía se corrigió",
+  "Review the cost of the corrected receipt.":
+    "Revisa los costes de la entrada de mercancía corregida.",
+  "No carrying value assessment exists": "No existe una valoración del valor contable",
+  "A carrying value needs a confirmed valuation assessment for this item.":
+    "Un valor contable necesita una valoración confirmada de este artículo.",
+  "Carrying value is not assessed for this item":
+    "El valor contable no se valora para este artículo",
+  "Only the acquisition value is available for this item.":
+    "Para este artículo solo está disponible el valor de adquisición.",
+  "Waiting for the first calculation": "Esperando el primer cálculo",
+  "Calculations run in the background. They start once background processing is running.":
+    "Los cálculos se ejecutan en segundo plano. Empiezan cuando el procesamiento en segundo plano está en marcha.",
+  "A newer calculation is on its way": "Un cálculo más reciente está en curso",
+  "The last completed result is shown until the background calculation finishes.":
+    "Se muestra el último resultado completado hasta que termine el cálculo en segundo plano.",
+  "The last calculation failed": "El último cálculo falló",
+  "The last completed result is shown. The operator can see the cause in the system status.":
+    "Se muestra el último resultado completado. El administrador ve la causa en el estado del sistema.",
+  "The calculation took too long": "El cálculo tardó demasiado",
+  "It will be retried automatically. Large companies may need more processing time.":
+    "Se reintentará automáticamente. Las empresas grandes pueden necesitar más tiempo de proceso.",
+  "The calculation stopped with an error": "El cálculo se detuvo con un error",
+  "The operator can see the cause in the system status.":
+    "El administrador ve la causa en el estado del sistema.",
+  "The database was not reachable during the calculation":
+    "La base de datos no estaba disponible durante el cálculo",
+  "It will be retried automatically once the database is reachable again.":
+    "Se reintentará automáticamente cuando la base de datos vuelva a estar disponible.",
+  "Background processing stopped during the calculation":
+    "El procesamiento en segundo plano se detuvo durante el cálculo",
+  "It will be retried automatically once background processing runs again.":
+    "Se reintentará automáticamente cuando el procesamiento en segundo plano vuelva a funcionar.",
+  "It is unclear whether the last calculation finished":
+    "No está claro si el último cálculo terminó",
+  "The operator needs to check the calculation in the system status.":
+    "El administrador debe revisar el cálculo en el estado del sistema.",
+  "No price applies to this business partner and item":
+    "No se aplica ningún precio a este socio comercial y artículo",
+  "Price lists and their assignments are maintained by an administrator.":
+    "Las listas de precios y sus asignaciones las mantiene un administrador.",
+  "No company valuation has been published yet":
+    "Aún no se ha publicado ninguna valoración de la empresa",
+  "Company valuations are built in the background by the operator once item cost reviews exist.":
+    "El administrador genera las valoraciones de la empresa en segundo plano cuando existen revisiones de costes de artículos.",
+  "Not enough stock": "No hay stock suficiente",
+  "Record the incoming goods or wait for the next receipt.":
+    "Registra la mercancía recibida o espera la próxima entrada.",
+  "Not enough stock reserved": "No hay suficiente stock reservado",
+  "Reserve available stock for this order.": "Reserva stock disponible para este pedido.",
+  "Prepayment required": "Pago anticipado obligatorio",
+  "This order ships only after the prepayment is invoiced and paid.":
+    "Este pedido solo se envía cuando el pago anticipado está facturado y pagado.",
+  "Prepayment invoice missing": "Falta la factura de pago anticipado",
+  "Record the prepayment invoice for this order.":
+    "Registra la factura de pago anticipado de este pedido.",
+  "Prepayment cannot be matched clearly": "El pago anticipado no se puede asignar con claridad",
+  "More than one invoice or payment could belong to this order. Check the open items.":
+    "Más de una factura o pago podría corresponder a este pedido. Revisa las partidas abiertas.",
+  "The order is on hold": "El pedido está retenido",
+  "Release the hold when the order may ship.":
+    "Levanta la retención cuando el pedido pueda enviarse.",
+  "The customer is on delivery hold": "El cliente tiene un bloqueo de entregas",
+  "Release the customer's delivery hold when shipping may resume.":
+    "Levanta el bloqueo de entregas del cliente cuando se pueda volver a enviar.",
+  "Confirm the cost of each receipt": "Confirmar el coste de cada entrada de mercancía",
+  "Prepare the receipt cost review for {scope}: assign the supplier invoice lines to each open receipt and review its cost categories.":
+    "Prepara la revisión de costes de las entradas para {scope}: asigna las líneas de la factura de proveedor a cada entrada abierta y revisa sus categorías de coste.",
+  "Record the supplier invoice first": "Registrar primero la factura de proveedor",
+  "Prepare the item's cost review": "Preparar la revisión de costes del artículo",
+  "Prepare the inventory cost review for {scope} so a company owner can confirm it.":
+    "Prepara la revisión de costes del inventario para {scope} para que un propietario pueda confirmarla.",
+  "Renew the item's cost review": "Renovar la revisión de costes del artículo",
+  "Renew the inventory cost review for {scope} with the current evidence so a company owner can confirm it.":
+    "Renueva la revisión de costes del inventario para {scope} con los justificantes actuales para que un propietario pueda confirmarla.",
+  "Prepare the contribution review": "Preparar la revisión de la contribución",
+  "Prepare the contribution review for {scope} so a company owner can confirm it.":
+    "Prepara la revisión de la contribución para {scope} para que un propietario pueda confirmarla.",
+  "Review the selling costs": "Revisar los costes de venta",
+  "Prepare the selling cost review for {scope}: assign freight, fees and other selling costs and review each category.":
+    "Prepara la revisión de costes de venta para {scope}: asigna portes, comisiones y otros costes de venta y revisa cada categoría.",
+  "A company owner confirms the proposal": "Un propietario confirma la propuesta",
+  "The source data does not allow this yet": "Los datos de origen aún no lo permiten",
+  "Check background processing": "Comprobar el procesamiento en segundo plano",
+  "An administrator maintains price lists": "Un administrador mantiene las listas de precios",
+  "Record the invoice": "Registrar la factura",
+  "Record the incoming goods": "Registrar la mercancía recibida",
+  "Release the order hold": "Levantar la retención del pedido",
+  "Release the customer's delivery hold": "Levantar el bloqueo de entregas del cliente",
+  "Check the open items": "Revisar las partidas abiertas",
+});
+
+// Spec 279: resolution guidance controls.
+Object.assign(dictionaries.de, {
+  "A company owner must confirm this.": "Ein Inhaber muss das bestätigen.",
+  "An administrator takes care of this.": "Darum kümmert sich ein Administrator.",
+  "Further step": "Weiterer Schritt",
+  "Open system status": "Systemstatus öffnen",
+  "Open the explanation to see which evidence is involved.":
+    "Öffne die Erklärung, um zu sehen, welche Nachweise betroffen sind.",
+  "Prepare with Reality": "Mit Reality vorbereiten",
+  "Review in Decisions": "In Entscheidungen prüfen",
+  "Something this value needs is still missing": "Für diesen Wert fehlt noch etwas",
+  "Steps to a proven value": "Schritte zu einem nachgewiesenen Wert",
+  "This company is read-only. Nothing can be changed here.":
+    "Dieses Unternehmen ist schreibgeschützt. Hier lässt sich nichts ändern.",
+  "Step done": "Schritt erledigt",
+  "Step open": "Schritt offen",
+  "Step waits for the one before": "Schritt wartet auf den vorherigen",
+});
+Object.assign(dictionaries.nl, {
+  "A company owner must confirm this.": "Een eigenaar moet dit bevestigen.",
+  "An administrator takes care of this.": "Een beheerder regelt dit.",
+  "Further step": "Volgende stap",
+  "Open system status": "Systeemstatus openen",
+  "Open the explanation to see which evidence is involved.":
+    "Open de uitleg om te zien welk bewijs het betreft.",
+  "Prepare with Reality": "Met Reality voorbereiden",
+  "Review in Decisions": "Bekijken in Beslissingen",
+  "Something this value needs is still missing": "Voor deze waarde ontbreekt nog iets",
+  "Steps to a proven value": "Stappen naar een aangetoonde waarde",
+  "This company is read-only. Nothing can be changed here.":
+    "Dit bedrijf is alleen-lezen. Hier kan niets worden gewijzigd.",
+  "Step done": "Stap afgerond",
+  "Step open": "Stap open",
+  "Step waits for the one before": "Stap wacht op de vorige",
+});
+Object.assign(dictionaries.es, {
+  "A company owner must confirm this.": "Un propietario debe confirmarlo.",
+  "An administrator takes care of this.": "De esto se encarga un administrador.",
+  "Further step": "Otro paso",
+  "Open system status": "Abrir el estado del sistema",
+  "Open the explanation to see which evidence is involved.":
+    "Abre la explicación para ver qué justificantes intervienen.",
+  "Prepare with Reality": "Preparar con Reality",
+  "Review in Decisions": "Revisar en Decisiones",
+  "Something this value needs is still missing": "A este valor todavía le falta algo",
+  "Steps to a proven value": "Pasos hacia un valor demostrado",
+  "This company is read-only. Nothing can be changed here.":
+    "Esta empresa es de solo lectura. Aquí no se puede cambiar nada.",
+  "Step done": "Paso completado",
+  "Step open": "Paso pendiente",
+  "Step waits for the one before": "El paso espera al anterior",
+});
+
+// Spec 279: operational exception class titles and resolution texts.
+Object.assign(dictionaries.de, {
+  "Overdue outgoing customer commitment": "Lieferverzug an Kunden",
+  "Shipping the outstanding quantity, or cancelling the commitment.":
+    "Die offene Menge liefern oder die Verpflichtung stornieren.",
+  "Customer commitment at risk": "Lieferverpflichtung gefährdet",
+  "Reserving the remaining quantity, shipping it, or cancelling the commitment.":
+    "Die Restmenge reservieren, liefern oder die Verpflichtung stornieren.",
+  "Order stalled": "Auftrag hängt",
+  "Shipping the outstanding quantity, cancelling the order, or agreeing a date with the customer.":
+    "Die offene Menge liefern, den Auftrag stornieren oder mit dem Kunden einen Termin vereinbaren.",
+  "Overdue incoming supplier commitment": "Lieferverzug des Lieferanten",
+  "Receiving the outstanding quantity, or cancelling the commitment.":
+    "Die offene Menge als Wareneingang buchen oder die Verpflichtung stornieren.",
+  "Shipped and not billed": "Geliefert, nicht fakturiert",
+  "Billing the outstanding quantity on an invoice line that names the order line.":
+    "Die offene Menge auf einer Rechnungsposition berechnen, die die Auftragsposition nennt.",
+  "Billed and not received": "Fakturiert, nicht geliefert",
+  "Receiving the outstanding quantity, or correcting the invoice.":
+    "Die offene Menge als Wareneingang buchen oder die Rechnung korrigieren.",
+  "Invoice price differs from the agreement": "Rechnungspreis weicht von der Vereinbarung ab",
+  "Correcting the invoice line, or agreeing the new price on the order line.":
+    "Die Rechnungsposition korrigieren oder den neuen Preis auf der Auftragsposition vereinbaren.",
+  "Sold below the purchase price": "Unter Einkaufspreis verkauft",
+  "Agreeing a price at or above the purchase price, or correcting the purchase price if that is what is wrong.":
+    "Einen Preis in Höhe des Einkaufspreises oder darüber vereinbaren oder den Einkaufspreis korrigieren, falls er falsch ist.",
+  "Returned and not credited": "Retourniert, nicht gutgeschrieben",
+  "Crediting the returned quantity on a credit note line that names the order line.":
+    "Die retournierte Menge auf einer Gutschriftsposition gutschreiben, die die Auftragsposition nennt.",
+  "Credited and not returned": "Gutgeschrieben, nicht retourniert",
+  "The outstanding goods arriving, or correcting the credit note.":
+    "Die offene Ware trifft ein, oder die Gutschrift wird korrigiert.",
+  "Returned to supplier and not credited": "Lieferantenretoure nicht gutgeschrieben",
+  "The supplier's credit note naming the order line, or the goods coming back again.":
+    "Die Gutschrift des Lieferanten, die die Bestellposition nennt, oder die Ware kommt zurück.",
+  "Supplier credited more than went back": "Lieferant hat mehr gutgeschrieben als zurückging",
+  "The remaining goods going back, or the supplier correcting its credit note.":
+    "Die restliche Ware geht zurück, oder der Lieferant korrigiert seine Gutschrift.",
+  "Return not dealt with": "Retoure nicht bearbeitet",
+  "Restocking, writing off, or sending the goods back to the supplier, saying which return it settles.":
+    "Die Ware wieder einlagern, ausbuchen oder an den Lieferanten zurückschicken und dabei angeben, welche Retoure das erledigt.",
+  "Receipt not invoiced": "Wareneingang ohne Rechnung",
+  "The supplier invoice arriving and an invoice line naming the order line.":
+    "Die Lieferantenrechnung trifft ein, mit einer Rechnungsposition, die die Bestellposition nennt.",
+  "Units not comparable": "Einheiten nicht vergleichbar",
+  "Stating the item's purchase unit and conversion factor, or recording the lines in a unit that reconciles.":
+    "Die Einkaufseinheit und den Umrechnungsfaktor des Artikels angeben oder die Positionen in einer abgleichbaren Einheit erfassen.",
+  "Reservation exceeds stock": "Reservierung übersteigt Bestand",
+  "Receiving stock, or releasing reservations until they fit what is there.":
+    "Wareneingang buchen oder Reservierungen freigeben, bis sie zum vorhandenen Bestand passen.",
+  "Silent source": "Quelle verstummt",
+  "A record arriving from that source.": "Ein Datensatz trifft aus dieser Quelle ein.",
+  "Source interpretation failure": "Quelle nicht interpretierbar",
+  "A successful retry once the cause of the failure is removed.":
+    "Ein erfolgreicher neuer Versuch, sobald die Fehlerursache behoben ist.",
+  "Unexplained movement": "Unerklärte Lagerbewegung",
+  "Nothing. The movement stays part of history; only a correction changes what follows from it.":
+    "Nichts. Die Bewegung bleibt Teil der Historie; nur eine Korrektur ändert, was daraus folgt.",
+  "Sales invoice not booked": "Ausgangsrechnung nicht gebucht",
+  "Booking the invoice, or correcting it if it should never have been raised.":
+    "Die Rechnung buchen oder korrigieren, falls sie nie hätte erstellt werden sollen.",
+  "Supplier invoice not booked": "Eingangsrechnung nicht gebucht",
+  "Booking the invoice, or rejecting it if the supplier should never have sent it.":
+    "Die Rechnung buchen oder ablehnen, falls der Lieferant sie nie hätte schicken sollen.",
+  "Credit note not booked": "Gutschrift nicht gebucht",
+  "Booking the credit note, or cancelling it if it should never have been raised.":
+    "Die Gutschrift buchen oder stornieren, falls sie nie hätte erstellt werden sollen.",
+  "Credit note not given back": "Gutschrift nicht ausgeglichen",
+  "Netting the credit against an open invoice, or refunding the customer.":
+    "Die Gutschrift mit einer offenen Rechnung verrechnen oder dem Kunden erstatten.",
+  "Supplier credit not booked": "Lieferantengutschrift nicht gebucht",
+  "Booking the supplier credit note, or rejecting it if the supplier should never have sent it.":
+    "Die Lieferantengutschrift buchen oder ablehnen, falls der Lieferant sie nie hätte schicken sollen.",
+  "Supplier credit not claimed": "Lieferantengutschrift nicht eingefordert",
+  "Netting the credit against an open supplier invoice, or having the supplier refund it.":
+    "Die Gutschrift mit einer offenen Lieferantenrechnung verrechnen oder vom Lieferanten erstatten lassen.",
+  "Overdue receivable": "Überfällige Forderung",
+  "Settling the outstanding amount, or reversing the invoice.":
+    "Den offenen Betrag ausgleichen oder die Rechnung stornieren.",
+  "Credit limit exceeded": "Kreditlimit überschritten",
+  "Settling enough of the open invoices, or agreeing and recording a higher limit.":
+    "Genug offene Rechnungen ausgleichen oder ein höheres Limit vereinbaren und erfassen.",
+  "Overdue payable": "Überfällige Verbindlichkeit",
+  "Paying the outstanding amount, or reversing the invoice.":
+    "Den offenen Betrag bezahlen oder die Rechnung stornieren.",
+  "Early payment discount still available": "Skonto noch möglich",
+  "Paying the invoice, on its own or in a payment run. It also stops appearing once the deadline passes, which is the loss rather than the fix.":
+    "Die Rechnung bezahlen, einzeln oder in einem Zahllauf. Nach Ablauf der Frist verschwindet der Hinweis ebenfalls, dann ist das Skonto aber verloren.",
+  "Duplicate supplier invoice": "Doppelte Eingangsrechnung",
+  "Reversing whichever posting was made in error, or confirming the numbers differ.":
+    "Die irrtümliche Buchung stornieren oder bestätigen, dass die Nummern verschieden sind.",
+  "Unmatched financial event": "Nicht zugeordneter Finanzvorgang",
+  "Allocating the remainder to the invoices it pays.":
+    "Den Rest den Rechnungen zuordnen, die er bezahlt.",
+  "Announced return has not arrived": "Angekündigte Retoure nicht eingetroffen",
+  "The goods arriving against the announcement, or the customer withdrawing it.":
+    "Die Ware trifft zur Ankündigung ein, oder der Kunde zieht sie zurück.",
+  "Promise hold not lifted": "Sperre der Verpflichtung nicht aufgehoben",
+  "Lifting the hold, or doing the thing it was raised for and then lifting it.":
+    "Die Sperre aufheben, oder erst das erledigen, wofür sie gesetzt wurde, und sie dann aufheben.",
+  "Party hold not lifted": "Liefersperre nicht aufgehoben",
+  "Expired stock on hand": "Abgelaufener Bestand",
+  "Writing the stock off with an adjustment, sending it back to the supplier, or otherwise moving it out of stock.":
+    "Den Bestand per Bestandsanpassung ausbuchen, an den Lieferanten zurückschicken oder anderweitig aus dem Lager nehmen.",
+  "Missing acquisition cost": "Anschaffungskosten fehlen",
+  "Confirming the missing receipt-cost evidence and publishing a current complete company generation.":
+    "Die fehlenden Kostennachweise der Wareneingänge bestätigen und eine aktuelle, vollständige Unternehmensbewertung veröffentlichen.",
+  "Unassigned cost component": "Kostenkomponente nicht zugeordnet",
+  "Confirming an assignment or an evidenced not-applicable treatment and publishing a current generation.":
+    "Eine Zuordnung oder eine belegte Nicht-Anwendbarkeit bestätigen und eine aktuelle Unternehmensbewertung veröffentlichen.",
+  "Stale cost review": "Kostenprüfung veraltet",
+  "Reviewing the changed evidence and publishing a current company generation.":
+    "Die geänderten Nachweise prüfen und eine aktuelle Unternehmensbewertung veröffentlichen.",
+  "Negative actual DB1": "Tatsächlicher DB1 negativ",
+  "Correcting the commercial evidence or accepting and reviewing a non-negative current contribution basis.":
+    "Die kaufmännischen Nachweise korrigieren oder eine nicht negative, aktuelle Deckungsbeitragsgrundlage annehmen und prüfen.",
+});
+Object.assign(dictionaries.nl, {
+  "Overdue outgoing customer commitment": "Achterstallige levering aan klant",
+  "Shipping the outstanding quantity, or cancelling the commitment.":
+    "De openstaande hoeveelheid leveren of de verplichting annuleren.",
+  "Customer commitment at risk": "Leververplichting aan klant in gevaar",
+  "Reserving the remaining quantity, shipping it, or cancelling the commitment.":
+    "De resterende hoeveelheid reserveren, leveren of de verplichting annuleren.",
+  "Order stalled": "Order staat stil",
+  "Shipping the outstanding quantity, cancelling the order, or agreeing a date with the customer.":
+    "De openstaande hoeveelheid leveren, de order annuleren of een datum met de klant afspreken.",
+  "Overdue incoming supplier commitment": "Achterstallige levering van leverancier",
+  "Receiving the outstanding quantity, or cancelling the commitment.":
+    "De openstaande hoeveelheid ontvangen of de verplichting annuleren.",
+  "Shipped and not billed": "Geleverd, niet gefactureerd",
+  "Billing the outstanding quantity on an invoice line that names the order line.":
+    "De openstaande hoeveelheid factureren op een factuurregel die de orderregel noemt.",
+  "Billed and not received": "Gefactureerd, niet ontvangen",
+  "Receiving the outstanding quantity, or correcting the invoice.":
+    "De openstaande hoeveelheid ontvangen of de factuur corrigeren.",
+  "Invoice price differs from the agreement": "Factuurprijs wijkt af van de afspraak",
+  "Correcting the invoice line, or agreeing the new price on the order line.":
+    "De factuurregel corrigeren of de nieuwe prijs op de orderregel afspreken.",
+  "Sold below the purchase price": "Verkocht onder de inkoopprijs",
+  "Agreeing a price at or above the purchase price, or correcting the purchase price if that is what is wrong.":
+    "Een prijs op of boven de inkoopprijs afspreken, of de inkoopprijs corrigeren als die niet klopt.",
+  "Returned and not credited": "Geretourneerd, niet gecrediteerd",
+  "Crediting the returned quantity on a credit note line that names the order line.":
+    "De geretourneerde hoeveelheid crediteren op een creditnotaregel die de orderregel noemt.",
+  "Credited and not returned": "Gecrediteerd, niet geretourneerd",
+  "The outstanding goods arriving, or correcting the credit note.":
+    "De openstaande goederen komen binnen, of de creditnota wordt gecorrigeerd.",
+  "Returned to supplier and not credited": "Teruggestuurd naar leverancier, niet gecrediteerd",
+  "The supplier's credit note naming the order line, or the goods coming back again.":
+    "De creditnota van de leverancier die de orderregel noemt, of de goederen komen terug.",
+  "Supplier credited more than went back": "Leverancier crediteerde meer dan teruggestuurd",
+  "The remaining goods going back, or the supplier correcting its credit note.":
+    "De resterende goederen gaan terug, of de leverancier corrigeert zijn creditnota.",
+  "Return not dealt with": "Retour niet afgehandeld",
+  "Restocking, writing off, or sending the goods back to the supplier, saying which return it settles.":
+    "De goederen weer op voorraad nemen, afboeken of terugsturen naar de leverancier, met vermelding van de retour die daarmee wordt afgehandeld.",
+  "Receipt not invoiced": "Ontvangst niet gefactureerd",
+  "The supplier invoice arriving and an invoice line naming the order line.":
+    "De inkoopfactuur komt binnen met een factuurregel die de orderregel noemt.",
+  "Units not comparable": "Eenheden niet vergelijkbaar",
+  "Stating the item's purchase unit and conversion factor, or recording the lines in a unit that reconciles.":
+    "De inkoopeenheid en omrekenfactor van het artikel vastleggen, of de regels in een vergelijkbare eenheid registreren.",
+  "Reservation exceeds stock": "Reservering overschrijdt voorraad",
+  "Receiving stock, or releasing reservations until they fit what is there.":
+    "Voorraad ontvangen of reserveringen vrijgeven tot ze passen bij wat er is.",
+  "Silent source": "Bron zwijgt",
+  "A record arriving from that source.": "Er komt een record uit die bron binnen.",
+  "Source interpretation failure": "Bron niet te interpreteren",
+  "A successful retry once the cause of the failure is removed.":
+    "Een geslaagde nieuwe poging zodra de oorzaak van de fout is weggenomen.",
+  "Unexplained movement": "Onverklaarde voorraadmutatie",
+  "Nothing. The movement stays part of history; only a correction changes what follows from it.":
+    "Niets. De mutatie blijft deel van de geschiedenis; alleen een correctie verandert wat eruit volgt.",
+  "Sales invoice not booked": "Verkoopfactuur niet geboekt",
+  "Booking the invoice, or correcting it if it should never have been raised.":
+    "De factuur boeken, of corrigeren als die nooit had mogen worden opgemaakt.",
+  "Supplier invoice not booked": "Inkoopfactuur niet geboekt",
+  "Booking the invoice, or rejecting it if the supplier should never have sent it.":
+    "De factuur boeken, of afwijzen als de leverancier die nooit had mogen sturen.",
+  "Credit note not booked": "Creditnota niet geboekt",
+  "Booking the credit note, or cancelling it if it should never have been raised.":
+    "De creditnota boeken, of annuleren als die nooit had mogen worden opgemaakt.",
+  "Credit note not given back": "Creditnota niet terugbetaald",
+  "Netting the credit against an open invoice, or refunding the customer.":
+    "Het tegoed verrekenen met een openstaande factuur of de klant terugbetalen.",
+  "Supplier credit not booked": "Creditnota van leverancier niet geboekt",
+  "Booking the supplier credit note, or rejecting it if the supplier should never have sent it.":
+    "De creditnota van de leverancier boeken, of afwijzen als de leverancier die nooit had mogen sturen.",
+  "Supplier credit not claimed": "Tegoed bij leverancier niet opgeëist",
+  "Netting the credit against an open supplier invoice, or having the supplier refund it.":
+    "Het tegoed verrekenen met een openstaande inkoopfactuur of het door de leverancier laten terugbetalen.",
+  "Overdue receivable": "Achterstallige vordering",
+  "Settling the outstanding amount, or reversing the invoice.":
+    "Het openstaande bedrag voldoen of de factuur tegenboeken.",
+  "Credit limit exceeded": "Kredietlimiet overschreden",
+  "Settling enough of the open invoices, or agreeing and recording a higher limit.":
+    "Voldoende openstaande facturen voldoen, of een hogere limiet afspreken en vastleggen.",
+  "Overdue payable": "Achterstallige schuld",
+  "Paying the outstanding amount, or reversing the invoice.":
+    "Het openstaande bedrag betalen of de factuur tegenboeken.",
+  "Early payment discount still available": "Betalingskorting nog mogelijk",
+  "Paying the invoice, on its own or in a payment run. It also stops appearing once the deadline passes, which is the loss rather than the fix.":
+    "De factuur betalen, los of in een betaalrun. Na de termijn verdwijnt de melding ook, maar dan is de korting verloren.",
+  "Duplicate supplier invoice": "Dubbele inkoopfactuur",
+  "Reversing whichever posting was made in error, or confirming the numbers differ.":
+    "De foutieve boeking tegenboeken of bevestigen dat de nummers verschillen.",
+  "Unmatched financial event": "Niet gekoppelde financiële gebeurtenis",
+  "Allocating the remainder to the invoices it pays.":
+    "Het restant toewijzen aan de facturen die het betaalt.",
+  "Announced return has not arrived": "Aangekondigde retour niet ontvangen",
+  "The goods arriving against the announcement, or the customer withdrawing it.":
+    "De goederen komen binnen op de aankondiging, of de klant trekt die in.",
+  "Promise hold not lifted": "Blokkade van verplichting niet opgeheven",
+  "Lifting the hold, or doing the thing it was raised for and then lifting it.":
+    "De blokkade opheffen, of eerst doen waarvoor die is ingesteld en haar dan opheffen.",
+  "Party hold not lifted": "Leveringsblokkade niet opgeheven",
+  "Expired stock on hand": "Verlopen voorraad aanwezig",
+  "Writing the stock off with an adjustment, sending it back to the supplier, or otherwise moving it out of stock.":
+    "De voorraad afboeken met een correctie, terugsturen naar de leverancier of op een andere manier uit voorraad halen.",
+  "Missing acquisition cost": "Aanschafkosten ontbreken",
+  "Confirming the missing receipt-cost evidence and publishing a current complete company generation.":
+    "Het ontbrekende kostenbewijs van de ontvangsten bevestigen en een actuele, volledige bedrijfswaardering publiceren.",
+  "Unassigned cost component": "Kostencomponent niet toegewezen",
+  "Confirming an assignment or an evidenced not-applicable treatment and publishing a current generation.":
+    "Een toewijzing of een onderbouwde niet-van-toepassing bevestigen en een actuele bedrijfswaardering publiceren.",
+  "Stale cost review": "Kostencontrole verouderd",
+  "Reviewing the changed evidence and publishing a current company generation.":
+    "Het gewijzigde bewijs controleren en een actuele bedrijfswaardering publiceren.",
+  "Negative actual DB1": "Werkelijke DB1 negatief",
+  "Correcting the commercial evidence or accepting and reviewing a non-negative current contribution basis.":
+    "Het commerciële bewijs corrigeren, of een niet-negatieve actuele bijdragebasis accepteren en controleren.",
+});
+Object.assign(dictionaries.es, {
+  "Overdue outgoing customer commitment": "Entrega a cliente vencida",
+  "Shipping the outstanding quantity, or cancelling the commitment.":
+    "Enviar la cantidad pendiente o cancelar el compromiso.",
+  "Customer commitment at risk": "Compromiso con el cliente en riesgo",
+  "Reserving the remaining quantity, shipping it, or cancelling the commitment.":
+    "Reservar la cantidad restante, enviarla o cancelar el compromiso.",
+  "Order stalled": "Pedido estancado",
+  "Shipping the outstanding quantity, cancelling the order, or agreeing a date with the customer.":
+    "Enviar la cantidad pendiente, cancelar el pedido o acordar una fecha con el cliente.",
+  "Overdue incoming supplier commitment": "Entrega de proveedor vencida",
+  "Receiving the outstanding quantity, or cancelling the commitment.":
+    "Recibir la cantidad pendiente o cancelar el compromiso.",
+  "Shipped and not billed": "Enviado y no facturado",
+  "Billing the outstanding quantity on an invoice line that names the order line.":
+    "Facturar la cantidad pendiente en una línea de factura que indique la línea de pedido.",
+  "Billed and not received": "Facturado y no recibido",
+  "Receiving the outstanding quantity, or correcting the invoice.":
+    "Recibir la cantidad pendiente o corregir la factura.",
+  "Invoice price differs from the agreement": "El precio de la factura difiere del acuerdo",
+  "Correcting the invoice line, or agreeing the new price on the order line.":
+    "Corregir la línea de factura o acordar el nuevo precio en la línea de pedido.",
+  "Sold below the purchase price": "Vendido por debajo del precio de compra",
+  "Agreeing a price at or above the purchase price, or correcting the purchase price if that is what is wrong.":
+    "Acordar un precio igual o superior al de compra, o corregir el precio de compra si es el que está mal.",
+  "Returned and not credited": "Devuelto y no abonado",
+  "Crediting the returned quantity on a credit note line that names the order line.":
+    "Abonar la cantidad devuelta en una línea de abono que indique la línea de pedido.",
+  "Credited and not returned": "Abonado y no devuelto",
+  "The outstanding goods arriving, or correcting the credit note.":
+    "Que llegue la mercancía pendiente o corregir el abono.",
+  "Returned to supplier and not credited": "Devuelto al proveedor y no abonado",
+  "The supplier's credit note naming the order line, or the goods coming back again.":
+    "El abono del proveedor que indique la línea de pedido, o que la mercancía vuelva.",
+  "Supplier credited more than went back": "El proveedor abonó más de lo devuelto",
+  "The remaining goods going back, or the supplier correcting its credit note.":
+    "Que se devuelva la mercancía restante o que el proveedor corrija su abono.",
+  "Return not dealt with": "Devolución sin tramitar",
+  "Restocking, writing off, or sending the goods back to the supplier, saying which return it settles.":
+    "Reponer, dar de baja o devolver la mercancía al proveedor, indicando qué devolución se liquida.",
+  "Receipt not invoiced": "Entrada sin factura",
+  "The supplier invoice arriving and an invoice line naming the order line.":
+    "Que llegue la factura del proveedor con una línea que indique la línea de pedido.",
+  "Units not comparable": "Unidades no comparables",
+  "Stating the item's purchase unit and conversion factor, or recording the lines in a unit that reconciles.":
+    "Indicar la unidad de compra y el factor de conversión del artículo, o registrar las líneas en una unidad conciliable.",
+  "Reservation exceeds stock": "La reserva supera el stock",
+  "Receiving stock, or releasing reservations until they fit what is there.":
+    "Recibir stock o liberar reservas hasta que encajen con lo disponible.",
+  "Silent source": "Fuente en silencio",
+  "A record arriving from that source.": "Que llegue un registro de esa fuente.",
+  "Source interpretation failure": "Error al interpretar la fuente",
+  "A successful retry once the cause of the failure is removed.":
+    "Un reintento correcto una vez eliminada la causa del error.",
+  "Unexplained movement": "Movimiento sin explicar",
+  "Nothing. The movement stays part of history; only a correction changes what follows from it.":
+    "Nada. El movimiento sigue formando parte del historial; solo una corrección cambia lo que se deriva de él.",
+  "Sales invoice not booked": "Factura de venta no contabilizada",
+  "Booking the invoice, or correcting it if it should never have been raised.":
+    "Contabilizar la factura o corregirla si nunca debió emitirse.",
+  "Supplier invoice not booked": "Factura de proveedor no contabilizada",
+  "Booking the invoice, or rejecting it if the supplier should never have sent it.":
+    "Contabilizar la factura o rechazarla si el proveedor nunca debió enviarla.",
+  "Credit note not booked": "Abono no contabilizado",
+  "Booking the credit note, or cancelling it if it should never have been raised.":
+    "Contabilizar el abono o anularlo si nunca debió emitirse.",
+  "Credit note not given back": "Abono no devuelto",
+  "Netting the credit against an open invoice, or refunding the customer.":
+    "Compensar el abono con una factura abierta o reembolsar al cliente.",
+  "Supplier credit not booked": "Abono de proveedor no contabilizado",
+  "Booking the supplier credit note, or rejecting it if the supplier should never have sent it.":
+    "Contabilizar el abono del proveedor o rechazarlo si el proveedor nunca debió enviarlo.",
+  "Supplier credit not claimed": "Abono de proveedor no reclamado",
+  "Netting the credit against an open supplier invoice, or having the supplier refund it.":
+    "Compensar el abono con una factura de proveedor abierta o pedir al proveedor que lo reembolse.",
+  "Overdue receivable": "Cobro vencido",
+  "Settling the outstanding amount, or reversing the invoice.":
+    "Liquidar el importe pendiente o anular la factura.",
+  "Credit limit exceeded": "Límite de crédito superado",
+  "Settling enough of the open invoices, or agreeing and recording a higher limit.":
+    "Liquidar suficientes facturas abiertas, o acordar y registrar un límite mayor.",
+  "Overdue payable": "Pago vencido",
+  "Paying the outstanding amount, or reversing the invoice.":
+    "Pagar el importe pendiente o anular la factura.",
+  "Early payment discount still available": "Descuento por pronto pago aún disponible",
+  "Paying the invoice, on its own or in a payment run. It also stops appearing once the deadline passes, which is the loss rather than the fix.":
+    "Pagar la factura, sola o en una remesa de pagos. También desaparece al vencer el plazo, pero entonces el descuento se pierde.",
+  "Duplicate supplier invoice": "Factura de proveedor duplicada",
+  "Reversing whichever posting was made in error, or confirming the numbers differ.":
+    "Anular el asiento hecho por error o confirmar que los números son distintos.",
+  "Unmatched financial event": "Movimiento financiero sin asignar",
+  "Allocating the remainder to the invoices it pays.": "Asignar el resto a las facturas que paga.",
+  "Announced return has not arrived": "La devolución anunciada no ha llegado",
+  "The goods arriving against the announcement, or the customer withdrawing it.":
+    "Que llegue la mercancía anunciada o que el cliente retire el aviso.",
+  "Promise hold not lifted": "Retención del compromiso sin levantar",
+  "Lifting the hold, or doing the thing it was raised for and then lifting it.":
+    "Levantar la retención, o hacer primero aquello por lo que se puso y después levantarla.",
+  "Party hold not lifted": "Bloqueo del socio sin levantar",
+  "Expired stock on hand": "Stock caducado en almacén",
+  "Writing the stock off with an adjustment, sending it back to the supplier, or otherwise moving it out of stock.":
+    "Dar de baja el stock con un ajuste, devolverlo al proveedor o sacarlo del almacén de otra forma.",
+  "Missing acquisition cost": "Falta el coste de adquisición",
+  "Confirming the missing receipt-cost evidence and publishing a current complete company generation.":
+    "Confirmar los justificantes de coste que faltan en las entradas y publicar una valoración de empresa actual y completa.",
+  "Unassigned cost component": "Componente de coste sin asignar",
+  "Confirming an assignment or an evidenced not-applicable treatment and publishing a current generation.":
+    "Confirmar una asignación o un tratamiento justificado como no aplicable y publicar una valoración actual.",
+  "Stale cost review": "Revisión de costes desactualizada",
+  "Reviewing the changed evidence and publishing a current company generation.":
+    "Revisar los justificantes modificados y publicar una valoración de empresa actual.",
+  "Negative actual DB1": "MC1 real negativo",
+  "Correcting the commercial evidence or accepting and reviewing a non-negative current contribution basis.":
+    "Corregir los justificantes comerciales o aceptar y revisar una base de contribución actual no negativa.",
+});
+
+// Spec 279: stored calculation guidance.
+Object.assign(dictionaries.de, {
+  "Background processing has not been confirmed yet.":
+    "Die Hintergrundverarbeitung ist noch nicht bestätigt.",
+  "Background processing is currently unavailable, so calculations cannot run.":
+    "Die Hintergrundverarbeitung ist gerade nicht verfügbar, deshalb können keine Berechnungen laufen.",
+});
+Object.assign(dictionaries.nl, {
+  "Background processing has not been confirmed yet.":
+    "De achtergrondverwerking is nog niet bevestigd.",
+  "Background processing is currently unavailable, so calculations cannot run.":
+    "De achtergrondverwerking is momenteel niet beschikbaar, dus er kunnen geen berekeningen lopen.",
+});
+Object.assign(dictionaries.es, {
+  "Background processing has not been confirmed yet.":
+    "El procesamiento en segundo plano aún no está confirmado.",
+  "Background processing is currently unavailable, so calculations cannot run.":
+    "El procesamiento en segundo plano no está disponible ahora mismo, así que no se pueden ejecutar cálculos.",
+});
+
+// Spec 279: delivery blocker guidance.
+Object.assign(dictionaries.de, {
+  "What resolves it": "Was das löst",
+});
+Object.assign(dictionaries.nl, {
+  "What resolves it": "Wat dit oplost",
+});
+Object.assign(dictionaries.es, {
+  "What resolves it": "Qué lo resuelve",
+});
+
+// Spec 279: storyline step checks.
+Object.assign(dictionaries.de, {
+  "A result of an earlier step is missing:": "Ein Ergebnis eines früheren Schritts fehlt:",
+  "This exception has to be cleared:": "Diese Abweichung muss erledigt sein:",
+  "This exception has to be open:": "Diese Abweichung muss offen sein:",
+});
+Object.assign(dictionaries.nl, {
+  "A result of an earlier step is missing:": "Een resultaat van een eerdere stap ontbreekt:",
+  "This exception has to be cleared:": "Deze afwijking moet zijn opgelost:",
+  "This exception has to be open:": "Deze afwijking moet openstaan:",
+});
+Object.assign(dictionaries.es, {
+  "A result of an earlier step is missing:": "Falta un resultado de un paso anterior:",
+  "This exception has to be cleared:": "Esta incidencia tiene que estar resuelta:",
+  "This exception has to be open:": "Esta incidencia tiene que estar abierta:",
+});
+
+// Spec 279: price determination input.
+Object.assign(dictionaries.de, {
+  "Determine price": "Preis ermitteln",
+  "Evaluated at": "Ermittelt am",
+});
+Object.assign(dictionaries.nl, {
+  "Determine price": "Prijs bepalen",
+  "Evaluated at": "Bepaald op",
+});
+Object.assign(dictionaries.es, {
+  "Determine price": "Determinar precio",
+  "Evaluated at": "Determinado el",
+});
+
+// Spec 279: price determination sources.
+Object.assign(dictionaries.de, {
+  "Price list assigned to the business partner": "Dem Geschäftspartner zugeordnete Preisliste",
+  "Price list of the business partner's group": "Preisliste der Gruppe des Geschäftspartners",
+  "Default price list": "Standardpreisliste",
+});
+Object.assign(dictionaries.nl, {
+  "Price list assigned to the business partner": "Prijslijst die aan de relatie is toegewezen",
+  "Price list of the business partner's group": "Prijslijst van de groep van de relatie",
+  "Default price list": "Standaardprijslijst",
+});
+Object.assign(dictionaries.es, {
+  "Price list assigned to the business partner": "Lista de precios asignada al socio comercial",
+  "Price list of the business partner's group": "Lista de precios del grupo del socio comercial",
+  "Default price list": "Lista de precios predeterminada",
+});

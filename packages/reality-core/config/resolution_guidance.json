@@ -1,0 +1,311 @@
+{
+  "version": 1,
+  "reasons": {
+    "cost_uninitialized": {
+      "label": "No confirmed cost basis yet",
+      "explanation": "The value appears once the underlying costs are confirmed and a company owner has approved the review."
+    },
+    "cost_pending": {
+      "label": "Cost basis is incomplete",
+      "explanation": "Some evidence or a confirmation is still missing. The steps below show what is open."
+    },
+    "cost_stale": {
+      "label": "Newer business activity since the last confirmation",
+      "explanation": "The last confirmed value is shown for reference only until the review is renewed."
+    },
+    "cost_failed": {
+      "label": "The last cost preparation could not be used",
+      "explanation": "Inspect the evidence of the last preparation and prepare it again."
+    },
+    "cost_complete": {
+      "label": "Cost basis is confirmed and current",
+      "explanation": "The value is based on the confirmed review for this scope."
+    },
+    "inventory_scope_not_reviewed": {
+      "label": "Nobody has confirmed the acquisition cost for this item yet",
+      "explanation": "Stock value appears once every receipt carries confirmed cost and a company owner has confirmed the item's cost review."
+    },
+    "inventory_review_stale": {
+      "label": "The item's cost review is out of date",
+      "explanation": "Stock movements or cost evidence changed after the last confirmation. The review needs to be renewed."
+    },
+    "commercial_match_not_reviewed": {
+      "label": "Revenue and goods cost have not been confirmed together",
+      "explanation": "DB1 appears once the invoice line, its shipment and the item's confirmed cost are reviewed as one contribution."
+    },
+    "contribution_profile_not_reviewed": {
+      "label": "The contribution method has not been confirmed",
+      "explanation": "The contribution review confirms which method applies to this invoice line."
+    },
+    "selling_costs_unknown": {
+      "label": "Selling costs are not known yet",
+      "explanation": "DB2 needs the direct and allocated selling costs, such as freight or fees, to be assigned and reviewed. DB1 does not depend on them."
+    },
+    "selling_category": {
+      "label": "A selling cost category is still open",
+      "explanation": "One category of selling costs has not been reviewed. DB2 stays unknown until it is."
+    },
+    "contribution_review_stale": {
+      "label": "The contribution review is out of date",
+      "explanation": "Newer evidence exists for this invoice line. The contribution review needs to be renewed."
+    },
+    "received_net_missing": {
+      "label": "The invoice line has no stated net amount",
+      "explanation": "Reality records amounts as the source states them and never computes them. The source must supply the net amount."
+    },
+    "billed_order_line_missing": {
+      "label": "The invoice line is not linked to an order line",
+      "explanation": "A contribution needs to know which order line was billed. The link must come from the source or the invoice entry."
+    },
+    "consumption_not_reviewed": {
+      "label": "The shipment's goods cost is not confirmed",
+      "explanation": "The item's cost review does not yet cover this shipment. Renew the item's cost review."
+    },
+    "consumption_after_cutoff": {
+      "label": "The shipment happened after the last cost confirmation",
+      "explanation": "Renew the item's cost review so it includes this shipment."
+    },
+    "unsupported_revenue_type": {
+      "label": "This line type has no contribution",
+      "explanation": "Contributions are calculated for item lines of sales invoices only."
+    },
+    "unsupported_order_scope": {
+      "label": "The billed line is not a sales order item",
+      "explanation": "Contributions are calculated for invoice lines that bill a sales order item."
+    },
+    "corrected_fulfilment_unsupported": {
+      "label": "The shipment was corrected",
+      "explanation": "Contributions for corrected shipments are not supported yet."
+    },
+    "negative_revenue_requires_match": {
+      "label": "Negative revenue needs a matching credit",
+      "explanation": "A negative invoice amount can only be reviewed against the credit it belongs to."
+    },
+    "owner_scope_mismatch": {
+      "label": "Stock owner and seller differ",
+      "explanation": "The confirmed stock belongs to a different party than the one that sold it."
+    },
+    "currency_scope_mismatch": {
+      "label": "Invoice and cost use different currencies",
+      "explanation": "The item's confirmed cost is in a different currency than the invoice."
+    },
+    "unit_scope_mismatch": {
+      "label": "Invoice and cost use different units",
+      "explanation": "The item's confirmed cost uses a different unit than the invoice line."
+    },
+    "quantity_scope_mismatch": {
+      "label": "Invoiced and shipped quantities differ",
+      "explanation": "The invoice line and the confirmed shipment cost cover different quantities."
+    },
+    "not_admitted": {
+      "label": "No cost has been assigned to this receipt",
+      "explanation": "Assign the supplier invoice lines that belong to this receipt."
+    },
+    "no_attributed_cost": {
+      "label": "No cost is attributed to this receipt",
+      "explanation": "Assign the supplier invoice lines that belong to this receipt."
+    },
+    "scope_not_reviewed": {
+      "label": "The receipt's cost has not been reviewed",
+      "explanation": "Review the assigned costs of this receipt."
+    },
+    "review_stale": {
+      "label": "The receipt's cost review is out of date",
+      "explanation": "Cost evidence changed after the review. Review the receipt again."
+    },
+    "review_categories_incomplete": {
+      "label": "Not every cost category of the receipt is reviewed",
+      "explanation": "Each category, such as goods or inbound freight, needs a decision."
+    },
+    "category": {
+      "label": "A cost category of the receipt is still open",
+      "explanation": "Decide whether this category applies and confirm its evidence."
+    },
+    "tax_basis_incomplete": {
+      "label": "The tax basis of the cost evidence is incomplete",
+      "explanation": "The supplier invoice must state whether its amounts include tax."
+    },
+    "receipt_corrected": {
+      "label": "The receipt was corrected",
+      "explanation": "Review the cost of the corrected receipt."
+    },
+    "assessment_missing": {
+      "label": "No carrying value assessment exists",
+      "explanation": "A carrying value needs a confirmed valuation assessment for this item."
+    },
+    "assessment_not_supported": {
+      "label": "Carrying value is not assessed for this item",
+      "explanation": "Only the acquisition value is available for this item."
+    },
+    "projection_uninitialized": {
+      "label": "Waiting for the first calculation",
+      "explanation": "Calculations run in the background. They start once background processing is running."
+    },
+    "projection_pending": {
+      "label": "A newer calculation is on its way",
+      "explanation": "The last completed result is shown until the background calculation finishes."
+    },
+    "projection_failed": {
+      "label": "The last calculation failed",
+      "explanation": "The last completed result is shown. The operator can see the cause in the system status."
+    },
+    "handler_timeout": {
+      "label": "The calculation took too long",
+      "explanation": "It will be retried automatically. Large companies may need more processing time."
+    },
+    "handler_failed": {
+      "label": "The calculation stopped with an error",
+      "explanation": "The operator can see the cause in the system status."
+    },
+    "database_error": {
+      "label": "The database was not reachable during the calculation",
+      "explanation": "It will be retried automatically once the database is reachable again."
+    },
+    "child_exited": {
+      "label": "Background processing stopped during the calculation",
+      "explanation": "It will be retried automatically once background processing runs again."
+    },
+    "outcome_unresolved": {
+      "label": "It is unclear whether the last calculation finished",
+      "explanation": "The operator needs to check the calculation in the system status."
+    },
+    "no_applicable_price": {
+      "label": "No price applies to this business partner and item",
+      "explanation": "Price lists and their assignments are maintained by an administrator."
+    },
+    "inventory_valuation_unavailable": {
+      "label": "No company valuation has been published yet",
+      "explanation": "Company valuations are built in the background by the operator once item cost reviews exist."
+    },
+    "insufficient_stock": {
+      "label": "Not enough stock",
+      "explanation": "Record the incoming goods or wait for the next receipt."
+    },
+    "insufficient_reservation": {
+      "label": "Not enough stock reserved",
+      "explanation": "Reserve available stock for this order."
+    },
+    "prepayment_required": {
+      "label": "Prepayment required",
+      "explanation": "This order ships only after the prepayment is invoiced and paid."
+    },
+    "prepayment_invoice_missing": {
+      "label": "Prepayment invoice missing",
+      "explanation": "Record the prepayment invoice for this order."
+    },
+    "prepayment_attribution_ambiguous": {
+      "label": "Prepayment cannot be matched clearly",
+      "explanation": "More than one invoice or payment could belong to this order. Check the open items."
+    },
+    "commitment_hold": {
+      "label": "The order is on hold",
+      "explanation": "Release the hold when the order may ship."
+    },
+    "party_delivery_hold": {
+      "label": "The customer is on delivery hold",
+      "explanation": "Release the customer's delivery hold when shipping may resume."
+    }
+  },
+  "steps": {
+    "receipt_cost_evidence": {
+      "label": "Confirm the cost of each receipt",
+      "role": "member",
+      "path": "chat",
+      "chat_prompt": "Prepare the receipt cost review for {scope}: assign the supplier invoice lines to each open receipt and review its cost categories.",
+      "alternative": {
+        "label": "Record the supplier invoice first",
+        "path": "web_form",
+        "form": "supplier_invoice_record"
+      }
+    },
+    "inventory_review": {
+      "label": "Prepare the item's cost review",
+      "role": "member",
+      "path": "chat",
+      "chat_prompt": "Prepare the inventory cost review for {scope} so a company owner can confirm it."
+    },
+    "inventory_review_renew": {
+      "label": "Renew the item's cost review",
+      "role": "member",
+      "path": "chat",
+      "chat_prompt": "Renew the inventory cost review for {scope} with the current evidence so a company owner can confirm it."
+    },
+    "contribution_review": {
+      "label": "Prepare the contribution review",
+      "role": "member",
+      "path": "chat",
+      "chat_prompt": "Prepare the contribution review for {scope} so a company owner can confirm it."
+    },
+    "selling_cost_review": {
+      "label": "Review the selling costs",
+      "role": "member",
+      "path": "chat",
+      "chat_prompt": "Prepare the selling cost review for {scope}: assign freight, fees and other selling costs and review each category."
+    },
+    "owner_confirmation": {
+      "label": "A company owner confirms the proposal",
+      "role": "owner",
+      "path": "decision_review"
+    },
+    "source_data_limit": {
+      "label": "The source data does not allow this yet",
+      "role": "member",
+      "path": "none"
+    },
+    "system_status": {
+      "label": "Check background processing",
+      "role": "operator",
+      "path": "system_status"
+    },
+    "price_list_setup": {
+      "label": "An administrator maintains price lists",
+      "role": "operator",
+      "path": "none"
+    },
+    "record_sales_invoice": {
+      "label": "Record the invoice",
+      "role": "member",
+      "path": "web_form",
+      "form": "sales_invoice_record"
+    },
+    "record_receipt": {
+      "label": "Record the incoming goods",
+      "role": "member",
+      "path": "web_form",
+      "form": "receipt"
+    },
+    "reserve_stock": {
+      "label": "Reserve stock",
+      "role": "member",
+      "path": "web_form",
+      "form": "reserve"
+    },
+    "release_commitment_hold": {
+      "label": "Release the order hold",
+      "role": "member",
+      "path": "web_form",
+      "form": "commitment_hold_release"
+    },
+    "release_party_delivery_hold": {
+      "label": "Release the customer's delivery hold",
+      "role": "member",
+      "path": "web_form",
+      "form": "party_delivery_hold_release"
+    },
+    "review_open_items": {
+      "label": "Check the open items",
+      "role": "member",
+      "path": "page",
+      "page": "finance"
+    }
+  },
+  "blockers": {
+    "insufficient_stock": "record_receipt",
+    "insufficient_reservation": "reserve_stock",
+    "prepayment_required": "record_sales_invoice",
+    "prepayment_invoice_missing": "record_sales_invoice",
+    "prepayment_attribution_ambiguous": "review_open_items",
+    "commitment_hold": "release_commitment_hold",
+    "party_delivery_hold": "release_party_delivery_hold"
+  }
+}

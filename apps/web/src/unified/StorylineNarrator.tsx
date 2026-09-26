@@ -9,6 +9,7 @@ import { ArrowLeft, List, Pause, Play } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { formatDateTime, t } from "../localization";
 import { compareFindings, phaseOf, pickText } from "./storylineState";
+import { useActionDiscovery } from "./ActionLauncher";
 
 const panel = "rounded-xl border border-border-default bg-surface";
 const toolState: Record<string, string> = { on: "bg-accent-soft text-accent", off: "" };
@@ -86,6 +87,8 @@ export function StorylineNarrator({
   const isCurrent = !!chapter && current?.key === chapter.key;
   const expectations = chapter ? compareFindings(chapter.expect, delta?.exceptions || null) : null;
   const missing = detail?.preconditions.filter((check) => !check.holds) || [];
+  // Spec 279 FR-014: checks read as sentences; exception classes use catalog titles.
+  const exceptionClasses = useActionDiscovery()?.data?.operational_exception_guidance;
   const list = useRef<HTMLOListElement>(null);
   const thread = useRef<HTMLDivElement>(null);
   // The composer holds the suggested line. Changing it is leaving the script.
@@ -202,10 +205,25 @@ export function StorylineNarrator({
                       <p>{t("This step cannot run yet. Missing:")}</p>
                       <ul className="mt-1 list-disc pl-5">
                         {missing.map((check) => (
-                          <li key={check.kind + check.name} data-localization="original">
-                            {check.kind === "reference"
-                              ? check.name
-                              : `${check.kind}: ${check.name}`}
+                          <li key={check.kind + check.name} data-storyline-check={check.kind}>
+                            {check.kind === "finding_present" || check.kind === "finding_absent" ? (
+                              <>
+                                {t(
+                                  check.kind === "finding_present"
+                                    ? "This exception has to be open:"
+                                    : "This exception has to be cleared:",
+                                )}{" "}
+                                {t(
+                                  exceptionClasses?.find((entry) => entry.id === check.name)
+                                    ?.label || check.name,
+                                )}
+                              </>
+                            ) : (
+                              <>
+                                {t("A result of an earlier step is missing:")}{" "}
+                                <span data-localization="original">{check.name}</span>
+                              </>
+                            )}
                           </li>
                         ))}
                       </ul>

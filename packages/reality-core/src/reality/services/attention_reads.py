@@ -16,7 +16,7 @@ from sqlalchemy.orm import Session
 
 from reality.catalogs import load_operational_exception_catalog
 from reality.db.core import Commitment, Item, Party, ProjectionRow, Tenant
-from reality.services.core import NotFound, get_tenant
+from reality.services.core import InvalidOperation, NotFound, get_tenant
 from reality.services.exceptions import (
     CLASS_ORDER,
     SEVERITY_ORDER,
@@ -331,6 +331,30 @@ def attention_register(
     }
 
 
+#: Cost findings whose subject is a cost query scope (spec 279 FR-012).
+COST_FINDING_SCOPES = {
+    "missing_acquisition_cost": "inventory",
+    "stale_cost_review": "inventory",
+    "negative_actual_db1": "contribution",
+}
+
+
+def cost_finding_resolution(
+    session: Session, tenant_id: str, detail: dict[str, Any]
+) -> dict[str, Any] | None:
+    """The cost panel's guidance for a cost finding's subject, through the shared read."""
+    from reality.services.costing import cost_query
+
+    kind = COST_FINDING_SCOPES.get(detail.get("class_id", ""))
+    if kind is None:
+        return None
+    try:
+        answer = cost_query(session, tenant_id, kind=kind, scope_id=detail["record_id"])
+    except (NotFound, InvalidOperation):
+        return None
+    return {"kind": kind, "scope_id": detail["record_id"], **answer["guidance"]}
+
+
 def attention_detail(session: Session, tenant_id: str, identity: str) -> dict[str, Any]:
     """Explain one finding live; a stored finding that no longer derives says so."""
     get_tenant(session, tenant_id)
@@ -362,5 +386,6 @@ def attention_detail(session: Session, tenant_id: str, identity: str) -> dict[st
     return {
         **_targets(session, tenant_id, [detail])[0],
         "guidance": entry["clears_through"],
+        "resolution": cost_finding_resolution(session, tenant_id, detail),
         "observed_at": observed,
     }

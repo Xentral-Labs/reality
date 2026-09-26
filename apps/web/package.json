@@ -21,6 +21,7 @@
     "test:finance-browser": "node scripts/unified-finance-browser.mjs",
     "test:cost-explanation-contract": "node --test scripts/cost-explanation-contract.test.mjs",
     "test:cost-explanation-browser": "node scripts/cost-explanation-browser.mjs",
+    "test:price-resolution-browser": "node scripts/price-resolution-browser.mjs",
     "test:operations-browser": "node scripts/unified-operations-browser.mjs",
     "test:facts-browser": "node scripts/unified-facts-browser.mjs",
     "test:tables-browser": "node scripts/unified-tables-browser.mjs",

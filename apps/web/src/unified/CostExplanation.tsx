@@ -1,7 +1,10 @@
 import { type ReactNode } from "react";
 import { api, type CostQueryEnvelope } from "../api";
 import { formatDateTime, formatExactDecimal, formatMoney, t } from "../localization";
+import { useActionDiscovery } from "./ActionLauncher";
 import { ReadState } from "./ReadState";
+import { ResolutionGuidance } from "./ResolutionGuidance";
+import { reasonText } from "./guidanceActions";
 import { useRead } from "./useCompanyContext";
 
 const text = (value: unknown) => (typeof value === "string" ? value : null);
@@ -22,23 +25,37 @@ export function CostExplanation({
   tenant,
   kind,
   scopeId,
+  scopeLabel,
 }: {
   tenant: string;
   kind: "inventory" | "contribution";
   scopeId: string;
+  /** Human name of the scope for a prepared chat request; the opaque ID is added. */
+  scopeLabel?: string;
 }) {
   const read = useRead(() => api.costQuery(tenant, kind, scopeId), [tenant, kind, scopeId]);
   if (!read.data)
     return <ReadState loading={read.loading} error={read.error} retry={read.refresh} />;
-  return <CostExplanationResult tenant={tenant} envelope={read.data} />;
+  return (
+    <CostExplanationResult
+      tenant={tenant}
+      envelope={read.data}
+      scopeLabel={scopeLabel ? `${scopeLabel} (${scopeId})` : scopeId}
+      refresh={read.refresh}
+    />
+  );
 }
 
 export function CostExplanationResult({
   tenant,
   envelope,
+  scopeLabel,
+  refresh,
 }: {
   tenant: string;
   envelope: CostQueryEnvelope;
+  scopeLabel: string;
+  refresh?: () => void;
 }) {
   const { freshness, resolved } = envelope;
   const { guidance } = envelope;
@@ -47,7 +64,10 @@ export function CostExplanationResult({
   const shown = current || basis;
   const currency = resolved?.currency || text(shown.currency) || "EUR";
   const contribution = envelope.requested.kind === "contribution";
-  const missing = list(shown.missing_basis);
+  const catalog = useActionDiscovery()?.data?.resolution_guidance;
+  // The guidance names the first gap; the list shows any further ones in words.
+  const missing = list(shown.missing_basis).filter((gap) => gap !== guidance.reason_code);
+  const carryingReason = guidance.value_reasons?.carrying_value;
   const money = (value: unknown) =>
     text(value) ? (
       <>
@@ -82,28 +102,19 @@ export function CostExplanationResult({
         </p>
       </div>
       {freshness.state === "stale" && (
-        <p role="status" className="text-sm text-warning">
-          {t("Retained basis — not current")}.{" "}
-          {t("Newer business evidence exists; current values remain unavailable until reviewed.")}
-        </p>
+        <div role="status" className="text-sm text-warning">
+          {t("Retained basis — not current")}
+        </div>
       )}
-      {freshness.state === "uninitialized" && (
-        <p role="status">{t("No reviewed cost basis exists for this scope.")}</p>
+      {guidance.reason_code !== "cost_complete" && (
+        <section
+          role="status"
+          className="rounded-xl border border-border-default bg-surface p-3"
+          aria-label={t("Cost readiness")}
+        >
+          <ResolutionGuidance guidance={guidance} scopeLabel={scopeLabel} refresh={refresh} />
+        </section>
       )}
-      <section className="rounded-xl border border-border-default bg-surface p-3 text-sm">
-        <strong>{t("Cost readiness")}: </strong>
-        <span>{guidance.stage}</span>
-        <p className="mt-1 text-fg-muted">{guidance.reason}</p>
-        {guidance.next_action && (
-          <p className="mt-2">
-            <strong>{t("Next authorized action")}:</strong> <code>{guidance.next_action.tool}</code>{" "}
-            · {guidance.next_action.operation}
-            {guidance.next_action.required_principal === "authenticated_active_owner" && (
-              <> · {t("Authenticated company owner required")}</>
-            )}
-          </p>
-        )}
-      </section>
       <dl className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
         {contribution ? (
           <>
@@ -136,11 +147,14 @@ export function CostExplanationResult({
             </div>
             <div>
               <dt>{t("Carrying value")}</dt>
-              <dd>{money(current?.carrying_value)}</dd>
-            </div>
-            <div>
-              <dt>{t("Unit cost")}</dt>
-              <dd>{text(shown.unit_cost) || t("Not evidenced")}</dd>
+              <dd>
+                {money(current?.carrying_value)}
+                {!text(current?.carrying_value) && carryingReason && (
+                  <small className="mt-1 block text-fg-muted" data-value-reason={carryingReason}>
+                    {reasonText(catalog, carryingReason).label}
+                  </small>
+                )}
+              </dd>
             </div>
           </>
         )}
@@ -162,7 +176,9 @@ export function CostExplanationResult({
           <strong>{t("Missing basis")}</strong>
           <ul className="list-disc pl-5">
             {missing.map((gap) => (
-              <li key={gap}>{gap}</li>
+              <li key={gap} data-missing-basis={gap}>
+                {reasonText(catalog, gap).label}
+              </li>
             ))}
           </ul>
         </div>

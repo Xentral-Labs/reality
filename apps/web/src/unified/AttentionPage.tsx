@@ -12,6 +12,8 @@ import type { Selection } from "./routing";
 import { WorkFooter, WorkHeader, WorkRow, WorkSearch, useWorkList } from "./WorkList";
 import { WorkPreview } from "./InlinePreview";
 import { ProjectionFreshness } from "./ProjectionFreshness";
+import { useActionDiscovery } from "./ActionLauncher";
+import { ResolutionGuidance } from "./ResolutionGuidance";
 const severities = [
   ["critical", "Critical"],
   ["high", "High"],
@@ -40,6 +42,11 @@ function OpenExceptions({
   );
   const [target, setTarget] = useState<{ kind: string; id: string } | null>(null);
   const selected = detail.data?.id === exception ? detail.data : null;
+  // Spec 279 FR-012: the catalog title of the class, translated; the stored title
+  // only stands in for a class the catalog does not know yet.
+  const classes = useActionDiscovery()?.data?.operational_exception_guidance;
+  const classTitle = (row: AttentionRow) =>
+    t(classes?.find((entry) => entry.id === row.class_id)?.label || row.title);
   const severityLabel = (value: string) =>
     t(severities.find(([key]) => key === value)?.[1] || value);
   return (
@@ -105,7 +112,7 @@ function OpenExceptions({
                 </h2>
               )}
               <WorkRow
-                title={t(row.title)}
+                title={classTitle(row)}
                 context={row.context || row.impact}
                 meta={t("Review")}
                 icon={<TriangleAlert size={18} />}
@@ -130,12 +137,23 @@ function OpenExceptions({
                   <ReadState loading={detail.loading} error={detail.error} retry={detail.refresh} />
                 ) : (
                   <>
-                    <h3 className="text-lg font-semibold text-fg-strong">{t(selected.title)}</h3>
+                    <h3 className="text-lg font-semibold text-fg-strong">{classTitle(selected)}</h3>
                     {selected.context && <p className="mt-2 font-medium">{selected.context}</p>}
                     <p className="mt-2 text-sm text-fg-muted">{selected.impact}</p>
                     <div className="mt-4 rounded-lg bg-surface p-4">
                       <h4 className="font-semibold">{t("Resolution guidance")}</h4>
-                      <p className="mt-2 text-sm text-fg-muted">{selected.guidance}</p>
+                      <p className="mt-2 text-sm text-fg-muted">
+                        {selected.guidance && t(selected.guidance)}
+                      </p>
+                      {selected.resolution && (
+                        <div className="mt-3 border-t border-border-default pt-3">
+                          <ResolutionGuidance
+                            guidance={selected.resolution}
+                            scopeLabel={selected.context || selected.resolution.scope_id}
+                            refresh={detail.refresh}
+                          />
+                        </div>
+                      )}
                     </div>
                     <div className="mt-4 flex flex-wrap gap-2">
                       {selected.target.delivery_id && (
