@@ -21022,3 +21022,216 @@ Object.assign(dictionaries.es, {
   "The item's cost review does not provide a cost for the shipped quantity.":
     "La revisión de costes del artículo no aporta un coste para la cantidad enviada.",
 });
+
+// Spec 282: drafted cost reviews and opening cost.
+Object.assign(dictionaries.de, {
+  "Choose the valuation method": "Bewertungsmethode wählen",
+  "FIFO values stock in the order it arrived. Specific selection is only offered for items tracked by serial or lot.":
+    "FIFO bewertet den Bestand in der Reihenfolge des Eingangs. Einzelbewertung gibt es nur für Serien- oder Chargenartikel.",
+  "Your company is not recorded as a business partner":
+    "Dein Unternehmen ist nicht als Geschäftspartner erfasst",
+  "Record your own company as a business partner with the role company in master data, so the stock has an owner.":
+    "Lege in den Stammdaten dein eigenes Unternehmen als Geschäftspartner mit der Rolle „Unternehmen“ an, damit der Bestand einen Eigentümer hat.",
+  "A receipt's cost is not confirmed yet":
+    "Die Kosten eines Wareneingangs sind noch nicht bestätigt",
+  "Confirm the cost of this receipt first; then prepare the item's cost review again.":
+    "Bestätige zuerst die Kosten dieses Wareneingangs und bereite dann die Kostenprüfung des Artikels erneut vor.",
+  "The opening stock has no stated acquisition value":
+    "Für den Anfangsbestand ist kein Anschaffungswert angegeben",
+  "Correct the opening stock and record it again with the value its evidence states, such as an inventory list.":
+    "Korrigiere den Anfangsbestand und erfasse ihn erneut mit dem Wert laut Nachweis, etwa einer Inventurliste.",
+  "A stock movement needs a person's decision": "Eine Lagerbewegung braucht eine Entscheidung",
+  "This movement cannot be assigned automatically. Check it before the cost review can be prepared.":
+    "Diese Bewegung lässt sich nicht automatisch zuordnen. Prüfe sie, bevor die Kostenprüfung vorbereitet werden kann.",
+  "It is unclear who owns this stock": "Es ist unklar, wem dieser Bestand gehört",
+  "No evidence shows who owns the goods of this receipt. Check the receipt and its supplier invoice.":
+    "Kein Nachweis zeigt, wem die Ware dieses Wareneingangs gehört. Prüfe den Wareneingang und seine Lieferantenrechnung.",
+  "A customer return cannot be traced to its shipment":
+    "Eine Kundenretoure lässt sich keiner Lieferung zuordnen",
+  "The return does not say which shipment it came from, so its cost cannot be restored automatically.":
+    "Die Retoure nennt nicht, aus welcher Lieferung sie stammt, deshalb lassen sich ihre Kosten nicht automatisch zurückbuchen.",
+  "Too many movements for one cost review": "Zu viele Bewegungen für eine Kostenprüfung",
+  "This item has more stock movements or receipts than one review can cover.":
+    "Dieser Artikel hat mehr Lagerbewegungen oder Wareneingänge, als eine Prüfung umfassen kann.",
+  "An earlier step is still open": "Ein früherer Schritt ist noch offen",
+  "Complete the step named in the cost explanation first.":
+    "Erledige zuerst den Schritt, den die Kostenerklärung nennt.",
+  "The costs use more than one currency": "Die Kosten haben mehr als eine Währung",
+  "Receipts or openings of this item state different currencies. One review covers one currency.":
+    "Wareneingänge oder Anfangsbestände dieses Artikels nennen verschiedene Währungen. Eine Prüfung umfasst eine Währung.",
+  "This item has no stock movements yet": "Dieser Artikel hat noch keine Lagerbewegungen",
+  "A cost review needs at least one receipt or opening stock.":
+    "Eine Kostenprüfung braucht mindestens einen Wareneingang oder Anfangsbestand.",
+  "The data changed while it was read": "Die Daten haben sich beim Lesen geändert",
+  "Try again in a moment.": "Versuche es gleich noch einmal.",
+  "An exact stock layer must be chosen": "Eine genaue Bestandsschicht muss gewählt werden",
+  "Supplier returns and specific selection need a person to choose which receipt the goods came from.":
+    "Bei Lieferantenretouren und Einzelbewertung muss jemand wählen, aus welchem Wareneingang die Ware stammt.",
+  "Prepare with Reality instead": "Stattdessen mit Reality vorbereiten",
+  Receipts: "Wareneingänge",
+  "Customer returns": "Kundenretouren",
+  "Supplier returns": "Lieferantenretouren",
+  "Stock adjustments": "Bestandsanpassungen",
+  Transfers: "Umlagerungen",
+  Other: "Sonstige",
+  "FIFO (first in, first out)": "FIFO (zuerst rein, zuerst raus)",
+  "Specific selection": "Einzelbewertung",
+  "Acquisition value (optional)": "Anschaffungswert (optional)",
+  "DB1 after confirmation": "DB1 nach Bestätigung",
+  "Enter the total value exactly as your evidence states it, for example an inventory list. It is needed for the cost review.":
+    "Gib den Gesamtwert genau so an, wie dein Nachweis ihn nennt, etwa eine Inventurliste. Er wird für die Kostenprüfung gebraucht.",
+  "Opening stock value per evidence": "Wert des Anfangsbestands laut Nachweis",
+  "Prepare review": "Prüfung vorbereiten",
+  "Propose for confirmation": "Zur Bestätigung vorschlagen",
+  "Reality drafted this review from your records. A company owner confirms it afterwards.":
+    "Reality hat diese Prüfung aus deinen Daten entworfen. Ein Inhaber bestätigt sie anschließend.",
+  "Still needed": "Noch benötigt",
+  "Stock movements covered": "Erfasste Lagerbewegungen",
+  "Total value per evidence": "Gesamtwert laut Nachweis",
+  "Your records changed meanwhile. The draft was prepared again; please check it.":
+    "Deine Daten haben sich inzwischen geändert. Der Entwurf wurde neu erstellt; bitte prüfe ihn.",
+});
+Object.assign(dictionaries.nl, {
+  "Choose the valuation method": "Waarderingsmethode kiezen",
+  "FIFO values stock in the order it arrived. Specific selection is only offered for items tracked by serial or lot.":
+    "FIFO waardeert de voorraad in de volgorde van binnenkomst. Specifieke selectie is er alleen voor artikelen met serie- of lotnummer.",
+  "Your company is not recorded as a business partner": "Je bedrijf is niet als relatie vastgelegd",
+  "Record your own company as a business partner with the role company in master data, so the stock has an owner.":
+    "Leg in de stamgegevens je eigen bedrijf vast als relatie met de rol „bedrijf”, zodat de voorraad een eigenaar heeft.",
+  "A receipt's cost is not confirmed yet":
+    "De kosten van een goederenontvangst zijn nog niet bevestigd",
+  "Confirm the cost of this receipt first; then prepare the item's cost review again.":
+    "Bevestig eerst de kosten van deze ontvangst en bereid daarna de kostencontrole van het artikel opnieuw voor.",
+  "The opening stock has no stated acquisition value":
+    "Voor de beginvoorraad is geen aanschafwaarde vermeld",
+  "Correct the opening stock and record it again with the value its evidence states, such as an inventory list.":
+    "Corrigeer de beginvoorraad en leg hem opnieuw vast met de waarde volgens het bewijs, bijvoorbeeld een inventarislijst.",
+  "A stock movement needs a person's decision": "Een voorraadmutatie heeft een beslissing nodig",
+  "This movement cannot be assigned automatically. Check it before the cost review can be prepared.":
+    "Deze mutatie kan niet automatisch worden toegewezen. Controleer hem voordat de kostencontrole kan worden voorbereid.",
+  "It is unclear who owns this stock": "Het is onduidelijk van wie deze voorraad is",
+  "No evidence shows who owns the goods of this receipt. Check the receipt and its supplier invoice.":
+    "Geen bewijs toont van wie de goederen van deze ontvangst zijn. Controleer de ontvangst en de inkoopfactuur.",
+  "A customer return cannot be traced to its shipment":
+    "Een klantretour kan niet aan zijn levering worden gekoppeld",
+  "The return does not say which shipment it came from, so its cost cannot be restored automatically.":
+    "De retour vermeldt niet uit welke levering hij komt, dus de kosten kunnen niet automatisch worden teruggezet.",
+  "Too many movements for one cost review": "Te veel mutaties voor één kostencontrole",
+  "This item has more stock movements or receipts than one review can cover.":
+    "Dit artikel heeft meer voorraadmutaties of ontvangsten dan één controle kan dekken.",
+  "An earlier step is still open": "Een eerdere stap staat nog open",
+  "Complete the step named in the cost explanation first.":
+    "Rond eerst de stap af die de kostenverklaring noemt.",
+  "The costs use more than one currency": "De kosten gebruiken meer dan één valuta",
+  "Receipts or openings of this item state different currencies. One review covers one currency.":
+    "Ontvangsten of beginvoorraden van dit artikel vermelden verschillende valuta. Eén controle dekt één valuta.",
+  "This item has no stock movements yet": "Dit artikel heeft nog geen voorraadmutaties",
+  "A cost review needs at least one receipt or opening stock.":
+    "Een kostencontrole heeft minstens één ontvangst of beginvoorraad nodig.",
+  "The data changed while it was read": "De gegevens zijn tijdens het lezen gewijzigd",
+  "Try again in a moment.": "Probeer het zo meteen opnieuw.",
+  "An exact stock layer must be chosen": "Er moet een exacte voorraadlaag worden gekozen",
+  "Supplier returns and specific selection need a person to choose which receipt the goods came from.":
+    "Bij retouren aan leveranciers en specifieke selectie moet iemand kiezen uit welke ontvangst de goederen komen.",
+  "Prepare with Reality instead": "In plaats daarvan met Reality voorbereiden",
+  Receipts: "Ontvangsten",
+  "Customer returns": "Klantretouren",
+  "Supplier returns": "Retouren aan leveranciers",
+  "Stock adjustments": "Voorraadcorrecties",
+  Transfers: "Overboekingen",
+  Other: "Overig",
+  "FIFO (first in, first out)": "FIFO (first in, first out)",
+  "Specific selection": "Specifieke selectie",
+  "Acquisition value (optional)": "Aanschafwaarde (optioneel)",
+  "DB1 after confirmation": "DB1 na bevestiging",
+  "Enter the total value exactly as your evidence states it, for example an inventory list. It is needed for the cost review.":
+    "Vul de totale waarde in precies zoals je bewijs die vermeldt, bijvoorbeeld een inventarislijst. Die is nodig voor de kostencontrole.",
+  "Opening stock value per evidence": "Waarde beginvoorraad volgens bewijs",
+  "Prepare review": "Controle voorbereiden",
+  "Propose for confirmation": "Ter bevestiging voorstellen",
+  "Reality drafted this review from your records. A company owner confirms it afterwards.":
+    "Reality heeft deze controle opgesteld uit je gegevens. Een eigenaar bevestigt hem daarna.",
+  "Still needed": "Nog nodig",
+  "Stock movements covered": "Opgenomen voorraadmutaties",
+  "Total value per evidence": "Totale waarde volgens bewijs",
+  "Your records changed meanwhile. The draft was prepared again; please check it.":
+    "Je gegevens zijn intussen gewijzigd. Het concept is opnieuw opgesteld; controleer het.",
+});
+Object.assign(dictionaries.es, {
+  "Choose the valuation method": "Elige el método de valoración",
+  "FIFO values stock in the order it arrived. Specific selection is only offered for items tracked by serial or lot.":
+    "FIFO valora el stock en el orden de llegada. La selección específica solo se ofrece para artículos con número de serie o lote.",
+  "Your company is not recorded as a business partner":
+    "Tu empresa no está registrada como socio comercial",
+  "Record your own company as a business partner with the role company in master data, so the stock has an owner.":
+    "Registra en los datos maestros tu propia empresa como socio comercial con el rol «empresa», para que el stock tenga propietario.",
+  "A receipt's cost is not confirmed yet":
+    "El coste de una entrada de mercancía aún no está confirmado",
+  "Confirm the cost of this receipt first; then prepare the item's cost review again.":
+    "Confirma primero el coste de esta entrada y prepara después de nuevo la revisión de costes del artículo.",
+  "The opening stock has no stated acquisition value":
+    "El stock inicial no indica un valor de adquisición",
+  "Correct the opening stock and record it again with the value its evidence states, such as an inventory list.":
+    "Corrige el stock inicial y regístralo de nuevo con el valor que indica su justificante, como un listado de inventario.",
+  "A stock movement needs a person's decision": "Un movimiento de stock necesita una decisión",
+  "This movement cannot be assigned automatically. Check it before the cost review can be prepared.":
+    "Este movimiento no se puede asignar automáticamente. Revísalo antes de preparar la revisión de costes.",
+  "It is unclear who owns this stock": "No está claro a quién pertenece este stock",
+  "No evidence shows who owns the goods of this receipt. Check the receipt and its supplier invoice.":
+    "Ningún justificante muestra a quién pertenece la mercancía de esta entrada. Revisa la entrada y su factura de proveedor.",
+  "A customer return cannot be traced to its shipment":
+    "Una devolución de cliente no se puede vincular a su envío",
+  "The return does not say which shipment it came from, so its cost cannot be restored automatically.":
+    "La devolución no indica de qué envío procede, así que su coste no se puede restituir automáticamente.",
+  "Too many movements for one cost review": "Demasiados movimientos para una revisión de costes",
+  "This item has more stock movements or receipts than one review can cover.":
+    "Este artículo tiene más movimientos o entradas de los que puede cubrir una revisión.",
+  "An earlier step is still open": "Un paso anterior sigue abierto",
+  "Complete the step named in the cost explanation first.":
+    "Completa primero el paso que indica la explicación de costes.",
+  "The costs use more than one currency": "Los costes usan más de una moneda",
+  "Receipts or openings of this item state different currencies. One review covers one currency.":
+    "Las entradas o stocks iniciales de este artículo indican monedas distintas. Una revisión cubre una moneda.",
+  "This item has no stock movements yet": "Este artículo aún no tiene movimientos de stock",
+  "A cost review needs at least one receipt or opening stock.":
+    "Una revisión de costes necesita al menos una entrada o un stock inicial.",
+  "The data changed while it was read": "Los datos cambiaron mientras se leían",
+  "Try again in a moment.": "Vuelve a intentarlo en un momento.",
+  "An exact stock layer must be chosen": "Hay que elegir una capa de stock exacta",
+  "Supplier returns and specific selection need a person to choose which receipt the goods came from.":
+    "En devoluciones a proveedor y selección específica alguien debe elegir de qué entrada procede la mercancía.",
+  "Prepare with Reality instead": "Preparar con Reality en su lugar",
+  Receipts: "Entradas",
+  "Customer returns": "Devoluciones de clientes",
+  "Supplier returns": "Devoluciones a proveedores",
+  "Stock adjustments": "Ajustes de stock",
+  Transfers: "Traslados",
+  Other: "Otros",
+  "FIFO (first in, first out)": "FIFO (primero en entrar, primero en salir)",
+  "Specific selection": "Selección específica",
+  "Acquisition value (optional)": "Valor de adquisición (opcional)",
+  "DB1 after confirmation": "MC1 tras la confirmación",
+  "Enter the total value exactly as your evidence states it, for example an inventory list. It is needed for the cost review.":
+    "Indica el valor total exactamente como lo refleja tu justificante, por ejemplo un listado de inventario. Se necesita para la revisión de costes.",
+  "Opening stock value per evidence": "Valor del stock inicial según justificante",
+  "Prepare review": "Preparar revisión",
+  "Propose for confirmation": "Proponer para confirmación",
+  "Reality drafted this review from your records. A company owner confirms it afterwards.":
+    "Reality ha preparado esta revisión a partir de tus datos. Después la confirma un propietario.",
+  "Still needed": "Aún necesario",
+  "Stock movements covered": "Movimientos de stock incluidos",
+  "Total value per evidence": "Valor total según justificante",
+  "Your records changed meanwhile. The draft was prepared again; please check it.":
+    "Tus datos han cambiado mientras tanto. El borrador se ha preparado de nuevo; revísalo.",
+});
+
+// Spec 282: movement class label.
+Object.assign(dictionaries.de, {
+  "Goods issues": "Warenausgänge",
+});
+Object.assign(dictionaries.nl, {
+  "Goods issues": "Uitleveringen",
+});
+Object.assign(dictionaries.es, {
+  "Goods issues": "Salidas de mercancía",
+});

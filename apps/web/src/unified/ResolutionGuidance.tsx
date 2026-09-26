@@ -1,9 +1,10 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { CheckCircle2, Circle, CircleDot } from "lucide-react";
 import { recordsChanged, type ResolutionGuidance as Guidance } from "../api";
 import { t } from "../localization";
 import { useActionDiscovery } from "./ActionLauncher";
 import { isActionForm } from "./actionDiscovery";
+import { CostReviewDraftDialog } from "./CostReviewDraftDialog";
 import { prepareChat, reasonText, stepBarrier } from "./guidanceActions";
 import type { Destination } from "./routing";
 import { paletteActionPrefill, type PaletteActionTarget } from "./commandPaletteTargets";
@@ -16,15 +17,19 @@ import { paletteActionPrefill, type PaletteActionTarget } from "./commandPalette
 export function ResolutionGuidance({
   guidance,
   scopeLabel,
+  scope,
   refresh,
 }: {
   guidance: Guidance;
   /** Names the scope in a prepared chat request, e.g. "Bike Light (BIKE-LIGHT)". */
   scopeLabel: string;
+  /** Spec 282: the cost scope a drafted review is prepared for. */
+  scope?: { kind: "inventory" | "contribution"; id: string };
   /** Re-read the service after any write, so a step is never marked done locally. */
   refresh?: () => void;
 }) {
   const context = useActionDiscovery();
+  const [drafting, setDrafting] = useState(false);
   const catalog = context?.data?.resolution_guidance;
   const reread = useRef(refresh);
   reread.current = refresh;
@@ -82,6 +87,7 @@ export function ResolutionGuidance({
                         proposal={step.proposal_id}
                         scopeLabel={scopeLabel}
                         primary={emphasized}
+                        openDraft={scope ? () => setDrafting(true) : undefined}
                       />
                       {entry.alternative && (
                         <StepControl
@@ -98,6 +104,14 @@ export function ResolutionGuidance({
           })}
         </ol>
       )}
+      {drafting && scope && context && (
+        <CostReviewDraftDialog
+          tenant={context.tenant}
+          kind={scope.kind}
+          scopeId={scope.id}
+          close={() => setDrafting(false)}
+        />
+      )}
     </div>
   );
 }
@@ -109,6 +123,7 @@ function StepControl({
   primary = false,
   label,
   prefill,
+  openDraft,
 }: {
   action: { path: string; form?: string; page?: string; chat_prompt?: string };
   proposal?: string;
@@ -117,6 +132,8 @@ function StepControl({
   label?: string;
   /** Record the form may preselect; only fields the form accepts pass through. */
   prefill?: PaletteActionTarget;
+  /** Opens the drafted review (spec 282) for the host's cost scope. */
+  openDraft?: () => void;
 }) {
   const context = useActionDiscovery();
   if (!context) return null;
@@ -126,6 +143,8 @@ function StepControl({
       {label || text}
     </button>
   );
+  if (action.path === "review_draft" && openDraft)
+    return button(t("Prepare review"), openDraft, action.path);
   const form = action.form || "";
   if (action.path === "web_form" && isActionForm(form))
     return button(
