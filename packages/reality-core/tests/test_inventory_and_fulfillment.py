@@ -1,3 +1,4 @@
+import json
 from decimal import Decimal
 
 import pytest
@@ -5,6 +6,7 @@ import pytest
 from reality.services.core import (
     InvalidOperation,
     active_reserved,
+    business_events,
     cancel_commitment,
     create_commitment,
     create_location,
@@ -137,6 +139,76 @@ def test_supplier_receipts_drive_stock_and_incoming_open_quantity(session, busin
     assert row["projected"] == Decimal("20.0000")
 
 
+def test_shipment_consumes_only_the_reservation_at_its_own_location(session, business):
+    """FR-006/FR-004: a shipment from another warehouse consumes nothing held here.
+
+    What it leaves reserved here beyond the open quantity is released, not consumed.
+    """
+    second = create_location(session, business.tenant.id, "Munich Warehouse")
+    for location, quantity in ((business.location, 12), (second, 8)):
+        record_movement(
+            session,
+            business.tenant.id,
+            "opening_stock",
+            business.item.id,
+            quantity,
+            to_location_id=location.id,
+        )
+    commitment = customer_commitment(session, business, 12)
+    reserve(session, business.tenant.id, commitment.id)
+
+    def ship(location, quantity):
+        record_movement(
+            session,
+            business.tenant.id,
+            "shipment",
+            business.item.id,
+            quantity,
+            from_location_id=location.id,
+            commitment_id=commitment.id,
+        )
+
+    def reservation_events(after):
+        return [
+            (event.event_type, json.loads(event.payload))
+            for event in business_events(
+                session, business.tenant.id, after_sequence=after
+            )
+            if event.event_type.startswith("reservation.")
+        ]
+
+    def last_sequence():
+        return business_events(session, business.tenant.id)[-1].sequence
+
+    before_here = last_sequence()
+    ship(business.location, 6)
+    here = reservation_events(before_here)
+    assert [(kind, payload.get("cause")) for kind, payload in here] == [
+        ("reservation.consumed", "shipment"),
+        ("reservation.created", "shipment_remainder"),
+    ]
+    assert Decimal(here[0][1]["consumed_quantity"]) == Decimal(6)
+
+    before_elsewhere = last_sequence()
+    ship(second, 4)
+    elsewhere = reservation_events(before_elsewhere)
+    assert all(kind != "reservation.consumed" for kind, _ in elsewhere)
+    assert [(kind, payload.get("cause")) for kind, payload in elsewhere] == [
+        ("reservation.released", "shipped_from_another_location"),
+        ("reservation.created", "shipped_from_another_location"),
+    ]
+    assert open_quantity(session, business.tenant.id, commitment.id) == Decimal(2)
+    assert active_reserved(
+        session, business.tenant.id, business.item.id, business.location.id
+    ) == Decimal(2)
+    assert stock_at(
+        session, business.tenant.id, business.item.id, business.location.id
+    ) == Decimal(6)
+    assert stock_at(
+        session, business.tenant.id, business.item.id, second.id
+    ) == Decimal(4)
+
+
 def test_cancel_preserves_commitment_and_releases_allocation(session, business):
     record_movement(
         session,
@@ -149,7 +221,9 @@ def test_cancel_preserves_commitment_and_releases_allocation(session, business):
     commitment = customer_commitment(session, business, 5)
     reserve(session, business.tenant.id, commitment.id)
 
-    cancel_commitment(session, business.tenant.id, commitment.id, reason="Test cancellation")
+    cancel_commitment(
+        session, business.tenant.id, commitment.id, reason="Test cancellation"
+    )
 
     assert commitment.status == "cancelled"
     assert active_reserved(session, business.tenant.id, business.item.id) == 0
